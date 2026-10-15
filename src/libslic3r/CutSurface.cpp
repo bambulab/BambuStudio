@@ -2590,7 +2590,7 @@ bool priv::clip_cut(SurfacePatch &cut, CutMesh clipper)
     } catch (const std::exception &e) {
         // Degenerated input (e.g. intersecting constraints inside CDT) makes CGAL throw.
         // Keep the patch unclipped instead of crashing the whole job.
-        BOOST_LOG_TRIVIAL(warning) << "clip_cut: CGAL clip failed: " << e.what();
+        BOOST_LOG_TRIVIAL(warning) << "CGAL clip failed: " << e.what();
         cut.mesh = backup_copy;
         return false;
     }

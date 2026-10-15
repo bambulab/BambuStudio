@@ -1750,7 +1750,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             try {
                 if (boost::filesystem::exists(model.get_backup_path() + "/origin.txt"))
                     load_string_file(model.get_backup_path() + "/origin.txt", m_origin_file);
-            } catch (...) {}
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
             save_string_file(
                 model.get_backup_path() + "/lock.txt",
                 boost::lexical_cast<std::string>(get_current_pid()));
@@ -5204,6 +5206,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 sw.level = atoi(lvl_str.c_str());
             }
             catch(...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             };
 
             m_curr_plater->warnings.push_back(sw);
@@ -5611,7 +5614,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         //add the shared mesh logic
                         shared_mesh_id = ::atoi(metadata.value.c_str());
                         found_count++;
-                        BOOST_LOG_TRIVIAL(info) << boost::format("line %1%, shared_mesh_id %2%")%__LINE__%shared_mesh_id;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("shared_mesh_id %1%")%shared_mesh_id;
                     }
 
                     if (found_count >= 2)
@@ -5625,12 +5628,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             ModelVolume* volume = nullptr;
             ModelVolume *shared_volume = nullptr;
-            BOOST_LOG_TRIVIAL(debug) << boost::format("line %1%, subobject_id %2%, shared_mesh_id %3%")%__LINE__ %sub_object->id %shared_mesh_id;
+            BOOST_LOG_TRIVIAL(debug) << boost::format("subobject_id %1%, shared_mesh_id %2%")%sub_object->id %shared_mesh_id;
             if (shared_mesh_id != -1) {
                 std::map<int, ModelVolume*>::iterator iter = m_shared_meshes.find(shared_mesh_id);
                 if (iter != m_shared_meshes.end()) {
                     shared_volume = iter->second;
-                    BOOST_LOG_TRIVIAL(info) << boost::format("line %1%, found shared mesh, id %2%, mesh %3%")%__LINE__%shared_mesh_id%shared_volume;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("found shared mesh, id %1%, mesh %2%")%shared_mesh_id%shared_volume;
                 }
             }
             else {
@@ -5638,7 +5641,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 std::map<int, ModelVolume*>::iterator iter = m_shared_meshes.find(sub_object->id);
                 if (iter != m_shared_meshes.end()) {
                     shared_volume = iter->second;
-                    BOOST_LOG_TRIVIAL(info) << boost::format("line %1%, already loaded copy-share mesh before, id %2%, mesh %3%")%__LINE__%sub_object->id%shared_volume;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("already loaded copy-share mesh before, id %1%, mesh %2%")%sub_object->id%shared_volume;
                 }
             }
 
@@ -5707,7 +5710,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             else {
                 //create volume to use shared mesh
                 volume = object.add_volume_with_shared_mesh(*shared_volume);
-                BOOST_LOG_TRIVIAL(info) << boost::format("line %1%, create volume using shared_mesh %2%")%__LINE__%shared_volume;
+                BOOST_LOG_TRIVIAL(info) << boost::format("create volume using shared_mesh %1%")%shared_volume;
             }
             // stores the volume matrix taken from the metadata, if present
             if (has_transform)
@@ -9619,7 +9622,7 @@ public:
     }
 
     void remove_backup(Model& model, bool removeAll) {
-        BOOST_LOG_TRIVIAL(info) << "remove_backup " << PathSanitizer::sanitize(model.get_backup_path()) << ", " << removeAll;
+        BOOST_LOG_TRIVIAL(info) << PathSanitizer::sanitize(model.get_backup_path()) << ", " << removeAll;
         std::deque<Task>   canceled_tasks;
         boost::unique_lock lock(m_mutex);
         if (removeAll && model.is_need_backup()) {
@@ -9656,7 +9659,7 @@ public:
 
     void put_other_changes()
     {
-        BOOST_LOG_TRIVIAL(info) << "put_other_changes";
+        BOOST_LOG_TRIVIAL(info);
         m_other_changes        = true;
         m_other_changes_backup = true;
     }
@@ -9778,7 +9781,9 @@ private:
                     timer t("backup cost");
                     try {
                         if (callback) callback(1);
-                    } catch (...) {}
+                    } catch (...) {
+                        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                    }
                 }
                 m_other_changes_backup = false;
                 break;
@@ -9791,9 +9796,9 @@ private:
                     try {
                         boost::filesystem::remove(t.path + "/lock.txt");
                         boost::filesystem::remove_all(t.path);
-                        BOOST_LOG_TRIVIAL(info) << "process_ui_task: remove all of backup path " << PathSanitizer::sanitize(t.path);
+                        BOOST_LOG_TRIVIAL(info) << "remove all of backup path " << PathSanitizer::sanitize(t.path);
                     } catch (std::exception &ex) {
-                        BOOST_LOG_TRIVIAL(error) << "process_ui_task: failed to remove backup path" << PathSanitizer::sanitize(t.path) << ": " << ex.what();
+                        BOOST_LOG_TRIVIAL(error) << "failed to remove backup path" << PathSanitizer::sanitize(t.path) << ": " << ex.what();
                     }
                 }
                 break;
@@ -9806,7 +9811,7 @@ private:
                 // do it in response
                 break;
             case AddObject: {
-                BOOST_LOG_TRIVIAL(info) << "process_task" << t.to_string();
+                BOOST_LOG_TRIVIAL(info) << t.to_string();
                 {
                     CNumericLocalesSetter locales_setter;
                     _BBS_3MF_Exporter     e;
@@ -9816,14 +9821,14 @@ private:
                 break;
             }
             case RemoveObject: {
-                BOOST_LOG_TRIVIAL(info) << "process_task" << t.to_string();
+                BOOST_LOG_TRIVIAL(info) << t.to_string();
                 boost::system::error_code ec;
                 boost::filesystem::remove(t.path + "/mesh_" + boost::lexical_cast<std::string>(t.id) + ".xml", ec);
                 t.type = None;
                 break;
             }
             case RemoveBackup: {
-                BOOST_LOG_TRIVIAL(info) << "process_task" << t.to_string();
+                BOOST_LOG_TRIVIAL(info) << t.to_string();
                 try {
                     boost::system::error_code ec;
                     boost::filesystem::remove(t.path + "/.3mf", ec);
@@ -9831,7 +9836,9 @@ private:
                     boost::filesystem::remove_all(t.path + "/3D/Objects");
                     boost::filesystem::create_directory(t.path + "/3D/Objects");
                 }
-                catch (...) {}
+                catch (...) {
+                    BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                }
             }
         }
     }
@@ -10085,6 +10092,7 @@ bool has_restore_data(std::string & path, std::string& origin)
             }
         }
         catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             return false;
         }
     }
@@ -10096,6 +10104,7 @@ bool has_restore_data(std::string & path, std::string& origin)
             load_string_file(path + "/origin.txt", origin);
     }
     catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
     }
     path = file3mf;
     return true;

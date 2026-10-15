@@ -604,7 +604,7 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
     m_is_online(false),
     printer_type(DevPrinterConfigUtil::get_model_id_by_dev_id(id))
 {
-    BOOST_LOG_TRIVIAL(info) << "called for dev_id=" << BBLCrossTalk::Crosstalk_DevId(id) << ", main_thread=" << wxThread::IsMain();
+    BOOST_LOG_TRIVIAL(info) << "called for " << KV(log_key::dev_id, id) << "main_thread=" << wxThread::IsMain();
     if (!wxThread::IsMain()) {
         assert(false && "critical warning");
         BOOST_LOG_TRIVIAL(error) << "called from other thread, callstack: " << boost::stacktrace::stacktrace();
@@ -675,7 +675,7 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
 
 MachineObject::~MachineObject()
 {
-    BOOST_LOG_TRIVIAL(info) << "called for dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id()) << ", main_thread=" << wxThread::IsMain();
+    BOOST_LOG_TRIVIAL(info) << "called for " << KV(log_key::dev_id, get_dev_id()) << "main_thread=" << wxThread::IsMain();
     if (!wxThread::IsMain()) {
         assert(false && "critical warning");
         BOOST_LOG_TRIVIAL(error) << "called from other thread, callstack: " << boost::stacktrace::stacktrace();
@@ -1381,15 +1381,15 @@ int MachineObject::command_request_push_all(bool request_now)
 
     if (diff.count() < REQUEST_PUSH_MIN_TIME) {
         if (request_now) {
-            BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all, dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
+            BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all " << KV(log_key::dev_id, get_dev_id());
             last_request_push = std::chrono::system_clock::now();
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all: send request too fast, dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
+            BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all: send request too fast " << KV(log_key::dev_id, get_dev_id());
             return -1;
         }
     } else {
-        BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all, dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
+        BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all " << KV(log_key::dev_id, get_dev_id());
         last_request_push = std::chrono::system_clock::now();
     }
 
@@ -1406,11 +1406,11 @@ int MachineObject::command_pushing(std::string cmd)
     auto curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_request_start);
     if (diff.count() < REQUEST_START_MIN_TIME) {
-        BOOST_LOG_TRIVIAL(trace) << "static: command_request_start: send request too fast, dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
+        BOOST_LOG_TRIVIAL(trace) << "static: command_request_start: send request too fast " << KV(log_key::dev_id, get_dev_id());
         return -1;
     }
     else {
-        BOOST_LOG_TRIVIAL(trace) << "static: command_request_start, dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
+        BOOST_LOG_TRIVIAL(trace) << "static: command_request_start " << KV(log_key::dev_id, get_dev_id());
         last_request_start = std::chrono::system_clock::now();
     }
 
@@ -1600,7 +1600,7 @@ int MachineObject::command_dont_remind_next_time(json& mqtt_guard_json)
     }
 
     // 添加调试日志输出构建的 JSON
-    BOOST_LOG_TRIVIAL(debug) << "command_dont_remind_next_time JSON: " << j.dump(2);
+    BOOST_LOG_TRIVIAL(debug) << "JSON: " << j;
 
     return this->publish_json(j, 1);
 }
@@ -1635,7 +1635,9 @@ int MachineObject::command_set_bed(int temp)
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("printer_control", j.dump());
     }
-    catch (...) {}
+    catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     return this->publish_gcode(gcode_str);
 }
@@ -1651,7 +1653,9 @@ int MachineObject::command_set_nozzle(int temp)
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("printer_control", j.dump());
     }
-    catch (...) {}
+    catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return this->publish_gcode(gcode_str);
 }
 
@@ -1717,7 +1721,9 @@ int MachineObject::command_ams_change_filament(bool load, std::string ams_id, st
             j["print"]["extruder_id"] = *extruder_id;
         }
 
-    } catch (const std::exception &) {}
+    } catch (const std::exception &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return this->publish_json(j);
 }
 
@@ -1748,7 +1754,9 @@ int MachineObject::command_multi_slot_ams_change_filament(bool is_load, const st
             arr.push_back({{"ams_id", ams_id}, {"slot_id", encoded_slot_id}});
         }
         j["print"]["request_array"] = arr;
-    } catch (const std::exception&) {}
+    } catch (const std::exception&) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return this->publish_json(j);
 }
 
@@ -1912,8 +1920,8 @@ int MachineObject::command_ams_drying_stop()
 
 int MachineObject::command_start_extrusion_cali(int tray_index, int nozzle_temp, int bed_temp, float max_volumetric_speed, std::string setting_id)
 {
-    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali: tray_id = " << tray_index << ", nozzle_temp = " << nozzle_temp << ", bed_temp = " << bed_temp
-                            << ", max_volumetric_speed = " << max_volumetric_speed;
+    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali: " << KV(log_key::tray_id, tray_index) << "nozzle_temp = " << nozzle_temp << ", bed_temp = "
+                             << bed_temp << ", max_volumetric_speed = " << max_volumetric_speed;
 
     json j;
     j["print"]["command"] = "extrusion_cali";
@@ -2090,7 +2098,9 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, in
         js["printer_type"]    = this->printer_type;
         NetworkAgent *agent   = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("cali", js.dump());
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     return this->publish_json(j);
 }
@@ -2254,7 +2264,9 @@ int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& cal
             js["printer_type"]    = this->printer_type;
             NetworkAgent *agent = GUI::wxGetApp().getAgent();
             if (agent) agent->track_event("cali", js.dump());
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
 
         return this->publish_json(j);
     }
@@ -2478,14 +2490,14 @@ bool MachineObject::is_printing_finished()
 
 void MachineObject::reset_update_time()
 {
-    BOOST_LOG_TRIVIAL(trace) << "reset reset_update_time, dev_id =" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
+    BOOST_LOG_TRIVIAL(trace) << "reset reset_update_time " << KV(log_key::dev_id, get_dev_id());
     last_update_time = std::chrono::system_clock::now();
     subscribe_counter = SUBSCRIBE_RETRY_COUNT;
 }
 
 void MachineObject::reset()
 {
-    BOOST_LOG_TRIVIAL(trace) << "reset dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
+    BOOST_LOG_TRIVIAL(trace) << "reset " << KV(log_key::dev_id, get_dev_id());
     last_update_time = std::chrono::system_clock::now();
     subscribe_counter = SUBSCRIBE_RETRY_COUNT;
     m_push_count = 0;
@@ -2545,6 +2557,7 @@ int MachineObject::connect(bool use_openssl)
         try {
             return m_agent->connect_printer(get_dev_id(), get_dev_ip(), username, password, use_openssl);
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
     }
@@ -2564,7 +2577,7 @@ bool MachineObject::is_connected()
     std::chrono::system_clock::time_point curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_update_time);
     if (diff.count() > DISCONNECT_TIMEOUT) {
-        BOOST_LOG_TRIVIAL(trace) << "machine_object: dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id()) <<", diff count = " << diff.count();
+        BOOST_LOG_TRIVIAL(trace) << "machine_object: " << KV(log_key::dev_id, get_dev_id()) << "diff count = " << diff.count();
         return false;
     }
 
@@ -2602,11 +2615,8 @@ bool MachineObject::is_info_ready(bool check_version) const
         return true;
     }
 
-    BOOST_LOG_TRIVIAL(info)
-        << "not ready, m_full_msg_count=" << m_full_msg_count
-        << ", m_push_count=" << m_push_count
-        << ", diff.count()=" << diff.count()
-        << ", dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
+    BOOST_LOG_TRIVIAL(info) << "not ready, m_full_msg_count=" << m_full_msg_count << ", m_push_count=" << m_push_count << ", diff.count()="
+                            << diff.count() << " " << KV(log_key::dev_id, get_dev_id());
     return false;
 }
 
@@ -2643,9 +2653,9 @@ int MachineObject::publish_json(const json& json_item, int qos, int flag)
     }
 
     if (rtn == 0) {
-        BOOST_LOG_TRIVIAL(info) << "publish_json: " << BBLCrossTalk::Crosstalk_JsonLog(json_item) << " code: " << rtn;
+        BOOST_LOG_TRIVIAL(info) << json_item << " code: " << rtn;
     } else {
-        BOOST_LOG_TRIVIAL(error) << "publish_json: " << BBLCrossTalk::Crosstalk_JsonLog(json_item) << " code: " << rtn;
+        BOOST_LOG_TRIVIAL(error) << json_item << " code: " << rtn;
     }
 
     return rtn;
@@ -2725,7 +2735,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
         parse_ok = false;
         /* post process payload */
         sanitizeToUtf8(payload);
-        BOOST_LOG_TRIVIAL(info) << "parse_json: sanitize to utf8";
+        BOOST_LOG_TRIVIAL(info) << "sanitize to utf8";
     }
 
     try {
@@ -2743,7 +2753,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                 if (j_pre["print"]["command"].get<std::string>() == "push_status") {
                     if (j_pre["print"].contains("msg")) {
                         if (j_pre["print"]["msg"].get<int>() == 0) {           //all message
-                            BOOST_LOG_TRIVIAL(trace) << "static: get push_all msg, dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
+                            BOOST_LOG_TRIVIAL(trace) << "static: get push_all msg " << KV(log_key::dev_id, get_dev_id());
                             m_push_count++;
                             m_full_msg_count++;
 
@@ -2754,9 +2764,9 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             if (print_json.diff2all(j_pre, j) == 0) {
                                 restored_json = true;
                             } else {
-                                BOOST_LOG_TRIVIAL(trace) << "parse_json: restore failed! count = " << parse_msg_count;
+                                BOOST_LOG_TRIVIAL(trace) << "restore failed! count = " << parse_msg_count;
                                 if (print_json.is_need_request()) {
-                                    BOOST_LOG_TRIVIAL(trace) << "parse_json: need request pushall, count = " << parse_msg_count;
+                                    BOOST_LOG_TRIVIAL(trace) << "need request pushall, count = " << parse_msg_count;
                                     // request new push
                                     GUI::wxGetApp().CallAfter([this]{
                                         this->command_request_push_all();
@@ -2799,7 +2809,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     {
                         m_plate_index = std::stoi(j_pre["print"]["plate_idx"].get<std::string>());
                     }
-                    catch (...) { BOOST_LOG_TRIVIAL(error) << "parse_json: failed to convert plate_idx to int"; }
+                    catch (...) { BOOST_LOG_TRIVIAL(error) << "failed to convert plate_idx to int"; }
                 }
             }
         }
@@ -2909,7 +2919,9 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             m_agent->track_event("message_delay", j_message.dump());
                         }
                     }
-                    catch (...) {}
+                    catch (...) {
+                        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                    }
 
                     message_delay.clear();
                     message_delay.shrink_to_fit();
@@ -2923,13 +2935,14 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
         }
 
 #if !BBL_RELEASE_TO_PUBLIC
-        BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id()) << ", tunnel=" << tunnel << ", merged playload=" << BBLCrossTalk::Crosstalk_JsonLog(j);
+        BOOST_LOG_TRIVIAL(trace) << KV(log_key::dev_id, get_dev_id()) << "tunnel=" << tunnel << ", merged playload="
+                                 << j;
 #else
         if (Slic3r::get_logging_level() >= level_string_to_boost("trace")) {
-            BOOST_LOG_TRIVIAL(trace) << "dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id()) << ", origin playload=" << BBLCrossTalk::Crosstalk_JsonLog(j_pre);
+            BOOST_LOG_TRIVIAL(trace) << KV(log_key::dev_id, get_dev_id()) << "origin playload=" << j_pre;
         } else {
             if (j_pre.contains("print")) {
-                BOOST_LOG_TRIVIAL(info) << "dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id()) << ", print playload=" << BBLCrossTalk::Crosstalk_JsonLog(j_pre["print"]);
+                BOOST_LOG_TRIVIAL(info) << KV(log_key::dev_id, get_dev_id()) << "print playload=" << j_pre["print"];
             };
         }
 #endif
@@ -3001,14 +3014,16 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                 }
 
             }
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
 
         try {
             if (auto ptr = m_fila_system->GetAmsFirmwareSwitch().lock()) {
                 ptr->ParseFirmwareSwitch(j);
             }
         } catch (...) {
-            BOOST_LOG_TRIVIAL(error) << "parse_json: failed to parse firmware switch info";
+            BOOST_LOG_TRIVIAL(error) << "failed to parse firmware switch info";
         }
 
         if (j.contains("print")) {
@@ -3022,6 +3037,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         sequence_id = stoi(str_seq);
                     }
                     catch(...) {
+                        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                         ;
                     }
                 }
@@ -3351,6 +3367,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                 }
                             }
                         } catch (...) {
+                            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                             ;
                         }
                     }
@@ -3414,7 +3431,9 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                 try {
                                     this->gcode_file_prepare_percent = atoi(percent_str.c_str());
                                 }
-                                catch (...) {}
+                                catch (...) {
+                                    BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                                }
                             }
                         }
                     }
@@ -3438,6 +3457,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                         this->m_plate_index = plate_index;
                                     }
                                     catch (...) {
+                                        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                                         ;
                                     }
                                 }
@@ -3488,6 +3508,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             }
                         }
                         catch (...) {
+                            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                             ;
                         }
                     }
@@ -3512,6 +3533,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         }
                     }
                     catch (...) {
+                        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                         ;
                     }
 
@@ -3530,6 +3552,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             }
                         }
                         catch (...) {
+                            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                             ;
                         }
                     }
@@ -3545,6 +3568,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             }
                         }
                         catch (...) {
+                            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                             ;
                         }
                     }
@@ -3576,6 +3600,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         }
                     }
                     catch (...) {
+                        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                         ;
                     }
 #pragma endregion
@@ -3695,6 +3720,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             }
                         }
                         catch (...) {
+                            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                             ;
                         }
                     }
@@ -3717,6 +3743,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         DevCalib::ParseCalibVersion(jj, m_calib);
                     }
                     catch (...) {
+                        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                         ;
                     }
                     update_printer_preset_name();
@@ -3774,6 +3801,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             }
                         }
                         catch (...) {
+                            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                             ;
                         }
                     }
@@ -3781,7 +3809,9 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     /*parse new print data*/
                     try {
                         parse_new_info(jj);
-                    } catch (...) {}
+                    } catch (...) {
+                        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                    }
 #pragma endregion
                 } else if (jj["command"].get<std::string>() == "gcode_line") {
                     if (m_agent && DevUtil::is_studio_cmd(sequence_id)) {
@@ -3866,10 +3896,10 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                     // delay update
                                     tray_it->second->set_hold_count();
                                 } else {
-                                    BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in trayList, tray_id=" << tray_id;
+                                    BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in trayList " << KV(log_key::tray_id, tray_id);
                                 }
                             } else {
-                                BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in amsList, ams_id=" << ams_id;
+                                BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in amsList " << KV(log_key::ams_id, ams_id);
                             }
                         }
                     }
@@ -3937,7 +3967,9 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         }
                     }
                 }
-            } catch (...) {}
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
         }
 
         if (!key_field_only) {
@@ -3952,7 +3984,9 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                 std::string str_seq = j["upgrade"]["sequence_id"].get<std::string>();
                                 check_studio_cmd = DevUtil::is_studio_cmd(stoi(str_seq));
                             }
-                            catch (...) { }
+                            catch (...) {
+                                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                            }
                         }
 
                         if (check_studio_cmd && j["upgrade"].contains("err_code")) {
@@ -3964,6 +3998,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                 }
             }
             catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 ;
             }
         }
@@ -3979,24 +4014,26 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                 }
             }
         }
-        catch (...)  {}
+        catch (...)  {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
 
         if (!key_field_only) {
-            BOOST_LOG_TRIVIAL(trace) << "parse_json  m_active_state =" << m_active_state;
+            BOOST_LOG_TRIVIAL(trace) << "m_active_state =" << m_active_state;
             parse_state_changed_event();
         }
     }
     catch (const std::exception& e) {
         // Handle JSON parsing exceptions if necessary
-        BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id=" << BBLCrossTalk::Crosstalk_DevId(this->get_dev_id()) <<", ewhat = " << e.what();
+        BOOST_LOG_TRIVIAL(trace) << "failed! " << KV(log_key::dev_id, this->get_dev_id()) << "ewhat = " << e.what();
     } catch (...) {
-        BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id=" << BBLCrossTalk::Crosstalk_DevId(this->get_dev_id());
+        BOOST_LOG_TRIVIAL(trace) << "failed! " << KV(log_key::dev_id, this->get_dev_id());
     }
 
     std::chrono::system_clock::time_point clock_stop = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(clock_stop - clock_start);
     if (diff.count() > 10.0f) {
-        BOOST_LOG_TRIVIAL(trace) << "parse_json timeout = " << diff.count();
+        BOOST_LOG_TRIVIAL(trace) << "timeout = " << diff.count();
     }
 
     return 0;
@@ -4080,7 +4117,7 @@ void MachineObject::update_model_task()
 
     if ((!subtask_id_.empty() && last_subtask_id_ != subtask_id_) || get_model_mall_result_need_retry) {
         if (!subtask_id_.empty() && last_subtask_id_ != subtask_id_) {
-            BOOST_LOG_TRIVIAL(info) << "update_model_task: last=" << last_subtask_id_ << ", curr=" << subtask_id_;
+            BOOST_LOG_TRIVIAL(info) << "last=" << last_subtask_id_ << ", curr=" << subtask_id_;
             last_subtask_id_     = subtask_id_;
             request_model_result = 0;
         }
@@ -4149,8 +4186,8 @@ void MachineObject::update_model_task()
                 Slic3r::GUI::wxGetApp().CallAfter([this, token, rating_info]() {
                     if (!token.expired()) this->rating_info = rating_info;
                 });
-                BOOST_LOG_TRIVIAL(info) << "model mall result request failed, request time: " << request_model_result << " http_code: " << http_code
-                                        << " error msg: " << http_error;
+                BOOST_LOG_TRIVIAL(info) << "model mall result request failed, request time: " << request_model_result << " "
+                                        << KV(log_key::http_code, http_code) << "error msg: " << http_error;
                 return;
             }
         }
@@ -4261,7 +4298,7 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                                         }
 
                                         #if !BBL_RELEASE_TO_PUBLIC
-                                        BOOST_LOG_TRIVIAL(trace) << "task_info: thumbnail url=" << slice_info->thumbnail_url;
+                                        BOOST_LOG_TRIVIAL(trace) << "task_info: thumbnail " << KV(log_key::url, slice_info->thumbnail_url);
                                         #endif
                                     }
                                 }
@@ -4272,6 +4309,7 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                         }
                     }
                     catch (...) {
+                        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                     }
                 }
                 else {
@@ -4360,6 +4398,7 @@ void MachineObject::get_firmware_info()
                 }
             }
             catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 return;
             }
             m_firmware_thread_started = false;
@@ -4589,7 +4628,9 @@ std::optional<DevAmsTray> MachineObject::get_tray(int ams_id, int tray_id) const
 {
     try {
         return get_tray(std::to_string(ams_id), std::to_string(tray_id));
-    } catch (const std::exception&) {}
+    } catch (const std::exception&) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     return std::nullopt;
 }
@@ -4839,6 +4880,7 @@ int MachineObject::get_flag_bits(std::string str, int start, int count) const
         return flag;
     }
     catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0;
     }
 }
@@ -4919,12 +4961,15 @@ uint32_t MachineObject::get_flag_bits_no_border(std::string str, int start_idx, 
         return val;
     }
     catch (const std::invalid_argument&) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0;
     }
     catch (const std::out_of_range&) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0;
     }
     catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0;
     }
 }
@@ -4945,6 +4990,7 @@ int MachineObject::get_flag_bits(int num, int start, int count, int base) const
         int flag = (value >> start) & mask;
         return flag;
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0;
     }
 }
@@ -5090,13 +5136,13 @@ void MachineObject::check_ams_filament_valid()
                     char     col_buf[10];
                     sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
                     try {
-                        BOOST_LOG_TRIVIAL(info) << "ams settings_id is not exist in filament_list and reset, ams_id: " << ams_id << " tray_id"
-                                                << slot_id << "filament_id: " << curr_tray->setting_id;
+                        BOOST_LOG_TRIVIAL(info) << "ams settings_id is not exist in filament_list and reset " << KV(log_key::ams_id, ams_id)
+                                                << "tray_id" << slot_id << " " << KV(log_key::filament_id, curr_tray->setting_id);
 
                         command_ams_filament_settings(std::stoi(ams_id), std::stoi(slot_id), "", "", std::string(col_buf), "", 0, 0);
                         continue;
                     } catch (...) {
-                        BOOST_LOG_TRIVIAL(info) << "stoi error and ams_id: " << ams_id << " tray_id" << slot_id;
+                        BOOST_LOG_TRIVIAL(info) << "stoi error and " << KV(log_key::ams_id, ams_id) << "tray_id" << slot_id;
                     }
                 }
             }
@@ -5110,8 +5156,8 @@ void MachineObject::check_ams_filament_valid()
                                                                                                                                curr_tray->nozzle_temp_min,
                                                                                                                                curr_tray->nozzle_temp_max, preset_setting_id);
                         if (!is_equation) {
-                            BOOST_LOG_TRIVIAL(info) << "ams filament is not match min max temp and reset, ams_id: " << ams_id << " tray_id"
-                                                    << slot_id << "filament_id: " << curr_tray->setting_id;
+                            BOOST_LOG_TRIVIAL(info) << "ams filament is not match min max temp and reset " << KV(log_key::ams_id, ams_id) << "tray_id"
+                                                    << slot_id << " " << KV(log_key::filament_id, curr_tray->setting_id);
 
 
                             command_ams_filament_settings(std::stoi(ams_id), std::stoi(slot_id), curr_tray->setting_id, preset_setting_id, curr_tray->color, curr_tray->m_fila_type,
@@ -5173,8 +5219,8 @@ void MachineObject::check_ams_filament_valid()
                                                                                                                            vt_tray.tag_uid, vt_tray.nozzle_temp_min,
                                                                                                                            vt_tray.nozzle_temp_max, preset_setting_id);
                     if (!is_equation) {
-                        BOOST_LOG_TRIVIAL(info)
-                                                << "vt_tray filament is not match min max temp and reset, filament_id: " << vt_tray.setting_id;
+                        BOOST_LOG_TRIVIAL(info) << "vt_tray filament is not match min max temp and reset "
+                                                << KV(log_key::filament_id, vt_tray.setting_id);
                         command_ams_filament_settings(vt_id, 0, vt_tray.setting_id, preset_setting_id, vt_tray.color, vt_tray.m_fila_type, std::stoi(vt_tray.nozzle_temp_min),
                                                           std::stoi(vt_tray.nozzle_temp_max));
 

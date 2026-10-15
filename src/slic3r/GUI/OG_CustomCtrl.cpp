@@ -16,6 +16,7 @@
 #include "format.hpp"
 #include <slic3r/GUI/Widgets/Label.hpp>
 #include "Widgets/TextInput.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -1223,6 +1224,7 @@ void OG_CustomCtrl::CtrlLine::render_nozzle_mirrors(wxDC& dc, wxCoord h_pos, wxC
             return;
         }
     } catch (const boost::bad_any_cast&) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         dc.SetBrush(old_brush);
         dc.SetPen(old_pen);
         return;

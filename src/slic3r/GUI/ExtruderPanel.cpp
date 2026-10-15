@@ -1089,7 +1089,7 @@ void NozzleRackPanel::sync_ams(int                            extruder,
                                     << "tray_id = \"" << ext_info.ams_id << "\"";
             if (!ext_info.cans.empty()) {
                 const auto &can = ext_info.cans[0];
-                BOOST_LOG_TRIVIAL(info) << "  material_name = \"" << can.material_name.ToStdString() << "\""
+                BOOST_LOG_TRIVIAL(info) << "  material_name = \"" << can.material_name << "\""
                                         << ", colour = " << can.material_colour.GetAsString(2).ToStdString();
             }
         }

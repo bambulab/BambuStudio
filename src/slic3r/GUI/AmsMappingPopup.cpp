@@ -128,7 +128,7 @@ void MaterialItem::set_ams_info(wxColour col, wxString txt, int ctype, std::vect
         messure_size();
         Refresh();
     }
-    BOOST_LOG_TRIVIAL(info) << "set_ams_info " << m_ams_name;
+    BOOST_LOG_TRIVIAL(info) << m_ams_name;
 }
 
 void MaterialItem::set_nozzle_info(const wxString& mapped_nozzle_str)

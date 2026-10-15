@@ -86,6 +86,7 @@ nlohmann::json FilamentSpool::to_json() const
             try {
                 return DevFilaSystem::GetTrayNameByAmsSlotId(dev_id, ams_id, std::stoi(slot_id), (DevAmsType)ams_type);
             } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 return {};
             }
 
@@ -307,7 +308,9 @@ bool wgtFilaManagerStore::apply_patch(const std::string& spool_id, const nlohman
         if (!patch.contains(key)) return;
         const auto& v = patch.at(key);
         if (v.is_null()) return;
-        try { v.get_to(dst); } catch (...) {}
+        try { v.get_to(dst); } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
     };
     get_if("setting_id",      s.filament_id);
     get_if("brand",           s.brand);
@@ -445,7 +448,7 @@ bool wgtFilaManagerStore::force_mount_spool(const std::string& spool_id,
 {
     auto it = m_spools.find(spool_id);
     if (it == m_spools.end()) {
-        BOOST_LOG_TRIVIAL(warning) << "force_mount_spool: spool_id not found: " << spool_id;
+        BOOST_LOG_TRIVIAL(warning) << "spool_id not found: " << spool_id;
         return false;
     }
     FilamentSpool& s = it->second;

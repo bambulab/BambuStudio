@@ -169,19 +169,14 @@ void CalibrationCaliPage::update(MachineObject* obj)
     if (this->IsShown()) {
         if (obj) {
             if (obj->print_status != "RUNNING") {
-                BOOST_LOG_TRIVIAL(info) << "on_show_cali_page - machine object status:"
-                                        << " dev_id = " << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
-                                        << ", print_type = " << obj->printer_type
-                                        << ", printer_status = " << obj->print_status
-                                        << ", is_connected = " << obj->is_connected()
-                                        << ", m_is_between_start_and_running = " << m_is_between_start_and_running
-                                        << ", cali_finished = " << obj->GetCalib()->GetStashCalibFinished()
-                                        << ", cali_version = " << obj->GetCalib()->GetCalibVersion()
-                                        << ", cache_flow_ratio = " << obj->GetCalib()->GetStashFlowRatio()
-                                        << ", sub_task_name = " << obj->subtask_name
-                                        << ", gcode_file_name = " << obj->m_gcode_file
-                                        << ", get_pa_calib_result" << obj->GetCalib()->IsPAResultReady()
-                                        << ", get_flow_calib_result" << obj->GetCalib()->IsFlowRateReady();
+                BOOST_LOG_TRIVIAL(info) << "on_show_cali_page - machine object status: " << KV(log_key::dev_id, obj->get_dev_id()) << "print_type = "
+                                        << obj->printer_type << ", printer_status = " << obj->print_status << ", is_connected = "
+                                        << obj->is_connected() << ", m_is_between_start_and_running = " << m_is_between_start_and_running
+                                        << ", cali_finished = " << obj->GetCalib()->GetStashCalibFinished() << ", cali_version = "
+                                        << obj->GetCalib()->GetCalibVersion() << ", cache_flow_ratio = " << obj->GetCalib()->GetStashFlowRatio()
+                                        << ", sub_task_name = " << obj->subtask_name << ", gcode_file_name = " << obj->m_gcode_file
+                                        << ", get_pa_calib_result" << obj->GetCalib()->IsPAResultReady() << ", get_flow_calib_result"
+                                        << obj->GetCalib()->IsFlowRateReady();
             }
         }
         else {

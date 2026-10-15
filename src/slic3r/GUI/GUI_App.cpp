@@ -32,6 +32,9 @@
 #include <regex>
 #include <thread>
 #include <string_view>
+#ifdef __APPLE__
+#include <sys/sysctl.h>
+#endif
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
@@ -1547,7 +1550,7 @@ void GUI_App::on_macos_pending_pump(wxTimerEvent& WXUNUSED(evt))
 
 void GUI_App::shutdown()
 {
-    BOOST_LOG_TRIVIAL(info) << "GUI_App::shutdown enter";
+    BOOST_LOG_TRIVIAL(info) << "enter";
 
 	if (m_removable_drive_manager) {
 		removable_drive_manager()->shutdown();
@@ -1562,7 +1565,7 @@ void GUI_App::shutdown()
 
     if (m_is_recreating_gui) return;
     set_closing(true);
-    BOOST_LOG_TRIVIAL(info) << "GUI_App::shutdown exit";
+    BOOST_LOG_TRIVIAL(info) << "exit";
 }
 
 
@@ -1705,7 +1708,7 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
         current_headers["X-BBL-OS-Type"] = "windows_arm";
 
         Slic3r::Http::set_extra_headers(current_headers);
-        BOOST_LOG_TRIVIAL(info) << boost::format("download_plugin: set X-BBL-OS-Type to windows_arm");
+        BOOST_LOG_TRIVIAL(info) << boost::format("set X-BBL-OS-Type to windows_arm");
     }
 #endif
 
@@ -1773,7 +1776,7 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
         current_headers["X-BBL-OS-Type"] = "windows";
 
         Slic3r::Http::set_extra_headers(current_headers);
-        BOOST_LOG_TRIVIAL(info) << boost::format("download_plugin: set X-BBL-OS-Type back to windows");
+        BOOST_LOG_TRIVIAL(info) << boost::format("set X-BBL-OS-Type back to windows");
     }
 #endif
 
@@ -1804,7 +1807,7 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
     }
 
     if (m_networking_cancel_update || cancel) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("[download_plugin 1]: %1%, cancelled by user") % __LINE__;
+        BOOST_LOG_TRIVIAL(info) << boost::format("[download_plugin 1]: cancelled by user");
         j["result"] = "failed";
         j["error_msg"] = (boost::format("[download_plugin 1]: %1%, cancelled by user") % __LINE__).str();
         if (m_agent) {
@@ -1886,7 +1889,7 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
     }
 
     if (m_networking_cancel_update) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("[install_plugin]: %1%, cancelled by user")%__LINE__;
+        BOOST_LOG_TRIVIAL(info) << boost::format("[install_plugin]: cancelled by user");
         return -1;
     }
     if (pro_fn) {
@@ -1896,17 +1899,17 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
     if (!open_zip_reader(&archive, target_file_path)) {
-        BOOST_LOG_TRIVIAL(error) << boost::format("[install_plugin]: %1%, open zip file failed")%__LINE__;
+        BOOST_LOG_TRIVIAL(error) << boost::format("[install_plugin]: open zip file failed");
         if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
         return InstallStatusUnzipFailed;
     }
 
     mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
     mz_zip_archive_file_stat stat;
-    BOOST_LOG_TRIVIAL(error) << boost::format("[install_plugin]: %1%, got %2% files")%__LINE__ %num_entries;
+    BOOST_LOG_TRIVIAL(error) << boost::format("[install_plugin]: got %1% files")%num_entries;
     for (mz_uint i = 0; i < num_entries; i++) {
         if (m_networking_cancel_update || cancel) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("[install_plugin]: %1%, cancelled by user")%__LINE__;
+            BOOST_LOG_TRIVIAL(info) << boost::format("[install_plugin]: cancelled by user");
             return -1;
         }
         if (mz_zip_reader_file_stat(&archive, i, &stat)) {
@@ -1970,7 +1973,7 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
             }
         }
         else {
-            BOOST_LOG_TRIVIAL(error) << boost::format("[install_plugin]: %1%, mz_zip_reader_file_stat for file %2% failed")%__LINE__%i;
+            BOOST_LOG_TRIVIAL(error) << boost::format("[install_plugin]: mz_zip_reader_file_stat for file %1% failed")%i;
         }
     }
 
@@ -2584,6 +2587,7 @@ static LogEncOptions s_get_log_enc_opts()
             }
         }
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         assert(0 && "get_value_from_config failed");
     }// there are file errors
 
@@ -2665,11 +2669,11 @@ void GUI_App::init_app_config()
 #if defined(__WINDOWS__)
             // Change current dirtory of application
             if (_chdir(encode_path((data_dir + "/log").c_str()).c_str()) != 0) {
-                printf("%s, warning: chdir to log folder failed: %s\n", __FUNCTION__, (data_dir + "/log").c_str());
+                // Logging is not set up yet, so there is nowhere to report this; the working directory stays as it was.
             }
 #else
             if (chdir(encode_path((data_dir + "/log").c_str()).c_str()) != 0) {
-                printf("%s, warning: chdir to log folder failed: %s\n", __FUNCTION__, (data_dir + "/log").c_str());
+                // Logging is not set up yet, so there is nowhere to report this; the working directory stays as it was.
             }
 #endif
     } else {
@@ -2803,7 +2807,7 @@ void GUI_App::on_start_subscribe_again(std::string dev_id)
 
         if ( (dev_id == obj->get_dev_id()) && obj->is_connecting() && obj->subscribe_counter > 0) {
             obj->subscribe_counter--;
-            BOOST_LOG_TRIVIAL(info) << "dev_id=" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id());
+            BOOST_LOG_TRIVIAL(info) << KV(log_key::dev_id, obj->get_dev_id());
         }
     });
     start_subscribe_timer->Start(5000, wxTIMER_ONE_SHOT);
@@ -2838,7 +2842,7 @@ void GUI_App::init_single_instance_checker(const std::string &name, const std::s
 #ifdef __APPLE__
 void GUI_App::MacPowerCallBack(void* refcon, io_service_t service, natural_t messageType, void * messageArgument)
 {
-    BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack messageType:" << messageType;
+    BOOST_LOG_TRIVIAL(info) << "messageType:" << messageType;
 
     DeviceManager* dev_manager = wxGetApp().getDeviceManager();
 
@@ -2849,7 +2853,7 @@ void GUI_App::MacPowerCallBack(void* refcon, io_service_t service, natural_t mes
         {
             MachineObject* obj = dev_manager->get_selected_machine();
             last_selected_machine = obj ? obj->get_dev_id() : "";
-            BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack save selected machine:" << BBLCrossTalk::Crosstalk_DevId(last_selected_machine);
+            BOOST_LOG_TRIVIAL(info) << "save selected machine: " << KV(log_key::dev_id, last_selected_machine);
         }
 
         IOAllowPowerChange(service, (long) messageArgument);
@@ -2859,7 +2863,7 @@ void GUI_App::MacPowerCallBack(void* refcon, io_service_t service, natural_t mes
         if (dev_manager && !last_selected_machine.empty())
         {
             dev_manager->set_selected_machine(last_selected_machine);
-            BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack restore selected machine:" << BBLCrossTalk::Crosstalk_DevId(last_selected_machine);
+            BOOST_LOG_TRIVIAL(info) << "restore selected machine: " << KV(log_key::dev_id, last_selected_machine);
         }
 
         // After wake, force a re-layout of the main frame on the UI thread.
@@ -2885,13 +2889,13 @@ void GUI_App::RegisterMacPowerCallBack()
     m_mac_io_service = IORegisterForSystemPower(m_mac_refcon, &m_mac_io_notify_port, MacPowerCallBack, &m_mac_io_obj);
     if (m_mac_io_service == 0)
     {
-        BOOST_LOG_TRIVIAL(error) << "RegisterMacPowerCallBack failed";
+        BOOST_LOG_TRIVIAL(error) << "failed";
         return;
     }
 
     CFRunLoopAddSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(m_mac_io_notify_port), kCFRunLoopCommonModes);
     m_mac_powercallback_registered = true;
-    BOOST_LOG_TRIVIAL(error) << "RegisterMacPowerCallBack success";
+    BOOST_LOG_TRIVIAL(error) << "success";
 }
 
 void GUI_App::UnRegisterMacPowerCallBack()
@@ -2903,7 +2907,7 @@ void GUI_App::UnRegisterMacPowerCallBack()
         IOServiceClose(m_mac_io_service);
         IONotificationPortDestroy(m_mac_io_notify_port);
         m_mac_powercallback_registered = false;
-        BOOST_LOG_TRIVIAL(info) << "UnRegisterMacPowerCallBack";
+        BOOST_LOG_TRIVIAL(info);
     }
 }
 #endif
@@ -2917,7 +2921,7 @@ bool GUI_App::OnInit()
     try {
         return on_init_inner();
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(fatal) << "OnInit Got Fatal error: " << e.what();
+        BOOST_LOG_TRIVIAL(fatal) << "Got Fatal error: " << e.what();
         generic_exception_handle();
         return false;
     }
@@ -2965,7 +2969,7 @@ int GUI_App::OnExit()
     }
 
     if (m_device_manager) {
-        BOOST_LOG_TRIVIAL(warning) << "OnExit: deleting m_device_manager (is_closing=" << is_closing() << ")";
+        BOOST_LOG_TRIVIAL(warning) << "deleting m_device_manager (is_closing=" << is_closing() << ")";
         delete m_device_manager;
         m_device_manager = nullptr;
     }
@@ -3121,6 +3125,34 @@ static void init_live_view_track_context(AppConfig* app_config)
     ctx.init_session(session);
 }
 
+// Processor model as reported by the system, or an empty string when it cannot be read.
+static std::string get_cpu_model()
+{
+    std::string model;
+#if defined(_WIN32)
+    char  buf[256] = "";
+    DWORD size     = sizeof(buf);
+    if (RegGetValueA(HKEY_LOCAL_MACHINE, "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", "ProcessorNameString",
+                     RRF_RT_REG_SZ, nullptr, buf, &size) == ERROR_SUCCESS)
+        model = buf;
+#elif defined(__APPLE__)
+    char   buf[256] = "";
+    size_t size     = sizeof(buf);
+    if (sysctlbyname("machdep.cpu.brand_string", buf, &size, nullptr, 0) == 0)
+        model = buf;
+#else
+    boost::nowide::ifstream cpuinfo("/proc/cpuinfo");
+    for (std::string line; std::getline(cpuinfo, line);)
+        if (boost::starts_with(line, "model name")) {
+            if (const auto colon = line.find(':'); colon != std::string::npos)
+                model = line.substr(colon + 1);
+            break;
+        }
+#endif
+    boost::algorithm::trim(model);
+    return model;
+}
+
 std::string get_system_info()
 {
     std::stringstream out;
@@ -3139,7 +3171,9 @@ std::string get_system_info()
         "System Version:      "
 #endif
         << b_end << wxPlatformInfo::Get().GetOperatingSystemDescription() << line_end;
-    out << b_start << "Total RAM size [MB]: " << b_end << Slic3r::format_memsize_MB(Slic3r::total_physical_memory());
+    out << b_start << "Total RAM size [MB]: " << b_end << Slic3r::format_memsize_MB(Slic3r::total_physical_memory()) << line_end;
+    out << b_start << "CPU Model:           " << b_end << get_cpu_model() << line_end;
+    out << b_start << "CPU Cores:           " << b_end << std::thread::hardware_concurrency();
 
     return out.str();
 }
@@ -3218,15 +3252,15 @@ bool GUI_App::on_init_inner()
 
 #ifdef __linux__
     if (! check_old_linux_datadir(GetAppName())) {
-        std::cerr << "Quitting, user chose to move their data to new location." << std::endl;
+        BOOST_LOG_TRIVIAL(info) << "Quitting, user chose to move their data to new location.";
         return false;
     }
 #endif
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("gui mode, Current BambuStudio Version %1%")%SLIC3R_VERSION << ", BuildTime " << SLIC3R_BUILD_TIME;
+    BOOST_LOG_TRIVIAL(info) << "gui mode " << KV(log_key::app_version, SLIC3R_VERSION) << KV(log_key::build_time, SLIC3R_BUILD_TIME);
 
 #if !BBL_RELEASE_TO_PUBLIC
-    BOOST_LOG_TRIVIAL(info) << boost::format("Build Version %1%")%SLIC3R_COMPILE_VERSION;
+    BOOST_LOG_TRIVIAL(info) << KV(log_key::build_commit, SLIC3R_COMPILE_VERSION);
 #endif
 
     BOOST_LOG_TRIVIAL(info) << get_system_info();
@@ -3850,9 +3884,9 @@ bool GUI_App::on_init_network(bool try_backup)
     bool create_network_agent = false;
 __retry:
     if (!load_agent_dll) {
-        BOOST_LOG_TRIVIAL(info) << "on_init_network, load dll ok";
+        BOOST_LOG_TRIVIAL(info) << "load dll ok";
         if (check_networking_version()) {
-            BOOST_LOG_TRIVIAL(info) << "on_init_network, compatibility version";
+            BOOST_LOG_TRIVIAL(info) << "compatibility version";
             auto bambu_source = Slic3r::NetworkAgent::get_bambu_source_entry();
             if (!bambu_source) {
                 BOOST_LOG_TRIVIAL(info) << "can not get bambu source module!";
@@ -3866,20 +3900,20 @@ __retry:
         } else {
             if (try_backup) {
                 int result = Slic3r::NetworkAgent::unload_network_module();
-                BOOST_LOG_TRIVIAL(info) << "on_init_network, version mismatch, unload_network_module, result = " << result;
+                BOOST_LOG_TRIVIAL(info) << "version mismatch, unload_network_module, result = " << result;
                 load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(true, !app_config->get_bool("ignore_module_cert"));
                 try_backup = false;
                 goto __retry;
             }
-            BOOST_LOG_TRIVIAL(info) << "on_init_network, version dismatch, need upload network module";
+            BOOST_LOG_TRIVIAL(info) << "version dismatch, need upload network module";
             if (app_config->get("installed_networking") == "1") {
                 m_networking_need_update = true;
             }
         }
     } else {
-        BOOST_LOG_TRIVIAL(info) << "on_init_network, load dll failed";
+        BOOST_LOG_TRIVIAL(info) << "load dll failed";
         if (app_config->get("installed_networking") == "1") {
-            BOOST_LOG_TRIVIAL(info) << "on_init_network, need upload network module";
+            BOOST_LOG_TRIVIAL(info) << "need upload network module";
             m_networking_need_update = true;
         }
     }
@@ -3940,7 +3974,7 @@ __retry:
     }
     else {
         int result = Slic3r::NetworkAgent::unload_network_module();
-        BOOST_LOG_TRIVIAL(info) << "on_init_network, unload_network_module, result = " << result;
+        BOOST_LOG_TRIVIAL(info) << "unload_network_module, result = " << result;
 
         if (!m_device_manager)
             m_device_manager = new Slic3r::DeviceManager();
@@ -4410,7 +4444,7 @@ void release_window_pools();
 
 void GUI_App::recreate_GUI(const wxString &msg_name)
 {
-    BOOST_LOG_TRIVIAL(info) << "recreate_GUI enter";
+    BOOST_LOG_TRIVIAL(info) << "enter";
     m_is_recreating_gui = true;
 
 #if defined(__WXOSX__)
@@ -4492,7 +4526,7 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
         m_macos_pending_pump_timer.Start(30);
 #endif
 
-    BOOST_LOG_TRIVIAL(info) << "recreate_GUI exit";
+    BOOST_LOG_TRIVIAL(info) << "exit";
 }
 
 void GUI_App::system_info()
@@ -4523,6 +4557,7 @@ void GUI_App::ShowUserGuide() {
             // BBS: remove SLA related message
         }
     } catch (std::exception &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         // wxMessageBox(e.what(), "", MB_OK);
     }
 }
@@ -4538,6 +4573,7 @@ void GUI_App::ShowDownNetPluginDlg(bool post_login)
         DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"), post_login);
         dlg.ShowModal();
     } catch (std::exception &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         ;
     }
 }
@@ -4555,6 +4591,7 @@ void GUI_App::ShowUserLogin(bool show)
             }
             login_dlg->ShowModal();
         } catch (std::exception &) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
     } else {
@@ -4578,6 +4615,7 @@ void GUI_App::ShowOnlyFilament() {
             // BBS: remove SLA related message
         }
     } catch (std::exception &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         // wxMessageBox(e.what(), "", MB_OK);
     }
 }
@@ -4998,7 +5036,7 @@ int GUI_App::request_user_unbind(std::string dev_id)
     int result = -1;
     if (m_agent) {
         result = m_agent->unbind(dev_id);
-        BOOST_LOG_TRIVIAL(info) << "request_user_unbind, dev_id = " << BBLCrossTalk::Crosstalk_DevId(dev_id) << ", result = " << result;
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::dev_id, dev_id) << "result = " << result;
         return result;
     }
     return result;
@@ -5008,7 +5046,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
 {
     try {
         //BBS use nlohmann json format
-        BOOST_LOG_TRIVIAL(info) << "handle_web_request: " << cmd;
+        BOOST_LOG_TRIVIAL(info) << cmd;
         std::stringstream ss(cmd), oss;
         pt::ptree root, response;
         pt::read_json(ss, root);
@@ -5019,7 +5057,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
         boost::optional<std::string> command = root.get_optional<std::string>("command");
         if (command.has_value()) {
             std::string command_str = command.value();
-            BOOST_LOG_TRIVIAL(info) << "handle_web_request: " << command_str;
+            BOOST_LOG_TRIVIAL(info) << command_str;
             if (command_str.compare("request_project_download") == 0) {
                 if (root.get_child_optional("data") != boost::none) {
                     pt::ptree data_node = root.get_child("data");
@@ -5424,6 +5462,7 @@ void GUI_App::handle_script_message(std::string msg)
         }
     }
     catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         ;
     }
 }
@@ -5440,7 +5479,9 @@ std::string GUI_App::sanitize_download_url(const std::string &url)
     try {
         std::regex pattern("\\.\\.[\\/\\\\]|\\.\\.[\\/\\\\][\\/\\\\]|\\.\\/[\\/\\\\]|\\.[\\/\\\\]");
         return std::regex_replace(url, pattern, "");
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return url;
 }
 
@@ -5524,7 +5565,9 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
                 }
             }
         }
-        catch (...) {}
+        catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
     }
 
     // Version limit
@@ -5907,6 +5950,7 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
             }
         }
         catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
             })
@@ -6040,6 +6084,7 @@ void GUI_App::check_beta_version(bool show_tips_when_no_beta)
             });
         }
         catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
             })
@@ -6061,7 +6106,7 @@ void GUI_App::check_cert()
             // the thread keeps the exit join in OnExit() simple.
             post_device_region();
         });
-    BOOST_LOG_TRIVIAL(info) << "check_cert";
+    BOOST_LOG_TRIVIAL(info);
 }
 
 // Startup device region query. The network call is synchronous inside the
@@ -6076,7 +6121,7 @@ void GUI_App::post_device_region()
     params.ClientType = "slicer";
     std::string        http_body;
     int ret = m_agent->post_device_region(params, &http_body);
-    BOOST_LOG_TRIVIAL(info) << "post_device_region: ret=" << ret << " body=" << http_body;
+    BOOST_LOG_TRIVIAL(info) << KV(log_key::ret, ret) << "body=" << http_body;
 }
 
 // return true if handled
@@ -6084,7 +6129,7 @@ bool GUI_App::process_network_msg(std::string dev_id, std::string msg)
 {
     if (dev_id.empty()) {
         if (msg == "wait_info") {
-            BOOST_LOG_TRIVIAL(info) << "process_network_msg, wait_info";
+            BOOST_LOG_TRIVIAL(info) << "wait_info";
             Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (!dev)
                 return true;
@@ -6101,7 +6146,7 @@ bool GUI_App::process_network_msg(std::string dev_id, std::string msg)
             return true;
         }
         else if (msg == "update_studio") {
-            BOOST_LOG_TRIVIAL(info) << "process_network_msg, update_studio";
+            BOOST_LOG_TRIVIAL(info) << "update_studio";
             if (!m_show_error_msgdlg) {
                 MessageDialog msg_dlg(nullptr, _L("Please try updating Bambu Studio and then try again."), "", wxAPPLY | wxOK);
                 m_show_error_msgdlg = true;
@@ -6112,7 +6157,7 @@ bool GUI_App::process_network_msg(std::string dev_id, std::string msg)
             return true;
         }
         else if (msg == "update_fixed_studio") {
-            BOOST_LOG_TRIVIAL(info) << "process_network_msg, update_fixed_studio";
+            BOOST_LOG_TRIVIAL(info) << "update_fixed_studio";
             if (!m_show_error_msgdlg) {
                 MessageDialog msg_dlg(nullptr, _L("Please try updating Bambu Studio and then try again."), "", wxAPPLY | wxOK);
                 m_show_error_msgdlg = true;
@@ -6123,7 +6168,7 @@ bool GUI_App::process_network_msg(std::string dev_id, std::string msg)
             return true;
         }
         else if (msg == "cert_expired") {
-            BOOST_LOG_TRIVIAL(info) << "process_network_msg, cert_expired";
+            BOOST_LOG_TRIVIAL(info) << "cert_expired";
             if (!m_show_error_msgdlg) {
                 MessageDialog msg_dlg(nullptr, _L("The certificate has expired. Please check the time settings or update Bambu Studio and try again."), "", wxAPPLY | wxOK);
                 m_show_error_msgdlg = true;
@@ -6134,7 +6179,7 @@ bool GUI_App::process_network_msg(std::string dev_id, std::string msg)
             return true;
         }
         else if (msg == "cert_revoked") {
-            BOOST_LOG_TRIVIAL(info) << "process_network_msg, cert_revoked";
+            BOOST_LOG_TRIVIAL(info) << "cert_revoked";
             if (!m_show_error_msgdlg) {
                 MessageDialog msg_dlg(nullptr, _L("The certificate is no longer valid and the printing functions are unavailable. If you need printing. Please visit the official website at https://bambulab.com/ to download and update."), "", wxAPPLY | wxOK);
                 m_show_error_msgdlg = true;
@@ -6145,7 +6190,7 @@ bool GUI_App::process_network_msg(std::string dev_id, std::string msg)
             return true;
         }
         else if (msg == "update_firmware_studio") {
-            BOOST_LOG_TRIVIAL(info) << "process_network_msg, firmware internal error";
+            BOOST_LOG_TRIVIAL(info) << "firmware internal error";
             if (!m_show_error_msgdlg) {
                 MessageDialog msg_dlg(nullptr, _L("Internal error. Please try upgrading the firmware and Studio version. If the issue persists, contact customer support."), "", wxAPPLY | wxOK);
                 m_show_error_msgdlg = true;
@@ -6156,7 +6201,7 @@ bool GUI_App::process_network_msg(std::string dev_id, std::string msg)
             return true;
         }
         else if (msg == "unsigned_studio") {
-            BOOST_LOG_TRIVIAL(info) << "process_network_msg, unsigned_studio";
+            BOOST_LOG_TRIVIAL(info) << "unsigned_studio";
             MessageDialog msg_dlg(nullptr, _L("Your software is not signed, and some printing functions have been restricted. Please use the officially signed software version."), "", wxAPPLY | wxOK);
             m_show_error_msgdlg = true;
             auto modal_result = msg_dlg.ShowModal();
@@ -6166,7 +6211,7 @@ bool GUI_App::process_network_msg(std::string dev_id, std::string msg)
         }
     }
     else if (msg == "device_cert_installed") {
-        BOOST_LOG_TRIVIAL(info) << "process_network_msg, device_cert_installed";
+        BOOST_LOG_TRIVIAL(info) << "device_cert_installed";
         if (Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager()) {
             if (MachineObject* obj = dev->get_my_machine(dev_id)) {
                 obj->update_device_cert_state(true);
@@ -6176,7 +6221,7 @@ bool GUI_App::process_network_msg(std::string dev_id, std::string msg)
         return true;
     }
     else if (msg == "device_cert_uninstalled") {
-        BOOST_LOG_TRIVIAL(info) << "process_network_msg, device_cert_uninstalled";
+        BOOST_LOG_TRIVIAL(info) << "device_cert_uninstalled";
         if (Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager()) {
             if (MachineObject* obj = dev->get_my_machine(dev_id)){
                 obj->update_device_cert_state(false);
@@ -6206,7 +6251,7 @@ void GUI_App::enter_force_upgrade()
 
 void GUI_App::set_skip_version(bool skip)
 {
-    BOOST_LOG_TRIVIAL(info) << "set_skip_version, skip = " << skip << ", version = " <<version_info.version_str;
+    BOOST_LOG_TRIVIAL(info) << "skip = " << skip << ", version = " <<version_info.version_str;
     if (skip) {
         app_config->set("skip_version", version_info.version_str);
     }else {
@@ -6314,6 +6359,7 @@ void GUI_App::check_privacy_version(int online_login)
                 }
             }
             catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 request_user_handle(online_login);
             }
         })
@@ -6545,7 +6591,8 @@ void GUI_App::sync_preset(Preset* preset)
                     if (http_code >= 400) {
                         result = 0;
                         updated_info = "hold";
-                        BOOST_LOG_TRIVIAL(error) << "[sync_preset] put setting_id = " << setting_id << " failed, http_code = " << http_code;
+                        BOOST_LOG_TRIVIAL(error) << "[sync_preset] put " << KV(log_key::setting_id, setting_id) << "failed "
+                                                 << KV(log_key::http_code, http_code);
                     } else {
                         auto update_time_str = values_map[BBL_JSON_KEY_UPDATE_TIME];
                         if (!update_time_str.empty())
@@ -6587,7 +6634,7 @@ void GUI_App::sync_preset(Preset* preset)
         //PresetBundle* preset_bundle = wxGetApp().preset_bundle;
         if (!this->preset_bundle) return;
 
-        BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: " << preset->sync_info << " success! preset = " << preset->name;
+        BOOST_LOG_TRIVIAL(trace) << "sync operation: " << preset->sync_info << " success! preset = " << preset->name;
         if (preset->type == Preset::Type::TYPE_FILAMENT) {
             preset_bundle->filaments.set_sync_info_and_save(preset->name, setting_id, updated_info, update_time);
         } else if (preset->type == Preset::Type::TYPE_PRINT) {
@@ -6665,7 +6712,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                     return true;
                 }
             }, progressFn, cancelFn);
-            BOOST_LOG_TRIVIAL(info) << "get_setting_list2 ret = " << ret << " m_is_closing = " << m_is_closing;
+            BOOST_LOG_TRIVIAL(info) << "get_setting_list2 " << KV(log_key::ret, ret) << "m_is_closing = " << m_is_closing;
             finishFn(ret == 0);
 
             int count = 0, sync_count = 0;
@@ -6972,7 +7019,7 @@ bool GUI_App::select_language()
 // based on the "language" key stored in the application config.
 bool GUI_App::load_language(wxString language, bool initial)
 {
-    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: language %2%, initial: %3%") %__FUNCTION__ %language %initial;
+    BOOST_LOG_TRIVIAL(info) << boost::format("language %1%, initial: %2%")%language %initial;
     if (initial) {
     	// There is a static list of lookup path prefixes in wxWidgets. Add ours.
 	    wxFileTranslationsLoader::AddCatalogLookupPathPrefix(from_u8(localization_dir()));
@@ -8279,7 +8326,7 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
 
 #ifdef __APPLE__
      if (is_adding_script_handler()) {
-        BOOST_LOG_TRIVIAL(info) << "run_wizard: Script handler is being added, delaying wizard creation";
+        BOOST_LOG_TRIVIAL(info) << "Script handler is being added, delaying wizard creation";
         auto timer = new wxTimer();
         timer->Bind(wxEVT_TIMER, [this, reason, start_page, timer](wxTimerEvent &) {
             timer->Stop();
@@ -8930,8 +8977,8 @@ void TryLoadLastMachine::InnerLoad(NetworkAgent* agent, DeviceManager* dev)
     }
 
     const auto& last_select_machine = dev->get_user_last_machine();
-    BOOST_LOG_TRIVIAL(info) << "try to reconnect " << BBLCrossTalk::Crosstalk_DevId(last_select_machine)
-        << ", is_mqtt_ok=" << is_mqtt_ok << ", is_list_ok=" << is_list_ok;
+    BOOST_LOG_TRIVIAL(info) << "try to reconnect " << KV(log_key::dev_id, last_select_machine) << "is_mqtt_ok=" << is_mqtt_ok << ", is_list_ok="
+                            << is_list_ok;
     if (last_select_machine.empty()) {
         if (is_mqtt_ok && is_list_ok) {
             dev->load_last_machine();

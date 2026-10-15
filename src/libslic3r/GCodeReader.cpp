@@ -102,7 +102,7 @@ const char* GCodeReader::parse_line_internal(const char *ptr, const char *end, G
 		++ c;
 
     if (m_verbose)
-        std::cout << gline.m_raw << std::endl;
+        BOOST_LOG_TRIVIAL(debug) << gline.m_raw;
 
     return c;
 }

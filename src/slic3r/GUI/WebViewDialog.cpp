@@ -1233,19 +1233,19 @@ bool WebViewPanel::SaveBase64ToLocal(std::string Base64Buf, std::string FileName
     std::ofstream outFile(download_file.ToStdString(), std::ios::binary);
     if (!outFile) {
         delete DstBuf;
-        std::cerr << "Error opening file for writing." << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "Error opening file for writing.";
         return false;
     }
     outFile.write(DstBuf, nWrite);
     if (!outFile) {
         delete DstBuf;
-        std::cerr << "Error writing to file." << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "Error writing to file.";
         return false;
     }
 
     delete DstBuf;
     outFile.close();
-    std::cout << "Data written to file successfully." << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Data written to file successfully.";
     wxLogMessage("Makerlab Binary Write to %s", download_file.ToStdString());
 
     return true;
@@ -1419,8 +1419,7 @@ void WebViewPanel::UpdateMakerworldLoginStatus()
                                 << " bind ticket acquired; starting sign-in navigation";
         SetMakerworldPageLoginStatus(true, newticket);
     } else {
-        BOOST_LOG_TRIVIAL(error) << "MakerWorld SSO: flow=" << flow_id
-                                 << " failed to acquire bind ticket, ret=" << ret;
+        BOOST_LOG_TRIVIAL(error) << "MakerWorld SSO: flow=" << flow_id << " failed to acquire bind ticket " << KV(log_key::ret, ret);
         m_makerworld_sso_navigation_pending = false;
         m_makerworld_sso_redirect_completed = false;
         wxString UrlDisconnect = MakeDisconnectUrl("online");
@@ -1539,7 +1538,9 @@ void WebViewPanel::ShowUserPrintTask(bool bShow, bool bForce)
                     SetLeftMenuShow("printhistory", 1);
 
                     return;
-                } catch (...) {}
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                }
             }
             else
                 m_TaskInfo = "";
@@ -1598,7 +1599,7 @@ void WebViewPanel::HandleBlobDownload(wxWebView *browser, const wxString &blob_u
 
     // Only accept WebKit-controlled blob: URLs; never treat arbitrary strings as script args.
     if (!blob_url.StartsWith("blob:")) {
-        BOOST_LOG_TRIVIAL(warning) << "HandleBlobDownload: rejected non-blob url";
+        BOOST_LOG_TRIVIAL(warning) << "rejected non-blob url";
         return;
     }
 
@@ -2369,7 +2370,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         } else {
             if (m_online_LastUrl != "") {
                 m_browserMW->LoadURL(m_online_LastUrl);
-                BOOST_LOG_TRIVIAL(trace) << "LoadURL " << m_online_LastUrl.ToStdString();
+                BOOST_LOG_TRIVIAL(trace) << "LoadURL " << m_online_LastUrl;
                 m_online_LastUrl = "";
             } else {
                 std::string TmpNowUrl = m_browserMW->GetCurrentURL().ToStdString();

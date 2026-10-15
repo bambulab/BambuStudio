@@ -94,7 +94,7 @@ int copy_directory_fix(const fs::path &source, const fs::path &target, std::stri
     fs::create_directories(target, ec);
     if (ec) {
         error_message = ec.message();
-        BOOST_LOG_TRIVIAL(error) << "copy_directory_fix: Failed to create target directory: " + error_message;
+        BOOST_LOG_TRIVIAL(error) << "Failed to create target directory: " + error_message;
         return -2;
     }
     for (auto &dir_entry : fs::directory_iterator(source))
@@ -1122,7 +1122,9 @@ void PresetUpdater::priv::sync_tooltip(std::string http_url, std::string languag
             if (fs::exists(vf)) Slic3r::load_string_file(vf, common_version);
             vf = cache_root / language / "version";
             if (fs::exists(vf)) Slic3r::load_string_file(vf, language_version);
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
         std::map<std::string, Resource> resources
         {
             {"slicer/tooltip/common", { common_version, "", "", "", false, (cache_root / "common").string() }},
@@ -1288,13 +1290,17 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
             Slic3r::load_string_file(config_folder / "version.txt", curr_version);
             boost::algorithm::trim(curr_version);
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     try {
         if (fs::exists(cache_folder / "version.txt")) {
             Slic3r::load_string_file(cache_folder / "version.txt", cached_version);
             boost::algorithm::trim(cached_version);
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     if (!cached_version.empty()) {
         bool   need_delete_cache = false;
         Semver current_semver = curr_version;
@@ -1335,7 +1341,9 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
             boost::algorithm::trim(cached_version);
             result = true;
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     // The notification below touches the GUI, which is unsafe once shutdown has
     // begun; bail out if cancellation was requested.
     if (cancel) return;
@@ -1370,7 +1378,7 @@ bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles,
         if (fs::exists(path_in_vendors)) {
             fs::remove(path_in_vendors, ec);
             if (ec) {
-                BOOST_LOG_TRIVIAL(error) << boost::format("install_bundles_rsrc: Failed to remove file %1%, error %2% ") % path_in_vendors.string() % ec.message();
+                BOOST_LOG_TRIVIAL(error) << boost::format("Failed to remove file %1%, error %2% ") % path_in_vendors.string() % ec.message();
                 return false;
             }
         }
@@ -1379,7 +1387,7 @@ bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles,
             auto print_rename_folder = this->vendor_path / (bundle + std::to_string(getTimestamp()));
             fs::rename(print_folder, print_rename_folder, ec);
             if (ec) {
-                BOOST_LOG_TRIVIAL(error) << boost::format("install_bundles_rsrc: Failed to remove directory %1%, error %2% ") % print_folder.string() % ec.message();
+                BOOST_LOG_TRIVIAL(error) << boost::format("Failed to remove directory %1%, error %2% ") % print_folder.string() % ec.message();
                 return false;
             }
             std::thread thread([print_rename_folder]() {
@@ -1466,13 +1474,17 @@ Updates PresetUpdater::priv::get_printer_config_updates(bool update) const
             Slic3r::load_string_file(resc_folder / "version.txt", resc_version);
             boost::algorithm::trim(resc_version);
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     try {
         if (fs::exists(config_folder / "version.txt")) {
             Slic3r::load_string_file(config_folder / "version.txt", curr_version);
             boost::algorithm::trim(curr_version);
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     if (!curr_version.empty()) {
         Semver curr_ver = curr_version;
@@ -1497,7 +1509,9 @@ Updates PresetUpdater::priv::get_printer_config_updates(bool update) const
             json                    j;
             ifs >> j;
             version.comment = j["description"];
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
     }
     updates.updates.emplace_back(std::move(resc_folder), std::move(config_folder), version, "bbl", change_log, version.comment, false, true);
     return updates;
@@ -1603,7 +1617,7 @@ bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 
             ret = update.install();
             if (ret) {
-                BOOST_LOG_TRIVIAL(error) << boost::format("[BBL Updater]:perform_updates to %1% failed, ret=%2%")% update.target.string() % ret;
+                BOOST_LOG_TRIVIAL(error) << "[BBL Updater]:perform_updates to " << update.target.string() << " failed " << KV(log_key::ret, ret);
                 break;
             }
             //if (!update.is_directory) {

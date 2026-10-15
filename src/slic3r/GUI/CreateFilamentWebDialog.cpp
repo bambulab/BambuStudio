@@ -100,7 +100,7 @@ static std::string make_filament_id(const std::string &vendor_type_serial)
         candidate = "P" + calc_md5(vendor_type_serial + ts).substr(0, 7);
     }
 
-    BOOST_LOG_TRIVIAL(info) << "make_filament_id: " << vendor_type_serial << " -> " << candidate;
+    BOOST_LOG_TRIVIAL(info) << vendor_type_serial << " -> " << candidate;
     return candidate;
 }
 
@@ -215,7 +215,7 @@ CreateFilamentWebDialog::CreateFilamentWebDialog(wxWindow *parent,
     Centre(wxBOTH);
     wxGetApp().UpdateDlgDarkUI(this);
 
-    BOOST_LOG_TRIVIAL(info) << "CreateFilamentWebDialog created";
+    BOOST_LOG_TRIVIAL(info) << "created";
 }
 
 CreateFilamentWebDialog::~CreateFilamentWebDialog()
@@ -326,7 +326,7 @@ void CreateFilamentWebDialog::send_init_data(const std::string &filament_type, b
             auto *ft = dynamic_cast<ConfigOptionStrings *>(
                 const_cast<Preset &>(p).config.option("filament_type", false));
             if (!ft || ft->values.empty() || ft->values[0] != filament_type) continue;
-            BOOST_LOG_TRIVIAL(info) << "send_init_data candidate: " << p.name
+            BOOST_LOG_TRIVIAL(info) << "candidate: " << p.name
                 << " is_system=" << p.is_system << " is_visible=" << p.is_visible;
             choice_map[p.filament_id].push_back(&p);
         }
@@ -377,7 +377,7 @@ void CreateFilamentWebDialog::send_init_data(const std::string &filament_type, b
         wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
     run_script(js);
 
-    BOOST_LOG_TRIVIAL(info) << "CreateFilamentWebDialog::send_init_data sent";
+    BOOST_LOG_TRIVIAL(info) << "sent";
 }
 
 void CreateFilamentWebDialog::send_compatible_printers(const std::string &public_name)
@@ -458,7 +458,7 @@ void CreateFilamentWebDialog::send_compatible_printers(const std::string &public
         wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
     run_script(js);
 
-    BOOST_LOG_TRIVIAL(info) << "send_compatible_printers for public_name: " << public_name
+    BOOST_LOG_TRIVIAL(info) << "for public_name: " << public_name
                             << ", models=" << printers.size();
 }
 
@@ -668,7 +668,7 @@ void CreateFilamentWebDialog::send_device_info(const std::string &filament_type)
     wxString js = wxString::Format("HandleStudio(%s)",
         wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
     run_script(js);
-    BOOST_LOG_TRIVIAL(info) << "send_device_info: model_id=" << model_id
+    BOOST_LOG_TRIVIAL(info) << "model_id=" << model_id
                             << " model_name=" << model_name
                             << " nozzles=" << nozzle_to_printer_all.size()
                             << " supported_nozzles=" << supported_nozzle_set.size()
@@ -768,7 +768,7 @@ void CreateFilamentWebDialog::send_supported_types()
     wxString js = wxString::Format("HandleStudio(%s)",
         wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
     run_script(js);
-    BOOST_LOG_TRIVIAL(info) << "send_supported_types: model_id=" << model_id
+    BOOST_LOG_TRIVIAL(info) << "model_id=" << model_id
                             << " model_name=" << model_name
                             << " types=" << type_set.size();
 }
@@ -854,7 +854,7 @@ void CreateFilamentWebDialog::send_filament_params(const std::string &preset_nam
     wxString js = wxString::Format("HandleStudio(%s)",
         wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
     run_script(js);
-    BOOST_LOG_TRIVIAL(info) << "send_filament_params: " << preset_name;
+    BOOST_LOG_TRIVIAL(info) << preset_name;
 }
 
 void CreateFilamentWebDialog::send_all_printers(const std::string &filament_type)
@@ -1010,7 +1010,7 @@ void CreateFilamentWebDialog::send_presets_by_machine(const std::vector<std::str
         wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
     run_script(js);
 
-    BOOST_LOG_TRIVIAL(info) << "send_presets_by_machine: " << printer_names.size() << " printers";
+    BOOST_LOG_TRIVIAL(info) << printer_names.size() << " printers";
 }
 
 // Forward declaration: defined near build_and_validate_filament_name below, but also
@@ -1039,7 +1039,7 @@ void CreateFilamentWebDialog::OnScriptMessage(wxWebViewEvent &evt)
 
         BOOST_LOG_TRIVIAL(info) << "CreateFilamentWebDialog command: " << cmd;
         if (cmd == "create_filament_confirm")
-            BOOST_LOG_TRIVIAL(info) << "CreateFilamentWebDialog payload: " << j.dump();
+            BOOST_LOG_TRIVIAL(info) << "CreateFilamentWebDialog payload: " << j;
 
         if (cmd == "close_page") {
             EndModal(wxID_CANCEL);
@@ -1111,7 +1111,7 @@ void CreateFilamentWebDialog::OnScriptMessage(wxWebViewEvent &evt)
             send_presets_by_machine(printers, filament_type);
         }
     } catch (const std::exception &e) {
-        BOOST_LOG_TRIVIAL(error) << "CreateFilamentWebDialog::OnScriptMessage exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
     }
 }
 

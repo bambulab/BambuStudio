@@ -163,7 +163,7 @@ NetworkAgent::NetworkAgent(std::string log_dir)
     if (create_agent_ptr) {
         network_agent = create_agent_ptr(log_dir);
     }
-    BOOST_LOG_TRIVIAL(info) << boost::format("line %1%, network_agent=%2%, create_agent_ptr=%3%")%__LINE__ %network_agent %create_agent_ptr;
+    BOOST_LOG_TRIVIAL(info) << KV(log_key::network_agent, network_agent) << "create_agent_ptr=" << create_agent_ptr;
 }
 
 NetworkAgent::~NetworkAgent()
@@ -172,7 +172,7 @@ NetworkAgent::~NetworkAgent()
     if (network_agent && destroy_agent_ptr) {
         ret = destroy_agent_ptr(network_agent);
     }
-    BOOST_LOG_TRIVIAL(info) << boost::format("line %1%, network_agent=%2%, destroy_agent_ptr=%3%, ret %4%")%__LINE__ %network_agent %destroy_agent_ptr %ret;
+    BOOST_LOG_TRIVIAL(info) << KV(log_key::network_agent, network_agent) << "destroy_agent_ptr=" << destroy_agent_ptr << ", ret " << ret;
 }
 
 std::string NetworkAgent::get_libpath_in_current_directory(std::string library_name)
@@ -267,7 +267,7 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
     #else
     library = plugin_folder.string() + "/" + std::string("lib") + std::string(BAMBU_NETWORK_LIBRARY) + ".so";
     #endif
-    BOOST_LOG_TRIVIAL(info) << boost::format("line %1%, loading network module, using_backup %2%\n")%__LINE__ %using_backup;
+    BOOST_LOG_TRIVIAL(info) << boost::format("loading network module, using_backup %1%\n")%using_backup;
     module_cert_summary = SummarizeModule(library);
     if (self_cert_summary) {
         module_cert_summary = SummarizeModule(library);
@@ -291,10 +291,10 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
 #endif
 
     if (!networking_module) {
-        BOOST_LOG_TRIVIAL(warning) << boost::format("line %1%, can not Load Library, using_backup %2%\n")%__LINE__ %using_backup;
+        BOOST_LOG_TRIVIAL(warning) << boost::format("can not Load Library, using_backup %1%\n")%using_backup;
         return -1;
     }
-    BOOST_LOG_TRIVIAL(info) << boost::format("line %1%,  successfully loaded library, using_backup %2%, module %3%")%__LINE__ %using_backup %networking_module;
+    BOOST_LOG_TRIVIAL(info) << boost::format("successfully loaded library, using_backup %1%, module %2%")%using_backup %networking_module;
 
     // load file transfer interface
     InitFTModule(networking_module);
@@ -608,7 +608,7 @@ void* NetworkAgent::get_bambu_source_entry()
             BOOST_LOG_TRIVIAL(info) << boost::format("can not get path in current directory for %1%") % BAMBU_SOURCE_LIBRARY;
             return source_module;
         }
-        BOOST_LOG_TRIVIAL(info) << boost::format("line %1%")%__LINE__;
+        BOOST_LOG_TRIVIAL(info);
         memset(lib_wstr, 0, sizeof(lib_wstr));
         ::MultiByteToWideChar(CP_UTF8, NULL, library_path.c_str(), strlen(library_path.c_str()) + 1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
         source_module = LoadLibrary(lib_wstr);
@@ -670,7 +670,7 @@ std::string NetworkAgent::get_version()
     if (get_version_ptr) {
         return get_version_ptr();
     }
-    BOOST_LOG_TRIVIAL(warning) << boost::format("get_version not supported,return 00.00.00.00!");
+    BOOST_LOG_TRIVIAL(warning) << boost::format("not supported,return 00.00.00.00!");
     return "00.00.00.00";
 }
 
@@ -680,7 +680,7 @@ int NetworkAgent::init_log()
     if (network_agent && init_log_ptr) {
         ret = init_log_ptr(network_agent);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -691,7 +691,7 @@ int NetworkAgent::set_config_dir(std::string config_dir)
     if (network_agent && set_config_dir_ptr) {
         ret = set_config_dir_ptr(network_agent, config_dir);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%, config_dir=%3%")%network_agent %ret %config_dir ;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << "config_dir=" << config_dir;
     }
     return ret;
 }
@@ -702,7 +702,8 @@ int NetworkAgent::set_cert_file(std::string folder, std::string filename)
     if (network_agent && set_cert_file_ptr) {
         ret = set_cert_file_ptr(network_agent, folder, filename);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%, folder=%3%, filename=%4%")%network_agent %ret %folder %filename;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << "folder=" << folder
+                                     << ", filename=" << filename;
     }
     return ret;
 }
@@ -713,7 +714,8 @@ int NetworkAgent::set_country_code(std::string country_code)
     if (network_agent && set_country_code_ptr) {
         ret = set_country_code_ptr(network_agent, country_code);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%, country_code=%3%")%network_agent %ret %country_code ;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << "country_code="
+                                     << country_code;
     }
     return ret;
 }
@@ -724,7 +726,7 @@ int NetworkAgent::start()
     if (network_agent && start_ptr) {
         ret = start_ptr(network_agent);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -735,7 +737,7 @@ int NetworkAgent::set_on_ssdp_msg_fn(OnMsgArrivedFn fn)
     if (network_agent && set_on_ssdp_msg_fn_ptr) {
         ret = set_on_ssdp_msg_fn_ptr(network_agent, fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -746,7 +748,7 @@ int NetworkAgent::set_on_user_login_fn(OnUserLoginFn fn)
     if (network_agent && set_on_user_login_fn_ptr) {
         ret = set_on_user_login_fn_ptr(network_agent, fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -757,7 +759,7 @@ int NetworkAgent::set_on_printer_connected_fn(OnPrinterConnectedFn fn)
     if (network_agent && set_on_printer_connected_fn_ptr) {
         ret = set_on_printer_connected_fn_ptr(network_agent, fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -768,7 +770,7 @@ int NetworkAgent::set_on_server_connected_fn(OnServerConnectedFn fn)
     if (network_agent && set_on_server_connected_fn_ptr) {
         ret = set_on_server_connected_fn_ptr(network_agent, fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -779,7 +781,7 @@ int NetworkAgent::set_on_http_error_fn(OnHttpErrorFn fn)
     if (network_agent && set_on_http_error_fn_ptr) {
         ret = set_on_http_error_fn_ptr(network_agent, fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -790,7 +792,7 @@ int NetworkAgent::set_get_country_code_fn(GetCountryCodeFn fn)
     if (network_agent && set_get_country_code_fn_ptr) {
         ret = set_get_country_code_fn_ptr(network_agent, fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -801,7 +803,7 @@ int NetworkAgent::set_on_subscribe_failure_fn(GetSubscribeFailureFn fn)
     if (network_agent && set_on_subscribe_failure_fn_ptr) {
         ret = set_on_subscribe_failure_fn_ptr(network_agent, fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -812,7 +814,7 @@ int NetworkAgent::set_on_message_fn(OnMessageFn fn)
     if (network_agent && set_on_message_fn_ptr) {
         ret = set_on_message_fn_ptr(network_agent, fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -823,7 +825,7 @@ int NetworkAgent::set_on_user_message_fn(OnMessageFn fn)
     if (network_agent && set_on_user_message_fn_ptr) {
         ret = set_on_user_message_fn_ptr(network_agent, fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -834,7 +836,7 @@ int NetworkAgent::set_on_local_connect_fn(OnLocalConnectedFn fn)
     if (network_agent && set_on_local_connect_fn_ptr) {
         ret = set_on_local_connect_fn_ptr(network_agent, fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -845,7 +847,7 @@ int NetworkAgent::set_on_local_message_fn(OnMessageFn fn)
     if (network_agent && set_on_local_message_fn_ptr) {
         ret = set_on_local_message_fn_ptr(network_agent, fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -856,7 +858,7 @@ int NetworkAgent::set_queue_on_main_fn(QueueOnMainFn fn)
     if (network_agent && set_queue_on_main_fn_ptr) {
         ret = set_queue_on_main_fn_ptr(network_agent, fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -867,7 +869,7 @@ int NetworkAgent::connect_server()
     if (network_agent && connect_server_ptr) {
         ret = connect_server_ptr(network_agent);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -888,7 +890,7 @@ int NetworkAgent::refresh_connection()
     if (network_agent && refresh_connection_ptr) {
         ret = refresh_connection_ptr(network_agent);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -899,7 +901,7 @@ int NetworkAgent::start_subscribe(std::string module)
     if (network_agent && start_subscribe_ptr) {
         ret = start_subscribe_ptr(network_agent, module);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%, module=%3%")%network_agent %ret %module ;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << "module=" << module;
     }
     return ret;
 }
@@ -910,7 +912,7 @@ int NetworkAgent::stop_subscribe(std::string module)
     if (network_agent && stop_subscribe_ptr) {
         ret = stop_subscribe_ptr(network_agent, module);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%, module=%3%")%network_agent %ret %module ;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << "module=" << module;
     }
     return ret;
 }
@@ -921,7 +923,7 @@ int NetworkAgent::add_subscribe(std::vector<std::string> dev_list)
     if (network_agent && add_subscribe_ptr) {
         ret = add_subscribe_ptr(network_agent, dev_list);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") %network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -932,7 +934,7 @@ int NetworkAgent::del_subscribe(std::vector<std::string> dev_list)
     if (network_agent && del_subscribe_ptr) {
         ret = del_subscribe_ptr(network_agent, dev_list);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") %network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -950,8 +952,8 @@ int NetworkAgent::send_message(std::string dev_id, std::string json_str, int qos
     if (network_agent && send_message_ptr) {
         ret = send_message_ptr(network_agent, dev_id, json_str, qos, flag);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) <<
-            boost::format("error: network_agent=%1%, ret=%2%, dev_id=%3%, json_str=%4%, qos=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id) %json_str %qos;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << KV(log_key::dev_id, dev_id)
+                                     << "json_str=" << json_str << ", qos=" << qos;
     }
     return ret;
 }
@@ -962,8 +964,8 @@ int NetworkAgent::connect_printer(std::string dev_id, std::string dev_ip, std::s
     if (network_agent && connect_printer_ptr) {
         ret = connect_printer_ptr(network_agent, dev_id, dev_ip, username, password, use_ssl);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) <<
-            (boost::format("error: network_agent=%1%, ret=%2%, dev_id=%3%, dev_ip=%4%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id) %BBLCrossTalk::Crosstalk_DevIP(dev_ip)).str();
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << KV(log_key::dev_id, dev_id)
+                                     << KV(log_key::dev_ip, dev_ip);
     }
     return ret;
 }
@@ -974,7 +976,7 @@ int NetworkAgent::disconnect_printer()
     if (network_agent && disconnect_printer_ptr) {
         ret = disconnect_printer_ptr(network_agent);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") %network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -985,7 +987,8 @@ int NetworkAgent::send_message_to_printer(std::string dev_id, std::string json_s
     if (network_agent && send_message_to_printer_ptr) {
         ret = send_message_to_printer_ptr(network_agent, dev_id, json_str, qos, flag);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%, dev_id=%3%, json_str=%4%, qos=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id) %json_str %qos;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << KV(log_key::dev_id, dev_id)
+                                     << "json_str=" << json_str << ", qos=" << qos;
     }
     return ret;
 }
@@ -996,7 +999,7 @@ int NetworkAgent::check_cert()
     if (network_agent && check_cert_ptr) {
         ret = check_cert_ptr(network_agent);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") %network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1024,7 +1027,7 @@ int  NetworkAgent::change_user(std::string user_info)
     if (network_agent && change_user_ptr) {
         ret = change_user_ptr(network_agent, user_info);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") %network_agent %ret ;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1044,7 +1047,7 @@ int  NetworkAgent::user_logout(bool request)
     if (network_agent && user_logout_ptr) {
         ret = user_logout_ptr(network_agent, request);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") %network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1118,8 +1121,7 @@ int NetworkAgent::ping_bind(std::string ping_code)
     if (network_agent && ping_bind_ptr) {
         ret = ping_bind_ptr(network_agent, ping_code);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")
-            % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1130,7 +1132,7 @@ int NetworkAgent::bind_detect(std::string dev_ip, std::string sec_link, detectRe
     if (network_agent && bind_detect_ptr) {
         ret = bind_detect_ptr(network_agent, dev_ip, sec_link, detect);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%, dev_ip=%3%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevIP(dev_ip);
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << KV(log_key::dev_ip, dev_ip);
     }
     return ret;
 }
@@ -1141,7 +1143,7 @@ int NetworkAgent::report_consent(std::string expand)
     if (network_agent && report_consent_ptr) {
         ret = report_consent_ptr(network_agent, expand);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1152,8 +1154,7 @@ int NetworkAgent::set_server_callback(OnServerErrFn fn)
     if (network_agent && set_server_callback_ptr) {
         ret = set_server_callback_ptr(network_agent, fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")
-            % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1164,7 +1165,8 @@ int NetworkAgent::bind(std::string dev_ip, std::string dev_id, std::string dev_m
     if (network_agent && bind_ptr) {
         ret = bind_ptr(network_agent, dev_ip, dev_id, dev_model, sec_link, timezone, improved, update_fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%, dev_ip=%3%, timezone=%4%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevIP(dev_ip) %timezone;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << KV(log_key::dev_ip, dev_ip)
+                                     << "timezone=" << timezone;
     }
     return ret;
 }
@@ -1175,7 +1177,7 @@ int NetworkAgent::unbind(std::string dev_id)
     if (network_agent && unbind_ptr) {
         ret = unbind_ptr(network_agent, dev_id);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") %network_agent %ret ;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1204,7 +1206,8 @@ int NetworkAgent::set_user_selected_machine(std::string dev_id)
     if (network_agent && set_user_selected_machine_ptr) {
         ret = set_user_selected_machine_ptr(network_agent, dev_id);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%, user_info=%3%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id);
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << "user_info= "
+                                     << KV(log_key::dev_id, dev_id);
     }
     return ret;
 }
@@ -1214,8 +1217,8 @@ int NetworkAgent::start_print(PrintParams params, OnUpdateStatusFn update_fn, Wa
     int ret = 0;
     if (network_agent && start_print_ptr) {
         ret = start_print_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
-        BOOST_LOG_TRIVIAL(info)
-                                << boost::format("network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(params.dev_id) %params.task_name %params.project_name;
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << KV(log_key::dev_id, params.dev_id)
+                                << "task_name=" << params.task_name << ", project_name=" << params.project_name;
     }
     return ret;
 }
@@ -1239,7 +1242,8 @@ int NetworkAgent::start_local_print_with_record(PrintParams params, OnUpdateStat
     int ret = 0;
     if (network_agent && start_local_print_with_record_ptr) {
         ret = start_local_print_with_record_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
-        BOOST_LOG_TRIVIAL(info) << boost::format("network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(params.dev_id) %params.task_name %params.project_name;
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << KV(log_key::dev_id, params.dev_id)
+                                << "task_name=" << params.task_name << ", project_name=" << params.project_name;
     }
     return ret;
 }
@@ -1249,7 +1253,8 @@ int NetworkAgent::start_send_gcode_to_sdcard(PrintParams params, OnUpdateStatusF
     int ret = 0;
     if (network_agent && start_send_gcode_to_sdcard_ptr) {
         ret = start_send_gcode_to_sdcard_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
-        BOOST_LOG_TRIVIAL(info) << boost::format("network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(params.dev_id) %params.task_name %params.project_name;
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << KV(log_key::dev_id, params.dev_id)
+                                << "task_name=" << params.task_name << ", project_name=" << params.project_name;
     }
     return ret;
 }
@@ -1259,9 +1264,11 @@ int NetworkAgent::start_local_print(PrintParams params, OnUpdateStatusFn update_
     int ret = BAMBU_NETWORK_ERR_INVALID_HANDLE;
     if (network_agent && start_local_print_ptr) {
         ret = start_local_print_ptr(network_agent, params, update_fn, cancel_fn);
-        BOOST_LOG_TRIVIAL(info) << boost::format("network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(params.dev_id) %params.task_name %params.project_name;
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << KV(log_key::dev_id, params.dev_id)
+                                << "task_name=" << params.task_name << ", project_name=" << params.project_name;
     } else {
-        BOOST_LOG_TRIVIAL(error) << boost::format("invalid handle: network_agent=%1%, start_local_print_ptr=%2%, dev_id=%3%") % network_agent % start_local_print_ptr % BBLCrossTalk::Crosstalk_DevId(params.dev_id);
+        BOOST_LOG_TRIVIAL(error) << "invalid handle: " << KV(log_key::network_agent, network_agent) << "start_local_print_ptr="
+                                 << start_local_print_ptr << " " << KV(log_key::dev_id, params.dev_id);
     }
     return ret;
 }
@@ -1271,7 +1278,8 @@ int NetworkAgent::start_sdcard_print(PrintParams params, OnUpdateStatusFn update
     int ret = 0;
     if (network_agent && start_sdcard_print_ptr) {
         ret = start_sdcard_print_ptr(network_agent, params, update_fn, cancel_fn);
-        BOOST_LOG_TRIVIAL(info) << boost::format("network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(params.dev_id) %params.task_name %params.project_name;
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << KV(log_key::dev_id, params.dev_id)
+                                << "task_name=" << params.task_name << ", project_name=" << params.project_name;
     }
     return ret;
 }
@@ -1281,7 +1289,7 @@ int NetworkAgent::get_user_presets(std::map<std::string, std::map<std::string, s
     int ret = 0;
     if (network_agent && get_user_presets_ptr) {
         ret = get_user_presets_ptr(network_agent, user_presets);
-        BOOST_LOG_TRIVIAL(info) << boost::format("network_agent=%1%, ret=%2%, setting_id count=%3%")%network_agent %ret %user_presets->size() ;
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << "setting_id count=" << user_presets->size();
     }
     return ret;
 }
@@ -1291,8 +1299,8 @@ std::string NetworkAgent::request_setting_id(std::string name, std::map<std::str
     std::string ret;
     if (network_agent && request_setting_id_ptr) {
         ret = request_setting_id_ptr(network_agent, name, values_map, http_code);
-        BOOST_LOG_TRIVIAL(info) << boost::format("network_agent=%1%, name=%2%, http_code=%3%, ret.setting_id=%4%")
-                %network_agent %name %(*http_code) %ret;
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::network_agent, network_agent) << "name=" << name << " " << KV(log_key::http_code, *http_code)
+                                << "ret. " << KV(log_key::setting_id, ret);
     }
     return ret;
 }
@@ -1302,8 +1310,8 @@ int NetworkAgent::put_setting(std::string setting_id, std::string name, std::map
     int ret;
     if (network_agent && put_setting_ptr) {
         ret = put_setting_ptr(network_agent, setting_id, name, values_map, http_code);
-        BOOST_LOG_TRIVIAL(info) << boost::format("network_agent=%1%, setting_id=%2%, name=%3%, http_code=%4%, ret=%5%")
-                %network_agent %setting_id %name %(*http_code) %ret;
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::network_agent, network_agent) << KV(log_key::setting_id, setting_id) << "name=" << name << " "
+                                << KV(log_key::http_code, *http_code) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1313,7 +1321,8 @@ int NetworkAgent::get_setting_list(std::string bundle_version, ProgressFn pro_fn
     int ret = 0;
     if (network_agent && get_setting_list_ptr) {
         ret = get_setting_list_ptr(network_agent, bundle_version, pro_fn, cancel_fn);
-        if (ret) BOOST_LOG_TRIVIAL(info) << boost::format("error: network_agent=%1%, ret=%2%, bundle_version=%3%") % network_agent % ret % bundle_version;
+        if (ret) BOOST_LOG_TRIVIAL(info) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << "bundle_version="
+                                         << bundle_version;
     }
     return ret;
 }
@@ -1323,7 +1332,8 @@ int NetworkAgent::get_setting_list2(std::string bundle_version, CheckFn chk_fn, 
     int ret = 0;
     if (network_agent && get_setting_list2_ptr) {
         ret = get_setting_list2_ptr(network_agent, bundle_version, chk_fn, pro_fn, cancel_fn);
-        if (ret) BOOST_LOG_TRIVIAL(info) << boost::format("error: network_agent=%1%, ret=%2%, bundle_version=%3%") % network_agent % ret % bundle_version;
+        if (ret) BOOST_LOG_TRIVIAL(info) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << "bundle_version="
+                                         << bundle_version;
     } else {
         ret = get_setting_list(bundle_version, pro_fn, cancel_fn);
     }
@@ -1336,7 +1346,8 @@ int NetworkAgent::delete_setting(std::string setting_id)
     if (network_agent && delete_setting_ptr) {
         ret = delete_setting_ptr(network_agent, setting_id);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%, setting_id=%3%")%network_agent %ret %setting_id ;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret)
+                                     << KV(log_key::setting_id, setting_id);
     }
     return ret;
 }
@@ -1356,7 +1367,8 @@ int NetworkAgent::set_extra_http_header(std::map<std::string, std::string> extra
     if (network_agent && set_extra_http_header_ptr) {
         ret = set_extra_http_header_ptr(network_agent, extra_headers);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%, extra_headers count=%3%")%network_agent %ret %extra_headers.size() ;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << "extra_headers count="
+                                     << extra_headers.size();
     }
     return ret;
 }
@@ -1367,7 +1379,7 @@ int NetworkAgent::get_my_message(int type, int after, int limit, unsigned int* h
     if (network_agent && get_my_message_ptr) {
         ret = get_my_message_ptr(network_agent, type, after, limit, http_code, http_body);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1377,7 +1389,8 @@ int NetworkAgent::check_user_task_report(int* task_id, bool* printable)
     int ret = 0;
     if (network_agent && check_user_task_report_ptr) {
         ret = check_user_task_report_ptr(network_agent, task_id, printable);
-        BOOST_LOG_TRIVIAL(debug) << boost::format("error: network_agent=%1%, ret=%2%, task_id=%3%, printable=%4%")%network_agent %ret %(*task_id) %(*printable);
+        BOOST_LOG_TRIVIAL(debug) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << KV(log_key::task_id, *task_id)
+                                 << "printable=" << (*printable);
     }
     return ret;
 }
@@ -1387,7 +1400,8 @@ int NetworkAgent::get_user_print_info(unsigned int* http_code, std::string* http
     int ret = 0;
     if (network_agent && get_user_print_info_ptr) {
         ret = get_user_print_info_ptr(network_agent, http_code, http_body);
-        BOOST_LOG_TRIVIAL(debug) << boost::format("error: network_agent=%1%, ret=%2%, http_code=%3%")%network_agent %ret %(*http_code);
+        BOOST_LOG_TRIVIAL(debug) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret)
+                                 << KV(log_key::http_code, *http_code);
     }
     return ret;
 }
@@ -1397,7 +1411,7 @@ int NetworkAgent::get_user_tasks(TaskQueryParams params, std::string* http_body)
     int ret = 0;
     if (network_agent && get_user_tasks_ptr) {
         ret = get_user_tasks_ptr(network_agent, params, http_body);
-        BOOST_LOG_TRIVIAL(debug) << boost::format("error: network_agent=%1%, ret=%2%") %network_agent %ret;
+        BOOST_LOG_TRIVIAL(debug) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1489,60 +1503,60 @@ int NetworkAgent::download_print_queue_config(PrintQueueConfigDownloadParams par
 int NetworkAgent::get_filament_spools(FilamentQueryParams params, std::string* http_body)
 {
     if (!network_agent || !get_filament_spools_ptr) {
-        BOOST_LOG_TRIVIAL(error) << "unavailable (network_agent="
-            << network_agent << " func_ptr=" << (void*)get_filament_spools_ptr << ")";
+        BOOST_LOG_TRIVIAL(error) << "unavailable ( " << KV(log_key::network_agent, network_agent) << "func_ptr=" << (void*)get_filament_spools_ptr
+                                 << ")";
         return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
     int ret = get_filament_spools_ptr(network_agent, params, http_body);
-    BOOST_LOG_TRIVIAL(debug) << boost::format("network_agent=%1%, ret=%2%") %network_agent %ret;
+    BOOST_LOG_TRIVIAL(debug) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     return ret;
 }
 
 int NetworkAgent::create_filament_spool(std::string request_body, std::string* http_body)
 {
     if (!network_agent || !create_filament_spool_ptr) {
-        BOOST_LOG_TRIVIAL(error) << "unavailable (network_agent="
-            << network_agent << " func_ptr=" << (void*)create_filament_spool_ptr << ")";
+        BOOST_LOG_TRIVIAL(error) << "unavailable ( " << KV(log_key::network_agent, network_agent) << "func_ptr=" << (void*)create_filament_spool_ptr
+                                 << ")";
         return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
     int ret = create_filament_spool_ptr(network_agent, request_body, http_body);
-    BOOST_LOG_TRIVIAL(debug) << boost::format("network_agent=%1%, ret=%2%") %network_agent %ret;
+    BOOST_LOG_TRIVIAL(debug) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     return ret;
 }
 
 int NetworkAgent::update_filament_spool(std::string spool_id, std::string request_body, std::string* http_body)
 {
     if (!network_agent || !update_filament_spool_ptr) {
-        BOOST_LOG_TRIVIAL(error) << "unavailable (network_agent="
-            << network_agent << " func_ptr=" << (void*)update_filament_spool_ptr << ")";
+        BOOST_LOG_TRIVIAL(error) << "unavailable ( " << KV(log_key::network_agent, network_agent) << "func_ptr=" << (void*)update_filament_spool_ptr
+                                 << ")";
         return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
     int ret = update_filament_spool_ptr(network_agent, spool_id, request_body, http_body);
-    BOOST_LOG_TRIVIAL(debug) << boost::format("network_agent=%1%, ret=%2%, spool_id=%3%") %network_agent %ret %spool_id;
+    BOOST_LOG_TRIVIAL(debug) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << "spool_id=" << spool_id;
     return ret;
 }
 
 int NetworkAgent::delete_filament_spools(FilamentDeleteParams params, std::string* http_body)
 {
     if (!network_agent || !delete_filament_spools_ptr) {
-        BOOST_LOG_TRIVIAL(error) << "unavailable (network_agent="
-            << network_agent << " func_ptr=" << (void*)delete_filament_spools_ptr << ")";
+        BOOST_LOG_TRIVIAL(error) << "unavailable ( " << KV(log_key::network_agent, network_agent) << "func_ptr=" << (void*)delete_filament_spools_ptr
+                                 << ")";
         return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
     int ret = delete_filament_spools_ptr(network_agent, params, http_body);
-    BOOST_LOG_TRIVIAL(debug) << boost::format("network_agent=%1%, ret=%2%") %network_agent %ret;
+    BOOST_LOG_TRIVIAL(debug) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     return ret;
 }
 
 int NetworkAgent::get_filament_config(std::string* http_body)
 {
     if (!network_agent || !get_filament_config_ptr) {
-        BOOST_LOG_TRIVIAL(error) << "unavailable (network_agent="
-            << network_agent << " func_ptr=" << (void*)get_filament_config_ptr << ")";
+        BOOST_LOG_TRIVIAL(error) << "unavailable ( " << KV(log_key::network_agent, network_agent) << "func_ptr=" << (void*)get_filament_config_ptr
+                                 << ")";
         return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
     int ret = get_filament_config_ptr(network_agent, http_body);
-    BOOST_LOG_TRIVIAL(debug) << boost::format("network_agent=%1%, ret=%2%") %network_agent %ret;
+    BOOST_LOG_TRIVIAL(debug) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     return ret;
 }
 
@@ -1551,7 +1565,7 @@ int NetworkAgent::get_printer_firmware(std::string dev_id, unsigned* http_code, 
     int ret = 0;
     if (network_agent && get_printer_firmware_ptr) {
         ret = get_printer_firmware_ptr(network_agent, dev_id, http_code, http_body);
-        BOOST_LOG_TRIVIAL(debug) << boost::format("network_agent=%1%, ret=%2%, dev_id=%3%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id);
+        BOOST_LOG_TRIVIAL(debug) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << KV(log_key::dev_id, dev_id);
     }
     return ret;
 }
@@ -1562,7 +1576,8 @@ int NetworkAgent::get_task_plate_index(std::string task_id, int* plate_index)
     if (network_agent && get_task_plate_index_ptr) {
         ret = get_task_plate_index_ptr(network_agent, task_id, plate_index);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%, task_id=%3%")%network_agent %ret %task_id;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret)
+                                     << KV(log_key::task_id, task_id);
     }
     return ret;
 }
@@ -1573,7 +1588,7 @@ int NetworkAgent::get_user_info(int* identifier)
     if (network_agent && get_user_info_ptr) {
         ret = get_user_info_ptr(network_agent, identifier);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1584,7 +1599,7 @@ int NetworkAgent::request_bind_ticket(std::string* ticket)
     if (network_agent && request_bind_ticket_ptr) {
         ret = request_bind_ticket_ptr(network_agent, ticket);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1595,7 +1610,7 @@ int NetworkAgent::get_subtask_info(std::string subtask_id, std::string* task_jso
     if (network_agent && get_subtask_info_ptr) {
         ret = get_subtask_info_ptr(network_agent, subtask_id, task_json, http_code, http_body);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1605,8 +1620,8 @@ int NetworkAgent::get_slice_info(std::string project_id, std::string profile_id,
     int ret;
     if (network_agent && get_slice_info_ptr) {
         ret = get_slice_info_ptr(network_agent, project_id, profile_id, plate_index, slice_json);
-        BOOST_LOG_TRIVIAL(debug) << boost::format("network_agent=%1%, project_id=%2%, profile_id=%3%, plate_index=%4%, slice_json=%5%")
-                %network_agent %project_id %profile_id %plate_index %(*slice_json);
+        BOOST_LOG_TRIVIAL(debug) << KV(log_key::network_agent, network_agent) << "project_id=" << project_id << ", profile_id=" << profile_id
+                                 << ", plate_index=" << plate_index << ", slice_json=" << (*slice_json);
     }
     return ret;
 }
@@ -1617,7 +1632,8 @@ int NetworkAgent::query_bind_status(std::vector<std::string> query_list, unsigne
     if (network_agent && query_bind_status_ptr) {
         ret = query_bind_status_ptr(network_agent, query_list, http_code, http_body);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%, http_code=%3%") %network_agent %ret %(*http_code);
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret)
+                                     << KV(log_key::http_code, *http_code);
     }
     return ret;
 }
@@ -1627,7 +1643,8 @@ int NetworkAgent::modify_printer_name(std::string dev_id, std::string dev_name)
     int ret = 0;
     if (network_agent && modify_printer_name_ptr) {
         ret = modify_printer_name_ptr(network_agent, dev_id, dev_name);
-        BOOST_LOG_TRIVIAL(info) << boost::format("network_agent=%1%, ret=%2%, dev_id=%3%, dev_name=%4%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id) %dev_name;
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << KV(log_key::dev_id, dev_id)
+                                << KV(log_key::dev_name, dev_name);
     }
     return ret;
 }
@@ -1638,7 +1655,7 @@ int NetworkAgent::get_camera_url(std::string dev_id, std::function<void(std::str
     if (network_agent && get_camera_url_ptr) {
         ret = get_camera_url_ptr(network_agent, dev_id, callback);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%, dev_id=%3%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id);
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << KV(log_key::dev_id, dev_id);
     }
     return ret;
 }
@@ -1649,7 +1666,7 @@ int NetworkAgent::get_camera_url_for_golive(std::string dev_id, std::string sdev
     if (network_agent && get_camera_url_for_golive_ptr) {
         ret = get_camera_url_for_golive_ptr(network_agent, dev_id, sdev_id, callback);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%, dev_id=%3%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id);
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret) << KV(log_key::dev_id, dev_id);
     }
     return ret;
 }
@@ -1660,7 +1677,7 @@ int NetworkAgent::get_design_staffpick(int offset, int limit, std::function<void
     if (network_agent && get_design_staffpick_ptr) {
         ret = get_design_staffpick_ptr(network_agent, offset, limit, callback);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%")%network_agent %ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1670,7 +1687,7 @@ int NetworkAgent::get_mw_user_preference(std::function<void(std::string)> callba
     int ret = 0;
     if (network_agent && get_mw_user_preference_ptr) {
         ret = get_mw_user_preference_ptr(network_agent,callback);
-        if (ret) BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+        if (ret) BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1681,7 +1698,7 @@ int NetworkAgent::get_mw_user_4ulist(int seed, int limit, std::function<void(std
     int ret = 0;
     if (network_agent && get_mw_user_4ulist_ptr) {
         ret = get_mw_user_4ulist_ptr(network_agent,seed, limit, callback);
-        if (ret) BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+        if (ret) BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1691,7 +1708,7 @@ int NetworkAgent::get_hms_snapshot(std::string dev_id, std::string file_name, st
     int ret = -1;
     if (network_agent && get_hms_snapshot_ptr) {
         ret = get_hms_snapshot_ptr(network_agent, dev_id, file_name, callback);
-        if (ret) BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+        if (ret) BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1699,60 +1716,60 @@ int NetworkAgent::get_hms_snapshot(std::string dev_id, std::string file_name, st
 int NetworkAgent::sync_ams_filaments(AmsSyncParams params, std::string* http_body)
 {
     if (!network_agent || !sync_ams_filaments_ptr) {
-        BOOST_LOG_TRIVIAL(error) << "unavailable (network_agent="
-            << network_agent << " func_ptr=" << (void*)sync_ams_filaments_ptr << ")";
+        BOOST_LOG_TRIVIAL(error) << "unavailable ( " << KV(log_key::network_agent, network_agent) << "func_ptr=" << (void*)sync_ams_filaments_ptr
+                                 << ")";
         return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
     int ret = sync_ams_filaments_ptr(network_agent, params, http_body);
-    BOOST_LOG_TRIVIAL(debug) << boost::format("network_agent=%1%, ret=%2%") % network_agent % ret;
+    BOOST_LOG_TRIVIAL(debug) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     return ret;
 }
 
 int NetworkAgent::sync_slot_mappings(SlotMappingsSyncParams params, std::string* http_body)
 {
     if (!network_agent || !sync_slot_mappings_ptr) {
-        BOOST_LOG_TRIVIAL(error) << "unavailable (network_agent="
-            << network_agent << " func_ptr=" << (void*)sync_slot_mappings_ptr << ")";
+        BOOST_LOG_TRIVIAL(error) << "unavailable ( " << KV(log_key::network_agent, network_agent) << "func_ptr=" << (void*)sync_slot_mappings_ptr
+                                 << ")";
         return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
     int ret = sync_slot_mappings_ptr(network_agent, params, http_body);
-    BOOST_LOG_TRIVIAL(debug) << boost::format("network_agent=%1%, ret=%2%") % network_agent % ret;
+    BOOST_LOG_TRIVIAL(debug) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     return ret;
 }
 
 int NetworkAgent::get_soft_match_pending(SoftMatchPendingParams params, std::string* http_body)
 {
     if (!network_agent || !get_soft_match_pending_ptr) {
-        BOOST_LOG_TRIVIAL(error) << "unavailable (network_agent="
-            << network_agent << " func_ptr=" << (void*)get_soft_match_pending_ptr << ")";
+        BOOST_LOG_TRIVIAL(error) << "unavailable ( " << KV(log_key::network_agent, network_agent) << "func_ptr=" << (void*)get_soft_match_pending_ptr
+                                 << ")";
         return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
     int ret = get_soft_match_pending_ptr(network_agent, params, http_body);
-    BOOST_LOG_TRIVIAL(debug) << boost::format("network_agent=%1%, ret=%2%") % network_agent % ret;
+    BOOST_LOG_TRIVIAL(debug) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     return ret;
 }
 
 int NetworkAgent::post_soft_match_pending(SoftMatchPendingActionParams params, std::string* http_body)
 {
     if (!network_agent || !post_soft_match_pending_ptr) {
-        BOOST_LOG_TRIVIAL(error) << "unavailable (network_agent="
-            << network_agent << " func_ptr=" << (void*)post_soft_match_pending_ptr << ")";
+        BOOST_LOG_TRIVIAL(error) << "unavailable ( " << KV(log_key::network_agent, network_agent) << "func_ptr=" << (void*)post_soft_match_pending_ptr
+                                 << ")";
         return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
     int ret = post_soft_match_pending_ptr(network_agent, params, http_body);
-    BOOST_LOG_TRIVIAL(debug) << boost::format("network_agent=%1%, ret=%2%") % network_agent % ret;
+    BOOST_LOG_TRIVIAL(debug) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     return ret;
 }
 
 int NetworkAgent::post_device_region(DeviceRegionParams params, std::string* http_body)
 {
     if (!network_agent || !post_device_region_ptr) {
-        BOOST_LOG_TRIVIAL(error) << "unavailable (network_agent="
-            << network_agent << " func_ptr=" << (void*)post_device_region_ptr << ")";
+        BOOST_LOG_TRIVIAL(error) << "unavailable ( " << KV(log_key::network_agent, network_agent) << "func_ptr=" << (void*)post_device_region_ptr
+                                 << ")";
         return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
     int ret = post_device_region_ptr(network_agent, params, http_body);
-    BOOST_LOG_TRIVIAL(debug) << boost::format("network_agent=%1%, ret=%2%") % network_agent % ret;
+    BOOST_LOG_TRIVIAL(debug) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     return ret;
 }
 
@@ -1762,7 +1779,7 @@ int NetworkAgent::start_publish(PublishParams params, OnUpdateStatusFn update_fn
     if (network_agent && start_publish_ptr) {
         ret = start_publish_ptr(network_agent, params, update_fn, cancel_fn, out);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1773,7 +1790,7 @@ int NetworkAgent::get_model_publish_url(std::string* url)
     if (network_agent && get_model_publish_url_ptr) {
         ret = get_model_publish_url_ptr(network_agent, url);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1784,7 +1801,7 @@ int NetworkAgent::get_subtask(BBLModelTask* task, OnGetSubTaskFn getsub_fn)
     if (network_agent && get_subtask_ptr) {
         ret = get_subtask_ptr(network_agent, task, getsub_fn);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
 
     return ret;
@@ -1796,7 +1813,7 @@ int NetworkAgent::get_model_mall_home_url(std::string* url)
     if (network_agent && get_model_publish_url_ptr) {
         ret = get_model_mall_home_url_ptr(network_agent, url);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1807,7 +1824,7 @@ int NetworkAgent::get_model_mall_detail_url(std::string* url, std::string id)
     if (network_agent && get_model_publish_url_ptr) {
         ret = get_model_mall_detail_url_ptr(network_agent, url, id);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1818,7 +1835,7 @@ int NetworkAgent::get_my_profile(std::string token, unsigned int *http_code, std
     if (network_agent && get_my_profile_ptr) {
         ret = get_my_profile_ptr(network_agent, token, http_code, http_body);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error network_agnet=" << network_agent << " " << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1829,7 +1846,7 @@ int NetworkAgent::get_my_token(std::string ticket, unsigned int* http_code, std:
     if (network_agent && get_my_token_ptr) {
         ret = get_my_token_ptr(network_agent, ticket, http_code, http_body);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error network_agnet=" << network_agent << " " << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1841,7 +1858,7 @@ int NetworkAgent::track_enable(bool enable)
     if (network_agent && track_enable_ptr) {
         ret = track_enable_ptr(network_agent, enable);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error network_agnet=" << network_agent << " " << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1851,7 +1868,7 @@ int NetworkAgent::track_remove_files()
     int ret = 0;
     if (network_agent && track_remove_files_ptr) {
         ret = track_remove_files_ptr(network_agent);
-        if (ret) BOOST_LOG_TRIVIAL(error) << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+        if (ret) BOOST_LOG_TRIVIAL(error) << "error network_agnet=" << network_agent << " " << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1868,7 +1885,7 @@ int NetworkAgent::track_event(std::string evt_key, std::string content)
     if (network_agent && track_event_ptr) {
         ret = track_event_ptr(network_agent, evt_key, content);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error network_agnet=" << network_agent << " " << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1881,7 +1898,7 @@ int NetworkAgent::track_header(std::string header)
     if (network_agent && track_header_ptr) {
         ret = track_header_ptr(network_agent, header);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error network_agnet=" << network_agent << " " << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1895,7 +1912,7 @@ int NetworkAgent::track_update_property(std::string name, std::string value, std
     if (network_agent && track_update_property_ptr) {
         ret = track_update_property_ptr(network_agent, name, value, type);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error network_agnet=" << network_agent << " " << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1909,7 +1926,7 @@ int NetworkAgent::track_get_property(std::string name, std::string& value, std::
     if (network_agent && track_get_property_ptr) {
         ret = track_get_property_ptr(network_agent, name, value, type);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+            BOOST_LOG_TRIVIAL(error) << "error network_agnet=" << network_agent << " " << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1919,7 +1936,7 @@ int NetworkAgent::put_model_mall_rating(int rating_id, int score, std::string co
     int ret = 0;
     if (network_agent && get_model_publish_url_ptr) {
         ret = put_model_mall_rating_url_ptr(network_agent, rating_id, score, content, images, http_code, http_error);
-        if (ret) BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+        if (ret) BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1929,7 +1946,7 @@ int NetworkAgent::get_oss_config(std::string &config, std::string country_code, 
     int ret = 0;
     if (network_agent && get_oss_config_ptr) {
         ret = get_oss_config_ptr(network_agent, config, country_code, http_code, http_error);
-        if (ret) BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+        if (ret) BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1939,7 +1956,7 @@ int NetworkAgent::put_rating_picture_oss(std::string &config, std::string &pic_o
     int ret = 0;
     if (network_agent && put_rating_picture_oss_ptr) {
         ret = put_rating_picture_oss_ptr(network_agent, config, pic_oss_path, model_id, profile_id, http_code, http_error);
-        if (ret) BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+        if (ret) BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }
@@ -1949,7 +1966,7 @@ int NetworkAgent::get_model_mall_rating_result(int job_id, std::string &rating_r
     int ret = 0;
     if (network_agent && get_model_mall_rating_result_ptr) {
         ret = get_model_mall_rating_result_ptr(network_agent, job_id, rating_result, http_code, http_error);
-        if (ret) BOOST_LOG_TRIVIAL(error) << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+        if (ret) BOOST_LOG_TRIVIAL(error) << "error: " << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
     }
     return ret;
 }

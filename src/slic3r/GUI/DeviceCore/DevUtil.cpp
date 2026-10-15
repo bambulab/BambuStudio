@@ -90,10 +90,13 @@ uint32_t DevUtil::get_flag_bits_no_border(std::string str, int start_idx, int co
         const uint32_t val = static_cast<uint32_t>(shifted & mask);
         return val;
     } catch (const std::invalid_argument &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0;
     } catch (const std::out_of_range &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0;
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0;
     }
 }

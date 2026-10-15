@@ -7,6 +7,7 @@
 #include <random>
 #include <cassert>
 #include <sstream>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r
 {
@@ -1176,6 +1177,7 @@ namespace Slic3r
                 return calc_filament_group_for_match(cost);
         }
         catch (const FilamentGroupException&) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         }
 
         return calc_filament_group_for_flush(cost);

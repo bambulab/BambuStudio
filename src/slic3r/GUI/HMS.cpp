@@ -38,6 +38,7 @@ int get_hms_info_version(std::string& version)
                     version = DevJsonValParser::get_longlong_val(j["ver"]);
                 }
             } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 ;
             }
         })
@@ -113,6 +114,7 @@ int HMSQuery::download_hms_related(const std::string& hms_type, const std::strin
                 }
             }
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
         })
@@ -166,7 +168,7 @@ _copy_dir(const fs::path& from_dir, const fs::path& to_dir) /* copy and override
     }
     catch (...)
     {
-
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
     }
 }
 
@@ -694,6 +696,7 @@ std::string get_error_message(int error_code)
                     }
                 }
             } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
              ;
         }
         })

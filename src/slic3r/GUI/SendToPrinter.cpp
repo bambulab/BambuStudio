@@ -854,7 +854,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     }
     assert(obj_->get_dev_id() == m_printer_last_select);
 
-    BOOST_LOG_TRIVIAL(info) << "print_job: for send task, current printer id =  " <<  BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "print_job: for send task, current " << KV(log_key::dev_id, m_printer_last_select) << std::endl;
     show_status(PrintDialogStatus::PrintStatusSending);
 
     m_status_bar->reset();
@@ -1178,7 +1178,7 @@ void SendToPrinterDialog::update_user_printer()
         m_comboBox_printer->SetTextLabel("");
     }
 
-    BOOST_LOG_TRIVIAL(info) << "for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "for send task, current " << KV(log_key::dev_id, m_printer_last_select) << std::endl;
 }
 
 void SendToPrinterDialog::update_printer_combobox(wxCommandEvent &event)
@@ -1209,7 +1209,7 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
         if (i == selection) {
             m_printer_last_select = m_list[i]->get_dev_id();
             obj = m_list[i];
-            BOOST_LOG_TRIVIAL(info) << "for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
+            BOOST_LOG_TRIVIAL(info) << "for send task, current " << KV(log_key::dev_id, m_printer_last_select) << std::endl;
             break;
         }
     }
@@ -1226,7 +1226,7 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
         }
     }
     else {
-        BOOST_LOG_TRIVIAL(error) << "on_selection_changed dev_id not found";
+        BOOST_LOG_TRIVIAL(error) << "dev_id not found";
         return;
     }
 
@@ -1932,7 +1932,7 @@ void SendToPrinterDialog::CreateMediaAbilityJob()
      if (m_filetransfer_tunnel) {
         m_filetransfer_mediability_job->start_on(*m_filetransfer_tunnel);
      } else {
-        BOOST_LOG_TRIVIAL(info) << "CreateMediaAbilityJob:: file transfer tunnel is null";
+        BOOST_LOG_TRIVIAL(info) << "file transfer tunnel is null";
      }
 }
 

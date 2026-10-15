@@ -734,14 +734,14 @@ bool apply_painted_mesh_to_volume(
         const double drift     = (new_center - cur_center).norm();
         if (drift > 0.05 * std::max(1.0, diag))
             BOOST_LOG_TRIVIAL(warning)
-                << "apply_painted_mesh_to_volume: painted bbox center drifted by "
+                << "painted bbox center drifted by "
                 << drift << " (bbox diag=" << diag
                 << ", unit_scale=" << unit_scale
                 << ", from_meters=" << volume.source.is_converted_from_meters
                 << ", from_inches=" << volume.source.is_converted_from_inches << ")";
         else if (drift > 1e-3 * std::max(1.0, diag))
             BOOST_LOG_TRIVIAL(info)
-                << "apply_painted_mesh_to_volume: minor bbox drift "
+                << "minor bbox drift "
                 << drift << " (bbox diag=" << diag
                 << ", unit_scale=" << unit_scale << ")";
     }

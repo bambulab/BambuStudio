@@ -9,6 +9,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -78,7 +79,9 @@ public:
         {
             return stoi(ams_id);
         }
-        catch (...) {};
+        catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        };
 
         return -1;
     };
@@ -89,7 +92,9 @@ public:
 
         try {
             return stoi(slot_id);
-        } catch (...) {};
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        };
 
         return -1;
     };

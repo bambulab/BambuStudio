@@ -38,6 +38,7 @@
 
 #include <mutex>
 #include <stack>
+#include "libslic3r/Log.hpp"
 
 #ifdef __APPLE__
 #include <IOKit/pwr_mgt/IOPMLib.h>
@@ -193,6 +194,7 @@ public:
                 }
             }
             catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 ;
             }
         }
@@ -226,6 +228,7 @@ public:
                 }
             }
             catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 return -1;
             }
         }

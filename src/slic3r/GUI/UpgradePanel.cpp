@@ -802,10 +802,10 @@ void MachineInfoPanel::init_bitmaps()
     }
     catch (const std::exception &e)
     {
-        BOOST_LOG_TRIVIAL(error) << "init_bitmaps failed to load resources: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "failed to load resources: " << e.what();
     } catch (...)
     {
-        BOOST_LOG_TRIVIAL(error) << "init_bitmaps failed to load resources: unknown error";
+        BOOST_LOG_TRIVIAL(error) << "failed to load resources: unknown error";
     }
 }
 
@@ -855,11 +855,11 @@ void MachineInfoPanel::update_printer_imgs(MachineObject* obj)
     }
     catch (const std::exception &e)
     {
-        BOOST_LOG_TRIVIAL(error) << "update_printer_imgs error : " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "error : " << e.what();
     }
     catch (...)
     {
-        BOOST_LOG_TRIVIAL(error) << "update_printer_imgs failed: unknown error";
+        BOOST_LOG_TRIVIAL(error) << "failed: unknown error";
     }
 }
 
@@ -1424,10 +1424,10 @@ void MachineInfoPanel::update_rack_imgs(MachineObject* obj)
         m_hotend_ams_img->SetBitmap(m_img_hotend_ams.bmp());
     }
     catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "update_rack_imgs error : " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "error : " << e.what();
     }
     catch (...) {
-        BOOST_LOG_TRIVIAL(error) << "update_rack_imgs failed: unknown error";
+        BOOST_LOG_TRIVIAL(error) << "failed: unknown error";
     }
 }
 

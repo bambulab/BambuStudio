@@ -17,6 +17,7 @@
 
 #include <cstdlib>
 #include <optional>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -58,7 +59,9 @@ void command_unload_slot(MachineObject* obj, const std::string& ams_id, const st
         j["print"]["target"]      = 255;
         j["print"]["slot_id"]     = obj->GetFilaSystem()->IsVirtualTrayId(ams_id) ? 255 : 255 - atoi(slot_id.c_str());
         j["print"]["extruder_id"] = 0;
-    } catch (const std::exception&) {}
+    } catch (const std::exception&) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     obj->publish_json(j);
 }
 

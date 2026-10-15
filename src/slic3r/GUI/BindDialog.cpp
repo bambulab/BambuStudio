@@ -18,6 +18,7 @@
 #include "Widgets/WebView.hpp"
 
 #include "DeviceCore/DevManager.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -765,6 +766,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
          }
      }
      catch (...) {
+         BOOST_LOG_TRIVIAL(warning) << current_exception_message();
          ;
      }
 
@@ -922,7 +924,9 @@ void BindMachineDialog::on_show(wxShowEvent &event)
             auto bitmap = create_scaled_bitmap(img, this, FromDIP(80));
             m_printer_img->SetBitmap(bitmap);
         }
-        catch (...){}
+        catch (...){
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
 
         m_printer_img->Refresh();
         m_printer_img->Show();
@@ -1145,7 +1149,9 @@ void UnBindMachineDialog::on_show(wxShowEvent &event)
         try {
             auto bitmap = create_scaled_bitmap(img, this, FromDIP(80));
             m_printer_img->SetBitmap(bitmap);
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
 
         m_printer_img->Refresh();
         m_printer_img->Show();

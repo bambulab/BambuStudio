@@ -182,6 +182,7 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
             }
         }
         catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
 
@@ -274,6 +275,7 @@ std::string ProjectPanel::get_model_id(std::string desgin_id)
             }
         }
         catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
             })
@@ -566,6 +568,7 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
                     try {
                         return wxGetApp().url_decode(out);
                     } catch (...) {
+                        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                         return out;
                     }
                 };
@@ -834,6 +837,7 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
 
     }
     catch (std::exception& /*e*/) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         // wxMessageBox(e.what(), "json Exception", MB_OK);
     }
 }

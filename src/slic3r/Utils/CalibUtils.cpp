@@ -233,7 +233,7 @@ std::map<int, DynamicPrintConfig> CalibUtils::build_filament_ams_list(MachineObj
                     filament_ams_list.emplace(tray_id, build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
                 }
             } catch(...) {
-                BOOST_LOG_TRIVIAL(error) << "invalid ams_id:"<< ams.first << " or slot_id:" << tray.first;
+                BOOST_LOG_TRIVIAL(error) << "invalid " << KV(log_key::ams_id, ams.first) << "or " << KV(log_key::slot_id, tray.first);
             }
         }
     }
@@ -419,7 +419,9 @@ static bool is_same_nozzle_diameters(const DynamicPrintConfig &full_config, cons
             }
         }
 
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     return true;
 }
@@ -902,7 +904,7 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
 
     if (calib_info.print_prest == nullptr || calib_info.printer_prest == nullptr || calib_info.filament_prest == nullptr) {
         error_message = _L("Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid.");
-        BOOST_LOG_TRIVIAL(error) << "calib_flowrate: null preset, print_prest=" << calib_info.print_prest
+        BOOST_LOG_TRIVIAL(error) << "null preset, print_prest=" << calib_info.print_prest
                                  << " printer_prest=" << calib_info.printer_prest
                                  << " filament_prest=" << calib_info.filament_prest;
         return false;
@@ -1018,7 +1020,9 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
         NetworkAgent *agent   = GUI::wxGetApp().getAgent();
         if (agent)
             agent->track_event("cali", js.dump());
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     send_to_print(calib_info, error_message, pass);
     return true;
@@ -1347,7 +1351,9 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
         NetworkAgent *agent   = GUI::wxGetApp().getAgent();
         if (agent)
             agent->track_event("cali", js.dump());
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     send_to_print(sorted_calib_infos, error_message);
     return true;
@@ -1385,7 +1391,7 @@ bool CalibUtils::calib_generic_PA(const CalibInfo &calib_info, wxString &error_m
 
     if (calib_info.print_prest == nullptr || calib_info.printer_prest == nullptr || calib_info.filament_prest == nullptr) {
         error_message = _L("Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid.");
-        BOOST_LOG_TRIVIAL(error) << "calib_generic_PA: null preset, print_prest=" << calib_info.print_prest
+        BOOST_LOG_TRIVIAL(error) << "null preset, print_prest=" << calib_info.print_prest
                                  << " printer_prest=" << calib_info.printer_prest
                                  << " filament_prest=" << calib_info.filament_prest;
         return false;
@@ -1431,7 +1437,9 @@ bool CalibUtils::calib_generic_PA(const CalibInfo &calib_info, wxString &error_m
         NetworkAgent *agent   = GUI::wxGetApp().getAgent();
         if (agent)
             agent->track_event("cali", js.dump());
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     send_to_print(calib_info, error_message);
     return true;
@@ -1480,7 +1488,7 @@ void CalibUtils::calib_temptue(const CalibInfo &calib_info, wxString &error_mess
 
     if (calib_info.print_prest == nullptr || calib_info.printer_prest == nullptr || calib_info.filament_prest == nullptr) {
         error_message = _L("Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid.");
-        BOOST_LOG_TRIVIAL(error) << "calib_temptue: null preset, print_prest=" << calib_info.print_prest
+        BOOST_LOG_TRIVIAL(error) << "null preset, print_prest=" << calib_info.print_prest
                                  << " printer_prest=" << calib_info.printer_prest
                                  << " filament_prest=" << calib_info.filament_prest;
         return;
@@ -1529,7 +1537,7 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &erro
 
     if (calib_info.print_prest == nullptr || calib_info.printer_prest == nullptr || calib_info.filament_prest == nullptr) {
         error_message = _L("Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid.");
-        BOOST_LOG_TRIVIAL(error) << "calib_max_vol_speed: null preset, print_prest=" << calib_info.print_prest
+        BOOST_LOG_TRIVIAL(error) << "null preset, print_prest=" << calib_info.print_prest
                                  << " printer_prest=" << calib_info.printer_prest
                                  << " filament_prest=" << calib_info.filament_prest;
         return;
@@ -1632,7 +1640,7 @@ void CalibUtils::calib_VFA(const CalibInfo &calib_info, wxString &error_message)
 
     if (calib_info.print_prest == nullptr || calib_info.printer_prest == nullptr || calib_info.filament_prest == nullptr) {
         error_message = _L("Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid.");
-        BOOST_LOG_TRIVIAL(error) << "calib_VFA: null preset, print_prest=" << calib_info.print_prest
+        BOOST_LOG_TRIVIAL(error) << "null preset, print_prest=" << calib_info.print_prest
                                  << " printer_prest=" << calib_info.printer_prest
                                  << " filament_prest=" << calib_info.filament_prest;
         return;
@@ -1714,7 +1722,7 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, wxString &error_m
 
     if (calib_info.print_prest == nullptr || calib_info.printer_prest == nullptr || calib_info.filament_prest == nullptr) {
         error_message = _L("Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid.");
-        BOOST_LOG_TRIVIAL(error) << "calib_retraction: null preset, print_prest=" << calib_info.print_prest
+        BOOST_LOG_TRIVIAL(error) << "null preset, print_prest=" << calib_info.print_prest
                                  << " printer_prest=" << calib_info.printer_prest
                                  << " filament_prest=" << calib_info.filament_prest;
         return;
@@ -2324,7 +2332,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
         j["print"]["printer_prest"]   = calib_info.printer_prest ? calib_info.printer_prest->name : "";
         j["print"]["filament_prest"]  = calib_info.filament_prest ? calib_info.filament_prest->name : "";
         j["print"]["print_prest"]     = calib_info.print_prest ? calib_info.print_prest->name : "";
-        BOOST_LOG_TRIVIAL(info) << "send_cali_job - before send: " << j.dump();
+        BOOST_LOG_TRIVIAL(info) << "send_cali_job - before send: " << j;
     }
 
     std::string dev_id = calib_info.dev_id;
@@ -2437,7 +2445,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
         j["print"]["nozzle_mapping"]  = print_job->task_nozzle_mapping;
         j["print"]["project_name"]    = print_job->m_project_name;
         j["print"]["is_cali_task"]    = print_job->m_is_calibration_task;
-        BOOST_LOG_TRIVIAL(info) << "send_cali_job - after send: " << j.dump();
+        BOOST_LOG_TRIVIAL(info) << "send_cali_job - after send: " << j;
     }
 
     print_job->start();
@@ -2577,7 +2585,7 @@ void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxStri
         j["print"]["nozzle_mapping"] = print_job->task_nozzle_mapping;
         j["print"]["project_name"] = print_job->m_project_name;
         j["print"]["is_cali_task"] = print_job->m_is_calibration_task;
-        BOOST_LOG_TRIVIAL(info) << "send_cali_job - after send: " << j.dump();
+        BOOST_LOG_TRIVIAL(info) << "send_cali_job - after send: " << j;
     }
 
     print_job->start();

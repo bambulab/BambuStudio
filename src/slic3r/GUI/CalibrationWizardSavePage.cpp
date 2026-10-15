@@ -1036,7 +1036,7 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
         }
     }
     else {
-        BOOST_LOG_TRIVIAL(trace) << "CaliPASaveManual::get_result(): obj is nullptr";
+        BOOST_LOG_TRIVIAL(trace) << "obj is nullptr";
         return false;
     }
 
@@ -1071,7 +1071,7 @@ bool CaliPASaveManualPanel::Show(bool show) {
             }
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "CaliPASaveManual::Show(): obj is nullptr";
+            BOOST_LOG_TRIVIAL(trace) << "obj is nullptr";
         }
     }
     return wxPanel::Show(show);
@@ -1839,8 +1839,7 @@ bool CalibrationFlowCoarseSavePage::Show(bool show) {
         if (curr_obj) {
             auto selected_cali_preset=curr_obj->GetCalib()->GetSelectedCalibPreset();
 
-            BOOST_LOG_TRIVIAL(info) << "CoarseSavePage::Show()"
-                                    << ", selected_cali_preset.size = " << selected_cali_preset.size()
+            BOOST_LOG_TRIVIAL(info) << ", selected_cali_preset.size = " << selected_cali_preset.size()
                                     << ", stash_flow_ratio = " << curr_obj->GetCalib()->GetStashFlowRatio();
 
             assert(selected_cali_preset.size() <= 1);
@@ -1849,11 +1848,11 @@ bool CalibrationFlowCoarseSavePage::Show(bool show) {
                 set_default_options(default_name);
                 set_curr_flow_ratio(curr_obj->GetCalib()->GetStashFlowRatio());
             } else {
-                BOOST_LOG_TRIVIAL(warning) << "CoarseSavePage::Show(): selected_cali_preset is EMPTY, flow ratio may be invalid";
+                BOOST_LOG_TRIVIAL(warning) << "selected_cali_preset is EMPTY, flow ratio may be invalid";
             }
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "CalibrationFlowCoarseSave::Show(): obj is nullptr";
+            BOOST_LOG_TRIVIAL(trace) << "obj is nullptr";
         }
     }
     return wxPanel::Show(show);
@@ -2024,8 +2023,7 @@ bool CalibrationFlowFineSavePage::Show(bool show) {
         if (curr_obj) {
             auto selected_cali_preset = curr_obj->GetCalib()->GetSelectedCalibPreset();
 
-            BOOST_LOG_TRIVIAL(info) << "FineSavePage::Show"
-                                    << ", selected_cali_preset.size = " << selected_cali_preset.size()
+            BOOST_LOG_TRIVIAL(info) << ", selected_cali_preset.size = " << selected_cali_preset.size()
                                     << ", stash_flow_ratio = " << curr_obj->GetCalib()->GetStashFlowRatio();
 
             assert(selected_cali_preset.size() <= 1);
@@ -2034,11 +2032,11 @@ bool CalibrationFlowFineSavePage::Show(bool show) {
                 set_default_options(default_name);
                 set_curr_flow_ratio(curr_obj->GetCalib()->GetStashFlowRatio());
             } else {
-                BOOST_LOG_TRIVIAL(warning) << "FineSavePage::Show: selected_cali_preset is EMPTY, flow ratio may be invalid";
+                BOOST_LOG_TRIVIAL(warning) << "selected_cali_preset is EMPTY, flow ratio may be invalid";
             }
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "CalibrationFlowFineSave::Show(): obj is nullptr";
+            BOOST_LOG_TRIVIAL(trace) << "obj is nullptr";
         }
     }
     return wxPanel::Show(show);
@@ -2128,7 +2126,7 @@ bool CalibrationMaxVolumetricSpeedSavePage::Show(bool show) {
             }
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "CalibrationMaxVolumetricSpeedSave::Show(): obj is nullptr";
+            BOOST_LOG_TRIVIAL(trace) << "obj is nullptr";
         }
     }
     return wxPanel::Show(show);

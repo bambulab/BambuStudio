@@ -29,6 +29,7 @@
 #include <vector>
 #include <boost/format.hpp>
 #include <wx/timer.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -114,7 +115,8 @@ void open_ams_materials_setting(const std::string& ams_id, const std::string& sl
     try {
         ams_id_int = std::stoi(ams_id);
         slot_id_int = std::stoi(slot_id);
-    } catch (...) { return; }
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message(); return; }
 
     wxWindow* parent = wxGetApp().mainframe;
 
@@ -267,6 +269,7 @@ bool DevicePageAmsFilamentHotendVM::IsCurrentFilamentChangingSlot(MachineObject*
     try {
         return fila_system->IsCurrentFilamentChangingSlot(std::stoi(ams_id), std::stoi(slot_id));
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return false;
     }
 }
@@ -300,7 +303,9 @@ static void s_command_unload_filament(MachineObject* obj_, const std::string& am
                 j["print"]["extruder_id"] = *extruder_id;
             }
 
-        } catch (const std::exception&) {}
+        } catch (const std::exception&) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
 
         obj_->publish_json(j);
     }

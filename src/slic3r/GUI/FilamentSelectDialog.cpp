@@ -14,6 +14,7 @@
 #include <cctype>
 #include <cmath>
 #include <sstream>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -166,7 +167,9 @@ wxString slot_label(const FilamentSpool& sp)
         const std::string s = DevFilaSystem::GetTrayNameByAmsSlotId(
             sp.dev_id, sp.ams_id, std::stoi(sp.slot_id), (DevAmsType)sp.ams_type);
         if (!s.empty()) return wxString::FromUTF8(s);
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return wxString::FromUTF8(sp.slot_id);
 }
 

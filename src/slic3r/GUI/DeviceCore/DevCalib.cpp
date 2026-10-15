@@ -458,7 +458,7 @@ void DevCalib::ExtrusionCalibSelectParse(const json &jj){
             }
         }
     } catch(...){
-        BOOST_LOG_TRIVIAL(trace) << " extrusion_cali_sel: illegal ack = " << jj.dump();
+        BOOST_LOG_TRIVIAL(trace) << " extrusion_cali_sel: illegal ack = " << jj;
     }
 }
 
@@ -516,7 +516,7 @@ void DevCalib::ExtrusionCalibGetTableParse(const json &jj){
                                    << " tab " << before << "->" << m_pa_calib_tab.size()
                                    << " new_rows=" << new_rows.size();
         } catch(...) {
-            BOOST_LOG_TRIVIAL(error) << "pa calib history missing fields, current json:\n "<< jj.dump();
+            BOOST_LOG_TRIVIAL(error) << "pa calib history missing fields, current json:\n "<< jj;
         }
 
         m_fetch_queue.erase(m_fetch_queue.begin());
@@ -567,7 +567,7 @@ void DevCalib::ExtrusionCalibGetResultParse(const json &jj)
         if (m_pa_calib_results.empty()) { BOOST_LOG_TRIVIAL(info) << "empty pa calib result"; }
     } catch (...) {
         m_pa_calib_results.clear();
-        BOOST_LOG_TRIVIAL(error) << "pa calibration results missing fileds, current json: \n"<<jj.dump();
+        BOOST_LOG_TRIVIAL(error) << "pa calibration results missing fileds, current json: \n"<<jj;
     }
 }
 
@@ -580,7 +580,7 @@ void DevCalib::FlowrateGetResultParse(const json &jj){
     try {
         m_flow_ratio_results = jj["filaments"].get<std::vector<FlowRatioCalibResult>>();
     } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << "flow ratio calibration results missing fileds, current json:\n"<<jj.dump();
+        BOOST_LOG_TRIVIAL(error) << "flow ratio calibration results missing fileds, current json:\n"<<jj;
     }
 }
 

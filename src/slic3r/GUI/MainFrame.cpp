@@ -631,7 +631,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 agent->track_event("device_ctrl", j.dump());
             }
         }
-        catch (...) {}
+        catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
 
         MarkdownTip::ExitTip();
 
@@ -1147,7 +1149,7 @@ void MainFrame::update_layout()
 // Called when closing the application and when switching the application language.
 void MainFrame::shutdown()
 {
-    BOOST_LOG_TRIVIAL(info) << "MainFrame::shutdown enter";
+    BOOST_LOG_TRIVIAL(info) << "enter";
 
     // The rich parameter tooltip is a wxPopupTransientWindow parented to this frame. Both teardown
     // paths funnel through here (app close, and the language-switch GUI rebuild via recreate_GUI),
@@ -1233,7 +1235,7 @@ void MainFrame::shutdown()
     // BBS: why clear ?
     //wxGetApp().plater_ = nullptr;
 
-    BOOST_LOG_TRIVIAL(info) << "MainFrame::shutdown exit";
+    BOOST_LOG_TRIVIAL(info) << "exit";
 }
 
 void MainFrame::update_filament_tab_ui()
@@ -3785,7 +3787,9 @@ void MainFrame::init_menubar_as_editor()
                     js["cali_type"] = "third_cali_tutorial";
                     NetworkAgent *agent   = GUI::wxGetApp().getAgent();
                     if (agent) agent->track_event("third_cali", js.dump());
-                } catch (...) {}
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                }
                 wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/bambu-studio/Calibration", wxBROWSER_NEW_WINDOW);
             }, "", nullptr,
             [this]() {return m_plater->is_view3D_shown();; }, this);
@@ -3915,7 +3919,9 @@ void MainFrame::init_menubar_as_editor()
                 js["cali_type"] = "third_cali_tutorial";
                 NetworkAgent *agent = GUI::wxGetApp().getAgent();
                 if (agent) agent->track_event("third_cali", js.dump());
-            } catch (...) {}
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
             wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/bambu-studio/Calibration", wxBROWSER_NEW_WINDOW);
         }, "", nullptr,
         [this]() {
@@ -4729,7 +4735,7 @@ void MainFrame::remove_recent_project(size_t file_id, wxString const &filename)
 
 void MainFrame::load_url(wxString url)
 {
-    BOOST_LOG_TRIVIAL(trace) << "load_url";
+    BOOST_LOG_TRIVIAL(trace);
     auto evt = new wxCommandEvent(EVT_LOAD_URL, this->GetId());
     evt->SetString(url);
     wxQueueEvent(this, evt);
@@ -4737,7 +4743,7 @@ void MainFrame::load_url(wxString url)
 
 void MainFrame::load_printer_url(wxString url)
 {
-    BOOST_LOG_TRIVIAL(trace) << "load_printer_url";
+    BOOST_LOG_TRIVIAL(trace);
     auto evt = new wxCommandEvent(EVT_LOAD_PRINTER_URL, this->GetId());
     evt->SetString(url);
     wxQueueEvent(this, evt);

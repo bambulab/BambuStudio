@@ -80,7 +80,9 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
                 NetworkAgent *agent = wxGetApp().getAgent();
                 if (agent)
                     agent->track_event("start_liveview", j.dump());
-            } catch (...) {}
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
             m_pending_start_liveview_json.clear();
         }
         m_session_first_frame_success = true;
@@ -374,7 +376,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     if (obj && is_support_switch_cam(obj->support_liveview_cams)) {
         if (!is_valid_camera(obj->liveview_current_camera)) {
             SetStatus(_L("Current camera is abnormal"), false);
-            BOOST_LOG_TRIVIAL(warning) << "SetMachineObject: invalid camera " << obj->liveview_current_camera;
+            BOOST_LOG_TRIVIAL(warning) << "invalid camera " << obj->liveview_current_camera;
         } else if (m_last_state == MEDIASTATE_IDLE) {
             SetStatus(_L(""), false);
         }
@@ -446,7 +448,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         return;
     }
     m_machine = machine;
-    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl switch machine: " << BBLCrossTalk::Crosstalk_DevId(m_machine);
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl switch machine: " << KV(log_key::dev_id, m_machine);
     m_disable_lan = false;
     m_failed_retry = 0;
     m_last_failed_codes.clear();
@@ -576,7 +578,7 @@ void MediaPlayCtrl::Play()
     }
 
     m_play_timer = std::chrono::system_clock::now();
-    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::Play: " << m_lan_proto << m_remote_proto << m_disable_lan;
+    BOOST_LOG_TRIVIAL(info) << m_lan_proto << m_remote_proto << m_disable_lan;
 
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
@@ -659,7 +661,7 @@ void MediaPlayCtrl::Play()
 
             CallAfter([this, m, url] {
                 if (m != m_machine) {
-                    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for machine: " << BBLCrossTalk::Crosstalk_DevId(m);
+                    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for machine: " << KV(log_key::dev_id, m);
                     return;
                 }
                 if (m_last_state == MEDIASTATE_INITIALIZING) {
@@ -809,7 +811,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
 
 void MediaPlayCtrl::TogglePlay()
 {
-    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::TogglePlay";
+    BOOST_LOG_TRIVIAL(info);
     if (m_last_state != MEDIASTATE_IDLE) {
         m_next_retry = wxDateTime();
         Stop();
@@ -893,7 +895,7 @@ void MediaPlayCtrl::ToggleStream()
         url += "&dev_ver=" + m_dev_ver;
 
 #if !BBL_RELEASE_TO_PUBLIC
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << hide_passwd(hide_id_middle_string(url, url.find(m_lan_ip), m_lan_ip.length()), {m_lan_passwd});
+        BOOST_LOG_TRIVIAL(info) << hide_passwd(hide_id_middle_string(url, url.find(m_lan_ip), m_lan_ip.length()), {m_lan_passwd});
 #endif
 
         std::string             file_url = data_dir() + "/cameratools/url.txt";
@@ -983,7 +985,7 @@ void MediaPlayCtrl::RequestFileSystemUrl(std::function<void(std::string url)> cb
     std::string  agent_version = agent ? agent->get_version() : "";
 
     if (!agent || !m_remote_proto) {
-        BOOST_LOG_TRIVIAL(info) << "RequestFileSystemUrl: agent not available or remote protocol not supported" << lan_mode << " " << m_remote_proto;
+        BOOST_LOG_TRIVIAL(info) << "agent not available or remote protocol not supported" << lan_mode << " " << m_remote_proto;
         cb("");
         return;
     }
@@ -1154,12 +1156,12 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
 {
     auto last_state = m_last_state;
     auto state      = m_media_ctrl->GetState();
-    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: " << state << ", last_state: " << last_state;
+    BOOST_LOG_TRIVIAL(info) << state << ", last_state: " << last_state;
     if ((int) state < 0) return;
     {
         boost::unique_lock lock(m_mutex);
         if (!m_tasks.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: skip when task not finished";
+            BOOST_LOG_TRIVIAL(info) << "skip when task not finished";
             return;
         }
     }
@@ -1171,7 +1173,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
     }
     if (last_state == MEDIASTATE_LOADING && (state == wxMEDIASTATE_STOPPED || state == wxMEDIASTATE_PAUSED)) {
         wxSize size = m_media_ctrl->GetVideoSize();
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
+        BOOST_LOG_TRIVIAL(info) << "size: " << size.x << "x" << size.y;
         m_failed_code = m_media_ctrl->GetLastError();
         if (size.GetWidth() >= 320) {
             m_last_state = state;
@@ -1254,7 +1256,7 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
                                 time_str);
         }
     }
-    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::SetStatus: " << msg.ToUTF8().data() << " tutk_state: " << m_tutk_state;
+    BOOST_LOG_TRIVIAL(info) << msg.ToUTF8().data() << " tutk_state: " << m_tutk_state;
 #ifdef __WXMSW__
     OutputDebugStringA("MediaPlayCtrl::SetStatus: ");
     OutputDebugStringA(msg.ToUTF8().data());

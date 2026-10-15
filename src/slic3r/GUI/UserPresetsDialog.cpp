@@ -615,7 +615,7 @@ bool UserPresetsDialog::delete_presets(int collection, std::vector<std::string> 
     for (auto &preset : presets) {
         auto preset2 = collection2->find_preset(preset);
         if (!preset2->setting_id.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "delete preset = " << preset << ", setting_id = " << preset2->setting_id;
+            BOOST_LOG_TRIVIAL(info) << "delete preset = " << preset << " " << KV(log_key::setting_id, preset2->setting_id);
             collection2->set_sync_info_and_save(preset, preset2->setting_id, "delete", 0);
             wxGetApp().delete_preset_from_cloud(preset2->setting_id);
         }

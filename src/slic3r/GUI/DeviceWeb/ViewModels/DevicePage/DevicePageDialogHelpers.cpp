@@ -15,6 +15,7 @@
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 
 #include <wx/sizer.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -104,6 +105,7 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
         ams_id_int = std::stoi(ams_id);
         slot_id_int = std::stoi(slot_id);
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return std::nullopt;
     }
 

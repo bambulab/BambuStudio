@@ -633,11 +633,9 @@ namespace Slic3r
                         && extruder_id < support_filament_opt.size()
                         && (m_single_ext_multi_nozzle || extruder_id < filament_maps.size());
                     if (!arrays_ok) {
-                        BOOST_LOG_TRIVIAL(warning) << "filament_* config arrays too short for extruder_id=" << int(extruder_id)
-                            << ", sizes=[map " << filament_maps.size()
-                            << ", type " << type_opt.size()
-                            << ", color " << color_opt.size()
-                            << ", is_support " << support_filament_opt.size() << "], skip";
+                        BOOST_LOG_TRIVIAL(warning) << "filament_* config arrays too short for " << KV(log_key::extruder_id, int(extruder_id))
+                                                   << "sizes=[map " << filament_maps.size() << ", type " << type_opt.size() << ", color "
+                                                   << color_opt.size() << ", is_support " << support_filament_opt.size() << "], skip";
                         continue;
                     }
                     bool to_left;

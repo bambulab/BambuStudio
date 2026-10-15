@@ -702,6 +702,7 @@ bool GLVolume::simplify_mesh(const indexed_triangle_set &_its, std::shared_ptr<G
             try { // Start the actual calculation.
                 its_quadric_edge_collapse(*its, triangle_count, &max_error, throw_on_cancel, statusfn);
             } catch (std::exception&) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 state->status = State::idle;
             }
             if (state->status == State::Status::running) {

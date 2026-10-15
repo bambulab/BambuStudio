@@ -1232,6 +1232,7 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript, bool for
         return true;
 #endif
     } catch (std::exception &/*e*/) {
+        BOOST_LOG_TRIVIAL(warning) << Slic3r::current_exception_message();
         return false;
     }
 }

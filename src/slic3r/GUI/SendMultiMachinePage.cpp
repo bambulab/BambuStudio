@@ -648,10 +648,10 @@ bool SendMultiMachinePage::get_ams_mapping_result(std::string &mapping_array_str
             if (curr_plate) {
                 filament_maps = curr_plate->get_filament_maps();
             } else {
-                BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result, curr_plate is nullptr";
+                BOOST_LOG_TRIVIAL(error) << "curr_plate is nullptr";
             }
         } else {
-            BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result, plater is nullptr";
+            BOOST_LOG_TRIVIAL(error) << "plater is nullptr";
         }
 
         for (int i = 0; i < wxGetApp().preset_bundle->filament_presets.size(); i++) {
@@ -796,7 +796,9 @@ void SendMultiMachinePage::on_send(wxCommandEvent& event)
            wxGetApp().getTaskManager()->start_print(print_params, &settings);
        }
        catch (...)
-       {}
+       {
+           BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+       }
     }
     //jump to info
     EndModal(wxCLOSE);

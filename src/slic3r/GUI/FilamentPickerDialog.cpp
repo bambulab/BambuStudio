@@ -201,17 +201,17 @@ bool FilamentPickerDialog::LoadFilamentData(const wxString& fila_id)
     m_cur_color_codes = m_color_query->GetFilaInfoMap(fila_id);
 
     if (!m_cur_color_codes) {
-        BOOST_LOG_TRIVIAL(warning) << "No color codes found for filament ID: " << fila_id.ToStdString();
+        BOOST_LOG_TRIVIAL(warning) << "No color codes found for filament ID: " << fila_id;
         return false;
     }
 
     FilamentColor2CodeMap* color_map = m_cur_color_codes->GetFilamentColor2CodeMap();
     if (!color_map) {
-        BOOST_LOG_TRIVIAL(warning) << "No color map found for filament ID: " << fila_id.ToStdString();
+        BOOST_LOG_TRIVIAL(warning) << "No color map found for filament ID: " << fila_id;
         return false;
     }
 
-    BOOST_LOG_TRIVIAL(info) << "Successfully loaded " << color_map->size() << " color variants for filament " << fila_id.ToStdString();
+    BOOST_LOG_TRIVIAL(info) << "Successfully loaded " << color_map->size() << " color variants for filament " << fila_id;
     return !color_map->empty();
 }
 
@@ -382,7 +382,7 @@ wxScrolledWindow* FilamentPickerDialog::CreateColorGrid()
             );
 
             if (!btn_bmp.IsOk()) {
-                BOOST_LOG_TRIVIAL(error) << "Failed to create bitmap for filament " << color_code->GetFilaColorCode().ToStdString();
+                BOOST_LOG_TRIVIAL(error) << "Failed to create bitmap for filament " << color_code->GetFilaColorCode();
                 continue;
             }
 

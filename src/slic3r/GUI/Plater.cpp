@@ -345,7 +345,7 @@ static void set_config_values(DynamicPrintConfig *config, const std::string &key
         }
     }
     else {
-        BOOST_LOG_TRIVIAL(info) << "set_config_values: the key" << key << "is empty.";
+        BOOST_LOG_TRIVIAL(info) << "the key" << key << "is empty.";
     }
 }
 
@@ -431,7 +431,8 @@ static void merge_custom_gcodes_orphaned_above_stack(const CustomGCode::Info& pr
 static DynamicPrintConfig build_tray_config(DevAmsTray const &tray, std::string const &name, std::string ams_id, std::string slot_id, double nozzle_dia = 0,
                                              NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtStandard)
 {
-    BOOST_LOG_TRIVIAL(info) << "making tray, name: " << name << ", setting_id: " << tray.setting_id << ", type: " << tray.m_fila_type << ", color: " << tray.color;
+    BOOST_LOG_TRIVIAL(info) << "making tray, name: " << name << " " << KV(log_key::setting_id, tray.setting_id) << "type: " << tray.m_fila_type
+                            << ", color: " << tray.color;
 
     DynamicPrintConfig tray_config;
     tray_config.set_key_value("filament_id", new ConfigOptionStrings{tray.setting_id});
@@ -5776,6 +5777,7 @@ void Sidebar::set_bed_by_curr_bed_type(AppConfig *config) {
             set_bed_type_accord_combox((BedType) bed_type_value);
             return;
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         }
         p->combo_printer_bed->SelectAndNotify(selection);
     } else {
@@ -7111,7 +7113,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
                         build_tray_config(*tray.second, get_ams_name(ams_id, slot_id),
                                           std::to_string(ams_id), std::to_string(slot_id), nozzle_diameter));
                 } catch(...) {
-                    BOOST_LOG_TRIVIAL(error) << "invalid ams_id:"<< ams.first << " or slot_id:" << tray.first;
+                    BOOST_LOG_TRIVIAL(error) << "invalid " << KV(log_key::ams_id, ams.first) << "or " << KV(log_key::slot_id, tray.first);
                 }
             }
         }
@@ -11185,7 +11187,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
                 if (originfile != "<lock>") // see bbs_3mf.cpp for lock detail
                     boost::filesystem::remove_all(last);
             }
-            catch (...) {}
+            catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
             if (this->q->get_project_filename().IsEmpty() && this->q->is_empty_project()) {
                 int skip_confirm = e.GetInt();
                 this->q->new_project(skip_confirm, true);
@@ -11666,6 +11670,7 @@ void read_binary_stl(const std::string& filename, std::string& model_id, std::st
         file.close();
     }
     catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
     }
     return;
 }
@@ -12964,7 +12969,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 if (assembly_tree_json_brought_in && prev_object_count == 0) {
                     std::string tree_error;
                     if (!AssemblyTreeData::from_json_string(q->model().get_assembly_tree_json_str(), q->model().get_assembly_tree_data(), &tree_error)) {
-                        BOOST_LOG_TRIVIAL(warning) << "Plater::load_files: failed to restore assembly tree from JSON: " << tree_error;
+                        BOOST_LOG_TRIVIAL(warning) << "failed to restore assembly tree from JSON: " << tree_error;
                     }
                 }
 
@@ -12972,7 +12977,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     std::string steps_error;
                     float assembly_part_number_label_font_size = 0.0f;
                     if (!AssemblyStepsTreeData::from_json_string(q->model().get_assembly_steps_json_str(), q->model().get_assembly_steps_tree_data(), q->model(), &steps_error, &assembly_part_number_label_font_size)) {
-                        BOOST_LOG_TRIVIAL(warning) << "Plater::load_files: failed to restore assembly steps tree from JSON: " << steps_error;
+                        BOOST_LOG_TRIVIAL(warning) << "failed to restore assembly steps tree from JSON: " << steps_error;
                     }
                     if (assembly_part_number_label_font_size > 0.1f && wxGetApp().app_config) {
                         std::ostringstream ss;
@@ -15057,8 +15062,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         process_completed_with_error = -1;
     }
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: was_running = %2%, running %3%, invalidated=%4%, return_state=%5%, internal_cancel=%6%")
-        % __LINE__ % was_running % this->background_process.running() % invalidated % return_state % this->background_process.is_internal_cancelled();
+    BOOST_LOG_TRIVIAL(info) << boost::format("was_running = %1%, running %2%, invalidated=%3%, return_state=%4%, internal_cancel=%5%")% was_running % this->background_process.running() % invalidated % return_state % this->background_process.is_internal_cancelled();
     if (was_running && ! this->background_process.running() && (return_state & UPDATE_BACKGROUND_PROCESS_RESTART) == 0) {
         if (invalidated != Print::APPLY_STATUS_UNCHANGED || this->background_process.is_internal_cancelled())
         {
@@ -15066,7 +15070,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             // Post the "canceled" callback message, so that it will be processed after any possible pending status bar update messages.
             SlicingProcessCompletedEvent evt(EVT_PROCESS_COMPLETED, 0,
                 SlicingProcessCompletedEvent::Cancelled, nullptr);
-            BOOST_LOG_TRIVIAL(info) << boost::format("%1%, post an EVT_PROCESS_COMPLETED to main, status %2%")%__LINE__ %evt.status();
+            BOOST_LOG_TRIVIAL(info) << boost::format("post an EVT_PROCESS_COMPLETED to main, status %1%")%evt.status();
             wxQueueEvent(q, evt.Clone());
         }
     }
@@ -15078,7 +15082,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, false);
 
         process_completed_with_error = partplate_list.get_curr_plate_index();
-        BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: set to process_completed_with_error, return_state=%2%")%__LINE__%return_state;
+        BOOST_LOG_TRIVIAL(info) << boost::format("set to process_completed_with_error, return_state=%1%")%return_state;
     }
     else
     {
@@ -15088,7 +15092,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             notification_manager->set_slicing_progress_hidden();
 
         //BBS: add slice&&print status update logic
-        BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: background data valid, return_state=%2%")%__LINE__%return_state;
+        BOOST_LOG_TRIVIAL(info) << boost::format("background data valid, return_state=%1%")%return_state;
         PartPlate* cur_plate = background_process.get_current_plate();
         if (background_process.finished() && cur_plate && cur_plate->is_slice_result_valid())
         {
@@ -15131,7 +15135,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 #endif
     }
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: exit, return_state=%2%")%__LINE__%return_state;
+    BOOST_LOG_TRIVIAL(info) << boost::format("exit, return_state=%1%")%return_state;
     return return_state;
 }
 
@@ -15140,7 +15144,7 @@ bool Plater::priv::restart_background_process(unsigned int state)
 {
     if (m_ui_jobs.is_any_running()) {
         // Avoid a race condition
-        BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: ui jobs running, return false")%__LINE__;
+        BOOST_LOG_TRIVIAL(warning) << boost::format("ui jobs running, return false");
         return false;
     }
 
@@ -15149,7 +15153,7 @@ bool Plater::priv::restart_background_process(unsigned int state)
          ( ((state & UPDATE_BACKGROUND_PROCESS_FORCE_RESTART) != 0 && ! this->background_process.finished()) ||
            (state & UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT) != 0 ||
            (state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ) ) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: print is valid, try to start it now")%__LINE__;
+        BOOST_LOG_TRIVIAL(info) << boost::format("print is valid, try to start it now");
         // The print is valid and it can be started.
         if (this->background_process.start()) {
             if (auto* plate = this->background_process.get_current_plate()) {
@@ -15157,7 +15161,7 @@ bool Plater::priv::restart_background_process(unsigned int state)
             }
             if (!show_warning_dialog)
                 on_slicing_began();
-            BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: start successfully")%__LINE__;
+            BOOST_LOG_TRIVIAL(info) << boost::format("start successfully");
             return true;
         }
     }
@@ -15170,12 +15174,12 @@ bool Plater::priv::restart_background_process(unsigned int state)
                 }
                 if (!show_warning_dialog)
                     on_slicing_began();
-                BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: start successfully")%__LINE__;
+                BOOST_LOG_TRIVIAL(info) << boost::format("start successfully");
                 return true;
             }
         }
     }
-    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: not started")%__LINE__;
+    BOOST_LOG_TRIVIAL(info) << boost::format("not started");
     return false;
 }
 
@@ -15183,7 +15187,7 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
 {
     wxCHECK_RET(!(output_path.empty()), "export_gcode: output_path and upload_job empty");
 
-    BOOST_LOG_TRIVIAL(trace) << boost::format("export_gcode: output_path %1%")%output_path.string();
+    BOOST_LOG_TRIVIAL(trace) << boost::format("output_path %1%")%output_path.string();
     if (model.objects.empty())
         return;
 
@@ -15370,6 +15374,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
         }
     }
     catch (std::exception&) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         // error while loading
         return false;
     }
@@ -22207,13 +22212,13 @@ void Plater::priv::derive_assemble_model()
             if (!m_assemble_model.get_assembly_tree_json_str().empty()) {
                 std::string tree_error;
                 if (!AssemblyTreeData::from_json_string(m_assemble_model.get_assembly_tree_json_str(), m_assemble_model.get_assembly_tree_data(), &tree_error))
-                    BOOST_LOG_TRIVIAL(warning) << "derive_assemble_model: restore assembly tree failed: " << tree_error;
+                    BOOST_LOG_TRIVIAL(warning) << "restore assembly tree failed: " << tree_error;
             }
             if (!m_assemble_model.get_assembly_steps_json_str().empty()) {
                 std::string steps_error;
                 float steps_font_size = 0.0f;
                 if (!AssemblyStepsTreeData::from_json_string(m_assemble_model.get_assembly_steps_json_str(), m_assemble_model.get_assembly_steps_tree_data(), m_assemble_model, &steps_error, &steps_font_size))
-                    BOOST_LOG_TRIVIAL(warning) << "derive_assemble_model: restore assembly steps failed: " << steps_error;
+                    BOOST_LOG_TRIVIAL(warning) << "restore assembly steps failed: " << steps_error;
             }
             m_assemble_model_valid = true;
 #if !BBL_RELEASE_TO_PUBLIC
@@ -22230,7 +22235,7 @@ void Plater::priv::derive_assemble_model()
 #endif
             return;
         }
-        BOOST_LOG_TRIVIAL(warning) << "derive_assemble_model: assembly_model.json parse failed, fall back to derive: " << assembly_model_error;
+        BOOST_LOG_TRIVIAL(warning) << "assembly_model.json parse failed, fall back to derive: " << assembly_model_error;
     }
 
     // Independent clone of the object graph; meshes stay shared via shared_ptr, GUIDs are copied.
@@ -23191,13 +23196,13 @@ void Plater::priv::assemble_undo_redo_to(std::vector<UndoRedo::Snapshot>::const_
         if (!m_assemble_model.get_assembly_tree_json_str().empty()) {
             std::string tree_error;
             if (!AssemblyTreeData::from_json_string(m_assemble_model.get_assembly_tree_json_str(), m_assemble_model.get_assembly_tree_data(), &tree_error))
-                BOOST_LOG_TRIVIAL(warning) << "assemble_undo_redo_to: restore assembly tree failed: " << tree_error;
+                BOOST_LOG_TRIVIAL(warning) << "restore assembly tree failed: " << tree_error;
         }
         if (!m_assemble_model.get_assembly_steps_json_str().empty()) {
             std::string steps_error;
             float steps_font_size = 0.0f;
             if (!AssemblyStepsTreeData::from_json_string(m_assemble_model.get_assembly_steps_json_str(), m_assemble_model.get_assembly_steps_tree_data(), m_assemble_model, &steps_error, &steps_font_size))
-                BOOST_LOG_TRIVIAL(warning) << "assemble_undo_redo_to: restore assembly steps failed: " << steps_error;
+                BOOST_LOG_TRIVIAL(warning) << "restore assembly steps failed: " << steps_error;
         } else {
             m_assemble_model.get_assembly_steps_tree_data() = AssemblyStepsTreeData();
         }
@@ -23826,6 +23831,7 @@ void Plater::priv::record_start_print_preset(std::string action) {
         }
     }
     catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return;
     }
 
@@ -24381,7 +24387,9 @@ int Plater::save_project(bool saveAs)
         NetworkAgent* agent = wxGetApp().getAgent();
         if (agent) agent->track_event("save_project", j.dump());
     }
-    catch (...) {}
+    catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     return wxID_YES;
 }
@@ -24607,7 +24615,9 @@ void Plater::import_model_id(wxString download_info)
                                 catch (const std::exception& e) {
                                     BOOST_LOG_TRIVIAL(error) << "Failed to create target directory: " << e.what();
                                     if (fs::exists(tmp_path)) {
-                                        try { fs::remove(tmp_path); } catch (...) {}
+                                        try { fs::remove(tmp_path); } catch (...) {
+                                            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                                        }
                                     }
                                     cont = false;
                                     download_ok = false;
@@ -24623,7 +24633,9 @@ void Plater::import_model_id(wxString download_info)
                                 } catch (const std::exception& e) {
                                     BOOST_LOG_TRIVIAL(error) << "Failed to remove existing target file: " << e.what();
                                     if (fs::exists(tmp_path)) {
-                                        try { fs::remove(tmp_path); } catch (...) {}
+                                        try { fs::remove(tmp_path); } catch (...) {
+                                            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                                        }
                                     }
                                     cont = false;
                                     download_ok = false;
@@ -24688,7 +24700,7 @@ void Plater::import_model_id(wxString download_info)
 #endif
 
     if (download_ok) {
-        BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << PathSanitizer::sanitize(target_path);
+        BOOST_LOG_TRIVIAL(trace) << "target_path = " << PathSanitizer::sanitize(target_path);
         /* load project */
         auto result = this->load_project(target_path.wstring());
         statistics_burial_data_form_mw();
@@ -24860,7 +24872,9 @@ void Plater::calib_pa(const Calib_Params &params)
         NetworkAgent *agent = GUI::wxGetApp().getAgent();
         if (agent)
             agent->track_event("third_cali", js.dump());
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     p->background_process.fff_print()->set_calib_params(params);
 }
@@ -25113,7 +25127,9 @@ void Plater::calib_flowrate(int pass)
 
         NetworkAgent *agent = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("third_cali", js.dump());
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     Calib_Params params;
     params.mode = CalibMode::Calib_Flow_Rate;
@@ -25132,7 +25148,9 @@ void Plater::calib_temp(const Calib_Params &params)
 
         NetworkAgent *agent = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("third_cali", js.dump());
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     const auto calib_temp_name = wxString::Format(L"Nozzle temperature test");
     if (new_project(false, false, calib_temp_name) == wxID_CANCEL)
@@ -25197,7 +25215,9 @@ void Plater::calib_max_vol_speed(const Calib_Params &params)
 
         NetworkAgent *agent = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("third_cali", js.dump());
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     const auto calib_vol_speed_name = wxString::Format(L"Max volumetric speed test");
     if (new_project(false, false, calib_vol_speed_name) == wxID_CANCEL)
@@ -25300,7 +25320,9 @@ void Plater::calib_retraction(const Calib_Params &params)
 
         NetworkAgent *agent   = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("third_cali", js.dump());
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     const auto calib_retraction_name = wxString::Format(L"Retraction test");
     if (new_project(false, false, calib_retraction_name) == wxID_CANCEL)
@@ -25359,7 +25381,9 @@ void Plater::calib_VFA(const Calib_Params &params)
 
         NetworkAgent *agent   = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("third_cali", js.dump());
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     const auto calib_vfa_name = wxString::Format(L"VFA test");
     if (new_project(false, false, calib_vfa_name) == wxID_CANCEL)
@@ -27035,7 +27059,9 @@ void Plater::export_gcode(bool prefer_removable)
             }
             NetworkAgent *agent = wxGetApp().getAgent();
             if (agent) agent->track_event("printer_export_gcode", j.dump());
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
 
     }
 }
@@ -27067,6 +27093,7 @@ void Plater::export_gcode_3mf(bool export_all)
             std::string full_filename = start_dir + "/" + filename.utf8_string();
             default_output_file = boost::filesystem::path(full_filename);
         } catch(...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
     }
@@ -27263,7 +27290,9 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
             if (mesh.its.indices.size() > 0) {
                 fail_msg = "";
             }
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
 #if 0
         // if mcut fails, try again with CGAL
         if (mesh.empty()) {
@@ -27271,7 +27300,9 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
                 auto meshPtr = csg::perform_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) });
                 mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*meshPtr);
             }
-            catch (...) {}
+            catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
         }
 #endif
     }
@@ -27853,7 +27884,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
         else
             store_params.qualified_assembly = GLCanvas3D::s_assemble_ratio >= 80
                 && assembly_steps_json_last_step_is_final_assembly(steps_json);
-        BOOST_LOG_TRIVIAL(info) << "export_3mf qualified_assembly=" << store_params.qualified_assembly
+        BOOST_LOG_TRIVIAL(info) << "qualified_assembly=" << store_params.qualified_assembly
                                 << " s_assemble_ratio=" << GLCanvas3D::s_assemble_ratio
                                 << " kept_stored=" << (steps_meta.has_qualified && !assembly_steps_version_needs_recompute(steps_meta.version));
     }
@@ -28035,7 +28066,7 @@ void plater_save_post_process_script_choice(bool skip)
 //BBS: add multiple plate reslice logic
 void Plater::reslice()
 {
-    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: enter, process_completed_with_error=%2%")%__LINE__ %p->process_completed_with_error;
+    BOOST_LOG_TRIVIAL(info) << boost::format("enter, process_completed_with_error=%1%")%p->process_completed_with_error;
     // Nested wx event dispatch during PostProcessScriptDialog::ShowModal() can re-enter reslice(); ignore the inner call.
     if (p->m_inside_post_process_script_modal)
         return;
@@ -28202,7 +28233,7 @@ void Plater::reslice()
     //BBS: jusdge the result
     bool result = this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: restart background,state=%2%, result=%3%")%__LINE__%state %result;
+    BOOST_LOG_TRIVIAL(info) << boost::format("restart background,state=%1%, result=%2%")%state %result;
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
     {
         //BBS: add logs
@@ -28447,6 +28478,7 @@ void Plater::record_slice_preset(std::string action)
     }
     catch (...)
     {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return;
     }
 }
@@ -28618,6 +28650,7 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
             NetworkAgent *agent = wxGetApp().getAgent();
             if (agent) agent->track_event("third_party_printer_job", j.dump());
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             return;
         }
     }
@@ -28634,7 +28667,9 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
                 p->m_print_job_data._3mf_path = fs::path(m_3mf_path);
                 return 0;
             }
-        } catch (const std::exception& ) { };
+        } catch (const std::exception& ) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        };
     }
 
     PartPlate* plate = get_partplate_list().get_curr_plate();
@@ -30426,7 +30461,7 @@ void Plater::apply_background_progress()
     Print::ApplyStatus invalidated;
     invalidated = p->background_process.apply(this->model(), build_plate_apply_config(preset_bundle, part_plate));
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: plate %2%, after apply, invalidated= %3%, previous result_valid %4% ") % __LINE__ % plate_index % invalidated % result_valid;
+    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, after apply, invalidated= %2%, previous result_valid %3% ")% plate_index % invalidated % result_valid;
     if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
     {
         part_plate->update_slice_result_valid_state(false);
@@ -30439,7 +30474,7 @@ void Plater::apply_background_progress()
 int Plater::select_plate(int plate_index, bool need_slice)
 {
     int ret;
-    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: plate %2%, need_slice %3% ")%__LINE__ %plate_index  %need_slice;
+    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, need_slice %2% ")%plate_index  %need_slice;
     take_snapshot("select partplate!");
     ret = p->partplate_list.select_plate(plate_index);
     if (!ret) {
@@ -30467,7 +30502,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
         invalidated = p->background_process.apply(this->model(), build_plate_apply_config(preset_bundle, part_plate));
         bool model_fits, validate_err;
 
-        BOOST_LOG_TRIVIAL(info) << boost::format("%1%: plate %2%, after apply, invalidated= %3%, previous result_valid %4% ")%__LINE__ %plate_index  %invalidated %result_valid;
+        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, after apply, invalidated= %2%, previous result_valid %3% ")%plate_index  %invalidated %result_valid;
         if (result_valid)
         {
             if (is_preview_shown())
@@ -30585,14 +30620,14 @@ int Plater::select_plate(int plate_index, bool need_slice)
     SimpleEvent event(EVT_GLCANVAS_PLATE_SELECT);
     p->on_plate_selected(event);
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: plate %2%, return %3%")%__LINE__ %plate_index %ret;
+    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, return %2%")%plate_index %ret;
     return ret;
 }
 
 int Plater::select_sliced_plate(int plate_index)
 {
     int ret = 0;
-    BOOST_LOG_TRIVIAL(info) << "select_sliced_plate plate_idx=" << plate_index;
+    BOOST_LOG_TRIVIAL(info) << "plate_idx=" << plate_index;
 
     Freeze();
     ret = select_plate(plate_index, true);
@@ -30959,7 +30994,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             bool model_fits, validate_err;
             validate_current_plate(model_fits, validate_err);
 
-            BOOST_LOG_TRIVIAL(info) << boost::format("%1%: after apply, invalidated= %2%, previous result_valid %3% ")%__LINE__ % invalidated %result_valid;
+            BOOST_LOG_TRIVIAL(info) << boost::format("after apply, invalidated= %1%, previous result_valid %2% ")% invalidated %result_valid;
             if (result_valid)
             {
                 if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
@@ -31146,7 +31181,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
         ret = -1;
     }
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: return %2%")%__LINE__ % ret;
+    BOOST_LOG_TRIVIAL(info) << boost::format("return %1%")% ret;
     return ret;
 }
 
@@ -31540,6 +31575,7 @@ void Plater::post_process_string_object_exception(StringObjectException &err)
                 err.string += "\n";
             }
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
     } else if (err.type == StringExceptionType::STRING_EXCEPT_OBJECT_COLLISION_IN_SEQ_PRINT) {
@@ -31735,7 +31771,7 @@ void Plater::init_notification_manager()
 
 void Plater::show_status_message(std::string s)
 {
-    BOOST_LOG_TRIVIAL(trace) << "show_status_message:" << s;
+    BOOST_LOG_TRIVIAL(trace) << s;
 }
 
 void Plater::edit_text()

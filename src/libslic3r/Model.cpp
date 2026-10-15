@@ -1969,7 +1969,7 @@ void ModelObject::scale_mesh_after_creation(const float scale)
 
 void ModelObject::convert_units(ModelObjectPtrs& new_objects, ConversionType conv_type, std::vector<int> volume_idxs)
 {
-    BOOST_LOG_TRIVIAL(trace) << "ModelObject::convert_units - start";
+    BOOST_LOG_TRIVIAL(trace) << "start";
 
     ModelObject* new_object = new_clone(*this);
 
@@ -2031,7 +2031,7 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, ConversionType con
 
     new_objects.push_back(new_object);
 
-    BOOST_LOG_TRIVIAL(trace) << "ModelObject::convert_units - end";
+    BOOST_LOG_TRIVIAL(trace) << "end";
 }
 
 size_t ModelObject::materials_count() const
@@ -2499,7 +2499,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
     if (! attributes.has(ModelObjectCutAttribute::KeepUpper) && ! attributes.has(ModelObjectCutAttribute::KeepLower))
         return {};
 
-    BOOST_LOG_TRIVIAL(trace) << "ModelObject::cut - start";
+    BOOST_LOG_TRIVIAL(trace) << "start";
 
     // apply cut attributes for object
     apply_cut_attributes(attributes);
@@ -2593,7 +2593,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
         }
     }
 
-    BOOST_LOG_TRIVIAL(trace) << "ModelObject::cut - end";
+    BOOST_LOG_TRIVIAL(trace) << "end";
 
     synchronize_model_after_cut();
 
@@ -2603,7 +2603,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
 // BBS
 ModelObjectPtrs ModelObject::segment(size_t instance, unsigned int max_extruders, double smoothing_alpha, int segment_number)
 {
-    BOOST_LOG_TRIVIAL(trace) << "ModelObject::segment - start";
+    BOOST_LOG_TRIVIAL(trace) << "start";
 
     // Clone the object to duplicate instances, materials etc.
     ModelObject* upper = ModelObject::new_clone(*this);
@@ -2700,7 +2700,7 @@ ModelObjectPtrs ModelObject::segment(size_t instance, unsigned int max_extruders
         res.push_back(upper);
     }
 
-    BOOST_LOG_TRIVIAL(trace) << "ModelObject::segment - end";
+    BOOST_LOG_TRIVIAL(trace) << "end";
 
     return res;
 }
@@ -4236,7 +4236,7 @@ bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &verte
             vertex_color_case = _2_SAME_1_DIFF_COLOR;
             iso_index         = 1;
         } else {
-            std::cout << "error";
+            BOOST_LOG_TRIVIAL(error) << "unexpected vertex colors";
         }
     };
     auto calc_tri_area = [](const Vec3f &v0, const Vec3f &v1, const Vec3f &v2) {

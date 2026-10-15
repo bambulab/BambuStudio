@@ -1,5 +1,6 @@
 //#include "D:/dev/bamboo_slicer/build_release/src/slic3r/CMakeFiles/libslic3r_gui.dir/Release/cmake_pch.hxx"
 #include "DevHMS.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r
 {
@@ -62,6 +63,7 @@ void DevHMS::ParseHMSItems(const json& hms_json)
     }
     catch (const std::exception&)
     {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         assert(false && "Parse HMS items failed");
     }
 }

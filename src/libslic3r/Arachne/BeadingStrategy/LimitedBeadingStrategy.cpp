@@ -32,7 +32,7 @@ LimitedBeadingStrategy::LimitedBeadingStrategy(const coord_t max_bead_count, Bea
 {
     if (max_bead_count % 2 == 1)
     {
-        BOOST_LOG_TRIVIAL(warning) << "LimitedBeadingStrategy with odd bead count is odd indeed!";
+        BOOST_LOG_TRIVIAL(warning) << "with odd bead count is odd indeed!";
     }
 }
 

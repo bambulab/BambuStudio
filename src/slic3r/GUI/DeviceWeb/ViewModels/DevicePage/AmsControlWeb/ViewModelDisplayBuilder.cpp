@@ -22,6 +22,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI { namespace AmsControlWebDisplay {
 
@@ -122,6 +123,7 @@ SchemaFormat::SlotView build_slot_view(const SchemaFormat::Tray& tray,
             const int tray_id = std::stoi(tray.ams_id) * 4 + std::stoi(tray.slot_id);
             view.label = wxGetApp().transition_tridid(tray_id).ToStdString();
         } catch (const std::exception&) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             view.label = tray.tray_label;
         }
     }

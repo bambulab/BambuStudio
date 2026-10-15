@@ -351,7 +351,7 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
             m_calib_results_history.clear();
             sync_history_data();
             m_tips->SetLabel(_L("Refreshing the historical Flow Dynamics Calibration records"));
-            BOOST_LOG_TRIVIAL(info) << "request history dia=" << nozzle_value << " extruder_id=" << extruder_id;
+            BOOST_LOG_TRIVIAL(info) << "request history dia=" << nozzle_value << " " << KV(log_key::extruder_id, extruder_id);
         }
     }
 }
@@ -456,7 +456,7 @@ void HistoryWindow::sync_history_data() {
     auto title_name = new Label(m_history_data_panel, _L("Name"));
     title_name->SetFont(Label::Head_14);
     gbSizer->Add(title_name, {0, column_idx++ }, {1, 1}, wxBOTTOM, FromDIP(15));
-    BOOST_LOG_TRIVIAL(info) << "=====================" << title_name->GetLabelText().ToStdString();
+    BOOST_LOG_TRIVIAL(info) << "=====================" << title_name->GetLabelText();
 
     auto title_preset_name = new Label(m_history_data_panel, _L("Filament"));
     title_preset_name->SetFont(Label::Head_14);
@@ -631,6 +631,7 @@ float HistoryWindow::get_nozzle_value()
         nozzle_value_str.ToDouble(&nozzle_value);
     }
     catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         ;
     }
 
@@ -1314,7 +1315,9 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
 
         NetworkAgent *agent = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("cali", js.dump());
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     CalibUtils::set_PA_calib_result({m_new_result}, true);
 

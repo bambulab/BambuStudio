@@ -1194,6 +1194,7 @@ std::optional<NozzleGroupInfo> NozzleGroupInfo::deserialize(const std::string &s
 
         return NozzleGroupInfo(diameter, volume_type, extruder_id, nozzle_count);
     } catch (const std::exception &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return std::nullopt;
     }
 }

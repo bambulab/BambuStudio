@@ -20,6 +20,7 @@
 #include "Desensitize.hpp"
 
 #include <atomic>
+#include <exception>
 #include <iomanip>
 #include <string>
 #include <string_view>
@@ -106,10 +107,11 @@ unsigned get_logging_level()
 // to perform unit and integration tests.
 static struct RunOnInit {
     RunOnInit() {
-        // Installed once; reads logSeverity on every record, so changing the level needs no new filter.
+        // Installed once and evaluated per record, so changing the level needs no new filter.
+        // Same check as the logging macros, which also covers records not made through them.
         boost::log::core::get()->set_filter([](const boost::log::attribute_value_set& attrs) {
             const auto severity = attrs[boost::log::trivial::severity];
-            return severity && severity.get() >= logSeverity.load(std::memory_order_relaxed);
+            return severity && log_detail::log_enabled(static_cast<LogLevel>(severity.get()));
         });
         set_logging_level(1);
 
@@ -173,6 +175,20 @@ void update_log_sink(const LogEncOptions& enc_options)
     }
 }
 
+std::string current_exception_message()
+{
+    // A bare throw with no exception being handled would terminate the program.
+    if (!std::current_exception())
+        return "no exception";
+    try {
+        throw;
+    } catch (const std::exception& e) {
+        return e.what();
+    } catch (...) {
+        return "unknown exception";
+    }
+}
+
 void flush_logs()
 {
 	if (g_log_sink)
@@ -196,32 +212,10 @@ const char* file_basename(const char* path)
     return name;
 }
 
-using MaskFn = std::string (*)(const std::string&);
-
-// Field name -> mask function; fields not listed are written as is.
-// constexpr so it is ready before any static initializer can log.
-constexpr std::pair<std::string_view, MaskFn> k_masks[] = {
-    {log_key::dev_id,      &Desensitize::dev_id},
-    {log_key::sn,          &Desensitize::dev_id},
-    {log_key::dev_ip,      &Desensitize::dev_ip},
-    {log_key::dev_name,    &Desensitize::dev_name},
-    {log_key::uid,         &Desensitize::user_id},
-    {log_key::access_code, &Desensitize::mask_all},
-    {log_key::token,       &Desensitize::mask_all},
-    {log_key::password,    &Desensitize::mask_all},
-    {log_key::authkey,     &Desensitize::mask_all},
-    {log_key::ttcode_enc,  &Desensitize::mask_all},
-    {log_key::url,         &Desensitize::mask_all},
-    {log_key::region,      &Desensitize::mask_all},
-    {log_key::model_id,    &Desensitize::mask_all},
-};
-
+// Fields that are not registered for masking are written as is.
 std::string masked(std::string_view key, const std::string& value)
 {
-    for (const auto& [name, mask] : k_masks)
-        if (name == key)
-            return mask(value);
-    return value;
+    return Desensitize::mask_by_key(key, value).value_or(value);
 }
 
 // Quotes values that would otherwise be ambiguous in "key=value" form: empty, or containing
@@ -258,18 +252,52 @@ std::string format_kv(std::string_view key, const std::string& value)
     return out;
 }
 
+void write_json(std::ostream& os, const nlohmann::json& value)
+{
+    // json_log masks by field name in public builds; copying a large json can still run out of memory.
+    try {
+        os << Desensitize::json_log(value, -1);
+    } catch (...) {
+        write_failed(os);
+    }
+}
+
+void write_failed(std::ostream& os) noexcept
+{
+    try {
+        os << "<value not logged>";
+    } catch (...) {
+    }
+}
+
+std::string kv_failed(std::string_view key) noexcept
+{
+    try {
+        return std::string(key) + "=<value not logged> ";
+    } catch (...) {
+        return std::string();
+    }
+}
+
 bool log_enabled(LogLevel level)
 {
+    // A record made while this thread is writing another one would deadlock on the sink's locks.
+    if (LogSinkBackend::is_consuming_on_this_thread())
+        return false;
     return static_cast<boost::log::trivial::severity_level>(level) >= logSeverity.load(std::memory_order_relaxed);
 }
 
 LogStream::LogStream(LogLevel level, const char* file, int line, const char* func)
     : m_level(level)
 {
-    // Same as Boost.Log's record stream, so bools keep printing as true/false.
-    m_buf.setf(std::ios_base::boolalpha);
-    // The location leads the message; records from code outside our macro simply have none.
-    m_buf << file_basename(file) << ':' << line << ' ' << func << ": ";
+    try {
+        // Same as Boost.Log's record stream, so bools keep printing as true/false.
+        m_buf.setf(std::ios_base::boolalpha);
+        // The location leads the message; records from code outside our macro simply have none.
+        m_buf << '[' << file_basename(file) << ':' << line << ' ' << func << "] ";
+    } catch (...) {
+        // Out of memory only; the record is written without its location.
+    }
 }
 
 LogStream& LogStream::operator<<(std::ostream& (*manip)(std::ostream&))
@@ -281,9 +309,13 @@ LogStream& LogStream::operator<<(std::ostream& (*manip)(std::ostream&))
 LogStream::~LogStream()
 {
     try {
+        std::string message = m_buf.str();
+        // The sink ends every record with a newline; one written by the caller would leave an empty line.
+        while (!message.empty() && (message.back() == '\n' || message.back() == '\r'))
+            message.pop_back();
         BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(),
                                      (::boost::log::keywords::severity = static_cast<boost::log::trivial::severity_level>(m_level)))
-            << m_buf.str();
+            << message;
     } catch (...) {
         // A destructor must not throw, and a failure to log has nowhere else to be reported.
     }

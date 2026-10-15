@@ -158,7 +158,7 @@ nlohmann::json DevicePageAmsMappingHotendVM::OnCommand(const std::string& submod
             return HandleAction(action, payload);
         }
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "DevicePageAmsMappingHotendVM::OnCommand exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
         return MakeResponse(GetModule(), submod, action, 2, e.what(), BuildState());
     }
 
@@ -1007,7 +1007,7 @@ void DevicePageAmsMappingHotendVM::PostSelectEvent(const nlohmann::json& payload
         if (!ams_id_str.empty())  ams_id  = std::stoi(ams_id_str);
         if (!slot_id_str.empty()) slot_id = std::stoi(slot_id_str);
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "DevicePageAmsMappingHotendVM::PostSelectEvent invalid ams/slot id: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "invalid ams/slot id: " << e.what();
         return;
     }
 

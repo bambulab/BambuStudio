@@ -239,26 +239,22 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
 
         const FilamentSpool* matched = match_tray(tray, dev_id, ams_id);
         if (!matched) {
-            BOOST_LOG_TRIVIAL(info)
-                << "[ams-sync] unmatched tray, skip"
-                << " ams_id=" << ams_id
-                << " slot_id=" << tray.id
-                << " setting_id=" << tray.setting_id
-                << " tag_uid=" << tray.tag_uid
-                << " color=" << tray.color;
+            BOOST_LOG_TRIVIAL(info) << "[ams-sync] unmatched tray, skip " << KV(log_key::ams_id, ams_id) << KV(log_key::slot_id, tray.id)
+                                    << KV(log_key::setting_id, tray.setting_id) << "tag_uid=" << tray.tag_uid << " color=" << tray.color;
             return;
         }
 
-        BOOST_LOG_TRIVIAL(info)
-            << "[ams-sync] matched tray -> spool_id=" << matched->spool_id
-            << " ams_id=" << ams_id << " slot_id=" << tray.id;
+        BOOST_LOG_TRIVIAL(info) << "[ams-sync] matched tray -> spool_id=" << matched->spool_id << " " << KV(log_key::ams_id, ams_id)
+                                << KV(log_key::slot_id, tray.id);
 
         if (!handled_spools.insert(matched->spool_id).second) {
             return;
         }
 
         int ams_id_int = -1;
-        try { ams_id_int = std::stoi(ams_id); } catch (...) {}
+        try { ams_id_int = std::stoi(ams_id); } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
         MountUpdate mu;
         mu.ams_id   = ams_id_int;
         mu.ams_type = ams_type_int;

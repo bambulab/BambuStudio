@@ -281,9 +281,9 @@ WipingDialog::WipingDialog(wxWindow* parent, const int max_flush_volume) :
     wxFileName fn(filepath_str);
     if(fn.FileExists()) {
         wxString url = wxFileSystem::FileNameToURL(fn);
-        BOOST_LOG_TRIVIAL(debug) << "File exists and load url " << url.ToStdString();
+        BOOST_LOG_TRIVIAL(debug) << "File exists and load url " << url;
         m_webview->LoadURL(url);
-        BOOST_LOG_TRIVIAL(debug) << "Successfully loaded url: " << url.ToStdString();
+        BOOST_LOG_TRIVIAL(debug) << "Successfully loaded url: " << url;
     } else {
         BOOST_LOG_TRIVIAL(error) << "WipingDialog.html not exist at path: " << filepath.string();
     }

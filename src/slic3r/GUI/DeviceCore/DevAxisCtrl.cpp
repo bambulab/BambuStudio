@@ -2,6 +2,7 @@
 
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r
 {
@@ -60,6 +61,7 @@ int DevAxis::Ctrl_Axis(std::string axis, double unit, double input_val, int spee
             m_owner->get_agent()->track_event("printer_control", j.dump());
         }
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
     }
 
     return m_owner->publish_gcode(cmd);

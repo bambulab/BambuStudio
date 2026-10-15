@@ -5,8 +5,10 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <utility>
 
 #include "LogKeys.hpp"
+#include "nlohmann/json_fwd.hpp"
 
 namespace Slic3r {
 
@@ -54,6 +56,13 @@ void update_log_sink(const LogEncOptions& enc_options);
 /** \brief Write out buffered log records */
 void flush_logs();
 
+/**
+ * \brief Message of the exception being handled, for logging it in a catch block
+ *
+ * Gives what() for a std::exception and "unknown exception" for anything else; outside a
+ * catch block, where no exception is being handled, gives "no exception".
+ */
+std::string current_exception_message();
 } // namespace Slic3r
 
 namespace Slic3r::log_detail {
@@ -80,10 +89,29 @@ constexpr bool is_char_number()
 }
 
 /**
+ * \brief Whether T has ToUTF8(); in practice this is wxString
+ *
+ * wxString's own operator<< converts to the system code page (GBK on Chinese Windows), but log files
+ * are UTF-8. The type is detected by its ToUTF8() member because this header must not depend on wx.
+ */
+template<class T, class = void>
+struct has_to_utf8 : std::false_type {};
+template<class T>
+struct has_to_utf8<T, std::void_t<decltype(std::declval<const T&>().ToUTF8())>> : std::true_type {};
+
+/**
+ * \brief Write a json with its sensitive fields masked, on one line
+ *
+ * Used by write_value; not meant to be called directly. Never throws.
+ */
+void write_json(std::ostream& os, const nlohmann::json& value);
+
+/**
  * \brief Write a value to a log stream
  *
- * A null char pointer is written as "(null)", and char-sized numbers are written as numbers.
- * Plain char is written as a character.
+ * A null char pointer is written as "(null)", char-sized numbers are written as numbers, a json has
+ * its sensitive fields masked, and strings with ToUTF8() are written as UTF-8. Plain char is written
+ * as a character.
  */
 template<class T>
 void write_value(std::ostream& os, const T& value)
@@ -96,10 +124,28 @@ void write_value(std::ostream& os, const T& value)
         os << value;
     } else if constexpr (is_char_number<T>()) {
         os << static_cast<int>(value);
+    } else if constexpr (std::is_same_v<T, nlohmann::json>) {
+        write_json(os, value);
+    } else if constexpr (has_to_utf8<T>::value) {
+        os << value.ToUTF8().data();
     } else {
         os << value;
     }
 }
+
+/**
+ * \brief Write a placeholder for a value that could not be written; never throws
+ *
+ * Used by LogStream and KV; not meant to be called directly.
+ */
+void write_failed(std::ostream& os) noexcept;
+
+/**
+ * \brief "key=<value not logged> " for a value that could not be written; never throws
+ *
+ * Used by KV; not meant to be called directly.
+ */
+std::string kv_failed(std::string_view key) noexcept;
 
 /**
  * \brief Collects one log record and writes it when the statement ends
@@ -118,7 +164,12 @@ public:
     template<class T>
     LogStream& operator<<(const T& value)
     {
-        write_value(m_buf, value);
+        // A value whose own operator<< throws must not break the code that logs it.
+        try {
+            write_value(m_buf, value);
+        } catch (...) {
+            write_failed(m_buf);
+        }
         return *this;
     }
 
@@ -152,10 +203,15 @@ namespace Slic3r {
 template<class T>
 std::string KV(std::string_view key, const T& value)
 {
-    std::ostringstream s;
-    s << std::boolalpha;
-    log_detail::write_value(s, value);
-    return log_detail::format_kv(key, s.str());
+    // Evaluated inside log statements, so a failure must not reach the caller.
+    try {
+        std::ostringstream s;
+        s << std::boolalpha;
+        log_detail::write_value(s, value);
+        return log_detail::format_kv(key, s.str());
+    } catch (...) {
+        return log_detail::kv_failed(key);
+    }
 }
 
 } // namespace Slic3r

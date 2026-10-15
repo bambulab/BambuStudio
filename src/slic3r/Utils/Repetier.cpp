@@ -70,6 +70,7 @@ bool Repetier::test(wxString &msg) const
                 }
             }
             catch (const std::exception &) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 res = false;
                 msg = "Could not parse server response";
             }
@@ -214,6 +215,7 @@ bool Repetier::get_groups(wxArrayString& groups) const
                 }
             }
             catch (const std::exception &) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 //msg = "Could not parse server response";
                 res = false;
             }

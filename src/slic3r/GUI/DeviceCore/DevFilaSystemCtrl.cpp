@@ -105,8 +105,8 @@ void DevFilaSystem::CtrlSetFilamentWeightAfter(const std::shared_ptr<DevCtrlToke
         m_pending_weight_tokens.erase(std::remove(m_pending_weight_tokens.begin(), m_pending_weight_tokens.end(), settled), m_pending_weight_tokens.end());
 
         if (status != DevCtrlTokenStatus::ReplyReceived || !IsReplySuccessful(settled->GetReply())) {
-            BOOST_LOG_TRIVIAL(warning) << "CtrlSetFilamentWeightAfter: ams_filament_setting did not succeed, dropping set_filament_weight for ams_id=" << ams_id
-                                       << ", slot_id=" << slot_id;
+            BOOST_LOG_TRIVIAL(warning) << "CtrlSetFilamentWeightAfter: ams_filament_setting did not succeed, dropping set_filament_weight for "
+                                       << KV(log_key::ams_id, ams_id) << KV(log_key::slot_id, slot_id);
             return;
         }
 

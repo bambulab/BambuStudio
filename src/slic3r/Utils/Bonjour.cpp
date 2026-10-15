@@ -13,6 +13,7 @@
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/format.hpp>
+#include "libslic3r/Log.hpp"
 
 using boost::optional;
 using boost::system::error_code;
@@ -675,6 +676,7 @@ void Bonjour::priv::lookup_perform()
 			}
 		}
 	} catch (std::exception& /* e */) {
+		BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 	}
 }
 

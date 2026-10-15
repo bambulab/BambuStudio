@@ -91,6 +91,7 @@ HelioHistoryDialog::HelioHistoryDialog(wxWindow* parent)
             SetIcon(icon);
         }
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         // Icon loading failed, continue anyway
     }
 
@@ -392,6 +393,7 @@ void HelioHistoryDialog::show_content()
         }
         Layout();
     } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         // If anything goes wrong, just show empty state
         show_empty_state();
     }

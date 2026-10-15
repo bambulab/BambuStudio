@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cctype>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -483,7 +484,8 @@ void AMSNewOfficialFilamentDlg::on_combo_selected(wxCommandEvent& evt)
     if (id_it != m_combo_idx_to_spool_id.end()) {
         m_selected_link_spool_id = id_it->second;
         try { m_selected_candidate_id = std::stoi(id_it->second); }
-        catch (...) { m_selected_candidate_id = 0; }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message(); m_selected_candidate_id = 0; }
     } else {
         m_selected_candidate_id = 0;
     }

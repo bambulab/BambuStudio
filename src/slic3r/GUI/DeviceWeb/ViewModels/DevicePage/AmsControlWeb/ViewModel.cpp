@@ -170,7 +170,7 @@ nlohmann::json DevicePageAmsControlWebVM::OnCommand(const std::string& submod,
         }
 #endif
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "DevicePageAmsControlWebVM::OnCommand exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
         return MakeResponse(GetModule(), submod, action, 2, e.what(), BuildState());
     }
 

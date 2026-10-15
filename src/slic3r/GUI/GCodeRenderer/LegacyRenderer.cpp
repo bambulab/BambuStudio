@@ -851,7 +851,7 @@ namespace Slic3r {
                 CNumericLocalesSetter locales_setter;
                 FILE* fp = boost::nowide::fopen(mat_filename.string().c_str(), "w");
                 if (fp == nullptr) {
-                    BOOST_LOG_TRIVIAL(error) << "LegacyRenderer::export_toolpaths_to_obj: Couldn't open " << mat_filename.string().c_str() << " for writing";
+                    BOOST_LOG_TRIVIAL(error) << "Couldn't open " << mat_filename.string().c_str() << " for writing";
                     return;
                 }
                 fprintf(fp, "# G-Code Toolpaths Materials\n");
@@ -867,7 +867,7 @@ namespace Slic3r {
                 // save geometry file
                 fp = boost::nowide::fopen(filename, "w");
                 if (fp == nullptr) {
-                    BOOST_LOG_TRIVIAL(error) << "LegacyRenderer::export_toolpaths_to_obj: Couldn't open " << filename << " for writing";
+                    BOOST_LOG_TRIVIAL(error) << "Couldn't open " << filename << " for writing";
                     return;
                 }
                 fprintf(fp, "# G-Code Toolpaths\n");
@@ -2032,7 +2032,7 @@ namespace Slic3r {
                     glsafe(::glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &buffer_size));
                     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
                     if (render_path->offsets.back() + render_path->sizes.back() * sizeof(IBufferType) > buffer_size)
-                        BOOST_LOG_TRIVIAL(error) << "LegacyRenderer::refresh_render_paths: Invalid render path data";
+                        BOOST_LOG_TRIVIAL(error) << "Invalid render path data";
 #endif
                 }
                 // Removes empty render paths and sort.

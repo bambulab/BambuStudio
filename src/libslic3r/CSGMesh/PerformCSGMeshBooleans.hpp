@@ -33,6 +33,7 @@ MeshBoolean::cgal::CGALMeshPtr get_cgalmesh(const CSGPartT &csgpart)
     try {
         ret = MeshBoolean::cgal::triangle_mesh_to_cgal(m);
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         // errors are ignored, simply return null
         ret = nullptr;
     }
@@ -60,6 +61,7 @@ MeshBoolean::mcut::McutMeshPtr get_mcutmesh(const CSGPartT& csgpart)
         ret = MeshBoolean::mcut::triangle_mesh_to_mcut(m);
     }
     catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         // errors are ignored, simply return null
         ret = nullptr;
     }
@@ -295,7 +297,8 @@ std::tuple<BooleanFailReason,std::string> check_csgmesh_booleans(const Range<It>
             // Skip CGAL self-intersection pre-check: it blocks boolean on inverted-face
             // meshes, and the current backend has no such detector.
         }
-        catch (...) { return; }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message(); return; }
 
         cgalmeshes[i] = std::move(m);
     };
@@ -346,7 +349,8 @@ std::tuple<BooleanFailReason, std::string> check_csgmesh_booleans(const Range<It
                     return;
                 }
             }
-            catch (...) { return; }
+            catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message(); return; }
 
             McutMeshes[i] = std::move(m);
         };

@@ -32,6 +32,27 @@ namespace Slic3r
 
 static std::string s_message_newline = "\n";
 
+namespace {
+// True while this thread is inside LogSinkBackend::consume().
+thread_local bool t_consuming = false;
+
+// Marks the current thread as consuming for the lifetime of the scope, also when it exits by an exception.
+class ConsumingScope
+{
+public:
+    ConsumingScope() { t_consuming = true; }
+    ~ConsumingScope() { t_consuming = false; }
+
+    ConsumingScope(const ConsumingScope&)            = delete;
+    ConsumingScope& operator=(const ConsumingScope&) = delete;
+};
+} // namespace
+
+bool LogSinkBackend::is_consuming_on_this_thread()
+{
+    return t_consuming;
+}
+
 LogSinkBackend::LogSinkBackend(const std::string& base_path, const LogEncOptions& options)
     : m_log_enc_options(options)
 {
@@ -87,6 +108,8 @@ static int s_get_enc_block_size(LogEncOptions::LogEncType enc_type)
 
 void LogSinkBackend::consume(const boost::log::record_view& rec, const std::string& formatted_message)
 {
+    ConsumingScope consuming;
+
 #ifdef DEBUG_LOG_ENC
     static std::string s_empty_string;
     static std::string s_encrpted_string;

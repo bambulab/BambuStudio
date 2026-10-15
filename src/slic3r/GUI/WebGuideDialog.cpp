@@ -326,7 +326,7 @@ GuideFrame::~GuideFrame()
 
 void GuideFrame::load_url(wxString &url)
 {
-    BOOST_LOG_TRIVIAL(trace) << "enter, url=" << url.ToStdString();
+    BOOST_LOG_TRIVIAL(trace) << "enter, url=" << url;
     WebView::LoadUrl(m_browser, url);
     m_browser->SetFocus();
     UpdateState();
@@ -502,11 +502,11 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
 {
     try {
         wxString strInput = evt.GetString();
-        BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;OnRecv:" << strInput.c_str();
+        BOOST_LOG_TRIVIAL(trace) << "OnRecv:" << strInput.c_str();
         json     j        = json::parse(strInput);
 
         wxString strCmd = j["command"];
-        BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;Command:" << strCmd;
+        BOOST_LOG_TRIVIAL(trace) << "Command:" << strCmd;
 
         if (strCmd == "close_page") {
             this->EndModal(wxID_CANCEL);
@@ -664,7 +664,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
         }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
-        BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;Error:" << e.what();
+        BOOST_LOG_TRIVIAL(trace) << "Error:" << e.what();
     }
 
     wxString strAll = m_ProfileJson.dump(-1,' ',false, json::error_handler_t::ignore);
@@ -735,7 +735,7 @@ void GuideFrame::OnError(wxWebViewEvent &evt)
     // Show the info bar with an error
     // m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() +
     // "\n" + "'" + category + "'", wxICON_ERROR);
-    BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnError: An error occurred loading " << evt.GetURL() << category;
+    BOOST_LOG_TRIVIAL(trace) << "An error occurred loading " << evt.GetURL() << category;
 
     UpdateState();
 }

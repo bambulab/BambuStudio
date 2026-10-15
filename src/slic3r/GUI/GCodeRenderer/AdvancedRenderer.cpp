@@ -319,7 +319,7 @@ namespace Slic3r
                 CNumericLocalesSetter locales_setter;
                 FILE* fp = boost::nowide::fopen(mat_filename.string().c_str(), "w");
                 if (fp == nullptr) {
-                    BOOST_LOG_TRIVIAL(error) << "GCodeViewer::export_toolpaths_to_obj: Couldn't open " << mat_filename.string().c_str() << " for writing";
+                    BOOST_LOG_TRIVIAL(error) << "Couldn't open " << mat_filename.string().c_str() << " for writing";
                     return;
                 }
 
@@ -371,7 +371,7 @@ namespace Slic3r
                 // save geometry file
                 fp = boost::nowide::fopen(filename, "w");
                 if (fp == nullptr) {
-                    BOOST_LOG_TRIVIAL(error) << "LegacyRenderer::export_toolpaths_to_obj: Couldn't open " << filename << " for writing";
+                    BOOST_LOG_TRIVIAL(error) << "Couldn't open " << filename << " for writing";
                     return;
                 }
                 fprintf(fp, "# G-Code Toolpaths\n");

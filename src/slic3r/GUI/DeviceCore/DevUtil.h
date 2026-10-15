@@ -110,12 +110,16 @@ struct NumericStrCompare
         int ai = -1;
         try {
             ai = std::stoi(a);
-        } catch (...) { };
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        };
 
         int bi = -1;
         try {
             bi = std::stoi(b);
-        } catch (...) { };
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        };
 
         return ai < bi;
     }

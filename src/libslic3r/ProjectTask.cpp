@@ -86,10 +86,10 @@ namespace Slic3r {
             }
         }
         catch (...) {
-            BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json_str;
+            BOOST_LOG_TRIVIAL(trace) << "failed! json=" << json_str;
             return -1;
         }
-        BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json_str;
+        BOOST_LOG_TRIVIAL(trace) << "failed! json=" << json_str;
         return -1;
     }
 
@@ -167,7 +167,7 @@ namespace Slic3r {
             }
         }
         catch (...) {
-            BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json;
+            BOOST_LOG_TRIVIAL(trace) << "failed! json=" << json;
         }
         return 0;
     }

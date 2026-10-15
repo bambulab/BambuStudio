@@ -573,7 +573,7 @@ std::string ConfigBase::opt_serialize(const t_config_option_key &opt_key) const
         // marked). serialize()'s own message never carries the key, so we log it here where the key
         // is known, then rethrow an enriched error so the caller can name the setting to the user.
         std::string details = describe_option_values(opt);
-        BOOST_LOG_TRIVIAL(error) << "opt_serialize failed for option \"" << opt_key << "\": "
+        BOOST_LOG_TRIVIAL(error) << "failed for option \"" << opt_key << "\": "
                                  << err.what() << " | " << details;
         throw ConfigurationError(std::string("Failed to serialize option \"") + opt_key + "\": "
                                  + err.what() + " (" + details + ")");

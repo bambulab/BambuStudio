@@ -86,7 +86,7 @@ void ImageGrid::SetStatus(ScalableBitmap const & icon, wxString const &msg)
     int code     = m_file_sys ? m_file_sys->GetLastError() : 1;
     m_status_icon = icon;
     m_status_msg = wxString::Format(msg, code);
-    BOOST_LOG_TRIVIAL(info) << "ImageGrid::SetStatus: " << m_status_msg.ToUTF8().data();
+    BOOST_LOG_TRIVIAL(info) << m_status_msg.ToUTF8().data();
     Refresh();
 }
 
@@ -439,7 +439,7 @@ void ImageGrid::mouseWheelMoved(wxMouseEvent &event)
 void Slic3r::GUI::ImageGrid::changedEvent(wxCommandEvent& evt)
 {
     evt.Skip();
-    BOOST_LOG_TRIVIAL(debug) << "ImageGrid::changedEvent: " << evt.GetEventType() << " index: " << evt.GetInt()
+    BOOST_LOG_TRIVIAL(debug) << evt.GetEventType() << " index: " << evt.GetInt()
             << " name: " << PathSanitizer::sanitize(evt.GetString().ToUTF8().data()) << " extra: " << evt.GetExtraLong();
     if (evt.GetEventType() == EVT_FILE_CHANGED) {
         if (evt.GetInt() == -1)

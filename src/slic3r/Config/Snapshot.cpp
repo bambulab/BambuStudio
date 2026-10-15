@@ -570,6 +570,7 @@ SnapshotDB& SnapshotDB::singleton()
 			// based on the min / max slic3r versions defined by the vendor specific config indices.
 			instance.update_slic3r_versions(index_db);
 		} catch (std::exception & /* ex */) {
+			BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 		}
 	}
 	return instance;

@@ -6758,6 +6758,7 @@ void AssemblyStepsUtils::update_part_number_label_font_size_from_config()
             ASSEMBLY_LABEL_DEFAULT_FONT_SIZE,
             ASSEMBLY_LABEL_DEFAULT_FONT_SIZE * ASSEMBLY_LABEL_MAX_FONT_SIZE_FACTOR);
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         m_part_number_label_font_size = 0.0f;
     }
 }
@@ -9709,7 +9710,7 @@ KeyFrame AssemblyStepsUtils::interpolate_keyframe(
     const bool from_empty = from.object_transformations.empty() && from.volume_transformations.empty();
     const bool to_empty   = to.object_transformations.empty()   && to.volume_transformations.empty();
     if (from_empty || to_empty) {
-        BOOST_LOG_TRIVIAL(warning) << "interpolate_keyframe: empty keyframe transforms (from_empty=" << from_empty << ", to_empty=" << to_empty << "), skip interpolation";
+        BOOST_LOG_TRIVIAL(warning) << "empty keyframe transforms (from_empty=" << from_empty << ", to_empty=" << to_empty << "), skip interpolation";
 #if !BBL_RELEASE_TO_PUBLIC
 #ifdef _WIN32
         __debugbreak();
@@ -10334,7 +10335,7 @@ bool AssemblyStepsUtils::capture_assembly_screenshot_to_png(const std::string &f
 
     // write_gl_rgba_to_file() already flips GL bottom-to-top rows.
     const bool ok = Slic3r::png::write_gl_rgba_to_file(filename.c_str(), w, h, pixels.data());
-    BOOST_LOG_TRIVIAL(info) << "capture_assembly_screenshot_to_png: screenshot saved to " << filename << ", ok=" << ok;
+    BOOST_LOG_TRIVIAL(info) << "screenshot saved to " << filename << ", ok=" << ok;
     return ok;
 }
 

@@ -176,7 +176,9 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
         if (time(nullptr) - opts->m_auto_recovery_detection.detect_hold_start > HOLD_TIME_3SEC) {
             if (print_json.contains("auto_recovery")) { opts->m_auto_recovery_detection.current_detect_value = print_json["auto_recovery"].get<bool>(); }
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     // cfg part
     if (print_json.contains("cfg")) {

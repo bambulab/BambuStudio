@@ -317,7 +317,7 @@ void SliceInfoPanel::update(BBLSliceInfo *info)
 
     if (!info->thumbnail_url.empty()) {
         web_request = wxWebSession::GetDefault().CreateRequest(this, info->thumbnail_url);
-        BOOST_LOG_TRIVIAL(trace) << "slice info: start reqeust thumbnail, url = " << info->thumbnail_url;
+        BOOST_LOG_TRIVIAL(trace) << "slice info: start reqeust thumbnail " << KV(log_key::url, info->thumbnail_url);
         web_request.Start();
     }
 

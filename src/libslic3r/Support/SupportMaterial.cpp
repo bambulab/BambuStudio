@@ -1348,7 +1348,7 @@ std::vector<Polygons> PrintObjectSupportMaterial::buildplate_covered(const Print
     const bool            buildplate_only = this->build_plate_only();
     std::vector<Polygons> buildplate_covered;
     if (buildplate_only) {
-        BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::buildplate_covered() - start";
+        BOOST_LOG_TRIVIAL(debug) << "start";
         buildplate_covered.assign(object.layers().size(), Polygons());
         //FIXME prefix sum algorithm, parallelize it! Parallelization will also likely be more numerically stable.
         for (size_t layer_id = 1; layer_id < object.layers().size(); ++ layer_id) {
@@ -1363,7 +1363,7 @@ std::vector<Polygons> PrintObjectSupportMaterial::buildplate_covered(const Print
             polygons_append(covered, offset(lower_layer.lslices, scale_(0.01)));
             covered = union_(covered);
         }
-        BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::buildplate_covered() - end";
+        BOOST_LOG_TRIVIAL(debug) << "end";
     }
     return buildplate_covered;
 }
@@ -2169,7 +2169,7 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
     // Output layers, sorted by top Z.
     SupportGeneratorLayersPtr contact_out;
 
-    BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::top_contact_layers() in parallel - start";
+    BOOST_LOG_TRIVIAL(debug) << "in parallel - start";
     // Determine top contact areas.
     // If generating raft only (no support), only calculate top contact areas for the 0th layer.
     // If having a raft, start with 0th layer, otherwise with 1st layer.
@@ -2420,7 +2420,7 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
     // the top contact layer is merged into the bottom contact layer.
     merge_contact_layers(m_slicing_params, m_support_params.support_layer_height_min, contact_out);
 
-    BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::top_contact_layers() in parallel - end";
+    BOOST_LOG_TRIVIAL(debug) << "in parallel - end";
 
     return contact_out;
 }
@@ -3019,7 +3019,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
         // No top contacts -> no intermediate layers will be produced.
         return;
 
-    BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::generate_base_layers() in parallel - start";
+    BOOST_LOG_TRIVIAL(debug) << "in parallel - start";
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, intermediate_layers.size()),
         [&object, &bottom_contacts, &top_contacts, &intermediate_layers, &layer_support_areas](const tbb::blocked_range<size_t>& range) {
@@ -3178,7 +3178,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
     }
 
     // For all intermediate support layers:
-    BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::trim_support_layers_by_object() in parallel - start";
+    BOOST_LOG_TRIVIAL(debug) << "in parallel - start";
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, nonempty_layers.size()),
         [this, &object, &nonempty_layers, gap_extra_above, gap_extra_below, gap_xy_scaled](const tbb::blocked_range<size_t>& range) {
@@ -3255,7 +3255,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                 support_layer.polygons = diff(support_layer.polygons, polygons_trimming);
             }
         });
-    BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::trim_support_layers_by_object() in parallel - end";
+    BOOST_LOG_TRIVIAL(debug) << "in parallel - end";
 }
 
 /*

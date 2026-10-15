@@ -1215,7 +1215,8 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
         preset.version     = *version;
         inherit_preset     = collection->find_preset(inherits_value, false, true); // pointer maybe wrong after insert, redo find
         if (inherit_preset) preset.base_id = inherit_preset->setting_id;
-        BOOST_LOG_TRIVIAL(info) << preset.name << " have filament_id: " << preset.filament_id << " and base_id: " << preset.base_id;
+        BOOST_LOG_TRIVIAL(info) << preset.name << " have " << KV(log_key::filament_id, preset.filament_id) << "and "
+                                << KV(log_key::base_id, preset.base_id);
         Preset::normalize(preset.config);
         // Report configuration fields, which are misplaced into a wrong group.
         const Preset &default_preset = collection->default_preset_for(new_config);
@@ -1472,8 +1473,8 @@ void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, 
             return false;
         }
         preset.remove_files();
-        BOOST_LOG_TRIVIAL(warning)
-                                   << boost::format("preset removed, name: %1%, type: %2%, user_id: %3%") % preset.name % Preset::get_type_string(preset.type) % preset.user_id;
+        BOOST_LOG_TRIVIAL(warning) << "preset removed, name: " << preset.name << ", type: " << Preset::get_type_string(preset.type) << " "
+                                   << KV(log_key::uid, preset.user_id);
         return true;
     };
     std::string preset_folder_user_id = config.get("preset_folder");
@@ -3213,16 +3214,11 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                     ++non_base;
                 }
             }
-            BOOST_LOG_TRIVIAL(info) << "tray " << tray_name
-                                    << " type=" << filament_type
-                                    << " filament_id=" << filament_id
-                                    << " -> no usable preset."
-                                    << " presets_with_this_id=" << presets_with_id
-                                    << " of_which_incompatible=" << incompatible
-                                    << " non_base=" << non_base
-                                    << " first_incompatible=\"" << incompatible_sample << "\""
-                                    << " active_printer=\"" << printers.get_edited_preset().name << "\""
-                                    << " printer_variant=" << printers.get_edited_preset().config.opt_string("printer_variant");
+            BOOST_LOG_TRIVIAL(info) << "tray " << tray_name << " type=" << filament_type << " " << KV(log_key::filament_id, filament_id)
+                                    << "-> no usable preset. presets_with_this_id=" << presets_with_id << " of_which_incompatible=" << incompatible
+                                    << " non_base=" << non_base << " first_incompatible=\"" << incompatible_sample << "\" active_printer=\""
+                                    << printers.get_edited_preset().name << "\" printer_variant="
+                                    << printers.get_edited_preset().config.opt_string("printer_variant");
             BOOST_LOG_TRIVIAL(info) << boost::format("filament_id %1% not found or system or compatible") % filament_id;
             // Every stand-in picked below is approximate by definition -- it is chosen by material type,
             // not by the tray's own id. Which slot a tray finally lands on is only known after the
@@ -4617,7 +4613,7 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                     // the slot instead of silently moving it onto the sole remaining diameter.
                     incompatible_nozzle_diameter_slots.push_back(i);
                     BOOST_LOG_TRIVIAL(warning) << boost::format(
-                        "validate_filament_nozzle_diameter_selections: slot %1% nozzle diameter %2% "
+                        "slot %1% nozzle diameter %2% "
                         "no longer installed, fallback substitution blocked") % i % current_value;
                     continue;
                 }
@@ -4661,7 +4657,7 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                     // substituting a different material; the UI marks this slot instead.
                     incompatible_nozzle_diameter_slots.push_back(i);
                     BOOST_LOG_TRIVIAL(warning) << boost::format(
-                        "validate_filament_nozzle_diameter_selections: slot %1% incompatible with "
+                        "slot %1% incompatible with "
                         "nozzle diameter %2%, fallback substitution blocked") % i % target;
                     continue;
                 }
@@ -6817,7 +6813,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             loaded.description = description;
             loaded.setting_id = setting_id;
             loaded.filament_id = filament_id;
-            BOOST_LOG_TRIVIAL(trace) << loaded.name << " load filament_id: " << filament_id;
+            BOOST_LOG_TRIVIAL(trace) << loaded.name << " load " << KV(log_key::filament_id, filament_id);
             if (presets_collection->type() == Preset::TYPE_FILAMENT) {
                 if (filament_id.empty() && "Template" != vendor_name) {
                     BOOST_LOG_TRIVIAL(error) << "can not find filament_id for " << preset_name;
@@ -7067,7 +7063,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             loaded.description = description;
             loaded.setting_id = setting_id;
             loaded.filament_id = filament_id;
-            BOOST_LOG_TRIVIAL(trace) << loaded.name << " load filament_id: " << filament_id;
+            BOOST_LOG_TRIVIAL(trace) << loaded.name << " load " << KV(log_key::filament_id, filament_id);
             if (presets_collection->type() == Preset::TYPE_FILAMENT) {
                 if (filament_id.empty() && "Template" != vendor_name) {
                     BOOST_LOG_TRIVIAL(error) << "can not find filament_id for " << preset_name;

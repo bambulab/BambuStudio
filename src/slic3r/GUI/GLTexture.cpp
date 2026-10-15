@@ -543,7 +543,7 @@ bool GLTexture::generate_from_text(const std::string &text_str, wxFont &font, wx
     std::vector<unsigned char> data(4 * m_width * m_height, 0);
     const unsigned char* src = image.GetData();
     if (!src) {
-        BOOST_LOG_TRIVIAL(error) << "font ConvertToImage error:\n" << text_str << "," << font.GetBaseFont().GetNativeFontInfoDesc().ToStdString();
+        BOOST_LOG_TRIVIAL(error) << "font ConvertToImage error:\n" << text_str << "," << font.GetBaseFont().GetNativeFontInfoDesc();
         return false;
     }
     /* for debug use
@@ -625,7 +625,7 @@ bool GLTexture::generate_texture_from_text(const std::string& text_str, wxFont& 
     std::vector<unsigned char> data(4 * m_width * m_height, 0);
     const unsigned char* src = image.GetData();
     if (!src) {
-        BOOST_LOG_TRIVIAL(error) << "font ConvertToImage error:\n" << text_str << "," << font.GetBaseFont().GetNativeFontInfoDesc().ToStdString();
+        BOOST_LOG_TRIVIAL(error) << "font ConvertToImage error:\n" << text_str << "," << font.GetBaseFont().GetNativeFontInfoDesc();
         return false;
     }
     /* for debug use
@@ -980,7 +980,7 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
     unsigned char* img_rgb = image.GetData();
     if (img_rgb == nullptr) {
         reset();
-        BOOST_LOG_TRIVIAL(error) << "load_from_png error\n";
+        BOOST_LOG_TRIVIAL(error) << "error\n";
         return false;
     }
 

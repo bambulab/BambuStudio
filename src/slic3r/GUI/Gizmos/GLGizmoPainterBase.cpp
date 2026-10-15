@@ -1797,7 +1797,7 @@ void TriangleSelectorPatch::release_geometry()
     }
     this->clear();
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: released geometry")%__LINE__;
+    BOOST_LOG_TRIVIAL(info) << boost::format("released geometry");
 }
 
 void TriangleSelectorPatch::finalize_vertices()

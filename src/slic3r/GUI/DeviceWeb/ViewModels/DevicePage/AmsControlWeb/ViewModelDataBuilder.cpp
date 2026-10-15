@@ -10,6 +10,7 @@
 
 #include <optional>
 #include <utility>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI { namespace AmsControlWebData {
 
@@ -54,6 +55,7 @@ std::string slot_name_for_tray(MachineObject* machine_obj, const DevAmsTray& tra
     try {
         tray_index = std::stoi(tray.id);
     } catch (const std::exception&) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return "";
     }
 

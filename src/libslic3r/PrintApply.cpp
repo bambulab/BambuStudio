@@ -1196,7 +1196,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 #endif /* _DEBUG */
 
     //BBS: add more logs
-    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: enter")%__LINE__;
+    BOOST_LOG_TRIVIAL(info) << boost::format("enter");
     // Normalize the config.
 	new_full_config.option("print_settings_id",            true);
 	new_full_config.option("filament_settings_id",         true);
@@ -1544,7 +1544,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     bool   num_extruders_changed  = false;
     if (! full_config_diff.empty()) {
         //BBS: add more logs
-        BOOST_LOG_TRIVIAL(info) << boost::format("%1%: found full_config_diff changed.")%__LINE__;
+        BOOST_LOG_TRIVIAL(info) << boost::format("found full_config_diff changed.");
         update_apply_status(this->invalidate_step(psGCodeExport));
         m_placeholder_parser.clear_config();
         // Set the profile aliases for the PrintBase::output_filename()
@@ -1643,10 +1643,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 				m_model.objects.back()->set_model(&m_model);
             }
             //BBS: add more logs
-            BOOST_LOG_TRIVIAL(info) << boost::format("%1%: new model objects added.")%__LINE__;
+            BOOST_LOG_TRIVIAL(info) << boost::format("new model objects added.");
         } else {
             //BBS: add more logs
-            BOOST_LOG_TRIVIAL(info) << boost::format("%1%: model object changed.")%__LINE__;
+            BOOST_LOG_TRIVIAL(info) << boost::format("model object changed.");
             // Reorder the objects, add new objects.
             // First stop background processing before shuffling or deleting the PrintObjects in the object list.
             this->call_cancel_callback();
@@ -1901,7 +1901,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         }
         if (m_objects != print_objects_new) {
             //BBS: add more logs
-            BOOST_LOG_TRIVIAL(info) << boost::format("%1%: found print object changed.")%__LINE__;
+            BOOST_LOG_TRIVIAL(info) << boost::format("found print object changed.");
             this->call_cancel_callback();
 			update_apply_status(this->invalidate_all_steps());
             m_objects = print_objects_new;
@@ -1949,7 +1949,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
         if (full_config_diff.empty()) {
             //BBS: previous empty
-            BOOST_LOG_TRIVIAL(info) << boost::format("%1%: full_config_diff previous empty, need to apply now.")%__LINE__;
+            BOOST_LOG_TRIVIAL(info) << boost::format("full_config_diff previous empty, need to apply now.");
 
             m_placeholder_parser.clear_config();
             // Set the profile aliases for the PrintBase::output_filename()
@@ -2187,7 +2187,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 	//BBS: add timestamp logic
 	if (apply_status != APPLY_STATUS_UNCHANGED)
 		m_modified_count++;
-	BOOST_LOG_TRIVIAL(info) << boost::format("%1%: finished,  this %2%, m_modified_count %3%, apply_status %4%, m_support_used %5%")%__LINE__ %this %m_modified_count %apply_status %m_support_used;
+	BOOST_LOG_TRIVIAL(info) << boost::format("finished,  this %1%, m_modified_count %2%, apply_status %3%, m_support_used %4%")%this %m_modified_count %apply_status %m_support_used;
 	return static_cast<ApplyStatus>(apply_status);
 }
 

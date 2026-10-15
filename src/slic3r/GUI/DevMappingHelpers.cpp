@@ -123,7 +123,7 @@ std::optional<TrayData> MakeTrayData(MachineObject*    obj,
         ams_id  = std::stoi(ams_id_str);
         tray_id = atoi(tray->id.c_str());
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "[error] invalid ams_id or tray_id: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "[error] invalid ams_id or " << KV(log_key::tray_id, e.what());
         return std::nullopt;
     }
 

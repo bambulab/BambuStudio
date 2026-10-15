@@ -307,7 +307,7 @@ bool OverviewUtils::move_isolated_volumes_closer(wxEvtHandler *)
     for (const auto &iv : GLCanvas3D::s_isolated_volumes) {
         const AssembleTargetRef ref = resolve_assemble_target(primary_model, iv);
         if (ref.object == nullptr || ref.instance == nullptr) {
-            BOOST_LOG_TRIVIAL(warning) << boost::format("move_isolated_volumes_closer: unresolved target name=%1% glvol_obj_idx=%2% target_obj_id=%3% guid=%4%")
+            BOOST_LOG_TRIVIAL(warning) << boost::format("unresolved target name=%1% glvol_obj_idx=%2% target_obj_id=%3% guid=%4%")
                                               % iv.name % iv.obj_idx % iv.target.object_id % iv.target.part_guid;
             continue;
         }
@@ -332,7 +332,7 @@ bool OverviewUtils::move_isolated_volumes_closer(wxEvtHandler *)
             }
         }
 
-        BOOST_LOG_TRIVIAL(info) << boost::format("move_isolated_volumes_closer: name=%1% resolved_by=%2% obj_idx=%3%(glvol %4%) inst_idx=%5% parts=%6% "
+        BOOST_LOG_TRIVIAL(info) << boost::format("name=%1% resolved_by=%2% obj_idx=%3%(glvol %4%) inst_idx=%5% parts=%6% "
                                                  "box=[%7%,%8%,%9%]..[%10%,%11%,%12%] primary=[%13%,%14%,%15%]..[%16%,%17%,%18%] delta=(%19%,%20%,%21%)")
                                        % iv.name % ref.how % ref.object_idx % iv.obj_idx % inst_idx % count_model_parts(obj)
                                        % iv.world_box_assembly.min.x() % iv.world_box_assembly.min.y() % iv.world_box_assembly.min.z()
@@ -360,12 +360,12 @@ bool OverviewUtils::move_isolated_volumes_closer(wxEvtHandler *)
                 vol_trafo.set_offset(vol_trafo.get_offset() + local_delta);
                 ref.volume->set_assemble_transformation(vol_trafo);
                 moved = true;
-                BOOST_LOG_TRIVIAL(info) << boost::format("move_isolated_volumes_closer: moved volume '%1%' by local delta (%2%,%3%,%4%)")
+                BOOST_LOG_TRIVIAL(info) << boost::format("moved volume '%1%' by local delta (%2%,%3%,%4%)")
                                                % ref.volume->name % local_delta.x() % local_delta.y() % local_delta.z();
                 if (&primary_model == &assemble_model)
                     sync_assemble_volume_offset_to_prepare(ref.volume, prepare_model);
             } else {
-                BOOST_LOG_TRIVIAL(warning) << "move_isolated_volumes_closer: singular instance matrix, falling back to instance move";
+                BOOST_LOG_TRIVIAL(warning) << "singular instance matrix, falling back to instance move";
             }
         }
         if (!moved) {

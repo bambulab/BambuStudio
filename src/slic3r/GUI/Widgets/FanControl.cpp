@@ -812,7 +812,7 @@ void FanControlPopupNew::CreateDuct()
 
         int mode_id = iter->second.id;
         const wxString& text = get_fan_mode_name(mode_id);
-        if (text.empty()) { BOOST_LOG_TRIVIAL(error) << "FanControlPopupNew::CreateDuct: radio_btn_name is empty";}
+        if (text.empty()) { BOOST_LOG_TRIVIAL(error) << "radio_btn_name is empty";}
 
         SendModeSwitchButton *radio_btn = new SendModeSwitchButton(this, text, m_data.curren_mode == mode_id);
         radio_btn->Bind(wxEVT_LEFT_DOWN, &FanControlPopupNew::on_mode_changed, this);

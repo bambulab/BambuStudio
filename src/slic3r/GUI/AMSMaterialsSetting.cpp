@@ -748,6 +748,7 @@ bool AMSMaterialsSetting::validate_filament_weight_inputs(bool is_target_bbl, in
                     }
                 }
                 catch (const std::exception&) {
+                    BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 };
             }
         }
@@ -997,7 +998,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
                     obj->GetFilaSystem()->CtrlSetFilamentWeight(ams_id, slot_id, total_weight, remain_weight);
                 }
                 catch (const std::exception& e) {
-
+                    BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 };
             }
         }
@@ -2045,11 +2046,9 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     m_reread_token.reset();
     if (m_reread_result_timer.IsRunning()) m_reread_result_timer.Stop();
 
-    BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::Popup dev_id=" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
-                             << ", ams_id=" << ams_id << ", slot_id=" << slot_id
-                             << ", calib_version_inited=" << obj->GetCalib()->IsVersionInited()
-                             << ", pa_history_ready=" << obj->GetCalib()->IsPAHistoryReady()
-                             << ", pa_history_status=" << (int)obj->GetCalib()->GetPAHistoryStatus();
+    BOOST_LOG_TRIVIAL(info) << KV(log_key::dev_id, obj->get_dev_id()) << " " << KV(log_key::ams_id, ams_id) << KV(log_key::slot_id, slot_id)
+                            << "calib_version_inited=" << obj->GetCalib()->IsVersionInited() << ", pa_history_ready="
+                            << obj->GetCalib()->IsPAHistoryReady() << ", pa_history_status=" << (int)obj->GetCalib()->GetPAHistoryStatus();
 
     if (auto* store = wxGetApp().fila_manager_store()) {
         if (store->all_spool_ids().empty()) {
@@ -2228,10 +2227,8 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     // If the cache is not ready yet, TryRefreshPAProfiles rebuilds the PA list when it is.
     m_pa_data_pending = !obj->GetCalib()->IsPAHistoryReady();
 
-    BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_select_filament pa history"
-                             << ", dev_id=" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
-                             << ", ams_id=" << ams_id << ", slot_id=" << slot_id
-                             << ", history_ready=" << obj->GetCalib()->IsPAHistoryReady();
+    BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_select_filament pa history " << KV(log_key::dev_id, obj->get_dev_id()) << " "
+                            << KV(log_key::ams_id, ams_id) << KV(log_key::slot_id, slot_id) << "history_ready=" << obj->GetCalib()->IsPAHistoryReady();
 
     m_snap_taken = false;
     trigger_select_filament(init_spool_id, /*from_printer=*/true, init_display_text);
@@ -2329,23 +2326,21 @@ void AMSMaterialsSetting::TryRefreshPAProfiles()
 {
     if (!m_pa_data_pending || !obj) return;
     if (!obj->GetCalib()->IsPAHistoryReady()) {
-        BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::TryRefreshPAProfiles PA history not ready yet, dev_id="
-                                 << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
-                                 << ", pa_history_status=" << (int)obj->GetCalib()->GetPAHistoryStatus();
+        BOOST_LOG_TRIVIAL(info) << "PA history not ready yet " << KV(log_key::dev_id, obj->get_dev_id()) << "pa_history_status="
+                                << (int)obj->GetCalib()->GetPAHistoryStatus();
         return;
     }
 
     m_pa_data_pending = false;
 
-    BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::TryRefreshPAProfiles PA history ready, dev_id="
-                             << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id());
+    BOOST_LOG_TRIVIAL(info) << "PA history ready " << KV(log_key::dev_id, obj->get_dev_id());
     on_pa_history_ready();
 }
 
 void AMSMaterialsSetting::on_pa_history_ready()
 {
     const wxString cur_text = m_current_filament_alias;
-    BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_pa_history_ready re-triggering selection"
+    BOOST_LOG_TRIVIAL(info) << "re-triggering selection"
                              << ", text=" << cur_text.ToStdString();
     if (!cur_text.IsEmpty() || !m_selected_spool_id.empty()) {
         trigger_select_filament(m_selected_spool_id, /*from_printer=*/true, cur_text);
@@ -2424,18 +2419,15 @@ void AMSMaterialsSetting::update_pa_profile_items()
 
     auto rack = obj->GetNozzleSystem()->GetNozzleRack();
 
-    BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::update_pa_profile_items dev_id=" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
-                             << ", ams_id=" << ams_id << ", ams_filament_id=" << ams_filament_id
-                             << ", calib_version_inited=" << obj->GetCalib()->IsVersionInited()
-                             << ", pa_history_ready=" << obj->GetCalib()->IsPAHistoryReady();
+    BOOST_LOG_TRIVIAL(info) << KV(log_key::dev_id, obj->get_dev_id()) << " " << KV(log_key::ams_id, ams_id) << "ams_filament_id=" << ams_filament_id
+                            << ", calib_version_inited=" << obj->GetCalib()->IsVersionInited() << ", pa_history_ready="
+                            << obj->GetCalib()->IsPAHistoryReady();
 
     const auto extruder_ids = slot_bound_extruder_ids();
     const auto effective = get_effective_nozzle();
     if (!effective && is_nozzle_combo_selector()) {
-        BOOST_LOG_TRIVIAL(info) << "no effective nozzle, show Default only"
-                                 << ", ams_id=" << ams_id
-                                 << ", combo_selector=true"
-                                 << ", extruder_ids=" << extruder_ids.size();
+        BOOST_LOG_TRIVIAL(info) << "no effective nozzle, show Default only " << KV(log_key::ams_id, ams_id) << "combo_selector=true, extruder_ids="
+                                << extruder_ids.size();
         if (m_comboBox_cali_result) {
             m_comboBox_cali_result->Set(items);
             if (m_comboBox_cali_result->GetCount() > 0)
@@ -2452,12 +2444,12 @@ void AMSMaterialsSetting::update_pa_profile_items()
             nozzle_flow_type = obj->GetExtderSystem()->GetNozzleFlowType(extruder_id);
         }
         if (dia_type == NozzleDiameterType::NONE_DIAMETER_TYPE) {
-            BOOST_LOG_TRIVIAL(info) << "skip unknown nozzle diameter, extruder_id=" << extruder_id;
+            BOOST_LOG_TRIVIAL(info) << "skip unknown nozzle diameter " << KV(log_key::extruder_id, extruder_id);
             continue;
         }
         // Empty tray filament: no historical profile is offered.
         if (ams_filament_id.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "skip empty filament_id, extruder_id=" << extruder_id;
+            BOOST_LOG_TRIVIAL(info) << "skip empty filament_id " << KV(log_key::extruder_id, extruder_id);
             continue;
         }
 
@@ -2470,20 +2462,15 @@ void AMSMaterialsSetting::update_pa_profile_items()
         std::vector<PACalibResult> matched = pa_history_filter.get();
         std::sort(matched.begin(), matched.end(), [](const PACalibResult &left, const PACalibResult &right) { return left.nozzle_pos_id < right.nozzle_pos_id; });
 
-        BOOST_LOG_TRIVIAL(info) << "PaHistoryFilter extruder_id=" << extruder_id
-                                 << ", nozzle_diameter=" << DevNozzle::ToNozzleDiameterFloat(dia_type)
-                                 << ", filament_id=" << ams_filament_id
-                                 << ", matched=" << matched.size();
+        BOOST_LOG_TRIVIAL(info) << "PaHistoryFilter " << KV(log_key::extruder_id, extruder_id) << "nozzle_diameter="
+                                << DevNozzle::ToNozzleDiameterFloat(dia_type) << " " << KV(log_key::filament_id, ams_filament_id) << "matched="
+                                << matched.size();
         for (const auto &cali_item : matched) {
-            BOOST_LOG_TRIVIAL(info) << "cali_item: cali_idx=" << cali_item.cali_idx
-                                     << ", name=" << cali_item.name
-                                     << ", filament_id=" << cali_item.filament_id
-                                     << ", k_value=" << cali_item.k_value
-                                     << ", n_coef=" << cali_item.n_coef
-                                     << ", nozzle_diameter=" << cali_item.nozzle_diameter
-                                     << ", nozzle_volume_type=" << (int) cali_item.nozzle_volume_type
-                                     << ", nozzle_pos_id=" << cali_item.nozzle_pos_id
-                                     << ", extruder_id=" << cali_item.extruder_id;
+            BOOST_LOG_TRIVIAL(info) << "cali_item: cali_idx=" << cali_item.cali_idx << ", name=" << cali_item.name << " "
+                                    << KV(log_key::filament_id, cali_item.filament_id) << "k_value=" << cali_item.k_value << ", n_coef="
+                                    << cali_item.n_coef << ", nozzle_diameter=" << cali_item.nozzle_diameter << ", nozzle_volume_type="
+                                    << (int) cali_item.nozzle_volume_type << ", nozzle_pos_id=" << cali_item.nozzle_pos_id << " "
+                                    << KV(log_key::extruder_id, cali_item.extruder_id);
         }
 
         for (auto cali_item : matched) {
@@ -2860,10 +2847,8 @@ void AMSMaterialsSetting::apply_filament_selection()
                 m_comboBox_cali_result->SetSelection(cali_select_idx);
             } else {
                 m_comboBox_cali_result->SetSelection(0);
-                BOOST_LOG_TRIVIAL(info) << "extrusion_cali_status_error: cannot find pa profile"
-                                        << ", ams_id = " << ams_id
-                                        << ", slot_id = " << slot_id
-                                        << ", cali_idx = " << cali_idx;
+                BOOST_LOG_TRIVIAL(info) << "extrusion_cali_status_error: cannot find pa profile " << KV(log_key::ams_id, ams_id)
+                                        << KV(log_key::slot_id, slot_id) << "cali_idx = " << cali_idx;
             }
         } else {
                 cali_select_idx = get_cali_index(m_current_filament_alias.ToStdString());
@@ -2878,20 +2863,16 @@ void AMSMaterialsSetting::apply_filament_selection()
             m_input_k_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[0].k_value));
             m_input_n_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[0].n_coef));
         }
-        BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_select_filament k/n resolved, dev_id="
-                                 << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
-                                 << ", ams_id=" << ams_id << ", slot_id=" << slot_id
-                                 << ", from_printer=" << from_printer_flag
-                                 << ", cali_select_idx=" << cali_select_idx
-                                 << ", k=" << m_input_k_val->GetTextCtrl()->GetValue().ToStdString()
-                                 << ", n=" << m_input_n_val->GetTextCtrl()->GetValue().ToStdString();
+        BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_select_filament k/n resolved " << KV(log_key::dev_id, obj->get_dev_id()) << " "
+                                << KV(log_key::ams_id, ams_id) << KV(log_key::slot_id, slot_id) << "from_printer=" << from_printer_flag
+                                << ", cali_select_idx=" << cali_select_idx << ", k=" << m_input_k_val->GetTextCtrl()->GetValue().ToStdString()
+                                << ", n=" << m_input_n_val->GetTextCtrl()->GetValue().ToStdString();
     }
     else {
         //m_input_k_val->GetTextCtrl()->SetValue("0.00");
         m_input_k_val->Enable(!ams_filament_id.empty());
-        BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_select_filament calib version not inited, k input left as-is, dev_id="
-                                 << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
-                                 << ", ams_id=" << ams_id << ", slot_id=" << slot_id;
+        BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_select_filament calib version not inited, k input left as-is "
+                                << KV(log_key::dev_id, obj->get_dev_id()) << " " << KV(log_key::ams_id, ams_id) << KV(log_key::slot_id, slot_id);
     }
 
     m_pending_spool_id.clear();

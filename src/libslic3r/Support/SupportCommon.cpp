@@ -72,7 +72,7 @@ std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interfa
 
     if (! intermediate_layers.empty() && support_params.has_interfaces()) {
         // For all intermediate layers, collect top contact surfaces, which are not further than support_material_interface_layers.
-        BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::generate_interface_layers() in parallel - start";
+        BOOST_LOG_TRIVIAL(debug) << "in parallel - start";
         const bool                 snug_supports          = support_params.support_style == smsSnug;
         const bool                 smooth_supports        = support_params.support_style != smsGrid;
         SupportGeneratorLayersPtr &interface_layers       = base_and_interface_layers.first;
@@ -282,7 +282,7 @@ std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interfa
         };
         interface_layers      = merge_remove_empty(interface_layers,      top_interface_layers);
         base_interface_layers = merge_remove_empty(base_interface_layers, top_base_interface_layers);
-        BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::generate_interface_layers() in parallel - end";
+        BOOST_LOG_TRIVIAL(debug) << "in parallel - end";
     } else if (support_params.has_interfaces()) {
         // Organic supports can place roofs that have no tree body underneath at all, which happens for
         // overhangs sitting only a couple of layers above the bed. The loop above is driven by

@@ -17,6 +17,7 @@
 #include <string>
 #include <string_view>
 #include <optional>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -1351,7 +1352,7 @@ namespace Slic3r {
                     is_helio      = true;
                     return ThermalIndex(minVal, maxVal, meanVal);
                 } else {
-                    std::cerr << "Error: Unable to parse thermal index values from comment." << std::endl;
+                    BOOST_LOG_TRIVIAL(error) << "Unable to parse thermal index values from comment.";
                     return ThermalIndex();
                 }
 

@@ -282,6 +282,7 @@ template<class Op> void _cgal_do(Op &&op, CGALMesh &A, CGALMesh &B)
         }, [&] { hw_fail = true; });
         A = std::move(result);      // In-place operation does not work
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         success = false;
     }
 

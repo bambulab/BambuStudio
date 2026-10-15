@@ -26,6 +26,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -112,6 +113,7 @@ std::optional<DevAmsSlotId> to_slot_id(const std::string& ams_id, const std::str
     try {
         return DevAmsSlotId{std::stoi(ams_id), std::stoi(slot_id)};
     } catch (const std::exception&) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return std::nullopt;
     }
 }
@@ -516,6 +518,7 @@ nlohmann::json ConnectedSlotsVM::BuildState() const
             try {
                 right.line = build_column_line(m_obj, feed, std::stoi(ext_tray->id));
             } catch (const std::exception&) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 // Malformed virtual tray id: leave the line in its no_filament default.
             }
         }

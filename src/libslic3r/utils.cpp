@@ -193,7 +193,7 @@ std::string debug_out_path(const char *name, ...)
 			boost::filesystem::create_directory(svg_folder);
 		}
 		std::string path = boost::filesystem::system_complete(svg_folder).string();
-        printf("Debugging output files will be written to %s\n", path.c_str());
+        BOOST_LOG_TRIVIAL(info) << "Debugging output files will be written to " << path;
     }
 	char buffer[2048];
 	va_list args;
@@ -426,7 +426,7 @@ namespace WindowsSupport
 							if (errcode == std::errc::no_such_file_or_directory)
 						  		break;
 							//BBS: add some log for error tracing
-							BOOST_LOG_TRIVIAL(error) << boost::format("line %1%, error: %2%") % __LINE__ % errcode.message();
+							BOOST_LOG_TRIVIAL(error) << boost::format("error: %1%")% errcode.message();
 							return errcode;
 						}
 						BY_HANDLE_FILE_INFORMATION FI2;
@@ -437,7 +437,7 @@ namespace WindowsSupport
 						continue;
 					}
 					//BBS: add some log for error tracing
-					BOOST_LOG_TRIVIAL(error) << boost::format("line %1%, error: %2%") % __LINE__ % errcode.message();
+					BOOST_LOG_TRIVIAL(error) << boost::format("error: %1%")% errcode.message();
 					return errcode;
 				}
 				break;
@@ -451,7 +451,7 @@ namespace WindowsSupport
 
 		// The most likely root cause.
 		//BBS: add some log for error tracing
-		BOOST_LOG_TRIVIAL(error) << boost::format("line %1%, error in the end, permission_denied") % __LINE__;
+		BOOST_LOG_TRIVIAL(error) << boost::format("error in the end, permission_denied");
 		return std::make_error_code(std::errc::permission_denied);
 	}
 } // namespace WindowsSupport
@@ -640,11 +640,11 @@ bool copy_file_linux(const boost::filesystem::path &from, const boost::filesyste
 	if (to_mode != from_mode && ::fchmod(outfile.fd, from_mode) != 0) {
 		if (platform_flavor() == PlatformFlavor::LinuxOnChromium) {
 			// Ignore that. 9p filesystem does not allow fmod().
-			BOOST_LOG_TRIVIAL(info) << "copy_file_linux() failed to fchmod() the output file \"" << to.string() << "\" to " << from_mode << ": " << ec.message() <<
+			BOOST_LOG_TRIVIAL(info) << "failed to fchmod() the output file \"" << to.string() << "\" to " << from_mode << ": " << ec.message() <<
 				" This may be expected when writing to a 9p filesystem.";
 		} else {
 			// Generic linux. Write out an error to console. At least we may get some feedback.
-			BOOST_LOG_TRIVIAL(error) << "copy_file_linux() failed to fchmod() the output file \"" << to.string() << "\" to " << from_mode << ": " << ec.message();
+			BOOST_LOG_TRIVIAL(error) << "failed to fchmod() the output file \"" << to.string() << "\" to " << from_mode << ": " << ec.message();
 		}
 	}
 
@@ -802,7 +802,7 @@ bool copy_framework(const std::string &from, const std::string &to)
     boost::filesystem::path src(from), dst(to);
     try {
         if (!boost::filesystem::is_directory(src)) {
-            std::cerr << "Error: Source is not a directory: " << src << std::endl;
+            BOOST_LOG_TRIVIAL(error) << "Source is not a directory: " << src;
             return false;
         }
         boost::filesystem::create_directories(dst);

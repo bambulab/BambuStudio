@@ -594,8 +594,8 @@ void wxMediaCtrl3::PlayThread()
                     auto reopen_t0 = std::chrono::steady_clock::now();
                     int reopen_ret = decoder.reopen(new_info);
                     reopen_done_time = std::chrono::steady_clock::now();
-                    BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl3: reopen done ret=" << reopen_ret
-                                            << " took=" << std::chrono::duration_cast<std::chrono::milliseconds>(reopen_done_time - reopen_t0).count() << "ms";
+                    BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl3: reopen done " << Slic3r::KV(Slic3r::log_key::ret, reopen_ret) << "took="
+                                            << std::chrono::duration_cast<std::chrono::milliseconds>(reopen_done_time - reopen_t0).count() << "ms";
                     post_reopen_samples = 0;
                     lk.lock();
                     m_video_size = { new_info.format.video.width, new_info.format.video.height };

@@ -194,23 +194,16 @@ void CalibrationWizard::on_device_connected(MachineObject* obj)
 
     recover_preset_info(obj);
 
-    BOOST_LOG_TRIVIAL(info) << "on_device_connected - machine object status:"
-                            << " dev_id = " << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
-                            << ", print_type = " << obj->printer_type
-                            << ", printer_status = " << obj->print_status
-                            << ", cali_finished = " << obj->GetCalib()->GetStashCalibFinished()
-                            << ", cali_version = " << obj->GetCalib()->GetCalibVersion()
-                            << ", cache_flow_ratio = " << obj->GetCalib()->GetStashFlowRatio()
-                            << ", sub_task_name = " << obj->subtask_name
-                            << ", gcode_file_name = " << obj->m_gcode_file;
+    BOOST_LOG_TRIVIAL(info) << "machine object status: " << KV(log_key::dev_id, obj->get_dev_id()) << "print_type = " << obj->printer_type
+                            << ", printer_status = " << obj->print_status << ", cali_finished = " << obj->GetCalib()->GetStashCalibFinished()
+                            << ", cali_version = " << obj->GetCalib()->GetCalibVersion() << ", cache_flow_ratio = "
+                            << obj->GetCalib()->GetStashFlowRatio() << ", sub_task_name = " << obj->subtask_name << ", gcode_file_name = "
+                            << obj->m_gcode_file;
 
     for (const CaliPresetInfo& preset_info : obj->GetCalib()->GetSelectedCalibPreset()) {
-        BOOST_LOG_TRIVIAL(info) << "on_device_connected - selected preset: "
-                                 << "tray_id = " << preset_info.tray_id
-                                 << ", nozzle_diameter = " << preset_info.nozzle_diameter
-                                 << ", filament_id = " << preset_info.filament_id
-                                 << ", settring_id = " << preset_info.setting_id
-                                 << ", name = " << preset_info.name;
+        BOOST_LOG_TRIVIAL(info) << "selected preset: " << KV(log_key::tray_id, preset_info.tray_id) << "nozzle_diameter = "
+                                << preset_info.nozzle_diameter << " " << KV(log_key::filament_id, preset_info.filament_id) << "settring_id = "
+                                << preset_info.setting_id << ", name = " << preset_info.name;
     }
 
     for (int i = 0; i < m_page_steps.size(); i++) {
@@ -432,7 +425,7 @@ void CalibrationWizard::cache_preset_info(MachineObject *obj, float nozzle_dia, 
     if(!std::isnan(flow_ratio))
         obj->GetCalib()->SetStashFlowRatio(flow_ratio);
     else {
-        BOOST_LOG_TRIVIAL(warning) << "cache_preset_info: flow_ratio is NaN, stash NOT updated"
+        BOOST_LOG_TRIVIAL(warning) << "flow_ratio is NaN, stash NOT updated"
                                    << ", stash remains = " << obj->GetCalib()->GetStashFlowRatio();
     }
 
@@ -449,7 +442,7 @@ void CalibrationWizard::recover_preset_info(MachineObject *obj)
             obj->GetCalib()->SetStashFlowRatio(back_info.cache_flow_ratio);
             obj->GetCalib()->SetSelectedCalibPreset(back_info.selected_presets);
             obj->GetCalib()->SetFlowRatioCalibType(back_info.cache_flow_rate_calibration_type);
-            BOOST_LOG_TRIVIAL(info) << "recover_preset_info: restored from cache"
+            BOOST_LOG_TRIVIAL(info) << "restored from cache"
                                     << ", cache_flow_ratio = " << back_info.cache_flow_ratio
                                     << ", selected_presets_count = " << back_info.selected_presets.size()
                                     << ", cali_finished = " << back_info.cali_finished;
@@ -634,7 +627,7 @@ void PressureAdvanceWizard::update(MachineObject* obj)
         if (obj->GetCalib()->IsVersionExpired() && obj->is_security_control_ready()) {
             if (obj->GetCalib()->PrepareFetchQueue()) {
                 obj->GetCalib()->SyncCalibVersion();
-                BOOST_LOG_TRIVIAL(info) << "calibration: rebuild history fetch queue for device " << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id());
+                BOOST_LOG_TRIVIAL(info) << "calibration: rebuild history fetch queue for device " << KV(log_key::dev_id, obj->get_dev_id());
             }
         }
         obj->GetCalib()->SendNextFetch();
@@ -878,7 +871,7 @@ void PressureAdvanceWizard::on_cali_start()
 
             auto tray_ams_slot_map = curr_obj->GetFilaSystem()->GetTrayIndexMap();
             if (tray_ams_slot_map.find(item.tray_id) == tray_ams_slot_map.end()) {
-                BOOST_LOG_TRIVIAL(warning) << "can't find tray_id:" << item.tray_id;
+                BOOST_LOG_TRIVIAL(warning) << "can't find " << KV(log_key::tray_id, item.tray_id);
                 continue;
             }
 
@@ -1658,7 +1651,7 @@ void FlowRateWizard::cache_coarse_info(MachineObject *obj)
     if(!std::isnan(flow_ratio))
         obj->GetCalib()->SetStashFlowRatio(flow_ratio);
     else {
-        BOOST_LOG_TRIVIAL(warning) << "cache_coarse_info: flow_ratio is NaN, stash NOT updated"
+        BOOST_LOG_TRIVIAL(warning) << "flow_ratio is NaN, stash NOT updated"
                                    << ", stash remains = " << obj->GetCalib()->GetStashFlowRatio();
     }
 

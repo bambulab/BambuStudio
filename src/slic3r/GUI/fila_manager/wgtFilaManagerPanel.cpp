@@ -163,7 +163,7 @@ void wgtFilaManagerPanel::flush_msg_queue()
 
 void wgtFilaManagerPanel::send_response(int seq, int code, const nlohmann::json& data)
 {
-    BOOST_LOG_TRIVIAL(info) << "[FilaManager] → response seq=" << seq << " code=" << code;
+    BOOST_LOG_TRIVIAL(info) << "[FilaManager] → response " << KV(log_key::seq, seq) << "code=" << code;
     SendMsg({{"type", "response"}, {"seq", seq}, {"code", code}, {"data", data}});
 }
 
@@ -196,7 +196,7 @@ void wgtFilaManagerPanel::OnWebMsg(wxWebViewEvent& evt)
         int         seq = j.value("seq", 0);
         std::string cmd = j.value("command", "");
         nlohmann::json data = j.contains("data") ? j["data"] : nlohmann::json::object();
-        BOOST_LOG_TRIVIAL(info) << "[FilaManager] ← request seq=" << seq << " cmd=" << cmd;
+        BOOST_LOG_TRIVIAL(info) << "[FilaManager] ← request " << KV(log_key::seq, seq) << "cmd=" << cmd;
 
         auto it = m_handlers.find(cmd);
         if (it != m_handlers.end()) {

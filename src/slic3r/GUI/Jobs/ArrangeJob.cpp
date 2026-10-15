@@ -883,6 +883,7 @@ void ArrangeJob::on_exception(const std::exception_ptr &eptr)
         show_error(m_plater, _L("Arrange failed. "
                                  "Found some exceptions when processing object geometries."));
     } catch (std::exception &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         PlaterJob::on_exception(eptr);
     }
 }

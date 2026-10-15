@@ -1986,7 +1986,7 @@ std::vector<Polygons> slice_mesh(
     const MeshSlicingParams          &params,
     std::function<void()>             throw_on_cancel)
 {
-    BOOST_LOG_TRIVIAL(debug) << "slice_mesh to polygons";
+    BOOST_LOG_TRIVIAL(debug) << "to polygons";
        
     std::vector<IntersectionLines> lines;
 
@@ -2184,7 +2184,7 @@ void slice_mesh_slabs(
     std::vector<std::pair<Vec3f, Vec3f>>   *vertical_points,
     std::function<void()>             throw_on_cancel)
 {
-    BOOST_LOG_TRIVIAL(debug) << "slice_mesh_slabs to polygons";
+    BOOST_LOG_TRIVIAL(debug) << "to polygons";
 
 #ifdef EXPENSIVE_DEBUG_CHECKS
     {
@@ -2435,7 +2435,7 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
     if (upper == nullptr && lower == nullptr)
         return;
 
-    BOOST_LOG_TRIVIAL(trace) << "cut_mesh - slicing object";
+    BOOST_LOG_TRIVIAL(trace) << "slicing object";
 
     if (upper) {
         upper->clear();
@@ -2586,7 +2586,7 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
             if (!find_isolated_vertex && isolated_vertex_option != -1) {
                 calc_isolated_vertex(isolated_vertex_option, find_isolated_vertex);
                 if (!find_isolated_vertex) {
-                    BOOST_LOG_TRIVIAL(trace) << "cut_mesh:error:could not find isolated_vertex";
+                    BOOST_LOG_TRIVIAL(trace) << "error:could not find isolated_vertex";
                     continue;
                 }
                 iv = isolated_vertex_option;
@@ -2737,7 +2737,7 @@ void cut_mesh
     if (upper == nullptr && lower == nullptr)
         return;
 
-    BOOST_LOG_TRIVIAL(trace) << "cut_mesh - slicing object";
+    BOOST_LOG_TRIVIAL(trace) << "slicing object";
 
     Vec3d plane_normal = calc_plane_normal(plane_points);
     if (std::abs(plane_normal(0)) < EPSILON && std::abs(plane_normal(1)) < EPSILON) {

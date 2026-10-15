@@ -187,7 +187,7 @@ nlohmann::json FilamentManagerVM::OnCommand(
     const std::string& action,
     const nlohmann::json& payload)
 {
-    BOOST_LOG_TRIVIAL(info) << "FilamentManagerVM::OnCommand submod=" << submod
+    BOOST_LOG_TRIVIAL(info) << "submod=" << submod
                             << " action=" << action;
 
     if (submod == "init")          return HandleInit(action, payload);

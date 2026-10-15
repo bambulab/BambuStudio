@@ -2,6 +2,8 @@
 
 #include <assert.h>
 
+#include "libslic3r/Log.hpp"
+
 extern "C"
 {
     #include <libavutil/avutil.h>
@@ -28,12 +30,12 @@ int AVVideoDecoder::open(Bambu_StreamInfo const &info)
     auto codec_id = info.sub_type == AVC1 ? AV_CODEC_ID_H264 : AV_CODEC_ID_MJPEG;
     auto codec    = avcodec_find_decoder(codec_id);
     if (codec == nullptr) {
-        fprintf(stderr, "AVVideoDecoder: unsupported codec!\n");
+        BOOST_LOG_TRIVIAL(error) << "unsupported codec!";
         return -1; // Codec not found
     }
     /* open the coderc */
     if (avcodec_open2(codec_ctx_, codec, nullptr) < 0) {
-        fprintf(stderr, "AVVideoDecoder: could not open codec\n");
+        BOOST_LOG_TRIVIAL(error) << "could not open codec";
         return -1;
     }
 
@@ -136,7 +138,7 @@ bool AVVideoDecoder::toWxImage(wxImage &image, wxSize const &size2)
     }
     image = wxImage(size.GetWidth(), size.GetHeight(), bits_.data(), true);
     if (!image.IsOk()) {
-        fprintf(stderr, "AVVideoDecoder: image not ok %dx%d\n", size.GetWidth(), size.GetHeight());
+        BOOST_LOG_TRIVIAL(warning) << "image not ok " << size.GetWidth() << "x" << size.GetHeight();
         return false;
     }
     return true;
@@ -172,13 +174,13 @@ bool AVVideoDecoder::toWxBitmap(wxBitmap &bitmap, wxSize const &size2)
     int      strides[] = { size.GetWidth() * 4 };
     int      result_h  = sws_scale(sws_ctx_, frame_->data, frame_->linesize, 0, frame_->height, datas, strides);
     if (result_h != size.GetHeight()) {
-        fprintf(stderr, "AVVideoDecoder: result_h %d %d\n", result_h, size.GetHeight());
+        BOOST_LOG_TRIVIAL(warning) << "result_h " << result_h << " " << size.GetHeight();
         return false;
     }
     bitmap = wxBitmap((char const *) bits_.data(), size.GetWidth(), size.GetHeight(), 32);
     assert(bitmap.IsOk());
     if (!bitmap.IsOk()) {
-        fprintf(stderr, "AVVideoDecoder: bitmap not ok %dx%d\n", size.GetWidth(), size.GetHeight());
+        BOOST_LOG_TRIVIAL(warning) << "bitmap not ok " << size.GetWidth() << "x" << size.GetHeight();
         return false;
     }
     return true;

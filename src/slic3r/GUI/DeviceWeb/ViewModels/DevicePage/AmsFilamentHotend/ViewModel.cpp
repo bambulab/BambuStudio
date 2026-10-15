@@ -142,7 +142,7 @@ std::optional<std::string> DumpStateKey(const nlohmann::json& state)
     try {
         return state.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "DumpStateKey failed: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "failed: " << e.what();
         return std::nullopt;
     }
 }
@@ -192,7 +192,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::OnCommand(const std::string& submo
             return HandleDebug(action, payload);
         }
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "DevicePageAmsFilamentHotendVM::OnCommand exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
         return MakeResponse(GetModule(), submod, action, 2, e.what(), BuildState());
     }
 

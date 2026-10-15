@@ -2433,7 +2433,9 @@ void HelioInputDialog::update_action(int action)
                 Fit();
             }
         }
-        catch (...){}
+        catch (...){
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
 
         BOOST_LOG_TRIVIAL(info) << "last optimization trace id:" << Slic3r::HelioQuery::last_optimization_trace_id;
 
@@ -2791,7 +2793,7 @@ void HelioInputDialog::populate_print_priority_dropdown(ComboBox* combobox)
     // Clear global tooltip to allow per-item tooltips to display
     combobox->UnsetToolTip();
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "populate_print_priority_dropdown error: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "error: " << e.what();
         return;
     }
 }
@@ -2799,7 +2801,7 @@ void HelioInputDialog::populate_print_priority_dropdown(ComboBox* combobox)
 void HelioInputDialog::fetch_print_priority_options()
 {
     if (m_material_id.empty()) {
-        BOOST_LOG_TRIVIAL(warning) << "fetch_print_priority_options: material_id is empty, using fallback options";
+        BOOST_LOG_TRIVIAL(warning) << "material_id is empty, using fallback options";
         return;
     }
 
@@ -2819,7 +2821,7 @@ void HelioInputDialog::fetch_print_priority_options()
     std::string helio_api_key = HelioQuery::get_helio_pat();
 
     if (helio_api_key.empty()) {
-        BOOST_LOG_TRIVIAL(warning) << "fetch_print_priority_options: No API key, using fallback options";
+        BOOST_LOG_TRIVIAL(warning) << "No API key, using fallback options";
         m_print_priority_loading = false;
         update_print_priority_dropdown();
         return;

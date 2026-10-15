@@ -158,7 +158,9 @@ static int get_object_label_id(const std::string_view comment_1)
     try {
         id = stoi(num_str);
     }
-    catch (const std::exception &) {}
+    catch (const std::exception &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return id;
 }
 
@@ -170,7 +172,9 @@ static float get_z_height(const std::string_view comment_1)
     float print_z = 0.0f;
     try {
         print_z = stof(num_str);
-    } catch (const std::exception &) {}
+    } catch (const std::exception &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return print_z;
 }
 
@@ -1607,7 +1611,7 @@ void GCodeProcessorResult::reset() {
     //BBS: add mutex for protection of gcode result
     unlock();
     //BBS: add logs
-    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: this=%2% reset finished")%__LINE__%this;
+    BOOST_LOG_TRIVIAL(info) << boost::format("this=%1% reset finished")%this;
 }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
@@ -3161,6 +3165,7 @@ template<typename T>
                 out = string_to_double_decimal_point(str, &read);
             return str.size() == read;
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             return false;
         }
     }
@@ -5713,7 +5718,9 @@ void GCodeProcessor::process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& li
         {
             _jerk = std::stof(matches[1]);
         }
-        catch (...) {}
+        catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
         for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
             set_option_value(m_time_processor.machine_limits.machine_max_jerk_x, i, _jerk);
             set_option_value(m_time_processor.machine_limits.machine_max_jerk_y, i, _jerk);
@@ -5727,7 +5734,9 @@ void GCodeProcessor::process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& li
         {
             _accl = std::stof(matches[1]);
         }
-        catch (...) {}
+        catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
         for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
             set_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), _accl);
             set_travel_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), _accl);
@@ -5741,7 +5750,9 @@ void GCodeProcessor::process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& li
         {
             _speed = std::stof(matches[1]);
         }
-        catch (...) {}
+        catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
         for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
             set_option_value(m_time_processor.machine_limits.machine_max_speed_x, i, _speed);
             set_option_value(m_time_processor.machine_limits.machine_max_speed_y, i, _speed);
@@ -5919,7 +5930,9 @@ void GCodeProcessor::process_M1020(const GCodeReader::GCodeLine &line)
         if (!filament_id_str.empty()) {
              try {
                 eid = std::stoi(filament_id_str);
-             } catch(...) {}
+             } catch(...) {
+                 BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+             }
         }
     }
 

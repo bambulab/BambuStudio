@@ -524,6 +524,7 @@ void HMSQueryMgr::fetch_leg(const std::shared_ptr<DownloadCtx>& ctx, bool is_inf
                 }
                 // result == 201 (unchanged) or any non-fatal case: keep the existing snapshot.
             } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 ctx->ok.store(false);
             }
             finish_leg(ctx);

@@ -77,6 +77,7 @@ void PrintJob::on_exception(const std::exception_ptr &eptr)
         if (eptr)
             std::rethrow_exception(eptr);
     } catch (std::exception &/*e*/) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         PlaterJob::on_exception(eptr);
     }
 }
@@ -134,6 +135,7 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
             //}
         }
         catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
         else if (status == 503) {
@@ -151,6 +153,7 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
         result = wxString::Format("code=%u, error=%s", code, from_u8(error));
         return result;
     } catch(...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         ;
     }
     return wxEmptyString;
@@ -314,14 +317,18 @@ void PrintJob::process()
             try {
                 params.origin_profile_id    = stoi(origin_profile_id->second.c_str());
             }
-            catch(...) {}
+            catch(...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
         }
         auto origin_model_id = model_info->metadata_items.find(BBL_DESIGNER_MODEL_ID_TAG);
         if (origin_model_id != model_info->metadata_items.end()) {
             try {
                 params.origin_model_id = origin_model_id->second;
             }
-            catch(...) {}
+            catch(...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
         }
 
         auto profile_name = model_info->metadata_items.find(BBL_DESIGNER_PROFILE_TITLE_TAG);
@@ -329,7 +336,9 @@ void PrintJob::process()
             try {
                 params.preset_name = profile_name->second;
             }
-            catch (...) {}
+            catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
         }
 
          if (m_print_type == "from_normal") {
@@ -344,7 +353,9 @@ void PrintJob::process()
                     std::regex pattern("_+");
                     params.project_name = std::regex_replace(mall_model_name, pattern, "_");
                     params.project_name = truncate_string(params.project_name, 100);
-                } catch (...) {}
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                }
             }
         }
 
@@ -387,6 +398,7 @@ void PrintJob::process()
                 stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
             }
             catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 stl_design_id = 0;
             }
             params.stl_design_id = stl_design_id;
@@ -401,6 +413,7 @@ void PrintJob::process()
             try {
                 params.stl_design_id = std::stoi(model_design_id);
             } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 params.stl_design_id = 0;
             }
         }
@@ -543,15 +556,16 @@ void PrintJob::process()
                 BOOST_LOG_TRIVIAL(trace) << "print_job: curr_obj_id=" << curr_job_id;
 
             } catch(...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 ;
             }
 
             if (obj) {
                 int time_out = 0;
                 while (time_out < PRINT_JOB_SENDING_TIMEOUT) {
-                    BOOST_LOG_TRIVIAL(trace) << "print_job: obj job_id = " << obj->job_id_;
+                    BOOST_LOG_TRIVIAL(trace) << "print_job: obj " << KV(log_key::job_id, obj->job_id_);
                     if (!obj->job_id_.empty() && obj->job_id_.compare(curr_job_id) == 0) {
-                        BOOST_LOG_TRIVIAL(info) << "print_job: got job_id = " << obj->job_id_ << ", time_out=" << time_out;
+                        BOOST_LOG_TRIVIAL(info) << "print_job: got " << KV(log_key::job_id, obj->job_id_) << "time_out=" << time_out;
                         return true;
                     }
                     if (obj->is_in_printing_status(obj->print_status)) {

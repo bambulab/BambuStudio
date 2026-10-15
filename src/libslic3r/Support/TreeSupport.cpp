@@ -1970,7 +1970,7 @@ void TreeSupport::fold_nodes_multi_diameter()
             if (carriers[slab_idx].at(top).folds)
                 moves_to.emplace(node, top);
     if (moves_to.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "fold_nodes_multi_diameter: nothing folded of " << plan.slabs.size() << " slabs";
+        BOOST_LOG_TRIVIAL(info) << "nothing folded of " << plan.slabs.size() << " slabs";
         return;
     }
 
@@ -2122,7 +2122,7 @@ void TreeSupport::fold_nodes_multi_diameter()
         }
     }
 
-    BOOST_LOG_TRIVIAL(info) << "fold_nodes_multi_diameter: folded " << folded_carriers << " column carriers over "
+    BOOST_LOG_TRIVIAL(info) << "folded " << folded_carriers << " column carriers over "
                             << m_fold_carriers.size() << " of " << plan.slabs.size() << " slabs, interface fold "
                             << (fold_interface ? "on" : "off");
 }
@@ -3059,7 +3059,7 @@ void TreeSupport::draw_circles()
 
     if (m_object->support_layer_count() <= m_raft_layers)
         return;
-    BOOST_LOG_TRIVIAL(info) << "draw_circles for object: " << m_object->model_object()->name;
+    BOOST_LOG_TRIVIAL(info) << "for object: " << m_object->model_object()->name;
 
     // BBS multi-diameter: the per layer state handed from drawing the nodes to finishing the areas. The two run
     // as separate passes so the finishing one can read the roof gaps of every layer a folded slab swallowed.
@@ -4669,7 +4669,7 @@ first_pass_next:;
                                            m_ts_data->m_layer_outlines[obj_layer_nr],
             contact_nodes[layer_nr], contact_nodes[layer_nr_next], { "overhang","avoid","outline" }, { "blue","red","yellow" });
 
-            BOOST_LOG_TRIVIAL(debug) << "drop_nodes layer->next " << layer_nr << "->" << layer_nr_next << ", print_z=" << print_z
+            BOOST_LOG_TRIVIAL(debug) << "layer->next " << layer_nr << "->" << layer_nr_next << ", print_z=" << print_z
                 << ", num points: " << contact_nodes[layer_nr].size() << "->" << contact_nodes[layer_nr_next].size();
             for (size_t i = 0; i < std::min(size_t(5), contact_nodes[layer_nr].size()); i++) {
                 auto &node = contact_nodes[layer_nr][i];
@@ -4805,7 +4805,7 @@ void TreeSupport::smooth_nodes()
                             if (branch[i]->parents.size() > 1 || (branch[i]->movement.x() > max_move || branch[i]->movement.y() > max_move) ||
                                 (total_height > thresh_tall_branch && branch[i]->dist_mm_to_top < thresh_dist_to_top))
                                 branch[i]->need_extra_wall = true;
-                            BOOST_LOG_TRIVIAL(trace) << "smooth_nodes: layer_nr=" << layer_nr << ", i=" << i << ", pt=" << pt << ", movement=" << branch[i]->movement << ", radius=" << branch[i]->radius;
+                            BOOST_LOG_TRIVIAL(trace) << "layer_nr=" << layer_nr << ", i=" << i << ", pt=" << pt << ", movement=" << branch[i]->movement << ", radius=" << branch[i]->radius;
                         }
                     }
                     if (k < iterations - 1) {
@@ -4999,7 +4999,7 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
             coordf_t print_z        = z1 + step;
             for (int i = 0; i < n_layers_extra; i++, print_z += step) {
                 z_heights[print_z] = step;
-                BOOST_LOG_TRIVIAL(debug) << "plan_layer_heights add entry print_z, height: " << print_z << " " << step;
+                BOOST_LOG_TRIVIAL(debug) << "add entry print_z, height: " << print_z << " " << step;
             }
             it1=it2;
         }
@@ -5051,7 +5051,7 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
     for (int layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++) {
         if (contact_nodes[layer_nr].empty()) continue;
         SupportNode *node1 = contact_nodes[layer_nr].front();
-        BOOST_LOG_TRIVIAL(debug) << format("plan_layer_heights node1->layer_nr,printz,height,distance_to_top: %d, %.2f,%.2f, %d", layer_nr, node1->print_z, node1->height, node1->distance_to_top)
+        BOOST_LOG_TRIVIAL(debug) << format("node1->layer_nr,printz,height,distance_to_top: %d, %.2f,%.2f, %d", layer_nr, node1->print_z, node1->height, node1->distance_to_top)
                                  << ", object_layer_zs[" << layer_heights[layer_nr].obj_layer_nr << "]=" << m_object->get_layer(layer_heights[layer_nr].obj_layer_nr)->print_z;
         coordf_t new_height = layer_heights[layer_nr].height;
         if (std::abs(node1->height - new_height) < EPSILON) continue;
@@ -5065,7 +5065,7 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
                 if (accum_height > node1->height - EPSILON) break;
             }
         }
-        BOOST_LOG_TRIVIAL(debug) << format("plan_layer_heights adjust node's height print_z[%d]=%.2f: (%.3f,%d)->(%.3f,%.3f,%d)", layer_nr, node1->print_z,
+        BOOST_LOG_TRIVIAL(debug) << format("adjust node's height print_z[%d]=%.2f: (%.3f,%d)->(%.3f,%.3f,%d)", layer_nr, node1->print_z,
             node1->height, node1->distance_to_top, new_height, accum_height, -num_layers);
         for (SupportNode *node : contact_nodes[layer_nr]) {
             node->height          = new_height;

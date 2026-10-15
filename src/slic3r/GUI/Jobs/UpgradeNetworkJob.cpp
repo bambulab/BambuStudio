@@ -27,6 +27,7 @@ void UpgradeNetworkJob::on_exception(const std::exception_ptr &eptr)
         if (eptr)
             std::rethrow_exception(eptr);
     } catch (std::exception &/*e*/) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         UpgradeNetworkJob::on_exception(eptr);
     }
 }

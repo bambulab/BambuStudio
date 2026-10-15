@@ -924,6 +924,7 @@ unsigned int Step::get_triangle_num(double linear_defletion, double angle_deflet
             }
         }
     } catch(Exception e) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0;
     }
     return tri_num;

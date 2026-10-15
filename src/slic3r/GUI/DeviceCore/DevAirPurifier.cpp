@@ -27,7 +27,7 @@ void DevAirPurifier::ParseAps(const json &print_json)
 // Software-initiated air purifier gear switch: part_control, module = aps
 int DevAirPurifier::CtrlSetGear(int gear)
 {
-    BOOST_LOG_TRIVIAL(info) << "DevAirPurifier::CtrlSetGear, set air purifier gear = " << gear;
+    BOOST_LOG_TRIVIAL(info) << "set air purifier gear = " << gear;
     json j;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["command"]     = "part_control";

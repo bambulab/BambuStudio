@@ -478,6 +478,7 @@ void AMSControl::AmsSelectedSwitch(wxCommandEvent& event) {
             }
         }
         catch (...){
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
     }
@@ -496,6 +497,7 @@ void AMSControl::AmsSelectedSwitch(wxCommandEvent& event) {
             }
         }
         catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
     }
@@ -520,7 +522,7 @@ void AMSControl::EnableLoadFilamentBtn(bool enable, const std::string& ams_id, c
 {
     m_button_extruder_feed->Enable(enable);
     if (m_button_extruder_feed->GetToolTipText() != tips) {
-        BOOST_LOG_TRIVIAL(info) << "ams_id=" << ams_id << ", can_id=" << can_id << "  Set Load Filament Button ToolTip : " << tips.ToUTF8();
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::ams_id, ams_id) << "can_id=" << can_id << "  Set Load Filament Button ToolTip : " << tips.ToUTF8();
         m_button_extruder_feed->SetToolTip(tips);
     }
 }
@@ -529,7 +531,7 @@ void AMSControl::EnableUnLoadFilamentBtn(bool enable, const std::string& ams_id,
 {
     m_button_extruder_back->Enable(enable);
     if (m_button_extruder_back->GetToolTipText() != tips) {
-        BOOST_LOG_TRIVIAL(info) << "ams_id=" << ams_id << ", can_id=" << can_id << "  Set Unload Filament Button ToolTip : " << tips.ToUTF8();
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::ams_id, ams_id) << "can_id=" << can_id << "  Set Unload Filament Button ToolTip : " << tips.ToUTF8();
         m_button_extruder_back->SetToolTip(tips);
     }
 }

@@ -160,6 +160,7 @@ bool TCPConsole::run_queue()
     }
     catch (std::exception& e)
     {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return false;
     }
 

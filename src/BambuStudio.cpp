@@ -330,7 +330,7 @@ typedef struct _cli_callback_mgr {
         lck.unlock();
         m_condition.notify_one();
         boost::this_thread::sleep(boost::posix_time::milliseconds(20));
-        BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::thread_proc started.";
+        BOOST_LOG_TRIVIAL(info) << "started.";
         while(1) {
             lck.lock();
             m_condition.wait(lck, [this](){ return m_data_ready || m_exit; });
@@ -340,14 +340,14 @@ typedef struct _cli_callback_mgr {
                 m_data_ready = false;
             }
             if (m_exit) {
-                BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::thread_proc will exit.";
+                BOOST_LOG_TRIVIAL(info) << "will exit.";
                 break;
             }
             lck.unlock();
             m_condition.notify_one();
         }
         lck.unlock();
-        BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::thread_proc exit.";
+        BOOST_LOG_TRIVIAL(info) << "exit.";
     }
 
     void    update(int percent, std::string message, int warning_step)
@@ -389,7 +389,7 @@ typedef struct _cli_callback_mgr {
     bool start(std::string pipe_name)
     {
         int retry_count = 0;
-        BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::start enter.";
+        BOOST_LOG_TRIVIAL(info) << "enter.";
         m_pipe_fd = open(pipe_name.c_str(),O_WRONLY|O_NONBLOCK);
         while (m_pipe_fd < 0) {
             if ((retry_count%10) == 0)
@@ -409,17 +409,17 @@ typedef struct _cli_callback_mgr {
         m_condition.wait(lck, [this](){ return m_started; });
         lck.unlock();
         m_condition.notify_one();
-        BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::start successfully.";
+        BOOST_LOG_TRIVIAL(info) << "successfully.";
         return true;
     }
 
     void stop()
     {
-        BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::stop enter.";
+        BOOST_LOG_TRIVIAL(info) << "enter.";
         std::unique_lock<std::mutex> lck(m_mutex);
         if (!m_started) {
             lck.unlock();
-	    BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::stop not started before, return directly.";
+	    BOOST_LOG_TRIVIAL(info) << "not started before, return directly.";
             return;
         }
         m_exit = true;
@@ -431,7 +431,7 @@ typedef struct _cli_callback_mgr {
             close(m_pipe_fd);
             m_pipe_fd = -1;
         }
-        BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::stop successfully.";
+        BOOST_LOG_TRIVIAL(info) << "successfully.";
     }
 }cli_callback_mgr_t;
 
@@ -521,8 +521,8 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
 
         if (code != 0)
         {
-            BOOST_LOG_TRIVIAL(info)
-                                    << boost::format("Slicer_Info_Report: plate_id=%1%, return_code=%2%, error_message=%3%\n") % plate_id % code % error_message;
+            BOOST_LOG_TRIVIAL(info) << "Slicer_Info_Report: " << KV(log_key::plate_id, plate_id) << "return_code=" << code << ", error_message="
+                                    << error_message;
 
         }
 
@@ -621,13 +621,9 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
                 }
             }
 
-            BOOST_LOG_TRIVIAL(info) << boost::format("Slicer_Info_Report: plate_id=%1%, return_code=%2%, error_message=%3%, slice_time_s=%4%, pring_time_s=%5%, filament_usage_g=%6%\n")
-                % index
-                % code
-                % error_message
-                % (static_cast<double>(sliced_plate_info.sliced_time) / 1000.0)
-                % sliced_plate_info.total_predication
-                % filament_usage_g;
+            BOOST_LOG_TRIVIAL(info) << "Slicer_Info_Report: " << KV(log_key::plate_id, index) << "return_code=" << code << ", error_message="
+                                    << error_message << ", slice_time_s=" << (static_cast<double>(sliced_plate_info.sliced_time) / 1000.0)
+                                    << ", pring_time_s=" << sliced_plate_info.total_predication << ", filament_usage_g=" << filament_usage_g;
 
             j["sliced_plates"].push_back(std::move(plate_json));
         }
@@ -641,7 +637,9 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
         c.close();
         BOOST_LOG_TRIVIAL(info) << boost::format("saved config to %1%\n")%result_file;
     }
-    catch (...) {}
+    catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 }
 
 static int decode_png_to_thumbnail(std::string png_file, ThumbnailData& thumbnail_data)
@@ -793,7 +791,7 @@ static int load_assemble_plate_list(std::string config_file, std::vector<assembl
     int ret = 0;
     boost::filesystem::path directory_path(config_file);
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("%1% enter, file %2%")%__FUNCTION__ % config_file;
+    BOOST_LOG_TRIVIAL(info) << boost::format("enter, file %1%")% config_file;
     if (!fs::exists(directory_path)) {
         BOOST_LOG_TRIVIAL(error) << boost::format("directory %1% not exist.")%config_file;
         return CLI_FILE_NOTFOUND;
@@ -993,7 +991,7 @@ bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA> & input_colors,
 {
     using namespace Slic3r::GUI;
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, got original input obj colors %3%")%__FUNCTION__ %__LINE__ %input_colors.size();
+    BOOST_LOG_TRIVIAL(info) << boost::format("got original input obj colors %1%")%input_colors.size();
     if (input_colors.size() > 0) {
         std::vector<Slic3r::RGBA> cluster_colors;
         std::vector<int>          cluster_labels;
@@ -1027,7 +1025,7 @@ bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA> & input_colors,
         }
         std::vector<int> cluster_color_maps;
 
-        BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, after obj_color_deal_algo, cluster_colors size %3%, all_colours size %4%, max_filament_count=%5%")%__FUNCTION__ %__LINE__%cluster_colors.size() %all_colours.size() %max_filament_count;
+        BOOST_LOG_TRIVIAL(info) << boost::format("after obj_color_deal_algo, cluster_colors size %1%, all_colours size %2%, max_filament_count=%3%")%cluster_colors.size() %all_colours.size() %max_filament_count;
 
         cluster_color_maps.resize(cluster_colors.size(), 1);
 
@@ -1039,15 +1037,13 @@ bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA> & input_colors,
 
             if (previous_color != all_colours.end()) {
                 cluster_color_maps[i] = previous_color - all_colours.begin() + 1;
-                BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, cluster color index %3% RGBA {%4%,%5%,%6%,%7%} found same color before, id %8%")
-                        %__FUNCTION__ %__LINE__%(i+1) %cluster_colors[i][0] %cluster_colors[i][1] %cluster_colors[i][2] %cluster_colors[i][3] %cluster_color_maps[i] ;
+                BOOST_LOG_TRIVIAL(info) << boost::format("cluster color index %1% RGBA {%2%,%3%,%4%,%5%} found same color before, id %6%")%(i+1) %cluster_colors[i][0] %cluster_colors[i][1] %cluster_colors[i][2] %cluster_colors[i][3] %cluster_color_maps[i] ;
             }
             else {
                 if ((init_size + i + 1) <= max_filament_count) {
                     all_colours.push_back(cluster_colors[i]);
                     cluster_color_maps[i] = all_colours.size();
-                    BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, cluster color index %3% RGBA {%4%,%5%,%6%,%7%} directly inserted, id %8%")
-                        %__FUNCTION__ %__LINE__%(i+1) %cluster_colors[i][0] %cluster_colors[i][1] %cluster_colors[i][2] %cluster_colors[i][3] %cluster_color_maps[i] ;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("cluster color index %1% RGBA {%2%,%3%,%4%,%5%} directly inserted, id %6%")%(i+1) %cluster_colors[i][0] %cluster_colors[i][1] %cluster_colors[i][2] %cluster_colors[i][3] %cluster_color_maps[i] ;
                 }
                 else {
                     std::vector<ColorDistValue> color_dists;
@@ -1058,8 +1054,7 @@ bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA> & input_colors,
                     }
                     std::sort(color_dists.begin(), color_dists.end(), [](ColorDistValue &a, ColorDistValue &b) { return a.distance < b.distance; });
                     cluster_color_maps[i] = color_dists[0].id;
-                    BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, color size reaches to max, cluster color index %3% RGBA {%4%,%5%,%6%,%7%} mapped to id %8%")
-                        %__FUNCTION__ %__LINE__%(i+1) %cluster_colors[i][0] %cluster_colors[i][1] %cluster_colors[i][2] %cluster_colors[i][3] %cluster_color_maps[i] ;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("color size reaches to max, cluster color index %1% RGBA {%2%,%3%,%4%,%5%} mapped to id %6%")%(i+1) %cluster_colors[i][0] %cluster_colors[i][1] %cluster_colors[i][2] %cluster_colors[i][3] %cluster_color_maps[i] ;
                 }
             }
             if (cluster_color_maps[i] < first_filament_id)
@@ -1074,7 +1069,7 @@ bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA> & input_colors,
             output_filament_ids[i] = cluster_color_maps[label];
         }
 
-        BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, all_colours size changes to %3%, first_filament_id = %4%")%__FUNCTION__ %__LINE__%all_colours.size() %first_filament_id;
+        BOOST_LOG_TRIVIAL(info) << boost::format("all_colours size changes to %1%, first_filament_id = %2%")%all_colours.size() %first_filament_id;
 
         return true;
     }
@@ -1452,7 +1447,7 @@ static std::string estimate_filament_preset_name(
         base_name = base_name.substr(0, at_pos);
 
     BOOST_LOG_TRIVIAL(info) << boost::format(
-            "estimate_filament_preset_name: src_filament_name %1%, base %2%, new_machine_bbl_tag %3%, new_printer_system_name %4%, default_filament_preset %5%") % src_filament_name %base_name %new_machine_bbl_tag %new_printer_system_name %default_filament_preset;
+            "src_filament_name %1%, base %2%, new_machine_bbl_tag %3%, new_printer_system_name %4%, default_filament_preset %5%") % src_filament_name %base_name %new_machine_bbl_tag %new_printer_system_name %default_filament_preset;
 
     // Lambda: check whether a filament json file's compatible_printers contains new_printer_system_name
     auto is_compatible_with_printer = [&](const std::string& file_path) -> bool {
@@ -1467,7 +1462,9 @@ static std::string estimate_filament_preset_name(
                         return true;
                 }
             }
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
         return false;
     };
 
@@ -1486,14 +1483,14 @@ static std::string estimate_filament_preset_name(
             if (fname.size() < prefix.size() || fname.compare(0, prefix.size(), prefix) != 0) continue;
             if (is_compatible_with_printer(entry.path().string())) {
                 BOOST_LOG_TRIVIAL(info) << boost::format(
-                    "estimate_filament_preset_name: '%1%' compatible with '%2%', using it")
+                    "'%1%' compatible with '%2%', using it")
                     % fname % new_printer_system_name;
                 return fname;
             }
         }
     } catch (const boost::filesystem::filesystem_error& e) {
         BOOST_LOG_TRIVIAL(warning) << boost::format(
-            "estimate_filament_preset_name: error scanning filament_full_dir: %1%") % e.what();
+            "error scanning filament_full_dir: %1%") % e.what();
     }
 
     // 3. Fallback: use the machine's default filament preset directly
@@ -1502,7 +1499,7 @@ static std::string estimate_filament_preset_name(
         return default_filament_preset;
 
     BOOST_LOG_TRIVIAL(warning) << boost::format(
-        "estimate_filament_preset_name: no match for '%1%' with machine '%2%', skipping")
+        "no match for '%1%' with machine '%2%', skipping")
         % base_name % new_printer_system_name;
     return "";
 }
@@ -1513,7 +1510,7 @@ static void load_downward_settings_list_from_config(std::string config_file, std
 
     boost::filesystem::path directory_path(config_file);
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("%1%, will parse file %2% for printer mode %3%, printer name %4%")%__FUNCTION__ % config_file %printer_model %printer_name;
+    BOOST_LOG_TRIVIAL(info) << boost::format("will parse file %1% for printer mode %2%, printer name %3%")% config_file %printer_model %printer_name;
     if (!fs::exists(directory_path)) {
         BOOST_LOG_TRIVIAL(warning) << boost::format("file %1% not exist.")%config_file;
     }
@@ -2308,7 +2305,7 @@ int CLI::run(int argc, char **argv)
 
     if (!is_bbl_3mf && plate_to_slice > 0)
     {
-        BOOST_LOG_TRIVIAL(warning) << boost::format("%1%: not support to slice plate %2%, reset to 0")%__LINE__ %plate_to_slice;
+        BOOST_LOG_TRIVIAL(warning) << boost::format("not support to slice plate %1%, reset to 0")%plate_to_slice;
         plate_to_slice = 0;
     }
     if (is_bbl_3mf) {
@@ -2470,7 +2467,7 @@ int CLI::run(int argc, char **argv)
                     load_key_values_from_json(printer_model_path, key_values);
                     if (key_values.find("model_id") != key_values.end()) {
                         printer_model_id = key_values["model_id"];
-                        BOOST_LOG_TRIVIAL(info) << boost::format("%1%, load printer_model_id %2% from current printer model %3%")%__LINE__ %printer_model_id %printer_model;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("load printer_model_id %1% from current printer model %2%")%printer_model_id %printer_model;
                     }
                 }
             }
@@ -2536,7 +2533,7 @@ int CLI::run(int argc, char **argv)
                 new_machine_bbl_tag = default_filament_preset.substr(tag_pos + 6); // skip " @BBL "
         }
         if (new_machine_bbl_tag.empty()) {
-            BOOST_LOG_TRIVIAL(error) << boost::format("%1%: estimate_mode: cannot determine BBL machine tag from default_filament_profile") % __LINE__;
+            BOOST_LOG_TRIVIAL(error) << boost::format("estimate_mode: cannot determine BBL machine tag from default_filament_profile");
             record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
             flush_and_exit(CLI_INVALID_PARAMS);
         }
@@ -2547,8 +2544,7 @@ int CLI::run(int argc, char **argv)
             std::string preset_name = estimate_filament_preset_name(
                 converted_filaments_system_name[index], new_machine_bbl_tag, filament_full_dir, new_printer_system_name, default_filament_preset);
             if (preset_name.empty()) {
-                BOOST_LOG_TRIVIAL(warning) << boost::format("%1%, estimate_mode: no filament preset found for slot %2% (%3%), skipping")
-                    % __LINE__ % index % converted_filaments_system_name[index];
+                BOOST_LOG_TRIVIAL(warning) << boost::format("estimate_mode: no filament preset found for slot %1% (%2%), skipping")% index % converted_filaments_system_name[index];
                 filaments_opt.push_back(""); // keep slot count aligned
             } else {
                 filaments_opt.push_back(filament_full_dir + preset_name + ".json");
@@ -2689,7 +2685,7 @@ int CLI::run(int argc, char **argv)
 
     //add logic for obj auto colors
     if (input_obj_colours.size() > 0) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, got input obj colors %3%")%__FUNCTION__ %__LINE__ %input_obj_colours.size();
+        BOOST_LOG_TRIVIAL(info) << boost::format("got input obj colors %1%")%input_obj_colours.size();
         int input_color_count = input_obj_colours.size();
         if (load_filament_count == 0) {
             BOOST_LOG_TRIVIAL(error) << boost::format("filament config not loaded when loading colored obj");
@@ -2737,7 +2733,7 @@ int CLI::run(int argc, char **argv)
 
             filament_colors[index] = "#" + result;
 
-            BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, index %3%, argb {%4%,%5%,%6%,%7%} to string %8%")%__FUNCTION__ %__LINE__ %(index+1) %color[0] %color[1] %color[2] %color[3] %filament_colors[index];
+            BOOST_LOG_TRIVIAL(info) << boost::format("index %1%, argb {%2%,%3%,%4%,%5%} to string %6%")%(index+1) %color[0] %color[1] %color[2] %color[3] %filament_colors[index];
         }
     }
 
@@ -2787,7 +2783,7 @@ int CLI::run(int argc, char **argv)
                                 load_key_values_from_json(printer_model_path, key_values);
                                 if (key_values.find("model_id") != key_values.end()) {
                                     printer_model_id = key_values["model_id"];
-                                    BOOST_LOG_TRIVIAL(info) << boost::format("%1%, load printer_model_id %2% from current printer model %3%")%__LINE__ %printer_model_id %printer_model;
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("load printer_model_id %1% from current printer model %2%")%printer_model_id %printer_model;
                                 }
                             }
                         }
@@ -2800,8 +2796,7 @@ int CLI::run(int argc, char **argv)
                             orig_printable_depth = (int)(orig_printable_area[2].y() - orig_printable_area[0].y());
                         }
                         orig_printable_height = (int)(config.opt_float("printable_height"));
-                        BOOST_LOG_TRIVIAL(info) << boost::format("%1%, check printable size: old_printable_width=%2%, orig_printable_width=%3%, old_printable_depth=%4%, orig_printable_depth=%5%, old_printable_height=%6%, orig_printable_height=%7%")
-                                    %__LINE__ %old_printable_width %orig_printable_width %old_printable_depth %orig_printable_depth %old_printable_height %orig_printable_height;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("check printable size: old_printable_width=%1%, orig_printable_width=%2%, old_printable_depth=%3%, orig_printable_depth=%4%, old_printable_height=%5%, orig_printable_height=%6%")%old_printable_width %orig_printable_width %old_printable_depth %orig_printable_depth %old_printable_height %orig_printable_height;
                         if ((orig_printable_width > 0) && (orig_printable_depth > 0) && (orig_printable_height > 0))
                         {
                             if ((old_printable_width > orig_printable_width) || (old_printable_depth > orig_printable_depth) || (old_printable_height > orig_printable_height))
@@ -2842,7 +2837,7 @@ int CLI::run(int argc, char **argv)
                 //use the original printer name in 3mf
                 std::string system_printer_path = resources_dir() + "/profiles/BBL/machine_full/"+current_printer_system_name+".json";
                 if (! boost::filesystem::exists(system_printer_path)) {
-                    BOOST_LOG_TRIVIAL(warning) << boost::format("%1%, can not find system preset file: %2% ")%__LINE__ %system_printer_path;
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("can not find system preset file: %1% ")%system_printer_path;
                     //use original one
                 }
                 else {
@@ -2868,7 +2863,7 @@ int CLI::run(int argc, char **argv)
                             load_key_values_from_json(printer_model_path, key_values);
                             if (key_values.find("model_id") != key_values.end()) {
                                 printer_model_id = key_values["model_id"];
-                                BOOST_LOG_TRIVIAL(info) << boost::format("%1%, load printer_model_id %2% from current printer model %3%")%__LINE__ %printer_model_id %printer_model;
+                                BOOST_LOG_TRIVIAL(info) << boost::format("load printer_model_id %1% from current printer model %2%")%printer_model_id %printer_model;
                             }
                         }
                     }
@@ -2883,7 +2878,7 @@ int CLI::run(int argc, char **argv)
                 //use the original printer name in 3mf
                 std::string system_process_path = resources_dir() + "/profiles/BBL/process_full/"+current_process_system_name+".json";
                 if (! boost::filesystem::exists(system_process_path)) {
-                    BOOST_LOG_TRIVIAL(warning) << boost::format("%1%, can not find system preset file: %2% ")%__LINE__ %system_process_path;
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("can not find system preset file: %1% ")%system_process_path;
                     //use original one
                 }
                 else {
@@ -2954,7 +2949,7 @@ int CLI::run(int argc, char **argv)
                     std::string system_filament_path = resources_dir() + "/profiles/BBL/filament_full/"+converted_filaments_system_name[index]+".json";
                     current_index++;
                     if (! boost::filesystem::exists(system_filament_path)) {
-                        BOOST_LOG_TRIVIAL(warning) << boost::format("%1%, can not find system preset file: %2% ")%__LINE__ %system_filament_path;
+                        BOOST_LOG_TRIVIAL(warning) << boost::format("can not find system preset file: %1% ")%system_filament_path;
                         continue;
                     }
                     DynamicPrintConfig  config;
@@ -2976,7 +2971,7 @@ int CLI::run(int argc, char **argv)
                     load_filaments_config.push_back(std::move(config));
                     load_filaments_index.push_back(current_index);
                     load_filaments_inherit.push_back(config_name);
-                    BOOST_LOG_TRIVIAL(info) << boost::format("LINE %4%: load a filament config %1% from file %2%, index %3%")%config_name %system_filament_path %index %__LINE__;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("load a filament config %1% from file %2%, index %3%")%config_name %system_filament_path %index;
                 }
             }
         }
@@ -2992,7 +2987,7 @@ int CLI::run(int argc, char **argv)
             //use the original printer name in 3mf
             std::string system_printer_path = resources_dir() + "/profiles/BBL/machine_full/"+current_printer_system_name+".json";
             if (! boost::filesystem::exists(system_printer_path)) {
-                BOOST_LOG_TRIVIAL(warning) << boost::format("%1%, can not find system preset file: %2% ")%__LINE__ %system_printer_path;
+                BOOST_LOG_TRIVIAL(warning) << boost::format("can not find system preset file: %1% ")%system_printer_path;
                 //skip
             }
             else {
@@ -3014,7 +3009,7 @@ int CLI::run(int argc, char **argv)
             //use the original printer name in 3mf
             std::string system_process_path = resources_dir() + "/profiles/BBL/process_full/"+current_process_system_name+".json";
             if (! boost::filesystem::exists(system_process_path)) {
-                BOOST_LOG_TRIVIAL(warning) << boost::format("%1%, can not find system preset file: %2% ")%__LINE__ %system_process_path;
+                BOOST_LOG_TRIVIAL(warning) << boost::format("can not find system preset file: %1% ")%system_process_path;
                 //use original one
             }
             else {
@@ -3108,7 +3103,7 @@ int CLI::run(int argc, char **argv)
                 }
             }
             if (!process_compatible) {
-                BOOST_LOG_TRIVIAL(error) << boost::format("%1% : current 3mf file not support the new printer %2%, new_printer_system_name %3%")%__LINE__%new_printer_name %new_printer_system_name;
+                BOOST_LOG_TRIVIAL(error) << boost::format("current 3mf file not support the new printer %1%, new_printer_system_name %2%")%new_printer_name %new_printer_system_name;
                 record_exit_reson(outfile_dir, CLI_3MF_NEW_MACHINE_NOT_SUPPORTED, 0, cli_errors[CLI_3MF_NEW_MACHINE_NOT_SUPPORTED], sliced_info);
                 flush_and_exit(CLI_3MF_NEW_MACHINE_NOT_SUPPORTED);
             }
@@ -3121,7 +3116,7 @@ int CLI::run(int argc, char **argv)
     }
 
     if (!process_compatible) {
-        BOOST_LOG_TRIVIAL(error) << boost::format("%1%: process not compatible with printer.")%__LINE__;
+        BOOST_LOG_TRIVIAL(error) << boost::format("process not compatible with printer.");
         record_exit_reson(outfile_dir, CLI_PROCESS_NOT_COMPATIBLE, 0, cli_errors[CLI_PROCESS_NOT_COMPATIBLE], sliced_info);
         flush_and_exit(CLI_PROCESS_NOT_COMPATIBLE);
     }
@@ -3146,11 +3141,10 @@ int CLI::run(int argc, char **argv)
         const bool multi_diameter = selected_diameters.size() >= 2;
         m_print_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode", true)->value = multi_diameter;
         BOOST_LOG_TRIVIAL(info)
-                                << boost::format("%1%: filament_diameter_map has %2% distinct diameter(s), multi_nozzle_diameter_mode=%3%")
-                                       % __LINE__ % selected_diameters.size() % (multi_diameter ? 1 : 0);
+                                << boost::format("filament_diameter_map has %1% distinct diameter(s), multi_nozzle_diameter_mode=%2%")% selected_diameters.size() % (multi_diameter ? 1 : 0);
         if (multi_diameter && check_preset) {
             BOOST_LOG_TRIVIAL(info)
-                                    << boost::format("%1%: multi-diameter mode, skip check_preset") % __LINE__;
+                                    << boost::format("multi-diameter mode, skip check_preset");
             check_preset = false;
         }
 
@@ -3163,9 +3157,8 @@ int CLI::run(int argc, char **argv)
                 if (dia_map->values.size() != load_filaments_config.size()) {
                     BOOST_LOG_TRIVIAL(error)
                         << boost::format(
-                               "%1%: filament_diameter_map size %2% not equal to load_filaments "
-                               "size %3%") %
-                               __LINE__ % dia_map->values.size() % load_filaments_config.size();
+                               "filament_diameter_map size %1% not equal to load_filaments "
+                               "size %2%")% dia_map->values.size() % load_filaments_config.size();
                     record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0,
                                       cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
                     flush_and_exit(CLI_CONFIG_FILE_ERROR);
@@ -3177,9 +3170,8 @@ int CLI::run(int argc, char **argv)
                     if (raw.empty()) {
                         BOOST_LOG_TRIVIAL(error)
                             << boost::format(
-                                   "%1%: filament_diameter_map slot %2% (%3%) is empty in "
-                                   "multi-diameter mode") %
-                                   __LINE__ % (index + 1) % filament_name;
+                                   "filament_diameter_map slot %1% (%2%) is empty in "
+                                   "multi-diameter mode")% (index + 1) % filament_name;
                         record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0,
                                           cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
                         flush_and_exit(CLI_CONFIG_FILE_ERROR);
@@ -3190,9 +3182,8 @@ int CLI::run(int argc, char **argv)
                     if (compatible_opt == nullptr || compatible_opt->values.empty()) {
                         BOOST_LOG_TRIVIAL(error)
                             << boost::format(
-                                   "%1%: filament preset %2% (slot %3%) has empty "
-                                   "compatible_printers; cannot validate selected diameter '%4%'") %
-                                   __LINE__ % filament_name % (index + 1) % raw;
+                                   "filament preset %1% (slot %2%) has empty "
+                                   "compatible_printers; cannot validate selected diameter '%3%'")% filament_name % (index + 1) % raw;
                         record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0,
                                           cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
                         flush_and_exit(CLI_CONFIG_FILE_ERROR);
@@ -3203,10 +3194,9 @@ int CLI::run(int argc, char **argv)
                     if (supported.empty()) {
                         BOOST_LOG_TRIVIAL(error)
                             << boost::format(
-                                   "%1%: filament preset %2% (slot %3%) compatible_printers has no "
+                                   "filament preset %1% (slot %2%) compatible_printers has no "
                                    "parseable nozzle diameters; cannot validate selected diameter "
-                                   "'%4%'") %
-                                   __LINE__ % filament_name % (index + 1) % raw;
+                                   "'%3%'")% filament_name % (index + 1) % raw;
                         record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0,
                                           cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
                         flush_and_exit(CLI_CONFIG_FILE_ERROR);
@@ -3224,9 +3214,8 @@ int CLI::run(int argc, char **argv)
                     }
                     BOOST_LOG_TRIVIAL(error)
                         << boost::format(
-                               "%1%: filament preset %2% (slot %3%) selected diameter %4% is not "
-                               "compatible; supported diameters from compatible_printers: [%5%]") %
-                               __LINE__ % filament_name % (index + 1) % selected % supported_str;
+                               "filament preset %1% (slot %2%) selected diameter %3% is not "
+                               "compatible; supported diameters from compatible_printers: [%4%]")% filament_name % (index + 1) % selected % supported_str;
                     record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR],
                                       sliced_info);
                     flush_and_exit(CLI_CONFIG_FILE_ERROR);
@@ -3252,7 +3241,7 @@ int CLI::run(int argc, char **argv)
 
                 const std::string &filament_name = (index < load_filaments_name.size()) ? load_filaments_name[index] : "";
                 BOOST_LOG_TRIVIAL(error)
-                                         << boost::format("%1%: filament preset %2% (slot %3%) is not compatible with printer %4%.") % __LINE__ % filament_name % (index + 1) %
+                                         << boost::format("filament preset %1% (slot %2%) is not compatible with printer %3%.")% filament_name % (index + 1) %
                                                 effective_printer_system_name;
                 record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
                 flush_and_exit(CLI_CONFIG_FILE_ERROR);
@@ -3261,7 +3250,7 @@ int CLI::run(int argc, char **argv)
     }
 
     if (estimate_mode && (new_printer_name.empty() || current_printer_name.empty() || (new_printer_name == current_printer_name))) {
-        BOOST_LOG_TRIVIAL(error) << boost::format("%1%: estimate_mode requires a machine switch via --load_settings") % __LINE__;
+        BOOST_LOG_TRIVIAL(error) << boost::format("estimate_mode requires a machine switch via --load_settings");
         record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
         flush_and_exit(CLI_INVALID_PARAMS);
     }
@@ -3323,7 +3312,7 @@ int CLI::run(int argc, char **argv)
         auto curr_id_opt = dynamic_cast<const ConfigOptionInts*>(full_config.option(id_name));
         auto new_id_opt = dynamic_cast<const ConfigOptionInts*>(new_config.option(id_name));
         if (!new_variant_opt || !new_id_opt) {
-            BOOST_LOG_TRIVIAL(error) << boost::format("%1%:%2%, can not get %3% or %4% from new config")%__FUNCTION__ %__LINE__ % variant_name %id_name;
+            BOOST_LOG_TRIVIAL(error) << boost::format("can not get %1% or %2% from new config")% variant_name %id_name;
             count_changed = false;
             return;
         }
@@ -3332,7 +3321,7 @@ int CLI::run(int argc, char **argv)
         new_index.resize(new_variant_count, -1);
         if (curr_variant_opt && curr_id_opt) {
             if (curr_variant_opt->size() != curr_id_opt->size()) {
-                BOOST_LOG_TRIVIAL(error) << boost::format("%1%:%2%, %3%'s size %4% not equal to %5%'s size %6%")%__FUNCTION__ %__LINE__ % variant_name %curr_variant_opt->size() %id_name %curr_id_opt->size();
+                BOOST_LOG_TRIVIAL(error) << boost::format("%1%'s size %2% not equal to %3%'s size %4%")% variant_name %curr_variant_opt->size() %id_name %curr_id_opt->size();
                 count_changed = false;
                 return;
             }
@@ -3370,11 +3359,11 @@ int CLI::run(int argc, char **argv)
                     if (skip_gcodes && (gcodes_key_set.find(opt_key) != gcodes_key_set.end()))
                     {
                         diff_key_sets.erase(iter);
-                        BOOST_LOG_TRIVIAL(info) << boost::format("%1%, gcodes %2% modified, reset to default.")%__LINE__ %opt_key;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("gcodes %1% modified, reset to default.")%opt_key;
                     }
                     else {
                         //uptodate, diff keys, continue
-                        BOOST_LOG_TRIVIAL(info) << boost::format("%1%, keep key %2%")%__LINE__ %opt_key;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("keep key %1%")%opt_key;
                         if (variant_count_changed) {
                             //
                             int stride = 0;
@@ -3488,7 +3477,7 @@ int CLI::run(int argc, char **argv)
                 std::string cli_config_file = resources_dir() + "/profiles/BBL/cli_config.json";
                 boost::filesystem::path directory_path(cli_config_file);
 
-                BOOST_LOG_TRIVIAL(info) << boost::format("line %1% , will parse file %2%")%__LINE__ % cli_config_file;
+                BOOST_LOG_TRIVIAL(info) << boost::format("will parse file %1%")% cli_config_file;
                 if (!fs::exists(directory_path)) {
                     BOOST_LOG_TRIVIAL(warning) << boost::format("file %1% not exist.")%cli_config_file;
                 }
@@ -3660,10 +3649,10 @@ int CLI::run(int argc, char **argv)
                 new_nozzle_volume_type = current_nozzle_volume_type;
             new_nozzle_volume_type.resize(new_extruder_count, nvtStandard);
             if ((new_extruder_count > 1) || different_extruder) {
-                BOOST_LOG_TRIVIAL(error) << boost::format("%1%: nozzle_volume_type not found, when different_extruder or multiple extruder, new_printer_name %2%, extruder_count %3%")%__LINE__ %new_printer_name %new_extruder_count;
+                BOOST_LOG_TRIVIAL(error) << boost::format("nozzle_volume_type not found, when different_extruder or multiple extruder, new_printer_name %1%, extruder_count %2%")%new_printer_name %new_extruder_count;
             }
             else
-                BOOST_LOG_TRIVIAL(info) << boost::format("%1%: nozzle_volume_type not found, use standard by default, new_printer_name %2% extruder_count %3%")%__LINE__ %new_printer_name %new_extruder_count;
+                BOOST_LOG_TRIVIAL(info) << boost::format("nozzle_volume_type not found, use standard by default, new_printer_name %1% extruder_count %2%")%new_printer_name %new_extruder_count;
         }
     }
     new_extruder_variants.resize(new_extruder_count, "");
@@ -3721,9 +3710,8 @@ int CLI::run(int argc, char **argv)
                     record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
                     flush_and_exit(CLI_CONFIG_FILE_ERROR);
                 }
-                BOOST_LOG_TRIVIAL(info) << boost::format("%1%, machine_switch: loaded default process config %2%, from %3%")%__LINE__ %config_name %file_path ;
-                BOOST_LOG_TRIVIAL(info) << boost::format("%1%, current_is_multi_extruder: %2%, new_is_multi_extruder: %3%, current_print_variant_count: %4%, new_printer_variant_count: %5%")
-                    %__LINE__ %current_is_multi_extruder %new_is_multi_extruder %current_print_variant_count %new_printer_variant_count;
+                BOOST_LOG_TRIVIAL(info) << boost::format("machine_switch: loaded default process config %1%, from %2%")%config_name %file_path ;
+                BOOST_LOG_TRIVIAL(info) << boost::format("current_is_multi_extruder: %1%, new_is_multi_extruder: %2%, current_print_variant_count: %3%, new_printer_variant_count: %4%")%current_is_multi_extruder %new_is_multi_extruder %current_print_variant_count %new_printer_variant_count;
 
                 if (!current_is_multi_extruder && new_is_multi_extruder && (current_print_variant_count == 1)) {
                     //single -> multiple
@@ -3870,11 +3858,11 @@ int CLI::run(int argc, char **argv)
                         if (skip_modified_gcodes && (gcodes_key_set.find(opt_key) != gcodes_key_set.end()))
                         {
                             different_keys_set.erase(iter);
-                            BOOST_LOG_TRIVIAL(info) << boost::format("%1%, filament %2%'s gcodes %3% modified, reset to default.")%__LINE__ %filament_index %opt_key;
+                            BOOST_LOG_TRIVIAL(info) << boost::format("filament %1%'s gcodes %2% modified, reset to default.")%filament_index %opt_key;
                         }
                         else {
                             //uptodate, diff keys, continue
-                            BOOST_LOG_TRIVIAL(info) << boost::format("%1%, keep key %2%")%__LINE__ %opt_key;
+                            BOOST_LOG_TRIVIAL(info) << boost::format("keep key %1%")%opt_key;
                             if (filament_options_with_variant.find(opt_key) != filament_options_with_variant.end())
                             {
                                 ConfigOption *opt = m_print_config.option(opt_key);
@@ -4280,7 +4268,7 @@ int CLI::run(int argc, char **argv)
         if (m_extra_config.has("filament_map_mode")) {
             auto opt_fmm = dynamic_cast<const ConfigOptionEnum<FilamentMapMode>*>(m_extra_config.option("filament_map_mode"));
             if (!opt_fmm || opt_fmm->value != fmmAutoForFlush) {
-                BOOST_LOG_TRIVIAL(error) << boost::format("%1%: estimate_mode requires filament_map_mode to be AutoForFlush if explicitly set") % __LINE__;
+                BOOST_LOG_TRIVIAL(error) << boost::format("estimate_mode requires filament_map_mode to be AutoForFlush if explicitly set");
                 record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                 flush_and_exit(CLI_INVALID_PARAMS);
             }
@@ -4398,14 +4386,14 @@ int CLI::run(int argc, char **argv)
 
 
     ConfigOptionBool* enable_wrapping_detection_option = m_print_config.option<ConfigOptionBool>("enable_wrapping_detection", true);
-    BOOST_LOG_TRIVIAL(info) << boost::format("%1%, remove_wrapping_detect %2%, old value %3%")%__LINE__ %remove_wrapping_detect %enable_wrapping_detection_option->value;
+    BOOST_LOG_TRIVIAL(info) << boost::format("remove_wrapping_detect %1%, old value %2%")%remove_wrapping_detect %enable_wrapping_detection_option->value;
     if (is_bbl_3mf && remove_wrapping_detect) {
         enable_wrapping_detection_option->value = false;
     }
 
     if (is_bbl_3mf && skirt_per_object_reset) {
         ConfigOptionBool* skirt_per_object_option = m_print_config.option<ConfigOptionBool>("skirt_per_object", true);
-        BOOST_LOG_TRIVIAL(info) << boost::format("%1%, skirt_per_object_reset, old value %2%")%__LINE__ %skirt_per_object_option->value;
+        BOOST_LOG_TRIVIAL(info) << boost::format("skirt_per_object_reset, old value %1%")%skirt_per_object_option->value;
         skirt_per_object_option->value = false;
     }
     enable_wrapping_detect = enable_wrapping_detection_option->value;
@@ -4413,7 +4401,7 @@ int CLI::run(int argc, char **argv)
     if (disable_wipe_tower_after_mapping && enable_wrapping_detect && !current_wrapping_exclude_area.empty())
     {
         disable_wipe_tower_after_mapping = false;
-        BOOST_LOG_TRIVIAL(info) << boost::format("%1%, set disable_wipe_tower_after_mapping back to false due to wrapping detect")%__LINE__;
+        BOOST_LOG_TRIVIAL(info) << boost::format("set disable_wipe_tower_after_mapping back to false due to wrapping detect");
     }
 
     auto timelapse_type_opt = m_print_config.option("timelapse_type");
@@ -4424,12 +4412,12 @@ int CLI::run(int argc, char **argv)
         if (is_smooth_timelapse)
         {
             disable_wipe_tower_after_mapping = false;
-            BOOST_LOG_TRIVIAL(warning) << boost::format("%1%: disable_wipe_tower_after_mapping: set back to false due to smooth timelapse!")%__LINE__;
+            BOOST_LOG_TRIVIAL(warning) << boost::format("disable_wipe_tower_after_mapping: set back to false due to smooth timelapse!");
         }
         else {
             ConfigOptionBool* enable_wipe_op = m_print_config.option<ConfigOptionBool>("enable_prime_tower", true);
             enable_wipe_op->value = false;
-            BOOST_LOG_TRIVIAL(warning) << boost::format("%1%: disable_wipe_tower_after_mapping: disable prime tower for only one filament!")%__LINE__;
+            BOOST_LOG_TRIVIAL(warning) << boost::format("disable_wipe_tower_after_mapping: disable prime tower for only one filament!");
 
             std::string diff_settings = different_settings[0];
 
@@ -4513,8 +4501,7 @@ int CLI::run(int argc, char **argv)
         shared_center_y = current_bbox.center().y();
         has_shared_center = current_bbox.min.x() < current_bbox.max.x() && current_bbox.min.y() < current_bbox.max.y();
 
-        BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: shared_printable_size {%2%, %3%, %4%}, shared_center {%5%, %6%}")
-                    %__LINE__ %shared_printable_width %shared_printable_depth %shared_printable_height %shared_center_x %shared_center_y;
+        BOOST_LOG_TRIVIAL(info) << boost::format("shared_printable_size {%1%, %2%, %3%}, shared_center {%4%, %5%}")%shared_printable_width %shared_printable_depth %shared_printable_height %shared_center_x %shared_center_y;
     }
     if (is_bbl_3mf && (old_printable_width > 0) && (old_printable_depth > 0) && (old_printable_height > 0))
     {
@@ -4567,7 +4554,7 @@ int CLI::run(int argc, char **argv)
         std::vector<std::string> different_keys;
         Slic3r::unescape_strings_cstyle(different_settings[0], different_keys);
         std::set<std::string> different_key_set(different_keys.begin(), different_keys.end());
-        BOOST_LOG_TRIVIAL(info) << boost::format("%1%, process old params for support and wipe tower")%__LINE__;
+        BOOST_LOG_TRIVIAL(info) << boost::format("process old params for support and wipe tower");
 
         //wipe tower params process
         ConfigOptionBool *prime_tower_rib_wall_option = m_print_config.option<ConfigOptionBool>("prime_tower_rib_wall", true);
@@ -5130,7 +5117,7 @@ int CLI::run(int argc, char **argv)
                 BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: found compatible printer %1%")%plate_info.printer_name;
             }
         }
-        BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%, downward_check: downward_check_size %2%, failed_count %3%")%__LINE__ %downward_check_size %failed_count;
+        BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: downward_check_size %1%, failed_count %2%")%downward_check_size %failed_count;
         sliced_info.downward_machines = downward_compatible_machines;
 
         for(std::vector<std::string>::iterator it = sliced_info.upward_machines.begin(); it != sliced_info.upward_machines.end();){
@@ -5807,11 +5794,11 @@ int CLI::run(int argc, char **argv)
 
                             if (wipe_x_option && (wipe_x_option->size() > (plate_to_slice-1))) {
                                 orig_wipe_x = wipe_x_option->get_at(plate_to_slice-1);
-                                BOOST_LOG_TRIVIAL(info) << boost::format("%1%, plate_to_slice %2%, orig_wipe_x=%3%")%__LINE__%plate_to_slice%orig_wipe_x;
+                                BOOST_LOG_TRIVIAL(info) << boost::format("plate_to_slice %1%, orig_wipe_x=%2%")%plate_to_slice%orig_wipe_x;
                             }
                             if (wipe_y_option && (wipe_y_option->size() > (plate_to_slice-1))) {
                                 orig_wipe_y = wipe_y_option->get_at(plate_to_slice-1);
-                                BOOST_LOG_TRIVIAL(info) << boost::format("%1%, plate_to_slice %2%, orig_wipe_y=%3%")%__LINE__%plate_to_slice%orig_wipe_y;
+                                BOOST_LOG_TRIVIAL(info) << boost::format("plate_to_slice %1%, orig_wipe_y=%2%")%plate_to_slice%orig_wipe_y;
                             }
                         }
                     }
@@ -6860,7 +6847,7 @@ int CLI::run(int argc, char **argv)
                                     mode = m_extra_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value;
                                 else
                                     mode = part_plate->get_real_filament_map_mode(m_print_config);
-                                BOOST_LOG_TRIVIAL(info) << boost::format("%1% :filament map mode is %2% ") % __LINE__ %(int)mode;
+                                BOOST_LOG_TRIVIAL(info) << boost::format("filament map mode is %1% ")%(int)mode;
 
                                 // 显式 CLI 喷嘴参数优先级最高。
                                 if (m_extra_config.has("extruder_nozzle_count") && m_extra_config.has("extruder_nozzle_volume_type")) {
@@ -6939,7 +6926,7 @@ int CLI::run(int argc, char **argv)
                                         if (has_invalid_value && (default_value != -1))
                                             break;
                                     }
-                                    BOOST_LOG_TRIVIAL(info) << boost::format("%1% :filament map default_value %2%, has_invalid_value %3% ") % __LINE__ %default_value %has_invalid_value;
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("filament map default_value %1%, has_invalid_value %2% ")%default_value %has_invalid_value;
 
                                     if (has_invalid_value)
                                     {
@@ -7012,10 +6999,9 @@ int CLI::run(int argc, char **argv)
                                             (!m_extra_config.has("filament_volume_map") || !m_extra_config.has("filament_nozzle_map") ||
                                              !m_extra_config.has("extruder_nozzle_count") || !m_extra_config.has("extruder_nozzle_volume_type") || !m_extra_config.has("filament_map"))) {
                                             BOOST_LOG_TRIVIAL(error)
-                                                << boost::format("%1%, can not find "
+                                                << boost::format("can not find "
                                                                  "filament_volume_map/filament_nozzle_map/extruder_nozzle_count/extruder_nozzle_volume_type/filament_map under "
-                                                                 "Nozzle Manual mode") %
-                                                       __LINE__;
+                                                                 "Nozzle Manual mode");
                                             record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, index + 1, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                                             flush_and_exit(CLI_INVALID_PARAMS);
                                         }
@@ -7027,7 +7013,7 @@ int CLI::run(int argc, char **argv)
                                                 // 若存在多种流量，则设置为hybrid
                                                 if (nozzle_stats_obj.get_raw_stat()[e_index].size() > 1) {
                                                     using_nozzle_volume_type[e_index] = nvtHybrid;
-                                                    BOOST_LOG_TRIVIAL(info) << boost::format("%1% : extruder %2%, set nozzle_volume_type to hybrid ") % __LINE__ % (e_index + 1);
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("extruder %1%, set nozzle_volume_type to hybrid ")% (e_index + 1);
                                                 }
                                             }
                                             std::vector<int> &filament_volume_maps = m_extra_config.option<ConfigOptionInts>("filament_volume_map", true)->values;
@@ -7038,7 +7024,7 @@ int CLI::run(int argc, char **argv)
                                                 int f_extruder_index = filament_maps[f_index] - 1;
                                                 if (using_nozzle_volume_type[f_extruder_index] != nvtHybrid) {
                                                     filament_volume_maps[f_index] = int(using_nozzle_volume_type[f_extruder_index]);
-                                                    BOOST_LOG_TRIVIAL(info) << boost::format("%1% : filament %2% extruder %3%, set filament_volume_map to %4% ") % __LINE__ %(f_index + 1) % (f_extruder_index + 1) % filament_volume_maps[f_index];
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("filament %1% extruder %2%, set filament_volume_map to %3% ")%(f_index + 1) % (f_extruder_index + 1) % filament_volume_maps[f_index];
                                                 }
                                             }
                                         }
@@ -7054,7 +7040,7 @@ int CLI::run(int argc, char **argv)
                                     }
                                     else if (!support_multi_nozzle && (mode == fmmNozzleManual)) {
                                         BOOST_LOG_TRIVIAL(error)
-                                            << boost::format("%1%, Nozzle Manual mode not supported for %2%") % __LINE__ %new_printer_name;
+                                            << boost::format("Nozzle Manual mode not supported for %1%")%new_printer_name;
                                         record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, index + 1, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                                         flush_and_exit(CLI_INVALID_PARAMS);
                                     }
@@ -7337,7 +7323,7 @@ int CLI::run(int argc, char **argv)
                                     sliced_info.load_slicedata_time +=
                                         (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - load_slicedata_begin_time);
                                     if (ret) {
-                                        BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": load Slicing data error, ret=" << ret;
+                                        BOOST_LOG_TRIVIAL(warning) << "plate " << index+1 << ": load Slicing data error " << KV(log_key::ret, ret);
                                         BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": switch normal slicing";
                                         print->process(&slice_time);
                                     }
@@ -7517,7 +7503,7 @@ int CLI::run(int argc, char **argv)
                                     sliced_info.export_slicedata_time +=
                                         (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - export_slicedata_begin_time);
                                     if (ret) {
-                                        BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": export Slicing data error, ret=" << ret;
+                                        BOOST_LOG_TRIVIAL(error) << "plate " << index+1 << ": export Slicing data error " << KV(log_key::ret, ret);
                                         export_slicedata_error = true;
                                         if (fs::exists(plate_dir))
                                             fs::remove_all(plate_dir);
@@ -8018,7 +8004,7 @@ int CLI::run(int argc, char **argv)
                             PlateData *plate_data = plate_data_list[i];
                             if (plate_data->plate_thumbnail.is_valid()) {
                                 if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
-                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, reset plate %2%'s thumbnail.")%__LINE__%(i+1);
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("regenerate thumbnail, reset plate %1%'s thumbnail.")%(i+1);
                                     plate_data->plate_thumbnail.reset();
                                 }
                                 else {
@@ -8028,7 +8014,7 @@ int CLI::run(int argc, char **argv)
                             else if (!plate_data->thumbnail_file.empty() && (boost::filesystem::exists(plate_data->thumbnail_file)))
                             {
                                 if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
-                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, clear plate %2%'s thumbnail file path to empty.")%__LINE__%(i+1);
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("regenerate thumbnail, clear plate %1%'s thumbnail file path to empty.")%(i+1);
                                     plate_data->thumbnail_file.clear();
                                 }
                                 else {
@@ -8047,7 +8033,7 @@ int CLI::run(int argc, char **argv)
                                 ThumbnailData* thumbnail_data = &plate_data->plate_thumbnail;
 
                                 if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
-                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, Skip plate %2%.")%__LINE__%(i+1);
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("regenerate thumbnail, Skip plate %1%.")%(i+1);
                                 }
                                 else {
                                     unsigned int thumbnail_width = 512, thumbnail_height = 512;
@@ -8070,7 +8056,7 @@ int CLI::run(int argc, char **argv)
                             if (!plate_data->no_light_thumbnail_file.empty() && (boost::filesystem::exists(plate_data->no_light_thumbnail_file)))
                             {
                                 if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
-                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, clear plate %2%'s no_light_thumbnail_file path to empty.")%__LINE__%(i+1);
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("regenerate thumbnail, clear plate %1%'s no_light_thumbnail_file path to empty.")%(i+1);
                                     plate_data->no_light_thumbnail_file.clear();
                                 }
                                 else
@@ -8079,7 +8065,7 @@ int CLI::run(int argc, char **argv)
                             else{
                                 ThumbnailData *no_light_thumbnail = &part_plate->no_light_thumbnail_data;
                                 if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
-                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, Skip plate %2%.")%__LINE__%(i+1);
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("regenerate thumbnail, Skip plate %1%.")%(i+1);
                                     part_plate->no_light_thumbnail_data.reset();
                                     plate_data->no_light_thumbnail_file.clear();
                                 }
@@ -8123,7 +8109,7 @@ int CLI::run(int argc, char **argv)
                                 &&(!plate_data->pick_file.empty() && (boost::filesystem::exists(plate_data->pick_file))))
                             {
                                 if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
-                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, clear plate %2%'s top/pick thumbnail file path to empty.")%__LINE__%(i+1);
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("regenerate thumbnail, clear plate %1%'s top/pick thumbnail file path to empty.")%(i+1);
                                     plate_data->top_file.clear();
                                     plate_data->pick_file.clear();
                                 }
@@ -8134,7 +8120,7 @@ int CLI::run(int argc, char **argv)
                                 ThumbnailData* top_thumbnail = &part_plate->top_thumbnail_data;
                                 ThumbnailData* picking_thumbnail = &part_plate->pick_thumbnail_data;
                                 if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
-                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, Skip plate %2%.")%__LINE__%(i+1);
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("regenerate thumbnail, Skip plate %1%.")%(i+1);
                                     part_plate->top_thumbnail_data.reset();
                                     part_plate->pick_thumbnail_data.reset();
                                     plate_data->top_file.clear();
@@ -8186,7 +8172,7 @@ int CLI::run(int argc, char **argv)
                 }
         }
         else {
-            BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: use previous thumbnails, no need to regenerate")%__LINE__;
+            BOOST_LOG_TRIVIAL(info) << boost::format("use previous thumbnails, no need to regenerate");
             for (int i = 0; i < partplate_list.get_plate_count(); i++) {
                 PlateData *plate_data = plate_data_list[i];
                 bool skip_this_plate = ((plate_to_slice != 0) && (plate_to_slice != (i + 1)))?true:false;
@@ -8244,7 +8230,7 @@ int CLI::run(int argc, char **argv)
         //generate first layer bboxes
         for (int i = 0; i < partplate_list.get_plate_count(); i++) {
             if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
-                BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: generate bbox, Skip plate %2%.")%__LINE__%(i+1);
+                BOOST_LOG_TRIVIAL(info) << boost::format("generate bbox, Skip plate %1%.")%(i+1);
                 plate_bboxes.push_back(new PlateBBoxData());
                 continue;
             }
@@ -8470,7 +8456,7 @@ int CLI::run(int argc, char **argv)
                 ThumbnailData* thumbnail_data = &plate_data->plate_thumbnail;
 
                 if ((export_png != 0) && (export_png != (i + 1))) {
-                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: export png, Skip plate %2%.") % __LINE__ % (i + 1);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("export png, Skip plate %1%.")% (i + 1);
                 }
                 else {
                     unsigned int thumbnail_width = 512, thumbnail_height = 512;

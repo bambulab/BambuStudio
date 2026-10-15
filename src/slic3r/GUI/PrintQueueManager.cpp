@@ -4,6 +4,7 @@
 #include "slic3r/Utils/NetworkAgent.hpp"
 
 #include <nlohmann/json.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -159,6 +160,7 @@ int PrintQueueManager::delete_all_projects(const std::string& device_id, std::st
                 return result;
         }
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         response_body = list_body;
         return BAMBU_NETWORK_ERR_INVALID_RESULT;
     }

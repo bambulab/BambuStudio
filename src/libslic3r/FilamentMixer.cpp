@@ -194,6 +194,7 @@ inline double parse_tangent_token(const std::string& tok)
         if (!std::isfinite(v)) return std::numeric_limits<double>::quiet_NaN();
         return v;
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return std::numeric_limits<double>::quiet_NaN();
     }
 }
@@ -274,7 +275,7 @@ GradientCurve parse_gradient_curve(const std::string& s)
         // 2-field legacy form -> (x, y), tangents stay NaN.
         // 4-field form -> (x, y, m_in, m_out), empty / "nan" tokens preserved as NaN.
         if (fields.size() != 2 && fields.size() != 4) {
-            BOOST_LOG_TRIVIAL(warning) << "parse_gradient_curve: ignoring malformed segment \""
+            BOOST_LOG_TRIVIAL(warning) << "ignoring malformed segment \""
                                        << segment << "\" (expected 2 or 4 comma-separated fields, got "
                                        << fields.size() << ")";
             continue;
@@ -293,14 +294,14 @@ GradientCurve parse_gradient_curve(const std::string& s)
             }
             curve.points.push_back(a);
         } catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(warning) << "parse_gradient_curve: ignoring unparseable segment \""
+            BOOST_LOG_TRIVIAL(warning) << "ignoring unparseable segment \""
                                        << segment << "\": " << e.what();
         }
     }
 
     if (curve.points.size() < 2) {
         if (!curve.points.empty())
-            BOOST_LOG_TRIVIAL(warning) << "parse_gradient_curve: only "
+            BOOST_LOG_TRIVIAL(warning) << "only "
                 << curve.points.size() << " valid point(s), need at least 2; discarding";
         curve.points.clear();
         return curve;
@@ -587,7 +588,7 @@ void sanitize_mixed_gradient_curve_array(std::vector<std::string>& vals)
         // parse_gradient_curve returns empty for both "empty input" and "<2 valid points";
         // we already skipped empty, so an empty result means a corrupted single-point slot.
         if (parse_gradient_curve(vals[i]).empty()) {
-            BOOST_LOG_TRIVIAL(warning) << "sanitize_mixed_gradient_curve_array: slot "
+            BOOST_LOG_TRIVIAL(warning) << "slot "
                 << i << " curve \"" << vals[i]
                 << "\" has fewer than 2 valid points; clearing to linear";
             vals[i].clear();

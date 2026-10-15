@@ -118,7 +118,7 @@ static std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* 
 
                     filament_ams_list.emplace(extruder + tray_id, build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
                 } catch(...) {
-                    BOOST_LOG_TRIVIAL(error) << "invalid ams_id:"<< ams.first << " or slot_id:" << tray.first;
+                    BOOST_LOG_TRIVIAL(error) << "invalid " << KV(log_key::ams_id, ams.first) << "or " << KV(log_key::slot_id, tray.first);
                 }
             }
         }
@@ -584,18 +584,21 @@ void CaliPresetTipsPanel::get_params(int& nozzle_temp, int& bed_temp, float& max
         nozzle_temp = stoi(m_nozzle_temp->GetTextCtrl()->GetValue().ToStdString());
     }
     catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         nozzle_temp = 0;
     }
     try {
         bed_temp = stoi(m_bed_temp->GetLabel().ToStdString());
     }
     catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         bed_temp = 0;
     }
     try {
         max_volumetric = stof(m_max_volumetric_speed->GetTextCtrl()->GetValue().ToStdString());
     }
     catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         max_volumetric = 0.0f;
     }
 }
@@ -699,23 +702,16 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
             msg_dlg.ShowModal();
             return;
         }
-        BOOST_LOG_TRIVIAL(info) << "CalibrationPresetPage: sync_nozzle_info - machine object status:"
-                                << " dev_id = " << BBLCrossTalk::Crosstalk_DevId(curr_obj->get_dev_id())
-                                << ", print_type = " << curr_obj->printer_type
-                                << ", printer_status = " << curr_obj->print_status
-                                << ", cali_finished = " << curr_obj->GetCalib()->GetStashCalibFinished()
-                                << ", cali_version = " << curr_obj->GetCalib()->GetCalibVersion()
-                                << ", cache_flow_ratio = " << curr_obj->GetCalib()->GetStashFlowRatio()
-                                << ", sub_task_name = " << curr_obj->subtask_name
-                                << ", gcode_file_name = " << curr_obj->m_gcode_file;
+        BOOST_LOG_TRIVIAL(info) << "CalibrationPresetPage: sync_nozzle_info - machine object status: " << KV(log_key::dev_id, curr_obj->get_dev_id())
+                                << "print_type = " << curr_obj->printer_type << ", printer_status = " << curr_obj->print_status
+                                << ", cali_finished = " << curr_obj->GetCalib()->GetStashCalibFinished() << ", cali_version = "
+                                << curr_obj->GetCalib()->GetCalibVersion() << ", cache_flow_ratio = " << curr_obj->GetCalib()->GetStashFlowRatio()
+                                << ", sub_task_name = " << curr_obj->subtask_name << ", gcode_file_name = " << curr_obj->m_gcode_file;
 
         for (const CaliPresetInfo &preset_info : curr_obj->GetCalib()->GetSelectedCalibPreset()) {
-            BOOST_LOG_TRIVIAL(info) << "CalibrationPresetPage: sync_nozzle_info - selected preset: "
-                                    << "tray_id = " << preset_info.tray_id
-                                    << ", nozzle_diameter = " << preset_info.nozzle_diameter
-                                    << ", filament_id = " << preset_info.filament_id
-                                    << ", settring_id = " << preset_info.setting_id
-                                    << ", name = " << preset_info.name;
+            BOOST_LOG_TRIVIAL(info) << "CalibrationPresetPage: sync_nozzle_info - selected preset: " << KV(log_key::tray_id, preset_info.tray_id)
+                                    << "nozzle_diameter = " << preset_info.nozzle_diameter << " " << KV(log_key::filament_id, preset_info.filament_id)
+                                    << "settring_id = " << preset_info.setting_id << ", name = " << preset_info.name;
         }
 
         for (const auto& extruder : curr_obj->GetExtderSystem()->GetExtruders()) {
@@ -2608,7 +2604,8 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
                     m_filament_ams_list[tray_id] = it->second;
                 }
             } catch(...) {
-                BOOST_LOG_TRIVIAL(error) << "invalid ams_id:"<< ams_item.second->GetAmsId() << " or slot_id:" << tray_item.second->id;
+                BOOST_LOG_TRIVIAL(error) << "invalid " << KV(log_key::ams_id, ams_item.second->GetAmsId()) << "or "
+                                         << KV(log_key::slot_id, tray_item.second->id);
             }
         }
     }
@@ -3161,7 +3158,7 @@ void CalibrationPresetPage::update_slots_panel(FilamentComboBoxList& fila_combox
     try {
         int_ams_id = std::stoi(ams_id);
     } catch(...) {
-        BOOST_LOG_TRIVIAL(error) << "invalid ams_id:"<< ams_id;
+        BOOST_LOG_TRIVIAL(error) << "invalid " << KV(log_key::ams_id, ams_id);
         return;
     }
 
@@ -3387,7 +3384,7 @@ Preset* CalibrationPresetPage::get_printer_preset(MachineObject* obj, float nozz
     }
 
     if (!printer_preset) {
-        BOOST_LOG_TRIVIAL(warning) << "get_printer_preset: no matching system printer preset, printer_type="
+        BOOST_LOG_TRIVIAL(warning) << "no matching system printer preset, printer_type="
                                    << obj->printer_type << " nozzle_value=" << nozzle_value;
     }
 
@@ -3418,7 +3415,7 @@ Preset* CalibrationPresetPage::get_print_preset(float nozzle_value)
     }
 
     if (!print_preset) {
-        BOOST_LOG_TRIVIAL(warning) << "get_print_preset: null, printer_preset=" << (printer_preset ? "found" : "null")
+        BOOST_LOG_TRIVIAL(warning) << "null, printer_preset=" << (printer_preset ? "found" : "null")
                                    << " default_print_profile=\"" << default_print_profile_name << "\"";
     }
 

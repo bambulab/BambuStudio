@@ -1549,7 +1549,7 @@ void Selection::flattening_rotate(const Vec3d& normal)
     std::stringstream ss;
     ss << std::fixed << std::setprecision(4) << ": " << (-normal).transpose();
     wxGetApp().plater()->show_status_message("place on face -normal: "+ss.str());
-    BOOST_LOG_TRIVIAL(debug) <<"flattening_rotate at "<<__FILE__<<":"<<__LINE__ << std::fixed << std::setprecision(4) << ": " << normal.transpose();
+    BOOST_LOG_TRIVIAL(debug) <<"at "<<__FILE__<<":"<<__LINE__ << std::fixed << std::setprecision(4) << ": " << normal.transpose();
     flush_logs();
 
     for (unsigned int i : m_list) {

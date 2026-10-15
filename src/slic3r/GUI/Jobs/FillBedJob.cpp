@@ -234,7 +234,7 @@ void FillBedJob::process()
     params.do_final_align = false;
 
     if (m_bedpts.empty()) {
-        BOOST_LOG_TRIVIAL(warning) << "FillBedJob::process: empty m_bedpts, abort";
+        BOOST_LOG_TRIVIAL(warning) << "empty m_bedpts, abort";
         update_status(m_status_range, _L("Bed filling aborted: invalid bed shape."));
         return;
     }

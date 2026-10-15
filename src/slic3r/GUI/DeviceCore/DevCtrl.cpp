@@ -4,6 +4,7 @@
 // TODO: remove this include
 #include "DevUtil.h"
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 
@@ -50,6 +51,7 @@ bool DevCtrlInfo::CheckCanUpdateData(const nlohmann::json& jj)
             }
         }
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         ;
     }
 

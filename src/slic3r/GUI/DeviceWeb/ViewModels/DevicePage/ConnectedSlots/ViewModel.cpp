@@ -58,7 +58,7 @@ nlohmann::json ConnectedSlotsVM::OnCommand(const std::string& submod,
             return ConnectedSlotsActions::HandleTrayAction(*this, m_obj, action, payload);
         }
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "ConnectedSlotsVM::OnCommand exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
         return MakeResponse(GetModule(), submod, action, 2, e.what(), BuildState());
     }
 

@@ -621,7 +621,7 @@ std::string AppConfig::load()
         auto path = AppConfig::loading_path();
         ifs.open(path);
         if (!ifs.is_open()) {
-            BOOST_LOG_TRIVIAL(info) << "AppConfig::load() open fail:" << PathSanitizer::sanitize(path);
+            BOOST_LOG_TRIVIAL(info) << "open fail:" << PathSanitizer::sanitize(path);
             return "Line break format may be incorrect.";
         }
 #ifdef WIN32
@@ -629,7 +629,7 @@ std::string AppConfig::load()
         input_stream << ifs.rdbuf();
         std::string total_string = input_stream.str();
         if (total_string.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "AppConfig::load() read fail:" << PathSanitizer::sanitize(path);
+            BOOST_LOG_TRIVIAL(info) << "read fail:" << PathSanitizer::sanitize(path);
             return "read fail.";
         } else {
             size_t      last_pos    = total_string.find_last_of('}');

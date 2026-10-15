@@ -258,6 +258,7 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString                    
             return std::distance(values.begin(), it);
 
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             return 0;
         }
     };
@@ -1256,7 +1257,9 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
                 j["auto_flushing"] = value;
                 agent->track_event("preferences_changed", j.dump());
             }
-        } catch(...) {}
+        } catch(...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
 
         // Check if time format changed
         std::string current_use_12h_time_format = wxGetApp().app_config->get("use_12h_time_format");

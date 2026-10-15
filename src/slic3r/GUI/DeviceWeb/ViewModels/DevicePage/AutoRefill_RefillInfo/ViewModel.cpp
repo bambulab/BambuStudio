@@ -115,7 +115,7 @@ nlohmann::json AutoRefillRefillInfoVM::OnCommand(const std::string& submod,
             return AutoRefillAddRefillFilamentsActions::Handle(*this, m_obj, action, payload);
         }
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "AutoRefillRefillInfoVM::OnCommand exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
         return MakeResponse(GetModule(), submod, action, 2, e.what(),
                             AutoRefillRefillInfoBuilder::Build(m_obj, m_session_seq));
     }

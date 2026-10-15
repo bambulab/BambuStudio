@@ -1370,7 +1370,7 @@ bool AssemblyStepsTreeData::from_json_string(
             if (root_idx >= 0 && root_idx < (int) parsed.nodes.size())
                 total_children += parsed.nodes[root_idx].children.size();
         }
-        BOOST_LOG_TRIVIAL(info) << "AssemblyStepsTreeData::from_json_string loaded nodes="
+        BOOST_LOG_TRIVIAL(info) << "loaded nodes="
                                 << parsed.nodes.size() << " roots=" << parsed.roots.size()
                                 << " total_root_children=" << total_children;
 

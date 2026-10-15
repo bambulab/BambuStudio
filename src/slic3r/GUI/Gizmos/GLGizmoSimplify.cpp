@@ -18,6 +18,7 @@
 #include <atomic>
 #include <chrono>
 #include <string>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r::GUI {
 
@@ -557,6 +558,7 @@ void GLGizmoSimplify::process()
         try {
             its_quadric_edge_collapse(*its, triangle_count, &max_error, throw_on_cancel, statusfn);
         } catch (SimplifyCanceledException &) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             std::lock_guard lk(m_state_mutex);
             m_state.status = State::idle;
         }
@@ -632,6 +634,7 @@ void GLGizmoSimplify::apply_simplify() {
             try {
                 ok = mv->reproject_paint_keep(new_mesh, prepared, progress_cb, cancel_cb);
             } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 ok = false;
             }
             worker_done.store(true, std::memory_order_release);

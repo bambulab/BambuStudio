@@ -62,12 +62,12 @@ std::string BBLCrossTalk::Encode_DevIp(const std::string& str, const std::string
     for (char* p = obfuscated.data(); p < obfuscated.data() + obfuscated.size(); ++p) {
         unsigned char v = static_cast<unsigned char>(*p);
         if (v >> 4 > 16) {
-            BOOST_LOG_TRIVIAL(error) << "Encode_DevIp error: invalid byte value.";
+            BOOST_LOG_TRIVIAL(error) << "error: invalid byte value.";
             return "";
         }
 
         if ((v & 0x0F) > 16) {
-            BOOST_LOG_TRIVIAL(error) << "Encode_DevIp error: invalid byte value.";
+            BOOST_LOG_TRIVIAL(error) << "error: invalid byte value.";
             return "";
         }
 

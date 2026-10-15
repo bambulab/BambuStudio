@@ -6520,7 +6520,7 @@ void GCode::mass_load_limited_machine_acceleration(
             y_acceleration_limit_res = std::min(curr_acceleration_temp, curr_acceleration_y_config);
         } else {
             y_acceleration_limit_res = curr_acceleration_y_config;
-            BOOST_LOG_TRIVIAL(info) << "mass_load_limited_machine_acceleration: Printed mass not detected";
+            BOOST_LOG_TRIVIAL(info) << "Printed mass not detected";
         }
     }else{
         y_acceleration_limit_res = curr_acceleration_y_config;
@@ -7559,7 +7559,7 @@ double GCode::calc_max_volumetric_speed(const double layer_height, const double 
         try {
             cs.push_back(std::stod(token));
         } catch (...) {
-            std::cerr << "Transformation failed: " << token << std::endl;
+            BOOST_LOG_TRIVIAL(warning) << "Transformation failed: " << token;
         }
     }
     if (cs.size() != 6 || std::all_of(cs.begin(), cs.end(), [](double v) { return v == 0; })) return std::numeric_limits<double>::max();

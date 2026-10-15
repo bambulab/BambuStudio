@@ -7105,7 +7105,7 @@ bool Tab::select_preset(
                 m_presets->set_sync_info_and_save(current_preset.name, current_preset.setting_id, "delete", 0);
                 wxGetApp().delete_preset_from_cloud(current_preset.setting_id);
             }
-            BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
+            BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << " " << KV(log_key::setting_id, current_preset.setting_id);
             BOOST_LOG_TRIVIAL(info) << boost::format("will delete current preset...");
             m_presets->delete_current_preset();
         } catch (const std::exception & ex) {
@@ -7219,7 +7219,7 @@ bool Tab::select_preset(
                     if (!preset.setting_id.empty()) {
                         wxGetApp().delete_preset_from_cloud(preset.setting_id);
                     }
-                    BOOST_LOG_TRIVIAL(info) << "delete filament preset = " << preset.name << ", setting_id = " << preset.setting_id;
+                    BOOST_LOG_TRIVIAL(info) << "delete filament preset = " << preset.name << " " << KV(log_key::setting_id, preset.setting_id);
                     preset_bundle->filaments.delete_preset(preset.name);
                 }
 
@@ -7227,7 +7227,7 @@ bool Tab::select_preset(
                     if (!preset.setting_id.empty()) {
                         wxGetApp().delete_preset_from_cloud(preset.setting_id);
                     }
-                    BOOST_LOG_TRIVIAL(info) << "delete print preset = " << preset.name << ", setting_id = " << preset.setting_id;
+                    BOOST_LOG_TRIVIAL(info) << "delete print preset = " << preset.name << " " << KV(log_key::setting_id, preset.setting_id);
                     preset_bundle->prints.delete_preset(preset.name);
                 }
 
@@ -7631,6 +7631,7 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
 
         m_page_view->Thaw();
     } catch (const UIBuildCanceled&) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 	    if (m_active_page)
 		    m_active_page->clear();
         m_page_view->Thaw();

@@ -2789,7 +2789,7 @@ bool PartPlate::generate_plate_name_texture()
 	auto *   font = &Label::Head_32;
 	wxColour NumberForeground(PlateTextureForeground[0], PlateTextureForeground[1], PlateTextureForeground[2], PlateTextureForeground[3]);
 	if (!m_name_texture.generate_from_text_string(limitTextWidth.ToUTF8().data(), *font, *wxBLACK, NumberForeground)) {
-		BOOST_LOG_TRIVIAL(error) << "PartPlate::generate_plate_name_texture(): generate_from_text_string() failed";
+		BOOST_LOG_TRIVIAL(error) << "generate_from_text_string() failed";
 		return false;
 	}
     calc_vertex_for_plate_name(m_name_texture, m_plate_name_icon);
@@ -4704,7 +4704,7 @@ void PartPlateList::calc_triangles_from_polygon(const ExPolygon &poly, GLModel &
     auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
     render_model.reset();
     if (!render_model.init_model_from_poly(triangles, GROUND_Z)) {
-        BOOST_LOG_TRIVIAL(error) << "calc_triangles_from_polygon fail";
+        BOOST_LOG_TRIVIAL(error) << "fail";
     }
 }
 
@@ -8242,7 +8242,7 @@ void PartPlateList::on_extruder_count_changed(int extruder_count)
     for (unsigned int i = 0; i < (unsigned int) m_plate_list.size(); ++i) {
         m_plate_list[i]->on_extruder_count_changed(extruder_count);
     }
-    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: extruder_count=%2%")% __FUNCTION__ %extruder_count;
+    BOOST_LOG_TRIVIAL(info) << boost::format("extruder_count=%1%")%extruder_count;
 }
 
 void PartPlateList::set_filament_count(int filament_count)
@@ -8252,7 +8252,7 @@ void PartPlateList::set_filament_count(int filament_count)
     {
         m_plate_list[i]->set_filament_count(filament_count);
     }
-    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: filament_count=%2%")% __FUNCTION__ %filament_count;
+    BOOST_LOG_TRIVIAL(info) << boost::format("filament_count=%1%")%filament_count;
 }
 
 void PartPlateList::on_filament_added(int filament_count)
@@ -8262,7 +8262,7 @@ void PartPlateList::on_filament_added(int filament_count)
     {
         m_plate_list[i]->on_filament_added();
     }
-    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: filament_count=%2%")% __FUNCTION__ %filament_count;
+    BOOST_LOG_TRIVIAL(info) << boost::format("filament_count=%1%")%filament_count;
 }
 
 void PartPlateList::on_filament_deleted(int filament_count, int filament_id)
@@ -8272,7 +8272,7 @@ void PartPlateList::on_filament_deleted(int filament_count, int filament_id)
     {
         m_plate_list[i]->on_filament_deleted(filament_count, filament_id);
     }
-    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: filament_count=%2%, filament_id=%3%")% __FUNCTION__ %filament_count %filament_id;
+    BOOST_LOG_TRIVIAL(info) << "filament_count=" << filament_count << " " << KV(log_key::filament_id, filament_id);
 }
 
 }//end namespace GUI

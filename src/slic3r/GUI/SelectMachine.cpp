@@ -1349,7 +1349,8 @@ void SelectMachineDialog::sync_ams_mapping_result(const std::vector<FilamentInfo
     };
 
     for (auto f = result.begin(); f != result.end(); f++) {
-        BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << ", tray_id = " << f->tray_id << ", color = " << f->color << ", type = " << f->type;
+        BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << " " << KV(log_key::tray_id, f->tray_id) << "color = " << f->color << ", type = "
+                                 << f->type;
 
         MaterialHash::iterator iter = m_materialList.begin();
         while (iter != m_materialList.end()) {
@@ -1644,16 +1645,16 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
                 if (curr_plate) {
                     filament_maps = curr_plate->get_filament_maps();
                 } else {
-                    BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result, curr_plate is nullptr";
+                    BOOST_LOG_TRIVIAL(error) << "curr_plate is nullptr";
                 }
             } else {
-                BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result, plater is nullptr";
+                BOOST_LOG_TRIVIAL(error) << "plater is nullptr";
             }
 
             const int preset_count = (int) wxGetApp().preset_bundle->filament_presets.size();
             for (const FilamentInfo &item : m_ams_mapping_result) {
                 if (item.id < 0 || item.id >= preset_count) {
-                    BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result: mapping entry id=" << item.id
+                    BOOST_LOG_TRIVIAL(error) << "mapping entry id=" << item.id
                                              << " is outside the project filament range [0," << preset_count
                                              << "), that slot will ship as tray -1 with ams/slot 255/255";
                 }
@@ -1747,7 +1748,7 @@ bool SelectMachineDialog::build_nozzles_info(std::string& nozzles_info)
         for (const auto& nozzle : m_queue_print_context->plate_data->nozzles_info) {
             const double diameter = string_to_double_decimal_point(nozzle.diameter);
             if (diameter <= 0.0) {
-                BOOST_LOG_TRIVIAL(error) << "build_nozzles_info, invalid queue nozzle diameter";
+                BOOST_LOG_TRIVIAL(error) << "invalid queue nozzle diameter";
                 return false;
             }
             json nozzle_item;
@@ -1770,14 +1771,14 @@ bool SelectMachineDialog::build_nozzles_info(std::string& nozzles_info)
         ? queue_config->option<ConfigOptionFloatsNullable>("nozzle_diameter")
         : preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
     if (opt_nozzle_diameters == nullptr) {
-        BOOST_LOG_TRIVIAL(error) << "build_nozzles_info, opt_nozzle_diameters is nullptr";
+        BOOST_LOG_TRIVIAL(error) << "opt_nozzle_diameters is nullptr";
         return false;
     }
     auto opt_nozzle_volume_type = queue_config
         ? queue_config->option<ConfigOptionEnumsGeneric>("nozzle_volume_type")
         : preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     if (opt_nozzle_volume_type == nullptr) {
-        BOOST_LOG_TRIVIAL(error) << "build_nozzles_info, opt_nozzle_volume_type is nullptr";
+        BOOST_LOG_TRIVIAL(error) << "opt_nozzle_volume_type is nullptr";
         return false;
     }
     json nozzle_item;
@@ -1794,7 +1795,7 @@ bool SelectMachineDialog::build_nozzles_info(std::string& nozzles_info)
         }
         else {
             /* unknown ConfigNozzleIdx */
-            BOOST_LOG_TRIVIAL(error) << "build_nozzles_info, unknown ConfigNozzleIdx = " << i;
+            BOOST_LOG_TRIVIAL(error) << "unknown ConfigNozzleIdx = " << i;
             assert(false);
             continue;
         }
@@ -2200,6 +2201,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         }
         catch (...)
         {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             Enable_Refresh_Button(true);
             Enable_Send_Button(false);
         }
@@ -2378,7 +2380,9 @@ static std::unordered_set<int> _get_used_nozzle_idxes()
                     int used_nozzle_idx = cur_plate->get_physical_extruder_by_filament_id(preset_bundle->full_config(), used_filament_idx);
                     used_nozzle_idxes.insert(used_nozzle_idx);
                 }
-            } catch (const std::exception &) {}
+            } catch (const std::exception &) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
         }
     }
 
@@ -2437,7 +2441,7 @@ void SelectMachineDialog::show_errors(wxString &info)
 
 void SelectMachineDialog::on_reselect_dialog_btn_clicked(wxMouseEvent&)
 {
-    BOOST_LOG_TRIVIAL(info) << "on_reselect_dialog_btn_clicked";
+    BOOST_LOG_TRIVIAL(info);
     if (m_best_pos_dialog == nullptr)
     {
         m_best_pos_dialog = new ReselectMachineDialog(static_cast<wxWindow*>(this));
@@ -2474,7 +2478,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
     if (event.GetEventObject() == m_button_ensure)
         m_add_to_queue = false;
-    BOOST_LOG_TRIVIAL(info) << "on_ok_btn";
+    BOOST_LOG_TRIVIAL(info);
 
     bool has_slice_warnings = false;
     bool is_printing_block  = false;
@@ -3531,7 +3535,7 @@ void SelectMachineDialog::on_send_print()
         return;
     }
 
-    BOOST_LOG_TRIVIAL(info) << "print_job: for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "print_job: for send task, current " << KV(log_key::dev_id, m_printer_last_select) << std::endl;
     show_status(PrintDialogStatus::PrintStatusSending);
 
     m_status_bar->reset();
@@ -3642,7 +3646,9 @@ void SelectMachineDialog::on_send_print()
             m_print_job->m_print_from_sdc_plate_idx = m_required_data_plate_data_list[m_print_plate_idx]->plate_index + 1;
             m_print_job->set_dst_name(m_required_data_file_path);
         }
-        catch (...) {}
+        catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
         BOOST_LOG_TRIVIAL(info) << "print_job: m_print_plate_idx =" << m_print_job->m_print_from_sdc_plate_idx;
 
         auto input_str_arr = wxGetApp().split_str(m_required_data_file_name, ".gcode.3mf");
@@ -4188,9 +4194,7 @@ void SelectMachineDialog::update_user_printer()
         int prefer_idx = 0;
         if (m_print_type != FROM_PRINT_QUEUE && m_printer_last_select.empty()) {
             prefer_idx = find_preset_matched_index();
-            BOOST_LOG_TRIVIAL(info)
-                << "pick printer by source model, dev_id = "
-                << BBLCrossTalk::Crosstalk_DevId(m_list[prefer_idx]->get_dev_id());
+            BOOST_LOG_TRIVIAL(info) << "pick printer by source model " << KV(log_key::dev_id, m_list[prefer_idx]->get_dev_id());
         }
 
         m_printer_last_select = m_list[prefer_idx]->get_dev_id();
@@ -4206,7 +4210,7 @@ void SelectMachineDialog::update_user_printer()
         m_printer_box->GetPrinterComboBox()->SetTextLabel("");
     }
 
-    BOOST_LOG_TRIVIAL(info) << "for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "for send task, current " << KV(log_key::dev_id, m_printer_last_select) << std::endl;
     update_by_obj(get_current_machine());
 }
 
@@ -4394,7 +4398,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
             m_printer_last_select = m_list[i]->get_dev_id();
             obj = m_list[i];
 
-            BOOST_LOG_TRIVIAL(info) << "for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
+            BOOST_LOG_TRIVIAL(info) << "for send task, current " << KV(log_key::dev_id, m_printer_last_select) << std::endl;
             break;
         }
     }
@@ -4414,7 +4418,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
         // Has changed machine unrecoverably
         m_check_flag = false;
     } else {
-        BOOST_LOG_TRIVIAL(error) << "on_selection_changed dev_id not found";
+        BOOST_LOG_TRIVIAL(error) << "dev_id not found";
         return;
     }
 
@@ -5264,7 +5268,7 @@ std::vector<pPresetFilaInfo> sCollectPresetFilamentInfo()
 
     assert(preset_bundle->filament_presets.size() == preset_filament_vec.size());
     if (preset_bundle->filament_presets.size() != preset_filament_vec.size()) {
-        BOOST_LOG_TRIVIAL(error) << "sCollectPresetFilamentInfo size mismatch!";
+        BOOST_LOG_TRIVIAL(error) << "size mismatch!";
     }
     return preset_filament_vec;
 }
@@ -5748,7 +5752,7 @@ void SelectMachineDialog::unify_deal_thumbnail_data(ThumbnailData &input_data, T
 void SelectMachineDialog::change_default_normal(int old_filament_id, wxColour temp_ams_color)
 {
     if (m_cur_colors_in_thumbnail.size() == 0) {
-        BOOST_LOG_TRIVIAL(error) << "SelectMachineDialog::change_default_normal:error:m_cur_colors_in_thumbnail.size() == 0";
+        BOOST_LOG_TRIVIAL(error) << "error:m_cur_colors_in_thumbnail.size() == 0";
         return;
     }
     if (old_filament_id >= 0) {
@@ -5756,7 +5760,7 @@ void SelectMachineDialog::change_default_normal(int old_filament_id, wxColour te
             m_cur_colors_in_thumbnail[old_filament_id] = temp_ams_color;
         }
         else {
-            BOOST_LOG_TRIVIAL(error) << "SelectMachineDialog::change_default_normal:error:old_filament_id > m_cur_colors_in_thumbnail.size()";
+            BOOST_LOG_TRIVIAL(error) << "error:old_filament_id > m_cur_colors_in_thumbnail.size()";
             return;
         }
     }
@@ -6091,7 +6095,9 @@ void SelectMachineDialog::set_default_from_sdcard()
 
             try {
                 m_current_filament_id = fo.id;
-            } catch (...) {}
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
             item->on_selected();
 
 
@@ -6161,7 +6167,9 @@ void SelectMachineDialog::set_default_from_sdcard()
         // auto save_time = get_filament_change_gap_time(obj_);
         refresh_print_time(obj_);
     }
-    catch (...) {}
+    catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 }
 
 void SelectMachineDialog::update_page_turn_state(bool show)
@@ -7005,7 +7013,8 @@ wxString SelectMachineDialog::get_nozzle_dia_and_type(const std::string &ams_id,
     //    extruder: match it by bind_ams across the ext + rack containers.
     if (!nozzle.has_value()) {
         int ams_id_int = -1;
-        try { ams_id_int = std::stoi(ams_id); } catch (...) { return wxEmptyString; }
+        try { ams_id_int = std::stoi(ams_id); } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message(); return wxEmptyString; }
         auto scan = [&](const std::map<int, DevNozzle>& nozzles) -> std::optional<DevNozzle> {
             for (const auto& [nid, n] : nozzles) {
                 for (int bind_id : n.GetBindAms()) {

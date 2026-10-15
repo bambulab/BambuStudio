@@ -346,7 +346,7 @@ void CalibrationDialog::on_start_calibration(wxMouseEvent &event)
             EndModal(wxID_CANCEL);
             Close();
         } else {
-            BOOST_LOG_TRIVIAL(info) << "on_start_calibration";
+            BOOST_LOG_TRIVIAL(info);
             m_obj->command_start_calibration(
                 m_checkbox_list["vibration"]->GetValue(),
                 m_checkbox_list["bed_leveling"]->GetValue(),

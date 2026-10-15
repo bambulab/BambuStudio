@@ -536,6 +536,7 @@ HintData* HintDatabase::get_hint(HintDataNavigation nav, bool is_helio)
 	}
 	catch (const std::exception&)
 	{
+		BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 		return nullptr;
 	}
 

@@ -616,6 +616,7 @@ static void market_model_scoring_page(int design_id)
         try {
             if (!url.empty()) { wxLaunchDefaultBrowser(url); }
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             return;
         }
     }
@@ -1813,6 +1814,7 @@ void PrintingTaskPanel::update_left_time(int mc_left_time, bool is_printing_fini
         left_time           = get_bbl_monitor_time_dhm(mc_left_time);
         if (mc_left_time > 0) finish_time = get_bbl_finish_time(mc_left_time, use_12h_format);
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         ;
     }
 
@@ -3483,7 +3485,7 @@ void StatusPanel::init_scaled_buttons()
 void StatusPanel::on_market_scoring(wxCommandEvent &event)
 {
     if (obj && obj->is_makeworld_subtask() && obj->rating_info && obj->rating_info->request_successful) { // model is mall model and has rating_id
-        BOOST_LOG_TRIVIAL(info) << "on_market_scoring";
+        BOOST_LOG_TRIVIAL(info);
         if (m_score_data && m_score_data->rating_id == obj->rating_info->rating_id) { // current score data for model is same as mall model
             if (m_score_data->star_count != m_project_task_panel->get_star_count()) m_score_data->star_count = m_project_task_panel->get_star_count();
             ScoreDialog m_score_dlg(this, m_score_data);
@@ -3577,10 +3579,10 @@ void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)
 {
     if (obj) {
         if (obj->can_resume()) {
-            BOOST_LOG_TRIVIAL(info) << "monitor: resume current print task dev_id =" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id());
+            BOOST_LOG_TRIVIAL(info) << "monitor: resume current print task " << KV(log_key::dev_id, obj->get_dev_id());
             obj->command_task_resume();
         } else {
-            BOOST_LOG_TRIVIAL(info) << "monitor: pause current print task dev_id =" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id());
+            BOOST_LOG_TRIVIAL(info) << "monitor: pause current print task " << KV(log_key::dev_id, obj->get_dev_id());
             obj->command_task_pause();
         }
     }
@@ -3592,7 +3594,7 @@ void StatusPanel::on_subtask_abort(wxCommandEvent &event)
         abort_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Cancel print"));
         abort_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
             if (obj) {
-                BOOST_LOG_TRIVIAL(info) << "monitor: stop current print task dev_id =" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id());
+                BOOST_LOG_TRIVIAL(info) << "monitor: stop current print task " << KV(log_key::dev_id, obj->get_dev_id());
                 obj->command_task_abort();
             }
         });
@@ -4269,7 +4271,7 @@ void StatusPanel::update_calib_history(MachineObject *obj)
     if (obj->GetCalib()->IsVersionExpired() && obj->is_security_control_ready()) {
         if (obj->GetCalib()->PrepareFetchQueue()) {
             obj->GetCalib()->SyncCalibVersion();
-            BOOST_LOG_TRIVIAL(info) << "calibration: rebuild history fetch queue for device " << BBLCrossTalk::Crosstalk_DevName(obj->get_dev_name());
+            BOOST_LOG_TRIVIAL(info) << "calibration: rebuild history fetch queue for device " << KV(log_key::dev_name, obj->get_dev_name());
         }
     }
 
@@ -4306,7 +4308,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         last_reading_bits     = -1;
         m_task_lock_setup_handled_dev_id.clear();
         m_task_lock_verify_handled_dev_id.clear();
-        BOOST_LOG_TRIVIAL(trace) << "machine object" << BBLCrossTalk::Crosstalk_DevName(obj->get_dev_name()) << " was disconnected, set show_ams_group is false";
+        BOOST_LOG_TRIVIAL(trace) << "machine object " << KV(log_key::dev_name, obj->get_dev_name()) << "was disconnected, set show_ams_group is false";
 
         m_ams_control->SetAmsModel(DevAmsType::EXT_SPOOL, ams_mode);
         show_ams_group(false);
@@ -4890,7 +4892,7 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
                     web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
 
 #if !BBL_RELEASE_TO_PUBLIC
-                    BOOST_LOG_TRIVIAL(trace) << "monitor: start request thumbnail, url = " << m_request_url;
+                    BOOST_LOG_TRIVIAL(trace) << "monitor: start request thumbnail " << KV(log_key::url, m_request_url);
 #endif
                     web_request.Start();
                     m_start_loading_thumbnail = false;
@@ -5108,6 +5110,7 @@ void StatusPanel::on_set_bed_temp()
             obj->command_set_bed(bed_temp);
         }
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         ;
     }
 }
@@ -5159,6 +5162,7 @@ void StatusPanel::on_set_nozzle_temp(int nozzle_id)
             }
         }
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         ;
     }
 }
@@ -5205,13 +5209,14 @@ void StatusPanel::on_set_chamber_temp()
             obj->GetChamber()->CtrlSetChamberTemp(chamber_temp);
         }
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         ;
     }
 }
 
 void StatusPanel::on_ams_load(SimpleEvent &event)
 {
-    BOOST_LOG_TRIVIAL(info) << "on_ams_load";
+    BOOST_LOG_TRIVIAL(info);
     on_ams_load_curr();
 }
 
@@ -5296,13 +5301,16 @@ void StatusPanel::on_ams_load_curr()
                 if (!curr_tray.nozzle_temp_max.empty() && !curr_tray.nozzle_temp_min.empty())
                     new_temp = (atoi(curr_tray.nozzle_temp_min.c_str()) + atoi(curr_tray.nozzle_temp_max.c_str())) / 2;
             } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 ;
             }
 
             if (obj->is_enable_np || obj->is_enable_ams_np) {
                 try {
                     if (!curr_ams_id.empty() && !curr_can_id.empty()) { obj->command_ams_change_filament(true, curr_ams_id, "0", old_temp, new_temp, extruder_id); }
-                } catch (...) {}
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                }
             } else {
                 obj->command_ams_change_filament(true, "254", "0", old_temp, new_temp, extruder_id);
             }
@@ -5331,6 +5339,7 @@ void StatusPanel::on_ams_load_curr()
                 if (!targ_tray->nozzle_temp_max.empty() && !targ_tray->nozzle_temp_min.empty())
                     new_temp = (atoi(targ_tray->nozzle_temp_min.c_str()) + atoi(targ_tray->nozzle_temp_max.c_str())) / 2;
             } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 ;
             }
         }
@@ -5340,7 +5349,9 @@ void StatusPanel::on_ams_load_curr()
         if (obj->is_enable_np) {
             try {
                 if (!curr_ams_id.empty() && !curr_can_id.empty()) { obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp, extruder_id); }
-            } catch (...) {}
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
         } else {
             obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp, extruder_id);
         }
@@ -5397,7 +5408,9 @@ void StatusPanel::on_ams_unload(SimpleEvent &event)
                 for (auto ext : obj->GetExtderSystem()->GetExtruders()) {
                     if (ext.GetSlotNow().ams_id == curr_ams_id && ext.GetSlotNow().slot_id == curr_can_id) { obj->command_ams_change_filament(false, curr_ams_id, "255"); }
                 }
-            } catch (...) {}
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
         } else {
             obj->command_ams_change_filament(false, curr_ams_id, "255");
         }
@@ -5461,6 +5474,7 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
             m_extrusion_cali_dlg->SetPosition(m_staticText_control->GetScreenPosition());
             m_extrusion_cali_dlg->Popup();
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
     }
@@ -5537,6 +5551,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
             m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
             m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val, total_weight, remain_weight);
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
     }
@@ -5576,10 +5591,14 @@ static nlohmann::json build_ams_tray_batch_create(DevAmsTray* tray,
     spool["bound_dev_id"]  = obj->get_dev_id();
     spool["bound_ams_id"]  = ams_id;
     if (!tray->diameter.empty()) {
-        try { spool["diameter"] = std::stof(tray->diameter); } catch (...) {}
+        try { spool["diameter"] = std::stof(tray->diameter); } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
     }
     if (!tray->weight.empty()) {
-        try { spool["initial_weight"] = std::stod(tray->weight); } catch (...) {}
+        try { spool["initial_weight"] = std::stod(tray->weight); } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
     }
     nlohmann::json body;
     body["module"]  = "filament";
@@ -5689,7 +5708,9 @@ void StatusPanel::open_new_official_filament_hint(const std::string& ams_id, con
 
     std::string ams_sn;
     int ams_id_int = -1;
-    try { ams_id_int = std::stoi(ams_id); } catch (...) {}
+    try { ams_id_int = std::stoi(ams_id); } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     if (ams_id_int >= 0) {
         const auto ams_ver_map = obj->get_ams_version();
         auto ver_it = ams_ver_map.find(ams_id_int);
@@ -5737,7 +5758,9 @@ void StatusPanel::open_new_official_filament_hint(const std::string& ams_id, con
                         display_sp.remain_percent = 100;
                     } else {
                         double total_w = 0.0;
-                        try { total_w = std::stod(tray->weight); } catch (...) {}
+                        try { total_w = std::stod(tray->weight); } catch (...) {
+                            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                        }
                         if (total_w > 0.0)
                             display_sp.net_weight = total_w * tray->remain / 100.0;
                         display_sp.remain_percent = tray->remain;
@@ -5823,6 +5846,7 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
             m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
             m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val, total_weight, remain_weight);
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
     }
@@ -5876,6 +5900,7 @@ void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
             if (use_new_command) { obj->command_ams_refresh_rfid2(stoi(curr_ams_id), stoi(curr_can_id)); }
 
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
     }
@@ -5905,6 +5930,7 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
                 int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(tray_it->second->id.c_str());
                 obj->command_ams_select_tray(std::to_string(tray_index));
             } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 ;
             }
         }
@@ -5927,7 +5953,7 @@ void StatusPanel::on_ams_guide(wxCommandEvent &event)
 
 void StatusPanel::on_ams_retry(wxCommandEvent &event)
 {
-    BOOST_LOG_TRIVIAL(info) << "on_ams_retry";
+    BOOST_LOG_TRIVIAL(info);
     if (obj) { obj->command_ams_control("resume"); }
 }
 

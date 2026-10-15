@@ -477,6 +477,7 @@ void ExtrusionCalibration::on_click_cali(wxCommandEvent& event)
                             BOOST_LOG_TRIVIAL(error) << "cali parameters is invalid";
                         }
                     } catch(...) {
+                        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                         ;
                     }
                 }
@@ -506,6 +507,7 @@ bool ExtrusionCalibration::check_k_validation(wxString k_text)
         k_text.ToDouble(&k);
     }
     catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         ;
     }
 

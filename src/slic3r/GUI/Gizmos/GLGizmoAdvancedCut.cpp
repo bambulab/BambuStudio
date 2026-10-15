@@ -1385,6 +1385,7 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
                 } catch (std::exception &ex) {
                     cut_error = ex.what();
                 } catch (...) {
+                    BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                     // Anything escaping a boost::thread function terminates the process, so the
                     // catch-all has to stay even though nothing here is expected to throw one.
                     cut_error = "unknown exception";

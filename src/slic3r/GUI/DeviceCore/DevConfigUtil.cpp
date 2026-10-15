@@ -352,7 +352,9 @@ std::string DevPrinterConfigUtil::get_fan_text(const std::string& type_str, cons
             }
         }
     }
-    catch (...) {}
+    catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return std::string();
 }
 
@@ -371,7 +373,9 @@ std::vector<std::string> DevPrinterConfigUtil::get_fan_text_params(const std::st
                 }
             }
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return std::vector<std::string>();
 }
 
@@ -418,7 +422,9 @@ std::string DevPrinterConfigUtil::get_fan_text(const std::string& type_str, int 
             }
         }
     }
-    catch (...) {}
+    catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return std::string();
 }
 
@@ -448,7 +454,9 @@ std::string DevPrinterConfigUtil::get_fan_mode_text(const std::string& type_str,
                 }
             }
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return std::string();
 }
 

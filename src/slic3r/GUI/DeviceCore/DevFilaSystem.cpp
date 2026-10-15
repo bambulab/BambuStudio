@@ -489,7 +489,9 @@ int DevAms::GetAmdIdInt() const
 {
     try {
         return std::stoi(m_ams_id);
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     return 0;
 }
@@ -632,7 +634,7 @@ bool DevAms::IsExist() const
             return DevUtil::get_flag_bits(obj_->ams_exist_bits, 4 + (ams_id_int - 128));
         }
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "[error]: invalid ams_id:" << m_ams_id << ", error: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "[error]: invalid " << KV(log_key::ams_id, m_ams_id) << "error: " << e.what();
     }
 
     return true;
@@ -1077,6 +1079,7 @@ std::optional<DevAmsSlotId> dev_ams_slot_info_to_id(const DevAmsSlotInfo& slot_i
         const int slot_id = normalize_virtual_slot ? 0 : std::stoi(slot_info.slot_id);
         return DevAmsSlotId{ams_id, slot_id};
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return std::nullopt;
     }
 }
@@ -1291,7 +1294,7 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                     auto iter = system->amsList.begin();
                     while (iter != system->amsList.end()) {
                         if (existing_ams_set.count(iter->first) == 0) {
-                            BOOST_LOG_TRIVIAL(trace) << "parse_json: remove ams_id=" << iter->first;
+                            BOOST_LOG_TRIVIAL(trace) << "parse_json: remove " << KV(log_key::ams_id, iter->first);
                             iter = system->amsList.erase(iter);
                             continue;
                         }
@@ -1381,12 +1384,10 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
 
     /*set ams type flag*/
     if (curr_ams->m_binded_switcher_pos != binded_switcher_pos || curr_ams->m_binded_extruder_set != binded_extruder_set) {
-        BOOST_LOG_TRIVIAL(info) << "[FilaSystem] AMS bind changed: ams_id=" << ams_id
-            << ", extruder_set " << curr_ams->m_binded_extruder_set.size() << " -> " << binded_extruder_set.size()
-            << ", switcher_pos "
-            << (curr_ams->m_binded_switcher_pos.has_value() ? std::to_string((int)curr_ams->m_binded_switcher_pos.value()) : "nullopt")
-            << " -> "
-            << (binded_switcher_pos.has_value() ? std::to_string((int)binded_switcher_pos.value()) : "nullopt");}
+        BOOST_LOG_TRIVIAL(info) << "[FilaSystem] AMS bind changed: " << KV(log_key::ams_id, ams_id) << "extruder_set "
+                                << curr_ams->m_binded_extruder_set.size() << " -> " << binded_extruder_set.size() << ", switcher_pos "
+                                << (curr_ams->m_binded_switcher_pos.has_value() ? std::to_string((int)curr_ams->m_binded_switcher_pos.value()) : "nullopt")
+                                << " -> " << (binded_switcher_pos.has_value() ? std::to_string((int)binded_switcher_pos.value()) : "nullopt");}
     curr_ams->SetAmsType(type_id);
     curr_ams->m_binded_switcher_pos = binded_switcher_pos;
     curr_ams->m_binded_extruder_set = binded_extruder_set;
@@ -1400,6 +1401,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
         try {
             curr_ams->m_current_temperature = DevUtil::string_to_float(temp);
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             curr_ams->m_current_temperature = INVALID_AMS_TEMPERATURE;
         }
     }
@@ -1537,7 +1539,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
         auto iter = curr_ams->m_trays.begin();
         while (iter != curr_ams->m_trays.end()) {
             if (!existing_tray_set.count(iter->first)) {
-                BOOST_LOG_TRIVIAL(trace) << "parse_json: remove ams_id=" << ams_id << ", tray_id=" << iter->first;
+                BOOST_LOG_TRIVIAL(trace) << "parse_json: remove " << KV(log_key::ams_id, ams_id) << KV(log_key::tray_id, iter->first);
                 iter = curr_ams->m_trays.erase(iter);
                 continue;
             }
@@ -1582,6 +1584,7 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
         tray_id_int = atoi(curr_tray->id.c_str());
         curr_tray->is_exists = DevUtil::get_flag_bits(obj->tray_exist_bits, curr_ams->GetTrayId(tray_id_int));
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
     }
 
     if (curr_tray->hold_count > 0) {

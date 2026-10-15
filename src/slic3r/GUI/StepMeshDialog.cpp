@@ -11,6 +11,7 @@
 #include "Widgets/Button.hpp"
 #include "Widgets/TextInput.hpp"
 #include <chrono>
+#include "libslic3r/Log.hpp"
 
 using namespace Slic3r;
 using namespace Slic3r::GUI;
@@ -62,6 +63,7 @@ bool StepMeshDialog:: validate_number_range(const wxString& value, double min, d
             return false;
         }
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return false;
     }
 

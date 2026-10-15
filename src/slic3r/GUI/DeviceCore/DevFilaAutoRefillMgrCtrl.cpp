@@ -250,8 +250,10 @@ DevFilaRefillBlockLevel DevFilaRefillQueryResult::GetBlockLevel(const DevAmsSlot
 std::optional<DevFilaRefillQueryResult> DevFilaAutoRefillEdit::ParseQueryResult(const nlohmann::json& print_json) const
 {
     try {
-        BOOST_LOG_TRIVIAL(info) << print_json.dump(1);
-    } catch(...){ }
+        BOOST_LOG_TRIVIAL(info) << print_json;
+    } catch(...){
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     if (!print_json.is_object()) {
         return std::nullopt;

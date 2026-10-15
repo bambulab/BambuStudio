@@ -180,7 +180,7 @@ void MultiTaskItem::update_info()
 void MultiTaskItem::onPause()
 {
     if (get_obj() && !get_obj()->can_resume()) {
-        BOOST_LOG_TRIVIAL(info) << "MultiTask: pause current print task dev_id =" << BBLCrossTalk::Crosstalk_DevId(get_obj()->get_dev_id());
+        BOOST_LOG_TRIVIAL(info) << "MultiTask: pause current print task " << KV(log_key::dev_id, get_obj()->get_dev_id());
         get_obj()->command_task_pause();
         m_button_pause->Hide();
         m_button_resume->Show();
@@ -191,7 +191,7 @@ void MultiTaskItem::onPause()
 void MultiTaskItem::onResume()
 {
     if (get_obj() && get_obj()->can_resume()) {
-        BOOST_LOG_TRIVIAL(info) << "MultiTask: resume current print task dev_id =" << BBLCrossTalk::Crosstalk_DevId(get_obj()->get_dev_id());
+        BOOST_LOG_TRIVIAL(info) << "MultiTask: resume current print task " << KV(log_key::dev_id, get_obj()->get_dev_id());
         get_obj()->command_task_resume();
         m_button_pause->Show();
         m_button_resume->Hide();
@@ -202,7 +202,7 @@ void MultiTaskItem::onResume()
 void MultiTaskItem::onStop()
 {
     if (get_obj()) {
-        BOOST_LOG_TRIVIAL(info) << "MultiTask: abort current print task dev_id =" << BBLCrossTalk::Crosstalk_DevId(get_obj()->get_dev_id());
+        BOOST_LOG_TRIVIAL(info) << "MultiTask: abort current print task " << KV(log_key::dev_id, get_obj()->get_dev_id());
         get_obj()->command_task_abort();
         m_button_pause->Hide();
         m_button_resume->Hide();
@@ -524,6 +524,7 @@ wxString MultiTaskItem::get_left_time(int mc_left_time)
         left_time = get_bbl_monitor_time_dhm(mc_left_time);
     }
     catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         ;
     }
 

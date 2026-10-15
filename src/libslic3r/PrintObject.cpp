@@ -335,7 +335,7 @@ std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estim
     const auto* opt_filament_max_vol_spd  = full_print_config.option<ConfigOptionFloats>("filament_max_volumetric_speed");
     const auto* opt_filament_flow_ratio   = full_print_config.option<ConfigOptionFloats>("filament_flow_ratio");
     if (!opt_filament_variant || !opt_filament_self_idx || !opt_filament_max_vol_spd || !opt_filament_flow_ratio) {
-        BOOST_LOG_TRIVIAL(warning) << "calc_estimated_filament_print_time: filament_* config option missing, skip estimation";
+        BOOST_LOG_TRIVIAL(warning) << "filament_* config option missing, skip estimation";
         return {};
     }
     std::vector<std::string> filament_variant_list         = opt_filament_variant->values;
@@ -4058,7 +4058,7 @@ void PrintObject::clip_fill_surfaces()
 
 void PrintObject::discover_horizontal_shells()
 {
-    BOOST_LOG_TRIVIAL(trace) << "discover_horizontal_shells()";
+    BOOST_LOG_TRIVIAL(trace);
 
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
         for (size_t i = 0; i < m_layers.size(); ++i) {
@@ -5682,7 +5682,7 @@ static constexpr double SUB_TOP_MIN_TOP_EROSION_MM = 1.5;
 
 void PrintObject::discover_sub_top_surfaces()
 {
-    BOOST_LOG_TRIVIAL(trace) << "discover_sub_top_surfaces()";
+    BOOST_LOG_TRIVIAL(trace);
     if (m_layers.size() < 2)
         return;
 

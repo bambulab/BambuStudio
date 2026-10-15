@@ -1121,27 +1121,27 @@ void AMSDryCtrWin::start_sending_drying_command()
 {
     auto fila_system = get_fila_system();
     if (!fila_system) {
-        BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::start_sending_drying_command: Invalid FilaSystem Pointer";
+        BOOST_LOG_TRIVIAL(info) << "Invalid FilaSystem Pointer";
         return;
     }
 
     if (m_temperature_input->GetValue().IsEmpty() || m_time_input->GetValue().IsEmpty()) {
         // Show error message to user
-        BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::start_sending_drying_command: Time or temperature is empty";
+        BOOST_LOG_TRIVIAL(info) << "Time or temperature is empty";
         return;
     }
 
     long temperature, time;
     if (!m_temperature_input->GetValue().ToLong(&temperature) ||
         !m_time_input->GetValue().ToLong(&time)) {
-        BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::start_sending_drying_command: Failed to convert temperature or time";
+        BOOST_LOG_TRIVIAL(info) << "Failed to convert temperature or time";
         return;
     }
 
     int tray_index;
     tray_index = m_trays_combo->GetSelection();
     if (m_tray_ids.empty() || tray_index < 0 || tray_index >= m_tray_ids.size()) {
-        BOOST_LOG_TRIVIAL(warning) << "AMSDryCtrWin::start_sending_drying_command: Invalid tray_index " << tray_index
+        BOOST_LOG_TRIVIAL(warning) << "Invalid tray_index " << tray_index
                                    << ", m_tray_ids.size=" << m_tray_ids.size();
         return;
     }
@@ -1706,13 +1706,13 @@ void AMSDryCtrWin::OnFilamentSelectionChanged(wxCommandEvent& event)
 
     auto fila_system = get_fila_system();
     if (!fila_system) {
-        BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::OnFilamentSelectionChanged: Invalid FilaSystem Pointer";
+        BOOST_LOG_TRIVIAL(info) << "Invalid FilaSystem Pointer";
         return;
     }
 
     DevAms* dev_ams = fila_system->GetAmsById(m_ams_info.m_ams_id);
     if (!dev_ams) {
-        BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::OnFilamentSelectionChanged: Invalid AMS id";
+        BOOST_LOG_TRIVIAL(info) << "Invalid AMS id";
         return;
     }
 
@@ -2272,14 +2272,14 @@ void AMSDryCtrWin::update(std::shared_ptr<DevFilaSystem> fila_system, MachineObj
 
     DevAms* dev_ams = fila_system->GetAmsById(m_ams_info.m_ams_id);
     if (!dev_ams) {
-        BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::update: Invalid AMS id";
+        BOOST_LOG_TRIVIAL(info) << "Invalid AMS id";
         m_ams_info.m_ams_id = "";
         close_once();
         return;
     }
 
     if (!dev_ams->IsSupportRemoteDry(fila_system->GetOwner())) {
-        BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::update: Selected AMS does not support remote drying";
+        BOOST_LOG_TRIVIAL(info) << "Selected AMS does not support remote drying";
         close_once();
         return;
     }

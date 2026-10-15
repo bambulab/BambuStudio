@@ -69,7 +69,9 @@ int Slic3r::DevFan::command_control_fan(int fan_type, int val)
 
         NetworkAgent *agent = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("printer_control", j.dump());
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return m_owner->publish_gcode(gcode);
 }
 
@@ -106,7 +108,7 @@ int Slic3r::DevFan::command_handle_response(const json &response)
 
 int Slic3r::DevFan::command_control_air_duct(int mode_id, int submode, const CommandCallBack& cb)
 {
-    BOOST_LOG_TRIVIAL(info) << "MachineObject::command_control_air_duct, set air duct, d = " << mode_id;
+    BOOST_LOG_TRIVIAL(info) << "set air duct, d = " << mode_id;
     m_callback_list[std::to_string(m_owner->m_sequence_id)] = cb;
     json j;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);

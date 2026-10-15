@@ -1693,7 +1693,7 @@ bool GLCanvas3D::init()
 
     BOOST_LOG_TRIVIAL(info) << "before gizmo init";
     if (m_gizmos.is_enabled() && !m_gizmos.init())
-        std::cout << "Unable to initialize gizmos: please, check that all the required textures are available" << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "Unable to initialize gizmos: please, check that all the required textures are available";
 
     BOOST_LOG_TRIVIAL(info) << "before _init_toolbars";
     if (!_init_toolbars())
@@ -2355,7 +2355,7 @@ void GLCanvas3D::append_step_import_to_assembly_tree(const std::vector<StepImpor
             if (suffix > uid_offset)
                 uid_offset = suffix;
         } catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(warning) << "append_step_import_to_assembly_tree: ignore malformed step uid \""
+            BOOST_LOG_TRIVIAL(warning) << "ignore malformed step uid \""
                                        << existing.uid << "\": " << e.what();
         }
     }
@@ -2672,7 +2672,9 @@ void GLCanvas3D::_exit_assembly_to_3d_view()
             std::string value         = "";
             int         existing_time = 0;
             agent->track_get_property(name, value);
-            try { if (value != "") { existing_time = std::stoi(value); } } catch (...) {}
+            try { if (value != "") { existing_time = std::stoi(value); } } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
             BOOST_LOG_TRIVIAL(info) << "tool name:" << name << " duration: " << times + existing_time;
             agent->track_update_property(name, std::to_string(times + existing_time));
         }
@@ -13747,7 +13749,7 @@ void GLCanvas3D::_render_custom_thumbnail_internal(ThumbnailData &              
             }
         }
 
-        BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: plate_idx %1% volumes size %2%,  use_top_view=%4%, for_picking=%5%") % plate_idx %
+        BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: plate_idx %1% volumes size %2%,  use_top_view=%3%, for_picking=%4%") % plate_idx %
                                        visible_volumes.size() %  (int) camera_view_angle_type % for_picking;
     } else {
         visible_volumes = volumes.volumes;

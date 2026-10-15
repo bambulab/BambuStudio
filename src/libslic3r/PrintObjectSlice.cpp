@@ -260,7 +260,7 @@ static std::vector<VolumeSlices> slice_volumes_inner(
             }
         }
 
-    BOOST_LOG_TRIVIAL(info) << "slice_volumes_inner: " << jobs.size() << " volumes, " << zs.size() << " layers";
+    BOOST_LOG_TRIVIAL(info) << jobs.size() << " volumes, " << zs.size() << " layers";
     std::vector<VolumeSlices> results(jobs.size());
     std::atomic<int> done_count { 0 };
     std::mutex progress_mutex;

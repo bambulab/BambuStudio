@@ -586,7 +586,7 @@ void Preset::load_info(const std::string& file)
             }
             else if (v.first.compare("base_id") == 0) {
                 this->base_id = v.second.get_value<std::string>();
-                BOOST_LOG_TRIVIAL(info) << "load info from: " << PathSanitizer::sanitize(file) << " and base_id: " << this->base_id;
+                BOOST_LOG_TRIVIAL(info) << "load info from: " << PathSanitizer::sanitize(file) << " and " << KV(log_key::base_id, this->base_id);
                 if (this->base_id.compare("null") == 0)
                     this->base_id.clear();
             }
@@ -597,6 +597,7 @@ void Preset::load_info(const std::string& file)
         }
     }
     catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return;
     }
 
@@ -726,7 +727,8 @@ bool Preset::save(DynamicPrintConfig* parent_config)
     } else {
         this->config.save_to_json(this->file, this->name, from_str, this->version.to_string());
     }
-    BOOST_LOG_TRIVIAL(info) << "save config for: " << this->name << " and filament_id: " << filament_id << " and base_id: " << this->base_id;
+    BOOST_LOG_TRIVIAL(info) << "save config for: " << this->name << " and " << KV(log_key::filament_id, filament_id) << "and "
+                            << KV(log_key::base_id, this->base_id);
 
     fs::path idx_file(this->file);
     idx_file.replace_extension(".info");
@@ -792,7 +794,7 @@ bool is_compatible_with_print(const PresetWithVendorProfile &preset, const Prese
             return PlaceholderParser::evaluate_boolean_expression(condition, active_print.preset.config);
         } catch (const std::runtime_error &err) {
             //FIXME in case of an error, return "compatible with everything".
-            printf("Preset::is_compatible_with_print - parsing error of compatible_prints_condition %s:\n%s\n", active_print.preset.name.c_str(), err.what());
+            BOOST_LOG_TRIVIAL(warning) << "parsing error of compatible_prints_condition " << active_print.preset.name << ": " << err.what();
             return true;
         }
     }
@@ -1037,6 +1039,7 @@ BedType Preset::get_default_bed_type(PresetBundle* preset_bundle)
             int bed_type_value = atoi(str_bed_type.c_str());
             return BedType(bed_type_value);
         } catch(...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
     }
@@ -1533,7 +1536,8 @@ void PresetCollection::load_presets(
                         preset.config.apply(std::move(config));
                         extend_default_config_length(preset.config, {}, true, default_preset.config);
                     }
-                    BOOST_LOG_TRIVIAL(info) << "load preset: " << name << " and filament_id: " << preset.filament_id << " and base_id: " << preset.base_id;
+                    BOOST_LOG_TRIVIAL(info) << "load preset: " << name << " and " << KV(log_key::filament_id, preset.filament_id) << "and "
+                                            << KV(log_key::base_id, preset.base_id);
 
                     Preset::normalize(preset.config);
                     // Report configuration fields, which are misplaced into a wrong group.
@@ -1980,7 +1984,7 @@ void PresetCollection::save_user_presets(const std::string& dir_path, const std:
 
         if (preset->base_id.empty())
             preset->base_id = parent_preset->setting_id;
-        BOOST_LOG_TRIVIAL(info) << preset->name << " filament_id: " << preset->filament_id << " base_id: " << preset->base_id;
+        BOOST_LOG_TRIVIAL(info) << preset->name << " " << KV(log_key::filament_id, preset->filament_id) << KV(log_key::base_id, preset->base_id);
         preset->save(&(parent_preset->config));
     }
 
@@ -2080,7 +2084,7 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
     std::string cloud_filament_id;
     if ((m_type == Preset::TYPE_FILAMENT) && preset_values.find(BBL_JSON_KEY_FILAMENT_ID) != preset_values.end()) {
         cloud_filament_id = preset_values[BBL_JSON_KEY_FILAMENT_ID];
-        BOOST_LOG_TRIVIAL(info) << name << " filament_id: " << cloud_filament_id << " base_id: " << cloud_base_id;
+        BOOST_LOG_TRIVIAL(info) << name << " " << KV(log_key::filament_id, cloud_filament_id) << KV(log_key::base_id, cloud_base_id);
     }
 
     DynamicPrintConfig new_config, cloud_config;
@@ -2498,7 +2502,7 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
                 preset.filament_id = parent->filament_id;
         }
     }
-    BOOST_LOG_TRIVIAL(info) << preset.name << " filament_id: " << preset.filament_id << " base_id: " << preset.base_id;
+    BOOST_LOG_TRIVIAL(info) << preset.name << " " << KV(log_key::filament_id, preset.filament_id) << KV(log_key::base_id, preset.base_id);
     if (from_project) {
         preset.is_project_embedded = true;
     }
@@ -2611,7 +2615,7 @@ bool PresetCollection::clone_presets_for_printer(std::vector<Preset const *> con
             preset.is_visible           = true;
             if (type == Preset::TYPE_FILAMENT) {
                 preset.filament_id = create_filament_id(prefix);
-                BOOST_LOG_TRIVIAL(info) << preset.name << " create filament_id: " << preset.filament_id;
+                BOOST_LOG_TRIVIAL(info) << preset.name << " create " << KV(log_key::filament_id, preset.filament_id);
             }
     }, force_rewritten);
 }
@@ -2636,7 +2640,7 @@ bool PresetCollection::clone_presets_for_filament(Preset const *const &     pres
                 BOOST_LOG_TRIVIAL(error) << preset.name << " apply compatible_printer failed";
                 compatible->values.push_back(compatible_printers);
             }
-            BOOST_LOG_TRIVIAL(info) << preset.name << " is cloned and filament_id: " << filament_id;
+            BOOST_LOG_TRIVIAL(info) << preset.name << " is cloned and " << KV(log_key::filament_id, filament_id);
          }
         },
         force_rewritten);
@@ -2767,7 +2771,7 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         parent_preset = this->find_preset(final_inherits, false, true);
         if (parent_preset && this->get_selected_preset().base_id.empty()) {
             this->get_selected_preset().base_id = parent_preset->setting_id;
-            BOOST_LOG_TRIVIAL(info) << "base_id: " << parent_preset->setting_id;
+            BOOST_LOG_TRIVIAL(info) << KV(log_key::base_id, parent_preset->setting_id);
         }
     }
     if (parent_preset)

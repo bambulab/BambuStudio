@@ -55,7 +55,7 @@ std::vector<std::string> init_occt_fonts()
 
     g_occt_fonts_maps.clear();
 
-    BOOST_LOG_TRIVIAL(info) << "init_occt_fonts start";
+    BOOST_LOG_TRIVIAL(info) << "start";
 #ifdef __APPLE__
     //from resource
     stdFontNames.push_back("HarmonyOS Sans SC");
@@ -88,7 +88,7 @@ std::vector<std::string> init_occt_fonts()
             }
         }
     }
-    BOOST_LOG_TRIVIAL(info) << "init_occt_fonts end";
+    BOOST_LOG_TRIVIAL(info) << "end";
     // in order
     for (auto occt_font : g_occt_fonts_maps) {
         stdFontNames.push_back(occt_font.first);

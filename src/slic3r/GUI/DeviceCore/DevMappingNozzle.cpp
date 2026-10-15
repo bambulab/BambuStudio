@@ -335,7 +335,7 @@ void DevNozzleMappingCtrl::SetManualNozzleMappingByFila(int fila_id, int nozzle_
         if (mapping.at(fila_id) != nozzle_pos_id) {
             mapping[fila_id] = nozzle_pos_id;
             m_nozzle_mapping_json = mapping;
-            BOOST_LOG_TRIVIAL(info) << "updated to " << m_nozzle_mapping_json.dump();
+            BOOST_LOG_TRIVIAL(info) << "updated to " << m_nozzle_mapping_json;
         }
     } catch (std::exception& e) {
         BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
@@ -475,8 +475,8 @@ float DevNozzleMappingCtrl::GetFlushWeight(Slic3r::MachineObject* obj) const
             }
             else{
                 assert(false && "missing flush volume");
-                BOOST_LOG_TRIVIAL(error) << "missing flush volume for extruder_id=" << extruder_id
-                                           << ", last_filament=" << last_filament << ", filament=" << filament;
+                BOOST_LOG_TRIVIAL(error) << "missing flush volume for " << KV(log_key::extruder_id, extruder_id) << "last_filament=" << last_filament
+                                         << ", filament=" << filament;
             }
         }
 

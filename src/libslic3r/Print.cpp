@@ -1264,7 +1264,7 @@ int Print::get_config_index(int filament_id, int layer_id, const std::vector<std
     auto nozzle_info  = group_result->get_nozzle_for_filament(filament_id, layer_id);
     if (!nozzle_info.has_value()) {
         BOOST_LOG_TRIVIAL(error)
-                                 << boost::format("Line %1%: could not found group_nozzle_info corresponding to filament_id %2%, layer_id %3%") % __LINE__ % filament_id %
+                                 << boost::format("could not found group_nozzle_info corresponding to filament_id %1%, layer_id %2%")% filament_id %
                                         layer_id;
         return 0;
     }
@@ -1289,7 +1289,7 @@ int Print::get_config_index(int filament_id, int layer_id, const std::vector<std
     auto nozzle_info  = group_result->get_nozzle_for_filament(filament_id, layer_id);
     if (!nozzle_info.has_value()) {
         BOOST_LOG_TRIVIAL(error)
-                                 << boost::format("Line %1%: could not found group_nozzle_info corresponding to filament_id %2%, layer_id %3%") % __LINE__ % filament_id %
+                                 << boost::format("could not found group_nozzle_info corresponding to filament_id %1%, layer_id %2%")% filament_id %
                                         layer_id;
         return 0;
     }
@@ -3196,7 +3196,7 @@ void Print::update_filament_maps_to_config(std::vector<int> f_maps, std::vector<
         }
         m_full_print_config = m_ori_full_print_config;
 
-        BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%:  extruder_count %2%, extruder_volume_type_count %3%")%__LINE__ %extruder_count %extruder_volume_type_count;
+        BOOST_LOG_TRIVIAL(info) << boost::format("extruder_count %1%, extruder_volume_type_count %2%")%extruder_count %extruder_volume_type_count;
         std::set<std::string> filament_keys = filament_options_with_variant;
         filament_keys.insert("filament_self_index");
         if ((extruder_count > 1) || support_multi)
@@ -4919,7 +4919,7 @@ static bool convert_extrusion_from_json(const json& entity_json, ExtrusionEntity
             const json& entity_item_json = entity_json[JSON_EXTRUSION_ENTITIES][entity_index];
             ret = convert_extrusion_from_json(entity_item_json, *collection);
             if (!ret) {
-                BOOST_LOG_TRIVIAL(error) << boost::format("convert_extrusion_from_json failed");
+                BOOST_LOG_TRIVIAL(error) << boost::format("failed");
                 return false;
             }
         }
@@ -5421,7 +5421,7 @@ int Print::export_cached_data(const std::string& directory, int& obj_cnt_exporte
         }
     );
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("total printobject count %1%, saved %2%, ret=%3%")%m_objects.size() %count %ret;
+    BOOST_LOG_TRIVIAL(info) << "total printobject count " << m_objects.size() << ", saved " << count << " " << KV(log_key::ret, ret);
     return ret;
 }
 
@@ -5644,7 +5644,7 @@ int Print::load_cached_data(const std::string& directory)
 
     object_jsons.clear();
     object_filenames.clear();
-    BOOST_LOG_TRIVIAL(info) << boost::format("total printobject count %1%, loaded %2%, ret=%3%")%m_objects.size() %count %ret;
+    BOOST_LOG_TRIVIAL(info) << "total printobject count " << m_objects.size() << ", loaded " << count << " " << KV(log_key::ret, ret);
     return ret;
 }
 

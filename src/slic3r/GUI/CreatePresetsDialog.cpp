@@ -134,6 +134,7 @@ static float my_stof(std::string str) {
     try {
         return static_cast<float>(std::stod(str));
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0.f;
     }
 }
@@ -168,7 +169,8 @@ static bool delete_filament_preset_by_name(std::string delete_preset_name, std::
         Preset *need_delete_preset = m_presets.find_preset(delete_preset_name);
         if (!need_delete_preset) BOOST_LOG_TRIVIAL(info) << boost::format("can't find delete preset and name: %1%") % delete_preset_name;
         if (!need_delete_preset->setting_id.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "delete preset = " << need_delete_preset->name << ", setting_id = " << need_delete_preset->setting_id;
+            BOOST_LOG_TRIVIAL(info) << "delete preset = " << need_delete_preset->name << " "
+                                    << KV(log_key::setting_id, need_delete_preset->setting_id);
             m_presets.set_sync_info_and_save(need_delete_preset->name, need_delete_preset->setting_id, "delete", 0);
             wxGetApp().delete_preset_from_cloud(need_delete_preset->setting_id);
         } else {
@@ -182,7 +184,7 @@ static bool delete_filament_preset_by_name(std::string delete_preset_name, std::
         BOOST_LOG_TRIVIAL(info) << "preset has been delete from filaments, and preset name is: " << delete_preset_name;
     } catch (const std::exception &ex) {
         // FIXME add some error reporting!
-        BOOST_LOG_TRIVIAL(info) << boost::format("found exception when delete: %1% and preset name: %%") % ex.what() % delete_preset_name;
+        BOOST_LOG_TRIVIAL(info) << boost::format("found exception when delete: %1% and preset name: %2%") % ex.what() % delete_preset_name;
         return false;
     }
 
@@ -1194,7 +1196,7 @@ wxArrayString CreateFilamentPresetDialog::get_filament_preset_choices()
         std::set<wxString> preset_name_set;
         for (Preset* filament_preset : preset.second) {
             std::string preset_name = filament_preset->name;
-            BOOST_LOG_TRIVIAL(info) << "filament_id: " << filament_preset->filament_id << " preset name: " << filament_preset->name;
+            BOOST_LOG_TRIVIAL(info) << KV(log_key::filament_id, filament_preset->filament_id) << "preset name: " << filament_preset->name;
             size_t      index_at    = preset_name.find(" @");
             if (std::string::npos != index_at) {
                 std::string cur_preset_name = preset_name.substr(0, index_at);
@@ -2435,7 +2437,9 @@ std::string CreatePrinterPresetDialog::get_nozzle_diameter() const
     try {
         nozzle = my_stof(diameter);
     }
-    catch (...) { }
+    catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     if (nozzle == 0) diameter = "0.4";
     return diameter;
 }
@@ -3394,7 +3398,9 @@ bool CreatePrinterPresetDialog::validate_input_valid()
     float nozzle_dia = 0;
     try {
         nozzle_dia = my_stof(nozzle_diameter);
-    } catch (...) { }
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     if (nozzle_dia == 0) {
         MessageDialog dlg(this, _L("The entered nozzle diameter is invalid, please re-enter:\n"), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                           wxOK | wxYES_DEFAULT | wxCENTRE);

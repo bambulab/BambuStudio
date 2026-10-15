@@ -544,6 +544,7 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 			success  = true;
 			finished = true;
 		} catch (RepairCanceledException & /* ex */) {
+			BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 			canceled = true;
 			finished = true;
 			phase = RepairProgressPhase::Reproject;

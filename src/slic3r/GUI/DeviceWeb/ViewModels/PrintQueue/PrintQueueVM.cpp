@@ -33,6 +33,7 @@ int64_t ReadId(const nlohmann::json& payload, const char* key)
         const int64_t id = std::stoll(text, &consumed);
         return consumed == text.size() && id > 0 ? id : 0;
     } catch (const std::exception&) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0;
     }
 }

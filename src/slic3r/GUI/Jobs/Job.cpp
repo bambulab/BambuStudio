@@ -116,6 +116,7 @@ void GUI::Job::start()
             m_worker_error = nullptr;
             m_thread = create_thread([this] { this->run(m_worker_error); });
         } catch (std::exception &) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             update_status(status_range(),
                           _(L("Error! Unable to create thread!")));
         }

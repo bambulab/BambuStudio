@@ -448,7 +448,7 @@ void wxMediaCtrl2::updateIdleLayer()
             idleLayer.contents = (__bridge id)cgImage;
             [nsImage release];
         } else {
-            BOOST_LOG_TRIVIAL(warning) << "wxMediaCtrl2::updateIdleLayer: failed to load image: " << m_idle_image.ToUTF8().data();
+            BOOST_LOG_TRIVIAL(warning) << "failed to load image: " << m_idle_image.ToUTF8().data();
             idleLayer.contents = nil;
         }
     } else {
