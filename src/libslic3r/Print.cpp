@@ -3232,13 +3232,15 @@ void Print::update_filament_maps_to_config(std::vector<int> f_maps, std::vector<
 
 void Print::resolve_manual_nozzle_map(const std::vector<unsigned int>& used_filaments)
 {
-    // 只处理 H2C 类（多挤出机 + 多喷嘴）的 fmmNozzleManual：命令行以旧“分组 key”传入 filament_nozzle_map。
-    // N1X（单挤出机多喷嘴）与其他模式/机型保持原逻辑不变。
+    // Treat filament_nozzle_map as a group-key map under fmmNozzleManual on multi-nozzle machines,
+    // except when single-extruder multi-nozzle multi-diameter mode is enabled in GUI (where ToolOrdering
+    // assigns per-spec virtual/physical nozzles from selected diameter and flow).
     const bool has_multiple_nozzle = std::any_of(m_config.extruder_max_nozzle_count.values.begin(),
                                                  m_config.extruder_max_nozzle_count.values.end(),
                                                  [](int v) { return v > 1; });
-    const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(m_config);
-    if (m_config.filament_map_mode.value != FilamentMapMode::fmmNozzleManual || !has_multiple_nozzle || single_ext_multi_nozzle)
+    const bool single_ext_multi_nozzle      = is_single_ext_multi_nozzle(m_config);
+    const bool single_ext_multi_diameter    = single_ext_multi_nozzle && multi_nozzle_diameter_mode_enabled(m_full_print_config);
+    if (m_config.filament_map_mode.value != FilamentMapMode::fmmNozzleManual || !has_multiple_nozzle || single_ext_multi_diameter)
         return;
 
     // 在整盘全集 used_filaments 上解析；已是合法下标则原样返回（幂等），否则按 key 转成下标。

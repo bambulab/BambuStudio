@@ -111,6 +111,11 @@ std::vector<int> resolve_manual_nozzle_map_to_index(
         return {};
     const int nozzle_cnt = (int) nozzle_list.size();
 
+    const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(config);
+    // Use the static AMS nozzle slot so calibration configs that omit extruder_ams_count
+    // still recognize the AMS-capable nozzle slot when multiple filaments share it.
+    const int static_ams_idx = config.ams_nozzle_idx.values.empty() ? -1 : config.ams_nozzle_idx.values.front();
+
     // 流量兼容判断：Hybrid 与任意流量兼容，否则要求流量类型相同。
     auto is_volume_compatible = [](NozzleVolumeType nozzle_volume, int filament_volume) {
         return nozzle_volume == nvtHybrid || filament_volume == (int) nvtHybrid || (int) nozzle_volume == filament_volume;
@@ -119,6 +124,7 @@ std::vector<int> resolve_manual_nozzle_map_to_index(
     // 阶段 2：幂等判断——若每根用到的耗材的传入值都已能落到合法喷嘴（范围内、已安装、挤出机一致、
     // 流量兼容），说明它已是下标语义，直接原样返回，重复调用不漂移；任一条不满足即视为旧分组 key。
     auto already_nozzle_index = [&]() {
+        std::set<int> used_fixed_nozzles;
         for (unsigned int filament_id : used_filaments) {
             // 输入长度不一致，无法判定为合法下标。
             if (filament_id >= filament_nozzle_key_map.size() || filament_id >= filament_map_1based.size() || filament_id >= filament_volume_map.size())
@@ -129,6 +135,12 @@ std::vector<int> resolve_manual_nozzle_map_to_index(
             if (!nozzle.installed)                                                           return false; // 指向空槽 -> 只能是 key
             if (nozzle.extruder_id != filament_map_1based[filament_id] - 1)                  return false; // 挤出机不匹配 -> 只能是 key
             if (!is_volume_compatible(nozzle.volume_type, filament_volume_map[filament_id])) return false; // 流量不兼容 -> 只能是 key
+            // On single-extruder multi-nozzle machines, fixed nozzles (non-AMS slots) have capacity 1
+            // and cannot be shared by multiple filaments.
+            if (single_ext_multi_nozzle && idx != static_ams_idx) {
+                if (!used_fixed_nozzles.insert(idx).second)
+                    return false;
+            }
         }
         return true; // 每根用到的耗材都能落到合法喷嘴 -> 已是下标语义
     };
@@ -141,6 +153,15 @@ std::vector<int> resolve_manual_nozzle_map_to_index(
     std::vector<bool> nozzle_taken(nozzle_list.size(), false);    // 喷嘴是否已被占用（固定喷嘴一嘴一料）
     std::map<int, int> key_to_nozzle_index;                       // 旧分组 key -> 已解析的喷嘴下标（同 key 复用）
 
+    std::map<int, int> key_use_count;
+    if (single_ext_multi_nozzle) {
+        for (unsigned int filament_id : used_filaments) {
+            if (filament_id >= filament_count)
+                return {};
+            ++key_use_count[filament_nozzle_key_map[filament_id]];
+        }
+    }
+
     // 阶段 4：逐根耗材，把旧“分组 key”解析成真实喷嘴下标。
     for (unsigned int filament_id : used_filaments) {
         if (filament_id >= filament_count || filament_id >= filament_map_1based.size() || filament_id >= filament_volume_map.size())
@@ -148,22 +169,56 @@ std::vector<int> resolve_manual_nozzle_map_to_index(
 
         // 同一个 key 的耗材共用同一个喷嘴，直接复用已解析结果。
         const int group_key = filament_nozzle_key_map[filament_id];
+        const int target_extruder    = filament_map_1based[filament_id] - 1; // 转 0-based；单挤出机恒为 0
+        const int target_volume_type = filament_volume_map[filament_id];
         if (auto it = key_to_nozzle_index.find(group_key); it != key_to_nozzle_index.end()) {
+            const NozzleInfo& nozzle = nozzle_list[it->second];
+            if (nozzle.extruder_id != target_extruder || !is_volume_compatible(nozzle.volume_type, target_volume_type))
+                return {};
             filament_to_nozzle_index[filament_id] = it->second;
             continue;
         }
 
         // 新 key：按 (挤出机, 流量) 选第一个已安装、未占用且兼容的喷嘴。
-        const int target_extruder    = filament_map_1based[filament_id] - 1; // 转 0-based；N1X 单挤出机恒为 0
-        const int target_volume_type = filament_volume_map[filament_id];
-        int       matched_nozzle     = -1;
-        for (size_t idx = 0; idx < nozzle_list.size(); ++idx) {
-            const NozzleInfo& nozzle = nozzle_list[idx];
-            if (!nozzle.installed || nozzle_taken[idx])                      continue;
-            if (nozzle.extruder_id != target_extruder)                      continue;
-            if (!is_volume_compatible(nozzle.volume_type, target_volume_type)) continue;
-            matched_nozzle = (int) idx;
-            break;
+        int matched_nozzle = -1;
+        if (single_ext_multi_nozzle) {
+            // On single-extruder multi-nozzle machines, a group key shared by multiple filaments can only
+            // be placed on the AMS nozzle; a single-filament key prefers dedicated fixed nozzles first so
+            // the AMS nozzle stays free for any multi-filament group key.
+            const bool multi_filament_key = key_use_count[group_key] > 1;
+            if (multi_filament_key) {
+                if (static_ams_idx >= 0 && static_ams_idx < nozzle_cnt && !nozzle_taken[static_ams_idx]) {
+                    const NozzleInfo& nozzle = nozzle_list[static_ams_idx];
+                    if (nozzle.installed && nozzle.extruder_id == target_extruder &&
+                        is_volume_compatible(nozzle.volume_type, target_volume_type))
+                        matched_nozzle = static_ams_idx;
+                }
+            } else {
+                for (size_t idx = 0; idx < nozzle_list.size(); ++idx) {
+                    if ((int) idx == static_ams_idx)                                  continue;
+                    const NozzleInfo& nozzle = nozzle_list[idx];
+                    if (!nozzle.installed || nozzle_taken[idx])                       continue;
+                    if (nozzle.extruder_id != target_extruder)                        continue;
+                    if (!is_volume_compatible(nozzle.volume_type, target_volume_type)) continue;
+                    matched_nozzle = (int) idx;
+                    break;
+                }
+                if (matched_nozzle < 0 && static_ams_idx >= 0 && static_ams_idx < nozzle_cnt && !nozzle_taken[static_ams_idx]) {
+                    const NozzleInfo& nozzle = nozzle_list[static_ams_idx];
+                    if (nozzle.installed && nozzle.extruder_id == target_extruder &&
+                        is_volume_compatible(nozzle.volume_type, target_volume_type))
+                        matched_nozzle = static_ams_idx;
+                }
+            }
+        } else {
+            for (size_t idx = 0; idx < nozzle_list.size(); ++idx) {
+                const NozzleInfo& nozzle = nozzle_list[idx];
+                if (!nozzle.installed || nozzle_taken[idx])                      continue;
+                if (nozzle.extruder_id != target_extruder)                      continue;
+                if (!is_volume_compatible(nozzle.volume_type, target_volume_type)) continue;
+                matched_nozzle = (int) idx;
+                break;
+            }
         }
         if (matched_nozzle < 0) // 该组找不到可用喷嘴，判为失败让上层报错
             return {};

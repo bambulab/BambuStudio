@@ -1928,12 +1928,13 @@ FilamentGroupContext build_filament_group_context(
 
         // N1X 非 match 自动模式需要在 ctx 阶段补足基础容量；match 模式的虚拟喷嘴由
         // calc_filament_group_for_nozzle_match() 按真实已装料匹配结果追加。
-        // fmmNozzleManual joins the auto modes here: its per-filament (diameter, flow) selection still
-        // needs one capacity unit per filament, otherwise same-spec filaments get over-packed onto a
-        // single physical nozzle and are charged real flush against each other.
+        // fmmNozzleManual under multi-diameter mode joins the auto modes here: its per-filament
+        // (diameter, flow) selection still needs one capacity unit per filament, otherwise same-spec
+        // filaments get over-packed onto a single physical nozzle and are charged real flush against
+        // each other. Non-multi-diameter fmmNozzleManual (CLI / calibration) uses explicit nozzle maps.
         const bool needs_virtual_nozzle_padding = single_ext_multi_nozzle &&
             ((is_auto_filament_map_mode(mode) && mode != FilamentMapMode::fmmAutoForMatch) ||
-             mode == FilamentMapMode::fmmNozzleManual);
+             (mode == FilamentMapMode::fmmNozzleManual && multi_nozzle_diameter_mode_enabled(print->full_print_config())));
         if (needs_virtual_nozzle_padding) {
             const std::string virtual_diameter = extruder_diameters.empty()
                 ? std::string() : format_diameter_to_str(extruder_diameters.front());
@@ -2545,7 +2546,7 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
             print, layer_filaments, physical_unprintables, geometric_unprintables, unprintable_volumes, mode, nozzle_status);
 
         std::vector<int> ret;
-        if (single_ext_multi_nozzle) {
+        if (single_ext_multi_nozzle && multi_diameter_mode) {
             // Assign from the user's per-filament (diameter, flow) rather than copying
             // filament_nozzle_map: that map is built in the filament panel against physical slots only,
             // so several same-spec filaments all point at one nozzle and end up charged flush against
@@ -2595,7 +2596,10 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
             for (auto fil : used_filaments) {
                 if (fil >= user_nozzle_map.size() || user_nozzle_map[fil] < 0 || user_nozzle_map[fil] >= nozzle_cnt)
                     throw Slic3r::RuntimeError(_L("Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."));
-                ret[fil] = user_nozzle_map[fil];
+                const int nozzle_id = user_nozzle_map[fil];
+                if (!context.nozzle_info.nozzle_list[nozzle_id].installed)
+                    throw Slic3r::RuntimeError(_L("Nozzle assignment error: per-filament nozzle map points to an empty or unavailable nozzle."));
+                ret[fil] = nozzle_id;
             }
         }
         auto result_opt = LayeredNozzleGroupResult::create(ret, context.nozzle_info.nozzle_list, used_filaments, print_config.handle_hotend_as_extruder);
