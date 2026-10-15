@@ -258,9 +258,13 @@ body.refill-slot-dragging * {
 
 .refill-slot__swatch {
   box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 20px;
   height: 20px;
   flex: 0 0 20px;
+  overflow: hidden;
   border: 2px solid var(--ams-chip-ring);
   border-radius: 6px;
 }
