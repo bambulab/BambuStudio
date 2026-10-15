@@ -1568,6 +1568,14 @@ void PerimeterGenerator::process_arachne()
             bool seperate_wall_generation = !is_one_wall && generate_one_wall_by_top;
 
             double min_nozzle_diameter = *std::min_element(print_config->nozzle_diameter.values.begin(), print_config->nozzle_diameter.values.end());
+            // Multi-diameter: nozzle_diameter only carries the grid nozzle, so the percentages below must be
+            // resolved against the nozzle that prints these walls. Otherwise a coarse nozzle walls hairline
+            // fringes at a fraction of its own minimum bead width.
+            if (this->multi_nozzle_diameter_mode) {
+                const double wall_nozzle = nozzle_diameter_for_filament(*print_config, config->wall_filament);
+                if (wall_nozzle > EPSILON)
+                    min_nozzle_diameter = wall_nozzle;
+            }
             Arachne::WallToolPathsParams input_params;
             {
                 if (const auto& min_feature_size_opt = object_config->min_feature_size)

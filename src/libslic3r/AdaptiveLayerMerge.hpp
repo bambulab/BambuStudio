@@ -85,6 +85,11 @@ AdaptiveLayerHeightRange adaptive_layer_height_range(double nozzle_diameter);
 // the originals, never the output of the offset.
 ExPolygons adaptive_printable_pieces(ExPolygons pieces, double nozzle_diameter);
 
+// Like adaptive_printable_pieces(), but also trims every kept piece down to the part a bead of this nozzle
+// fits into. A sloped wall's fringe that widens at one corner passes the yes/no test as a whole, and its
+// hairline tails would otherwise become a patch of their own and be walled as fragmented thin lines.
+ExPolygons adaptive_printable_core(ExPolygons pieces, double nozzle_diameter);
+
 // The footprint of a layer whose orphans were suppressed: sliced, but extruded by no region. What rests on it
 // is not supported there.
 ExPolygons adaptive_suppressed_orphan_area(const Layer &layer);

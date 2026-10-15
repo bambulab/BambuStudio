@@ -37,6 +37,22 @@ ExPolygons adaptive_printable_pieces(ExPolygons pieces, double nozzle_diameter)
     return pieces;
 }
 
+ExPolygons adaptive_printable_core(ExPolygons pieces, double nozzle_diameter)
+{
+    // The area / erosion test runs first, so degenerate slivers never reach the offset below.
+    pieces = adaptive_printable_pieces(std::move(pieces), nozzle_diameter);
+    const float radius = float(scale_(0.5 * nozzle_diameter));
+    if (pieces.empty() || radius <= 0.f)
+        return pieces;
+    ExPolygons core;
+    for (const ExPolygon &piece : pieces) {
+        // Clamp to the original piece: the opening only removes what no bead fits into.
+        ExPolygons opened = intersection_ex(opening_ex(ExPolygons{ piece }, radius), ExPolygons{ piece });
+        append(core, std::move(opened));
+    }
+    return adaptive_printable_pieces(std::move(core), nozzle_diameter);
+}
+
 ExPolygons adaptive_suppressed_orphan_area(const Layer &layer)
 {
     Polygons suppressed;

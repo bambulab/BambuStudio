@@ -4581,10 +4581,10 @@ void PrintObject::compute_adaptive_merge_groups()
             for (size_t layer_idx = live.bottom_idx; layer_idx < live.top_idx; ++ layer_idx)
                 polygons_append(inside, to_polygons(m_layers[layer_idx]->get_region(region_id)->raw_slices));
             ExPolygons ends_inside =
-                adaptive_printable_pieces(diff_ex(union_ex(inside), anchor), event.nozzle);
+                adaptive_printable_core(diff_ex(union_ex(inside), anchor), event.nozzle);
             // Top down, so each piece is claimed by the highest step it still exists on.
             for (size_t layer_idx = live.top_idx; layer_idx-- > live.bottom_idx && ! ends_inside.empty();) {
-                ExPolygons here = adaptive_printable_pieces(
+                ExPolygons here = adaptive_printable_core(
                     intersection_ex(ends_inside, m_layers[layer_idx]->get_region(region_id)->raw_slices),
                     event.nozzle);
                 if (here.empty())
