@@ -6320,6 +6320,7 @@ void Sidebar::sys_color_changed()
         wxGetApp().UpdateDarkUIWin(item);
     for (DiameterButtonPanel *panel : p->filament_diameter_btns)
         wxGetApp().UpdateDarkUIWin(panel);
+    p->nozzle_card->Rescale(); // reloads the hotend icons for the new theme
 
     // BBS
     obj_list()->sys_color_changed();

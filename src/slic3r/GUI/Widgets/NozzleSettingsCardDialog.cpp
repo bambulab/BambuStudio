@@ -134,8 +134,7 @@ public:
 
     NozzleConfig GetConfig() const;
     wxString     GetDiameter() const; // parsed value ("" when Empty)
-    // show_diameter_warning is false in multi-diameter mode, where every configured diameter is valid.
-    void UpdateWarning(const wxString &selected_diameter, bool show_diameter_warning);
+    void RefreshState(); // re-derive the synced badge after an edit
     void Rescale();
 
 private:
@@ -156,7 +155,6 @@ private:
     std::function<bool(const NozzleConfig &)> m_confirm_change;
     NozzleStatus                     m_status{NozzleStatus::nsUnknown};
     std::vector<std::pair<int, int>> m_ams_slots;   // preserved and passed back through GetConfig
-    bool                             m_warn{false}; // diameter mismatch -> yellow border (single mode)
 
     // The card's own state, which the menu writes and the value rows read. Held here rather than in
     // the widgets so the two stay in lockstep and so an empty slot needs no sentinel list entry.
@@ -164,7 +162,6 @@ private:
     NozzleVolumeType m_volume{nvtStandard};
 
     PillView         *m_title{nullptr};
-    wxStaticBitmap *m_warning_icon{nullptr};
     wxStaticBitmap *m_edit_icon{nullptr};
     wxBitmap        m_badge_bmp;     // "badge" (synced check), drawn at the card's top-right corner
     bool            m_synced{false}; // whether this nozzle still matches the machine-seeded config
@@ -213,7 +210,7 @@ void NozzleCard::build_header(wxSizer *v, int number)
 {
     auto *row = new wxBoxSizer(wxHORIZONTAL);
 
-    // The title pill keeps the size of its text. The stretch spacer after it pushes the icons to the right edge.
+    // The title pill keeps the size of its text. The stretch spacer after it pushes the edit icon to the right edge.
     m_title = new PillView(this, GetBackgroundColour());
     m_title->SetFont(Label::Body_12.Bold());
     m_title->set_shape(PillView::Shape::Capsule);
@@ -221,11 +218,6 @@ void NozzleCard::build_header(wxSizer *v, int number)
     m_title->set_colors(themed(ThemeColor::TextPrimary), themed(ThemeColor::Grey400), wxTransparentColour);
     row->Add(m_title, 0, wxALIGN_CENTER_VERTICAL);
     row->AddStretchSpacer();
-
-    m_warning_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning_serious", this, 14), wxDefaultPosition, FromDIP(wxSize(14, 14)), 0);
-    m_warning_icon->SetBackgroundColour(GetBackgroundColour());
-    m_warning_icon->Hide();
-    row->Add(m_warning_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
 
     m_edit_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("edit", this, 14), wxDefaultPosition, FromDIP(wxSize(14, 14)), 0);
     m_edit_icon->SetBackgroundColour(GetBackgroundColour());
@@ -431,35 +423,15 @@ bool NozzleCard::is_synced() const
     return cur.diameter == m_machine_cfg->diameter && cur.volume == m_machine_cfg->volume;
 }
 
-void NozzleCard::UpdateWarning(const wxString &selected_diameter, bool show_diameter_warning)
+void NozzleCard::RefreshState()
 {
     if (!m_diameter.IsEmpty() && m_status != NozzleStatus::nsNormal) m_status = NozzleStatus::nsNormal;
 
-    wxString   diameter = GetDiameter();
-    const bool empty    = diameter.IsEmpty();
-    const bool mismatch = show_diameter_warning && !empty && diameter != selected_diameter;
-
-    if (m_warning_icon) {
-        m_warning_icon->SetBitmap(create_scaled_bitmap(empty ? "warning_serious" : "warning", this, 14));
-        m_warning_icon->Show(empty || mismatch);
-
-        // Explain the yellow mark on hover; only single-diameter mode flags a diameter mismatch.
-        if (mismatch)
-            m_warning_icon->SetToolTip(_L("Incompatible with the slice diameter"));
-        else
-            m_warning_icon->UnsetToolTip();
-    }
-    const wxColour new_title_color = themed((empty || mismatch) ? ThemeColor::Warning : ThemeColor::TextPrimary);
-    if (m_title) m_title->set_colors(new_title_color, themed(ThemeColor::Grey400), wxTransparentColour);
-
     const bool synced = is_synced();
-    if (m_warn != mismatch || m_synced != synced) { // border color / corner badge changed -> repaint
-        m_warn   = mismatch;
+    if (m_synced != synced) { // corner badge changed -> repaint
         m_synced = synced;
         Refresh();
     }
-
-    Layout();
 }
 
 void NozzleCard::Rescale()
@@ -468,8 +440,7 @@ void NozzleCard::Rescale()
     Layout();
 }
 
-// Rounded card body in the card's background colour. Border is grey normally and yellow (Warning) when the nozzle's diameter
-// differs from the selected one (single-diameter mode). The "Nozzle N" pill draws its own background.
+// Rounded card body in the card's background colour with a grey border. The "Nozzle N" pill draws its own background.
 void NozzleCard::OnPaint(wxPaintEvent &)
 {
     wxPaintDC          pdc(this);
@@ -485,7 +456,7 @@ void NozzleCard::OnPaint(wxPaintEvent &)
 
     const wxColour outside = themed(wxColour("#F7F7F7"));
     const wxColour card_bg = GetBackgroundColour();
-    const wxColour border  = m_warn ? themed(ThemeColor::Warning) : themed(ThemeColor::Grey400);
+    const wxColour border  = themed(ThemeColor::Grey400);
 
     // Fill the corners with the container color so the rounded card sits cleanly on it.
     gc->SetPen(*wxTRANSPARENT_PEN);
@@ -612,7 +583,6 @@ void NozzleRackView::OnPaint(wxPaintEvent &)
 // ---------------------------------------------------------------------------
 NozzleSettingsCardDialog::NozzleSettingsCardDialog(wxWindow *parent, const wxString &selected_diameter, const std::vector<NozzleConfig> &configs)
     : DPIDialog(parent, wxID_ANY, _L("Nozzle Settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
-    , m_multi_diameter_mode(multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config))
     , m_selected_diameter(selected_diameter)
 {
     std::vector<NozzleConfig> seeds = configs;
@@ -632,20 +602,11 @@ void NozzleSettingsCardDialog::create_layout(const std::vector<NozzleConfig> &se
     auto *main_sizer = new wxBoxSizer(wxVERTICAL);
     build_card_grid(main_sizer, seeds);
     build_ams_row(main_sizer);
-    build_warning_panels(main_sizer);
     build_button_bar(main_sizer);
 
     SetSizer(main_sizer);
     Layout();
     Fit();
-
-    // The warning panels are hidden here, so the dialog width is driven by the card grid. Wrap the
-    // warning messages to that width up front so showing one later (a long single line otherwise
-    // stretches the dialog wider than the grid) keeps the dialog at its grid width.
-    const int wrap_w = GetClientSize().GetWidth() - FromDIP(60);
-    if (m_warning_note_label && wrap_w > 0) m_warning_note_label->Wrap(wrap_w);
-    if (m_warning_label && wrap_w > 0) m_warning_label->Wrap(wrap_w);
-    if (m_warning_serious_label && wrap_w > 0) m_warning_serious_label->Wrap(wrap_w);
 
     update_state();
 }
@@ -676,49 +637,6 @@ void NozzleSettingsCardDialog::build_card_grid(wxBoxSizer *main_sizer, const std
     }
 
     main_sizer->Add(rack, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
-}
-
-void NozzleSettingsCardDialog::build_warning_panels(wxBoxSizer *main_sizer)
-{
-    m_warning_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    m_warning_panel->SetBackgroundColour(*wxWHITE);
-    auto *wv = new wxBoxSizer(wxVERTICAL);
-
-    // Top line: why a mismatch matters at all — single-diameter mode slices a single diameter.
-    auto *note = new Label(m_warning_panel, _L("Note: Mixed-diameter slicing is only supported in multi-diameter mode."));
-    note->SetFont(Label::Body_13);
-    note->SetForegroundColour(ThemeColor::Warning);
-    wv->Add(note, 0, wxEXPAND);
-
-    // Second line: the warning icon as a legend for the mark shown on mismatched cards.
-    auto *ws   = new wxBoxSizer(wxHORIZONTAL);
-    auto *icon = new wxStaticBitmap(m_warning_panel, wxID_ANY, create_scaled_bitmap("warning", this, 16), wxDefaultPosition, FromDIP(wxSize(16, 16)), 0);
-    auto *l    = new Label(m_warning_panel, _L("marks nozzles whose diameter differs from the slice setting; they cannot be used during slicing/printing."));
-    l->SetFont(Label::Body_13);
-    l->SetForegroundColour(ThemeColor::Warning);
-    ws->Add(icon, 0, wxRIGHT, FromDIP(2));
-    ws->Add(l, 1, wxEXPAND);
-    wv->Add(ws, 0, wxEXPAND | wxTOP, FromDIP(2));
-
-    m_warning_panel->SetSizer(wv);
-    main_sizer->Add(m_warning_panel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
-    m_warning_panel->Hide();
-    m_warning_note_label = note;
-    m_warning_label      = l;
-
-    m_warning_serious_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    m_warning_serious_panel->SetBackgroundColour(*wxWHITE);
-    auto *ss    = new wxBoxSizer(wxHORIZONTAL);
-    auto *sicon = new wxStaticBitmap(m_warning_serious_panel, wxID_ANY, create_scaled_bitmap("warning_serious", this, 16), wxDefaultPosition, FromDIP(wxSize(16, 16)), 0);
-    auto *sl    = new Label(m_warning_serious_panel, _L("Empty nozzles cannot be used during slicing/printing."));
-    sl->SetFont(Label::Body_13);
-    sl->SetForegroundColour(ThemeColor::Danger);
-    ss->Add(sicon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(4));
-    ss->Add(sl, 0, wxALIGN_CENTER_VERTICAL);
-    m_warning_serious_panel->SetSizer(ss);
-    main_sizer->Add(m_warning_serious_panel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
-    m_warning_serious_panel->Hide();
-    m_warning_serious_label = sl;
 }
 
 void NozzleSettingsCardDialog::build_button_bar(wxBoxSizer *main_sizer)
@@ -823,23 +741,7 @@ bool NozzleSettingsCardDialog::confirm_nozzle_change(const NozzleConfig &from)
 
 void NozzleSettingsCardDialog::update_state()
 {
-    // Mismatch only matters in single-diameter mode, where the one diameter the plate slices at is
-    // the one the sidebar selector already holds -- this dialog reports installation, not choice.
-    const bool show_dia_warning = !m_multi_diameter_mode;
-    bool       has_warning      = false;
-    bool       has_empty        = false;
-
-    for (auto *c : m_cards) {
-        c->UpdateWarning(m_selected_diameter, show_dia_warning);
-        const wxString d = c->GetDiameter();
-        if (d.IsEmpty())
-            has_empty = true;
-        else if (show_dia_warning && d != m_selected_diameter)
-            has_warning = true;
-    }
-
-    if (m_warning_panel) m_warning_panel->Show(has_warning);
-    if (m_warning_serious_panel) m_warning_serious_panel->Show(has_empty);
+    for (auto *c : m_cards) c->RefreshState();
 
     Layout();
     Fit();

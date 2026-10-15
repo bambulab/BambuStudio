@@ -21,9 +21,7 @@ class NozzleAmsRow;
  *
  * Layout is a two-row grid by nozzle number: even numbers on top, odd on the bottom. The dialog
  * records which nozzle is installed in which slot; picking the diameter the plate slices at stays
- * with the sidebar selector. In single-diameter mode (multi_nozzle_diameter_mode off) cards whose
- * diameter differs from that one are flagged; in multi-diameter mode every configured diameter is
- * valid and nothing is flagged.
+ * with the sidebar selector.
  */
 class NozzleSettingsCardDialog : public DPIDialog
 {
@@ -39,7 +37,6 @@ private:
     void create_layout(const std::vector<NozzleConfig> &seeds);
     void build_card_grid(wxBoxSizer *main_sizer, const std::vector<NozzleConfig> &seeds);
     void build_ams_row(wxBoxSizer *main_sizer);
-    void build_warning_panels(wxBoxSizer *main_sizer);
     void build_button_bar(wxBoxSizer *main_sizer);
     void update_state();
 
@@ -49,18 +46,11 @@ private:
     // move them elsewhere. Everything else passes through silently.
     bool confirm_nozzle_change(const NozzleConfig &from);
 
-    bool     m_multi_diameter_mode{false};
     wxString m_selected_diameter; ///< the diameter the plate slices at, as the caller passed it in
 
     std::vector<NozzleCard *> m_cards;
 
     NozzleAmsRow *m_ams_row{nullptr};
-
-    wxPanel *m_warning_panel{nullptr};         // mixed-diameter note
-    wxPanel *m_warning_serious_panel{nullptr}; // empty-nozzle note
-    Label   *m_warning_note_label{nullptr};    // "mixed diameters need multi-diameter mode" note, above the legend
-    Label   *m_warning_label{nullptr};         // wrapped after Fit so a long message doesn't widen the dialog
-    Label   *m_warning_serious_label{nullptr};
 
     Button *m_confirm_btn{nullptr};
     Button *m_cancel_btn{nullptr};

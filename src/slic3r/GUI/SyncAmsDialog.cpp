@@ -25,6 +25,7 @@
 #include "ModelPreview.hpp"
 #include "GUI_App.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "libslic3r/Utils.hpp"        // resources_dir, encode_path for the title icon
 #include "I18N.hpp"
 #include "PartPlate.hpp"                // PartPlate::get_extruders for a plate's used filaments
 #include "Plater.hpp"                   // get_partplate_list
@@ -45,7 +46,6 @@
 #include "Widgets/AmsSlotPopup.hpp" // AmsSlotPopup, SlotSelectionState
 #include "Widgets/Label.hpp"
 #include "Widgets/MappingRow.hpp"
-#include "Widgets/PillView.hpp"
 #include "Widgets/RoundedRectangle.hpp" // shared fill+border card surface
 #include "Widgets/StateColor.hpp"
 #include "libslic3r/Print.hpp"        // filament temperature class, for the high-temperature tip
@@ -494,12 +494,14 @@ private:
 SyncAmsDialog::SyncAmsDialog(wxWindow *parent, bool deferrable)
     : DPIDialog(parent,
                 wxID_ANY,
-                syncs_ext_spools_only() ? _L("Synchronize Filament Information") : _L("Synchronize AMS Filament Information"),
+                _L("Nozzle and Filament Sync"),
                 wxDefaultPosition,
                 wxDefaultSize,
                 wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     SetBackgroundColour(wxGetApp().get_window_default_clr());
+    const std::string icon_path = resources_dir() + "/images/BambuStudioTitle.ico";
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     const int inset   = FromDIP(32);
     const int spacing = FromDIP(16);
@@ -514,7 +516,7 @@ SyncAmsDialog::SyncAmsDialog(wxWindow *parent, bool deferrable)
     root->AddSpacer(spacing);
     root->Add(build_advanced(), 0, wxEXPAND | wxLEFT | wxRIGHT, inset);
     root->AddSpacer(spacing);
-    root->Add(build_footer(deferrable), 0, wxEXPAND | wxALL, inset);
+    root->Add(build_footer(deferrable), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, inset);
     SetSizer(root);
 
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &) { EndModal(wxID_CANCEL); });
@@ -538,7 +540,7 @@ wxWindow *SyncAmsDialog::build_header()
     auto          *card    = new RoundedRectangle(this, card_bg, StateColor::darkModeColorFor(ThemeColor::Grey350), FromDIP(8));
 
     m_mode_map       = new CapsuleButton(card, wxID_ANY, _L("Mapping"), true);
-    m_mode_overwrite = new CapsuleButton(card, wxID_ANY, _L("Overwriting"), false);
+    m_mode_overwrite = new CapsuleButton(card, wxID_ANY, _L("Direct Override"), false);
     m_mode_map->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { set_mode(false); });
     m_mode_overwrite->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { set_mode(true); });
     auto *modes = new wxBoxSizer(wxHORIZONTAL);
@@ -558,15 +560,15 @@ wxWindow *SyncAmsDialog::build_header()
     warn_text->SetFont(::Label::Body_12);
     warn_text->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::TextMuted));
     warn_text->SetBackgroundColour(card_bg);
-    warn->Add(warn_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(6));
+    warn->Add(warn_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(4));
     warn->Add(warn_text, 0, wxALIGN_CENTER_VERTICAL);
 
     auto *v = new wxBoxSizer(wxVERTICAL);
     v->Add(modes, 0, wxALIGN_CENTER_HORIZONTAL);
-    v->Add(m_desc, 0, wxEXPAND | wxTOP, FromDIP(10));
-    v->Add(warn, 0, wxTOP, FromDIP(8));
+    v->Add(m_desc, 0, wxEXPAND | wxTOP, FromDIP(8));
+    v->Add(warn, 0, wxTOP, FromDIP(4));
     if (auto *obj = selected_machine(); obj && has_high_temp_filament(obj))
-        v->Add(build_high_temp_tip(card, card_bg), 0, wxEXPAND | wxTOP, FromDIP(8));
+        v->Add(build_high_temp_tip(card, card_bg), 0, wxEXPAND | wxTOP, FromDIP(4));
 
     auto *pad = new wxBoxSizer(wxVERTICAL);
     pad->Add(v, 1, wxEXPAND | wxALL, FromDIP(12));
@@ -609,8 +611,8 @@ wxSizer *SyncAmsDialog::build_preview()
 {
     auto    *h     = new wxBoxSizer(wxHORIZONTAL);
     ::Label *dummy = nullptr;
-    h->Add(build_preview_card(_L("Original"), "ORIGINAL", true, &dummy, &m_preview_orig), 1, wxEXPAND);
-    h->Add(build_preview_card(_L("After mapping"), "SYNCED", false, &m_after_title, &m_preview_mapped), 1, wxEXPAND | wxLEFT, FromDIP(12));
+    h->Add(build_preview_card(_L("Original"), true, &dummy, &m_preview_orig), 1, wxEXPAND);
+    h->Add(build_preview_card(_L("After mapping"), false, &m_after_title, &m_preview_mapped), 1, wxEXPAND | wxLEFT, FromDIP(12));
 
     // sync the two preview
     m_preview_orig->set_camera_changed([this](const Camera &c) { m_preview_mapped->sync_camera(c); });
@@ -835,7 +837,7 @@ void SyncAmsDialog::deal_ok()
     }
 }
 
-wxWindow *SyncAmsDialog::build_preview_card(const wxString &title, const wxString &tag, bool with_plate_combo, ::Label **out_title, ModelPreview **preview)
+wxWindow *SyncAmsDialog::build_preview_card(const wxString &title, bool with_plate_combo, ::Label **out_title, ModelPreview **preview)
 {
     const wxColour card_bg = StateColor::darkModeColorFor(ThemeColor::Grey200); // light card surface
     auto          *card    = new RoundedRectangle(this, card_bg, StateColor::darkModeColorFor(ThemeColor::Grey350), FromDIP(8));
@@ -851,7 +853,7 @@ wxWindow *SyncAmsDialog::build_preview_card(const wxString &title, const wxStrin
     header->SetBackgroundColour(card_bg);
     if (out_title) *out_title = header;
     auto *hrow = new wxBoxSizer(wxHORIZONTAL);
-    hrow->Add(0, ctrl_h); // reserve the row height so the title/tag centre within it
+    hrow->Add(0, ctrl_h); // reserve the row height so the title centres within it
     hrow->Add(header, 0, wxALIGN_CENTER_VERTICAL);
     if (with_plate_combo) {
         m_plate_combo = new ::ComboBox(card, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(72), ctrl_h), 0, nullptr, wxCB_READONLY);
@@ -863,11 +865,6 @@ wxWindow *SyncAmsDialog::build_preview_card(const wxString &title, const wxStrin
         });
         hrow->Add(m_plate_combo, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
     }
-    hrow->AddStretchSpacer();
-    auto *tag_lbl = new PillView(card, card_bg);
-    tag_lbl->set_text(tag);
-    tag_lbl->set_colors(StateColor::darkModeColorFor(ThemeColor::BrandGreen), StateColor::darkModeColorFor(ThemeColor::LightGreen), wxTransparentColour);
-    hrow->Add(tag_lbl, 0, wxALIGN_CENTER_VERTICAL);
 
     // Hairline under the header, inset so it never reaches the rounded corners.
     auto *divider = new wxWindow(card, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(1)));

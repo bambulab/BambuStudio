@@ -1,6 +1,7 @@
 #include "ExtruderPanel.hpp"
 
 #include <wx/bitmap.h>
+#include <wx/event.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/button.h>
@@ -367,12 +368,12 @@ inline void hide_native_scrollbars(wxWindow *, bool = false) {}
 // Prepare-page nozzle-slot tile geometry, taken from the design: a narrow card holding the
 // hotend icon with its slot number stamped on it, then the diameter over the flow type.
 constexpr int    TILE_W            = 37; // design minimum; overflow scrolls instead of shrinking tiles
-constexpr int    TILE_H            = 80;
 constexpr int    TILE_GAP          = 4;
 constexpr int    TILE_RADIUS       = 4;
-constexpr int    TILE_ICON_H       = 48;
+constexpr int    TILE_ICON_H       = 38; // the hotend images' own height, so they draw 16 wide
+constexpr int    TILE_ICON_TOP     = 4;  // tile top to the icon
 constexpr int    TILE_BADGE_D      = 16;
-constexpr int    TILE_BADGE_PAD_X  = 4;  // label to the badge's round ends, once the label outgrows a circle
+constexpr int    TILE_BADGE_TEXT_W = 12; // widest label inside the badge circle; longer labels get a smaller font
 constexpr int    TILE_TEXT_GAP     = 2;  // icon bottom to the diameter line
 constexpr double TILE_DIM_OPACITY  = 0.3;
 
@@ -403,16 +404,20 @@ static wxBitmap faded_tile_bitmap(const wxBitmap &bitmap, const wxColour &backgr
  * \brief Set on \p gc the largest body font, 12 down to 8, at which \p text fits in \p max_width.
  *
  * Falls back to the smallest size when even that overflows.
+ *
+ * \return the font now set on \p gc
  */
-static void set_fitting_font(wxGraphicsContext &gc, const wxString &text, double max_width, const wxColour &colour)
+static const wxFont &set_fitting_font(wxGraphicsContext &gc, const wxString &text, double max_width, const wxColour &colour)
 {
-    for (const wxFont *font : {&Label::Body_12, &Label::Body_11, &Label::Body_10, &Label::Body_9, &Label::Body_8}) {
+    const wxFont *fonts[] = {&Label::Body_12, &Label::Body_11, &Label::Body_10, &Label::Body_9, &Label::Body_8};
+    for (const wxFont *font : fonts) {
         gc.SetFont(*font, colour);
         double width = 0.0;
         gc.GetTextExtent(text, &width, nullptr);
         if (width <= max_width)
-            return;
+            return *font;
     }
+    return *fonts[std::size(fonts) - 1];
 }
 
 /**
@@ -439,7 +444,7 @@ public:
     {
         SetBackgroundStyle(wxBG_STYLE_PAINT);
         SetBackgroundColour(parent->GetBackgroundColour()); // the surface the rounded corners reveal
-        SetMinSize(FromDIP(wxSize(TILE_W, TILE_H)));
+        update_min_size();
         Bind(wxEVT_PAINT, &NozzleSlotTile::OnPaint, this);
     }
 
@@ -451,8 +456,26 @@ public:
         Refresh();
     }
 
+    /// \brief Reload the icon for the current DPI and light/dark theme.
+    void Rescale()
+    {
+        m_icon.msw_rescale();
+        update_min_size();
+        Refresh();
+    }
+
 private:
     void OnPaint(wxPaintEvent &evt);
+
+    /// \brief Size the tile to fit its icon and both text rows at any font, language or DPI.
+    void update_min_size()
+    {
+        wxClientDC dc(this);
+        dc.SetFont(Label::Body_12);
+        const int line_h = dc.GetFontMetrics().height;
+        const int height = FromDIP(TILE_ICON_TOP) + m_icon.GetBmpHeight() + FromDIP(TILE_TEXT_GAP) + 2 * line_h;
+        SetMinSize(wxSize(FromDIP(TILE_W), height));
+    }
 
     ScalableBitmap m_icon;
     wxString       m_label;
@@ -476,7 +499,7 @@ void NozzleSlotTile::OnPaint(wxPaintEvent &evt)
     const wxSize size = GetSize();
     const wxColour background = GetBackgroundColour();
     auto tile_colour = StateColor::darkModeColorFor(ThemeColor::Grey350);
-    auto badge_colour = StateColor::darkModeColorFor(ThemeColor::Grey400);
+    auto badge_colour = StateColor::darkModeColorFor(wxColour("#ADADAD"));
     auto text_colour = StateColor::darkModeColorFor(ThemeColor::TextPrimary);
     if (m_dimmed) {
         // BeginLayer(opacity) is not implemented by wxWidgets' default GDI+ renderer on Windows.
@@ -493,32 +516,28 @@ void NozzleSlotTile::OnPaint(wxPaintEvent &evt)
 
     const wxSize icon_size = m_icon.GetBmpSize();
     const double icon_x    = (size.x - icon_size.x) / 2.0;
-    const double   icon_y    = 0;
+    const double icon_y    = FromDIP(TILE_ICON_TOP);
     const wxBitmap icon = m_dimmed ? faded_tile_bitmap(m_icon.bmp(), background) : m_icon.bmp();
     gc->DrawBitmap(icon, icon_x, icon_y, icon_size.x, icon_size.y);
 
     // The label goes on the icon, not beside it: the tile is barely wider than the icon itself.
+    // The badge stays a circle for every label; labels like "R1" take a smaller font instead.
+    const double badge_d = FromDIP(TILE_BADGE_D);
+    const double badge_x = (size.x - badge_d) / 2.0;
+    const double badge_y = icon_y; // stamped on the icon's top edge
+    gc->SetBrush(wxBrush(badge_colour));
+    gc->DrawEllipse(badge_x, badge_y, badge_d, badge_d);
+
     gc->SetFont(Label::Body_12, text_colour);
     double text_w = 0.0, text_h = 0.0, descent = 0.0, leading = 0.0;
     gc->GetTextExtent(m_label, &text_w, &text_h, &descent, &leading);
+    const wxFontMetrics label_metrics = dc.GetFontMetrics();
+    const double        ink_mid       = (label_metrics.internalLeading + label_metrics.ascent) / 2.0;
+    gc->DrawText(m_label, badge_x + (badge_d - text_w) / 2.0, badge_y + badge_d / 2.0 - ink_mid);
 
-    // A capsule as wide as the label needs: a circle for one character, longer for labels like "R1".
-    const double badge_h = FromDIP(TILE_BADGE_D);
-    const double badge_w = std::max(badge_h, text_w + 2 * FromDIP(TILE_BADGE_PAD_X));
-    const double badge_x = (size.x - badge_w) / 2.0;
-    const double badge_y = 0;
-    gc->SetBrush(wxBrush(badge_colour));
-    gc->DrawRoundedRectangle(badge_x, badge_y, badge_w, badge_h, badge_h / 2.0);
-
-    // Labels have no descenders and start below the internal leading, so centring the line box
-    // leaves them visibly high; centre their ink band [internalLeading, ascent] instead.
+    // Rows keep the Body_12 line height so a shrunk line does not shift the one below it.
     dc.SetFont(Label::Body_12);
-    const wxFontMetrics metrics  = dc.GetFontMetrics();
-    const double        ink_mid  = (metrics.internalLeading + metrics.ascent) / 2.0;
-    gc->DrawText(m_label, badge_x + (badge_w - text_w) / 2.0, badge_y + badge_h / 2.0 - ink_mid);
-
-    // Rows keep the 12px line height so a shrunk line does not shift the one below it.
-    const double line_h = metrics.height;
+    const double line_h = dc.GetFontMetrics().height;
     double       y      = icon_y + icon_size.y + FromDIP(TILE_TEXT_GAP);
     for (const wxString &line : {m_diameter, m_flow}) {
         set_fitting_font(*gc, line, size.x, text_colour);
@@ -921,6 +940,10 @@ void NozzleRackPanel::show_mismatch(bool mismatch)
 
 void NozzleRackPanel::Rescale()
 {
+    m_warning_icon->SetBitmap(create_scaled_bitmap("warning", this, 20));
+    for (wxSizerItem *item : m_tile_row->GetChildren())
+        if (auto *tile = dynamic_cast<NozzleSlotTile *>(item->GetWindow())) tile->Rescale();
+
     Layout();
     Refresh();
 }

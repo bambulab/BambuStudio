@@ -56,8 +56,7 @@ protected:
 private:
     wxWindow *build_header();
     wxSizer  *build_preview();
-    wxWindow *build_preview_card(const wxString &title, const wxString &tag, bool with_plate_combo, ::Label **out_title,
-                                 ModelPreview **out_preview);
+    wxWindow *build_preview_card(const wxString &title, bool with_plate_combo, ::Label **out_title, ModelPreview **out_preview);
 
     /**
      * \brief Build the mapping section as one panel, so overwrite mode can hide it as a whole.
