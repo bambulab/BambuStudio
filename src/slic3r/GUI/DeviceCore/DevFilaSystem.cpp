@@ -1094,11 +1094,54 @@ std::vector<DevFilamentStep> DevFilaSystem::GetCurrentFilamentChangeSteps() cons
     return m_filament_change_steps;
 }
 
+std::optional<DevAmsSlotId> DevFilaSystem::DecodeFilamentChangingSlot(int encoded_slot) const
+{
+    if (encoded_slot < 0) {
+        return std::nullopt;
+    }
+
+    try {
+        const int tar_first = DevUtil::get_flag_bits(encoded_slot, 8, 8);
+        const int tar_second = DevUtil::get_flag_bits(encoded_slot, 0, 8);
+        if (GetAmsById(std::to_string(tar_first))) {
+            auto tray = GetTray(tar_first, tar_second);
+            if (!tray) {
+                tray = GetTray(tar_second, tar_first);
+            }
+
+            if (tray) {
+                return tray->get_ams_slot_id();
+            }
+        } else if (GetVirtualTray(std::to_string(tar_first))) {
+            return DevAmsSlotId{ tar_first, 0 };
+        }
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << "[exception]:" << e.what();
+    }
+
+    return std::nullopt;
+}
+
+std::vector<DevAmsSlotId> DevFilaSystem::GetFilamentChangingSlots() const
+{
+    std::vector<DevAmsSlotId> changing_slots;
+    changing_slots.reserve(m_encoded_filament_changing_slots.size());
+    for (const int encoded_slot : m_encoded_filament_changing_slots) {
+        if (auto slot = DecodeFilamentChangingSlot(encoded_slot); slot.has_value()) {
+            changing_slots.push_back(*slot);
+        }
+    }
+    return changing_slots;
+}
+
 bool DevFilaSystem::IsFilamentChangingSlot(int ams_id, int slot_id) const
 {
-    return std::any_of(m_filament_changing_slots.begin(), m_filament_changing_slots.end(),
-                       [ams_id, slot_id](const DevAmsSlotId& item) {
-        return item.first == ams_id && item.second == slot_id;
+    return std::any_of(m_encoded_filament_changing_slots.begin(), m_encoded_filament_changing_slots.end(),
+                       [this, ams_id, slot_id](int encoded_slot) {
+        if (auto item = DecodeFilamentChangingSlot(encoded_slot); item.has_value()) {
+            return item->first == ams_id && item->second == slot_id;
+        }
+        return false;
     });
 };
 
@@ -1119,8 +1162,10 @@ std::optional<DevAmsSlotId> DevFilaSystem::GetCurrentChangingSlot() const
 {
     if (m_owner->GetMcTask().IsValid()) {
         int sub_step = m_owner->GetMcTask().GetSubStep();
-        if (m_filament_changing_slots.size() > sub_step) {
-            return m_filament_changing_slots[sub_step];
+        if (m_encoded_filament_changing_slots.size() > sub_step) {
+            if (auto slot = DecodeFilamentChangingSlot(m_encoded_filament_changing_slots[sub_step]); slot.has_value()) {
+                return slot;
+            }
         }
     }
 
@@ -1249,35 +1294,13 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
 
                 const char* changing_slot_key = jj["ams"].contains("csl") ? "csl" : (jj["ams"].contains("cs") ? "cs" : nullptr);
                 if (changing_slot_key) {
-                    system->m_filament_changing_slots.clear();
+                    system->m_encoded_filament_changing_slots.clear();
                     const auto changing_slots = DevJsonValParser::GetVal<std::vector<int>>(jj["ams"], changing_slot_key);
                     for (const int encoded_slot : changing_slots) {
-                        if (encoded_slot < 0) {
-                            continue;
-                        };
-
-                        try {
-                            // traverse the changing slots
-                            int tar_first = DevUtil::get_flag_bits(encoded_slot, 8, 8);
-                            int tar_second = DevUtil::get_flag_bits(encoded_slot, 0, 8);
-                            if (system->GetAmsById(std::to_string(tar_first))) {
-                                auto tray = system->GetTray(tar_first, tar_second);
-                                if (!tray) {
-                                    tray = system->GetTray(tar_second, tar_first);
-                                }
-
-                                if (tray) {
-                                    system->m_filament_changing_slots.push_back(tray->get_ams_slot_id());
-                                }
-                            } else if (system->GetVirtualTray(std::to_string(tar_first))) {
-                                system->m_filament_changing_slots.push_back({ tar_first, 0 });
-                            };
-                        }  catch(const std::exception& e){
-                            BOOST_LOG_TRIVIAL(error) << "[exception]:" << e.what();
-                        }
+                        system->m_encoded_filament_changing_slots.push_back(encoded_slot);
                     }
                 } else {
-                    system->m_filament_changing_slots.clear();
+                    system->m_encoded_filament_changing_slots.clear();
                 }
 
                 if (jj["ams"].contains("tray_read_done_bits")) {

@@ -413,7 +413,8 @@ public:
     bool IsFilamentChangingSlot(int ams_id, int slot_id) const;
     bool IsCurrentFilamentChangingSlot(int ams_id, int slot_id) const;
     std::optional<DevAmsSlotId> GetCurrentChangingSlot() const;
-    const std::vector<DevAmsSlotId>& GetFilamentChangingSlots() const { return m_filament_changing_slots; }// some firmwares support this, IsDirectConnectedRack
+    std::vector<DevAmsSlotId> GetFilamentChangingSlots() const;// some firmwares support this, IsDirectConnectedRack
+    std::vector<int> GetEncodedChangingSlots() const { return m_encoded_filament_changing_slots;}
 
     /* AMS settings*/
     DevAmsSystemSetting& GetAmsSystemSetting() { return m_ams_system_setting; }
@@ -446,6 +447,9 @@ public:
     static bool IsBBL_Filament(std::string tag_uid);
 
 private:
+    std::optional<DevAmsSlotId> DecodeFilamentChangingSlot(int encoded_slot) const;
+
+private:
     MachineObject* m_owner;
 
     /* ams properties */
@@ -455,7 +459,7 @@ private:
     /* filament change step*/
     std::vector<DevFilamentStep> m_filament_change_steps; // some firmwares support this
     std::vector<std::vector<DevFilamentStep>> m_filament_change_steps_multi; // some firmwares support this
-    std::vector<DevAmsSlotId> m_filament_changing_slots; // some firmwares support this
+    std::vector<int> m_encoded_filament_changing_slots; // some firmwares support this, store raw firmware values
 
     std::map<std::string, DevAms*, NumericStrCompare> amsList;// key: ams[id], start with 0
     std::map<std::string, DevAmsTray> m_vt_trays; // virutal tray info

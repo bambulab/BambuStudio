@@ -1,5 +1,6 @@
 #include "BuilderFilamentChangeStatus.hpp"
 #include "BuilderFilamentManualPullStatus.hpp"
+#include "ResolverSlotState.hpp"
 #include "Schema.hpp"
 
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
@@ -11,7 +12,6 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/I18N.hpp"
 
-#include <map>
 #include <string>
 #include "libslic3r/Log.hpp"
 
@@ -24,6 +24,49 @@ struct FilamentStepStyleInfo
     std::string style;
     std::string text;
 };
+
+int& filament_change_step_index_cache()
+{
+    static int cache = 0;
+    return cache;
+}
+
+std::optional<DevAmsSlotId>& filament_change_slot_cache()
+{
+    static std::optional<DevAmsSlotId> slot;
+    return slot;
+}
+
+void clear_cached_filament_change_step()
+{
+    filament_change_step_index_cache() = 0;
+    filament_change_slot_cache().reset();
+}
+
+int clamp_filament_change_step_index(int current_index, const std::optional<DevAmsSlotId>& changing_slot)
+{
+    // Keep one active filament-change flow monotonic even if the device briefly
+    // reports an older or missing step between pushes.
+    int& cache = filament_change_step_index_cache();
+    auto& cached_slot = filament_change_slot_cache();
+    if (changing_slot.has_value() && cached_slot.has_value() && *changing_slot != *cached_slot) {
+        cache = 0;
+    }
+    if (changing_slot.has_value()) {
+        cached_slot = changing_slot;
+    }
+
+    if (current_index <= 0) {
+        return cache;
+    }
+
+    if (current_index < cache) {
+        return cache;
+    }
+
+    cache = current_index;
+    return current_index;
+}
 
 std::string filament_step_label(DevFilamentStep step)
 {
@@ -121,21 +164,75 @@ FilamentStepStyleInfo filament_step_style(MachineObject* machine_obj, std::optio
     return {};
 }
 
+std::vector<DevAmsSlotId> get_filament_changing_slots(MachineObject* machine_obj)
+{
+    if (machine_obj && machine_obj->GetFilaSystem()) {
+        return machine_obj->GetFilaSystem()->GetFilamentChangingSlots();
+    }
+
+    return {};
+}
+
+std::optional<DevAmsSlotId> get_current_changing_slot(MachineObject* machine_obj)
+{
+    if (!machine_obj || !machine_obj->GetFilaSystem()) return std::nullopt;
+    return machine_obj->GetFilaSystem()->GetCurrentChangingSlot();
+}
+
+nlohmann::json build_running_slot_json(MachineObject* machine_obj, const std::optional<DevAmsSlotId>& changing_slot)
+{
+    if (!machine_obj || !machine_obj->GetFilaSystem() || !changing_slot.has_value()) {
+        return nullptr;
+    }
+
+    namespace SK = AmsHotendSchema::keys;
+    const std::string ams_id = std::to_string(changing_slot->first);
+    const std::string slot_id = machine_obj->GetFilaSystem()->IsVirtualTrayId(ams_id) ? std::string("0") : std::to_string(changing_slot->second);
+    const int display_index = filament_step_display_index(machine_obj, *changing_slot);
+
+    return {
+        {SK::running_slot::ams_id,        ams_id},
+        {SK::running_slot::slot_id,       slot_id},
+        {SK::running_slot::display_index, display_index}
+    };
+}
+
+std::string resolve_filament_change_operation(MachineObject* machine_obj, const std::optional<DevAmsSlotId>& changing_slot)
+{
+    namespace SV = AmsHotendSchema::values;
+    return machine_obj && machine_obj->is_target_slot_unload() ? SV::filament_change_operation::unload : SV::filament_change_operation::load;
+}
+
+std::string build_filament_change_title(MachineObject* machine_obj,
+                                        const std::optional<DevAmsSlotId>& changing_slot,
+                                        const std::string& operation)
+{
+    namespace SV = AmsHotendSchema::values;
+    if (!machine_obj || !changing_slot.has_value()) return {};
+
+    const int display_index = filament_step_display_index(machine_obj, *changing_slot);
+    if (operation == SV::filament_change_operation::load) {
+        return (boost::format(_u8L("Slot %1% filament loading in progress")) % display_index).str();
+    }
+    if (operation == SV::filament_change_operation::unload) {
+        return (boost::format(_u8L("Slot %1% filament unloading in progress")) % display_index).str();
+    }
+    return {};
+}
+
 } // namespace
 
-nlohmann::json DevicePageFilamentChangeStatusBuilder::Build(MachineObject* machine_obj,
-                                                            const nlohmann::json& running_slot,
-                                                            const std::string& operation,
-                                                            const std::string& message)
+nlohmann::json DevicePageFilamentChangeStatusBuilder::Build(MachineObject* machine_obj)
 {
     namespace SK = AmsHotendSchema::keys;
     namespace SV = AmsHotendSchema::values;
 
     const bool change_active = IsActive(machine_obj);
-    // Stopping a filament change is only safe while the machine is idle. Block
-    // it whenever a print job or calibration routine is in progress, so the
-    // user cannot abort mid print/calibration.
     const bool can_stop = change_active && machine_obj && !machine_obj->is_in_printing() && !machine_obj->is_in_calibration();
+    const auto changing_slot = change_active ? get_current_changing_slot(machine_obj) : std::nullopt;
+    const nlohmann::json running_slot = build_running_slot_json(machine_obj, changing_slot);
+    const std::string operation = change_active ? resolve_filament_change_operation(machine_obj, changing_slot) : std::string(SV::filament_change_operation::change);
+    const std::string message = change_active ? build_filament_change_title(machine_obj, changing_slot, operation) : std::string();
 
     nlohmann::json status = {
         {SK::filament_change::active,             change_active},
@@ -153,7 +250,15 @@ nlohmann::json DevicePageFilamentChangeStatusBuilder::Build(MachineObject* machi
         {SK::filament_change::can_stop,           can_stop},
         {SK::filament_change::can_retry,          false}
     };
-    if (!machine_obj || !machine_obj->GetFilaSystem()) return status;
+
+    if (!machine_obj || !machine_obj->GetFilaSystem()) {
+        clear_cached_filament_change_step();
+        return status;
+    }
+    if (!change_active) {
+        clear_cached_filament_change_step();
+        return status;
+    }
 
     auto fila_system = machine_obj->GetFilaSystem();
     status[SK::filament_change::can_retry] = change_active && fila_system->GetAmsTaskRunStatus() == AMS_TASK_RUN_ABNORMAL;
@@ -161,19 +266,17 @@ nlohmann::json DevicePageFilamentChangeStatusBuilder::Build(MachineObject* machi
     auto current_step = fila_system->GetCurrentFilamentChangeStep();
     if (current_step.has_value()) {
         // fix the AP problem
-        if (current_step.value() == DevFilamentStep::STEP_PULL_CURR_FILAMENT && fila_system->GetFilamentChangingSlots().size() == 1) {
+        if (current_step.value() == DevFilamentStep::STEP_PULL_CURR_FILAMENT && get_filament_changing_slots(machine_obj).size() == 1) {
             auto steps = fila_system->GetCurrentFilamentChangeSteps();
             if (!steps.empty() && steps.back() == DevFilamentStep::STEP_BATCH_PULL_FILA) {
                 current_step = std::optional<DevFilamentStep>(DevFilamentStep::STEP_BATCH_PULL_FILA);
             };
         };
-
-        status[SK::filament_change::current_step] = static_cast<int>(*current_step);
-        status[SK::filament_change::current_step_name] = filament_step_label(*current_step);
     }
 
     int current_index = 0;
     auto steps = fila_system->GetCurrentFilamentChangeSteps();
+    std::vector<DevFilamentStep> visible_steps;
     for (size_t i = 0; i < steps.size(); ++i) {
         const auto step = steps[i];
         const std::string label = filament_step_label(step);
@@ -181,7 +284,8 @@ nlohmann::json DevicePageFilamentChangeStatusBuilder::Build(MachineObject* machi
             BOOST_LOG_TRIVIAL(warning) << "Unknown filament change step for web: " << static_cast<int>(step);
             continue;
         }
-        const FilamentStepStyleInfo style_info = filament_step_style(machine_obj, fila_system->GetCurrentChangingSlot(), step);
+        visible_steps.push_back(step);
+        const FilamentStepStyleInfo style_info = filament_step_style(machine_obj, changing_slot, step);
         status[SK::filament_change::steps].push_back({
             {SK::filament_change_step::id,         static_cast<int>(step)},
             {SK::filament_change_step::label,      label},
@@ -194,6 +298,18 @@ nlohmann::json DevicePageFilamentChangeStatusBuilder::Build(MachineObject* machi
             current_index = static_cast<int>(status[SK::filament_change::steps].size());
         }
     }
+    current_index = clamp_filament_change_step_index(current_index, changing_slot);
+    if (current_index > static_cast<int>(visible_steps.size())) {
+        current_index = static_cast<int>(visible_steps.size());
+    }
+    if (current_index > 0 && current_index <= static_cast<int>(visible_steps.size())) {
+        current_step = visible_steps[static_cast<size_t>(current_index - 1)];
+        status[SK::filament_change::current_step] = static_cast<int>(*current_step);
+        status[SK::filament_change::current_step_name] = filament_step_label(*current_step);
+    } else if (current_step.has_value()) {
+        status[SK::filament_change::current_step] = static_cast<int>(*current_step);
+        status[SK::filament_change::current_step_name] = filament_step_label(*current_step);
+    }
     status[SK::filament_change::current_step_index] = current_index;
     status[SK::filament_change::current_step_total] = static_cast<int>(status[SK::filament_change::steps].size());
 
@@ -203,7 +319,7 @@ nlohmann::json DevicePageFilamentChangeStatusBuilder::Build(MachineObject* machi
         return status;
     }
 
-    const auto& changing_slots = fila_system->GetFilamentChangingSlots();
+    const auto& changing_slots = get_filament_changing_slots(machine_obj);
     if (changing_slots.size() >= 2) {
         status[SK::filament_change::mode] = SV::filament_change_mode::batch_running;
         const std::string running_ams_id = running_slot.is_object() ? running_slot.value(SK::running_slot::ams_id, std::string()) : std::string();
@@ -245,6 +361,7 @@ bool DevicePageFilamentChangeStatusBuilder::IsActive(MachineObject* machine_obj)
         return true;
     }
 
+    clear_cached_filament_change_step();
     return false;
 }
 

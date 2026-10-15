@@ -389,7 +389,9 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
 
         hotend[SK::hotend::op_state] = op_state;
         hotend[SK::hotend::temp_trend] = DevicePageHotendSlotStateResolver::ResolveTempTrend(rack_nozzle_opt);
-        hotend[SK::hotend::tool_kind] = has_tool ? tool_kind_for_web(tool_defs) : SV::tool_kind::empty;
+        // tool_defs already falls back to the on-extruder tool, so a slot whose nozzle is
+        // mounted (or in flight during a take/place) must not report an empty tool kind.
+        hotend[SK::hotend::tool_kind] = (has_tool || is_on_extruder) ? tool_kind_for_web(tool_defs) : SV::tool_kind::empty;
         std::string hotend_tooltip;
         if (op_state == SV::hotend_op_state::error) {
             hotend_tooltip = _u8L("PrintTool communication error. Please check the PrintTool cable and try again.");

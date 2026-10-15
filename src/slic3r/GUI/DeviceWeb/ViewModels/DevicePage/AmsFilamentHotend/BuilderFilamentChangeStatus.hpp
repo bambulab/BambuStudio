@@ -14,10 +14,7 @@ namespace Slic3r { namespace GUI {
 class DevicePageFilamentChangeStatusBuilder
 {
 public:
-    static nlohmann::json Build(MachineObject* machine_obj,
-                                const nlohmann::json& running_slot,
-                                const std::string& operation,
-                                const std::string& message);
+    static nlohmann::json Build(MachineObject* machine_obj);
 
     static bool IsActive(MachineObject* machine_obj);
 };

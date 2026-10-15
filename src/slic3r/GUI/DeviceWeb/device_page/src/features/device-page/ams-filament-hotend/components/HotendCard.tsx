@@ -18,6 +18,7 @@ import hotendNozzleUnknownUrl from '../assets/hotend_nozzle_unknow.png';
 import hotendNozzleDisableUrl from '../assets/hotend_nozzle_disable.png';
 import hotendForbiddenUrl     from '../assets/hotend_forbidden.svg';
 import hotendPlacingArrowUrl  from '../assets/hotend_placing_arrow.svg';
+import hotendTakingArrowUrl   from '../assets/hotend_taking_arrow.svg';
 import hotendTakenUrl         from '../assets/hotend_taken.svg';
 import hotend2dBadgeUrl       from '../assets/hotend_2d_badge.svg';
 import hotendReadingArcUrl    from '../assets/hotend_reading_arc.png';
@@ -57,9 +58,12 @@ export function HotendCard({
   const hot = slot.hotend ?? {};
   const op: HotendOpState = hot.op_state ?? 'None';
   const tempTrend: HotendTempTrend = hot.temp_trend ?? 'Steady';
-  const isTaken = !!slot.taken;
+  // A slot mid take/place still reports its nozzle as on-extruder, but the moving
+  // nozzle visual owns the card instead of the muted taken UX (Figma 5157:26131 / 5157:26134).
+  const isMoving = op === 'Taking' || op === 'Placing';
+  const isTaken = !!slot.taken && !isMoving;
   // Taken (on-extruder) uses its own muted UX; do not paint the green selected chrome.
-  const isSelected = !isTaken && !!hot.selected;
+  const isSelected = !isTaken && !isMoving && !!hot.selected;
   // `None` is authoritative for "no tool"; tool_kind may still say "nozzle".
   // An Unknown nozzle is physically present but not identified yet, so it must
   // not fall through to the empty-slot readout just because tool_kind has not
@@ -507,10 +511,11 @@ function NozzleIcon({ op, filamentColor }: { op: HotendOpState; filamentColor: s
   // The asset bakes in a green filament bar; swap it for the real colour.
   const nozzleSrc = useNozzleImage(filamentColor);
   // Taking overlays the sleeve on the nozzle; Placing tucks it behind (Figma 1882:112011 / 1882:112034).
+  const arrowSrc = op === 'Taking' ? hotendTakingArrowUrl : hotendPlacingArrowUrl;
   const sleeve = (op === 'Taking' || op === 'Placing') ? (
     <img
       className={`hotend-placing-arrow hotend-placing-arrow-${op.toLowerCase()}`}
-      src={hotendPlacingArrowUrl}
+      src={arrowSrc}
       width={9}
       height={32}
       alt={op.toLowerCase()}

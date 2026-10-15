@@ -1,8 +1,6 @@
 import type { HotendRackStatus } from '../types';
 
-import rackHotendJobPreviewSvg from '../assets/rack_hotend_job_preview.svg?raw';
-
-const rackHotendJobPreviewUrl = `data:image/svg+xml;utf8,${encodeURIComponent(rackHotendJobPreviewSvg)}`;
+import rackHotendJobPreviewUrl from '../assets/rack_hotend_job_preview.png';
 
 export function HotendRackProgressVisual({ operation }: { operation?: HotendRackStatus['operation'] }) {
   const shouldShowPreview = operation === 'take'

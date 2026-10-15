@@ -5405,7 +5405,13 @@ Slic3r::DevPrintingSpeedLevel MachineObject::GetPrintingSpeedLevel() const
 
 bool MachineObject::is_target_slot_unload() const
 {
-    return m_extder_system->GetTargetSlotId().compare("255") == 0;
+    auto encoded_slot_vec = m_fila_system->GetEncodedChangingSlots();
+    for (const auto& encoded_slot : encoded_slot_vec) {
+        const int tar_second = DevUtil::get_flag_bits(encoded_slot, 0, 8);
+        return m_fila_system->IsVirtualTrayId(std::to_string(tar_second));
+    }
+
+    return m_fila_system->IsVirtualTrayId(m_extder_system->GetTargetSlotId());
 }
 
 Slic3r::DevAms* MachineObject::get_curr_Ams()
