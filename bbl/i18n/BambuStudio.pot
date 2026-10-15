@@ -19443,6 +19443,15 @@ msgstr ""
 msgid "Multi-diameter mode"
 msgstr ""
 
+msgid "Multi-diameter presets"
+msgstr ""
+
+msgid "Single-diameter presets"
+msgstr ""
+
+msgid "Multi-diameter"
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid "This filament does not support the %smm nozzle, or no matching nozzle is configured."
 msgstr ""

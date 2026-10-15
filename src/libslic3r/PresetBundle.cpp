@@ -2338,6 +2338,9 @@ void PresetBundle::save_changes_for_preset(const std::string& new_name, Preset::
         presets.get_edited_preset().config.apply_only(presets.get_selected_preset().config, unselected_options);
     }
 
+    if (type == Preset::TYPE_PRINT)
+        stamp_process_nozzle_diameter_mode();
+
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
     //BBS: add project embedded preset logic
     //presets.save_current_preset(new_name);
@@ -4354,6 +4357,34 @@ std::string PresetBundle::tray_diameter_for_filament_slot(size_t filament_index)
             first_match = diameter;
     }
     return first_match;
+}
+
+bool PresetBundle::supports_multi_nozzle_diameter_mode() const
+{
+    const Preset *printer_base = printers.get_preset_base(printers.get_edited_preset());
+    return printer_base != nullptr && printer_base->is_system && is_single_ext_multi_nozzle(printer_base->config);
+}
+
+void PresetBundle::stamp_process_nozzle_diameter_mode()
+{
+    std::string tag;
+    if (supports_multi_nozzle_diameter_mode())
+        tag = multi_nozzle_diameter_mode_enabled(project_config) ? process_nozzle_diameter_mode_multi() :
+                                                                   process_nozzle_diameter_mode_single();
+    prints.get_edited_preset().config.option<ConfigOptionString>("process_nozzle_diameter_mode", true)->value = tag;
+}
+
+const Preset *PresetBundle::find_system_multi_nozzle_printer_preset(const std::string &printer_model,
+                                                                    const std::string &printer_variant) const
+{
+    for (const Preset &preset : printers.get_presets()) {
+        if (preset.is_system &&
+            preset.config.opt_string("printer_model") == printer_model &&
+            preset.config.opt_string("printer_variant") == printer_variant &&
+            is_single_ext_multi_nozzle(preset.config))
+            return &preset;
+    }
+    return nullptr;
 }
 
 void PresetBundle::seed_filament_nozzles_for_multi_diameter(const std::string &fallback_diameter)

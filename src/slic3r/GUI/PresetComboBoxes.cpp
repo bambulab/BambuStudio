@@ -5,6 +5,8 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cmath>
+#include <optional>
+#include <set>
 #include <utility>
 #include <vector>
 #include <string>
@@ -202,6 +204,69 @@ static bool hidden_by_multi_nozzle_diameter_mode(const PresetBundle*     preset_
         return false;
     return supports_multi_nozzle_diameter_mode(collection, preset) &&
            !is_canonical_multi_nozzle_diameter_printer_preset(collection, preset);
+}
+
+// The other multi-diameter mode, as the process combo offers it: the mode stamp its user/project presets
+// carry, and the system printers a process of that mode is matched against - the canonical variant when
+// that mode is multi-diameter, the variant of every installed diameter when it is single-diameter.
+struct CrossModeContext
+{
+    bool                                 to_multi { false };
+    const char*                          mode_tag { nullptr };
+    std::vector<PresetWithVendorProfile> printers;
+};
+
+// No printers when the active printer cannot do multi-diameter, which turns the cross-mode items off altogether.
+static CrossModeContext cross_mode_context(const PresetBundle& bundle)
+{
+    CrossModeContext context;
+    if (!bundle.supports_multi_nozzle_diameter_mode())
+        return context;
+
+    context.to_multi = !multi_nozzle_diameter_mode_enabled(bundle.project_config);
+    context.mode_tag = context.to_multi ? process_nozzle_diameter_mode_multi() : process_nozzle_diameter_mode_single();
+
+    const PresetCollection& printers = bundle.printers;
+    const std::string printer_model =
+        printers.get_preset_base(printers.get_edited_preset())->config.opt_string("printer_model");
+    std::set<std::string> diameters;
+    if (context.to_multi)
+        diameters.insert(canonical_multi_nozzle_printer_variant());
+    else
+        for (const auto& variant : bundle.get_installed_nozzle_variants())
+            diameters.insert(variant.first);
+    for (const std::string& diameter : diameters)
+        if (const Preset* printer = bundle.find_system_multi_nozzle_printer_preset(printer_model, diameter))
+            context.printers.push_back(printers.get_preset_with_vendor_profile(*printer));
+    return context;
+}
+
+// The mode switch a process preset is offered as, if any. System presets serve both modes, so they can be
+// offered from either. A user/project preset belongs to the mode stamped on it and is only offered from the
+// other mode; an unstamped one, or one stamped for the current mode, keeps its old behaviour. Compatibility
+// is judged on the preset itself against the other mode's printers: the is_compatible flag is relative to
+// the active printer and says nothing here.
+static std::optional<MultiNozzleModeTarget> cross_mode_target(const PresetCollection& prints,
+                                                              const Preset&           preset,
+                                                              const CrossModeContext& context)
+{
+    if (context.printers.empty() || preset.is_default)
+        return std::nullopt;
+    if (!preset.is_system && process_nozzle_diameter_mode_tag(preset.config) != context.mode_tag)
+        return std::nullopt;
+
+    const PresetWithVendorProfile preset_with_vendor = prints.get_preset_with_vendor_profile(preset);
+    for (const PresetWithVendorProfile& printer : context.printers)
+        if (is_compatible_with_printer(preset_with_vendor, printer))
+            return MultiNozzleModeTarget{ preset.name, context.to_multi, printer.preset.config.opt_string("printer_variant") };
+    return std::nullopt;
+}
+
+// Label of a cross-mode item. System presets read the way the target mode lists them; user presets keep
+// their own name.
+static std::string cross_mode_item_label(const Preset& preset, const MultiNozzleModeTarget& target)
+{
+    return preset.is_system && target.to_multi ? multi_nozzle_process_preset_name(preset) : preset.name;
 }
 
 // ---------------------------------
@@ -2043,6 +2108,16 @@ void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
             });
         }
     }
+    else if (const auto target = m_item_mode_targets.find(selected_item); target != m_item_mode_targets.end()) {
+        // An item of the other multi-diameter mode: the combo keeps showing the preset in use, and the
+        // switch runs once this event is done, because it rebuilds this very combo.
+        this->SetSelection(m_last_selected);
+        const MultiNozzleModeTarget mode_target = target->second;
+        wxGetApp().CallAfter([mode_target]() {
+            wxGetApp().plater()->sidebar().select_process_across_multi_nozzle_mode(mode_target.process_name,
+                                                                                  mode_target.to_multi, mode_target.diameter);
+        });
+    }
     else if (on_selection_changed && (m_last_selected != selected_item || m_collection->current_is_dirty())) {
         m_last_selected = selected_item;
         // BBS: ams
@@ -2102,9 +2177,35 @@ void TabPresetComboBox::update()
         if (!preset) m_preset_bundle->physical_printers.unselect_printer();
     }
 
+    // Presets of the other multi-diameter mode, listed after the system presets. Picking one switches
+    // the mode instead of selecting the preset in place.
+    const CrossModeContext cross_mode = m_type == Preset::TYPE_PRINT ? cross_mode_context(*m_preset_bundle) : CrossModeContext();
+    struct CrossItem {
+        wxBitmap*             bitmap;
+        wxString              description;
+        MultiNozzleModeTarget target;
+    };
+    std::map<wxString, CrossItem> cross_user_presets;
+    std::map<wxString, CrossItem> cross_system_presets;
+
     for (size_t i = presets.front().is_visible ? 0 : m_collection->num_default_presets(); i < presets.size(); ++i)
     {
         const Preset& preset = presets[i];
+        const std::optional<MultiNozzleModeTarget> cross =
+            preset.is_visible ? cross_mode_target(*m_collection, preset, cross_mode) : std::nullopt;
+        if (cross) {
+            // The preset in use stays in the current list, so the combo always shows the selection; a user
+            // preset in use is therefore not offered a second time. Any other user/project preset offered as
+            // a switch leaves the current list. System presets serve both modes and stay in both.
+            const bool in_use = i == idx_selected;
+            if (preset.is_system || !in_use) {
+                auto &cross_presets = preset.is_system ? cross_system_presets : cross_user_presets;
+                cross_presets.emplace(from_u8(cross_mode_item_label(preset, *cross)),
+                                      CrossItem{get_bmp(preset), preset.is_system ? _L(preset.description) : wxString(), *cross});
+            }
+            if (!preset.is_system && !in_use)
+                continue;
+        }
         if (!preset.is_visible || (!show_incompatible && !preset.is_compatible && i != idx_selected))
             continue;
         // Same idx_selected exemption as above: keep the printer currently in use listed even while
@@ -2155,6 +2256,23 @@ void TabPresetComboBox::update()
     if (m_type == Preset::TYPE_FILAMENT)
         add_ams_filaments(into_u8(selected));
 
+    // Items are keyed by label, so a cross-mode label must not collide with a listed one (a user preset
+    // could be named like a relabelled system preset). The target mode in the suffix keeps it apart.
+    std::vector<std::pair<wxString, CrossItem>> cross_items;
+    {
+        std::set<wxString> used_labels(available_presets.begin(), available_presets.end());
+        for (const auto *cross_presets : {&cross_user_presets, &cross_system_presets})
+            for (const auto &[label, item] : *cross_presets) {
+                wxString unique_label = label;
+                if (used_labels.count(unique_label) > 0)
+                    unique_label += " (" + (item.target.to_multi ? _L("Multi-diameter") : from_u8(item.target.diameter)) + ")";
+                used_labels.insert(unique_label);
+                cross_items.emplace_back(unique_label, item);
+                // Where an item leads is part of what the list shows, so it takes part in the comparison below.
+                available_presets.push_back(unique_label + (item.target.to_multi ? " >multi " : " >single ") + from_u8(item.target.diameter));
+            }
+    }
+
     // workaround for updating too many times, which may casue ui flicking
     if(m_last_presets == available_presets && m_last_select_name == selected) return;
     m_last_presets = std::move(available_presets);
@@ -2163,6 +2281,7 @@ void TabPresetComboBox::update()
     Freeze();
     Clear();
     m_item_preset_names.clear();
+    m_item_mode_targets.clear();
     invalidate_selection();
 
     //BBS: add project embedded preset logic
@@ -2204,6 +2323,18 @@ void TabPresetComboBox::update()
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
             validate_selection(it->first == selected);
+        }
+    }
+    // The presets of the other multi-diameter mode. None of them is ever the selection, and they have no
+    // m_item_preset_names entry: preset_name_for_selection() must not be asked about them.
+    if (!cross_items.empty())
+    {
+        set_label_marker(Append(cross_mode.to_multi ? _L("Multi-diameter presets") : _L("Single-diameter presets"),
+                                wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        for (const auto &[label, item] : cross_items) {
+            int item_id = Append(label, *item.bitmap);
+            m_item_mode_targets.emplace(item_id, item.target);
+            SetItemTooltip(item_id, item.description);
         }
     }
 
@@ -2270,6 +2401,10 @@ void TabPresetComboBox::update_dirty()
     for (unsigned int ui_id = 0; ui_id < GetCount(); ++ui_id) {
         auto marker = reinterpret_cast<Marker>(this->GetClientData(ui_id));
         if (marker >= LABEL_ITEM_MARKER)
+            continue;
+        // Items of the other multi-diameter mode keep their label: the preset behind them is not the
+        // one in use, and the label says which mode the pick leads to.
+        if (m_item_mode_targets.count(ui_id) > 0)
             continue;
 
         std::string   old_label = GetString(ui_id).utf8_str().data();

@@ -19897,6 +19897,15 @@ msgstr "单口径模式"
 msgid "Multi-diameter mode"
 msgstr "多口径模式"
 
+msgid "Multi-diameter presets"
+msgstr "多口径预设"
+
+msgid "Single-diameter presets"
+msgstr "单口径预设"
+
+msgid "Multi-diameter"
+msgstr "多口径"
+
 #, c-format, boost-format
 msgid "This filament does not support the %smm nozzle, or no matching nozzle is configured."
 msgstr "该耗材不支持 %smm 喷嘴，或尚未配置匹配的喷嘴。"

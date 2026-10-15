@@ -7726,6 +7726,9 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
         return;
     }
 
+    if (m_type == Preset::TYPE_PRINT)
+        m_preset_bundle->stamp_process_nozzle_diameter_mode();
+
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
     m_presets->save_current_preset(name, detach, save_to_project, nullptr, &extra_map);
 

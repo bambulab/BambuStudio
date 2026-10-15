@@ -248,6 +248,15 @@ public:
 // ***  TabPresetComboBox  ***
 // ---------------------------------
 
+// A process combo item that belongs to the other multi-diameter mode: picking it switches the mode
+// (single-diameter lands on `diameter`, a printer_variant) and then selects process_name.
+struct MultiNozzleModeTarget
+{
+    std::string process_name;
+    bool        to_multi { false };
+    std::string diameter;
+};
+
 class TabPresetComboBox : public PresetComboBox
 {
     bool show_incompatible {false};
@@ -274,6 +283,8 @@ public:
 private:
     std::vector<wxString> m_last_presets;
     wxString m_last_select_name;
+    // Item index -> mode switch target, for the items listing the other multi-diameter mode's presets.
+    std::map<int, MultiNozzleModeTarget> m_item_mode_targets;
 };
 
 // ---------------------------------

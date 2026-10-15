@@ -141,6 +141,12 @@ bool multi_nozzle_diameter_mode_enabled(const ConfigOptionResolver &config)
     return opt != nullptr && opt->value;
 }
 
+std::string process_nozzle_diameter_mode_tag(const ConfigBase &config)
+{
+    const auto *opt = config.option<ConfigOptionString>("process_nozzle_diameter_mode");
+    return opt != nullptr ? opt->value : std::string();
+}
+
 namespace {
 template<typename T>
 T multi_nozzle_value(double nozzle_diameter, T preset_value, const std::array<T, 4> &values)
@@ -5445,6 +5451,11 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionString(""));
     //BBS: open this option to command line
     //def->cli = ConfigOptionDef::nocli;
+
+    // Stamped on user/project process presets when they are saved; not shown on any settings page.
+    def = this->add("process_nozzle_diameter_mode", coString);
+    def->set_default_value(new ConfigOptionString(""));
+    def->cli = ConfigOptionDef::nocli;
 
     def = this->add("printer_settings_id", coString);
     def->set_default_value(new ConfigOptionString(""));

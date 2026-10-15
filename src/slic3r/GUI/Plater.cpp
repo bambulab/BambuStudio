@@ -1004,7 +1004,7 @@ struct Sidebar::priv
     void layout_printer(bool isBBL, NozzleLayout layout);
     void update_extruder_panel();
     void open_extruder_settings_dialog(const wxString &preselect_diameter = wxString());
-    bool apply_multi_nozzle_diameter_mode(bool enabled);
+    bool apply_multi_nozzle_diameter_mode(bool enabled, const std::optional<std::string> &single_printer = std::nullopt);
     void stash_multi_nozzle_auto_process_edits();
     void restore_multi_nozzle_auto_process_edits();
     void apply_migration_diameter_mode(const PendingNozzleMigration &migration);
@@ -1979,19 +1979,13 @@ NozzleVolumeType Sidebar::priv::derive_volume_type_from_full_stat(int extruder_i
     return NozzleVolumeType::nvtStandard;
 }
 
-// The system printer preset of printer_model at printer_variant, but only when that preset is a
-// single-extruder multi-nozzle machine - the only kind multi-diameter mode can anchor on.
+// Mutable lookup over PresetBundle::find_system_multi_nozzle_printer_preset(); callers force the
+// preset visible before selecting it.
 static Preset *find_system_multi_nozzle_printer_preset(const std::string &printer_model, const std::string &printer_variant)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    for (const Preset &preset : preset_bundle->printers.get_presets()) {
-        if (preset.is_system &&
-            preset.config.opt_string("printer_model") == printer_model &&
-            preset.config.opt_string("printer_variant") == printer_variant &&
-            is_single_ext_multi_nozzle(preset.config))
-            return preset_bundle->printers.find_preset(preset.name, false);
-    }
-    return nullptr;
+    const Preset *preset = preset_bundle->find_system_multi_nozzle_printer_preset(printer_model, printer_variant);
+    return preset != nullptr ? preset_bundle->printers.find_preset(preset->name, false) : nullptr;
 }
 
 static bool select_system_multi_nozzle_printer_preset(const std::string &printer_variant)
@@ -2088,24 +2082,31 @@ static void reload_print_tab_from_edited_preset()
     }
 }
 
-// Unsaved process edits only carry over into multi-diameter mode when it is turned on from the canonical
-// printer variant and auto_transfer_when_switch_preset is enabled. Otherwise they are dropped silently
-// before the switch: from a non-canonical variant the process was tuned for another nozzle, and leaving
-// them to the printer switch would offer them for transfer.
-static void discard_process_edits_before_multi_nozzle_mode()
+// Unsaved process edits only follow a multi-diameter mode switch between canonical printer variants, and
+// only when auto_transfer_when_switch_preset is enabled. Otherwise they are dropped silently, so the
+// printer or process switch that follows has nothing left to offer for transfer: on any other variant the
+// process was tuned for another nozzle.
+static void discard_process_edits_unless_carried_by_multi_nozzle_mode(const std::string &printer_variant)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (!preset_bundle->prints.current_is_dirty())
         return;
-    const Preset *base = preset_bundle->printers.get_preset_base(preset_bundle->printers.get_edited_preset());
-    if (base == nullptr || !base->is_system || !is_single_ext_multi_nozzle(base->config))
-        return;
-    if (base->config.opt_string("printer_variant") == canonical_multi_nozzle_printer_variant() &&
+    if (printer_variant == canonical_multi_nozzle_printer_variant() &&
         wxGetApp().app_config->get("auto_transfer_when_switch_preset") == "true")
         return;
 
     preset_bundle->prints.discard_current_changes();
     reload_print_tab_from_edited_preset();
+}
+
+// Turning multi-diameter mode on lands on the canonical variant, so only the variant it starts from decides.
+static void discard_process_edits_before_multi_nozzle_mode()
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle->supports_multi_nozzle_diameter_mode())
+        return;
+    const Preset *base = preset_bundle->printers.get_preset_base(preset_bundle->printers.get_edited_preset());
+    discard_process_edits_unless_carried_by_multi_nozzle_mode(base->config.opt_string("printer_variant"));
 }
 
 // Auto options keep their single-diameter edits out of the multi-diameter process: there they are
@@ -2153,8 +2154,9 @@ void Sidebar::priv::restore_multi_nozzle_auto_process_edits()
 // every intermediate state legal: turning the gate on writes it only once the canonical printer is
 // active, turning it off writes it before the single-diameter printer is selected. Turning it on also
 // records where to return to, which turning it off then consumes. Returns whether the project ended
-// up in the requested mode.
-bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled)
+// up in the requested mode. single_printer names the printer preset turning the gate off lands on;
+// without it that is the remembered return point.
+bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled, const std::optional<std::string> &single_printer)
 {
     auto *option = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode");
     if (option == nullptr)
@@ -2173,7 +2175,8 @@ bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled)
         stash_multi_nozzle_auto_process_edits();
     } else {
         option->value = false;
-        if (!select_printer_preset_for_multi_nozzle_mode(false, m_printer_preset_before_multi_diameter)) {
+        const std::optional<std::string> &restore_target = single_printer ? single_printer : m_printer_preset_before_multi_diameter;
+        if (!select_printer_preset_for_multi_nozzle_mode(false, restore_target)) {
             // select_preset() rebuilt the combos under the abandoned mode before reporting failure,
             // so they need another pass once the gate is back to its previous value. The return point
             // is kept so a later attempt can still use it.
@@ -2725,6 +2728,11 @@ void Sidebar::priv::update_extruder_full_stats(int extruder_id, wxString diamete
     // extruder_full_stat is the source of truth for app_config[nozzle_volume_types]. This is the single
     // write funnel for genuine changes (ExtruderSettings dialog OK + machine sync), so persist here.
     preset_bundle->save_current_nozzle_volume_types_to_app_config(*wxGetApp().app_config);
+
+    // In multi-diameter mode the process combo lists the single-diameter presets of every installed
+    // diameter, so a change of the installed nozzles changes that list.
+    if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
+        print_tab->update_preset_choice();
 }
 
 void Sidebar::priv::reset_all_nozzle_status()
@@ -3993,137 +4001,7 @@ Sidebar::Sidebar(Plater *parent)
         p->diameter_btns->SetMultiDiameterMode(
             multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config));
         p->diameter_btns->SetMultiDiameterModeCallback([this](bool enabled) {
-            PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-            const bool previous_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
-            if (previous_mode == enabled)
-                return;
-            // Guard raised before apply_multi_nozzle_diameter_mode(), not just before the
-            // validate_filament_nozzle_diameter_selections()/update_compatible() pair below: turning
-            // multi-diameter mode ON forces the printer preset over to the canonical "0.2" variant
-            // (select_printer_preset_for_multi_nozzle_mode -> select_system_multi_nozzle_printer_preset),
-            // and that preset switch runs Tab::select_preset() -> PresetBundle::update_compatible(Always)
-            // *inside* apply_multi_nozzle_diameter_mode() -- before this point. A filament incompatible
-            // with 0.2 (e.g. PA6-GF) would get silently substituted there, before the later guarded pair
-            // ever runs. Cleared at the end of this lambda, after update_presets(TYPE_FILAMENT)/
-            // on_config_change (which can indirectly re-run validation too) have both completed.
-            preset_bundle->block_filament_fallback_substitution = true;
-            // apply_multi_nozzle_diameter_mode() internally calls select_preset() on the printer tab
-            // (see the comment above), which cascades into the same premature filament-nozzle
-            // validation that is_switching_diameter guards elsewhere (see its declaration) -- the
-            // call sites it protects would otherwise run against stale extruder_full_stat/project
-            // config before this lambda's own validate_filament_nozzle_diameter_selections()/
-            // update_presets(TYPE_FILAMENT) pass below runs with the real, settled data.
-            // Capture the single-diameter printer_variant before that switch lands on canonical 0.4,
-            // so the first toggle-ON can pin every slot to it instead of the smallest remaining option.
-            const std::string diameter_before = enabled ?
-                format_diameter_to_str(string_to_double_decimal_point(
-                    preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant").c_str())) :
-                std::string();
-            p->is_switching_diameter = true;
-            bool mode_applied = p->apply_multi_nozzle_diameter_mode(enabled);
-            p->is_switching_diameter = false;
-            if (!mode_applied) {
-                p->diameter_btns->SetMultiDiameterMode(previous_mode);
-                preset_bundle->block_filament_fallback_substitution = false;
-                return;
-            }
-
-            if (enabled) {
-                for (auto &plate_custom_gcodes : wxGetApp().plater()->model().plates_custom_gcodes) {
-                    auto &gcodes = plate_custom_gcodes.second.gcodes;
-                    gcodes.erase(std::remove_if(gcodes.begin(), gcodes.end(),
-                                               [](const CustomGCode::Item &item) {
-                                                   return item.type == CustomGCode::Type::ToolChange;
-                                               }),
-                                 gcodes.end());
-                }
-            }
-
-            // Before validate_filament_nozzle_diameter_selections() clears per-slot state on the
-            // toggle-OFF path, snapshot the current values so they can be restored on a later toggle-
-            // ON within the same session. Without this, switching multi-diameter off and back on
-            // loses everything the user set in the nozzle popup.
-            if (!enabled) {
-                const auto *sel = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
-                const auto *vol = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
-                p->m_saved_selected_nozzle_diameters = sel ? sel->values : std::vector<std::string>{};
-                p->m_saved_filament_volume_map       = vol ? vol->values : std::vector<int>{};
-                p->m_saved_per_slot_valid            = true;
-                // apply_multi_nozzle_diameter_mode(false) has already put the printer preset back on
-                // its single-diameter variant, so this reads the diameter the snapshot is leaving the
-                // project on -- the one a later toggle-ON must still find for the snapshot to apply.
-                p->m_saved_diameter_at_snapshot      = format_diameter_to_str(atof(
-                    preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant").c_str()));
-            }
-
-            // A snapshot only describes the project the user is coming back to if the single diameter
-            // has not moved since it was taken. Changing it while the mode was OFF makes the snapshot
-            // describe a different nozzle layout, and restoring it would park slots on a diameter the
-            // machine is no longer set to -- a slot whose filament cannot serve the new diameter would
-            // then show the old one while still being flagged, which reads as a contradiction. Drop a
-            // stale snapshot and seed from the current diameter instead, so the row shows what the
-            // machine is actually on and the red mark explains itself.
-            if (enabled && p->m_saved_per_slot_valid && !diameter_before.empty() &&
-                p->m_saved_diameter_at_snapshot != diameter_before) {
-                p->m_saved_per_slot_valid = false;
-                p->m_saved_selected_nozzle_diameters.clear();
-                p->m_saved_filament_volume_map.clear();
-            }
-
-            // First single -> multi toggle: there is no per-slot snapshot to restore, and
-            // filament_diameter_map is typically empty in single-diameter mode. Pin every physical
-            // slot to the diameter captured above and the first printable flow for that diameter
-            // before validate runs, otherwise empty slots fall through to options.front().
-            if (enabled && !p->m_saved_per_slot_valid && !diameter_before.empty() &&
-                is_single_ext_multi_nozzle(preset_bundle->printers.get_edited_preset().config))
-                preset_bundle->seed_filament_nozzles_for_multi_diameter(diameter_before);
-
-            // The printer preset is already the one this mode needs, so the diameter buttons are
-            // left to update_presets(TYPE_PRINTER) below, which derives them from printer_variant.
-            // block_filament_fallback_substitution is already raised above (before
-            // apply_multi_nozzle_diameter_mode()); it stays up through this pass too.
-            preset_bundle->validate_filament_nozzle_diameter_selections();
-            preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
-
-            sync_custom_map_mode_with_diameter_mode();
-
-            // On toggle-ON, restore the per-slot snapshot captured at the previous toggle-OFF (if any).
-            // Truncate/pad to current filament_presets size in case the user added/removed slots while
-            // the mode was off. Runs after validate/update_compatible above so the restored values
-            // aren't wiped by them.
-            if (enabled && p->m_saved_per_slot_valid) {
-                const size_t n_slots = preset_bundle->filament_presets.size();
-                auto *sel = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
-                if (sel) {
-                    sel->values.resize(n_slots);
-                    for (size_t i = 0; i < n_slots && i < p->m_saved_selected_nozzle_diameters.size(); ++i)
-                        sel->values[i] = p->m_saved_selected_nozzle_diameters[i];
-                }
-                auto *vol = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
-                if (vol) {
-                    vol->values.resize(n_slots, (int) NozzleVolumeType::nvtStandard);
-                    for (size_t i = 0; i < n_slots && i < p->m_saved_filament_volume_map.size(); ++i)
-                        vol->values[i] = p->m_saved_filament_volume_map[i];
-                }
-                p->m_saved_per_slot_valid = false;
-                p->m_saved_selected_nozzle_diameters.clear();
-                p->m_saved_filament_volume_map.clear();
-                p->m_saved_diameter_at_snapshot.clear();
-                // Re-derive per-plate maps from the restored state (mirrors what the popup does on
-                // any user-driven change), so filament_maps / filament_volume_maps / filament_nozzle_maps
-                // reflect the restored diameters, not the transient cleared state.
-                apply_nozzle_manual_maps_to_plates();
-            } else if (enabled) {
-                apply_nozzle_manual_maps_to_plates();
-            }
-            update_presets(Preset::TYPE_FILAMENT);
-            wxGetApp().plater()->update_project_dirty_from_presets();
-            wxGetApp().plater()->on_config_change(preset_bundle->full_config());
-            preset_bundle->block_filament_fallback_substitution = false;
-
-            // The per-nozzle prime tower options are only listed in multi-diameter mode.
-            if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
-                print_tab->update_toggled_lines();
+            switch_multi_nozzle_diameter_mode(enabled);
         });
         p->diameter_btns->SetNozzleQueryCallback([this](const wxString &query_diameter) -> bool {
             PresetBundle *preset_bundle     = wxGetApp().preset_bundle;
@@ -5534,6 +5412,253 @@ void Sidebar::sync_multi_nozzle_mode_from_project()
         << ", printer_variant_after="
         << preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
     refresh_filament_diameter_buttons();
+}
+
+// Lands the project on the process preset a cross-mode pick asked for. Runs once the printer preset has
+// been switched, so the preset is compatible with the machine it is selected on; a process that is
+// already the edited one needs nothing.
+static void select_process_after_multi_nozzle_mode_switch(const std::string &process_name)
+{
+    PresetCollection &prints    = wxGetApp().preset_bundle->prints;
+    Tab              *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
+    if (print_tab == nullptr || process_name == prints.get_edited_preset().name)
+        return;
+    if (prints.find_preset(process_name, false) == nullptr) {
+        BOOST_LOG_TRIVIAL(warning) << "process preset not found after the mode switch: " << process_name;
+        return;
+    }
+    if (!print_tab->select_preset(process_name))
+        BOOST_LOG_TRIVIAL(warning) << "could not select the process preset after the mode switch: " << process_name;
+}
+
+// Whether the edited process is a user/project preset saved for the multi-diameter mode opposite to the
+// one the project has just switched to. Such a preset cannot be picked again in the new mode without
+// switching back, so it should not stay in use there.
+static bool edited_process_belongs_to_other_multi_nozzle_mode(bool switched_to_multi)
+{
+    const Preset &process = wxGetApp().preset_bundle->prints.get_edited_preset();
+    if (process.is_system || process.is_default)
+        return false;
+    return process_nozzle_diameter_mode_tag(process.config) ==
+           (switched_to_multi ? process_nozzle_diameter_mode_single() : process_nozzle_diameter_mode_multi());
+}
+
+// Replaces the edited process with the default process of the machine the new mode landed on. Unsaved
+// edits follow it only where a process switch carries them anyway: canonical machine, auto transfer on.
+static void replace_process_with_machine_default_after_multi_nozzle_mode_switch()
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    const Preset &printer       = preset_bundle->printers.get_edited_preset();
+    const Preset *fallback      = preset_bundle->prints.find_preset(printer.config.opt_string("default_print_profile"), false);
+    if (fallback == nullptr || !fallback->is_compatible) {
+        BOOST_LOG_TRIVIAL(warning) << "no default process to replace " << preset_bundle->prints.get_edited_preset().name
+                                   << " after the mode switch";
+        return;
+    }
+    discard_process_edits_unless_carried_by_multi_nozzle_mode(printer.config.opt_string("printer_variant"));
+    select_process_after_multi_nozzle_mode_switch(fallback->name);
+}
+
+// The whole multi-diameter mode switch, behind the mode selector. Kept as one function so that every
+// entry that has to switch the mode runs exactly the same steps.
+bool Sidebar::switch_multi_nozzle_diameter_mode(bool enabled, const std::string &process_after,
+                                                const std::optional<std::string> &single_printer)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    const bool previous_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
+    if (previous_mode == enabled)
+        return true;
+    // Guard raised before apply_multi_nozzle_diameter_mode(), not just before the
+    // validate_filament_nozzle_diameter_selections()/update_compatible() pair below: turning
+    // multi-diameter mode ON forces the printer preset over to the canonical "0.2" variant
+    // (select_printer_preset_for_multi_nozzle_mode -> select_system_multi_nozzle_printer_preset),
+    // and that preset switch runs Tab::select_preset() -> PresetBundle::update_compatible(Always)
+    // *inside* apply_multi_nozzle_diameter_mode() -- before this point. A filament incompatible
+    // with 0.2 (e.g. PA6-GF) would get silently substituted there, before the later guarded pair
+    // ever runs. Cleared at the end of this function, after update_presets(TYPE_FILAMENT)/
+    // on_config_change (which can indirectly re-run validation too) have both completed.
+    preset_bundle->block_filament_fallback_substitution = true;
+    // apply_multi_nozzle_diameter_mode() internally calls select_preset() on the printer tab
+    // (see the comment above), which cascades into the same premature filament-nozzle
+    // validation that is_switching_diameter guards elsewhere (see its declaration) -- the
+    // call sites it protects would otherwise run against stale extruder_full_stat/project
+    // config before this function's own validate_filament_nozzle_diameter_selections()/
+    // update_presets(TYPE_FILAMENT) pass below runs with the real, settled data.
+    // Capture the single-diameter printer_variant before that switch lands on canonical 0.4,
+    // so the first toggle-ON can pin every slot to it instead of the smallest remaining option.
+    const std::string diameter_before = enabled ?
+        format_diameter_to_str(string_to_double_decimal_point(
+            preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant").c_str())) :
+        std::string();
+    p->is_switching_diameter = true;
+    bool mode_applied = p->apply_multi_nozzle_diameter_mode(enabled, single_printer);
+    // The requested process is selected here, with both guards still up: select_preset() runs
+    // update_compatible() for the filaments, and the validation below is then done against the
+    // final process instead of the one the machine switch happened to leave behind.
+    if (mode_applied && !process_after.empty()) {
+        select_process_after_multi_nozzle_mode_switch(process_after);
+    } else if (mode_applied && edited_process_belongs_to_other_multi_nozzle_mode(enabled)) {
+        // No process was asked for, and the one in use was saved for the mode just left. A machine switch
+        // that made it incompatible has already replaced it, so this only catches one that still fits.
+        replace_process_with_machine_default_after_multi_nozzle_mode_switch();
+    }
+    p->is_switching_diameter = false;
+    if (!mode_applied) {
+        p->diameter_btns->SetMultiDiameterMode(previous_mode);
+        preset_bundle->block_filament_fallback_substitution = false;
+        return false;
+    }
+
+    if (enabled) {
+        for (auto &plate_custom_gcodes : wxGetApp().plater()->model().plates_custom_gcodes) {
+            auto &gcodes = plate_custom_gcodes.second.gcodes;
+            gcodes.erase(std::remove_if(gcodes.begin(), gcodes.end(),
+                                       [](const CustomGCode::Item &item) {
+                                           return item.type == CustomGCode::Type::ToolChange;
+                                       }),
+                         gcodes.end());
+        }
+    }
+
+    // Before validate_filament_nozzle_diameter_selections() clears per-slot state on the
+    // toggle-OFF path, snapshot the current values so they can be restored on a later toggle-
+    // ON within the same session. Without this, switching multi-diameter off and back on
+    // loses everything the user set in the nozzle popup.
+    if (!enabled) {
+        const auto *sel = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
+        const auto *vol = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
+        p->m_saved_selected_nozzle_diameters = sel ? sel->values : std::vector<std::string>{};
+        p->m_saved_filament_volume_map       = vol ? vol->values : std::vector<int>{};
+        p->m_saved_per_slot_valid            = true;
+        // apply_multi_nozzle_diameter_mode(false) has already put the printer preset back on
+        // its single-diameter variant, so this reads the diameter the snapshot is leaving the
+        // project on -- the one a later toggle-ON must still find for the snapshot to apply.
+        p->m_saved_diameter_at_snapshot      = format_diameter_to_str(atof(
+            preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant").c_str()));
+    }
+
+    // A snapshot only describes the project the user is coming back to if the single diameter
+    // has not moved since it was taken. Changing it while the mode was OFF makes the snapshot
+    // describe a different nozzle layout, and restoring it would park slots on a diameter the
+    // machine is no longer set to -- a slot whose filament cannot serve the new diameter would
+    // then show the old one while still being flagged, which reads as a contradiction. Drop a
+    // stale snapshot and seed from the current diameter instead, so the row shows what the
+    // machine is actually on and the red mark explains itself.
+    if (enabled && p->m_saved_per_slot_valid && !diameter_before.empty() &&
+        p->m_saved_diameter_at_snapshot != diameter_before) {
+        p->m_saved_per_slot_valid = false;
+        p->m_saved_selected_nozzle_diameters.clear();
+        p->m_saved_filament_volume_map.clear();
+    }
+
+    // First single -> multi toggle: there is no per-slot snapshot to restore, and
+    // filament_diameter_map is typically empty in single-diameter mode. Pin every physical
+    // slot to the diameter captured above and the first printable flow for that diameter
+    // before validate runs, otherwise empty slots fall through to options.front().
+    if (enabled && !p->m_saved_per_slot_valid && !diameter_before.empty() &&
+        is_single_ext_multi_nozzle(preset_bundle->printers.get_edited_preset().config))
+        preset_bundle->seed_filament_nozzles_for_multi_diameter(diameter_before);
+
+    // The printer preset is already the one this mode needs, so the diameter buttons are
+    // left to update_presets(TYPE_PRINTER) below, which derives them from printer_variant.
+    // block_filament_fallback_substitution is already raised above (before
+    // apply_multi_nozzle_diameter_mode()); it stays up through this pass too.
+    preset_bundle->validate_filament_nozzle_diameter_selections();
+    preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+
+    sync_custom_map_mode_with_diameter_mode();
+
+    // On toggle-ON, restore the per-slot snapshot captured at the previous toggle-OFF (if any).
+    // Truncate/pad to current filament_presets size in case the user added/removed slots while
+    // the mode was off. Runs after validate/update_compatible above so the restored values
+    // aren't wiped by them.
+    if (enabled && p->m_saved_per_slot_valid) {
+        const size_t n_slots = preset_bundle->filament_presets.size();
+        auto *sel = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
+        if (sel) {
+            sel->values.resize(n_slots);
+            for (size_t i = 0; i < n_slots && i < p->m_saved_selected_nozzle_diameters.size(); ++i)
+                sel->values[i] = p->m_saved_selected_nozzle_diameters[i];
+        }
+        auto *vol = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
+        if (vol) {
+            vol->values.resize(n_slots, (int) NozzleVolumeType::nvtStandard);
+            for (size_t i = 0; i < n_slots && i < p->m_saved_filament_volume_map.size(); ++i)
+                vol->values[i] = p->m_saved_filament_volume_map[i];
+        }
+        p->m_saved_per_slot_valid = false;
+        p->m_saved_selected_nozzle_diameters.clear();
+        p->m_saved_filament_volume_map.clear();
+        p->m_saved_diameter_at_snapshot.clear();
+        // Re-derive per-plate maps from the restored state (mirrors what the popup does on
+        // any user-driven change), so filament_maps / filament_volume_maps / filament_nozzle_maps
+        // reflect the restored diameters, not the transient cleared state.
+        apply_nozzle_manual_maps_to_plates();
+    } else if (enabled) {
+        apply_nozzle_manual_maps_to_plates();
+    }
+    update_presets(Preset::TYPE_FILAMENT);
+    wxGetApp().plater()->update_project_dirty_from_presets();
+    wxGetApp().plater()->on_config_change(preset_bundle->full_config());
+    preset_bundle->block_filament_fallback_substitution = false;
+
+    // The mode selector is not the only entry, so it does not necessarily show the new mode yet.
+    // This does not fire the selector callback.
+    p->diameter_btns->SetMultiDiameterMode(enabled);
+
+    // The per-nozzle prime tower options are only listed in multi-diameter mode.
+    if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
+        print_tab->update_toggled_lines();
+    return true;
+}
+
+void Sidebar::select_process_across_multi_nozzle_mode(const std::string &process_name, bool to_multi, const std::string &diameter)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    Tab          *print_tab     = wxGetApp().get_tab(Preset::TYPE_PRINT);
+    if (print_tab == nullptr)
+        return;
+
+    // The combo can be out of date: when the project is already in the mode this process belongs to,
+    // there is nothing to switch and the pick is an ordinary one.
+    if (multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) == to_multi) {
+        print_tab->select_preset(process_name);
+        return;
+    }
+
+    // Another process is the destination, so edits to the current one have no place to go, and what was
+    // stashed belongs to the process being left: restoring it must not touch the next one. Entering
+    // multi-diameter mode already deals with both in apply_multi_nozzle_diameter_mode(). Picking the
+    // process already in use only switches the mode, exactly as the mode selector does.
+    if (!to_multi && process_name != preset_bundle->prints.get_edited_preset().name) {
+        discard_process_edits_unless_carried_by_multi_nozzle_mode(diameter);
+        p->m_process_auto_cache.reset();
+    }
+
+    // Leaving multi-diameter lands on the machine of the picked process's diameter: the remembered
+    // return point when it already has that diameter (that keeps a machine preset the user made), else
+    // the system machine of the same model.
+    std::optional<std::string> single_printer;
+    if (!to_multi) {
+        const Preset *printer_base = preset_bundle->printers.get_preset_base(preset_bundle->printers.get_edited_preset());
+        const std::string printer_model = printer_base != nullptr ? printer_base->config.opt_string("printer_model") : std::string();
+        const Preset *remembered = p->m_printer_preset_before_multi_diameter ?
+            find_restorable_printer_preset(*p->m_printer_preset_before_multi_diameter, printer_model) : nullptr;
+        if (remembered != nullptr && remembered->config.opt_string("printer_variant") == diameter) {
+            single_printer = remembered->name;
+        } else if (const Preset *system_printer = preset_bundle->find_system_multi_nozzle_printer_preset(printer_model, diameter)) {
+            single_printer = system_printer->name;
+        } else {
+            BOOST_LOG_TRIVIAL(warning) << "no " << printer_model << " printer for diameter " << diameter;
+            print_tab->update_preset_choice();
+            return;
+        }
+    }
+
+    // A failed switch only comes from a prompt the user cancelled. The mode selector is rolled back by
+    // then, so only the process combo has to be brought back in line.
+    if (!switch_multi_nozzle_diameter_mode(to_multi, process_name, single_printer))
+        print_tab->update_preset_choice();
 }
 
 void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)

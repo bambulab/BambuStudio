@@ -164,6 +164,24 @@ class Sidebar : public wxPanel
      */
     SyncResult run_sync_dialog(bool deferrable);
 
+    /**
+     * \brief Switch multi-diameter mode, running every follow-up step the mode selector needs.
+     *
+     * Moves the printer preset and writes the mode, keeps or restores the per-slot nozzle selections and
+     * refreshes everything that reads the mode. The mode selector is rolled back when the switch fails.
+     *
+     * \param enabled         the mode to switch to
+     * \param process_after   process preset to land on once the mode has switched. It is selected while the
+     *                        filament guards are still up. Empty keeps the process the switch ends up with,
+     *                        except a user/project process saved for the mode just left: that one gives way
+     *                        to the default process of the machine the new mode landed on.
+     * \param single_printer  printer preset to land on when leaving multi-diameter, nothing for the
+     *                        remembered return point
+     * \return whether the project ended up in the requested mode
+     */
+    bool switch_multi_nozzle_diameter_mode(bool enabled, const std::string &process_after = {},
+                                           const std::optional<std::string> &single_printer = std::nullopt);
+
 public:
     enum DockingState { None, Left, Right };
     Sidebar(Plater *parent);
@@ -181,6 +199,17 @@ public:
     void remove_unused_filament_combos(const size_t current_extruder_count);
     void refresh_filament_diameter_buttons(bool validate_selections = false);
     void sync_multi_nozzle_mode_from_project();
+    /**
+     * \brief Pick a process preset that belongs to the other multi-diameter mode.
+     *
+     * Switches the mode the way the mode selector does, then selects the process on the machine the new
+     * mode needs. Picking the preset already in use only switches the mode.
+     *
+     * \param process_name  the process preset to land on
+     * \param to_multi      the mode the preset belongs to, i.e. the mode to switch to
+     * \param diameter      printer_variant the single-diameter mode lands on; ignored when \p to_multi
+     */
+    void select_process_across_multi_nozzle_mode(const std::string &process_name, bool to_multi, const std::string &diameter);
     void set_bed_by_curr_bed_type(AppConfig *config);
     void update_all_preset_comboboxes();
     //void update_partplate(PartPlateList& list);
