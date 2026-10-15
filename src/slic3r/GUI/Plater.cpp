@@ -14840,14 +14840,15 @@ std::string Plater::priv::push_validation_warning(StringObjectException const &w
 
 // filament_volume_map carries two different meanings. In the auto modes it is the grouping *result*:
 // it gets cached on the plate after a slice and fed back on the next apply so a finished slice is not
-// invalidated. Under fmmNozzleManual with multi-diameter mode on it is instead the per-filament flow
-// the user picked in the filament list, and project_config owns it. Letting the per-plate cache win
-// there pins every slice to whatever flow the previous slice happened to derive, so the user's choice
-// never reaches the grouping solver -- and the filament parameters resolve against the wrong extruder
-// variant as well, since full_fff_config() picks the variant from this same map.
+// invalidated. On single-extruder multi-nozzle machines with multi-diameter mode on it is instead the
+// per-filament flow the user picked in the filament list, and project_config owns it. Letting the
+// per-plate cache win there pins every slice to whatever flow the previous slice happened to derive,
+// so the user's choice never reaches the grouping solver -- and the filament parameters resolve
+// against the wrong extruder variant as well, since full_fff_config() picks the variant from this
+// same map.
 static std::vector<int> resolve_filament_volume_maps_for_apply(PresetBundle *preset_bundle, PartPlate *plate, std::vector<int> &f_maps)
 {
-    if (plate->get_real_filament_map_mode(preset_bundle->project_config) == FilamentMapMode::fmmNozzleManual &&
+    if (is_single_ext_multi_nozzle(preset_bundle->printers.get_edited_preset().config) &&
         multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
         const auto *global = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
         if (global != nullptr && !global->values.empty())

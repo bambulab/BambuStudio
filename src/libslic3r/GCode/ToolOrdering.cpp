@@ -1828,15 +1828,13 @@ FilamentGroupContext build_filament_group_context(
     context.group_info.has_filament_switcher = print_config.has_filament_switcher.value;
     auto used_filaments = collect_sorted_used_filaments(layer_filaments);
 
-    // fmmManual and fmmNozzleManual both carry a per-filament flow the user actually picked (the latter
-    // from the filament list's nozzle selector on single-extruder multi-nozzle machines), so it is a hard
-    // constraint. Auto modes must stay on Hybrid: there filament_volume_map is the grouping *result*
-    // written back after a slice, and feeding it back in would pin every later run to the old assignment.
-    // fmmNozzleManual is additionally gated on the multi-diameter project setting, because that is the
-    // only state whose UI offers the per-filament selector. A project that had the mode on and then
-    // turned it off keeps a stale flow selection that must not become a hard constraint.
+    // On single-extruder multi-nozzle machines with multi-diameter mode enabled, the filament list
+    // exposes a per-filament nozzle selector in every map mode, so filament_volume_map is the flow
+    // the user picked (as in fmmManual) and acts as a hard constraint. Otherwise auto modes must
+    // stay on Hybrid: there filament_volume_map is the grouping *result* written back after a slice,
+    // and feeding it back in would pin every later run to the old assignment.
     const bool user_selected_nozzle_flow = mode == FilamentMapMode::fmmManual ||
-        (mode == FilamentMapMode::fmmNozzleManual && multi_nozzle_diameter_mode_enabled(print->full_print_config()));
+        (single_ext_multi_nozzle && multi_nozzle_diameter_mode_enabled(print->full_print_config()));
     if (user_selected_nozzle_flow) {
         context.group_info.filament_volume_map = print_config.filament_volume_map.values;
         // Consumers index this by filament id without bounds checks. Hybrid is the right padding: it
@@ -1972,8 +1970,8 @@ FilamentGroupContext build_filament_group_context(
             // unit of exactly that spec, so pad each spec's shortfall from one of its real nozzles.
             // These are virtual filaments that get mapped onto physical trays when the print starts, so
             // one filament per capacity-1 slot is what makes their mutual flush correctly zero.
-            // Auto modes leave every flow on Hybrid, so nothing lands here and the total-count fallback
-            // below keeps its existing behavior.
+            // Auto modes leave every flow on Hybrid unless multi-diameter mode is on; otherwise nothing
+            // lands here and the total-count fallback below keeps its existing behavior.
             {
                 using NozzleSpec = std::pair<std::string, int>;
                 std::map<NozzleSpec, int> spec_demand;

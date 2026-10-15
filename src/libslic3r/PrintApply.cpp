@@ -1418,7 +1418,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 old_opt->set(new_opt);
                 m_config.filament_map = *new_opt;
             }
-            if (print_diff_set.find("filament_volume_map") != print_diff_set.end()) {
+            // With multi-diameter mode on a single-extruder multi-nozzle machine the flow is the user's
+            // per-filament selection rather than a grouping result, so a change must regroup.
+            if (print_diff_set.find("filament_volume_map") != print_diff_set.end() &&
+                !(is_single_ext_multi_nozzle(new_full_config) && multi_nozzle_diameter_mode_enabled(new_full_config))) {
                 print_diff_set.erase("filament_volume_map");
                 //full_config_diff.erase("filament_volume_map");
                 ConfigOptionInts* old_opt = m_full_print_config.option<ConfigOptionInts>("filament_volume_map", true);
