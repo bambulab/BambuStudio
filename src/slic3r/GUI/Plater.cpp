@@ -14741,6 +14741,12 @@ std::vector<FilamentGroupUtils::NozzleLoadedFilamentInfo> Plater::priv::get_nozz
                 trays.emplace_back(ams_id, slot_id, *tray);
         }
 
+        // 补充采集固定喷嘴绑定的预装 AMS 槽位耗材（例如当前进料为外挂料时，其 H3 AMS 对应槽位上的预装耗材也一并参与匹配，后续由 emitted_slots 去重）。
+        for (const auto &[ams_id, slot_id] : dev_nozzle.GetPreloadBindAmsSlots()) {
+            if (auto tray = obj->get_tray(ams_id, slot_id))
+                trays.emplace_back(ams_id, slot_id, *tray);
+        }
+
         if (auto fila_system = obj->GetFilaSystem()) {
             for (const int ams_id : dev_nozzle.GetBindAms()) {
                 DevAms *ams = fila_system->GetAmsById(std::to_string(ams_id));
