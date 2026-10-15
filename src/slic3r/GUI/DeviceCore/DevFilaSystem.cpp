@@ -292,7 +292,13 @@ std::string DevAmsTray::get_slot_name(MachineObject* obj) const
 
         char val_char = 'A' + ams_count;
         if (ams_type == DevAmsType::N3S) {
-            return std::string("HT-") + val_char;
+            int ht_index = 0;
+            try {
+                ht_index = std::stoi(ams_id) - 128;
+            } catch (const std::exception& e) {
+                BOOST_LOG_TRIVIAL(error) << "[error] e=" << e.what();
+            }
+            return std::string("HT-") + static_cast<char>('A' + ht_index);
         } else if (ams_type == DevAmsType::ZMULTI_A) {
             return wxString::Format("%d", slot_id + 1).ToStdString();
         } else if (ams_type == DevAmsType::ZMULTI_B) {
