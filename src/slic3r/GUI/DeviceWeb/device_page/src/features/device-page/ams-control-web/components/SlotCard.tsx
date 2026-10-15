@@ -249,6 +249,7 @@ export function SlotCard({
   const showEmptySlash = lite && slot.slot_state === 'empty';
   const showEmptyLabel = !lite && slot.slot_state === 'empty';
   const pale = empty || slot.show_unknown;
+  const showLiteBlank = showEmptySlash || (lite && slot.show_unknown);
   const contrast = slotContrast({
     color: slot.color,
     remain: slot.remain,
@@ -319,7 +320,7 @@ export function SlotCard({
     >
       {!pale ? (
         <SlotSwatch slot={slot} lite={lite} liteExt={liteExt} fillRatio={fillRatio} />
-      ) : showEmptySlash ? (
+      ) : showLiteBlank ? (
         <span
           className="absolute block"
           style={{
