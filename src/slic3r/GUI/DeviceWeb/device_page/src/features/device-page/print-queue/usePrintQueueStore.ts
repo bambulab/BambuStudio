@@ -24,8 +24,18 @@ function requireService(): PrintQueueService {
   return activeService;
 }
 
+// A snapshot is plain JSON, so it is cloned field by field rather than with
+// structuredClone: WebKit only gained that function in 15.4, and this module
+// clones its initial state at import time, so on an older macOS the missing
+// global threw before React ever rendered and every device page went blank.
 function cloneSnapshot(snapshot: PrintQueueSnapshot): PrintQueueSnapshot {
-  return structuredClone(snapshot);
+  return {
+    version: snapshot.version,
+    projects: snapshot.projects.map((project) => ({
+      ...project,
+      plates: project.plates.map((plate) => ({ ...plate })),
+    })),
+  };
 }
 
 // Commands are acknowledged immediately and the real data arrives in a later
