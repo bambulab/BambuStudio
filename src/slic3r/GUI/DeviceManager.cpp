@@ -601,7 +601,8 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
     subtask_(nullptr),
     model_task(nullptr),
     slice_info(nullptr),
-    m_is_online(false)
+    m_is_online(false),
+    printer_type(DevPrinterConfigUtil::get_model_id_by_dev_id(id))
 {
     BOOST_LOG_TRIVIAL(info) << "called for dev_id=" << BBLCrossTalk::Crosstalk_DevId(id) << ", main_thread=" << wxThread::IsMain();
     if (!wxThread::IsMain()) {
