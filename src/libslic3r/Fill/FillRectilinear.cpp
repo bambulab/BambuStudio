@@ -2091,6 +2091,7 @@ static float montonous_region_path_length(const MonotonicRegion &region, bool di
 	            	break;
                 assert(it->iContour == vline.intersections[inext].iContour);
                 it = vline.intersections.data() + inext;
+                iright = std::max(iright, it->right_horizontal());
             }
         } else {
             // Going down.
@@ -2108,6 +2109,8 @@ static float montonous_region_path_length(const MonotonicRegion &region, bool di
 	            	break;
                 assert(it->iContour == vline.intersections[inext].iContour);
                 it = vline.intersections.data() + inext;
+                if (int iright_new = it->right_horizontal(); iright_new != -1)
+                    iright = iright_new;
             }
         }
 
@@ -2747,6 +2750,7 @@ static void polylines_from_paths(const std::vector<MonotonicRegionLink> &path, c
 	                assert(it->iContour == vline.intersections[inext].iContour);
 	                emit_perimeter_segment_on_vertical_line(poly_with_offset, segs, i_vline, it->iContour, it - vline.intersections.data(), inext, *polyline, it->has_left_vertical_up());
 	                it = vline.intersections.data() + inext;
+	                iright = std::max(iright, it->right_horizontal());
 	            }
 	        } else {
 	            // Going down.
@@ -2766,6 +2770,8 @@ static void polylines_from_paths(const std::vector<MonotonicRegionLink> &path, c
 	                assert(it->iContour == vline.intersections[inext].iContour);
 	                emit_perimeter_segment_on_vertical_line(poly_with_offset, segs, i_vline, it->iContour, it - vline.intersections.data(), inext, *polyline, it->has_right_vertical_down());
 	                it = vline.intersections.data() + inext;
+	                if (int iright_new = it->right_horizontal(); iright_new != -1)
+	                    iright = iright_new;
 	            }
 	        }
 
