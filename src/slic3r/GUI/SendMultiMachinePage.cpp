@@ -1350,7 +1350,7 @@ wxPanel* SendMultiMachinePage::create_page()
     m_tip_text = new wxStaticText(main_page, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     m_tip_text->SetMinSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), -1));
     m_tip_text->SetMaxSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), -1));
-    m_tip_text->SetLabel(_L("Please select the devices you would like to manage here (up to 6 devices)"));
+    m_tip_text->SetLabel(wxString::Format(_L("Please select the devices you would like to manage here (up to %d devices)"), PICK_DEVICE_MAX));
     m_tip_text->SetForegroundColour(ThemeColor::TextSecondary);
     m_tip_text->SetFont(::Label::Head_20);
     m_tip_text->Wrap(-1);

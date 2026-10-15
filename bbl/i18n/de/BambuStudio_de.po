@@ -18475,8 +18475,9 @@ msgstr "Gerätestatus"
 msgid "Ams Status"
 msgstr "AMS Status"
 
-msgid "Please select the devices you would like to manage here (up to 6 devices)"
-msgstr "Wählen Sie hier die Geräte aus, die Sie verwalten möchten (bis zu 6 Geräte)"
+#, c-format, boost-format
+msgid "Please select the devices you would like to manage here (up to %d devices)"
+msgstr "Wählen Sie hier die Geräte aus, die Sie verwalten möchten (bis zu %d Geräte)"
 
 msgid "Printing Options"
 msgstr "Druckoptionen"
@@ -18509,8 +18510,8 @@ msgid "Select connected printers (0/6)"
 msgstr "Verbundene Drucker auswählen (0/6)"
 
 #, c-format, boost-format
-msgid "Select Connected Printers (%d/6)"
-msgstr "Verbundene Drucker auswählen (%d/6)"
+msgid "Select Connected Printers (%d/%d)"
+msgstr "Verbundene Drucker auswählen (%d/%d)"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"

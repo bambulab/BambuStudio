@@ -18451,8 +18451,9 @@ msgstr "Status Perangkat"
 msgid "Ams Status"
 msgstr "Status AMS"
 
-msgid "Please select the devices you would like to manage here (up to 6 devices)"
-msgstr "Harap pilih perangkat yang ingin Anda kelola di sini (maksimal 6 perangkat)"
+#, c-format, boost-format
+msgid "Please select the devices you would like to manage here (up to %d devices)"
+msgstr "Harap pilih perangkat yang ingin Anda kelola di sini (maksimal %d perangkat)"
 
 msgid "Printing Options"
 msgstr "Opsi Cetak"
@@ -18485,8 +18486,8 @@ msgid "Select connected printers (0/6)"
 msgstr "Pilih printer yang terhubung (0/6)"
 
 #, c-format, boost-format
-msgid "Select Connected Printers (%d/6)"
-msgstr "Pilih printer terhubung (%d/6)"
+msgid "Select Connected Printers (%d/%d)"
+msgstr "Pilih printer terhubung (%d/%d)"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"

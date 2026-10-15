@@ -18452,8 +18452,9 @@ msgstr "สถานะอุปกรณ์"
 msgid "Ams Status"
 msgstr "สถานะ AMS"
 
-msgid "Please select the devices you would like to manage here (up to 6 devices)"
-msgstr "โปรดเลือกอุปกรณ์ที่คุณต้องการจัดการที่นี่ (สูงสุด 6 เครื่อง)"
+#, c-format, boost-format
+msgid "Please select the devices you would like to manage here (up to %d devices)"
+msgstr "โปรดเลือกอุปกรณ์ที่คุณต้องการจัดการที่นี่ (สูงสุด %d เครื่อง)"
 
 msgid "Printing Options"
 msgstr "ตัวเลือกการพิมพ์"
@@ -18486,8 +18487,8 @@ msgid "Select connected printers (0/6)"
 msgstr "เลือกเครื่องพิมพ์ที่เชื่อมต่ออยู่ (0/6)"
 
 #, c-format, boost-format
-msgid "Select Connected Printers (%d/6)"
-msgstr "เลือกเครื่องพิมพ์ที่เชื่อมต่ออยู่ (%d/6)"
+msgid "Select Connected Printers (%d/%d)"
+msgstr "เลือกเครื่องพิมพ์ที่เชื่อมต่ออยู่ (%d/%d)"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"

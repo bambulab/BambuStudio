@@ -18544,8 +18544,9 @@ msgstr "Stav zařízení"
 msgid "Ams Status"
 msgstr "Stav AMS"
 
-msgid "Please select the devices you would like to manage here (up to 6 devices)"
-msgstr "Vyberte zařízení, která zde chcete spravovat (až 6 zařízení)."
+#, c-format, boost-format
+msgid "Please select the devices you would like to manage here (up to %d devices)"
+msgstr "Vyberte zařízení, která zde chcete spravovat (až %d zařízení)."
 
 msgid "Printing Options"
 msgstr "Možnosti tisku"
@@ -18578,8 +18579,8 @@ msgid "Select connected printers (0/6)"
 msgstr "Vyberte připojené tiskárny (0/6)"
 
 #, c-format, boost-format
-msgid "Select Connected Printers (%d/6)"
-msgstr "Vyberte připojené tiskárny (%d/6)"
+msgid "Select Connected Printers (%d/%d)"
+msgstr "Vyberte připojené tiskárny (%d/%d)"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"

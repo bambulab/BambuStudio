@@ -18468,8 +18468,9 @@ msgstr "Κατάσταση συσκευής"
 msgid "Ams Status"
 msgstr "Κατάσταση Ams"
 
-msgid "Please select the devices you would like to manage here (up to 6 devices)"
-msgstr "Επιλέξτε εδώ τις συσκευές που θέλετε να διαχειριστείτε (έως 6 συσκευές)"
+#, c-format, boost-format
+msgid "Please select the devices you would like to manage here (up to %d devices)"
+msgstr "Επιλέξτε εδώ τις συσκευές που θέλετε να διαχειριστείτε (έως %d συσκευές)"
 
 msgid "Printing Options"
 msgstr "Επιλογές εκτύπωσης"
@@ -18502,8 +18503,8 @@ msgid "Select connected printers (0/6)"
 msgstr "Επιλογή συνδεδεμένων εκτυπωτών (0/6)"
 
 #, c-format, boost-format
-msgid "Select Connected Printers (%d/6)"
-msgstr "Επιλογή συνδεδεμένων εκτυπωτών (%d/6)"
+msgid "Select Connected Printers (%d/%d)"
+msgstr "Επιλογή συνδεδεμένων εκτυπωτών (%d/%d)"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"

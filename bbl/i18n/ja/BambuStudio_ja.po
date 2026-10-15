@@ -18422,8 +18422,9 @@ msgstr "デバイスステータス"
 msgid "Ams Status"
 msgstr "AMS 状態"
 
-msgid "Please select the devices you would like to manage here (up to 6 devices)"
-msgstr "ここで管理したいデバイスを選択してください（最大6台まで）"
+#, c-format, boost-format
+msgid "Please select the devices you would like to manage here (up to %d devices)"
+msgstr "ここで管理したいデバイスを選択してください（最大%d台まで）"
 
 msgid "Printing Options"
 msgstr "印刷オプション"
@@ -18456,8 +18457,8 @@ msgid "Select connected printers (0/6)"
 msgstr "接続プリンターの選択 (0/6)"
 
 #, c-format, boost-format
-msgid "Select Connected Printers (%d/6)"
-msgstr "接続プリンターを選択（%d/6）"
+msgid "Select Connected Printers (%d/%d)"
+msgstr "接続プリンターを選択（%d/%d）"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"

@@ -18208,8 +18208,9 @@ msgstr "Статус пристрою"
 msgid "Ams Status"
 msgstr "Статус AMS"
 
-msgid "Please select the devices you would like to manage here (up to 6 devices)"
-msgstr "Будь ласка, виберіть пристрої, які ви хочете керувати тут (до 6 пристроїв)."
+#, c-format, boost-format
+msgid "Please select the devices you would like to manage here (up to %d devices)"
+msgstr "Будь ласка, виберіть пристрої, які ви хочете керувати тут (до %d пристроїв)."
 
 msgid "Printing Options"
 msgstr "Параметри друку"
@@ -18242,8 +18243,8 @@ msgid "Select connected printers (0/6)"
 msgstr "Виберіть підключені принтери (0/6)"
 
 #, c-format, boost-format
-msgid "Select Connected Printers (%d/6)"
-msgstr "Виберіть підключені принтери (%d/6)"
+msgid "Select Connected Printers (%d/%d)"
+msgstr "Виберіть підключені принтери (%d/%d)"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"
