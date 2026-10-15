@@ -11,6 +11,7 @@ namespace Slic3r {
 extern const int g_min_flush_volume_from_support;
 extern const int g_flush_volume_to_support;
 extern const int g_max_flush_volume;
+extern const int g_max_flush_volume_manual;
 
 class FlushVolCalculator
 {

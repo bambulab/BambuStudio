@@ -1006,6 +1006,62 @@ float calc_filament_change_gap_for_assignment(
     return static_cast<float>(r.actual_time - r.sliced_time);
 }
 
+bool flush_volume_exceeds_limit(
+    const std::vector<int>&                              filament_change_seq,
+    const std::vector<int>&                              nozzle_change_seq,
+    const std::vector<NozzleInfo>&                       nozzle_list,
+    const std::vector<std::vector<std::vector<float>>>&  flush_matrix,
+    float                                                limit)
+{
+    if (filament_change_seq.empty() || nozzle_change_seq.empty() || nozzle_list.empty() || flush_matrix.empty())
+        return false;
+
+    std::unordered_map<int, int> nozzle_to_extruder;
+    nozzle_to_extruder.reserve(nozzle_list.size());
+    for (const auto& nozzle : nozzle_list)
+        nozzle_to_extruder[nozzle.group_id] = nozzle.extruder_id;
+
+    const auto lookup_flush = [&](int extruder_id, int from_filament, int to_filament) -> float {
+        if (extruder_id < 0 || from_filament < 0 || to_filament < 0)
+            return 0.f;
+        if (extruder_id >= static_cast<int>(flush_matrix.size()))
+            return 0.f;
+        const auto& rows = flush_matrix[extruder_id];
+        if (from_filament >= static_cast<int>(rows.size()))
+            return 0.f;
+        const auto& cols = rows[from_filament];
+        if (to_filament >= static_cast<int>(cols.size()))
+            return 0.f;
+        return cols[to_filament];
+    };
+
+    NozzleStatusRecorder recorder;
+    const size_t seq_len = std::min(filament_change_seq.size(), nozzle_change_seq.size());
+    for (size_t i = 0; i < seq_len; ++i) {
+        const int new_filament = filament_change_seq[i];
+        const int nozzle_id    = nozzle_change_seq[i];
+
+        auto nozzle_iter = nozzle_to_extruder.find(nozzle_id);
+        if (nozzle_iter == nozzle_to_extruder.end())
+            continue;
+
+        const int extruder_id = nozzle_iter->second;
+        float wipe_volume = 0.f;
+        if (!recorder.is_nozzle_empty(nozzle_id)) {
+            const int old_filament = recorder.get_filament_in_nozzle(nozzle_id);
+            if (old_filament != new_filament)
+                wipe_volume = lookup_flush(extruder_id, old_filament, new_filament);
+        }
+
+        if (wipe_volume > limit)
+            return true;
+
+        recorder.set_nozzle_status(nozzle_id, new_filament, extruder_id);
+    }
+
+    return false;
+}
+
 std::vector<int> find_optimal_physical_assignment(
     const std::vector<int>&           logical_filaments,
     const std::vector<NozzleInfo>&    nozzle_list,

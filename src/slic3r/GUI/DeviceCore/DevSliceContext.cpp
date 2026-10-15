@@ -81,6 +81,22 @@ bool DevSliceContext::Valid() const
     return !used_logic_nozzles.empty() || !nozzles_by_filament.empty();
 }
 
+bool DevSliceContext::ExceedsFlushVolumeLimit(float limit) const
+{
+    std::vector<int> filament_seq;
+    filament_seq.reserve(filament_change_sequence.size());
+    for (unsigned int fid : filament_change_sequence)
+        filament_seq.push_back(static_cast<int>(fid));
+
+    std::vector<int> nozzle_seq;
+    nozzle_seq.reserve(nozzle_change_sequence.size());
+    for (unsigned int nid : nozzle_change_sequence)
+        nozzle_seq.push_back(static_cast<int>(nid));
+
+    return MultiNozzleUtils::flush_volume_exceeds_limit(
+        filament_seq, nozzle_seq, used_logic_nozzles, flush_matrix, limit);
+}
+
 std::shared_ptr<DevSliceContext> DevSliceContext::CreateFromNormal(GUI::PrintFromType print_type, Slic3r::GUI::Plater* plater)
 {
     auto ctx = std::make_shared<DevSliceContext>();

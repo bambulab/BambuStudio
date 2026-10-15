@@ -417,6 +417,7 @@
       let m_curr_extruder_id = 0
       let m_min_flush_volumes = []
       let m_max_flush_volumes = []
+      let m_max_flush_volume_limit = []
       let m_min_flush_multiplier = 0.50
       let m_max_flush_multiplier = 3
       let m_default_matrix //系统默认矩阵
@@ -535,8 +536,8 @@
           return 0
         if (val < 0)
           return 0
-        if (val > m_max_flush_volumes[extruder_id])
-          return m_max_flush_volumes[extruder_id];
+        if (val > m_max_flush_volume_limit[extruder_id])
+          return m_max_flush_volume_limit[extruder_id];
         return val
       }
 
@@ -553,6 +554,7 @@
         });
         m_flush_multipiers = data.flush_multiplier.slice()
         m_max_flush_volumes = data.max_flush_volumes
+        m_max_flush_volume_limit = data.max_flush_volume_limit || data.max_flush_volumes
         m_min_flush_volumes = data.min_flush_volumes
         m_min_flush_multiplier = data.min_flush_multiplier
         m_max_flush_multiplier = data.max_flush_multiplier

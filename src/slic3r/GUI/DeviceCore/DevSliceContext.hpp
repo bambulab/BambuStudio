@@ -39,6 +39,9 @@ struct DevSliceContext
 
     void Clear();
     bool Valid() const;
+    // True if any filament change in the slice sequences would flush more than limit mm^3.
+    // flush_matrix is expected to already include the flush multiplier.
+    bool ExceedsFlushVolumeLimit(float limit = 1000.f) const;
 
 public:
     DevSliceContext() = default;
