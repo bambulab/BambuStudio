@@ -415,6 +415,8 @@ void AMSMaterialsSetting::create_panel_weight(wxWindow* parent)
     m_input_remain_weight = new ::TextInput(m_panel_filament_weight, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_input_remain_weight->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     m_input_remain_weight->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
+    m_input_remain_weight->GetTextCtrl()->Bind(wxEVT_TEXT,
+        [this](wxCommandEvent& e) { e.Skip(); update_total_weight_preview(); });
     m_sizer_remain_weight->Add(m_input_remain_weight, 0, wxALIGN_CENTER, 0);
     auto m_unit_remain_weight = new wxStaticText(m_panel_filament_weight, wxID_ANY, "g", wxDefaultPosition, wxDefaultSize, 0);
     m_unit_remain_weight->SetFont(::Label::Body_13);
@@ -841,6 +843,42 @@ void AMSMaterialsSetting::update_filament_weight_editing()
     m_input_remain_weight->Enable(editable);
 }
 
+void AMSMaterialsSetting::set_total_weight_display(const wxString& value)
+{
+    m_input_total_weight->GetTextCtrl()->SetValue(value);
+    long t = 0;
+    m_preview_total_known = !value.IsEmpty() && value.ToLong(&t);
+    m_preview_base_total  = m_preview_total_known ? static_cast<int>(t) : DEFAULT_TOTAL_WEIGHT;
+}
+
+void AMSMaterialsSetting::set_remain_weight_display(const wxString& value)
+{
+    m_suppress_remain_preview = true;
+    m_input_remain_weight->GetTextCtrl()->SetValue(value);
+    m_suppress_remain_preview = false;
+}
+
+void AMSMaterialsSetting::update_total_weight_preview()
+{
+    if (m_suppress_remain_preview) return;
+    if (!m_is_third) return;
+    if (!can_edit_filament_weight()) return;
+
+    wxString remain_text = m_input_remain_weight->GetTextCtrl()->GetValue();
+    long remain = 0;
+    const bool has_remain = !remain_text.IsEmpty() && remain_text.ToLong(&remain) && remain > 0;
+
+    wxString preview;
+    if (has_remain) {
+        int total = (remain > m_preview_base_total) ? static_cast<int>(remain) : m_preview_base_total;
+        total = std::min(total, DevFilamentWeight::MAX_TOTAL_GRAMS);
+        preview = wxString::Format("%d", total);
+    } else {
+        preview = m_preview_total_known ? wxString::Format("%d", m_preview_base_total) : wxString();
+    }
+    m_input_total_weight->GetTextCtrl()->SetValue(preview);
+}
+
 void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
     // View-only mode never commits changes.
     if (m_view_only) {
@@ -898,8 +936,8 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
     m_nozzle_temp_min_str = wxString();
     m_nozzle_temp_max_str = wxString();
     update_nozzle_temp_display();
-    m_input_total_weight->GetTextCtrl()->SetValue("");
-    m_input_remain_weight->GetTextCtrl()->SetValue("");
+    set_total_weight_display("");
+    set_remain_weight_display("");
     m_has_initial_filament_weight = false;
     ams_filament_id = "";
     ams_setting_id = "";
@@ -2078,8 +2116,8 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         m_filament_type = ams_fila_it->config.get_filament_type(display_filament_type);
     }
 
-    m_input_total_weight->GetTextCtrl()->SetValue(total_weight);
-    m_input_remain_weight->GetTextCtrl()->SetValue(remain_weight);
+    set_total_weight_display(total_weight);
+    set_remain_weight_display(remain_weight);
     long initial_total = 0;
     long initial_remain = 0;
     m_has_initial_filament_weight = total_weight.ToLong(&initial_total) && remain_weight.ToLong(&initial_remain)
@@ -2757,8 +2795,8 @@ void AMSMaterialsSetting::apply_filament_selection()
                     remain_g = static_cast<int>(total_g * std::max(0, std::min(100, sp->remain_percent)) / 100.0);
 
                 if (total_g > 0) {
-                    m_input_total_weight->GetTextCtrl()->SetValue(wxString::Format("%d", total_g));
-                    m_input_remain_weight->GetTextCtrl()->SetValue(
+                    set_total_weight_display(wxString::Format("%d", total_g));
+                    set_remain_weight_display(
                         remain_g > 0 ? wxString::Format("%d", remain_g) : wxString());
                     m_has_initial_filament_weight = false;
                 }

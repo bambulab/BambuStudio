@@ -227,6 +227,9 @@ protected:
     bool validate_filament_weight_inputs(bool is_target_bbl, int& total_weight, int& remain_weight) const;
     bool filament_weight_changed(int total_weight, int remain_weight) const;
     void update_filament_weight_editing();
+    void set_total_weight_display(const wxString& value);
+    void set_remain_weight_display(const wxString& value);
+    void update_total_weight_preview();
 
     std::vector<PACalibResult> m_pa_profile_items;
     int  m_pa_cali_select_id{0};
@@ -247,6 +250,9 @@ protected:
     bool m_has_initial_filament_weight{false};
     int  m_initial_total_weight{0};
     int  m_initial_remain_weight{0};
+    bool m_suppress_remain_preview{false};
+    int  m_preview_base_total{1000};
+    bool m_preview_total_known{false};
 
     StateColor          m_btn_bg_green;
     StateColor          m_btn_bg_gray;
