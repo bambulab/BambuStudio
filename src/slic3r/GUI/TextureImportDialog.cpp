@@ -3994,6 +3994,53 @@ public:
 private:
     int m_active = 0;
 
+    // Ink bounds of `text` (drawn with dc's current font) relative to its
+    // DrawText origin. The text extent is the full line box (ascent with
+    // internal leading, descent, side bearings), so centering it leaves digits
+    // visibly off center by a font- and platform-dependent amount.
+    static wxRect text_ink_rect(wxDC& dc, const wxString& text)
+    {
+        const wxSize extent = dc.GetTextExtent(text);
+        const int    pad    = std::max(2, extent.y / 2);
+        wxBitmap     bmp(extent.x + pad * 2, extent.y + pad * 2);
+        {
+            wxMemoryDC mdc(bmp);
+            mdc.SetBackground(*wxBLACK_BRUSH);
+            mdc.Clear();
+#ifdef __WXMSW__
+            // Same renderer as texture_import_paint, so the glyph is rasterized the same way.
+            wxGCDC gcdc(mdc);
+            wxDC&  tdc = gcdc;
+#else
+            wxDC& tdc = mdc;
+#endif
+            tdc.SetFont(dc.GetFont());
+            tdc.SetTextForeground(*wxWHITE);
+            tdc.DrawText(text, pad, pad);
+        }
+
+        const wxImage img = bmp.ConvertToImage();
+        if (!img.IsOk())
+            return wxRect(wxPoint(0, 0), extent);
+        const unsigned char* data = img.GetData();
+        const int w = img.GetWidth();
+        const int h = img.GetHeight();
+        int x0 = w, y0 = h, x1 = -1, y1 = -1;
+        for (int py = 0; py < h; ++py)
+            for (int px = 0; px < w; ++px) {
+                const unsigned char* p = data + (py * w + px) * 3;
+                if (std::max({p[0], p[1], p[2]}) < 128)
+                    continue;
+                x0 = std::min(x0, px);
+                y0 = std::min(y0, py);
+                x1 = std::max(x1, px);
+                y1 = std::max(y1, py);
+            }
+        if (x1 < 0)
+            return wxRect(wxPoint(0, 0), extent);
+        return wxRect(x0 - pad, y0 - pad, x1 - x0 + 1, y1 - y0 + 1);
+    }
+
     void OnPaint(wxPaintEvent&)
     {
         texture_import_paint(this, [this](wxDC& dc) {
@@ -4057,14 +4104,14 @@ private:
             const bool done_or_active = m_active >= idx;
             draw_circle(cursor, done_or_active ? active_fill : inactive_fill);
 
-            if (idx == 0) {
+            if (idx < m_active) {
                 draw_check(cursor);
             } else {
                 dc.SetFont(Label::Head_14);
                 dc.SetTextForeground(done_or_active ? *wxWHITE : inactive_mark);
                 const wxString mark = wxString::Format("%d", idx + 1);
-                const wxSize mark_sz = dc.GetTextExtent(mark);
-                dc.DrawText(mark, cursor + (circle - mark_sz.x) / 2, y + (circle - mark_sz.y) / 2);
+                const wxRect   ink  = text_ink_rect(dc, mark);
+                dc.DrawText(mark, cursor + (circle - ink.width) / 2 - ink.x, y + (circle - ink.height) / 2 - ink.y);
             }
 
             dc.SetFont(Label::Head_14);

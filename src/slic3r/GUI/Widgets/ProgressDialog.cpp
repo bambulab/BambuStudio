@@ -17,8 +17,11 @@
 #include "Label.hpp"
 #include "ProgressBar.hpp"
 #include "StateColor.hpp"
+#include "libslic3r/Utils.hpp"
 
 #include <algorithm>
+
+#include <boost/format.hpp>
 
 // ----------------------------------------------------------------------------
 // constants
@@ -436,6 +439,9 @@ Button *ProgressDialog::CreateCancelButton()
 
 bool ProgressDialog::CreatePercentLayout(wxSizer *sizer_main, int maximum, const wxString &message)
 {
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
     const int content_width = PROGRESSDIALOG_PERCENT_CONTENT_WIDTH;
 
     // Every label has a fixed size so that updating its text never triggers a relayout.
