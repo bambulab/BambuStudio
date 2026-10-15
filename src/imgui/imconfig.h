@@ -218,5 +218,8 @@ namespace ImGui
     //    void MyFunction(const char* name, const MyMatrix44& v);
 
     const wchar_t FilamentGreen     = 0x0850;
+
+    const wchar_t CloseNotifCardButton    = 0x0851;
+    const wchar_t CollapseNotifCardButton = 0x0852;
 }
 

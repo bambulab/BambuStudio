@@ -137,6 +137,8 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     //{ImGui::DocumentationDarkButton     , "notification_documentation_dark"      },
     //{ImGui::DocumentationHoverDarkButton, "notification_documentation_hover_dark"},
     {ImGui::BlockNotifErrorIcon,          "block_notification_error"             },
+    {ImGui::CloseNotifCardButton,         "notification_card_close"              },
+    {ImGui::CollapseNotifCardButton,      "notification_card_collapse"           },
     {ImGui::PrevArrowBtnIcon,             "notification_arrow_left"              },
     {ImGui::NextArrowBtnIcon,             "notification_arrow_right"             },
     {ImGui::CompleteIcon,                 "notification_slicing_complete"        },

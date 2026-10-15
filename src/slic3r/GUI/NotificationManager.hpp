@@ -570,6 +570,22 @@ private:
 		virtual void count_lines();
 		// returns true if PopStyleColor should be called later to pop this push
 		virtual bool push_background_color();
+		// Card layout: fixed width, colored left bar, close button in the top right corner and
+		// hypertexts on their own line. Notifications positioning their own content return false.
+		virtual bool use_card_layout() const { return true; }
+		// Error and serious warning cards are filled with their color instead of a white background.
+		bool         is_solid_card() const;
+		// Converts a size at 100 % UI scaling, where the canvas font is 15 px high, to pixels.
+		float        design_px(float size) const { return size * m_line_height / 15.f; }
+		// Round icon button at the window relative position pos, returns true when clicked.
+		// The fold button always uses the emphasized glyph color.
+		bool         render_card_button(const char* id, const ImVec2& pos, wchar_t icon, bool flip_v, bool always_emphasized);
+		void         render_card_close_button(ImGuiWrapper& imgui);
+		// Expand / collapse button of cards with more lines than fit unfolded.
+		void         render_card_fold_button(ImGuiWrapper& imgui);
+		bool         is_card_foldable() const;
+		float        hypertext_width(ImGuiWrapper& imgui, const std::string& text);
+		size_t       count_card_hypertext_lines(ImGuiWrapper& imgui);
 		// used this function instead of reading directly m_data.duration. Some notifications might need to return changing value.
 		virtual int  get_duration() { return m_data.duration; }
         void        ensure_ui_inited();
@@ -704,6 +720,7 @@ private:
 		ProgressBarNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) { }
 		virtual void set_percentage(float percent) { m_percentage = percent; }
 	protected:
+		bool use_card_layout() const override { return false; }
 		virtual void init() override;
 		virtual void	render_text(ImGuiWrapper& imgui,
 									const float win_size_x, const float win_size_y,
@@ -823,6 +840,7 @@ private:
 		std::string m_export_path;
 		std::string m_export_dir_path;
 	protected:
+		bool use_card_layout() const override { return false; }
 		// Reserves space on right for more buttons
 		void count_spaces() override;
 		void render_text(ImGuiWrapper& imgui,
@@ -852,7 +870,6 @@ private:
 		{
 			//m_types_and_counts.emplace_back(info_item_type, 1);
 		}
-		void count_spaces() override;
 		void add_type(InfoItemType type);
 		void close() override{
 			for (auto& tac : m_types_and_counts)
