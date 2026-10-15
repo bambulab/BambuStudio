@@ -1,6 +1,8 @@
 #include "FilamentSelectDialog.hpp"
 #include "AMSMaterialsSetting.hpp"  // AMS_MATERIALS_SETTING_GREY* colour constants
 #include "FilamentBitmapUtils.hpp"
+#include "EncodedFilament.hpp"
+#include "fila_manager/wgtFilaManagerColorType.h"
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "wxExtensions.hpp"
@@ -37,6 +39,74 @@ std::vector<wxColour> spool_colors(const FilamentSpool& sp)
     }
     if (!sp.color_code.empty()) out.push_back(parse_hex_color(sp.color_code));
     return out;
+}
+
+struct SpoolRowInfo {
+    wxString color_name;
+    wxString search_key;
+};
+
+SpoolRowInfo spool_row_info(const FilamentSpool& sp)
+{
+    SpoolRowInfo info;
+    info.color_name = wxString::FromUTF8(sp.color_name);
+    wxString key = wxString::FromUTF8(sp.brand) + " "
+                 + wxString::FromUTF8(sp.series) + " "
+                 + wxString::FromUTF8(sp.material_type) + " " + info.color_name;
+
+    // Cloud inventory can omit color_name. Resolve the official names from the
+    // filament ID and complete color specification, without changing the spool.
+    auto* query = wxGetApp().get_filament_color_code_query();
+    if (query && !sp.filament_id.empty()) {
+        std::vector<wxString> hex_colors;
+        auto append_color = [&hex_colors](const std::string& color) {
+            wxString hex = wxString::FromUTF8(color);
+            if (hex.IsEmpty()) return false;
+            if (!hex.StartsWith("#")) hex = "#" + hex;
+            const wxString digits = hex.Mid(1);
+            if (digits.Length() != 3 && digits.Length() != 4 &&
+                digits.Length() != 6 && digits.Length() != 8) return false;
+            if (digits.find_first_not_of("0123456789abcdefABCDEF") != wxString::npos)
+                return false;
+            if (!wxColour(hex).IsOk()) return false;
+            hex_colors.push_back(hex);
+            return true;
+        };
+        bool valid_colors = true;
+        if (!sp.colors.empty()) {
+            for (const auto& color : sp.colors) {
+                if (!append_color(color)) {
+                    valid_colors = false;
+                    break;
+                }
+            }
+        } else {
+            valid_colors = append_color(sp.color_code);
+        }
+
+        // Do not turn an incomplete multicolor record into an official single color.
+        if (valid_colors && !hex_colors.empty()) {
+            const int color_type = to_fila_manager_color_type_int(
+                normalize_fila_manager_color_type(sp.color_type, hex_colors.size()));
+            const auto* color_info = query->GetFilaInfo(
+                wxString::FromUTF8(sp.filament_id), hex_colors, color_type);
+            if (color_info) {
+                const wxString localized_name = color_info->GetFilaColorName();
+                // Search every translation, independently of the UI language.
+                for (const auto& name : color_info->GetFilaColorNames()) {
+                    if (name.second.IsEmpty()) continue;
+                    key += " " + name.second;
+                    // Do not show the query API's "Unknown" placeholder when
+                    // there is no actual name in the current/fallback locale.
+                    if (info.color_name.IsEmpty() && name.second == localized_name)
+                        info.color_name = localized_name;
+                }
+            }
+        }
+    }
+
+    info.search_key = key.Lower();
+    return info;
 }
 
 void draw_checkerboard_gc(wxGraphicsContext* gc, const wxGraphicsPath& path, int size_px,
@@ -595,25 +665,17 @@ void FilamentSelectDialog::fill_manager_tab()
         empty->SetForegroundColour(AMS_MATERIALS_SETTING_GREY300);
         m_mgr_list_sizer->Add(empty, 0, wxALL, FromDIP(16));
     } else {
-        auto make_search_key = [](const FilamentSpool& sp) {
-            wxString s;
-            s += wxString::FromUTF8(sp.brand)         + " ";
-            s += wxString::FromUTF8(sp.series)        + " ";
-            s += wxString::FromUTF8(sp.material_type) + " ";
-            s += wxString::FromUTF8(sp.color_name);
-            return s.Lower();
-        };
-
         // Flatten supported spools in brand+series order for the three-pass sort below.
         std::vector<std::pair<wxString, FilamentSpool>> all_supported;
         for (const wxString& b : ordered)
             for (const FilamentSpool& sp : brand_to_spools.at(b))
                 all_supported.push_back({b, sp});
 
-        auto add_row = [&](const wxString& brand, const FilamentSpool& sp, bool is_recent) {
-            auto* row = make_spool_row(m_mgr_list, sp, false, is_recent);
+        auto add_row = [&](const wxString& brand, const FilamentSpool& sp, bool dimmed, bool is_recent) {
+            const SpoolRowInfo info = spool_row_info(sp);
+            auto* row = make_spool_row(m_mgr_list, sp, info.color_name, dimmed, is_recent);
             m_mgr_list_sizer->Add(row, 0, wxEXPAND | wxBOTTOM, FromDIP(1));
-            m_mgr_rows.push_back({row, brand, make_search_key(sp)});
+            m_mgr_rows.push_back({row, brand, info.search_key});
         };
 
         // Pass 1: recently used (LRU order, newest first), excluding in-printer
@@ -623,7 +685,7 @@ void FilamentSelectDialog::fill_manager_tab()
             for (auto& [b, sp] : all_supported) {
                 if (sp.in_printer) continue;
                 if (wxString::FromUTF8(sp.spool_id) != sid) continue;
-                add_row(b, sp, true);
+                add_row(b, sp, false, true);
                 shown_recent.insert(sp.spool_id);
                 break;
             }
@@ -633,22 +695,18 @@ void FilamentSelectDialog::fill_manager_tab()
         for (auto& [b, sp] : all_supported) {
             if (sp.in_printer) continue;
             if (shown_recent.count(sp.spool_id)) continue;
-            add_row(b, sp, false);
+            add_row(b, sp, false, false);
         }
 
         // Pass 3: AMS in-printer spools (slot badge shown, dimmed = not selectable)
         for (auto& [b, sp] : all_supported) {
             if (!sp.in_printer) continue;
-            auto* row = make_spool_row(m_mgr_list, sp, true /*dimmed*/, false);
-            m_mgr_list_sizer->Add(row, 0, wxEXPAND | wxBOTTOM, FromDIP(1));
-            m_mgr_rows.push_back({row, b, make_search_key(sp)});
+            add_row(b, sp, true /*dimmed*/, false);
         }
 
         // Pass 4: unsupported section (chip filtering only, always dimmed)
         for (const FilamentSpool& sp : unsupported) {
-            auto* row = make_spool_row(m_mgr_list, sp, true, false);
-            m_mgr_list_sizer->Add(row, 0, wxEXPAND | wxBOTTOM, FromDIP(1));
-            m_mgr_rows.push_back({row, _L("Unsupported Filaments"), make_search_key(sp)});
+            add_row(_L("Unsupported Filaments"), sp, true, false);
         }
     }
 
@@ -831,7 +889,8 @@ void FilamentSelectDialog::fill_brand_chips(const std::vector<wxString>& brands)
     }
 }
 
-wxWindow* FilamentSelectDialog::make_spool_row(wxWindow* parent, const FilamentSpool& sp, bool dimmed, bool is_recent)
+wxWindow* FilamentSelectDialog::make_spool_row(wxWindow* parent, const FilamentSpool& sp,
+                                              const wxString& color_name, bool dimmed, bool is_recent)
 {
     auto* row = new wxPanel(parent, wxID_ANY);
     row->SetBackgroundColour(dlg_bg());
@@ -855,18 +914,27 @@ wxWindow* FilamentSelectDialog::make_spool_row(wxWindow* parent, const FilamentS
     if (is_bbl_brand(sp.brand)) {
         if (!sp.series.empty())             name = wxString::FromUTF8(sp.series);
         else if (!sp.material_type.empty()) name = wxString::FromUTF8(sp.material_type);
-        else if (!sp.color_name.empty())    name = wxString::FromUTF8(sp.color_name);
+        else if (!color_name.IsEmpty())     name = color_name;
         else                                name = _L("Filament");
     } else {
         name = spool_display_name(sp);
-        if (!sp.color_name.empty()) name += " " + wxString::FromUTF8(sp.color_name);
     }
+    auto* names = new wxBoxSizer(wxVERTICAL);
     auto* name_lbl = new Label(row, name, wxST_ELLIPSIZE_END);
     name_lbl->SetFont(Label::Body_14);
     name_lbl->SetForegroundColour(dimmed ? dlg_text_dimmed() : dlg_text_primary());
     name_lbl->SetMinSize(wxSize(FromDIP(120), -1));
-    name_lbl->SetToolTip(name);
-    h->Add(name_lbl, 1, wxALIGN_CENTER_VERTICAL, 0);
+    name_lbl->SetToolTip(color_name.IsEmpty() || color_name == name ? name : name + "\n" + color_name);
+    names->Add(name_lbl, 0, wxEXPAND);
+    if (!color_name.IsEmpty() && color_name != name) {
+        auto* color_lbl = new Label(row, color_name, wxST_ELLIPSIZE_END);
+        color_lbl->SetFont(Label::Body_12);
+        color_lbl->SetForegroundColour(dimmed ? dlg_text_dimmed() : dlg_text_secondary());
+        color_lbl->SetMinSize(wxSize(FromDIP(120), -1));
+        color_lbl->SetToolTip(color_name);
+        names->Add(color_lbl, 0, wxEXPAND);
+    }
+    h->Add(names, 1, wxALIGN_CENTER_VERTICAL, 0);
 
     // weight — fixed min-width so the column edge is consistent across all rows
     auto* w_lbl = new Label(row, wxString::Format("%dg", spool_weight_grams(sp)));
