@@ -3851,9 +3851,11 @@ Sidebar::Sidebar(Plater *parent)
 
         // add printer title
         scrolled_sizer->Add(p->m_panel_printer_title, 0, wxEXPAND | wxALL, 0);
-        p->m_panel_printer_title->Bind(wxEVT_LEFT_DOWN, [toggle_printer_content] (auto & e) {
-            toggle_printer_content();
-        });
+        // The second click of a quick double click arrives as wxEVT_LEFT_DCLICK on MSW; handle it too so no click is dropped.
+        for (auto evt : {wxEVT_LEFT_DOWN, wxEVT_LEFT_DCLICK})
+            p->m_panel_printer_title->Bind(evt, [toggle_printer_content] (auto & e) {
+                toggle_printer_content();
+            });
 
         // add spliter 2
         auto spliter_2 = new ::StaticLine(p->scrolled);
@@ -4205,14 +4207,16 @@ Sidebar::Sidebar(Plater *parent)
         }
         m_scrolled_sizer->Layout();
     };
-    p->m_panel_filament_title->Bind(wxEVT_LEFT_DOWN, [this, toggle_filament_content](wxMouseEvent &e) {
-        if (p->m_flushing_volume_btn->IsShown() && e.GetPosition().x > p->m_flushing_volume_btn->GetPosition().x)
-            return;
-        if (p->m_purge_mode_btn->IsShown() && e.GetPosition().x > p->m_purge_mode_btn->GetPosition().x)
-            return;
-        toggle_filament_content();
-        e.Skip();
-    });
+    // The second click of a quick double click arrives as wxEVT_LEFT_DCLICK on MSW; handle it too so no click is dropped.
+    for (auto evt : {wxEVT_LEFT_DOWN, wxEVT_LEFT_DCLICK})
+        p->m_panel_filament_title->Bind(evt, [this, toggle_filament_content](wxMouseEvent &e) {
+            if (p->m_flushing_volume_btn->IsShown() && e.GetPosition().x > p->m_flushing_volume_btn->GetPosition().x)
+                return;
+            if (p->m_purge_mode_btn->IsShown() && e.GetPosition().x > p->m_purge_mode_btn->GetPosition().x)
+                return;
+            toggle_filament_content();
+            e.Skip();
+        });
     p->m_panel_filament_title->Bind(wxEVT_SIZE, [this](wxSizeEvent &event) {
         wxGetApp().CallAfter([this]() {
             p->adjust_filament_title_layout();

@@ -301,13 +301,15 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         m_process_icon->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { toggle_content_collapsed(); });
 
         m_title_label = new Label(m_top_panel, _L("Process"), LB_PROPAGATE_MOUSE_EVENT);
-        m_top_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
-            e.Skip();
-            // A click on a disabled control (e.g. the mode switch in develop mode) must not collapse the panel.
-            if (e.GetEventObject() == m_top_panel && is_click_on_child_control(m_top_panel, e.GetPosition()))
-                return;
-            toggle_content_collapsed();
-        });
+        // The second click of a quick double click arrives as wxEVT_LEFT_DCLICK on MSW; handle it too so no click is dropped.
+        for (auto evt : {wxEVT_LEFT_DOWN, wxEVT_LEFT_DCLICK})
+            m_top_panel->Bind(evt, [this](wxMouseEvent &e) {
+                e.Skip();
+                // A click on a disabled control (e.g. the mode switch in develop mode) must not collapse the panel.
+                if (e.GetEventObject() == m_top_panel && is_click_on_child_control(m_top_panel, e.GetPosition()))
+                    return;
+                toggle_content_collapsed();
+            });
 
         //int width, height;
         // BBS: new layout
