@@ -590,4 +590,26 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 
 } // namespace Slic3r
 
+#else /* HAS_WIN10SDK */
+
+#include "FixModelByWin10.hpp"
+#include "libslic3r/Win10ModelRepair.hpp"
+
+namespace Slic3r {
+
+bool is_windows10() { return false; }
+
+bool fix_model_by_win10_sdk_gui(ModelObject &, int, GUI::ProgressDialog &, const wxString &, std::string &) { return false; }
+
+bool is_win10_model_repair_available() { return false; }
+
+bool fix_mesh_by_win10_sdk(const indexed_triangle_set&, indexed_triangle_set&, Win10RepairProgressFn, Win10RepairCancelFn, std::string* error_message)
+{
+	if (error_message)
+		*error_message = "Windows 3D repair service is not available in this build.";
+	return false;
+}
+
+} // namespace Slic3r
+
 #endif /* HAS_WIN10SDK */

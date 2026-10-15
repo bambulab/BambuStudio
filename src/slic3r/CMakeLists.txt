@@ -914,6 +914,40 @@ if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r_gui pchheader.hpp FORCEINCLUDE)
 endif ()
 
+# Only Utils/FixModelByWin10.cpp uses the Windows 10 SDK. Keep HAS_WIN10SDK and the SDK
+# include path off the target, so a change of the SDK result rebuilds one file, not all.
+# WIN10SDK_PATH (CMake or environment variable) points to an SDK include directory and has
+# priority. Otherwise the SDK is found through the registry, so the result does not depend
+# on the shell that runs CMake. The vcvars variables (WindowsSdkDir, WindowsSDKVersion) are
+# the last fallback, for SDKs without a registry entry. The result is cached: remove
+# WIN10SDK_INCLUDE_PATH from the cache to search again.
+if (WIN32)
+    if (NOT DEFINED WIN10SDK_PATH AND DEFINED ENV{WIN10SDK_PATH})
+        set(WIN10SDK_PATH "$ENV{WIN10SDK_PATH}")
+    endif ()
+    get_filename_component(_win10sdk_root
+        "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Kits\\Installed Roots;KitsRoot10]" ABSOLUTE)
+    file(GLOB _win10sdk_versions LIST_DIRECTORIES true "${_win10sdk_root}/Include/10.*")
+    list(SORT _win10sdk_versions)
+    list(REVERSE _win10sdk_versions) # newest SDK first
+    if (DEFINED ENV{WindowsSdkDir})
+        list(APPEND _win10sdk_versions "$ENV{WindowsSdkDir}/Include/$ENV{WindowsSDKVersion}")
+    endif ()
+    find_path(WIN10SDK_INCLUDE_PATH winrt/windows.graphics.printing3d.h
+        HINTS ${WIN10SDK_PATH}
+        PATHS ${_win10sdk_versions}
+        NO_DEFAULT_PATH)
+    if (WIN10SDK_INCLUDE_PATH)
+        message("Building with Win10 Netfabb STL fixing service support")
+        set_source_files_properties(Utils/FixModelByWin10.cpp PROPERTIES
+            COMPILE_DEFINITIONS HAS_WIN10SDK
+            INCLUDE_DIRECTORIES "${WIN10SDK_INCLUDE_PATH}")
+    else ()
+        message("winrt/windows.graphics.printing3d.h was not found in the Windows 10 SDK")
+        message("Building without Win10 Netfabb STL fixing service support")
+    endif ()
+endif ()
+
 if (NOT APPLE)
     pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
         libavcodec

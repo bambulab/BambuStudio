@@ -6369,11 +6369,14 @@ void TextureImportDialog::start_computation(bool auto_color, bool initial)
     Slic3r::TexturePaintingSettings settings;
     settings.target_colors_num = auto_color ? 0 : (size_t)m_param_color_count;
     settings.smooth_weight     = m_param_smooth / 10.0;
-    settings.mesh_repair_decision = m_mesh_repair_decision;
+    // Repair automatically where the Windows 3D repair service exists; elsewhere import the mesh as-is.
+    if (Slic3r::is_win10_model_repair_available()) {
+        settings.mesh_repair_decision = Slic3r::TexturePaintingSettings::MeshRepairDecision::RepairAndImport;
+        settings.mesh_repair_callback = Slic3r::fix_mesh_by_win10_sdk;
+    } else {
+        settings.mesh_repair_decision = Slic3r::TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair;
+    }
     settings.mesh_repair_timeout = std::chrono::seconds{90};
-#ifdef HAS_WIN10SDK
-    settings.mesh_repair_callback = Slic3r::fix_mesh_by_win10_sdk;
-#endif
     settings.mesh_repair_cache = m_mesh_repair_cache.get();
 
     const bool cache_hit = Slic3r::mesh_repair_cache_can_skip_input(

@@ -1445,7 +1445,6 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         const ModelObjectPtrs &new_objects = *new_objects_ptr;
         check_objects_after_cut(new_objects);// Fix for #11487 - Cut Connectors Broken when assigning part to other side
         // fix_non_manifold_edges
-#ifdef HAS_WIN10SDK
         if (is_windows10()) {
             bool is_showed_dialog = false;
             bool user_fix_model   = false;
@@ -1494,7 +1493,6 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
                 }
             }
         }
- #endif
         // set offset for new_objects
 
         // update cut results on plater and in the model

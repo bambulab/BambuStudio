@@ -538,14 +538,6 @@ private:
     bool                               m_initial_tooltips_set = false;
     bool                               m_current_computation_auto_color = false;
     Slic3r::MeshRepairCachePtr         m_mesh_repair_cache;
-    // Windows repairs automatically; other platforms import the mesh as-is.
-#ifdef HAS_WIN10SDK
-    Slic3r::TexturePaintingSettings::MeshRepairDecision m_mesh_repair_decision =
-        Slic3r::TexturePaintingSettings::MeshRepairDecision::RepairAndImport;
-#else
-    Slic3r::TexturePaintingSettings::MeshRepairDecision m_mesh_repair_decision =
-        Slic3r::TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair;
-#endif
 
     Button*      m_btn_color_4    = nullptr;
     Button*      m_btn_color_8    = nullptr;
