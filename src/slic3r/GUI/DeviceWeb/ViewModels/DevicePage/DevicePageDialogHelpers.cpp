@@ -31,18 +31,6 @@ wxDialog*& active_auto_refill_filaments_dialog()
     return dialog;
 }
 
-wxWindow* resolve_auto_refill_dialog_parent()
-{
-    if (auto* active = wxDynamicCast(wxGetActiveWindow(), wxDialog); active && active->IsModal())
-        return active;
-    for (auto node = wxTopLevelWindows.GetLast(); node; node = node->GetPrevious()) {
-        if (auto* dialog = wxDynamicCast(node->GetData(), wxDialog);
-            dialog && dialog->IsShown() && dialog->IsModal())
-            return dialog;
-    }
-    return wxGetApp().mainframe;
-}
-
 class AutoRefillFilamentsDialog : public DPIDialog
 {
 public:
@@ -86,6 +74,20 @@ private:
 };
 
 } // namespace
+
+wxWindow* ResolveAutoRefillDialogParent()
+{
+    if (auto* active = wxDynamicCast(wxGetActiveWindow(), wxDialog); active && active->IsModal()) {
+        return active;
+    }
+    for (auto node = wxTopLevelWindows.GetLast(); node; node = node->GetPrevious()) {
+        if (auto* dialog = wxDynamicCast(node->GetData(), wxDialog);
+            dialog && dialog->IsShown() && dialog->IsModal()) {
+            return dialog;
+        }
+    }
+    return wxGetApp().mainframe;
+}
 
 std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams_id, const std::string& slot_id, bool view_only)
 {
@@ -213,7 +215,7 @@ void OpenAutoRefillFilamentsDialog(MachineObject*                     machine_ob
     if (active_auto_refill_filaments_dialog())
         return;
 
-    wxWindow* parent = resolve_auto_refill_dialog_parent();
+    wxWindow* parent = ResolveAutoRefillDialogParent();
     std::string route = "/device_page/auto_refill_refill_info?picker=1&mode=";
     route += mode == AutoRefillFilamentsDialogMode::AddToGroup ? "add_to_group" : "create_group";
     if (group_head.has_value()) {

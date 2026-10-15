@@ -64,6 +64,8 @@ void OpenAutoRefillFilamentsDialog(MachineObject*                    machine_obj
 // Closes the currently active auto-refill filament picker, if any.
 void CloseAutoRefillFilamentsDialog(int result);
 
+wxWindow* ResolveAutoRefillDialogParent();
+
 // Leaves the device page for the Monitor's HMS tab. The tab lists every
 // active entry of the selected machine; there is no way to open one entry.
 // Must run on the UI thread.

@@ -77,9 +77,7 @@ void AutoRefillRefillInfoActions::PromptAndRemoveSlot(const DevAmsSlotId& slot)
     bool           dissolves = false;
     const wxString message   = removal_prompt(obj, refill, slot, dissolves);
 
-    wxWindow* parent = wxGetActiveWindow();
-    if (!parent) parent = wxGetApp().GetTopWindow();
-    MessageDialog dlg(parent, message, _L("Tip"), wxOK | wxCANCEL | wxICON_WARNING);
+    MessageDialog dlg(ResolveAutoRefillDialogParent(), message, _L("Tip"), wxOK | wxCANCEL | wxICON_WARNING);
     dlg.SetButtonLabel(wxID_OK, _L("Remove"));
     if (dlg.ShowModal() != wxID_OK) return;
 
@@ -178,9 +176,7 @@ nlohmann::json AutoRefillRefillInfoActions::Handle(AutoRefillRefillInfoVM& vm,
         wxGetApp().CallAfter([vm_ptr = &vm, alive, group_tag, message]() {
             if (const auto guard = alive.lock(); !guard || !*guard) return;
 
-            wxWindow* parent = wxGetActiveWindow();
-            if (!parent) parent = wxGetApp().GetTopWindow();
-            MessageDialog dlg(parent, message, _L("Reset Refill Group"), wxOK | wxCANCEL | wxICON_WARNING);
+            MessageDialog dlg(ResolveAutoRefillDialogParent(), message, _L("Reset Refill Group"), wxOK | wxCANCEL | wxICON_WARNING);
             dlg.SetButtonLabel(wxID_OK, _L("Reset"));
             const bool confirmed = dlg.ShowModal() == wxID_OK;
 
@@ -218,9 +214,7 @@ nlohmann::json AutoRefillRefillInfoActions::Handle(AutoRefillRefillInfoVM& vm,
         wxGetApp().CallAfter([vm_ptr = &vm, alive, slot, message, toast_key]() {
             if (const auto guard = alive.lock(); !guard || !*guard) return;
 
-            wxWindow* parent = wxGetActiveWindow();
-            if (!parent) parent = wxGetApp().GetTopWindow();
-            MessageDialog dlg(parent, message, _L("Tip"), wxOK | wxCANCEL | wxICON_WARNING);
+            MessageDialog dlg(ResolveAutoRefillDialogParent(), message, _L("Tip"), wxOK | wxCANCEL | wxICON_WARNING);
             dlg.SetButtonLabel(wxID_OK, _L("Remove"));
             const bool confirmed = dlg.ShowModal() == wxID_OK;
 
