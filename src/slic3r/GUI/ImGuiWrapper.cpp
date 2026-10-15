@@ -33,6 +33,7 @@
 #include "GUI.hpp"
 #include "I18N.hpp"
 #include "Search.hpp"
+#include "Bidi.hpp"
 #include "BitmapCache.hpp"
 #include "FilamentBitmapUtils.hpp"
 #include "slic3r/GUI/UIHelpers/ImGuiFilamentWidgets.hpp"
@@ -396,9 +397,21 @@ void ImGuiWrapper::set_language(const std::string &language)
         0xFF00, 0xFFEF, // Half-width characters
         0,
     };
+    // Hebrew block + presentation forms (niqqud, ligatures). None of the bundled fonts has these
+    // glyphs, they come from the merged Noto Sans Hebrew font (see init_font()).
+    static const ImWchar ranges_hebrew[] =
+    {
+        0x0020, 0x00FF, // Basic Latin + Latin Supplement
+        0x0590, 0x05FF, // Hebrew
+        0xFB1D, 0xFB4F, // Hebrew presentation forms
+        0x2000, 0x206F, // General Punctuation
+        0xFF00, 0xFFEF, // Half-width characters
+        0,
+    };
     m_font_cjk = false;
     m_is_korean = false;
     m_is_thai = false;
+    m_is_hebrew = false;
     if (lang == "cs" || lang == "pl") {
         ranges = ranges_latin2;
     } else if (lang == "ru" || lang == "uk") {
@@ -428,6 +441,9 @@ void ImGuiWrapper::set_language(const std::string &language)
         m_is_thai = true;
     } else if (lang == "el") {
         ranges = ranges_greek;
+    } else if (lang == "he") {
+        ranges = ranges_hebrew;
+        m_is_hebrew = true;
     }
     else if (lang == "en") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesEnglish(); // Basic Latin
@@ -589,19 +605,54 @@ void ImGuiWrapper::render()
     m_new_frame_open = false;
 }
 
+// Width of one logical-order string as ImGui would draw it (glyph order does not change the width).
+static float calc_text_width(std::string_view s)
+{
+    return ImGui::CalcTextSize(s.data(), s.data() + s.size()).x;
+}
+
+// Text size of a string that contains Hebrew. Only used when bidi::has_rtl(text) is true, so other
+// languages never pay for it. A wrapped size must be computed from the lines produced by wrapping
+// the *logical* text (what text_wrapped() draws), not by letting ImGui wrap the reordered string.
+static ImVec2 calc_text_size_rtl(std::string_view text, bool hide_text_after_double_hash, float wrap_width)
+{
+    if (hide_text_after_double_hash) {
+        const std::size_t hashes = text.find("##");
+        if (hashes != std::string_view::npos)
+            text = text.substr(0, hashes);
+    }
+    if (wrap_width > 0.f) {
+        ImVec2 size(0.f, 0.f);
+        for (const std::string &line : bidi::wrap_and_reorder(text, wrap_width, calc_text_width)) {
+            const ImVec2 line_size = ImGui::CalcTextSize(line.c_str(), line.c_str() + line.size());
+            size.x = std::max(size.x, line_size.x);
+            size.y += line_size.y; // an empty line still reports one line height
+        }
+        return size;
+    }
+    const std::string vis = bidi::visual(text);
+    return ImGui::CalcTextSize(vis.c_str(), vis.c_str() + vis.size());
+}
+
 ImVec2 ImGuiWrapper::calc_text_size_new(std::string_view text, bool hide_text_after_double_hash, float wrap_width)
 {
+    if (bidi::has_rtl(text))
+        return calc_text_size_rtl(text, hide_text_after_double_hash, wrap_width);
     return ImGui::CalcTextSize(text.data(), text.data() + text.length(), hide_text_after_double_hash, wrap_width);
 }
 
 ImVec2 ImGuiWrapper::calc_text_size_new(const std::string &text, bool hide_text_after_double_hash, float wrap_width)
 {
+    if (bidi::has_rtl(text))
+        return calc_text_size_rtl(text, hide_text_after_double_hash, wrap_width);
     return ImGui::CalcTextSize(text.c_str(), NULL, hide_text_after_double_hash, wrap_width);
 }
 
 ImVec2 ImGuiWrapper::calc_text_size_new(const wxString &text, bool hide_text_after_double_hash, float wrap_width)
 {
     auto   text_utf8 = into_u8(text);
+    if (bidi::has_rtl(text_utf8))
+        return calc_text_size_rtl(text_utf8, hide_text_after_double_hash, wrap_width);
     ImVec2 size      = ImGui::CalcTextSize(text_utf8.c_str(), NULL, hide_text_after_double_hash, wrap_width);
 
     /*#ifdef __linux__
@@ -614,6 +665,8 @@ ImVec2 ImGuiWrapper::calc_text_size_new(const wxString &text, bool hide_text_aft
 ImVec2 ImGuiWrapper::calc_text_size(const wxString &text, float wrap_width)
 {
     auto text_utf8 = into_u8(text);
+    if (bidi::has_rtl(text_utf8))
+        return calc_text_size_rtl(text_utf8, false, wrap_width);
     ImVec2 size = ImGui::CalcTextSize(text_utf8.c_str(), NULL, false, wrap_width);
 
 /*#ifdef __linux__
@@ -921,19 +974,19 @@ void ImGuiWrapper::end()
 bool ImGuiWrapper::button(const wxString &label)
 {
     auto label_utf8 = into_u8(label);
-    return ImGui::Button(label_utf8.c_str());
+    return ImGui::Button(bidi::vis(label_utf8).c_str());
 }
 
 bool ImGuiWrapper::bbl_button(const wxString &label)
 {
     auto label_utf8 = into_u8(label);
-    return ImGui::BBLButton(label_utf8.c_str());
+    return ImGui::BBLButton(bidi::vis(label_utf8).c_str());
 }
 
 bool ImGuiWrapper::button(const wxString& label, float width, float height)
 {
     auto label_utf8 = into_u8(label);
-    return ImGui::Button(label_utf8.c_str(), ImVec2(width, height));
+    return ImGui::Button(bidi::vis(label_utf8).c_str(), ImVec2(width, height));
 }
 
 bool ImGuiWrapper::button(const wxString &label, const ImVec2 &size, bool enable)
@@ -941,7 +994,7 @@ bool ImGuiWrapper::button(const wxString &label, const ImVec2 &size, bool enable
     disabled_begin(!enable);
 
     auto label_utf8 = into_u8(label);
-    bool res        = ImGui::Button(label_utf8.c_str(), size);
+    bool res        = ImGui::Button(bidi::vis(label_utf8).c_str(), size);
 
     disabled_end();
     return (enable) ? res : false;
@@ -950,7 +1003,7 @@ bool ImGuiWrapper::button(const wxString &label, const ImVec2 &size, bool enable
 bool ImGuiWrapper::radio_button(const wxString &label, bool active)
 {
     auto label_utf8 = into_u8(label);
-    return ImGui::RadioButton(label_utf8.c_str(), active);
+    return ImGui::RadioButton(bidi::vis(label_utf8).c_str(), active);
 }
 
 ImFontAtlasCustomRect *ImGuiWrapper::GetTextureCustomRect(const wchar_t &tex_id)
@@ -1085,7 +1138,7 @@ bool ImGuiWrapper::input_vec3(const std::string &label, const Vec3d &value, floa
 bool ImGuiWrapper::checkbox(const wxString &label, bool &value)
 {
     auto label_utf8 = into_u8(label);
-    return ImGui::Checkbox(label_utf8.c_str(), &value);
+    return ImGui::Checkbox(bidi::vis(label_utf8).c_str(), &value);
 }
 
 bool ImGuiWrapper::bbl_checkbox(const wxString &label, bool &value, bool enabled, bool b_dark_mode)
@@ -1109,7 +1162,7 @@ bool ImGuiWrapper::bbl_checkbox(const wxString &label, bool &value, bool enabled
         }
     }
     auto label_utf8 = into_u8(label);
-    result          = ImGui::BBLCheckbox(label_utf8.c_str(), &value);
+    result          = ImGui::BBLCheckbox(bidi::vis(label_utf8).c_str(), &value);
 
     if (!enabled) {
         ImGui::PopStyleColor(2);
@@ -1128,7 +1181,7 @@ bool ImGuiWrapper::bbl_radio_button(const char *label, bool active)
         ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
         ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
     }
-    result = ImGui::BBLRadioButton(label,active);
+    result = ImGui::BBLRadioButton(bidi::vis(label).c_str(), active);
     if (b_value) { ImGui::PopStyleColor(3); }
     return result;
 }
@@ -1140,7 +1193,9 @@ bool ImGuiWrapper::bbl_sliderin(const char *label, int *v, int v_min, int v_max,
 
 void ImGuiWrapper::text(const char *label)
 {
-    ImGui::Text("%s", label);
+    // Hebrew is converted to visual order (no-op, no copy, for every other language).
+    // Multi-line labels are fine: '\n' separated lines are reordered one by one.
+    ImGui::Text("%s", bidi::vis(label).c_str());
 }
 
 void ImGuiWrapper::text(const std::string &label)
@@ -1169,7 +1224,7 @@ void ImGuiWrapper::warning_text(const wxString &all_text)
 
 void ImGuiWrapper::text_colored(const ImVec4& color, const char* label)
 {
-    ImGui::TextColored(color, "%s", label);
+    ImGui::TextColored(color, "%s", bidi::vis(label).c_str());
 }
 
 void ImGuiWrapper::text_colored(const ImVec4& color, const std::string& label)
@@ -1205,8 +1260,38 @@ void ImGuiWrapper::error_text_wrapped(const wxString &text, float wrap_width) {
     error_text_wrapped(label_utf8.c_str(), wrap_width);
 }
 
+// Draws Hebrew text word-wrapped to `wrap_width` (width of the text block, in pixels). Wrapping is done on the
+// logical string and every line is then reordered to visual order, so the first words of the paragraph are on
+// the first line. Lines that contain Hebrew are right-aligned inside the block (to the block width, or to the
+// widest line when align_to_widest is set, e.g. for auto-sized tooltip windows); Latin-only lines stay at the
+// start edge. The panel structure itself stays LTR.
+static void draw_bidi_wrapped(const char *text, float wrap_width, bool align_to_widest)
+{
+    if (wrap_width <= 0.f)
+        wrap_width = ImGui::GetContentRegionAvail().x;
+    const std::vector<std::string> lines = bidi::wrap_and_reorder(text, wrap_width, calc_text_width);
+
+    float block_width = wrap_width;
+    if (align_to_widest) {
+        block_width = 0.f;
+        for (const std::string &line : lines)
+            block_width = std::max(block_width, calc_text_width(line));
+    }
+
+    const float x0 = ImGui::GetCursorPosX();
+    for (const std::string &line : lines) {
+        const float offset = bidi::has_rtl(line) ? std::max(0.f, block_width - calc_text_width(line)) : 0.f;
+        ImGui::SetCursorPosX(x0 + offset);
+        ImGui::TextUnformatted(line.c_str(), line.c_str() + line.size());
+    }
+}
+
 void ImGuiWrapper::text_wrapped(const char *label, float wrap_width)
 {
+    if (bidi::has_rtl(label)) {
+        draw_bidi_wrapped(label, wrap_width, false);
+        return;
+    }
     ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + wrap_width);
     this->text(label);
     ImGui::PopTextWrapPos();
@@ -1226,11 +1311,18 @@ void ImGuiWrapper::text_wrapped(const wxString &label, float wrap_width)
 void ImGuiWrapper::tooltip(const char *label, float wrap_width)
 {
     ImGui::BeginTooltip();
-    ImGui::PushTextWrapPos(wrap_width);
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));
-    ImGui::TextUnformatted(label);
-    ImGui::PopStyleColor(1);
-    ImGui::PopTextWrapPos();
+    if (bidi::has_rtl(label)) {
+        // PushTextWrapPos() takes a window-local position, the bidi path takes a width: subtract the window padding.
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));
+        draw_bidi_wrapped(label, wrap_width - ImGui::GetCursorPosX(), true);
+        ImGui::PopStyleColor(1);
+    } else {
+        ImGui::PushTextWrapPos(wrap_width);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));
+        ImGui::TextUnformatted(label);
+        ImGui::PopStyleColor(1);
+        ImGui::PopTextWrapPos();
+    }
     ImGui::EndTooltip();
 }
 
@@ -1240,13 +1332,8 @@ void ImGuiWrapper::tooltip(const std::string &label, float wrap_width) {
 
 void ImGuiWrapper::tooltip(const wxString &label, float wrap_width)
 {
-    ImGui::BeginTooltip();
-    ImGui::PushTextWrapPos(wrap_width);
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));
-    ImGui::TextUnformatted(label.ToUTF8().data());
-    ImGui::PopStyleColor(1);
-    ImGui::PopTextWrapPos();
-    ImGui::EndTooltip();
+    const wxScopedCharBuffer label_utf8 = label.ToUTF8();
+    this->tooltip(label_utf8.data(), wrap_width); // const char* overload handles RTL
 }
 
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
@@ -1357,9 +1444,10 @@ bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& 
     bool res = false;
 
     const char *selection_str = selection < int(options.size()) && selection >= 0 ? options[selection].c_str() : "";
-    if (ImGui::BeginCombo("", selection_str)) {
+    const bidi::VisualText selection_vis(selection_str);
+    if (ImGui::BeginCombo("", selection_vis.c_str())) {
         for (int i = 0; i < (int)options.size(); i++) {
-            if (ImGui::Selectable(options[i].c_str(), i == selection)) {
+            if (ImGui::Selectable(bidi::vis(options[i]).c_str(), i == selection)) {
                 selection_out = i;
             }
         }
@@ -1413,10 +1501,10 @@ bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (
     int i=0;
     const char* item_text;
     while (items_getter(is_undo, i, &item_text)) {
-        ImGui::Selectable(item_text, i < hovered);
+        ImGui::Selectable(bidi::vis(item_text).c_str(), i < hovered);
 
         if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s", item_text);
+            ImGui::SetTooltip("%s", bidi::vis(item_text).c_str());
             hovered = i;
             is_hovered = true;
         }
@@ -1921,10 +2009,10 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
 
     while (items_getter(i, &item_text, &tooltip))
     {
-        selectable(item_text, i == hovered_id);
+        selectable(bidi::vis(item_text).c_str(), i == hovered_id);
 
         if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s", /*item_text*/tooltip);
+            ImGui::SetTooltip("%s", bidi::vis(tooltip).c_str());
                 hovered_id = -1;
             mouse_hovered = i;
         }
@@ -2725,6 +2813,24 @@ void ImGuiWrapper::init_font(bool compress)
         io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + file_name).c_str(), m_font_size, &thai_cfg, ranges.Data);
     };
 
+    // Same idea for Hebrew (U+0590..U+05FF, U+FB1D..U+FB4F): HarmonyOS Sans SC, NanumGothic and Symbola
+    // contain no Hebrew glyphs. The font files are optional at runtime: if one is missing we log a
+    // warning and Hebrew falls back to '?', instead of failing to start.
+    auto merge_hebrew_font = [&](const char *file_name) {
+        if (!m_is_hebrew)
+            return;
+        const std::string path = Slic3r::resources_dir() + "/fonts/" + file_name;
+        boost::system::error_code ec;
+        if (!boost::filesystem::exists(boost::filesystem::path(path), ec)) {
+            BOOST_LOG_TRIVIAL(warning) << "ImGui: Hebrew font " << path << " not found, Hebrew text will be shown as '?'";
+            return;
+        }
+        ImFontConfig he_cfg = cfg;
+        he_cfg.MergeMode = true;
+        if (io.Fonts->AddFontFromFileTTF(path.c_str(), m_font_size, &he_cfg, ranges.Data) == nullptr)
+            BOOST_LOG_TRIVIAL(warning) << "ImGui: failed to load Hebrew font " << path;
+    };
+
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
     if (m_is_korean)
@@ -2738,6 +2844,7 @@ void ImGuiWrapper::init_font(bool compress)
         }
     }
     merge_thai_font("NotoSansThai-Regular.ttf");
+    merge_hebrew_font("NotoSansHebrew-Regular.ttf");
 
     if (m_is_korean)
         bold_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "NanumGothic-Bold.ttf").c_str(), m_font_size, &cfg, ranges.Data);
@@ -2748,6 +2855,7 @@ void ImGuiWrapper::init_font(bool compress)
         if (bold_font == nullptr) { throw Slic3r::RuntimeError("ImGui: Could not load deafult font"); }
     }
     merge_thai_font("NotoSansThai-Bold.ttf");
+    merge_hebrew_font("NotoSansHebrew-Bold.ttf");
 
 #ifdef _WIN32
     // Render the text a bit larger (see GLCanvas3D::_resize() and issue #3401), but only if the scale factor

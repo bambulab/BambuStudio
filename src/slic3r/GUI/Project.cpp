@@ -438,7 +438,7 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
 
                     if (!model_id.empty()) {
                         std::string h = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
-                        auto l = wxGetApp().current_language_code_safe();
+                        auto l = wxGetApp().current_language_code_server_safe();
                         if (auto n = l.find('_'); n != std::string::npos)
                             l = l.substr(0, n);
                         auto url = (boost::format("%1%%2%/models/%3%") % h % l % model_id).str();

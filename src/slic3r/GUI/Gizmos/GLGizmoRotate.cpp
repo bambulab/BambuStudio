@@ -798,7 +798,7 @@ GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
             }
 
             if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("%s", RotoptimizeJob::get_method_description(i).c_str());
+                ImGui::SetTooltip("%s", bidi::vis(RotoptimizeJob::get_method_description(i)).c_str());
         }
 
         ImGui::EndCombo();
@@ -807,7 +807,7 @@ GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
     ImVec2 sz = ImGui::GetItemRectSize();
 
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", RotoptimizeJob::get_method_description(state.method_id).c_str());
+        ImGui::SetTooltip("%s", bidi::vis(RotoptimizeJob::get_method_description(state.method_id)).c_str());
 
     ImGui::Separator();
 

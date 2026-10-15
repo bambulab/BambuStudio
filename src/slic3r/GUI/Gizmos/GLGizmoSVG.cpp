@@ -1497,7 +1497,7 @@ void GLGizmoSVG::draw_filename()
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {ImGui::GetStyle().FramePadding.x, 0});
         draw(get_icon(m_icons, IconType::change_file, IconState::hovered));
         ImGui::SameLine();
-        if (ImGui::Selectable((_L("Change file") + dots).ToUTF8().data())) {
+        if (ImGui::Selectable(bidi::vis(std::string((_L("Change file") + dots).ToUTF8().data())).c_str())) {
             std::string new_path = choose_svg_file();
             if (!new_path.empty()) {
                 file_changed = true;
@@ -1531,7 +1531,7 @@ void GLGizmoSVG::draw_filename()
         draw(get_icon(m_icons, IconType::bake, IconState::hovered));
         ImGui::SameLine();
         // TRN: An menu option to convert the SVG into an unmodifiable model part.
-        if (ImGui::Selectable(_u8L("Bake to model").c_str())) {
+        if (ImGui::Selectable(bidi::vis(_u8L("Bake to model")).c_str())) {
             m_volume->emboss_shape.reset();
             close();
         } else if (ImGui::IsItemHovered()) {
@@ -1541,7 +1541,7 @@ void GLGizmoSVG::draw_filename()
 
         draw(get_icon(m_icons, IconType::save, IconState::activable));
         ImGui::SameLine();
-        if (ImGui::Selectable((_L("Save as") + dots).ToUTF8().data())) {
+        if (ImGui::Selectable(bidi::vis(std::string((_L("Save as") + dots).ToUTF8().data())).c_str())) {
             wxWindow *                  parent    = nullptr;
             GUI::FileType               file_type = FT_SVG;
             wxString                    wildcard  = file_wildcards(file_type);
@@ -1935,7 +1935,7 @@ void GLGizmoSVG::draw_rotation()
 void GLGizmoSVG::draw_mirroring()
 {
     ImGui::AlignTextToFramePadding();
-    ImGui::Text("%s", m_gui_cfg->translations.mirror.c_str());
+    ImGui::Text("%s", bidi::vis(m_gui_cfg->translations.mirror).c_str());
     ImGui::SameLine(m_gui_cfg->input_offset);
     Axis axis = Axis::UNKNOWN_AXIS;
     if (draw_clickable(m_icons, IconType::reflection_x)) {
@@ -1972,7 +1972,7 @@ void GLGizmoSVG::draw_mirroring()
 
 void GLGizmoSVG::draw_face_the_camera()
 {
-    if (ImGui::Button(_u8L("Face the camera").c_str())) {
+    if (ImGui::Button(bidi::vis(_u8L("Face the camera")).c_str())) {
         const Camera &cam             = wxGetApp().plater()->get_camera();
         auto          wanted_up_limit = (m_keep_up) ? std::optional<double>(UP_LIMIT) : std::optional<double>{};
         if (face_selected_volume_to_camera(cam, m_parent, wanted_up_limit))
@@ -1989,7 +1989,7 @@ void GLGizmoSVG::draw_model_type()
         ImVec4 color{.5f, .5f, .5f, 1.f};
         m_imgui->text_colored(color, title.c_str());
     } else {
-        ImGui::Text("%s", title.c_str());
+        ImGui::Text("%s", bidi::vis(title).c_str());
     }
 
     std::optional<ModelVolumeType> new_type;
@@ -2000,14 +2000,14 @@ void GLGizmoSVG::draw_model_type()
     ImGui::SameLine(m_gui_cfg->input_offset);
     // TRN EmbossOperation
     ImGuiWrapper::push_radio_style();
-    if (ImGui::RadioButton(_u8L("Join").c_str(), type == part))
+    if (ImGui::RadioButton(bidi::vis(_u8L("Join")).c_str(), type == part))
         new_type = part;
     else if (ImGui::IsItemHovered())
         m_imgui->tooltip(_L("Click to change text into object part."), m_gui_cfg->max_tooltip_width);
     ImGui::SameLine();
 
     auto last_solid_part_hint = _L("You can't change a type of the last solid part of the object.");
-    if (ImGui::RadioButton(_CTX_utf8(L_CONTEXT("Cut", "EmbossOperation"), "EmbossOperation").c_str(), type == negative))
+    if (ImGui::RadioButton(bidi::vis(_CTX_utf8(L_CONTEXT("Cut", "EmbossOperation"), "EmbossOperation")).c_str(), type == negative))
         new_type = negative;
     else if (ImGui::IsItemHovered()) {
         if (is_last_solid_part)
@@ -2019,7 +2019,7 @@ void GLGizmoSVG::draw_model_type()
     // In simple mode are not modifiers
     if (wxGetApp().plater()->printer_technology() != ptSLA && wxGetApp().get_mode() != ConfigOptionMode::comSimple) {
         ImGui::SameLine();
-        if (ImGui::RadioButton(_u8L("Modifier").c_str(), type == modifier))
+        if (ImGui::RadioButton(bidi::vis(_u8L("Modifier")).c_str(), type == modifier))
             new_type = modifier;
         else if (ImGui::IsItemHovered()) {
             if (is_last_solid_part)

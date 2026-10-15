@@ -323,6 +323,10 @@ private:
     const wxLanguageInfo		 *m_language_info_system = nullptr;
     // Best translation language, provided by Windows or OSX, owned by wxWidgets.
     const wxLanguageInfo		 *m_language_info_best   = nullptr;
+    // True when the active UI language is laid out right-to-left (Hebrew, unless forced LTR). Set in load_language().
+    bool                          m_is_rtl           = false;
+    // Keep translated strings but never mirror the layout ("force_ltr_layout" == "1", or macOS where wx has no RTL support).
+    bool                          m_force_ltr_layout = false;
 
     mutable std::shared_ptr<OpenGLManager> m_p_opengl_mgr{ nullptr };
     std::unique_ptr<RemovableDriveManager> m_removable_drive_manager;
@@ -703,7 +707,15 @@ public:
     wxString        current_language_code() const { return m_wxLocale->GetCanonicalName(); }
 	// Translate the language code to a code, for which Prusa Research maintains translations. Defaults to "en_US".
     wxString 		current_language_code_safe() const;
+    // Same as current_language_code_safe(), but for URLs / headers sent to Bambu servers (login, MakerWorld, ...):
+    // languages that only have local translations (Hebrew) fall back to "en_US" there.
+    wxString 		current_language_code_server_safe() const;
     bool            is_localized() const { return m_wxLocale->GetLocale() != "English"; }
+    // True when the UI is mirrored for a right-to-left language (effective layout, i.e. after the LTR escape hatch).
+    bool            is_rtl() const { return m_is_rtl; }
+    // Layout direction wxWidgets uses when creating top-level windows/dialogs (MSW: WS_EX_LAYOUTRTL).
+    // Overridden so "force_ltr_layout" / macOS can keep Hebrew strings but suppress mirroring.
+    wxLayoutDirection GetLayoutDirection() const override;
 
     void            open_preferences();
 
@@ -927,7 +939,8 @@ static std::vector<wxLanguage> s_supported_languages = {
     wxLANGUAGE_ROMANIAN,
     wxLANGUAGE_GREEK,
     wxLANGUAGE_INDONESIAN,
-    wxLANGUAGE_VIETNAMESE
+    wxLANGUAGE_VIETNAMESE,
+    wxLANGUAGE_HEBREW
 };
 } // namespace GUI
 } // Slic3r

@@ -1164,7 +1164,8 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
     imgui.begin(wxString("canvas_tooltip"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoFocusOnAppearing);
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-    ImGui::TextUnformatted(m_text.c_str());
+    // Toolbar/gizmo hover tooltips bypass ImGuiWrapper::text(), so reorder RTL text here (no-op for LTR)
+    ImGui::TextUnformatted(bidi::vis(m_text).c_str());
     ImGui::PopStyleColor();
 
     // force re-render while the windows gets to its final size (it may take several frames) or while hidden
@@ -10835,7 +10836,7 @@ void GLCanvas3D::_render_assemble_control()
                     selection_out = line_idx;
 
                 ImGui::SameLine();
-                ImGui::Text("%s", modes[line_idx].c_str());
+                ImGui::Text("%s", bidi::vis(modes[line_idx]).c_str());
                 ImGui::PopID();
             }
             ImGui::EndCombo();
@@ -10895,9 +10896,9 @@ void GLCanvas3D::_render_assemble_info() const
     double size1 = m_selection.get_bounding_box().size()(1);
     double size2 = m_selection.get_bounding_box().size()(2);
     if (!m_selection.is_empty()) {
-        ImGui::Text(_L("Volume:").ToUTF8()); ImGui::SameLine(caption_max);
+        ImGui::Text("%s", bidi::vis(std::string(_L("Volume:").ToUTF8().data())).c_str()); ImGui::SameLine(caption_max);
         ImGui::Text("%.2f", size0 * size1 * size2);
-        ImGui::Text(_L("Size:").ToUTF8()); ImGui::SameLine(caption_max);
+        ImGui::Text("%s", bidi::vis(std::string(_L("Size:").ToUTF8().data())).c_str()); ImGui::SameLine(caption_max);
         ImGui::Text("%.2f x %.2f x %.2f", size0, size1, size2);
     }
     imgui->end();

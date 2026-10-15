@@ -2766,7 +2766,7 @@ std::map<std::string, std::string> GUI_App::get_extra_header()
     extra_headers.insert(std::make_pair("X-BBL-OS-Version", os_version));
     if (app_config)
         extra_headers.insert(std::make_pair("X-BBL-Device-ID", app_config->get("slicer_uuid")));
-    extra_headers.insert(std::make_pair("X-BBL-Language", convert_studio_language_to_api(into_u8(current_language_code_safe()))));
+    extra_headers.insert(std::make_pair("X-BBL-Language", convert_studio_language_to_api(into_u8(current_language_code_server_safe()))));
     return extra_headers;
 }
 
@@ -6986,16 +6986,21 @@ bool GUI_App::load_language(wxString language, bool initial)
     	BOOST_LOG_TRIVIAL(error) << boost::format("Language code \"%1%\" is not supported") % language.ToUTF8().data();
 	}
 
-	if (language_info != nullptr && language_info->LayoutDirection == wxLayout_RightToLeft) {
+    // PrusaSlicer does not support the Right to Left languages. Hebrew is the only RTL language
+    // BambuStudio supports (mirrored layout; 3D canvas and web views are kept LTR), every other RTL language is still rejected.
+    auto is_supported_layout = [](const wxLanguageInfo *info) {
+        return info->LayoutDirection != wxLayout_RightToLeft || info->Language == wxLANGUAGE_HEBREW;
+    };
+
+	if (language_info != nullptr && ! is_supported_layout(language_info)) {
     	BOOST_LOG_TRIVIAL(info) << boost::format("The following language code requires right to left layout, which is not supported by BambuStudio: %1%") % language_info->CanonicalName.ToUTF8().data();
 		language_info = nullptr;
 	}
 
     if (language_info == nullptr) {
-        // PrusaSlicer does not support the Right to Left languages yet.
-        if (m_language_info_system != nullptr && m_language_info_system->LayoutDirection != wxLayout_RightToLeft)
+        if (m_language_info_system != nullptr && is_supported_layout(m_language_info_system))
             language_info = m_language_info_system;
-        if (m_language_info_best != nullptr && m_language_info_best->LayoutDirection != wxLayout_RightToLeft)
+        if (m_language_info_best != nullptr && is_supported_layout(m_language_info_best))
         	language_info = m_language_info_best;
 	    if (language_info == nullptr)
 			language_info = wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_US);
@@ -7095,7 +7100,15 @@ bool GUI_App::load_language(wxString language, bool initial)
     //FIXME wxWidgets cause havoc if the current locale is deleted. We just forget it causing memory leaks for now.
     m_wxLocale.release();
     m_wxLocale = Slic3r::make_unique<wxLocale>();
+    // Escape hatch: keep the translated strings but never mirror the layout. On macOS the wxWidgets fork has
+    // no RTL support at all (wxOSX ignores the layout direction), so always stay LTR there.
+#ifdef __APPLE__
+    m_force_ltr_layout = true;
+#else
+    m_force_ltr_layout = app_config->get("force_ltr_layout") == "1";
+#endif
     m_wxLocale->Init(language_info->Language);
+    m_is_rtl = !m_force_ltr_layout && language_info->LayoutDirection == wxLayout_RightToLeft;
     // Override language at the active wxTranslations class (which is stored in the active m_wxLocale)
     // to load possibly different dictionary, for example, load Czech dictionary for Slovak language.
     wxTranslations::Get()->SetLanguage(language_dict);
@@ -8151,6 +8164,15 @@ PrintSequence GUI_App::global_print_sequence() const
     return global_print_seq;
 }
 
+wxLayoutDirection GUI_App::GetLayoutDirection() const
+{
+    // wxWindow creation (wxApp::MSWGetDefaultLayout / wxWindowGTK) asks the app for the layout direction, which by default
+    // comes from the active wxLocale. wx has no setter, hence this override for the "force_ltr_layout" escape hatch.
+    if (m_force_ltr_layout)
+        return wxLayout_LeftToRight;
+    return wxApp::GetLayoutDirection();
+}
+
 wxString GUI_App::current_language_code_safe() const
 {
 	// Translate the language code to a code, for which Prusa Research maintains translations.
@@ -8177,6 +8199,7 @@ wxString GUI_App::current_language_code_safe() const
         { "el",     "el_GR", },
         { "id",     "id_ID", },
         { "vi",     "vi_VN", },
+        { "he",     "he_IL", },
 	};
 	wxString language_code = this->current_language_code().BeforeFirst('_');
 	auto it = mapping.find(language_code);
@@ -8187,9 +8210,19 @@ wxString GUI_App::current_language_code_safe() const
 	return language_code;
 }
 
+wxString GUI_App::current_language_code_server_safe() const
+{
+	// The Bambu web services do not serve a Hebrew locale: a "/he/" URL prefix 404s (blank login page, see
+	// BambuStudio #6192). Keep Hebrew for the local UI / bundled web pages only and ask the servers for English.
+	wxString language_code = this->current_language_code_safe();
+	if (language_code.BeforeFirst('_') == "he")
+		language_code = "en_US";
+	return language_code;
+}
+
 void GUI_App::open_web_page_localized(const std::string &http_address)
 {
-    open_browser_with_warning_dialog(http_address + "&lng=" + this->current_language_code_safe());
+    open_browser_with_warning_dialog(http_address + "&lng=" + this->current_language_code_server_safe());
 }
 
 // If we are switching from the FFF-preset to the SLA, we should to control the printed objects if they have a part(s).

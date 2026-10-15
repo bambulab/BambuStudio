@@ -1,4 +1,5 @@
 #include "IMSlider.hpp"
+#include "slic3r/GUI/Bidi.hpp"
 #include "libslic3r/GCode.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
@@ -814,7 +815,7 @@ void IMSlider::show_tooltip(const std::string tooltip) {
     ImGui::PushStyleColor(ImGuiCol_Border, { 0,0,0,0 });
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));
     ImGui::BeginTooltip();
-    ImGui::TextUnformatted(tooltip.c_str());
+    ImGui::TextUnformatted(bidi::vis(tooltip).c_str());
     ImGui::EndTooltip();
     ImGui::PopStyleColor(3);
     ImGui::PopStyleVar(2);

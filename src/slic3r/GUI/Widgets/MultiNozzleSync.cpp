@@ -515,6 +515,8 @@ void HotEndTable::OnPaint(wxPaintEvent& evt)
 NozzleListTable::NozzleListTable(wxWindow* parent) : wxPanel(parent,wxID_ANY,wxDefaultPosition,wxDefaultSize ,wxNO_BORDER)
 {
     m_web_view = wxWebView::New(this, wxID_ANY, wxEmptyString, wxDefaultPosition,wxDefaultSize,wxString::FromAscii(wxWebViewBackendDefault),wxNO_BORDER);
+    // Web content handles its own direction; keep the host window LTR (see WebView::CreateWebView).
+    m_web_view->SetLayoutDirection(wxLayout_LeftToRight);
     m_web_view->AddScriptMessageHandler("nozzleListTable");
     m_web_view->EnableContextMenu(false);
     fs::path filepath = fs::path(resources_dir()) / "web/flush/NozzleListTable.html";

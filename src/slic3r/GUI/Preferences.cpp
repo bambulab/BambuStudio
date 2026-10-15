@@ -403,6 +403,9 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_VIETNAMESE)) {
             language_name = wxString::FromUTF8("Ti\xE1\xBA\xBFng Vi\xE1\xBB\x87t"); // Tiếng Việt
         }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_HEBREW)) {
+            language_name = wxString::FromUTF8("\xD7\xA2\xD7\x91\xD7\xA8\xD7\x99\xD7\xAA"); // עברית
+        }
 
         if (language == vlist[i]->CanonicalName) {
             m_current_language_selected = i;

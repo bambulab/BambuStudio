@@ -1100,6 +1100,9 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
             Slic3r::GUI::WKWebView_setInspectable(wkWebView, enable_devtools);
 #endif
     }
+    // Web content lays itself out from its own <html dir>; a mirrored (WS_EX_LAYOUTRTL) host HWND would
+    // flip mouse/scroll coordinates inside WebView2 and double-mirror the page, so keep the host LTR.
+    webView->SetLayoutDirection(wxLayout_LeftToRight);
     webView->SetRefData(new WebViewRef(webView, mode, creation_fault));
     g_webviews.push_back(webView);
     return webView;

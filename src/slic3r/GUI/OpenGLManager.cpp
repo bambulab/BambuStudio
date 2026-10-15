@@ -861,7 +861,11 @@ wxGLCanvas* OpenGLManager::create_wxglcanvas(wxWindow& parent, EMSAAType msaa_ty
     if (! can_multisample())
         attribList[12] = 0;
 
-    return new wxGLCanvas(&parent, wxID_ANY, attribList, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
+    auto* canvas = new wxGLCanvas(&parent, wxID_ANY, attribList, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
+    // Never mirror the 3D scene: a WS_EX_LAYOUTRTL canvas (inherited from an RTL parent on MSW) would flip the mouse X
+    // coordinates used for picking, camera control and ImGui hit-testing while GL output itself is not mirrored.
+    canvas->SetLayoutDirection(wxLayout_LeftToRight);
+    return canvas;
 }
 
 void OpenGLManager::set_cut_plane_color(ColorRGBA color) {

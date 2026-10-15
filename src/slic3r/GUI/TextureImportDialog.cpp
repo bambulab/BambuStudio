@@ -3952,6 +3952,8 @@ private:
 TexturePreviewCanvas::TexturePreviewCanvas(wxWindow* parent, const wxGLAttributes& attrs)
     : wxGLCanvas(parent, attrs, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
+    // GL content and mouse coordinates must not be mirrored by an RTL parent layout.
+    SetLayoutDirection(wxLayout_LeftToRight);
     m_context = new wxGLContext(this);
 
     Bind(wxEVT_PAINT, &TexturePreviewCanvas::on_paint, this);

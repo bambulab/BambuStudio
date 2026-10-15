@@ -26,6 +26,7 @@ import el_GR from '@locales/el_GR.json';
 import id_ID from '@locales/id_ID.json';
 import vi_VN from '@locales/vi_VN.json';
 import zh_TW from '@locales/zh_TW.json';
+import he_IL from '@locales/he_IL.json';
 
 // Detect language: URL ?lang= param > localStorage > fallback 'en'
 // Consistent with other webview pages (text.js TranslatePage pattern)
@@ -75,9 +76,24 @@ i18n
       id_ID: { translation: id_ID },
       vi_VN: { translation: vi_VN },
       zh_TW: { translation: zh_TW },
+      he_IL: { translation: he_IL },
     },
     // When a key has no translation, return the key itself (English original text)
     parseMissingKeyHandler: (key) => key,
   });
+
+// RTL languages (Hebrew, Arabic, ...): mirror the whole document via <html dir>. Browsers flip flex/grid order,
+// text alignment and scrollbars automatically; Tailwind physical utilities (ml-*, left-*, text-left, ...) do not flip.
+const RTL_LANG_RE = /^(he|ar|fa|ur|yi)([_-]|$)/i;
+
+function applyDocumentDirection(lng: string | undefined) {
+  const lang = lng || 'en';
+  document.documentElement.dir = RTL_LANG_RE.test(lang) ? 'rtl' : 'ltr';
+  document.documentElement.lang = lang.replace('_', '-');
+}
+
+// i18n is imported before React renders (main.tsx), so this runs before first paint.
+applyDocumentDirection(i18n.language);
+i18n.on('languageChanged', applyDocumentDirection);
 
 export default i18n;

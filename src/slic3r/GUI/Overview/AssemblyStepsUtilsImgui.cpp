@@ -1058,7 +1058,7 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
                 if (ImGui::Selectable("", int(line_idx) == display_idx))
                     display_out = line_idx;
                 ImGui::SameLine();
-                ImGui::Text("%s", display_modes[line_idx].c_str());
+                ImGui::Text("%s", bidi::vis(display_modes[line_idx]).c_str());
                 ImGui::PopID();
             }
             ImGui::EndCombo();
@@ -3052,10 +3052,10 @@ void AssemblyStepsUtils::render_assembly_structure_option_menu(
                 m_margin_factor_camera_for_not_last_frame = (float) cur->data.camera_margin_factor;
         }
 #if !BBL_RELEASE_TO_PUBLIC
-        ImGui::MenuItem(_u8L("Show world axes").c_str(), nullptr, &m_force_show_world_axes);
-        ImGui::MenuItem(_u8L("Show explosion state column").c_str(), nullptr, &m_view_is_in_explosion_state);
-        ImGui::MenuItem(_u8L("Allow modify text note foreground").c_str(), nullptr, &m_allow_modify_text_note_foreground);
-        ImGui::MenuItem(_u8L("Allow modify text note background").c_str(), nullptr, &m_allow_modify_text_note_background);
+        ImGui::MenuItem(bidi::vis(_u8L("Show world axes")).c_str(), nullptr, &m_force_show_world_axes);
+        ImGui::MenuItem(bidi::vis(_u8L("Show explosion state column")).c_str(), nullptr, &m_view_is_in_explosion_state);
+        ImGui::MenuItem(bidi::vis(_u8L("Allow modify text note foreground")).c_str(), nullptr, &m_allow_modify_text_note_foreground);
+        ImGui::MenuItem(bidi::vis(_u8L("Allow modify text note background")).c_str(), nullptr, &m_allow_modify_text_note_background);
         ImGui::Separator();
         {
             const float       margin_slider_w = 120.0f * sc;
@@ -3097,12 +3097,12 @@ void AssemblyStepsUtils::render_assembly_structure_option_menu(
 #endif
 #if !BBL_RELEASE_TO_PUBLIC
  /*       bool explode_repeated_as_whole = m_show_modelobject_name_when_modelobject_has_occur_before;
-        if (ImGui::MenuItem(_u8L("Explode repeated model objects as a whole").c_str(), nullptr,
+        if (ImGui::MenuItem(bidi::vis(_u8L("Explode repeated model objects as a whole")).c_str(), nullptr,
                             &explode_repeated_as_whole)) {
             m_show_modelobject_name_when_modelobject_has_occur_before = explode_repeated_as_whole;
         }
         bool show_origin_step_tree = AssemblyTreeData::show_origin_step_tree;
-        if (ImGui::MenuItem(_u8L("Show origin STEP tree").c_str(), nullptr, &show_origin_step_tree)) {
+        if (ImGui::MenuItem(bidi::vis(_u8L("Show origin STEP tree")).c_str(), nullptr, &show_origin_step_tree)) {
             AssemblyTreeData::show_origin_step_tree = show_origin_step_tree;
             m_assembly_tree_ui_current_folder_node = -1;
             m_assembly_tree_ui_original_checked.clear();
@@ -3125,7 +3125,7 @@ void AssemblyStepsUtils::render_panel_tooltip(const std::string &text, bool use_
     }
     ImGui::BeginTooltip();
     ImGui::PushTextWrapPos(280.0f * sc);
-    ImGui::TextUnformatted(text.c_str());
+    ImGui::TextUnformatted(bidi::vis(text).c_str());
     ImGui::PopTextWrapPos();
     ImGui::EndTooltip();
     if (use_dark_style)
@@ -4363,7 +4363,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
                 ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs);
-            ImGui::TextUnformatted(m_save_project_tip_text.c_str());
+            ImGui::TextUnformatted(bidi::vis(m_save_project_tip_text).c_str());
             ImGui::End();
             ImGui::PopStyleColor(3);
             ImGui::PopStyleVar(3);
@@ -5601,7 +5601,7 @@ int AssemblyStepsUtils::render_timeline_keyframe(
             ImGui::InvisibleButton("##del", ImVec2(badge_r * 2, badge_r * 2));
             if (ImGui::IsItemClicked(0)) result = -1;
             if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("%s", _u8L("Delete this keyframe").c_str());
+                ImGui::SetTooltip("%s", bidi::vis(_u8L("Delete this keyframe")).c_str());
             ImGui::PopID();
             ImGui::PopID();
         }
@@ -6342,17 +6342,17 @@ void AssemblyStepsUtils::render_assembly_label_settings_popup(const char *popup_
             ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleColor(ImGuiCol_Border, radio_ring);
             ImGuiWrapper::push_radio_style();
-            if (ImGui::RadioButton(_u8L("Auto").c_str(), cur == LabelsShowType::AutoRecommend))
+            if (ImGui::RadioButton(bidi::vis(_u8L("Auto")).c_str(), cur == LabelsShowType::AutoRecommend))
                 set_labels_show_type(LabelsShowType::AutoRecommend);
             if (ImGui::IsItemHovered())
                 render_panel_tooltip(_u8L("Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."));
             ImGui::SameLine();
-            if (ImGui::RadioButton(_u8L("Object").c_str(), cur == LabelsShowType::OnlyModelObject))
+            if (ImGui::RadioButton(bidi::vis(_u8L("Object")).c_str(), cur == LabelsShowType::OnlyModelObject))
                 set_labels_show_type(LabelsShowType::OnlyModelObject);
             if (ImGui::IsItemHovered())
                 render_panel_tooltip(_u8L("Show one label per model object."));
             ImGui::SameLine();
-            if (ImGui::RadioButton(_u8L("Part").c_str(), cur == LabelsShowType::OnlyModelVolume))
+            if (ImGui::RadioButton(bidi::vis(_u8L("Part")).c_str(), cur == LabelsShowType::OnlyModelVolume))
                 set_labels_show_type(LabelsShowType::OnlyModelVolume);
             if (ImGui::IsItemHovered())
                 render_panel_tooltip(_u8L("Show one label per model part."));

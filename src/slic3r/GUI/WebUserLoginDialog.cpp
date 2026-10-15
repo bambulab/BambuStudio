@@ -82,7 +82,7 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
 
         // Use the validated locale: the website only serves the languages we ship
         // translations for, and an unsupported prefix (e.g. "he") 404s.
-        wxString strlang = wxGetApp().current_language_code_safe().BeforeFirst('_');
+        wxString strlang = wxGetApp().current_language_code_server_safe().BeforeFirst('_');
         if (strlang != "") {
             TargetUrl = host_url + "/" + strlang + "/sign-in";
         }

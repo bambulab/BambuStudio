@@ -1,5 +1,6 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoPainterBase.hpp"
+#include "slic3r/GUI/Bidi.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
@@ -375,7 +376,7 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
     ImGui::AlignTextToFramePadding();
     ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark_mode ? ImVec4(255 / 255.0, 255 / 255.0, 255 / 255.0, 0.7) : ImVec4(38 / 255.0, 46 / 255.0, 48 / 255.0, 0.7));
-    ImGui::TextUnformatted(_L("Bottom:").ToUTF8().data());
+    ImGui::TextUnformatted(bidi::vis(_u8L("Bottom:")).c_str());
     ImGui::SameLine();
     ImGui::PushItemWidth(buf_size);
 
