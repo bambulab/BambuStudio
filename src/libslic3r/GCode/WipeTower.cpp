@@ -4482,12 +4482,8 @@ WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &
 
     writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_Start) + "\n");
 
-    // Contact layers are structural tower interfaces even when the optional interface treatment is
-    // disabled. Adaptive multi-diameter grouping may create one on nearly every alternating slab, so
-    // applying the interface speed unconditionally would make the whole tower run at 20 mm/s.
     float feedrate = calc_tower_feedrate(filament_id, e_flow, first_layer);
-    if (m_enable_tower_interface_features &&
-        (layer_type == WipeTowerLayerType::Contact || layer_type == WipeTowerLayerType::Contact_UP))
+    if (layer_type == WipeTowerLayerType::Contact || layer_type == WipeTowerLayerType::Contact_UP)
         feedrate = m_contact_speed;
     box_coordinates fill_box(Vec2f(0, 0), 0, 0);
     // Same reasoning as in finish_block(): the far edge of the band is kept clear by the width of the
@@ -4968,11 +4964,7 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
     const float dy           = wipe_line_spacing(solid_tool_toolchange);
     x_to_wipe                = solid_tool_toolchange ? std::numeric_limits<float>::max(): x_to_wipe;
     float target_speed       = first_layer ? std::min(m_first_layer_speed * 60.f, m_max_speed) : calc_tower_feedrate(m_current_tool, m_extrusion_flow, false);
-    // The purge still has to lay a solid slab down on a contact layer, but the interface speed is a quality
-    // measure of the optional interface treatment, same as in finish_block_solid(). Filaments of different
-    // adhesiveness categories meet on nearly every layer once one of them is loaded over the whole model, so
-    // applying it unconditionally runs the whole purge at 20 mm/s scaled by the filament speed curve.
-    if (m_enable_tower_interface_features && solid_tool_toolchange)
+    if (solid_tool_toolchange)
         target_speed = m_contact_speed;
     std::vector<float> WipeSpeedMap;
     const auto &filament_curve = m_filpar[m_current_tool].speed_factor_curve;
