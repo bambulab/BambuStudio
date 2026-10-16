@@ -12,7 +12,7 @@ namespace Slic3r::GUI {
 
 SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(InputInfo &input_info)
     : BaseTransparentDPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe),
-                              wxGetApp().preset_bundle->get_printer_extruder_count() == 1 ? 370 : 320,
+                              320,
                               input_info.dialog_pos,
                               90,
                               _L("Successfully synchronized Printer information."),

@@ -448,9 +448,16 @@ public:
         Bind(wxEVT_PAINT, &NozzleSlotTile::OnPaint, this);
     }
 
-    /// \brief Fade the whole tile out: the slot is configured but not printed at in this mode.
-    void SetDimmed(bool dimmed)
+    /**
+     * \brief Mark the slot as unusable in this mode, or usable again.
+     *
+     * \param reason  why the slot cannot be used, shown on hover; empty means usable.
+     *                An unusable tile is faded out.
+     */
+    void SetUnavailable(const wxString &reason)
     {
+        const bool dimmed = !reason.empty();
+        reason.empty() ? UnsetToolTip() : SetToolTip(reason);
         if (m_dimmed == dimmed) return;
         m_dimmed = dimmed;
         Refresh();
@@ -785,7 +792,8 @@ namespace {
 // Set (or clear) a tooltip on a window and its whole descendant tree.
 void set_tooltip_recursive(wxWindow *window, const wxString &tooltip, bool clear)
 {
-    if (!window) return;
+    // A slot tile carries its own reason for being unusable.
+    if (!window || dynamic_cast<NozzleSlotTile *>(window)) return;
     clear ? window->UnsetToolTip() : window->SetToolTip(tooltip);
     for (auto *child : window->GetChildren()) set_tooltip_recursive(child, tooltip, clear);
 }
@@ -804,6 +812,13 @@ wxString slot_label(int extruder_count, int extruder, int slot, int slots_on_ext
 
     const wxString side = extruder == 0 ? "L" : "R";
     return slots_on_extruder == 1 ? side : wxString::Format("%s%d", side, slot + 1);
+}
+
+// Why a slot cannot print at the selected diameter; empty when it can.
+wxString unavailable_reason(const NozzleConfig &cfg, bool usable)
+{
+    if (usable) return {};
+    return cfg.is_empty() ? _L("No nozzle is installed in this slot.") : _L("Nozzle diameter mismatch. This nozzle cannot be used.");
 }
 } // namespace
 
@@ -912,8 +927,8 @@ void NozzleRackPanel::UpdateNozzles(const std::vector<std::vector<NozzleConfig>>
             const wxString flow     = cfg.is_empty() ? wxString("--") : volume_short(cfg.volume);
             const wxString label    = slot_label(m_extruder_count, extruder, slot, slots);
             auto          *tile     = new NozzleSlotTile(this, icon, label, diameter, flow, cfg.status);
-            // Single-diameter mode dims every slot that cannot print at the selected diameter.
-            tile->SetDimmed(!multi_diameter && !on_selected);
+            // Single-diameter mode dims every slot that cannot print at the selected diameter and says why on hover.
+            tile->SetUnavailable(unavailable_reason(cfg, multi_diameter || on_selected));
 
             if (!m_tile_row->IsEmpty()) m_tile_row->AddSpacer(FromDIP(TILE_GAP));
             m_tile_row->Add(tile, 1, wxALIGN_CENTER_VERTICAL);
