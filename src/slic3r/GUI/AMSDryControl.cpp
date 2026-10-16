@@ -14,6 +14,7 @@
 #include "slic3r/GUI/Widgets/Label.hpp"
 #include "slic3r/GUI/Widgets/ComboBox.hpp"
 #include "slic3r/GUI/Widgets/ProgressBar.hpp"
+#include "slic3r/GUI/Widgets/TextInput.hpp"
 #include "DeviceCore/DevUtilBackend.h"
 
 #include <wx/dcbuffer.h>
@@ -766,9 +767,13 @@ wxBoxSizer* AMSDryCtrWin::create_normal_state_panel(wxPanel* parent)
     m_trays_combo->Bind(wxEVT_COMBOBOX, &AMSDryCtrWin::OnFilamentSelectionChanged, this);
 
     // part 3 time and temperature
+    // Use TextInput (self-drawn border/background) instead of a bare wxTextCtrl: on macOS the
+    // native NSTextField background is turned off globally and its bezel is nearly invisible on
+    // a white page, so a bare wxTextCtrl cannot be told apart from the background in light mode.
     // Temperature part
     wxBoxSizer* temp_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_temperature_input = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(80), -1));
+    m_temperature_box = new TextInput(parent, "", "", "", wxDefaultPosition, wxSize(FromDIP(80), FromDIP(26)));
+    m_temperature_input = m_temperature_box->GetTextCtrl();
     m_temperature_input->SetMaxLength(3); // Limit to 3 digits
 
     m_temperature_input->Bind(wxEVT_CHAR, [this](wxKeyEvent& event) {
@@ -785,17 +790,15 @@ wxBoxSizer* AMSDryCtrWin::create_normal_state_panel(wxPanel* parent)
         m_start_button->Disable();
     });
 
-    m_temperature_input->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
-    m_temperature_input->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
-
     Label* temp_unit_label = new Label(parent, wxString::FromUTF8("℃"));
     temp_unit_label->SetForegroundColour(*wxBLACK);
-    temp_sizer->Add(m_temperature_input, 1, wxRIGHT, FromDIP(1));
+    temp_sizer->Add(m_temperature_box, 1, wxRIGHT, FromDIP(1));
     temp_sizer->Add(temp_unit_label, 0, wxALIGN_CENTER_VERTICAL);
 
     // Time part
     wxBoxSizer* time_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_time_input = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(100), -1));
+    m_time_box = new TextInput(parent, "", "", "", wxDefaultPosition, wxSize(FromDIP(100), FromDIP(26)));
+    m_time_input = m_time_box->GetTextCtrl();
     m_time_input->SetMaxLength(3); // Limit to 3 digits
 
     m_time_input->Bind(wxEVT_CHAR, [this](wxKeyEvent& event) {
@@ -812,12 +815,9 @@ wxBoxSizer* AMSDryCtrWin::create_normal_state_panel(wxPanel* parent)
         m_start_button->Disable();
     });
 
-    m_time_input->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
-    m_time_input->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
-
     Label* time_unit_label = new Label(parent, "H");
     time_unit_label->SetForegroundColour(*wxBLACK);
-    time_sizer->Add(m_time_input, 1, wxRIGHT, FromDIP(1));
+    time_sizer->Add(m_time_box, 1, wxRIGHT, FromDIP(1));
     time_sizer->Add(time_unit_label, 0, wxALIGN_CENTER_VERTICAL);
 
     wxBoxSizer* input_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1446,6 +1446,8 @@ void AMSDryCtrWin::msw_rescale()
 
     if (m_ams_filament_panel) {m_ams_filament_panel->msw_rescale();}
     if (m_trays_combo) {m_trays_combo->Rescale(); m_trays_combo->Layout(); m_trays_combo->SetFont(Label::Body_14), m_trays_combo->Refresh();}
+    if (m_temperature_box) {m_temperature_box->Rescale();}
+    if (m_time_box) {m_time_box->Rescale();}
     if (m_humidity_img && m_humidity_image.bmp().IsOk()) {m_humidity_image.msw_rescale(); m_humidity_img->SetBitmap(m_humidity_image.bmp());}
     if (m_image_placeholder && m_guide_image.bmp().IsOk()) {m_guide_image.msw_rescale();m_image_placeholder->SetBitmap(m_guide_image.bmp());}
     if (m_image_description_icon && m_description_icon_bitmap.bmp().IsOk()) {m_description_icon_bitmap.msw_rescale(); m_image_description_icon->SetBitmap(m_description_icon_bitmap.bmp());}
@@ -1790,8 +1792,8 @@ void AMSDryCtrWin::update_normal_state(DevAms* dev_ams)
         m_normal_description->Hide();
 
         m_trays_combo->Hide();
-        m_temperature_input->Hide();
-        m_time_input->Hide();
+        m_temperature_box->Hide();
+        m_time_box->Hide();
         m_stop_button->Show(true);
     } else {
         m_next_button->Hide();

@@ -14,6 +14,7 @@
 
 //Previous defintions
 class wxGrid;
+class TextInput;
 
 namespace Slic3r {
 
@@ -149,8 +150,12 @@ private:
     // right panel normal state
     ComboBox* m_trays_combo;
     std::vector<FilamentBaseInfo> m_tray_ids;
-    wxTextCtrl* m_temperature_input;
-    wxTextCtrl* m_time_input;
+    // Self-drawn boxes (border + background) so the inputs stay visible on macOS,
+    // where native NSTextField backgrounds are disabled globally (see MacDarkMode.mm).
+    TextInput* m_temperature_box{nullptr};
+    TextInput* m_time_box{nullptr};
+    wxTextCtrl* m_temperature_input; // m_temperature_box->GetTextCtrl()
+    wxTextCtrl* m_time_input;        // m_time_box->GetTextCtrl()
     Label* m_normal_description;
     Button* m_start_button{nullptr};
     Button* m_next_button{nullptr};
