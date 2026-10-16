@@ -779,6 +779,50 @@ static bool bbs_encoded_path_within_dir(const std::string& encoded_dir, const st
     return !rest.empty() && !bbs_encoded_has_dotdot_component(rest);
 }
 
+// Auxiliary files are extracted and later read back (GUI, export) through Win32 APIs
+// without long path support, which fail once the full path reaches MAX_PATH (260).
+// Keep some headroom below it, as the GUI recomposes these paths on its own.
+static constexpr size_t BBS_AUXILIARY_MAX_PATH_LEN = 240;
+
+// If dir/subpath is too long for Windows, shorten the file name of subpath (UTF-8),
+// keeping its extension and appending a CRC of the original sub path so that
+// different long names stay distinct. Returns subpath unchanged if no shortening
+// is needed or possible.
+static std::string bbs_auxiliary_shorten_subpath_for_max_path(const std::string& dir, const std::string& subpath)
+{
+#ifdef _WIN32
+    const std::wstring full = boost::nowide::widen(dir + "/" + subpath);
+    if (full.size() <= BBS_AUXILIARY_MAX_PATH_LEN)
+        return subpath;
+
+    const std::wstring wsub = boost::nowide::widen(subpath);
+    size_t name_pos = wsub.find_last_of(L"/\\");
+    name_pos = (name_pos == std::wstring::npos) ? 0 : name_pos + 1;
+    size_t ext_pos = wsub.find_last_of(L'.');
+    if (ext_pos == std::wstring::npos || ext_pos <= name_pos)
+        ext_pos = wsub.size();
+
+    const std::wstring stem = wsub.substr(name_pos, ext_pos - name_pos);
+    const std::wstring ext  = wsub.substr(ext_pos);
+    const uint32_t     crc  = (uint32_t) mz_crc32(MZ_CRC32_INIT, (const unsigned char*) subpath.data(), subpath.size());
+    const std::wstring suffix = L"_" + boost::nowide::widen((boost::format("%08x") % crc).str()) + ext;
+
+    const size_t fixed_len = full.size() - stem.size() - ext.size();
+    if (fixed_len + suffix.size() > BBS_AUXILIARY_MAX_PATH_LEN)
+        return subpath;
+
+    size_t keep = std::min(stem.size(), BBS_AUXILIARY_MAX_PATH_LEN - fixed_len - suffix.size());
+    // Do not split a UTF-16 surrogate pair.
+    if (keep > 0 && stem[keep - 1] >= 0xD800 && stem[keep - 1] <= 0xDBFF)
+        --keep;
+
+    return boost::nowide::narrow(wsub.substr(0, name_pos) + stem.substr(0, keep) + suffix);
+#else
+    (void) dir;
+    return subpath;
+#endif
+}
+
 namespace Slic3r {
 
 void PlateData::parse_filament_info(GCodeProcessorResult *result)
@@ -3213,6 +3257,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 BOOST_LOG_TRIVIAL(warning) << "Auxiliary sub path rewritten for local encoding safety: "
                     << PathSanitizer::sanitize(dest_file) << " -> " << PathSanitizer::sanitize(safe_dest);
                 dest_file = std::move(safe_dest);
+            }
+
+            std::string short_dest = bbs_auxiliary_shorten_subpath_for_max_path(temp_path, dest_file);
+            if (short_dest != dest_file) {
+                BOOST_LOG_TRIVIAL(warning) << "Auxiliary sub path shortened to fit MAX_PATH: "
+                    << PathSanitizer::sanitize(dest_file) << " -> " << PathSanitizer::sanitize(short_dest);
+                dest_file = std::move(short_dest);
             }
 
             if (dest_file.find('/') != std::string::npos || dest_file.find('\\') != std::string::npos) {
