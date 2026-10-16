@@ -5,8 +5,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/format.hpp>
 
-#include <wx/html/htmlcell.h>
-#include <wx/html/htmlwin.h>
 #include <wx/sizer.h>
 #include <wx/statbmp.h>
 #include <wx/utils.h>
@@ -25,20 +23,16 @@
 namespace Slic3r { namespace GUI {
 
 static const char        *DONT_SHOW_AGAIN_KEY = "no_show_tpu_tips";
-static const std::string  TPU_GUIDE_URL   = "";
+static const std::string  TPU_GUIDE_URL   = "https://e.bambulab.com/t?c=NslBZddIdsBrLEoG";
 static const int          CONTENT_WIDTH_DIP   = 460;
 static const char        *TIPS_IMAGE_NAME       = "tpu_tips";
 static const int          TIPS_IMAGE_HEIGHT_DIP = 204;
+static const char        *WARN_ICON_NAME        = "text_obj_warning";
+static const int          WARN_ICON_SIZE_DIP    = 16;
 
 static const wxColour TextPrimaryColor   = wxColour("#262E30");
 static const wxColour TextSecondaryColor = wxColour("#6B6B6B");
 static const wxColour BrandGreenColor    = wxColour("#00AE42");
-
-static std::string html_color(const wxColour &color)
-{
-    const wxColour c = StateColor::darkModeColorFor(color);
-    return (boost::format("#%02X%02X%02X") % int(c.Red()) % int(c.Green()) % int(c.Blue())).str();
-}
 
 static bool is_tpu_filament(const std::string &preset_name)
 {
@@ -73,37 +67,25 @@ MultiNozzleTpuTipsDialog::MultiNozzleTpuTipsDialog(wxWindow *parent)
     m_image = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap(TIPS_IMAGE_NAME, this, TIPS_IMAGE_HEIGHT_DIP));
     main_sizer->Add(m_image, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, padding);
 
-    wxString intro = _L("Before using TPU filament for the first time, please click here to view the");
-    // Latin-script translations need a space before the link; CJK ones must not get one.
-    if (!intro.empty()) {
-        const wxUniChar last = intro.Last();
-        if (last.IsAscii() && std::isalnum(static_cast<unsigned char>(last.GetValue())))
-            intro += ' ';
-    }
+    // text_obj_warning.svg stands in for the warning glyph, which the UI font may not contain.
+    auto *title_row = new wxBoxSizer(wxHORIZONTAL);
+    m_warn_icon     = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap(WARN_ICON_NAME, this, WARN_ICON_SIZE_DIP), wxDefaultPosition,
+                                         wxSize(FromDIP(WARN_ICON_SIZE_DIP), FromDIP(WARN_ICON_SIZE_DIP)));
+    auto *title_label = new Label(this, Label::Body_14, _L("Important Notice:"));
+    title_label->SetForegroundColour(TextPrimaryColor);
+    title_row->Add(m_warn_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(6));
+    title_row->Add(title_label, 0, wxALIGN_CENTER_VERTICAL);
+    main_sizer->Add(title_row, 0, wxLEFT | wxRIGHT | wxTOP, padding);
 
-    // Rendered as HTML so the link flows inline after the intro text instead of wrapping as a separate block.
-    m_guide_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxSize(content_width, -1), wxHW_SCROLLBAR_NEVER | wxHW_NO_SELECTION);
-    m_guide_html->SetBorders(0);
-    const wxFont &font      = Label::Body_14;
-    const int     font_size = font.GetPointSize();
-    int           sizes[]   = {font_size, font_size, font_size, font_size, font_size, font_size, font_size};
-    m_guide_html->SetFonts(font.GetFaceName(), font.GetFaceName(), sizes);
-    m_guide_html->SetPage(wxString::FromUTF8("<html><body bgcolor=\"" + html_color(GetBackgroundColour()) + "\" text=\"" + html_color(TextPrimaryColor) +
-                                             "\" link=\"" + html_color(BrandGreenColor) + "\">" + xml_escape(intro.ToUTF8().data()) + "<a href=\"guide\">" +
-                                             xml_escape(_L("TPU User Guide").ToUTF8().data()) + "</a></body></html>"));
-    m_guide_html->Bind(wxEVT_HTML_LINK_CLICKED, [](wxHtmlLinkEvent &) {
-        if (!TPU_GUIDE_URL.empty())
-            wxLaunchDefaultBrowser(wxString::FromUTF8(TPU_GUIDE_URL));
-    });
-    fit_guide_html();
-    main_sizer->Add(m_guide_html, 0, wxLEFT | wxRIGHT | wxTOP, padding);
-
-    auto *note_text = new Label(this, Label::Body_14,
-                                _L("Note: If you are using TPU 2.85mm filament, the current printer preset must include a TPU285 nozzle. If the corresponding nozzle is "
-                                   "installed on the printer, it is recommended to sync the printer information before use."));
-    note_text->SetForegroundColour(TextSecondaryColor);
-    note_text->Wrap(content_width);
-    main_sizer->Add(note_text, 0, wxLEFT | wxRIGHT | wxTOP, padding);
+    wxString tips_text = _L(
+        "• Using TPU filament for the first time? Read the official guide first to avoid clogs or feeding failures.\n"
+        "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced.");
+    m_tips_label = new Label(this, Label::Body_14, tips_text);
+    m_tips_label->SetForegroundColour(TextPrimaryColor);
+    m_tips_label->Wrap(content_width);
+    // Side inset matches the button row, so the body lines up with the checkbox and buttons.
+    main_sizer->AddSpacer(FromDIP(8));
+    main_sizer->Add(m_tips_label, 0, wxLEFT | wxRIGHT, padding);
 
     auto *bottom_sizer   = new wxBoxSizer(wxHORIZONTAL);
     m_dont_show_checkbox = new ::CheckBox(this);
@@ -119,10 +101,26 @@ MultiNozzleTpuTipsDialog::MultiNozzleTpuTipsDialog(wxWindow *parent)
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour("#1B8844"), StateColor::Pressed),
                             std::pair<wxColour, int>(wxColour("#3DCB73"), StateColor::Hovered),
                             std::pair<wxColour, int>(BrandGreenColor, StateColor::Normal));
+    m_guide_btn = new Button(this, _L("View User Guide"));
+    m_guide_btn->SetBackgroundColor(btn_bg_green);
+    m_guide_btn->SetBorderColor(BrandGreenColor);
+    m_guide_btn->SetTextColor(wxColour("#FFFFFE"));
+    m_guide_btn->SetFont(Label::Body_14);
+    m_guide_btn->SetMinSize(wxSize(FromDIP(146), FromDIP(28)));
+    m_guide_btn->SetCornerRadius(FromDIP(14));
+    m_guide_btn->Bind(wxEVT_BUTTON, [](wxCommandEvent &) {
+        if (!TPU_GUIDE_URL.empty())
+            wxLaunchDefaultBrowser(wxString::FromUTF8(TPU_GUIDE_URL));
+    });
+    bottom_sizer->Add(m_guide_btn, 0, wxALIGN_CENTER_VERTICAL);
+
+    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
     m_confirm_btn = new Button(this, _L("Got it"));
-    m_confirm_btn->SetBackgroundColor(btn_bg_green);
-    m_confirm_btn->SetBorderColor(BrandGreenColor);
-    m_confirm_btn->SetTextColor(wxColour("#FFFFFE"));
+    m_confirm_btn->SetBackgroundColor(btn_bg_white);
+    m_confirm_btn->SetBorderColor(TextPrimaryColor);
+    m_confirm_btn->SetTextColor(TextPrimaryColor);
     m_confirm_btn->SetFont(Label::Body_14);
     m_confirm_btn->SetMinSize(wxSize(FromDIP(74), FromDIP(28)));
     m_confirm_btn->SetCornerRadius(FromDIP(14));
@@ -130,7 +128,7 @@ MultiNozzleTpuTipsDialog::MultiNozzleTpuTipsDialog(wxWindow *parent)
         save_dont_show_choice();
         EndModal(wxID_OK);
     });
-    bottom_sizer->Add(m_confirm_btn, 0, wxALIGN_CENTER_VERTICAL);
+    bottom_sizer->Add(m_confirm_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10));
     main_sizer->Add(bottom_sizer, 0, wxEXPAND | wxALL, padding);
 
     // Closing with the title bar button still honors the checkbox.
@@ -146,14 +144,6 @@ MultiNozzleTpuTipsDialog::MultiNozzleTpuTipsDialog(wxWindow *parent)
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
-void MultiNozzleTpuTipsDialog::fit_guide_html()
-{
-    const int            width = FromDIP(CONTENT_WIDTH_DIP);
-    wxHtmlContainerCell *cell  = m_guide_html->GetInternalRepresentation();
-    cell->Layout(width);
-    m_guide_html->SetMinSize(wxSize(width, cell->GetHeight()));
-}
-
 void MultiNozzleTpuTipsDialog::save_dont_show_choice()
 {
     if (!m_dont_show_checkbox->GetValue())
@@ -165,9 +155,14 @@ void MultiNozzleTpuTipsDialog::save_dont_show_choice()
 void MultiNozzleTpuTipsDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     m_dont_show_checkbox->Rescale();
+    if (m_guide_btn)
+        m_guide_btn->Rescale();
     m_confirm_btn->Rescale();
     m_image->SetBitmap(create_scaled_bitmap(TIPS_IMAGE_NAME, this, TIPS_IMAGE_HEIGHT_DIP));
-    fit_guide_html();
+    if (m_warn_icon)
+        m_warn_icon->SetBitmap(create_scaled_bitmap(WARN_ICON_NAME, this, WARN_ICON_SIZE_DIP));
+    if (m_tips_label)
+        m_tips_label->Wrap(FromDIP(CONTENT_WIDTH_DIP));
     Layout();
     Fit();
     Refresh();

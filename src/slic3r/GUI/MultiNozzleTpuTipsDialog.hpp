@@ -6,7 +6,7 @@
 #include "GUI_Utils.hpp"
 
 class wxStaticBitmap;
-class wxHtmlWindow;
+class Label;
 class Button;
 class CheckBox;
 
@@ -27,12 +27,13 @@ protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
 
 private:
-    void fit_guide_html();
     void save_dont_show_choice();
 
     wxStaticBitmap *m_image{nullptr};
-    wxHtmlWindow   *m_guide_html{nullptr};
+    wxStaticBitmap *m_warn_icon{nullptr};
+    Label          *m_tips_label{nullptr};
     ::CheckBox     *m_dont_show_checkbox{nullptr};
+    Button         *m_guide_btn{nullptr};
     Button         *m_confirm_btn{nullptr};
 };
 
