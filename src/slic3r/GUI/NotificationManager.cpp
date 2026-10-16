@@ -3203,6 +3203,11 @@ void NotificationManager::bbl_show_filament_map_invalid_notification_before_slic
             _u8L("Please adjust the nozzle diameter/flow of the affected filament in the filament panel.") }, 0);
         return;
     }
+    if (should_skip_filament_grouping(full_config)) {
+        push_notification_data({ type, NotificationLevel::ErrorNotificationLevel, 0,
+            _u8L("Error:") + "\n" + text }, 0);
+        return;
+    }
 
     auto callback = [](wxEvtHandler*) {
         auto plater = wxGetApp().plater();

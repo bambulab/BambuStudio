@@ -221,8 +221,24 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     // Ensure the validated AMS helper has a slot snapshot to inspect.
     if (wxGetApp().preset_bundle->extruder_full_stat.empty())
         wxGetApp().preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
-    if (is_multi_diameter_without_ams(full_config))
+    if (should_skip_filament_grouping(full_config)) {
+        // In single-diameter mode identical nozzles reduce to a single-nozzle printer. Clear any
+        // previously stored grouping choice before slicing; multi-diameter mode keeps its per-filament
+        // nozzle selections even though the grouping UI is hidden.
+        if (!multi_nozzle_diameter_mode_enabled(full_config)) {
+            auto reset_mode = [&](PartPlate* plate) {
+                if (plate && plate->get_real_filament_map_mode(wxGetApp().preset_bundle->project_config) != fmmAutoForFlush)
+                    plate->set_filament_map_mode(fmmAutoForFlush);
+            };
+            if (is_slice_all) {
+                for (PartPlate* plate : plater_ref->get_partplate_list().get_plate_list())
+                    reset_mode(plate);
+            } else {
+                reset_mode(partplate_ref);
+            }
+        }
         return true;
+    }
 
     std::vector<std::string> filament_colors = full_config.option<ConfigOptionStrings>("filament_colour")->values;
     std::vector<std::string> filament_types = full_config.option<ConfigOptionStrings>("filament_type")->values;
@@ -267,11 +283,7 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     Print* print_obj = partplate_ref->fff_print();
     std::vector<FilamentMapMode> available_modes;
     if (is_single_ext_multi_nozzle(full_config)) {
-        const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(full_config);
-        const bool has_ams = get_effective_ams_nozzle_idx_for_active_diameter(full_config) >= 0;
-        available_modes = {fmmAutoForMatch};
-        if (!multi_diameter_mode && has_ams)
-            available_modes.insert(available_modes.begin(), fmmAutoForFlush);
+        available_modes = get_single_ext_multi_nozzle_auto_modes(full_config);
     } else {
         available_modes = resolve_available_auto_modes(
             print_obj,
@@ -419,10 +431,10 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                           *parent,
     auto       full_config          = wxGetApp().preset_bundle->full_config();
     const bool is_multi_nozzle_mode = is_single_ext_multi_nozzle(full_config);
     const bool multi_diameter_mode  = multi_nozzle_diameter_mode_enabled(full_config);
-    const int ams_nozzle_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_config);
+    const bool has_ams = get_effective_ams_nozzle_idx(full_config) >= 0;
     const bool single_default_mode  = false;
     const bool only_convenience_mode = modes_to_use.size() == 1 && modes_to_use.front() == fmmAutoForMatch;
-    const bool show_manual_mode = !(is_multi_nozzle_mode && multi_diameter_mode && ams_nozzle_idx < 0);
+    const bool show_manual_mode = !(is_multi_nozzle_mode && multi_diameter_mode && !has_ams);
     const bool only_saving_mode = !only_convenience_mode && m_fila_switch_ready &&
         (std::find(modes_to_use.cbegin(), modes_to_use.cend(), FilamentMapMode::fmmAutoForQuality) == modes_to_use.cend());
     m_auto_mode_available = !(only_convenience_mode && !machine_synced);

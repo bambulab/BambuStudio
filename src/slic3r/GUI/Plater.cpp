@@ -30846,7 +30846,7 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     if (preset_bundle->extruder_full_stat.empty())
         preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
     const auto full_config = preset_bundle->full_config();
-    if (is_multi_diameter_without_ams(full_config))
+    if (should_skip_filament_grouping(full_config))
         return;
 
     const auto& project_config = wxGetApp().preset_bundle->project_config;
@@ -30879,7 +30879,7 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     Print* print_obj = curr_plate->fff_print();
     std::vector<FilamentMapMode> available_modes;
     if (is_single_ext_multi_nozzle(full_config))
-        available_modes = {fmmAutoForMatch};
+        available_modes = get_single_ext_multi_nozzle_auto_modes(full_config);
     else
         available_modes = resolve_available_auto_modes(
             print_obj,

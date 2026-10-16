@@ -87,7 +87,17 @@ bool is_multi_diameter_without_ams(const ConfigBase& config)
 {
     return is_single_ext_multi_nozzle(config) &&
            multi_nozzle_diameter_mode_enabled(config) &&
-           get_effective_ams_nozzle_idx_for_active_diameter(config) < 0;
+           get_effective_ams_nozzle_idx(config) < 0;
+}
+
+std::vector<FilamentMapMode> get_single_ext_multi_nozzle_auto_modes(const ConfigBase& config)
+{
+    // Without an AMS every nozzle holds a single filament, so there is no flush to save.
+    // With one, filament saving applies in both single- and multi-diameter mode.
+    std::vector<FilamentMapMode> modes = {fmmAutoForMatch};
+    if (get_effective_ams_nozzle_idx(config) >= 0)
+        modes.insert(modes.begin(), fmmAutoForFlush);
+    return modes;
 }
 
 static std::map<NozzleVolumeType, int> get_fixed_nozzle_counts_from_full_stat(int ams_nozzle_idx, bool has_ams, const std::string& active_diameter, bool& has_full_stat)
@@ -128,6 +138,18 @@ static std::optional<NozzleVolumeType> get_single_fixed_nozzle_volume_from_full_
     if (!has_full_stat || fixed_counts.size() != 1)
         return std::nullopt;
     return fixed_counts.begin()->first;
+}
+
+bool should_skip_filament_grouping(const ConfigBase& config)
+{
+    if (!is_single_ext_multi_nozzle(config) || get_effective_ams_nozzle_idx(config) >= 0)
+        return false;
+    if (multi_nozzle_diameter_mode_enabled(config))
+        return true;
+
+    const auto* nd = dynamic_cast<const ConfigOptionFloatsNullable*>(config.option("nozzle_diameter"));
+    const std::string active_diameter = (nd && !nd->values.empty()) ? format_diameter_to_str(nd->values.front()) : std::string();
+    return get_single_fixed_nozzle_volume_from_full_stat(-1, false, active_diameter).has_value();
 }
 
 static NozzleVolumeType get_ams_nozzle_volume_from_full_stat(int ams_nozzle_idx)

@@ -312,7 +312,7 @@ void FilamentGroupPopup::UpdateNozzleLabels()
     const auto full_config = wxGetApp().preset_bundle->full_config();
     const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(full_config);
     const bool no_ams = single_ext_multi_nozzle
-        && get_effective_ams_nozzle_idx_for_active_diameter(full_config) < 0;
+        && get_effective_ams_nozzle_idx(full_config) < 0;
 
     for (size_t idx = 0; idx < m_all_modes.size() && idx < detail_infos.size(); ++idx) {
         wxString label, detail;
@@ -465,7 +465,7 @@ void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice
     if (wxGetApp().preset_bundle->extruder_full_stat.empty())
         wxGetApp().preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
     const auto full_config = wxGetApp().preset_bundle->full_config();
-    if (is_multi_diameter_without_ams(full_config)) {
+    if (should_skip_filament_grouping(full_config)) {
         if (m_active)
             Dismiss();
         return;
@@ -482,13 +482,8 @@ void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice
         std::vector<FilamentMapMode> new_available_modes;
         const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(full_config);
         if (single_ext_multi_nozzle) {
-            const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(full_config);
-            const bool has_ams = get_effective_ams_nozzle_idx_for_active_diameter(full_config) >= 0;
-            new_available_modes = {fmmAutoForMatch};
-            if (!multi_diameter_mode && has_ams)
-                new_available_modes.insert(new_available_modes.begin(), fmmAutoForFlush);
-            if (!multi_diameter_mode || has_ams)
-                new_available_modes.push_back(fmmManual);
+            new_available_modes = get_single_ext_multi_nozzle_auto_modes(full_config);
+            new_available_modes.push_back(fmmManual);
         } else {
             std::vector<FilamentMapMode> requested_modes = { fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality };
             Print* print_obj = partplate ? partplate->fff_print() : nullptr;

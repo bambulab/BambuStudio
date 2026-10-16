@@ -862,7 +862,7 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool ren
         }
         if (extruder_count == 2 || has_multiple_nozzle) {
             const auto full_config = wxGetApp().preset_bundle->full_config();
-            if (is_multi_diameter_without_ams(full_config)) {
+            if (should_skip_filament_grouping(full_config)) {
                 m_partplate_list->m_plate_filament_map_icon.set_visible(false);
             } else {
                 if (hover_id == PLATE_FILAMENT_MAP_ID){
