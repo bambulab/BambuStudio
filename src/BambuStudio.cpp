@@ -6869,6 +6869,14 @@ int CLI::run(int argc, char **argv)
                                     m_print_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type", true)->values = extruder_nozzle_volume_types;
                                     if (m_extra_config.has("extruder_nozzle_slot"))
                                         m_print_config.option<ConfigOptionInts>("extruder_nozzle_slot", true)->values = m_extra_config.option<ConfigOptionInts>("extruder_nozzle_slot")->values;
+                                    // CLI 未传 extruder_nozzle_diameter 时按当前机型口径补齐，避免总喷嘴数为 1 时与默认值 {0.4} 长度一致导致非 0.4 喷嘴被误判禁用。
+                                    if (m_extra_config.has("extruder_nozzle_diameter"))
+                                        m_print_config.option<ConfigOptionFloats>("extruder_nozzle_diameter", true)->values = m_extra_config.option<ConfigOptionFloats>("extruder_nozzle_diameter")->values;
+                                    else {
+                                        const auto* nd_opt = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+                                        m_print_config.option<ConfigOptionFloats>("extruder_nozzle_diameter", true)->values.assign(
+                                            extruder_nozzle_volume_types.size(), (nd_opt && !nd_opt->values.empty()) ? nd_opt->values.front() : 0.4);
+                                    }
                                 } else {
                                     // 工程中的完整逐槽布局是权威数据，数量可以多于只统计当前口径的 nozzle_stats。
                                     if (!per_slot_nozzle_options_consistent(m_print_config)) {
