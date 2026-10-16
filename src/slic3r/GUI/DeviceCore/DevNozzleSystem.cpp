@@ -236,7 +236,12 @@ bool DevNozzle::IsAbnormal() const
 
 bool DevNozzle::IsUnknown() const
 {
-    return DevUtil::get_flag_bits(m_stat, 1, 2) == (1 << 1);
+    // only support unknown for printers with rack. AP 
+    if (auto rack_ptr = m_nozzle_rack.lock(); rack_ptr && rack_ptr->IsSupported()) {
+        return DevUtil::get_flag_bits(m_stat, 1, 2) == (1 << 1);
+    }
+
+    return false;
 }
 
 
