@@ -1064,6 +1064,35 @@ sCheckFilamentInfo(PresetBundle* preset_bundle,
             }
         }
 
+        if (!check_info.nozzle_diameter.has_value() || !check_info.nozzle_flow.has_value()) {
+            std::unordered_set<std::string> nozzle_flow_str_set;
+            std::unordered_set<float> nozzle_diameter_set;
+            const auto collect_nozzle_info = [&nozzle_flow_str_set, &nozzle_diameter_set](const DevNozzle& nozzle) {
+                if (!nozzle.IsNormal() || !nozzle.IsHotend()) {
+                    return;
+                }
+
+                nozzle_flow_str_set.insert(DevNozzle::GetNozzleFlowTypeString(nozzle.GetNozzleFlowType()));
+                nozzle_diameter_set.insert(nozzle.GetNozzleDiameter());
+            };
+
+            for (const auto& nozzle_item : obj->GetNozzleSystem()->GetExtNozzles()) {
+                collect_nozzle_info(nozzle_item.second);
+            }
+
+            for (const auto& nozzle_item : obj->GetNozzleSystem()->GetRackNozzles()) {
+                collect_nozzle_info(nozzle_item.second);
+            }
+
+            if (!check_info.nozzle_flow.has_value() && nozzle_flow_str_set.size() == 1) {
+                check_info.nozzle_flow = *nozzle_flow_str_set.begin();
+            }
+
+            if (!check_info.nozzle_diameter.has_value() && nozzle_diameter_set.size() == 1) {
+                check_info.nozzle_diameter = *nozzle_diameter_set.begin();
+            }
+        }
+
         result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
     }
 
