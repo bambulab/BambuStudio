@@ -4853,6 +4853,9 @@ void MachineObject::parse_new_info(json print)
 
     m_dev_info->ParseInfo(print);
 
+    // air purifier(APS): decoupled module, parses aux bit[37] + device.aps
+    m_air_purifier->ParseAps(print);
+
     /*device*/
     if (print.contains("device")) {
         json const& device = print["device"];
