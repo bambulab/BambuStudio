@@ -738,10 +738,20 @@ float TreeSupport::top_z_for_overhang(size_t obj_layer_nr, const ExPolygon &over
     return gap > 0.f ? gap : touched > 0.f ? touched : top_z_at(obj_layer_nr);
 }
 
-void TreeSupport::union_outlines_within_top_z(ExPolygons &collision, size_t obj_layer_nr) const
+void TreeSupport::union_outlines_within_top_z(ExPolygons &collision, size_t obj_layer_nr, bool clamp_to_first_layer_gap) const
 {
     if (top_z_distance <= EPSILON)
         return;
+    // The object first layer is already offset by support_object_first_layer_gap. Outlines above still
+    // have to be cleared, but expanding them by the full top-z gap cancels a smaller first-layer gap on a
+    // vertical wall (the upper outline matches this one). Clamp only the XY expansion; the Z window stays
+    // the top-z gap so a real overhang within that height is still kept out.
+    const float first_layer_gap = clamp_to_first_layer_gap ? float(m_object_config->support_object_first_layer_gap.value) : 0.f;
+    auto xy_expand = [&](float gap) {
+        if (clamp_to_first_layer_gap)
+            gap = std::min(gap, first_layer_gap);
+        return scale_(gap);
+    };
     ExPolygons above;
     float      accum_height = 0;
     for (size_t layer_id = obj_layer_nr + 1; layer_id < m_ts_data->m_layer_outlines.size(); ++ layer_id) {
@@ -749,13 +759,13 @@ void TreeSupport::union_outlines_within_top_z(ExPolygons &collision, size_t obj_
         if (accum_height > m_top_z_max)
             break;
         if (m_top_z_outlines.empty())
-            append(above, offset_ex(m_ts_data->m_layer_outlines[layer_id], scale_(top_z_distance)));
+            append(above, offset_ex(m_ts_data->m_layer_outlines[layer_id], xy_expand(top_z_distance)));
         else
             // A fine nozzle's own overhang right above its thin gap must not be pulled down onto its interface
             // because a coarse nozzle elsewhere asks for a wider gap.
             for (const std::pair<float, ExPolygons> &bucket : m_top_z_outlines[layer_id])
                 if (accum_height <= bucket.first)
-                    append(above, offset_ex(bucket.second, scale_(bucket.first)));
+                    append(above, offset_ex(bucket.second, xy_expand(bucket.first)));
     }
     if (! above.empty()) {
         append(collision, std::move(above));
@@ -3110,8 +3120,10 @@ void TreeSupport::draw_circles()
                         collision = offset_ex(m_ts_data->m_layer_outlines[obj_layer_nr],
                                               sharp_tail ? scale_(top_z_at(obj_layer_nr)) :
                                                            scale_((obj_layer_nr == 0) ? config.support_object_first_layer_gap : m_ts_data->m_xy_distance));
-                        // the top layers may be too close to interface with adaptive layer heights and very small overhang angle
-                        union_outlines_within_top_z(collision, obj_layer_nr);
+                        // the top layers may be too close to interface with adaptive layer heights and very small overhang angle.
+                        // On the object first layer, clamp that expansion so a smaller support_object_first_layer_gap
+                        // is not cancelled. Sharp tails keep the top-z clearance.
+                        union_outlines_within_top_z(collision, obj_layer_nr, !sharp_tail && obj_layer_nr == 0);
                     }
                     return collision;
                 };

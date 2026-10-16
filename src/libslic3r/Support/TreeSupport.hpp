@@ -493,7 +493,9 @@ private:
     // Gap under an overhang: the largest gap of the material it overlaps.
     float top_z_for_overhang(size_t obj_layer_nr, const ExPolygon &overhang) const;
     // Union into collision the outlines that lie within their own gap above obj_layer_nr.
-    void  union_outlines_within_top_z(ExPolygons &collision, size_t obj_layer_nr) const;
+    // clamp_to_first_layer_gap limits that XY expansion to support_object_first_layer_gap.
+    // Sharp tails pass false and keep the top-z clearance.
+    void  union_outlines_within_top_z(ExPolygons &collision, size_t obj_layer_nr, bool clamp_to_first_layer_gap = false) const;
 
     bool  is_strong = false;
     bool  is_slim                            = false;
