@@ -109,6 +109,11 @@ nlohmann::json AutoRefillRefillInfoActions::Handle(AutoRefillRefillInfoVM& vm,
         return Reply(vm, action, 1, "no printer");
     }
 
+    if (action == SV::action::open_ams_settings) {
+        wxGetApp().CallAfter([]() { OpenAmsSettingsDialog(); });
+        return Reply(vm, action, 0, "");
+    }
+
     if (!manual_edit_allowed(obj)) {
         return Reply(vm, action, 1, "manual edit not supported");
     }

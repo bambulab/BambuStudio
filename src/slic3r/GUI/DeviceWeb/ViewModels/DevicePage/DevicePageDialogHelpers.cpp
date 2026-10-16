@@ -1,5 +1,6 @@
 #include "DevicePageDialogHelpers.h"
 
+#include "slic3r/GUI/AMSSetting.hpp"
 #include "slic3r/GUI/AMSDryControl.hpp"
 #include "slic3r/GUI/AMSMaterialsSetting.hpp"
 #include "slic3r/GUI/EncodedFilament.hpp"
@@ -176,6 +177,18 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
         info.ctype  = dlg.m_clr_picker->ctype;
     }
     return info;
+}
+
+void OpenAmsSettingsDialog()
+{
+    auto*          dev_mgr     = wxGetApp().getDeviceManager();
+    MachineObject* machine_obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+    wxWindow*      parent      = wxGetApp().mainframe;
+    if (!machine_obj || !parent) return;
+
+    AMSSetting dlg(parent, wxID_ANY);
+    dlg.UpdateByObj(machine_obj);
+    dlg.ShowModal();
 }
 
 void OpenAmsAutoRefillDialog()

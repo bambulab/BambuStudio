@@ -12,6 +12,7 @@ import { AddRefillFilamentsPage } from './add-refill-filaments/AddRefillFilament
 import type { AutoRefillAddRefillFilamentsSlotRef } from './add-refill-filaments/types';
 import { resolveHostContentSize } from './hostContentSize';
 import emptyRefillGroupImage from './assets/empty_refill_group.png';
+import autoRefillDisabledNotice from './assets/auto_refill_disabled_notice.svg';
 import './auto-refill-refill-info.css';
 
 const HOST_LAYOUT_MODULE = 'device_host';
@@ -123,6 +124,7 @@ export function AutoRefillRefillInfoPage() {
     confirmAddRefillFilaments,
     resetGroup,
     removeSlot,
+    openAmsSettings,
     moveSlot,
     applyingRefillEdit,
     toasts,
@@ -143,6 +145,7 @@ export function AutoRefillRefillInfoPage() {
   // Presentation is C++-driven: text and affordances come from the view-model
   // rather than being hard-coded here (see Schema.hpp keys::root).
   const editable = state.editable ?? false;
+  const autoRefillEnabled = state.auto_refill_enabled ?? false;
   const description = state.description
     ?.split('\n')
     .map((line) => t(line))
@@ -268,6 +271,28 @@ export function AutoRefillRefillInfoPage() {
           keeps its own 3s lifetime. */}
       {applyingRefillEdit ? <AddRefillFilamentsLoading label="Updating..." /> : (
       <>
+      {!autoRefillEnabled ? (
+        <div className="refill-page__disabled">
+          <div className="refill-page__disabled-card">
+            <img className="refill-page__disabled-image" src={autoRefillDisabledNotice} alt="" />
+            <div className="refill-page__disabled-copy">
+              <div className="refill-page__disabled-title">{t('Auto Refill is turned off')}</div>
+              <div className="refill-page__disabled-desc">
+                {t('Printing will continue with identical filament when available')}
+              </div>
+            </div>
+            <button
+              type="button"
+              className="refill-page__open-settings"
+              onClick={() => { void openAmsSettings(); }}
+            >
+              {t('Open Auto Refill')}
+            </button>
+            {error && <div className="refill-page__error">{error}</div>}
+          </div>
+        </div>
+      ) : (
+        <>
       <div className="refill-page__intro">
         <div className="refill-page__title">
           {t('Auto-refill management')}
@@ -317,6 +342,8 @@ export function AutoRefillRefillInfoPage() {
             />
           ))}
         </div>
+      )}
+        </>
       )}
       </>
       )}

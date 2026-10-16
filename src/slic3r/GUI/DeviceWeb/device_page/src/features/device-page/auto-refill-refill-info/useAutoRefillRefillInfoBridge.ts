@@ -528,6 +528,23 @@ export function useAutoRefillRefillInfoBridge() {
     return true;
   }, [request]);
 
+  const openAmsSettings = useCallback(async (): Promise<boolean> => {
+    const resp = await request<ReturnType<typeof makeBody>, BridgeResponseBody<AutoRefillRefillInfoViewModel>>(
+      makeBody('action', 'open_ams_settings'),
+      5000,
+    );
+    if (!resp.ok) {
+      setError(resp.error);
+      return false;
+    }
+    if (resp.value.error_code !== 0) {
+      setError(resp.value.message ?? 'Open AMS settings failed');
+      return false;
+    }
+    setError('');
+    return true;
+  }, [request]);
+
   const moveSlot = useCallback((
     slot: { ams_id: number; slot_id: number },
     member: { ams_id: number; slot_id: number },
@@ -565,6 +582,7 @@ export function useAutoRefillRefillInfoBridge() {
     confirmAddRefillFilaments,
     resetGroup,
     removeSlot,
+    openAmsSettings,
     moveSlot,
     applyingRefillEdit,
     toasts,

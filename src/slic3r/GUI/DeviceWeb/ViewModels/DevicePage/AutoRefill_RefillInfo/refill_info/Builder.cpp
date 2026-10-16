@@ -120,6 +120,7 @@ nlohmann::json AutoRefillRefillInfoBuilder::Build(MachineObject* obj, std::uint3
 
     auto             fila_sys = obj->GetFilaSystem();
     const DevFilaAutoRefillMgr& refill = fila_sys->GetAutoRefillMgr();
+    state.auto_refill_enabled = fila_sys->IsAutoRefillEnabled();
     if (refill.IsSupportManualEdit()) {
         // One i18n key per line: the web page translates each line as a whole,
         // so the two sentences below have to stay in a single message.

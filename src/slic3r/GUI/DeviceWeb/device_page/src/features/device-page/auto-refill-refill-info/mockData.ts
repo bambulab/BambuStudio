@@ -6,6 +6,7 @@ import type { AutoRefillRefillInfoViewModel } from './types';
 export const mockAutoRefillRefillInfoState: AutoRefillRefillInfoViewModel = {
   selected_dev_id: 'mock-dev',
   session_seq: 0,
+  auto_refill_enabled: true,
   description:
     'The system has created auto-refill groups based on material type, color, and brand.\n'
     + 'When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one.\n'

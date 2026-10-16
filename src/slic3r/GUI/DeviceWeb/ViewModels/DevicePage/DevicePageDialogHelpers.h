@@ -41,6 +41,9 @@ struct EditedFilamentInfo {
 // `view_only` locks the dialog (2D laser/cut mode).
 std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams_id, const std::string& slot_id, bool view_only = false);
 
+// Open the native AMS settings dialog. Must run on the UI thread.
+void OpenAmsSettingsDialog();
+
 // AmsReplaceMaterialDialog ("Auto Refill"). Same popup AMSControl posts via
 // EVT_AMS_FILAMENT_BACKUP. Must run on the UI thread.
 void OpenAmsAutoRefillDialog();

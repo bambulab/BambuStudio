@@ -59,6 +59,7 @@ export interface AutoRefillRefillInfoViewModel {
   // Bumped by the C++ side on every Refresh() (i.e. each dialog-open) so the
   // web page can tell a fresh open apart from an in-place data refresh.
   session_seq: number;
+  auto_refill_enabled: boolean;
   // Page-level presentation resolved by C++ (see Schema.hpp keys::root):
   //   description   - localized explanatory text under the title; hidden when omitted.
   //   editable      - refill relations can be reordered / added / removed.

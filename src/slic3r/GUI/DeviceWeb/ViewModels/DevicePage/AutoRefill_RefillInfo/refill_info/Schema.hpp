@@ -29,6 +29,7 @@ namespace root {
     inline constexpr const char* description     = "description";
     inline constexpr const char* editable        = "editable";
     inline constexpr const char* can_add_group   = "can_add_group";
+    inline constexpr const char* auto_refill_enabled = "auto_refill_enabled";
 }
 
 namespace extruder {
@@ -105,6 +106,7 @@ namespace nozzle_flow_type {
 
 namespace action {
     inline constexpr const char* rendered   = "rendered";
+    inline constexpr const char* open_ams_settings = "open_ams_settings";
     inline constexpr const char* open_add_group = "open_add_group";
     inline constexpr const char* open_add_filament = "open_add_filament";
     inline constexpr const char* reset      = "reset";
@@ -170,6 +172,7 @@ struct State
     std::string                 selected_dev_id;
     std::uint32_t               session_seq = 0;
     std::string                 description;
+    bool                        auto_refill_enabled = false;
     bool                        editable      = false;
     bool                        can_add_group = false;
     std::vector<RefillExtruder> extruders;
@@ -225,6 +228,7 @@ inline void to_json(nlohmann::json& j, const State& v)
     j = {
         {SK::root::session_seq,     v.session_seq},
         {SK::root::selected_dev_id, v.selected_dev_id},
+        {SK::root::auto_refill_enabled, v.auto_refill_enabled},
         {SK::root::editable,        v.editable},
         {SK::root::can_add_group,   v.can_add_group},
         {SK::root::extruders,       v.extruders}

@@ -52,6 +52,72 @@
   gap: 16px;
 }
 
+.refill-page__disabled {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 591px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refill-page__disabled-card {
+  width: min(448px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.refill-page__disabled-image {
+  display: block;
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+
+.refill-page__disabled-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--ams-text-strong);
+  text-align: center;
+}
+
+.refill-page__disabled-title,
+.refill-page__disabled-desc {
+  width: 100%;
+  font-size: 15px;
+  line-height: 22px;
+  word-break: break-word;
+}
+
+.refill-page__disabled-title {
+  font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei UI', sans-serif;
+  font-weight: 500;
+}
+
+.refill-page__disabled-desc {
+  color: var(--ams-text-secondary);
+  font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei UI', sans-serif;
+  font-weight: 400;
+}
+
+.refill-page__open-settings {
+  height: 32px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  cursor: pointer;
+}
+
 .refill-page__empty {
   box-sizing: border-box;
   width: 100%;
