@@ -19,7 +19,10 @@
 #include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
 #include <wx/weakref.h>
+#include <wx/wupdlock.h>
 #include "libslic3r/Log.hpp"
+
+#include <algorithm>
 
 namespace Slic3r { namespace GUI {
 
@@ -959,6 +962,7 @@ wxBoxSizer* AMSDryCtrWin::create_right_panel(wxPanel* parent)
 
     right_sizer->Add(m_normal_state_sizer, 1, wxEXPAND);
     right_sizer->Add(m_cannot_dry_sizer, 1, wxEXPAND);
+    right_sizer->Add(m_dry_error_sizer, 1, wxEXPAND);
 
     m_cannot_dry_sizer->Show(false);
     m_dry_error_sizer->Show(false);
@@ -984,6 +988,16 @@ wxBoxSizer* AMSDryCtrWin::create_main_content_section(wxPanel* parent)
 wxBoxSizer* AMSDryCtrWin::create_main_page_sizer(wxPanel* parent)
 {
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
+
+    m_amswin = new wxPanel(parent, wxID_ANY);
+    m_amswin->SetBackgroundColour(*wxWHITE);
+    m_sizer_ams_items = new wxBoxSizer(wxVERTICAL);
+    m_amswin->SetSizer(m_sizer_ams_items);
+    m_panel_prv_left = create_preview_scrolled_window(m_amswin);
+    m_sizer_prv_left = new wxBoxSizer(wxHORIZONTAL);
+    m_panel_prv_left->SetSizer(m_sizer_prv_left);
+    m_sizer_ams_items->Add(m_panel_prv_left, 0, wxALIGN_LEFT | wxTOP | wxBOTTOM, FromDIP(4));
+    main_sizer->Add(m_amswin, 0, wxEXPAND | wxALL, FromDIP(5));
 
     wxBoxSizer* content_section = create_main_content_section(parent);
     main_sizer->Add(content_section, 1, wxEXPAND | wxALL, FromDIP(5));
@@ -1468,6 +1482,10 @@ void AMSDryCtrWin::msw_rescale()
         m_unload_button->Refresh();
     }
 
+    for (const auto& [ams_id, prv] : m_ams_preview_list) {
+        if (prv) { prv->msw_rescale(); }
+    }
+
     if (m_guide_page) {m_guide_page->Layout();}
     if (m_original_page) {m_original_page->Layout();}
 
@@ -1480,6 +1498,103 @@ void AMSDryCtrWin::set_ams_id(const std::string& ams_id)
 {
     m_ams_info.m_ams_id = ams_id;
     m_is_ams_changed = true;
+}
+
+void AMSDryCtrWin::SwitchAms(const std::string& ams_id)
+{
+    if (ams_id == m_ams_info.m_ams_id) {
+        return;
+    }
+
+    auto* dev_mgr = wxGetApp().getDeviceManager();
+    MachineObject* obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+    if (!obj || !obj->GetFilaSystem()) {
+        return;
+    }
+
+    wxWindowUpdateLocker no_updates(m_original_page);
+    set_ams_id(ams_id);
+    update(obj->GetFilaSystem(), obj);
+}
+
+void AMSDryCtrWin::reconcile_ams_previews(DevFilaSystem* fila_system, MachineObject* obj)
+{
+    if (!fila_system || !m_panel_prv_left || !m_sizer_prv_left) {
+        return;
+    }
+
+    std::vector<AMSinfo> dryable_infos;
+    for (const auto& [ams_id, dev_ams] : fila_system->GetAmsList()) {
+        if (!dev_ams || !dev_ams->IsSupportRemoteDry(obj)) continue;
+        AMSinfo info;
+        if (!info.parse_ams_info(obj, dev_ams)) continue;
+        dryable_infos.emplace_back(std::move(info));
+    }
+
+    // ZMULTI_A goes leftmost
+    std::stable_partition(dryable_infos.begin(), dryable_infos.end(),
+                          [](const AMSinfo& info) { return info.ams_type == DevAmsType::ZMULTI_A; });
+
+    for (auto it = m_ams_preview_list.begin(); it != m_ams_preview_list.end();) {
+        const std::string& id = it->first;
+        bool still_present = false;
+        for (const auto& info : dryable_infos) {
+            if (info.ams_id == id) { still_present = true; break; }
+        }
+        if (!still_present) {
+            m_sizer_prv_left->Detach(it->second);
+            it->second->Destroy();
+            it = m_ams_preview_list.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    for (auto& info : dryable_infos) {
+        auto it = m_ams_preview_list.find(info.ams_id);
+        if (it != m_ams_preview_list.end()) {
+            it->second->Update(info);
+        } else {
+            AMSPreview* prv = new AMSPreview(m_panel_prv_left, wxID_ANY, info);
+            prv->Bind(wxEVT_LEFT_DOWN, [this, prv](wxMouseEvent& e) {
+                SwitchAms(prv->get_ams_id());
+                e.Skip();
+            });
+            m_sizer_prv_left->Add(prv, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(6));
+            m_ams_preview_list[info.ams_id] = prv;
+        }
+    }
+
+    update_ams_preview_selection();
+    fit_preview_strip_width();
+}
+
+void AMSDryCtrWin::fit_preview_strip_width()
+{
+    const int content_w = m_sizer_prv_left->CalcMin().x;
+    const int strip_w   = std::min(content_w, AMS_ITEMS_PANEL_SIZE.x);
+    const wxSize strip_size(strip_w, AMS_ITEMS_PANEL_SIZE.y);
+    if (m_panel_prv_left->GetMinSize() != strip_size) {
+        m_panel_prv_left->SetMinSize(strip_size);
+        m_panel_prv_left->SetMaxSize(strip_size);
+        if (m_amswin) m_amswin->Layout();
+    }
+
+    m_panel_prv_left->FitInside();
+    m_panel_prv_left->Layout();
+    m_panel_prv_left->Refresh();
+}
+
+void AMSDryCtrWin::update_ams_preview_selection()
+{
+    for (const auto& [ams_id, prv] : m_ams_preview_list) {
+        if (!prv) continue;
+        if (ams_id == m_ams_info.m_ams_id) {
+            prv->OnSelected();
+        } else {
+            prv->UnSelected();
+        }
+    }
 }
 
 void AMSDryCtrWin::update_img_description(DevAms::DryStatus status, DevAms::DrySubStatus sub_status)
@@ -1903,6 +2018,7 @@ int AMSDryCtrWin::update_dryness_status(DevAms* dev_ams)
     if (m_descriptions_section_sizer && m_last_desc_section_shown != (show_desc_section ? 1 : 0)) {
         m_last_desc_section_shown = show_desc_section ? 1 : 0;
         m_descriptions_section_sizer->ShowItems(show_desc_section);
+        m_last_time_container_shown = -1;
         need_layout = true;
     }
 
@@ -2286,6 +2402,8 @@ void AMSDryCtrWin::update(std::shared_ptr<DevFilaSystem> fila_system, MachineObj
 
     m_can_auto_retract = devAmsTypeUtil::CanAutoRetract(dev_ams->GetAmsType());
 
+    reconcile_ams_previews(fila_system.get(), obj);
+
     update_ams_change(dev_ams);
 
     {
@@ -2306,6 +2424,8 @@ void AMSDryCtrWin::update(std::shared_ptr<DevFilaSystem> fila_system, MachineObj
 
     check_values_changed(dev_ams);
 
+    // Dialog Layout() won't relayout the page when its size is unchanged
+    if (m_original_page) m_original_page->Layout();
     Layout();
     Refresh();
 }

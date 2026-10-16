@@ -232,6 +232,7 @@ public:
     std::set<int>                           binded_extruder_set;
     std::optional<int>                      current_extruder_id;
     std::optional<DevFilaSwitch::SwitchPos> binded_switcher_pos;
+    std::set<int>                           dryable_slots;
 
 public:
     bool operator== (const AMSinfo& other) const
@@ -249,7 +250,8 @@ public:
             ams_type == other.ams_type &&
             ext_type == other.ext_type &&
             binded_extruder_set == other.binded_extruder_set &&
-            binded_switcher_pos == other.binded_switcher_pos) {
+            binded_switcher_pos == other.binded_switcher_pos &&
+            dryable_slots == other.dryable_slots) {
             return true;
         }
 
@@ -769,6 +771,9 @@ protected:
     void         render(wxDC& dc);
     void         doRender(wxDC& dc);
     void         load_bitmaps();
+
+private:
+    void renderMultiRowGrid(wxDC& dc, const wxSize& size);
 };
 
 

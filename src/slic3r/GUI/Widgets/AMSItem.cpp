@@ -141,6 +141,11 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
         }
         cans.push_back(info);
     }
+
+    dryable_slots.clear();
+    for (int i = 0; i < static_cast<int>(ams->GetTrays().size()); i++) {
+        if (ams->IsDryableSlot(i)) { dryable_slots.insert(i); }
+    }
     return true;
 }
 
@@ -2837,12 +2842,17 @@ bool AMSRoadDownPart::shouldHideExtRoad() const
 /*************************************************
 Description:AMSPreview
 **************************************************/
+// Rows top to bottom, values are 0-based slot ids.
+static const std::map<DevAmsType, std::vector<std::vector<int>>> AMS_PREVIEW_SLOT_GRID = {
+    { DevAmsType::ZMULTI_A, { { 1, 3, 5, 7 }, { 0, 2, 4, 6, 8 } } },
+};
+
 AMSPreview::AMSPreview(wxWindow* parent, wxWindowID id, AMSinfo amsinfo, const wxPoint& pos, const wxSize& size)
 {
     wxWindow::Create(parent, id, pos);
 
     const auto& itemType = amsinfo.ams_type;
-    if (itemType == DevAmsType::AMS || itemType == DevAmsType::AMS_LITE || itemType == DevAmsType::N3F) {
+    if (itemType == DevAmsType::AMS || itemType == DevAmsType::AMS_LITE || itemType == DevAmsType::N3F || itemType == DevAmsType::ZMULTI_A) {
         create(parent, id, pos, AMS_PREV_FOUR_SIZE);
     }
     else {
@@ -2878,7 +2888,7 @@ void AMSPreview::Update(AMSinfo amsinfo)
     m_amsinfo = amsinfo;
     m_ams_item_type = amsinfo.ams_type;
 
-    if (m_ams_item_type == DevAmsType::AMS || m_ams_item_type == DevAmsType::AMS_LITE || m_ams_item_type == DevAmsType::N3F) {
+    if (m_ams_item_type == DevAmsType::AMS || m_ams_item_type == DevAmsType::AMS_LITE || m_ams_item_type == DevAmsType::N3F || m_ams_item_type == DevAmsType::ZMULTI_A) {
         SetMinSize(AMS_PREV_FOUR_SIZE);
         SetMaxSize(AMS_PREV_FOUR_SIZE);
     } else {
@@ -2999,8 +3009,11 @@ void AMSPreview::doRender(wxDC &dc)
     dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(3));
 
     auto left = 0;
+    if (AMS_PREVIEW_SLOT_GRID.find(m_ams_item_type) != AMS_PREVIEW_SLOT_GRID.end()) {
+        renderMultiRowGrid(dc, size);
+    }
     //four slot
-    if (m_ams_item_type != DevAmsType::EXT_SPOOL && m_ams_item_type != DevAmsType::N3S){
+    else if (m_ams_item_type != DevAmsType::EXT_SPOOL && m_ams_item_type != DevAmsType::N3S){
         left =  FromDIP(8);
         int can_idx = 0;
         for (std::vector<Caninfo>::iterator iter = m_amsinfo.cans.begin(); iter != m_amsinfo.cans.end(); iter++) {
@@ -3190,6 +3203,60 @@ void AMSPreview::doRender(wxDC &dc)
         dc.SetPen(wxPen(border_colour, 1));
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
         dc.DrawRoundedRectangle(0, 0, size.x, size.y, 3);
+    }
+}
+
+void AMSPreview::renderMultiRowGrid(wxDC &dc, const wxSize &size)
+{
+    auto grid_it = AMS_PREVIEW_SLOT_GRID.find(m_ams_item_type);
+    if (grid_it == AMS_PREVIEW_SLOT_GRID.end()) return;
+
+    std::map<std::string, const Caninfo *> can_by_id;
+    for (const auto &can : m_amsinfo.cans) { can_by_id.emplace(can.can_id, &can); }
+
+    const int          pad       = FromDIP(2);
+    const int          gap       = FromDIP(2);
+    const auto        &rows      = grid_it->second;
+    const int          row_count = static_cast<int>(rows.size());
+    const int          row_h     = (size.y - 2 * pad - (row_count - 1) * gap) / row_count;
+
+    int y = pad;
+    for (const auto &row : rows) {
+        const int col_count = static_cast<int>(row.size());
+        const int col_w     = (size.x - 2 * pad - (col_count - 1) * gap) / col_count;
+        const int row_w = col_count * col_w + (col_count - 1) * gap;
+        int x = pad + (size.x - 2 * pad - row_w) / 2;
+
+        for (int slot_id : row) {
+            wxRect cell(x, y, col_w, row_h);
+            dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+            const bool dryable = m_amsinfo.dryable_slots.count(slot_id) > 0;
+            auto       can_it  = can_by_id.find(std::to_string(slot_id));
+            const Caninfo *can = (can_it != can_by_id.end()) ? can_it->second : nullptr;
+
+            if (dryable) {
+                if (can && can->material_colour.Alpha() != 0 && can->material_state != AMSCanType::AMS_CAN_TYPE_EMPTY) {
+                    wxColour colour = can->material_colour;
+                    if (colour.Alpha() != 0 && colour.Alpha() != 255 && colour.Alpha() != 254) {
+                        dc.DrawBitmap(create_translucent_round_rect_bitmap(colour, cell.GetSize(), FromDIP(2)), cell.x, cell.y);
+                    } else {
+                        dc.SetBrush(wxBrush(colour));
+                        dc.DrawRoundedRectangle(cell, FromDIP(2));
+                    }
+                } else {
+                    dc.SetBrush(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
+                    dc.DrawRoundedRectangle(cell, FromDIP(2));
+                }
+                dc.SetPen(wxPen(AMS_CONTROL_BRAND_COLOUR, 1));
+                dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+                dc.DrawRoundedRectangle(cell, FromDIP(2));
+            } else {
+                dc.SetBrush(StateColor::darkModeColorFor(AMS_CONTROL_DISABLE_COLOUR));
+                dc.DrawRoundedRectangle(cell, FromDIP(2));
+            }
+            x += col_w + gap;
+        }
+        y += row_h + gap;
     }
 }
 

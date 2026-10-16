@@ -110,6 +110,7 @@ private:
     wxScrolledWindow* m_panel_prv_right{nullptr};
     wxBoxSizer* m_sizer_prv_left{nullptr};
     wxBoxSizer* m_sizer_prv_right{nullptr};
+    std::map<std::string, AMSPreview*> m_ams_preview_list;
 
     // left panel related members
     ScalableBitmap m_humidity_image;
@@ -254,6 +255,10 @@ private:
 
 
     wxScrolledWindow* create_preview_scrolled_window(wxWindow* parent);
+    void SwitchAms(const std::string& ams_id);
+    void reconcile_ams_previews(DevFilaSystem* fila_system, MachineObject* obj);
+    void update_ams_preview_selection();
+    void fit_preview_strip_width();
 
     bool check_values_changed(DevAms* dev_ams);
     int update_image(DevAmsType type, DevAms::DryStatus status, DevAms::DrySubStatus sub_status, int humidity_percent);
