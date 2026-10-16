@@ -346,6 +346,21 @@ Model Model::read_from_file(const std::string&                                  
         result = load_obj(input_file.c_str(), &model, obj_info, message, nullptr, (is_xxx && *is_xxx) ? true : false, &mtl_data);
         if (result){
             if (obj_info.has_uv_png && !obj_info.uvs.empty() && !model.objects.empty()) {
+                // Same mapping as AssimpImport: (x, y, z) -> (x, -z, y).
+                // +Y up goes to +Z up, and +Z forward goes to scene front (-Y).
+                const Eigen::Matrix3d y_up_to_z_up = (Eigen::Matrix3d() <<
+                    1.0, 0.0,  0.0,
+                    0.0, 0.0, -1.0,
+                    0.0, 1.0,  0.0).finished();
+                for (ModelObject* obj : model.objects) {
+                    if (obj == nullptr)
+                        continue;
+                    for (ModelVolume* volume : obj->volumes) {
+                        if (volume != nullptr && !volume->mesh().empty())
+                            volume->transform_this_mesh(y_up_to_z_up, false);
+                    }
+                    obj->invalidate_bounding_box();
+                }
                 auto tex_mesh = std::make_shared<TexturedMesh>();
                 std::string obj_dir = boost::filesystem::path(input_file).parent_path().string();
                 if (obj_to_textured_mesh(obj_info,

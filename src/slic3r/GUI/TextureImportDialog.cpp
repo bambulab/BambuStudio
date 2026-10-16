@@ -4297,7 +4297,7 @@ void TexturePreviewCanvas::notify_view_changed()
 void TexturePreviewCanvas::reset_view()
 {
     m_zoom  = 1.0f;
-    m_rot_x = -30.0f;
+    m_rot_x = 30.0f;
     m_rot_y = 30.0f;
     m_pan_x = 0.0f;
     m_pan_y = 0.0f;
@@ -4628,7 +4628,9 @@ void TexturePreviewCanvas::render()
     glTranslatef(0.0f, 0.0f, -dist);
     glTranslatef(m_pan_x, m_pan_y, 0.0f);
     glRotatef(m_rot_x, 1.0f, 0.0f, 0.0f);
-    glRotatef(m_rot_y, 0.0f, 1.0f, 0.0f);
+    // Mesh data is Z-up like the 3D scene; map world Z to screen up and yaw around world Z.
+    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+    glRotatef(m_rot_y, 0.0f, 0.0f, 1.0f);
     glTranslatef(-m_center[0], -m_center[1], -m_center[2]);
 
     if (!m_computing_overlay)

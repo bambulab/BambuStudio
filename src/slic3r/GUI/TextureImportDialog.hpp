@@ -141,7 +141,7 @@ public:
 
     struct ViewState {
         float zoom  = 1.0f;
-        float rot_x = -30.0f;
+        float rot_x = 30.0f;
         float rot_y = 30.0f;
         float pan_x = 0.0f;
         float pan_y = 0.0f;
@@ -173,7 +173,7 @@ private:
     RenderMode    m_mode           = RenderMode::Original;
 
     float   m_zoom     = 1.0f;
-    float   m_rot_x    = -30.0f;
+    float   m_rot_x    = 30.0f;
     float   m_rot_y    = 30.0f;
     float   m_pan_x    = 0.0f;
     float   m_pan_y    = 0.0f;
