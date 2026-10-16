@@ -99,32 +99,77 @@ double source_diameter_for(const DynamicPrintConfig &cfg, int extruder)
 }
 
 /**
- * \brief The nozzle volume type ("Standard" / "High Flow") a project filament prints with, or empty
- *        when unresolved.
+ * \brief The per-filament nozzle volume types the slicer must honor on a plate, or empty when the
+ *        slicer picks every flow itself.
  *
- * \param cfg       the full print config
- * \param extruder  0-based project filament id
+ * Only a manual grouping, or a nozzle-manual grouping in multi-diameter mode, makes
+ * filament_volume_map a request. Otherwise it holds a slice result or a selection left over from
+ * multi-diameter mode, so it must not bar a slot whose nozzle the slicer can still use.
+ *
+ * \param plate  the plate to read
+ * \param proj   the project config, which a plate without its own mode or map falls back to
  */
-std::string source_volume_for(const DynamicPrintConfig &cfg, int extruder)
+std::vector<int> plate_requested_volume_map(const PartPlate &plate, const DynamicPrintConfig &proj)
 {
-    if (auto *fvm = cfg.option<ConfigOptionInts>("filament_volume_map")) {
-        if (extruder >= 0 && extruder < (int) fvm->values.size()) {
-            const auto vt = (NozzleVolumeType) fvm->values[extruder];
-            return DevNozzle::GetNozzleFlowTypeString(DevNozzle::ToNozzleFlowType(vt));
+    const FilamentMapMode mode = plate.get_real_filament_map_mode(proj);
+    const bool requested       = mode == FilamentMapMode::fmmManual ||
+                           (mode == FilamentMapMode::fmmNozzleManual && multi_nozzle_diameter_mode_enabled(proj));
+    return requested ? plate.get_real_filament_volume_maps(proj) : std::vector<int>{};
+}
+
+/**
+ * \brief The per-filament nozzle volume types the slicer must honor in a scope; see
+ *        plate_requested_volume_map().
+ *
+ * The All scope merges every plate that uses a filament: plates without a request add no
+ * constraint, and plates that request different flows leave the filament Hybrid, since no single
+ * slot can serve them all.
+ *
+ * \param plate_idx  a plate index; < 0 (the All sentinel) for every plate
+ */
+std::vector<int> requested_volume_map(int plate_idx)
+{
+    auto   *bundle = wxGetApp().preset_bundle;
+    Plater *plater = wxGetApp().plater();
+    if (!bundle || !plater) return {};
+
+    const auto &proj   = bundle->project_config;
+    auto       &plates = plater->get_partplate_list();
+    if (plate_idx >= 0) {
+        PartPlate *plate = plates.get_plate(plate_idx);
+        return plate ? plate_requested_volume_map(*plate, proj) : std::vector<int>{};
+    }
+
+    // Hybrid marks a filament no plate has requested a flow for yet.
+    std::vector<int> merged(bundle->filament_presets.size(), (int) nvtHybrid);
+    std::vector<bool> seen(merged.size(), false);
+    for (PartPlate *plate : plates.get_plate_list()) {
+        if (!plate) continue;
+        const std::vector<int> requested = plate_requested_volume_map(*plate, proj);
+        for (int e : plate->get_extruders(true)) { // get_extruders returns 1-based ids
+            const int id = e - 1;
+            if (id < 0 || id >= (int) merged.size() || id >= (int) requested.size()) continue;
+            if (!seen[id]) merged[id] = requested[id];
+            else if (merged[id] != requested[id]) merged[id] = (int) nvtHybrid;
+            seen[id] = true;
         }
     }
-    auto *nvt = cfg.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-    if (!nvt || nvt->values.empty()) return "";
-    const double dia = source_diameter_for(cfg, extruder);
-    auto        *nd  = cfg.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    size_t       idx = 0;
-    if (nd && nd->values.size() == nvt->values.size())
-        for (size_t i = 0; i < nd->values.size(); ++i)
-            if (std::fabs(nd->values[i] - dia) < 1e-3) {
-                idx = i;
-                break;
-            }
-    const auto vt = (NozzleVolumeType) nvt->values[idx];
+    return merged;
+}
+
+/**
+ * \brief The nozzle volume type ("Standard" / "High Flow" / ...) a project filament requests, or empty
+ *        when any flow will do.
+ *
+ * \param requested  the scope's requested_volume_map()
+ * \param extruder   0-based project filament id
+ */
+std::string source_volume_for(const std::vector<int> &requested, int extruder)
+{
+    if (extruder < 0 || extruder >= (int) requested.size()) return "";
+    const auto vt = (NozzleVolumeType) requested[extruder];
+    // Hybrid names no single flow. Treat it as no request, not as a flow no nozzle has.
+    if (vt == nvtHybrid) return "";
     return DevNozzle::GetNozzleFlowTypeString(DevNozzle::ToNozzleFlowType(vt));
 }
 
@@ -182,7 +227,8 @@ std::vector<FilamentInfo> collect_scope_filaments(int plate_idx)
         }
     }
 
-    const auto &cfg      = preset_bundle->full_config();
+    const auto &cfg       = preset_bundle->full_config();
+    const auto  requested = requested_volume_map(plate_idx);
     auto       *is_mixed = preset_bundle->project_config.option<ConfigOptionBools>("filament_is_mixed");
     for (int id : ids) {
         if (id < 0 || id >= (int) types.size()) continue;
@@ -194,7 +240,7 @@ std::vector<FilamentInfo> collect_scope_filaments(int plate_idx)
         info.filament_id        = filament_ids[id];
         info.color              = normalized_colour(preset_bundle->project_config.opt_string("filament_colour", (unsigned int) id));
         info.nozzle_diameter    = source_diameter_for(cfg, id);
-        info.nozzle_volume_type = source_volume_for(cfg, id);
+        info.nozzle_volume_type = source_volume_for(requested, id);
         out.push_back(info);
     }
     return out;

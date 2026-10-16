@@ -651,12 +651,15 @@ namespace Slic3r
                 if (collect_slot_nozzles) {
                     auto nz_it = tray_nozzles.find(tray->first);
                     const bool has_slot_nz = (nz_it != tray_nozzles.end() && nz_it->second.has_value());
-                    const bool has_fila_nz = (filaments[i].nozzle_diameter > 0.0) && (!filaments[i].nozzle_volume_type.empty());
+                    const bool has_fila_nz = filaments[i].nozzle_diameter > 0.0;
                     if (has_slot_nz && has_fila_nz) {
                         const DevNozzle& nz = nz_it->second.value();
                         const bool diameter_match = std::fabs(filaments[i].nozzle_diameter - (double)nz.GetNozzleDiameter()) < 1e-3;
-                        const NozzleFlowType fila_flow = DevNozzle::ToNozzleFlowType(filaments[i].nozzle_volume_type);
-                        const bool flow_match = (fila_flow == nz.GetNozzleFlowType());
+                        // Empty means no flow request; Hybrid means the slice spread the filament over
+                        // several flows. Either accepts any flow. An unknown flow still mismatches.
+                        const std::string &fila_volume  = filaments[i].nozzle_volume_type;
+                        const bool         any_flow     = fila_volume.empty() || fila_volume == get_nozzle_volume_type_string(nvtHybrid);
+                        const bool         flow_match   = any_flow || DevNozzle::ToNozzleFlowType(fila_volume) == nz.GetNozzleFlowType();
                         if (!diameter_match || !flow_match) {
                             if (nozzle_weight == NozzleMatchWeight::Require) {
                                 // Precision-first: a nozzle mismatch is barred from auto mapping.
