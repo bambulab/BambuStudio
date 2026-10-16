@@ -514,8 +514,6 @@ SyncAmsDialog::SyncAmsDialog(wxWindow *parent, bool deferrable)
     wxWindow *mapping = build_mapping_section(); // creates m_mapping_list
     root->add_mapping(mapping, m_mapping_list, inset);
     root->AddSpacer(spacing);
-    root->Add(build_advanced(), 0, wxEXPAND | wxLEFT | wxRIGHT, inset);
-    root->AddSpacer(spacing);
     root->Add(build_footer(deferrable), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, inset);
     SetSizer(root);
 
@@ -934,14 +932,15 @@ wxWindow *SyncAmsDialog::build_mapping_section()
     v->Add(trow, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
     v->Add(m_mapping_list, 1, wxEXPAND);
     v->Add(m_detail_loss_hint, 0, wxEXPAND | wxTOP, FromDIP(16));
+    v->Add(build_advanced(), 0, wxEXPAND | wxTOP, FromDIP(16));
     m_mapping_panel->SetSizer(v);
     return m_mapping_panel;
 }
 
 wxSizer *SyncAmsDialog::build_advanced()
 {
-    m_advanced_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("advanced_option3", this, 16));
-    auto *expander  = new ::Label(this, _L("Advanced settings"));
+    m_advanced_icon = new wxStaticBitmap(m_mapping_panel, wxID_ANY, create_scaled_bitmap("advanced_option3", m_mapping_panel, 16));
+    auto *expander  = new ::Label(m_mapping_panel, _L("Advanced settings"));
     expander->SetFont(::Label::Body_13);
     expander->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::BrandGreen));
     auto *row = new wxBoxSizer(wxHORIZONTAL);
@@ -949,7 +948,7 @@ wxSizer *SyncAmsDialog::build_advanced()
     row->Add(m_advanced_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
     for (wxWindow *w : {static_cast<wxWindow *>(expander), static_cast<wxWindow *>(m_advanced_icon)}) w->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { toggle_advanced(); });
 
-    m_advanced_body = new wxPanel(this);
+    m_advanced_body = new wxPanel(m_mapping_panel);
     m_advanced_body->SetBackgroundColour(wxGetApp().get_window_default_clr()); // blend, not a grey box
     auto *bs = new wxBoxSizer(wxVERTICAL);
     // Each option is a persisted app preference that the sync itself reads, so the box mirrors and writes that key directly.
@@ -986,7 +985,7 @@ void SyncAmsDialog::toggle_advanced()
 {
     m_advanced_open = !m_advanced_open;
     m_advanced_body->Show(m_advanced_open);
-    m_advanced_icon->SetBitmap(create_scaled_bitmap(m_advanced_open ? "advanced_option4" : "advanced_option3", this, 16));
+    m_advanced_icon->SetBitmap(create_scaled_bitmap(m_advanced_open ? "advanced_option4" : "advanced_option3", m_mapping_panel, 16));
     relayout(); // the shown body enlarges the content, so the dialog grows to fit it
 }
 

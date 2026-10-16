@@ -59,9 +59,13 @@ private:
     wxWindow *build_preview_card(const wxString &title, bool with_plate_combo, ::Label **out_title, ModelPreview **out_preview);
 
     /**
-     * \brief Build the mapping section as one panel, so overwrite mode can hide it as a whole.
+     * \brief Build the mapping section (rows, hint, advanced options) as one panel, so overwrite mode can hide it as a whole.
      */
     wxWindow *build_mapping_section();
+
+    /**
+     * \brief Build the advanced options inside the mapping panel; they only affect a mapping sync.
+     */
     wxSizer  *build_advanced();
     wxSizer  *build_footer(bool deferrable);
 
