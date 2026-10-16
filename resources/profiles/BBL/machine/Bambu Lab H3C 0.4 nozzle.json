@@ -318,5 +318,9 @@
         "Auto Lift",
         "Auto Lift",
         "Auto Lift"
+    ],
+    "upward_compatible_machine": [
+        "Bambu Lab H2S 0.4 nozzle",
+        "Bambu Lab A2L 0.4 nozzle"
     ]
 }
