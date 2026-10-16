@@ -134,7 +134,6 @@ private:
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
     std::vector<RadioBox *>             m_storage_radioBox;
     std::string                         m_selected_storage;
-    bool                                m_if_has_sdcard;
     bool                                m_waiting_support{ false };
     bool                                m_waiting_enable{ false };
     std::vector<std::string>            m_ability_list;
@@ -213,6 +212,7 @@ public:
     void update_print_error_info(int code, std::string msg, std::string extra);
     void on_change_color_mode() { wxGetApp().UpdateDlgDarkUI(this); }
     void update_storage_list(const std::vector<std::string>& storages);
+    bool has_present_storage(const std::vector<std::string>& storages) const;
     std::string get_storage_selected();
 
     wxString format_text(wxString& m_msg);

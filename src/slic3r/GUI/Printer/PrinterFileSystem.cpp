@@ -679,7 +679,12 @@ void PrinterFileSystem::Attached()
     boost::unique_lock lock(m_mutex);
     m_recv_thread = std::move(boost::thread([w = weak_from_this()] {
         boost::shared_ptr<PrinterFileSystem> s = w.lock();
-        if (s) s->RecvMessageThread();
+        if (!s)
+            return;
+        s->RecvMessageThread();
+        // release on the main thread
+        if (wxTheApp)
+            wxTheApp->CallAfter([s = std::move(s)]() mutable { s.reset(); });
     }));
 }
 
