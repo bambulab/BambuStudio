@@ -3,7 +3,7 @@
 #include <set>
 #include <map>
 #include <cmath>
-#include <boost/multiprecision/cpp_int.hpp>
+#include "FilamentOrderCacheKey.hpp"
 
 namespace Slic3r
 {
@@ -1017,29 +1017,15 @@ namespace Slic3r
         std::optional<unsigned int> initial_filament_id = std::nullopt)
     {
         constexpr int max_n_with_forcast = 5;
-        using uint128_t = boost::multiprecision::uint128_t;
 
         if (filament_sequences) {
             filament_sequences->clear();
             filament_sequences->reserve(layer_filaments.size());
         }
-        auto          filament_list_to_hash_key = [](const std::vector<unsigned int>& curr_layer_filaments, const std::vector<unsigned int>& next_layer_filaments,
-            const std::optional<unsigned int>& prev_filament, bool use_forcast) -> uint128_t {
-                uint128_t hash_key = 0;
-                // 31-0 bit define current layer extruder,63-32 bit define next layer extruder,95~64 define prev extruder
-                if (prev_filament) hash_key |= (uint128_t(1) << (64 + *prev_filament));
-
-                if (use_forcast) {
-                    for (auto item : next_layer_filaments) { hash_key |= (uint128_t(1) << (32 + item)); }
-                }
-
-                for (auto item : curr_layer_filaments) { hash_key |= (uint128_t(1) << item); }
-                return hash_key;
-            };
 
         int cost = 0;
         std::map<size_t, std::vector<unsigned int>> custom_layer_sequence_map;
-        std::unordered_map<uint128_t, std::pair<float, std::vector<unsigned int>>> caches;
+        std::unordered_map<FilamentOrderCacheKey, std::pair<float, std::vector<unsigned int>>, FilamentOrderCacheKeyHash> caches;
         std::unordered_set<unsigned int> filament_sets(filament_lists.begin(), filament_lists.end());
         std::optional<unsigned int>      curr_filament_id;
         // 如果传入了有效的初始材料ID，则使用它作为初始状态
@@ -1095,7 +1081,7 @@ namespace Slic3r
             bool                      use_forcast = false;
             float                     tmp_cost = 0;
             std::vector<unsigned int> sequence;
-            uint128_t                 hash_key = filament_list_to_hash_key(filament_used, filament_used_next_layer, curr_filament_id, use_forcast);
+            FilamentOrderCacheKey      hash_key = make_filament_order_cache_key(filament_used, filament_used_next_layer, curr_filament_id, use_forcast);
             if (auto iter = caches.find(hash_key); iter != caches.end()) {
                 tmp_cost = iter->second.first;
                 sequence = iter->second.second;
@@ -1158,27 +1144,6 @@ namespace Slic3r
                 custom_layer_sequence_map[layer] = unsign_custom_extruder_seq;
             }
         }
-        using uint128_t = boost::multiprecision::uint128_t;
-        auto extruders_to_hash_key = [](const std::vector<unsigned int>& curr_layer_extruders,
-           const std::vector<unsigned int>& next_layer_extruders,
-           const std::optional<unsigned int>& prev_extruder,
-           bool use_forcast)->uint128_t
-           {
-               uint128_t hash_key = 0;
-               //31-0 bit define current layer extruder,63-32 bit define next layer extruder,95~64 define prev extruder
-               if (prev_extruder)
-                   hash_key |= (uint128_t(1) << (64 + *prev_extruder));
-
-               if (use_forcast) {
-                   for (auto item : next_layer_extruders)
-                       hash_key |= (uint128_t(1) << (32 + item));
-               }
-
-               for (auto item : curr_layer_extruders)
-                   hash_key |= (uint128_t(1) << item);
-               return hash_key;
-           };
-
 
         // get best layer sequence by group
         for (size_t idx = 0; idx < groups.size(); ++idx) {
@@ -1193,7 +1158,7 @@ namespace Slic3r
                     current_extruder_id = initial_fil;
             }
 
-            std::unordered_map<uint128_t, std::pair<float, std::vector<unsigned int>>> caches;
+            std::unordered_map<FilamentOrderCacheKey, std::pair<float, std::vector<unsigned int>>, FilamentOrderCacheKeyHash> caches;
 
             for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {
                 const auto& curr_lf = layer_filaments[layer];
@@ -1228,7 +1193,7 @@ namespace Slic3r
                 bool use_forcast = (filament_used_in_group.size() <= max_n_with_forcast && filament_used_in_group_next_layer.size() <= max_n_with_forcast);
                 float tmp_cost = 0;
                 std::vector<unsigned int>sequence;
-                uint128_t hash_key = extruders_to_hash_key(filament_used_in_group, filament_used_in_group_next_layer, current_extruder_id, use_forcast);
+                FilamentOrderCacheKey hash_key = make_filament_order_cache_key(filament_used_in_group, filament_used_in_group_next_layer, current_extruder_id, use_forcast);
                 if (auto iter = caches.find(hash_key); iter != caches.end()) {
                     tmp_cost = iter->second.first;
                     sequence = iter->second.second;

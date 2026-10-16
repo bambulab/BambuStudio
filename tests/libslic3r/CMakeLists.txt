@@ -9,6 +9,8 @@ add_executable(${_TEST_NAME}_tests
 	test_config.cpp
 	test_elephant_foot_compensation.cpp
 	test_geometry.cpp
+    test_filament_capacity.cpp
+    test_filament_project_capacity.cpp
 	test_placeholder_parser.cpp
 	test_polygon.cpp
 	test_mutable_polygon.cpp

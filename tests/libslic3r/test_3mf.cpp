@@ -3,6 +3,11 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Format/STL.hpp"
+#include "libslic3r/Format/SlicedFilamentColours.hpp"
+
+#include <algorithm>
+#include <string>
+#include <vector>
 
 #include <boost/filesystem/operations.hpp>
 
@@ -131,3 +136,62 @@ SCENARIO("2D convex hull of sinking object", "[3mf]") {
     }
 }
 
+TEST_CASE("Sliced colour export preserves the editable config and mixed recipes",
+          "[filament_capacity_integration][sliced_filament_colour]")
+{
+    DynamicPrintConfig source;
+    auto* colours = new ConfigOptionStrings();
+    for (unsigned int i = 0; i < 64; ++i)
+        colours->values.push_back("colour_" + std::to_string(i + 1));
+    source.set_key_value("filament_colour", colours);
+    auto* mixed = new ConfigOptionBools();
+    mixed->values.assign(64, false);
+    std::fill(mixed->values.begin() + 8, mixed->values.end(), true);
+    source.set_key_value("filament_is_mixed", mixed);
+    auto* recipes = new ConfigOptionStrings();
+    recipes->values.assign(64, "");
+    std::fill(recipes->values.begin() + 8, recipes->values.end(), "1,2");
+    source.set_key_value("filament_mixed_components", recipes);
+
+    SECTION("Editable project save keeps all 64 colours") {
+        REQUIRE(sliced_filament_colour_count(colours->values.size(), mixed->values, false) == 64);
+    }
+    SECTION("Transport export changes only the colour list on its copy") {
+        DynamicPrintConfig exported = source;
+        auto* output_colours = exported.option<ConfigOptionStrings>("filament_colour");
+        const auto* output_mixed = exported.option<ConfigOptionBools>("filament_is_mixed");
+        output_colours->values.resize(sliced_filament_colour_count(
+            output_colours->values.size(), output_mixed->values, true));
+        REQUIRE(output_colours->values.size() == 8);
+        for (std::size_t i = 0; i < 8; ++i)
+            REQUIRE(output_colours->values[i] == colours->values[i]);
+        REQUIRE(source.option<ConfigOptionStrings>("filament_colour")->values.size() == 64);
+        REQUIRE(exported.option<ConfigOptionBools>("filament_is_mixed")->values == mixed->values);
+        REQUIRE(exported.option<ConfigOptionStrings>("filament_mixed_components")->values == recipes->values);
+    }
+}
+
+TEST_CASE("Sliced colour export retains physical indices and legacy metadata",
+          "[filament_capacity_integration][sliced_filament_colour]")
+{
+    for (std::size_t count : {8u, 32u, 33u, 64u}) {
+        CAPTURE(count);
+        std::vector<unsigned char> mixed(count, 1);
+        std::fill(mixed.begin(), mixed.begin() + 8, 0);
+        REQUIRE(sliced_filament_colour_count(count, mixed, false) == count);
+        REQUIRE(sliced_filament_colour_count(count, mixed, true) == (count <= 32 ? count : 8));
+    }
+    std::vector<unsigned char> mixed(64, 1);
+    mixed[0] = 0;
+    mixed[32] = 0;
+    // Keep physical ID 33 at index 32; never compact it to index 1.
+    REQUIRE(sliced_filament_colour_count(64, mixed, true) == 33);
+    mixed.back() = 0;
+    REQUIRE(sliced_filament_colour_count(64, mixed, true) == 64);
+    std::fill(mixed.begin(), mixed.end(), 1);
+    REQUIRE(sliced_filament_colour_count(64, mixed, true) == 64);
+    mixed.resize(63);
+    REQUIRE(sliced_filament_colour_count(64, mixed, true) == 64);
+    mixed.clear();
+    REQUIRE(sliced_filament_colour_count(64, mixed, true) == 64);
+}

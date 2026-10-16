@@ -54,7 +54,7 @@ bool is_mixed_entry(const TextureFilamentEntry& entry)
            entry.kind == TextureFilamentKind::NewMixed;
 }
 
-// Mixed slots still occupy the 32-filament quota, but with Color mixing off
+// Mixed slots still occupy the project filament quota, but with Color mixing off
 // they cannot receive remapped colors (same as a minority material family).
 bool can_receive_merge(int idx, const TextureOverLimitInput& input)
 {

@@ -1,4 +1,5 @@
 #include "Model.hpp"
+#include "FilamentPainting.hpp"
 #include "libslic3r.h"
 #include "BuildVolume.hpp"
 #include "ClipperUtils.hpp"
@@ -54,10 +55,6 @@
 #define _L(s) Slic3r::I18N::translate(s)
 
 namespace Slic3r {
-const std::vector<std::string> CONST_FILAMENTS = {
-    "",   "4",  "8",  "0C", "1C",  "2C",  "3C",  "4C",  "5C",  "6C",  "7C",  "8C",  "9C",  "AC",  "BC",  "CC","DC",//16
-         "EC", "0FC", "1FC", "2FC", "3FC", "4FC", "5FC", "6FC", "7FC", "8FC", "9FC", "AFC", "BFC", "CFC", "DFC", "EFC",//32
-}; //      1                         5                                 10                                 15    16
     // BBS initialization of static variables
     std::map<size_t, ExtruderParams> Model::extruderParamsMap = { {0,{"",0,0}}};
     GlobalSpeedMap Model::printSpeedMap{};
@@ -4121,13 +4118,10 @@ void Model::setExtruderParams(const DynamicPrintConfig &config, int filament_cou
     }
 }
 
-static void get_real_filament_id(const unsigned char &id, std::string &result) {
-    if (id < CONST_FILAMENTS.size()) {
-        result = CONST_FILAMENTS[id];
-    } else {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "check error:CONST_FILAMENTS out of array ";
-        result = "";//error
-    }
+static void get_real_filament_id(unsigned int id, std::string &result) {
+    result = encode_filament_id(id);
+    if (id > static_cast<unsigned int>(EnforcerBlockerType::ExtruderMax))
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": filament ID out of project range: " << id;
 };
 
 bool Model::obj_import_color_deal(const std::vector<unsigned char>& filament_ids, std::optional<unsigned char> first_extruder_id, Model* model, std::function<bool(int)> deal_vertex_callback, std::function<int(int, int, int)> get_filament_id_callback /*= nullptr*/)
@@ -4213,6 +4207,13 @@ bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &verte
         auto filament_id1 = use_vertex_filament_ids ? vertex_filament_ids[face[1]] : filament_id_callback(vol_idx, i, 1);
         auto filament_id2 = use_vertex_filament_ids ? vertex_filament_ids[face[2]] : filament_id_callback(vol_idx, i, 2);
         if (filament_id0 <= 1 && filament_id1 <= 1 && filament_id2 <= 2) {
+            continue;
+        }
+        // BBS: a missing leaf code would corrupt a compound splitting stream.
+        if (filament_id0 < 1 || filament_id1 < 1 || filament_id2 < 1 ||
+            filament_id0 > static_cast<unsigned int>(EnforcerBlockerType::ExtruderMax) || filament_id1 > static_cast<unsigned int>(EnforcerBlockerType::ExtruderMax) ||
+            filament_id2 > static_cast<unsigned int>(EnforcerBlockerType::ExtruderMax)) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": invalid vertex filament ID; skipping triangle " << i;
             continue;
         }
         VertexColorCase vertex_color_case;

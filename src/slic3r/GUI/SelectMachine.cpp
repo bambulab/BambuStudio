@@ -4233,7 +4233,9 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     }
     if (m_print_type != PrintFromType::FROM_SDCARD_VIEW) {
         const int    max_color = obj_->get_max_filament_color_count();
-        const size_t fila_cnt  = wxGetApp().preset_bundle->filament_presets.size();
+        // BBS: mixed recipes use the existing physical definitions; they do not add
+        // hardware colors. Keep the machine's own color limit unchanged.
+        const size_t fila_cnt  = wxGetApp().preset_bundle->physical_filament_config_indices().size();
         if (max_color > 0 && fila_cnt > (size_t) max_color) {
             show_status(PrintDialogStatus::PrintStatusColorQuantityExceed, {wxString::Format("%d", max_color)});
             return;
