@@ -719,7 +719,10 @@ enum class EnforcerBlockerType : int8_t {
     ENFORCER  = 1,
     BLOCKER   = 2,
     FUZZY_SKIN = ENFORCER,
-    // Maximum is 15. The value is serialized in TriangleSelector into 6 bits using a 2 bit prefix code.
+    // States 3..17 are serialized into 6 bits using a 2 bit prefix code; states 18 and above use
+    // continuation nibbles (see TriangleSelector::serialize). ExtruderMax matches the range
+    // encoded for colored mesh imports.
+    // BBS: states above 32 can require more than one continuation nibble.
     Extruder1 = ENFORCER,
     Extruder2 = BLOCKER,
     Extruder3,
@@ -752,8 +755,43 @@ enum class EnforcerBlockerType : int8_t {
     Extruder30,
     Extruder31,
     Extruder32,
-    ExtruderMax = Extruder32
+    Extruder33,
+    Extruder34,
+    Extruder35,
+    Extruder36,
+    Extruder37,
+    Extruder38,
+    Extruder39,
+    Extruder40,
+    Extruder41,
+    Extruder42,
+    Extruder43,
+    Extruder44,
+    Extruder45,
+    Extruder46,
+    Extruder47,
+    Extruder48,
+    Extruder49,
+    Extruder50,
+    Extruder51,
+    Extruder52,
+    Extruder53,
+    Extruder54,
+    Extruder55,
+    Extruder56,
+    Extruder57,
+    Extruder58,
+    Extruder59,
+    Extruder60,
+    Extruder61,
+    Extruder62,
+    Extruder63,
+    Extruder64,
+    ExtruderMax = Extruder64
 };
+
+static_assert(static_cast<size_t>(EnforcerBlockerType::ExtruderMax) == MAXIMUM_EXTRUDER_NUMBER,
+              "Project filament capacity must match the paintable state range");
 
 enum class ConversionType : int {
     CONV_TO_INCH,

@@ -4196,8 +4196,8 @@ void Sidebar::on_filaments_delete(size_t filament_id)
 }
 
 void Sidebar::add_filament() {
-    // BBS: limit filament choices to ExtruderMax
-    if (p->combos_filament.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
+    // BBS: use the registration limit here, following Orca.
+    if (p->combos_filament.size() >= MAXIMUM_EXTRUDER_NUMBER) return;
     wxColour    new_col        = Plater::get_next_color_for_filament();
     add_custom_filament(new_col);
     // Reveal the just-added filament: it is appended at the end of the physical
@@ -4390,7 +4390,7 @@ size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::
     if (items.empty() || is_new_project_in_gcode3mf())
         return size_t(-1);
 
-    const size_t max_n = size_t(EnforcerBlockerType::ExtruderMax);
+    const size_t max_n = MAXIMUM_EXTRUDER_NUMBER;
     if (p->combos_filament.size() >= max_n)
         return size_t(-1);
     if (wxGetApp().preset_bundle->filament_presets.size() >= max_n)
@@ -8657,7 +8657,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         int size = extruderIds.size() == 0 ? 0 : *(extruderIds.rbegin());
 
                         int filament_size = sidebar->combos_filament().size();
-                        while (filament_size < (int)EnforcerBlockerType::ExtruderMax && filament_size < size) {
+                        while (filament_size < static_cast<int>(MAXIMUM_EXTRUDER_NUMBER) && filament_size < size) {
                             int         filament_count = filament_size + 1;
                             wxColour    new_col        = Plater::get_next_color_for_filament();
                             std::string new_color      = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();

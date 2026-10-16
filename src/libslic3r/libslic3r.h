@@ -56,6 +56,16 @@ static constexpr double EPSILON = 1e-4;
 // int32_t fits an interval of (-2147.48mm, +2147.48mm)
 // with int64_t we don't have to worry anymore about the size of the int.
 static constexpr double SCALING_FACTOR = 0.00001;
+
+// Orca: maximum number of extruders is 64. For SEMM printers, it defines maximum filament number.
+static constexpr size_t MAXIMUM_EXTRUDER_NUMBER = 64;
+
+// Orca: how many filament slots syncing an AMS setup may create. This was derived from
+// EnforcerBlockerType::ExtruderMax, but that cap now covers 64 paintable filaments, so the AMS
+// limit is pinned here to keep sync behaving as it does for projects without mixed-color filaments.
+// BBS: preserve Bambu Studio's existing AMS-sync append limit of 32.
+static constexpr size_t MAXIMUM_AMS_SYNC_FILAMENT_NUMBER = 32;
+
 static constexpr double PI = 3.141592653589793238;
 #define POLY_SIDE_COUNT 24 // for brim ear circle
 // When extruding a closed loop, the loop is interrupted and shortened a bit to reduce the seam.

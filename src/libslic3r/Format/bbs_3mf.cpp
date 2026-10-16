@@ -14,6 +14,7 @@
 #include "../FilamentMixer.hpp"
 
 #include "bbs_3mf.hpp"
+#include "SlicedFilamentColours.hpp"
 
 #include <limits>
 #include <stdexcept>
@@ -8214,6 +8215,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         std::string temp_file = temp_path + std::string("/") + "_temp_1.config";
         DynamicPrintConfig export_config = config;
         split_nozzle_stats_for_export(export_config);
+        // BBS: reducing this list avoided first-send stalls in Connect during X2D tests.
+        // For extended projects, omit trailing mixed colours in transport archives.
+        // Operate on the export copy; all recipes, maps and G-code stay intact.
+        auto* colours = export_config.option<ConfigOptionStrings>("filament_colour");
+        const auto* is_mixed = export_config.option<ConfigOptionBools>("filament_is_mixed");
+        if (colours != nullptr && is_mixed != nullptr)
+            colours->values.resize(sliced_filament_colour_count(
+                colours->values.size(), is_mixed->values, m_skip_model));
         export_config.save_to_json(temp_file, std::string("project_settings"), std::string("project"), std::string(SLIC3R_VERSION));
         return _add_file_to_archive(archive, BBS_PROJECT_CONFIG_FILE, temp_file);
     }

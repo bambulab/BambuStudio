@@ -13,6 +13,7 @@
 
 #include "GUI_Utils.hpp"
 #include "libslic3r/ColorDecomposeRecipe.hpp"
+#include "libslic3r/Model.hpp"
 
 class Button;
 class CheckBox;
@@ -65,7 +66,7 @@ public:
                          const std::vector<std::string>& filament_names,
                          const std::vector<std::string>& filament_types,
                          size_t current_filament_count = 0,
-                         size_t max_filament_count = 32,
+                         size_t max_filament_count = size_t(EnforcerBlockerType::ExtruderMax),
                          std::vector<size_t> physical_config_indices = {},
                          // Texture import passes false: Confirm later opens the over-limit resolver.
                          bool enforce_filament_limit = true);
@@ -136,7 +137,7 @@ private:
     std::string                 m_preferred_family;
     std::vector<std::string>    m_combo_item_families;
     size_t                      m_current_filament_count{0};
-    size_t                      m_max_filament_count{32};
+    size_t                      m_max_filament_count{size_t(EnforcerBlockerType::ExtruderMax)};
     bool                        m_enforce_filament_limit{true};
     std::vector<size_t>         m_physical_config_indices;
     std::function<size_t(const ColorDecomposeResult&)> m_missing_calculator;

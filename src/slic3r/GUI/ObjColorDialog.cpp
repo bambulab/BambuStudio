@@ -1354,7 +1354,7 @@ bool ObjColorPanel::deal_add_btn()
     }
     if (is_exceed) {
         deal_approximate_match_btn();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",Waring:The count of newly added and \n current extruders exceeds 32.";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": newly added and current filaments exceed " << int(EnforcerBlockerType::ExtruderMax);
         return true;
     }
     return false;

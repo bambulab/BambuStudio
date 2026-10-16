@@ -2740,6 +2740,12 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             if (mixed_per_part_opt && i < mixed_per_part_opt->values.size()) snap.mixed_gradient_per_part = mixed_per_part_opt->values[i];
             mixed_snapshots.push_back(snap);
         }
+        // BBS: reject an overwrite that cannot preserve the saved mixed slots before
+        // stripping any project vectors. Never truncate mixed recipes silently.
+        if (!use_map && ams_filament_presets.size() + mixed_snapshots.size() > MAXIMUM_EXTRUDER_NUMBER) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": AMS sync would exceed project filament capacity";
+            return 0;
+        }
         if (!mixed_snapshots.empty()) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": stripping " << mixed_snapshots.size() << " mixed filament slot(s) before AMS sync";
             size_t phys_count = this->filament_presets.size() - mixed_snapshots.size();
@@ -2857,7 +2863,8 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 return -1;
             };
             for (size_t i = 0; i < need_append_colors.size(); i++){
-                if (exist_filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax)){
+                if (exist_filament_presets.size() >= MAXIMUM_AMS_SYNC_FILAMENT_NUMBER ||
+                    exist_filament_presets.size() + mixed_snapshots.size() >= MAXIMUM_EXTRUDER_NUMBER){
                     break;
                 }
                 auto idx = get_idx_in_array(exist_filament_presets, exist_colors, need_append_colors[i].filament_preset, need_append_colors[i].filament_color);
