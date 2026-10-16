@@ -27,9 +27,13 @@ function SendInstallPluginCheck()
 
 function FinishGuide()
 {
-	// Carry the language forward explicitly instead of relying solely on
-	// localStorage, which the next page would otherwise have to fall back on.
-	var lang = GetQueryString('lang') || localStorage.getItem(LANG_COOKIE_NAME);
-	var langParam = lang ? ('?lang=' + lang) : '';
-	window.open('../7/index.html' + langParam, '_self');
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="user_guide_finish";
+	tSend['data']={};
+	tSend['data']['action']="finish";
+	
+	SendWXMessage( JSON.stringify(tSend) );	
+	
+	//window.location.href="../6/index.html";
 }

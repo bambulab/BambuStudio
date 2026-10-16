@@ -369,8 +369,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/CameraPopup.hpp
     GUI/DeviceOperationsTooltip.cpp
     GUI/DeviceOperationsTooltip.hpp
-    GUI/AdvancedModeTip.cpp
-    GUI/AdvancedModeTip.hpp
     GUI/Monitor.cpp
     GUI/Monitor.hpp
     GUI/WebViewDialog.cpp

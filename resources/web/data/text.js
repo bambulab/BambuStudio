@@ -79,7 +79,7 @@ var LangText={
 		"t84": "3, Delete all files under the plug-in directory",
 		"t85": "4, Reopen Bambu studio and install the plug-in again",
 		"t86": "Close",
-		"t87": "Learning",
+		"t87": "User Manual",
 		"t88": "Remove",
 		"t89": "Open Containing Folder",
 		"t90": "3D Model",
@@ -259,10 +259,7 @@ var LangText={
 		"t291": "Filament",
 		"t292": "Temperature",
 		"t293": "No printer connected",
-		"t294": "No presets available, please add a filament first",
-		"t295": "Configuration Complete",
-		"t296": "Welcome to Bambu Studio. To get the most out of your Bambu Lab 3D printer, we recommend following our Bambu Studio course to learn more about its features and how to use it.",
-		"t297": "bambulab.com/academy"
+		"t294": "No presets available, please add a filament first"
 	},
 	"zh_CN": {
 		"t1": "欢迎使用Bambu Studio",
@@ -344,7 +341,7 @@ var LangText={
 		"t84": "3, 删除插件所在目录下的所有文件",
 		"t85": "4, 重新启动Bambu Studio并尝试安装插件",
 		"t86": "关闭",
-		"t87": "教程",
+		"t87": "使用引导",
 		"t88": "移除",
 		"t89": "打开所在的文件夹",
 		"t90": "3D 模型",
@@ -541,10 +538,7 @@ var LangText={
 		"t291": "材料",
 		"t292": "温度",
 		"t293": "打印机未连接",
-		"t294": "无可用预设，请先添加可用耗材",
-		"t295": "配置完成",
-		"t296": "欢迎使用 Bambu Studio。为了更好地发挥您的拓竹 3D 打印机的性能，我们建议您学习 Bambu Studio 教程，了解更多功能和使用方法。",
-		"t297": "bambulab.com/academy"
+		"t294": "无可用预设，请先添加可用耗材"
 	},
 	"ja_JP": {
 		"t1": "Bambu Studioへようこそ",
