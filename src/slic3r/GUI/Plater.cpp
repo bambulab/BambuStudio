@@ -4759,12 +4759,36 @@ void Sidebar::priv::relayout_filament_grid(bool force)
     // row is just a name and fits two-up at any sidebar width -- and two columns is the layout
     // this list had before the collapse was introduced, so it keeps it.
     const bool single_column = filament_nozzle_chip_supported() && width < FromDIP(492);
-    if (!force && single_column == m_filament_single_column)
+    const bool column_mode_changed = single_column != m_filament_single_column;
+
+    auto *col0_item = sizer_filaments->GetItem((size_t) 0);
+    auto *col1_item = sizer_filaments->GetItem((size_t) 1);
+
+    // Keep the two columns equal width. proportion=1 only splits leftover space
+    // after each column's min is honoured, and on macOS a column's min follows its
+    // combo best size (the filament name), making the left column wider. Pin every
+    // row window to half the width so both columns report the same min; -1 in
+    // single-column mode. Runs each size event so drags stay even.
+    const int desired_item_w = single_column ? -1 : std::max(FromDIP(1), (width - FromDIP(1)) / 2);
+    bool item_w_changed = false;
+    for (auto *item : filament_items) {
+        if (item != nullptr && item->GetMinSize().GetWidth() != desired_item_w) {
+            item->SetMinSize(wxSize(desired_item_w, item->GetMinSize().GetHeight()));
+            item_w_changed = true;
+        }
+    }
+
+    // Only re-distribute rows when the column count flips; a plain width change
+    // just needs a relayout if the equal-width pin changed.
+    if (!force && !column_mode_changed) {
+        if (item_w_changed)
+            m_panel_filament_content->Layout();
         return;
+    }
     m_filament_single_column = single_column;
 
-    auto *col0 = sizer_filaments->GetItem((size_t) 0)->GetSizer();
-    auto *col1 = sizer_filaments->GetItem((size_t) 1)->GetSizer();
+    auto *col0 = col0_item->GetSizer();
+    auto *col1 = col1_item->GetSizer();
     col0->Clear(false);
     col1->Clear(false);
 
@@ -4948,6 +4972,12 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     // Fallback until refresh_filament_nozzle_label() writes the slot's own reason (no preset,
     // nozzle not installed, or AMS tray unmatched).
     incompatible_icon->SetToolTip(_L("This filament does not support printing with the current nozzle"));
+    // The icon overlays the preset combo. A wxStaticBitmap has no mouse handlers,
+    // so on macOS a click falls through to the combo and opens its drop-down. Bind
+    // empty handlers (no Skip) to consume the click; the tooltip still works.
+    incompatible_icon->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &) {});
+    incompatible_icon->Bind(wxEVT_LEFT_UP, [](wxMouseEvent &) {});
+    incompatible_icon->Bind(wxEVT_LEFT_DCLICK, [](wxMouseEvent &) {});
     incompatible_icon->Hide();
     p->filament_incompatible_icons.push_back(incompatible_icon);
 
