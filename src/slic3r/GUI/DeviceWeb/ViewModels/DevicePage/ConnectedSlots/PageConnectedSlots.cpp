@@ -23,8 +23,8 @@ namespace Slic3r { namespace GUI {
 namespace {
 
 /// Fixed design size of the dialog; the page is not resizable.
-constexpr int kDialogWidthDip  = 508;
-constexpr int kDialogHeightDip = 316;
+constexpr int kDialogWidthDip  = 560;
+constexpr int kDialogHeightDip = 360;
 
 /// Device pushes arrive roughly once per second; half that period bounds the
 /// display lag without paying for BuildState() far more often than needed.

@@ -1236,10 +1236,7 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                                 }
 
                                 if (tray) {
-                                    auto addr_id_opt = tray->get_nozzle_addr_id(obj);
-                                    if (addr_id_opt.has_value()) {
-                                        system->m_filament_changing_slots.push_back({ tar_first, addr_id_opt.value() });
-                                    }
+                                    system->m_filament_changing_slots.push_back(tray->get_ams_slot_id());
                                 }
                             } else if (system->GetVirtualTray(std::to_string(tar_first))) {
                                 system->m_filament_changing_slots.push_back({ tar_first, 0 });

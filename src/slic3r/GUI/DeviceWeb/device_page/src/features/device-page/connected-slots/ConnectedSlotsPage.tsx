@@ -112,16 +112,22 @@ export function ConnectedSlotsPage() {
   return (
     <div className="cs-page" data-testid="connected-slots-page" data-theme={state.theme}>
       {error && <div className="cs-page__error">{error}</div>}
-      {state.slots.map((slot) => (
-        <SlotView
-          key={slot.addr_id}
-          slot={slot}
-          onSelectSource={(extIndex) => void selectSource(extIndex)}
-          onDry={(amsId) => void openDryControls(amsId)}
-          onTrayAction={(action, tray) => void runTrayAction(action, tray.ams_id, tray.slot_id)}
-        />
-      ))}
-      {showCopyReport && <CopyReportButton getReport={getReport} />}
+      <div className="cs-page__content">
+        {state.slots.map((slot) => (
+          <SlotView
+            key={slot.addr_id}
+            slot={slot}
+            onSelectSource={(extIndex) => void selectSource(extIndex)}
+            onDry={(amsId) => void openDryControls(amsId)}
+            onTrayAction={(action, tray) => void runTrayAction(action, tray.ams_id, tray.slot_id)}
+          />
+        ))}
+        {showCopyReport && (
+          <div className="cs-page__actions">
+            <CopyReportButton getReport={getReport} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

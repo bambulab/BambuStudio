@@ -1554,7 +1554,7 @@
 
 .filament-change-panel {
   position: relative;
-  margin: 0 12px 0;
+  margin: 16px 12px 0;
   padding: 0 0 44px;
   background: var(--ams-page-bg);
   flex: 0 0 auto;
