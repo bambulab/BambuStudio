@@ -3680,8 +3680,9 @@ void SelectMachineDialog::on_send_print()
     }
 
     /* build nozzles info for multi extruders printers */
-    if ((!use_dynamic_nozzle_map() && !queue_needs_nozzle_mapping) || !build_nozzles_info(m_print_job->task_nozzles_info)) {
+    if (!build_nozzles_info(m_print_job->task_nozzles_info)) {
         m_print_job->task_nozzles_info = "[]";
+        BOOST_LOG_TRIVIAL(error) << "build_nozzle_info errors";
     }
 
     m_print_job->has_sdcard = obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_NORMAL;
