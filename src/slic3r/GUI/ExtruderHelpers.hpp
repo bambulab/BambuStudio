@@ -5,12 +5,12 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <wx/string.h>
 
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
-#include "slic3r/GUI/Widgets/MultiNozzleSync.hpp"
 
 namespace Slic3r {
 
@@ -19,6 +19,15 @@ class MachineObject;
 namespace GUI {
 
 enum class NozzleStatus : int;
+
+/**
+ * \brief One nozzle diameter installed on the printer and how many nozzles of each volume type carry it.
+ */
+struct NozzleOption
+{
+    std::string                                                        diameter;
+    std::unordered_map<int, std::unordered_map<NozzleVolumeType, int>> extruder_nozzle_stats; ///< extruder id -> volume type -> nozzle count
+};
 
 struct NozzleConfig
 {

@@ -19,6 +19,7 @@
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/statbmp.h>
+#include <wx/wupdlock.h>
 
 #include "CapsuleButton.hpp"
 #include "ExtruderHelpers.hpp"          // slot_name, nozzle_loses_detail
@@ -639,16 +640,26 @@ void SyncAmsDialog::relayout()
 {
     auto *column = static_cast<MappingFirstSizer *>(GetSizer());
     if (!column) return; // still building; the constructor relays out once the column is set
+    wxWindowUpdateLocker freeze(this); // the resize and the relayout paint once, at the final layout
     // The floor changes with the mode and the row count, so refresh it on every relayout.
     const wxSize floor = column->GetMinSize();
     SetMinClientSize(wxSize(std::max(GetMinClientSize().x, floor.x), floor.y));
-    // Open at the natural height, but never taller than the screen; the flexible items absorb the cut.
+    const wxSize min = GetMinClientSize();
+
+    // A height other than the one we set last came from a user drag; keep it as an offset on the content height.
+    if (m_fitted_h > 0) m_height_offset += GetClientSize().y - m_fitted_h;
+
+    // Fit the natural height, but never taller than the screen; the flexible items absorb the cut.
     // Before the first show the dialog has no position yet, so use the parent's display.
     const wxDisplay display(IsShown() || !GetParent() ? static_cast<wxWindow *>(this) : GetParent());
     const int       frame_h = GetSize().y - GetClientSize().y;
-    const int       h       = std::min(column->natural_height(), display.GetClientArea().height - frame_h);
-    SetClientSize(wxSize(GetMinClientSize().x, std::max(h, floor.y)));
+    const int       max_h   = display.GetClientArea().height - frame_h;
+    const int       h       = std::min(std::min(column->natural_height(), max_h) + m_height_offset, max_h);
+    SetClientSize(wxSize(std::max(GetClientSize().x, min.x), std::max(h, min.y)));
     Layout();
+    m_fitted_h = GetClientSize().y;
+    // Thaw repaints only the children; the dialog's own surface keeps stale pixels where a child moved or hid.
+    Refresh();
 }
 
 wxSizer *SyncAmsDialog::build_preview()
@@ -1060,6 +1071,13 @@ wxSizer *SyncAmsDialog::build_footer(bool deferrable)
     return h;
 }
 
-void SyncAmsDialog::on_dpi_changed(const wxRect &) { Refresh(); }
+void SyncAmsDialog::on_dpi_changed(const wxRect &)
+{
+    // Both heights were measured at the old DPI: carry the user's offset over at the new scale, and forget the
+    // fitted height so the system's DPI resize is not taken for a user drag.
+    if (prev_scale_factor() > 0.f) m_height_offset = int(std::lround(m_height_offset * scale_factor() / prev_scale_factor()));
+    m_fitted_h = 0;
+    Refresh();
+}
 
 } // namespace Slic3r::GUI

@@ -849,7 +849,7 @@ void MultiNozzleSyncDialog::OnRackStatusReadingFinished(wxEvent& evt) {
     if (m_refresh_timer)
         m_refresh_timer->Stop();
 #if 1
-    if (!UpdateUi(m_nozzle_rack))
+    if (!UpdateUi(m_nozzle_rack) && m_resolve_only)
         EndModal(wxID_OK);
 #else
     if(!UpdateUoi(m_nozzle_rack)){
@@ -978,11 +978,19 @@ bool MultiNozzleSyncDialog::UpdateOptionList(std::weak_ptr<DevNozzleRack> rack, 
         return true;
     }
 
-    m_list_table->Show();
-
+    // Drop the old selection first: the new list may be shorter, so the old index can be out of range.
+    if (m_nozzle_option_idx >= 0 && m_nozzle_option_idx < (int) m_nozzle_option_values.size())
+        m_nozzle_table->UnMarkRelatedItems(m_nozzle_option_values[m_nozzle_option_idx]);
+    m_nozzle_option_idx = -1;
     m_nozzle_option_values.clear();
 
     auto options = GetNozzleOptions(nozzle_rack->GetNozzleSystem()->GetNozzleGroups());
+    // No valid nozzle (all absent or abnormal) leaves nothing to list.
+    if (options.empty()) {
+        m_list_table->Hide();
+        return false;
+    }
+    m_list_table->Show();
 
     int recommend_idx = std::max_element(options.begin(), options.end(), [](const NozzleOption& opt1, const NozzleOption& opt2) {
         int count1 = 0, count2 = 0;
@@ -1029,15 +1037,22 @@ void MultiNozzleSyncDialog::UpdateTip(std::weak_ptr<DevNozzleRack> rack, bool ig
         m_caution->Hide();
     }
     else {
-        m_tips->SetLabel(_L("Your printer has different nozzles installed. Please select a nozzle for this print."));
-        m_caution->Show();
+        // Nothing is picked here, so only describe what is installed.
+        const bool mixed = m_nozzle_option_values.size() > 1;
+        if (m_nozzle_option_values.empty())
+            m_tips->SetLabel(_L("No usable nozzle is detected on your printer."));
+        else if (mixed)
+            m_tips->SetLabel(_L("Your printer has nozzles of different diameters installed."));
+        else
+            m_tips->SetLabel(_L("All nozzles installed on your printer have the same diameter."));
+        m_caution->Show(mixed);
     }
 }
 
 int MultiNozzleSyncDialog::ShowModal()
 {
     bool res = UpdateUi(m_nozzle_rack);
-    if (!res)
+    if (!res && m_resolve_only)
         return wxID_OK;
 
     return DPIDialog::ShowModal();
@@ -1081,12 +1096,12 @@ void MultiNozzleSyncDialog::UpdateButton(std::weak_ptr<DevNozzleRack> rack, bool
         if (!nozzle_rack)
             return;
         nozzle_rack->CtrlRackConfirmAll();
-        if (!UpdateUi(rack, true, true))
+        if (!UpdateUi(rack, true, true) && m_resolve_only)
             EndModal(wxID_OK);
     };
 
     auto ignore_opt = [rack,this]() {
-        if (!UpdateUi(rack, true, true))
+        if (!UpdateUi(rack, true, true) && m_resolve_only)
             EndModal(wxID_OK);
     };
 
@@ -1142,9 +1157,8 @@ bool MultiNozzleSyncDialog::UpdateUi(std::weak_ptr<DevNozzleRack> rack, bool ign
                               (nozzle_rack->HasUnreliableNozzles() && !ignore_unreliable)))
             return false;
     }
-    bool res = UpdateOptionList(rack, ignore_unknown, ignore_unreliable);
-    if (!res)
-        return false;
+    // false: nothing left to pick or settle. Draw anyway, so a caller that keeps the dialog open shows the real state.
+    const bool res = UpdateOptionList(rack, ignore_unknown, ignore_unreliable);
 
     UpdateTip(rack, ignore_unknown, ignore_unreliable);
     UpdateButton(rack, ignore_unknown, ignore_unreliable);
@@ -1157,7 +1171,7 @@ bool MultiNozzleSyncDialog::UpdateUi(std::weak_ptr<DevNozzleRack> rack, bool ign
     m_caution->Wrap(table_width);
     m_caution->SetMaxSize(wxSize(table_width, -1));
     Fit();
-    return true;
+    return res;
 }
 
 

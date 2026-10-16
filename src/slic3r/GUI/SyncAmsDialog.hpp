@@ -82,7 +82,10 @@ private:
     void toggle_advanced();
 
     /**
-     * \brief Re-fit the dialog to its content.
+     * \brief Fit the dialog height to its content and keep the user's width.
+     *
+     * A content change grows or shrinks the dialog by its own height, so the other sections keep their size.
+     * A height the user dragged in or out is kept on top of the content height.
      */
     void relayout();
 
@@ -185,6 +188,9 @@ private:
     wxStaticBitmap *m_advanced_icon{nullptr};
     bool            m_overwrite{false};
     bool            m_advanced_open{false};
+
+    int m_fitted_h{0};      ///< the client height relayout() last set; 0 until the first fit
+    int m_height_offset{0}; ///< the height the user dragged in or out, kept on top of the fitted content height
 
     SyncResult m_result; ///< produced by deal_ok(), read by the Plater after an OK close
 
