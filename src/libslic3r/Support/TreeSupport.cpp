@@ -37,6 +37,9 @@
 #define TAU (2.0 * M_PI)
 #define NO_INDEX (std::numeric_limits<unsigned int>::max())
 #define USE_SUPPORT_3D 0
+#ifndef USE_TREE_SUPPORT_CARRIED_MASS
+#define USE_TREE_SUPPORT_CARRIED_MASS 1
+#endif
 
 //#define SUPPORT_TREE_DEBUG_TO_SVG
 
@@ -2771,8 +2774,45 @@ void TreeSupport::generate()
     m_object->print()->set_status(60, _u8L("Generating support"));
     drop_nodes();
     profiler.stage_finish(STAGE_DROP_DOWN_NODES);
+    auto log_zigzag_stats = [&](const char *tag) {
+        if (get_logging_level() < 4)
+            return;
+        size_t nodes = 0, moved = 0, reversals = 0, heavy_reversals = 0;
+        double lateral = 0., rev_mass = 0.;
+        for (const auto &layer : contact_nodes)
+            for (const SupportNode *n : layer) {
+                if (!n->valid)
+                    continue;
+                ++nodes;
+                if (!n->parent)
+                    continue;
+                const SupportNode *heavy_p = n->parent;
+                for (const SupportNode *p : n->parents)
+                    if (p && p->carried_mass > heavy_p->carried_mass)
+                        heavy_p = p;
+                const Vec2d d1 = unscale(n->position - n->parent->position);
+                lateral += d1.norm();
+                if (d1.norm() > 0.05)
+                    ++moved;
+                if (!n->child || !n->child->valid)
+                    continue;
+                const Vec2d d2 = unscale(n->child->position - n->position);
+                if (d1.norm() > 0.05 && d2.norm() > 0.05 && d1.dot(d2) < -0.5 * d1.norm() * d2.norm())
+                    ++reversals;
+                const Vec2d dh1 = unscale(n->position - heavy_p->position);
+                if (dh1.norm() > 0.05 && d2.norm() > 0.05 && dh1.dot(d2) < -0.5 * dh1.norm() * d2.norm()) {
+                    ++heavy_reversals;
+                    rev_mass += n->carried_mass;
+                }
+            }
+        BOOST_LOG_TRIVIAL(debug) << format("[%s] object=%s nodes=%zu moved=%zu reversals=%zu heavy_rev=%zu rev_mass=%.0f lateral_mm=%.1f",
+                                           tag, m_object->model_object()->name.c_str(), nodes, moved, reversals, heavy_reversals, rev_mass, lateral);
+    };
+    log_zigzag_stats("zigzag");
 
     smooth_nodes();// , tree_support_3d_config);
+
+    log_zigzag_stats("zigzag_post");
 
     // BBS multi-diameter: fold the node chains onto the slab grid a coarse nozzle can extrude. This has to
     // follow smoothing, which needs the fine grid samples, and precede everything that turns nodes into
@@ -4234,6 +4274,14 @@ void TreeSupport::drop_nodes()
                           return a.first.x() != b.first.x() ? a.first.x() < b.first.x() : a.first.y() < b.first.y();
                       });
             //In the first pass, merge all nodes that are close together.
+#if USE_TREE_SUPPORT_CARRIED_MASS
+            ExPolygons lower_avoid_p1;
+            if (group_index == 0) {
+                const int lookahead_layers = std::max(1, int(std::round(8.0 / std::max<double>(height_next, 0.1))));
+                const size_t lower_obj_layer = (obj_layer_nr_next > size_t(lookahead_layers)) ? (obj_layer_nr_next - size_t(lookahead_layers)) : 0;
+                lower_avoid_p1 = get_avoidance(MIN_BRANCH_RADIUS, lower_obj_layer);
+            }
+#endif
             for (const std::pair<Point, SupportNode*>& entry : nodes_vec) {
                 SupportNode* p_node = entry.second;
                 SupportNode& node = *p_node;
@@ -4267,6 +4315,7 @@ void TreeSupport::drop_nodes()
                                         next_node->overhang      = std::move(tmp[0]);
                                         next_node->target_radius = std::max(p_node->target_radius, neighbour_node->target_radius);
                                         next_node->origin_area   = next_node->overhang.area();
+                                        next_node->carried_mass += neighbour_node->total_carried_mass();
                                         contact_nodes[layer_nr_next].emplace_back(next_node);
                                         p_node->valid = false;
                                         neighbour_node->valid = false;
@@ -4302,9 +4351,33 @@ void TreeSupport::drop_nodes()
                            nodes_this_part[neighbours[0]]->type!=ePolygon) // We have just two nodes left, and they're very close, and the only neighbor is not ePolygon
                 {
                     //Insert a completely new node and let both original nodes fade.
-                    Point next_position = (node.position + neighbours[0]) / 2; //Average position of the two nodes.
-                    coordf_t next_radius = calc_radius(node.dist_mm_to_top+height_next);
+                    SupportNode* neighbour = nodes_this_part[neighbours[0]];
+                    const Point mid_position = (node.position + neighbours[0]) / 2; //Average position of the two nodes.
+                    Point next_position = mid_position;
+                    coordf_t next_radius = calc_radius(node.dist_mm_to_top + height_next);
                     auto avoid_layer = get_avoidance(next_radius, obj_layer_nr_next);
+#if USE_TREE_SUPPORT_CARRIED_MASS
+                    {
+                        const double m_self    = std::max<double>(node.total_carried_mass(), EPSILON);
+                        const double m_nb      = std::max<double>(neighbour->total_carried_mass(), EPSILON);
+                        double       nb_weight = m_nb / (m_self + m_nb);
+                        if (group_index == 0 && !lower_avoid_p1.empty()) {
+                            const bool me_in_low = is_inside_ex(lower_avoid_p1, node.position);
+                            const bool nb_in_low = is_inside_ex(lower_avoid_p1, neighbours[0]);
+                            if (!me_in_low && nb_in_low)
+                                nb_weight = std::min(nb_weight, 0.2);
+                            else if (me_in_low && !nb_in_low)
+                                nb_weight = std::max(nb_weight, 0.8);
+                        }
+                        const Point  weighted_pos = node.position + Point(
+                            coord_t(std::round(nb_weight * double(neighbours[0].x() - node.position.x()))),
+                            coord_t(std::round(nb_weight * double(neighbours[0].y() - node.position.y()))));
+                        if (!is_inside_ex(get_collision(0, obj_layer_nr_next), weighted_pos) &&
+                            (group_index > 0 || !is_inside_ex(avoid_layer, weighted_pos))) {
+                            next_position = weighted_pos;
+                        }
+                    }
+#endif
                     if (group_index == 0)
                     {
                         //Avoid collisions.
@@ -4312,7 +4385,6 @@ void TreeSupport::drop_nodes()
                         move_out_expolys(avoid_layer, next_position, radius_sample_resolution + EPSILON, max_move_between_samples);
                     }
 
-                    SupportNode* neighbour = nodes_this_part[neighbours[0]];
                     SupportNode* node_parent;
                     if (p_node->parent && neighbour->parent)
                         node_parent = (node.radius >= neighbour->radius) ? p_node : neighbour;
@@ -4339,9 +4411,9 @@ void TreeSupport::drop_nodes()
                         if (vsize2_with_unscale(neighbour - node.position) < get_max_move_dist(&node,2))
                         {
                             SupportNode* neighbour_node = nodes_this_part[neighbour];
+                            if (!neighbour_node->valid) continue;
                             if (neighbour_node->type == ePolygon) continue;
-                            // only allow bigger node to merge smaller nodes. See STUDIO-6326
-                            if(node.radius < neighbour_node->radius) continue;
+                            if (node.radius < neighbour_node->radius) continue; // bug fix: STUDIO-6326, do not merge if current node has smaller radius than neighbor.
 
                             if (p_node->valid)
                             {
@@ -4480,6 +4552,9 @@ first_pass_next:;
                 }
                 Point next_layer_vertex = node.position;
                 Point move_to_neighbor_center;
+#if USE_TREE_SUPPORT_CARRIED_MASS
+                Point move_to_neighbor_center_base;
+#endif
                 std::vector<Point>       moves;
                 std::vector<float>       weights;
                 const std::vector<Point>& neighbours = mst.adjacent_nodes(node.position);
@@ -4491,8 +4566,28 @@ first_pass_next:;
                      (neighbours.size() == 1/* && nodes_this_part[neighbours[0]]->type != ePolygon */&& dist2_to_first_neighbor >= get_max_move_dist(p_node, 2))/* ||
                      (neighbours.size() == 1 && nodes_this_part[neighbours[0]]->type == ePolygon)*/)) // Only nodes that aren't about to collapse.
                 {
-                    // Move towards the average position of all neighbours.
-                    Point sum_direction(0, 0);
+                    // Move towards the average position of all neighbours, weighted by carried_mass
+                    // to encourage light branches to move towards heavy trunks and suppress heavy trunks
+                    // from deflecting towards light branches.
+#if USE_TREE_SUPPORT_CARRIED_MASS
+                    const double self_mass     = std::max<double>(node.total_carried_mass(), EPSILON);
+                    double       max_nb_mass   = 0.0;
+                    const Point  prev_move     = p_node->parent ? (node.position - p_node->parent->position) : Point(0, 0);
+                    const Vec2d  prev_move_d   = prev_move.cast<double>();
+                    const bool   has_prev_move = prev_move_d.squaredNorm() > double(scale_(0.01)) * double(scale_(0.01));
+                    // Direction towards the nearest edge of the model outlines below (for group_index == 0).
+                    // Pulling a branch deeper over a lower model part forces it to either reverse outward later
+                    // (elbow bend) or land on the model top.
+                    Vec2d        outlines_below_out_d(0.0, 0.0);
+                    bool         in_outlines_below = false;
+                    if (group_index == 0 && !parts.empty() && !lower_avoid_p1.empty() && is_inside_ex(parts, node.position)) {
+                        const Point proj_out = projection_onto(parts, node.position);
+                        outlines_below_out_d = (proj_out - node.position).cast<double>();
+                        in_outlines_below    = outlines_below_out_d.squaredNorm() > double(scale_(0.2)) * double(scale_(0.2));
+                    }
+                    Vec2d        base_dir_d(0.0, 0.0);
+#endif
+                    Vec2d        sum_dir_d(0.0, 0.0);
                     for (const Point &neighbour : neighbours) {
                         // do not move to the neighbor to be deleted
                         SupportNode *neighbour_node = nodes_this_part[neighbour];
@@ -4514,21 +4609,91 @@ first_pass_next:;
 
                         if (is_line_cut_by_contour(node.position, neighbour)) continue;
 
-                        if (!is_strong)
-                            sum_direction += direction * (1 / dist2_to_neighbor);
-                        else
-                            sum_direction += direction;
+                        double mass_weight = 1.0;
+#if USE_TREE_SUPPORT_CARRIED_MASS
+                        const double nb_mass = std::max<double>(neighbour_node->total_carried_mass(), EPSILON);
+                        max_nb_mass = std::max(max_nb_mass, nb_mass);
+                        {
+                            const Vec2d dir_d         = direction.cast<double>();
+                            const bool  reverses_prev = has_prev_move && dir_d.dot(prev_move_d) < 0.0;
+                            if (nb_mass >= self_mass) {
+                                mass_weight = std::sqrt(2.0 * nb_mass / (self_mass + nb_mass));
+                            } else {
+                                if (reverses_prev)
+                                    mass_weight = std::sqrt(2.0 * nb_mass / (self_mass + nb_mass));
+                                else
+                                    mass_weight = 1.0;
+                            }
+                            if (group_index == 0 && !lower_avoid_p1.empty()) {
+                                const bool me_in_low = is_inside_ex(lower_avoid_p1, node.position);
+                                const bool nb_in_low = is_inside_ex(lower_avoid_p1, neighbour);
+                                if (!me_in_low && nb_in_low) {
+                                    mass_weight *= 0.25;
+                                } else if (me_in_low && !nb_in_low) {
+                                    mass_weight = std::max(mass_weight, 1.4);
+                                } else if (me_in_low && nb_in_low && in_outlines_below) {
+                                    if (dir_d.dot(outlines_below_out_d) > 0.0)
+                                        mass_weight = std::max(mass_weight, 1.3);
+                                    else
+                                        mass_weight *= 0.4;
+                                }
+                            }
+                        }
+#endif
+
+                        if (!is_strong) {
+                            sum_dir_d += direction.cast<double>() * (mass_weight / double(dist2_to_neighbor));
+#if USE_TREE_SUPPORT_CARRIED_MASS
+                            base_dir_d += direction.cast<double>() * (1.0 / double(dist2_to_neighbor));
+#endif
+                        } else {
+                            sum_dir_d += direction.cast<double>() * mass_weight;
+#if USE_TREE_SUPPORT_CARRIED_MASS
+                            base_dir_d += direction.cast<double>();
+#endif
+                        }
                     }
 
-                    if (!is_strong)
+                    Point sum_direction(coord_t(std::round(sum_dir_d.x())), coord_t(std::round(sum_dir_d.y())));
+#if USE_TREE_SUPPORT_CARRIED_MASS
+                    Point base_direction(coord_t(std::round(base_dir_d.x())), coord_t(std::round(base_dir_d.y())));
+#endif
+
+                    if (!is_strong) {
                         move_to_neighbor_center = sum_direction;
-                    else {
+#if USE_TREE_SUPPORT_CARRIED_MASS
+                        move_to_neighbor_center_base = base_direction;
+#endif
+                    } else {
                         if (vsize2_with_unscale(sum_direction) <= get_max_move_dist(p_node, 2)) {
                             move_to_neighbor_center = sum_direction;
                         } else {
                             move_to_neighbor_center = normal(sum_direction, scale_(get_max_move_dist(p_node)));
                         }
+#if USE_TREE_SUPPORT_CARRIED_MASS
+                        if (vsize2_with_unscale(base_direction) <= get_max_move_dist(p_node, 2)) {
+                            move_to_neighbor_center_base = base_direction;
+                        } else {
+                            move_to_neighbor_center_base = normal(base_direction, scale_(get_max_move_dist(p_node)));
+                        }
+#endif
                     }
+#if USE_TREE_SUPPORT_CARRIED_MASS
+                    // When all reachable neighbours carry less mass than this node and pull it opposite to its
+                    // trajectory (or deeper over lower model outlines), cap the attraction step by mass ratio.
+                    if (max_nb_mass > 0.0 && max_nb_mass < self_mass) {
+                        const Vec2d move_d   = move_to_neighbor_center.cast<double>();
+                        const bool  rev_move = (has_prev_move && move_d.dot(prev_move_d) < 0.0) ||
+                                               (in_outlines_below && move_d.dot(outlines_below_out_d) < 0.0);
+                        if (rev_move) {
+                            const double attract_scale = (support_on_buildplate_only || is_strong) ? 1.0 : 2.0;
+                            const double mass_factor   = std::clamp(2.0 * max_nb_mass / (self_mass + max_nb_mass), 0.15, 1.0);
+                            const double max_attract   = (get_max_move_dist(&node) * mass_factor) / attract_scale;
+                            if (vsize2_with_unscale(move_to_neighbor_center) > SQ(max_attract))
+                                move_to_neighbor_center = normal(move_to_neighbor_center, scale_(max_attract));
+                        }
+                    }
+#endif
                 }
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
@@ -4565,6 +4730,13 @@ first_pass_next:;
                     }
                 }
                 // move to the averaged direction of neighbor center and contour edge if they are roughly same direction
+#if USE_TREE_SUPPORT_CARRIED_MASS
+                if (dist2_to_outer > EPSILON && move_to_neighbor_center_base != Point(0, 0)) {
+                    // When escaping an obstacle or avoidance zone, keep the unweighted attraction magnitude
+                    // so carried_mass scaling never alters the escape-vs-attraction vector balance.
+                    move_to_neighbor_center = move_to_neighbor_center_base;
+                }
+#endif
                 Point movement;
                 if (support_on_buildplate_only)
                     movement = move_to_neighbor_center + direction_to_outer * 2;
@@ -4722,12 +4894,23 @@ first_pass_next:;
             // make sure r[i - 1] - r[i] <= line_width
             const double radius_stable_threshold = (max_move_distance + max_move_distance) / (SQ(max_move_distance + MIN_BRANCH_RADIUS) - SQ(MIN_BRANCH_RADIUS));
             tbb::parallel_for_each(contact_nodes[0].begin(), contact_nodes[0].end(), [&radius_stable_threshold](SupportNode *node) {
-                double stable_radius = sqrt((node->dist_mm_to_top + unscale_((node->position - node->orig_pos).cast<double>().norm())) / radius_stable_threshold);
-                while (node->radius < stable_radius) {
+#if USE_TREE_SUPPORT_CARRIED_MASS
+                SupportNode *trunk_top = node;
+                while (trunk_top->parent && trunk_top->parents.size() <= 1)
+                    trunk_top = trunk_top->parent;
+#endif
+                while (node != nullptr) {
+#if USE_TREE_SUPPORT_CARRIED_MASS
+                    const Point &ref_pos = trunk_top->position;
+#else
+                    const Point &ref_pos = node->orig_pos;
+#endif
+                    const double stable_radius = sqrt((node->dist_mm_to_top + unscale_((node->position - ref_pos).cast<double>().norm())) / radius_stable_threshold);
+                    if (node->radius >= stable_radius)
+                        break;
                     node->radius = stable_radius;
                     if (!node->parent || node->parents.size() > 1) break;
                     node          = node->parent;
-                    stable_radius = sqrt((node->dist_mm_to_top + unscale_((node->position - node->orig_pos).cast<double>().norm())) / radius_stable_threshold);
                 }
             });
         }
@@ -4802,9 +4985,15 @@ void TreeSupport::smooth_nodes()
                             branch[i]->movement = (pts[i + 1] - pts[i - 1]) / 2;
                             branch[i]->is_processed = true;
                             branch[i]->overhang_degree = std::min(10.0, unscale_((branch[i]->movement).cast<double>().norm()) / support_lw * 10);
+#if USE_TREE_SUPPORT_CARRIED_MASS
+                            if ((branch[i]->movement.x() > max_move || branch[i]->movement.y() > max_move) ||
+                                (total_height > thresh_tall_branch && branch[i]->dist_mm_to_top < thresh_dist_to_top))
+                                branch[i]->need_extra_wall = true;
+#else
                             if (branch[i]->parents.size() > 1 || (branch[i]->movement.x() > max_move || branch[i]->movement.y() > max_move) ||
                                 (total_height > thresh_tall_branch && branch[i]->dist_mm_to_top < thresh_dist_to_top))
                                 branch[i]->need_extra_wall = true;
+#endif
                             BOOST_LOG_TRIVIAL(trace) << "layer_nr=" << layer_nr << ", i=" << i << ", pt=" << pt << ", movement=" << branch[i]->movement << ", radius=" << branch[i]->radius;
                         }
                     }
@@ -4813,6 +5002,7 @@ void TreeSupport::smooth_nodes()
                         std::swap(radii, radii1);
                     }
                 }
+#if !USE_TREE_SUPPORT_CARRIED_MASS
                 // interpolate need_extra_wall in the end
                 int idx_first_double_wall = -1;
                 int idx_last_double_wall  = -1;
@@ -4825,6 +5015,7 @@ void TreeSupport::smooth_nodes()
                 if (idx_last_double_wall >= 0 && idx_first_double_wall >= 0 && idx_last_double_wall > idx_first_double_wall) {
                     for (size_t i = idx_first_double_wall + 1; i < idx_last_double_wall; i++) branch[i]->need_extra_wall = true;
                 }
+#endif
             }
         }
     }
@@ -5223,6 +5414,7 @@ void TreeSupport::generate_contact_points()
                                                           overhang_gap_height, 0, radius);
                     contact_node->overhang = overhang;
                     contact_node->is_sharp_tail = is_sharp_tail;
+                    contact_node->carried_mass = float(M_PI * SQ(std::max(radius, tip_radius)));
                     curr_nodes.emplace_back(contact_node);
                     added = true;
                 };
@@ -5271,6 +5463,7 @@ void TreeSupport::generate_contact_points()
                         SupportNode *contact_node    = insert_point(candidate, overhang, radius, true, true);
                         if (!contact_node) continue;
                         contact_node->type           = ePolygon;
+                        contact_node->carried_mass   = std::max(contact_node->carried_mass, float(overhang.area() * SCALING_FACTOR * SCALING_FACTOR));
                         curr_nodes.emplace_back(contact_node);
                     }
                 }
@@ -5281,6 +5474,7 @@ void TreeSupport::generate_contact_points()
                 if (!is_sharp_tail && layer->lower_layer) 
                     overhangs_regular = diff_ex(overhangs_regular, extrudable_collision);
                 for (auto &overhang : overhangs_regular) {
+                    const size_t nodes_before = curr_nodes.size();
                     if (is_sharp_tail && !m_support_params.soluble_interface && overhang.area() < SQ(scale_(2.))) add_interface = false;
                     BoundingBox overhang_bounds = get_extents(overhang);
                     double      radius          = std::clamp(unscale_(overhang_bounds.radius()), tip_radius, base_radius);
@@ -5319,18 +5513,24 @@ void TreeSupport::generate_contact_points()
                         // the overhang so the sharp tail still gets a contact point.
                         if (!is_inside_ex({overhang}, cent)) cent = overhang.point_projection(cent);
                         insert_point(cent, overhang, radius, false, add_interface);
-                        continue;
-                    }
-
-                    // add inner supports
-                    overhang_bounds.inflated(-radius_scaled);
-                    ExPolygons overhang_inner = offset_ex(overhang, -radius_scaled);
-                    for (Point candidate : grid_points) {
-                        if (overhang_bounds.contains(candidate)) {
-                            // BBS: move_inside_expoly shouldn't be used if candidate is already inside, as it moves point to boundary and the inside is not well supported!
-                            bool is_inside = is_inside_ex(overhang_inner, candidate);
-                            if (is_inside) { SupportNode *contact_node = insert_point(candidate, overhang,radius, false, add_interface); }
+                    } else {
+                        // add inner supports
+                        overhang_bounds.inflated(-radius_scaled);
+                        ExPolygons overhang_inner = offset_ex(overhang, -radius_scaled);
+                        for (Point candidate : grid_points) {
+                            if (overhang_bounds.contains(candidate)) {
+                                // BBS: move_inside_expoly shouldn't be used if candidate is already inside, as it moves point to boundary and the inside is not well supported!
+                                bool is_inside = is_inside_ex(overhang_inner, candidate);
+                                if (is_inside) { SupportNode *contact_node = insert_point(candidate, overhang,radius, false, add_interface); }
+                            }
                         }
+                    }
+                    const size_t nodes_added = curr_nodes.size() - nodes_before;
+                    if (nodes_added > 0) {
+                        const float overhang_area_mm2 = float(overhang.area() * SCALING_FACTOR * SCALING_FACTOR);
+                        const float node_mass         = std::max(overhang_area_mm2 / float(nodes_added), float(M_PI * SQ(tip_radius)));
+                        for (size_t idx = nodes_before; idx < curr_nodes.size(); ++idx)
+                            curr_nodes[idx]->carried_mass = node_mass;
                     }
                 }
             }

@@ -83,6 +83,7 @@ struct SupportNode
             type = parent->type;
             overhang = parent->overhang;
             orig_pos = parent->orig_pos;
+            carried_mass = parent->carried_mass;
             if (dist_mm_to_top == 0)
                 dist_mm_to_top = parent->dist_mm_to_top + parent->height;
             if (radius == 0 && parent->radius>0)
@@ -91,6 +92,7 @@ struct SupportNode
             for (auto& neighbor : parent->merged_neighbours) {
                 neighbor->child = this;
                 parents.push_back(neighbor);
+                carried_mass += neighbor->carried_mass;
             }
             is_sharp_tail = parent->is_sharp_tail;
             skin_direction = parent->skin_direction;
@@ -129,6 +131,15 @@ struct SupportNode
     bool           need_extra_wall = false;
     bool           is_sharp_tail   = false;
     bool           valid = true;
+    float          carried_mass = 0.0;  // Virtual carried mass (supported overhang area) used to prioritize light-to-heavy branch merging
+
+    float total_carried_mass() const
+    {
+        float mass = carried_mass;
+        for (const SupportNode *neighbor : merged_neighbours)
+            mass += neighbor->carried_mass;
+        return mass;
+    }
 
     // BBS multi-diameter: set by fold_nodes_multi_diameter(). A coarse nozzle prints several node layers as
     // one slab, so the chain is folded onto that grid before any area exists. slab_height > 0 marks a node
