@@ -2211,14 +2211,13 @@ inline constexpr const char *canonical_multi_nozzle_printer_variant() { return "
 // printer_variant used when leaving multi-diameter with no restorable return point.
 inline constexpr const char *default_single_nozzle_printer_variant() { return "0.4"; }
 
-// Values of the process option process_nozzle_diameter_mode: the multi-diameter mode a user/project process
-// preset was saved in. System presets and presets saved before the option existed carry an empty value,
-// which means the preset belongs to neither mode in particular.
-inline constexpr const char *process_nozzle_diameter_mode_single() { return "single"; }
-inline constexpr const char *process_nozzle_diameter_mode_multi() { return "multi"; }
+// Values of the printer option printer_nozzle_diameter_mode: the multi-diameter mode a user/project printer
+// preset was saved in. System presets and presets saved before the option existed carry an empty value.
+inline constexpr const char *printer_nozzle_diameter_mode_single() { return "single"; }
+inline constexpr const char *printer_nozzle_diameter_mode_multi() { return "multi"; }
 
-// The process_nozzle_diameter_mode value of a process config, empty when missing.
-std::string process_nozzle_diameter_mode_tag(const ConfigBase &config);
+// The printer_nozzle_diameter_mode value of a printer config, empty when missing.
+std::string printer_nozzle_diameter_mode_tag(const ConfigBase &config);
 
 // MVP multi-diameter tuning. These values intentionally live in code instead of presets: all nozzle
 // diameters share one machine/process preset while slicing resolves the effective value per filament.

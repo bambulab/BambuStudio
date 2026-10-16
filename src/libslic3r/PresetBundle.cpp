@@ -2339,8 +2339,8 @@ void PresetBundle::save_changes_for_preset(const std::string& new_name, Preset::
         presets.get_edited_preset().config.apply_only(presets.get_selected_preset().config, unselected_options);
     }
 
-    if (type == Preset::TYPE_PRINT)
-        stamp_process_nozzle_diameter_mode();
+    if (type == Preset::TYPE_PRINTER)
+        stamp_printer_nozzle_diameter_mode();
 
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
     //BBS: add project embedded preset logic
@@ -4355,32 +4355,30 @@ std::string PresetBundle::tray_diameter_for_filament_slot(size_t filament_index)
     return first_match;
 }
 
-bool PresetBundle::supports_multi_nozzle_diameter_mode() const
-{
-    const Preset *printer_base = printers.get_preset_base(printers.get_edited_preset());
-    return printer_base != nullptr && printer_base->is_system && is_single_ext_multi_nozzle(printer_base->config);
-}
-
-void PresetBundle::stamp_process_nozzle_diameter_mode()
+void PresetBundle::stamp_printer_nozzle_diameter_mode()
 {
     std::string tag;
-    if (supports_multi_nozzle_diameter_mode())
-        tag = multi_nozzle_diameter_mode_enabled(project_config) ? process_nozzle_diameter_mode_multi() :
-                                                                   process_nozzle_diameter_mode_single();
-    prints.get_edited_preset().config.option<ConfigOptionString>("process_nozzle_diameter_mode", true)->value = tag;
+    const Preset *printer_base = printers.get_preset_base(printers.get_edited_preset());
+    if (printer_base != nullptr && printer_base->is_system && is_single_ext_multi_nozzle(printer_base->config))
+        tag = multi_nozzle_diameter_mode_enabled(project_config) ? printer_nozzle_diameter_mode_multi() :
+                                                                   printer_nozzle_diameter_mode_single();
+    printers.get_edited_preset().config.option<ConfigOptionString>("printer_nozzle_diameter_mode", true)->value = tag;
 }
 
-const Preset *PresetBundle::find_system_multi_nozzle_printer_preset(const std::string &printer_model,
-                                                                    const std::string &printer_variant) const
+bool PresetBundle::is_multi_nozzle_user_printer_preset(const Preset &preset) const
 {
-    for (const Preset &preset : printers.get_presets()) {
-        if (preset.is_system &&
-            preset.config.opt_string("printer_model") == printer_model &&
-            preset.config.opt_string("printer_variant") == printer_variant &&
-            is_single_ext_multi_nozzle(preset.config))
-            return &preset;
-    }
-    return nullptr;
+    if (preset.is_system || preset.is_default)
+        return false;
+    const Preset *base = printers.get_preset_base(preset);
+    if (base == nullptr || !base->is_system || !is_single_ext_multi_nozzle(base->config) ||
+        base->config.opt_string("printer_variant") != canonical_multi_nozzle_printer_variant())
+        return false;
+    const std::string tag = printer_nozzle_diameter_mode_tag(preset.config);
+    if (tag == printer_nozzle_diameter_mode_multi())
+        return true;
+    if (tag == printer_nozzle_diameter_mode_single())
+        return false;
+    return preset.name.find("Multiple nozzle") != std::string::npos;
 }
 
 void PresetBundle::seed_filament_nozzles_for_multi_diameter(const std::string &fallback_diameter)

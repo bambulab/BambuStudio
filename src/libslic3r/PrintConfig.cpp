@@ -141,9 +141,9 @@ bool multi_nozzle_diameter_mode_enabled(const ConfigOptionResolver &config)
     return opt != nullptr && opt->value;
 }
 
-std::string process_nozzle_diameter_mode_tag(const ConfigBase &config)
+std::string printer_nozzle_diameter_mode_tag(const ConfigBase &config)
 {
-    const auto *opt = config.option<ConfigOptionString>("process_nozzle_diameter_mode");
+    const auto *opt = config.option<ConfigOptionString>("printer_nozzle_diameter_mode");
     return opt != nullptr ? opt->value : std::string();
 }
 
@@ -5452,15 +5452,15 @@ void PrintConfigDef::init_fff_params()
     //BBS: open this option to command line
     //def->cli = ConfigOptionDef::nocli;
 
-    // Stamped on user/project process presets when they are saved; not shown on any settings page.
-    def = this->add("process_nozzle_diameter_mode", coString);
-    def->set_default_value(new ConfigOptionString(""));
-    def->cli = ConfigOptionDef::nocli;
-
     def = this->add("printer_settings_id", coString);
     def->set_default_value(new ConfigOptionString(""));
     //BBS: open this option to command line
     //def->cli = ConfigOptionDef::nocli;
+
+    // Stamped on user/project printer presets when they are saved; not shown on any settings page.
+    def = this->add("printer_nozzle_diameter_mode", coString);
+    def->set_default_value(new ConfigOptionString(""));
+    def->cli = ConfigOptionDef::nocli;
 
     def = this->add("raft_contact_distance", coFloat);
     def->label = L("Raft contact Z distance");

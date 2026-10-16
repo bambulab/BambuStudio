@@ -387,17 +387,12 @@ public:
     // the result keep it anyway so validation can flag them instead of rewriting them to the
     // smallest remaining option.
     void                        seed_filament_nozzles_for_multi_diameter(const std::string &fallback_diameter);
-    // Whether the edited printer can do multi-diameter mode: a single-extruder multi-nozzle machine whose
-    // base is a system preset.
-    bool                        supports_multi_nozzle_diameter_mode() const;
-    // Writes process_nozzle_diameter_mode on the edited process preset right before it is saved, so a
-    // user/project process remembers which multi-diameter mode it was saved in. Printers that cannot do
+    // Writes printer_nozzle_diameter_mode on the edited printer preset right before it is saved, so a
+    // user/project printer remembers which multi-diameter mode it was saved in. Printers that cannot do
     // multi-diameter get an empty value.
-    void                        stamp_process_nozzle_diameter_mode();
-    // System printer preset of printer_model at printer_variant, but only when that preset is a
-    // single-extruder multi-nozzle machine - the only kind multi-diameter mode can anchor on.
-    const Preset*               find_system_multi_nozzle_printer_preset(const std::string &printer_model,
-                                                                        const std::string &printer_variant) const;
+    void                        stamp_printer_nozzle_diameter_mode();
+    // Whether `preset` is a user/project printer preset that belongs to multi-diameter mode.
+    bool                        is_multi_nozzle_user_printer_preset(const Preset &preset) const;
     // Resizes selections and fills missing or invalid values with a deterministic supported default.
     // Device mappings, when supplied, take precedence and bind a filament to its physical slot diameter.
     // `device_maps_are_user_chosen` says whether those mappings came from the matching dialog, where

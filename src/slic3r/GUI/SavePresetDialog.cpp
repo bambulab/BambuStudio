@@ -17,6 +17,7 @@
 #include "GUI_App.hpp"
 #include "format.hpp"
 #include "Tab.hpp"
+#include "PresetComboBoxes.hpp"
 #include "libslic3r/Log.hpp"
 
 using Slic3r::GUI::format_wxstr;
@@ -36,7 +37,10 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string &suffix, wxBox
     m_presets = tab->get_presets();
 
     const Preset &sel_preset  = m_presets->get_selected_preset();
-    std::string   preset_name = sel_preset.is_default ? "Untitled" : sel_preset.is_system ? (boost::format(("%1% - %2%")) % sel_preset.name % suffix).str() : sel_preset.name;
+    const std::string base_name = (m_type == Preset::TYPE_PRINTER && sel_preset.is_system && tab->get_combo_box()) ?
+        Preset::remove_suffix_modified(into_u8(tab->get_combo_box()->get_preset_name(sel_preset))) :
+        sel_preset.name;
+    std::string   preset_name = sel_preset.is_default ? "Untitled" : sel_preset.is_system ? (boost::format(("%1% - %2%")) % base_name % suffix).str() : sel_preset.name;
 
     // if name contains extension
     if (boost::iends_with(preset_name, ".ini")) {

@@ -6,7 +6,6 @@
 #include <cstdlib>
 #include <cmath>
 #include <optional>
-#include <set>
 #include <utility>
 #include <vector>
 #include <string>
@@ -186,87 +185,31 @@ static std::string multi_nozzle_display_name(const PresetBundle* preset_bundle, 
     return {};
 }
 
-// Multi-diameter slicing anchors the project on the canonical printer variant, so the sibling diameters
-// of that machine must not be offered anywhere a printer is picked. Other printer models, and
-// machines that cannot do multi-diameter at all, are untouched. Callers add their own "keep the
-// preset in use" exemption, so a transient "mode on + non-canonical printer" state cannot drop the
-// active printer out of a list.
+// Multi-diameter slicing anchors the project on the canonical printer variant, so in the compare dialog
+// the sibling system diameters of that machine are hidden while the mode is on. User and project presets,
+// other printer models, and machines that cannot do multi-diameter at all are untouched.
 static bool hidden_by_multi_nozzle_diameter_mode(const PresetBundle*     preset_bundle,
                                                  const PresetCollection& collection,
                                                  Preset::Type            type,
                                                  const Preset&           preset)
 {
-    if (type != Preset::TYPE_PRINTER || preset_bundle == nullptr)
+    if (type != Preset::TYPE_PRINTER || preset_bundle == nullptr || !preset.is_system)
         return false;
     if (!multi_nozzle_diameter_mode_enabled(preset_bundle->project_config))
-        return false;
-    if (!preset.is_system && !preset.is_user() && !preset.is_project_embedded)
         return false;
     return supports_multi_nozzle_diameter_mode(collection, preset) &&
            !is_canonical_multi_nozzle_diameter_printer_preset(collection, preset);
 }
 
-// The other multi-diameter mode, as the process combo offers it: the mode stamp its user/project presets
-// carry, and the system printers a process of that mode is matched against - the canonical variant when
-// that mode is multi-diameter, the variant of every installed diameter when it is single-diameter.
-struct CrossModeContext
+// Whether `preset` is a system printer of the same single-extruder multi-nozzle model as the edited
+// printer, so the printer settings combo also offers it across multi-diameter modes.
+static bool same_model_multi_nozzle_system_printer(const PresetCollection& printers, const Preset& preset)
 {
-    bool                                 to_multi { false };
-    const char*                          mode_tag { nullptr };
-    std::vector<PresetWithVendorProfile> printers;
-};
-
-// No printers when the active printer cannot do multi-diameter, which turns the cross-mode items off altogether.
-static CrossModeContext cross_mode_context(const PresetBundle& bundle)
-{
-    CrossModeContext context;
-    if (!bundle.supports_multi_nozzle_diameter_mode())
-        return context;
-
-    context.to_multi = !multi_nozzle_diameter_mode_enabled(bundle.project_config);
-    context.mode_tag = context.to_multi ? process_nozzle_diameter_mode_multi() : process_nozzle_diameter_mode_single();
-
-    const PresetCollection& printers = bundle.printers;
-    const std::string printer_model =
-        printers.get_preset_base(printers.get_edited_preset())->config.opt_string("printer_model");
-    std::set<std::string> diameters;
-    if (context.to_multi)
-        diameters.insert(canonical_multi_nozzle_printer_variant());
-    else
-        for (const auto& variant : bundle.get_installed_nozzle_variants())
-            diameters.insert(variant.first);
-    for (const std::string& diameter : diameters)
-        if (const Preset* printer = bundle.find_system_multi_nozzle_printer_preset(printer_model, diameter))
-            context.printers.push_back(printers.get_preset_with_vendor_profile(*printer));
-    return context;
-}
-
-// The mode switch a process preset is offered as, if any. System presets serve both modes, so they can be
-// offered from either. A user/project preset belongs to the mode stamped on it and is only offered from the
-// other mode; an unstamped one, or one stamped for the current mode, keeps its old behaviour. Compatibility
-// is judged on the preset itself against the other mode's printers: the is_compatible flag is relative to
-// the active printer and says nothing here.
-static std::optional<MultiNozzleModeTarget> cross_mode_target(const PresetCollection& prints,
-                                                              const Preset&           preset,
-                                                              const CrossModeContext& context)
-{
-    if (context.printers.empty() || preset.is_default)
-        return std::nullopt;
-    if (!preset.is_system && process_nozzle_diameter_mode_tag(preset.config) != context.mode_tag)
-        return std::nullopt;
-
-    const PresetWithVendorProfile preset_with_vendor = prints.get_preset_with_vendor_profile(preset);
-    for (const PresetWithVendorProfile& printer : context.printers)
-        if (is_compatible_with_printer(preset_with_vendor, printer))
-            return MultiNozzleModeTarget{ preset.name, context.to_multi, printer.preset.config.opt_string("printer_variant") };
-    return std::nullopt;
-}
-
-// Label of a cross-mode item. System presets read the way the target mode lists them; user presets keep
-// their own name.
-static std::string cross_mode_item_label(const Preset& preset, const MultiNozzleModeTarget& target)
-{
-    return preset.is_system && target.to_multi ? multi_nozzle_process_preset_name(preset) : preset.name;
+    if (!preset.is_system || !is_single_ext_multi_nozzle(preset.config))
+        return false;
+    const Preset* base = printers.get_preset_base(printers.get_edited_preset());
+    return base != nullptr && base->is_system && is_single_ext_multi_nozzle(base->config) &&
+           preset.config.opt_string("printer_model") == base->config.opt_string("printer_model");
 }
 
 // ---------------------------------
@@ -1703,12 +1646,6 @@ void PlaterPresetComboBox::update()
     for (size_t i = presets.front().is_visible ? 0 : m_collection->num_default_presets(); i < presets.size(); ++i)
     {
         const Preset& preset = presets[i];
-        // The preset in use stays listed whatever the gate says, mirroring the incompatible-preset
-        // exemption below: a transient "gate on + non-canonical printer" state must not drop the
-        // active printer out of the list.
-        if (i != m_collection->get_selected_idx() &&
-            hidden_by_multi_nozzle_diameter_mode(m_preset_bundle, *m_collection, m_type, preset))
-            continue;
 
         bool is_selected =  m_type == Preset::TYPE_FILAMENT ?
                             m_preset_bundle->filament_presets[m_filament_idx] == preset.name :
@@ -2114,8 +2051,8 @@ void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
         this->SetSelection(m_last_selected);
         const MultiNozzleModeTarget mode_target = target->second;
         wxGetApp().CallAfter([mode_target]() {
-            wxGetApp().plater()->sidebar().select_process_across_multi_nozzle_mode(mode_target.process_name,
-                                                                                  mode_target.to_multi, mode_target.diameter);
+            wxGetApp().plater()->sidebar().select_printer_across_multi_nozzle_mode(mode_target.printer_name,
+                                                                                   mode_target.to_multi);
         });
     }
     else if (on_selection_changed && (m_last_selected != selected_item || m_collection->current_is_dirty())) {
@@ -2156,6 +2093,7 @@ void TabPresetComboBox::update()
         bool enabled;
         std::string preset_name;
         wxString description;
+        std::optional<MultiNozzleModeTarget> mode_target;
     };
     std::map<wxString, PresetItem> nonsys_presets;
     //BBS: add project embedded presets logic
@@ -2169,6 +2107,8 @@ void TabPresetComboBox::update()
     /*if (!presets.front().is_visible)
         set_label_marker(Append(separator(L("System presets")), wxNullBitmap));*/
     size_t idx_selected = m_collection->get_selected_idx();
+    const bool multi_nozzle_mode = m_preset_bundle != nullptr &&
+        multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
 
     // unselect printer
     if (m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection()) {
@@ -2177,40 +2117,15 @@ void TabPresetComboBox::update()
         if (!preset) m_preset_bundle->physical_printers.unselect_printer();
     }
 
-    // Presets of the other multi-diameter mode, listed after the system presets. Picking one switches
-    // the mode instead of selecting the preset in place.
-    const CrossModeContext cross_mode = m_type == Preset::TYPE_PRINT ? cross_mode_context(*m_preset_bundle) : CrossModeContext();
-    struct CrossItem {
-        wxBitmap*             bitmap;
-        wxString              description;
-        MultiNozzleModeTarget target;
-    };
-    std::map<wxString, CrossItem> cross_user_presets;
-    std::map<wxString, CrossItem> cross_system_presets;
-
     for (size_t i = presets.front().is_visible ? 0 : m_collection->num_default_presets(); i < presets.size(); ++i)
     {
         const Preset& preset = presets[i];
-        const std::optional<MultiNozzleModeTarget> cross =
-            preset.is_visible ? cross_mode_target(*m_collection, preset, cross_mode) : std::nullopt;
-        if (cross) {
-            // The preset in use stays in the current list, so the combo always shows the selection; a user
-            // preset in use is therefore not offered a second time. Any other user/project preset offered as
-            // a switch leaves the current list. System presets serve both modes and stay in both.
-            const bool in_use = i == idx_selected;
-            if (preset.is_system || !in_use) {
-                auto &cross_presets = preset.is_system ? cross_system_presets : cross_user_presets;
-                cross_presets.emplace(from_u8(cross_mode_item_label(preset, *cross)),
-                                      CrossItem{get_bmp(preset), preset.is_system ? _L(preset.description) : wxString(), *cross});
-            }
-            if (!preset.is_system && !in_use)
-                continue;
-        }
-        if (!preset.is_visible || (!show_incompatible && !preset.is_compatible && i != idx_selected))
-            continue;
-        // Same idx_selected exemption as above: keep the printer currently in use listed even while
-        // the gate would otherwise hide it.
-        if (i != idx_selected && hidden_by_multi_nozzle_diameter_mode(m_preset_bundle, *m_collection, m_type, preset))
+        const bool same_model_multi_nozzle =
+            m_type == Preset::TYPE_PRINTER && same_model_multi_nozzle_system_printer(*m_collection, preset);
+        const bool is_canonical_multi_nozzle =
+            same_model_multi_nozzle && is_canonical_multi_nozzle_diameter_printer_preset(*m_collection, preset);
+        if ((!preset.is_visible && !is_canonical_multi_nozzle) ||
+            (!show_incompatible && !preset.is_compatible && i != idx_selected))
             continue;
 
         // marker used for disable incompatible printer models for the selected physical printer
@@ -2226,9 +2141,42 @@ void TabPresetComboBox::update()
 
         if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
-            system_presets.emplace(name, PresetItem{bmp, is_enabled, preset.name, description});
-            if (i == idx_selected)
-                selected = name;
+            if (same_model_multi_nozzle) {
+                // In the printer settings combo, list all single-diameter system variants alongside the
+                // "Multiple nozzle" entry in both modes; picking the other mode's entry switches the mode.
+                if (multi_nozzle_mode) {
+                    if (preset.is_visible || i == idx_selected) {
+                        const wxString single_name = (!is_canonical_multi_nozzle && i == idx_selected) ?
+                            name : from_u8(preset.name);
+                        available_presets.push_back(single_name + " >single");
+                        system_presets.emplace(single_name, PresetItem{bmp, is_enabled, preset.name, description,
+                                                                       MultiNozzleModeTarget{preset.name, false}});
+                        if (!is_canonical_multi_nozzle && i == idx_selected)
+                            selected = single_name;
+                    }
+                    if (is_canonical_multi_nozzle) {
+                        system_presets.emplace(name, PresetItem{bmp, is_enabled, preset.name, description, std::nullopt});
+                        if (i == idx_selected)
+                            selected = name;
+                    }
+                } else {
+                    if (preset.is_visible || i == idx_selected) {
+                        system_presets.emplace(name, PresetItem{bmp, is_enabled, preset.name, description, std::nullopt});
+                        if (i == idx_selected)
+                            selected = name;
+                    }
+                    if (is_canonical_multi_nozzle) {
+                        const wxString multi_name = from_u8(multi_nozzle_printer_preset_name(preset));
+                        available_presets.push_back(multi_name + " >multi");
+                        system_presets.emplace(multi_name, PresetItem{bmp, is_enabled, preset.name, description,
+                                                                      MultiNozzleModeTarget{preset.name, true}});
+                    }
+                }
+            } else {
+                system_presets.emplace(name, PresetItem{bmp, is_enabled, preset.name, description, std::nullopt});
+                if (i == idx_selected)
+                    selected = name;
+            }
             //int item_id = Append(get_preset_name(preset), *bmp);
             //if (!is_enabled)
             //    set_label_marker(item_id, LABEL_ITEM_DISABLED);
@@ -2238,13 +2186,31 @@ void TabPresetComboBox::update()
         else if (preset.is_project_embedded)
         {
             //std::pair<wxBitmap*, bool> pair(bmp, is_enabled);
-            project_embedded_presets.emplace(name, PresetItem{bmp, is_enabled, preset.name, description});
+            std::optional<MultiNozzleModeTarget> mode_target;
+            if (m_type == Preset::TYPE_PRINTER && m_preset_bundle != nullptr && i != idx_selected &&
+                supports_multi_nozzle_diameter_mode(*m_collection, preset)) {
+                const bool preset_multi_mode = m_preset_bundle->is_multi_nozzle_user_printer_preset(preset);
+                if (preset_multi_mode != multi_nozzle_mode) {
+                    mode_target = MultiNozzleModeTarget{preset.name, preset_multi_mode};
+                    available_presets.back() += preset_multi_mode ? " >multi" : " >single";
+                }
+            }
+            project_embedded_presets.emplace(name, PresetItem{bmp, is_enabled, preset.name, description, mode_target});
             if (i == idx_selected)
                 selected = name;
         }
         else
         {
-            nonsys_presets.emplace(name, PresetItem{bmp, is_enabled, preset.name, description});
+            std::optional<MultiNozzleModeTarget> mode_target;
+            if (m_type == Preset::TYPE_PRINTER && m_preset_bundle != nullptr && i != idx_selected &&
+                supports_multi_nozzle_diameter_mode(*m_collection, preset)) {
+                const bool preset_multi_mode = m_preset_bundle->is_multi_nozzle_user_printer_preset(preset);
+                if (preset_multi_mode != multi_nozzle_mode) {
+                    mode_target = MultiNozzleModeTarget{preset.name, preset_multi_mode};
+                    available_presets.back() += preset_multi_mode ? " >multi" : " >single";
+                }
+            }
+            nonsys_presets.emplace(name, PresetItem{bmp, is_enabled, preset.name, description, mode_target});
             if (i == idx_selected)
                 selected = name;
         }
@@ -2255,23 +2221,6 @@ void TabPresetComboBox::update()
 
     if (m_type == Preset::TYPE_FILAMENT)
         add_ams_filaments(into_u8(selected));
-
-    // Items are keyed by label, so a cross-mode label must not collide with a listed one (a user preset
-    // could be named like a relabelled system preset). The target mode in the suffix keeps it apart.
-    std::vector<std::pair<wxString, CrossItem>> cross_items;
-    {
-        std::set<wxString> used_labels(available_presets.begin(), available_presets.end());
-        for (const auto *cross_presets : {&cross_user_presets, &cross_system_presets})
-            for (const auto &[label, item] : *cross_presets) {
-                wxString unique_label = label;
-                if (used_labels.count(unique_label) > 0)
-                    unique_label += " (" + (item.target.to_multi ? _L("Multi-diameter") : from_u8(item.target.diameter)) + ")";
-                used_labels.insert(unique_label);
-                cross_items.emplace_back(unique_label, item);
-                // Where an item leads is part of what the list shows, so it takes part in the comparison below.
-                available_presets.push_back(unique_label + (item.target.to_multi ? " >multi " : " >single ") + from_u8(item.target.diameter));
-            }
-    }
 
     // workaround for updating too many times, which may casue ui flicking
     if(m_last_presets == available_presets && m_last_select_name == selected) return;
@@ -2290,7 +2239,10 @@ void TabPresetComboBox::update()
         set_label_marker(Append(_L("Project-inside presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (auto it = project_embedded_presets.begin(); it != project_embedded_presets.end(); ++it) {
             int item_id = Append(it->first, *it->second.bitmap);
-            m_item_preset_names.emplace(item_id, it->second.preset_name);
+            if (it->second.mode_target)
+                m_item_mode_targets.emplace(item_id, *it->second.mode_target);
+            else
+                m_item_preset_names.emplace(item_id, it->second.preset_name);
             SetItemTooltip(item_id, it->second.description);
             bool is_enabled = it->second.enabled;
             if (!is_enabled)
@@ -2303,7 +2255,10 @@ void TabPresetComboBox::update()
         set_label_marker(Append(_L("User presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (auto it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
             int item_id = Append(it->first, *it->second.bitmap);
-            m_item_preset_names.emplace(item_id, it->second.preset_name);
+            if (it->second.mode_target)
+                m_item_mode_targets.emplace(item_id, *it->second.mode_target);
+            else
+                m_item_preset_names.emplace(item_id, it->second.preset_name);
             SetItemTooltip(item_id, it->second.description);
             bool is_enabled = it->second.enabled;
             if (!is_enabled)
@@ -2317,24 +2272,15 @@ void TabPresetComboBox::update()
         set_label_marker(Append(_L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (auto it = system_presets.begin(); it != system_presets.end(); ++it) {
             int item_id = Append(it->first, *it->second.bitmap);
-            m_item_preset_names.emplace(item_id, it->second.preset_name);
+            if (it->second.mode_target)
+                m_item_mode_targets.emplace(item_id, *it->second.mode_target);
+            else
+                m_item_preset_names.emplace(item_id, it->second.preset_name);
             SetItemTooltip(item_id, it->second.description);
             bool is_enabled = it->second.enabled;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
             validate_selection(it->first == selected);
-        }
-    }
-    // The presets of the other multi-diameter mode. None of them is ever the selection, and they have no
-    // m_item_preset_names entry: preset_name_for_selection() must not be asked about them.
-    if (!cross_items.empty())
-    {
-        set_label_marker(Append(cross_mode.to_multi ? _L("Multi-diameter presets") : _L("Single-diameter presets"),
-                                wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
-        for (const auto &[label, item] : cross_items) {
-            int item_id = Append(label, *item.bitmap);
-            m_item_mode_targets.emplace(item_id, item.target);
-            SetItemTooltip(item_id, item.description);
         }
     }
 

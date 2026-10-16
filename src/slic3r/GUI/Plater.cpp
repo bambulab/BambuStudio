@@ -1005,7 +1005,7 @@ struct Sidebar::priv
     void layout_printer(bool isBBL, NozzleLayout layout);
     void update_extruder_panel();
     void open_extruder_settings_dialog(const wxString &preselect_diameter = wxString());
-    bool apply_multi_nozzle_diameter_mode(bool enabled, const std::optional<std::string> &single_printer = std::nullopt);
+    bool apply_multi_nozzle_diameter_mode(bool enabled, const std::optional<std::string> &target_printer = std::nullopt);
     void stash_multi_nozzle_auto_process_edits();
     void restore_multi_nozzle_auto_process_edits();
     void apply_migration_diameter_mode(const PendingNozzleMigration &migration);
@@ -1980,13 +1980,19 @@ NozzleVolumeType Sidebar::priv::derive_volume_type_from_full_stat(int extruder_i
     return NozzleVolumeType::nvtStandard;
 }
 
-// Mutable lookup over PresetBundle::find_system_multi_nozzle_printer_preset(); callers force the
-// preset visible before selecting it.
+// The system printer preset of printer_model at printer_variant, but only when that preset is a
+// single-extruder multi-nozzle machine - the only kind multi-diameter mode can anchor on.
 static Preset *find_system_multi_nozzle_printer_preset(const std::string &printer_model, const std::string &printer_variant)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    const Preset *preset = preset_bundle->find_system_multi_nozzle_printer_preset(printer_model, printer_variant);
-    return preset != nullptr ? preset_bundle->printers.find_preset(preset->name, false) : nullptr;
+    for (const Preset &preset : preset_bundle->printers.get_presets()) {
+        if (preset.is_system &&
+            preset.config.opt_string("printer_model") == printer_model &&
+            preset.config.opt_string("printer_variant") == printer_variant &&
+            is_single_ext_multi_nozzle(preset.config))
+            return preset_bundle->printers.find_preset(preset.name, false);
+    }
+    return nullptr;
 }
 
 static bool select_system_multi_nozzle_printer_preset(const std::string &printer_variant)
@@ -2010,38 +2016,59 @@ static bool select_system_multi_nozzle_printer_preset(const std::string &printer
 // one the user deleted, or one left over from another machine, must not be forced back.
 static Preset *find_restorable_printer_preset(const std::string &name, const std::string &printer_model)
 {
-    Preset *target = wxGetApp().preset_bundle->printers.find_preset(name, false);
-    if (target == nullptr || target->config.opt_string("printer_model") != printer_model)
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    Preset *target = preset_bundle->printers.find_preset(name, false);
+    if (target == nullptr || target->config.opt_string("printer_model") != printer_model ||
+        preset_bundle->is_multi_nozzle_user_printer_preset(*target))
         return nullptr;
     return target;
 }
 
-// Selects the printer preset the requested mode needs. Turning the mode on always lands on the
-// canonical printer variant. Turning it off prefers restore_target - the preset the user came from -
-// and only falls back to the same-model default single-diameter system preset when there is no usable
-// return point.
+// Selects the printer preset the requested mode needs. Turning the mode on lands on target_printer when
+// supplied (e.g. a multi-diameter user preset or the canonical system preset picked from a combo), or else
+// on the canonical printer variant. Turning it off prefers target_printer - the preset the user picked or
+// came from - and only falls back to the same-model default single-diameter system preset when there is no
+// usable return point.
 static bool select_printer_preset_for_multi_nozzle_mode(bool enabled,
-                                                        const std::optional<std::string> &restore_target = std::nullopt)
+                                                        const std::optional<std::string> &target_printer = std::nullopt)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     const Preset &current = preset_bundle->printers.get_edited_preset();
     const Preset *base = preset_bundle->printers.get_preset_base(current);
-    if (base == nullptr || !base->is_system || !is_single_ext_multi_nozzle(base->config))
-        return false;
 
     if (enabled) {
-        // Keep a current user/project preset that already inherits from the canonical printer variant.
-        if (base->config.opt_string("printer_variant") == canonical_multi_nozzle_printer_variant())
+        if (target_printer.has_value()) {
+            if (*target_printer == current.name)
+                return true;
+            Preset *target = preset_bundle->printers.find_preset(*target_printer, false);
+            const Preset *target_base = target != nullptr ? preset_bundle->printers.get_preset_base(*target) : nullptr;
+            Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
+            if (target == nullptr || target_base == nullptr || !target_base->is_system ||
+                !is_single_ext_multi_nozzle(target_base->config) ||
+                target_base->config.opt_string("printer_variant") != canonical_multi_nozzle_printer_variant() ||
+                printer_tab == nullptr)
+                return false;
+            target->is_visible = true;
+            return printer_tab->select_preset(target->name);
+        }
+        if (base == nullptr || !base->is_system || !is_single_ext_multi_nozzle(base->config))
+            return false;
+        // Keep the canonical system preset or a multi-diameter user/project preset.
+        if ((current.is_system && base->config.opt_string("printer_variant") == canonical_multi_nozzle_printer_variant()) ||
+            preset_bundle->is_multi_nozzle_user_printer_preset(current))
             return true;
         return select_system_multi_nozzle_printer_preset(canonical_multi_nozzle_printer_variant());
     }
 
-    if (restore_target.has_value()) {
-        if (*restore_target == current.name)
+    if (base == nullptr || !base->is_system || !is_single_ext_multi_nozzle(base->config))
+        return false;
+
+    if (target_printer.has_value()) {
+        if (*target_printer == current.name)
             return true;
         // Once the return point resolves, its select_preset() outcome is final: falling through to
         // the default-single fallback after a cancelled switch would ask about unsaved changes a second time.
-        if (Preset *target = find_restorable_printer_preset(*restore_target, base->config.opt_string("printer_model"))) {
+        if (Preset *target = find_restorable_printer_preset(*target_printer, base->config.opt_string("printer_model"))) {
             Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
             if (printer_tab == nullptr)
                 return false;
@@ -2083,31 +2110,24 @@ static void reload_print_tab_from_edited_preset()
     }
 }
 
-// Unsaved process edits only follow a multi-diameter mode switch between canonical printer variants, and
-// only when auto_transfer_when_switch_preset is enabled. Otherwise they are dropped silently, so the
-// printer or process switch that follows has nothing left to offer for transfer: on any other variant the
-// process was tuned for another nozzle.
-static void discard_process_edits_unless_carried_by_multi_nozzle_mode(const std::string &printer_variant)
+// Unsaved process edits only carry over into multi-diameter mode when it is turned on from the canonical
+// printer variant and auto_transfer_when_switch_preset is enabled. Otherwise they are dropped silently
+// before the switch: from a non-canonical variant the process was tuned for another nozzle, and leaving
+// them to the printer switch would offer them for transfer.
+static void discard_process_edits_before_multi_nozzle_mode()
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (!preset_bundle->prints.current_is_dirty())
         return;
-    if (printer_variant == canonical_multi_nozzle_printer_variant() &&
+    const Preset *base = preset_bundle->printers.get_preset_base(preset_bundle->printers.get_edited_preset());
+    if (base == nullptr || !base->is_system || !is_single_ext_multi_nozzle(base->config))
+        return;
+    if (base->config.opt_string("printer_variant") == canonical_multi_nozzle_printer_variant() &&
         wxGetApp().app_config->get("auto_transfer_when_switch_preset") == "true")
         return;
 
     preset_bundle->prints.discard_current_changes();
     reload_print_tab_from_edited_preset();
-}
-
-// Turning multi-diameter mode on lands on the canonical variant, so only the variant it starts from decides.
-static void discard_process_edits_before_multi_nozzle_mode()
-{
-    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    if (!preset_bundle->supports_multi_nozzle_diameter_mode())
-        return;
-    const Preset *base = preset_bundle->printers.get_preset_base(preset_bundle->printers.get_edited_preset());
-    discard_process_edits_unless_carried_by_multi_nozzle_mode(base->config.opt_string("printer_variant"));
 }
 
 // Auto options keep their single-diameter edits out of the multi-diameter process: there they are
@@ -2155,9 +2175,9 @@ void Sidebar::priv::restore_multi_nozzle_auto_process_edits()
 // every intermediate state legal: turning the gate on writes it only once the canonical printer is
 // active, turning it off writes it before the single-diameter printer is selected. Turning it on also
 // records where to return to, which turning it off then consumes. Returns whether the project ended
-// up in the requested mode. single_printer names the printer preset turning the gate off lands on;
-// without it that is the remembered return point.
-bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled, const std::optional<std::string> &single_printer)
+// up in the requested mode. target_printer names the printer preset the switch lands on; without it
+// turning on lands on the canonical variant and turning off lands on the remembered return point.
+bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled, const std::optional<std::string> &target_printer)
 {
     auto *option = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode");
     if (option == nullptr)
@@ -2168,15 +2188,18 @@ bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled, const std::op
     if (enabled) {
         discard_process_edits_before_multi_nozzle_mode();
         // Capture the return point before select_preset() moves the project onto the canonical printer.
-        const std::string preset_before = wxGetApp().preset_bundle->printers.get_edited_preset().name;
-        if (!select_printer_preset_for_multi_nozzle_mode(true))
+        const Preset &current_before = wxGetApp().preset_bundle->printers.get_edited_preset();
+        const std::string preset_before = !wxGetApp().preset_bundle->is_multi_nozzle_user_printer_preset(current_before) ?
+            current_before.name : std::string();
+        if (!select_printer_preset_for_multi_nozzle_mode(true, target_printer))
             return false;
         option->value = true;
-        m_printer_preset_before_multi_diameter = preset_before;
+        if (!preset_before.empty())
+            m_printer_preset_before_multi_diameter = preset_before;
         stash_multi_nozzle_auto_process_edits();
     } else {
         option->value = false;
-        const std::optional<std::string> &restore_target = single_printer ? single_printer : m_printer_preset_before_multi_diameter;
+        const std::optional<std::string> &restore_target = target_printer ? target_printer : m_printer_preset_before_multi_diameter;
         if (!select_printer_preset_for_multi_nozzle_mode(false, restore_target)) {
             // select_preset() rebuilt the combos under the abandoned mode before reporting failure,
             // so they need another pass once the gate is back to its previous value. The return point
@@ -2729,11 +2752,6 @@ void Sidebar::priv::update_extruder_full_stats(int extruder_id, wxString diamete
     // extruder_full_stat is the source of truth for app_config[nozzle_volume_types]. This is the single
     // write funnel for genuine changes (ExtruderSettings dialog OK + machine sync), so persist here.
     preset_bundle->save_current_nozzle_volume_types_to_app_config(*wxGetApp().app_config);
-
-    // In multi-diameter mode the process combo lists the single-diameter presets of every installed
-    // diameter, so a change of the installed nozzles changes that list.
-    if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
-        print_tab->update_preset_choice();
 }
 
 void Sidebar::priv::reset_all_nozzle_status()
@@ -5415,55 +5433,10 @@ void Sidebar::sync_multi_nozzle_mode_from_project()
     refresh_filament_diameter_buttons();
 }
 
-// Lands the project on the process preset a cross-mode pick asked for. Runs once the printer preset has
-// been switched, so the preset is compatible with the machine it is selected on; a process that is
-// already the edited one needs nothing.
-static void select_process_after_multi_nozzle_mode_switch(const std::string &process_name)
-{
-    PresetCollection &prints    = wxGetApp().preset_bundle->prints;
-    Tab              *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
-    if (print_tab == nullptr || process_name == prints.get_edited_preset().name)
-        return;
-    if (prints.find_preset(process_name, false) == nullptr) {
-        BOOST_LOG_TRIVIAL(warning) << "process preset not found after the mode switch: " << process_name;
-        return;
-    }
-    if (!print_tab->select_preset(process_name))
-        BOOST_LOG_TRIVIAL(warning) << "could not select the process preset after the mode switch: " << process_name;
-}
-
-// Whether the edited process is a user/project preset saved for the multi-diameter mode opposite to the
-// one the project has just switched to. Such a preset cannot be picked again in the new mode without
-// switching back, so it should not stay in use there.
-static bool edited_process_belongs_to_other_multi_nozzle_mode(bool switched_to_multi)
-{
-    const Preset &process = wxGetApp().preset_bundle->prints.get_edited_preset();
-    if (process.is_system || process.is_default)
-        return false;
-    return process_nozzle_diameter_mode_tag(process.config) ==
-           (switched_to_multi ? process_nozzle_diameter_mode_single() : process_nozzle_diameter_mode_multi());
-}
-
-// Replaces the edited process with the default process of the machine the new mode landed on. Unsaved
-// edits follow it only where a process switch carries them anyway: canonical machine, auto transfer on.
-static void replace_process_with_machine_default_after_multi_nozzle_mode_switch()
-{
-    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    const Preset &printer       = preset_bundle->printers.get_edited_preset();
-    const Preset *fallback      = preset_bundle->prints.find_preset(printer.config.opt_string("default_print_profile"), false);
-    if (fallback == nullptr || !fallback->is_compatible) {
-        BOOST_LOG_TRIVIAL(warning) << "no default process to replace " << preset_bundle->prints.get_edited_preset().name
-                                   << " after the mode switch";
-        return;
-    }
-    discard_process_edits_unless_carried_by_multi_nozzle_mode(printer.config.opt_string("printer_variant"));
-    select_process_after_multi_nozzle_mode_switch(fallback->name);
-}
-
 // The whole multi-diameter mode switch, behind the mode selector. Kept as one function so that every
 // entry that has to switch the mode runs exactly the same steps.
-bool Sidebar::switch_multi_nozzle_diameter_mode(bool enabled, const std::string &process_after,
-                                                const std::optional<std::string> &single_printer)
+bool Sidebar::switch_multi_nozzle_diameter_mode(bool enabled,
+                                                const std::optional<std::string> &target_printer)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     const bool previous_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
@@ -5492,17 +5465,7 @@ bool Sidebar::switch_multi_nozzle_diameter_mode(bool enabled, const std::string 
             preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant").c_str())) :
         std::string();
     p->is_switching_diameter = true;
-    bool mode_applied = p->apply_multi_nozzle_diameter_mode(enabled, single_printer);
-    // The requested process is selected here, with both guards still up: select_preset() runs
-    // update_compatible() for the filaments, and the validation below is then done against the
-    // final process instead of the one the machine switch happened to leave behind.
-    if (mode_applied && !process_after.empty()) {
-        select_process_after_multi_nozzle_mode_switch(process_after);
-    } else if (mode_applied && edited_process_belongs_to_other_multi_nozzle_mode(enabled)) {
-        // No process was asked for, and the one in use was saved for the mode just left. A machine switch
-        // that made it incompatible has already replaced it, so this only catches one that still fits.
-        replace_process_with_machine_default_after_multi_nozzle_mode_switch();
-    }
+    bool mode_applied = p->apply_multi_nozzle_diameter_mode(enabled, target_printer);
     p->is_switching_diameter = false;
     if (!mode_applied) {
         p->diameter_btns->SetMultiDiameterMode(previous_mode);
@@ -5613,53 +5576,22 @@ bool Sidebar::switch_multi_nozzle_diameter_mode(bool enabled, const std::string 
     return true;
 }
 
-void Sidebar::select_process_across_multi_nozzle_mode(const std::string &process_name, bool to_multi, const std::string &diameter)
+void Sidebar::select_printer_across_multi_nozzle_mode(const std::string &printer_name, bool to_multi)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    Tab          *print_tab     = wxGetApp().get_tab(Preset::TYPE_PRINT);
-    if (print_tab == nullptr)
+    Tab          *printer_tab   = wxGetApp().get_tab(Preset::TYPE_PRINTER);
+    if (printer_tab == nullptr)
         return;
 
-    // The combo can be out of date: when the project is already in the mode this process belongs to,
+    // The combo can be out of date: when the project is already in the mode this printer belongs to,
     // there is nothing to switch and the pick is an ordinary one.
     if (multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) == to_multi) {
-        print_tab->select_preset(process_name);
+        printer_tab->select_preset(printer_name);
         return;
     }
 
-    // Another process is the destination, so edits to the current one have no place to go, and what was
-    // stashed belongs to the process being left: restoring it must not touch the next one. Entering
-    // multi-diameter mode already deals with both in apply_multi_nozzle_diameter_mode(). Picking the
-    // process already in use only switches the mode, exactly as the mode selector does.
-    if (!to_multi && process_name != preset_bundle->prints.get_edited_preset().name) {
-        discard_process_edits_unless_carried_by_multi_nozzle_mode(diameter);
-        p->m_process_auto_cache.reset();
-    }
-
-    // Leaving multi-diameter lands on the machine of the picked process's diameter: the remembered
-    // return point when it already has that diameter (that keeps a machine preset the user made), else
-    // the system machine of the same model.
-    std::optional<std::string> single_printer;
-    if (!to_multi) {
-        const Preset *printer_base = preset_bundle->printers.get_preset_base(preset_bundle->printers.get_edited_preset());
-        const std::string printer_model = printer_base != nullptr ? printer_base->config.opt_string("printer_model") : std::string();
-        const Preset *remembered = p->m_printer_preset_before_multi_diameter ?
-            find_restorable_printer_preset(*p->m_printer_preset_before_multi_diameter, printer_model) : nullptr;
-        if (remembered != nullptr && remembered->config.opt_string("printer_variant") == diameter) {
-            single_printer = remembered->name;
-        } else if (const Preset *system_printer = preset_bundle->find_system_multi_nozzle_printer_preset(printer_model, diameter)) {
-            single_printer = system_printer->name;
-        } else {
-            BOOST_LOG_TRIVIAL(warning) << "no " << printer_model << " printer for diameter " << diameter;
-            print_tab->update_preset_choice();
-            return;
-        }
-    }
-
-    // A failed switch only comes from a prompt the user cancelled. The mode selector is rolled back by
-    // then, so only the process combo has to be brought back in line.
-    if (!switch_multi_nozzle_diameter_mode(to_multi, process_name, single_printer))
-        print_tab->update_preset_choice();
+    if (!switch_multi_nozzle_diameter_mode(to_multi, printer_name))
+        printer_tab->update_preset_choice();
 }
 
 void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
@@ -16587,13 +16519,27 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
                 preset->is_visible = true; // force visible
                 preset_name = preset->name;
             }
-            std::string old_preset_name = wxGetApp().preset_bundle->printers.get_edited_preset().name;
+            PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+            std::string old_preset_name = preset_bundle->printers.get_edited_preset().name;
+            const Preset *new_printer_preset = preset_bundle->printers.find_preset(preset_name, false);
 
-            update_objects_position_when_select_preset([this, &preset_type, &preset_name]() {
+            update_objects_position_when_select_preset([this, combo, &preset_type, &preset_name, preset_bundle, new_printer_preset, marker]() {
                 wxWindowUpdateLocker noUpdates2(sidebar->filament_panel());
+                const Preset *new_base = new_printer_preset != nullptr ?
+                    preset_bundle->printers.get_preset_base(*new_printer_preset) : nullptr;
+                if (new_printer_preset != nullptr && !new_printer_preset->is_system && !new_printer_preset->is_default &&
+                    marker != PresetComboBox::LABEL_ITEM_PRINTER_MODELS &&
+                    new_base != nullptr && new_base->is_system && is_single_ext_multi_nozzle(new_base->config)) {
+                    const bool target_multi = preset_bundle->is_multi_nozzle_user_printer_preset(*new_printer_preset);
+                    if (target_multi != multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
+                        sidebar->select_printer_across_multi_nozzle_mode(preset_name, target_multi);
+                        combo->update();
+                        return;
+                    }
+                }
                 wxGetApp().get_tab(preset_type)->select_preset(preset_name);
                 // update plater with new config
-                q->on_config_change(wxGetApp().preset_bundle->full_config());
+                q->on_config_change(preset_bundle->full_config());
             });
 
 
