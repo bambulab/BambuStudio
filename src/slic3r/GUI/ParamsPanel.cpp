@@ -23,26 +23,6 @@
 namespace Slic3r {
 namespace GUI {
 
-namespace {
-
-/**
- * \brief Check whether a click on a header panel lands on one of its child controls
- *
- * Disabled controls do not consume clicks, so the OS delivers them to the header instead.
- *
- * \param header  the panel that received the click
- * \param pos     click position in header client coordinates
- */
-bool is_click_on_child_control(const wxWindow* header, const wxPoint& pos)
-{
-    for (const wxWindow* child : header->GetChildren())
-        if (child->IsShown() && child->GetRect().Contains(pos))
-            return true;
-    return false;
-}
-
-} // namespace
-
 
 TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &description, std::string app_key, long style,std::map<wxStandardID,wxString> option_map)
     : DPIDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX),
@@ -297,19 +277,8 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         m_top_panel->SetBackgroundColor2(ThemeColor::Grey350);
 
         m_process_icon = new ScalableButton(m_top_panel, wxID_ANY, "sidebar_menu_up");
-        m_process_icon->SetToolTip(_L("Collapse panel"));
-        m_process_icon->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { toggle_content_collapsed(); });
 
-        m_title_label = new Label(m_top_panel, _L("Process"), LB_PROPAGATE_MOUSE_EVENT);
-        // The second click of a quick double click arrives as wxEVT_LEFT_DCLICK on MSW; handle it too so no click is dropped.
-        for (auto evt : {wxEVT_LEFT_DOWN, wxEVT_LEFT_DCLICK})
-            m_top_panel->Bind(evt, [this](wxMouseEvent &e) {
-                e.Skip();
-                // A click on a disabled control (e.g. the mode switch in develop mode) must not collapse the panel.
-                if (e.GetEventObject() == m_top_panel && is_click_on_child_control(m_top_panel, e.GetPosition()))
-                    return;
-                toggle_content_collapsed();
-            });
+        m_title_label = new Label(m_top_panel, _L("Process"));
 
         //int width, height;
         // BBS: new layout
@@ -659,9 +628,8 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
         } else if (m_tab_print_plate && ((TabPrintPlate*)m_tab_print_plate)->has_model_config()) {
             cur_tab = (Tab*)m_tab_print_plate;
         }
-        m_has_content = cur_tab != nullptr;
-        Show(m_has_content && !m_content_collapsed);
-        wxGetApp().sidebar().show_object_list(m_mode_region->GetValue() && !m_content_collapsed);
+        Show(cur_tab != nullptr);
+        wxGetApp().sidebar().show_object_list(m_mode_region->GetValue());
         if (m_current_tab == cur_tab)
             return;
         if (cur_tab)
@@ -693,17 +661,6 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
         wxString title = cur_tab->type() == Preset::TYPE_FILAMENT ? _L("Filament settings") : _L("Printer settings");
         dialog->SetTitle(title);
     }
-}
-
-void ParamsPanel::toggle_content_collapsed()
-{
-    m_content_collapsed = !m_content_collapsed;
-    m_process_icon->SetToolTip(m_content_collapsed ? _L("Expand panel") : _L("Collapse panel"));
-    m_process_icon->SetBitmap_(m_content_collapsed ? "sidebar_menu_down" : "sidebar_menu_up");
-    Show(m_has_content && !m_content_collapsed);
-    // The object list lives in the sidebar but belongs to the process section, so it folds too.
-    wxGetApp().sidebar().show_object_list(m_mode_region->GetValue() && !m_content_collapsed);
-    GetParent()->Layout();
 }
 
 bool ParamsPanel::is_active_and_shown_tab(wxPanel* tab)
