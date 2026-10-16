@@ -1572,13 +1572,14 @@ static bool selectable(const char* label, bool selected, ImGuiSelectableFlags fl
         ImGui::TablePopBackgroundChannel();
 
     // mark a label with a ColorMarkerHovered, if item is hovered
+    // Bound the copy: a menu label at or above 512 bytes must not write past this fixed buffer.
     char marked_label[512]; //255 symbols is not enough for translated string (e.t. to Russian)
     if (hovered || selected) {
-        sprintf(marked_label, "%c%s", ImGui::ColorMarkerHovered, label);
+        snprintf(marked_label, sizeof(marked_label), "%c%s", ImGui::ColorMarkerHovered, label);
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     }
     else
-        strcpy(marked_label, label);
+        snprintf(marked_label, sizeof(marked_label), "%s", label);
 
     if (flags & ImGuiSelectableFlags_Disabled) ImGui::PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]);
     ImGui::RenderTextClipped(text_min, text_max, marked_label, NULL, &label_size, style.SelectableTextAlign, &bb);
