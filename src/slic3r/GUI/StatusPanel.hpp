@@ -13,6 +13,7 @@
 #include <wx/image.h>
 #include <wx/sizer.h>
 #include <wx/gbsizer.h>
+#include <wx/weakref.h>
 #include <wx/webrequest.h>
 #include "MediaPlayCtrl.h"
 #include "AMSSetting.hpp"
