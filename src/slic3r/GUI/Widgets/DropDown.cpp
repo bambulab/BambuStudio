@@ -623,16 +623,15 @@ void DropDown::messureSize()
     }
     rowSize = szContent;
     if (limit_max_content_width) {
-        wxSize parent_size = GetParent()->GetSize();
-        const int max_w = std::min(
-            static_cast<int>(parent_size.x * 1.5),
-            GetParent()->FromDIP(400)
-        );
+        // Fixed cap: a cap relative to the control cuts normal names in narrow controls,
+        // while very long user preset names still need a limit.
+        const int max_w = GetParent()->FromDIP(400);
         if (rowSize.x > max_w) {
             rowSize.x = max_w;
             szContent  = rowSize;
         }
     }
+    fit_width = rowSize.x;
     szContent.y *= std::min((size_t)max_visible_rows, std::max(count, (size_t) 1));
     szContent.y += items.size() > (size_t)max_visible_rows ? rowSize.y / 2 : 0;
     wxWindow::SetSize(szContent);
@@ -706,6 +705,7 @@ void DropDown::autoPosition()
             Position(pos, off);
         }
     }
+    fitWidthToDisplay(size);
     if (GetPosition().y > pos.y) {
         // may exceed
         auto drect = wxDisplay(GetParent()).GetGeometry();
@@ -721,6 +721,22 @@ void DropDown::autoPosition()
             }
         }
     }
+}
+
+void DropDown::fitWidthToDisplay(wxSize &size)
+{
+    // The list and its group list sit side by side, and the group list moves to the left only
+    // when the left side has room, so the pair can pass the display right edge.
+    if (!use_content_width)
+        return;
+    const wxRect drect = wxDisplay(GetParent()).GetGeometry();
+    const int    avail = std::max(drect.GetRight() - GetPosition().x - 10, FromDIP(120));
+    const int    width = std::min(fit_width, avail);
+    if (width == rowSize.x)
+        return;
+    rowSize.x = width;
+    size.x    = width;
+    wxWindow::SetSize(size);
 }
 
 void DropDown::mouseDown(wxMouseEvent& event)

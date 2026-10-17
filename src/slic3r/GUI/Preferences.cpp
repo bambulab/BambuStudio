@@ -287,7 +287,7 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString                    
     for (int i = 0; i < static_cast<int>(tooltip_list.size()); ++i) { combobox->SetItemTooltip(i, tooltip_list[i]); }
 
     // Let the dropdown grow to fit the widest item (never narrower than the combobox),
-    // clamped at min(comboWidth * 1.5, 400dip) so long labels aren't ellipsized.
+    // clamped at a fixed max width so long labels aren't ellipsized.
     combobox->GetDropDown().SetUseContentWidth(true, true);
 
     auto old_value = app_config->get(param);

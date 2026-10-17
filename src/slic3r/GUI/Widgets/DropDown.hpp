@@ -58,6 +58,7 @@ private:
     wxSize textSize;
     wxSize iconSize;
     wxSize rowSize;
+    int    fit_width = 0; // row width before the display clamp, so a clamped popup can grow back
 
     StateHandler state_handler;
     StateColor   text_color;
@@ -101,6 +102,12 @@ public:
 
     void SetSelectorBackgroundColor(StateColor const &color);
 
+    /**
+     * \brief Size the list to its widest item instead of the control width
+     *
+     * \param use                      list width follows the widest item, never narrower than the control
+     * \param limit_max_content_width  list width stops at a fixed maximum; longer items end with "..."
+     */
     void SetUseContentWidth(bool use, bool limit_max_content_width = false);
 
     void SetAlignIcon(bool align);
@@ -135,6 +142,7 @@ private:
     friend class ComboBox;
     void messureSize();
     void autoPosition();
+    void fitWidthToDisplay(wxSize &size);
 
     // some useful events
     void mouseDown(wxMouseEvent& event);

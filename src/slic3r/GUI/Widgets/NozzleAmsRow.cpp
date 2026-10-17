@@ -39,6 +39,10 @@ MachineObject *selected_machine()
     return dev ? dev->get_selected_machine() : nullptr;
 }
 
+// A hover only opens a popup while Studio is the foreground app. The popups take activation, so one
+// opened from a background hover wins it back from the modal dialog when the user returns.
+bool hover_may_open_popup() { return wxTheApp->IsActive(); }
+
 // Live AMS content for one extruder, bucketed by slot count. Empty when disconnected.
 struct AmsBuckets
 {
@@ -241,7 +245,7 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
         auto *preview = new AMSPreview(m_previews_container, wxID_ANY, info);
         preview->Close();
         preview->Bind(wxEVT_ENTER_WINDOW, [this, preview](wxMouseEvent &e) {
-            show_delete_popup(preview);
+            if (hover_may_open_popup()) show_delete_popup(preview);
             e.Skip();
         });
         m_previews.push_back(preview);
@@ -254,7 +258,7 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
     m_add_btn = new ScalableButton(this, wxID_ANY, "add_filament", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 12);
     m_add_btn->SetBackgroundColour(ThemeColor::Grey200);
     m_add_btn->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
-        show_add_popup();
+        if (hover_may_open_popup()) show_add_popup();
         e.Skip();
     });
     row->Add(m_add_btn, 0, wxALIGN_CENTER_VERTICAL);

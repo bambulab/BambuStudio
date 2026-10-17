@@ -974,7 +974,7 @@ struct Sidebar::priv
     ExtruderGroup *left_extruder = nullptr;
     ExtruderGroup *right_extruder = nullptr;
     ExtruderGroup *single_extruder = nullptr;
-    wxBoxSizer    *hsizer_extruder = nullptr;
+    wxGridSizer   *hsizer_extruder = nullptr;
     bool                      extruder_panel_update_pending = false;
     std::vector<NozzleConfig> l_ext_cfg;
     std::vector<NozzleConfig> r_ext_cfg;
@@ -1296,10 +1296,10 @@ void Sidebar::priv::layout_printer(bool isBBL, NozzleLayout layout)
         vsizer_printer->Add(single_extruder->sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
 
         // double
-        hsizer_extruder = new wxBoxSizer(wxHORIZONTAL);
-        hsizer_extruder->Add(left_extruder->sizer, 1, wxEXPAND, 0);
-        hsizer_extruder->AddSpacer(FromDIP(4));
-        hsizer_extruder->Add(right_extruder->sizer, 1, wxEXPAND, 0);
+        // A grid keeps the two groups equal even below their min width; a box sizer would starve the right one.
+        hsizer_extruder = new wxGridSizer(1, 2, 0, FromDIP(4));
+        hsizer_extruder->Add(left_extruder->sizer, 0, wxEXPAND);
+        hsizer_extruder->Add(right_extruder->sizer, 0, wxEXPAND);
         vsizer_printer->Add(hsizer_extruder, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
         vsizer_printer->AddSpacer(FromDIP(4));
 
