@@ -5503,6 +5503,16 @@ bool SelectMachineDialog::Show(bool show)
     wxGetApp().UpdateDlgDarkUI(this);
     wxGetApp().reset_to_active();
     set_default();
+
+    // map against the already selected printer now, so the filament items are not painted
+    // unmapped (grey) while the printer list is being fetched from the cloud
+    if (DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager()) {
+        MachineObject* obj = dev->get_selected_machine();
+        if (obj && obj->is_info_ready()) {
+            do_ams_mapping(obj, true);
+        }
+    }
+
     update_user_machine_list();
     update_by_obj(get_current_machine());
 
