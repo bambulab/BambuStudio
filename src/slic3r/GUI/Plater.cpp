@@ -2244,8 +2244,24 @@ static bool clears_multi_nozzle_diameter_mode(const Preset &machine_preset)
 // project is moving to another printer model, so there is nothing to restore them onto.
 static void clear_multi_nozzle_diameter_mode()
 {
-    if (auto *option = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode"))
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (auto *option = preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode"))
         option->value = false;
+    // N10 spells custom grouping as fmmNozzleManual while the gate is on. Dropping the gate leaves
+    // that value on the project and on the plate, and the plate value is the one slicing reads.
+    if (auto *mode_opt = preset_bundle->project_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")) {
+        if (mode_opt->value == FilamentMapMode::fmmNozzleManual)
+            mode_opt->value = FilamentMapMode::fmmManual;
+    }
+    if (Plater *plater = wxGetApp().plater()) {
+        for (PartPlate *plate : plater->get_partplate_list().get_plate_list()) {
+            if (plate == nullptr)
+                continue;
+            auto *plate_mode = plate->config()->option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode");
+            if (plate_mode != nullptr && plate_mode->value == FilamentMapMode::fmmNozzleManual)
+                plate_mode->value = FilamentMapMode::fmmManual;
+        }
+    }
 }
 
 // Counterpart of the tail of apply_multi_nozzle_diameter_mode(): the printer panel layout, the preset

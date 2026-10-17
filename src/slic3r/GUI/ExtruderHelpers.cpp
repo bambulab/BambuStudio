@@ -202,8 +202,10 @@ bool is_extruder_stat_synced(int target_extruder_id)
     for (auto preset_groups : target_nozzle_groups) {
         for (auto& preset_group : preset_groups) {
             if (preset_group.nozzle_count == 0) {
-                if (std::find_if(printer_groups.begin(), printer_groups.end(), [&preset_group](const NozzleGroupInfo& elem) { return preset_group.is_same_type(elem); }) !=
-                    printer_groups.end()) {
+                // A single group is the flow the user picked; count 0 is not a match. Hybrid zero-count siblings stay as before.
+                if (preset_groups.size() == 1 ||
+                    std::find_if(printer_groups.begin(), printer_groups.end(), [&preset_group](const NozzleGroupInfo& elem) { return preset_group.is_same_type(elem); }) !=
+                        printer_groups.end()) {
                     is_synced = false;
                     break;
                 }

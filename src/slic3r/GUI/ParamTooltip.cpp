@@ -552,7 +552,7 @@ ParamTooltip &ParamTooltip::instance()
     return *s_self;
 }
 
-ParamTooltip::ParamTooltip() : wxPopupWindow(wxGetApp().mainframe, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
+ParamTooltip::ParamTooltip() : wxPopupWindow(wxGetApp().mainframe, wxBORDER_NONE)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     SetBackgroundColour(light_palette().card_bg);
