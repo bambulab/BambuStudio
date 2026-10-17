@@ -3159,8 +3159,9 @@ void PartPlate::set_vase_mode_related_object_config(int obj_id) {
 			config.set_key_value(opt_key, new_object_conf.option(opt_key)->clone());
 		}
 
-		object_applying_keys = config.get().diff(new_object_conf);
-        for (auto opt_key : object_applying_keys) {
+		// object_applying_keys stays the shared global diff for every object on the plate.
+		auto object_local_keys = config.get().diff(new_object_conf);
+        for (auto opt_key : object_local_keys) {
 			config.set_key_value(opt_key, new_object_conf.option(opt_key)->clone());
 		}
 	}

@@ -289,3 +289,70 @@ TEST_CASE("Bed shape falls back when extruder areas do not overlap", "[Config]")
     REQUIRE(bed_shape.size() == 4);
     REQUIRE(Polygon(bed_shape).bounding_box().defined);
 }
+
+// Same key split as PartPlate::set_vase_mode_related_object_config(): the global-to-vase diff is
+// applied to every object, and each object's own diff is applied on top of that shared list.
+TEST_CASE("Spiral vase global diff is applied to every object config", "[Config]")
+{
+    DynamicPrintConfig global_config = DynamicPrintConfig::full_print_config();
+    global_config.set("enable_support", true);
+    global_config.set("enforce_support_layers", 2);
+    global_config.set_key_value("ensure_vertical_shell_thickness",
+        new ConfigOptionEnum<EnsureVerticalThicknessLevel>(EnsureVerticalThicknessLevel::evtPartial));
+
+    REQUIRE(global_config.opt_int("wall_loops") != 1);
+    REQUIRE(global_config.opt_int("top_shell_layers") != 0);
+    REQUIRE(global_config.option<ConfigOptionPercent>("sparse_infill_density")->value != 0);
+    REQUIRE(global_config.opt_bool("enable_support"));
+    REQUIRE_FALSE(global_config.opt_bool("detect_thin_wall"));
+    REQUIRE_FALSE(global_config.opt_bool("spiral_mode"));
+
+    const int    global_wall_loops = global_config.opt_int("wall_loops");
+    const auto   global_timelapse  = global_config.opt_enum<TimelapseType>("timelapse_type");
+    const double layer_height      = global_config.opt_float("layer_height");
+
+    DynamicPrintConfig vase_object_config;
+    vase_object_config.set_key_value("wall_loops", new ConfigOptionInt(1));
+    vase_object_config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
+    vase_object_config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    vase_object_config.set_key_value("enable_support", new ConfigOptionBool(false));
+    vase_object_config.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
+    vase_object_config.set_key_value("ensure_vertical_shell_thickness",
+        new ConfigOptionEnum<EnsureVerticalThicknessLevel>(EnsureVerticalThicknessLevel::evtEnabled));
+    vase_object_config.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
+
+    const auto object_applying_keys = global_config.diff(vase_object_config);
+    auto apply_vase = [&](ModelConfig &config) {
+        for (const auto &opt_key : object_applying_keys)
+            config.set_key_value(opt_key, vase_object_config.option(opt_key)->clone());
+        const auto object_local_keys = config.get().diff(vase_object_config);
+        for (const auto &opt_key : object_local_keys)
+            config.set_key_value(opt_key, vase_object_config.option(opt_key)->clone());
+    };
+    auto require_vase = [](const ModelConfig &config) {
+        REQUIRE(config.opt_int("wall_loops") == 1);
+        REQUIRE(config.opt_int("top_shell_layers") == 0);
+        REQUIRE(config.get().option<ConfigOptionPercent>("sparse_infill_density")->value == 0.);
+        REQUIRE_FALSE(config.get().opt_bool("enable_support"));
+        REQUIRE(config.opt_int("enforce_support_layers") == 0);
+        REQUIRE(config.get().opt_enum<EnsureVerticalThicknessLevel>("ensure_vertical_shell_thickness") == EnsureVerticalThicknessLevel::evtEnabled);
+    };
+
+    ModelConfig with_local_override;
+    with_local_override.set("detect_thin_wall", true);
+    ModelConfig without_override;
+    apply_vase(with_local_override);
+    apply_vase(without_override);
+    require_vase(with_local_override);
+    require_vase(without_override);
+    REQUIRE_FALSE(with_local_override.get().opt_bool("detect_thin_wall"));
+
+    ModelConfig single_object;
+    apply_vase(single_object);
+    require_vase(single_object);
+
+    REQUIRE_FALSE(global_config.opt_bool("spiral_mode"));
+    REQUIRE(global_config.opt_int("wall_loops") == global_wall_loops);
+    REQUIRE(global_config.opt_enum<TimelapseType>("timelapse_type") == global_timelapse);
+    REQUIRE(global_config.opt_float("layer_height") == layer_height);
+}
