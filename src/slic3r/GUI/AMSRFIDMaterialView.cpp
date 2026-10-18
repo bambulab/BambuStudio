@@ -62,7 +62,7 @@ void AMSRFIDMaterialView::create()
 
     panel_top->SetSizer(sizer_top);
 
-    // Middle info panel: temp + SN
+    // Middle info panel: temperature, serial number and remaining filament
     m_panel_info = new StaticBox(this);
     m_panel_info->SetCornerRadius(FromDIP(10));
     m_panel_info->SetBackgroundColor(StateColor(std::make_pair(wxColour(248, 248, 248), (int)StateColor::Normal)));
@@ -87,10 +87,17 @@ void AMSRFIDMaterialView::create()
     sizer_sn->Add(m_lbl_sn,     0, wxALIGN_CENTER_VERTICAL, 0);
     m_panel_sn->SetSizer(sizer_sn);
 
+    m_lbl_remaining = new wxStaticText(m_panel_info, wxID_ANY, wxEmptyString);
+    m_lbl_remaining->SetFont(Label::Body_13);
+    m_lbl_remaining->SetForegroundColour(AMS_MATERIALS_SETTING_GREY700);
+    m_lbl_remaining->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(248, 248, 248)));
+
     sizer_info->Add(0, 0, 0, wxTOP, FromDIP(14));
     sizer_info->Add(m_lbl_temp, 0, wxLEFT | wxRIGHT, FromDIP(16));
     sizer_info->Add(0, 0, 0, wxTOP, FromDIP(8));
     sizer_info->Add(m_panel_sn, 0, wxLEFT | wxRIGHT, FromDIP(16));
+    sizer_info->Add(0, 0, 0, wxTOP, FromDIP(8));
+    sizer_info->Add(m_lbl_remaining, 0, wxLEFT | wxRIGHT, FromDIP(16));
     sizer_info->Add(0, 0, 0, wxTOP, FromDIP(14));
     m_panel_info->SetSizer(sizer_info);
 
@@ -252,13 +259,16 @@ void AMSRFIDMaterialView::Popup(MachineObject* obj_, int ams_id_, int slot_id_,
 
     // resolve filament id from tray for PA profile filtering
     ams_filament_id.clear();
+    const DevAmsTray* selected_tray = nullptr;
     if (obj) {
         if (auto* tray = obj->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id)))
-            ams_filament_id = tray->setting_id;
+            selected_tray = tray;
         else if (!obj->vt_slot.empty() && (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID)) {
             int vt_idx = (ams_id == VIRTUAL_TRAY_DEPUTY_ID && obj->vt_slot.size() > 1) ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
-            ams_filament_id = obj->vt_slot[vt_idx].setting_id;
+            selected_tray = &obj->vt_slot[vt_idx];
         }
+        if (selected_tray)
+            ams_filament_id = selected_tray->setting_id;
     }
 
     // colour swatch
@@ -287,6 +297,29 @@ void AMSRFIDMaterialView::Popup(MachineObject* obj_, int ams_id_, int slot_id_,
     } else {
         m_panel_sn->Hide();
     }
+
+    wxString remaining_text = _L("Unknown");
+    if (selected_tray && selected_tray->is_tray_info_ready()) {
+        long total_weight = 0;
+        wxString::FromUTF8(selected_tray->weight.c_str()).ToLong(&total_weight);
+        std::optional<int> remaining_weight;
+        if (selected_tray->remain_g >= 0) {
+            // The shared getter treats zero as missing; firmware zero is a valid empty spool.
+            remaining_weight = selected_tray->remain_g;
+        } else if (obj->GetFilaSystem()->IsDetectRemainEnabled() &&
+                   selected_tray->ams_type != DevAmsType::AMS_LITE &&
+                   selected_tray->ams_type != DevAmsType::AMS_LITE_MIXED &&
+                   selected_tray->ams_type != DevAmsType::EXT_SPOOL &&
+                   selected_tray->remain >= 0 && selected_tray->remain <= 100 && total_weight > 0) {
+            remaining_weight = selected_tray->get_filament_remain_weight();
+        }
+        if (remaining_weight.has_value()) {
+            remaining_text = wxString::FromUTF8("\xe2\x89\x88 ") + wxString::Format("%d g", *remaining_weight);
+            if (total_weight > 0)
+                remaining_text += wxString::Format(" / %ld g", total_weight);
+        }
+    }
+    m_lbl_remaining->SetLabel(_L("Estimated remaining") + ": " + remaining_text);
 
     // flow dynamics section
     if (should_show_kn_section()) {

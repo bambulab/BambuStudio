@@ -42,6 +42,7 @@ private:
     wxStaticText*   m_lbl_temp       {nullptr};
     wxPanel*        m_panel_sn       {nullptr};
     wxStaticText*   m_lbl_sn         {nullptr};
+    wxStaticText*   m_lbl_remaining  {nullptr};
 
     // flow dynamics section
     wxPanel*        m_panel_kn       {nullptr};
