@@ -1,0 +1,35 @@
+{
+    "type": "filament",
+    "name": "SUNLU ASA Basic @BBL P2S 0.8 nozzle",
+    "inherits": "SUNLU ASA Basic @base",
+    "from": "system",
+    "setting_id": "GFSNLS09_03",
+    "instantiation": "true",
+    "activate_air_filtration": [
+        "1"
+    ],
+    "chamber_temperatures": [
+        "65"
+    ],
+    "fan_min_speed": [
+        "25"
+    ],
+    "filament_max_volumetric_speed": [
+        "18",
+        "35"
+    ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "Spiral Lift"
+    ],
+    "include": [
+        "fdm_filament_template_direct_dual"
+    ],
+    "compatible_printers": [
+        "Bambu Lab P2S 0.8 nozzle"
+    ]
+}
