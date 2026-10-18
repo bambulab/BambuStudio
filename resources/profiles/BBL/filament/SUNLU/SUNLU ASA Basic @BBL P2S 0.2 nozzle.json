@@ -1,0 +1,43 @@
+{
+    "type": "filament",
+    "name": "SUNLU ASA Basic @BBL P2S 0.2 nozzle",
+    "inherits": "SUNLU ASA Basic @base",
+    "from": "system",
+    "setting_id": "GFSNLS09_00",
+    "instantiation": "true",
+    "chamber_temperatures": [
+        "65"
+    ],
+    "fan_max_speed": [
+        "60"
+    ],
+    "fan_min_speed": [
+        "30"
+    ],
+    "filament_flush_volumetric_speed": [
+        "3",
+        "3"
+    ],
+    "filament_max_volumetric_speed": [
+        "2",
+        "2"
+    ],
+    "filament_wipe": [
+        "1",
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1",
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "Spiral Lift"
+    ],
+    "include": [
+        "fdm_filament_template_direct_dual"
+    ],
+    "compatible_printers": [
+        "Bambu Lab P2S 0.2 nozzle"
+    ]
+}

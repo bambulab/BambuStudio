@@ -3432,6 +3432,26 @@
             "sub_path": "filament/PolyLite PETG @BBL X1C 0.2 nozzle.json"
         },
         {
+            "name": "SUNLU ASA Basic @base",
+            "sub_path": "filament/SUNLU/SUNLU ASA Basic @base.json"
+        },
+        {
+            "name": "SUNLU ASA Basic @BBL P2S 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU ASA Basic @BBL P2S 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU ASA Basic @BBL P2S 0.4 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU ASA Basic @BBL P2S 0.4 nozzle.json"
+        },
+        {
+            "name": "SUNLU ASA Basic @BBL P2S 0.6 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU ASA Basic @BBL P2S 0.6 nozzle.json"
+        },
+        {
+            "name": "SUNLU ASA Basic @BBL P2S 0.8 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU ASA Basic @BBL P2S 0.8 nozzle.json"
+        },
+        {
             "name": "SUNLU PETG @base",
             "sub_path": "filament/SUNLU/SUNLU PETG @base.json"
         },
@@ -3470,6 +3490,14 @@
         {
             "name": "SUNLU PETG @BBL X1C 0.8 nozzle",
             "sub_path": "filament/SUNLU/SUNLU PETG @BBL X1C 0.8 nozzle.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL P2S",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL P2S.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL P2S 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL P2S 0.2 nozzle.json"
         },
         {
             "name": "fdm_filament_pha",
@@ -6946,6 +6974,10 @@
         {
             "name": "SUNLU PLA+ 2.0 @BBL X1C 0.2 nozzle",
             "sub_path": "filament/SUNLU/SUNLU PLA+ 2.0 @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PLA+ 2.0 @BBL P2S",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ 2.0 @BBL P2S.json"
         },
         {
             "name": "SUNLU PLA+ @base",
