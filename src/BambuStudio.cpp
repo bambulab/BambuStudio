@@ -3597,10 +3597,50 @@ int CLI::run(int argc, char **argv)
         }
         new_variant_counts = old_variant_counts;
         //filament_variant_count = old_variant_counts;
+        // Resolve the preset inheritance chain of the loaded filament configs. A system preset
+        // file only carries the settings that differ from its parent, and the GUI resolves the
+        // chain through the preset collections; this CLI path used to apply only the leaf file,
+        // which left every inherited setting - filament_density among them - at its default 0,
+        // so the G-code header and result.json reported a filament weight of 0 no matter which
+        // filament preset was selected (#12651).
+        auto resolve_filament_inherits = [&load_config_file](DynamicPrintConfig& config) {
+            ConfigOptionString* inherits_opt = config.option<ConfigOptionString>("inherits", true);
+            std::string inherits = inherits_opt ? inherits_opt->value : std::string();
+            std::set<std::string> visited;
+            for (int depth = 0; !inherits.empty() && depth < 10; depth++) {
+                if (!visited.insert(inherits).second)
+                    break; // a corrupt chain that refers back to itself
+                std::string parent_path = resources_dir() + "/profiles/BBL/filament_full/" + inherits + ".json";
+                if (!boost::filesystem::exists(parent_path))
+                    parent_path = resources_dir() + "/profiles/BBL/filament/" + inherits + ".json";
+                if (!boost::filesystem::exists(parent_path)) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("resolve_filament_inherits: no parent file for \"%1%\", stopping the chain") % inherits;
+                    break;
+                }
+                DynamicPrintConfig parent_config;
+                std::string parent_type, parent_name, parent_filament_id, parent_from;
+                if (load_config_file(parent_path, parent_config, parent_type, parent_name, parent_filament_id, parent_from) || parent_type != "filament") {
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("resolve_filament_inherits: can not load parent %1%") % parent_path;
+                    break;
+                }
+                // The child wins, the parent only fills the settings the child does not define.
+                for (const t_config_option_key& opt_key : parent_config.keys()) {
+                    if (opt_key == "inherits" || config.option(opt_key) != nullptr)
+                        continue;
+                    ConfigOption* opt = config.option(opt_key, true);
+                    if (opt != nullptr)
+                        opt->set(parent_config.option(opt_key));
+                }
+                ConfigOptionString* parent_inherits_opt = parent_config.option<ConfigOptionString>("inherits", true);
+                inherits = parent_inherits_opt ? parent_inherits_opt->value : std::string();
+            }
+        };
         for (int index = 0; index < load_filaments_config.size(); index++) {
             DynamicPrintConfig&  config = load_filaments_config[index];
             int filament_index = load_filaments_index[index];
             std::vector<std::string> different_keys;
+
+            resolve_filament_inherits(config);
 
             load_default_gcodes_to_config(config, Preset::TYPE_FILAMENT);
 
