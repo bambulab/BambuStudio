@@ -744,7 +744,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                         continue;
                     total_volume_per_extruder[filament_id] += volume;
                 }
-                ret += format_filament_used_info("total filament volume [cm^3]", total_volume_per_extruder);
+                ret += format_filament_used_info("total filament volume [mm^3]", total_volume_per_extruder);
             }
             else if (line == reserved_tag(ETags::Used_Filament_Length_Placeholder)) {
                 std::map<size_t, double>total_length_per_extruder;
