@@ -679,7 +679,10 @@ static int decode_png_to_thumbnail(std::string png_file, ThumbnailData& thumbnai
 
 static void glfw_callback(int error_code, const char* description)
 {
-    BOOST_LOG_TRIVIAL(error) << "error_code " <<error_code <<", description: " <<description<< std::endl;
+    // GLFW reports every failure through this callback and the failing call just returns. In the
+    // headless slice flow this callback guards the offscreen thumbnail context, so a GLFW failure
+    // means "no thumbnails", never "the export failed" — a warning, not an error (#12653).
+    BOOST_LOG_TRIVIAL(warning) << "GLFW error " << error_code << ": " << description << std::endl;
 }
 
 const float bed3d_ax3s_default_stem_radius = 0.5f;
@@ -6285,7 +6288,7 @@ int CLI::run(int argc, char **argv)
         int ret = glfwInit();
         if (ret == GLFW_FALSE) {
             int code = glfwGetError(NULL);
-            BOOST_LOG_TRIVIAL(error) << "glfwInit return error, code " <<code<< std::endl;
+            BOOST_LOG_TRIVIAL(warning) << "glfwInit failed, code " << code << "; plate thumbnails will not be rendered" << std::endl;
             return false;
         }
         else {
@@ -6313,7 +6316,7 @@ int CLI::run(int argc, char **argv)
             GLFWwindow* window = glfwCreateWindow(640, 480, "base_window", NULL, NULL);
             if (window == NULL)
             {
-                BOOST_LOG_TRIVIAL(error) << "Failed to create GLFW window" << std::endl;
+                BOOST_LOG_TRIVIAL(warning) << "Failed to create the offscreen GLFW window; plate thumbnails will not be rendered" << std::endl;
                 return false;
             }
             else
