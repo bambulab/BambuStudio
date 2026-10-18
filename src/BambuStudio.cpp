@@ -23,6 +23,7 @@
 #include <iomanip>
 #include <iostream>
 #include <math.h>
+#include <optional>
 #include <regex>
 #include "nlohmann/json.hpp"
 
@@ -236,9 +237,11 @@ typedef struct _sliced_info {
     size_t export_slicedata_time {0};
     size_t load_slicedata_time {0};
     size_t import_time {0};
-    float  layer_height{0.f};
-    float  sparse_infill_density{0.f};
-    int    wall_loops{0};
+    // Optional: unset means "not measured by this run", and result.json reports null for it
+    // instead of a 0.0 that is indistinguishable from a real zero (#12652).
+    std::optional<float>  layer_height;
+    std::optional<float>  sparse_infill_density;
+    std::optional<int>    wall_loops;
     std::vector<std::string> upward_machines;
     std::vector<std::string> downward_machines;
     std::vector<std::string> upward_compatibility_taint;
@@ -515,9 +518,11 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
         task_times["import_time"] = sliced_info.import_time;
         j["times"] = std::move(task_times);
         j["peak_rss_mb"] = Slic3r::get_peak_rss_mb();
-        j["layer_height"] = sliced_info.layer_height;
-        j["wall_loops"] = sliced_info.wall_loops;
-        j["sparse_infill_density"] = sliced_info.sparse_infill_density;
+        // Null, not 0, when the run never pinned the setting: a costing script or print
+        // planner must be able to tell "unknown" from a real zero (#12652).
+        j["layer_height"] = sliced_info.layer_height ? json(*sliced_info.layer_height) : json(nullptr);
+        j["wall_loops"] = sliced_info.wall_loops ? json(*sliced_info.wall_loops) : json(nullptr);
+        j["sparse_infill_density"] = sliced_info.sparse_infill_density ? json(*sliced_info.sparse_infill_density) : json(nullptr);
 
         if (code != 0)
         {
