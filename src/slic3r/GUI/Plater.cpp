@@ -4549,7 +4549,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     std::map<int, DynamicPrintConfig> filament_ams_list;
     if (!obj) return filament_ams_list;
 
-    auto build_tray_config = [](DevAmsTray const &tray, std::string const &name, std::string ams_id, std::string slot_id) {
+    auto build_tray_config = [obj](DevAmsTray const &tray, std::string const &name, std::string ams_id, std::string slot_id) {
         BOOST_LOG_TRIVIAL(info) << boost::format("build_filament_ams_list: name %1% setting_id %2% type %3% color %4%")
                     % name % tray.setting_id % tray.m_fila_type % tray.color;
         DynamicPrintConfig tray_config;
@@ -4563,6 +4563,10 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
         tray_config.set_key_value("filament_multi_colour", new ConfigOptionStrings{});
         tray_config.set_key_value("filament_colour_type", new ConfigOptionStrings{std::to_string(tray.ctype)});
         tray_config.set_key_value("filament_exist", new ConfigOptionBools{tray.is_exists});
+        // Preset the Filament Manager remembers for the spool in this tray; sync_ams_list() prefers it.
+        if (auto *fila_sync = wxGetApp().fila_manager_sync())
+            if (const FilamentSpool *spool = fila_sync->spool_in_slot(obj, ams_id, slot_id); spool && !spool->preset_name.empty())
+                tray_config.set_key_value("spool_preset", new ConfigOptionStrings{spool->preset_name});
         std::optional<FilamentBaseInfo> info;
         if (wxGetApp().preset_bundle) {
             info = wxGetApp().preset_bundle->get_filament_by_filament_id(tray.setting_id);
@@ -12722,6 +12726,35 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
     }
 }
 
+// After an AMS sync, project filament `idx` is known to come from a particular tray. When
+// the user then picks another preset for it, remember that preset on the spool the Filament
+// Manager has matched to the tray, so the next sync (in this or any other project) restores it
+// instead of the parent preset or "Generic <type>" the printer's filament_id resolves to.
+static void remember_synced_spool_preset(size_t idx, const std::string &prev_preset, const std::string &new_preset)
+{
+    PresetBundle *bundle    = wxGetApp().preset_bundle;
+    auto         *store     = wxGetApp().fila_manager_store();
+    auto         *fila_sync = wxGetApp().fila_manager_sync();
+    auto         *dev       = wxGetApp().getDeviceManager();
+    if (!bundle || !store || !fila_sync || !dev || idx >= bundle->synced_filament_trays.size() ||
+        idx >= bundle->synced_filament_presets.size())
+        return;
+    // The tray mapping only holds while this filament still has the preset the sync (or an
+    // earlier change remembered here) gave it; a loaded project or reordered filaments won't.
+    if (prev_preset.empty() || bundle->synced_filament_presets[idx] != prev_preset)
+        return;
+    MachineObject *obj    = dev->get_selected_machine();
+    const Preset  *preset = bundle->filaments.find_preset(new_preset, false);
+    if (!obj || !preset)
+        return;
+    const AMSMapInfo &tray  = bundle->synced_filament_trays[idx];
+    const FilamentSpool *spool = fila_sync->spool_in_slot(obj, tray.ams_id, tray.slot_id);
+    if (!spool || (!spool->material_type.empty() && spool->material_type != preset->config.opt_string("filament_type", 0u)))
+        return;
+    store->set_spool_preset(spool->spool_id, new_preset);
+    bundle->synced_filament_presets[idx] = new_preset;
+}
+
 void Plater::priv::on_select_preset(wxCommandEvent &evt)
 {
     PlaterPresetComboBox* combo = static_cast<PlaterPresetComboBox*>(evt.GetEventObject());
@@ -12756,9 +12789,13 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
     if (preset_type == Preset::TYPE_FILAMENT) {
         std::string old_name = wxGetApp().preset_bundle->filaments.get_edited_preset().name;
+        const std::string prev_at_idx = idx < wxGetApp().preset_bundle->filament_presets.size() ?
+                                            wxGetApp().preset_bundle->filament_presets[idx] : std::string();
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
         if (!q->on_filament_change(idx))
             wxGetApp().preset_bundle->set_filament_preset(idx, old_name);
+        else
+            remember_synced_spool_preset(idx, prev_at_idx, preset_name);
         wxGetApp().plater()->update_project_dirty_from_presets();
         wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
         dynamic_filament_list.update();

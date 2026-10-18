@@ -46,6 +46,7 @@ nlohmann::json FilamentSpool::to_json() const
     return nlohmann::json{
         {"spool_id",        spool_id},
         {"setting_id",      filament_id},
+        {"preset_name",     preset_name},
         {"tag_uid",         tag_uid},
         {"tray_id_name",    tray_id_name},
         {"brand",           brand},
@@ -152,6 +153,7 @@ FilamentSpool FilamentSpool::from_json(const nlohmann::json& j)
     };
     get("spool_id",        s.spool_id);
     get("setting_id",      s.filament_id);
+    get("preset_name",     s.preset_name);
     get("tag_uid",         s.tag_uid);
     get("tray_id_name",    s.tray_id_name);
     get("brand",           s.brand);
@@ -223,6 +225,72 @@ void wgtFilaManagerStore::save()
     m_dirty = false;
 }
 
+// ---------- spool preset memory ----------
+
+std::string wgtFilaManagerStore::get_spool_presets_path() const
+{
+    return (fs::path(data_dir()) / "filament_inventory" / "spool_presets.json").string();
+}
+
+void wgtFilaManagerStore::load_spool_presets() const
+{
+    if (m_spool_presets_loaded) return;
+    m_spool_presets_loaded = true;
+
+    const std::string path = get_spool_presets_path();
+    if (!fs::exists(path)) return;
+    try {
+        boost::nowide::ifstream ifs(path);
+        nlohmann::json j = nlohmann::json::parse(ifs);
+        for (auto it = j.begin(); it != j.end(); ++it)
+            if (it.value().is_string())
+                m_spool_presets[it.key()] = it.value().get<std::string>();
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(warning) << "[FilaManager] failed to read " << path << ": " << e.what();
+    }
+}
+
+void wgtFilaManagerStore::apply_spool_preset(FilamentSpool& spool) const
+{
+    if (!spool.preset_name.empty()) return;
+    load_spool_presets();
+    auto it = m_spool_presets.find(spool.spool_id);
+    if (it != m_spool_presets.end())
+        spool.preset_name = it->second;
+}
+
+std::string wgtFilaManagerStore::get_spool_preset(const std::string& spool_id) const
+{
+    load_spool_presets();
+    auto it = m_spool_presets.find(spool_id);
+    return it != m_spool_presets.end() ? it->second : std::string();
+}
+
+void wgtFilaManagerStore::set_spool_preset(const std::string& spool_id, const std::string& preset_name)
+{
+    if (spool_id.empty()) return;
+    load_spool_presets();
+    auto sp_it = m_spools.find(spool_id);
+    if (sp_it != m_spools.end())
+        sp_it->second.preset_name = preset_name;
+    auto it = m_spool_presets.find(spool_id);
+    if (it != m_spool_presets.end() && it->second == preset_name) return;
+    if (preset_name.empty())
+        m_spool_presets.erase(spool_id);
+    else
+        m_spool_presets[spool_id] = preset_name;
+
+    const std::string path = get_spool_presets_path();
+    try {
+        fs::create_directories(fs::path(path).parent_path());
+        boost::nowide::ofstream ofs(path);
+        ofs << nlohmann::json(m_spool_presets).dump(2);
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(warning) << "[FilaManager] failed to write " << path << ": " << e.what();
+    }
+    BOOST_LOG_TRIVIAL(info) << "[FilaManager] spool " << spool_id << " remembers preset \"" << preset_name << "\"";
+}
+
 // ---------- CRUD ----------
 
 std::string wgtFilaManagerStore::add_spool(const FilamentSpool& spool)
@@ -231,6 +299,7 @@ std::string wgtFilaManagerStore::add_spool(const FilamentSpool& spool)
     if (s.spool_id.empty())   s.spool_id   = generate_uuid();
     if (s.created_at.empty()) s.created_at  = now_iso8601();
     s.updated_at = now_iso8601();
+    apply_spool_preset(s);
     const std::string created_id = s.spool_id;
     m_spools[created_id] = std::move(s);
     m_dirty = true;
@@ -243,6 +312,7 @@ void wgtFilaManagerStore::update_spool(const FilamentSpool& spool)
     if (it == m_spools.end()) return;
     FilamentSpool s = spool;
     s.updated_at    = now_iso8601();
+    apply_spool_preset(s);
     it->second      = std::move(s);
     m_dirty         = true;
 }

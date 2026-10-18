@@ -391,6 +391,29 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
     return mount_changed;
 }
 
+const FilamentSpool* wgtFilaManagerSync::spool_in_slot(MachineObject* obj,
+                                                       const std::string& ams_id,
+                                                       const std::string& slot_id)
+{
+    if (!obj || !m_store) return nullptr;
+    auto fila_sys = obj->GetFilaSystem();
+    if (!fila_sys) return nullptr;
+
+    // Same tray lookup and "ext" key for the external holder as sync_all_trays() uses.
+    const DevAmsTray* tray = nullptr;
+    std::string       match_ams_id = ams_id;
+    if (auto* ams = fila_sys->GetAmsById(ams_id)) {
+        auto it = ams->GetTrays().find(slot_id);
+        if (it != ams->GetTrays().end()) tray = it->second;
+    } else if (auto* vt_tray = obj->get_vt_tray(ams_id)) {
+        tray         = vt_tray;
+        match_ams_id = "ext";
+    }
+    if (!tray || !tray->is_exists) return nullptr;
+    if (tray->setting_id.empty() && tray->tag_uid.empty()) return nullptr;
+    return match_tray(*tray, obj->get_dev_id(), match_ams_id);
+}
+
 const FilamentSpool* wgtFilaManagerSync::match_tray(const DevAmsTray& tray,
                                                     const std::string& dev_id,
                                                     const std::string& ams_id)

@@ -49,6 +49,7 @@ public:
         LABEL_ITEM_WIZARD_FILAMENTS,
         LABEL_ITEM_WIZARD_MATERIALS,
         LABEL_ITEM_WIZARD_ADD_PRINTERS,
+        LABEL_ITEM_FILAMENT_MANAGER,
 
         LABEL_ITEM_MAX,
 	};
@@ -216,6 +217,10 @@ public:
 private:
     // BBS
     wxColor m_color;
+
+    // Opens the Filament Manager spool picker for this slot and applies the
+    // chosen spool's (or system preset's) filament selection.
+    void open_filament_manager_picker();
 };
 
 

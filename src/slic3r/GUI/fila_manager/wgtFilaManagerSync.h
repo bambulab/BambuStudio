@@ -29,6 +29,11 @@ public:
     void dismiss_pending_badge(const std::string& dev_id,
                                const std::string& ams_id,
                                const std::string& slot_id);
+    // The spool currently matched to an AMS slot or external holder (ams_id as the printer
+    // reports it, e.g. "0" or "255"), using the same matching as the AMS sync.
+    const FilamentSpool* spool_in_slot(MachineObject* obj,
+                                       const std::string& ams_id,
+                                       const std::string& slot_id);
 
 private:
     const FilamentSpool* match_tray(const DevAmsTray& tray,
