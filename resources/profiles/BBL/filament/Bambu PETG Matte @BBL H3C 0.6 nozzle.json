@@ -20,9 +20,8 @@
     "filament_change_length_nc": [
         "0"
     ],
-    "filament_cooling_before_tower": [
-        "0",
-        "0"
+    "filament_cost": [
+        "17.99"
     ],
     "filament_idle_travel_cooling_enabled": "0",
     "filament_max_volumetric_speed": [
@@ -67,6 +66,10 @@
         "fdm_filament_template_direct_dual",
         "fdm_filament_template_h3c"
     ],
+    "long_retractions_when_ec": [
+        "0",
+        "1"
+    ],
     "max_temperature_drop_when_ec": [
         "-1"
     ],
@@ -86,6 +89,9 @@
     ],
     "pre_start_fan_time": [
         "2"
+    ],
+    "temperature_vitrification": [
+        "70"
     ],
     "compatible_printers": [
         "Bambu Lab H3C 0.6 nozzle",
