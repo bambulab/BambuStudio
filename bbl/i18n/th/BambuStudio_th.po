@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 23:32+0800\n"
+"POT-Creation-Date: 2026-10-19 18:17+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -207,6 +207,14 @@ msgstr "Bambu TPU 85A ไม่รองรับการพิมพ์ด้�
 msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
 msgstr "เมื่อใช้ ABS/ASA/PETG HF บนเอ็กซ์ทรูเดอร์ด้านขวา จะสามารถใช้เป็นวัสดุโครงสร้างรองรับได้เท่านั้น"
 
+#, c-format, boost-format
+msgid "%s is not supported by the current %s hotend. Please confirm the filament type and try again."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is not supported by the current 2.85 mm TPU hotend. Please confirm the filament type and try again."
+msgstr ""
+
 msgid "PPA-CF does not support AMS feeding. Use an external spool instead."
 msgstr ""
 
@@ -236,11 +244,11 @@ msgstr "PPA-CF มีความเปราะและอาจหักใ�
 
 #, c-format, boost-format
 msgid "%s filament is brittle. Use AMS feeding with caution."
-msgstr ""
+msgstr "%s เส้นวัสดุเปราะ ใช้การป้อนวัสดุ AMS ด้วยความระมัดระวัง"
 
 #, c-format, boost-format
 msgid "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing."
-msgstr ""
+msgstr "%s เส้นวัสดุมีความเสี่ยงสูงที่จะอุดตันเมื่อพิมพ์ด้วยชุดหัวพิมพ์ขนาด 0.2 มม. โปรดใช้ชุดหัวพิมพ์ที่เข้ากันได้อีกอันก่อนทำการพิมพ์"
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "เส้นวัสดุ CF/GF มีความแข็งและเปราะ ซึ่งอาจหักหรือติดขัดใน AMS ได้ง่าย โปรดใช้ด้วยความระมัดระวัง"
@@ -453,7 +461,7 @@ msgid "Reading"
 msgstr "กำลังอ่าน"
 
 msgid "Running"
-msgstr ""
+msgstr "กำลังทำงาน"
 
 msgid "Raised"
 msgstr "ยกขึ้น"
@@ -635,34 +643,34 @@ msgid "Note:"
 msgstr "หมายเหตุ:"
 
 msgid "Pen"
-msgstr ""
+msgstr "ปากกา"
 
 msgid "Cutter"
-msgstr ""
+msgstr "คัตเตอร์"
 
 msgid "Laser"
-msgstr ""
+msgstr "เลเซอร์"
 
 msgid "Fan"
 msgstr "พัดลม"
 
 msgid "Unclamped"
-msgstr ""
+msgstr "ไม่ได้หนีบ"
 
 msgid "The embedded webpage could not be loaded."
-msgstr ""
+msgstr "ไม่สามารถโหลดเว็บเพจที่ฝังไว้ได้"
 
 msgid "Reload"
-msgstr ""
+msgstr "โหลดใหม่"
 
 msgid "Copy diagnostic information"
-msgstr ""
+msgstr "คัดลอกข้อมูลการวินิจฉัย"
 
 msgid "Add refill filament"
-msgstr ""
+msgstr "เพิ่มเส้นวัสดุเติมเต็ม"
 
 msgid "Add material group"
-msgstr ""
+msgstr "เพิ่มกลุ่มวัสดุ"
 
 msgid "AMS Bridge Debug"
 msgstr ""
@@ -695,10 +703,10 @@ msgid "Check filament location"
 msgstr "ตรวจสอบตำแหน่งเส้นวัสดุ"
 
 msgid "Switch extruder"
-msgstr ""
+msgstr "สลับเอ็กซ์ทรูเดอร์"
 
 msgid "Switch hotend"
-msgstr ""
+msgstr "สลับชุดหัวพิมพ์"
 
 msgid "Wait for AMS cooling"
 msgstr "รอให้ AMS เย็นลง"
@@ -713,85 +721,85 @@ msgid "Switch track at Filament Track Switch"
 msgstr "สลับรางที่ชุดสับรางเส้นวัสดุ"
 
 msgid "Batch pull back the filaments"
-msgstr ""
+msgstr "ดึงเส้นวัสดุกลับเป็นแบทช์"
 
 msgid "Nesting PrintTool"
-msgstr ""
+msgstr "เครื่องมือพิมพ์การจัดเรียงชิ้นงานแบบซ้อน"
 
 msgid "Purge filament"
-msgstr ""
+msgstr "กำจัดเส้นวัสดุออก"
 
 #, boost-format
 msgid "Please manually pull out the filament from slot %1%."
-msgstr ""
+msgstr "โปรดดึงเส้นวัสดุออกจากช่อง %1% ด้วยตนเอง"
 
 #, boost-format
 msgid "Please manually pull out the filament from hotend %1% on the toolhead."
-msgstr ""
+msgstr "โปรดดึงเส้นวัสดุออกจากชุดหัวพิมพ์ %1% บนชุดหัวจ่ายด้วยตนเอง"
 
 #, boost-format
 msgid "Please manually insert the filament into the loading port of hotend %1% on the toolhead until it cannot be pushed any further."
-msgstr ""
+msgstr "โปรดใส่เส้นวัสดุเข้าไปในช่องโหลดของชุดหัวพิมพ์ %1% บนชุดหัวจ่ายด้วยตนเอง จนกระทั่งไม่สามารถดันต่อไปได้อีก"
 
 #, boost-format
 msgid "Please manually insert the filament from slot %1% into the extruder loading port until it cannot be pushed any further."
-msgstr ""
+msgstr "โปรดใส่เส้นวัสดุจากช่อง %1% เข้าไปในช่องโหลดเอ็กซ์ทรูเดอร์ด้วยตนเองจนกระทั่งไม่สามารถดันต่อไปได้อีก"
 
 msgid "Other filaments are info-only"
-msgstr ""
+msgstr "เส้นวัสดุอื่นๆเป็นเพียงข้อมูลเท่านั้น"
 
 msgid "Filament not removed"
-msgstr ""
+msgstr "เส้นวัสดุยังไม่ได้นำออก"
 
 msgid "Hotend rack moving"
-msgstr ""
+msgstr "แร็คชุดหัวพิมพ์กำลังเคลื่อนที่"
 
 msgid "Homing PrintTool Rack"
-msgstr ""
+msgstr "กำหนดจุดเริ่มต้นแร็คเครื่องมือพิมพ์"
 
 msgid "Homing Toolhead"
-msgstr ""
+msgstr "กำลังกำหนดจุดเริ่มต้นชุดหัวจ่าย"
 
 msgid "Calibrating PrintTool Rack Position"
-msgstr ""
+msgstr "กำลังปรับเทียบตำแหน่งแร็คเครื่องมือพิมพ์"
 
 msgid "Heating Hotend"
-msgstr ""
+msgstr "กำลังทำความร้อนชุดหัวพิมพ์"
 
 msgid "Cutting Filament"
-msgstr ""
+msgstr "กำลังตัดเส้นวัสดุ"
 
 msgid "Unlocking Tool"
-msgstr ""
+msgstr "ปลดล็อคเครื่องมือ"
 
 msgid "Raising PrintTool Rack"
-msgstr ""
+msgstr "กำลังยกแร็คเครื่องมือพิมพ์"
 
 msgid "Nesting Tool"
-msgstr ""
+msgstr "เครื่องมือการจัดเรียงชิ้นงานแบบซ้อน"
 
 msgid "Fetching Tool"
-msgstr ""
+msgstr "หยิบจับเครื่องมือ"
 
 msgid "Locking Tool"
-msgstr ""
+msgstr "ล็อคเครื่องมือ"
 
 msgid "Moving PrintTool Rack"
-msgstr ""
+msgstr "กำลังเคลื่อนที่แร็คเครื่องมือพิมพ์"
 
 msgid "Refreshing Hotend"
-msgstr ""
+msgstr "กำลังรีเฟรชชุดหัวพิมพ์"
 
 #, boost-format
 msgid "Reading (%1% / %2%)"
-msgstr ""
+msgstr "กำลังอ่าน (%1% / %2%)"
 
 #, boost-format
 msgid "Reading Hotend %1%"
-msgstr ""
+msgstr "กำลังอ่านข้อมูลชุดหัวพิมพ์ %1%"
 
 msgid "Please wait..."
-msgstr ""
+msgstr "โปรดรอสักครู่..."
 
 msgid "Edit Filament"
 msgstr "แก้ไขเส้นวัสดุ"
@@ -812,138 +820,140 @@ msgid "Tip"
 msgstr "เคล็ดลับ"
 
 msgid "Empty slot"
-msgstr ""
+msgstr "ช่องว่าง"
 
 msgid "RFID is being read"
-msgstr ""
+msgstr "กำลังอ่านข้อมูล RFID"
 
 msgid "Filament change in progress"
-msgstr ""
+msgstr "กำลังเปลี่ยนเส้นวัสดุ"
 
 msgid "Slot is in error state"
-msgstr ""
+msgstr "ช่องอยู่ในสถานะข้อผิดพลาด"
 
 msgid "Filament already loaded"
-msgstr ""
+msgstr "เส้นวัสดุโหลดแล้ว"
 
 msgid "Ready to load"
-msgstr ""
+msgstr "พร้อมโหลด"
 
 msgid "Loaded"
-msgstr ""
+msgstr "โหลดแล้ว"
 
 msgid "TPU pending read"
-msgstr ""
+msgstr "TPU กำลังรอการอ่าน"
 
 msgid "Unknown filament"
-msgstr ""
+msgstr "เส้นวัสดุที่ไม่รู้จัก"
 
 msgid "Other batch mode active"
-msgstr ""
+msgstr "โหมดแบทช์อื่นๆ เปิดใช้งานอยู่"
 
 msgid "External filament already loaded into hotend"
-msgstr ""
+msgstr "เส้นวัสดุภายนอกโหลดเข้าชุดหัวพิมพ์แล้ว"
 
 msgid "The current tool is not a nozzle"
-msgstr ""
+msgstr "เครื่องมือที่ใช้ในปัจจุบันไม่ใช่หัวฉีด"
 
 msgid "There are no nozzle installed"
-msgstr ""
+msgstr "ยังไม่ได้ติดตั้งหัวฉีด"
 
 msgid "Nozzle is in error state"
-msgstr ""
+msgstr "หัวฉีดอยู่ในสถานะข้อผิดพลาด"
 
 msgid "Nozzle has been detached"
-msgstr ""
+msgstr "หัวฉีดถูกถอดออกแล้ว"
 
 msgid "Nozzle type is unknown"
-msgstr ""
+msgstr "ไม่ทราบประเภทหัวฉีด"
 
 msgid "Slot not loaded"
-msgstr ""
+msgstr "ช่องยังไม่ได้ถูกโหลด"
 
 msgid "No filament information available"
-msgstr ""
+msgstr "ไม่มีข้อมูลเกี่ยวกับเส้นวัสดุ"
 
 msgid "Cannot read all while printing or upgrading"
-msgstr ""
+msgstr "ไม่สามารถอ่านทั้งหมดได้ขณะพิมพ์หรืออัปเกรด"
 
 msgid ""
 "Unable to read filament information.\n"
 "Filament is currently loaded in the feeding inlet. Please pull it out first and try again."
 msgstr ""
+"ไม่สามารถอ่านข้อมูลเส้นวัสดุได้\n"
+"ขณะนี้เส้นวัสดุถูกโหลดอยู่ในช่องป้อนวัสดุ โปรดดึงออกก่อนแล้วลองอีกครั้ง"
 
 msgid "The printer is busy on other job"
-msgstr ""
+msgstr "เครื่องพิมพ์กำลังทำงานพิมพ์อื่นอยู่"
 
 msgid "Cannot stop filament change while printing or calibrating"
-msgstr ""
+msgstr "ไม่สามารถหยุดการเปลี่ยนเส้นวัสดุได้ขณะพิมพ์หรือปรับเทียบ"
 
 msgid "No slots selected for batch run"
-msgstr ""
+msgstr "ไม่ได้เลือกช่องสำหรับการทำงานเป็นแบทช์"
 
 msgid "All selected slots are invalid"
-msgstr ""
+msgstr "ช่องที่เลือกทั้งหมดไม่ถูกต้อง"
 
 msgid "MQTT publish failed for multi_slot_ams_change_filament"
-msgstr ""
+msgstr "การเผยแพร่ MQTT สำหรับ multi_slot_ams_change_filament ล้มเหลว"
 
 msgid "Hotend Details"
-msgstr ""
+msgstr "รายละเอียดชุดหัวพิมพ์"
 
 msgid "PrintTool communication error. Please check the PrintTool cable and try again."
-msgstr ""
+msgstr "การสื่อสารของเครื่องมือพิมพ์เกิดข้อผิดพลาด โปรดตรวจสอบสายเคเบิลเครื่องมือพิมพ์แล้วลองใหม่อีกครั้ง"
 
 msgid "PrintTool detached. Cannot load."
-msgstr ""
+msgstr "เครื่องมือพิมพ์ถูกถอดออกแล้ว ไม่สามารถโหลดได้"
 
 msgid "PrintTool communication error. Cannot operate."
-msgstr ""
+msgstr "การสื่อสารของเครื่องมือพิมพ์เกิดข้อผิดพลาด ไม่สามารถดำเนินการได้"
 
 msgid "The current filament may not be fully loaded into the PrintTool"
-msgstr ""
+msgstr "เส้นวัสดุปัจจุบันอาจยังไม่โหลดเข้าไปในเครื่องมือพิมพ์อย่างสมบูรณ์"
 
 msgid "Hotend type unknown"
-msgstr ""
+msgstr "ไม่ทราบประเภทชุดหัวพิมพ์"
 
 msgid "The current filament may not be fully loaded into the PrintTool, which may cause printing issues. Please pull the filament out of the PrintTool, then click \"Load\" to complete loading."
-msgstr ""
+msgstr "เส้นวัสดุปัจจุบันอาจยังไม่โหลดเข้าไปในเครื่องมือพิมพ์อย่างสมบูรณ์ ซึ่งอาจทำให้เกิดปัญหาในการพิมพ์ได้ โปรดดึงเส้นวัสดุออกจากเครื่องมือพิมพ์ จากนั้นคลิก \"โหลด\" เพื่อทำการโหลดให้เสร็จสมบูรณ์"
 
 msgid "Hotend type unknown. Please edit the hotend type on the printer and try again."
-msgstr ""
+msgstr "ไม่ทราบประเภทชุดหัวพิมพ์ โปรดแก้ไขประเภทชุดหัวพิมพ์บนเครื่องพิมพ์แล้วลองอีกครั้ง"
 
 msgid "View details"
 msgstr "ดูรายละเอียด"
 
 msgid "Hotend rack is busy"
-msgstr ""
+msgstr "แร็คชุดหัวพิมพ์กำลังทำงานอยู่"
 
 msgid "Hotend rack cannot read all"
-msgstr ""
+msgstr "แร็คชุดหัวพิมพ์ไม่สามารถอ่านข้อมูลทั้งหมดได้"
 
 msgid "Settings for CutTool and DrawTool are not supported yet."
-msgstr ""
+msgstr "ยังไม่รองรับการตั้งค่าสำหรับเครื่องมือตัดและเครื่องมือวาด"
 
 msgid "Invalid hotend display_index"
-msgstr ""
+msgstr "display_index ชุดหัวพิมพ์ไม่ถูกต้อง"
 
 msgid "Invalid hotend temperature payload"
-msgstr ""
+msgstr "เพย์โหลดอุณหภูมิชุดหัวพิมพ์ไม่ถูกต้อง"
 
 msgid "No hotend rack"
-msgstr ""
+msgstr "ไม่มีแร็คชุดหัวพิมพ์"
 
 msgid "Hotend cannot set temperature"
-msgstr ""
+msgstr "ชุดหัวพิมพ์ไม่สามารถตั้งอุณหภูมิได้"
 
 msgid "Invalid hotend addr_id"
-msgstr ""
+msgstr "addr_id ชุดหัวพิมพ์ไม่ถูกต้อง"
 
 msgid "Loading/Unloading"
-msgstr ""
+msgstr "กำลังโหลด/กำลังถอด"
 
 msgid "Checking"
-msgstr ""
+msgstr "กำลังตรวจสอบ"
 
 msgid "Cooling"
 msgstr "การระบายความร้อน"
@@ -952,51 +962,52 @@ msgid "Stopping"
 msgstr "กำลังหยุด"
 
 msgid "Heat fault"
-msgstr ""
+msgstr "ความผิดพลาดด้านความร้อน"
 
 msgid "Self test"
-msgstr ""
+msgstr "การทดสอบตนเอง"
 
 msgid "No selected machine"
-msgstr ""
+msgstr "ยังไม่ได้เลือกเครื่อง"
 
-msgid "loading/unloading"
+#, boost-format
+msgid "Slot %1% filament loading in progress"
 msgstr ""
 
 #, boost-format
-msgid "Slot %1% filament %2% in progress"
+msgid "Slot %1% filament unloading in progress"
 msgstr ""
 
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
-msgstr ""
+msgstr "ลบ \"%s\" จากกลุ่มรีฟิลนี้หรือไม่"
 
 msgid "The refill group will be automatically deleted after removal."
-msgstr ""
+msgstr "กลุ่มรีฟิลจะถูกลบโดยอัตโนมัติหลังจากลบออก"
 
 msgid "Remove"
 msgstr "นำออก"
 
 msgid "This will delete all manually added filament in current group, please proceed with caution."
-msgstr ""
+msgstr "การดำเนินการนี้จะลบเส้นวัสดุทั้งหมดที่เพิ่มด้วยตนเองในกลุ่มปัจจุบัน โปรดดำเนินการด้วยความระมัดระวัง"
 
 msgid "Reset Refill Group"
-msgstr ""
+msgstr "รีเซ็ตกลุ่มรีฟิล"
 
 msgid "Reset"
 msgstr "รีเซ็ต"
 
 msgid "When the current spool runs out, the printer automatically continues with a spool of the same brand, type, and color. Refill relations can also be edited manually, so spools of the same type in a different color can be used for refilling."
-msgstr ""
+msgstr "เมื่อม้วนวัสดุปัจจุบันหมด เครื่องพิมพ์จะดำเนินการพิมพ์ต่อโดยอัตโนมัติด้วยม้วนวัสดุที่มีแบรนด์ ประเภท และสีเดียวกัน ความสัมพันธ์ในรีฟิลสามารถแก้ไขได้ด้วยตนเองเช่นกัน ดังนั้นจึงสามารถใช้ม้วนวัสดุประเภทเดียวกันแต่สีต่างกันในการรีฟิลได้"
 
 msgid "Drag spools to adjust their priority."
-msgstr ""
+msgstr "ลากม้วนวัสดุเพื่อปรับลำดับความสำคัญ"
 
 msgid "The system has created auto-refill groups based on material type, color, and brand."
-msgstr ""
+msgstr "ระบบได้สร้างกลุ่มรีฟิลอัตโนมัติโดยอิงตามประเภทวัสดุ สี และแบรนด์"
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
-msgstr ""
+msgstr "เมื่อพิมพ์ หลังจากม้วนวัสดุปัจจุบันหมด เครื่องพิมพ์จะสลับไปใช้ม้วนวัสดุที่เข้ากันได้ถัดไปตามลำดับกลุ่มโดยอัตโนมัติ และจะวนกลับไปที่ม้วนวัสดุแรกหลังจากใช้หมดม้วนสุดท้าย"
 
 msgid "Supports Painting"
 msgstr "รองรับการระบายสี"
@@ -1459,6 +1470,10 @@ msgstr "กำลังตัดโมเดลวัตถุ"
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
 msgstr "ขอบเปิดอาจเกิดจากเครื่องมือตัด คุณต้องการซ่อมแซมตอนนี้หรือไม่?"
 
+#, c-format, boost-format
+msgid "Repair object: %s"
+msgstr ""
+
 msgid "Repairing model object"
 msgstr "กำลังซ่อมแซมโมเดลวัตถุ"
 
@@ -1692,7 +1707,7 @@ msgid "Operation already cancelling. Please wait few seconds."
 msgstr "กำลังยกเลิกการดำเนินการ โปรดรอสักครู่"
 
 msgid "Transferring painting to the simplified mesh..."
-msgstr ""
+msgstr "กำลังถ่ายโอนการวาดไปยังเมชแบบง่าย..."
 
 msgid "Face recognition"
 msgstr "การจดจำหน้า"
@@ -3239,7 +3254,7 @@ msgstr ""
 
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
-msgstr ""
+msgstr "การดำเนินการบูลีนเมชรองรับได้สูงสุด %1% ชิ้นส่วน แต่วัตถุที่เลือกประกอบด้วย %2% ชิ้นส่วน โปรดลดจำนวนชิ้นส่วนแล้วลองอีกครั้ง"
 
 msgid "Cut Connectors information"
 msgstr "ข้อมูลตัวเชื่อมต่อที่ตัด"
@@ -3545,7 +3560,7 @@ msgid "Off"
 msgstr "ปิด"
 
 msgid "Air Purifier"
-msgstr ""
+msgstr "เครื่องฟอกอากาศ"
 
 msgctxt "AirPurifier"
 msgid "Max"
@@ -3621,7 +3636,7 @@ msgstr "ขวา (ตัวกรอง)"
 
 msgctxt "air_duct"
 msgid "Right(Heating)"
-msgstr ""
+msgstr "ขวา (กำลังทำความร้อน)"
 
 msgctxt "air_duct"
 msgid "Left(Aux)"
@@ -4335,13 +4350,13 @@ msgid "Remaining time: %dmin%ds"
 msgstr "เวลาที่เหลือ: %d นาที %d วินาที"
 
 msgid "No valid computation result. This parameter cannot be adjusted."
-msgstr ""
+msgstr "ไม่มีผลการคำนวณที่ถูกต้อง ไม่สามารถปรับค่าพารามิเตอร์นี้ได้"
 
 msgid "Transition Smoothness (between color blocks): the higher, the smoother"
-msgstr ""
+msgstr "ความราบรื่นของการเปลี่ยนผ่าน (ระหว่างบล็อกสี): ยิ่งค่าสูง ยิ่งราบรื่น"
 
 msgid "Auto Merge Small Fragments: the higher, the more merging"
-msgstr ""
+msgstr "ผสานชิ้นส่วนเล็กโดยอัตโนมัติ: ยิ่งค่าสูง การผสานยิ่งมากขึ้น"
 
 msgid "Add Filament"
 msgstr "เพิ่มเส้นวัสดุ"
@@ -4353,10 +4368,10 @@ msgid "Official Filament"
 msgstr "เส้นวัสดุอย่างเป็นทางการ"
 
 msgid "Set filament match color difference threshold"
-msgstr ""
+msgstr "ตั้งค่าเธรชโฮลด์ความแตกต่างของสีเส้นวัสดุ"
 
 msgid "Color tolerance for automatic filament matching. Higher value = easier to match."
-msgstr ""
+msgstr "ค่าความคลาดเคลื่อนสีสำหรับการจับคู่เส้นวัสดุอัตโนมัติ ค่าที่สูงกว่า = จับคู่ได้ง่ายกว่า"
 
 msgid "+ Add Filament"
 msgstr "+เพิ่มเส้นวัสดุ"
@@ -4374,8 +4389,8 @@ msgid "New Mixed Filaments"
 msgstr "เส้นวัสดุผสมใหม่"
 
 #, boost-format
-msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
-msgstr "โครงการนี้รองรับเส้นวัสดุสูงสุด %1% เส้น ต้องผสานเส้นวัสดุส่วนเกินเข้าด้วยกันก่อนนำเข้า"
+msgid "The project supports up to %1% filaments."
+msgstr ""
 
 msgid "Updating"
 msgstr "กำลังอัปเดต"
@@ -4419,11 +4434,8 @@ msgstr "ใช้ชุดผสมที่เป็นทางการ →"
 msgid "Some colors have no matching filament. Please match them before importing."
 msgstr "บางสีไม่มีเส้นวัสดุที่เข้ากันได้ โปรดจับคู่ให้ตรงกันก่อนนำเข้า"
 
-msgid "Auto-Add All Filaments"
-msgstr "เพิ่มเส้นวัสดุทั้งหมดโดยอัตโนมัติ"
-
-msgid "Fix now"
-msgstr "แก้ไขทันที"
+msgid "Complete All Filaments"
+msgstr ""
 
 msgid "Skip"
 msgstr "ข้าม"
@@ -4478,62 +4490,23 @@ msgstr "จำนวนสีต้องไม่เกินขีดจำก
 msgid "Click to select a matching filament"
 msgstr "คลิกเพื่อเลือกเส้นวัสดุที่ตรงกัน"
 
-#, boost-format
-msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
-msgstr "โครงการนี้รองรับเส้นวัสดุสูงสุด %1% เส้น จำนวนปัจจุบันคือ %2%ซึ่งเกินขีดจำกัด"
-
 msgid "Error Prompt"
 msgstr "ข้อความแจ้งข้อผิดพลาด"
-
-msgid "This plan cannot merge any filaments. Remaining filaments use different materials."
-msgstr ""
-
-#, boost-format
-msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
-msgstr ""
-
-msgid "Mixing kits"
-msgstr ""
-
-msgid "Existing project filaments"
-msgstr ""
-
-msgid "Kept filaments"
-msgstr ""
-
-msgid "Deleted filaments"
-msgstr ""
-
-msgid "After merging"
-msgstr ""
-
-#, boost-format
-msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit. Please choose how to proceed."
-msgstr ""
-
-msgid "Prioritize merging similar-color filaments"
-msgstr ""
-
-msgid "Prioritize merging small-area filaments"
-msgstr ""
-
-msgid "Apply now"
-msgstr ""
 
 msgid "How to use standard mixing kits"
 msgstr "วิธีการใช้งานชุดผสมมาตรฐาน"
 
 msgid "What is the CMYKW mixing kit?"
-msgstr ""
+msgstr "ชุดผสม CMYKW คืออะไร"
 
 msgid "After official print testing, you only need a standard CMYKW mixing kit to mix hundreds of color effects."
-msgstr ""
+msgstr "หลังจากทำการทดสอบการพิมพ์อย่างเป็นทางการแล้ว คุณก็แค่ใช้ชุดผสม CMYKW มาตรฐานเพื่อผสมสีได้หลายร้อยแบบ"
 
 msgid "5-color CMYKW"
-msgstr ""
+msgstr "CMYKW 5 สี"
 
 msgid "Cyan · Magenta · Yellow · Black · White"
-msgstr ""
+msgstr "สีฟ้า · สีม่วงแดง · สีเหลือง · สีดำ · สีขาว"
 
 msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
 msgstr "ดังนั้น เมื่อนำเข้าโมเดล คุณสามารถจับคู่สีโดยใช้เส้นวัสดุในชุดนี้และการผสมสีของพวกมันได้"
@@ -4654,7 +4627,7 @@ msgid "AMS Materials Setting"
 msgstr "การตั้งค่าวัสดุ AMS"
 
 msgid "Reread"
-msgstr ""
+msgstr "อ่านใหม่"
 
 msgid "Colour"
 msgstr "สี"
@@ -4666,7 +4639,7 @@ msgid "Total Weight"
 msgstr "น้ำหนักรวม"
 
 msgid "Remain Weight"
-msgstr ""
+msgstr "น้ำหนักคงเหลือ"
 
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "ปัจจัยการปรับเทียบพลศาสตร์การไหล"
@@ -4700,10 +4673,10 @@ msgid "Tip: Setting Virtual slot information while printing is not supported"
 msgstr "คำแนะนำ: ไม่รองรับการตั้งค่าข้อมูลช่อง Virtual ระหว่างพิมพ์"
 
 msgid "Please enter valid filament weights."
-msgstr ""
+msgstr "โปรดป้อนน้ำหนักเส้นวัสดุที่ถูกต้อง"
 
 msgid "Please enter valid filament weight within 1000g."
-msgstr ""
+msgstr "โปรดป้อนน้ำหนักเส้นวัสดุที่ถูกต้องภายใน 1000 กรัม"
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "คุณแน่ใจหรือไม่ว่าต้องการล้างข้อมูลเส้นวัสดุ?"
@@ -4922,7 +4895,7 @@ msgid "WET"
 msgstr "ชื้น"
 
 msgid "Please select the filament to match."
-msgstr ""
+msgstr "โปรดเลือกเส้นวัสดุที่ต้องการจับคู่"
 
 msgid "AMS"
 msgstr ""
@@ -4980,10 +4953,10 @@ msgid "The AMS will not automatically read information from inserted filament du
 msgstr "AMS จะไม่อ่านข้อมูลจากเส้นวัสดุที่ใส่ไว้โดยอัตโนมัติเมื่อเริ่มการทำงาน และจะยังคงใช้ข้อมูลที่บันทึกไว้ก่อนการปิดเครื่องครั้งล่าสุด"
 
 msgid "Automatically refresh unloaded filaments"
-msgstr ""
+msgstr "รีเฟรชเส้นวัสดุที่ถอดออกแล้วโดยอัตโนมัติ"
 
 msgid "For official filaments, the filament type is automatically refreshed when entering the Device page. To avoid frequent refreshes, automatic refreshes occur no more than once per minute."
-msgstr ""
+msgstr "สำหรับเส้นวัสดุอย่างเป็นทางการ ประเภทเส้นวัสดุจะถูกรีเฟรชโดยอัตโนมัติเมื่อเข้าสู่หน้าอุปกรณ์ เพื่อหลีกเลี่ยงการรีเฟรชบ่อยเกินไป การรีเฟรชอัตโนมัติจะเกิดขึ้นไม่เกินหนึ่งครั้งต่อนาที"
 
 msgid "Update remaining capacity"
 msgstr "อัปเดตความจุที่เหลือ"
@@ -6078,7 +6051,7 @@ msgid "Why this grouping"
 msgstr "ทำไมต้องจัดกลุ่มแบบนี้"
 
 msgid "AMS nozzle"
-msgstr ""
+msgstr "หัวฉีด AMS"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "โปรดวางเส้นวัสดุบนเครื่องพิมพ์ตามผลการจัดกลุ่ม"
@@ -6474,9 +6447,6 @@ msgstr "เส้นทาง G-code เกินขอบแผ่นฐาน"
 msgid "Not support printing 2 or more TPU filaments."
 msgstr "ไม่รองรับการพิมพ์เส้นวัสดุ TPU 2 ชนิดขึ้นไป"
 
-msgid "The printer preset is missing a TPU285 nozzle."
-msgstr ""
-
 msgid "The total printed weight exceeds this printer's recommended capacity and may cause slower printing or print defects."
 msgstr "น้ำหนักรวมของวัตถุที่พิมพ์เกินค่าที่แนะนำสำหรับเครื่องพิมพ์นี้ ซึ่งอาจทำให้การพิมพ์ช้าลงหรือเกิดข้อบกพร่องในการพิมพ์"
 
@@ -6510,7 +6480,7 @@ msgid "PLA and PETG filaments detected in the mixture. Adjust parameters accordi
 msgstr "ตรวจพบเส้นวัสดุ PLA และ PETG ในส่วนผสม ปรับพารามิเตอร์ตาม Wiki เพื่อให้มั่นใจในคุณภาพงานพิมพ์"
 
 msgid "Generation of a prime tower is not supported on your printer if multiple materials and a support structure are used. Integrated Support is enabled for slicing."
-msgstr ""
+msgstr "เครื่องพิมพ์ของคุณไม่รองรับการสร้างไพรม์ทาวเวอร์หากมีการใช้วัสดุหลายชนิดและโครงสร้างรองรับ เปิดใช้งานการรองรับแบบรวมสำหรับการตัดแบ่งแล้ว"
 
 msgid "Detected brittle filament (e.g., PPS-CF). Please place the models at the center of the heated bed. Printing near the edge may cause the filament to bend excessively and break inside the tube."
 msgstr "ตรวจพบเส้นวัสดุเปราะ (เช่น PPS-CF) โปรดวางโมเดลไว้ที่กึ่งกลางของฐานความร้อน การพิมพ์ใกล้ขอบอาจทำให้เส้นวัสดุโค้งงอมากเกินไปและหักในท่อได้"
@@ -6541,9 +6511,6 @@ msgstr "เปิดใช้งานการตรวจจับการจ
 
 msgid "Click here to regroup"
 msgstr "คลิกที่นี่เพื่อจัดกลุ่มใหม่"
-
-msgid "Click to add a TPU285 nozzle"
-msgstr ""
 
 msgid "Flushing Volume"
 msgstr "ปริมาณการไล่เส้น"
@@ -6604,10 +6571,10 @@ msgid "Go Live"
 msgstr "เริ่มถ่ายทอดสด"
 
 msgid "Live Camera Recording"
-msgstr ""
+msgstr "การบันทึกด้วยกล้องแบบเรียลไทม์"
 
 msgid "Visual Enhancement Camera Recording"
-msgstr ""
+msgstr "การบันทึกด้วยกล้องเสริมภาพ"
 
 msgid "Liveview Retry"
 msgstr "ลองโหลดมุมมองสดอีกครั้ง"
@@ -7228,16 +7195,16 @@ msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "โหลดไลบรารีปลั๊กอินล้มเหลว คลิกที่นี่เพื่อดูวิธีแก้ไข"
 
 msgid "Switch to the auxiliary live camera view"
-msgstr ""
+msgstr "สลับไปมุมมองกล้องเรียลไทม์เสริม"
 
 msgid "Switch to the main live camera view"
-msgstr ""
+msgstr "สลับไปมุมมองกล้องเรียลไทม์หลัก"
 
 msgid "Switch live camera view"
-msgstr ""
+msgstr "สลับมุมมองกล้องเรียลไทม์"
 
 msgid "Current camera is abnormal"
-msgstr ""
+msgstr "กล้องปัจจุบันทำงานผิดปกติ"
 
 msgid "Loading failed. Please check the network and try again."
 msgstr "โหลดไม่สำเร็จ โปรดตรวจสอบเครือข่ายแล้วลองอีกครั้ง"
@@ -7995,7 +7962,7 @@ msgid "Status"
 msgstr "สถานะ"
 
 msgid "Print queue"
-msgstr ""
+msgstr "คิวการพิมพ์"
 
 msgctxt "Firmware"
 msgid "Update"
@@ -8215,7 +8182,7 @@ msgid "Gcode path overlap"
 msgstr "เส้นทาง G-code ทับซ้อนกัน"
 
 msgid "Please adjust the nozzle diameter/flow of the affected filament in the filament panel."
-msgstr ""
+msgstr "โปรดปรับขนาดเส้นผ่านศูนย์กลางหัวฉีด/อัตราการไหลของเส้นวัสดุที่ได้รับผลกระทบในแผงควบคุมเส้นวัสดุ"
 
 msgid "Support painting"
 msgstr "การระบายสีโครงสร้างรองรับ"
@@ -8263,23 +8230,35 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "ด้านล่าง"
 
-msgid "Notify only"
+msgid "Read-only, automatically calculated from the base initial layer height"
 msgstr ""
 
-msgid "Slow down toolhead"
+msgid "Read-only, automatically calculated from the base layer height"
 msgstr ""
+
+msgid "Read-only, automatically calculated from the base value"
+msgstr ""
+
+msgid "nozzle"
+msgstr "หัวฉีด"
+
+msgid "Notify only"
+msgstr "แจ้งเตือนเท่านั้น"
+
+msgid "Slow down toolhead"
+msgstr "ลดความเร็วชุดหัวจ่าย"
 
 msgid "Pause printing"
 msgstr "หยุดการพิมพ์ชั่วคราว"
 
 msgid "When the door is opened during printing, the printer slows down the toolhead related moves for safety. This may increase the toolhead switching time and affect the print quality."
-msgstr ""
+msgstr "เมื่อเปิดประตูขณะพิมพ์ เครื่องพิมพ์จะลดความเร็วในการเคลื่อนที่ของชุดหัวจ่ายเพื่อความปลอดภัย สิ่งนี้อาจเพิ่มเวลาในการสลับชุดหัวจ่ายและส่งผลต่อคุณภาพการพิมพ์"
 
 msgid "Enable Slow Down Toolhead?"
-msgstr ""
+msgstr "เปิดใช้งานลดความเร็วชุดหัวจ่ายหรือไม่"
 
 msgid "Enable Anyway"
-msgstr ""
+msgstr "ยังคงเปิดใช้งาน"
 
 msgid "There is stringing-prone filament in the current print job. Enabling nozzle clumping detection now may degrade print quality. Are you sure you want to enable it?"
 msgstr "งานพิมพ์ปัจจุบันมีเส้นวัสดุที่เกิดเส้นใยได้ง่าย การเปิดใช้งานการตรวจจับหัวฉีดจับเป็นก้อนในตอนนี้อาจทำให้คุณภาพงานพิมพ์ลดลง คุณแน่ใจหรือไม่ว่าต้องการเปิดใช้งาน?"
@@ -8354,7 +8333,7 @@ msgid "Checks for any objects on the build plate at the start of a print to avoi
 msgstr "ตรวจสอบวัตถุแปลกปลอมบนแผ่นฐานสำหรับขึ้นรูปก่อนเริ่มพิมพ์งานเพื่อหลีกเลี่ยงการชน"
 
 msgid "Print Loosening Detection"
-msgstr ""
+msgstr "การตรวจจับการหลวมของการพิมพ์"
 
 msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
 msgstr "ตรวจสอบชิ้นงานพิมพ์ในระหว่างการพิมพ์และแจ้งเตือนทันทีหากมีการเลื่อนหรือยุบตัว"
@@ -8402,7 +8381,7 @@ msgid "On"
 msgstr "เปิด"
 
 msgid "Detects air printing caused by nozzle clogging, filament tangling, or filament grinding."
-msgstr ""
+msgstr "ตรวจจับการพิมพ์ในอากาศที่เกิดจากหัวฉีดอุดตัน เส้นวัสดุพันกัน หรือเส้นวัสดุถูกบด"
 
 msgid "Open Door Detection"
 msgstr "การตรวจจับประตูเปิด"
@@ -9000,6 +8979,9 @@ msgstr "แบ่งพื้นผิวออกเป็นเซลล์แ
 msgid "View details on Wiki"
 msgstr "ดูรายละเอียดเพิ่มเติมได้ที่ wiki"
 
+msgid "Collapse panel"
+msgstr ""
+
 msgid "Global"
 msgstr "การตั้งค่าส่วนกลาง"
 
@@ -9020,6 +9002,9 @@ msgstr "การตั้งค่าเส้นวัสดุ"
 
 msgid "Printer settings"
 msgstr "การตั้งค่าเครื่องพิมพ์"
+
+msgid "Expand panel"
+msgstr ""
 
 msgid "At least one plate is required"
 msgstr "ต้องมีอย่างน้อย 1 แผ่นฐาน"
@@ -9135,13 +9120,13 @@ msgstr "AMS (1 ช่อง)"
 
 #, c-format, boost-format
 msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
-msgstr ""
+msgstr "ไม่มีหัวฉีดขนาดเส้นผ่านศูนย์กลาง %sมม. ในประเภทหัวฉีดที่คุณกำหนดค่าไว้ ดังนั้นคุณจึงไม่สามารถใช้ขนาดเส้นผ่านศูนย์กลาง %sมม. ในการตัดแบ่งได้"
 
 msgid "Configure Nozzle diameter"
-msgstr ""
+msgstr "ตั้งค่าเส้นผ่านศูนย์กลางหัวฉีด"
 
 msgid "Modify Nozzle Type"
-msgstr ""
+msgstr "แก้ไขประเภทหัวฉีด"
 
 msgid "Not installed"
 msgstr "ยังไม่ได้ติดตั้ง"
@@ -9214,15 +9199,18 @@ msgid "Remove last mixed filament"
 msgstr "ลบเส้นวัสดุผสมล่าสุด"
 
 msgid "Mixing filaments of different types or nozzle diameters is not supported. Please fix the marked mixed filaments in the left filament list."
-msgstr ""
+msgstr "ไม่รองรับการผสมเส้นวัสดุที่มีประเภทหรือขนาดเส้นผ่านศูนย์กลางหัวฉีดที่แตกต่างกัน โปรดแก้ไขเส้นวัสดุผสมที่ทำเครื่องหมายไว้ในรายการเส้นวัสดุด้านซ้าย"
 
 msgid "Search plate, object and part."
 msgstr "ค้นหาแผ่นฐาน วัตถุ และชิ้นส่วน"
 
 msgid "Change nozzle diameter"
-msgstr ""
+msgstr "เปลี่ยนขนาดเส้นผ่านศูนย์กลางหัวฉีด"
 
 msgid "This filament does not support printing with the current nozzle"
+msgstr ""
+
+msgid "The current nozzle settings have no nozzle of this type"
 msgstr ""
 
 #, c-format, boost-format
@@ -9234,18 +9222,27 @@ msgid ", and %d more"
 msgstr ", และอีก %d"
 
 #, c-format, boost-format
-msgid "model \"%s\""
-msgstr "โมเดล \"%s\""
-
-#, c-format, boost-format
-msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
+msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
 msgstr ""
 
-msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
+msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
+msgstr ""
+
+msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
+msgstr ""
+
+msgid "The filament you are deleting is used by the following mixed filaments, which will become unusable after deletion:"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Mixed filament %d"
 msgstr ""
 
 msgid "Delete Filament"
 msgstr "ลบเส้นวัสดุ"
+
+msgid "Continue deleting"
+msgstr ""
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "เส้นวัสดุผสมเป้าหมายใช้เส้นวัสดุจริงนี้เป็นส่วนประกอบ การผสานจะลบเส้นวัสดุจริงนี้ออก และอาจทำให้เส้นวัสดุผสมไม่ถูกต้อง ดำเนินการต่อหรือไม่?"
@@ -9285,32 +9282,32 @@ msgid "Cannot mix different filament types"
 msgstr "ผสมเส้นวัสดุต่างประเภทกันไม่ได้"
 
 msgid "Cannot mix filaments using different nozzle diameters"
-msgstr ""
+msgstr "ไม่สามารถผสมเส้นวัสดุที่มีขนาดหัวฉีดต่างกันได้"
 
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
 msgstr ""
 
 msgid "Please modify the original project filament diameter."
-msgstr ""
+msgstr "โปรดแก้ไขขนาดเส้นผ่านศูนย์กลางของเส้นวัสดุที่ใช้ในโปรเจกต์เดิม"
 
 msgid "Edit / Delete / Merge"
 msgstr "แก้ไข / ลบ / ผสาน"
 
 #, c-format, boost-format
 msgid "Mixed filament %s has broken component references."
-msgstr ""
+msgstr "เส้นวัสดุผสม %s มีการอ้างอิงคอมโพเนนต์ที่เสียหาย"
 
 #, c-format, boost-format
 msgid "Mixed filament %s mixes different filament types, which is not supported."
-msgstr ""
+msgstr "เส้นวัสดุผสม %s ผสมเส้นวัสดุหลายประเภทเข้าด้วยกัน ซึ่งไม่รองรับ"
 
 #, c-format, boost-format
 msgid "Mixed filament %s mixes different nozzle diameters, which is not supported."
-msgstr ""
+msgstr "เส้นวัสดุผสม %s ผสมหัวฉีดที่มีขนาดเส้นผ่าศูนย์กลางต่างกัน ซึ่งไม่รองรับ"
 
 msgid "Please fix the marked mixed filaments in the left filament list."
-msgstr ""
+msgstr "โปรดแก้ไขเส้นวัสดุผสมที่ทำเครื่องหมายไว้ในรายการเส้นวัสดุด้านซ้าย"
 
 #, c-format, boost-format
 msgid "Filament %s is not configured for the %s nozzle. Please change the nozzle or the filament before use."
@@ -9332,8 +9329,11 @@ msgstr ""
 msgid "Filament %s has no preset for the current nozzle settings. Please create the matching filament preset."
 msgstr ""
 
-msgid "Add a new preset"
+msgid "Add the nozzle"
 msgstr ""
+
+msgid "Add a new preset"
+msgstr "เพิ่มพรีเซ็ตใหม่"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -9385,8 +9385,8 @@ msgstr "กำลังโหลดไฟล์: %s"
 msgid "The 3mf file has invalid config, load geometry data only"
 msgstr "ไฟล์ 3mf มีการกำหนดค่าไม่ถูกต้อง โหลดเฉพาะข้อมูลรูปทรง"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "ไฟล์ 3mf ไม่ได้มาจาก Bambu Lab โหลดเฉพาะข้อมูลรูปทรง"
+msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
+msgstr "ไฟล์ 3mf ไม่ได้มาจาก Bambu Lab จะโหลดเฉพาะข้อมูลรูปทรงและข้อมูลสีเท่านั้น"
 
 msgid "The Config can not be loaded."
 msgstr "ไม่สามารถโหลดไฟล์การกำหนดค่า"
@@ -9399,9 +9399,6 @@ msgstr "เนื่องจาก Bambu Studio เป็นเวอร์ช�
 
 msgid "Found following keys unrecognized:\n"
 msgstr "พบรายการคีย์ที่ไม่รู้จักดังนี้:\n"
-
-msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
-msgstr "ไฟล์ 3mf ไม่ได้มาจาก Bambu Lab จะโหลดเฉพาะข้อมูลรูปทรงและข้อมูลสีเท่านั้น"
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "ไฟล์ 3mf สร้างโดย Bambu Studio เวอร์ชันเก่า โหลดเฉพาะข้อมูลรูปทรง"
@@ -9460,7 +9457,7 @@ msgstr "ปริมาตรของวัตถุเป็นศูนย์
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
-msgstr ""
+msgstr "กำลังคำนวณสีของโมเดล: %s"
 
 msgid "Texture Import Warning"
 msgstr "คำเตือนเกี่ยวกับการนำเข้าลวดลาย"
@@ -10129,7 +10126,7 @@ msgstr "เส้นวัสดุบนเครื่องพิมพ์เ
 
 #, c-format, boost-format
 msgid "The currently connected printer is not available, please check the status of %s before syncing."
-msgstr ""
+msgstr "เครื่องพิมพ์ที่เชื่อมต่ออยู่ในปัจจุบันไม่สามารถใช้งานได้ โปรดตรวจสอบสถานะของ %s ก่อนทำการซิงค์"
 
 msgid "Device Page"
 msgstr "หน้าอุปกรณ์"
@@ -10545,10 +10542,10 @@ msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "ไม่มีคำเตือนเมื่อโหลดไฟล์ 3MF ที่มี G-code ที่แก้ไขแล้ว"
 
 msgid "Don't check printer information when loading 3MF"
-msgstr ""
+msgstr "อย่าตรวจสอบข้อมูลเครื่องพิมพ์เมื่อโหลด 3MF"
 
 msgid "No prompt to migrate the preset when the loaded 3MF does not match the connected printer"
-msgstr ""
+msgstr "ไม่มีการแจ้งเตือนให้ย้ายพรีเซ็ตเมื่อ 3MF ที่โหลดไม่ตรงกับเครื่องพิมพ์ที่เชื่อมต่ออยู่"
 
 msgid "10 seconds"
 msgstr "10 วินาที"
@@ -10656,13 +10653,13 @@ msgid "Enable SSL(FTP)"
 msgstr "เปิดใช้งาน SSL (FTP)"
 
 msgid "Import Texture Model"
-msgstr ""
+msgstr "นำเข้าโมเดลลวดลาย"
 
 msgid "Color Tolerance of Filament Matching"
-msgstr ""
+msgstr "ความคลาดเคลื่อนของสีในการจับคู่เส้นวัสดุ"
 
 msgid "CIEDE2000 difference used when matching imported texture colors to filaments. Filaments within this band are treated as equally close. This does not merge colors and does not change the match threshold in the texture import dialog."
-msgstr ""
+msgstr "ค่าความแตกต่าง CIEDE2000 ถูกนำมาใช้เมื่อทำการจับคู่สีลวดลายที่นำเข้ากับเส้นวัสดุ เส้นวัสดุที่อยู่ในช่วงนี้จะถือว่ามีความใกล้เคียงกัน การดำเนินการนี้จะไม่ผสานสีและไม่เปลี่ยนเธรชโฮลด์การจับคู่ในกล่องโต้ตอบการนำเข้าลวดลาย"
 
 msgid "Host Setting"
 msgstr "การตั้งค่าโฮสต์"
@@ -10739,13 +10736,13 @@ msgid "This filament is not compatible with the nozzle it is loaded on"
 msgstr ""
 
 msgid "To select this filament, change the nozzle settings first."
-msgstr ""
+msgstr "หากต้องการเลือกเส้นวัสดุนี้ โปรดเปลี่ยนการตั้งค่าหัวฉีดก่อน"
 
 msgid "Available Nozzles"
 msgstr "หัวฉีดที่พร้อมใช้งาน"
 
 msgid "Unavailable Nozzles"
-msgstr ""
+msgstr "หัวฉีดไม่พร้อมใช้งาน"
 
 msgid "AMS filaments"
 msgstr "เส้นวัสดุ AMS"
@@ -10796,7 +10793,7 @@ msgid "The selected preset is null!"
 msgstr "ค่าที่ตั้งไว้ล่วงหน้าที่เลือกเป็น null!"
 
 msgid "Color mixing only supports single-color filaments."
-msgstr ""
+msgstr "การผสมสีรองรับเฉพาะเส้นวัสดุสีเดียวเท่านั้น"
 
 msgid "End"
 msgstr "สิ้นสุด"
@@ -10981,19 +10978,19 @@ msgid "No hotends available."
 msgstr "ไม่มีชุดหัวพิมพ์พร้อมใช้งาน"
 
 msgid "No PrintTool available. Please install a compatible tool and try again."
-msgstr ""
+msgstr "ไม่มีเครื่องมือพิมพ์ที่ใช้งานได้ โปรดติดตั้งเครื่องมือที่เข้ากันได้แล้วลองอีกครั้ง"
 
 msgid "PrintTool detached. Please install before printing."
-msgstr ""
+msgstr "เครื่องมือพิมพ์ถูกถอดออกแล้ว โปรดติดตั้งก่อนพิมพ์"
 
 msgid "CutTool detached. Please install before printing."
-msgstr ""
+msgstr "เครื่องมือตัดถูกถอดออกแล้ว โปรดติดตั้งก่อนพิมพ์"
 
 msgid "DrawTool detached. Please install before printing."
-msgstr ""
+msgstr "เครื่องมือวาดถูกถอดออกแล้ว โปรดติดตั้งก่อนพิมพ์"
 
 msgid "None of the current tools have completed Docking Calibration. Please calibrate and try again."
-msgstr ""
+msgstr "ยังไม่มีเครื่องมือใดในปัจจุบันที่ทำการปรับเทียบการเชื่อมต่อเสร็จสมบูรณ์ โปรดปรับเทียบแล้วลองอีกครั้ง"
 
 msgid "Please complete the hotend rack setup and try again."
 msgstr "โปรดตั้งค่าชั้นวางชุดหัวพิมพ์ให้เสร็จสิ้นแล้วลองอีกครั้ง"
@@ -11083,7 +11080,7 @@ msgid "If the filament/nozzle of the main extruder hasn't changed, the last cali
 msgstr "หากเส้นวัสดุ/หัวฉีดของเอ็กซ์ทรูเดอร์หลักยังไม่เปลี่ยนแปลง ค่าการปรับเทียบครั้งล่าสุดจะถูกนำมาใช้ซ้ำ เอ็กซ์ทรูเดอร์รองจะใช้ค่าเริ่มต้นของระบบ"
 
 msgid "Add to queue"
-msgstr ""
+msgstr "เพิ่มเข้าคิว"
 
 msgid "send completed"
 msgstr "ส่งสำเร็จ"
@@ -11147,7 +11144,7 @@ msgid "Return to modify"
 msgstr "กลับไปแก้ไข"
 
 msgid "Only the current sliced plate can be added to the print queue."
-msgstr ""
+msgstr "สามารถเพิ่มเฉพาะแผ่นพิมพ์ที่ถูกตัดแบ่งในปัจจุบันลงในคิวการพิมพ์ได้"
 
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "ส่วนนี้จะตรวจสอบความเรียบของฐานความร้อน การชดเชยระดับฐานพิมพ์จะช่วยให้ความสูงสม่ำเสมอ"
@@ -11199,7 +11196,7 @@ msgid "Before each print starts, calibration will be performed for the main extr
 msgstr "ก่อนเริ่มการพิมพ์ทุกครั้ง ระบบจะทำการปรับเทียบเอ็กซ์ทรูเดอร์หลัก ส่วนเอ็กซ์ทรูเดอร์รองจะใช้ค่าเริ่มต้นของระบบ"
 
 msgid "The current filament mapping is invalid and the print would fail. Please select the filaments manually again."
-msgstr ""
+msgstr "การตั้งค่าเส้นวัสดุปัจจุบันไม่ถูกต้อง และการพิมพ์จะล้มเหลว โปรดเลือกเส้นวัสดุด้วยตนเองอีกครั้ง"
 
 msgid "Preparing print job"
 msgstr "กำลังเตรียมงานพิมพ์"
@@ -11211,7 +11208,7 @@ msgid "As the print job has been successfully sent, the cancellation will not br
 msgstr "เนื่องจากส่งงานพิมพ์สำเร็จแล้ว การยกเลิกจะไม่ทำให้งานพิมพ์หยุดลง หากคุณต้องการยุติงานนี้ โปรดหยุดการทำงานที่หน้า 'อุปกรณ์'"
 
 msgid "Print immediately"
-msgstr ""
+msgstr "พิมพ์ทันที"
 
 msgid "The name length exceeds the limit."
 msgstr "ความยาวของชื่อเกินขีดจำกัด"
@@ -11219,9 +11216,6 @@ msgstr "ความยาวของชื่อเกินขีดจำก
 #, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr "สิ้นเปลืองเส้นวัสดุ %d กรัม และเปลี่ยนมากกว่าการจัดกลุ่มที่เหมาะสม %d ครั้ง"
-
-msgid "nozzle"
-msgstr "หัวฉีด"
 
 msgid "both extruders"
 msgstr "เอ็กซ์ทรูเดอร์ทั้งสอง"
@@ -11243,7 +11237,7 @@ msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "เส้นวัสดุบน %s เป็นประเภทที่ไม่รู้จักและอาจอ่อนตัวลงได้ โปรดตั้งค่าเส้นวัสดุ"
 
 msgid "The print queue does not support the Filament Track Switch yet."
-msgstr ""
+msgstr "คิวการพิมพ์ยังไม่รองรับชุดสับรางเส้นวัสดุ"
 
 msgid ""
 "Upper half area:  Original\n"
@@ -11279,7 +11273,7 @@ msgid "Please wait a moment..."
 msgstr "โปรดรอสักครู่..."
 
 msgid "PrintToolRack moving, please wait."
-msgstr ""
+msgstr "แร็คเครื่องมือพิมพ์กำลังเคลื่อนที่ โปรดรอสักครู่"
 
 msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
 msgstr "ชุดหัวจ่ายและชั้นวางชุดหัวพิมพ์เต็มแล้ว โปรดถอดชุดหัวพิมพ์ออกอย่างน้อยหนึ่งชุดก่อนพิมพ์"
@@ -11345,22 +11339,22 @@ msgstr "เส้นวัสดุในกลุ่มเติมอัตโ
 
 #, c-format, boost-format
 msgid "Filament in slots %s may not have been properly loaded to the PrintTool. Please see the loading guide."
-msgstr ""
+msgstr "เส้นวัสดุในช่อง %s อาจยังโหลดเข้าสู่เครื่องมือพิมพ์ไม่ถูกต้อง โปรดดูคู่มือการโหลด"
 
 #, c-format, boost-format
 msgid "Filament are not loaded in PrintTool %s. Printing may pause for filament change. Please load the filament before printing."
-msgstr ""
+msgstr "เส้นวัสดุไม่ถูกโหลดในเครื่องมือพิมพ์ %s การพิมพ์อาจหยุดชั่วคราวเพื่อเปลี่ยนเส้นวัสดุพิมพ์ โปรดโหลดเส้นวัสดุก่อนทำการพิมพ์"
 
 #, c-format, boost-format
 msgid "Filament are not loaded in Slot %s. Printing may pause for filament change. Please load the filament before printing."
-msgstr ""
+msgstr "เส้นวัสดุไม่ได้ถูกโหลดในช่อง %s การพิมพ์อาจหยุดชั่วคราวเพื่อเปลี่ยนเส้นวัสดุพิมพ์ โปรดโหลดเส้นวัสดุก่อนทำการพิมพ์"
 
 #, c-format, boost-format
 msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. Please pull it out manually."
 msgstr ""
 
 #, c-format, boost-format
-msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
+msgid "External AMS and %1$s filaments are both selected for PrintTool %2$d. Because %3$s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
 #, c-format, boost-format
@@ -11437,7 +11431,7 @@ msgid "Cannot send the print job for empty plate"
 msgstr "ไม่สามารถส่งงานพิมพ์แผ่นฐานเปล่า"
 
 msgid "The slicing result of the current plate is invalid. Please re-slice and try again"
-msgstr ""
+msgstr "ผลการตัดแบ่งของแผ่นพิมพ์ปัจจุบันไม่ถูกต้อง โปรดตัดแบ่งใหม่และลองอีกครั้ง"
 
 msgid "Storage needs to be inserted to record timelapse."
 msgstr "จำเป็นต้องเสียบอุปกรณ์จัดเก็บข้อมูลเพื่อบันทึกไทม์แลปส์"
@@ -11458,13 +11452,13 @@ msgid "This printer does not support printing all plates"
 msgstr "เครื่องพิมพ์นี้ไม่รองรับการพิมพ์แผ่นฐานทั้งหมด"
 
 msgid "Printing a project that uses multiple nozzle diameters directly from storage is not supported yet. You can download the file and import it into Studio to print."
-msgstr ""
+msgstr "ยังไม่รองรับการพิมพ์โปรเจกต์ที่ใช้ขนาดเส้นผ่านศูนย์กลางหัวฉีดหลายขนาดโดยตรงจากที่จัดเก็บ คุณสามารถดาวน์โหลดไฟล์และนำเข้าไปยัง Studio เพื่อพิมพ์ได้"
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "โปรดตรวจสอบว่าเส้นผ่านศูนย์กลางหัวฉีดและอัตราการไหลที่ต้องการตรงกับการแสดงผลปัจจุบันหรือไม่"
 
 msgid "The sliced model is incompatible with this printer. You may have used an outdated or unsupported slicer or G-code. To print this model on this printer, please re-slice it using the latest version of Bambu Studio."
-msgstr ""
+msgstr "โมเดลที่ถูกตัดแบ่งนี้ไม่สามารถใช้งานร่วมกับเครื่องพิมพ์นี้ได้ คุณอาจใช้โปรแกรมสไลเซอร์หรือจีโคดที่ล้าสมัยหรือไม่รองรับ หากต้องการพิมพ์โมเดลนี้บนเครื่องพิมพ์นี้ โปรดทำการตัดแบ่งใหม่โดยใช้ Bambu Studio เวอร์ชันล่าสุด"
 
 msgid "How to install"
 msgstr "วิธีติดตั้ง"
@@ -11854,10 +11848,10 @@ msgid "Frequent"
 msgstr "บ่อยครั้ง"
 
 msgid "Selected only"
-msgstr ""
+msgstr "เฉพาะที่เลือก"
 
 msgid "All objects"
-msgstr ""
+msgstr "วัตถุทั้งหมด"
 
 msgid "Modifier cycle"
 msgstr "รอบของตัวปรับแต่ง"
@@ -12013,7 +12007,7 @@ msgid "Auxiliary part cooling fan"
 msgstr "พัดลมระบายความร้อนชิ้นงานเสริม"
 
 msgid "Auxiliary part cooling fan (left)"
-msgstr ""
+msgstr "พัดลมระบายความร้อนชิ้นงานเสริม (ซ้าย)"
 
 msgid "Exhaust fan"
 msgstr "พัดลมระบายอากาศ"
@@ -12034,7 +12028,7 @@ msgid "Multi Filament"
 msgstr "หลายเส้นวัสดุ"
 
 msgid "Auxiliary part cooling fan (right)"
-msgstr ""
+msgstr "พัดลมระบายความร้อนชิ้นงานเสริม (ขวา)"
 
 msgid "Purge Mode: Standard"
 msgstr "โหมดวัสดุส่วนเกิน: มาตรฐาน"
@@ -13496,6 +13490,9 @@ msgstr "ไฟล์ 3mf ที่ซ่อมแซมมีมากกว่�
 msgid "Repaired 3mf file contains more than one instance"
 msgstr "ไฟล์ 3mf ที่ซ่อมแซมมีมากกว่าหนึ่งอินสแตนซ์"
 
+msgid "Repairing"
+msgstr ""
+
 msgid "Repair finished"
 msgstr "ซ่อมแซมเสร็จสิ้น"
 
@@ -13513,7 +13510,7 @@ msgstr "เปิดไฟล์ G-code:"
 
 #, c-format, boost-format
 msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr ""
+msgstr "เพิ่มลงในคิวการพิมพ์สำเร็จแล้ว จะข้ามไปยังหน้าคิวการพิมพ์โดยอัตโนมัติใน %sวินาที"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
@@ -13539,7 +13536,7 @@ msgid "Refreshing printer access code"
 msgstr "กำลังรีเฟรชรหัสเข้าถึงเครื่องพิมพ์"
 
 msgid "Adding print job to queue"
-msgstr ""
+msgstr "เพิ่มงานพิมพ์ลงในคิว"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "วัตถุต่อไปนี้ไม่มีชั้นแรก จึงไม่สามารถพิมพ์ได้ โปรดตัดส่วนล่างออกหรือเปิดใช้งานโครงสร้างรองรับ"
@@ -13612,15 +13609,18 @@ msgid "No valid nozzle found. Please check nozzle count."
 msgstr "ไม่พบหัวฉีดที่ใช้งานได้ โปรดตรวจสอบจำนวนหัวฉีด"
 
 msgid "Filament assigned to a nozzle of incompatible diameter. Please regroup so each filament stays on a nozzle whose diameter it supports."
-msgstr ""
+msgstr "เส้นวัสดุถูกกำหนดให้กับหัวฉีดที่มีขนาดเส้นผ่านศูนย์กลางไม่เข้ากัน โปรดจัดกลุ่มใหม่เพื่อให้เส้นวัสดุแต่ละชนิดอยู่บนหัวฉีดที่มีขนาดเส้นผ่านศูนย์กลางที่รองรับ"
 
 msgid "Nozzle assignment error: no compatible fixed nozzle is available for the fixed filament group. Please check the nozzle setup or regroup."
-msgstr ""
+msgstr "ข้อผิดพลาดในการกำหนดหัวฉีด: ไม่มีหัวฉีดแบบคงที่ที่เข้ากันได้สำหรับกลุ่มเส้นวัสดุแบบคงที่ โปรดตรวจสอบการตั้งค่าหัวฉีดหรือจัดกลุ่มใหม่"
 
 msgid "Nozzle assignment error: no nozzle matches the diameter and flow selected for one of the filaments. Please check the nozzle setup."
-msgstr ""
+msgstr "ข้อผิดพลาดในการกำหนดหัวฉีด: ไม่มีหัวฉีดใดตรงกับขนาดเส้นผ่านศูนย์กลางและอัตราการไหลที่เลือกไว้สำหรับเส้นวัสดุเส้นใดเส้นหนึ่ง โปรดตรวจสอบการตั้งค่าหัวฉีด"
 
 msgid "Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."
+msgstr "ข้อผิดพลาดในการกำหนดหัวฉีด: แผนผังหัวฉีดต่อเส้นวัสดุไม่ถูกต้อง โปรดตรวจสอบการตั้งค่าหัวฉีดหรือจัดกลุ่มใหม่"
+
+msgid "Nozzle assignment error: per-filament nozzle map points to an empty or unavailable nozzle."
 msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
@@ -13802,7 +13802,7 @@ msgid " is too close to clumping detection area, and collisions will be caused.\
 msgstr " อยู่ใกล้กับพื้นที่ตรวจจับการจับเป็นก้อนมากเกินไป อาจเกิดการชน\n"
 
 msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr ""
+msgstr "แผ่นพิมพ์ปัจจุบันใช้เส้นวัสดุทนความร้อนสูง อย่าผสมกับเส้นวัสดุอุณหภูมิต่ำ"
 
 msgid "No extrusions under current settings."
 msgstr "ไม่มีการฉีดในการตั้งค่าปัจจุบัน"
@@ -13832,25 +13832,25 @@ msgid "Printing with different nozzle diameters and support ring is experimental
 msgstr ""
 
 msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr ""
+msgstr "การพิมพ์ด้วยขนาดเส้นผ่านศูนย์กลางหัวฉีดที่แตกต่างกันและไพรม์ทาวเวอร์เป็นฟีเจอร์ทดลอง ไพรม์ทาวเวอร์อาจทำงานไม่ถูกต้องหากขนาดหัวฉีดไม่ตรงกัน"
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
-msgstr ""
+msgstr "ไม่อนุญาตให้ใช้ขนาดเส้นผ่านศูนย์กลางหัวฉีดที่แตกต่างกันเมื่อเปิดใช้งานวงแหวนรองรับ"
 
 msgid "The support ring is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
-msgstr ""
+msgstr "ปัจจุบันวงแหวนรองรับรองรับเฉพาะโหมดกำหนดตำแหน่งแบบสัมพัทธ์ของเอ็กซ์ทรูเดอร์เท่านั้น (use_relative_e_distances=1)"
 
 msgid "The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
 msgstr "ขณะนี้ทาวเวอร์เช็ดหัวรองรับเฉพาะการกำหนดพิกัดเอ็กซ์ทรูเดอร์แบบสัมพัทธ์ (use_relative_e_distances=1)"
 
 msgid "Ooze prevention is currently not supported with the support ring enabled."
-msgstr ""
+msgstr "ปัจจุบันไม่รองรับการป้องกันการไหลซึมเมื่อเปิดใช้งานวงแหวนรองรับ"
 
 msgid "Ooze prevention is currently not supported with the prime tower enabled."
 msgstr "ปัจจุบันไม่รองรับการป้องกันการไหลเยิ้มเมื่อเปิดใช้งานทาวเวอร์สลับสี"
 
 msgid "The support ring is not supported in \"By object\" print. Switch to \"By layer\" or disable the support ring."
-msgstr ""
+msgstr "วงแหวนรองรับไม่รองรับในการพิมพ์แบบ \"ตามวัตถุ\" สลับเป็น \"ตามเลเยอร์\" หรือปิดใช้งานวงแหวนรองรับ"
 
 msgid "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors."
 msgstr "ปัจจุบันทาวเวอร์สลับสีรองรับเฉพาะ G-code ประเภท Marlin, RepRap/Sprinter, RepRapFirmware และ Repetier"
@@ -13865,25 +13865,25 @@ msgid "The prime tower requires \"support gap\" to be multiple of layer height"
 msgstr "ทาวเวอร์สลับสีกำหนดให้ค่า \"ระยะห่างโครงสร้างรองรับ\" ต้องเป็นพหุคูณของความหนาต่อชั้น"
 
 msgid "The support ring requires that all objects have the same layer heights"
-msgstr ""
+msgstr "วงแหวนรองรับกำหนดให้วัตถุทั้งหมดมีความหนาต่อชั้นเท่ากัน"
 
 msgid "The prime tower requires that all objects have the same layer heights"
 msgstr "ทาวเวอร์สลับสีต้องกำหนดให้วัตถุทั้งหมดมีความหนาต่อชั้นเท่ากัน"
 
 msgid "The support ring requires that all objects are printed over the same number of raft layers"
-msgstr ""
+msgstr "วงแหวนรองรับกำหนดให้วัตถุทั้งหมดต้องพิมพ์บนชั้นแพทรองรับจำนวนเท่ากัน"
 
 msgid "The prime tower requires that all objects are printed over the same number of raft layers"
 msgstr "ทาวเวอร์สลับสีต้องกำหนดให้วัตถุทั้งหมดถูกพิมพ์ทับด้วยจำนวนชั้นฐานรองรับเท่ากัน"
 
 msgid "The support ring requires that all objects are sliced with the same layer heights."
-msgstr ""
+msgstr "วงแหวนรองรับกำหนดให้วัตถุทั้งหมดต้องถูกตัดแบ่งด้วยความหนาต่อชั้นเท่ากัน"
 
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "ทาวเวอร์สลับสีต้องกำหนดให้วัตถุทั้งหมดถูกตัดแบ่งด้วยความหนาต่อชั้นเท่ากัน"
 
 msgid "The support ring is only supported if all objects have the same variable layer height"
-msgstr ""
+msgstr "รองรับการใช้วงแหวนรองรับเฉพาะในกรณีที่วัตถุทั้งหมดมีความหนาต่อชั้นแบบแปรผันเท่ากัน"
 
 msgid "The prime tower is only supported if all objects have the same variable layer height"
 msgstr "ทาวเวอร์สลับสีรองรับเฉพาะในกรณีที่วัตถุทั้งหมดมีความหนาต่อชั้นแบบแปรผันเท่ากัน"
@@ -13917,7 +13917,7 @@ msgid "Precise outer wall will be ignored unless the order of walls is set to in
 msgstr "ผนังด้านนอกแม่นยำสูงจะถูกละเว้น เว้นแต่จะตั้งลำดับการพิมพ์ผนังเป็นด้านใน/ด้านนอก"
 
 msgid "Organic tree support cannot generate a support ring. Please switch to another support type."
-msgstr ""
+msgstr "การรองรับแบบต้นไม้ออร์กานิกไม่สามารถสร้างวงแหวนรองรับได้ โปรดสลับไปใช้ประเภทการรองรับอื่น"
 
 msgid "Generating skirt & brim"
 msgstr "กำลังสร้างสเกิร์ตและปีก"
@@ -13929,10 +13929,10 @@ msgid "The relative position of the model and the prime tower does not meet the 
 msgstr "ตำแหน่งสัมพัทธ์ของโมเดลและไพรม์ทาวเวอร์ไม่ตรงตามข้อกำหนดของฟังก์ชัน \"ไม่มี Sparse Layer\" โปรดปรับตำแหน่งสัมพัทธ์ของโมเดล ลดความสูงของโมเดล หรือปิดใช้งาน \"ไม่มี Sparse Layer\""
 
 msgid "Failed to assign filaments to nozzles for the support ring."
-msgstr ""
+msgstr "ไม่สามารถกำหนดเส้นวัสดุให้กับหัวฉีดสำหรับวงแหวนรองรับได้"
 
 msgid "The support ring extends outside the area both nozzles can reach. Move the affected object closer to the center of the plate."
-msgstr ""
+msgstr "วงแหวนรองรับยื่นออกไปนอกพื้นที่ที่หัวฉีดทั้งสองสามารถเข้าถึงได้ ย้ายวัตถุที่ได้รับผลกระทบให้เข้าใกล้ศูนย์กลางของแผ่นพิมพ์มากขึ้น"
 
 msgid "Failed processing of the filename_format template."
 msgstr "ประมวลผลเทมเพลต filename_format ล้มเหลว"
@@ -14453,10 +14453,10 @@ msgid "Auxiliary fan speed will be ramped up linearly from layer \"For the first
 msgstr "ความเร็วพัดลมเสริมจะเพิ่มขึ้นแบบเส้นตรงจาก \"สำหรับชั้นแรก ๆ\" ไปจนถึงระดับสูงสุดที่ชั้น \"ความเร็วพัดลมสูงสุดที่ชั้น\" โดย \"ความเร็วพัดลมสูงสุดที่ชั้น\" จะถูกละเว้นหากน้อยกว่า \"สำหรับชั้นแรก ๆ\" ซึ่งในกรณีนี้ พัดลมจะทำงานด้วยความเร็วสูงสุดที่อนุญาตในชั้น \"สำหรับชั้นแรก ๆ\" + 1"
 
 msgid "Set special optional auxiliary cooling fan for the first certain layers."
-msgstr ""
+msgstr "ตั้งค่าพัดลมระบายความร้อนเสริมพิเศษที่เลือกได้สำหรับชั้นแรก ๆ ตามที่กำหนด"
 
 msgid "Optional auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
-msgstr ""
+msgstr "ความเร็วพัดลมเสริมที่เลือกได้จะเพิ่มขึ้นแบบเชิงเส้นจากชั้น \"สำหรับชั้นแรก\" ไปจนถึงความเร็วสูงสุดที่ชั้น \"ความเร็วพัดลมเต็มที่ที่ชั้น\" \"ความเร็วพัดลมเต็มที่ที่ชั้น\" จะถูกละเว้นหากต่ำกว่า \"สำหรับชั้นแรก\" ซึ่งในกรณีนี้พัดลมจะทำงานที่ความเร็วสูงสุดที่อนุญาตที่ชั้น \"สำหรับชั้นแรก\" + 1"
 
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
 msgstr "ตั้งค่าพัดลมระบายความร้อนพิเศษสำหรับชั้นแรก ๆ ตามที่กำหนด โดยพัดลมระบายความร้อนชิ้นงานของชั้นแรกมักจะถูกปิดไว้เพื่อให้ยึดติดกับแผ่นฐานสำหรับขึ้นรูปได้ดีขึ้น และใช้สำหรับฟังก์ชันระบายความร้อนอัตโนมัติ"
@@ -14468,7 +14468,7 @@ msgid "Special auxiliary cooling fan speed, effective only for the first x layer
 msgstr "ความเร็วพัดลมระบายความร้อนเสริมพิเศษ ซึ่งจะมีผลเฉพาะ x ชั้นแรก"
 
 msgid "Special optional auxiliary cooling fan speed, effective only for the first x layers"
-msgstr ""
+msgstr "ความเร็วเร็วพัดลมระบายความร้อนเสริมพิเศษที่เลือกได้ มีผลเฉพาะชั้น x แรกเท่านั้น"
 
 msgid "Don't support bridges"
 msgstr "ไม่สร้างโครงสร้างรองรับบริเวณสะพาน"
@@ -14772,7 +14772,7 @@ msgid "Manual"
 msgstr "ด้วยตนเอง"
 
 msgid "Nozzle Manual"
-msgstr ""
+msgstr "คู่มือหัวฉีด"
 
 msgid "Flush temperature"
 msgstr "อุณหภูมิการไล่เส้น"
@@ -14990,10 +14990,10 @@ msgid "When changing the hotend, it is recommended to extrude a certain length o
 msgstr "เมื่อเปลี่ยนชุดหัวพิมพ์ ขอแนะนำให้ฉีดเส้นวัสดุออกจากหัวฉีดเดิมตามความยาวที่กำหนด ซึ่งจะช่วยลดอาการไหลเยิ้มออกจากหัวฉีดให้เหลือน้อยที่สุด"
 
 msgid "Idle travel cooling"
-msgstr ""
+msgstr "การระบายความร้อนขณะเคลื่อนที่ว่าง"
 
 msgid "When filament change length is zero, perform idle travel cooling to help the nozzle cool down. Disabling this will turn off the heater directly without idle travel, which saves print time but may cause stringing for some materials."
-msgstr ""
+msgstr "เมื่อความยาวในการเปลี่ยนเส้นวัสดุเป็นศูนย์ ให้ทำการระบายความร้อนขณะเคลื่อนที่ว่างเพื่อช่วยให้หัวฉีดเย็นลง การปิดใช้งานนี้จะปิดฮีตเตอร์โดยตรงโดยไม่มีการเคลื่อนที่ว่าง ซึ่งช่วยประหยัดเวลาการพิมพ์ แต่อาจทำให้เกิดเส้นใยสำหรับวัสดุบางชนิด"
 
 msgid "Support material"
 msgstr "วัสดุโครงสร้างรองรับ"
@@ -15026,10 +15026,10 @@ msgid "Enable Z-direction gradient mode for mixed filament sub-layers. When enab
 msgstr "เปิดใช้งานโหมดการไล่ระดับในแนวแกน Z สำหรับชั้นย่อยของเส้นวัสดุผสม เมื่อเปิดใช้งาน อัตราส่วนชั้นย่อยจะเปลี่ยนแปลงแบบเส้นตรงตามชั้น"
 
 msgid "Prime tower speed factor curve"
-msgstr ""
+msgstr "เส้นโค้งปัจจัยความเร็วของไพรม์ทาวเวอร์"
 
 msgid "Controls the speed factor ramp when priming on the wipe tower after a tool change. Enter comma-separated multipliers of the target speed, one per wipe line. For example: \"0.33,0.375,0.458,0.875,0.875\" means the 1st line runs at 33%, the 2nd at 37.5%, and so on. If fewer than 5 values are given, the last value is reused for remaining lines. Each value is clamped to 0.01 ~ 5.0. Leave empty to use the built-in default curve (0.33, 0.375, 0.458, 0.875, 0.875)."
-msgstr ""
+msgstr "ควบคุมการเพิ่มขึ้นของปัจจัยความเร็วเมื่อทำการไพรม์บนไวป์ทาวเวอร์หลังจากเปลี่ยนเครื่องมือ ป้อนค่าตัวคูณของความเร็วเป้าหมาย คั่นด้วยเครื่องหมายจุลภาค หนึ่งค่าต่อเส้นเช็ดหนึ่งเส้น ตัวอย่างเช่น: \"0.33,0.375,0.458,0.875,0.875\" หมายความว่าเส้นที่ 1 ทำงานด้วยความเร็ว 33%, เส้นที่ 2 ที่ 37.5% และดำเนินต่อไปเช่นเดียวกัน หากระบุค่าไม่ถึง 5 ค่า ระบบจะนำค่าสุดท้ายมาใช้ซ้ำสำหรับบรรทัดที่เหลือ แต่ละค่าจะถูกจำกัดให้อยู่ในช่วง 0.01 ~ 5.0 เว้นว่างไว้เพื่อใช้เส้นโค้งเริ่มต้นที่สร้างไว้แล้ว (0.33, 0.375, 0.458, 0.875, 0.875)"
 
 msgid "Mixed filament gradient range"
 msgstr "ช่วงการไล่ระดับเส้นวัสดุผสม"
@@ -15069,6 +15069,12 @@ msgstr "ปริมาตรวัสดุที่จำเป็นสำห
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr "ปริมาตรวัสดุที่จำเป็นสำหรับการเตรียมเอ็กซ์ทรูเดอร์สำหรับเปลี่ยนชุดหัวพิมพ์บนทาวเวอร์"
+
+msgid "Pre-heating when extruder change"
+msgstr ""
+
+msgid "0 means disabled, 1 means enabled."
+msgstr ""
 
 msgid "Preheat temperature delta"
 msgstr "ส่วนต่างอุณหภูมิการอุ่นเครื่อง"
@@ -15131,10 +15137,10 @@ msgid "The material softens at this temperature, so when the bed temperature is 
 msgstr "วัสดุจะอ่อนตัวที่อุณหภูมินี้ ดังนั้นเมื่ออุณหภูมิฐานเท่ากับหรือสูงกว่าอุณหภูมินี้ แนะนำอย่างยิ่งให้เปิดประตูหน้าและ/หรือถอดกระจกด้านบนออกเพื่อหลีกเลี่ยงการอุดตัน"
 
 msgid "Fin extrude safe temperature"
-msgstr ""
+msgstr "อุณหภูมิที่ปลอดภัยการอัดรีดครีบ"
 
 msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr ""
+msgstr "อุณหภูมิชุดหัวพิมพ์ที่ปลอดภัยสำหรับการอัดรีดครีบ 0 หมายถึงไม่ได้ตั้งค่า สามารถเข้าถึงได้ในจีโคดแบบกำหนดเองผ่านทาง fins_extrude_safe_temp"
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "เพื่อป้องกันการไหลเยิ้ม หัวฉีดจะเคลื่อนที่ย้อนกลับเป็นระยะเวลาหนึ่งหลังจากการดันวัสดุเสร็จสิ้น การตั้งค่านี้กำหนดเวลาการเคลื่อนที่"
@@ -15497,10 +15503,10 @@ msgid "Undefine"
 msgstr "ไม่ระบุ"
 
 msgid "Default wipe tower position"
-msgstr ""
+msgstr "ตำแหน่งเริ่มต้นของไวป์ทาวเวอร์"
 
 msgid "Normalized default position of the wipe tower, each axis in [0,1] relative to bed width/depth."
-msgstr ""
+msgstr "ตำแหน่งเริ่มต้นที่ปรับให้เป็นมาตรฐานของไวป์ทาวเวอร์ โดยแต่ละแกนอยู่ในช่วง [0,1] สัมพันธ์กับความกว้าง/ความลึกของฐานเครื่อง"
 
 msgid "Best object position"
 msgstr "ตำแหน่งวัตถุที่ดีที่สุด"
@@ -15512,22 +15518,22 @@ msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "เปิดใช้งานตัวเลือกนี้หากเครื่องมีพัดลมระบายความร้อนชิ้นงานเสริม"
 
 msgid "Sync auxiliary fan to second fan"
-msgstr ""
+msgstr "ซิงค์พัดลมเสริมกับพัดลมเครื่องที่สอง"
 
 msgid "Enable this if the printer has a second auxiliary part cooling fan that should use the same speed as the auxiliary fan"
-msgstr ""
+msgstr "เปิดใช้งานตัวเลือกนี้หากเครื่องพิมพ์มีพัดลมระบายความร้อนชิ้นงานเสริมเครื่องที่สอง ซึ่งต้องใช้ความเร็วรอบเท่ากับพัดลมเสริม"
 
 msgid "Independent optional auxiliary fan control"
-msgstr ""
+msgstr "การควบคุมพัดลมเสริมแบบอิสระที่เลือกได้"
 
 msgid "Enable this if the printer has an optional auxiliary part cooling fan that can be adjusted separately from the standard one"
-msgstr ""
+msgstr "เปิดใช้งานตัวเลือกนี้หากเครื่องพิมพ์มีพัดลมระบายความร้อนชิ้นงานเสริมที่สามารถปรับแยกต่างหากจากพัดลมมาตรฐานได้"
 
 msgid "Standard auxiliary fan side"
-msgstr ""
+msgstr "ด้านติดตั้งพัดลมเสริมมาตรฐาน"
 
 msgid "Physical side of the standard auxiliary part cooling fan. Only used to tell the two fans apart in the user interface"
-msgstr ""
+msgstr "ด้านทางกายภาพของพัดลมระบายความร้อนชิ้นงานเสริมมาตรฐาน ใช้เพื่อแยกความแตกต่างระหว่างพัดลมสองเครื่องในอินเทอร์เฟซผู้ใช้เท่านั้น"
 
 msgid "Both"
 msgstr "ทั้งคู่"
@@ -15959,7 +15965,7 @@ msgid "The allowed max printed mass"
 msgstr "มวลงานพิมพ์สูงสุดที่อนุญาต"
 
 msgid "The allowed max printed mass on a plate"
-msgstr ""
+msgstr "มวลพิมพ์สูงสุดที่อนุญาตบนแผ่นพิมพ์"
 
 msgid "Minimum speed for extruding"
 msgstr "ความเร็วต่ำสุดในการฉีด"
@@ -16007,7 +16013,7 @@ msgid "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed
 msgstr "ความเร็วของพัดลมระบายความร้อนชิ้นงานเสริม พัดลมเสริมจะทำงานด้วยความเร็วนี้ระหว่างการพิมพ์ ยกเว้นชั้นแรก ๆ บางชั้นที่กำหนดเป็นชั้นที่ไม่ระบายความร้อน"
 
 msgid "Speed of the optional auxiliary part cooling fan. It will run at this speed during printing except the first several layers which are defined by no cooling layers"
-msgstr ""
+msgstr "ความเร็วของพัดลมระบายความร้อนชิ้นงานเสริมที่เลือกได้ จะทำงานด้วยความเร็วนี้ระหว่างการพิมพ์ ยกเว้นชั้นแรก ๆ บางชั้นที่กำหนดเป็นชั้นที่ไม่ระบายความร้อน"
 
 msgid "Min"
 msgstr "ต่ำสุด"
@@ -16739,10 +16745,10 @@ msgid "The angle of the branches' diameter as they gradually become thicker towa
 msgstr "มุมขยายเส้นผ่านศูนย์กลางของกิ่งเมื่อค่อย ๆ หนาขึ้นไปทางด้านล่าง การตั้งค่ามุมเป็น 0 จะทำให้กิ่งมีความหนาสม่ำเสมอตลอดความยาว การเพิ่มมุมเล็กน้อยช่วยเพิ่มความมั่นคงให้กับโครงสร้างรองรับแบบต้นไม้ได้"
 
 msgid "Tip diameter"
-msgstr ""
+msgstr "เส้นผ่านศูนย์กลางปลาย"
 
 msgid "Diameter a support branch starts with where it touches the overhang. A thicker tip is stronger and sticks to the overhang better, but leaves heavier marks on the surface and is harder to remove. Values below the support extrusion width or above the branch diameter are clamped. Applies to every tree support style."
-msgstr ""
+msgstr "เส้นผ่านศูนย์กลางจุดเริ่มต้นของกิ่งรองรับที่ตำแหน่งที่สัมผัสส่วนยื่นเกินขอบ ปลายที่หนากว่าจะมีความแข็งแรงมากขึ้น ยึดติดกับส่วนยื่นเกินขอบได้ดีกว่า แต่จะทิ้งร่องรอยที่เด่นชัดบนพื้นผิว และยากต่อการถอดออก ค่าที่ต่ำกว่าความกว้างการอัดรีดรองรับ หรือสูงกว่าเส้นผ่านศูนย์กลางกิ่งรองรับ จะถูกจำกัดค่า ใช้ได้กับรูปแบบรองรับต้นไม้ทุกแบบ"
 
 msgid "Support wall loops"
 msgstr "จำนวนรอบผนังของโครงสร้างรองรับ"
@@ -16847,38 +16853,31 @@ msgid "The wiping tower can be used to clean up the residue on the nozzle and st
 msgstr "ทาวเวอร์เช็ดหัวฉีดใช้สำหรับทำความสะอาดเศษตกค้างบนหัวฉีด และปรับแรงดันห้องพิมพ์ภายในหัวฉีดให้คงที่ เพื่อป้องกันตำหนิบนพื้นผิววัตถุที่พิมพ์"
 
 msgid "Generate a ring around the object. Tree supports may land on the ring."
-msgstr ""
+msgstr "สร้างวงแหวนรอบวัตถุ รองรับต้นไม้อาจวางปลายบนโครงวงแหวนได้"
 
 msgid "Support ring object gap"
-msgstr ""
+msgstr "ช่องว่างของวัตถุวงแหวนรองรับ"
 
 msgid "Horizontal distance between the projected model boundary and the innermost support ring path."
-msgstr ""
+msgstr "ระยะห่างในแนวนอนระหว่างขอบเขตของแบบจำลองที่คาดการณ์ไว้กับเส้นทางวงแหวนรองรับด้านในสุด"
 
 msgid "Support ring angle"
 msgstr ""
 
-msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider."
+msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider. A set angle keeps one piece, from 200° to 300°. -1 means auto: the angle is worked out from the purge of each filament change, so the purge is laid a few rings thick. When that comes out below 200°, the ring is split into two facing pieces with a second opening on the side away from the camera."
 msgstr ""
 
 msgid "Support ring skip points"
-msgstr ""
+msgstr "จุดข้ามวงแหวนรองรับ"
 
 msgid "Leave gaps in the support ring outer wall at each wipe entry so the nozzle can reach the wipe path from outside the ring, and travel around the ring contour instead of crossing the model."
-msgstr ""
-
-msgid "Support ring infill gap"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Radial spacing between sparse wipe rings, as a percentage of line width. 100% packs neighbouring rings so they touch; larger values leave a gap."
-msgstr ""
+msgstr "เว้นช่องว่างบนผนังด้านนอกวงแหวนรองรับที่จุดเข้าเช็ดวัสดุแต่ละจุด เพื่อให้หัวฉีดสามารถไปถึงเส้นทางเช็ดวัสดุจากด้านนอกวงแหวน และเคลื่อนที่ไปตามเส้นโค้งวงแหวนแทนที่จะตัดผ่านวัตถุ"
 
 msgid "Support ring wall loops"
-msgstr ""
+msgstr "จำนวนวงรอบผนังวงแหวนรองรับ"
 
 msgid "Number of walls, inner wall included, in the support ring of each object whose ring does not carry the filament changes. The ring that carries them is not affected."
-msgstr ""
+msgstr "จำนวนผนัง รวมผนังด้านใน ในวงแหวนรองรับของวัตถุแต่ละชิ้น ซึ่งวงแหวนไม่รองรับการเปลี่ยนเส้นวัสดุ วงแหวนที่รองรับการเปลี่ยนเส้นวัสดุจะไม่ได้รับผลกระทบ"
 
 msgid "Internal ribs"
 msgstr "ครีบภายใน"
@@ -17001,43 +17000,43 @@ msgid "The maximum printing speed on the prime tower excluding ramming."
 msgstr "ความเร็วในการพิมพ์สูงสุดบนทาวเวอร์สลับสีโดยไม่รวมการอัด"
 
 msgid "Prime tower feedrate factor"
-msgstr ""
+msgstr "ปัจจัยอัตราการป้อนสำหรับไพรม์ทาวเวอร์"
 
 msgid "Feedrate scaling factor for prime/wipe tower extrusion when hotends are handled as extruders. It does not affect all tower travel moves. 1.0 means no change; values below 1.0 slow down, above 1.0 speed up."
-msgstr ""
+msgstr "ปัจจัยปรับขนาดอัตราการป้อนสำหรับการอัดรีดไพรม์ทาวเวอร์/ไวป์ทาวเวอร์ เมื่อชุดหัวพิมพ์ถูกประมวลผลเป็นเอ็กซ์ทรูเดอร์ ไม่ได้ส่งผลต่อการเคลื่อนที่ว่างของทาวเวอร์ทั้งหมด 1.0 หมายถึงไม่มีการเปลี่ยนแปลง ค่าต่ำกว่า 1.0 จะลดความเร็ว ค่าสูงกว่า 1.0 จะเพิ่มความเร็ว"
 
 msgid "Tail speed factor"
-msgstr ""
+msgstr "ปัจจัยความเร็วท้าย"
 
 msgid "Scale the printing speed of the last section printed each time before the toolhead leaves the prime tower (the length is set by the tail slowdown volume) relative to the tower printing speed. That trailing section may be the outer wall, a tool-change wipe or infill, whichever comes last. Lower values slow it down to soften the flow change when moving back to the model. Does not affect the first layer."
-msgstr ""
+msgstr "ปรับขนาดความเร็วพิมพ์ของส่วนสุดท้ายที่พิมพ์ทุกครั้งก่อนชุดหัวจ่ายออกจากไพรม์ทาวเวอร์ (ความยาวกำหนดโดยปริมาตรลดความเร็วส่วนท้าย) เทียบกับความเร็วพิมพ์ทาวเวอร์ ส่วนท้ายดังกล่าวอาจเป็นผนังด้านนอก การเช็ดวัสดุเมื่อเปลี่ยนเครื่องมือ หรือการเติมเนื้อ ขึ้นอยู่กับสิ่งที่ทำล่าสุด ค่าที่ต่ำกว่าจะลดความเร็วเพื่อทำให้การเปลี่ยนแปลงอัตราการไหลอ่อนลง ขณะเคลื่อนกลับไปยังวัตถุ ไม่ส่งผลกระทบต่อชั้นแรก"
 
 msgid "Tail slowdown volume"
-msgstr ""
+msgstr "ปริมาตรลดความเร็วส่วนท้าย"
 
 msgid "Only the final part printed each time before the toolhead leaves the prime tower, measured as this extruded volume, is slowed down by the tail speed factor; the rest keeps the normal tower speed. That trailing part may be the outer wall, a tool-change wipe or infill. Set to 0 to slow down the whole tower path of each visit. Does not affect the first layer."
-msgstr ""
+msgstr "เฉพาะส่วนสุดท้ายที่พิมพ์ทุกครั้งก่อนชุดหัวจ่ายออกจากไพรม์ทาวเวอร์ วัดด้วยปริมาตรการอัดรีดนี้ จะถูกลดความเร็วโดยปัจจัยความเร็วส่วนท้าย ส่วนที่เหลือจะรักษาความเร็วปกติของทาวเวอร์ ส่วนท้ายดังกล่าวอาจเป็นผนังด้านนอก การเช็ดวัสดุเมื่อเปลี่ยนเครื่องมือ หรือการเติมเนื้อ ตั้งค่าเป็น 0 เพื่อลดความเร็วเส้นทางทาวเวอร์ทั้งหมดสำหรับแต่ละครั้งที่เข้าทำงาน ไม่ส่งผลกระทบต่อชั้นแรก"
 
 msgid "The acceleration used for prime tower extrusions. Does not affect the first layer. 0 means using the global default acceleration."
-msgstr ""
+msgstr "ความเร่งที่ใช้สำหรับการอัดรีดไพรม์ทาวเวอร์ ไม่ส่งผลกระทบต่อชั้นแรก 0 หมายถึงใช้ค่าความเร่งเริ่มต้นจากการตั้งค่าส่วนกลาง"
 
 msgid "Line width for prime tower normal wiping paths. 0 means auto-calculated from nozzle diameter."
-msgstr ""
+msgstr "ความกว้างของเส้นสำหรับเส้นทางการเช็ดปกติของไพรม์ทาวเวอร์ 0 หมายถึงคำนวณโดยอัตโนมัติจากเส้นผ่านศูนย์กลางของหัวฉีด"
 
 msgid "Ramming line width"
-msgstr ""
+msgstr "ความกว้างของเส้นอัด"
 
 msgid "Line width for prime tower nozzle-change (ramming) paths. 0 means using the default mapping table."
-msgstr ""
+msgstr "ความกว้างของเส้นสำหรับเส้นทางการเปลี่ยนหัวฉีด (การอัด) ของไพรม์ทาวเวอร์ 0 หมายถึงใช้ตารางการแมปเริ่มต้น"
 
 msgid "The speed of wipe movement before printing on the prime tower during tool change. 0 means using prime tower max speed."
-msgstr ""
+msgstr "ความเร็วการเคลื่อนที่เช็ดวัสดุก่อนเริ่มพิมพ์บนไพรม์ทาวเวอร์ระหว่างการเปลี่ยนเครื่องมือ 0 หมายถึงการใช้ความเร็วสูงสุดของไพรม์ทาวเวอร์"
 
 msgid "Wipe distance"
-msgstr ""
+msgstr "ระยะการเช็ด"
 
 msgid "The wipe path distance during tool change. 0 means using the filament-level wipe distance."
-msgstr ""
+msgstr "ระยะทางเส้นทางเช็ดในระหว่างเปลี่ยนเครื่องมือ 0 หมายถึงการใช้ระยะการเช็ดระดับเส้นวัสดุ"
 
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
 msgstr "ความกว้างปีกของทาวเวอร์สลับสี หากเป็นค่าลบจะหมายถึงความกว้างที่คำนวณอัตโนมัติตามความสูงทาวเวอร์สลับสี"
@@ -17061,73 +17060,73 @@ msgid "The wall of prime tower will skip the start points of wipe path"
 msgstr "ผนังของทาวเวอร์สลับสีจะข้ามจุดเริ่มต้นของเส้นทางการเช็ด"
 
 msgid "Flat ironing"
-msgstr ""
+msgstr "รีดผิวราบ"
 
 msgid "Enable flat ironing for prime tower to smooth the top surface after wiping"
-msgstr ""
+msgstr "เปิดใช้งานการรีดเรียบสำหรับไพรม์ทาวเวอร์เพื่อเกลี่ยเรียบพื้นผิวด้านบนหลังจากเช็ดทำความสะอาด"
 
 msgid "Line ironing"
-msgstr ""
+msgstr "รีดเส้นลาก"
 
 msgid "Enable line ironing for prime tower wipe paths"
-msgstr ""
+msgstr "เปิดใช้งานรีดเส้นลากสำหรับเส้นทางเช็ดวัสดุของไพรม์ทาวเวอร์"
 
 msgid "Speed of prime tower ironing movements"
-msgstr ""
+msgstr "ความเร็วการเคลื่อนที่รีดผิวของไพรม์ทาวเวอร์"
 
 msgid "Side scrape after tool change"
-msgstr ""
+msgstr "การขูดด้านข้างหลังเปลี่ยนเครื่องมือ"
 
 msgid "After a tool change and before the wipe line, move the nozzle to the prime tower side wall and do a diagonal lift scrape (travel only, no extrusion). This scrapes the oozed filament stub onto the side wall instead of letting it pile up on the prime tower top surface."
-msgstr ""
+msgstr "หลังเปลี่ยนเครื่องมือและก่อนเส้นเช็ดวัสดุ ให้เคลื่อนหัวฉีดไปยังผนังด้านข้างหอเตรียมวัสดุ และทำการขูดด้วยการยกแบบแนวทแยง (เฉพาะการเคลื่อนที่ ไม่อัดรีด) การกระทำนี้จะขูดปลายเส้นวัสดุที่รั่วไหลไปไว้บนผนังด้านข้าง แทนที่จะปล่อยให้สะสมอยู่บนผิวบนของไพรม์ทาวเวอร์"
 
 msgid "Side scrape walls"
-msgstr ""
+msgstr "จำนวนผนังสำหรับการขูดด้านข้าง"
 
 msgid "Which pair of opposite prime tower walls the diagonal scrape runs on. Note that enabling the side scrape always disables depth shrinkage of the prime tower (the outer wall stays at the full depth on every layer), regardless of this setting, so that the scrape can descend safely outside the walls."
-msgstr ""
+msgstr "คู่ผนังตรงข้ามของไพรม์ทาวเวอร์ที่การขูดแบบแนวทแยงจะเคลื่อนผ่าน โปรดทราบว่าการเปิดใช้งานการขูดด้านข้างจะปิดการหดตัวความลึกของไพรม์ทาวเวอร์เสมอ (ผนังด้านนอกยังคงความลึกเต็มที่ในแต่ละชั้น) โดยไม่ขึ้นกับการตั้งค่านี้ เพื่อให้การขูดสามารถเคลื่อนลงด้านนอกผนังได้อย่างปลอดภัย"
 
 msgid "Left and right"
-msgstr ""
+msgstr "ซ้ายและขวา"
 
 msgid "Front and back"
-msgstr ""
+msgstr "ด้านหน้าและด้านหลัง"
 
 msgid "Side scrape length"
-msgstr ""
+msgstr "ความยาวการขูดด้านข้าง"
 
 msgid "Horizontal distance the nozzle travels inward from the prime tower side wall during the diagonal scrape."
-msgstr ""
+msgstr "ระยะทางแนวนอนที่หัวฉีดเคลื่อนเข้าด้านในจากผนังด้านข้างไพรม์ทาวเวอร์ ในขณะทำการขูดแบบแนวทแยง"
 
 msgid "Side scrape lift height"
-msgstr ""
+msgstr "ความสูงยกสำหรับการขูดด้านข้าง"
 
 msgid "How far the nozzle descends below the current wipe-tower top before the diagonal scrape. The actual descent is clamped so the nozzle stays above the wipe tower's brim and first layer (avoids hitting the brim or the bed when the tower is still short). Layers with no room left for a descent get no scrape."
-msgstr ""
+msgstr "ระยะทางที่หัวฉีดเคลื่อนลงต่ำกว่าผิวบนไวป์ทาวเวอร์ปัจจุบัน ก่อนทำการขูดแบบแนวทแยง ระยะการลงจริงจะถูกจำกัด เพื่อให้หัวฉีดอยู่เหนือขอบไวป์ทาวเวอร์และชั้นแรก (ป้องกันการชนขอบทาวเวอร์หรือแพลตฟอร์ม เมื่อทาวเวอร์ยังมีความสูงไม่มาก) ชั้นที่ไม่มีพื้นที่เหลือสำหรับการเคลื่อนลง จะไม่ทำการขูด"
 
 msgid "Side scrape speed"
-msgstr ""
+msgstr "ความเร็วในการขูดด้านข้าง"
 
 msgid "Movement speed of the diagonal side scrape."
-msgstr ""
+msgstr "ความเร็วการเคลื่อนที่ของการขูดด้านข้างแบบแนวทแยง"
 
 msgid "Side scrape wall gap"
-msgstr ""
+msgstr "ช่องว่างผนังสำหรับการขูดด้านข้าง"
 
 msgid "Distance kept between the diagonal side scrape line and the prime tower outer wall. A positive value keeps the scrape outside the wall; the outer wall position is taken as the outermost of the current and previous layer walls at the scrape location so the scrape never cuts into the tower."
-msgstr ""
+msgstr "ระยะห่างที่รักษาระหว่างเส้นการขูดด้านข้างแบบแนวทแยง และผนังด้านนอกของไพรม์ทาวเวอร์ ค่าบวกจะทำให้รอยขูดอยู่ด้านนอกผนัง โดยตำแหน่งผนังด้านนอกจะถือเป็นผนังชั้นนอกสุดระหว่างผนังชั้นปัจจุบันและชั้นก่อนหน้า ณ ตำแหน่งรอยขูด ดังนั้นรอยขูดจึงไม่ตัดเข้าไปในตัวทาวเวอร์"
 
 msgid "Side scrape point spacing"
-msgstr ""
+msgstr "ระยะห่างจุดสำหรับการขูดด้านข้าง"
 
 msgid "Target distance between consecutive side scrape start points along one side wall. Scrape starts are spread over both side walls so the ooze stubs do not pile up at a single spot. The number of points is derived from this spacing and the length of the straight part of the side wall, so the effective spacing can be smaller than requested when the straight part is short."
-msgstr ""
+msgstr "ระยะทางเป้าหมายระหว่างจุดเริ่มต้นการขูดด้านข้างที่ต่อเนื่องกัน ตามผนังด้านข้างเดียวกัน จุดเริ่มต้นการขูดจะกระจายอยู่บนผนังด้านข้างทั้งสอง เพื่อป้องกันปลายเส้นวัสดุที่รั่วสะสมอยู่ที่จุดเดียว จำนวนจุดคำนวณมาจากระยะห่างนี้และความยาวส่วนตรงของผนังด้านข้าง ดังนั้นระยะห่างที่ใช้งานจริงอาจน้อยกว่าค่าที่ตั้งไว้ หากส่วนตรงมีความยาวสั้น"
 
 msgid "Side scrape along-wall length"
-msgstr ""
+msgstr "ความยาวการขูดตามผนังด้านข้าง"
 
 msgid "Upper bound for the empty travel along the side wall performed right after the diagonal scrape, before the nozzle moves to the wipe line start. It smears the ooze stub further along the wall. The travel never leaves the straight part of the side wall, so the actual length is only the room left between the scrape start and the end of that straight part. On a rib prime tower the straight part can be just a few millimetres, in which case the travel is much shorter than the value set here."
-msgstr ""
+msgstr "ขอบเขตบนสำหรับการเคลื่อนที่เปล่าไปตามผนังด้านข้างที่ดำเนินการทันทีหลังจากขูดเฉียง ก่อนที่หัวฉีดจะเคลื่อนไปยังจุดเริ่มต้นของเส้นเช็ด การกระทำนี้จะทำให้เศษวัสดุที่ไหลซึมกระจายไปตามผนังต่อไป การเคลื่อนที่นี้จะไม่ออกไปนอกส่วนตรงของผนังด้านข้าง ดังนั้นความยาวจริงจะเป็นเพียงพื้นที่ที่เหลือระหว่างจุดเริ่มขูดและปลายส่วนตรงนั้นเท่านั้น ในไพรม์ทาวเวอร์แบบซี่โครง ส่วนที่เป็นเส้นตรงอาจยาวเพียงไม่กี่มิลลิเมตร ซึ่งในกรณีนี้ระยะการเคลื่อนที่จะสั้นกว่าค่าที่กำหนดไว้ที่นี่มาก"
 
 msgid "Rib wall"
 msgstr "ผนังครีบ"
@@ -17206,6 +17205,9 @@ msgstr "ความกว้างผนังขั้นต่ำ"
 
 msgid "Width of the wall that will replace thin features (according to the Minimum feature size) of the model. If the Minimum wall width is thinner than the thickness of the feature, the wall will become as thick as the feature itself. It's expressed as a percentage over nozzle diameter"
 msgstr "ความกว้างของผนังที่จะเข้ามาแทนที่รายละเอียดส่วนที่บาง (ตามขนาดรายละเอียดขั้นต่ำ) ของโมเดล หากความกว้างผนังขั้นต่ำบางกว่าความหนาของรายละเอียด ผนังจะมีความหนาเท่ากับตัวรายละเอียดนั้น ค่านี้แสดงเป็นเปอร์เซ็นต์คำนวณจากเส้นผ่านศูนย์กลางหัวฉีด"
+
+msgid "Filament switch retraction length"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr "เขียนทับความเร็วการพิมพ์ส่วนยื่น"
@@ -17420,10 +17422,10 @@ msgid "Finish"
 msgstr "เสร็จสิ้น"
 
 msgid "Nozzle Type and Diameter"
-msgstr ""
+msgstr "ประเภทและเส้นผ่านศูนย์กลางหัวฉีด"
 
 msgid "Not Selected"
-msgstr ""
+msgstr "ไม่ได้เลือก"
 
 msgid "How to use calibration result?"
 msgstr "ใช้งานผลการปรับเทียบอย่างไร?"
@@ -17870,7 +17872,7 @@ msgid "Refreshing the historical Flow Dynamics Calibration records"
 msgstr "กำลังรีเฟรชประวัติการปรับเทียบพลศาสตร์การไหล"
 
 msgid "PrintTool"
-msgstr ""
+msgstr "เครื่องมือพิมพ์"
 
 msgid "Action"
 msgstr "การดำเนินการ"
@@ -19318,10 +19320,10 @@ msgid "Fila Saving"
 msgstr "ประหยัดเส้นวัสดุ"
 
 msgid "Set filament placement"
-msgstr ""
+msgstr "ตั้งค่าการวางตำแหน่งเส้นวัสดุ"
 
 msgid "Automatically and intelligently assigns filaments to minimize filament time consumption"
-msgstr ""
+msgstr "จัดสรรเส้นวัสดุโดยอัตโนมัติและชาญฉลาด เพื่อลดการใช้เวลาในการเปลี่ยนเส้นวัสดุให้น้อยที่สุด"
 
 msgid "Filament-Saving Mode"
 msgstr "โหมดประหยัดเส้นวัสดุ"
@@ -19358,23 +19360,23 @@ msgid "Video tutorial"
 msgstr "วิดีโอสาธิตการใช้งาน"
 
 msgid "Intelligently assigns filaments based on the filaments currently loaded in the printer's nozzles"
-msgstr ""
+msgstr "จัดสรรเส้นวัสดุอย่างชาญฉลาด โดยอ้างอิงจากเส้นวัสดุที่โหลดอยู่ในหัวฉีดของเครื่องพิมพ์ในขณะนั้น"
 
 msgid "Intelligently assigns filaments based on the filaments currently installed in the printer's AMS"
-msgstr ""
+msgstr "จัดสรรเส้นวัสดุอย่างชาญฉลาด โดยอ้างอิงจากเส้นวัสดุที่ติดตั้งอยู่ในระบบ AMS ของเครื่องพิมพ์ในขณะนั้น"
 
 msgid "Manually assign filaments by nozzle type"
-msgstr ""
+msgstr "กำหนดเส้นวัสดุด้วยตนเองตามประเภทหัวฉีด"
 
 msgid "(Sync with printer)"
 msgstr "(ซิงค์กับเครื่องพิมพ์)"
 
 #, c-format, boost-format
 msgid "Nozzle %s"
-msgstr ""
+msgstr "หัวฉีด %s"
 
 msgid "Error: a filament is assigned to a nozzle of incompatible diameter. Please regroup so each filament stays on a nozzle whose diameter it supports."
-msgstr ""
+msgstr "ข้อผิดพลาด: เส้นวัสดุถูกกำหนดให้กับหัวฉีดที่เส้นผ่านศูนย์กลางไม่เข้ากัน โปรดจัดกลุ่มใหม่เพื่อให้เส้นวัสดุแต่ละชนิดอยู่บนหัวฉีดที่มีขนาดเส้นผ่านศูนย์กลางที่รองรับ"
 
 #, c-format, boost-format
 msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
@@ -19393,25 +19395,25 @@ msgid " to set nozzle count"
 msgstr " เพื่อตั้งค่าจำนวนหัวฉีด"
 
 msgid "We will slice according to this arrangement:"
-msgstr ""
+msgstr "เราจะทำการสไลซ์ตามการจัดเรียงนี้:"
 
 #, c-format, boost-format
 msgid "Nozzle (%d)"
-msgstr ""
+msgstr "หัวฉีด (%d)"
 
 #, c-format, boost-format
 msgid "Tips: Under a %smm nozzle diameter, there are no mixed nozzle types, so no custom settings are needed."
-msgstr ""
+msgstr "เคล็ดลับ: เมื่อใช้หัวฉีดที่มีเส้นผ่านศูนย์กลางเป็นหน่วย %sมิลลิเมตรแบบเดียว จะไม่มีการผสมประเภทหัวฉีด จึงไม่จำเป็นต้องมีการตั้งค่าแบบกำหนดเอง"
 
 msgid "Error: The nozzle type is not supported, so the filament cannot be moved."
-msgstr ""
+msgstr "ข้อผิดพลาด: ประเภทหัวฉีดไม่ได้รับการรองรับ จึงไม่สามารถย้ายเส้นวัสดุได้"
 
 msgid "Error: the nozzle configuration changed. Please reopen the filament grouping dialog."
-msgstr ""
+msgstr "ข้อผิดพลาด: การตั้งค่าหัวฉีดได้เปลี่ยนแปลงแล้ว โปรดเปิดหน้าต่างการจัดกลุ่มเส้นวัสดุอีกครั้ง"
 
 #, c-format, boost-format
 msgid "Nozzle (%d) - %s"
-msgstr ""
+msgstr "หัวฉีด (%d) - %s"
 
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
@@ -19516,7 +19518,7 @@ msgid "Sync Nozzle status"
 msgstr "ซิงค์สถานะหัวฉีด"
 
 msgid "Caution: Printing with mixed nozzle diameters is experimental. Please verify your print settings (extrusion widths, layer height, etc.) are compatible with all selected nozzle sizes."
-msgstr ""
+msgstr "ข้อควรระวัง: การพิมพ์ด้วยหัวฉีดหลายขนาดผสมกันเป็นคุณสมบัติทดลอง โปรดตรวจสอบการตั้งค่าการพิมพ์ (ความกว้างการอัดรีด ความหนาต่อชั้น ฯลฯ) ว่าเข้ากันได้กับขนาดหัวฉีดทั้งหมดที่เลือกไว้"
 
 #, c-format, boost-format
 msgid "Refresh %d/%d..."
@@ -19531,8 +19533,14 @@ msgstr "ตรวจพบหัวฉีดที่ไม่รู้จัก
 msgid "Please confirm whether the required nozzle diameter and flow rate match the currently displayed values."
 msgstr "โปรดยืนยันว่าเส้นผ่านศูนย์กลางหัวฉีดและอัตราการไหลที่ต้องการตรงกับค่าที่แสดงในปัจจุบันหรือไม่"
 
-msgid "Your printer has different nozzles installed. Please select a nozzle for this print."
-msgstr "เครื่องพิมพ์ของคุณติดตั้งหัวฉีดที่มีขนาดแตกต่างกัน โปรดเลือกหัวฉีดสำหรับการพิมพ์ครั้งนี้"
+msgid "No usable nozzle is detected on your printer."
+msgstr ""
+
+msgid "Your printer has nozzles of different diameters installed."
+msgstr ""
+
+msgid "All nozzles installed on your printer have the same diameter."
+msgstr ""
 
 msgid "Purge Mode Settings"
 msgstr "การตั้งค่าโหมดวัสดุส่วนเกิน"
@@ -19551,6 +19559,20 @@ msgstr ""
 
 msgid "Learn more about prime mode"
 msgstr "เรียนรู้เพิ่มเติมเกี่ยวกับโหมดเตรียมเส้น"
+
+msgid "TPU Usage Notes"
+msgstr ""
+
+msgid "Important Notice:"
+msgstr ""
+
+msgid ""
+"• Using TPU filament for the first time? Read the official guide first to avoid clogs or feeding failures.\n"
+"• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
+msgstr ""
+
+msgid "View User Guide"
+msgstr ""
 
 msgid "AMS Dryness Control"
 msgstr "การควบคุมความแห้งของ AMS"
@@ -19576,6 +19598,9 @@ msgstr "โปรดนำเส้นวัสดุออกและจัด
 msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
 msgstr "AMS สามารถหมุนเส้นวัสดุที่จัดเก็บไว้อย่างเหมาะสม เพื่อให้ได้ผลลัพธ์การอบแห้งที่ดีขึ้น"
 
+msgid "Rotate spool when drying"
+msgstr ""
+
 msgctxt "amsdrying"
 msgid "Back"
 msgstr "ย้อนกลับ"
@@ -19600,11 +19625,11 @@ msgstr "AMS นี้กำลังพิมพ์ เพื่อรักษ�
 
 #, c-format, boost-format
 msgid "Minimum time value cannot be less than %d."
-msgstr ""
+msgstr "ค่าเวลาขั้นต่ำต้องไม่น้อยกว่า %d"
 
 #, c-format, boost-format
 msgid "Maximum time value cannot be greater than %d."
-msgstr ""
+msgstr "ค่าเวลาสูงสุดต้องไม่เกินกว่า %d"
 
 msgid "Insufficient power"
 msgstr "กำลังไฟไม่เพียงพอ"
@@ -19662,6 +19687,9 @@ msgstr "นอกจากนี้ คุณยังสามารถอบ�
 
 msgid "Unknown filaments will be treated as PLA."
 msgstr "เส้นวัสดุที่ไม่รู้จักจะถูกจัดการในฐานะ PLA"
+
+msgid "For better drying results, remove the filament."
+msgstr ""
 
 msgid "Please store the filament marked with an exclamation mark."
 msgstr "โปรดจัดเก็บเส้นวัสดุที่มีเครื่องหมายอัศเจรีย์กำกับไว้"
@@ -19824,7 +19852,7 @@ msgid "Select Mixed Materials"
 msgstr "เลือกวัสดุผสม"
 
 msgid "- Delete Filament"
-msgstr ""
+msgstr "- ลบเส้นวัสดุ"
 
 msgid "Ratio"
 msgstr "อัตราส่วน"
@@ -19855,7 +19883,7 @@ msgid "cannot be mixed. Please select the same filament type."
 msgstr "ผสมไม่ได้ โปรดเลือกเส้นวัสดุประเภทเดียวกัน"
 
 msgid "cannot be mixed. Please select filaments using the same nozzle diameter."
-msgstr ""
+msgstr "ไม่สามารถผสมกันได้ โปรดเลือกเส้นวัสดุที่ใช้หัวฉีดเส้นผ่านศูนย์กลางเท่ากัน"
 
 msgid "No mix is available for the target color"
 msgstr ""
@@ -19910,7 +19938,7 @@ msgid "No available mixing recipe was found."
 msgstr ""
 
 msgid "The current printer has no compatible PLA Palette filament."
-msgstr ""
+msgstr "เครื่องพิมพ์รุ่นปัจจุบันไม่มีเส้นวัสดุ PLA Palette ที่ใช้งานร่วมกันได้"
 
 #, boost-format
 msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
@@ -19936,24 +19964,66 @@ msgid "Preset \"%s\" already exists. Overwrite?"
 msgstr "พรีเซต \"%s\" มีอยู่แล้ว เขียนทับข้อมูลหรือไม่"
 
 msgid "Set nozzle diameter"
-msgstr ""
+msgstr "ตั้งค่าเส้นผ่านศูนย์กลางหัวฉีด"
 
 msgid "Single-diameter mode"
-msgstr ""
+msgstr "โหมดเส้นผ่านศูนย์กลางเดียว"
 
 msgid "Multi-diameter mode"
-msgstr ""
+msgstr "โหมดหลายเส้นผ่านศูนย์กลาง"
 
 #, c-format, boost-format
 msgid "This filament does not support the %smm nozzle, or no matching nozzle is configured."
-msgstr ""
+msgstr "เส้นวัสดุนี้ไม่รองรับหัวฉีดขนาด %s มิลลิเมตร หรือไม่ได้ตั้งค่าหัวฉีดที่ตรงกันไว้"
 
 #, c-format, boost-format
 msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
+msgstr "โปรดตั้งค่าหัวฉีดเส้นผ่านศูนย์กลาง %s มิลลิเมตร สำหรับเครื่องพิมพ์ในส่วนด้านล่างก่อน ก่อนใช้ขนาดนี้ในการตัดแบ่ง"
+
+msgid "No nozzle is installed in this slot."
+msgstr ""
+
+msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr ""
 
 msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
+msgstr "เอ็กซ์ทรูเดอร์นี้มีเส้นผ่านศูนย์กลางหัวฉีดแตกต่างจากเส้นผ่านศูนย์กลางการพิมพ์ที่เลือกไว้ การพิมพ์ด้วยหัวฉีดหลายขนาดผสมกันเป็นคุณสมบัติทดลอง"
+
+msgid "Nozzle Settings"
 msgstr ""
+
+msgid "Set your printer's nozzle installation status"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The %s nozzle is in use by project filaments. Changing it will move them to 0.4 Standard. Change it anyway?"
+msgstr ""
+
+msgid "External AMS"
+msgstr ""
+
+msgid "To pick this, change the nozzle settings first"
+msgstr ""
+
+msgid "The filament in this slot cannot print with this nozzle"
+msgstr ""
+
+msgid "Successfully synchronized Printer information."
+msgstr ""
+
+msgid "Continue to sync filaments"
+msgstr "ซิงค์เส้นวัสดุต่อ"
+
+msgctxt "Sync_Nozzle_AMS"
+msgid "Cancel"
+msgstr "ยกเลิก"
+
+msgid "Successfully synchronized color and type of filament from printer."
+msgstr "ซิงโครไนซ์สีและประเภทของเส้นวัสดุจากเครื่องพิมพ์สำเร็จ"
+
+msgctxt "FinishSyncAms"
+msgid "OK"
+msgstr "ตกลง"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -20251,6 +20321,30 @@ msgstr ""
 "ความน่าเชื่อถือแบบสำเร็จตั้งแต่ครั้งแรก\n"
 "ไม่ต้องคอยเฝ้า ได้ผลลัพธ์ที่คาดเดาได้มากขึ้น ตัวอย่าง: ฟาร์มพิมพ์ขนาดเล็กที่ผลิตชิ้นส่วน PETG สามารถหลีกเลี่ยงปัญหา 'งานเสียในชั่วโมงที่ 6' และส่งมอบงานได้ตรงตามกำหนด"
 
+#, boost-format
+#~ msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
+#~ msgstr "โครงการนี้รองรับเส้นวัสดุสูงสุด %1% เส้น ต้องผสานเส้นวัสดุส่วนเกินเข้าด้วยกันก่อนนำเข้า"
+
+#~ msgid "Auto-Add All Filaments"
+#~ msgstr "เพิ่มเส้นวัสดุทั้งหมดโดยอัตโนมัติ"
+
+#~ msgid "Fix now"
+#~ msgstr "แก้ไขทันที"
+
+#, boost-format
+#~ msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
+#~ msgstr "โครงการนี้รองรับเส้นวัสดุสูงสุด %1% เส้น จำนวนปัจจุบันคือ %2%ซึ่งเกินขีดจำกัด"
+
+#, c-format, boost-format
+#~ msgid "model \"%s\""
+#~ msgstr "โมเดล \"%s\""
+
+#~ msgid "The 3mf is not from Bambu Lab, load geometry data only."
+#~ msgstr "ไฟล์ 3mf ไม่ได้มาจาก Bambu Lab โหลดเฉพาะข้อมูลรูปทรง"
+
+#~ msgid "Your printer has different nozzles installed. Please select a nozzle for this print."
+#~ msgstr "เครื่องพิมพ์ของคุณติดตั้งหัวฉีดที่มีขนาดแตกต่างกัน โปรดเลือกหัวฉีดสำหรับการพิมพ์ครั้งนี้"
+
 #~ msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
 #~ msgstr "การใช้ความหนาต่อชั้นแบบแปรผันร่วมกับชั้นย่อยสีผสม อาจทำให้คุณภาพการผสมสีไม่ดี"
 
@@ -20485,20 +20579,6 @@ msgstr ""
 
 #~ msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 #~ msgstr "เคล็ดลับ: หากคุณเพิ่งเปลี่ยนหัวฉีดของเครื่องพิมพ์ โปรดไปที่ 'อุปกรณ์ -> ชิ้นส่วนเครื่องพิมพ์' เพื่อเปลี่ยนการตั้งค่าหัวฉีด"
-
-#~ msgid "Continue to sync filaments"
-#~ msgstr "ซิงค์เส้นวัสดุต่อ"
-
-#~ msgctxt "Sync_Nozzle_AMS"
-#~ msgid "Cancel"
-#~ msgstr "ยกเลิก"
-
-#~ msgid "Successfully synchronized color and type of filament from printer."
-#~ msgstr "ซิงโครไนซ์สีและประเภทของเส้นวัสดุจากเครื่องพิมพ์สำเร็จ"
-
-#~ msgctxt "FinishSyncAms"
-#~ msgid "OK"
-#~ msgstr "ตกลง"
 
 #~ msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
 #~ msgstr "เอ็กซ์ทรูเดอร์ Bowden ไม่รองรับหัวฉีดเส้นผ่านศูนย์กลาง 0.2 มม. เราจะพิมพ์ด้วยหัวพิมพ์เดียวเท่านั้น"

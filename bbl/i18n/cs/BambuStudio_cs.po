@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 23:32+0800\n"
+"POT-Creation-Date: 2026-10-19 18:17+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -203,6 +203,14 @@ msgstr "Bambu TPU 85A není podpěrován pro tisk se standardními nebo vysokopr
 
 msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
 msgstr "Při použití ABS/ASA/PETG HF v pravém extruderu jej lze použít pouze jako podpůrný materiál."
+
+#, c-format, boost-format
+msgid "%s is not supported by the current %s hotend. Please confirm the filament type and try again."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is not supported by the current 2.85 mm TPU hotend. Please confirm the filament type and try again."
+msgstr ""
 
 msgid "PPA-CF does not support AMS feeding. Use an external spool instead."
 msgstr ""
@@ -957,11 +965,12 @@ msgstr ""
 msgid "No selected machine"
 msgstr ""
 
-msgid "loading/unloading"
+#, boost-format
+msgid "Slot %1% filament loading in progress"
 msgstr ""
 
 #, boost-format
-msgid "Slot %1% filament %2% in progress"
+msgid "Slot %1% filament unloading in progress"
 msgstr ""
 
 #, c-format, boost-format
@@ -1454,6 +1463,10 @@ msgid "Cutting model object"
 msgstr ""
 
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Repair object: %s"
 msgstr ""
 
 msgid "Repairing model object"
@@ -4390,7 +4403,7 @@ msgid "New Mixed Filaments"
 msgstr ""
 
 #, boost-format
-msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
+msgid "The project supports up to %1% filaments."
 msgstr ""
 
 msgid "Updating"
@@ -4435,10 +4448,7 @@ msgstr ""
 msgid "Some colors have no matching filament. Please match them before importing."
 msgstr ""
 
-msgid "Auto-Add All Filaments"
-msgstr ""
-
-msgid "Fix now"
+msgid "Complete All Filaments"
 msgstr ""
 
 msgid "Skip"
@@ -4494,46 +4504,7 @@ msgstr ""
 msgid "Click to select a matching filament"
 msgstr ""
 
-#, boost-format
-msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
-msgstr ""
-
 msgid "Error Prompt"
-msgstr ""
-
-msgid "This plan cannot merge any filaments. Remaining filaments use different materials."
-msgstr ""
-
-#, boost-format
-msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
-msgstr ""
-
-msgid "Mixing kits"
-msgstr ""
-
-msgid "Existing project filaments"
-msgstr ""
-
-msgid "Kept filaments"
-msgstr ""
-
-msgid "Deleted filaments"
-msgstr ""
-
-msgid "After merging"
-msgstr ""
-
-#, boost-format
-msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit. Please choose how to proceed."
-msgstr ""
-
-msgid "Prioritize merging similar-color filaments"
-msgstr ""
-
-msgid "Prioritize merging small-area filaments"
-msgstr ""
-
-msgid "Apply now"
 msgstr ""
 
 msgid "How to use standard mixing kits"
@@ -6512,9 +6483,6 @@ msgstr "Dráha G-kódu přesahuje hranici podložky."
 msgid "Not support printing 2 or more TPU filaments."
 msgstr "Tisk dvou nebo více TPU filamentů není podpěrován."
 
-msgid "The printer preset is missing a TPU285 nozzle."
-msgstr ""
-
 msgid "The total printed weight exceeds this printer's recommended capacity and may cause slower printing or print defects."
 msgstr ""
 
@@ -6579,9 +6547,6 @@ msgstr "Povolit detekci shlukování"
 
 msgid "Click here to regroup"
 msgstr "Klikněte sem pro opětovné seskupení"
-
-msgid "Click to add a TPU285 nozzle"
-msgstr ""
 
 msgid "Flushing Volume"
 msgstr "Objem proplachu"
@@ -8317,6 +8282,18 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Spodní"
 
+msgid "Read-only, automatically calculated from the base initial layer height"
+msgstr ""
+
+msgid "Read-only, automatically calculated from the base layer height"
+msgstr ""
+
+msgid "Read-only, automatically calculated from the base value"
+msgstr ""
+
+msgid "nozzle"
+msgstr "tryska"
+
 msgid "Notify only"
 msgstr ""
 
@@ -8995,6 +8972,9 @@ msgstr ""
 msgid "View details on Wiki"
 msgstr ""
 
+msgid "Collapse panel"
+msgstr ""
+
 msgid "Global"
 msgstr "Globální"
 
@@ -9015,6 +8995,9 @@ msgstr "Nastavení filamentu"
 
 msgid "Printer settings"
 msgstr "Nastavení tiskárny"
+
+msgid "Expand panel"
+msgstr ""
 
 msgid "At least one plate is required"
 msgstr ""
@@ -9225,6 +9208,9 @@ msgstr ""
 msgid "This filament does not support printing with the current nozzle"
 msgstr ""
 
+msgid "The current nozzle settings have no nozzle of this type"
+msgstr ""
+
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
 msgstr ""
@@ -9234,18 +9220,27 @@ msgid ", and %d more"
 msgstr ""
 
 #, c-format, boost-format
-msgid "model \"%s\""
+msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
+msgstr ""
+
+msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
+msgstr ""
+
+msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
+msgstr ""
+
+msgid "The filament you are deleting is used by the following mixed filaments, which will become unusable after deletion:"
 msgstr ""
 
 #, c-format, boost-format
-msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
-msgstr ""
-
-msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
+msgid "Mixed filament %d"
 msgstr ""
 
 msgid "Delete Filament"
 msgstr "Smazat filament"
+
+msgid "Continue deleting"
+msgstr ""
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "Cílový smíšený filament používá tento fyzický filament jako jednu ze složek. Sloučením bude tento fyzický filament odstraněn a smíšený filament se může stát neplatným. Pokračovat?"
@@ -9333,6 +9328,9 @@ msgstr ""
 msgid "Filament %s has no preset for the current nozzle settings. Please create the matching filament preset."
 msgstr ""
 
+msgid "Add the nozzle"
+msgstr ""
+
 msgid "Add a new preset"
 msgstr ""
 
@@ -9386,8 +9384,8 @@ msgstr "Načítání souboru: %s"
 msgid "The 3mf file has invalid config, load geometry data only"
 msgstr ""
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "Soubor 3mf nepochází od Bambu Lab, načtou se pouze geometrická data."
+msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
+msgstr "Soubor 3mf nepochází od Bambu Lab, načtou se pouze geometrická a barevná data."
 
 msgid "The Config can not be loaded."
 msgstr "Konfiguraci nelze načíst."
@@ -9400,9 +9398,6 @@ msgstr "Tento soubor 3mf nelze plně načíst kvůli nižší verzi Bambu Studio
 
 msgid "Found following keys unrecognized:\n"
 msgstr "Byly nalezeny následující nerozpoznané klíče:\n"
-
-msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
-msgstr "Soubor 3mf nepochází od Bambu Lab, načtou se pouze geometrická a barevná data."
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "Soubor 3mf byl vytvořen ve starém Bambu Studio, načtou se pouze geometrická data."
@@ -11226,9 +11221,6 @@ msgstr "Délka názvu překračuje limit."
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr "Náklady jsou oproti optimálnímu seskupení vyšší o %dg filamentu a %d dalších změn."
 
-msgid "nozzle"
-msgstr "tryska"
-
 msgid "both extruders"
 msgstr "oba extrudery"
 
@@ -11368,7 +11360,7 @@ msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. 
 msgstr ""
 
 #, c-format, boost-format
-msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
+msgid "External AMS and %1$s filaments are both selected for PrintTool %2$d. Because %3$s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
 #, c-format, boost-format
@@ -13519,6 +13511,9 @@ msgstr "Opravený soubor 3mf obsahuje více než jeden objem"
 msgid "Repaired 3mf file contains more than one instance"
 msgstr ""
 
+msgid "Repairing"
+msgstr ""
+
 msgid "Repair finished"
 msgstr "Oprava dokončena"
 
@@ -13646,6 +13641,9 @@ msgid "Nozzle assignment error: no nozzle matches the diameter and flow selected
 msgstr ""
 
 msgid "Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."
+msgstr ""
+
+msgid "Nozzle assignment error: per-filament nozzle map points to an empty or unavailable nozzle."
 msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
@@ -15099,6 +15097,12 @@ msgstr "Objem materiálu potřebný k předplnění extruderu na věži, bez vý
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr "Objem materiálu potřebný k předplnění extruderu při výměně hotendu na věži."
+
+msgid "Pre-heating when extruder change"
+msgstr ""
+
+msgid "0 means disabled, 1 means enabled."
+msgstr ""
 
 msgid "Preheat temperature delta"
 msgstr "Teplotní rozdíl při předehřevu"
@@ -16891,20 +16895,13 @@ msgstr ""
 msgid "Support ring angle"
 msgstr ""
 
-msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider."
+msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider. A set angle keeps one piece, from 200° to 300°. -1 means auto: the angle is worked out from the purge of each filament change, so the purge is laid a few rings thick. When that comes out below 200°, the ring is split into two facing pieces with a second opening on the side away from the camera."
 msgstr ""
 
 msgid "Support ring skip points"
 msgstr ""
 
 msgid "Leave gaps in the support ring outer wall at each wipe entry so the nozzle can reach the wipe path from outside the ring, and travel around the ring contour instead of crossing the model."
-msgstr ""
-
-msgid "Support ring infill gap"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Radial spacing between sparse wipe rings, as a percentage of line width. 100% packs neighbouring rings so they touch; larger values leave a gap."
 msgstr ""
 
 msgid "Support ring wall loops"
@@ -17239,6 +17236,9 @@ msgstr "Minimální šířka stěny"
 
 msgid "Width of the wall that will replace thin features (according to the Minimum feature size) of the model. If the Minimum wall width is thinner than the thickness of the feature, the wall will become as thick as the feature itself. It's expressed as a percentage over nozzle diameter"
 msgstr "Šířka stěny, která v modelu nahradí tenké prvky (podle minimální velikosti prvku). Pokud je minimální šířka stěny menší než tloušťka prvku, stěna bude stejně silná jako samotný prvek. Vyjadřuje se jako procento průměru trysky"
+
+msgid "Filament switch retraction length"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr ""
@@ -19615,8 +19615,14 @@ msgstr "Zjištěna neznámá tryska. Proveďte aktualizaci (neaktualizované try
 msgid "Please confirm whether the required nozzle diameter and flow rate match the currently displayed values."
 msgstr "Ověřte prosím, zda požadovaný průměr trysky a průtok odpovídají aktuálně zobrazeným hodnotám."
 
-msgid "Your printer has different nozzles installed. Please select a nozzle for this print."
-msgstr "Vaše tiskárna má nainstalované různé trysky. Vyberte prosím trysku pro tento tisk."
+msgid "No usable nozzle is detected on your printer."
+msgstr ""
+
+msgid "Your printer has nozzles of different diameters installed."
+msgstr ""
+
+msgid "All nozzles installed on your printer have the same diameter."
+msgstr ""
 
 msgid "Purge Mode Settings"
 msgstr "Nastavení režimu čištění"
@@ -19635,6 +19641,20 @@ msgstr ""
 
 msgid "Learn more about prime mode"
 msgstr "Zjistit více o režimu přípravy"
+
+msgid "TPU Usage Notes"
+msgstr ""
+
+msgid "Important Notice:"
+msgstr ""
+
+msgid ""
+"• Using TPU filament for the first time? Read the official guide first to avoid clogs or feeding failures.\n"
+"• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
+msgstr ""
+
+msgid "View User Guide"
+msgstr ""
 
 msgid "AMS Dryness Control"
 msgstr "Řízení vysoušení AMS"
@@ -19659,6 +19679,9 @@ msgstr "Vyjměte a uložte filament (viz obrázek)."
 
 msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
 msgstr "AMS může otáčet správně uloženým filamentem, aby zajistil lepší výsledky sušení."
+
+msgid "Rotate spool when drying"
+msgstr "Během sušení otáčet cívkou"
 
 msgctxt "amsdrying"
 msgid "Back"
@@ -19746,6 +19769,9 @@ msgstr "Případně můžete filament sušit i bez vyjmutí."
 
 msgid "Unknown filaments will be treated as PLA."
 msgstr "Neznámé filamenty budou považovány za PLA."
+
+msgid "For better drying results, remove the filament."
+msgstr ""
 
 msgid "Please store the filament marked with an exclamation mark."
 msgstr "Uložte prosím filament označený vykřičníkem."
@@ -20036,8 +20062,50 @@ msgstr ""
 msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
 msgstr ""
 
+msgid "No nozzle is installed in this slot."
+msgstr ""
+
+msgid "Nozzle diameter mismatch. This nozzle cannot be used."
+msgstr ""
+
 msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
 msgstr ""
+
+msgid "Nozzle Settings"
+msgstr ""
+
+msgid "Set your printer's nozzle installation status"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The %s nozzle is in use by project filaments. Changing it will move them to 0.4 Standard. Change it anyway?"
+msgstr ""
+
+msgid "External AMS"
+msgstr ""
+
+msgid "To pick this, change the nozzle settings first"
+msgstr ""
+
+msgid "The filament in this slot cannot print with this nozzle"
+msgstr ""
+
+msgid "Successfully synchronized Printer information."
+msgstr ""
+
+msgid "Continue to sync filaments"
+msgstr "Pokračovat v synchronizaci filamentů"
+
+msgctxt "Sync_Nozzle_AMS"
+msgid "Cancel"
+msgstr "Zrušit"
+
+msgid "Successfully synchronized color and type of filament from printer."
+msgstr "Barva a typ filamentu byly úspěšně synchronizovány z tiskárny."
+
+msgctxt "FinishSyncAms"
+msgid "OK"
+msgstr "OK"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -20360,6 +20428,12 @@ msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
 
+#~ msgid "The 3mf is not from Bambu Lab, load geometry data only."
+#~ msgstr "Soubor 3mf nepochází od Bambu Lab, načtou se pouze geometrická data."
+
+#~ msgid "Your printer has different nozzles installed. Please select a nozzle for this print."
+#~ msgstr "Vaše tiskárna má nainstalované různé trysky. Vyberte prosím trysku pro tento tisk."
+
 #~ msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
 #~ msgstr "Použití proměnné výšky vrstvy spolu se smíšenou barevnou podvrstvou může vést k nízké kvalitě míchání barev."
 
@@ -20586,20 +20660,6 @@ msgstr ""
 
 #~ msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 #~ msgstr "Tip: Pokud jste nedávno vyměnili trysku tiskárny, přejděte do 'Zařízení -> Části tiskárny' a změňte nastavení trysky."
-
-#~ msgid "Continue to sync filaments"
-#~ msgstr "Pokračovat v synchronizaci filamentů"
-
-#~ msgctxt "Sync_Nozzle_AMS"
-#~ msgid "Cancel"
-#~ msgstr "Zrušit"
-
-#~ msgid "Successfully synchronized color and type of filament from printer."
-#~ msgstr "Barva a typ filamentu byly úspěšně synchronizovány z tiskárny."
-
-#~ msgctxt "FinishSyncAms"
-#~ msgid "OK"
-#~ msgstr "OK"
 
 #~ msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
 #~ msgstr "Extruder typu Bowden nepodpěruje trysku o průměru 0,2. Můžeme pokračovat pouze v tisku s jednou hlavou."
@@ -20911,9 +20971,6 @@ msgstr ""
 
 #~ msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
 #~ msgstr "Pozor: Kombinace různých průměrů trysek v jednom tisku není podporována. Pokud je zvolená velikost pouze na jednom extruderu, bude vynucen tisk jedním extruderem."
-
-#~ msgid "Rotate spool when drying"
-#~ msgstr "Během sušení otáčet cívkou"
 
 #~ msgid "The temperature shall not exceed the filament's heat distortion temperature"
 #~ msgstr "Teplota nesmí překročit teplotu tepelné deformace filamentu"

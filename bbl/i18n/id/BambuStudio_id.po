@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 23:32+0800\n"
+"POT-Creation-Date: 2026-10-19 18:17+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -208,6 +208,14 @@ msgstr "Bambu TPU 85A tidak didukung untuk pencetakan dengan nosel Standar 0,4 m
 msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
 msgstr "Saat menggunakan ABS/ASA/PETG HF pada ekstruder kanan, itu hanya dapat digunakan sebagai material penyangga."
 
+#, c-format, boost-format
+msgid "%s is not supported by the current %s hotend. Please confirm the filament type and try again."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is not supported by the current 2.85 mm TPU hotend. Please confirm the filament type and try again."
+msgstr ""
+
 msgid "PPA-CF does not support AMS feeding. Use an external spool instead."
 msgstr ""
 
@@ -237,11 +245,11 @@ msgstr "PPA-CF rapuh dan bisa patah di tabung PTFE bengkok di atas toolhead."
 
 #, c-format, boost-format
 msgid "%s filament is brittle. Use AMS feeding with caution."
-msgstr ""
+msgstr "Filamen %s rapuh. Gunakan pengumpanan AMS dengan hati-hati."
 
 #, c-format, boost-format
 msgid "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing."
-msgstr ""
+msgstr "Filamen %s memiliki risiko penyumbatan yang lebih tinggi saat dicetak dengan hotend 0,2 mm. Gunakan hotend lain yang kompatibel sebelum melakukan pencetakan."
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "Filamen CF/GF keras dan rapuh, mudah patah, atau tersangkut di AMS, harap gunakan dengan hati-hati."
@@ -454,7 +462,7 @@ msgid "Reading"
 msgstr "Sedang membaca"
 
 msgid "Running"
-msgstr ""
+msgstr "Berjalan"
 
 msgid "Raised"
 msgstr "Terangkat"
@@ -636,10 +644,10 @@ msgid "Note:"
 msgstr "Catatan:"
 
 msgid "Pen"
-msgstr ""
+msgstr "Pena"
 
 msgid "Cutter"
-msgstr ""
+msgstr "Pemotong"
 
 msgid "Laser"
 msgstr ""
@@ -648,22 +656,22 @@ msgid "Fan"
 msgstr "Kipas"
 
 msgid "Unclamped"
-msgstr ""
+msgstr "Tidak dijepit"
 
 msgid "The embedded webpage could not be loaded."
-msgstr ""
+msgstr "Halaman web yang disematkan tidak dapat dimuat."
 
 msgid "Reload"
-msgstr ""
+msgstr "Muat ulang"
 
 msgid "Copy diagnostic information"
-msgstr ""
+msgstr "Salin informasi diagnostik"
 
 msgid "Add refill filament"
-msgstr ""
+msgstr "Tambahkan filamen isi ulang"
 
 msgid "Add material group"
-msgstr ""
+msgstr "Tambahkan grup material"
 
 msgid "AMS Bridge Debug"
 msgstr ""
@@ -696,10 +704,10 @@ msgid "Check filament location"
 msgstr "Periksa lokasi filamen"
 
 msgid "Switch extruder"
-msgstr ""
+msgstr "Ganti ekstruder"
 
 msgid "Switch hotend"
-msgstr ""
+msgstr "Ganti hotend"
 
 msgid "Wait for AMS cooling"
 msgstr "Tunggu pendinginan AMS"
@@ -714,85 +722,85 @@ msgid "Switch track at Filament Track Switch"
 msgstr "Ganti jalur di Sakelar Jalur Filamen"
 
 msgid "Batch pull back the filaments"
-msgstr ""
+msgstr "Tarik kembali filamen secara bersamaan"
 
 msgid "Nesting PrintTool"
-msgstr ""
+msgstr "Menyarangkan Alat Pencetakan"
 
 msgid "Purge filament"
-msgstr ""
+msgstr "Bersihkan filamen"
 
 #, boost-format
 msgid "Please manually pull out the filament from slot %1%."
-msgstr ""
+msgstr "Tarik filamen keluar dari slot %1% secara manual."
 
 #, boost-format
 msgid "Please manually pull out the filament from hotend %1% on the toolhead."
-msgstr ""
+msgstr "Tarik filamen dari hotend %1% pada toolhead secara manual."
 
 #, boost-format
 msgid "Please manually insert the filament into the loading port of hotend %1% on the toolhead until it cannot be pushed any further."
-msgstr ""
+msgstr "Masukkan filamen secara manual ke lubang pemasukan hotend %1% pada toolhead hingga tidak dapat didorong lagi."
 
 #, boost-format
 msgid "Please manually insert the filament from slot %1% into the extruder loading port until it cannot be pushed any further."
-msgstr ""
+msgstr "Masukkan filamen dari slot %1% secara manual ke lubang pemasukan ekstruder hingga tidak dapat didorong lagi."
 
 msgid "Other filaments are info-only"
-msgstr ""
+msgstr "Filamen lainnya hanya untuk informasi"
 
 msgid "Filament not removed"
-msgstr ""
+msgstr "Filamen tidak dilepas"
 
 msgid "Hotend rack moving"
-msgstr ""
+msgstr "Rak hotend bergerak"
 
 msgid "Homing PrintTool Rack"
-msgstr ""
+msgstr "Mengembalikan ke titik awal Rak Alat Pencetakan"
 
 msgid "Homing Toolhead"
-msgstr ""
+msgstr "Toolhead Kembali ke Titik Awal"
 
 msgid "Calibrating PrintTool Rack Position"
-msgstr ""
+msgstr "Mengkalibrasi Posisi Rak Alat Pencetakan"
 
 msgid "Heating Hotend"
-msgstr ""
+msgstr "Memanaskan Hotend"
 
 msgid "Cutting Filament"
-msgstr ""
+msgstr "Memotong Filamen"
 
 msgid "Unlocking Tool"
-msgstr ""
+msgstr "Membuka Kunci Alat"
 
 msgid "Raising PrintTool Rack"
-msgstr ""
+msgstr "Mengangkat Rak Alat Pencetakan"
 
 msgid "Nesting Tool"
-msgstr ""
+msgstr "Menyarangkan Alat"
 
 msgid "Fetching Tool"
-msgstr ""
+msgstr "Mengambil Alat"
 
 msgid "Locking Tool"
-msgstr ""
+msgstr "Mengunci Alat"
 
 msgid "Moving PrintTool Rack"
-msgstr ""
+msgstr "Memindahkan Rak Alat Pencetakan"
 
 msgid "Refreshing Hotend"
-msgstr ""
+msgstr "Menyegarkan Hotend"
 
 #, boost-format
 msgid "Reading (%1% / %2%)"
-msgstr ""
+msgstr "Membaca (%1% / %2%)"
 
 #, boost-format
 msgid "Reading Hotend %1%"
-msgstr ""
+msgstr "Membaca Hotend %1%"
 
 msgid "Please wait..."
-msgstr ""
+msgstr "Harap tunggu..."
 
 msgid "Edit Filament"
 msgstr "Edit Filamen"
@@ -813,138 +821,140 @@ msgid "Tip"
 msgstr "Tips"
 
 msgid "Empty slot"
-msgstr ""
+msgstr "Slot kosong"
 
 msgid "RFID is being read"
-msgstr ""
+msgstr "RFID sedang dibaca"
 
 msgid "Filament change in progress"
-msgstr ""
+msgstr "Penggantian filamen sedang berlangsung"
 
 msgid "Slot is in error state"
-msgstr ""
+msgstr "Slot mengalami kesalahan"
 
 msgid "Filament already loaded"
-msgstr ""
+msgstr "Filamen sudah dimuat"
 
 msgid "Ready to load"
-msgstr ""
+msgstr "Siap dimuat"
 
 msgid "Loaded"
-msgstr ""
+msgstr "Dimuat"
 
 msgid "TPU pending read"
-msgstr ""
+msgstr "TPU menunggu dibaca"
 
 msgid "Unknown filament"
-msgstr ""
+msgstr "Filamen tidak diketahui"
 
 msgid "Other batch mode active"
-msgstr ""
+msgstr "Mode batch lainnya aktif"
 
 msgid "External filament already loaded into hotend"
-msgstr ""
+msgstr "Filamen eksternal sudah dimuat di hotend"
 
 msgid "The current tool is not a nozzle"
-msgstr ""
+msgstr "Alat saat ini bukan nosel"
 
 msgid "There are no nozzle installed"
-msgstr ""
+msgstr "Tidak ada nosel yang terpasang"
 
 msgid "Nozzle is in error state"
-msgstr ""
+msgstr "Nosel mengalami kesalahan"
 
 msgid "Nozzle has been detached"
-msgstr ""
+msgstr "Nosel terlepas"
 
 msgid "Nozzle type is unknown"
-msgstr ""
+msgstr "Jenis nosel tidak diketahui"
 
 msgid "Slot not loaded"
-msgstr ""
+msgstr "Slot tidak dimuat"
 
 msgid "No filament information available"
-msgstr ""
+msgstr "Tidak ada informasi filamen yang tersedia"
 
 msgid "Cannot read all while printing or upgrading"
-msgstr ""
+msgstr "Tidak dapat membaca semua data selama proses pencetakan atau pembaruan"
 
 msgid ""
 "Unable to read filament information.\n"
 "Filament is currently loaded in the feeding inlet. Please pull it out first and try again."
 msgstr ""
+"Tidak dapat membaca informasi filamen.\n"
+"Filamen masih berada di lubang pengumpanan filamen. Keluarkan filamen terlebih dahulu, lalu coba lagi."
 
 msgid "The printer is busy on other job"
-msgstr ""
+msgstr "Printer sedang menjalankan pekerjaan lain"
 
 msgid "Cannot stop filament change while printing or calibrating"
-msgstr ""
+msgstr "Tidak dapat menghentikan penggantian filamen selama proses pencetakan atau kalibrasi"
 
 msgid "No slots selected for batch run"
-msgstr ""
+msgstr "Tidak ada slot yang dipilih untuk proses batch"
 
 msgid "All selected slots are invalid"
-msgstr ""
+msgstr "Semua slot yang dipilih tidak valid"
 
 msgid "MQTT publish failed for multi_slot_ams_change_filament"
-msgstr ""
+msgstr "Gagal mengirim pesan MQTT untuk multi_slot_ams_change_filament"
 
 msgid "Hotend Details"
-msgstr ""
+msgstr "Detail Hotend"
 
 msgid "PrintTool communication error. Please check the PrintTool cable and try again."
-msgstr ""
+msgstr "Kesalahan komunikasi Alat Pencetakan. Silakan periksa kabel Alat Pencetakan dan coba lagi."
 
 msgid "PrintTool detached. Cannot load."
-msgstr ""
+msgstr "Alat Pencetakan terlepas. Tidak dapat memuat."
 
 msgid "PrintTool communication error. Cannot operate."
-msgstr ""
+msgstr "Kesalahan komunikasi Alat Pencetakan. Tidak dapat beroperasi."
 
 msgid "The current filament may not be fully loaded into the PrintTool"
-msgstr ""
+msgstr "Filamen saat ini mungkin belum dimuat sepenuhnya ke Alat Pencetakan"
 
 msgid "Hotend type unknown"
-msgstr ""
+msgstr "Jenis hotend tidak diketahui"
 
 msgid "The current filament may not be fully loaded into the PrintTool, which may cause printing issues. Please pull the filament out of the PrintTool, then click \"Load\" to complete loading."
-msgstr ""
+msgstr "Filamen saat ini mungkin belum dimuat sepenuhnya ke Alat Pencetakan, sehingga dapat menyebabkan masalah pencetakan. Keluarkan filamen dari Alat Pencetakan, lalu klik \"Muat\" untuk menyelesaikan proses pemuatan."
 
 msgid "Hotend type unknown. Please edit the hotend type on the printer and try again."
-msgstr ""
+msgstr "Jenis hotend tidak diketahui. Ubah jenis hotend pada printer, lalu coba lagi."
 
 msgid "View details"
 msgstr "Lihat detail"
 
 msgid "Hotend rack is busy"
-msgstr ""
+msgstr "Rak hotend sedang digunakan"
 
 msgid "Hotend rack cannot read all"
-msgstr ""
+msgstr "Rak hotend tidak dapat membaca semua data"
 
 msgid "Settings for CutTool and DrawTool are not supported yet."
-msgstr ""
+msgstr "Pengaturan Alat Potong dan Alat Gambar belum didukung."
 
 msgid "Invalid hotend display_index"
-msgstr ""
+msgstr "display_index hotend tidak valid"
 
 msgid "Invalid hotend temperature payload"
-msgstr ""
+msgstr "Data suhu hotend tidak valid"
 
 msgid "No hotend rack"
-msgstr ""
+msgstr "Tidak ada rak hotend"
 
 msgid "Hotend cannot set temperature"
-msgstr ""
+msgstr "Hotend tidak dapat mengatur suhu"
 
 msgid "Invalid hotend addr_id"
-msgstr ""
+msgstr "addr_id hotend tidak valid"
 
 msgid "Loading/Unloading"
-msgstr ""
+msgstr "Pemuatan/Pembongkaran"
 
 msgid "Checking"
-msgstr ""
+msgstr "Memeriksa"
 
 msgid "Cooling"
 msgstr "Mode Pendinginan"
@@ -953,51 +963,52 @@ msgid "Stopping"
 msgstr "Menghentikan"
 
 msgid "Heat fault"
-msgstr ""
+msgstr "Gangguan pemanasan"
 
 msgid "Self test"
-msgstr ""
+msgstr "Uji mandiri"
 
 msgid "No selected machine"
-msgstr ""
+msgstr "Tidak ada mesin yang dipilih"
 
-msgid "loading/unloading"
+#, boost-format
+msgid "Slot %1% filament loading in progress"
 msgstr ""
 
 #, boost-format
-msgid "Slot %1% filament %2% in progress"
+msgid "Slot %1% filament unloading in progress"
 msgstr ""
 
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
-msgstr ""
+msgstr "Hapus \"%s\" dari grup isi ulang ini?"
 
 msgid "The refill group will be automatically deleted after removal."
-msgstr ""
+msgstr "Grup isi ulang akan dihapus secara otomatis setelah pelepasan."
 
 msgid "Remove"
 msgstr "Hapus"
 
 msgid "This will delete all manually added filament in current group, please proceed with caution."
-msgstr ""
+msgstr "Ini akan menghapus semua filamen yang ditambahkan secara manual dalam grup saat ini, harap lanjutkan dengan hati-hati."
 
 msgid "Reset Refill Group"
-msgstr ""
+msgstr "Atur Ulang Grup Isi Ulang"
 
 msgid "Reset"
 msgstr "Setel Ulang"
 
 msgid "When the current spool runs out, the printer automatically continues with a spool of the same brand, type, and color. Refill relations can also be edited manually, so spools of the same type in a different color can be used for refilling."
-msgstr ""
+msgstr "Ketika gulungan yang sedang digunakan habis, printer otomatis melanjutkan pencetakan dengan gulungan yang memiliki merek, jenis, dan warna yang sama. Relasi isi ulang juga dapat diatur secara manual, sehingga gulungan dengan jenis yang sama tetapi warna berbeda dapat digunakan untuk isi ulang."
 
 msgid "Drag spools to adjust their priority."
-msgstr ""
+msgstr "Geser gulungan untuk mengatur prioritasnya."
 
 msgid "The system has created auto-refill groups based on material type, color, and brand."
-msgstr ""
+msgstr "Sistem telah membuat grup isi ulang otomatis berdasarkan jenis material, warna, dan merek."
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
-msgstr ""
+msgstr "Setelah gulungan yang digunakan habis selama pencetakan, printer otomatis beralih ke gulungan kompatibel berikutnya sesuai urutan dalam grup, lalu kembali ke gulungan pertama setelah gulungan terakhir habis."
 
 msgid "Supports Painting"
 msgstr "Pengecatan Penopang"
@@ -1460,6 +1471,10 @@ msgstr "Memotong objek model"
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
 msgstr "Tepi terbuka mungkin disebabkan oleh alat potong, apakah Anda ingin memperbaikinya sekarang?"
 
+#, c-format, boost-format
+msgid "Repair object: %s"
+msgstr ""
+
 msgid "Repairing model object"
 msgstr "Memperbaiki objek model"
 
@@ -1693,7 +1708,7 @@ msgid "Operation already cancelling. Please wait few seconds."
 msgstr "Operasi sedang dibatalkan. Harap tunggu beberapa detik."
 
 msgid "Transferring painting to the simplified mesh..."
-msgstr ""
+msgstr "Mentransfer hasil pengecatan ke mesh yang disederhanakan..."
 
 msgid "Face recognition"
 msgstr "Pengenalan wajah"
@@ -3240,7 +3255,7 @@ msgstr ""
 
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
-msgstr ""
+msgstr "Operasi boolean mesh mendukung maksimal %1% bagian, tetapi objek yang dipilih terdiri dari %2% bagian. Kurangi jumlah bagian, lalu coba lagi."
 
 msgid "Cut Connectors information"
 msgstr "Informasi Konektor Potongan"
@@ -3546,7 +3561,7 @@ msgid "Off"
 msgstr "Mati"
 
 msgid "Air Purifier"
-msgstr ""
+msgstr "Pemurni Udara"
 
 msgctxt "AirPurifier"
 msgid "Max"
@@ -3622,7 +3637,7 @@ msgstr "Kanan (Filter)"
 
 msgctxt "air_duct"
 msgid "Right(Heating)"
-msgstr ""
+msgstr "Kanan (Pemanasan)"
 
 msgctxt "air_duct"
 msgid "Left(Aux)"
@@ -4336,13 +4351,13 @@ msgid "Remaining time: %dmin%ds"
 msgstr "Sisa waktu: %d mnt %d dtk"
 
 msgid "No valid computation result. This parameter cannot be adjusted."
-msgstr ""
+msgstr "Tidak ada hasil perhitungan yang valid. Parameter ini tidak dapat disesuaikan."
 
 msgid "Transition Smoothness (between color blocks): the higher, the smoother"
-msgstr ""
+msgstr "Kehalusan Transisi (antarblok warna): semakin tinggi nilai, semakin halus hasil transisi"
 
 msgid "Auto Merge Small Fragments: the higher, the more merging"
-msgstr ""
+msgstr "Penggabungan Otomatis Fragmen Kecil: semakin tinggi nilainya, semakin banyak fragmen yang digabungkan"
 
 msgid "Add Filament"
 msgstr "Tambah Filamen"
@@ -4354,10 +4369,10 @@ msgid "Official Filament"
 msgstr "Filamen Resmi"
 
 msgid "Set filament match color difference threshold"
-msgstr ""
+msgstr "Atur ambang batas perbedaan warna untuk pencocokan filamen"
 
 msgid "Color tolerance for automatic filament matching. Higher value = easier to match."
-msgstr ""
+msgstr "Toleransi warna untuk pencocokan filamen otomatis. Nilai yang lebih tinggi = pencocokan lebih mudah."
 
 msgid "+ Add Filament"
 msgstr "+ Tambah Filamen"
@@ -4375,8 +4390,8 @@ msgid "New Mixed Filaments"
 msgstr "Filamen Campuran Baru"
 
 #, boost-format
-msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
-msgstr "Proyek ini mendukung hingga %1% filamen. Filamen tambahan harus digabung sebelum diimpor."
+msgid "The project supports up to %1% filaments."
+msgstr ""
 
 msgid "Updating"
 msgstr "Memperbarui"
@@ -4420,11 +4435,8 @@ msgstr "Gunakan kit pencampuran resmi →"
 msgid "Some colors have no matching filament. Please match them before importing."
 msgstr "Beberapa warna tidak memiliki filamen yang cocok. Harap cocokkan sebelum mengimpor."
 
-msgid "Auto-Add All Filaments"
-msgstr "Tambah Otomatis Semua Filamen"
-
-msgid "Fix now"
-msgstr "Perbaiki sekarang"
+msgid "Complete All Filaments"
+msgstr ""
 
 msgid "Skip"
 msgstr "Lewati"
@@ -4479,62 +4491,23 @@ msgstr "Jumlah warna tidak boleh melebihi batas filamen proyek (%d)."
 msgid "Click to select a matching filament"
 msgstr "Klik untuk memilih filamen yang cocok"
 
-#, boost-format
-msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
-msgstr "Proyek ini mendukung hingga %1% filamen. Jumlah saat ini adalah %2%, yang melebihi batas."
-
 msgid "Error Prompt"
 msgstr "Pesan Kesalahan"
-
-msgid "This plan cannot merge any filaments. Remaining filaments use different materials."
-msgstr ""
-
-#, boost-format
-msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
-msgstr ""
-
-msgid "Mixing kits"
-msgstr ""
-
-msgid "Existing project filaments"
-msgstr ""
-
-msgid "Kept filaments"
-msgstr ""
-
-msgid "Deleted filaments"
-msgstr ""
-
-msgid "After merging"
-msgstr ""
-
-#, boost-format
-msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit. Please choose how to proceed."
-msgstr ""
-
-msgid "Prioritize merging similar-color filaments"
-msgstr ""
-
-msgid "Prioritize merging small-area filaments"
-msgstr ""
-
-msgid "Apply now"
-msgstr ""
 
 msgid "How to use standard mixing kits"
 msgstr "Cara menggunakan kit pencampuran standar"
 
 msgid "What is the CMYKW mixing kit?"
-msgstr ""
+msgstr "Apa itu kit pencampuran CMYKW?"
 
 msgid "After official print testing, you only need a standard CMYKW mixing kit to mix hundreds of color effects."
-msgstr ""
+msgstr "Setelah pengujian cetak resmi, Anda hanya memerlukan kit pencampuran CMYKW standar untuk mencampur ratusan efek warna."
 
 msgid "5-color CMYKW"
-msgstr ""
+msgstr "5 warna CMYKW"
 
 msgid "Cyan · Magenta · Yellow · Black · White"
-msgstr ""
+msgstr "Sian · Magenta · Kuning · Hitam · Putih"
 
 msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
 msgstr "Oleh karena itu, saat mengimpor model, warna dapat dicocokkan menggunakan filamen kit ini dan campurannya."
@@ -4655,7 +4628,7 @@ msgid "AMS Materials Setting"
 msgstr "Pengaturan Bahan AMS"
 
 msgid "Reread"
-msgstr ""
+msgstr "Baca ulang"
 
 msgid "Colour"
 msgstr "Warna"
@@ -4667,7 +4640,7 @@ msgid "Total Weight"
 msgstr "Berat Total"
 
 msgid "Remain Weight"
-msgstr ""
+msgstr "Sisa Berat"
 
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Faktor Kalibrasi Dinamika Aliran"
@@ -4701,10 +4674,10 @@ msgid "Tip: Setting Virtual slot information while printing is not supported"
 msgstr "Tips: Pengaturan informasi slot Virtual saat pencetakan tidak didukung"
 
 msgid "Please enter valid filament weights."
-msgstr ""
+msgstr "Masukkan berat filamen yang valid."
 
 msgid "Please enter valid filament weight within 1000g."
-msgstr ""
+msgstr "Masukkan berat filamen yang valid, maksimal 1000 g."
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Apakah Anda yakin ingin menghapus informasi filamen?"
@@ -4923,7 +4896,7 @@ msgid "WET"
 msgstr "BASAH"
 
 msgid "Please select the filament to match."
-msgstr ""
+msgstr "Pilih filamen yang akan dicocokkan."
 
 msgid "AMS"
 msgstr ""
@@ -4981,10 +4954,10 @@ msgid "The AMS will not automatically read information from inserted filament du
 msgstr "AMS tidak akan otomatis membaca informasi dari filamen yang dimasukkan saat startup dan akan terus menggunakan informasi yang terekam sebelum pematian terakhir."
 
 msgid "Automatically refresh unloaded filaments"
-msgstr ""
+msgstr "Otomatis segarkan filamen yang telah dibongkar"
 
 msgid "For official filaments, the filament type is automatically refreshed when entering the Device page. To avoid frequent refreshes, automatic refreshes occur no more than once per minute."
-msgstr ""
+msgstr "Untuk filamen resmi, jenis filamen akan disegarkan secara otomatis saat membuka halaman Perangkat. Untuk menghindari penyegaran yang terlalu sering, penyegaran otomatis dilakukan maksimal satu kali per menit."
 
 msgid "Update remaining capacity"
 msgstr "Perbarui sisa kapasitas"
@@ -6079,7 +6052,7 @@ msgid "Why this grouping"
 msgstr "Mengapa dikelompokkan seperti ini?"
 
 msgid "AMS nozzle"
-msgstr ""
+msgstr "Nosel AMS"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Harap tempatkan filamen pada printer berdasarkan hasil pengelompokan."
@@ -6475,9 +6448,6 @@ msgstr "Terdeteksi jalur G-code melebihi batas pelat pemanas."
 msgid "Not support printing 2 or more TPU filaments."
 msgstr "Tidak mendukung pencetakan 2 (atau lebih) filamen TPU secara bersamaan."
 
-msgid "The printer preset is missing a TPU285 nozzle."
-msgstr ""
-
 msgid "The total printed weight exceeds this printer's recommended capacity and may cause slower printing or print defects."
 msgstr "Total massa cetakan melebihi kapasitas yang direkomendasikan printer ini dan dapat menyebabkan pencetakan lebih lambat atau cacat cetak."
 
@@ -6511,7 +6481,7 @@ msgid "PLA and PETG filaments detected in the mixture. Adjust parameters accordi
 msgstr "Terdeteksi filamen PLA dan PETG dalam campuran. Sesuaikan parameter berdasarkan saran di Wiki untuk memastikan kualitas cetak."
 
 msgid "Generation of a prime tower is not supported on your printer if multiple materials and a support structure are used. Integrated Support is enabled for slicing."
-msgstr ""
+msgstr "Pembuatan menara utama tidak didukung pada printer Anda jika beberapa material dan struktur penyangga digunakan. Dukungan Terintegrasi diaktifkan untuk pemotongan."
 
 msgid "Detected brittle filament (e.g., PPS-CF). Please place the models at the center of the heated bed. Printing near the edge may cause the filament to bend excessively and break inside the tube."
 msgstr "Terdeteksi filamen rapuh (misalnya, PPS-CF). Harap letakkan model di tengah alas yang dipanaskan. Pencetakan dekat tepi dapat menyebabkan filamen bengkok berlebihan dan putus di dalam tabung."
@@ -6542,9 +6512,6 @@ msgstr "Aktifkan Deteksi Penggumpalan"
 
 msgid "Click here to regroup"
 msgstr "Klik di sini untuk mengelompokkan kembali."
-
-msgid "Click to add a TPU285 nozzle"
-msgstr ""
 
 msgid "Flushing Volume"
 msgstr "Volume Pembilasan"
@@ -6605,10 +6572,10 @@ msgid "Go Live"
 msgstr "Tayangkan Langsung"
 
 msgid "Live Camera Recording"
-msgstr ""
+msgstr "Rekaman Kamera Langsung"
 
 msgid "Visual Enhancement Camera Recording"
-msgstr ""
+msgstr "Rekaman Kamera Peningkatan Visual"
 
 msgid "Liveview Retry"
 msgstr "Coba Lagi Tampilan Langsung"
@@ -7229,16 +7196,16 @@ msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "Pustaka plugin gagal dimuat. Klik di sini untuk melihat solusi."
 
 msgid "Switch to the auxiliary live camera view"
-msgstr ""
+msgstr "Beralih ke tampilan kamera langsung tambahan"
 
 msgid "Switch to the main live camera view"
-msgstr ""
+msgstr "Beralih ke tampilan kamera langsung utama"
 
 msgid "Switch live camera view"
-msgstr ""
+msgstr "Beralih tampilan kamera langsung"
 
 msgid "Current camera is abnormal"
-msgstr ""
+msgstr "Kamera saat ini tidak normal"
 
 msgid "Loading failed. Please check the network and try again."
 msgstr "Gagal memuat. Silakan periksa jaringan dan coba lagi."
@@ -7996,7 +7963,7 @@ msgid "Status"
 msgstr "Status Perangkat"
 
 msgid "Print queue"
-msgstr ""
+msgstr "Antrean cetak"
 
 msgctxt "Firmware"
 msgid "Update"
@@ -8216,7 +8183,7 @@ msgid "Gcode path overlap"
 msgstr "Jalur gcode tumpang tindih"
 
 msgid "Please adjust the nozzle diameter/flow of the affected filament in the filament panel."
-msgstr ""
+msgstr "Sesuaikan diameter nosel/aliran filamen yang bermasalah di panel filamen."
 
 msgid "Support painting"
 msgstr "Pengecatan dukungan"
@@ -8264,23 +8231,35 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Bawah"
 
-msgid "Notify only"
+msgid "Read-only, automatically calculated from the base initial layer height"
 msgstr ""
 
-msgid "Slow down toolhead"
+msgid "Read-only, automatically calculated from the base layer height"
 msgstr ""
+
+msgid "Read-only, automatically calculated from the base value"
+msgstr ""
+
+msgid "nozzle"
+msgstr "nosel"
+
+msgid "Notify only"
+msgstr "Beri tahu saja"
+
+msgid "Slow down toolhead"
+msgstr "Perlambat toolhead"
 
 msgid "Pause printing"
 msgstr "Jeda pencetakan"
 
 msgid "When the door is opened during printing, the printer slows down the toolhead related moves for safety. This may increase the toolhead switching time and affect the print quality."
-msgstr ""
+msgstr "Saat pintu dibuka selama proses pencetakan, printer memperlambat pergerakan toolhead demi keamanan. Hal ini dapat memperpanjang waktu pergantian toolhead dan memengaruhi kualitas cetak."
 
 msgid "Enable Slow Down Toolhead?"
-msgstr ""
+msgstr "Aktifkan Perlambatan Toolhead?"
 
 msgid "Enable Anyway"
-msgstr ""
+msgstr "Tetap Aktifkan"
 
 msgid "There is stringing-prone filament in the current print job. Enabling nozzle clumping detection now may degrade print quality. Are you sure you want to enable it?"
 msgstr "Ada filamen yang rentan stringing dalam pekerjaan cetak saat ini. Mengaktifkan deteksi penggumpalan nosel sekarang dapat menurunkan kualitas cetak. Apakah Anda yakin ingin mengaktifkannya?"
@@ -8355,7 +8334,7 @@ msgid "Checks for any objects on the build plate at the start of a print to avoi
 msgstr "Memeriksa objek apa pun pada pelat cetak saat memulai pencetakan untuk menghindari tabrakan."
 
 msgid "Print Loosening Detection"
-msgstr ""
+msgstr "Deteksi Pelonggaran Cetak"
 
 msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
 msgstr "Memantau bagian yang dicetak selama pencetakan dan segera memberi peringatan jika bergeser atau roboh."
@@ -8403,7 +8382,7 @@ msgid "On"
 msgstr "Nyala"
 
 msgid "Detects air printing caused by nozzle clogging, filament tangling, or filament grinding."
-msgstr ""
+msgstr "Mendeteksi cetak udara yang disebabkan oleh penyumbatan nosel, kusutan filamen, atau penggilingan filamen."
 
 msgid "Open Door Detection"
 msgstr "Buka Deteksi Pintu"
@@ -8999,6 +8978,9 @@ msgstr "Membagi permukaan menjadi beberapa sel dan menggeser setiap sel secara u
 msgid "View details on Wiki"
 msgstr "Lihat detail selengkapnya di Wiki"
 
+msgid "Collapse panel"
+msgstr ""
+
 msgid "Global"
 msgstr ""
 
@@ -9019,6 +9001,9 @@ msgstr "Pengaturan filamen"
 
 msgid "Printer settings"
 msgstr "Pengaturan printer"
+
+msgid "Expand panel"
+msgstr ""
 
 msgid "At least one plate is required"
 msgstr "Setidaknya diperlukan satu pelat"
@@ -9134,13 +9119,13 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
-msgstr ""
+msgstr "Tidak ada diameter %smm dalam jenis nosel yang dikonfigurasi, sehingga diameter %smm untuk pemotongan tidak dapat digunakan."
 
 msgid "Configure Nozzle diameter"
-msgstr ""
+msgstr "Konfigurasi diameter Nosel"
 
 msgid "Modify Nozzle Type"
-msgstr ""
+msgstr "Ubah Jenis Nosel"
 
 msgid "Not installed"
 msgstr "Tidak terpasang"
@@ -9213,15 +9198,18 @@ msgid "Remove last mixed filament"
 msgstr "Hapus filamen campuran terakhir"
 
 msgid "Mixing filaments of different types or nozzle diameters is not supported. Please fix the marked mixed filaments in the left filament list."
-msgstr ""
+msgstr "Penggabungan filamen dengan jenis atau diameter nosel yang berbeda tidak didukung. Perbaiki filamen campuran yang ditandai pada daftar filamen kiri."
 
 msgid "Search plate, object and part."
 msgstr "Cari pelat, objek, dan komponen."
 
 msgid "Change nozzle diameter"
-msgstr ""
+msgstr "Ubah diameter nosel"
 
 msgid "This filament does not support printing with the current nozzle"
+msgstr ""
+
+msgid "The current nozzle settings have no nozzle of this type"
 msgstr ""
 
 #, c-format, boost-format
@@ -9233,18 +9221,27 @@ msgid ", and %d more"
 msgstr ", dan %d lainnya"
 
 #, c-format, boost-format
-msgid "model \"%s\""
+msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
+msgstr ""
+
+msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
+msgstr ""
+
+msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
+msgstr ""
+
+msgid "The filament you are deleting is used by the following mixed filaments, which will become unusable after deletion:"
 msgstr ""
 
 #, c-format, boost-format
-msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
-msgstr ""
-
-msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
+msgid "Mixed filament %d"
 msgstr ""
 
 msgid "Delete Filament"
 msgstr "Hapus Filamen"
+
+msgid "Continue deleting"
+msgstr ""
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "Filamen campuran target menggunakan filamen fisik ini sebagai komponen. Penggabungan akan menghapus filamen fisik ini dan dapat menyebabkan filamen campuran menjadi tidak valid. Lanjutkan?"
@@ -9284,32 +9281,32 @@ msgid "Cannot mix different filament types"
 msgstr "Tidak dapat mencampur jenis filamen yang berbeda"
 
 msgid "Cannot mix filaments using different nozzle diameters"
-msgstr ""
+msgstr "Filamen dengan diameter nosel yang berbeda tidak dapat dicampur"
 
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
 msgstr ""
 
 msgid "Please modify the original project filament diameter."
-msgstr ""
+msgstr "Ubah diameter filamen pada proyek asli."
 
 msgid "Edit / Delete / Merge"
 msgstr "Edit / Hapus / Gabung"
 
 #, c-format, boost-format
 msgid "Mixed filament %s has broken component references."
-msgstr ""
+msgstr "Filamen campuran %s memiliki acuan komponen yang rusak."
 
 #, c-format, boost-format
 msgid "Mixed filament %s mixes different filament types, which is not supported."
-msgstr ""
+msgstr "Filamen campuran %s menggabungkan jenis filamen yang berbeda, dan hal ini tidak didukung."
 
 #, c-format, boost-format
 msgid "Mixed filament %s mixes different nozzle diameters, which is not supported."
-msgstr ""
+msgstr "Filamen campuran %s menggabungkan diameter nosel yang berbeda, dan hal ini tidak didukung."
 
 msgid "Please fix the marked mixed filaments in the left filament list."
-msgstr ""
+msgstr "Perbaiki filamen campuran yang ditandai pada daftar filamen kiri."
 
 #, c-format, boost-format
 msgid "Filament %s is not configured for the %s nozzle. Please change the nozzle or the filament before use."
@@ -9331,8 +9328,11 @@ msgstr ""
 msgid "Filament %s has no preset for the current nozzle settings. Please create the matching filament preset."
 msgstr ""
 
-msgid "Add a new preset"
+msgid "Add the nozzle"
 msgstr ""
+
+msgid "Add a new preset"
+msgstr "Tambahkan preset baru"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -9384,8 +9384,8 @@ msgstr "Memuat file: %s"
 msgid "The 3mf file has invalid config, load geometry data only"
 msgstr "File 3mf memiliki konfigurasi tidak valid, muat data geometri saja"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "File 3mf ini bukan dari Bambu Lab, hanya data geometri yang akan dimuat."
+msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
+msgstr "3mf bukan dari Bambu Lab, hanya akan memuat data geometri dan data warna."
 
 msgid "The Config can not be loaded."
 msgstr "Konfigurasi tidak dapat dimuat."
@@ -9398,9 +9398,6 @@ msgstr "Karena versi Bambu Studio yang lebih rendah, file 3mf ini tidak dapat di
 
 msgid "Found following keys unrecognized:\n"
 msgstr "Ditemukan kata kunci berikut yang tidak dikenali:\n"
-
-msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
-msgstr "3mf bukan dari Bambu Lab, hanya akan memuat data geometri dan data warna."
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "File 3mf ini dibuat oleh Bambu Studio versi lama, hanya data geometri yang akan dimuat."
@@ -9459,7 +9456,7 @@ msgstr "Volume objek adalah nol"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
-msgstr ""
+msgstr "Menghitung warna model: %s"
 
 msgid "Texture Import Warning"
 msgstr "Peringatan Impor Tekstur"
@@ -10128,7 +10125,7 @@ msgstr "Semua filamen di printer adalah jenis yang tidak dikenal. Harap buka lay
 
 #, c-format, boost-format
 msgid "The currently connected printer is not available, please check the status of %s before syncing."
-msgstr ""
+msgstr "Printer yang saat ini terhubung tidak tersedia. Periksa status %s sebelum menyinkronkan."
 
 msgid "Device Page"
 msgstr "Halaman Perangkat"
@@ -10544,10 +10541,10 @@ msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "Tidak ada peringatan saat memuat 3MF dengan G-code yang dimodifikasi"
 
 msgid "Don't check printer information when loading 3MF"
-msgstr ""
+msgstr "Jangan periksa informasi printer saat memuat 3MF"
 
 msgid "No prompt to migrate the preset when the loaded 3MF does not match the connected printer"
-msgstr ""
+msgstr "Tidak ada permintaan untuk memigrasikan preset ketika file 3MF yang dimuat tidak sesuai dengan printer yang terhubung"
 
 msgid "10 seconds"
 msgstr "10 detik"
@@ -10655,13 +10652,13 @@ msgid "Enable SSL(FTP)"
 msgstr "Aktifkan SSL (FTP)"
 
 msgid "Import Texture Model"
-msgstr ""
+msgstr "Impor Model Tekstur"
 
 msgid "Color Tolerance of Filament Matching"
-msgstr ""
+msgstr "Toleransi Warna Pencocokan Filamen"
 
 msgid "CIEDE2000 difference used when matching imported texture colors to filaments. Filaments within this band are treated as equally close. This does not merge colors and does not change the match threshold in the texture import dialog."
-msgstr ""
+msgstr "Perbedaan CIEDE2000 yang digunakan saat mencocokkan warna tekstur yang diimpor dengan filamen. Filamen dalam rentang ini dianggap memiliki tingkat kecocokan yang sama. Pengaturan ini tidak menggabungkan warna dan tidak mengubah ambang batas kecocokan pada dialog impor tekstur."
 
 msgid "Host Setting"
 msgstr "Pengaturan Host"
@@ -10738,13 +10735,13 @@ msgid "This filament is not compatible with the nozzle it is loaded on"
 msgstr ""
 
 msgid "To select this filament, change the nozzle settings first."
-msgstr ""
+msgstr "Untuk memilih filamen ini, ubah pengaturan nosel terlebih dahulu."
 
 msgid "Available Nozzles"
 msgstr "Nosel yang Tersedia"
 
 msgid "Unavailable Nozzles"
-msgstr ""
+msgstr "Nosel Tidak Tersedia"
 
 msgid "AMS filaments"
 msgstr "Filamen AMS"
@@ -10795,7 +10792,7 @@ msgid "The selected preset is null!"
 msgstr "Preset yang dipilih kosong!"
 
 msgid "Color mixing only supports single-color filaments."
-msgstr ""
+msgstr "Pencampuran warna hanya mendukung filamen satu warna."
 
 msgid "End"
 msgstr "Akhir"
@@ -10980,19 +10977,19 @@ msgid "No hotends available."
 msgstr "Tidak ada hotend yang tersedia."
 
 msgid "No PrintTool available. Please install a compatible tool and try again."
-msgstr ""
+msgstr "Alat Pencetakan tidak tersedia. Pasang alat yang kompatibel, lalu coba lagi."
 
 msgid "PrintTool detached. Please install before printing."
-msgstr ""
+msgstr "Alat Pencetakan terlepas. Pasang sebelum mencetak."
 
 msgid "CutTool detached. Please install before printing."
-msgstr ""
+msgstr "Alat Potong terlepas. Pasang sebelum mencetak."
 
 msgid "DrawTool detached. Please install before printing."
-msgstr ""
+msgstr "Alat Gambar terlepas. Pasang sebelum mencetak."
 
 msgid "None of the current tools have completed Docking Calibration. Please calibrate and try again."
-msgstr ""
+msgstr "Belum ada alat yang menyelesaikan Kalibrasi Dok. Silakan kalibrasi, lalu coba lagi."
 
 msgid "Please complete the hotend rack setup and try again."
 msgstr "Harap selesaikan pemasangan rak hotend dan coba lagi."
@@ -11082,7 +11079,7 @@ msgid "If the filament/nozzle of the main extruder hasn't changed, the last cali
 msgstr "Jika filamen/nosel ekstruder utama belum diganti, nilai kalibrasi terakhir akan digunakan kembali. Ekstruder tambahan akan menggunakan nilai default sistem."
 
 msgid "Add to queue"
-msgstr ""
+msgstr "Tambahkan ke antrean"
 
 msgid "send completed"
 msgstr "pengiriman selesai"
@@ -11146,7 +11143,7 @@ msgid "Return to modify"
 msgstr "Kembali untuk mengedit"
 
 msgid "Only the current sliced plate can be added to the print queue."
-msgstr ""
+msgstr "Hanya pelat yang sedang dipotong yang dapat ditambahkan ke antrean cetak."
 
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "Ini memeriksa kerataan heatbed. Penyetelan membuat tinggi ekstrusi seragam."
@@ -11198,7 +11195,7 @@ msgid "Before each print starts, calibration will be performed for the main extr
 msgstr "Sebelum setiap proses pencetakan dimulai, kalibrasi akan dilakukan pada ekstruder utama. Ekstruder tambahan akan menggunakan nilai default sistem."
 
 msgid "The current filament mapping is invalid and the print would fail. Please select the filaments manually again."
-msgstr ""
+msgstr "Pemetaan filamen saat ini tidak valid dan pencetakan akan gagal. Pilih kembali filamen secara manual."
 
 msgid "Preparing print job"
 msgstr "Mempersiapkan pekerjaan cetak"
@@ -11210,7 +11207,7 @@ msgid "As the print job has been successfully sent, the cancellation will not br
 msgstr "Karena pekerjaan cetak telah berhasil dikirim, pembatalan tidak akan menghentikan pekerjaan cetak. Jika Anda perlu menghentikan pekerjaan ini, harap hentikan di halaman 'Perangkat'."
 
 msgid "Print immediately"
-msgstr ""
+msgstr "Cetak sekarang"
 
 msgid "The name length exceeds the limit."
 msgstr "Panjang nama melebihi batas."
@@ -11218,9 +11215,6 @@ msgstr "Panjang nama melebihi batas."
 #, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr "Menghabiskan %dg filamen dan %d pergantian lebih banyak daripada pengelompokan optimal."
-
-msgid "nozzle"
-msgstr "nosel"
 
 msgid "both extruders"
 msgstr "kedua ekstruder"
@@ -11242,7 +11236,7 @@ msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "Filamen pada %s tidak dikenal dan mungkin melunak. Harap atur filamen."
 
 msgid "The print queue does not support the Filament Track Switch yet."
-msgstr ""
+msgstr "Antrean cetak belum mendukung Sakelar Jalur Filamen."
 
 msgid ""
 "Upper half area:  Original\n"
@@ -11278,7 +11272,7 @@ msgid "Please wait a moment..."
 msgstr "Harap tunggu sebentar..."
 
 msgid "PrintToolRack moving, please wait."
-msgstr ""
+msgstr "Rak Alat Pencetakan sedang bergerak, harap tunggu."
 
 msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
 msgstr "Toolhead dan rak hotend sudah penuh. Harap lepaskan setidaknya satu hotend sebelum mencetak."
@@ -11344,22 +11338,22 @@ msgstr "Filamen pada grup isi ulang otomatis %s mungkin tidak mencukupi untuk ce
 
 #, c-format, boost-format
 msgid "Filament in slots %s may not have been properly loaded to the PrintTool. Please see the loading guide."
-msgstr ""
+msgstr "Filamen di slot %s mungkin belum dimasukkan dengan benar ke Alat Pencetakan. Lihat panduan pemuatan."
 
 #, c-format, boost-format
 msgid "Filament are not loaded in PrintTool %s. Printing may pause for filament change. Please load the filament before printing."
-msgstr ""
+msgstr "Filamen belum dimuat ke Alat Pencetakan %s. Pencetakan mungkin dijeda untuk penggantian filamen. Harap masukkan filamen sebelum melakukan pencetakan."
 
 #, c-format, boost-format
 msgid "Filament are not loaded in Slot %s. Printing may pause for filament change. Please load the filament before printing."
-msgstr ""
+msgstr "Filamen belum dimuat ke Slot %s. Pencetakan mungkin dijeda untuk penggantian filamen. Harap masukkan filamen sebelum melakukan pencetakan."
 
 #, c-format, boost-format
 msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. Please pull it out manually."
 msgstr ""
 
 #, c-format, boost-format
-msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
+msgid "External AMS and %1$s filaments are both selected for PrintTool %2$d. Because %3$s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
 #, c-format, boost-format
@@ -11436,7 +11430,7 @@ msgid "Cannot send the print job for empty plate"
 msgstr "Tidak dapat mengirim pekerjaan cetak untuk pelat kosong"
 
 msgid "The slicing result of the current plate is invalid. Please re-slice and try again"
-msgstr ""
+msgstr "Hasil pemotongan pelat saat ini tidak valid. Potong ulang dan coba lagi"
 
 msgid "Storage needs to be inserted to record timelapse."
 msgstr "Penyimpanan perlu dimasukkan untuk merekam timelapse."
@@ -11457,13 +11451,13 @@ msgid "This printer does not support printing all plates"
 msgstr "Printer ini tidak mendukung pencetakan semua pelat"
 
 msgid "Printing a project that uses multiple nozzle diameters directly from storage is not supported yet. You can download the file and import it into Studio to print."
-msgstr ""
+msgstr "Pencetakan proyek dengan beberapa diameter nosel langsung dari penyimpanan belum didukung. Anda dapat mengunduh file tersebut dan mengimpornya ke Studio untuk dicetak."
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "Harap periksa apakah diameter nosel dan laju aliran yang diperlukan sesuai dengan tampilan saat ini."
 
 msgid "The sliced model is incompatible with this printer. You may have used an outdated or unsupported slicer or G-code. To print this model on this printer, please re-slice it using the latest version of Bambu Studio."
-msgstr ""
+msgstr "Model yang dipotong tidak kompatibel dengan printer ini. Anda mungkin menggunakan pemotong atau G-code versi lama atau yang tidak didukung. Untuk mencetak model ini dengan printer ini, potong ulang menggunakan Bambu Studio versi terbaru."
 
 msgid "How to install"
 msgstr "Cara menginstal"
@@ -11853,10 +11847,10 @@ msgid "Frequent"
 msgstr "Sering"
 
 msgid "Selected only"
-msgstr ""
+msgstr "Hanya yang dipilih"
 
 msgid "All objects"
-msgstr ""
+msgstr "Semua objek"
 
 msgid "Modifier cycle"
 msgstr "Siklus pengubah"
@@ -12012,7 +12006,7 @@ msgid "Auxiliary part cooling fan"
 msgstr "Kipas pendingin komponen tambahan"
 
 msgid "Auxiliary part cooling fan (left)"
-msgstr ""
+msgstr "Kipas pendingin bagian tambahan (kiri)"
 
 msgid "Exhaust fan"
 msgstr "Kipas buang"
@@ -12033,7 +12027,7 @@ msgid "Multi Filament"
 msgstr "Multi-Filamen"
 
 msgid "Auxiliary part cooling fan (right)"
-msgstr ""
+msgstr "Kipas pendingin bagian tambahan (kanan)"
 
 msgid "Purge Mode: Standard"
 msgstr "Mode Pembersihan: Standar"
@@ -13495,6 +13489,9 @@ msgstr "File 3mf yang diperbaiki berisi lebih dari satu volume"
 msgid "Repaired 3mf file contains more than one instance"
 msgstr "File 3mf yang diperbaiki berisi lebih dari satu instans"
 
+msgid "Repairing"
+msgstr ""
+
 msgid "Repair finished"
 msgstr "Perbaikan selesai"
 
@@ -13512,7 +13509,7 @@ msgstr "Buka file G-code:"
 
 #, c-format, boost-format
 msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr ""
+msgstr "Berhasil ditambahkan ke antrean cetak. Akan otomatis beralih ke halaman antrean pencetakan dalam %s detik"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
@@ -13538,7 +13535,7 @@ msgid "Refreshing printer access code"
 msgstr "Memperbarui kode akses printer"
 
 msgid "Adding print job to queue"
-msgstr ""
+msgstr "Menambahkan pekerjaan cetak ke antrean"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "Objek berikut memiliki lapisan awal kosong dan tidak dapat dicetak. Harap potong bagian bawah atau aktifkan penyangga."
@@ -13611,15 +13608,18 @@ msgid "No valid nozzle found. Please check nozzle count."
 msgstr "Tidak ditemukan nosel yang valid. Harap periksa jumlah nosel."
 
 msgid "Filament assigned to a nozzle of incompatible diameter. Please regroup so each filament stays on a nozzle whose diameter it supports."
-msgstr ""
+msgstr "Filamen dipasang ke nosel dengan diameter yang tidak kompatibel. Atur ulang grup agar setiap filamen tetap menggunakan nosel dengan diameter yang kompatibel."
 
 msgid "Nozzle assignment error: no compatible fixed nozzle is available for the fixed filament group. Please check the nozzle setup or regroup."
-msgstr ""
+msgstr "Kesalahan penetapan nosel: tidak ada nosel tetap yang kompatibel untuk grup filamen tetap. Periksa pengaturan nosel atau atur ulang grup."
 
 msgid "Nozzle assignment error: no nozzle matches the diameter and flow selected for one of the filaments. Please check the nozzle setup."
-msgstr ""
+msgstr "Kesalahan penetapan nosel: tidak ada nosel yang sesuai dengan diameter dan flow yang dipilih untuk salah satu filamen. Periksa pengaturan nosel."
 
 msgid "Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."
+msgstr "Kesalahan penetapan nosel: pemetaan nosel per filamen tidak valid. Periksa pengaturan nosel atau atur ulang grup."
+
+msgid "Nozzle assignment error: per-filament nozzle map points to an empty or unavailable nozzle."
 msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
@@ -13801,7 +13801,7 @@ msgid " is too close to clumping detection area, and collisions will be caused.\
 msgstr " terlalu dekat dengan area deteksi penggumpalan, dan akan menyebabkan tabrakan.\n"
 
 msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr ""
+msgstr "Filamen suhu tinggi digunakan pada pelat saat ini. Jangan mencampurnya dengan filamen bersuhu rendah."
 
 msgid "No extrusions under current settings."
 msgstr "Tidak ada ekstrusi berdasarkan pengaturan saat ini."
@@ -13831,25 +13831,25 @@ msgid "Printing with different nozzle diameters and support ring is experimental
 msgstr ""
 
 msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr ""
+msgstr "Pencetakan dengan diameter nosel berbeda dan menara utama masih dalam tahap uji coba. Menara utama mungkin tidak berfungsi dengan benar jika ukuran nosel berbeda."
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
-msgstr ""
+msgstr "Diameter nosel yang berbeda tidak diperbolehkan saat cincin penyangga digunakan."
 
 msgid "The support ring is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
-msgstr ""
+msgstr "Cincin penyangga saat ini hanya didukung dengan pengalamatan ekstruder relatif (use_relative_e_distances=1)."
 
 msgid "The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
 msgstr "Menara Prime saat ini hanya didukung dengan pengalamatan ekstruder relatif (use_relative_e_distances=1)."
 
 msgid "Ooze prevention is currently not supported with the support ring enabled."
-msgstr ""
+msgstr "Pencegahan rembesan material saat ini tidak didukung jika cincin penyangga digunakan."
 
 msgid "Ooze prevention is currently not supported with the prime tower enabled."
 msgstr "Pencegahan merembes saat ini tidak didukung saat menara prime diaktifkan."
 
 msgid "The support ring is not supported in \"By object\" print. Switch to \"By layer\" or disable the support ring."
-msgstr ""
+msgstr "Cincin penyangga tidak didukung dalam pencetakan \"Per objek\". Beralih ke \"Per lapisan\" atau nonaktifkan cincin penyangga."
 
 msgid "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors."
 msgstr "Menara prime saat ini hanya didukung untuk gaya G-code Marlin, RepRap/Sprinter, RepRapFirmware, dan Repetier."
@@ -13864,25 +13864,25 @@ msgid "The prime tower requires \"support gap\" to be multiple of layer height"
 msgstr "Menara prime mensyaratkan \"celah penyangga\" adalah kelipatan bilangan bulat dari Tinggi Lapisan"
 
 msgid "The support ring requires that all objects have the same layer heights"
-msgstr ""
+msgstr "Cincin penyangga mensyaratkan semua objek memiliki tinggi lapisan yang sama"
 
 msgid "The prime tower requires that all objects have the same layer heights"
 msgstr "Menara prime mensyaratkan semua objek memiliki Tinggi Lapisan yang sama"
 
 msgid "The support ring requires that all objects are printed over the same number of raft layers"
-msgstr ""
+msgstr "Cincin penyangga mensyaratkan semua objek dicetak di atas jumlah lapisan raft yang sama"
 
 msgid "The prime tower requires that all objects are printed over the same number of raft layers"
 msgstr "Menara prime mensyaratkan semua objek dicetak di atas jumlah lapisan raft yang sama"
 
 msgid "The support ring requires that all objects are sliced with the same layer heights."
-msgstr ""
+msgstr "Cincin penyangga mensyaratkan semua objek dipotong dengan tinggi lapisan yang sama."
 
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "Menara prime mensyaratkan semua objek dipotong dengan tinggi lapisan yang sama."
 
 msgid "The support ring is only supported if all objects have the same variable layer height"
-msgstr ""
+msgstr "Cincin penyangga hanya didukung jika semua objek memiliki tinggi lapisan variabel yang sama"
 
 msgid "The prime tower is only supported if all objects have the same variable layer height"
 msgstr "Menara prime hanya didukung jika semua objek memiliki tinggi lapisan variabel yang sama"
@@ -13916,7 +13916,7 @@ msgid "Precise outer wall will be ignored unless the order of walls is set to in
 msgstr "Dinding luar presisi akan diabaikan kecuali urutan dinding diatur ke dalam/luar"
 
 msgid "Organic tree support cannot generate a support ring. Please switch to another support type."
-msgstr ""
+msgstr "Penyangga pohon organik tidak dapat menghasilkan cincin penyangga. Beralih ke jenis penyangga lain."
 
 msgid "Generating skirt & brim"
 msgstr "Menghasilkan skirt & brim"
@@ -13928,10 +13928,10 @@ msgid "The relative position of the model and the prime tower does not meet the 
 msgstr "Posisi relatif model dan prime tower tidak memenuhi persyaratan fitur \"Tidak ada lapisan sisipan\". Sesuaikan posisi relatif keduanya, kurangi ketinggian model, atau nonaktifkan \"Tidak ada lapisan sisipan\"."
 
 msgid "Failed to assign filaments to nozzles for the support ring."
-msgstr ""
+msgstr "Gagal menetapkan filamen ke nosel untuk cincin penyangga."
 
 msgid "The support ring extends outside the area both nozzles can reach. Move the affected object closer to the center of the plate."
-msgstr ""
+msgstr "Cincin penyangga berada di luar area yang dapat dijangkau kedua nosel. Pindahkan objek yang bermasalah lebih dekat ke tengah pelat."
 
 msgid "Failed processing of the filename_format template."
 msgstr "Gagal memproses templat format nama file."
@@ -14452,10 +14452,10 @@ msgid "Auxiliary fan speed will be ramped up linearly from layer \"For the first
 msgstr "Kecepatan kipas tambahan akan ditingkatkan secara linear dari lapisan \"Untuk yang pertama\" hingga maksimum pada lapisan \"Kecepatan kipas penuh pada lapisan\". \"Kecepatan kipas penuh pada lapisan\" akan diabaikan jika lebih rendah dari \"Untuk yang pertama\", dalam hal ini kipas akan beroperasi pada kecepatan maksimum yang diizinkan pada lapisan \"Untuk yang pertama\" + 1."
 
 msgid "Set special optional auxiliary cooling fan for the first certain layers."
-msgstr ""
+msgstr "Atur kecepatan kipas pendingin tambahan opsional khusus untuk beberapa lapisan awal."
 
 msgid "Optional auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
-msgstr ""
+msgstr "Kecepatan kipas tambahan opsional akan dinaikkan secara bertahap dari lapisan \"Untuk lapisan pertama\" hingga mencapai kecepatan maksimum pada lapisan \"Kecepatan kipas penuh pada lapisan\". \"Kecepatan kipas penuh pada lapisan\" akan diabaikan jika nilainya lebih rendah daripada \"Untuk lapisan pertama\". Dalam hal ini, kipas akan beroperasi pada kecepatan maksimum yang diizinkan mulai lapisan \"Untuk lapisan pertama\" + 1."
 
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
 msgstr "Atur kipas pendingin khusus untuk beberapa lapisan pertama. Kipas pendingin komponen pada lapisan pertama biasanya dimatikan untuk mendapatkan daya rekat pada pelat cetak yang lebih baik dan digunakan untuk fungsi pendinginan otomatis"
@@ -14467,7 +14467,7 @@ msgid "Special auxiliary cooling fan speed, effective only for the first x layer
 msgstr "Kecepatan kipas pendingin tambahan khusus, efektif hanya untuk x lapisan pertama"
 
 msgid "Special optional auxiliary cooling fan speed, effective only for the first x layers"
-msgstr ""
+msgstr "Kecepatan kipas pendingin tambahan opsional khusus, hanya berlaku untuk x lapisan pertama"
 
 msgid "Don't support bridges"
 msgstr "Jangan dukung jembatan"
@@ -14771,7 +14771,7 @@ msgid "Manual"
 msgstr ""
 
 msgid "Nozzle Manual"
-msgstr ""
+msgstr "Manual Nosel"
 
 msgid "Flush temperature"
 msgstr "Suhu Pembersihan"
@@ -14989,10 +14989,10 @@ msgid "When changing the hotend, it is recommended to extrude a certain length o
 msgstr "Saat mengganti hotend, disarankan untuk mengekstrusi filamen dengan panjang tertentu dari nosel asli. Ini membantu meminimalkan nosel merembes."
 
 msgid "Idle travel cooling"
-msgstr ""
+msgstr "Pendinginan perjalanan idle"
 
 msgid "When filament change length is zero, perform idle travel cooling to help the nozzle cool down. Disabling this will turn off the heater directly without idle travel, which saves print time but may cause stringing for some materials."
-msgstr ""
+msgstr "Jika panjang pergantian filamen adalah nol, lakukan pendinginan perjalanan idle untuk membantu mendinginkan nosel. Jika dinonaktifkan, pemanas akan langsung dimatikan tanpa perjalanan idle, sehingga waktu pencetakan lebih singkat, tetapi dapat menyebabkan stringing pada beberapa material."
 
 msgid "Support material"
 msgstr "Material penyangga"
@@ -15025,10 +15025,10 @@ msgid "Enable Z-direction gradient mode for mixed filament sub-layers. When enab
 msgstr "Aktifkan mode gradien arah Z untuk sublapisan filamen campuran. Saat diaktifkan, rasio sublapisan bervariasi secara linier di seluruh lapisan."
 
 msgid "Prime tower speed factor curve"
-msgstr ""
+msgstr "Kurva faktor kecepatan menara utama"
 
 msgid "Controls the speed factor ramp when priming on the wipe tower after a tool change. Enter comma-separated multipliers of the target speed, one per wipe line. For example: \"0.33,0.375,0.458,0.875,0.875\" means the 1st line runs at 33%, the 2nd at 37.5%, and so on. If fewer than 5 values are given, the last value is reused for remaining lines. Each value is clamped to 0.01 ~ 5.0. Leave empty to use the built-in default curve (0.33, 0.375, 0.458, 0.875, 0.875)."
-msgstr ""
+msgstr "Mengatur peningkatan faktor kecepatan saat melakukan persiapan alur filamen pada menara pembersih setelah pergantian alat. Masukkan pengali kecepatan target yang dipisahkan dengan koma, satu untuk setiap garis pembersihan. Misalnya: \"0.33,0.375,0.458,0.875,0.875\" berarti garis pertama berjalan pada kecepatan 33%, garis kedua 37,5%, dan seterusnya. Jika jumlah nilai yang dimasukkan kurang dari 5, nilai terakhir akan digunakan kembali untuk garis berikutnya. Setiap nilai dibatasi dalam rentang 0.01 ~ 5.0. Biarkan kosong untuk menggunakan kurva default bawaan (0.33, 0.375, 0.458, 0.875, 0.875)."
 
 msgid "Mixed filament gradient range"
 msgstr "Rentang gradien filamen campuran"
@@ -15068,6 +15068,12 @@ msgstr "Volume material yang diperlukan untuk mengisi awal ekstruder di menara, 
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr "Volume material yang diperlukan untuk mengisi awal ekstruder di menara saat mengganti hotend."
+
+msgid "Pre-heating when extruder change"
+msgstr ""
+
+msgid "0 means disabled, 1 means enabled."
+msgstr ""
 
 msgid "Preheat temperature delta"
 msgstr "Selisih suhu pra-pemanasan"
@@ -15130,10 +15136,10 @@ msgid "The material softens at this temperature, so when the bed temperature is 
 msgstr "Material melunak pada suhu ini, jadi ketika suhu alas sama dengan atau lebih tinggi dari suhu ini, sangat disarankan untuk membuka pintu depan dan/atau melepas kaca atas untuk menghindari penyumbatan."
 
 msgid "Fin extrude safe temperature"
-msgstr ""
+msgstr "Suhu aman ekstrusi sirip"
 
 msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr ""
+msgstr "Suhu hotend yang aman untuk ekstrusi sirip. 0 berarti belum diatur. Dapat diakses melalui G-code kustom menggunakan fins_extrude_safe_temp."
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "Untuk mencegah merembes, nosel akan melakukan gerakan perjalanan balik selama periode tertentu setelah ramming selesai. Pengaturan ini menentukan waktu perjalanan."
@@ -15496,10 +15502,10 @@ msgid "Undefine"
 msgstr "Tidak Terdefinisi"
 
 msgid "Default wipe tower position"
-msgstr ""
+msgstr "Posisi default menara pembersih"
 
 msgid "Normalized default position of the wipe tower, each axis in [0,1] relative to bed width/depth."
-msgstr ""
+msgstr "Posisi default menara pembersih yang dinormalisasi, dengan setiap sumbu dalam rentang [0,1] relatif terhadap lebar/kedalaman alas."
 
 msgid "Best object position"
 msgstr "Posisi objek terbaik"
@@ -15511,22 +15517,22 @@ msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "Aktifkan opsi ini jika mesin memiliki kipas pendingin komponen tambahan"
 
 msgid "Sync auxiliary fan to second fan"
-msgstr ""
+msgstr "Sinkronkan kipas tambahan dengan kipas kedua"
 
 msgid "Enable this if the printer has a second auxiliary part cooling fan that should use the same speed as the auxiliary fan"
-msgstr ""
+msgstr "Aktifkan opsi ini jika printer memiliki kipas pendingin bagian tambahan kedua yang harus menggunakan kecepatan yang sama dengan kipas tambahan"
 
 msgid "Independent optional auxiliary fan control"
-msgstr ""
+msgstr "Kontrol kipas tambahan opsional secara independen"
 
 msgid "Enable this if the printer has an optional auxiliary part cooling fan that can be adjusted separately from the standard one"
-msgstr ""
+msgstr "Aktifkan opsi ini jika printer memiliki kipas pendingin bagian tambahan opsional yang dapat diatur secara terpisah dari kipas standar"
 
 msgid "Standard auxiliary fan side"
-msgstr ""
+msgstr "Sisi kipas tambahan standar"
 
 msgid "Physical side of the standard auxiliary part cooling fan. Only used to tell the two fans apart in the user interface"
-msgstr ""
+msgstr "Sisi fisik kipas pendingin bagian tambahan standar. Hanya digunakan untuk membedakan kedua kipas di antarmuka pengguna"
 
 msgid "Both"
 msgstr "Keduanya"
@@ -15958,7 +15964,7 @@ msgid "The allowed max printed mass"
 msgstr "Massa cetakan maksimum yang diizinkan"
 
 msgid "The allowed max printed mass on a plate"
-msgstr ""
+msgstr "Massa cetakan maksimum yang diizinkan pada satu pelat"
 
 msgid "Minimum speed for extruding"
 msgstr "Kecepatan ekstrusi minimum"
@@ -16006,7 +16012,7 @@ msgid "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed
 msgstr "Kecepatan kipas pendingin komponen tambahan. Kipas tambahan akan beroperasi pada kecepatan ini selama pencetakan, kecuali beberapa lapisan awal yang ditentukan sebagai lapisan tanpa pendinginan"
 
 msgid "Speed of the optional auxiliary part cooling fan. It will run at this speed during printing except the first several layers which are defined by no cooling layers"
-msgstr ""
+msgstr "Kecepatan kipas pendingin bagian tambahan opsional. Kipas tambahan akan beroperasi pada kecepatan ini selama pencetakan, kecuali beberapa lapisan awal yang ditentukan sebagai lapisan tanpa pendinginan"
 
 msgid "Min"
 msgstr ""
@@ -16738,10 +16744,10 @@ msgid "The angle of the branches' diameter as they gradually become thicker towa
 msgstr "Sudut diameter cabang saat secara bertahap menjadi lebih tebal ke arah bawah. Sudut 0 akan membuat cabang memiliki ketebalan seragam sepanjang panjangnya. Sedikit sudut dapat meningkatkan stabilitas penyangga pohon."
 
 msgid "Tip diameter"
-msgstr ""
+msgstr "Diameter ujung"
 
 msgid "Diameter a support branch starts with where it touches the overhang. A thicker tip is stronger and sticks to the overhang better, but leaves heavier marks on the surface and is harder to remove. Values below the support extrusion width or above the branch diameter are clamped. Applies to every tree support style."
-msgstr ""
+msgstr "Diameter awal cabang penyangga ditentukan pada titik pertemuannya dengan overhang. Ujung yang lebih tebal lebih kuat dan melekat lebih baik pada overhang, tetapi meninggalkan bekas yang lebih jelas pada permukaan dan lebih sulit dilepas. Nilai yang lebih kecil dari lebar ekstrusi penyangga atau lebih besar dari diameter cabang akan dibatasi. Berlaku untuk semua jenis penyangga pohon."
 
 msgid "Support wall loops"
 msgstr "Lingkaran dinding penyangga"
@@ -16846,38 +16852,31 @@ msgid "The wiping tower can be used to clean up the residue on the nozzle and st
 msgstr "Menara pembersih dapat digunakan untuk membersihkan residu pada nosel dan menstabilkan tekanan ruang di dalam nosel, untuk menghindari cacat penampilan saat mencetak objek."
 
 msgid "Generate a ring around the object. Tree supports may land on the ring."
-msgstr ""
+msgstr "Buat cincin di sekeliling objek. Penyangga pohon dapat bertumpu pada cincin."
 
 msgid "Support ring object gap"
-msgstr ""
+msgstr "Jarak antara objek dan cincin penyangga"
 
 msgid "Horizontal distance between the projected model boundary and the innermost support ring path."
-msgstr ""
+msgstr "Jarak horizontal antara batas proyeksi model dan jalur cincin penyangga paling dalam."
 
 msgid "Support ring angle"
 msgstr ""
 
-msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider."
+msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider. A set angle keeps one piece, from 200° to 300°. -1 means auto: the angle is worked out from the purge of each filament change, so the purge is laid a few rings thick. When that comes out below 200°, the ring is split into two facing pieces with a second opening on the side away from the camera."
 msgstr ""
 
 msgid "Support ring skip points"
-msgstr ""
+msgstr "Titik lompatan cincin penyangga"
 
 msgid "Leave gaps in the support ring outer wall at each wipe entry so the nozzle can reach the wipe path from outside the ring, and travel around the ring contour instead of crossing the model."
-msgstr ""
-
-msgid "Support ring infill gap"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Radial spacing between sparse wipe rings, as a percentage of line width. 100% packs neighbouring rings so they touch; larger values leave a gap."
-msgstr ""
+msgstr "Buat celah pada dinding luar cincin penyangga di setiap titik masuk pembersihan agar nosel dapat mencapai jalur pembersihan dari luar cincin dan bergerak mengikuti kontur cincin tanpa melintasi model."
 
 msgid "Support ring wall loops"
-msgstr ""
+msgstr "Lingkaran dinding cincin penyangga"
 
 msgid "Number of walls, inner wall included, in the support ring of each object whose ring does not carry the filament changes. The ring that carries them is not affected."
-msgstr ""
+msgstr "Jumlah dinding, termasuk dinding bagian dalam, pada cincin penyangga setiap objek yang tidak digunakan untuk pergantian filamen. Cincin penopang tidak terpengaruh."
 
 msgid "Internal ribs"
 msgstr "Rusuk internal"
@@ -17000,43 +16999,43 @@ msgid "The maximum printing speed on the prime tower excluding ramming."
 msgstr "Kecepatan pencetakan maksimum pada menara prime, kecuali ramming."
 
 msgid "Prime tower feedrate factor"
-msgstr ""
+msgstr "Faktor laju gerak menara utama"
 
 msgid "Feedrate scaling factor for prime/wipe tower extrusion when hotends are handled as extruders. It does not affect all tower travel moves. 1.0 means no change; values below 1.0 slow down, above 1.0 speed up."
-msgstr ""
+msgstr "Faktor penskalaan laju umpan untuk ekstrusi pada menara utama/pembersih saat hotend diperlakukan sebagai ekstruder. Pengaturan ini tidak memengaruhi semua gerakan perjalanan menara. Nilai 1.0 berarti tidak ada perubahan; nilai di bawah 1.0 memperlambat gerakan, sedangkan nilai di atas 1.0 mempercepatnya."
 
 msgid "Tail speed factor"
-msgstr ""
+msgstr "Faktor kecepatan ekor"
 
 msgid "Scale the printing speed of the last section printed each time before the toolhead leaves the prime tower (the length is set by the tail slowdown volume) relative to the tower printing speed. That trailing section may be the outer wall, a tool-change wipe or infill, whichever comes last. Lower values slow it down to soften the flow change when moving back to the model. Does not affect the first layer."
-msgstr ""
+msgstr "Mengatur kecepatan pencetakan bagian terakhir setiap kali sebelum toolhead meninggalkan menara utama (panjang bagian ini ditentukan oleh volume perlambatan bagian akhir) relatif terhadap kecepatan pencetakan menara. Bagian akhir tersebut dapat berupa dinding luar, jalur pembersihan saat pergantian alat, atau jalur pengisi, tergantung mana yang dicetak terakhir. Nilai yang lebih rendah memperlambat pencetakan untuk mengurangi perubahan aliran saat kembali ke model. Tidak memengaruhi lapisan pertama."
 
 msgid "Tail slowdown volume"
-msgstr ""
+msgstr "Volume perlambatan ekor"
 
 msgid "Only the final part printed each time before the toolhead leaves the prime tower, measured as this extruded volume, is slowed down by the tail speed factor; the rest keeps the normal tower speed. That trailing part may be the outer wall, a tool-change wipe or infill. Set to 0 to slow down the whole tower path of each visit. Does not affect the first layer."
-msgstr ""
+msgstr "Hanya bagian terakhir yang dicetak sebelum toolhead meninggalkan menara utama, yang diukur berdasarkan volume material yang diekstrusi, akan diperlambat sesuai faktor kecepatan ekor; bagian lainnya tetap menggunakan kecepatan normal menara. Bagian akhir tersebut dapat berupa dinding luar, jalur pembersihan saat pergantian alat, atau jalur pengisi. Atur ke 0 untuk memperlambat seluruh jalur pencetakan menara setiap kali kontak. Tidak memengaruhi lapisan pertama."
 
 msgid "The acceleration used for prime tower extrusions. Does not affect the first layer. 0 means using the global default acceleration."
-msgstr ""
+msgstr "Akselerasi yang digunakan untuk ekstrusi menara utama. Tidak memengaruhi lapisan pertama. 0 berarti menggunakan akselerasi default global."
 
 msgid "Line width for prime tower normal wiping paths. 0 means auto-calculated from nozzle diameter."
-msgstr ""
+msgstr "Lebar lapisan untuk jalur pembersihan normal pada menara utama. 0 berarti dihitung otomatis berdasarkan diameter nosel."
 
 msgid "Ramming line width"
-msgstr ""
+msgstr "Lebar lapisan ramming"
 
 msgid "Line width for prime tower nozzle-change (ramming) paths. 0 means using the default mapping table."
-msgstr ""
+msgstr "Lebar garis untuk jalur pergantian nosel (ramming) pada menara utama. 0 berarti menggunakan tabel pemetaan default."
 
 msgid "The speed of wipe movement before printing on the prime tower during tool change. 0 means using prime tower max speed."
-msgstr ""
+msgstr "Kecepatan gerakan pembersihan sebelum mencetak pada menara utama saat pergantian alat. 0 berarti menggunakan kecepatan maksimum menara utama."
 
 msgid "Wipe distance"
-msgstr ""
+msgstr "Jarak pembersihan"
 
 msgid "The wipe path distance during tool change. 0 means using the filament-level wipe distance."
-msgstr ""
+msgstr "Jarak jalur pembersihan saat pergantian alat. 0 berarti menggunakan jarak pembersihan sesuai tingkat filamen."
 
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
 msgstr "Lebar Brim menara prime, angka negatif berarti lebar dihitung otomatis berdasarkan tinggi menara prime."
@@ -17060,73 +17059,73 @@ msgid "The wall of prime tower will skip the start points of wipe path"
 msgstr "Dinding menara prime akan melewati titik awal jalur pembersihan internal"
 
 msgid "Flat ironing"
-msgstr ""
+msgstr "Perataan permukaan"
 
 msgid "Enable flat ironing for prime tower to smooth the top surface after wiping"
-msgstr ""
+msgstr "Aktifkan perataan permukaan menara utama untuk menghaluskan permukaan atas setelah pembersihan"
 
 msgid "Line ironing"
-msgstr ""
+msgstr "Perataan garis"
 
 msgid "Enable line ironing for prime tower wipe paths"
-msgstr ""
+msgstr "Aktifkan perataan garis pada jalur pembersihan menara utama"
 
 msgid "Speed of prime tower ironing movements"
-msgstr ""
+msgstr "Kecepatan gerakan perataan menara utama"
 
 msgid "Side scrape after tool change"
-msgstr ""
+msgstr "Pengikisan samping setelah pergantian alat"
 
 msgid "After a tool change and before the wipe line, move the nozzle to the prime tower side wall and do a diagonal lift scrape (travel only, no extrusion). This scrapes the oozed filament stub onto the side wall instead of letting it pile up on the prime tower top surface."
-msgstr ""
+msgstr "Setelah pergantian alat dan sebelum garis pembersihan, gerakkan nosel ke dinding samping menara utama, lalu lakukan pengikisan diagonal sambil mengangkat nosel (hanya gerakan, tanpa ekstrusi). Proses ini mengikis sisa filamen yang meleleh ke dinding samping agar tidak menumpuk di permukaan atas menara utama."
 
 msgid "Side scrape walls"
-msgstr ""
+msgstr "Dinding pengikisan samping"
 
 msgid "Which pair of opposite prime tower walls the diagonal scrape runs on. Note that enabling the side scrape always disables depth shrinkage of the prime tower (the outer wall stays at the full depth on every layer), regardless of this setting, so that the scrape can descend safely outside the walls."
-msgstr ""
+msgstr "Pasangan dinding menara utama yang berseberangan tempat pengikisan diagonal dilakukan. Perlu diperhatikan bahwa mengaktifkan pengikisan samping akan terus menonaktifkan penyusutan kedalaman menara utama (dinding luar tetap pada kedalaman penuh di setiap lapisan), terlepas dari pengaturan ini, agar proses pengikisan dapat menurun dengan aman di luar dinding."
 
 msgid "Left and right"
-msgstr ""
+msgstr "Kiri dan kanan"
 
 msgid "Front and back"
-msgstr ""
+msgstr "Depan dan belakang"
 
 msgid "Side scrape length"
-msgstr ""
+msgstr "Panjang pengikisan samping"
 
 msgid "Horizontal distance the nozzle travels inward from the prime tower side wall during the diagonal scrape."
-msgstr ""
+msgstr "Jarak horizontal perjalanan nosel ke arah dalam dari dinding samping menara utama selama pengikisan diagonal."
 
 msgid "Side scrape lift height"
-msgstr ""
+msgstr "Ketinggian pengangkatan saat pengikisan samping"
 
 msgid "How far the nozzle descends below the current wipe-tower top before the diagonal scrape. The actual descent is clamped so the nozzle stays above the wipe tower's brim and first layer (avoids hitting the brim or the bed when the tower is still short). Layers with no room left for a descent get no scrape."
-msgstr ""
+msgstr "Seberapa jauh nosel turun ke bawah permukaan atas menara pembersih saat ini sebelum pengikisan diagonal dilakukan. Penurunan aktual dibatasi agar nosel tetap berada di atas pinggiran menara pembersih dan lapisan pertama (untuk menghindari benturan dengan pinggiran atau alas saat menara masih pendek). Pengikisan tidak dilakukan pada lapisan yang tidak memiliki cukup ruang untuk penurunan."
 
 msgid "Side scrape speed"
-msgstr ""
+msgstr "Kecepatan pengikisan samping"
 
 msgid "Movement speed of the diagonal side scrape."
-msgstr ""
+msgstr "Kecepatan gerakan pengikisan samping diagonal."
 
 msgid "Side scrape wall gap"
-msgstr ""
+msgstr "Celah dinding saat pengikisan samping"
 
 msgid "Distance kept between the diagonal side scrape line and the prime tower outer wall. A positive value keeps the scrape outside the wall; the outer wall position is taken as the outermost of the current and previous layer walls at the scrape location so the scrape never cuts into the tower."
-msgstr ""
+msgstr "Jarak antara garis pengikisan samping diagonal dan dinding luar menara utama. Nilai positif menjaga pengikisan tetap di luar dinding; posisi dinding luar ditentukan berdasarkan posisi terluar dari dinding pada lapisan saat ini dan sebelumnya di lokasi pengikisan, sehingga pengikisan tidak memotong menara."
 
 msgid "Side scrape point spacing"
-msgstr ""
+msgstr "Jarak antar titik pengikisan samping"
 
 msgid "Target distance between consecutive side scrape start points along one side wall. Scrape starts are spread over both side walls so the ooze stubs do not pile up at a single spot. The number of points is derived from this spacing and the length of the straight part of the side wall, so the effective spacing can be smaller than requested when the straight part is short."
-msgstr ""
+msgstr "Jarak target antara titik awal pengikisan samping yang berurutan di sepanjang satu dinding samping. Titik awal pengerikan disebar di kedua dinding samping agar sisa filamen yang meleleh tidak menumpuk di satu tempat. Jumlah titik ditentukan berdasarkan jarak ini dan panjang bagian lurus dinding samping, karena itu, jarak aktual antartitik dapat lebih kecil dari nilai yang ditetapkan jika bagian lurusnya pendek."
 
 msgid "Side scrape along-wall length"
-msgstr ""
+msgstr "Panjang dinding sepanjang pengikisan samping"
 
 msgid "Upper bound for the empty travel along the side wall performed right after the diagonal scrape, before the nozzle moves to the wipe line start. It smears the ooze stub further along the wall. The travel never leaves the straight part of the side wall, so the actual length is only the room left between the scrape start and the end of that straight part. On a rib prime tower the straight part can be just a few millimetres, in which case the travel is much shorter than the value set here."
-msgstr ""
+msgstr "Batas atas perjalanan tanpa ekstrusi sepanjang dinding samping setelah pengikisan diagonal, sebelum nosel bergerak ke titik awal garis pembersihan. Gerakan ini mengoleskan sisa filamen yang meleleh lebih jauh di sepanjang dinding. Gerakan ini selalu berada di bagian lurus dinding samping, karena itu, panjang aktualnya hanya sejauh ruang yang tersedia antara titik awal pengerikan dan ujung bagian lurus tersebut. Pada menara utama berusuk, bagian lurusnya mungkin hanya beberapa milimeter sehingga jarak gerakan jauh lebih pendek daripada nilai yang ditetapkan di sini."
 
 msgid "Rib wall"
 msgstr "Dinding rib"
@@ -17205,6 +17204,9 @@ msgstr "Lebar lapisan dinding minimum"
 
 msgid "Width of the wall that will replace thin features (according to the Minimum feature size) of the model. If the Minimum wall width is thinner than the thickness of the feature, the wall will become as thick as the feature itself. It's expressed as a percentage over nozzle diameter"
 msgstr "Lebar dinding yang akan menggantikan fitur tipis (sesuai dengan ukuran fitur minimum) pada model. Jika lebar dinding minimum lebih tipis dari ketebalan fitur, dinding akan menjadi setebal fitur itu sendiri. Ini dinyatakan sebagai persentase dari diameter nosel"
+
+msgid "Filament switch retraction length"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr "Timpa kecepatan overhang"
@@ -17419,10 +17421,10 @@ msgid "Finish"
 msgstr "Selesai"
 
 msgid "Nozzle Type and Diameter"
-msgstr ""
+msgstr "Jenis dan Diameter Nosel"
 
 msgid "Not Selected"
-msgstr ""
+msgstr "Tidak Dipilih"
 
 msgid "How to use calibration result?"
 msgstr "Bagaimana cara menggunakan hasil kalibrasi?"
@@ -17869,7 +17871,7 @@ msgid "Refreshing the historical Flow Dynamics Calibration records"
 msgstr "Memuat ulang riwayat catatan Kalibrasi Dinamika Aliran"
 
 msgid "PrintTool"
-msgstr ""
+msgstr "Alat Pencetakan"
 
 msgid "Action"
 msgstr "Tindakan"
@@ -19317,10 +19319,10 @@ msgid "Fila Saving"
 msgstr "Penghematan Fila"
 
 msgid "Set filament placement"
-msgstr ""
+msgstr "Atur penempatan filamen"
 
 msgid "Automatically and intelligently assigns filaments to minimize filament time consumption"
-msgstr ""
+msgstr "Menetapkan filamen secara otomatis dan cerdas untuk meminimalkan waktu penggantian filamen"
 
 msgid "Filament-Saving Mode"
 msgstr "Mode Penghematan Filamen"
@@ -19357,23 +19359,23 @@ msgid "Video tutorial"
 msgstr "Tutorial Video"
 
 msgid "Intelligently assigns filaments based on the filaments currently loaded in the printer's nozzles"
-msgstr ""
+msgstr "Menetapkan filamen secara cerdas berdasarkan filamen yang sedang dimuat pada nosel printer"
 
 msgid "Intelligently assigns filaments based on the filaments currently installed in the printer's AMS"
-msgstr ""
+msgstr "Menetapkan filamen secara cerdas berdasarkan filamen yang sedang terpasang di AMS printer"
 
 msgid "Manually assign filaments by nozzle type"
-msgstr ""
+msgstr "Tetapkan filamen secara manual berdasarkan jenis nosel"
 
 msgid "(Sync with printer)"
 msgstr "(Sinkronkan dengan printer)"
 
 #, c-format, boost-format
 msgid "Nozzle %s"
-msgstr ""
+msgstr "Nosel %s"
 
 msgid "Error: a filament is assigned to a nozzle of incompatible diameter. Please regroup so each filament stays on a nozzle whose diameter it supports."
-msgstr ""
+msgstr "Kesalahan: filamen ditetapkan ke nosel dengan diameter yang tidak kompatibel. Atur ulang grup agar setiap filamen tetap menggunakan nosel dengan diameter yang kompatibel."
 
 #, c-format, boost-format
 msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
@@ -19392,25 +19394,25 @@ msgid " to set nozzle count"
 msgstr "untuk mengatur jumlah nosel"
 
 msgid "We will slice according to this arrangement:"
-msgstr ""
+msgstr "Proses pemotongan akan dilakukan sesuai dengan pengaturan ini:"
 
 #, c-format, boost-format
 msgid "Nozzle (%d)"
-msgstr ""
+msgstr "Nosel (%d)"
 
 #, c-format, boost-format
 msgid "Tips: Under a %smm nozzle diameter, there are no mixed nozzle types, so no custom settings are needed."
-msgstr ""
+msgstr "Tips: Untuk diameter nosel di bawah %s mm, tidak ada jenis nosel campuran sehingga pengaturan khusus tidak diperlukan."
 
 msgid "Error: The nozzle type is not supported, so the filament cannot be moved."
-msgstr ""
+msgstr "Kesalahan: Jenis nosel tidak didukung sehingga filamen tidak dapat dipindahkan."
 
 msgid "Error: the nozzle configuration changed. Please reopen the filament grouping dialog."
-msgstr ""
+msgstr "Kesalahan: konfigurasi nosel berubah. Buka kembali dialog pengelompokan filamen."
 
 #, c-format, boost-format
 msgid "Nozzle (%d) - %s"
-msgstr ""
+msgstr "Nosel (%d) - %s"
 
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
@@ -19515,7 +19517,7 @@ msgid "Sync Nozzle status"
 msgstr "Sinkron status nosel"
 
 msgid "Caution: Printing with mixed nozzle diameters is experimental. Please verify your print settings (extrusion widths, layer height, etc.) are compatible with all selected nozzle sizes."
-msgstr ""
+msgstr "Perhatian: Pencetakan menggunakan nosel dengan diameter berbeda masih dalam tahap uji coba. Pastikan pengaturan pencetakan Anda (lebar ekstrusi, tinggi lapisan, dll.) kompatibel dengan semua ukuran nosel yang dipilih."
 
 #, c-format, boost-format
 msgid "Refresh %d/%d..."
@@ -19530,8 +19532,14 @@ msgstr "Nosel tidak dikenal terdeteksi. Segarkan untuk memperbarui (nosel yang t
 msgid "Please confirm whether the required nozzle diameter and flow rate match the currently displayed values."
 msgstr "Harap konfirmasi apakah diameter nosel dan laju aliran yang diperlukan cocok dengan nilai yang ditampilkan saat ini."
 
-msgid "Your printer has different nozzles installed. Please select a nozzle for this print."
-msgstr "Printer Anda telah menginstal nosel yang berbeda. Harap pilih nosel untuk pencetakan ini."
+msgid "No usable nozzle is detected on your printer."
+msgstr ""
+
+msgid "Your printer has nozzles of different diameters installed."
+msgstr ""
+
+msgid "All nozzles installed on your printer have the same diameter."
+msgstr ""
 
 msgid "Purge Mode Settings"
 msgstr "Pengaturan Mode Pembersihan"
@@ -19550,6 +19558,20 @@ msgstr ""
 
 msgid "Learn more about prime mode"
 msgstr "Pelajari lebih lanjut tentang mode pembersihan"
+
+msgid "TPU Usage Notes"
+msgstr ""
+
+msgid "Important Notice:"
+msgstr ""
+
+msgid ""
+"• Using TPU filament for the first time? Read the official guide first to avoid clogs or feeding failures.\n"
+"• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
+msgstr ""
+
+msgid "View User Guide"
+msgstr ""
 
 msgid "AMS Dryness Control"
 msgstr "Kontrol Pengeringan AMS"
@@ -19575,6 +19597,9 @@ msgstr "Harap keluarkan dan simpan filamen (seperti yang ditunjukkan)."
 msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
 msgstr "AMS dapat memutar filamen yang tersimpan dengan benar, memberikan hasil pengeringan yang lebih baik."
 
+msgid "Rotate spool when drying"
+msgstr ""
+
 msgctxt "amsdrying"
 msgid "Back"
 msgstr "Kembali"
@@ -19599,11 +19624,11 @@ msgstr "AMS ini sedang mencetak. Untuk memastikan kualitas cetak, suhu pengering
 
 #, c-format, boost-format
 msgid "Minimum time value cannot be less than %d."
-msgstr ""
+msgstr "Nilai waktu minimum tidak boleh kurang dari %d."
 
 #, c-format, boost-format
 msgid "Maximum time value cannot be greater than %d."
-msgstr ""
+msgstr "Nilai waktu maksimum tidak boleh lebih dari %d."
 
 msgid "Insufficient power"
 msgstr "Daya tidak mencukupi"
@@ -19661,6 +19686,9 @@ msgstr "Sebagai alternatif, Anda dapat mengeringkan filamen tanpa mengeluarkanny
 
 msgid "Unknown filaments will be treated as PLA."
 msgstr "*Filamen yang tidak dikenal akan diperlakukan sebagai PLA."
+
+msgid "For better drying results, remove the filament."
+msgstr ""
 
 msgid "Please store the filament marked with an exclamation mark."
 msgstr "Harap simpan filamen yang ditandai dengan tanda seru."
@@ -19823,7 +19851,7 @@ msgid "Select Mixed Materials"
 msgstr "Pilih Material Campuran"
 
 msgid "- Delete Filament"
-msgstr ""
+msgstr "- Hapus Filamen"
 
 msgid "Ratio"
 msgstr "Rasio"
@@ -19854,7 +19882,7 @@ msgid "cannot be mixed. Please select the same filament type."
 msgstr "tidak dapat dicampur. Harap pilih jenis filamen yang sama."
 
 msgid "cannot be mixed. Please select filaments using the same nozzle diameter."
-msgstr ""
+msgstr "tidak dapat dicampur. Pilih filamen dengan diameter nosel yang sama."
 
 msgid "No mix is available for the target color"
 msgstr ""
@@ -19909,7 +19937,7 @@ msgid "No available mixing recipe was found."
 msgstr ""
 
 msgid "The current printer has no compatible PLA Palette filament."
-msgstr ""
+msgstr "Printer saat ini tidak memiliki filamen PLA Palette yang kompatibel."
 
 #, boost-format
 msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
@@ -19935,24 +19963,66 @@ msgid "Preset \"%s\" already exists. Overwrite?"
 msgstr "Prasetel \"%s\" Sudah ada. Timpa?"
 
 msgid "Set nozzle diameter"
-msgstr ""
+msgstr "Atur diameter nosel"
 
 msgid "Single-diameter mode"
-msgstr ""
+msgstr "Mode diameter tunggal"
 
 msgid "Multi-diameter mode"
-msgstr ""
+msgstr "Mode multi diameter"
 
 #, c-format, boost-format
 msgid "This filament does not support the %smm nozzle, or no matching nozzle is configured."
-msgstr ""
+msgstr "Filamen ini tidak mendukung nosel %s mm, atau tidak ada nosel yang sesuai dalam konfigurasi."
 
 #, c-format, boost-format
 msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
+msgstr "Atur nosel berdiameter %smm untuk printer pada bagian di bawah terlebih dahulu sebelum menggunakan diameter ini untuk pemotongan."
+
+msgid "No nozzle is installed in this slot."
+msgstr ""
+
+msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr ""
 
 msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
+msgstr "Diameter nosel pada ekstruder ini berbeda dari diameter pencetakan yang dipilih. Pencetakan menggunakan nosel dengan diameter berbeda masih dalam tahap uji coba."
+
+msgid "Nozzle Settings"
 msgstr ""
+
+msgid "Set your printer's nozzle installation status"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The %s nozzle is in use by project filaments. Changing it will move them to 0.4 Standard. Change it anyway?"
+msgstr ""
+
+msgid "External AMS"
+msgstr ""
+
+msgid "To pick this, change the nozzle settings first"
+msgstr ""
+
+msgid "The filament in this slot cannot print with this nozzle"
+msgstr ""
+
+msgid "Successfully synchronized Printer information."
+msgstr ""
+
+msgid "Continue to sync filaments"
+msgstr "Lanjutkan sinkronisasi filamen"
+
+msgctxt "Sync_Nozzle_AMS"
+msgid "Cancel"
+msgstr "Batalkan"
+
+msgid "Successfully synchronized color and type of filament from printer."
+msgstr "Warna dan jenis filamen berhasil disinkronkan dari printer."
+
+msgctxt "FinishSyncAms"
+msgid "OK"
+msgstr "Oke"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -20250,6 +20320,26 @@ msgstr ""
 "Keandalan Tepat di Percobaan Pertama \n"
 "Lebih sedikit pengawasan, hasil yang lebih terprediksi. Contoh: fasilitas print farm kecil yang mencetak komponen PETG menghindari kejutan 'gagal pada jam ke-6' dan menjaga produksi tetap sesuai jadwal."
 
+#, boost-format
+#~ msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
+#~ msgstr "Proyek ini mendukung hingga %1% filamen. Filamen tambahan harus digabung sebelum diimpor."
+
+#~ msgid "Auto-Add All Filaments"
+#~ msgstr "Tambah Otomatis Semua Filamen"
+
+#~ msgid "Fix now"
+#~ msgstr "Perbaiki sekarang"
+
+#, boost-format
+#~ msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
+#~ msgstr "Proyek ini mendukung hingga %1% filamen. Jumlah saat ini adalah %2%, yang melebihi batas."
+
+#~ msgid "The 3mf is not from Bambu Lab, load geometry data only."
+#~ msgstr "File 3mf ini bukan dari Bambu Lab, hanya data geometri yang akan dimuat."
+
+#~ msgid "Your printer has different nozzles installed. Please select a nozzle for this print."
+#~ msgstr "Printer Anda telah menginstal nosel yang berbeda. Harap pilih nosel untuk pencetakan ini."
+
 #~ msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
 #~ msgstr "Menggunakan tinggi lapisan variabel bersama dengan sublapisan warna campuran dapat menyebabkan kualitas pencampuran warna yang buruk."
 
@@ -20481,20 +20571,6 @@ msgstr ""
 
 #~ msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 #~ msgstr "Tips: Jika Anda baru saja mengganti nosel printer Anda, harap buka 'Perangkat -> Komponen Printer' untuk mengubah pengaturan nosel Anda."
-
-#~ msgid "Continue to sync filaments"
-#~ msgstr "Lanjutkan sinkronisasi filamen"
-
-#~ msgctxt "Sync_Nozzle_AMS"
-#~ msgid "Cancel"
-#~ msgstr "Batalkan"
-
-#~ msgid "Successfully synchronized color and type of filament from printer."
-#~ msgstr "Warna dan jenis filamen berhasil disinkronkan dari printer."
-
-#~ msgctxt "FinishSyncAms"
-#~ msgid "OK"
-#~ msgstr "Oke"
 
 #~ msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
 #~ msgstr "Ekstruder tipe Bowden tidak mendukung nosel berdiameter 0,2 mm. Kami hanya dapat melanjutkan dengan pencetakan kepala tunggal."
