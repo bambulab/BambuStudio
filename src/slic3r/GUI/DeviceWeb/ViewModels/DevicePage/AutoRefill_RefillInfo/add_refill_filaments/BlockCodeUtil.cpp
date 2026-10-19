@@ -169,12 +169,12 @@ RefillBlockCodeUx Create(DevFilaRefillBlockCode block_code)
     // ---- Hotend mismatch: one dialog for both diameter and flow ----
 
     case DevFilaRefillBlockCode::NozzleDiameterMismatch:
-    // Design row 9. The hotend settings are read-only in Studio, so the label
-    // points the user at the printer instead.
+    // Design row 9. The hotend settings are read-only in Studio, so the
+    // guidance stays in the message instead of exposing a dead-end button.
     case DevFilaRefillBlockCode::NozzleFlowMismatch:
         return blocked_dialog("The hotend type doesn't match",
-                              "Please confirm whether the hotend type in the current slot matches the refill group.",
-                              "Go to Edit on printer", FollowUp::GoToEditHotend,
+                              "Please confirm whether the hotend type in the current slot matches the refill group. If it doesn't, please go to the printer and edit the hotend type before trying again.",
+                              nullptr, FollowUp::None,
                               DetailFields::HotendComparison);
 
     // ---- Filament mismatch: one bubble for all three category codes ----

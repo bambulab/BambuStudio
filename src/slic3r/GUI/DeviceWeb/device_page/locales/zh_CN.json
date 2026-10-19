@@ -391,7 +391,7 @@
   "Go to Edit on printer": "去打印机上编辑",
   "Hotend %1 is missing nozzle offset calibration data": "%1 号热端缺少喷嘴偏移校准数据",
   "Hotend %1 is missing nozzle offset calibration data. Using it for refill may affect print quality. Do you still want to use it?": "%1 号热端缺少喷嘴偏移校准数据，用于续料可能影响打印质量。仍要使用吗？",
-  "Please confirm whether the hotend type in the current slot matches the refill group.": "请确认当前槽位热端类型和续料组是否一致。",
+  "Please confirm whether the hotend type in the current slot matches the refill group. If it doesn't, please go to the printer and edit the hotend type before trying again.": "请确认当前槽位热端类型和续料组是否一致。如不一致，请先去打印机上编辑热端类型后再重试。",
   "Printing these two filaments together may affect print quality. Choose carefully.": "当前两种耗材打印时，可能存在打印质量风险，请谨慎选择。",
   "Printing these two filaments together may cause surface layering. Choose carefully.": "当前两种耗材打印时，存在打印表面分层，请谨慎选择。",
   "The hotend type doesn't match": "热端类型不匹配",

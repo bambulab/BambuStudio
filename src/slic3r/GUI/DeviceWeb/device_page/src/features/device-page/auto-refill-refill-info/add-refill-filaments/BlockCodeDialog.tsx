@@ -25,6 +25,8 @@ export function BlockCodeDialog({
 }) {
   const { t } = useTranslation();
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const confirmLabel = interaction.confirm_label;
+  const hasConfirmAction = Boolean(confirmLabel);
 
   const title = interaction.title ?? interaction.tooltip ?? '';
   // Design row 13 substitutes the hotend number into both strings.
@@ -79,16 +81,20 @@ export function BlockCodeDialog({
         </div>
 
         <footer className="refill-block-dialog__footer">
-          <button type="button" className="add-refill-page__button" onClick={onCancel}>
-            {t('Cancel')}
+          <button
+            type="button"
+            className={`add-refill-page__button${hasConfirmAction ? '' : ' add-refill-page__button--primary'}`}
+            onClick={onCancel}
+          >
+            {t(hasConfirmAction ? 'Cancel' : 'OK')}
           </button>
-          {interaction.confirm_label && (
+          {hasConfirmAction && (
             <button
               type="button"
               className="add-refill-page__button add-refill-page__button--primary"
               onClick={() => onConfirm(dontShowAgain)}
             >
-              {t(interaction.confirm_label)}
+              {t(confirmLabel!)}
             </button>
           )}
         </footer>
