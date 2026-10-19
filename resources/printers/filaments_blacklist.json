@@ -15,7 +15,29 @@
       "action": "prohibition",
       "slot": "ams",
       "ams_type_id": [1, 2, 3, 4, 5],
-      "description": "AMS does not support 'Bambu Lab PET-CF'."
+      "group": "cf_gf_ams",
+      "priority": 2,
+      "description": "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
+    },
+    {
+      "vendor": "Bambu Lab",
+      "type": "PA6-CF",
+      "action": "prohibition",
+      "slot": "ams",
+      "ams_type_id": [1, 2, 3, 4, 5],
+      "group": "cf_gf_ams",
+      "priority": 2,
+      "description": "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
+    },
+    {
+      "vendor": "Bambu Lab",
+      "type": "PPS-CF",
+      "action": "prohibition",
+      "slot": "ams",
+      "ams_type_id": [1, 2, 3, 4, 5],
+      "group": "cf_gf_ams",
+      "priority": 2,
+      "description": "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
     },
     {
       "name_suffix": "PA6-GF",
@@ -194,17 +216,19 @@
       "type_suffix": "CF",
       "action": "warning",
       "slot": "ams",
+      "ams_type_id": [1, 2, 3, 4, 5],
       "group": "cf_gf_ams",
       "priority": 0,
-      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+      "description": "Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead."
     },
     {
       "type_suffix": "GF",
       "action": "warning",
       "slot": "ams",
+      "ams_type_id": [1, 2, 3, 4, 5],
       "group": "cf_gf_ams",
       "priority": 0,
-      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+      "description": "Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead."
     },
     {
       "vendor": "Bambu Lab",
@@ -212,17 +236,38 @@
       "name": "Bambu PLA Glow",
       "action": "warning",
       "slot": "ams",
-      "description": "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+      "description": "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
     },
     {
+      "vendor": "Bambu Lab",
+      "type": "PPA-CF",
+      "action": "prohibition",
+      "slot": "ams",
+      "ams_type_id": [1, 2, 3, 4, 5],
+      "group": "cf_gf_ams",
+      "priority": 2,
+      "description": "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
+    },
+    {
+      "types": ["PET-CF", "PA6-CF", "PA6-GF", "ASA-CF", "PAHT-CF", "PPS-CF", "PPA-CF"],
+      "model_id": ["N10"],
+      "action": "warning",
+      "slot": "ams",
+      "ams_type_id": [6],
+      "group": "ams_6_7_cf_gf_feeding",
+      "priority": 0,
+      "description": "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s."
+    },
+    {
+      "vendor": "Bambu Lab",
       "type": "PPA-CF",
       "model_id": ["N10"],
       "action": "prohibition",
       "slot": "ams",
-      "ams_type_id": [1, 2, 3, 4, 5, 6],
-      "group": "cf_gf_ams",
+      "ams_type_id": [6],
+      "group": "ams_6_7_cf_gf_feeding",
       "priority": 2,
-      "description": "PPA-CF does not support AMS feeding. Use an external spool instead."
+      "description": "PPA-CF filament does not support %s feeding. Use an external spool instead."
     },
     {
       "type": "PC",
@@ -230,7 +275,7 @@
       "action": "warning",
       "slot": "ams",
       "ams_type_id": [1, 2, 3, 4, 5, 6],
-      "description": "%s filament is brittle. Use AMS feeding with caution."
+      "description": "%s filament is brittle. Use %s feeding with caution."
     },
     {
       "vendor": "Bambu Lab",
@@ -240,7 +285,7 @@
       "action": "warning",
       "slot": "ams",
       "ams_type_id": [6],
-      "description": "%s filament is brittle. Use AMS feeding with caution."
+      "description": "%s filament is brittle. Use %s feeding with caution."
     },
     {
       "type": "PLA",

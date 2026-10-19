@@ -116,6 +116,40 @@ static std::optional<int> _resolve_ams_type(const DevFilaBlacklist::CheckFilamen
     return (int) ams->GetAmsType();
 }
 
+static wxString _get_ams_warning_display_name(const DevFilaBlacklist::CheckFilamentInfo& info)
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) {
+        return "AMS";
+    }
+
+    MachineObject* obj = dev->get_my_machine(info.dev_id);
+    if (!obj) {
+        obj = dev->get_selected_machine();
+    }
+    if (!obj || !obj->GetFilaSystem()) {
+        return "AMS";
+    }
+
+    const DevAms* ams = obj->GetFilaSystem()->GetAmsById(std::to_string(info.ams_id));
+    if (!ams) {
+        return "AMS";
+    }
+
+    // Reuse the send-page slot naming (A1, B1, ...) and remove the current slot
+    // ordinal so a warning identifies the AMS unit as AMS-A, AMS-B, and so on.
+    int tray_index = obj->GetFilaSystem()->GetTrayIdByAmsSlotId(info.ams_id, info.slot_id);
+    if (tray_index < 0) {
+        tray_index = ams->GetTrayId(info.slot_id);
+    }
+    wxString slot_name = Slic3r::GUI::wxGetApp().transition_tridid(tray_index, std::nullopt, obj);
+    const wxString slot_suffix = wxString::Format("%d", info.slot_id + 1);
+    if (slot_name.EndsWith(slot_suffix)) {
+        slot_name.RemoveLast(slot_suffix.size());
+    }
+    return slot_name.empty() ? ams->GetDisplayName() : wxString("AMS-") + slot_name;
+}
+
 // moved from tao.wang and zhimin.zeng
 void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevFilaBlacklist::CheckResult &result)
 {
@@ -351,15 +385,25 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
                 } else {
                     result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
                 }
+            } else if (description == "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead.") {
+                result_item.info_msg = wxString::Format(_L(description), wxString::FromUTF8(check_info.fila_type), _get_ams_warning_display_name(check_info));
             } else if (description == "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.") {
                 result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
             } else if (description == "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.") {
                 result_item.info_msg = wxString::Format(_L(description), check_info.fila_type);
             } else if (description == "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution.") {
                 result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
-            } else if (description == "%s filament is brittle. Use AMS feeding with caution.") {
+            } else if (description == "Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead.") {
+                result_item.info_msg = wxString::Format(_L(description), wxString::FromUTF8(check_info.fila_type), _get_ams_warning_display_name(check_info));
+            } else if (description == "PLA Glow may wear the %s first stage feeder. Use an external spool instead.") {
+                result_item.info_msg = wxString::Format(_L(description), _get_ams_warning_display_name(check_info));
+            } else if (description == "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s.") {
+                result_item.info_msg = wxString::Format(_L(description), wxString::FromUTF8(check_info.fila_type), _get_ams_warning_display_name(check_info));
+            } else if (description == "PPA-CF filament does not support %s feeding. Use an external spool instead.") {
+                result_item.info_msg = wxString::Format(_L(description), _get_ams_warning_display_name(check_info));
+            } else if (description == "%s filament is brittle. Use %s feeding with caution.") {
                 const std::string& fila_desc = check_info.fila_name.empty() ? check_info.fila_type : check_info.fila_name;
-                result_item.info_msg = wxString::Format(_L(description), fila_desc);
+                result_item.info_msg = wxString::Format(_L(description), fila_desc, _get_ams_warning_display_name(check_info));
             } else if (description == "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing.") {
                 result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
             } else if (description == "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue.") {
@@ -394,6 +438,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             L("%s is not supported by the current %s hotend. Please confirm the filament type and try again.");
             L("%s is not supported by the current 2.85 mm TPU hotend. Please confirm the filament type and try again.");
             L("PPA-CF does not support AMS feeding. Use an external spool instead.");
+            L("%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead.");
 
             // Warning in description
             L("How to feed TPU filament.");
@@ -404,16 +449,19 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             L("Damp PVA is flexible and may get stuck in extruder. Dry it before use.");
             L("PPS-CF is brittle and could break in bended PTFE tube above Toolhead.");
             L("PPA-CF is brittle and could break in bended PTFE tube above Toolhead.");
-            L("%s filament is brittle. Use AMS feeding with caution.");
+            L("%s filament is brittle. Use %s feeding with caution.");
             L("%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing.");
             L("CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution.");
-            L("PLA Glow may wear the AMS first stage feeder. Use an external spool instead.");
             L("Default settings may affect print quality. Adjust as needed for best results.");
             L("Using non-bambu filament may have printing quality issues.");
             L("When using %s on the right extruder, it can only be used as support material.");
             L("%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.");
             L("%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.");
             L("%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution.");
+            L("Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead.");
+            L("PLA Glow may wear the %s first stage feeder. Use an external spool instead.");
+            L("%s filament is brittle and has high feeding resistance. Use caution when loading it through %s.");
+            L("PPA-CF filament does not support %s feeding. Use an external spool instead.");
             L("%s may fail to load or unload due to the Filament Track Switch. If you wish to continue.");
 
             // Error in description, X2D filament compatibility
