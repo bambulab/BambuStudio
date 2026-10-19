@@ -3559,7 +3559,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_pre_heating_enabled", coBools);
     def->label   = L("Pre-heating when extruder change");
-    def->tooltip = L("0 means disabled, 1 means enabled.");
+    def->tooltip = L("pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBools{true});
 

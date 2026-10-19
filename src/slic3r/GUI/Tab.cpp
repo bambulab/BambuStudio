@@ -5300,8 +5300,9 @@ void TabFilament::toggle_options()
         toggle_line("filament_preheat_temperature_delta", handle_hotend_as_extruder, 256 + extruder_idx);
         toggle_line("long_retractions_when_ec", is_ec_retraction_printer && is_BBL_printer, 256 + extruder_idx);
         toggle_line("retraction_distances_when_ec", is_ec_retraction_printer && is_BBL_printer && m_config->opt_bool_nullable("long_retractions_when_ec", extruder_idx), 256 + extruder_idx);
-        // Pre-heating exists on both multi-extruder and single-extruder-multi-nozzle printers.
-        toggle_line("filament_pre_heating_enabled", is_ec_retraction_printer);
+        // Inert unless the machine runs the pre-cooling injector at all, so hide it in that case.
+        const bool enable_pre_heating = m_preset_bundle->printers.get_edited_preset().config.opt_bool("enable_pre_heating");
+        toggle_line("filament_pre_heating_enabled", handle_hotend_as_extruder && enable_pre_heating);
         m_active_page->update_visibility(m_mode, true);
         update_changed_ui();
     }

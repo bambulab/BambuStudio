@@ -6656,7 +6656,11 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
     float switcher_temp_offset = (first_nozzle_dia >= 0.6 - EPSILON) ? 40.f : 20.f;
 
     // Pre-heating targets the incoming filament, so this is keyed on next_filament_id.
+    // Scoped to single-extruder multi-nozzle machines, matching the other PVA toolchange
+    // tweaks in Extruder::retract_length_toolchange() and ToolChangeStructure.
     auto wants_pre_heating = [&](int filament_id) -> bool {
+        if (!handle_hotend_as_extruder)
+            return true;
         if (filament_id < 0 || filament_id >= (int)filament_pre_heating_enabled.size())
             return true;
         return filament_pre_heating_enabled[filament_id] != 0;
@@ -6934,11 +6938,21 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
     }
 
     if (pre_cooling && !pre_heating) {
-        // only perform cooling
-        if (target_temp >= curr_temp)
+        // Without pre-heating there is no timed re-heat, so the idle window can be spent entirely
+        // on cooling. Size the drop by what that window can achieve, rather than by the incoming
+        // filament's pre-heat target which is only meaningful while pre-heating runs.
+        const int temp_floor = (int)get_filament_min_temperature_when_ec(block.last_filament_id, block.last_nozzle_id);
+        int cooling_temp = temp_floor; // no next use: the hotend is never needed again
+        if (filament_variant_row(block.next_filament_id, block.next_nozzle_id) >= 0) {
+            int delta_temp = (int)(complete_free_time_gap * ext_cooling_rate_when_free);
+            const float drop_limit = get_max_temperature_drop_when_ec(block.last_filament_id);
+            if (drop_limit >= 0)
+                delta_temp = std::min(delta_temp, (int)drop_limit);
+            cooling_temp = std::max(temp_floor, (int)curr_temp - delta_temp);
+        }
+        if (cooling_temp >= (int)curr_temp)
             return;
-        int clamped_target = std::max((int)get_filament_min_temperature_when_ec(block.last_filament_id, block.last_nozzle_id), (int)target_temp);
-        add_M104_lines(cooling_insert_gcode_id,extruder_id,clamped_target, block.last_filament_id, false, block.next_filament_id, block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling");
+        add_M104_lines(cooling_insert_gcode_id,extruder_id,cooling_temp, block.last_filament_id, false, block.next_filament_id, block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling");
         return;
     }
     if (!pre_cooling && pre_heating) {
