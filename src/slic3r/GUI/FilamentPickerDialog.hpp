@@ -79,6 +79,19 @@ private:
     // Flash effect
     void StartFlashing();
 
+    // Builds every child of the dialog at the current DPI. Called from the constructor and again
+    // whenever the display scale changes, since the swatches, the preview and the buttons are all
+    // painted at a fixed pixel size and cannot follow a scale change on their own.
+    void BuildContent();
+
+    // Handlers for the three buttons BuildContent() creates. Re-run after every rebuild.
+    void BindButtonEvents();
+
+    // What BuildContent() needs to run a second time. The constructor takes these as arguments
+    // and keeps them here, because a rebuild has no caller to pass them again.
+    wxString    m_fila_id;
+    std::string m_fila_type;
+
     // UI elements
     wxStaticBitmap* m_color_demo{nullptr};
     wxStaticText* m_label_preview_color{nullptr};

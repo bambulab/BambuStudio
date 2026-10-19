@@ -5165,9 +5165,6 @@ void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
                 tip += line;
             };
             if (nozzle_flagged) {
-                // One wording for every reason the slot is flagged. The corner notifications are where
-                // the three cases are told apart and each gets its own instruction; repeating that
-                // split here only made a one-line hover carry an explanation it has no room for.
                 // The nozzle is spelled out only where slots differ from one another. Outside
                 // multi-diameter mode they all print on the one nozzle the printer is set to, which
                 // the sidebar already shows above the list, so naming it here adds nothing.
@@ -5177,9 +5174,16 @@ void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
                 const FilamentNozzleSlotState state = filament_nozzle_slot_state(preset_bundle, flag_plate, (size_t) filament_idx);
                 const wxString nozzle_name = wxString::FromUTF8(state.diameter) + " " +
                     wxString::FromUTF8(DevNozzle::ToNozzleVolumeShortString(state.type));
-                append_tip(per_slot_nozzles && !state.diameter.empty()
-                    ? wxString::Format(_L("This filament does not support printing with the %s nozzle"), nozzle_name)
-                    : _L("This filament does not support printing with the current nozzle"));
+                // Nothing is wrong with this filament -- the nozzle it needs is simply not in the
+                // settings -- so the wording below would point at the wrong thing. Naming the nozzle
+                // would too: it is the one that is missing. The other two reasons share that wording;
+                // the corner notifications are where each gets its own instruction.
+                if (state.missing)
+                    append_tip(_L("The current nozzle settings have no nozzle of this type"));
+                else
+                    append_tip(per_slot_nozzles && !state.diameter.empty()
+                        ? wxString::Format(_L("This filament does not support printing with the %s nozzle"), nozzle_name)
+                        : _L("This filament does not support printing with the current nozzle"));
             }
             if (tip.empty())
                 tip = _L("This filament does not support printing with the current nozzle");
