@@ -140,16 +140,7 @@ void set_log_path_and_level(const std::string& log_dir, unsigned int level, cons
     g_log_dir = log_dir;
     // Also creates the log folder, so it runs before the early return below.
     const std::string file = LogSinkUtil::get_log_filename_format(g_log_dir, enc_options);
-
-#ifdef __APPLE__
-	//currently on old macos, the boost::log::add_file_log will crash
-	//TODO: need to be fixed
-	if (!is_macos_support_boost_add_file_log()) {
-		return;
-	}
-#endif
-
-	g_log_sink_backend = boost::make_shared<LogSinkBackend>(file, enc_options);
+    g_log_sink_backend     = boost::make_shared<LogSinkBackend>(file, enc_options);
     g_log_sink = boost::make_shared<LogSink>(g_log_sink_backend);
 	g_log_sink->set_formatter(
 		expr::stream
