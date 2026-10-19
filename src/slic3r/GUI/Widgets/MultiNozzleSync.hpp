@@ -113,6 +113,7 @@ class NozzleListTable : public wxPanel
 {
 public:
     NozzleListTable(wxWindow* parent);
+    ~NozzleListTable() override;
     int GetSelectIdx();
     void SetOptions(const std::vector<NozzleOption>& options,int default_select);
 private:

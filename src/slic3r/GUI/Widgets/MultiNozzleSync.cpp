@@ -599,6 +599,17 @@ NozzleListTable::NozzleListTable(wxWindow* parent) : wxPanel(parent,wxID_ANY,wxD
     wxGetApp().UpdateDarkUIWin(this);
 }
 
+NozzleListTable::~NozzleListTable()
+{
+    // The WKScriptMessageHandler holds a non-retained pointer back to the wxWebViewWebKit and
+    // outlives it: ~wxWebViewWebKit() never unregisters it. A message still in flight when this
+    // panel goes away is then delivered to freed memory. Dropping the handler here closes that
+    // window -- the dialog is built, its page starts loading and, on the resolve-only path, the
+    // dialog is destroyed before the page's first postMessage() is ever dispatched.
+    if (m_web_view)
+        m_web_view->RemoveScriptMessageHandler("nozzleListTable");
+}
+
 wxString NozzleListTable::BuildTableObjStr()
 {
     json obj;

@@ -15,6 +15,7 @@ public:
 	using VolumeMatrix = std::vector<std::vector<double>>;
 
 	WipingDialog(wxWindow* parent, const int max_flush_volume = Slic3r::g_max_flush_volume);
+	~WipingDialog() override;
 	static VolumeMatrix CalcFlushingVolumes(int extruder_id);
 	std::vector<double> GetFlattenMatrix()const;
 	std::vector<double> GetMultipliers()const;

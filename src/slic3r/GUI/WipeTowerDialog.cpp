@@ -377,6 +377,14 @@ WipingDialog::WipingDialog(wxWindow* parent, const int max_flush_volume) :
         });
 }
 
+WipingDialog::~WipingDialog()
+{
+    // Same reason as NozzleListTable: the WKScriptMessageHandler keeps a non-retained pointer to
+    // the wxWebViewWebKit that ~wxWebViewWebKit() never unregisters, so a late message would be
+    // delivered to freed memory.
+    if (m_webview)
+        m_webview->RemoveScriptMessageHandler("wipingDialog");
+}
 
 int WipingDialog::CalcFlushingVolume(const wxColour& from, const wxColour& to, int min_flush_volume , int nozzle_flush_dataset, const std::string& from_filament_id, const std::string& to_filament_id)
 {
