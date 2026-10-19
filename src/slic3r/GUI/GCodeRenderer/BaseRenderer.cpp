@@ -594,6 +594,10 @@ namespace Slic3r
                 if (m_only_gcode_in_preview)
                     m_custom_gcode_per_print_z = gcode_result.custom_gcode_per_print_z;
                 m_max_print_height = gcode_result.printable_height;
+                if (m_max_print_height <= 0.0f) {
+                    // Fallback to build volume printable height if not provided by gcode result (e.g. unknown third-party G-code).
+                    m_max_print_height = static_cast<float>(build_volume.printable_height());
+                }
                 bool rt = load_toolpaths(gcode_result, build_volume, exclude_bounding_box);
                 //BBS: add mutex for protection of gcode result
                 if (!rt) {

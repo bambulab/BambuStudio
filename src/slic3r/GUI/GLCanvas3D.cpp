@@ -12036,7 +12036,8 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
             if (current_printer_technology() != ptSLA) {
                 unsigned int max_z_layer = t_gcode_viewer.get_layers_z_range().back();
                 if (warning == EWarning::ToolHeightOutside) // check if max z_layer height exceed max print height
-                    show = t_gcode_viewer.has_data() && (t_gcode_viewer.get_layers_zs()[max_z_layer] - t_gcode_viewer.get_max_print_height() >= 1e-6);
+                    show = t_gcode_viewer.has_data() && t_gcode_viewer.get_max_print_height() > 0.0f &&
+                        (t_gcode_viewer.get_layers_zs()[max_z_layer] - t_gcode_viewer.get_max_print_height() >= 1e-6);
                 else if (warning == EWarning::ToolpathOutside) { // check if max x,y coords exceed bed area
                     show = t_gcode_viewer.has_data() && !t_gcode_viewer.is_contained_in_bed() &&
                            (t_gcode_viewer.get_max_print_height() - t_gcode_viewer.get_layers_zs()[max_z_layer] >= 1e-6);
