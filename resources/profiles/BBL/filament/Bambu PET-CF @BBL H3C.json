@@ -17,14 +17,16 @@
     "eng_plate_temp_initial_layer": [
         "100"
     ],
+    "fan_max_speed": [
+        "70"
+    ],
+    "fan_min_speed": [
+        "60"
+    ],
     "filament_change_length": [
         "0"
     ],
     "filament_change_length_nc": [
-        "0"
-    ],
-    "filament_cooling_before_tower": [
-        "0",
         "0"
     ],
     "filament_flow_ratio": [
@@ -33,8 +35,8 @@
     ],
     "filament_idle_travel_cooling_enabled": "0",
     "filament_max_volumetric_speed": [
-        "8",
-        "8"
+        "5",
+        "5"
     ],
     "filament_prime_tower_speed_factor_curve": [
         "0.5,1"
@@ -71,12 +73,18 @@
     "optional_fan_full_speed_layer": [
         "0"
     ],
+    "overhang_fan_speed": [
+        "100"
+    ],
     "reduce_fan_stop_start_freq": [
         "0"
     ],
     "slow_down_min_speed": [
         "20",
         "20"
+    ],
+    "temperature_vitrification": [
+        "185"
     ],
     "compatible_printers": [
         "Bambu Lab H3C 0.4 nozzle",
