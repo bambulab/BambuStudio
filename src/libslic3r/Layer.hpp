@@ -429,11 +429,13 @@ struct ExpansionZone {
 * Extract bridging surfaces from "surfaces", expand them into "shells" using expansion_params,
 * detect bridges.
 * Trim "shells" by the expanded bridges.
+* solid_spacing: scaled solid infill spacing, sets the resolution of splitting anchors shared by bridges of different directions.
 */
 Surfaces expand_bridges_detect_orientations(
     Surfaces &surfaces,
     std::vector<ExpansionZone>& expansion_zones,
-    const float closing_radius
+    const float closing_radius,
+    const float solid_spacing
 );
 
 /**
