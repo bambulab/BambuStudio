@@ -1077,8 +1077,13 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 
                 const Layer *below_band = m_object->get_layer(patch.bottom_idx - 1);
                 const coord_t support_offset = scale_(patch.merged_height / tan(threshold_rad));
+                // Keep the same minimum-width filter as the normal detector. Comparing the raw patch against
+                // a filtered lower layer turns a narrowing tip into a fully floating overhang once the lower
+                // contour becomes thinner than the support extrusion width.
+                ExPolygons patch_extrudable = intersection_ex(
+                    patch.area(), offset2_ex(patch.area(), -extrusion_width_scaled / 2, extrusion_width_scaled));
                 ExPolygons overhangs = diff_ex(
-                    patch.area(),
+                    patch_extrudable,
                     offset_ex(below_band->lslices_extrudable, support_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
                 if (! overhangs.empty())
                     append(adaptive_overhangs[patch.bottom_idx], overhangs);
