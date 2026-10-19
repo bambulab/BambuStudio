@@ -218,7 +218,11 @@ void DevicePageAmsFilamentHotendVM::OnResponseSent(const nlohmann::json& respons
     }
 
     // An empty cache forces the next report through.
-    m_last_report_state = key.value_or(std::string());
+    if (m_bridge && m_bridge->IsReportEnabled()) {
+        m_last_report_state = key.value_or(std::string());
+    } else {
+        m_last_report_state.clear();
+    }
 }
 
 void DevicePageAmsFilamentHotendVM::ReportState(const std::string& submod, const std::string& action)

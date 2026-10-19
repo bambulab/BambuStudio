@@ -31,6 +31,11 @@ DeviceWebBridge::~DeviceWebBridge()
     }
 }
 
+bool DeviceWebBridge::IsReportEnabled() const
+{
+    return !m_report_enabled_handler || m_report_enabled_handler();
+}
+
 void DeviceWebBridge::OnWebLoaded(wxWebViewEvent& e)
 {
     if (e.GetURL() == "about:blank") {
