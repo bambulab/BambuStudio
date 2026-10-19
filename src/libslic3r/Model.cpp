@@ -1521,6 +1521,18 @@ void ModelObject::delete_volume(size_t idx)
     delete *i;
     this->volumes.erase(i);
 
+    if (!this->brim_points.empty()) {
+        // 移除归属于被删除部件的 brim ear 点，并将后续部件对应的 volume_idx 前移
+        this->brim_points.erase(
+            std::remove_if(this->brim_points.begin(), this->brim_points.end(),
+                [idx](const BrimPoint &pt) { return pt.volume_idx == static_cast<int>(idx); }),
+            this->brim_points.end());
+        for (BrimPoint &pt : this->brim_points) {
+            if (pt.volume_idx > static_cast<int>(idx))
+                --pt.volume_idx;
+        }
+    }
+
     if (this->volumes.size() == 1)
     {
         // only one volume left
