@@ -1189,7 +1189,7 @@ void IMSlider::render_input_custom_gcode(std::string custom_gcode)
         if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
             if (m_request_canvas_focus) m_request_canvas_focus();
             ImGui::SetKeyboardFocusHere(0);
-            strcpy(m_custom_gcode, custom_gcode.c_str());
+            snprintf(m_custom_gcode, sizeof(m_custom_gcode), "%s", custom_gcode.c_str());
         }
         const int text_height = 6;
         const ImGuiInputTextFlags flag  = ImGuiInputTextFlags_Multiline;
