@@ -4058,18 +4058,9 @@ bool GLGizmoMeshBoolean::get_cur_entity_only() const
 
 void GLGizmoMeshBoolean::apply_color_overrides_for_mode(MeshBooleanOperation mode)
 {
-    // When "Keep all painting" is on (default), do NOT flatten the volumes into the
-    // A/B list colors - show the real multi-color painting so the user can see what will be
-    // carried through the boolean. A/B grouping is still conveyed by the side list/selection.
-    // Read the live UI value (not the m_preserve_color member): this is invoked from the
-    // checkbox's on-change callback during render_content(), before the member is synced back
-    // from the UI, so the member still holds the previous frame's value (which inverted the
-    // rendering vs. the checkbox).
-    const bool preserve_color = m_ui ? m_ui->get_preserve_color() : m_preserve_color;
-    if (preserve_color) {
-        restore_list_color_overrides();
-        return;
-    }
+    // Always flatten volumes into A/B (or working-list) colors while the boolean gizmo is
+    // active, so set membership is visible in the 3D view. "Keep all painting" only controls
+    // whether paint is reprojected onto the boolean result, not the edit-time preview.
 
     // Enable volume color override
     m_parent.set_use_volume_color_override(true);

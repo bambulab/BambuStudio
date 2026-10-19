@@ -347,10 +347,9 @@ void MeshBooleanUI::draw_control_buttons()
     }
 
     // "Keep all painting" checkbox on its own line. When on (default) the painted
-    // color/MMU, supports, seam and fuzzy-skin are reprojected onto the boolean result and
-    // the real multi-color painting is shown while editing; when off, the operation falls
-    // back to the original single-color boolean behaviour.
-    bool previous_preserve_color = m_preserve_color;
+    // color/MMU, supports, seam and fuzzy-skin are reprojected onto the boolean result;
+    // when off, the result is a plain single-color mesh. Edit-time preview always uses
+    // A/B (or working-list) set colors regardless of this checkbox.
     ImGui::SetCursorPosX(checkbox_pos_x);
     render_checkbox(_L("Keep all painting"), m_preserve_color, !b_async_working_or_cancelling);
     if (ImGui::IsItemHovered()) {
@@ -360,8 +359,6 @@ void MeshBooleanUI::draw_control_buttons()
         else
             ImGui::SetTooltip("%s", tip.c_str());
     }
-    if (previous_preserve_color != m_preserve_color && on_apply_color_overrides)
-        on_apply_color_overrides(m_operation_mode);
 }
 
 void MeshBooleanUI::draw_action_buttons()
