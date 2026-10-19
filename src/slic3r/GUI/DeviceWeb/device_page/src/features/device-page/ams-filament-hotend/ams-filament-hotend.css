@@ -237,15 +237,13 @@
   min-height: 365px;
   padding: 8px 12px 4px;
   overflow: hidden;
-  /* `--slot-pitch` is expressed in cqw so the top tier padding and the column
-     margins resolve against the same width. Plain percentages would not: the
-     top tier's own padding shrinks the basis its children see. */
-  container-type: inline-size;
 }
 
 /* Both tiers advance by two pitches per column; the top tier starts one pitch
    in so its columns land exactly between the bottom ones. `--slot-pitch` is
-   set on `.stage` from the total slot count (see Stage.tsx). */
+   set on `.stage` from the total slot count (see Stage.tsx) and is in % of the
+   tier row, so neither row may have horizontal padding: it would shrink the
+   basis the columns and decorations resolve against. */
 .top-tier-row {
   position: absolute;
   top: 8px;
@@ -254,8 +252,11 @@
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
-  padding-left: var(--slot-pitch);
   z-index: 1;
+}
+
+.top-tier-row .slot-column:not(.slot-column ~ .slot-column) {
+  margin-left: var(--slot-pitch);
 }
 
 .bottom-tier-row {
