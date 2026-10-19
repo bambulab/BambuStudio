@@ -82,6 +82,7 @@ public:
 
     void SetConstrainByAspectRatio(bool constrain) { m_constrain_by_aspect_ratio = constrain; }
     bool GetConstrainByAspectRatio() const { return m_constrain_by_aspect_ratio; }
+    void SuppressPauseIcon(bool suppress);
     void SetTrackChannel(const BambuLiveViewTrack::ChannelInfo& info);
 
     void UpdateSessionStat();
@@ -120,6 +121,7 @@ private:
     wxString m_live_badge_text;
     wxBitmap m_pause_bitmap;     // cached rasterized pause icon (UI thread only)
     wxSize   m_pause_bitmap_size;
+    bool     m_suppress_pause_icon = false; // hide the pause placeholder from INITIALIZING onward
     wxMediaState m_state  = wxMEDIASTATE_STOPPED;
     int m_error  = 0;
     wxSize m_video_size = wxDefaultSize;

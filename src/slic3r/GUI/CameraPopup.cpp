@@ -77,7 +77,7 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_switch_live_cam_rec->Hide();
 
     //visual enhancement camera recording
-    m_text_visual_cam_rec = new wxStaticText(m_panel, wxID_ANY, _L("Visual Enhancement Camera Recording"));
+    m_text_visual_cam_rec = new wxStaticText(m_panel, wxID_ANY, _L("BirdsEye Camera Recording"));
     m_text_visual_cam_rec->Wrap(-1);
     m_text_visual_cam_rec->SetFont(Label::Head_14);
     m_text_visual_cam_rec->SetForegroundColour(TEXT_COL);

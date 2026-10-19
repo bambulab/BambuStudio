@@ -362,6 +362,7 @@ void wxMediaCtrl2::Stop()
 	}
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 close];
+    m_suppress_pause_icon = false;
     // Restore idle image after stopping (must run on main thread for CALayer)
     dispatch_async(dispatch_get_main_queue(), ^{ updateIdleLayer(); });
     NotifyStopped();
@@ -557,6 +558,13 @@ void wxMediaCtrl2::updateStatusBadge()
 
 void wxMediaCtrl2::updatePauseIconLayer()
 {
+    if (m_suppress_pause_icon) {
+        CALayer *pauseIconLayer = (CALayer *)m_pause_icon_layer;
+        if (pauseIconLayer)
+            pauseIconLayer.hidden = YES;
+        return;
+    }
+
     CALayer *idleLayer = (CALayer *)m_idle_layer;
     if (!idleLayer)
         return;
@@ -592,6 +600,18 @@ void wxMediaCtrl2::updatePauseIconLayer()
 
     if (iconLayer.superlayer != idleLayer)
         [idleLayer addSublayer:iconLayer];
+}
+
+void wxMediaCtrl2::SuppressPauseIcon(bool suppress)
+{
+    if (m_suppress_pause_icon == suppress)
+        return;
+    m_suppress_pause_icon = suppress;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        CALayer *pauseIconLayer = (CALayer *)m_pause_icon_layer;
+        if (pauseIconLayer)
+            pauseIconLayer.hidden = m_suppress_pause_icon ? YES : NO;
+    });
 }
 
 void wxMediaCtrl2::removeIdleLayer()

@@ -71,7 +71,7 @@ void BreathingDot::OnTimer(wxTimerEvent &)
 void BreathingDot::OnPaint(wxPaintEvent &)
 {
     wxAutoBufferedPaintDC dc(this);
-    dc.SetBackground(wxBrush(GetParent()->GetBackgroundColour()));
+    dc.SetBackground(wxBrush(GetBackgroundColour()));
     dc.Clear();
 
     if (!m_playing)

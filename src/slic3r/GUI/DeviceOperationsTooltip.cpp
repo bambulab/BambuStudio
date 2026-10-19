@@ -26,7 +26,7 @@ void DeviceOperationsTooltip::SetOperations(const std::vector<wxString> &operati
     m_sizer->Clear(true);
     m_rows.clear();
 
-    m_title = new wxStaticText(this, wxID_ANY, _L("This device is performing the following operations"));
+    m_title = new wxStaticText(this, wxID_ANY, _L("Active operations"));
     m_title->SetFont(Label::Body_12);
     m_title->SetForegroundColour(title_fg());
     m_title->SetBackgroundColour(card_bg());

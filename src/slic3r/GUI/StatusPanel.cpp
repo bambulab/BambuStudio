@@ -109,8 +109,8 @@ static const wxColour NORMAL_TEXT_COL     = wxColour(48, 58, 60);
 static wxColour camera_pill_fill(bool hovered)
 {
     if (wxGetApp().dark_mode())
-        return hovered ? StateColor::darkModeColorFor(ThemeColor::Grey300) : wxColour();
-    return hovered ? ThemeColor::Grey400 : ThemeColor::Grey300;
+        return hovered ? wxColour("#5C5C5C") : wxColour();
+    return hovered ? ThemeColor::Grey400 : wxColour();
 }
 
 class CameraFullscreenCloseButton : public wxPopupWindow
@@ -2193,22 +2193,22 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
 
     m_breathing_dot_light = new BreathingDot(m_camera_title_pill, "liveview_breathe_dark", "liveview_breathe_light");
     m_breathing_dot_light->SetBackgroundColour(pill_child_bg);
-    pill_sizer->Add(m_breathing_dot_light, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(6));
+    pill_sizer->Add(m_breathing_dot_light, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(4));
 
     m_bitmap_record_light = new wxStaticBitmap(m_camera_title_pill, wxID_ANY, m_bitmap_record_on_light.bmp());
     m_bitmap_record_light->SetBackgroundColour(pill_child_bg);
     m_bitmap_record_light->Hide();
-    pill_sizer->Add(m_bitmap_record_light, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(6));
+    pill_sizer->Add(m_bitmap_record_light, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(4));
 
     m_bitmap_timelapse_light = new wxStaticBitmap(m_camera_title_pill, wxID_ANY, m_bitmap_timelapse_on_light.bmp());
     m_bitmap_timelapse_light->SetBackgroundColour(pill_child_bg);
     m_bitmap_timelapse_light->Hide();
-    pill_sizer->Add(m_bitmap_timelapse_light, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(6));
+    pill_sizer->Add(m_bitmap_timelapse_light, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(4));
 
     m_bitmap_golive_light = new wxStaticBitmap(m_camera_title_pill, wxID_ANY, m_bitmap_golive_on_light.bmp());
     m_bitmap_golive_light->SetBackgroundColour(pill_child_bg);
     m_bitmap_golive_light->Hide();
-    pill_sizer->Add(m_bitmap_golive_light, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(6));
+    pill_sizer->Add(m_bitmap_golive_light, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(4));
 
     m_camera_title_pill->SetSizer(pill_sizer);
     m_camera_title_pill->Layout();
@@ -2249,14 +2249,13 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     }
 
     m_camera_title_separator = new StaticLine(m_panel_monitoring_title, true);
-    m_camera_title_separator->SetLineColour(StateColor::darkModeColorFor(ThemeColor::Grey350));
+    m_camera_title_separator->SetLineColour(StateColor::darkModeColorFor(ThemeColor::Grey400));
     m_camera_title_separator->SetMinSize(wxSize(FromDIP(1), FromDIP(16)));
     m_camera_title_separator->Hide();
     bSizer_monitoring_title->Add(m_camera_title_separator, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     const char *settings_icon = wxGetApp().dark_mode() ? "liveview_settings_dark" : "liveview_settings_light";
-    const char *settings_selected_icon = wxGetApp().dark_mode() ? "liveview_settings_select_dark" : "";
-    m_setting_button_light = new CameraItem(m_panel_monitoring_title, settings_icon, settings_icon, 16, settings_selected_icon, 24.0 / 16.0);
+    m_setting_button_light = new CameraItem(m_panel_monitoring_title, settings_icon, settings_icon, 16);
     m_setting_button_light->SetBackgroundColour(m_panel_monitoring_title->GetBackgroundColour());
     m_setting_button_light->SetToolTip(_L("Camera Setting"));
     bSizer_monitoring_title->Add(m_setting_button_light, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
@@ -3209,18 +3208,18 @@ std::vector<wxString> StatusBasePanel::collect_device_operations() const
                                                                      static_cast<int>(LiveviewCameraType::CAMERA_DEPUTY)) != obj->enable_record_cams.end();
 
         if (recording_cam_main)
-            ops.push_back(_L("Live Camera Recording in progress"));
+            ops.push_back(_L("Live Camera recording"));
         if (recording_cam_deputy)
-            ops.push_back(_L("Visual Enhancement Camera Recording in progress"));
+            ops.push_back(_L("BirdsEye Camera recording"));
         if (!recording_cam_main && !recording_cam_deputy)
-            ops.push_back(_L("Recording in progress"));
+            ops.push_back(_L("Live Camera recording"));
     }
 
     if (obj->is_support_timelapse && obj->is_timelapse())
-        ops.push_back(_L("Timelapse in progress"));
+        ops.push_back(_L("Timelapse recording"));
 
     if (obj->virtual_camera && m_media_play_ctrl->IsStreaming())
-        ops.push_back(_L("Go Live in progress"));
+        ops.push_back(_L("Go Live streaming"));
 
     return ops;
 }
@@ -6163,9 +6162,6 @@ void StatusPanel::on_camera_enter(wxMouseEvent &event)
     if (obj) {
         if (m_camera_popup == nullptr) {
             m_camera_popup = std::make_shared<CameraPopup>(this);
-            m_camera_popup->SetOnDismiss([this] {
-                if (m_setting_button_light) m_setting_button_light->SetSelected(false);
-            });
         }
         m_camera_popup->check_func_supported(obj);
         m_camera_popup->sync_vcamera_state(show_vcamera);
@@ -6185,7 +6181,6 @@ void StatusPanel::on_camera_enter(wxMouseEvent &event)
         m_camera_popup->SetPosition(pos);
         m_camera_popup->update(m_media_play_ctrl->IsStreaming());
         m_camera_popup->Popup();
-        if (m_setting_button_light) m_setting_button_light->SetSelected(true);
     }
 }
 
@@ -6544,10 +6539,9 @@ void StatusPanel::rescale_camera_icons()
     m_bitmap_timelapse_light->SetBitmap(m_bitmap_timelapse_on_light.bmp());
     m_bitmap_golive_light->SetBitmap(m_bitmap_golive_on_light.bmp());
 
-    m_setting_button_light->SetBitmaps(dark ? "liveview_settings_dark" : "liveview_settings_light", dark ? "liveview_settings_dark" : "liveview_settings_light",
-                                        dark ? "liveview_settings_select_dark" : "", 24.0 / 16.0);
+    m_setting_button_light->SetBitmaps(dark ? "liveview_settings_dark" : "liveview_settings_light", dark ? "liveview_settings_dark" : "liveview_settings_light");
     m_setting_button_light->msw_rescale();
-    m_camera_title_separator->SetLineColour(StateColor::darkModeColorFor(ThemeColor::Grey350));
+    m_camera_title_separator->SetLineColour(StateColor::darkModeColorFor(ThemeColor::Grey400));
     m_camera_title_separator->Rescale();
 
     const wxColour pill_fill = camera_pill_fill(false);

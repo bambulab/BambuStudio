@@ -4,6 +4,7 @@
 #include "Widgets/Label.hpp"
 #include "GUI_App.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "libslic3r/Time.hpp"
 #include "I18N.hpp"
 #include "MsgDialog.hpp"
 #include "DownloadProgressDialog.hpp"
@@ -626,6 +627,7 @@ void MediaPlayCtrl::Play()
     m_failed_code = 0;
     m_last_state  = MEDIASTATE_INITIALIZING;
     m_button_play->SetIcon("media_stop");
+    if (m_media_ctrl) m_media_ctrl->SuppressPauseIcon(true);
 
     if (!m_remote_proto) { // not support tutk
         m_failed_code = -1;
@@ -1079,11 +1081,9 @@ void MediaPlayCtrl::start_device_image_flow()
         std::string mode_str = mode_to_string(mode);
         // Generate watermark text at image fetch time, not at paint time
         time_t fetch_time = time(nullptr);
-        std::tm *local_tm = std::localtime(&fetch_time);
-        char time_buf[32];
-        strftime(time_buf, sizeof(time_buf), "%H:%M:%S %d/%m/%Y", local_tm);
-        wxString watermark = _L("Not live") + "  " +
-                             wxString::Format(_L("Captured at %s"), wxString::FromUTF8(time_buf));
+        std::string time_str = Slic3r::Utils::time2str(fetch_time, Slic3r::Utils::TimeZone::local, Slic3r::Utils::TimeFormat::datetime);
+        wxString watermark = _L("Non-live image.") + "  " +
+                             wxString::Format(_L("Captured at %s"), wxString::FromUTF8(time_str.c_str()));
         CallAfter([this, img = std::move(image), request_machine, mode_str, watermark]() {
             if (request_machine != m_machine) {
                 BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: machine changed, skip display";

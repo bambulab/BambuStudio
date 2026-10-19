@@ -62,6 +62,7 @@ public:
 
     void SetConstrainByAspectRatio(bool constrain) { m_constrain_by_aspect_ratio = constrain; }
     bool GetConstrainByAspectRatio() const { return m_constrain_by_aspect_ratio; }
+    void SuppressPauseIcon(bool suppress);
 
     void SetTrackChannel(const BambuLiveViewTrack::ChannelInfo& info);
     void UpdateSessionStat() {}  // data filled by session-end callback, nothing to do here
@@ -95,6 +96,7 @@ private:
     void *   m_badge_bg_layer = nullptr;
     void *   m_badge_dot_layer = nullptr;
     void *   m_pause_icon_layer = nullptr;
+    bool     m_suppress_pause_icon = false; // hide the pause placeholder from INITIALIZING onward
 
 public:
     std::chrono::system_clock::time_point m_play_start_time;

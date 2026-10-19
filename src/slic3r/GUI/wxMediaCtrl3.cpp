@@ -116,6 +116,7 @@ void wxMediaCtrl3::Stop()
     }
     std::unique_lock<std::mutex> lk(m_mutex);
     m_url.reset();
+    m_suppress_pause_icon = false;
     NotifyStopped();
     m_cond.notify_all();
     Refresh();
@@ -219,7 +220,7 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
     // Treat the default background as idle content so the bg and its logo are always
     // drawn together, even if m_url flips to playing before the first video frame arrives.
     const bool is_idle = (m_url == nullptr) || current_is_default_bg;
-    const bool show_play_icon = (m_url == nullptr);
+    const bool show_play_icon = (m_url == nullptr) && !m_suppress_pause_icon;
     double dst_x = 0, dst_y = 0, dst_w = size.x, dst_h = size.y;
     if (is_idle) {
         // Draw the static idle image through wxGraphicsContext with high-quality
@@ -363,6 +364,14 @@ void wxMediaCtrl3::DrawLiveviewPause(wxGraphicsContext *gc, double bg_x, double 
 
     if (m_pause_bitmap.IsOk())
         gc->DrawBitmap(m_pause_bitmap, icon_x, icon_y, icon_sz, icon_sz);
+}
+
+void wxMediaCtrl3::SuppressPauseIcon(bool suppress)
+{
+    if (m_suppress_pause_icon == suppress)
+        return;
+    m_suppress_pause_icon = suppress;
+    Refresh();
 }
 
 void wxMediaCtrl3::DoSetSize(int x, int y, int width, int height, int sizeFlags)
