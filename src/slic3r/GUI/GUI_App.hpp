@@ -858,6 +858,8 @@ private:
     void            copy_network_if_available();
     bool            on_init_network(bool try_backup = false);
     void            init_networking_callbacks();
+    // Best-effort stop of plugin sessions/callbacks before destroy_agent (see OnExit).
+    void            shutdown_network_agent();
     void            init_app_config();
     void            remove_old_networking_plugins();
     //BBS set extra header for http request

@@ -157,6 +157,7 @@ NetworkAgent::~NetworkAgent()
     int ret = 0;
     if (network_agent && destroy_agent_ptr) {
         ret = destroy_agent_ptr(network_agent);
+        network_agent = nullptr;
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", line %1%, network_agent=%2%, destroy_agent_ptr=%3%, ret %4%")%__LINE__ %network_agent %destroy_agent_ptr %ret;
 }
