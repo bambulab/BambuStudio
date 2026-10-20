@@ -5,6 +5,7 @@
 
 #include "GUI_Utils.hpp"
 
+class wxBoxSizer;
 class wxStaticBitmap;
 class Label;
 class Button;
@@ -30,8 +31,10 @@ private:
     void save_dont_show_choice();
 
     wxStaticBitmap *m_image{nullptr};
+    Label          *m_heading_label{nullptr};
     wxStaticBitmap *m_warn_icon{nullptr};
-    Label          *m_tips_label{nullptr};
+    wxBoxSizer     *m_tips_sizer{nullptr};
+    wxString        m_tips_text;
     ::CheckBox     *m_dont_show_checkbox{nullptr};
     Button         *m_guide_btn{nullptr};
     Button         *m_confirm_btn{nullptr};
