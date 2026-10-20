@@ -2110,6 +2110,41 @@ void GUI_App::cancel_networking_install()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": plugin install cancelled!");
 }
 
+void GUI_App::shutdown_network_agent()
+{
+    if (!m_agent)
+        return;
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": clearing callbacks and stopping network sessions";
+
+    // Prevent further CallAfter work from networking threads during teardown.
+    m_agent->set_queue_on_main_fn([](std::function<void()>) {});
+
+    // Replace Studio callbacks with no-ops so workers cannot re-enter GUI/state
+    // while bambu_network_destroy_agent joins its threads.
+    m_agent->set_on_ssdp_msg_fn([](std::string) {});
+    m_agent->set_on_user_login_fn([](int, bool) {});
+    m_agent->set_on_printer_connected_fn([](std::string) {});
+    m_agent->set_on_server_connected_fn([](int, int) {});
+    m_agent->set_on_http_error_fn([](unsigned, std::string) {});
+    m_agent->set_get_country_code_fn([]() { return std::string(); });
+    m_agent->set_on_subscribe_failure_fn([](std::string) {});
+    m_agent->set_on_message_fn([](std::string, std::string) {});
+    m_agent->set_on_user_message_fn([](std::string, std::string) {});
+    m_agent->set_on_local_connect_fn([](int, std::string, std::string) {});
+    m_agent->set_on_local_message_fn([](std::string, std::string) {});
+    m_agent->set_server_callback([](std::string, int) {});
+
+    m_agent->stop_subscribe("app");
+    m_agent->disconnect_printer();
+
+    // BBS avoid a crash on mac platform (historically, stopping discovery before
+    // destroy_agent crashed on macOS; keep that platform quirk).
+#ifdef __WINDOWS__
+    m_agent->start_discovery(false, false);
+#endif
+}
+
 void GUI_App::init_networking_callbacks()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": enter, m_agent=%1%")%m_agent;
@@ -2972,10 +3007,9 @@ int GUI_App::OnExit()
     }
 
     if (m_agent) {
-        // BBS avoid a crash on mac platform
-#ifdef __WINDOWS__
-        m_agent->start_discovery(false, false);
-#endif
+        // Reduce races with libbambu_networking workers during destroy_agent
+        // (known plugin log FILE* teardown crash; see bambulab/BambuStudio#12200).
+        shutdown_network_agent();
         delete m_agent;
         m_agent = nullptr;
     }
