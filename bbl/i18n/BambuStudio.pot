@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 18:17+0800\n"
+"POT-Creation-Date: 2026-10-20 20:17+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -219,6 +219,10 @@ msgstr ""
 msgid "PPA-CF does not support AMS feeding. Use an external spool instead."
 msgstr ""
 
+#, possible-c-format, possible-boost-format
+msgid "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
+msgstr ""
+
 msgid "How to feed TPU filament."
 msgstr ""
 
@@ -244,7 +248,7 @@ msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "%s filament is brittle. Use AMS feeding with caution."
+msgid "%s filament is brittle. Use %s feeding with caution."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -252,9 +256,6 @@ msgid "%s filament has a higher risk of clogging when printed with a 0.2mm hoten
 msgstr ""
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr ""
-
-msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
 msgstr ""
 
 msgid "Default settings may affect print quality. Adjust as needed for best results."
@@ -273,7 +274,23 @@ msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow noz
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue."
+msgid "Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "PPA-CF filament does not support %s feeding. Use an external spool instead."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "%s may fail to load or unload due to the Filament Track Switch."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -293,7 +310,7 @@ msgid "%s is used with the auxiliary extruder and carries a higher risk, which m
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide."
+msgid "Affected by the Filament Track Switch, %s may break inside the filament tube."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -333,7 +350,7 @@ msgid "%s used with a standard %s nozzle may lead to difficult extrusion."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide."
+msgid "Affected by the Filament Track Switch, %s may fail to load or unload."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -4358,7 +4375,7 @@ msgid "New Mixed Filaments"
 msgstr ""
 
 #, possible-boost-format
-msgid "The project supports up to %1% filaments."
+msgid "The project supports up to %1% physical filaments."
 msgstr ""
 
 msgid "Updating"
@@ -6450,7 +6467,7 @@ msgstr ""
 msgid "Live Camera Recording"
 msgstr ""
 
-msgid "Visual Enhancement Camera Recording"
+msgid "BirdsEye Camera Recording"
 msgstr ""
 
 msgid "Liveview Retry"
@@ -7144,7 +7161,7 @@ msgstr ""
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr ""
 
-msgid "Not live"
+msgid "Non-live image."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -7510,6 +7527,16 @@ msgstr ""
 msgid "Almost complete"
 msgstr ""
 
+#, possible-c++-format
+msgid "For users under the age of majority, some services will be restricted. See our {0} for Bambu Lab Account. To understand our privacy practices, see {1}."
+msgstr ""
+
+msgid "Age Requirements"
+msgstr ""
+
+msgid "Privacy Notice"
+msgstr ""
+
 msgid "Camera"
 msgstr ""
 
@@ -7543,19 +7570,16 @@ msgstr ""
 msgid "Filament loading..."
 msgstr ""
 
-msgid "Live Camera Recording in progress"
+msgid "Live Camera recording"
 msgstr ""
 
-msgid "Visual Enhancement Camera Recording in progress"
+msgid "BirdsEye Camera recording"
 msgstr ""
 
-msgid "Recording in progress"
+msgid "Timelapse recording"
 msgstr ""
 
-msgid "Timelapse in progress"
-msgstr ""
-
-msgid "Go Live in progress"
+msgid "Go Live streaming"
 msgstr ""
 
 msgid "Cancel print"
@@ -7755,7 +7779,7 @@ msgid ""
 "to give a positive rating(4 or 5stars)."
 msgstr ""
 
-msgid "This device is performing the following operations"
+msgid "Active operations"
 msgstr ""
 
 msgid "Live"
@@ -7895,7 +7919,13 @@ msgstr ""
 msgid "Don't show this dialog again"
 msgstr ""
 
-msgid "Please refer to Wiki before use->"
+msgid "If you wish to continue, "
+msgstr ""
+
+msgid "please refer to the Wiki guide"
+msgstr ""
+
+msgid " before continuing."
 msgstr ""
 
 msgid "3D Mouse disconnected."
@@ -8764,9 +8794,6 @@ msgstr ""
 msgid "View details on Wiki"
 msgstr ""
 
-msgid "Collapse panel"
-msgstr ""
-
 msgid "Global"
 msgstr ""
 
@@ -8786,9 +8813,6 @@ msgid "Filament settings"
 msgstr ""
 
 msgid "Printer settings"
-msgstr ""
-
-msgid "Expand panel"
 msgstr ""
 
 msgid "At least one plate is required"
@@ -8933,6 +8957,12 @@ msgid ""
 "Curve planning enhancement support detected on your printer. The software has automatically disabled arc fitting to ensure this feature functions correctly."
 msgstr ""
 
+msgid "Collapse panel"
+msgstr ""
+
+msgid "Expand panel"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr ""
 
@@ -9063,6 +9093,10 @@ msgid "Cannot mix different filament types"
 msgstr ""
 
 msgid "Cannot mix filaments using different nozzle diameters"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Up to %d mixed filaments can be created"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -9944,6 +9978,9 @@ msgid "Not available"
 msgstr ""
 
 msgid "Top front"
+msgstr ""
+
+msgid "For users under the age of majority, some services will be restricted. This is managed by your parent or guardian in Family Hub."
 msgstr ""
 
 msgid "The current project has unsaved changes, save it before continuing?"
@@ -10841,13 +10878,13 @@ msgstr ""
 msgid "There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing."
 msgstr ""
 
+msgid "Pre-print check"
+msgstr ""
+
 msgid "Please check the following:"
 msgstr ""
 
 msgid "Please fix the error above, otherwise printing cannot continue."
-msgstr ""
-
-msgid "Please click the \"Continue printing\"  button if you still want to proceed with printing."
 msgstr ""
 
 msgid "Continue printing"
@@ -14697,7 +14734,7 @@ msgstr ""
 msgid "Pre-heating when extruder change"
 msgstr ""
 
-msgid "0 means disabled, 1 means enabled."
+msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -18830,6 +18867,9 @@ msgstr ""
 msgid "Automatically and intelligently assigns filaments to minimize filament time consumption"
 msgstr ""
 
+msgid "Intelligently assigns filaments based on the filaments currently loaded in the printer's nozzles"
+msgstr ""
+
 msgid "Filament-Saving Mode"
 msgstr ""
 
@@ -18862,9 +18902,6 @@ msgid "Global settings"
 msgstr ""
 
 msgid "Video tutorial"
-msgstr ""
-
-msgid "Intelligently assigns filaments based on the filaments currently loaded in the printer's nozzles"
 msgstr ""
 
 msgid "Intelligently assigns filaments based on the filaments currently installed in the printer's AMS"
@@ -19520,6 +19557,708 @@ msgstr ""
 
 msgctxt "FinishSyncAms"
 msgid "OK"
+msgstr ""
+
+msgid "Remark"
+msgstr ""
+
+msgid "Matched filament"
+msgstr ""
+
+msgid "Add as new filament"
+msgstr ""
+
+msgid "AMS detected a new filament. Add it to Filament Manager?"
+msgstr ""
+
+msgid "A similar filament was found in Filament Manager and matched automatically."
+msgstr ""
+
+msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
+msgstr ""
+
+msgid "New Filament"
+msgstr ""
+
+msgid "New filament information has been recorded."
+msgstr ""
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
+"interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+
+msgid "Support interface speed"
+msgstr ""
+
+msgid "The following settings of the current plate will be restored to default:"
+msgstr ""
+
+msgid "Restore these settings of the current plate to default?"
+msgstr ""
+
+msgid "The following settings locked on the current selection will be restored to default:"
+msgstr ""
+
+msgid "Restore these settings of the current selection to default?"
+msgstr ""
+
+msgid "The following settings locked on the objects below will be restored to default:"
+msgstr ""
+
+msgid "Restore these settings to default?"
+msgstr ""
+
+msgid "The following global settings will be restored to default:"
+msgstr ""
+
+msgid "Restore these global settings to default?"
+msgstr ""
+
+msgid "It looks like you are no longer using a support material combination for the support interface. Are you exiting support material usage?"
+msgstr ""
+
+msgid "The same settings applied globally will be restored as well."
+msgstr ""
+
+msgid "Other objects also have these settings locked:"
+msgstr ""
+
+msgid "Affected objects:"
+msgstr ""
+
+msgid "These objects also have these settings locked:"
+msgstr ""
+
+msgid "Restore the current selection only, or all of them?"
+msgstr ""
+
+msgid "Restore all of them to default?"
+msgstr ""
+
+msgid "Performing desktop integration failed - boost::filesystem::canonical did not return appimage path."
+msgstr ""
+
+msgid "Performing desktop integration failed - Could not find executable."
+msgstr ""
+
+msgid "Performing desktop integration failed because the application directory was not found."
+msgstr ""
+
+msgid "Performing desktop integration failed - could not create Gcodeviewer desktop file. BambuStudio desktop file was probably created successfully."
+msgstr ""
+
+msgid "Desktop Integration"
+msgstr ""
+
+msgid ""
+"Desktop Integration sets this binary to be searchable by the system.\n"
+"\n"
+"Press \"Perform\" to proceed."
+msgstr ""
+
+msgid "Color mixing requires at least two filaments of the same type, but only one is available. The following filaments will be added based on the model colors:"
+msgstr ""
+
+msgid "Color mixing requires at least two filaments of the same type. The following filaments will be added based on the model colors:"
+msgstr ""
+
+msgid "New filament"
+msgstr ""
+
+msgid "Note: You can also delete or modify the newly added filaments in the drop-down list of the filament matching dialog."
+msgstr ""
+
+msgid "System Information"
+msgstr ""
+
+msgid "Blacklisted libraries loaded into BambuStudio process:"
+msgstr ""
+
+msgid "SIMD is supported:"
+msgstr ""
+
+msgid "Copy to Clipboard"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Nozzle %d "
+msgstr ""
+
+msgid "Unknown Filament"
+msgstr ""
+
+msgid "Hotend status is abnormal and not available. Click to update firmware."
+msgstr ""
+
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
+msgid "Extruder Settings"
+msgstr ""
+
+msgid "Hotend status is abnormal. Please update the firmware."
+msgstr ""
+
+msgid "Update Firmware"
+msgstr ""
+
+msgid "Nozzle info synced, "
+msgstr ""
+
+msgid "view installation guide →"
+msgstr ""
+
+msgid "Sync Printer Information"
+msgstr ""
+
+msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
+msgstr ""
+
+msgid "Printer model comparison"
+msgstr ""
+
+msgid "Nozzle comparison"
+msgstr ""
+
+msgid "Note: After adapting the settings, some print parameters will be automatically adjusted for the new printer model."
+msgstr ""
+
+msgid "3MF File Settings"
+msgstr ""
+
+msgid "Connected Printer"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "%s (only supported)"
+msgstr ""
+
+msgid "Using a larger nozzle after adapting the settings may reduce fine details in your model. Please proceed with caution."
+msgstr ""
+
+msgid "Don't show this again when opening 3MF files"
+msgstr ""
+
+msgid "Adapt Settings"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Nozzle %d: "
+msgstr ""
+
+msgid "Nozzle Details"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Please input a number greater than or equal to %d"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Please enter a number between %d and %d."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Please enter a float greater than or equal to %f."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Please enter a float between %f and %f."
+msgstr ""
+
+msgid "4 slots AMS"
+msgstr ""
+
+msgid "1 slot AMS"
+msgstr ""
+
+msgid "Remove this AMS"
+msgstr ""
+
+msgid ""
+"Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank.\n"
+"\n"
+"Please install or repair the Microsoft Edge WebView2 Runtime, then restart Bambu Studio."
+msgstr ""
+
+msgid "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank."
+msgstr ""
+
+msgid "Embedded Browser Unavailable"
+msgstr ""
+
+msgid "Unmapped"
+msgstr ""
+
+msgid "The current nozzle diameter is incompatible with the printer"
+msgstr ""
+
+msgid "Lock supports under new islands"
+msgstr ""
+
+msgid "Remove all points"
+msgstr ""
+
+msgid "Apply changes"
+msgstr ""
+
+msgid "Discard changes"
+msgstr ""
+
+msgid "Minimal points distance"
+msgstr ""
+
+msgid "Support points density"
+msgstr ""
+
+msgid "Manual editing"
+msgstr ""
+
+msgid "Clipping of view"
+msgstr ""
+
+msgid "SLA Support Points"
+msgstr ""
+
+msgid "Do you want to save your manually edited support points?"
+msgstr ""
+
+msgid "Save support points?"
+msgstr ""
+
+msgid "Autogeneration will erase all manually edited points."
+msgstr ""
+
+msgid "Are you sure you want to do it?"
+msgstr ""
+
+msgid "SLA gizmo keyboard shortcuts"
+msgstr ""
+
+msgid "Note: some shortcuts work in (non)editing mode only."
+msgstr ""
+
+msgid "Add point"
+msgstr ""
+
+msgid "Remove point"
+msgstr ""
+
+msgid "Move point"
+msgstr ""
+
+msgid "Add point to selection"
+msgstr ""
+
+msgid "Remove point from selection"
+msgstr ""
+
+msgid "Select by rectangle"
+msgstr ""
+
+msgid "Deselect by rectangle"
+msgstr ""
+
+msgid "Select all points"
+msgstr ""
+
+msgid "Move clipping plane"
+msgstr ""
+
+msgid "Reset clipping plane"
+msgstr ""
+
+msgid "Switch to editing mode"
+msgstr ""
+
+msgid "Keep upper part"
+msgstr ""
+
+msgid "Keep lower part"
+msgstr ""
+
+msgid "Rotate lower part upwards"
+msgstr ""
+
+msgid "Entering Measure gizmo"
+msgstr ""
+
+msgid "Leaving Measure gizmo"
+msgstr ""
+
+msgid "Entering Assembly gizmo"
+msgstr ""
+
+msgid "Leaving Assembly gizmo"
+msgstr ""
+
+msgid "Hollow this object"
+msgstr ""
+
+msgid "Preview hollowed and drilled model"
+msgstr ""
+
+msgid "Offset"
+msgstr ""
+
+msgid "Closing distance"
+msgstr ""
+
+msgid "Hole diameter"
+msgstr ""
+
+msgid "Hole depth"
+msgstr ""
+
+msgid "Remove selected holes"
+msgstr ""
+
+msgid "Remove all holes"
+msgstr ""
+
+msgid "Show supports"
+msgstr ""
+
+msgid "Hollow and drill"
+msgstr ""
+
+msgid "Alternate nozzles:"
+msgstr ""
+
+msgid "All standard"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Welcome to the %s Configuration Assistant"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Welcome to the %s Configuration Wizard"
+msgstr ""
+
+msgid "Welcome"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Hello, welcome to %s! This %s helps you with the initial configuration; just a few settings and you will be ready to print."
+msgstr ""
+
+msgid "Remove user profiles (a snapshot will be taken beforehand)"
+msgstr ""
+
+msgid "Perform desktop integration (Sets this binary to be searchable by the system)."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "%s Family"
+msgstr ""
+
+msgid "Printer:"
+msgstr ""
+
+msgid "Vendor:"
+msgstr ""
+
+msgid "Profile:"
+msgstr ""
+
+msgid "(All)"
+msgstr ""
+
+#, possible-boost-format
+msgid "%1% marked with <b>*</b> are <b>not</b> compatible with some installed printers."
+msgstr ""
+
+msgid "SLA materials"
+msgstr ""
+
+#, possible-boost-format
+msgid "All installed printers are compatible with the selected %1%."
+msgstr ""
+
+msgid "filament"
+msgstr ""
+
+msgid "SLA material"
+msgstr ""
+
+msgid "Only the following installed printers are compatible with the selected filaments"
+msgstr ""
+
+msgid "Only the following installed printers are compatible with the selected SLA materials"
+msgstr ""
+
+msgid "Custom Printer Setup"
+msgstr ""
+
+msgid "Custom Printer"
+msgstr ""
+
+msgid "Define a custom printer profile"
+msgstr ""
+
+msgid "Custom profile name:"
+msgstr ""
+
+msgid "Firmware Type"
+msgstr ""
+
+msgid "Firmware"
+msgstr ""
+
+msgid "Choose the type of firmware used by your printer."
+msgstr ""
+
+msgid "Bed Shape and Size"
+msgstr ""
+
+msgid "Set the shape of your printer's bed."
+msgstr ""
+
+msgid "Invalid numeric input."
+msgstr ""
+
+msgid "Filament and Nozzle Diameters"
+msgstr ""
+
+msgid "Print Diameters"
+msgstr ""
+
+msgid "Enter the diameter of your printer's hot end nozzle."
+msgstr ""
+
+msgid "Nozzle Diameter:"
+msgstr ""
+
+msgid "Enter the diameter of your filament."
+msgstr ""
+
+msgid "Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average."
+msgstr ""
+
+msgid "Filament Diameter:"
+msgstr ""
+
+msgid "Nozzle and Bed Temperatures"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Enter the nozzle_temperature needed for extruding your filament."
+msgstr ""
+
+msgid "A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."
+msgstr ""
+
+msgid "Extrusion Temperature:"
+msgstr ""
+
+msgid "Enter the bed temperature needed for getting your filament to stick to your heated bed."
+msgstr ""
+
+msgid "A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have no heated bed."
+msgstr ""
+
+msgid "Bed Temperature:"
+msgstr ""
+
+msgid "SLA Materials"
+msgstr ""
+
+msgid "FFF Technology Printers"
+msgstr ""
+
+msgid "SLA Technology Printers"
+msgstr ""
+
+#, possible-boost-format
+msgid "Following printer profiles has no default filament: %1%Please select one manually."
+msgstr ""
+
+#, possible-boost-format
+msgid "Following printer profiles has no default material: %1%Please select one manually."
+msgstr ""
+
+msgid "The following FFF printer models have no filament selected:"
+msgstr ""
+
+msgid "Do you want to select default filaments for these FFF printer models?"
+msgstr ""
+
+msgid "Configuration is edited in ConfigWizard"
+msgstr ""
+
+msgid "All user presets will be deleted."
+msgstr ""
+
+msgid "A new vendor was installed and one of its printers will be activated"
+msgid_plural "New vendors were installed and one of theirs printers will be activated"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "A new Printer was installed and it will be activated."
+msgstr ""
+
+msgid "Some Printers were uninstalled."
+msgstr ""
+
+msgid "A new filament was installed and it will be activated."
+msgstr ""
+
+msgid "A new SLA material was installed and it will be activated."
+msgstr ""
+
+msgid "Some filaments were uninstalled."
+msgstr ""
+
+msgid "Custom printer was installed and it will be activated."
+msgstr ""
+
+msgid "<Back"
+msgstr ""
+
+msgid "Next>"
+msgstr ""
+
+msgid "Filament Profiles Selection"
+msgstr ""
+
+msgid "Configuration Assistant"
+msgstr ""
+
+msgid "Configuration &Assistant"
+msgstr ""
+
+msgid "Configuration Wizard"
+msgstr ""
+
+msgid "Configuration &Wizard"
+msgstr ""
+
+msgid "Windows Media Player is required for this task! Do you want to enable 'Windows Media Player' for your operation system?"
+msgstr ""
+
+msgid "BambuSource has not correctly been registered for media playing! Press Yes to re-register it."
+msgstr ""
+
+msgid "Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."
+msgstr ""
+
+msgid "Using a BambuSource from a different install, video play may not work correctly! Press Yes to fix it."
+msgstr ""
+
+msgid "Your system is missing H.264 codecs for GStreamer, which are required to play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart Bambu Studio?)"
+msgstr ""
+
+msgid "Model Pictures"
+msgstr ""
+
+msgid "3D Models"
+msgstr ""
+
+msgid "Click to return (Command + Left Arrow)"
+msgstr ""
+
+msgid "Click to continue (Command + Right Arrow)"
+msgstr ""
+
+msgid "Click to return (Alt + Left Arrow)"
+msgstr ""
+
+msgid "Click to continue (Alt + Right Arrow)"
+msgstr ""
+
+msgid "Taking a configuration snapshot failed."
+msgstr ""
+
+msgid "BambuStudio has encountered an error while taking a configuration snapshot."
+msgstr ""
+
+msgid "BambuStudio error"
+msgstr ""
+
+msgid "Support ring generation failed because no printable model projection was found."
+msgstr ""
+
+msgid "Support ring generation failed while adapting tool-change paths."
+msgstr ""
+
+msgid "Generating support ring"
+msgstr ""
+
+#, possible-boost-format
+msgid "Generating support ring: layer %1%"
+msgstr ""
+
+msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+msgstr ""
+
+msgid "Nozzle and Filament Sync"
+msgstr ""
+
+msgid "Mapping"
+msgstr ""
+
+msgid "Direct Override"
+msgstr ""
+
+msgid "After modification, the filament list cannot be restored."
+msgstr ""
+
+msgid "Overwrite the project filaments list with the filaments in the printer."
+msgstr ""
+
+msgid "Match the project filaments with the filaments in the printer according to the matching mode. After syncing, the mapped results will be used."
+msgstr ""
+
+msgid "After overwriting"
+msgstr ""
+
+msgid "After mapping"
+msgstr ""
+
+msgid "Filament matching"
+msgstr ""
+
+msgid "Color first"
+msgstr ""
+
+msgid "Precision first"
+msgstr ""
+
+msgid "Reset all filament mapping"
+msgstr ""
+
+msgid "Add unused filaments to filaments list."
+msgstr ""
+
+msgid "Add unused AMS filaments to filaments list."
+msgstr ""
+
+msgid "Automatically merge the same colors in the model after mapping."
+msgstr ""
+
+msgid "Synchronize now"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]

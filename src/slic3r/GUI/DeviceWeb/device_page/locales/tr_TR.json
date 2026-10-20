@@ -415,5 +415,18 @@
   "This filament is already in an auto-refill group.": "This filament is already in an auto-refill group.",
   "The filament does not match the first selected filament.": "The filament does not match the first selected filament.",
   "Select anyway": "Select anyway",
-  "Please select {{type}} filament for the refill relation.": "Please select {{type}} filament for the refill relation."
+  "Please select {{type}} filament for the refill relation.": "Please select {{type}} filament for the refill relation.",
+  "Auto Refill is turned off": "Auto Refill is turned off",
+  "Failed to send the command to the printer. Please check the printer connection and try again.": "Failed to send the command to the printer. Please check the printer connection and try again.",
+  "The printer did not respond in time. Please try again.": "The printer did not respond in time. Please try again.",
+  "Failed to get valid filament information. Please refresh and try again.": "Failed to get valid filament information. Please refresh and try again.",
+  "The selected filament slot is currently unavailable. Please check the slot status and try again.": "The selected filament slot is currently unavailable. Please check the slot status and try again.",
+  "Auto Refill is turned off. Turn it on and try again.": "Auto Refill is turned off. Turn it on and try again.",
+  "The refill group information is out of date. Please reopen Auto Refill and try again.": "The refill group information is out of date. Please reopen Auto Refill and try again.",
+  "Failed to update the refill group. Please try again.": "Failed to update the refill group. Please try again.",
+  "The operation could not be completed. Please try again.": "The operation could not be completed. Please try again.",
+  "Loading Filament": "loading",
+  "Open Auto Refill": "Open Auto Refill",
+  "Printing will continue with identical filament when available": "Printing will continue with identical filament when available",
+  "Unloading Filament": "unloading"
 }

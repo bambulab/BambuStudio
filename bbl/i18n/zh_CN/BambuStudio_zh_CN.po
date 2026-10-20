@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 18:17+0800\n"
+"POT-Creation-Date: 2026-10-20 20:17+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -218,6 +218,10 @@ msgstr ""
 msgid "PPA-CF does not support AMS feeding. Use an external spool instead."
 msgstr ""
 
+#, c-format, boost-format
+msgid "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
+msgstr ""
+
 msgid "How to feed TPU filament."
 msgstr "TPU进料方式。"
 
@@ -243,8 +247,8 @@ msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 
 #, c-format, boost-format
-msgid "%s filament is brittle. Use AMS feeding with caution."
-msgstr "%s耗材易脆断，使用 AMS 进料时请谨慎。"
+msgid "%s filament is brittle. Use %s feeding with caution."
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing."
@@ -252,9 +256,6 @@ msgstr ""
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "CF/GF耗材丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
-
-msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
-msgstr "夜光耗材可能磨损 AMS 进料口，建议使用外挂料盘打印。"
 
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr "使用默认参数可能影响打印质量。请根据需求调整以获得最佳效果。"
@@ -272,16 +273,34 @@ msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow noz
 msgstr "%s在使用 0.4，0.6，0.8mm 高流量喷嘴时会有堵头风险，请谨慎使用。"
 
 #, c-format, boost-format
-msgid "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue."
-msgstr "%s 可能受耗材变轨器影响导致进退料失败。 若仍要继续使用。"
+msgid "Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s."
+msgstr ""
+
+#, c-format, boost-format
+msgid "PPA-CF filament does not support %s feeding. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s may fail to load or unload due to the Filament Track Switch."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
 msgstr ""
+"受耗材变轨器影响，%s 无法使用。请改用外挂槽位\n"
+"。"
 
 #, c-format, boost-format
 msgid "%s is not supported with a standard %s nozzle."
-msgstr ""
+msgstr "%s 不支持在标准 %s 喷嘴下使用。"
 
 #, c-format, boost-format
 msgid "%s is only supported for printing with the main extruder."
@@ -292,8 +311,8 @@ msgid "%s is used with the auxiliary extruder and carries a higher risk, which m
 msgstr "%s使用辅助挤出机打印时存在较高风险，可能导致打印失败或设备异常。"
 
 #, c-format, boost-format
-msgid "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide."
-msgstr "受耗材变轨器影响，%s可能断裂在料管中。若仍要继续使用，请查看详细使用指南。"
+msgid "Affected by the Filament Track Switch, %s may break inside the filament tube."
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s is used with the auxiliary extruder and may impact print quality."
@@ -332,8 +351,8 @@ msgid "%s used with a standard %s nozzle may lead to difficult extrusion."
 msgstr "%s用于标准%s喷嘴打印，可能导致耗材难以挤出，影响打印质量。"
 
 #, c-format, boost-format
-msgid "Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide."
-msgstr "受耗材变轨器影响，%s可能进退料失败。若仍要继续使用，请查看详细使用指南。"
+msgid "Affected by the Filament Track Switch, %s may fail to load or unload."
+msgstr ""
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
@@ -368,13 +387,13 @@ msgid "There may be print quality issues when printing '%s' with %s extruder. Us
 msgstr "‘%s’ 耗材在%s挤出机打印时，可能会出现打印质量问题。使用时请小心。"
 
 msgid "The total weight must bigger than remain weight."
-msgstr ""
+msgstr "总重量必须大于剩余重量。"
 
 msgid "Please enter a valid remaining weight from 1g to 10000g."
-msgstr ""
+msgstr "请输入 1g 至 10000g 范围内的有效剩余重量。"
 
 msgid "Please enter a valid total weight from 1g to 10000g."
-msgstr ""
+msgstr "请输入有效的总重量，范围为 1g 至 10000g。"
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "工具头和热端架可能会运动，请勿将手伸入机箱。"
@@ -443,7 +462,7 @@ msgid "Update failed."
 msgstr "更新失败。"
 
 msgid "Hotend & Filament"
-msgstr ""
+msgstr "热端&耗材"
 
 msgid "Lift Hotend Rack"
 msgstr "升起热端挂架"
@@ -673,7 +692,7 @@ msgid "Add material group"
 msgstr "添加耗材组"
 
 msgid "AMS Bridge Debug"
-msgstr ""
+msgstr "AMS 桥接调试"
 
 msgid "Idling..."
 msgstr "空闲中"
@@ -972,11 +991,11 @@ msgstr "未选择设备"
 
 #, boost-format
 msgid "Slot %1% filament loading in progress"
-msgstr ""
+msgstr "槽位 %1% 耗材进料中"
 
 #, boost-format
 msgid "Slot %1% filament unloading in progress"
-msgstr ""
+msgstr "槽位 %1% 耗材退料中"
 
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
@@ -1474,7 +1493,7 @@ msgstr "因切割产生了开放边，您是否想现在修复？"
 
 #, c-format, boost-format
 msgid "Repair object: %s"
-msgstr ""
+msgstr "修复对象：%s"
 
 msgid "Repairing model object"
 msgstr "修复模型对象"
@@ -1709,7 +1728,7 @@ msgid "Operation already cancelling. Please wait few seconds."
 msgstr "操作已在取消中，请等待片刻。"
 
 msgid "Transferring painting to the simplified mesh..."
-msgstr ""
+msgstr "正在将涂色转移到简化网格…"
 
 msgid "Face recognition"
 msgstr "外观面检测"
@@ -3248,7 +3267,7 @@ msgstr "已启用混色子层，同时使用可变层高可能会影响打印质
 
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
-msgstr ""
+msgstr "网格布尔运算最多支持 %1% 个部件，但所选对象包含 %2% 个部件。请减少部件数量后重试。"
 
 msgid "Cut Connectors information"
 msgstr "切割连接件信息"
@@ -4381,8 +4400,8 @@ msgid "New Mixed Filaments"
 msgstr "新增混色耗材"
 
 #, boost-format
-msgid "The project supports up to %1% filaments."
-msgstr "项目至多支持 %1% 个耗材。"
+msgid "The project supports up to %1% physical filaments."
+msgstr ""
 
 msgid "Updating"
 msgstr "更新中"
@@ -6551,8 +6570,8 @@ msgstr "开启直播"
 msgid "Live Camera Recording"
 msgstr "实时摄像头录像"
 
-msgid "Visual Enhancement Camera Recording"
-msgstr "视觉增强摄像头录像"
+msgid "BirdsEye Camera Recording"
+msgstr ""
 
 msgid "Liveview Retry"
 msgstr "实时预览重试"
@@ -7258,8 +7277,8 @@ msgstr "信息"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "直播功能依赖 Bambu Studio 运行，关闭软件后直播将在一段时间后结束。"
 
-msgid "Not live"
-msgstr "非实时画面"
+msgid "Non-live image."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Captured at %s"
@@ -7629,6 +7648,16 @@ msgstr "完成"
 msgid "Almost complete"
 msgstr "即将完成"
 
+#, c++-format
+msgid "For users under the age of majority, some services will be restricted. See our {0} for Bambu Lab Account. To understand our privacy practices, see {1}."
+msgstr ""
+
+msgid "Age Requirements"
+msgstr ""
+
+msgid "Privacy Notice"
+msgstr ""
+
 msgid "Camera"
 msgstr "摄像机"
 
@@ -7662,20 +7691,17 @@ msgstr "热床"
 msgid "Filament loading..."
 msgstr "换料中..."
 
-msgid "Live Camera Recording in progress"
-msgstr "实况摄像头录像中"
+msgid "Live Camera recording"
+msgstr ""
 
-msgid "Visual Enhancement Camera Recording in progress"
-msgstr "俯视摄像头录像中"
+msgid "BirdsEye Camera recording"
+msgstr ""
 
-msgid "Recording in progress"
-msgstr "实况摄像头录像中"
+msgid "Timelapse recording"
+msgstr ""
 
-msgid "Timelapse in progress"
-msgstr "延时摄影中"
-
-msgid "Go Live in progress"
-msgstr "直播中"
+msgid "Go Live streaming"
+msgstr ""
 
 msgid "Cancel print"
 msgstr "取消打印"
@@ -7882,8 +7908,8 @@ msgid ""
 "to give a positive rating(4 or 5stars)."
 msgstr "至少需要一个成功的打印记录，才能给出积极的评价（4星或5星）。"
 
-msgid "This device is performing the following operations"
-msgstr "本设备正在进行以下操作"
+msgid "Active operations"
+msgstr ""
 
 msgid "Live"
 msgstr "实时播放中"
@@ -8022,8 +8048,14 @@ msgstr "如何使用仅局域网模式"
 msgid "Don't show this dialog again"
 msgstr "不再显示此对话框？"
 
-msgid "Please refer to Wiki before use->"
-msgstr "请在使用前查看wiki。"
+msgid "If you wish to continue, "
+msgstr ""
+
+msgid "please refer to the Wiki guide"
+msgstr ""
+
+msgid " before continuing."
+msgstr ""
 
 msgid "3D Mouse disconnected."
 msgstr "3D鼠标断连。"
@@ -8198,13 +8230,13 @@ msgid "Bottom"
 msgstr "底部"
 
 msgid "Read-only, automatically calculated from the base initial layer height"
-msgstr ""
+msgstr "只读，根据基础首层高度自动计算"
 
 msgid "Read-only, automatically calculated from the base layer height"
-msgstr ""
+msgstr "只读，根据基础层高自动计算。"
 
 msgid "Read-only, automatically calculated from the base value"
-msgstr ""
+msgstr "只读，根据基础值自动计算"
 
 msgid "nozzle"
 msgstr "nozzle"
@@ -8944,9 +8976,6 @@ msgstr "表面被划成若干单元，每个单元整体偏移，形成拼贴式
 msgid "View details on Wiki"
 msgstr "详细信息查看Wiki"
 
-msgid "Collapse panel"
-msgstr ""
-
 msgid "Global"
 msgstr "全局"
 
@@ -8967,9 +8996,6 @@ msgstr "耗材丝设置"
 
 msgid "Printer settings"
 msgstr "打印机设置"
-
-msgid "Expand panel"
-msgstr ""
 
 msgid "At least one plate is required"
 msgstr "至少需要一盘"
@@ -9116,6 +9142,12 @@ msgid ""
 "Curve planning enhancement support detected on your printer. The software has automatically disabled arc fitting to ensure this feature functions correctly."
 msgstr "检测到您的打印机支持曲线规划增强功能，软件已为您自动关闭切片圆弧拟合，以确保该功能正常生效。"
 
+msgid "Collapse panel"
+msgstr "折叠面板"
+
+msgid "Expand panel"
+msgstr "展开面板"
+
 msgid "Click to edit preset"
 msgstr "点击编辑配置"
 
@@ -9177,7 +9209,7 @@ msgid "This filament does not support printing with the current nozzle"
 msgstr "该耗材不支持使用当前喷嘴打印"
 
 msgid "The current nozzle settings have no nozzle of this type"
-msgstr ""
+msgstr "当前喷嘴设置中没有该喷嘴类型"
 
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
@@ -9189,26 +9221,26 @@ msgstr "，和其他 %d"
 
 #, c-format, boost-format
 msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
-msgstr ""
+msgstr "您正在删除的耗材正被模型“%s”使用。删除后，模型的耗材将被重置为剩余的第一个耗材。"
 
 msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
-msgstr ""
+msgstr "提示：如果您想将其替换为其他耗材，请右键单击该耗材，然后使用“组合到”。"
 
 msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
-msgstr ""
+msgstr "此耗材丝也被以下混合耗材使用，删除后将无法使用："
 
 msgid "The filament you are deleting is used by the following mixed filaments, which will become unusable after deletion:"
-msgstr ""
+msgstr "您正在删除的耗材被以下混合耗材使用，删除后这些混合耗材将无法使用："
 
 #, c-format, boost-format
 msgid "Mixed filament %d"
-msgstr ""
+msgstr "混色耗材 %d"
 
 msgid "Delete Filament"
 msgstr "删除材料"
 
 msgid "Continue deleting"
-msgstr ""
+msgstr "继续删除"
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "该物理耗材已被混色耗材引用。合并后该物理耗材将被移除，可能导致相关混色耗材失效。是否继续？"
@@ -9247,6 +9279,10 @@ msgstr "无法混合不同类型的耗材"
 
 msgid "Cannot mix filaments using different nozzle diameters"
 msgstr "无法混合使用不同喷嘴直径的耗材"
+
+#, c-format, boost-format
+msgid "Up to %d mixed filaments can be created"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
@@ -10170,6 +10206,9 @@ msgstr "不可用"
 msgid "Top front"
 msgstr "前上方"
 
+msgid "For users under the age of majority, some services will be restricted. This is managed by your parent or guardian in Family Hub."
+msgstr ""
+
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "当前项目有未保存的更改，是否保存后再继续？"
 
@@ -11084,14 +11123,14 @@ msgstr "生成G代码时选择的打印机类型与当前选择的打印机不�
 msgid "There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing."
 msgstr "AMS映射中存在一些未知的耗材。请检查它们是否符合预期。如果符合，按“确定”以开始打印任务。"
 
+msgid "Pre-print check"
+msgstr ""
+
 msgid "Please check the following:"
 msgstr "请检查以下内容："
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "请修复上述错误，否则打印无法继续。"
-
-msgid "Please click the \"Continue printing\"  button if you still want to proceed with printing."
-msgstr "如果您仍然想继续打印，请单击“确定”按钮。"
 
 msgid "Continue printing"
 msgstr "继续打印"
@@ -13443,7 +13482,7 @@ msgid "Repaired 3mf file contains more than one instance"
 msgstr "已修复的 3mf 文件包含多个实例"
 
 msgid "Repairing"
-msgstr ""
+msgstr "修复中"
 
 msgid "Repair finished"
 msgstr "修复已完成"
@@ -13561,19 +13600,19 @@ msgid "No valid nozzle found. Please check nozzle count."
 msgstr "未找到有效的喷嘴。请检查喷嘴数量。"
 
 msgid "Filament assigned to a nozzle of incompatible diameter. Please regroup so each filament stays on a nozzle whose diameter it supports."
-msgstr ""
+msgstr "耗材被分配到了直径不兼容的喷嘴上。请重新分组，确保每种耗材都分配到其支持直径的喷嘴上。"
 
 msgid "Nozzle assignment error: no compatible fixed nozzle is available for the fixed filament group. Please check the nozzle setup or regroup."
 msgstr "喷嘴分配错误：固定耗材组没有可用的兼容固定喷嘴。请检查喷嘴设置或重新分组。"
 
 msgid "Nozzle assignment error: no nozzle matches the diameter and flow selected for one of the filaments. Please check the nozzle setup."
-msgstr ""
+msgstr "喷嘴分配错误：没有与某个耗材所选直径和流量匹配的喷嘴。请检查喷嘴设置。"
 
 msgid "Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."
 msgstr "喷嘴分配错误：按耗材的喷嘴映射无效。请检查喷嘴设置或重新分组。"
 
 msgid "Nozzle assignment error: per-filament nozzle map points to an empty or unavailable nozzle."
-msgstr ""
+msgstr "喷嘴分配错误：耗材的喷嘴映射指向一个未安装或不可用的喷嘴。"
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "自定义模式分组错误。请检查喷嘴数量或重新分组。"
@@ -13784,7 +13823,7 @@ msgid "Printing with different nozzle diameters and support ring is experimental
 msgstr "使用不同喷嘴直径并搭配支撑环进行打印是实验性功能。如果喷嘴尺寸不匹配，支撑环可能无法正常工作。"
 
 msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr ""
+msgstr "使用不同喷嘴直径并启用擦料塔属于实验性功能。喷嘴尺寸不匹配时，擦料塔可能无法正常工作。"
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr "启用支撑环时不允许使用不同的喷嘴直径。"
@@ -15027,9 +15066,9 @@ msgid "The volume of material required to prime the extruder for a hotend change
 msgstr "换热端所需的擦料塔上的清理量。"
 
 msgid "Pre-heating when extruder change"
-msgstr ""
+msgstr "切换喷嘴前预热"
 
-msgid "0 means disabled, 1 means enabled."
+msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -16821,7 +16860,7 @@ msgid "Support ring angle"
 msgstr "支撑环角度"
 
 msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider. A set angle keeps one piece, from 200° to 300°. -1 means auto: the angle is worked out from the purge of each filament change, so the purge is laid a few rings thick. When that comes out below 200°, the ring is split into two facing pieces with a second opening on the side away from the camera."
-msgstr ""
+msgstr "支撑环围绕物体的角度，从环中心测量。其余部分保持开放，开口朝向机箱摄像头，以便其能看到物体。结构的每个环都沿相同方向打开，树状支撑可确保分支不进入开口。角度越小，每个环的擦拭长度越短，因此环会变得更宽。设定的角度可保持一个整体，范围在200°到300°之间。-1表示自动：角度根据每次耗材更换的清理量计算，使清理料铺设成数环厚度。当计算出的角度低于200°时，环将被分成两个相对的部分，并在远离摄像头的一侧形成第二个开口。"
 
 msgid "Support ring skip points"
 msgstr "支撑环跳过点"
@@ -17163,7 +17202,7 @@ msgid "Width of the wall that will replace thin features (according to the Minim
 msgstr "用于替换模型细小特征（根据最小特征尺寸）的墙线宽。如果墙最小线宽小于最小特征的厚度，则墙将变得和特征本身一样厚。参数值表示为相对喷嘴直径的百分比"
 
 msgid "Filament switch retraction length"
-msgstr ""
+msgstr "切换耗材回抽长度"
 
 msgid "Override overhang speed"
 msgstr "覆盖工艺悬垂速度"
@@ -19266,6 +19305,9 @@ msgstr "设置耗材放置"
 msgid "Automatically and intelligently assigns filaments to minimize filament time consumption"
 msgstr "自动计算智能分配材料，使耗材耗时最少"
 
+msgid "Intelligently assigns filaments based on the filaments currently loaded in the printer's nozzles"
+msgstr "根据打印机喷嘴上当前装载的耗材，智能分配耗材"
+
 msgid "Filament-Saving Mode"
 msgstr "省料模式"
 
@@ -19300,9 +19342,6 @@ msgstr "全局设置"
 msgid "Video tutorial"
 msgstr "视频指南"
 
-msgid "Intelligently assigns filaments based on the filaments currently loaded in the printer's nozzles"
-msgstr "根据打印机喷嘴上当前装载的耗材，智能分配耗材"
-
 msgid "Intelligently assigns filaments based on the filaments currently installed in the printer's AMS"
 msgstr "根据打印机AMS中当前安装的耗材，智能分配耗材"
 
@@ -19317,7 +19356,7 @@ msgid "Nozzle %s"
 msgstr "%s号喷嘴"
 
 msgid "Error: a filament is assigned to a nozzle of incompatible diameter. Please regroup so each filament stays on a nozzle whose diameter it supports."
-msgstr ""
+msgstr "错误：有耗材被分配到了直径不兼容的喷嘴上。请重新分组，确保每种耗材都分配到其支持直径的喷嘴上。"
 
 #, c-format, boost-format
 msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
@@ -19350,7 +19389,7 @@ msgid "Error: The nozzle type is not supported, so the filament cannot be moved.
 msgstr "错误: 喷嘴类型不支持，无法移动。"
 
 msgid "Error: the nozzle configuration changed. Please reopen the filament grouping dialog."
-msgstr ""
+msgstr "错误：喷嘴配置已变更，请重新打开耗材分组对话框。"
 
 #, c-format, boost-format
 msgid "Nozzle (%d) - %s"
@@ -19475,13 +19514,13 @@ msgid "Please confirm whether the required nozzle diameter and flow rate match t
 msgstr "请核对喷嘴直径和流量是否与显示值一致。"
 
 msgid "No usable nozzle is detected on your printer."
-msgstr ""
+msgstr "您的打印机未检测到可用喷嘴。"
 
 msgid "Your printer has nozzles of different diameters installed."
-msgstr ""
+msgstr "您的打印机安装了不同直径的喷嘴。"
 
 msgid "All nozzles installed on your printer have the same diameter."
-msgstr ""
+msgstr "您的打印机上安装的所有喷嘴直径相同。"
 
 msgid "Purge Mode Settings"
 msgstr "冲刷模式"
@@ -19502,18 +19541,20 @@ msgid "Learn more about prime mode"
 msgstr "了解更多冲刷模式信息"
 
 msgid "TPU Usage Notes"
-msgstr ""
+msgstr "TPU 使用说明"
 
 msgid "Important Notice:"
-msgstr ""
+msgstr "重要提示："
 
 msgid ""
 "• Using TPU filament for the first time? Read the official guide first to avoid clogs or feeding failures.\n"
 "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
 msgstr ""
+"• 首次使用 TPU 耗材丝？请先阅读官方指南，以免堵塞或进料失败。\n"
+"• 若使用 2.85 mm TPU，请确认已安装 TPU285 喷嘴，并已同步设备信息。"
 
 msgid "View User Guide"
-msgstr ""
+msgstr "查看用户指南"
 
 msgid "AMS Dryness Control"
 msgstr "AMS烘干"
@@ -19540,7 +19581,7 @@ msgid "The AMS can rotate the filament which is properly stored, providing bette
 msgstr "AMS会自动旋转耗材收起的槽位，会有更好的烘干效果。"
 
 msgid "Rotate spool when drying"
-msgstr ""
+msgstr "烘干时旋转料盘"
 
 msgctxt "amsdrying"
 msgid "Back"
@@ -19630,7 +19671,7 @@ msgid "Unknown filaments will be treated as PLA."
 msgstr "*未知的耗材会被当作PLA处理。"
 
 msgid "For better drying results, remove the filament."
-msgstr ""
+msgstr "拔出耗材烘干会有更好的效果。"
 
 msgid "Please store the filament marked with an exclamation mark."
 msgstr "请收起带感叹号的耗材。"
@@ -19784,7 +19825,7 @@ msgid "Effect Preview"
 msgstr "效果预览"
 
 msgid "Target"
-msgstr ""
+msgstr "目标色"
 
 msgid "Matched"
 msgstr "匹配"
@@ -19922,10 +19963,10 @@ msgid "Please set a %smm diameter nozzle for the printer in the section below fi
 msgstr "请先在下方为打印机设置 %smm 直径喷嘴，然后再使用该直径进行切片。"
 
 msgid "No nozzle is installed in this slot."
-msgstr ""
+msgstr "此插槽中未安装喷嘴。"
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
-msgstr ""
+msgstr "喷嘴直径不匹配。此喷嘴无法使用。"
 
 msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
 msgstr "该挤出机的喷嘴直径与当前所选打印直径不同。混合喷嘴直径打印仍为实验性功能。"
@@ -19934,7 +19975,7 @@ msgid "Nozzle Settings"
 msgstr "喷嘴设置"
 
 msgid "Set your printer's nozzle installation status"
-msgstr ""
+msgstr "设置打印机喷嘴状态"
 
 #, c-format, boost-format
 msgid "The %s nozzle is in use by project filaments. Changing it will move them to 0.4 Standard. Change it anyway?"
@@ -19950,7 +19991,7 @@ msgid "The filament in this slot cannot print with this nozzle"
 msgstr ""
 
 msgid "Successfully synchronized Printer information."
-msgstr ""
+msgstr "打印机信息同步成功。"
 
 msgid "Continue to sync filaments"
 msgstr ""
@@ -19960,11 +20001,717 @@ msgid "Cancel"
 msgstr ""
 
 msgid "Successfully synchronized color and type of filament from printer."
-msgstr ""
+msgstr "成功从打印机同步耗材颜色和类型。"
 
 msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr ""
+
+msgid "Remark"
+msgstr ""
+
+msgid "Matched filament"
+msgstr ""
+
+msgid "Add as new filament"
+msgstr ""
+
+msgid "AMS detected a new filament. Add it to Filament Manager?"
+msgstr ""
+
+msgid "A similar filament was found in Filament Manager and matched automatically."
+msgstr ""
+
+msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
+msgstr ""
+
+msgid "New Filament"
+msgstr ""
+
+msgid "New filament information has been recorded."
+msgstr ""
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
+"interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+"当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
+"0 顶部 Z 距离，0 接触面间距，0 支撑/模型 XY 距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
+
+msgid "Support interface speed"
+msgstr "支撑面速度"
+
+msgid "The following settings of the current plate will be restored to default:"
+msgstr "当前盘的以下设置将恢复为默认值："
+
+msgid "Restore these settings of the current plate to default?"
+msgstr "是否将当前盘的这些设置恢复为默认值？"
+
+msgid "The following settings locked on the current selection will be restored to default:"
+msgstr "当前选中对象的已锁定设置将恢复为默认值："
+
+msgid "Restore these settings of the current selection to default?"
+msgstr "是否将当前选中物体的这些设置恢复为默认值？"
+
+msgid "The following settings locked on the objects below will be restored to default:"
+msgstr "以下对象的已锁定设置将恢复为默认值："
+
+msgid "Restore these settings to default?"
+msgstr "是否将这些设置恢复为默认值？"
+
+msgid "The following global settings will be restored to default:"
+msgstr "以下全局设置将恢复为默认值："
+
+msgid "Restore these global settings to default?"
+msgstr "是否将这些全局设置恢复为默认值？"
+
+msgid "It looks like you are no longer using a support material combination for the support interface. Are you exiting support material usage?"
+msgstr "看起来您已不再为支撑接触面使用支撑材料组合。是否要退出支撑材料的使用？"
+
+msgid "The same settings applied globally will be restored as well."
+msgstr "相同的全局设置也将恢复。"
+
+msgid "Other objects also have these settings locked:"
+msgstr "其他对象也锁定了这些设置："
+
+msgid "Affected objects:"
+msgstr "受影响的对象:"
+
+msgid "These objects also have these settings locked:"
+msgstr "这些对象也锁定了这些设置："
+
+msgid "Restore the current selection only, or all of them?"
+msgstr "仅恢复当前选中对象，还是全部对象？"
+
+msgid "Restore all of them to default?"
+msgstr "全部恢复默认设置吗？"
+
+msgid "Performing desktop integration failed - boost::filesystem::canonical did not return appimage path."
+msgstr "执行桌面集成失败 - boost::filesystem::canonical 未返回 AppImage 路径。"
+
+msgid "Performing desktop integration failed - Could not find executable."
+msgstr "执行桌面集成失败 - 找不到可执行文件。"
+
+msgid "Performing desktop integration failed because the application directory was not found."
+msgstr "执行桌面集成失败，因为未找到应用程序目录。"
+
+msgid "Performing desktop integration failed - could not create Gcodeviewer desktop file. BambuStudio desktop file was probably created successfully."
+msgstr "执行桌面集成失败 - 无法创建 Gcodeviewer 桌面文件。BambuStudio 桌面文件可能已成功创建。"
+
+msgid "Desktop Integration"
+msgstr "桌面集成"
+
+msgid ""
+"Desktop Integration sets this binary to be searchable by the system.\n"
+"\n"
+"Press \"Perform\" to proceed."
+msgstr ""
+"桌面集成使系统可搜索此程序。\n"
+"\n"
+"按“执行”继续。"
+
+msgid "Color mixing requires at least two filaments of the same type, but only one is available. The following filaments will be added based on the model colors:"
+msgstr ""
+
+msgid "Color mixing requires at least two filaments of the same type. The following filaments will be added based on the model colors:"
+msgstr ""
+
+msgid "New filament"
+msgstr ""
+
+msgid "Note: You can also delete or modify the newly added filaments in the drop-down list of the filament matching dialog."
+msgstr ""
+
+msgid "System Information"
+msgstr "系统信息"
+
+msgid "Blacklisted libraries loaded into BambuStudio process:"
+msgstr "以下被列入黑名单的库已加载到 BambuStudio 进程："
+
+msgid "SIMD is supported:"
+msgstr "支持 SIMD："
+
+msgid "Copy to Clipboard"
+msgstr "复制到剪贴板"
+
+#, c-format, boost-format
+msgid "Nozzle %d "
+msgstr "喷嘴%d "
+
+msgid "Unknown Filament"
+msgstr "未知耗材"
+
+msgid "Hotend status is abnormal and not available. Click to update firmware."
+msgstr "热端状态异常，无法使用。点击更新固件。"
+
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr "热端信息未知。请在使用前刷新喷嘴信息。"
+
+msgid "Extruder Settings"
+msgstr "喷嘴设置"
+
+msgid "Hotend status is abnormal. Please update the firmware."
+msgstr ""
+
+msgid "Update Firmware"
+msgstr "更新固件"
+
+msgid "Nozzle info synced, "
+msgstr "喷嘴信息已同步,"
+
+msgid "view installation guide →"
+msgstr "查看安装指南 →"
+
+msgid "Sync Printer Information"
+msgstr ""
+
+msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
+msgstr ""
+
+msgid "Printer model comparison"
+msgstr ""
+
+msgid "Nozzle comparison"
+msgstr ""
+
+msgid "Note: After adapting the settings, some print parameters will be automatically adjusted for the new printer model."
+msgstr ""
+
+msgid "3MF File Settings"
+msgstr ""
+
+msgid "Connected Printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s (only supported)"
+msgstr ""
+
+msgid "Using a larger nozzle after adapting the settings may reduce fine details in your model. Please proceed with caution."
+msgstr ""
+
+msgid "Don't show this again when opening 3MF files"
+msgstr ""
+
+msgid "Adapt Settings"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Nozzle %d: "
+msgstr "喷嘴%d："
+
+msgid "Nozzle Details"
+msgstr "喷嘴详情"
+
+#, c-format, boost-format
+msgid "Please input a number greater than or equal to %d"
+msgstr "请输入大于或等于 %d 的数字"
+
+#, c-format, boost-format
+msgid "Please enter a number between %d and %d."
+msgstr "请输入介于 %d 和 %d 之间的数字。"
+
+#, c-format, boost-format
+msgid "Please enter a float greater than or equal to %f."
+msgstr "请输入大于或等于 %f 的浮点数。"
+
+#, c-format, boost-format
+msgid "Please enter a float between %f and %f."
+msgstr "请输入介于 %f 和 %f 之间的浮点数。"
+
+msgid "4 slots AMS"
+msgstr ""
+
+msgid "1 slot AMS"
+msgstr "单槽AMS"
+
+msgid "Remove this AMS"
+msgstr "移除此AMS"
+
+msgid ""
+"Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank.\n"
+"\n"
+"Please install or repair the Microsoft Edge WebView2 Runtime, then restart Bambu Studio."
+msgstr ""
+
+msgid "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank."
+msgstr ""
+
+msgid "Embedded Browser Unavailable"
+msgstr ""
+
+msgid "Unmapped"
+msgstr "未匹配"
+
+msgid "The current nozzle diameter is incompatible with the printer"
+msgstr "当前喷嘴直径与打印机不兼容。"
+
+msgid "Lock supports under new islands"
+msgstr "锁定新孤岛下方的支撑"
+
+msgid "Remove all points"
+msgstr "移除所有点"
+
+msgid "Apply changes"
+msgstr "应用更改"
+
+msgid "Discard changes"
+msgstr "放弃修改"
+
+msgid "Minimal points distance"
+msgstr "最小点间距"
+
+msgid "Support points density"
+msgstr "支撑点密度"
+
+msgid "Manual editing"
+msgstr "手动编辑"
+
+msgid "Clipping of view"
+msgstr "视图裁剪"
+
+msgid "SLA Support Points"
+msgstr "SLA 支撑点"
+
+msgid "Do you want to save your manually edited support points?"
+msgstr "是否要保存您手动编辑的支撑点？"
+
+msgid "Save support points?"
+msgstr "保存支撑点？"
+
+msgid "Autogeneration will erase all manually edited points."
+msgstr "自动生成将清除所有手动编辑的点。"
+
+msgid "Are you sure you want to do it?"
+msgstr "确定要执行此操作吗？"
+
+msgid "SLA gizmo keyboard shortcuts"
+msgstr "SLA Gizmo 键盘快捷键"
+
+msgid "Note: some shortcuts work in (non)editing mode only."
+msgstr "注意：部分快捷键仅在编辑模式或非编辑模式下可用。"
+
+msgid "Add point"
+msgstr "添加点"
+
+msgid "Remove point"
+msgstr "移除点"
+
+msgid "Move point"
+msgstr "移动点"
+
+msgid "Add point to selection"
+msgstr "将点加入选择"
+
+msgid "Remove point from selection"
+msgstr "从选择中移除点"
+
+msgid "Select by rectangle"
+msgstr "矩形框选"
+
+msgid "Deselect by rectangle"
+msgstr "矩形框取消选择"
+
+msgid "Select all points"
+msgstr "选择所有点"
+
+msgid "Move clipping plane"
+msgstr "移动裁剪平面"
+
+msgid "Reset clipping plane"
+msgstr "重置裁剪平面"
+
+msgid "Switch to editing mode"
+msgstr "切换到编辑模式"
+
+msgid "Keep upper part"
+msgstr "保留上部"
+
+msgid "Keep lower part"
+msgstr "保留下部"
+
+msgid "Rotate lower part upwards"
+msgstr "将下部旋转朝上"
+
+msgid "Entering Measure gizmo"
+msgstr "进入测量 Gizmo"
+
+msgid "Leaving Measure gizmo"
+msgstr "离开测量 Gizmo"
+
+msgid "Entering Assembly gizmo"
+msgstr "进入装配 Gizmo"
+
+msgid "Leaving Assembly gizmo"
+msgstr "离开装配 Gizmo"
+
+msgid "Hollow this object"
+msgstr "对此对象抽壳"
+
+msgid "Preview hollowed and drilled model"
+msgstr "预览抽壳并钻孔后的模型"
+
+msgid "Offset"
+msgstr "偏移"
+
+msgid "Closing distance"
+msgstr "闭合距离"
+
+msgid "Hole diameter"
+msgstr "孔径"
+
+msgid "Hole depth"
+msgstr "孔深"
+
+msgid "Remove selected holes"
+msgstr "移除选中的孔"
+
+msgid "Remove all holes"
+msgstr "移除所有孔"
+
+msgid "Show supports"
+msgstr "显示支撑"
+
+msgid "Hollow and drill"
+msgstr "抽壳并钻孔"
+
+msgid "Alternate nozzles:"
+msgstr "备用喷嘴："
+
+msgid "All standard"
+msgstr "全部标准"
+
+#, c-format, boost-format
+msgid "Welcome to the %s Configuration Assistant"
+msgstr "欢迎使用 %s 配置助手"
+
+#, c-format, boost-format
+msgid "Welcome to the %s Configuration Wizard"
+msgstr "欢迎使用 %s 配置向导"
+
+msgid "Welcome"
+msgstr "欢迎"
+
+#, c-format, boost-format
+msgid "Hello, welcome to %s! This %s helps you with the initial configuration; just a few settings and you will be ready to print."
+msgstr "您好，欢迎使用 %s！此%s将帮助您完成初始配置；只需少量设置即可开始打印。"
+
+msgid "Remove user profiles (a snapshot will be taken beforehand)"
+msgstr "移除用户配置文件（事先将创建快照）"
+
+msgid "Perform desktop integration (Sets this binary to be searchable by the system)."
+msgstr "执行桌面集成（使系统可搜索此程序）。"
+
+#, c-format, boost-format
+msgid "%s Family"
+msgstr "%s 系列"
+
+msgid "Printer:"
+msgstr "打印机："
+
+msgid "Vendor:"
+msgstr "供应商："
+
+msgid "Profile:"
+msgstr "配置文件："
+
+msgid "(All)"
+msgstr "（全部）"
+
+#, boost-format
+msgid "%1% marked with <b>*</b> are <b>not</b> compatible with some installed printers."
+msgstr "标有 <b>*</b> 的 %1% 与部分已安装的打印机 <b>不</b> 兼容。"
+
+msgid "SLA materials"
+msgstr "SLA 材料"
+
+#, boost-format
+msgid "All installed printers are compatible with the selected %1%."
+msgstr "所有已安装的打印机均与所选 %1% 兼容。"
+
+msgid "filament"
+msgstr "耗材丝"
+
+msgid "SLA material"
+msgstr "SLA 材料"
+
+msgid "Only the following installed printers are compatible with the selected filaments"
+msgstr "仅以下已安装的打印机与所选耗材丝兼容"
+
+msgid "Only the following installed printers are compatible with the selected SLA materials"
+msgstr "仅以下已安装的打印机与所选 SLA 材料兼容"
+
+msgid "Custom Printer Setup"
+msgstr "自定义打印机设置"
+
+msgid "Custom Printer"
+msgstr "自定义打印机"
+
+msgid "Define a custom printer profile"
+msgstr "定义自定义打印机配置文件"
+
+msgid "Custom profile name:"
+msgstr "自定义配置文件名称："
+
+msgid "Firmware Type"
+msgstr "固件类型"
+
+msgid "Firmware"
+msgstr "固件"
+
+msgid "Choose the type of firmware used by your printer."
+msgstr "选择打印机所使用的固件类型。"
+
+msgid "Bed Shape and Size"
+msgstr "热床形状与尺寸"
+
+msgid "Set the shape of your printer's bed."
+msgstr "设置打印机热床的形状。"
+
+msgid "Invalid numeric input."
+msgstr "无效的数值输入。"
+
+msgid "Filament and Nozzle Diameters"
+msgstr "耗材丝与喷嘴直径"
+
+msgid "Print Diameters"
+msgstr "打印直径"
+
+msgid "Enter the diameter of your printer's hot end nozzle."
+msgstr "输入打印机热端喷嘴的直径。"
+
+msgid "Nozzle Diameter:"
+msgstr "喷嘴直径："
+
+msgid "Enter the diameter of your filament."
+msgstr "输入耗材丝的直径。"
+
+msgid "Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average."
+msgstr "需要较高精度，请使用卡尺沿耗材丝多点测量，再计算平均值。"
+
+msgid "Filament Diameter:"
+msgstr "耗材丝直径："
+
+msgid "Nozzle and Bed Temperatures"
+msgstr "喷嘴与热床温度"
+
+msgid "Temperatures"
+msgstr "温度"
+
+msgid "Enter the nozzle_temperature needed for extruding your filament."
+msgstr "输入挤出耗材丝所需的喷嘴温度。"
+
+msgid "A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."
+msgstr "经验参考：PLA 约 160–230 °C，ABS 约 215–250 °C。"
+
+msgid "Extrusion Temperature:"
+msgstr "挤出温度："
+
+msgid "Enter the bed temperature needed for getting your filament to stick to your heated bed."
+msgstr "输入使耗材丝粘附到加热热床所需的热床温度。"
+
+msgid "A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have no heated bed."
+msgstr "经验参考：PLA 约 60 °C，ABS 约 110 °C。若无加热热床请填 0。"
+
+msgid "Bed Temperature:"
+msgstr "热床温度："
+
+msgid "SLA Materials"
+msgstr "SLA 材料"
+
+msgid "FFF Technology Printers"
+msgstr "FFF 技术打印机"
+
+msgid "SLA Technology Printers"
+msgstr "SLA 技术打印机"
+
+#, boost-format
+msgid "Following printer profiles has no default filament: %1%Please select one manually."
+msgstr "以下打印机配置文件没有默认耗材丝：%1%请手动选择。"
+
+#, boost-format
+msgid "Following printer profiles has no default material: %1%Please select one manually."
+msgstr "以下打印机配置文件没有默认材料：%1%请手动选择。"
+
+msgid "The following FFF printer models have no filament selected:"
+msgstr "以下 FFF 打印机型号尚未选择耗材丝："
+
+msgid "Do you want to select default filaments for these FFF printer models?"
+msgstr "是否要为这些 FFF 打印机型号选择默认耗材丝？"
+
+msgid "Configuration is edited in ConfigWizard"
+msgstr "配置已在配置向导中编辑"
+
+msgid "All user presets will be deleted."
+msgstr "所有用户预设将被删除。"
+
+msgid "A new vendor was installed and one of its printers will be activated"
+msgid_plural "New vendors were installed and one of theirs printers will be activated"
+msgstr[0] ""
+
+msgid "A new Printer was installed and it will be activated."
+msgstr "已安装新打印机，并将激活该打印机。"
+
+msgid "Some Printers were uninstalled."
+msgstr "部分打印机已卸载。"
+
+msgid "A new filament was installed and it will be activated."
+msgstr "已安装新耗材丝，并将激活该耗材丝。"
+
+msgid "A new SLA material was installed and it will be activated."
+msgstr "已安装新 SLA 材料，并将激活该材料。"
+
+msgid "Some filaments were uninstalled."
+msgstr "部分耗材丝已卸载。"
+
+msgid "Custom printer was installed and it will be activated."
+msgstr "已安装自定义打印机，并将激活该打印机。"
+
+msgid "<Back"
+msgstr "<上一步"
+
+msgid "Next>"
+msgstr "下一步>"
+
+msgid "Filament Profiles Selection"
+msgstr "耗材丝配置文件选择"
+
+msgid "Configuration Assistant"
+msgstr "配置助手"
+
+msgid "Configuration &Assistant"
+msgstr "配置助手(&A)"
+
+msgid "Configuration Wizard"
+msgstr "配置向导"
+
+msgid "Configuration &Wizard"
+msgstr "配置向导(&W)"
+
+msgid "Windows Media Player is required for this task! Do you want to enable 'Windows Media Player' for your operation system?"
+msgstr "此任务需要 Windows Media Player！是否要在操作系统中启用“Windows Media Player”？"
+
+msgid "BambuSource has not correctly been registered for media playing! Press Yes to re-register it."
+msgstr "BambuSource 尚未正确注册为媒体播放组件！请按“是”重新注册。"
+
+msgid "Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."
+msgstr "缺少已注册的媒体播放组件 BambuSource！请重新安装 BambuStudio，或联系售后支持。"
+
+msgid "Using a BambuSource from a different install, video play may not work correctly! Press Yes to fix it."
+msgstr "正在使用来自其他安装的 BambuSource，视频播放可能无法正常工作！请按“是”进行修复。"
+
+msgid "Your system is missing H.264 codecs for GStreamer, which are required to play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart Bambu Studio?)"
+msgstr "您的系统缺少 GStreamer 所需的 H.264 编解码器，无法播放视频。（可尝试安装 gstreamer1.0-plugins-bad 或 gstreamer1.0-libav 软件包，然后重启 Bambu Studio。）"
+
+msgid "Model Pictures"
+msgstr "模型图片"
+
+msgid "3D Models"
+msgstr "3D 模型"
+
+msgid "Click to return (Command + Left Arrow)"
+msgstr "点击返回（Command + 左箭头）"
+
+msgid "Click to continue (Command + Right Arrow)"
+msgstr "点击继续（Command + 右箭头）"
+
+msgid "Click to return (Alt + Left Arrow)"
+msgstr "点击返回（Alt + 左箭头）"
+
+msgid "Click to continue (Alt + Right Arrow)"
+msgstr "点击继续（Alt + 右箭头）"
+
+msgid "Taking a configuration snapshot failed."
+msgstr "创建配置快照失败。"
+
+msgid "BambuStudio has encountered an error while taking a configuration snapshot."
+msgstr "BambuStudio 在创建配置快照时遇到错误。"
+
+msgid "BambuStudio error"
+msgstr "BambuStudio 错误"
+
+msgid "Support ring generation failed because no printable model projection was found."
+msgstr "支撑环生成失败，因为未找到可打印的模型投影。"
+
+msgid "Support ring generation failed while adapting tool-change paths."
+msgstr "支撑环生成失败：换料路径处理出错。"
+
+msgid "Generating support ring"
+msgstr "正在生成支撑环"
+
+#, boost-format
+msgid "Generating support ring: layer %1%"
+msgstr "正在生成支撑环：层 %1%"
+
+msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+msgstr "AMS中检测到高温耗材。请勿与低温耗材混用。"
+
+msgid "Nozzle and Filament Sync"
+msgstr "喷嘴耗材同步"
+
+msgid "Mapping"
+msgstr ""
+
+msgid "Direct Override"
+msgstr "直接覆盖"
+
+msgid "After modification, the filament list cannot be restored."
+msgstr "修改后，耗材列表无法恢复。"
+
+msgid "Overwrite the project filaments list with the filaments in the printer."
+msgstr "用打印机中的耗材覆盖项目耗材列表。"
+
+msgid "Match the project filaments with the filaments in the printer according to the matching mode. After syncing, the mapped results will be used."
+msgstr ""
+
+msgid "After overwriting"
+msgstr "覆盖后"
+
+msgid "After mapping"
+msgstr "匹配后"
+
+msgid "Filament matching"
+msgstr ""
+
+msgid "Color first"
+msgstr "颜色优先"
+
+msgid "Precision first"
+msgstr ""
+
+msgid "Reset all filament mapping"
+msgstr "重置全部耗材映射"
+
+msgid "Add unused filaments to filaments list."
+msgstr "将未使用的耗材丝添加到耗材列表。"
+
+msgid "Add unused AMS filaments to filaments list."
+msgstr "将未使用的 AMS 耗材添加到耗材列表中。"
+
+msgid "Automatically merge the same colors in the model after mapping."
+msgstr "匹配后自动合并模型中的相同颜色。"
+
+msgid "Synchronize now"
+msgstr "立即同步"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -20262,6 +21009,59 @@ msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
 
+#, c-format, boost-format
+#~ msgid "%s filament is brittle. Use AMS feeding with caution."
+#~ msgstr "%s耗材易脆断，使用 AMS 进料时请谨慎。"
+
+#~ msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+#~ msgstr "夜光耗材可能磨损 AMS 进料口，建议使用外挂料盘打印。"
+
+#, c-format, boost-format
+#~ msgid "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue."
+#~ msgstr "%s 可能受耗材变轨器影响导致进退料失败。 若仍要继续使用。"
+
+#, c-format, boost-format
+#~ msgid "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide."
+#~ msgstr "受耗材变轨器影响，%s可能断裂在料管中。若仍要继续使用，请查看详细使用指南。"
+
+#, c-format, boost-format
+#~ msgid "Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide."
+#~ msgstr "受耗材变轨器影响，%s可能进退料失败。若仍要继续使用，请查看详细使用指南。"
+
+#, boost-format
+#~ msgid "The project supports up to %1% filaments."
+#~ msgstr "项目至多支持 %1% 个耗材。"
+
+#~ msgid "Visual Enhancement Camera Recording"
+#~ msgstr "视觉增强摄像头录像"
+
+#~ msgid "Not live"
+#~ msgstr "非实时画面"
+
+#~ msgid "Live Camera Recording in progress"
+#~ msgstr "实况摄像头录像中"
+
+#~ msgid "Visual Enhancement Camera Recording in progress"
+#~ msgstr "俯视摄像头录像中"
+
+#~ msgid "Recording in progress"
+#~ msgstr "实况摄像头录像中"
+
+#~ msgid "Timelapse in progress"
+#~ msgstr "延时摄影中"
+
+#~ msgid "Go Live in progress"
+#~ msgstr "直播中"
+
+#~ msgid "This device is performing the following operations"
+#~ msgstr "本设备正在进行以下操作"
+
+#~ msgid "Please refer to Wiki before use->"
+#~ msgstr "请在使用前查看wiki。"
+
+#~ msgid "Please click the \"Continue printing\"  button if you still want to proceed with printing."
+#~ msgstr "如果您仍然想继续打印，请单击“确定”按钮。"
+
 #~ msgid "loading/unloading"
 #~ msgstr "进/退料"
 
@@ -20350,9 +21150,6 @@ msgstr ""
 
 #~ msgid "Automatically merge filaments of the same color and type"
 #~ msgstr "自动合并相同颜色与材质的耗材"
-
-#~ msgid "Unmapped"
-#~ msgstr "未匹配"
 
 #~ msgid ""
 #~ "Upper half area:  Original\n"
@@ -20468,9 +21265,6 @@ msgstr ""
 #~ msgid "Original"
 #~ msgstr "原项目"
 
-#~ msgid "After mapping"
-#~ msgstr "匹配后"
-
 #~ msgid "Color match"
 #~ msgstr "颜色匹配"
 
@@ -20490,9 +21284,6 @@ msgstr ""
 #~ msgid "Original"
 #~ msgstr "原项目"
 
-#~ msgid "After overwriting"
-#~ msgstr "覆盖后"
-
 #~ msgctxt "Sync_AMS"
 #~ msgid "Plate"
 #~ msgstr "盘号"
@@ -20500,14 +21291,8 @@ msgstr ""
 #~ msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
 #~ msgstr "连接的打印机与当前选择的打印机不匹配。请更改所选打印机。"
 
-#~ msgid "Mapping"
-#~ msgstr "匹配"
-
 #~ msgid "Overwriting"
 #~ msgstr "覆盖"
-
-#~ msgid "Reset all filament mapping"
-#~ msgstr "重置所有耗材映射"
 
 #~ msgid "(Recommended filament)"
 #~ msgstr "(推荐的材料)"
@@ -20535,15 +21320,6 @@ msgstr ""
 #~ msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
 #~ msgstr "使用打印机内的耗材，依次替换项目耗材列表。未使用的打印机耗材将自动添加至列表末尾。"
 
-#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-#~ msgstr "发现AMS中有高温材料，注意不要与低温材料混合打印。"
-
-#~ msgid "Add unused AMS filaments to filaments list."
-#~ msgstr "将未使用的 AMS 耗材添加到耗材列表中。"
-
-#~ msgid "Automatically merge the same colors in the model after mapping."
-#~ msgstr "匹配后自动合并模型中的相同颜色。"
-
 #~ msgid "After being synced, this action cannot be undone."
 #~ msgstr "同步后，此操作不可撤销。"
 
@@ -20553,14 +21329,8 @@ msgstr ""
 #~ msgid "Are you sure to synchronize the filaments?"
 #~ msgstr "确定要同步AMS中耗材信息吗？"
 
-#~ msgid "Synchronize now"
-#~ msgstr "立即同步"
-
 #~ msgid "Synchronize Filament Information"
 #~ msgstr "同步耗材信息"
-
-#~ msgid "Add unused filaments to filaments list."
-#~ msgstr "将未使用的耗材添加到耗材列表中。"
 
 #~ msgid "Only synchronize filament type and color, not including slot information."
 #~ msgstr "仅同步耗材类型和颜色，不包含槽位信息。"
@@ -20791,9 +21561,6 @@ msgstr ""
 #~ msgid "Setting Virtual slot information while printing is not supported"
 #~ msgstr "不支持在打印时设置虚拟槽位信息"
 
-#~ msgid "Remark"
-#~ msgstr "备注"
-
 #~ msgid "In printer"
 #~ msgstr "机内耗材"
 
@@ -20817,9 +21584,6 @@ msgstr ""
 
 #~ msgid "AMS detected a new official filament. Add it to Filament Manager?"
 #~ msgstr "AMS识别到新的官方耗材，是否录入到耗材管理？"
-
-#~ msgid "Add as new filament"
-#~ msgstr "作为新耗材录入"
 
 #~ msgid "Link to existing filament"
 #~ msgstr "关联已录入的耗材"
@@ -21008,25 +21772,6 @@ msgstr ""
 #~ msgid "The currently connected printer does not support printing supports in a different material from the model using the wipe tower. Please re-slice the model."
 #~ msgstr "当前连接的打印机不支持使用擦料塔以不同于模型的材料打印支撑。请重新切片。"
 
-#~ msgid ""
-#~ "When using soluble material for the support, We recommend the following settings:\n"
-#~ "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
-#~ "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
-#~ "0顶部z距离，0底部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
-
-#~ msgid ""
-#~ "When using soluble material for the support, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
-#~ "0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
-
-#~ msgid "Support interface speed"
-#~ msgstr "支撑面"
-
 #~ msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
 #~ msgstr "“无稀疏层”与需要每层擦料塔的平滑延时摄影不兼容。延时摄影已切换为传统模式。"
 
@@ -21120,42 +21865,17 @@ msgstr ""
 #~ msgid "Standard Mode"
 #~ msgstr "标准模式"
 
-#, c-format, boost-format
-#~ msgid "Nozzle %d "
-#~ msgstr "喷嘴 %d "
-
-#~ msgid "Unknown Filament"
-#~ msgstr "未知耗材"
-
-#~ msgid "Hotend status is abnormal and not available. Click to update firmware."
-#~ msgstr "热端状态异常，当前不可用。点击更新固件。"
-
-#~ msgid "Hotend information is unknown. Please refresh nozzle information before use."
-#~ msgstr "热端信息未知。请先刷新喷嘴信息后再使用。"
-
 #~ msgid "4-slot AMS"
 #~ msgstr "4槽AMS"
 
 #~ msgid "1-slot AMS"
 #~ msgstr "单槽AMS"
 
-#~ msgid "Remove this AMS"
-#~ msgstr "移除此AMS"
-
-#~ msgid "Extruder Settings"
-#~ msgstr "挤出机设置"
-
 #~ msgid "Select Nozzle Diameter"
 #~ msgstr "选择喷嘴直径"
 
 #~ msgid "Configure Nozzle Settings"
 #~ msgstr "配置喷嘴设置"
-
-#~ msgid "Hotend status is abnormal. Please update the firmware."
-#~ msgstr "热端状态异常。请更新固件。"
-
-#~ msgid "Update Firmware"
-#~ msgstr "更新固件"
 
 #~ msgid "Note: BambuStudio does not support mixed-diameter slicing."
 #~ msgstr "注意：Bambu Studio 不支持混合喷嘴直径切片。"
@@ -21196,48 +21916,14 @@ msgstr ""
 #~ msgid "unknown nozzle"
 #~ msgstr "未知喷嘴"
 
-#~ msgid "After modification, the filament list cannot be restored."
-#~ msgstr "修改后，耗材列表将无法恢复。"
-
-#~ msgid "Overwrite the project filaments list with the filaments in the printer."
-#~ msgstr "用打印机中的耗材覆盖项目耗材列表。"
-
-#~ msgid "Match the project filaments with the filaments in the printer according to the matching mode. After syncing, the mapped results will be used."
-#~ msgstr "按照匹配模式将项目耗材与打印机中的耗材匹配起来,同步后使用映射后的结果"
-
-#~ msgid "Filament matching"
-#~ msgstr "耗材匹配"
-
-#~ msgid "Color first"
-#~ msgstr "颜色优先"
-
-#~ msgid "Precision first"
-#~ msgstr "精度优先"
-
-#~ msgid "4 slots AMS"
-#~ msgstr "四槽AMS"
-
-#~ msgid "1 slot AMS"
-#~ msgstr "单槽AMS"
-
-#~ msgid "Nozzle Details"
-#~ msgstr "喷嘴详情"
-
 #~ msgid "Note: Mixed-diameter slicing is only supported in multi-diameter mode."
 #~ msgstr "注意：未开启多口径模式不支持混合直径切片。"
 
 #~ msgid "marks nozzles whose diameter differs from the slice setting; they cannot be used during slicing/printing."
 #~ msgstr "标记喷嘴直径不同于切片设置，切片和打印时无法使用。"
 
-#~ msgid "The current nozzle diameter is incompatible with the printer"
-#~ msgstr "当前喷嘴直径与打印机不兼容"
-
 #~ msgid "Incompatible with the slice diameter"
 #~ msgstr "与切片直径不兼容"
-
-#, c-format, boost-format
-#~ msgid "Nozzle %d: "
-#~ msgstr "喷嘴 %d："
 
 #~ msgid "The current printer preset does not match the connected printer. Please confirm the migration plan below."
 #~ msgstr "当前打印机预设与连接的打印机不一致，请确认下方的迁移方案。"
@@ -21932,9 +22618,6 @@ msgstr ""
 #~ msgstr "请将 %s 、 %s 槽位的耗材取出，放入连接进料口B的AMS里。"
 
 #~ msgid "filaments"
-#~ msgstr "耗材"
-
-#~ msgid "filament"
 #~ msgstr "耗材"
 
 #, c-format, boost-format
@@ -24207,9 +24890,6 @@ msgstr ""
 #~ msgid "filaments %s cannot be printed directly on the surface of this plate"
 #~ msgstr "材料 %s 不能在直接在当前打印板上打印"
 
-#~ msgid "Remove all points"
-#~ msgstr "删除所有点"
-
 #~ msgid "(Set the brim type to \"painted\")"
 #~ msgstr "将Brim类型设置为绘制模式"
 
@@ -25776,9 +26456,6 @@ msgstr ""
 #~ msgid "Auto refill"
 #~ msgstr "自动补给"
 
-#~ msgid "3D Models"
-#~ msgstr "3D模型"
-
 #~ msgid "Number of currently selected: %1%\n"
 #~ msgstr "当前选择的零件数量: %1%\n"
 
@@ -25974,12 +26651,6 @@ msgstr ""
 
 #~ msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional"
 #~ msgstr "旋转模式只能在外墙层数为1，关闭支撑，顶层层数为0，稀疏填充密度为0，传统延时摄影时有效"
-
-#~ msgid "Keep upper part"
-#~ msgstr "保留上半部分"
-
-#~ msgid "Keep lower part"
-#~ msgstr "保留下半部分"
 
 #~ msgid "AMS auto switch filament"
 #~ msgstr "AMS自动续料"
@@ -26463,9 +27134,6 @@ msgstr ""
 
 #~ msgid "Inner wall speed"
 #~ msgstr "内墙速度"
-
-#~ msgid "Clipping of view"
-#~ msgstr "剪切视图"
 
 #~ msgid "the 3mf is not compatible, load geometry data only!"
 #~ msgstr "该3mf文件不兼容，仅加载几何数据！"
@@ -27916,17 +28584,8 @@ msgstr ""
 #~ msgid "Exporting finished."
 #~ msgstr "导出完成。"
 
-#~ msgid "System Information"
-#~ msgstr "系统信息"
-
-#~ msgid "Blacklisted libraries loaded into BambuStudio process:"
-#~ msgstr "已加载黑名单库到BambuStudio进程中:"
-
 #~ msgid "Feature vectorization is supported:"
 #~ msgstr "支持特征向量化:"
-
-#~ msgid "Copy to Clipboard"
-#~ msgstr "拷贝到剪切板"
 
 #~ msgid "This G-code is inserted between objects when print object by object"
 #~ msgstr "在逐件打印时模型之间切换时插入这段G-code"
@@ -28052,86 +28711,8 @@ msgstr ""
 #~ "The first layer height will be reset to 0.01."
 #~ msgstr "首层层高不能为0。将重置为0.01。"
 
-#~ msgid "Alternate nozzles:"
-#~ msgstr "备用喷嘴："
-
-#~ msgid "All standard"
-#~ msgstr "所有标准"
-
-#~ msgid "Welcome to the %s Configuration Assistant"
-#~ msgstr "欢迎访问 %s 配置助手"
-
-#~ msgid "Welcome to the %s Configuration Wizard"
-#~ msgstr "欢迎访问 %s 配置向导"
-
-#~ msgid "Welcome"
-#~ msgstr "欢迎"
-
-#~ msgid "Hello, welcome to %s! This %s helps you with the initial configuration; just a few settings and you will be ready to print."
-#~ msgstr "您好，欢迎来到 %s！此 %s 可帮助您进行初始配置，只需进行几项设置就可以打印了。"
-
-#~ msgid "%s Family"
-#~ msgstr "%s 系列"
-
-#~ msgid "SLA material"
-#~ msgstr "SLA 材料"
-
-#~ msgid "Custom Printer Setup"
-#~ msgstr "自定义打印机设置"
-
-#~ msgid "Custom Printer"
-#~ msgstr "自定义打印机"
-
-#~ msgid "Define a custom printer profile"
-#~ msgstr "定义自定义打印机配置文件"
-
-#~ msgid "Custom profile name:"
-#~ msgstr "自定义配置文件名称："
-
 #~ msgid "Other Vendors"
 #~ msgstr "其他供应商"
-
-#~ msgid "Invalid numeric input."
-#~ msgstr "无效的数字输入。"
-
-#~ msgid "Filament and Nozzle Diameters"
-#~ msgstr "耗材丝和喷嘴直径"
-
-#~ msgid "Print Diameters"
-#~ msgstr "打印直径"
-
-#~ msgid "Enter the diameter of your printer's hot end nozzle."
-#~ msgstr "输入打印机热端喷嘴的直径。"
-
-#~ msgid "Nozzle Diameter:"
-#~ msgstr "喷嘴直径："
-
-#~ msgid "Enter the diameter of your filament."
-#~ msgstr "输入耗材丝的直径。"
-
-#~ msgid "Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average."
-#~ msgstr "需要良好的精度, 因此请使用游标卡尺, 沿耗材丝进行多次测量, 然后计算平均值。"
-
-#~ msgid "Filament Diameter:"
-#~ msgstr "耗材丝直径:"
-
-#~ msgid "Temperatures"
-#~ msgstr "温度"
-
-#~ msgid "A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."
-#~ msgstr "根据经验, PLA 为160至 230°C, ABS 为215至250°C。"
-
-#~ msgid "Extrusion Temperature:"
-#~ msgstr "挤出温度："
-
-#~ msgid "Enter the bed temperature needed for getting your filament to stick to your heated bed."
-#~ msgstr "输入让你的耗材粘在热床上所需的床温。"
-
-#~ msgid "A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have no heated bed."
-#~ msgstr "根据经验, PLA 为 60°C, ABS 为 110°C. 如果没有加热床, 请保留零。"
-
-#~ msgid "Bed Temperature:"
-#~ msgstr "热床温度:"
 
 #~ msgid "Select all standard printers"
 #~ msgstr "选择所有标准打印机"
@@ -28144,18 +28725,6 @@ msgstr ""
 
 #~ msgid "&Finish"
 #~ msgstr "&结束"
-
-#~ msgid "Configuration Assistant"
-#~ msgstr "配置助手"
-
-#~ msgid "Configuration &Assistant"
-#~ msgstr "配置 &助手"
-
-#~ msgid "Configuration Wizard"
-#~ msgstr "配置向导"
-
-#~ msgid "Configuration &Wizard"
-#~ msgstr "配置 &向导"
 
 #~ msgid "Upload and publish your design"
 #~ msgstr "上传/发布 作品"
@@ -28190,12 +28759,6 @@ msgstr ""
 #~ msgid "Bridges fan speed"
 #~ msgstr "桥接风扇速度"
 
-#~ msgid "Bed Shape and Size"
-#~ msgstr "热床形状和大小"
-
-#~ msgid "Set the shape of your printer's bed."
-#~ msgstr "设置打印机热床的形状。"
-
 #~ msgid "One layer mode"
 #~ msgstr "一层模式"
 
@@ -28220,9 +28783,6 @@ msgstr ""
 #~ msgstr ""
 #~ "检测到有对象位于打印区域外。\n"
 #~ "解决此问题以继续切片。"
-
-#~ msgid "Rotate lower part upwards"
-#~ msgstr "旋转下部向上"
 
 #~ msgid "Add supports"
 #~ msgstr "增加支撑"
@@ -28524,9 +29084,6 @@ msgstr ""
 #~ msgid "symbolic profile name"
 #~ msgstr "配置名昵称"
 
-#~ msgid "Firmware"
-#~ msgstr "固件"
-
 #~ msgid "Supports"
 #~ msgstr "支撑"
 
@@ -28617,15 +29174,6 @@ msgstr ""
 
 #~ msgid "Around object"
 #~ msgstr "模型周围"
-
-#~ msgid "Firmware Type"
-#~ msgstr "固件类型"
-
-#~ msgid "Choose the type of firmware used by your printer."
-#~ msgstr "选择打印机使用的固件类型。"
-
-#~ msgid "Select by rectangle"
-#~ msgstr "框选"
 
 #~ msgid "Unselect by rectangle"
 #~ msgstr "框选取消"
@@ -29131,9 +29679,6 @@ msgstr ""
 
 #~ msgid "Capture a configuration snapshot"
 #~ msgstr "捕获配置快照"
-
-#~ msgid "Desktop Integration"
-#~ msgstr "桌面集成"
 
 #~ msgid "Simple View Mode"
 #~ msgstr "简单界面模式"
