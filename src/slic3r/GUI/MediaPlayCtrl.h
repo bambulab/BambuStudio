@@ -53,6 +53,15 @@ public:
 
     // try the LAN stream first even for cloud printers, if the printer ip is known
     void SetPreferLan(bool prefer_lan) { m_prefer_lan = prefer_lan; }
+    // switch to the LAN stream when the cloud refuses the live view
+    void SetLanFallback(bool lan_fallback) { m_lan_fallback = lan_fallback; }
+    // keep streaming without user input or while the printer is idle
+    void SetKeepAlive(bool keep_alive) { m_keep_alive = keep_alive; }
+    // ask for the printer ip with a modal dialog when the LAN connection fails
+    void SetShowLanFailedDialog(bool show) { m_show_lan_failed_dialog = show; }
+
+    bool IsPlaying() const;
+    void StopPlay();
 
     bool IsStreaming() const;
 
@@ -121,6 +130,10 @@ private:
     bool m_device_busy = false;
     bool m_disable_lan = false;
     bool m_prefer_lan = false;
+    bool m_lan_fallback = false;
+    bool m_remote_refused = false;
+    bool m_keep_alive = false;
+    bool m_show_lan_failed_dialog = true;
     wxString m_url;
 
     std::deque<wxString> m_tasks;

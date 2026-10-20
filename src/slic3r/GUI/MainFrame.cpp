@@ -1556,7 +1556,7 @@ void MainFrame::init_tabpanel()
 
     // added last, so the indexes of TabPosition stay valid
     m_multi_camera = new MultiCameraPage(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    m_tabpanel->AddPage(m_multi_camera, _L("Multi-camera"), std::string("tab_monitor_active"), std::string("tab_monitor_active"), false);
+    m_tabpanel->AddPage(m_multi_camera, _L("Multi-camera"), std::string("tab_multi_camera_active"), std::string("tab_multi_camera_active"), false);
 
     if (m_plater) {
         // load initial config

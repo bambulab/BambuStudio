@@ -283,7 +283,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
                 m_play_timer = now + 1min;
 #if BBL_RELEASE_TO_PUBLIC
                 BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl playing..., idle: " << SecondsSinceLastInput() << "printIdle: " << m_print_idle;
-                if (SecondsSinceLastInput() >= 900) { // 15 min
+                if (!m_keep_alive && SecondsSinceLastInput() >= 900) { // 15 min
                     auto close = wxGetApp().app_config->get("liveview", "auto_stop_liveview") == "true";
                     if (close || obj == nullptr || !obj->is_in_printing()) {
                         m_next_retry = wxDateTime();
@@ -291,7 +291,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
                         return;
                     }
                 }
-                if (obj && obj->is_in_printing()) {
+                if (m_keep_alive || (obj && obj->is_in_printing())) {
                     m_print_idle = 0;
                 } else if (++m_print_idle >= 5) {
                     m_next_retry = wxDateTime();
@@ -305,6 +305,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     m_machine = machine;
     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl switch machine: " << BBLCrossTalk::Crosstalk_DevId(m_machine);
     m_disable_lan = false;
+    m_remote_refused = false;
     m_failed_retry = 0;
     m_last_failed_codes.clear();
     m_image_last_machine.clear();
@@ -437,8 +438,9 @@ void MediaPlayCtrl::Play()
 
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
-    if (m_lan_proto > MachineObject::LVL_Disable && (m_lan_mode || !m_remote_proto || m_prefer_lan) && !m_disable_lan && !m_lan_ip.empty()) {
-        m_disable_lan = m_remote_proto && !m_lan_mode && !m_prefer_lan; // try remote next time
+    bool force_lan = m_prefer_lan || m_remote_refused;
+    if (m_lan_proto > MachineObject::LVL_Disable && (m_lan_mode || !m_remote_proto || force_lan) && !m_disable_lan && !m_lan_ip.empty()) {
+        m_disable_lan = m_remote_proto && !m_lan_mode && !force_lan; // try remote next time
         std::string url;
         if (m_lan_proto == MachineObject::LVL_Local)
             url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
@@ -644,7 +646,17 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
 
     bool local = tunnel == "local" || tunnel == "rtsp" ||
                  tunnel == "rtsps";
-    if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && local && (m_failed_retry > 1 || m_user_triggered)) {
+    if (m_lan_fallback && !local && !m_remote_refused && m_failed_code != 0 && last_state != wxMEDIASTATE_PLAYING
+            && m_lan_proto > MachineObject::LVL_Disable && !m_lan_ip.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: remote liveview failed with " << m_failed_code << ", fall back to LAN";
+        m_remote_refused = true;
+        m_disable_lan    = false;
+        m_failed_retry   = 0;
+        m_next_retry     = wxDateTime::Now() + wxTimeSpan::Seconds(1);
+        m_user_triggered = false;
+        return;
+    }
+    if (m_show_lan_failed_dialog && m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && local && (m_failed_retry > 1 || m_user_triggered)) {
         m_next_retry = wxDateTime(); // stop retry
         if (wxGetApp().show_modal_ip_address_enter_dialog(false, _L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
@@ -1135,6 +1147,16 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
 }
 
 bool MediaPlayCtrl::IsStreaming() const { return m_streaming; }
+
+bool MediaPlayCtrl::IsPlaying() const { return m_last_state != MEDIASTATE_IDLE; }
+
+void MediaPlayCtrl::StopPlay()
+{
+    if (m_last_state == MEDIASTATE_IDLE)
+        return;
+    m_next_retry = wxDateTime(); // no auto retry after a user stop
+    Stop();
+}
 
 void MediaPlayCtrl::load()
 {
