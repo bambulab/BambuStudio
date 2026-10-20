@@ -40,6 +40,8 @@ interface AddRefillFilamentsPageProps {
   onFollowUp: (slot: AutoRefillAddRefillFilamentsSlot) => Promise<void>;
   // Persists a "Don't show again" tick so the code stops asking.
   onDismissWarning: (blockCode: number) => Promise<void>;
+  // Asks the host whether this warning has already been suppressed.
+  onCheckWarningSuppressed: (blockCode: number) => Promise<boolean>;
   onToast: (text: string) => void;
 }
 
@@ -141,6 +143,7 @@ export function AddRefillFilamentsPage({
   onConfirm,
   onFollowUp,
   onDismissWarning,
+  onCheckWarningSuppressed,
   onToast,
 }: AddRefillFilamentsPageProps) {
   const { t } = useTranslation();
@@ -197,10 +200,31 @@ export function AddRefillFilamentsPage({
     const key = slotKey(slot);
     const isSelected = selected.some((item) => slotKey(item) === key);
     const interaction = slot.interaction;
+    const asksConfirmation = interaction?.feedback === 'dialog'
+      && interaction.policy === 'confirm_then_select';
 
     // Deselecting never asks anything.
     if (isSelected) {
       await commitSelection(slot, true);
+      return;
+    }
+
+    // Warning-like slots may come back as non-selectable in the payload while
+    // still requiring a confirm-before-select dialog (`confirm_then_select`).
+    // Check suppression before the generic "blocked" early return so "Don't
+    // show again" can bypass the dialog on the next click.
+    if (asksConfirmation) {
+      setLocalBusy(true);
+      try {
+        const suppressed = await onCheckWarningSuppressed(interaction.block_code);
+        if (suppressed) {
+          await commitSelection(slot, false);
+          return;
+        }
+      } finally {
+        setLocalBusy(false);
+      }
+      setBlockDialogSlot(slot);
       return;
     }
 
@@ -211,12 +235,6 @@ export function AddRefillFilamentsPage({
       // C++ sends the copy as the English source text; the dialog path also
       // routes it through t(), so the toast must do the same.
       else if (interaction.tooltip) onToast(t(interaction.tooltip));
-      return;
-    }
-
-    // A warning slot stays selectable, but asks before it joins the group.
-    if (slot.warning && interaction?.feedback === 'dialog') {
-      setBlockDialogSlot(slot);
       return;
     }
 

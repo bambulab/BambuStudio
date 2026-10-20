@@ -155,6 +155,14 @@ nlohmann::json AutoRefillAddRefillFilamentsActions::Handle(AutoRefillRefillInfoV
         return Reply(vm, action, 0, "");
     }
 
+    // check before show confirm dialog
+    if (action == SV::action::check_warning_suppressed) {
+        const auto block_code = static_cast<DevFilaRefillBlockCode>(
+            payload.value("block_code", static_cast<int>(DevFilaRefillBlockCode::Available)));
+        return vm.MakeResponse(vm.GetModule(), "add_refill_filaments", action, 0, "",
+                               nlohmann::json{{"suppressed", BlockCode::IsSuppressed(block_code)}});
+    }
+
     if (action == SV::action::confirm) {
         std::vector<DevAmsSlotId> slots;
         const auto slots_it = payload.find("slots");

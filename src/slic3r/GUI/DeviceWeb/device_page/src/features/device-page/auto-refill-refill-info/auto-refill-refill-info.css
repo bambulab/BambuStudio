@@ -118,6 +118,10 @@
   cursor: pointer;
 }
 
+[data-theme='dark'] .refill-page__open-settings {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
 .refill-page__empty {
   box-sizing: border-box;
   width: 100%;
@@ -137,6 +141,12 @@
   width: 100px;
   height: 100px;
   object-fit: contain;
+}
+
+[data-theme='dark'] .refill-page__disabled-image,
+[data-theme='dark'] .refill-page__empty-image {
+  opacity: 0.82;
+  filter: brightness(0.68) contrast(1.02);
 }
 
 .refill-page__empty-label {
@@ -309,6 +319,17 @@ body.refill-slot-dragging * {
   height: 12px;
 }
 
+/* Bitmap assets use light-theme strokes; lift them only in dark mode. */
+[data-theme='dark'] .refill-slot__remove img,
+[data-theme='dark'] .refill-group__reset img {
+  filter: brightness(0) invert(0.937);
+}
+
+[data-theme='dark'] .refill-slot__remove {
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .refill-slot__remove:disabled {
   cursor: not-allowed;
   opacity: 0.45;
@@ -407,6 +428,11 @@ body.refill-slot-dragging * {
   width: 28px;
   flex: 0 0 28px;
   padding: 4px;
+}
+
+[data-theme='dark'] .refill-group__reset {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .refill-group__reset img {

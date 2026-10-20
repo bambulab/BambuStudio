@@ -500,7 +500,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
                              card_state != SV::card_state::empty && card_state != SV::card_state::awaiting_tpu_read &&
                              hotend_ready_for_filament;
     bool can_unload_filament = !filament_changing && line_state == SV::line_state::loaded && hotend_ready_for_filament;
-    bool can_ams_operation = hotend_tool_kind == SV::tool_kind::nozzle && machine_obj->GetFilaSystem()->GetAmsList().size() > 0;
+    bool can_ams_operation = (card_state != SV::card_state::empty || bind_ams_count > 0 || can_read_filament) && hotend_tool_kind == SV::tool_kind::nozzle;
     const nlohmann::json menu_actions = {
         {SK::menu_actions::can_edit, can_edit_filament},
         {SK::menu_actions::can_load, can_load_filament },

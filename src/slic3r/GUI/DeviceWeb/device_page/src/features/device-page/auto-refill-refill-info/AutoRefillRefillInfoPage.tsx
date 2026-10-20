@@ -11,7 +11,7 @@ import { SchemaDebugOverlay } from './components/SchemaDebugOverlay';
 import { AddRefillFilamentsPage } from './add-refill-filaments/AddRefillFilamentsPage';
 import type { AutoRefillAddRefillFilamentsSlotRef } from './add-refill-filaments/types';
 import { resolveHostContentSize } from './hostContentSize';
-import emptyRefillGroupImage from './assets/empty_refill_group.png';
+import emptyRefillGroupImage from './assets/empty_refill_group.svg';
 import autoRefillDisabledNotice from './assets/auto_refill_disabled_notice.svg';
 import './auto-refill-refill-info.css';
 
@@ -121,6 +121,7 @@ export function AutoRefillRefillInfoPage() {
     fetchDebugSnapshot,
     followUpAddRefillBlock,
     dismissAddRefillWarning,
+    isAddRefillWarningSuppressed,
     confirmAddRefillFilaments,
     resetGroup,
     removeSlot,
@@ -240,11 +241,12 @@ export function AutoRefillRefillInfoPage() {
               );
             }}
             onDismissWarning={dismissAddRefillWarning}
+            onCheckWarningSuppressed={isAddRefillWarningSuppressed}
             onToast={pushToast}
           />
         ) : (
           <div className="refill-picker-error">
-            <div className="refill-page__error">{error || t('Failed to get filament information.')}</div>
+            <div className="refill-page__error">{error ? t(error) : t('Failed to get filament information.')}</div>
             <button type="button" className="add-refill-page__button" onClick={closeAddRefillFilaments}>
               {t('Cancel')}
             </button>
@@ -288,7 +290,7 @@ export function AutoRefillRefillInfoPage() {
             >
               {t('Open Auto Refill')}
             </button>
-            {error && <div className="refill-page__error">{error}</div>}
+            {error && <div className="refill-page__error">{t(error)}</div>}
           </div>
         </div>
       ) : (
@@ -301,7 +303,7 @@ export function AutoRefillRefillInfoPage() {
         {description && <div className="refill-page__desc">{description}</div>}
       </div>
 
-      {error && <div className="refill-page__error">{error}</div>}
+      {error && <div className="refill-page__error">{t(error)}</div>}
 
       {state.can_add_group && (
         <div className="refill-page__actions">

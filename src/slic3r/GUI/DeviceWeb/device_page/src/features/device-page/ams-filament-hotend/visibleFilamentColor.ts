@@ -12,7 +12,9 @@ const BLEND_RATIO = 0.2;
 
 export const STANDBY_COLOR = '#DBDBDB';
 const UNKNOWN_SENTINEL = '#D9D9D9';
-const TRANSPARENT_DISPLAY_RGB = '#9ED3AE';
+// Fully transparent filament still needs a visible route, but it must stay
+// achromatic so clear / white-translucent spools do not read as green.
+const TRANSPARENT_DISPLAY_RGB = '#D9D9D9';
 const OPAQUE_LINE_ALPHA = 0x80; // 50%
 
 function parseHex(color: string): [number, number, number] | null {

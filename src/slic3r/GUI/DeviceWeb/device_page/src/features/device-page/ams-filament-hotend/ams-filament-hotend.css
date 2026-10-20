@@ -128,6 +128,11 @@
   height: 24px;
 }
 
+/* External SVGs keep their light-theme stroke by default; lift them in dark mode. */
+[data-theme='dark'] .action-group-icons .toolbar-icon-btn img {
+  filter: brightness(0) invert(0.937);
+}
+
 .action-group-icons .toolbar-icon-btn:hover:not(:disabled) {
   background: var(--ams-popover-hover-bg);
 }

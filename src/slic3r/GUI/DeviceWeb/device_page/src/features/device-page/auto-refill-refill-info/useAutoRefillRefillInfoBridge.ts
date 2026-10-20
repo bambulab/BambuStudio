@@ -30,6 +30,31 @@ const QUERY_WATCHDOG_MS = 8000;
 // itself is enforced by the C++ control token.
 const EDIT_WATCHDOG_MS = 8000;
 
+const FRIENDLY_SEND_FAILURE = 'Failed to send the command to the printer. Please check the printer connection and try again.';
+const FRIENDLY_TIMEOUT = 'The printer did not respond in time. Please try again.';
+const FRIENDLY_INVALID_FILAMENT_INFO = 'Failed to get valid filament information. Please refresh and try again.';
+const FRIENDLY_SLOT_UNAVAILABLE = 'The selected filament slot is currently unavailable. Please check the slot status and try again.';
+const FRIENDLY_SWITCH_OFF = 'Auto Refill is turned off. Turn it on and try again.';
+const FRIENDLY_GROUP_STALE = 'The refill group information is out of date. Please reopen Auto Refill and try again.';
+const FRIENDLY_GROUP_UPDATE_FAILED = 'Failed to update the refill group. Please try again.';
+const FRIENDLY_GENERIC_FAILURE = 'The operation could not be completed. Please try again.';
+
+const PASS_THROUGH_ERROR_KEYS = new Set<string>([
+  'Invalid refill group target.',
+  'Failed to get filament information.',
+  'Failed to open refill filament dialog.',
+  'Failed to create the refill group.',
+  'Auto-refill state failed',
+  'Auto-refill command failed',
+  'Add refill filaments state failed',
+  'Add refill filaments failed',
+  'Reset refill group failed',
+  'Remove refill slot failed',
+  'Open AMS settings failed',
+  'Move refill slot failed',
+  'The printer did not respond to the refill command.',
+]);
+
 // `object` instead of `Record<string, unknown>`: named interfaces (e.g. the
 // slot ref) have no implicit index signature and would be rejected.
 function makeBody(submod: string, action: string, payload?: object) {
@@ -65,6 +90,65 @@ function normalizeState(payload: AutoRefillRefillInfoViewModel): AutoRefillRefil
   };
 }
 
+function normalizeRefillErrorMessage(message: string | null | undefined): string {
+  const trimmed = message?.trim();
+  if (!trimmed) return FRIENDLY_GENERIC_FAILURE;
+  if (PASS_THROUGH_ERROR_KEYS.has(trimmed)) return trimmed;
+
+  const lower = trimmed.toLowerCase();
+  if (lower.includes('publish failed')
+    || lower.includes('network')
+    || lower.includes('offline')
+    || lower.includes('disconnect')
+    || lower.includes('refused')
+    || lower.includes('unreachable')) {
+    return FRIENDLY_SEND_FAILURE;
+  }
+  if (lower.includes('no reply')
+    || lower.includes('did not respond')
+    || lower.includes('timeout')
+    || lower.includes('timed out')) {
+    return FRIENDLY_TIMEOUT;
+  }
+  if (lower.includes('request parse failed')
+    || lower.includes('reply is invalid')
+    || lower.includes('failed to append remaining slots')) {
+    return FRIENDLY_INVALID_FILAMENT_INFO;
+  }
+  if (lower.includes('slot cannot be operated')
+    || lower.includes('cannot operate an empty slot')) {
+    return FRIENDLY_SLOT_UNAVAILABLE;
+  }
+  if (lower.includes('auto-refill switch is off')) {
+    return FRIENDLY_SWITCH_OFF;
+  }
+  if (lower.includes('invalid pos')
+    || lower.includes('missing group_tag')
+    || lower.includes('invalid slot')) {
+    return FRIENDLY_GROUP_STALE;
+  }
+  if (lower.includes('failed to configure group head or target chain')) {
+    return FRIENDLY_GROUP_UPDATE_FAILED;
+  }
+  return FRIENDLY_GENERIC_FAILURE;
+}
+
+function readMockErrorPreview(): string | null {
+  if (!import.meta.env.DEV) return null;
+  const query = window.location.hash.split('?')[1];
+  const token = new URLSearchParams(query ?? '').get('mock_error');
+  switch (token) {
+    case 'publish_failed': return 'publish failed';
+    case 'query_timeout': return 'refill query got no reply';
+    case 'query_invalid': return 'refill query reply is invalid';
+    case 'slot_unavailable': return 'slot cannot be operated';
+    case 'switch_off': return 'auto-refill switch is off';
+    case 'group_stale': return 'invalid pos, to_pos, or group_tag';
+    case 'group_update_failed': return 'failed to configure group head or target chain';
+    default: return null;
+  }
+}
+
 // The hook pulls state, mirrors C++ reports, and publishes the refill
 // write-backs (add / remove / move / reset).
 export function useAutoRefillRefillInfoBridge() {
@@ -78,6 +162,7 @@ export function useAutoRefillRefillInfoBridge() {
   const [queryingAddRefillFilaments, setQueryingAddRefillFilaments] = useState(false);
   const [confirmingAddRefillFilaments, setConfirmingAddRefillFilaments] = useState(false);
   const queryWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suppressedWarningCodesRef = useRef<Set<number>>(new Set());
   // True between publishing a write-back and its device acknowledgement, so
   // the page can show the "updating" state instead of a half-applied group.
   const [applyingRefillEdit, setApplyingRefillEdit] = useState(false);
@@ -87,6 +172,9 @@ export function useAutoRefillRefillInfoBridge() {
   // Success text of the in-flight write-back, chosen before publishing since
   // the report itself cannot tell a slot removal from a group removal.
   const pendingEditToastRef = useRef<string | null>(null);
+  const setFriendlyError = useCallback((message: string | null | undefined) => {
+    setError(normalizeRefillErrorMessage(message));
+  }, []);
 
   const pushToast = useCallback((text: string) => {
     toastSeqRef.current += 1;
@@ -115,9 +203,9 @@ export function useAutoRefillRefillInfoBridge() {
       editWatchdogRef.current = null;
       pendingEditToastRef.current = null;
       setApplyingRefillEdit(false);
-      setError('The printer did not respond to the refill command.');
+      setFriendlyError('The printer did not respond to the refill command.');
     }, EDIT_WATCHDOG_MS);
-  }, [stopEditWatchdog]);
+  }, [setFriendlyError, stopEditWatchdog]);
 
   const endRefillEdit = useCallback(() => {
     stopEditWatchdog();
@@ -141,11 +229,11 @@ export function useAutoRefillRefillInfoBridge() {
       5000,
     );
     if (!resp.ok) {
-      setError(resp.error);
+      setFriendlyError(resp.error);
       return;
     }
     if (resp.value.error_code !== 0) {
-      setError(resp.value.message ?? 'Auto-refill state failed');
+      setFriendlyError(resp.value.message ?? 'Auto-refill state failed');
       return;
     }
     if (resp.value.payload) {
@@ -154,7 +242,7 @@ export function useAutoRefillRefillInfoBridge() {
       applyState(resp.value.payload);
       setError('');
     }
-  }, [applyState, request, setTheme]);
+  }, [applyState, request, setFriendlyError, setTheme]);
 
   useEffect(() => {
     void refresh();
@@ -187,8 +275,8 @@ export function useAutoRefillRefillInfoBridge() {
     stopQueryWatchdog();
     setQueryingAddRefillFilaments(false);
     setAddRefillFilaments(null);
-    setError(message);
-  }, [stopQueryWatchdog]);
+    setFriendlyError(message);
+  }, [setFriendlyError, stopQueryWatchdog]);
 
   useEffect(() => stopQueryWatchdog, [stopQueryWatchdog]);
 
@@ -201,12 +289,12 @@ export function useAutoRefillRefillInfoBridge() {
       5000,
     );
     if (!resp.ok || resp.value.error_code !== 0) {
-      setError(resp.ok ? (resp.value.message ?? 'Failed to open refill filament dialog.') : resp.error);
+      setFriendlyError(resp.ok ? (resp.value.message ?? 'Failed to open refill filament dialog.') : resp.error);
       return false;
     }
     setError('');
     return true;
-  }, [request]);
+  }, [request, setFriendlyError]);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -239,7 +327,7 @@ export function useAutoRefillRefillInfoBridge() {
           stopQueryWatchdog();
           setQueryingAddRefillFilaments(false);
           setConfirmingAddRefillFilaments(false);
-          setError(body.message ?? 'Failed to create the refill group.');
+          setFriendlyError(body.message ?? 'Failed to create the refill group.');
         }
         return;
       }
@@ -279,7 +367,7 @@ export function useAutoRefillRefillInfoBridge() {
       }
 
       if (body.error_code !== 0) {
-        setError(body.message ?? 'Auto-refill command failed');
+        setFriendlyError(body.message ?? 'Auto-refill command failed');
         return;
       }
       if (isStatePayload(body.payload)) {
@@ -290,7 +378,7 @@ export function useAutoRefillRefillInfoBridge() {
 
     document.addEventListener('cpp:device', handler);
     return () => document.removeEventListener('cpp:device', handler);
-  }, [applyState, beginRefillEdit, endRefillEdit, failQuery, pushToast, stopQueryWatchdog]);
+  }, [applyState, beginRefillEdit, endRefillEdit, failQuery, pushToast, setFriendlyError, stopQueryWatchdog]);
 
   // Opens the picker: publishes the device query and shows the loading state
   // until the `query_result` / `query_failed` report lands.
@@ -361,23 +449,24 @@ export function useAutoRefillRefillInfoBridge() {
       5000,
     );
     if (!resp.ok) {
-      setError(resp.error);
+      setFriendlyError(resp.error);
       return;
     }
     if (resp.value.error_code !== 0 || !resp.value.payload) {
-      setError(resp.value.message ?? 'Add refill filaments state failed');
+      setFriendlyError(resp.value.message ?? 'Add refill filaments state failed');
       return;
     }
     setError('');
     const theme = pickTheme(resp.value.payload);
     if (theme) setTheme(theme);
     setAddRefillFilaments(resp.value.payload);
-  }, [request, setTheme]);
+  }, [request, setFriendlyError, setTheme]);
 
   // Enters the picker in place of the group list. `create_group` starts from
   // the unconstrained Query; `add_to_group` anchors the QueryNext on the slot
   // the group is grown from.
   const openPicker = useCallback((config: AutoRefillPickerConfig) => {
+    suppressedWarningCodesRef.current.clear();
     setPickerConfig(config);
     if (config.mode === 'add_to_group' && config.to) {
       void queryNextAddRefillFilaments([config.to], config.to, config.mode);
@@ -387,6 +476,7 @@ export function useAutoRefillRefillInfoBridge() {
   }, [queryAddRefillFilaments, queryNextAddRefillFilaments]);
 
   const closeAddRefillFilaments = useCallback(() => {
+    suppressedWarningCodesRef.current.clear();
     stopQueryWatchdog();
     setQueryingAddRefillFilaments(false);
     setConfirmingAddRefillFilaments(false);
@@ -428,7 +518,23 @@ export function useAutoRefillRefillInfoBridge() {
   // Persists a "Don't show again" tick. The suppression is applied by C++ on
   // the next build, which stops marking the slot as a warning.
   const dismissAddRefillWarning = useCallback(async (blockCode: number) => {
+    suppressedWarningCodesRef.current.add(blockCode);
     await request(makeBody('add_refill_filaments', 'dismiss_warning', { block_code: blockCode }), 5000);
+  }, [request]);
+
+  const isAddRefillWarningSuppressed = useCallback(async (blockCode: number): Promise<boolean> => {
+    if (suppressedWarningCodesRef.current.has(blockCode)) return true;
+    const resp = await request<
+      ReturnType<typeof makeBody>,
+      BridgeResponseBody<{ suppressed?: boolean }>
+    >(
+      makeBody('add_refill_filaments', 'check_warning_suppressed', { block_code: blockCode }),
+      5000,
+    );
+    if (!resp.ok || resp.value.error_code !== 0) return false;
+    const suppressed = Boolean(resp.value.payload?.suppressed);
+    if (suppressed) suppressedWarningCodesRef.current.add(blockCode);
+    return suppressed;
   }, [request]);
 
   const confirmAddRefillFilaments = useCallback(async (
@@ -446,17 +552,17 @@ export function useAutoRefillRefillInfoBridge() {
     );
     if (!resp.ok) {
       setConfirmingAddRefillFilaments(false);
-      setError(resp.error);
+      setFriendlyError(resp.error);
       return false;
     }
     if (resp.value.error_code !== 0) {
       setConfirmingAddRefillFilaments(false);
-      setError(resp.value.message ?? 'Add refill filaments failed');
+      setFriendlyError(resp.value.message ?? 'Add refill filaments failed');
       return false;
     }
     setError('');
     return true;
-  }, [request]);
+  }, [request, setFriendlyError]);
 
   // Publishes a write-back and keeps the "updating" state until the printer
   // acknowledges it. Resolving `true` only means the command went out.
@@ -473,16 +579,16 @@ export function useAutoRefillRefillInfoBridge() {
     );
     if (!resp.ok) {
       endRefillEdit();
-      setError(resp.error);
+      setFriendlyError(resp.error);
       return false;
     }
     if (resp.value.error_code !== 0) {
       endRefillEdit();
-      setError(resp.value.message ?? failureText);
+      setFriendlyError(resp.value.message ?? failureText);
       return false;
     }
     return true;
-  }, [beginRefillEdit, endRefillEdit, request]);
+  }, [beginRefillEdit, endRefillEdit, request, setFriendlyError]);
 
   // A reset drops every manually added member, so it is confirmed first. Same
   // shape as removeSlot: C++ owns the copy and publishes once confirmed, and
@@ -493,16 +599,16 @@ export function useAutoRefillRefillInfoBridge() {
       5000,
     );
     if (!resp.ok) {
-      setError(resp.error);
+      setFriendlyError(resp.error);
       return false;
     }
     if (resp.value.error_code !== 0) {
-      setError(resp.value.message ?? 'Reset refill group failed');
+      setFriendlyError(resp.value.message ?? 'Reset refill group failed');
       return false;
     }
     setError('');
     return true;
-  }, [request]);
+  }, [request, setFriendlyError]);
 
   // Asks the host to prompt for confirmation. C++ owns the copy, decides
   // whether the group itself disappears, and publishes the removal once
@@ -517,16 +623,16 @@ export function useAutoRefillRefillInfoBridge() {
       5000,
     );
     if (!resp.ok) {
-      setError(resp.error);
+      setFriendlyError(resp.error);
       return false;
     }
     if (resp.value.error_code !== 0) {
-      setError(resp.value.message ?? 'Remove refill slot failed');
+      setFriendlyError(resp.value.message ?? 'Remove refill slot failed');
       return false;
     }
     setError('');
     return true;
-  }, [request]);
+  }, [request, setFriendlyError]);
 
   const openAmsSettings = useCallback(async (): Promise<boolean> => {
     const resp = await request<ReturnType<typeof makeBody>, BridgeResponseBody<AutoRefillRefillInfoViewModel>>(
@@ -534,16 +640,23 @@ export function useAutoRefillRefillInfoBridge() {
       5000,
     );
     if (!resp.ok) {
-      setError(resp.error);
+      setFriendlyError(resp.error);
       return false;
     }
     if (resp.value.error_code !== 0) {
-      setError(resp.value.message ?? 'Open AMS settings failed');
+      setFriendlyError(resp.value.message ?? 'Open AMS settings failed');
       return false;
     }
     setError('');
     return true;
-  }, [request]);
+  }, [request, setFriendlyError]);
+
+  useEffect(() => {
+    const mockError = readMockErrorPreview();
+    if (!mockError) return;
+    const timer = window.setTimeout(() => setFriendlyError(mockError), 0);
+    return () => window.clearTimeout(timer);
+  });
 
   const moveSlot = useCallback((
     slot: { ams_id: number; slot_id: number },
@@ -579,6 +692,7 @@ export function useAutoRefillRefillInfoBridge() {
     fetchDebugSnapshot,
     followUpAddRefillBlock,
     dismissAddRefillWarning,
+    isAddRefillWarningSuppressed,
     confirmAddRefillFilaments,
     resetGroup,
     removeSlot,

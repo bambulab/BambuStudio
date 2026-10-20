@@ -181,14 +181,25 @@ std::optional<SlotKey> resolve_hotend_bound_slot(MachineObject* obj,
                                                  int addr_id)
 {
     const auto nozzle = obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id);
-    if (!nozzle.has_value()) return std::nullopt;
+    if (!nozzle.has_value()) {
+        return std::nullopt;
+    }
 
     const auto& bind_slots = nozzle->GetBindAmsSlots();
-    if (bind_slots.empty()) return std::nullopt;
+    if (bind_slots.empty()) {
+        return std::nullopt;
+    }
+
+    const auto& related_ams_slot = nozzle->GetRelatedAmsSlot();
 
     const int ams_id  = bind_slots[0].first;
     int       slot_id = bind_slots[0].second;
-    if (fila_sys->GetVirtualTray(ams_id).has_value()) slot_id = 0;
+    if (fila_sys->GetVirtualTray(ams_id).has_value()) {
+        slot_id = 0;
+    } else if (fila_sys->GetAmsById(std::to_string(ams_id)) && related_ams_slot.has_value() && related_ams_slot.value() != bind_slots[0]) {
+        return SlotKey{related_ams_slot->first, related_ams_slot->second};
+    }
+
     return SlotKey{ams_id, slot_id};
 }
 

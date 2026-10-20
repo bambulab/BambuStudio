@@ -62,6 +62,7 @@ namespace action {
     inline constexpr const char* follow_up       = "follow_up";
     // "Don't show again" of a warning dialog. Payload: { block_code }.
     inline constexpr const char* dismiss_warning = "dismiss_warning";
+    inline constexpr const char* check_warning_suppressed = "check_warning_suppressed";// Lightweight check before opening a warning dialog.
 }
 
 } // namespace values

@@ -560,6 +560,7 @@ function ToolLabel({
 function ToolLabelRow({ className, text }: { className: string; text: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [clipped, setClipped] = useState(false);
+  const compact = text === 'TPU 285';
 
   useEffect(() => {
     const node = ref.current;
@@ -575,7 +576,12 @@ function ToolLabelRow({ className, text }: { className: string; text: string }) 
   }, [text]);
 
   return (
-    <div ref={ref} className={className} title={clipped ? text : undefined}>
+    <div
+      ref={ref}
+      className={className}
+      title={clipped ? text : undefined}
+      style={compact ? { fontSize: '11px', lineHeight: '14px' } : undefined}
+    >
       {text || '\u00A0'}
     </div>
   );
