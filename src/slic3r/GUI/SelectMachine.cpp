@@ -7549,14 +7549,52 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
     return true;
 }
 
-bool SelectMachineDialog::IsAllAmsSupportAccurateRemain(MachineObject* obj_) const
+bool SelectMachineDialog::IsRelevantAmsSupportAccurateRemain(MachineObject* obj_) const
 {
-    if (!obj_) return false;
-    const auto& ams_list = obj_->GetFilaSystem()->GetAmsList();
-    if (ams_list.empty()) return false;
-    for (const auto& [ams_id, ams] : ams_list) {
-        if (!ams || ams->GetRemainEstimateVersion() != DevAms::RemainEstimateVersion::Accurate)
+    if (!obj_ || !obj_->GetFilaSystem()) return false;
+
+    auto fila_sys = obj_->GetFilaSystem();
+    const auto& auto_refill = fila_sys->GetAutoRefillMgr();
+    const bool has_auto_refill_relation = auto_refill.IsEnabled() && auto_refill.HasRelation();
+    std::set<std::string> relevant_ams_ids;
+
+    auto collect_ams_id = [&](const DevAmsSlotId& slot_id) {
+        const std::string ams_id = std::to_string(slot_id.first);
+        if (fila_sys->GetAmsById(ams_id)) {
+            relevant_ams_ids.insert(ams_id);
+        }
+    };
+
+    for (const auto& fila : m_ams_mapping_result) {
+        if (fila.ams_id.empty() || fila.slot_id.empty()) {
+            continue;
+        }
+
+        DevAmsSlotId mapped_slot;
+        try {
+            mapped_slot = DevAmsSlotId{stoi(fila.ams_id), stoi(fila.slot_id)};
+        } catch (...) {
+            continue;
+        }
+
+        collect_ams_id(mapped_slot);
+        if (!has_auto_refill_relation) {
+            continue;
+        }
+
+        for (const auto& group : auto_refill.GetGroupsBySlot(mapped_slot).groups) {
+            for (const auto& refill_slot : group.fila_refill_slots) {
+                collect_ams_id(refill_slot.slot_id);
+            }
+        }
+    }
+
+    if (relevant_ams_ids.empty()) return false;
+    for (const auto& ams_id : relevant_ams_ids) {
+        DevAms* ams = fila_sys->GetAmsById(ams_id);
+        if (!ams || ams->GetRemainEstimateVersion() != DevAms::RemainEstimateVersion::Accurate) {
             return false;
+        }
     }
     return true;
 }
@@ -7570,12 +7608,13 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
     // as a single-element group, so that only groups holding more than one slot are named later.
     std::vector<std::vector<DevAmsSlotId>> insufficient_groups;
 
-    // Step 1: skip when remain detection is off, not a normal send-print, or AMS cannot report accurate remain.
+    // Step 1: skip when remain detection is off, not a normal send-print, or the mapped/refill-related
+    // AMS units cannot report accurate remain.
     if (!obj_) return true;
 
     if (!obj_->GetFilaSystem()->IsDetectRemainEnabled() || m_print_type != PrintFromType::FROM_NORMAL) return true;
 
-    if (!IsAllAmsSupportAccurateRemain(obj_)) return true;
+    if (!IsRelevantAmsSupportAccurateRemain(obj_)) return true;
 
     auto full_config = wxGetApp().preset_bundle->full_config();
     auto filament_densities = full_config.option<ConfigOptionFloats>("filament_density");
