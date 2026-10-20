@@ -85,6 +85,7 @@ public:
     std::optional<int>                      current_extruder_id = std::nullopt;// the ams is used on the extruder currently
     std::set<int>                           binded_extruder_set;// the ams can be used on the binded extruders
     std::optional<DevFilaSwitch::SwitchPos> binded_switcher_pos = std::nullopt;
+    std::shared_ptr<DevCtrlToken>           m_rfid_refresh_token;
 
 public:
     // operators
@@ -111,6 +112,7 @@ public:
     // status
     bool is_tray_info_ready() const;
     bool is_reading(MachineObject* obj) const;
+    bool is_reading_done(MachineObject* obj) const;
 
     bool is_unset_third_filament() const;
 

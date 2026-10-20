@@ -49,7 +49,7 @@ protected:
 
 private:
     std::string m_sequence_id;
-    int m_timeout_ms{5000};
+    int m_timeout_ms{3000};
     DevCtrlTokenStatus m_status{DevCtrlTokenStatus::Created};
     std::optional<nlohmann::json> m_reply;
     std::map<DevCtrlTokenStatus, Callback> m_callbacks;

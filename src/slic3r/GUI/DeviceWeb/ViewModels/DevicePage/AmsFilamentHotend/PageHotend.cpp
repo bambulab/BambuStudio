@@ -485,12 +485,14 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
 
     const char* filament_read_label = (card_state == SV::card_state::unknown) ? SV::read_label::read : SV::read_label::reread;// Unknown filament type shows "Read"; known type shows "Reread".
     bool can_read_filament = card_state != SV::card_state::reading && card_state != SV::card_state::empty && machine_obj && !machine_obj->GetFilaSystem()->GetAmsList().empty();
+    bool can_external_read_rfid_tpu = false;
     if (filament_changing && slot_id.has_value() && fila_sys->IsFilamentChangingSlot(slot_id->first, slot_id->second)) {
         can_read_filament = false;
     } else if (is_external_spool) {
         auto tray_opt = fila_sys->GetVirtualTray(slot_id->first);
         if (tray_opt && tray_opt->CanReadExternalRFID_TPU(machine_obj)) {
             can_read_filament = true;
+            can_external_read_rfid_tpu = true;
         } else {
             can_read_filament = false;
         }
@@ -500,7 +502,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
                              card_state != SV::card_state::empty && card_state != SV::card_state::awaiting_tpu_read &&
                              hotend_ready_for_filament;
     bool can_unload_filament = !filament_changing && line_state == SV::line_state::loaded && hotend_ready_for_filament;
-    bool can_ams_operation = (card_state != SV::card_state::empty || bind_ams_count > 0 || can_read_filament) && hotend_tool_kind == SV::tool_kind::nozzle;
+    bool can_ams_operation = (bind_ams_count > 0 || is_external_spool || can_external_read_rfid_tpu) && (hotend_tool_kind == SV::tool_kind::nozzle) && machine_obj && !machine_obj->GetFilaSystem()->GetAmsList().empty();
     const nlohmann::json menu_actions = {
         {SK::menu_actions::can_edit, can_edit_filament},
         {SK::menu_actions::can_load, can_load_filament },

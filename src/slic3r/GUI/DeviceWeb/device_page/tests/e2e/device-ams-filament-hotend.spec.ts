@@ -29,10 +29,68 @@ test.describe('AMS filament hotend page', () => {
     await expect(ambient).toContainText('24℃');
 
     // The readout anchors to the left of the unit's first column, so it must
-    // stay clear of the dryer chamber on the right half of the top tier.
+    // stay clear of slot 2 (and the dryer chamber on the right half of the top tier).
     const ambientBox = await ambient.boundingBox();
+    const slot2Box = await page.getByTestId('ams-hotend-slot-2').boundingBox();
     const chamberBox = await page.getByTestId('ams-hotend-dryer-chamber').boundingBox();
+    expect(ambientBox!.x + ambientBox!.width).toBeLessThanOrEqual(slot2Box!.x);
     expect(ambientBox!.x + ambientBox!.width).toBeLessThanOrEqual(chamberBox!.x);
+
+    // Even when slot 2 is fed by an external spool (`ams_id: "254"`), `zone_addrs`
+    // keeps the ambient readout anchored to the left of slot 2 rather than shifting
+    // into the gap between slot 2 and slot 4.
+    await page.evaluate(() => {
+      document.dispatchEvent(new CustomEvent('cpp:device', {
+        detail: {
+          head: { version: '1.0', type: 'report', seq: 9099, ts: Date.now() },
+          body: {
+            module: 'device_page_ams_filament_hotend',
+            submod: 'state',
+            action: 'changed',
+            error_code: 0,
+            message: '',
+            payload: {
+              filament_page: {
+                actions: {},
+                ams_dry_zones: [{
+                  ams_id: '32',
+                  zone_slots: [5, 7],
+                  zone_addrs: [5, 7],
+                  humidity_raw: 35,
+                  dry_time: 0,
+                  dry_status: 'Idle',
+                  dry_status_text: '空闲',
+                }],
+                ams_env_units: [{
+                  ams_id: '32',
+                  zone_addrs: [0, 1, 2, 3, 4, 6, 8],
+                  humidity_raw: 34,
+                  temp: 25,
+                }],
+                hotend_slots: [
+                  { addr_id: 0, display_index: 1, ams_id: '255', slot_id: '0', is_top_tier: false, is_external_spool: true, enabled: true, filament_card: { state: 'ReadyToUse', color: '#FFFFFF', text: 'PLA', name: 'PLA', type: 'PLA', status_text: '' }, filament_line: { state: 'loaded' }, filament_nozzle: { state: 'Normal' } },
+                  { addr_id: 1, display_index: 2, ams_id: '254', slot_id: '0', is_top_tier: true, is_external_spool: true, enabled: true, filament_card: { state: 'ReadyToUse', color: '#FF0000', text: 'PLA', name: 'PLA', type: 'PLA', status_text: '' }, filament_line: { state: 'loaded' }, filament_nozzle: { state: 'Normal' } },
+                  { addr_id: 2, display_index: 3, ams_id: '253', slot_id: '0', is_top_tier: false, is_external_spool: true, enabled: true, filament_card: { state: 'ReadyToUse', color: '#884400', text: 'PLA', name: 'PLA', type: 'PLA', status_text: '' }, filament_line: { state: 'loaded' }, filament_nozzle: { state: 'Normal' } },
+                  { addr_id: 3, display_index: 4, ams_id: '32', slot_id: '3', is_top_tier: true, is_external_spool: false, enabled: true, filament_card: { state: 'ReadyToUse', color: '#0066FF', text: 'PLA', name: 'PLA', type: 'PLA', status_text: '' }, filament_line: { state: 'loaded' }, filament_nozzle: { state: 'Normal' } },
+                  { addr_id: 4, display_index: 5, ams_id: '32', slot_id: '4', is_top_tier: false, is_external_spool: false, enabled: true, filament_card: { state: 'ReadyToUse', color: '#6600AA', text: 'PLA', name: 'PLA', type: 'PLA', status_text: '' }, filament_line: { state: 'loaded' }, filament_nozzle: { state: 'Normal' } },
+                  { addr_id: 5, display_index: 6, ams_id: '32', slot_id: '5', is_top_tier: true, is_external_spool: false, enabled: true, filament_card: { state: 'ReadyToUse', color: '#0033AA', text: 'PLA', name: 'PLA', type: 'PLA', status_text: '' }, filament_line: { state: 'loaded' }, filament_nozzle: { state: 'Normal' } },
+                  { addr_id: 6, display_index: 7, ams_id: '249', slot_id: '0', is_top_tier: false, is_external_spool: true, enabled: true, filament_card: { state: 'ReadyToLoad', color: '#DD1133', text: 'TPU', name: 'TPU', type: 'TPU', status_text: '' }, filament_line: { state: 'no_filament' }, filament_nozzle: { state: 'Normal' } },
+                  { addr_id: 7, display_index: 8, ams_id: '248', slot_id: '0', is_top_tier: true, is_external_spool: true, enabled: true, filament_card: { state: 'ReadyToLoad', color: '#EEDD55', text: 'TPU', name: 'TPU', type: 'TPU', status_text: '' }, filament_line: { state: 'no_filament' }, filament_nozzle: { state: 'Normal' } },
+                  { addr_id: 8, display_index: 9, ams_id: '32', slot_id: '8', is_top_tier: false, is_external_spool: false, enabled: true, filament_card: { state: 'ReadyToUse', color: '#DDDD00', text: 'PLA', name: 'PLA', type: 'PLA', status_text: '' }, filament_line: { state: 'loaded' }, filament_nozzle: { state: 'Normal' } },
+                ],
+              },
+              hotend_page: { actions: {}, hotend_slots: [] },
+            },
+          },
+        },
+      }));
+    });
+
+    await expect(ambient).toContainText('34%');
+    await expect(ambient).toContainText('25℃');
+    const extAmbientBox = await ambient.boundingBox();
+    const extSlot2Box = await page.getByTestId('ams-hotend-slot-2').boundingBox();
+    expect(extAmbientBox!.x + extAmbientBox!.width).toBeLessThanOrEqual(extSlot2Box!.x);
   });
 
   test('clicking the dryer chamber readout opens drying for that unit', async ({ page }) => {

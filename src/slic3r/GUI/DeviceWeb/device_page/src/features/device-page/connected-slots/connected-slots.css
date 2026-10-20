@@ -59,9 +59,7 @@
   background: var(--ams-soft-border, #ebebeb);
 }
 
-/* Two equal columns mirror `.cs-boards`, so each schematic sits centred
-   over its corresponding board column instead of hugging the edge. Grid
-   over flex here so children keep their intrinsic width. */
+/* Default layout: follow content adaptively. */
 .cs-schematic-bar {
   position: relative;
   display: grid;
@@ -187,8 +185,6 @@
   gap: 24px;
 }
 
-/* Each board centres inside its own half so the two columns stay symmetric
-   about the hotend no matter how many trays either side has. */
 .cs-boards__left,
 .cs-boards__right {
   display: flex;
@@ -213,6 +209,59 @@
   justify-content: space-between;
   width: 100%;
   gap: 8px;
+}
+
+/* Four-slot-right layout: lock dimensions to the CDP baseline the user gave. */
+.cs-slot-view--fixed-four-slot {
+  --cs-board-gap: 24px;
+  --cs-left-board-width: 104px;
+  --cs-right-board-width: 356px;
+}
+
+.cs-slot-view--fixed-four-slot .cs-schematic-bar {
+  grid-template-columns: var(--cs-left-board-width) var(--cs-right-board-width);
+  column-gap: var(--cs-board-gap);
+  width: calc(var(--cs-left-board-width) + var(--cs-right-board-width) + var(--cs-board-gap));
+}
+
+.cs-slot-view--fixed-four-slot .cs-hotend-slot-schematic {
+  width: var(--cs-left-board-width);
+}
+
+.cs-slot-view--fixed-four-slot .cs-connected-source-schematic {
+  justify-content: flex-start;
+  width: var(--cs-right-board-width);
+}
+
+.cs-slot-view--fixed-four-slot .cs-schematic-bar > .cs-connected-source-schematic {
+  justify-self: start;
+}
+
+.cs-slot-view--fixed-four-slot .cs-body {
+  width: calc(var(--cs-left-board-width) + var(--cs-right-board-width) + var(--cs-board-gap));
+}
+
+.cs-slot-view--fixed-four-slot .cs-boards {
+  display: grid;
+  grid-template-columns: var(--cs-left-board-width) var(--cs-right-board-width);
+  column-gap: var(--cs-board-gap);
+}
+
+.cs-slot-view--fixed-four-slot .cs-boards__left,
+.cs-slot-view--fixed-four-slot .cs-boards__right {
+  flex: 0 0 auto;
+}
+
+.cs-slot-view--fixed-four-slot .cs-ams-unit-board--left {
+  width: var(--cs-left-board-width);
+}
+
+.cs-slot-view--fixed-four-slot .cs-ams-unit-board--right {
+  width: var(--cs-right-board-width);
+}
+
+.cs-slot-view--fixed-four-slot .cs-ams-unit-board__head {
+  min-height: 24px;
 }
 
 .cs-ams-unit-board__name {

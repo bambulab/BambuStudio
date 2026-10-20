@@ -53,11 +53,20 @@ export function findAmbientAnchors(
 ): Array<{ start: number; humidity: number; temp: number | null }> {
   if (!units?.length) return [];
   const byStart = new Map<number, { start: number; humidity: number; temp: number | null }>();
+  const toIds = (v?: Array<number | string>) => (v ?? []).map(Number).filter((n) => !Number.isNaN(n));
 
   for (const unit of units) {
-    if (!unit.ams_id) continue;
-
-    const start = slots.findIndex((slot) => slot.ams_id === unit.ams_id);
+    // Rack positions first: an external spool overrides `slot.ams_id` with its
+    // virtual tray id, which would otherwise push the anchor past the first
+    // top-tier column of this AMS unit.
+    const addrIds = toIds(unit.zone_addrs);
+    let start = -1;
+    if (addrIds.length > 0) {
+      const addrSet = new Set(addrIds);
+      start = slots.findIndex((slot) => addrSet.has(Number(slot.addr_id)));
+    } else if (unit.ams_id) {
+      start = slots.findIndex((slot) => slot.ams_id === unit.ams_id);
+    }
     if (start < 0 || byStart.has(start)) continue;
 
     const humidity = typeof unit.humidity_raw === 'number' && unit.humidity_raw >= 0 ? unit.humidity_raw : -1;

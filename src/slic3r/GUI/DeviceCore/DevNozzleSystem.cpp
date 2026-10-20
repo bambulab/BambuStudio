@@ -256,6 +256,17 @@ bool DevNozzle::IsInBindAmsSlots(int ams_id, int slot_id) const
     return false;
 }
 
+bool DevNozzle::IsInBindAms(int ams_id) const
+{
+    for (const auto bind_ams_id : m_bind_ams) {
+        if (bind_ams_id == ams_id) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 std::optional<DevAmsSlotId> DevNozzle::GetRelatedAmsSlot() const
 {
     auto rack = m_nozzle_rack.lock();
@@ -1025,8 +1036,13 @@ void DevNozzleSystemParser::sTraverseBindAmsSlot(DevNozzleSystem* system, DevNoz
         // using the slot now value
         if (nozzle_obj.m_slot_now.has_value() &&  nozzle_obj.IsHotend()) {
             if (system->GetOwner()->get_tray(std::to_string(nozzle_obj.m_slot_now->first), std::to_string(nozzle_obj.m_slot_now->second))) {
-                nozzle_obj.m_bind_ams_slots = { nozzle_obj.m_slot_now.value() };
-                return;
+                if (!nozzle_obj.IsInBindAms(nozzle_obj.m_slot_now->first)) {
+                    nozzle_obj.m_bind_ams_slots = { nozzle_obj.m_slot_now.value() };
+                    return;
+                } else if (nozzle_obj.IsInBindAms(nozzle_obj.m_slot_now->first) && nozzle_obj.HasFilamentAtNozzleInlet()) {
+                    nozzle_obj.m_bind_ams_slots = { nozzle_obj.m_slot_now.value() };
+                    return;
+                }
             }
         };
 

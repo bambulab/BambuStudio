@@ -6,6 +6,7 @@ export function CardText({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
   const card = slot.filament_card;
   const isEmpty = card.state === 'Empty';
   const isAwaitingTpu = card.state === 'AwaitingTpuRead';
+  const isReading = card.state === 'Reading';
   const isUnknown = card.state === 'Unknown';
 
   // Loading / Unloading slots intentionally fall through to the default
@@ -16,6 +17,8 @@ export function CardText({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
     ? t('Empty')
     : isAwaitingTpu
     ? (card.text || t('TPU pending read'))
+    : isReading
+    ? '--'
     : isUnknown
     ? '?'
     : card.text || card.name || card.type || '';

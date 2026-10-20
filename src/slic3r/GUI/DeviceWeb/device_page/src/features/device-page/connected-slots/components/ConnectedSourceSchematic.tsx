@@ -62,9 +62,6 @@ export function ConnectedSourceSchematic({
   onSelectSource?: (extIndex: number) => void;
 }) {
   const items = schematic.items ?? [];
-  // A lone source cannot be switched away from, so the picker carries no
-  // information and only steals room from the boards below.
-  if (items.length <= 1) return null;
   return (
     <div
       className="cs-connected-source-schematic"

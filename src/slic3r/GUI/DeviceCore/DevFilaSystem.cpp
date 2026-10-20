@@ -115,6 +115,7 @@ void DevAmsTray::reset()
     hold_count          = 0;
     remain              = 0;
     remain_g            = -1;
+    m_rfid_refresh_token.reset();
 }
 
 
@@ -387,7 +388,37 @@ bool DevAmsTray::is_reading(MachineObject* obj) const
             }
         }
 
+        if (m_rfid_refresh_token) {
+            const auto status = m_rfid_refresh_token->GetStatus();
+            if (status == DevCtrlTokenStatus::SendSucceeded || status == DevCtrlTokenStatus::WaitingReply) {
+                return true;
+            }
+        }
+
         return DevUtil::get_flag_bits(obj->tray_reading_bits, get_tray_flag_bit());
+    }
+
+    return false;
+}
+
+bool DevAmsTray::is_reading_done(MachineObject* obj) const
+{
+    if (obj) {
+        if (CanReadExternalRFID_TPU(obj)) {
+            if (auto nozzle_addr_opt = get_nozzle_addr_id(obj); nozzle_addr_opt.has_value()) {
+                auto nozzle_opt = obj->GetNozzleSystem()->GetNozzleOptByAddrId(*nozzle_addr_opt);
+                if (nozzle_opt.has_value() && nozzle_opt->IsExist() && nozzle_opt->IsHotend() && nozzle_opt->GetNozzleFlowType() == NozzleFlowType::T_FLOW) {
+                    auto related_ams_slot_opt = nozzle_opt->GetRelatedAmsSlot();
+                    if (related_ams_slot_opt.has_value()) {
+                        if (auto tray_opt = obj->get_tray(related_ams_slot_opt->first, related_ams_slot_opt->second); tray_opt.has_value() && tray_opt->is_reading_done(obj)) {
+                            return true;
+                        }
+                    }
+                };
+            }
+        }
+
+        return DevUtil::get_flag_bits(obj->tray_read_done_bits, get_tray_flag_bit());
     }
 
     return false;

@@ -386,11 +386,19 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
             }
 
             for (const auto& [zone_id, zone] : zones) {
+                nlohmann::json zone_addrs = nlohmann::json::array();
+                for (int zone_slot : zone.zone_slots) {
+                    const auto it = ams_slot_to_addr.find({ams_unit->GetAmdIdInt(), zone_slot});
+                    if (it != ams_slot_to_addr.end()) {
+                        zone_addrs.push_back(it->second);
+                    }
+                }
                 if (!zone.SupportDrying()) {
                     if (zone.current_temperature > 0 && zone.humidity_percent > 0) {
                         const float unit_temp = zone.current_temperature;
                         fp[SK::filament_page::ams_env_units].push_back({
                             {SK::env_unit::ams_id,       ams_unit->GetAmsId()},
+                            {SK::env_unit::zone_addrs,   zone_addrs},
                             {SK::env_unit::temp,         unit_temp != INVALID_AMS_TEMPERATURE ? nlohmann::json(unit_temp) : nlohmann::json(nullptr)},
                             {SK::env_unit::humidity_raw, zone.humidity_percent}});
                     }
@@ -400,13 +408,6 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
                 can_dry = true;
                 const std::string dry_status_enum = zone.dry_status.has_value() ? dry_status_short_name(*zone.dry_status) : std::string();
                 const std::string dry_status_label = zone.dry_status.has_value() ? dry_status_display_label(*zone.dry_status) : _u8L("Idle");
-                nlohmann::json zone_addrs = nlohmann::json::array();
-                for (int zone_slot : zone.zone_slots) {
-                    const auto it = ams_slot_to_addr.find({ams_unit->GetAmdIdInt(), zone_slot});
-                    if (it != ams_slot_to_addr.end()) {
-                        zone_addrs.push_back(it->second);
-                    }
-                }
                 fp[SK::filament_page::ams_dry_zones].push_back({
                     {SK::dryer_zone::ams_id,          ams_unit->GetAmsId()},
                     {SK::dryer_zone::zone_slots,      zone.zone_slots},

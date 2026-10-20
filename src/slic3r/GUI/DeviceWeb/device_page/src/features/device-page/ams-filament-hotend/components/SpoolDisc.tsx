@@ -1,6 +1,9 @@
 import { useId } from 'react';
 import type { AmsFilamentHotendSlotViewModel } from '../types';
 import filamentTagUrl from '../assets/spool_filament_tag_figma.svg';
+import refreshHintUrl from '../assets/spool_awaiting_refresh.svg';
+import readingArcUrl from '../assets/spool_reading_arc_figma.svg';
+import readingDiscUrl from '../assets/spool_reading_disc_figma.svg';
 import unknownSpoolUrl from '../assets/spool_unknown_figma.svg';
 import {
   MaterialDonut,
@@ -29,6 +32,7 @@ export function SpoolDisc({
   // (filled donut + tag); the rotating progress mark moves to the card-head
   // top-right slot instead of obscuring the disc centre. Per the firmware
   // contract a Loading/Unloading slot always has a known filament colour.
+  const isReading = state === 'Reading';
   const isTransporting = state === 'Loading' || state === 'Unloading';
   const isFilled =
     state === 'ReadyToLoad' ||
@@ -48,8 +52,14 @@ export function SpoolDisc({
       role="img"
       aria-label={`spool-${display_index}`}
     >
-      <circle cx={center} cy={center} r={OUTER} fill="var(--ams-overlay-bg)" />
-      <circle cx={center} cy={center} r={OUTER - 0.5} fill="none" stroke="var(--ams-border)" strokeWidth={1} />
+      {isReading ? (
+        <image href={readingDiscUrl} x={0} y={0} width={SIZE} height={SIZE} preserveAspectRatio="none" />
+      ) : (
+        <>
+          <circle cx={center} cy={center} r={OUTER} fill="var(--ams-overlay-bg)" />
+          <circle cx={center} cy={center} r={OUTER - 0.5} fill="none" stroke="var(--ams-border)" strokeWidth={1} />
+        </>
+      )}
 
       {isFilled && (
         <MaterialDonut
@@ -76,7 +86,7 @@ export function SpoolDisc({
         <image href={filamentTagUrl} x={0} y={0} width={SIZE} height={SIZE} preserveAspectRatio="none" />
       )}
 
-      {state === 'Reading' && <ReadingArc center={center} />}
+      {isReading && <ReadingArc center={center} />}
 
       {state === 'Empty' && (
         <text
@@ -129,36 +139,28 @@ function NotAllowedOverlay({ center }: { center: number }) {
 }
 
 function RefreshHint({ center }: { center: number }) {
-  const r = 8;
   return (
-    <g
-      fill="none"
-      stroke="var(--ams-text-disabled)"
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d={`M ${center - r * 0.15} ${center - r} A ${r} ${r} 0 1 1 ${center - r} ${center}`} />
-      <polyline points={`${center - r * 0.55},${center - r * 0.55} ${center - r * 0.15},${center - r} ${center + r * 0.25},${center - r * 0.55}`} />
-    </g>
+    <image
+      href={refreshHintUrl}
+      x={center - 8}
+      y={center - 8}
+      width={16}
+      height={16}
+      preserveAspectRatio="none"
+    />
   );
 }
 
 function ReadingArc({ center }: { center: number }) {
-  const r = RING - 3;
-  const dashLen = 2 * Math.PI * r * 0.28;
   return (
     <g className="spool-loading-rotor" style={{ transformOrigin: `${center}px ${center}px` }}>
-      <circle
-        className="spool-loading-mark"
-        cx={center}
-        cy={center}
-        r={r}
-        fill="none"
-        stroke="var(--ams-brand)"
-        strokeWidth={3}
-        strokeLinecap="round"
-        strokeDasharray={`${dashLen} 999`}
+      <image
+        href={readingArcUrl}
+        x={center - 8}
+        y={center - 13.9497 / 2}
+        width={16}
+        height={13.9497}
+        preserveAspectRatio="none"
       />
     </g>
   );

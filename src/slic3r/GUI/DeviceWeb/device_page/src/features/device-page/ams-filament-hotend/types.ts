@@ -430,6 +430,8 @@ export interface AmsFilamentHotendDryerZone {
  */
 export interface AmsFilamentHotendEnvUnit {
   ams_id?: string;
+  /** Rack positions of the non-drying zone slots, matched against `slot.addr_id`. */
+  zone_addrs?: Array<number | string>;
   humidity_raw?: number;
   temp?: number | null;
 }

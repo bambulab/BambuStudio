@@ -191,6 +191,7 @@ public:
     std::vector<DevAmsSlotId> GetBindAmsSlots() const { return m_bind_ams_slots; };
 
     // external ams ids bound to this nozzle (from device push "bind_ams")
+    bool IsInBindAms(int ams_id) const;
     std::vector<int> GetBindAms() const { return m_bind_ams; };
 
     // Preload (pre-feed) AMS slots: rack-matching internal AMS only.

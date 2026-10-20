@@ -26,6 +26,7 @@ function useAlignSchematicsToBoards(
   barRef: RefObject<HTMLDivElement | null>,
   stageRef: RefObject<HTMLDivElement | null>,
   revision: unknown,
+  alignRightSchematic: boolean,
 ) {
   const align = useCallback(() => {
     const bar = barRef.current;
@@ -35,14 +36,20 @@ function useAlignSchematicsToBoards(
     const sides = ['left', 'right'] as const;
     sides.forEach((side, i) => {
       const schematic = bar.children[i] as HTMLElement | undefined;
+      if (!schematic) return;
+      if (side === 'right' && !alignRightSchematic) {
+        // Keep the right source strip left-anchored in the fixed four-slot mode.
+        schematic.style.transform = '';
+        return;
+      }
       const board = stage.querySelector<HTMLElement>(`[data-cs-board-anchor="${side}"]`);
-      if (!schematic || !board) return;
+      if (!board) return;
       const boardRect = board.getBoundingClientRect();
       const boardCenter = boardRect.left + boardRect.width / 2 - barLeft;
       const schematicCenter = schematic.offsetLeft + schematic.offsetWidth / 2;
       schematic.style.transform = `translateX(${boardCenter - schematicCenter}px)`;
     });
-  }, [barRef, stageRef]);
+  }, [alignRightSchematic, barRef, stageRef]);
 
   useLayoutEffect(() => {
     align();
@@ -70,9 +77,18 @@ function SlotView({
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
-  useAlignSchematicsToBoards(barRef, stageRef, slot);
+  const rightSchematicItems = slot.top_slots_area.right_slots.schematic.items ?? [];
+  const rightHasFourSlotAms = rightSchematicItems.some(
+    (item) => !!item.ams_id && item.slot_count === 4,
+  );
+  const rightUnit = slot.top_slots_area.right_slots.unit;
+  // Fallback for payloads that do not expose right schematic items.
+  const useFixedFourSlotLayout = rightHasFourSlotAms
+    || (!!rightUnit && rightUnit.trays.length === 4);
+  useAlignSchematicsToBoards(barRef, stageRef, slot, !useFixedFourSlotLayout);
+
   return (
-    <>
+    <div className={useFixedFourSlotLayout ? 'cs-slot-view cs-slot-view--fixed-four-slot' : 'cs-slot-view'}>
       <div className="cs-schematic-bar" ref={barRef}>
         <HotendSlotSchematic schematic={slot.top_slots_area.left_slot.schematic} />
         <ConnectedSourceSchematic
@@ -91,7 +107,7 @@ function SlotView({
         </div>
         <HotendFilamentPath slot={slot} stageRef={stageRef} />
       </div>
-    </>
+    </div>
   );
 }
 

@@ -70,35 +70,56 @@ const char* dry_status_short_name(Slic3r::DevAms::DryStatus status)
 }
 
 // How long to wait for the RFID result before judging the slot as "nothing read".
-constexpr int RFID_READ_RESULT_DELAY_MS = 2500;
+constexpr int RFID_READ_RESULT_DELAY_MS_1 = 2500;
+constexpr int RFID_READ_RESULT_DELAY_MS_2 = 1000;
 
 // The read result lands in a later push_status, not in the command reply, so the outcome
 // is judged from the freshest slot snapshot. The token is only captured to keep it alive
 // until then, otherwise DevCtrlTokenMgr may drop it while the timer is still pending.
 void check_external_tpu_rfid_read_result_later(const std::string&            dev_id,
-                                  const std::string&            ams_id,
-                                  const std::string&            slot_id,
-                                  std::shared_ptr<DevCtrlToken> token)
+                                               const std::string&            ams_id,
+                                               const std::string&            slot_id,
+                                               std::shared_ptr<DevCtrlToken> token)
 {
-    auto* timer = new wxTimer();
-    timer->Bind(wxEVT_TIMER, [timer, dev_id, ams_id, slot_id, token](wxTimerEvent&) {
-        timer->Stop();
-        wxGetApp().CallAfter([timer]() {
-            delete timer;
+    if (!token) return;
+
+    token->SetCallback(DevCtrlTokenStatus::ReplyReceived, [dev_id, ams_id, slot_id](const std::shared_ptr<DevCtrlToken>& settled, DevCtrlTokenStatus status) {
+        if (status != DevCtrlTokenStatus::ReplyReceived) {
+            return;
+        }
+
+        auto* timer = new wxTimer();
+        timer->Bind(wxEVT_TIMER, [timer, dev_id, ams_id, slot_id, settled](wxTimerEvent&) {
+            timer->Stop();
+            auto* dev_mgr = wxGetApp().getDeviceManager();
+            MachineObject* obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+            if (obj && obj->get_dev_id() == dev_id) {
+                auto tray = obj->GetFilaSystem()->GetVirtualTray(ams_id);
+                if (tray.has_value()) {
+                    if (auto nozzle_opt = tray->get_nozzle(obj); nozzle_opt.has_value()) {
+                        if (auto related_ams_slot_opt = nozzle_opt->GetRelatedAmsSlot(); related_ams_slot_opt.has_value()) {
+                            if (auto related_tray_opt = obj->get_tray(related_ams_slot_opt->first, related_ams_slot_opt->second); related_tray_opt.has_value()) {
+                                if (!related_tray_opt->is_reading_done(obj)) {
+                                    timer->StartOnce(RFID_READ_RESULT_DELAY_MS_2);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    if (tray->setting_id.empty() && tray->m_fila_type.empty()) {
+                        MessageDialog dlg(wxGetApp().mainframe, _L("No filament information available"), _L("Tip"), wxOK);
+                        dlg.ShowModal();
+                    }
+                }
+            }
+
+            wxGetApp().CallAfter([timer]() {
+                delete timer;
+            });
         });
 
-        auto* dev_mgr = wxGetApp().getDeviceManager();
-        MachineObject* obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
-        if (obj && obj->get_dev_id() == dev_id) {
-            auto tray = obj->GetFilaSystem()->GetVirtualTray(ams_id);
-            if (tray.has_value() && tray->setting_id.empty() && tray->m_fila_type.empty()) {
-                MessageDialog dlg(wxGetApp().mainframe,
-                                  _L("No filament information available"), _L("Tip"), wxOK);
-                dlg.ShowModal();
-            }
-        }
+        timer->StartOnce(RFID_READ_RESULT_DELAY_MS_1);
     });
-    timer->StartOnce(RFID_READ_RESULT_DELAY_MS);
 }
 
 void open_ams_materials_setting(const std::string& ams_id, const std::string& slot_id)

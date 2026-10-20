@@ -78,6 +78,10 @@ export function GroupColumn({
 }: GroupColumnProps) {
   const { t } = useTranslation();
   const nozzle = nozzleLabel(group);
+  const hasManualSlot = group.slots.some((slot) => slot.create_type === 'manual');
+  const resetTooltip = !hasManualSlot
+    ? t('该续料组暂无手动添加耗材，重置仅对手动添加项生效')
+    : undefined;
   const listRef = useRef<HTMLDivElement>(null);
   const slotsRef = useRef(group.slots);
   const [slots, setSlots] = useState(group.slots);
@@ -227,15 +231,18 @@ export function GroupColumn({
           >
             {t('+ Add similar')}
           </button>
-          <button
-            type="button"
-            className="refill-group__reset"
-            aria-label={t('Reset')}
-            disabled={busy || !group.refill_tag_id}
-            onClick={() => onReset?.(group.refill_tag_id)}
-          >
-            <img src={resetIcon} alt="" />
-          </button>
+          <span title={resetTooltip}>
+            <button
+              type="button"
+              className="refill-group__reset"
+              aria-label={t('Reset')}
+              title={resetTooltip}
+              disabled={busy || !group.refill_tag_id || !hasManualSlot}
+              onClick={() => onReset?.(group.refill_tag_id)}
+            >
+              <img src={resetIcon} alt="" />
+            </button>
+          </span>
         </div>
       )}
     </div>

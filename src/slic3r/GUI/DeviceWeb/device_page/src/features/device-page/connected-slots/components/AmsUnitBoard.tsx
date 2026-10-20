@@ -23,7 +23,7 @@ export function AmsUnitBoard({
   const feedSlotId = resolveFeedTraySlotId(column);
   return (
     <section
-      className="cs-ams-unit-board"
+      className={`cs-ams-unit-board cs-ams-unit-board--${side}`}
       data-testid={`ams-unit-board-${unit.ams_id}`}
       data-cs-board-anchor={side}
     >

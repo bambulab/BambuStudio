@@ -263,6 +263,7 @@ export const mockAmsFilamentHotendState: AmsFilamentHotendViewModel = {
     ams_env_units: [
       {
         ams_id: '0',
+        zone_addrs: [0, 1, 2, 3, 4, 6, 8],
         humidity_raw: 24,
         temp: 24,
       },

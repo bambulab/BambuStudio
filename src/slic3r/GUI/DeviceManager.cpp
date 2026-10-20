@@ -1869,16 +1869,11 @@ std::shared_ptr<DevCtrlToken> MachineObject::command_ams_refresh_rfid2(int ams_i
     const auto token = m_ctrl_token_mgr.Build(sequence_id);
     const int  send_result = this->publish_json(j);
     token->SetSendResult(send_result);
-
-    // Optimistic update: enter the reading state right away instead of waiting for the
-    // firmware to report it, so the card does not stay idle for a whole push cycle.
     if (send_result == 0) {
-        if (auto tray = get_tray(ams_id, slot_id); tray.has_value()) {
-            const long long flag_bit = tray->get_tray_flag_bit();
-            if (flag_bit >= 0) { tray_reading_bits |= (1LL << flag_bit); }
+        if (auto* ams_tray = m_fila_system->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id))) {
+            ams_tray->m_rfid_refresh_token = token;
         }
     }
-
     return token;
 }
 
@@ -2946,10 +2941,10 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 
 #if !BBL_RELEASE_TO_PUBLIC
         BOOST_LOG_TRIVIAL(trace) << KV(log_key::dev_id, get_dev_id()) << "tunnel=" << tunnel << ", merged playload="
-                                 << j;
+                                 << j.dump(1);
 #else
         if (Slic3r::get_logging_level() >= level_string_to_boost("trace")) {
-            BOOST_LOG_TRIVIAL(trace) << KV(log_key::dev_id, get_dev_id()) << "origin playload=" << j_pre;
+            BOOST_LOG_TRIVIAL(trace) << KV(log_key::dev_id, get_dev_id()) << "origin playload=" << j_pre.dump(1);
         } else {
             if (j_pre.contains("print")) {
                 BOOST_LOG_TRIVIAL(info) << KV(log_key::dev_id, get_dev_id()) << "print playload=" << j_pre["print"];
