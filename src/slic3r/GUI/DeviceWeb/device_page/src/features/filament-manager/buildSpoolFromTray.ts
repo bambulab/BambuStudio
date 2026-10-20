@@ -59,11 +59,11 @@ function normalizePresetFilamentName(
 // DevAmsTray::get_filament_remain_weight() (prefer firmware-reported
 // per-gram `remain_g`, fall back to `weight * remain%`); the result is
 // serialized as `remain_weight` by FilamentManagerVM::build_ams_data. This
-// helper is a thin accessor over that field. `null` / `undefined` /
-// non-positive values mean "no weight to show" and the caller paints `—`.
-export function getTrayCurrentNetWeight(tray: AmsTray): number {
+// helper is a thin accessor over that field. `null` / `undefined` mean
+// unknown; zero is a known empty spool and must be preserved.
+export function getTrayCurrentNetWeight(tray: AmsTray): number | null {
   const rw = tray.remain_weight;
-  return typeof rw === 'number' && rw > 0 ? rw : 0;
+  return typeof rw === 'number' && rw >= 0 ? rw : null;
 }
 
 export interface TrayResolution {
@@ -74,7 +74,7 @@ export interface TrayResolution {
   sanitizedColor: string;
   traySanitizedColors: string[];
   trayNetInit: number;
-  currentNet: number;
+  currentNet: number | null;
   matchedSettingId: string;
 }
 
@@ -200,8 +200,8 @@ export function buildSpoolFromTray(input: BuildSpoolFromTrayInput): BuildSpoolFr
   const initialWeight = resolved.trayNetInit > 0
     ? Math.min(resolved.trayNetInit, MAX_NET_WEIGHT_GRAMS)
     : 1000;
-  const currentWeight = resolved.currentNet > 0
-    ? Math.min(resolved.currentNet, initialWeight)
+  const currentWeight = resolved.currentNet !== null
+    ? Math.min(Math.max(resolved.currentNet, 0), initialWeight)
     : initialWeight;
   const remainPct = initialWeight > 0
     ? Math.min(100, Math.max(0, Math.round(currentWeight * 100 / initialWeight)))
