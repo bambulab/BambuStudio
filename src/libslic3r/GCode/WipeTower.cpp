@@ -1582,7 +1582,7 @@ WipeTower::ToolChangeResult WipeTower::construct_block_tcr(WipeTowerWriter &writ
 
 // BBS
 // Local alias so uses below don't need rewriting; the header value is shared with
-// PartPlate::estimate_wipe_tower_size.
+// WipeTower::estimate_footprint_size / PartPlate::estimate_wipe_tower_size.
 static constexpr double wrapping_wipe_tower_depth = WipeTower::wrapping_wipe_tower_depth;
 
 // BBS
@@ -1629,6 +1629,135 @@ float WipeTower::get_limit_depth_by_height(float max_height)
 float WipeTower::get_auto_brim_by_height(float max_height) {
     if (max_height < 100) return max_height/100.f * 8.f;
     return 8.f;
+}
+
+Vec2f WipeTower::estimate_footprint_size(
+    float prime_tower_width,
+    float wipe_volume,
+    int   filament_depth_count,
+    float layer_height,
+    float tower_height,
+    float nozzle_diameter,
+    float extra_spacing,
+    bool  use_rib_wall,
+    float rib_width,
+    float extra_rib_length,
+    bool  fillet_wall,
+    bool  force_min_tower,
+    bool  enable_wrapping,
+    float extra_purge_volume)
+{
+    // Mirrors plan_tower_new / set_toolchange / rib_section for a synthetic worst-case
+    // single layer so Prepare / arrange / pre-slice clearance share one footprint.
+    static constexpr float WT_EPS = 1e-3f;
+    static constexpr float Width_To_Nozzle_Ratio = 1.25f;
+
+    if (filament_depth_count < 0)
+        filament_depth_count = 0;
+    if (layer_height < WT_EPS)
+        layer_height = 0.08f;
+    if (nozzle_diameter < WT_EPS)
+        nozzle_diameter = 0.4f;
+
+    const float perimeter_width = nozzle_diameter * Width_To_Nozzle_Ratio;
+    const float spacing         = std::max(1.f, extra_spacing);
+    // After calc_block_infill_gap (no-ramming case) gap ≈ perimeter * config spacing,
+    // then m_extra_spacing is reset to 1 before update_all_layer_depth.
+    const float gap = perimeter_width * spacing;
+
+    auto volume_to_length = [&](float volume) -> float {
+        const float denom = layer_height * (perimeter_width - layer_height * (1.f - float(M_PI) / 4.f));
+        if (denom < WT_EPS)
+            return 0.f;
+        return std::max(0.f, volume / denom);
+    };
+
+    auto toolchange_depth = [&](float tower_w, float volume) -> float {
+        const float usable = tower_w - 2.f * perimeter_width;
+        if (usable < WT_EPS || volume < WT_EPS)
+            return 0.f;
+        return std::ceil(volume_to_length(volume) / usable) * gap;
+    };
+
+    auto layer_toolchange_depth = [&](float tower_w) -> float {
+        float depth = 0.f;
+        if (filament_depth_count > 0 && wipe_volume > WT_EPS)
+            depth += float(filament_depth_count) * toolchange_depth(tower_w, wipe_volume);
+        if (extra_purge_volume > WT_EPS)
+            depth += toolchange_depth(tower_w, extra_purge_volume);
+        return depth;
+    };
+
+    float width = std::max(prime_tower_width, 2.f * perimeter_width + WT_EPS);
+    float max_depth = layer_toolchange_depth(width);
+
+    const float min_depth = get_limit_depth_by_height(tower_height);
+    if (max_depth < WT_EPS) {
+        if (enable_wrapping)
+            max_depth = float(wrapping_wipe_tower_depth);
+        else if (force_min_tower)
+            max_depth = min_depth;
+    }
+
+    const bool need_tower = force_min_tower || enable_wrapping || filament_depth_count > 0;
+    if (!need_tower && max_depth < WT_EPS)
+        return Vec2f::Zero();
+
+    if (use_rib_wall) {
+        // plan_tower_new rib pass: square_width = ceil(sqrt((sum(depths)+perimeter)*width))
+        float       max_depth_sq  = max_depth + perimeter_width;
+        float       square_width  = align_ceil(std::sqrt(std::max(0.f, max_depth_sq * width)), perimeter_width);
+        if (square_width < WT_EPS)
+            square_width = width;
+
+        // Recalculate toolchange depths at the squared width (same as set_toolchange after square).
+        max_depth = layer_toolchange_depth(square_width);
+        if (max_depth < WT_EPS) {
+            if (enable_wrapping)
+                max_depth = float(wrapping_wipe_tower_depth);
+            else if (force_min_tower)
+                max_depth = min_depth;
+            if (max_depth > WT_EPS)
+                square_width = std::max(square_width, max_depth);
+        }
+
+        float rib_length = 0.f;
+        if (max_depth > WT_EPS && max_depth + WT_EPS < min_depth)
+            rib_length = min_depth * std::sqrt(2.f);
+
+        // update_all_layer_depth with m_extra_spacing == 1
+        float body_depth = max_depth;
+        if (body_depth > WT_EPS)
+            body_depth += perimeter_width;
+        float body_width = square_width;
+        if (body_width < WT_EPS || body_depth < WT_EPS)
+            return Vec2f::Zero();
+
+        const float diagonal = std::sqrt(body_depth * body_depth + body_width * body_width);
+        rib_length = std::max(rib_length, diagonal);
+        rib_length += extra_rib_length;
+        rib_length = std::max(diagonal, rib_length);
+        const float rw = std::min(rib_width, std::min(body_depth, body_width) / 2.f);
+
+        Polygon section = rib_section(body_width, body_depth, rib_length, rw, fillet_wall);
+        if (section.points.size() < 3)
+            return Vec2f(body_width, body_depth);
+        const BoundingBox bb = get_extents(section);
+        return Vec2f(unscale<float>(bb.size().x()), unscale<float>(bb.size().y()));
+    }
+
+    // Non-rib: grow spacing when below the height-based minimum depth.
+    float apply_spacing = 1.f;
+    if (max_depth > WT_EPS && max_depth + WT_EPS < min_depth)
+        apply_spacing = min_depth / max_depth;
+
+    float body_depth = max_depth * apply_spacing;
+    if (body_depth > WT_EPS)
+        body_depth += perimeter_width;
+    if (need_tower || body_depth > WT_EPS)
+        body_depth = std::max(body_depth, min_depth);
+
+    return Vec2f(width, body_depth);
 }
 
 Vec2f WipeTower::move_box_inside_box(const BoundingBox &box1, const BoundingBox &box2,int scaled_offset)

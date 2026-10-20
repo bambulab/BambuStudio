@@ -2244,33 +2244,38 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     // does not force this in Print::wipe_tower_data(), so it must not force it here either.
     int filament_depth_count = extruder_count == 2 ? plate_extruder_size : (plate_extruder_size - 1);
     if (!legacy_behavior && plate_extruder_size == 1 && smooth_timelapse) filament_depth_count = 1;
-    double volume = wipe_volume * filament_depth_count;
-    if (extruder_count == 2) volume += filament_change_volume * (int) (plate_extruder_size / 2);
+    const float extra_purge_volume = (extruder_count == 2)
+                                         ? float(filament_change_volume * (int) (plate_extruder_size / 2))
+                                         : 0.f;
 
     const ConfigOption* layer_height_opt = config.option("layer_height");
     double layer_height = layer_height_opt ? layer_height_opt->getFloat() : 0.08;
 
-    double depth;
-    if (use_rib_wall) {
-        depth = std::sqrt(volume / layer_height * extra_spacing);
-        if (need_wipe_tower || plate_extruder_size > 1) {
-            float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
-            double volume_depth         = depth;
-            depth = std::max((double) min_wipe_tower_depth, depth);
-            rib_width = std::min(rib_width, depth / 2);
-            depth = rib_width / std::sqrt(2) + std::max(depth + m_print->config().prime_tower_extra_rib_length.value, volume_depth);
-            wipe_tower_size(0) = wipe_tower_size(1) = depth;
-        }
+    float nozzle_diameter = 0.4f;
+    if (const ConfigOptionFloats *nd = config.option<ConfigOptionFloats>("nozzle_diameter")) {
+        if (!nd->values.empty())
+            nozzle_diameter = float(*std::max_element(nd->values.begin(), nd->values.end()));
+    } else if (m_print) {
+        const auto &nd = m_print->config().nozzle_diameter.values;
+        if (!nd.empty())
+            nozzle_diameter = float(*std::max_element(nd.begin(), nd.end()));
     }
-    else {
-        depth  =  volume / (layer_height * w) *extra_spacing;
-        if (need_wipe_tower || depth > EPSILON) {
-            float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
-            depth = std::max((double)min_wipe_tower_depth, depth);
-        }
-        wipe_tower_size(0) = w;
-        wipe_tower_size(1) = depth;
-    }
+
+    const float extra_rib_length = m_print ? float(m_print->config().prime_tower_extra_rib_length.value)
+                                          : float(config.option("prime_tower_extra_rib_length")
+                                                      ? config.option("prime_tower_extra_rib_length")->getFloat()
+                                                      : 0.);
+    const ConfigOptionBool *fillet_opt = config.option<ConfigOptionBool>("prime_tower_fillet_wall");
+    const bool              fillet_wall = fillet_opt ? fillet_opt->value : false;
+
+    // XY from shared planner math; Z stays object max height (Prepare height is out of scope).
+    const bool force_min_tower = smooth_timelapse || plate_extruder_size > 1 || need_wipe_tower;
+    const Vec2f footprint = WipeTower::estimate_footprint_size(
+        float(w), float(wipe_volume), filament_depth_count, float(layer_height), float(max_height),
+        nozzle_diameter, float(extra_spacing), use_rib_wall, float(rib_width), extra_rib_length, fillet_wall,
+        force_min_tower, enable_wrapping_detection, extra_purge_volume);
+    wipe_tower_size(0) = footprint.x();
+    wipe_tower_size(1) = footprint.y();
 
     return wipe_tower_size;
 }
