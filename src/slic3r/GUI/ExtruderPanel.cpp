@@ -916,8 +916,10 @@ void NozzleRackPanel::UpdateNozzles(const std::vector<std::vector<NozzleConfig>>
     const DynamicPrintConfig &printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
     if (m_extruder_count == 1 && is_single_ext_multi_nozzle(printer_config)) {
         const int ams_nozzle_idx = printer_config.opt_int("ams_nozzle_idx", -1);
-        m_ams_enabled[0] = ams_nozzle_idx >= 0 && !extruders.empty() && ams_nozzle_idx < static_cast<int>(extruders[0].size()) &&
-                           !extruders[0][ams_nozzle_idx].is_empty();
+        const bool valid_ams_nozzle = ams_nozzle_idx >= 0 && !extruders.empty() &&
+                                      ams_nozzle_idx < static_cast<int>(extruders[0].size());
+        m_ams_enabled[0] = valid_ams_nozzle && !extruders[0][ams_nozzle_idx].is_empty() &&
+                           (multi_diameter || extruders[0][ams_nozzle_idx].diameter == selected_diameter);
     }
 
     int matching = 0;
