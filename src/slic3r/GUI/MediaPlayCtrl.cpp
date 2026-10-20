@@ -437,8 +437,8 @@ void MediaPlayCtrl::Play()
 
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
-    if (m_lan_proto > MachineObject::LVL_Disable && (m_lan_mode || !m_remote_proto) && !m_disable_lan && !m_lan_ip.empty()) {
-        m_disable_lan = m_remote_proto && !m_lan_mode; // try remote next time
+    if (m_lan_proto > MachineObject::LVL_Disable && (m_lan_mode || !m_remote_proto || m_prefer_lan) && !m_disable_lan && !m_lan_ip.empty()) {
+        m_disable_lan = m_remote_proto && !m_lan_mode && !m_prefer_lan; // try remote next time
         std::string url;
         if (m_lan_proto == MachineObject::LVL_Local)
             url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;

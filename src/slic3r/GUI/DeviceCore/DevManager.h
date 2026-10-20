@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <mutex>
+#include <set>
 #include "libslic3r/CommonDefs.hpp"
 
 #include "slic3r/Utils/json_diff.hpp"
@@ -22,6 +23,7 @@ private:
     DeviceManagerRefresher* m_refresher{ nullptr };
 
     bool m_enable_mutil_machine = false;
+    std::set<std::string> m_full_parse_devices;
 
     std::mutex listMutex;
     std::string selected_machine;                               /* dev_id */
@@ -93,6 +95,10 @@ public:
     void EnableMultiMachine(bool enable = true);
     bool IsMultiMachineEnabled() const { return m_enable_mutil_machine; }
     std::vector<std::string> subscribe_list_cache;//multiple machine subscribe list cache
+
+    // devices whose cloud messages are fully parsed even if not selected (multi-camera page)
+    void set_full_parse_devices(const std::vector<std::string>& dev_list) { m_full_parse_devices = std::set<std::string>(dev_list.begin(), dev_list.end()); }
+    bool is_full_parse_device(const std::string& dev_id) const { return m_full_parse_devices.count(dev_id) > 0; }
     std::map<std::string, std::vector<std::string>> device_subseries;
 
 private:

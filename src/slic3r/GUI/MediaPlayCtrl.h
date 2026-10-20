@@ -51,6 +51,9 @@ public:
 
     void SetMachineObject(MachineObject * obj);
 
+    // try the LAN stream first even for cloud printers, if the printer ip is known
+    void SetPreferLan(bool prefer_lan) { m_prefer_lan = prefer_lan; }
+
     bool IsStreaming() const;
 
     void ToggleStream();
@@ -117,6 +120,7 @@ private:
     int m_remote_proto = 0;
     bool m_device_busy = false;
     bool m_disable_lan = false;
+    bool m_prefer_lan = false;
     wxString m_url;
 
     std::deque<wxString> m_tasks;
