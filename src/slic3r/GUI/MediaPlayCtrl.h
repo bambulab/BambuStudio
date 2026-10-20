@@ -52,9 +52,9 @@ public:
     void SetMachineObject(MachineObject * obj);
 
     // try the LAN stream first even for cloud printers, if the printer ip is known
-    void SetPreferLan(bool prefer_lan) { m_prefer_lan = prefer_lan; }
+    void SetPreferLan(bool prefer_lan) { m_prefer_lan = prefer_lan; m_remote_refused = false; m_disable_lan = false; }
     // switch to the LAN stream when the cloud refuses the live view
-    void SetLanFallback(bool lan_fallback) { m_lan_fallback = lan_fallback; }
+    void SetLanFallback(bool lan_fallback) { m_lan_fallback = lan_fallback; m_remote_refused = false; }
     // keep streaming without user input or while the printer is idle
     void SetKeepAlive(bool keep_alive) { m_keep_alive = keep_alive; }
     // ask for the printer ip with a modal dialog when the LAN connection fails
