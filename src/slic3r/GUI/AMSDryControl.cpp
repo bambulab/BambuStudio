@@ -30,6 +30,14 @@ namespace Slic3r { namespace GUI {
 const int AMS_DRY_STATUS_IMAGE_SIZE = 96;
 const int AMS_DRY_STATUS_IMAGE_SIZE_ZMULTI = 200;
 
+// The dryable zone this dialog controls; only one per AMS for now.
+// nullopt: AMS without zone info, the whole AMS is dried.
+static std::optional<int> resolve_dry_zone_id(const DevAms* dev_ams)
+{
+    const auto zone_ids = dev_ams ? dev_ams->GetDryableZoneIds() : std::vector<int>();
+    return zone_ids.empty() ? std::nullopt : std::optional<int>(zone_ids.front());
+}
+
 // Drying duration range accepted by the input box. The validation message and
 // the input hint are both derived from these bounds so they cannot drift apart.
 const int AMS_DRY_MIN_HOUR = 1;
@@ -1171,7 +1179,7 @@ void AMSDryCtrWin::start_sending_drying_command()
     // firmware to, even if the (hidden) toggle somehow retained a value.
     rotate_spool = m_can_auto_retract && m_rotate_spool_toggle->GetValue();
 
-    fila_system->CtrlAmsStartDryingHour(std::stoi(m_ams_info.m_ams_id), 0, get_drying_filament_type_for_command(m_tray_ids[tray_index]),
+    fila_system->CtrlAmsStartDryingHour(std::stoi(m_ams_info.m_ams_id), m_ams_info.m_dry_zone_id.value_or(0), get_drying_filament_type_for_command(m_tray_ids[tray_index]),
         temperature, time, rotate_spool, cooling_temp, false);
 
     m_dry_setting.m_filament_names[m_ams_info.m_ams_id] = m_tray_ids[tray_index].filament_name;
@@ -1757,7 +1765,8 @@ void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
     }
 
     if (m_printer_status.m_is_printing && temp_val > m_ams_info.m_recommand_dry_temp) {
-        warning_text += _L("This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.") + "\n";
+        warning_text += _L("This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.")
+            + wxString::Format(wxT(" (%d"), static_cast<int>(m_ams_info.m_recommand_dry_temp)) + wxString::FromUTF8("°C)") + "\n";
         can_enable_button = false;
     }
 
@@ -2285,8 +2294,7 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
         return 0;
     }
 
-    // Idle state: avoid re-selecting / firing selection change unless the list was rebuilt.
-    if (!rebuilt_filament_list && !ams_changed && is_dry_ctr_idle()) {
+    if (!rebuilt_filament_list && !ams_changed && !m_printer_status.m_need_refresh_recommend && is_dry_ctr_idle()) {
         return 0;
     }
 
@@ -2345,6 +2353,7 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
         }
     }
     m_ams_info.m_recommand_dry_temp = min_dry_temp;
+    m_printer_status.m_need_refresh_recommend = false;
 
     // Set default selection
     unsigned int default_index = 0;
@@ -2370,10 +2379,25 @@ std::shared_ptr<DevFilaSystem> AMSDryCtrWin::get_fila_system() const
     return fila_system;
 }
 
+void AMSDryCtrWin::update_dry_zone(DevAms* dev_ams)
+{
+    const std::optional<int> zone_id = resolve_dry_zone_id(dev_ams);
+    if (m_ams_info.m_dry_zone_id != zone_id) {
+        BOOST_LOG_TRIVIAL(info) << "dry zone changed " << KV(log_key::ams_id, dev_ams->GetAmsId())
+                                << " zone=" << (zone_id ? std::to_string(*zone_id) : "none")
+                                << " dryable_zones=" << dev_ams->GetDryableZoneIds().size();
+        m_ams_info.m_dry_zone_id = zone_id;
+    }
+}
+
 void AMSDryCtrWin::update_printer_state(MachineObject* obj)
 {
-    m_printer_status.m_is_printing = obj->is_in_printing()
-        && obj->GetExtderSystem()->GetCurrentAmsId() == m_ams_info.m_ams_id;
+    const bool is_printing = obj->GetFilaSystem() && obj->GetFilaSystem()->IsDryAreaInPrintUse(m_ams_info.m_ams_id, m_ams_info.m_dry_zone_id);
+    if (m_printer_status.m_is_printing != is_printing) {
+        BOOST_LOG_TRIVIAL(info) << "dry area print use changed " << KV(log_key::ams_id, m_ams_info.m_ams_id) << " in_use=" << is_printing;
+        m_printer_status.m_is_printing = is_printing;
+        m_printer_status.m_need_refresh_recommend = true;
+    }
 }
 
 void AMSDryCtrWin::update(std::shared_ptr<DevFilaSystem> fila_system, MachineObject* obj)
@@ -2385,7 +2409,6 @@ void AMSDryCtrWin::update(std::shared_ptr<DevFilaSystem> fila_system, MachineObj
         return;
     }
 
-    update_printer_state(obj);
     m_fila_system = fila_system;
 
     DevAms* dev_ams = fila_system->GetAmsById(m_ams_info.m_ams_id);
@@ -2395,6 +2418,9 @@ void AMSDryCtrWin::update(std::shared_ptr<DevFilaSystem> fila_system, MachineObj
         close_once();
         return;
     }
+
+    update_dry_zone(dev_ams);
+    update_printer_state(obj);
 
     if (!dev_ams->IsSupportRemoteDry(fila_system->GetOwner())) {
         BOOST_LOG_TRIVIAL(info) << "Selected AMS does not support remote drying";
@@ -2442,8 +2468,8 @@ AMSDryCtrWin::DryView AMSDryCtrWin::get_dry_view(DevAms* dev_ams) const
     DryView v;
     if (!dev_ams) return v;
 
-    if (!dev_ams->GetZones().empty()) {
-        auto z = dev_ams->GetZone(0);
+    if (const auto zone_id = resolve_dry_zone_id(dev_ams)) {
+        auto z = dev_ams->GetZone(*zone_id);
         if (z.has_value()) {
             v.dry_status        = z->dry_status;
             v.dry_sub_status    = z->dry_sub_status;
@@ -2472,13 +2498,13 @@ AMSDryCtrWin::AmbientView AMSDryCtrWin::get_ambient_view(DevAms* dev_ams) const
     if (!dev_ams) return v;
 
     if (!dev_ams->GetZones().empty()) {
-        // Average humidity/temperature across all zones with id != 0. If the
-        // unit only has zone 0, fall through to legacy unit-wide values.
+        // Average humidity/temperature across all non-dryable zones. If the
+        // unit only has dryable zones, fall through to legacy unit-wide values.
         long long temp_sum = 0;
         long long hum_sum = 0;
         int        count = 0;
         for (const auto& [zone_id, zone] : dev_ams->GetZones()) {
-            if (zone_id == 0) continue;
+            if (zone.SupportDrying()) continue;
             temp_sum += static_cast<long long>(zone.current_temperature);
             hum_sum  += zone.humidity_percent;
             ++count;

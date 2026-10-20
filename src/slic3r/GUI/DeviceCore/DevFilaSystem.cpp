@@ -721,15 +721,23 @@ bool DevAms::IsSupportRemoteDry(const MachineObject* obj) const
 
 bool DevAms::IsDryableSlot(int slot_id) const
 {
-    // Zoned AMS: only slots inside the dryable zone (zone_id == 0) can be dried.
-    // Fall back to the legacy "all slots are dryable" semantics for AMS types
-    // that don't report zone information.
-    if (!m_zones.empty()) {
-        auto dry_zone = GetZone(0);
-        if (!dry_zone) return false;
-        return std::find(dry_zone->zone_slots.begin(), dry_zone->zone_slots.end(), slot_id) != dry_zone->zone_slots.end();
+    if (m_zones.empty()) {
+        return SupportDrying();
     }
-    return SupportDrying();
+
+    auto zone = GetZoneBySlotId(slot_id);
+    return zone && zone->SupportDrying();
+}
+
+std::vector<int> DevAms::GetDryableZoneIds() const
+{
+    std::vector<int> zone_ids;
+    for (const auto& [zone_id, zone] : m_zones) {
+        if (zone.SupportDrying()) {
+            zone_ids.push_back(zone_id);
+        }
+    }
+    return zone_ids;
 }
 
 bool DevAms::AmsIsDrying()
@@ -1055,6 +1063,47 @@ bool DevFilaSystem::IsBBL_Filament(std::string tag_uid)
 bool DevFilaSystem::CanShowFilamentBackup() const
 {
     return m_auto_refill_mgr.CanShow();
+}
+
+bool DevFilaSystem::IsDryAreaInPrintUse(const std::string& ams_id, std::optional<int> zone_id) const
+{
+    if (!m_owner || !m_owner->is_in_printing()) {
+        return false;
+    }
+
+    const DevAms* ams = GetAmsById(ams_id);
+    if (!ams) {
+        return false;
+    }
+
+    auto is_in_dry_area = [ams, zone_id](int slot_id) {
+        if (!ams->IsDryableSlot(slot_id)) {
+            return false;
+        }
+        if (!zone_id) {
+            return true;
+        }
+        const auto zone = ams->GetZoneBySlotId(slot_id);
+        return zone && zone->zone_id == *zone_id;
+    };
+
+    // new firmware reports tray print_status directly
+    bool has_print_status = false;
+    for (const auto& [tray_id, tray] : ams->GetTrays()) {
+        if (!tray || !tray->print_status.has_value()) {
+            continue;
+        }
+        has_print_status = true;
+        try {
+            if (*tray->print_status != DevAmsTray::PrintStatus::Idle && is_in_dry_area(std::stoi(tray_id))) {
+                return true;
+            }
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << "invalid " << KV(log_key::ams_id, ams_id) << " " << KV(log_key::tray_id, tray_id);
+        }
+    }
+    // old firmware without tray print_status: any printing counts as in use
+    return !has_print_status;
 }
 
 bool DevFilaSystem::HasSubAms() const
@@ -1636,6 +1685,12 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
         curr_tray->is_exists = DevUtil::get_flag_bits(obj->tray_exist_bits, curr_ams->GetTrayId(tray_id_int));
     } catch (...) {
         BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
+
+    // runtime state, must not be held back by hold_count
+    curr_tray->print_status.reset();
+    if (j_tray.contains("print_status") && j_tray["print_status"].is_number_integer()) {
+        curr_tray->print_status = static_cast<DevAmsTray::PrintStatus>(j_tray["print_status"].get<int>());
     }
 
     if (curr_tray->hold_count > 0) {

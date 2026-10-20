@@ -212,6 +212,7 @@ private:
         int m_temperature;
         int m_left_dry_time;
         float m_recommand_dry_temp;
+        std::optional<int> m_dry_zone_id; // nullopt: AMS without zone info, the whole AMS is dried
     } m_ams_info;
 
     struct {
@@ -222,7 +223,8 @@ private:
     } m_dry_setting;
 
     struct {
-        bool m_is_printing = false;
+        bool m_is_printing = false; // the drying area is used by the current print
+        bool m_need_refresh_recommend = false;
     } m_printer_status;
 
 private:
@@ -275,6 +277,7 @@ private:
     int update_filament_list(DevAms* dev_ams, MachineObject* obj);
     void update_filament_guide_info(DevAms* dev_ams);
     void update_normal_state(DevAms* dev_ams);
+    void update_dry_zone(DevAms* dev_ams);
     void update_printer_state(MachineObject* obj);
 
     std::shared_ptr<DevFilaSystem> get_fila_system() const;
@@ -291,7 +294,7 @@ private:
     bool is_dry_ctr_err(DevAms* dev_ams);
 
     // Aggregated dry state for the active drying area. For zoned AMS units
-    // (ZMULTI_A, etc.) this reflects zone 0 only; for legacy AMS it reflects
+    // (ZMULTI_A, etc.) this reflects the dryable zone only; for legacy AMS it reflects
     // the whole unit. Centralising the lookup here keeps every consumer in
     // this dialog (image, badges, state machine, settings prefill) consistent.
     struct DryView {
@@ -305,7 +308,7 @@ private:
     };
     DryView get_dry_view(DevAms* dev_ams) const;
     // Non-dryable view: data shown on the "normal" badge (the area that
-    // cannot be dried). For zoned AMS, this aggregates non-zone-0 zones; for
+    // cannot be dried). For zoned AMS, this aggregates non-dryable zones; for
     // legacy AMS it falls back to the unit-wide values (same as DryView).
     struct AmbientView {
         int humidity_percent = -1;

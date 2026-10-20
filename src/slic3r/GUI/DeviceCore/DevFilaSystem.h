@@ -40,6 +40,13 @@ public:
         Initializing = 4,
     };
 
+    enum class PrintStatus : int
+    {
+        Idle         = 0,
+        Using        = 1,
+        RefillBackup = 2,
+    };
+
     DevAmsTray() = default;
     DevAmsTray(const std::string& ams_id, const std::string& slot_id)
     {
@@ -74,6 +81,7 @@ public:
     float                    n        = 0.0f; // k range: 0.6 ~ 2.0
     int                      cali_idx             = -1;  // - 1 means default
     RemainFetchStatus        remain_fetch_status  = RemainFetchStatus::Done; // bits[5-7] of MQTT "state" field
+    std::optional<PrintStatus> print_status; // nullopt: not reported by old firmware
 
     wxColour        wx_color;
     bool            is_bbl;
@@ -290,6 +298,8 @@ public:
     // remote drying control
     bool IsSupportRemoteDry(const MachineObject* obj) const;
     bool IsDryableSlot(int slot_id) const;
+
+    std::vector<int> GetDryableZoneIds() const;
     std::optional<DryStatus> GetDryStatus() const { return m_dry_status; };
     std::optional<DrySubStatus> GetDrySubStatus() const { return m_dry_sub_status; }
     std::optional<DryFanStatus> GetFan1Status() const { return m_dry_fan1_status; }
@@ -405,6 +415,9 @@ public:
 
     // filament backup
     bool CanShowFilamentBackup() const;
+
+    // tray print_status granularity; old firmware without it falls back to is_in_printing()
+    bool IsDryAreaInPrintUse(const std::string& ams_id, std::optional<int> zone_id) const;
 
     // filament change steps
     std::optional<DevFilamentStep> GetCurrentFilamentChangeStep() const;
