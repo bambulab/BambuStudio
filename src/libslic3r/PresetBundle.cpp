@@ -472,6 +472,8 @@ PresetBundle& PresetBundle::operator=(const PresetBundle &rhs)
     project_config      = rhs.project_config;
     vendors             = rhs.vendors;
     obsolete_presets    = rhs.obsolete_presets;
+    extruder_ams_counts     = rhs.extruder_ams_counts;
+    extruder_ams_selections = rhs.extruder_ams_selections;
     m_project_file_has_per_slot_nozzle_options = rhs.m_project_file_has_per_slot_nozzle_options;
 
     // Adjust Preset::vendor pointers to point to the copied vendors map.
@@ -502,6 +504,7 @@ void PresetBundle::reset(bool delete_files)
     this->obsolete_presets.filaments.clear();
     this->obsolete_presets.sla_materials.clear();
     this->obsolete_presets.printers.clear();
+    this->extruder_ams_selections.clear();
 }
 
 void PresetBundle::setup_directories()
@@ -2584,6 +2587,7 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
         boost::algorithm::split(extruder_ams_count_str, config.get("presets", "extruder_ams_count"), boost::algorithm::is_any_of(","));
     }
     this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
+    this->extruder_ams_selections.clear();
 
     std::vector<std::string> matrix;
     if (config.has("presets", "flush_volumes_matrix")) {
@@ -3828,6 +3832,10 @@ void PresetBundle::set_ams_count(int index, int ams4, int ams1)
     auto &counts = extruder_ams_counts[index];
     counts[4]    = ams4;
     counts[1]    = ams1;
+    if (index < static_cast<int>(extruder_ams_selections.size()) && extruder_ams_selections[index].initialized) {
+        extruder_ams_selections[index].ams4.resize(std::max(0, ams4));
+        extruder_ams_selections[index].ams1.resize(std::max(0, ams1));
+    }
 }
 
 std::pair<int, int> PresetBundle::get_ams_count(int index)
@@ -3838,6 +3846,80 @@ std::pair<int, int> PresetBundle::get_ams_count(int index)
 
     auto &counts = extruder_ams_counts[index];
     return {counts[4], counts[1]};
+}
+
+ExtruderAmsSelection *PresetBundle::get_ams_selection(int index)
+{
+    extruder_ams_selections.resize(get_printer_extruder_count());
+    const bool valid = 0 <= index && index < static_cast<int>(extruder_ams_selections.size());
+    assert(valid && "out of bound");
+    return valid ? &extruder_ams_selections[index] : nullptr;
+}
+
+void PresetBundle::initialize_ams_selection(int index, const std::string &device_id,
+                                            const std::vector<std::string> &ams4_ids, const std::vector<std::string> &ams1_ids)
+{
+    ExtruderAmsSelection *selection = get_ams_selection(index);
+    if (!selection || (selection->initialized && (device_id.empty() || selection->device_id == device_id))) return;
+
+    const auto [n4, n1] = get_ams_count(index);
+    auto initialize = [](std::vector<std::string> &units, int count, const std::vector<std::string> &device_ids) {
+        units.clear();
+        units.reserve(std::max(0, count));
+        for (int i = 0; i < count; ++i)
+            units.push_back(i < static_cast<int>(device_ids.size()) ? device_ids[i] : std::string());
+    };
+    initialize(selection->ams4, n4, ams4_ids);
+    initialize(selection->ams1, n1, ams1_ids);
+    selection->initialized = true;
+    selection->device_id   = device_id;
+}
+
+void PresetBundle::resize_ams_selection(int index, const std::string &device_id,
+                                        const std::vector<std::string> &ams4_ids, const std::vector<std::string> &ams1_ids,
+                                        int ams4, int ams1)
+{
+    initialize_ams_selection(index, device_id, ams4_ids, ams1_ids);
+    ExtruderAmsSelection *selection = get_ams_selection(index);
+    if (!selection) return;
+
+    auto resize = [](std::vector<std::string> &selected, int count, const std::vector<std::string> &device_ids) {
+        const size_t wanted = std::max(0, count);
+        if (selected.size() > wanted) selected.resize(wanted);
+        while (selected.size() < wanted) {
+            const auto missing = std::find_if(device_ids.begin(), device_ids.end(), [&selected](const std::string &id) {
+                return std::find(selected.begin(), selected.end(), id) == selected.end();
+            });
+            if (missing == device_ids.end()) {
+                selected.emplace_back();
+                continue;
+            }
+
+            const auto missing_rank = std::distance(device_ids.begin(), missing);
+            const auto insert_at = std::find_if(selected.begin(), selected.end(), [&](const std::string &id) {
+                if (id.empty()) return true;
+                const auto rank = std::find(device_ids.begin(), device_ids.end(), id);
+                return rank != device_ids.end() && std::distance(device_ids.begin(), rank) > missing_rank;
+            });
+            selected.insert(insert_at, *missing);
+        }
+    };
+    resize(selection->ams4, ams4, ams4_ids);
+    resize(selection->ams1, ams1, ams1_ids);
+    set_ams_count(index, ams4, ams1);
+}
+
+void PresetBundle::replace_ams_selection(int index, const std::string &device_id,
+                                         const std::vector<std::string> &ams4_ids, const std::vector<std::string> &ams1_ids)
+{
+    ExtruderAmsSelection *selection = get_ams_selection(index);
+    if (!selection) return;
+
+    selection->initialized = true;
+    selection->device_id   = device_id;
+    selection->ams4        = ams4_ids;
+    selection->ams1        = ams1_ids;
+    set_ams_count(index, static_cast<int>(ams4_ids.size()), static_cast<int>(ams1_ids.size()));
 }
 
 std::vector<std::string> PresetBundle::get_extra_compatible_printers_by_full_stat()
@@ -7382,6 +7464,7 @@ void PresetBundle::on_extruders_count_changed(int extruders_count, bool reset_vo
     if (reset_volume_type)
         reset_default_nozzle_volume_type();
     extruder_ams_counts.resize(extruders_count);
+    extruder_ams_selections.clear();
 }
 
 void PresetBundle::update_multi_material_filament_presets(size_t to_delete_filament_id)

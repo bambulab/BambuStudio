@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -59,6 +60,10 @@ private:
     std::function<void()> m_on_changed;
     bool                  m_has_ams{false};
     std::pair<int, int>   m_snapshot{0, 0}; // {n4, n1} at construction, restored on Cancel
+    bool                  m_selection_snapshot_initialized{false};
+    std::string           m_selection_snapshot_device_id;
+    std::vector<std::string> m_ams4_snapshot;
+    std::vector<std::string> m_ams1_snapshot;
 
     Label                    *m_label{nullptr};
     wxPanel                  *m_previews_container{nullptr};

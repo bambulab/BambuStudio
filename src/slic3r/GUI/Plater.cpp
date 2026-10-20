@@ -1847,7 +1847,15 @@ public:
     static void SetAMSCount(int index, int ams4, int ams1, bool update = true)
     {
         PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
-        preset_bundle.set_ams_count(index, ams4, ams1);
+        MachineObject *obj = nullptr;
+        if (auto *dev = wxGetApp().getDeviceManager()) obj = dev->get_selected_machine();
+        if (obj && obj->is_online() && obj->is_info_ready() && obj->GetFilaSystem() && obj->GetExtderSystem() &&
+            preset_bundle.printers.get_edited_preset().get_printer_type(&preset_bundle) == obj->get_show_printer_type()) {
+            const auto ids = collect_ams_ids(obj);
+            preset_bundle.resize_ams_selection(index, obj->get_dev_id(), ids.at({index, 4}), ids.at({index, 1}), ams4, ams1);
+        } else {
+            preset_bundle.set_ams_count(index, ams4, ams1);
+        }
 
         std::vector<std::string> extruder_ams_count     = save_extruder_ams_count_to_string(preset_bundle.extruder_ams_counts);
         std::string              extruder_ams_count_str = boost::algorithm::join(extruder_ams_count, ",");
@@ -3358,8 +3366,11 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         nozzle_diameters[index] = synced_diameter ? *synced_diameter : get_best_diameter(obj, (int) index);
     }
 
-    // key:(logical_extruder_id, slot_num) val: count
-    std::map<std::pair<int, int>, int> ams_cnt_map = collect_ams_counts(obj);
+    // key:(logical_extruder_id, slot_num) val: ordered device AMS ids
+    AmsIdMap ams_ids_map = collect_ams_ids(obj);
+    auto ams_count = [&ams_ids_map](int extruder, int slots) {
+        return static_cast<int>(ams_ids_map[{extruder, slots}].size());
+    };
     only_external_material = !obj->GetFilaSystem()->HasAms();
 
     auto find_string = [](ComboBox *combo, const wxString& str) {
@@ -3404,8 +3415,12 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
             show_preset_diameter_on_dual_groups();
         is_switching_diameter = false;
         dual_diameter_switched = true;
-        AMSCountPopupWindow::SetAMSCount(DEPUTY_EXTRUDER_ID, ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}], ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}]);
-        AMSCountPopupWindow::SetAMSCount(MAIN_EXTRUDER_ID, ams_cnt_map[{MAIN_EXTRUDER_ID, 4}], ams_cnt_map[{MAIN_EXTRUDER_ID, 1}]);
+        preset_bundle->replace_ams_selection(DEPUTY_EXTRUDER_ID, obj->get_dev_id(),
+                                             ams_ids_map[{DEPUTY_EXTRUDER_ID, 4}], ams_ids_map[{DEPUTY_EXTRUDER_ID, 1}]);
+        preset_bundle->replace_ams_selection(MAIN_EXTRUDER_ID, obj->get_dev_id(),
+                                             ams_ids_map[{MAIN_EXTRUDER_ID, 4}], ams_ids_map[{MAIN_EXTRUDER_ID, 1}]);
+        AMSCountPopupWindow::SetAMSCount(DEPUTY_EXTRUDER_ID, ams_count(DEPUTY_EXTRUDER_ID, 4), ams_count(DEPUTY_EXTRUDER_ID, 1));
+        AMSCountPopupWindow::SetAMSCount(MAIN_EXTRUDER_ID, ams_count(MAIN_EXTRUDER_ID, 4), ams_count(MAIN_EXTRUDER_ID, 1));
 
         AMSCountPopupWindow::UpdateAMSCount(LOGIC_L_EXTRUDER_ID, nozzle_card->GetPanel());
         AMSCountPopupWindow::UpdateAMSCount(LOGIC_R_EXTRUDER_ID, nozzle_card->GetPanel());
@@ -3449,7 +3464,12 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         }
 
 
-        AMSCountPopupWindow::SetAMSCount(LOGIC_UNIQUE_EXTRUDER_ID, ams_cnt_map[{LOGIC_UNIQUE_EXTRUDER_ID, 4}], ams_cnt_map[{LOGIC_UNIQUE_EXTRUDER_ID, 1}]);
+        preset_bundle->replace_ams_selection(LOGIC_UNIQUE_EXTRUDER_ID, obj->get_dev_id(),
+                                             ams_ids_map[{LOGIC_UNIQUE_EXTRUDER_ID, 4}],
+                                             ams_ids_map[{LOGIC_UNIQUE_EXTRUDER_ID, 1}]);
+        AMSCountPopupWindow::SetAMSCount(LOGIC_UNIQUE_EXTRUDER_ID,
+                                         ams_count(LOGIC_UNIQUE_EXTRUDER_ID, 4),
+                                         ams_count(LOGIC_UNIQUE_EXTRUDER_ID, 1));
         AMSCountPopupWindow::UpdateAMSCount(LOGIC_UNIQUE_EXTRUDER_ID, nozzle_card->GetPanel());
     }
 
@@ -3681,6 +3701,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         else {
             single_extruder->ShowBadge(false);
             single_extruder->sync_ams(obj, {}, {});
+            nozzle_card->GetPanel()->sync_ams(0, obj, {}, {}, {}, {});
         }
     }
     else if (extruder_nums == 2) {
@@ -21574,7 +21595,15 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
         int right_1 = ams_cnt_map[{1, 1}];
         const auto [l4, l1] = preset_bundle->get_ams_count(0);
         const auto [r4, r1] = preset_bundle->get_ams_count(1);
-        is_same_as_printer &= (left_4 == l4 && left_1 == l1 && right_4 == r4 && right_1 == r1);
+        const auto ams_ids = collect_ams_ids(obj);
+        preset_bundle->initialize_ams_selection(0, obj->get_dev_id(), ams_ids.at({0, 4}), ams_ids.at({0, 1}));
+        preset_bundle->initialize_ams_selection(1, obj->get_dev_id(), ams_ids.at({1, 4}), ams_ids.at({1, 1}));
+        const auto *left_selection  = preset_bundle->get_ams_selection(0);
+        const auto *right_selection = preset_bundle->get_ams_selection(1);
+        is_same_as_printer &= left_selection && right_selection &&
+                              left_selection->ams4 == ams_ids.at({0, 4}) && left_selection->ams1 == ams_ids.at({0, 1}) &&
+                              right_selection->ams4 == ams_ids.at({1, 4}) && right_selection->ams1 == ams_ids.at({1, 1}) &&
+                              left_4 == l4 && left_1 == l1 && right_4 == r4 && right_1 == r1;
 
         if (!is_same_as_printer) {
             struct SyncInfoDialog : MessageDialog

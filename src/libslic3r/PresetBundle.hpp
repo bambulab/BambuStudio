@@ -189,6 +189,16 @@ std::map<NozzleVolumeType, int> count_default_nozzle_volume_types(const ConfigBa
 std::string                                serialize_nozzle_volume_types(const std::vector<std::vector<NozzleVolumeType>> &per_extruder_slots);
 std::vector<std::vector<NozzleVolumeType>> deserialize_nozzle_volume_types(const std::string &value);
 
+// Ordered AMS units selected for one logical extruder. A non-empty string is a device AMS id;
+// an empty string is a virtual unit. This runtime identity layer complements the persisted counts.
+struct ExtruderAmsSelection
+{
+    bool                     initialized{false};
+    std::string              device_id;
+    std::vector<std::string> ams4;
+    std::vector<std::string> ams1;
+};
+
 // Bundle of Print + Filament + Printer presets.
 class PresetBundle
 {
@@ -397,6 +407,14 @@ public:
      * \param index logical index of extruer
      */
     std::pair<int, int> get_ams_count(int index);
+    void initialize_ams_selection(int index, const std::string &device_id,
+                                  const std::vector<std::string> &ams4_ids, const std::vector<std::string> &ams1_ids);
+    void resize_ams_selection(int index, const std::string &device_id,
+                              const std::vector<std::string> &ams4_ids, const std::vector<std::string> &ams1_ids,
+                              int ams4, int ams1);
+    void replace_ams_selection(int index, const std::string &device_id,
+                               const std::vector<std::string> &ams4_ids, const std::vector<std::string> &ams1_ids);
+    ExtruderAmsSelection *get_ams_selection(int index);
 
     PresetCollection            prints;
     PresetCollection            sla_prints;
@@ -414,6 +432,7 @@ public:
     std::vector<std::vector<std::string>> ams_multi_color_filment;
 
     std::vector<std::map<int, int>> extruder_ams_counts;
+    std::vector<ExtruderAmsSelection> extruder_ams_selections;
     ExtruderNozzleStat extruder_nozzle_stat;
     ExtruderFullStat   extruder_full_stat;
     // Calibrate

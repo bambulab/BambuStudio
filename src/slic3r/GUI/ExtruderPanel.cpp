@@ -912,6 +912,13 @@ void NozzleRackPanel::UpdateNozzles(const std::vector<std::vector<NozzleConfig>>
     // Multi-diameter mode exists for single-extruder printers only.
     const bool        multi_diameter = m_extruder_count == 1 && multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
     const std::string icon           = m_extruder_count == 1 ? "prepare_nozzle_normal_short" : "prepare_nozzle_normal_dua";
+    m_ams_enabled.fill(true);
+    const DynamicPrintConfig &printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    if (m_extruder_count == 1 && is_single_ext_multi_nozzle(printer_config)) {
+        const int ams_nozzle_idx = printer_config.opt_int("ams_nozzle_idx", -1);
+        m_ams_enabled[0] = ams_nozzle_idx >= 0 && !extruders.empty() && ams_nozzle_idx < static_cast<int>(extruders[0].size()) &&
+                           !extruders[0][ams_nozzle_idx].is_empty();
+    }
 
     int matching = 0;
     for (int extruder = 0; extruder < count; ++extruder) {
@@ -987,7 +994,7 @@ void NozzleRackPanel::update_ams()
     const bool dual      = m_extruder_count > 1;
     for (int extruder = 0; extruder < MAX_EXTRUDERS; ++extruder) {
         ExtruderAms &ams = m_ams[extruder];
-        show_ams_units(ams, extruder < m_extruder_count);
+        show_ams_units(extruder, ams, extruder < m_extruder_count, m_ams_enabled[extruder]);
         ams.side->Show(dual && has_units(ams)); // a side label names units, so it needs some
     }
     // The divider separates the left units from the right ones, so it needs units on both sides.
@@ -999,27 +1006,48 @@ void NozzleRackPanel::update_ams()
 
 // A unit the machine has not reported yet still gets a slot, drawn from an empty placeholder, so the
 // row matches the count the user configured instead of appearing one short.
-void NozzleRackPanel::show_ams_units(ExtruderAms &ams, bool visible)
+void NozzleRackPanel::show_ams_units(int extruder, ExtruderAms &ams, bool visible, bool enabled)
 {
     ams.sizer->Clear(false); // detach only: the pool outlives every refresh
     for (auto *preview : ams.previews) preview->Close();
     if (!visible) return;
 
-    auto show_units = [this, &ams](size_t pool_offset, size_t wanted, const std::vector<AMSinfo> &known, DevAmsType type) {
+    std::vector<std::string> ids4;
+    std::vector<std::string> ids1;
+    for (const AMSinfo &info : ams.ams_4) ids4.push_back(info.ams_id);
+    for (const AMSinfo &info : ams.ams_1) ids1.push_back(info.ams_id);
+    if (!ids4.empty() || !ids1.empty())
+        wxGetApp().preset_bundle->initialize_ams_selection(extruder, ams.device_id, ids4, ids1);
+    const ExtruderAmsSelection *selection = wxGetApp().preset_bundle->get_ams_selection(extruder);
+
+    auto show_units = [this, &ams, enabled](size_t pool_offset, size_t wanted, const std::vector<std::string> *selected,
+                                            const std::vector<AMSinfo> &known, DevAmsType type) {
         AMSinfo placeholder;
         placeholder.ams_type = type;
         placeholder.cans.resize(type == DevAmsType::AMS ? 4 : 1);
 
         for (size_t i = 0; i < wanted && pool_offset + i < ams.previews.size(); ++i) {
             auto *preview = ams.previews[pool_offset + i];
-            preview->Update(i < known.size() ? known[i] : placeholder);
+            const AMSinfo *content = nullptr;
+            if (selected && i < selected->size() && !(*selected)[i].empty()) {
+                const auto found = std::find_if(known.begin(), known.end(), [&](const AMSinfo &info) {
+                    return info.ams_id == (*selected)[i];
+                });
+                if (found != known.end()) content = &*found;
+            } else if (!selected && i < known.size()) {
+                content = &known[i];
+            }
+            preview->Update(content ? *content : placeholder);
+            preview->Enable(enabled);
             preview->Refresh();
             preview->Open();
             ams.sizer->Add(preview, 0, wxALL, FromDIP(2));
         }
     };
-    show_units(0, ams.n4, ams.ams_4, DevAmsType::AMS);
-    show_units(MAX_AMS_4_SLOT, ams.n1, ams.ams_1, DevAmsType::N3S);
+    const auto *selected4 = selection && selection->initialized ? &selection->ams4 : nullptr;
+    const auto *selected1 = selection && selection->initialized ? &selection->ams1 : nullptr;
+    show_units(0, ams.n4, selected4, ams.ams_4, DevAmsType::AMS);
+    show_units(MAX_AMS_4_SLOT, ams.n1, selected1, ams.ams_1, DevAmsType::N3S);
 }
 
 void NozzleRackPanel::sync_ams(int                            extruder,
@@ -1032,7 +1060,11 @@ void NozzleRackPanel::sync_ams(int                            extruder,
     if (extruder < 0 || extruder >= MAX_EXTRUDERS) return;
 
     ExtruderAms &state = m_ams[extruder];
-    if (state.ams_4.empty() && ams4.empty() && state.ams_1.empty() && ams1.empty() && state.ext.empty() && ext.empty()) return;
+    const bool device_changed = obj && state.device_id != obj->get_dev_id();
+    if (obj) state.device_id = obj->get_dev_id();
+    if (!device_changed && state.ams_4.empty() && ams4.empty() && state.ams_1.empty() && ams1.empty() &&
+        state.ext.empty() && ext.empty())
+        return;
     auto sync = [obj](std::vector<AMSinfo> &infos, std::vector<DevAms *> const &ams) -> bool {
         std::vector<AMSinfo> infos2;
         for (auto a : ams) {
@@ -1099,7 +1131,8 @@ void NozzleRackPanel::sync_ams(int                            extruder,
     };
 
     // Every list is re-read even after one of them changed, so none is left stale until the next sync.
-    bool changed = sync(state.ams_4, ams4);
+    bool changed = device_changed;
+    changed |= sync(state.ams_4, ams4);
     changed |= sync(state.ams_1, ams1);
     changed |= sync(state.ams_internal, ams_internal);
     changed |= sync_ext(state.ext, ext);

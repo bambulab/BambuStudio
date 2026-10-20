@@ -48,6 +48,7 @@ struct AmsBuckets
 {
     std::vector<AMSinfo> ams4; // 4-slot AMS units bound to the extruder
     std::vector<AMSinfo> ams1; // 1-slot (N3S) AMS units bound to the extruder
+    std::string          device_id;
 };
 
 // Collect the live AMS content bound to one logical extruder from the selected machine.
@@ -55,23 +56,29 @@ AmsBuckets resolve_ams_infos(int extruder_idx)
 {
     AmsBuckets     buckets;
     MachineObject *obj = selected_machine();
-    if (!obj || !obj->GetFilaSystem()) return buckets;
+    PresetBundle  *preset_bundle = wxGetApp().preset_bundle;
+    if (!obj || !obj->is_online() || !obj->is_info_ready() || !obj->GetFilaSystem() || !obj->GetExtderSystem() || !preset_bundle ||
+        preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) != obj->get_show_printer_type())
+        return buckets;
+    buckets.device_id = obj->get_dev_id();
 
-    const bool remain         = obj->GetFilaSystem()->IsDetectRemainEnabled();
-    const bool humidity       = obj->is_support_ams_humidity;
-    const int  extruder_count = obj->GetExtderSystem() ? obj->GetExtderSystem()->GetTotalExtderCount() : 1;
-    for (const auto &[id, ams] : obj->GetFilaSystem()->GetAmsList()) {
-        // GetUniqueBindedExtruderId is a PHYSICAL id; extruder_idx is LOGICAL.
-        auto bound = ams->GetUniqueBindedExtruderId();
-        if (bound && DevExtder::to_logical_extruder_id(extruder_count, bound.value()) != extruder_idx) continue;
-
-        AMSinfo info;
-        info.parse_ams_info(obj, ams, remain, humidity);
-        if (ams->GetAmsType() == DevAmsType::N3S)
-            buckets.ams1.push_back(info);
-        else if (ams->GetAmsType() != DevAmsType::ZMULTI_A && ams->GetAmsType() != DevAmsType::ZMULTI_B)
-            buckets.ams4.push_back(info);
-    }
+    const bool  remain   = obj->GetFilaSystem()->IsDetectRemainEnabled();
+    const bool  humidity = obj->is_support_ams_humidity;
+    const auto &units    = obj->GetFilaSystem()->GetAmsList();
+    const auto  ids      = collect_ams_ids(obj);
+    auto append = [&](int slot_count, std::vector<AMSinfo> &target) {
+        const auto found = ids.find({extruder_idx, slot_count});
+        if (found == ids.end()) return;
+        for (const std::string &id : found->second) {
+            const auto unit = units.find(id);
+            if (unit == units.end()) continue;
+            AMSinfo info;
+            info.parse_ams_info(obj, unit->second, remain, humidity);
+            target.push_back(std::move(info));
+        }
+    };
+    append(4, buckets.ams4);
+    append(1, buckets.ams1);
     return buckets;
 }
 
@@ -83,6 +90,52 @@ void set_ams_count(int extruder_index, int ams4, int ams1)
     std::vector<std::string> parts = save_extruder_ams_count_to_string(pb.extruder_ams_counts);
     wxGetApp().app_config->set("presets", "extruder_ams_count", boost::algorithm::join(parts, ","));
     if (auto *plater = wxGetApp().plater()) plater->update();
+}
+
+std::vector<std::string> ams_ids(const std::vector<AMSinfo> &infos)
+{
+    std::vector<std::string> ids;
+    ids.reserve(infos.size());
+    for (const AMSinfo &info : infos) ids.push_back(info.ams_id);
+    return ids;
+}
+
+ExtruderAmsSelection *ensure_ams_selection(int extruder_index, const AmsBuckets &inventory)
+{
+    PresetBundle &pb = *wxGetApp().preset_bundle;
+    pb.initialize_ams_selection(extruder_index, inventory.device_id, ams_ids(inventory.ams4), ams_ids(inventory.ams1));
+    return pb.get_ams_selection(extruder_index);
+}
+
+void persist_ams_selection(int extruder_index, const ExtruderAmsSelection &selection)
+{
+    set_ams_count(extruder_index, static_cast<int>(selection.ams4.size()), static_cast<int>(selection.ams1.size()));
+}
+
+void add_ams_unit(int extruder_index, int slot_count)
+{
+    const AmsBuckets inventory = resolve_ams_infos(extruder_index);
+    auto            *selection = ensure_ams_selection(extruder_index, inventory);
+    if (!selection) return;
+
+    const int n4 = static_cast<int>(selection->ams4.size()) + (slot_count == 4 ? 1 : 0);
+    const int n1 = static_cast<int>(selection->ams1.size()) + (slot_count == 1 ? 1 : 0);
+    wxGetApp().preset_bundle->resize_ams_selection(extruder_index, inventory.device_id,
+                                                   ams_ids(inventory.ams4), ams_ids(inventory.ams1), n4, n1);
+    if (const auto *updated = wxGetApp().preset_bundle->get_ams_selection(extruder_index))
+        persist_ams_selection(extruder_index, *updated);
+}
+
+void remove_ams_unit(int extruder_index, int slot_count, size_t position)
+{
+    const AmsBuckets inventory = resolve_ams_infos(extruder_index);
+    auto            *selection = ensure_ams_selection(extruder_index, inventory);
+    if (!selection) return;
+
+    std::vector<std::string> &selected = slot_count == 4 ? selection->ams4 : selection->ams1;
+    if (position >= selected.size()) return;
+    selected.erase(selected.begin() + position);
+    persist_ams_selection(extruder_index, *selection);
 }
 
 // Single-extruder multi-nozzle printers accept at most this many external AMS units, any mix of slot kinds.
@@ -121,20 +174,19 @@ void show_ams_add_menu(wxWindow *anchor, int extruder_index, PopupWindow *&curre
     });
 
     bool first_row = true;
-    auto add_item  = [&](const wxString &label, bool enabled, int add4, int add1) {
+    auto add_item  = [&](const wxString &label, bool enabled, int slot_count) {
         auto *item = new CascadeMenuItem(menu, label, enabled, false, false);
         if (enabled)
-            item->Bind(wxEVT_LEFT_DOWN, [menu, extruder_index, add4, add1, on_changed](wxMouseEvent &) {
-                const auto [a4, a1] = wxGetApp().preset_bundle->get_ams_count(extruder_index);
-                set_ams_count(extruder_index, a4 + add4, a1 + add1);
+            item->Bind(wxEVT_LEFT_DOWN, [menu, extruder_index, slot_count, on_changed](wxMouseEvent &) {
+                add_ams_unit(extruder_index, slot_count);
                 if (on_changed) on_changed();
                 menu->CloseCascade();
             });
         CascadeMenu::AddItem(sizer, item, first_row);
         first_row = false;
     };
-    add_item(_L("4 slots AMS"), has_room && self4 + oth4 < 4, 1, 0);
-    add_item(_L("1 slot AMS"), has_room && self1 + oth1 < 8, 0, 1);
+    add_item(_L("4 slots AMS"), has_room && self4 + oth4 < 4, 4);
+    add_item(_L("1 slot AMS"), has_room && self1 + oth1 < 8, 1);
 
     CascadeMenu::Finish(menu, sizer);
 
@@ -168,11 +220,10 @@ void show_ams_delete_popup(int extruder_index, AMSPreview *preview, const std::v
         auto it = std::find(previews.begin(), previews.end(), preview);
         if (it != previews.end()) {
             const size_t index  = std::distance(previews.begin(), it);
-            const auto [a4, a1] = wxGetApp().preset_bundle->get_ams_count(extruder_index);
             if (index < 4)
-                set_ams_count(extruder_index, std::max(0, a4 - 1), a1);
+                remove_ams_unit(extruder_index, 4, index);
             else
-                set_ams_count(extruder_index, a4, std::max(0, a1 - 1));
+                remove_ams_unit(extruder_index, 1, index - 4);
             if (on_changed) on_changed();
         }
         popup->Dismiss();
@@ -223,6 +274,12 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
 
     m_has_ams  = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_int("ams_nozzle_idx", 0) >= 0;
     m_snapshot = wxGetApp().preset_bundle->get_ams_count(m_extruder_index);
+    if (const auto *selection = wxGetApp().preset_bundle->get_ams_selection(m_extruder_index)) {
+        m_selection_snapshot_initialized = selection->initialized;
+        m_selection_snapshot_device_id   = selection->device_id;
+        m_ams4_snapshot                  = selection->ams4;
+        m_ams1_snapshot                  = selection->ams1;
+    }
 
     auto *row = new wxBoxSizer(wxHORIZONTAL);
 
@@ -289,8 +346,10 @@ void NozzleAmsRow::refresh_previews()
 {
     if (!m_previews_sizer) return;
 
-    const auto [n4, n1] = wxGetApp().preset_bundle->get_ams_count(m_extruder_index);
-    AmsBuckets content  = resolve_ams_infos(m_extruder_index);
+    AmsBuckets            content   = resolve_ams_infos(m_extruder_index);
+    ExtruderAmsSelection *selection = ensure_ams_selection(m_extruder_index, content);
+    if (!selection) return;
+    const bool use_device_content = is_extruder_stat_synced();
 
     static AMSinfo placeholder4 = [] {
         AMSinfo a;
@@ -308,14 +367,23 @@ void NozzleAmsRow::refresh_previews()
     m_previews_sizer->Clear(false);
     for (auto *p : m_previews) p->Close();
 
-    for (int i = 0; i < n4 && i < 4; ++i) {
-        m_previews[i]->Update(i < (int) content.ams4.size() ? content.ams4[i] : placeholder4);
+    std::map<std::string, const AMSinfo *> device4;
+    std::map<std::string, const AMSinfo *> device1;
+    for (const AMSinfo &info : content.ams4) device4[info.ams_id] = &info;
+    for (const AMSinfo &info : content.ams1) device1[info.ams_id] = &info;
+
+    for (size_t i = 0; i < selection->ams4.size() && i < 4; ++i) {
+        const auto found = device4.find(selection->ams4[i]);
+        m_previews[i]->Update(use_device_content && found != device4.end() ? *found->second : placeholder4);
+        m_previews[i]->Refresh();
         m_previews[i]->Open();
         m_previews_sizer->Add(m_previews[i], 0, wxALL, FromDIP(2));
     }
-    for (int i = 0; i < n1 && i < 8; ++i) {
+    for (size_t i = 0; i < selection->ams1.size() && i < 8; ++i) {
         AMSPreview *p = m_previews[4 + i];
-        p->Update(i < (int) content.ams1.size() ? content.ams1[i] : placeholder1);
+        const auto found = device1.find(selection->ams1[i]);
+        p->Update(use_device_content && found != device1.end() ? *found->second : placeholder1);
+        p->Refresh();
         p->Open();
         m_previews_sizer->Add(p, 0, wxALL, FromDIP(2));
     }
@@ -324,8 +392,8 @@ void NozzleAmsRow::refresh_previews()
     Layout();
 }
 
-// Show the check only when this extruder's local 4-slot and 1-slot counts equal the connected
-// printer's. Offline, not ready, or a different printer model hides it.
+// Show the check only when the nozzle setup is synced and this row contains exactly the device AMS
+// units. Offline, not ready, a different printer, or any virtual/missing unit hides it.
 void NozzleAmsRow::update_sync_badge()
 {
     if (!m_sync_badge) return;
@@ -335,13 +403,15 @@ void NozzleAmsRow::update_sync_badge()
     PresetBundle  *preset_bundle = wxGetApp().preset_bundle;
     if (obj && obj->is_online() && obj->is_info_ready() && obj->GetFilaSystem() && obj->GetExtderSystem() && preset_bundle &&
         preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->get_show_printer_type()) {
-        const auto counts   = collect_ams_counts(obj);
-        const auto [n4, n1] = preset_bundle->get_ams_count(m_extruder_index);
-        const auto found4   = counts.find(std::make_pair(m_extruder_index, 4));
-        const auto found1   = counts.find(std::make_pair(m_extruder_index, 1));
-        const int  machine_n4 = found4 == counts.end() ? 0 : found4->second;
-        const int  machine_n1 = found1 == counts.end() ? 0 : found1->second;
-        matched = machine_n4 == n4 && machine_n1 == n1;
+        const auto ids       = collect_ams_ids(obj);
+        const auto found4    = ids.find({m_extruder_index, 4});
+        const auto found1    = ids.find({m_extruder_index, 1});
+        const auto *selection = preset_bundle->get_ams_selection(m_extruder_index);
+        const std::vector<std::string> empty;
+        const auto &machine4 = found4 == ids.end() ? empty : found4->second;
+        const auto &machine1 = found1 == ids.end() ? empty : found1->second;
+        matched = is_extruder_stat_synced() && selection && selection->initialized &&
+                  selection->ams4 == machine4 && selection->ams1 == machine1;
     }
 
     m_sync_badge->Show(matched);
@@ -363,7 +433,16 @@ void NozzleAmsRow::show_delete_popup(AMSPreview *preview)
     });
 }
 
-void NozzleAmsRow::restore() { set_ams_count(m_extruder_index, m_snapshot.first, m_snapshot.second); }
+void NozzleAmsRow::restore()
+{
+    if (auto *selection = wxGetApp().preset_bundle->get_ams_selection(m_extruder_index)) {
+        selection->initialized = m_selection_snapshot_initialized;
+        selection->device_id   = m_selection_snapshot_device_id;
+        selection->ams4        = m_ams4_snapshot;
+        selection->ams1        = m_ams1_snapshot;
+    }
+    set_ams_count(m_extruder_index, m_snapshot.first, m_snapshot.second);
+}
 
 void NozzleAmsRow::Rescale()
 {

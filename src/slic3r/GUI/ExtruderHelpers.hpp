@@ -142,6 +142,8 @@ inline int   decode_volume(void *data) { return static_cast<int>(reinterpret_cas
  */
 std::string slot_name(MachineObject *obj, int ams_id, int slot_id);
 
+using AmsIdMap = std::map<std::pair<int, int>, std::vector<std::string>>;
+AmsIdMap collect_ams_ids(MachineObject *obj);
 std::map<std::pair<int, int>, int> collect_ams_counts(MachineObject *obj);
 
 // True when the selected printer preset's type matches the connected machine and the nozzle

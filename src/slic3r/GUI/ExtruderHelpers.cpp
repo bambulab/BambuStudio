@@ -79,18 +79,18 @@ std::string slot_name(MachineObject *obj, int ams_id, int slot_id)
     }
 }
 
-// Count bound AMS units per (logical_extruder_id, slot_kind) for the given machine.
-// Keys use the *logical* extruder id
-std::map<std::pair<int, int>, int> collect_ams_counts(MachineObject *obj)
+// Collect bound AMS ids per (logical_extruder_id, slot_kind) for the given machine.
+// Keys use the *logical* extruder id.
+AmsIdMap collect_ams_ids(MachineObject *obj)
 {
     const int  extruder_nums     = obj->GetExtderSystem()->GetTotalExtderCount();
     const bool fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
 
-    std::map<std::pair<int, int>, int> ams_cnt_map{
-        {{0, 1}, 0},
-        {{0, 4}, 0},
-        {{1, 1}, 0},
-        {{1, 4}, 0},
+    AmsIdMap ams_ids{
+        {{0, 1}, {}},
+        {{0, 4}, {}},
+        {{1, 1}, {}},
+        {{1, 4}, {}},
     };
     for (const auto &[_, ams] : obj->GetFilaSystem()->GetAmsList()) {
         for (auto extruder_id : ams->GetBindedExtruderSet()) {
@@ -109,9 +109,17 @@ std::map<std::pair<int, int>, int> collect_ams_counts(MachineObject *obj)
 
             auto logical_id = DevExtder::to_logical_extruder_id(extruder_nums, extruder_id);
             auto key        = std::make_pair(logical_id, ams_type == DevAmsType::N3S ? 1 : 4);
-            ams_cnt_map[key]++;
+            ams_ids[key].push_back(ams->GetAmsId());
         }
     }
+    return ams_ids;
+}
+
+std::map<std::pair<int, int>, int> collect_ams_counts(MachineObject *obj)
+{
+    std::map<std::pair<int, int>, int> ams_cnt_map;
+    for (const auto &[key, ids] : collect_ams_ids(obj))
+        ams_cnt_map[key] = static_cast<int>(ids.size());
     return ams_cnt_map;
 }
 
@@ -144,22 +152,44 @@ bool is_extruder_stat_synced(int target_extruder_id)
     auto extruder_nozzle_stats = preset_bundle->extruder_nozzle_stat.get_raw_stat();
     const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
 
+    // Multi-diameter mode records the rack per slot. Compare the same physical slots here instead
+    // of collapsing them into groups, otherwise a locally edited slot may still look synchronized.
+    if (multi_diameter_mode) {
+        const auto *max_nozzle_counts =
+            preset_bundle->printers.get_edited_preset().config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+        if (!obj->GetNozzleSystem() || !max_nozzle_counts)
+            return false;
+
+        const int extruder_count = static_cast<int>(nozzle_diameter_values.size());
+        const int first_extruder = target_extruder_id < 0 ? 0 : target_extruder_id;
+        const int last_extruder  = target_extruder_id < 0 ? extruder_count : target_extruder_id + 1;
+        if (first_extruder < 0 || last_extruder > extruder_count ||
+            last_extruder > static_cast<int>(max_nozzle_counts->values.size()))
+            return false;
+
+        for (int extruder_id = first_extruder; extruder_id < last_extruder; ++extruder_id) {
+            const auto preset_slots  = preset_bundle->extruder_full_stat.get_extruder_stats(extruder_id);
+            const auto machine_slots = collect_nozzle_configs_from_machine(
+                obj, extruder_id, max_nozzle_counts->values[extruder_id]);
+            if (preset_slots.size() != machine_slots.size())
+                return false;
+
+            for (size_t slot = 0; slot < preset_slots.size(); ++slot) {
+                const bool preset_empty = preset_slots[slot].first.empty() || preset_slots[slot].second.empty();
+                if (preset_empty != machine_slots[slot].is_empty())
+                    return false;
+                if (!preset_empty &&
+                    (preset_slots[slot].first != machine_slots[slot].diameter.ToStdString() ||
+                     DevNozzle::ToNozzleVolumeType(preset_slots[slot].second) != machine_slots[slot].volume))
+                    return false;
+            }
+        }
+        return true;
+    }
+
     std::vector<std::vector<NozzleGroupInfo>> preset_nozzle_infos(nozzle_diameter_values.size());
 
     for (size_t extruder_id = 0; extruder_id < nozzle_diameter_values.size(); ++extruder_id) {
-        // Multi-diameter slicing stays on the canonical 0.2 printer preset. The green sync badge
-        // must follow the per-slot hardware snapshot, not that preset's nozzle_diameter.
-        if (multi_diameter_mode) {
-            std::map<std::pair<std::string, NozzleVolumeType>, int> groups;
-            for (const auto &[d, v] : preset_bundle->extruder_full_stat.get_extruder_stats(static_cast<int>(extruder_id))) {
-                if (d.empty() || v.empty()) continue;
-                groups[{d, DevNozzle::ToNozzleVolumeType(v)}]++;
-            }
-            for (const auto &[key, count] : groups)
-                preset_nozzle_infos[extruder_id].emplace_back(key.first, key.second, static_cast<int>(extruder_id), count);
-            continue;
-        }
-
         NozzleVolumeType preset_volume_type = NozzleVolumeType(nozzle_volume_values[extruder_id]);
         std::string      preset_diameter = format_diameter_to_str(nozzle_diameter_values[extruder_id]);
 
@@ -185,19 +215,6 @@ bool is_extruder_stat_synced(int target_extruder_id)
         target_nozzle_groups = preset_nozzle_infos;
     else
         target_nozzle_groups = { preset_nozzle_infos[target_extruder_id] };
-
-    // No recorded per-slot nozzles means we cannot claim a match against the machine.
-    if (multi_diameter_mode) {
-        bool has_groups = false;
-        for (const auto &groups : target_nozzle_groups) {
-            if (!groups.empty()) {
-                has_groups = true;
-                break;
-            }
-        }
-        if (!has_groups)
-            return false;
-    }
 
     for (auto preset_groups : target_nozzle_groups) {
         for (auto& preset_group : preset_groups) {

@@ -2,6 +2,7 @@
 
 #include <array>
 #include <memory>
+#include <string>
 
 #include <wx/dialog.h>
 #include <wx/panel.h>
@@ -236,6 +237,7 @@ private:
         std::vector<AMSinfo>      ams_1;
         std::vector<AMSinfo>      ams_internal;
         std::vector<AMSinfo>      ext;
+        std::string               device_id;
         Label                    *side{nullptr}; // L or R ahead of the units, two extruders only
         wxBoxSizer               *sizer{nullptr};
         std::vector<AMSPreview *> previews; // fixed pool, opened or closed by update_ams
@@ -243,13 +245,14 @@ private:
 
     wxSizer *CreateAmsRow();
     void     update_ams();
-    void     show_ams_units(ExtruderAms &ams, bool visible);
+    void     show_ams_units(int extruder, ExtruderAms &ams, bool visible, bool enabled);
     void     show_mismatch(bool mismatch); // no slot matches the selected diameter
 
     int                                   m_extruder_count{1};
     wxStaticBitmap                       *m_warning_icon{nullptr};
     wxBoxSizer                           *m_tile_row{nullptr};
     std::array<ExtruderAms, MAX_EXTRUDERS> m_ams;
+    std::array<bool, MAX_EXTRUDERS>        m_ams_enabled{{true, true}};
     wxSizerItem                          *m_ams_divider{nullptr}; // the line between the left and right AMS units, with its gaps
 };
 

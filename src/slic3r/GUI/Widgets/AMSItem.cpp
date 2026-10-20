@@ -3116,7 +3116,13 @@ void AMSPreview::doRender(wxDC &dc)
         dc.SetBrush(StateColor::darkModeColorFor(AMS_CONTROL_DEF_BLOCK_BK_COLOUR));
         wxSize rec_size = wxSize(FromDIP(16), FromDIP(24));
         dc.DrawRoundedRectangle((size.x - rec_size.x) / 2, (size.y - rec_size.y) / 2, rec_size.x, rec_size.y, FromDIP(2));
-        if (iter.material_cols.size() > 1)
+        if (!wxWindow::IsThisEnabled()) {
+            dc.SetBrush(AMS_CONTROL_DISABLE_COLOUR);
+            const wxSize cube_size = m_ams_item_type == DevAmsType::N3S ? AMS_ITEM_CUBE_SIZE : AMS_ITEM_CUBE_SIZE2;
+            dc.DrawRoundedRectangle((size.x - cube_size.x) / 2, (size.y - cube_size.y) / 2,
+                                    cube_size.x, cube_size.y, m_ams_item_type == DevAmsType::N3S ? 0 : FromDIP(3));
+        }
+        else if (iter.material_cols.size() > 1)
         {
             int fleft = (size.x - AMS_ITEM_CUBE_SIZE.x) / 2;
 
