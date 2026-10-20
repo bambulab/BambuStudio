@@ -537,8 +537,11 @@ void FilamentMapDialog::make_body(
         });
     }
 
+    const bool only_convenience_mode = modes_to_use.size() == 1 && modes_to_use.front() == fmmAutoForMatch;
     if (single_default_mode)
         m_auto_panel = new FilamentMapSavingPanel(this, _L("Automatically and intelligently assigns filaments to minimize filament time consumption"));
+    else if (only_convenience_mode)
+        m_auto_panel = new FilamentMapSavingPanel(this, _L("Intelligently assigns filaments based on the filaments currently loaded in the printer's nozzles"), fmmAutoForMatch);
     else if (only_saving_mode)
         m_auto_panel = new FilamentMapSavingPanel(this);
     else

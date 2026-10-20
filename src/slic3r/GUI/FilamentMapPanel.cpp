@@ -1722,7 +1722,9 @@ std::string FilamentMapAutoPanel::GetIconForMode(FilamentMapMode mode)
     }
 }
 
-FilamentMapSavingPanel::FilamentMapSavingPanel(wxWindow *parent, const wxString &description) : FilamentMapPanel(parent)
+FilamentMapSavingPanel::FilamentMapSavingPanel(wxWindow *parent, const wxString &description, FilamentMapMode mode)
+    : FilamentMapPanel(parent)
+    , m_mode(mode)
 {
     SetBackgroundColour(*wxWHITE);
 

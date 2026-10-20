@@ -169,8 +169,11 @@ private:
 class FilamentMapSavingPanel : public FilamentMapPanel
 {
 public:
-    FilamentMapSavingPanel(wxWindow *parent, const wxString &description = wxString());
-    FilamentMapMode GetMode() const override { return FilamentMapMode::fmmAutoForFlush; }
+    FilamentMapSavingPanel(wxWindow *parent, const wxString &description = wxString(), FilamentMapMode mode = FilamentMapMode::fmmAutoForFlush);
+    FilamentMapMode GetMode() const override { return m_mode; }
+
+private:
+    FilamentMapMode m_mode{FilamentMapMode::fmmAutoForFlush};
 };
 
 } // namespace Slic3r::GUI
