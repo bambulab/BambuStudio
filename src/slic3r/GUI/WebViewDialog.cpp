@@ -1872,13 +1872,32 @@ void WebViewPanel::OnNewWindow(wxWebViewEvent& evt)
         flag = " (user)";
     }
 
+    const wxString url = evt.GetURL();
+    wxString scheme_url = url;
+    scheme_url.Trim(false);
+    const wxString lower = scheme_url.Lower();
+    const bool is_web = lower.StartsWith("http://") || lower.StartsWith("https://");
+
+    // An injected page can window.open("file:///..."). Passing that to the system
+    // shell runs the target through its file association, so only web URLs leave
+    // this process. Veto the rest so WebView does not open them either.
+    if (!is_web) {
+        evt.Veto();
+        if (wxGetApp().get_mode() == comDevelop)
+            wxLogMessage("New window blocked; non-http target");
+        BOOST_LOG_TRIVIAL(warning) << "OnNewWindow: blocked a non-http target";
+        UpdateState();
+        return;
+    }
+
     if (wxGetApp().get_mode() == comDevelop)
-        wxLogMessage("%s", "New window; url='" + evt.GetURL() + "'" + flag);
+        wxLogMessage("%s", "New window; url='" + url + "'" + flag);
 
     //If we handle new window events then just load them in local browser
     if (m_tools_handle_new_window->IsChecked())
     {
-        wxLaunchDefaultBrowser(evt.GetURL());
+        evt.Veto();
+        wxLaunchDefaultBrowser(url);
     }
 
     UpdateState();
