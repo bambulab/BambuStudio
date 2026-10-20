@@ -5145,7 +5145,11 @@ static FilamentNozzleSlotState filament_nozzle_slot_state(PresetBundle *preset_b
     // adding that flow changes nothing, because the filament cannot print in it at any diameter. That
     // belongs in "the filament does not support this nozzle" instead.
     const bool flow_printable = is_nozzle_printable_for_filament(state.type, filament_variants, variants_complete);
-    state.missing = !state.stored_installed && flow_printable;
+    // ... and whether such a nozzle is made at all. A slot can name a pairing that exists in no
+    // diameter but one, and sending the user off to add it leads to a dialog that will not offer it.
+    // That is the filament not suiting the nozzle settings, which the other wording already says.
+    state.missing = !state.stored_installed && flow_printable &&
+                    nozzle_variant_exists(state.diameter, state.type);
     return state;
 }
 

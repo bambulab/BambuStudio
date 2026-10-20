@@ -2211,6 +2211,23 @@ inline constexpr const char *canonical_multi_nozzle_printer_variant() { return "
 // printer_variant used when leaving multi-diameter with no restorable return point.
 inline constexpr const char *default_single_nozzle_printer_variant() { return "0.4"; }
 
+// Whether a nozzle of this (diameter, flow) is a product that exists at all: E3D high flow only
+// comes in 0.4 and 0.6, and 0.2 comes as Standard only.
+//
+// A printer preset's extruder_variant_list is its list of *parameter* variants, not of nozzles that
+// can be fitted: a 0.2 preset carries a high-flow variant so the profile set stays complete, though
+// no such nozzle is made. Menus built from that list have to drop these combinations rather than
+// offer them greyed -- "greyed" has to keep meaning "you could have this but do not" -- and a slot
+// that ends up holding one has to be corrected, since nothing the user does can satisfy it.
+inline bool nozzle_variant_exists(const std::string &diameter, NozzleVolumeType volume_type)
+{
+    if (volume_type == NozzleVolumeType::nvtE3DHighFlow && diameter != "0.4" && diameter != "0.6")
+        return false;
+    if (diameter == "0.2" && volume_type != NozzleVolumeType::nvtStandard)
+        return false;
+    return true;
+}
+
 // Values of the printer option printer_nozzle_diameter_mode: the multi-diameter mode a user/project printer
 // preset was saved in. System presets and presets saved before the option existed carry an empty value.
 inline constexpr const char *printer_nozzle_diameter_mode_single() { return "single"; }

@@ -4294,11 +4294,23 @@ static void repair_filament_nozzle_flows(
     for (size_t i = 0; i < bundle.filament_presets.size(); ++i) {
         if (bundle.is_mixed_filament(i))
             continue;
+        std::string diameter = (selected != nullptr && i < selected->values.size()) ? selected->values[i] : std::string();
+
+        // Ahead of the flagged-slot skip below, which preserves selections the user made. This one
+        // was not: it is left over from the slot's previous diameter, and keeping it would pin the
+        // slot to a flagged state with no way out -- the nozzle settings will not offer it either.
+        if (!diameter.empty() &&
+            !nozzle_variant_exists(diameter, static_cast<NozzleVolumeType>(volume_map->values[i]))) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament " << i << " sat on nozzle flow "
+                                       << volume_map->values[i] << " at diameter " << diameter
+                                       << ", which is not made; moved to Standard";
+            volume_map->values[i] = static_cast<int>(nvtStandard);
+        }
+
         if (std::find(bundle.incompatible_nozzle_diameter_slots.begin(),
                       bundle.incompatible_nozzle_diameter_slots.end(), i) !=
             bundle.incompatible_nozzle_diameter_slots.end())
             continue;
-        std::string diameter = (selected != nullptr && i < selected->values.size()) ? selected->values[i] : std::string();
         if (diameter.empty()) {
             // A machine carrying a single diameter leaves filament_diameter_map empty on purpose, yet
             // the flow is still selectable there (e.g. a 0.4 Standard next to a 0.4 High Flow). Key off
