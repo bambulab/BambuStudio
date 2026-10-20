@@ -12,9 +12,163 @@
 #include "slic3r/GUI/DeviceCore/DevPrintOptions.h"
 #include "slic3r/GUI/DeviceCore/DevUpgrade.h"
 
+#include <algorithm>
 #include <set>
+#include <wx/dcbuffer.h>
+#include <wx/dcclient.h>
 
 namespace Slic3r { namespace GUI {
+
+class WikiWarningLabel : public wxPanel
+{
+public:
+    WikiWarningLabel(
+        wxWindow* parent,
+        const wxString& prefix,
+        const wxString& link,
+        const wxString& suffix,
+        const wxString& url,
+        const wxColour& colour,
+        int width)
+        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(width, 1), wxBORDER_NONE)
+        , m_prefix(prefix)
+        , m_link(link)
+        , m_suffix(suffix)
+        , m_url(url)
+        , m_colour(colour)
+        , m_width(width)
+    {
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        SetBackgroundColour(parent->GetBackgroundColour());
+        SetCursor(wxCURSOR_ARROW);
+        layout_text();
+
+        Bind(wxEVT_PAINT, &WikiWarningLabel::on_paint, this);
+        Bind(wxEVT_MOTION, &WikiWarningLabel::on_motion, this);
+        Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent&) {
+            m_link_hovered = false;
+            SetCursor(wxCURSOR_ARROW);
+        });
+        Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& event) {
+            if (hit_link(event.GetPosition()))
+                wxLaunchDefaultBrowser(m_url);
+        });
+    }
+
+private:
+    struct TextRun {
+        wxString text;
+        wxPoint position;
+        wxSize size;
+        bool is_link;
+    };
+
+    void layout_text()
+    {
+        wxClientDC dc(this);
+        dc.SetFont(Label::Body_13);
+        const int line_height = dc.GetCharHeight();
+        int x = 0;
+        int y = 0;
+        int line_count = 1;
+
+        auto place_token = [&](const wxString& token, bool is_link) {
+            if (token.empty()) return;
+            dc.SetFont(is_link ? Label::Body_13.Underlined() : Label::Body_13);
+            const wxSize size = dc.GetTextExtent(token);
+            const bool is_space = token == " " || token == "\t";
+            if (!is_space && x > 0 && x + size.x > m_width) {
+                x = 0;
+                y += line_height;
+                ++line_count;
+            }
+            if (is_space && x == 0) return;
+            m_runs.push_back({token, wxPoint(x, y), wxSize(size.x, line_height), is_link});
+            if (is_link)
+                m_link_rects.emplace_back(x, y, size.x, line_height);
+            x += size.x;
+        };
+
+        auto append_text = [&](const wxString& text, bool is_link) {
+            wxString token;
+            auto flush_token = [&]() {
+                if (!token.empty()) {
+                    place_token(token, is_link);
+                    token.clear();
+                }
+            };
+
+            for (const wxUniChar ch : text) {
+                if (ch == '\n') {
+                    flush_token();
+                    x = 0;
+                    y += line_height;
+                    ++line_count;
+                } else if (ch == ' ' || ch == '\t') {
+                    flush_token();
+                    wxString whitespace;
+                    whitespace += ch;
+                    place_token(whitespace, is_link);
+                } else if (ch.GetValue() >= 0x2E80) {
+                    flush_token();
+                    wxString character;
+                    character += ch;
+                    place_token(character, is_link);
+                } else {
+                    token += ch;
+                }
+            }
+            flush_token();
+        };
+
+        append_text(m_prefix, false);
+        append_text(m_link, true);
+        append_text(m_suffix, false);
+
+        const int height = std::max(line_height, y + line_height);
+        SetMinSize(wxSize(m_width, height));
+        SetMaxSize(wxSize(m_width, height));
+    }
+
+    void on_paint(wxPaintEvent&)
+    {
+        wxAutoBufferedPaintDC dc(this);
+        dc.SetBackground(wxBrush(GetBackgroundColour()));
+        dc.Clear();
+        dc.SetTextForeground(m_colour);
+        for (const auto& run : m_runs) {
+            dc.SetFont(run.is_link ? Label::Body_13.Underlined() : Label::Body_13);
+            dc.DrawText(run.text, run.position);
+        }
+    }
+
+    void on_motion(wxMouseEvent& event)
+    {
+        const bool is_link = hit_link(event.GetPosition());
+        if (is_link != m_link_hovered) {
+            m_link_hovered = is_link;
+            SetCursor(is_link ? wxCursor(wxCURSOR_HAND) : wxCursor(wxCURSOR_ARROW));
+        }
+    }
+
+    bool hit_link(const wxPoint& point) const
+    {
+        return std::any_of(m_link_rects.begin(), m_link_rects.end(), [&point](const wxRect& rect) {
+            return rect.Contains(point);
+        });
+    }
+
+private:
+    wxString m_prefix;
+    wxString m_link;
+    wxString m_suffix;
+    wxString m_url;
+    wxColour m_colour;
+    int m_width;
+    bool m_link_hovered{false};
+    std::vector<TextRun> m_runs;
+    std::vector<wxRect> m_link_rects;
+};
 
 std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
 {
@@ -267,9 +421,20 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
 
         if (!info.msg.empty())
         {
-            Label* label = new Label(this);
-            label->SetFont(::Label::Body_13);
-            label->SetForegroundColour(_GetLabelColour(info));
+            const bool use_wiki_rich_text =
+                !info.testStyle(prePrintInfoStyle::BtnSwitchNozzleBlobAuto) &&
+                !info.link_callback && !info.wiki_url.empty();
+            Label* label = nullptr;
+            wxWindow* message_widget = nullptr;
+            ScalableButton* btn = CreateTypeButton(info);
+            const int message_width = this->GetMinSize().GetWidth() - btn->GetSize().x - FromDIP(6);
+
+            if (!use_wiki_rich_text) {
+                label = new Label(this);
+                label->SetFont(::Label::Body_13);
+                label->SetForegroundColour(_GetLabelColour(info));
+                message_widget = label;
+            }
 
             if (info.testStyle(prePrintInfoStyle::BtnSwitchNozzleBlobAuto))
             {
@@ -301,20 +466,23 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
             }
             else
             {
-                // external wiki url
-                label->SetLabel(info.msg + " " + _L("Please refer to Wiki before use->"));
-                label->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-                label->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-                label->Bind(wxEVT_LEFT_DOWN, [info](wxMouseEvent& event) { wxLaunchDefaultBrowser(info.wiki_url); });
+                message_widget = new WikiWarningLabel(
+                    this,
+                    info.msg + " " + _L("If you wish to continue, "),
+                    _L("please refer to the Wiki guide"),
+                    _L(" before continuing."),
+                    info.wiki_url,
+                    _GetLabelColour(info),
+                    message_width);
             }
 
-            ScalableButton* btn = CreateTypeButton(info);
-            label->Wrap(this->GetMinSize().GetWidth() - btn->GetSize().x - FromDIP(6));
+            if (label)
+                label->Wrap(message_width);
 
             wxSizer* msg_sizer = new wxBoxSizer(wxHORIZONTAL);
             msg_sizer->Add(btn, 0, wxLEFT | wxTOP, FromDIP(2));
             msg_sizer->AddSpacer(FromDIP(2));
-            msg_sizer->Add(label, 0, wxLEFT | wxBOTTOM);
+            msg_sizer->Add(message_widget, 0, wxLEFT | wxBOTTOM);
             msg_sizer->Layout();
             m_sizer->Add(msg_sizer, 0, wxBOTTOM, FromDIP(4));
 

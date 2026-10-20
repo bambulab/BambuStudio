@@ -406,7 +406,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
                 result_item.info_msg = wxString::Format(_L(description), fila_desc, _get_ams_warning_display_name(check_info));
             } else if (description == "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing.") {
                 result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
-            } else if (description == "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue.") {
+            } else if (description == "%s may fail to load or unload due to the Filament Track Switch.") {
                 result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
             } else if (const size_t first_pos = description.find("%s"); first_pos != std::string::npos) {
                 // Generic case: the message takes the filament name and, with a second placeholder,
@@ -462,7 +462,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             L("PLA Glow may wear the %s first stage feeder. Use an external spool instead.");
             L("%s filament is brittle and has high feeding resistance. Use caution when loading it through %s.");
             L("PPA-CF filament does not support %s feeding. Use an external spool instead.");
-            L("%s may fail to load or unload due to the Filament Track Switch. If you wish to continue.");
+            L("%s may fail to load or unload due to the Filament Track Switch.");
 
             // Error in description, X2D filament compatibility
             L("Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead.");
@@ -471,7 +471,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
 
             // Critical warning in description, X2D filament compatibility
             L("%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction.");
-            L("Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide.");
+            L("Affected by the Filament Track Switch, %s may break inside the filament tube.");
 
             // Warning in description, X2D filament compatibility
             L("%s is used with the auxiliary extruder and may impact print quality.");
@@ -483,7 +483,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             L("%s used with a standard %s nozzle may affect print quality.");
             L("%s used with a standard %s nozzle may cause oozing.");
             L("%s used with a standard %s nozzle may lead to difficult extrusion.");
-            L("Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide.");
+            L("Affected by the Filament Track Switch, %s may fail to load or unload.");
             L("When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality.");
             L("When using an auxiliary extruder, printing %s with a high-flow %s nozzle may cause a clog.");
             L("When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality.");

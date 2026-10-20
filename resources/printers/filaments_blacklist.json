@@ -295,7 +295,7 @@
       "has_filament_switch": true,
       "group": "fila_switcher",
       "priority": 5,
-      "description": "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue.",
+      "description": "%s may fail to load or unload due to the Filament Track Switch.",
       "wiki": "https://e.bambulab.com/t?c=s0CgMOrctZiPablB"
     },
     {
@@ -613,7 +613,7 @@
       "action": "warning",
       "group": "fila_switcher",
       "priority": 10,
-      "description": "Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide.",
+      "description": "Affected by the Filament Track Switch, %s may fail to load or unload.",
       "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
     },
     {
@@ -625,7 +625,7 @@
       "action": "warning",
       "group": "fila_switcher",
       "priority": 10,
-      "description": "Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide.",
+      "description": "Affected by the Filament Track Switch, %s may fail to load or unload.",
       "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
     },
     {
@@ -638,7 +638,7 @@
       "action": "critical_warning",
       "group": "fila_switcher",
       "priority": 30,
-      "description": "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide.",
+      "description": "Affected by the Filament Track Switch, %s may break inside the filament tube.",
       "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
     },
     {
@@ -650,7 +650,7 @@
       "action": "critical_warning",
       "group": "fila_switcher",
       "priority": 30,
-      "description": "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide.",
+      "description": "Affected by the Filament Track Switch, %s may break inside the filament tube.",
       "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
     },
     {

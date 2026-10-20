@@ -270,6 +270,11 @@ public:
     void update_text(std::vector<ConfirmBeforeSendInfo> texts, bool enable_warning_clr = true);
     void on_show();
     void on_hide();
+    void set_not_show_again_config(const std::string& config_key, const std::string& config_value = "1")
+    {
+        show_again_config_text = config_key;
+        show_again_config_value = config_value;
+    }
     void update_btn_label(wxString ok_btn_text, wxString cancel_btn_text);
     void rescale();
     void on_dpi_changed(const wxRect& suggested_rect);
@@ -289,9 +294,10 @@ protected:
     Button* m_button_ok;
     Button* m_button_cancel;
     Button* m_button_update_nozzle;
-    wxCheckBox* m_show_again_checkbox;
+    wxCheckBox* m_show_again_checkbox{ nullptr };
     bool not_show_again = false;
     std::string show_again_config_text = "";
+    std::string show_again_config_value = "1";
 };
 
 class InputIpAddressDialog : public DPIDialog
