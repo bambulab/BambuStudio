@@ -4296,7 +4296,10 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     if (loops_num > 0) {
         //box_coordinates box = wt_box;
         for (size_t i = 0; i < loops_num; ++i) {
-            outer_wall = offset(outer_wall, scaled(spacing)).front();
+            Polygons expanded = offset(outer_wall, scaled(spacing));
+            if (expanded.empty())
+                break;
+            outer_wall = std::move(expanded.front());
             writer.polygon(outer_wall, feedrate);
             m_outer_wall[m_z_pos].push_back(to_polyline(outer_wall));
         }
@@ -8184,11 +8187,11 @@ Polygon WipeTower::generate_rib_polygon(const box_coordinates &wt_box)
     poly.points.push_back(Point::new_scale(wt_box.lu));
 
     Polygons           p_1_2    = union_({poly_1, poly_2, poly});
-    //Polygon            res_poly = p_1_2.front();
-    //for (auto &p : res_poly.points) res.push_back(unscale(p).cast<float>());
-    /*if (p_1_2.front().points.size() != 16)
-        std::cout << "error " << std::endl;*/
-    return p_1_2.front();
+    // A zero-area box or collapsed rib leaves Clipper with nothing. front() on that
+    // empty result is a null polygon; keep the tower rectangle instead.
+    if (p_1_2.empty())
+        return poly;
+    return std::move(p_1_2.front());
 };
 
 Polygon WipeTower::generate_support_wall_new(WipeTowerWriter &writer, const box_coordinates &wt_box, double feedrate, bool first_layer,bool rib_wall, bool extrude_perimeter, bool skip_points)
@@ -8222,7 +8225,13 @@ Polygon WipeTower::generate_support_wall_new(WipeTowerWriter &writer, const box_
         } else {
             wall_polygon           = rib_wall ? rounding_polygon(wall_polygon) : wall_polygon; // rectangle_wall do nothing
             Polygon wt_box_polygon = generate_rectange_polygon(wt_box.ld, wt_box.ru);
-            wall_polygon           = union_({wall_polygon, wt_box_polygon}).front();
+            // Fillet can open a gap under the tower body, so merge it back with the rectangle.
+            // union_() drops degenerate contours; front() on an empty result crashes in Polygon::operator=.
+            Polygons united = union_({wall_polygon, wt_box_polygon});
+            if (!united.empty())
+                wall_polygon = std::move(united.front());
+            else if (wall_polygon.empty())
+                wall_polygon = std::move(wt_box_polygon);
         }
     }
     if (!extrude_perimeter) return wall_polygon;
