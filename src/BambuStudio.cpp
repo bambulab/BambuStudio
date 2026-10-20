@@ -7004,8 +7004,11 @@ int CLI::run(int argc, char **argv)
                                     nozzle_stats_obj.set_raw_stat(extruder_nozzle_stats_maps);
                                     m_print_config.option<ConfigOptionInts>("extruder_nozzle_count", true)->values = extruder_nozzle_counts;
                                     m_print_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type", true)->values = extruder_nozzle_volume_types;
-                                    if (m_extra_config.has("extruder_nozzle_slot"))
-                                        m_print_config.option<ConfigOptionInts>("extruder_nozzle_slot", true)->values = m_extra_config.option<ConfigOptionInts>("extruder_nozzle_slot")->values;
+                                    // 清空 3MF 残留的 extruder_nozzle_slot，使 CLI 传入的 extruder_nozzle_volume_type 按 0..K-1 密集下标建表并与 ams_nozzle_idx 对应。
+                                    m_print_config.option<ConfigOptionInts>("extruder_nozzle_slot", true)->values.clear();
+                                    // CLI 未显式传入 ams_nozzle_idx 时默认置为 -1（无 AMS 喷嘴），避免沿用机型预设或 3MF 中的物理槽位默认值。
+                                    if (!m_extra_config.has("ams_nozzle_idx"))
+                                        m_print_config.option<ConfigOptionInts>("ams_nozzle_idx", true)->values = { -1 };
                                     // CLI 未传 extruder_nozzle_diameter 时按当前机型口径补齐，避免总喷嘴数为 1 时与默认值 {0.4} 长度一致导致非 0.4 喷嘴被误判禁用。
                                     if (m_extra_config.has("extruder_nozzle_diameter"))
                                         m_print_config.option<ConfigOptionFloats>("extruder_nozzle_diameter", true)->values = m_extra_config.option<ConfigOptionFloats>("extruder_nozzle_diameter")->values;
@@ -7283,10 +7286,23 @@ int CLI::run(int argc, char **argv)
                             sliced_info.wall_loops = m_print_config.option<ConfigOptionInt>("wall_loops")->value;
                         if (m_print_config.option<ConfigOptionPercent>("sparse_infill_density"))
                             sliced_info.sparse_infill_density = m_print_config.option<ConfigOptionPercent>("sparse_infill_density")->value;
-                        if (new_extruder_count > 1) {
+                        // 扩展到 support_multi_nozzle 机型，覆盖单挤出机多喷嘴（new_extruder_count == 1）场景。
+                        if (new_is_multi_extruder || support_multi_nozzle) {
                             FilamentMapMode map_mode = fmmAutoForFlush;
                             if (new_print_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode"))
                                 map_mode = new_print_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value;
+
+                            const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(new_print_config);
+                            const auto *ams_idx_opt = new_print_config.option<ConfigOptionInts>("ams_nozzle_idx");
+                            const int   ams_idx     = (ams_idx_opt && !ams_idx_opt->values.empty()) ? ams_idx_opt->get_at(0) : -1;
+                            const std::string estimate_ams_str = estimate_mode ? "1#0|4#2" : "1#0|4#1";
+
+                            // 后端 get_effective_ams_nozzle_idx() 依赖 extruder_ams_count > 0 判定是否存在有效 AMS 喷嘴；
+                            // 按 ams_nozzle_idx（-1 无 AMS，>=0 有 AMS）同步 extruder_ams_count，确保手动/自动模式下 AMS 喷嘴下标与容量一致。
+                            if (single_ext_multi_nozzle) {
+                                new_print_config.option<ConfigOptionStrings>("extruder_ams_count", true)->values.assign(
+                                    new_extruder_count, ams_idx >= 0 ? estimate_ams_str : "0#0");
+                            }
 
                             if (is_auto_filament_map_mode(map_mode)) {
                                 //set default params for auto map
@@ -7298,10 +7314,9 @@ int CLI::run(int argc, char **argv)
                                 std::vector<std::string> types = filament_type ? filament_type->vserialize() : std::vector<std::string>{"PLA"};
 
                                 int estimate_slots = estimate_mode ? 8 : 4;
-                                std::string estimate_ams_str = estimate_mode ? "1#0|4#2" : "1#0|4#1";
                                 for (int e_index = 0; e_index < new_extruder_count; e_index++)
                                 {
-                                    extruder_ams_count[e_index] = estimate_ams_str;
+                                    extruder_ams_count[e_index] = (single_ext_multi_nozzle && ams_idx < 0) ? "0#0" : estimate_ams_str;
                                     for (int color_index = 0; color_index < estimate_slots; color_index++)
                                     {
                                         DynamicPrintConfig temp_config;
