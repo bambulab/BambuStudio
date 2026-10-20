@@ -142,6 +142,12 @@ void wxMediaCtrl2::bambu_log(void const * ctx, int level, char const * msg)
     BOOST_LOG_TRIVIAL(info) << msg;
 }
 
+// Logger for a player that may outlive its wxMediaCtrl2; it must not touch the control.
+static void bambu_log_detached(void const *, int, char const * msg)
+{
+    BOOST_LOG_TRIVIAL(info) << msg;
+}
+
 static void on_player_track_event(void* ctx, const PlayerEventC* event)
 {
     if (event == nullptr || event->event_name == nullptr)
@@ -239,7 +245,18 @@ wxMediaCtrl2::~wxMediaCtrl2()
         m_idle_layer = nullptr;
     }
     BambuPlayer * player = (BambuPlayer *) m_player;
-    [player dealloc];
+    m_player = nullptr;
+    if (player) {
+        [player close];
+        // The play thread and the blocks the player queued on the main queue retain it, so it
+        // can outlive this control; those blocks still call the logger and touch the view's
+        // layer. Detach the logger, keep the view alive until they have run, and release the
+        // player instead of calling -dealloc, which freed it under the exiting play thread.
+        [player setLogger: bambu_log_detached withContext: nullptr];
+        NSView * view = [(NSView *) GetHandle() retain];
+        dispatch_async(dispatch_get_main_queue(), ^{ [view release]; });
+        [player release];
+    }
 }
 
 void wxMediaCtrl2::create_player()
