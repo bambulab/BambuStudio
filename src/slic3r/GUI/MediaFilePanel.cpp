@@ -708,6 +708,7 @@ void MediaFilePanel::doAction(size_t index, int action)
                     int gcode_file_count = Slic3r::GUI::wxGetApp().plater()->update_print_required_data(config, model, plate_data_list, file.name, file_path);
 
                     if (gcode_file_count > 0) {
+                        Slic3r::GUI::wxGetApp().plater()->set_sdcard_print_source(fs.get(), index, m_machine);
                         wxPostEvent(Slic3r::GUI::wxGetApp().plater(), SimpleEvent(EVT_PRINT_FROM_SDCARD_VIEW));
                     }
                     else {
