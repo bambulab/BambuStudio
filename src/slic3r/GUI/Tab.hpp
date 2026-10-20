@@ -197,6 +197,12 @@ protected:
     StaticBox *				m_search_item;
     TextInput *				m_search_input;
 
+    wxPanel*                            m_override_dashboard { nullptr };
+    wxStaticText*                       m_override_title { nullptr };
+    wxStaticText*                       m_override_summary { nullptr };
+    wxStaticText*                       m_override_scope { nullptr };
+    ScalableButton*                     m_override_review_btn { nullptr };
+
 	// Cached bitmaps.
 	// A "flag" icon to be displayned next to the preset name in the Tab's combo box.
 	ScalableBitmap			m_bmp_show_incompatible_presets;
@@ -366,6 +372,9 @@ public:
 	void		update_ui_from_settings();
 	void		update_label_colours();
 	void		decorate();
+        wxString        override_scope_label() const;
+        void            update_override_dashboard(const std::vector<std::string>& dirty_options,
+                                                  const std::vector<std::string>& nonsys_options);
 	void		update_changed_ui();
 	void		get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page);
     void        update_changed_tree_ui();
