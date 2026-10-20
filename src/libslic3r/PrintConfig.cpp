@@ -9415,22 +9415,21 @@ int DynamicPrintConfig::update_values_from_multi_to_multi(DynamicPrintConfig& ne
                 ConfigOptionFloats* opt = this->option<ConfigOptionFloats>(key, true);
 
                 std::vector<double> old_values = opt->values;
-                int old_count = old_values.size();
-                int new_count = src_opt->values.size();
-
-                assert(variant_count == old_count);
-                assert(new_variant_count == new_count);
+                int old_count = static_cast<int>(old_values.size());
+                // Legacy configs store a per-variant option as one scalar. Only slots that
+                // actually exist may be read; the new profile keeps the remaining variants.
                 opt->values = src_opt->values;
 
                 for (int i = 0; i < new_extruder_count; i++)
                 {
                     std::vector<int>& variant_indices = extruder_variant_indices[i];
                     int new_variant_index = new_variant_indices[i];
-                    if ((new_variant_index == -1) || variant_indices.empty())
+                    if (new_variant_index < 0 || new_variant_index >= static_cast<int>(opt->values.size()) || variant_indices.empty())
                         continue;
 
                     for(auto idx : variant_indices){
-                        assert(idx < old_count);
+                        if (idx < 0 || idx >= old_count)
+                            continue;
                         if (old_values[idx] < opt->values[new_variant_index])
                             opt->values[new_variant_index] = old_values[idx];
                     }
@@ -9445,22 +9444,19 @@ int DynamicPrintConfig::update_values_from_multi_to_multi(DynamicPrintConfig& ne
                 ConfigOptionFloatsOrPercents* opt = this->option<ConfigOptionFloatsOrPercents>(key, true);
 
                 std::vector<FloatOrPercent> old_values = opt->values;
-                int old_count = old_values.size();
-                int new_count = src_opt->values.size();
-
-                assert(variant_count == old_count);
-                assert(new_variant_count == new_count);
+                int old_count = static_cast<int>(old_values.size());
                 opt->values = src_opt->values;
 
                 for (int i = 0; i < new_extruder_count; i++)
                 {
                     std::vector<int>& variant_indices = extruder_variant_indices[i];
                     int new_variant_index = new_variant_indices[i];
-                    if ((new_variant_index == -1) || variant_indices.empty())
+                    if (new_variant_index < 0 || new_variant_index >= static_cast<int>(opt->values.size()) || variant_indices.empty())
                         continue;
 
                     for(auto idx : variant_indices){
-                        assert(idx < old_count);
+                        if (idx < 0 || idx >= old_count)
+                            continue;
                         if (old_values[idx] < opt->values[new_variant_index])
                             opt->values[new_variant_index] = old_values[idx];
                     }
@@ -9475,22 +9471,19 @@ int DynamicPrintConfig::update_values_from_multi_to_multi(DynamicPrintConfig& ne
                 ConfigOptionBools* opt = this->option<ConfigOptionBools>(key, true);
 
                 std::vector<unsigned char> old_values = opt->values;
-                int old_count = old_values.size();
-                int new_count = src_opt->values.size();
-
-                assert(variant_count == old_count);
-                assert(new_variant_count == new_count);
+                int old_count = static_cast<int>(old_values.size());
                 opt->values = src_opt->values;
 
                 for (int i = 0; i < new_extruder_count; i++)
                 {
                     std::vector<int>& variant_indices = extruder_variant_indices[i];
                     int new_variant_index = new_variant_indices[i];
-                    if ((new_variant_index == -1) || variant_indices.empty())
+                    if (new_variant_index < 0 || new_variant_index >= static_cast<int>(opt->values.size()) || variant_indices.empty())
                         continue;
 
                     for(auto idx : variant_indices){
-                        assert(idx < old_count);
+                        if (idx < 0 || idx >= old_count)
+                            continue;
                         if (old_values[idx]) //enabled
                             opt->values[new_variant_index] = old_values[idx];
                     }
