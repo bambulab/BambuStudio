@@ -1,0 +1,96 @@
+name: Release Linux native packages
+
+# Builds native Linux packages by compiling BambuStudio from source in each
+# distribution's own container (so the binary links against that distro's system
+# libraries), then uploads the resulting .deb / .rpm / .pkg.tar.zst to the
+# release. This is the "proper" native package path (not an AppImage wrapper):
+# the GTK/GLib/X11/etc. libraries are declared as package dependencies and used
+# from the system rather than bundled. See issue #11321.
+#
+# Heavy job (full deps + slicer build per distro), so it only runs on release
+# publish or manual dispatch, with the dependency build cached between runs.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to attach packages to (e.g. v02.07.01.62)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    container:
+      image: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Debian .deb
+            image: debian:trixie
+            bootstrap: apt-get update -qq && apt-get install -y --no-install-recommends sudo git git-lfs curl ca-certificates xz-utils
+            package_script: scripts/build_deb.sh
+            glob: build/*.deb
+          - name: Fedora .rpm
+            image: fedora:42
+            bootstrap: dnf install -y sudo git git-lfs curl rpm-build xz
+            package_script: scripts/build_rpm.sh
+            glob: build/*.rpm
+          - name: Arch .pkg.tar.zst
+            image: archlinux:latest
+            bootstrap: pacman -Sy --noconfirm --needed sudo git git-lfs curl base-devel
+            package_script: scripts/build_pkg_arch.sh
+            glob: build/*.pkg.tar.zst
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - name: Bootstrap container
+        run: |
+          ${{ matrix.bootstrap }}
+          git config --global --add safe.directory '*'
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: Cache built dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: deps/build/destdir
+          key: native-pkg-deps-${{ matrix.image }}-${{ hashFiles('deps/CMakeLists.txt', 'deps/**/*.cmake') }}
+
+      - name: Install build dependencies
+        run: ./BuildLinux.sh -u
+
+      - name: Build dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: ./BuildLinux.sh -d
+
+      - name: Build BambuStudio
+        run: |
+          export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
+          ./BuildLinux.sh -s
+          # Assemble build/package/ (binary + libs + resources) that the
+          # packaging scripts consume.
+          (cd build && ./src/BuildLinuxImage.sh -i)
+
+      - name: Build native package
+        run: bash ${{ matrix.package_script }}
+
+      - name: Upload package to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          files: ${{ matrix.glob }}
+          fail_on_unmatched_files: true
