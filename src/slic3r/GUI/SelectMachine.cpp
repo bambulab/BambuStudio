@@ -4177,6 +4177,27 @@ std::string SelectMachineDialog::get_source_printer_model() const
     return std::string();
 }
 
+std::string SelectMachineDialog::get_source_image_bed_type() const
+{
+    if (m_print_type == PrintFromType::FROM_NORMAL) {
+        const VendorProfile::PrinterModel* pm = m_plater ? m_plater->get_curr_printer_model() : nullptr;
+        return pm ? pm->image_bed_type : std::string();
+    }
+
+    // FROM_SDCARD_VIEW / FROM_PRINT_QUEUE: only the printer model id recorded in the print file is available
+    const std::string model_id = get_source_printer_model();
+    PresetBundle*     bundle   = wxGetApp().preset_bundle;
+    if (model_id.empty() || !bundle) return std::string();
+
+    for (const auto& vendor : bundle->vendors) {
+        for (const auto& model : vendor.second.models) {
+            if (model.model_id == model_id)
+                return model.image_bed_type;
+        }
+    }
+    return std::string();
+}
+
 int SelectMachineDialog::find_preset_matched_index() const
 {
     const std::string source_model = get_source_printer_model();
@@ -6271,12 +6292,13 @@ bool SelectMachineDialog::Show(bool show)
             plate_name = elem.first;
     }
 
-    m_printer_box->UpdatePlate(plate_name);
-
     // set default value when show this dialog
     wxGetApp().UpdateDlgDarkUI(this);
     wxGetApp().reset_to_active();
     set_default();
+
+    m_printer_box->UpdatePlate(plate_name, get_source_image_bed_type());
+
     update_user_machine_list();
     update_by_obj(get_current_machine());
 
@@ -9285,7 +9307,7 @@ PrinterInfoBox::PrinterInfoBox(wxWindow* parent, SelectMachineDialog* select_dia
     Create();
 }
 
-void PrinterInfoBox::UpdatePlate(const std::string& plate_name)
+void PrinterInfoBox::UpdatePlate(const std::string& plate_name, const std::string& image_bed_type)
 {
     if (plate_name.empty())
     {
@@ -9293,26 +9315,36 @@ void PrinterInfoBox::UpdatePlate(const std::string& plate_name)
     }
     else
     {
-        wxString name;
+        wxString    name;
+        std::string image_name;
         if (plate_name == "Cool Plate") {
             name = _L("Cool");
-            m_bed_image->SetBitmap(create_scaled_bitmap("bed_cool", this, 32));
+            image_name = "bed_cool";
         }
         else if (plate_name == "Engineering Plate") {
             name = _L("Engineering");
-            m_bed_image->SetBitmap(create_scaled_bitmap("bed_engineering", this, 32));
+            image_name = "bed_engineering";
         }
         else if (plate_name == "High Temp Plate") {
             name = _L("High Temp");
-            m_bed_image->SetBitmap(create_scaled_bitmap("bed_high_templ", this, 32));
+            image_name = "bed_high_templ";
         }
         else if (plate_name == "Textured PEI Plate") {
             name = "PEI";
-            m_bed_image->SetBitmap(create_scaled_bitmap("bed_texture", this, 32));
+            image_name = "bed_texture";
         }
         else if (plate_name == "Supertack Plate") {
             name = _L("Cool(Supertack)");
-            m_bed_image->SetBitmap(create_scaled_bitmap("bed_cool_supertack", this, 32));
+            image_name = "bed_cool_supertack";
+        }
+
+        if (!image_name.empty()) {
+            if (!image_bed_type.empty()) {
+                const std::string model_image_name = image_name + "_" + image_bed_type;
+                if (wxFileExists(from_u8(var(model_image_name + ".png"))))
+                    image_name = model_image_name;
+            }
+            m_bed_image->SetBitmap(create_scaled_bitmap(image_name, this, 32));
         }
 
         if (name.length() > 8) {

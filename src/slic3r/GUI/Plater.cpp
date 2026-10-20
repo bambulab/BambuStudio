@@ -6220,19 +6220,21 @@ std::string Sidebar::get_cur_select_bed_image(bool &exist)
 {
     auto select_bed_type   = get_cur_select_bed_type();
     auto image_name        = bed_type_thumbnails[select_bed_type];
-    // Highest priority: if the current printer model declares a resource-binding
-    auto pm = p->plater->get_curr_printer_model();
-    if (pm && !pm->resource_bind_name.empty()) {
-        image_name             +=  "_" + pm->resource_bind_name;
-    } else {
-        auto series_suffix_str = m_cur_image_bed_type.empty() ? "" : ("_" + m_cur_image_bed_type);
-        image_name += series_suffix_str;
-    }
-    auto full_path         = into_u8(Slic3r::GUI::from_u8(Slic3r::var(image_name + ".png")));
-    if (boost::filesystem::exists(full_path)) {
-        exist = true;
-    } else {
-        exist = false;
+    auto series_suffix_str = m_cur_image_bed_type.empty() ? "" : ("_" + m_cur_image_bed_type);
+    image_name += series_suffix_str;
+
+    auto image_exists = [](const std::string &name) {
+        return boost::filesystem::exists(into_u8(Slic3r::GUI::from_u8(Slic3r::var(name + ".png"))));
+    };
+    exist = image_exists(image_name);
+    if (!exist) {
+        // Fall back to the generic bed image when the printer model specific one is missing
+        const std::string &generic_name = bed_type_thumbnails[select_bed_type];
+        if (generic_name != image_name && image_exists(generic_name)) {
+            BOOST_LOG_TRIVIAL(warning) << "bed image not found: " << image_name << ", fall back to " << generic_name;
+            image_name = generic_name;
+            exist      = true;
+        }
     }
     return image_name;
 }

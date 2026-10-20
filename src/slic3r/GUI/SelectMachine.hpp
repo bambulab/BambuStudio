@@ -723,6 +723,8 @@ private:
     bool has_bowden_extuder(MachineObject *obj);
     
     std::string get_source_printer_model() const;
+    std::string get_source_image_bed_type() const;
+
     int find_preset_matched_index() const;
 };
 
@@ -732,7 +734,7 @@ public:
     PrinterInfoBox(wxWindow* parent, SelectMachineDialog* select_dialog);
 
 public:
-    void  UpdatePlate(const std::string& plate_name);
+    void  UpdatePlate(const std::string& plate_name, const std::string& image_bed_type = std::string());
 
     ComboBox* GetPrinterComboBox() const { return m_comboBox_printer; }
     void      SetPrinterName(const wxString& printer_name) { m_comboBox_printer->SetValue(printer_name); };
