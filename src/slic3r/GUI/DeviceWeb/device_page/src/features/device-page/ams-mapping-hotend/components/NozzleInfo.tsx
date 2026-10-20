@@ -54,13 +54,13 @@ export function NozzleInfo({ nozzle, state }: NozzleInfoProps) {
       return <div className="ams-map-hotend__nozzle-info__fault">{t('Unknown')}</div>;
     }
     if (isTool) {
-      return <div className="ams-map-hotend__nozzle-info__tool">{isPen ? 'Pen' : 'Cutter'}</div>;
+      return <div className="ams-map-hotend__nozzle-info__tool">{isPen ? t('Pen') : t('Cutter')}</div>;
     }
     // No rack nozzle on this slot (e.g. NozzleEmpty). Keep the icon + label
     // layout so card height stays aligned with Normal / Unmatch siblings; the
     // single-line "Empty" replaces the dia / flow rows.
     if (!nozzle) {
-      return <div className="ams-map-hotend__nozzle-info__empty">Empty</div>;
+      return <div className="ams-map-hotend__nozzle-info__empty">{t('Empty')}</div>;
     }
     return (
       <>

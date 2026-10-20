@@ -48,7 +48,7 @@ function SubCard({
   const multiColors = sub.multi_colors && sub.multi_colors.length > 1 ? sub.multi_colors : undefined;
   const isEmpty = !sub.has_filament;
   const isThird = sub.filament_name === '?';
-  const displayName = isEmpty ? 'Empty' : sub.filament_name;
+  const displayName = isEmpty ? t('Empty') : sub.filament_name;
 
   return (
     <div
@@ -135,7 +135,7 @@ function ParentCard({
   const multiColors = sub.multi_colors && sub.multi_colors.length > 1 ? sub.multi_colors : undefined;
   const isEmpty = !sub.has_filament;
   const isThird = sub.filament_name === '?';
-  const displayName = isEmpty ? 'Empty' : sub.filament_name;
+  const displayName = isEmpty ? t('Empty') : sub.filament_name;
 
   return (
     <div className="ams-map-hotend__sub-ams-page__parent">

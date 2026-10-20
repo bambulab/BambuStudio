@@ -43,7 +43,7 @@ export function SlotCard({ slot, materialIndex, onClick, onEnterSubAms, onEdit, 
   // `state` / `is_pickable`. A slot with filament but a missing nozzle
   // still shows the real spool color (it just can't be clicked).
   const isEmpty = !slot.has_filament;
-  const displayName = isEmpty ? 'Empty' : slot.filament_name;
+  const displayName = isEmpty ? t('Empty') : slot.filament_name;
   // Mirrors C++ BuildSlotJson(): TrayType::THIRD is rendered with filament_name "?".
   const isThird = slot.filament_name === '?';
   const multiColors = slot.multi_colors && slot.multi_colors.length > 1 ? slot.multi_colors : undefined;

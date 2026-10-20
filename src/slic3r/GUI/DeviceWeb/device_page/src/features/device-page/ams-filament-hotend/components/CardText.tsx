@@ -13,7 +13,7 @@ export function CardText({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
   // user expects to see the C++ controlled card text (e.g. "PLA Basic") under the spool —
   // the spinning indicator on the card head already conveys "in transit".
   const primary = isEmpty
-    ? 'Empty'
+    ? t('Empty')
     : isAwaitingTpu
     ? (card.text || t('TPU pending read'))
     : isUnknown
