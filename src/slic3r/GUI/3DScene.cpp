@@ -36,6 +36,12 @@
 #include <string.h>
 #include <assert.h>
 
+#include <atomic>
+#include <map>
+#include <memory>
+#include <thread>
+#include <unordered_map>
+
 #include <boost/log/trivial.hpp>
 
 #include <boost/filesystem/operations.hpp>
@@ -437,6 +443,111 @@ std::array<std::array<float, 4>, 5> GLVolume::MODEL_COLOR = { {
     { 1.0f, 1.0f, 0.0f, 1.f }
 } };
 
+bool GLVolume::s_use_interaction_proxy = false;
+
+// Meshes above this size get a coarse copy drawn while the camera moves.
+static constexpr size_t INTERACTION_PROXY_MIN_FACETS    = 300000;
+static constexpr size_t INTERACTION_PROXY_TARGET_FACETS = 120000;
+
+// Vertex clustering: merge all vertices falling in the same grid cell. It is linear in the mesh
+// size and needs little memory, which matters more than quality for a mesh drawn while moving.
+static indexed_triangle_set simplify_by_vertex_clustering(const indexed_triangle_set &its, size_t target_facets)
+{
+    double area = 0.;
+    for (const stl_triangle_vertex_indices &f : its.indices)
+        area += 0.5 * (its.vertices[f[1]] - its.vertices[f[0]]).cross(its.vertices[f[2]] - its.vertices[f[0]]).cast<double>().norm();
+    // a closed surface has about half as many vertices as facets
+    const double cell = std::max(std::sqrt(area / std::max<size_t>(target_facets / 2, 1)), 1e-3);
+
+    Vec3f bmin = its.vertices.front();
+    for (const stl_vertex &v : its.vertices)
+        bmin = bmin.cwiseMin(v);
+
+    std::unordered_map<uint64_t, int> cell_to_vertex;
+    std::vector<Vec3d>                sums;
+    std::vector<int>                  counts;
+    std::vector<int>                  vertex_map(its.vertices.size());
+    for (size_t i = 0; i < its.vertices.size(); ++i) {
+        const Vec3d    p   = ((its.vertices[i] - bmin).cast<double>() / cell);
+        const uint64_t key = (uint64_t(p.x()) & 0x1FFFFF) | ((uint64_t(p.y()) & 0x1FFFFF) << 21) | ((uint64_t(p.z()) & 0x1FFFFF) << 42);
+        auto [it, inserted] = cell_to_vertex.emplace(key, int(sums.size()));
+        if (inserted) {
+            sums.emplace_back(Vec3d::Zero());
+            counts.emplace_back(0);
+        }
+        sums[it->second] += its.vertices[i].cast<double>();
+        ++counts[it->second];
+        vertex_map[i] = it->second;
+    }
+
+    indexed_triangle_set out;
+    out.vertices.reserve(sums.size());
+    for (size_t i = 0; i < sums.size(); ++i)
+        out.vertices.emplace_back((sums[i] / double(counts[i])).cast<float>());
+    out.indices.reserve(its.indices.size() / 4);
+    for (const stl_triangle_vertex_indices &f : its.indices) {
+        const int a = vertex_map[f[0]], b = vertex_map[f[1]], c = vertex_map[f[2]];
+        if (a != b && b != c && a != c)
+            out.indices.emplace_back(a, b, c);
+    }
+    return out;
+}
+
+// Coarse copies of large meshes, shared by all instances of a mesh. The simplification runs on a
+// worker thread which only fills `result`; the OpenGL buffers are created on the UI thread.
+struct InteractionProxy
+{
+    std::weak_ptr<const TriangleMesh>     mesh;
+    std::shared_ptr<indexed_triangle_set> result;
+    std::atomic<bool>                     ready{false};
+    std::unique_ptr<GLIndexedVertexArray> iva;
+};
+static std::map<const TriangleMesh *, std::shared_ptr<InteractionProxy>> g_interaction_proxies;
+
+static const GLIndexedVertexArray *interaction_proxy(const std::shared_ptr<const TriangleMesh> &mesh)
+{
+    if (!mesh || mesh->its.indices.size() < INTERACTION_PROXY_MIN_FACETS)
+        return nullptr;
+
+    auto it = g_interaction_proxies.find(mesh.get());
+    if (it != g_interaction_proxies.end() && it->second->mesh.lock() != mesh) {
+        // the address was reused by another mesh
+        g_interaction_proxies.erase(it);
+        it = g_interaction_proxies.end();
+    }
+    if (it == g_interaction_proxies.end()) {
+        // drop the copies of deleted meshes
+        for (auto i = g_interaction_proxies.begin(); i != g_interaction_proxies.end();)
+            i = i->second->mesh.expired() ? g_interaction_proxies.erase(i) : std::next(i);
+
+        auto proxy  = std::make_shared<InteractionProxy>();
+        proxy->mesh = mesh;
+        g_interaction_proxies.emplace(mesh.get(), proxy);
+        std::thread([proxy, mesh]() {
+            try {
+                proxy->result = std::make_shared<indexed_triangle_set>(simplify_by_vertex_clustering(mesh->its, INTERACTION_PROXY_TARGET_FACETS));
+            } catch (...) {
+                proxy->result = std::make_shared<indexed_triangle_set>();
+            }
+            proxy->ready.store(true, std::memory_order_release);
+        }).detach();
+        return nullptr;
+    }
+
+    InteractionProxy &proxy = *it->second;
+    if (!proxy.ready.load(std::memory_order_acquire))
+        return nullptr;
+    if (!proxy.iva && proxy.result) {
+        if (!proxy.result->indices.empty()) {
+            proxy.iva = std::make_unique<GLIndexedVertexArray>();
+            proxy.iva->load_its_flat_shading(*proxy.result);
+            proxy.iva->finalize_geometry(true);
+        }
+        proxy.result.reset();
+    }
+    return proxy.iva.get();
+}
+
 float GLVolume::LOD_HIGH_ZOOM          = 3.5f;
 float GLVolume::LOD_MIDDLE_ZOOM        = 2.8f;
 float GLVolume::LOD_SMALL_ZOOM         = 1.4f;
@@ -736,6 +847,20 @@ bool GLVolume::simplify_mesh(const indexed_triangle_set &_its, std::shared_ptr<G
     return true;
 }
 
+const GLIndexedVertexArray *GLVolume::interaction_proxy_for(const Model &model) const
+{
+    if (!s_use_interaction_proxy || picking || !indexed_vertex_array || object_idx() < 0 || volume_idx() < 0)
+        return nullptr;
+    if (object_idx() >= int(model.objects.size()) || volume_idx() >= int(model.objects[object_idx()]->volumes.size()))
+        return nullptr;
+    const std::shared_ptr<const TriangleMesh> &mesh = model.objects[object_idx()]->volumes[volume_idx()]->get_mesh_shared_ptr();
+    // only when this volume draws exactly that whole mesh
+    if (!mesh || tverts_range.first != 0 || indexed_vertex_array->triangle_indices_size != 3 * mesh->its.indices.size() ||
+        (tverts_range.second != size_t(-1) && tverts_range.second < indexed_vertex_array->triangle_indices_size))
+        return nullptr;
+    return interaction_proxy(mesh);
+}
+
 Transform3d GLVolume::world_matrix() const
 {
     Transform3d m = m_instance_transformation.get_matrix() * m_volume_transformation.get_matrix();
@@ -966,7 +1091,9 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
                     m_cur_lod_level = calc_volume_box_in_screen_bigger_than_threshold(transformed_bounding_box(), vier_proj_mat, viewport[2], viewport[3]);
                 }
             }
-            if (m_cur_lod_level == LOD_LEVEL::SMALL && indexed_vertex_array_small) {
+            if (const GLIndexedVertexArray *proxy = this->interaction_proxy_for(model)) {
+                proxy->render(shader, {0, size_t(-1)}, {0, size_t(-1)});
+            } else if (m_cur_lod_level == LOD_LEVEL::SMALL && indexed_vertex_array_small) {
                 render_which(indexed_vertex_array_small, shader);
             } else if (m_cur_lod_level == LOD_LEVEL::MIDDLE && indexed_vertex_array_middle) {
                 render_which(indexed_vertex_array_middle, shader);
@@ -1095,7 +1222,9 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
                     m_cur_lod_level = calc_volume_box_in_screen_bigger_than_threshold(transformed_bounding_box(), vier_proj_mat, viewport[2], viewport[3]);
                 }
             }
-            if (m_cur_lod_level == LOD_LEVEL::SMALL && indexed_vertex_array_small && indexed_vertex_array_small->vertices_and_normals_interleaved_VBO_id > 0) {
+            if (const GLIndexedVertexArray *proxy = this->interaction_proxy_for(model)) {
+                proxy->render(shader, {0, size_t(-1)}, {0, size_t(-1)});
+            } else if (m_cur_lod_level == LOD_LEVEL::SMALL && indexed_vertex_array_small && indexed_vertex_array_small->vertices_and_normals_interleaved_VBO_id > 0) {
                 this->indexed_vertex_array_small->render(shader, this->tverts_range_lod, this->qverts_range_lod);
             } else if (m_cur_lod_level == LOD_LEVEL::MIDDLE && indexed_vertex_array_middle && indexed_vertex_array_middle->vertices_and_normals_interleaved_VBO_id > 0) {
                 this->indexed_vertex_array_middle->render(shader, this->tverts_range_lod, this->qverts_range_lod);

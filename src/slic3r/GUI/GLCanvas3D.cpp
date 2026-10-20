@@ -1530,6 +1530,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     }
     m_timer_set_color.Bind(wxEVT_TIMER, &GLCanvas3D::on_set_color_timer, this);
     m_render_fallback_timer.Bind(wxEVT_TIMER, &GLCanvas3D::on_render_fallback_timer, this);
+    m_camera_interaction_timer.Bind(wxEVT_TIMER, &GLCanvas3D::on_camera_interaction_timer, this);
     load_arrange_settings();
 
     m_selection.set_volumes(&m_volumes.volumes);
@@ -2836,7 +2837,12 @@ void GLCanvas3D::render(bool only_init)
 
     wxGetApp().imgui()->new_frame();
 
-    if (m_picking_enabled) {
+    // see _mark_camera_interaction()
+    const bool camera_interacting = _is_camera_interacting();
+    GLVolume::s_use_interaction_proxy = camera_interacting;
+    Slic3r::ScopeGuard interaction_proxy_guard([]() { GLVolume::s_use_interaction_proxy = false; });
+
+    if (m_picking_enabled && !camera_interacting) {
         if (m_rectangle_selection.is_dragging())
             // picking pass using rectangle selection
             _rectangular_selection_picking_pass();
@@ -2859,7 +2865,12 @@ void GLCanvas3D::render(bool only_init)
 
     const bool off_screen_rendering_enabled = ogl_manager.is_fxaa_enabled();
 
-    if (m_picking_enabled && EPickingEffect::Silhouette == picking_effect) {
+    // the silhouette only outlines selected volumes, its full screen passes are useless without any
+    auto any_selected = [](const GLVolumeCollection &collection) {
+        return std::any_of(collection.volumes.begin(), collection.volumes.end(), [](const GLVolume *v) { return v && v->selected; });
+    };
+    const bool has_silhouette = any_selected(m_volumes) || any_selected(m_paint_outline_volumes);
+    if (m_picking_enabled && EPickingEffect::Silhouette == picking_effect && has_silhouette) {
         _render_silhouette_effect();
     }
 
@@ -2955,7 +2966,7 @@ void GLCanvas3D::render(bool only_init)
         _render_objects(m_volumes, GLVolumeCollection::ERenderType::Transparent, b_with_stencil_outline);
     }
 
-     if (m_picking_enabled && EPickingEffect::Silhouette == picking_effect) {
+     if (m_picking_enabled && EPickingEffect::Silhouette == picking_effect && has_silhouette) {
          _composite_silhouette_effect();
      }
 
@@ -5306,6 +5317,28 @@ void GLCanvas3D::_ensure_render_fallback_running()
 #endif
 }
 
+// The camera counts as moving for this long after the last camera input.
+static constexpr int CAMERA_INTERACTION_MSEC = 200;
+
+void GLCanvas3D::_mark_camera_interaction()
+{
+    if (!wxGetApp().app_config->get_bool("fast_navigation"))
+        return;
+    m_camera_interaction_end = std::chrono::steady_clock::now() + std::chrono::milliseconds(CAMERA_INTERACTION_MSEC);
+    // render one full quality frame once the camera stops
+    m_camera_interaction_timer.StartOnce(CAMERA_INTERACTION_MSEC + 20);
+}
+
+bool GLCanvas3D::_is_camera_interacting() const { return std::chrono::steady_clock::now() < m_camera_interaction_end; }
+
+void GLCanvas3D::on_camera_interaction_timer(wxTimerEvent& evt)
+{
+    if (!m_initialized)
+        return;
+    m_dirty = true;
+    _refresh_if_shown_on_screen();
+}
+
 void GLCanvas3D::on_render_fallback_timer(wxTimerEvent& evt)
 {
     if (!m_initialized)
@@ -5473,6 +5506,7 @@ void GLCanvas3D::on_gesture(wxGestureEvent &evt)
         else
             camera.rotate_on_sphere(-rotate, 0, rotate_limit);
     }
+    _mark_camera_interaction();
     m_dirty = true;
 }
 
@@ -5893,6 +5927,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 TransformationType trafo_type;
                 trafo_type.set_relative();
                 m_selection.translate(cur_pos - m_mouse.drag.start_position_3D, trafo_type);
+                _mark_camera_interaction();
                 if (current_printer_technology() == ptFFF) {
                     if (fff_print()->config().print_sequence == PrintSequence::ByObject)
                         update_sequential_clearance();
@@ -5973,6 +6008,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 }
 
                 m_dirty = true;
+                _mark_camera_interaction();
             }
             if (m_mouse.is_move_threshold_met(pos)) {
                 m_mouse.rotating = true;
@@ -6001,6 +6037,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                 camera.set_target(camera.get_target() + orig - cur_pos);
                 m_dirty = true;
+                _mark_camera_interaction();
                 m_mouse.ignore_right_up = true;
             }
             if (m_mouse.is_move_threshold_met(pos)) {
@@ -8435,6 +8472,7 @@ void GLCanvas3D::_zoom_to_box(const BoundingBoxf3& box, double margin_factor)
 
 void GLCanvas3D::_update_camera_zoom(double target_zoom, const Point& anchor)
 {
+    _mark_camera_interaction();
     Camera& camera = get_active_camera();
     if (!wxGetApp().app_config->get_bool("zoom_to_mouse")) {
         camera.set_zoom(target_zoom);
