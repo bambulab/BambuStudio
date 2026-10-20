@@ -208,7 +208,11 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
 
 HistoryWindow::~HistoryWindow()
 {
-    m_refresh_timer->Stop();
+    if (m_refresh_timer) {
+        m_refresh_timer->Stop();
+        delete m_refresh_timer;
+        m_refresh_timer = nullptr;
+    }
     m_show_history_dialog = false;
 }
 
