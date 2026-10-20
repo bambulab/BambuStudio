@@ -1164,7 +1164,8 @@ void PrintObject::slice()
 //
 // Both are settled here, before the paint is cut into regions, by making each coarse extruder's paint
 // constant across its own bands: empty on the band top means the paint is dropped and the area falls back
-// to whoever owned it before painting, which is what never having painted it looks like.
+// to whoever owned it before painting, which is what never having painted it looks like. A coarse colour
+// left thinner than its nozzle can extrude is finally handed to a neighbouring colour.
 static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
                                                      std::vector<std::vector<ExPolygons>> &segmentation)
 {
@@ -1656,6 +1657,153 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
             BOOST_LOG_TRIVIAL(debug) << "[mm_band]   reclaim layer=" << layer_idx << " E" << owner
                                      << " lost=" << lost << " " << was << " -> "
                                      << area_mm2(segmentation[layer_idx][owner]);
+        }
+    }
+
+    // A coarse colour holding a footprint for fewer layers than its nozzle's minimum height cannot extrude
+    // it: the band would have to reach into the colours above and below, and a fine colour there prints every
+    // layer and cannot give way. Typical cases are a 0.1 mm stroke of a 0.8 colour on its band's bottom layer,
+    // or a 0.8 body that 0.2 paint above and below leaves 0.1 mm of. Left alone, the merge planner has no
+    // same-colour slab to fold it into, and the step stays empty across the whole footprint.
+    //
+    // Such a piece takes the colour standing on it one layer up, and that colour plans it like any other
+    // footprint it owns: a fine nozzle prints it as sliced, a coarse one merges it with its own slab above.
+    // This is what single-diameter printing does with paint that misses a layer's sampling height - the colour
+    // drawn there is not the colour printed. What no other colour stands on goes to the colour below, and what
+    // has neither keeps its colour. The first band of each ladder rests on the bed and keeps its own rule.
+    {
+        struct Owner {
+            // The unpainted footprint of the regions carrying this nozzle, or a painted extruder.
+            bool                     base;
+            size_t                   extruder_id;
+            double                   nozzle;
+            AdaptiveLayerHeightRange range;
+            // Last layer of the first band; layers up to it are left alone. -1 when this nozzle prints every
+            // layer and nothing of it can be thin.
+            long long                first_band_top;
+        };
+        std::vector<Owner> owners;
+        auto add_owner = [&](bool base, size_t extruder_id, double nozzle) {
+            const size_t band_size = adaptive_layer_band_size(nozzle, reference_nozzle, base_layer_height);
+            const AdaptiveLayerHeightRange range = adaptive_layer_height_range(nozzle);
+            long long first_band_top = -1;
+            if (band_size >= 2) {
+                const std::vector<AdaptiveLayerBand> bands = build_adaptive_layer_bands(layer_heights, band_size, range, band_tops);
+                first_band_top = bands.empty() || bands.front().bottom_idx != 0 ? 0 : (long long) bands.front().top_idx;
+            }
+            owners.push_back({ base, extruder_id, nozzle, range, band_size >= 2 ? first_band_top : -1 });
+        };
+        for (size_t extruder_id = 0; extruder_id < extruder_count; ++ extruder_id)
+            if (extruder_nozzles[extruder_id] > EPSILON)
+                add_owner(false, extruder_id, extruder_nozzles[extruder_id]);
+        for (double diameter : base_nozzles)
+            add_owner(true, 0, diameter);
+
+        // The unpainted footprint is recomputed only for a layer whose paint changed.
+        std::vector<std::vector<ExPolygons>> unpainted_cache(owners.size(), std::vector<ExPolygons>(layer_count));
+        std::vector<std::vector<unsigned char>> unpainted_valid(owners.size(), std::vector<unsigned char>(layer_count, 0));
+        auto owned = [&](const Owner &owner, size_t layer_idx) -> ExPolygons {
+            if (! owner.base)
+                return segmentation[layer_idx][owner.extruder_id];
+            const size_t owner_idx = &owner - owners.data();
+            if (! unpainted_valid[owner_idx][layer_idx]) {
+                ExPolygons base = base_at(layer_idx, owner.nozzle);
+                if (! base.empty()) {
+                    Polygons painted;
+                    for (size_t extruder_id = 0; extruder_id < extruder_count; ++ extruder_id)
+                        polygons_append(painted, to_polygons(segmentation[layer_idx][extruder_id]));
+                    if (! painted.empty())
+                        base = diff_ex(base, union_ex(painted));
+                }
+                unpainted_cache[owner_idx][layer_idx] = std::move(base);
+                unpainted_valid[owner_idx][layer_idx] = 1;
+            }
+            return unpainted_cache[owner_idx][layer_idx];
+        };
+        auto paint_changed = [&](size_t layer_idx) {
+            for (std::vector<unsigned char> &valid : unpainted_valid)
+                valid[layer_idx] = 0;
+        };
+        auto span_height = [&layer_heights](size_t bottom_idx, size_t top_idx) {
+            double height = 0.;
+            for (size_t layer_idx = bottom_idx; layer_idx <= top_idx; ++ layer_idx)
+                height += layer_heights[layer_idx];
+            return height;
+        };
+
+        // Bottom to top, so a piece given to the colour above already lengthens that colour's run when the
+        // layers above are judged.
+        for (size_t layer_idx = 0; layer_idx < layer_count; ++ layer_idx) {
+            for (const Owner &owner : owners) {
+                if (owner.first_band_top < 0 || (long long) layer_idx <= owner.first_band_top)
+                    continue;
+                const ExPolygons here = owned(owner, layer_idx);
+                if (here.empty())
+                    continue;
+
+                // Whatever this colour holds through some run of layers around this one that reaches its
+                // minimum height is printable. Only the shortest such runs need checking: for each bottom, the
+                // lowest top that reaches the height; from the bottom where this layer alone reaches it on, a
+                // lower bottom only gives a longer run.
+                Polygons printable;
+                for (size_t bottom_idx = layer_idx + 1; bottom_idx-- > 0;) {
+                    size_t top_idx = layer_idx;
+                    while (top_idx + 1 < layer_count && span_height(bottom_idx, top_idx) < owner.range.min_height - EPSILON)
+                        ++ top_idx;
+                    if (span_height(bottom_idx, top_idx) >= owner.range.min_height - EPSILON) {
+                        ExPolygons run = here;
+                        for (size_t idx = bottom_idx; idx <= top_idx && ! run.empty(); ++ idx)
+                            if (idx != layer_idx)
+                                run = intersection_ex(run, owned(owner, idx));
+                        polygons_append(printable, to_polygons(run));
+                    }
+                    if (span_height(bottom_idx, layer_idx) >= owner.range.min_height - EPSILON)
+                        break;
+                }
+                ExPolygons thin = printable.empty() ? here : diff_ex(here, union_ex(printable));
+                // Pieces even the finest nozzle could not print - hairlines between two polygonisations - are
+                // left where they are.
+                thin = printable_pieces(std::move(thin), reference_nozzle);
+                if (thin.empty())
+                    continue;
+
+                for (size_t neighbour_idx : { layer_idx + 1, layer_idx - 1 }) {
+                    if (thin.empty() || neighbour_idx >= layer_count)
+                        continue;
+                    for (const Owner &receiver : owners) {
+                        if (thin.empty())
+                            break;
+                        if (&receiver == &owner || (receiver.base && owner.base))
+                            continue;
+                        ExPolygons taken = intersection_ex(thin, owned(receiver, neighbour_idx));
+                        // Removing the paint hands the footprint to whichever region holds it on this layer, which
+                        // is the receiver only where that region is there too: two parts may meet at this layer.
+                        if (receiver.base && ! taken.empty())
+                            taken = intersection_ex(taken, base_at(layer_idx, receiver.nozzle));
+                        if (taken.empty())
+                            continue;
+                        // Painted area leaves its extruder; the unpainted footprint is whatever no paint covers,
+                        // so it is given up by painting it and taken back by removing the paint.
+                        if (! owner.base)
+                            segmentation[layer_idx][owner.extruder_id] =
+                                diff_ex(segmentation[layer_idx][owner.extruder_id], taken);
+                        if (! receiver.base) {
+                            Polygons combined = to_polygons(segmentation[layer_idx][receiver.extruder_id]);
+                            polygons_append(combined, to_polygons(taken));
+                            segmentation[layer_idx][receiver.extruder_id] = union_ex(combined);
+                        }
+                        paint_changed(layer_idx);
+                        thin = diff_ex(thin, taken);
+                        BOOST_LOG_TRIVIAL(debug) << "[mm_band]   thin layer=" << layer_idx
+                                                 << (owner.base ? " base d=" + std::to_string(owner.nozzle) :
+                                                                  " E" + std::to_string(owner.extruder_id))
+                                                 << " -> " << (neighbour_idx > layer_idx ? "above" : "below")
+                                                 << (receiver.base ? " base d=" + std::to_string(receiver.nozzle) :
+                                                                     " E" + std::to_string(receiver.extruder_id))
+                                                 << " area=" << area_mm2(taken);
+                    }
+                }
+            }
         }
     }
 
