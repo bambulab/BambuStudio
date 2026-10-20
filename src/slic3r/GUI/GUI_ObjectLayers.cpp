@@ -351,6 +351,10 @@ LayerRangeEditor::LayerRangeEditor( ObjectLayers* parent,
 {
     this->SetFont(wxGetApp().normal_font());
     wxGetApp().UpdateDarkUI(this);
+    if (wxGetApp().dark_mode()) {
+        SetBackgroundColour(wxGetApp().get_window_default_clr());
+        SetForegroundColour(wxGetApp().get_label_clr_default());
+    }
 
     // Reset m_enter_pressed flag to _false_, when value is editing
     this->Bind(wxEVT_TEXT, [this](wxEvent&) { m_enter_pressed = false; }, this->GetId());
