@@ -21,17 +21,11 @@ const COLUMN_WIDTH = 80;
 // touch the stage edges, so the pitch depends on the total slot count: with 9
 // slots it is 1/8 of the free width, with 5 slots 1/4 of it. Deriving it here
 // keeps the tiers interleaved for any slot count instead of hard-coding the
-// 9-slot case in CSS.
-//
-// The var is substituted where it is used, so 100% is the width of the tier
-// row holding the column or decoration, which equals the `.stage` content box
-// (see the CSS). Do not switch back to cqw: some WKWebView builds find no
-// container there and fall back to the viewport, overshooting by the stage
-// padding.
+// 9-slot case in CSS. cqw resolves against `.stage` (see the CSS).
 export function stagePitchStyle(totalSlots: number): CSSProperties {
   const gaps = totalSlots - 1;
   return {
-    ['--slot-pitch' as never]: gaps > 0 ? `calc((100% - ${COLUMN_WIDTH}px) / ${gaps})` : '0px',
+    ['--slot-pitch' as never]: gaps > 0 ? `calc((100cqw - ${COLUMN_WIDTH}px) / ${gaps})` : '0px',
   } as CSSProperties;
 }
 
