@@ -663,6 +663,24 @@ void CalibPressureAdvancePattern::set_start_offset(const Vec3d &offset)
 
 Vec3d CalibPressureAdvancePattern::get_start_offset() { return m_starting_point; }
 
+double CalibPressureAdvancePattern::line_width_first_layer() const
+{
+    const double width = m_config.get_abs_value("initial_layer_line_width");
+    // Zero selects the default line width, matching normal slicing.
+    return width > 0. ? width : line_width();
+}
+
+double CalibPressureAdvancePattern::line_width() const
+{
+    const double width = m_config.get_abs_value("line_width");
+    if (width > 0.)
+        return width;
+
+    // Zero also enables automatic width for the default itself.
+    const double nozzle_diameter = m_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(m_params.extruder_id);
+    return Flow::auto_extrusion_width(frExternalPerimeter, float(nozzle_diameter));
+}
+
 void CalibPressureAdvancePattern::refresh_setup(const DynamicPrintConfig &config, bool is_bbl_machine, const Model &model, const Vec3d &origin)
 {
     m_config = config;
