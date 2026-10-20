@@ -3431,33 +3431,32 @@ const WipeTowerData& Print::wipe_tower_data(size_t filaments_cnt) const
                 v = 15.f;
         }
         double wipe_volume = get_max_element(filament_wipe_volume);
-        int filament_depth_count = m_config.nozzle_diameter.values.size() == 2 ? filaments_cnt : filaments_cnt - 1;
+        const int  extruder_count        = int(m_config.nozzle_diameter.values.size());
+        int        filament_depth_count  = extruder_count == 2 ? int(filaments_cnt) : int(filaments_cnt) - 1;
         if (filaments_cnt == 1 && enable_timelapse_print()) filament_depth_count = 1;
-        double volume = wipe_volume * filament_depth_count;
-        if (m_config.nozzle_diameter.values.size() == 2) volume += filament_change_volume * (int) (filaments_cnt / 2);
+        const float extra_purge_volume = (extruder_count == 2)
+                                             ? float(filament_change_volume * (int) (filaments_cnt / 2))
+                                             : 0.f;
 
-        if (m_config.prime_tower_rib_wall.value) {
-            double depth = std::sqrt(volume / layer_height * extra_spacing);
-            if (need_wipe_tower || filaments_cnt > 1) {
-                float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
-                depth  = std::max((double) min_wipe_tower_depth, depth);
-                depth += rib_width / std::sqrt(2) + config().prime_tower_extra_rib_length.value;
-                const_cast<Print *>(this)->m_wipe_tower_data.depth = depth;
-                const_cast<Print *>(this)->m_wipe_tower_data.brim_width = m_config.prime_tower_brim_width;
-            }
-        }
-        else {
-            // BBS
-            double width        = m_config.prime_tower_width;
-            double depth = volume / (layer_height * width) * extra_spacing;
-            if (need_wipe_tower || m_wipe_tower_data.depth > EPSILON) {
-                float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
-                depth = std::max((double) min_wipe_tower_depth, depth);
-            }
-            const_cast<Print *>(this)->m_wipe_tower_data.depth = depth;
-            const_cast<Print *>(this)->m_wipe_tower_data.brim_width = m_config.prime_tower_brim_width;
-        }
-        if (m_config.prime_tower_brim_width < 0) const_cast<Print *>(this)->m_wipe_tower_data.brim_width = WipeTower::get_auto_brim_by_height(max_height);
+        float nozzle_diameter = 0.4f;
+        if (!m_config.nozzle_diameter.values.empty())
+            nozzle_diameter = float(*std::max_element(m_config.nozzle_diameter.values.begin(), m_config.nozzle_diameter.values.end()));
+
+        const bool  enable_wrapping = m_config.enable_wrapping_detection.value && m_config.wrapping_exclude_area.values.size() > 2;
+        const bool  force_min_tower = enable_timelapse_print() || filaments_cnt > 1 || need_wipe_tower;
+        const Vec2f footprint       = WipeTower::estimate_footprint_size(
+            float(m_config.prime_tower_width.value), float(wipe_volume), filament_depth_count, float(layer_height),
+            float(max_height), nozzle_diameter, float(extra_spacing), m_config.prime_tower_rib_wall.value,
+            float(rib_width), float(m_config.prime_tower_extra_rib_length.value), m_config.prime_tower_fillet_wall.value,
+            force_min_tower, enable_wrapping, extra_purge_volume);
+
+        // depth is the Y footprint; rib consumers that square off use max(x,y) via
+        // estimated_wipe_tower_footprint / sequential clearance (width = depth when rib).
+        const_cast<Print *>(this)->m_wipe_tower_data.depth =
+            m_config.prime_tower_rib_wall.value ? std::max(footprint.x(), footprint.y()) : footprint.y();
+        const_cast<Print *>(this)->m_wipe_tower_data.brim_width = m_config.prime_tower_brim_width;
+        if (m_config.prime_tower_brim_width < 0)
+            const_cast<Print *>(this)->m_wipe_tower_data.brim_width = WipeTower::get_auto_brim_by_height(max_height);
     }
     return m_wipe_tower_data;
 }
@@ -3668,8 +3667,8 @@ static Polygon estimated_wipe_tower_footprint(const Print &print)
         depth = wtd.depth;
         if (depth < EPSILON)
             return Polygon();
-        // PartPlate::estimate_wipe_tower_size() squares the rib tower off and the preview box the user
-        // drags around is built from that, so match it here rather than keeping the nominal width.
+        // wipe_tower_data.depth comes from WipeTower::estimate_footprint_size (rib: max AABB side).
+        // Rib preview/arrange use that square; non-rib keeps configured width × estimated depth.
         width     = config.prime_tower_rib_wall.value ? depth : double(config.prime_tower_width.value);
         local_min = Vec2d::Zero();
         brim      = double(wtd.brim_width);

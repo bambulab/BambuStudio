@@ -34,6 +34,24 @@ public:
     // its depth at this same value so it doesn't disagree with what gets sliced.
     static constexpr double wrapping_wipe_tower_depth = 10.0;
     static float get_auto_brim_by_height(float max_height);
+    // Pre-slice axis-aligned footprint (width, depth) using the same body/rib math as
+    // plan_tower_new / rib_section for a worst-case layer of filament_depth_count toolchanges.
+    // Does not include brim. Height is left to the caller.
+    static Vec2f estimate_footprint_size(
+        float prime_tower_width,
+        float wipe_volume,
+        int   filament_depth_count,
+        float layer_height,
+        float tower_height,
+        float nozzle_diameter,
+        float extra_spacing,
+        bool  use_rib_wall,
+        float rib_width,
+        float extra_rib_length,
+        bool  fillet_wall,
+        bool  force_min_tower,
+        bool  enable_wrapping,
+        float extra_purge_volume = 0.f);
     static TriangleMesh                 its_make_rib_tower(float width, float depth, float height, float rib_length, float rib_width, bool fillet_wall);
     static TriangleMesh                 its_make_rib_brim(const Polygon& brim, float layer_height);
     static Polygon                      rib_section(float width, float depth, float rib_length, float rib_width, bool fillet_wall);
