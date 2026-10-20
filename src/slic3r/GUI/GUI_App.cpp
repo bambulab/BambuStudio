@@ -5003,6 +5003,33 @@ bool GUI_App::is_uep_force_checked()
 #endif
 }
 
+bool GUI_App::is_maker_world_access_disabled()
+{
+#if !BBL_ENABLE_MINORS_DECISION
+    return false;
+#else
+    return m_access_maker_world.load() != MinorDecision::Allow;
+#endif
+}
+
+bool GUI_App::is_maker_lab_access_disabled()
+{
+#if !BBL_ENABLE_MINORS_DECISION
+    return false;
+#else
+    return m_access_maker_lab.load() != MinorDecision::Allow;
+#endif
+}
+
+bool GUI_App::is_maker_supply_access_disabled()
+{
+#if !BBL_ENABLE_MINORS_DECISION
+    return false;
+#else
+    return m_access_maker_supply.load() != MinorDecision::Allow;
+#endif
+}
+
 void GUI_App::refresh_monitor_ctrl_area_ui()
 {
     if (!mainframe || !mainframe->m_monitor) return;
@@ -5026,36 +5053,55 @@ void GUI_App::fetch_minors_decisions()
         [this] {
             std::vector<MinorsDecisionResult> decisions;
             int ret = m_agent->get_minors_decisions(
-                {MINORS_SCENE_REMOTE_CONTROL_PRINTER, MINORS_SCENE_JOIN_USER_EXPERIENCE_PROGRAM}, &decisions);
+                {MINORS_SCENE_REMOTE_CONTROL_PRINTER, MINORS_SCENE_JOIN_USER_EXPERIENCE_PROGRAM,
+                 MINORS_SCENE_ACCESS_MAKER_WORLD, MINORS_SCENE_ACCESS_MAKER_LAB, MINORS_SCENE_ACCESS_MAKER_SUPPLY},
+                &decisions);
+            
+            MinorDecision remote_ctrl  = MinorDecision::Allow;
+            UepFamilyGate uep_gate     = UepFamilyGate::Free;
+            MinorDecision maker_world  = MinorDecision::Allow;
+            MinorDecision maker_lab    = MinorDecision::Allow;
+            MinorDecision maker_supply = MinorDecision::Allow;
 
-            // REMOTE_CONTROL_PRINTER uses `decision`; JOIN_USER_EXPERIENCE_PROGRAM uses
-            // `family_link_decision`. Request failure or a missing result is the safe default
-            // (Allow / Free, i.e. not restricted).
-            MinorDecision remote_ctrl = MinorDecision::Allow;
-            UepFamilyGate uep_gate    = UepFamilyGate::Free;
+            // Validate a `decision` value; illegal values fall back to the safe default (Allow).
+            auto parse_decision = [](const MinorsDecisionResult& d, const char* scene) -> MinorDecision {
+                if (d.decision == MinorDecision::Allow || d.decision == MinorDecision::Deny || d.decision == MinorDecision::NeedIdv)
+                    return d.decision;
+                BOOST_LOG_TRIVIAL(warning) << "fetch_minors_decisions: illegal decision for " << scene << "="
+                    << static_cast<int>(d.decision) << ", treat as Allow";
+                return MinorDecision::Allow;
+            };
+
             if (ret != 0) {
                 BOOST_LOG_TRIVIAL(warning) << "fetch_minors_decisions: request failed, ret=" << ret << ", treat as not restricted";
             } else {
                 for (const auto& d : decisions) {
                     if (d.scene_code == MINORS_SCENE_REMOTE_CONTROL_PRINTER) {
-                        if (d.decision == MinorDecision::Allow || d.decision == MinorDecision::Deny || d.decision == MinorDecision::NeedIdv)
-                                remote_ctrl = d.decision;
-                        else
-                            BOOST_LOG_TRIVIAL(warning) << "fetch_minors_decisions: illegal decision for REMOTE_CONTROL_PRINTER="
-                                << static_cast<int>(d.decision) << ", treat as Allow";
+                        remote_ctrl = parse_decision(d, MINORS_SCENE_REMOTE_CONTROL_PRINTER);
                     } else if (d.scene_code == MINORS_SCENE_JOIN_USER_EXPERIENCE_PROGRAM) {
-                        if (d.family_link_decision == FAMILY_LINK_DECISION_ALLOW)
+                        // Server-side casing of family_link_decision isn't guaranteed, normalize before comparing.
+                        std::string family_link_decision = boost::algorithm::to_lower_copy(d.family_link_decision);
+                        if (family_link_decision == FAMILY_LINK_DECISION_ALLOW)
                             uep_gate = UepFamilyGate::ForceOn;
-                        else if (d.family_link_decision == FAMILY_LINK_DECISION_DENY)
+                        else if (family_link_decision == FAMILY_LINK_DECISION_DENY)
                             uep_gate = UepFamilyGate::ForceOff;
                         else
                             uep_gate = UepFamilyGate::Free; // no_config / empty (adult) / unknown
+                    } else if (d.scene_code == MINORS_SCENE_ACCESS_MAKER_WORLD) {
+                        maker_world = parse_decision(d, MINORS_SCENE_ACCESS_MAKER_WORLD);
+                    } else if (d.scene_code == MINORS_SCENE_ACCESS_MAKER_LAB) {
+                        maker_lab = parse_decision(d, MINORS_SCENE_ACCESS_MAKER_LAB);
+                    } else if (d.scene_code == MINORS_SCENE_ACCESS_MAKER_SUPPLY) {
+                        maker_supply = parse_decision(d, MINORS_SCENE_ACCESS_MAKER_SUPPLY);
                     }
                 }
             }
-            CallAfter([this, remote_ctrl, uep_gate] {
+            CallAfter([this, remote_ctrl, uep_gate, maker_world, maker_lab, maker_supply] {
                 m_remote_control_minor_decision.store(remote_ctrl);
                 m_uep_family_gate.store(uep_gate);
+                m_access_maker_world.store(maker_world);
+                m_access_maker_lab.store(maker_lab);
+                m_access_maker_supply.store(maker_supply);
                 refresh_monitor_ctrl_area_ui();
                 if (uep_gate == UepFamilyGate::ForceOff) {
                     if (app_config && app_config->get("firstguide", "privacyuse") == "true") {
@@ -5114,6 +5160,9 @@ void GUI_App::request_user_logout()
         m_agent->user_logout(true);
         m_remote_control_minor_decision.store(MinorDecision::Allow);
         m_uep_family_gate.store(UepFamilyGate::Free);
+        m_access_maker_world.store(MinorDecision::Allow);
+        m_access_maker_lab.store(MinorDecision::Allow);
+        m_access_maker_supply.store(MinorDecision::Allow);
         refresh_monitor_ctrl_area_ui();
         WebView::ClearBambulabTokenCookies();
         if (auto obj = m_device_manager->get_selected_machine();

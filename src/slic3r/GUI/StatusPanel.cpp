@@ -2805,7 +2805,9 @@ void StatusBasePanel::hide_ctrl_area_overlays()
 
 void StatusBasePanel::update_ctrl_area_masks()
 {
-    if (!m_temp_axis_ctrl_box)
+    if (wxGetApp().is_closing() || !GetParent() || IsBeingDeleted())
+        return;
+    if (!m_temp_axis_ctrl_box || m_temp_axis_ctrl_box->IsBeingDeleted())
         return;
 
     const bool disabled = wxGetApp().is_monitor_ctrl_force_disabled();

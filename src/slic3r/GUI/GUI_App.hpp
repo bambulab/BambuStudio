@@ -391,6 +391,9 @@ private:
     boost::thread    m_minors_decisions_thread;
     std::atomic<MinorDecision> m_remote_control_minor_decision{MinorDecision::Allow};
     std::atomic<UepFamilyGate> m_uep_family_gate{UepFamilyGate::Free};
+    std::atomic<MinorDecision> m_access_maker_world{MinorDecision::Allow};
+    std::atomic<MinorDecision> m_access_maker_lab{MinorDecision::Allow};
+    std::atomic<MinorDecision> m_access_maker_supply{MinorDecision::Allow};
     TryLoadLastMachine m_load_last_machine;
 
 public:
@@ -560,6 +563,9 @@ public:
     bool            is_monitor_ctrl_force_disabled();
     bool            is_uep_force_disabled();   // Join User Experience Program (Preferences): locked (allow/deny)
     bool            is_uep_force_checked();    // Join User Experience Program: guardian-enabled (allow) -> checked
+    bool            is_maker_world_access_disabled();    // homepage: MakerWorld (Online Models) access gate (decision != Allow)
+    bool            is_maker_lab_access_disabled();      // homepage: MakerLab access gate (decision != Allow)
+    bool            is_maker_supply_access_disabled();   // homepage: Maker's Supply access gate (decision != Allow)
     void            fetch_minors_decisions();
     void            refresh_monitor_ctrl_area_ui();
 
