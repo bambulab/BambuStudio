@@ -9,7 +9,6 @@
         "0.4"
     ],
     "printer_model": "Bambu Lab P1P",
-    "farthest_point_timelapse": "1",
     "printer_variant": "0.4",
     "auxiliary_fan": "0",
     "bed_exclude_area": [
@@ -33,6 +32,7 @@
     "extruder_variant_list": [
         "Direct Drive Standard,Direct Drive High Flow"
     ],
+    "farthest_point_timelapse": "0",
     "hotend_cooling_rate": [
         "2",
         "2"
@@ -56,7 +56,6 @@
         "0",
         "0"
     ],
-    "machine_unload_filament_time": "28",
     "machine_max_acceleration_e": [
         "5000",
         "5000",
@@ -153,14 +152,15 @@
     "machine_min_travel_rate": [
         "0"
     ],
+    "machine_unload_filament_time": "28",
+    "nozzle_flush_dataset": [
+        "0",
+        "0"
+    ],
     "nozzle_height": "4.2",
     "nozzle_volume": [
         "107",
         "107"
-    ],
-    "nozzle_flush_dataset": [
-        "0",
-        "0"
     ],
     "printer_extruder_id": [
         "1",
@@ -186,18 +186,6 @@
         "249",
         "249"
     ],
-    "retraction_length": [
-        "0.8",
-        "0.8"
-    ],
-    "retraction_minimum_travel": [
-        "1",
-        "1"
-    ],
-    "retraction_speed": [
-        "30",
-        "30"
-    ],
     "retract_restart_extra": [
         "0",
         "0"
@@ -214,13 +202,25 @@
         "18",
         "18"
     ],
-    "wipe_distance": [
-        "2",
-        "2"
+    "retraction_length": [
+        "0.8",
+        "0.8"
+    ],
+    "retraction_minimum_travel": [
+        "1",
+        "1"
+    ],
+    "retraction_speed": [
+        "30",
+        "30"
     ],
     "wipe": [
         "1",
         "1"
+    ],
+    "wipe_distance": [
+        "2",
+        "2"
     ],
     "z_hop": [
         "0.4",
