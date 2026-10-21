@@ -1425,6 +1425,25 @@ static std::set<std::string> filament_supported_diameters(const std::vector<std:
     return result;
 }
 
+// Nozzle diameter of the filament preset used to fill empty --load-filaments slots.
+// A name such as "Generic PLA @BBL H2C 0.4 nozzle" carries one diameter. Otherwise a
+// preset whose compatible_printers all share one diameter uses that diameter.
+static std::string default_filament_nozzle_diameter(const std::string &preset_name, const DynamicPrintConfig &config)
+{
+    const std::string from_name = diameter_from_compatible_printer_name(preset_name);
+    if (!from_name.empty())
+        return from_name;
+
+    const auto *compatible = config.option<ConfigOptionStrings>("compatible_printers");
+    if (compatible == nullptr)
+        return {};
+
+    const std::set<std::string> supported = filament_supported_diameters(compatible->values);
+    if (supported.size() >= 1)
+        return *supported.begin();
+    return {};
+}
+
 // A filament_diameter_map slot is a selected diameter only when it holds one number.
 // "0.2;0.4" lists supported diameters and is not a selection.
 static void collect_selected_filament_diameters(const DynamicPrintConfig &config, const std::vector<int> &filament_ids, std::set<std::string> &diameters)
@@ -2612,7 +2631,7 @@ int CLI::run(int argc, char **argv)
     std::vector<std::string> load_filaments_id;
     std::vector<std::string> load_filaments_name, load_filaments_inherit;
     int current_index = 0;
-    std::string default_load_fila_name, default_load_fila_id, default_filament_file, default_filament_inherit;
+    std::string default_load_fila_name, default_load_fila_id, default_filament_file, default_filament_inherit, default_filament_diameter;
     DynamicPrintConfig  default_load_fila_config;
     if (use_first_fila_as_default) {
         //construct default filament
@@ -2641,8 +2660,9 @@ int CLI::run(int argc, char **argv)
                 default_load_fila_name = config_name;
                 default_load_fila_id = filament_id;
                 default_load_fila_config = std::move(config);
+                default_filament_diameter = default_filament_nozzle_diameter(default_load_fila_name, default_load_fila_config);
 
-                BOOST_LOG_TRIVIAL(info) << boost::format("loaded default filament config %1%, type %2%, name %3%, inherits %4%")%file  %config_from %config_name % default_filament_inherit;
+                BOOST_LOG_TRIVIAL(info) << boost::format("loaded default filament config %1%, type %2%, name %3%, inherits %4%, nozzle diameter %5%")%file  %config_from %config_name % default_filament_inherit % default_filament_diameter;
                 break;
             }
         }
@@ -2725,6 +2745,30 @@ int CLI::run(int argc, char **argv)
                 load_filaments_inherit.push_back(default_filament_inherit);
 
                 load_filaments_set.emplace(default_load_fila_name);
+
+                // Per-slot defaults that follow default_load_fila_config. Add further empty-slot
+                // fallbacks here so they stay with the filament preset they come from.
+                // Command-line filament_diameter_map wins over the project map. Empty slots are
+                // filled on that map; the multi-diameter check installs it onto m_print_config
+                // before apply(), which is the only place the CLI map otherwise lands.
+                const bool cli_has_map = m_extra_config.has("filament_diameter_map");
+                ConfigOptionStrings *dia_map = cli_has_map
+                    ? m_extra_config.option<ConfigOptionStrings>("filament_diameter_map")
+                    : m_print_config.option<ConfigOptionStrings>("filament_diameter_map");
+                if (dia_map != nullptr && static_cast<size_t>(index) < dia_map->values.size() && dia_map->values[index].empty()) {
+                    if (default_filament_diameter.empty()) {
+                        BOOST_LOG_TRIVIAL(warning) << boost::format(
+                            "%1%: default filament %2% has no single nozzle diameter, filament_diameter_map slot %3% stays empty")
+                            % __LINE__ % default_load_fila_name % (index + 1);
+                    } else {
+                        dia_map->values[index] = default_filament_diameter;
+                        BOOST_LOG_TRIVIAL(info) << boost::format(
+                            "filament_diameter_map slot %1% is empty, filled with default filament nozzle diameter %2%")
+                            % (index + 1) % default_filament_diameter;
+                        if (cli_has_map)
+                            m_print_config.option<ConfigOptionStrings>("filament_diameter_map", true)->values = dia_map->values;
+                    }
+                }
             }
             continue;
         }
