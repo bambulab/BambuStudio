@@ -147,8 +147,10 @@ SupportMergePlan::Candidate SupportMergePlan::coarsest_band_containing(
     if (! enabled || layer_print_z.empty())
         return best;
 
+    // Independent support layers may end between object layers. Use the object layer whose Z span contains
+    // print_z; requiring an exact top-Z match would give every such support layer the full slab line width.
     auto layer_it = std::lower_bound(layer_print_z.begin(), layer_print_z.end(), print_z - EPSILON);
-    if (layer_it == layer_print_z.end() || *layer_it > print_z + EPSILON)
+    if (layer_it == layer_print_z.end())
         return best;
     const size_t layer_idx = size_t(layer_it - layer_print_z.begin());
 
