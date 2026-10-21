@@ -5814,8 +5814,7 @@ ExPolygons PrintObject::collected_support_areas(const SupportLayer *support_laye
         }
     };
 
-    // Islands are only filled up to brim/skirt height and may miss trunks that live in
-    // base/roof/floor, so always union every source that still has geometry.
+    // Always union every generated support area that still has geometry.
     const bool has_areas = ! support_layer->support_islands.empty() || ! support_layer->base_areas.empty() ||
                            ! support_layer->roof_areas.empty() || ! support_layer->roof_1st_layer.empty() ||
                            ! support_layer->floor_areas.empty();
@@ -5878,9 +5877,10 @@ ExPolygons PrintObject::collected_support_areas(const SupportLayer *support_laye
 // Supports can legitimately fail to grow, most visibly when "Support on build plate only" leaves the
 // branches nowhere to land. Slicing still succeeds and nothing tells the user, so compare what the
 // generator meant to cover against what it produced and report the difference.
-// layer->loverhangs is the "meant to cover" set: detect_overhangs() has already dropped bridgeable
-// regions, small overhangs, painted blockers and everything support_critical_regions_only excludes.
-// It is only refreshed by the tree generators, hence the is_tree() gate at the call site.
+// layer->loverhangs_with_type is the "meant to cover" set: detect_overhangs() has already dropped
+// bridgeable regions, painted blockers and everything support_critical_regions_only excludes.
+// Ordinary small overhangs are dropped there too, while painted enforcers remain reportable. The set
+// is only refreshed by the tree generators, hence the is_tree() gate at the call site.
 void PrintObject::warn_uncovered_overhangs()
 {
     // draw_circles() marks the support layers it left empty with a zero print_z and height, which would
@@ -5899,16 +5899,39 @@ void PrintObject::warn_uncovered_overhangs()
     assert(std::is_sorted(support_zs.begin(), support_zs.end()));
     m_print->throw_if_canceled();
 
-    // How far below an overhang its supporting layer may sit: the configured gap, plus slack for
-    // adaptive support layer heights. Erring wide only costs us false negatives.
-    const coordf_t search_depth = m_slicing_params.gap_support_object +
-        2. * std::max(m_slicing_params.max_suport_layer_height, m_slicing_params.layer_height);
+    // Multi-diameter top gaps follow the nozzle printing the overhang. Use the largest one here so
+    // every region gets a search window wide enough for its gap and printable layer height.
+    coordf_t search_top_z           = m_slicing_params.gap_support_object;
+    coordf_t search_max_layer_height = std::max(m_slicing_params.max_suport_layer_height,
+                                                 m_slicing_params.layer_height);
+    coordf_t search_min_layer_height = m_slicing_params.min_layer_height;
+    if (m_print->uses_multiple_nozzle_diameters()) {
+        const PrintConfig &print_config = m_print->config();
+        double             max_nozzle   = 0.;
+        for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
+            const PrintRegionConfig &config = this->printing_region(region_id).config();
+            max_nozzle = std::max({max_nozzle,
+                double(nozzle_diameter_for_filament(print_config, config.wall_filament.value)),
+                double(nozzle_diameter_for_filament(print_config, config.solid_infill_filament.value))});
+        }
+        if (max_nozzle > EPSILON) {
+            if (search_top_z > EPSILON)
+                search_top_z = support_top_z_for_nozzle(max_nozzle);
+            const AdaptiveLayerHeightRange height_range = adaptive_layer_height_range(max_nozzle);
+            search_max_layer_height = height_range.max_height;
+            search_min_layer_height = height_range.min_height;
+        }
+    }
+    const coordf_t search_depth = search_top_z + search_max_layer_height + search_min_layer_height;
+    const float    coverage_offset = float(scale_(
+        resolved_support_object_xy_distance(m_print->config(), m_config)));
 
     // One overhang island worth reporting, with everything the passes below need from it.
     struct Island {
-        const ExPolygon *expoly;
-        double           area_mm2;
-        BoundingBox      bbox;
+        ExPolygons  coverage_area;
+        double      area_mm2;
+        // Inflated by the support xy distance. Used only to reject support branches that cannot touch it.
+        BoundingBox bbox;
     };
     struct LayerWork {
         std::vector<Island> islands;
@@ -5926,28 +5949,77 @@ void PrintObject::warn_uncovered_overhangs()
     // This only walks geometry that already exists, and it lets the two passes below skip the layers -
     // usually the vast majority - with nothing left to check.
     tbb::parallel_for(tbb::blocked_range<size_t>(0, m_layers.size()),
-        [this, &support_zs, search_depth, &work](const tbb::blocked_range<size_t> &range) {
+        [this, &support_zs, search_depth, coverage_offset, &work](const tbb::blocked_range<size_t> &range) {
             for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                 m_print->throw_if_canceled();
                 const Layer *layer = m_layers[layer_idx];
-                if (layer->loverhangs.empty())
+                if (layer->loverhangs_with_type.empty())
                     continue;
 
                 LayerWork &w = work[layer_idx];
-                for (const ExPolygon &island : layer->loverhangs) {
+                struct Candidate {
+                    const ExPolygon *island;
+                    BoundingBox      bbox;
+                    double           area_mm2;
+                };
+                std::vector<Candidate> candidate_islands;
+                BoundingBox           candidate_bbox;
+                candidate_islands.reserve(layer->loverhangs_with_type.size());
+                for (const auto &island_with_type : layer->loverhangs_with_type) {
+                    const ExPolygon &island = island_with_type.first;
+                    // A difference can only reduce the area, so these islands cannot become reportable.
                     const double island_area = area(island) * SCALING_FACTOR * SCALING_FACTOR;
                     if (island_area < MIN_REPORTED_OVERHANG_AREA_MM2)
                         continue;
                     const BoundingBox bbox = get_extents(island);
-                    if (! bbox.defined)
-                        continue;
-                    w.islands.push_back({ &island, island_area, bbox });
-                    w.roi.merge(bbox);
+                    if (bbox.defined) {
+                        candidate_islands.push_back({ &island, bbox, island_area });
+                        candidate_bbox.merge(bbox);
+                    }
+                }
+                if (candidate_islands.empty())
+                    continue;
+
+                // Reuse the full search depth intentionally: after the top gap, the maximum layer height
+                // covers the quantized bottom clearance and the minimum leaves room to extrude support.
+                // Model material in this span leaves no usable Z room and is removed from the requirement.
+                Polygons model_below;
+                const coordf_t bottom_z = layer->bottom_z();
+                const coordf_t lowest_z = bottom_z - search_depth;
+                const BoundingBox model_bbox = candidate_bbox.inflated(SCALED_EPSILON);
+                for (size_t model_layer_idx = layer_idx; model_layer_idx-- > 0;) {
+                    const Layer *model_layer = m_layers[model_layer_idx];
+                    if (model_layer->print_z < lowest_z - EPSILON)
+                        break;
+                    append(model_below, ClipperUtils::clip_clipper_polygons_with_subject_bbox(
+                        model_layer->lslices, model_bbox));
+                }
+
+                auto add_island = [&w, coverage_offset](const ExPolygon &island, double island_area) {
+                    if (island_area < MIN_REPORTED_OVERHANG_AREA_MM2)
+                        return;
+                    ExPolygons coverage_area = coverage_offset > SCALED_EPSILON ?
+                        offset_ex(island, coverage_offset) : ExPolygons{island};
+                    const BoundingBox coverage_bbox = get_extents(coverage_area);
+                    if (! coverage_bbox.defined)
+                        return;
+                    w.islands.push_back({ std::move(coverage_area), island_area, coverage_bbox });
+                    w.roi.merge(coverage_bbox);
+                };
+                w.islands.reserve(candidate_islands.size());
+                for (const Candidate &candidate : candidate_islands) {
+                    const Polygons model_near = model_below.empty() ? Polygons{} :
+                        ClipperUtils::clip_clipper_polygons_with_subject_bbox(
+                            model_below, candidate.bbox.inflated(SCALED_EPSILON));
+                    if (model_near.empty())
+                        add_island(*candidate.island, candidate.area_mm2);
+                    else
+                        for (const ExPolygon &island : diff_ex(*candidate.island, model_near))
+                            add_island(island, area(island) * SCALING_FACTOR * SCALING_FACTOR);
                 }
                 if (w.islands.empty())
                     continue;
 
-                const coordf_t bottom_z = layer->bottom_z();
                 const auto     it_end   = std::upper_bound(support_zs.begin(), support_zs.end(), bottom_z + EPSILON);
                 const auto     it_begin = std::lower_bound(support_zs.begin(), it_end, bottom_z - search_depth);
                 w.support_begin = it_begin - support_zs.begin();
@@ -6064,7 +6136,7 @@ void PrintObject::warn_uncovered_overhangs()
                                 if ((*support_bboxes)[i].defined && island.bbox.overlap((*support_bboxes)[i]))
                                     clip.emplace_back((*support_below)[i]);
                             if (! clip.empty())
-                                covered_area = area(intersection_ex(*island.expoly, clip)) * SCALING_FACTOR * SCALING_FACTOR;
+                                covered_area = area(intersection_ex(island.coverage_area, clip)) * SCALING_FACTOR * SCALING_FACTOR;
                         }
                     }
                     if (covered_area < MIN_SUPPORTED_OVERHANG_RATIO * island.area_mm2) {

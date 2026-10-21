@@ -18,6 +18,15 @@ inline bool config_flag_or_false(const ConfigBase &cfg, const t_config_option_ke
     return opt != nullptr && opt->value;
 }
 
+inline coordf_t resolved_support_object_xy_distance(const PrintConfig &print_config,
+                                                    const PrintObjectConfig &object_config)
+{
+    return !print_config.top_z_overrides_xy_distance ?
+        object_config.support_object_xy_distance.value :
+        std::min(object_config.support_object_xy_distance.value,
+                 std::max(0.2, object_config.support_top_z_distance.value));
+}
+
 // Keep Default / Grid / Snug / mismatched-style rewrite in one place so the uncovered-overhang
 // warning names the same classic-vs-organic path as SupportParameters. Organic is refused for
 // variable layer heights (#4313), a zero Top Z gap, a requested ring / heat preserve, or multi-diameter mode.
@@ -138,9 +147,7 @@ struct SupportParameters {
             external_perimeter_width = std::max(external_perimeter_width, coordf_t(region.flow(object, frExternalPerimeter, slicing_params.layer_height).width()));
             bridge_flow_ratio += region.config().bridge_flow;
         }
-        this->gap_xy             = !print_config.top_z_overrides_xy_distance ?
-                                       object_config.support_object_xy_distance.value :
-                                       std::min(object_config.support_object_xy_distance.value, std::max(0.2, object_config.support_top_z_distance.value));
+        this->gap_xy             = resolved_support_object_xy_distance(print_config, object_config);
         this->gap_xy_first_layer = object_config.support_object_first_layer_gap.value;
         bridge_flow_ratio /= object.num_printing_regions();
 
