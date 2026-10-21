@@ -67,8 +67,11 @@ public:
      * \param nozzle_weight       how much a slot's nozzle (diameter + flow type) constrains the match:
      *                            Ignore skips it; Prefer only breaks a near-equal colour tie toward a
      *                            matching nozzle; Require bars a mismatched slot from auto mapping.
+     * \param allow_manual_feed   let slots the printer cannot load on its own (e.g. an unloaded external
+     *                            AMS) take part; on an equal match a self-loadable slot still wins.
+     *                            Only affects hotend-rack machines.
      */
-    static int ams_filament_mapping(const MachineObject* obj, const std::vector<FilamentInfo>& filaments, std::vector<FilamentInfo>& result, std::vector<bool> map_opt, std::vector<int> exclude_id = std::vector<int>(), bool nozzle_has_ams_then_ignore_ext = false, bool color_over_subtype = false, NozzleMatchWeight nozzle_weight = NozzleMatchWeight::Ignore);
+    static int ams_filament_mapping(const MachineObject* obj, const std::vector<FilamentInfo>& filaments, std::vector<FilamentInfo>& result, std::vector<bool> map_opt, std::vector<int> exclude_id = std::vector<int>(), bool nozzle_has_ams_then_ignore_ext = false, bool color_over_subtype = false, NozzleMatchWeight nozzle_weight = NozzleMatchWeight::Ignore, bool allow_manual_feed = false);
 
     // List every installed AMS / external slot on the machine as a mapping candidate, with
     // nozzle_diameter filled from the slot's bound nozzle. A diameter-aware picker uses these to

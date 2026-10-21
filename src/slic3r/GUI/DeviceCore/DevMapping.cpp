@@ -307,10 +307,12 @@ namespace Slic3r
     }
 
     // Hotend-rack: each slicing filament independently picks the closest-color
-    // slot. Slots may be shared across filaments.
+    // slot. Slots may be shared across filaments. A slot needing a manual step
+    // joins only when allow_manual_feed, and then loses an equal match.
     static void _run_hotend_rack_color_mapping(const std::vector<FilamentInfo>&          filaments,
                                                std::map<DevAmsSlotId, FilamentInfo>&     tray_filaments,
                                                const std::vector<std::vector<DisValue>>& distance_map,
+                                               bool                                      allow_manual_feed,
                                                std::vector<FilamentInfo>&                result)
     {
         for (int i = 0; i < (int) distance_map.size(); i++) {
@@ -318,12 +320,18 @@ namespace Slic3r
             int   best_j  = -1;
             for (int j = 0; j < (int) distance_map[i].size(); j++) {
                 const auto& dv = distance_map[i][j];
-                if (!dv.is_type_match || !dv.is_nozzle_match || !dv.can_auto_feed)
+                if (!dv.is_type_match || !dv.is_nozzle_match || (!dv.can_auto_feed && !allow_manual_feed))
                     continue;
                 if (min_val > dv.distance) {
                     min_val = dv.distance;
                     best_j  = j;
                 } else if (best_j >= 0 && min_val == dv.distance) {
+                    const bool cur_auto_feed = distance_map[i][best_j].can_auto_feed;
+                    if (cur_auto_feed != dv.can_auto_feed) {
+                        if (dv.can_auto_feed)
+                            best_j = j;
+                        continue;
+                    }
                     const bool cur_ext = distance_map[i][best_j].is_ext;
                     const bool new_ext = dv.is_ext;
                     const bool cur_sub_ams = distance_map[i][best_j].is_sub_ams;
@@ -468,7 +476,7 @@ namespace Slic3r
 
     int DevMappingUtil::ams_filament_mapping(const MachineObject* obj, const std::vector<FilamentInfo>& filaments, std::vector<FilamentInfo>& result,
                                              std::vector<bool> map_opt, std::vector<int> exclude_id, bool nozzle_has_ams_then_ignore_ext,
-                                             bool color_over_subtype, NozzleMatchWeight nozzle_weight)
+                                             bool color_over_subtype, NozzleMatchWeight nozzle_weight, bool allow_manual_feed)
     {
         // Match priority:
         //   type (hard) > setting_id (sub-class) > filament_id (class) > color.
@@ -675,7 +683,7 @@ namespace Slic3r
                 }
 
                 // Keep the real distance so the log still explains the choice, but
-                // bar it from auto mapping: reaching it needs a manual step.
+                // flag it: reaching it needs a manual step.
                 if (no_auto_feed_keys.count(tray->first))
                     val.can_auto_feed = false;
 
@@ -703,7 +711,7 @@ namespace Slic3r
         }
 
         if (is_mapping_hotend_item)
-            _run_hotend_rack_color_mapping(filaments, tray_filaments, distance_map, result);
+            _run_hotend_rack_color_mapping(filaments, tray_filaments, distance_map, allow_manual_feed, result);
         else
             _run_legacy_greedy_ams_mapping(filaments, tray_filaments, distance_map, result);
 

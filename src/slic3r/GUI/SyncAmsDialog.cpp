@@ -316,7 +316,8 @@ std::vector<FilamentInfo> match_filaments(const MachineObject *obj, const std::v
 
     std::vector<FilamentInfo> result;
     const int rc = DevMappingUtil::ams_filament_mapping(obj, source, result, map_opt, std::vector<int>(), ignore_ext_if_ams,
-                                                        strategy.color_over_subtype, strategy.nozzle_weight);
+                                                        strategy.color_over_subtype, strategy.nozzle_weight,
+                                                        /*allow_manual_feed*/ true);
     const bool valid = DevMappingUtil::is_valid_mapping_result(obj, result); // unmaps slots that left the machine
     if (rc != 0 && rc != 1 && !valid) {
         for (auto &r : result) {
