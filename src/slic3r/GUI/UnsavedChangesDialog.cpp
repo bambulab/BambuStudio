@@ -2374,9 +2374,7 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     m_pr_technology(wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology())
 {
 #if defined(__WXMSW__)
-    // ys_FIXME! temporary workaround for correct font scaling
-    // Because of from wxWidgets 3.1.3 auto rescaling is implemented for the Fonts,
-    // From the very beginning set dialog font to the wxSYS_DEFAULT_GUI_FONT
+    // wxMSW auto-rescales fonts; pin to SYS_DEFAULT_GUI_FONT so dialogs don't inherit a scaled face.
     this->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 #endif // __WXMSW__
 

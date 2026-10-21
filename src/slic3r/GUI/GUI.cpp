@@ -417,7 +417,7 @@ void create_combochecklist(wxComboCtrl* comboCtrl, const std::string& text, cons
 
 		int max_width = 0;
 
-		// the following line messes up the popup size the first time it is shown on wxWidgets 3.1.3
+		// EnablePopupAnimation(false) has historically broken first-show popup sizing on Windows.
 //		comboCtrl->EnablePopupAnimation(false);
 #ifdef _WIN32
 		popup->SetFont(comboCtrl->GetFont());
@@ -522,18 +522,16 @@ void login()
 void desktop_open_datadir_folder()
 {
 	// Execute command to open a file explorer, platform dependent.
-	// FIXME: The const_casts aren't needed in wxWidgets 3.1, remove them when we upgrade.
-
 	const auto path = data_dir();
 #ifdef _WIN32
 		const wxString widepath = from_u8(path);
-		const wchar_t *argv[] = { L"explorer", widepath.GetData(), nullptr };
-		::wxExecute(const_cast<wchar_t**>(argv), wxEXEC_ASYNC, nullptr);
+		const wchar_t *const argv[] = { L"explorer", widepath.GetData(), nullptr };
+		::wxExecute(argv, wxEXEC_ASYNC, nullptr);
 #elif __APPLE__
-		const char *argv[] = { "open", path.data(), nullptr };
-		::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr);
+		const char *const argv[] = { "open", path.data(), nullptr };
+		::wxExecute(argv, wxEXEC_ASYNC, nullptr);
 #else
-		const char *argv[] = { "xdg-open", path.data(), nullptr };
+		const char *const argv[] = { "xdg-open", path.data(), nullptr };
 
 		// Check if we're running in an AppImage container, if so, we need to remove AppImage's env vars,
 		// because they may mess up the environment expected by the file manager.
@@ -559,10 +557,10 @@ void desktop_open_datadir_folder()
 				exec_env.cwd = std::move(owd);
 			}
 
-			::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, &exec_env);
+			::wxExecute(argv, wxEXEC_ASYNC, nullptr, &exec_env);
 		} else {
 			// Looks like we're NOT running from AppImage, we'll make no changes to the environment.
-			::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, nullptr);
+			::wxExecute(argv, wxEXEC_ASYNC, nullptr, nullptr);
 		}
 #endif
 }
@@ -570,8 +568,6 @@ void desktop_open_datadir_folder()
 void desktop_open_any_folder( const std::string& path )
 {
     // Execute command to open a file explorer, platform dependent.
-    // FIXME: The const_casts aren't needed in wxWidgets 3.1, remove them when we upgrade.
-
 #ifdef _WIN32
     const wxString widepath = from_u8(path);
     ::wxExecute(L"explorer /select," + widepath, wxEXEC_ASYNC, nullptr);
@@ -585,7 +581,7 @@ void desktop_open_any_folder( const std::string& path )
     if (!fs::is_directory(p)) {
         new_path = p.parent_path().string();
     }
-    const char* argv[] = {"xdg-open", new_path.data(), nullptr};
+    const char *const argv[] = {"xdg-open", new_path.data(), nullptr};
 
     // Check if we're running in an AppImage container, if so, we need to remove AppImage's env vars,
     // because they may mess up the environment expected by the file manager.
@@ -611,10 +607,10 @@ void desktop_open_any_folder( const std::string& path )
             exec_env.cwd = std::move(owd);
         }
 
-        ::wxExecute(const_cast<char **>(argv), wxEXEC_ASYNC, nullptr, &exec_env);
+        ::wxExecute(argv, wxEXEC_ASYNC, nullptr, &exec_env);
     } else {
         // Looks like we're NOT running from AppImage, we'll make no changes to the environment.
-        ::wxExecute(const_cast<char **>(argv), wxEXEC_ASYNC, nullptr, nullptr);
+        ::wxExecute(argv, wxEXEC_ASYNC, nullptr, nullptr);
     }
 #endif
 }

@@ -54,17 +54,6 @@ using Slic3r::GUI::format_wxstr;
 namespace Slic3r {
 namespace GUI {
 
-/* For PresetComboBox we use bitmaps that are created from images that are already scaled appropriately for Retina
- * (Contrary to the intuition, the `scale` argument for Bitmap's constructor doesn't mean
- * "please scale this to such and such" but rather
- * "the wxImage is already sized for backing scale such and such". )
- * Unfortunately, the constructor changes the size of wxBitmap too.
- * Thus We need to use unscaled size value for bitmaps that we use
- * to avoid scaled size of control items.
- * For this purpose control drawing methods and
- * control size calculation methods (virtual) are overridden.
- **/
-
 BitmapComboBox::BitmapComboBox(wxWindow* parent,
                                 wxWindowID id/* = wxID_ANY*/,
                                 const wxString& value/* = wxEmptyString*/,
