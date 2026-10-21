@@ -23,6 +23,7 @@
 #include "libslic3r/Time.hpp"
 
 #include <boost/thread.hpp>
+#include <algorithm>
 
 using namespace nlohmann;
 
@@ -39,6 +40,7 @@ namespace Slic3r
     DeviceManager::~DeviceManager()
     {
         delete m_refresher;
+        m_machine_update_listeners.clear();
 
         for (auto it = localMachineList.begin(); it != localMachineList.end(); it++)
         {
@@ -59,6 +61,36 @@ namespace Slic3r
             }
         }
         userMachineList.clear();
+    }
+
+    void DeviceManager::add_machine_update_listener(void* owner, MachineUpdateListener fn)
+    {
+        if (!owner || !fn)
+            return;
+        remove_machine_update_listeners(owner);
+        m_machine_update_listeners.push_back(MachineUpdateListenerEntry{owner, std::move(fn)});
+    }
+
+    void DeviceManager::remove_machine_update_listeners(void* owner)
+    {
+        if (!owner)
+            return;
+        m_machine_update_listeners.erase(
+            std::remove_if(m_machine_update_listeners.begin(), m_machine_update_listeners.end(),
+                           [owner](const MachineUpdateListenerEntry& e) { return e.owner == owner; }),
+            m_machine_update_listeners.end());
+    }
+
+    void DeviceManager::notify_machine_updated(MachineObject* obj)
+    {
+        if (!obj)
+            return;
+        // Copy so listeners may register/unregister safely during notify.
+        const auto listeners = m_machine_update_listeners;
+        for (const auto& entry : listeners) {
+            if (entry.fn)
+                entry.fn(obj);
+        }
     }
 
 

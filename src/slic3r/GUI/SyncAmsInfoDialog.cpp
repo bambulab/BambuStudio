@@ -59,8 +59,10 @@ bool SyncAmsInfoDialog::Show(bool show)
         }
         if (m_options_other) { m_options_other->Hide(); }
         if (m_refresh_timer) { m_refresh_timer->Start(LIST_REFRESH_INTERVAL); }
+        register_machine_update_listener();
     } else {
         m_refresh_timer->Stop();
+        unregister_machine_update_listener();
         return DPIDialog::Show(false);
     }
     // set default value when show this dialog
@@ -1167,6 +1169,113 @@ void SyncAmsInfoDialog::finish_mode()
     m_is_in_sending_mode = false;
     Layout();
     Fit();
+}
+
+void SyncAmsInfoDialog::refresh_mapped_ams_tray_info(MachineObject* obj)
+{
+    if (!obj || m_ams_mapping_result.empty())
+        return;
+
+    bool any_updated             = false;
+    bool thumbnail_needs_refresh = false;
+
+    for (auto& fila : m_ams_mapping_result) {
+        if (fila.ams_id.empty() || fila.slot_id.empty() || fila.tray_id < 0)
+            continue;
+
+        auto tray_opt = obj->get_tray(fila.ams_id, fila.slot_id);
+        if (!tray_opt.has_value())
+            continue;
+
+        DevAmsTray tray = *tray_opt;
+        if (!tray.is_exists || !tray.is_tray_info_ready())
+            continue;
+
+        const std::string tray_type  = tray.get_filament_type();
+        const int         tray_ctype = static_cast<int>(tray.ctype);
+
+        const bool color_changed = DevAmsTray::decode_color(fila.color) != DevAmsTray::decode_color(tray.color);
+
+        bool colors_changed = (fila.colors.size() != tray.cols.size());
+        if (!colors_changed) {
+            for (size_t i = 0; i < fila.colors.size(); ++i) {
+                if (DevAmsTray::decode_color(fila.colors[i]) != DevAmsTray::decode_color(tray.cols[i])) {
+                    colors_changed = true;
+                    break;
+                }
+            }
+        }
+
+        const bool meta_changed = color_changed
+            || fila.type != tray_type
+            || fila.ctype != tray_ctype
+            || colors_changed;
+        if (!meta_changed)
+            continue;
+
+        fila.color  = tray.color;
+        fila.type   = tray_type;
+        fila.ctype  = tray_ctype;
+        fila.colors = tray.cols;
+        fila.remain = tray.remain;
+        any_updated = true;
+
+        const wxColour ams_col = DevAmsTray::decode_color(tray.color);
+        std::vector<wxColour> cols;
+        cols.reserve(tray.cols.size());
+        for (const auto& col : tray.cols)
+            cols.push_back(DevAmsTray::decode_color(col));
+
+        wxString ams_label;
+        if (fila.tray_id == VIRTUAL_TRAY_MAIN_ID || fila.tray_id == VIRTUAL_TRAY_DEPUTY_ID)
+            ams_label = "Ext";
+        else
+            ams_label = wxGetApp().transition_tridid(fila.tray_id);
+
+        for (auto it = m_materialList.begin(); it != m_materialList.end(); ++it) {
+            if (it->second->id == fila.id) {
+                it->second->item->set_ams_info(ams_col, ams_label, tray_ctype, cols, true);
+                break;
+            }
+        }
+
+        if (color_changed && m_print_type == PrintFromType::FROM_NORMAL) {
+            if (fila.id >= 0 && fila.id < (int) m_cur_colors_in_thumbnail.size())
+                m_cur_colors_in_thumbnail[fila.id] = ams_col;
+            thumbnail_needs_refresh = true;
+        }
+    }
+
+    if (thumbnail_needs_refresh) {
+        change_default_normal(-1, wxColour());
+        final_deal_edge_pixels_data(m_preview_thumbnail_data);
+        set_default_normal(m_preview_thumbnail_data);
+    }
+
+    if (any_updated)
+        m_back_ams_mapping_result = m_ams_mapping_result;
+}
+
+void SyncAmsInfoDialog::register_machine_update_listener()
+{
+    DeviceManager* dev = wxGetApp().getDeviceManager();
+    if (!dev)
+        return;
+    dev->add_machine_update_listener(this, [this](MachineObject* obj) {
+        if (!IsShown() || !obj)
+            return;
+        MachineObject* selected = wxGetApp().getDeviceManager() ?
+            wxGetApp().getDeviceManager()->get_selected_machine() : nullptr;
+        if (!selected || selected->get_dev_id() != obj->get_dev_id())
+            return;
+        refresh_mapped_ams_tray_info(obj);
+    });
+}
+
+void SyncAmsInfoDialog::unregister_machine_update_listener()
+{
+    if (DeviceManager* dev = wxGetApp().getDeviceManager())
+        dev->remove_machine_update_listeners(this);
 }
 
 void SyncAmsInfoDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &result)
@@ -3188,6 +3297,7 @@ void SyncAmsInfoDialog::change_default_normal(int old_filament_id, wxColour temp
 }
 
 SyncAmsInfoDialog::~SyncAmsInfoDialog() {
+    unregister_machine_update_listener();
     if (m_refresh_timer) {
         delete m_refresh_timer;
     }

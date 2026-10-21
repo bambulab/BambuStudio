@@ -479,6 +479,11 @@ public:
     void sending_mode();
     void finish_mode();
 	void sync_ams_mapping_result(const std::vector<FilamentInfo>& result);
+    // Refresh color/type/cols for already-mapped slots once AMS RFID finishes
+    // (selection while loading freezes a gray placeholder into m_ams_mapping_result).
+    void refresh_mapped_ams_tray_info(MachineObject* obj);
+    void register_machine_update_listener();
+    void unregister_machine_update_listener();
     void prepare(int print_plate_idx);
     void show_status(PrintDialogStatus status,
                      std::vector<wxString> params = std::vector<wxString>(),
