@@ -135,7 +135,7 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "02.09.01.50"
+#define BAMBU_NETWORK_AGENT_VERSION         "02.09.01.51"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -482,7 +482,7 @@ inline constexpr const char* MINORS_SCENE_ACCESS_MAKER_SUPPLY = "ACCESS_MAKER_SU
 inline constexpr const char* MINORS_SCENE_FORUM_LOGIN_VIA_EMAIL = "FORUM_LOGIN_VIA_EMAIL"; // Forum email login
 inline constexpr const char* MINORS_SCENE_FORUM_LOGIN_VIA_3P = "FORUM_LOGIN_VIA_3P"; // Forum third-party login
 
-// MinorsDecisionResult::family_link_decision values (guardian control via Family Hub).
+// Possible values of MinorsDecisionResult::family_link_decision.
 inline constexpr const char* FAMILY_LINK_DECISION_NO_CONFIG = "no_config";
 inline constexpr const char* FAMILY_LINK_DECISION_ALLOW = "allow";
 inline constexpr const char* FAMILY_LINK_DECISION_DENY = "deny";
