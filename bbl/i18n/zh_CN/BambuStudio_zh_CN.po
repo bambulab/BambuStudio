@@ -11398,6 +11398,9 @@ msgstr "设备升级中，无法发送打印任务"
 msgid "The printer is executing instructions. Please restart printing after it ends"
 msgstr "打印机正在执行指令，请在其结束后重新发起打印"
 
+msgid "Cold pull in progress. Unable to start a task."
+msgstr "冷拔进行中，无法发起任务。"
+
 msgid "AMS is setting up. Please try again later."
 msgstr "AMS正在初始化。请稍后再试。"
 

@@ -2114,6 +2114,9 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintDialogStatus::PrintStatusInSystemPrinting) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
+    } else if (status == PrintDialogStatus::PrintStatusInColdPull) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusInPrinting) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
@@ -4794,7 +4797,10 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     } else if (obj_->is_system_printing()) {
         show_status(PrintDialogStatus::PrintStatusInSystemPrinting);
         return;
-    } else if (obj_->is_in_printing() || obj_->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE || obj_->ams_status_main == AMS_STATUS_MAIN_COLD_PULL) {
+    } else if (obj_->ams_status_main == AMS_STATUS_MAIN_COLD_PULL) {
+        show_status(PrintDialogStatus::PrintStatusInColdPull);
+        return;
+    } else if (obj_->is_in_printing() || obj_->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
         show_status(PrintDialogStatus::PrintStatusInPrinting);
         return;
     } else if (!obj_->GetConfig()->SupportPrintWithoutSD() && (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD)) {

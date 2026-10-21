@@ -99,6 +99,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusFirmwareNotSupportTpuAtLeft,
     PrintStatusModeNotFDM,
     PrintStatusInSystemPrinting,
+    PrintStatusInColdPull,
     PrintStatusInPrinting,
     PrintStatusNozzleMatchInvalid,
     PrintStatusNozzleNoMatchedHotends,

@@ -185,6 +185,7 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusInUpgrading: return "PrintStatusInUpgrading";
     case PrintStatusModeNotFDM: return "PrintStatusModeNotFDM";
     case PrintStatusInSystemPrinting: return "PrintStatusInSystemPrinting";
+    case PrintStatusInColdPull: return "PrintStatusInColdPull";
     case PrintStatusInPrinting: return "PrintStatusInPrinting";
     case PrintStatusNozzleMatchInvalid: return "PrintStatusNozzleMatchInvalid";
     case PrintStatusNozzleNoMatchedHotends: return "PrintStatusNozzleNoMatchedHotends";
@@ -266,6 +267,7 @@ wxString PrePrintChecker::get_pre_state_msg(PrintDialogStatus status)
     case PrintStatusModeNotFDM: return _L("Cannot send the print job when the printer is not at FDM mode");
     case PrintStatusInUpgrading: return _L("Cannot send the print job when the printer is updating firmware");
     case PrintStatusInSystemPrinting: return _L("The printer is executing instructions. Please restart printing after it ends");
+    case PrintStatusInColdPull: return _L("Cold pull in progress. Unable to start a task.");
     case PrintStatusInPrinting: return _L("The printer is busy on other print job");
     case PrintStatusAmsOnSettingup: return _L("AMS is setting up. Please try again later.");
     case PrintStatusAmsMappingInvalid: return _L("Not all filaments used in slicing are mapped to the printer. Please check the mapping of filaments.");

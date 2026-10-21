@@ -11146,6 +11146,9 @@ msgstr ""
 msgid "The printer is executing instructions. Please restart printing after it ends"
 msgstr ""
 
+msgid "Cold pull in progress. Unable to start a task."
+msgstr ""
+
 msgid "AMS is setting up. Please try again later."
 msgstr ""
 

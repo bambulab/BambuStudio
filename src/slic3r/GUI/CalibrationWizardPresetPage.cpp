@@ -2096,9 +2096,12 @@ void CalibrationPresetPage::update_show_status()
         show_status(CaliPresetPageStatus::CaliPresetStatusInSystemPrinting);
         return;
     }
+    else if (obj_->ams_status_main == AMS_STATUS_MAIN_COLD_PULL) {
+        show_status(CaliPresetPageStatus::CaliPresetStatusInColdPull);
+        return;
+    }
     else if (obj_->is_in_printing()
-          || obj_->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE
-          || obj_->ams_status_main == AMS_STATUS_MAIN_COLD_PULL) {
+          || obj_->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
         show_status(CaliPresetPageStatus::CaliPresetStatusInPrinting);
         return;
     }
@@ -2214,6 +2217,11 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
     }
     else if (status == CaliPresetPageStatus::CaliPresetStatusInSystemPrinting) {
         wxString msg_text = _L("The printer is executing instructions. Please restart printing after it ends");
+        update_print_status_msg(msg_text, true);
+        Enable_Send_Button(false);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusInColdPull) {
+        wxString msg_text = _L("Cold pull in progress. Unable to start a task.");
         update_print_status_msg(msg_text, true);
         Enable_Send_Button(false);
     }

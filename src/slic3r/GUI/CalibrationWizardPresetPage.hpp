@@ -199,6 +199,7 @@ enum CaliPresetPageStatus
     CaliPresetStatusConnectingServer,
     CaliPresetStatusInUpgrading,
     CaliPresetStatusInSystemPrinting,
+    CaliPresetStatusInColdPull,
     CaliPresetStatusInPrinting,
     CaliPresetStatusLanModeNoSdcard,
     CaliPresetStatusNoSdcard,
