@@ -10,8 +10,8 @@
         "50"
     ],
     "default_acceleration": [
-        "10000",
-        "10000"
+        "20000",
+        "20000"
     ],
     "elefant_foot_compensation": "0.15",
     "enable_arc_fitting": "0",
@@ -44,8 +44,8 @@
         "6000"
     ],
     "inner_wall_acceleration": [
-        "0",
-        "0"
+        "12000",
+        "12000"
     ],
     "inner_wall_speed": [
         "150",
@@ -58,8 +58,8 @@
     "ironing_flow": "25%",
     "monotonic_travel_into_wall": "45.0",
     "outer_wall_acceleration": [
-        "5000",
-        "5000"
+        "7000",
+        "7000"
     ],
     "outer_wall_speed": [
         "100",

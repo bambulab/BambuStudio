@@ -11,9 +11,9 @@
     "filament_change_length_nc": [
         "0"
     ],
-    "filament_dev_ams_drying_ams_limitations": [
+    "filament_cooling_before_tower": [
         "0",
-        "1"
+        "0"
     ],
     "filament_flow_ratio": [
         "0.96",

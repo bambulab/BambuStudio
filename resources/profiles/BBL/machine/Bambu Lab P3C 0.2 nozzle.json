@@ -26,8 +26,12 @@
         "Direct Drive Standard,Direct Drive High Flow"
     ],
     "hotend_cooling_rate": [
-        "0.69",
-        "0.69"
+        "2",
+        "2"
+    ],
+    "hotend_cooling_rate_on_rack": [
+        "0.8",
+        "0.8"
     ],
     "hotend_heating_rate": [
         "7.5",

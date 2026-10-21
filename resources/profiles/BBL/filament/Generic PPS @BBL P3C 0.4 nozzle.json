@@ -11,10 +11,6 @@
     "filament_change_length_nc": [
         "0"
     ],
-    "filament_dev_ams_drying_ams_limitations": [
-        "0",
-        "1"
-    ],
     "filament_flow_ratio": [
         "0.96",
         "0.96"
