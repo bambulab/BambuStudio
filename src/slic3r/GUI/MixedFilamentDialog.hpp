@@ -132,6 +132,9 @@ private:
     void rebuild_recommendation_items();
     void refresh_curve_editor_colors();
     void paint_warning_panel(wxPaintEvent& evt);
+    wxString current_warning_message() const;
+    // Grows the warning panel so every wrapped line of the current message fits.
+    void update_warning_panel_height();
 
     wxBitmap make_swatch_bitmap(size_t idx);
 
@@ -178,6 +181,7 @@ private:
     bool                        m_enforce_nozzle_diameter{false};
     bool                        m_can_confirm{false};
     wxString                    m_type_mismatch_msg;
+    wxString                    m_match_error_msg;
 
     // Combo item index -> 1-based physical filament index (per combo)
     std::vector<std::vector<unsigned int>> m_combo_to_physical;
@@ -262,16 +266,17 @@ private:
     wxBoxSizer*                 m_match_header_sizer{nullptr};
     wxBoxSizer*                 m_match_empty_sizer{nullptr};
     wxBoxSizer*                 m_content_sizer{nullptr};
+    wxPanel*                    m_target_preview_canvas{nullptr};
     ComboBox*                   m_combo_target{nullptr};
     ScalableButton*             m_btn_rematch{nullptr};
     wxStaticText*               m_lbl_official_kit{nullptr};
+    wxStaticText*               m_lbl_wiki{nullptr};
     wxStaticText*               m_match_status{nullptr};
-    wxStaticText*               m_preview_label{nullptr};
-    wxBoxSizer*                 m_match_label_sizer{nullptr};
     wxStaticText*               m_sel_label{nullptr};
     wxBoxSizer*                 m_recommendation_sizer{nullptr};
     wxBoxSizer*                 m_replace_sizer{nullptr};
     CheckBox*                   m_chk_replace_target{nullptr};
+    wxStaticText*               m_lbl_replace_target{nullptr};
 };
 
 } // namespace GUI

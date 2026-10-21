@@ -897,6 +897,16 @@ void ObjectList::update_filament_values_for_items_when_delete_filament(const siz
                 auto l_iter = object->layer_config_ranges.find(layer_node->GetLayerRange());
                 if (l_iter != object->layer_config_ranges.end()) {
                     auto& layer_range_item = *(l_iter);
+                    // Keep height-range feature filaments in sync, like the object and volume configs above.
+                    for (const auto &key : keys) {
+                        if (!layer_range_item.second.has(key))
+                            continue;
+                        const int value = layer_range_item.second.opt_int(key);
+                        if (value == int(filament_id) + 1)
+                            layer_range_item.second.erase(key);
+                        else if (value > int(filament_id))
+                            layer_range_item.second.set_key_value(key, new ConfigOptionInt(value - 1));
+                    }
                     if (layer_range_item.second.has("extruder") && layer_range_item.second.option("extruder")->getInt() == filament_id + 1) {
                         int new_extruder = replace_id == -1 ? 0 : (replace_id + 1);
                         extruder         = wxString::Format("%d", new_extruder);
@@ -3678,21 +3688,6 @@ void ObjectList::layers_editing()
 {
     const Selection& selection = scene_selection();
     const int obj_idx = selection.get_object_idx();
-
-    const auto& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    const ModelObject* selected_object = object(obj_idx);
-    if (print_config.opt_bool("enable_mixed_color_sublayer") && selected_object
-        && model_object_uses_mixed_filament(*selected_object)) {
-        if (wxGetApp().app_config->get("no_warn_mixed_sublayer_variable_layer") != "1") {
-            MessageDialog dlg(nullptr,
-                _L("Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."),
-                _L("Warning"), wxICON_WARNING | wxOK);
-            dlg.show_dsa_button();
-            dlg.ShowModal();
-            if (dlg.get_checkbox_state())
-                wxGetApp().app_config->set("no_warn_mixed_sublayer_variable_layer", "1");
-        }
-    }
 
     wxDataViewItem item = obj_idx >= 0 && GetSelectedItemsCount() > 1 && selection.is_single_full_object() ?
                           m_objects_model->GetItemById(obj_idx) :

@@ -2087,24 +2087,6 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
-    // Warn only on the user's own toggle; preset switches and filament edits must stay silent.
-    if (opt_key == "enable_mixed_color_sublayer" && boost::any_cast<bool>(value) &&
-        wxGetApp().app_config->get("no_warn_mixed_sublayer_variable_layer") != "1") {
-        const auto &objects = wxGetApp().model().objects;
-        const bool has_variable_layer = std::any_of(objects.begin(), objects.end(), [](const ModelObject *obj) {
-            return obj->layer_height_profile.get().size() > 4 && model_object_uses_mixed_filament(*obj);
-        });
-        if (has_variable_layer) {
-            MessageDialog dialog(wxGetApp().plater(),
-                _L("Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."),
-                "", wxICON_WARNING | wxOK);
-            dialog.show_dsa_button();
-            dialog.ShowModal();
-            if (dialog.get_checkbox_state())
-                wxGetApp().app_config->set("no_warn_mixed_sublayer_variable_layer", "1");
-        }
-    }
-
     if (opt_key == "enable_prime_tower") {
         auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool timelapse_enabled = timelapse_type->value == TimelapseType::tlSmooth;

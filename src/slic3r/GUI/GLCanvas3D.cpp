@@ -477,9 +477,54 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
     if (m_model_object && wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_bool("enable_mixed_color_sublayer")
         && model_object_uses_mixed_filament(*m_model_object)) {
         ImGui::Separator();
-        // Wrap at the widest control row so the auto-resized panel does not grow wider for the note.
-        imgui.warning_text_wrapped(_L("Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."),
-                                   std::max(controls_right - ImGui::GetCursorPosX(), imgui.scaled(10.0f)));
+        // Keep the note inside the widest control row so the auto-resized panel does not grow wider for it.
+        const float scale       = canvas.get_scale();
+        const float box_width   = std::max(controls_right - ImGui::GetCursorPosX(), imgui.scaled(10.0f));
+        const float padding_x   = 8.0f * scale;
+        const float padding_y   = 6.0f * scale;
+        const float icon_size   = ImGui::GetFontSize();
+        const float icon_gap    = 6.0f * scale;
+        const float text_width  = std::max(box_width - 2.0f * padding_x - icon_size - icon_gap, imgui.scaled(5.0f));
+        const std::string text  = into_u8(_L("Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."));
+        const std::string link  = into_u8(_L("View Wiki for details"));
+        const ImVec2 text_size  = ImGui::CalcTextSize(text.c_str(), nullptr, false, text_width);
+        const ImVec2 link_size  = ImGui::CalcTextSize(link.c_str());
+        const float link_gap    = 4.0f * scale;
+        const ImVec2 box_min    = ImGui::GetCursorScreenPos();
+        const ImVec2 box_max(box_min.x + box_width, box_min.y + std::max(text_size.y + link_gap + link_size.y, icon_size) + 2.0f * padding_y);
+        // Same color as ColorRGB::WARNING(); the WARNING macro is defined in this translation unit.
+        const ImU32 warning_col = IM_COL32(241, 117, 78, 255);
+        ImDrawList *draw_list   = ImGui::GetWindowDrawList();
+        const ImU32 background_col = wxGetApp().dark_mode() ? IM_COL32(74, 49, 42, 255) : IM_COL32(255, 244, 235, 255);
+        draw_list->AddRectFilled(box_min, box_max, background_col, 4.0f * scale);
+        draw_list->AddRect(box_min, box_max, warning_col, 4.0f * scale, 0, std::max(1.0f, scale));
+
+        const ImVec2 icon_center(box_min.x + padding_x + 0.5f * icon_size, box_min.y + padding_y + 0.5f * icon_size);
+        const float icon_radius = 0.42f * icon_size;
+        draw_list->AddCircle(icon_center, icon_radius, warning_col, 24, std::max(1.0f, scale));
+        draw_list->AddLine(ImVec2(icon_center.x, icon_center.y - 0.2f * icon_size), ImVec2(icon_center.x, icon_center.y + 0.08f * icon_size),
+                           warning_col, std::max(1.0f, 1.4f * scale));
+        draw_list->AddCircleFilled(ImVec2(icon_center.x, icon_center.y + 0.22f * icon_size), std::max(1.0f, 0.06f * icon_size), warning_col);
+
+        ImGui::SetCursorScreenPos(ImVec2(box_min.x + padding_x + icon_size + icon_gap, box_min.y + padding_y));
+        imgui.warning_text_wrapped(text.c_str(), text_width);
+        const ImVec2 link_pos(box_min.x + padding_x + icon_size + icon_gap, box_min.y + padding_y + text_size.y + link_gap);
+        ImGui::SetCursorScreenPos(link_pos);
+        ImGui::InvisibleButton("##mixed_sublayer_variable_layer_wiki", link_size);
+        const bool link_hovered = ImGui::IsItemHovered();
+        const ImU32 link_col    = link_hovered ? IM_COL32(0, 240, 91, 255) : IM_COL32(0, 174, 66, 255);
+        draw_list->AddText(link_pos, link_col, link.c_str());
+        draw_list->AddLine(ImVec2(link_pos.x, link_pos.y + link_size.y - 1.0f * scale),
+                           ImVec2(link_pos.x + link_size.x, link_pos.y + link_size.y - 1.0f * scale), link_col, std::max(1.0f, scale));
+        if (link_hovered)
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+            const std::string language = wxGetApp().app_config->get("language");
+            const wxString    region   = language.find("zh") == 0 ? "zh" : "en";
+            wxGetApp().open_browser_with_warning_dialog(wxString::Format("https://wiki.bambulab.com/%s/bambu-studio/color-mixing", region));
+        }
+        ImGui::SetCursorScreenPos(box_min);
+        ImGui::Dummy(ImVec2(box_width, box_max.y - box_min.y));
     }
 
     GLCanvas3D::LayersEditing::s_overlay_window_width = ImGui::GetWindowSize().x;

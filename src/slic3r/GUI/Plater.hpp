@@ -234,6 +234,8 @@ public:
 
     void add_filament();
     void delete_filament(size_t filament_id = size_t(-1), int replace_filament_id = -1);  // 0 base, -1 means default
+    // Whether a model or mixed filament references this physical filament (0 base).
+    bool is_filament_referenced(size_t filament_id) const;
     void change_filament(size_t from_id, size_t to_id);  // 0 base
     void edit_filament();
     void add_custom_filament(wxColour new_col, const std::string& preset_name = std::string(), bool skip_preset_validation = false, int inherit_nozzle_from = -1);

@@ -181,6 +181,7 @@ enum class NotificationType
     BBLPrintedWeightOverLimitWarn,
     BBLBedHeatSoakInfo,
     BBLSingleExtruderMixedFilamentRisk,
+    BBLMixedSublayerVariableLayerHeight,
     AssemblyWarning,
     AssemblyInfo,
     BBLIsolatedVolumeInfo,

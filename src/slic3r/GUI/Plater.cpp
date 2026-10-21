@@ -6781,6 +6781,53 @@ static bool confirm_delete_used_filament(size_t filament_id, int replace_filamen
     return res == wxID_OK;
 }
 
+bool Sidebar::is_filament_referenced(size_t filament_id) const
+{
+    if (!models_using_filament(filament_id).empty() || !mixed_filaments_using(filament_id).empty())
+        return true;
+
+    // Deleting a filament also resets or removes these references, so automatic cleanup must keep it.
+    const int fid1 = int(filament_id) + 1;
+    auto config_uses = [fid1](const auto &cfg) {
+        for (const std::string &key : filament_index_object_keys())
+            if (cfg.has(key) && cfg.opt_int(key) == fid1)
+                return true;
+        return false;
+    };
+    if (config_uses(*p->plater->config()) || config_uses(wxGetApp().preset_bundle->prints.get_edited_preset().config))
+        return true;
+    for (const ModelObject *mo : wxGetApp().model().objects) {
+        if (config_uses(mo->config))
+            return true;
+        for (const ModelVolume *mv : mo->volumes)
+            if (config_uses(mv->config))
+                return true;
+        // Height ranges can override the wall / infill filaments for a Z band.
+        for (const auto &range : mo->layer_config_ranges)
+            if (config_uses(range.second))
+                return true;
+    }
+
+    for (const auto &plate_gcodes : wxGetApp().model().plates_custom_gcodes)
+        for (const CustomGCode::Item &item : plate_gcodes.second.gcodes)
+            if (item.type == CustomGCode::Type::ToolChange && item.extruder == fid1)
+                return true;
+
+    PartPlateList &plates = p->plater->get_partplate_list();
+    for (int i = 0; i < plates.get_plate_count(); ++i) {
+        const PartPlate *plate = plates.get_plate(i);
+        if (plate == nullptr)
+            continue;
+        const std::vector<int> first_layer = plate->get_first_layer_print_sequence();
+        if (std::find(first_layer.begin(), first_layer.end(), fid1) != first_layer.end())
+            return true;
+        for (const LayerPrintSequence &sequence : plate->get_other_layers_print_sequence())
+            if (std::find(sequence.second.begin(), sequence.second.end(), fid1) != sequence.second.end())
+                return true;
+    }
+    return false;
+}
+
 void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
     if (is_new_project_in_gcode3mf()) { return; }
     if (p->combos_filament.size() <= 1) return;
@@ -8201,7 +8248,8 @@ void Sidebar::update_mixed_filament_list(bool reload_3d)
     auto* grad_range_opt  = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_range");
 
     bool can_mix = (num_physical >= 2);
-    bool has_mixed = can_mix && !mixed_indices.empty();
+    // Keep existing mixed slots visible after deleting physical filaments; broken ones are flagged below.
+    bool has_mixed = !mixed_indices.empty();
 
     const MixedSlotBreaks mixed_breaks = collect_mixed_slot_breaks(num_physical);
     std::set<size_t> broken_set;
@@ -8219,8 +8267,9 @@ void Sidebar::update_mixed_filament_list(bool reload_3d)
     p->m_panel_mixed_title->Show(has_mixed);
     p->m_mixed_scroll_area->Show(has_mixed);
     p->m_panel_mixed_content->Show(has_mixed);
-    update_add_filament_button_limit(p->m_btn_mixed_add, mixed_at_limit, _L("Add mixed filament"),
-                                     wxString::Format(_L("Up to %d mixed filaments can be created"), int(MAX_MIXED_FILAMENT_COUNT)));
+    update_add_filament_button_limit(p->m_btn_mixed_add, mixed_at_limit || !can_mix, _L("Add mixed filament"),
+                                     can_mix ? wxString::Format(_L("Up to %d mixed filaments can be created"), int(MAX_MIXED_FILAMENT_COUNT))
+                                             : _L("At least two filaments are required to create a mixed filament"));
     update_add_filament_button_limit(p->m_bpButton_add_filament, phys_at_limit, _L("Add one filament"),
                                      wxString::Format(_L("Up to %d filaments can be created"), int(MAX_PHYSICAL_FILAMENT_COUNT)));
     p->m_panel_mixed_warning->Show(false);
@@ -10417,6 +10466,7 @@ public:
     void on_process_completed(SlicingProcessCompletedEvent&);
     // report mesh stats + GPU/OpenGL info for one sliced plate
     void track_slice_mesh_stat();
+    void update_mixed_sublayer_variable_layer_warning();
     void on_export_began(wxCommandEvent&);
     void on_export_finished(wxCommandEvent&);
     void on_slicing_began();
@@ -14999,6 +15049,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             return_state |= UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE;
 
         notification_manager->set_slicing_progress_hidden();
+        notification_manager->close_notification_of_type(NotificationType::BBLMixedSublayerVariableLayerHeight);
     }
     else {
         if (preview && preview->get_reload_paint_after_background_process_apply()) {
@@ -16824,6 +16875,7 @@ void Plater::priv::on_slicing_began()
     clear_warnings();
     notification_manager->close_notification_of_type(NotificationType::SignDetected);
     notification_manager->close_notification_of_type(NotificationType::ExportFinished);
+    notification_manager->close_notification_of_type(NotificationType::BBLMixedSublayerVariableLayerHeight);
     bool is_first_plate = m_cur_slice_plate == 0;
     bool slice_all = q->m_only_gcode ? m_slice_all_only_has_gcode : m_slice_all;
     bool need_change_dailytips = !(slice_all && !is_first_plate);
@@ -16926,6 +16978,40 @@ void Plater::priv::track_slice_mesh_stat()
     if (wxGetApp().getAgent()) wxGetApp().getAgent()->track_event("slice_mesh_stat", j.dump());
 }
 
+void Plater::priv::update_mixed_sublayer_variable_layer_warning()
+{
+    notification_manager->close_notification_of_type(NotificationType::BBLMixedSublayerVariableLayerHeight);
+
+    PartPlate *sliced_plate = background_process.get_current_plate();
+    if (sliced_plate == nullptr || sliced_plate != partplate_list.get_curr_plate())
+        return;
+    if (!wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_bool("enable_mixed_color_sublayer"))
+        return;
+
+    std::string object_names;
+    for (const ModelObject *object : sliced_plate->get_objects_on_this_plate()) {
+        if (object == nullptr || object->layer_height_profile.get().size() <= 4 || !model_object_uses_mixed_filament(*object))
+            continue;
+        if (!object_names.empty())
+            object_names += ", ";
+        object_names += object->name;
+    }
+    if (object_names.empty())
+        return;
+
+    notification_manager->push_notification(
+        NotificationType::BBLMixedSublayerVariableLayerHeight,
+        NotificationManager::NotificationLevel::WarningNotificationLevel,
+        format(_L("\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."), object_names),
+        _u8L("View Wiki for details"),
+        [](wxEvtHandler *) {
+            const std::string language = wxGetApp().app_config->get("language");
+            const wxString    region   = language.find("zh") == 0 ? "zh" : "en";
+            wxGetApp().open_browser_with_warning_dialog(wxString::Format("https://wiki.bambulab.com/%s/bambu-studio/color-mixing", region));
+            return false;
+        });
+}
+
 //BBS: add project slice logic
 void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 {
@@ -17014,6 +17100,8 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     // mesh stats per plate + GPU/OpenGL info
     if (!has_error && !evt.cancelled() && evt.success()) {
         track_slice_mesh_stat();
+        if (this->printer_technology == ptFFF)
+            update_mixed_sublayer_variable_layer_warning();
         // Re-push warnings from completed PrintObject steps that were not re-run
         // but whose UI notifications were cleared by on_slicing_began().
         if (this->printer_technology == ptFFF) {

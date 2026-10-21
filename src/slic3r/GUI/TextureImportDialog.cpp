@@ -7612,9 +7612,24 @@ void TextureImportDialog::dismiss_filament_popup()
 
 void TextureImportDialog::show_mixing_kits_help()
 {
-    MixingKitsHelpDialog dlg(this);
+    // Do not auto-delete project filaments that the current texture mapping still uses.
+    std::set<size_t> protected_indices;
+    for (const auto& match : m_current_matches) {
+        const int idx = match.filament_index;
+        if (idx < 0 || idx >= (int)m_filament_entries.size())
+            continue;
+        const TextureFilamentEntry& entry = m_filament_entries[idx];
+        if (entry.kind == TextureFilamentKind::ExistingPhysical)
+            protected_indices.insert(entry.project_config_index);
+        for (unsigned int comp : entry.mixed_components) {
+            if (comp >= 1)
+                protected_indices.insert(comp - 1);
+        }
+    }
+    const OfficialMixingKitAddPlan plan = plan_official_mixing_kit_addition(0, protected_indices);
+    MixingKitsHelpDialog dlg(this, plan);
     if (dlg.ShowModal() == wxID_APPLY)
-        add_pla_palette_cmykw_to_project();
+        add_pla_palette_cmykw_to_project(plan);
 }
 
 void TextureImportDialog::on_mix_toggled(wxCommandEvent& evt)
@@ -7640,7 +7655,7 @@ void TextureImportDialog::on_mix_toggled(wxCommandEvent& evt)
         reset_auto_mix();
 }
 
-void TextureImportDialog::reload_existing_filaments_from_project()
+void TextureImportDialog::reload_existing_filaments_from_project(const std::set<size_t>& deleted_project_indices)
 {
     const std::vector<TextureFilamentEntry> old_entries = m_filament_entries;
     const std::vector<std::array<float, 4>> old_colors  = m_filament_colors_rgba;
@@ -7665,12 +7680,14 @@ void TextureImportDialog::reload_existing_filaments_from_project()
     m_new_filament_preset_names.clear();
     m_new_mixed_filaments.clear();
 
-    // Filaments are only ever inserted into the project here, never removed or reordered,
-    // so the old existing entries appear in the new list in the same order.
+    // Surviving existing entries keep their relative order. Filaments deleted to make room for the
+    // official mixing kit are skipped so they cannot claim a later entry with the same color.
     m_reload_index_remap.assign(old_entries.size(), -1);
     size_t new_pos = 0;
     for (const auto& old_entry : old_entries) {
         if (old_entry.kind != TextureFilamentKind::ExistingPhysical && old_entry.kind != TextureFilamentKind::ExistingMixed)
+            continue;
+        if (deleted_project_indices.count(old_entry.project_config_index) > 0)
             continue;
         const std::string old_color = texture_normalize_color_hex(old_entry.color_hex);
         for (size_t i = new_pos; i < m_existing_filament_count; ++i) {
@@ -7740,15 +7757,15 @@ size_t TextureImportDialog::pending_physical_filament_count() const
     return count;
 }
 
-void TextureImportDialog::add_pla_palette_cmykw_to_project()
+void TextureImportDialog::add_pla_palette_cmykw_to_project(const OfficialMixingKitAddPlan& plan)
 {
     // The kit takes priority over pending physical filaments of this dialog. Pending ones
     // that no longer fit are dropped by reload_existing_filaments_from_project().
-    if (!add_official_mixing_kit_to_project(this))
+    if (!add_official_mixing_kit_to_project(this, plan))
         return;
 
     wxBusyCursor wait;
-    reload_existing_filaments_from_project();
+    reload_existing_filaments_from_project(std::set<size_t>(plan.delete_indices.begin(), plan.delete_indices.end()));
     if (m_mix_cb)
         m_mix_cb->SetValue(true);
     m_mix_enabled = true;

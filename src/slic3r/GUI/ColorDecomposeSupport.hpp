@@ -1,6 +1,7 @@
 #ifndef slic3r_GUI_ColorDecomposeSupport_hpp_
 #define slic3r_GUI_ColorDecomposeSupport_hpp_
 
+#include <set>
 #include <string>
 #include <vector>
 #include <wx/string.h>
@@ -42,6 +43,17 @@ struct DecomposeOfficialComponent {
     DecomposeBaseColor base_color{DecomposeBaseColor::None};
     std::string        color_hex;
     std::string        filament_id;
+};
+
+struct OfficialMixingKitAddPlan {
+    size_t              missing_count{0};
+    size_t              required_delete_count{0};
+    // Unused physical filaments removed before adding the kit, 0-based config indices in descending order.
+    std::vector<size_t> delete_indices;
+    std::vector<std::string> delete_colors;
+    bool                can_add{true};
+
+    bool needs_delete() const { return required_delete_count > 0; }
 };
 
 enum class DecomposeColorBlockReason {
@@ -96,11 +108,16 @@ int find_existing_decompose_component(
 // Official PLA Palette CMYKW mixing kit, one entry per base (white / cyan / magenta / yellow / black).
 std::vector<DecomposeOfficialComponent> pla_palette_cmykw_official_components();
 
-// Appends the kit filaments the project is missing as physical slots, up to the physical filament
-// limit and keeping reserve_slots free below the total filament limit. Warns the user when not every missing filament fits. Returns
-// false, after telling the user, when the active printer has no compatible PLA Palette preset
-// or none of the missing filaments could be added.
-bool add_official_mixing_kit_to_project(wxWindow* parent, size_t reserve_slots = 0);
+// Computes the space needed for the missing kit filaments. Unused filaments are selected for
+// deletion when the project is full; protected_indices are 0-based config indices to keep.
+OfficialMixingKitAddPlan plan_official_mixing_kit_addition(size_t reserve_slots = 0,
+                                                           const std::set<size_t>& protected_indices = {});
+
+// Deletes the unused filaments selected by plan, then appends every missing kit filament.
+// Returns false, after telling the user, when the active printer has no compatible PLA Palette
+// preset or the plan cannot fit the kit.
+bool add_official_mixing_kit_to_project(wxWindow* parent, const OfficialMixingKitAddPlan& plan,
+                                        size_t reserve_slots = 0);
 
 }} // namespace Slic3r::GUI
 

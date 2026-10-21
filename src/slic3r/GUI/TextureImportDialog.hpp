@@ -27,6 +27,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <vector>
 #include <string>
 
@@ -35,6 +36,8 @@ class GreenDoubleSlider;
 class StaticBox;
 
 namespace Slic3r { namespace GUI {
+
+struct OfficialMixingKitAddPlan;
 
 wxDECLARE_EVENT(EVT_TEXTURE_COMPUTE_DONE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TEXTURE_COMPUTE_PROGRESS, wxCommandEvent);
@@ -338,7 +341,7 @@ private:
     void show_mixing_kits_help();
     void on_mix_toggled(wxCommandEvent& evt);
     void apply_mix_from_existing_filaments();
-    void add_pla_palette_cmykw_to_project();
+    void add_pla_palette_cmykw_to_project(const OfficialMixingKitAddPlan& plan);
     // NewPhysical slots a row still uses. reload_existing_filaments_from_project()
     // keeps exactly these, so filaments added to the project must leave room for them.
     size_t pending_physical_filament_count() const;
@@ -348,7 +351,7 @@ private:
     // Let the user stage the filaments mixing needs (red / yellow / blue of the mixing
     // family by default) and add them to the project on OK. Returns false when cancelled.
     bool prompt_supplement_filaments_for_mix();
-    void reload_existing_filaments_from_project();
+    void reload_existing_filaments_from_project(const std::set<size_t>& deleted_project_indices = {});
     void rematch_after_project_filament_change();
     bool has_complete_pla_palette_cmykw() const;
     std::string preferred_mix_family() const;

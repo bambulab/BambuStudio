@@ -337,9 +337,89 @@ std::vector<DecomposeOfficialComponent> pla_palette_cmykw_official_components()
     return out;
 }
 
-bool add_official_mixing_kit_to_project(wxWindow* parent, size_t reserve_slots)
+namespace {
+
+struct ProjectPhysicalFilaments {
+    std::vector<std::string> colors;
+    std::vector<size_t>      indices;
+};
+
+ProjectPhysicalFilaments collect_project_physical_filaments()
 {
-    if (!wxGetApp().plater() || !wxGetApp().preset_bundle)
+    ProjectPhysicalFilaments out;
+    PresetBundle& pb = *wxGetApp().preset_bundle;
+    auto* colours_opt = pb.project_config.option<ConfigOptionStrings>("filament_colour");
+    auto* is_mixed_opt = pb.project_config.option<ConfigOptionBools>("filament_is_mixed");
+    for (size_t i = 0; i < pb.filament_presets.size(); ++i) {
+        if (is_mixed_opt && i < is_mixed_opt->values.size() && is_mixed_opt->values[i])
+            continue;
+        out.colors.push_back(colours_opt && i < colours_opt->values.size() ? colours_opt->values[i] : "#808080");
+        out.indices.push_back(i);
+    }
+    return out;
+}
+
+std::vector<DecomposeOfficialComponent> missing_official_mixing_kit_components(
+    const ProjectPhysicalFilaments& physical,
+    std::set<size_t>* existing_indices = nullptr)
+{
+    std::vector<DecomposeOfficialComponent> missing;
+    for (const DecomposeOfficialComponent& official : pla_palette_cmykw_official_components()) {
+        const int existing = find_existing_decompose_component(official, physical.colors, physical.indices);
+        if (existing > 0) {
+            if (existing_indices)
+                existing_indices->insert(size_t(existing - 1));
+            continue;
+        }
+        missing.push_back(official);
+    }
+    return missing;
+}
+
+} // namespace
+
+OfficialMixingKitAddPlan plan_official_mixing_kit_addition(size_t reserve_slots,
+                                                           const std::set<size_t>& protected_indices)
+{
+    OfficialMixingKitAddPlan plan;
+    if (!wxGetApp().plater() || !wxGetApp().preset_bundle) {
+        plan.can_add = false;
+        return plan;
+    }
+
+    PresetBundle& pb = *wxGetApp().preset_bundle;
+    const ProjectPhysicalFilaments physical = collect_project_physical_filaments();
+    std::set<size_t> keep = protected_indices;
+    plan.missing_count = missing_official_mixing_kit_components(physical, &keep).size();
+
+    const size_t physical_after = physical.indices.size() + plan.missing_count;
+    const size_t total_after = pb.filament_presets.size() + plan.missing_count + reserve_slots;
+    const size_t physical_over = physical_after > MAX_PHYSICAL_FILAMENT_COUNT ? physical_after - MAX_PHYSICAL_FILAMENT_COUNT : 0;
+    const size_t total_over = total_after > MAX_FILAMENT_COUNT ? total_after - MAX_FILAMENT_COUNT : 0;
+    plan.required_delete_count = std::max(physical_over, total_over);
+    if (plan.required_delete_count == 0)
+        return plan;
+
+    Sidebar& sidebar = wxGetApp().plater()->sidebar();
+    // Delete from the end so earlier indices in this plan remain valid while deleting.
+    for (size_t i = physical.indices.size(); i-- > 0 && plan.delete_indices.size() < plan.required_delete_count;) {
+        const size_t cfg_idx = physical.indices[i];
+        if (keep.count(cfg_idx) > 0 || sidebar.is_filament_referenced(cfg_idx))
+            continue;
+        plan.delete_indices.push_back(cfg_idx);
+        plan.delete_colors.push_back(physical.colors[i]);
+    }
+    plan.can_add = plan.delete_indices.size() == plan.required_delete_count;
+    if (!plan.can_add) {
+        plan.delete_indices.clear();
+        plan.delete_colors.clear();
+    }
+    return plan;
+}
+
+bool add_official_mixing_kit_to_project(wxWindow* parent, const OfficialMixingKitAddPlan& plan, size_t reserve_slots)
+{
+    if (!wxGetApp().plater() || !wxGetApp().preset_bundle || !plan.can_add)
         return false;
 
     ensure_official_series_installed(kDecomposePlaPaletteType);
@@ -352,55 +432,38 @@ bool add_official_mixing_kit_to_project(wxWindow* parent, size_t reserve_slots)
         return false;
     }
 
-    PresetBundle& pb = *wxGetApp().preset_bundle;
-    std::vector<std::string> physical_colors;
-    std::vector<size_t> physical_indices;
-    auto* colours_opt = pb.project_config.option<ConfigOptionStrings>("filament_colour");
-    auto* is_mixed_opt = pb.project_config.option<ConfigOptionBools>("filament_is_mixed");
-    for (size_t i = 0; i < pb.filament_presets.size(); ++i) {
-        if (is_mixed_opt && i < is_mixed_opt->values.size() && is_mixed_opt->values[i])
-            continue;
-        physical_colors.push_back(colours_opt && i < colours_opt->values.size() ? colours_opt->values[i] : "#808080");
-        physical_indices.push_back(i);
+    Sidebar& sidebar = wxGetApp().plater()->sidebar();
+    {
+        wxBusyCursor wait;
+        for (size_t cfg_idx : plan.delete_indices)
+            sidebar.delete_filament(cfg_idx, -1);
     }
 
+    PresetBundle& pb = *wxGetApp().preset_bundle;
+    const ProjectPhysicalFilaments physical = collect_project_physical_filaments();
+    const std::vector<DecomposeOfficialComponent> missing = missing_official_mixing_kit_components(physical);
+    if (missing.empty())
+        return true;
+    if (physical.indices.size() + missing.size() > MAX_PHYSICAL_FILAMENT_COUNT ||
+        pb.filament_presets.size() + missing.size() + reserve_slots > MAX_FILAMENT_COUNT)
+        return false;
+
     std::vector<std::pair<wxColour, std::string>> to_add;
-    std::vector<DecomposeOfficialComponent> officials;
-    const size_t max_count = MAX_PHYSICAL_FILAMENT_COUNT;
-    const size_t current_count = pb.filament_presets.size();
-    size_t missing_count = 0;
-    for (const DecomposeOfficialComponent& official : pla_palette_cmykw_official_components()) {
-        if (find_existing_decompose_component(official, physical_colors, physical_indices) >= 0)
-            continue;
-        ++missing_count;
-        if (physical_indices.size() + to_add.size() >= max_count ||
-            current_count + to_add.size() + reserve_slots >= MAX_FILAMENT_COUNT)
-            continue;
+    to_add.reserve(missing.size());
+    for (const DecomposeOfficialComponent& official : missing) {
         wxColour col(official.color_hex);
         if (!col.IsOk())
             col = *wxWHITE;
         to_add.emplace_back(col, preset_name);
-        officials.push_back(official);
     }
 
-    size_t added = 0;
-    if (!to_add.empty()) {
-        wxBusyCursor wait;
-        Sidebar& sidebar = wxGetApp().plater()->sidebar();
-        const size_t insert_pos = sidebar.add_custom_filaments(to_add);
-        added = (insert_pos == size_t(-1)) ? 0 :
-            std::min(to_add.size(), sidebar.combos_filament().size() - insert_pos);
-        for (size_t i = 0; i < added; ++i)
-            set_created_standard_component_metadata(insert_pos + i, officials[i]);
-    }
-    if (added < missing_count) {
-        MessageDialog dlg(parent,
-            format_wxstr(_L("Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."),
-                         max_count, added, missing_count),
-            _L("Warning"), wxOK | wxICON_WARNING);
-        dlg.ShowModal();
-    }
-    return added > 0 || missing_count == 0;
+    wxBusyCursor wait;
+    const size_t insert_pos = sidebar.add_custom_filaments(to_add);
+    const size_t added = (insert_pos == size_t(-1)) ? 0 :
+        std::min(to_add.size(), sidebar.combos_filament().size() - insert_pos);
+    for (size_t i = 0; i < added; ++i)
+        set_created_standard_component_metadata(insert_pos + i, missing[i]);
+    return added == missing.size();
 }
 
 }} // namespace Slic3r::GUI
