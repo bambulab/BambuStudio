@@ -71,12 +71,6 @@ public:
     void render_non_manifold_edges() const;
     void render_triangles(const Selection& selection) const override;
 
-    // TriangleSelector::serialization/deserialization has a limit to store 19 different states.
-    // EXTRUDER_LIMIT + 1 states are used to storing the painting because also uncolored triangles are stored.
-    // When increasing EXTRUDER_LIMIT, it needs to ensure that TriangleSelector::serialization/deserialization
-    // will be also extended to support additional states, requiring at least one state to remain free out of 19 states.
-    static const constexpr size_t EXTRUDERS_LIMIT = 16;
-
     struct GradientInfo {
         bool is_gradient = false;
         std::array<float, 4> color_from = {0.5f, 0.5f, 0.5f, 1.0f};
