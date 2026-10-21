@@ -2110,9 +2110,36 @@ void GUI_App::cancel_networking_install()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": plugin install cancelled!");
 }
 
+void GUI_App::register_machine_update_listeners()
+{
+    DeviceManager* dev = getDeviceManager();
+    if (!dev)
+        return;
+
+    // Sidebar AMS list + filament-manager sync previously lived inline in the MQTT
+    // CallAfter handlers; keep that behavior via the shared notify bus.
+    dev->add_machine_update_listener(this, [this](MachineObject* obj) {
+        if (is_closing() || !obj)
+            return;
+
+        sidebar().load_ams_list(obj);
+
+        // STUDIO-18155: AMS state changes drive filament sync (local store + throttled cloud).
+        // Only push spool list when mount fields actually change.
+        bool fila_mount_changed = false;
+        if (auto* sync = fila_manager_sync())
+            fila_mount_changed = sync->on_device_update(obj);
+        if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
+            if (fila_mount_changed)
+                mainframe->web_device()->NotifyFilamentSessionState();
+        }
+    });
+}
+
 void GUI_App::init_networking_callbacks()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": enter, m_agent=%1%")%m_agent;
+    register_machine_update_listeners();
     if (m_agent) {
         //set callbacks
         //m_agent->set_on_user_login_fn([this](int online_login, bool login) {
@@ -2345,16 +2372,6 @@ void GUI_App::init_networking_callbacks()
                     if (sel && sel->get_dev_id() == dev_id) {
                         obj->parse_json("cloud", msg);
                         this->m_device_manager->notify_machine_updated(obj);
-                        GUI::wxGetApp().sidebar().load_ams_list(obj);
-                        // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
-                        // 仅在在位字段实际变化时才推 spool list，避免每条 MQTT 都整体重渲。
-                        bool fila_mount_changed = false;
-                        if (auto* sync = wxGetApp().fila_manager_sync())
-                            fila_mount_changed = sync->on_device_update(obj);
-                        if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
-                            if (fila_mount_changed)
-                                mainframe->web_device()->NotifyFilamentSessionState();
-                        }
                     } else {
                         obj->parse_json("cloud", msg, true);
                     }
@@ -2405,16 +2422,6 @@ void GUI_App::init_networking_callbacks()
                     obj->parse_json("lan", msg);
                     if (this->m_device_manager->get_selected_machine() == obj) {
                         this->m_device_manager->notify_machine_updated(obj);
-                        GUI::wxGetApp().sidebar().load_ams_list(obj);
-                        // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
-                        // 仅在在位字段实际变化时才推 spool list，避免每条 MQTT 都整体重渲。
-                        bool fila_mount_changed = false;
-                        if (auto* sync = wxGetApp().fila_manager_sync())
-                            fila_mount_changed = sync->on_device_update(obj);
-                        if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
-                            if (fila_mount_changed)
-                                mainframe->web_device()->NotifyFilamentSessionState();
-                        }
                     }
                 }
 
@@ -3891,6 +3898,7 @@ __retry:
             m_device_manager = new Slic3r::DeviceManager(m_agent);
         else
             m_device_manager->set_agent(m_agent);
+        register_machine_update_listeners();
 
         if (!m_user_manager)
             m_user_manager = new Slic3r::UserManager(m_agent);
@@ -3940,6 +3948,7 @@ __retry:
 
         if (!m_device_manager)
             m_device_manager = new Slic3r::DeviceManager();
+        register_machine_update_listeners();
 
         if (!m_user_manager)
             m_user_manager = new Slic3r::UserManager();

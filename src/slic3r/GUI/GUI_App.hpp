@@ -858,6 +858,8 @@ private:
     void            copy_network_if_available();
     bool            on_init_network(bool try_backup = false);
     void            init_networking_callbacks();
+    // Register DeviceManager listeners for selected-machine MQTT updates (sidebar AMS, filament sync).
+    void            register_machine_update_listeners();
     void            init_app_config();
     void            remove_old_networking_plugins();
     //BBS set extra header for http request
