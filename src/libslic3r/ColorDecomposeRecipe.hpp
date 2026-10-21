@@ -9,7 +9,8 @@ namespace Slic3r {
 enum class ColorDecomposeRecipeMode {
     MaterialList,
     CMYW,
-    RYBW
+    RYBW,
+    CMYKW  // Real 3D Print: Cyan + Magenta + Yellow + Black + White (layer dithering)
 };
 
 struct ColorDecomposeRgb {

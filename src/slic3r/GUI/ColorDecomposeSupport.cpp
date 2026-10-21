@@ -36,6 +36,7 @@ const char* decompose_base_color_en(DecomposeBaseColor color)
     case DecomposeBaseColor::Magenta: return "Magenta";
     case DecomposeBaseColor::Yellow:  return "Yellow";
     case DecomposeBaseColor::White:   return "White";
+    case DecomposeBaseColor::Black:   return "Black";
     case DecomposeBaseColor::Red:     return "Red";
     case DecomposeBaseColor::Green:   return "Green";
     case DecomposeBaseColor::Blue:    return "Blue";
@@ -80,6 +81,7 @@ wxString decompose_base_color_display(DecomposeBaseColor color)
     case DecomposeBaseColor::Magenta: return _L("Magenta");
     case DecomposeBaseColor::Yellow:  return _L("Yellow");
     case DecomposeBaseColor::White:   return _L("White");
+    case DecomposeBaseColor::Black:   return _L("Black");
     case DecomposeBaseColor::Red:     return _L("Red");
     case DecomposeBaseColor::Green:   return _L("Green");
     case DecomposeBaseColor::Blue:    return _L("Blue");
@@ -349,6 +351,9 @@ bool prepare_decompose_mixed_result(
     if (result.components.size() < 2) {
         return false;
     }
+    // CMYKW shows a layer-dithering breakdown (informational) — no mixed filament is created.
+    if (result.mode == DecomposeMode::CMYKW)
+        return false;
 
     const bool standard_mode = result.mode == DecomposeMode::CMYW || result.mode == DecomposeMode::RYBW;
     std::string basic_type;
@@ -408,6 +413,7 @@ size_t count_decompose_new_physical_filaments(
 {
     (void)physical_types;
     (void)source_physical_idx;
+    // CMYKW is always available and creates no new project filaments (user sets up AMS slots separately).
     if (result.mode != DecomposeMode::CMYW && result.mode != DecomposeMode::RYBW)
         return 0;
 
@@ -473,6 +479,14 @@ DecomposePreviewIds preview_decompose_filament_ids(
 
     size_t missing_count = 0;
     out.component_ids.reserve(result.components.size());
+
+    // CMYK+W: filament_index holds the canonical slot number (C=1, M=2, Y=3, K=4, W=5).
+    // Return these directly as component IDs so the card shows the slot labels.
+    if (result.mode == DecomposeMode::CMYKW) {
+        for (const DecomposeComponent& comp : result.components)
+            out.component_ids.push_back(comp.filament_index);
+        return out;
+    }
 
     if (!standard_mode) {
         for (const DecomposeComponent& comp : result.components)
