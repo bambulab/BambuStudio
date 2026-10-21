@@ -576,6 +576,7 @@ public:
     void            force_logout_uep_login_invalid();   // minor account not linked to a guardian -> force logout
     void            set_preferences_dialog(PreferencesDialog* dlg) { m_preferences_dialog = dlg; }
     void            refresh_monitor_ctrl_area_ui();
+    void            refresh_homepage_access_ui();
 
     void            request_user_login(int online_login = 0);
     void            request_user_handle(int online_login = 0);

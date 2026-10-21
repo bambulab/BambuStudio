@@ -268,6 +268,26 @@ function HandleStudio( pVal )
 			}
 		}		
 	}
+	else if(strCmd=='homepage_access_restrict')
+	{
+		// Nothing to undo when access comes back: the host pushes the lists again,
+		// and ShowStaffPick / ShowMakerlabList show these areas again.
+		if(pVal['online_disabled']*1==1)
+		{
+			m_HotModelList=null;
+			m_ForUModelList=null;
+			$('#HotModelList').html('');
+			$('#HotModelArea').hide();
+			$('#HotModel_Search_Bar').hide();
+		}
+
+		if(pVal['makerlab_disabled']*1==1)
+		{
+			m_MakerlabList=null;
+			$('#LabList').html('');
+			$('#MakerlabArea').hide();
+		}
+	}
 }
 
 function OnBoardChange( strMenu )

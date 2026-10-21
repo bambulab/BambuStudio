@@ -124,6 +124,8 @@ public:
     void SetLeftMenuWidth(int nWidth);
     void        SwitchWebContent(std::string modelname, int refresh = 0);
     void        SwitchLeftMenu(std::string strMenu);
+    bool        IsMenuAccessDisabled(const std::string &menu) const;
+    void        RefreshMenuAccess();
 
     //Recent File
     void SendRecentList(int images);
@@ -268,6 +270,10 @@ private:
     // success flag, like m_TaskInfo for print history.
     bool m_makerlab_loaded { false };
     bool m_academy_loaded { false };
+    // Access state applied by the last RefreshMenuAccess(); content cleared while
+    // restricted is fetched again only when this flips back to allowed.
+    bool m_online_access_disabled { false };
+    bool m_makerlab_access_disabled { false };
     // Starts at construction so the first retry cannot race the OnLoaded fetch.
     std::chrono::steady_clock::time_point m_content_retry_last { std::chrono::steady_clock::now() };
     // Doubles after every round that still had something to retry, so a

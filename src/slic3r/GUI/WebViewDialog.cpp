@@ -788,15 +788,16 @@ void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
         bool retried = false;
 
         // staff_pick_switch off is a deliberate user choice, not a failure, so it
-        // must not be retried back into view. Without model mall the success
-        // callback bails out before setting m_online_type, so it would never stop.
-        if (m_online_type.IsEmpty() && wxGetApp().has_model_mall() &&
+        // must not be retried back into view. Without model mall, or while access
+        // is restricted, the success callback bails out before setting
+        // m_online_type, so it would never stop.
+        if (m_online_type.IsEmpty() && wxGetApp().has_model_mall() && !IsMenuAccessDisabled("online") &&
             wxGetApp().app_config->get("staff_pick_switch") == "true") {
             SendDesignStaffpick(true);
             retried = true;
         }
 
-        if (!m_makerlab_loaded) {
+        if (!m_makerlab_loaded && !IsMenuAccessDisabled("makerlab")) {
             SendMakerlabList();
             retried = true;
         }
@@ -828,6 +829,11 @@ void WebViewPanel::SendRecentList(int images)
 
 void WebViewPanel::SendDesignStaffpick(bool on)
 {
+    if (on && IsMenuAccessDisabled("online")) {
+        m_has_pending_staff_pick = false;
+        return;
+    }
+
     static long long StaffPickMs = 0;
 
     auto      now       = std::chrono::system_clock::now();
@@ -877,7 +883,7 @@ void WebViewPanel::SendDesignStaffpick(bool on)
                                     return;
                                 }
                                 CallAfter([this, body] {
-                                    if (!wxGetApp().has_model_mall()) return;
+                                    if (!wxGetApp().has_model_mall() || IsMenuAccessDisabled("online")) return;
 
                                     auto body2 = from_u8(body);
                                     body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
@@ -896,7 +902,7 @@ void WebViewPanel::SendDesignStaffpick(bool on)
                                     return;
                                 }
                                 CallAfter([this, body] {
-                                    if (!wxGetApp().has_model_mall()) return;
+                                    if (!wxGetApp().has_model_mall() || IsMenuAccessDisabled("online")) return;
 
                                     auto body2 = from_u8(body);
                                     body2.insert(1, "\"command\": \"modelmall_model_customized_get\", ");
@@ -921,7 +927,7 @@ void WebViewPanel::SendDesignStaffpick(bool on)
                         return;
                     }
                     CallAfter([this, body] {
-                        if (!wxGetApp().has_model_mall()) return;
+                        if (!wxGetApp().has_model_mall() || IsMenuAccessDisabled("online")) return;
 
                         auto body2 = from_u8(body);
                         body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
@@ -1036,6 +1042,8 @@ void WebViewPanel::get_academy_list()
 
 void WebViewPanel::SendMakerlabList(  )
 {
+    if (IsMenuAccessDisabled("makerlab")) return;
+
     try {
         std::string sguide = wxGetApp().app_config->get("firstguide", "finish");
         if (sguide != "true") return;
@@ -1046,6 +1054,8 @@ void WebViewPanel::SendMakerlabList(  )
                 return;
             }
             CallAfter([this, body] {
+                if (IsMenuAccessDisabled("makerlab")) return;
+
                 // Runs outside the try/catch below; an uncaught exception here
                 // reaches OnExceptionInMainLoop and terminates Studio.
                 try {
@@ -1085,6 +1095,11 @@ void WebViewPanel::SendMakerlabList(  )
 
 void WebViewPanel::OpenModelDetail(std::string id, NetworkAgent *agent)
 {
+    if (IsMenuAccessDisabled("online")) {
+        BOOST_LOG_TRIVIAL(info) << "open model detail blocked by minors decision";
+        return;
+    }
+
     SwitchLeftMenu("online");
 
     SetMakerworldModelID(id);
@@ -1168,6 +1183,11 @@ void WebViewPanel::SetMakerlabUrl(std::string url) {
 
 void WebViewPanel::OpenOneMakerlab(std::string url)
 {
+    if (IsMenuAccessDisabled("makerlab")) {
+        BOOST_LOG_TRIVIAL(info) << "open makerlab blocked by minors decision";
+        return;
+    }
+
     NetworkAgent *agent    = GUI::wxGetApp().getAgent();
     if (!agent) return;
 
@@ -2298,6 +2318,11 @@ void WebViewPanel::OpenMakerworldSearchPage(std::string KeyWord)
 {
     if (KeyWord.empty()) return;
 
+    if (IsMenuAccessDisabled("online")) {
+        BOOST_LOG_TRIVIAL(info) << "makerworld search blocked by minors decision";
+        return;
+    }
+
     auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
 
     wxString language_code = wxGetApp().current_language_code_safe().BeforeFirst('_');
@@ -2333,6 +2358,16 @@ void WebViewPanel::SetPrintHistoryTaskID(int TaskID)
 
 void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
 {
+    if (IsMenuAccessDisabled(modelname)) {
+        if (modelname != "home") {
+            BOOST_LOG_TRIVIAL(info) << "homepage menu blocked by minors decision: " << modelname;
+            return;
+        }
+        // Library is hidden for this account, land on Recent instead.
+        modelname = "recent";
+        SwitchLeftMenu(modelname);
+    }
+
     m_contentname = modelname;
 
     bool show_online_toolbar = false;
@@ -2511,6 +2546,14 @@ void WebViewPanel::SwitchLeftMenu(std::string strMenu)
 {
     if (!m_browserLeft) return;
 
+    if (IsMenuAccessDisabled(strMenu)) {
+        if (strMenu != "home") {
+            BOOST_LOG_TRIVIAL(info) << "homepage menu blocked by minors decision: " << strMenu;
+            return;
+        }
+        strMenu = "recent";
+    }
+
     json m_Res           = json::object();
     m_Res["command"]     = "homepage_leftmenu_clicked";
     m_Res["sequence_id"] = "10001";
@@ -2562,6 +2605,8 @@ void WebViewPanel::SetLeftMenuShow(std::string menuname, int show)
 {
     if (!m_browserLeft) return;
 
+    if (show && IsMenuAccessDisabled(menuname)) show = 0;
+
     json m_Res           = json::object();
     m_Res["command"]     = "homepage_leftmenu_show";
     m_Res["sequence_id"] = "10001";
@@ -2571,6 +2616,62 @@ void WebViewPanel::SetLeftMenuShow(std::string menuname, int show)
     wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', true));
     WebView::RunScript(m_browserLeft, strJS);
     WebView::RunScript(m_browser, strJS);
+}
+
+bool WebViewPanel::IsMenuAccessDisabled(const std::string &menu) const
+{
+    // Account restrictions from the minors decisions; "search" is the MakerWorld search page.
+    if (menu == "home" || menu == "online" || menu == "search")
+        return wxGetApp().is_maker_world_access_disabled();
+    if (menu == "makerlab")
+        return wxGetApp().is_maker_lab_access_disabled();
+    if (menu == "makersupply")
+        return wxGetApp().is_maker_supply_access_disabled();
+    return false;
+}
+
+void WebViewPanel::RefreshMenuAccess()
+{
+    const bool online_disabled   = IsMenuAccessDisabled("online");
+    const bool makerlab_disabled = IsMenuAccessDisabled("makerlab");
+    BOOST_LOG_TRIVIAL(info) << "homepage menu access: maker_world_disabled=" << online_disabled
+                            << " maker_lab_disabled=" << makerlab_disabled
+                            << " maker_supply_disabled=" << IsMenuAccessDisabled("makersupply");
+
+    // Both are visible by default in left.html, so a reloaded left page needs them pushed again.
+    SetLeftMenuShow("home", IsMenuAccessDisabled("home") ? 0 : 1);
+    SetLeftMenuShow("makersupply", IsMenuAccessDisabled("makersupply") ? 0 : 1);
+
+    if (online_disabled) {
+        SetLeftMenuShow("online", 0);
+        m_online_type.Clear();
+    } else if (m_online_access_disabled && wxGetApp().has_model_mall() &&
+               wxGetApp().app_config->get("staff_pick_switch") == "true") {
+        SendDesignStaffpick(true);
+    }
+
+    if (makerlab_disabled) {
+        SetLeftMenuShow("makerlab", 0);
+        m_makerlab_loaded = false;
+    } else if (m_makerlab_access_disabled) {
+        SendMakerlabList();
+    }
+
+    m_online_access_disabled   = online_disabled;
+    m_makerlab_access_disabled = makerlab_disabled;
+
+    json m_Res                 = json::object();
+    m_Res["command"]           = "homepage_access_restrict";
+    m_Res["sequence_id"]       = "10001";
+    m_Res["online_disabled"]   = online_disabled ? 1 : 0;
+    m_Res["makerlab_disabled"] = makerlab_disabled ? 1 : 0;
+
+    wxString strJS = wxString::Format("window.postMessage(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
+    RunScript(strJS);
+
+    // SwitchLeftMenu() falls back to Recent when Library itself is restricted.
+    if (IsMenuAccessDisabled(m_contentname))
+        SwitchLeftMenu("home");
 }
 
 void WebViewPanel::SetLeftMenuWidth(int nWidth) {

@@ -5060,6 +5060,12 @@ UepResolution resolve_uep_decision(const MinorsDecisionResult& d)
 } // namespace
 #endif
 
+void GUI_App::refresh_homepage_access_ui()
+{
+    if (!mainframe || !mainframe->m_webview) return;
+    mainframe->m_webview->RefreshMenuAccess();
+}
+
 void GUI_App::fetch_minors_decisions()
 {
 #if !BBL_ENABLE_MINORS_DECISION
@@ -5121,6 +5127,7 @@ void GUI_App::fetch_minors_decisions()
                 m_access_maker_lab.store(maker_lab);
                 m_access_maker_supply.store(maker_supply);
                 refresh_monitor_ctrl_area_ui();
+                refresh_homepage_access_ui();
                 if (uep_outcome == UepOutcome::ForceLogout) {
                     force_logout_uep_login_invalid();
                 } else {
@@ -5261,6 +5268,7 @@ void GUI_App::request_user_logout()
         m_access_maker_lab.store(MinorDecision::Allow);
         m_access_maker_supply.store(MinorDecision::Allow);
         refresh_monitor_ctrl_area_ui();
+        refresh_homepage_access_ui();
         WebView::ClearBambulabTokenCookies();
         if (auto obj = m_device_manager->get_selected_machine();
             obj && obj->is_cloud_mode_printer()) {
@@ -5588,6 +5596,11 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 if (mainframe) {
                     mainframe->refresh_plugin_tips();
                 }
+            }
+            else if (command_str.compare("homepage_leftmenu_access_get") == 0) {
+                CallAfter([this] {
+                    refresh_homepage_access_ui();
+                });
             }
             else if (command_str.compare("homepage_need_networkplugin") == 0) {
                 bool post_login = true;
