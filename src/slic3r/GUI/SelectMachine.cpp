@@ -3818,6 +3818,121 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     update_by_obj(get_current_machine());
 }
 
+void SelectMachineDialog::refresh_mapped_ams_tray_info(MachineObject* obj)
+{
+    if (!obj || m_ams_mapping_result.empty())
+        return;
+
+    std::optional<int> total_ext_count;
+    if (obj->GetExtderSystem())
+        total_ext_count = obj->GetExtderSystem()->GetTotalExtderCount();
+
+    bool any_updated             = false;
+    bool thumbnail_needs_refresh = false;
+
+    for (auto& fila : m_ams_mapping_result) {
+        if (fila.ams_id.empty() || fila.slot_id.empty() || fila.tray_id < 0)
+            continue;
+
+        auto tray_opt = obj->get_tray(fila.ams_id, fila.slot_id);
+        if (!tray_opt.has_value())
+            continue;
+
+        DevAmsTray tray = *tray_opt;
+        if (!tray.is_exists || !tray.is_tray_info_ready())
+            continue;
+
+        const std::string tray_type  = tray.get_filament_type();
+        const int         tray_ctype = static_cast<int>(tray.ctype);
+
+        // Mapping UI may store colors with a leading '#'; tray MQTT colors usually omit it.
+        const bool color_changed = DevAmsTray::decode_color(fila.color) != DevAmsTray::decode_color(tray.color);
+
+        bool colors_changed = (fila.colors.size() != tray.cols.size());
+        if (!colors_changed) {
+            for (size_t i = 0; i < fila.colors.size(); ++i) {
+                if (DevAmsTray::decode_color(fila.colors[i]) != DevAmsTray::decode_color(tray.cols[i])) {
+                    colors_changed = true;
+                    break;
+                }
+            }
+        }
+
+        // Identity fields only — remain updates alone should not refresh the chip.
+        const bool meta_changed = color_changed
+            || fila.type != tray_type
+            || fila.ctype != tray_ctype
+            || colors_changed;
+        if (!meta_changed)
+            continue;
+
+        fila.color  = tray.color;
+        fila.type   = tray_type;
+        fila.ctype  = tray_ctype;
+        fila.colors = tray.cols;
+        fila.remain = tray.remain;
+        any_updated = true;
+
+        const wxColour ams_col = DevAmsTray::decode_color(tray.color);
+        std::vector<wxColour> cols;
+        cols.reserve(tray.cols.size());
+        for (const auto& col : tray.cols)
+            cols.push_back(DevAmsTray::decode_color(col));
+
+        wxString ams_label = wxGetApp().transition_tridid(fila.tray_id, total_ext_count);
+        if (m_filament_left_panel->IsShown() && m_filament_right_panel->IsShown() &&
+            devPrinterUtil::IsVirtualSlot(fila.tray_id)) {
+            ams_label = "Ext";
+        }
+
+        for (auto it = m_materialList.begin(); it != m_materialList.end(); ++it) {
+            if (it->second->id == fila.id) {
+                it->second->item->set_ams_info(ams_col, ams_label, tray_ctype, cols);
+                it->second->item->set_nozzle_info(get_mapped_nozzle_str(fila.id));
+                break;
+            }
+        }
+
+        if (color_changed && m_print_type == PrintFromType::FROM_NORMAL) {
+            if (fila.id >= 0 && fila.id < (int) m_cur_colors_in_thumbnail.size())
+                m_cur_colors_in_thumbnail[fila.id] = ams_col;
+            thumbnail_needs_refresh = true;
+        }
+    }
+
+    if (thumbnail_needs_refresh) {
+        change_default_normal(-1, wxColour());
+        final_deal_edge_pixels_data(m_preview_thumbnail_data);
+        set_default_normal(m_preview_thumbnail_data);
+    }
+
+    if (any_updated) {
+        update_filament_change_count();
+        check_tpu_aero_flow_cali(obj);
+    }
+}
+
+void SelectMachineDialog::register_machine_update_listener()
+{
+    DeviceManager* dev = wxGetApp().getDeviceManager();
+    if (!dev)
+        return;
+    dev->add_machine_update_listener(this, [this](MachineObject* obj) {
+        if (!IsShown() || !obj)
+            return;
+        MachineObject* current = get_current_machine();
+        if (!current || current->get_dev_id() != obj->get_dev_id())
+            return;
+        refresh_mapped_ams_tray_info(obj);
+    });
+}
+
+void SelectMachineDialog::unregister_machine_update_listener()
+{
+    if (DeviceManager* dev = wxGetApp().getDeviceManager())
+        dev->remove_machine_update_listeners(this);
+}
+
 void SelectMachineDialog::update_by_obj(MachineObject* obj_)
 {
     if(!obj_) return;
@@ -5472,6 +5587,7 @@ bool SelectMachineDialog::Show(bool show)
         EnableEditing(true);
         m_options_other->Show();
         m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
+        register_machine_update_listener();
 
         //set a default machine when obj is null
         if (DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager()) {
@@ -5481,6 +5597,7 @@ bool SelectMachineDialog::Show(bool show)
         };
     } else {
         m_refresh_timer->Stop();
+        unregister_machine_update_listener();
         return DPIDialog::Show(false);
     }
 
@@ -5514,6 +5631,7 @@ bool SelectMachineDialog::Show(bool show)
 
 SelectMachineDialog::~SelectMachineDialog()
 {
+    unregister_machine_update_listener();
     delete m_refresh_timer;
 }
 

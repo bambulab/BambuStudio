@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <mutex>
+#include <vector>
 #include "libslic3r/CommonDefs.hpp"
 
 #include "slic3r/Utils/json_diff.hpp"
@@ -95,6 +96,13 @@ public:
     std::vector<std::string> subscribe_list_cache;//multiple machine subscribe list cache
     std::map<std::string, std::vector<std::string>> device_subseries;
 
+    // UI-thread push after selected-machine parse_json (MQTT CallAfter).
+    // Listeners dirty-check; owner is an opaque token (typically `this`) for unregister.
+    using MachineUpdateListener = std::function<void(MachineObject*)>;
+    void add_machine_update_listener(void* owner, MachineUpdateListener fn);
+    void remove_machine_update_listeners(void* owner);
+    void notify_machine_updated(MachineObject* obj);
+
 private:
     void keep_alive();
     void check_pushing();
@@ -102,6 +110,13 @@ private:
     void OnMachineBindStateChanged(MachineObject* obj, const std::string& new_state);
     void OnSelectedMachineLost();
     void OnSelectedMachineChanged(const std::string& pre_dev_id, const std::string& new_dev_id);
+
+    struct MachineUpdateListenerEntry
+    {
+        void*                 owner{nullptr};
+        MachineUpdateListener fn;
+    };
+    std::vector<MachineUpdateListenerEntry> m_machine_update_listeners;
 
 public:
     // TODO to remove

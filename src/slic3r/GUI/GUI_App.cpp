@@ -2344,6 +2344,7 @@ void GUI_App::init_networking_callbacks()
                     auto sel = this->m_device_manager->get_selected_machine();
                     if (sel && sel->get_dev_id() == dev_id) {
                         obj->parse_json("cloud", msg);
+                        this->m_device_manager->notify_machine_updated(obj);
                         GUI::wxGetApp().sidebar().load_ams_list(obj);
                         // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
                         // 仅在在位字段实际变化时才推 spool list，避免每条 MQTT 都整体重渲。
@@ -2403,6 +2404,7 @@ void GUI_App::init_networking_callbacks()
                 if (MachineObject* obj = m_device_manager->get_my_machine(dev_id)) {
                     obj->parse_json("lan", msg);
                     if (this->m_device_manager->get_selected_machine() == obj) {
+                        this->m_device_manager->notify_machine_updated(obj);
                         GUI::wxGetApp().sidebar().load_ams_list(obj);
                         // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
                         // 仅在在位字段实际变化时才推 spool list，避免每条 MQTT 都整体重渲。
