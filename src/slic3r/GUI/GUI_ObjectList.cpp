@@ -218,9 +218,8 @@ ObjectList::ObjectList(wxWindow* parent) :
     });
 
 #ifdef __WXOSX__
-    // Key events are not correctly processed by the wxDataViewCtrl on OSX.
-    // Our patched wxWidgets process the keyboard accelerators.
-    // On the other hand, using accelerators will break in-place editing on Windows & Linux/GTK (there is no in-place editing working on OSX for wxDataViewCtrl for now).
+    // wxDataViewCtrl on macOS still does not process key events for shortcuts the
+    // way Win/GTK do, so use an accelerator table. (In-place editing remains limited on OSX.)
 //    Bind(wxEVT_KEY_DOWN, &ObjectList::OnChar, this);
     {
         // Accelerators
