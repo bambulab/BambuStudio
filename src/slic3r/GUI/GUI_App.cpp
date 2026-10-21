@@ -2355,7 +2355,7 @@ void GUI_App::init_networking_callbacks()
                                 mainframe->web_device()->NotifyFilamentSessionState();
                         }
                     } else {
-                        obj->parse_json("cloud", msg, true);
+                        obj->parse_json("cloud", msg, !this->m_device_manager->is_full_parse_device(dev_id));
                     }
                 }
 

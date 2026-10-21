@@ -33,6 +33,7 @@
 #include "PrinterWebView.hpp"
 #include "calib_dlg.hpp"
 #include "MultiMachinePage.hpp"
+#include "MultiCameraPage.hpp"
 
 #define ENABEL_PRINT_ALL 0
 
@@ -388,6 +389,7 @@ public:
 
     //AuxiliaryPanel*       m_auxiliary{ nullptr };
     MultiMachinePage*     m_multi_machine{ nullptr };
+    MultiCameraPage*      m_multi_camera{ nullptr };
     ProjectPanel*         m_project{ nullptr };
     // State for confirm_project_page_can_leave(): the page answers the
     // unsaved-changes query asynchronously, so the verdict is cached for the
