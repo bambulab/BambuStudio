@@ -236,7 +236,24 @@
       "name": "Bambu PLA Glow",
       "action": "warning",
       "slot": "ams",
+      "group": "pla_glow_ams_feeder",
+      "priority": 0,
       "description": "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
+    },
+    {
+      "vendor": "Bambu Lab",
+      "type": "PLA",
+      "name": "Bambu PLA Glow",
+      "model_id": ["N10"],
+      "action": "warning",
+      "slot": "ams",
+      "ams_type_id": [6],
+      "group": "pla_glow_ams_feeder",
+      "priority": 1,
+      "description": "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details.",
+      "wiki_by_model": {
+        "N10": "https://e.bambulab.com/t?c=ArsDpYcoaTkZgnn1"
+      }
     },
     {
       "vendor": "Bambu Lab",

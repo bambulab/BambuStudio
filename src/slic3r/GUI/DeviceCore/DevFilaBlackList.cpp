@@ -150,6 +150,25 @@ static wxString _get_ams_warning_display_name(const DevFilaBlacklist::CheckFilam
     return slot_name.empty() ? ams->GetDisplayName() : wxString("AMS-") + slot_name;
 }
 
+// A blacklist item may carry one wiki for every machine, or a per-model map.
+// Per-model entries win. Machines missing from the map keep an empty link.
+static std::string _get_blacklist_wiki_url(const json& filament_item, const std::string& model_id)
+{
+    if (filament_item.contains("wiki_by_model") && filament_item["wiki_by_model"].is_object()) {
+        const json& wiki_map = filament_item["wiki_by_model"];
+        const auto it = wiki_map.find(model_id);
+        if (it != wiki_map.end() && it->is_string()) {
+            return it->get<std::string>();
+        }
+    }
+
+    if (filament_item.contains("wiki") && filament_item["wiki"].is_string()) {
+        return filament_item["wiki"].get<std::string>();
+    }
+
+    return "";
+}
+
 // moved from tao.wang and zhimin.zeng
 void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevFilaBlacklist::CheckResult &result)
 {
@@ -374,7 +393,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
 
             DevFilaBlacklist::CheckResultItem result_item;
             result_item.action = action;
-            result_item.wiki_url = filament_item.contains("wiki") ? filament_item["wiki"].get<std::string>() : "";
+            result_item.wiki_url = _get_blacklist_wiki_url(filament_item, check_info.model_id);
             result_item.group = group;
             result_item.priority = priority;
 
@@ -397,6 +416,9 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
                 result_item.info_msg = wxString::Format(_L(description), wxString::FromUTF8(check_info.fila_type), _get_ams_warning_display_name(check_info));
             } else if (description == "PLA Glow may wear the %s first stage feeder. Use an external spool instead.") {
                 result_item.info_msg = wxString::Format(_L(description), _get_ams_warning_display_name(check_info));
+            } else if (description == "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details.") {
+                const std::string& fila_desc = check_info.fila_name.empty() ? check_info.fila_type : check_info.fila_name;
+                result_item.info_msg = wxString::Format(_L(description), wxString::FromUTF8(fila_desc), _get_ams_warning_display_name(check_info));
             } else if (description == "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s.") {
                 result_item.info_msg = wxString::Format(_L(description), wxString::FromUTF8(check_info.fila_type), _get_ams_warning_display_name(check_info));
             } else if (description == "PPA-CF filament does not support %s feeding. Use an external spool instead.") {
@@ -460,6 +482,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             L("%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution.");
             L("Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead.");
             L("PLA Glow may wear the %s first stage feeder. Use an external spool instead.");
+            L("%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details.");
             L("%s filament is brittle and has high feeding resistance. Use caution when loading it through %s.");
             L("PPA-CF filament does not support %s feeding. Use an external spool instead.");
             L("%s may fail to load or unload due to the Filament Track Switch.");

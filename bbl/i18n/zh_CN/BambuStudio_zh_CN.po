@@ -257,6 +257,10 @@ msgstr ""
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "CF/GF耗材丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
 
+#, c-format, boost-format
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
+msgstr "%s耗材时可能磨损 %s进料口，且进料阻力较大，建议通过外挂方式进料，详情请查看 Wiki。"
+
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr "使用默认参数可能影响打印质量。请根据需求调整以获得最佳效果。"
 
