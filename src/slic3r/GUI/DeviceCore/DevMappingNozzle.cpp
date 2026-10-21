@@ -174,7 +174,7 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(const std::vector<FilamentI
             fila_item_jj["direction"] = (nozzle_info.extruder_id == LOGIC_L_EXTRUDER_ID ? 1 : 2);
             fila_item_jj["group"] = nozzle_info.group_id;
             fila_item_jj["nozzle_d"] = s_get_diameter_str(nozzle_info.diameter);
-            fila_item_jj["nozzle_v"] = (nozzle_info.volume_type == NozzleVolumeType::nvtHighFlow) ? "High Flow" : "Standard";
+            fila_item_jj["nozzle_v"] = DevNozzle::ToNozzleVolumeString(nozzle_info.volume_type);
             fila_item_jj["cate"] = fila.filament_id;
             fila_item_jj["color"] = fila.color;
             filament_info_jj.push_back(fila_item_jj);
