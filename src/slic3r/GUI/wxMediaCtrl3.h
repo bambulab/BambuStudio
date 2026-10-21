@@ -14,6 +14,7 @@
 #include "wx/timer.h"
 #include "../Utils/FrameBuffer.hpp"
 #include <atomic>
+#include <limits>
 
 wxDECLARE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MEDIA_CTRL_FIRST_FRAME, wxCommandEvent);
@@ -129,6 +130,8 @@ private:
     PlayFrame m_frame;
     bool m_frame_is_default_bg = false; // whether m_frame currently holds the default background (guarded by m_ui_mutex)
     double m_zoom = 1.0;   // digital zoom factor for the live view (mouse wheel)
+    double m_view_cx = std::numeric_limits<double>::quiet_NaN();
+    double m_view_cy = std::numeric_limits<double>::quiet_NaN();
     std::shared_ptr<wxURI> m_url;
     std::atomic<Bambu_Tunnel> m_tunnel{nullptr};
     std::mutex m_mutex;

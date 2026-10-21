@@ -78,6 +78,10 @@ protected:
 
 private:
     void create_player();
+    void mouseWheelEvent(wxMouseEvent &evt);
+    void resetZoom();
+    void applyVideoTransform();
+    void clampZoomOffset();
     void updateIdleLayer();
     void updateStatusBadge();
     void updatePauseIconLayer();
@@ -88,6 +92,10 @@ private:
     int          m_error  = 0;
     wxSize       m_video_size{16, 9};
     bool         m_constrain_by_aspect_ratio{true};
+    double       m_zoom = 1.0;
+    double       m_zoom_offset_x = 0.0;
+    double       m_zoom_offset_y = 0.0;
+    void *       m_video_layer = nullptr;
 
     wxString m_idle_image;
     wxString m_watermark_text;

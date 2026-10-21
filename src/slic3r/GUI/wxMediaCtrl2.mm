@@ -15,6 +15,7 @@
 
 #include <stdlib.h>
 #include <dlfcn.h>
+#include <algorithm>
 #include <cmath>
 #include "Printer/LiveViewTrackContext.h"
 #include "BitmapCache.hpp"
@@ -223,7 +224,9 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
     CGColorRef color = CGColorCreateGenericRGB(0, 0, 0, 1.0f);
     imageView.layer.backgroundColor = color;
     CGColorRelease(color);
+    imageView.layer.masksToBounds = YES;
     imageView.wantsLayer = YES;
+    Bind(wxEVT_MOUSEWHEEL, &wxMediaCtrl2::mouseWheelEvent, this);
     create_player();
 }
 
@@ -261,6 +264,12 @@ wxMediaCtrl2::~wxMediaCtrl2()
     }
     BambuPlayer * player = (BambuPlayer *) m_player;
     [player dealloc];
+    AVSampleBufferDisplayLayer *videoLayer = (AVSampleBufferDisplayLayer *)m_video_layer;
+    if (videoLayer) {
+        [videoLayer removeFromSuperlayer];
+        [videoLayer release];
+        m_video_layer = nullptr;
+    }
 }
 
 void wxMediaCtrl2::create_player()
@@ -277,8 +286,16 @@ void wxMediaCtrl2::create_player()
         return;
     }
     NSView * imageView = (NSView *) GetHandle();
+    AVSampleBufferDisplayLayer *videoLayer = (AVSampleBufferDisplayLayer *)m_video_layer;
+    if (!videoLayer) {
+        videoLayer = [[AVSampleBufferDisplayLayer alloc] init];
+        videoLayer.frame = imageView.layer.bounds;
+        videoLayer.videoGravity = AVLayerVideoGravityResizeAspect;
+        [imageView.layer insertSublayer:videoLayer atIndex:0];
+        m_video_layer = videoLayer;
+    }
     BambuPlayer * player = [cls alloc];
-    [player initWithImageView: imageView];
+    [player initWithDisplayLayer: videoLayer];
     [player setLogger: bambu_log withContext: this];
     if ([player respondsToSelector:@selector(setTrackReporter:withContext:)])
         [player setTrackReporter: on_player_track_event withContext: &m_track_channel];
@@ -299,6 +316,7 @@ void wxMediaCtrl2::Load(wxURI url, std::chrono::system_clock::time_point play_st
 		}
 	}
 
+    resetZoom();
     m_play_start_time  = play_start_time;
     m_first_frame_info = FirstFrameInfo{};
     m_session_stat     = Bambu_SessionStat{};
@@ -360,12 +378,99 @@ void wxMediaCtrl2::Stop()
 			return;
 		}
 	}
+    resetZoom();
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 close];
     m_suppress_pause_icon = false;
     // Restore idle image after stopping (must run on main thread for CALayer)
     dispatch_async(dispatch_get_main_queue(), ^{ updateIdleLayer(); });
     NotifyStopped();
+}
+
+void wxMediaCtrl2::mouseWheelEvent(wxMouseEvent &evt)
+{
+    const int rotation = evt.GetWheelRotation();
+    if (rotation == 0 || m_state != wxMEDIASTATE_PLAYING) {
+        evt.Skip();
+        return;
+    }
+
+    const int wheel_delta = evt.GetWheelDelta();
+    const double steps = wheel_delta == 0
+        ? (rotation > 0 ? 1.0 : -1.0)
+        : static_cast<double>(rotation) / wheel_delta;
+    const double old_zoom = m_zoom;
+    const double new_zoom = std::clamp(old_zoom * std::pow(1.1, steps), 1.0, 5.0);
+    if (new_zoom == old_zoom)
+        return;
+
+    const wxSize size = GetClientSize();
+    const wxPoint cursor = evt.GetPosition();
+    const double cursor_x = cursor.x - size.x / 2.0;
+    const double cursor_y = cursor.y - size.y / 2.0;
+    const double ratio = new_zoom / old_zoom;
+
+    m_zoom_offset_x = cursor_x - ratio * (cursor_x - m_zoom_offset_x);
+    m_zoom_offset_y = cursor_y - ratio * (cursor_y - m_zoom_offset_y);
+    m_zoom = new_zoom;
+    clampZoomOffset();
+    applyVideoTransform();
+}
+
+void wxMediaCtrl2::resetZoom()
+{
+    m_zoom = 1.0;
+    m_zoom_offset_x = 0.0;
+    m_zoom_offset_y = 0.0;
+    applyVideoTransform();
+}
+
+void wxMediaCtrl2::clampZoomOffset()
+{
+    const wxSize view_size = GetClientSize();
+    wxSize video_size = GetVideoSize();
+    if (video_size.x <= 0 || video_size.y <= 0)
+        video_size = m_video_size;
+    if (view_size.x <= 0 || view_size.y <= 0 || video_size.x <= 0 || video_size.y <= 0) {
+        m_zoom_offset_x = 0.0;
+        m_zoom_offset_y = 0.0;
+        return;
+    }
+
+    double fitted_width;
+    double fitted_height;
+    if (static_cast<double>(video_size.x) * view_size.y <
+        static_cast<double>(video_size.y) * view_size.x) {
+        fitted_height = view_size.y;
+        fitted_width = static_cast<double>(video_size.x) * view_size.y / video_size.y;
+    } else {
+        fitted_width = view_size.x;
+        fitted_height = static_cast<double>(video_size.y) * view_size.x / video_size.x;
+    }
+
+    const double max_x = std::max(0.0, (fitted_width * m_zoom - view_size.x) / 2.0);
+    const double max_y = std::max(0.0, (fitted_height * m_zoom - view_size.y) / 2.0);
+    m_zoom_offset_x = std::clamp(m_zoom_offset_x, -max_x, max_x);
+    m_zoom_offset_y = std::clamp(m_zoom_offset_y, -max_y, max_y);
+}
+
+void wxMediaCtrl2::applyVideoTransform()
+{
+    AVSampleBufferDisplayLayer *videoLayer = (AVSampleBufferDisplayLayer *)m_video_layer;
+    if (!videoLayer)
+        return;
+
+    const double layer_offset_y = [videoLayer.superlayer isGeometryFlipped]
+        ? m_zoom_offset_y
+        : -m_zoom_offset_y;
+    const CGRect bounds = videoLayer.superlayer.bounds;
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    videoLayer.transform = CATransform3DMakeScale(m_zoom, m_zoom, 1.0);
+    videoLayer.position = CGPointMake(
+        CGRectGetMidX(bounds) + m_zoom_offset_x,
+        CGRectGetMidY(bounds) + layer_offset_y);
+    [CATransaction commit];
 }
 
 void wxMediaCtrl2::SetIdleImage(wxString const &image, wxString const &watermark_text)
@@ -670,12 +775,26 @@ wxSize wxMediaCtrl2::GetVideoSize() const
 
 void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
+    NSView *view = (NSView *)GetHandle();
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
-    if (sizeFlags & wxSIZE_USE_EXISTING) return;
+
+    CALayer *rootLayer = view.layer;
+    AVSampleBufferDisplayLayer *videoLayer = (AVSampleBufferDisplayLayer *)m_video_layer;
+    if (rootLayer && videoLayer) {
+        [CATransaction begin];
+        [CATransaction setDisableActions:YES];
+        videoLayer.transform = CATransform3DIdentity;
+        videoLayer.frame = rootLayer.bounds;
+        [CATransaction commit];
+    }
+
+    if (sizeFlags & wxSIZE_USE_EXISTING) {
+        clampZoomOffset();
+        applyVideoTransform();
+        return;
+    }
     wxMediaCtrl_OnSize(this, m_video_size, width, height);
 
-    NSView *view = (NSView *)GetHandle();
-    CALayer *rootLayer = view.layer;
     if (!rootLayer) return;
 
     CALayer *idleLayer = (CALayer *)m_idle_layer;
@@ -683,4 +802,6 @@ void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
         idleLayer.frame = rootLayer.bounds;
         updatePauseIconLayer();
     }
+    clampZoomOffset();
+    applyVideoTransform();
 }

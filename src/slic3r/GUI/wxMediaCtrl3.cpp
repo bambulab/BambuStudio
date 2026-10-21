@@ -9,6 +9,8 @@
 #include "nanosvg/nanosvg.h"
 #include "nanosvg/nanosvgrast.h"
 #include "libslic3r/Log.hpp"
+#include <cmath>
+#include <algorithm>
 #ifdef __WIN32__
 #include <versionhelpers.h>
 #include <wx/msw/registry.h>
@@ -16,6 +18,9 @@
 #endif
 
 //wxDEFINE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
+
+static double contain_fit_scale(wxSize const & window, wxSize const & frame);
+static double clamp_view_centre(double c, double window_extent, double frame_extent, double eff_scale);
 
 BEGIN_EVENT_TABLE(wxMediaCtrl3, wxWindow)
 
@@ -54,19 +59,40 @@ void wxMediaCtrl3::mouseWheelEvent(wxMouseEvent &evt)
         return;
     }
 
-    // Digital zoom of the live view, 1x (fit) up to 5x, centred on the view.
-    const double factor = rotation > 0 ? 1.1 : 1.0 / 1.1;
-    double zoom = m_zoom * factor;
+    const double factor   = rotation > 0 ? 1.1 : 1.0 / 1.1;
+    const double new_zoom = std::min(5.0, std::max(1.0, m_zoom * factor));
+    if (new_zoom == m_zoom)
+        return;
 
-    if (zoom < 1.0)
-        zoom = 1.0;
-    if (zoom > 5.0)
-        zoom = 5.0;
-
-    if (zoom != m_zoom) {
-        m_zoom = zoom;
-        Refresh();
+    const wxSize size = GetSize();
+    wxSize       frame_size;
+    {
+        std::unique_lock<std::mutex> lk(m_mutex);
+        frame_size = m_frame_size;
     }
+    if (size.x <= 0 || size.y <= 0 || frame_size.x <= 0 || frame_size.y <= 0) {
+        m_zoom = new_zoom;
+        Refresh();
+        return;
+    }
+
+    const double base   = contain_fit_scale(size, frame_size);
+    const double s_old  = base * m_zoom;
+    const double s_new  = base * new_zoom;
+
+    double cx = std::isnan(m_view_cx) ? frame_size.x / 2.0 : m_view_cx;
+    double cy = std::isnan(m_view_cy) ? frame_size.y / 2.0 : m_view_cy;
+    const wxPoint mouse = evt.GetPosition();
+    cx += (mouse.x - size.x / 2.0) * (1.0 / s_old - 1.0 / s_new);
+    cy += (mouse.y - size.y / 2.0) * (1.0 / s_old - 1.0 / s_new);
+
+    cx = clamp_view_centre(cx, size.x, frame_size.x, s_new);
+    cy = clamp_view_centre(cy, size.y, frame_size.y, s_new);
+
+    m_zoom    = new_zoom;
+    m_view_cx = cx;
+    m_view_cy = cy;
+    Refresh();
 }
 
 wxMediaCtrl3::~wxMediaCtrl3()
@@ -192,6 +218,25 @@ static void adjust_frame_size(wxSize & frame, wxSize const & video, wxSize const
         frame = { window.x, video.y * window.x / video.x };
 }
 
+static double contain_fit_scale(wxSize const & window, wxSize const & frame)
+{
+    if (frame.x <= 0 || frame.y <= 0)
+        return 1.0;
+    if (frame.x == window.x && frame.y == window.y)
+        return 1.0;
+    return (window.x * frame.y > window.y * frame.x)
+        ? double(window.y) / frame.y
+        : double(window.x) / frame.x;
+}
+
+static double clamp_view_centre(double c, double window_extent, double frame_extent, double eff_scale)
+{
+    const double half = window_extent / 2.0 / eff_scale;
+    if (half >= frame_extent / 2.0)
+        return frame_extent / 2.0;
+    return std::min(frame_extent - half, std::max(half, c));
+}
+
 void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
 {
     wxPaintDC dc(this);
@@ -254,19 +299,20 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
     } else {
         // Base "contain" fit scale, then apply the digital zoom factor.
         // At m_zoom == 1 this is identical to the normal fitted rendering.
-        double scale = 1.0;
-        if (size2.x != size.x || size2.y != size.y)
-            scale = (size.x * size2.y > size.y * size2.x)
-                ? double(size.y) / size2.y
-                : double(size.x) / size2.x;
+        const double scale = contain_fit_scale(size, size2);
 
         const double effective_scale = scale * m_zoom;
         dc.SetUserScale(effective_scale, effective_scale);
 
+        double view_cx = std::isnan(m_view_cx) ? size2.x / 2.0 : m_view_cx;
+        double view_cy = std::isnan(m_view_cy) ? size2.y / 2.0 : m_view_cy;
+        view_cx = clamp_view_centre(view_cx, size.x, size2.x, effective_scale);
+        view_cy = clamp_view_centre(view_cy, size.y, size2.y, effective_scale);
+
         const int offset_x =
-            wxRound(size.x / 2.0 / effective_scale - size2.x / 2.0);
+            wxRound(size.x / 2.0 / effective_scale - view_cx);
         const int offset_y =
-            wxRound(size.y / 2.0 / effective_scale - size2.y / 2.0);
+            wxRound(size.y / 2.0 / effective_scale - view_cy);
 
         dc.DrawBitmap(current_frame, offset_x, offset_y);
 
