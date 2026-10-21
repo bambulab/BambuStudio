@@ -17,7 +17,7 @@ public:
 
 	void Rescale();
 
-#ifdef __WXOSX__
+#if defined(__WXOSX__) || defined(__WXGTK__)
     virtual bool Enable(bool enable = true) wxOVERRIDE;
 #endif
 
@@ -49,6 +49,13 @@ private:
     ScalableBitmap m_on_focused;
     ScalableBitmap m_half_focused;
     ScalableBitmap m_off_focused;
+#ifdef __WXGTK__
+    // Keyboard focus ring: GTK never shows the focused bitmap state of this button
+    ScalableBitmap m_on_kbfocus;
+    ScalableBitmap m_half_kbfocus;
+    ScalableBitmap m_off_kbfocus;
+    bool m_has_focus = false;
+#endif
     bool m_half_checked = false;
 };
 
