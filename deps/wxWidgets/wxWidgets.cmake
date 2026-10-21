@@ -17,15 +17,15 @@ else ()
     set(_wx_edge "-DwxUSE_WEBVIEW_EDGE=OFF")
 endif ()
 
-# if (MSVC)
-#     set(_patch_cmd ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch)
-# else ()
-#     set(_patch_cmd test -f WXWIDGETS_PATCHED || ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch && touch WXWIDGETS_PATCHED)
-# endif ()
-
+# wx 3.2+ needs its git submodules (pcre, etc.). ExternalProject clones them by
+# default when GIT_REPOSITORY is set; do not pass GIT_SUBMODULES "" here.
+#
+# Temporary: pin daveisfera until bambulab/wxWidgets#11 lands the same tag on
+# https://github.com/bambulab/wxWidgets — then switch GIT_REPOSITORY to bambulab
+# and keep GIT_TAG bambu-3.2.12-1 (or the next bambu-3.2.x-N).
 bambustudio_add_cmake_project(wxWidgets
-    GIT_REPOSITORY "https://github.com/bambulab/wxWidgets"
-    GIT_TAG master
+    GIT_REPOSITORY "https://github.com/daveisfera/wxWidgets"
+    GIT_TAG bambu-3.2.12-1
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${TIFF_PKG} ${JPEG_PKG}
     CMAKE_ARGS
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5
@@ -50,6 +50,8 @@ bambustudio_add_cmake_project(wxWidgets
         -DwxUSE_STC=OFF
         -DwxUSE_AUI=ON
         -DwxUSE_EXCEPTIONS=OFF
+        # Studio embeds NanoSVG in BitmapCache; wx 3.2 builtin NanoSVG duplicates those symbols.
+        -DwxUSE_NANOSVG=OFF
         -DwxUSE_LIBPNG=sys
         -DwxUSE_ZLIB=sys
         -DwxUSE_LIBJPEG=sys
