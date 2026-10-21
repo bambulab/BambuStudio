@@ -14,6 +14,7 @@ class TabCtrl : public StaticBox
 
     int sel = -1;
     wxFont bold;
+    bool fit_all_items = false;
 
 public:
     TabCtrl(wxWindow *      parent,
@@ -59,6 +60,9 @@ public:
 
     void SetItemTextColour(unsigned int item, const StateColor &col);
 
+    // Best width covers all items, so none is hidden for lack of space
+    void SetFitAllItems(bool fit);
+
     /* fakes */
     int GetFirstVisibleItem() const;
     int GetNextVisible(int item) const;
@@ -66,6 +70,8 @@ public:
 
 private:
     virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
+
+    wxSize DoGetBestSize() const override;
 
 #ifdef __WIN32__
     WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;

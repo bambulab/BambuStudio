@@ -132,6 +132,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_storage_tab->SetBackgroundColor(wxColour("#EEEEEE"));
     m_storage_tab->SetBorderColor(wxColour("#EEEEEE"));
     m_storage_tab->SetFont(Label::Body_14);
+    m_storage_tab->SetFitAllItems(true);
     m_storage_tab->SetMinSize({-1, 36 * em_unit(this) / 10});
     m_storage_tab->AppendItem(_L("External"));
     m_storage_tab->AppendItem(_L("Internal"));
@@ -512,6 +513,7 @@ void MediaFilePanel::Rescale()
     m_button_management->Rescale();
 
     m_image_grid->Rescale();
+    Layout();
 }
 
 void MediaFilePanel::SetSelecting(bool selecting, bool selectall)
