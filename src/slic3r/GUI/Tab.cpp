@@ -3549,7 +3549,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("enable_wrapping_detection", "nozzle-clumping-detection-by-probing");
         optgroup->append_single_option_line("enable_order_independent_overlap_carving");
         optgroup->append_single_option_line("interlocking_beam");
-        // optgroup->append_single_option_line("mmu_segmented_region_max_width");
+        optgroup->append_single_option_line("mmu_segmented_region_max_width");
         optgroup->append_single_option_line("mmu_segmented_region_interlocking_depth");
         optgroup->append_single_option_line("interlocking_beam_width");
         optgroup->append_single_option_line("interlocking_orientation");

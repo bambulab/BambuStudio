@@ -4150,15 +4150,16 @@ void PrintConfigDef::init_fff_params()
     //def->label = L("Interface shells");
     def->label = L("Interface shells");
     def->tooltip = L("Force the generation of solid shells between adjacent materials/volumes. "
-                  "Useful for multi-extruder prints with translucent materials or manual soluble "
-                  "support material");
+                  "Useful for multi-extruder prints, painted multi-color regions that would otherwise "
+                  "start on sparse infill, translucent materials, or manual soluble support material.");
     def->category = L("Quality");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def           = this->add("mmu_segmented_region_max_width", coFloat);
     def->label    = L("Maximum width of a segmented region");
-    def->tooltip  = L("Maximum width of a segmented region. Zero disables this feature.");
+    def->tooltip  = L("Limit how deep painted/segmented color regions cut into the model. "
+                   "Zero means full depth. A small value (for example 1 mm) keeps the accent as a thin surface skin.");
     def->sidetext = L("mm");
     def->min      = 0;
     def->category = L("Advanced");
