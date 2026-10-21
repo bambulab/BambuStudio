@@ -1605,6 +1605,21 @@ wxWindow *PreferencesDialog::create_3d_tab()
 
     auto item_advanced_gcode = create_item_checkbox(_L("Enable advanced gcode viewer"), scrolled, _L("Enable advanced gcode viewer."), 50, "enable_advanced_gcode_viewer_");
 
+    auto item_fast_navigation = create_item_checkbox(_L("Fast navigation for large models"), scrolled,
+                                                     _L("While rotating, panning, zooming the view or dragging objects, draw large models with fewer triangles and skip the "
+                                                        "hover detection. The full model is drawn again as soon as the view stops."),
+                                                     50, "fast_navigation");
+
+    std::vector<wxString> msaa_labels = {_L("Off"), "2x", "4x"};
+    auto                  item_msaa   = create_item_combobox(_L("Anti-aliasing (MSAA)"), scrolled,
+                                                             _L("Smooths the edges in the 3D view. Lower values render faster, especially on high resolution screens. "
+                                                                "Takes effect after restarting the application."),
+                                                             "msaa_type", msaa_labels, {"Disabled", "X2", "X4"}, {}, [this](int) {
+                                                                 MessageDialog(this, _L("The anti-aliasing setting takes effect after restarting the application."),
+                                                                               _L("Anti-aliasing (MSAA)"), wxOK | wxICON_INFORMATION)
+                                                                     .ShowModal();
+                                                             });
+
     sizer->Add(title_3d, wxSizerFlags().Expand().Border(wxTOP, FromDIP(24)));
     sizer->AddSpacer(FromDIP(8));
     auto flags = row_flags();
@@ -1623,6 +1638,8 @@ wxWindow *PreferencesDialog::create_3d_tab()
 #endif
     sizer->Add(wrap_option_row(scrolled, item_enable_record_gcodeviewer), flags);
     sizer->Add(wrap_option_row(scrolled, item_enable_lod), flags);
+    sizer->Add(wrap_option_row(scrolled, item_fast_navigation), flags);
+    sizer->Add(wrap_option_row(scrolled, item_msaa), flags);
     sizer->Add(wrap_option_row(scrolled, item_advanced_gcode), flags);
 
     // [refactor-review] Not in Figma v2 3D tab; camera-fullscreen kept here (a 3D/
@@ -2073,6 +2090,8 @@ void PreferencesDialog::on_reset_preferences()
         "import_single_svg_and_split",
         "gamma_correct_in_import_obj",
         "enable_lod",
+        "fast_navigation",
+        "msaa_type",
         "enable_advanced_gcode_viewer_",
         "camera_fullscreen_active_monitor_only",
         "max_recent_count",

@@ -283,6 +283,12 @@ enum LOD_LEVEL {
 };
 
 class GLVolume {
+public:
+    // Set by the canvas while the camera moves: large meshes are drawn with a coarse copy
+    // (see interaction_proxy() in 3DScene.cpp) and redrawn in full once the camera stops.
+    static bool s_use_interaction_proxy;
+
+private:
     static float LOD_HIGH_ZOOM;
     static float LOD_MIDDLE_ZOOM;
     static float LOD_SMALL_ZOOM;
@@ -326,6 +332,8 @@ public:
     // BBS
     bool simplify_mesh(const TriangleMesh &mesh, std::shared_ptr<GLIndexedVertexArray> va, LOD_LEVEL lod) const;
     bool simplify_mesh(const indexed_triangle_set &_its, std::shared_ptr<GLIndexedVertexArray> va, LOD_LEVEL lod) const;
+    // coarse copy of the mesh to draw while the camera moves, nullptr to draw the full mesh
+    const GLIndexedVertexArray *interaction_proxy_for(const Model &model) const;
 
 protected:
     Geometry::Transformation m_instance_transformation;

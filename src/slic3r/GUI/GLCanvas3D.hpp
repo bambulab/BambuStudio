@@ -663,6 +663,10 @@ private:
     // starved (see _ensure_render_fallback_running / on_render_fallback_timer).
     wxTimer m_render_fallback_timer;
     int     m_render_fallback_quiet_ticks{ 0 };
+    // Fast navigation: while the camera moves, large meshes are drawn coarse and the picking pass
+    // is skipped; a full quality frame follows once it stops (see _mark_camera_interaction).
+    std::chrono::steady_clock::time_point m_camera_interaction_end;
+    wxTimer                               m_camera_interaction_timer;
 
     Selection m_selection;
     const DynamicPrintConfig* m_config;
@@ -1193,6 +1197,7 @@ public:
     void on_timer(wxTimerEvent& evt);
     void on_render_timer(wxTimerEvent& evt);
     void on_render_fallback_timer(wxTimerEvent& evt);
+    void on_camera_interaction_timer(wxTimerEvent& evt);
     void on_set_color_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
     void on_gesture(wxGestureEvent& evt);
@@ -1395,6 +1400,8 @@ private:
     // macOS: arm the render-fallback timer so the canvas keeps redrawing even
     // when wxEVT_IDLE is not being delivered. No-op on other platforms.
     void _ensure_render_fallback_running();
+    void _mark_camera_interaction();
+    bool _is_camera_interacting() const;
 
     void _picking_pass();
     void _rectangular_selection_picking_pass();

@@ -246,6 +246,9 @@ void AppConfig::set_defaults()
     if (get("msaa_type").empty())
         set("msaa_type", "X4");
 
+    if (get("fast_navigation").empty())
+        set_bool("fast_navigation", true);
+
     if (get("enable_advanced_antialiasing").empty())
         set_bool("enable_advanced_antialiasing", false);
 
