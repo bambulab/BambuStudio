@@ -172,6 +172,13 @@ void show_ams_add_menu(wxWindow *anchor, int extruder_index, PopupWindow *&curre
     menu->SetOnClosed([&current, menu] {
         if (current == menu) current = nullptr;
     });
+    menu->Bind(wxEVT_IDLE, [anchor, menu](wxIdleEvent &e) {
+        e.Skip();
+        wxRect hover_area = anchor->GetScreenRect();
+        hover_area.Union(menu->GetScreenRect());
+        hover_area.Inflate(menu->FromDIP(2));
+        if (!hover_area.Contains(wxGetMousePosition())) menu->CloseCascade();
+    });
 
     bool first_row = true;
     auto add_item  = [&](const wxString &label, bool enabled, int slot_count) {

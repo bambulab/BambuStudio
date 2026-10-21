@@ -228,9 +228,12 @@ std::vector<FilamentInfo> collect_scope_filaments(int plate_idx)
         }
     }
 
-    const auto &cfg       = preset_bundle->full_config();
-    const auto  requested = requested_volume_map(plate_idx);
-    auto       *is_mixed = preset_bundle->project_config.option<ConfigOptionBools>("filament_is_mixed");
+    const auto &cfg           = preset_bundle->full_config();
+    const auto  requested     = requested_volume_map(plate_idx);
+    const auto &project_cfg   = preset_bundle->project_config;
+    auto       *is_mixed      = project_cfg.option<ConfigOptionBools>("filament_is_mixed");
+    auto       *multi_colours = project_cfg.option<ConfigOptionStrings>("filament_multi_colour");
+    auto       *colour_types  = project_cfg.option<ConfigOptionStrings>("filament_colour_type");
     for (int id : ids) {
         if (id < 0 || id >= (int) types.size()) continue;
         if (is_mixed && id < (int) is_mixed->values.size() && is_mixed->values[id]) continue;
@@ -239,7 +242,17 @@ std::vector<FilamentInfo> collect_scope_filaments(int plate_idx)
         info.type               = types[id];
         info.brand              = brands[id];
         info.filament_id        = filament_ids[id];
-        info.color              = normalized_colour(preset_bundle->project_config.opt_string("filament_colour", (unsigned int) id));
+        info.color              = normalized_colour(project_cfg.opt_string("filament_colour", (unsigned int) id));
+        info.ctype              = DevFilaColorType::CTYPE_SINGLE;
+        if (multi_colours && id < (int) multi_colours->values.size()) {
+            for (const std::string &colour : Slic3r::split_string(multi_colours->values[id], ' '))
+                if (!colour.empty()) info.colors.push_back(normalized_colour(colour));
+        }
+        if (info.colors.size() > 1) {
+            info.ctype = DevFilaColorType::CTYPE_MULTI;
+            if (colour_types && id < (int) colour_types->values.size() && colour_types->values[id] == "0")
+                info.ctype = DevFilaColorType::CTYPE_GRADIANT;
+        }
         info.nozzle_diameter    = source_diameter_for(cfg, id);
         info.nozzle_volume_type = source_volume_for(requested, id);
         out.push_back(info);
