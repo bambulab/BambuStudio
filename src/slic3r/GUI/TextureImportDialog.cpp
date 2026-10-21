@@ -6822,7 +6822,7 @@ void TextureImportDialog::update_color_count_warning()
                 m_original_color_count));
         else
             warning->set_message(wxString::Format(
-                _L("The color count cannot exceed the project's filament limit (%d)."),
+                _L("Up to %d colors supported."),
                 (int)max_physical_filament_count()));
         warning->InvalidateBestSize();
         warning->SetMinSize(warning->GetBestSize());
