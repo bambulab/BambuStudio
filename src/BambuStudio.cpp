@@ -1425,6 +1425,53 @@ static std::set<std::string> filament_supported_diameters(const std::vector<std:
     return result;
 }
 
+// A filament_diameter_map slot is a selected diameter only when it holds one number.
+// "0.2;0.4" lists supported diameters and is not a selection.
+static void collect_selected_filament_diameters(const DynamicPrintConfig &config, const std::vector<int> &filament_ids, std::set<std::string> &diameters)
+{
+    const auto *dia_map = config.option<ConfigOptionStrings>("filament_diameter_map");
+    if (dia_map == nullptr)
+        return;
+
+    for (int filament_id : filament_ids) {
+        if (filament_id <= 0)
+            continue;
+        const size_t idx = size_t(filament_id - 1);
+        if (idx >= dia_map->values.size())
+            continue;
+        const std::string &raw = dia_map->values[idx];
+        if (raw.empty() || raw.find(';') != std::string::npos)
+            continue;
+        const double diameter = std::atof(raw.c_str());
+        if (diameter > 0.)
+            diameters.insert(format_diameter_to_str(diameter));
+    }
+}
+
+// Nozzles the machine can mount together. Single-head profiles sum to 1, dual-head to 2,
+// and a rack (H2C / H3C) sums every slot in extruder_max_nozzle_count.
+static int machine_max_nozzle_count(const DynamicPrintConfig &config)
+{
+    int total = 0;
+    if (const auto *opt = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count")) {
+        for (size_t i = 0; i < opt->values.size(); ++i) {
+            if (opt->is_nil(i))
+                continue;
+            if (opt->values[i] > 0)
+                total += opt->values[i];
+        }
+    }
+    if (total > 0)
+        return total;
+
+    if (const auto *diameters = config.option<ConfigOptionFloatsNullable>("nozzle_diameter")) {
+        for (double diameter : diameters->values)
+            if (diameter > 0.)
+                ++total;
+    }
+    return total > 0 ? total : 1;
+}
+
 // For estimate_mode: given a source filament preset name (e.g. "Bambu PLA Basic @BBL P1S 0.4 nozzle")
 // and the new machine's BBL tag (e.g. "X2D 0.4 nozzle"), construct the target filament preset name
 // (e.g. "Bambu PLA Basic @BBL X2D 0.4 nozzle") and verify it exists in filament_full_dir.
@@ -4931,6 +4978,7 @@ int CLI::run(int argc, char **argv)
             std::vector<double> temp_extruder_print_heights;
 
             printer_plate.printer_name = config_name;
+            printer_plate.max_nozzle_count = machine_max_nozzle_count(config);
 
             temp_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
             temp_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area", true)->values;
@@ -4984,10 +5032,11 @@ int CLI::run(int argc, char **argv)
                 BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: for multi-extruder printer, change printable size to bbox {%1%, %2%, 0} - {%3%, %4%, %5%}")
                             %current_bbox.min.x() %current_bbox.min.y() %current_bbox.max.x() %current_bbox.max.y() %temp_extruder_height;
             }
-            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: printable size{%1%,%2%, %3%}, exclude area{%4%, %5%: %6% x %7%}, wrapping area{%8%, %9%: %10% x %11%}, enable_wrapping_detect %12%")
+            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: printable size{%1%,%2%, %3%}, exclude area{%4%, %5%: %6% x %7%}, wrapping area{%8%, %9%: %10% x %11%}, enable_wrapping_detect %12%, max_nozzle_count %13%")
                 %printer_plate.printable_width %printer_plate.printable_depth %printer_plate.printable_height
                 %printer_plate.exclude_x %printer_plate.exclude_y %printer_plate.exclude_width %printer_plate.exclude_depth
-                %printer_plate.wrapping_x %printer_plate.wrapping_y %printer_plate.wrapping_width %printer_plate.wrapping_depth %enable_wrapping_detect;
+                %printer_plate.wrapping_x %printer_plate.wrapping_y %printer_plate.wrapping_width %printer_plate.wrapping_depth %enable_wrapping_detect
+                %printer_plate.max_nozzle_count;
 
             if (config.option<ConfigOptionFloat>("extruder_clearance_height_to_lid"))
                 printer_plate.height_to_lid = config.opt_float("extruder_clearance_height_to_lid");
@@ -5011,6 +5060,50 @@ int CLI::run(int argc, char **argv)
         downward_check_status.resize(downward_check_size, false);
         int plate_count = partplate_list.get_plate_count();
         int failed_count = 0;
+
+        // Multi-diameter: each distinct diameter needs its own nozzle. A machine whose
+        // mounted-nozzle capacity is smaller than the diameters actually used cannot print it.
+        if (multi_nozzle_diameter_mode_enabled(m_print_config)) {
+            std::set<std::string> used_diameters;
+            bool found_used_filament = false;
+            for (int index = 0; index < plate_count; index++) {
+                Slic3r::GUI::PartPlate *cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
+                const std::vector<int> filaments = cur_plate->get_extruders_under_cli(true, m_print_config);
+                if (!filaments.empty())
+                    found_used_filament = true;
+                collect_selected_filament_diameters(m_print_config, filaments, used_diameters);
+            }
+            if (!found_used_filament) {
+                if (const auto *dia_map = m_print_config.option<ConfigOptionStrings>("filament_diameter_map")) {
+                    std::vector<int> all_filaments;
+                    all_filaments.reserve(dia_map->values.size());
+                    for (size_t i = 0; i < dia_map->values.size(); ++i)
+                        all_filaments.push_back(int(i + 1));
+                    collect_selected_filament_diameters(m_print_config, all_filaments, used_diameters);
+                }
+            }
+
+            const int used_diameter_count = (int) used_diameters.size();
+            if (used_diameter_count > 1) {
+                std::string diameter_list;
+                for (const std::string &diameter : used_diameters) {
+                    if (!diameter_list.empty())
+                        diameter_list += ',';
+                    diameter_list += diameter;
+                }
+                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: used nozzle diameters [%1%], count %2%") % diameter_list % used_diameter_count;
+                for (int index2 = 0; index2 < downward_check_size; index2++) {
+                    printer_plate_info_t &plate_info = downward_check_printers[index2];
+                    if (used_diameter_count <= plate_info.max_nozzle_count)
+                        continue;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: printer %1% max nozzle count %2% cannot hold %3% nozzle diameters, set to incompatible")
+                        % plate_info.printer_name % plate_info.max_nozzle_count % used_diameter_count;
+                    downward_check_status[index2] = true;
+                    failed_count++;
+                }
+            }
+        }
+
         for (int index = 0; index < plate_count; index ++)
         {
             Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
