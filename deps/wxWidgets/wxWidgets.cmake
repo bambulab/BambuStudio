@@ -20,12 +20,11 @@ endif ()
 # wx 3.2+ needs its git submodules (pcre, etc.). ExternalProject clones them by
 # default when GIT_REPOSITORY is set; do not pass GIT_SUBMODULES "" here.
 #
-# Temporary: pin daveisfera until bambulab/wxWidgets#11 lands the same tag on
-# https://github.com/bambulab/wxWidgets — then switch GIT_REPOSITORY to bambulab
-# and keep GIT_TAG bambu-3.2.12-1 (or the next bambu-3.2.x-N).
+# Pin to bambulab/wxWidgets#11 tip (bambu-3.2.12-1 / upstream v3.2.12 merge).
+# When that PR merges, replace the SHA with tag bambu-3.2.12-1 on bambulab.
 bambustudio_add_cmake_project(wxWidgets
-    GIT_REPOSITORY "https://github.com/daveisfera/wxWidgets"
-    GIT_TAG bambu-3.2.12-1
+    GIT_REPOSITORY "https://github.com/bambulab/wxWidgets"
+    GIT_TAG 37c2df9da3fc72d17d1907d03d917913424b2083
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${TIFF_PKG} ${JPEG_PKG}
     CMAKE_ARGS
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5
