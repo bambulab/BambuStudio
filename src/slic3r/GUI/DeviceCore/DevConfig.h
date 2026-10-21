@@ -46,6 +46,7 @@ public:
     bool SupportCalibrationLidar() const { return m_support_calibration_lidar; }
     bool SupportCalibrationNozzleOffset() const { return m_support_calibration_nozzle_offset; }
     bool SupportCalibrationHighTempBed() const { return m_support_calibration_high_temp_bed; }
+    bool SupportCalibrationHighTempBedUnloadTips() const { return m_support_calibration_high_temp_bed_unload_tips; }
     bool SupportCaliClumpPos() const { return m_support_calibration_clump_pos; }
 
     bool SupportCalibrationPA_FlowAuto() const { return m_support_calibration_pa_flow_auto; }
@@ -89,6 +90,7 @@ private:
     bool m_support_calibration_lidar = false;
     bool m_support_calibration_nozzle_offset = false;
     bool m_support_calibration_high_temp_bed = false; // High-temperature Heatbed Calibration
+    bool m_support_calibration_high_temp_bed_unload_tips = false; // Prompt to unload filament before high-temperature heatbed calibration
     bool m_support_calibration_clump_pos     = false; // clump position calibration
 
     bool m_support_calibration_pa_flow_auto = false;// PA flow calibration. used in SendPrint

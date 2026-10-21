@@ -6561,6 +6561,12 @@ msgstr "校准中"
 msgid "No step selected"
 msgstr "请选择一项校准"
 
+msgid "Start Anyway"
+msgstr "仍然开始"
+
+msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
+msgstr "您选择了高温热床调平校准，为防止耗材在挤出机中软化，请先退料后再校准。"
+
 msgid "Auto-record Monitoring"
 msgstr "监控录像"
 

@@ -6458,6 +6458,12 @@ msgstr ""
 msgid "No step selected"
 msgstr ""
 
+msgid "Start Anyway"
+msgstr ""
+
+msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
+msgstr ""
+
 msgid "Auto-record Monitoring"
 msgstr ""
 

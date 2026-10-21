@@ -1637,6 +1637,24 @@ void ConfirmBeforeSendDialog::hide_button_ok()
     m_button_ok->Hide();
 }
 
+void ConfirmBeforeSendDialog::edit_ok_button_txt(const wxString& txt, bool switch_white)
+{
+    m_button_ok->SetLabel(txt);
+
+    if (switch_white)
+    {
+        StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+                                std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                                std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+        StateColor btn_text_white(std::pair<wxColour, int>(*wxLIGHT_GREY, StateColor::Disabled),
+                                  std::pair<wxColour, int>(*wxBLACK, StateColor::Normal));
+        m_button_ok->SetBackgroundColor(btn_bg_white);
+        m_button_ok->SetBorderColor(wxColour(38, 46, 48));
+        m_button_ok->SetTextColor(btn_text_white);
+    }
+    rescale();
+}
+
 void ConfirmBeforeSendDialog::edit_cancel_button_txt(const wxString& txt, bool switch_green)
 {
     m_button_cancel->SetLabel(txt);

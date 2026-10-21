@@ -280,6 +280,7 @@ public:
     void on_dpi_changed(const wxRect& suggested_rect);
     void show_update_nozzle_button(bool show = false);
     void hide_button_ok();
+    void edit_ok_button_txt(const wxString& txt, bool switch_white = false);
     void edit_cancel_button_txt(const wxString& txt, bool switch_green = false);
     void disable_button_ok();
     void enable_button_ok();
