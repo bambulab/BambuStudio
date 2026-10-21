@@ -620,7 +620,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     const coordf_t support_extrusion_width = Flow::extrusion_width_for_nozzle(
         m_object_config->line_width,
         float(primary_nozzle_diameter(m_object->print()->full_print_config())),
-        nozzle_diameter_for_filament(m_object->print()->config(), m_object_config->support_filament),
+        support_nozzle_diameter(m_object, m_object_config->support_filament),
         multi_nozzle_diameter_mode_enabled(m_object->print()->full_print_config()));
     // A branch may not start thinner than a single extrusion, or draw_circles() is handed a circle it
     // cannot extrude, and it may not start thicker than the branch it grows into.
@@ -811,7 +811,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
     const coordf_t extrusion_width = Flow::extrusion_width_for_nozzle(
         config.line_width,
         float(primary_nozzle_diameter(m_object->print()->full_print_config())),
-        nozzle_diameter_for_filament(m_object->print()->config(), config.support_filament),
+        support_nozzle_diameter(m_object, config.support_filament),
         multi_nozzle_diameter_mode_enabled(m_object->print()->full_print_config()));
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const coordf_t max_bridge_length = scale_(config.max_bridge_length.value);
@@ -2167,7 +2167,7 @@ void TreeSupport::generate_toolpaths()
 {
     const PrintObjectConfig &object_config = m_object->config();
     coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
-    coordf_t nozzle_diameter = nozzle_diameter_for_filament(*m_print_config, object_config.support_filament);
+    coordf_t nozzle_diameter = support_nozzle_diameter(m_object, object_config.support_filament);
     coordf_t layer_height = object_config.layer_height.value;
     const int wall_count = object_config.tree_support_wall_count.value;
     // Bridge angle of the object bridge resting right above the support layer at print_z. A per-nozzle gap is
@@ -4946,13 +4946,12 @@ void TreeSupport::smooth_nodes()
         }
     }
 
-    const coordf_t support_nozzle_diameter = nozzle_diameter_for_filament(
-        m_object->print()->config(), m_object_config->support_filament);
+    const coordf_t support_nozzle = Slic3r::support_nozzle_diameter(m_object, m_object_config->support_filament);
     const coordf_t support_lw = m_object_config->support_line_width.value > 0 ?
         Flow::extrusion_width_for_nozzle(
             m_object_config->support_line_width,
             float(primary_nozzle_diameter(m_object->print()->full_print_config())),
-            float(support_nozzle_diameter),
+            float(support_nozzle),
             multi_nozzle_diameter_mode_enabled(m_object->print()->full_print_config())) :
         m_support_params.support_extrusion_width;
     float max_move = scale_(support_lw / 2);
@@ -5302,7 +5301,7 @@ void TreeSupport::generate_contact_points()
     const coordf_t extrusion_width = Flow::extrusion_width_for_nozzle(
         config.line_width,
         float(primary_nozzle_diameter(m_object->print()->full_print_config())),
-        nozzle_diameter_for_filament(m_object->print()->config(), config.support_filament),
+        support_nozzle_diameter(m_object, config.support_filament),
         multi_nozzle_diameter_mode_enabled(m_object->print()->full_print_config()));
 
     //First generate grid points to cover the entire area of the print.

@@ -2165,6 +2165,20 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config, size_t confi
     }
 }
 
+void WipeTower::set_single_diameter_parameters(float nozzle_diameter)
+{
+    for (const FilamentParameters &filament : m_filpar)
+        if (std::abs(filament.nozzle_diameter - nozzle_diameter) < EPSILON) {
+            m_tower_grid_nozzle_diameter    = filament.nozzle_diameter;
+            m_perimeter_width               = filament.perimeter_width;
+            m_nozzle_change_perimeter_width = filament.nozzle_change_perimeter_width;
+            return;
+        }
+    // The nozzle comes from the filaments the plate prints with, so one of them must carry it.
+    throw Slic3r::RuntimeError("Single-diameter layering nozzle " + std::to_string(nozzle_diameter) +
+                               " is not used by any filament of the wipe tower.");
+}
+
 
 
 // Returns gcode to prime the nozzles at the front edge of the print bed.

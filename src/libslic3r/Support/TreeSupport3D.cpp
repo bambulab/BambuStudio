@@ -252,7 +252,7 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
     const coordf_t extrusion_width = Flow::extrusion_width_for_nozzle(
         config.line_width,
         float(primary_nozzle_diameter(print_object.print()->full_print_config())),
-        nozzle_diameter_for_filament(print_config, config.support_filament),
+        support_nozzle_diameter(&print_object, config.support_filament),
         multi_nozzle_diameter_mode_enabled(print_object.print()->full_print_config()));
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     tbb::parallel_for(tbb::blocked_range<size_t>(0, print_object.layer_count()),
@@ -1179,7 +1179,7 @@ void generate_initial_areas(
     using                           AvoidanceType = TreeModelVolumes::AvoidanceType;
     TreeSupportMeshGroupSettings    mesh_group_settings(print_object);
     const bool split_overhangs_by_region =
-        multi_nozzle_diameter_mode_enabled(print_object.print()->full_print_config()) &&
+        print_object.print()->uses_multiple_nozzle_diameters() &&
         config.xy_min_distance_per_region.size() == print_object.num_printing_regions() &&
         std::adjacent_find(
             config.xy_min_distance_per_region.begin(), config.xy_min_distance_per_region.end(),

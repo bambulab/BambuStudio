@@ -2258,6 +2258,16 @@ struct EffectiveShellParameters
     double thickness;
 };
 
+// Base layers one extrusion of this nozzle covers. A plate sliced for a single diameter already has its layers
+// at that nozzle's band height, so every layer is one extrusion there.
+static int shell_band_size(const PrintObject &object, double nozzle_diameter, double base_layer_height)
+{
+    if (object.print()->single_diameter_layering_nozzle() > EPSILON)
+        return 1;
+    return int(adaptive_layer_band_size(
+        nozzle_diameter, layer_grid_nozzle_diameter(object.print()->full_print_config()), base_layer_height));
+}
+
 static EffectiveShellParameters effective_top_shell_parameters(
     const PrintObject &object, const PrintRegionConfig &config, double base_layer_height)
 {
@@ -2268,8 +2278,7 @@ static EffectiveShellParameters effective_top_shell_parameters(
     const double nozzle_diameter = nozzle_diameter_for_filament(
         object.print()->config(), (unsigned int) config.solid_infill_filament.value);
     out.layers = multi_nozzle_top_shell_layers(nozzle_diameter, out.layers);
-    out.layers *= int(adaptive_layer_band_size(
-        nozzle_diameter, layer_grid_nozzle_diameter(object.print()->full_print_config()), base_layer_height));
+    out.layers *= shell_band_size(object, nozzle_diameter, base_layer_height);
     out.thickness = multi_nozzle_top_shell_thickness(nozzle_diameter, out.thickness);
     return out;
 }
@@ -2284,8 +2293,7 @@ static EffectiveShellParameters effective_bottom_shell_parameters(
     const double nozzle_diameter = nozzle_diameter_for_filament(
         object.print()->config(), (unsigned int) config.solid_infill_filament.value);
     out.layers = multi_nozzle_bottom_shell_layers(nozzle_diameter, out.layers);
-    out.layers *= int(adaptive_layer_band_size(
-        nozzle_diameter, layer_grid_nozzle_diameter(object.print()->full_print_config()), base_layer_height));
+    out.layers *= shell_band_size(object, nozzle_diameter, base_layer_height);
     out.thickness = multi_nozzle_bottom_shell_thickness(nozzle_diameter, out.thickness);
     return out;
 }
@@ -3823,10 +3831,24 @@ void PrintObject::generate_support_preview()
 
 void PrintObject::update_slicing_parameters()
 {
-    if (!m_slicing_params.valid)
-        m_slicing_params = SlicingParameters::create_from_config(
-            this->print()->config(), m_config, this->model_object()->bounding_box().max.z(), this->object_extruders(),
-            layer_grid_subdivision(this->print()->full_print_config()));
+    if (m_slicing_params.valid)
+        return;
+    m_slicing_params = this->compute_slicing_parameters(this->print()->single_diameter_layering_nozzle());
+}
+
+SlicingParameters PrintObject::compute_slicing_parameters(double single_diameter_layering_nozzle) const
+{
+    const DynamicPrintConfig &full_config = this->print()->full_print_config();
+    const int subdivision = layer_grid_subdivision(full_config);
+    // BBS multi-diameter: a plate printing with one diameter only stacks that nozzle's band of grid steps into
+    // one sliced layer, which is the height the merge would have given every band.
+    int multiplier = 1;
+    if (single_diameter_layering_nozzle > EPSILON)
+        multiplier = int(adaptive_layer_band_size(single_diameter_layering_nozzle, layer_grid_nozzle_diameter(full_config),
+                                                  m_config.layer_height.value / double(std::max(1, subdivision))));
+    return SlicingParameters::create_from_config(
+        this->print()->config(), m_config, this->model_object()->bounding_box().max.z(), this->object_extruders(),
+        subdivision, multiplier, single_diameter_layering_nozzle);
 }
 
 SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full_config, const ModelObject& model_object, float object_max_z, std::vector<int> variant_index)
@@ -6296,7 +6318,7 @@ void PrintObject::warn_uncovered_overhangs()
                               this->has_variable_layer_heights, m_slicing_params.soluble_interface,
                               config_flag_or_false(print_config, "heat_preserve_mode"),
                               config_flag_or_false(print_config, "enable_support_ring"),
-                              multi_nozzle_diameter_mode_enabled(this->print()->full_print_config()));
+                              this->print()->uses_multiple_nozzle_diameters());
     const bool classic_tree_drop = resolved_style != smsTreeOrganic;
     std::string warning_message;
     PrintStateBase::SlicingNotificationType warning_id = PrintStateBase::SlicingSupportIncomplete;

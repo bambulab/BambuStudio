@@ -599,6 +599,9 @@ private:
         const ConfigOptionResolver &old_config, const ConfigOptionResolver &new_config, const std::vector<t_config_option_key> &opt_keys);
     // If ! m_slicing_params.valid, recalculate.
     void                    update_slicing_parameters();
+    // Slicing parameters of this object from its current config, for the given single-diameter layering nozzle
+    // (0 for the fine grid). update_slicing_parameters() stores them with Print::single_diameter_layering_nozzle().
+    SlicingParameters       compute_slicing_parameters(double single_diameter_layering_nozzle) const;
 
     static PrintObjectConfig object_config_from_model_object(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders, std::vector<int>& variant_index);
 
@@ -961,10 +964,22 @@ public:
     std::vector<unsigned int> object_extruders() const;
     std::vector<unsigned int> support_material_extruders() const;
     std::vector<unsigned int> extruders(bool conside_custom_gcode = false) const;
+    // BBS multi-diameter: 0-based filaments the plate actually prints with. Like extruders(true), but takes only
+    // the custom tool changes that ToolOrdering applies (MultiAsSingle, single object filament) and that sit
+    // within the printed height. Reads the model's paint, so not to be called from the parallel slicing steps.
+    // For the single-diameter layering decision and the tool-change structure planning.
+    std::vector<unsigned int> printed_filaments() const;
     // BBS multi-diameter: whether this print needs the adaptive diameter ladder. This includes either
     // multiple used diameters or one used coarse diameter above the process grid's primary nozzle.
     // Single fact behind model, support and wipe-tower merging keeps their Z ladders aligned.
+    // A plate using a single diameter is sliced straight at that nozzle's band height instead (see
+    // single_diameter_layering_nozzle()), so it never needs the ladder.
     bool                uses_multiple_nozzle_diameters() const;
+    // BBS multi-diameter: the nozzle diameter a multi-diameter plate is sliced for when everything on it
+    // prints with that one diameter, 0 otherwise. Such a plate is sliced at the height the nozzle's merged
+    // band would have, rather than on the fine grid and merged back afterwards. Resolved in apply(), before
+    // the objects' slicing parameters.
+    double              single_diameter_layering_nozzle() const { return m_single_diameter_layering_nozzle; }
     double              max_allowed_layer_height() const;
     bool                has_support_material() const;
     // Make sure the background processing has no access to this model_object during this call!
@@ -1248,6 +1263,10 @@ private:
     //BBS
     static StringObjectException check_multi_filament_valid(const Print &print);
 
+    // BBS multi-diameter: value for m_single_diameter_layering_nozzle from the filaments the plate uses.
+    // Reads the model's paint, so only to be called from apply().
+    double              resolve_single_diameter_layering_nozzle() const;
+
     bool                has_tpu_filament() const;
     bool                invalidate_state_by_config_options(const ConfigOptionResolver &new_config, const std::vector<t_config_option_key> &opt_keys);
 
@@ -1297,6 +1316,9 @@ private:
     StatisticsByExtruderCount               m_statistics_by_extruder_count;
 
     std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> m_nozzle_group_result;
+
+    // BBS multi-diameter: see single_diameter_layering_nozzle().
+    double                                  m_single_diameter_layering_nozzle { 0. };
 
     // Used to cache filament parameter information
     FilamentIndexMap m_filament_index_map;

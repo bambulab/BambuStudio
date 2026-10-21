@@ -248,13 +248,13 @@ double Flow::mm3_per_mm() const
 Flow support_material_flow(const PrintObject *object, float layer_height)
 {
     const float preset_nozzle_diameter = float(primary_nozzle_diameter(object->print()->full_print_config()));
+    // Width conversion follows the selected nozzle even when one diameter is sliced directly and needs no merge plan.
     const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(object->print()->full_print_config());
     return Flow::new_from_config_width(
         frSupportMaterial,
         (object->config().support_line_width.value > 0) ? object->config().support_line_width : object->config().line_width,
         preset_nozzle_diameter,
-        // if object->config().support_filament == 0 (which means to not trigger tool change, but use the current extruder instead), it resolves to the 0th component.
-        nozzle_diameter_for_filament(object->print()->config(), object->config().support_filament),
+        support_nozzle_diameter(object, object->config().support_filament),
         (layer_height > 0.f) ? layer_height : float(object->config().layer_height.value),
         multi_diameter_mode);
 }
@@ -274,7 +274,7 @@ Flow support_material_1st_layer_flow(const PrintObject *object, float layer_heig
         frSupportMaterial,
         (width.value > 0) ? width : object->config().line_width,
         float(primary_nozzle_diameter(object->print()->full_print_config())),
-        nozzle_diameter_for_filament(print_config, object->config().support_filament),
+        support_nozzle_diameter(object, object->config().support_filament),
         (layer_height > 0.f) ? layer_height : float(print_config.initial_layer_print_height.value),
         multi_nozzle_diameter_mode_enabled(object->print()->full_print_config()));
 }
@@ -285,10 +285,19 @@ Flow support_material_interface_flow(const PrintObject *object, float layer_heig
         frSupportMaterialInterface,
         (object->config().support_line_width > 0) ? object->config().support_line_width : object->config().line_width,
         float(primary_nozzle_diameter(object->print()->full_print_config())),
-        // if object->config().support_interface_filament == 0 (which means to not trigger tool change, but use the current extruder instead), it resolves to the 0th component.
-        nozzle_diameter_for_filament(object->print()->config(), object->config().support_interface_filament),
+        support_nozzle_diameter(object, object->config().support_interface_filament),
         (layer_height > 0.f) ? layer_height : float(object->config().layer_height.value),
         multi_nozzle_diameter_mode_enabled(object->print()->full_print_config()));
+}
+
+float support_nozzle_diameter(const PrintObject *object, unsigned int filament_id)
+{
+    if (filament_id == 0) {
+        const double single_nozzle = object->print()->single_diameter_layering_nozzle();
+        if (single_nozzle > EPSILON)
+            return float(single_nozzle);
+    }
+    return nozzle_diameter_for_filament(object->print()->config(), filament_id);
 }
 
 }

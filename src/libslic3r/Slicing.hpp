@@ -32,13 +32,18 @@ struct SlicingParameters
     // object layers, decoupling the grid resolution from the preset the plate was sliced with. It comes from
     // layer_grid_subdivision(full_print_config); printer_variant is not readable from PrintConfig, so the
     // callers that own the full config resolve it. 1 means "grid == authored layer height", the historical
-    // behavior and the only value single-diameter printing ever sees.
+    // behavior outside multi-diameter mode.
+    // layer_grid_multiplier then stacks that many grid steps into one sliced layer. It is 1 unless a
+    // multi-diameter plate uses a single nozzle diameter: such a plate is sliced straight at the height that
+    // nozzle's merged band would have, see Print::single_diameter_layering_nozzle().
     static SlicingParameters create_from_config(
-        const PrintConfig       &print_config, 
+        const PrintConfig       &print_config,
         const PrintObjectConfig &object_config,
         coordf_t                 object_height,
         const std::vector<unsigned int> &object_extruders,
-        int                      layer_grid_subdivision = 1);
+        int                      layer_grid_subdivision = 1,
+        int                      layer_grid_multiplier = 1,
+        double                   single_diameter_layering_nozzle = 0.);
 
     // Has any raft layers?
     bool        has_raft() const { return raft_layers() > 0; }
@@ -67,7 +72,14 @@ struct SlicingParameters
     coordf_t    layer_height { 0 };
     // Ratio between authored layer heights and the base layer grid used for slicing.
     int         layer_grid_subdivision { 1 };
+    // Grid steps stacked into one sliced layer, see create_from_config().
+    int         layer_grid_multiplier { 1 };
+    // True when a multi-diameter printer uses one diameter and is sliced directly at that diameter's layer height.
+    bool        single_diameter_layering { false };
     coordf_t    to_base_layer_height(coordf_t height) const
+        { return height * coordf_t(layer_grid_multiplier > 0 ? layer_grid_multiplier : 1) /
+                 coordf_t(layer_grid_subdivision > 0 ? layer_grid_subdivision : 1); }
+    coordf_t    to_layer_height_limit(coordf_t height) const
         { return height / coordf_t(layer_grid_subdivision > 0 ? layer_grid_subdivision : 1); }
     // Minimum / maximum layer height, to be used for the automatic adaptive layer height algorithm,
     // or by an interactive layer height editor.
@@ -121,6 +133,8 @@ inline bool equal_layering(const SlicingParameters &sp1, const SlicingParameters
             sp1.contact_raft_layer_height           == sp2.contact_raft_layer_height            &&
             sp1.layer_height                        == sp2.layer_height                         &&
             sp1.layer_grid_subdivision               == sp2.layer_grid_subdivision               &&
+            sp1.layer_grid_multiplier                == sp2.layer_grid_multiplier                &&
+            sp1.single_diameter_layering              == sp2.single_diameter_layering              &&
             sp1.min_layer_height                    == sp2.min_layer_height                     &&
             sp1.max_layer_height                    == sp2.max_layer_height                     &&
 //            sp1.max_suport_layer_height             == sp2.max_suport_layer_height              &&

@@ -574,9 +574,40 @@ std::vector<unsigned int> Print::extruders(bool conside_custom_gcode) const
     return extruders;
 }
 
+std::vector<unsigned int> Print::printed_filaments() const
+{
+    const std::vector<unsigned int> object_extruders = this->object_extruders();
+    std::vector<unsigned int> filaments = object_extruders;
+    append(filaments, this->support_material_extruders());
+
+    // Same gate as ToolOrdering: custom tool changes override the object filament only in MultiAsSingle mode
+    // on a plate whose objects print with a single filament.
+    const CustomGCode::Info &custom_gcodes = m_model.get_curr_plate_custom_gcodes();
+    const size_t num_filaments = m_config.filament_diameter.size();
+    if (num_filaments > 1 && object_extruders.size() == 1 && custom_gcodes.mode == CustomGCode::MultiAsSingle) {
+        // A tool change above the top of the printed stack never takes effect. The stack is the one the plate
+        // is sliced on when only the object and support filaments count, read from the objects' current configs.
+        double single_nozzle = 0.;
+        if (! filaments.empty() && ! has_multiple_used_nozzle_diameters(m_config, filaments))
+            single_nozzle = nozzle_diameter_for_filament(m_config, filaments.front() + 1);
+        double max_print_z = 0.;
+        for (const PrintObject *object : m_objects)
+            max_print_z = std::max(max_print_z, object->compute_slicing_parameters(single_nozzle).object_print_z_max);
+        for (const auto &[print_z, extruder] : CustomGCode::custom_tool_changes_up_to(custom_gcodes, num_filaments, max_print_z))
+            if (extruder > 0)
+                filaments.push_back(extruder - 1);
+    }
+
+    sort_remove_duplicates(filaments);
+    return filaments;
+}
+
 bool Print::uses_multiple_nozzle_diameters() const
 {
     if (! multi_nozzle_diameter_mode_enabled(m_full_print_config))
+        return false;
+    // Sliced straight at the one nozzle's band height, every layer is already what that nozzle prints.
+    if (m_single_diameter_layering_nozzle > EPSILON)
         return false;
 
     // Regions and object configs only. This is queried from inside the per-object slicing steps, and support
@@ -609,6 +640,46 @@ bool Print::uses_multiple_nozzle_diameters() const
         return nozzle_diameter_for_filament(m_config, filament_id + 1) >
                reference_nozzle + EPSILON;
     });
+}
+
+double Print::resolve_single_diameter_layering_nozzle() const
+{
+    if (! multi_nozzle_diameter_mode_enabled(m_full_print_config) || m_objects.empty())
+        return 0.;
+    // Variable layer height profiles are authored per layer. Stacking them proportionally could leave the
+    // nozzle's printable window, which the merge path clamps against, so keep that path. A layer range may
+    // only switch filament; it blocks direct layering only when it actually changes the layer height.
+    if (std::any_of(m_objects.begin(), m_objects.end(), [](const PrintObject *object) {
+            const ModelObject *model_object = object->model_object();
+            if (! model_object->layer_height_profile.empty())
+                return true;
+            return std::any_of(model_object->layer_config_ranges.begin(), model_object->layer_config_ranges.end(),
+                [object](const auto &range) {
+                    const ConfigOption *height = range.second.option("layer_height");
+                    return height != nullptr &&
+                           std::abs(height->getFloat() - object->config().layer_height.value) > EPSILON;
+                });
+        }))
+        return 0.;
+
+    // printed_filaments() sees what the plate will actually print with: painted colours, part, feature and
+    // layer-range filaments, support filaments, and the custom G-code tool changes that take effect.
+    // A mixed filament prints with its components, whose diameters are in sync with its own.
+    const std::vector<unsigned int> filaments = this->printed_filaments();
+    if (filaments.empty() || has_multiple_used_nozzle_diameters(m_config, filaments))
+        return 0.;
+    const double diameter = nozzle_diameter_for_filament(m_config, filaments.front() + 1);
+    if (diameter <= EPSILON)
+        return 0.;
+    // The skirt, the brims and the first-layer checks of the G-code export lay one first layer for the whole plate.
+    // An object whose layer height falls outside the nozzle's printable window gets a larger band, and with it a
+    // first layer of its own, so such a plate keeps the merge path, where every object starts on the first grid step.
+    const double first_layer_height = m_objects.front()->compute_slicing_parameters(diameter).first_print_layer_height;
+    if (std::any_of(m_objects.begin() + 1, m_objects.end(), [diameter, first_layer_height](const PrintObject *object) {
+            return std::abs(object->compute_slicing_parameters(diameter).first_print_layer_height - first_layer_height) > EPSILON;
+        }))
+        return 0.;
+    return diameter;
 }
 
 unsigned int Print::num_object_instances() const
@@ -1831,6 +1902,14 @@ BoundingBox Print::total_bounding_box() const
 
 double Print::skirt_first_layer_height() const
 {
+    // A multi-diameter plate printing with a single diameter lays its first layer at that nozzle's height, which is
+    // what the slicing parameters made of it. Every object shares it, resolve_single_diameter_layering_nozzle()
+    // only picks a nozzle on which they do: the brim and the skirt are laid on one layer.
+    // A non-zero nozzle is only resolved with objects on the plate, and apply() then updates their parameters.
+    if (m_single_diameter_layering_nozzle > EPSILON) {
+        assert(m_objects.front()->slicing_parameters().valid);
+        return m_objects.front()->slicing_parameters().first_print_layer_height;
+    }
     // Same first grid step as SlicingParameters: multi-diameter slicing subdivides the initial layer too, and
     // the brim is laid on that step, not on the authored initial layer height.
     return m_config.initial_layer_print_height.value / double(std::max(1, layer_grid_subdivision(m_full_print_config)));
@@ -1849,11 +1928,16 @@ Flow Print::brim_flow() const
        extruders and take the one with, say, the smallest index.
        The same logic should be applied to the code that selects the extruder during G-code
        generation as well. */
+    // A multi-diameter plate printing with a single diameter prints every brim with that nozzle. The first region's
+    // wall filament may be painted over entirely, print nothing and carry another diameter.
+    const float nozzle_diameter = m_single_diameter_layering_nozzle > EPSILON ?
+        float(m_single_diameter_layering_nozzle) :
+        nozzle_diameter_for_filament(m_config, m_print_regions.front()->config().wall_filament);
     return Flow::new_from_config_width(
         frPerimeter,
 		width,
         float(primary_nozzle_diameter(this->full_print_config())),
-        nozzle_diameter_for_filament(m_config, m_print_regions.front()->config().wall_filament),
+        nozzle_diameter,
 		(float)this->skirt_first_layer_height(),
         multi_nozzle_diameter_mode_enabled(this->full_print_config()));
 }
@@ -1916,8 +2000,13 @@ Flow Print::multi_diameter_support_brim_flow(const PrintObject &object) const
 
 Flow Print::skirt_flow() const
 {
-    Flow flow = this->skirt_flow(*m_objects.front(), m_objects.front()->config().support_filament);
-    for (unsigned int extruder_id : this->extruders()) {
+    // Shared skirt geometry has to fit the widest bead any filament of the plate lays. extruders() already holds
+    // the support filaments, a "don't care" support resolving to the object filaments it prints with.
+    const std::vector<unsigned int> filaments = this->extruders();
+    if (filaments.empty())
+        throw Slic3r::RuntimeError("Skirt flow requested on a plate that prints with no filament.");
+    Flow flow = this->skirt_flow(filaments.front() + 1);
+    for (unsigned int extruder_id : filaments) {
         Flow candidate = this->skirt_flow(extruder_id + 1);
         if (candidate.spacing() > flow.spacing())
             flow = candidate;
@@ -4135,14 +4224,14 @@ void Print::_make_wipe_tower()
     wipe_tower.set_multi_diameter_print(this->uses_multiple_nozzle_diameters());
     wipe_tower.set_tower_grid_reference_nozzle(float(layer_grid_nozzle_diameter(m_full_print_config)));
     wipe_tower.set_tower_grid_layer_height(float(m_objects.front()->slicing_parameters().layer_height));
-    // Same gate as the gray "Auto" fields: multi-diameter mode always uses the hardcoded defaults,
-    // including when only one diameter is currently installed.
     wipe_tower.set_per_nozzle_tower_params(multi_nozzle_diameter_mode_enabled(m_full_print_config));
     wipe_tower.set_nozzle_group_result(*group_result);
     wipe_tower.set_shared_print_bed(this->get_extruder_shared_printable_polygon());
     // Set the extruder & material properties at the wipe tower object.
     for (size_t i = 0; i < number_of_extruders; ++ i)
         wipe_tower.set_extruder(i, m_config, get_filament_config_idx(i));
+    if (m_single_diameter_layering_nozzle > EPSILON)
+        wipe_tower.set_single_diameter_parameters(float(m_single_diameter_layering_nozzle));
     // BBS: remove priming logic
     //m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
     //    wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));
@@ -4274,8 +4363,11 @@ void Print::_make_wipe_tower()
     m_wipe_tower_data.bbx = wipe_tower.get_bbx();
     m_wipe_tower_data.rib_offset = wipe_tower.get_rib_offset();
 
-    // Unload the current filament over the purge tower.
-    coordf_t layer_height = m_objects.front()->config().layer_height.value;
+    // Unload at the sliced layer height for direct single-diameter layering. The actual nozzle may be either
+    // coarser or finer than the process preset, so the authored height is not a safe bound in that mode.
+    coordf_t layer_height = m_single_diameter_layering_nozzle > EPSILON ?
+        m_objects.front()->slicing_parameters().layer_height :
+        m_objects.front()->config().layer_height.value;
     if (m_wipe_tower_data.tool_ordering.back().wipe_tower_partitions > 0) {
         // The wipe tower goes up to the last layer of the print.
         if (wipe_tower.layer_finished()) {

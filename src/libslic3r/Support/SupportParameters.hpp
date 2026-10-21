@@ -200,7 +200,7 @@ struct SupportParameters {
             if (is_tree(object_config.support_type)) {
                 // organic support doesn't work with variable layer heights (including adaptive layer height and height range modifier, see #4313)
                 // BBS multi-diameter: default to hybrid tree as well.
-                if (!object.has_variable_layer_heights && !slicing_params.soluble_interface && !multi_nozzle_diameter_mode) {
+                if (!object.has_variable_layer_heights && !slicing_params.soluble_interface && !object.print()->uses_multiple_nozzle_diameters()) {
                     BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
                     support_style = smsTreeOrganic;
                 } else {
@@ -269,15 +269,15 @@ struct SupportParameters {
 	    }
 
         {
-            const auto support_nozzle_diameter = nozzle_diameter_for_filament(print_config, object_config.support_filament);
+            const auto support_nozzle = Slic3r::support_nozzle_diameter(&object, object_config.support_filament);
             const ConfigOptionFloat &support_width_opt = object_config.support_line_width.value > 0 ? object_config.support_line_width : object_config.line_width;
             support_extrusion_width = Flow::extrusion_width_for_nozzle(
-                support_width_opt, preset_nozzle_diameter, support_nozzle_diameter,
+                support_width_opt, preset_nozzle_diameter, support_nozzle,
                 multi_nozzle_diameter_mode);
         }
         // Check if set to zero, use default if so.
         if (support_extrusion_width <= 0.0) {
-            const auto nozzle_diameter               = nozzle_diameter_for_filament(print_config, object_config.support_interface_filament);
+            const auto nozzle_diameter = Slic3r::support_nozzle_diameter(&object, object_config.support_interface_filament);
             support_extrusion_width = Flow::auto_extrusion_width(FlowRole::frSupportMaterial, (float) nozzle_diameter);
         }
 

@@ -42,6 +42,7 @@ inline constexpr std::string_view ams_id      = "ams_id";
 inline constexpr std::string_view slot_id     = "slot_id";
 inline constexpr std::string_view tray_id     = "tray_id";
 inline constexpr std::string_view extruder_id = "extruder_id";
+inline constexpr std::string_view nozzle_diameter = "nozzle_diameter";
 
 // Environment, logged once at startup and when OpenGL is set up
 inline constexpr std::string_view app_version  = "app_version";

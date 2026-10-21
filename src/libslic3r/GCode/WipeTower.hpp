@@ -399,6 +399,9 @@ public:
     // Multi-diameter mode: feedrate factor and line widths come from the hardcoded per-diameter
     // defaults (multi_nozzle_prime_tower_*). Must be set before set_extruder().
     void set_per_nozzle_tower_params(bool per_nozzle) { m_per_nozzle_tower_params = per_nozzle; }
+    // Direct single-diameter layering still resolves shared tower widths from the one nozzle in use.
+    // Must be called after set_extruder() for every filament.
+    void set_single_diameter_parameters(float nozzle_diameter);
     void set_filament_categories(const std::vector<int> & filament_categories) { m_filament_categories = filament_categories;};
     void set_nozzle_group_result(const MultiNozzleUtils::LayeredNozzleGroupResult &multi_nozzle_group_result) { m_multi_nozzle_group_result = &multi_nozzle_group_result; };
     std::vector<int> m_used_filament_ids;

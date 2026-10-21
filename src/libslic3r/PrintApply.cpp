@@ -1678,15 +1678,20 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     }
 
     const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(new_full_config);
+    // Reads m_full_print_config, which holds new_full_config from here on: the config normalization below moves
+    // new_full_config into it, and the retune pass after that still calls this.
     auto apply_multi_diameter_object_tuning =
-        [this, &new_full_config, multi_diameter_mode](PrintObjectConfig &config, const ModelObject &model_object) {
+        [this, multi_diameter_mode](PrintObjectConfig &config, const ModelObject &model_object,
+                                    double default_support_nozzle) {
         if (! multi_diameter_mode)
             return;
         const unsigned int support_filament = config.support_interface_filament.value > 0 ?
             (unsigned int) config.support_interface_filament.value :
             (unsigned int) config.support_filament.value;
-        const double nozzle_diameter = nozzle_diameter_for_filament(m_config, support_filament);
-        const MultiNozzleSupportCombo combo = multi_nozzle_support_combo(new_full_config, config, model_object);
+        const double nozzle_diameter = support_filament == 0 && default_support_nozzle > EPSILON ?
+            default_support_nozzle :
+            nozzle_diameter_for_filament(m_config, support_filament);
+        const MultiNozzleSupportCombo combo = multi_nozzle_support_combo(m_full_print_config, config, model_object);
         config.support_top_z_distance.value = combo.zero_top ? 0. : multi_nozzle_support_z_distance(
             nozzle_diameter, config.support_top_z_distance.value);
         config.support_bottom_z_distance.value = combo.zero_bottom ? 0. : multi_nozzle_support_z_distance(
@@ -1894,7 +1899,9 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             if (! object_diff.empty() || object_config_changed || num_extruders_changed || multi_diameter_tuning_changed) {
                 PrintObjectConfig new_config = PrintObject::object_config_from_model_object(m_default_object_config, model_object, num_extruders, print_variant_index);
                 // model_object's volume configs are synchronized below, so classify the incoming object.
-                apply_multi_diameter_object_tuning(new_config, model_object_new);
+                // Tune with the single-diameter result in force, the same one the retune pass below uses, or
+                // the two passes flip the support gaps back and forth and every apply reslices the plate.
+                apply_multi_diameter_object_tuning(new_config, model_object_new, m_single_diameter_layering_nozzle);
                 for (const PrintObjectStatus &print_object_status : print_object_status_db.get_range(model_object)) {
                     t_config_option_keys diff = print_object_status.print_object->config().diff(new_config);
                     if (! diff.empty()) {
@@ -1966,7 +1973,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 } else {
                     PrintObjectConfig config = PrintObject::object_config_from_model_object(
                         m_default_object_config, *model_object, num_extruders, print_variant_index);
-                    apply_multi_diameter_object_tuning(config, *model_object);
+                    apply_multi_diameter_object_tuning(config, *model_object, m_single_diameter_layering_nozzle);
                     print_object->config_apply(config);
                 }
                 print_object_last = print_object;
@@ -2280,6 +2287,37 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                         print_region->m_print_region_id = (*it)->print_region_id();
                     }
             }
+    }
+
+    // BBS multi-diameter: a plate printing with one nozzle diameter only is sliced at that nozzle's band height
+    // instead of on the fine grid. Whether it does follows the filaments in use (paint, parts, support), so it
+    // is resolved on every apply; a change puts every object on a different layer stack.
+    if (const double single_nozzle = this->resolve_single_diameter_layering_nozzle();
+        std::abs(single_nozzle - m_single_diameter_layering_nozzle) > EPSILON) {
+        // 0 means the plate is sliced on the fine grid and merged per nozzle.
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::nozzle_diameter, single_nozzle)
+                                << "multi-diameter single nozzle layering changed, previous " << m_single_diameter_layering_nozzle;
+        // Invalidating first stops the background slicing, which reads the value.
+        for (PrintObject *object : m_objects)
+            update_apply_status(object->invalidate_all_steps());
+        m_single_diameter_layering_nozzle = single_nozzle;
+    }
+
+    // The object configs above are tuned with the single-diameter result of the previous apply. Retune an
+    // automatic support filament with the result just resolved, which is the actual nozzle instead of the
+    // printer's first nozzle slot. Also runs when the result drops back to 0, so the gaps follow the slot again.
+    // With an unchanged result both passes agree and nothing is invalidated.
+    if (multi_diameter_mode) {
+        for (PrintObject *object : m_objects) {
+            PrintObjectConfig tuned_config = object->config();
+            apply_multi_diameter_object_tuning(
+                tuned_config, *object->model_object(), m_single_diameter_layering_nozzle);
+            const t_config_option_keys diff = object->config().diff(tuned_config);
+            if (! diff.empty()) {
+                update_apply_status(object->invalidate_state_by_config_options(object->config(), tuned_config, diff));
+                object->config_apply_only(tuned_config, diff, true);
+            }
+        }
     }
 
     // Update SlicingParameters for each object where the SlicingParameters is not valid.

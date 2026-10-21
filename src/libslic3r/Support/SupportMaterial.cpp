@@ -2209,7 +2209,7 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
     const coordf_t extrusion_width = Flow::extrusion_width_for_nozzle(
         m_object_config->line_width,
         float(primary_nozzle_diameter(object.print()->full_print_config())),
-        nozzle_diameter_for_filament(*m_print_config, m_object_config->support_filament),
+        support_nozzle_diameter(&object, m_object_config->support_filament),
         multi_nozzle_diameter_mode_enabled(object.print()->full_print_config()));
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     if (is_auto(m_object_config->support_type.value) && g_config_support_sharp_tails && !detect_first_sharp_tail_only) {
@@ -2300,7 +2300,7 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
         double fw_scaled = scale_(Flow::extrusion_width_for_nozzle(
             m_object_config->line_width,
             float(primary_nozzle_diameter(object.print()->full_print_config())),
-            nozzle_diameter_for_filament(*m_print_config, m_object_config->support_filament),
+            support_nozzle_diameter(&object, m_object_config->support_filament),
             multi_nozzle_diameter_mode_enabled(object.print()->full_print_config())));
         std::set<ExPolygon*> removed_overhang;
 

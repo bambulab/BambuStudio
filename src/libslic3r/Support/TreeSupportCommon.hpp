@@ -97,7 +97,7 @@ struct TreeSupportMeshGroupSettings {
         this->support_xy_distance_1st_layer = scaled<coord_t>(config.support_object_first_layer_gap.value);
         // Separation of interfaces, it is likely smaller than support_xy_distance.
         this->support_xy_distance_overhang = std::min(this->support_xy_distance, scaled<coord_t>(0.5 * external_perimeter_width));
-        if (multi_nozzle_diameter_mode_enabled(print_object.print()->full_print_config()) &&
+        if (print_object.print()->uses_multiple_nozzle_diameters() &&
             ! this->support_xy_distance_overhang_per_region.empty())
             this->support_xy_distance_overhang = *std::min_element(
                 this->support_xy_distance_overhang_per_region.begin(),

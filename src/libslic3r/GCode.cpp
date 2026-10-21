@@ -1596,6 +1596,11 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
 
     std::vector<std::pair<double, double>> warning_ranges;
 
+    // Layer height the support gaps are rounded to. A multi-diameter plate printing with a single diameter is
+    // sliced at that nozzle's layer height, not the preset's, and its gaps were rounded to that height.
+    const double gap_layer_height = object.print()->single_diameter_layering_nozzle() > EPSILON ?
+        object.slicing_parameters().layer_height : object.config().layer_height.value;
+
     // Pair the object layers with the support layers by z.
     size_t idx_object_layer = 0;
     size_t idx_support_layer = 0;
@@ -1683,8 +1688,8 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             double bottom_cd = object.config().support_bottom_z_distance == 0. ? top_cd : object.config().support_bottom_z_distance;
             //if (!object.print()->config().independent_support_layer_height)
             { // the actual support gap may be larger than the configured one due to rounding to layer height for organic support, regardless of independent support layer height
-                top_cd    = std::ceil(top_cd / object.config().layer_height) * object.config().layer_height;
-                bottom_cd = std::ceil(bottom_cd / object.config().layer_height) * object.config().layer_height;
+                top_cd    = std::ceil(top_cd / gap_layer_height) * gap_layer_height;
+                bottom_cd = std::ceil(bottom_cd / gap_layer_height) * gap_layer_height;
             }
             double extra_gap = (layer_to_print.support_layer ? bottom_cd : top_cd);
 
@@ -1693,7 +1698,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
                 double raft_gap = top_cd == 0 ? 0 : object.config().raft_contact_distance.value;
                 //if (!object.print()->config().independent_support_layer_height)
                 {
-                    raft_gap = std::ceil(raft_gap / object.config().layer_height) * object.config().layer_height;
+                    raft_gap = std::ceil(raft_gap / gap_layer_height) * gap_layer_height;
                 }
                 extra_gap = std::max(extra_gap, top_cd == 0 ? 0 :object.config().raft_contact_distance.value);
             }
@@ -2761,6 +2766,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser.update_timestamp();
     m_placeholder_parser_context.rng = std::mt19937(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     print.update_object_placeholders(m_placeholder_parser.config_writable(), ".gcode");
+    // A multi-diameter plate printing with a single diameter lays its first layer at that nozzle's height, the same on
+    // every object. Custom G-code tells the first layer apart by comparing layer_z against initial_layer_print_height.
+    if (print.single_diameter_layering_nozzle() > EPSILON)
+        m_placeholder_parser.set("initial_layer_print_height", new ConfigOptionFloat(print.skirt_first_layer_height()));
 
     // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
     // For a print by objects, find the 1st printing object.
@@ -3119,7 +3128,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         }
     }
     {                                                                         // hold chamber temp for flat print: Flag
-        double print_area_sum_threshold = 40000.0, pring_hight_threshold = initial_layer_print_height + EPSILON;
+        // A multi-diameter plate printing with a single diameter lays its first layer at that nozzle's height, the same
+        // on every object, not at the configured one.
+        const double first_layer_height = print.single_diameter_layering_nozzle() > EPSILON ?
+            print.skirt_first_layer_height() : initial_layer_print_height;
+        double print_area_sum_threshold = 40000.0, pring_hight_threshold = first_layer_height + EPSILON;
         // thresholds in mm^2 and mm as units
         BoundingBoxf printable_area_bbox;
         printable_area_bbox.merge(m_config.printable_area.values);
@@ -3135,13 +3148,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             // object hight
             if (!print_object->layers().empty() && print_object->layers().back()->print_z > max_hight_temp) max_hight_temp = print_object->layers().back()->print_z;
             // object area
-            if (!print_object->layers().empty() && print_object->layers().front()->print_z < initial_layer_print_height + EPSILON &&
+            if (!print_object->layers().empty() && print_object->layers().front()->print_z < first_layer_height + EPSILON &&
                 !print_object->layers().front()->lslices.empty()) {
                 ExPolygons temp_Expolys = print_object->layers().front()->lslices;
                 for (ExPolygon &temp_Expoly : temp_Expolys) { area_sum_temp += temp_Expoly.area(); }
             }
             // suport area
-            if (!print_object->support_layers().empty() && print_object->support_layers().front()->print_z < initial_layer_print_height + EPSILON &&
+            if (!print_object->support_layers().empty() && print_object->support_layers().front()->print_z < first_layer_height + EPSILON &&
                 !print_object->support_layers().front()->support_islands.empty()) {
                 ExPolygons temp_Expolys = print_object->support_layers().front()->support_islands;
                 for (ExPolygon &temp_Expoly : temp_Expolys) { area_sum_temp += temp_Expoly.area(); }
@@ -3382,7 +3395,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     // BBS. change tool before moving to origin point.
                     if (m_writer.need_toolchange(initial_extruder_id)) {
                         const PrintObjectConfig &object_config              = object->config();
-                        coordf_t                 initial_layer_print_height = print.config().initial_layer_print_height.value;
+                        // A multi-diameter plate printing with a single diameter lays its first layer at that nozzle's height.
+                        coordf_t                 initial_layer_print_height = print.single_diameter_layering_nozzle() > EPSILON ?
+                            object->slicing_parameters().first_print_layer_height : print.config().initial_layer_print_height.value;
 
                         if (m_enable_label_object && print.config().support_object_skip_flush.value) {
                             m_filament_instances_code = _encode_label_ids_to_base64({instance->model_instance->get_labeled_id()});
