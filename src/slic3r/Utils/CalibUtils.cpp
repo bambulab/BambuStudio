@@ -2257,40 +2257,66 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
 
     //draw thumbnails
     {
-        GLVolumeCollection glvolume_collection;
-        std::vector<std::array<float, 4>> colors_out(1);
-        unsigned char  rgb_color[4] = {255, 255, 255, 255};
-        std::array<float, 4> new_color {1.0f, 1.0f, 1.0f, 1.0f};
-        colors_out.push_back(new_color);
-
         ThumbnailData* thumbnail_data = &plate_data_list[0]->plate_thumbnail;
         unsigned int thumbnail_width = 512, thumbnail_height = 512;
-        const ThumbnailsParams thumbnail_params = {{}, false, true, true, true, 0};
-        const auto& shader = wxGetApp().get_shader("thumbnail");
+        bool loaded_static_thumbnail = false;
 
-        for (unsigned int obj_idx = 0; obj_idx < (unsigned int)model->objects.size(); ++ obj_idx) {
-            const ModelObject &model_object = *model->objects[obj_idx];
-
-            for (int volume_idx = 0; volume_idx < (int)model_object.volumes.size(); ++ volume_idx) {
-                const ModelVolume &model_volume = *model_object.volumes[volume_idx];
-                for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
-                    const ModelInstance &model_instance = *model_object.instances[instance_idx];
-                    glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true, false, true, false);
-                    glvolume_collection.volumes.back()->set_render_color( new_color[0], new_color[1], new_color[2], new_color[3]);
-                    glvolume_collection.volumes.back()->set_color(new_color);
-                    //glvolume_collection.volumes.back()->printable = model_instance.printable;
+        // Manual PA calibration generates patterns via procedural/custom G-code rather than 3D meshes,
+        // so load the corresponding calibration pattern image directly as the plate thumbnail.
+        if (params.mode == CalibMode::Calib_PA_Line || params.mode == CalibMode::Calib_PA_Pattern) {
+            std::string img_path = Slic3r::resources_dir() +
+                (params.mode == CalibMode::Calib_PA_Line ? "/images/fd_calibration_manual.png" : "/images/fd_pattern_manual_device.png");
+            wxImage img;
+            if (img.LoadFile(Slic3r::GUI::from_u8(img_path), wxBITMAP_TYPE_PNG) && img.IsOk()) {
+                img = img.Scale(thumbnail_width, thumbnail_height, wxIMAGE_QUALITY_HIGH);
+                img = img.Mirror(false);
+                const unsigned char* rgb_data = img.IsOk() ? img.GetData() : nullptr;
+                const unsigned char* alpha_data = (img.IsOk() && img.HasAlpha()) ? img.GetAlpha() : nullptr;
+                if (rgb_data != nullptr) {
+                    thumbnail_data->set(thumbnail_width, thumbnail_height);
+                    for (unsigned int i = 0; i < thumbnail_width * thumbnail_height; ++i) {
+                        memcpy(&thumbnail_data->pixels[4 * i], rgb_data + 3 * i, 3);
+                        thumbnail_data->pixels[4 * i + 3] = alpha_data ? alpha_data[i] : 255;
+                    }
+                    loaded_static_thumbnail = true;
                 }
             }
         }
 
-        const auto& p_ogl_manager = Slic3r::GUI::wxGetApp().get_opengl_manager();
-        p_ogl_manager->bind_vao();
-        p_ogl_manager->bind_shader(shader);
-        Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(p_ogl_manager, *thumbnail_data,
-            thumbnail_width, thumbnail_height, thumbnail_params,
-            partplate_list, model->objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
-        p_ogl_manager->unbind_shader();
-        p_ogl_manager->unbind_vao();
+        if (!loaded_static_thumbnail) {
+            GLVolumeCollection glvolume_collection;
+            std::vector<std::array<float, 4>> colors_out(1);
+            unsigned char  rgb_color[4] = {255, 255, 255, 255};
+            std::array<float, 4> new_color {1.0f, 1.0f, 1.0f, 1.0f};
+            colors_out.push_back(new_color);
+
+            const ThumbnailsParams thumbnail_params = {{}, false, true, true, true, 0};
+            const auto& shader = wxGetApp().get_shader("thumbnail");
+
+            for (unsigned int obj_idx = 0; obj_idx < (unsigned int)model->objects.size(); ++ obj_idx) {
+                const ModelObject &model_object = *model->objects[obj_idx];
+
+                for (int volume_idx = 0; volume_idx < (int)model_object.volumes.size(); ++ volume_idx) {
+                    const ModelVolume &model_volume = *model_object.volumes[volume_idx];
+                    for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
+                        const ModelInstance &model_instance = *model_object.instances[instance_idx];
+                        glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true, false, true, false);
+                        glvolume_collection.volumes.back()->set_render_color( new_color[0], new_color[1], new_color[2], new_color[3]);
+                        glvolume_collection.volumes.back()->set_color(new_color);
+                        //glvolume_collection.volumes.back()->printable = model_instance.printable;
+                    }
+                }
+            }
+
+            const auto& p_ogl_manager = Slic3r::GUI::wxGetApp().get_opengl_manager();
+            p_ogl_manager->bind_vao();
+            p_ogl_manager->bind_shader(shader);
+            Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(p_ogl_manager, *thumbnail_data,
+                thumbnail_width, thumbnail_height, thumbnail_params,
+                partplate_list, model->objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
+            p_ogl_manager->unbind_shader();
+            p_ogl_manager->unbind_vao();
+        }
         thumbnails.push_back(thumbnail_data);
     }
 
