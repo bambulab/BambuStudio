@@ -4465,15 +4465,19 @@ WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &
 {
     float filament_area_val = m_filpar[filament_id].filament_area;
     const float fill_width  = filament_perimeter_width(filament_id);
-    // The planned slab height is the gap between the top of whatever this band laid down last and this
-    // layer's Z, so it is also all the room the extrusion has. Raising it here to give a large nozzle a
-    // thicker bead - which this used to do whenever the band sat on a sparse layer - drives the slab
-    // straight down into the material already there. A band too thin for the nozzle filling it has to be
-    // merged while the Z ladder is planned; by this point the space is fixed.
+    // A merged slab has a fixed physical height and must not be thickened after planning. Without merged
+    // slabs, retain the legacy 0.2 mm equivalent flow when a solid block is laid over a normal sparse layer.
     const float slab_height = block.layer_heights.empty() ? m_layer_height : block.layer_heights[m_cur_layer_id];
-    const float e_flow = slab_height * (fill_width - slab_height * (1.f - float(M_PI) / 4.f)) / filament_area_val;
+    float       extrusion_height = slab_height;
+    float       e_flow = slab_height * (fill_width - slab_height * (1.f - float(M_PI) / 4.f)) / filament_area_val;
+    const float e_flow_02 = 0.2f * (fill_width - 0.2f * (1.f - float(M_PI) / 4.f)) / filament_area_val;
+    if (!m_merged_slabs_active && m_cur_layer_id > 1 &&
+        block.layers_type[m_cur_layer_id - 1] == WipeTowerLayerType::Normal && e_flow < e_flow_02) {
+        extrusion_height = 0.2f;
+        e_flow = e_flow_02;
+    }
 
-    WipeTowerWriter writer(slab_height, fill_width, m_gcode_flavor, m_filpar, m_enable_arc_fitting);
+    WipeTowerWriter writer(extrusion_height, fill_width, m_gcode_flavor, m_filpar, m_enable_arc_fitting);
     writer.set_extrusion_flow(e_flow)
         .set_z(m_z_pos)
         .set_initial_tool(filament_id)
@@ -5562,7 +5566,7 @@ void WipeTower::generate_wipe_tower_blocks(bool add_solid_flag)
         // the dense floor under a band that is wider above, and only when the category there is not the one
         // already on this layer. The same category bridges with the sparse empty grid.
         // Without merged fill a band may be filled by whatever is loaded, so Solid keeps the per-band key
-        // and categories are only inherited across layers without tool changes.
+        // and each layer derives its categories from the running tool or that layer's tool changes.
         const bool merged_fill = merged_fill_active();
         std::vector<std::unordered_set<int>> layers_used_tools;
         std::vector<std::unordered_set<int>> layers_used_categories;
@@ -5593,7 +5597,7 @@ void WipeTower::generate_wipe_tower_blocks(bool add_solid_flag)
             // has ended. Adaptive Z grouping leaves nearly half the layers without a tool change, and a
             // multi-diameter layer often changes only one of the bands, so both have to inherit.
             std::unordered_set<int> used_categories;
-            if (layer_id > 0 && (merged_fill || info.tool_changes.empty()))
+            if (layer_id > 0 && merged_fill)
                 used_categories = layers_used_categories[layer_id - 1];
             if (merged_fill && !info.tool_changes.empty()) {
                 std::unordered_set<int> kept;
@@ -7385,8 +7389,10 @@ int WipeTower::get_wall_filament_for_layer(const WipeTowerInfo &layer, int layer
     if (layer_id >= 0 && size_t(layer_id) < m_wall_filament.size() && m_wall_filament[layer_id] >= 0)
         return m_wall_filament[layer_id];
 
-    auto fits_this_layer = [this, &layer, layer_id](int filament_id) {
-        return filament_can_print_height(filament_id, layer_slab_height(layer_id, layer.height));
+    const bool enforce_height_window = merged_fill_active();
+    auto fits_this_layer = [this, &layer, layer_id, enforce_height_window](int filament_id) {
+        return !enforce_height_window ||
+               filament_can_print_height(filament_id, layer_slab_height(layer_id, layer.height));
     };
 
     int candidate_id = -1;
@@ -7751,7 +7757,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                 finish_layer_tcr = finish_layer_new(extrude_outer_wall, layer.extruder_fill, true, wall_height, wall_reserved);
                 std::for_each(m_wipe_tower_blocks.begin(), m_wipe_tower_blocks.end(), [this](WipeTowerBlock &block) {
                     block.finish_depth[this->m_cur_layer_id] =
-                        block.layer_reserved[this->m_cur_layer_id] ? block.start_depth :
+                        (!m_merged_slabs_active || block.layer_reserved[this->m_cur_layer_id]) ? block.start_depth :
                         block.start_depth + band_fill_depth(block, this->m_cur_layer_id);
                 });
             }
@@ -7804,7 +7810,8 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                     continue;
                 }
                 const float planned_depth = block.start_depth + band_fill_depth(block, m_cur_layer_id);
-                block.finish_depth[m_cur_layer_id] = std::min(block.cur_depth, planned_depth);
+                block.finish_depth[m_cur_layer_id] = m_merged_slabs_active ? std::min(block.cur_depth, planned_depth) :
+                                                                            block.start_depth + block.depth;
                 if (block.cur_depth + EPSILON >= planned_depth - m_perimeter_width) {
                     continue;
                 }
@@ -7906,9 +7913,10 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                 else {
                     finish_block_tcr = finish_block(block, finish_layer_filament, layer.extruder_fill);
                 }
-                // finish_block* receives the block by const reference, so cur_depth remains at the purge
-                // front even though the returned G-code fills the rest of this layer's planned footprint.
-                block.finish_depth[m_cur_layer_id] = planned_depth;
+                // Merged slabs track the complete planned footprint. Without merging, preserve the legacy
+                // purge front so the next layer can detect which part of its wipe lines bridges a sparse grid.
+                block.finish_depth[m_cur_layer_id] = m_merged_slabs_active ? planned_depth :
+                    (block_solid ? block.start_depth + block.depth : block.cur_depth);
 
                 bool has_inserted = false;
                 {
@@ -8360,6 +8368,17 @@ bool WipeTower::get_floating_area(float &start_pos_y, float &end_pos_y) const {
     if (!m_cur_block)
         return false;
 
+    // Without merged slabs, preserve the original per-layer support boundary. The immediately preceding
+    // layer may contain only a sparse grid, and its actual finish depth is what makes the overhanging part
+    // of the current wipe lines require 0.2 mm equivalent bridge flow.
+    if (!m_merged_slabs_active) {
+        if (m_layer_info == m_plan.begin() || (m_layer_info - 1) == m_plan.begin())
+            return false;
+        end_pos_y   = m_cur_block->start_depth + m_cur_block->depth - m_perimeter_width;
+        start_pos_y = m_cur_block->finish_depth[m_cur_layer_id - 1];
+        return true;
+    }
+
     // Support comes from the last layer on which this band itself deposited material. Planned layers that
     // the band reserved as a trench, or that the whole tower skipped, do not move its supporting surface.
     int below = -1;
@@ -8397,8 +8416,8 @@ bool WipeTower::get_floating_area(float &start_pos_y, float &end_pos_y) const {
 
 bool WipeTower::need_thick_bridge_flow(float pos_y, float slab_height) const {
     // 0.2 mm bridge flow over a floating band is the same large-nozzle compensation as the
-    // solid-fill bump. Keep the base layer height on a single-diameter print.
-    if (!has_multiple_nozzle_diameters() || slab_height >= 0.2f)
+    // solid-fill bump.
+    if (slab_height >= 0.2f)
         return false;
 
     float y_min = 0., y_max = 0.;
