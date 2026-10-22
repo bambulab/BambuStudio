@@ -46,6 +46,7 @@
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/AmsSlotPopup.hpp" // AmsSlotPopup, SlotSelectionState
 #include "Widgets/Label.hpp"
+#include "Widgets/LinkLabel.hpp"
 #include "Widgets/MappingRow.hpp"
 #include "Widgets/RoundedRectangle.hpp" // shared fill+border card surface
 #include "Widgets/StateColor.hpp"
@@ -440,9 +441,18 @@ wxSizer *build_high_temp_tip(wxWindow *parent, const wxColour &bg)
     text->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::Warning));
     text->SetBackgroundColour(bg);
 
+    const bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
+    auto *link = new LinkLabel(parent, _L("Click Wiki for help."),
+                               is_zh ? "https://wiki.bambulab.com/zh/filament-acc/filament/h2d-filament-config-limit" :
+                                       "https://wiki.bambulab.com/en/filament-acc/filament/h2d-filament-config-limit");
+    link->getLabel()->SetFont(::Label::Body_13);
+    link->SeLinkLabelFColour(StateColor::darkModeColorFor(ThemeColor::BrandGreen));
+    link->SeLinkLabelBColour(bg);
+
     auto *h = new wxBoxSizer(wxHORIZONTAL);
     h->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, parent->FromDIP(4));
     h->Add(text, 1, wxALIGN_CENTER_VERTICAL);
+    h->Add(link, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, parent->FromDIP(4));
     return h;
 }
 
