@@ -2754,7 +2754,7 @@ int CLI::run(int argc, char **argv)
                 ConfigOptionStrings *dia_map = cli_has_map
                     ? m_extra_config.option<ConfigOptionStrings>("filament_diameter_map")
                     : m_print_config.option<ConfigOptionStrings>("filament_diameter_map");
-                if (dia_map != nullptr && static_cast<size_t>(index) < dia_map->values.size() && dia_map->values[index].empty()) {
+                if (dia_map != nullptr && static_cast<size_t>(index) < dia_map->values.size()) {
                     if (default_filament_diameter.empty()) {
                         BOOST_LOG_TRIVIAL(warning) << boost::format(
                             "%1%: default filament %2% has no single nozzle diameter, filament_diameter_map slot %3% stays empty")
