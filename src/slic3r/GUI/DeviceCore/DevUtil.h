@@ -11,6 +11,7 @@
 #include <sstream>
 #include <stdexcept>
 
+#include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include "nlohmann/json.hpp"
