@@ -1031,9 +1031,6 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             }
         });
 
-    typedef std::chrono::high_resolution_clock clock_;
-    typedef std::chrono::duration<double, std::ratio<1> > second_;
-    std::chrono::time_point<clock_> t0{ clock_::now() };
     // main part of overhang detection can be parallel
     tbb::concurrent_vector<ExPolygons> overhangs_all_layers(m_object->layer_count());
 
@@ -1058,45 +1055,65 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
     // overhang into several narrow strips which organic-support avoidance may remove completely. Recreate
     // the same overhang the coarse nozzle would see on its own: compare the retained slab footprint with
     // the model below the band and place the result at the slab's physical bottom.
+    //
+    // Every layer reads only its own patches and the already finished lslices_extrudable, so the layers are
+    // processed in parallel. A slab's overhang belongs to the layer it starts on, not to the one that found
+    // it; those are collected per layer and handed over afterwards, in layer order, before the union.
     std::vector<ExPolygons> adaptive_region_slices(m_object->layer_count());
     std::vector<ExPolygons> adaptive_overhangs(m_object->layer_count());
-    for (size_t layer_nr = 0; layer_nr < m_object->layer_count(); ++ layer_nr) {
-        Layer *layer = m_object->get_layer(layer_nr);
-        for (const LayerRegion *layerm : layer->regions()) {
-            if (layerm->adaptive_merge_patches.empty())
-                continue;
+    std::vector<std::vector<std::pair<size_t, ExPolygons>>> found_overhangs(m_object->layer_count());
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, m_object->layer_count()),
+        [&](const tbb::blocked_range<size_t> &range) {
+            for (size_t layer_nr = range.begin(); layer_nr < range.end(); ++ layer_nr) {
+                if (m_object->print()->canceled())
+                    break;
+                Layer *layer = m_object->get_layer(layer_nr);
+                for (const LayerRegion *layerm : layer->regions()) {
+                    if (layerm->adaptive_merge_patches.empty())
+                        continue;
 
-            for (const AdaptiveMergePatch &patch : layerm->adaptive_merge_patches) {
-                // The region is physically represented by this retained coarse-slab footprint throughout
-                // the band. LayerRegion::slices may already be empty on merged-out fine-grid layers, which
-                // would let the normal detector process those layers again and fragment one coarse overhang.
-                if (! patch.area().empty())
-                    append(adaptive_region_slices[layer_nr], patch.area());
-                if (! patch.group_top || patch.bottom_idx == 0 || patch.area().empty())
-                    continue;
+                    for (const AdaptiveMergePatch &patch : layerm->adaptive_merge_patches) {
+                        // The region is physically represented by this retained coarse-slab footprint throughout
+                        // the band. LayerRegion::slices may already be empty on merged-out fine-grid layers, which
+                        // would let the normal detector process those layers again and fragment one coarse overhang.
+                        if (! patch.area().empty())
+                            append(adaptive_region_slices[layer_nr], patch.area());
+                        if (! patch.group_top || patch.bottom_idx == 0 || patch.area().empty())
+                            continue;
 
-                const Layer *below_band = m_object->get_layer(patch.bottom_idx - 1);
-                const coord_t support_offset = scale_(patch.merged_height / tan(threshold_rad));
-                // Keep the same minimum-width filter as the normal detector. Comparing the raw patch against
-                // a filtered lower layer turns a narrowing tip into a fully floating overhang once the lower
-                // contour becomes thinner than the support extrusion width.
-                ExPolygons patch_extrudable = intersection_ex(
-                    patch.area(), offset2_ex(patch.area(), -extrusion_width_scaled / 2, extrusion_width_scaled));
-                ExPolygons overhangs = diff_ex(
-                    patch_extrudable,
-                    offset_ex(below_band->lslices_extrudable, support_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
-                if (! overhangs.empty())
-                    append(adaptive_overhangs[patch.bottom_idx], overhangs);
+                        const Layer *below_band = m_object->get_layer(patch.bottom_idx - 1);
+                        const coord_t support_offset = scale_(patch.merged_height / tan(threshold_rad));
+                        // Keep the same minimum-width filter as the normal detector. Comparing the raw patch against
+                        // a filtered lower layer turns a narrowing tip into a fully floating overhang once the lower
+                        // contour becomes thinner than the support extrusion width.
+                        ExPolygons patch_extrudable = intersection_ex(
+                            patch.area(), offset2_ex(patch.area(), -extrusion_width_scaled / 2, extrusion_width_scaled));
+                        ExPolygons overhangs = diff_ex(
+                            patch_extrudable,
+                            offset_ex(below_band->lslices_extrudable, support_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                        if (! overhangs.empty())
+                            found_overhangs[layer_nr].emplace_back(patch.bottom_idx, std::move(overhangs));
+                    }
+                }
+                if (! adaptive_region_slices[layer_nr].empty())
+                    adaptive_region_slices[layer_nr] = union_ex(adaptive_region_slices[layer_nr]);
             }
-        }
-    }
-    for (size_t layer_nr = 0; layer_nr < m_object->layer_count(); ++ layer_nr) {
-        if (! adaptive_region_slices[layer_nr].empty())
-            adaptive_region_slices[layer_nr] = union_ex(adaptive_region_slices[layer_nr]);
-        if (! adaptive_overhangs[layer_nr].empty())
-            adaptive_overhangs[layer_nr] = union_ex(adaptive_overhangs[layer_nr]);
-    }
+        });
+    for (std::vector<std::pair<size_t, ExPolygons>> &found : found_overhangs)
+        for (std::pair<size_t, ExPolygons> &overhang : found)
+            append(adaptive_overhangs[overhang.first], std::move(overhang.second));
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, m_object->layer_count()),
+        [&adaptive_overhangs](const tbb::blocked_range<size_t> &range) {
+            for (size_t layer_nr = range.begin(); layer_nr < range.end(); ++ layer_nr)
+                if (! adaptive_overhangs[layer_nr].empty())
+                    adaptive_overhangs[layer_nr] = union_ex(adaptive_overhangs[layer_nr]);
+        });
 
+    // The 30 s budget checked below covers the per-layer detection only, not the enforcer projection and the
+    // coarse slab overhangs prepared above.
+    typedef std::chrono::high_resolution_clock clock_;
+    typedef std::chrono::duration<double, std::ratio<1> > second_;
+    std::chrono::time_point<clock_> t0{ clock_::now() };
     tbb::parallel_for(tbb::blocked_range<size_t>(0, m_object->layer_count()),
         [&](const tbb::blocked_range<size_t>& range) {
             for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++) {
