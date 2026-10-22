@@ -1,12 +1,12 @@
 #include "FilamentView.hpp"
 
 #include <algorithm>
+#include <tuple>
+#include <utility>
 
 #include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
-#include <wx/dcmemory.h>
 #include <wx/graphics.h>
-#include <wx/region.h>
 
 #include "slic3r/GUI/FilamentBitmapUtils.hpp"
 #include "slic3r/GUI/Widgets/StateColor.hpp"
@@ -20,15 +20,30 @@ using Style = FilamentView::Style;
 // The reel geometry is authored in this fixed artboard; it is scaled uniformly and centred into
 // whatever size the widget is, so it keeps its shape at any size. These describe the artwork's
 // coordinate space — change them only with new artwork, not to resize the widget.
-constexpr double kArtboardW = 28.0;
+constexpr double kArtworkW  = 28.0;
 constexpr double kArtboardH = 26.0;
+
+// The reel is lengthened by moving everything right of kSplitX (right flange and barrel end) further
+// right, so the barrel can hold a few characters of label.
+constexpr double kSplitX      = 14.0;
+constexpr double kBarrelExtra = 12.0;
+constexpr double kArtboardW   = kArtworkW + kBarrelExtra;
+// Visible barrel at mid-height, i.e. the room a label has: from the outer stroke edge of the left
+// flange ellipse to the inner stroke edge of the barrel's curved right end.
+constexpr double kBarrelLeft  = 5.16316 + 3.38777 + 1.2;
+constexpr double kBarrelRight = 23.357 + kBarrelExtra - 0.75;
+
+/**
+ * \brief Map an artwork x coordinate to the lengthened artboard.
+ */
+constexpr double stretch_x(double x) { return x < kSplitX ? x : x + kBarrelExtra; }
 
 /**
  * \brief The design size (DIP) of a style: the source badge is a hair smaller than the destination spool.
  *
  * \param style  the drawn shape
  */
-wxSize default_dip_size(Style style) { return style == Style::Square ? wxSize(24, 24) : wxSize(28, 28); }
+wxSize default_dip_size(Style style) { return style == Style::Square ? wxSize(24, 24) : wxSize(42, 28); }
 
 /**
  * \brief Uniform scale + centre offsets placing the artboard in a box.
@@ -59,7 +74,7 @@ Fit fit_box(int w, int h)
  */
 void add_barrel(wxGraphicsPath &p, double ox, double oy, double s)
 {
-    auto X = [&](double x) { return ox + x * s; };
+    auto X = [&](double x) { return ox + stretch_x(x) * s; };
     auto Y = [&](double y) { return oy + y * s; };
     p.MoveToPoint(X(21.326), Y(3.28809));
     p.AddLineToPoint(X(6.03516), Y(3.64576));
@@ -84,37 +99,65 @@ void add_barrel(wxGraphicsPath &p, double ox, double oy, double s)
  */
 void draw_barrel_clipped(wxGCDC &gdc, const wxRect &r, const wxBitmap &chip)
 {
-    if (!chip.IsOk() || r.width <= 0 || r.height <= 0) return;
+    wxGraphicsContext *gc = gdc.GetGraphicsContext();
+    if (!gc || !chip.IsOk() || r.width <= 0 || r.height <= 0) return;
+    // Fill the barrel path with the chip as a texture rather than clipping to a pixel mask: a mask has
+    // no anti-aliasing, so its stair-stepped edge shows through the outline on the sloped barrel.
     const Fit f = fit_box(r.width, r.height);
-    wxBitmap  mask(r.width, r.height, 24);
-    {
-        wxMemoryDC mdc(mask);
-        mdc.SetBackground(*wxBLACK_BRUSH);
-        mdc.Clear();
-        wxGCDC mg(mdc);
-        if (wxGraphicsContext *gc = mg.GetGraphicsContext()) {
-            gc->SetAntialiasMode(wxANTIALIAS_NONE); // crisp mask edges
-            gc->SetBrush(*wxWHITE_BRUSH);
-            gc->SetPen(*wxTRANSPARENT_PEN);
-            wxGraphicsPath p = gc->CreatePath();
-            add_barrel(p, f.dx, f.dy, f.s); // mask is (0,0)-based
-            gc->FillPath(p);
-        }
-    }
-    wxRegion region(mask, *wxBLACK); // black is transparent -> region is the barrel
-    region.Offset(r.x, r.y);
-    gdc.SetDeviceClippingRegion(region);
-    gdc.DrawBitmap(chip, r.x, r.y, true);
-    gdc.DestroyClippingRegion();
+    gc->PushState();
+    gc->Translate(r.x, r.y); // the texture is anchored at the origin, so align it with the chip rect
+    gc->SetPen(*wxTRANSPARENT_PEN);
+    gc->SetBrush(wxBrush(chip));
+    wxGraphicsPath p = gc->CreatePath();
+    add_barrel(p, f.dx, f.dy, f.s);
+    gc->FillPath(p);
+    gc->PopState();
 }
 
+/**
+ * \brief The horizontal span of the visible barrel between the flanges, in widget coordinates.
+ *
+ * \param r  the widget rect the artboard fits into
+ * \return  {left, width}
+ */
+std::pair<int, int> barrel_span(const wxRect &r)
+{
+    const Fit f = fit_box(r.width, r.height);
+    const int l = int(r.x + f.dx + kBarrelLeft * f.s);
+    return {l, int(r.x + f.dx + kBarrelRight * f.s) - l};
+}
+
+/**
+ * \brief The largest font, no bigger than \p font, whose rendering of \p text fits \p max_width.
+ *
+ * \param dc         the DC the text will be drawn with
+ * \param text       the label
+ * \param font       the preferred (largest) font
+ * \param max_width  available width in pixels
+ * \return           \p font, shrunk as needed; never below a legible minimum, so very long text may still overflow
+ */
+wxFont fit_font(wxDC &dc, const wxString &text, wxFont font, int max_width)
+{
+    constexpr double kMinPointSize = 6.0;
+    constexpr double kStep         = 0.5;
+    dc.SetFont(font);
+    while (dc.GetTextExtent(text).x > max_width && font.GetFractionalPointSize() - kStep >= kMinPointSize) {
+        font.SetFractionalPointSize(font.GetFractionalPointSize() - kStep);
+        dc.SetFont(font);
+    }
+    return font;
+}
+
+/**
+ * \brief Draw the outline of the reel: barrel edge and both flanges.
+ */
 void draw_spool_outline(wxGCDC &gdc, const wxRect &r, const wxColour &outline)
 {
     wxGraphicsContext *gc = gdc.GetGraphicsContext();
     if (!gc) return;
     const Fit    f  = fit_box(r.width, r.height);
     const double ox = r.x + f.dx, oy = r.y + f.dy, s = f.s;
-    auto         X = [&](double x) { return ox + x * s; };
+    auto         X = [&](double x) { return ox + stretch_x(x) * s; };
     auto         Y = [&](double y) { return oy + y * s; };
 
     gc->SetBrush(*wxTRANSPARENT_BRUSH);
@@ -199,12 +242,19 @@ void FilamentView::on_paint(wxPaintEvent &)
     }
 
     if (!m_label.empty()) {
-        gdc.SetFont(m_style == Style::Spool ? Label::Body_10 : Label::Body_13);
         const wxColour base   = colors.front();
         const bool     onDark = base.Alpha() > 200 && base.GetLuminance() < 0.6; // translucent/light -> dark text
         gdc.SetTextForeground(onDark ? ThemeColor::White : ThemeColor::TextPrimary);
+        int left = r.x, width = r.width;
+        if (m_style == Style::Spool) {
+            std::tie(left, width) = barrel_span(r);
+            // a long label (e.g. "EXT") gets a smaller font so it stays inside the barrel, clear of the outline
+            gdc.SetFont(fit_font(gdc, m_label, Label::Body_10, width - 2 * FromDIP(1)));
+        } else {
+            gdc.SetFont(Label::Body_13);
+        }
         const wxSize ts = gdc.GetTextExtent(m_label);
-        gdc.DrawText(m_label, r.x + (r.width - ts.x) / 2, r.y + (r.height - ts.y) / 2);
+        gdc.DrawText(m_label, left + (width - ts.x) / 2, r.y + (r.height - ts.y) / 2);
     }
 }
 

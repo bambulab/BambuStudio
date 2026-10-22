@@ -1068,10 +1068,14 @@ wxSizer *SyncAmsDialog::build_footer(bool deferrable)
         b->SetMinSize(FromDIP(wxSize(96, 30)));
         b->SetCornerRadius(FromDIP(12));
     }
-    ok->SetBackgroundColorNormal(StateColor::darkModeColorFor(ThemeColor::BrandGreen));
+    StateColor ok_bg(std::pair<wxColour, int>(ThemeColor::BrandGreenPressed, StateColor::Pressed), std::pair<wxColour, int>(ThemeColor::BrandGreenHovered, StateColor::Hovered),
+                     std::pair<wxColour, int>(ThemeColor::BrandGreen, StateColor::Normal));
+    StateColor cancel_bg(std::pair<wxColour, int>(ThemeColor::Grey400, StateColor::Pressed), std::pair<wxColour, int>(ThemeColor::Grey300, StateColor::Hovered),
+                         std::pair<wxColour, int>(ThemeColor::White, StateColor::Normal));
+    ok->SetBackgroundColor(ok_bg);
     ok->SetBorderColorNormal(StateColor::darkModeColorFor(ThemeColor::BrandGreen));
     ok->SetTextColorNormal(*wxWHITE);
-    cancel->SetBackgroundColorNormal(StateColor::darkModeColorFor(ThemeColor::White));
+    cancel->SetBackgroundColor(cancel_bg);
     cancel->SetBorderColorNormal(StateColor::darkModeColorFor(ThemeColor::Grey400));
     cancel->SetTextColorNormal(StateColor::darkModeColorFor(ThemeColor::TextPrimary));
 

@@ -535,7 +535,8 @@ void NozzleSlotTile::OnPaint(wxPaintEvent &evt)
     gc->SetBrush(wxBrush(badge_colour));
     gc->DrawEllipse(badge_x, badge_y, badge_d, badge_d);
 
-    gc->SetFont(Label::Body_12, text_colour);
+    // dc mirrors the label font so its metrics centre the ink on the badge.
+    dc.SetFont(set_fitting_font(*gc, m_label, FromDIP(TILE_BADGE_TEXT_W), text_colour));
     double text_w = 0.0, text_h = 0.0, descent = 0.0, leading = 0.0;
     gc->GetTextExtent(m_label, &text_w, &text_h, &descent, &leading);
     const wxFontMetrics label_metrics = dc.GetFontMetrics();
