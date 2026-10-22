@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 20:17+0800\n"
+"POT-Creation-Date: 2026-10-22 14:23+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -274,6 +274,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
 msgstr ""
 
 #, c-format, boost-format
@@ -1133,10 +1137,6 @@ msgstr "Figyelmeztetés: Az háromszögek összesített területe túl kicsi; az
 
 msgid "Lay on face"
 msgstr "Felületre fektetés"
-
-#, boost-format
-msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
-msgstr "A filamentek száma meghaladja a festés által támogatott maximális mennyiséget. Csak az első %1% filament lesz használható a festéshez."
 
 msgid "Color Painting"
 msgstr "Színfestés"
@@ -3266,9 +3266,6 @@ msgstr "A kijelölt objektum csak egy tárgyat tartalmaz, ezért nem lehet tová
 msgid "Assembly"
 msgstr "Összeállítás"
 
-msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
-msgstr ""
-
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
 msgstr "A hálón végzett logikai művelet legfeljebb %1% részt támogat, de a kiválasztott objektum %2% részt tartalmaz. Kérjük, csökkentsd a részek számát, majd próbáld újra."
@@ -4503,8 +4500,8 @@ msgid "The color count cannot exceed the original color count (%d)."
 msgstr "A színek száma nem haladhatja meg az eredeti színek számát (%d)."
 
 #, c-format, boost-format
-msgid "The color count cannot exceed the project's filament limit (%d)."
-msgstr "A színek száma nem haladhatja meg a projekt filamentkorlátját (%d)."
+msgid "Up to %d colors supported."
+msgstr ""
 
 msgid "Click to select a matching filament"
 msgstr "Kattintson a megfelelő filament kiválasztásához"
@@ -4514,6 +4511,17 @@ msgstr "Hibaüzenet"
 
 msgid "How to use standard mixing kits"
 msgstr "A standard keverőkészletek használata"
+
+#, boost-format
+msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit, so at least %2% project filament(s) must be deleted first. The following unused project filaments will be deleted automatically:"
+msgstr ""
+
+#, boost-format
+msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit. Please delete at least %2% filament(s) on the Prepare page, then add the kit again."
+msgstr ""
+
+msgid "Existing project filaments"
+msgstr ""
 
 msgid "What is the CMYKW mixing kit?"
 msgstr "Mi az a CMYKW keverőkészlet?"
@@ -5230,13 +5238,6 @@ msgid ""
 "Reset to 0.2"
 msgstr ""
 "Túl alacsony rétegmagasság\n"
-"Visszaállítva 0,2-re"
-
-msgid ""
-"Too large layer height.\n"
-"Reset to 0.2"
-msgstr ""
-"Túl nagy rétegmagasság\n"
 "Visszaállítva 0,2-re"
 
 msgid ""
@@ -6215,6 +6216,9 @@ msgstr "Egérgörgő:"
 msgid "Increase/decrease edit area"
 msgstr "Szerkesztési terület növelése/csökkentése"
 
+msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
+msgstr ""
+
 msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
 msgstr "A változó rétegmagasság-profil visszaállításra került, mert egyes rétegmagasságok meghaladják az aktuális fúvóka megengedett tartományát."
 
@@ -6583,6 +6587,15 @@ msgstr "Kalibrálás"
 msgid "No step selected"
 msgstr "Nincs kiválasztva lépés"
 
+msgid "Tips"
+msgstr "Tippek"
+
+msgid "Start Anyway"
+msgstr ""
+
+msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
+msgstr ""
+
 msgid "Auto-record Monitoring"
 msgstr "Automatikus felügyelet"
 
@@ -6727,9 +6740,6 @@ msgstr ""
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "A PPS-CF/PPA-CF rideg, és eltörhet a szerszámfej feletti hajlított PTFE-csőben. Kérjük, olvasd el a kapcsolódó cikket a Wikiben használat előtt. "
-
-msgid "Tips"
-msgstr "Tippek"
 
 msgid "Slice all"
 msgstr "Összes szeletelése"
@@ -9330,6 +9340,9 @@ msgstr "Különböző fúvókaátmérőt használó filamentek nem keverhetők"
 msgid "Up to %d mixed filaments can be created"
 msgstr ""
 
+msgid "At least two filaments are required to create a mixed filament"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
 msgstr ""
@@ -9636,6 +9649,10 @@ msgstr "A modellek szeletelése a következő figyelmeztetéseket generálta:"
 
 msgid "warnings"
 msgstr "figyelmeztetések"
+
+#, boost-format
+msgid "\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."
+msgstr ""
 
 msgid "Invalid data"
 msgstr "Érvénytelen adat"
@@ -10749,16 +10766,8 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning\n"
 "- Delete a filament used by a model"
 msgstr ""
-"- Nyomtató-előbeállítások szinkronizálása fájl betöltése után\n"
-"- „3MF betöltése” párbeszédpanel beállításai\n"
-"- Utófeldolgozási szkriptek végrehajtása\n"
-"- Támaszszerkezet-ajánlási üzenet\n"
-"- Nem mentett projektek.\n"
-"- Figyelmeztetés vegyes színű alréteg és változó rétegmagasság esetén\n"
-"- Modell által használt filament törlése"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "Biztosan visszaállítja az összes beállítást? A változtatások az újraindítás után lépnek életbe."
@@ -11448,6 +11457,9 @@ msgstr "Nem küldhetsz nyomtatási feladatot a nyomtatóra, amíg az firmware fr
 msgid "The printer is executing instructions. Please restart printing after it ends"
 msgstr "A nyomtató elfoglalt. Kérjük, indítsd újra a nyomtatást a nyomtatás befejezése után"
 
+msgid "Cold pull in progress. Unable to start a task."
+msgstr ""
+
 msgid "AMS is setting up. Please try again later."
 msgstr "Az AMS beállítása folyamatban van. Kérjük, próbáld meg később újra."
 
@@ -11702,9 +11714,6 @@ msgstr "Kattints a további információért"
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Kattints az összes beállítás utolsó mentett változatának visszaállításához."
-
-msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
-msgstr ""
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "A fúvókacsere miatt szükség van a törlőtoronyra. Nélküle előfordulhatnak hibák a nyomtatott tárgyon. Biztos, hogy kikapcsolod a törlőtornyot?"
@@ -19609,15 +19618,24 @@ msgstr "Tudj meg többet az átöblítési módról"
 msgid "TPU Usage Notes"
 msgstr ""
 
+msgid "TPU Filament Installation && Feeding Guide"
+msgstr ""
+
 msgid "Important Notice:"
 msgstr ""
 
 msgid ""
-"• Using TPU filament for the first time? Read the official guide first to avoid clogs or feeding failures.\n"
+"• First time printing with TPU ? We strongly recommend reading the official guide first to avoid clogs or feeding failures.\n"
 "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
 msgstr ""
 
+msgid "Don't show this again"
+msgstr ""
+
 msgid "View User Guide"
+msgstr ""
+
+msgid "I know risks, continue"
 msgstr ""
 
 msgid "AMS Dryness Control"
@@ -19885,14 +19903,11 @@ msgstr "Kattintson az arány szerkesztéséhez"
 msgid "Edit Mixed Filament"
 msgstr "Vegyes filament szerkesztése"
 
+msgid "Mixed result preview"
+msgstr ""
+
 msgid "Effect Preview"
 msgstr "Effekt előnézet"
-
-msgid "Target"
-msgstr ""
-
-msgid "Matched"
-msgstr ""
 
 msgid "Select Mixed Materials"
 msgstr "Vegyes anyagok kiválasztása"
@@ -19952,23 +19967,31 @@ msgstr ""
 msgid "Color Matching"
 msgstr ""
 
+msgid "Target Filament"
+msgstr ""
+
+msgid "(The system will mix 2-3 filaments to approximate this color)"
+msgstr ""
+
+msgid "Target color filament"
+msgstr ""
+
 msgid "Select Target Color"
 msgstr ""
 
-msgid "Match Result"
+msgid "Mixed Result"
 msgstr ""
 
 msgid "Discard changes and match again"
+msgstr ""
+
+msgid "No results"
 msgstr ""
 
 msgid "Replace the target color on models with the mixed result"
 msgstr ""
 
 msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Filament %d has the same color as the target. No mixing is needed."
 msgstr ""
 
 msgid "There is no other filament of the same type as the target color in the project."
@@ -19985,10 +20008,6 @@ msgstr ""
 
 msgid "The current printer has no compatible PLA Palette filament."
 msgstr "A jelenlegi nyomtató nem rendelkezik kompatibilis PLA Palette filamenttel."
-
-#, boost-format
-msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
-msgstr ""
 
 msgid "Material Ratio"
 msgstr "Anyagarány"
@@ -21071,6 +21090,38 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#, boost-format
+#~ msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
+#~ msgstr "A filamentek száma meghaladja a festés által támogatott maximális mennyiséget. Csak az első %1% filament lesz használható a festéshez."
+
+#, c-format, boost-format
+#~ msgid "The color count cannot exceed the project's filament limit (%d)."
+#~ msgstr "A színek száma nem haladhatja meg a projekt filamentkorlátját (%d)."
+
+#~ msgid ""
+#~ "Too large layer height.\n"
+#~ "Reset to 0.2"
+#~ msgstr ""
+#~ "Túl nagy rétegmagasság\n"
+#~ "Visszaállítva 0,2-re"
+
+#~ msgid ""
+#~ "- Sync printer presets after loading a file\n"
+#~ "- \"Load 3MF\" dialog settings\n"
+#~ "- Executing post-processing scripts\n"
+#~ "- Support structure recommendation prompt\n"
+#~ "- Unsaved projects.\n"
+#~ "- Mixed color sublayer with variable layer height warning\n"
+#~ "- Delete a filament used by a model"
+#~ msgstr ""
+#~ "- Nyomtató-előbeállítások szinkronizálása fájl betöltése után\n"
+#~ "- „3MF betöltése” párbeszédpanel beállításai\n"
+#~ "- Utófeldolgozási szkriptek végrehajtása\n"
+#~ "- Támaszszerkezet-ajánlási üzenet\n"
+#~ "- Nem mentett projektek.\n"
+#~ "- Figyelmeztetés vegyes színű alréteg és változó rétegmagasság esetén\n"
+#~ "- Modell által használt filament törlése"
 
 #, c-format, boost-format
 #~ msgid "%s filament is brittle. Use AMS feeding with caution."

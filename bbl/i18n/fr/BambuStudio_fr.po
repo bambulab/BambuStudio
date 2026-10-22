@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 20:17+0800\n"
+"POT-Creation-Date: 2026-10-22 14:23+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -274,6 +274,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
 msgstr ""
 
 #, c-format, boost-format
@@ -1133,10 +1137,6 @@ msgstr "Avertissement : Toutes les zones triangulaires sont trop petites ; la fo
 
 msgid "Lay on face"
 msgstr "Positionner sur une face"
-
-#, boost-format
-msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
-msgstr "Le nombre de filaments dépasse le nombre maximum pris en charge par l'outil de peinture. seuls les %1% premiers filaments seront disponibles dans l'outil de peinture."
 
 msgid "Color Painting"
 msgstr "Coloration"
@@ -3266,9 +3266,6 @@ msgstr "L'objet cible ne contient qu'une seule partie et ne peut pas être scind
 msgid "Assembly"
 msgstr "Assemblé"
 
-msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
-msgstr ""
-
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
 msgstr "L'opération booléenne sur les maillages prend en charge au maximum %1% parties, mais l'objet sélectionné contient %2% parties. Veuillez réduire le nombre de pièces et réessayer."
@@ -4499,8 +4496,8 @@ msgid "The color count cannot exceed the original color count (%d)."
 msgstr "Le nombre de couleurs ne peut pas dépasser le nombre de couleurs d'origine (%d)."
 
 #, c-format, boost-format
-msgid "The color count cannot exceed the project's filament limit (%d)."
-msgstr "Le nombre de couleurs ne peut pas dépasser la limite de filament du projet (%d)."
+msgid "Up to %d colors supported."
+msgstr ""
 
 msgid "Click to select a matching filament"
 msgstr "Cliquer pour sélectionner un filament correspondant"
@@ -4510,6 +4507,17 @@ msgstr "Message d'erreur"
 
 msgid "How to use standard mixing kits"
 msgstr "Comment utiliser les kits de mélange standard"
+
+#, boost-format
+msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit, so at least %2% project filament(s) must be deleted first. The following unused project filaments will be deleted automatically:"
+msgstr ""
+
+#, boost-format
+msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit. Please delete at least %2% filament(s) on the Prepare page, then add the kit again."
+msgstr ""
+
+msgid "Existing project filaments"
+msgstr ""
 
 msgid "What is the CMYKW mixing kit?"
 msgstr "Qu'est-ce qu'un kit de mélange CMYKW ?"
@@ -5221,13 +5229,6 @@ msgid ""
 "Reset to 0.2"
 msgstr ""
 "Hauteur de couche trop petite.\n"
-"Réinitialisation à 0,2"
-
-msgid ""
-"Too large layer height.\n"
-"Reset to 0.2"
-msgstr ""
-"Hauteur de couche trop importante.\n"
 "Réinitialisation à 0,2"
 
 msgid ""
@@ -6204,6 +6205,9 @@ msgstr "Molette de la souris :"
 msgid "Increase/decrease edit area"
 msgstr "Augmenter/diminuer la zone d'édition"
 
+msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
+msgstr ""
+
 msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
 msgstr "Le profil de hauteur du couche variable a été réinitialisé car certaines hauteurs du couche dépassent la plage autorisée de la buse actuelle."
 
@@ -6572,6 +6576,15 @@ msgstr "Étalonnage"
 msgid "No step selected"
 msgstr "Aucune étape sélectionnée"
 
+msgid "Tips"
+msgstr "Astuces"
+
+msgid "Start Anyway"
+msgstr ""
+
+msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
+msgstr ""
+
 msgid "Auto-record Monitoring"
 msgstr "Surveillance de l'enregistrement automatique"
 
@@ -6716,9 +6729,6 @@ msgstr ""
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "Le PPS-CF/PPA-CF est cassant et peut se rompre dans un tube PTFE courbé au-dessus de la tête d’outil. Veuillez consulter le Wiki avant utilisation. "
-
-msgid "Tips"
-msgstr "Astuces"
 
 msgid "Slice all"
 msgstr "Tout trancher"
@@ -9317,6 +9327,9 @@ msgstr "Impossible de mélanger des filaments en utilisant des buses de diamètr
 msgid "Up to %d mixed filaments can be created"
 msgstr ""
 
+msgid "At least two filaments are required to create a mixed filament"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
 msgstr ""
@@ -9623,6 +9636,10 @@ msgstr "Il y a des avertissements après le découpage des modèles :"
 
 msgid "warnings"
 msgstr "avertissements"
+
+#, boost-format
+msgid "\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."
+msgstr ""
 
 msgid "Invalid data"
 msgstr "Donnée non valide"
@@ -10738,16 +10755,8 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning\n"
 "- Delete a filament used by a model"
 msgstr ""
-"- Synchroniser les préréglages de l'imprimante après le chargement d'un fichier\n"
-"- Paramètres de la boîte de dialogue « Charger un 3MF »\n"
-"- Exécution des scripts de post-traitement\n"
-"- Invite de recommandation de structure de support\n"
-"- Projets non enregistrés.\n"
-"- Avertissement concernant une sous-couche de couleur mixte avec hauteur de couche variable\n"
-"- Supprimer un filament utilisé par un modèle"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "Êtes-vous sûr de vouloir réinitialiser toutes les préférences ? Les modifications prendront effet après le redémarrage."
@@ -11437,6 +11446,9 @@ msgstr "Impossible d'envoyer une tâche d'impression pendant la mise à jour du 
 msgid "The printer is executing instructions. Please restart printing after it ends"
 msgstr "L'imprimante exécute des instructions. Veuillez recommencer l'impression après la fin de l'exécution."
 
+msgid "Cold pull in progress. Unable to start a task."
+msgstr ""
+
 msgid "AMS is setting up. Please try again later."
 msgstr "AMS est en cours d'installation. Veuillez réessayer plus tard."
 
@@ -11691,9 +11703,6 @@ msgstr "Cliquez pour en savoir plus"
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Cliquez pour rétablir tous les paramètres au dernier préréglage enregistré."
-
-msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
-msgstr ""
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Une tour d'amorçage est requise pour le changement de buse. Il peut y avoir des défauts sur le modèle sans cette tour. Êtes-vous sûr de vouloir désactiver la tour d'amorçage ?"
@@ -19604,15 +19613,24 @@ msgstr "En savoir plus sur le mode amorçage"
 msgid "TPU Usage Notes"
 msgstr ""
 
+msgid "TPU Filament Installation && Feeding Guide"
+msgstr ""
+
 msgid "Important Notice:"
 msgstr ""
 
 msgid ""
-"• Using TPU filament for the first time? Read the official guide first to avoid clogs or feeding failures.\n"
+"• First time printing with TPU ? We strongly recommend reading the official guide first to avoid clogs or feeding failures.\n"
 "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
 msgstr ""
 
+msgid "Don't show this again"
+msgstr ""
+
 msgid "View User Guide"
+msgstr ""
+
+msgid "I know risks, continue"
 msgstr ""
 
 msgid "AMS Dryness Control"
@@ -19880,14 +19898,11 @@ msgstr "Cliquez pour éditer le ratio"
 msgid "Edit Mixed Filament"
 msgstr "Modifier le Mélange de Filaments"
 
+msgid "Mixed result preview"
+msgstr ""
+
 msgid "Effect Preview"
 msgstr "Aperçu du Rendu"
-
-msgid "Target"
-msgstr ""
-
-msgid "Matched"
-msgstr ""
 
 msgid "Select Mixed Materials"
 msgstr "Sélectionner des Matériaux Mélangés"
@@ -19947,23 +19962,31 @@ msgstr ""
 msgid "Color Matching"
 msgstr ""
 
+msgid "Target Filament"
+msgstr ""
+
+msgid "(The system will mix 2-3 filaments to approximate this color)"
+msgstr ""
+
+msgid "Target color filament"
+msgstr ""
+
 msgid "Select Target Color"
 msgstr ""
 
-msgid "Match Result"
+msgid "Mixed Result"
 msgstr ""
 
 msgid "Discard changes and match again"
+msgstr ""
+
+msgid "No results"
 msgstr ""
 
 msgid "Replace the target color on models with the mixed result"
 msgstr ""
 
 msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Filament %d has the same color as the target. No mixing is needed."
 msgstr ""
 
 msgid "There is no other filament of the same type as the target color in the project."
@@ -19980,10 +20003,6 @@ msgstr ""
 
 msgid "The current printer has no compatible PLA Palette filament."
 msgstr "L'imprimante actuelle ne dispose d'aucun filament PLA Palette compatible."
-
-#, boost-format
-msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
-msgstr ""
 
 msgid "Material Ratio"
 msgstr "Rapport de matière"
@@ -21066,6 +21085,38 @@ msgid ""
 msgstr ""
 "Fiabilité Garantie du Premier Coup\n"
 "Moins de surveillance, une production plus prévisible. Exemple : une petite exploitation agricole produisant des pièces en PETG évite les mauvaises surprises \"panne au bout de 6 h\" et respecte les délais de production."
+
+#, boost-format
+#~ msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
+#~ msgstr "Le nombre de filaments dépasse le nombre maximum pris en charge par l'outil de peinture. seuls les %1% premiers filaments seront disponibles dans l'outil de peinture."
+
+#, c-format, boost-format
+#~ msgid "The color count cannot exceed the project's filament limit (%d)."
+#~ msgstr "Le nombre de couleurs ne peut pas dépasser la limite de filament du projet (%d)."
+
+#~ msgid ""
+#~ "Too large layer height.\n"
+#~ "Reset to 0.2"
+#~ msgstr ""
+#~ "Hauteur de couche trop importante.\n"
+#~ "Réinitialisation à 0,2"
+
+#~ msgid ""
+#~ "- Sync printer presets after loading a file\n"
+#~ "- \"Load 3MF\" dialog settings\n"
+#~ "- Executing post-processing scripts\n"
+#~ "- Support structure recommendation prompt\n"
+#~ "- Unsaved projects.\n"
+#~ "- Mixed color sublayer with variable layer height warning\n"
+#~ "- Delete a filament used by a model"
+#~ msgstr ""
+#~ "- Synchroniser les préréglages de l'imprimante après le chargement d'un fichier\n"
+#~ "- Paramètres de la boîte de dialogue « Charger un 3MF »\n"
+#~ "- Exécution des scripts de post-traitement\n"
+#~ "- Invite de recommandation de structure de support\n"
+#~ "- Projets non enregistrés.\n"
+#~ "- Avertissement concernant une sous-couche de couleur mixte avec hauteur de couche variable\n"
+#~ "- Supprimer un filament utilisé par un modèle"
 
 #, c-format, boost-format
 #~ msgid "%s filament is brittle. Use AMS feeding with caution."

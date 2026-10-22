@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 20:17+0800\n"
+"POT-Creation-Date: 2026-10-22 14:23+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -274,6 +274,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
 msgstr ""
 
 #, c-format, boost-format
@@ -1133,10 +1137,6 @@ msgstr "경고: 모든 삼각형 영역이 너무 작아서 현재 기능이 작
 
 msgid "Lay on face"
 msgstr "선택면을 바닥으로"
-
-#, boost-format
-msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
-msgstr "필라멘트 수가 페인팅 도구가 지원하는 최대 개수를 초과합니다. 페인팅 도구에서 오직 처음 %1% 필라멘트만 사용가능합니다."
 
 msgid "Color Painting"
 msgstr "컬러 페인팅"
@@ -3262,9 +3262,6 @@ msgstr "대상 객체는 하나의 부분만 포함하며 분할할 수 없습�
 msgid "Assembly"
 msgstr "결합"
 
-msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
-msgstr ""
-
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
 msgstr "메쉬 부울 연산은 최대 %1%개의 파트를 지원하지만, 선택한 객체에는 %2%개의 파트가 포함되어 있습니다. 파트 수를 줄이고 다시 시도해 주세요."
@@ -4497,8 +4494,8 @@ msgid "The color count cannot exceed the original color count (%d)."
 msgstr "색상 개수는 원래 색상 개수(%d)를 초과할 수 없습니다."
 
 #, c-format, boost-format
-msgid "The color count cannot exceed the project's filament limit (%d)."
-msgstr "색상 개수는 프로젝트의 필라멘트 제한(%d)을 초과할 수 없습니다."
+msgid "Up to %d colors supported."
+msgstr ""
 
 msgid "Click to select a matching filament"
 msgstr "클릭하여 매칭할 필라멘트를 선택하세요"
@@ -4508,6 +4505,17 @@ msgstr "오류 메시지"
 
 msgid "How to use standard mixing kits"
 msgstr "표준 혼합 키트 사용 방법"
+
+#, boost-format
+msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit, so at least %2% project filament(s) must be deleted first. The following unused project filaments will be deleted automatically:"
+msgstr ""
+
+#, boost-format
+msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit. Please delete at least %2% filament(s) on the Prepare page, then add the kit again."
+msgstr ""
+
+msgid "Existing project filaments"
+msgstr ""
 
 msgid "What is the CMYKW mixing kit?"
 msgstr "CMYKW 믹싱 키트란 무엇인가요?"
@@ -5224,13 +5232,6 @@ msgid ""
 "Reset to 0.2"
 msgstr ""
 "레이어 높이가 너무 낮음\n"
-"0.2로 재설정됨"
-
-msgid ""
-"Too large layer height.\n"
-"Reset to 0.2"
-msgstr ""
-"레이어가 너무 높음\n"
 "0.2로 재설정됨"
 
 msgid ""
@@ -6209,6 +6210,9 @@ msgstr "마우스 휠:"
 msgid "Increase/decrease edit area"
 msgstr "편집 영역 늘리기/줄이기"
 
+msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
+msgstr ""
+
 msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
 msgstr "일부 레이어 높이가 현재 노즐의 허용 범위를 초과했기 때문에 가변 레이어 높이 프로필이 재설정되었습니다."
 
@@ -6577,6 +6581,15 @@ msgstr "캘리브레이션 중"
 msgid "No step selected"
 msgstr "선택한 단계 없음"
 
+msgid "Tips"
+msgstr "팁"
+
+msgid "Start Anyway"
+msgstr ""
+
+msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
+msgstr ""
+
 msgid "Auto-record Monitoring"
 msgstr "자동 녹화 모니터링"
 
@@ -6721,9 +6734,6 @@ msgstr ""
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "PPS-CF/PPA-CF는 취성이 강하여 툴헤드 위쪽의 구부러진 PTFE 튜브에서 파손될 수 있습니다. 사용 전에 Wiki를 참조하세요. "
-
-msgid "Tips"
-msgstr "팁"
 
 msgid "Slice all"
 msgstr "모두 슬라이스"
@@ -9317,6 +9327,9 @@ msgstr "노즐 직경이 다른 필라멘트는 혼합하여 사용할 수 없�
 msgid "Up to %d mixed filaments can be created"
 msgstr ""
 
+msgid "At least two filaments are required to create a mixed filament"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
 msgstr ""
@@ -9623,6 +9636,10 @@ msgstr "모델을 슬라이싱한 후 다음과 같은 경고가 있습니다:"
 
 msgid "warnings"
 msgstr "경고"
+
+#, boost-format
+msgid "\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."
+msgstr ""
 
 msgid "Invalid data"
 msgstr "잘못된 데이터"
@@ -10740,16 +10757,8 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning\n"
 "- Delete a filament used by a model"
 msgstr ""
-"- 파일 로드 후 프린터 사전 설정 동기화\n"
-"- \"3MF 로드\" 대화 상자 설정\n"
-"- 후처리 스크립트 실행\n"
-"- 서포트 구조 권장 메시지\n"
-"- 저장되지 않은 프로젝트.\n"
-"- 레이어 높이가 가변적인 혼합 색상 하위 레이어 경고\n"
-"- 모델이 사용하는 필라멘트 삭제"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "모든 설정을 초기화할까요? 변경 사항은 재시작 후 적용됩니다."
@@ -11439,6 +11448,9 @@ msgstr "프린터가 펌웨어 업데이트하는 동안 출력 작업을 보낼
 msgid "The printer is executing instructions. Please restart printing after it ends"
 msgstr "프린터가 명령 실행중입니다. 종료 후 다시 출력을 시작하세요."
 
+msgid "Cold pull in progress. Unable to start a task."
+msgstr ""
+
 msgid "AMS is setting up. Please try again later."
 msgstr "AMS를 설정하는 중입니다. 나중에 다시 시도하세요."
 
@@ -11693,9 +11705,6 @@ msgstr "더 알아보려면 클릭하세요"
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "모든 설정을 마지막으로 저장한 프리셋으로 재설정하려면 클릭합니다."
-
-msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
-msgstr ""
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "노즐 교체를 위해 프라임 타워가 필요합니다. 프라임 타워가 없으면 모델에 결함이 있을 수 있습니다. 프라임 타워를 비활성화하시겠습니까?"
@@ -19605,15 +19614,24 @@ msgstr "프라임 모드에 대해 자세히 알아보기"
 msgid "TPU Usage Notes"
 msgstr ""
 
+msgid "TPU Filament Installation && Feeding Guide"
+msgstr ""
+
 msgid "Important Notice:"
 msgstr ""
 
 msgid ""
-"• Using TPU filament for the first time? Read the official guide first to avoid clogs or feeding failures.\n"
+"• First time printing with TPU ? We strongly recommend reading the official guide first to avoid clogs or feeding failures.\n"
 "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
 msgstr ""
 
+msgid "Don't show this again"
+msgstr ""
+
 msgid "View User Guide"
+msgstr ""
+
+msgid "I know risks, continue"
 msgstr ""
 
 msgid "AMS Dryness Control"
@@ -19881,14 +19899,11 @@ msgstr "클릭하여 비율을 수정하세요."
 msgid "Edit Mixed Filament"
 msgstr "혼합 필라멘트 편집"
 
+msgid "Mixed result preview"
+msgstr ""
+
 msgid "Effect Preview"
 msgstr "효과 미리보기"
-
-msgid "Target"
-msgstr ""
-
-msgid "Matched"
-msgstr ""
 
 msgid "Select Mixed Materials"
 msgstr "혼합 재료 선택"
@@ -19948,23 +19963,31 @@ msgstr ""
 msgid "Color Matching"
 msgstr ""
 
+msgid "Target Filament"
+msgstr ""
+
+msgid "(The system will mix 2-3 filaments to approximate this color)"
+msgstr ""
+
+msgid "Target color filament"
+msgstr ""
+
 msgid "Select Target Color"
 msgstr ""
 
-msgid "Match Result"
+msgid "Mixed Result"
 msgstr ""
 
 msgid "Discard changes and match again"
+msgstr ""
+
+msgid "No results"
 msgstr ""
 
 msgid "Replace the target color on models with the mixed result"
 msgstr ""
 
 msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Filament %d has the same color as the target. No mixing is needed."
 msgstr ""
 
 msgid "There is no other filament of the same type as the target color in the project."
@@ -19981,10 +20004,6 @@ msgstr ""
 
 msgid "The current printer has no compatible PLA Palette filament."
 msgstr "현재 프린터에는 호환되는 PLA Palette 필라멘트가 없습니다."
-
-#, boost-format
-msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
-msgstr ""
 
 msgid "Material Ratio"
 msgstr "재료 비율"
@@ -21066,6 +21085,38 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#, boost-format
+#~ msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
+#~ msgstr "필라멘트 수가 페인팅 도구가 지원하는 최대 개수를 초과합니다. 페인팅 도구에서 오직 처음 %1% 필라멘트만 사용가능합니다."
+
+#, c-format, boost-format
+#~ msgid "The color count cannot exceed the project's filament limit (%d)."
+#~ msgstr "색상 개수는 프로젝트의 필라멘트 제한(%d)을 초과할 수 없습니다."
+
+#~ msgid ""
+#~ "Too large layer height.\n"
+#~ "Reset to 0.2"
+#~ msgstr ""
+#~ "레이어가 너무 높음\n"
+#~ "0.2로 재설정됨"
+
+#~ msgid ""
+#~ "- Sync printer presets after loading a file\n"
+#~ "- \"Load 3MF\" dialog settings\n"
+#~ "- Executing post-processing scripts\n"
+#~ "- Support structure recommendation prompt\n"
+#~ "- Unsaved projects.\n"
+#~ "- Mixed color sublayer with variable layer height warning\n"
+#~ "- Delete a filament used by a model"
+#~ msgstr ""
+#~ "- 파일 로드 후 프린터 사전 설정 동기화\n"
+#~ "- \"3MF 로드\" 대화 상자 설정\n"
+#~ "- 후처리 스크립트 실행\n"
+#~ "- 서포트 구조 권장 메시지\n"
+#~ "- 저장되지 않은 프로젝트.\n"
+#~ "- 레이어 높이가 가변적인 혼합 색상 하위 레이어 경고\n"
+#~ "- 모델이 사용하는 필라멘트 삭제"
 
 #, c-format, boost-format
 #~ msgid "%s filament is brittle. Use AMS feeding with caution."

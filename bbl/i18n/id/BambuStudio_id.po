@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 20:17+0800\n"
+"POT-Creation-Date: 2026-10-22 14:23+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -279,6 +279,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
 msgstr ""
 
 #, c-format, boost-format
@@ -1138,10 +1142,6 @@ msgstr "Peringatan: Semua area segitiga terlalu kecil. Fungsi saat ini tidak dap
 
 msgid "Lay on face"
 msgstr "Letakkan pada permukaan"
-
-#, boost-format
-msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
-msgstr "Jumlah filamen melebihi jumlah maksimum yang didukung alat pengecatan. Hanya %1% filamen pertama yang akan tersedia di alat pengecatan."
 
 msgid "Color Painting"
 msgstr "Pengecatan Warna"
@@ -3267,9 +3267,6 @@ msgstr "Objek target hanya berisi satu bagian dan tidak dapat dipisah."
 msgid "Assembly"
 msgstr "Rakitan"
 
-msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
-msgstr ""
-
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
 msgstr "Operasi boolean mesh mendukung maksimal %1% bagian, tetapi objek yang dipilih terdiri dari %2% bagian. Kurangi jumlah bagian, lalu coba lagi."
@@ -4502,8 +4499,8 @@ msgid "The color count cannot exceed the original color count (%d)."
 msgstr "Jumlah warna tidak boleh melebihi jumlah warna asli (%d)."
 
 #, c-format, boost-format
-msgid "The color count cannot exceed the project's filament limit (%d)."
-msgstr "Jumlah warna tidak boleh melebihi batas filamen proyek (%d)."
+msgid "Up to %d colors supported."
+msgstr ""
 
 msgid "Click to select a matching filament"
 msgstr "Klik untuk memilih filamen yang cocok"
@@ -4513,6 +4510,17 @@ msgstr "Pesan Kesalahan"
 
 msgid "How to use standard mixing kits"
 msgstr "Cara menggunakan kit pencampuran standar"
+
+#, boost-format
+msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit, so at least %2% project filament(s) must be deleted first. The following unused project filaments will be deleted automatically:"
+msgstr ""
+
+#, boost-format
+msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit. Please delete at least %2% filament(s) on the Prepare page, then add the kit again."
+msgstr ""
+
+msgid "Existing project filaments"
+msgstr ""
 
 msgid "What is the CMYKW mixing kit?"
 msgstr "Apa itu kit pencampuran CMYKW?"
@@ -5229,13 +5237,6 @@ msgid ""
 "Reset to 0.2"
 msgstr ""
 "Tinggi lapisan terlalu kecil.\n"
-"Atur ulang ke 0,2"
-
-msgid ""
-"Too large layer height.\n"
-"Reset to 0.2"
-msgstr ""
-"Tinggi lapisan terlalu besar.\n"
 "Atur ulang ke 0,2"
 
 msgid ""
@@ -6214,6 +6215,9 @@ msgstr "Roda mouse:"
 msgid "Increase/decrease edit area"
 msgstr "Perbesar/perkecil area edit"
 
+msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
+msgstr ""
+
 msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
 msgstr "Profil tinggi lapisan variabel telah diatur ulang karena beberapa tinggi lapisan melebihi rentang yang diizinkan oleh nosel saat ini."
 
@@ -6582,6 +6586,15 @@ msgstr "Sedang Kalibrasi"
 msgid "No step selected"
 msgstr "Tidak ada langkah yang dipilih."
 
+msgid "Tips"
+msgstr "Kiat"
+
+msgid "Start Anyway"
+msgstr ""
+
+msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
+msgstr ""
+
 msgid "Auto-record Monitoring"
 msgstr "Pemantauan Rekaman Otomatis"
 
@@ -6726,9 +6739,6 @@ msgstr ""
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "PPS-CF/PPA-CF rapuh dan bisa patah di tabung PTFE bengkok di atas toolhead. Mohon rujuk ke Wiki sebelum penggunaan. "
-
-msgid "Tips"
-msgstr "Kiat"
 
 msgid "Slice all"
 msgstr "Potong semua"
@@ -9317,6 +9327,9 @@ msgstr "Filamen dengan diameter nosel yang berbeda tidak dapat dicampur"
 msgid "Up to %d mixed filaments can be created"
 msgstr ""
 
+msgid "At least two filaments are required to create a mixed filament"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
 msgstr ""
@@ -9625,6 +9638,10 @@ msgstr "Ada peringatan setelah pemotongan model:"
 
 msgid "warnings"
 msgstr "Peringatan"
+
+#, boost-format
+msgid "\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."
+msgstr ""
 
 msgid "Invalid data"
 msgstr "Data tidak valid"
@@ -10742,16 +10759,8 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning\n"
 "- Delete a filament used by a model"
 msgstr ""
-"- Sinkronkan prasetel printer setelah memuat file\n"
-"- Pengaturan dialog \"Muat 3MF\"\n"
-"- Menjalankan skrip pascapemrosesan\n"
-"- Perintah rekomendasi struktur pendukung\n"
-"- Proyek belum disimpan.\n"
-"- Sublapisan warna campuran dengan peringatan tinggi lapisan variabel\n"
-"- Menghapus filamen yang digunakan oleh model"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "Apakah Anda yakin ingin atur ulang semua pengaturan preferensi? Perubahan akan berlaku setelah dimulai ulang."
@@ -11439,6 +11448,9 @@ msgstr "Tidak dapat mengirim pekerjaan cetak saat printer sedang memperbarui fir
 msgid "The printer is executing instructions. Please restart printing after it ends"
 msgstr "Printer sedang menjalankan instruksi. Harap mulai ulang pencetakan setelah selesai"
 
+msgid "Cold pull in progress. Unable to start a task."
+msgstr ""
+
 msgid "AMS is setting up. Please try again later."
 msgstr "AMS sedang disiapkan. Harap coba lagi nanti."
 
@@ -11693,9 +11705,6 @@ msgstr "Klik untuk mempelajari lebih lanjut"
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Klik untuk mengatur ulang semua pengaturan ke preset terakhir yang disimpan."
-
-msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
-msgstr ""
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Menukar nosel memerlukan menara prime. Mungkin ada cacat pada model tanpa menara prime. Apakah Anda yakin ingin menonaktifkan menara prime?"
@@ -19599,15 +19608,24 @@ msgstr "Pelajari lebih lanjut tentang mode pembersihan"
 msgid "TPU Usage Notes"
 msgstr ""
 
+msgid "TPU Filament Installation && Feeding Guide"
+msgstr ""
+
 msgid "Important Notice:"
 msgstr ""
 
 msgid ""
-"• Using TPU filament for the first time? Read the official guide first to avoid clogs or feeding failures.\n"
+"• First time printing with TPU ? We strongly recommend reading the official guide first to avoid clogs or feeding failures.\n"
 "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
 msgstr ""
 
+msgid "Don't show this again"
+msgstr ""
+
 msgid "View User Guide"
+msgstr ""
+
+msgid "I know risks, continue"
 msgstr ""
 
 msgid "AMS Dryness Control"
@@ -19875,14 +19893,11 @@ msgstr "Klik untuk mengedit rasio"
 msgid "Edit Mixed Filament"
 msgstr "Edit Filamen Campuran"
 
+msgid "Mixed result preview"
+msgstr ""
+
 msgid "Effect Preview"
 msgstr "Pratinjau Efek"
-
-msgid "Target"
-msgstr ""
-
-msgid "Matched"
-msgstr ""
 
 msgid "Select Mixed Materials"
 msgstr "Pilih Material Campuran"
@@ -19942,23 +19957,31 @@ msgstr ""
 msgid "Color Matching"
 msgstr ""
 
+msgid "Target Filament"
+msgstr ""
+
+msgid "(The system will mix 2-3 filaments to approximate this color)"
+msgstr ""
+
+msgid "Target color filament"
+msgstr ""
+
 msgid "Select Target Color"
 msgstr ""
 
-msgid "Match Result"
+msgid "Mixed Result"
 msgstr ""
 
 msgid "Discard changes and match again"
+msgstr ""
+
+msgid "No results"
 msgstr ""
 
 msgid "Replace the target color on models with the mixed result"
 msgstr ""
 
 msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Filament %d has the same color as the target. No mixing is needed."
 msgstr ""
 
 msgid "There is no other filament of the same type as the target color in the project."
@@ -19975,10 +19998,6 @@ msgstr ""
 
 msgid "The current printer has no compatible PLA Palette filament."
 msgstr "Printer saat ini tidak memiliki filamen PLA Palette yang kompatibel."
-
-#, boost-format
-msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
-msgstr ""
 
 msgid "Material Ratio"
 msgstr "Rasio Filamen"
@@ -21057,6 +21076,38 @@ msgid ""
 msgstr ""
 "Keandalan Tepat di Percobaan Pertama \n"
 "Lebih sedikit pengawasan, hasil yang lebih terprediksi. Contoh: fasilitas print farm kecil yang mencetak komponen PETG menghindari kejutan 'gagal pada jam ke-6' dan menjaga produksi tetap sesuai jadwal."
+
+#, boost-format
+#~ msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
+#~ msgstr "Jumlah filamen melebihi jumlah maksimum yang didukung alat pengecatan. Hanya %1% filamen pertama yang akan tersedia di alat pengecatan."
+
+#, c-format, boost-format
+#~ msgid "The color count cannot exceed the project's filament limit (%d)."
+#~ msgstr "Jumlah warna tidak boleh melebihi batas filamen proyek (%d)."
+
+#~ msgid ""
+#~ "Too large layer height.\n"
+#~ "Reset to 0.2"
+#~ msgstr ""
+#~ "Tinggi lapisan terlalu besar.\n"
+#~ "Atur ulang ke 0,2"
+
+#~ msgid ""
+#~ "- Sync printer presets after loading a file\n"
+#~ "- \"Load 3MF\" dialog settings\n"
+#~ "- Executing post-processing scripts\n"
+#~ "- Support structure recommendation prompt\n"
+#~ "- Unsaved projects.\n"
+#~ "- Mixed color sublayer with variable layer height warning\n"
+#~ "- Delete a filament used by a model"
+#~ msgstr ""
+#~ "- Sinkronkan prasetel printer setelah memuat file\n"
+#~ "- Pengaturan dialog \"Muat 3MF\"\n"
+#~ "- Menjalankan skrip pascapemrosesan\n"
+#~ "- Perintah rekomendasi struktur pendukung\n"
+#~ "- Proyek belum disimpan.\n"
+#~ "- Sublapisan warna campuran dengan peringatan tinggi lapisan variabel\n"
+#~ "- Menghapus filamen yang digunakan oleh model"
 
 #, c-format, boost-format
 #~ msgid "%s filament is brittle. Use AMS feeding with caution."

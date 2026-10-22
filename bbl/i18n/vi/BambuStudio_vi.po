@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 20:17+0800\n"
+"POT-Creation-Date: 2026-10-22 14:23+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -279,6 +279,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
 msgstr ""
 
 #, c-format, boost-format
@@ -1138,10 +1142,6 @@ msgstr "Cảnh báo: Tất cả các diện tích tam giác quá nhỏ, chức n
 
 msgid "Lay on face"
 msgstr "Đặt áp mặt lên bàn in"
-
-#, boost-format
-msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
-msgstr "Số lượng sợi nhựa vượt quá số lượng tối đa mà công cụ tô hỗ trợ. Chỉ %1% sợi nhựa đầu tiên sẽ khả dụng trong công cụ tô."
 
 msgid "Color Painting"
 msgstr "Phun màu"
@@ -3267,9 +3267,6 @@ msgstr "Vật thể đích chỉ chứa một bộ phận và không thể tách
 msgid "Assembly"
 msgstr "Lắp ráp"
 
-msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
-msgstr ""
-
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
 msgstr "Phép toán Boolean trên lưới chỉ hỗ trợ tối đa %1% phần, nhưng đối tượng được chọn có %2% phần. Vui lòng giảm số lượng phần rồi thử lại."
@@ -4502,8 +4499,8 @@ msgid "The color count cannot exceed the original color count (%d)."
 msgstr "Số lượng màu không được vượt quá số lượng màu ban đầu (%d)."
 
 #, c-format, boost-format
-msgid "The color count cannot exceed the project's filament limit (%d)."
-msgstr "Số lượng màu không được vượt quá giới hạn sợi nhựa của dự án (%d)."
+msgid "Up to %d colors supported."
+msgstr ""
 
 msgid "Click to select a matching filament"
 msgstr "Nhấp chuột để chọn loại sợi nhựa phù hợp"
@@ -4513,6 +4510,17 @@ msgstr "Thông báo lỗi"
 
 msgid "How to use standard mixing kits"
 msgstr "Cách sử dụng bộ dụng cụ trộn màu tiêu chuẩn"
+
+#, boost-format
+msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit, so at least %2% project filament(s) must be deleted first. The following unused project filaments will be deleted automatically:"
+msgstr ""
+
+#, boost-format
+msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit. Please delete at least %2% filament(s) on the Prepare page, then add the kit again."
+msgstr ""
+
+msgid "Existing project filaments"
+msgstr ""
 
 msgid "What is the CMYKW mixing kit?"
 msgstr "Bộ dụng cụ trộn màu CMYKW là gì?"
@@ -5229,13 +5237,6 @@ msgid ""
 "Reset to 0.2"
 msgstr ""
 "Chiều cao lớp quá nhỏ.\n"
-"Đặt lại thành 0,2"
-
-msgid ""
-"Too large layer height.\n"
-"Reset to 0.2"
-msgstr ""
-"Chiều cao lớp quá lớn.\n"
 "Đặt lại thành 0,2"
 
 msgid ""
@@ -6214,6 +6215,9 @@ msgstr "Con lăn chuột:"
 msgid "Increase/decrease edit area"
 msgstr "Tăng/giảm vùng chỉnh sửa"
 
+msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
+msgstr ""
+
 msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
 msgstr "Hồ sơ chiều cao lớp biến thiên đã được đặt lại vì một số chiều cao lớp vượt quá phạm vi cho phép của vòi phun hiện tại."
 
@@ -6582,6 +6586,15 @@ msgstr "Đang hiệu chuẩn"
 msgid "No step selected"
 msgstr "Chưa chọn bước nào"
 
+msgid "Tips"
+msgstr "Mẹo"
+
+msgid "Start Anyway"
+msgstr ""
+
+msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
+msgstr ""
+
 msgid "Auto-record Monitoring"
 msgstr "Ghi hình giám sát tự động"
 
@@ -6726,9 +6739,6 @@ msgstr ""
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "PPS-CF/PPA-CF giòn và có thể gãy trong ống PTFE bị uốn cong phía trên Đầu in. Vui lòng tham khảo Wiki trước khi sử dụng. "
-
-msgid "Tips"
-msgstr "Mẹo"
 
 msgid "Slice all"
 msgstr "Cắt lớp tất cả"
@@ -9319,6 +9329,9 @@ msgstr "Không thể trộn các sợi nhựa sử dụng vòi phun có đườn
 msgid "Up to %d mixed filaments can be created"
 msgstr ""
 
+msgid "At least two filaments are required to create a mixed filament"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
 msgstr ""
@@ -9627,6 +9640,10 @@ msgstr "Có cảnh báo sau khi cắt lớp mô hình:"
 
 msgid "warnings"
 msgstr "cảnh báo"
+
+#, boost-format
+msgid "\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."
+msgstr ""
 
 msgid "Invalid data"
 msgstr "Dữ liệu không hợp lệ"
@@ -10744,16 +10761,8 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning\n"
 "- Delete a filament used by a model"
 msgstr ""
-"- Đồng bộ các thiết lập máy in sau khi tải tệp\n"
-"- Cài đặt hộp thoại \"Tải 3MF\"\n"
-"- Thực thi các kịch bản xử lý hậu kỳ\n"
-"- Lời nhắc đề xuất cấu trúc hỗ trợ\n"
-"- Các dự án chưa được lưu.\n"
-"- Cảnh báo về lớp phụ màu pha trộn với chiều cao lớp thay đổi\n"
-"- Xoá một sợi nhựa được sử dụng bởi một mô hình"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "Bạn có chắc muốn đặt lại tất cả tùy chọn không? Các thay đổi sẽ có hiệu lực sau khi khởi động lại."
@@ -11441,6 +11450,9 @@ msgstr "Không thể gửi lệnh in khi máy in đang cập nhật firmware"
 msgid "The printer is executing instructions. Please restart printing after it ends"
 msgstr "Máy in đang thực thi các lệnh. Vui lòng bắt đầu in lại sau khi hoàn tất"
 
+msgid "Cold pull in progress. Unable to start a task."
+msgstr ""
+
 msgid "AMS is setting up. Please try again later."
 msgstr "AMS đang thiết lập. Vui lòng thử lại sau."
 
@@ -11695,9 +11707,6 @@ msgstr "Nhấp để tìm hiểu thêm"
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Nhấp để đặt lại tất cả cài đặt về cài đặt sẵn được lưu gần đây nhất."
-
-msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
-msgstr ""
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Tháp mồi sẽ cần thiết khi thay vòi phun. Có thể có lỗi trên mô hình nếu không có tháp mồi. Bạn có chắc muốn tắt tháp mồi không?"
@@ -19601,15 +19610,24 @@ msgstr "Tìm hiểu thêm về chế độ đùn mồi"
 msgid "TPU Usage Notes"
 msgstr ""
 
+msgid "TPU Filament Installation && Feeding Guide"
+msgstr ""
+
 msgid "Important Notice:"
 msgstr ""
 
 msgid ""
-"• Using TPU filament for the first time? Read the official guide first to avoid clogs or feeding failures.\n"
+"• First time printing with TPU ? We strongly recommend reading the official guide first to avoid clogs or feeding failures.\n"
 "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
 msgstr ""
 
+msgid "Don't show this again"
+msgstr ""
+
 msgid "View User Guide"
+msgstr ""
+
+msgid "I know risks, continue"
 msgstr ""
 
 msgid "AMS Dryness Control"
@@ -19877,14 +19895,11 @@ msgstr "Nhấp để chỉnh sửa tỷ lệ"
 msgid "Edit Mixed Filament"
 msgstr "Chỉnh sửa sợi nhựa phối trộn"
 
+msgid "Mixed result preview"
+msgstr ""
+
 msgid "Effect Preview"
 msgstr "Xem trước hiệu ứng"
-
-msgid "Target"
-msgstr ""
-
-msgid "Matched"
-msgstr ""
 
 msgid "Select Mixed Materials"
 msgstr "Chọn vật liệu trộn"
@@ -19944,23 +19959,31 @@ msgstr ""
 msgid "Color Matching"
 msgstr ""
 
+msgid "Target Filament"
+msgstr ""
+
+msgid "(The system will mix 2-3 filaments to approximate this color)"
+msgstr ""
+
+msgid "Target color filament"
+msgstr ""
+
 msgid "Select Target Color"
 msgstr ""
 
-msgid "Match Result"
+msgid "Mixed Result"
 msgstr ""
 
 msgid "Discard changes and match again"
+msgstr ""
+
+msgid "No results"
 msgstr ""
 
 msgid "Replace the target color on models with the mixed result"
 msgstr ""
 
 msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Filament %d has the same color as the target. No mixing is needed."
 msgstr ""
 
 msgid "There is no other filament of the same type as the target color in the project."
@@ -19977,10 +20000,6 @@ msgstr ""
 
 msgid "The current printer has no compatible PLA Palette filament."
 msgstr "Máy in hiện tại không có sợi nhựa PLA Palette tương thích."
-
-#, boost-format
-msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
-msgstr ""
 
 msgid "Material Ratio"
 msgstr "Tỷ lệ vật liệu"
@@ -21059,6 +21078,38 @@ msgid ""
 msgstr ""
 "Độ tin cậy thành công ngay lần đầu\n"
 "Giảm bớt việc phải theo dõi liên tục, tăng tính dự đoán được của kết quả đầu ra. Ví dụ: một cụm máy in nhỏ in các bộ phận bằng PETG sẽ tránh được những sự cố bất ngờ như \"hỏng hóc sau 6 giờ\" và đảm bảo các lô sản phẩm được hoàn tất đúng tiến độ."
+
+#, boost-format
+#~ msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
+#~ msgstr "Số lượng sợi nhựa vượt quá số lượng tối đa mà công cụ tô hỗ trợ. Chỉ %1% sợi nhựa đầu tiên sẽ khả dụng trong công cụ tô."
+
+#, c-format, boost-format
+#~ msgid "The color count cannot exceed the project's filament limit (%d)."
+#~ msgstr "Số lượng màu không được vượt quá giới hạn sợi nhựa của dự án (%d)."
+
+#~ msgid ""
+#~ "Too large layer height.\n"
+#~ "Reset to 0.2"
+#~ msgstr ""
+#~ "Chiều cao lớp quá lớn.\n"
+#~ "Đặt lại thành 0,2"
+
+#~ msgid ""
+#~ "- Sync printer presets after loading a file\n"
+#~ "- \"Load 3MF\" dialog settings\n"
+#~ "- Executing post-processing scripts\n"
+#~ "- Support structure recommendation prompt\n"
+#~ "- Unsaved projects.\n"
+#~ "- Mixed color sublayer with variable layer height warning\n"
+#~ "- Delete a filament used by a model"
+#~ msgstr ""
+#~ "- Đồng bộ các thiết lập máy in sau khi tải tệp\n"
+#~ "- Cài đặt hộp thoại \"Tải 3MF\"\n"
+#~ "- Thực thi các kịch bản xử lý hậu kỳ\n"
+#~ "- Lời nhắc đề xuất cấu trúc hỗ trợ\n"
+#~ "- Các dự án chưa được lưu.\n"
+#~ "- Cảnh báo về lớp phụ màu pha trộn với chiều cao lớp thay đổi\n"
+#~ "- Xoá một sợi nhựa được sử dụng bởi một mô hình"
 
 #, c-format, boost-format
 #~ msgid "%s filament is brittle. Use AMS feeding with caution."

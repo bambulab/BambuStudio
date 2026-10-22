@@ -439,5 +439,7 @@
   "Loading Filament": "loading",
   "Open Auto Refill": "Open Auto Refill",
   "Printing will continue with identical filament when available": "Printing will continue with identical filament when available",
-  "Unloading Filament": "unloading"
+  "Unloading Filament": "unloading",
+  "Cutter": "Cutter",
+  "Pen": "Pen"
 }

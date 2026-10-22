@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 20:17+0800\n"
+"POT-Creation-Date: 2026-10-22 14:23+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -275,6 +275,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
 msgstr ""
 
 #, c-format, boost-format
@@ -1132,10 +1136,6 @@ msgstr "Varování: Všechny trojúhelníkové plochy jsou příliš malé, aktu
 
 msgid "Lay on face"
 msgstr "Položit na plochu"
-
-#, boost-format
-msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
-msgstr "Počet filamentů přesahuje maximální počet, který nástroj pro malování podpěruje. V nástroji pro malování budou k dispozici pouze první %1% filamenty."
 
 msgid "Color Painting"
 msgstr "Barevné malování"
@@ -3274,9 +3274,6 @@ msgstr "Cílový objekt obsahuje pouze jednu část a nelze jej rozdělit."
 msgid "Assembly"
 msgstr "Sestava"
 
-msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
-msgstr ""
-
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
 msgstr ""
@@ -4515,7 +4512,7 @@ msgid "The color count cannot exceed the original color count (%d)."
 msgstr ""
 
 #, c-format, boost-format
-msgid "The color count cannot exceed the project's filament limit (%d)."
+msgid "Up to %d colors supported."
 msgstr ""
 
 msgid "Click to select a matching filament"
@@ -4525,6 +4522,17 @@ msgid "Error Prompt"
 msgstr ""
 
 msgid "How to use standard mixing kits"
+msgstr ""
+
+#, boost-format
+msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit, so at least %2% project filament(s) must be deleted first. The following unused project filaments will be deleted automatically:"
+msgstr ""
+
+#, boost-format
+msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit. Please delete at least %2% filament(s) on the Prepare page, then add the kit again."
+msgstr ""
+
+msgid "Existing project filaments"
 msgstr ""
 
 msgid "What is the CMYKW mixing kit?"
@@ -5245,14 +5253,6 @@ msgid ""
 msgstr ""
 "Příliš malá výška vrstvy.\n"
 "Obnoveno na 0,2Příliš malá výška vrstvy.\n"
-"Nastaveno na 0,2"
-
-msgid ""
-"Too large layer height.\n"
-"Reset to 0.2"
-msgstr ""
-"Příliš velká výška vrstvy.\n"
-"Obnoveno na 0,2Příliš velká výška vrstvy.\n"
 "Nastaveno na 0,2"
 
 msgid ""
@@ -6249,6 +6249,9 @@ msgstr "Kolečko myši:"
 msgid "Increase/decrease edit area"
 msgstr "Zvětšit/zmenšit editační oblast"
 
+msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
+msgstr ""
+
 msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
 msgstr "Profil proměnné výšky vrstvy byl resetován, protože některé výšky vrstev překračují povolený rozsah aktuální trysky."
 
@@ -6618,6 +6621,15 @@ msgstr "Probíhá kalibrace"
 msgid "No step selected"
 msgstr "Není vybrán žádný krok"
 
+msgid "Tips"
+msgstr "Tipy"
+
+msgid "Start Anyway"
+msgstr ""
+
+msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
+msgstr ""
+
 msgid "Auto-record Monitoring"
 msgstr "Automatický záznam monitorování"
 
@@ -6760,9 +6772,6 @@ msgstr ""
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "PPS-CF/PPA-CF jsou křehké a mohou se zlomit v ohnuté PTFE trubičce nad tiskovou hlavou. Před použitím si přečtěte Wiki. "
-
-msgid "Tips"
-msgstr "Tipy"
 
 msgid "Slice all"
 msgstr "Slicovat vše"
@@ -9317,6 +9326,9 @@ msgstr ""
 msgid "Up to %d mixed filaments can be created"
 msgstr ""
 
+msgid "At least two filaments are required to create a mixed filament"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
 msgstr ""
@@ -9624,6 +9636,10 @@ msgstr "Po řezání modelů byla zjištěna následující varování:"
 
 msgid "warnings"
 msgstr "varování"
+
+#, boost-format
+msgid "\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."
+msgstr ""
 
 msgid "Invalid data"
 msgstr "Neplatná data"
@@ -10748,7 +10764,6 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning\n"
 "- Delete a filament used by a model"
 msgstr ""
 
@@ -11446,6 +11461,9 @@ msgstr "Nelze odeslat tiskovou úlohu, pokud tiskárna právě aktualizuje firmw
 msgid "The printer is executing instructions. Please restart printing after it ends"
 msgstr "Tiskárna právě vykonává pokyny. Po dokončení prosím tisk znovu spusťte"
 
+msgid "Cold pull in progress. Unable to start a task."
+msgstr ""
+
 msgid "AMS is setting up. Please try again later."
 msgstr "Probíhá nastavování AMS. Zkuste to prosím později."
 
@@ -11700,9 +11718,6 @@ msgstr "Klikněte pro více informací"
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Klikněte pro obnovení všech nastavení na poslední uloženou předvolbu."
-
-msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
-msgstr ""
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Věž pro oddělení trysky je vyžadována pro výměnu trysky. Bez věže pro oddělení trysky mohou být na modelu vady. Opravdu chcete zakázat věž pro oddělení trysky?"
@@ -19682,15 +19697,24 @@ msgstr "Zjistit více o režimu přípravy"
 msgid "TPU Usage Notes"
 msgstr ""
 
+msgid "TPU Filament Installation && Feeding Guide"
+msgstr ""
+
 msgid "Important Notice:"
 msgstr ""
 
 msgid ""
-"• Using TPU filament for the first time? Read the official guide first to avoid clogs or feeding failures.\n"
+"• First time printing with TPU ? We strongly recommend reading the official guide first to avoid clogs or feeding failures.\n"
 "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
 msgstr ""
 
+msgid "Don't show this again"
+msgstr ""
+
 msgid "View User Guide"
+msgstr ""
+
+msgid "I know risks, continue"
 msgstr ""
 
 msgid "AMS Dryness Control"
@@ -19958,14 +19982,11 @@ msgstr ""
 msgid "Edit Mixed Filament"
 msgstr "Upravit smíšený filament"
 
+msgid "Mixed result preview"
+msgstr ""
+
 msgid "Effect Preview"
 msgstr "Náhled efektu"
-
-msgid "Target"
-msgstr ""
-
-msgid "Matched"
-msgstr ""
 
 msgid "Select Mixed Materials"
 msgstr "Vybrat smíšené materiály"
@@ -20025,23 +20046,31 @@ msgstr ""
 msgid "Color Matching"
 msgstr ""
 
+msgid "Target Filament"
+msgstr ""
+
+msgid "(The system will mix 2-3 filaments to approximate this color)"
+msgstr ""
+
+msgid "Target color filament"
+msgstr ""
+
 msgid "Select Target Color"
 msgstr ""
 
-msgid "Match Result"
+msgid "Mixed Result"
 msgstr ""
 
 msgid "Discard changes and match again"
+msgstr ""
+
+msgid "No results"
 msgstr ""
 
 msgid "Replace the target color on models with the mixed result"
 msgstr ""
 
 msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Filament %d has the same color as the target. No mixing is needed."
 msgstr ""
 
 msgid "There is no other filament of the same type as the target color in the project."
@@ -20057,10 +20086,6 @@ msgid "No available mixing recipe was found."
 msgstr ""
 
 msgid "The current printer has no compatible PLA Palette filament."
-msgstr ""
-
-#, boost-format
-msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
 msgstr ""
 
 msgid "Material Ratio"
@@ -21166,6 +21191,18 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#, boost-format
+#~ msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
+#~ msgstr "Počet filamentů přesahuje maximální počet, který nástroj pro malování podpěruje. V nástroji pro malování budou k dispozici pouze první %1% filamenty."
+
+#~ msgid ""
+#~ "Too large layer height.\n"
+#~ "Reset to 0.2"
+#~ msgstr ""
+#~ "Příliš velká výška vrstvy.\n"
+#~ "Obnoveno na 0,2Příliš velká výška vrstvy.\n"
+#~ "Nastaveno na 0,2"
 
 #~ msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
 #~ msgstr "PLA Glow může opotřebovat první stupeň podavače v AMS. Použijte místo toho externí cívku."

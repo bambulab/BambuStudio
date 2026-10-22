@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-20 20:17+0800\n"
+"POT-Creation-Date: 2026-10-22 14:23+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -257,10 +257,6 @@ msgstr ""
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "CF/GF耗材丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
 
-#, c-format, boost-format
-msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
-msgstr "%s耗材时可能磨损 %s进料口，且进料阻力较大，建议通过外挂方式进料，详情请查看 Wiki。"
-
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr "使用默认参数可能影响打印质量。请根据需求调整以获得最佳效果。"
 
@@ -282,6 +278,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
 msgstr ""
 
 #, c-format, boost-format
@@ -1143,10 +1143,6 @@ msgstr "警告：所有的三角形面积过小，当前功能不能工作。"
 
 msgid "Lay on face"
 msgstr "选择底面"
-
-#, boost-format
-msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
-msgstr "耗材丝数量超过涂色工具支持的最大值，仅前%1%个耗材丝可在涂色工具中使用。"
 
 msgid "Color Painting"
 msgstr "涂色"
@@ -3266,9 +3262,6 @@ msgstr "目标对象仅包含一个零件，无法被拆分。"
 msgid "Assembly"
 msgstr "组合体"
 
-msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
-msgstr "已启用混色子层，同时使用可变层高可能会影响打印质量。"
-
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
 msgstr "网格布尔运算最多支持 %1% 个部件，但所选对象包含 %2% 个部件。请减少部件数量后重试。"
@@ -4499,8 +4492,8 @@ msgid "The color count cannot exceed the original color count (%d)."
 msgstr "颜色数量超过了原模型颜色数量（%d）"
 
 #, c-format, boost-format
-msgid "The color count cannot exceed the project's filament limit (%d)."
-msgstr "颜色数量超过了项目最大耗材数量（%d）"
+msgid "Up to %d colors supported."
+msgstr ""
 
 msgid "Click to select a matching filament"
 msgstr "点击选择匹配耗材"
@@ -4510,6 +4503,17 @@ msgstr "错误提示"
 
 msgid "How to use standard mixing kits"
 msgstr "如何使用标准混色套装"
+
+#, boost-format
+msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit, so at least %2% project filament(s) must be deleted first. The following unused project filaments will be deleted automatically:"
+msgstr ""
+
+#, boost-format
+msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit. Please delete at least %2% filament(s) on the Prepare page, then add the kit again."
+msgstr ""
+
+msgid "Existing project filaments"
+msgstr ""
 
 msgid "What is the CMYKW mixing kit?"
 msgstr "什么是 CMYKW 混色套装？"
@@ -5221,11 +5225,6 @@ msgid ""
 "Too small layer height.\n"
 "Reset to 0.2"
 msgstr "层高过小。将重置为0.2"
-
-msgid ""
-"Too large layer height.\n"
-"Reset to 0.2"
-msgstr "层高过大。将重置为0.2"
 
 msgid ""
 "Should not be larger than layer height.\n"
@@ -6196,6 +6195,9 @@ msgstr "鼠标滚轮："
 msgid "Increase/decrease edit area"
 msgstr "增加/减小编辑区域"
 
+msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
+msgstr "已启用混色子层，同时使用可变层高可能会影响打印质量。"
+
 msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
 msgstr "可变层高曲线超出了当前喷嘴允许的层高限制，可变层高曲线已重置"
 
@@ -6565,11 +6567,14 @@ msgstr "校准中"
 msgid "No step selected"
 msgstr "请选择一项校准"
 
+msgid "Tips"
+msgstr "提示"
+
 msgid "Start Anyway"
-msgstr "仍然开始"
+msgstr ""
 
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
-msgstr "您选择了高温热床调平校准，为防止耗材在挤出机中软化，请先退料后再校准。"
+msgstr ""
 
 msgid "Auto-record Monitoring"
 msgstr "监控录像"
@@ -6715,9 +6720,6 @@ msgstr ""
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "PPS-CF/PPA-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。请参考Wiki。"
-
-msgid "Tips"
-msgstr "提示"
 
 msgid "Slice all"
 msgstr "切片所有盘"
@@ -9294,6 +9296,9 @@ msgstr "无法混合使用不同喷嘴直径的耗材"
 msgid "Up to %d mixed filaments can be created"
 msgstr ""
 
+msgid "At least two filaments are required to create a mixed filament"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
 msgstr "最多支持创建 %d 个耗材"
@@ -9599,6 +9604,10 @@ msgstr "模型切片警告："
 
 msgid "warnings"
 msgstr "警告"
+
+#, boost-format
+msgid "\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."
+msgstr ""
 
 msgid "Invalid data"
 msgstr "无效数据"
@@ -10711,16 +10720,8 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning\n"
 "- Delete a filament used by a model"
 msgstr ""
-"- 清除加载文件后同步打印机预设的设置\n"
-"- 清除”加载3mf“对话框设置\n"
-"- 清除执行后处理脚本的设置\n"
-"- 清除禁用支撑参数推荐的设置\n"
-"- 清除对未保存的项目的选择\n"
-"- 带有可变层高的混合颜色子层警告\n"
-"- 删除模型使用的耗材警告"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "确定重置所有首选项设置吗?下次重新启动之后生效。"
@@ -11409,7 +11410,7 @@ msgid "The printer is executing instructions. Please restart printing after it e
 msgstr "打印机正在执行指令，请在其结束后重新发起打印"
 
 msgid "Cold pull in progress. Unable to start a task."
-msgstr "冷拔进行中，无法发起任务。"
+msgstr ""
 
 msgid "AMS is setting up. Please try again later."
 msgstr "AMS正在初始化。请稍后再试。"
@@ -11663,9 +11664,6 @@ msgstr "点击了解更多"
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "点击以将所有设置还原到最后一次保存的版本。"
-
-msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
-msgstr "已应用可变层高，同时使用混色子层可能导致打印质量下降。"
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "切换喷嘴需要擦料塔，否则打印件上可能会有瑕疵。您确定要关闭擦料塔吗？"
@@ -19556,18 +19554,25 @@ msgstr "了解更多冲刷模式信息"
 msgid "TPU Usage Notes"
 msgstr "TPU 使用说明"
 
+msgid "TPU Filament Installation && Feeding Guide"
+msgstr ""
+
 msgid "Important Notice:"
 msgstr "重要提示："
 
 msgid ""
-"• Using TPU filament for the first time? Read the official guide first to avoid clogs or feeding failures.\n"
+"• First time printing with TPU ? We strongly recommend reading the official guide first to avoid clogs or feeding failures.\n"
 "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
 msgstr ""
-"• 首次使用 TPU 耗材丝？请先阅读官方指南，以免堵塞或进料失败。\n"
-"• 若使用 2.85 mm TPU，请确认已安装 TPU285 喷嘴，并已同步设备信息。"
+
+msgid "Don't show this again"
+msgstr ""
 
 msgid "View User Guide"
 msgstr "查看用户指南"
+
+msgid "I know risks, continue"
+msgstr ""
 
 msgid "AMS Dryness Control"
 msgstr "AMS烘干"
@@ -19834,14 +19839,11 @@ msgstr "点击编辑比例"
 msgid "Edit Mixed Filament"
 msgstr "编辑混色耗材"
 
+msgid "Mixed result preview"
+msgstr ""
+
 msgid "Effect Preview"
 msgstr "效果预览"
-
-msgid "Target"
-msgstr "目标色"
-
-msgid "Matched"
-msgstr "匹配"
 
 msgid "Select Mixed Materials"
 msgstr "选择混色材料"
@@ -19901,24 +19903,32 @@ msgstr "手动混色"
 msgid "Color Matching"
 msgstr "颜色匹配"
 
+msgid "Target Filament"
+msgstr ""
+
+msgid "(The system will mix 2-3 filaments to approximate this color)"
+msgstr ""
+
+msgid "Target color filament"
+msgstr ""
+
 msgid "Select Target Color"
 msgstr "选择目标颜色"
 
-msgid "Match Result"
-msgstr "匹配结果"
+msgid "Mixed Result"
+msgstr ""
 
 msgid "Discard changes and match again"
 msgstr "放弃修改，重新匹配"
+
+msgid "No results"
+msgstr ""
 
 msgid "Replace the target color on models with the mixed result"
 msgstr "用混色结果替换模型上的目标颜色"
 
 msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
 msgstr "没有可用作目标颜色的耗材（渐变、多色、透明及支撑耗材均不支持）。"
-
-#, c-format, boost-format
-msgid "Filament %d has the same color as the target. No mixing is needed."
-msgstr "耗材 %d 与目标颜色相同，无需混色。"
 
 msgid "There is no other filament of the same type as the target color in the project."
 msgstr "项目中没有与目标颜色耗材类型相同的其他耗材。"
@@ -19934,10 +19944,6 @@ msgstr "未找到可用的混色方案。"
 
 msgid "The current printer has no compatible PLA Palette filament."
 msgstr "当前打印机没有兼容的 PLA Palette 耗材。"
-
-#, boost-format
-msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
-msgstr "耗材槽位不足（最多 %1% 个），官方混色套装共 %3% 个耗材，仅添加了 %2% 个。"
 
 msgid "Material Ratio"
 msgstr "耗材比例"
@@ -20011,7 +20017,7 @@ msgstr ""
 
 msgctxt "Sync_Nozzle_AMS"
 msgid "Cancel"
-msgstr ""
+msgstr "取消"
 
 msgid "Successfully synchronized color and type of filament from printer."
 msgstr "成功从打印机同步耗材颜色和类型。"
@@ -21021,6 +21027,63 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#, boost-format
+#~ msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
+#~ msgstr "耗材丝数量超过涂色工具支持的最大值，仅前%1%个耗材丝可在涂色工具中使用。"
+
+#, c-format, boost-format
+#~ msgid "The color count cannot exceed the project's filament limit (%d)."
+#~ msgstr "颜色数量超过了项目最大耗材数量（%d）"
+
+#~ msgid ""
+#~ "Too large layer height.\n"
+#~ "Reset to 0.2"
+#~ msgstr "层高过大。将重置为0.2"
+
+#~ msgid ""
+#~ "- Sync printer presets after loading a file\n"
+#~ "- \"Load 3MF\" dialog settings\n"
+#~ "- Executing post-processing scripts\n"
+#~ "- Support structure recommendation prompt\n"
+#~ "- Unsaved projects.\n"
+#~ "- Mixed color sublayer with variable layer height warning\n"
+#~ "- Delete a filament used by a model"
+#~ msgstr ""
+#~ "- 清除加载文件后同步打印机预设的设置\n"
+#~ "- 清除”加载3mf“对话框设置\n"
+#~ "- 清除执行后处理脚本的设置\n"
+#~ "- 清除禁用支撑参数推荐的设置\n"
+#~ "- 清除对未保存的项目的选择\n"
+#~ "- 带有可变层高的混合颜色子层警告\n"
+#~ "- 删除模型使用的耗材警告"
+
+#~ msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
+#~ msgstr "已应用可变层高，同时使用混色子层可能导致打印质量下降。"
+
+#~ msgid ""
+#~ "• Using TPU filament for the first time? Read the official guide first to avoid clogs or feeding failures.\n"
+#~ "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
+#~ msgstr ""
+#~ "• 首次使用 TPU 耗材丝？请先阅读官方指南，以免堵塞或进料失败。\n"
+#~ "• 若使用 2.85 mm TPU，请确认已安装 TPU285 喷嘴，并已同步设备信息。"
+
+#~ msgid "Target"
+#~ msgstr "目标色"
+
+#~ msgid "Matched"
+#~ msgstr "匹配"
+
+#~ msgid "Match Result"
+#~ msgstr "匹配结果"
+
+#, c-format, boost-format
+#~ msgid "Filament %d has the same color as the target. No mixing is needed."
+#~ msgstr "耗材 %d 与目标颜色相同，无需混色。"
+
+#, boost-format
+#~ msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
+#~ msgstr "耗材槽位不足（最多 %1% 个），官方混色套装共 %3% 个耗材，仅添加了 %2% 个。"
 
 #, c-format, boost-format
 #~ msgid "%s filament is brittle. Use AMS feeding with caution."
