@@ -46,4 +46,8 @@ void DeviceOperationsTooltip::SetOperations(const std::vector<wxString> &operati
     Finalize();
 }
 
+void DeviceOperationsTooltip::Dismiss()
+{
+}
+
 }} // namespace Slic3r::GUI

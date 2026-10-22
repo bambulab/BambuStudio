@@ -340,9 +340,9 @@ void MediaPlayCtrl::update_camera_switch_tooltip()
 
     wxString tip_text;
     if (m_obj->liveview_current_camera == static_cast<int>(LiveviewCameraType::CAMERA_MAIN)) {
-        tip_text = _L("Switch to the auxiliary live camera view");
+        tip_text = _L("Switch to BirdsEye Camera");
     } else if (m_obj->liveview_current_camera == static_cast<int>(LiveviewCameraType::CAMERA_DEPUTY)) {
-        tip_text = _L("Switch to the main live camera view");
+        tip_text = _L("Switch to Liveview Camera");
     } else {
         tip_text = _L("Switch live camera view");
     }

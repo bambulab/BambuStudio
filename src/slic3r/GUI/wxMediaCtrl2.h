@@ -84,6 +84,7 @@ private:
     void clampZoomOffset();
     void updateIdleLayer();
     void updateStatusBadge();
+    void updateZoomBadge();
     void updatePauseIconLayer();
     void removeIdleLayer();
 
@@ -103,6 +104,8 @@ private:
     void *   m_watermark_layer = nullptr;  // CenteredCATextLayer* for status badge text
     void *   m_badge_bg_layer = nullptr;
     void *   m_badge_dot_layer = nullptr;
+    void *   m_zoom_badge_bg_layer = nullptr;
+    void *   m_zoom_badge_text_layer = nullptr;
     void *   m_pause_icon_layer = nullptr;
     bool     m_suppress_pause_icon = false; // hide the pause placeholder from INITIALIZING onward
 

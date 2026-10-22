@@ -11,6 +11,7 @@
 #include "libslic3r/Log.hpp"
 #include <cmath>
 #include <algorithm>
+#include <limits>
 #ifdef __WIN32__
 #include <versionhelpers.h>
 #include <wx/msw/registry.h>
@@ -53,6 +54,16 @@ wxMediaCtrl3::wxMediaCtrl3(wxWindow *parent)
 
 void wxMediaCtrl3::mouseWheelEvent(wxMouseEvent &evt)
 {
+    bool is_default_bg;
+    {
+        std::unique_lock<std::mutex> lk(m_ui_mutex);
+        is_default_bg = m_frame_is_default_bg;
+    }
+    if (m_url == nullptr || is_default_bg) {
+        evt.Skip();
+        return;
+    }
+
     const int rotation = evt.GetWheelRotation();
     if (rotation == 0) {
         evt.Skip();
@@ -140,6 +151,9 @@ void wxMediaCtrl3::Stop()
         m_frame = wxImage(m_idle_image);
         m_frame_is_default_bg = !m_idle_image.empty();
     }
+    m_zoom    = 1.0;
+    m_view_cx = std::numeric_limits<double>::quiet_NaN();
+    m_view_cy = std::numeric_limits<double>::quiet_NaN();
     std::unique_lock<std::mutex> lk(m_mutex);
     m_url.reset();
     m_suppress_pause_icon = false;
@@ -322,22 +336,25 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
         dst_y = (size.y - dst_h) / 2;
     }
 
-    auto draw_status_badge = [&](const wxString &text, const wxColour &dot_color) {
+    auto draw_status_badge = [&](const wxString &text, const wxColour &dot_color, bool with_dot, bool align_right) {
         dc.SetUserScale(1.0, 1.0);
 
         wxFont font = Label::Body_14;
         dc.SetFont(font);
         wxSize text_size = dc.GetTextExtent(text);
 
-        int pad_h   = FromDIP(12);
-        int dot_d   = FromDIP(8);
-        int dot_gap = FromDIP(6);
-        int wm_w    = pad_h + dot_d + dot_gap + text_size.GetWidth() + pad_h;
-        int wm_h    = FromDIP(39);
-        int margin  = FromDIP(10);
-        int wm_x    = int(dst_x > 0 ? dst_x : 0) + margin;
-        int wm_y    = int(dst_y > 0 ? dst_y : 0) + margin;
-        int radius  = wm_h / 2;
+        int pad_h     = FromDIP(12);
+        int dot_d     = FromDIP(8);
+        int dot_gap   = FromDIP(6);
+        int content_w = with_dot ? dot_d + dot_gap + text_size.GetWidth() : text_size.GetWidth();
+        int wm_w      = pad_h + content_w + pad_h;
+        int wm_h      = FromDIP(39);
+        int margin    = FromDIP(10);
+        int area_left  = int(dst_x > 0 ? dst_x : 0);
+        int area_right = int(dst_x + dst_w < size.x ? dst_x + dst_w : size.x);
+        int wm_x      = align_right ? area_right - margin - wm_w : area_left + margin;
+        int wm_y      = int(dst_y > 0 ? dst_y : 0) + margin;
+        int radius    = wm_h / 2;
 
         wxGCDC gcdc(dc);
         gcdc.SetBrush(wxBrush(wxColour(51, 51, 51, 160)));
@@ -345,10 +362,12 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
         gcdc.DrawRoundedRectangle(wm_x, wm_y, wm_w, wm_h, radius);
 
         int content_x = wm_x + pad_h;
-        gcdc.SetBrush(wxBrush(dot_color));
-        int dot_y = wm_y + (wm_h - dot_d) / 2;
-        gcdc.DrawEllipse(content_x, dot_y, dot_d, dot_d);
-        content_x += dot_d + dot_gap;
+        if (with_dot) {
+            gcdc.SetBrush(wxBrush(dot_color));
+            int dot_y = wm_y + (wm_h - dot_d) / 2;
+            gcdc.DrawEllipse(content_x, dot_y, dot_d, dot_d);
+            content_x += dot_d + dot_gap;
+        }
 
         gcdc.SetTextForeground(wxColour(0xCE, 0xCE, 0xCE));
         gcdc.SetFont(font);
@@ -358,9 +377,11 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
 
     if (is_idle) {
         if (!m_watermark_text.empty())
-            draw_status_badge(m_watermark_text, wxColour(0xCE, 0xCE, 0xCE));
+            draw_status_badge(m_watermark_text, wxColour(0xCE, 0xCE, 0xCE), true, false);
     } else {
-        draw_status_badge(m_live_badge_text, wxColour(76, 217, 100));
+        draw_status_badge(m_live_badge_text, wxColour(76, 217, 100), true, false);
+        if (m_zoom > 1.0)
+            draw_status_badge(wxString::Format(_L("Zoom %.1fx"), m_zoom), wxColour(), false, true);
     }
 }
 

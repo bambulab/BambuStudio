@@ -15,6 +15,8 @@ public:
 
     void SetOperations(const std::vector<wxString> &operations);
 
+    void Dismiss() override;
+
 private:
     wxBoxSizer   *m_sizer{nullptr};
     wxStaticText *m_title{nullptr};

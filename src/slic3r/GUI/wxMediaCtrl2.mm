@@ -250,6 +250,18 @@ wxMediaCtrl2::~wxMediaCtrl2()
         [badgeDotLayer release];
         m_badge_dot_layer = nullptr;
     }
+    CALayer *zoomBadgeBgLayer = (CALayer *)m_zoom_badge_bg_layer;
+    if (zoomBadgeBgLayer) {
+        [zoomBadgeBgLayer removeFromSuperlayer];
+        [zoomBadgeBgLayer release];
+        m_zoom_badge_bg_layer = nullptr;
+    }
+    CATextLayer *zoomBadgeTextLayer = (CATextLayer *)m_zoom_badge_text_layer;
+    if (zoomBadgeTextLayer) {
+        [zoomBadgeTextLayer removeFromSuperlayer];
+        [zoomBadgeTextLayer release];
+        m_zoom_badge_text_layer = nullptr;
+    }
     CALayer *pauseIconLayer = (CALayer *)m_pause_icon_layer;
     if (pauseIconLayer) {
         [pauseIconLayer removeFromSuperlayer];
@@ -471,6 +483,7 @@ void wxMediaCtrl2::applyVideoTransform()
         CGRectGetMidX(bounds) + m_zoom_offset_x,
         CGRectGetMidY(bounds) + layer_offset_y);
     [CATransaction commit];
+    updateZoomBadge();
 }
 
 void wxMediaCtrl2::SetIdleImage(wxString const &image, wxString const &watermark_text)
@@ -649,6 +662,67 @@ void wxMediaCtrl2::updateStatusBadge()
 
     CGFloat textX = dotX + dotD + dotGap;
     textLayer.frame = CGRectMake(textX, pillY, textSize.width, pillH);
+    textLayer.string = nsText;
+    textLayer.font = (__bridge CFTypeRef)font;
+    textLayer.fontSize = 14.0;
+    textLayer.backgroundColor = nil;
+    CGColorRef fgColor = CGColorCreateGenericRGB(0xCE / 255.0, 0xCE / 255.0, 0xCE / 255.0, 1.0);
+    textLayer.foregroundColor = fgColor;
+    CGColorRelease(fgColor);
+    textLayer.hidden = NO;
+    if (textLayer.superlayer != rootLayer)
+        [rootLayer addSublayer:textLayer];
+}
+
+void wxMediaCtrl2::updateZoomBadge()
+{
+    NSView *view = (NSView *)GetHandle();
+    CALayer *rootLayer = view.layer;
+    if (!rootLayer)
+        return;
+
+    CALayer *bgLayer = (CALayer *)m_zoom_badge_bg_layer;
+    CenteredCATextLayer *textLayer = (CenteredCATextLayer *)m_zoom_badge_text_layer;
+    if (m_zoom <= 1.0) {
+        if (bgLayer) bgLayer.hidden = YES;
+        if (textLayer) textLayer.hidden = YES;
+        return;
+    }
+
+    if (!bgLayer) {
+        bgLayer = [[CALayer alloc] init];
+        m_zoom_badge_bg_layer = bgLayer;
+    }
+    if (!textLayer) {
+        textLayer = [[CenteredCATextLayer alloc] init];
+        textLayer.alignmentMode = kCAAlignmentLeft;
+        textLayer.contentsScale = [[NSScreen mainScreen] backingScaleFactor];
+        m_zoom_badge_text_layer = textLayer;
+    }
+
+    wxString text = _L("Zoom") + wxString::Format(" %.1fx", m_zoom);
+    NSString *nsText = [NSString stringWithUTF8String:text.ToUTF8().data()];
+    NSFont *font = [NSFont systemFontOfSize:14.0];
+    NSDictionary *attrs = @{NSFontAttributeName: font};
+    NSSize textSize = [nsText sizeWithAttributes:attrs];
+
+    CGFloat padH = 12.0;
+    CGFloat pillH = 39.0;
+    CGFloat margin = 10.0;
+    CGFloat pillW = padH + textSize.width + padH;
+    CGFloat pillX = rootLayer.bounds.size.width - margin - pillW;
+    CGFloat pillY = margin;
+
+    bgLayer.frame = CGRectMake(pillX, pillY, pillW, pillH);
+    bgLayer.cornerRadius = pillH / 2.0;
+    CGColorRef bgColor = CGColorCreateGenericRGB(51 / 255.0, 51 / 255.0, 51 / 255.0, 160 / 255.0);
+    bgLayer.backgroundColor = bgColor;
+    CGColorRelease(bgColor);
+    bgLayer.hidden = NO;
+    if (bgLayer.superlayer != rootLayer)
+        [rootLayer addSublayer:bgLayer];
+
+    textLayer.frame = CGRectMake(pillX + padH, pillY, textSize.width, pillH);
     textLayer.string = nsText;
     textLayer.font = (__bridge CFTypeRef)font;
     textLayer.fontSize = 14.0;

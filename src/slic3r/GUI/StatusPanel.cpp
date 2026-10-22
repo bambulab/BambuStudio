@@ -2487,10 +2487,12 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
         if (hovered) {
             std::vector<wxString> ops = collect_device_operations();
             if (!ops.empty()) {
-                m_device_operations_tooltip->SetOperations(ops);
-                wxPoint pos = m_camera_title_pill->ClientToScreen(wxPoint(0, m_camera_title_pill->GetSize().GetHeight() + FromDIP(4)));
-                m_device_operations_tooltip->SetPosition(pos);
-                m_device_operations_tooltip->Show();
+                if (!m_device_operations_tooltip->IsShown()) {
+                    m_device_operations_tooltip->SetOperations(ops);
+                    wxPoint pos = m_camera_title_pill->ClientToScreen(wxPoint(0, m_camera_title_pill->GetSize().GetHeight() + FromDIP(4)));
+                    m_device_operations_tooltip->SetPosition(pos);
+                    m_device_operations_tooltip->Show();
+                }
             } else {
                 m_device_operations_tooltip->Hide();
             }
@@ -2501,7 +2503,11 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     for (wxWindow *child : {static_cast<wxWindow *>(m_camera_title_pill), static_cast<wxWindow *>(m_breathing_dot_light), static_cast<wxWindow *>(m_bitmap_record_light),
                             static_cast<wxWindow *>(m_bitmap_timelapse_light), static_cast<wxWindow *>(m_bitmap_golive_light)}) {
         child->Bind(wxEVT_ENTER_WINDOW, [update_pill_hover](wxMouseEvent &e) { update_pill_hover(true); e.Skip(); });
-        child->Bind(wxEVT_LEAVE_WINDOW, [update_pill_hover](wxMouseEvent &e) { update_pill_hover(false); e.Skip(); });
+        child->Bind(wxEVT_LEAVE_WINDOW, [this, update_pill_hover](wxMouseEvent &e) {
+            if (!m_camera_title_pill->GetScreenRect().Contains(wxGetMousePosition()))
+                update_pill_hover(false);
+            e.Skip();
+        });
     }
 
     m_camera_title_separator = new StaticLine(m_panel_monitoring_title, true);
