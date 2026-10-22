@@ -462,6 +462,8 @@ void NozzleRackPanelGroup::DetachDiameterPanel(wxWindow *new_parent)
     delete m_diameter_sizer;
     m_diameter_sizer = nullptr;
 
+    // Outside the card no sizer places the panel, so a shown one would paint over its new parent.
+    m_diameter_panel->Hide();
     m_diameter_panel->Reparent(new_parent);
     m_diameter_panel->SetShowTitle(true);
     m_diameter_panel = nullptr;
