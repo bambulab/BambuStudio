@@ -120,6 +120,9 @@ public:
 
     /*print job*/
     static bool support_print_check_firmware_for_tpu_left(std::string type_str){ return get_value_from_config<bool>(type_str, "print", "support_print_check_firmware_for_tpu_left"); }
+    // 1-based PrintTool shown in the UI. TPU on this tool may slip out when the
+    // print changes tools. 0 means this printer has no such tool.
+    static int get_tpu_slip_on_toolchange_nozzle(const std::string& type_str) { return get_value_from_config<int>(type_str, "print", "tpu_slip_on_toolchange_nozzle"); }
     static bool support_user_first_setup_tpu_check(std::string type_str){ return get_value_from_config<bool>(type_str, "print", "support_user_first_setup_tpu_check"); }
     static std::string support_user_first_setup_tpu_check_url(std::string type_str){ return get_value_from_config<std::string>(type_str, "print", "support_user_first_setup_tpu_check_url"); }
     static bool support_ams_ext_mix_print(std::string type_str) { return get_value_from_config<bool>(type_str, "print", "support_ams_ext_mix_print"); }

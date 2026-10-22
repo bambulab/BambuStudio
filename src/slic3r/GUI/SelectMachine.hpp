@@ -550,6 +550,10 @@ public:
     // unload itself. Returns true if no warning; otherwise fills warning_msg.
     bool CheckWarningRackAmsMixExtAms(MachineObject* obj_, wxString& warning_msg);
 
+    // TPU on the configured PrintTool slips out when a multi-color print changes
+    // tools. The tool index comes from the printer config. Returns true if no warning.
+    bool CheckWarningTpuSlipOnToolChange(MachineObject* obj_, wxString& warning_msg);
+
     // High-temp print with low-temp residue in used hotends (except the first
     // mapped physical nozzle). Returns true if no warning; otherwise fills warning_msg.
     bool CheckWarningHotendLowTempResidue(MachineObject* obj_, wxString& warning_msg);

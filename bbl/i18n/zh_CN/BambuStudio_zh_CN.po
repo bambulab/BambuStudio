@@ -11367,6 +11367,10 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "在热端 %s 中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"
 
+#, c-format, boost-format
+msgid "TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."
+msgstr "%d号槽位的TPU可能在换头时滑出。请将其移到其他槽位后重试。"
+
 msgid "Cool"
 msgstr "Cool"
 

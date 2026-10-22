@@ -245,6 +245,7 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusRackAmsNeedManualUnloadWarning: return "PrintStatusRackAmsNeedManualUnloadWarning";
     case PrintStatusRackAmsMixExtAmsWarning: return "PrintStatusRackAmsMixExtAmsWarning";
     case PrintStatusFilamentWarningHotendLowTempResidue: return "PrintStatusFilamentWarningHotendLowTempResidue";
+    case PrintStatusTpuSlipOnToolChangeWarning: return "PrintStatusTpuSlipOnToolChangeWarning";
     case PrintStatusReadingFinished: return "PrintStatusReadingFinished";
     case PrintStatusSendingCanceled: return "PrintStatusSendingCanceled";
     case PrintStatusAmsMappingSuccess: return "PrintStatusAmsMappingSuccess";

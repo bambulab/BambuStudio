@@ -2310,7 +2310,8 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     } else if (status == PrintStatusRackAmsNeedManualUnloadWarning ||
-               status == PrintStatusRackAmsMixExtAmsWarning) {
+               status == PrintStatusRackAmsMixExtAmsWarning ||
+               status == PrintStatusTpuSlipOnToolChangeWarning) {
         // Advisory only: the print still runs, it just needs a manual swap.
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
@@ -7546,6 +7547,12 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
                     {rack_ams_mix_warning_msg});
     }
 
+    wxString tpu_slip_warning_msg;
+    if (!CheckWarningTpuSlipOnToolChange(obj_, tpu_slip_warning_msg)) {
+        show_status(PrintDialogStatus::PrintStatusTpuSlipOnToolChangeWarning,
+                    {tpu_slip_warning_msg});
+    }
+
     return true;
 }
 
@@ -8189,6 +8196,44 @@ bool SelectMachineDialog::CheckWarningRackAmsMixExtAms(MachineObject* obj_, wxSt
             _L("External AMS and %1$s filaments are both selected for PrintTool %2$d. Because %3$s cannot "
                "unload automatically, you will need to change the filament manually."),
             ams_name, addr_id + 1, ams_name);
+        return false;
+    }
+
+    return true;
+}
+
+bool SelectMachineDialog::CheckWarningTpuSlipOnToolChange(MachineObject* obj_, wxString& warning_msg)
+{
+    warning_msg.clear();
+    if (!obj_) return true;
+
+    // 1-based tool index from the printer config. Missing or 0 skips the check.
+    const int warn_nozzle = DevPrinterConfigUtil::get_tpu_slip_on_toolchange_nozzle(obj_->printer_type);
+    if (warn_nozzle <= 0) return true;
+
+    // A single color never changes tools, so the filament stays seated.
+    if (m_filaments.size() < 2) return true;
+
+    for (const auto& fila : m_ams_mapping_result) {
+        if (fila.tray_id < 0 || fila.ams_id.empty()) continue;
+
+        auto tray_opt = obj_->get_tray(fila.ams_id, fila.slot_id);
+        if (!tray_opt.has_value()) continue;
+
+        auto addr_opt = s_resolve_mapped_nozzle_addr_id(obj_, *tray_opt);
+        if (!addr_opt.has_value()) continue;
+        if (addr_opt.value() + kNozzleDisplayOffset != warn_nozzle) continue;
+
+        std::string fila_type = tray_opt->get_filament_type();
+        if (fila_type.empty()) {
+            if (auto sliced = get_slicing_filament_info(fila.id); sliced.has_value())
+                fila_type = sliced->type;
+        }
+        if (fila_type.find("TPU") == std::string::npos) continue;
+
+        warning_msg = wxString::Format(
+            _L("TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."),
+            warn_nozzle);
         return false;
     }
 

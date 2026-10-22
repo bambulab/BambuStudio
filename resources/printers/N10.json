@@ -65,7 +65,8 @@
 			"support_filament_remain_edit_rfid": true,
 			"support_fdm_cut_mode_compat": true,
 			"support_ams_settings_reorder": true,
-			"support_ams_settings_hide_image": true
+			"support_ams_settings_hide_image": true,
+			"tpu_slip_on_toolchange_nozzle": 6
 		},
 		"fan": {
 			"0": {
