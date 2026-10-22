@@ -2183,17 +2183,33 @@ void AMSTraySettingBase::update_pa_profile_items()
             continue;
         }
 
+        const std::optional<NozzleVolumeType> nozzle_volume_type = nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE ? std::nullopt : std::optional<NozzleVolumeType>(DevNozzle::ToNozzleVolumeType(nozzle_flow_type));
+        // X1/P1 firmware saves High Flow calibrations as Standard, so a strict flow type match hides every
+        // profile on single-extruder printers. Only enforce it where each extruder / rack slot is matched.
+        const bool strict_volume_type = obj->is_multi_extruders() || rack->IsSupported();
+
         PaHistoryFilter pa_history_filter = obj->GetCalib()->GetPaHistoryFilter();
         pa_history_filter.set_filament_id(ams_filament_id)
                 .set_nozzle_diameter(dia_type)
                 .set_extruder_id(obj->is_multi_extruders() ? std::optional<int>(extruder_id) : std::nullopt)
-                .set_nozzle_volume_type(nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE ? std::nullopt : std::optional<NozzleVolumeType>(DevNozzle::ToNozzleVolumeType(nozzle_flow_type)));
+                .set_nozzle_volume_type(strict_volume_type ? nozzle_volume_type : std::nullopt);
+
+        auto is_other_volume_type = [&nozzle_volume_type](const PACalibResult &item) {
+            return nozzle_volume_type && item.nozzle_volume_type != nozzle_volume_type.value();
+        };
 
         std::vector<PACalibResult> matched = pa_history_filter.get();
-        std::sort(matched.begin(), matched.end(), [](const PACalibResult &left, const PACalibResult &right) { return left.nozzle_pos_id < right.nozzle_pos_id; });
+        // profiles saved for the reported flow type come first
+        std::sort(matched.begin(), matched.end(), [&is_other_volume_type](const PACalibResult &left, const PACalibResult &right) {
+            if (is_other_volume_type(left) != is_other_volume_type(right))
+                return !is_other_volume_type(left);
+            return left.nozzle_pos_id < right.nozzle_pos_id;
+        });
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " PaHistoryFilter extruder_id=" << extruder_id
                                  << ", nozzle_diameter=" << DevNozzle::ToNozzleDiameterFloat(dia_type)
+                                 << ", nozzle_volume_type=" << (nozzle_volume_type ? (int) nozzle_volume_type.value() : -1)
+                                 << ", strict_volume_type=" << strict_volume_type
                                  << ", filament_id=" << ams_filament_id
                                  << ", matched=" << matched.size();
         for (const auto &cali_item : matched) {
@@ -2221,6 +2237,8 @@ void AMSTraySettingBase::update_pa_profile_items()
                     items.push_back(wxString::Format("N/A | %s", from_u8(cali_item.name)));
                     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Nozzle position id is -1 or invalid.";
                 }
+            } else if (is_other_volume_type(cali_item)) {
+                items.push_back(wxString::Format("%s (%s)", from_u8(cali_item.name), get_nozzle_volume_type_name(cali_item.nozzle_volume_type)));
             } else {
                 items.push_back(wxString::Format("%s", from_u8(cali_item.name)));
             }
