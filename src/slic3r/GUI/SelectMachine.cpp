@@ -8247,8 +8247,7 @@ bool SelectMachineDialog::CheckWarningHotendLowTempResidue(MachineObject* obj_, 
         return true;
     }
 
-    const auto rack_type = obj_->GetNozzleRack()->GetRackType();
-    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B) {
+    if (!obj_->GetNozzleRack()->IsDirectConnectedRack()) {
         return true;
     }
 
@@ -8313,10 +8312,7 @@ bool SelectMachineDialog::CheckWarningHotendLowTempResidue(MachineObject* obj_, 
             }
 
             std::string fila_type;
-            if (const auto slot = nozzle.GetSlotNowId(); slot.has_value()) {
-                fila_type = obj_->get_filament_type(std::to_string(slot->first), std::to_string(slot->second));
-            }
-            if (fila_type.empty() && !nozzle.GetFilamentId().empty()) {
+            if (!nozzle.GetFilamentId().empty()) {
                 if (auto info = wxGetApp().preset_bundle->get_filament_by_filament_id(nozzle.GetFilamentId())) {
                     fila_type = info->filament_type;
                 }
