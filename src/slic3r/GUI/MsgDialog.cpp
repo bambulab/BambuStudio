@@ -849,28 +849,27 @@ wxBoxSizer *Newer3mfVersionDialog::get_msg_sizer()
     wxStaticText *text1;
     wxBoxSizer *     horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxString    msg_str;
-    if (file_version_newer) {
-        text1 = new wxStaticText(this, wxID_ANY, _L("The 3mf file version is in Beta and it is newer than the current Bambu Studio version."));
-        wxStaticText *   text2       = new wxStaticText(this, wxID_ANY, _L("If you would like to try Bambu Studio Beta, you may click to"));
-        wxHyperlinkCtrl *github_link = new wxHyperlinkCtrl(this, wxID_ANY, _L("Download Beta Version"), "https://github.com/bambulab/BambuStudio/releases");
-        horizontal_sizer->Add(text2, 0, wxEXPAND, 0);
-        horizontal_sizer->Add(github_link, 0, wxEXPAND | wxLEFT, 5);
+    Semver app_version = *(Semver::parse(SLIC3R_VERSION));
+    // Release and Beta share the same hint; only the first line differs.
+    wxString version_str = file_version_newer ?
+        wxString::Format(_L("The 3mf file is Beta version %s, current version: %s"), m_file_version->to_string(), app_version.to_string()) :
+        wxString::Format(_L("The 3mf file is version %s, current version: %s"), m_file_version->to_string(), app_version.to_string());
+    text1 = new wxStaticText(this, wxID_ANY, version_str);
 
-    } else {
-        text1 = new wxStaticText(this, wxID_ANY, _L("The 3mf file version is newer than the current Bambu Studio version."));
-        wxStaticText *text2 = new wxStaticText(this, wxID_ANY, _L("Update your Bambu Studio could enable all functionality in the 3mf file."));
-        horizontal_sizer->Add(text2, 0, wxEXPAND, 0);
+    std::string download_url = "https://github.com/bambulab/BambuStudio/releases";
+    if (!file_version_newer && wxGetApp().app_config->has("app", "cloud_software_url")) {
+        std::string cloud_url = wxGetApp().app_config->get("app", "cloud_software_url");
+        if (!cloud_url.empty())
+            download_url = cloud_url;
     }
-    Semver        app_version = *(Semver::parse(SLIC3R_VERSION));
-    wxStaticText *cur_version = new wxStaticText(this, wxID_ANY, _L("Current Version: ") + app_version.to_string());
+    wxStaticText *   text2         = new wxStaticText(this, wxID_ANY,
+        _L("Importing a newer 3mf file may cause compatibility issues. We recommend downloading the latest version before use. Please click"));
+    wxHyperlinkCtrl *download_link = new wxHyperlinkCtrl(this, wxID_ANY, _L("Download Latest Version"), download_url);
+    horizontal_sizer->Add(text2, 0, wxEXPAND, 0);
+    horizontal_sizer->Add(download_link, 0, wxEXPAND | wxLEFT, 5);
 
     vertical_sizer->Add(text1, 0, wxEXPAND | wxTOP, FromDIP(5));
     vertical_sizer->Add(horizontal_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
-    vertical_sizer->Add(cur_version, 0, wxEXPAND | wxTOP, FromDIP(5));
-    if (!file_version_newer) {
-        wxStaticText *latest_version = new wxStaticText(this, wxID_ANY, _L("Latest Version: ") + m_cloud_version->to_string());
-        vertical_sizer->Add(latest_version, 0, wxEXPAND | wxTOP, FromDIP(5));
-    }
 
     wxStaticText *unrecognized_keys = new wxStaticText(this, wxID_ANY, m_new_keys);
     vertical_sizer->Add(unrecognized_keys, 0, wxEXPAND | wxTOP, FromDIP(10));
