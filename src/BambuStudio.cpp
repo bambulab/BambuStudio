@@ -2748,9 +2748,8 @@ int CLI::run(int argc, char **argv)
 
                 // Per-slot defaults that follow default_load_fila_config. Add further empty-slot
                 // fallbacks here so they stay with the filament preset they come from.
-                // Command-line filament_diameter_map wins over the project map. Empty slots are
-                // filled on that map; the multi-diameter check installs it onto m_print_config
-                // before apply(), which is the only place the CLI map otherwise lands.
+                // Command-line filament_diameter_map is filled in place; it is copied onto
+                // m_print_config once after this loop.
                 const bool cli_has_map = m_extra_config.has("filament_diameter_map");
                 ConfigOptionStrings *dia_map = cli_has_map
                     ? m_extra_config.option<ConfigOptionStrings>("filament_diameter_map")
@@ -2765,14 +2764,17 @@ int CLI::run(int argc, char **argv)
                         BOOST_LOG_TRIVIAL(info) << boost::format(
                             "filament_diameter_map slot %1% is empty, filled with default filament nozzle diameter %2%")
                             % (index + 1) % default_filament_diameter;
-                        if (cli_has_map)
-                            m_print_config.option<ConfigOptionStrings>("filament_diameter_map", true)->values = dia_map->values;
                     }
                 }
             }
             continue;
         }
     }
+
+    // Empty slots are filled above. A command-line filament_diameter_map then replaces the project map
+    // so the multi-diameter check reads the filled CLI values.
+    if (const auto *cli_map = m_extra_config.option<ConfigOptionStrings>("filament_diameter_map"))
+        m_print_config.option<ConfigOptionStrings>("filament_diameter_map", true)->values = cli_map->values;
 
     //add logic for obj auto colors
     if (input_obj_colours.size() > 0) {
