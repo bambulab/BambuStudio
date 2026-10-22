@@ -1238,7 +1238,7 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
                 }
             }
             if (njon.contains("snow")) {
-                if (DevUtil::get_flag_bits(njon["snow"].get<int>(), 0, 8) != 0xff) {
+                if (njon["snow"].get<int>() != 0xffff) {
                     DevAmsSlotId slot_now;
                     slot_now.second = DevUtil::get_flag_bits(njon["snow"].get<int>(), 0, 8);
                     slot_now.first = DevUtil::get_flag_bits(njon["snow"].get<int>(), 8, 8);
