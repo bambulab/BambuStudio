@@ -919,12 +919,10 @@ bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, b
             compatible_entries.emplace_back(entry.first, &entry.second);
     }
 
-    std::sort(compatible_entries.begin(), compatible_entries.end(),
-              [](const auto &a, const auto &b) { return a.second->opt_string("tray_name", 0u) < b.second->opt_string("tray_name", 0u); });
-    std::sort(incompatible_entries.begin(), incompatible_entries.end(),
-              [](const auto &a, const auto &b) {
-                  return std::get<1>(a)->opt_string("tray_name", 0u) < std::get<1>(b)->opt_string("tray_name", 0u);
-              });
+    // No re-sort: filament_ams_list's own order (a map iterates by key) already reflects the
+    // physical layout -- an externally-attached unit sits right after the nozzle it plugs into
+    // (e.g. "1, A1, A2, 2, 3, ..."). Sorting by tray_name here used to push every "A"/"B" unit to
+    // the bottom.
 
     for (auto &entry : compatible_entries) { append_one(entry.first, *entry.second, false, false); }
 
