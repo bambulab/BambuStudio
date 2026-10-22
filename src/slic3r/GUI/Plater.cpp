@@ -17777,9 +17777,20 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
                     add_button(wxID_YES, true, _L("Sync now"));
                     add_button(wxID_NO, true, _L("Later"));
                 }
-            } dlg(q);
-            dlg.Fit();
-            if (dlg.ShowModal() == wxID_YES) {
+            };
+            auto *app_config = wxGetApp().app_config;
+            const auto choice = app_config->get("sync_before_slice_choice");
+            int result = choice == "yes" ? wxID_YES : choice == "no" ? wxID_NO : wxID_CANCEL;
+            if (result == wxID_CANCEL) {
+                SyncInfoDialog dlg(q);
+                dlg.show_dsa_button(_L("Remember my choice."));
+                result = dlg.ShowModal();
+                if (dlg.get_checkbox_state() && (result == wxID_YES || result == wxID_NO)) {
+                    app_config->set("sync_before_slice_choice", result == wxID_YES ? "yes" : "no");
+                    app_config->save();
+                }
+            }
+            if (result == wxID_YES) {
                 if (GUI::wxGetApp().sidebar().sync_extruder_list() && wxGetApp().check_slice_version_policy()) {
                     if (is_slice_all)
                         wxPostEvent(q, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
