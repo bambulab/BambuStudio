@@ -458,7 +458,7 @@ namespace Slic3r
             extder_obj.m_cur_temp = DevUtil::get_flag_bits(njon["temp"].get<int>(), 0, 16);
             extder_obj.m_target_temp = DevUtil::get_flag_bits(njon["temp"].get<int>(), 16, 16);
 
-            if(system->m_total_extder_count == 1 && njon["spre"].get<int>() == 0xffff) {
+            if(system->m_total_extder_count == 1 && DevUtil::get_flag_bits(njon["spre"].get<int>(), 0, 8) != 0xff) {
                 extder_obj.m_spre.slot_id = "";
                 extder_obj.m_spre.ams_id = "";
             } else{
@@ -466,7 +466,7 @@ namespace Slic3r
                 extder_obj.m_spre.ams_id = std::to_string(DevUtil::get_flag_bits(njon["spre"].get<int>(), 8, 8));
             }
 
-            if(system->m_total_extder_count == 1 && njon["snow"].get<int>() == 0xffff) {
+            if(system->m_total_extder_count == 1 && DevUtil::get_flag_bits(njon["snow"].get<int>(), 0, 8) != 0xff) {
                 extder_obj.m_snow.slot_id = "";
                 extder_obj.m_snow.ams_id = "";
             } else{
@@ -474,7 +474,7 @@ namespace Slic3r
                 extder_obj.m_snow.ams_id = std::to_string(DevUtil::get_flag_bits(njon["snow"].get<int>(), 8, 8));
             }
 
-            if(system->m_total_extder_count == 1 && njon["star"].get<int>() == 0xffff) {
+            if(system->m_total_extder_count == 1 && DevUtil::get_flag_bits(njon["star"].get<int>(), 0, 8) != 0xff) {
                 extder_obj.m_star.slot_id = "";
                 extder_obj.m_star.ams_id = "";
             } else{

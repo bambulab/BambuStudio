@@ -1048,14 +1048,16 @@ void DevNozzleSystemParser::sTraverseBindAmsSlot(DevNozzleSystem* system, DevNoz
 
         if (nozzle_obj.GetAddrId().has_value()) {
             // using the rack ams slot
-            for (const auto& ams_item : ams_list) {
-                if (ams_item.second->GetSlotCount() == rack->GetTotalRackNozzleCount()) {
-                    DevAmsSlotId ams_slot_id;
-                    ams_slot_id.first = ams_item.second->GetAmdIdInt();
-                    ams_slot_id.second = nozzle_obj.GetAddrId().value();
-                    if (auto ams_tray = fila_sys->GetAmsTray(std::to_string(ams_slot_id.first), std::to_string(ams_slot_id.second))) {
-                        nozzle_obj.m_bind_ams_slots = { ams_slot_id };
-                        return;
+            if (nozzle_obj.GetNozzleFlowType() != NozzleFlowType::T_FLOW) {
+                for (const auto& ams_item : ams_list) {
+                    if (ams_item.second->GetSlotCount() == rack->GetTotalRackNozzleCount()) {
+                        DevAmsSlotId ams_slot_id;
+                        ams_slot_id.first = ams_item.second->GetAmdIdInt();
+                        ams_slot_id.second = nozzle_obj.GetAddrId().value();
+                        if (auto ams_tray = fila_sys->GetAmsTray(std::to_string(ams_slot_id.first), std::to_string(ams_slot_id.second))) {
+                            nozzle_obj.m_bind_ams_slots = { ams_slot_id };
+                            return;
+                        }
                     }
                 }
             }
@@ -1238,7 +1240,7 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
                 }
             }
             if (njon.contains("snow")) {
-                if (njon["snow"].get<int>() != 0xffff) {
+                if (DevUtil::get_flag_bits(njon["snow"].get<int>(), 0, 8) != 0xff) {
                     DevAmsSlotId slot_now;
                     slot_now.second = DevUtil::get_flag_bits(njon["snow"].get<int>(), 0, 8);
                     slot_now.first = DevUtil::get_flag_bits(njon["snow"].get<int>(), 8, 8);
