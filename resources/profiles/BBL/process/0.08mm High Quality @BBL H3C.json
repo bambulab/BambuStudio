@@ -15,7 +15,6 @@
         "8000",
         "8000"
     ],
-    "enable_arc_fitting": "0",
     "enable_height_slowdown": [
         "0",
         "0",
@@ -68,6 +67,7 @@
         "150"
     ],
     "ironing_flow": "25%",
+    "line_width": "0.8",
     "monotonic_travel_into_wall": "45.0",
     "outer_wall_acceleration": [
         "4000",
