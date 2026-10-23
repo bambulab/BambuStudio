@@ -544,16 +544,24 @@ namespace Slic3r
                 if (!p_sequential_view) {
                     return;
                 }
-                if ((int)m_last_result_id != -1) {
-                    auto it = std::find_if(m_gcode_result->moves.begin(), m_gcode_result->moves.end(), [this, &p_sequential_view](auto move) {
-                        if (p_sequential_view->current.last < p_sequential_view->gcode_ids.size() && p_sequential_view->current.last >= 0) {
-                            return move.gcode_id == static_cast<uint64_t>(p_sequential_view->gcode_ids[p_sequential_view->current.last]);
-                        }
-                        return false;
-                        });
-                    if (it != m_gcode_result->moves.end())
-                        p_sequential_view->marker.update_curr_move(*it);
+                if ((int)m_last_result_id == -1 || p_sequential_view->current.last >= p_sequential_view->gcode_ids.size())
+                    return;
+                const auto&    moves    = m_gcode_result->moves;
+                const uint64_t gcode_id = static_cast<uint64_t>(p_sequential_view->gcode_ids[p_sequential_view->current.last]);
+                // This runs every frame while a slider is dragged, so look the move up through the sequential id
+                // instead of scanning all moves; step back to the first move of that gcode line like the scan did.
+                if (p_sequential_view->current.last < m_ssid_to_moveid_map.size()) {
+                    size_t move_id = m_ssid_to_moveid_map[p_sequential_view->current.last];
+                    if (move_id < moves.size() && moves[move_id].gcode_id == gcode_id) {
+                        while (move_id > 0 && moves[move_id - 1].gcode_id == gcode_id)
+                            --move_id;
+                        p_sequential_view->marker.update_curr_move(moves[move_id]);
+                        return;
+                    }
                 }
+                auto it = std::find_if(moves.begin(), moves.end(), [gcode_id](const GCodeProcessorResult::MoveVertex& move) { return move.gcode_id == gcode_id; });
+                if (it != moves.end())
+                    p_sequential_view->marker.update_curr_move(*it);
             }
 
             void BaseRenderer::load(const GCodeProcessorResult& gcode_result, const Print& print, const BuildVolume& build_volume, const std::vector<BoundingBoxf3>& exclude_bounding_box, bool initialized, ConfigOptionMode mode, bool only_gcode)

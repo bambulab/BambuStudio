@@ -314,6 +314,7 @@ namespace Slic3r {
             void LegacyRenderer::reset()
             {
                 m_moves_count = 0;
+                m_ssid_arc_points_sum.clear();
                 for (TBuffer& buffer : m_buffers) {
                     buffer.reset();
                 }
@@ -1446,6 +1447,14 @@ namespace Slic3r {
                 m_ssid_to_moveid_map.reserve(m_moves_count - biased_seams_ids.size());
                 for (size_t i = 0; i < m_moves_count - biased_seams_ids.size(); i++)
                     m_ssid_to_moveid_map.push_back(extract_move_id(i));
+                m_ssid_arc_points_sum.clear();
+                m_ssid_arc_points_sum.reserve(m_ssid_to_moveid_map.size());
+                for (size_t i = 0, sum = 0; i < m_ssid_to_moveid_map.size(); i++) {
+                    const GCodeProcessorResult::MoveVertex& move = gcode_result.moves[m_ssid_to_moveid_map[i]];
+                    if (move.is_arc_move())
+                        sum += move.interpolation_points.size();
+                    m_ssid_arc_points_sum.push_back(sum);
+                }
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 auto load_vertices_time = std::chrono::high_resolution_clock::now();
                 m_statistics.load_vertices = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
@@ -1743,6 +1752,10 @@ namespace Slic3r {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished, m_buffers size %1%!") % m_buffers.size();
                 return !m_layers.empty();
             }
+            // Upper bound of a draw made of contiguous sub paths in refresh_render_paths(). On macOS, rotating a
+            // 1005 layer plate went from 53 to 40 fps with unbounded draws and back to 52 fps with this bound.
+            static constexpr unsigned int MAX_MERGED_DRAW_INDICES = 65536;
+
             void LegacyRenderer::refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const
             {
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -2006,11 +2019,16 @@ namespace Slic3r {
                         size_t max_s_id = std::min(p_sequential_view->current.last, sub_path.last.s_id);
                         size_t min_s_id = std::max(p_sequential_view->current.first, sub_path.first.s_id);
                         unsigned int segments_count = max_s_id - min_s_id;
-                        for (size_t i = min_s_id + 1; i < max_s_id + 1; i++) {
-                            size_t move_id = m_ssid_to_moveid_map[i];
-                            const GCodeProcessorResult::MoveVertex& curr = m_gcode_result->moves[move_id];
-                            if (curr.is_arc_move()) {
-                                segments_count += curr.interpolation_points.size();
+                        if (max_s_id < m_ssid_arc_points_sum.size() && min_s_id <= max_s_id) {
+                            // arc points of the moves in (min_s_id, max_s_id]
+                            segments_count += m_ssid_arc_points_sum[max_s_id] - m_ssid_arc_points_sum[min_s_id];
+                        } else {
+                            for (size_t i = min_s_id + 1; i < max_s_id + 1; i++) {
+                                size_t move_id = m_ssid_to_moveid_map[i];
+                                const GCodeProcessorResult::MoveVertex& curr = m_gcode_result->moves[move_id];
+                                if (curr.is_arc_move()) {
+                                    segments_count += curr.interpolation_points.size();
+                                }
                             }
                         }
                         size_in_indices = buffer.indices_per_segment() * segments_count;
@@ -2020,11 +2038,20 @@ namespace Slic3r {
                     }
                     if (size_in_indices == 0)
                         continue;
-                    render_path->sizes.push_back(size_in_indices);
                     if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
                         delta_1st *= buffer.indices_per_segment();
                     }
-                    render_path->offsets.push_back(static_cast<size_t>((sub_path.first.i_id + delta_1st) * sizeof(IBufferType)));
+                    const size_t offset = static_cast<size_t>((sub_path.first.i_id + delta_1st) * sizeof(IBufferType));
+                    // Extend the previous draw when this one follows it in the index buffer: every draw of a
+                    // glMultiDrawElements call costs CPU time, a lot through the macOS OpenGL to Metal layer.
+                    // Keep the merged draws bounded though, much larger draws were slower on the GPU there.
+                    if (!render_path->offsets.empty() && render_path->offsets.back() + render_path->sizes.back() * sizeof(IBufferType) == offset &&
+                        render_path->sizes.back() + size_in_indices <= MAX_MERGED_DRAW_INDICES) {
+                        render_path->sizes.back() += size_in_indices;
+                    } else {
+                        render_path->sizes.push_back(size_in_indices);
+                        render_path->offsets.push_back(offset);
+                    }
 #if 0
                     // check sizes and offsets against index buffer size on gpu
                     GLint buffer_size;

@@ -9166,6 +9166,7 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
         layers_slider->reset_post_tick_event();
     }
 
+    bool update_marker = false;
     if (layers_slider->is_dirty()) {
         set_volumes_z_range({layers_slider->GetLowerValueD(), layers_slider->GetHigherValueD()});
         if (t_gcode_viewer.has_data()) {
@@ -9173,15 +9174,19 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
         }
         layers_slider->set_as_dirty(false);
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE));
-        t_gcode_viewer.update_marker_curr_move();
+        update_marker = true;
     }
 
     if (moves_slider->is_dirty()) {
         moves_slider->set_as_dirty(false);
         t_gcode_viewer.update_sequential_view_current((moves_slider->GetLowerValueD() - 1.0), static_cast<unsigned int>(moves_slider->GetHigherValueD() - 1.0));
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE));
-        t_gcode_viewer.update_marker_curr_move();
+        update_marker = true;
     }
+
+    // once per frame, both sliders change together while the layers slider is dragged
+    if (update_marker)
+        t_gcode_viewer.update_marker_curr_move();
 }
 
 void GLCanvas3D::_render_selection() const
