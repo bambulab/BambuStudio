@@ -135,7 +135,7 @@
         "Spiral Lift"
     ],
     "fins_extrude_safe_temp": [
-        "65"
+        "0"
     ],
     "first_x_layer_optional_fan_speed": [
         "0"
