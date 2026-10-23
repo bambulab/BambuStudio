@@ -11253,12 +11253,17 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         invalidated = background_process.apply(this->model, preset_bundle->full_config(false));
 
     if ((invalidated == Print::APPLY_STATUS_CHANGED) || (invalidated == Print::APPLY_STATUS_INVALIDATED)) {
-        // BBS: add only gcode mode
-        q->set_only_gcode(false);
         // A real slice-affecting change (only possible with printable model) means the
-        // imported .gcode.3mf is no longer the payload; clear it so send re-exports.
-        if (!model.objects.empty())
+        // imported .gcode / .gcode.3mf is no longer the payload; clear the preview-only
+        // modes so send re-exports. With an empty model the apply only reflects the
+        // preset configuration, which is not a change the user made to the imported
+        // G-code: leaving preview-only mode here would let a later switch to the
+        // preview reslice and discard the loaded G-code (see set_current_panel).
+        if (!model.objects.empty()) {
+            // BBS: add only gcode mode
+            q->set_only_gcode(false);
             q->set_using_exported_file(false);
+        }
     }
 
     //BBS: add slicing related logs
