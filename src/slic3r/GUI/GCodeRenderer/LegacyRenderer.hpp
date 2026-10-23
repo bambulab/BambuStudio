@@ -438,6 +438,9 @@ namespace Slic3r {
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
             private:
                 size_t m_moves_count{ 0 };
+                // running sum of the arc interpolation points by sequential id, so the segments of a range of
+                // moves are counted without visiting each move again on every refresh_render_paths()
+                std::vector<size_t> m_ssid_arc_points_sum;
                 std::vector<TBuffer> m_buffers{ static_cast<size_t>(EMoveType::Extrude) };
                 Layers m_layers;
 #if ENABLE_GCODE_VIEWER_STATISTICS
