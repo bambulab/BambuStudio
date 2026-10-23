@@ -98,6 +98,12 @@
     "overhang_fan_speed": [
         "50"
     ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
+    ],
     "compatible_printers": [
         "Bambu Lab H3C 0.4 nozzle"
     ],
