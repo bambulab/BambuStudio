@@ -14407,9 +14407,20 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 bool GLCanvas3D::is_flushing_matrix_error() {
 
     const auto                &project_config = wxGetApp().preset_bundle->project_config;
-    const std::vector<double> &config_matrix  = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
-    bool                       use_fast          = project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value == PrimeVolumeMode::pvmFast;
-    const std::vector<double> &config_multiplier = (project_config.option<ConfigOptionFloats>(use_fast ? "flush_multiplier_fast" : "flush_multiplier"))->values;
+    const auto                *matrix_opt     = project_config.option<ConfigOptionFloats>("flush_volumes_matrix");
+    const auto                *mode_opt       = project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode");
+    if (!matrix_opt || !mode_opt)
+        return false;
+
+    bool                       use_fast          = mode_opt->value == PrimeVolumeMode::pvmFast;
+    const auto                *multiplier_opt    = project_config.option<ConfigOptionFloats>(use_fast ? "flush_multiplier_fast" : "flush_multiplier");
+    if (!multiplier_opt)
+        return false;
+
+    const std::vector<double> &config_matrix     = matrix_opt->values;
+    const std::vector<double> &config_multiplier = multiplier_opt->values;
+    if (config_multiplier.empty() || config_matrix.empty() || config_matrix.size() % config_multiplier.size() != 0)
+        return false;
 
     for (auto multiplier : config_multiplier) {
         if (multiplier == 0 && config_matrix.size() >= config_multiplier.size() * 4) return true;
@@ -14417,6 +14428,9 @@ bool GLCanvas3D::is_flushing_matrix_error() {
 
     int  matrix_len = config_matrix.size() / config_multiplier.size();
     int  row_len    = std::sqrt(matrix_len);
+    if (matrix_len <= 0 || row_len <= 0 || row_len * row_len != matrix_len)
+        return false;
+
     for (int i = 0; i < config_matrix.size(); i++)
     {
         int relative_id = i % matrix_len;
