@@ -7755,9 +7755,11 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                     timelapse_wall = only_generate_out_wall(true);
                 }
                 finish_layer_tcr = finish_layer_new(extrude_outer_wall, layer.extruder_fill, true, wall_height, wall_reserved);
-                std::for_each(m_wipe_tower_blocks.begin(), m_wipe_tower_blocks.end(), [this](WipeTowerBlock &block) {
+                // Only a dense fill supports the layer above; a sparse grid has to be bridged.
+                const bool dense_fill = m_merged_slabs_active && layer.extruder_fill && m_adhesion && is_first_layer();
+                std::for_each(m_wipe_tower_blocks.begin(), m_wipe_tower_blocks.end(), [this, dense_fill](WipeTowerBlock &block) {
                     block.finish_depth[this->m_cur_layer_id] =
-                        (!m_merged_slabs_active || block.layer_reserved[this->m_cur_layer_id]) ? block.start_depth :
+                        (!dense_fill || block.layer_reserved[this->m_cur_layer_id]) ? block.start_depth :
                         block.start_depth + band_fill_depth(block, this->m_cur_layer_id);
                 });
             }
@@ -7913,10 +7915,15 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                 else {
                     finish_block_tcr = finish_block(block, finish_layer_filament, layer.extruder_fill);
                 }
-                // Merged slabs track the complete planned footprint. Without merging, preserve the legacy
-                // purge front so the next layer can detect which part of its wipe lines bridges a sparse grid.
-                block.finish_depth[m_cur_layer_id] = m_merged_slabs_active ? planned_depth :
-                    (block_solid ? block.start_depth + block.depth : block.cur_depth);
+                // A dense fill supports the complete footprint. A sparse grid does not, so keep the purge front
+                // and let the next layer detect which part of its wipe lines bridges the grid.
+                if (m_merged_slabs_active) {
+                    const bool dense_fill = block_solid ||
+                                            (m_adhesion && is_first_layer_for_slab(block.layer_heights[m_cur_layer_id]));
+                    block.finish_depth[m_cur_layer_id] = dense_fill ? planned_depth : std::min(block.cur_depth, planned_depth);
+                } else {
+                    block.finish_depth[m_cur_layer_id] = block_solid ? block.start_depth + block.depth : block.cur_depth;
+                }
 
                 bool has_inserted = false;
                 {
