@@ -682,7 +682,7 @@ void NozzleListTable::SetOptions(const std::vector<NozzleOption>& options,int de
 #endif
 }
 
-MultiNozzleStatusTable::MultiNozzleStatusTable(wxWindow* parent): wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+MultiNozzleStatusTable::MultiNozzleStatusTable(wxWindow* parent, const wxString& title): wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
 {
     m_badge = new ExtruderBadge(this);
 
@@ -695,7 +695,7 @@ MultiNozzleStatusTable::MultiNozzleStatusTable(wxWindow* parent): wxPanel(parent
     auto title_sizer = new wxBoxSizer(wxHORIZONTAL);
     title_panel->SetSizer(title_sizer);
 
-    Label* static_text = new Label(this, _L("Nozzle Info"));
+    Label* static_text = new Label(this, title);
     static_text->SetFont(Label::Head_13);
     static_text->SetBackgroundColour(0xEEEEEE);
 
@@ -711,7 +711,7 @@ MultiNozzleStatusTable::MultiNozzleStatusTable(wxWindow* parent): wxPanel(parent
     nozzle_area_sizer->Add(m_badge, 0, wxLEFT | wxRIGHT, FromDIP(20));
     nozzle_area_sizer->Add(m_table, 0, wxRIGHT, FromDIP(10));
 
-    main_sizer->Add(nozzle_area_sizer);
+    main_sizer->Add(nozzle_area_sizer, 0, wxALIGN_CENTER_HORIZONTAL);
     main_sizer->AddSpacer(FromDIP(5));
 
     SetSizer(main_sizer);
@@ -779,7 +779,7 @@ Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::
 
     main_sizer->Add(m_list_table, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
 
-    m_nozzle_table = new MultiNozzleStatusTable(this);
+    m_nozzle_table = new MultiNozzleStatusTable(this, _L("Nozzle Info"));
     wxBoxSizer* table_sizer = new wxBoxSizer(wxHORIZONTAL);
     table_sizer->Add(m_nozzle_table, 0, wxLEFT | wxRIGHT, FromDIP(25));
     main_sizer->Add(table_sizer, 0, wxTOP | wxBOTTOM, FromDIP(15));

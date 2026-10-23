@@ -600,6 +600,7 @@ void NozzleSettingsListDialog::create_layout(const std::vector<NozzleConfig> &le
 
     auto *main_sizer = new wxBoxSizer(wxVERTICAL);
     build_columns(main_sizer, left_seeds, right_seeds);
+    build_printer_status(main_sizer);
     build_button_bar(main_sizer);
 
     SetSizer(main_sizer);
@@ -645,6 +646,21 @@ void NozzleSettingsListDialog::build_columns(wxBoxSizer *main_sizer, const std::
     });
 }
 
+// Read-only rack of the connected printer, below the columns. Only a printer of the selected
+// preset's model with a nozzle rack qualifies; otherwise the section does not exist at all.
+void NozzleSettingsListDialog::build_printer_status(wxBoxSizer *main_sizer)
+{
+    if (!m_machine_baseline.synced) return; // no printer, or a printer of another model
+    MachineObject *obj = selected_machine();
+    if (!obj || !obj->GetNozzleSystem()) return;
+    std::shared_ptr<DevNozzleRack> rack = obj->GetNozzleSystem()->GetNozzleRack();
+    if (!rack || !rack->IsSupported()) return;
+
+    auto *status = new MultiNozzleStatusTable(this, _L("Current printer status"));
+    status->UpdateRackInfo(rack);
+    main_sizer->Add(status, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
+}
+
 void NozzleSettingsListDialog::build_button_bar(wxBoxSizer *main_sizer)
 {
     StateColor ok_bg(std::pair<wxColour, int>(ThemeColor::BrandGreenPressed, StateColor::Pressed), std::pair<wxColour, int>(ThemeColor::BrandGreenHovered, StateColor::Hovered),
@@ -684,41 +700,10 @@ void NozzleSettingsListDialog::build_button_bar(wxBoxSizer *main_sizer)
     });
 
     auto *btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    btn_sizer->Add(build_synced_hint(), 0, wxALIGN_CENTER_VERTICAL);
     btn_sizer->AddStretchSpacer();
     btn_sizer->Add(m_confirm_btn, 0, wxRIGHT, FromDIP(12));
     btn_sizer->Add(m_cancel_btn, 0);
     main_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, FromDIP(20));
-}
-
-// "Nozzle info synced, view installation guide": shown only while synced; the link opens the
-// rack's nozzle sync dialog for the selected machine.
-wxWindow *NozzleSettingsListDialog::build_synced_hint()
-{
-    m_synced_hint = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    m_synced_hint->SetBackgroundColour(*wxWHITE);
-
-    auto *text = new Label(m_synced_hint, _L("Nozzle info synced, "));
-    text->SetFont(Label::Body_13);
-    text->SetForegroundColour(ThemeColor::Grey700);
-
-    auto *link = new Label(m_synced_hint, _L("view installation guide →"));
-    link->SetFont(Label::Body_13.Underlined());
-    link->SetForegroundColour(ThemeColor::Grey700);
-    link->SetCursor(wxCursor(wxCURSOR_HAND));
-    link->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &) {
-        MachineObject *obj = selected_machine();
-        if (!obj || !obj->GetNozzleSystem()) return;
-        MultiNozzleSyncDialog dlg(this, obj->GetNozzleSystem()->GetNozzleRack());
-        dlg.ShowModal();
-    });
-
-    auto *sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(text, 0, wxALIGN_CENTER_VERTICAL);
-    sizer->Add(link, 0, wxALIGN_CENTER_VERTICAL);
-    m_synced_hint->SetSizer(sizer);
-    m_synced_hint->Hide();
-    return m_synced_hint;
 }
 
 void NozzleSettingsListDialog::update_dialog_state()
@@ -741,10 +726,9 @@ void NozzleSettingsListDialog::update_dialog_state()
     Fit();
 }
 
-// Machine-wide synced badge (top-right of the columns container) and the synced hint.
+// Machine-wide synced badge, top-right of the columns container.
 void NozzleSettingsListDialog::show_synced(bool show)
 {
-    if (m_synced_hint) m_synced_hint->Show(show);
     if (show && !m_badge && m_columns_container) {
         m_badge = new wxStaticBitmap(m_columns_container, wxID_ANY, ScalableBitmap(m_columns_container, "badge", 18).bmp());
         m_badge->SetBackgroundColour(m_columns_container->GetBackgroundColour());

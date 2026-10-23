@@ -118,7 +118,7 @@ private:
 class MultiNozzleStatusTable : public wxPanel
 {
 public:
-    MultiNozzleStatusTable(wxWindow* parent);
+    MultiNozzleStatusTable(wxWindow* parent, const wxString& title);
     void UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack);
     void MarkRelatedItems(const NozzleOption& option);
     void UnMarkRelatedItems(const NozzleOption& option);

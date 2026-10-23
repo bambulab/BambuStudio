@@ -36,12 +36,12 @@ public:
 private:
     void create_layout(const std::vector<NozzleConfig> &left_seeds, const std::vector<NozzleConfig> &right_seeds);
     void build_columns(wxBoxSizer *main_sizer, const std::vector<NozzleConfig> &left_seeds, const std::vector<NozzleConfig> &right_seeds);
-    void      build_button_bar(wxBoxSizer *main_sizer);
-    wxWindow *build_synced_hint();
+    void build_printer_status(wxBoxSizer *main_sizer);
+    void build_button_bar(wxBoxSizer *main_sizer);
     void update_dialog_state();
     void align_separator_icon();
     void on_ams_count_changed(); // relayout/grow when a column's AMS preview count changes
-    void show_synced(bool show); // synced badge + hint, shown when all extruders are synced
+    void show_synced(bool show); // synced badge, shown when all extruders are synced
     void layout_badge();
 
     // What the printer reported when this dialog opened. The synced badge shows only when the
@@ -53,8 +53,6 @@ private:
     NozzleColumn        *m_right_column{nullptr};
     CustomSeparator     *m_separator{nullptr};
     wxStaticBitmap      *m_badge{nullptr}; // machine-wide synced badge (top-right of container)
-
-    wxPanel *m_synced_hint{nullptr}; // "synced, view installation guide" line beside the buttons
 
     Button *m_confirm_btn{nullptr};
     Button *m_cancel_btn{nullptr};
