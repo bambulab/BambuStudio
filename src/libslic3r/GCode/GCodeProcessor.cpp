@@ -6638,14 +6638,6 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
         else
             return (int)(temp);
         };
-    auto get_filament_min_temperature_when_ec = [this, &get_nozzle_temp](int filament_id, int nozzle_id) {
-        if (filament_id < 0 || filament_id >= (int)filament_max_temperature_drop_when_ec.size())
-            return 0;
-        double max_temperature_drop = filament_max_temperature_drop_when_ec[filament_id];
-        if (max_temperature_drop < 0)
-            return 0;
-        return std::max(0, (int)(get_nozzle_temp(filament_id, nozzle_id, false, false) - max_temperature_drop));
-        };
 
     // Temporary workaround for X2D: when extruder types are mixed (e.g. DirectDrive + Bowden),
     // limit pre-heating target to avoid overshooting on the slower-responding extruder.
@@ -6680,11 +6672,10 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
             bool  apply_pre_cooling = !is_begin || !handle_hotend_as_extruder; // TODO(小炒肉): 暂时先通过单挤出机多喷嘴来判断
             // 单挤出机多喷嘴机型，start gcode后不降温
             bool apply_pre_heating = is_end ? false : wants_pre_heating(iter->next_filament_id);
-            // For N1X1 (handle_hotend_as_extruder), use filament-specific min temperature when
-            // last_filament_id == -1 (extruder's first use after start gcode).
-            // For other machines, fall back to original behavior: get_nozzle_temp(-1, ..., true) = 140°C.
+            // Start the first preheat calculation at 0°C when hotends are handled as extruders.
+            // Other machines retain the 140°C fallback for an unknown previous filament.
             float curr_temp = (iter->last_filament_id == -1 && handle_hotend_as_extruder) ?
-                (float)get_filament_min_temperature_when_ec(iter->next_filament_id, iter->next_nozzle_id) :
+                0.f :
                 get_nozzle_temp(iter->last_filament_id, iter->last_nozzle_id, true, false);
             float target_temp       = get_nozzle_temp(iter->next_filament_id, iter->next_nozzle_id, false, !iter->ignore_cooling_before_tower);
             // X2D temporary workaround: only apply temp offset when extruder types are mixed
