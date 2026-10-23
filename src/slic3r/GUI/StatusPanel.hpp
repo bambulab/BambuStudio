@@ -774,6 +774,10 @@ protected:
     int cali_stage;
     PrintingTaskType m_current_print_mode = PrintingTaskType::NOT_CLEAR;
 
+    bool   m_project_task_showing_task{false};
+    bool   m_project_task_need_repaint{false};
+    wxSize m_project_task_last_size;
+
     void init_scaled_buttons();
     void create_tasklist_info();
     void show_task_list_info(bool show = true);
@@ -787,6 +791,7 @@ protected:
     void on_print_error_clean(wxCommandEvent &event);
     void error_info_reset();
     void refreshProjectTaskLayout();
+    void repaint_project_task_if_needed();
     void show_recenter_dialog();
 
     /* axis control */

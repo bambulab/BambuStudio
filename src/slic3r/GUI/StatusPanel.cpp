@@ -3996,6 +3996,21 @@ void StatusPanel::refreshProjectTaskLayout()
     m_project_task_panel->Refresh();
 }
 
+void StatusPanel::repaint_project_task_if_needed()
+{
+    const wxSize size = m_project_task_panel->GetSize();
+    const bool   size_changed = size != m_project_task_last_size;
+    if (!m_project_task_need_repaint && !size_changed) return;
+
+    BOOST_LOG_TRIVIAL(info) << "repaint print task panel, showing task " << m_project_task_showing_task << ", size "
+                            << m_project_task_last_size.x << "x" << m_project_task_last_size.y << " -> " << size.x << "x" << size.y;
+    m_project_task_need_repaint = false;
+    m_project_task_last_size    = size;
+    // keep the scrolled virtual size in sync with the new panel height, as a window resize would do
+    if (size_changed) FitInside();
+    m_project_task_panel->Refresh();
+}
+
 void StatusPanel::on_print_error_clean(wxCommandEvent &event)
 {
     error_info_reset();
@@ -4230,6 +4245,7 @@ void StatusPanel::update(MachineObject *obj)
 
     // m_machine_ctrl_panel->Thaw();
     Layout();
+    repaint_project_task_if_needed();
     update_ctrl_area_masks();
 }
 
@@ -5141,6 +5157,11 @@ void StatusPanel::update_subtask(MachineObject *obj)
         update_partskip_subtask(obj);
         update_task_display_info(obj);
 
+        if (!m_project_task_showing_task) {
+            m_project_task_showing_task = true;
+            m_project_task_need_repaint = true;
+        }
+
         if (obj->is_in_prepare() || obj->print_status == "SLICING") {
             m_project_task_panel->market_scoring_show(false);
             m_project_task_panel->get_request_failed_panel()->Hide();
@@ -5366,6 +5387,11 @@ void StatusPanel::reset_printing_values()
     m_start_loading_thumbnail = false;
     m_load_sdcard_thumbnail   = false;
     skip_print_error          = 0;
+
+    if (m_project_task_showing_task) {
+        m_project_task_showing_task = false;
+        m_project_task_need_repaint = true;
+    }
 }
 
 void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
