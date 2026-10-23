@@ -305,6 +305,12 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Model* model)
 
     // sizer, m_canvas_widget
     m_canvas_widget->Bind(wxEVT_KEY_DOWN, &Preview::update_layers_slider_from_canvas, this);
+    m_canvas_widget->Bind(EVT_GLCANVAS_INITIALIZED, [this](SimpleEvent&) {
+        if (!m_deferred_load.pending)
+            return;
+        m_deferred_load.pending = false;
+        load_print(m_deferred_load.keep_z_range, m_deferred_load.only_gcode);
+    });
 
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
@@ -681,6 +687,15 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: already loaded before, return directly")%__LINE__;
         return;
     }
+
+    if (!m_canvas->is_initialized()) {
+        // Nothing can be loaded into the canvas before it is initialized, and
+        // the sliders are derived from what it loaded. Keep m_loaded_print
+        // unset and repeat this load once the canvas reports initialization.
+        m_deferred_load = DeferredLoad{ true, keep_z_range, only_gcode };
+        return;
+    }
+    m_deferred_load.pending = false;
 
     // we require that there's at least one object and the posSlice step
     // is performed on all of them(this ensures that _shifted_copies was
