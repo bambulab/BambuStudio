@@ -526,6 +526,10 @@ private:
      */
     void draw_circles();
 
+    // Remove fine-grid interface and ordinary base material already occupied by a folded interface slab.
+    // Runs after all typed areas are finalized and before later support passes read them back.
+    void resolve_material_covered_by_folded_interfaces();
+
     /*!
      * \brief Removes support areas that nothing below them can carry.
      *
