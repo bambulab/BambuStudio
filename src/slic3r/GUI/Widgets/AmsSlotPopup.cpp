@@ -55,6 +55,8 @@ void AmsSlotPopup::ensure_impl()
             if (on_reset) on_reset();
             if (m_impl) m_impl->Dismiss();
         });
+        // Built after the dialog's own dark pass, so it needs its own, as the send page's popup gets from its dialog.
+        wxGetApp().UpdateDarkUIWin(m_impl);
     }
     m_impl->set_send_win(this);
 }

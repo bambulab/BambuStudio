@@ -31,7 +31,7 @@ namespace Slic3r::GUI {
 
 static const wxColour SelectedBgColor      = ThemeColor::BrandGreen;
 static const wxColour SelectedBorderColor  = SelectedBgColor;
-static const wxColour SelectedTextColor    = ThemeColor::White;
+static const wxColour SelectedTextColor    = ThemeColor::WhiteFixed;
 static const wxColour HasNozzleBgColor     = ThemeColor::White;
 static const wxColour HasNozzleBorderColor = ThemeColor::Grey400;
 static const wxColour HasNozzleTextColor   = ThemeColor::TextPrimary;
