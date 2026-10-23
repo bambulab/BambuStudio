@@ -10784,7 +10784,7 @@ void GLCanvas3D::_render_paint_toolbar() const
 #else
     float f_scale = 1.0f;
 #endif
-    int em_unit = wxGetApp().em_unit() / 10;
+    float em_unit = wxGetApp().em_unit() / 10.0f;
 
     std::vector<std::string> colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
     int extruder_num = colors.size();
@@ -10807,8 +10807,7 @@ void GLCanvas3D::_render_paint_toolbar() const
     const float paint_btn_side = 20.0f * f_scale * em_unit;
     const ImVec2 button_size(paint_btn_side, paint_btn_side);
     const float spacing = paint_btn_side * 0.22f;
-    const float return_button_margin = 130.0f * em_unit * f_scale;
-    const float paint_to_toolbar_offset = 50.0f * em_unit * f_scale; // gap to main toolbar; reserve uses offset/2
+    const float paint_to_toolbar_offset = 50.0f * em_unit * f_scale; // gap to main toolbar
 
     const float scrollbar_size = 0.375f * button_size.x;
     const ImVec4 window_bg = m_is_dark ? ImGuiWrapper::COL_WINDOW_BG_DARK : ImGuiWrapper::COL_WINDOW_BG;
@@ -10829,23 +10828,33 @@ void GLCanvas3D::_render_paint_toolbar() const
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, scrollbar_grab);
 
     imgui.set_next_window_pos(0.5f * canvas_w, 0, ImGuiCond_Always, 0.5f, 0.0f);
-    const float main_toolbar_reserve = (float)get_main_toolbar_width() + paint_to_toolbar_offset / 2.f;
     const float min_paint_toolbar_width = 2 * spacing + button_size.x;
-    const float side_margin = std::max(return_button_margin, main_toolbar_reserve);
+    float side_margin = 0.0f;
+    if (m_assembly_steps) {
+        // Return button may be hidden; its rect is then 0 and the structure panel edge applies.
+        const float left_right_x = std::max(m_assembly_steps->get_return_toolbar_right_x(),
+                                            m_assembly_steps->get_assembly_structure_right_x());
+        if (left_right_x > 0.f)
+            side_margin = std::max(side_margin, left_right_x + spacing);
+        const float right_left_x = m_assembly_steps->get_right_overlay_left_x();
+        if (right_left_x > 0.f)
+            side_margin = std::max(side_margin, (canvas_w - right_left_x) + spacing);
+    }
     float constraint_window_width = std::max(min_paint_toolbar_width, canvas_w - 2 * side_margin);
 
     const float btn_stride_x = button_size.x + spacing;
-    int max_per_row = std::max(1, (int)std::floor((constraint_window_width - spacing) / btn_stride_x));
-    int row_count = (extruder_num + max_per_row - 1) / max_per_row;
-    if (row_count > 2) {
-        max_per_row = std::max(1, (int) std::floor((constraint_window_width - scrollbar_size - spacing) / btn_stride_x));
-        row_count = (extruder_num + max_per_row - 1) / max_per_row;
-    }
+    auto calc_max_per_row = [&](float width) {
+        return std::clamp((int)std::floor((width - spacing) / btn_stride_x), 1, 32);
+    };
+    int max_per_row = calc_max_per_row(constraint_window_width);
+    const bool need_scrollbar = extruder_num > 2 * max_per_row;
+    if (need_scrollbar)
+        max_per_row = calc_max_per_row(constraint_window_width - scrollbar_size);
     const float constraint_window_height = 2.f * button_size.y + 2.85f * spacing;
     ImGui::SetNextWindowSizeConstraints({ 0, 0 }, { constraint_window_width, constraint_window_height });
 
     int window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollWithMouse;
-    if (row_count <= 2)
+    if (!need_scrollbar)
         window_flags |= ImGuiWindowFlags_NoScrollbar;
     imgui.begin(_L("Paint Toolbar"), window_flags);
 
