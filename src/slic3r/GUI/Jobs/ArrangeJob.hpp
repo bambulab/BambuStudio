@@ -24,7 +24,42 @@ class ArrangeJob : public PlaterJob
 
     arrangement::ArrangeParams params;
     int current_plate_index = 0;
+    int m_progress_value = 0;
     Polygon bed_poly;
+
+    //BBS: pack tighter. When the outline check predicts that sparrow beats the stock
+    // result (fewer plates, or fewer parts left off the plate for a plate arrange),
+    // process() re-arranges the same items with it and keeps the better result.
+    bool     m_pack_eligible = false; // outlines collected, sparrow may run
+    bool     m_packing       = false; // sparrow phase reached; a cancel keeps the stock result
+    int      m_stock_score   = -1;
+    int      m_packed_score  = -1;    // >= 0 if the sparrow result was kept
+    int      m_stock_unplaced  = 0;   // parts a full arrange left off every plate
+    int      m_packed_unplaced = 0;
+    ArrangePolygons m_stock_selected; // kept for the undo step
+    wxString m_progress_label;
+
+    // Lower is better: plates used, or parts left off the plate for a plate arrange.
+    int         score(const ArrangePolygons &selected, const ArrangePolygons &unselected) const;
+    int         unplaced(const ArrangePolygons &aps) const;
+    bool        predict_better(int stock_score, double bed_area) const;
+    std::string done_message() const;
+    void        pack_tighter(ArrangePolygons &selected, const Points &bedpts);
+    void        apply_result(ArrangePolygons &selected, ArrangePolygons &unselected, ArrangePolygons &locked, ArrangePolygons &unprintable);
+
+    // Live view of the sparrow phase. Applied from the transformations saved in
+    // prepare(), which finalize() restores before applying the result.
+    ArrangePolygons m_live_aps;
+    std::vector<arrangement::ArrangeParams::Pose> m_live_stock; // where parts wait until sparrow takes them
+    std::vector<std::pair<ModelInstance *, Geometry::Transformation>> m_live_restore;
+    // Prime tower state as prepare() found it; restore_live() puts it back with the parts.
+    std::vector<double> m_live_tower_x, m_live_tower_y;
+    std::vector<Vec2d>  m_live_tower_pos;
+    std::vector<bool>   m_live_tower_placed;
+    std::atomic<bool> m_live_open{false};
+    bool m_live_used = false;
+    void apply_live(const std::vector<arrangement::ArrangeParams::Pose> &poses);
+    void restore_live();
 
     // clear m_selected and m_unselected, reserve space for next usage
     void clear_input();
