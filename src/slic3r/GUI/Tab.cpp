@@ -2448,6 +2448,47 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         m_support_combo_baseline.seed(interface_filament_id, plate_idx, found_recommendation, recommended_conf);
     }
 
+    // Optional suggestion: lowering top surface speed when ironing is enabled.
+    // TabPrintModel writes the accepted change back through apply()/reload_config, so a
+    // global ironing toggle recommends the global top surface speed, while an object-level
+    // ironing override only writes the object's top surface speed.
+    if (opt_key == "ironing_type" && !m_postpone_update_ui) {
+        auto const &applying = m_config_manipulation.applying_keys();
+        if (std::find(applying.begin(), applying.end(), opt_key) == applying.end() &&
+            m_config->has("ironing_type") && m_config->has("top_surface_speed") &&
+            m_config->opt_enum<IroningType>("ironing_type") != IroningType::NoIroning) {
+            auto *speed_opt = m_config->option<ConfigOptionFloatsNullable>("top_surface_speed");
+            if (speed_opt && !speed_opt->values.empty()) {
+                static constexpr double recommended_speed = 100.0;
+                std::vector<double>     new_values        = speed_opt->values;
+                bool                    need_change       = false;
+                for (size_t i = 0; i < new_values.size(); ++i) {
+                    if (speed_opt->is_nil(i))
+                        continue;
+                    if (new_values[i] > recommended_speed + EPSILON) {
+                        new_values[i] = recommended_speed;
+                        need_change   = true;
+                    }
+                }
+                if (need_change) {
+                    wxString msg_text = _L("When enabling ironing, We recommend the following settings:");
+                    msg_text += "\n\n";
+                    // Wide literal: a narrow U+2022 escape would be UTF-8 bytes under /utf-8,
+                    // then re-decoded by wxConvLibc with the system ANSI code page.
+                    msg_text += L"  • " + _L("Top surface") + wxString::Format(": %g ", recommended_speed) + _L("mm/s") + "\n";
+                    msg_text += "\n" + _L("Do you want to apply these settings?");
+                    MessageDialog dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
+                    if (dialog.ShowModal() == wxID_YES) {
+                        DynamicPrintConfig new_conf;
+                        new_conf.set_key_value("top_surface_speed", new ConfigOptionFloatsNullable(new_values));
+                        m_config_manipulation.apply(m_config, &new_conf);
+                    }
+                    wxGetApp().plater()->update();
+                }
+            }
+        }
+    }
+
     // Suggest disabling thick bridges for zero-gap support-material interface
     if (opt_key == "thick_bridges" || opt_key == "support_top_z_distance" || opt_key == "enable_support" ||
         opt_key == "enforce_support_layers" || opt_key == "support_filament") {
