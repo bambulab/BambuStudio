@@ -4450,6 +4450,13 @@ std::string PrintStatistics::finalize_output_path(const std::string &path_in) co
 #define JSON_LAYER_REGION_UNSUPPORTED_BRIDGE_EDGES    "unsupported_bridge_edges"
 #define JSON_LAYER_REGION_PERIMETERS                  "perimeters"
 #define JSON_LAYER_REGION_FILLS                  "fills"
+#define JSON_LAYER_REGION_ADAPTIVE_MERGE_PATCHES "adaptive_merge_patches"
+#define JSON_ADAPTIVE_MERGE_BOTTOM_IDX           "bottom_idx"
+#define JSON_ADAPTIVE_MERGE_TOP_IDX              "top_idx"
+#define JSON_ADAPTIVE_MERGE_GROUP_TOP            "group_top"
+#define JSON_ADAPTIVE_MERGE_MERGED_HEIGHT        "merged_height"
+#define JSON_ADAPTIVE_MERGE_AREA                 "area"
+#define JSON_ADAPTIVE_MERGE_SUPPRESSED_AREA      "suppressed_area"
 
 
 
@@ -4652,6 +4659,31 @@ static bool convert_extrusion_to_json(json& entity_json, json& entity_paths_json
     return true;
 }
 
+static json adaptive_merge_patch_to_json(const AdaptiveMergePatch &patch)
+{
+    json area_json = json::array();
+    for (const ExPolygon &expolygon : patch.area()) {
+        json expolygon_json = expolygon;
+        area_json.push_back(std::move(expolygon_json));
+    }
+
+    json patch_json;
+    patch_json[JSON_ADAPTIVE_MERGE_BOTTOM_IDX]    = patch.bottom_idx;
+    patch_json[JSON_ADAPTIVE_MERGE_TOP_IDX]       = patch.top_idx;
+    patch_json[JSON_ADAPTIVE_MERGE_GROUP_TOP]     = patch.group_top;
+    patch_json[JSON_ADAPTIVE_MERGE_MERGED_HEIGHT] = patch.merged_height;
+    patch_json[JSON_ADAPTIVE_MERGE_AREA]          = std::move(area_json);
+    if (patch.has_suppressed_area()) {
+        json suppressed_json = json::array();
+        for (const ExPolygon &expolygon : patch.suppressed_area()) {
+            json expolygon_json = expolygon;
+            suppressed_json.push_back(std::move(expolygon_json));
+        }
+        patch_json[JSON_ADAPTIVE_MERGE_SUPPRESSED_AREA] = std::move(suppressed_json);
+    }
+    return patch_json;
+}
+
 static void to_json(json& j, const LayerRegion& layer_region) {
     json unsupported_bridge_edges_json = json::array(), slices_surfaces_json = json::array(), raw_slices_json = json::array(), thin_fills_json, thin_fill_entities_json = json::array();
     json fill_expolygons_json = json::array(), fill_no_overlap_expolygons_json = json::array(), fill_surfaces_json = json::array(), perimeters_json, perimeter_entities_json = json::array(), fills_json, fill_entities_json = json::array();
@@ -4748,6 +4780,11 @@ static void to_json(json& j, const LayerRegion& layer_region) {
     fills_json[JSON_EXTRUSION_ENTITIES] = std::move(fill_entities_json);
     j.push_back({JSON_LAYER_REGION_FILLS, std::move(fills_json)});
 
+    json adaptive_merge_patches_json = json::array();
+    for (const AdaptiveMergePatch &patch : layer_region.adaptive_merge_patches)
+        adaptive_merge_patches_json.push_back(adaptive_merge_patch_to_json(patch));
+    j.push_back({JSON_LAYER_REGION_ADAPTIVE_MERGE_PATCHES, std::move(adaptive_merge_patches_json)});
+
     return;
 }
 
@@ -4803,6 +4840,34 @@ static void from_json(const json& j, ExPolygon& polygon) {
         polygon.holes.push_back(std::move(poly));
     }
     return;
+}
+
+static AdaptiveMergePatch adaptive_merge_patch_from_json(const json &patch_json)
+{
+    AdaptiveMergePatch patch;
+    patch.bottom_idx    = static_cast<size_t>(patch_json[JSON_ADAPTIVE_MERGE_BOTTOM_IDX].get<std::uint64_t>());
+    patch.top_idx       = static_cast<size_t>(patch_json[JSON_ADAPTIVE_MERGE_TOP_IDX].get<std::uint64_t>());
+    patch.group_top     = patch_json[JSON_ADAPTIVE_MERGE_GROUP_TOP].get<bool>();
+    patch.merged_height = patch_json[JSON_ADAPTIVE_MERGE_MERGED_HEIGHT].get<double>();
+
+    ExPolygons area;
+    for (const json &expolygon_json : patch_json[JSON_ADAPTIVE_MERGE_AREA]) {
+        ExPolygon expolygon;
+        expolygon = expolygon_json;
+        area.push_back(std::move(expolygon));
+    }
+    patch.set_area(std::move(area));
+
+    if (patch_json.contains(JSON_ADAPTIVE_MERGE_SUPPRESSED_AREA)) {
+        ExPolygons suppressed;
+        for (const json &expolygon_json : patch_json[JSON_ADAPTIVE_MERGE_SUPPRESSED_AREA]) {
+            ExPolygon expolygon;
+            expolygon = expolygon_json;
+            suppressed.push_back(std::move(expolygon));
+        }
+        patch.set_suppressed_area(std::move(suppressed));
+    }
+    return patch;
 }
 
 static void from_json(const json& j, Surface& surf) {
@@ -5042,6 +5107,13 @@ static void convert_layer_region_from_json(const json& j, LayerRegion& layer_reg
             ::sprintf(error_buf, "Error while parsing fills at layer %zu, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
             throw Slic3r::FileIOError(error_buf);
         }
+    }
+
+    if (j.contains(JSON_LAYER_REGION_ADAPTIVE_MERGE_PATCHES)) {
+        const json &patches_json = j[JSON_LAYER_REGION_ADAPTIVE_MERGE_PATCHES];
+        layer_region.adaptive_merge_patches.reserve(patches_json.size());
+        for (const json &patch_json : patches_json)
+            layer_region.adaptive_merge_patches.push_back(adaptive_merge_patch_from_json(patch_json));
     }
 
     return;
@@ -5578,6 +5650,23 @@ int Print::load_cached_data(const std::string& directory)
                     }
                 }
             );
+
+            // Older caches predate adaptive_merge_patches. Rebuild once so the following export stores them.
+            // A cache that already has the key, including an empty list, is used as stored.
+            bool saw_region = false;
+            bool adaptive_merge_cached = false;
+            const json &layers_json = root_json[JSON_LAYERS];
+            for (int index = 0; index < layer_count && ! saw_region; ++ index) {
+                const json &regions_json = layers_json[index][JSON_LAYER_REGIONS];
+                if (regions_json.empty())
+                    continue;
+                saw_region = true;
+                adaptive_merge_cached = regions_json[0].contains(JSON_LAYER_REGION_ADAPTIVE_MERGE_PATCHES);
+            }
+            if (saw_region && ! adaptive_merge_cached) {
+                BOOST_LOG_TRIVIAL(info) << "slice cache has no adaptive merge patches, recomputing them for " << name;
+                obj->compute_adaptive_merge_groups();
+            }
 
             //support layers
             Layer* previous_support_layer = NULL;
