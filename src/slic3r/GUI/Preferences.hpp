@@ -81,6 +81,11 @@ public:
     ::CheckBox * m_developer_mode_ckeckbox   = {nullptr};
     ::CheckBox * m_internal_developer_mode_ckeckbox = {nullptr};
     ::CheckBox * m_dark_mode_ckeckbox        = {nullptr};
+    ::CheckBox * m_privacy_checkbox          = {nullptr};
+
+    // Re-apply the minor UEP lock to the "Join User Experience Program" checkbox
+    // after an async decision update, so an open Preferences page reflects it live.
+    void refresh_privacy_checkbox();
 
     wxString m_developer_mode_def;
     wxString m_internal_developer_mode_def;

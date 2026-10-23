@@ -197,6 +197,10 @@ namespace GUI {
 
 class MainFrame;
 
+#ifndef BBL_ENABLE_MINORS_DECISION
+#define BBL_ENABLE_MINORS_DECISION 1
+#endif
+
 void start_ping_test()
 {
     return;
@@ -4969,13 +4973,6 @@ bool GUI_App::is_monitor_ctrl_blocked(MonitorCtrlId which)
     }
 }
 
-// Master switch for the "minors decision" feature: device-page control-area
-// disabling + the Preferences "User Experience Program" gate.
-// Override with -DBBL_ENABLE_MINORS_DECISION=0 to disable the whole feature.
-#ifndef BBL_ENABLE_MINORS_DECISION
-#define BBL_ENABLE_MINORS_DECISION 1
-#endif
-
 bool GUI_App::is_monitor_ctrl_force_disabled()
 {
 #if !BBL_ENABLE_MINORS_DECISION
@@ -5098,23 +5095,92 @@ void GUI_App::fetch_minors_decisions()
             }
             CallAfter([this, remote_ctrl, uep_gate, maker_world, maker_lab, maker_supply] {
                 m_remote_control_minor_decision.store(remote_ctrl);
-                m_uep_family_gate.store(uep_gate);
                 m_access_maker_world.store(maker_world);
                 m_access_maker_lab.store(maker_lab);
                 m_access_maker_supply.store(maker_supply);
                 refresh_monitor_ctrl_area_ui();
-                if (uep_gate == UepFamilyGate::ForceOff) {
-                    if (app_config && app_config->get("firstguide", "privacyuse") == "true") {
-                        app_config->set("firstguide", "privacyuse", false);
-                        app_config->save();
-                    }
-                } else if (uep_gate == UepFamilyGate::ForceOn) {
-                    if (app_config && app_config->get("firstguide", "privacyuse") != "true") {
-                        app_config->set("firstguide", "privacyuse", true);
-                        app_config->save();
+                // force=true: always re-apply config + telemetry on the full login/restart
+                // fetch (preserves the existing studio_launch-on-login behavior), and
+                // reconcile the UEP poll timer / open Preferences checkbox.
+                apply_uep_gate(uep_gate, /*force=*/true);
+            });
+        });
+#endif
+}
+
+// Apply a UEP (Join User Experience Program) gate value on the UI thread.
+// Returns true if the gate value actually changed. When force is false (the
+// Preferences-open path) an unchanged gate is a no-op, so telemetry is only
+// re-applied when the policy actually changes. Must run on the UI thread.
+bool GUI_App::apply_uep_gate(UepFamilyGate new_gate, bool force)
+{
+#if !BBL_ENABLE_MINORS_DECISION
+    return false;
+#else
+    UepFamilyGate old_gate = m_uep_family_gate.load();
+    bool changed = (old_gate != new_gate);
+    if (!force && !changed)
+        return false;
+
+    m_uep_family_gate.store(new_gate);
+    if (new_gate == UepFamilyGate::ForceOff) {
+        if (app_config && app_config->get("firstguide", "privacyuse") == "true") {
+            app_config->set("firstguide", "privacyuse", false);
+            app_config->save();
+        }
+    } else if (new_gate == UepFamilyGate::ForceOn) {
+        if (app_config && app_config->get("firstguide", "privacyuse") != "true") {
+            app_config->set("firstguide", "privacyuse", true);
+            app_config->save();
+        }
+    }
+    check_track_enable();
+    if (m_preferences_dialog)
+        m_preferences_dialog->refresh_privacy_checkbox();
+    if (changed) {
+        BOOST_LOG_TRIVIAL(info) << "apply_uep_gate: UEP family gate changed "
+            << static_cast<int>(old_gate) << " -> " << static_cast<int>(new_gate);
+    }
+    return changed;
+#endif
+}
+
+void GUI_App::fetch_uep_decision()
+{
+#if !BBL_ENABLE_MINORS_DECISION
+    return;
+#else
+    if (!is_user_login()) return;
+
+    if (m_minors_decisions_thread.joinable())
+        m_minors_decisions_thread.join();
+    m_minors_decisions_thread = Slic3r::create_thread(
+        [this] {
+            std::vector<MinorsDecisionResult> decisions;
+            int ret = m_agent->get_minors_decisions({MINORS_SCENE_JOIN_USER_EXPERIENCE_PROGRAM}, &decisions);
+
+            bool have_gate = false;
+            UepFamilyGate uep_gate = UepFamilyGate::Free;
+            if (ret != 0) {
+                BOOST_LOG_TRIVIAL(warning) << "fetch_uep_decision: request failed " << KV(log_key::ret, ret) << "keep last known gate";
+            } else {
+                for (const auto& d : decisions) {
+                    if (d.scene_code == MINORS_SCENE_JOIN_USER_EXPERIENCE_PROGRAM) {
+                        // Server-side casing of family_link_decision isn't guaranteed, normalize before comparing.
+                        std::string family_link_decision = boost::algorithm::to_lower_copy(d.family_link_decision);
+                        if (family_link_decision == FAMILY_LINK_DECISION_ALLOW)
+                            uep_gate = UepFamilyGate::ForceOn;
+                        else if (family_link_decision == FAMILY_LINK_DECISION_DENY)
+                            uep_gate = UepFamilyGate::ForceOff;
+                        else
+                            uep_gate = UepFamilyGate::Free; // no_config / empty (adult) / unknown
+                        have_gate = true;
                     }
                 }
-                check_track_enable();
+            }
+            CallAfter([this, have_gate, uep_gate] {
+                if (have_gate)
+                    apply_uep_gate(uep_gate, /*force=*/false);
             });
         });
 #endif
@@ -5901,6 +5967,7 @@ void GUI_App::check_track_enable()
     }
     else {
         if (m_agent) {
+            m_agent->track_enable(false);
             m_agent->track_remove_files();
         }
     }

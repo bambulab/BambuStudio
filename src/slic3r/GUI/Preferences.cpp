@@ -1152,6 +1152,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     //// for debug mode
     if (param == "developer_mode") { m_developer_mode_ckeckbox = checkbox; }
     if (param == "internal_developer_mode") { m_internal_developer_mode_ckeckbox = checkbox; }
+    if (param == "privacyuse") { m_privacy_checkbox = checkbox; }
 
 
     checkbox->SetToolTip(tooltip);
@@ -1278,6 +1279,11 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
 
         event.Skip();
         });
+
+    // Register so an async UEP decision update can refresh the checkbox live, and
+    // re-fetch the UEP decision on open to keep telemetry enable/disable in sync.
+    wxGetApp().set_preferences_dialog(this);
+    wxGetApp().fetch_uep_decision();
 }
 
 void PreferencesDialog::create()
@@ -1350,8 +1356,21 @@ void PreferencesDialog::create()
 
 PreferencesDialog::~PreferencesDialog()
 {
+    wxGetApp().set_preferences_dialog(nullptr);
     m_radio_group.DeleteContents(true);
     m_hash_selector.clear();
+}
+
+void PreferencesDialog::refresh_privacy_checkbox()
+{
+    if (!m_privacy_checkbox) return;
+    if (wxGetApp().is_uep_force_disabled()) {
+        m_privacy_checkbox->SetValue(wxGetApp().is_uep_force_checked());
+        m_privacy_checkbox->Enable(false);
+    } else {
+        m_privacy_checkbox->Enable(true);
+        m_privacy_checkbox->SetValue(app_config->get("firstguide", "privacyuse") == "true");
+    }
 }
 
 void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect) {
