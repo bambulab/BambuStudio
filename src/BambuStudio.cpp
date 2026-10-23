@@ -2673,6 +2673,10 @@ int CLI::run(int argc, char **argv)
             flush_and_exit(CLI_CONFIG_FILE_ERROR);
         }
     }
+    const bool cli_has_map = m_extra_config.has("filament_diameter_map");
+    ConfigOptionStrings *dia_map = cli_has_map
+        ? m_extra_config.option<ConfigOptionStrings>("filament_diameter_map")
+        : m_print_config.option<ConfigOptionStrings>("filament_diameter_map");
     for (int index = 0; index < load_filament_count; index++) {
         const std::string& file = load_filaments[index];
         current_index++;
@@ -2725,6 +2729,12 @@ int CLI::run(int argc, char **argv)
                     }
                 }
             }
+
+            // If the CLI does not pass the argument, use the filament preset's diameter directly.
+            if (!cli_has_map && (dia_map != nullptr) && (static_cast<size_t>(index) < dia_map->values.size())) {
+                dia_map->values[index] = default_filament_nozzle_diameter(config_name, config);
+            }
+
             load_filaments_inherit.push_back(inherits);
             load_filaments_id.push_back(filament_id);
             load_filaments_name.push_back(config_name);
@@ -2746,14 +2756,7 @@ int CLI::run(int argc, char **argv)
 
                 load_filaments_set.emplace(default_load_fila_name);
 
-                // Per-slot defaults that follow default_load_fila_config. Add further empty-slot
-                // fallbacks here so they stay with the filament preset they come from.
-                // Command-line filament_diameter_map is filled in place; it is copied onto
-                // m_print_config once after this loop.
-                const bool cli_has_map = m_extra_config.has("filament_diameter_map");
-                ConfigOptionStrings *dia_map = cli_has_map
-                    ? m_extra_config.option<ConfigOptionStrings>("filament_diameter_map")
-                    : m_print_config.option<ConfigOptionStrings>("filament_diameter_map");
+                // Fill in default values for filament_diameter_map.
                 if (dia_map != nullptr && static_cast<size_t>(index) < dia_map->values.size()) {
                     if (default_filament_diameter.empty()) {
                         BOOST_LOG_TRIVIAL(warning) << boost::format(
