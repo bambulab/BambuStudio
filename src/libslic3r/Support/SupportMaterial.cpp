@@ -1659,6 +1659,13 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
 
         float lower_layer_offset = 0;
         const coordf_t xy_expansion       = scale_(object_config.support_expansion.value);
+        const auto expand_and_trim = [xy_expansion](const Polygons &src, const Polygons &trimming) {
+            if (xy_expansion > 0)
+                return safe_offset_inc(src, xy_expansion, trimming, scale_(0.5), 0, 1);
+            if (xy_expansion < 0)
+                return diff(offset(src, xy_expansion), trimming);
+            return diff(src, trimming);
+        };
         for (LayerRegion* layerm : layer.regions()) {
             Polygons layerm_polygons = to_polygons(layerm->slices.surfaces);
 
@@ -1690,14 +1697,8 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
                         slices_margin.polygons);
                 }
 #else
-                if (xy_expansion > 0) {
-                    // Step-wise expand against slices_margin (lower layer outline + gap_xy) so that the
-                    // expansion cannot bridge over thin model walls into regions that don't need support.
-                    diff_polygons = safe_offset_inc(diff_polygons, xy_expansion, slices_margin.polygons,
-                                                    scale_(0.5), 0, 1);
-                } else {
-                    diff_polygons = diff(offset(diff_polygons, xy_expansion), slices_margin.polygons);
-                }
+                // Step-wise expansion prevents crossing thin model walls into regions that do not need support.
+                diff_polygons = expand_and_trim(diff_polygons, slices_margin.polygons);
 #endif
             }
             polygons_append(contact_polygons, diff_polygons);
@@ -1720,9 +1721,12 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
                       { { union_safety_offset_ex(enforcer_polygons) }, { "new_contacts",               "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
 #endif /* SLIC3R_DEBUG */
                 if (!enforcer_polygons.empty()) {
-                    polygons_append(overhang_polygons, enforcer_polygons);
                     slices_margin_update(std::min(lower_layer_offset, float(scale_(gap_xy))), no_interface_offset);
-                    polygons_append(contact_polygons, diff(enforcer_polygons, slices_margin.all_polygons.empty() ? slices_margin.polygons : slices_margin.all_polygons));
+                    const Polygons &enforcer_slices_margin =
+                        slices_margin.all_polygons.empty() ? slices_margin.polygons : slices_margin.all_polygons;
+                    enforcer_polygons = expand_and_trim(enforcer_polygons, enforcer_slices_margin);
+                    polygons_append(overhang_polygons, enforcer_polygons);
+                    polygons_append(contact_polygons, enforcer_polygons);
                 }
             }
     }
