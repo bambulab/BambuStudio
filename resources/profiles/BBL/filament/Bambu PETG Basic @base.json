@@ -45,11 +45,11 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
-    "first_x_layer_fan_speed": [
-        "0"
-    ],
     "fins_extrude_safe_temp": [
         "71"
+    ],
+    "first_x_layer_fan_speed": [
+        "0"
     ],
     "hot_plate_temp": [
         "70"
@@ -76,7 +76,7 @@
         "12"
     ],
     "temperature_vitrification": [
-        "60"
+        "55"
     ],
     "textured_plate_temp": [
         "70"
