@@ -1427,6 +1427,12 @@ wxWindow *PreferencesDialog::create_general_tab()
     auto item_beta_version_update = create_item_checkbox(_L("Support beta version update."), scrolled, _L("With this option enabled, you can receive beta version updates."), 50,
                                                          "enable_beta_version_update");
 
+#ifdef __linux__
+    auto item_native_wayland = create_item_checkbox(_L("Native Wayland (experimental)") + " (" + _L("Take effect after restarting Studio") + ")", scrolled,
+                                                    _L("Run as a native Wayland client in Wayland sessions instead of through XWayland. Has no effect in X11 sessions or when GDK_BACKEND is set."), 50,
+                                                    "use_native_wayland");
+#endif
+
     // User Experience Improvement Program + "what data" hyperlink.
     auto  item_priv_policy = create_item_checkbox(_L("Join the User Experience Improvement Program."), scrolled, "", 50, "privacyuse");
     auto *hyperlink        = new Label(scrolled, wxString::FromUTF8(_CTX_utf8(L_CONTEXT("Learn more", "Preferences"), "Preferences")));
@@ -1458,6 +1464,9 @@ wxWindow *PreferencesDialog::create_general_tab()
     sizer->Add(wrap_option_row(scrolled, item_fila_manager), flags);
     sizer->Add(wrap_option_row(scrolled, item_multi_machine), flags);
     sizer->Add(wrap_option_row(scrolled, item_beta_version_update), flags);
+#ifdef __linux__
+    sizer->Add(wrap_option_row(scrolled, item_native_wayland), flags);
+#endif
     sizer->Add(wrap_option_row(scrolled, item_priv_policy), flags);
     sizer->Add(wrap_option_row(scrolled, item_downloads), flags);
     scrolled->SetSizer(sizer);
