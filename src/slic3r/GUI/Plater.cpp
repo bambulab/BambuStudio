@@ -2322,7 +2322,9 @@ static bool select_printer_variant_for_diameter(const std::string &diameter)
     return printer_tab->select_preset(target->name);
 }
 
-// Keep multi-diameter only when the user landed on several diameters and the machine can hold them.
+// Only a machine that cannot hold multi-diameter mode takes the project out of it. How many diameters the
+// filaments land on says nothing about the mode: that is the user's switch, and a rack that really carries
+// a single diameter is handled where the machine's nozzles are read, in sync_extruder_list().
 // The variant the user picked is applied later by apply_migration_printer_variant().
 void Sidebar::priv::apply_migration_diameter_mode(const PendingNozzleMigration &migration)
 {
@@ -2346,11 +2348,10 @@ void Sidebar::priv::apply_migration_diameter_mode(const PendingNozzleMigration &
         return;
     }
 
-    if (target_has_rack) {
-        if (!apply_multi_nozzle_diameter_mode(false))
-            BOOST_LOG_TRIVIAL(warning) << "could not turn multi_nozzle_diameter_mode off";
+    // A rack machine can hold the mode, so the project keeps what it was saved with, however few diameters
+    // its filaments use.
+    if (target_has_rack)
         return;
-    }
 
     // apply_multi_nozzle_diameter_mode(false) insists on a rack's 0.4 variant and rolls the gate
     // back on if that select fails. A fixed-extruder target must clear the flag regardless.
