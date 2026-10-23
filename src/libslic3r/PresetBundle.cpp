@@ -3034,10 +3034,17 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 // (e.g. "GFG99" / Generic PETG) -- a real, valid match, just not a specific brand.
                 // That's not evidence of an actual filament swap, so don't let it downgrade an
                 // existing, more specific preset of the very same filament type.
+                // Only the plain "Generic <type>" catch-all qualifies: a variant such as
+                // "Generic PLA Silk" (GFL96) is a deliberate choice made on the printer, and the
+                // project's PLA Basic in the same slot is not a more specific version of it.
+                // (filament_type may already carry a "Generic " prefix from the fallback above.)
+                const std::string tray_type = ams.opt_string("filament_type", 0u);
+                const std::string catch_all = "Generic " + tray_type;
                 auto *iter_vendor = iter->config.option<ConfigOptionStrings>("filament_vendor");
-                bool  iter_is_generic = iter_vendor && !iter_vendor->values.empty() && iter_vendor->values[0] == "Generic";
-                if (iter_is_generic && !filament_type.empty())
-                    prev = find_prev_assignment(ams_filament_presets.size(), filament_type, filament_color, accept_any, false);
+                bool  iter_is_generic = iter_vendor && !iter_vendor->values.empty() && iter_vendor->values[0] == "Generic" &&
+                                        (iter->name == catch_all || boost::algorithm::starts_with(iter->name, catch_all + " @"));
+                if (iter_is_generic && !tray_type.empty())
+                    prev = find_prev_assignment(ams_filament_presets.size(), tray_type, filament_color, accept_any, false);
             }
             if (!prev.empty())
                 preset_name_to_use = prev;
