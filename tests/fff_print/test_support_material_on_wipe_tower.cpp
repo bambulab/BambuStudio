@@ -166,3 +166,17 @@ TEST_CASE("support_material_on_wipe_tower: support same as model body", "[Suppor
 
     REQUIRE_FALSE(print.support_material_on_wipe_tower());
 }
+
+TEST_CASE("unused filament slot does not generate a wipe tower", "[SupportMaterialOnWipeTower]")
+{
+    DynamicPrintConfig config = make_wipe_tower_support_config(2);
+    config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlTraditional));
+
+    Print print;
+    Model model;
+    init_support_on_wipe_tower_print(print, model, config, 1);
+
+    REQUIRE(print.config().filament_diameter.size() == 2);
+    REQUIRE(print.extruders(true).size() == 1);
+    REQUIRE_FALSE(print.has_wipe_tower());
+}

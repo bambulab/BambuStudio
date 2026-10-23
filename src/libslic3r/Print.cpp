@@ -3589,7 +3589,7 @@ bool Print::has_wipe_tower() const
         if (enable_timelapse_print())
             return true;
 
-        return !m_config.spiral_mode.value && m_config.filament_diameter.values.size() > 1;
+        return !m_config.spiral_mode.value && this->extruders(true).size() > 1;
     }
     return false;
 }
