@@ -28,6 +28,7 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <optional>
 
 //#include "BedShapeDialog.hpp"
 #include "Event.hpp"
@@ -508,7 +509,7 @@ public:
 
 	std::vector<wxString>  generate_extruder_options();
 	std::vector<NozzleVariantSwitcher::Option> generate_nozzle_variant_options();
-    // 1-based slot indices in extruder_full_stat[extruder_id] whose volume_type
+    // 1-based slot indices in the nozzle inventory of extruder_id whose volume_type
     // matches `flow_type` and whose diameter matches the printer preset's
     // nozzle_diameter[extruder_id]. Reflects the user's saved nozzle inventory
     // (Extruder Settings dialog), independent of any connected machine.
@@ -747,14 +748,13 @@ private:
     std::vector<int> 	 m_extruder_type;
     std::string          m_base_preset_name;
     std::string          m_base_preset_model;
-    bool                 m_full_stat_prebuilt_for_model_change = false;
 
     /**
-     * \brief Switch one extruder's nozzle volume type without remembering it for the printer
+     * \brief Show the nozzle count and volume type of one extruder from the nozzle inventory
      *
-     * Used while loading a preset, where the type comes from defaults rather than the user.
+     * \param extruder_id  0-based extruder
      */
-    void apply_extruder_volume_type(int extruder_id, NozzleVolumeType type);
+    void refresh_nozzle_display(int extruder_id);
 
 public:
 	ScalableButton*	m_reset_to_filament_color = nullptr;
@@ -787,24 +787,34 @@ public:
 	void		extruders_count_changed(size_t extruders_count);
 	PageShp		build_kinematics_page();
 	void		build_unregular_pages(bool from_initial_build = false);
-	// Multi-diameter: refresh extruder_full_stat to the freshly selected printer *before* update_compatible
-	// consumes it. on_preset_loaded() rebuilds it too, but only afterwards, which would let the
-	// compatibility / nozzle-diameter derivation read the previous printer's stat during a model switch.
-	// Only rebuilds on an actual model change (matching on_preset_loaded's guard) and never updates
-	// m_base_preset_model, so the full UI refresh in on_preset_loaded still runs.
-	void		refresh_extruder_full_stat_for_model_change();
+	/**
+	 * \brief The selected printer changed; let the nozzles follow it
+	 *
+	 * Call it before update_compatible(), which reads the nozzles.
+	 */
+	void		refresh_nozzles_for_printer();
 	void		on_preset_loaded() override;
 	void		init_options_list() override;
 	void		msw_rescale() override;
 	bool 		supports_printer_technology(const PrinterTechnology /* tech */) const override { return true; }
 
 	/**
-	 * \brief Switch one extruder's nozzle volume type and remember it for the current printer
+	 * \brief The user picked the volume type of an extruder with one nozzle slot
+	 *
+	 * An extruder with a nozzle rack takes its type from its slots; there this does nothing.
 	 *
 	 * \param extruder_id  0-based extruder id, -1 for a single extruder printer
 	 * \param type         new volume type of the extruder
 	 */
 	void		set_extruder_volume_type(int extruder_id, NozzleVolumeType type);
+
+	/**
+	 * \brief Refresh everything that follows the nozzles, after any change of preset_bundle->nozzle_inventory
+	 *
+	 * \param extruder_id  0-based extruder the change touched; null refreshes every extruder. An edit of one
+	 *                     extruder must pass it, so the per-filament flow choices on the other extruders stay.
+	 */
+	void		on_nozzles_changed(std::optional<int> extruder_id = std::nullopt);
 
 	wxSizer*	create_bed_shape_widget(wxWindow* parent);
 	void		cache_extruder_cnt();

@@ -1741,16 +1741,11 @@ bool PartPlate::check_missing_tpu285_nozzle(const DynamicPrintConfig &config) co
     collect_from_opt(config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type"));
 
     if (PresetBundle *bundle = wxGetApp().preset_bundle) {
-        const int extruder_count = std::max(bundle->get_printer_extruder_count(), bundle->extruder_full_stat.get_extruder_count());
-        for (int eid = 0; eid < extruder_count; ++eid) {
-            if (bundle->extruder_nozzle_stat.get_extruder_nozzle_count(eid, nvtTPU285) > 0)
-                add_volume_type(configured_types, nvtTPU285);
-            for (const auto &slot : bundle->extruder_full_stat.get_extruder_stats(eid)) {
-                if (slot.second.empty())
-                    continue;
-                add_volume_type(configured_types, nozzle_volume_type_from_string(slot.second));
-            }
-        }
+        const NozzleInventory &nozzles = bundle->nozzle_inventory;
+        for (int eid = 0; eid < nozzles.extruder_count(); ++eid)
+            for (const NozzleSlot &slot : nozzles.slots(eid))
+                if (!slot.empty())
+                    add_volume_type(configured_types, slot.volume_type);
     }
     if (configured_types.count(nvtTPU285))
         return false;

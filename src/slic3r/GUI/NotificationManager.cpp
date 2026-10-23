@@ -3349,8 +3349,6 @@ void NotificationManager::bbl_close_bed_filament_incompatible_notification()
 
 void NotificationManager::bbl_show_filament_map_invalid_notification_before_slice(const NotificationType type,const std::string& text)
 {
-    if (wxGetApp().preset_bundle->extruder_full_stat.empty())
-        wxGetApp().preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
     const auto full_config = wxGetApp().preset_bundle->full_config();
     if (is_multi_diameter_without_ams(full_config)) {
         push_notification_data({ type, NotificationLevel::ErrorNotificationLevel, 0,

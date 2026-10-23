@@ -66,18 +66,17 @@ int get_effective_ams_nozzle_idx_for_active_diameter(const ConfigBase& config)
 
     const auto* nd = dynamic_cast<const ConfigOptionFloatsNullable*>(config.option("nozzle_diameter"));
     const std::string active_diameter = (nd && !nd->values.empty()) ? format_diameter_to_str(nd->values.front()) : std::string();
-    auto full_stats = wxGetApp().preset_bundle->extruder_full_stat.get_extruder_stats(0);
-    if (ams_idx >= (int) full_stats.size())
+    const ExtruderSlots &slots = wxGetApp().preset_bundle->nozzle_inventory.slots(0);
+    if (ams_idx >= (int) slots.size())
         return -1;
 
-    const std::string& ams_diam = full_stats[ams_idx].first;
-    const std::string& ams_vol  = full_stats[ams_idx].second;
+    const std::string &ams_diam = slots[ams_idx].diameter;
     // In multi-diameter mode nozzle_diameter is only the conservative slicing baseline (normally
     // 0.2), not a filter on which physical nozzles may participate. An AMS attached to a 0.6 nozzle
     // must therefore remain the AMS group even while that baseline is 0.2; otherwise the manual
     // grouping UI collapses the AMS nozzle and all fixed nozzles into one group.
     const bool multi_diameter = multi_nozzle_diameter_mode_enabled(config);
-    const bool usable = !ams_vol.empty() &&
+    const bool usable = !slots[ams_idx].empty() &&
         (multi_diameter || active_diameter.empty() || ams_diam.empty() ||
          format_diameter_to_str(std::atof(ams_diam.c_str())) == active_diameter);
     return usable ? ams_idx : -1;
@@ -104,25 +103,22 @@ static std::map<NozzleVolumeType, int> get_fixed_nozzle_counts_from_full_stat(in
 {
     std::map<NozzleVolumeType, int> ret;
     auto preset_bundle = wxGetApp().preset_bundle;
-    auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
-    has_full_stat = !full_stats.empty();
+    const ExtruderSlots &slots = preset_bundle->nozzle_inventory.slots(0);
+    has_full_stat = !slots.empty();
 
-    for (const auto &slot : full_stats) {
-        const std::string &diameter = slot.first;
-        const std::string &vol = slot.second;
-        if (vol.empty()) continue;
-        if (!active_diameter.empty() && !diameter.empty() && format_diameter_to_str(std::atof(diameter.c_str())) != active_diameter)
+    for (const NozzleSlot &slot : slots) {
+        if (slot.empty()) continue;
+        if (!active_diameter.empty() && format_diameter_to_str(std::atof(slot.diameter.c_str())) != active_diameter)
             continue;
-        ret[DevNozzle::ToNozzleVolumeType(vol)]++;
+        ret[slot.volume_type]++;
     }
 
-    if (has_ams && !ret.empty() && ams_nozzle_idx >= 0 && ams_nozzle_idx < (int) full_stats.size()) {
-        const std::string& ams_diam = full_stats[ams_nozzle_idx].first;
-        const std::string& ams_vol  = full_stats[ams_nozzle_idx].second;
-        const bool ams_counted = !ams_vol.empty() &&
-            (active_diameter.empty() || ams_diam.empty() || format_diameter_to_str(std::atof(ams_diam.c_str())) == active_diameter);
+    if (has_ams && !ret.empty() && ams_nozzle_idx >= 0 && ams_nozzle_idx < (int) slots.size()) {
+        const NozzleSlot &ams_slot = slots[ams_nozzle_idx];
+        const bool ams_counted = !ams_slot.empty() &&
+            (active_diameter.empty() || format_diameter_to_str(std::atof(ams_slot.diameter.c_str())) == active_diameter);
         if (ams_counted) {
-            NozzleVolumeType ams_vt = DevNozzle::ToNozzleVolumeType(ams_vol);
+            NozzleVolumeType ams_vt = ams_slot.volume_type;
             auto it = ret.find(ams_vt);
             if (it != ret.end() && --(it->second) <= 0)
                 ret.erase(it);
@@ -155,9 +151,9 @@ bool should_skip_filament_grouping(const ConfigBase& config)
 static NozzleVolumeType get_ams_nozzle_volume_from_full_stat(int ams_nozzle_idx)
 {
     auto preset_bundle = wxGetApp().preset_bundle;
-    auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
-    if (ams_nozzle_idx >= 0 && ams_nozzle_idx < (int) full_stats.size() && !full_stats[ams_nozzle_idx].second.empty())
-        return DevNozzle::ToNozzleVolumeType(full_stats[ams_nozzle_idx].second);
+    const ExtruderSlots &slots = preset_bundle->nozzle_inventory.slots(0);
+    if (ams_nozzle_idx >= 0 && ams_nozzle_idx < (int) slots.size() && !slots[ams_nozzle_idx].empty())
+        return slots[ams_nozzle_idx].volume_type;
     auto vals = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
     return vals.empty() ? nvtStandard : NozzleVolumeType(vals[0]);
 }
@@ -202,16 +198,14 @@ static std::vector<std::set<std::string>> get_backend_extruder_diameters()
 {
     const PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     const auto *fallback = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    const size_t extruder_count = std::max<size_t>(
-        preset_bundle->extruder_full_stat.get_extruder_count(), fallback ? fallback->values.size() : 0);
+    const NozzleInventory &nozzles = preset_bundle->nozzle_inventory;
+    const size_t extruder_count = std::max<size_t>(nozzles.extruder_count(), fallback ? fallback->values.size() : 0);
     std::vector<std::set<std::string>> result(extruder_count);
     for (size_t e = 0; e < extruder_count; ++e) {
-        if (e < size_t(preset_bundle->extruder_full_stat.get_extruder_count())) {
-            for (const auto &slot : preset_bundle->extruder_full_stat.get_extruder_stats(int(e))) {
-                const double diameter = string_to_double_decimal_point(slot.first);
-                if (diameter > 0.0)
-                    result[e].insert(format_diameter_to_str(diameter));
-            }
+        for (const NozzleSlot &slot : nozzles.slots(int(e))) {
+            const double diameter = string_to_double_decimal_point(slot.diameter);
+            if (diameter > 0.0)
+                result[e].insert(format_diameter_to_str(diameter));
         }
         if (result[e].empty() && fallback != nullptr && e < fallback->values.size() && fallback->values[e] > 0.0)
             result[e].insert(format_diameter_to_str(fallback->values[e]));
@@ -347,8 +341,8 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
         }
 
         if (extruder_volume_type == nvtHybrid) {
-            int standard_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(eid, NozzleVolumeType::nvtStandard);
-            int highflow_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(eid, NozzleVolumeType::nvtHighFlow);
+            int standard_count = preset_bundle->nozzle_inventory.count(eid, NozzleVolumeType::nvtStandard);
+            int highflow_count = preset_bundle->nozzle_inventory.count(eid, NozzleVolumeType::nvtHighFlow);
 
             auto has_material_of_type = [this, eid, &filament_map, &filament_volume_map](NozzleVolumeType volume_type) {
                 return std::find_if(m_filament_list.begin(), m_filament_list.end(),
@@ -376,7 +370,7 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
                 }
             }
         } else {
-            int count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(eid, extruder_volume_type);
+            int count = preset_bundle->nozzle_inventory.count(eid, extruder_volume_type);
             if (count == 0) {
                 // When mixing nozzle diameters, an extruder may have 0 nozzles of the
                 // "selected" diameter but still have a usable nozzle installed (just a
@@ -723,15 +717,15 @@ void FilamentMapManualPanel::UpdateNozzleCountDisplay()
     wxString dep_ext_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(fmp_up_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase));
     wxString main_ext_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(fmp_up_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase));
 
-    int left_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0);
+    const NozzleInventory &nozzles = preset_bundle->nozzle_inventory;
+    int left_count = nozzles.count(0);
     wxString left_title = wxString::Format(dep_ext_name + "(%d)", left_count);
     m_left_panel->UpdateLabel(left_title);
 
     if (m_right_panel->IsUseSeparation()) {
-        int standard_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1, NozzleVolumeType::nvtStandard);
-        int highflow_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1, NozzleVolumeType::nvtHighFlow);
-        int tpu_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1, NozzleVolumeType::nvtTPUHighFlow)
-                      + preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1, NozzleVolumeType::nvtTPU285);
+        int standard_count = nozzles.count(1, NozzleVolumeType::nvtStandard);
+        int highflow_count = nozzles.count(1, NozzleVolumeType::nvtHighFlow);
+        int tpu_count = nozzles.count(1, NozzleVolumeType::nvtTPUHighFlow) + nozzles.count(1, NozzleVolumeType::nvtTPU285);
         wxString right_title;
         if (tpu_count > 0)
             right_title = wxString::Format(main_ext_name + "(Std: %d, HF: %d, TPU285: %d)", standard_count, highflow_count, tpu_count);
@@ -739,7 +733,7 @@ void FilamentMapManualPanel::UpdateNozzleCountDisplay()
             right_title = wxString::Format(main_ext_name + "(Std: %d, HF: %d)", standard_count, highflow_count);
         m_right_panel->UpdateLabel(right_title);
     } else {
-        int right_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1);
+        int right_count = nozzles.count(1);
         wxString right_title = wxString::Format(main_ext_name + "(%d)", right_count);
         m_right_panel->UpdateLabel(right_title);
     }
@@ -862,15 +856,15 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
     if (multi_diameter_mode) {
         std::vector<SeparatedDragDropPanel::DiameterVolumeGroup> groups;
         std::set<std::pair<std::string, NozzleVolumeType>> seen;
-        const auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
-        for (size_t idx = 0; idx < full_stats.size(); ++idx) {
-            if (static_cast<int>(idx) == m_ams_nozzle_idx || full_stats[idx].second.empty())
+        const ExtruderSlots &slots = preset_bundle->nozzle_inventory.slots(0);
+        for (size_t idx = 0; idx < slots.size(); ++idx) {
+            if (static_cast<int>(idx) == m_ams_nozzle_idx || slots[idx].empty())
                 continue;
-            const double diameter_value = string_to_double_decimal_point(full_stats[idx].first);
+            const double diameter_value = string_to_double_decimal_point(slots[idx].diameter);
             if (diameter_value <= 0.0)
                 continue;
             const std::string diameter = format_diameter_to_str(diameter_value);
-            const auto volume_type = DevNozzle::ToNozzleVolumeType(full_stats[idx].second);
+            const auto volume_type = slots[idx].volume_type;
             if (!seen.emplace(diameter, volume_type).second)
                 continue;
             groups.push_back({diameter, volume_type,
@@ -879,12 +873,12 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
         if (!groups.empty())
             m_right_panel->SetDiameterVolumeGroups(groups);
 
-        if (m_left_panel && m_ams_nozzle_idx >= 0 && m_ams_nozzle_idx < static_cast<int>(full_stats.size())) {
-            const auto &ams_stat = full_stats[m_ams_nozzle_idx];
-            const double diameter_value = string_to_double_decimal_point(ams_stat.first);
-            if (diameter_value > 0.0 && !ams_stat.second.empty()) {
+        if (m_left_panel && m_ams_nozzle_idx >= 0 && m_ams_nozzle_idx < static_cast<int>(slots.size())) {
+            const NozzleSlot &ams_slot = slots[m_ams_nozzle_idx];
+            const double diameter_value = string_to_double_decimal_point(ams_slot.diameter);
+            if (diameter_value > 0.0 && !ams_slot.empty()) {
                 const std::string diameter = format_diameter_to_str(diameter_value);
-                const auto volume_type = DevNozzle::ToNozzleVolumeType(ams_stat.second);
+                const auto volume_type = ams_slot.volume_type;
                 m_left_panel->UpdateUnifiedLabel(
                     wxString::FromUTF8(diameter) + get_volume_type_label(volume_type));
                 ams_drag_group = std::make_pair(diameter, volume_type);
@@ -916,11 +910,11 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
     if (multi_diameter_mode) {
         // Multi-diameter restriction (N1X): the AMS panel represents its physical nozzle, while the fixed
         // panel may contain several configured nozzle diameters.
-        const auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
+        const ExtruderSlots &slots = preset_bundle->nozzle_inventory.slots(0);
         std::set<std::string> ams_diameters;
         std::set<std::string> fixed_diameters;
-        for (size_t i = 0; i < full_stats.size(); ++i) {
-            const double diameter = string_to_double_decimal_point(full_stats[i].first);
+        for (size_t i = 0; i < slots.size(); ++i) {
+            const double diameter = string_to_double_decimal_point(slots[i].diameter);
             if (diameter <= 0.0)
                 continue;
             auto &target = static_cast<int>(i) == m_ams_nozzle_idx ? ams_diameters : fixed_diameters;
@@ -1192,11 +1186,11 @@ void FilamentMapMultiNozzlePanel::OnTimer(wxTimerEvent &)
     const int current_ams_nozzle_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_config);
     m_topology_changed |= current_ams_nozzle_idx != m_ams_nozzle_idx;
 
-    const auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
+    const ExtruderSlots &slots = preset_bundle->nozzle_inventory.slots(0);
     std::set<std::string> ams_diameters;
     std::set<std::string> fixed_diameters;
-    for (size_t idx = 0; idx < full_stats.size(); ++idx) {
-        const double diameter = string_to_double_decimal_point(full_stats[idx].first);
+    for (size_t idx = 0; idx < slots.size(); ++idx) {
+        const double diameter = string_to_double_decimal_point(slots[idx].diameter);
         if (diameter <= 0.0)
             continue;
         auto &target = int(idx) == m_ams_nozzle_idx ? ams_diameters : fixed_diameters;
@@ -1289,17 +1283,15 @@ void FilamentMapMultiNozzlePanel::UpdateNozzleVolumeType()
         ? format_diameter_to_str(nozzle_diameters->values.front()) : std::string();
 
     std::set<NozzleVolumeType> types;
-    auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
-    for (size_t idx = 0; idx < full_stats.size(); ++idx) {
+    const ExtruderSlots &slots = preset_bundle->nozzle_inventory.slots(0);
+    for (size_t idx = 0; idx < slots.size(); ++idx) {
         if (m_ams_nozzle_idx >= 0 && static_cast<int>(idx) == m_ams_nozzle_idx)
             continue;
-        const auto& slot = full_stats[idx];
-        const std::string& diameter = slot.first;
-        const std::string& vol = slot.second;
-        if (vol.empty()) continue;
-        if (!active_diameter.empty() && !diameter.empty() && format_diameter_to_str(std::atof(diameter.c_str())) != active_diameter)
+        const NozzleSlot &slot = slots[idx];
+        if (slot.empty()) continue;
+        if (!active_diameter.empty() && format_diameter_to_str(std::atof(slot.diameter.c_str())) != active_diameter)
             continue;
-        types.insert(DevNozzle::ToNozzleVolumeType(vol));
+        types.insert(slot.volume_type);
     }
     bool should_separate = types.size() > 1;
 
@@ -1327,23 +1319,24 @@ void FilamentMapMultiNozzlePanel::UpdateNozzleCountDisplay()
         return it != fixed_counts.end() ? it->second : 0;
     };
 
-    int total = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0);
+    const NozzleInventory &nozzles = preset_bundle->nozzle_inventory;
+    int total = nozzles.count(0);
     wxString         ams_label, fixed_label;
     NozzleVolumeType ams_type = nvtStandard;
     if (has_ams) {
         ams_label   = get_ams_nozzle_label(m_ams_nozzle_idx);
         fixed_label = get_fixed_nozzle_label(m_total_nozzle_count, m_ams_nozzle_idx);
 
-        auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
-        if ((int) full_stats.size() > m_ams_nozzle_idx && !full_stats[m_ams_nozzle_idx].second.empty())
-            ams_type = DevNozzle::ToNozzleVolumeType(full_stats[m_ams_nozzle_idx].second);
+        const ExtruderSlots &slots = nozzles.slots(0);
+        if (m_ams_nozzle_idx >= 0 && (int) slots.size() > m_ams_nozzle_idx && !slots[m_ams_nozzle_idx].empty())
+            ams_type = slots[m_ams_nozzle_idx].volume_type;
 
         m_left_panel->UpdateLabel(ams_label);
         if (!m_left_panel->IsUseDiameterVolumeGroups()) {
             if (multi_nozzle_diameter_mode_enabled(full_cfg) &&
-                m_ams_nozzle_idx >= 0 && m_ams_nozzle_idx < static_cast<int>(full_stats.size())) {
+                m_ams_nozzle_idx >= 0 && m_ams_nozzle_idx < static_cast<int>(slots.size())) {
                 const std::string diameter = format_diameter_to_str(
-                    string_to_double_decimal_point(full_stats[m_ams_nozzle_idx].first));
+                    string_to_double_decimal_point(slots[m_ams_nozzle_idx].diameter));
                 m_left_panel->UpdateUnifiedLabel(
                     wxString::FromUTF8(diameter) + get_volume_type_label(ams_type));
             } else {
@@ -1355,10 +1348,9 @@ void FilamentMapMultiNozzlePanel::UpdateNozzleCountDisplay()
     if (m_right_panel->IsUseDiameterVolumeGroups()) {
         m_right_panel->UpdateLabel(has_ams ? fixed_label : wxString::Format(_L("Nozzle (%d)"), m_total_nozzle_count));
     } else if (m_right_panel->IsUseSeparation()) {
-        int standard_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0, NozzleVolumeType::nvtStandard);
-        int highflow_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0, NozzleVolumeType::nvtHighFlow);
-        int tpu_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0, NozzleVolumeType::nvtTPUHighFlow)
-                      + preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0, NozzleVolumeType::nvtTPU285);
+        int standard_count = nozzles.count(0, NozzleVolumeType::nvtStandard);
+        int highflow_count = nozzles.count(0, NozzleVolumeType::nvtHighFlow);
+        int tpu_count = nozzles.count(0, NozzleVolumeType::nvtTPUHighFlow) + nozzles.count(0, NozzleVolumeType::nvtTPU285);
 
         int right_std = has_full_stat ? fixed_count_of(nvtStandard) : standard_count;
         int right_hf  = has_full_stat ? fixed_count_of(nvtHighFlow) : highflow_count;

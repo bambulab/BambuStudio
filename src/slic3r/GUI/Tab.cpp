@@ -6089,41 +6089,13 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
     apply_searcher();
 }
 
-void TabPrinter::refresh_extruder_full_stat_for_model_change()
+void TabPrinter::refresh_nozzles_for_printer()
 {
-    m_full_stat_prebuilt_for_model_change = false;
-    const Preset& current_printer = m_preset_bundle->printers.get_selected_preset();
-    const Preset* base_printer    = m_preset_bundle->printers.get_preset_base(current_printer);
-    if (!base_printer)
-        base_printer = &current_printer;
-    const std::string base_model = base_printer->config.option<ConfigOptionString>("printer_model")->value;
-
-    // Same guard as on_preset_loaded(): only a model change resets the per-extruder nozzle stat. A
-    // same-model variant switch (e.g. "set nozzle diameter") must keep the user's multi-diameter selection.
-    // Deliberately do NOT update m_base_preset_model here, so on_preset_loaded() still performs its full
-    // UI refresh (sidebar / nozzle count display / purge mode) for this model change.
-    if (base_model == m_base_preset_model)
+    // A project load selects the file's nozzles itself, once its printer and mode are in place.
+    auto *plater = wxGetApp().plater();
+    if (plater && plater->is_loading_project())
         return;
-
-    // Rebuild the per-extruder counts and the per-slot snapshot from the freshly selected printer preset.
-    // A project load keeps its restored 3mf stat. Do not mark that no-op as a completed prebuild because
-    // on_preset_loaded() still owns the normal fallback rebuild.
-    if (m_preset_bundle->extruder_nozzle_stat.get_force_keep_flag())
-        return;
-    m_preset_bundle->extruder_nozzle_stat.on_printer_model_change(m_preset_bundle);
-    // Prefer the project's own persisted per-slot nozzle snapshot (extruder_nozzle_count/diameter/
-    // volume_type/slot in project_config) over blindly stamping every slot with this preset's single
-    // printer_variant. Those project options are what the Extruder Settings dialog reads/writes and
-    // outlive a printer-model switch, so when they are still internally consistent (same model was
-    // configured for per-slot diameters earlier in this project) they reflect the nozzles the user
-    // actually told us are installed -- e.g. two 0.2mm extruders on a machine whose default variant is
-    // 0.4mm. Rebuilding from printer_variant alone here made validate_filament_nozzle_diameter_selections()
-    // immediately flag every filament slot right after switching to that machine, before the user had a
-    // chance to reopen the dialog and see it was already configured correctly.
-    // update_extruder_full_stats_from_config() still falls back to generate_extruder_full_stats_from_nozzle_stats()
-    // when the persisted snapshot is missing/inconsistent, so a genuinely new model keeps today's behavior.
-    m_preset_bundle->update_extruder_full_stats_from_config(m_base_preset_model);
-    m_full_stat_prebuilt_for_model_change = true;
+    m_preset_bundle->nozzle_inventory.select_printer(m_preset_bundle->printers);
 }
 
 // this gets executed after preset is loaded and before GUI fields are updated
@@ -6147,44 +6119,13 @@ void TabPrinter::on_preset_loaded()
     m_extruder_variant_list = m_config->option<ConfigOptionStrings>("printer_extruder_variant")->values;
 
     if (base_name != m_base_preset_name) {
-        const bool model_changed                  = base_model != m_base_preset_model;
-        bool       use_default_nozzle_volume_type = true;
+        const bool model_changed = base_model != m_base_preset_model;
         m_base_preset_name = base_name;
-        if (model_changed) {
-            // Nozzle data synced from the previous machine no longer describes this one.
-            m_preset_bundle->extruder_nozzle_stat.set_nozzle_data_flag(ExtruderNozzleStat::ndfNone);
-            // Start from the new model's nozzles so the per-slot types restored or seeded below don't keep the
-            // previous model's diameters. A prebuilt per-slot snapshot already belongs to the new model.
-            if (!m_full_stat_prebuilt_for_model_change) {
-                m_preset_bundle->extruder_nozzle_stat.on_printer_model_change(m_preset_bundle);
-                m_preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
-            }
-        }
-        auto plater_for_nvt = wxGetApp().plater();
-        if (plater_for_nvt && plater_for_nvt->is_loading_project()) {
-            // Loading project: nozzle_volume_type has already been applied from the 3mf project_config,
-            // do not overwrite it with app_config history or printer defaults.
-            use_default_nozzle_volume_type = false;
-        }
-        if (use_default_nozzle_volume_type) {
-            // Restore the per-slot types last used on this printer, then reflect them into the UI.
-            if (m_preset_bundle->load_nozzle_volume_types_from_app_config(*wxGetApp().app_config, base_name, current_printer)) {
-                auto nozzle_volume_type_option = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-                for (size_t idx = 0; idx < nozzle_volume_type_option->size(); ++idx) {
-                    NozzleVolumeType volume_type = NozzleVolumeType(nozzle_volume_type_option->values[idx]);
-                    if (wxGetApp().plater())
-                        wxGetApp().plater()->update_filament_volume_map(idx, volume_type);
-                    updateNozzleCountDisplay(m_preset_bundle, idx, volume_type);
-                }
-                use_default_nozzle_volume_type = false;
-            }
-        }
-        if (use_default_nozzle_volume_type) {
-            // Per-slot defaults first: the per-extruder type below summarises a mixed layout as Hybrid and
-            // cannot rebuild it.
-            m_preset_bundle->seed_default_nozzle_volume_types_from_preset(current_printer);
-            for (size_t eid = 0; eid < extruders_count; ++eid)
-                apply_extruder_volume_type(eid, get_extruder_default_nozzle_volume_type(current_printer.config, (int) eid));
+        // A preset switch writes no nozzles; the inventory resolves them for the new printer.
+        auto *plater = wxGetApp().plater();
+        if (!(plater && plater->is_loading_project())) {
+            m_preset_bundle->nozzle_inventory.select_printer(m_preset_bundle->printers);
+            on_nozzles_changed();
         }
 
         if (model_changed) {
@@ -6215,9 +6156,8 @@ void TabPrinter::on_preset_loaded()
             bool has_multiple_nozzle = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });
             if (extruder_max_nozzle_count && nozzle_volume_type) {
                 wxGetApp().plater()->sidebar().enable_nozzle_count_edit(has_multiple_nozzle);
-                for (size_t idx = 0; idx < extruders_count; ++idx) {
-                    updateNozzleCountDisplay(m_preset_bundle, idx, NozzleVolumeType(nozzle_volume_type->values[idx]));
-                }
+                for (size_t idx = 0; idx < extruders_count; ++idx)
+                    refresh_nozzle_display(int(idx));
             }
 
             // only trigger prime volume type for printers with multi nozzle
@@ -6236,7 +6176,6 @@ void TabPrinter::on_preset_loaded()
         }
         m_base_preset_model = base_model;
     }
-    m_full_stat_prebuilt_for_model_change = false;
 }
 
 void TabPrinter::update_pages()
@@ -7152,7 +7091,7 @@ bool Tab::select_preset(
         // update_compatible, so without this a model switch would compare filaments against the previous
         // printer's stat (e.g. leaking the old model's nozzle diameters into the compatibility set).
         if (is_selected && printer_tab)
-            static_cast<TabPrinter*>(this)->refresh_extruder_full_stat_for_model_change();
+            static_cast<TabPrinter*>(this)->refresh_nozzles_for_printer();
 
         // Mark the print & filament enabled if they are compatible with the currently selected preset.
         // The following method should not discard changes of current print or filament presets on change of a printer profile,
@@ -8075,26 +8014,30 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 
 void TabPrinter::set_extruder_volume_type(int extruder_id, NozzleVolumeType type)
 {
-    apply_extruder_volume_type(extruder_id, type);
-    m_preset_bundle->save_current_nozzle_volume_types_to_app_config(*wxGetApp().app_config);
-}
-
-void TabPrinter::apply_extruder_volume_type(int extruder_id, NozzleVolumeType type)
-{
     // -1 means single extruder, so we should default use extruder id 0
     if (extruder_id == -1)
         extruder_id = 0;
-    auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-    assert(nozzle_volumes->values.size() > (size_t)extruder_id);
-    nozzle_volumes->values[extruder_id] = type;
+    m_preset_bundle->nozzle_inventory.user_set_volume_type(extruder_id, type);
+    on_nozzles_changed(extruder_id);
+}
 
-    m_preset_bundle->switch_extruder_nozzle_volume_type(extruder_id, type);
-    if (wxGetApp().plater()) {
-        wxGetApp().plater()->update_filament_volume_map(extruder_id, int(type));
+void TabPrinter::refresh_nozzle_display(int extruder_id)
+{
+    updateNozzleCountDisplay(m_preset_bundle, extruder_id, m_preset_bundle->nozzle_inventory.volume_type(extruder_id));
+}
+
+void TabPrinter::on_nozzles_changed(std::optional<int> extruder_id)
+{
+    const NozzleInventory &nozzles = m_preset_bundle->nozzle_inventory;
+    for (int eid = 0; eid < nozzles.extruder_count(); ++eid) {
+        if (extruder_id && eid != *extruder_id)
+            continue;
+        const int type = int(nozzles.volume_type(eid));
+        if (Plater *plater = wxGetApp().plater())
+            plater->update_filament_volume_map(eid, type);
+        refresh_nozzle_display(eid);
+        on_value_change((boost::format("nozzle_volume_type#%1%") % eid).str(), type);
     }
-    updateNozzleCountDisplay(m_preset_bundle, extruder_id, type);
-
-    on_value_change((boost::format("nozzle_volume_type#%1%") % extruder_id).str(), int(type));
     update_dirty();
 }
 
@@ -8373,8 +8316,8 @@ std::vector<NozzleVariantSwitcher::Option> Tab::generate_nozzle_variant_options(
         return result;
     };
 
-    // Collect the variant set for this extruder. extruder_full_stat is the
-    // user's saved per-nozzle inventory (from the Extruder Settings
+    // Collect the variant set for this extruder. The nozzle inventory is the
+    // user's saved per-nozzle setup (from the Extruder Settings
     // dialog) — its distinct volume types are the variants we render,
     // filtered against what the current printer preset supports.
     // Each entry is (volume_type, [nozzle index labels]) preserving the
@@ -8384,7 +8327,7 @@ std::vector<NozzleVariantSwitcher::Option> Tab::generate_nozzle_variant_options(
 
         const auto supported = printer_supported(extruder_id);
 
-        // extruder_full_stat carries every nozzle the user has ever configured, across
+        // The inventory carries every installed nozzle, across
         // all diameters. Single-diameter mode slices with one diameter only, so keep
         // just the nozzles matching the printer preset's nozzle_diameter. Multi-diameter
         // mode slices with all of them at once, so every nozzle belongs to its flow
@@ -8393,16 +8336,13 @@ std::vector<NozzleVariantSwitcher::Option> Tab::generate_nozzle_variant_options(
         const bool        multi_diameter = multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
         const std::string want_diameter  = wxString::Format(wxT("%g"), nozzle_diameter->values[extruder_id]).ToStdString();
 
-        const auto stats = m_preset_bundle->extruder_full_stat.get_extruder_stats(extruder_id);
-        for (size_t i = 0; i < stats.size(); ++i) {
-            // A slot without a diameter or without a flow type is a vacant placeholder,
-            // not a nozzle. The diameter comparison below used to reject those as a side
-            // effect; multi-diameter mode skips that comparison, so reject them here.
-            // Letting one through would add a bogus variant, because
-            // DevNozzle::ToNozzleVolumeType() maps an unknown flow string to Standard.
-            if (stats[i].first.empty() || stats[i].second.empty()) continue;
-            if (!multi_diameter && stats[i].first != want_diameter) continue;
-            NozzleVolumeType vt = DevNozzle::ToNozzleVolumeType(stats[i].second);
+        const ExtruderSlots &slots = m_preset_bundle->nozzle_inventory.slots(extruder_id);
+        for (size_t i = 0; i < slots.size(); ++i) {
+            // An empty slot is not a nozzle; multi-diameter mode skips the diameter
+            // comparison below, so reject it here or it adds a bogus variant.
+            if (slots[i].empty()) continue;
+            if (!multi_diameter && slots[i].diameter != want_diameter) continue;
+            NozzleVolumeType vt = slots[i].volume_type;
             if (!supported[int(vt)]) continue;
 
             std::string label = label_for(extruder_id, int(i) + 1);
@@ -8414,7 +8354,7 @@ std::vector<NozzleVariantSwitcher::Option> Tab::generate_nozzle_variant_options(
         }
         if (!result.empty()) return result;
 
-        // Fallback: extruder_full_stat is empty (or every entry was filtered
+        // Fallback: the inventory has no slot (or every slot was filtered
         // out by the new preset's capabilities). Use the legacy project_config
         // enum. Hybrid still expands to {Standard, HighFlow} for back-compat
         // with old presets that only know those two.
@@ -8838,14 +8778,15 @@ std::vector<int> Tab::collect_configured_nozzles(int extruder_id, NozzleFlowType
 {
     auto nozzle_diameter = dynamic_cast<const ConfigOptionFloatsNullable *>(m_preset_bundle->printers.get_edited_preset().config.option("nozzle_diameter"));
     if (!nozzle_diameter || extruder_id < 0 || extruder_id >= int(nozzle_diameter->values.size())) return {};
+    if (flow_type == NozzleFlowType::NONE_FLOWTYPE) return {};
 
     const std::string want_diameter = wxString::Format(wxT("%g"), nozzle_diameter->values[extruder_id]).ToStdString();
-    const std::string want_volume   = DevNozzle::ToNozzleFlowString(flow_type);
+    const NozzleVolumeType want_volume = DevNozzle::ToNozzleVolumeType(flow_type);
 
-    std::vector<int> result;
-    const auto       stats = m_preset_bundle->extruder_full_stat.get_extruder_stats(extruder_id);
-    for (size_t i = 0; i < stats.size(); ++i) {
-        if (stats[i].first == want_diameter && stats[i].second == want_volume) result.push_back(int(i) + 1);
+    std::vector<int>     result;
+    const ExtruderSlots &slots = m_preset_bundle->nozzle_inventory.slots(extruder_id);
+    for (size_t i = 0; i < slots.size(); ++i) {
+        if (!slots[i].empty() && slots[i].diameter == want_diameter && slots[i].volume_type == want_volume) result.push_back(int(i) + 1);
     }
     return result;
 }

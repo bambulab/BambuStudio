@@ -149,7 +149,7 @@ bool is_extruder_stat_synced(int target_extruder_id)
 
     auto nozzle_volume_values = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
     auto nozzle_diameter_values = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values;
-    auto extruder_nozzle_stats = preset_bundle->extruder_nozzle_stat.get_raw_stat();
+    const NozzleInventory &nozzles = preset_bundle->nozzle_inventory;
     const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
 
     // Multi-diameter mode records the rack per slot. Compare the same physical slots here instead
@@ -168,19 +168,19 @@ bool is_extruder_stat_synced(int target_extruder_id)
             return false;
 
         for (int extruder_id = first_extruder; extruder_id < last_extruder; ++extruder_id) {
-            const auto preset_slots  = preset_bundle->extruder_full_stat.get_extruder_stats(extruder_id);
+            const ExtruderSlots &preset_slots = nozzles.slots(extruder_id);
             const auto machine_slots = collect_nozzle_configs_from_machine(
                 obj, extruder_id, max_nozzle_counts->values[extruder_id]);
             if (preset_slots.size() != machine_slots.size())
                 return false;
 
             for (size_t slot = 0; slot < preset_slots.size(); ++slot) {
-                const bool preset_empty = preset_slots[slot].first.empty() || preset_slots[slot].second.empty();
+                const bool preset_empty = preset_slots[slot].empty();
                 if (preset_empty != machine_slots[slot].is_empty())
                     return false;
                 if (!preset_empty &&
-                    (preset_slots[slot].first != machine_slots[slot].diameter.ToStdString() ||
-                     DevNozzle::ToNozzleVolumeType(preset_slots[slot].second) != machine_slots[slot].volume))
+                    (preset_slots[slot].diameter != into_u8(machine_slots[slot].diameter) ||
+                     preset_slots[slot].volume_type != machine_slots[slot].volume))
                     return false;
             }
         }
@@ -194,17 +194,11 @@ bool is_extruder_stat_synced(int target_extruder_id)
         std::string      preset_diameter = format_diameter_to_str(nozzle_diameter_values[extruder_id]);
 
         if (preset_volume_type == nvtHybrid) {
-            if (extruder_id < extruder_nozzle_stats.size()) {
-                for (auto& elem : extruder_nozzle_stats[extruder_id]) {
-                    NozzleVolumeType type = elem.first;
-                    int              count = elem.second;
-                    NozzleGroupInfo  preset_info(preset_diameter, type, extruder_id, count);
-                    preset_nozzle_infos[extruder_id].emplace_back(preset_info);
-                }
-            }
+            for (const auto &[type, count] : nozzles.counts(int(extruder_id)))
+                preset_nozzle_infos[extruder_id].emplace_back(preset_diameter, type, extruder_id, count);
         }
         else {
-            NozzleGroupInfo preset_info(preset_diameter, preset_volume_type, extruder_id, preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, preset_volume_type));
+            NozzleGroupInfo preset_info(preset_diameter, preset_volume_type, extruder_id, nozzles.count(int(extruder_id), preset_volume_type));
             preset_nozzle_infos[extruder_id].emplace_back(preset_info);
         }
     }

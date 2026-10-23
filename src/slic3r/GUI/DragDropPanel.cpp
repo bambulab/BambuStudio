@@ -639,14 +639,12 @@ void SeparatedDragDropPanel::UpdateLayout()
         m_unified_panel->Hide();
 
         auto preset_bundle = wxGetApp().preset_bundle;
-        auto extruder_nozzle_counts = preset_bundle->extruder_nozzle_stat.get_raw_stat();
+        const NozzleInventory &nozzles = preset_bundle->nozzle_inventory;
 
         auto has_nozzle_type = [&](NozzleVolumeType type) {
-            for (size_t eid = 0; eid < extruder_nozzle_counts.size(); ++eid) {
-                if (extruder_nozzle_counts[eid].count(type) > 0 &&
-                    extruder_nozzle_counts[eid].at(type) > 0)
+            for (int eid = 0; eid < nozzles.extruder_count(); ++eid)
+                if (nozzles.count(eid, type) > 0)
                     return true;
-            }
             return false;
         };
 

@@ -3,6 +3,7 @@
 
 #include "Preset.hpp"
 #include "AppConfig.hpp"
+#include "NozzleInventory.hpp"
 #include "enum_bitmask.hpp"
 
 #include <memory>
@@ -91,19 +92,13 @@ private:
     int  m_filament_extruder_compatibility = 0;
 };
 
-class PresetBundle;
+/// Nozzle counts per extruder and volume type; the value type behind the legacy extruder_nozzle_stats key.
 struct ExtruderNozzleStat
 {
 public:
-    enum NozzleDataFlag {
-        ndfMachine = 0,
-        ndfNone
-    };
-public:
     ExtruderNozzleStat() = default;
-    ExtruderNozzleStat(const std::vector<std::map<NozzleVolumeType, int>>& nozzle_counts, const NozzleDataFlag flag = ndfNone) : extruder_nozzle_counts(nozzle_counts), data_flag(flag) {}
+    explicit ExtruderNozzleStat(const std::vector<std::map<NozzleVolumeType, int>>& nozzle_counts) : extruder_nozzle_counts(nozzle_counts) {}
     void on_volume_type_switch(int extruder_id, NozzleVolumeType type);
-    void on_printer_model_change(PresetBundle* preset_bundle);
     void on_printer_model_change_cli(const std::vector<int> &nozzle_volume_type, const std::vector<int> &max_nozzle_count);
     void set_extruder_nozzle_count(int extruder_id, NozzleVolumeType type, int count, bool clear);
     int get_extruder_nozzle_count(int extruder_id, std::optional<NozzleVolumeType> volume_type = std::nullopt) const;
@@ -111,15 +106,8 @@ public:
     const std::vector<std::map<NozzleVolumeType, int>> get_raw_stat() const { return extruder_nozzle_counts; }
     void set_raw_stat(const std::vector<std::map<NozzleVolumeType, int>>& data) { extruder_nozzle_counts = data; }
 
-    void set_nozzle_data_flag(NozzleDataFlag flag){ data_flag = flag; }
-    NozzleDataFlag get_nozzle_data_flag() const { return data_flag; }
-    void set_force_keep_flag(bool flag) { force_keep_stat = flag; }
-    bool get_force_keep_flag() const { return force_keep_stat; }
-
 private:
-    bool force_keep_stat{ false };
     std::vector<std::map<NozzleVolumeType,int>> extruder_nozzle_counts;
-    NozzleDataFlag data_flag{ ndfNone };
 };
 
 struct ExtruderFullStat
@@ -168,8 +156,6 @@ ExtruderFullStat build_extruder_full_stat_from_nozzle_stat(const ExtruderNozzleS
                                                            const std::string        &diameter_str);
 void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, const ExtruderFullStat &full_stat);
 bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config);
-std::vector<double> derive_nozzle_diameter_from_full_stat(const ExtruderFullStat   &full_stat,
-                                                          const std::vector<double> &fallback);
 
 /**
  * \brief Count one extruder's physical nozzle slots by their preset default volume type
@@ -181,13 +167,8 @@ std::vector<double> derive_nozzle_diameter_from_full_stat(const ExtruderFullStat
  */
 std::map<NozzleVolumeType, int> count_default_nozzle_volume_types(const ConfigBase &printer_config, int extruder_id, int slot_count);
 
-// Single source of truth for the BambuStudio.conf "nozzle_volume_types" per-printer string:
-// extruders joined by ',', physical slots within an extruder joined by '|', each token a
-// NozzleVolumeType name. Legacy values have no '|' (one token per extruder) and decode to a single
-// slot the loader broadcasts across the physical slots; unknown tokens fall back to Standard.
-// Use the PresetBundle load/save API rather than hand-rolling this format at call sites.
-std::string                                serialize_nozzle_volume_types(const std::vector<std::vector<NozzleVolumeType>> &per_extruder_slots);
-std::vector<std::vector<NozzleVolumeType>> deserialize_nozzle_volume_types(const std::string &value);
+/// Untranslated name of a volume type, as BambuStudio.conf and the per-slot snapshot store it ("High Flow").
+std::string GetNozzleVolumeTypeStr(const NozzleVolumeType &type);
 
 // Ordered AMS units selected for one logical extruder. A non-empty string is a device AMS id;
 // an empty string is a virtual unit. This runtime identity layer complements the persisted counts.
@@ -303,8 +284,6 @@ public:
     //BBS: check whether this is the only edited filament
     bool is_the_only_edited_filament(unsigned int filament_index);
 
-    void reset_default_nozzle_volume_type();
-
     std::vector<int> get_used_tpu_filaments(const std::vector<int> &used_filaments);
     void set_calibrate_printer(std::string name);
 
@@ -322,7 +301,7 @@ public:
                                                                                                std::string &      preset_setting_id);
     Preset *                    get_similar_printer_preset(std::string printer_model, std::string printer_variant);
     // BBS multi-diameter: printer preset names of the current printer model whose nozzle-diameter variant
-    // matches any diameter selected via "set nozzle diameter" (stored in extruder_full_stat). Returns an
+    // matches any diameter selected via "set nozzle diameter" (stored in nozzle_inventory). Returns an
     // empty list when no multi-diameter selection exists, keeping single-diameter behavior unchanged.
     std::vector<std::string>    get_extra_compatible_printers_by_full_stat();
 
@@ -433,8 +412,6 @@ public:
 
     std::vector<std::map<int, int>> extruder_ams_counts;
     std::vector<ExtruderAmsSelection> extruder_ams_selections;
-    ExtruderNozzleStat extruder_nozzle_stat;
-    ExtruderFullStat   extruder_full_stat;
     // Calibrate
     Preset const * calibrate_printer = nullptr;
     std::set<Preset const *> calibrate_filaments;
@@ -443,6 +420,8 @@ public:
     // they are being serialized / deserialized from / to the .amf, .3mf, .config, .gcode,
     // and they are being used by slicing core.
     DynamicPrintConfig          project_config;
+    /// Nozzles of the selected printer; writes its keys into project_config, so it is declared after it.
+    NozzleInventory             nozzle_inventory{project_config};
 
     // There will be an entry for each system profile loaded,
     // and the system profiles will point to the VendorProfile instances owned by PresetBundle::vendors.
@@ -566,65 +545,12 @@ public:
     std::pair<PresetsConfigSubstitutions, std::string> load_system_filaments_json(ForwardCompatibilitySubstitutionRule compatibility_rule);
     VendorProfile                                      get_custom_vendor_models() const;
 
-    /**
-     * \brief Rebuild extruder_full_stat from the per-slot nozzle options in project_config
-     *
-     * \param snapshot_printer_model  printer model the per-slot options were written for; empty means the
-     *                                current printer. A snapshot from a model with a different nozzle
-     *                                capacity is discarded and rebuilt from the current printer's defaults.
-     */
-    void update_extruder_full_stats_from_config(const std::string &snapshot_printer_model = std::string());
-    void generate_extruder_full_stats_from_nozzle_stats();
-
-    /**
-     * \brief Set every nozzle slot's volume type to the printer preset's per-slot default
-     *
-     * Slots keep their current diameter; reset the per-slot nozzle info first when the printer model
-     * changes. Does nothing for machine-synced or project-locked nozzle data.
-     */
-    void seed_default_nozzle_volume_types_from_preset(const Preset &printer_preset);
-
-    /**
-     * \brief Restore the per-slot nozzle volume types last saved in app config for one printer
-     *
-     * Same slot rules as seed_default_nozzle_volume_types_from_preset(); extruders missing from the saved
-     * entry take the preset defaults.
-     *
-     * \return false if nothing is saved for the printer
-     */
-    bool load_nozzle_volume_types_from_app_config(AppConfig &config, const std::string &base_printer_name, const Preset &printer_preset);
-    // Remember the current per-slot nozzle volume types in app config for one printer
-    void save_nozzle_volume_types_to_app_config(AppConfig &config, const std::string &base_printer_name) const;
-    // Convenience: save for the currently selected printer
-    void save_current_nozzle_volume_types_to_app_config(AppConfig &config);
-
-    /**
-     * \brief Switch one extruder's nozzle volume type and keep the per-slot nozzle info consistent with it
-     *
-     * Only nozzles of the extruder's current diameter take the new type. Hybrid and machine-synced data
-     * leave the per-slot info unchanged. Does not touch nozzle_volume_type in project_config.
-     *
-     * \param extruder_id  0-based extruder id
-     * \param type         new volume type of the extruder
-     */
-    void switch_extruder_nozzle_volume_type(int extruder_id, NozzleVolumeType type);
-
-    // Call with raw 3mf config before FullPrintConfig defaults are merged in.
-    void note_per_slot_nozzle_options_from_project_file(const DynamicPrintConfig &raw_file_config);
-
     //BBS: add BBL as default
     static const char *BBL_BUNDLE;
 	static const char *BBL_DEFAULT_PRINTER_MODEL;
 	static const char *BBL_DEFAULT_PRINTER_VARIANT;
 	static const char *BBL_DEFAULT_FILAMENT;
 private:
-    bool m_project_file_has_per_slot_nozzle_options{false};
-
-    // Core builder shared by the default seed and the app-config load: for each (extruder, slot) the
-    // provider returns the volume type
-    void apply_nozzle_volume_types(const Preset &printer_preset,
-                                   const std::function<NozzleVolumeType(int extruder_id, int slot_id)> &volume_for_slot);
-
     //std::pair<PresetsConfigSubstitutions, std::string> load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule);
     //BBS: add json related logic
     std::pair<PresetsConfigSubstitutions, std::string> load_system_presets_from_json(ForwardCompatibilitySubstitutionRule compatibility_rule);

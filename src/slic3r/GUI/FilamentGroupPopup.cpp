@@ -462,8 +462,6 @@ void FilamentGroupPopup::Init(const std::vector<FilamentMapMode>& available_mode
 
 void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice_all)
 {
-    if (wxGetApp().preset_bundle->extruder_full_stat.empty())
-        wxGetApp().preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
     const auto full_config = wxGetApp().preset_bundle->full_config();
     if (should_skip_filament_grouping(full_config)) {
         if (m_active)

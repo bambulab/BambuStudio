@@ -1,6 +1,7 @@
 #include "MultiNozzleSync.hpp"
 #include "../GUI_App.hpp"
 #include "../Plater.hpp"
+#include "../Tab.hpp"
 #include "../DeviceCore/DevConfigUtil.h"
 #include "../DeviceCore/DevManager.h"
 #include "libslic3r/PresetBundle.hpp"
@@ -201,15 +202,15 @@ void manuallySetNozzleCount(int extruder_id)
     ConfigOptionEnumsGeneric* nozzle_volume_type_opt = full_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     NozzleVolumeType volume_type = NozzleVolumeType(nozzle_volume_type_opt->values[extruder_id]);
     double nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[extruder_id];
-    int standard_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, nvtStandard);
-    int highflow_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, nvtHighFlow);
-    int tpu_count      = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, nvtTPUHighFlow)
-                       + preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, nvtTPU285);
-    int e3d_count      = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, nvtE3DHighFlow);
+    const NozzleInventory &nozzles = preset_bundle->nozzle_inventory;
+    int standard_count = nozzles.count(extruder_id, nvtStandard);
+    int highflow_count = nozzles.count(extruder_id, nvtHighFlow);
+    int tpu_count      = nozzles.count(extruder_id, nvtTPUHighFlow) + nozzles.count(extruder_id, nvtTPU285);
+    int e3d_count      = nozzles.count(extruder_id, nvtE3DHighFlow);
 
     bool force_no_zero = volume_type == nvtHybrid;
     if(nozzle_volume_type_opt->values.size() > 1){
-        int other_nozzle_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1 - extruder_id);
+        int other_nozzle_count = nozzles.count(1 - extruder_id);
         force_no_zero |= (other_nozzle_count == 0);
     }
 
@@ -223,17 +224,16 @@ void manuallySetNozzleCount(int extruder_id)
                                    supported_types);
 
     if (dialog.ShowModal() == wxID_OK) {
-        int nozzle_count = dialog.GetNozzleCount(volume_type);
+        std::map<NozzleVolumeType, int> counts;
         if (volume_type == nvtHybrid) {
-            setExtruderNozzleCount(preset_bundle, extruder_id, nvtStandard, dialog.GetNozzleCount(nvtStandard), true);
-            setExtruderNozzleCount(preset_bundle, extruder_id, nvtHighFlow, dialog.GetNozzleCount(nvtHighFlow), false);
-            setExtruderNozzleCount(preset_bundle, extruder_id, nvtTPUHighFlow, dialog.GetNozzleCount(nvtTPUHighFlow), false);
-            setExtruderNozzleCount(preset_bundle, extruder_id, nvtE3DHighFlow, dialog.GetNozzleCount(nvtE3DHighFlow), false);
+            for (NozzleVolumeType type : {nvtStandard, nvtHighFlow, nvtTPUHighFlow, nvtE3DHighFlow})
+                counts[type] = dialog.GetNozzleCount(type);
+        } else {
+            counts[volume_type] = dialog.GetNozzleCount(volume_type);
         }
-        else {
-            setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, true);
-        }
-        updateNozzleCountDisplay(preset_bundle, extruder_id, volume_type);
+        preset_bundle->nozzle_inventory.user_set_counts(extruder_id, counts);
+        if (auto *printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER)))
+            printer_tab->on_nozzles_changed(extruder_id);
         wxGetApp().plater()->update();
     }
 }
@@ -1187,19 +1187,9 @@ void tryResolveRackNozzleStatus(MachineObject* obj)
     dialog.ShowModal();
 }
 
-void setExtruderNozzleCount(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType volume_type, int nozzle_count, bool clear_all)
-{
-    if (!preset_bundle)
-        return;
-    if (volume_type == NozzleVolumeType::nvtHybrid)
-        return;
-
-    preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, volume_type, nozzle_count, clear_all);
-}
-
 void updateNozzleCountDisplay(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType volume_type)
 {
-    int nozzle_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, volume_type);
+    int nozzle_count = preset_bundle->nozzle_inventory.count(extruder_id, volume_type);
 
     auto nozzle_count_opt = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
     bool support_multi_nozzle = std::any_of(nozzle_count_opt->values.begin(), nozzle_count_opt->values.end(), [](int val) {return val > 1; });

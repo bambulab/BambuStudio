@@ -50,6 +50,7 @@ add_subdirectory(slic3rutils)
 add_subdirectory(fff_print)
 add_subdirectory(fila_manager)
 add_subdirectory(filament_group)
+add_subdirectory(nozzle_inventory)
 
 # These suites were not kept in sync with libslic3r after the fork and no longer compile.
 # They are left out of the default build; build a target explicitly to work on reviving it.

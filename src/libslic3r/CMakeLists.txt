@@ -309,6 +309,8 @@ set(lisbslic3r_sources
     PolygonTrimmer.hpp
     Polyline.cpp
     Polyline.hpp
+    NozzleInventory.cpp
+    NozzleInventory.hpp
     Preset.cpp
     Preset.hpp
     PresetBundle.cpp

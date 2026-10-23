@@ -177,8 +177,6 @@ private:
 // Closing it just skips the refresh; unknown nozzles then stay out of the sync.
 void tryResolveRackNozzleStatus(MachineObject* obj);
 
-void setExtruderNozzleCount(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType type, int nozzle_count, bool clear_before_set);
-
 void updateNozzleCountDisplay(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType volume_type);
 
 void manuallySetNozzleCount(int extruder_id);

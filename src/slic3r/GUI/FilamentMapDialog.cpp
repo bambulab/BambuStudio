@@ -218,9 +218,6 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
 
     bool sync_plate = true;
 
-    // Ensure the validated AMS helper has a slot snapshot to inspect.
-    if (wxGetApp().preset_bundle->extruder_full_stat.empty())
-        wxGetApp().preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
     if (should_skip_filament_grouping(full_config)) {
         // In single-diameter mode identical nozzles reduce to a single-nozzle printer. Clear any
         // previously stored grouping choice before slicing; multi-diameter mode keeps its per-filament
