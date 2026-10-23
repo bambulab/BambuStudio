@@ -248,6 +248,8 @@ private:
     std::vector<std::string>    m_match_types;
     // Slots that may be picked as the target (opaque single-color filaments).
     std::vector<bool>           m_match_target_allowed;
+    // Slots omitted from the target list entirely (support filaments).
+    std::vector<bool>           m_match_target_hidden;
     bool                        m_match_mode{false};
     // While switching tabs, resizing is postponed until the target page is fully laid out.
     bool                        m_defer_dialog_resize{false};

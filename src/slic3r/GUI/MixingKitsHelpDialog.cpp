@@ -220,7 +220,7 @@ wxWindow* MixingKitsHelpDialog::create_capacity_warning(wxWindow* parent)
                        MAX_PHYSICAL_FILAMENT_COUNT, m_plan.required_delete_count)
         : format_wxstr(_L("The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit. Please delete at least %2% filament(s) on the Prepare page, then add the kit again."),
                        MAX_PHYSICAL_FILAMENT_COUNT, m_plan.required_delete_count);
-    m_capacity_warning = new Label(panel, Label::Body_13, text);
+    m_capacity_warning = new Label(panel, Label::Body_14, text);
     m_capacity_warning->SetForegroundColour(warning_color);
     m_capacity_warning->SetBackgroundColour(dlg_bg());
     warning_row->Add(m_capacity_warning, 1);
@@ -331,19 +331,30 @@ void MixingKitsHelpDialog::build_ui()
         main->AddSpacer(FromDIP(16));
         main->Add(create_capacity_warning(this), 0, wxEXPAND | wxLEFT | wxRIGHT, side);
     }
+    if (m_plan.kit_already_present) {
+        main->AddSpacer(FromDIP(16));
+        auto* existing_hint = new Label(this, Label::Body_14,
+            _L("The mixing kit is already in the project filament list. Use it now?"));
+        existing_hint->SetForegroundColour(text_muted());
+        existing_hint->SetBackgroundColour(dlg_bg());
+        main->Add(existing_hint, 0, wxLEFT | wxRIGHT, side);
+    }
 
     main->AddSpacer(FromDIP(16));
 
     StateColor btn_bg(
+        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled),
         std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     StateColor btn_bd(
+        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled),
         std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     StateColor btn_text(
+        std::pair<wxColour, int>(wxColour("#FFFFFE"), StateColor::Disabled),
         std::pair<wxColour, int>(wxColour("#FFFFFE"), StateColor::Normal));
 
-    m_btn_add = new Button(this, _L("Add to project filament list"));
+    m_btn_add = new Button(this, m_plan.kit_already_present ? _L("Use now") : _L("Add to project filament list"));
     m_btn_add->SetBackgroundColor(btn_bg);
     m_btn_add->SetBorderColor(btn_bd);
     m_btn_add->SetTextColor(btn_text);

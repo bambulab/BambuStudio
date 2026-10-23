@@ -51,6 +51,7 @@ struct OfficialMixingKitAddPlan {
     // Unused physical filaments removed before adding the kit, 0-based config indices in descending order.
     std::vector<size_t> delete_indices;
     std::vector<std::string> delete_colors;
+    bool                kit_already_present{false};
     bool                can_add{true};
 
     bool needs_delete() const { return required_delete_count > 0; }

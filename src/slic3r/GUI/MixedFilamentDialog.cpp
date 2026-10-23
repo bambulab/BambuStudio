@@ -30,6 +30,7 @@
 #include "I18N.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "GuiColor.hpp"
 #include "GradientCurveEditor.hpp"
 #include "wxExtensions.hpp"
 #include "Tab.hpp"
@@ -1578,6 +1579,8 @@ void MixedFilamentDialog::rebuild_all_combos()
 
             if (others_selected.count(phys_1based))
                 continue;
+            if (m_match_mode && m_match_target >= 0 && phys_1based == unsigned(m_match_target + 1))
+                continue;
 
             int style = 0;
             if (!others_types.empty() && !m_physical_types.empty()) {
@@ -2248,6 +2251,8 @@ int MixedFilamentDialog::measure_needed_combo_width() const
     int name_w = dc.GetTextExtent(_L("-- Select --")).GetWidth();
     for (size_t j = 0; j < m_physical_names.size(); ++j)
         name_w = std::max(name_w, dc.GetTextExtent(combo_item_name(j)).GetWidth());
+    // Long preset names are ellipsized in the closed combo; keep the dialog close to a common official name width.
+    name_w = std::min(name_w, dc.GetTextExtent(wxString::FromUTF8("Bambu PLA Palette")).GetWidth() + FromDIP(24));
 
     const int suffix_w = measure_suffix_column_width();
     const int suffix_gap = suffix_w > 0 ? FromDIP(8) : 0;
@@ -2427,6 +2432,7 @@ void MixedFilamentDialog::set_physical_info(const MixedFilamentPhysicalInfo& inf
 
     m_match_types.clear();
     m_match_target_allowed.clear();
+    m_match_target_hidden.clear();
     PresetBundle* bundle = wxGetApp().preset_bundle;
     for (size_t i = 0; i < m_physical_colors.size(); ++i) {
         const size_t cfg_idx = m_physical_config_indices[i];
@@ -2436,6 +2442,7 @@ void MixedFilamentDialog::set_physical_info(const MixedFilamentPhysicalInfo& inf
 
         const std::string type = i < m_physical_types.size() ? m_physical_types[i] : std::string();
         const bool is_support = type.size() >= 2 && type.compare(type.size() - 2, 2, "-S") == 0;
+        m_match_target_hidden.push_back(is_support);
         m_match_target_allowed.push_back(!is_support &&
             decompose_color_block_reason((int)cfg_idx) == DecomposeColorBlockReason::None);
     }
@@ -2704,16 +2711,36 @@ void MixedFilamentDialog::rebuild_target_combo()
     m_combo_target->Clear();
     m_target_combo_to_physical.clear();
     int sel = -1;
+    int first_allowed = -1;
     for (size_t i = 0; i < m_physical_colors.size(); ++i) {
-        if (i >= m_match_target_allowed.size() || !m_match_target_allowed[i])
+        if (i >= m_match_target_hidden.size() || m_match_target_hidden[i])
             continue;
-        const int idx = m_combo_target->Append(combo_item_name(i), make_swatch_bitmap(i));
+        const bool allowed = i < m_match_target_allowed.size() && m_match_target_allowed[i];
+        const int idx = m_combo_target->Append(combo_item_name(i), make_swatch_bitmap(i), allowed ? 0 : DD_ITEM_STYLE_DISABLED);
+        if (!allowed) {
+            const size_t cfg_idx = i < m_physical_config_indices.size() ? m_physical_config_indices[i] : i;
+            switch (decompose_color_block_reason((int)cfg_idx)) {
+            case DecomposeColorBlockReason::Transparent:
+                m_combo_target->SetItemTooltip(idx, _L("Transparent filaments are not supported for color matching."));
+                break;
+            case DecomposeColorBlockReason::Gradient:
+                m_combo_target->SetItemTooltip(idx, _L("Gradient filaments are not supported for color matching."));
+                break;
+            case DecomposeColorBlockReason::MultiColor:
+                m_combo_target->SetItemTooltip(idx, _L("Multicolor filaments are not supported for color matching."));
+                break;
+            default:
+                break;
+            }
+        }
         m_target_combo_to_physical.push_back((int)i);
-        if ((int)i == m_match_target)
+        if (allowed && first_allowed < 0)
+            first_allowed = idx;
+        if (allowed && (int)i == m_match_target)
             sel = idx;
     }
-    if (sel < 0 && !m_target_combo_to_physical.empty())
-        sel = 0;
+    if (sel < 0)
+        sel = first_allowed;
     m_match_target = sel >= 0 ? m_target_combo_to_physical[sel] : -1;
     if (sel >= 0)
         m_combo_target->SetSelection(sel);
@@ -2726,9 +2753,21 @@ void MixedFilamentDialog::on_target_changed()
     const int sel = m_combo_target ? m_combo_target->GetSelection() : -1;
     if (sel < 0 || sel >= (int)m_target_combo_to_physical.size())
         return;
-    if (m_target_combo_to_physical[sel] == m_match_target)
+    const int physical = m_target_combo_to_physical[sel];
+    if (physical < 0 || physical >= (int)m_match_target_allowed.size() || !m_match_target_allowed[physical]) {
+        int restore_sel = -1;
+        for (size_t i = 0; i < m_target_combo_to_physical.size(); ++i) {
+            if (m_target_combo_to_physical[i] == m_match_target) {
+                restore_sel = (int)i;
+                break;
+            }
+        }
+        m_combo_target->SetSelection(restore_sel);
         return;
-    m_match_target = m_target_combo_to_physical[sel];
+    }
+    if (physical == m_match_target)
+        return;
+    m_match_target = physical;
     run_color_match();
 }
 
@@ -2813,16 +2852,6 @@ void MixedFilamentDialog::run_color_match()
 
         const std::string target_type = (size_t)target < m_match_types.size()
             ? m_match_types[target] : std::string(kDecomposePlaShortType);
-        const std::string target_diameter = (m_enforce_nozzle_diameter && (size_t)target < m_physical_diameters.size())
-            ? m_physical_diameters[target] : std::string();
-        auto mixable = [&](size_t i) {
-            if (i >= m_match_types.size() || !Slic3r::color_decompose_material_family_matches(m_match_types[i], target_type))
-                return false;
-            if (!target_diameter.empty() && i < m_physical_diameters.size() && !m_physical_diameters[i].empty()
-                && m_physical_diameters[i] != target_diameter)
-                return false;
-            return true;
-        };
         auto physical_of_official = [this](const DecomposeOfficialComponent& official) -> int {
             const int cfg_1based = find_existing_decompose_component(official, m_physical_colors, m_physical_config_indices);
             if (cfg_1based <= 0)
@@ -2834,82 +2863,120 @@ void MixedFilamentDialog::run_color_match()
         };
 
         const std::string target_hex = decompose_normalize_color_hex(m_physical_colors[target]);
-        // Same-type filaments with the target color cannot change the result, so match with the remaining colors.
+        // Filaments with the target color would be returned as a single-filament exact match, so match with the remaining colors.
         auto excluded_from_match = [&](size_t i) {
             if ((int)i == target)
                 return true;
-            return i < m_match_types.size()
-                && Slic3r::color_decompose_material_family_matches(m_match_types[i], target_type)
-                && decompose_normalize_color_hex(m_physical_colors[i]) == target_hex;
+            return decompose_normalize_color_hex(m_physical_colors[i]) == target_hex;
         };
 
         // With the complete official PLA Palette CMYKW kit, use the measured recipe table.
-        if (Slic3r::color_decompose_material_family_matches(target_type, kDecomposePlaShortType)) {
-            bool kit_complete = true;
-            for (const DecomposeOfficialComponent& official : pla_palette_cmykw_official_components()) {
-                const int phys = physical_of_official(official);
-                if (phys < 0 || excluded_from_match((size_t)phys) || !mixable((size_t)phys)) {
-                    kit_complete = false;
-                    break;
-                }
+        MixedFilamentResult kit_result;
+        float kit_distance = 0.f;
+        bool kit_complete = true;
+        std::string kit_diameter;
+        bool kit_diameter_set = false;
+        for (const DecomposeOfficialComponent& official : pla_palette_cmykw_official_components()) {
+            const int phys = physical_of_official(official);
+            if (phys < 0 || excluded_from_match((size_t)phys) || (size_t)phys >= m_match_types.size()
+                || !Slic3r::color_decompose_material_family_matches(m_match_types[phys], kDecomposePlaShortType)) {
+                kit_complete = false;
+                break;
             }
-            if (kit_complete) {
-                const Slic3r::ColorDecomposeRecipeResult recipe = Slic3r::lookup_standard_recipe(
-                    target_rgb, Slic3r::ColorDecomposeRecipeMode::CMYKW, kDecomposePlaPaletteType);
-                if (recipe.valid) {
-                    for (const auto& comp : recipe.components) {
-                        DecomposeOfficialComponent official;
-                        official.color_hex   = decompose_normalize_color_hex(comp.color_hex);
-                        official.filament_id = kDecomposePlaPaletteFilamentId;
-                        const int phys = physical_of_official(official);
-                        if (phys < 0 || excluded_from_match((size_t)phys)) {
-                            result = {};
-                            break;
-                        }
-                        result.components.push_back((unsigned int)(phys + 1));
-                        result.ratios.push_back(comp.ratio);
-                    }
-                }
-                if (result.components.size() < 2)
-                    result = {};
+            const std::string diameter = (m_enforce_nozzle_diameter && (size_t)phys < m_physical_diameters.size())
+                ? m_physical_diameters[phys] : std::string();
+            if (kit_diameter_set && diameter != kit_diameter) {
+                kit_complete = false;
+                break;
             }
+            kit_diameter     = diameter;
+            kit_diameter_set = true;
         }
+        if (kit_complete) {
+            const Slic3r::ColorDecomposeRecipeResult recipe = Slic3r::lookup_standard_recipe(
+                target_rgb, Slic3r::ColorDecomposeRecipeMode::CMYKW, kDecomposePlaPaletteType);
+            if (recipe.valid) {
+                for (const auto& comp : recipe.components) {
+                    DecomposeOfficialComponent official;
+                    official.color_hex   = decompose_normalize_color_hex(comp.color_hex);
+                    official.filament_id = kDecomposePlaPaletteFilamentId;
+                    const int phys = physical_of_official(official);
+                    if (phys < 0 || excluded_from_match((size_t)phys)) {
+                        kit_result = {};
+                        break;
+                    }
+                    kit_result.components.push_back((unsigned int)(phys + 1));
+                    kit_result.ratios.push_back(comp.ratio);
+                }
+                kit_distance = calc_color_distance(target_col, wxColour(recipe.matched_color_hex));
+            }
+            if (kit_result.components.size() < 2)
+                kit_result = {};
+        }
+        if (Slic3r::color_decompose_material_family_matches(target_type, kDecomposePlaShortType))
+            result = kit_result;
 
         if (result.components.size() < 2) {
-            size_t same_type_count = 0;
-            std::vector<Slic3r::ColorDecomposePhysicalFilament> family;
+            struct MatchGroup {
+                std::string type;
+                std::string diameter;
+                std::vector<Slic3r::ColorDecomposePhysicalFilament> filaments;
+            };
+            std::vector<MatchGroup> groups;
             for (size_t i = 0; i < m_physical_colors.size(); ++i) {
                 if (excluded_from_match(i) || i >= m_match_types.size()
-                    || !Slic3r::color_decompose_material_family_matches(m_match_types[i], target_type))
+                    || i >= m_match_target_allowed.size() || !m_match_target_allowed[i])
                     continue;
-                ++same_type_count;
-                if (!mixable(i))
-                    continue;
+                const std::string diameter = (m_enforce_nozzle_diameter && i < m_physical_diameters.size())
+                    ? m_physical_diameters[i] : std::string();
+                auto group = std::find_if(groups.begin(), groups.end(), [&](const MatchGroup& g) {
+                    return g.diameter == diameter && Slic3r::color_decompose_material_family_matches(g.type, m_match_types[i]);
+                });
+                if (group == groups.end()) {
+                    groups.push_back({m_match_types[i], diameter, {}});
+                    group = std::prev(groups.end());
+                }
                 Slic3r::ColorDecomposePhysicalFilament filament;
                 filament.color_hex      = m_physical_colors[i];
                 filament.name           = i < m_physical_names.size() ? m_physical_names[i] : std::string();
                 filament.type           = m_match_types[i];
                 filament.filament_index = (unsigned int)(i + 1);
-                family.push_back(std::move(filament));
+                group->filaments.push_back(std::move(filament));
             }
 
-            if (same_type_count == 0) {
-                error = _L("There is no other filament of the same type as the target color in the project.");
-            } else if (same_type_count == 1) {
-                error = _L("At least two other filaments of the same type as the target color are required.");
-            } else if (family.size() < 2) {
-                error = _L("Fewer than two filaments of the same type use the target's nozzle diameter.");
-            } else {
+            // Prefer a recipe of the target's material family; otherwise take the closest color from other families.
+            Slic3r::ColorDecomposeRecipeResult best;
+            bool  best_same_type = false;
+            float best_distance  = 0.f;
+            for (const MatchGroup& group : groups) {
+                if (group.filaments.size() < 2)
+                    continue;
                 const Slic3r::ColorDecomposeRecipeResult recipe =
-                    Slic3r::recommend_from_physical_filaments(target_rgb, family, std::string());
-                if (recipe.valid && recipe.components.size() >= 2) {
-                    for (const auto& comp : recipe.components) {
+                    Slic3r::recommend_from_physical_filaments(target_rgb, group.filaments, std::string());
+                if (!recipe.valid || recipe.components.size() < 2)
+                    continue;
+                const bool  same_type = Slic3r::color_decompose_material_family_matches(group.type, target_type);
+                const float distance  = calc_color_distance(target_col, wxColour(recipe.matched_color_hex));
+                if (!best.valid || (same_type && !best_same_type)
+                    || (same_type == best_same_type && distance < best_distance)) {
+                    best           = recipe;
+                    best_same_type = same_type;
+                    best_distance  = distance;
+                }
+            }
+            if (best.valid) {
+                if (!best_same_type && kit_result.components.size() >= 2 && kit_distance < best_distance) {
+                    result = kit_result;
+                } else {
+                    for (const auto& comp : best.components) {
                         result.components.push_back(comp.filament_index);
                         result.ratios.push_back(comp.ratio);
                     }
-                } else {
-                    error = _L("No available mixing recipe was found.");
                 }
+            } else if (kit_result.components.size() >= 2) {
+                result = kit_result;
+            } else {
+                error = _L("No available mixing recipe was found.");
             }
         }
     }

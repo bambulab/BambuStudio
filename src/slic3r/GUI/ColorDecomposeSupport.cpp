@@ -391,6 +391,10 @@ OfficialMixingKitAddPlan plan_official_mixing_kit_addition(size_t reserve_slots,
     const ProjectPhysicalFilaments physical = collect_project_physical_filaments();
     std::set<size_t> keep = protected_indices;
     plan.missing_count = missing_official_mixing_kit_components(physical, &keep).size();
+    if (plan.missing_count == 0) {
+        plan.kit_already_present = true;
+        return plan;
+    }
 
     const size_t physical_after = physical.indices.size() + plan.missing_count;
     const size_t total_after = pb.filament_presets.size() + plan.missing_count + reserve_slots;
