@@ -4,6 +4,7 @@
 #include "FilamentManualPullDialog.hpp"
 #include "ResolverDeviceState.hpp"
 #include "ResolverSlotState.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/DevicePageDialogHelpers.h"
 
 #include "slic3r/GUI/AMSDryControl.hpp"
 #include "slic3r/GUI/AMSMaterialsSetting.hpp"
@@ -395,6 +396,9 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
         if (DevicePageDeviceStateResolver::BlockIfBusy(machine_obj)) {
             return vm.MakeResponse(vm.GetModule(), "action", action, 3,
                 _u8L("The printer is busy on other job"), vm.BuildState());
+        }
+        if (BlockLoadForUnknownFilament(machine_obj, ams_id, slot_id)) {
+            return vm.MakeResponse(vm.GetModule(), "action", action, 0, "", vm.BuildState());
         }
         try {
             int old_temp = -1;

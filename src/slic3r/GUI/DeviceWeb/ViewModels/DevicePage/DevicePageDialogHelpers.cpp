@@ -9,6 +9,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/Monitor.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
@@ -189,6 +190,26 @@ void OpenAmsSettingsDialog()
     AMSSetting dlg(parent, wxID_ANY);
     dlg.UpdateByObj(machine_obj);
     dlg.ShowModal();
+}
+
+bool BlockLoadForUnknownFilament(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id)
+{
+    if (!machine_obj || ams_id.empty() || slot_id.empty()) return true;
+
+    const auto target_tray = machine_obj->get_tray(ams_id, slot_id);
+    const bool is_unknown = !target_tray.has_value() ||
+                            target_tray->setting_id.empty() ||
+                            target_tray->m_fila_type.empty();
+    if (!is_unknown) return false;
+
+    // Queue the modal so bridge/request handlers can return immediately.
+    wxGetApp().CallAfter([]() {
+        MessageDialog msg_dlg(nullptr,
+                              _L("Filament type is unknown which is required to perform this action. Please set target filament's information."),
+                              wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+    });
+    return true;
 }
 
 void OpenAmsAutoRefillDialog()

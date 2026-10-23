@@ -44,6 +44,10 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
 // Open the native AMS settings dialog. Must run on the UI thread.
 void OpenAmsSettingsDialog();
 
+// Load actions require a known filament profile. Returns true when the target
+// tray is unknown and a warning popup was queued, so the caller must stop.
+bool BlockLoadForUnknownFilament(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id);
+
 // AmsReplaceMaterialDialog ("Auto Refill"). Same popup AMSControl posts via
 // EVT_AMS_FILAMENT_BACKUP. Must run on the UI thread.
 void OpenAmsAutoRefillDialog();

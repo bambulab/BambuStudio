@@ -119,6 +119,9 @@ nlohmann::json ConnectedSlotsActions::HandleTrayAction(ConnectedSlotsVM&     vm,
         const int new_temp = nozzle_temp_of(obj->get_tray(ams_id, slot_id));
         const int old_temp = current_nozzle_temp(obj);
         if (action == "load") {
+            if (BlockLoadForUnknownFilament(obj, ams_id, slot_id)) {
+                return vm.MakeResponse(vm.GetModule(), "action", action, 0, "", vm.BuildState());
+            }
             obj->command_ams_change_filament(true, ams_id, slot_id, old_temp, new_temp, 0);
         } else {
             command_unload_slot(obj, ams_id, slot_id, old_temp, new_temp);

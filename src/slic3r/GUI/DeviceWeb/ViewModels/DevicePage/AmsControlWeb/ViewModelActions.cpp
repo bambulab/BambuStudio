@@ -165,20 +165,11 @@ bool resolve_load_extruder(MachineObject*      machine_obj,
 // Must run on the UI thread: resolve_load_extruder is modal.
 void command_load(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id)
 {
-    const auto target_tray = machine_obj->get_tray(ams_id, slot_id);
+    // Feeding needs a known filament type, so share the same guard as other
+    // device-page load entry points before sending the printer command.
+    if (BlockLoadForUnknownFilament(machine_obj, ams_id, slot_id)) return;
 
-    // Mirror AMSControl::on_filament_load: feeding needs a known filament type,
-    // so warn here instead of sending a command the printer cannot honour.
-    if (!target_tray.has_value() || target_tray->setting_id.empty()) {
-        // Defer the modal so this call returns to the caller right away.
-        wxGetApp().CallAfter([]() {
-            MessageDialog msg_dlg(nullptr,
-                                  _L("Filament type is unknown which is required to perform this action. Please set target filament's information."),
-                                  wxEmptyString, wxICON_WARNING | wxOK);
-            msg_dlg.ShowModal();
-        });
-        return;
-    }
+    const auto target_tray = machine_obj->get_tray(ams_id, slot_id);
 
     std::optional<int> extruder_id;
     if (!resolve_load_extruder(machine_obj, ams_id, slot_id, extruder_id)) return;
