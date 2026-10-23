@@ -244,7 +244,19 @@ add_custom_command(
 )
 
 # Not ALL: rebuilt only when a dependent target (libslic3r_gui / BambuStudio) is built.
-add_custom_target(device_page_build DEPENDS "${DEVICE_PAGE_BUILD_STAMP}")
+if (CMAKE_GENERATOR MATCHES "Visual Studio")
+    # Visual Studio keeps prompting that this utility project is out of date unless
+    # the generated per-target marker also exists alongside the real stamp file.
+    set(DEVICE_PAGE_BUILD_TARGET_MARKER "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/device_page_build")
+    add_custom_target(device_page_build
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles"
+        COMMAND ${CMAKE_COMMAND} -E touch "${DEVICE_PAGE_BUILD_TARGET_MARKER}"
+        DEPENDS "${DEVICE_PAGE_BUILD_STAMP}"
+        VERBATIM
+    )
+else()
+    add_custom_target(device_page_build DEPENDS "${DEVICE_PAGE_BUILD_STAMP}")
+endif()
 
 # ==================== DeviceWebHtml: native HTML front-end ====================
 # Plain static assets - no Node/pnpm/Vite involved, so this deliberately bypasses
@@ -269,7 +281,18 @@ add_custom_command(
     VERBATIM
 )
 
-add_custom_target(device_page_html_build DEPENDS "${DEVICE_PAGE_HTML_STAMP}")
+if (CMAKE_GENERATOR MATCHES "Visual Studio")
+    # Match the workaround above so VS can satisfy its utility-project up-to-date check.
+    set(DEVICE_PAGE_HTML_TARGET_MARKER "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/device_page_html_build")
+    add_custom_target(device_page_html_build
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles"
+        COMMAND ${CMAKE_COMMAND} -E touch "${DEVICE_PAGE_HTML_TARGET_MARKER}"
+        DEPENDS "${DEVICE_PAGE_HTML_STAMP}"
+        VERBATIM
+    )
+else()
+    add_custom_target(device_page_html_build DEPENDS "${DEVICE_PAGE_HTML_STAMP}")
+endif()
 
 list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/DeviceHttpServer.cpp
