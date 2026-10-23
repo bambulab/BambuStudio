@@ -4,6 +4,8 @@
 #include "ExPolygon.hpp"
 #include "PrintConfig.hpp"
 
+#include <atomic>
+
 #define BED_SHRINK_SEQ_PRINT 0
 
 namespace Slic3r {
@@ -30,6 +32,14 @@ struct InfiniteBed {
     Point center;
     explicit InfiniteBed(const Point &p = {0, 0}): center{p} {}
 };
+
+/// Set by the arrange caller (ArrangeJob, the CLI) before ArrangePolygons are
+/// collected; read by ModelInstance::get_arrange_polygon() to choose between the
+/// convex hull and the true outline. A global because that function has no ArrangeParams.
+extern std::atomic<bool> use_true_outline;
+
+/// Whether this build includes the experimental backend.
+bool sparrow_available();
 
 /// A logical bed representing an object not being arranged. Either the arrange
 /// has not yet successfully run on this ArrangePolygon or it could not fit the
@@ -127,6 +137,17 @@ struct ArrangeParams {
 
     bool allow_rotations = false;
 
+    //BBS: use the sparrow (Rust) packer instead of the libnest2d NFP placer
+    bool  use_sparrow = false;
+    /// Sparrow search budget in seconds, per plate (not for the whole run).
+    float sparrow_time_limit_s = 2.f;
+    /// No libnest2d fallback: a failed sparrow run leaves the arrangables untouched.
+    bool  sparrow_only = false;
+    /// Most filaments sparrow may put on a plate by mixing filament sets; 0 = no limit.
+    int   sparrow_max_filaments_per_plate = 0;
+    /// Every plate prints a prime tower (smooth timelapse, wrapping detection), not just multi-filament ones.
+    bool  prime_tower_always = false;
+
     bool do_final_align = true;
 
     //BBS: add specific arrange params
@@ -158,6 +179,11 @@ struct ArrangeParams {
 
     std::function<void(const ArrangePolygon &)> on_packed;
 
+    /// Sparrow only: the best layout so far, one pose per arrangable, called on the
+    /// arrange thread. Items not placed yet have bed_idx UNARRANGED.
+    struct Pose { int bed_idx; Vec2crd translation; double rotation; };
+    std::function<void(const std::vector<Pose> &)> on_layout;
+
     /// A predicate returning true if abort is needed.
     std::function<bool(void)>     stopcondition;
 
@@ -170,6 +196,8 @@ struct ArrangeParams {
         ret += "\"accuracy\":" + std::to_string(accuracy) + ",";
         ret += "\"parallel\":" + std::to_string(parallel) + ",";
         ret += "\"allow_rotations\":" + std::to_string(allow_rotations) + ",";
+        ret += "\"use_sparrow\":" + std::to_string(use_sparrow) + ",";
+        ret += "\"sparrow_time_limit_s\":" + std::to_string(sparrow_time_limit_s) + ",";
         ret += "\"do_final_align\":" + std::to_string(do_final_align) + ",";
         ret += "\"allow_multi_materials_on_same_plate\":" + std::to_string(allow_multi_materials_on_same_plate) + ",";
         ret += "\"avoid_extrusion_cali_region\":" + std::to_string(avoid_extrusion_cali_region) + ",";
