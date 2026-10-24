@@ -556,7 +556,7 @@ public:
 private:
     wxDataViewItem  AddRoot(const wxDataViewItem& parent_item, const ItemType root_type);
     wxDataViewItem  AddInstanceRoot(const wxDataViewItem& parent_item);
-    void            AddAllChildren(const wxDataViewItem& parent);
+    void            AddAllChildren(const wxDataViewItem& parent, bool expand = true);
 
     wxBitmap&       GetWarningBitmap(const std::string& warning_icon_name);
     void            ReparentObject(ObjectDataViewModelNode* plate, ObjectDataViewModelNode* object);
