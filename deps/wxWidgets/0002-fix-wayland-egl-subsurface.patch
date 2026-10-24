@@ -1,5 +1,5 @@
 diff --git a/include/wx/aui/framemanager.h b/include/wx/aui/framemanager.h
-index f910101..67a39db 100644
+index f910101..11730b6 100644
 --- a/include/wx/aui/framemanager.h
 +++ b/include/wx/aui/framemanager.h
 @@ -543,6 +543,7 @@ protected:
@@ -10,12 +10,13 @@ index f910101..67a39db 100644
  
      void SetActivePane(wxWindow* active_pane);
  
-@@ -606,6 +607,11 @@ protected:
+@@ -606,6 +607,12 @@ protected:
      bool m_skipping;
      bool m_hasMaximized;
  
 +    // Live resize under Wayland: the most recent motion event, applied by
-+    // DoPendingLiveResize() at most once per event loop iteration.
++    // DoPendingLiveResize() once the pending motion events have been
++    // dispatched, so that each relayout uses the latest pointer position.
 +    wxMouseEvent m_pendingResizeEvent;
 +    bool m_resizeUpdatePending;
 +
@@ -23,7 +24,7 @@ index f910101..67a39db 100644
      double m_dockConstraintY;  // 0.0 .. 1.0; max pct of window height a dock can consume
  
 diff --git a/include/wx/unix/glegl.h b/include/wx/unix/glegl.h
-index ccdd302..21f8b1f 100644
+index ccdd302..de0d70d 100644
 --- a/include/wx/unix/glegl.h
 +++ b/include/wx/unix/glegl.h
 @@ -69,7 +69,6 @@ public:
@@ -47,7 +48,7 @@ index ccdd302..21f8b1f 100644
      bool m_readyToDraw;
      wl_compositor *m_wlCompositor;
      wl_subcompositor *m_wlSubcompositor;
-@@ -124,6 +129,32 @@ public:
+@@ -124,11 +129,40 @@ public:
      wl_egl_window *m_wlEGLWindow;
  
  private:
@@ -80,7 +81,15 @@ index ccdd302..21f8b1f 100644
  
      EGLConfig *m_config;
      EGLDisplay m_display;
-@@ -136,6 +167,9 @@ private:
+     EGLSurface m_surface;
+ 
++    // true once eglSwapInterval(0) succeeded for the current surface
++    bool m_swapIntervalSet;
++
+     unsigned long m_xwindow;
+     wl_surface *m_wlSurface;
+     wl_region *m_wlRegion;
+@@ -136,6 +170,9 @@ private:
  
      // the global/default versions of the above
      static EGLConfig *ms_glEGLConfig;
@@ -91,7 +100,7 @@ index ccdd302..21f8b1f 100644
  
  // ----------------------------------------------------------------------------
 diff --git a/src/aui/framemanager.cpp b/src/aui/framemanager.cpp
-index 246a89e..8b3fb96 100644
+index 246a89e..27ff469 100644
 --- a/src/aui/framemanager.cpp
 +++ b/src/aui/framemanager.cpp
 @@ -42,6 +42,25 @@
@@ -107,7 +116,7 @@ index 246a89e..8b3fb96 100644
 +
 +// Under Wayland, wxWindow::Update() is a blocking round trip to the
 +// compositor and nothing drawn synchronously is shown before the next frame
-+// anyhow, so live resizing must avoid it.
++// anyhow, so resizing with the mouse must avoid it.
 +static bool wxAuiIsWaylandDisplay()
 +{
 +#if defined(__WXGTK3__) && defined(GDK_WINDOWING_WAYLAND)
@@ -128,17 +137,20 @@ index 246a89e..8b3fb96 100644
      m_frame = NULL;
      m_dockConstraintX = 0.3;
      m_dockConstraintY = 0.3;
-@@ -2675,7 +2695,8 @@ void wxAuiManager::Update()
+@@ -2675,7 +2695,11 @@ void wxAuiManager::Update()
              if (p.rect != old_pane_rects[i])
              {
                  p.window->Refresh();
 -                p.window->Update();
-+                if (!wxAuiIsWaylandDisplay())
++                // While a sash is being dragged under Wayland, the synchronous
++                // repaint is a compositor round trip per pane and shows
++                // nothing before the next frame anyhow.
++                if (m_action != actionResize || !wxAuiIsWaylandDisplay())
 +                    p.window->Update();
              }
          }
      }
-@@ -4207,6 +4228,24 @@ void wxAuiManager::OnLeftDown(wxMouseEvent& event)
+@@ -4207,6 +4231,23 @@ void wxAuiManager::OnLeftDown(wxMouseEvent& event)
  }
  
  /// Ends a resize action, or for live update, resizes the sash
@@ -152,10 +164,9 @@ index 246a89e..8b3fb96 100644
 +        return;
 +
 +    // m_actionPart is invalidated by the Update() done for the previous step.
-+    if (m_currentDragItem != -1)
-+        m_actionPart = & (m_uiParts.Item(m_currentDragItem));
-+    if (!m_actionPart)
++    if (m_currentDragItem < 0 || m_currentDragItem >= (int)m_uiParts.GetCount())
 +        return;
++    m_actionPart = & (m_uiParts.Item(m_currentDragItem));
 +
 +    DoEndResizeAction(m_pendingResizeEvent);
 +}
@@ -163,7 +174,7 @@ index 246a89e..8b3fb96 100644
  bool wxAuiManager::DoEndResizeAction(wxMouseEvent& event)
  {
      // resize the dock or the pane
-@@ -4585,9 +4624,26 @@ void wxAuiManager::OnMotion(wxMouseEvent& event)
+@@ -4585,9 +4626,26 @@ void wxAuiManager::OnMotion(wxMouseEvent& event)
  
              if (HasLiveResize())
              {
@@ -194,10 +205,16 @@ index 246a89e..8b3fb96 100644
              else
              {
 diff --git a/src/gtk/glcanvas.cpp b/src/gtk/glcanvas.cpp
-index 3887e30..0543a8d 100644
+index 3887e30..b9dab64 100644
 --- a/src/gtk/glcanvas.cpp
 +++ b/src/gtk/glcanvas.cpp
-@@ -34,7 +34,14 @@ static gboolean draw(GtkWidget* widget, cairo_t* cr, wxGLCanvas* win)
+@@ -29,13 +29,21 @@ static gboolean draw(GtkWidget* widget, cairo_t* cr, wxGLCanvas* win)
+ {
+     GtkAllocation a;
+     gtk_widget_get_allocation(widget, &a);
++#ifdef GDK_WINDOWING_X11
+     if (a.width > win->m_size.x || a.height > win->m_size.y)
+     {
          // GLX buffers are apparently not reliably updated to the new size
          // before the paint event occurs, resulting in newly exposed window
          // areas sometimes not being painted at the end of a drag resize.
@@ -206,14 +223,15 @@ index 3887e30..0543a8d 100644
 +        // This is an X11 workaround only: under Wayland gdk_display_sync()
 +        // is a blocking round trip to the compositor, done on every draw
 +        // while the canvas grows, which makes interactive resizing sluggish.
-+#ifdef GDK_WINDOWING_X11
-+        if (GDK_IS_X11_DISPLAY(gtk_widget_get_display(widget)))
-+#endif
-+            gdk_display_sync(gtk_widget_get_display(widget));
++        GdkDisplay* const display = gtk_widget_get_display(widget);
++        if (GDK_IS_X11_DISPLAY(display))
++            gdk_display_sync(display);
      }
++#endif // GDK_WINDOWING_X11
      win->m_size.Set(a.width, a.height);
  
-@@ -48,6 +55,45 @@ static gboolean draw(GtkWidget* widget, cairo_t* cr, wxGLCanvas* win)
+     win->GTKSendPaintEvents(cr);
+@@ -48,6 +56,45 @@ static gboolean draw(GtkWidget* widget, cairo_t* cr, wxGLCanvas* win)
  // emission hook for "parent-set"
  //-----------------------------------------------------------------------------
  
@@ -259,7 +277,7 @@ index 3887e30..0543a8d 100644
  #if !wxUSE_GLCANVAS_EGL
  extern "C" {
  static gboolean
-@@ -250,6 +296,9 @@ bool wxGLCanvas::Create(wxWindow *parent,
+@@ -250,6 +297,9 @@ bool wxGLCanvas::Create(wxWindow *parent,
  #if !wxUSE_GLCANVAS_EGL
      unsigned sig_id = g_signal_lookup("parent-set", GTK_TYPE_WIDGET);
      g_signal_add_emission_hook(sig_id, 0, parent_set_hook, this, NULL);
@@ -293,10 +311,10 @@ index 2497cf9..893b8ea 100644
  
      if (!IsTopLevel())
 diff --git a/src/unix/glegl.cpp b/src/unix/glegl.cpp
-index 7e78b98..f7443de 100644
+index 7e78b98..222f727 100644
 --- a/src/unix/glegl.cpp
 +++ b/src/unix/glegl.cpp
-@@ -26,18 +26,58 @@
+@@ -26,18 +26,47 @@
      #include "wx/log.h"
  #endif //WX_PRECOMP
  
@@ -333,19 +351,8 @@ index 7e78b98..f7443de 100644
 +}
 +} // namespace wxGTKImpl
 +
-+// We can't add a member variable to wxGLCanvasEGL in 3.2 branch, so emulate it
-+// by encoding the corresponding boolean value via the presence of "this"
-+// pointer in the given hash set.
-+#include "wx/hashset.h"
-+
 +namespace
 +{
-+
-+// Define the equivalent of unordered_set<wxGLCanvasEGL*>.
-+WX_DECLARE_HASH_SET(wxGLCanvasEGL*, wxPointerHash, wxPointerEqual, wxGLCanvasSet);
-+
-+// And use it to remember which objects already called eglSwapInterval().
-+wxGLCanvasSet gs_alreadySetSwapInterval;
 +
 +// EGL version initialized by InitConfig().
 +EGLint gs_eglMajor = 0;
@@ -356,7 +363,15 @@ index 7e78b98..f7443de 100644
  // ----------------------------------------------------------------------------
  // wxGLContextAttrs: OpenGL rendering context attributes
  // ----------------------------------------------------------------------------
-@@ -374,8 +414,41 @@ bool wxGLCanvasEGL::InitVisual(const wxGLAttributes& dispAttrs)
+@@ -359,6 +388,7 @@ wxGLCanvasEGL::wxGLCanvasEGL()
+     m_wlRegion = NULL;
+     m_wlSubsurface = NULL;
+     m_readyToDraw = false;
++    m_swapIntervalSet = false;
+ }
+ 
+ bool wxGLCanvasEGL::InitVisual(const wxGLAttributes& dispAttrs)
+@@ -374,8 +404,41 @@ bool wxGLCanvasEGL::InitVisual(const wxGLAttributes& dispAttrs)
  /* static */
  EGLDisplay wxGLCanvasEGL::GetDisplay()
  {
@@ -400,7 +415,7 @@ index 7e78b98..f7443de 100644
      switch ( info.type )
      {
          case wxDisplayX11:
-@@ -385,13 +458,75 @@ EGLDisplay wxGLCanvasEGL::GetDisplay()
+@@ -385,13 +448,75 @@ EGLDisplay wxGLCanvasEGL::GetDisplay()
              platform = EGL_PLATFORM_WAYLAND_EXT;
              break;
          default:
@@ -412,11 +427,11 @@ index 7e78b98..f7443de 100644
 +    wxCHECK_MSG( platform, EGL_NO_DISPLAY, "unknown display type" );
 +
 +    return s_eglGetPlatformDisplay(platform, info.dpy, NULL);
-+}
-+
+ }
+ 
 +void wxGLCanvasEGL::OnWLFrameCallback()
 +{
-+#ifdef GDK_WINDOWING_WAYLAND
+ #ifdef GDK_WINDOWING_WAYLAND
 +    wxLogTrace(TRACE_EGL, "In frame callback handler for %p", this);
 +
 +    m_readyToDraw = true;
@@ -424,9 +439,9 @@ index 7e78b98..f7443de 100644
 +    SendSizeEvent();
 +    gtk_widget_queue_draw(m_wxwindow);
 +#endif // GDK_WINDOWING_WAYLAND
- }
- 
- #ifdef GDK_WINDOWING_WAYLAND
++}
++
++#ifdef GDK_WINDOWING_WAYLAND
 +
 +// Helper declared as friend in the header and so can access m_wlSubsurface.
 +void wxEGLUpdatePosition(wxGLCanvasEGL* win)
@@ -478,7 +493,7 @@ index 7e78b98..f7443de 100644
  extern "C"
  {
  
-@@ -425,28 +560,100 @@ static void wl_frame_callback_handler(void* data,
+@@ -425,28 +550,100 @@ static void wl_frame_callback_handler(void* data,
                                        uint32_t)
  {
      wxGLCanvasEGL *glc = static_cast<wxGLCanvasEGL *>(data);
@@ -586,7 +601,7 @@ index 7e78b98..f7443de 100644
  bool wxGLCanvasEGL::CreateSurface()
  {
      m_display = GetDisplay();
-@@ -457,25 +664,36 @@ bool wxGLCanvasEGL::CreateSurface()
+@@ -457,25 +654,36 @@ bool wxGLCanvasEGL::CreateSurface()
      }
  
      GdkWindow *window = GTKGetDrawingWindow();
@@ -603,7 +618,7 @@ index 7e78b98..f7443de 100644
 +
 +        // The swap interval is a property of the surface, so it has to be set
 +        // again for the new one (see SwapBuffers()).
-+        gs_alreadySetSwapInterval.erase(this);
++        m_swapIntervalSet = false;
 +
          m_xwindow = GDK_WINDOW_XID(window);
 -        m_surface = eglCreatePlatformWindowSurface(m_display, *m_config,
@@ -632,7 +647,7 @@ index 7e78b98..f7443de 100644
          struct wl_registry *registry = wl_display_get_registry(display);
          wl_registry_add_listener(registry, &wl_registry_listener, this);
          wl_display_roundtrip(display);
-@@ -486,23 +704,35 @@ bool wxGLCanvasEGL::CreateSurface()
+@@ -486,23 +694,35 @@ bool wxGLCanvasEGL::CreateSurface()
          }
          m_wlSurface = wl_compositor_create_surface(m_wlCompositor);
          m_wlRegion = wl_compositor_create_region(m_wlCompositor);
@@ -678,7 +693,7 @@ index 7e78b98..f7443de 100644
      }
  #endif
  
-@@ -519,13 +749,68 @@ wxGLCanvasEGL::~wxGLCanvasEGL()
+@@ -519,13 +739,66 @@ wxGLCanvasEGL::~wxGLCanvasEGL()
  {
      if ( m_config && m_config != ms_glEGLConfig )
          delete m_config;
@@ -691,8 +706,6 @@ index 7e78b98..f7443de 100644
 -    g_clear_pointer(&m_wlSubsurface, wl_subsurface_destroy);
      g_clear_pointer(&m_wlSurface, wl_surface_destroy);
 +#endif
-+
-+    gs_alreadySetSwapInterval.erase(this);
 +}
 +
 +void wxGLCanvasEGL::CreateWaylandSubsurface()
@@ -749,7 +762,7 @@ index 7e78b98..f7443de 100644
  #endif
  }
  
-@@ -536,7 +821,7 @@ wxGLCanvasEGL::~wxGLCanvasEGL()
+@@ -536,7 +809,7 @@ wxGLCanvasEGL::~wxGLCanvasEGL()
  /* static */
  bool wxGLCanvasBase::IsExtensionSupported(const char *extension)
  {
@@ -758,7 +771,7 @@ index 7e78b98..f7443de 100644
  
      return IsExtensionInList(eglQueryString(dpy, EGL_EXTENSIONS), extension);
  }
-@@ -557,29 +842,90 @@ EGLConfig *wxGLCanvasEGL::InitConfig(const wxGLAttributes& dispAttrs)
+@@ -557,29 +830,90 @@ EGLConfig *wxGLCanvasEGL::InitConfig(const wxGLAttributes& dispAttrs)
          wxFAIL_MSG("Unable to get EGL Display");
          return NULL;
      }
@@ -858,7 +871,7 @@ index 7e78b98..f7443de 100644
  }
  
  /* static */
-@@ -631,11 +977,59 @@ void wxGLCanvasEGL::FreeDefaultConfig()
+@@ -631,11 +965,59 @@ void wxGLCanvasEGL::FreeDefaultConfig()
  
  bool wxGLCanvasEGL::SwapBuffers()
  {
@@ -876,7 +889,7 @@ index 7e78b98..f7443de 100644
 +    // entire application completely unusable just because one of its windows
 +    // using wxGLCanvas got occluded or unmapped (e.g. due to a move to another
 +    // workspace).
-+    if ( !gs_alreadySetSwapInterval.count(this) )
++    if ( !m_swapIntervalSet )
 +    {
 +        // Ensure that eglSwapBuffers() doesn't block, as we use the surface
 +        // callback to know when we should draw ourselves already.
@@ -885,7 +898,7 @@ index 7e78b98..f7443de 100644
 +            wxLogTrace(TRACE_EGL, "Set EGL swap interval to 0 for %p", this);
 +
 +            // It shouldn't be necessary to set it again.
-+            gs_alreadySetSwapInterval.insert(this);
++            m_swapIntervalSet = true;
 +        }
 +        else
 +        {
@@ -923,7 +936,7 @@ index 7e78b98..f7443de 100644
  
      return eglSwapBuffers(m_display, m_surface);
  }
-@@ -648,10 +1042,12 @@ bool wxGLCanvasEGL::IsShownOnScreen() const
+@@ -648,10 +1030,12 @@ bool wxGLCanvasEGL::IsShownOnScreen() const
          case wxDisplayX11:
              return GetXWindow() && wxGLCanvasBase::IsShownOnScreen();
          case wxDisplayWayland:
