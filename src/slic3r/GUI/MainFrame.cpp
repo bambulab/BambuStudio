@@ -970,6 +970,12 @@ WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
         Layout();
         wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_NOTICE_CHILDE_SIZE_CHANGED));
         break;
+    case WM_SETTINGCHANGE:
+        // Windows broadcasts WM_SETTINGCHANGE with lParam == L"ImmersiveColorSet" when the
+        // app light/dark preference is toggled; wxWidgets does not translate this message.
+        if (lParam != 0 && _wcsicmp(reinterpret_cast<const wchar_t*>(lParam), L"ImmersiveColorSet") == 0)
+            wxGetApp().refresh_system_theme();
+        break;
     }
     return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
 }

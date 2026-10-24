@@ -269,7 +269,7 @@ void DevicePageAmsControlWebVM::OnSysColorChanged()
     // which is de-duped against the last device snapshot and can drop a theme-only
     // toggle. Emit init/theme_changed so <html data-theme> updates independently.
     if (!m_bridge) return;
-    const bool dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+    const bool dark = wxGetApp().dark_mode();
     nlohmann::json data;
     data["theme"] = dark ? "dark" : "light";
     m_bridge->ReportMsg(MakeResponse(GetModule(), "init", "theme_changed", 0, "", data));

@@ -3969,7 +3969,11 @@ bool GUI_App::dark_mode()
     // proper dark mode was first introduced.
     return wxPlatformInfo::Get().CheckOSVersion(10, 14) && mac_dark_mode();
 #else
-    return wxGetApp().app_config->get("dark_color_mode") == "1" ? true : check_dark_mode();
+    // "1" forces dark, "2" forces light, anything else follows the system theme.
+    const std::string color_mode = wxGetApp().app_config->get("dark_color_mode");
+    if (color_mode == "1") return true;
+    if (color_mode == "2") return false;
+    return check_dark_mode();
     //const unsigned luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
     //return luma < 128;
 #endif
@@ -4171,6 +4175,28 @@ void GUI_App::Update_dark_mode_flag()
 {
     m_is_dark_mode = dark_mode();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": switch the current dark mode status to %1% ")%m_is_dark_mode;
+}
+
+bool GUI_App::refresh_system_theme()
+{
+    const bool old_dark_mode = m_is_dark_mode;
+    Update_dark_mode_flag();
+    if (m_is_dark_mode == old_dark_mode)
+        return false;
+    apply_dark_mode_change();
+    return true;
+}
+
+void GUI_App::apply_dark_mode_change()
+{
+    // Same sequence as the Preferences colour-theme selector: recolour the native
+    // chrome and the custom UI, then notify the 3D canvases and gizmos.
+    force_colors_update();
+    update_ui_from_settings();
+    if (Plater* pl = plater()) {
+        SimpleEvent evt(EVT_GLCANVAS_COLOR_MODE_CHANGED);
+        wxPostEvent(pl, evt);
+    }
 }
 
 void GUI_App::UpdateDlgDarkUI(wxDialog* dlg)

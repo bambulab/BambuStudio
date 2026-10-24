@@ -237,13 +237,15 @@ wxFont get_default_font_for_dpi(const wxWindow *window, int dpi)
 }
 
 bool check_dark_mode() {
-#if 0 //#ifdef _WIN32  // #ysDarkMSW - Allow it when we deside to support the sustem colors for application
+#ifdef _WIN32
+    // The per-app light/dark preference is not reflected by the wxWidgets colour
+    // heuristics below, so read the same registry value that drives immersive dark mode.
     wxRegKey rk(wxRegKey::HKCU,
         "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize");
     if (rk.Exists() && rk.HasValue("AppsUseLightTheme")) {
         long value = -1;
-        rk.QueryValue("AppsUseLightTheme", &value);
-        return value <= 0;
+        if (rk.QueryValue("AppsUseLightTheme", &value) && value >= 0)
+            return value == 0;
     }
 #endif
 #if wxCHECK_VERSION(3,1,3)
@@ -259,7 +261,7 @@ bool check_dark_mode() {
 void update_dark_ui(wxWindow* window)
 {
 #ifdef SUPPORT_DARK_MODE
-    bool is_dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+    bool is_dark = wxGetApp().dark_mode();
 #else
     bool is_dark = false;
 #endif
@@ -268,12 +270,12 @@ void update_dark_ui(wxWindow* window)
 }
 #endif
 
-void update_dark_config()
+// Re-read the cached dark-mode flag and apply the theme application-wide when the
+// effective theme changed. Theme-change messages reach every top-level window, so
+// only the first observer notices the change and performs the global recolour.
+bool refresh_dark_mode_theme()
 {
-    wxSystemAppearance app = wxSystemSettings::GetAppearance();
-    GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
-    GUI::wxGetApp().app_config->save();
-    wxGetApp().Update_dark_mode_flag();
+    return GUI::wxGetApp().refresh_system_theme();
 }
 
 
