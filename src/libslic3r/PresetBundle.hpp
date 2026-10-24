@@ -145,6 +145,26 @@ private:
     NozzleDataFlag data_flag{ ndfNone };
 };
 
+// Outcome of PresetBundle::reload_user_presets(): what changed in memory, per preset kind.
+struct UserPresetsReloadResult
+{
+    struct Counts
+    {
+        int added   = 0;
+        int removed = 0;
+        int changed = 0;
+        bool any() const { return added || removed || changed; }
+    };
+    Counts prints;
+    Counts filaments;
+    Counts printers;
+    // Selected user presets left as they are because they have unsaved changes.
+    int kept_unsaved = 0;
+    // Presets or files that could not be loaded, one per line. Empty if the reload succeeded.
+    std::string errors;
+    bool any_change() const { return prints.any() || filaments.any() || printers.any() || kept_unsaved; }
+};
+
 // Bundle of Print + Filament + Printer presets.
 class PresetBundle
 {
@@ -186,8 +206,18 @@ public:
     void     load_selections(AppConfig &config, const PresetPreferences& preferred_selection = PresetPreferences());
 
     // BBS Load user presets
-    PresetsConfigSubstitutions load_user_presets(std::string user, ForwardCompatibilitySubstitutionRule rule);
+    // modify_files: see PresetCollection::load_presets().
+    PresetsConfigSubstitutions load_user_presets(std::string user, ForwardCompatibilitySubstitutionRule rule, bool modify_files = true);
     PresetsConfigSubstitutions load_user_presets(AppConfig &config, std::map<std::string, std::map<std::string, std::string>>& my_presets, ForwardCompatibilitySubstitutionRule rule);
+    // Read the user's presets from disk again: edited files are re-read, presets whose files are gone are dropped,
+    // new files are added. A selected preset with unsaved changes is left as it is in memory, and a selected preset
+    // whose file is gone falls back to its parent. No file is deleted and no .json is rewritten: a file that fails to
+    // load keeps its old preset, if there is one, and is reported in the result's errors (an exception that is not a
+    // std::runtime_error is rethrown, after the selections are restored). A synced preset (one with a setting_id)
+    // whose settings changed is marked sync_info = "update", as saving it in the GUI does, so that the background
+    // sync uploads the change.
+    // The caller must keep the background preset sync from syncing a preset during the reload.
+    UserPresetsReloadResult reload_user_presets(std::string user, ForwardCompatibilitySubstitutionRule rule);
     PresetsConfigSubstitutions import_presets(std::vector<std::string> &files, std::function<int(std::string const &)> override_confirm, ForwardCompatibilitySubstitutionRule rule);
     bool                       import_json_presets(PresetsConfigSubstitutions &            substitutions,
                                                    std::string &                           file,

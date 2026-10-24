@@ -266,7 +266,9 @@ public:
     void update() override;
     void msw_rescale() override;
     void OnSelect(wxCommandEvent &evt) override;
-    const Preset* get_selected_preset() { return m_selected_preset; }
+    // Looked up by name on each call: a reload or delete can free the preset.
+    // The saved preset, not unsaved edits in the Filament tab.
+    const Preset* get_selected_preset() { return m_selected_preset_name.empty() ? nullptr : m_collection->find_preset(m_selected_preset_name, false, true); }
     std::string get_tray_name() { return m_tray_name; }
     std::string get_tag_uid() { return m_tag_uid; }
     bool is_tray_exist() { return m_filament_exist; }
@@ -280,7 +282,7 @@ private:
     std::string m_filament_color;
     bool m_filament_exist{false};
     bool m_is_compatible{true};
-    const Preset* m_selected_preset = nullptr;
+    std::string m_selected_preset_name;
     std::map<wxString, std::pair<std::string, wxBitmap*>> m_nonsys_presets;
     std::map<wxString, std::pair<std::string, wxBitmap*>> m_system_presets;
 };

@@ -889,7 +889,7 @@ std::string PresetBundle::get_hotend_model_for_printer_model(std::string model_n
     return out;
 }
 
-PresetsConfigSubstitutions PresetBundle::load_user_presets(std::string user, ForwardCompatibilitySubstitutionRule substitution_rule)
+PresetsConfigSubstitutions PresetBundle::load_user_presets(std::string user, ForwardCompatibilitySubstitutionRule substitution_rule, bool modify_files)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", " << __LINE__ << " entry and user is: " << user;
     PresetsConfigSubstitutions substitutions;
@@ -906,21 +906,21 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(std::string user, For
     // BBS: change directoties by design
     try {
         std::string print_selected_preset_name = prints.get_selected_preset().name;
-        this->prints.load_presets(dir_user_presets, PRESET_PRINT_NAME, substitutions, substitution_rule);
+        this->prints.load_presets(dir_user_presets, PRESET_PRINT_NAME, substitutions, substitution_rule, modify_files);
         prints.select_preset_by_name(print_selected_preset_name, false);
     } catch (const std::runtime_error &err) {
         errors_cummulative += err.what();
     }
     try {
         std::string filament_selected_preset_name = filaments.get_selected_preset().name;
-        this->filaments.load_presets(dir_user_presets, PRESET_FILAMENT_NAME, substitutions, substitution_rule);
+        this->filaments.load_presets(dir_user_presets, PRESET_FILAMENT_NAME, substitutions, substitution_rule, modify_files);
         filaments.select_preset_by_name(filament_selected_preset_name, false);
     } catch (const std::runtime_error &err) {
         errors_cummulative += err.what();
     }
     try {
         std::string printer_selected_preset_name = printers.get_selected_preset().name;
-        this->printers.load_presets(dir_user_presets, PRESET_PRINTER_NAME, substitutions, substitution_rule);
+        this->printers.load_presets(dir_user_presets, PRESET_PRINTER_NAME, substitutions, substitution_rule, modify_files);
         printers.select_preset_by_name(printer_selected_preset_name, false);
     } catch (const std::runtime_error &err) {
         errors_cummulative += err.what();
@@ -1011,6 +1011,133 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &          
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, process_added %1%, filament_added %2%, machine_added %3%")%process_added %filament_added %machine_added;
     return substitutions;
+}
+
+UserPresetsReloadResult PresetBundle::reload_user_presets(std::string user, ForwardCompatibilitySubstitutionRule substitution_rule)
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry and user is: " << user;
+    UserPresetsReloadResult result;
+    struct Selection
+    {
+        PresetCollection *collection;
+        std::string       name;
+        std::string       parent;
+        bool              keep_changes;
+        Preset            edited;
+        // The user presets before the reload, to count what changed.
+        std::map<std::string, DynamicPrintConfig> before;
+        std::vector<std::string>                  dropped_with_file;
+    };
+    // The printer is selected first, as the process and filament compatibility depends on it.
+    std::vector<Selection> selections;
+    for (PresetCollection *collection : std::initializer_list<PresetCollection *>{&printers, &prints, &filaments}) {
+        const Preset &edited = collection->get_edited_preset();
+        selections.push_back({collection, collection->get_selected_preset_name(), edited.inherits(), collection->current_is_dirty(), edited, {}, {}});
+        for (const Preset &preset : *collection)
+            if (preset.is_user())
+                selections.back().before.emplace(preset.name, preset.config);
+        if (selections.back().keep_changes && collection->get_selected_preset().is_user())
+            ++result.kept_unsaved;
+    }
+    // The filament of each extruder falls back to its parent the same way.
+    std::vector<std::string> filament_parents;
+    for (const std::string &name : filament_presets) {
+        const Preset *preset = filaments.find_preset(name, false);
+        filament_parents.push_back(preset ? preset->inherits() : std::string());
+    }
+
+    const std::string dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/" + user;
+    std::vector<std::string> unreadable;
+    // On an error, still load what can be loaded and restore the selections below, then report it.
+    std::string        errors;
+    std::exception_ptr other_error;
+    auto               run = [&errors, &other_error](auto &&step) {
+        try {
+            step();
+        } catch (const std::runtime_error &err) {
+            errors += err.what();
+            if (!errors.empty() && errors.back() != '\n')
+                errors += "\n";
+        } catch (...) {
+            if (!other_error)
+                other_error = std::current_exception();
+        }
+    };
+    run([&] {
+        for (Selection &selection : selections)
+            selection.collection->unload_user_presets(dir_user_presets, selection.keep_changes, unreadable, selection.dropped_with_file);
+    });
+    run([&] { load_user_presets(user, substitution_rule, false); });
+    for (const std::string &error : unreadable)
+        errors += error + "\n";
+
+    for (Selection &selection : selections) {
+        PresetCollection &collection = *selection.collection;
+        UserPresetsReloadResult::Counts &counts = selection.collection == &printers ? result.printers :
+                                                  selection.collection == &prints   ? result.prints : result.filaments;
+        // A preset whose file is still there but that the load did not read back, for example because its
+        // parent was a user preset whose file is gone. load_presets() skips such a file without an error.
+        auto reported = [&errors](const std::string &name) {
+            return boost::starts_with(errors, name + ":") || errors.find("\n" + name + ":") != std::string::npos;
+        };
+        for (const std::string &name : selection.dropped_with_file)
+            if (!collection.find_preset(name, false) && !reported(name))
+                errors += name + ": could not be loaded again (for example, its parent preset is gone); its file is kept\n";
+
+        std::map<std::string, DynamicPrintConfig> after;
+        for (const Preset &preset : collection)
+            if (preset.is_user())
+                after.emplace(preset.name, preset.config);
+        for (const auto &[name, config] : after) {
+            auto it = selection.before.find(name);
+            if (it == selection.before.end()) {
+                ++counts.added;
+                continue;
+            }
+            // A preset that came from the cloud didn't get the fix-up a load from a file makes: that is no change.
+            DynamicPrintConfig before = it->second;
+            Preset::add_compatible_printer_from_name(collection.type(), name, before);
+            if (!before.equals(config)) {
+                ++counts.changed;
+                // Like saving a synced preset in the GUI: have the background sync upload the change.
+                std::lock_guard<PresetCollection> guard(collection);
+                Preset *preset = collection.find_preset(name, false, true);
+                if (preset && !preset->setting_id.empty() && preset->sync_info != "update") {
+                    preset->sync_info = "update";
+                    preset->save_info();
+                }
+            }
+        }
+        for (const auto &entry : selection.before)
+            if (after.find(entry.first) == after.end())
+                ++counts.removed;
+    }
+
+    // After the counting, so that the edited copy the re-select makes has the sync_info set above.
+    for (const Selection &selection : selections) {
+        PresetCollection &collection = *selection.collection;
+        // select_preset_by_name() selects the first visible preset if neither name is found.
+        collection.select_preset_by_name(collection.find_preset(selection.name, false) ? selection.name : selection.parent, true);
+        if (selection.keep_changes)
+            collection.get_edited_preset() = selection.edited;
+    }
+    for (size_t i = 0; i < filament_presets.size(); ++i) {
+        if (filaments.find_preset(filament_presets[i], false))
+            continue;
+        if (i < filament_parents.size() && filaments.find_preset(filament_parents[i], false))
+            filament_presets[i] = filament_parents[i];
+        else
+            filament_presets[i] = filaments.get_selected_preset_name();
+    }
+    this->update_multi_material_filament_presets();
+    this->update_compatible(PresetSelectCompatibleType::Never);
+    // calibrate_filaments holds pointers into the filament collection, which the reload has reshuffled.
+    set_calibrate_printer("");
+
+    if (other_error)
+        std::rethrow_exception(other_error);
+    result.errors = std::move(errors);
+    return result;
 }
 
 PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string> &              files,

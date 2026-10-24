@@ -1860,7 +1860,7 @@ void GUI::CalibrateFilamentComboBox::load_tray(const DynamicPrintConfig &config)
 #endif
     if (!m_filament_exist) {
         SetValue(_L("Empty"));
-        m_selected_preset = nullptr;
+        m_selected_preset_name.clear();
         m_is_compatible = false;
         clr_picker->SetBitmap(*get_extruder_color_icon("#F0F0F0FF", m_tray_name, FromDIP(20), FromDIP(20)));
         clr_picker->SetBitmapDisabled(*get_extruder_color_icon("#F0F0F0FF", m_tray_name, FromDIP(20), FromDIP(20)));
@@ -1890,12 +1890,12 @@ void GUI::CalibrateFilamentComboBox::load_tray(const DynamicPrintConfig &config)
         //            return is_compatible && f.is_system && boost::algorithm::starts_with(f.name, filament_type); });
         //}
         if (iter != filaments.end()) {
-            m_selected_preset = &*iter;
+            m_selected_preset_name = iter->name;
             m_is_compatible = true;
             SetValue(get_preset_name(*iter));
         }
         else {
-            m_selected_preset = nullptr;
+            m_selected_preset_name.clear();
             m_is_compatible = false;
             SetValue(_L("Incompatible"));
         }
@@ -1918,7 +1918,8 @@ void GUI::CalibrateFilamentComboBox::update()
     m_nonsys_presets.clear();
     m_system_presets.clear();
 
-    wxString selected_preset = m_selected_preset ? get_preset_name(*m_selected_preset) : GetValue();
+    const Preset* selected = get_selected_preset();
+    wxString selected_preset = selected ? get_preset_name(*selected) : GetValue();
 
     wxString tooltip;
     const std::deque<Preset>& presets = m_collection->get_presets();
@@ -1927,7 +1928,7 @@ void GUI::CalibrateFilamentComboBox::update()
     {
         const Preset& preset = presets[i];
         auto display_name = get_preset_name(preset);
-        bool          is_selected   = m_selected_preset == &preset;
+        bool          is_selected   = !m_selected_preset_name.empty() && preset.name == m_selected_preset_name;
         if (m_preset_bundle->calibrate_filaments.empty()) {
             Thaw();
             return;
@@ -2009,10 +2010,11 @@ void GUI::CalibrateFilamentComboBox::OnSelect(wxCommandEvent &evt)
     else if (m_nonsys_presets.find(evt.GetString()) != m_nonsys_presets.end()) {
         preset_name = m_nonsys_presets.at(display_name).first;
     }
-    m_selected_preset       = m_collection->find_preset(preset_name);
+    const Preset* selected = m_collection->find_preset(preset_name);
+    m_selected_preset_name = selected ? selected->name : std::string();
 
     // if the selected preset is null, do not send tray_change event
-    if (!m_selected_preset) {
+    if (!selected) {
         MessageDialog msg_dlg(nullptr, _L("The selected preset is null!"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
