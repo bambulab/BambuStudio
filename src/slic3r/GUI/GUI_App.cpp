@@ -6377,6 +6377,113 @@ void GUI_App::reload_settings()
     }
 }
 
+std::optional<UserPresetsReloadResult> GUI_App::reload_user_presets_from_disk()
+{
+    if (!preset_bundle || !mainframe)
+        return std::nullopt;
+
+    // The folder the user presets were loaded from and are saved to (PresetBundle::load_presets(), save_user_presets()).
+    std::string user_folder = app_config->get("preset_folder");
+    if (user_folder.empty())
+        user_folder = DEFAULT_USER_FOLDER_NAME;
+
+    // The background sync must not sync a preset while the collections are being reloaded (see sync_user_preset_by_name()).
+    // Syncing a preset is usually quick; if it doesn't finish soon, don't block the UI.
+    std::unique_lock<std::timed_mutex> sync_lock(m_preset_sync_mutex, std::defer_lock);
+    if (!sync_lock.try_lock_for(std::chrono::seconds(2))) {
+        BOOST_LOG_TRIVIAL(warning) << "Reloading user presets from disk skipped: a preset is being synced";
+        return std::nullopt;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "Reloading user presets from disk from folder: " << user_folder;
+    UserPresetsReloadResult result;
+    bool                    failed = false;
+    try {
+        // Match the other programmatic load sites (ConfigWizard, WebGuideDialog,
+        // PresetUpdater): substitute forward-compat values silently.
+        result = preset_bundle->reload_user_presets(user_folder, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem);
+    } catch (const std::exception& err) {
+        result.errors = std::string(err.what()) + "\n";
+        failed        = true;
+    } catch (...) {
+        result.errors = "unknown error\n";
+        failed        = true;
+    }
+    sync_lock.unlock();
+    if (!result.errors.empty())
+        BOOST_LOG_TRIVIAL(error) << "Reloading user presets from disk: " << result.errors;
+    // The files that failed to load kept their presets, so the selection is still what the user chose, or its
+    // parent if its file was deleted. After an exception it may have fallen back for no reason: don't save it.
+    if (!failed)
+        preset_bundle->export_selections(*app_config);
+
+    // Always refresh the tabs and the side UI: the user asked to see what is on disk.
+    load_current_presets(false, false);
+    mainframe->update_side_preset_ui();
+    return result;
+}
+
+static std::string build_reload_toast_message(const UserPresetsReloadResult& r)
+{
+    if (!r.any_change())
+        return _u8L("Presets reloaded: no changes");
+    std::string msg = _u8L("Presets reloaded");
+    std::vector<std::string> parts;
+    auto add_part = [&parts](int count, const wxString& label) {
+        if (count > 0)
+            parts.push_back(into_u8(format_wxstr(label, count)));
+    };
+    add_part(r.prints.added,        _L_PLURAL("%1$d process preset added", "%1$d process presets added", r.prints.added));
+    add_part(r.filaments.added,     _L_PLURAL("%1$d filament preset added", "%1$d filament presets added", r.filaments.added));
+    add_part(r.printers.added,      _L_PLURAL("%1$d printer preset added", "%1$d printer presets added", r.printers.added));
+    add_part(r.prints.removed,    _L_PLURAL("%1$d process preset removed", "%1$d process presets removed", r.prints.removed));
+    add_part(r.filaments.removed, _L_PLURAL("%1$d filament preset removed", "%1$d filament presets removed", r.filaments.removed));
+    add_part(r.printers.removed,  _L_PLURAL("%1$d printer preset removed", "%1$d printer presets removed", r.printers.removed));
+    add_part(r.prints.changed,    _L_PLURAL("%1$d process preset changed", "%1$d process presets changed", r.prints.changed));
+    add_part(r.filaments.changed, _L_PLURAL("%1$d filament preset changed", "%1$d filament presets changed", r.filaments.changed));
+    add_part(r.printers.changed,  _L_PLURAL("%1$d printer preset changed", "%1$d printer presets changed", r.printers.changed));
+    add_part(r.kept_unsaved,      _L_PLURAL("%1$d preset with unsaved changes not reloaded", "%1$d presets with unsaved changes not reloaded", r.kept_unsaved));
+    if (!parts.empty())
+        msg += ": " + boost::algorithm::join(parts, ", ");
+    return msg;
+}
+
+void GUI_App::notify_user_presets_reloaded(const std::optional<UserPresetsReloadResult>& result, wxWindow* dialog)
+{
+    auto warn = [this, dialog](const std::string& msg, bool error) {
+        if (dialog)
+            MessageDialog(dialog, from_u8(msg), _L("Reload from Disk"), (error ? wxICON_ERROR : wxICON_WARNING) | wxOK).ShowModal();
+        else if (plater())
+            plater()->get_notification_manager()->push_notification(NotificationType::CustomNotification,
+                error ? NotificationManager::NotificationLevel::ErrorNotificationLevel : NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
+    };
+    if (!result) {
+        warn(_u8L("A preset is being synced with the cloud. Try reloading the presets again in a moment."), false);
+        return;
+    }
+    BOOST_LOG_TRIVIAL(info) << build_reload_toast_message(*result);
+    // After an error, "no changes" may not be true: some presets may not have been loaded back.
+    if (plater() && (result->errors.empty() || result->any_change()))
+        plater()->get_notification_manager()->push_notification(build_reload_toast_message(*result));
+    if (!result->errors.empty()) {
+        // One line per file; keep the message on the screen.
+        const size_t max_lines = 15;
+        std::string  errors;
+        size_t       lines = 0;
+        for (size_t pos = 0; pos < result->errors.size();) {
+            size_t end = result->errors.find('\n', pos);
+            end        = end == std::string::npos ? result->errors.size() : end + 1;
+            if (lines++ < max_lines)
+                errors += result->errors.substr(pos, end - pos);
+            pos = end;
+        }
+        if (lines > max_lines)
+            errors += format(_u8L("... and %1% more, see the log."), lines - max_lines) + "\n";
+        warn(_u8L("Some presets could not be reloaded from disk; their files are kept:") + "\n" + errors +
+             _u8L("A preset file that isn't valid JSON is deleted when Bambu Studio starts, so fix such files before restarting."), true);
+    }
+}
+
 //BBS reload when logout
 void GUI_App::remove_user_presets()
 {
@@ -6390,6 +6497,22 @@ void GUI_App::remove_user_presets()
         //update ui
         mainframe->update_side_preset_ui();
     }
+}
+
+// Sync one of the user presets a background sync pass copied at its start. Take the preset as it is now, as a
+// reload from disk since then may have changed or dropped it, and hold m_preset_sync_mutex so that a reload
+// can't change it while it is uploaded and the result is written back by name.
+void GUI_App::sync_user_preset_by_name(PresetCollection& collection, const std::string& name)
+{
+    std::lock_guard<std::timed_mutex> sync_lock(m_preset_sync_mutex);
+    std::optional<Preset>             preset;
+    {
+        std::lock_guard<PresetCollection> guard(collection);
+        if (const Preset* current = collection.find_preset(name, false, true); current && PresetCollection::is_user_preset_to_sync(*current))
+            preset = *current;
+    }
+    if (preset)
+        sync_preset(&*preset);
 }
 
 void GUI_App::sync_preset(Preset* preset)
@@ -6618,7 +6741,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         sync_count = preset_bundle->prints.get_user_presets(preset_bundle, presets_to_sync);
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
-                                sync_preset(&preset);
+                                sync_user_preset_by_name(preset_bundle->prints, preset.name);
                                 boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
                         }
@@ -6627,7 +6750,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         sync_count = preset_bundle->filaments.get_user_presets(preset_bundle, presets_to_sync);
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
-                                sync_preset(&preset);
+                                sync_user_preset_by_name(preset_bundle->filaments, preset.name);
                                 boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
                         }
@@ -6636,7 +6759,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         sync_count = preset_bundle->printers.get_user_presets(preset_bundle, presets_to_sync);
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
-                                sync_preset(&preset);
+                                sync_user_preset_by_name(preset_bundle->printers, preset.name);
                                 boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
                         }

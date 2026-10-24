@@ -1356,11 +1356,39 @@ void PresetCollection::add_default_preset(const std::vector<std::string> &keys, 
     ++ m_num_default_presets;
 }
 
+// The checks load_presets() makes on a user preset file it parsed, before it loads the preset.
+// Returns why the file would not be loaded, or an empty string.
+static std::string user_preset_load_error(PresetCollection &collection, const DynamicPrintConfig &config, std::map<std::string, std::string> &key_values)
+{
+    const std::string       version_str = key_values[BBL_JSON_KEY_VERSION];
+    boost::optional<Semver> version     = Semver::parse(version_str);
+    auto                    inherits    = dynamic_cast<const ConfigOptionString *>(config.option(BBL_JSON_KEY_INHERITS));
+    if (!version)
+        return "invalid version \"" + version_str + "\"";
+    if (version->maj() > Semver::parse(SLIC3R_VERSION)->maj())
+        return "made by a newer version (" + version_str + ")";
+    if (inherits && !inherits->value.empty() && !collection.find_preset(inherits->value, false, true))
+        return "parent preset \"" + inherits->value + "\" not found";
+    return std::string();
+}
+
+bool Preset::add_compatible_printer_from_name(Type type, const std::string &name, DynamicPrintConfig &config)
+{
+    if (type != TYPE_FILAMENT || !Preset::inherits(config).empty())
+        return false;
+    auto compatible_printers = dynamic_cast<ConfigOptionStrings *>(config.option("compatible_printers", true));
+    size_t at_pos = name.find('@');
+    if (!compatible_printers || !compatible_printers->values.empty() || at_pos == std::string::npos || at_pos + 1 >= name.length())
+        return false;
+    compatible_printers->values.push_back(name.substr(at_pos + 1));
+    return true;
+}
+
 // Load all presets found in dir_path.
 // Throws an exception on error.
 void PresetCollection::load_presets(
     const std::string &dir_path, const std::string &subdir,
-    PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule substitution_rule)
+    PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule substitution_rule, bool modify_files)
 {
     // Don't use boost::filesystem::canonical() on Windows, it is broken in regard to reparse points,
     // see https://github.com/prusa3d/PrusaSlicer/issues/732
@@ -1368,11 +1396,18 @@ void PresetCollection::load_presets(
 
     // Load custom roots first
     if (fs::exists(dir / "base")) {
-        load_presets(dir.string(), "base", substitutions, substitution_rule);
+        load_presets(dir.string(), "base", substitutions, substitution_rule, modify_files);
     }
 
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" enter, load presets from %1%, current type %2%") % PathSanitizer::sanitize(dir) % Preset::get_type_string(m_type);
+    // With modify_files false, a file that is skipped is reported unless the last load skipped the same file (same
+    // name, time and size): one skipped all along (say, its parent is no longer in the system profiles) was skipped
+    // silently at startup too and isn't worth an error on every reload. A reported file is reported once.
+    std::set<std::string> &skipped_files = m_skipped_files[dir.string()];
+    std::set<std::string>  skipped_before;
+    skipped_before.swap(skipped_files);
+
     //BBS do not parse folder if not exists
     m_dir_path = dir.string();
     if (!fs::exists(dir)) {
@@ -1422,6 +1457,11 @@ void PresetCollection::load_presets(
                     ConfigSubstitutions config_substitutions = config.load_from_json(preset.file, substitution_rule, key_values, reason);
                     if (! config_substitutions.empty())
                         substitutions.push_back({ preset.name, m_type, PresetConfigSubstitutions::Source::UserFile, preset.file, std::move(config_substitutions) });
+                    if (!reason.empty() && !modify_files) {
+                        BOOST_LOG_TRIVIAL(error) << boost::format("parse config %1% failed, file kept") % PathSanitizer::sanitize(preset.file);
+                        errors_cummulative += name + ": " + reason + "\n";
+                        continue;
+                    }
                     if (!reason.empty()) {
                         fs::path file_path(preset.file);
                         if (fs::exists(file_path))
@@ -1431,6 +1471,19 @@ void PresetCollection::load_presets(
                             fs::remove(file_path);
                         BOOST_LOG_TRIVIAL(error) << boost::format("parse config %1% failed") % PathSanitizer::sanitize(preset.file);
                         continue;
+                    }
+                    if (std::string skip_reason = user_preset_load_error(*this, config, key_values); !skip_reason.empty()) {
+                        // Skipped below; remember it, and report it if the user may have just added or changed the file.
+                        boost::system::error_code ec;
+                        const std::string stamp = name + "|" + std::to_string(fs::last_write_time(dir_entry.path(), ec)) + "|" +
+                                                  std::to_string(fs::file_size(dir_entry.path(), ec));
+                        skipped_files.insert(stamp);
+                        if (!modify_files) {
+                            BOOST_LOG_TRIVIAL(error) << boost::format("not loading %1%: %2%") % PathSanitizer::sanitize(preset.file) % skip_reason;
+                            if (skipped_before.count(stamp) == 0)
+                                errors_cummulative += name + ": " + skip_reason + "\n";
+                            continue;
+                        }
                     }
 
                     std::string version_str = key_values[BBL_JSON_KEY_VERSION];
@@ -1490,16 +1543,10 @@ void PresetCollection::load_presets(
                         BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" << PathSanitizer::sanitize(preset.file)
                                                  << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
 
-                    if (preset.type == Preset::TYPE_FILAMENT && preset.is_user() && preset.inherits().empty()) {
-                        auto compatible_printers = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers", true));
-                        if (compatible_printers && compatible_printers->values.empty()) {
-                            size_t at_pos = name.find('@');
-                            if (at_pos != std::string::npos && at_pos + 1 < name.length()) {
-                                compatible_printers->values.push_back(name.substr(at_pos + 1));
-                                preset.save(nullptr);
-                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " added compatible_printers for preset: " << name;
-                            }
-                        }
+                    if (preset.is_user() && Preset::add_compatible_printer_from_name(preset.type, name, preset.config)) {
+                        if (modify_files)
+                            preset.save(nullptr);
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " added compatible_printers for preset: " << name;
                     }
 
                     preset.loaded = true;
@@ -1512,6 +1559,10 @@ void PresetCollection::load_presets(
                     set_custom_preset_alias(preset);
                 } catch (const std::ifstream::failure &err) {
                     BOOST_LOG_TRIVIAL(error) << boost::format("The user-config cannot be loaded: %1%. Reason: %2%") % PathSanitizer::sanitize(preset.file) % err.what();
+                    if (!modify_files) {
+                        errors_cummulative += name + ": " + err.what() + "\n";
+                        continue;
+                    }
                     fs::path file_path(preset.file);
                     if (fs::exists(file_path))
                         fs::remove(file_path);
@@ -1521,6 +1572,10 @@ void PresetCollection::load_presets(
                     //throw Slic3r::RuntimeError(std::string("The selected preset cannot be loaded: ") + preset.file + "\n\tReason: " + err.what());
                 } catch (const std::runtime_error &err) {
                     BOOST_LOG_TRIVIAL(error) << boost::format("Failed loading the user-config file: %1%. Reason: %2%") % PathSanitizer::sanitize(preset.file) % err.what();
+                    if (!modify_files) {
+                        errors_cummulative += name + ": " + err.what() + "\n";
+                        continue;
+                    }
                     //throw Slic3r::RuntimeError(std::string("Failed loading the preset file: ") + preset.file + "\n\tReason: " + err.what());
                     fs::path file_path(preset.file);
                     if (fs::exists(file_path))
@@ -1538,9 +1593,13 @@ void PresetCollection::load_presets(
             }
         }
     }
-    if (presets_loaded.size() > 0)
-        m_presets.insert(m_presets.end(), std::make_move_iterator(presets_loaded.begin()), std::make_move_iterator(presets_loaded.end()));
-    std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
+    {
+        // The background preset sync reads the collection under this lock (get_user_presets(), need_sync()).
+        std::lock_guard<std::mutex> guard(m_mutex);
+        if (presets_loaded.size() > 0)
+            m_presets.insert(m_presets.end(), std::make_move_iterator(presets_loaded.begin()), std::make_move_iterator(presets_loaded.end()));
+        std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
+    }
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__
                             << boost::format(": loaded %1% presets from %2%, type %3%") % presets_loaded.size() % PathSanitizer::sanitize(dir) % Preset::get_type_string(m_type);
@@ -1855,6 +1914,15 @@ bool PresetCollection::need_sync(std::string name, std::string setting_id, long 
     return need;
 }
 
+bool PresetCollection::is_user_preset_to_sync(const Preset &preset)
+{
+    if (!preset.is_user()) return false;
+    if (preset.base_id.empty() && preset.inherits() != "") return false;
+    if (!preset.setting_id.empty() && preset.sync_info.empty()) return false;
+    if (preset.sync_info == "hold") return false;
+    return true;
+}
+
 //BBS: get user presets
 int PresetCollection::get_user_presets(PresetBundle *preset_bundle, std::vector<Preset> &result_presets)
 {
@@ -1863,11 +1931,8 @@ int PresetCollection::get_user_presets(PresetBundle *preset_bundle, std::vector<
 
     lock();
     for (Preset &preset : m_presets) {
-        if (!preset.is_user()) continue;
-        if (preset.base_id.empty() && preset.inherits() != "") continue;
-        if (!preset.setting_id.empty() && preset.sync_info.empty()) continue;
+        if (!is_user_preset_to_sync(preset)) continue;
         //if (!preset.is_bbl_vendor_preset(preset_bundle)) continue;
-        if (preset.sync_info == "hold") continue;
 
         result_presets.push_back(preset);
         count++;
@@ -2778,6 +2843,75 @@ bool PresetCollection::delete_preset(const std::string& name)
     unlock();
 
     return true;
+}
+
+size_t PresetCollection::unload_user_presets(const std::string &dir_path, bool keep_selected, std::vector<std::string> &unreadable,
+                                             std::vector<std::string> &dropped_with_file)
+{
+    // Same path form as PresetCollection::load_presets() gives preset.file.
+    std::string prefix = boost::filesystem::absolute(boost::filesystem::path(dir_path)).make_preferred().string();
+    const char  separator = static_cast<char>(boost::filesystem::path::preferred_separator);
+    if (!prefix.empty() && prefix.back() != separator)
+        prefix += separator;
+
+    // A file that is gone is dropped; a file that load_presets() would not load (half written, a typo from a
+    // hand edit, an unknown parent) keeps its preset, so that load_presets() skips the file as already loaded.
+    std::set<std::string> keep;
+    std::set<std::string> gone;
+    for (auto it = m_presets.begin() + m_num_default_presets; it != m_presets.end(); ++it) {
+        if (!it->is_user() || !boost::starts_with(it->file, prefix))
+            continue;
+        boost::system::error_code             ec;
+        const boost::filesystem::file_status status = boost::filesystem::status(it->file, ec);
+        if (status.type() == boost::filesystem::file_not_found) {
+            gone.insert(it->name);
+            continue;
+        }
+        std::string reason;
+        if (status.type() != boost::filesystem::status_error) {
+            DynamicPrintConfig                 config;
+            std::map<std::string, std::string> key_values;
+            config.load_from_json(it->file, ForwardCompatibilitySubstitutionRule::EnableSilent, key_values, reason);
+            if (reason.empty())
+                reason = user_preset_load_error(*this, config, key_values);
+        } else
+            reason = ec.message();
+        if (!reason.empty()) {
+            keep.insert(it->name);
+            unreadable.push_back(it->name + ": " + reason);
+        }
+    }
+
+    size_t removed          = 0;
+    bool   selected_removed = false;
+    {
+        // The background preset sync reads the collection under this lock (get_user_presets(), need_sync()).
+        std::lock_guard<std::mutex> guard(m_mutex);
+        for (auto it = m_presets.begin() + m_num_default_presets; it != m_presets.end();) {
+            size_t idx = it - m_presets.begin();
+            if (!it->is_user() || !boost::starts_with(it->file, prefix) || (keep_selected && idx == m_idx_selected) || keep.count(it->name)) {
+                ++it;
+                continue;
+            }
+            if (gone.count(it->name) == 0)
+                dropped_with_file.push_back(it->name);
+            set_printer_hold_alias(it->alias, *it, true);
+            it = m_presets.erase(it);
+            if (m_idx_selected != size_t(-1)) {
+                if (idx < m_idx_selected)
+                    --m_idx_selected;
+                else if (idx == m_idx_selected)
+                    selected_removed = true;
+            }
+            ++removed;
+        }
+    }
+
+    if (selected_removed)
+        this->select_preset(first_visible_idx());
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": %1%, unloaded %2% user presets from %3%, kept selected %4%, kept unreadable %5%")
+        % Preset::get_type_string(m_type) % removed % PathSanitizer::sanitize(prefix) % keep_selected % keep.size();
+    return removed;
 }
 
 const Preset* PresetCollection::get_selected_preset_parent() const

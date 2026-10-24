@@ -2,6 +2,7 @@
 #define slic3r_Preset_hpp_
 
 #include <deque>
+#include <map>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
@@ -385,6 +386,9 @@ public:
     static void                             normalize(DynamicPrintConfig &config);
     // Report configuration fields, which are misplaced into a wrong group, remove them from the config.
     static std::string                      remove_invalid_keys(DynamicPrintConfig &config, const DynamicPrintConfig &default_config);
+    // When loaded from a file, a custom filament (a user filament preset without a parent) named "... @printer" that has
+    // no compatible_printers is made compatible with that printer. Returns whether config was changed.
+    static bool                             add_compatible_printer_from_name(Type type, const std::string &name, DynamicPrintConfig &config);
 
     // BBS: move constructor to public
     Preset(Type type, const std::string &name, bool is_default = false) : type(type), is_default(is_default), name(name) {}
@@ -476,7 +480,12 @@ public:
     void            add_default_preset(const std::vector<std::string> &keys, const Slic3r::StaticPrintConfig &defaults, const std::string &preset_name);
 
     // Load ini files of the particular type from the provided directory path.
-    void            load_presets(const std::string &dir_path, const std::string &subdir, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
+    // A file that fails to load is deleted, unless modify_files is false: then no file is deleted and no .json is
+    // rewritten (an old .info without updated_time still gets one), and a user preset file that fails to load is left
+    // on disk and reported in the thrown error, as is one that is skipped (bad version, unknown parent) unless the
+    // last load skipped the same file too.
+    void            load_presets(const std::string &dir_path, const std::string &subdir, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule,
+                                 bool modify_files = true);
 
     //BBS: update user presets directory
     void            update_user_presets_directory(const std::string& dir_path, const std::string& type);
@@ -485,6 +494,8 @@ public:
     void            update_after_user_presets_loaded();
     //BBS: get user presets
     int  get_user_presets(PresetBundle *preset_bundle, std::vector<Preset> &result_presets);
+    // Whether the background sync syncs this preset (the presets get_user_presets() returns).
+    static bool is_user_preset_to_sync(const Preset &preset);
     void set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo, long long update_time);
     bool need_sync(std::string name, std::string setting_id, long long update_time);
 
@@ -556,6 +567,15 @@ public:
     // Delete the current preset, activate the first visible preset.
     // returns true if the preset was deleted successfully.
     bool            delete_preset(const std::string& name);
+    // Drop every user preset loaded from a file under dir_path from memory, leaving the files alone,
+    // so that the next load_presets() reads them again. The selected preset is kept if keep_selected is set;
+    // if it is dropped, the first visible preset is selected. A preset whose file load_presets() would not load
+    // (unreadable, not valid JSON, bad version, unknown parent) is kept too, so that the next load skips the file
+    // instead of deleting it; the reasons go to unreadable. The names of dropped presets whose file is still on disk
+    // go to dropped_with_file, so that the caller can report any of them the next load does not read back.
+    // Returns the number of presets dropped.
+    size_t          unload_user_presets(const std::string &dir_path, bool keep_selected, std::vector<std::string> &unreadable,
+                                        std::vector<std::string> &dropped_with_file);
 
     // Enable / disable the "- default -" preset.
     void            set_default_suppressed(bool default_suppressed);
@@ -825,6 +845,8 @@ private:
 
     // Path to the directory to store the config files into.
     std::string             m_dir_path;
+    // The files the last load_presets() of each directory skipped (bad version, unknown parent), with their time and size.
+    std::map<std::string, std::set<std::string>> m_skipped_files;
 
     // to access select_preset_by_name_strict() and the default & copy constructors.
     friend class PresetBundle;

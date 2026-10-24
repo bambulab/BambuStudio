@@ -37,6 +37,7 @@
 #include <wx/language.h>
 
 #include <mutex>
+#include <optional>
 #include <stack>
 
 #ifdef __APPLE__
@@ -365,6 +366,8 @@ private:
 
     boost::thread    m_sync_update_thread;
     std::shared_ptr<int> m_user_sync_token;
+    // Held by the background sync while it syncs a user preset, and by a reload of the user presets from disk.
+    std::timed_mutex m_preset_sync_mutex;
     bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
     bool             m_side_popup_status{false};
@@ -382,6 +385,14 @@ private:
 public:
     //try again when subscription fails
     void            on_start_subscribe_again(std::string dev_id);
+
+    // Reload the user presets from disk (Ctrl/Cmd+Shift+P, or "Reload from Disk" in Batch Preset Management)
+    // and refresh the tabs and the sidebar. Load errors go to the result's errors; nothing is thrown. Returns
+    // nothing, and reloads nothing, if the background sync is busy syncing a preset.
+    std::optional<UserPresetsReloadResult> reload_user_presets_from_disk();
+    // Tell the user what a reload did. Warnings and errors go to a message box over dialog if one is given,
+    // since a modal dialog hides the notifications, and to notifications otherwise.
+    void            notify_user_presets_reloaded(const std::optional<UserPresetsReloadResult>& result, wxWindow* dialog = nullptr);
     std::string     get_local_models_path();
     bool            OnInit() override;
     int             OnExit() override;
@@ -582,6 +593,7 @@ public:
     void            push_notification(const MachineObject* obj, wxString msg, wxString title = wxEmptyString, UserNotificationStyle style = UserNotificationStyle::UNS_NORMAL);
     void            reload_settings();
     void            remove_user_presets();
+    void            sync_user_preset_by_name(PresetCollection& collection, const std::string& name);
     void            sync_preset(Preset* preset);
     void            start_sync_user_preset(bool with_progress_dlg = false);
     void            stop_sync_user_preset();
