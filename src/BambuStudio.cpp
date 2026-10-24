@@ -62,6 +62,7 @@ using namespace nlohmann;
 #include "libslic3r/Format/OBJ.hpp"
 #include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Time.hpp"
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/BlacklistedLibraryCheck.hpp"
@@ -1523,6 +1524,40 @@ static void load_downward_settings_list_from_config(std::string config_file, std
     }
 }
 
+#ifdef __WXGTK__
+// Whether native Wayland was enabled in Preferences. The GDK backend has to
+// be chosen before GTK is initialized, i.e. before GUI_App loads the
+// configuration, so read the setting directly from the configuration file.
+// The default data directory is the one GUI_App::init_app_config() uses.
+static bool native_wayland_enabled_in_config()
+{
+    std::string dir = data_dir();
+    if (dir.empty()) {
+        const char* xdg_config_home = ::getenv("XDG_CONFIG_HOME");
+        const char* home = ::getenv("HOME");
+        if (xdg_config_home != nullptr && *xdg_config_home != '\0')
+            dir = xdg_config_home;
+        else if (home != nullptr && *home != '\0')
+            dir = std::string(home) + "/.config";
+        else
+            return false;
+        dir += "/" SLIC3R_APP_KEY;
+#if BBL_INTERNAL_TESTING
+        dir += BBL_INTERNAL_TESTING == 1 ? "Internal" : "Beta";
+#endif
+    }
+    const boost::filesystem::path path = boost::filesystem::path(dir) / (SLIC3R_APP_KEY ".conf");
+    boost::system::error_code ec;
+    if (!boost::filesystem::exists(path, ec))
+        return false;
+    AppConfig config;
+    config.set_loading_path(path.string());
+    if (!config.load().empty())
+        return false;
+    return config.get("use_native_wayland") == "true";
+}
+#endif
+
 int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
@@ -1531,12 +1566,13 @@ int CLI::run(int argc, char **argv)
     save_main_thread_id();
 
 #ifdef __WXGTK__
-    // On Linux, wxGTK has no support for Wayland, and the app crashes on
-    // startup if gtk3 is used. This env var has to be set explicitly to
-    // instruct the window manager to fall back to X server mode.
-    ::setenv("GDK_BACKEND", "x11", /* replace */ true);
-
     ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
+
+    // WebKitGTK >= 2.40 renders blank/garbled webviews with its dmabuf
+    // renderer on some Wayland setups (notably NVIDIA and VMs); disable it
+    // there unless the user overrides.
+    if (::getenv("WAYLAND_DISPLAY") != nullptr)
+        ::setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1", /* replace */ false);
 
     // Also on Linux, we need to tell Xlib that we will be using threads,
     // lest we crash when we fire up GStreamer.
@@ -1642,6 +1678,15 @@ int CLI::run(int argc, char **argv)
     bool start_gui = m_actions.empty() && !downward_check;
     if (start_gui) {
         BOOST_LOG_TRIVIAL(info) << "no action, start gui directly" << std::endl;
+#ifdef __WXGTK__
+        // Choose the GDK backend before anything initializes GTK. The default
+        // is X11 (XWayland on Wayland sessions); native Wayland is opt-in via
+        // Preferences, and a GDK_BACKEND set in the environment always wins.
+        // With the setting enabled GDK_BACKEND is left alone, so GTK uses
+        // Wayland in Wayland sessions and X11 otherwise.
+        if (::getenv("GDK_BACKEND") == nullptr && !native_wayland_enabled_in_config())
+            ::setenv("GDK_BACKEND", "x11", /* replace */ true);
+#endif
         ::Label::initSysFont();
 #ifdef SLIC3R_GUI
     /*#if !defined(_WIN32) && !defined(__APPLE__)

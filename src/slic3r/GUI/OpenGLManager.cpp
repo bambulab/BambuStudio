@@ -360,6 +360,15 @@ bool OpenGLManager::init_gl(bool popup_error)
     if (!m_gl_initialized) {
         glewExperimental = GL_TRUE;
         GLenum result = glewInit();
+#ifdef GLEW_ERROR_NO_GLX_DISPLAY
+        // GLX-built GLEW reports this when there is no GLX display (native
+        // Wayland/EGL, or the CLI's OSMesa context): glewContextInit() has
+        // already resolved the GL entry points, only glxewInit() failed.
+        // Accept it when the core entry points this code relies on are
+        // actually resolved.
+        if (result == GLEW_ERROR_NO_GLX_DISPLAY && glCreateShader != nullptr && glGenBuffers != nullptr)
+            result = GLEW_OK;
+#endif
         if (result != GLEW_OK) {
             BOOST_LOG_TRIVIAL(error) << "Unable to init glew library";
             return false;
