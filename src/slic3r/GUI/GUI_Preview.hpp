@@ -118,6 +118,14 @@ class Preview : public BaseView
     const Slic3r::PrintBase* m_loaded_print { nullptr };
     //BBS: add only gcode mode
     bool m_only_gcode { false };
+    // A load requested while the canvas was not initialized yet (it becomes
+    // usable only once shown on screen, which under Wayland is at least one
+    // event-loop turn after the tab switch). Repeated on EVT_GLCANVAS_INITIALIZED.
+    struct DeferredLoad {
+        bool pending{ false };
+        bool keep_z_range{ false };
+        bool only_gcode{ false };
+    } m_deferred_load;
     bool m_reload_paint_after_background_process_apply{false};
 
 public:

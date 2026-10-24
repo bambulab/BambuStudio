@@ -1346,6 +1346,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_RENDER_TIMER, wxTimerEvent/*RenderTimerEvent*/);
 wxDEFINE_EVENT(EVT_GLCANVAS_TOOLBAR_HIGHLIGHTER_TIMER, wxTimerEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_GIZMO_HIGHLIGHTER_TIMER, wxTimerEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_INITIALIZED, SimpleEvent);
 wxDEFINE_EVENT(EVT_CUSTOMEVT_TICKSCHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
@@ -2742,8 +2743,18 @@ void GLCanvas3D::render(bool only_init)
     if (!_is_shown_on_screen() || !_set_current(true) || !wxGetApp().init_opengl())
         return;
 
-    if (!is_initialized() && !init())
-        return;
+    if (!is_initialized()) {
+        if (!init())
+            return;
+        // The context is current and the canvas is initialized: perform the
+        // reload that was requested before, and let the owning view load
+        // what it has been holding back (see EVT_GLCANVAS_INITIALIZED).
+        if (m_reload_scene_pending) {
+            m_reload_scene_pending = false;
+            reload_scene(false);
+        }
+        post_event(SimpleEvent(EVT_GLCANVAS_INITIALIZED));
+    }
     if (m_canvas_type == ECanvasType::CanvasView3D  && m_gizmos.get_current_type() == GLGizmosManager::Undefined) {
         enable_return_toolbar(false);
     }
@@ -3461,8 +3472,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if (m_canvas == nullptr || m_config == nullptr || m_model == nullptr)
         return;
 
-    if (!m_initialized)
+    if (!m_initialized) {
+        // Performed by render() once the canvas is initialized.
+        m_reload_scene_pending = true;
         return;
+    }
 
     _set_current(true);
 

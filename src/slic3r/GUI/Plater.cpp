@@ -11253,12 +11253,17 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         invalidated = background_process.apply(this->model, preset_bundle->full_config(false));
 
     if ((invalidated == Print::APPLY_STATUS_CHANGED) || (invalidated == Print::APPLY_STATUS_INVALIDATED)) {
-        // BBS: add only gcode mode
-        q->set_only_gcode(false);
         // A real slice-affecting change (only possible with printable model) means the
-        // imported .gcode.3mf is no longer the payload; clear it so send re-exports.
-        if (!model.objects.empty())
+        // imported .gcode / .gcode.3mf is no longer the payload; clear the preview-only
+        // modes so send re-exports. With an empty model the apply only reflects the
+        // preset configuration, which is not a change the user made to the imported
+        // G-code: leaving preview-only mode here would let a later switch to the
+        // preview reslice and discard the loaded G-code (see set_current_panel).
+        if (!model.objects.empty()) {
+            // BBS: add only gcode mode
+            q->set_only_gcode(false);
             q->set_using_exported_file(false);
+        }
     }
 
     //BBS: add slicing related logs
@@ -21732,7 +21737,13 @@ void Plater::load_gcode(const wxString& filename)
     }
     current_print.apply(this->model(), wxGetApp().preset_bundle->full_config(false, f_maps, f_volume_maps));
 
-    if (p->preview->get_canvas3d()->get_gcode_layers_zs().empty()) {
+    // Judge the file by the processing result rather than by what the viewer
+    // has loaded: the preview canvas may not be initialized yet at this point
+    // (under Wayland it becomes usable only after the tab switch has been
+    // processed), in which case the viewer is loaded later.
+    const bool has_toolpaths = std::any_of(current_result->moves.begin(), current_result->moves.end(),
+        [](const GCodeProcessorResult::MoveVertex& move) { return move.type == EMoveType::Extrude; });
+    if (!has_toolpaths) {
         MessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("does not contain valid gcode."),
             wxString(GCODEVIEWER_APP_NAME) + " - " + _L("Error occurs while loading G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
         set_project_filename(DEFAULT_PROJECT_NAME);
