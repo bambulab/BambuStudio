@@ -94,7 +94,7 @@ wxFont get_default_font_for_dpi(const wxWindow* window, int dpi);
 inline wxFont get_default_font(const wxWindow* window) { return get_default_font_for_dpi(window, get_dpi_for_window(window)); }
 
 bool check_dark_mode();
-void update_dark_config();
+bool refresh_dark_mode_theme();
 #ifdef _WIN32
 void update_dark_ui(wxWindow* window);
 #endif
@@ -204,12 +204,11 @@ public:
 
         this->Bind(wxEVT_SYS_COLOUR_CHANGED, [this](wxSysColourChangedEvent& event)
         {
-#ifndef __WINDOWS__
-                update_dark_config();
-                on_sys_color_changed();
-                event.Skip();
-#endif // __WINDOWS__
-
+            // When the OS theme changed, the first observer applies it application-wide;
+            // the remaining ones return early and only refresh their own window below.
+            refresh_dark_mode_theme();
+            on_sys_color_changed();
+            event.Skip();
         });
 
         if (std::is_same<wxDialog, P>::value) {
