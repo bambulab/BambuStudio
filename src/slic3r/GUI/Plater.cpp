@@ -2181,9 +2181,16 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         auto tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
         if (tab->disable_arc_fitting()) {
             wxGetApp().sidebar().jump_to_option("enable_arc_fitting", Preset::TYPE_PRINT, L"");
-            auto notification_manager = plater->get_notification_manager();
-            auto msg                  = into_u8(_L("Tips:\nCurve planning enhancement support detected on your printer. The software has automatically disabled arc fitting to ensure this feature functions correctly."));
-            notification_manager->push_notification(NotificationType::BBLArcFittingInfo, NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
+            if (!wxGetApp().app_config->get_bool("hide_arc_fitting_info")) {
+                auto notification_manager = plater->get_notification_manager();
+                auto msg                  = into_u8(_L("Tips:\nCurve planning enhancement support detected on your printer. The software has automatically disabled arc fitting to ensure this feature functions correctly."));
+                notification_manager->push_notification(NotificationType::BBLArcFittingInfo, NotificationManager::NotificationLevel::WarningNotificationLevel, msg,
+                    _u8L("Hide"), [](wxEvtHandler *) {
+                        wxGetApp().app_config->set_bool("hide_arc_fitting_info", true);
+                        wxGetApp().app_config->save();
+                        return true;
+                    });
+            }
         }
     } else {
         plater->get_notification_manager()->remove_notification_of_type(NotificationType::BBLArcFittingInfo);
