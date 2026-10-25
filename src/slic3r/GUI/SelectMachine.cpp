@@ -46,6 +46,7 @@
 #include <wx/display.h>
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
+#include <wx/checkbox.h>
 #include <wx/dcgraph.h>
 #include <wx/mstream.h>
 #include <miniz.h>
@@ -73,6 +74,8 @@
 #define S_RACK_NOZZLE_SUGEEST_RESLICE_FILA _L("Please re-slice to avoid filament waste.")
 
 namespace Slic3r { namespace GUI {
+
+static constexpr const char *HIDE_UNKNOWN_AMS_FILAMENT_WARNING = "hide_unknown_ams_filament_warning";
 
 wxDEFINE_EVENT(EVT_SWITCH_PRINT_OPTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_USER_MACHINE_LIST, wxCommandEvent);
@@ -2236,6 +2239,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     if (!obj_) return;
 
     std::vector<ConfirmBeforeSendInfo> confirm_text;
+    bool has_unknown_ams_filament_warning = false;
 
     // check more than one using in same external spool
     std::unordered_set<string> main_external_spool_filas;
@@ -2365,12 +2369,15 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
     //check for unidentified material
     for (const auto& fila : m_ams_mapping_result) {
+        if (wxGetApp().app_config->get_bool(HIDE_UNKNOWN_AMS_FILAMENT_WARNING))
+            break;
         if (devPrinterUtil::IsVirtualSlot(fila.ams_id)) {
             continue;//STUDIO-16294
         }
 
         auto tray_opt = obj_->get_tray(fila.ams_id, fila.slot_id);
         if (tray_opt.has_value() && (!tray_opt->is_exists || !tray_opt->is_tray_info_ready())) {
+            has_unknown_ams_filament_warning = true;
             has_slice_warnings = true; //has_unknown_filament
             confirm_text.push_back(ConfirmBeforeSendInfo(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing.")));
             break;
@@ -2380,13 +2387,25 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     if (has_slice_warnings)
     {
         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Warning"));
+        wxCheckBox* remember_unknown_filament = nullptr;
+        if (!is_printing_block) {
+            if (has_unknown_ams_filament_warning)
+                remember_unknown_filament = confirm_dlg.add_remember_checkbox(_L("Don't warn about unknown AMS filaments again"));
+        }
         if (is_printing_block)
         {
             confirm_dlg.hide_button_ok();
             confirm_dlg.edit_cancel_button_txt(_L("Close"), true);
         }
-        confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, &confirm_dlg](wxCommandEvent& e)
+        confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, &confirm_dlg, remember_unknown_filament](wxCommandEvent& e)
             {
+                bool changed = false;
+                if (remember_unknown_filament && remember_unknown_filament->GetValue()) {
+                    wxGetApp().app_config->set_bool(HIDE_UNKNOWN_AMS_FILAMENT_WARNING, true);
+                    changed = true;
+                }
+                if (changed)
+                    wxGetApp().app_config->save();
                 confirm_dlg.on_hide();
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": confirm_dlg to send print job after warnings.";
                 this->on_send_print();

@@ -263,6 +263,7 @@ public:
     void on_show();
     void on_hide();
     void update_btn_label(wxString ok_btn_text, wxString cancel_btn_text);
+    wxCheckBox* add_remember_checkbox(const wxString& label);
     void rescale();
     void on_dpi_changed(const wxRect& suggested_rect);
     void show_update_nozzle_button(bool show = false);
@@ -281,7 +282,8 @@ protected:
     Button* m_button_ok;
     Button* m_button_cancel;
     Button* m_button_update_nozzle;
-    wxCheckBox* m_show_again_checkbox;
+    wxCheckBox* m_show_again_checkbox{nullptr};
+    wxBoxSizer* m_sizer_remember_choices{nullptr};
     bool not_show_again = false;
     std::string show_again_config_text = "";
 };

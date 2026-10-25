@@ -1953,6 +1953,7 @@ ResetWarningsDialog::ResetWarningsDialog(wxWindow *parent) : DPIDialog(parent, w
     auto *det_sizer = new wxBoxSizer(wxVERTICAL);
     auto *det_text  = new wxStaticText(m_details_panel, wxID_ANY,
                                        _L("- Sync printer presets after loading a file\n"
+                                          "- Unknown filaments in AMS mappings warning\n"
                                           "- \"Load 3MF\" dialog settings\n"
                                           "- Executing post-processing scripts\n"
                                           "- Support structure recommendation prompt\n"
@@ -2019,6 +2020,7 @@ void PreferencesDialog::on_reset_all_warnings()
     // Keys that the various "Don't show again"-style dialogs persist their
     // dismissal choice under. Erasing them re-enables the corresponding dialog.
     app_config->erase("app", "sync_after_load_file_show_flag");
+    app_config->erase("app", "hide_unknown_ams_filament_warning");
     app_config->erase("app", "skip_non_bambu_3mf_warning");
     app_config->erase("app", "post_process_script_choice");
     app_config->erase("app", "no_warn_mixed_sublayer_variable_layer");

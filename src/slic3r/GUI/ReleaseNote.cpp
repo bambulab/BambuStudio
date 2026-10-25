@@ -1204,16 +1204,14 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
         std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
 
+    m_sizer_remember_choices = new wxBoxSizer(wxVERTICAL);
+    bottom_sizer->Add(m_sizer_remember_choices, 0, wxEXPAND);
     if (not_show_again_check) {
-        auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
-        m_show_again_checkbox = new wxCheckBox(this, wxID_ANY, _L("Don't show again"), wxDefaultPosition, wxDefaultSize, 0);
+        m_show_again_checkbox = add_remember_checkbox(_L("Don't show again"));
         m_show_again_checkbox->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, [this](wxCommandEvent& e) {
             not_show_again = !not_show_again;
             m_show_again_checkbox->SetValue(not_show_again);
         });
-        checkbox_sizer->Add(FromDIP(15), 0, 0, 0);
-        checkbox_sizer->Add(m_show_again_checkbox, 0, wxALL, FromDIP(5));
-        bottom_sizer->Add(checkbox_sizer, 0, wxBOTTOM | wxEXPAND, 0);
     }
     m_button_ok = new Button(this, _L("Confirm"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
@@ -1289,6 +1287,20 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
 
     CenterOnParent();
     wxGetApp().UpdateDlgDarkUI(this);
+}
+
+wxCheckBox* ConfirmBeforeSendDialog::add_remember_checkbox(const wxString& label)
+{
+    auto* checkbox = new wxCheckBox(this, wxID_ANY, label);
+    auto* row = new wxBoxSizer(wxHORIZONTAL);
+    row->AddSpacer(FromDIP(15));
+    row->Add(checkbox, 0, wxALL, FromDIP(5));
+    m_sizer_remember_choices->Add(row, 0, wxEXPAND);
+    if (GetSizer()) {
+        Layout();
+        Fit();
+    }
+    return checkbox;
 }
 
 void ConfirmBeforeSendDialog::update_text(wxString text)
