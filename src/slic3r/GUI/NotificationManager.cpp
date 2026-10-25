@@ -1960,9 +1960,21 @@ void NotificationManager::close_general_error_notification(const std::string& te
 
 void NotificationManager::push_slicing_customize_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext, std::function<bool(wxEvtHandler *)> callback)
 {
+    if (type == NotificationType::BBLMixUsePLAAndPETG && wxGetApp().app_config->get_bool("hide_pla_petg_mix_warning"))
+        return;
+
     set_all_slicing_errors_gray(false);
     std::string prefix_msg = level == NotificationLevel::WarningNotificationLevel ? _u8L("Warning:") : _u8L("Error:");
-    push_notification_data({type, level, 0, prefix_msg + "\n" + text, hypertext, callback}, 0);
+    NotificationData data{type, level, 0, prefix_msg + "\n" + text, hypertext, callback};
+    if (type == NotificationType::BBLMixUsePLAAndPETG) {
+        data.second_hypertext = _u8L("Hide");
+        data.second_callback = [](wxEvtHandler *) {
+            wxGetApp().app_config->set("hide_pla_petg_mix_warning", "true");
+            wxGetApp().app_config->save();
+            return true;
+        };
+    }
+    push_notification_data(data, 0);
 }
 
 void NotificationManager::close_slicing_customize_error_notification(NotificationType type, NotificationLevel level)
