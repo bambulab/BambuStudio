@@ -4177,6 +4177,24 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 
+    def           = this->add("mmu_segmented_region_min_area", coFloat);
+    def->label    = L("Minimum area of a segmented region");
+    def->tooltip  = L("Minimum area (mm^2) for a painted region to be preserved. Zero disables area filtering.");
+    def->sidetext = L("mm^2");
+    def->min      = 0;
+    def->category = L("Advanced");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.001));
+
+    def           = this->add("mmu_segmented_region_opening_threshold", coFloat);
+    def->label    = L("Morphological opening threshold for segmented regions");
+    def->tooltip  = L("Threshold (mm) for morphological opening. Zero disables. -1 = auto.");
+    def->sidetext = L("mm");
+    def->min      = -1;
+    def->category = L("Advanced");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(-1.));
+
     def           = this->add("interlocking_beam", coBool);
     def->label    = L("Use beam interlocking");
     def->tooltip  = L("Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials.");

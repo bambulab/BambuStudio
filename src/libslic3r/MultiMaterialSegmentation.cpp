@@ -1413,9 +1413,13 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                         remove_small(raw_surfaces[extruder_idx][layer_idx], min_area);
     };
 
-    // Filter out polygons less than 0.1mm^2, because they are unprintable and causing dimples on outer primers (#7104)
-    filter_out_small_polygons(top_raw, Slic3r::sqr(scale_(0.1f)));
-    filter_out_small_polygons(bottom_raw, Slic3r::sqr(scale_(0.1f)));
+    // Use configurable minimum area (default 0.001mm^2). 0 = disable filtering.
+    const double mm_min_area = print_object.config().mmu_segmented_region_min_area.value;
+    const double mm_min_area_scaled = (mm_min_area > 0) ? Slic3r::sqr(scale_(float(mm_min_area))) : 0;
+    if (mm_min_area_scaled > 0) {
+        filter_out_small_polygons(top_raw, mm_min_area_scaled);
+        filter_out_small_polygons(bottom_raw, mm_min_area_scaled);
+    }
 
 #ifdef MM_SEGMENTATION_DEBUG_TOP_BOTTOM
     {
@@ -1496,12 +1500,18 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                 out.extrusion_width     = std::max<float>(out.extrusion_width, outer_wall_line_width);
                 out.top_color_penetration_layers    = std::max<int>(out.top_color_penetration_layers, config.top_color_penetration_layers);
                 out.bottom_color_penetration_layers = std::max<int>(out.bottom_color_penetration_layers, config.bottom_color_penetration_layers);
-                out.small_region_threshold = config.gap_infill_speed.get_at(print_object.print()->get_process_config_idx(config.wall_filament - 1)) > 0 ?
-                                             // Gap fill enabled. Enable a single line of 1/2 extrusion width.
-                                             0.5f * outer_wall_line_width :
-                                             // Gap fill disabled. Enable two lines slightly overlapping.
-                                             outer_wall_line_width + 0.7f * Flow::rounded_rectangle_extrusion_spacing(outer_wall_line_width, float(layer.height));
-                out.small_region_threshold = scaled<float>(out.small_region_threshold * 0.5f);
+                // Config override: -1 = auto (default), 0 = disable morphological opening
+                float _opening_override = print_object.config().mmu_segmented_region_opening_threshold.value;
+                if (_opening_override >= 0) {
+                    out.small_region_threshold = (_opening_override > 0) ? scaled<float>(_opening_override) : 0.f;
+                } else {
+                    out.small_region_threshold = config.gap_infill_speed.get_at(print_object.print()->get_process_config_idx(config.wall_filament - 1)) > 0 ?
+                                                 // Gap fill enabled. Enable a single line of 1/2 extrusion width.
+                                                 0.5f * outer_wall_line_width :
+                                                 // Gap fill disabled. Enable two lines slightly overlapping.
+                                                 outer_wall_line_width + 0.7f * Flow::rounded_rectangle_extrusion_spacing(outer_wall_line_width, float(layer.height));
+                    out.small_region_threshold = scaled<float>(out.small_region_threshold * 0.5f);
+                }
                 out.extrusion_spacing = Flow::rounded_rectangle_extrusion_spacing(outer_wall_line_width, float(layer.height));
                 ++ out.num_regions;
             }
@@ -1523,7 +1533,9 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                 if (std::vector<Polygons> &top = top_raw[color_idx]; ! top.empty() && ! top[layer_idx].empty())
                     if (ExPolygons top_ex = union_ex(top[layer_idx]); ! top_ex.empty()) {
                         // Clean up thin projections. They are not printable anyways.
-                        top_ex = opening_ex(top_ex, stat.small_region_threshold);
+                        // FIX: Only apply morphological opening if threshold > 0
+                        if (stat.small_region_threshold > 0.f)
+                            top_ex = opening_ex(top_ex, stat.small_region_threshold);
                         if (! top_ex.empty()) {
                             append(triangles_by_color_top[color_idx][layer_idx + layer_idx_offset], top_ex);
                             float offset = 0.f;
@@ -1533,7 +1545,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                                 //offset -= stat.extrusion_width ;
                                 offset -= (stat.extrusion_spacing + stat.extrusion_width);
                                 layer_slices_trimmed = intersection_ex(layer_slices_trimmed, input_expolygons[last_idx]);
-                                ExPolygons last = opening_ex(intersection_ex(top_ex, offset_ex(layer_slices_trimmed, offset)), stat.small_region_threshold);
+                                ExPolygons last = (stat.small_region_threshold > 0.f) ? opening_ex(intersection_ex(top_ex, offset_ex(layer_slices_trimmed, offset)), stat.small_region_threshold) : intersection_ex(top_ex, offset_ex(layer_slices_trimmed, offset));
                                 if (last.empty())
                                     break;
                                 append(shell_triangles_by_color_top[color_idx][last_idx + layer_idx_offset], std::move(last));
@@ -1543,7 +1555,9 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                 if (std::vector<Polygons> &bottom = bottom_raw[color_idx]; ! bottom.empty() && ! bottom[layer_idx].empty())
                     if (ExPolygons bottom_ex = union_ex(bottom[layer_idx]); ! bottom_ex.empty()) {
                         // Clean up thin projections. They are not printable anyways.
-                        bottom_ex = opening_ex(bottom_ex, stat.small_region_threshold);
+                        // FIX: Only apply morphological opening if threshold > 0
+                        if (stat.small_region_threshold > 0.f)
+                            bottom_ex = opening_ex(bottom_ex, stat.small_region_threshold);
                         if (! bottom_ex.empty()) {
                             append(triangles_by_color_bottom[color_idx][layer_idx + layer_idx_offset], bottom_ex);
                             float offset = 0.f;
@@ -1553,7 +1567,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                                 //offset -= stat.extrusion_width;
                                 offset -= (stat.extrusion_spacing + stat.extrusion_width);
                                 layer_slices_trimmed = intersection_ex(layer_slices_trimmed, input_expolygons[last_idx]);
-                                ExPolygons last = opening_ex(intersection_ex(bottom_ex, offset_ex(layer_slices_trimmed, offset)), stat.small_region_threshold);
+                                ExPolygons last = (stat.small_region_threshold > 0.f) ? opening_ex(intersection_ex(bottom_ex, offset_ex(layer_slices_trimmed, offset)), stat.small_region_threshold) : intersection_ex(bottom_ex, offset_ex(layer_slices_trimmed, offset));
                                 if (last.empty())
                                     break;
                                 append(shell_triangles_by_color_bottom[color_idx][last_idx + layer_idx_offset], std::move(last));
@@ -2112,7 +2126,7 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
 
     // Merge all regions and remove small holes
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - slices preparation in parallel - begin";
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers), [&layers, &input_expolygons, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers), [&layers, &input_expolygons, &throw_on_cancel_callback, &print_object](const tbb::blocked_range<size_t> &range) {
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
             throw_on_cancel_callback();
             ExPolygons ex_polygons;
@@ -2123,7 +2137,10 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
             // to ensure that very close polygons will be merged.
             ex_polygons = union_ex(ex_polygons);
             // Remove all expolygons and holes with an area less than 0.1mm^2
-            remove_small_and_small_holes(ex_polygons, Slic3r::sqr(scale_(0.1f)));
+            // Use configurable minimum area. 0 = skip filtering.
+            const double _mm_area1 = print_object.config().mmu_segmented_region_min_area.value;
+            if (_mm_area1 > 0)
+                remove_small_and_small_holes(ex_polygons, Slic3r::sqr(scale_(float(_mm_area1))));
             // Occasionally, some input polygons contained self-intersections that caused problems with Voronoi diagrams
             // and consequently with the extraction of colored segments by function extract_colored_segments.
             // Calling simplify_polygons removes these self-intersections.
@@ -2172,7 +2189,7 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
 
             input_expolygons_filled.resize(num_layers);
             tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers),
-                [&input_expolygons, &neg_slices, &input_expolygons_filled, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
+                [&input_expolygons, &neg_slices, &input_expolygons_filled, &throw_on_cancel_callback, &print_object](const tbb::blocked_range<size_t> &range) {
                     for (size_t i = range.begin(); i < range.end(); ++i) {
                         throw_on_cancel_callback();
                         if (neg_slices[i].empty()) {
@@ -2182,7 +2199,9 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
                             append(merged, offset_ex(input_expolygons[i], 10.f * float(SCALED_EPSILON)));
                             append(merged, neg_slices[i]);
                             merged = union_ex(merged);
-                            remove_small_and_small_holes(merged, Slic3r::sqr(scale_(0.1f)));
+                            const double _mm_area2 = print_object.config().mmu_segmented_region_min_area.value;
+                            if (_mm_area2 > 0)
+                                remove_small_and_small_holes(merged, Slic3r::sqr(scale_(float(_mm_area2))));
                             input_expolygons_filled[i] = remove_duplicates(
                                 expolygons_simplify(offset_ex(merged, -10.f * float(SCALED_EPSILON)), 5 * SCALED_EPSILON),
                                 scaled<coord_t>(0.01), PI / 6);
@@ -2428,7 +2447,7 @@ std::vector<std::vector<ExPolygons>> fuzzy_skin_segmentation_by_painting(const P
 
     // Merge all regions and remove small holes
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - slices preparation in parallel - begin";
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers), [&layers, &input_expolygons, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers), [&layers, &input_expolygons, &throw_on_cancel_callback, &print_object](const tbb::blocked_range<size_t> &range) {
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
             throw_on_cancel_callback();
             ExPolygons ex_polygons;
@@ -2438,7 +2457,10 @@ std::vector<std::vector<ExPolygons>> fuzzy_skin_segmentation_by_painting(const P
             // to ensure that very close polygons will be merged.
             ex_polygons = union_ex(ex_polygons);
             // Remove all expolygons and holes with an area less than 0.1mm^2
-            remove_small_and_small_holes(ex_polygons, Slic3r::sqr(scale_(0.1f)));
+            // Use configurable minimum area. 0 = skip filtering.
+            const double _mm_area1 = print_object.config().mmu_segmented_region_min_area.value;
+            if (_mm_area1 > 0)
+                remove_small_and_small_holes(ex_polygons, Slic3r::sqr(scale_(float(_mm_area1))));
             // Occasionally, some input polygons contained self-intersections that caused problems with Voronoi diagrams
             // and consequently with the extraction of colored segments by function extract_colored_segments.
             // Calling simplify_polygons removes these self-intersections.
