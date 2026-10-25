@@ -711,11 +711,12 @@ struct FakeWipeTower
     float layer_height;// Due to variable layer height, this parameter may be not right.
     float depth;
     float brim_width;
+    float rotation_angle = 0.f;
     Vec2d plate_origin;
     Vec2f rib_offset{0.f,0.f};
     std::map<float , Polylines> outer_wall; //wipe tower's true outer wall and brim
 
-    void set_fake_extrusion_data(Vec2f p, float w, float h, float lh, float d, float bd, Vec2d o)
+    void set_fake_extrusion_data(Vec2f p, float w, float h, float lh, float d, float bd, Vec2d o, float angle)
     {
         pos          = p;
         width        = w;
@@ -724,9 +725,11 @@ struct FakeWipeTower
         depth        = d;
         brim_width   = bd;
         plate_origin = o;
+        rotation_angle = angle;
     }
 
-    void set_pos(Vec2f p) { pos = p+rib_offset; }
+    // Position/angle changes need not regenerate the cached local wall paths.
+    void set_pos(Vec2f p, float angle) { pos = p+rib_offset; rotation_angle = angle; }
 
     std::vector<ExtrusionPaths> getFakeExtrusionPathsFromWipeTower() const
     {

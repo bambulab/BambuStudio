@@ -17,6 +17,7 @@ add_executable(${_TEST_NAME}_tests
 	test_support_material.cpp
 	test_support_material_on_wipe_tower.cpp
 	test_trianglemesh.cpp
+	test_wipe_tower_rotation.cpp
 	)
 target_link_libraries(${_TEST_NAME}_tests test_common libslic3r)
 set_property(TARGET ${_TEST_NAME}_tests PROPERTY FOLDER "tests")

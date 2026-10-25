@@ -2374,7 +2374,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
 
     if (this->has_wipe_tower()) {
         const long long other_wipe_begin = slice_time ? Slic3r::Utils::get_current_milliseconds_time_monotonic() : 0;
-        m_fake_wipe_tower.set_pos({ m_config.wipe_tower_x.get_at(m_plate_index), m_config.wipe_tower_y.get_at(m_plate_index) });
+        m_fake_wipe_tower.set_pos({ m_config.wipe_tower_x.get_at(m_plate_index), m_config.wipe_tower_y.get_at(m_plate_index) }, float(m_config.wipe_tower_rotation_angle.value));
         // Validate the compacted wipe tower clearance on every process() run rather than only when the
         // wipe tower step is (re)generated. Moving the tower changes only wipe_tower_x/y, which invalidates
         // psSkirtBrim but not psWipeTower, so a validate call living inside _make_wipe_tower would be skipped
@@ -2570,7 +2570,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         auto            startTime   = Clock::now();
         std::optional<const FakeWipeTower *> wipe_tower_opt = {};
         if (this->has_wipe_tower()) {
-            m_fake_wipe_tower.set_pos({m_config.wipe_tower_x.get_at(m_plate_index), m_config.wipe_tower_y.get_at(m_plate_index)});
+            m_fake_wipe_tower.set_pos({m_config.wipe_tower_x.get_at(m_plate_index), m_config.wipe_tower_y.get_at(m_plate_index)}, float(m_config.wipe_tower_rotation_angle.value));
             wipe_tower_opt = std::make_optional<const FakeWipeTower *>(&m_fake_wipe_tower);
         }
         auto            conflictRes = ConflictChecker::find_inter_of_lines_in_diff_objs(m_objects, wipe_tower_opt);
@@ -4048,7 +4048,7 @@ void Print::_make_wipe_tower()
     m_fake_wipe_tower.rib_offset = wipe_tower.get_rib_offset();
     m_fake_wipe_tower.set_fake_extrusion_data(wipe_tower.position() + m_fake_wipe_tower.rib_offset, wipe_tower.width(), wipe_tower.get_height(), wipe_tower.get_layer_height(),
                                               m_wipe_tower_data.depth,
-                                              m_wipe_tower_data.brim_width, {scale_(origin.x()), scale_(origin.y())});
+                                              m_wipe_tower_data.brim_width, {scale_(origin.x()), scale_(origin.y())}, float(m_config.wipe_tower_rotation_angle.value));
     m_fake_wipe_tower.outer_wall = wipe_tower.get_outer_wall();
 }
 
@@ -5442,6 +5442,9 @@ ExtrusionLayers FakeWipeTower::getTrueExtrusionLayersFromWipeTower() const
         for (auto &polyline : it->second) {
             ExtrusionPath path(ExtrusionRole::erWipeTower, 0.0, 0.0, layer_heights[index]);
             path.polyline = polyline;
+            // Match WipeTowerIntegration::append_tcr: rotate the local path,
+            // then add position/rib offset. The bucket adds plate origin later.
+            path.polyline.rotate(Geometry::deg2rad(rotation_angle));
             for (auto &p : path.polyline.points) p += trans;
             paths.push_back(path);
         }
