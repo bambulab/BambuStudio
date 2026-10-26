@@ -5,6 +5,7 @@
 #include <locale>
 #include <ctime>
 #include <cstdarg>
+#include <cctype>
 #include <stdio.h>
 #include <filesystem>
 
@@ -915,6 +916,133 @@ bool is_gallery_file(const std::string &path, char const* type)
 bool is_shapes_dir(const std::string& dir)
 {
 	return dir == sys_shapes_dir() || dir == custom_shapes_dir();
+}
+
+namespace {
+
+constexpr const char *path_separators = "\\/";
+
+bool is_separator(char c) { return c == '\\' || c == '/'; }
+
+// Where the user name and user id sit in a path under the user profile, e.g.
+// C:\Users\<name>\AppData\Roaming\BambuStudio\user\<id>\...
+struct UserPathLayout
+{
+    std::string profile;                      // user profile directory
+    size_t      name_pos  = std::string::npos; // first byte of the user name in the profile path
+    size_t      name_size = 0;
+    size_t      id_pos    = std::string::npos; // first byte of the user id folder
+
+    bool valid() const { return name_pos != std::string::npos && name_size > 0; }
+};
+
+const UserPathLayout &user_path_layout()
+{
+    static const UserPathLayout layout = [] {
+        UserPathLayout l;
+#ifdef _WIN32
+        const char *env = std::getenv("USERPROFILE");
+    #if BBL_RELEASE_TO_PUBLIC
+        const size_t suffix_len = strlen("\\AppData\\Roaming\\BambuStudio\\user");
+    #else
+        const size_t suffix_len = BBL_INTERNAL_TESTING == 1 ? strlen("\\AppData\\Roaming\\BambuStudioInternal\\user") :
+                                                              strlen("\\AppData\\Roaming\\BambuStudioBeta\\user");
+    #endif
+#elif __APPLE__
+        const char *env = std::getenv("HOME");
+    #if BBL_RELEASE_TO_PUBLIC
+        const size_t suffix_len = strlen("/Library/Application Support/BambuStudio/user");
+    #else
+        const size_t suffix_len = BBL_INTERNAL_TESTING == 1 ? strlen("/Library/Application Support/BambuStudioInternal/user") :
+                                                              strlen("/Library/Application Support/BambuStudioBeta/user");
+    #endif
+#else
+        const char *env = std::getenv("HOME");
+    #if BBL_RELEASE_TO_PUBLIC
+        const size_t suffix_len = strlen("/.config/BambuStudio/user");
+    #else
+        const size_t suffix_len = BBL_INTERNAL_TESTING == 1 ? strlen("/.config/BambuStudioInternal/user") :
+                                                              strlen("/.config/BambuStudioBeta/user");
+    #endif
+#endif
+        if (env == nullptr)
+            return l;
+        l.profile        = env;
+        const size_t sep = l.profile.find_last_of(path_separators);
+        if (sep == std::string::npos)
+            return l;
+        l.name_pos  = sep + 1;
+        l.name_size = l.profile.size() - l.name_pos;
+        l.id_pos    = l.profile.size() + suffix_len + 1;
+        return l;
+    }();
+    return layout;
+}
+
+bool is_utf8_continuation(char c) { return (static_cast<unsigned char>(c) & 0xC0) == 0x80; }
+
+// Replace bytes [pos, pos + count) with '*', widened so that no UTF-8 character is cut in half.
+void mask_bytes(std::string &s, size_t pos, size_t count)
+{
+    if (pos >= s.size())
+        return;
+    size_t end = std::min(s.size(), pos + count);
+    while (pos > 0 && is_utf8_continuation(s[pos]))
+        --pos;
+    while (end < s.size() && is_utf8_continuation(s[end]))
+        ++end;
+    s.replace(pos, end - pos, end - pos, '*');
+}
+
+std::string file_name_part(const std::string &path)
+{
+    const size_t sep = path.find_last_of(path_separators);
+    return sep == std::string::npos ? path : path.substr(sep + 1);
+}
+
+bool is_upper_of(char upper, char lower)
+{
+    const auto u = static_cast<unsigned char>(upper);
+    return std::isupper(u) && std::tolower(u) == static_cast<unsigned char>(lower);
+}
+
+} // namespace
+
+std::string PathSanitizer::sanitize_impl(std::string raw)
+{
+    // Bytes masked when the user name shows up in a path that is not under the user profile.
+    constexpr size_t guessed_name_size = 12;
+
+    const UserPathLayout &layout = user_path_layout();
+    if (!layout.valid() || raw.empty() || raw.size() < layout.profile.size())
+        return file_name_part(raw);
+
+    const std::string &full = layout.profile;
+    if (raw[0] != full[0] || raw[full.size() - 1] != full[full.size() - 1]) {
+        if (is_upper_of(raw[layout.name_pos], full[layout.name_pos])) {
+            mask_bytes(raw, layout.name_pos, guessed_name_size);
+            return raw;
+        }
+        return file_name_part(raw);
+    }
+
+    const size_t name_end = layout.name_pos + layout.name_size;
+    if (name_end == raw.size() || is_separator(raw[name_end]))
+        mask_bytes(raw, layout.name_pos, layout.name_size);
+    else if (is_upper_of(raw[layout.name_pos], full[layout.name_pos]))
+        mask_bytes(raw, layout.name_pos, guessed_name_size);
+    else
+        return file_name_part(raw);
+
+    const size_t id_pos = layout.id_pos;
+    if (id_pos < raw.size() && is_separator(raw[id_pos - 1]) && std::isdigit(static_cast<unsigned char>(raw[id_pos]))) {
+        size_t id_end = raw.find_first_of(path_separators, id_pos);
+        if (id_end == std::string::npos)
+            id_end = raw.size();
+        mask_bytes(raw, id_pos, id_end - id_pos);
+    }
+
+    return file_name_part(raw);
 }
 
 } // namespace Slic3r
