@@ -201,15 +201,18 @@ static bool hidden_by_multi_nozzle_diameter_mode(const PresetBundle*     preset_
            !is_canonical_multi_nozzle_diameter_printer_preset(collection, preset);
 }
 
-// Whether `preset` is a system printer of the same single-extruder multi-nozzle model as the edited
-// printer, so the printer settings combo also offers it across multi-diameter modes.
-static bool same_model_multi_nozzle_system_printer(const PresetCollection& printers, const Preset& preset)
+// Whether `preset` is an installed system printer of a single-extruder multi-nozzle model, so the printer
+// settings combo offers it across multi-diameter modes whatever printer model is currently selected.
+// In multi-diameter mode only the edited printer's model qualifies: leaving the mode restores within the
+// same model, so a ">single" target on another model would land on the wrong printer.
+static bool installed_multi_nozzle_system_printer(const PresetCollection& printers, const Preset& preset, bool multi_nozzle_mode)
 {
     if (!preset.is_system || !is_single_ext_multi_nozzle(preset.config))
         return false;
-    const Preset* base = printers.get_preset_base(printers.get_edited_preset());
-    return base != nullptr && base->is_system && is_single_ext_multi_nozzle(base->config) &&
-           preset.config.opt_string("printer_model") == base->config.opt_string("printer_model");
+    else if (preset.is_visible)
+        return !multi_nozzle_mode ||
+               preset.config.opt_string("printer_model") == printers.get_edited_preset().config.opt_string("printer_model");
+    return false;
 }
 
 // ---------------------------------
@@ -2118,10 +2121,10 @@ void TabPresetComboBox::update()
     for (size_t i = presets.front().is_visible ? 0 : m_collection->num_default_presets(); i < presets.size(); ++i)
     {
         const Preset& preset = presets[i];
-        const bool same_model_multi_nozzle =
-            m_type == Preset::TYPE_PRINTER && same_model_multi_nozzle_system_printer(*m_collection, preset);
+        const bool installed_multi_nozzle =
+            m_type == Preset::TYPE_PRINTER && installed_multi_nozzle_system_printer(*m_collection, preset, multi_nozzle_mode);
         const bool is_canonical_multi_nozzle =
-            same_model_multi_nozzle && is_canonical_multi_nozzle_diameter_printer_preset(*m_collection, preset);
+            installed_multi_nozzle && is_canonical_multi_nozzle_diameter_printer_preset(*m_collection, preset);
         if ((!preset.is_visible && !is_canonical_multi_nozzle) ||
             (!show_incompatible && !preset.is_compatible && i != idx_selected))
             continue;
@@ -2139,7 +2142,7 @@ void TabPresetComboBox::update()
 
         if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
-            if (same_model_multi_nozzle) {
+            if (installed_multi_nozzle) {
                 // In the printer settings combo, list all single-diameter system variants alongside the
                 // "Multiple nozzle" entry in both modes; picking the other mode's entry switches the mode.
                 if (multi_nozzle_mode) {
