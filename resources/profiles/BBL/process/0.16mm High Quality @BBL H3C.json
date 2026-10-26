@@ -16,7 +16,6 @@
         "8000",
         "8000"
     ],
-    "enable_arc_fitting": "0",
     "enable_height_slowdown": [
         "0",
         "0",
@@ -27,6 +26,7 @@
         "1",
         "1"
     ],
+    "enable_tower_interface_features": "1",
     "gap_infill_speed": [
         "250",
         "250",
