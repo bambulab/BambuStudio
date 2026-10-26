@@ -20,11 +20,12 @@ namespace Slic3r { namespace GUI {
 ImageDPIFrame::ImageDPIFrame()
     : DPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, "", wxDefaultPosition, wxDefaultSize, !wxCAPTION | !wxCLOSE_BOX | wxBORDER_NONE)
 {
-    m_image_px = 280;
+    m_image_px = 210;
     int width = 270;
+    int height = width * 0.94;
     //SetTransparent(0);
-    SetMinSize(wxSize(FromDIP(width), -1));
-    SetMaxSize(wxSize(FromDIP(width), -1));
+    SetMinSize(wxSize(FromDIP(width), FromDIP(height)));
+    SetMaxSize(wxSize(FromDIP(width), FromDIP(height)));
     SetBackgroundColour(wxColour(242, 242, 242, 255));
 #ifdef __APPLE__
     SetWindowStyleFlag(GetWindowStyleFlag() | wxSTAY_ON_TOP);
@@ -32,10 +33,11 @@ ImageDPIFrame::ImageDPIFrame()
 
     m_sizer_main           = new wxBoxSizer(wxVERTICAL);
     auto image_sizer  = new wxBoxSizer(wxVERTICAL);
-    auto imgsize           = FromDIP(width);
-    m_bitmap = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("printer_preview_C13", this, m_image_px), wxDefaultPosition, wxSize(imgsize, imgsize * 0.94), 0);
+    m_bitmap = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("printer_preview_C13", this, m_image_px), wxDefaultPosition, wxDefaultSize, 0);
     image_sizer->Add(m_bitmap, 0, wxALIGN_CENTER  | wxALL, FromDIP(0));
+    m_sizer_main->AddStretchSpacer(1);
     m_sizer_main->Add(image_sizer, FromDIP(0), wxALIGN_CENTER, FromDIP(0));
+    m_sizer_main->AddStretchSpacer(1);
 
     Bind(wxEVT_CLOSE_WINDOW, [this](auto &e) {
         on_hide();
@@ -59,6 +61,9 @@ bool ImageDPIFrame::Show(bool show)
 void ImageDPIFrame::set_bitmap(const wxBitmap &bit_map) {
     if (&bit_map && bit_map.IsOk()) {
         m_bitmap->SetBitmap(bit_map);
+        m_bitmap->SetMinSize(bit_map.GetSize());
+        Layout();
+        Refresh();
     }
 }
 

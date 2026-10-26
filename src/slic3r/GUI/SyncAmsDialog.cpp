@@ -217,7 +217,8 @@ std::vector<FilamentInfo> collect_scope_filaments(int plate_idx)
     // Every project filament for the All sentinel, otherwise the ones the given plate actually uses.
     std::vector<int> ids;
     if (plate_idx < 0) {
-        for (int i = 0; i < (int) types.size(); ++i) ids.push_back(i);
+        for (int e : wxGetApp().plater()->get_partplate_list().get_extruders(true))
+            ids.push_back(e - 1);
     } else {
         auto      &plate_list = wxGetApp().plater()->get_partplate_list();
         PartPlate *plate      = plate_list.get_plate(plate_idx);

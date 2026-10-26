@@ -497,7 +497,7 @@ wxWindow *SyncPresetWithPrinterDialog::build_section(const wxString &label, cons
 
     auto *title = new Label(panel, label);
     title->SetFont(Label::Body_12);
-    title->SetForegroundColour(C(ThemeColor::Grey500));
+    title->SetForegroundColour(C(ThemeColor::Grey700));
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(title, 0, wxTOP | wxBOTTOM, FromDIP(3));
@@ -516,14 +516,14 @@ wxWindow *SyncPresetWithPrinterDialog::make_model_cell(wxWindow *parent, const s
     auto *text_sizer = new wxBoxSizer(wxVERTICAL);
     auto *name = new Label(cell, model_name);
     name->SetFont(Label::Head_13);
-    name->SetForegroundColour(C(ThemeColor::Grey700));
+    name->SetForegroundColour(C(ThemeColor::TextPrimary));
     text_sizer->Add(name, 0, wxALIGN_LEFT);
 
     // Only the connected printer gets a second line, to tell two printers of the same model apart.
     if (!dev_name.IsEmpty()) {
         auto *sub = new Label(cell, "(" + dev_name + ")");
         sub->SetFont(Label::Body_13);
-        sub->SetForegroundColour(C(ThemeColor::Grey700));
+        sub->SetForegroundColour(C(ThemeColor::TextPrimary));
         // A wx label is only as tall as its glyphs, so the gap makes up the rest of the line height.
         text_sizer->AddSpacer(std::max(0, FromDIP(kNameLineHeight) - name->GetBestSize().GetHeight()));
         text_sizer->Add(sub, 0, wxALIGN_LEFT);
@@ -633,7 +633,7 @@ wxWindow *SyncPresetWithPrinterDialog::build_shared_nozzle_rows(wxWindow *parent
         const wxString only = format_nozzle_spec_label(m_info.printer_nozzles.front(), m_info.compare_flow_type);
         auto *label = new Label(body, wxString::Format(_L("%s (only supported)"), only));
         label->SetFont(Label::Body_13);
-        label->SetForegroundColour(C(ThemeColor::Grey700));
+        label->SetForegroundColour(C(ThemeColor::TextPrimary));
         target = label;
     } else {
         target = make_nozzle_combo(body, m_info.project_nozzles.empty() ? NozzleSpec{} : m_info.project_nozzles.front());
@@ -652,7 +652,7 @@ wxWindow *SyncPresetWithPrinterDialog::make_source_label(wxWindow *parent, size_
     auto *source = new Label(parent, row < m_info.row_labels.size() ? m_info.row_labels[row]
                                                                     : format_nozzle_spec_label(m_info.project_nozzles[row], m_info.compare_flow_type));
     source->SetFont(Label::Body_13);
-    source->SetForegroundColour(C(ThemeColor::Grey700));
+    source->SetForegroundColour(C(ThemeColor::TextPrimary));
     return source;
 }
 
@@ -662,7 +662,7 @@ wxWindow *SyncPresetWithPrinterDialog::make_nozzle_combo(wxWindow *parent, const
     combo->SetBorderWidth(0);
     combo->SetFont(Label::Body_13);
     combo->SetLabelColor(StateColor(std::pair<wxColour, int>(C(ThemeColor::TextDisabled), StateColor::Disabled),
-                                    std::pair<wxColour, int>(C(ThemeColor::Grey700), StateColor::Normal)));
+                                    std::pair<wxColour, int>(C(ThemeColor::TextPrimary), StateColor::Normal)));
     for (const NozzleSpec &candidate : m_info.printer_nozzles)
         combo->Append(format_nozzle_spec_label(candidate, m_info.compare_flow_type));
     const int matched = find_closest_nozzle(want, m_info.printer_nozzles, m_info.compare_flow_type);
@@ -730,7 +730,7 @@ wxWindow *SyncPresetWithPrinterDialog::build_footer(wxWindow *parent)
         m_skip_check = new CheckBox(panel);
         auto *label = new Label(panel, _L("Don't show this again when opening 3MF files"));
         label->SetFont(Label::Body_14);
-        label->SetForegroundColour(C(ThemeColor::Grey500));
+        label->SetForegroundColour(C(ThemeColor::Grey700));
         // The bitmap button has no label of its own, so the text has to forward the click.
         label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { m_skip_check->SetValue(!m_skip_check->GetValue()); });
 
@@ -760,7 +760,7 @@ wxWindow *SyncPresetWithPrinterDialog::build_footer(wxWindow *parent)
     // Solid button: the border tracks the fill so no edge shows through.
     StateColor confirm_border(std::pair<wxColour, int>(C(ThemeColor::Grey500), StateColor::Disabled), std::pair<wxColour, int>(C(ThemeColor::BrandGreenPressed), StateColor::Pressed),
                               std::pair<wxColour, int>(C(ThemeColor::BrandGreenHovered), StateColor::Hovered), std::pair<wxColour, int>(C(ThemeColor::BrandGreen), StateColor::Normal));
-    StateColor confirm_text(std::pair<wxColour, int>(C(ThemeColor::White), StateColor::Normal));
+    StateColor confirm_text(std::pair<wxColour, int>(ThemeColor::WhiteFixed, StateColor::Normal));
 
     m_confirm_btn = new Button(panel, _L("Adapt Settings"), "", 0, 0, wxID_ANY);
     m_confirm_btn->SetFont(Label::Body_12);

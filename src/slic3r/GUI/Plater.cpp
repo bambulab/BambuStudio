@@ -4553,11 +4553,11 @@ void Sidebar::on_enter_image_printer_bed(wxMouseEvent &evt) {
     wxPoint temp_pos(pos.x + rect.GetWidth() +  FromDIP(3), pos.y);
     if (p->big_bed_image_popup == nullptr) {
         p->big_bed_image_popup = new ImageDPIFrame();
-        bool exist;
-        auto image_path        = get_cur_select_bed_image(exist);
-        if(exist){
-            p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
-        }
+    }
+    bool exist;
+    auto image_path = get_cur_select_bed_image(exist);
+    if (exist) {
+        p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
     }
     p->big_bed_image_popup->SetCanFocus(false);
     p->big_bed_image_popup->SetPosition(temp_pos);
@@ -7313,6 +7313,21 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         }
     }
 
+    if (!sync_result.direct_sync) {
+        for (int i = (int) p->combos_filament.size() - 1; i >= 0; --i) {
+            if (sync_result.sync_maps.find(i) != sync_result.sync_maps.end())
+                continue;
+            const size_t before = p->combos_filament.size();
+            delete_filament(i);
+            if (p->combos_filament.size() == before)
+                continue;
+            std::map<int, AMSMapInfo> shifted;
+            for (const auto &[idx, info] : sync_result.sync_maps)
+                shifted[idx > i ? idx - 1 : idx] = info;
+            sync_result.sync_maps.swap(shifted);
+        }
+    }
+
     // BBS:Record consumables information before synchronization
     std::vector<string> color_before_sync;
     std::vector<int> is_support_before;
@@ -9470,6 +9485,8 @@ void Sidebar::update_bed_thumbnail(std::string path)
 
     cur_path = path;
     p->image_printer_bed->SetBitmap(create_scaled_bitmap(cur_path, this, 48));
+    p->panel_printer_bed->Layout();
+    p->panel_printer_bed->Refresh();
 }
 
 void Sidebar::update_printer_thumbnail()
