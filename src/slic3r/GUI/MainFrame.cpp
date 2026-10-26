@@ -4880,6 +4880,13 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
     }
 #endif // __APPLE__
 
+    // When the user has been logged out (e.g. a minor account not linked to a guardian was force
+    // logged out right after login), don't prompt to sync cloud presets.
+    if (!wxGetApp().is_user_login()) {
+        BOOST_LOG_TRIVIAL(info) << "on_select_default_preset: skip cloud-sync prompt, user not logged in";
+        return;
+    }
+
     MessageDialog dialog(this,
                     _L("Do you want to synchronize your personal data from Bambu Cloud? \n"
                         "It contains the following information:\n"

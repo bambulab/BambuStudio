@@ -135,6 +135,7 @@
 #include "VersionPolicyDialog.hpp"
 #include "BetaVersionDialog.hpp"
 #include "PrivacyUpdateDialog.hpp"
+#include "MinorsLogoutDialog.hpp"
 #include "ModelMall.hpp"
 #include "HintNotification.hpp"
 #include "BBLUtil.hpp"
@@ -5034,6 +5035,31 @@ void GUI_App::refresh_monitor_ctrl_area_ui()
     if (sp) sp->apply_control_area_force_disable();
 }
 
+#if BBL_ENABLE_MINORS_DECISION
+namespace {
+enum class UepOutcome { ApplyGate, ForceLogout };
+struct UepResolution { UepOutcome outcome; UepFamilyGate gate; };
+
+UepResolution resolve_uep_decision(const MinorsDecisionResult& d)
+{
+    if (d.decision == MinorDecision::Allow)
+        return { UepOutcome::ApplyGate, UepFamilyGate::Free };
+
+    if (d.decision == MinorDecision::Deny) {
+        std::string fld = boost::algorithm::to_lower_copy(d.family_link_decision);
+        if (fld == FAMILY_LINK_DECISION_NO_CONFIG)
+            return { UepOutcome::ForceLogout, UepFamilyGate::Free };
+        if (fld == FAMILY_LINK_DECISION_ALLOW)
+            return { UepOutcome::ApplyGate, UepFamilyGate::ForceOn };
+        return { UepOutcome::ApplyGate, UepFamilyGate::ForceOff };
+    }
+
+    // NeedIdv or any unknown decision: treat as Deny + family_link_decision=deny.
+    return { UepOutcome::ApplyGate, UepFamilyGate::ForceOff };
+}
+} // namespace
+#endif
+
 void GUI_App::fetch_minors_decisions()
 {
 #if !BBL_ENABLE_MINORS_DECISION
@@ -5055,6 +5081,7 @@ void GUI_App::fetch_minors_decisions()
                 &decisions);
             
             MinorDecision remote_ctrl  = MinorDecision::Allow;
+            UepOutcome    uep_outcome  = UepOutcome::ApplyGate;
             UepFamilyGate uep_gate     = UepFamilyGate::Free;
             MinorDecision maker_world  = MinorDecision::Allow;
             MinorDecision maker_lab    = MinorDecision::Allow;
@@ -5076,14 +5103,9 @@ void GUI_App::fetch_minors_decisions()
                     if (d.scene_code == MINORS_SCENE_REMOTE_CONTROL_PRINTER) {
                         remote_ctrl = parse_decision(d, MINORS_SCENE_REMOTE_CONTROL_PRINTER);
                     } else if (d.scene_code == MINORS_SCENE_JOIN_USER_EXPERIENCE_PROGRAM) {
-                        // Server-side casing of family_link_decision isn't guaranteed, normalize before comparing.
-                        std::string family_link_decision = boost::algorithm::to_lower_copy(d.family_link_decision);
-                        if (family_link_decision == FAMILY_LINK_DECISION_ALLOW)
-                            uep_gate = UepFamilyGate::ForceOn;
-                        else if (family_link_decision == FAMILY_LINK_DECISION_DENY)
-                            uep_gate = UepFamilyGate::ForceOff;
-                        else
-                            uep_gate = UepFamilyGate::Free; // no_config / empty (adult) / unknown
+                        UepResolution r = resolve_uep_decision(d);
+                        uep_outcome = r.outcome;
+                        uep_gate    = r.gate;
                     } else if (d.scene_code == MINORS_SCENE_ACCESS_MAKER_WORLD) {
                         maker_world = parse_decision(d, MINORS_SCENE_ACCESS_MAKER_WORLD);
                     } else if (d.scene_code == MINORS_SCENE_ACCESS_MAKER_LAB) {
@@ -5093,25 +5115,22 @@ void GUI_App::fetch_minors_decisions()
                     }
                 }
             }
-            CallAfter([this, remote_ctrl, uep_gate, maker_world, maker_lab, maker_supply] {
+            CallAfter([this, remote_ctrl, uep_outcome, uep_gate, maker_world, maker_lab, maker_supply] {
                 m_remote_control_minor_decision.store(remote_ctrl);
                 m_access_maker_world.store(maker_world);
                 m_access_maker_lab.store(maker_lab);
                 m_access_maker_supply.store(maker_supply);
                 refresh_monitor_ctrl_area_ui();
-                // force=true: always re-apply config + telemetry on the full login/restart
-                // fetch (preserves the existing studio_launch-on-login behavior), and
-                // reconcile the UEP poll timer / open Preferences checkbox.
-                apply_uep_gate(uep_gate, /*force=*/true);
+                if (uep_outcome == UepOutcome::ForceLogout) {
+                    force_logout_uep_login_invalid();
+                } else {
+                    apply_uep_gate(uep_gate, /*force=*/true);
+                }
             });
         });
 #endif
 }
 
-// Apply a UEP (Join User Experience Program) gate value on the UI thread.
-// Returns true if the gate value actually changed. When force is false (the
-// Preferences-open path) an unchanged gate is a no-op, so telemetry is only
-// re-applied when the policy actually changes. Must run on the UI thread.
 bool GUI_App::apply_uep_gate(UepFamilyGate new_gate, bool force)
 {
 #if !BBL_ENABLE_MINORS_DECISION
@@ -5145,6 +5164,19 @@ bool GUI_App::apply_uep_gate(UepFamilyGate new_gate, bool force)
 #endif
 }
 
+void GUI_App::force_logout_uep_login_invalid()
+{
+#if BBL_ENABLE_MINORS_DECISION
+    if (m_show_error_msgdlg) return;
+    BOOST_LOG_TRIVIAL(info) << "force_logout_uep_login_invalid: minor account not linked to a guardian, forcing logout";
+    request_user_logout();
+    m_show_error_msgdlg = true;
+    MinorsLogoutDialog dlg(nullptr);
+    dlg.ShowModal();
+    m_show_error_msgdlg = false;
+#endif
+}
+
 void GUI_App::fetch_uep_decision()
 {
 #if !BBL_ENABLE_MINORS_DECISION
@@ -5159,27 +5191,26 @@ void GUI_App::fetch_uep_decision()
             std::vector<MinorsDecisionResult> decisions;
             int ret = m_agent->get_minors_decisions({MINORS_SCENE_JOIN_USER_EXPERIENCE_PROGRAM}, &decisions);
 
-            bool have_gate = false;
+            bool have_result = false;
+            UepOutcome uep_outcome = UepOutcome::ApplyGate;
             UepFamilyGate uep_gate = UepFamilyGate::Free;
             if (ret != 0) {
                 BOOST_LOG_TRIVIAL(warning) << "fetch_uep_decision: request failed " << KV(log_key::ret, ret) << "keep last known gate";
             } else {
                 for (const auto& d : decisions) {
                     if (d.scene_code == MINORS_SCENE_JOIN_USER_EXPERIENCE_PROGRAM) {
-                        // Server-side casing of family_link_decision isn't guaranteed, normalize before comparing.
-                        std::string family_link_decision = boost::algorithm::to_lower_copy(d.family_link_decision);
-                        if (family_link_decision == FAMILY_LINK_DECISION_ALLOW)
-                            uep_gate = UepFamilyGate::ForceOn;
-                        else if (family_link_decision == FAMILY_LINK_DECISION_DENY)
-                            uep_gate = UepFamilyGate::ForceOff;
-                        else
-                            uep_gate = UepFamilyGate::Free; // no_config / empty (adult) / unknown
-                        have_gate = true;
+                        UepResolution r = resolve_uep_decision(d);
+                        uep_outcome = r.outcome;
+                        uep_gate    = r.gate;
+                        have_result = true;
                     }
                 }
             }
-            CallAfter([this, have_gate, uep_gate] {
-                if (have_gate)
+            CallAfter([this, have_result, uep_outcome, uep_gate] {
+                if (!have_result) return;                       // request failed -> keep last known gate
+                if (uep_outcome == UepOutcome::ForceLogout)
+                    force_logout_uep_login_invalid();
+                else
                     apply_uep_gate(uep_gate, /*force=*/false);
             });
         });

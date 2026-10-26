@@ -573,6 +573,7 @@ public:
     void            fetch_minors_decisions();
     void            fetch_uep_decision();   // UEP-only fetch, triggered when Preferences opens
     bool            apply_uep_gate(UepFamilyGate new_gate, bool force);
+    void            force_logout_uep_login_invalid();   // minor account not linked to a guardian -> force logout
     void            set_preferences_dialog(PreferencesDialog* dlg) { m_preferences_dialog = dlg; }
     void            refresh_monitor_ctrl_area_ui();
 
