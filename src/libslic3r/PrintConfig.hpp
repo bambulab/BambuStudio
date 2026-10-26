@@ -779,6 +779,11 @@ extern std::set<std::string> empty_options;
 extern std::set<std::string> filament_dev_options;
 
 extern void update_static_print_config_from_dynamic(ConfigBase& config, const DynamicPrintConfig& dest_config, std::vector<int> variant_index, std::set<std::string>& key_set1, int stride = 1);
+// Return the default machine row for each value of this override, preserving the input indices.
+extern std::vector<int> filament_override_default_indices(const std::string &opt_key, size_t row_count,
+                                                         const DynamicPrintConfig &config, const std::vector<int> &filament_map_indices);
+// f_map_indices contains one 0-based default machine index per filament
+// (filament_map_2). Expanded overrides resolve any additional variant rows here.
 extern void compute_filament_override_value(const std::string& opt_key, const ConfigOption *opt_old_machine, const ConfigOption *opt_new_machine, const ConfigOption *opt_new_filament, const DynamicPrintConfig& new_full_config,
     t_config_option_keys& diff_keys, DynamicPrintConfig& filament_overrides, std::vector<int>& f_map_indices);
 // A filament override stored once per filament is spread across that filament's variant slots

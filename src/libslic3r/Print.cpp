@@ -3384,29 +3384,16 @@ void Print::update_to_config_by_nozzle_group_result(const MultiNozzleUtils::Nozz
     auto filament_count = m_config.option<ConfigOptionStrings>("filament_type")->size();
     auto extruder_type  = m_config.option<ConfigOptionEnumsGeneric>("extruder_type")->values;
 
-    // Machine variant index for every variant-expanded filament row, in the same row order as
-    // update_filament_config_values_for_multiple_extruders(). filament_map_2 is per filament and cannot
-    // address the extra rows of a filament split across nozzles of different variants.
-    std::vector<int> row_machine_indices;
     for (int fidx = 0; fidx < filament_count; ++fidx) {
         auto used_nozzles = group_result.get_nozzles_for_filament(fidx);
-        std::map<ExtruderNozleInfo, int> extruder_nozzle_set;
+        std::set<ExtruderNozleInfo> extruder_nozzle_set;
         for (auto nozzle : used_nozzles) {
             ExtruderNozleInfo tmp;
             tmp.extruder_type = ExtruderType(extruder_type[nozzle.extruder_id]);
             tmp.nozzle_volume_type = nozzle.volume_type;
-            extruder_nozzle_set.emplace(tmp, nozzle.extruder_id);
+            extruder_nozzle_set.insert(tmp);
         }
-        std::vector<ExtruderNozleInfo> infos;
-        for (const auto &[info, extruder_id] : extruder_nozzle_set) {
-            infos.push_back(info);
-            int machine_idx = m_ori_full_print_config.get_index_for_extruder(extruder_id + 1, "print_extruder_id", info.extruder_type, info.nozzle_volume_type,
-                                                                             "print_extruder_variant");
-            if (machine_idx < 0 && fidx < (int) m_config.filament_map_2.values.size())
-                machine_idx = m_config.filament_map_2.values[fidx];
-            row_machine_indices.push_back(machine_idx);
-        }
-        filament_extruder_map[fidx] = std::move(infos);
+        filament_extruder_map[fidx] = std::vector<ExtruderNozleInfo>(extruder_nozzle_set.begin(), extruder_nozzle_set.end());
     }
 
 
@@ -3415,10 +3402,6 @@ void Print::update_to_config_by_nozzle_group_result(const MultiNozzleUtils::Nozz
     filament_keys.insert("filament_self_index");
     m_full_print_config.update_filament_config_values_for_multiple_extruders(m_full_print_config, filament_extruder_map, extruder_count, extruder_volume_type_count,
                                                                              filament_keys, "filament_self_index", "filament_extruder_variant");
-
-    const auto *expanded_self_index = m_full_print_config.option<ConfigOptionInts>("filament_self_index");
-    std::vector<int> &override_default_indices = (expanded_self_index && expanded_self_index->size() == row_machine_indices.size()) ?
-                                                     row_machine_indices : m_config.filament_map_2.values;
 
     const std::vector<std::string> &extruder_retract_keys = print_config_def.extruder_retract_keys();
     const std::string               filament_prefix       = "filament_";
@@ -3431,7 +3414,7 @@ void Print::update_to_config_by_nozzle_group_result(const MultiNozzleUtils::Nozz
 
         if (opt_new_filament)
             compute_filament_override_value(opt_key, opt_old_machine, opt_new_machine, opt_new_filament, m_full_print_config, print_diff, filament_overrides,
-                                            override_default_indices);
+                                            m_config.filament_map_2.values);
     }
 
     t_config_option_keys keys(filament_options_with_variant.begin(), filament_options_with_variant.end());

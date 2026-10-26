@@ -1598,8 +1598,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                         const ConfigOption* opt_new_m = new_full_config.option(rk);
                         const ConfigOption* opt_new_f = new_full_config.option(filament_prefix + rk);
                         if (opt_old && opt_new_m && opt_new_f) {
+                            const auto *filament_values = static_cast<const ConfigOptionVectorBase *>(opt_new_f);
+                            auto old_row_indices = filament_override_default_indices(rk, filament_values->size(), new_full_config, old_f_map_indices);
                             std::unique_ptr<ConfigOption> opt_recomputed(opt_new_m->clone());
-                            opt_recomputed->apply_override(opt_new_f, old_f_map_indices);
+                            opt_recomputed->apply_override(opt_new_f, old_row_indices);
                             if (*opt_old == *opt_recomputed)
                                 print_diff_set.erase(rk);
                         }

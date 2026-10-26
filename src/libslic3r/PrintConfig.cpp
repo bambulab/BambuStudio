@@ -10571,6 +10571,33 @@ static void apply_multi_nozzle_retraction_length(const DynamicPrintConfig &confi
     }
 }
 
+std::vector<int> filament_override_default_indices(const std::string &opt_key, size_t row_count,
+                                                          const DynamicPrintConfig &config, const std::vector<int> &filament_map_indices)
+{
+    const auto *self_index = config.option<ConfigOptionInts>("filament_self_index");
+    const auto *variants = config.option<ConfigOptionStrings>("filament_extruder_variant");
+    const auto *machine_variants = config.option<ConfigOptionStrings>("printer_extruder_variant");
+    std::vector<int> indices = filament_map_indices;
+    indices.resize(row_count, 0);
+    if (!filament_options_with_variant.count("filament_" + opt_key) || !self_index || !variants ||
+        self_index->size() != row_count || variants->size() != row_count)
+        return indices;
+
+    for (size_t row = 0; row < row_count; ++row) {
+        const int filament = self_index->values[row] - 1;
+        indices[row] = filament >= 0 && size_t(filament) < filament_map_indices.size() ? filament_map_indices[filament] : 0;
+        // Keep the assigned head when both heads have the same variant. Only a
+        // row split onto a different variant needs another machine default row.
+        if (machine_variants && indices[row] >= 0 && size_t(indices[row]) < machine_variants->size() &&
+            machine_variants->values[indices[row]] == variants->values[row])
+            continue;
+        const int machine = find_printer_variant_index(config, variants->values[row]);
+        if (machine >= 0)
+            indices[row] = machine;
+    }
+    return indices;
+}
+
 void compute_filament_override_value(const std::string& opt_key, const ConfigOption *opt_old_machine, const ConfigOption *opt_new_machine, const ConfigOption *opt_new_filament, const DynamicPrintConfig& new_full_config,
     t_config_option_keys& diff_keys, DynamicPrintConfig& filament_overrides, std::vector<int>& f_map_indices)
 {
@@ -10593,8 +10620,10 @@ void compute_filament_override_value(const std::string& opt_key, const ConfigOpt
         opt_new_filament = &opt_retraction_distance_default;
     }
 
+    auto default_indices = filament_override_default_indices(opt_key, static_cast<const ConfigOptionVectorBase *>(opt_new_filament)->size(),
+                                                             new_full_config, f_map_indices);
     auto opt_copy = opt_new_machine->clone();
-    opt_copy->apply_override(opt_new_filament, f_map_indices);
+    opt_copy->apply_override(opt_new_filament, default_indices);
     if (opt_key == "retraction_length" && multi_nozzle_diameter_mode_enabled(new_full_config))
         apply_multi_nozzle_retraction_length(new_full_config, *static_cast<const ConfigOptionFloatsNullable *>(opt_new_filament),
                                              *static_cast<ConfigOptionFloatsNullable *>(opt_copy));
