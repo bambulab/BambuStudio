@@ -125,6 +125,9 @@ public:
     static int get_tpu_slip_on_toolchange_nozzle(const std::string& type_str) { return get_value_from_config<int>(type_str, "print", "tpu_slip_on_toolchange_nozzle"); }
     static bool support_user_first_setup_tpu_check(std::string type_str){ return get_value_from_config<bool>(type_str, "print", "support_user_first_setup_tpu_check"); }
     static std::string support_user_first_setup_tpu_check_url(std::string type_str){ return get_value_from_config<std::string>(type_str, "print", "support_user_first_setup_tpu_check_url"); }
+    // Hotend-rack hint dialogs. Empty means the dialog keeps a plain OK and does not open a page.
+    static std::string get_nozzle_comm_error_wiki(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "print", "nozzle_comm_error_wiki"); }
+    static std::string get_nozzle_feed_suspect_wiki(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "print", "nozzle_feed_suspect_wiki"); }
     static bool support_ams_ext_mix_print(std::string type_str) { return get_value_from_config<bool>(type_str, "print", "support_ams_ext_mix_print"); }
     static bool support_print_time_estimate_warning(std::string type_str) { return get_value_from_config<bool>(type_str, "print", "support_print_time_estimate_warning"); }
 

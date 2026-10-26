@@ -4,6 +4,7 @@
 #include "ActionHandlerHotend.hpp"
 #include "BuilderHotendRackProgressStatus.hpp"
 
+#include "slic3r/GUI/DeviceCore/DevConfigUtil.h"
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
@@ -159,9 +160,6 @@ void open_hotend_detail_dialog(const nlohmann::json& payload)
     dlg.ShowModal();
 }
 
-// Wiki target of the "View details" button; while empty the button falls back to a plain OK.
-constexpr const char* kNozzleHintWikiUrl = "";
-
 // Filament load / unload needs a healthy, idle tool.
 bool is_hotend_ready_for_filament(const std::string& op_state)
 {
@@ -239,13 +237,13 @@ void show_nozzle_hint_dialog(int addr_id)
         machine_obj, machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id), std::string());
 
     wxString message;
-    bool with_wiki = false;
+    std::string wiki_url;
     if (nozzle_state == SV::nozzle_state::error) {
         message = _L("PrintTool communication error. Please check the PrintTool cable and try again.");
-        with_wiki = true;
+        wiki_url = DevPrinterConfigUtil::get_nozzle_comm_error_wiki(machine_obj->printer_type);
     } else if (nozzle_state == SV::nozzle_state::feed_suspect) {
         message = _L("The current filament may not be fully loaded into the PrintTool, which may cause printing issues. Please pull the filament out of the PrintTool, then click \"Load\" to complete loading.");
-        with_wiki = true;
+        wiki_url = DevPrinterConfigUtil::get_nozzle_feed_suspect_wiki(machine_obj->printer_type);
     } else if (nozzle_state == SV::nozzle_state::unknown) {
         message = _L("Hotend type unknown. Please edit the hotend type on the printer and try again.");
     } else {
@@ -253,10 +251,10 @@ void show_nozzle_hint_dialog(int addr_id)
         return;
     }
 
-    with_wiki = with_wiki && kNozzleHintWikiUrl[0] != '\0';
+    const bool with_wiki = !wiki_url.empty();
     MessageDialog dlg(wxGetApp().mainframe, message, _L("Tip"), wxOK);
     if (with_wiki) dlg.SetButtonLabel(wxID_OK, _L("View details"));
-    if (dlg.ShowModal() == wxID_OK && with_wiki) wxLaunchDefaultBrowser(kNozzleHintWikiUrl);
+    if (dlg.ShowModal() == wxID_OK && with_wiki) wxLaunchDefaultBrowser(wxString::FromUTF8(wiki_url));
 }
 
 } // namespace
