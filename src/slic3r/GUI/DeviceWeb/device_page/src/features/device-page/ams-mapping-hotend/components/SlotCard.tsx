@@ -23,7 +23,8 @@ export function SlotCard({ slot, materialIndex, onClick, onEnterSubAms, onEdit, 
   const hasRealSubAms = !!slot.sub_ams && slot.sub_ams.some(g => !g.is_preload);
   const hasSubAms = !!slot.sub_ams && slot.sub_ams.length > 0;
   // Pickability is decided in C++ (see ComputePickable). All-ext relaxation
-  // and nozzle strictness are already baked in.
+  // and nozzle strictness are already baked in. The card body always uses
+  // that select path; a bound sub-AMS list is opened only by the swap button.
   const disabled = !slot.is_pickable;
   // A hotend error is the one non-pickable state that stays clickable: the
   // click is the only entry point to the HMS diagnosis.
@@ -32,8 +33,6 @@ export function SlotCard({ slot, materialIndex, onClick, onEnterSubAms, onEdit, 
   const handleClick = () => {
     if (isNozzleError) {
       onNozzleError();
-    } else if (hasSubAms) {
-      onEnterSubAms();
     } else if (!disabled) {
       onClick();
     }
@@ -48,11 +47,10 @@ export function SlotCard({ slot, materialIndex, onClick, onEnterSubAms, onEdit, 
   const isThird = slot.filament_name === '?';
   const multiColors = slot.multi_colors && slot.multi_colors.length > 1 ? slot.multi_colors : undefined;
 
-  // Hover hint for non-selectable / mismatched slots. Slots that can enter a
-  // sub-AMS expand stay actionable, so we suppress the tooltip for them.
-  const tooltip = hasSubAms
-    ? ''
-    : resolveSlotTooltip(t, slot.state, slot.is_pickable, slot.filament_type, materialIndex);
+  // Hover hint for non-selectable / mismatched slots. The swap button is a
+  // separate control, so a sub-AMS card still explains why the card itself
+  // cannot be selected.
+  const tooltip = resolveSlotTooltip(t, slot.state, slot.is_pickable, slot.filament_type, materialIndex);
   const { hoverProps, tip } = useHoverTip(tooltip);
 
   return (
@@ -67,6 +65,9 @@ export function SlotCard({ slot, materialIndex, onClick, onEnterSubAms, onEdit, 
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
+        // Swap / edit are nested controls. Ignore keys that originated there
+        // so Enter on the swap button does not also select this slot.
+        if (e.target !== e.currentTarget) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           handleClick();
@@ -120,17 +121,30 @@ export function SlotCard({ slot, materialIndex, onClick, onEnterSubAms, onEdit, 
             colorType={slot.color_type}
           />
           {hasSubAms && (
-            <svg className="ams-map-hotend__slot-card__swap-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <rect width="24" height="24" rx="12" fill="#CECECE"/>
-              <g clipPath="url(#clip_swap)">
-                <path d="M17.6006 13C17.9317 13.0002 18.2001 13.2694 18.2002 13.6006C18.2001 13.9318 17.9318 14.2 17.6006 14.2002H7.97754L10.3984 16.3525C10.6459 16.5726 10.668 16.9516 10.4482 17.1992C10.2281 17.4469 9.84926 17.4691 9.60156 17.249L6.62988 14.6084C5.99759 14.0463 6.39527 13.0001 7.24121 13H17.6006ZM13.9512 6.40136C14.1712 6.15382 14.5502 6.13182 14.7979 6.35156L17.7695 8.99218C18.4018 9.55423 18.0041 10.6005 17.1582 10.6006H6.79883C6.46763 10.6003 6.19922 10.3312 6.19922 9.99999C6.19944 9.66893 6.46777 9.40062 6.79883 9.40039H16.4219L14.001 7.24804C13.7537 7.02784 13.7312 6.6489 13.9512 6.40136Z" fill="#262E30"/>
-              </g>
-              <defs>
-                <clipPath id="clip_swap">
-                  <rect width="16" height="16" fill="white" transform="translate(4 4)"/>
-                </clipPath>
-              </defs>
-            </svg>
+            <button
+              type="button"
+              className="ams-map-hotend__slot-card__swap-icon"
+              data-testid={`ams-mapping-hotend-swap-${slot.ams_id}-${slot.slot_id}`}
+              // Only this control opens the sub-AMS page. Stop the click so
+              // the card body keeps its select / nozzle-error behavior.
+              onClick={(e) => {
+                e.stopPropagation();
+                onEnterSubAms();
+              }}
+              aria-label="Switch filament"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <rect width="24" height="24" rx="12" fill="#CECECE"/>
+                <g clipPath={`url(#clip_swap_${slot.ams_id}_${slot.slot_id})`}>
+                  <path d="M17.6006 13C17.9317 13.0002 18.2001 13.2694 18.2002 13.6006C18.2001 13.9318 17.9318 14.2 17.6006 14.2002H7.97754L10.3984 16.3525C10.6459 16.5726 10.668 16.9516 10.4482 17.1992C10.2281 17.4469 9.84926 17.4691 9.60156 17.249L6.62988 14.6084C5.99759 14.0463 6.39527 13.0001 7.24121 13H17.6006ZM13.9512 6.40136C14.1712 6.15382 14.5502 6.13182 14.7979 6.35156L17.7695 8.99218C18.4018 9.55423 18.0041 10.6005 17.1582 10.6006H6.79883C6.46763 10.6003 6.19922 10.3312 6.19922 9.99999C6.19944 9.66893 6.46777 9.40062 6.79883 9.40039H16.4219L14.001 7.24804C13.7537 7.02784 13.7312 6.6489 13.9512 6.40136Z" fill="#262E30"/>
+                </g>
+                <defs>
+                  <clipPath id={`clip_swap_${slot.ams_id}_${slot.slot_id}`}>
+                    <rect width="16" height="16" fill="white" transform="translate(4 4)"/>
+                  </clipPath>
+                </defs>
+              </svg>
+            </button>
           )}
         </div>
         <div className="ams-map-hotend__slot-card__material-row">

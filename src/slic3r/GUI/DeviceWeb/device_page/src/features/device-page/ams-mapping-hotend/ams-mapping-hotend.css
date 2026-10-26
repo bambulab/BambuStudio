@@ -109,10 +109,6 @@
   border-color: var(--color-card-border);
 }
 
-.ams-map-hotend__slot-card[data-has-sub-ams="true"]:hover {
-  border-color: var(--color-card-border);
-}
-
 .ams-map-hotend__slot-card:focus-visible {
   outline: 2px solid #1e88e5;
   outline-offset: 2px;
@@ -145,30 +141,6 @@
 ) {
   opacity: 0.4;
 }
-
-/* Sub-AMS-bearing main cards stay fully visible because clicking expands the
-   sub-AMS panel — they are still pickable, just through a different path. */
-.ams-map-hotend__slot-card[data-state="MaterialEmpty"][data-has-sub-ams="true"],
-.ams-map-hotend__slot-card[data-state="NozzleEmpty"][data-has-sub-ams="true"] {
-  cursor: pointer;
-}
-.ams-map-hotend__slot-card:is([data-state="MaterialEmpty"],[data-state="NozzleEmpty"])[data-has-sub-ams="true"] :is(
-  .ams-map-hotend__slot-card__head,
-  .spool-ring,
-  .ams-map-hotend__slot-card__material-name,
-  .ams-map-hotend__slot-card__divider,
-  .ams-map-hotend__nozzle-info__icon,
-  .ams-map-hotend__nozzle-info__text
-) {
-  opacity: 1;
-}
-
-/* The swap icon only renders when the slot can expand into a sub-AMS panel,
-   so its presence always means clickable. */
-.ams-map-hotend__slot-card[data-has-sub-ams="true"] {
-  cursor: pointer;
-}
-
 
 /* CardHead: index pill + radio */
 
@@ -423,10 +395,15 @@
   position: absolute;
   right: -4px;
   bottom: -2px;
+  display: inline-flex;
   width: 20px;
   height: 20px;
-  pointer-events: none;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
   opacity: 1;
+  line-height: 0;
 }
 
 /* ---------- Sub-AMS badge on SlotCard ---------- */
