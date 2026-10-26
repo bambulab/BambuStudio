@@ -457,9 +457,9 @@ static void partition_bridge_anchors(std::vector<BridgeGroupArea*> &groups, cons
     // and the number of steps does not depend on the nozzle diameter.
     const float  step    = 0.25f * solid_spacing;
     const double arc_tol = scaled<double>(0.01);
-    // Slivers of numeric noise left by the boolean operations may never be returned by the intersection
-    // with the growth and would keep it running to the last step. They are only dropped from the pending
-    // areas, the contested area left unclaimed is handed out after the growth.
+    // Slivers of numeric noise left by the boolean operations may never be covered by the growth and would keep it
+    // running to the last step. They are only dropped from the candidates and from the area still unreached,
+    // the contested area left unclaimed is handed out after the growth.
     const double min_area   = 0.01 * double(step) * double(step);
     auto         drop_noise = [min_area](ExPolygons &&expolygons) {
         expolygons.erase(std::remove_if(expolygons.begin(), expolygons.end(),
@@ -468,51 +468,59 @@ static void partition_bridge_anchors(std::vector<BridgeGroupArea*> &groups, cons
         return to_polygons(std::move(expolygons));
     };
 
-    // Contested area not claimed yet, per group.
-    std::vector<Polygons> pending(groups.size());
+    // Contested area each group may claim, the part of the contested area inside the group.
+    std::vector<Polygons> candidates(groups.size());
     std::vector<Polygons> claimed(groups.size());
     std::vector<Polygons> bodies(groups.size());
     const BoundingBox     contested_bbox = get_extents(contested);
     BoundingBox           bbox           = contested_bbox;
     for (size_t i = 0; i < groups.size(); ++ i) {
-        pending[i] = drop_noise(intersection_ex(to_polygons(groups[i]->area), contested));
-        bodies[i]  = to_polygons(groups[i]->bodies);
+        candidates[i] = drop_noise(intersection_ex(to_polygons(groups[i]->area), contested));
+        bodies[i]     = to_polygons(groups[i]->bodies);
         bbox.merge(get_extents(bodies[i]));
     }
-    // Hand the area over to group i and take it from the other groups.
-    auto claim = [&pending, &claimed, &drop_noise](size_t i, Polygons &&area) {
-        for (size_t j = 0; j < pending.size(); ++ j)
-            if (j != i && ! pending[j].empty())
-                pending[j] = drop_noise(diff_ex(pending[j], area));
-        append(claimed[i], std::move(area));
-    };
 
     // Each contested point is reached at the latest when the growth spans the whole extent,
     // in practice once the farthest anchor point is covered.
-    const size_t max_steps = size_t(std::ceil(bbox.size().cast<double>().norm() / step)) + 1;
+    const size_t max_steps   = size_t(std::ceil(bbox.size().cast<double>().norm() / step)) + 1;
+    bool         all_reached = false;
+    // Every step works on the fixed inputs above and on the reach of the previous step only. Feeding the result of
+    // one boolean operation into the next one step after step piles up their degenerate edges, the vertex count
+    // then multiplies with every operation and the growth never finishes.
+    // A point is claimed by the group reaching it first, ties within a step go to the lower group:
+    // the claim of group i is its reach minus the reach of all groups in the previous step
+    // and minus the reach of the lower groups in this step.
+    Polygons reached_before;
     for (size_t istep = 1; istep <= max_steps; ++ istep) {
         const float dist = step * istep;
-        // Body parts farther than dist from the contested area cannot claim anything in this step,
+        // Body parts farther than dist from the contested area cannot reach anything in this step,
         // an exact clip keeps the offset small without changing the distances that matter.
         const Polygons clip_box{ contested_bbox.inflated(dist + step).polygon() };
-        bool           done = true;
+        // Reached before this step or by a lower group in this step.
+        Polygons taken = reached_before;
+        // Reached by any group up to this step.
+        Polygons reached_now;
         for (size_t i = 0; i < groups.size(); ++ i) {
-            if (pending[i].empty())
+            if (candidates[i].empty())
                 continue;
-            done = false;
             Polygons body = intersection(bodies[i], clip_box);
             if (body.empty())
                 continue;
-            Polygons reach = intersection(pending[i], expand(body, dist, ClipperLib::jtRound, arc_tol));
+            Polygons reach = intersection(candidates[i], expand(body, dist, ClipperLib::jtRound, arc_tol));
             if (reach.empty())
                 continue;
-            pending[i] = drop_noise(diff_ex(pending[i], reach));
-            claim(i, std::move(reach));
+            append(claimed[i], taken.empty() ? reach : diff(reach, taken));
+            append(taken, reach);
+            append(reached_now, std::move(reach));
         }
-        if (done)
+        // The reach of a group only grows from step to step, so this step alone covers all the earlier ones.
+        reached_before = union_(reached_now);
+        if (drop_noise(diff_ex(contested, reached_before)).empty()) {
+            all_reached = true;
             break;
+        }
     }
-    if (std::any_of(pending.begin(), pending.end(), [](const Polygons &p) { return ! p.empty(); }))
+    if (! all_reached)
         BOOST_LOG_TRIVIAL(warning) << "Bridge anchor partition left an unreached area, the lower group takes it";
     // Dropped noise and unreached leftovers still have to be covered, the lower group takes them.
     // A leftover touching only another group moves over there with the orphans below.
