@@ -5548,6 +5548,20 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             }
         }
 
+        // Omitted 3mf keys keep the previous value. Reset them from print_config_def.
+        // Wizard loads pass is_external false and keep their partial merge.
+        if (is_external) {
+            for (const std::string &key : s_project_options) {
+                if (config.has(key))
+                    continue;
+                const ConfigOptionDef *optdef = print_config_def.get(key);
+                if (optdef == nullptr)
+                    continue;
+                this->project_config.erase(key);
+                this->project_config.set_key_value(key, optdef->create_default_option());
+            }
+        }
+
         // 4) Load the project config values (the per extruder wipe matrix etc).
         this->project_config.apply_only(config, s_project_options);
         // The copy above replaced the nozzle keys; write them again for the printer of the file.
