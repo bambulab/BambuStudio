@@ -1036,6 +1036,17 @@ namespace Slic3r
         extract_unprintable_limit_indices(available_ctx.model_info.unprintable_filaments, used_filaments, unplaceable_limits);
         unplaceable_limits = available_group.rebuild_nozzle_unprintables(used_filaments, unplaceable_limits, available_ctx.group_info.filament_volume_map);
 
+        // 多口径模式下，显式指定了喷嘴口径的耗材若在所有可用喷嘴上均不可放置（如喷嘴架上无对应口径），直接报错，避免被软约束兜底分配到错误口径的喷嘴。
+        for (int fidx = 0; fidx < n; ++fidx) {
+            const unsigned int filament_id = used_filaments[fidx];
+            if (filament_id >= available_ctx.model_info.selected_nozzle_diameters.size() ||
+                available_ctx.model_info.selected_nozzle_diameters[filament_id].empty())
+                continue;
+            const auto it = unplaceable_limits.find(fidx);
+            if (it != unplaceable_limits.end() && static_cast<int>(it->second.size()) >= k)
+                throw Slic3r::RuntimeError("Nozzle assignment error: no nozzle matches the diameter and flow selected for one of the filaments. Please check the nozzle setup.");
+        }
+
         m_memoryed_heap = MemoryedGroupHeap();
         std::vector<int> result;
 
