@@ -14195,6 +14195,12 @@ void Plater::priv::reset(bool apply_presets_change)
 
     // Stop and reset the Print content.
     this->background_process.reset();
+    // Internal cancel does not post the completion event that clears these flags.
+    m_is_slicing = false;
+    m_slice_all = false;
+    m_slice_all_only_has_gcode = false;
+    if (!q->GetDropTarget())
+        q->SetDropTarget(new PlaterDropTarget(q));
     model.clear_objects();
     invalidate_assemble_model_on_project_reset();
     assemble_view->get_canvas3d()->reset_explosion_ratio();
