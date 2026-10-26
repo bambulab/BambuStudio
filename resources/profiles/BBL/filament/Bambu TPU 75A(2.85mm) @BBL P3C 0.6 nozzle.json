@@ -138,6 +138,9 @@
     "long_retractions_when_ec": [
         "0"
     ],
+    "max_temperature_drop_when_ec": [
+        "150"
+    ],
     "nozzle_temperature": [
         "230"
     ],

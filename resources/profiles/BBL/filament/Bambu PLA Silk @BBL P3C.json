@@ -5,9 +5,6 @@
     "from": "system",
     "setting_id": "GFSA05_32",
     "instantiation": "true",
-    "additional_cooling_fan_speed": [
-        "100"
-    ],
     "eng_plate_temp": [
         "55"
     ],
@@ -38,7 +35,7 @@
         "12"
     ],
     "filament_prime_tower_speed_factor_curve": [
-        "0.5,1,1,0.5,0.5"
+        "0.5,1"
     ],
     "filament_prime_volume": [
         "35"
@@ -72,7 +69,7 @@
         "0"
     ],
     "max_temperature_drop_when_ec": [
-        "-1"
+        "150"
     ],
     "nozzle_temperature": [
         "230",

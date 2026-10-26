@@ -16,7 +16,6 @@
         "20000",
         "20000"
     ],
-    "enable_arc_fitting": "0",
     "enable_height_slowdown": [
         "0",
         "0",
@@ -37,6 +36,7 @@
         "500",
         "500"
     ],
+    "initial_layer_infill_line_width": "0.6",
     "initial_layer_infill_speed": [
         "105",
         "105",
@@ -108,6 +108,9 @@
     "prime_tower_brim_width": "-1",
     "prime_tower_line_ironing": "0",
     "prime_tower_line_width": "0.8",
+    "prime_tower_side_scrape": "1",
+    "prime_tower_tail_slowdown_volume": "3",
+    "prime_tower_tail_speed_factor": "50%",
     "prime_tower_width": "60",
     "print_extruder_id": [
         "2",

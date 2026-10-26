@@ -33,7 +33,7 @@
         "12"
     ],
     "filament_prime_tower_speed_factor_curve": [
-        "0.5,1,1,0.5,0.5"
+        "0.5,1"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -44,8 +44,8 @@
         "3"
     ],
     "filament_retraction_length": [
-        "2",
-        "2"
+        "1",
+        "1"
     ],
     "filament_retraction_speed": [
         "10",
@@ -60,7 +60,7 @@
         "0"
     ],
     "max_temperature_drop_when_ec": [
-        "-1"
+        "150"
     ],
     "nozzle_temperature": [
         "230",

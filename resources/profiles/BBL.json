@@ -8500,10 +8500,6 @@
             "sub_path": "filament/Generic PPS @base.json"
         },
         {
-            "name": "Generic PPS @BBL P3C 0.4 nozzle",
-            "sub_path": "filament/Generic PPS @BBL P3C 0.4 nozzle.json"
-        },
-        {
             "name": "Generic PPS @BBL H2C",
             "sub_path": "filament/Generic PPS @BBL H2C.json"
         },
@@ -8534,10 +8530,6 @@
         {
             "name": "Generic PPS-CF @base",
             "sub_path": "filament/Generic PPS-CF @base.json"
-        },
-        {
-            "name": "Generic PPS-CF @BBL P3C 0.4 nozzle",
-            "sub_path": "filament/Generic PPS-CF @BBL P3C 0.4 nozzle.json"
         },
         {
             "name": "Generic PPS-CF @BBL H2C",

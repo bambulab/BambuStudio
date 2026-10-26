@@ -7,7 +7,7 @@
     "instantiation": "true",
     "description": "The generic presets are conservatively tuned for compatibility with a wider range of filaments. For higher printing quality and speeds, please use Bambu filaments with Bambu presets.",
     "additional_cooling_fan_speed": [
-        "75"
+        "60"
     ],
     "eng_plate_temp": [
         "55"
@@ -35,7 +35,7 @@
         "12"
     ],
     "filament_prime_tower_speed_factor_curve": [
-        "0.5,1,1,0.5,0.5"
+        "0.5,1"
     ],
     "filament_prime_volume": [
         "30"
@@ -69,7 +69,7 @@
         "0"
     ],
     "max_temperature_drop_when_ec": [
-        "-1"
+        "140"
     ],
     "nozzle_temperature": [
         "220",

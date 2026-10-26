@@ -33,7 +33,7 @@
         "3"
     ],
     "filament_prime_tower_speed_factor_curve": [
-        "0.5,1,1,0.5,0.5"
+        "0.5,1"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -72,11 +72,11 @@
         "0"
     ],
     "max_temperature_drop_when_ec": [
-        "-1"
+        "155"
     ],
     "nozzle_temperature": [
-        "225",
-        "225"
+        "235",
+        "235"
     ],
     "nozzle_temperature_initial_layer": [
         "225",

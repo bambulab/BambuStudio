@@ -5,37 +5,54 @@
     "from": "system",
     "setting_id": "GFSS04_25",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "55"
+    ],
     "eng_plate_temp": [
         "55"
     ],
     "eng_plate_temp_initial_layer": [
         "55"
     ],
-    "filament_change_length": [
+    "fan_max_speed": [
+        "0"
+    ],
+    "fan_min_speed": [
         "0"
     ],
     "filament_change_length_nc": [
-        "0"
-    ],
-    "filament_cooling_before_tower": [
-        "0",
         "0"
     ],
     "filament_flow_ratio": [
         "1",
         "1"
     ],
-    "filament_idle_travel_cooling_enabled": "0",
     "filament_max_volumetric_speed": [
         "6",
         "6"
     ],
+    "filament_pre_cooling_temperature": [
+        "190",
+        "190"
+    ],
+    "filament_pre_cooling_temperature_nc": [
+        "220",
+        "220"
+    ],
+    "filament_preheat_temperature_delta": [
+        "-10",
+        "-10"
+    ],
     "filament_prime_tower_speed_factor_curve": [
-        "0.5,1,1,0.5,0.5"
+        "0.5,1"
     ],
     "filament_ramming_travel_time": [
-        "0",
-        "0"
+        "12",
+        "12"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "10",
+        "-1"
     ],
     "filament_retract_length_toolchange": [
         "12",
@@ -50,7 +67,7 @@
         "0"
     ],
     "max_temperature_drop_when_ec": [
-        "-1"
+        "160"
     ],
     "nozzle_temperature": [
         "240",
@@ -59,6 +76,12 @@
     "nozzle_temperature_initial_layer": [
         "240",
         "240"
+    ],
+    "overhang_fan_speed": [
+        "0"
+    ],
+    "reduce_fan_stop_start_freq": [
+        "0"
     ],
     "retraction_distances_when_ec": [
         "0",

@@ -12,7 +12,7 @@
         "20"
     ],
     "filament_change_length": [
-        "0"
+        "5"
     ],
     "filament_change_length_nc": [
         "0"
@@ -30,8 +30,12 @@
         "18",
         "21"
     ],
+    "filament_pre_cooling_temperature": [
+        "230",
+        "230"
+    ],
     "filament_prime_tower_speed_factor_curve": [
-        "0.5,1,1,0.5,0.5"
+        "0.5,1"
     ],
     "filament_prime_volume": [
         "30"
@@ -69,11 +73,11 @@
         "0"
     ],
     "max_temperature_drop_when_ec": [
-        "-1"
+        "175"
     ],
     "nozzle_temperature": [
-        "245",
-        "245"
+        "255",
+        "255"
     ],
     "nozzle_temperature_initial_layer": [
         "245",

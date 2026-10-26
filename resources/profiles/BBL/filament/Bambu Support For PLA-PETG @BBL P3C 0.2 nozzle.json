@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSS05_26",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "60"
+    ],
     "eng_plate_temp": [
         "60"
     ],
@@ -16,9 +19,6 @@
     ],
     "fan_min_speed": [
         "10"
-    ],
-    "filament_change_length": [
-        "0"
     ],
     "filament_change_length_nc": [
         "0"
@@ -37,7 +37,7 @@
         "0.5"
     ],
     "filament_prime_tower_speed_factor_curve": [
-        "0.5,1,1,0.5,0.5"
+        "0.5,1"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -52,7 +52,7 @@
         "0"
     ],
     "max_temperature_drop_when_ec": [
-        "-1"
+        "140"
     ],
     "nozzle_temperature": [
         "220",

@@ -24,7 +24,7 @@
         "1"
     ],
     "filament_prime_tower_speed_factor_curve": [
-        "1"
+        "0.5,1"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -35,7 +35,7 @@
         "fdm_filament_template_p3c"
     ],
     "max_temperature_drop_when_ec": [
-        "-1"
+        "170"
     ],
     "nozzle_temperature": [
         "250",
@@ -44,6 +44,9 @@
     "nozzle_temperature_initial_layer": [
         "245",
         "245"
+    ],
+    "overhang_fan_speed": [
+        "80"
     ],
     "overhang_fan_threshold": [
         "25%"

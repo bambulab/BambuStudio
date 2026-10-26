@@ -14,10 +14,20 @@
     "eng_plate_temp_initial_layer": [
         "55"
     ],
+    "fan_max_speed": [
+        "55"
+    ],
+    "fan_min_speed": [
+        "50"
+    ],
     "filament_change_length": [
         "0"
     ],
     "filament_change_length_nc": [
+        "0"
+    ],
+    "filament_cooling_before_tower": [
+        "0",
         "0"
     ],
     "filament_flow_ratio": [
@@ -30,7 +40,7 @@
         "21"
     ],
     "filament_prime_tower_speed_factor_curve": [
-        "0.5,1,1,0.5,0.5"
+        "0.5,1"
     ],
     "filament_prime_volume": [
         "30"
@@ -64,7 +74,7 @@
         "0"
     ],
     "max_temperature_drop_when_ec": [
-        "-1"
+        "140"
     ],
     "nozzle_temperature": [
         "220",
