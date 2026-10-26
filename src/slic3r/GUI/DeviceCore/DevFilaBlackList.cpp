@@ -433,7 +433,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
                 result_item.info_msg = wxString::Format(_L(description), wxString::FromUTF8(check_info.fila_type), _get_ams_warning_display_name(check_info));
             } else if (description == "PLA Glow may wear the %s first stage feeder. Use an external spool instead.") {
                 result_item.info_msg = wxString::Format(_L(description), _get_ams_warning_display_name(check_info));
-            } else if (description == "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details.") {
+            } else if (description == "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool.") {
                 const std::string& fila_desc = check_info.fila_name.empty() ? check_info.fila_type : check_info.fila_name;
                 result_item.info_msg = wxString::Format(_L(description), wxString::FromUTF8(fila_desc), _get_ams_warning_display_name(check_info));
             } else if (description == "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s.") {
@@ -482,8 +482,8 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             // Warning in description
             L("Special attention should be paid to the feeding method of TPU.");
             L(" Please ");
-            L("check the Wiki guide");
-            L(" before printing.");
+            L("refer to the Wiki User Guide");
+            L(" before continuing.");
             L("How to feed TPU filament on X2D.");
             L("Using non-bambu filament may have printing quality issues.");
             L("Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.");
@@ -502,7 +502,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             L("%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution.");
             L("Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead.");
             L("PLA Glow may wear the %s first stage feeder. Use an external spool instead.");
-            L("%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details.");
+            L("%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool.");
             L("%s filament is brittle and has high feeding resistance. Use caution when loading it through %s.");
             L("PPA-CF filament does not support %s feeding. Use an external spool instead.");
             L("%s may fail to load or unload due to the Filament Track Switch.");

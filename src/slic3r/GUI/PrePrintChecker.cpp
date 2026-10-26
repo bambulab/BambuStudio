@@ -472,8 +472,8 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
                 message_widget = new WikiWarningLabel(
                     this,
                     info.msg + _L(" Please "),
-                    _L("check the Wiki guide"),
-                    _L(" before printing."),
+                    _L("refer to the Wiki User Guide"),
+                    _L(" before continuing."),
                     info.wiki_url,
                     _GetLabelColour(info),
                     message_width);

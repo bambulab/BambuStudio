@@ -257,7 +257,7 @@
       "ams_type_id": [6],
       "group": "pla_glow_ams_feeder",
       "priority": 1,
-      "description": "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details.",
+      "description": "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool.",
       "wiki_by_model": {
         "N10": "https://e.bambulab.com/t?c=ArsDpYcoaTkZgnn1"
       }

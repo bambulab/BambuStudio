@@ -1064,8 +1064,8 @@ void FilamentWarningDialog::BuildContent()
             auto *wiki_label = new FilamentWikiWarningLabel(
                 this,
                 message + _L(" Please "),
-                _L("check the Wiki guide"),
-                _L(" before printing."),
+                _L("refer to the Wiki User Guide"),
+                _L(" before continuing."),
                 wiki_url,
                 StateColor::darkModeColorFor(wxColour("#323A3C")),
                 wxColour(8, 153, 46),
