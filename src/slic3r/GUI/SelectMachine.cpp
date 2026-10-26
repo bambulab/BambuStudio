@@ -46,6 +46,7 @@
 #include <wx/display.h>
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
+#include <wx/checkbox.h>
 #include <wx/dcgraph.h>
 #include <wx/mstream.h>
 #include <miniz.h>
@@ -73,6 +74,15 @@
 #define S_RACK_NOZZLE_SUGEEST_RESLICE_FILA _L("Please re-slice to avoid filament waste.")
 
 namespace Slic3r { namespace GUI {
+
+static constexpr const char *HIDE_AMS_BRITTLE_HIGH_FLOW_WARNING = "hide_ams_brittle_high_flow_warning";
+
+static bool is_ams_brittle_warning(const DevFilaBlacklist::CheckResultItem &item)
+{
+    // This group includes both the AMS brittleness advisory and its combined
+    // high-flow clogging variant. Dismiss either by warning type, not material.
+    return item.action == "warning" && item.group == "cf_gf_ams";
+}
 
 wxDEFINE_EVENT(EVT_SWITCH_PRINT_OPTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_USER_MACHINE_LIST, wxCommandEvent);
@@ -2236,6 +2246,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     if (!obj_) return;
 
     std::vector<ConfirmBeforeSendInfo> confirm_text;
+    bool has_ams_brittle_warning = false;
 
     // check more than one using in same external spool
     std::unordered_set<string> main_external_spool_filas;
@@ -2325,6 +2336,11 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             const auto& result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
             if (const auto& warning_items = result.get_items_by_action("warning"); !warning_items.empty()) {
                 for (auto item : warning_items) {
+                    if (is_ams_brittle_warning(item)) {
+                        if (wxGetApp().app_config->get_bool(HIDE_AMS_BRITTLE_HIGH_FLOW_WARNING))
+                            continue;
+                        has_ams_brittle_warning = true;
+                    }
                     confirm_text.push_back(ConfirmBeforeSendInfo(item.info_msg, item.wiki_url));
                     has_slice_warnings = true;
                 }
@@ -2380,6 +2396,16 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     if (has_slice_warnings)
     {
         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Warning"));
+        wxCheckBox* remember_material_warning = nullptr;
+        if (!is_printing_block) {
+            if (has_ams_brittle_warning) {
+                remember_material_warning = confirm_dlg.add_remember_checkbox(_L("Don't show this warning again"));
+                remember_material_warning->Bind(wxEVT_CHECKBOX, [](wxCommandEvent& event) {
+                    wxGetApp().app_config->set_bool(HIDE_AMS_BRITTLE_HIGH_FLOW_WARNING, event.IsChecked());
+                    wxGetApp().app_config->save();
+                });
+            }
+        }
         if (is_printing_block)
         {
             confirm_dlg.hide_button_ok();
@@ -6337,7 +6363,12 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
             }
 
             if (const auto &warning_items = result.get_items_by_action("warning"); !warning_items.empty()) {
-                for (auto item : warning_items) { show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListWarning, {item.info_msg}, item.wiki_url); }
+                for (auto item : warning_items) {
+                    if (is_ams_brittle_warning(item) &&
+                        wxGetApp().app_config->get_bool(HIDE_AMS_BRITTLE_HIGH_FLOW_WARNING))
+                        continue;
+                    show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListWarning, {item.info_msg}, item.wiki_url);
+                }
             }
 
             // Check nozzle hardness check
