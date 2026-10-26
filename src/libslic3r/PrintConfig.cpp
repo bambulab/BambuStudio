@@ -7111,6 +7111,7 @@ void PrintConfigDef::init_fff_params()
     //def->tooltip = L("Wipe tower rotation angle with respect to x-axis.");
     //def->sidetext = L("°");
     def->mode = comDevelop;
+    def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionFloat(0.));
 
     def           = this->add("prime_tower_max_speed", coFloat);
