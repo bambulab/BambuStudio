@@ -2079,10 +2079,9 @@ static void reload_print_tab_from_edited_preset()
     }
 }
 
-// Unsaved process edits only carry over into multi-diameter mode when it is turned on from the canonical
-// printer variant and auto_transfer_when_switch_preset is enabled. Otherwise they are dropped silently
-// before the switch: from a non-canonical variant the process was tuned for another nozzle, and leaving
-// them to the printer switch would offer them for transfer.
+// Unsaved process edits carry over into multi-diameter mode, from whichever single-diameter variant it is
+// turned on, only when auto_transfer_when_switch_preset is enabled. Otherwise they are dropped silently
+// before the switch, so the printer switch that follows has nothing left to offer for transfer.
 static void discard_process_edits_before_multi_nozzle_mode()
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
@@ -2091,8 +2090,7 @@ static void discard_process_edits_before_multi_nozzle_mode()
     const Preset *base = preset_bundle->printers.get_preset_base(preset_bundle->printers.get_edited_preset());
     if (base == nullptr || !base->is_system || !is_single_ext_multi_nozzle(base->config))
         return;
-    if (base->config.opt_string("printer_variant") == canonical_multi_nozzle_printer_variant() &&
-        wxGetApp().app_config->get("auto_transfer_when_switch_preset") == "true")
+    if (wxGetApp().app_config->get("auto_transfer_when_switch_preset") == "true")
         return;
 
     preset_bundle->prints.discard_current_changes();
