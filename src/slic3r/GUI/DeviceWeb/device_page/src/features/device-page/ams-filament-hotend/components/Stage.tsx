@@ -25,8 +25,28 @@ const COLUMN_WIDTH = 80;
 export function stagePitchStyle(totalSlots: number): CSSProperties {
   const gaps = totalSlots - 1;
   return {
-    ['--slot-pitch' as never]: gaps > 0 ? `calc((100cqw - ${COLUMN_WIDTH}px) / ${gaps})` : '0px',
+    ['--slot-pitch' as never]: gaps > 0 ? `calc((${STAGE_WIDTH} - ${COLUMN_WIDTH}px) / ${gaps})` : '0px',
   } as CSSProperties;
+}
+
+// Container query units need Safari 16; older macOS WKWebView gets the
+// stage's content width measured into a variable instead.
+const HAS_CQ = typeof CSS !== 'undefined' && CSS.supports('width', '1cqw');
+const STAGE_WIDTH = HAS_CQ ? '100cqw' : 'var(--lw-stage-w, 0px)';
+
+// A callback ref rather than an effect, so the observer follows the <section>
+// itself and is torn down with it whenever React remounts it.
+function stageWidthFallbackRef(el: HTMLElement | null) {
+  if (HAS_CQ || !el) return;
+  const update = () => {
+    const cs = getComputedStyle(el);
+    const w = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    el.style.setProperty('--lw-stage-w', `${w}px`);
+  };
+  update();
+  const ro = new ResizeObserver(update);
+  ro.observe(el);
+  return () => ro.disconnect();
 }
 
 // Stable key for the local selection set. Composes ams_id + slot_id so two
@@ -67,6 +87,7 @@ export function Stage({
 
   return (
     <section
+      ref={stageWidthFallbackRef}
       className={`stage${hotendMode ? ' hotend-mode' : ''}${mode !== 'normal' ? ' batch-mode' : ''}`}
       style={stagePitchStyle(topSlots.length + bottomSlots.length)}
     >

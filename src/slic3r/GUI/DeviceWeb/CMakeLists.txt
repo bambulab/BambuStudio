@@ -214,6 +214,8 @@ set(DEVICE_PAGE_BUILD_INPUTS
     "${DEVICE_PAGE_SRC_DIR}/package.json"
     "${DEVICE_PAGE_SRC_DIR}/pnpm-lock.yaml"
     "${DEVICE_PAGE_SRC_DIR}/vite.config.ts"
+    "${DEVICE_PAGE_SRC_DIR}/legacy-webkit.postcss.ts"
+    "${DEVICE_PAGE_SRC_DIR}/tools/check-legacy-css.mjs"
     "${DEVICE_PAGE_SRC_DIR}/tsconfig.json"
     "${DEVICE_PAGE_SRC_DIR}/tsconfig.app.json"
     "${DEVICE_PAGE_SRC_DIR}/tsconfig.node.json"

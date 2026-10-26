@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from 'vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import legacyWebkit from './legacy-webkit.postcss'
 
 /**
  * Make Vite build output compatible with file:// protocol:
@@ -61,6 +62,12 @@ export default defineConfig({
     },
   },
 
+  css: {
+    postcss: {
+      plugins: [legacyWebkit()],
+    },
+  },
+
   build: {
     // Keep in step with package.json browserslist; unset lets Vite's default drift.
     // The floor is the oldest engine the installer can reach, not the newest:
@@ -69,6 +76,9 @@ export default defineConfig({
     // Chrome line for Windows 8.1 and earlier.
     target: ['chrome109', 'edge109', 'safari13.1'],
     cssTarget: ['chrome109', 'edge109', 'safari13.1'],
+    // esbuild's CSS minifier passes oklch() through untouched; lightningcss
+    // lowers it for cssTarget (hex fallback + @supports lab/p3).
+    cssMinify: 'lightningcss',
     // Debug: emit `assets/index.js.map` so Chrome DevTools can
     // attach to the live WebView2 over CDP and let the developer set
     // source-level breakpoints inside .ts source. This adds ~1MB to dist/
