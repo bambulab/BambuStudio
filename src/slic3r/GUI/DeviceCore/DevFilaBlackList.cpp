@@ -169,6 +169,22 @@ static std::string _get_blacklist_wiki_url(const json& filament_item, const std:
     return "";
 }
 
+// hide_in lists scenes that must not show this item. Missing means show everywhere.
+static std::vector<std::string> _get_blacklist_hide_in(const json& filament_item)
+{
+    std::vector<std::string> hide_in;
+    if (!filament_item.contains("hide_in") || !filament_item["hide_in"].is_array()) {
+        return hide_in;
+    }
+
+    for (const auto& scene : filament_item["hide_in"]) {
+        if (scene.is_string()) {
+            hide_in.push_back(scene.get<std::string>());
+        }
+    }
+    return hide_in;
+}
+
 // moved from tao.wang and zhimin.zeng
 void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevFilaBlacklist::CheckResult &result)
 {
@@ -396,6 +412,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             result_item.wiki_url = _get_blacklist_wiki_url(filament_item, check_info.model_id);
             result_item.group = group;
             result_item.priority = priority;
+            result_item.hide_in = _get_blacklist_hide_in(filament_item);
 
             if (description == "When using %s on the right extruder, it can only be used as support material.") {
                 if (!name_suffix.empty()) {
@@ -463,7 +480,10 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             L("%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead.");
 
             // Warning in description
-            L("How to feed TPU filament.");
+            L("Special attention should be paid to the feeding method of TPU.");
+            L(" Please ");
+            L("check the Wiki guide");
+            L(" before printing.");
             L("How to feed TPU filament on X2D.");
             L("Using non-bambu filament may have printing quality issues.");
             L("Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.");

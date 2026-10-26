@@ -222,8 +222,8 @@ msgstr ""
 msgid "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
 msgstr ""
 
-msgid "How to feed TPU filament."
-msgstr "TPU进料方式。"
+msgid "Special attention should be paid to the feeding method of TPU."
+msgstr "TPU 的进料方式需要特别注意，"
 
 msgid "How to feed TPU filament on X2D."
 msgstr "X2D TPU进料方式。"
@@ -8060,14 +8060,14 @@ msgstr "如何使用仅局域网模式"
 msgid "Don't show this dialog again"
 msgstr "不再显示此对话框？"
 
-msgid "If you wish to continue, "
-msgstr ""
+msgid " Please "
+msgstr "打印前请"
 
-msgid "please refer to the Wiki guide"
-msgstr ""
+msgid "check the Wiki guide"
+msgstr "查看 Wiki 说明"
 
-msgid " before continuing."
-msgstr ""
+msgid " before printing."
+msgstr "​"
 
 msgid "3D Mouse disconnected."
 msgstr "3D鼠标断连。"

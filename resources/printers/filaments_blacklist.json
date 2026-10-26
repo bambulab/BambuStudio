@@ -119,6 +119,7 @@
       "types": ["TPU"],
       "action": "warning",
       "model_id":["N6"],
+      "hide_in": ["double_check"],
       "description": "How to feed TPU filament on X2D.",
       "wiki": "https://e.bambulab.com/t?c=PAxXqQu2zBgvN3ea"
     },
@@ -126,42 +127,48 @@
       "types": ["TPU", "TPU-AMS"],
       "action": "warning",
       "model_id":["N7"],
-      "description": "How to feed TPU filament.",
+      "hide_in": ["double_check"],
+      "description": "Special attention should be paid to the feeding method of TPU.",
       "wiki": "https://e.bambulab.com/t?c=blx2TDu3uoRdfyIx"
     },
     {
       "types": ["TPU"],
       "action": "warning",
       "model_id":["O1D"],
-      "description": "How to feed TPU filament.",
+      "hide_in": ["double_check"],
+      "description": "Special attention should be paid to the feeding method of TPU.",
       "wiki": "https://e.bambulab.com/t?c=fwWqpBg37Liel92N"
     },
     {
       "types": ["TPU"],
       "action": "warning",
       "model_id":["O1E"],
-      "description": "How to feed TPU filament.",
+      "hide_in": ["double_check"],
+      "description": "Special attention should be paid to the feeding method of TPU.",
       "wiki": "https://e.bambulab.com/t?c=fwWqpBg37Liel92N"
     },
     {
       "types": ["TPU"],
       "action": "warning",
       "model_id":["O1C2"],
-      "description": "How to feed TPU filament.",
+      "hide_in": ["double_check"],
+      "description": "Special attention should be paid to the feeding method of TPU.",
       "wiki": "https://e.bambulab.com/t?c=Db9YyP5qg3MHbSHD"
     },
     {
       "types": ["TPU"],
       "action": "warning",
       "model_id":["O1S"],
-      "description": "How to feed TPU filament.",
+      "hide_in": ["double_check"],
+      "description": "Special attention should be paid to the feeding method of TPU.",
       "wiki": "https://e.bambulab.com/t?c=L45sIEpzy1Wz0tsV"
     },
     {
       "types": ["TPU"],
       "action": "warning",
       "model_id":["N10"],
-      "description": "How to feed TPU filament.",
+      "hide_in": ["double_check"],
+      "description": "Special attention should be paid to the feeding method of TPU.",
       "wiki": "https://wiki.bambulab.com/zh/h3c/tpu-printing-guide"
     },
     {

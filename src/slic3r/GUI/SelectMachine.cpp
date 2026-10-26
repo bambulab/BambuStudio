@@ -2590,6 +2590,9 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             const auto& result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
             const auto& collect_warnings = [&confirm_text, &has_slice_warnings](const std::vector<DevFilaBlacklist::CheckResultItem>& items) {
                 for (const auto& item : items) {
+                    if (item.IsHiddenIn(DevFilaBlacklist::SCENE_DOUBLE_CHECK)) {
+                        continue;
+                    }
                     confirm_text.push_back(ConfirmBeforeSendInfo(item.info_msg, item.wiki_url));
                     has_slice_warnings = true;
                 }
@@ -7439,18 +7442,31 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
             check_info.nozzle_diameter = nozzle.GetNozzleDiameter();
             auto result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
             if (const auto& prohibition_items = result.get_prohibition_items(); !prohibition_items.empty()) {
+                bool has_blocking_item = false;
                 for (auto item : prohibition_items) {
+                    if (item.IsHiddenIn(DevFilaBlacklist::SCENE_PRE_CHECK)) {
+                        continue;
+                    }
                     show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListError, { item.info_msg }, item.wiki_url);
+                    has_blocking_item = true;
                 }
 
-                return false;
+                if (has_blocking_item) {
+                    return false;
+                }
             }
 
             for (auto item : result.get_critical_items()) {
+                if (item.IsHiddenIn(DevFilaBlacklist::SCENE_PRE_CHECK)) {
+                    continue;
+                }
                 show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListCriticalWarning, { item.info_msg }, item.wiki_url);
             }
 
             for (auto item : result.get_warning_items()) {
+                if (item.IsHiddenIn(DevFilaBlacklist::SCENE_PRE_CHECK)) {
+                    continue;
+                }
                 show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListWarning, { item.info_msg }, item.wiki_url);
             }
 

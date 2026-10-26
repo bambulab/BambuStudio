@@ -1063,9 +1063,9 @@ void FilamentWarningDialog::BuildContent()
         } else {
             auto *wiki_label = new FilamentWikiWarningLabel(
                 this,
-                message + " " + _L("If you wish to continue, "),
-                _L("please refer to the Wiki guide"),
-                _L(" before continuing."),
+                message + _L(" Please "),
+                _L("check the Wiki guide"),
+                _L(" before printing."),
                 wiki_url,
                 StateColor::darkModeColorFor(wxColour("#323A3C")),
                 wxColour(8, 153, 46),

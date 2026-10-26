@@ -1545,9 +1545,9 @@ void ConfirmBeforeSendDialog::update_text(std::vector<ConfirmBeforeSendInfo> tex
                     : wxColour(0x26, 0x2E, 0x30);
             auto wiki_label = new DialogWikiWarningLabel(
                 m_vebview_release_note,
-                text.text + " " + _L("If you wish to continue, "),
-                _L("please refer to the Wiki guide"),
-                _L(" before continuing."),
+                text.text + _L(" Please "),
+                _L("check the Wiki guide"),
+                _L(" before printing."),
                 text.wiki_url,
                 text_colour,
                 AMS_CONTROL_BRAND_COLOUR,

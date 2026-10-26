@@ -42,6 +42,11 @@ public:
     static constexpr const char* ACTION_CRITICAL_WARNING = "critical_warning";
     static constexpr const char* ACTION_WARNING          = "warning";
 
+    // Scenes that can show a matched item. "pre_check" is the send-print page,
+    // "double_check" is the confirm dialog opened from that page.
+    static constexpr const char* SCENE_PRE_CHECK    = "pre_check";
+    static constexpr const char* SCENE_DOUBLE_CHECK = "double_check";
+
     // Severity of an action, the greater the stricter. Used to pick a verdict when the preset and
     // the blacklist both judge the same filament.
     static int GetSeverity(const std::string& action)
@@ -59,7 +64,13 @@ public:
         wxString    wiki_url;
         std::string group;
         int         priority = 0;
+        // Scenes listed here hide this item. An absent hide_in shows it in every scene.
+        std::vector<std::string> hide_in;
 
+        bool IsHiddenIn(const char* scene) const
+        {
+            return std::find(hide_in.begin(), hide_in.end(), scene) != hide_in.end();
+        }
         bool IsProhibition() const { return action == ACTION_PROHIBITION; }
         bool IsCriticalWarning() const { return action == ACTION_CRITICAL_WARNING; }
         bool IsWarning() const { return action == ACTION_WARNING; }
