@@ -20,10 +20,6 @@
     "filament_change_length_nc": [
         "0"
     ],
-    "filament_cooling_before_tower": [
-        "0",
-        "0"
-    ],
     "filament_idle_travel_cooling_enabled": "0",
     "filament_long_retractions_when_cut": [
         "0",

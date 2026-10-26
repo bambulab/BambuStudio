@@ -30,7 +30,6 @@
         "1",
         "1"
     ],
-    "filament_idle_travel_cooling_enabled": "1",
     "filament_max_volumetric_speed": [
         "6",
         "6"
@@ -99,9 +98,6 @@
     "slow_down_min_speed": [
         "20",
         "20"
-    ],
-    "temperature_vitrification": [
-        "45"
     ],
     "compatible_printers": [
         "Bambu Lab H3C 0.4 nozzle",

@@ -5,15 +5,6 @@
     "from": "system",
     "filament_id": "GFT97",
     "instantiation": "false",
-    "filament_dev_chamber_drying_bed_temperature": [
-        "90"
-    ],
-    "filament_dev_ams_drying_heat_distortion_temperature": [
-        "90"
-    ],
-    "filament_dev_drying_cooling_temperature": [
-        "80"
-    ],
     "filament_dev_ams_drying_temperature": [
         "65",
         "80",
@@ -23,8 +14,5 @@
         "85",
         "65",
         "65"
-    ],
-    "filament_dev_drying_softening_temperature": [
-        "85"
     ]
 }
