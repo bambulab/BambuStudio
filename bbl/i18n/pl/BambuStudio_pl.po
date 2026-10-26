@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-22 14:23+0800\n"
+"POT-Creation-Date: 2026-10-26 22:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -35,10 +35,10 @@ msgid "Current flowrate cali param is invalid"
 msgstr "Aktualny parametr kalibracji natężenia przepływu jest nieprawidłowy"
 
 msgid "Selected diameter and machine diameter do not match"
-msgstr "Wybrane średnice nie pasują do średnic maszyny"
+msgstr "Wybrana średnica i średnica maszyny nie pasują do siebie"
 
 msgid "Failed to generate cali gcode"
-msgstr "Nie udało się wygenerować kodu kalibracji"
+msgstr "Nie udało się wygenerować G-code kalibracji"
 
 msgid "Calibration error"
 msgstr "Błąd kalibracji"
@@ -205,11 +205,11 @@ msgstr "W przypadku stosowania ABS/ASA/PETG HF w prawym ekstruderze, materiał t
 
 #, c-format, boost-format
 msgid "%s is not supported by the current %s hotend. Please confirm the filament type and try again."
-msgstr ""
+msgstr "%s nie jest obsługiwany przez bieżący hotend %s. Potwierdź rodzaj filamentu i spróbuj ponownie."
 
 #, c-format, boost-format
 msgid "%s is not supported by the current 2.85 mm TPU hotend. Please confirm the filament type and try again."
-msgstr ""
+msgstr "%s nie jest obsługiwany przez bieżący hotend TPU 2,85 mm. Potwierdź rodzaj filamentu i spróbuj ponownie."
 
 msgid "PPA-CF does not support AMS feeding. Use an external spool instead."
 msgstr ""
@@ -218,8 +218,17 @@ msgstr ""
 msgid "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
 msgstr ""
 
-msgid "How to feed TPU filament."
-msgstr "Jak podawać filament TPU."
+msgid "Special attention should be paid to the feeding method of TPU."
+msgstr ""
+
+msgid " Please "
+msgstr ""
+
+msgid "check the Wiki guide"
+msgstr ""
+
+msgid " before printing."
+msgstr ""
 
 msgid "How to feed TPU filament on X2D."
 msgstr "Jak podawać filament TPU na X2D."
@@ -294,19 +303,19 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
-msgstr ""
+msgstr "Ze względu na działanie Przełącznik ścieżki filamentu nie można używać %s. Zamiast tego należy użyć szpuli zewnętrznej."
 
 #, c-format, boost-format
 msgid "%s is not supported with a standard %s nozzle."
-msgstr ""
+msgstr "%s nie jest obsługiwany w połączeniu ze standardową dyszą %s."
 
 #, c-format, boost-format
 msgid "%s is only supported for printing with the main extruder."
-msgstr ""
+msgstr "%s jest obsługiwany wyłącznie podczas drukowania z użyciem ekstrudera głównego."
 
 #, c-format, boost-format
 msgid "%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction."
-msgstr ""
+msgstr "%s jest używany w ekstruderze pomocniczym, co wiąże się z większym ryzykiem i może skutkować niepowodzeniem wydruku lub uszkodzeniem sprzętu."
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may break inside the filament tube."
@@ -314,39 +323,39 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%s is used with the auxiliary extruder and may impact print quality."
-msgstr ""
+msgstr "%s jest używany z ekstruderem pomocniczym, co może mieć wpływ na jakość wydruku."
 
 #, c-format, boost-format
 msgid "%s used with a high-flow %s nozzle may affect print quality."
-msgstr ""
+msgstr "Użycie %s z dyszą wysokoprzepływową %s może wpłynąć na jakość wydruku."
 
 #, c-format, boost-format
 msgid "%s used with a high-flow %s nozzle may cause a clog."
-msgstr ""
+msgstr "Użycie %s z dyszą wysokoprzepływową %s może spowodować zatkanie."
 
 #, c-format, boost-format
 msgid "%s used with a high-flow %s nozzle may cause oozing."
-msgstr ""
+msgstr "Użycie %s z dyszą wysokoprzepływową %s może spowodować wyciek."
 
 #, c-format, boost-format
 msgid "%s used with a high-flow %s nozzle may lead to difficult extrusion."
-msgstr ""
+msgstr "Użycie %s z dyszą wysokoprzepływową %s może doprowadzić do trudności w ekstruzji."
 
 #, c-format, boost-format
 msgid "%s used with a high-flow %s nozzle may result in poor quality in overhang and bridge areas of the model."
-msgstr ""
+msgstr "Użycie %s z dyszą wysokoprzepływową %s może skutkować niską jakością w obszarach zwisów i mostów modelu."
 
 #, c-format, boost-format
 msgid "%s used with a standard %s nozzle may affect print quality."
-msgstr ""
+msgstr "Użycie %s z dyszą standardową %s może mieć wpływ na jakość wydruku."
 
 #, c-format, boost-format
 msgid "%s used with a standard %s nozzle may cause oozing."
-msgstr ""
+msgstr "Użycie %s z dyszą standardową %s może powodować wyciek."
 
 #, c-format, boost-format
 msgid "%s used with a standard %s nozzle may lead to difficult extrusion."
-msgstr ""
+msgstr "Użycie %s z dyszą standardową %s może utrudniać wytłaczanie."
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may fail to load or unload."
@@ -354,15 +363,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
-msgstr ""
+msgstr "Podczas korzystania z ekstrudera pomocniczego drukowanie z użyciem %s z dyszą wysokoprzepływową %s może wpłynąć na jakość modelu."
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may cause a clog."
-msgstr ""
+msgstr "Podczas korzystania z ekstrudera pomocniczego drukowanie z użyciem %s z dyszą wysokoprzepływową %s może powodować zatkanie."
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality."
-msgstr ""
+msgstr "Podczas korzystania z ekstrudera pomocniczego drukowanie z użyciem %s z dyszą standardową %s może wpłynąć na jakość modelu."
 
 #, c-format, boost-format
 msgid "%s is not supported by %s extruder."
@@ -385,13 +394,13 @@ msgid "There may be print quality issues when printing '%s' with %s extruder. Us
 msgstr "Podczas drukowania '%s' przy użyciu ekstrudera '%s' mogą wystąpić problemy z jakością wydruku. Należy zachować ostrożność."
 
 msgid "The total weight must bigger than remain weight."
-msgstr ""
+msgstr "Całkowita waga musi być większa od wagi pozostałej."
 
 msgid "Please enter a valid remaining weight from 1g to 10000g."
-msgstr ""
+msgstr "Wprowadź prawidłową wagę pozostałą od 1 g do 10000 g."
 
 msgid "Please enter a valid total weight from 1g to 10000g."
-msgstr ""
+msgstr "Wprowadź prawidłową masę całkowitą od 1 g do 10000 g."
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "Głowica i uchwyt na hotendy mogą się poruszać. Proszę trzymać ręce z dala od komory."
@@ -460,16 +469,16 @@ msgid "Update failed."
 msgstr "Aktualizacja nie powiodła się."
 
 msgid "Hotend & Filament"
-msgstr ""
+msgstr "Filament i hotend"
 
 msgid "Lift Hotend Rack"
-msgstr ""
+msgstr "Podnieś uchwyt na hotend"
 
 msgid "Recenter Hotend Rack"
-msgstr ""
+msgstr "Ponownie wyśrodkuj uchwyt na hotend"
 
 msgid "Lower Hotend Rack"
-msgstr ""
+msgstr "Opuść uchwyt na hotend"
 
 msgid "Hotend Rack"
 msgstr "Uchwyt na hotendy"
@@ -484,10 +493,10 @@ msgid "Raised"
 msgstr "Podniesiony"
 
 msgid "Lowered"
-msgstr ""
+msgstr "Obniżono"
 
 msgid "Centered"
-msgstr ""
+msgstr "Wyśrodkowano"
 
 msgid "Current AMS humidity"
 msgstr "Aktualna wilgotność AMS"
@@ -683,6 +692,9 @@ msgstr "Załaduj ponownie"
 msgid "Copy diagnostic information"
 msgstr "Kopiuj informacje diagnostyczne"
 
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
+msgstr "Nieznany typ filamentu. Aby wykonać tę operację, ustaw informacje o docelowym filamencie."
+
 msgid "Add refill filament"
 msgstr "Dodaj filament uzupełniania"
 
@@ -690,7 +702,7 @@ msgid "Add material group"
 msgstr "Dodaj grupę materiałów"
 
 msgid "AMS Bridge Debug"
-msgstr ""
+msgstr "Debugowanie mostu AMS"
 
 msgid "Idling..."
 msgstr "Bezczynność..."
@@ -762,6 +774,14 @@ msgstr "Ręcznie włóż filament do portu ładowania hotendu %1% na głowicy a�
 msgid "Please manually insert the filament from slot %1% into the extruder loading port until it cannot be pushed any further."
 msgstr "Ręcznie włóż filament z gniazda %1% do portu załadunkowego wytłaczarki aż do oporu."
 
+#, boost-format
+msgid "Slot %1% filament loading in progress"
+msgstr ""
+
+#, boost-format
+msgid "Slot %1% filament unloading in progress"
+msgstr ""
+
 msgid "Other filaments are info-only"
 msgstr "Pozostałe filamenty mają charakter wyłącznie informacyjny"
 
@@ -822,16 +842,16 @@ msgid "Edit Filament"
 msgstr "Edytuj Filament"
 
 msgid "Confirm to exit this process?"
-msgstr ""
+msgstr "Czy potwierdzić zakończenie tego procesu?"
 
 msgid "If the filament is not pulled out, subsequent printing may pause due to filament switching. Please operate carefully."
-msgstr ""
+msgstr "Jeśli filament nie zostanie wyciągnięty, drukowanie może zostać wstrzymane z powodu konieczności wymiany filamentu. Zachowaj ostrożność."
 
 msgid "Exit"
-msgstr "Wyjdź"
+msgstr "Wyjście"
 
 msgid "Still exit"
-msgstr ""
+msgstr "Wyjdź mimo to"
 
 msgid "Tip"
 msgstr "Wskazówka"
@@ -986,14 +1006,6 @@ msgstr "Autotest"
 
 msgid "No selected machine"
 msgstr "Brak wybranej maszyny"
-
-#, boost-format
-msgid "Slot %1% filament loading in progress"
-msgstr ""
-
-#, boost-format
-msgid "Slot %1% filament unloading in progress"
-msgstr ""
 
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
@@ -1353,6 +1365,8 @@ msgid ""
 "Ctrl+left-click:select multiple objects.\n"
 "Alt+left-click:select multiple parts."
 msgstr ""
+"Ctrl + lewy przycisk myszy: zaznaczenie wielu obiektów.\n"
+"Alt + lewy przycisk myszy: zaznaczenie wielu części."
 
 msgid "Align"
 msgstr "Wyrównanie"
@@ -1485,7 +1499,7 @@ msgstr "Krawędzie otwarte mogą być spowodowane działaniem narzędzia do prze
 
 #, c-format, boost-format
 msgid "Repair object: %s"
-msgstr ""
+msgstr "Napraw obiekt: %s"
 
 msgid "Repairing model object"
 msgstr "Naprawa obiektu modelu"
@@ -1704,10 +1718,10 @@ msgid "Show wireframe"
 msgstr "Pokaż siatkę"
 
 msgid "Keep all painting"
-msgstr ""
+msgstr "Zachowaj całe malowanie"
 
 msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
-msgstr ""
+msgstr "Obejmuje malowanie kolorów, szwów, podpór i tekstury Fuzzy Skin. Jeśli odznaczone, całe malowanie zostanie usunięte z wyniku."
 
 #, boost-format
 msgid "%1%"
@@ -3555,9 +3569,6 @@ msgstr "AMS nie został zainicjowany. Proszę zainicjować go przed użyciem."
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Wybierz gniazdo AMS, a następnie naciśnij przycisk „Ładuj” lub „Rozładuj”, aby automatycznie ładować lub wyładowywać filament."
 
-msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
-msgstr "Nieznany typ filamentu. Aby wykonać tę operację, ustaw informacje o docelowym filamencie."
-
 msgid "/"
 msgstr "/"
 
@@ -3586,7 +3597,7 @@ msgstr "Oczyszczacz powietrza"
 
 msgctxt "AirPurifier"
 msgid "Max"
-msgstr ""
+msgstr "Maks."
 
 msgid "Silent"
 msgstr "Cichy"
@@ -4457,7 +4468,7 @@ msgid "Some colors have no matching filament. Please match them before importing
 msgstr "Niektóre kolory nie posiadają odpowiedniego filamentu. Dopasuj przed importem."
 
 msgid "Complete All Filaments"
-msgstr ""
+msgstr "Uzupełnij wszystkie filamenty"
 
 msgid "Skip"
 msgstr "Pomiń"
@@ -4543,6 +4554,12 @@ msgstr "Cyjan · Magenta · Żółty · Czarny · Biały"
 
 msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
 msgstr "Dlatego importując model, można dopasować kolory, korzystając z zestawów filamentów i ich mieszanek."
+
+msgid "The mixing kit is already in the project filament list. Use it now?"
+msgstr ""
+
+msgid "Use now"
+msgstr ""
 
 msgid "Add to project filament list"
 msgstr "Dodaj do listy filamentów projektu"
@@ -4974,7 +4991,7 @@ msgid "When inserting a new filament, the AMS will not automatically read its in
 msgstr "Podczas wkładania nowego filamentu, AMS nie będzie automatycznie odczytywać jego informacji, pozostawiając je puste, abyś mógł wprowadzić je ręcznie."
 
 msgid "Only for AMS/AMS 2pro/AMS HT."
-msgstr ""
+msgstr "Tylko dla AMS/AMS 2pro/AMS HT."
 
 msgid "Power on update"
 msgstr "Aktualizacja przy włączaniu"
@@ -5216,7 +5233,7 @@ msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree c
 msgstr "Zalecana temperatura dyszy dla tego rodzaju filamentu to [%d, %d] stopni Celsjusza"
 
 msgid "To ensure the print quality of the prime tower interface layer, the interface layer print temperature should preferably be greater than or equal to the nozzle temperature."
-msgstr ""
+msgstr "Aby zagwarantować odpowiednią jakość wydruku warstwy interfejsu wieży czyszczącej, temperatura druku warstwy interfejsu powinna być wyższa lub równa temperaturze dyszy."
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -6222,7 +6239,7 @@ msgid "Increase/decrease edit area"
 msgstr "Zwiększ/zmniejsz obszar edycji"
 
 msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
-msgstr ""
+msgstr "Włączona jest podwarstwa kolorów mieszanych. Użycie opcji zmiennej wysokości warstwy może mieć wpływ na jakość wydruku."
 
 msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
 msgstr "Profil zmiennej wysokości warstwy został zresetowany, ponieważ niektóre wysokości warstwy przekraczają dozwolony zakres bieżącej dyszy."
@@ -6353,15 +6370,15 @@ msgstr "Podsumowanie"
 
 #, boost-format
 msgid "Plate %1%: the support ring of %2% extends beyond the plate boundary."
-msgstr ""
+msgstr "Płyta %1%: pierścień podporowy %2% wystaje poza granicę płyty."
 
 #, boost-format
 msgid "Plate %1%: the support ring of %2% overlaps %3%."
-msgstr ""
+msgstr "Płyta %1%: pierścień podporowy %2% nakładki %3%."
 
 #, boost-format
 msgid "Plate %1%: the support rings of %2% and %3% overlap."
-msgstr ""
+msgstr "Płyta %1%: pierścienie podporowe %2% i %3% zachodzą na siebie."
 
 msgid "Select Plate"
 msgstr "Wybierz płytę"
@@ -6626,13 +6643,13 @@ msgid "Show \"Live Video\" guide page."
 msgstr "Pokaż stronę przewodnika \"Na Żywo\"."
 
 msgid "Not Installed"
-msgstr ""
+msgstr "Nie zainstalowano"
 
 msgid "Abnormal"
-msgstr ""
+msgstr "Nieprawidłowość"
 
 msgid "Installed"
-msgstr ""
+msgstr "Zainstalowano"
 
 msgid "ConnectPrinter(LAN)"
 msgstr "Połącz z drukarką (LAN)"
@@ -6715,7 +6732,7 @@ msgid "Discard"
 msgstr "Odrzuć"
 
 msgid "Stay on this page"
-msgstr ""
+msgstr "Pozostań na tej stronie"
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "Uzyskaj szybsze, bardziej niezawodne i pozbawione odkształceń wydruki dzięki Helio Additive."
@@ -7029,7 +7046,7 @@ msgstr "Usługi"
 
 #, c-format, boost-format
 msgid "Hide %s"
-msgstr ""
+msgstr "Ukryj %s"
 
 msgid "Hide Others"
 msgstr "Ukryj pozostałe"
@@ -7232,11 +7249,11 @@ msgstr "Odtwarzacz nie został załadowany, proszę kliknąć przycisk \"Odtwór
 msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "Nie udało się załadować biblioteki wtyczek. Kliknij tutaj, aby zobaczyć rozwiązanie."
 
-msgid "Switch to the auxiliary live camera view"
-msgstr "Przełącz na pomocniczy widok kamery na żywo"
+msgid "Switch to BirdsEye Camera"
+msgstr ""
 
-msgid "Switch to the main live camera view"
-msgstr "Przejdź do głównego widoku kamery na żywo"
+msgid "Switch to Liveview Camera"
+msgstr ""
 
 msgid "Switch live camera view"
 msgstr "Przełącz widok kamery na żywo"
@@ -7326,7 +7343,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Captured at %s"
-msgstr ""
+msgstr "Przechwycono o %s"
 
 msgid "Playing..."
 msgstr "Odtwarzanie..."
@@ -7964,6 +7981,10 @@ msgid "Active operations"
 msgstr ""
 
 msgid "Live"
+msgstr "Na żywo"
+
+#, c-format, boost-format
+msgid "Zoom %.1fx"
 msgstr ""
 
 msgid "Step file import parameters"
@@ -8057,26 +8078,19 @@ msgstr "%s informacja"
 msgid "Newer 3mf version"
 msgstr "Nowa wersja 3mf"
 
-msgid "The 3mf file version is in Beta and it is newer than the current Bambu Studio version."
-msgstr "Wersja pliku 3MF jest w wersji Beta i jest nowsza niż obecna wersja Bambu Studio."
+#, c-format, boost-format
+msgid "The 3mf file is Beta version %s, current version: %s"
+msgstr ""
 
-msgid "If you would like to try Bambu Studio Beta, you may click to"
-msgstr "Jeśli chciałbyś wypróbować Bambu Studio Beta, możesz kliknąć tutaj"
+#, c-format, boost-format
+msgid "The 3mf file is version %s, current version: %s"
+msgstr ""
 
-msgid "Download Beta Version"
-msgstr "Pobierz wersje Beta"
+msgid "Importing a newer 3mf file may cause compatibility issues. We recommend downloading the latest version before use. Please click"
+msgstr ""
 
-msgid "The 3mf file version is newer than the current Bambu Studio version."
-msgstr "Wersja pliku 3MF jest nowsza niż obecna w wersji Bambu Studio."
-
-msgid "Update your Bambu Studio could enable all functionality in the 3mf file."
-msgstr "Zaktualizowanie Bambu Studio może umożliwić korzystanie ze wszystkich funkcji pliku 3MF."
-
-msgid "Current Version: "
-msgstr "Obecna wersja: "
-
-msgid "Latest Version: "
-msgstr "Najnowsza wersja: "
+msgid "Download Latest Version"
+msgstr ""
 
 msgctxt "Software"
 msgid "Update"
@@ -8099,15 +8113,6 @@ msgstr "Jak korzystać z trybu tylko LAN"
 
 msgid "Don't show this dialog again"
 msgstr "Nie pokazuj ponownie tego okna dialogowego"
-
-msgid "If you wish to continue, "
-msgstr ""
-
-msgid "please refer to the Wiki guide"
-msgstr ""
-
-msgid " before continuing."
-msgstr ""
 
 msgid "3D Mouse disconnected."
 msgstr "Mysz 3D odłączona."
@@ -8292,13 +8297,13 @@ msgid "Bottom"
 msgstr "Dół"
 
 msgid "Read-only, automatically calculated from the base initial layer height"
-msgstr ""
+msgstr "Tylko do odczytu, automatycznie obliczane na podstawie wysokości pierwszej warstwy podstawy"
 
 msgid "Read-only, automatically calculated from the base layer height"
-msgstr ""
+msgstr "Tylko do odczytu, obliczane automatycznie na podstawie wysokości warstwy bazowej"
 
 msgid "Read-only, automatically calculated from the base value"
-msgstr ""
+msgstr "Tylko do odczytu, automatycznie obliczane na podstawie wartości bazowej"
 
 msgid "nozzle"
 msgstr "dysza"
@@ -8549,7 +8554,7 @@ msgstr ""
 "Po włączeniu tej opcji pod-warstwy przeplatają się gęściej, co pozwala na równomierne połączenie, ale drukowanie trwa dłużej."
 
 msgid "Recommended only when using mixed-color filament, to get a better layered-color effect. This feature is disabled by default when variable layer height is enabled."
-msgstr ""
+msgstr "Zalecane wyłącznie w przypadku stosowania filamentu w mieszanych kolorach, w celu uzyskania lepszego efektu wielowarstwowego koloru. Funkcja ta jest domyślnie wyłączona, gdy włączona jest zmienna wysokość warstwy."
 
 msgid "Controls where each layer's outer wall starts and ends."
 msgstr "Steruje miejscem, w którym zaczyna się i kończy zewnętrzna ściana każdej warstwy."
@@ -9189,9 +9194,9 @@ msgid ""
 "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
 "Please confirm which nozzle you would like to use for this project."
 msgstr ""
-"Oprogramowanie nie obsługuje używania dysz o różnych średnicach do jednego wydruku. \n"
-"Jeśli dysze po lewej i prawej stronie różnią się, możemy kontynuować drukowanie tylko jedną głowicą. \n"
-"Proszę potwierdzić, którą dyszę chcesz wybrać do tego projektu."
+"Oprogramowanie nie obsługuje stosowania różnych średnic dysz do jednego wydruku.\n"
+"Jeśli lewa i prawa dysza są niezgodne, możemy kontynuować drukowanie tylko przy użyciu jednej głowicy.\n"
+"Potwierdź, której dyszy chcesz użyć w tym projekcie."
 
 msgid "Switch diameter"
 msgstr "Zmiana średnicy"
@@ -9207,10 +9212,10 @@ msgstr ""
 "W drukarce wykryto obsługę funkcji planowania krzywych. Oprogramowanie automatycznie wyłączyło dopasowywanie łuków, aby zapewnić prawidłowe działanie tej funkcji."
 
 msgid "Collapse panel"
-msgstr ""
+msgstr "Zwiń panel"
 
 msgid "Expand panel"
-msgstr ""
+msgstr "Rozwiń panel"
 
 msgid "Click to edit preset"
 msgstr "Kliknij, aby edytować profil"
@@ -9270,14 +9275,14 @@ msgid "Change nozzle diameter"
 msgstr "Zmień średnicę dyszy"
 
 msgid "This filament does not support printing with the current nozzle"
-msgstr ""
+msgstr "Ten filament nie nadaje się do drukowania przy użyciu bieżącej dyszy"
 
 msgid "The current nozzle settings have no nozzle of this type"
 msgstr ""
 
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
-msgstr ""
+msgstr "Ten filament nie nadaje się do drukowania przy użyciu dyszy %s"
 
 #, c-format, boost-format
 msgid ", and %d more"
@@ -9285,26 +9290,26 @@ msgstr ", i %d więcej"
 
 #, c-format, boost-format
 msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
-msgstr ""
+msgstr "Usuwany przez Ciebie filament jest używany przez model „%s”. Po usunięciu do modelu zostanie przypisany pierwszy z pozostałych filamentów."
 
 msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
-msgstr ""
+msgstr "Wskazówka: Jeśli chcesz zastąpić go innym filamentem, kliknij go prawym przyciskiem myszy i wybierz opcję „Scal z”."
 
 msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
-msgstr ""
+msgstr "Ten element jest również używany przez następujące filamenty mieszane, które po jego usunięciu staną się bezużyteczne:"
 
 msgid "The filament you are deleting is used by the following mixed filaments, which will become unusable after deletion:"
-msgstr ""
+msgstr "Usuwany filament jest używany przez następujące filamenty mieszane, które po usunięciu staną się bezużyteczne:"
 
 #, c-format, boost-format
 msgid "Mixed filament %d"
-msgstr ""
+msgstr "Filament mieszany %d"
 
 msgid "Delete Filament"
 msgstr "Usuń Filament"
 
 msgid "Continue deleting"
-msgstr ""
+msgstr "Kontynuuj usuwanie"
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "Docelowa mieszanka korzysta z tego filamentu jako komponentu. Po jego usunięciu może stać się nieprawidłowa. Kontynuować?"
@@ -9315,11 +9320,11 @@ msgstr "Po zakończeniu operacji projekt %s zostanie zamknięty i zostanie utwor
 
 #, c-format, boost-format
 msgid "filament slot %d %s"
-msgstr ""
+msgstr "gniazdo filamentu %d %s"
 
 #, c-format, boost-format
 msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
-msgstr ""
+msgstr "Obecna konfiguracja drukarki nie obsługuje %s z modułu AMS. Domyślnie zastąpiono przez %s."
 
 msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
@@ -9355,7 +9360,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
-msgstr ""
+msgstr "Maksymalna liczba filamentów, które można utworzyć: %d"
 
 msgid "Please modify the original project filament diameter."
 msgstr "Zmień średnicę filamentu określoną w oryginalnym projekcie."
@@ -9380,26 +9385,26 @@ msgstr "Popraw zaznaczone mieszane filamenty na liście filamentów po lewej str
 
 #, c-format, boost-format
 msgid "Filament %s is not configured for the %s nozzle. Please change the nozzle or the filament before use."
-msgstr ""
+msgstr "Filament %s nie jest skonfigurowany dla dyszy %s. Przed użyciem należy wymienić dyszę lub filament."
 
 #, c-format, boost-format
 msgid "Filament %s is not configured for the current nozzle settings. Please change the nozzle or the filament before use."
-msgstr ""
+msgstr "Filament %s nie jest skonfigurowany dla bieżących ustawień dyszy. Przed użyciem należy wymienić dyszę lub filament."
 
 #, c-format, boost-format
 msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr ""
+msgstr "Filament %s nie ma dyszy %s w ustawieniach dyszy. Przed użyciem należy dodać ten typ dyszy."
 
 #, c-format, boost-format
 msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."
-msgstr ""
+msgstr "Filament %s nie ma żadnego ustawienia wstępnego obsługującego dyszę %s. Utwórz odpowiedni profil ustawień filamentu."
 
 #, c-format, boost-format
 msgid "Filament %s has no preset for the current nozzle settings. Please create the matching filament preset."
-msgstr ""
+msgstr "Filament %s nie ma ustawień wstępnych dla bieżących ustawień dyszy. Utwórz odpowiedni profil ustawień filamentu."
 
 msgid "Add the nozzle"
-msgstr ""
+msgstr "Dodaj dyszę"
 
 msgid "Add a new preset"
 msgstr "Dodaj nowe ustawienie wstępne"
@@ -9477,10 +9482,10 @@ msgid "Please correct them in the param tabs"
 msgstr "Proszę poprawić je w zakładkach parametrów"
 
 msgid "3MF textures are unsupported and have been discarded."
-msgstr ""
+msgstr "Tekstury 3MF nie są obsługiwane i zostały odrzucone."
 
 msgid "Parts without color will default to gray."
-msgstr ""
+msgstr "Części bez koloru będą domyślnie szare."
 
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "Plik 3mf zawiera następujące zmodyfikowane G-code w ustawieniach filamentu lub drukarki:"
@@ -10797,7 +10802,7 @@ msgid "My Printer"
 msgstr "Moja drukarka"
 
 msgid "This filament is not compatible with the nozzle it is loaded on"
-msgstr ""
+msgstr "Ten filament nie jest kompatybilny z dyszą, do której jest ładowany"
 
 msgid "To select this filament, change the nozzle settings first."
 msgstr "Aby wybrać ten filament, należy najpierw zmienić ustawienia dyszy."
@@ -11417,15 +11422,19 @@ msgstr "Filament nie jest załadowany do gniazda %s. Drukowanie może zostać ws
 
 #, c-format, boost-format
 msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. Please pull it out manually."
-msgstr ""
+msgstr "Narzędzie drukujące %d jest załadowane filamentem %s i nie może automatycznie rozładować filamentu. Wyciągnij go ręcznie."
 
 #, c-format, boost-format
 msgid "External AMS and %1$s filaments are both selected for PrintTool %2$d. Because %3$s cannot unload automatically, you will need to change the filament manually."
+msgstr "Dla narzędzia drukującego %2$d wybrano zarówno filamenty z zewnętrznego modułu AMS, jak i filamenty %1$s. Ponieważ %3$s nie może automatycznie rozładować filamentu, konieczna będzie jego ręczna wymiana."
+
+#, c-format, boost-format
+msgid "TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."
 msgstr ""
 
 #, c-format, boost-format
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
-msgstr ""
+msgstr "W hotendzie %s wykryto pozostałości filamentu niskotemperaturowego. Wysoka temperatura w komorze druku może spowodować zatkanie dyszy. Najpierw załaduj filament."
 
 msgid "Cool"
 msgstr ""
@@ -11509,7 +11518,7 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Dla ekstrudera wybrano zarówno filament zewnętrzny, jak i AMS. Podczas drukowania konieczne będzie ręczne przełączenie zewnętrznego filamentu."
 
 msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
-msgstr ""
+msgstr "W hotendzie wykryto pozostałości filamentu niskotemperaturowego. Wysoka temperatura w komorze druku może spowodować zatkanie dyszy. Najpierw załaduj filament."
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
 msgstr "TPU 90A/TPU 85A są zbyt miękkie. Zaleca się przeprowadzenie ręcznej kalibracji przepływu na stronie „Kalibracja”. Jeśli „Kalibracja dynamiki przepływu” jest ustawiona na auto/włączona, system użyje poprzedniej wartości i pominie proces kalibracji przepływu."
@@ -11881,7 +11890,7 @@ msgid "Jerk(XY)"
 msgstr "Jerk(XY)"
 
 msgid "Support ring"
-msgstr ""
+msgstr "Pierścień podporowy"
 
 msgid "Raft"
 msgstr "Tratwa (raft)"
@@ -13569,7 +13578,7 @@ msgid "Repaired 3mf file contains more than one instance"
 msgstr "Naprawiony plik 3mf zawiera więcej niż jedną instancję"
 
 msgid "Repairing"
-msgstr ""
+msgstr "Naprawa"
 
 msgid "Repair finished"
 msgstr "Naprawa zakończona"
@@ -13699,7 +13708,7 @@ msgid "Nozzle assignment error: invalid per-filament nozzle map. Please check th
 msgstr "Błąd przypisania dyszy: nieprawidłowa mapa przypisań dysz do poszczególnych filamentów. Sprawdź konfigurację dysz lub je przegrupuj."
 
 msgid "Nozzle assignment error: per-filament nozzle map points to an empty or unavailable nozzle."
-msgstr ""
+msgstr "Błąd przypisania dyszy: mapa dysz dla każdego filamentu wskazuje na pustą lub niedostępną dyszę."
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "Błąd grupowania w trybie ręcznym. Sprawdź liczbę dysz lub je przegrupuj."
@@ -13907,7 +13916,7 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "Zmienna wysokość warstwy nie jest dostępna w przypadku podpór organicznych."
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
-msgstr ""
+msgstr "Drukowanie przy użyciu dysz o różnych średnicach i pierścienia podporowego ma charakter eksperymentalny. Pierścień podporowy może nie działać prawidłowo, jeśli rozmiary dysz są niedopasowane."
 
 msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
 msgstr "Drukowanie przy użyciu dysz o różnych średnicach i wieży czyszczącej ma charakter eksperymentalny. Wieża czyszcząca może nie działać prawidłowo, jeśli rozmiary dysz są niedopasowane."
@@ -15156,7 +15165,7 @@ msgid "The volume of material required to prime the extruder for a hotend change
 msgstr "Objętość materiału wymagana do oczyszczania ekstrudera na wieży przed zmianą hotendu."
 
 msgid "Pre-heating when extruder change"
-msgstr ""
+msgstr "Podgrzewanie wstępne przy zmianie ekstrudera"
 
 msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
 msgstr ""
@@ -16950,7 +16959,7 @@ msgid "Horizontal distance between the projected model boundary and the innermos
 msgstr "Odległość pozioma między rzutem granicy modelu a najbardziej wewnętrzną ścieżką pierścienia podporowego."
 
 msgid "Support ring angle"
-msgstr ""
+msgstr "Kąt pierścienia podporowego"
 
 msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider. A set angle keeps one piece, from 200° to 300°. -1 means auto: the angle is worked out from the purge of each filament change, so the purge is laid a few rings thick. When that comes out below 200°, the ring is split into two facing pieces with a second opening on the side away from the camera."
 msgstr ""
@@ -17295,7 +17304,7 @@ msgid "Width of the wall that will replace thin features (according to the Minim
 msgstr "Szerokość ściany, która zastąpi cienkie detale modelu (zgodnie z minimalnym rozmiarem detalu). Jeśli minimalna szerokość ściany jest mniejsza niż grubość detalu, ściana będzie miał taką samą grubość jak sam element. Jest wyrażona w procentach i zostanie obliczona na podstawie średnicy dyszy."
 
 msgid "Filament switch retraction length"
-msgstr ""
+msgstr "Długość retrakcji przy zmianie filamentu"
 
 msgid "Override overhang speed"
 msgstr "Przekroczenie prędkości przy nawisie"
@@ -18210,7 +18219,7 @@ msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- Tryb części: Proszę wybrać jeden obiekt z co najmniej dwoma siatkami."
 
 msgid "Another mesh boolean operation is running. Please try again after it finishes."
-msgstr ""
+msgstr "Trwa kolejna operacja logiczna siatki. Spróbuj ponownie po zakończeniu."
 
 msgid "Computing..."
 msgstr "Obliczanie..."
@@ -19639,7 +19648,7 @@ msgid "Purge Mode Settings"
 msgstr "Ustawienia trybu oczyszczania"
 
 msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
-msgstr ""
+msgstr "Wykonaj pełne płukanie na wieży czyszczącej ze zmianami prędkości i temperatury, aby uzyskać optymalną jakość wydruku."
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr "Wykorzystuje zoptymalizowaną temperaturę płukania, mnożnik oraz większą siłę ekstruzji. Może to w skrajnych przypadkach powodować niewielkie mieszanie się kolorów."
@@ -19648,13 +19657,13 @@ msgid "Prime Saving"
 msgstr "Oszczędne płukanie"
 
 msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
-msgstr ""
+msgstr "Zmniejsza ilość materiału marnowanego podczas przygotowywania dyszy do druku i przyspiesza drukowanie. Może powodować nieznaczne mieszanie się kolorów (tylko w przypadku zewnętrznych dysz AMS 1./2. generacji H2C i H3C) lub niewielkie wady powierzchni."
 
 msgid "Learn more about prime mode"
 msgstr "Dowiedz się więcej o trybie oczyszczania"
 
 msgid "TPU Usage Notes"
-msgstr ""
+msgstr "Notatki dotyczące użytkowania TPU"
 
 msgid "TPU Filament Installation && Feeding Guide"
 msgstr ""
@@ -19791,7 +19800,7 @@ msgid "Unknown filaments will be treated as PLA."
 msgstr "Nieznane filamenty będą traktowane jako PLA."
 
 msgid "For better drying results, remove the filament."
-msgstr ""
+msgstr "Aby uzyskać lepsze efekty suszenia, należy wyjąć filament."
 
 msgid "Please store the filament marked with an exclamation mark."
 msgstr "Proszę rozładować filament oznaczony wykrzyknikiem."
@@ -19985,7 +19994,7 @@ msgid "cannot be mixed. Please select filaments using the same nozzle diameter."
 msgstr "nie można mieszać. Wybierz filamenty używane z dyszami o tej samej średnicy."
 
 msgid "No mix is available for the target color"
-msgstr ""
+msgstr "Brak dostępnej mieszanki dla koloru docelowego"
 
 msgid "Please select a filament for all components"
 msgstr "Proszę wybrać filament dla wszystkich komponentów"
@@ -20000,10 +20009,10 @@ msgid "Remove the third material"
 msgstr "Usuń trzeci materiał"
 
 msgid "Manual Mixing"
-msgstr ""
+msgstr "Mieszanie ręczne"
 
 msgid "Color Matching"
-msgstr ""
+msgstr "Dopasowanie kolorów"
 
 msgid "Target Filament"
 msgstr ""
@@ -20015,34 +20024,34 @@ msgid "Target color filament"
 msgstr ""
 
 msgid "Select Target Color"
-msgstr ""
+msgstr "Wybierz kolor docelowy"
 
 msgid "Mixed Result"
 msgstr ""
 
 msgid "Discard changes and match again"
-msgstr ""
+msgstr "Odrzuć zmiany i dopasuj ponownie"
 
 msgid "No results"
 msgstr ""
 
 msgid "Replace the target color on models with the mixed result"
+msgstr "Zastąp kolor docelowy na modelach kolorem uzyskanym w wyniku mieszania"
+
+msgid "Transparent filaments are not supported for color matching."
+msgstr ""
+
+msgid "Gradient filaments are not supported for color matching."
+msgstr ""
+
+msgid "Multicolor filaments are not supported for color matching."
 msgstr ""
 
 msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
-msgstr ""
-
-msgid "There is no other filament of the same type as the target color in the project."
-msgstr ""
-
-msgid "At least two other filaments of the same type as the target color are required."
-msgstr ""
-
-msgid "Fewer than two filaments of the same type use the target's nozzle diameter."
-msgstr ""
+msgstr "Żaden filament nie może być użyty jako kolor docelowy. Nie są obsługiwane filamenty gradientowe, wielokolorowe, przezroczyste ani podporowe."
 
 msgid "No available mixing recipe was found."
-msgstr ""
+msgstr "Nie znaleziono dostępnego przepisu na mieszankę."
 
 msgid "The current printer has no compatible PLA Palette filament."
 msgstr "W bieżącej drukarce nie ma kompatybilnego filamentu PLA Palette."
@@ -20084,45 +20093,45 @@ msgid "Please set a %smm diameter nozzle for the printer in the section below fi
 msgstr "Przed użyciem tej średnicy do cięcia należy najpierw ustawić dla drukarki dyszę o średnicy %s mm w poniższej sekcji."
 
 msgid "No nozzle is installed in this slot."
-msgstr ""
+msgstr "W tym gnieździe nie zamontowano żadnej dyszy."
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
-msgstr ""
+msgstr "Niezgodność średnicy dyszy. Ta dysza nie może być używana."
 
 msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
 msgstr "Ten ekstruder ma inną średnicę dyszy niż wybrana średnica drukowania. Drukowanie przy użyciu dysz o różnych średnicach ma charakter eksperymentalny."
 
 msgid "Nozzle Settings"
-msgstr ""
+msgstr "Ustawienia dyszy"
 
 msgid "Set your printer's nozzle installation status"
-msgstr ""
+msgstr "Ustaw status instalacji dyszy drukarki"
 
 #, c-format, boost-format
 msgid "The %s nozzle is in use by project filaments. Changing it will move them to 0.4 Standard. Change it anyway?"
-msgstr ""
+msgstr "Dysza %s jest używana przez filamenty projektu. Ta zmiana spowoduje ich przeniesienie do Standardu 0.4. Czy mimo wszystko to zmienić?"
 
 msgid "External AMS"
-msgstr ""
+msgstr "Zewnętrzny AMS"
 
 msgid "To pick this, change the nozzle settings first"
-msgstr ""
+msgstr "Aby to wybrać, najpierw zmień ustawienia dyszy"
 
 msgid "The filament in this slot cannot print with this nozzle"
-msgstr ""
+msgstr "Filament w tym gnieździe nie może być drukowany tą dyszą"
 
 msgid "Successfully synchronized Printer information."
-msgstr ""
+msgstr "Pomyślnie zsynchronizowano informacje o drukarce."
 
 msgid "Continue to sync filaments"
-msgstr "Kontynuuj aby zsynchronizować filamenty"
+msgstr "Kontynuuj, aby zsynchronizować filamenty"
 
 msgctxt "Sync_Nozzle_AMS"
 msgid "Cancel"
 msgstr "Anuluj"
 
 msgid "Successfully synchronized color and type of filament from printer."
-msgstr "Pomyślnie zsynchronizowano kolor i typ filamnentu z drukarką."
+msgstr "Pomyślnie zsynchronizowano kolor i typ filamentu z drukarką."
 
 msgctxt "FinishSyncAms"
 msgid "OK"
@@ -21129,6 +21138,36 @@ msgid ""
 msgstr ""
 "Niezawodność od pierwszego razu\n"
 "Mniej nadzoru, bardziej przewidywalne wyniki. Przykład: mała farma drukarek 3D produkująca części z PETG unika niespodzianek typu „awaria po 6 godzinach” i utrzymuje harmonogram partii."
+
+#~ msgid "How to feed TPU filament."
+#~ msgstr "Jak podawać filament TPU."
+
+#~ msgid "Switch to the auxiliary live camera view"
+#~ msgstr "Przełącz na pomocniczy widok kamery na żywo"
+
+#~ msgid "Switch to the main live camera view"
+#~ msgstr "Przejdź do głównego widoku kamery na żywo"
+
+#~ msgid "The 3mf file version is in Beta and it is newer than the current Bambu Studio version."
+#~ msgstr "Wersja pliku 3MF jest w wersji Beta i jest nowsza niż obecna wersja Bambu Studio."
+
+#~ msgid "If you would like to try Bambu Studio Beta, you may click to"
+#~ msgstr "Jeśli chciałbyś wypróbować Bambu Studio Beta, możesz kliknąć tutaj"
+
+#~ msgid "Download Beta Version"
+#~ msgstr "Pobierz wersje Beta"
+
+#~ msgid "The 3mf file version is newer than the current Bambu Studio version."
+#~ msgstr "Wersja pliku 3MF jest nowsza niż obecna w wersji Bambu Studio."
+
+#~ msgid "Update your Bambu Studio could enable all functionality in the 3mf file."
+#~ msgstr "Zaktualizowanie Bambu Studio może umożliwić korzystanie ze wszystkich funkcji pliku 3MF."
+
+#~ msgid "Current Version: "
+#~ msgstr "Obecna wersja: "
+
+#~ msgid "Latest Version: "
+#~ msgstr "Najnowsza wersja: "
 
 #, boost-format
 #~ msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."

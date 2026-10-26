@@ -365,7 +365,7 @@
   "Updating...": "更新中...",
   "{{count}} slots will be batch-added using AMS data_one": "将按 AMS 数据批量添加 {{count}} 卷耗材",
   "Add Option": "添加选项",
-  "AMS Operation": "AMS Operation",
+  "AMS Operation": "AMS 操作",
   "Already exists": "已存在",
   "Back": "Back",
   "Batch Add ({{count}})_one": "批量添加 ({{count}})",

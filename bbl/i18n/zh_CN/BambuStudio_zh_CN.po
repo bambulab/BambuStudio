@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-22 14:23+0800\n"
+"POT-Creation-Date: 2026-10-26 22:30+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -224,6 +224,15 @@ msgstr ""
 
 msgid "Special attention should be paid to the feeding method of TPU."
 msgstr "TPU 的进料方式需要特别注意，"
+
+msgid " Please "
+msgstr "打印前请"
+
+msgid "check the Wiki guide"
+msgstr "查看 Wiki 说明"
+
+msgid " before printing."
+msgstr "​"
 
 msgid "How to feed TPU filament on X2D."
 msgstr "X2D TPU进料方式。"
@@ -689,6 +698,9 @@ msgstr "重新加载"
 msgid "Copy diagnostic information"
 msgstr "复制诊断信息"
 
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
+msgstr "执行此操作的耗材类型未知。请设置槽位信息。"
+
 msgid "Add refill filament"
 msgstr "添加续料耗材"
 
@@ -767,6 +779,14 @@ msgstr "请将耗材手动插入工具头上%1%号热端进料口，直到推不
 #, boost-format
 msgid "Please manually insert the filament from slot %1% into the extruder loading port until it cannot be pushed any further."
 msgstr "请将%1%号槽耗材手动插入挤出机进料口，直到推不动为止。"
+
+#, boost-format
+msgid "Slot %1% filament loading in progress"
+msgstr "槽位 %1% 耗材进料中"
+
+#, boost-format
+msgid "Slot %1% filament unloading in progress"
+msgstr "槽位 %1% 耗材退料中"
 
 msgid "Other filaments are info-only"
 msgstr "其他耗材仅供查看"
@@ -992,14 +1012,6 @@ msgstr "自检"
 
 msgid "No selected machine"
 msgstr "未选择设备"
-
-#, boost-format
-msgid "Slot %1% filament loading in progress"
-msgstr "槽位 %1% 耗材进料中"
-
-#, boost-format
-msgid "Slot %1% filament unloading in progress"
-msgstr "槽位 %1% 耗材退料中"
 
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
@@ -3543,9 +3555,6 @@ msgstr "AMS尚未初始化。请先初始化后再使用。"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "选择1个AMS槽位，然后点击进料/退料按钮以自动进料/退料。"
 
-msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
-msgstr "执行此操作的耗材类型未知。请设置槽位信息。"
-
 msgid "/"
 msgstr ""
 
@@ -4398,7 +4407,7 @@ msgstr "新增混色耗材"
 
 #, boost-format
 msgid "The project supports up to %1% physical filaments."
-msgstr ""
+msgstr "项目最多支持 %1% 个实体耗材。"
 
 msgid "Updating"
 msgstr "更新中"
@@ -4493,7 +4502,7 @@ msgstr "颜色数量超过了原模型颜色数量（%d）"
 
 #, c-format, boost-format
 msgid "Up to %d colors supported."
-msgstr ""
+msgstr "最多支持 %d 色。"
 
 msgid "Click to select a matching filament"
 msgstr "点击选择匹配耗材"
@@ -4506,14 +4515,14 @@ msgstr "如何使用标准混色套装"
 
 #, boost-format
 msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit, so at least %2% project filament(s) must be deleted first. The following unused project filaments will be deleted automatically:"
-msgstr ""
+msgstr "项目耗材过多。添加混色套装后将超出耗材数量上限（%1%），因此需要先删除至少 %2% 个项目耗材。以下未使用的项目耗材将被自动删除："
 
 #, boost-format
 msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit. Please delete at least %2% filament(s) on the Prepare page, then add the kit again."
-msgstr ""
+msgstr "项目耗材过多。添加混色套装后将超出耗材数量上限（%1%）。请先在准备页删除至少 %2% 个耗材，然后重新添加套装。"
 
 msgid "Existing project filaments"
-msgstr ""
+msgstr "已有项目耗材"
 
 msgid "What is the CMYKW mixing kit?"
 msgstr "什么是 CMYKW 混色套装？"
@@ -4529,6 +4538,12 @@ msgstr "青 · 品红 · 黄 · 黑 · 白"
 
 msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
 msgstr "因此，导入模型时可以使用这些套装耗材及其混色进行颜色匹配。"
+
+msgid "The mixing kit is already in the project filament list. Use it now?"
+msgstr ""
+
+msgid "Use now"
+msgstr ""
 
 msgid "Add to project filament list"
 msgstr "添加到项目耗材列表"
@@ -7202,11 +7217,11 @@ msgstr "未能加载播放器，请重新点击“播放”按钮。"
 msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "插件库加载失败，点击这里查看解决办法。"
 
-msgid "Switch to the auxiliary live camera view"
-msgstr "切换到辅助实时摄像头画面"
+msgid "Switch to BirdsEye Camera"
+msgstr ""
 
-msgid "Switch to the main live camera view"
-msgstr "切换到主实时摄像头画面"
+msgid "Switch to Liveview Camera"
+msgstr ""
 
 msgid "Switch live camera view"
 msgstr "切换实时摄像头画面"
@@ -7926,6 +7941,10 @@ msgstr ""
 msgid "Live"
 msgstr "实时播放中"
 
+#, c-format, boost-format
+msgid "Zoom %.1fx"
+msgstr ""
+
 msgid "Step file import parameters"
 msgstr "导入step文件选项"
 
@@ -8017,26 +8036,19 @@ msgstr "%s 信息"
 msgid "Newer 3mf version"
 msgstr "较新的3mf版本"
 
-msgid "The 3mf file version is in Beta and it is newer than the current Bambu Studio version."
-msgstr "3mf文件为Beta版本，并且比当前的Bambu Studio版本新。"
+#, c-format, boost-format
+msgid "The 3mf file is Beta version %s, current version: %s"
+msgstr "3mf文件为 %s Beta版本，当前版本：%s"
 
-msgid "If you would like to try Bambu Studio Beta, you may click to"
-msgstr "如果您想尝试Bambu Studio Beta版本，请点击"
+#, c-format, boost-format
+msgid "The 3mf file is version %s, current version: %s"
+msgstr "3mf文件为 %s 版本，当前版本：%s"
 
-msgid "Download Beta Version"
-msgstr "下载Beta版本"
+msgid "Importing a newer 3mf file may cause compatibility issues. We recommend downloading the latest version before use. Please click"
+msgstr "新3mf文件导入可能会有兼容性问题，建议您下载新版本后使用，请点击"
 
-msgid "The 3mf file version is newer than the current Bambu Studio version."
-msgstr "3mf文件版本比当前的Bambu Studio版本新。"
-
-msgid "Update your Bambu Studio could enable all functionality in the 3mf file."
-msgstr "更新您的 Bambu Studio 可以启用 3mf 文件中的所有功能。"
-
-msgid "Current Version: "
-msgstr "当前版本："
-
-msgid "Latest Version: "
-msgstr "最新版本："
+msgid "Download Latest Version"
+msgstr ""
 
 msgctxt "Software"
 msgid "Update"
@@ -8059,15 +8071,6 @@ msgstr "如何使用仅局域网模式"
 
 msgid "Don't show this dialog again"
 msgstr "不再显示此对话框？"
-
-msgid " Please "
-msgstr "打印前请"
-
-msgid "check the Wiki guide"
-msgstr "查看 Wiki 说明"
-
-msgid " before printing."
-msgstr "​"
 
 msgid "3D Mouse disconnected."
 msgstr "3D鼠标断连。"
@@ -9294,10 +9297,10 @@ msgstr "无法混合使用不同喷嘴直径的耗材"
 
 #, c-format, boost-format
 msgid "Up to %d mixed filaments can be created"
-msgstr ""
+msgstr "最多支持创建 %d 个混色耗材"
 
 msgid "At least two filaments are required to create a mixed filament"
-msgstr ""
+msgstr "至少需要两个耗材才能创建混色耗材"
 
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
@@ -9607,7 +9610,7 @@ msgstr "警告"
 
 #, boost-format
 msgid "\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."
-msgstr ""
+msgstr "“%1%”同时使用了混色子层和可变层高，可能会影响打印质量。"
 
 msgid "Invalid data"
 msgstr "无效数据"
@@ -10722,6 +10725,13 @@ msgid ""
 "- Unsaved projects.\n"
 "- Delete a filament used by a model"
 msgstr ""
+"- 清除加载文件后同步打印机预设的设置\n"
+"- 清除”加载3mf“对话框设置\n"
+"- 清除执行后处理脚本的设置\n"
+"- 清除禁用支撑参数推荐的设置\n"
+"- 清除对未保存的项目的选择\n"
+"- 带有可变层高的混合颜色子层警告\n"
+"- 删除模型使用的耗材警告"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "确定重置所有首选项设置吗?下次重新启动之后生效。"
@@ -11364,12 +11374,12 @@ msgid "External AMS and %1$s filaments are both selected for PrintTool %2$d. Bec
 msgstr ""
 
 #, c-format, boost-format
-msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
-msgstr "在热端 %s 中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"
+msgid "TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."
+msgstr ""
 
 #, c-format, boost-format
-msgid "TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."
-msgstr "%d号槽位的TPU可能在换头时滑出。请将其移到其他槽位后重试。"
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr "在热端 %s 中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"
 
 msgid "Cool"
 msgstr "Cool"
@@ -19844,7 +19854,7 @@ msgid "Edit Mixed Filament"
 msgstr "编辑混色耗材"
 
 msgid "Mixed result preview"
-msgstr ""
+msgstr "混色结果预览"
 
 msgid "Effect Preview"
 msgstr "效果预览"
@@ -19908,40 +19918,40 @@ msgid "Color Matching"
 msgstr "颜色匹配"
 
 msgid "Target Filament"
-msgstr ""
+msgstr "目标耗材"
 
 msgid "(The system will mix 2-3 filaments to approximate this color)"
-msgstr ""
+msgstr "（系统将混合 2-3 个耗材来接近此颜色）"
 
 msgid "Target color filament"
-msgstr ""
+msgstr "目标颜色耗材"
 
 msgid "Select Target Color"
 msgstr "选择目标颜色"
 
 msgid "Mixed Result"
-msgstr ""
+msgstr "混色结果"
 
 msgid "Discard changes and match again"
 msgstr "放弃修改，重新匹配"
 
 msgid "No results"
-msgstr ""
+msgstr "无结果"
 
 msgid "Replace the target color on models with the mixed result"
 msgstr "用混色结果替换模型上的目标颜色"
 
+msgid "Transparent filaments are not supported for color matching."
+msgstr ""
+
+msgid "Gradient filaments are not supported for color matching."
+msgstr ""
+
+msgid "Multicolor filaments are not supported for color matching."
+msgstr ""
+
 msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
 msgstr "没有可用作目标颜色的耗材（渐变、多色、透明及支撑耗材均不支持）。"
-
-msgid "There is no other filament of the same type as the target color in the project."
-msgstr "项目中没有与目标颜色耗材类型相同的其他耗材。"
-
-msgid "At least two other filaments of the same type as the target color are required."
-msgstr "至少还需要两个与目标颜色耗材类型相同的耗材。"
-
-msgid "Fewer than two filaments of the same type use the target's nozzle diameter."
-msgstr "类型相同且喷嘴直径与目标一致的耗材不足两个。"
 
 msgid "No available mixing recipe was found."
 msgstr "未找到可用的混色方案。"
@@ -20005,19 +20015,19 @@ msgid "The %s nozzle is in use by project filaments. Changing it will move them 
 msgstr "%s 喷嘴类型正在被项目耗材使用，修改后对应耗材喷嘴会切换为 0.4 标准，是否修改？"
 
 msgid "External AMS"
-msgstr ""
+msgstr "外置AMS"
 
 msgid "To pick this, change the nozzle settings first"
 msgstr "要选择此喷嘴，请先更改喷嘴设置。"
 
 msgid "The filament in this slot cannot print with this nozzle"
-msgstr ""
+msgstr "这个耗材不能使用这个喷嘴打印。"
 
 msgid "Successfully synchronized Printer information."
 msgstr "打印机信息同步成功。"
 
 msgid "Continue to sync filaments"
-msgstr ""
+msgstr "继续同步耗材"
 
 msgctxt "Sync_Nozzle_AMS"
 msgid "Cancel"
@@ -20028,7 +20038,7 @@ msgstr "成功从打印机同步耗材颜色和类型。"
 
 msgctxt "FinishSyncAms"
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 msgid "Remark"
 msgstr ""
@@ -20049,7 +20059,7 @@ msgid "Multiple similar filaments were found in Filament Manager. Please confirm
 msgstr ""
 
 msgid "New Filament"
-msgstr ""
+msgstr "新建耗材"
 
 msgid "New filament information has been recorded."
 msgstr ""
@@ -20059,18 +20069,24 @@ msgid ""
 "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
 "interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
+"普通 (自动) 支撑类型，1 支撑墙层数，0 顶部 Z 距离，0 底部 Z 距离，0 接触面间距，0 支撑/模型 XY 距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
+"普通 (自动) 支撑类型，1 支撑墙层数，0 顶部 Z 距离，0 接触面间距，0 支撑/模型 XY 间距，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
+"0 顶部 Z 距离，0 底部 Z 距离，0 接触面间距，0 支撑/模型 XY 距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -20153,16 +20169,16 @@ msgstr ""
 "按“执行”继续。"
 
 msgid "Color mixing requires at least two filaments of the same type, but only one is available. The following filaments will be added based on the model colors:"
-msgstr ""
+msgstr "混色至少需要两个同类型耗材，但当前仅有一个可用。将根据模型颜色添加以下耗材："
 
 msgid "Color mixing requires at least two filaments of the same type. The following filaments will be added based on the model colors:"
-msgstr ""
+msgstr "混色至少需要两个同类型耗材。将根据模型颜色添加以下耗材："
 
 msgid "New filament"
 msgstr ""
 
 msgid "Note: You can also delete or modify the newly added filaments in the drop-down list of the filament matching dialog."
-msgstr ""
+msgstr "注意：你也可以在耗材匹配弹窗的下拉列表中删除或修改新添加的耗材。"
 
 msgid "System Information"
 msgstr "系统信息"
@@ -20193,7 +20209,7 @@ msgid "Extruder Settings"
 msgstr "喷嘴设置"
 
 msgid "Hotend status is abnormal. Please update the firmware."
-msgstr ""
+msgstr "热端状态异常，请更新固件。"
 
 msgid "Update Firmware"
 msgstr "更新固件"
@@ -20275,12 +20291,17 @@ msgid ""
 "\n"
 "Please install or repair the Microsoft Edge WebView2 Runtime, then restart Bambu Studio."
 msgstr ""
+"内嵌的浏览器启动失败。\n"
+"\n"
+"主页、设备页面和登录窗口等页面将显示空白。\n"
+"\n"
+"请安装或修复 Microsoft Edge WebView2 Runtime，然后重启 Bambu Studio。"
 
 msgid "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank."
-msgstr ""
+msgstr "无法启动内嵌的浏览器。主页、设备页面和登录窗口等页面将显示空白。"
 
 msgid "Embedded Browser Unavailable"
-msgstr ""
+msgstr "内嵌的浏览器不可用"
 
 msgid "Unmapped"
 msgstr "未匹配"
@@ -20692,7 +20713,7 @@ msgid "Nozzle and Filament Sync"
 msgstr "喷嘴耗材同步"
 
 msgid "Mapping"
-msgstr ""
+msgstr "匹配"
 
 msgid "Direct Override"
 msgstr "直接覆盖"
@@ -20704,7 +20725,7 @@ msgid "Overwrite the project filaments list with the filaments in the printer."
 msgstr "用打印机中的耗材覆盖项目耗材列表。"
 
 msgid "Match the project filaments with the filaments in the printer according to the matching mode. After syncing, the mapped results will be used."
-msgstr ""
+msgstr "根据匹配模式，将项目耗材与打印机中的耗材进行匹配。同步完成后，将使用匹配结果。"
 
 msgid "After overwriting"
 msgstr "覆盖后"
@@ -20713,13 +20734,13 @@ msgid "After mapping"
 msgstr "匹配后"
 
 msgid "Filament matching"
-msgstr ""
+msgstr "耗材匹配"
 
 msgid "Color first"
 msgstr "颜色优先"
 
 msgid "Precision first"
-msgstr ""
+msgstr "精度优先"
 
 msgid "Reset all filament mapping"
 msgstr "重置全部耗材映射"
@@ -21031,6 +21052,42 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Switch to the auxiliary live camera view"
+#~ msgstr "切换到辅助实时摄像头画面"
+
+#~ msgid "Switch to the main live camera view"
+#~ msgstr "切换到主实时摄像头画面"
+
+#~ msgid "The 3mf file version is in Beta and it is newer than the current Bambu Studio version."
+#~ msgstr "3mf文件为Beta版本，并且比当前的Bambu Studio版本新。"
+
+#~ msgid "If you would like to try Bambu Studio Beta, you may click to"
+#~ msgstr "如果您想尝试Bambu Studio Beta版本，请点击"
+
+#~ msgid "Download Beta Version"
+#~ msgstr "下载Beta版本"
+
+#~ msgid "The 3mf file version is newer than the current Bambu Studio version."
+#~ msgstr "3mf文件版本比当前的Bambu Studio版本新。"
+
+#~ msgid "Update your Bambu Studio could enable all functionality in the 3mf file."
+#~ msgstr "更新您的 Bambu Studio 可以启用 3mf 文件中的所有功能。"
+
+#~ msgid "Current Version: "
+#~ msgstr "当前版本："
+
+#~ msgid "Latest Version: "
+#~ msgstr "最新版本："
+
+#~ msgid "There is no other filament of the same type as the target color in the project."
+#~ msgstr "项目中没有与目标颜色耗材类型相同的其他耗材。"
+
+#~ msgid "At least two other filaments of the same type as the target color are required."
+#~ msgstr "至少还需要两个与目标颜色耗材类型相同的耗材。"
+
+#~ msgid "Fewer than two filaments of the same type use the target's nozzle diameter."
+#~ msgstr "类型相同且喷嘴直径与目标一致的耗材不足两个。"
 
 #, boost-format
 #~ msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."

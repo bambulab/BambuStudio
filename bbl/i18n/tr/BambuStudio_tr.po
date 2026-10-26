@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-22 14:23+0800\n"
+"POT-Creation-Date: 2026-10-26 22:30+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -29,16 +29,16 @@ msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Filament modeli bilinmiyor. Rastgele bir filament ön ayarı kullanılacaktır."
 
 msgid "This calibration does not support the currently selected nozzle diameter"
-msgstr "Bu kalibrasyon, şu anda seçilen nozzle çapını desteklememektedir"
+msgstr "Bu kalibrasyon şu anda seçili olan püskürtme ucu çapını desteklemiyor"
 
 msgid "Current flowrate cali param is invalid"
-msgstr "Geçerli akış hızı cali parametresi geçersiz"
+msgstr "Mevcut akış hızı kalibrasyon parametresi geçersiz"
 
 msgid "Selected diameter and machine diameter do not match"
-msgstr "Seçilen çap ile makine çapı eşleşmiyor"
+msgstr "Seçilen çap, yazıcıda ayarlanan çapla eşleşmiyor"
 
 msgid "Failed to generate cali gcode"
-msgstr "Cali G-code oluşturma başarısız oldu"
+msgstr "Kalibrasyon G-kodu oluşturulamadı"
 
 msgid "Calibration error"
 msgstr "Kalibrasyon hatası"
@@ -205,11 +205,11 @@ msgstr "Sağ ekstrüderde ABS/ASA/PETG HF kullanılırken, bu malzeme yalnızca 
 
 #, c-format, boost-format
 msgid "%s is not supported by the current %s hotend. Please confirm the filament type and try again."
-msgstr ""
+msgstr "%s, mevcut %s hotend tarafından desteklenmiyor. Lütfen filament türünü doğrulayın ve tekrar deneyin."
 
 #, c-format, boost-format
 msgid "%s is not supported by the current 2.85 mm TPU hotend. Please confirm the filament type and try again."
-msgstr ""
+msgstr "%s mevcut 2,85 mm TPU hotend tarafından desteklenmiyor. Lütfen filament türünü doğrulayın ve tekrar deneyin."
 
 msgid "PPA-CF does not support AMS feeding. Use an external spool instead."
 msgstr ""
@@ -218,8 +218,17 @@ msgstr ""
 msgid "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
 msgstr ""
 
-msgid "How to feed TPU filament."
-msgstr "TPU filament nasıl beslenir."
+msgid "Special attention should be paid to the feeding method of TPU."
+msgstr ""
+
+msgid " Please "
+msgstr ""
+
+msgid "check the Wiki guide"
+msgstr ""
+
+msgid " before printing."
+msgstr ""
 
 msgid "How to feed TPU filament on X2D."
 msgstr "X2D'de TPU filament nasıl beslenir?"
@@ -294,19 +303,19 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
-msgstr ""
+msgstr "Filament Hattı Değiştirici nedeniyle %s kullanılamaz. Bunun yerine harici bir makara kullan."
 
 #, c-format, boost-format
 msgid "%s is not supported with a standard %s nozzle."
-msgstr ""
+msgstr "%s standart %s püskürtme ucuyla kullanılamaz."
 
 #, c-format, boost-format
 msgid "%s is only supported for printing with the main extruder."
-msgstr ""
+msgstr "%s yalnızca ana ekstrüderle yazdırıldığında desteklenir."
 
 #, c-format, boost-format
 msgid "%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction."
-msgstr ""
+msgstr "%s yardımcı ekstrüder ile kullanıldığında daha yüksek risk taşır ve yazdırma hatasına veya ekipman arızasına neden olabilir."
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may break inside the filament tube."
@@ -314,39 +323,39 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%s is used with the auxiliary extruder and may impact print quality."
-msgstr ""
+msgstr "%s yardımcı ekstrüder ile kullanıldığında baskı kalitesini etkileyebilir."
 
 #, c-format, boost-format
 msgid "%s used with a high-flow %s nozzle may affect print quality."
-msgstr ""
+msgstr "%s yüksek akışlı %s püskürtme ucuyla kullanıldığında baskı kalitesini etkileyebilir."
 
 #, c-format, boost-format
 msgid "%s used with a high-flow %s nozzle may cause a clog."
-msgstr ""
+msgstr "%s yüksek akışlı %s püskürtme ucuyla kullanıldığında tıkanmaya neden olabilir."
 
 #, c-format, boost-format
 msgid "%s used with a high-flow %s nozzle may cause oozing."
-msgstr ""
+msgstr "%s yüksek akışlı %s püskürtme ucuyla kullanıldığında sızmaya neden olabilir."
 
 #, c-format, boost-format
 msgid "%s used with a high-flow %s nozzle may lead to difficult extrusion."
-msgstr ""
+msgstr "%s yüksek akışlı %s püskürtme ucuyla kullanıldığında ekstrüzyonu zorlaştırabilir."
 
 #, c-format, boost-format
 msgid "%s used with a high-flow %s nozzle may result in poor quality in overhang and bridge areas of the model."
-msgstr ""
+msgstr "%s yüksek akışlı %s püskürtme ucuyla kullanıldığında modelin çıkıntı ve köprü bölgelerindeki baskı kalitesini düşürebilir."
 
 #, c-format, boost-format
 msgid "%s used with a standard %s nozzle may affect print quality."
-msgstr ""
+msgstr "%s standart %s püskürtme ucuyla kullanıldığında baskı kalitesini etkileyebilir."
 
 #, c-format, boost-format
 msgid "%s used with a standard %s nozzle may cause oozing."
-msgstr ""
+msgstr "%s standart %s püskürtme ucuyla kullanıldığında sızmaya neden olabilir."
 
 #, c-format, boost-format
 msgid "%s used with a standard %s nozzle may lead to difficult extrusion."
-msgstr ""
+msgstr "%s standart %s püskürtme ucuyla kullanıldığında ekstrüzyonu zorlaştırabilir."
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may fail to load or unload."
@@ -354,15 +363,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
-msgstr ""
+msgstr "Yardımcı ekstrüder kullanılırken %s filamentinin yüksek akışlı %s püskürtme ucuyla yazdırılması model kalitesini etkileyebilir."
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may cause a clog."
-msgstr ""
+msgstr "Yardımcı ekstrüder kullanılırken %s filamentinin yüksek akışlı %s püskürtme ucuyla yazdırılması tıkanmaya neden olabilir."
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality."
-msgstr ""
+msgstr "Yardımcı ekstrüder kullanılırken %s filamentinin standart %s püskürtme ucuyla yazdırılması model kalitesini etkileyebilir."
 
 #, c-format, boost-format
 msgid "%s is not supported by %s extruder."
@@ -385,13 +394,13 @@ msgid "There may be print quality issues when printing '%s' with %s extruder. Us
 msgstr "'%s' filamenti %s ekstrüder ile yazdırılırken baskı kalitesi sorunları oluşabilir. Dikkatli kullan."
 
 msgid "The total weight must bigger than remain weight."
-msgstr ""
+msgstr "Toplam ağırlık, kalan ağırlıktan daha büyük olmalıdır."
 
 msgid "Please enter a valid remaining weight from 1g to 10000g."
-msgstr ""
+msgstr "Lütfen 1 gram ile 10000 gram arasında geçerli bir kalan ağırlık değeri girin."
 
 msgid "Please enter a valid total weight from 1g to 10000g."
-msgstr ""
+msgstr "Lütfen 1 gram ile 10000 gram arasında geçerli bir toplam ağırlık girin."
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "Takım kafası ve hotend rafı hareket edebilir. Lütfen ellerini odadan uzak tut."
@@ -460,16 +469,16 @@ msgid "Update failed."
 msgstr "Güncelleme başarısız oldu."
 
 msgid "Hotend & Filament"
-msgstr ""
+msgstr "Hotend ve Filament"
 
 msgid "Lift Hotend Rack"
-msgstr ""
+msgstr "Hotend Rafını Yükselt"
 
 msgid "Recenter Hotend Rack"
-msgstr ""
+msgstr "Hotend Rafını Yeniden Merkezle"
 
 msgid "Lower Hotend Rack"
-msgstr ""
+msgstr "Hotend Rafını Alçalt"
 
 msgid "Hotend Rack"
 msgstr "Hotend Rafı"
@@ -484,10 +493,10 @@ msgid "Raised"
 msgstr "Yükseltilmiş"
 
 msgid "Lowered"
-msgstr ""
+msgstr "Alçaltıldı"
 
 msgid "Centered"
-msgstr ""
+msgstr "Merkezlendi"
 
 msgid "Current AMS humidity"
 msgstr "Mevcut AMS nemi"
@@ -683,6 +692,9 @@ msgstr "Yenile"
 msgid "Copy diagnostic information"
 msgstr "Teşhis bilgilerini kopyala"
 
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
+msgstr "Bu işlemi gerçekleştirmek için gerekli olan filament türü bilinmiyor. Lütfen hedef filamentin bilgilerini ayarla."
+
 msgid "Add refill filament"
 msgstr "Makarasız filament ekle"
 
@@ -690,7 +702,7 @@ msgid "Add material group"
 msgstr "Malzeme grubu ekle"
 
 msgid "AMS Bridge Debug"
-msgstr ""
+msgstr "AMS Köprüsü Hata Ayıklama"
 
 msgid "Idling..."
 msgstr "Boşta..."
@@ -762,6 +774,14 @@ msgstr "Lütfen filamenti takım kafasındaki hotend %1% üzerindeki yükleme gi
 msgid "Please manually insert the filament from slot %1% into the extruder loading port until it cannot be pushed any further."
 msgstr "Lütfen %1% numaralı yuvadaki filamenti ekstrüderin yükleme girişine, daha fazla ilerlemeyene kadar elle itin."
 
+#, boost-format
+msgid "Slot %1% filament loading in progress"
+msgstr ""
+
+#, boost-format
+msgid "Slot %1% filament unloading in progress"
+msgstr ""
+
 msgid "Other filaments are info-only"
 msgstr "Diğer filamentler yalnızca bilgi amaçlı gösterilir"
 
@@ -822,16 +842,16 @@ msgid "Edit Filament"
 msgstr "Filamenti Düzenle"
 
 msgid "Confirm to exit this process?"
-msgstr ""
+msgstr "Bu işlemden çıkmayı onaylıyor musunuz?"
 
 msgid "If the filament is not pulled out, subsequent printing may pause due to filament switching. Please operate carefully."
-msgstr ""
+msgstr "Filament dışarı çekilmezse, sonraki yazdırma işlemleri filament değişimi nedeniyle duraklayabilir. Lütfen dikkatli kullanın."
 
 msgid "Exit"
-msgstr ""
+msgstr "Çıkış"
 
 msgid "Still exit"
-msgstr ""
+msgstr "Yine de çık"
 
 msgid "Tip"
 msgstr "İpucu"
@@ -986,14 +1006,6 @@ msgstr "Kendi kendine test"
 
 msgid "No selected machine"
 msgstr "Seçilen makine yok"
-
-#, boost-format
-msgid "Slot %1% filament loading in progress"
-msgstr ""
-
-#, boost-format
-msgid "Slot %1% filament unloading in progress"
-msgstr ""
 
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
@@ -1353,6 +1365,8 @@ msgid ""
 "Ctrl+left-click:select multiple objects.\n"
 "Alt+left-click:select multiple parts."
 msgstr ""
+"Ctrl tuşuna basılı tutarak sol tıklama: birden fazla nesne seçme.\n"
+"Alt tuşuna basılı tutarak sol tıklama: birden fazla parçayı seçme."
 
 msgid "Align"
 msgstr "Hizala"
@@ -1485,7 +1499,7 @@ msgstr "Açık kenarlar Kesme Aracından kaynaklanıyor olabilir. Şimdi düzelt
 
 #, c-format, boost-format
 msgid "Repair object: %s"
-msgstr ""
+msgstr "Nesneyi onar: %s"
 
 msgid "Repairing model object"
 msgstr "Model nesnesi onarılıyor"
@@ -1704,10 +1718,10 @@ msgid "Show wireframe"
 msgstr "Tel kafes görünümünü göster"
 
 msgid "Keep all painting"
-msgstr ""
+msgstr "Tüm boyamaları koru"
 
 msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
-msgstr ""
+msgstr "Renkli boyama, dikiş boyama, destek boyama ve tüylü yüzey boyama işlemlerini içerir. İşaretlenmezse sonuçtaki tüm boyamalar kaldırılır."
 
 #, boost-format
 msgid "%1%"
@@ -3549,9 +3563,6 @@ msgstr "AMS başlatılmadı. Lütfen kullanmadan önce başlat."
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Bir AMS yuvası seç ve ardından filamentleri otomatik olarak yüklemek veya boşaltmak için \"Yükle\" ya da \"Boşalt\" düğmesine bas."
 
-msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
-msgstr "Bu işlemi gerçekleştirmek için gerekli olan filament türü bilinmiyor. Lütfen hedef filamentin bilgilerini ayarla."
-
 msgid "/"
 msgstr "/"
 
@@ -3580,7 +3591,7 @@ msgstr "Hava Temizleyici"
 
 msgctxt "AirPurifier"
 msgid "Max"
-msgstr "Maks"
+msgstr "Maks."
 
 msgid "Silent"
 msgstr "Sessiz"
@@ -4451,7 +4462,7 @@ msgid "Some colors have no matching filament. Please match them before importing
 msgstr "Bazı renklerin eşleşen filamenti yok. Lütfen içe aktarmadan önce bunları eşleştir."
 
 msgid "Complete All Filaments"
-msgstr ""
+msgstr "Tüm Filamentleri Tamamla"
 
 msgid "Skip"
 msgstr "Atla"
@@ -4537,6 +4548,12 @@ msgstr "Camgöbeği · Macenta · Sarı · Siyah · Beyaz"
 
 msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
 msgstr "Bu nedenle, bir modeli içe aktarırken bu kit filamentlerini ve karışımlarını kullanarak renkleri eşleştirebilirsin."
+
+msgid "The mixing kit is already in the project filament list. Use it now?"
+msgstr ""
+
+msgid "Use now"
+msgstr ""
 
 msgid "Add to project filament list"
 msgstr "Projenin filament listesine ekle"
@@ -4968,7 +4985,7 @@ msgid "When inserting a new filament, the AMS will not automatically read its in
 msgstr "Yeni bir filament takıldığında AMS, bilgilerini otomatik olarak okumaz ve manuel olarak girebilmen için bilgi alanını boş bırakır."
 
 msgid "Only for AMS/AMS 2pro/AMS HT."
-msgstr ""
+msgstr "Sadece AMS/AMS 2pro/AMS HT modelleri için geçerlidir."
 
 msgid "Power on update"
 msgstr "Açılışta güncelleme"
@@ -5210,7 +5227,7 @@ msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree c
 msgstr "Bu filament türü için önerilen püskürtme ucu sıcaklığı [%d, %d] santigrat derecedir."
 
 msgid "To ensure the print quality of the prime tower interface layer, the interface layer print temperature should preferably be greater than or equal to the nozzle temperature."
-msgstr ""
+msgstr "Prime kulesinin arayüz katmanında iyi baskı kalitesi sağlamak için arayüz katmanı yazdırma sıcaklığının tercihen püskürtme ucu sıcaklığına eşit veya daha yüksek olması gerekir."
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -6217,7 +6234,7 @@ msgid "Increase/decrease edit area"
 msgstr "Düzenleme alanını artır/azalt"
 
 msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
-msgstr ""
+msgstr "Karışık renkli alt katman etkinleştirildi. Değişken katman yüksekliğiyle birlikte kullanılması baskı kalitesini etkileyebilir."
 
 msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
 msgstr "Bazı katman yükseklikleri mevcut püskürtme ucunun izin verilen aralığını aştığı için değişken katman yüksekliği profili sıfırlandı."
@@ -6348,15 +6365,15 @@ msgstr "Genel Bakış"
 
 #, boost-format
 msgid "Plate %1%: the support ring of %2% extends beyond the plate boundary."
-msgstr ""
+msgstr "Tabla %1%: %2% nesnesinin destek halkası tablanın sınırlarını aşıyor."
 
 #, boost-format
 msgid "Plate %1%: the support ring of %2% overlaps %3%."
-msgstr ""
+msgstr "Tabla %1%: %2% nesnesinin destek halkası %3% ile çakışıyor."
 
 #, boost-format
 msgid "Plate %1%: the support rings of %2% and %3% overlap."
-msgstr ""
+msgstr "Tabla %1%: %2% ve %3% nesnelerinin destek halkaları birbiriyle çakışıyor."
 
 msgid "Select Plate"
 msgstr "Baskı tablasını seç"
@@ -6621,13 +6638,13 @@ msgid "Show \"Live Video\" guide page."
 msgstr "\"Canlı Video\" rehber sayfasını göster."
 
 msgid "Not Installed"
-msgstr ""
+msgstr "Kurulu Değil"
 
 msgid "Abnormal"
-msgstr ""
+msgstr "Anormal"
 
 msgid "Installed"
-msgstr ""
+msgstr "Kurulu"
 
 msgid "ConnectPrinter(LAN)"
 msgstr "Yazıcıya Bağlan (LAN)"
@@ -6705,10 +6722,10 @@ msgid "The current page has unsaved changes. You can continue editing or choose 
 msgstr "Bu sayfada kaydedilmemiş değişiklikler var. Düzenlemeye devam edebilir veya ayrılmadan önce değişiklikleri kaydetmeyi ya da atmayı seçebilirsin."
 
 msgid "Discard"
-msgstr ""
+msgstr "Vazgeç"
 
 msgid "Stay on this page"
-msgstr ""
+msgstr "Bu sayfada kalın"
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "Helio Additive ile daha hızlı, daha güvenilir ve çarpıtmasız baskılar elde et."
@@ -7022,7 +7039,7 @@ msgstr "Servisler"
 
 #, c-format, boost-format
 msgid "Hide %s"
-msgstr ""
+msgstr "%s öğesini gizle"
 
 msgid "Hide Others"
 msgstr "Diğerlerini Gizle"
@@ -7223,11 +7240,11 @@ msgstr "Oynatıcı yüklenmedi. Tekrar denemek için lütfen \"oynat\" düğmesi
 msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "Eklenti kitaplığı yüklenemedi. Çözümü görüntülemek için buraya tıkla."
 
-msgid "Switch to the auxiliary live camera view"
-msgstr "Yardımcı canlı kamera görüntüsüne geçin"
+msgid "Switch to BirdsEye Camera"
+msgstr ""
 
-msgid "Switch to the main live camera view"
-msgstr "Ana canlı kamera görüntüsüne geçin"
+msgid "Switch to Liveview Camera"
+msgstr ""
 
 msgid "Switch live camera view"
 msgstr "Canlı kamera görüntüsünü değiştir"
@@ -7317,7 +7334,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Captured at %s"
-msgstr ""
+msgstr "Çekim zamanı: %s"
 
 msgid "Playing..."
 msgstr "Oynatılıyor..."
@@ -7611,7 +7628,7 @@ msgstr "Tam Ekran Kamera"
 
 msgctxt "Quit_Switching"
 msgid "Quit"
-msgstr "Çıkış yap"
+msgstr "Çık"
 
 msgid "Switching..."
 msgstr "Geçiş yapılıyor..."
@@ -7952,6 +7969,10 @@ msgid "Active operations"
 msgstr ""
 
 msgid "Live"
+msgstr "Yayında"
+
+#, c-format, boost-format
+msgid "Zoom %.1fx"
 msgstr ""
 
 msgid "Step file import parameters"
@@ -8045,26 +8066,19 @@ msgstr "%s bilgi"
 msgid "Newer 3mf version"
 msgstr "Daha yeni 3MF sürümü"
 
-msgid "The 3mf file version is in Beta and it is newer than the current Bambu Studio version."
-msgstr "3MF dosya sürümü Beta aşamasındadır ve mevcut Bambu Studio sürümünden daha yenidir."
+#, c-format, boost-format
+msgid "The 3mf file is Beta version %s, current version: %s"
+msgstr ""
 
-msgid "If you would like to try Bambu Studio Beta, you may click to"
-msgstr "Bambu Studio Beta'yı denemek istersen buraya tıklayabilirsin."
+#, c-format, boost-format
+msgid "The 3mf file is version %s, current version: %s"
+msgstr ""
 
-msgid "Download Beta Version"
-msgstr "Beta Sürümünü İndir"
+msgid "Importing a newer 3mf file may cause compatibility issues. We recommend downloading the latest version before use. Please click"
+msgstr ""
 
-msgid "The 3mf file version is newer than the current Bambu Studio version."
-msgstr "3MF dosya sürümü mevcut Bambu Studio sürümünden daha yenidir."
-
-msgid "Update your Bambu Studio could enable all functionality in the 3mf file."
-msgstr "Bambu Studio'yu güncellemek, 3MF dosyasındaki tüm işlevleri etkinleştirebilir."
-
-msgid "Current Version: "
-msgstr "Mevcut Sürüm: "
-
-msgid "Latest Version: "
-msgstr "En Son Sürüm: "
+msgid "Download Latest Version"
+msgstr ""
 
 msgctxt "Software"
 msgid "Update"
@@ -8087,15 +8101,6 @@ msgstr "Yalnızca LAN modu nasıl kullanılır?"
 
 msgid "Don't show this dialog again"
 msgstr "Bu iletişim kutusunu bir daha gösterme"
-
-msgid "If you wish to continue, "
-msgstr ""
-
-msgid "please refer to the Wiki guide"
-msgstr ""
-
-msgid " before continuing."
-msgstr ""
 
 msgid "3D Mouse disconnected."
 msgstr "3D fare bağlantısı kesildi."
@@ -8276,13 +8281,13 @@ msgid "Bottom"
 msgstr "Alt"
 
 msgid "Read-only, automatically calculated from the base initial layer height"
-msgstr ""
+msgstr "Salt okunur, temel ilk katman yüksekliğinden otomatik olarak hesaplanır"
 
 msgid "Read-only, automatically calculated from the base layer height"
-msgstr ""
+msgstr "Salt okunur, temel katman yüksekliğinden otomatik olarak hesaplanır"
 
 msgid "Read-only, automatically calculated from the base value"
-msgstr ""
+msgstr "Salt okunur, temel değerden otomatik olarak hesaplanır"
 
 msgid "nozzle"
 msgstr "püskürtme ucu"
@@ -8533,7 +8538,7 @@ msgstr ""
 "Bu özellik etkinleştirildiğinde, alt katmanlar daha düzgün bir karışım için daha yoğun bir şekilde iç içe geçer, ancak baskı daha uzun sürer."
 
 msgid "Recommended only when using mixed-color filament, to get a better layered-color effect. This feature is disabled by default when variable layer height is enabled."
-msgstr ""
+msgstr "Daha iyi bir katmanlı renk efekti elde etmek için yalnızca karışık renkli filament kullanıldığında önerilir. Değişken katman yüksekliği etkinleştirildiğinde bu özellik varsayılan olarak devre dışı bırakılır."
 
 msgid "Controls where each layer's outer wall starts and ends."
 msgstr "Her katmanın dış duvarının nerede başlayıp nerede bittiğini kontrol eder."
@@ -9193,10 +9198,10 @@ msgstr ""
 "Yazıcında eğri planlama geliştirme desteği algılandı. Yazılım, bu özelliğin doğru çalışmasını sağlamak için yay uydurmayı otomatik olarak devre dışı bıraktı."
 
 msgid "Collapse panel"
-msgstr ""
+msgstr "Paneli daralt"
 
 msgid "Expand panel"
-msgstr ""
+msgstr "Paneli genişlet"
 
 msgid "Click to edit preset"
 msgstr "Ön ayarı düzenlemek için tıkla"
@@ -9256,14 +9261,14 @@ msgid "Change nozzle diameter"
 msgstr "Püskürtme ucu çapını değiştir"
 
 msgid "This filament does not support printing with the current nozzle"
-msgstr ""
+msgstr "Bu filament mevcut püskürtme ucuyla yazdırmaya uygun değil"
 
 msgid "The current nozzle settings have no nozzle of this type"
 msgstr ""
 
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
-msgstr ""
+msgstr "Bu filament %s püskürtme ucuyla yazdırmaya uygun değil"
 
 #, c-format, boost-format
 msgid ", and %d more"
@@ -9271,26 +9276,26 @@ msgstr ", ve %d tane daha"
 
 #, c-format, boost-format
 msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
-msgstr ""
+msgstr "Silmekte olduğunuz filament \"%s\" modeli tarafından kullanılıyor. Silme işleminden sonra modelin filament ataması, kalan ilk filamente sıfırlanacaktır."
 
 msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
-msgstr ""
+msgstr "İpucu: Eğer onu başka bir filamentle değiştirmek istiyorsanız, filamente sağ tıklayın ve \"Şununla Birleştir\" seçeneğini kullanın."
 
 msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
-msgstr ""
+msgstr "Aşağıdaki karışık filamentler tarafından da kullanılır ve silindikten sonra kullanılamaz hale gelirler:"
 
 msgid "The filament you are deleting is used by the following mixed filaments, which will become unusable after deletion:"
-msgstr ""
+msgstr "Sildiğiniz filament, aşağıdaki karışık filamentler tarafından kullanılmaktadır ve silindikten sonra bunlar kullanılamaz hale gelecektir:"
 
 #, c-format, boost-format
 msgid "Mixed filament %d"
-msgstr ""
+msgstr "Karışık filament %d"
 
 msgid "Delete Filament"
 msgstr "Filamenti Sil"
 
 msgid "Continue deleting"
-msgstr ""
+msgstr "Silmeye devam et"
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "Hedeflenen karışık filament, bu fiziksel filamenti bir bileşen olarak kullanır. Birleştirme işlemi bu fiziksel filamenti ortadan kaldıracak ve karışık filamenti geçersiz kılabilir. Devam etmek istiyor musun?"
@@ -9301,11 +9306,11 @@ msgstr "İşlemini tamamladıktan sonra %s projesi kapatılacak ve yeni bir proj
 
 #, c-format, boost-format
 msgid "filament slot %d %s"
-msgstr ""
+msgstr "filament yuvası %d %s"
 
 #, c-format, boost-format
 msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
-msgstr ""
+msgstr "AMS'den gelen %s, mevcut yazıcı yapılandırması tarafından desteklenmiyor. Varsayılan olarak %s ile değiştirildi."
 
 msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
@@ -9341,7 +9346,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
-msgstr ""
+msgstr "En fazla %d filament oluşturulabilir"
 
 msgid "Please modify the original project filament diameter."
 msgstr "Lütfen orijinal projedeki filament çapını değiştirin."
@@ -9366,26 +9371,26 @@ msgstr "Lütfen sol taraftaki filament listesinde işaretlenmiş karışık fila
 
 #, c-format, boost-format
 msgid "Filament %s is not configured for the %s nozzle. Please change the nozzle or the filament before use."
-msgstr ""
+msgstr "Filament %s, %s püskürtme ucu için yapılandırılmamış. Lütfen kullanmadan önce püskürtme ucunu veya filamenti değiştirin."
 
 #, c-format, boost-format
 msgid "Filament %s is not configured for the current nozzle settings. Please change the nozzle or the filament before use."
-msgstr ""
+msgstr "Filament %s mevcut püskürtme ucu ayarları için yapılandırılmamış. Lütfen kullanmadan önce püskürtme ucunu veya filamenti değiştirin."
 
 #, c-format, boost-format
 msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
-msgstr ""
+msgstr "Filament %s için püskürtme ucu ayarlarında %s püskürtme ucu bulunmuyor. Lütfen kullanmadan önce bu püskürtme ucu tipini ekleyin."
 
 #, c-format, boost-format
 msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."
-msgstr ""
+msgstr "Filament %s için %s püskürtme ucuna uygun bir ön ayar yok. Lütfen uygun filament ön ayarını oluşturun."
 
 #, c-format, boost-format
 msgid "Filament %s has no preset for the current nozzle settings. Please create the matching filament preset."
-msgstr ""
+msgstr "Filament %s için mevcut püskürtme ucu ayarlarına uygun bir ön ayar yok. Lütfen uygun filament ön ayarını oluşturun."
 
 msgid "Add the nozzle"
-msgstr ""
+msgstr "Püskürtme ucunu ekle"
 
 msgid "Add a new preset"
 msgstr "Yeni bir ön ayar ekle"
@@ -9465,10 +9470,10 @@ msgid "Please correct them in the param tabs"
 msgstr "Lütfen bunları parametre sekmelerinde düzelt."
 
 msgid "3MF textures are unsupported and have been discarded."
-msgstr ""
+msgstr "3MF dokuları desteklenmediğinden kaldırıldı."
 
 msgid "Parts without color will default to gray."
-msgstr ""
+msgstr "Renk atanmamış parçalar varsayılan olarak gri olur."
 
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "3MF dosyasındaki filament veya yazıcı ön ayarlarında aşağıdaki değiştirilmiş G-kodları bulunuyor:"
@@ -10424,7 +10429,7 @@ msgstr "Kullanıcı Deneyimi Geliştirme Programına katıl."
 
 msgctxt "Preferences"
 msgid "Learn more"
-msgstr "Daha fazla bilgi edin"
+msgstr "Daha fazla bilgi edinin"
 
 msgid "User Settings"
 msgstr "Kullanıcı Ayarları"
@@ -10787,7 +10792,7 @@ msgid "My Printer"
 msgstr "Yazıcım"
 
 msgid "This filament is not compatible with the nozzle it is loaded on"
-msgstr ""
+msgstr "Bu filament, yüklendiği püskürtme ucuyla uyumlu değil"
 
 msgid "To select this filament, change the nozzle settings first."
 msgstr "Bu filamenti seçmek için önce püskürtme ucu ayarlarını değiştirin."
@@ -11405,15 +11410,19 @@ msgstr "%s numaralı yuvada filament yüklü değil. Filament değişimi sıras�
 
 #, c-format, boost-format
 msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. Please pull it out manually."
-msgstr ""
+msgstr "Yazdırma Aracı %d üzerinde %s filamenti yüklü ve bu filament otomatik olarak boşaltılamıyor. Lütfen elle çekerek çıkarın."
 
 #, c-format, boost-format
 msgid "External AMS and %1$s filaments are both selected for PrintTool %2$d. Because %3$s cannot unload automatically, you will need to change the filament manually."
+msgstr "Hem harici AMS hem de %1$s filamentleri Yazdırma Aracı %2$d için seçildi. %3$s otomatik olarak boşaltılamadığından filamenti elle değiştirmeniz gerekecek."
+
+#, c-format, boost-format
+msgid "TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."
 msgstr ""
 
 #, c-format, boost-format
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
-msgstr ""
+msgstr "Hotend %s içinde düşük sıcaklık filamenti kalıntısı tespit edildi. Yüksek oda sıcaklığında yazdırma, püskürtme ucunun tıkanmasına neden olabilir. Lütfen önce filamenti yükleyin."
 
 msgid "Cool"
 msgstr "Soğutma"
@@ -11497,7 +11506,7 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Bir ekstrüder için hem harici filamenti hem de AMS filamentini seçtin. Yazdırma sırasında harici filamenti manuel olarak değiştirmen gerekecek."
 
 msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
-msgstr ""
+msgstr "Hotend içinde düşük sıcaklık filamenti kalıntısı tespit edildi. Yüksek oda sıcaklığında yazdırma, püskürtme ucunun tıkanmasına neden olabilir. Lütfen önce filamenti yükleyin."
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
 msgstr "TPU 90A/TPU 85A çok yumuşak. 'Kalibrasyon' sayfasında manuel akış kalibrasyonu yapılması önerilir. 'Akış Dinamiği Kalibrasyonu' Otomatik/Açık olarak ayarlanmışsa, sistem önceki kalibrasyon değerini kullanır ve akış kalibrasyonu işlemini atlar."
@@ -11866,7 +11875,7 @@ msgid "Jerk(XY)"
 msgstr "Sarsıntı (XY)"
 
 msgid "Support ring"
-msgstr ""
+msgstr "Destek halkası"
 
 msgid "Raft"
 msgstr "Raft"
@@ -13545,7 +13554,7 @@ msgid "Repaired 3mf file contains more than one instance"
 msgstr "Onarılan 3mf dosyası birden fazla örnek içeriyor."
 
 msgid "Repairing"
-msgstr ""
+msgstr "Onarılıyor"
 
 msgid "Repair finished"
 msgstr "Onarım tamamlandı"
@@ -13675,7 +13684,7 @@ msgid "Nozzle assignment error: invalid per-filament nozzle map. Please check th
 msgstr "Püskürtme ucu atama hatası: filament başına püskürtme ucu eşleştirmesi geçersiz. Lütfen püskürtme ucu ayarlarını kontrol edin veya filamentleri yeniden gruplandırın."
 
 msgid "Nozzle assignment error: per-filament nozzle map points to an empty or unavailable nozzle."
-msgstr ""
+msgstr "Püskürtme ucu atama hatası: filament bazındaki püskürtme ucu eşlemesi, boş veya kullanılamayan bir püskürtme ucunu gösteriyor."
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "Manuel modda gruplama hatası. Lütfen püskürtme ucu sayısını kontrol et veya filamenti yeniden gruplandır."
@@ -13883,7 +13892,7 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "Değişken Katman Yüksekliği, Organik desteklerle kullanılamaz."
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
-msgstr ""
+msgstr "Farklı püskürtme ucu çapları ve destek halkası kullanılarak yazdırma deneyseldir. Püskürtme ucu çapları eşleşmediğinde destek halkası düzgün çalışmayabilir."
 
 msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
 msgstr "Farklı püskürtme ucu çapları ve Prime kulesi kullanılarak yazdırma deneyseldir. Prime kulesi, çapları eşleşmeyen püskürtme uçlarıyla düzgün çalışmayabilir."
@@ -15125,7 +15134,7 @@ msgid "The volume of material required to prime the extruder for a hotend change
 msgstr "Kulede hotend değişimi sırasında ekstrüderi hazırlamak için gereken malzeme hacmi."
 
 msgid "Pre-heating when extruder change"
-msgstr ""
+msgstr "Ekstrüder değişimi sırasında ön ısıtma"
 
 msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
 msgstr ""
@@ -16916,7 +16925,7 @@ msgid "Horizontal distance between the projected model boundary and the innermos
 msgstr "Modelin izdüşüm sınırı ile en içteki destek halkası yolu arasındaki yatay mesafe."
 
 msgid "Support ring angle"
-msgstr ""
+msgstr "Destek halkası açısı"
 
 msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider. A set angle keeps one piece, from 200° to 300°. -1 means auto: the angle is worked out from the purge of each filament change, so the purge is laid a few rings thick. When that comes out below 200°, the ring is split into two facing pieces with a second opening on the side away from the camera."
 msgstr ""
@@ -17261,7 +17270,7 @@ msgid "Width of the wall that will replace thin features (according to the Minim
 msgstr "Modelin ince özelliklerinin yerini alacak duvarın genişliği (Minimum özellik boyutuna göre). Minimum duvar genişliği özelliğin kalınlığından daha küçükse, duvar özelliğin kendisi kadar kalın olur. Bu değer, püskürtme ucu çapının yüzdesi olarak ifade edilir."
 
 msgid "Filament switch retraction length"
-msgstr ""
+msgstr "Filament değiştirme sırasında geri çekme uzunluğu"
 
 msgid "Override overhang speed"
 msgstr "Çıkıntı hızını geçersiz kıl"
@@ -18176,7 +18185,7 @@ msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- Parça modu: Lütfen en az iki mesh içeren bir nesne seç."
 
 msgid "Another mesh boolean operation is running. Please try again after it finishes."
-msgstr ""
+msgstr "Başka bir Mesh Boole işlemi devam ediyor. Lütfen işlem tamamlandıktan sonra tekrar deneyin."
 
 msgid "Computing..."
 msgstr "Hesaplanıyor..."
@@ -19599,7 +19608,7 @@ msgid "Purge Mode Settings"
 msgstr "Temizleme Modu Ayarları"
 
 msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
-msgstr ""
+msgstr "En iyi baskı kalitesini elde etmek için Prime kulesinde hız ve sıcaklık geçişleriyle tam bir filament tahliye işlemi gerçekleştirin."
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr "Daha hızlı temizleme için optimize edilmiş temizleme sıcaklığı, çarpan ve daha güçlü ekstrüzyon kullanır. Bazı aşırı durumlarda hafif renk karışmasına neden olabilir."
@@ -19608,13 +19617,13 @@ msgid "Prime Saving"
 msgstr "Prime Tasarrufu"
 
 msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
-msgstr ""
+msgstr "Prime atığını azaltır ve baskıyı hızlandırır. Hafif renk karışmasına (yalnızca H2C ve H3C harici 1./2. nesil AMS püskürtme uçları için) veya küçük yüzey kusurlarına neden olabilir."
 
 msgid "Learn more about prime mode"
 msgstr "Prime modu hakkında daha fazla bilgi edin."
 
 msgid "TPU Usage Notes"
-msgstr ""
+msgstr "TPU Kullanım Notları"
 
 msgid "TPU Filament Installation && Feeding Guide"
 msgstr ""
@@ -19751,7 +19760,7 @@ msgid "Unknown filaments will be treated as PLA."
 msgstr "Lütfen ünlem işaretiyle işaretlenmiş filamenti sakla."
 
 msgid "For better drying results, remove the filament."
-msgstr ""
+msgstr "Daha iyi kurutma sonuçları için filamenti çıkarın."
 
 msgid "Please store the filament marked with an exclamation mark."
 msgstr "Lütfen ünlem işaretiyle işaretlenmiş filamenti saklayın."
@@ -19945,7 +19954,7 @@ msgid "cannot be mixed. Please select filaments using the same nozzle diameter."
 msgstr "karıştırılamaz. Lütfen aynı püskürtme ucu çapını kullanan filamentleri seçin."
 
 msgid "No mix is available for the target color"
-msgstr ""
+msgstr "Hedef renk için uygun bir karışım bulunmuyor"
 
 msgid "Please select a filament for all components"
 msgstr "Lütfen tüm bileşenler için bir filament seç."
@@ -19960,10 +19969,10 @@ msgid "Remove the third material"
 msgstr "Üçüncü malzemeyi çıkar"
 
 msgid "Manual Mixing"
-msgstr ""
+msgstr "Manuel Karıştırma"
 
 msgid "Color Matching"
-msgstr ""
+msgstr "Renk Eşleştirme"
 
 msgid "Target Filament"
 msgstr ""
@@ -19975,34 +19984,34 @@ msgid "Target color filament"
 msgstr ""
 
 msgid "Select Target Color"
-msgstr ""
+msgstr "Hedef Rengi Seçin"
 
 msgid "Mixed Result"
 msgstr ""
 
 msgid "Discard changes and match again"
-msgstr ""
+msgstr "Değişiklikleri atın ve tekrar eşleştirin"
 
 msgid "No results"
 msgstr ""
 
 msgid "Replace the target color on models with the mixed result"
+msgstr "Modellerdeki hedef rengi karışım sonucuyla değiştirin"
+
+msgid "Transparent filaments are not supported for color matching."
+msgstr ""
+
+msgid "Gradient filaments are not supported for color matching."
+msgstr ""
+
+msgid "Multicolor filaments are not supported for color matching."
 msgstr ""
 
 msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
-msgstr ""
-
-msgid "There is no other filament of the same type as the target color in the project."
-msgstr ""
-
-msgid "At least two other filaments of the same type as the target color are required."
-msgstr ""
-
-msgid "Fewer than two filaments of the same type use the target's nozzle diameter."
-msgstr ""
+msgstr "Hedef renk olarak hiçbir filament kullanılamaz. Gradyanlı, çok renkli, şeffaf filamentler ve destek filamentleri desteklenmiyor."
 
 msgid "No available mixing recipe was found."
-msgstr ""
+msgstr "Kullanılabilir bir karışım tarifi bulunamadı."
 
 msgid "The current printer has no compatible PLA Palette filament."
 msgstr "Mevcut yazıcıda uyumlu PLA Palette filamenti bulunmuyor."
@@ -20044,38 +20053,38 @@ msgid "Please set a %smm diameter nozzle for the printer in the section below fi
 msgstr "Bu çapı dilimleme için kullanmadan önce lütfen aşağıdaki bölümde yazıcı için %s mm çapında bir püskürtme ucu ayarlayın."
 
 msgid "No nozzle is installed in this slot."
-msgstr ""
+msgstr "Bu yuvada herhangi bir püskürtme ucu takılı değil."
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
-msgstr ""
+msgstr "Püskürtme ucu çapı uyuşmuyor. Bu püskürtme ucu kullanılamaz."
 
 msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
 msgstr "Bu ekstrüderin püskürtme ucu çapı, yazdırma için seçilen çaptan farklıdır. Farklı püskürtme ucu çaplarıyla yazdırma henüz deneyseldir."
 
 msgid "Nozzle Settings"
-msgstr ""
+msgstr "Püskürtme Ucu Ayarları"
 
 msgid "Set your printer's nozzle installation status"
-msgstr ""
+msgstr "Yazıcınızdaki püskürtme uçlarının kurulum durumunu ayarlayın"
 
 #, c-format, boost-format
 msgid "The %s nozzle is in use by project filaments. Changing it will move them to 0.4 Standard. Change it anyway?"
-msgstr ""
+msgstr "%s püskürtme ucu projedeki filamentler tarafından kullanılıyor. Bu ayarı değiştirirseniz ilgili filamentler 0.4 Standard seçeneğine taşınacak. Yine de değiştirilsin mi?"
 
 msgid "External AMS"
-msgstr ""
+msgstr "Harici AMS"
 
 msgid "To pick this, change the nozzle settings first"
-msgstr ""
+msgstr "Bunu seçmek için önce püskürtme ucu ayarlarını değiştirin"
 
 msgid "The filament in this slot cannot print with this nozzle"
-msgstr ""
+msgstr "Bu yuvadaki filament bu püskürtme ucuyla yazdırılamaz"
 
 msgid "Successfully synchronized Printer information."
-msgstr ""
+msgstr "Yazıcı bilgileri başarıyla senkronize edildi."
 
 msgid "Continue to sync filaments"
-msgstr "Filamentleri senkronize etmeye devam et."
+msgstr "Filamentleri senkronize etmeye devam et"
 
 msgctxt "Sync_Nozzle_AMS"
 msgid "Cancel"
@@ -21089,6 +21098,36 @@ msgid ""
 msgstr ""
 "İlk Seferde Başarı Güvenilirliği\n"
 "Daha az gözetim, daha öngörülebilir sonuçlar. Örnek: PETG parçaları üreten küçük bir yazıcı çiftliği, \"6. saatte baskının başarısız olması\" gibi sürprizlerden kaçınır ve partileri programa uygun şekilde tamamlar."
+
+#~ msgid "How to feed TPU filament."
+#~ msgstr "TPU filament nasıl beslenir."
+
+#~ msgid "Switch to the auxiliary live camera view"
+#~ msgstr "Yardımcı canlı kamera görüntüsüne geçin"
+
+#~ msgid "Switch to the main live camera view"
+#~ msgstr "Ana canlı kamera görüntüsüne geçin"
+
+#~ msgid "The 3mf file version is in Beta and it is newer than the current Bambu Studio version."
+#~ msgstr "3MF dosya sürümü Beta aşamasındadır ve mevcut Bambu Studio sürümünden daha yenidir."
+
+#~ msgid "If you would like to try Bambu Studio Beta, you may click to"
+#~ msgstr "Bambu Studio Beta'yı denemek istersen buraya tıklayabilirsin."
+
+#~ msgid "Download Beta Version"
+#~ msgstr "Beta Sürümünü İndir"
+
+#~ msgid "The 3mf file version is newer than the current Bambu Studio version."
+#~ msgstr "3MF dosya sürümü mevcut Bambu Studio sürümünden daha yenidir."
+
+#~ msgid "Update your Bambu Studio could enable all functionality in the 3mf file."
+#~ msgstr "Bambu Studio'yu güncellemek, 3MF dosyasındaki tüm işlevleri etkinleştirebilir."
+
+#~ msgid "Current Version: "
+#~ msgstr "Mevcut Sürüm: "
+
+#~ msgid "Latest Version: "
+#~ msgstr "En Son Sürüm: "
 
 #, boost-format
 #~ msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."

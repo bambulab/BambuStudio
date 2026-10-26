@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-22 14:23+0800\n"
+"POT-Creation-Date: 2026-10-26 22:30+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -215,7 +215,16 @@ msgstr ""
 msgid "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
 msgstr ""
 
-msgid "How to feed TPU filament."
+msgid "Special attention should be paid to the feeding method of TPU."
+msgstr ""
+
+msgid " Please "
+msgstr ""
+
+msgid "check the Wiki guide"
+msgstr ""
+
+msgid " before printing."
 msgstr ""
 
 msgid "How to feed TPU filament on X2D."
@@ -680,6 +689,9 @@ msgstr ""
 msgid "Copy diagnostic information"
 msgstr ""
 
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
+msgstr ""
+
 msgid "Add refill filament"
 msgstr ""
 
@@ -757,6 +769,14 @@ msgstr ""
 
 #, boost-format
 msgid "Please manually insert the filament from slot %1% into the extruder loading port until it cannot be pushed any further."
+msgstr ""
+
+#, boost-format
+msgid "Slot %1% filament loading in progress"
+msgstr ""
+
+#, boost-format
+msgid "Slot %1% filament unloading in progress"
 msgstr ""
 
 msgid "Other filaments are info-only"
@@ -982,14 +1002,6 @@ msgid "Self test"
 msgstr ""
 
 msgid "No selected machine"
-msgstr ""
-
-#, boost-format
-msgid "Slot %1% filament loading in progress"
-msgstr ""
-
-#, boost-format
-msgid "Slot %1% filament unloading in progress"
 msgstr ""
 
 #, c-format, boost-format
@@ -3532,9 +3544,6 @@ msgstr ""
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filament."
 
-msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
-msgstr ""
-
 msgid "/"
 msgstr "/"
 
@@ -4521,6 +4530,12 @@ msgid "Cyan · Magenta · Yellow · Black · White"
 msgstr ""
 
 msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
+msgstr ""
+
+msgid "The mixing kit is already in the project filament list. Use it now?"
+msgstr ""
+
+msgid "Use now"
 msgstr ""
 
 msgid "Add to project filament list"
@@ -7166,10 +7181,10 @@ msgstr "The player is not loaded; please click the \"play\" button to retry."
 msgid "Plugin library failed to load. Click here to view the solution."
 msgstr ""
 
-msgid "Switch to the auxiliary live camera view"
+msgid "Switch to BirdsEye Camera"
 msgstr ""
 
-msgid "Switch to the main live camera view"
+msgid "Switch to Liveview Camera"
 msgstr ""
 
 msgid "Switch live camera view"
@@ -7893,6 +7908,10 @@ msgstr ""
 msgid "Live"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Zoom %.1fx"
+msgstr ""
+
 msgid "Step file import parameters"
 msgstr ""
 
@@ -7984,26 +8003,19 @@ msgstr "%s information"
 msgid "Newer 3mf version"
 msgstr "Newer 3mf version"
 
-msgid "The 3mf file version is in Beta and it is newer than the current Bambu Studio version."
-msgstr "The 3mf file version is in Beta and it is newer than the current Bambu Studio version."
+#, c-format, boost-format
+msgid "The 3mf file is Beta version %s, current version: %s"
+msgstr ""
 
-msgid "If you would like to try Bambu Studio Beta, you may click to"
-msgstr "If you would like to try Bambu Studio Beta, you may click to"
+#, c-format, boost-format
+msgid "The 3mf file is version %s, current version: %s"
+msgstr ""
 
-msgid "Download Beta Version"
-msgstr "Download Beta Version"
+msgid "Importing a newer 3mf file may cause compatibility issues. We recommend downloading the latest version before use. Please click"
+msgstr ""
 
-msgid "The 3mf file version is newer than the current Bambu Studio version."
-msgstr "The 3mf file version is newer than the current Bambu Studio version."
-
-msgid "Update your Bambu Studio could enable all functionality in the 3mf file."
-msgstr "Update your Bambu Studio could enable all functionality in the 3mf file."
-
-msgid "Current Version: "
-msgstr "Current Version: "
-
-msgid "Latest Version: "
-msgstr "Latest Version: "
+msgid "Download Latest Version"
+msgstr ""
 
 msgctxt "Software"
 msgid "Update"
@@ -8025,15 +8037,6 @@ msgid "How to use LAN only mode"
 msgstr ""
 
 msgid "Don't show this dialog again"
-msgstr ""
-
-msgid "If you wish to continue, "
-msgstr ""
-
-msgid "please refer to the Wiki guide"
-msgstr ""
-
-msgid " before continuing."
 msgstr ""
 
 msgid "3D Mouse disconnected."
@@ -11227,6 +11230,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "External AMS and %1$s filaments are both selected for PrintTool %2$d. Because %3$s cannot unload automatically, you will need to change the filament manually."
+msgstr ""
+
+#, c-format, boost-format
+msgid "TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."
 msgstr ""
 
 #, c-format, boost-format
@@ -19691,16 +19698,16 @@ msgstr ""
 msgid "Replace the target color on models with the mixed result"
 msgstr ""
 
+msgid "Transparent filaments are not supported for color matching."
+msgstr ""
+
+msgid "Gradient filaments are not supported for color matching."
+msgstr ""
+
+msgid "Multicolor filaments are not supported for color matching."
+msgstr ""
+
 msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
-msgstr ""
-
-msgid "There is no other filament of the same type as the target color in the project."
-msgstr ""
-
-msgid "At least two other filaments of the same type as the target color are required."
-msgstr ""
-
-msgid "Fewer than two filaments of the same type use the target's nozzle diameter."
 msgstr ""
 
 msgid "No available mixing recipe was found."
@@ -20769,6 +20776,27 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "The 3mf file version is in Beta and it is newer than the current Bambu Studio version."
+#~ msgstr "The 3mf file version is in Beta and it is newer than the current Bambu Studio version."
+
+#~ msgid "If you would like to try Bambu Studio Beta, you may click to"
+#~ msgstr "If you would like to try Bambu Studio Beta, you may click to"
+
+#~ msgid "Download Beta Version"
+#~ msgstr "Download Beta Version"
+
+#~ msgid "The 3mf file version is newer than the current Bambu Studio version."
+#~ msgstr "The 3mf file version is newer than the current Bambu Studio version."
+
+#~ msgid "Update your Bambu Studio could enable all functionality in the 3mf file."
+#~ msgstr "Update your Bambu Studio could enable all functionality in the 3mf file."
+
+#~ msgid "Current Version: "
+#~ msgstr "Current Version: "
+
+#~ msgid "Latest Version: "
+#~ msgstr "Latest Version: "
 
 #, boost-format
 #~ msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
