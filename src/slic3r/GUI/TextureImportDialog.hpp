@@ -321,6 +321,9 @@ private:
     void show_match_threshold_popup();
     void hide_match_threshold_popup();
     void update_match_threshold_gear_hover();
+    // Unchecks Color mixing and rebinds rows on mixed slots to physical ones.
+    // No-op while Color mixing is off.
+    void disable_mix_for_threshold_change();
     void on_match_threshold_changed(int value);
     void on_match_threshold_committed(int value);
     // Drop NewPhysical / NewMixed slots created in this dialog, then rebuild

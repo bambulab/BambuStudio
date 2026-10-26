@@ -7510,12 +7510,25 @@ void TextureImportDialog::update_match_threshold_gear_hover()
     m_match_threshold_gear->set_hovered(popup_open || over_gear);
 }
 
+void TextureImportDialog::disable_mix_for_threshold_change()
+{
+    // The threshold only drives physical matching, so leave Color mixing once the user tunes it.
+    if (!m_mix_enabled)
+        return;
+    m_mix_enabled = false;
+    if (m_mix_cb)
+        m_mix_cb->SetValue(false);
+    BOOST_LOG_TRIVIAL(info) << "color mixing turned off by match threshold change";
+    reset_auto_mix();
+}
+
 void TextureImportDialog::on_match_threshold_changed(int value)
 {
     value = std::clamp(value, kMatchDeltaThresholdMin, kMatchDeltaThresholdMax);
     if (m_match_delta_threshold == value)
         return;
     m_match_delta_threshold = value;
+    disable_mix_for_threshold_change();
     reapply_match_threshold(false);
 }
 
@@ -7524,9 +7537,10 @@ void TextureImportDialog::on_match_threshold_committed(int value)
     value = std::clamp(value, kMatchDeltaThresholdMin, kMatchDeltaThresholdMax);
     const bool changed = m_match_delta_threshold != value;
     m_match_delta_threshold = value;
-    if (changed)
+    if (changed) {
+        disable_mix_for_threshold_change();
         reapply_match_threshold(true);
-    else if (m_match_threshold_drop_pending) {
+    } else if (m_match_threshold_drop_pending) {
         m_match_threshold_drop_pending = false;
         drop_unused_new_filaments_and_refresh();
     }
