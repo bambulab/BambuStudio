@@ -9046,6 +9046,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 std::string nozzle_diameters_str;
                 if (nozzle_diameter_option)
                     nozzle_diameters_str = nozzle_diameter_option->serialize();
+                // slice_filaments_info is ascending by slot and already carries each used filament's nozzle diameter.
+                if (multi_nozzle_diameter_mode_enabled(config) && nozzle_diameter_option != nullptr && !plate_data->slice_filaments_info.empty()) {
+                    const double diameter = plate_data->slice_filaments_info.front().nozzle_diameter;
+                    if (diameter > 0.)
+                        nozzle_diameters_str = ConfigOptionFloatsNullable(nozzle_diameter_option->values.size(), diameter).serialize();
+                }
 
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PRINTER_MODEL_ID_ATTR       << "\" " << VALUE_ATTR << "=\"" << plate_data->printer_model_id << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << NOZZLE_DIAMETERS_ATTR       << "\" " << VALUE_ATTR << "=\"" << nozzle_diameters_str << "\"/>\n";
