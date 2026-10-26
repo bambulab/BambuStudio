@@ -538,8 +538,8 @@ private:
      * is held to MIN_CARRIED_RATIO, while an interface region bridges across the branch tips and only has to
      * be anchored at all, hence MIN_CARRIED_RATIO_INTERFACE.
      *
-     * Called from draw_circles() once the areas are final and before anything reads them back, so that the
-     * lightning generator and the hole moving pass do not plan against regions that are about to disappear.
+     * Not called. The draw_circles() call was removed because the carrier test
+     * deletes bed-landing supports that still reach the plate and leaves them floating.
      */
     void prune_floating_supports();
 

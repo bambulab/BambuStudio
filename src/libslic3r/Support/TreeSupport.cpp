@@ -3522,13 +3522,8 @@ void TreeSupport::draw_circles()
             }
         });
 
-        // The areas are final here, so drop the unsupported ones before anything reads them back: the lightning
-        // generator below roots its trees in base_areas, and the hole moving pass reshapes them. Both would
-        // otherwise plan against regions that are about to disappear.
-        // BBS multi-diameter: skipped. Its carrier test does not hold on a folded stack - it drops an interface
-        // slab that rests squarely on the roof slab below it, and with it the contact above the slab.
-        if (! m_object->print()->uses_multiple_nozzle_diameters())
-            prune_floating_supports();
+        // prune_floating_supports() is not called. Its carrier test deletes bed-landing
+        // supports that still reach the plate, so those supports come out floating.
 
         if (with_lightning_infill)
         {
