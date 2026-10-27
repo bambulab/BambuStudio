@@ -2692,6 +2692,12 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         m_rack_nozzle_panel->Show();
     } else {
         m_rack_nozzle_panel->Hide();
+        // restore panels hidden by the rack branch when switching from a rack printer
+        m_single_ams_preview_panel->Show();
+        m_single_ams_items_panel->Show();
+        if (!obj->is_multi_extruders()) {
+            m_filament_list_panel->Show();
+        }
 
         // update filament from panel, display only obj has ams
         // update multi ams panel, display only obj has multi ams
