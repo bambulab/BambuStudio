@@ -32,6 +32,7 @@
         "500",
         "500"
     ],
+    "initial_layer_infill_line_width": "0.6",
     "initial_layer_infill_speed": [
         "70",
         "70"
