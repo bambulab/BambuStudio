@@ -7208,18 +7208,18 @@ bool any_plate_has_objects()
 /**
  * \brief Drop unsaved filament preset edits before a sync, asking the user first.
  *
- * \param parent  owner of the confirmation prompt
- * \return false when the user keeps the edits, so the sync must not go on
+ * Reselecting the first filament preset through the tab shows the standard unsaved-changes dialog
+ * (listing the actual modified values, e.g. a changed diameter) when the current preset is dirty, so
+ * no separate confirmation is needed here.
+ *
+ * \return false when the user cancels, so the sync must not go on
  */
-bool confirm_discard_filament_preset_edits(wxWindow *parent)
+bool confirm_discard_filament_preset_edits()
 {
     if (!wxGetApp().preset_bundle->filaments.get_edited_preset().is_dirty)
         return true;
-    MessageDialog confirm(parent, _L("Synchronizing AMS filaments will discard your modified but unsaved filament presets.\nAre you sure you want to continue?"),
-                          _L("Sync filaments with AMS"), wxOK | wxCANCEL);
-    if (confirm.ShowModal() != wxID_OK)
+    if (!wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0], false, "", false, true))
         return false;
-    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0], false, "", false, true);
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     dynamic_filament_list.update();
     return true;
@@ -7230,7 +7230,7 @@ bool confirm_discard_filament_preset_edits(wxWindow *parent)
 SyncResult Sidebar::run_sync_dialog(bool deferrable)
 {
     SyncResult out;
-    if (!confirm_discard_filament_preset_edits(this)) {
+    if (!confirm_discard_filament_preset_edits()) {
         out.dlg_res = (int) wxID_CANCEL;
         return out;
     }
