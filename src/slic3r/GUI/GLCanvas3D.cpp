@@ -4236,6 +4236,33 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                         }
                     }
 
+                    // Re-run the forbidden-region safety net when its inputs (estimated tower
+                    // size, wrapping detection) change since the last reload, so a user-dragged
+                    // tower keeps its position. Wrapping is compared too because a preset switch
+                    // may reload once before the user's cached process edits are re-applied.
+                    // Skipped while loading a project: the 3mf restore keeps the saved position.
+                    const Vec3d last_size     = part_plate->get_wipe_tower_last_est_size();
+                    const bool  wrapping_now  = full_cfg.opt_bool("enable_wrapping_detection");
+                    const bool  inputs_changed = !last_size.isZero()
+                        && ((wipe_tower_size - last_size).norm() > 1e-3
+                            || wrapping_now != part_plate->get_wipe_tower_last_wrapping());
+                    // Zero size must not clear the baselines; it would delay the next change
+                    // detection by one reload cycle.
+                    if (!wipe_tower_size.isZero(EPSILON)) {
+                        part_plate->set_wipe_tower_last_est_size(wipe_tower_size);
+                        part_plate->set_wipe_tower_last_wrapping(wrapping_now);
+                    }
+                    if (inputs_changed && !is_loading_project) {
+                        ConfigOptionFloats *wtx = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
+                        ConfigOptionFloats *wty = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
+                        if (wtx && wty) {
+                            ensure_wipe_tower_clears_forbidden_regions(*part_plate, plate_id, wxGetApp().plater()->model(), ppl, *wtx, *wty, full_cfg);
+                            // ensure may have rewritten the config; refresh the locals used for rendering below.
+                            x = wtx->get_at(plate_id);
+                            y = wty->get_at(plate_id);
+                        }
+                    }
+
                     if (!current_print->is_step_done(psWipeTower) || !current_print->wipe_tower_data().wipe_tower_mesh_data) {
                         // update for wipe tower position
                         {

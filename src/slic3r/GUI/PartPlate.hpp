@@ -119,6 +119,8 @@ private:
     // BBS: whether this plate's wipe tower has already been placed once. Survives
     // undo/redo (included in load()/save() below) but deliberately not written to 3mf.
     bool m_wipe_tower_placed {false};
+    Vec3d m_wipe_tower_last_est_size {Vec3d::Zero()}; // not serialized; size change detector
+    bool  m_wipe_tower_last_wrapping {false};         // not serialized; paired with m_wipe_tower_last_est_size
     std::unique_ptr<HelioPlateResult> m_helio_result;
     float m_slice_percent;
 
@@ -464,6 +466,10 @@ public:
     // plate object itself is freshly constructed (new plate, delete_plate(), or 3mf reload).
     bool is_wipe_tower_placed() const { return m_wipe_tower_placed; }
     void set_wipe_tower_placed(bool state) { m_wipe_tower_placed = state; }
+    const Vec3d &get_wipe_tower_last_est_size() const { return m_wipe_tower_last_est_size; }
+    void set_wipe_tower_last_est_size(const Vec3d &size) { m_wipe_tower_last_est_size = size; }
+    bool get_wipe_tower_last_wrapping() const { return m_wipe_tower_last_wrapping; }
+    void set_wipe_tower_last_wrapping(bool on) { m_wipe_tower_last_wrapping = on; }
 
     //is a printable plate or not
     bool is_printable() const { return m_printable; }
