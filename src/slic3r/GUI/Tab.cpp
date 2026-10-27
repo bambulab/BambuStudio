@@ -4600,7 +4600,8 @@ void TabFilament::add_filament_overrides_page()
                                         "filament_retract_before_wipe",
                                         "filament_long_retractions_when_cut",
                                         "filament_retraction_distances_when_cut",
-                                        "filament_retract_length_toolchange"
+                                        "filament_retract_length_toolchange",
+                                        "filament_retract_restart_extra_toolchange"
                                      })
         append_single_option_line(opt_key, extruder_idx);
 
@@ -4659,7 +4660,8 @@ void TabFilament::update_filament_overrides_page()
                                             "filament_retract_before_wipe",
                                             "filament_long_retractions_when_cut",
                                             "filament_retraction_distances_when_cut",
-                                            "filament_retract_length_toolchange"
+                                            "filament_retract_length_toolchange",
+                                            "filament_retract_restart_extra_toolchange"
                                         };
 
     const int selection = m_variant_combo->GetSelection();
@@ -4692,7 +4694,7 @@ void TabFilament::update_filament_overrides_page()
                 toggle_line(opt_key, filament_enabled && machine_enabled, extruder_idx + 256);
                 field->toggle(is_checked && filament_enabled && machine_enabled);
             }
-            else if (opt_key == "filament_retract_length_toolchange") {
+            else if (opt_key == "filament_retract_length_toolchange" || opt_key == "filament_retract_restart_extra_toolchange") {
                 // handle_hotend_as_extruder machines only. Other machines keep the printer toolchange length and must not show this row.
                 const auto *hotend_as_extruder = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("handle_hotend_as_extruder");
                 const bool machine_enabled = hotend_as_extruder && hotend_as_extruder->value;

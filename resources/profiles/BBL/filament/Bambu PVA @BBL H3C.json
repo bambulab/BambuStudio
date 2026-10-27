@@ -61,6 +61,10 @@
         "12",
         "12"
     ],
+    "filament_retract_restart_extra_toolchange": [
+        "-2",
+        "-2"
+    ],
     "first_x_layer_optional_fan_speed": [
         "0"
     ],

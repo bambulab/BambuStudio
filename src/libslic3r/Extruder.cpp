@@ -103,8 +103,11 @@ double Extruder::retract(double length, double restart_extra)
     if (m_share_extruder) {
         if (m_config->use_relative_e_distances)
             m_share_E[extruder_id()] = 0.;
-        double to_retract = std::max(0., length - share_retracted(retracted_slot_id()));
-        m_restart_extra   = restart_extra;
+        const double retracted = share_retracted(retracted_slot_id());
+        double to_retract = std::max(0., length - retracted);
+        // A shorter no-op retract must not replace the restart extra of the retract that parked the filament.
+        if (to_retract > 0. || length + EPSILON >= retracted)
+            m_restart_extra = restart_extra;
         if (to_retract > 0.) {
             m_share_E[extruder_id()]             -= to_retract;
             m_absolute_E          -= to_retract;
@@ -116,7 +119,8 @@ double Extruder::retract(double length, double restart_extra)
         if (m_config->use_relative_e_distances)
             m_E = 0.;
         double to_retract = std::max(0., length - m_retracted);
-        m_restart_extra = restart_extra;
+        if (to_retract > 0. || length + EPSILON >= m_retracted)
+            m_restart_extra = restart_extra;
         if (to_retract > 0.) {
             m_E             -= to_retract;
             m_absolute_E    -= to_retract;
@@ -215,25 +219,32 @@ double Extruder::retract_restart_extra() const
     return m_config->retract_restart_extra.get_at(get_filament_config_idx(*m_config, m_id));
 }
 
+const ConfigOptionFloatsNullable *Extruder::filament_toolchange_override(const ConfigOptionFloatsNullable &opt) const
+{
+    // Filament toolchange overrides only affect the retract / deretract emitted by the slicer on
+    // handle_hotend_as_extruder machines. The printer values stay untouched, so change_filament_gcode
+    // still sees them. PVA sharing a hotend with other filaments keeps the printer values.
+    if (!m_config->handle_hotend_as_extruder || !m_exclusive_nozzle || m_id >= m_config->filament_type.size() ||
+        m_config->filament_type.get_at(m_id) != "PVA")
+        return nullptr;
+
+    const size_t filament_config_idx = get_filament_config_idx(*m_config, m_id);
+    if (filament_config_idx >= opt.size() || opt.is_nil(filament_config_idx))
+        return nullptr;
+    return &opt;
+}
+
 double Extruder::retract_length_toolchange() const
 {
-    // filament_retract_length_toolchange only affects the retract / deretract emitted by the
-    // slicer on handle_hotend_as_extruder machines. retract_length_toolchange itself is left
-    // untouched, so change_filament_gcode still sees the printer value.
-    // The override only applies to PVA that has its hotend to itself; PVA sharing a hotend with
-    // other filaments keeps the printer value.
-    if (m_config->handle_hotend_as_extruder && m_exclusive_nozzle && m_id < m_config->filament_type.size() &&
-        m_config->filament_type.get_at(m_id) == "PVA") {
-        const ConfigOptionFloatsNullable &filament_len = m_config->filament_retract_length_toolchange;
-        size_t filament_config_idx = get_filament_config_idx(*m_config, m_id);
-        if (filament_config_idx < filament_len.size() && !filament_len.is_nil(filament_config_idx))
-            return filament_len.get_at(filament_config_idx);
-    }
+    if (const ConfigOptionFloatsNullable *filament_len = filament_toolchange_override(m_config->filament_retract_length_toolchange))
+        return filament_len->get_at(get_filament_config_idx(*m_config, m_id));
     return m_config->retract_length_toolchange.get_at(extruder_id());
 }
 
 double Extruder::retract_restart_extra_toolchange() const
 {
+    if (const ConfigOptionFloatsNullable *filament_extra = filament_toolchange_override(m_config->filament_retract_restart_extra_toolchange))
+        return filament_extra->get_at(get_filament_config_idx(*m_config, m_id));
     return m_config->retract_restart_extra_toolchange.get_at(extruder_id());
 }
 

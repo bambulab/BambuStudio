@@ -178,6 +178,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_retract_length_nc",
         "retract_restart_extra",
         "retract_restart_extra_toolchange",
+        "filament_retract_restart_extra_toolchange",
         "retraction_speed",
         "retract_lift_above",
         "retract_lift_below",

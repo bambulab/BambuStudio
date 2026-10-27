@@ -115,6 +115,10 @@
         "nil",
         "nil"
     ],
+    "filament_retract_restart_extra_toolchange": [
+        "nil",
+        "nil"
+    ],
     "filament_retraction_length": [
         "nil",
         "nil"

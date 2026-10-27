@@ -67,6 +67,7 @@ public:
 private:
     // Private constructor to create a key for a search in std::set.
     Extruder(unsigned int id) : m_id(id) {}
+    const ConfigOptionFloatsNullable *filament_toolchange_override(const ConfigOptionFloatsNullable &opt) const;
 
     // Slot of m_share_retracted holding the park state of the filament path this filament belongs to.
     unsigned int retracted_slot_id() const;

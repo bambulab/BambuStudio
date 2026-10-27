@@ -1470,6 +1470,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnumsGenericNullable,z_hop_types))
     ((ConfigOptionFloatsNullable,      filament_retract_length_nc))
     ((ConfigOptionFloatsNullable,      filament_retract_length_toolchange))
+    ((ConfigOptionFloatsNullable,      filament_retract_restart_extra_toolchange))
     ((ConfigOptionFloatsNullable,      retract_restart_extra))
     ((ConfigOptionFloatsNullable,      retract_restart_extra_toolchange))
     ((ConfigOptionFloatsNullable,      retraction_speed))
