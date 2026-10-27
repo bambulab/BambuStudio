@@ -84,8 +84,9 @@ struct Slot
     int                      slot_id      = -1;
     std::string              slot_name;
 
-    // Hotend unit only: rack nozzle address and its 1-based display index
-    // (same convention as the filament/hotend panel). -1 / 0 on AMS units.
+    // Rack nozzle address and its 1-based display index (same convention as
+    // the filament/hotend panel). AMS units fill `display_index` too when the
+    // slot is already mapped to a rack nozzle.
     int                      addr_id       = -1;
     int                      display_index = 0;
     // Hotend unit only: even display indices form the upper row of cards.

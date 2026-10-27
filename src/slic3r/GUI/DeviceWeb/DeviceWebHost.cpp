@@ -671,7 +671,7 @@ void DeviceWebHost::ApplyAmsControlWebHostSize(int height_dip)
         m_device_webview->SetMaxSize(content_size);
         m_device_webview->SetSize(content_size);
     }
-    if (m_content_size_changed_handler)
+    if (m_enable_size_manual_change && m_content_size_changed_handler)
         m_content_size_changed_handler(content_size);
 
     Layout();
@@ -788,7 +788,7 @@ void DeviceWebHost::OnWebContentSizeChanged(int width, int height)
     if (m_device_webview) {
         m_device_webview->SetMinSize(content_size);
     }
-    if (m_content_size_changed_handler) {
+    if (m_enable_size_manual_change && m_content_size_changed_handler) {
         m_content_size_changed_handler(content_size);
     }
 

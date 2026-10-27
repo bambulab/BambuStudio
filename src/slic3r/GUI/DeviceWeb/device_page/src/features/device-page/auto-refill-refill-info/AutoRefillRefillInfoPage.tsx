@@ -143,6 +143,9 @@ export function AutoRefillRefillInfoPage() {
 
   const groups = state.extruders.flatMap((ext) => ext.groups);
   const groupCount = groups.length;
+  const columnsClassName = groupCount === 3
+    ? 'refill-page__columns refill-page__columns--spread'
+    : 'refill-page__columns';
   // Presentation is C++-driven: text and affordances come from the view-model
   // rather than being hard-coded here (see Schema.hpp keys::root).
   const editable = state.editable ?? false;
@@ -222,7 +225,7 @@ export function AutoRefillRefillInfoPage() {
         ) : addRefillFilaments ? (
           <AddRefillFilamentsPage
             state={addRefillFilaments}
-            anchor={pickerConfig?.to}
+            baselineSlots={pickerConfig?.baselineSlots}
             error={error}
             busy={pickerBusy || confirmingAddRefillFilaments}
             onSelectionChange={updatePicker}
@@ -323,7 +326,7 @@ export function AutoRefillRefillInfoPage() {
           <div className="refill-page__empty-label">{t('No auto-refill filament.')}</div>
         </div>
       ) : (
-        <div className="refill-page__columns">
+        <div className={columnsClassName}>
           {groups.map((group) => (
             <GroupColumn
               key={group.filament_id}
@@ -335,7 +338,11 @@ export function AutoRefillRefillInfoPage() {
                 // appended to the tail of the refill chain.
                 const anchor = group.slots[group.slots.length - 1];
                 if (anchor) {
-                  openPicker({ mode: 'add_to_group', to: { ams_id: anchor.ams_id, slot_id: anchor.slot_id } });
+                  openPicker({
+                    mode: 'add_to_group',
+                    to: { ams_id: anchor.ams_id, slot_id: anchor.slot_id },
+                    baselineSlots: group.slots.map((slot) => ({ ams_id: slot.ams_id, slot_id: slot.slot_id })),
+                  });
                 }
               }}
               onReset={(groupTag) => void runGroupCommand(() => resetGroup(groupTag))}

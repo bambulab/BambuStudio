@@ -246,6 +246,12 @@ SchemaFormat::Slot build_ams_slot(MachineObject* obj, DevAms* ams, int slot_id)
     const auto tray_copy = obj->get_tray(slot.ams_id, slot_id);
     const DevAmsTray* tray = tray_copy ? &*tray_copy : nullptr;
     slot.slot_name = std::to_string(slot_id + 1);
+    if (tray) {
+        const auto nozzle_addr_id = tray->get_nozzle_addr_id(obj);
+        if (nozzle_addr_id.has_value()) {
+            slot.display_index = addr_id_to_display_index(*nozzle_addr_id);
+        }
+    }
     fill_slot_filament(tray, slot);
     fill_slot_nozzle(obj, tray, tray ? tray->get_nozzle_addr_id(obj) : std::nullopt, slot);
     return slot;

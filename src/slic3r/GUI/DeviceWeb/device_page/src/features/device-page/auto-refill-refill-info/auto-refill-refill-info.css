@@ -18,6 +18,9 @@
 }
 
 .refill-page__intro {
+  box-sizing: border-box;
+  width: calc(100% - 48px);
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -160,12 +163,20 @@
 }
 
 .refill-page__columns {
+  box-sizing: border-box;
+  width: calc(100% - 48px);
+  margin: 0 auto;
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  justify-content: center;
   align-items: stretch;
   overflow: hidden;
   border-radius: 8px;
+}
+
+.refill-page__columns--spread {
+  justify-content: space-between;
 }
 
 .refill-group {
@@ -447,6 +458,9 @@ body.refill-slot-dragging * {
 }
 
 .refill-page__actions {
+  box-sizing: border-box;
+  width: calc(100% - 48px);
+  margin: 0 auto;
   display: flex;
 }
 

@@ -17,6 +17,7 @@ export const MODULE = 'device_page_auto_refill_refill_info';
 export interface AutoRefillPickerConfig {
   mode: AutoRefillAddRefillFilamentsMode;
   to?: AutoRefillAddRefillFilamentsSlotRef;
+  baselineSlots?: AutoRefillAddRefillFilamentsSlotRef[];
 }
 
 // The picker slot list comes from an MQTT round-trip, so C++ answers the
@@ -469,7 +470,11 @@ export function useAutoRefillRefillInfoBridge() {
     suppressedWarningCodesRef.current.clear();
     setPickerConfig(config);
     if (config.mode === 'add_to_group' && config.to) {
-      void queryNextAddRefillFilaments([config.to], config.to, config.mode);
+      void queryNextAddRefillFilaments(
+        config.baselineSlots?.length ? config.baselineSlots : [config.to],
+        config.to,
+        config.mode,
+      );
     } else {
       void queryAddRefillFilaments();
     }

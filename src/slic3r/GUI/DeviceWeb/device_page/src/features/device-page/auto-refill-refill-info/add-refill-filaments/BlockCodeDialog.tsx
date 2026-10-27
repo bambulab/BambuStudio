@@ -29,11 +29,13 @@ export function BlockCodeDialog({
   const hasConfirmAction = Boolean(confirmLabel);
 
   const title = interaction.title ?? interaction.tooltip ?? '';
-  // Design row 13 substitutes the hotend number into both strings.
+  // Design row 13 stores the English source text as the i18n key, so the
+  // hotend index has to be filled after translation instead of before lookup.
   const fill = (text: string) =>
     interaction.details === 'hotend_index'
       ? text.replace('%1', String(slot.display_index))
       : text;
+  const translate = (text: string) => fill(t(text));
 
   const currentFilament = slot.filament_name || slot.filament_type;
   const currentNozzle = [slot.nozzle.label, slot.nozzle.subtext].filter(Boolean).join(' ');
@@ -53,12 +55,12 @@ export function BlockCodeDialog({
         className="refill-block-dialog"
         role="dialog"
         aria-modal="true"
-        aria-label={t(title)}
+        aria-label={translate(title)}
         data-testid="add-refill-block-dialog"
         data-block-code={interaction.block_code}
       >
         <div className="refill-block-dialog__body">
-          {title && <div className="refill-block-dialog__title">{t(fill(title))}</div>}
+          {title && <div className="refill-block-dialog__title">{translate(title)}</div>}
           {details.map((detail) => (
             <div className="refill-block-dialog__detail" key={detail.label}>
               <span>{t(detail.label)}</span>
@@ -66,7 +68,7 @@ export function BlockCodeDialog({
             </div>
           ))}
           {interaction.message && (
-            <div className="refill-block-dialog__message">{t(fill(interaction.message))}</div>
+            <div className="refill-block-dialog__message">{translate(interaction.message)}</div>
           )}
           {interaction.allow_dont_show_again && (
             <label className="refill-block-dialog__dsa">

@@ -266,6 +266,20 @@ void OpenAutoRefillFilamentsDialog(MachineObject*                     machine_ob
     active_auto_refill_filaments_dialog() = &dialog;
 
     auto* host = new DeviceWebHost(&dialog, DeviceWebHostMode::DevicePageAutoRefillRefillInfo, route);
+    host->EnableSizeManualChange(true);
+    host->SetContentSizeChangedHandler([&dialog](const wxSize& content_size) {
+        if (content_size.GetWidth() <= 0 || content_size.GetHeight() <= 0) {
+            return;
+        }
+        if (dialog.GetMinClientSize() != content_size) {
+            dialog.SetMinClientSize(content_size);
+        }
+        if (dialog.GetClientSize() != content_size) {
+            dialog.SetClientSize(content_size);
+        }
+        dialog.Layout();
+        dialog.SendSizeEvent();
+    });
     host->SetMinSize(wxSize(dialog.FromDIP(kAutoRefillPickerWidthDip),
                             dialog.FromDIP(kAutoRefillPickerHeightDip)));
     if (auto* vm = host->GetAutoRefillRefillInfoVM())

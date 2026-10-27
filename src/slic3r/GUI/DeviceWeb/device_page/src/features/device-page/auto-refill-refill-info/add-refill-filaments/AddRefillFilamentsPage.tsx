@@ -22,9 +22,10 @@ import { formatAutoRefillNozzle } from '../nozzleDisplay';
 
 interface AddRefillFilamentsPageProps {
   state: AutoRefillAddRefillFilamentsViewModel;
-  // `add_to_group` only: the group member the picker was opened from. It comes
-  // back pre-selected, so it must not count towards the new picks.
-  anchor?: AutoRefillAddRefillFilamentsSlotRef;
+  // `add_to_group` only: the existing group members shown as a fixed baseline.
+  // They stay selected for reference, define the order badges, and must not
+  // count towards the new picks sent back on confirm.
+  baselineSlots?: AutoRefillAddRefillFilamentsSlotRef[];
   error: string;
   busy: boolean;
   onSelectionChange: (slots: AutoRefillAddRefillFilamentsSlotRef[]) => Promise<void>;
@@ -133,7 +134,7 @@ function SlotCard({
 
 export function AddRefillFilamentsPage({
   state,
-  anchor,
+  baselineSlots = [],
   error,
   busy,
   onSelectionChange,
@@ -147,21 +148,27 @@ export function AddRefillFilamentsPage({
   onToast,
 }: AddRefillFilamentsPageProps) {
   const { t } = useTranslation();
+  const baselineKeys = new Set(baselineSlots.map((slot) => slotKey(slot)));
   const [localBusy, setLocalBusy] = useState(false);
   // Slot whose block-code dialog is up. Null while no dialog is showing.
   const [blockDialogSlot, setBlockDialogSlot] = useState<AutoRefillAddRefillFilamentsSlot | null>(null);
-  const [selected, setSelected] = useState<AutoRefillAddRefillFilamentsSlotRef[]>(() =>
-    state.units.flatMap((unit) => unit.slots)
+  const [selected, setSelected] = useState<AutoRefillAddRefillFilamentsSlotRef[]>(() => {
+    const initial = baselineSlots.slice();
+    state.units
+      .flatMap((unit) => unit.slots)
       .filter((slot) => slot.selected)
-      .map(({ ams_id, slot_id }) => ({ ams_id, slot_id })),
-  );
+      .forEach(({ ams_id, slot_id }) => {
+        const ref = { ams_id, slot_id };
+        if (!initial.some((item) => slotKey(item) === slotKey(ref))) {
+          initial.push(ref);
+        }
+      });
+    return initial;
+  });
   const pending = busy || localBusy;
   // Growing an existing group only asks for the spool being added; a brand-new
   // group is a chain, so it needs two members before it means anything.
-  const anchorKey = anchor ? slotKey(anchor) : null;
-  const picked = anchorKey === null
-    ? selected.length
-    : selected.filter((item) => slotKey(item) !== anchorKey).length;
+  const picked = selected.filter((item) => !baselineKeys.has(slotKey(item))).length;
   const minPicked = state.mode === 'add_to_group' ? 1 : 2;
 
   const commitSelection = async (slot: AutoRefillAddRefillFilamentsSlot, isSelected: boolean) => {
@@ -198,6 +205,7 @@ export function AddRefillFilamentsPage({
 
   const toggle = async (slot: AutoRefillAddRefillFilamentsSlot) => {
     const key = slotKey(slot);
+    if (baselineKeys.has(key)) return;
     const isSelected = selected.some((item) => slotKey(item) === key);
     const interaction = slot.interaction;
     const asksConfirmation = interaction?.feedback === 'dialog'
@@ -308,7 +316,7 @@ export function AddRefillFilamentsPage({
           type="button"
           className="add-refill-page__button add-refill-page__button--primary"
           disabled={pending || picked < minPicked}
-          onClick={() => void onConfirm(selected)}
+          onClick={() => void onConfirm(selected.filter((slot) => !baselineKeys.has(slotKey(slot))))}
         >
           {t('OK')}
         </button>
