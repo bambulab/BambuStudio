@@ -2412,6 +2412,9 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
             float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
             double volume_depth         = depth;
             depth = std::max((double) min_wipe_tower_depth, depth);
+            // Slicing forces wrapping towers to this depth; do not estimate below it.
+            if (enable_wrapping_detection)
+                depth = std::max(depth, WipeTower::wrapping_wipe_tower_depth);
             rib_width = std::min(rib_width, depth / 2);
             depth = rib_width / std::sqrt(2) + std::max(depth + m_print->config().prime_tower_extra_rib_length.value, volume_depth);
             wipe_tower_size(0) = wipe_tower_size(1) = depth;
@@ -2422,6 +2425,9 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
         if (need_wipe_tower || depth > EPSILON) {
             float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
             depth = std::max((double)min_wipe_tower_depth, depth);
+            // Slicing forces wrapping towers to this depth; do not estimate below it.
+            if (enable_wrapping_detection)
+                depth = std::max(depth, WipeTower::wrapping_wipe_tower_depth);
         }
         wipe_tower_size(0) = w;
         wipe_tower_size(1) = depth;
