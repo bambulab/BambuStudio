@@ -4349,13 +4349,6 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                 // print on nothing else, and no other filament can use such a nozzle. That makes it a
                 // yes/no question -- does the rack carry one at this diameter -- and answering it needs
                 // the rack itself, not the project's settings.
-                //
-                // Only this one direction is asked. The mirror question -- such a nozzle cannot print
-                // anything else -- is deliberately left out: where no rack has been read, `installed`
-                // falls back to the project's own flow setting, and asking it there would flag every
-                // filament at once whenever that setting is off. The direction kept here reads a
-                // requirement off the filament preset, so a filament without that requirement is
-                // never touched by it.
                 std::vector<std::string> filament_variants;
                 if (const Preset *preset = filaments.find_preset(filament_presets[i], false))
                     if (const auto *opt = preset->config.option<ConfigOptionStrings>("filament_extruder_variant"))
@@ -4367,6 +4360,19 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                     incompatible_nozzle_diameter_slots.push_back(i);
                     BOOST_LOG_TRIVIAL(warning) << "filament " << i
                                                << " needs a dedicated nozzle flow the rack does not carry at "
+                                               << target << ", flagging the slot";
+                    continue;
+                }
+
+                // The mirror question: every nozzle the rack carries at this diameter is one this
+                // filament cannot print on (e.g. a lone TPU285 nozzle feeding an ordinary PLA).
+                const bool any_flow_at_target = std::any_of(installed.begin(), installed.end(),
+                    [&target](const auto &variant) { return variant.first == target; });
+                if (any_flow_at_target &&
+                    ::Slic3r::get_filament_nozzle_flow_options(*this, i, target, installed).empty()) {
+                    incompatible_nozzle_diameter_slots.push_back(i);
+                    BOOST_LOG_TRIVIAL(warning) << "filament " << i
+                                               << " cannot print on any nozzle flow the rack carries at "
                                                << target << ", flagging the slot";
                     continue;
                 }
