@@ -14637,27 +14637,6 @@ std::string Plater::priv::push_validation_warning(StringObjectException const &w
 		    return false;
 	    };
         auto        action_fn = (mo || !warning.opt_key.empty()) ? obj_call_fn : std::function<bool(wxEvtHandler *)>();
-        // hack code
-        if (warning.hypetext == "filament_mix_print") {
-            notification_manager->push_validate_serious_warning_notification(
-                text, _u8L("Wiki for details"),
-                [](wxEvtHandler *) -> bool {
-                    bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
-                    if (is_zh) {
-                        wxLaunchDefaultBrowser("https://wiki.bambulab.com/zh/filament-acc/filament/h2d-filament-config-limit");
-                    } else {
-                        wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/filament-acc/filament/h2d-filament-config-limit");
-                    }
-                    return false;
-                },
-                _u8L("Don't show again"),
-                [](wxEvtHandler *) -> bool {
-                    wxGetApp().app_config->set("no_warn_high_temp_filament", "true");
-                    wxGetApp().app_config->save();
-                    return true;
-                });
-            return text;
-        }
 
         std::string hypertext;
         if (!warning.hypetext.empty()) {
@@ -14774,8 +14753,6 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         this->partplate_list.update_slice_context_to_current_plate(background_process);
         this->preview->update_gcode_result(partplate_list.get_current_slice_result());
     }
-
-    background_process.fff_print()->set_show_high_temp_filament_warning(wxGetApp().app_config->get("no_warn_high_temp_filament") != "true");
 
     Print::ApplyStatus invalidated;
     const auto& preset_bundle = wxGetApp().preset_bundle;
@@ -30596,7 +30573,6 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
         std::vector<StringObjectException> warnings;
         Polygons polygons;
         std::vector<std::pair<Polygon, float>> height_polygons;
-        p->background_process.fff_print()->set_show_high_temp_filament_warning(wxGetApp().app_config->get("no_warn_high_temp_filament") != "true");
         StringObjectException err = p->background_process.validate(&warnings, &polygons, &height_polygons);
         // update string by type
         post_process_string_object_exception(err);

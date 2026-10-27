@@ -50,7 +50,6 @@
 #include "Widgets/MappingRow.hpp"
 #include "Widgets/RoundedRectangle.hpp" // shared fill+border card surface
 #include "Widgets/StateColor.hpp"
-#include "libslic3r/Print.hpp"        // filament temperature class, for the high-temperature tip
 #include "libslic3r/PresetBundle.hpp" // project filaments + config, for the source list
 #include "libslic3r/PrintConfig.hpp"  // nozzle diameter/volume options + primary_nozzle_diameter
 #include "libslic3r/ProjectTask.hpp"  // FilamentInfo
@@ -409,43 +408,21 @@ bool syncs_ext_spools_only()
 }
 
 /**
- * \brief Whether a printer holds a high-temperature filament in any slot that takes part in the sync.
- *
- * \param obj  the printer to inspect
- */
-bool has_high_temp_filament(MachineObject *obj)
-{
-    auto is_high_temp = [](const DevAmsTray &tray) {
-        return tray.is_exists && Print::get_filament_temp_type(tray.m_fila_type) == FilamentTempType::HighTemp;
-    };
-    for (const auto &[ams_id, ams] : obj->GetFilaSystem()->GetAmsList())
-        for (const auto &[slot_id, tray] : ams->GetTrays())
-            if (tray && is_high_temp(*tray)) return true;
-
-    // External spools join the sync only when supported and not replaced by a filament selector.
-    if (!obj->ams_support_virtual_tray || sync_slots_of(obj).selector_feeds_both) return false;
-    return std::any_of(obj->vt_slot.begin(), obj->vt_slot.end(), is_high_temp);
-}
-
-/**
- * \brief The warning that high- and low-temperature filaments must not be mixed.
+ * \brief The tip that high- and low-temperature filaments are not recommended to be mixed.
  *
  * \param parent  the card to place it on
  * \param bg      the card's background colour
  */
-wxSizer *build_high_temp_tip(wxWindow *parent, const wxColour &bg)
+wxSizer *build_mix_temp_tip(wxWindow *parent, const wxColour &bg)
 {
     auto *icon = new wxStaticBitmap(parent, wxID_ANY, create_scaled_bitmap("warning", parent, 16));
     icon->SetBackgroundColour(bg);
-    auto *text = new ::Label(parent, _L("High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."), LB_AUTO_WRAP);
+    auto *text = new ::Label(parent, _L("Mixing high- and low-temperature filaments is not recommended"), LB_AUTO_WRAP);
     text->SetFont(::Label::Body_13);
     text->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::Warning));
     text->SetBackgroundColour(bg);
 
-    const bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
-    auto *link = new LinkLabel(parent, _L("Click Wiki for help."),
-                               is_zh ? "https://wiki.bambulab.com/zh/filament-acc/filament/h2d-filament-config-limit" :
-                                       "https://wiki.bambulab.com/en/filament-acc/filament/h2d-filament-config-limit");
+    auto *link = new LinkLabel(parent, _L("Wiki") + " ->", "https://e.bambulab.com/t?c=obIOA5Zy4e5K3YBL");
     link->getLabel()->SetFont(::Label::Body_13);
     link->SeLinkLabelFColour(StateColor::darkModeColorFor(ThemeColor::BrandGreen));
     link->SeLinkLabelBColour(bg);
@@ -637,8 +614,7 @@ wxWindow *SyncAmsDialog::build_header()
     v->Add(modes, 0, wxALIGN_CENTER_HORIZONTAL);
     v->Add(m_desc, 0, wxEXPAND | wxTOP, FromDIP(8));
     v->Add(warn, 0, wxTOP, FromDIP(4));
-    if (auto *obj = selected_machine(); obj && has_high_temp_filament(obj))
-        v->Add(build_high_temp_tip(card, card_bg), 0, wxEXPAND | wxTOP, FromDIP(4));
+    v->Add(build_mix_temp_tip(card, card_bg), 0, wxEXPAND | wxTOP, FromDIP(4));
 
     auto *pad = new wxBoxSizer(wxVERTICAL);
     pad->Add(v, 1, wxEXPAND | wxALL, FromDIP(12));

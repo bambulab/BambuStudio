@@ -1173,9 +1173,6 @@ public:
     Vec2f               get_rib_offset() const { return m_wipe_tower_data.rib_offset; }
     const FakeWipeTower& get_fake_wipe_tower() const { return m_fake_wipe_tower; }
 
-    void set_show_high_temp_filament_warning(bool show) { m_show_high_temp_filament_warning = show; }
-    bool need_show_high_temp_filament_warning() const { return m_show_high_temp_filament_warning; }
-
     // scaled point
     Vec2d translate_to_print_space(const Point& point) const;
     static FilamentTempType get_filament_temp_type(const std::string& filament_type);
@@ -1258,9 +1255,6 @@ protected:
     bool                invalidate_step(PrintStep step);
 
 private:
-    //BBS
-    static StringObjectException check_multi_filament_valid(const Print &print);
-
     // BBS multi-diameter: value for m_single_diameter_layering_nozzle from the filaments the plate uses.
     // Reads the model's paint, so only to be called from apply().
     double              resolve_single_diameter_layering_nozzle() const;
@@ -1347,8 +1341,6 @@ private:
 
     // OrcaSlicer: calibration
     Calib_Params m_calib_params;
-
-    bool m_show_high_temp_filament_warning{true};
 
     // To allow GCode to set the Print's GCodeExport step status.
     friend class GCode;

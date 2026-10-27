@@ -2103,7 +2103,6 @@ void PreferencesDialog::on_reset_all_warnings()
     app_config->erase("app", "skip_non_bambu_3mf_warning");
     app_config->erase("app", "post_process_script_choice");
     app_config->erase("app", "no_warn_delete_used_filament");
-    app_config->erase("app", "no_warn_high_temp_filament");
     app_config->erase("app", "no_show_tpu_tips");
     app_config->erase("app", "skip_pre_print_warning_dialog");
     app_config->set("show_support_recommend_dialog", "true");

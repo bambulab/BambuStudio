@@ -1883,18 +1883,6 @@ void NotificationManager::push_error_border_notification(NotificationType type,
     push_notification_data(data, 0);
 }
 
-void NotificationManager::push_validate_serious_warning_notification(const std::string                 &text,
-                                                                     const std::string                 &hypertext,
-                                                                     std::function<bool(wxEvtHandler *)> callback,
-                                                                     const std::string                 &second_hypertext,
-                                                                     std::function<bool(wxEvtHandler *)> second_callback)
-{
-    NotificationData data{NotificationType::ValidateWarning, NotificationLevel::SeriousWarningNotificationLevel, 0, text, hypertext, callback};
-    data.second_hypertext = second_hypertext;
-    data.second_callback  = second_callback;
-    push_notification_data(data, 0);
-}
-
 void NotificationManager::push_delayed_notification(const NotificationType type, std::function<bool(void)> condition_callback, int64_t initial_delay, int64_t delay_interval)
 {
 	auto it = std::find_if(std::begin(basic_notifications), std::end(basic_notifications),

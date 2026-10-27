@@ -1408,26 +1408,6 @@ int Print::get_config_index(int filament_id, int layer_id, const std::vector<std
     }
 }
 
-//BBS: remind the user when high-temp filaments are used on the current plate
-StringObjectException Print::check_multi_filament_valid(const Print& print)
-{
-    StringObjectException ret;
-    if (!print.need_show_high_temp_filament_warning())
-        return ret;
-
-    auto print_config = print.config();
-    // extruders() includes the filaments used by every object and by supports, in both print sequences.
-    for (unsigned int extruder_idx : print.extruders()) {
-        if (get_filament_temp_type(print_config.filament_type.get_at(extruder_idx)) == FilamentTempType::HighTemp) {
-            ret.string     = L("High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments.");
-            ret.is_warning = true;
-            ret.hypetext   = "filament_mix_print";
-            break;
-        }
-    }
-    return ret;
-}
-
 // Precondition: Print::validate() requires the Print::apply() to be called its invocation.
 //BBS: refine seq-print validation logic
 StringObjectException Print::validate(std::vector<StringObjectException> *warnings, Polygons* collison_polygons, std::vector<std::pair<Polygon, float>>* height_polygons) const
@@ -1439,14 +1419,6 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
 
     if (extruders.empty())
         return { L("No extrusions under current settings.") };
-
-    if (warnings != nullptr) {
-        auto ret = check_multi_filament_valid(*this);
-        if (!ret.string.empty()) {
-            ret.type = STRING_EXCEPT_FILAMENTS_DIFFERENT_TEMP;
-            warnings->push_back(std::move(ret));
-        }
-    }
 
     if (m_config.print_sequence == PrintSequence::ByObject && m_objects.size() > 1) {
         if (m_config.timelapse_type == TimelapseType::tlSmooth)

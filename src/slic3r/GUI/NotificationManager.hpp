@@ -240,10 +240,6 @@ public:
     // what these need: they stay in the corner next to the list the user is fixing.
     void push_error_border_notification(NotificationType type, const std::string &text, const std::string &hypertext = "",
                                         std::function<bool(wxEvtHandler *)> callback = std::function<bool(wxEvtHandler *)>());
-    // Creates a ValidateWarning notification in the serious warning style, with no fade out.
-    void push_validate_serious_warning_notification(const std::string &text, const std::string &hypertext = "",
-                                                    std::function<bool(wxEvtHandler *)> callback = std::function<bool(wxEvtHandler *)>(),
-                                                    const std::string &second_hypertext = "", std::function<bool(wxEvtHandler *)> second_callback = nullptr);
 	// Pushes basic_notification with delay. See push_delayed_notification_data.
 	void push_delayed_notification(const NotificationType type, std::function<bool(void)> condition_callback, int64_t initial_delay, int64_t delay_interval);
 	// Removes all notifications of type from m_waiting_notifications
