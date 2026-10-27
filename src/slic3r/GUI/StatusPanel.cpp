@@ -6598,13 +6598,6 @@ void StatusPanel::on_camera_enter(wxMouseEvent &event)
         m_camera_popup->check_func_supported(obj);
         m_camera_popup->sync_vcamera_state(show_vcamera);
         m_camera_popup->Bind(EVT_VCAMERA_SWITCH, &StatusPanel::on_switch_vcamera, this);
-        m_camera_popup->Bind(EVT_SDCARD_ABSENT_HINT, [this](wxCommandEvent &e) {
-            if (sdcard_hint_dlg == nullptr) {
-                sdcard_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
-                sdcard_hint_dlg->update_text(_L("Can't start this without storage."));
-            }
-            sdcard_hint_dlg->on_show();
-        });
         wxWindow *ctrl = (wxWindow *) event.GetEventObject();
         wxPoint   pos  = ctrl->ClientToScreen(wxPoint(0, 0));
         wxSize    sz   = ctrl->GetSize();

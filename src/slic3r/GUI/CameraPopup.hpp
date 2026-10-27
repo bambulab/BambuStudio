@@ -23,7 +23,6 @@ namespace Slic3r {
 namespace GUI {
 
 wxDECLARE_EVENT(EVT_VCAMERA_SWITCH, wxCommandEvent);
-wxDECLARE_EVENT(EVT_SDCARD_ABSENT_HINT, wxCommandEvent);
 
 class CameraPopup : public PopupWindow
 {
@@ -52,11 +51,16 @@ public:
     void rescale();
 
 protected:
+    struct WrapHint { wxStaticText* text; wxString original; int reserved_dip; };
+    std::vector<WrapHint> m_wrap_hints;
+    int m_content_width = -1;
+    unsigned m_wrap_last_shown = 0xFFFFFFFFu;
+    void wrap_hints();
+
     void on_switch_recording(wxMouseEvent& event);
     void on_switch_live_cam_rec(wxMouseEvent& event);
     void on_switch_visual_cam_rec(wxMouseEvent& event);
     void on_set_resolution();
-    void sdcard_absent_hint();
 
     wxWindow *  create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left);
     void select_curr_radiobox(int btn_idx);
@@ -71,14 +75,17 @@ private:
     bool  m_is_in_interval{ false };
     wxStaticText* m_text_recording;
     SwitchButton* m_switch_recording;
+    wxStaticText* m_text_recording_hint;
     wxStaticText* m_text_live_cam_rec;
     SwitchButton* m_switch_live_cam_rec;
     wxStaticText* m_text_visual_cam_rec;
     SwitchButton* m_switch_visual_cam_rec;
+    wxStaticText* m_text_cam_rec_hint;
     wxStaticText* m_text_vcamera;
     SwitchButton* m_switch_vcamera;
     wxStaticText* m_text_storage;
     wxStaticText* m_text_storage_value;
+    wxStaticText* m_text_timelapse_hint;
     wxStaticText* m_text_liveview_retry;
     SwitchButton* m_switch_liveview_retry;
     wxStaticText* m_text_resolution;

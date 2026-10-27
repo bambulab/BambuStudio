@@ -27,7 +27,7 @@ void DeviceOperationsTooltip::SetOperations(const std::vector<wxString> &operati
     m_rows.clear();
 
     m_title = new wxStaticText(this, wxID_ANY, _L("Active operations"));
-    m_title->SetFont(Label::Body_12);
+    m_title->SetFont(Label::Body_14);
     m_title->SetForegroundColour(title_fg());
     m_title->SetBackgroundColour(card_bg());
     m_title->Wrap(FromDIP(220));
@@ -35,7 +35,7 @@ void DeviceOperationsTooltip::SetOperations(const std::vector<wxString> &operati
 
     for (const wxString &op : operations) {
         wxStaticText *row = new wxStaticText(this, wxID_ANY, wxString::FromUTF8("\xe2\x80\xa2 ") + op);
-        row->SetFont(Label::Body_12);
+        row->SetFont(Label::Body_14);
         row->SetForegroundColour(row_fg());
         row->SetBackgroundColour(card_bg());
         row->Wrap(FromDIP(220));

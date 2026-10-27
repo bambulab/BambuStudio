@@ -5,6 +5,7 @@
 #include "Widgets/Label.hpp"
 #include "libslic3r/Utils.hpp"
 #include "BitmapCache.hpp"
+#include "wxExtensions.hpp"
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
 #include <wx/dcgraph.h>
@@ -16,6 +17,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 namespace Slic3r {
 namespace GUI {
@@ -30,7 +32,6 @@ wxBEGIN_EVENT_TABLE(CameraPopup, PopupWindow)
 wxEND_EVENT_TABLE()
 
 wxDEFINE_EVENT(EVT_VCAMERA_SWITCH, wxCommandEvent);
-wxDEFINE_EVENT(EVT_SDCARD_ABSENT_HINT, wxCommandEvent);
 
 #define CAMERAPOPUP_CLICK_INTERVAL 20
 
@@ -43,22 +44,36 @@ CameraPopup::CameraPopup(wxWindow *parent)
     SetDoubleBuffered(true);
 #endif
     m_panel = new wxScrolledWindow(this, wxID_ANY);
+    m_panel->ShowScrollbars(wxSHOW_SB_NEVER, wxSHOW_SB_NEVER);
     m_panel->SetBackgroundColour(*wxWHITE);
     m_panel->SetMinSize(wxSize(FromDIP(180),-1));
     m_panel->Bind(wxEVT_MOTION, &CameraPopup::OnMouse, this);
 
     main_sizer = new wxBoxSizer(wxVERTICAL);
-    wxFlexGridSizer* top_sizer = new wxFlexGridSizer(0, 2, 0, FromDIP(50));
-    top_sizer->AddGrowableCol(0);
-    top_sizer->SetFlexibleDirection(wxBOTH);
-    top_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+    auto make_row_grid = [this]() {
+        wxFlexGridSizer* g = new wxFlexGridSizer(0, 2, 0, FromDIP(50));
+        g->AddGrowableCol(0);
+        g->SetFlexibleDirection(wxBOTH);
+        g->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+        return g;
+    };
+    wxFlexGridSizer* grid_recording = make_row_grid();
+    wxFlexGridSizer* grid_per_cam   = make_row_grid();
+    wxFlexGridSizer* grid_rest      = make_row_grid();
 
     //recording
-    m_text_recording = new wxStaticText(m_panel, wxID_ANY, _L("Auto-record Monitoring"));
+    m_text_recording = new wxStaticText(m_panel, wxID_ANY, _L("Live Camera Recording"));
     m_text_recording->Wrap(-1);
     m_text_recording->SetFont(Label::Head_14);
     m_text_recording->SetForegroundColour(TEXT_COL);
     m_switch_recording = new SwitchButton(m_panel);
+
+    //no-storage hint for Auto-record Monitoring
+    m_text_recording_hint = new wxStaticText(m_panel, wxID_ANY, wxEmptyString);
+    m_text_recording_hint->SetFont(Label::Body_14);
+    m_text_recording_hint->SetForegroundColour(wxColour(0x90, 0x90, 0x90));
+    m_text_recording_hint->Hide();
+    m_wrap_hints.push_back({m_text_recording_hint, _L("External storage is not installed. Recording is not supported."), 30});
 
     //vcamera
     m_text_vcamera = new wxStaticText(m_panel, wxID_ANY, _L("Go Live"));
@@ -85,14 +100,23 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_text_visual_cam_rec->Hide();
     m_switch_visual_cam_rec->Hide();
 
-    top_sizer->Add(m_text_recording, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
-    top_sizer->Add(m_switch_recording, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
-    top_sizer->Add(m_text_live_cam_rec, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
-    top_sizer->Add(m_switch_live_cam_rec, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
-    top_sizer->Add(m_text_visual_cam_rec, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
-    top_sizer->Add(m_switch_visual_cam_rec, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
-    top_sizer->Add(m_text_vcamera, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
-    top_sizer->Add(m_switch_vcamera, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+    //no-storage hint for per-camera recording (placed under BirdsEye Camera Recording)
+    m_text_cam_rec_hint = new wxStaticText(m_panel, wxID_ANY, wxEmptyString);
+    m_text_cam_rec_hint->SetFont(Label::Body_14);
+    m_text_cam_rec_hint->SetForegroundColour(wxColour(0x90, 0x90, 0x90));
+    m_text_cam_rec_hint->Hide();
+    m_wrap_hints.push_back({m_text_cam_rec_hint, _L("External storage is not installed. Recording is not supported."), 30});
+
+    grid_recording->Add(m_text_recording, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    grid_recording->Add(m_switch_recording, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+
+    grid_per_cam->Add(m_text_live_cam_rec, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    grid_per_cam->Add(m_switch_live_cam_rec, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+    grid_per_cam->Add(m_text_visual_cam_rec, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    grid_per_cam->Add(m_switch_visual_cam_rec, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+
+    grid_rest->Add(m_text_vcamera, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    grid_rest->Add(m_switch_vcamera, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
 
 #if !BBL_RELEASE_TO_PUBLIC
     m_text_liveview_retry = new wxStaticText(m_panel, wxID_ANY, _L("Liveview Retry"));
@@ -103,8 +127,8 @@ CameraPopup::CameraPopup(wxWindow *parent)
     bool auto_retry         = wxGetApp().app_config->get("liveview", "auto_retry") != "false";
     m_switch_liveview_retry->SetValue(auto_retry);
 
-    top_sizer->Add(m_text_liveview_retry, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
-    top_sizer->Add(m_switch_liveview_retry, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+    grid_rest->Add(m_text_liveview_retry, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    grid_rest->Add(m_switch_liveview_retry, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
 
     m_switch_liveview_retry->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &e) {
         wxGetApp().app_config->set("liveview", "auto_retry", e.IsChecked());
@@ -117,13 +141,13 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_text_resolution->Wrap(-1);
     m_text_resolution->SetFont(Label::Head_14);
     m_text_resolution->SetForegroundColour(TEXT_COL);
-    top_sizer->Add(m_text_resolution, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
-    top_sizer->Add(0, 0, wxALL, 0);
+    grid_rest->Add(m_text_resolution, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    grid_rest->Add(0, 0, wxALL, 0);
     for (int i = 0; i < (int)RESOLUTION_OPTIONS_NUM; ++i)
     {
         m_resolution_options[i] = create_item_radiobox(to_resolution_label_string(CameraResolution(i)), m_panel, wxEmptyString, FromDIP(10));
-        top_sizer->Add(m_resolution_options[i], 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
-        top_sizer->Add(0, 0, wxALL, 0);
+        grid_rest->Add(m_resolution_options[i], 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+        grid_rest->Add(0, 0, wxALL, 0);
     }
 
     m_text_storage = new wxStaticText(m_panel, wxID_ANY, _L("External Storage"));
@@ -135,10 +159,14 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_text_storage_value->SetFont(Label::Body_14);
     m_text_storage_value->SetForegroundColour(ThemeColor::TextMuted);
 
-    top_sizer->Add(m_text_storage, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
-    top_sizer->Add(m_text_storage_value, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+    grid_rest->Add(m_text_storage, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    grid_rest->Add(m_text_storage_value, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
 
-    main_sizer->Add(top_sizer, 0, wxALL, FromDIP(10));
+    main_sizer->Add(grid_recording, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(10));
+    main_sizer->Add(m_text_recording_hint, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
+    main_sizer->Add(grid_per_cam, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
+    main_sizer->Add(m_text_cam_rec_hint, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
+    main_sizer->Add(grid_rest, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(10));
 
     auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/virtual-camera", L"en");
     auto text = _L("Show \"Live Video\" guide page.");
@@ -162,11 +190,31 @@ CameraPopup::CameraPopup(wxWindow *parent)
 
     main_sizer->Add(link_sizer, 0, wxALL, FromDIP(15));
 
+    //timelapse hint
+    wxBoxSizer* timelapse_hint_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto timelapse_hint_icon = new wxStaticBitmap(m_panel, wxID_ANY, create_scaled_bitmap("liveview_timelapse_warning", m_panel, 14));
+    m_text_timelapse_hint = new wxStaticText(m_panel, wxID_ANY, wxEmptyString);
+    m_text_timelapse_hint->SetFont(Label::Body_14);
+    m_text_timelapse_hint->SetForegroundColour(wxColour(0x90, 0x90, 0x90));
+    m_wrap_hints.push_back({m_text_timelapse_hint, _L("Timelapse can only be set when starting a task."), 50});
+    timelapse_hint_sizer->Add(timelapse_hint_icon, 0, wxALIGN_TOP | wxTOP, FromDIP(2));
+    timelapse_hint_sizer->Add(m_text_timelapse_hint, 1, wxLEFT, FromDIP(6));
+
+    main_sizer->Add(timelapse_hint_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(15));
+
     m_panel->SetSizer(main_sizer);
     m_panel->Layout();
 
     main_sizer->Fit(m_panel);
 
+    for (SwitchButton* sw : {m_switch_recording, m_switch_live_cam_rec, m_switch_visual_cam_rec}) {
+        wxBitmap bmp = sw->GetBitmapLabel();
+        if (bmp.IsOk()) sw->SetBitmapDisabled(bmp.ConvertToDisabled());
+    }
+
+    wrap_hints();
+    m_panel->Layout();
+    main_sizer->Fit(m_panel);
     SetClientSize(m_panel->GetSize());
     m_switch_recording->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         on_switch_recording(e);
@@ -197,26 +245,16 @@ CameraPopup::CameraPopup(wxWindow *parent)
     wxGetApp().UpdateDarkUIWin(this);
 }
 
-void CameraPopup::sdcard_absent_hint()
-{
-    wxCommandEvent evt(EVT_SDCARD_ABSENT_HINT);
-    evt.SetEventObject(this);
-    GetEventHandler()->ProcessEvent(evt);
-}
-
 void CameraPopup::on_switch_recording(wxMouseEvent& event)
 {
     if (!m_obj) return;
+    if (!m_switch_recording->IsThisEnabled()) return;
 
     auto now = std::chrono::steady_clock::now();
     if (now - m_last_recording_click < std::chrono::milliseconds(300)) return;
     m_last_recording_click = now;
 
     bool value = m_switch_recording->GetValue();
-    if (!value && m_obj->GetStorage()->get_sdcard_state() != DevStorage::SdcardState::HAS_SDCARD_NORMAL) {
-        sdcard_absent_hint();
-        return;
-    }
     m_switch_recording->SetValue(!value);
     m_obj->command_ipcam_record(!value);
 }
@@ -224,16 +262,13 @@ void CameraPopup::on_switch_recording(wxMouseEvent& event)
 void CameraPopup::on_switch_live_cam_rec(wxMouseEvent& event)
 {
     if (!m_obj) return;
+    if (!m_switch_live_cam_rec->IsThisEnabled()) return;
 
     auto now = std::chrono::steady_clock::now();
     if (now - m_last_live_cam_click < std::chrono::milliseconds(300)) return;
     m_last_live_cam_click = now;
 
     bool value = m_switch_live_cam_rec->GetValue();
-    if (!value && m_obj->GetStorage()->get_sdcard_state() != DevStorage::SdcardState::HAS_SDCARD_NORMAL) {
-        sdcard_absent_hint();
-        return;
-    }
     m_switch_live_cam_rec->SetValue(!value);
     m_obj->command_ipcam_record_cam(static_cast<int>(LiveviewCameraType::CAMERA_MAIN), !value);
 }
@@ -241,16 +276,13 @@ void CameraPopup::on_switch_live_cam_rec(wxMouseEvent& event)
 void CameraPopup::on_switch_visual_cam_rec(wxMouseEvent& event)
 {
     if (!m_obj) return;
+    if (!m_switch_visual_cam_rec->IsThisEnabled()) return;
 
     auto now = std::chrono::steady_clock::now();
     if (now - m_last_visual_cam_click < std::chrono::milliseconds(300)) return;
     m_last_visual_cam_click = now;
 
     bool value = m_switch_visual_cam_rec->GetValue();
-    if (!value && m_obj->GetStorage()->get_sdcard_state() != DevStorage::SdcardState::HAS_SDCARD_NORMAL) {
-        sdcard_absent_hint();
-        return;
-    }
     m_switch_visual_cam_rec->SetValue(!value);
     m_obj->command_ipcam_record_cam(static_cast<int>(LiveviewCameraType::CAMERA_DEPUTY), !value);
 }
@@ -444,26 +476,36 @@ void CameraPopup::check_func_supported(MachineObject *obj2)
 void CameraPopup::update(bool vcamera_streaming)
 {
     if (!m_obj) return;
-    m_switch_recording->SetValue(m_obj->camera_recording_when_printing);
+
+    bool has_storage = m_obj->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_NORMAL;
+
+    m_switch_recording->SetValue(has_storage && m_obj->camera_recording_when_printing);
 
     auto& erc = m_obj->enable_record_cams;
-    m_switch_live_cam_rec->SetValue(
+    m_switch_live_cam_rec->SetValue(has_storage &&
         std::find(erc.begin(), erc.end(),
             static_cast<int>(LiveviewCameraType::CAMERA_MAIN)) != erc.end());
-    m_switch_visual_cam_rec->SetValue(
+    m_switch_visual_cam_rec->SetValue(has_storage &&
         std::find(erc.begin(), erc.end(),
             static_cast<int>(LiveviewCameraType::CAMERA_DEPUTY)) != erc.end());
 
-    sync_resolution_setting(m_obj->camera_resolution);
-    sync_vcamera_state(vcamera_streaming);
+    // No external storage: grey out recording switches and show hint under the relevant switch.
+    m_switch_recording->Enable(has_storage);
+    m_switch_live_cam_rec->Enable(has_storage);
+    m_switch_visual_cam_rec->Enable(has_storage);
+    m_text_recording_hint->Show(!has_storage && m_switch_recording->IsShown());
+    m_text_cam_rec_hint->Show(!has_storage &&
+        (m_switch_live_cam_rec->IsShown() || m_switch_visual_cam_rec->IsShown()));
 
     switch (m_obj->GetStorage()->get_sdcard_state()) {
     case DevStorage::SdcardState::NO_SDCARD: m_text_storage_value->SetLabel(_L("Not Installed")); break;
     case DevStorage::SdcardState::HAS_SDCARD_ABNORMAL: m_text_storage_value->SetLabel(_L("Abnormal")); break;
     default: m_text_storage_value->SetLabel(_L("Installed")); break;
     }
+    m_text_storage_value->InvalidateBestSize();
 
-    rescale();
+    sync_resolution_setting(m_obj->camera_resolution);
+    sync_vcamera_state(vcamera_streaming);
 }
 
 wxString CameraPopup::to_resolution_label_string(CameraResolution resolution) {
@@ -490,12 +532,47 @@ std::string CameraPopup::to_resolution_msg_string(CameraResolution resolution) {
     return "";
 }
 
+void CameraPopup::wrap_hints()
+{
+    for (auto& h : m_wrap_hints) {
+        if (h.text) h.text->SetMinSize(wxSize(1, -1));
+    }
+
+    const int target = main_sizer->CalcMin().x;
+
+    unsigned shown = 0;
+    for (size_t i = 0; i < m_wrap_hints.size(); ++i) {
+        if (m_wrap_hints[i].text && m_wrap_hints[i].text->IsShown())
+            shown |= (1u << i);
+    }
+
+    if (target == m_content_width && shown == m_wrap_last_shown)
+        return;
+
+    for (size_t i = 0; i < m_wrap_hints.size(); ++i) {
+        auto& h = m_wrap_hints[i];
+        if (!h.text) continue;
+        if (shown & (1u << i)) {
+            h.text->SetLabel(h.original);
+            const int w = target - FromDIP(h.reserved_dip);
+            if (w > 0) h.text->Wrap(w);
+        } else {
+            h.text->SetLabel(wxEmptyString);
+        }
+    }
+
+    m_content_width = target;
+    m_wrap_last_shown = shown;
+}
+
 void CameraPopup::rescale()
 {
+    m_panel->Freeze();
+    wrap_hints();
     m_panel->Layout();
     main_sizer->Fit(m_panel);
     SetClientSize(m_panel->GetSize());
-    PopupWindow::Update();
+    m_panel->Thaw();
 }
 
 void CameraPopup::OnLeftUp(wxMouseEvent &event)
