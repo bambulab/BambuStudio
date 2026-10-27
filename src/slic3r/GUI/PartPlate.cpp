@@ -2892,10 +2892,20 @@ bool PartPlate::is_valid_gcode_file()
 
 ModelObjectPtrs PartPlate::get_objects_on_this_plate() {
     ModelObjectPtrs objects_ptr;
-    int obj_id;
-    for (auto it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); it++) {
-        obj_id = it->first;
-        objects_ptr.push_back(m_model->objects[obj_id]);
+    if (!m_model)
+        return objects_ptr;
+    // obj_to_instance_set may transiently reference obj_ids that no longer exist
+    // in m_model (e.g. during Plater::apply_cut_object_to_model, where the
+    // Model is shrunk before notify_instance_removed() reindexes the plates).
+    // Drop any out-of-range or null entries so callers never see dangling
+    // ModelObject pointers.
+    const int object_count = static_cast<int>(m_model->objects.size());
+    for (auto it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) {
+        const int obj_id = it->first;
+        if (obj_id < 0 || obj_id >= object_count)
+            continue;
+        if (ModelObject *obj = m_model->objects[obj_id])
+            objects_ptr.push_back(obj);
     }
     return objects_ptr;
 }
