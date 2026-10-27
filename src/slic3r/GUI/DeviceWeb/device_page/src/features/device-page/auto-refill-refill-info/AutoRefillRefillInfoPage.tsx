@@ -1,21 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
-import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MODULE, useAutoRefillRefillInfoBridge } from './useAutoRefillRefillInfoBridge';
 import type { AutoRefillPickerConfig } from './useAutoRefillRefillInfoBridge';
-import { useSendToCpp } from '../../../hooks/Bridge';
 import { useDeviceWebTheme } from '../../../hooks/useDeviceWebTheme';
 import { GroupColumn } from './components/GroupColumn';
 import { RefillToastStack } from './components/RefillToastStack';
 import { SchemaDebugOverlay } from './components/SchemaDebugOverlay';
 import { AddRefillFilamentsPage } from './add-refill-filaments/AddRefillFilamentsPage';
 import type { AutoRefillAddRefillFilamentsSlotRef } from './add-refill-filaments/types';
-import { resolveHostContentSize } from './hostContentSize';
 import emptyRefillGroupImage from './assets/empty_refill_group.svg';
 import autoRefillDisabledNotice from './assets/auto_refill_disabled_notice.svg';
 import './auto-refill-refill-info.css';
-
-const HOST_LAYOUT_MODULE = 'device_host';
 
 // The picker normally lives in this page, but the route still accepts
 // `?picker=1` so a host that loads it standalone opens straight into it.
@@ -33,59 +28,6 @@ function readStandalonePickerConfig(): AutoRefillPickerConfig | null {
     return { mode: 'add_to_group' };
   }
   return { mode: 'add_to_group', to: { ams_id: amsId, slot_id: slotId } };
-}
-
-// Observe the real rendered size of the page and report it to the wx host via
-// device_host/layout/content_size so the dialog can size itself instead of
-// relying only on the initial SetMinClientSize.
-function useReportHostContentSize(rootRef: RefObject<HTMLElement | null>) {
-  const send = useSendToCpp();
-  const seqRef = useRef(1_000_000);
-
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-
-    let rafId = 0;
-    let lastSizeKey = '';
-
-    const report = () => {
-      rafId = 0;
-      const { width, height } = resolveHostContentSize(root);
-      if (width <= 0 || height <= 0) return;
-
-      const sizeKey = `${width}x${height}`;
-      if (sizeKey === lastSizeKey) return;
-      lastSizeKey = sizeKey;
-
-      send(
-        { version: '1.0', type: 'request', seq: seqRef.current++, ts: Date.now() },
-        {
-          module: HOST_LAYOUT_MODULE,
-          submod: 'layout',
-          action: 'content_size',
-          payload: { width, height },
-        },
-      );
-    };
-
-    const scheduleReport = () => {
-      if (rafId) return;
-      rafId = window.requestAnimationFrame(report);
-    };
-
-    scheduleReport();
-    window.addEventListener('resize', scheduleReport);
-
-    const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(scheduleReport) : null;
-    observer?.observe(root);
-
-    return () => {
-      if (rafId) window.cancelAnimationFrame(rafId);
-      observer?.disconnect();
-      window.removeEventListener('resize', scheduleReport);
-    };
-  }, [rootRef, send]);
 }
 
 // Shown while the printer is answering a refill command (Figma node
@@ -137,7 +79,6 @@ export function AutoRefillRefillInfoPage() {
   // Kept separate from pickerBusy: the management page must stay usable no
   // matter what the picker is doing.
   const [groupBusy, setGroupBusy] = useState(false);
-  useReportHostContentSize(pageRef);
   // Sync host theme into page CSS variables.
   useDeviceWebTheme();
 

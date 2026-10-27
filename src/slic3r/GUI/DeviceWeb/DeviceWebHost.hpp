@@ -73,7 +73,6 @@ public:
     // body must contain: module, submod, action, payload.
     void DispatchCommand(const nlohmann::json& body);
     void SetContentSizeChangedHandler(ContentSizeChangedHandler handler) { m_content_size_changed_handler = std::move(handler); }
-    void EnableSizeManualChange(bool enable = true) { m_enable_size_manual_change = enable; }
 
     // Access the registered AMS mapping VM so the popup can push a fresh
     // snapshot of (machine, mapping_result, current_filament_id, ...) before
@@ -148,7 +147,6 @@ private:
     std::unique_ptr<DeviceWebManager> m_device_web_mgr;
     PrintQueueVM*                     m_print_queue_vm{ nullptr }; // owned by m_device_web_mgr
     ContentSizeChangedHandler         m_content_size_changed_handler;
-    bool                              m_enable_size_manual_change{false};
     wxSize                            m_last_reported_content_size{ wxDefaultSize };
     // Last web-reported size in DPI-independent CSS pixels (before FromDIP()).
     // Used to rebuild the physical min size at the current DPI on show.
