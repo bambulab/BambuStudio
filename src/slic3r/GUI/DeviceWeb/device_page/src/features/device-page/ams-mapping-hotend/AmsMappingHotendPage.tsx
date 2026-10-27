@@ -3,6 +3,7 @@ import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAmsMappingHotendBridge } from './useAmsMappingHotendBridge';
 import { useSendToCpp } from '../../../hooks/Bridge';
+import { documentZoom, useFitHostWidth } from '../../../hooks/useFitHostWidth';
 import { SlotCard } from './components/SlotCard';
 import { SubAmsPage } from './components/SubAmsPage';
 import { Tips } from './components/Tips';
@@ -31,6 +32,9 @@ const HOST_LAYOUT_MODULE = 'device_host';
 // this stays correct across resolutions / DPI scaling.
 const CONTENT_BOTTOM_GAP = 6;
 
+// DeviceWebHost latches this popup to kAmsMappingHotendDesignWidthDip.
+const HOST_WIDTH_DIP = 660;
+
 // Observe the real rendered size of the mapping page and report it to the wx
 // host via device_host/layout/content_size so the popup can Fit itself instead
 // of relying on the initial SetMinSize.
@@ -55,7 +59,7 @@ function useReportHostContentSize(rootRef: RefObject<HTMLElement | null>) {
       const rootTop = root.getBoundingClientRect().top;
       const last = root.lastElementChild;
       const contentHeight = last
-        ? last.getBoundingClientRect().bottom - rootTop + CONTENT_BOTTOM_GAP
+        ? (last.getBoundingClientRect().bottom - rootTop) / documentZoom() + CONTENT_BOTTOM_GAP
         : root.scrollHeight;
       const { width, height } = resolveHostContentSize({
         scrollWidth: root.scrollWidth,
@@ -121,6 +125,7 @@ export function AmsMappingHotendPage() {
   // the new color/type live (a stored snapshot would stay stale until re-open).
   const [subAmsKey, setSubAmsKey] = useState<string | null>(null);
   useReportHostContentSize(pageRef);
+  useFitHostWidth(HOST_WIDTH_DIP);
 
   // The PopupWindow on the wx side merely hides/shows this React tree on
   // dismiss/re-open; component state otherwise survives across opens. The

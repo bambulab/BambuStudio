@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDeviceBridge } from '../../../../hooks/Bridge';
 import { useDeviceWebTheme } from '../../../../hooks/useDeviceWebTheme';
+import { useFitHostWidth } from '../../../../hooks/useFitHostWidth';
 import useStore from '../../../../store/AppStore';
 import { mockAmsFilamentHotendState } from '../mockData';
 import type { AmsFilamentHotendViewModel, BridgeResponseBody } from '../types';
@@ -18,6 +19,9 @@ function isAmsFilamentHotendBody(body: unknown): body is BridgeResponseBody<AmsF
     && (body as { module?: unknown }).module === MODULE;
 }
 
+// FilamentManualPullDialog is a fixed FromDIP(636) wide host.
+const HOST_WIDTH_DIP = 636;
+
 export function FilamentManualPullPage() {
   const request = useDeviceBridge();
   const setTheme = useStore((s) => s.filament.setTheme);
@@ -26,6 +30,7 @@ export function FilamentManualPullPage() {
   const closeRequestedRef = useRef(false);
 
   useDeviceWebTheme();
+  useFitHostWidth(HOST_WIDTH_DIP);
 
   const applyState = useCallback((payload?: AmsFilamentHotendViewModel) => {
     if (!payload) return;

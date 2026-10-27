@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { Nozzle } from '../../ams-filament-hotend/components/Nozzle';
 import { visibleFeedLineColor } from '../../ams-filament-hotend/visibleFilamentColor';
+import { documentZoom } from '../../../../hooks/useFitHostWidth';
 import type { ConnectedSlotsLineInfo, ConnectedSlotsSlotViewModel } from '../types';
 
 const EMPTY_LINE_COLOR = '#cecece';
@@ -102,6 +103,10 @@ function useRouteGeometry(
     const base = stage.getBoundingClientRect();
     if (base.width === 0) return;
 
+    const zoom = documentZoom();
+    const toLocalX = (clientX: number) => (clientX - base.left) / zoom;
+    const toLocalY = (clientY: number) => (clientY - base.top) / zoom;
+
     const boardOf = (side: Side): BoardGeometry | null => {
       const board = stage.querySelector<HTMLElement>(`[data-cs-board-anchor="${side}"]`);
       if (!board) return null;
@@ -111,10 +116,10 @@ function useRouteGeometry(
       return {
         trays: cards.map((card) => {
           const rect = card.getBoundingClientRect();
-          return { x: rect.left + rect.width / 2 - base.left, y: rect.bottom - base.top };
+          return { x: toLocalX(rect.left + rect.width / 2), y: toLocalY(rect.bottom) };
         }),
         feedIndex: cards.findIndex((card) => card.dataset.csFeed === 'true'),
-        hubX: boardRect.left + boardRect.width / 2 - base.left,
+        hubX: toLocalX(boardRect.left + boardRect.width / 2),
       };
     };
 
@@ -125,8 +130,8 @@ function useRouteGeometry(
       right: boardOf('right'),
       hotend: nozzleRect
         ? {
-          x: nozzleRect.left + nozzleRect.width / 2 - base.left,
-          y: nozzleRect.top - base.top,
+          x: toLocalX(nozzleRect.left + nozzleRect.width / 2),
+          y: toLocalY(nozzleRect.top),
         }
         : null,
     };

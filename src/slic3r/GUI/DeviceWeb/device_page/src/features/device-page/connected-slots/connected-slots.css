@@ -2,7 +2,10 @@
   position: relative;
   box-sizing: border-box;
   width: 100%;
-  min-height: 100vh;
+  /* Not 100vh: vh is zoomed a second time under useFitHostWidth. 100% relies
+     on html/body/#root all being height: 100%; keep any wrapper around the
+     route at full height too. */
+  min-height: 100%;
   padding: 12px;
   display: flex;
   flex-direction: column;

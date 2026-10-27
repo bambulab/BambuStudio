@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import { documentZoom } from '../../../../hooks/useFitHostWidth';
 import type { ConnectedSlotsTrayAction, ConnectedSlotsTrayInfo } from '../types';
 
 const VIEWPORT_MARGIN = 4;
@@ -61,7 +62,8 @@ export function TrayContextMenu({
 
   if (!canEdit && !canLoad && !canUnload && !canRead) return null;
 
-  const style: CSSProperties = { position: 'fixed', left: pos.left, top: pos.top };
+  const zoom = documentZoom();
+  const style: CSSProperties = { position: 'fixed', left: pos.left / zoom, top: pos.top / zoom };
 
   const run = (action: ConnectedSlotsTrayAction) => {
     onClose();

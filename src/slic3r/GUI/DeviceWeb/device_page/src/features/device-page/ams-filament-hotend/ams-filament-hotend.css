@@ -895,8 +895,10 @@
 }
 
 .batch-ext-dialog {
-  width: min(620px, calc(100vw - 32px));
-  max-height: calc(100vh - 32px);
+  /* % of the fixed backdrop, not vw/vh: those are zoomed a second time under
+     useFitHostWidth. Same for the manual-pull page and dialog below. */
+  width: min(620px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
   border: 1px solid var(--ams-border);
   border-radius: 8px;
   background: var(--ams-card-text-bg);
@@ -986,7 +988,9 @@
 
 .filament-manual-pull-page {
   width: 100%;
-  min-height: 100vh;
+  /* Relies on html/body/#root all being height: 100%; keep any wrapper around
+     the route at full height too. */
+  height: 100%;
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -995,8 +999,8 @@
 }
 
 .filament-manual-pull-dialog {
-  width: min(636px, calc(100vw - 32px));
-  height: min(358px, calc(100vh - 32px));
+  width: min(636px, calc(100% - 32px));
+  height: min(358px, calc(100% - 32px));
   display: flex;
   flex-direction: column;
   border: 1px solid var(--ams-border);
@@ -1009,7 +1013,7 @@
 
 .filament-manual-pull-dialog.embedded {
   width: 100%;
-  height: 100vh;
+  height: 100%;
   max-height: none;
   border: 0;
   border-radius: 0;

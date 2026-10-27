@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useAmsFilamentHotendBridge } from '../useAmsFilamentHotendBridge';
 import { useDeviceWebTheme } from '../../../../hooks/useDeviceWebTheme';
+import { useFitHostWidth } from '../../../../hooks/useFitHostWidth';
 import type { AmsFilamentHotendSlotViewModel, FilamentPageMode } from '../types';
 import { BatchExternalFilamentDialog } from '../components/BatchExternalFilamentDialog';
 import { selectionKey } from '../components/Stage';
@@ -39,10 +40,14 @@ function parseSlots(raw: string): SlotQuery[] {
   }).filter((item) => item.ams_id && item.slot_id && item.display_index > 0);
 }
 
+// ExtFilamentEditDialog is a fixed FromDIP(620) wide host.
+const HOST_WIDTH_DIP = 620;
+
 export function AmsExtFilamentEditPage() {
   const query = useMemo(getQuery, []);
   const { state, refresh, runSlotAction, runBatchAction } = useAmsFilamentHotendBridge();
   useDeviceWebTheme();
+  useFitHostWidth(HOST_WIDTH_DIP);
 
   useEffect(() => {
     void refresh(query.mode);

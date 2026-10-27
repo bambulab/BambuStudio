@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import { documentZoom } from '../../../../hooks/useFitHostWidth';
 import type { AmsFilamentHotendSlotViewModel } from '../types';
 
 const VIEWPORT_MARGIN = 4;
@@ -74,10 +75,11 @@ export function CardContextMenu({
     return null;
   }
 
+  const zoom = documentZoom();
   const style: CSSProperties = {
     position: 'fixed',
-    left: pos.left,
-    top: pos.top,
+    left: pos.left / zoom,
+    top: pos.top / zoom,
     zIndex: CONTEXT_MENU_Z_INDEX,
   };
 

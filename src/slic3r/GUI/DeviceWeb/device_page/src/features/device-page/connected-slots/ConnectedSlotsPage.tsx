@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, type RefObject } from 'react';
 import { useConnectedSlotsBridge } from './useConnectedSlotsBridge';
 import { useDeviceWebTheme } from '../../../hooks/useDeviceWebTheme';
+import { documentZoom, useFitHostWidth } from '../../../hooks/useFitHostWidth';
 import useStore from '../../../store/AppStore';
 import { AmsUnitBoard } from './components/AmsUnitBoard';
 import { ConnectedSourceSchematic } from './components/ConnectedSourceSchematic';
@@ -33,6 +34,7 @@ function useAlignSchematicsToBoards(
     const stage = stageRef.current;
     if (!bar || !stage) return;
     const barLeft = bar.getBoundingClientRect().left;
+    const zoom = documentZoom();
     const sides = ['left', 'right'] as const;
     sides.forEach((side, i) => {
       const schematic = bar.children[i] as HTMLElement | undefined;
@@ -45,7 +47,7 @@ function useAlignSchematicsToBoards(
       const board = stage.querySelector<HTMLElement>(`[data-cs-board-anchor="${side}"]`);
       if (!board) return;
       const boardRect = board.getBoundingClientRect();
-      const boardCenter = boardRect.left + boardRect.width / 2 - barLeft;
+      const boardCenter = (boardRect.left + boardRect.width / 2 - barLeft) / zoom;
       const schematicCenter = schematic.offsetLeft + schematic.offsetWidth / 2;
       schematic.style.transform = `translateX(${boardCenter - schematicCenter}px)`;
     });
@@ -111,8 +113,12 @@ function SlotView({
   );
 }
 
+// ConnectedSlotsDialog is a fixed FromDIP(560) wide host.
+const HOST_WIDTH_DIP = 560;
+
 export function ConnectedSlotsPage() {
   useDeviceWebTheme();
+  useFitHostWidth(HOST_WIDTH_DIP);
   const setTheme = useStore((s) => s.filament.setTheme);
   const addrId = useMemo(() => parseAddrIdFromHash(), []);
   const { state, error, getReport, selectSource, openDryControls, runTrayAction } = useConnectedSlotsBridge(addrId);

@@ -3,6 +3,7 @@ import type { RefObject } from 'react';
 import { useAmsFilamentHotendBridge } from './useAmsFilamentHotendBridge';
 import { useSendToCpp } from '../../../hooks/Bridge';
 import { useDeviceWebTheme } from '../../../hooks/useDeviceWebTheme';
+import { useFitHostWidth } from '../../../hooks/useFitHostWidth';
 import type {
   AmsFilamentHotendSlotActionPayload,
   AmsFilamentHotendSlotViewModel,
@@ -18,7 +19,7 @@ import { PageFooter } from './components/PageFooter';
 import { BatchModeFooter } from './components/BatchModeFooter';
 import { FilamentChangeProgressPanel } from './components/FilamentChangeProgressPanel';
 import { FilamentManualPullBanner } from './components/FilamentManualPullDialog';
-import { resolveHostContentSize } from './hostContentSize';
+import { HOTEND_PAGE_MIN_WIDTH, resolveHostContentSize } from './hostContentSize';
 import './ams-filament-hotend.css';
 
 const HOST_LAYOUT_MODULE = 'device_host';
@@ -101,6 +102,8 @@ export function AmsFilamentHotendPage() {
   const requestedModeRef = useRef<FilamentPageMode>('normal');
   const showDebugButton = Boolean((window as Window & { __internalBuild?: boolean }).__internalBuild);
   useReportHostContentSize(pageRef);
+  // Panel hosts are FromDIP(560) wide; resizable dialogs only zoom when dragged below that.
+  useFitHostWidth(HOTEND_PAGE_MIN_WIDTH);
   // Sync host theme into page CSS variables.
   useDeviceWebTheme();
 

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDeviceBridge } from '../../../../hooks/Bridge';
 import { useDeviceWebTheme } from '../../../../hooks/useDeviceWebTheme';
+import { useFitHostWidth } from '../../../../hooks/useFitHostWidth';
 import useStore from '../../../../store/AppStore';
 import { mockAmsFilamentHotendState } from '../mockData';
 import type {
@@ -64,6 +65,9 @@ function toolImageSrc(toolKind?: HotendToolKind, opState?: HotendOpState) {
   return HOTEND_DETAIL_NOZZLE_URL;
 }
 
+// HotendDetailDialog is a fixed FromDIP(520) wide host.
+const HOST_WIDTH_DIP = 520;
+
 export function HotendDetailPage() {
   const { t } = useTranslation();
   const request = useDeviceBridge();
@@ -72,6 +76,7 @@ export function HotendDetailPage() {
   const [selectedDisplayIndex, setSelectedDisplayIndex] = useState(() => getQueryDisplayIndex() || 1);
 
   useDeviceWebTheme();
+  useFitHostWidth(HOST_WIDTH_DIP);
 
   const applyState = useCallback((payload?: AmsFilamentHotendViewModel) => {
     if (!payload) return;

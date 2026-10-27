@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useDeviceWebTheme } from '../../../hooks/useDeviceWebTheme';
+import { useFitHostWidth } from '../../../hooks/useFitHostWidth';
 import { useSendToCpp } from '../../../hooks/Bridge';
 import { useAmsControlWebBridge } from './useAmsControlWebBridge';
 import './ams-control-web.css';
@@ -65,6 +66,7 @@ function carryingLink(links: SlotLink[]): SlotLink | undefined {
 
 export function AmsControlWebPage() {
   useDeviceWebTheme();
+  useFitHostWidth(HOST_WIDTH_DIP);
   const {
     state,
     selectSlot,

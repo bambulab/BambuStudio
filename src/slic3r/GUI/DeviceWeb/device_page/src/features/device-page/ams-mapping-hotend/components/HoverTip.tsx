@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent, MutableRefObject } from 'react';
 import { createPortal } from 'react-dom';
+import { documentZoom } from '../../../../hooks/useFitHostWidth';
 
 const TIP_MAX_WIDTH = 288;
 const TIP_MARGIN = 8;
@@ -98,8 +99,9 @@ function fitWrapWidth(node: HTMLDivElement) {
 }
 
 function placeAtCursor(node: HTMLDivElement, x: number, y: number) {
-  const width = node.offsetWidth;
-  const height = node.offsetHeight;
+  const zoom = documentZoom();
+  const width = node.offsetWidth * zoom;
+  const height = node.offsetHeight * zoom;
   let left = x + CURSOR_OFFSET_X;
   let top = y + CURSOR_OFFSET_Y;
   if (left + width > window.innerWidth - TIP_MARGIN) {
@@ -110,6 +112,6 @@ function placeAtCursor(node: HTMLDivElement, x: number, y: number) {
     top = y - CURSOR_OFFSET_Y - height;
   }
   if (top < TIP_MARGIN) top = TIP_MARGIN;
-  node.style.left = `${left}px`;
-  node.style.top = `${top}px`;
+  node.style.left = `${left / zoom}px`;
+  node.style.top = `${top / zoom}px`;
 }
