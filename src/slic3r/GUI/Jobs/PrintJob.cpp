@@ -441,24 +441,53 @@ void PrintJob::process()
         100     // PrintingStageFinished
     };
 
-    // Progress of start_print, following its fixed stage order; stages with a percent span a range.
-    auto fallback_stage_percent = [](int stage, int code) -> int {
-        auto in_range = [code](int begin, int end) { return code > 0 && code <= 100 ? begin + (end - begin) * code / 100 : begin; };
-        switch (stage) {
-        case BBL::SendingPrintJobStage::PrintingStagePreUpload:   return in_range(10, 60);
-        case BBL::SendingPrintJobStage::PrintingStageCreate:      return 62;
-        case BBL::SendingPrintJobStage::PrintingStageRecord:      return 65;
-        case BBL::SendingPrintJobStage::PrintingStageUpload:      return in_range(65, 90);
-        case BBL::SendingPrintJobStage::PrintingStageSending:     return 92;
-        case BBL::SendingPrintJobStage::PrintingStageWaitPrinter:
-        case BBL::SendingPrintJobStage::PrintingStageLanDirect:   return 95;
-        case BBL::SendingPrintJobStage::PrintingStageFinished:    return 100;
-        default:                                                  return -1;
-        }
+    enum class SendAttemptRoute {
+        Default,
+        LanWithRecord,
+        Cloud,
+        LanDirect,
+    };
+
+    struct PrintErrorSnapshot {
+        bool        valid { false };
+        int         code { 0 };
+        std::string desc;
+        std::string extra;
     };
 
     bool is_try_lan_mode = false;
-    bool is_fallback_flow = false;
+    bool is_try_lan_mode_failed = false;
+    bool use_cloud_error_snapshot = false;
+    SendAttemptRoute attempt_route = SendAttemptRoute::Default;
+    PrintErrorSnapshot cloud_error_snapshot;
+
+    auto get_route_status_msg = [this, &attempt_route]() -> wxString {
+        switch (attempt_route) {
+        case SendAttemptRoute::LanWithRecord:
+            return _L("Sending print job with LAN acceleration");
+        case SendAttemptRoute::Cloud:
+            return _L("Sending print job through cloud service");
+        case SendAttemptRoute::LanDirect:
+            return _L("Cloud service sending failed. Sending print job over LAN without print history.");
+        default:
+            return this->connection_type == "lan" ? _L("Sending print job over LAN") :
+                                                     _L("Sending print job through cloud service");
+        }
+    };
+
+    auto map_route_progress = [&attempt_route](int percent) -> int {
+        percent = std::max(0, std::min(100, percent));
+        switch (attempt_route) {
+        case SendAttemptRoute::LanWithRecord:
+            return 10 + percent * 45 / 100;
+        case SendAttemptRoute::Cloud:
+            return 55 + percent * 25 / 100;
+        case SendAttemptRoute::LanDirect:
+            return 85 + percent * 12 / 100;
+        default:
+            return percent;
+        }
+    };
 
     auto error_desc_for_code = [](int code) -> std::string {
         if (code == BAMBU_NETWORK_ERR_PRINT_WR_FILE_OVER_SIZE || code == BAMBU_NETWORK_ERR_PRINT_SP_FILE_OVER_SIZE) {
@@ -473,58 +502,87 @@ void PrintJob::process()
         return DESC_NETWORK_ERROR.ToStdString();
     };
 
+    auto remember_cloud_error = [&cloud_error_snapshot, &error_desc_for_code](int code, const std::string& info) {
+        cloud_error_snapshot.valid = true;
+        cloud_error_snapshot.code = code;
+        cloud_error_snapshot.desc = error_desc_for_code(code);
+        cloud_error_snapshot.extra = info;
+    };
+
+    auto restore_cloud_error_info = [this, &cloud_error_snapshot]() {
+        if (cloud_error_snapshot.valid) {
+            m_plater->update_print_error_info(cloud_error_snapshot.code, cloud_error_snapshot.desc, cloud_error_snapshot.extra);
+        }
+    };
+
+
     auto update_fn = [this,
         &is_try_lan_mode,
-        &is_fallback_flow,
+        &is_try_lan_mode_failed,
+        &error_str,
         &curr_percent,
+        &error_text,
         StagePercentPoint,
-        &fallback_stage_percent,
-        &error_desc_for_code
+        &attempt_route,
+        &use_cloud_error_snapshot,
+        &get_route_status_msg,
+        &map_route_progress,
+        &error_desc_for_code,
+        &remember_cloud_error
     ](int stage, int code, std::string info) {
-                        wxString msg = this->connection_type == "lan" ? SENDING_OVER_LAN_STR : SENDING_OVER_CLOUD_STR;
+                        wxString msg = get_route_status_msg();
                         m_print_stage = stage;
-                        if (stage == BBL::SendingPrintJobStage::PrintingStagePreUpload) {
-                            msg = _L("Sending print job with LAN acceleration");
-                            if (code >= 0 && code <= 100 && !info.empty()) {
-                                msg += wxString::Format("(%s)", info);
-                            }
+                        if (stage == BBL::SendingPrintJobStage::PrintingStageCreate) {
+                            msg = get_route_status_msg();
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageUpload) {
                             if (code >= 0 && code <= 100 && !info.empty()) {
+                                msg = get_route_status_msg();
                                 msg += wxString::Format("(%s)", info);
                             }
+                        }
+                        else if (stage == BBL::SendingPrintJobStage::PrintingStageWaiting) {
+                            msg = get_route_status_msg();
                         }
                         else  if (stage == BBL::SendingPrintJobStage::PrintingStageRecord && !is_try_lan_mode) {
                             msg = _L("Sending print configuration");
                         }
-                        else if (stage == BBL::SendingPrintJobStage::PrintingStageLanDirect) {
-                            msg = _L("Cloud service sending failed. Sending print job over LAN without print history.");
+                        else if (stage == BBL::SendingPrintJobStage::PrintingStageSending && !is_try_lan_mode) {
+                            msg = get_route_status_msg();
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageFinished) {
                             msg = wxString::Format(SENT_JUMP_TO_DEVICE_STR, info);
                             if (m_print_job_completed_id == wxGetApp().plater()->get_send_calibration_finished_event()) {
                                 msg = wxString::Format(_L("Successfully sent. Will automatically jump to the next page in %ss"), info);
                             }
+                        } else {
+                            msg = get_route_status_msg();
                         }
 
                         // update current percnet
-                        if (is_fallback_flow) {
-                            // Upload retries restart from 0 percent, never move the progress backwards.
-                            int stage_percent = fallback_stage_percent(stage, code);
-                            if (code >= 0 && code <= 100 && stage_percent >= 0)
-                                curr_percent = std::max(curr_percent, stage_percent);
-                        }
-                        else if (stage >= 0 && stage <= (int) PrintingStageFinished) {
+                        if (stage >= 0 && stage <= (int) PrintingStageFinished) {
                             curr_percent = StagePercentPoint[stage];
                             if (stage == BBL::SendingPrintJobStage::PrintingStageUpload
                                 && (code > 0 && code <= 100)) {
                                 curr_percent = (StagePercentPoint[stage + 1] - StagePercentPoint[stage]) * code / 100 + StagePercentPoint[stage];
                             }
                         }
+                        if (stage != BBL::SendingPrintJobStage::PrintingStageFinished)
+                            curr_percent = map_route_progress(curr_percent);
 
                         //get errors
                         if (code > 100 || code < 0 || stage == BBL::SendingPrintJobStage::PrintingStageERROR) {
-                            m_plater->update_print_error_info(code, error_desc_for_code(code), info);
+                            if (use_cloud_error_snapshot) {
+                                if (attempt_route == SendAttemptRoute::Cloud) {
+                                    remember_cloud_error(code, info);
+                                    m_plater->update_print_error_info(code, error_desc_for_code(code), info);
+                                } else {
+                                    BOOST_LOG_TRIVIAL(warning) << "print_job: non-cloud attempt error, route=" << static_cast<int>(attempt_route)
+                                        << ", code=" << code << ", info=" << info;
+                                }
+                            } else {
+                                m_plater->update_print_error_info(code, error_desc_for_code(code), info);
+                            }
                         }
                         else {
                              this->update_status(curr_percent, msg);
@@ -608,6 +666,7 @@ void PrintJob::process()
     auto request_fresh_access_code = [this, &obj, &curr_percent]() {
         constexpr int ACCESS_CODE_REFRESH_TIMEOUT_MS = 5000;
         auto state = std::make_shared<AccessCodeRefreshState>();
+        curr_percent = 80;
         this->update_status(curr_percent, _L("Refreshing printer access code"));
 
         wxGetApp().CallAfter([state, obj]() {
@@ -685,12 +744,30 @@ void PrintJob::process()
         return state;
     };
 
+    auto should_stop_without_fallback = [](int ret) {
+        return ret == BAMBU_NETWORK_ERR_CANCELED
+            || ret == BAMBU_NETWORK_SIGNED_ERROR
+            || ret == BAMBU_NETWORK_ERR_PRINT_WR_FILE_NOT_EXIST
+            || ret == BAMBU_NETWORK_ERR_PRINT_SP_FILE_NOT_EXIST
+            || ret == BAMBU_NETWORK_ERR_PRINT_WR_FILE_OVER_SIZE
+            || ret == BAMBU_NETWORK_ERR_PRINT_SP_FILE_OVER_SIZE
+            || ret == BAMBU_NETWORK_ERR_PRINT_LP_FILE_OVER_SIZE;
+    };
+
+    auto is_cached_status_printable = [](const std::string& status) {
+        std::string normalized_status = status;
+        std::transform(normalized_status.begin(), normalized_status.end(), normalized_status.begin(),
+            [](unsigned char ch) { return static_cast<char>(std::toupper(ch)); });
+        return normalized_status == "IDLE" || normalized_status == "FINISH" || normalized_status == "FAILED";
+    };
+
     if (m_add_to_print_queue) {
         this->update_status(curr_percent, _L("Adding print job to queue"));
         std::string queue_response;
         result = PrintQueueManager::Get().add_current_plate(params, update_fn, cancel_fn, queue_response);
     } else if (m_print_type == "from_sdcard_view") {
         BOOST_LOG_TRIVIAL(info) << "print_job: try to send with cloud, model is sdcard view";
+        attempt_route = SendAttemptRoute::Default;
         this->update_status(curr_percent, _L("Sending print job through cloud service"));
         result = m_agent->start_sdcard_print(params, update_fn, cancel_fn);
     } else if (params.connection_type != "lan") {
@@ -713,6 +790,7 @@ void PrintJob::process()
             }
             else {
                 BOOST_LOG_TRIVIAL(info) << "print_job: use ftp send print only";
+                attempt_route = SendAttemptRoute::Default;
                 this->update_status(curr_percent, _L("Sending print job over LAN"));
                 is_try_lan_mode = true;
                 result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn, wait_fn);
@@ -724,32 +802,79 @@ void PrintJob::process()
             }
         }
         else {
-            const bool lan_available = !this->cloud_print_only
+            use_cloud_error_snapshot = true;
+            if (!this->cloud_print_only
+                && !params.password.empty()
                 && !params.dev_ip.empty()
-                && (this->has_sdcard || this->could_emmc_print);
-            if (lan_available) {
-                auto refresh_state = request_fresh_access_code();
-                if (refresh_state->success)
-                    params.password = refresh_state->access_code;
-                else
-                    BOOST_LOG_TRIVIAL(warning) << "print_job: refresh access code failed, reason=" << refresh_state->reason;
-            } else {
-                // start_print skips the printer pre-upload when the access code is empty.
-                params.password.clear();
+                && this->has_sdcard) {
+                // try to send local with record
+                BOOST_LOG_TRIVIAL(info) << "print_job: try to start local print with record";
+                attempt_route = SendAttemptRoute::LanWithRecord;
+                this->update_status(map_route_progress(curr_percent), get_route_status_msg());
+                result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn, wait_fn);
+                if (result == 0) {
+                    params.comments = "";
+                }
+                else if (result == BAMBU_NETWORK_ERR_PRINT_WR_UPLOAD_FTP_FAILED) {
+                    params.comments = "upload_failed";
+                }
+                else {
+                    params.comments = (boost::format("failed(%1%)") % result).str();
+                }
+                if (result < 0) {
+                    is_try_lan_mode_failed = true;
+                    // try to send with cloud
+                    BOOST_LOG_TRIVIAL(warning) << "print_job: local with record failed, ret=" << result << ", try to send with cloud";
+                    attempt_route = SendAttemptRoute::Cloud;
+                    this->update_status(map_route_progress(curr_percent), get_route_status_msg());
+                    result = m_agent->start_print(params, update_fn, cancel_fn, wait_fn);
+                }
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << "print_job: send with cloud";
+                attempt_route = SendAttemptRoute::Cloud;
+                this->update_status(map_route_progress(curr_percent), get_route_status_msg());
+                result = m_agent->start_print(params, update_fn, cancel_fn, wait_fn);
             }
 
-            if (was_canceled()) {
-                result = BAMBU_NETWORK_ERR_CANCELED;
-            } else {
-                BOOST_LOG_TRIVIAL(info) << "print_job: send with cloud, pre_upload=" << !params.password.empty()
-                    << ", try_emmc_print=" << params.try_emmc_print;
-                is_fallback_flow = true;
-                this->update_status(curr_percent, SENDING_OVER_CLOUD_STR);
-                result = m_agent->start_print(params, update_fn, cancel_fn, wait_fn);
+            if (result < 0) {
+                if (attempt_route == SendAttemptRoute::Cloud && !cloud_error_snapshot.valid)
+                    remember_cloud_error(result, "");
+
+                if (!should_stop_without_fallback(result)) {
+                    if (this->cloud_print_only || params.dev_ip.empty() || (!this->has_sdcard && !this->could_emmc_print)) {
+                        BOOST_LOG_TRIVIAL(warning) << "print_job: skip lan direct fallback, cloud_print_only=" << this->cloud_print_only
+                            << ", dev_ip_empty=" << params.dev_ip.empty() << ", has_sdcard=" << this->has_sdcard
+                            << ", could_emmc_print=" << this->could_emmc_print;
+                    } else {
+                        auto refresh_state = request_fresh_access_code();
+                        if (was_canceled()) {
+                            result = BAMBU_NETWORK_ERR_CANCELED;
+                        } else if (!refresh_state->success) {
+                            BOOST_LOG_TRIVIAL(warning) << "print_job: skip lan direct fallback, refresh access code failed, reason=" << refresh_state->reason;
+                        } else if (!is_cached_status_printable(refresh_state->print_status)) {
+                            BOOST_LOG_TRIVIAL(warning) << "print_job: skip lan direct fallback, cached print_status=" << refresh_state->print_status;
+                        } else {
+                            BBL::PrintParams local_params = params;
+                            local_params.password = refresh_state->access_code;
+                            local_params.connection_type = "lan";
+                            attempt_route = SendAttemptRoute::LanDirect;
+                            curr_percent = 85;
+                            this->update_status(curr_percent, get_route_status_msg());
+                            BOOST_LOG_TRIVIAL(info) << "print_job: try lan direct fallback after cloud failure";
+                            result = m_agent->start_local_print(local_params, update_fn, cancel_fn);
+                            if (result < 0) {
+                                BOOST_LOG_TRIVIAL(warning) << "print_job: lan direct fallback failed, ret=" << result;
+                                restore_cloud_error_info();
+                            }
+                        }
+                    }
+                }
             }
         }
     } else {
         if (this->has_sdcard || this->could_emmc_print) {
+            attempt_route = SendAttemptRoute::Default;
             this->update_status(curr_percent, _L("Sending print job over LAN"));
             result = m_agent->start_local_print(params, update_fn, cancel_fn);
         } else {
@@ -781,6 +906,9 @@ void PrintJob::process()
         } else {
             msg_text = SEND_PRINT_FAILED_STR;
         }
+
+        if (use_cloud_error_snapshot && result != BAMBU_NETWORK_ERR_CANCELED)
+            restore_cloud_error_info();
 
         if (result != BAMBU_NETWORK_ERR_CANCELED) {
             this->show_error_info(msg_text, 0, "", "");

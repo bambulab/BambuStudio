@@ -191,11 +191,6 @@ enum SendingPrintJobStage {
     PrintingStageFinished = 6,
     PrintingStageERROR = 7,
     PrintingStageLimit = 8,
-    // Reported by start_print in this order:
-    // PreUpload(percent) -> Create -> Record -> Upload(percent, skipped after pre-upload) -> Sending
-    // -> WaitPrinter, or LanDirect when a cloud step failed after the pre-upload succeeded -> Finished
-    PrintingStagePreUpload = 9,
-    PrintingStageLanDirect = 10,
 };
 
 enum PublishingStage {
