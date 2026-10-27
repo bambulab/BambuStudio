@@ -407,6 +407,7 @@
   "Cannot select: The toolhead position is not calibrated yet. Please go to the printer and run the toolhead rack position calibration, then try again.": "Cannot select: The toolhead position is not calibrated yet. Please go to the printer and run the toolhead rack position calibration, then try again.",
   "Humidity": "Humidity",
   "External Spool": "External Spool",
+  "External Spool {{n}}": "External Spool {{n}}",
   "Virtual Slot": "Virtual Slot",
   "Add refill filament": "Add refill filament",
   "This filament is already in an auto-refill group.": "This filament is already in an auto-refill group.",

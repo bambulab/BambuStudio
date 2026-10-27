@@ -415,6 +415,7 @@
   "Cannot select: The toolhead position is not calibrated yet. Please go to the printer and run the toolhead rack position calibration, then try again.": "无法选择：打印头挂架位置尚未校准。请在打印机上完成打印头挂架位置校准后重试。",
   "Humidity": "湿度",
   "External Spool": "外挂料",
+  "External Spool {{n}}": "外挂料 {{n}}",
   "Virtual Slot": "虚拟槽位",
   "Associated AMS: {{count}}_one": "关联 AMS：{{count}}",
   "Associated AMS: {{count}}_other": "关联 AMS：{{count}}",

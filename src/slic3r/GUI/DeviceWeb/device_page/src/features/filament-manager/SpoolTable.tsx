@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CandidateColor, Spool } from './types';
 import { SpoolColorChip } from './SpoolColorChip';
-import { PAGE_SIZES, DEFAULT_PAGE_SIZE, formatSpoolDisplayName, formatSlotLocation } from './constants';
+import { PAGE_SIZES, DEFAULT_PAGE_SIZE, formatSpoolDisplayName, formatSlotLocation, multiExternalDevIds } from './constants';
 import useStore from '../../store/AppStore';
 import {
   cssBackgroundFor,
@@ -170,6 +170,8 @@ export function SpoolTable({
   // a best-effort prefetch from useFilamentManagerBridge after the spool list
   // loads, so the data is usually warm by the time the table renders.
   const candidatesByFilaId = useStore((s) => s.filament.candidatesByFilaId);
+
+  const multiExtDevIds = useMemo(() => multiExternalDevIds(spools), [spools]);
 
   // Sort
   const sorted = useMemo(() => {
@@ -432,7 +434,8 @@ export function SpoolTable({
                                   <span data-testid="filament-row-color-hex" className="font-mono tracking-wider truncate">{hexLabel}</span>
                                 )}
                                 {s.in_printer === true && (() => {
-                                  const loc = formatSlotLocation(s.device_name, s.ams_type, s.slot_id, t, s.tray_label);
+                                  const multiExt = s.dev_id ? multiExtDevIds.has(s.dev_id) : false;
+                                  const loc = formatSlotLocation(s.device_name, s.ams_type, s.slot_id, t, s.tray_label, multiExt);
                                   if (!loc) return null;
                                   return (
                                     <>
