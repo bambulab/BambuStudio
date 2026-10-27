@@ -2119,12 +2119,17 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
     return true;
 }
 
+static bool is_tpu_nozzle_volume_type(NozzleVolumeType type)
+{
+    return type == NozzleVolumeType::nvtTPUHighFlow || type == NozzleVolumeType::nvtTPU285;
+}
+
 bool CalibUtils::check_tpu_volume_type_before_cali(const CalibMode& cali_mode, const std::vector<CalibInfo> &cali_infos, wxString& error_message)
 {
     if (cali_mode == CalibMode::Calib_Auto_PA_Line)
     {
         for (auto info : cali_infos) {
-            if(info.nozzle_volume_type == NozzleVolumeType::nvtTPUHighFlow) {
+            if (is_tpu_nozzle_volume_type(info.nozzle_volume_type)) {
                 error_message = _L("Auto dynamic flow calibration is not supported for TPU filament.");
                 return false;
             }
@@ -2138,7 +2143,7 @@ bool CalibUtils::check_tpu_volume_type_before_cali(const CalibMode& cali_mode, c
     if (cali_mode == CalibMode::Calib_Auto_PA_Line)
     {
         for (auto info : cali_infos.calib_datas) {
-            if(info.nozzle_volume_type == NozzleVolumeType::nvtTPU285) {
+            if (is_tpu_nozzle_volume_type(info.nozzle_volume_type)) {
                 error_message = _L("Auto dynamic flow calibration is not supported for TPU filament.");
                 return false;
             }

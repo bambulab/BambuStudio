@@ -105,7 +105,7 @@
       "type": "TPU",
       "action": "prohibition",
       "calib_mode": "auto_pa",
-      "model_id": ["O1D", "O1E"],
+      "model_id": ["O1D", "O1E", "N10"],
       "description": "Auto dynamic flow calibration is not supported for TPU filament."
     },
     {
