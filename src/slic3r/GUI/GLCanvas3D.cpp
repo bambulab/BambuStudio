@@ -1191,10 +1191,20 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
 {
     static ImVec2 size(0.0f, 0.0f);
 
-    auto validate_position = [](const Vec2d& position, const GLCanvas3D& canvas, const ImVec2& wnd_size) {
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    // Both the gap below the cursor and the window padding are in device pixels, so they have to
+    // follow the style scaling the same way ImGuiStyle does. Hardcoding them halved both on Retina
+    // (where set_scaling() scales the style by the backing factor): the box shrank around the text,
+    // which made the vertical offset inherent to the font baseline visible, and the tooltip sat
+    // twice as close to the cursor as on Windows.
+    const float style_scaling = imgui.get_style_scaling();
+    const float cursor_offset = 16.0f * style_scaling;
+    const float padding = 8.0f * style_scaling;
+
+    auto validate_position = [cursor_offset](const Vec2d& position, const GLCanvas3D& canvas, const ImVec2& wnd_size) {
         const Size cnv_size = canvas.get_canvas_size();
         const float x = std::clamp((float)position.x(), 0.0f, (float)cnv_size.get_width() - wnd_size.x);
-        const float y = std::clamp((float)position.y() + 16.0f, 0.0f, (float)cnv_size.get_height() - wnd_size.y);
+        const float y = std::clamp((float)position.y() + cursor_offset, 0.0f, (float)cnv_size.get_height() - wnd_size.y);
         return Vec2f(x, y);
     };
 
@@ -1209,10 +1219,9 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
 
     const Vec2f position = validate_position(mouse_position, canvas, size);
 
-    ImGuiWrapper& imgui = *wxGetApp().imgui();
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.13f, 0.13f, 0.13f, 0.94f));
     imgui.set_next_window_pos(position.x(), position.y(), ImGuiCond_Always, 0.0f, 0.0f);
