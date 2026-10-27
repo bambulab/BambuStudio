@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 22:30+0800\n"
+"POT-Creation-Date: 2026-10-27 20:10+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -229,10 +229,10 @@ msgstr ""
 msgid " Please "
 msgstr ""
 
-msgid "check the Wiki guide"
+msgid "refer to the Wiki User Guide"
 msgstr ""
 
-msgid " before printing."
+msgid " before continuing."
 msgstr ""
 
 msgid "How to feed TPU filament on X2D."
@@ -291,7 +291,7 @@ msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instea
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -6414,10 +6414,7 @@ msgstr ""
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr ""
 
-msgid "Click Wiki for help."
-msgstr ""
-
-msgid "Click Wiki for details."
+msgid "Wiki for details"
 msgstr ""
 
 msgid "Jump to: Prime tower"
@@ -7970,9 +7967,6 @@ msgstr ""
 msgid "New printer config available."
 msgstr ""
 
-msgid "Wiki"
-msgstr ""
-
 msgid "Undo integration failed."
 msgstr ""
 
@@ -8030,13 +8024,7 @@ msgstr ""
 msgid "Cancel upload"
 msgstr ""
 
-msgid "Serious warning:"
-msgstr ""
-
 msgid "Jump to"
-msgstr ""
-
-msgid "Error:"
 msgstr ""
 
 msgid "Open link for more info"
@@ -8048,12 +8036,6 @@ msgstr ""
 msgid "Jump to: Support"
 msgstr ""
 
-msgid "Warning:"
-msgstr ""
-
-msgid "Wiki for details."
-msgstr ""
-
 msgid "Export successfully."
 msgstr ""
 
@@ -8061,9 +8043,6 @@ msgid "Model file downloaded."
 msgstr ""
 
 msgid " Click here to install it."
-msgstr ""
-
-msgid "WARNING:"
 msgstr ""
 
 msgid "Your model needs support ! Please make support material enable."
@@ -9087,15 +9066,10 @@ msgstr ""
 msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr ""
 
-msgid ""
-"Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
-"Are you sure you want to continue?"
+msgid "There are no compatible filaments, and sync is not performed."
 msgstr ""
 
 msgid "Sync filaments with AMS"
-msgstr ""
-
-msgid "There are no compatible filaments, and sync is not performed."
 msgstr ""
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
@@ -9895,9 +9869,6 @@ msgid ""
 msgstr ""
 
 msgid "Auto arrange"
-msgstr ""
-
-msgid "Detail view wiki->"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -11416,6 +11387,9 @@ msgid "Synchronization of different extruder drives or nozzle volume types is no
 msgstr ""
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
+msgstr ""
+
+msgid "Wiki"
 msgstr ""
 
 msgid "Click to learn more"
@@ -13237,10 +13211,10 @@ msgstr ""
 msgid "Sending print job with LAN acceleration"
 msgstr ""
 
-msgid "Sending print configuration"
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
 msgstr ""
 
-msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgid "Sending print configuration"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -19757,10 +19731,7 @@ msgstr ""
 msgid "Update Firmware"
 msgstr ""
 
-msgid "Nozzle info synced, "
-msgstr ""
-
-msgid "view installation guide →"
+msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -20246,6 +20217,9 @@ msgid "Generating support ring: layer %1%"
 msgstr ""
 
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+msgstr ""
+
+msgid "Click Wiki for help."
 msgstr ""
 
 msgid "Nozzle and Filament Sync"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 22:30+0800\n"
+"POT-Creation-Date: 2026-10-27 20:10+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -228,10 +228,10 @@ msgstr ""
 msgid " Please "
 msgstr ""
 
-msgid "check the Wiki guide"
+msgid "refer to the Wiki User Guide"
 msgstr ""
 
-msgid " before printing."
+msgid " before continuing."
 msgstr ""
 
 msgid "How to feed TPU filament on X2D."
@@ -290,7 +290,7 @@ msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instea
 msgstr ""
 
 #, c-format, boost-format
-msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
 msgstr ""
 
 #, c-format, boost-format
@@ -6535,11 +6535,8 @@ msgstr "วัตถุทั้งหมดบนแผ่นพิมพ์ไ
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "ปริมาณการไล่เส้นบางส่วนตั้งค่าเป็น 0 การพิมพ์หลายสีอาจทำให้เกิดการผสมสีในโมเดลได้ โปรดปรับการตั้งค่าการไล่เส้นใหม่"
 
-msgid "Click Wiki for help."
-msgstr "คลิกที่ Wiki สำหรับความช่วยเหลือ"
-
-msgid "Click Wiki for details."
-msgstr "คลิก Wiki เพื่อดูรายละเอียด"
+msgid "Wiki for details"
+msgstr ""
 
 msgid "Jump to: Prime tower"
 msgstr "ข้ามไปที่: ทาวเวอร์สลับสี"
@@ -8128,9 +8125,6 @@ msgstr "รายละเอียด"
 msgid "New printer config available."
 msgstr "มีการกำหนดค่าเครื่องพิมพ์ใหม่พร้อมใช้งาน"
 
-msgid "Wiki"
-msgstr ""
-
 msgid "Undo integration failed."
 msgstr "ยกเลิกการรวมล้มเหลว"
 
@@ -8184,14 +8178,8 @@ msgstr "เสร็จสมบูรณ์"
 msgid "Cancel upload"
 msgstr "ยกเลิกการอัปโหลด"
 
-msgid "Serious warning:"
-msgstr "คำเตือนร้ายแรง:"
-
 msgid "Jump to"
 msgstr "ข้ามไปยัง"
-
-msgid "Error:"
-msgstr "ข้อผิดพลาด:"
 
 msgid "Open link for more info"
 msgstr "เปิดลิงก์เพื่อดูข้อมูลเพิ่มเติม"
@@ -8202,12 +8190,6 @@ msgstr "ข้ามไปที่: รองรับเฉพาะบนแ�
 msgid "Jump to: Support"
 msgstr "ข้ามไปที่: การรองรับ"
 
-msgid "Warning:"
-msgstr "คำเตือน:"
-
-msgid "Wiki for details."
-msgstr "Wiki เพื่อดูรายละเอียด"
-
 msgid "Export successfully."
 msgstr "ส่งออกเรียบร้อย"
 
@@ -8216,9 +8198,6 @@ msgstr "ดาวน์โหลดไฟล์โมเดลแล้ว"
 
 msgid " Click here to install it."
 msgstr " คลิกที่นี่เพื่อติดตั้ง"
-
-msgid "WARNING:"
-msgstr "คำเตือน:"
 
 msgid "Your model needs support ! Please make support material enable."
 msgstr "โมเดลของคุณต้องมีโครงสร้างรองรับ! โปรดเปิดใช้งานวัสดุโครงสร้างรองรับ"
@@ -9307,18 +9286,11 @@ msgstr "ช่องเส้นวัสดุ %d %s"
 msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr "การตั้งค่าเครื่องพิมพ์ปัจจุบันไม่รองรับ %s จาก AMS ระบบได้เปลี่ยนเป็น %s ให้โดยเริ่มต้นแล้ว"
 
-msgid ""
-"Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
-"Are you sure you want to continue?"
-msgstr ""
-"การซิงค์ข้อมูลเส้นวัสดุ AMS จะละทิ้งค่าที่ตั้งไว้ล่วงหน้าของเส้นวัสดุที่คุณแก้ไขแต่ยังไม่ได้บันทึก\n"
-"คุณแน่ใจหรือไม่ที่จะดำเนินการต่อ?"
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "ไม่มีเส้นวัสดุที่เข้ากันได้ และไม่มีการซิงค์"
 
 msgid "Sync filaments with AMS"
 msgstr "ซิงค์เส้นวัสดุกับ AMS"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "ไม่มีเส้นวัสดุที่เข้ากันได้ และไม่มีการซิงค์"
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "ซิงโครไนซ์ข้อมูลประเภทและสีของเส้นวัสดุแล้ว แต่ไม่รวมข้อมูลช่อง"
@@ -10165,9 +10137,6 @@ msgstr ""
 
 msgid "Auto arrange"
 msgstr "จัดเรียงอัตโนมัติ"
-
-msgid "Detail view wiki->"
-msgstr "ดูรายละเอียดใน Wiki->"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -11712,6 +11681,9 @@ msgstr "ไม่รองรับการซิงโครไนซ์ตั
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "ซิงโครไนซ์การแก้ไขพารามิเตอร์ไปยังพารามิเตอร์ที่สอดคล้องกันของเอ็กซ์ทรูเดอร์อื่น"
+
+msgid "Wiki"
+msgstr ""
 
 msgid "Click to learn more"
 msgstr "คลิกเพื่อเรียนรู้เพิ่มเติม"
@@ -13580,11 +13552,11 @@ msgstr "หมดเวลาส่งงานพิมพ์"
 msgid "Sending print job with LAN acceleration"
 msgstr "กำลังส่งงานพิมพ์ด้วยการเร่งความเร็วผ่าน LAN"
 
-msgid "Sending print configuration"
-msgstr "กำลังส่งการกำหนดค่าการพิมพ์"
-
 msgid "Cloud service sending failed. Sending print job over LAN without print history."
 msgstr "การส่งด้วยบริการผ่านคลาวด์ล้มเหลว กำลังส่งงานพิมพ์ผ่าน LAN โดยไม่มีประวัติการพิมพ์"
+
+msgid "Sending print configuration"
+msgstr "กำลังส่งการกำหนดค่าการพิมพ์"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20256,10 +20228,7 @@ msgstr ""
 msgid "Update Firmware"
 msgstr ""
 
-msgid "Nozzle info synced, "
-msgstr ""
-
-msgid "view installation guide →"
+msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -20746,6 +20715,9 @@ msgstr ""
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
 msgstr ""
 
+msgid "Click Wiki for help."
+msgstr "คลิกที่ Wiki สำหรับความช่วยเหลือ"
+
 msgid "Nozzle and Filament Sync"
 msgstr ""
 
@@ -21089,6 +21061,34 @@ msgid ""
 msgstr ""
 "ความน่าเชื่อถือแบบสำเร็จตั้งแต่ครั้งแรก\n"
 "ไม่ต้องคอยเฝ้า ได้ผลลัพธ์ที่คาดเดาได้มากขึ้น ตัวอย่าง: ฟาร์มพิมพ์ขนาดเล็กที่ผลิตชิ้นส่วน PETG สามารถหลีกเลี่ยงปัญหา 'งานเสียในชั่วโมงที่ 6' และส่งมอบงานได้ตรงตามกำหนด"
+
+#~ msgid "Click Wiki for details."
+#~ msgstr "คลิก Wiki เพื่อดูรายละเอียด"
+
+#~ msgid "Serious warning:"
+#~ msgstr "คำเตือนร้ายแรง:"
+
+#~ msgid "Error:"
+#~ msgstr "ข้อผิดพลาด:"
+
+#~ msgid "Warning:"
+#~ msgstr "คำเตือน:"
+
+#~ msgid "Wiki for details."
+#~ msgstr "Wiki เพื่อดูรายละเอียด"
+
+#~ msgid "WARNING:"
+#~ msgstr "คำเตือน:"
+
+#~ msgid ""
+#~ "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
+#~ "Are you sure you want to continue?"
+#~ msgstr ""
+#~ "การซิงค์ข้อมูลเส้นวัสดุ AMS จะละทิ้งค่าที่ตั้งไว้ล่วงหน้าของเส้นวัสดุที่คุณแก้ไขแต่ยังไม่ได้บันทึก\n"
+#~ "คุณแน่ใจหรือไม่ที่จะดำเนินการต่อ?"
+
+#~ msgid "Detail view wiki->"
+#~ msgstr "ดูรายละเอียดใน Wiki->"
 
 #~ msgid "How to feed TPU filament."
 #~ msgstr "วิธีป้อนเส้นวัสดุ TPU"

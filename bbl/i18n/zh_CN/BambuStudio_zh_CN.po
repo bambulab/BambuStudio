@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 22:30+0800\n"
+"POT-Creation-Date: 2026-10-27 20:10+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -209,30 +209,30 @@ msgstr "ABS/ASA/PETG HF在右挤出机打印时，仅能作为支撑材料使用
 
 #, c-format, boost-format
 msgid "%s is not supported by the current %s hotend. Please confirm the filament type and try again."
-msgstr ""
+msgstr "%s耗材不支持使用%s热端，请确认耗材类型后重试。"
 
 #, c-format, boost-format
 msgid "%s is not supported by the current 2.85 mm TPU hotend. Please confirm the filament type and try again."
-msgstr ""
+msgstr "%s耗材不支持使用TPU 2.85 mm热端，请确认耗材类型后重试。"
 
 msgid "PPA-CF does not support AMS feeding. Use an external spool instead."
 msgstr ""
 
 #, c-format, boost-format
 msgid "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "%s 不支持使用 AMS %s 打印，因为容易断在工具头上方的弯折铁氟龙管里。"
 
 msgid "Special attention should be paid to the feeding method of TPU."
-msgstr "TPU 的进料方式需要特别注意，"
+msgstr "请注意TPU的进料方式。"
 
 msgid " Please "
-msgstr "打印前请"
+msgstr "请"
 
-msgid "check the Wiki guide"
-msgstr "查看 Wiki 说明"
+msgid "refer to the Wiki User Guide"
+msgstr "查看wiki使用指南"
 
-msgid " before printing."
-msgstr "​"
+msgid " before continuing."
+msgstr "后继续"
 
 msgid "How to feed TPU filament on X2D."
 msgstr "X2D TPU进料方式。"
@@ -257,11 +257,11 @@ msgstr "PPA-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 
 #, c-format, boost-format
 msgid "%s filament is brittle. Use %s feeding with caution."
-msgstr ""
+msgstr "%s耗材易脆断，使用%s进料时请谨慎。"
 
 #, c-format, boost-format
 msgid "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing."
-msgstr ""
+msgstr "%s耗材使用 0.2mm 热端打印时堵头风险较高。建议更换其他匹配热端后重试。"
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "CF/GF耗材丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
@@ -283,27 +283,27 @@ msgstr "%s在使用 0.4，0.6，0.8mm 高流量喷嘴时会有堵头风险，请
 
 #, c-format, boost-format
 msgid "Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "%s在%s中需谨慎使用，因为容易断在工具头上方的弯折铁氟龙料管里。"
 
 #, c-format, boost-format
 msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
-msgstr ""
+msgstr "夜光耗材可能磨损%s进料口，建议使用外挂料盘打印。"
 
 #, c-format, boost-format
-msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
 msgstr ""
 
 #, c-format, boost-format
 msgid "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s."
-msgstr ""
+msgstr "%s耗材易脆断且进料阻力较大。请谨慎使用%s进料。"
 
 #, c-format, boost-format
 msgid "PPA-CF filament does not support %s feeding. Use an external spool instead."
-msgstr ""
+msgstr "PPA-CF 耗材不支持通过 %s 进料。请通过外挂方式进料。"
 
 #, c-format, boost-format
 msgid "%s may fail to load or unload due to the Filament Track Switch."
-msgstr ""
+msgstr "%s 可能受耗材变轨器影响导致进退料失败。"
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
@@ -325,7 +325,7 @@ msgstr "%s使用辅助挤出机打印时存在较高风险，可能导致打印�
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may break inside the filament tube."
-msgstr ""
+msgstr "受耗材变轨器影响，%s可能断裂在料管中。"
 
 #, c-format, boost-format
 msgid "%s is used with the auxiliary extruder and may impact print quality."
@@ -365,7 +365,7 @@ msgstr "%s用于标准%s喷嘴打印，可能导致耗材难以挤出，影响�
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may fail to load or unload."
-msgstr ""
+msgstr "受耗材变轨器影响，%s可能进退料失败。"
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
@@ -4540,10 +4540,10 @@ msgid "Therefore, when importing a model, you can match colors using these kit f
 msgstr "因此，导入模型时可以使用这些套装耗材及其混色进行颜色匹配。"
 
 msgid "The mixing kit is already in the project filament list. Use it now?"
-msgstr ""
+msgstr "该混色套装已在项目耗材列表中，是否立即使用？"
 
 msgid "Use now"
-msgstr ""
+msgstr "立即使用"
 
 msgid "Add to project filament list"
 msgstr "添加到项目耗材列表"
@@ -6515,11 +6515,8 @@ msgstr "盘子上的所有对象都不可打印，请检查对象列表中的打
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "部分冲刷体积设置为0，多色打印可能导致模型混色，请重新调整冲刷值。"
 
-msgid "Click Wiki for help."
-msgstr "点击Wiki寻求帮助。"
-
-msgid "Click Wiki for details."
-msgstr "点击 Wiki 获取详细信息。"
+msgid "Wiki for details"
+msgstr ""
 
 msgid "Jump to: Prime tower"
 msgstr "转跳到：擦料塔"
@@ -6586,10 +6583,10 @@ msgid "Tips"
 msgstr "提示"
 
 msgid "Start Anyway"
-msgstr ""
+msgstr "仍然开始"
 
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
-msgstr ""
+msgstr "您选择了高温热床调平校准，为防止耗材在挤出机中软化，请先退料后再校准。"
 
 msgid "Auto-record Monitoring"
 msgstr "监控录像"
@@ -8048,7 +8045,7 @@ msgid "Importing a newer 3mf file may cause compatibility issues. We recommend d
 msgstr "新3mf文件导入可能会有兼容性问题，建议您下载新版本后使用，请点击"
 
 msgid "Download Latest Version"
-msgstr ""
+msgstr "下载最新版本"
 
 msgctxt "Software"
 msgid "Update"
@@ -8098,9 +8095,6 @@ msgstr "详情"
 
 msgid "New printer config available."
 msgstr "有新的打印机配置可用。"
-
-msgid "Wiki"
-msgstr "Wiki"
 
 msgid "Undo integration failed."
 msgstr "集成取消失败。"
@@ -8155,14 +8149,8 @@ msgstr "已完成"
 msgid "Cancel upload"
 msgstr "取消上传"
 
-msgid "Serious warning:"
-msgstr "严重警告："
-
 msgid "Jump to"
 msgstr "跳转到"
-
-msgid "Error:"
-msgstr "错误："
 
 msgid "Open link for more info"
 msgstr "打开链接获取更多信息"
@@ -8173,12 +8161,6 @@ msgstr "跳转到：支撑-仅打印板生成"
 msgid "Jump to: Support"
 msgstr "跳转到：支撑"
 
-msgid "Warning:"
-msgstr "警告："
-
-msgid "Wiki for details."
-msgstr "详情查看Wiki"
-
 msgid "Export successfully."
 msgstr "导出成功。"
 
@@ -8187,9 +8169,6 @@ msgstr "已下载模型文件。"
 
 msgid " Click here to install it."
 msgstr "点击此处安装。"
-
-msgid "WARNING:"
-msgstr "警告："
 
 msgid "Your model needs support ! Please make support material enable."
 msgstr "您的模型需要支撑才能打印。请开启材料支撑选项。"
@@ -8423,7 +8402,7 @@ msgstr "关闭后无法发现喷嘴包裹,可能导致打印失败或喷嘴损�
 
 msgctxt "Nozzle Type"
 msgid "Type"
-msgstr ""
+msgstr "类型"
 
 msgctxt "Nozzle Diameter"
 msgid "Diameter"
@@ -9272,16 +9251,11 @@ msgstr "%d 号槽位的 %s"
 msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr "当前打印机配置不支持 AMS 上的 %s 耗材，已默认替换为 %s。"
 
-msgid ""
-"Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
-"Are you sure you want to continue?"
-msgstr "同步AMS耗材将丢弃已修改但未保存的耗材预设。您确定要继续吗？"
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "没有任何兼容的材料，同步操作未执行。"
 
 msgid "Sync filaments with AMS"
 msgstr "同步到 AMS 的材料列表"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "没有任何兼容的材料，同步操作未执行。"
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "耗材类型和颜色信息已同步，但不包括槽位信息。"
@@ -9431,7 +9405,7 @@ msgid "3MF textures are unsupported and have been discarded."
 msgstr "暂不支持 3MF 纹理，已自动丢失。"
 
 msgid "Parts without color will default to gray."
-msgstr ""
+msgstr "文件中无颜色信息的部分，将默认显示为灰色。"
 
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "该3mf文件中的材料或者打印机预设包含以下修改过的G-codes:"
@@ -10122,9 +10096,6 @@ msgstr ""
 
 msgid "Auto arrange"
 msgstr "自动摆盘"
-
-msgid "Detail view wiki->"
-msgstr "详见wiki->"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -11145,7 +11116,7 @@ msgid "There are some unknown filaments in the AMS mappings. Please check whethe
 msgstr "AMS映射中存在一些未知的耗材。请检查它们是否符合预期。如果符合，按“确定”以开始打印任务。"
 
 msgid "Pre-print check"
-msgstr ""
+msgstr "打印前检查"
 
 msgid "Please check the following:"
 msgstr "请检查以下内容："
@@ -11212,7 +11183,7 @@ msgid "Before each print starts, calibration will be performed for the main extr
 msgstr "开启：每次打印开始前，主挤出机都会进行校准；辅助挤出机会使用系统默认值。"
 
 msgid "The current filament mapping is invalid and the print would fail. Please select the filaments manually again."
-msgstr ""
+msgstr "当前耗材映射无效，打印将失败。请重新手动选择耗材。"
 
 msgid "Preparing print job"
 msgstr "正在准备打印任务"
@@ -11371,11 +11342,11 @@ msgstr "%d号打印头已进料%s耗材，无法自动退料，请手动拉出�
 
 #, c-format, boost-format
 msgid "External AMS and %1$s filaments are both selected for PrintTool %2$d. Because %3$s cannot unload automatically, you will need to change the filament manually."
-msgstr ""
+msgstr "同时选择了%2$d号打印头上的外接AMS和%1$s的耗材。因%3$s内耗材无法自动退料，打印过程中需要手动换料。"
 
 #, c-format, boost-format
 msgid "TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."
-msgstr ""
+msgstr "本次打印涉及换头，%d号槽的TPU可能从打印头脱出，建议放到其他槽位后重新发起。"
 
 #, c-format, boost-format
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
@@ -11424,7 +11395,7 @@ msgid "The printer is executing instructions. Please restart printing after it e
 msgstr "打印机正在执行指令，请在其结束后重新发起打印"
 
 msgid "Cold pull in progress. Unable to start a task."
-msgstr ""
+msgstr "冷拔进行中。无法启动任务。"
 
 msgid "AMS is setting up. Please try again later."
 msgstr "AMS正在初始化。请稍后再试。"
@@ -11672,6 +11643,9 @@ msgstr "不支持不同挤出机驱动或喷嘴体积类型的同步操作。"
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "将参数的修改与另一台挤出机的相应参数同步。"
+
+msgid "Wiki"
+msgstr "Wiki"
 
 msgid "Click to learn more"
 msgstr "点击了解更多"
@@ -13538,11 +13512,11 @@ msgstr "发送打印任务超时。"
 msgid "Sending print job with LAN acceleration"
 msgstr "通过局域网加速发送打印任务"
 
-msgid "Sending print configuration"
-msgstr "正在发送打印配置"
-
 msgid "Cloud service sending failed. Sending print job over LAN without print history."
 msgstr "云服务发送失败。通过局域网发送打印任务，无打印历史记录。"
+
+msgid "Sending print configuration"
+msgstr "正在发送打印配置"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -19569,7 +19543,7 @@ msgid "TPU Usage Notes"
 msgstr "TPU 使用说明"
 
 msgid "TPU Filament Installation && Feeding Guide"
-msgstr ""
+msgstr "TPU 耗材安装及进料指南"
 
 msgid "Important Notice:"
 msgstr "重要提示："
@@ -19578,15 +19552,17 @@ msgid ""
 "• First time printing with TPU ? We strongly recommend reading the official guide first to avoid clogs or feeding failures.\n"
 "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
 msgstr ""
+"• 首次使用TPU 耗材？我们强烈建议您先阅读官方指南，以免堵塞或进料失败。\n"
+"• 若使用 2.85 mm TPU耗材，请确认已安装 TPU285 喷嘴，并已同步打印机信息。"
 
 msgid "Don't show this again"
-msgstr ""
+msgstr "不再显示"
 
 msgid "View User Guide"
 msgstr "查看用户指南"
 
 msgid "I know risks, continue"
-msgstr ""
+msgstr "我已知晓风险，继续"
 
 msgid "AMS Dryness Control"
 msgstr "AMS烘干"
@@ -19942,13 +19918,13 @@ msgid "Replace the target color on models with the mixed result"
 msgstr "用混色结果替换模型上的目标颜色"
 
 msgid "Transparent filaments are not supported for color matching."
-msgstr ""
+msgstr "透明耗材不支持颜色匹配。"
 
 msgid "Gradient filaments are not supported for color matching."
-msgstr ""
+msgstr "渐变耗材不支持颜色匹配。"
 
 msgid "Multicolor filaments are not supported for color matching."
-msgstr ""
+msgstr "拼色耗材不支持颜色匹配。"
 
 msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
 msgstr "没有可用作目标颜色的耗材（渐变、多色、透明及支撑耗材均不支持）。"
@@ -20214,45 +20190,42 @@ msgstr "热端状态异常，请更新固件。"
 msgid "Update Firmware"
 msgstr "更新固件"
 
-msgid "Nozzle info synced, "
-msgstr "喷嘴信息已同步,"
-
-msgid "view installation guide →"
-msgstr "查看安装指南 →"
+msgid "Current printer status"
+msgstr ""
 
 msgid "Sync Printer Information"
-msgstr ""
+msgstr "同步打印机信息"
 
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
-msgstr ""
+msgstr "3MF 文件中的打印机型号和设置与当前连接的设备不一致。是否将切片配置迁移至当前连接的打印机？"
 
 msgid "Printer model comparison"
-msgstr ""
+msgstr "打印机型号对比"
 
 msgid "Nozzle comparison"
-msgstr ""
+msgstr "喷嘴对比"
 
 msgid "Note: After adapting the settings, some print parameters will be automatically adjusted for the new printer model."
-msgstr ""
+msgstr "注意：迁移后，部分打印参数将自动适配至新机型。"
 
 msgid "3MF File Settings"
-msgstr ""
+msgstr "3MF文件配置"
 
 msgid "Connected Printer"
-msgstr ""
+msgstr "连接的打印机"
 
 #, c-format, boost-format
 msgid "%s (only supported)"
-msgstr ""
+msgstr "%s （仅支持）"
 
 msgid "Using a larger nozzle after adapting the settings may reduce fine details in your model. Please proceed with caution."
-msgstr ""
+msgstr "同步后更换大口径喷嘴打印可能损失部分模型细节，请谨慎操作。"
 
 msgid "Don't show this again when opening 3MF files"
-msgstr ""
+msgstr "打开3mf文件时不再显示弹窗"
 
 msgid "Adapt Settings"
-msgstr ""
+msgstr "应用迁移"
 
 #, c-format, boost-format
 msgid "Nozzle %d: "
@@ -20278,7 +20251,7 @@ msgid "Please enter a float between %f and %f."
 msgstr "请输入介于 %f 和 %f 之间的浮点数。"
 
 msgid "4 slots AMS"
-msgstr ""
+msgstr "4槽AMS"
 
 msgid "1 slot AMS"
 msgstr "单槽AMS"
@@ -20709,6 +20682,9 @@ msgstr "正在生成支撑环：层 %1%"
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
 msgstr "AMS中检测到高温耗材。请勿与低温耗材混用。"
 
+msgid "Click Wiki for help."
+msgstr "点击Wiki寻求帮助。"
+
 msgid "Nozzle and Filament Sync"
 msgstr "喷嘴耗材同步"
 
@@ -21052,6 +21028,44 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "check the Wiki guide"
+#~ msgstr "查看 Wiki 说明"
+
+#~ msgid " before printing."
+#~ msgstr "​"
+
+#~ msgid "Click Wiki for details."
+#~ msgstr "点击 Wiki 获取详细信息。"
+
+#~ msgid "Serious warning:"
+#~ msgstr "严重警告："
+
+#~ msgid "Error:"
+#~ msgstr "错误："
+
+#~ msgid "Warning:"
+#~ msgstr "警告："
+
+#~ msgid "Wiki for details."
+#~ msgstr "详情查看Wiki"
+
+#~ msgid "WARNING:"
+#~ msgstr "警告："
+
+#~ msgid ""
+#~ "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
+#~ "Are you sure you want to continue?"
+#~ msgstr "同步AMS耗材将丢弃已修改但未保存的耗材预设。您确定要继续吗？"
+
+#~ msgid "Detail view wiki->"
+#~ msgstr "详见wiki->"
+
+#~ msgid "Nozzle info synced, "
+#~ msgstr "喷嘴信息已同步,"
+
+#~ msgid "view installation guide →"
+#~ msgstr "查看安装指南 →"
 
 #~ msgid "Switch to the auxiliary live camera view"
 #~ msgstr "切换到辅助实时摄像头画面"

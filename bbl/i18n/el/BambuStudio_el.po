@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 22:30+0800\n"
+"POT-Creation-Date: 2026-10-27 20:10+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -228,10 +228,10 @@ msgstr ""
 msgid " Please "
 msgstr ""
 
-msgid "check the Wiki guide"
+msgid "refer to the Wiki User Guide"
 msgstr ""
 
-msgid " before printing."
+msgid " before continuing."
 msgstr ""
 
 msgid "How to feed TPU filament on X2D."
@@ -290,7 +290,7 @@ msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instea
 msgstr ""
 
 #, c-format, boost-format
-msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
 msgstr ""
 
 #, c-format, boost-format
@@ -6540,11 +6540,8 @@ msgstr "Όλα τα αντικείμενα στην πλάκα είναι μη �
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "Ο μερικός όγκος έκπλυσης έχει οριστεί σε 0. Η εκτύπωση πολλαπλών χρωμάτων ενδέχεται να προκαλέσει ανάμειξη χρωμάτων στα μοντέλα. Προσαρμόστε ξανά τις ρυθμίσεις έκπλυσης."
 
-msgid "Click Wiki for help."
-msgstr "Κάντε κλικ στο Wiki για βοήθεια."
-
-msgid "Click Wiki for details."
-msgstr "Κάντε κλικ στο Wiki για λεπτομέρειες."
+msgid "Wiki for details"
+msgstr ""
 
 msgid "Jump to: Prime tower"
 msgstr "Μετάβαση σε: Πύργος πλήρωσης"
@@ -8136,9 +8133,6 @@ msgstr "Λεπτομέρειες"
 msgid "New printer config available."
 msgstr "Νέα διαθέσιμη διαμόρφωση εκτυπωτή."
 
-msgid "Wiki"
-msgstr ""
-
 msgid "Undo integration failed."
 msgstr "Η αναίρεση της ενσωμάτωσης απέτυχε."
 
@@ -8196,14 +8190,8 @@ msgstr "ΟΛΟΚΛΗΡΏΘΗΚΕ"
 msgid "Cancel upload"
 msgstr "Ακύρωση μεταφόρτωσης"
 
-msgid "Serious warning:"
-msgstr "Σοβαρή προειδοποίηση:"
-
 msgid "Jump to"
 msgstr "Μετάβαση σε"
-
-msgid "Error:"
-msgstr "Σφάλμα:"
 
 msgid "Open link for more info"
 msgstr "Άνοιγμα συνδέσμου για περισσότερες πληροφορίες"
@@ -8214,12 +8202,6 @@ msgstr "Μετάβαση σε: Υποστήριξη μόνο στην πλακέ
 msgid "Jump to: Support"
 msgstr "Μετάβαση σε: Υποστήριξη"
 
-msgid "Warning:"
-msgstr "Προειδοποίηση:"
-
-msgid "Wiki for details."
-msgstr "Ανατρέξτε στο Wiki για λεπτομέρειες."
-
 msgid "Export successfully."
 msgstr "Η εξαγωγή ήταν επιτυχής."
 
@@ -8228,9 +8210,6 @@ msgstr "Το αρχείο μοντέλου λήφθηκε."
 
 msgid " Click here to install it."
 msgstr " Κάντε κλικ εδώ για εγκατάσταση."
-
-msgid "WARNING:"
-msgstr "ΠΡΟΕΙΔΟΠΟΊΗΣΗ:"
 
 msgid "Your model needs support ! Please make support material enable."
 msgstr "Το μοντέλο σας χρειάζεται υποστήριξη! Ενεργοποιήστε το υλικό υποστήριξης."
@@ -9319,18 +9298,11 @@ msgstr "υποδοχή νήματος %d %s"
 msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr "Η τρέχουσα διαμόρφωση του εκτυπωτή δεν υποστηρίζει %s από το AMS. Έχει αντικατασταθεί με %s από προεπιλογή."
 
-msgid ""
-"Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
-"Are you sure you want to continue?"
-msgstr ""
-"Ο συγχρονισμός των νημάτων AMS θα προκαλέσει απόρριψη των τροποποιημένων αλλά μη αποθηκευμένων προεπιλογών νημάτων σας.\n"
-"Είστε βέβαιοι ότι θέλετε να συνεχίσετε;"
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "Δεν υπάρχουν συμβατά νήματα και δεν πραγματοποιείται συγχρονισμός."
 
 msgid "Sync filaments with AMS"
 msgstr "Συγχρονισμός νημάτων με AMS"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "Δεν υπάρχουν συμβατά νήματα και δεν πραγματοποιείται συγχρονισμός."
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "Οι πληροφορίες για τον τύπο και το χρώμα του νήματος έχουν συγχρονιστεί, αλλά δεν περιλαμβάνονται οι πληροφορίες για την υποδοχή."
@@ -10177,9 +10149,6 @@ msgstr ""
 
 msgid "Auto arrange"
 msgstr "Αυτόματη τακτοποίηση"
-
-msgid "Detail view wiki->"
-msgstr "Λεπτομερής προβολή Wiki->"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -11724,6 +11693,9 @@ msgstr "Δεν υποστηρίζεται ο συγχρονισμός διαφο
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Συγχρονίστε την τροποποίηση των παραμέτρων με τις αντίστοιχες παραμέτρους ενός άλλου εξωθητήρα."
+
+msgid "Wiki"
+msgstr ""
 
 msgid "Click to learn more"
 msgstr "Κάντε κλικ για να μάθετε περισσότερα"
@@ -13595,11 +13567,11 @@ msgstr "Υπέρβαση χρονικού ορίου αποστολής εργα
 msgid "Sending print job with LAN acceleration"
 msgstr "Αποστολή εργασίας εκτύπωσης με επιτάχυνση LAN"
 
-msgid "Sending print configuration"
-msgstr "Αποστολή διαμόρφωσης εκτύπωσης"
-
 msgid "Cloud service sending failed. Sending print job over LAN without print history."
 msgstr "Η αποστολή από την υπηρεσία cloud απέτυχε. Αποστολή εργασίας εκτύπωσης μέσω LAN χωρίς ιστορικό εκτυπώσεων."
+
+msgid "Sending print configuration"
+msgstr "Αποστολή διαμόρφωσης εκτύπωσης"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20272,10 +20244,7 @@ msgstr ""
 msgid "Update Firmware"
 msgstr ""
 
-msgid "Nozzle info synced, "
-msgstr ""
-
-msgid "view installation guide →"
+msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -20763,6 +20732,9 @@ msgstr ""
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
 msgstr ""
 
+msgid "Click Wiki for help."
+msgstr "Κάντε κλικ στο Wiki για βοήθεια."
+
 msgid "Nozzle and Filament Sync"
 msgstr ""
 
@@ -21106,6 +21078,34 @@ msgid ""
 msgstr ""
 "Αξιοπιστία με την πρώτη\n"
 "Λιγότερη ταλαιπωρία, πιο προβλέψιμη απόδοση. Παράδειγμα: μια μικρή εταιρεία που εκτυπώνει τμήματα PETG αποφεύγει τις εκπλήξεις που προκαλούνται από «αστοχίες την 6η ώρα» και διατηρεί τις παρτίδες εντός χρονοδιαγράμματος."
+
+#~ msgid "Click Wiki for details."
+#~ msgstr "Κάντε κλικ στο Wiki για λεπτομέρειες."
+
+#~ msgid "Serious warning:"
+#~ msgstr "Σοβαρή προειδοποίηση:"
+
+#~ msgid "Error:"
+#~ msgstr "Σφάλμα:"
+
+#~ msgid "Warning:"
+#~ msgstr "Προειδοποίηση:"
+
+#~ msgid "Wiki for details."
+#~ msgstr "Ανατρέξτε στο Wiki για λεπτομέρειες."
+
+#~ msgid "WARNING:"
+#~ msgstr "ΠΡΟΕΙΔΟΠΟΊΗΣΗ:"
+
+#~ msgid ""
+#~ "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
+#~ "Are you sure you want to continue?"
+#~ msgstr ""
+#~ "Ο συγχρονισμός των νημάτων AMS θα προκαλέσει απόρριψη των τροποποιημένων αλλά μη αποθηκευμένων προεπιλογών νημάτων σας.\n"
+#~ "Είστε βέβαιοι ότι θέλετε να συνεχίσετε;"
+
+#~ msgid "Detail view wiki->"
+#~ msgstr "Λεπτομερής προβολή Wiki->"
 
 #~ msgid "How to feed TPU filament."
 #~ msgstr "Τρόπος τροφοδοσίας νήματος TPU."

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 22:30+0800\n"
+"POT-Creation-Date: 2026-10-27 20:10+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -229,10 +229,10 @@ msgstr ""
 msgid " Please "
 msgstr ""
 
-msgid "check the Wiki guide"
+msgid "refer to the Wiki User Guide"
 msgstr ""
 
-msgid " before printing."
+msgid " before continuing."
 msgstr ""
 
 msgid "How to feed TPU filament on X2D."
@@ -291,7 +291,7 @@ msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instea
 msgstr ""
 
 #, c-format, boost-format
-msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
 msgstr ""
 
 #, c-format, boost-format
@@ -6546,11 +6546,8 @@ msgstr "Toate obiectele de pe placă sunt neimprimabile, vă rugăm să verifica
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "Volumul parțial de purjare este setat la 0. Imprimarea în multicolor poate cauza amestecarea culorilor în modele. Vă rugăm să reglați din nou setările de purjare."
 
-msgid "Click Wiki for help."
-msgstr "Faceți clic pe Wiki pentru ajutor."
-
-msgid "Click Wiki for details."
-msgstr "Faceți clic pe Wiki pentru detalii."
+msgid "Wiki for details"
+msgstr ""
 
 msgid "Jump to: Prime tower"
 msgstr "Salt la: Turnul de purjare"
@@ -8145,9 +8142,6 @@ msgstr "Detalii"
 msgid "New printer config available."
 msgstr "Noua configurație de imprimantă este disponibilă."
 
-msgid "Wiki"
-msgstr "WIKI"
-
 msgid "Undo integration failed."
 msgstr "Anularea integrării a eșuat."
 
@@ -8209,14 +8203,8 @@ msgstr "FINALIZAT"
 msgid "Cancel upload"
 msgstr "Anulează încărcarea"
 
-msgid "Serious warning:"
-msgstr "Avertisment serios:"
-
 msgid "Jump to"
 msgstr "Salt la"
-
-msgid "Error:"
-msgstr "Eroare:"
 
 msgid "Open link for more info"
 msgstr "Deschideți linkul pentru mai multe informații"
@@ -8227,12 +8215,6 @@ msgstr "Salt la: Suport doar pe placa de construcție"
 msgid "Jump to: Support"
 msgstr "Salt la: Suport"
 
-msgid "Warning:"
-msgstr "Avertisment:"
-
-msgid "Wiki for details."
-msgstr "Wiki pentru detalii."
-
 msgid "Export successfully."
 msgstr "Exportare reușită."
 
@@ -8241,9 +8223,6 @@ msgstr "Fișierul modelului a fost descărcat."
 
 msgid " Click here to install it."
 msgstr " Faceți clic aici pentru a-l instala."
-
-msgid "WARNING:"
-msgstr "AVERTISMENT:"
 
 msgid "Your model needs support ! Please make support material enable."
 msgstr "Modelul dvs. necesită suport! Vă rugăm să activați materialul de suport."
@@ -9332,18 +9311,11 @@ msgstr "slotul filamentului %d %s"
 msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr "Configurația curentă a imprimantei nu acceptă %s de la AMS. A fost înlocuit cu %s în mod implicit."
 
-msgid ""
-"Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
-"Are you sure you want to continue?"
-msgstr ""
-"Sincronizarea filamentelor AMS va elimina presetările de filament modificate, dar nesalvate.\n"
-"Sigur doriți să continuați?"
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "Nu există filamente compatibile și sincronizarea nu se efectuează."
 
 msgid "Sync filaments with AMS"
 msgstr "Sincronizați filamentele cu AMS"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "Nu există filamente compatibile și sincronizarea nu se efectuează."
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "Informațiile despre tipul de filament și culoare au fost sincronizate, dar informațiile despre slot nu sunt incluse."
@@ -10190,9 +10162,6 @@ msgstr ""
 
 msgid "Auto arrange"
 msgstr "Aranjare automată"
-
-msgid "Detail view wiki->"
-msgstr "Vizualizare detaliată wiki->"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -11737,6 +11706,9 @@ msgstr "Sincronizarea diferitelor unități de extruder sau tipuri de volum ale 
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Sincronizează modificarea parametrilor cu parametrii corespunzători ai unui alt extruder."
+
+msgid "Wiki"
+msgstr "WIKI"
 
 msgid "Click to learn more"
 msgstr "Faceți clic pentru a afla mai multe"
@@ -13610,11 +13582,11 @@ msgstr "Trimiterea sarcinii de imprimare a expirat."
 msgid "Sending print job with LAN acceleration"
 msgstr "Trimiterea lucrării de imprimare cu accelerare LAN"
 
-msgid "Sending print configuration"
-msgstr "Se trimite configurația de imprimare"
-
 msgid "Cloud service sending failed. Sending print job over LAN without print history."
 msgstr "Trimiterea către serviciul cloud a eșuat. Trimiterea unei lucrări de imprimare prin LAN fără istoric de imprimare."
+
+msgid "Sending print configuration"
+msgstr "Se trimite configurația de imprimare"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20288,10 +20260,7 @@ msgstr ""
 msgid "Update Firmware"
 msgstr ""
 
-msgid "Nozzle info synced, "
-msgstr ""
-
-msgid "view installation guide →"
+msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -20780,6 +20749,9 @@ msgstr ""
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
 msgstr ""
 
+msgid "Click Wiki for help."
+msgstr "Faceți clic pe Wiki pentru ajutor."
+
 msgid "Nozzle and Filament Sync"
 msgstr ""
 
@@ -21123,6 +21095,34 @@ msgid ""
 msgstr ""
 "Fiabilitate de la prima încercare\n"
 "Mai puțină supraveghere, rezultate mai previzibile. Exemplu: o fermă mică care produce piese PETG evită surprizele de tip „defecțiune la ora 6” și menține loturile la timp."
+
+#~ msgid "Click Wiki for details."
+#~ msgstr "Faceți clic pe Wiki pentru detalii."
+
+#~ msgid "Serious warning:"
+#~ msgstr "Avertisment serios:"
+
+#~ msgid "Error:"
+#~ msgstr "Eroare:"
+
+#~ msgid "Warning:"
+#~ msgstr "Avertisment:"
+
+#~ msgid "Wiki for details."
+#~ msgstr "Wiki pentru detalii."
+
+#~ msgid "WARNING:"
+#~ msgstr "AVERTISMENT:"
+
+#~ msgid ""
+#~ "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
+#~ "Are you sure you want to continue?"
+#~ msgstr ""
+#~ "Sincronizarea filamentelor AMS va elimina presetările de filament modificate, dar nesalvate.\n"
+#~ "Sigur doriți să continuați?"
+
+#~ msgid "Detail view wiki->"
+#~ msgstr "Vizualizare detaliată wiki->"
 
 #~ msgid "How to feed TPU filament."
 #~ msgstr "Cum se alimentează filamentul TPU."

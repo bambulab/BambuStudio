@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 22:30+0800\n"
+"POT-Creation-Date: 2026-10-27 20:10+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -229,10 +229,10 @@ msgstr ""
 msgid " Please "
 msgstr ""
 
-msgid "check the Wiki guide"
+msgid "refer to the Wiki User Guide"
 msgstr ""
 
-msgid " before printing."
+msgid " before continuing."
 msgstr ""
 
 msgid "How to feed TPU filament on X2D."
@@ -291,7 +291,7 @@ msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instea
 msgstr ""
 
 #, c-format, boost-format
-msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
 msgstr ""
 
 #, c-format, boost-format
@@ -6536,11 +6536,8 @@ msgstr "Semua objek pada pelat tidak dapat dicetak, harap periksa pengaturan pen
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "Volume pembilasan sebagian diatur ke 0. Pencetakan multi-warna dapat menyebabkan pencampuran warna pada model. Harap sesuaikan kembali pengaturan pembilasan."
 
-msgid "Click Wiki for help."
-msgstr "Klik Wiki untuk bantuan."
-
-msgid "Click Wiki for details."
-msgstr "Klik Wiki untuk detail."
+msgid "Wiki for details"
+msgstr ""
 
 msgid "Jump to: Prime tower"
 msgstr "Lompat ke: Menara prime"
@@ -8129,9 +8126,6 @@ msgstr "Detail"
 msgid "New printer config available."
 msgstr "Konfigurasi printer baru tersedia."
 
-msgid "Wiki"
-msgstr ""
-
 msgid "Undo integration failed."
 msgstr "Pembatalan integrasi gagal."
 
@@ -8185,14 +8179,8 @@ msgstr "SELESAI"
 msgid "Cancel upload"
 msgstr "Batalkan unggahan"
 
-msgid "Serious warning:"
-msgstr "Peringatan Serius:"
-
 msgid "Jump to"
 msgstr "Lompat ke"
-
-msgid "Error:"
-msgstr "Kesalahan:"
 
 msgid "Open link for more info"
 msgstr "Buka tautan untuk info lebih lanjut"
@@ -8203,12 +8191,6 @@ msgstr "Lompat ke: Dukungan hanya pada pelat cetak"
 msgid "Jump to: Support"
 msgstr "Lompat ke: Dukungan"
 
-msgid "Warning:"
-msgstr "Peringatan:"
-
-msgid "Wiki for details."
-msgstr "Wiki untuk detail."
-
 msgid "Export successfully."
 msgstr "Ekspor berhasil."
 
@@ -8217,9 +8199,6 @@ msgstr "File model diunduh."
 
 msgid " Click here to install it."
 msgstr "Klik di sini untuk menginstal."
-
-msgid "WARNING:"
-msgstr "PERINGATAN:"
 
 msgid "Your model needs support ! Please make support material enable."
 msgstr "Model Anda memerlukan penyangga! Harap aktifkan material penyangga."
@@ -9306,18 +9285,11 @@ msgstr "slot filamen %d %s"
 msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr "Konfigurasi printer saat ini tidak mendukung %s dari AMS. Secara default, filamen tersebut telah diganti dengan %s."
 
-msgid ""
-"Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
-"Are you sure you want to continue?"
-msgstr ""
-"Menyinkronkan filamen AMS akan membuang preset filamen Anda yang telah diubah tetapi belum disimpan.\n"
-" Apakah Anda yakin ingin melanjutkan?"
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "Tidak ada filamen yang kompatibel, dan sinkronisasi tidak dilakukan."
 
 msgid "Sync filaments with AMS"
 msgstr "Sinkronkan filamen dengan AMS"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "Tidak ada filamen yang kompatibel, dan sinkronisasi tidak dilakukan."
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "Informasi jenis dan warna filamen telah disinkronkan, tetapi informasi slot tidak disertakan."
@@ -10164,9 +10136,6 @@ msgstr ""
 
 msgid "Auto arrange"
 msgstr "Atur Otomatis"
-
-msgid "Detail view wiki->"
-msgstr "Lihat detail wiki→"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -11711,6 +11680,9 @@ msgstr "Sinkronisasi antara jenis penggerak ekstruder atau jenis volume nosel ya
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Sinkronkan modifikasi parameter ke parameter yang sesuai dari ekstruder lain."
+
+msgid "Wiki"
+msgstr ""
 
 msgid "Click to learn more"
 msgstr "Klik untuk mempelajari lebih lanjut"
@@ -13579,11 +13551,11 @@ msgstr "Waktu pengiriman pekerjaan cetak habis."
 msgid "Sending print job with LAN acceleration"
 msgstr "Mengirim pekerjaan cetak dengan akselerasi LAN"
 
-msgid "Sending print configuration"
-msgstr "Mengirim konfigurasi cetak"
-
 msgid "Cloud service sending failed. Sending print job over LAN without print history."
 msgstr "Pengiriman layanan cloud gagal. Mengirim pekerjaan cetak melalui LAN tanpa riwayat cetak."
+
+msgid "Sending print configuration"
+msgstr "Mengirim konfigurasi cetak"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20255,10 +20227,7 @@ msgstr ""
 msgid "Update Firmware"
 msgstr ""
 
-msgid "Nozzle info synced, "
-msgstr ""
-
-msgid "view installation guide →"
+msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -20745,6 +20714,9 @@ msgstr ""
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
 msgstr ""
 
+msgid "Click Wiki for help."
+msgstr "Klik Wiki untuk bantuan."
+
 msgid "Nozzle and Filament Sync"
 msgstr ""
 
@@ -21088,6 +21060,34 @@ msgid ""
 msgstr ""
 "Keandalan Tepat di Percobaan Pertama \n"
 "Lebih sedikit pengawasan, hasil yang lebih terprediksi. Contoh: fasilitas print farm kecil yang mencetak komponen PETG menghindari kejutan 'gagal pada jam ke-6' dan menjaga produksi tetap sesuai jadwal."
+
+#~ msgid "Click Wiki for details."
+#~ msgstr "Klik Wiki untuk detail."
+
+#~ msgid "Serious warning:"
+#~ msgstr "Peringatan Serius:"
+
+#~ msgid "Error:"
+#~ msgstr "Kesalahan:"
+
+#~ msgid "Warning:"
+#~ msgstr "Peringatan:"
+
+#~ msgid "Wiki for details."
+#~ msgstr "Wiki untuk detail."
+
+#~ msgid "WARNING:"
+#~ msgstr "PERINGATAN:"
+
+#~ msgid ""
+#~ "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
+#~ "Are you sure you want to continue?"
+#~ msgstr ""
+#~ "Menyinkronkan filamen AMS akan membuang preset filamen Anda yang telah diubah tetapi belum disimpan.\n"
+#~ " Apakah Anda yakin ingin melanjutkan?"
+
+#~ msgid "Detail view wiki->"
+#~ msgstr "Lihat detail wiki→"
 
 #~ msgid "How to feed TPU filament."
 #~ msgstr "Cara memuat filamen TPU."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 22:30+0800\n"
+"POT-Creation-Date: 2026-10-27 20:10+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -225,10 +225,10 @@ msgstr ""
 msgid " Please "
 msgstr ""
 
-msgid "check the Wiki guide"
+msgid "refer to the Wiki User Guide"
 msgstr ""
 
-msgid " before printing."
+msgid " before continuing."
 msgstr ""
 
 msgid "How to feed TPU filament on X2D."
@@ -287,7 +287,7 @@ msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instea
 msgstr ""
 
 #, c-format, boost-format
-msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
 msgstr ""
 
 #, c-format, boost-format
@@ -6568,10 +6568,7 @@ msgstr ""
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "Částečný objem proplachu je nastaven na 0. Vícebarevný tisk může způsobit míchání barev v modelech. Upravte prosím znovu nastavení proplachu."
 
-msgid "Click Wiki for help."
-msgstr "Klikněte na Wiki pro nápovědu."
-
-msgid "Click Wiki for details."
+msgid "Wiki for details"
 msgstr ""
 
 msgid "Jump to: Prime tower"
@@ -8173,9 +8170,6 @@ msgstr "Detaily"
 msgid "New printer config available."
 msgstr "K dispozici je nová konfigurace tiskárny."
 
-msgid "Wiki"
-msgstr "Wiki"
-
 msgid "Undo integration failed."
 msgstr "Vrácení změn se nezdařilo."
 
@@ -8233,14 +8227,8 @@ msgstr "DOKONČENO"
 msgid "Cancel upload"
 msgstr "Zrušit nahrávání"
 
-msgid "Serious warning:"
-msgstr "Závažné varování:"
-
 msgid "Jump to"
 msgstr "Přeskočit na"
-
-msgid "Error:"
-msgstr "Chyba:"
 
 msgid "Open link for more info"
 msgstr "Otevřít odkaz pro více informací"
@@ -8251,12 +8239,6 @@ msgstr ""
 msgid "Jump to: Support"
 msgstr ""
 
-msgid "Warning:"
-msgstr "Varování:"
-
-msgid "Wiki for details."
-msgstr ""
-
 msgid "Export successfully."
 msgstr "Export byl úspěšný."
 
@@ -8265,9 +8247,6 @@ msgstr "Soubor modelu byl stažen."
 
 msgid " Click here to install it."
 msgstr " Klikněte zde pro instalaci."
-
-msgid "WARNING:"
-msgstr "VAROVÁNÍ:"
 
 msgid "Your model needs support ! Please make support material enable."
 msgstr "Váš objekt potřebuje podpěry! Povolte prosím podpůrný materiál."
@@ -9299,19 +9278,11 @@ msgstr ""
 msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr ""
 
-msgid ""
-"Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
-"Are you sure you want to continue?"
-msgstr ""
-"Synchronizace filamentů AMS zahodí vaše upravené, ale neuložené předvolby filamentů.\n"
-"Opravdu chcete pokračovat?Synchronizace filamentů AMS zruší vaše upravená, ale neuložená přednastavení filamentu.\n"
-"Opravdu chcete pokračovat?"
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "Nejsou dostupné kompatibilní filamenty, synchronizace nebyla provedena."
 
 msgid "Sync filaments with AMS"
 msgstr "Synchronizovat filamenty s AMS"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "Nejsou dostupné kompatibilní filamenty, synchronizace nebyla provedena."
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "Informace o typu a barvě filamentu byly synchronizovány, ale informace o slotu nejsou zahrnuty."
@@ -10163,9 +10134,6 @@ msgstr ""
 
 msgid "Auto arrange"
 msgstr "Automatické rozmístění"
-
-msgid "Detail view wiki->"
-msgstr "Wiki k detailnímu zobrazení ->"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -11719,6 +11687,9 @@ msgstr "Synchronizace různých pohonů extruderu nebo typů velikosti trysky ne
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Synchronizujte změny parametrů s odpovídajícími parametry druhého extruderu."
+
+msgid "Wiki"
+msgstr "Wiki"
 
 msgid "Click to learn more"
 msgstr "Klikněte pro více informací"
@@ -13602,11 +13573,11 @@ msgstr "Časový limit pro odesílání tiskové úlohy vypršel."
 msgid "Sending print job with LAN acceleration"
 msgstr ""
 
-msgid "Sending print configuration"
-msgstr "Odesílání konfigurace tisku"
-
 msgid "Cloud service sending failed. Sending print job over LAN without print history."
 msgstr ""
+
+msgid "Sending print configuration"
+msgstr "Odesílání konfigurace tisku"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20339,10 +20310,7 @@ msgstr ""
 msgid "Update Firmware"
 msgstr ""
 
-msgid "Nozzle info synced, "
-msgstr ""
-
-msgid "view installation guide →"
+msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -20830,6 +20798,9 @@ msgstr ""
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
 msgstr ""
 
+msgid "Click Wiki for help."
+msgstr "Klikněte na Wiki pro nápovědu."
+
 msgid "Nozzle and Filament Sync"
 msgstr ""
 
@@ -21198,6 +21169,29 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid "Serious warning:"
+#~ msgstr "Závažné varování:"
+
+#~ msgid "Error:"
+#~ msgstr "Chyba:"
+
+#~ msgid "Warning:"
+#~ msgstr "Varování:"
+
+#~ msgid "WARNING:"
+#~ msgstr "VAROVÁNÍ:"
+
+#~ msgid ""
+#~ "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
+#~ "Are you sure you want to continue?"
+#~ msgstr ""
+#~ "Synchronizace filamentů AMS zahodí vaše upravené, ale neuložené předvolby filamentů.\n"
+#~ "Opravdu chcete pokračovat?Synchronizace filamentů AMS zruší vaše upravená, ale neuložená přednastavení filamentu.\n"
+#~ "Opravdu chcete pokračovat?"
+
+#~ msgid "Detail view wiki->"
+#~ msgstr "Wiki k detailnímu zobrazení ->"
 
 #~ msgid "How to feed TPU filament."
 #~ msgstr "Jak podávat TPU filament."

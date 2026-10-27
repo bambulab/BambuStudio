@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 22:30+0800\n"
+"POT-Creation-Date: 2026-10-27 20:10+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -221,10 +221,10 @@ msgstr ""
 msgid " Please "
 msgstr ""
 
-msgid "check the Wiki guide"
+msgid "refer to the Wiki User Guide"
 msgstr ""
 
-msgid " before printing."
+msgid " before continuing."
 msgstr ""
 
 msgid "How to feed TPU filament on X2D."
@@ -283,7 +283,7 @@ msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instea
 msgstr ""
 
 #, c-format, boost-format
-msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
 msgstr ""
 
 #, c-format, boost-format
@@ -6526,11 +6526,8 @@ msgstr "Alla objekt på plattan kan inte skrivas ut. Kontrollera utskriftsinstä
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "Delvis spolning volym inställd på 0. Flerfärgsutskrift kan orsaka färgblandning i modeller. Vänligen ändra spolnings inställningar."
 
-msgid "Click Wiki for help."
-msgstr "Klicka på Wiki för hjälp."
-
-msgid "Click Wiki for details."
-msgstr "Klicka på Wiki för mer detaljer."
+msgid "Wiki for details"
+msgstr ""
 
 msgid "Jump to: Prime tower"
 msgstr "Hoppa till: Prime Tower"
@@ -8122,9 +8119,6 @@ msgstr "Detaljer"
 msgid "New printer config available."
 msgstr "Ny printer konfiguration tillgänglig."
 
-msgid "Wiki"
-msgstr "Wiki"
-
 msgid "Undo integration failed."
 msgstr "Återställande av integrationen misslyckades."
 
@@ -8182,14 +8176,8 @@ msgstr "Klar"
 msgid "Cancel upload"
 msgstr "Avbryt uppladdning"
 
-msgid "Serious warning:"
-msgstr "Allvarlig varning:"
-
 msgid "Jump to"
 msgstr "Hoppa till"
-
-msgid "Error:"
-msgstr "Fel:"
 
 msgid "Open link for more info"
 msgstr "Öppna länken för mer information"
@@ -8200,12 +8188,6 @@ msgstr "Hoppa till: Stöd endast på byggplattan"
 msgid "Jump to: Support"
 msgstr "Hoppa till: Stöd"
 
-msgid "Warning:"
-msgstr "Varning:"
-
-msgid "Wiki for details."
-msgstr "Wiki för detaljer."
-
 msgid "Export successfully."
 msgstr "Exporten lyckades."
 
@@ -8214,9 +8196,6 @@ msgstr "Modellfil nedladdad."
 
 msgid " Click here to install it."
 msgstr " Klicka här för att installera den."
-
-msgid "WARNING:"
-msgstr "VARNING:"
 
 msgid "Your model needs support ! Please make support material enable."
 msgstr "Modellen behöver support ! Aktivera support inställningarna."
@@ -9305,18 +9284,11 @@ msgstr "filament fack %d %s"
 msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr "Den aktuella skrivarkonfigurationen stöder inte %s från AMS. Den har ersatts med %s som standard."
 
-msgid ""
-"Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
-"Are you sure you want to continue?"
-msgstr ""
-"Synkronisering av AMS filament kommer att förkasta din modifierade men osparade filament\n"
-"inställning. Är du säker på att du vill fortsätta?"
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "Det finns inga kompatibla filament och synkronisering utförs inte."
 
 msgid "Sync filaments with AMS"
 msgstr "Synkronisera filament med AMS"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "Det finns inga kompatibla filament och synkronisering utförs inte."
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "Filamenttyp och färginformation har synkroniserats, men fack information ingår inte."
@@ -10156,9 +10128,6 @@ msgstr ""
 
 msgid "Auto arrange"
 msgstr "Ordna automatiskt"
-
-msgid "Detail view wiki->"
-msgstr "Detalj vy wiki->"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -11703,6 +11672,9 @@ msgstr "Synkronisering av olika extruderings enheter eller nozzle volym typer st
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Synkronisera ändring av parametrar till motsvarande parametrar för en annan extruder."
+
+msgid "Wiki"
+msgstr "Wiki"
 
 msgid "Click to learn more"
 msgstr "Klicka för mer information"
@@ -13576,11 +13548,11 @@ msgstr "Timeout för sändning av utskriftsuppgift."
 msgid "Sending print job with LAN acceleration"
 msgstr "Skickar utskriftsjobb med LAN-acceleration"
 
-msgid "Sending print configuration"
-msgstr "Skicka utskrifts konfiguration"
-
 msgid "Cloud service sending failed. Sending print job over LAN without print history."
 msgstr "Molntjänstfel vid sändning. Skickar utskriftsjobb via LAN utan utskriftshistorik."
+
+msgid "Sending print configuration"
+msgstr "Skicka utskrifts konfiguration"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20258,10 +20230,7 @@ msgstr ""
 msgid "Update Firmware"
 msgstr ""
 
-msgid "Nozzle info synced, "
-msgstr ""
-
-msgid "view installation guide →"
+msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -20749,6 +20718,9 @@ msgstr ""
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
 msgstr ""
 
+msgid "Click Wiki for help."
+msgstr "Klicka på Wiki för hjälp."
+
 msgid "Nozzle and Filament Sync"
 msgstr ""
 
@@ -21090,6 +21062,34 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#~ msgid "Click Wiki for details."
+#~ msgstr "Klicka på Wiki för mer detaljer."
+
+#~ msgid "Serious warning:"
+#~ msgstr "Allvarlig varning:"
+
+#~ msgid "Error:"
+#~ msgstr "Fel:"
+
+#~ msgid "Warning:"
+#~ msgstr "Varning:"
+
+#~ msgid "Wiki for details."
+#~ msgstr "Wiki för detaljer."
+
+#~ msgid "WARNING:"
+#~ msgstr "VARNING:"
+
+#~ msgid ""
+#~ "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
+#~ "Are you sure you want to continue?"
+#~ msgstr ""
+#~ "Synkronisering av AMS filament kommer att förkasta din modifierade men osparade filament\n"
+#~ "inställning. Är du säker på att du vill fortsätta?"
+
+#~ msgid "Detail view wiki->"
+#~ msgstr "Detalj vy wiki->"
 
 #~ msgid "How to feed TPU filament."
 #~ msgstr "Hur man matar TPU filament."

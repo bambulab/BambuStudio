@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 22:30+0800\n"
+"POT-Creation-Date: 2026-10-27 20:10+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -224,10 +224,10 @@ msgstr ""
 msgid " Please "
 msgstr ""
 
-msgid "check the Wiki guide"
+msgid "refer to the Wiki User Guide"
 msgstr ""
 
-msgid " before printing."
+msgid " before continuing."
 msgstr ""
 
 msgid "How to feed TPU filament on X2D."
@@ -286,7 +286,7 @@ msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instea
 msgstr ""
 
 #, c-format, boost-format
-msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
 msgstr ""
 
 #, c-format, boost-format
@@ -6514,11 +6514,8 @@ msgstr "プレート上のすべてのオブジェクトが造形不可です。
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "部分フラッシング量が0に設定されています。マルチカラー造形では、モデル内で色が混ざる可能性があります。フラッシング設定を再調整してください。"
 
-msgid "Click Wiki for help."
-msgstr "詳しくはWikiをクリックしてください。"
-
-msgid "Click Wiki for details."
-msgstr "詳しくはWikiをクリックしてください。"
+msgid "Wiki for details"
+msgstr ""
 
 msgid "Jump to: Prime tower"
 msgstr "移動：プライムタワー"
@@ -8092,9 +8089,6 @@ msgstr "詳細"
 msgid "New printer config available."
 msgstr "新しいプリンタ設定が利用可能です。"
 
-msgid "Wiki"
-msgstr "Wiki"
-
 msgid "Undo integration failed."
 msgstr "統合の取り消しに失敗しました。"
 
@@ -8148,14 +8142,8 @@ msgstr "完了"
 msgid "Cancel upload"
 msgstr "アップロードを取消し"
 
-msgid "Serious warning:"
-msgstr "重大な警告:"
-
 msgid "Jump to"
 msgstr "確認"
-
-msgid "Error:"
-msgstr "エラー:"
 
 msgid "Open link for more info"
 msgstr "詳細はこちら"
@@ -8166,12 +8154,6 @@ msgstr "ジャンプ先：ビルドプレート上のみサポート"
 msgid "Jump to: Support"
 msgstr "ジャンプ先：サポート"
 
-msgid "Warning:"
-msgstr "警告"
-
-msgid "Wiki for details."
-msgstr "詳細はWikiをご覧ください。"
-
 msgid "Export successfully."
 msgstr "エクスポートが成功しました。"
 
@@ -8180,9 +8162,6 @@ msgstr "モデルファイルがダウンロードされました。"
 
 msgid " Click here to install it."
 msgstr "こちらでインストールします。"
-
-msgid "WARNING:"
-msgstr "警告"
 
 msgid "Your model needs support ! Please make support material enable."
 msgstr "このモデルを造形するにはサポートが必要です。サポートを有効にしてください。"
@@ -9271,18 +9250,11 @@ msgstr "フィラメントスロット%d %s"
 msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr "現在のプリンター構成では、AMSからの%sはサポートされていません。デフォルトで%sに置き換えられました。"
 
-msgid ""
-"Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
-"Are you sure you want to continue?"
-msgstr ""
-"AMSフィラメントの情報を同期させると、修正済みで未保存のフィラメントプリセットは破棄されます。\n"
-"続行してもよろしいですか?"
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "適用できるフィラメントがありません、同期を行えません"
 
 msgid "Sync filaments with AMS"
 msgstr "AMSと同期"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "適用できるフィラメントがありません、同期を行えません"
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "フィラメントの種類と色の情報は同期されましたが、スロット情報は含まれていません。"
@@ -10121,9 +10093,6 @@ msgstr ""
 
 msgid "Auto arrange"
 msgstr "自動配置"
-
-msgid "Detail view wiki->"
-msgstr "正式に対応している材料を選択してください。"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -11671,6 +11640,9 @@ msgstr "異なる押出機ドライブやノズル容量タイプの同期はサ
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "パラメータの変更を他の押出機の対応するパラメータに同期させる"
+
+msgid "Wiki"
+msgstr "Wiki"
 
 msgid "Click to learn more"
 msgstr "クリックして詳細を表示"
@@ -13531,11 +13503,11 @@ msgstr "印刷タスクの送信がタイムアウトしました。"
 msgid "Sending print job with LAN acceleration"
 msgstr "LANアクセラレーションでプリントジョブを送信中"
 
-msgid "Sending print configuration"
-msgstr "構成を送信"
-
 msgid "Cloud service sending failed. Sending print job over LAN without print history."
 msgstr "クラウドサービスへの送信に失敗しました。造形履歴なしで、LAN経由で造形ジョブを送信します。"
+
+msgid "Sending print configuration"
+msgstr "構成を送信"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20230,10 +20202,7 @@ msgstr ""
 msgid "Update Firmware"
 msgstr ""
 
-msgid "Nozzle info synced, "
-msgstr ""
-
-msgid "view installation guide →"
+msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -20720,6 +20689,9 @@ msgstr ""
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
 msgstr ""
 
+msgid "Click Wiki for help."
+msgstr "詳しくはWikiをクリックしてください。"
+
 msgid "Nozzle and Filament Sync"
 msgstr ""
 
@@ -21060,6 +21032,34 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Click Wiki for details."
+#~ msgstr "詳しくはWikiをクリックしてください。"
+
+#~ msgid "Serious warning:"
+#~ msgstr "重大な警告:"
+
+#~ msgid "Error:"
+#~ msgstr "エラー:"
+
+#~ msgid "Warning:"
+#~ msgstr "警告"
+
+#~ msgid "Wiki for details."
+#~ msgstr "詳細はWikiをご覧ください。"
+
+#~ msgid "WARNING:"
+#~ msgstr "警告"
+
+#~ msgid ""
+#~ "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
+#~ "Are you sure you want to continue?"
+#~ msgstr ""
+#~ "AMSフィラメントの情報を同期させると、修正済みで未保存のフィラメントプリセットは破棄されます。\n"
+#~ "続行してもよろしいですか?"
+
+#~ msgid "Detail view wiki->"
+#~ msgstr "正式に対応している材料を選択してください。"
 
 #~ msgid "How to feed TPU filament."
 #~ msgstr "TPU フィラメントの供給方法"

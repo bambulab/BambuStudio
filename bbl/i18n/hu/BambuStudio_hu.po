@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 22:30+0800\n"
+"POT-Creation-Date: 2026-10-27 20:10+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -224,10 +224,10 @@ msgstr ""
 msgid " Please "
 msgstr ""
 
-msgid "check the Wiki guide"
+msgid "refer to the Wiki User Guide"
 msgstr ""
 
-msgid " before printing."
+msgid " before continuing."
 msgstr ""
 
 msgid "How to feed TPU filament on X2D."
@@ -286,7 +286,7 @@ msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instea
 msgstr ""
 
 #, c-format, boost-format
-msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
 msgstr ""
 
 #, c-format, boost-format
@@ -6537,11 +6537,8 @@ msgstr "A nyomtatótálcán lévő összes objektum nem nyomtatható, kérjük, 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "A részleges öblítés térfogata 0-ra van állítva. Többszínű nyomtatás esetén a modelleken színkeveredés léphet fel. Kérjük, módosítsd a tisztítási beállításokat."
 
-msgid "Click Wiki for help."
-msgstr "Kattints a Wikire a segítségért."
-
-msgid "Click Wiki for details."
-msgstr "Kattintson a Wikire a részletekért."
+msgid "Wiki for details"
+msgstr ""
 
 msgid "Jump to: Prime tower"
 msgstr "Ugrás: törlőtorony"
@@ -8133,9 +8130,6 @@ msgstr "Részletek"
 msgid "New printer config available."
 msgstr "Új nyomtatókonfiguráció érhető el."
 
-msgid "Wiki"
-msgstr "Wiki"
-
 msgid "Undo integration failed."
 msgstr "Az integráció visszavonása nem sikerült."
 
@@ -8193,14 +8187,8 @@ msgstr "KÉSZ"
 msgid "Cancel upload"
 msgstr "Feltöltés megszakítása"
 
-msgid "Serious warning:"
-msgstr "Fontos figyelmeztetés:"
-
 msgid "Jump to"
 msgstr "Ugrás ide:"
-
-msgid "Error:"
-msgstr "Hiba:"
 
 msgid "Open link for more info"
 msgstr "További információkért nyisd meg a linket"
@@ -8211,12 +8199,6 @@ msgstr "Ugrás ide: csak a nyomtatótálcán lévő támasz"
 msgid "Jump to: Support"
 msgstr "Ugrás ide: Támasz"
 
-msgid "Warning:"
-msgstr "Figyelem:"
-
-msgid "Wiki for details."
-msgstr "Részletek a Wikiben."
-
 msgid "Export successfully."
 msgstr "Sikeresen exportálva."
 
@@ -8225,9 +8207,6 @@ msgstr "Modellfájl letöltve."
 
 msgid " Click here to install it."
 msgstr " Kattints ide a telepítéshez."
-
-msgid "WARNING:"
-msgstr "FIGYELEM:"
 
 msgid "Your model needs support ! Please make support material enable."
 msgstr "A modellnek támaszra van szüksége! Kérjük, engedélyezd a támasz generálását."
@@ -9316,18 +9295,11 @@ msgstr "filamentnyílás %d %s"
 msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr "A jelenlegi nyomtatókonfiguráció nem támogatja az AMS-ből származó %s filamentet. Alapértelmezés szerint a(z) %s lépett a helyébe."
 
-msgid ""
-"Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
-"Are you sure you want to continue?"
-msgstr ""
-"Az AMS-filamentek szinkronizálásával elveted a módosított, de nem mentett filamentbeállításokat.\n"
-"Biztos, hogy folytatod?"
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "Nincs kompatibilis filament és nem történt szinkronizálás."
 
 msgid "Sync filaments with AMS"
 msgstr "Filamentek szinkronizálása az AMS-sel"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "Nincs kompatibilis filament és nem történt szinkronizálás."
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "A filament típusára és a színére vonatkozó információk szinkronizálásra kerültek, de a férőhelyekre vonatkozó információk nem."
@@ -10170,9 +10142,6 @@ msgstr ""
 
 msgid "Auto arrange"
 msgstr "Automatikus rendezés"
-
-msgid "Detail view wiki->"
-msgstr "Részletes nézet wiki->"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -11717,6 +11686,9 @@ msgstr "Különböző extrudertípusok vagy fúvókatérfogatok szinkronizálás
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Szinkronizálja a paraméterek módosítását egy másik extruder megfelelő paramétereivel."
+
+msgid "Wiki"
+msgstr "Wiki"
 
 msgid "Click to learn more"
 msgstr "Kattints a további információért"
@@ -13589,11 +13561,11 @@ msgstr "Időtúllépés a nyomtatási feladat küldése során."
 msgid "Sending print job with LAN acceleration"
 msgstr "Nyomtatási feladat küldése LAN gyorsítással"
 
-msgid "Sending print configuration"
-msgstr "Nyomtatási konfiguráció küldése"
-
 msgid "Cloud service sending failed. Sending print job over LAN without print history."
 msgstr "Felhőszolgáltatás küldése sikertelen. Nyomtatási feladat küldése LAN-on keresztül nyomtatási előzmények nélkül."
+
+msgid "Sending print configuration"
+msgstr "Nyomtatási konfiguráció küldése"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20264,10 +20236,7 @@ msgstr ""
 msgid "Update Firmware"
 msgstr ""
 
-msgid "Nozzle info synced, "
-msgstr ""
-
-msgid "view installation guide →"
+msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -20755,6 +20724,9 @@ msgstr ""
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
 msgstr ""
 
+msgid "Click Wiki for help."
+msgstr "Kattints a Wikire a segítségért."
+
 msgid "Nozzle and Filament Sync"
 msgstr ""
 
@@ -21099,6 +21071,34 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid "Click Wiki for details."
+#~ msgstr "Kattintson a Wikire a részletekért."
+
+#~ msgid "Serious warning:"
+#~ msgstr "Fontos figyelmeztetés:"
+
+#~ msgid "Error:"
+#~ msgstr "Hiba:"
+
+#~ msgid "Warning:"
+#~ msgstr "Figyelem:"
+
+#~ msgid "Wiki for details."
+#~ msgstr "Részletek a Wikiben."
+
+#~ msgid "WARNING:"
+#~ msgstr "FIGYELEM:"
+
+#~ msgid ""
+#~ "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
+#~ "Are you sure you want to continue?"
+#~ msgstr ""
+#~ "Az AMS-filamentek szinkronizálásával elveted a módosított, de nem mentett filamentbeállításokat.\n"
+#~ "Biztos, hogy folytatod?"
+
+#~ msgid "Detail view wiki->"
+#~ msgstr "Részletes nézet wiki->"
 
 #~ msgid "How to feed TPU filament."
 #~ msgstr "TPU filament betöltése."

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 22:30+0800\n"
+"POT-Creation-Date: 2026-10-27 20:10+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -229,10 +229,10 @@ msgstr ""
 msgid " Please "
 msgstr ""
 
-msgid "check the Wiki guide"
+msgid "refer to the Wiki User Guide"
 msgstr ""
 
-msgid " before printing."
+msgid " before continuing."
 msgstr ""
 
 msgid "How to feed TPU filament on X2D."
@@ -291,7 +291,7 @@ msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instea
 msgstr ""
 
 #, c-format, boost-format
-msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
 msgstr ""
 
 #, c-format, boost-format
@@ -6536,11 +6536,8 @@ msgstr "Tất cả các đối tượng trên bàn in đều không thể in đ�
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "Khối lượng xả một phần được đặt thành 0. In nhiều màu có thể gây lẫn màu trong các mô hình. Vui lòng điều chỉnh lại cài đặt xả."
 
-msgid "Click Wiki for help."
-msgstr "Nhấp Wiki để được trợ giúp."
-
-msgid "Click Wiki for details."
-msgstr "Nhấp vào Wiki để biết chi tiết."
+msgid "Wiki for details"
+msgstr ""
 
 msgid "Jump to: Prime tower"
 msgstr "Chuyển đến: Tháp mồi"
@@ -8129,9 +8126,6 @@ msgstr "Chi tiết"
 msgid "New printer config available."
 msgstr "Cấu hình máy in mới khả dụng."
 
-msgid "Wiki"
-msgstr ""
-
 msgid "Undo integration failed."
 msgstr "Hoàn tác tích hợp thất bại."
 
@@ -8185,14 +8179,8 @@ msgstr "ĐÃ HOÀN TẤT"
 msgid "Cancel upload"
 msgstr "Hủy tải lên"
 
-msgid "Serious warning:"
-msgstr "Cảnh báo nghiêm trọng:"
-
 msgid "Jump to"
 msgstr "Chuyển đến"
-
-msgid "Error:"
-msgstr "Lỗi:"
 
 msgid "Open link for more info"
 msgstr "Mở liên kết để biết thêm thông tin"
@@ -8203,12 +8191,6 @@ msgstr "Chuyển đến: Chỉ hỗ trợ trên bàn in"
 msgid "Jump to: Support"
 msgstr "Chuyển đến: Hỗ trợ"
 
-msgid "Warning:"
-msgstr "Cảnh báo:"
-
-msgid "Wiki for details."
-msgstr "Wiki để biết chi tiết."
-
 msgid "Export successfully."
 msgstr "Xuất thành công."
 
@@ -8217,9 +8199,6 @@ msgstr "Tệp mô hình đã được tải xuống."
 
 msgid " Click here to install it."
 msgstr " Nhấp vào đây để cài đặt."
-
-msgid "WARNING:"
-msgstr "CẢNH BÁO:"
 
 msgid "Your model needs support ! Please make support material enable."
 msgstr "Mô hình của bạn cần cấu trúc đỡ! Vui lòng bật vật liệu hỗ trợ."
@@ -9308,18 +9287,11 @@ msgstr "ô sợi nhựa %d %s"
 msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr "Cấu hình máy in hiện tại không hỗ trợ sử dụng %s từ AMS. Hệ thống đã mặc định thay thế bằng %s."
 
-msgid ""
-"Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
-"Are you sure you want to continue?"
-msgstr ""
-"Đồng bộ sợi nhựa AMS sẽ loại bỏ các cài đặt sẵn sợi nhựa đã sửa đổi nhưng chưa lưu của bạn.\n"
-"Bạn có chắc chắn muốn tiếp tục không?"
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "Không có sợi nhựa tương thích, và đồng bộ chưa được thực hiện."
 
 msgid "Sync filaments with AMS"
 msgstr "Đồng bộ sợi nhựa với AMS"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "Không có sợi nhựa tương thích, và đồng bộ chưa được thực hiện."
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "Thông tin loại và màu sợi nhựa đã được đồng bộ, nhưng không bao gồm thông tin khe cắm."
@@ -10166,9 +10138,6 @@ msgstr ""
 
 msgid "Auto arrange"
 msgstr "Tự động sắp xếp"
-
-msgid "Detail view wiki->"
-msgstr "Xem chi tiết wiki->"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -11713,6 +11682,9 @@ msgstr "Không hỗ trợ đồng bộ các loại bộ truyền động vòi đ
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Đồng bộ hóa việc sửa đổi các tham số với các tham số tương ứng của vòi đùn nhựa khác."
+
+msgid "Wiki"
+msgstr ""
 
 msgid "Click to learn more"
 msgstr "Nhấp để tìm hiểu thêm"
@@ -13581,11 +13553,11 @@ msgstr "Việc gửi tác vụ in đã hết thời gian."
 msgid "Sending print job with LAN acceleration"
 msgstr "Đang gửi lệnh in với tăng tốc mạng LAN"
 
-msgid "Sending print configuration"
-msgstr "Đang gửi cấu hình in"
-
 msgid "Cloud service sending failed. Sending print job over LAN without print history."
 msgstr "Gửi qua dịch vụ đám mây thất bại. Đang gửi lệnh in qua mạng LAN mà không có lịch sử in."
+
+msgid "Sending print configuration"
+msgstr "Đang gửi cấu hình in"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20257,10 +20229,7 @@ msgstr ""
 msgid "Update Firmware"
 msgstr ""
 
-msgid "Nozzle info synced, "
-msgstr ""
-
-msgid "view installation guide →"
+msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -20747,6 +20716,9 @@ msgstr ""
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
 msgstr ""
 
+msgid "Click Wiki for help."
+msgstr "Nhấp Wiki để được trợ giúp."
+
 msgid "Nozzle and Filament Sync"
 msgstr ""
 
@@ -21090,6 +21062,34 @@ msgid ""
 msgstr ""
 "Độ tin cậy thành công ngay lần đầu\n"
 "Giảm bớt việc phải theo dõi liên tục, tăng tính dự đoán được của kết quả đầu ra. Ví dụ: một cụm máy in nhỏ in các bộ phận bằng PETG sẽ tránh được những sự cố bất ngờ như \"hỏng hóc sau 6 giờ\" và đảm bảo các lô sản phẩm được hoàn tất đúng tiến độ."
+
+#~ msgid "Click Wiki for details."
+#~ msgstr "Nhấp vào Wiki để biết chi tiết."
+
+#~ msgid "Serious warning:"
+#~ msgstr "Cảnh báo nghiêm trọng:"
+
+#~ msgid "Error:"
+#~ msgstr "Lỗi:"
+
+#~ msgid "Warning:"
+#~ msgstr "Cảnh báo:"
+
+#~ msgid "Wiki for details."
+#~ msgstr "Wiki để biết chi tiết."
+
+#~ msgid "WARNING:"
+#~ msgstr "CẢNH BÁO:"
+
+#~ msgid ""
+#~ "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
+#~ "Are you sure you want to continue?"
+#~ msgstr ""
+#~ "Đồng bộ sợi nhựa AMS sẽ loại bỏ các cài đặt sẵn sợi nhựa đã sửa đổi nhưng chưa lưu của bạn.\n"
+#~ "Bạn có chắc chắn muốn tiếp tục không?"
+
+#~ msgid "Detail view wiki->"
+#~ msgstr "Xem chi tiết wiki->"
 
 #~ msgid "How to feed TPU filament."
 #~ msgstr "Cách nạp sợi nhựa TPU."

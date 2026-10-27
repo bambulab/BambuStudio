@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 22:30+0800\n"
+"POT-Creation-Date: 2026-10-27 20:10+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -224,10 +224,10 @@ msgstr ""
 msgid " Please "
 msgstr ""
 
-msgid "check the Wiki guide"
+msgid "refer to the Wiki User Guide"
 msgstr ""
 
-msgid " before printing."
+msgid " before continuing."
 msgstr ""
 
 msgid "How to feed TPU filament on X2D."
@@ -286,7 +286,7 @@ msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instea
 msgstr ""
 
 #, c-format, boost-format
-msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
 msgstr ""
 
 #, c-format, boost-format
@@ -6531,11 +6531,8 @@ msgstr "플레이트의 모든 개체는 출력할 수 없습니다. 개체 목�
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "부분 플러싱 용량이 0으로 설정되었습니다. 다색 출력 시 모델에서 색상 혼합이 발생할 수 있습니다. 플러싱 설정을 다시 조정해 주세요."
 
-msgid "Click Wiki for help."
-msgstr "위키를 클릭하여 도움을 받습니다."
-
-msgid "Click Wiki for details."
-msgstr "자세한 내용은 Wiki를 클릭하세요."
+msgid "Wiki for details"
+msgstr ""
 
 msgid "Jump to: Prime tower"
 msgstr "바로가기: 프라임 타워"
@@ -8124,9 +8121,6 @@ msgstr "세부정보"
 msgid "New printer config available."
 msgstr "새 프린터 설정을 사용할 수 있습니다."
 
-msgid "Wiki"
-msgstr "위키"
-
 msgid "Undo integration failed."
 msgstr "연동 취소에 실패했습니다."
 
@@ -8180,14 +8174,8 @@ msgstr "완료"
 msgid "Cancel upload"
 msgstr "업로드 취소"
 
-msgid "Serious warning:"
-msgstr "심각한 경고입니다:"
-
 msgid "Jump to"
 msgstr "위치로 가기"
-
-msgid "Error:"
-msgstr "오류:"
 
 msgid "Open link for more info"
 msgstr "자세한 정보는 링크를 열어주세요"
@@ -8198,12 +8186,6 @@ msgstr "이동: 빌드 플레이트에서만 서포트"
 msgid "Jump to: Support"
 msgstr "이동: 서포트"
 
-msgid "Warning:"
-msgstr "경고:"
-
-msgid "Wiki for details."
-msgstr "자세한 내용은 위키에서 확인하세요."
-
 msgid "Export successfully."
 msgstr "내보내기 성공"
 
@@ -8212,9 +8194,6 @@ msgstr "모델 파일이 다운로드되었습니다."
 
 msgid " Click here to install it."
 msgstr " 설치하려면 여기를 클릭하십시오."
-
-msgid "WARNING:"
-msgstr "경고:"
 
 msgid "Your model needs support ! Please make support material enable."
 msgstr "출력모델에 서포트가 필요합니다. 서포트를 활성화하십시오."
@@ -9303,18 +9282,11 @@ msgstr "필라멘트 슬롯 %d %s"
 msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr "현재 프린터 구성에서는 AMS의 %s가 지원되지 않습니다. 기본적으로 %s로 대체되었습니다."
 
-msgid ""
-"Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
-"Are you sure you want to continue?"
-msgstr ""
-"AMS 필라멘트를 동기화하면 수정되었지만 저장되지 않은 필라멘트 사전 설정이 삭제됩니다.\n"
-"계속하시겠습니까?"
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "호환되는 필라멘트가 없어 동기화가 되지 않습니다."
 
 msgid "Sync filaments with AMS"
 msgstr "AMS와 필라멘트 동기화"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "호환되는 필라멘트가 없어 동기화가 되지 않습니다."
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "필라멘트 유형 및 색상 정보는 동기화되었지만 슬롯 정보는 포함되지 않았습니다."
@@ -10159,9 +10131,6 @@ msgstr ""
 
 msgid "Auto arrange"
 msgstr "자동 배열"
-
-msgid "Detail view wiki->"
-msgstr "세부 보기 wiki->"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -11708,6 +11677,9 @@ msgstr "서로 다른 압출기 구동 방식이나 노즐 용량 유형 간의 
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "매개변수 수정을 다른 압출기의 해당 매개변수와 동기화합니다."
+
+msgid "Wiki"
+msgstr "위키"
 
 msgid "Click to learn more"
 msgstr "더 알아보려면 클릭하세요"
@@ -13577,11 +13549,11 @@ msgstr "출력 작업 전송 시간 초과."
 msgid "Sending print job with LAN acceleration"
 msgstr "LAN 가속을 사용해 출력 작업 전송 중"
 
-msgid "Sending print configuration"
-msgstr "출력 설정 보내기"
-
 msgid "Cloud service sending failed. Sending print job over LAN without print history."
 msgstr "클라우드 서비스 전송에 실패했습니다. 출력 기록 없이 LAN을 통해 출력 작업을 전송합니다."
+
+msgid "Sending print configuration"
+msgstr "출력 설정 보내기"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20261,10 +20233,7 @@ msgstr ""
 msgid "Update Firmware"
 msgstr ""
 
-msgid "Nozzle info synced, "
-msgstr ""
-
-msgid "view installation guide →"
+msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -20751,6 +20720,9 @@ msgstr ""
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
 msgstr ""
 
+msgid "Click Wiki for help."
+msgstr "위키를 클릭하여 도움을 받습니다."
+
 msgid "Nozzle and Filament Sync"
 msgstr ""
 
@@ -21094,6 +21066,34 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#~ msgid "Click Wiki for details."
+#~ msgstr "자세한 내용은 Wiki를 클릭하세요."
+
+#~ msgid "Serious warning:"
+#~ msgstr "심각한 경고입니다:"
+
+#~ msgid "Error:"
+#~ msgstr "오류:"
+
+#~ msgid "Warning:"
+#~ msgstr "경고:"
+
+#~ msgid "Wiki for details."
+#~ msgstr "자세한 내용은 위키에서 확인하세요."
+
+#~ msgid "WARNING:"
+#~ msgstr "경고:"
+
+#~ msgid ""
+#~ "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
+#~ "Are you sure you want to continue?"
+#~ msgstr ""
+#~ "AMS 필라멘트를 동기화하면 수정되었지만 저장되지 않은 필라멘트 사전 설정이 삭제됩니다.\n"
+#~ "계속하시겠습니까?"
+
+#~ msgid "Detail view wiki->"
+#~ msgstr "세부 보기 wiki->"
 
 #~ msgid "How to feed TPU filament."
 #~ msgstr "TPU 필라멘트 공급 방법"

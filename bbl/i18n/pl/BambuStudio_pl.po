@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-26 22:30+0800\n"
+"POT-Creation-Date: 2026-10-27 20:10+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -224,10 +224,10 @@ msgstr ""
 msgid " Please "
 msgstr ""
 
-msgid "check the Wiki guide"
+msgid "refer to the Wiki User Guide"
 msgstr ""
 
-msgid " before printing."
+msgid " before continuing."
 msgstr ""
 
 msgid "How to feed TPU filament on X2D."
@@ -286,7 +286,7 @@ msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instea
 msgstr ""
 
 #, c-format, boost-format
-msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool. Scan the QR code for details."
+msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
 msgstr ""
 
 #, c-format, boost-format
@@ -6542,11 +6542,8 @@ msgstr "Wszystkie obiekty na płycie są niedrukowalne, sprawdź ustawienia druk
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "Częściowa objętość płukania ustawiona na 0. Druk wielokolorowy może powodować mieszanie się kolorów w modelach. Proszę ponownie dostosować ustawienia płukania."
 
-msgid "Click Wiki for help."
-msgstr "Kliknij na Wiki, aby uzyskać pomoc."
-
-msgid "Click Wiki for details."
-msgstr "Kliknij „Wiki”, aby uzyskać więcej informacji."
+msgid "Wiki for details"
+msgstr ""
 
 msgid "Jump to: Prime tower"
 msgstr "Przejdź do: Wieża czyszcząca"
@@ -8141,9 +8138,6 @@ msgstr "Szczegóły"
 msgid "New printer config available."
 msgstr "Dostępna jest nowa konfiguracja drukarki."
 
-msgid "Wiki"
-msgstr "Wiki"
-
 msgid "Undo integration failed."
 msgstr "Cofnięcie integracji nie powiodło się."
 
@@ -8205,14 +8199,8 @@ msgstr "ZAKOŃCZONO"
 msgid "Cancel upload"
 msgstr "Anuluj przesyłanie"
 
-msgid "Serious warning:"
-msgstr "Poważne ostrzeżenie:"
-
 msgid "Jump to"
 msgstr "Przejdź do"
-
-msgid "Error:"
-msgstr "Błąd:"
 
 msgid "Open link for more info"
 msgstr "Otwórz link, aby uzyskać więcej informacji"
@@ -8223,12 +8211,6 @@ msgstr "Przejdź do: podpory tylko na stole roboczym"
 msgid "Jump to: Support"
 msgstr "Przejdź do: podpory"
 
-msgid "Warning:"
-msgstr "Ostrzeżenie:"
-
-msgid "Wiki for details."
-msgstr "Patrz Wiki, aby uzyskać szczegóły"
-
 msgid "Export successfully."
 msgstr "Eksport zakończony sukcesem."
 
@@ -8237,9 +8219,6 @@ msgstr "Plik modelu pobrany."
 
 msgid " Click here to install it."
 msgstr " Kliknij tutaj, aby ją zainstalować."
-
-msgid "WARNING:"
-msgstr "OSTRZEŻENIE:"
 
 msgid "Your model needs support ! Please make support material enable."
 msgstr "Twój model wymaga podpór! Włącz generowanie podpór."
@@ -9326,18 +9305,11 @@ msgstr "gniazdo filamentu %d %s"
 msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr "Obecna konfiguracja drukarki nie obsługuje %s z modułu AMS. Domyślnie zastąpiono przez %s."
 
-msgid ""
-"Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
-"Are you sure you want to continue?"
-msgstr ""
-"Synchronizacja filamentów AMS spowoduje usunięcie niezapisanych zmian w profilach filamentów. \n"
-"Czy na pewno chcesz kontynuować?"
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "Brak kompatybilnych filamentów, synchronizacja nie jest wykonywana."
 
 msgid "Sync filaments with AMS"
 msgstr "Synchronizuj filamenty z AMS"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "Brak kompatybilnych filamentów, synchronizacja nie jest wykonywana."
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "Informacje o typie i kolorze filamentu zostały zsynchronizowane, ale brak informacji o gnieździe."
@@ -10180,9 +10152,6 @@ msgstr ""
 
 msgid "Auto arrange"
 msgstr "Rozmieść automatycznie"
-
-msgid "Detail view wiki->"
-msgstr "Szczegóły w Wiki"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -11729,6 +11698,9 @@ msgstr "Synchronizacja różnych napędów ekstrudera lub typów objętości dys
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Synchronizuj zmiany w parametrach z parametrami innego ekstrudera."
+
+msgid "Wiki"
+msgstr "Wiki"
 
 msgid "Click to learn more"
 msgstr "Kliknij, aby dowiedzieć się więcej"
@@ -13609,11 +13581,11 @@ msgstr "Przekroczono limit czasu na wysyłanie zadania druku."
 msgid "Sending print job with LAN acceleration"
 msgstr "Wysyłanie zadania druku z akceleracją sieci LAN"
 
-msgid "Sending print configuration"
-msgstr "Wysyłanie konfiguracji druku"
-
 msgid "Cloud service sending failed. Sending print job over LAN without print history."
 msgstr "Wysyłanie przez usługę w chmurze nie powiodło się. Wysyłanie zadania druku przez sieć LAN bez historii druku."
+
+msgid "Sending print configuration"
+msgstr "Wysyłanie konfiguracji druku"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20303,10 +20275,7 @@ msgstr ""
 msgid "Update Firmware"
 msgstr ""
 
-msgid "Nozzle info synced, "
-msgstr ""
-
-msgid "view installation guide →"
+msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -20795,6 +20764,9 @@ msgstr ""
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
 msgstr ""
 
+msgid "Click Wiki for help."
+msgstr "Kliknij na Wiki, aby uzyskać pomoc."
+
 msgid "Nozzle and Filament Sync"
 msgstr ""
 
@@ -21138,6 +21110,34 @@ msgid ""
 msgstr ""
 "Niezawodność od pierwszego razu\n"
 "Mniej nadzoru, bardziej przewidywalne wyniki. Przykład: mała farma drukarek 3D produkująca części z PETG unika niespodzianek typu „awaria po 6 godzinach” i utrzymuje harmonogram partii."
+
+#~ msgid "Click Wiki for details."
+#~ msgstr "Kliknij „Wiki”, aby uzyskać więcej informacji."
+
+#~ msgid "Serious warning:"
+#~ msgstr "Poważne ostrzeżenie:"
+
+#~ msgid "Error:"
+#~ msgstr "Błąd:"
+
+#~ msgid "Warning:"
+#~ msgstr "Ostrzeżenie:"
+
+#~ msgid "Wiki for details."
+#~ msgstr "Patrz Wiki, aby uzyskać szczegóły"
+
+#~ msgid "WARNING:"
+#~ msgstr "OSTRZEŻENIE:"
+
+#~ msgid ""
+#~ "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
+#~ "Are you sure you want to continue?"
+#~ msgstr ""
+#~ "Synchronizacja filamentów AMS spowoduje usunięcie niezapisanych zmian w profilach filamentów. \n"
+#~ "Czy na pewno chcesz kontynuować?"
+
+#~ msgid "Detail view wiki->"
+#~ msgstr "Szczegóły w Wiki"
 
 #~ msgid "How to feed TPU filament."
 #~ msgstr "Jak podawać filament TPU."
