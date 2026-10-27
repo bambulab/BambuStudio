@@ -114,7 +114,7 @@
 		"has_cali_line": true,
 		"printer_is_enclosed": true,
 		"enable_set_nozzle_info": false,
-		"support_safety_options": true,
+		"support_safety_options": false,
 		"filament_load_image": ["filament_load_o_series_ext0"],
 		"hotend_ams_type_string":"n10a",
 		"support_ams_settings_hide_insert_power": true,
