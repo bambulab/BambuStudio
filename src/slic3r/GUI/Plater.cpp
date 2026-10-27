@@ -14647,7 +14647,7 @@ std::string Plater::priv::push_validation_warning(StringObjectException const &w
         // hack code
         if (warning.hypetext == "filament_mix_print") {
             notification_manager->push_validate_serious_warning_notification(
-                text, _u8L("Click Wiki for help."),
+                text, _u8L("Wiki for details"),
                 [](wxEvtHandler *) -> bool {
                     bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
                     if (is_zh) {
@@ -14663,8 +14663,7 @@ std::string Plater::priv::push_validation_warning(StringObjectException const &w
                     wxGetApp().app_config->save();
                     return true;
                 });
-            // Keep in sync with the prefix added by push_validate_serious_warning_notification().
-            return _u8L("Serious warning:") + "\n" + text;
+            return text;
         }
 
         std::string hypertext;
@@ -14694,13 +14693,12 @@ std::string Plater::priv::push_validation_warning(StringObjectException const &w
         //    };
         //}
 
-        std::string shown_text = _u8L("WARNING:") + "\n" + text;
         notification_manager->push_notification(
             NotificationType::ValidateWarning,
             NotificationManager::NotificationLevel::WarningNotificationLevel,
-            shown_text, hypertext, action_fn
+            text, hypertext, action_fn
         );
-        return shown_text;
+        return text;
     }
 }
 
@@ -16779,7 +16777,7 @@ void Plater::priv::update_mixed_sublayer_variable_layer_warning()
         NotificationType::BBLMixedSublayerVariableLayerHeight,
         NotificationManager::NotificationLevel::WarningNotificationLevel,
         format(_L("\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."), object_names),
-        _u8L("View Wiki for details"),
+        _u8L("Wiki for details"),
         [](wxEvtHandler *) {
             const std::string language = wxGetApp().app_config->get("language");
             const wxString    region   = language.find("zh") == 0 ? "zh" : "en";
@@ -30009,7 +30007,7 @@ void Plater::show_seqprintinfo_notification(bool has_error)
             return false;
         };
         if (!has_error) {
-            notify_manager->bbl_show_seqprintinfo_notification(info_text, _u8L("Auto arrange"), arrange_callback, _u8L("Detail view wiki->"), wiki_callback, false);
+            notify_manager->bbl_show_seqprintinfo_notification(info_text, _u8L("Auto arrange"), arrange_callback, _u8L("Wiki for details"), wiki_callback, false);
         } else {
             notify_manager->bbl_show_seqprintinfo_notification(info_text, _u8L("Auto arrange"), arrange_callback, "", nullptr, true);
         }
@@ -31224,7 +31222,7 @@ void Plater::show_object_info()
         info_text += _u8L("Prime Tower:");
         info_text += "\n";
         info_text += _u8L("A cube printed during a filament change to purge old color and ensure smooth color transition.");
-        notify_manager->bbl_show_objectsinfo_notification(info_text, false, !(p->current_panel == p->view3D), _u8L("View Wiki for more information"), [](wxEvtHandler*) {
+        notify_manager->bbl_show_objectsinfo_notification(info_text, false, !(p->current_panel == p->view3D), _u8L("Wiki for details"), [](wxEvtHandler*) {
             std::string language = wxGetApp().app_config->get("language");
             wxString    region = L"en";
             if (language.find("zh") == 0)

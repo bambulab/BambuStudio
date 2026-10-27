@@ -14229,7 +14229,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case PLATER_WARNING:
         if (warning == EWarning::MixUsePLAAndPETG) {
             if (state) {
-                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLMixUsePLAAndPETG, NotificationLevel::WarningNotificationLevel, text, _u8L("Click Wiki for help."),
+                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLMixUsePLAAndPETG, NotificationLevel::WarningNotificationLevel, text, _u8L("Wiki for details"),
                     [](wxEvtHandler*) {
                         std::string language = wxGetApp().app_config->get("language");
                         wxString    region = L"en";
@@ -14243,7 +14243,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLMixUsePLAAndPETG, NotificationLevel::WarningNotificationLevel);
         } else if (warning == EWarning::BrittleFilament) {
             if (state) {
-                notification_manager.show_brittle_filament_notification(text, _u8L("Click Wiki for details."), [](wxEvtHandler *) {
+                notification_manager.show_brittle_filament_notification(text, _u8L("Wiki for details"), [](wxEvtHandler *) {
                     std::string language = wxGetApp().app_config->get("language");
                     wxString    region   = (language.find("zh") == 0) ? "zh" : "en";
                     wxGetApp().open_browser_with_warning_dialog(wxString::Format("https://wiki.bambulab.com/%s/x2d-pro/manual/PPA-PPS-printing-guide", region));

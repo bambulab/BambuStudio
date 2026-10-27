@@ -1889,7 +1889,7 @@ void NotificationManager::push_validate_serious_warning_notification(const std::
                                                                      const std::string                 &second_hypertext,
                                                                      std::function<bool(wxEvtHandler *)> second_callback)
 {
-    NotificationData data{NotificationType::ValidateWarning, NotificationLevel::SeriousWarningNotificationLevel, 0, _u8L("Serious warning:") + "\n" + text, hypertext, callback};
+    NotificationData data{NotificationType::ValidateWarning, NotificationLevel::SeriousWarningNotificationLevel, 0, text, hypertext, callback};
     data.second_hypertext = second_hypertext;
     data.second_callback  = second_callback;
     push_notification_data(data, 0);
@@ -1930,7 +1930,7 @@ void NotificationManager::push_validate_error_notification(StringObjectException
     auto link = (mo || !error.opt_key.empty()) ? _u8L("Jump to") : "";
     if (mo) link += std::string(" [") + mo->name + "]";
     if (!error.opt_key.empty()) link += std::string(" (") + error.opt_key + ")";
-    push_notification_data({NotificationType::ValidateError, NotificationLevel::ErrorNotificationLevel, 0, _u8L("Error:") + "\n" + error.string, link, callback}, 0);
+    push_notification_data({NotificationType::ValidateError, NotificationLevel::ErrorNotificationLevel, 0, error.string, link, callback}, 0);
 	set_slicing_progress_hidden();
 }
 
@@ -1971,7 +1971,7 @@ void NotificationManager::push_slicing_error_notification(const std::string &tex
         link += "] ";
     }
     set_all_slicing_errors_gray(false);
-	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text, link, callback }, 0);
+	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0,  text, link, callback }, 0);
 	set_slicing_progress_hidden();
 }
 
@@ -2070,7 +2070,7 @@ void NotificationManager::push_helio_error_notification(const std::string &text)
         };
     }
 
-    push_notification_data({NotificationType::HelioSlicingError, NotificationLevel::ErrorNotificationLevel, 0, _u8L("Error:") + "\n" + display_text, hypertext, callback}, 0);
+    push_notification_data({NotificationType::HelioSlicingError, NotificationLevel::ErrorNotificationLevel, 0, display_text, hypertext, callback}, 0);
     set_slicing_progress_hidden();
 }
 
@@ -2115,7 +2115,7 @@ void NotificationManager::push_slicing_warning_notification(const std::string& t
 		if (obj)
 			link += std::string(" [") + obj->name + "]";
 	}
-	NotificationData data { NotificationType::SlicingWarning, level, 0,  _u8L("Warning:") + "\n" + text, link, callback };
+	NotificationData data { NotificationType::SlicingWarning, level, 0,  text, link, callback };
 
 	data.sub_msg_id = warning_msg_id;
 	data.ori_text = text;
@@ -2129,7 +2129,7 @@ void NotificationManager::push_slicing_warning_notification(const std::string& t
 }
 void NotificationManager::push_plater_error_notification(const std::string& text)
 {
-	push_notification_data({ NotificationType::PlaterError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text }, 0);
+	push_notification_data({ NotificationType::PlaterError, NotificationLevel::ErrorNotificationLevel, 0,  text }, 0);
 }
 
 void NotificationManager::close_plater_error_notification(const std::string& text)
@@ -2143,13 +2143,13 @@ void NotificationManager::close_plater_error_notification(const std::string& tex
 
 void NotificationManager::push_general_error_notification(const std::string& text)
 {
-	push_notification_data({ NotificationType::BBLGeneralError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text }, 0);
+	push_notification_data({ NotificationType::BBLGeneralError, NotificationLevel::ErrorNotificationLevel, 0,  text }, 0);
 }
 
 void NotificationManager::close_general_error_notification(const std::string& text)
 {
 	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::BBLGeneralError && notification->compare_text(_u8L("Error:") + "\n" + text)) {
+		if (notification->get_type() == NotificationType::BBLGeneralError && notification->compare_text(text)) {
 			notification->close();
 		}
 	}
@@ -2158,8 +2158,7 @@ void NotificationManager::close_general_error_notification(const std::string& te
 void NotificationManager::push_slicing_customize_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext, std::function<bool(wxEvtHandler *)> callback)
 {
     set_all_slicing_errors_gray(false);
-    std::string prefix_msg = level == NotificationLevel::WarningNotificationLevel ? _u8L("Warning:") : _u8L("Error:");
-    push_notification_data({type, level, 0, prefix_msg + "\n" + text, hypertext, callback}, 0);
+    push_notification_data({type, level, 0, text, hypertext, callback}, 0);
 }
 
 void NotificationManager::close_slicing_customize_error_notification(NotificationType type, NotificationLevel level)
@@ -2182,7 +2181,7 @@ void NotificationManager::show_brittle_filament_notification(const std::string &
             return;
     }
 
-    NotificationData data{NotificationType::BBLBrittleFilament, NotificationLevel::WarningNotificationLevel, 0, _u8L("Warning:") + "\n" + text, hypertext, callback};
+    NotificationData data{NotificationType::BBLBrittleFilament, NotificationLevel::WarningNotificationLevel, 0, text, hypertext, callback};
     auto             notification = std::make_unique<PlaterWarningNotification>(data, m_id_provider, m_evt_handler);
     notification->set_delete_callback([this](PopNotification *n) {
         s_user_dismissed                = true;
@@ -2202,7 +2201,7 @@ void NotificationManager::close_brittle_filament_notification()
 
 void NotificationManager::push_assembly_warning_notification(const std::string& text)
 {
-    NotificationData data{ NotificationType::AssemblyWarning, NotificationLevel::WarningNotificationLevel, 0,  _u8L("Warning:") + "\n" + text };
+    NotificationData data{ NotificationType::AssemblyWarning, NotificationLevel::WarningNotificationLevel, 0,  text };
 
     auto notification = std::make_unique<NotificationManager::AssemblyWarningNotification>(data, m_id_provider, m_evt_handler);
     push_notification_data(std::move(notification), 0);
@@ -2211,7 +2210,7 @@ void NotificationManager::push_assembly_warning_notification(const std::string& 
 void NotificationManager::close_assembly_warning_notification(const std::string& text)
 {
     for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
-        if (notification->get_type() == NotificationType::AssemblyWarning && notification->compare_text(_u8L("Warning:") + "\n" + text)) {
+        if (notification->get_type() == NotificationType::AssemblyWarning && notification->compare_text(text)) {
             dynamic_cast<AssemblyWarningNotification*>(notification.get())->real_close();
         }
     }
@@ -2246,7 +2245,7 @@ void NotificationManager::push_plater_warning_notification(const std::string& te
 {
 	// Find if was not hidden
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::PlaterWarning && notification->compare_text(_u8L("Warning:") + "\n" + text)) {
+		if (notification->get_type() == NotificationType::PlaterWarning && notification->compare_text(text)) {
 			if (notification->get_state() == PopNotification::EState::Hidden) {
 				//dynamic_cast<PlaterWarningNotification*>(notification.get())->show();
 				return;
@@ -2254,7 +2253,7 @@ void NotificationManager::push_plater_warning_notification(const std::string& te
 		}
 	}
 
-	NotificationData data{ NotificationType::PlaterWarning, NotificationLevel::WarningNotificationLevel, 0,  _u8L("Warning:") + "\n" + text };
+	NotificationData data{ NotificationType::PlaterWarning, NotificationLevel::WarningNotificationLevel, 0,  text };
 
 	auto notification = std::make_unique<NotificationManager::PlaterWarningNotification>(data, m_id_provider, m_evt_handler);
 	push_notification_data(std::move(notification), 0);
@@ -2264,7 +2263,7 @@ void NotificationManager::push_plater_warning_notification(const std::string& te
 void NotificationManager::close_plater_warning_notification(const std::string& text)
 {
 	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::PlaterWarning && notification->compare_text(_u8L("Warning:") + "\n" + text)) {
+		if (notification->get_type() == NotificationType::PlaterWarning && notification->compare_text(text)) {
 			dynamic_cast<PlaterWarningNotification*>(notification.get())->real_close();
 		}
 	}
@@ -2284,7 +2283,7 @@ void NotificationManager::push_bed_heat_soak_notification(const std::string& tex
 		wxGetApp().open_browser_with_warning_dialog(url);
 		return false;
 	};
-	NotificationData data{NotificationType::BBLBedHeatSoakInfo, NotificationLevel::WarningNotificationLevel, 0, text, _u8L("Wiki for details."), callback};
+	NotificationData data{NotificationType::BBLBedHeatSoakInfo, NotificationLevel::WarningNotificationLevel, 0, text, _u8L("Wiki for details"), callback};
 	auto notification = std::make_unique<NotificationManager::PopNotification>(data, m_id_provider, m_evt_handler);
 	notification->set_Multiline(true);
 	push_notification_data(std::move(notification), 0);
@@ -2298,8 +2297,7 @@ void NotificationManager::close_bed_heat_soak_notification()
 void NotificationManager::push_flushing_volume_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext, std::function<bool(wxEvtHandler *)> callback)
 {
     set_all_slicing_errors_gray(false);
-    std::string prefix_msg = level == NotificationLevel::WarningNotificationLevel ? _u8L("Warning:") : _u8L("Error:");
-    push_notification_data({type, level, 0, prefix_msg + "\n" + text, hypertext, callback}, 0);
+    push_notification_data({type, level, 0, text, hypertext, callback}, 0);
 }
 
 void NotificationManager::close_flushing_volume_error_notification(NotificationType type, NotificationLevel level)
@@ -2346,7 +2344,7 @@ void NotificationManager::close_slicing_errors_and_warnings()
 void NotificationManager::close_slicing_error_notification(const std::string& text)
 {
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::SlicingError && notification->compare_text(_u8L("Error:") + "\n" + text)) {
+		if (notification->get_type() == NotificationType::SlicingError && notification->compare_text(text)) {
 			notification->close();
 		}
 	}
@@ -2559,7 +2557,7 @@ void NotificationManager::push_slicing_serious_warning_notification(const std::s
         link += "] ";
     }
     set_all_slicing_warnings_gray(false);
-    push_notification_data({NotificationType::SlicingSeriousWarning, NotificationLevel::SeriousWarningNotificationLevel, 0, _u8L("Serious warning:") + "\n" + text, link,
+    push_notification_data({NotificationType::SlicingSeriousWarning, NotificationLevel::SeriousWarningNotificationLevel, 0, text, link,
                             callback},
                            0);
     set_slicing_progress_hidden();
@@ -2568,7 +2566,7 @@ void NotificationManager::push_slicing_serious_warning_notification(const std::s
 void NotificationManager::close_slicing_serious_warning_notification(const std::string &text)
 {
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
-        if (notification->get_type() == NotificationType::SlicingSeriousWarning && notification->compare_text(_u8L("Serious warning:") + "\n" + text)) { notification->close(); }
+        if (notification->get_type() == NotificationType::SlicingSeriousWarning && notification->compare_text(text)) { notification->close(); }
     }
 }
 
@@ -3255,7 +3253,7 @@ void NotificationManager::bbl_close_plugin_install_notification()
 
 void NotificationManager::bbl_show_slice_emptylayer_notification(const std::string &text, bool bOverride)
 {
-    NotificationData data{NotificationType::BBLSliceEmptyLayer, NotificationLevel::WarningNotificationLevel, 0, _u8L("WARNING:") + "\n" + text};
+    NotificationData data{NotificationType::BBLSliceEmptyLayer, NotificationLevel::WarningNotificationLevel, 0, text};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLSliceEmptyLayer) {
@@ -3282,7 +3280,7 @@ void NotificationManager::bbl_show_app_newversion_notification()
 
 void NotificationManager::bbl_show_need_support_on_notification()
 {
-    NotificationData data{NotificationType::BBLNeedSupportON, NotificationLevel::WarningNotificationLevel, 0,_u8L("Warning:") + "\n" + _u8L("Your model needs support ! Please make support material enable.")};
+    NotificationData data{NotificationType::BBLNeedSupportON, NotificationLevel::WarningNotificationLevel, 0,_u8L("Your model needs support ! Please make support material enable.")};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLNeedSupportON) {
@@ -3307,7 +3305,7 @@ void NotificationManager::bbl_close_need_support_on_notification()
 void NotificationManager::bbl_show_gcode_overlap_notification()
 {
     NotificationData data{NotificationType::BBLGcodeOverlap, NotificationLevel::WarningNotificationLevel, 0,
-                          _u8L("Warning:") + "\n" + _u8L("Gcode path overlap")};
+                          _u8L("Gcode path overlap")};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLGcodeOverlap) {
@@ -3339,7 +3337,7 @@ void NotificationManager::bbl_show_bed_filament_incompatible_notification(const 
 		wxGetApp().open_browser_with_warning_dialog(bed_filament_compatibility_wiki);
 		return false;
 	};
-	push_notification_data({ NotificationType::BBLBedFilamentIncompatible,NotificationLevel::ErrorNotificationLevel,0,_u8L("Error:") + "\n" + text,_u8L("Click Wiki for help."),callback }, 0);
+	push_notification_data({ NotificationType::BBLBedFilamentIncompatible,NotificationLevel::ErrorNotificationLevel,0,text,_u8L("Wiki for details"),callback }, 0);
 }
 
 void NotificationManager::bbl_close_bed_filament_incompatible_notification()
@@ -3352,13 +3350,13 @@ void NotificationManager::bbl_show_filament_map_invalid_notification_before_slic
     const auto full_config = wxGetApp().preset_bundle->full_config();
     if (is_multi_diameter_without_ams(full_config)) {
         push_notification_data({ type, NotificationLevel::ErrorNotificationLevel, 0,
-            _u8L("Error:") + "\n" + text + "\n" +
+            text + "\n" +
             _u8L("Please adjust the nozzle diameter/flow of the affected filament in the filament panel.") }, 0);
         return;
     }
     if (should_skip_filament_grouping(full_config)) {
         push_notification_data({ type, NotificationLevel::ErrorNotificationLevel, 0,
-            _u8L("Error:") + "\n" + text }, 0);
+            text }, 0);
         return;
     }
 
@@ -3369,7 +3367,7 @@ void NotificationManager::bbl_show_filament_map_invalid_notification_before_slic
         return false;
     };
 
-    push_notification_data({ type,NotificationLevel::ErrorNotificationLevel,0,_u8L("Error:") + "\n" + text,_u8L("Click here to regroup"),callback }, 0);
+    push_notification_data({ type,NotificationLevel::ErrorNotificationLevel,0,text,_u8L("Click here to regroup"),callback }, 0);
 }
 
 void NotificationManager::bbl_close_filament_map_invalid_notification_before_slice(const NotificationType type)
@@ -3392,7 +3390,7 @@ void NotificationManager::bbl_show_filament_map_invalid_notification_after_slice
         return false;
     };
 
-    push_notification_data({ type,NotificationLevel::ErrorNotificationLevel,0,_u8L("Error:") + "\n" + text,_u8L("Click here to regroup"),callback }, 0);
+    push_notification_data({ type,NotificationLevel::ErrorNotificationLevel,0,text,_u8L("Click here to regroup"),callback }, 0);
 }
 
 void NotificationManager::bbl_close_filament_map_invalid_notification_after_slice(const NotificationType type)
