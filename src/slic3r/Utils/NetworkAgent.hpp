@@ -138,6 +138,7 @@ typedef int (*func_get_soft_match_pending)(void *agent, SoftMatchPendingParams p
 typedef int (*func_post_soft_match_pending)(void *agent, SoftMatchPendingActionParams params, std::string* http_body);
 typedef int (*func_post_device_region)(void *agent, DeviceRegionParams params, std::string* http_body);
 typedef int (*func_get_minors_decisions)(void *agent, const std::vector<std::string>& scene_codes, std::vector<MinorsDecisionResult>* decisions);
+typedef int (*func_get_child_registration_key)(void *agent, std::string* http_body);
 
 //the NetworkAgent class
 class NetworkAgent
@@ -283,6 +284,7 @@ public:
     int post_soft_match_pending(SoftMatchPendingActionParams params, std::string* http_body);
     int post_device_region(DeviceRegionParams params, std::string* http_body);
     int get_minors_decisions(const std::vector<std::string>& scene_codes, std::vector<MinorsDecisionResult>* decisions);
+    int get_child_registration_key(std::string* http_body);
     void *get_network_agent() { return network_agent; }
 
 private:
@@ -418,6 +420,7 @@ private:
     static func_post_soft_match_pending post_soft_match_pending_ptr;
     static func_post_device_region      post_device_region_ptr;
     static func_get_minors_decisions    get_minors_decisions_ptr;
+    static func_get_child_registration_key get_child_registration_key_ptr;
 };
 
 }

@@ -12,14 +12,15 @@ namespace Slic3r { namespace GUI {
 class MinorsLogoutDialog : public DPIDialog
 {
 public:
-    explicit MinorsLogoutDialog(wxWindow* parent);
+    explicit MinorsLogoutDialog(wxWindow* parent, wxString signin_url = wxString());
     ~MinorsLogoutDialog() override = default;
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
 
 private:
-    Button* m_button_got_it{nullptr};
+    Button*  m_button_got_it{nullptr};
+    wxString m_signin_url;   // family-hub sign-in url; empty => "Got it" just closes the dialog
 };
 
 }} // namespace Slic3r::GUI

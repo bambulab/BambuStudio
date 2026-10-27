@@ -168,9 +168,10 @@ private:
     std::vector<LinkRect>    m_link_rects;
 };
 
-MinorsLogoutDialog::MinorsLogoutDialog(wxWindow* parent)
+MinorsLogoutDialog::MinorsLogoutDialog(wxWindow* parent, wxString signin_url)
     : DPIDialog(parent, wxID_ANY, _L("Automatically logged out"), wxDefaultPosition, wxDefaultSize,
                 wxCAPTION | wxCLOSE_BOX)
+    , m_signin_url(std::move(signin_url))
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -215,7 +216,11 @@ MinorsLogoutDialog::MinorsLogoutDialog(wxWindow* parent)
     m_button_got_it->SetFont(Label::Body_12);
     m_button_got_it->SetMinSize(wxSize(FromDIP(68), FromDIP(24)));
     m_button_got_it->SetCornerRadius(FromDIP(12));
-    m_button_got_it->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) { EndModal(wxID_OK); });
+    m_button_got_it->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
+        if (!m_signin_url.empty())
+            wxLaunchDefaultBrowser(m_signin_url);
+        EndModal(wxID_OK);
+    });
 
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
     sizer_button->AddStretchSpacer();

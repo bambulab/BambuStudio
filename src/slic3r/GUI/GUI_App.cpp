@@ -5121,7 +5121,10 @@ void GUI_App::fetch_minors_decisions()
                     }
                 }
             }
-            CallAfter([this, remote_ctrl, uep_outcome, uep_gate, maker_world, maker_lab, maker_supply] {
+            std::string signin_url;
+            if (uep_outcome == UepOutcome::ForceLogout)
+                signin_url = fetch_family_hub_signin_url();
+            CallAfter([this, remote_ctrl, uep_outcome, uep_gate, maker_world, maker_lab, maker_supply, signin_url] {
                 m_remote_control_minor_decision.store(remote_ctrl);
                 m_access_maker_world.store(maker_world);
                 m_access_maker_lab.store(maker_lab);
@@ -5129,7 +5132,7 @@ void GUI_App::fetch_minors_decisions()
                 refresh_monitor_ctrl_area_ui();
                 refresh_homepage_access_ui();
                 if (uep_outcome == UepOutcome::ForceLogout) {
-                    force_logout_uep_login_invalid();
+                    force_logout_uep_login_invalid(signin_url);
                 } else {
                     apply_uep_gate(uep_gate, /*force=*/true);
                 }
@@ -5171,14 +5174,44 @@ bool GUI_App::apply_uep_gate(UepFamilyGate new_gate, bool force)
 #endif
 }
 
-void GUI_App::force_logout_uep_login_invalid()
+std::string GUI_App::fetch_family_hub_signin_url()
+{
+#if BBL_ENABLE_MINORS_DECISION
+    if (!m_agent) return {};
+    std::string body;
+    int ret = m_agent->get_child_registration_key(&body);   // needs a valid token; call before logout
+    if (ret != 0 || body.empty()) {
+        BOOST_LOG_TRIVIAL(warning) << "fetch_family_hub_signin_url: request failed " << KV(log_key::ret, ret);
+        return {};
+    }
+    std::string key;
+    try {
+        key = nlohmann::json::parse(body).value("childRegistrationKey", std::string());
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << "fetch_family_hub_signin_url: parse failed " << current_exception_message();
+        return {};
+    }
+    if (key.empty()) {
+        BOOST_LOG_TRIVIAL(warning) << "fetch_family_hub_signin_url: childRegistrationKey missing";
+        return {};
+    }
+    std::string host = m_agent->get_bambulab_host();        // region/env aware; no token needed
+    std::string url  = host + "/sign-in?to=/family-hub/setup?key=" + key;
+    BOOST_LOG_TRIVIAL(info) << "fetch_family_hub_signin_url: built " << KV(log_key::url, url);
+    return url;
+#else
+    return {};
+#endif
+}
+
+void GUI_App::force_logout_uep_login_invalid(const std::string& signin_url)
 {
 #if BBL_ENABLE_MINORS_DECISION
     if (m_show_error_msgdlg) return;
     BOOST_LOG_TRIVIAL(info) << "force_logout_uep_login_invalid: minor account not linked to a guardian, forcing logout";
     request_user_logout();
     m_show_error_msgdlg = true;
-    MinorsLogoutDialog dlg(nullptr);
+    MinorsLogoutDialog dlg(nullptr, wxString::FromUTF8(signin_url));
     dlg.ShowModal();
     m_show_error_msgdlg = false;
 #endif
@@ -5213,10 +5246,14 @@ void GUI_App::fetch_uep_decision()
                     }
                 }
             }
-            CallAfter([this, have_result, uep_outcome, uep_gate] {
+            // Fetch the sign-in url before logout clears the token (see fetch_minors_decisions).
+            std::string signin_url;
+            if (have_result && uep_outcome == UepOutcome::ForceLogout)
+                signin_url = fetch_family_hub_signin_url();
+            CallAfter([this, have_result, uep_outcome, uep_gate, signin_url] {
                 if (!have_result) return;                       // request failed -> keep last known gate
                 if (uep_outcome == UepOutcome::ForceLogout)
-                    force_logout_uep_login_invalid();
+                    force_logout_uep_login_invalid(signin_url);
                 else
                     apply_uep_gate(uep_gate, /*force=*/false);
             });
