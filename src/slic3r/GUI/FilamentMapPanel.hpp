@@ -14,6 +14,8 @@ std::vector<int> get_fixed_nozzle_indices(int total_count, int ams_index);
 wxString get_ams_nozzle_label(int ams_index_0based);
 wxString get_fixed_nozzle_label(int total_count, int ams_index_0based);
 int get_effective_ams_nozzle_idx_for_active_diameter(const ConfigBase& config);
+// Whether a groupable nozzle (installed, matching the active diameter unless in multi-diameter mode) is TPU285.
+bool has_groupable_tpu285_nozzle(const ConfigBase& config);
 bool is_multi_diameter_without_ams(const ConfigBase& config);
 // Skip grouping when no AMS is connected and grouping cannot make a useful choice.
 bool should_skip_filament_grouping(const ConfigBase& config);

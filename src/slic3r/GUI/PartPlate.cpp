@@ -1595,7 +1595,7 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
             auto fil_preset = wxGetApp().preset_bundle->filaments.find_preset(fil_preset_names[filament_id]);
             if (!fil_preset)
                 continue;
-            std::string fil_name = fil_preset->alias;
+            std::string fil_name = fil_preset->alias.empty() ? fil_preset->name : fil_preset->alias;
 
             std::vector<std::string>   filament_variants;
             if (fil_preset->config.has("filament_extruder_variant"))
@@ -1622,7 +1622,7 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
                     incompatible_nozzles += "/";
                 incompatible_nozzles += _L(volume_names.at(machine_nvt));
             }
-            error_message = wxString::Format(_L("The %s nozzle can not print %s."), incompatible_nozzles, fil_name);
+            error_message = wxString::Format(_L("The %s nozzle can not print %s."), incompatible_nozzles, from_u8(fil_name));
             return false;
         }
 
@@ -1647,13 +1647,13 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
         int              extruder_idx              = filament_map[filament_id] - 1;
 
         auto        fil_preset = wxGetApp().preset_bundle->filaments.find_preset(fil_preset_names[filament_id]);
-        std::string fil_name   = fil_preset->alias;
+        std::string fil_name   = fil_preset->alias.empty() ? fil_preset->name : fil_preset->alias;
 
         if (extruder_idx >= 0 && !(filament_printable_status >> extruder_idx & 1)) {
             std::string pp_pt         = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
             int         pp_ext_id     = (extruder_idx == 0) ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
             wxString    extruder_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(pp_pt, pp_ext_id, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase, true));
-            error_message          = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, fil_name);
+            error_message          = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, from_u8(fil_name));
             return false;
         }
 
@@ -1677,7 +1677,7 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
         if (!is_nozzle_printable_for_filament(variant_name, filament_variants, fil_collection.is_bbl_brand_filament(*fil_preset))) {
             auto             volume_names = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
             std::string      volume       = volume_names.at(variant_name);
-            error_message                 = wxString::Format(_L("The %s nozzle can not print %s."), _L(volume), fil_name);
+            error_message                 = wxString::Format(_L("The %s nozzle can not print %s."), _L(volume), from_u8(fil_name));
             return false;
         }
     }
@@ -2082,7 +2082,7 @@ bool PartPlate::check_flow_compatible_of_nozzle_and_filament(const DynamicPrintC
                     volume += "/";
                 volume += _L(volume_names.at(m));
             }
-            error_msg = GUI::format(_L("The %s nozzle can not print %s."), volume, fil_preset->alias);
+            error_msg = GUI::format(_L("The %s nozzle can not print %s."), volume, fil_preset->alias.empty() ? fil_preset->name : fil_preset->alias);
             return false;
         }
         return true;
@@ -2101,7 +2101,7 @@ bool PartPlate::check_flow_compatible_of_nozzle_and_filament(const DynamicPrintC
         bool        supported = is_nozzle_printable_for_filament(assigned, variants, fil_collection.is_bbl_brand_filament(*fil_preset));
         if (!supported) {
             std::string volume = ((size_t) assigned < volume_names.size()) ? volume_names.at(assigned) : std::string();
-            error_msg          = GUI::format(_L("The %s nozzle can not print %s."), _L(volume), fil_preset->alias);
+            error_msg          = GUI::format(_L("The %s nozzle can not print %s."), _L(volume), fil_preset->alias.empty() ? fil_preset->name : fil_preset->alias);
             return false;
         }
     }

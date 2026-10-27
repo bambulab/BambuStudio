@@ -47,6 +47,7 @@
 #include "format.hpp"
 #include "DailyTips.hpp"
 #include "FilamentMapDialog.hpp"
+#include "FilamentMapPanel.hpp"
 #include "DeviceCore/DevConfigUtil.h"
 #include "../Utils/CpuMemory.hpp"
 #include "../Utils/HelioDragon.hpp"
@@ -14367,13 +14368,22 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         }
         else if (warning == EWarning::FilamentPrintableError) {
             if (state){
-                auto callback = [](wxEvtHandler*) {
-                    auto plater = wxGetApp().plater();
-                    auto partplate = plater->get_partplate_list().get_curr_plate();
-                    try_pop_up_before_slice(false, plater, partplate, true); // ignore the return value
-                    return false;
-                };
-                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationLevel::ErrorNotificationLevel, text,  _u8L("Click here to regroup"), callback);
+                const auto full_config = wxGetApp().preset_bundle->full_config();
+                // The regroup link opens nothing when grouping is skipped, so only offer it when grouping is available.
+                // On single-extruder multi-nozzle machines it is offered only when a groupable TPU285 nozzle exists.
+                const bool show_regroup_link = !should_skip_filament_grouping(full_config) &&
+                    (!is_single_ext_multi_nozzle(full_config) || has_groupable_tpu285_nozzle(full_config));
+                if (!show_regroup_link) {
+                    notification_manager.push_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationLevel::ErrorNotificationLevel, text);
+                } else {
+                    auto callback = [](wxEvtHandler*) {
+                        auto plater = wxGetApp().plater();
+                        auto partplate = plater->get_partplate_list().get_curr_plate();
+                        try_pop_up_before_slice(false, plater, partplate, true); // ignore the return value
+                        return false;
+                    };
+                    notification_manager.push_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationLevel::ErrorNotificationLevel, text,  _u8L("Click here to regroup"), callback);
+                }
             }
             else
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationLevel::ErrorNotificationLevel);

@@ -82,6 +82,21 @@ int get_effective_ams_nozzle_idx_for_active_diameter(const ConfigBase& config)
     return usable ? ams_idx : -1;
 }
 
+bool has_groupable_tpu285_nozzle(const ConfigBase& config)
+{
+    const auto* nd = dynamic_cast<const ConfigOptionFloatsNullable*>(config.option("nozzle_diameter"));
+    const std::string active_diameter = (nd && !nd->values.empty()) ? format_diameter_to_str(nd->values.front()) : std::string();
+    const bool multi_diameter = multi_nozzle_diameter_mode_enabled(config);
+    for (const NozzleSlot &slot : wxGetApp().preset_bundle->nozzle_inventory.slots(0)) {
+        if (slot.empty() || slot.volume_type != nvtTPU285)
+            continue;
+        if (multi_diameter || active_diameter.empty() || slot.diameter.empty() ||
+            format_diameter_to_str(std::atof(slot.diameter.c_str())) == active_diameter)
+            return true;
+    }
+    return false;
+}
+
 bool is_multi_diameter_without_ams(const ConfigBase& config)
 {
     return is_single_ext_multi_nozzle(config) &&
