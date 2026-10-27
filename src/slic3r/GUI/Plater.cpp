@@ -7019,24 +7019,6 @@ bool Sidebar::sync_extruder_list()
 
 void Sidebar::arm_nozzle_migration(const PendingNozzleMigration &migration) { p->pending_nozzle_migration = migration; }
 
-bool Sidebar::need_auto_sync_extruder_list_after_connect_priner(const MachineObject *obj)
-{
-    if(!obj)
-        return false;
-
-    std::string   machine_print_name = obj->get_show_printer_type();
-    PresetBundle *preset_bundle      = wxGetApp().preset_bundle;
-    std::string   target_model_id    = preset_bundle->printers.get_selected_preset().get_printer_type(preset_bundle);
-    if (machine_print_name != target_model_id) {
-        return false;
-    }
-
-    if (preset_bundle->get_printer_extruder_count() <= 1 || !obj->is_multi_extruders())
-        return false;
-
-    return true;
-}
-
 void Sidebar::update_sync_status(const MachineObject *obj)
 {
     p->update_sync_status(obj);
@@ -16472,30 +16454,6 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
             if (old_preset_name != preset_name && wxGetApp().app_config->get("auto_calculate_flush") == "all") {
                 wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(-1);
             }
-
-            // sync extruder info when select multi_extruder preset
-            if (Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager()) {
-                MachineObject *obj = dev->get_selected_machine();
-                if (obj && obj->is_multi_extruders()) {
-                    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-                    Preset& cur_preset = preset_bundle->printers.get_edited_preset();
-                    if (cur_preset.get_printer_type(preset_bundle) == obj->get_show_printer_type()) {
-                        double preset_nozzle_diameter = cur_preset.config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[0];
-                        bool   same_nozzle_diameter   = true;
-
-                        const auto& extruders = obj->GetExtderSystem()->GetExtruders();
-                        for (const DevExtder &extruder : extruders) {
-                            if (!is_approx(extruder.GetNozzleDiameter(), float(preset_nozzle_diameter))) {
-                                same_nozzle_diameter = false;
-                            }
-                        }
-
-                        if (cur_preset.is_system || (!cur_preset.is_system && same_nozzle_diameter)) {
-                            GUI::wxGetApp().sidebar().sync_extruder_list();
-                        }
-                    }
-                }
-            }
         } else {
             // BBS
             // wxWindowUpdateLocker noUpdates1(sidebar->print_panel());
@@ -20025,12 +19983,6 @@ void Plater::priv::show_preview_only_hint(wxCommandEvent &event)
 
 void Plater::priv::on_switch_to_prepare_tab(wxCommandEvent &event)
 {
-    Sidebar& sidebar = GUI::wxGetApp().sidebar();
-    if (sidebar.need_auto_sync_after_connect_printer()) {
-        sidebar.set_need_auto_sync_after_connect_printer(false);
-        sidebar.sync_extruder_list();
-    }
-
     q->update(true);
     q->show_wrapping_detect_dialog_if_necessary();
 }

@@ -256,7 +256,6 @@ public:
     // Arms the next sync_extruder_list() with the nozzle migration the user confirmed in
     // SyncPresetWithPrinterDialog. Consumed once; a sync that runs without it migrates nothing.
     void arm_nozzle_migration(const PendingNozzleMigration &migration);
-    bool need_auto_sync_extruder_list_after_connect_priner(const MachineObject* obj);
     void update_sync_status(const MachineObject* obj);
     int get_sidebar_pos_right_x();
     void on_size(SimpleEvent &e);
@@ -349,9 +348,6 @@ public:
     bool                            get_update_3d_state() { return m_update_3d_state; }
     void                            update_printer_thumbnail();
 
-    bool need_auto_sync_after_connect_printer() const { return m_need_auto_sync_after_connect_printer; }
-    void set_need_auto_sync_after_connect_printer(bool need_auto_sync) { m_need_auto_sync_after_connect_printer = need_auto_sync; }
-
 private:
     // Clears and rebuilds the output vectors with physical filament slots only.
     void  collect_physical_filament_info(std::vector<std::string>& colors,
@@ -373,7 +369,6 @@ private:
     bool            m_soft_first_start {true };
     bool            m_is_gcode_file{ false };
     bool            m_update_3d_state{false};
-    bool            m_need_auto_sync_after_connect_printer{false};
 };
 
 class Plater: public wxPanel

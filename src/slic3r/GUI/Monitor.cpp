@@ -333,9 +333,7 @@ void MonitorPanel::on_select_printer(wxCommandEvent& event)
         obj_->GetCalib()->ResetCalibVersion();
         obj_->GetCalib()->ResetPAHistory();
         obj_->GetCalib()->ResetFlowRateResult();
-        Sidebar &sidebar = GUI::wxGetApp().sidebar();
-        sidebar.update_sync_status(obj_);
-        sidebar.set_need_auto_sync_after_connect_printer(sidebar.need_auto_sync_extruder_list_after_connect_priner(obj_));
+        GUI::wxGetApp().sidebar().update_sync_status(obj_);
     }
 
     if (IsShownOnScreen())
