@@ -18,6 +18,8 @@ public:
     explicit wgtDeviceFilamentHotendWebPanel(wxWindow* parent);
     ~wgtDeviceFilamentHotendWebPanel() override = default;
 
+    void ShowAndLoad();
+    void HideAndSuspend();
     void UpdateByMachine(Slic3r::MachineObject* obj);
 
 private:

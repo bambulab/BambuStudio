@@ -6697,7 +6697,9 @@ bool StatusPanel::ShowHotendFilamentPanel(MachineObject* obj)
     }
 
     bool changed = false;
-    if (m_filament_hotend_web_panel->Show(true)) {
+    const bool was_hidden = !m_filament_hotend_web_panel->IsShown();
+    m_filament_hotend_web_panel->ShowAndLoad();
+    if (was_hidden) {
         changed = true;
     }
     m_filament_hotend_web_panel->UpdateByMachine(obj);
@@ -6709,7 +6711,9 @@ bool StatusPanel::CloseHotendFilamentPanel()
     if (!m_filament_hotend_web_panel) {
         return false;
     }
-    return m_filament_hotend_web_panel->Show(false);
+    const bool was_shown = m_filament_hotend_web_panel->IsShown();
+    m_filament_hotend_web_panel->HideAndSuspend();
+    return was_shown;
 }
 
 bool StatusPanel::CanShowHotendFilamentDialog(MachineObject* obj) const
