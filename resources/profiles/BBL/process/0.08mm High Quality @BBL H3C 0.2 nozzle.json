@@ -88,6 +88,7 @@
     ],
     "prime_tower_brim_width": "-1",
     "prime_tower_line_ironing": "0",
+    "prime_tower_line_width": "0.6",
     "prime_tower_side_scrape": "1",
     "prime_tower_tail_slowdown_volume": "3",
     "prime_tower_tail_speed_factor": "50%",
