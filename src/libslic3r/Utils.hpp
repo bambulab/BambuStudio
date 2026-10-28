@@ -74,6 +74,7 @@
 #define CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER -103
 #define CLI_GCODE_PATH_OUTSIDE             -104
 #define CLI_GCODE_IN_WRAPPING_DETECT_AREA  -105
+#define CLI_MULTI_NOZZLE_DIAMETER_INVALID  -108
 
 
 namespace boost { namespace filesystem { class directory_entry; }}

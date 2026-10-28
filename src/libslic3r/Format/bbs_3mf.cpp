@@ -380,6 +380,7 @@ static constexpr const char* LABEL_OBJECT_ENABLED_ATTR = "label_object_enabled";
 static constexpr const char* SUPPORT_MATERIAL_ON_WIPE_TOWER_ATTR = "support_material_on_wipe_tower";
 static constexpr const char* ENABLE_FILAMENT_DYNAMIC_MAP_ATTR = "enable_filament_dynamic_map";
 static constexpr const char* HAS_FILAMENT_SWITCHER_ATTR = "has_filament_switcher";
+static constexpr const char* MULTI_NOZZLE_DIAMETER_MODE_ATTR = "multi_nozzle_diameter_mode";
 static constexpr const char* SKIPPED_ATTR = "skipped";
 
 static constexpr const char* OBJECT_TYPE = "object";
@@ -9123,6 +9124,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     bool has_filament_switcher = config.has("has_filament_switcher") ? config.opt_bool("has_filament_switcher") : false;
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << HAS_FILAMENT_SWITCHER_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << has_filament_switcher << "\"/>\n";
                 }
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << MULTI_NOZZLE_DIAMETER_MODE_ATTR << "\" " << VALUE_ATTR << "=\""
+                       << (multi_nozzle_diameter_mode_enabled(config) ? "1" : "0") << "\"/>\n";
                 std::vector<int> filament_maps = plate_data->filament_maps;
                 if (filament_maps.empty()) {
                     if (auto* opt = config.option<ConfigOptionInts>("filament_map"))

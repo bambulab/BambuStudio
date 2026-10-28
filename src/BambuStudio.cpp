@@ -166,6 +166,7 @@ std::map<int, std::string> cli_errors = {
     {CLI_FILAMENT_CAN_NOT_MAP, "Some filaments cannot be mapped to correct extruders for multi-extruder Printer."},
     {CLI_ONLY_ONE_TPU_SUPPORTED, "Not support printing 2 or more TPU filaments."},
     {CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER, "Some filaments cannot be printed on the extruder mapped to."},
+    {CLI_MULTI_NOZZLE_DIAMETER_INVALID, "Multi-nozzle diameter mode is enabled, but one or more plates use only a single nozzle diameter. Please turn off multi-diameter mode, or use more than one nozzle diameter on every plate, in Bambu Studio before uploading."},
     {CLI_SLICING_ERROR, "Failed slicing the model. Please verify the slicing of all plates on Bambu Studio before uploading."},
     {CLI_GCODE_PATH_CONFLICTS, " G-code conflicts detected after slicing. Please make sure the 3mf file can be successfully sliced in the latest Bambu Studio. If the file slices normally in Bambu Studio, try moving the wipe tower further from other models, as we use more conservative parameters for it during upload."},
     {CLI_GCODE_PATH_IN_UNPRINTABLE_AREA, "Found G-code in unprintable area of multi-extruder printers after slicing. Please make sure the 3mf file can be successfully sliced in the latest Bambu Studio."},
@@ -1487,6 +1488,22 @@ static void collect_selected_filament_diameters(const DynamicPrintConfig &config
         if (diameter > 0.)
             diameters.insert(format_diameter_to_str(diameter));
     }
+}
+
+// Distinct diameters actually selected in filament_diameter_map. Semicolon lists are ignored.
+static std::set<std::string> selected_filament_map_diameters(const DynamicPrintConfig &config)
+{
+    std::set<std::string> diameters;
+    const auto *dia_map = config.option<ConfigOptionStrings>("filament_diameter_map");
+    if (dia_map == nullptr)
+        return diameters;
+
+    std::vector<int> filament_ids;
+    filament_ids.reserve(dia_map->values.size());
+    for (size_t i = 0; i < dia_map->values.size(); ++i)
+        filament_ids.push_back(int(i + 1));
+    collect_selected_filament_diameters(config, filament_ids, diameters);
+    return diameters;
 }
 
 // Nozzles the machine can mount together. Single-head profiles sum to 1, dual-head to 2,
@@ -3269,11 +3286,11 @@ int CLI::run(int argc, char **argv)
         flush_and_exit(CLI_PROCESS_NOT_COMPATIBLE);
     }
 
-    // CLI parses filament_diameter_map for multi_nozzle_diameter_mode.
-    // A project that stores multi_nozzle_diameter_mode = 0 keeps that map out of
-    // material-preset and diameter checks. An absent flag is still inferred from the map.
+    // Handle multi nozzle diameters.
+    bool studio_multi_nozzle_diameter_mode = false;
     {
         const auto *file_multi_mode = m_print_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode");
+        studio_multi_nozzle_diameter_mode = file_multi_mode != nullptr && file_multi_mode->value;
         if (file_multi_mode != nullptr && !file_multi_mode->value) {
             BOOST_LOG_TRIVIAL(info) << "multi_nozzle_diameter_mode=0, skip filament_diameter_map preset and diameter checks";
             if (machine_nozzle_diameter.empty()) {
@@ -3291,35 +3308,24 @@ int CLI::run(int argc, char **argv)
                     "multi_nozzle_diameter_mode=0, filament_diameter_map (%1% slots) set to machine preset %2% diameter %3%")
                     % slot_count % machine_preset_name % machine_nozzle_diameter;
             }
-        } else {
-            std::set<std::string> selected_diameters;
-            if (const ConfigOptionStrings *dia_map = m_print_config.option<ConfigOptionStrings>("filament_diameter_map")) {
-                for (const std::string &value : dia_map->values) {
-                    if (value.empty())
-                        continue;
-                    std::stringstream stream(value);
-                    std::string token;
-                    while (std::getline(stream, token, ';')) {
-                        const double diameter = std::atof(token.c_str());
-                        if (diameter > 0.)
-                            selected_diameters.insert(format_diameter_to_str(diameter));
-                    }
-                }
+        } else if (studio_multi_nozzle_diameter_mode) {
+            const std::set<std::string> used_diameters = selected_filament_map_diameters(m_print_config);
+            if (used_diameters.size() < 2) {
+                BOOST_LOG_TRIVIAL(error) << boost::format(
+                    "multi_nozzle_diameter_mode=1, but filament_diameter_map selects %1% diameter(s); upload rejected")
+                    % used_diameters.size();
+                record_exit_reson(outfile_dir, CLI_MULTI_NOZZLE_DIAMETER_INVALID, 0,
+                                  cli_errors[CLI_MULTI_NOZZLE_DIAMETER_INVALID], sliced_info);
+                flush_and_exit(CLI_MULTI_NOZZLE_DIAMETER_INVALID);
             }
 
-            const bool multi_diameter = selected_diameters.size() >= 2;
-            m_print_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode", true)->value = multi_diameter;
-            BOOST_LOG_TRIVIAL(info)
-                                    << boost::format("filament_diameter_map has %1% distinct diameter(s), multi_nozzle_diameter_mode=%2%")% selected_diameters.size() % (multi_diameter ? 1 : 0);
-            if (multi_diameter && check_preset) {
-                BOOST_LOG_TRIVIAL(info)
-                                        << boost::format("multi-diameter mode, skip check_preset");
-                check_preset = false;
-            }
+            BOOST_LOG_TRIVIAL(info) << boost::format(
+                "multi_nozzle_diameter_mode=1, filament_diameter_map selects %1% diameter(s)")
+                % used_diameters.size();
 
             // Multi-diameter: each filament_diameter_map slot must be a single selected diameter that
             // appears in the filament preset's compatible_printers names (e.g. "XX 0.4 nozzle").
-            if (multi_diameter) {
+            {
                 const ConfigOptionStrings *dia_map =
                     m_print_config.option<ConfigOptionStrings>("filament_diameter_map");
                 if (dia_map != nullptr) {
@@ -3395,7 +3401,7 @@ int CLI::run(int argc, char **argv)
     }
 
     // Validate compatible_printers for externally loaded filament presets.
-    if (check_preset) {
+    if (check_preset && !studio_multi_nozzle_diameter_mode) {
         std::string effective_printer_system_name;
         if (!new_printer_system_name.empty())
             effective_printer_system_name = new_printer_system_name;
@@ -5056,6 +5062,29 @@ int CLI::run(int argc, char **argv)
         }
 
         translate_models(partplate_list, m_print_config);
+
+        // Materials already map to different diameters (the single-diameter map was rejected above).
+        // A plate whose used filaments share one diameter cannot be uploaded.
+        if (studio_multi_nozzle_diameter_mode) {
+            for (int index = 0; index < plate_count; ++index) {
+                Slic3r::GUI::PartPlate *cur_plate = (Slic3r::GUI::PartPlate *) partplate_list.get_plate(index);
+                const std::vector<int> filaments = cur_plate->get_extruders_under_cli(true, m_print_config);
+                if (filaments.empty())
+                    continue;
+
+                std::set<std::string> plate_diameters;
+                collect_selected_filament_diameters(m_print_config, filaments, plate_diameters);
+                if (plate_diameters.size() != 1)
+                    continue;
+
+                BOOST_LOG_TRIVIAL(error) << boost::format(
+                    "multi_nozzle_diameter_mode=1, plate %1% uses only nozzle diameter %2%; upload rejected")
+                    % (index + 1) % *plate_diameters.begin();
+                record_exit_reson(outfile_dir, CLI_MULTI_NOZZLE_DIAMETER_INVALID, index + 1,
+                                  cli_errors[CLI_MULTI_NOZZLE_DIAMETER_INVALID], sliced_info);
+                flush_and_exit(CLI_MULTI_NOZZLE_DIAMETER_INVALID);
+            }
+        }
     }
 
     /*for (ModelObject *model_object : m_models[0].objects)
@@ -5379,7 +5408,7 @@ int CLI::run(int argc, char **argv)
     for (auto const &opt_key : m_transforms) {
         BOOST_LOG_TRIVIAL(info) << "process transform " << opt_key << "\n";
         if (opt_key == "assemble") {
-            if (clone_objects.size() > 0) {
+            if (clone_objects.size() > 0) { 
                 BOOST_LOG_TRIVIAL(error) << "Invalid params: can not set assemble and clone_objects together." << std::endl;
                 record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                 flush_and_exit(CLI_INVALID_PARAMS);
