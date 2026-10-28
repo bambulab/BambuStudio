@@ -5177,6 +5177,7 @@ int CLI::run(int argc, char **argv)
     }
 
     bool has_sequence_plates = false;
+    bool has_multi_nozzle_diameters = false;
     int downward_check_size = downward_check_printers.size();
     if (downward_check_size > 0)
     {
@@ -5208,6 +5209,7 @@ int CLI::run(int argc, char **argv)
 
             const int used_diameter_count = (int) used_diameters.size();
             if (used_diameter_count > 1) {
+                has_multi_nozzle_diameters = true;
                 std::string diameter_list;
                 for (const std::string &diameter : used_diameters) {
                     if (!diameter_list.empty())
@@ -5357,6 +5359,9 @@ int CLI::run(int argc, char **argv)
     }
     if (has_sequence_plates)
         sliced_info.upward_compatibility_taint.push_back("PrintSequenceByObject");
+
+    if (has_multi_nozzle_diameters)
+        sliced_info.upward_compatibility_taint.push_back("MultiNozzleDiameters");
 
     // Loop through transform options.
     bool user_center_specified = false;
