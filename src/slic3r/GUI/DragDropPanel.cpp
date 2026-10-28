@@ -153,10 +153,13 @@ void ColorPanel::OnPaint(wxPaintEvent &event)
     wxBitmap swatch = create_filament_bitmap(colors, wxSize(svg_size, svg_size), is_gradient);
     if (swatch.IsOk()) dc.DrawBitmap(swatch, wxPoint(0, 0));
 
+    // Use app fonts: the window default font follows the Windows text-size setting, but the chip size does not.
     wxString label = wxString::Format(wxT("%d"), m_filament_id);
+    dc.SetFont(Label::Body_12);
     dc.SetTextForeground(colors.front().GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK); // set text color
     dc.DrawLabel(label, wxRect(0, 0, svg_size, svg_size), wxALIGN_CENTER);
 
+    dc.SetFont(Label::Body_10);
     if (m_parent)
         dc.SetTextForeground(this->m_parent->GetBackgroundColour().GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);
     else
