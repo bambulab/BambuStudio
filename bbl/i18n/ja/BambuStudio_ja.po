@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 15:43+0800\n"
+"POT-Creation-Date: 2026-10-28 21:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4962,23 +4962,14 @@ msgstr "挿入時に更新"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "新しいBambu Labフィラメントスプールを挿入すると、AMSが自動的にフィラメント情報を読み取ります。これには約20秒かかります。"
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-msgstr "注記：印刷中に新しいフィラメントが挿入された場合、印刷が完了するまでAMSは自動的に情報を読み取ることはありません。"
-
-msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-msgstr "フィラメント情報を自動更新しません、手動で入力できます。"
-
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr "AMS/AMS 2pro/AMS HT専用。"
 
 msgid "Power on update"
 msgstr "起動時に更新"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "起動時、フィラメント情報を自動的に読込みます（60秒ほどかかります）　注意：読込み時に、スプールが回転します。"
-
-msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
-msgstr "フィラメント情報を自動更新しません、前回の情報を引き続き使用します。"
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgstr ""
 
 msgid "Automatically refresh unloaded filaments"
 msgstr "未ロードのフィラメントを自動更新"
@@ -11725,6 +11716,18 @@ msgstr "サポートインターフェースにサポート材料を使用する
 msgid "Do you want to apply these settings?"
 msgstr "これらの設定を適用しますか？"
 
+msgid "When enabling ironing, We recommend the following settings:"
+msgstr ""
+
+msgid "Top surface"
+msgstr "トップ面"
+
+msgid "mm/s"
+msgstr "mm/s"
+
+msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
+msgstr ""
+
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -13622,9 +13625,6 @@ msgstr "浮遊する垂直シェル"
 msgid "Internal solid infill"
 msgstr "内部ソリッド インフィル"
 
-msgid "Top surface"
-msgstr "トップ面"
-
 msgid "Bottom surface"
 msgstr "底面"
 
@@ -14218,9 +14218,6 @@ msgstr "オーバーハング減速"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "このオプションを有効にすると、オーバーハング部分の印刷時に速度が遅くなります。異なるオーバーハング割合に対する速度は以下に設定されています。"
-
-msgid "mm/s"
-msgstr "mm/s"
 
 #, fuzzy, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
@@ -15130,8 +15127,8 @@ msgstr "この温度で材料が軟化するため、ベッド温度がこの温
 msgid "Fin extrude safe temperature"
 msgstr "フィン押出安全温度"
 
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr "フィン押出のための安全なホットエンド温度。0は未設定を意味します。カスタムGコードでfins_extrude_safe_tempを介してアクセスできます。"
+msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr ""
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "糸引きを防ぐために、ラム動作の完了後にノズルが一定時間逆方向へ移動します。この設定では、その移動時間を定義します。"
@@ -17208,6 +17205,9 @@ msgstr "モデルの薄いフィーチャー（最小フィーチャーサイズ
 
 msgid "Filament switch retraction length"
 msgstr "フィラメント切替時のリトラクション距離"
+
+msgid "Filament switch extra length on restart"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr "オーバーハング速度を上書きする"
@@ -21032,6 +21032,21 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+#~ msgstr "注記：印刷中に新しいフィラメントが挿入された場合、印刷が完了するまでAMSは自動的に情報を読み取ることはありません。"
+
+#~ msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+#~ msgstr "フィラメント情報を自動更新しません、手動で入力できます。"
+
+#~ msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
+#~ msgstr "起動時、フィラメント情報を自動的に読込みます（60秒ほどかかります）　注意：読込み時に、スプールが回転します。"
+
+#~ msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+#~ msgstr "フィラメント情報を自動更新しません、前回の情報を引き続き使用します。"
+
+#~ msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+#~ msgstr "フィン押出のための安全なホットエンド温度。0は未設定を意味します。カスタムGコードでfins_extrude_safe_tempを介してアクセスできます。"
 
 #~ msgid "Auto-record Monitoring"
 #~ msgstr "自動録画モニタリング"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 15:43+0800\n"
+"POT-Creation-Date: 2026-10-28 21:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4982,23 +4982,14 @@ msgstr "Atualização de inserção"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "O AMS lerá automaticamente as informações do filamento ao inserir um novo carretel de filamento da BambuLab. Isso leva cerca de 20 segundos."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-msgstr "Nota: se um novo filamento for inserido durante a impressão, o AMS não lerá automaticamente nenhuma informação até que a impressão seja concluída."
-
-msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-msgstr "Ao inserir um novo filamento, o AMS não lerá automaticamente suas informações, deixando-as em branco para que você as insira manualmente."
-
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr "Apenas para AMS/AMS 2pro/AMS HT."
 
 msgid "Power on update"
 msgstr "Atualização na inicialização"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "Na inicialização, o AMS lerá automaticamente as informações do filamento inserido. Esse processo leva cerca de 1 minuto. Durante a leitura, os carretéis de filamento serão girados."
-
-msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
-msgstr "O AMS não lê automaticamente as informações do filamento inserido durante a inicialização e continuará a usar as informações gravadas antes do último desligamento."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgstr ""
 
 msgid "Automatically refresh unloaded filaments"
 msgstr "Atualizar automaticamente os filamentos descarregados"
@@ -11774,6 +11765,18 @@ msgstr "Ao utilizar material de suporte para a interface de suporte, recomendamo
 msgid "Do you want to apply these settings?"
 msgstr "Deseja aplicar essas configurações?"
 
+msgid "When enabling ironing, We recommend the following settings:"
+msgstr ""
+
+msgid "Top surface"
+msgstr "Superfície superior"
+
+msgid "mm/s"
+msgstr "mm/s"
+
+msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
+msgstr ""
+
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -13688,9 +13691,6 @@ msgstr "Concha vertical flutuante"
 msgid "Internal solid infill"
 msgstr "Preenchimento sólido interno"
 
-msgid "Top surface"
-msgstr "Superfície superior"
-
 msgid "Bottom surface"
 msgstr "Superfície inferior"
 
@@ -14287,9 +14287,6 @@ msgstr "Desacelere para saliências"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "Ative esta opção para desacelerar ao imprimir saliências. As velocidades para diferentes porcentagens de balanço são definidas abaixo."
-
-msgid "mm/s"
-msgstr "mm/s"
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
@@ -15186,8 +15183,8 @@ msgstr "O material amolece nessa temperatura; portanto, quando a temperatura do 
 msgid "Fin extrude safe temperature"
 msgstr "Temperatura segura de extrusão da aleta"
 
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr "Temperatura segura do hotend para extrusão da aleta. 0 significa não definido. Acessível no G-code personalizado por meio de fins_extrude_safe_temp."
+msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr ""
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "Para evitar vazamento, o bocal executará um movimento de deslocamento inverso por um determinado período após a conclusão da compactação. A configuração define o tempo de viagem."
@@ -17253,6 +17250,9 @@ msgstr "Largura da parede que substituirá as características finas (de acordo 
 
 msgid "Filament switch retraction length"
 msgstr "Comprimento de retração na troca de filamento"
+
+msgid "Filament switch extra length on restart"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr "Substituir velocidade de saliência"
@@ -21087,6 +21087,21 @@ msgid ""
 msgstr ""
 "Confiabilidade na Primeira Tentativa\n"
 "Menos supervisão, saída mais previsível. Exemplo: uma pequena fazenda produzindo peças de PETG evita surpresas de \"falha na hora 6\" e mantém os lotes no cronograma."
+
+#~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+#~ msgstr "Nota: se um novo filamento for inserido durante a impressão, o AMS não lerá automaticamente nenhuma informação até que a impressão seja concluída."
+
+#~ msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+#~ msgstr "Ao inserir um novo filamento, o AMS não lerá automaticamente suas informações, deixando-as em branco para que você as insira manualmente."
+
+#~ msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
+#~ msgstr "Na inicialização, o AMS lerá automaticamente as informações do filamento inserido. Esse processo leva cerca de 1 minuto. Durante a leitura, os carretéis de filamento serão girados."
+
+#~ msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+#~ msgstr "O AMS não lê automaticamente as informações do filamento inserido durante a inicialização e continuará a usar as informações gravadas antes do último desligamento."
+
+#~ msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+#~ msgstr "Temperatura segura do hotend para extrusão da aleta. 0 significa não definido. Acessível no G-code personalizado por meio de fins_extrude_safe_temp."
 
 #~ msgid "Auto-record Monitoring"
 #~ msgstr "Monitoramento de gravação automática"

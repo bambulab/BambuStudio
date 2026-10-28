@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 15:43+0800\n"
+"POT-Creation-Date: 2026-10-28 21:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -4988,23 +4988,14 @@ msgstr "Aktualizace vložení"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "AMS automaticky načte informace o filamentu při vložení nového filamentu značky Bambu Lab. Tento proces trvá přibližně 20 sekund."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-msgstr "Poznámka: Pokud během tisku vložíte nový filament, AMS jeho informace automaticky nenačte, dokud tisk neskončí."
-
-msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-msgstr "Při vložení nového filamentu AMS jeho informace automaticky nenačte, takže je nutné je zadat ručně."
-
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr ""
 
 msgid "Power on update"
 msgstr "Aktualizace při zapnutí"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "AMS automaticky načte informace o vloženém filamentu při spuštění. Tato operace trvá přibližně 1 minutu. Během načítání se protočí cívky s filamentem."
-
-msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
-msgstr "AMS při spuštění automaticky nenačte informace z vloženého filamentu a bude nadále používat informace zaznamenané před posledním vypnutím."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgstr ""
 
 msgid "Automatically refresh unloaded filaments"
 msgstr ""
@@ -11769,6 +11760,18 @@ msgstr "Při použití materiálu pro podpěry na rozhraní podpěr doporučujem
 msgid "Do you want to apply these settings?"
 msgstr "Chcete použít tato nastavení?"
 
+msgid "When enabling ironing, We recommend the following settings:"
+msgstr ""
+
+msgid "Top surface"
+msgstr "Horní povrch"
+
+msgid "mm/s"
+msgstr "mm/s"
+
+msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
+msgstr ""
+
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -13694,9 +13697,6 @@ msgstr "Plovoucí svislý skořepina"
 msgid "Internal solid infill"
 msgstr "Plná výplň"
 
-msgid "Top surface"
-msgstr "Horní povrch"
-
 msgid "Bottom surface"
 msgstr "Spodní povrch"
 
@@ -14286,9 +14286,6 @@ msgstr "Zpomalit kvůli převisům"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "Povolte tuto možnost pro zpomalení tisku při různých stupních převisu"
-
-msgid "mm/s"
-msgstr "mm/s"
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
@@ -15197,7 +15194,7 @@ msgstr "Materiál při této teplotě měkne, proto se při stejné nebo vyšš�
 msgid "Fin extrude safe temperature"
 msgstr ""
 
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
 msgstr ""
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
@@ -17268,6 +17265,9 @@ msgid "Width of the wall that will replace thin features (according to the Minim
 msgstr "Šířka stěny, která v modelu nahradí tenké prvky (podle minimální velikosti prvku). Pokud je minimální šířka stěny menší než tloušťka prvku, stěna bude stejně silná jako samotný prvek. Vyjadřuje se jako procento průměru trysky"
 
 msgid "Filament switch retraction length"
+msgstr ""
+
+msgid "Filament switch extra length on restart"
 msgstr ""
 
 msgid "Override overhang speed"
@@ -21169,6 +21169,18 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+#~ msgstr "Poznámka: Pokud během tisku vložíte nový filament, AMS jeho informace automaticky nenačte, dokud tisk neskončí."
+
+#~ msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+#~ msgstr "Při vložení nového filamentu AMS jeho informace automaticky nenačte, takže je nutné je zadat ručně."
+
+#~ msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
+#~ msgstr "AMS automaticky načte informace o vloženém filamentu při spuštění. Tato operace trvá přibližně 1 minutu. Během načítání se protočí cívky s filamentem."
+
+#~ msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+#~ msgstr "AMS při spuštění automaticky nenačte informace z vloženého filamentu a bude nadále používat informace zaznamenané před posledním vypnutím."
 
 #~ msgid "Auto-record Monitoring"
 #~ msgstr "Automatický záznam monitorování"

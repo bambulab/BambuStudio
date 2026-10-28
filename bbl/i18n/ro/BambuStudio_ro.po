@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 15:43+0800\n"
+"POT-Creation-Date: 2026-10-28 21:55+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4987,23 +4987,14 @@ msgstr "Actualizare inserare"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "AMS va citi automat informațiile despre filament la introducerea unui nou filament Bambu Lab. Acest lucru durează aproximativ 20 de secunde."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-msgstr "Notă: dacă se introduce un filament nou în timpul imprimării, AMS nu va citi automat nicio informație până la finalizarea imprimării."
-
-msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-msgstr "Când introduceți un filament nou, AMS nu va citi automat informațiile acestuia, lăsându-le necompletate pentru a le putea introduce manual."
-
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr "Numai pentru AMS/AMS 2pro/AMS HT."
 
 msgid "Power on update"
 msgstr "Actualizare la pornire"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "AMS va citi automat informațiile despre filamentul introdus la pornire. Va dura aproximativ 1 minut. Procesul de citire va roti bobinele de filament."
-
-msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
-msgstr "AMS nu va citi automat informațiile de pe filamentul introdus în timpul pornirii și va continua să utilizeze informațiile înregistrate înainte de ultima oprire."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgstr ""
 
 msgid "Automatically refresh unloaded filaments"
 msgstr "Actualizați automat filamentele descărcate"
@@ -11788,6 +11779,18 @@ msgstr "Când utilizați material de suport pentru interfața de suport, vă rec
 msgid "Do you want to apply these settings?"
 msgstr "Doriți să aplicați aceste setări?"
 
+msgid "When enabling ironing, We recommend the following settings:"
+msgstr ""
+
+msgid "Top surface"
+msgstr "Suprafața superioară"
+
+msgid "mm/s"
+msgstr ""
+
+msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
+msgstr ""
+
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -13701,9 +13704,6 @@ msgstr "Coajă verticală plutitoare"
 msgid "Internal solid infill"
 msgstr "Umplere solidă internă"
 
-msgid "Top surface"
-msgstr "Suprafața superioară"
-
 msgid "Bottom surface"
 msgstr "Suprafața inferioară"
 
@@ -14300,9 +14300,6 @@ msgstr "Încetiniți pentru surplombă"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "Activați această opțiune pentru a încetini imprimarea pentru diferite grade de surplombă"
-
-msgid "mm/s"
-msgstr ""
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
@@ -15199,8 +15196,8 @@ msgstr "Materialul se înmoaie la această temperatură, așa că atunci când t
 msgid "Fin extrude safe temperature"
 msgstr "Temperatura sigură pentru extrudarea aripioarelor"
 
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr "Temperatura sigură a hotendului pentru extrudarea aripioarelor. 0 înseamnă că nu este setat. Disponibilă în G-code personalizat prin parametrul fins_extrude_safe_temp."
+msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr ""
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "Pentru a preveni scurgerea, duza va efectua o mișcare inversă pentru o anumită perioadă după finalizarea împingerii. Setarea definește timpul de deplasare."
@@ -17268,6 +17265,9 @@ msgstr "Lățimea peretelui care va înlocui elementele subțiri ale modelului (
 
 msgid "Filament switch retraction length"
 msgstr "Lungimea de retragere la schimbarea filamentului"
+
+msgid "Filament switch extra length on restart"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr "Suprascrierea vitezei de surplombă"
@@ -21095,6 +21095,21 @@ msgid ""
 msgstr ""
 "Fiabilitate de la prima încercare\n"
 "Mai puțină supraveghere, rezultate mai previzibile. Exemplu: o fermă mică care produce piese PETG evită surprizele de tip „defecțiune la ora 6” și menține loturile la timp."
+
+#~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+#~ msgstr "Notă: dacă se introduce un filament nou în timpul imprimării, AMS nu va citi automat nicio informație până la finalizarea imprimării."
+
+#~ msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+#~ msgstr "Când introduceți un filament nou, AMS nu va citi automat informațiile acestuia, lăsându-le necompletate pentru a le putea introduce manual."
+
+#~ msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
+#~ msgstr "AMS va citi automat informațiile despre filamentul introdus la pornire. Va dura aproximativ 1 minut. Procesul de citire va roti bobinele de filament."
+
+#~ msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+#~ msgstr "AMS nu va citi automat informațiile de pe filamentul introdus în timpul pornirii și va continua să utilizeze informațiile înregistrate înainte de ultima oprire."
+
+#~ msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+#~ msgstr "Temperatura sigură a hotendului pentru extrudarea aripioarelor. 0 înseamnă că nu este setat. Disponibilă în G-code personalizat prin parametrul fins_extrude_safe_temp."
 
 #~ msgid "Auto-record Monitoring"
 #~ msgstr "Monitorizare cu înregistrare automată"

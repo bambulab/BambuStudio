@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 15:43+0800\n"
+"POT-Creation-Date: 2026-10-28 21:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4972,23 +4972,14 @@ msgstr "필라멘트 삽입 업데이트"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "AMS는 새 Bambu Lab 필라멘트 스풀을 삽입할 때 필라멘트 정보를 자동으로 읽습니다. 이 과정은 약 20초 정도 소요됩니다."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-msgstr "참고: 출력 중에 새 필라멘트를 삽입하면, 출력이 완료될 때까지 AMS가 자동으로 정보를 읽지 않습니다."
-
-msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-msgstr "새 필라멘트를 삽입할 때 AMS가 자동으로 정보를 읽지 않으므로 사용자가 수동으로 입력해야 합니다."
-
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr "AMS/AMS 2pro/AMS HT 전용입니다."
 
 msgid "Power on update"
 msgstr "시작 시 업데이트"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "AMS는 시작 시 삽입된 필라멘트 정보를 자동으로 읽어들입니다. 이 과정은 약 1분 정도 소요됩니다. 필라멘트 정보를 읽는 동안 필라멘트 스풀이 회전합니다."
-
-msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
-msgstr "AMS는 시작 중 삽입된 필라멘트의 정보를 자동으로 읽지 않으며 최근 종료전 저장된 정보를 계속 사용합니다."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgstr ""
 
 msgid "Automatically refresh unloaded filaments"
 msgstr "언로드된 필라멘트를 자동으로 새로 고침"
@@ -11759,6 +11750,18 @@ msgstr "지지대 인터페이스에 지지대 재료를 사용할 경우, 다�
 msgid "Do you want to apply these settings?"
 msgstr "이 설정을 적용하시겠습니까?"
 
+msgid "When enabling ironing, We recommend the following settings:"
+msgstr ""
+
+msgid "Top surface"
+msgstr "상단면"
+
+msgid "mm/s"
+msgstr "mm/s"
+
+msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
+msgstr ""
+
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -13668,9 +13671,6 @@ msgstr "공중 부양 수직 껍질"
 msgid "Internal solid infill"
 msgstr "내부채움"
 
-msgid "Top surface"
-msgstr "상단면"
-
 msgid "Bottom surface"
 msgstr "하단면"
 
@@ -14268,9 +14268,6 @@ msgstr "오버행 구간 감속"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "오버행 구간에서 속도를 줄이려면 이 옵션을 활성화하십시오. 다양한 오버행 비율에 대한 속도는 아래와 같이 설정됩니다."
-
-msgid "mm/s"
-msgstr "mm/s"
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
@@ -15167,8 +15164,8 @@ msgstr "이 온도에서는 소재가 부드러워지므로 침대 온도가 이
 msgid "Fin extrude safe temperature"
 msgstr "핀 압출 안전 온도"
 
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr "핀 압출 시 안전한 핫엔드 온도. 0은 설정되지 않았음을 의미합니다. fins_extrude_safe_temp를 통해 사용자 지정 G-code에서 접근할 수 있습니다."
+msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr ""
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "흘러내림을 방지하기 위해 노즐은 래밍이 완료된 후 일정 시간 동안 역방향 이동을 수행합니다. 이 설정은 이동 시간을 정의합니다."
@@ -17236,6 +17233,9 @@ msgstr "모델의 최소 피처 크기에 따라 얇은 피처를 대체할 벽�
 
 msgid "Filament switch retraction length"
 msgstr "필라멘트 교체 시 리트랙션 길이"
+
+msgid "Filament switch extra length on restart"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr "오버행 속도 재정의"
@@ -21066,6 +21066,21 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+#~ msgstr "참고: 출력 중에 새 필라멘트를 삽입하면, 출력이 완료될 때까지 AMS가 자동으로 정보를 읽지 않습니다."
+
+#~ msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+#~ msgstr "새 필라멘트를 삽입할 때 AMS가 자동으로 정보를 읽지 않으므로 사용자가 수동으로 입력해야 합니다."
+
+#~ msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
+#~ msgstr "AMS는 시작 시 삽입된 필라멘트 정보를 자동으로 읽어들입니다. 이 과정은 약 1분 정도 소요됩니다. 필라멘트 정보를 읽는 동안 필라멘트 스풀이 회전합니다."
+
+#~ msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+#~ msgstr "AMS는 시작 중 삽입된 필라멘트의 정보를 자동으로 읽지 않으며 최근 종료전 저장된 정보를 계속 사용합니다."
+
+#~ msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+#~ msgstr "핀 압출 시 안전한 핫엔드 온도. 0은 설정되지 않았음을 의미합니다. fins_extrude_safe_temp를 통해 사용자 지정 G-code에서 접근할 수 있습니다."
 
 #~ msgid "Auto-record Monitoring"
 #~ msgstr "자동 녹화 모니터링"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 15:43+0800\n"
+"POT-Creation-Date: 2026-10-28 21:55+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4982,23 +4982,14 @@ msgstr "Ενημέρωση εισαγωγής"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "Το AMS θα διαβάσει αυτόματα τις πληροφορίες του νήματος κατά την εισαγωγή ενός νέου νήματος Bambu Lab. Αυτό διαρκεί περίπου 20 δευτερόλεπτα."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-msgstr "Σημείωση: εάν εισαχθεί νέο νήμα κατά την εκτύπωση, το AMS δεν θα διαβάσει αυτόματα καμία πληροφορία μέχρι να ολοκληρωθεί η εκτύπωση."
-
-msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-msgstr "Κατά την εισαγωγή ενός νέου νήματος, το AMS δεν θα διαβάσει αυτόματα τις πληροφορίες του, αφήνοντάς τις κενές για χειροκίνητη εισαγωγή."
-
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr "Μόνο για AMS/AMS 2pro/AMS HT."
 
 msgid "Power on update"
 msgstr "Ενημέρωση κατά την ενεργοποίηση"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "Το AMS θα διαβάσει αυτόματα τις πληροφορίες του εισαγόμενου νήματος κατά την εκκίνηση. Θα χρειαστεί περίπου 1 λεπτό. Η διαδικασία ανάγνωσης θα πραγματοποιήσει κύλιση καρουλιών νήματος."
-
-msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
-msgstr "Το AMS δεν θα διαβάζει αυτόματα πληροφορίες από το εισαγόμενο νήμα κατά την εκκίνηση και θα συνεχίσει να χρησιμοποιεί τις πληροφορίες που καταγράφηκαν πριν από την τελευταία απενεργοποίηση."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgstr ""
 
 msgid "Automatically refresh unloaded filaments"
 msgstr "Αυτόματη ανανέωση των εκφορτωμένων νημάτων"
@@ -11776,6 +11767,18 @@ msgstr "Όταν χρησιμοποιείτε υλικό υποστήριξης 
 msgid "Do you want to apply these settings?"
 msgstr "Θέλετε να εφαρμοστούν αυτές οι ρυθμίσεις;"
 
+msgid "When enabling ironing, We recommend the following settings:"
+msgstr ""
+
+msgid "Top surface"
+msgstr "Άνω επιφάνεια"
+
+msgid "mm/s"
+msgstr ""
+
+msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
+msgstr ""
+
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -13686,9 +13689,6 @@ msgstr "Πλωτό κατακόρυφο κέλυφος"
 msgid "Internal solid infill"
 msgstr "Εσωτερική συμπαγής πλήρωση"
 
-msgid "Top surface"
-msgstr "Άνω επιφάνεια"
-
 msgid "Bottom surface"
 msgstr "Κάτω επιφάνεια"
 
@@ -14285,9 +14285,6 @@ msgstr "Επιβραδύνετε για προεξοχές"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "Ενεργοποιήστε αυτήν την επιλογή για να επιβραδύνετε την εκτύπωση για διαφορετικό βαθμό προεξοχής"
-
-msgid "mm/s"
-msgstr ""
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
@@ -15184,8 +15181,8 @@ msgstr "Το υλικό μαλακώνει σε αυτήν τη θερμοκρα
 msgid "Fin extrude safe temperature"
 msgstr "Ασφαλής θερμοκρασία εξώθησης πτερυγίων"
 
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr "Ασφαλής θερμοκρασία θερμού άκρου για εξώθηση πτερυγίων. Το 0 σημαίνει ότι δεν έχει οριστεί. Προσβάσιμο σε προσαρμοσμένο κώδικα G μέσω του fins_extrude_safe_temp."
+msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr ""
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "Για να αποφευχθεί η διαρροή, το ακροφύσιο εκτελεί μια αντίστροφη κίνηση για ένα ορισμένο χρονικό διάστημα μετά την ολοκλήρωση του εμβολισμού. Η ρύθμιση καθορίζει τον χρόνο διαδρομής."
@@ -17253,6 +17250,9 @@ msgstr "Πλάτος του τοίχου που θα αντικαταστήσε�
 
 msgid "Filament switch retraction length"
 msgstr "Μήκος ανάκλησης διακόπτη νήματος"
+
+msgid "Filament switch extra length on restart"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr "Παράκαμψη ταχύτητας προεξοχής"
@@ -21078,6 +21078,21 @@ msgid ""
 msgstr ""
 "Αξιοπιστία με την πρώτη\n"
 "Λιγότερη ταλαιπωρία, πιο προβλέψιμη απόδοση. Παράδειγμα: μια μικρή εταιρεία που εκτυπώνει τμήματα PETG αποφεύγει τις εκπλήξεις που προκαλούνται από «αστοχίες την 6η ώρα» και διατηρεί τις παρτίδες εντός χρονοδιαγράμματος."
+
+#~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+#~ msgstr "Σημείωση: εάν εισαχθεί νέο νήμα κατά την εκτύπωση, το AMS δεν θα διαβάσει αυτόματα καμία πληροφορία μέχρι να ολοκληρωθεί η εκτύπωση."
+
+#~ msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+#~ msgstr "Κατά την εισαγωγή ενός νέου νήματος, το AMS δεν θα διαβάσει αυτόματα τις πληροφορίες του, αφήνοντάς τις κενές για χειροκίνητη εισαγωγή."
+
+#~ msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
+#~ msgstr "Το AMS θα διαβάσει αυτόματα τις πληροφορίες του εισαγόμενου νήματος κατά την εκκίνηση. Θα χρειαστεί περίπου 1 λεπτό. Η διαδικασία ανάγνωσης θα πραγματοποιήσει κύλιση καρουλιών νήματος."
+
+#~ msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+#~ msgstr "Το AMS δεν θα διαβάζει αυτόματα πληροφορίες από το εισαγόμενο νήμα κατά την εκκίνηση και θα συνεχίσει να χρησιμοποιεί τις πληροφορίες που καταγράφηκαν πριν από την τελευταία απενεργοποίηση."
+
+#~ msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+#~ msgstr "Ασφαλής θερμοκρασία θερμού άκρου για εξώθηση πτερυγίων. Το 0 σημαίνει ότι δεν έχει οριστεί. Προσβάσιμο σε προσαρμοσμένο κώδικα G μέσω του fins_extrude_safe_temp."
 
 #~ msgid "Auto-record Monitoring"
 #~ msgstr "Παρακολούθηση αυτόματης εγγραφής"

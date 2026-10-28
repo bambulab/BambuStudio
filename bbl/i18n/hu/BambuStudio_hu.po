@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 15:43+0800\n"
+"POT-Creation-Date: 2026-10-28 21:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4978,23 +4978,14 @@ msgstr "Frissítés"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "Az AMS automatikusan kiolvassa a filament információkat egy új Bambu Lab filament tekercs behelyezésekor. Ez körülbelül 20 másodpercet vesz igénybe."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-msgstr "Megjegyzés: ha nyomtatás során új filament kerül behelyezésre, az AMS nem fogja automatikusan kiolvasni az információkat a nyomtatás végéig."
-
-msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-msgstr "Új filament behelyezésekor az AMS nem fogja automatikusan kiolvasni az információkat, hanem üresen hagyja azokat, így kézzel kell megadnod."
-
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr "Csak AMS/AMS 2pro/AMS HT esetén."
 
 msgid "Power on update"
 msgstr "Frissítés bekapcsoláskor"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "Az AMS indításkor automatikusan leolvassa a behelyezett filament adatait. Ez körülbelül 1 percet vesz igénybe. Az olvasási folyamat megforgatja a filamenttekercseket."
-
-msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
-msgstr "Az AMS indításkor nem olvassa ki automatikusan az információkat a behelyezett filamentről, és továbbra is a legutóbbi leállítás előtt rögzített információkat használja."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgstr ""
 
 msgid "Automatically refresh unloaded filaments"
 msgstr "A kitöltött filamentek automatikus frissítése"
@@ -11768,6 +11759,18 @@ msgstr "Támaszanyag használata esetén a támaszfelülethez a következő beá
 msgid "Do you want to apply these settings?"
 msgstr "Szeretnéd alkalmazni ezeket a beállításokat?"
 
+msgid "When enabling ironing, We recommend the following settings:"
+msgstr ""
+
+msgid "Top surface"
+msgstr "Felső felület"
+
+msgid "mm/s"
+msgstr "mm/s"
+
+msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
+msgstr ""
+
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -13680,9 +13683,6 @@ msgstr "Lebegő függőleges héj"
 msgid "Internal solid infill"
 msgstr "Belső szilárd kitöltés"
 
-msgid "Top surface"
-msgstr "Felső felület"
-
 msgid "Bottom surface"
 msgstr "Alsó felület"
 
@@ -14279,9 +14279,6 @@ msgstr "Lassítás túlnyúlásoknál"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "Engedélyezd ezt az opciót a nyomtatási sebesség lassításához különböző túlnyúlási szögeknél"
-
-msgid "mm/s"
-msgstr "mm/s"
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
@@ -15178,8 +15175,8 @@ msgstr "The material softens at this temperature, so when the bed temperature is
 msgid "Fin extrude safe temperature"
 msgstr "Bordák extrudálásának biztonságos hőmérséklete"
 
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr "Biztonságos hotend-hőmérséklet bordák extrudálásához. A 0 azt jelenti, hogy nincs beállítva. Egyéni G-kódban elérhető a fins_extrude_safe_temp paraméteren keresztül."
+msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr ""
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "A szivárgás elkerülése érdekében a fúvóka a betolás befejezése után egy bizonyos ideig visszafelé mozog. A beállítás határozza meg a mozgás idejét."
@@ -17247,6 +17244,9 @@ msgstr "A fal szélessége, amely lecseréli a modell vékony részeit (a Minim�
 
 msgid "Filament switch retraction length"
 msgstr "Visszahúzás hossza filamentváltáskor"
+
+msgid "Filament switch extra length on restart"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr "Túlnyúlási sebesség felülbírálása"
@@ -21071,6 +21071,21 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+#~ msgstr "Megjegyzés: ha nyomtatás során új filament kerül behelyezésre, az AMS nem fogja automatikusan kiolvasni az információkat a nyomtatás végéig."
+
+#~ msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+#~ msgstr "Új filament behelyezésekor az AMS nem fogja automatikusan kiolvasni az információkat, hanem üresen hagyja azokat, így kézzel kell megadnod."
+
+#~ msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
+#~ msgstr "Az AMS indításkor automatikusan leolvassa a behelyezett filament adatait. Ez körülbelül 1 percet vesz igénybe. Az olvasási folyamat megforgatja a filamenttekercseket."
+
+#~ msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+#~ msgstr "Az AMS indításkor nem olvassa ki automatikusan az információkat a behelyezett filamentről, és továbbra is a legutóbbi leállítás előtt rögzített információkat használja."
+
+#~ msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+#~ msgstr "Biztonságos hotend-hőmérséklet bordák extrudálásához. A 0 azt jelenti, hogy nincs beállítva. Egyéni G-kódban elérhető a fins_extrude_safe_temp paraméteren keresztül."
 
 #~ msgid "Auto-record Monitoring"
 #~ msgstr "Automatikus felügyelet"

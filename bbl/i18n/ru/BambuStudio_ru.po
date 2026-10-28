@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 15:43+0800\n"
+"POT-Creation-Date: 2026-10-28 21:55+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -5047,25 +5047,14 @@ msgstr "Обновлять данные при вставке филамента
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "AMS автоматически считает информацию о филаменте при установке нового филамента Bambu Lab. Это займёт около 20 секунд."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-msgstr "Примечание: если во время печати установить новый филамент, AMS не будет автоматически считывать его данные до завершения печати."
-
-msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-msgstr "При установке нового филамента AMS не будет автоматически считывать его данные, поэтому соответствующее поле останется пустым для ручного ввода."
-
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr "Только для AMS/AMS 2pro/AMS HT."
 
 msgid "Power on update"
 msgstr "Обновлять данные при включении"
 
-# ??? было При включении принтера АСПП будет автоматически считывать информацию о вставленных материалах. Это занимает около одной минуты. В процессе считывания информации о материале катушка вращается.
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "При запуске AMS автоматически считает информацию о загруженном филаменте. Это займёт около 1 минуты. Во время считывания катушки с филаментом будут вращаться."
-
-# ??? было При каждом включении принтера, считывание информации о вставленных материалах АСПП будет отключено. Будет использоваться информация, полученная перед последним выключением.
-msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
-msgstr "При запуске AMS не будет автоматически считывать данные установленного филамента и продолжит использовать информацию, сохранённую перед последним выключением."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgstr ""
 
 msgid "Automatically refresh unloaded filaments"
 msgstr "Автоматическое обновление выгруженных филаментов"
@@ -11927,6 +11916,18 @@ msgstr "При использовании материала поддержки 
 msgid "Do you want to apply these settings?"
 msgstr "Применить эти настройки?"
 
+msgid "When enabling ironing, We recommend the following settings:"
+msgstr ""
+
+msgid "Top surface"
+msgstr "Верхняя поверхность"
+
+msgid "mm/s"
+msgstr "мм/с"
+
+msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
+msgstr ""
+
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -13863,9 +13864,6 @@ msgstr "Изолированная вертикальная оболочка"
 msgid "Internal solid infill"
 msgstr "Внутреннее сплошное заполнение"
 
-msgid "Top surface"
-msgstr "Верхняя поверхность"
-
 msgid "Bottom surface"
 msgstr "Нижняя поверхность"
 
@@ -14466,9 +14464,6 @@ msgstr "Замедление для нависающих элементов"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "Включите эту опцию, чтобы снижать скорость печати в зависимости от степени нависания"
-
-msgid "mm/s"
-msgstr "мм/с"
 
 #, fuzzy, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
@@ -15382,8 +15377,8 @@ msgstr "При этой температуре материал размягча
 msgid "Fin extrude safe temperature"
 msgstr "Безопасная температура для экструзии рёбер"
 
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr "Безопасная температура хотенда для экструзии рёбер. 0 означает, что значение не задано. Доступно в пользовательском G-коде через параметр fins_extrude_safe_temp."
+msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr ""
 
 # ?????? в смысле сопло?
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
@@ -17474,6 +17469,9 @@ msgstr "Ширина стенки, которой заменяются тонк�
 
 msgid "Filament switch retraction length"
 msgstr "Длина ретракции при смене филамента"
+
+msgid "Filament switch extra length on restart"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr "Переопределить скорость нависающих элементов"
@@ -21333,6 +21331,23 @@ msgid ""
 msgstr ""
 "Надёжный результат с первой попытки\n"
 "Меньше постоянного контроля — более предсказуемый результат. Например, небольшая ферма, печатающая детали из PETG, избегает неожиданных сбоев на шестом часу печати и выпускает партии по графику."
+
+#~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+#~ msgstr "Примечание: если во время печати установить новый филамент, AMS не будет автоматически считывать его данные до завершения печати."
+
+#~ msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+#~ msgstr "При установке нового филамента AMS не будет автоматически считывать его данные, поэтому соответствующее поле останется пустым для ручного ввода."
+
+# ??? было При включении принтера АСПП будет автоматически считывать информацию о вставленных материалах. Это занимает около одной минуты. В процессе считывания информации о материале катушка вращается.
+#~ msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
+#~ msgstr "При запуске AMS автоматически считает информацию о загруженном филаменте. Это займёт около 1 минуты. Во время считывания катушки с филаментом будут вращаться."
+
+# ??? было При каждом включении принтера, считывание информации о вставленных материалах АСПП будет отключено. Будет использоваться информация, полученная перед последним выключением.
+#~ msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+#~ msgstr "При запуске AMS не будет автоматически считывать данные установленного филамента и продолжит использовать информацию, сохранённую перед последним выключением."
+
+#~ msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+#~ msgstr "Безопасная температура хотенда для экструзии рёбер. 0 означает, что значение не задано. Доступно в пользовательском G-коде через параметр fins_extrude_safe_temp."
 
 #~ msgid "Auto-record Monitoring"
 #~ msgstr "Автозапись мониторинга"

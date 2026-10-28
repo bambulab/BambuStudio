@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 15:43+0800\n"
+"POT-Creation-Date: 2026-10-28 21:55+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -4957,23 +4957,14 @@ msgstr "Insertion update"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "The AMS will automatically read the filament information when inserting a new Bambu Lab filament spool. This takes about 20 seconds."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-msgstr "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-
-msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-msgstr "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr ""
 
 msgid "Power on update"
 msgstr "Update on startup"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will rotate the filament spools."
-
-msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
-msgstr "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgstr ""
 
 msgid "Automatically refresh unloaded filaments"
 msgstr ""
@@ -11577,6 +11568,18 @@ msgstr ""
 msgid "Do you want to apply these settings?"
 msgstr ""
 
+msgid "When enabling ironing, We recommend the following settings:"
+msgstr ""
+
+msgid "Top surface"
+msgstr "Top surface"
+
+msgid "mm/s"
+msgstr "mm/s"
+
+msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
+msgstr ""
+
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -13467,9 +13470,6 @@ msgstr ""
 msgid "Internal solid infill"
 msgstr "Internal solid infill"
 
-msgid "Top surface"
-msgstr "Top surface"
-
 msgid "Bottom surface"
 msgstr "Bottom surface"
 
@@ -14059,9 +14059,6 @@ msgstr "Slow down for overhangs"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "Enable this option to slow down when printing overhangs. The speeds for different overhang percentages are set below."
-
-msgid "mm/s"
-msgstr "mm/s"
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
@@ -14938,7 +14935,7 @@ msgstr "The material softens at this temperature, so when the bed temperature is
 msgid "Fin extrude safe temperature"
 msgstr ""
 
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
 msgstr ""
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
@@ -16994,6 +16991,9 @@ msgid "Width of the wall that will replace thin features (according to the Minim
 msgstr "Width of the wall that will replace thin features (according to the Minimum feature size) of the model. If the Minimum wall width is thinner than the thickness of the feature, the wall will become as thick as the feature itself. It's expressed as a percentage over nozzle diameter"
 
 msgid "Filament switch retraction length"
+msgstr ""
+
+msgid "Filament switch extra length on restart"
 msgstr ""
 
 msgid "Override overhang speed"
@@ -20750,6 +20750,18 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+#~ msgstr "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+
+#~ msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+#~ msgstr "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+
+#~ msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
+#~ msgstr "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will rotate the filament spools."
+
+#~ msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+#~ msgstr "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
 
 #~ msgid "Auto-record Monitoring"
 #~ msgstr "Auto-record Monitoring"

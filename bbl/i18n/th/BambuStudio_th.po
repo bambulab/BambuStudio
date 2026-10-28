@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 15:43+0800\n"
+"POT-Creation-Date: 2026-10-28 21:55+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4976,23 +4976,14 @@ msgstr "อัปเดตเมื่อใส่"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "AMS จะอ่านข้อมูลเส้นวัสดุโดยอัตโนมัติเมื่อใส่เส้นวัสดุ Bambu Lab ม้วนใหม่ ซึ่งใช้เวลาประมาณ 20 วินาที"
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-msgstr "หมายเหตุ: หากใส่เส้นวัสดุใหม่ระหว่างการพิมพ์ AMS จะไม่อ่านข้อมูลอัตโนมัติจนกว่าจะพิมพ์เสร็จสิ้น"
-
-msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-msgstr "เมื่อใส่เส้นวัสดุใหม่ AMS จะไม่ดึงข้อมูลโดยอัตโนมัติ โดยจะปล่อยว่างไว้ให้คุณป้อนข้อมูลด้วยตนเอง"
-
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr "สำหรับรุ่น AMS/AMS 2pro/AMS HT เท่านั้น"
 
 msgid "Power on update"
 msgstr "อัปเดตเมื่อเปิดเครื่อง"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "AMS จะอ่านข้อมูลเส้นวัสดุที่ใส่โดยอัตโนมัติเมื่อเริ่มทำงาน โดยจะใช้เวลาประมาณ 1 นาที กระบวนการอ่านจะมีการหมุนม้วนเส้นวัสดุ"
-
-msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
-msgstr "AMS จะไม่อ่านข้อมูลจากเส้นวัสดุที่ใส่ไว้โดยอัตโนมัติเมื่อเริ่มการทำงาน และจะยังคงใช้ข้อมูลที่บันทึกไว้ก่อนการปิดเครื่องครั้งล่าสุด"
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgstr ""
 
 msgid "Automatically refresh unloaded filaments"
 msgstr "รีเฟรชเส้นวัสดุที่ถอดออกแล้วโดยอัตโนมัติ"
@@ -11764,6 +11755,18 @@ msgstr "เมื่อใช้วัสดุรองรับสำหรั
 msgid "Do you want to apply these settings?"
 msgstr "คุณต้องการใช้การตั้งค่าเหล่านี้หรือไม่?"
 
+msgid "When enabling ironing, We recommend the following settings:"
+msgstr ""
+
+msgid "Top surface"
+msgstr "ผิวหน้าด้านบน"
+
+msgid "mm/s"
+msgstr "มม./วินาที"
+
+msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
+msgstr ""
+
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -13671,9 +13674,6 @@ msgstr "เปลือกแนวตั้งที่ลอยอยู่"
 msgid "Internal solid infill"
 msgstr "โครงทึบภายใน"
 
-msgid "Top surface"
-msgstr "ผิวหน้าด้านบน"
-
 msgid "Bottom surface"
 msgstr "ผิวหน้าด้านล่าง"
 
@@ -14270,9 +14270,6 @@ msgstr "ลดความเร็วสำหรับส่วนยื่น
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "เปิดใช้งานตัวเลือกนี้เพื่อลดความเร็วการพิมพ์สำหรับองศาส่วนยื่นที่แตกต่างกัน"
-
-msgid "mm/s"
-msgstr "มม./วินาที"
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
@@ -15169,8 +15166,8 @@ msgstr "วัสดุจะอ่อนตัวที่อุณหภูม
 msgid "Fin extrude safe temperature"
 msgstr "อุณหภูมิที่ปลอดภัยการอัดรีดครีบ"
 
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr "อุณหภูมิชุดหัวพิมพ์ที่ปลอดภัยสำหรับการอัดรีดครีบ 0 หมายถึงไม่ได้ตั้งค่า สามารถเข้าถึงได้ในจีโคดแบบกำหนดเองผ่านทาง fins_extrude_safe_temp"
+msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr ""
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "เพื่อป้องกันการไหลเยิ้ม หัวฉีดจะเคลื่อนที่ย้อนกลับเป็นระยะเวลาหนึ่งหลังจากการดันวัสดุเสร็จสิ้น การตั้งค่านี้กำหนดเวลาการเคลื่อนที่"
@@ -17238,6 +17235,9 @@ msgstr "ความกว้างของผนังที่จะเข้
 
 msgid "Filament switch retraction length"
 msgstr "ระยะการดึงเส้นกลับเมื่อสลับเปลี่ยนเส้นวัสดุ"
+
+msgid "Filament switch extra length on restart"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr "เขียนทับความเร็วการพิมพ์ส่วนยื่น"
@@ -21061,6 +21061,21 @@ msgid ""
 msgstr ""
 "ความน่าเชื่อถือแบบสำเร็จตั้งแต่ครั้งแรก\n"
 "ไม่ต้องคอยเฝ้า ได้ผลลัพธ์ที่คาดเดาได้มากขึ้น ตัวอย่าง: ฟาร์มพิมพ์ขนาดเล็กที่ผลิตชิ้นส่วน PETG สามารถหลีกเลี่ยงปัญหา 'งานเสียในชั่วโมงที่ 6' และส่งมอบงานได้ตรงตามกำหนด"
+
+#~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+#~ msgstr "หมายเหตุ: หากใส่เส้นวัสดุใหม่ระหว่างการพิมพ์ AMS จะไม่อ่านข้อมูลอัตโนมัติจนกว่าจะพิมพ์เสร็จสิ้น"
+
+#~ msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+#~ msgstr "เมื่อใส่เส้นวัสดุใหม่ AMS จะไม่ดึงข้อมูลโดยอัตโนมัติ โดยจะปล่อยว่างไว้ให้คุณป้อนข้อมูลด้วยตนเอง"
+
+#~ msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
+#~ msgstr "AMS จะอ่านข้อมูลเส้นวัสดุที่ใส่โดยอัตโนมัติเมื่อเริ่มทำงาน โดยจะใช้เวลาประมาณ 1 นาที กระบวนการอ่านจะมีการหมุนม้วนเส้นวัสดุ"
+
+#~ msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+#~ msgstr "AMS จะไม่อ่านข้อมูลจากเส้นวัสดุที่ใส่ไว้โดยอัตโนมัติเมื่อเริ่มการทำงาน และจะยังคงใช้ข้อมูลที่บันทึกไว้ก่อนการปิดเครื่องครั้งล่าสุด"
+
+#~ msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+#~ msgstr "อุณหภูมิชุดหัวพิมพ์ที่ปลอดภัยสำหรับการอัดรีดครีบ 0 หมายถึงไม่ได้ตั้งค่า สามารถเข้าถึงได้ในจีโคดแบบกำหนดเองผ่านทาง fins_extrude_safe_temp"
 
 #~ msgid "Auto-record Monitoring"
 #~ msgstr "การเฝ้าติดตามแบบบันทึกอัตโนมัติ"

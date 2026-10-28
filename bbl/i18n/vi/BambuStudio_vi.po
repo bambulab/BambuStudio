@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 15:43+0800\n"
+"POT-Creation-Date: 2026-10-28 21:55+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4977,23 +4977,14 @@ msgstr "Cập nhật khi lắp"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "AMS sẽ tự động đọc thông tin sợi nhựa khi lắp sợi nhựa Bambu Lab mới vào. Quá trình này mất khoảng 20 giây."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-msgstr "Lưu ý: nếu một sợi nhựa mới được lắp vào trong quá trình in, AMS sẽ không tự động đọc bất kỳ thông tin nào cho đến khi quá trình in hoàn tất."
-
-msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-msgstr "Khi lắp sợi nhựa mới, AMS sẽ không tự động đọc thông tin của nó, để trống để bạn nhập thủ công."
-
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr "Chỉ dành cho AMS/AMS 2pro/AMS HT."
 
 msgid "Power on update"
 msgstr "Cập nhật khi bật nguồn"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "AMS sẽ tự động đọc thông tin sợi nhựa được nạp khi khởi động. Quá trình này sẽ mất khoảng 1 phút. Quy trình đọc sẽ làm cuộn sợi nhựa xoay."
-
-msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
-msgstr "AMS sẽ không tự động đọc thông tin từ sợi nhựa đã lắp khi khởi động và sẽ tiếp tục sử dụng thông tin đã ghi lại trước lần tắt máy gần nhất."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgstr ""
 
 msgid "Automatically refresh unloaded filaments"
 msgstr "Tự động làm mới thông tin sợi nhựa đã xả"
@@ -11765,6 +11756,18 @@ msgstr "Khi sử dụng vật liệu hỗ trợ cho lớp tiếp xúc cấu trú
 msgid "Do you want to apply these settings?"
 msgstr "Bạn có muốn áp dụng các cài đặt này không?"
 
+msgid "When enabling ironing, We recommend the following settings:"
+msgstr ""
+
+msgid "Top surface"
+msgstr "Bề mặt trên"
+
+msgid "mm/s"
+msgstr ""
+
+msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
+msgstr ""
+
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -13672,9 +13675,6 @@ msgstr "Vỏ dọc lơ lửng"
 msgid "Internal solid infill"
 msgstr "Lấp đầy đặc bên trong"
 
-msgid "Top surface"
-msgstr "Bề mặt trên"
-
 msgid "Bottom surface"
 msgstr "Bề mặt dưới"
 
@@ -14271,9 +14271,6 @@ msgstr "Giảm tốc độ cho phần nhô ra"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "Bật tùy chọn này để giảm tốc độ in cho các mức độ nhô ra khác nhau"
-
-msgid "mm/s"
-msgstr ""
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
@@ -15170,8 +15167,8 @@ msgstr "Vật liệu hóa mềm ở nhiệt độ này, vì vậy khi nhiệt đ
 msgid "Fin extrude safe temperature"
 msgstr "Nhiệt độ đùn nhựa an toàn của cánh tản nhiệt"
 
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr "Nhiệt độ an toàn của đầu nung khi đùn nhựa qua cánh tản nhiệt. Giá trị 0 có nghĩa là chưa được thiết lập. Có thể truy cập thông qua fins_extrude_safe_temp trong mã G tùy chỉnh."
+msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr ""
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "Để ngăn rỉ nhựa, vòi phun sẽ thực hiện chuyển động di chuyển ngược trong một khoảng thời gian nhất định sau khi quá trình ép vật liệu hoàn tất. Cài đặt này xác định thời gian di chuyển."
@@ -17239,6 +17236,9 @@ msgstr "Chiều rộng của thành sẽ thay thế các chi tiết mỏng (theo
 
 msgid "Filament switch retraction length"
 msgstr "Độ dài rút sợi nhựa khi chuyển đổi sợi nhựa"
+
+msgid "Filament switch extra length on restart"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr "Ghi đè tốc độ phần nhô ra"
@@ -21062,6 +21062,21 @@ msgid ""
 msgstr ""
 "Độ tin cậy thành công ngay lần đầu\n"
 "Giảm bớt việc phải theo dõi liên tục, tăng tính dự đoán được của kết quả đầu ra. Ví dụ: một cụm máy in nhỏ in các bộ phận bằng PETG sẽ tránh được những sự cố bất ngờ như \"hỏng hóc sau 6 giờ\" và đảm bảo các lô sản phẩm được hoàn tất đúng tiến độ."
+
+#~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+#~ msgstr "Lưu ý: nếu một sợi nhựa mới được lắp vào trong quá trình in, AMS sẽ không tự động đọc bất kỳ thông tin nào cho đến khi quá trình in hoàn tất."
+
+#~ msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+#~ msgstr "Khi lắp sợi nhựa mới, AMS sẽ không tự động đọc thông tin của nó, để trống để bạn nhập thủ công."
+
+#~ msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
+#~ msgstr "AMS sẽ tự động đọc thông tin sợi nhựa được nạp khi khởi động. Quá trình này sẽ mất khoảng 1 phút. Quy trình đọc sẽ làm cuộn sợi nhựa xoay."
+
+#~ msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+#~ msgstr "AMS sẽ không tự động đọc thông tin từ sợi nhựa đã lắp khi khởi động và sẽ tiếp tục sử dụng thông tin đã ghi lại trước lần tắt máy gần nhất."
+
+#~ msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+#~ msgstr "Nhiệt độ an toàn của đầu nung khi đùn nhựa qua cánh tản nhiệt. Giá trị 0 có nghĩa là chưa được thiết lập. Có thể truy cập thông qua fins_extrude_safe_temp trong mã G tùy chỉnh."
 
 #~ msgid "Auto-record Monitoring"
 #~ msgstr "Ghi hình giám sát tự động"

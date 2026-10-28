@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 15:43+0800\n"
+"POT-Creation-Date: 2026-10-28 21:55+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4965,23 +4965,14 @@ msgstr "插入料時更新"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "當插入新的Bambu Lab耗材絲的時候，AMS會自動讀取耗材絲資訊。這個過程大約需要20秒。"
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-msgstr "注意：如果是在列印過程中插入新的耗材絲，AMS會在列印結束後自動讀取此耗材絲資訊。"
-
-msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-msgstr "在插入一卷新料時，AMS將不會自動讀取料卷資訊，預留一個空的料卷資訊等待您手動輸入。"
-
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr "僅適用於 AMS/AMS 2pro/AMS HT。"
 
 msgid "Power on update"
 msgstr "開機時檢測"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "AMS 將於啟動時自動讀取已插入線材的資訊。約需 1 分鐘。讀取過程中將轉動料盤。"
-
-msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
-msgstr "AMS不會在啟動時自動讀取耗材絲資訊。它會使用上次關機前記錄的資訊。"
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgstr ""
 
 msgid "Automatically refresh unloaded filaments"
 msgstr "自動重新整理未裝入的線材"
@@ -11725,6 +11716,18 @@ msgstr "使用支撐材料作為支撐介面時，我們建議以下設定："
 msgid "Do you want to apply these settings?"
 msgstr "要套用這些設定嗎？"
 
+msgid "When enabling ironing, We recommend the following settings:"
+msgstr ""
+
+msgid "Top surface"
+msgstr "頂面"
+
+msgid "mm/s"
+msgstr "mm/s"
+
+msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
+msgstr ""
+
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -13631,9 +13634,6 @@ msgstr "浮動垂直外殼"
 msgid "Internal solid infill"
 msgstr "內部實心填充"
 
-msgid "Top surface"
-msgstr "頂面"
-
 msgid "Bottom surface"
 msgstr "底面"
 
@@ -14230,9 +14230,6 @@ msgstr "懸垂降速"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "開啟這個選項將降低不同懸垂程度的走線的列印速度"
-
-msgid "mm/s"
-msgstr "mm/s"
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
@@ -15132,8 +15129,8 @@ msgstr "材料在這個溫度下會軟化，因此當熱床溫度等於或高於
 msgid "Fin extrude safe temperature"
 msgstr "鰭片擠出安全溫度"
 
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr "鰭片擠出作業的熱端安全溫度。0 代表未設定。可透過 fins_extrude_safe_temp 在自訂 G代碼中存取。"
+msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr ""
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "為了防止溢料，預沖刷完成後，噴嘴會進行一段時間的反向空駛。該設定用於定義空駛時間。"
@@ -17201,6 +17198,9 @@ msgstr "用於替換模型細小特徵（根據最小特徵尺寸）的牆線寬
 
 msgid "Filament switch retraction length"
 msgstr "換線回抽長度"
+
+msgid "Filament switch extra length on restart"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr "覆寫懸垂速度"
@@ -21010,6 +21010,21 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
+
+#~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+#~ msgstr "注意：如果是在列印過程中插入新的耗材絲，AMS會在列印結束後自動讀取此耗材絲資訊。"
+
+#~ msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+#~ msgstr "在插入一卷新料時，AMS將不會自動讀取料卷資訊，預留一個空的料卷資訊等待您手動輸入。"
+
+#~ msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
+#~ msgstr "AMS 將於啟動時自動讀取已插入線材的資訊。約需 1 分鐘。讀取過程中將轉動料盤。"
+
+#~ msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+#~ msgstr "AMS不會在啟動時自動讀取耗材絲資訊。它會使用上次關機前記錄的資訊。"
+
+#~ msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+#~ msgstr "鰭片擠出作業的熱端安全溫度。0 代表未設定。可透過 fins_extrude_safe_temp 在自訂 G代碼中存取。"
 
 #~ msgid "Auto-record Monitoring"
 #~ msgstr "監控錄影"

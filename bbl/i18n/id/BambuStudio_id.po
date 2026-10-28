@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 15:43+0800\n"
+"POT-Creation-Date: 2026-10-28 21:55+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4977,23 +4977,14 @@ msgstr "Pembaruan saat penyisipan"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "AMS akan secara otomatis membaca informasi filamen saat memasukkan filamen Bambu Lab yang baru. Ini membutuhkan waktu sekitar 20 detik."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-msgstr "Catatan: jika filamen baru dimasukkan selama pencetakan, AMS tidak akan secara otomatis membaca informasi apa pun hingga pencetakan selesai."
-
-msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-msgstr "Saat memasukkan filamen baru, AMS tidak akan secara otomatis membaca informasinya, membiarkannya kosong untuk Anda masukkan secara manual."
-
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr "Hanya untuk AMS/AMS 2pro/AMS HT."
 
 msgid "Power on update"
 msgstr "Pembaruan saat dinyalakan"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "AMS akan secara otomatis membaca informasi filamen yang dimasukkan saat memulai. Ini akan memakan waktu sekitar 1 menit. Proses pembacaan akan memutar gulungan filamen."
-
-msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
-msgstr "AMS tidak akan otomatis membaca informasi dari filamen yang dimasukkan saat startup dan akan terus menggunakan informasi yang terekam sebelum pematian terakhir."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgstr ""
 
 msgid "Automatically refresh unloaded filaments"
 msgstr "Otomatis segarkan filamen yang telah dibongkar"
@@ -11763,6 +11754,18 @@ msgstr "Saat menggunakan material penyangga untuk antarmuka penyangga, kami mere
 msgid "Do you want to apply these settings?"
 msgstr "Apakah Anda ingin menerapkan pengaturan ini?"
 
+msgid "When enabling ironing, We recommend the following settings:"
+msgstr ""
+
+msgid "Top surface"
+msgstr "Permukaan atas"
+
+msgid "mm/s"
+msgstr "mm/dtk"
+
+msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
+msgstr ""
+
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -13670,9 +13673,6 @@ msgstr "Shell vertikal mengambang"
 msgid "Internal solid infill"
 msgstr "Pengisian padat internal"
 
-msgid "Top surface"
-msgstr "Permukaan atas"
-
 msgid "Bottom surface"
 msgstr "Permukaan bawah"
 
@@ -14269,9 +14269,6 @@ msgstr "Perlambat untuk overhang"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "Aktifkan opsi ini untuk memperlambat pencetakan pada berbagai tingkat overhang"
-
-msgid "mm/s"
-msgstr "mm/dtk"
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
@@ -15168,8 +15165,8 @@ msgstr "Material melunak pada suhu ini, jadi ketika suhu alas sama dengan atau l
 msgid "Fin extrude safe temperature"
 msgstr "Suhu aman ekstrusi sirip"
 
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr "Suhu hotend yang aman untuk ekstrusi sirip. 0 berarti belum diatur. Dapat diakses melalui G-code kustom menggunakan fins_extrude_safe_temp."
+msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr ""
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "Untuk mencegah merembes, nosel akan melakukan gerakan perjalanan balik selama periode tertentu setelah ramming selesai. Pengaturan ini menentukan waktu perjalanan."
@@ -17237,6 +17234,9 @@ msgstr "Lebar dinding yang akan menggantikan fitur tipis (sesuai dengan ukuran f
 
 msgid "Filament switch retraction length"
 msgstr "Panjang retraksi penggantian filamen"
+
+msgid "Filament switch extra length on restart"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr "Timpa kecepatan overhang"
@@ -21060,6 +21060,21 @@ msgid ""
 msgstr ""
 "Keandalan Tepat di Percobaan Pertama \n"
 "Lebih sedikit pengawasan, hasil yang lebih terprediksi. Contoh: fasilitas print farm kecil yang mencetak komponen PETG menghindari kejutan 'gagal pada jam ke-6' dan menjaga produksi tetap sesuai jadwal."
+
+#~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+#~ msgstr "Catatan: jika filamen baru dimasukkan selama pencetakan, AMS tidak akan secara otomatis membaca informasi apa pun hingga pencetakan selesai."
+
+#~ msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+#~ msgstr "Saat memasukkan filamen baru, AMS tidak akan secara otomatis membaca informasinya, membiarkannya kosong untuk Anda masukkan secara manual."
+
+#~ msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
+#~ msgstr "AMS akan secara otomatis membaca informasi filamen yang dimasukkan saat memulai. Ini akan memakan waktu sekitar 1 menit. Proses pembacaan akan memutar gulungan filamen."
+
+#~ msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+#~ msgstr "AMS tidak akan otomatis membaca informasi dari filamen yang dimasukkan saat startup dan akan terus menggunakan informasi yang terekam sebelum pematian terakhir."
+
+#~ msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+#~ msgstr "Suhu hotend yang aman untuk ekstrusi sirip. 0 berarti belum diatur. Dapat diakses melalui G-code kustom menggunakan fins_extrude_safe_temp."
 
 #~ msgid "Auto-record Monitoring"
 #~ msgstr "Pemantauan Rekaman Otomatis"

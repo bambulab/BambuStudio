@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 15:43+0800\n"
+"POT-Creation-Date: 2026-10-28 21:55+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -4978,23 +4978,14 @@ msgstr "Takma sırasında güncelleme"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "AMS, yeni bir Bambu Lab filament takıldığında filament bilgilerini otomatik olarak okuyacaktır. Bu işlem yaklaşık 20 saniye sürer."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-msgstr "Not: Baskı sırasında yeni bir filament takılırsa, AMS baskı tamamlanana kadar otomatik olarak herhangi bir bilgi okumaz."
-
-msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-msgstr "Yeni bir filament takıldığında AMS, bilgilerini otomatik olarak okumaz ve manuel olarak girebilmen için bilgi alanını boş bırakır."
-
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr "Sadece AMS/AMS 2pro/AMS HT modelleri için geçerlidir."
 
 msgid "Power on update"
 msgstr "Açılışta güncelleme"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "AMS, başlatıldığında takılan filamentin bilgilerini otomatik olarak okuyacaktır. Yaklaşık 1 dakika sürecek. Okuma işlemi filament makaralarını döndürecektir."
-
-msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
-msgstr "AMS, başlatma sırasında takılan filamentten otomatik olarak bilgi okumayacak ve son kapatmadan önce kaydedilen bilgileri kullanmaya devam edecektir."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgstr ""
 
 msgid "Automatically refresh unloaded filaments"
 msgstr "Boşaltılmış filamentleri otomatik olarak yenile"
@@ -11766,6 +11757,18 @@ msgstr "Destek arayüzü için destek malzemesi kullanırken aşağıdaki ayarla
 msgid "Do you want to apply these settings?"
 msgstr "Bu ayarları uygulamak istiyor musun?"
 
+msgid "When enabling ironing, We recommend the following settings:"
+msgstr ""
+
+msgid "Top surface"
+msgstr "Üst yüzey"
+
+msgid "mm/s"
+msgstr "mm/s"
+
+msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
+msgstr ""
+
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -13676,9 +13679,6 @@ msgstr "Yüzen dikey kabuk"
 msgid "Internal solid infill"
 msgstr "İç katı dolgu"
 
-msgid "Top surface"
-msgstr "Üst yüzey"
-
 msgid "Bottom surface"
 msgstr "Alt yüzey"
 
@@ -14275,9 +14275,6 @@ msgstr "Çıkıntılar için yavaşla"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "Farklı çıkıntı derecelerinde yazdırma hızını düşürmek için bu seçeneği etkinleştir."
-
-msgid "mm/s"
-msgstr "mm/s"
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
@@ -15174,8 +15171,8 @@ msgstr "Malzeme bu sıcaklıkta yumuşar. Bu nedenle yatak sıcaklığı bu değ
 msgid "Fin extrude safe temperature"
 msgstr "Kanat ekstrüzyonu için güvenli sıcaklık"
 
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr "Kanat ekstrüzyonu için güvenli hotend sıcaklığı. 0, ayar yapılmadığı anlamına gelir. fins_extrude_safe_temp aracılığıyla özel G-kodu üzerinden erişilebilir."
+msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr ""
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "Sızmayı önlemek için sıkıştırma tamamlandıktan sonra püskürtme ucu belirli bir süre ters yönde hareket eder. Bu ayar hareket süresini belirler."
@@ -17243,6 +17240,9 @@ msgstr "Modelin ince özelliklerinin yerini alacak duvarın genişliği (Minimum
 
 msgid "Filament switch retraction length"
 msgstr "Filament değiştirme sırasında geri çekme uzunluğu"
+
+msgid "Filament switch extra length on restart"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr "Çıkıntı hızını geçersiz kıl"
@@ -21070,6 +21070,21 @@ msgid ""
 msgstr ""
 "İlk Seferde Başarı Güvenilirliği\n"
 "Daha az gözetim, daha öngörülebilir sonuçlar. Örnek: PETG parçaları üreten küçük bir yazıcı çiftliği, \"6. saatte baskının başarısız olması\" gibi sürprizlerden kaçınır ve partileri programa uygun şekilde tamamlar."
+
+#~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+#~ msgstr "Not: Baskı sırasında yeni bir filament takılırsa, AMS baskı tamamlanana kadar otomatik olarak herhangi bir bilgi okumaz."
+
+#~ msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+#~ msgstr "Yeni bir filament takıldığında AMS, bilgilerini otomatik olarak okumaz ve manuel olarak girebilmen için bilgi alanını boş bırakır."
+
+#~ msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
+#~ msgstr "AMS, başlatıldığında takılan filamentin bilgilerini otomatik olarak okuyacaktır. Yaklaşık 1 dakika sürecek. Okuma işlemi filament makaralarını döndürecektir."
+
+#~ msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+#~ msgstr "AMS, başlatma sırasında takılan filamentten otomatik olarak bilgi okumayacak ve son kapatmadan önce kaydedilen bilgileri kullanmaya devam edecektir."
+
+#~ msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+#~ msgstr "Kanat ekstrüzyonu için güvenli hotend sıcaklığı. 0, ayar yapılmadığı anlamına gelir. fins_extrude_safe_temp aracılığıyla özel G-kodu üzerinden erişilebilir."
 
 #~ msgid "Auto-record Monitoring"
 #~ msgstr "Otomatik kayıt izleme"

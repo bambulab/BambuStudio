@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 15:43+0800\n"
+"POT-Creation-Date: 2026-10-28 21:55+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -4975,23 +4975,14 @@ msgstr "Infoga uppdatering"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "AMS läser automatiskt filament informationen när du sätter in ett nytt Bambu Lab-filament. Det tar ungefär 20 sekunder."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
-msgstr "Obs:  Om ett nytt filament sätts in under utskriften kommer AMS inte att automatiskt läsa av någon information förrän utskriften är klar."
-
-msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
-msgstr "Vid matning av nytt filament, AMS läser inte av dess information automatiskt utan lämnar det blankt för dig att fylla i manuellt."
-
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr "Endast för AMS/AMS 2pro/AMS HT."
 
 msgid "Power on update"
 msgstr "Slå på uppdatering"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "AMS läser automatiskt informationen om isatt filament vid uppstart. Det tar cirka 1 minut. Avläsningsprocessen rullar filamentspolarna."
-
-msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
-msgstr "AMS kommer inte att automatiskt läsa informationen ifrån imatat filament under uppstart och senast använd information kommer att användas."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgstr ""
 
 msgid "Automatically refresh unloaded filaments"
 msgstr "Uppdatera automatiskt utmatade filament"
@@ -11753,6 +11744,18 @@ msgstr "När du använder stödmaterial för stöd gräns snittet rekommenderar 
 msgid "Do you want to apply these settings?"
 msgstr "Vill du använda dessa inställningar?"
 
+msgid "When enabling ironing, We recommend the following settings:"
+msgstr ""
+
+msgid "Top surface"
+msgstr "Topp yta"
+
+msgid "mm/s"
+msgstr "mm/s"
+
+msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
+msgstr ""
+
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -13667,9 +13670,6 @@ msgstr "Flytande vertikala skal"
 msgid "Internal solid infill"
 msgstr "Invändig solid fyllnad"
 
-msgid "Top surface"
-msgstr "Topp yta"
-
 msgid "Bottom surface"
 msgstr "Botten yta"
 
@@ -14263,9 +14263,6 @@ msgstr "Sakta ner vid överhäng"
 
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "Aktivera detta val för att sänka hastigheten för olika överhängs grader"
-
-msgid "mm/s"
-msgstr "mm/s"
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
@@ -15162,8 +15159,8 @@ msgstr "The material softens at this temperature, so when the bed temperature is
 msgid "Fin extrude safe temperature"
 msgstr "Säker extruderingstemperatur för kylfläns"
 
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr "Säker hotend-temperatur för extrudering av kylfläns. 0 betyder ej inställd. Tillgänglig i anpassad G-kod via fins_extrude_safe_temp."
+msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr ""
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "För att förhindra oozing ur nozzle görs en bakåtriktad rörelse under en viss period efter att ramningen är klar. Inställningen definierar rörelse tiden."
@@ -17232,6 +17229,9 @@ msgstr "Bredden på den vägg som ska ersätta tunna element (enligt minsta stor
 
 msgid "Filament switch retraction length"
 msgstr "Retraktionslängd vid filamentbyte"
+
+msgid "Filament switch extra length on restart"
+msgstr ""
 
 msgid "Override overhang speed"
 msgstr "Åsidosätt överhängshastigheten"
@@ -21062,6 +21062,21 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+#~ msgstr "Obs:  Om ett nytt filament sätts in under utskriften kommer AMS inte att automatiskt läsa av någon information förrän utskriften är klar."
+
+#~ msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
+#~ msgstr "Vid matning av nytt filament, AMS läser inte av dess information automatiskt utan lämnar det blankt för dig att fylla i manuellt."
+
+#~ msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
+#~ msgstr "AMS läser automatiskt informationen om isatt filament vid uppstart. Det tar cirka 1 minut. Avläsningsprocessen rullar filamentspolarna."
+
+#~ msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
+#~ msgstr "AMS kommer inte att automatiskt läsa informationen ifrån imatat filament under uppstart och senast använd information kommer att användas."
+
+#~ msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+#~ msgstr "Säker hotend-temperatur för extrudering av kylfläns. 0 betyder ej inställd. Tillgänglig i anpassad G-kod via fins_extrude_safe_temp."
 
 #~ msgid "Auto-record Monitoring"
 #~ msgstr "Automatisk inspelning av övervakning"
