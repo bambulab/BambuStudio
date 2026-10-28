@@ -1190,7 +1190,7 @@ static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", 
     "filament_tower_ironing_area",
     "filament_tower_interface_purge_volume",
     "filament_tower_interface_print_temp",
-    "max_temperature_drop_when_ec",
+    "min_temperature_when_ec",
     //ams chamber
     "filament_dev_ams_drying_ams_limitations", "filament_dev_ams_drying_temperature", "filament_dev_ams_drying_time", "filament_dev_ams_drying_heat_distortion_temperature",
     "filament_dev_chamber_drying_bed_temperature", "filament_dev_chamber_drying_time",
@@ -1231,7 +1231,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "use_relative_e_distances", "extruder_type","use_firmware_retraction",
     "grab_length","machine_switch_extruder_time","hotend_cooling_rate","hotend_cooling_rate_on_rack","hotend_heating_rate","enable_pre_heating", "support_object_skip_flush","physical_extruder_map",
     "bed_temperature_formula","machine_prepare_compensation_time", "nozzle_flush_dataset",
-    "group_algo_with_time","extruder_max_nozzle_count", "ams_nozzle_idx", "handle_hotend_as_extruder", "max_temperature_drop_when_ec","support_fast_purge_mode",
+    "group_algo_with_time","extruder_max_nozzle_count", "ams_nozzle_idx", "handle_hotend_as_extruder", "min_temperature_when_ec","support_fast_purge_mode",
     "printer_nozzle_diameter_mode"
 };
 

@@ -3234,8 +3234,8 @@ void PrintConfigDef::init_fff_params()
     def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{2});
 
-    def = this->add("max_temperature_drop_when_ec", coFloats);
-    def->set_default_value(new ConfigOptionFloats{-1}); // -1 means no limit
+    def = this->add("min_temperature_when_ec", coFloats);
+    def->set_default_value(new ConfigOptionFloats{-1}); // negative: no extra floor; >= 0: idle floor in C
 
     def = this->add("enable_pre_heating", coBool);
     def->set_default_value(new ConfigOptionBool(false));
@@ -3554,7 +3554,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_pre_heating_enabled", coBools);
     def->label   = L("Pre-heating when extruder change");
-    def->tooltip = L("pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled");
+    def->tooltip = L("Pre-heat the hotend during the idle period before an extruder change.");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBools{true});
 

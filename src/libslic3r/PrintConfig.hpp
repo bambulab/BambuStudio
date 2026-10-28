@@ -1433,7 +1433,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable,      hotend_cooling_rate))
     ((ConfigOptionFloatsNullable,      hotend_cooling_rate_on_rack))
     ((ConfigOptionFloatsNullable,      hotend_heating_rate))
-    ((ConfigOptionFloats,              max_temperature_drop_when_ec))
+    // Idle floor in C. Negative means no extra floor.
+    ((ConfigOptionFloats,              min_temperature_when_ec))
     ((ConfigOptionIntsNullable,        nozzle_flush_dataset))
     ((ConfigOptionFloats,              filament_minimal_purge_on_wipe_tower))
     ((ConfigOptionFloatsNullable,      filament_flush_volumetric_speed))

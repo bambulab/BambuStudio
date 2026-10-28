@@ -1228,7 +1228,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             context.heating_rate,
             skippable_blocks,
             context.extruder_max_nozzle_count,
-            context.filament_max_temperature_drop_when_ec,
+            context.filament_min_temperature_when_ec,
             machine_start_gcode_end_line_id,
             machine_end_gcode_start_line_id,
             context.extruder_types,
@@ -1997,7 +1997,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_hotend_cooling_rate = config.hotend_cooling_rate.values;
     m_hotend_cooling_rate_on_rack = config.hotend_cooling_rate_on_rack.values;
     m_hotend_heating_rate = config.hotend_heating_rate.values;
-    m_max_temperature_drop_when_ec = config.max_temperature_drop_when_ec.values;
+    m_min_temperature_when_ec = config.min_temperature_when_ec.values;
     m_enable_pre_heating = config.enable_pre_heating;
     m_handle_hotend_as_extruder = config.handle_hotend_as_extruder;
     m_has_filament_switcher = config.has_filament_switcher;
@@ -2151,9 +2151,9 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         m_hotend_heating_rate = hotend_heating_rate->values;
     }
 
-    const ConfigOptionFloatsNullable* max_temperature_drop_when_ec = config.option<ConfigOptionFloatsNullable>("max_temperature_drop_when_ec");
-    if (max_temperature_drop_when_ec != nullptr) {
-        m_max_temperature_drop_when_ec = max_temperature_drop_when_ec->values;
+    const ConfigOptionFloatsNullable* min_temperature_when_ec = config.option<ConfigOptionFloatsNullable>("min_temperature_when_ec");
+    if (min_temperature_when_ec != nullptr) {
+        m_min_temperature_when_ec = min_temperature_when_ec->values;
     }
 
     const ConfigOptionIntsNullable* filament_pre_cooling_temp = config.option<ConfigOptionIntsNullable>("filament_pre_cooling_temperature");
@@ -2607,7 +2607,7 @@ void GCodeProcessor::reset()
     m_has_filament_switcher = false;
     m_hotend_cooling_rate = m_hotend_heating_rate = { 2.f };
     m_hotend_cooling_rate_on_rack = { 2.f };
-    m_max_temperature_drop_when_ec = { 0.f };
+    m_min_temperature_when_ec = { -1.f };
 
     m_thermal_index    = ThermalIndex(0.0, 0.0, 0.0);
     m_highest_bed_temp = 0;
@@ -2842,7 +2842,7 @@ void GCodeProcessor::finalize(bool post_process)
             m_hotend_cooling_rate,
             m_hotend_cooling_rate_on_rack,
             m_hotend_heating_rate,
-            m_max_temperature_drop_when_ec,
+            m_min_temperature_when_ec,
             inject_time_threshold,
             m_enable_pre_heating,
             m_handle_hotend_as_extruder,
@@ -6727,10 +6727,10 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         float temp_in_tower = get_filament_nozzle_temp(idx, nozzle_id);
         return temp_in_tower - (float)(get_filament_pre_cooling_temp(idx, nozzle_id));
         };
-    auto get_max_temperature_drop_when_ec = [&](int idx) -> float {
-        if (idx < 0 || idx >= (int)filament_max_temperature_drop_when_ec.size())
+    auto get_min_temperature_when_ec = [&](int idx) -> float {
+        if (idx < 0 || idx >= (int)filament_min_temperature_when_ec.size())
             return -1.f;
-        return (float)filament_max_temperature_drop_when_ec[idx];
+        return (float)filament_min_temperature_when_ec[idx];
         };
 
     auto gcode_move_comp = [](const GCodeProcessorResult::MoveVertex& a, unsigned int gcode_id) {
@@ -6900,9 +6900,9 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         float min_temperature = handle_hotend_as_extruder ? 0.f : room_temperature;
         if (filament_variant_row(filament_id, nozzle_id) < 0)
             return min_temperature;
-        float max_temperature_drop = get_max_temperature_drop_when_ec(filament_id);
-        if (max_temperature_drop > 0)
-            min_temperature = std::max(min_temperature, (float)get_filament_nozzle_temp(filament_id, nozzle_id) - max_temperature_drop);
+        const float idle_floor = get_min_temperature_when_ec(filament_id);
+        if (idle_floor >= 0.f)
+            return std::max(min_temperature, idle_floor);
         return min_temperature;
         };
 
@@ -6936,9 +6936,6 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         int cooling_temp = temp_floor; // no next use: the hotend is never needed again
         if (filament_variant_row(block.next_filament_id, block.next_nozzle_id) >= 0) {
             int delta_temp = (int)(complete_free_time_gap * ext_cooling_rate_when_free);
-            const float drop_limit = get_max_temperature_drop_when_ec(block.last_filament_id);
-            if (drop_limit >= 0)
-                delta_temp = std::min(delta_temp, (int)drop_limit);
             cooling_temp = std::max(temp_floor, (int)curr_temp - delta_temp);
         }
         if (cooling_temp >= (int)curr_temp)
@@ -6968,7 +6965,6 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         return;
         }
     // perform cooling first and then perform heating
-    float max_temperature_drop = get_max_temperature_drop_when_ec(block.last_filament_id);
     float cooling_thres = get_filament_min_temperature_when_ec(block.last_filament_id, block.last_nozzle_id); // 计算最低降温温度
     // 计算中间温度，保证不低于最低降温温度
     float mid_temp = std::max(cooling_thres, (curr_temp * ext_heating_rate + target_temp * ext_cooling_rate_when_free - complete_free_time_gap * ext_cooling_rate_when_free * ext_heating_rate) / (ext_cooling_rate_when_free + ext_heating_rate));
@@ -6994,8 +6990,6 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
     // get the insert pos of heat cmd and recalculate time gap and delta temp
     float real_cooling_time = heating_move_iter->time[valid_machine_id] - move_iter_lower->time[valid_machine_id]; // 计算实际降温时间
     int real_delta_temp = real_cooling_time * ext_cooling_rate_when_free;
-    if(max_temperature_drop >= 0)
-        real_delta_temp = std::min(real_delta_temp, (int)(max_temperature_drop));
     int cooling_temp = std::max((int)cooling_thres, (int)curr_temp - real_delta_temp);
     add_M104_lines(cooling_insert_gcode_id, extruder_id, cooling_temp, block.last_filament_id, false, block.next_filament_id,block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling");
     add_M104_lines(heating_gcode_id, extruder_id, target_temp, block.next_filament_id, true, block.next_filament_id, block.next_nozzle_id, true, TimeProcessor::InsertLineType::PreHeating,"Multi extruder pre heating");

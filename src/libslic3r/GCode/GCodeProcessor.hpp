@@ -808,7 +808,7 @@ namespace Slic3r {
             std::vector<double> cooling_rate{ 2.f }; // Celsius degree per second, right after extruding
             std::vector<double> cooling_rate_on_rack{ 2.f }; // Celsius degree per second, once the hotend is completely free
             std::vector<double> heating_rate{ 2.f }; // Celsius degree per second
-            std::vector<double> filament_max_temperature_drop_when_ec {0.f}; // max temperature drop when extruder change
+            std::vector<double> filament_min_temperature_when_ec {-1.f}; // idle floor in C; negative means no extra floor
             float inject_time_threshold{ 30.f }; // only active pre cooling & heating if time gap is bigger than threshold
             bool enable_pre_heating{ false };
             bool handle_hotend_as_extruder { false };
@@ -829,7 +829,7 @@ namespace Slic3r {
                 const std::vector<double>& cooling_rate_,
                 const std::vector<double>& cooling_rate_on_rack_,
                 const std::vector<double>& heating_rate_,
-                const std::vector<double>& filament_max_temperature_drop_when_ec_,
+                const std::vector<double>& filament_min_temperature_when_ec_,
                 const float inject_time_threshold_,
                 const bool enable_pre_heating_,
                 const bool handle_hotend_as_extruder_,
@@ -849,7 +849,7 @@ namespace Slic3r {
                 cooling_rate(cooling_rate_),
                 cooling_rate_on_rack(cooling_rate_on_rack_),
                 heating_rate(heating_rate_),
-                filament_max_temperature_drop_when_ec(filament_max_temperature_drop_when_ec_),
+                filament_min_temperature_when_ec(filament_min_temperature_when_ec_),
                 enable_pre_heating(enable_pre_heating_),
                 handle_hotend_as_extruder(handle_hotend_as_extruder_),
                 has_filament_switcher(has_filament_switcher_),
@@ -960,7 +960,7 @@ namespace Slic3r {
                 const std::vector<double>& heating_rate_,
                 const std::vector<std::pair<unsigned int,unsigned int>>& skippable_blocks_,
                 const std::vector<int>& extruder_max_nozzle_count_,
-                const std::vector<double>& filament_max_temperature_drop_when_ec_,
+                const std::vector<double>& filament_min_temperature_when_ec_,
                 unsigned int machine_start_gcode_end_id_,
                 unsigned int machine_end_gcode_start_id_,
                 const std::vector<ExtruderType>& extruder_types_,
@@ -981,7 +981,7 @@ namespace Slic3r {
                 heating_rate(heating_rate_),
                 skippable_blocks(skippable_blocks_),
                 extruder_max_nozzle_count(extruder_max_nozzle_count_),
-                filament_max_temperature_drop_when_ec(filament_max_temperature_drop_when_ec_),
+                filament_min_temperature_when_ec(filament_min_temperature_when_ec_),
                 machine_start_gcode_end_id(machine_start_gcode_end_id_),
                 machine_end_gcode_start_id(machine_end_gcode_start_id_),
                 extruder_types(extruder_types_),
@@ -1008,7 +1008,7 @@ namespace Slic3r {
             const std::vector<double>& heating_rate;
             const std::vector<std::pair<unsigned int, unsigned int>>& skippable_blocks;
             const std::vector<int>& extruder_max_nozzle_count;
-            const std::vector<double>& filament_max_temperature_drop_when_ec; // per-filament max temperature drop when extruder change
+            const std::vector<double>& filament_min_temperature_when_ec; // per-filament idle floor; negative means no extra floor
             const unsigned int machine_start_gcode_end_id;
             const unsigned int machine_end_gcode_start_id;
             const std::vector<ExtruderType>& extruder_types;
@@ -1198,7 +1198,7 @@ namespace Slic3r {
         std::vector<double> m_hotend_cooling_rate{ 2.f };
         std::vector<double> m_hotend_cooling_rate_on_rack{ 2.f };
         std::vector<double> m_hotend_heating_rate{ 2.f };
-        std::vector<double> m_max_temperature_drop_when_ec {0.f};
+        std::vector<double> m_min_temperature_when_ec {-1.f};
         FilamentVariantRows m_filament_variant_rows;
         bool m_enable_pre_heating{ false };
         bool m_handle_hotend_as_extruder { false };
