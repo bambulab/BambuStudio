@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6607,14 +6607,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "Registrazione automatica"
+msgid "Live Camera Recording"
+msgstr "Registrazione della Telecamera in Tempo Reale"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "Diretta streaming"
-
-msgid "Live Camera Recording"
-msgstr "Registrazione della Telecamera in Tempo Reale"
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6630,6 +6630,9 @@ msgstr "Archiviazione esterna"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Mostra pagina della guida \"Diretta Video\"."
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr "Non installato"
@@ -7854,9 +7857,6 @@ msgstr "Tienilo acceso"
 
 msgid "Still turn it Off"
 msgstr "Disattivalo comunque"
-
-msgid "Can't start this without storage."
-msgstr "Non​•​posso​•​avviarlo​•​senza​•​spazio​•​di​•​memoria."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "Impossibile cambiare estrusore quando la stampante non è in modalità FDM"
@@ -21069,6 +21069,12 @@ msgid ""
 msgstr ""
 "Affidabilità al Primo Tentativo\n"
 "Meno supervisione, risultati più prevedibili. Ad esempio: una piccola produzione che stampa parti in PETG evita sorprese tipo \"fallimento alla sesta ora\" e mantiene i lotti nei tempi previsti."
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "Registrazione automatica"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "Non​•​posso​•​avviarlo​•​senza​•​spazio​•​di​•​memoria."
 
 #~ msgid "Click Wiki for details."
 #~ msgstr "Fai clic su Wiki per maggiori dettagli."

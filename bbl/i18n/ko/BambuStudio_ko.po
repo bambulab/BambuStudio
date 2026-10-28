@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6604,14 +6604,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "자동 녹화 모니터링"
+msgid "Live Camera Recording"
+msgstr "라이브 카메라 녹화"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "라이브 시작"
-
-msgid "Live Camera Recording"
-msgstr "라이브 카메라 녹화"
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6627,6 +6627,9 @@ msgstr "외부 스토리지"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "'라이브 동영상' 안내 페이지를 표시합니다."
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr "설치되지 않음"
@@ -7852,9 +7855,6 @@ msgstr "계속 켜두기"
 
 msgid "Still turn it Off"
 msgstr "그래도 끄기"
-
-msgid "Can't start this without storage."
-msgstr "스토리지 없이는 시작할 수 없습니다."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "프린터가 FDM 모드가 아닐 때 압출기를 전환할 수 없습니다"
@@ -21066,6 +21066,12 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "자동 녹화 모니터링"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "스토리지 없이는 시작할 수 없습니다."
 
 #~ msgid "Click Wiki for details."
 #~ msgstr "자세한 내용은 Wiki를 클릭하세요."

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6613,14 +6613,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "Monitoramento de gravação automática"
+msgid "Live Camera Recording"
+msgstr "Gravação da câmera ao vivo"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "Implantar"
-
-msgid "Live Camera Recording"
-msgstr "Gravação da câmera ao vivo"
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6636,6 +6636,9 @@ msgstr "Armazenamento externo"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Mostre a página do guia “Vídeo ao vivo”."
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr "Não instalado"
@@ -7864,9 +7867,6 @@ msgstr "Mantenha-o ligado"
 
 msgid "Still turn it Off"
 msgstr "Ainda desligue-o"
-
-msgid "Can't start this without storage."
-msgstr "Não é possível iniciar isso sem armazenamento."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "Não é possível alternar o extrusor quando a impressora não está no modo FDM."
@@ -21087,6 +21087,12 @@ msgid ""
 msgstr ""
 "Confiabilidade na Primeira Tentativa\n"
 "Menos supervisão, saída mais previsível. Exemplo: uma pequena fazenda produzindo peças de PETG evita surpresas de \"falha na hora 6\" e mantém os lotes no cronograma."
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "Monitoramento de gravação automática"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "Não é possível iniciar isso sem armazenamento."
 
 #~ msgid "Click Wiki for details."
 #~ msgstr "Clique em Wiki para obter detalhes."

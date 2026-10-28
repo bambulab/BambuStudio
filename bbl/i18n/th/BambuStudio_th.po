@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -6608,14 +6608,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "การเฝ้าติดตามแบบบันทึกอัตโนมัติ"
+msgid "Live Camera Recording"
+msgstr "การบันทึกด้วยกล้องแบบเรียลไทม์"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "เริ่มถ่ายทอดสด"
-
-msgid "Live Camera Recording"
-msgstr "การบันทึกด้วยกล้องแบบเรียลไทม์"
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6631,6 +6631,9 @@ msgstr "ที่เก็บข้อมูลภายนอก"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "แสดงหน้าคู่มือ \"วิดีโอสด\""
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr "ยังไม่ได้ติดตั้ง"
@@ -7856,9 +7859,6 @@ msgstr "เปิดใช้งานต่อไป"
 
 msgid "Still turn it Off"
 msgstr "ยืนยันที่จะปิด"
-
-msgid "Can't start this without storage."
-msgstr "เริ่มไม่ได้หากไม่มีพื้นที่จัดเก็บข้อมูล"
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "ไม่สามารถเปลี่ยนเอ็กซ์ทรูเดอร์ เนื่องจากเครื่องพิมพ์ไม่ได้อยู่ในโหมด FDM"
@@ -21061,6 +21061,12 @@ msgid ""
 msgstr ""
 "ความน่าเชื่อถือแบบสำเร็จตั้งแต่ครั้งแรก\n"
 "ไม่ต้องคอยเฝ้า ได้ผลลัพธ์ที่คาดเดาได้มากขึ้น ตัวอย่าง: ฟาร์มพิมพ์ขนาดเล็กที่ผลิตชิ้นส่วน PETG สามารถหลีกเลี่ยงปัญหา 'งานเสียในชั่วโมงที่ 6' และส่งมอบงานได้ตรงตามกำหนด"
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "การเฝ้าติดตามแบบบันทึกอัตโนมัติ"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "เริ่มไม่ได้หากไม่มีพื้นที่จัดเก็บข้อมูล"
 
 #~ msgid "Click Wiki for details."
 #~ msgstr "คลิก Wiki เพื่อดูรายละเอียด"

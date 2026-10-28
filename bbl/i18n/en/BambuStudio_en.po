@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -6557,14 +6557,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "Auto-record Monitoring"
+msgid "Live Camera Recording"
+msgstr ""
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "Go Live"
-
-msgid "Live Camera Recording"
-msgstr ""
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6580,6 +6580,9 @@ msgstr ""
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Show \"Live Video\" guide page."
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr ""
@@ -7793,9 +7796,6 @@ msgid "Keep it On"
 msgstr ""
 
 msgid "Still turn it Off"
-msgstr ""
-
-msgid "Can't start this without storage."
 msgstr ""
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
@@ -20750,6 +20750,9 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "Auto-record Monitoring"
 
 #~ msgid "Serious warning:"
 #~ msgstr "Serious warning:"

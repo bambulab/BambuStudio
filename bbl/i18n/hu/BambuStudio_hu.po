@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6610,14 +6610,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "Automatikus felügyelet"
+msgid "Live Camera Recording"
+msgstr "Élő kamerafelvétel"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "Streamelés indítása"
-
-msgid "Live Camera Recording"
-msgstr "Élő kamerafelvétel"
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6633,6 +6633,9 @@ msgstr "Külső tárhely"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Az „Élő videó” útmutató oldal megjelenítése."
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr "Nincs telepítve"
@@ -7861,9 +7864,6 @@ msgstr "Tartsd bekapcsolva"
 
 msgid "Still turn it Off"
 msgstr "Kapcsold ki"
-
-msgid "Can't start this without storage."
-msgstr "Nem indítható el tárhely nélkül."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "Nem lehet extrudert váltani, ha a nyomtató nem FDM-módban van"
@@ -21071,6 +21071,12 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "Automatikus felügyelet"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "Nem indítható el tárhely nélkül."
 
 #~ msgid "Click Wiki for details."
 #~ msgstr "Kattintson a Wikire a részletekért."

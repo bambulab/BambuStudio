@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -291,7 +291,7 @@ msgstr "夜光耗材可能磨损%s进料口，建议使用外挂料盘打印。"
 
 #, c-format, boost-format
 msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
-msgstr ""
+msgstr "%s 耗材可能磨损 %s 进料口，且进料阻力较大。建议通过外挂方式进料。"
 
 #, c-format, boost-format
 msgid "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s."
@@ -2005,7 +2005,7 @@ msgid "The current style has been modified but not saved. Do you want to save it
 msgstr "当前样式已被修改但未保存。您想要保存吗？"
 
 msgid "Save current style"
-msgstr "Save current style"
+msgstr "保存当前样式"
 
 msgid "Add new style"
 msgstr "添加新样式"
@@ -2014,7 +2014,7 @@ msgid "Only valid font can be added to style"
 msgstr "有效字体才能添加到样式中"
 
 msgid "Add style to my list"
-msgstr "Add style to my list"
+msgstr "添加样式到我的列表"
 
 msgid "Remove style"
 msgstr "删除样式"
@@ -2198,7 +2198,7 @@ msgstr "按字符"
 
 #. TRN - Input label. Be short as possible
 msgid "Text gap"
-msgstr ""
+msgstr "文字间距"
 
 #. TRN - Input label. Be short as possible
 msgid "Line gap"
@@ -3686,7 +3686,7 @@ msgid "Nozzle1"
 msgstr "喷嘴1"
 
 msgid "MC Board"
-msgstr "MC Board"
+msgstr "主控板"
 
 msgid "Heat"
 msgstr "加热"
@@ -4093,7 +4093,7 @@ msgid "Add Text"
 msgstr "添加文本"
 
 msgid "Text"
-msgstr "Text"
+msgstr "文本"
 
 msgid "Background"
 msgstr "背景"
@@ -4921,10 +4921,10 @@ msgstr ""
 "*相同的耗材：相同的品牌、类型和颜色。"
 
 msgid "DRY"
-msgstr "DRY"
+msgstr "干燥"
 
 msgid "WET"
-msgstr "WET"
+msgstr "潮湿"
 
 msgid "Please select the filament to match."
 msgstr "请选择要匹配的耗材。"
@@ -4949,7 +4949,7 @@ msgid "External spools is not supported since Filament Track Switch has been ins
 msgstr "安装有变轨器，不支持使用外挂，如果使用，请拔掉变轨器。"
 
 msgid "Select Filament && Hotends"
-msgstr "选择材料预设和喷头"
+msgstr "选择耗材和热端"
 
 msgid "Select Filament"
 msgstr "选择耗材"
@@ -5409,16 +5409,16 @@ msgstr ""
 "否 - 不使用交替额外墙层"
 
 msgid "Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:"
-msgstr "周期性修改器与旋转花瓶模式不兼容。若要启用周期性修改器，建议进行以下调整："
+msgstr "按层周期套用与旋转花瓶模式不兼容。若要启用按层周期套用，建议进行以下调整："
 
 msgid ""
 "Change these settings automatically?\n"
 "Yes - Apply and keep periodic modifier enabled\n"
 "No  - Don't use periodic modifier"
 msgstr ""
-"自动更改这些设置吗？\n"
-"是 - 应用并保持周期性修改器启用\n"
-"否 - 不使用周期性修改器"
+"是否自动修改这些设置？ \n"
+"是 - 应用修改并保持按层周期套用启用 \n"
+"否 - 不使用按层周期套用"
 
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
 msgstr "为使交替额外墙层正常工作，建议进行以下调整："
@@ -5433,7 +5433,7 @@ msgstr ""
 "否 - 保持当前设置并启用交替额外墙层"
 
 msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."
-msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为1，支撑禁用，触碰裹头检测禁用，顶壳层数为0，稀疏填充密度为0，延时摄影类型为即拍模式，Z方向墙速度平滑不启用且周期性修改器关闭。"
+msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为1，支撑禁用，触碰裹头检测禁用，顶壳层数为0，稀疏填充密度为0，延时摄影类型为即时，Z方向墙速度平滑不启用，交替额外墙层关闭且按层周期套用关闭。"
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr "但是I3结构的机器将不会生成延时视频。"
@@ -6516,7 +6516,7 @@ msgid "Partial flushing volume set to 0. Multi-color printing may cause color mi
 msgstr "部分冲刷体积设置为0，多色打印可能导致模型混色，请重新调整冲刷值。"
 
 msgid "Wiki for details"
-msgstr ""
+msgstr "详情查看Wiki"
 
 msgid "Jump to: Prime tower"
 msgstr "转跳到：擦料塔"
@@ -6588,17 +6588,17 @@ msgstr "仍然开始"
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr "您选择了高温热床调平校准，为防止耗材在挤出机中软化，请先退料后再校准。"
 
-msgid "Auto-record Monitoring"
-msgstr "监控录像"
+msgid "Live Camera Recording"
+msgstr "实时摄像头录像"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr "外置存储未安装，暂不支持录像"
 
 msgid "Go Live"
 msgstr "开启直播"
 
-msgid "Live Camera Recording"
-msgstr "实时摄像头录像"
-
 msgid "BirdsEye Camera Recording"
-msgstr ""
+msgstr "俯视摄像头录像"
 
 msgid "Liveview Retry"
 msgstr "实时预览重试"
@@ -6611,6 +6611,9 @@ msgstr "外置存储"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "显示\"直播视频流\"指南。"
+
+msgid "Timelapse can only be set when starting a task."
+msgstr "延时摄影仅支持在发起任务时开启"
 
 msgid "Not Installed"
 msgstr "未安装"
@@ -7215,10 +7218,10 @@ msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "插件库加载失败，点击这里查看解决办法。"
 
 msgid "Switch to BirdsEye Camera"
-msgstr ""
+msgstr "切换到俯视摄像头"
 
 msgid "Switch to Liveview Camera"
-msgstr ""
+msgstr "切换到实况摄像头"
 
 msgid "Switch live camera view"
 msgstr "切换实时摄像头画面"
@@ -7302,7 +7305,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "直播功能依赖 Bambu Studio 运行，关闭软件后直播将在一段时间后结束。"
 
 msgid "Non-live image."
-msgstr ""
+msgstr "非实时画面"
 
 #, c-format, boost-format
 msgid "Captured at %s"
@@ -7674,13 +7677,13 @@ msgstr "即将完成"
 
 #, c++-format
 msgid "For users under the age of majority, some services will be restricted. See our {0} for Bambu Lab Account. To understand our privacy practices, see {1}."
-msgstr ""
+msgstr "您的年龄不满足最低年龄要求，部分服务受限。详见{0}，了解隐私保护详情，请参阅{1}。"
 
 msgid "Age Requirements"
-msgstr ""
+msgstr "年龄要求"
 
 msgid "Privacy Notice"
-msgstr ""
+msgstr "《隐私政策》"
 
 msgid "Camera"
 msgstr "摄像机"
@@ -7716,16 +7719,16 @@ msgid "Filament loading..."
 msgstr "换料中..."
 
 msgid "Live Camera recording"
-msgstr ""
+msgstr "实况摄像头录像中"
 
 msgid "BirdsEye Camera recording"
-msgstr ""
+msgstr "俯视摄像头录像中"
 
 msgid "Timelapse recording"
-msgstr ""
+msgstr "延时摄影中"
 
 msgid "Go Live streaming"
-msgstr ""
+msgstr "直播中"
 
 msgid "Cancel print"
 msgstr "取消打印"
@@ -7830,9 +7833,6 @@ msgstr "保持开启"
 msgid "Still turn it Off"
 msgstr "仍然关闭"
 
-msgid "Can't start this without storage."
-msgstr "没有外部存储就无法启动"
-
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "当前打印机不在3D打印模式，无法切换挤出机"
 
@@ -7933,14 +7933,14 @@ msgid ""
 msgstr "至少需要一个成功的打印记录，才能给出积极的评价（4星或5星）。"
 
 msgid "Active operations"
-msgstr ""
+msgstr "本设备正在进行以下操作"
 
 msgid "Live"
 msgstr "实时播放中"
 
 #, c-format, boost-format
 msgid "Zoom %.1fx"
-msgstr ""
+msgstr "缩放 %.1fx"
 
 msgid "Step file import parameters"
 msgstr "导入step文件选项"
@@ -10200,7 +10200,7 @@ msgid "Top front"
 msgstr "前上方"
 
 msgid "For users under the age of majority, some services will be restricted. This is managed by your parent or guardian in Family Hub."
-msgstr ""
+msgstr "由于年龄限制，该功能由家长账号管理。"
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "当前项目有未保存的更改，是否保存后再继续？"
@@ -10965,7 +10965,7 @@ msgid "No hotends available."
 msgstr "没有可用的热端。"
 
 msgid "No PrintTool available. Please install a compatible tool and try again."
-msgstr "没有可用的打印头。请安装兼容工具后重试。"
+msgstr "没有可用的打印头。请安装匹配工具后重试。"
 
 msgid "PrintTool detached. Please install before printing."
 msgstr "打印头已卸下。请安装后再打印。"
@@ -11221,7 +11221,7 @@ msgstr "%s中已存在的耗材可能会软化，请退料。"
 
 #, c-format, boost-format
 msgid "The filament on %s is unknown and may soften. Please set filament."
-msgstr "%s中耗材未知，可能会软化，请设置耗材->"
+msgstr "%s中耗材未知，可能会软化，请设置耗材。"
 
 msgid "The print queue does not support the Filament Track Switch yet."
 msgstr "打印队列暂不支持耗材变轨器。"
@@ -11845,7 +11845,7 @@ msgid "All objects"
 msgstr "所有对象"
 
 msgid "Modifier cycle"
-msgstr "修改器循环"
+msgstr "修改器周期"
 
 #, c-format, boost-format
 msgid ""
@@ -15623,46 +15623,46 @@ msgid "Adjust the line width of the selected skeleton paths."
 msgstr "为选择的骨架走线设置线宽"
 
 msgid "Conformal infill"
-msgstr "随形填充"
+msgstr "贴形填充"
 
 msgid "Make sparse infill follow each layer's outline instead of using one set of parallel lines. On elongated or curved shapes, lines radiate from a center. Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin."
-msgstr "使稀疏填充遵循每层的轮廓，而非使用一组平行线。在拉长或弯曲的形状中，线条会从中心辐射。适用于之字形、交叉之字形、直线形、对齐直线形和锁定之字形等填充图案。"
+msgstr "让稀疏填充贴着每层轮廓走，而不是一整片平行直线。细长或弯曲外形上，线条从中心向外呈径向。适用于 Zig Zag、Cross Zag、直线、对齐直线，以及 Locked Zag 的填充图案。"
 
 msgid "Layer stagger"
-msgstr "层交错"
+msgstr "层间错开"
 
 msgid "How neighboring layers are offset. Off stacks the same layout. Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding."
-msgstr "相邻层如何偏移。关闭模式下，层堆叠布局相同。交替模式下，保持相同的线条方向，但将每条线条连接到相邻层的对侧，从而改善层间粘合。"
+msgstr "相邻层填充如何错开。关闭时各层走线对齐。交替时走线方向不变，但连接到对侧相邻线条，有利于层间结合。"
 
 msgid "Alternate"
 msgstr "交替"
 
 msgid "Forward layers"
-msgstr "正向层"
+msgstr "正向层数"
 
 msgid "Conformal forward layers"
-msgstr "随形正向层"
+msgstr "贴形填充：正向层数"
 
 msgid "Number of consecutive layers that keep the forward zigzag. Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer."
-msgstr "保持正向Z字形的连续层数。与反向层配合，重复：N层正向，然后M层反向。0表示从第一层开始反向。"
+msgstr "连续使用正向锯齿的层数。与反向层数组成周期：先正向 N 层，再反向 M 层。0 表示从第一层就开始反向。"
 
 msgid "Reverse layers"
-msgstr "反向层"
+msgstr "反向层数"
 
 msgid "Conformal reverse layers"
-msgstr "随形反向层"
+msgstr "贴形填充：反向层数"
 
 msgid "Number of consecutive layers that reverse the zigzag (start from the opposite rim). 0 disables reversing. Forward 1 and Reverse 1 reverses every other layer."
-msgstr "连续反向之字形填充的层数（从对侧边缘开始）。0 禁用反向。设置为“正向 1”或“反向 1”时，将每隔一层反向。"
+msgstr "反向锯齿的连续层数（从对侧外圈起）。0 表示不反向。正向 1、反向 1 为隔层反向。"
 
 msgid "Radial center"
 msgstr "随形中心点"
 
 msgid "Where the radial center comes from. Each layer picks a center on that slice. Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers."
-msgstr "径向中心的生成方式。每个层都会在该切片上选择一个中心点。轴线模式通过这些中心点拟合一条三维直线。平滑曲线模式则拟合一条曲线，确保中心点在层与层之间平稳过渡，不会跳动。"
+msgstr "径向中心从哪来。逐层：每层单独取中心。轴线：各层中心拟合成一条三维直线。平滑曲线：拟合曲线，减少中心跳层。"
 
 msgid "Each layer"
-msgstr "每层"
+msgstr "逐层"
 
 msgid "Axis"
 msgstr "轴"
@@ -15674,7 +15674,7 @@ msgid "Radial line count"
 msgstr "径向线条数"
 
 msgid "How many radial lines around the center. 0 uses the count from sparse infill density. A positive value is the radial line count, rounded up to an even number of at least 4."
-msgstr "围绕中心的径向线条数量。0表示使用稀疏填充密度中的数量。正值表示径向线条的数量，并向上取整为至少4的偶数。"
+msgstr "绕中心的径向线条数。0 按稀疏填充密度自动算。大于 0 为强制条数（向上取整为不少于 4 的偶数）。"
 
 msgid "Center region radius"
 msgstr "中心区域半径"
@@ -16106,25 +16106,25 @@ msgid "Periodic modifier"
 msgstr "周期性修改器"
 
 msgid "Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there."
-msgstr "将此修改器应用于重复层循环。对于跳过的层，它将被忽略，如同此修改器不存在一样。"
+msgstr "按「连续套用 / 连续跳过」的周期套用此修改器。跳过的层完全不套用，等同于该层没有这颗修改器。"
 
 msgid "Skip for"
-msgstr "跳过"
+msgstr "连续跳过"
 
 msgid "Periodic modifier skip layers"
-msgstr "周期性修改器跳过层数"
+msgstr "按层周期套用：连续跳过层数"
 
 msgid "Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer."
-msgstr "此修改器不应用的连续层数。0表示修改器应用于每一层。"
+msgstr "连续不套用此修改器的层数。0 表示每层都套用。"
 
 msgid "Apply for"
-msgstr "应用到"
+msgstr "连续套用"
 
 msgid "Periodic modifier apply layers"
-msgstr "周期修改器应用层数"
+msgstr "按层周期套用：连续套用层数"
 
 msgid "Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for."
-msgstr "此修改器每个周期内完全应用的连续层数。周期从第0层开始：先应用，后跳过。"
+msgstr "每个周期内连续套用此修改器的层数。周期从第 0 层开始：先连续套用，再连续跳过。"
 
 msgid "Ignore infill settings"
 msgstr "忽略填充设置"
@@ -16133,7 +16133,7 @@ msgid "Modifier ignore infill settings"
 msgstr "修改器忽略填充设置"
 
 msgid "Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region."
-msgstr "不应用此修改器的填充设置（填充模式、密度、随形填充及相关选项）。墙和其它覆盖设置仍会生效。填充将沿用父区域的设置。"
+msgstr "不套用此修改器的填充设置（图案、密度、贴形填充及相关选项）。墙和其他覆盖仍生效，填充沿用父区域。"
 
 msgid "Post-processing Scripts"
 msgstr "后处理脚本"
@@ -16967,7 +16967,7 @@ msgid "Diameter limit"
 msgstr "直径限制"
 
 msgid "diameter_limit"
-msgstr "diameter_limit"
+msgstr "直径限制"
 
 msgid "Purging volumes"
 msgstr "冲刷体积"
@@ -17222,10 +17222,10 @@ msgid "invalid value "
 msgstr "无效值"
 
 msgid "--use-firmware-retraction is only supported by Marlin, Klipper, Smoothie, RepRapFirmware, Repetier and Machinekit firmware"
-msgstr "--use-firmware-retraction is only supported by Marlin, Klipper, Smoothie, RepRapFirmware, Repetier and Machinekit firmware"
+msgstr "--use-firmware-retraction 仅支持 Marlin、Klipper、Smoothie、RepRapFirmware、Repetier 和 Machinekit 固件"
 
 msgid "--use-firmware-retraction is not compatible with --wipe"
-msgstr "--use-firmware-retraction is not compatible with --wipe"
+msgstr "--use-firmware-retraction 与 --wipe 不兼容"
 
 #, no-c-format, no-boost-format
 msgid " doesn't work at 100% density "
@@ -19448,7 +19448,7 @@ msgid "This action cannot be undone. Continue?"
 msgstr "此操作无法撤销，是否继续？"
 
 msgid "Skipping objects."
-msgstr "Skipping objects."
+msgstr "正在跳过对象。"
 
 msgid "Custom Color"
 msgstr "自定义颜色"
@@ -20014,31 +20014,31 @@ msgstr "成功从打印机同步耗材颜色和类型。"
 
 msgctxt "FinishSyncAms"
 msgid "OK"
-msgstr "OK"
+msgstr "确定"
 
 msgid "Remark"
-msgstr ""
+msgstr "备注"
 
 msgid "Matched filament"
-msgstr ""
+msgstr "匹配的耗材"
 
 msgid "Add as new filament"
-msgstr ""
+msgstr "作为新耗材录入"
 
 msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS检测到新的官方耗材，是否添加到耗材管理器？"
 
 msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr ""
+msgstr "耗材管理器中找到了一卷类似耗材，已为您自动匹配。"
 
 msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
-msgstr ""
+msgstr "耗材管理器中找到了多卷相似的耗材，请选择匹配结果。"
 
 msgid "New Filament"
 msgstr "新建耗材"
 
 msgid "New filament information has been recorded."
-msgstr ""
+msgstr "新耗材已被录入。"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -20151,7 +20151,7 @@ msgid "Color mixing requires at least two filaments of the same type. The follow
 msgstr "混色至少需要两个同类型耗材。将根据模型颜色添加以下耗材："
 
 msgid "New filament"
-msgstr ""
+msgstr "新建耗材"
 
 msgid "Note: You can also delete or modify the newly added filaments in the drop-down list of the filament matching dialog."
 msgstr "注意：你也可以在耗材匹配弹窗的下拉列表中删除或修改新添加的耗材。"
@@ -20191,7 +20191,7 @@ msgid "Update Firmware"
 msgstr "更新固件"
 
 msgid "Current printer status"
-msgstr ""
+msgstr "当前打印机状态"
 
 msgid "Sync Printer Information"
 msgstr "同步打印机信息"
@@ -21028,6 +21028,12 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "监控录像"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "没有外部存储就无法启动"
 
 #~ msgid "check the Wiki guide"
 #~ msgstr "查看 Wiki 说明"

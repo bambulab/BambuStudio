@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -6609,14 +6609,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "Ghi hình giám sát tự động"
+msgid "Live Camera Recording"
+msgstr "Ghi hình trực tiếp bằng camera"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "Phát trực tiếp"
-
-msgid "Live Camera Recording"
-msgstr "Ghi hình trực tiếp bằng camera"
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6632,6 +6632,9 @@ msgstr "Bộ nhớ ngoài"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Hiển thị trang hướng dẫn \"Video trực tiếp\"."
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr "Chưa lắp đặt"
@@ -7857,9 +7860,6 @@ msgstr "Duy trì bật"
 
 msgid "Still turn it Off"
 msgstr "Vẫn tắt"
-
-msgid "Can't start this without storage."
-msgstr "Không thể bắt đầu nếu không có bộ nhớ."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "Không thể chuyển vòi đùn nhựa khi máy in không ở chế độ FDM"
@@ -21062,6 +21062,12 @@ msgid ""
 msgstr ""
 "Độ tin cậy thành công ngay lần đầu\n"
 "Giảm bớt việc phải theo dõi liên tục, tăng tính dự đoán được của kết quả đầu ra. Ví dụ: một cụm máy in nhỏ in các bộ phận bằng PETG sẽ tránh được những sự cố bất ngờ như \"hỏng hóc sau 6 giờ\" và đảm bảo các lô sản phẩm được hoàn tất đúng tiến độ."
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "Ghi hình giám sát tự động"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "Không thể bắt đầu nếu không có bộ nhớ."
 
 #~ msgid "Click Wiki for details."
 #~ msgstr "Nhấp vào Wiki để biết chi tiết."

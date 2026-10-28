@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2101,7 +2101,7 @@ msgid "Text Gap"
 msgstr "Interlettrage"
 
 msgid "Line Gap"
-msgstr "Intervalle entre les lignes"
+msgstr "Espacement Lignes"
 
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "Avertissement : la matrice de texte contient un miroir ; le faire glisser la régénérera complètement."
@@ -4446,16 +4446,16 @@ msgid "Gap Area"
 msgstr "Zone d'écart"
 
 msgid "Automatically determine the optimal color count"
-msgstr "Détermination automatique du nombre optimal de couleurs"
+msgstr "Déterminer automatiquement le nombre optimal de couleurs"
 
 msgid "Color mixing"
 msgstr "Mélange de couleurs"
 
 msgid "Use official mixing kits →"
-msgstr "Utilisez les kits de mélange officiels →"
+msgstr "Utiliser les kits de mélange officiels →"
 
 msgid "Some colors have no matching filament. Please match them before importing."
-msgstr "Certaines couleurs n'ont pas de filament correspondant. Veuillez les faire correspondre avant l'importation."
+msgstr "Certaines couleurs n'ont pas de filament correspondant. Veuillez les associer avant l'importation."
 
 msgid "Complete All Filaments"
 msgstr "Compléter tous les filaments"
@@ -4474,7 +4474,7 @@ msgid "Previous"
 msgstr "Précédent"
 
 msgid "Discard newly added filaments and re-run automatic matching"
-msgstr "Supprimer les filaments nouvellement ajoutés et relancer la correspondance automatique"
+msgstr "Annuler les filaments nouvellement ajoutés et relancer la correspondance automatique"
 
 msgid "Before matching"
 msgstr "Avant la correspondance"
@@ -4708,7 +4708,7 @@ msgid "Tip: Setting AMS slot information while printing is not supported"
 msgstr "Conseil : La définition des informations relatives à l'emplacement AMS pendant l'impression n'est pas prise en charge"
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
-msgstr "Conseil : La définition des informations relatives à l'emplacement virtuel pendant l'impression n'est pas prise en charge"
+msgstr "Conseil : La définition des informations de slots virtuels pendant l'impression n'est pas prise en charge."
 
 msgid "Please enter valid filament weights."
 msgstr "Veuillez saisir des poids de filament valides."
@@ -6599,14 +6599,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "Surveillance de l'enregistrement automatique"
+msgid "Live Camera Recording"
+msgstr "Enregistrement vidéo en direct"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "Passer en LIVE"
-
-msgid "Live Camera Recording"
-msgstr "Enregistrement vidéo en direct"
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6622,6 +6622,9 @@ msgstr "Stockage externe"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Afficher la page de guide « Vidéo en direct »."
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr "Non installé"
@@ -7851,9 +7854,6 @@ msgstr "Garder allumé"
 msgid "Still turn it Off"
 msgstr "Éteignez-le quand même"
 
-msgid "Can't start this without storage."
-msgstr "Impossible de démarrer sans stockage."
-
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "Impossible de changer d'extrudeur lorsque l'imprimante n'est pas en mode FDM"
 
@@ -8511,13 +8511,13 @@ msgid "Recommended only when using mixed-color filament, to get a better layered
 msgstr "Recommandé uniquement lors de l'utilisation de filaments multicolores, pour obtenir un meilleur effet de superposition de couleurs. Cette fonctionnalité est désactivée par défaut lorsque la hauteur de couche variable est activée."
 
 msgid "Controls where each layer's outer wall starts and ends."
-msgstr "Contrôle où commence et où se termine la paroi extérieure de chaque couche."
+msgstr "Contrôle l'endroit où le mur extérieur de chaque couche commence et se termine."
 
 msgid "That point can leave a small blob or seam line, so choosing a suitable position reduces the seam's impact on the model's appearance."
-msgstr "Ce point peut laisser une petite tache ou une ligne de couture, donc choisir une position appropriée réduit l'impact du joint sur l'apparence du modèle."
+msgstr "Ce point peut laisser une petite bavure ou une ligne de couture, donc choisir une position appropriée réduit l'impact de la couture sur l'apparence du modèle."
 
 msgid "Prints only a single wall loop on top surfaces so the top is filled as much as possible by the infill pattern, for a more consistent look."
-msgstr "N'imprime qu'une seule boucle de paroi sur les surfaces supérieures afin que le motif de remplissage remplisse au maximum la surface, pour un aspect plus uniforme."
+msgstr "N'imprime qu'une seule paroi sur les surfaces supérieures afin que le motif de remplissage remplisse au maximum la surface, pour un aspect plus uniforme."
 
 msgid "On sloped or domed surfaces this option worsens the stair-stepping, so it is not recommended there."
 msgstr "Sur les surfaces inclinées ou bombées, cette option aggrave l'effet d'escalier, elle n'est donc pas recommandée."
@@ -8526,7 +8526,7 @@ msgid "Recommended only for flat top surfaces."
 msgstr "Recommandé uniquement pour les surfaces supérieures planes."
 
 msgid "Uses only a single wall on the model's first layer (the one touching the bed) so the largest possible area is filled by the first-layer infill pattern, for a more consistent look."
-msgstr "Utilise une seule paroi sur la première couche du modèle (celle qui touche le plateau) afin que la plus grande surface possible soit remplie par le motif de remplissage de la première couche, pour un aspect plus uniforme."
+msgstr "Utilise une seule paroi pour la première couche(celle qui touche le plateau) afin que la plus grande surface possible soit remplie par le motif de remplissage de la première couche, pour un aspect plus uniforme."
 
 msgid ""
 "When off, the first layer uses multiple wall loops.\n"
@@ -8536,7 +8536,7 @@ msgstr ""
 "Lorsque cette option est activée, le remplissage est plus continu et le fond est plus plat, mais le contour du bord de la première couche est légèrement moins net."
 
 msgid "Controls the number of wall loops in each layer's shell, a key factor in a model's strength."
-msgstr "Contrôle le nombre de boucles de paroi dans la coque de chaque couche, un facteur clé de la résistance d'un modèle."
+msgstr "Contrôle le nombre de parois de chaque couche, un facteur clé de la résistance d'un modèle."
 
 msgid ""
 "More walls give higher strength but use more material and time;\n"
@@ -21066,6 +21066,12 @@ msgid ""
 msgstr ""
 "Fiabilité Garantie du Premier Coup\n"
 "Moins de surveillance, une production plus prévisible. Exemple : une petite exploitation agricole produisant des pièces en PETG évite les mauvaises surprises \"panne au bout de 6 h\" et respecte les délais de production."
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "Surveillance de l'enregistrement automatique"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "Impossible de démarrer sans stockage."
 
 #~ msgid "Click Wiki for details."
 #~ msgstr "Cliquez sur Wiki pour plus de détails."

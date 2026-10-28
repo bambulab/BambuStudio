@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6610,14 +6610,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "Supervisión de grabación automática"
+msgid "Live Camera Recording"
+msgstr "Grabación de la cámara en vivo"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "Streaming en directo"
-
-msgid "Live Camera Recording"
-msgstr "Grabación de la cámara en vivo"
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6633,6 +6633,9 @@ msgstr "Almacenamiento externo"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Mostrar la página de la guía de \"Vídeo en directo\"."
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr "No instalado"
@@ -7861,9 +7864,6 @@ msgstr "Manténgalo encendido"
 
 msgid "Still turn it Off"
 msgstr "Aun así, apágalo"
-
-msgid "Can't start this without storage."
-msgstr "No se puede iniciar sin almacenamiento."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "No se puede cambiar el extrusor cuando la impresora no está en modo FDM"
@@ -21084,6 +21084,12 @@ msgid ""
 msgstr ""
 "Fiabilidad a la primera\n"
 "Menos supervisión, resultados más predecibles. Ejemplo: una pequeña granja que procesa piezas de PETG evita sorpresas de \"fallo a la hora 6\" y mantiene los lotes según lo previsto."
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "Supervisión de grabación automática"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "No se puede iniciar sin almacenamiento."
 
 #~ msgid "Click Wiki for details."
 #~ msgstr "Pulse en la Wiki para obtener más detalles."

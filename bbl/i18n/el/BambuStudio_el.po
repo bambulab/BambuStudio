@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -6613,14 +6613,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "Παρακολούθηση αυτόματης εγγραφής"
+msgid "Live Camera Recording"
+msgstr "Εγγραφή κάμερας ζωντανής προβολής"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "Ζωντανή μετάδοση"
-
-msgid "Live Camera Recording"
-msgstr "Εγγραφή κάμερας ζωντανής προβολής"
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6636,6 +6636,9 @@ msgstr "Εξωτερικό μέσο αποθήκευσης"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Εμφάνιση σελίδας οδηγού «Ζωντανό βίντεο»."
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr "Δεν έχει εγκατασταθεί"
@@ -7864,9 +7867,6 @@ msgstr "Να παραμείνει ενεργό"
 
 msgid "Still turn it Off"
 msgstr "Ακόμη απενεργοποίηση"
-
-msgid "Can't start this without storage."
-msgstr "Δεν είναι δυνατή η εκκίνηση χωρίς χώρο αποθήκευσης."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "Δεν είναι δυνατή η εναλλαγή του εξωθητήρα όταν ο εκτυπωτής δεν βρίσκεται σε λειτουργία FDM"
@@ -21078,6 +21078,12 @@ msgid ""
 msgstr ""
 "Αξιοπιστία με την πρώτη\n"
 "Λιγότερη ταλαιπωρία, πιο προβλέψιμη απόδοση. Παράδειγμα: μια μικρή εταιρεία που εκτυπώνει τμήματα PETG αποφεύγει τις εκπλήξεις που προκαλούνται από «αστοχίες την 6η ώρα» και διατηρεί τις παρτίδες εντός χρονοδιαγράμματος."
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "Παρακολούθηση αυτόματης εγγραφής"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "Δεν είναι δυνατή η εκκίνηση χωρίς χώρο αποθήκευσης."
 
 #~ msgid "Click Wiki for details."
 #~ msgstr "Κάντε κλικ στο Wiki για λεπτομέρειες."

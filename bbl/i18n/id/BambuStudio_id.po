@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -6609,14 +6609,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "Pemantauan Rekaman Otomatis"
+msgid "Live Camera Recording"
+msgstr "Rekaman Kamera Langsung"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "Tayangkan Langsung"
-
-msgid "Live Camera Recording"
-msgstr "Rekaman Kamera Langsung"
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6632,6 +6632,9 @@ msgstr "Penyimpanan Eksternal"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Tampilkan halaman panduan \"Video Langsung\"."
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr "Tidak Terpasang"
@@ -7857,9 +7860,6 @@ msgstr "Tetap Nyala"
 
 msgid "Still turn it Off"
 msgstr "Tetap matikan"
-
-msgid "Can't start this without storage."
-msgstr "Tidak dapat memulai tanpa penyimpanan."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "Tidak dapat mengganti ekstruder saat printer tidak dalam mode FDM"
@@ -21060,6 +21060,12 @@ msgid ""
 msgstr ""
 "Keandalan Tepat di Percobaan Pertama \n"
 "Lebih sedikit pengawasan, hasil yang lebih terprediksi. Contoh: fasilitas print farm kecil yang mencetak komponen PETG menghindari kejutan 'gagal pada jam ke-6' dan menjaga produksi tetap sesuai jadwal."
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "Pemantauan Rekaman Otomatis"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "Tidak dapat memulai tanpa penyimpanan."
 
 #~ msgid "Click Wiki for details."
 #~ msgstr "Klik Wiki untuk detail."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4445,7 +4445,7 @@ msgid "Use official mixing kits →"
 msgstr "公式ミキシングキットを使用 →"
 
 msgid "Some colors have no matching filament. Please match them before importing."
-msgstr "一部の色に一致するフィラメントがありません。インポート前にそれらを合わせてください。"
+msgstr "一部の色に一致するフィラメントがありません。インポートする前にフィラメントを割り当ててください。"
 
 msgid "Complete All Filaments"
 msgstr "すべてのフィラメントを完成"
@@ -4698,7 +4698,7 @@ msgid "Tip: Setting AMS slot information while printing is not supported"
 msgstr "ヒント：造形中に、AMSスロットを設定できません"
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
-msgstr "ヒント：造形中に、仮想スロットを設定できません"
+msgstr "ヒント：造形中は仮想スロット情報を設定できません"
 
 msgid "Please enter valid filament weights."
 msgstr "有効なフィラメント重量を入力してください。"
@@ -6585,14 +6585,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "自動録画モニタリング"
+msgid "Live Camera Recording"
+msgstr "ライブカメラ録画"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "公開"
-
-msgid "Live Camera Recording"
-msgstr "ライブカメラ録画"
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6608,6 +6608,9 @@ msgstr "外部ストレージ"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "「ライブビュー」ガイドを表示"
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr "未インストール"
@@ -7823,9 +7826,6 @@ msgstr "オンのままにする"
 msgid "Still turn it Off"
 msgstr "それでもオフにする"
 
-msgid "Can't start this without storage."
-msgstr "ストレージなしでは開始できません。"
-
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "プリンターが FDM モードでない場合、押出機を切り替えることはできません。"
 
@@ -8485,7 +8485,7 @@ msgid "That point can leave a small blob or seam line, so choosing a suitable po
 msgstr "その点は小さなブロブやシームラインを残す可能性があるため、適切な位置を選ぶことでシームがモデルの外観に与える影響を軽減できます。"
 
 msgid "Prints only a single wall loop on top surfaces so the top is filled as much as possible by the infill pattern, for a more consistent look."
-msgstr "トップ面には単一の壁ループのみを造形し、トップ面がインフィルパターンで可能な限り埋められ、より均一な外観になります。"
+msgstr "トップ面では壁ループを1本だけ造形し、できるだけ広い範囲をインフィルパターンで埋めることで、より均一な外観にします。"
 
 msgid "On sloped or domed surfaces this option worsens the stair-stepping, so it is not recommended there."
 msgstr "傾斜面やドーム状の面では、このオプションは階段状の段差を悪化させるため、推奨されません。"
@@ -8494,7 +8494,7 @@ msgid "Recommended only for flat top surfaces."
 msgstr "平坦なトップ面にのみ推奨されます。"
 
 msgid "Uses only a single wall on the model's first layer (the one touching the bed) so the largest possible area is filled by the first-layer infill pattern, for a more consistent look."
-msgstr "モデルの一層目（ベッドに接する層）には単一の壁のみを使用し、一層目のインフィルパターンによって可能な限り広い領域が埋められ、より均一な外観になります。"
+msgstr "モデルの一層目（ベッドに接する層）では壁を1本だけ使用し、できるだけ広い範囲を一層目のインフィルパターンで埋めることで、より均一な外観にします。"
 
 msgid ""
 "When off, the first layer uses multiple wall loops.\n"
@@ -21032,6 +21032,12 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "自動録画モニタリング"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "ストレージなしでは開始できません。"
 
 #~ msgid "Click Wiki for details."
 #~ msgstr "詳しくはWikiをクリックしてください。"

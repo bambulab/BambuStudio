@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6612,14 +6612,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "Überwachung automatisch aufzeichnen"
+msgid "Live Camera Recording"
+msgstr "Aufzeichnung der Live-View-Kamera"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "Live-Übertragung starten"
-
-msgid "Live Camera Recording"
-msgstr "Aufzeichnung der Live-View-Kamera"
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6635,6 +6635,9 @@ msgstr "Externer Speicher"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Anleitungsseite „Live-Video“ anzeigen."
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr "Nicht installiert"
@@ -7863,9 +7866,6 @@ msgstr "An lassen"
 
 msgid "Still turn it Off"
 msgstr "Trotzdem ausschalten"
-
-msgid "Can't start this without storage."
-msgstr "Ohne Speicher kann dies nicht gestartet werden."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "Der Extruder kann nicht gewechselt werden, wenn sich der Drucker nicht im FDM-Modus befindet."
@@ -21082,6 +21082,12 @@ msgid ""
 msgstr ""
 "Zuverlässigkeit auf Anhieb\n"
 "Weniger Überwachung, vorhersagbarere Ausgabe. Beispiel: Eine kleine Farm, die PETG-Teile druckt, vermeidet Überraschungen wie \"Ausfall in Stunde 6\" und hält Chargen im Zeitplan."
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "Überwachung automatisch aufzeichnen"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "Ohne Speicher kann dies nicht gestartet werden."
 
 #~ msgid "Click Wiki for details."
 #~ msgstr "Klicken Sie auf Wiki für weitere Details."

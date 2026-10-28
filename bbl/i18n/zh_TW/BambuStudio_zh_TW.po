@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -6589,14 +6589,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "監控錄影"
+msgid "Live Camera Recording"
+msgstr "即時相機錄影"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "開啟直播"
-
-msgid "Live Camera Recording"
-msgstr "即時相機錄影"
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6612,6 +6612,9 @@ msgstr "外部儲存"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "顯示\"直播影片流\"指南。"
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr "未安裝"
@@ -7830,9 +7833,6 @@ msgstr "保持開啟"
 
 msgid "Still turn it Off"
 msgstr "仍然關閉"
-
-msgid "Can't start this without storage."
-msgstr "沒有外部儲存就無法啟動"
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "印表機不在 FDM 模式時無法切換擠出機"
@@ -21010,6 +21010,12 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "監控錄影"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "沒有外部儲存就無法啟動"
 
 #~ msgid "Click Wiki for details."
 #~ msgstr "按一下 Wiki 以瞭解詳細資訊。"

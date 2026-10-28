@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -6619,14 +6619,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "Monitorizare cu înregistrare automată"
+msgid "Live Camera Recording"
+msgstr "Înregistrare live cu cameră"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "Lansează live"
-
-msgid "Live Camera Recording"
-msgstr "Înregistrare live cu cameră"
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6642,6 +6642,9 @@ msgstr "Stocare externă"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Afișați pagina ghidului „Video live”."
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr "Neinstalat"
@@ -7873,9 +7876,6 @@ msgstr "Mențineți pornit"
 
 msgid "Still turn it Off"
 msgstr "Totuși, dezactivați-l"
-
-msgid "Can't start this without storage."
-msgstr "Nu pot porni asta fără spațiu de stocare."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "Nu se poate comuta extruderul când imprimanta nu este în modul FDM"
@@ -21095,6 +21095,12 @@ msgid ""
 msgstr ""
 "Fiabilitate de la prima încercare\n"
 "Mai puțină supraveghere, rezultate mai previzibile. Exemplu: o fermă mică care produce piese PETG evită surprizele de tip „defecțiune la ora 6” și menține loturile la timp."
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "Monitorizare cu înregistrare automată"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "Nu pot porni asta fără spațiu de stocare."
 
 #~ msgid "Click Wiki for details."
 #~ msgstr "Faceți clic pe Wiki pentru detalii."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6604,14 +6604,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "Automatische opnamebewaking"
+msgid "Live Camera Recording"
+msgstr "Live camera-opname"
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "Live gaan"
-
-msgid "Live Camera Recording"
-msgstr "Live camera-opname"
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6627,6 +6627,9 @@ msgstr "Externe opslag"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Toon \"Live Video\" gids pagina."
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr "Niet geïnstalleerd"
@@ -7855,9 +7858,6 @@ msgstr "Houd het aan"
 
 msgid "Still turn it Off"
 msgstr "Zet het nog steeds uit"
-
-msgid "Can't start this without storage."
-msgstr "Kan dit niet starten zonder opslag."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "Kan de extruder niet wisselen wanneer de printer niet in FDM-modus staat"
@@ -21071,6 +21071,12 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "Automatische opnamebewaking"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "Kan dit niet starten zonder opslag."
 
 #~ msgid "Click Wiki for details."
 #~ msgstr "Klik op Wiki voor meer informatie."

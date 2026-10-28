@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -6485,13 +6485,13 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
+msgid "Live Camera Recording"
+msgstr ""
+
+msgid "External storage is not installed. Recording is not supported."
 msgstr ""
 
 msgid "Go Live"
-msgstr ""
-
-msgid "Live Camera Recording"
 msgstr ""
 
 msgid "BirdsEye Camera Recording"
@@ -6507,6 +6507,9 @@ msgid "External Storage"
 msgstr ""
 
 msgid "Show \"Live Video\" guide page."
+msgstr ""
+
+msgid "Timelapse can only be set when starting a task."
 msgstr ""
 
 msgid "Not Installed"
@@ -7707,9 +7710,6 @@ msgid "Keep it On"
 msgstr ""
 
 msgid "Still turn it Off"
-msgstr ""
-
-msgid "Can't start this without storage."
 msgstr ""
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"

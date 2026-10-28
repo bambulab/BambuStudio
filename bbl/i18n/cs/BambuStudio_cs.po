@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 20:10+0800\n"
+"POT-Creation-Date: 2026-10-28 15:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -6642,14 +6642,14 @@ msgstr ""
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
 msgstr ""
 
-msgid "Auto-record Monitoring"
-msgstr "Automatický záznam monitorování"
+msgid "Live Camera Recording"
+msgstr ""
+
+msgid "External storage is not installed. Recording is not supported."
+msgstr ""
 
 msgid "Go Live"
 msgstr "Přejít na živý přenos"
-
-msgid "Live Camera Recording"
-msgstr ""
 
 msgid "BirdsEye Camera Recording"
 msgstr ""
@@ -6665,6 +6665,9 @@ msgstr "Externí úložiště"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Zobrazit stránku průvodce „Živý přenos“."
+
+msgid "Timelapse can only be set when starting a task."
+msgstr ""
 
 msgid "Not Installed"
 msgstr ""
@@ -7899,9 +7902,6 @@ msgstr "Nechat zapnuto"
 
 msgid "Still turn it Off"
 msgstr "Přesto vypnout"
-
-msgid "Can't start this without storage."
-msgstr "Nelze spustit bez úložiště."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr "Nelze přepnout extruder, když tiskárna není v režimu FDM"
@@ -21169,6 +21169,12 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid "Auto-record Monitoring"
+#~ msgstr "Automatický záznam monitorování"
+
+#~ msgid "Can't start this without storage."
+#~ msgstr "Nelze spustit bez úložiště."
 
 #~ msgid "Serious warning:"
 #~ msgstr "Závažné varování:"
