@@ -210,7 +210,13 @@ void PartPlate::init()
 
 	m_print_index = -1;
 	m_print = nullptr;
-	m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmAutoForFlush;
+	// 先判断 m_plater，命令行和校准不能调用 wxGetApp()
+	const ConfigBase* printer_config = nullptr;
+	if (m_plater) {
+		if (PresetBundle* bundle = wxGetApp().preset_bundle)
+			printer_config = &bundle->printers.get_edited_preset().config;
+	}
+	reset_default_filament_map_mode(printer_config);
 }
 
 BedType PartPlate::get_bed_type(bool load_from_project) const
@@ -4352,6 +4358,16 @@ void PartPlate::clear_filament_map_mode()
         m_config.erase("filament_map_mode");
 }
 
+void PartPlate::reset_default_filament_map_mode(const ConfigBase* printer_config)
+{
+    // 单挤出机多喷嘴机型默认使用便捷分组模式，其余机型默认使用省料模式
+    const FilamentMapMode default_mode =
+        (printer_config && is_single_ext_multi_nozzle(*printer_config))
+            ? FilamentMapMode::fmmAutoForMatch
+            : FilamentMapMode::fmmAutoForFlush;
+    m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = default_mode;
+}
+
 void PartPlate::on_extruder_count_changed(int extruder_count)
 {
     if (extruder_count < 2) {
@@ -4362,9 +4378,8 @@ void PartPlate::on_extruder_count_changed(int extruder_count)
         clear_filament_map();
         clear_filament_nozzle_map();
         clear_filament_volume_map();
-        //clear_filament_map_mode();
-        // do not clear mode now, reset to default mode
-        m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmAutoForFlush;
+        PresetBundle* bundle = wxGetApp().preset_bundle;
+        reset_default_filament_map_mode(bundle ? &bundle->printers.get_edited_preset().config : nullptr);
     }
 }
 

@@ -273,6 +273,7 @@ public:
 
     void clear_filament_map();
     void clear_filament_map_mode();
+    void reset_default_filament_map_mode(const ConfigBase* printer_config);
     void clear_filament_nozzle_map();
     void clear_filament_volume_map();
 

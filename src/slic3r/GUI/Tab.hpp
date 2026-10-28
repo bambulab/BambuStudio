@@ -748,6 +748,7 @@ private:
     std::vector<int> 	 m_extruder_type;
     std::string          m_base_preset_name;
     std::string          m_base_preset_model;
+    bool                 m_is_single_ext_multi_nozzle = false;
 
     /**
      * \brief Show the nozzle count and volume type of one extruder from the nozzle inventory

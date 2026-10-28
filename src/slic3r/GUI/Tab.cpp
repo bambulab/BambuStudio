@@ -6177,7 +6177,10 @@ void TabPrinter::on_preset_loaded()
 
     if (base_name != m_base_preset_name) {
         const bool model_changed = base_model != m_base_preset_model;
+        const bool is_single_ext_multi_nozzle_now = is_single_ext_multi_nozzle(current_printer.config);
+        const bool single_ext_multi_nozzle_changed = !m_base_preset_model.empty() && (is_single_ext_multi_nozzle_now != m_is_single_ext_multi_nozzle);
         m_base_preset_name = base_name;
+        m_is_single_ext_multi_nozzle = is_single_ext_multi_nozzle_now;
         // A preset switch writes no nozzles; the inventory resolves them for the new printer.
         auto *plater = wxGetApp().plater();
         if (!(plater && plater->is_loading_project())) {
@@ -6186,6 +6189,13 @@ void TabPrinter::on_preset_loaded()
         }
 
         if (model_changed) {
+            if (single_ext_multi_nozzle_changed && plater && !plater->is_loading_project()) {
+                for (PartPlate *plate : plater->get_partplate_list().get_plate_list()) {
+                    if (plate)
+                        plate->reset_default_filament_map_mode(&current_printer.config);
+                }
+            }
+
             auto extruder_type = current_printer.config.option<ConfigOptionEnumsGeneric>("extruder_type")->values;
             bool update_extruder_title = extruder_type.size() != m_extruder_type.size();
             for (size_t idx = 0; idx < extruders_count; idx++) {
