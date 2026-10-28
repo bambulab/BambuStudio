@@ -15,6 +15,9 @@
 
 #include "libslic3r/Utils.hpp"
 #include "slic3r/Utils/WxFontUtils.hpp"
+#if defined(__WXOSX__)
+#include "slic3r/Utils/MacDarkMode.hpp"
+#endif
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Preview.hpp"
@@ -68,6 +71,19 @@ static void _add_containers(const AmsMapingPopup* win,
     }
 }
 
+#if defined(__WXOSX__)
+static void SetHotendMappingWebCompositorSuppressed(DeviceWebHost* host, bool suppress)
+{
+    if (!host)
+        return;
+    wxWebView* web = host->GetWebView();
+    if (!web)
+        return;
+    if (void* native = web->GetNativeBackend())
+        Slic3r::GUI::WKWebView_setCompositorSuppressed(native, suppress);
+}
+#endif
+
 void AmsMapingPopup::update(MachineObject* obj,
                             const std::vector<FilamentInfo>& ams_mapping_result,
                             bool use_dynamic_switch,
@@ -104,6 +120,9 @@ void AmsMapingPopup::update(MachineObject* obj,
     // Restore legacy layout in case a previous hotend-rack call hid the scrolled body.
     m_scrolled_window->Show(true);
     if (m_hotend_web_host) m_hotend_web_host->Show(false);
+#if defined(__WXOSX__)
+    SetHotendMappingWebCompositorSuppressed(m_hotend_web_host, true);
+#endif
 
     /*title*/
     update_title(obj);
@@ -762,6 +781,9 @@ void AmsMapingPopup::update_hotend_web(MachineObject* obj,
         });
     }
     m_hotend_web_host->Show(true);
+#if defined(__WXOSX__)
+    SetHotendMappingWebCompositorSuppressed(m_hotend_web_host, false);
+#endif
 
     // Push the latest snapshot into the registered VM. Refresh() force-pushes
     // (bypassing the visibility gate) so the still-hidden but alive WebView can
