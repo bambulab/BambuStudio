@@ -1367,7 +1367,7 @@ wxBoxSizer* MixedFilamentDialog::create_recommendation_grid()
 
     auto* rec_line = new wxPanel(this, wxID_ANY);
     rec_line->SetMinSize(wxSize(-1, 1));
-    rec_line->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#DFDFDF")));
+    rec_line->SetBackgroundColour(StateColor::darkModeColorFor(ThemeColor::Grey400));
     title_sizer->Add(rec_line, 1, wxALIGN_CENTER_VERTICAL);
 
     outer->Add(title_sizer, 0, wxEXPAND | wxBOTTOM, FromDIP(4));
@@ -1529,7 +1529,8 @@ wxBoxSizer* MixedFilamentDialog::create_button_panel()
     m_btn_ok = new Button(this, _L("OK"));
     m_btn_ok->SetBackgroundColor(wxColour("#00AE42"));
     m_btn_ok->SetBorderColor(wxColour("#00AE42"));
-    m_btn_ok->SetTextColor(*wxWHITE);
+    // #FFFFFE is not remapped by dark mode, keeping the text white on the green button.
+    m_btn_ok->SetTextColor(wxColour("#FFFFFE"));
     m_btn_ok->SetMinSize(wxSize(FromDIP(55), FromDIP(24)));
     m_btn_ok->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
         if (!m_can_confirm)
@@ -1567,6 +1568,10 @@ void MixedFilamentDialog::rebuild_all_combos()
 
         int restore_sel = -1;
         unsigned int cur_phys = (i < m_result.components.size()) ? m_result.components[i] : 0;
+        const bool has_match_target = m_match_mode && m_match_target >= 0
+                                      && size_t(m_match_target) < m_physical_colors.size();
+        const std::string target_hex = has_match_target
+            ? decompose_normalize_color_hex(m_physical_colors[m_match_target]) : std::string();
 
         if (cur_phys == 0) {
             combo->Append(_L("-- Select --"));
@@ -1579,7 +1584,10 @@ void MixedFilamentDialog::rebuild_all_combos()
 
             if (others_selected.count(phys_1based))
                 continue;
-            if (m_match_mode && m_match_target >= 0 && phys_1based == unsigned(m_match_target + 1))
+            // Same-color filaments cannot be mix components for the target, matching run_color_match().
+            if (has_match_target && (int(j) == m_match_target
+                                     || (j < m_physical_colors.size()
+                                         && decompose_normalize_color_hex(m_physical_colors[j]) == target_hex)))
                 continue;
 
             int style = 0;
@@ -1949,7 +1957,12 @@ void MixedFilamentDialog::update_warning_panel_height()
     }
     if (m_warning_panel->GetMinSize().GetHeight() != height) {
         m_warning_panel->SetMinSize(wxSize(-1, height));
-        Layout();
+        // Color matching follows the content height, so resize the dialog
+        // instead of pushing the bottom controls out of view.
+        if (m_match_mode && m_warning_panel->IsShown())
+            apply_dialog_size(true);
+        else
+            Layout();
     }
 }
 
@@ -2106,6 +2119,7 @@ void MixedFilamentDialog::update_ok_button_state()
     }
 
     if (m_warning_panel) {
+        const bool was_shown = m_warning_panel->IsShown();
         m_warning_panel->Show((no_match && !m_match_error_msg.empty())
                               || (!no_match && (has_type_mismatch || has_diameter_mismatch)));
         // Force a repaint: when the panel is already visible and only the
@@ -2113,7 +2127,10 @@ void MixedFilamentDialog::update_ok_button_state()
         // generate a paint event, so paint_warning_panel keeps the stale text.
         update_warning_panel_height();
         m_warning_panel->Refresh();
-        Layout();
+        if (m_match_mode && was_shown != m_warning_panel->IsShown())
+            apply_dialog_size(true);
+        else
+            Layout();
     }
 }
 
@@ -2576,7 +2593,9 @@ wxBoxSizer* MixedFilamentDialog::create_match_header()
 
     // Empty state shown instead of the recipe when no mix can be matched.
     m_match_empty_sizer = new wxBoxSizer(wxVERTICAL);
-    auto* empty_bmp = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("diff_empty_state", this, 90));
+    // diff_empty_state has no dark variant; preset_empty(_dark) is the same illustration with both themes.
+    auto* empty_bmp = new wxStaticBitmap(this, wxID_ANY,
+        create_scaled_bitmap(wxGetApp().dark_mode() ? "preset_empty_dark" : "preset_empty", this, 90));
     m_match_empty_sizer->Add(empty_bmp, 0, wxALIGN_CENTER_HORIZONTAL);
     m_match_status = new wxStaticText(this, wxID_ANY, _L("No results"), wxDefaultPosition, wxDefaultSize,
                                       wxALIGN_CENTER_HORIZONTAL);
