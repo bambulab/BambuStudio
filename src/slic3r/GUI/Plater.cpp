@@ -4732,6 +4732,21 @@ void Sidebar::load_ams_list(MachineObject* obj)
 
 void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
 {
+    // This function mutates the project filament list and opens modal dialogs.
+    // A modal pumps a nested event loop, so a queued or automatic sync request
+    // can call back in before the outer call has returned. Without a guard the
+    // calls re-enter each other until the stack is exhausted and the process
+    // crashes with STATUS_STACK_OVERFLOW.
+    if (m_in_sync_ams_list) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": nested call ignored, a sync is already in progress";
+        return;
+    }
+    m_in_sync_ams_list = true;
+    struct SyncGuard {
+        bool &flag;
+        ~SyncGuard() { flag = false; }
+    } sync_guard{m_in_sync_ams_list};
+
     wxBusyCursor cursor;
     // Force load ams list
     auto obj = wxGetApp().getDeviceManager()->get_selected_machine();
