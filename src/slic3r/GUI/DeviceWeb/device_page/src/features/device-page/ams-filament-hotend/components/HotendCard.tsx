@@ -585,7 +585,7 @@ function ToolLabelRow({ className, text }: { className: string; text: string }) 
       ref={ref}
       className={className}
       title={clipped ? text : undefined}
-      style={compact ? { fontSize: '11px', lineHeight: '14px' } : undefined}
+      style={compact ? { fontSize: '10px', lineHeight: '14px' } : undefined}
     >
       {text || '\u00A0'}
     </div>
