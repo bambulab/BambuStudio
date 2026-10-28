@@ -8,6 +8,7 @@
 #include <wx/panel.h>
 
 #include "GUI_Utils.hpp"
+#include "ExtruderHelpers.hpp" // NozzleConfig and DevNozzle::NozzleToolKind, held by NozzleRackPanel
 #include "libslic3r/PrintConfig.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/Label.hpp"
@@ -21,16 +22,8 @@ class ComboBox;
 
 namespace Slic3r::GUI {
 
-struct NozzleConfig;
 class NozzleSlotTile; // one labelled nozzle slot: icon + diameter + flow; defined in ExtruderPanel.cpp
 class SlimScrollbar;
-
-enum class NozzleStatus : int
-{
-    nsNormal = 0,
-    nsError,
-    nsUnknown
-};
 
 // Single-/multi-diameter mode pill geometry, from the design. Shared because DiameterButtonPanel
 // sizes the widget to its widest item while the nozzle card that hosts it both straddles its own top
@@ -94,7 +87,7 @@ public:
     // this is a no-op elsewhere. The selector belongs to single-extruder multi-nozzle printers only.
     void        ShowModeSelector(bool show);
     /**
-     * rief Whether the diameter buttons show.
+     * \brief Whether the diameter buttons show.
      *
      * Multi-diameter mode hides them only while the mode selector is shown: a printer without the
      * selector keeps its buttons whatever the project's mode says.
@@ -222,6 +215,16 @@ public:
                   std::vector<DevAms *> const   &ams1,
                   std::vector<DevAmsTray> const &ext);
 
+    /**
+     * \brief Show the 2D tools the printer reports in the slots the project leaves empty
+     *
+     * Cheap to call on every printer message: the tiles redraw only when \p kinds changes.
+     *
+     * \param extruder  0-based extruder
+     * \param kinds     tool kind per slot from machine_slot_tool_kinds(); empty forgets them
+     */
+    void sync_machine_slots(int extruder, std::vector<DevNozzle::NozzleToolKind> kinds);
+
     void Rescale();
 
 private:
@@ -247,6 +250,14 @@ private:
     void     update_ams();
     void     show_ams_units(int extruder, ExtruderAms &ams, bool visible, bool enabled);
     void     show_mismatch(bool mismatch); // no slot matches the selected diameter
+    void     rebuild_tiles();              // from the project slots and the printer's 2D tools
+    int      add_extruder_tiles(int extruder, bool multi_diameter); // returns the slots on the selected diameter
+
+    // Two sources at two rates: the project slots change on user edits and sync (UpdateNozzles), the
+    // printer's 2D tools on every printer message (sync_machine_slots). Either one rebuilds the tiles.
+    std::vector<std::vector<NozzleConfig>> m_extruders;
+    wxString                               m_selected_diameter;
+    std::array<std::vector<DevNozzle::NozzleToolKind>, MAX_EXTRUDERS> m_machine_kinds;
 
     int                                   m_extruder_count{1};
     wxStaticBitmap                       *m_warning_icon{nullptr};

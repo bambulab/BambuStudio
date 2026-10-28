@@ -976,6 +976,8 @@ struct Sidebar::priv
     ExtruderGroup *single_extruder = nullptr;
     wxGridSizer   *hsizer_extruder = nullptr;
     bool                      extruder_panel_update_pending = false;
+    // The project's nozzle slots per extruder. A sync seeds them from the printer, so they also carry
+    // that sync's printer snapshot (status, AMS slots); see NozzleConfig for why it goes stale.
     std::vector<NozzleConfig> l_ext_cfg;
     std::vector<NozzleConfig> r_ext_cfg;
     std::vector<NozzleConfig> s_ext_cfg;
@@ -3450,7 +3452,10 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
             group->ShowBadge(false);
             group->sync_ams(nullptr, {}, {});
         }
-        for (int extruder : {0, 1}) nozzle_card->GetPanel()->sync_ams(extruder, nullptr, {}, {}, {}, {});
+        for (int extruder : {0, 1}) {
+            nozzle_card->GetPanel()->sync_ams(extruder, nullptr, {}, {}, {}, {});
+            nozzle_card->GetPanel()->sync_machine_slots(extruder, {});
+        }
         nozzle_card->ShowBadge(false);
         btn_sync_printer->SetBorderColor(not_synced_colour);
         btn_sync_printer->SetIcon("printer_sync");
@@ -3587,12 +3592,14 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
             single_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
             nozzle_card->ShowBadge(true);
             nozzle_card->GetPanel()->sync_ams(0, obj, machine_extruder_infos[0].ams_internal, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1, machine_extruder_infos[0].ext_v);
+            nozzle_card->GetPanel()->sync_machine_slots(0, machine_slot_tool_kinds(obj, LOGIC_UNIQUE_EXTRUDER_ID));
             extruder_synced[0] = true;
         }
         else {
             single_extruder->ShowBadge(false);
             single_extruder->sync_ams(obj, {}, {});
             nozzle_card->GetPanel()->sync_ams(0, obj, {}, {}, {}, {});
+            nozzle_card->GetPanel()->sync_machine_slots(0, {});
         }
     }
     else if (extruder_nums == 2) {
@@ -3602,24 +3609,28 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
             left_extruder->ShowBadge(true);
             left_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
             nozzle_card->GetPanel()->sync_ams(0, obj, {}, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1, machine_extruder_infos[0].ext_v);
+            nozzle_card->GetPanel()->sync_machine_slots(0, machine_slot_tool_kinds(obj, LOGIC_L_EXTRUDER_ID));
             extruder_synced[0] = true;
         }
         else {
             left_extruder->ShowBadge(false);
             left_extruder->sync_ams(obj, {}, {});
             nozzle_card->GetPanel()->sync_ams(0, obj, {}, {}, {}, {});
+            nozzle_card->GetPanel()->sync_machine_slots(0, {});
         }
 
         if (right_synced) {
             right_extruder->ShowBadge(true);
             right_extruder->sync_ams(obj, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1);
             nozzle_card->GetPanel()->sync_ams(1, obj, {}, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1, machine_extruder_infos[1].ext_v);
+            nozzle_card->GetPanel()->sync_machine_slots(1, machine_slot_tool_kinds(obj, LOGIC_R_EXTRUDER_ID));
             extruder_synced[1] = true;
         }
         else {
             right_extruder->ShowBadge(false);
             right_extruder->sync_ams(obj, {}, {});
             nozzle_card->GetPanel()->sync_ams(1, obj, {}, {}, {}, {});
+            nozzle_card->GetPanel()->sync_machine_slots(1, {});
         }
 
         nozzle_card->ShowBadge(left_synced && right_synced);

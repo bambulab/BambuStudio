@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <iterator>
 #include <optional>
 #include <string>
 #include <vector>
@@ -48,6 +49,36 @@ namespace {
 constexpr int CARD_W   = 100;
 constexpr int CARD_H   = 88; // header pill + the diameter and type rows; the combos that set it to 100 are gone
 constexpr int CARD_GAP = 16;
+constexpr int ROW_PAD  = 8; // card edge to a caption or a value
+constexpr int ROW_GAP  = 4; // least space between a caption and its value
+
+/**
+ * \brief Set on \p value the largest body font, 12 down to 8, at which \p text fits beside \p caption
+ *
+ * Falls back to the smallest size when even that overflows. The caption keeps its 12px font.
+ *
+ * \param value    the value label of a card row
+ * \param caption  the row's caption text, such as "Diameter"
+ * \param text     the new value text
+ */
+void set_fitting_value(Label *value, const wxString &caption, const wxString &text)
+{
+    int caption_w = 0, text_w = 0, text_h = 0;
+    value->GetTextExtent(caption, &caption_w, &text_h, nullptr, nullptr, &Label::Body_12);
+    const int max_w = value->FromDIP(CARD_W - 2 * ROW_PAD - ROW_GAP) - caption_w;
+
+    const wxFont *fonts[] = {&Label::Body_12, &Label::Body_11, &Label::Body_10, &Label::Body_9, &Label::Body_8};
+    const wxFont *fit     = fonts[std::size(fonts) - 1];
+    for (const wxFont *font : fonts) {
+        value->GetTextExtent(text, &text_w, &text_h, nullptr, nullptr, font);
+        if (text_w <= max_w) {
+            fit = font;
+            break;
+        }
+    }
+    value->SetFont(*fit);
+    value->SetLabel(text);
+}
 
 // Card fill/border/corner as ThemeColor tokens; mapped through StateColor's dark map at paint time.
 inline wxColour themed(const wxColour &c) { return wxGetApp().dark_mode() ? StateColor::darkModeColorFor(c) : c; }
@@ -128,7 +159,9 @@ public:
 
     // machine_cfg: what the connected printer reports for this nozzle slot right now, or nullptr when
     // no printer is connected. The synced badge compares the card against this, never against the seed.
-    NozzleCard(wxWindow *parent, int number, int extruder_index, const NozzleConfig &seed, const NozzleConfig *machine_cfg, const std::vector<std::string> &diameters, ChangedFn on_changed);
+    // machine_kind: the tool the printer shows in this slot; Unknown when not synced.
+    NozzleCard(wxWindow *parent, int number, int extruder_index, const NozzleConfig &seed, const NozzleConfig *machine_cfg,
+               DevNozzle::NozzleToolKind machine_kind, const std::vector<std::string> &diameters, ChangedFn on_changed);
     ~NozzleCard() override;
 
     // Consulted by apply_pick() before the card changes. Returning false abandons the pick, leaving
@@ -136,6 +169,7 @@ public:
     void SetConfirmChange(std::function<bool(const NozzleConfig &)> cb) { m_confirm_change = std::move(cb); }
 
     NozzleConfig GetConfig() const;
+    SlotFace     face() const { return slot_face(GetConfig(), m_machine_kind); } // what the hotend under the card shows
     wxString     GetDiameter() const; // parsed value ("" when Empty)
     void RefreshState(); // re-derive the synced badge after an edit
     void Rescale();
@@ -153,6 +187,7 @@ private:
     int                              m_extruder_index{0};
     NozzleConfig                     m_seed;
     std::optional<NozzleConfig>      m_machine_cfg; // connected printer's config for this slot; unset when disconnected
+    DevNozzle::NozzleToolKind        m_machine_kind{DevNozzle::NozzleToolKind::Unknown};
     std::vector<std::string>         m_diameters;
     ChangedFn                        m_on_changed;
     std::function<bool(const NozzleConfig &)> m_confirm_change;
@@ -176,11 +211,13 @@ private:
     wxWeakRef<CascadeMenuPopup> m_sub_menu; // the open flow menu, if any
 };
 
-NozzleCard::NozzleCard(wxWindow *parent, int number, int extruder_index, const NozzleConfig &seed, const NozzleConfig *machine_cfg, const std::vector<std::string> &diameters, ChangedFn on_changed)
+NozzleCard::NozzleCard(wxWindow *parent, int number, int extruder_index, const NozzleConfig &seed, const NozzleConfig *machine_cfg,
+                       DevNozzle::NozzleToolKind machine_kind, const std::vector<std::string> &diameters, ChangedFn on_changed)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
     , m_extruder_index(extruder_index)
     , m_seed(seed)
     , m_machine_cfg(machine_cfg ? std::optional<NozzleConfig>(*machine_cfg) : std::nullopt)
+    , m_machine_kind(machine_kind)
     , m_diameters(diameters)
     , m_on_changed(std::move(on_changed))
     , m_status(seed.status)
@@ -246,6 +283,7 @@ void NozzleCard::build_value_rows(wxSizer *v)
         name->SetBackgroundColour(GetBackgroundColour());
         row->Add(name, 0, wxALIGN_CENTER_VERTICAL);
 
+        row->AddSpacer(FromDIP(ROW_GAP));
         row->AddStretchSpacer();
 
         auto *value = new Label(this, wxEmptyString);
@@ -254,7 +292,7 @@ void NozzleCard::build_value_rows(wxSizer *v)
         value->SetBackgroundColour(GetBackgroundColour());
         row->Add(value, 0, wxALIGN_CENTER_VERTICAL);
 
-        v->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
+        v->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(ROW_PAD));
         return value;
     };
 
@@ -267,11 +305,21 @@ void NozzleCard::build_value_rows(wxSizer *v)
 
 void NozzleCard::refresh_values()
 {
-    if (m_diameter_value) m_diameter_value->SetLabel(m_diameter.IsEmpty() ? _L("Empty") : m_diameter + " mm");
-    // An empty slot has no flow type to report, so the row reads as a dash rather than claiming
-    // the Standard the config happens to default to.
-    if (m_flow_value) m_flow_value->SetLabel(m_diameter.IsEmpty() ? wxString("--") : flow_label(m_volume));
+    // An empty slot or a 2D tool has no flow type to report, so the row reads as a dash rather than
+    // claiming the Standard the config happens to default to.
+    wxString diameter = m_diameter; // no unit, as in the design: "0.4 mm" does not fit beside the caption at 12px
+    wxString flow     = flow_label(m_volume);
+    switch (face()) {
+    case SlotFace::Empty: diameter = _L("Empty"); flow = "-"; break;
+    case SlotFace::Cutter:
+    case SlotFace::Pen: diameter = "-"; flow = "-"; break;
+    default: break;
+    }
+    // A long translation such as "Empty" would be cut off at 12px in the narrow card.
+    if (m_diameter_value) set_fitting_value(m_diameter_value, _L("Diameter"), diameter);
+    if (m_flow_value) set_fitting_value(m_flow_value, _L("Type"), flow);
     Layout();
+    GetParent()->Refresh(); // the hotend under the card follows the face
 }
 
 void NozzleCard::apply_pick(const wxString &diameter, NozzleVolumeType volume)
@@ -441,7 +489,7 @@ void NozzleCard::RefreshState()
 void NozzleCard::Rescale()
 {
     SetMinSize(FromDIP(wxSize(CARD_W, CARD_H)));
-    Layout();
+    refresh_values(); // the fitting font depends on the DPI
 }
 
 // Rounded card body in the card's background colour with a grey border. The "Nozzle N" pill draws its own background.
@@ -512,9 +560,44 @@ private:
     void     OnPaint(wxPaintEvent &evt);
 };
 
-constexpr int TUBE_MIN_H = 24; // tube length under a lower-row card
-constexpr int HOTEND_W   = 24;
-constexpr int HOTEND_H   = 48;
+constexpr int    TUBE_MIN_H   = 24; // tube length under a lower-row card
+constexpr int    HOTEND_W     = 24;
+constexpr int    HOTEND_H     = 48;
+constexpr double TOOL_OPACITY = 0.5; // a 2D tool is drawn faded: the project cannot print with it
+
+/**
+ * \brief \p bitmap blended onto \p background at \p opacity
+ */
+wxBitmap faded_bitmap(const wxBitmap &bitmap, const wxColour &background, double opacity)
+{
+    auto blend = [opacity](unsigned char foreground, unsigned char backdrop) {
+        return static_cast<unsigned char>(foreground * opacity + backdrop * (1.0 - opacity) + 0.5);
+    };
+    wxImage image = bitmap.ConvertToImage();
+    for (int y = 0; y < image.GetHeight(); ++y)
+        for (int x = 0; x < image.GetWidth(); ++x)
+            image.SetRGB(x, y, blend(image.GetRed(x, y), background.Red()), blend(image.GetGreen(x, y), background.Green()),
+                         blend(image.GetBlue(x, y), background.Blue()));
+    return wxBitmap(image, -1, bitmap.GetScaleFactor());
+}
+
+/**
+ * \brief The hotend art under a card with face \p face
+ *
+ * \param window      the rack view, for DPI and theme
+ * \param background  the colour a faded tool blends onto
+ */
+wxBitmap hotend_bitmap(wxWindow *window, SlotFace face, const wxColour &background)
+{
+    // The hotend assets run a little past their 48px slot; the overhang is clipped as in the design.
+    // The empty box outlines the slot itself, so it loads at the slot height or its bottom edge is clipped.
+    switch (face) {
+    case SlotFace::Empty: return create_scaled_bitmap("prepare_nozzle_empty", window, HOTEND_H);
+    case SlotFace::Cutter: return faded_bitmap(create_scaled_bitmap("prepare_nozzle_cutter", window, 52), background, TOOL_OPACITY);
+    case SlotFace::Pen: return faded_bitmap(create_scaled_bitmap("prepare_nozzle_pen", window, 52), background, TOOL_OPACITY);
+    default: return create_scaled_bitmap("prepare_nozzle_normal", window, 52);
+    }
+}
 
 NozzleRackView::NozzleRackView(wxWindow *parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
 {
@@ -563,17 +646,17 @@ void NozzleRackView::OnPaint(wxPaintEvent &)
         if (card->IsShown()) lowest = std::max(lowest, card->GetRect().GetBottom() + 1);
     const int hotend_top = lowest + FromDIP(TUBE_MIN_H);
 
-    // The asset runs a little past its 48px slot; the overhang is clipped as in the design.
-    const wxBitmap hotend = create_scaled_bitmap("prepare_nozzle_normal", this, 52);
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(themed(ThemeColor::Grey400)));
-    for (wxWindow *card : GetChildren()) {
-        if (!card->IsShown()) continue;
+    for (wxWindow *child : GetChildren()) {
+        auto *card = dynamic_cast<NozzleCard *>(child);
+        if (!card || !card->IsShown()) continue;
         const wxRect rc = card->GetRect();
         const int    cx = rc.GetLeft() + rc.GetWidth() / 2;
         draw_tube(dc, cx, rc.GetBottom() + 1, hotend_top);
 
-        wxDCClipper clip(dc, wxRect(cx - FromDIP(HOTEND_W) / 2, hotend_top, FromDIP(HOTEND_W), FromDIP(HOTEND_H)));
+        const wxBitmap hotend = hotend_bitmap(this, card->face(), GetBackgroundColour());
+        wxDCClipper    clip(dc, wxRect(cx - FromDIP(HOTEND_W) / 2, hotend_top, FromDIP(HOTEND_W), FromDIP(HOTEND_H)));
         // Logical width, not GetWidth(): on macOS the bitmap carries a 2x scale factor, so its pixel
         // width is twice what DrawBitmap lays down and centering on it pushes the hotend a full icon left.
         dc.DrawBitmap(hotend, cx - int(hotend.GetScaledWidth()) / 2, hotend_top, true);
@@ -631,13 +714,19 @@ void NozzleSettingsCardDialog::build_card_grid(wxBoxSizer *main_sizer, const std
 
     // What the connected printer reports right now; the per-card synced badge compares against this,
     // never against the seed. A disconnected printer leaves `synced` false, so no card is ever synced.
+    // The tool kind comes from a second read with its own health rule; one machine-slot collector
+    // would remove this pairing (see the TODO on NozzleConfig).
     const MachineNozzleBaseline baseline     = collect_machine_nozzle_baseline(false); // card dialog is single-extruder
     const auto                 &machine_cfgs = baseline.configs[0];
+    DeviceManager              *dev          = wxGetApp().getDeviceManager();
+    const auto machine_kinds = baseline.synced ? machine_slot_tool_kinds(dev ? dev->get_selected_machine() : nullptr, LOGIC_UNIQUE_EXTRUDER_ID)
+                                               : std::vector<DevNozzle::NozzleToolKind>{};
 
     // Single extruder: nozzles number 1..n in the order the rack receives them.
     for (int i = 0; i < (int) seeds.size(); ++i) {
         const NozzleConfig *machine_cfg = (baseline.synced && i < (int) machine_cfgs.size()) ? &machine_cfgs[i] : nullptr;
-        auto               *card        = new NozzleCard(rack, i + 1, 0, seeds[i], machine_cfg, diameters, on_changed);
+        const auto          kind        = i < (int) machine_kinds.size() ? machine_kinds[i] : DevNozzle::NozzleToolKind::Unknown;
+        auto               *card        = new NozzleCard(rack, i + 1, 0, seeds[i], machine_cfg, kind, diameters, on_changed);
         card->SetConfirmChange([this](const NozzleConfig &from) { return confirm_nozzle_change(from); });
         m_cards.push_back(card);
         rack->add_card(card);

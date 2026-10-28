@@ -11,7 +11,6 @@
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "Plater.hpp"
-#include "ExtruderPanel.hpp" // NozzleStatus enumerators
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/MultiNozzleUtils.hpp"
 #include "libslic3r/Utils.hpp"
@@ -19,6 +18,8 @@
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Schema.hpp"
 #include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
@@ -240,27 +241,18 @@ namespace {
 void place_nozzle(std::vector<const DevNozzle *> &nozzles, int slot, const DevNozzle *nozzle)
 {
     if (slot < 0 || slot >= (int) nozzles.size()) {
-        BOOST_LOG_TRIVIAL(warning) << "collect_nozzle_configs_from_machine: nozzle slot " << slot << " outside the " << nozzles.size() << " slot(s) this extruder has, ignored";
+        BOOST_LOG_TRIVIAL(warning) << "nozzle slot " << slot << " outside the " << nozzles.size() << " slot(s) this extruder has, ignored";
         return;
     }
     nozzles[slot] = nozzle;
 }
 
-} // namespace
-
-// The nozzles the machine reports for one logical extruder, as slot-ordered configs. Rack nozzles
-// are placed by addr id, then overridden by whatever sits on the extruder itself. Slots the machine
-// cannot describe (absent, unknown, error, not a hotend) come back with an empty diameter, and the
-// result always holds `extruder_nozzle_count` entries.
-std::vector<NozzleConfig> collect_nozzle_configs_from_machine(MachineObject *obj, int extruder_idx, int extruder_nozzle_count)
+// The machine nozzles of one logic extruder in slot order: rack nozzles by addr id, then the nozzle on
+// the extruder on top of its slot. A slot the machine reports nothing for stays nullptr.
+std::vector<const DevNozzle *> placed_nozzles(const DevNozzleSystem &nozzle_system, int extruder_idx, int slot_count)
 {
-    if (!obj || !obj->GetNozzleSystem()) { return {}; }
-    if (extruder_nozzle_count <= 0) { return {}; }
-    auto *nozzle_system = obj->GetNozzleSystem();
-
-    // remove duplicated nozzle, total number of nozzle is no more than `extruder_nozzle_count`
-    std::vector<const DevNozzle *> nozzles;
-    nozzles.resize(extruder_nozzle_count);
+    // remove duplicated nozzle, total number of nozzle is no more than `slot_count`
+    std::vector<const DevNozzle *> nozzles(slot_count, nullptr);
 
     // addr_id is more robust
     auto id_from_rack = [](const DevNozzle &nozzle) {
@@ -286,16 +278,41 @@ std::vector<NozzleConfig> collect_nozzle_configs_from_machine(MachineObject *obj
 
     //
     // check nozzles on the rack
-    for (const auto &[_, nozzle] : nozzle_system->GetRackNozzles()) {
+    for (const auto &[_, nozzle] : nozzle_system.GetRackNozzles()) {
         if (nozzle.GetLogicExtruderId() != extruder_idx) continue;
         place_nozzle(nozzles, id_from_rack(nozzle), &nozzle);
     }
 
     // check nozzles on the extruder, override the one on the rack
-    for (const auto &[_, nozzle] : nozzle_system->GetExtNozzles()) {
+    for (const auto &[_, nozzle] : nozzle_system.GetExtNozzles()) {
         if (nozzle.GetLogicExtruderId() != extruder_idx) continue;
         place_nozzle(nozzles, id_from_ext(nozzle), &nozzle);
     }
+
+    return nozzles;
+}
+
+/// Device-page health states under which the device page shows the slot's tool, not a fault.
+bool shows_tool(const std::string &nozzle_state)
+{
+    namespace SV = AmsHotendSchema::values;
+    return nozzle_state == SV::nozzle_state::normal || nozzle_state == SV::nozzle_state::active ||
+           nozzle_state == SV::nozzle_state::feed_suspect;
+}
+
+} // namespace
+
+// The nozzles the machine reports for one logical extruder, as slot-ordered configs. Rack nozzles
+// are placed by addr id, then overridden by whatever sits on the extruder itself. Slots the machine
+// cannot describe (absent, unknown, error, not a hotend) come back with an empty diameter, and the
+// result always holds `extruder_nozzle_count` entries.
+std::vector<NozzleConfig> collect_nozzle_configs_from_machine(MachineObject *obj, int extruder_idx, int extruder_nozzle_count)
+{
+    if (!obj || !obj->GetNozzleSystem()) { return {}; }
+    if (extruder_nozzle_count <= 0) { return {}; }
+    auto *nozzle_system = obj->GetNozzleSystem();
+
+    const std::vector<const DevNozzle *> nozzles = placed_nozzles(*nozzle_system, extruder_idx, extruder_nozzle_count);
 
     auto has_rack = nozzle_system->GetNozzleRack()->IsSupported();
 
@@ -341,6 +358,39 @@ std::vector<NozzleConfig> collect_nozzle_configs_from_machine(MachineObject *obj
     }
 
     return nozzle_configs;
+}
+
+std::vector<DevNozzle::NozzleToolKind> machine_slot_tool_kinds(const MachineObject *obj, int extruder)
+{
+    if (!obj || !obj->GetNozzleSystem()) return {};
+
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle) return {};
+    const auto *max_nozzle_count = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    if (!max_nozzle_count || extruder < 0 || extruder >= (int) max_nozzle_count->values.size()) return {};
+    const int slot_count = max_nozzle_count->values[extruder];
+    if (slot_count <= 0) return {};
+
+    // The resolver takes a mutable printer but never touches it.
+    MachineObject *resolver_obj = const_cast<MachineObject *>(obj);
+
+    std::vector<DevNozzle::NozzleToolKind> kinds;
+    kinds.reserve(slot_count);
+    for (const DevNozzle *nozzle : placed_nozzles(*obj->GetNozzleSystem(), extruder, slot_count)) {
+        const bool healthy = nozzle && shows_tool(DevicePageFilamentSlotStateResolver::ResolveNozzleState(resolver_obj, *nozzle, {}));
+        kinds.push_back(healthy ? nozzle->GetToolKind() : DevNozzle::NozzleToolKind::Unknown);
+    }
+    return kinds;
+}
+
+SlotFace slot_face(const NozzleConfig &project, DevNozzle::NozzleToolKind machine)
+{
+    if (!project.is_empty()) return SlotFace::Hotend;
+    switch (machine) {
+    case DevNozzle::NozzleToolKind::Cutter: return SlotFace::Cutter;
+    case DevNozzle::NozzleToolKind::Pen: return SlotFace::Pen;
+    default: return SlotFace::Empty;
+    }
 }
 
 // What the printer reports right now, for callers deciding "is this nozzle layout synced".

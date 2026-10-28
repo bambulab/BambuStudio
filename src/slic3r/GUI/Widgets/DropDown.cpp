@@ -353,6 +353,9 @@ void DropDown::render(wxDC &dc)
     }
     dc.SetFont(GetFont());
     const int suffix_gap = suffix_col > 0 ? FromDIP(12) : 0;
+    // The synced badge shares the row's right edge with the suffix, so the suffix column moves left
+    // of the badge on every row; this keeps suffixes aligned whether or not a row is synced.
+    const int suffix_badge_col = suffix_col > 0 ? synced_badge_width() : 0;
 
     std::set<wxString> groups;
     // draw texts & icons
@@ -425,10 +428,10 @@ void DropDown::render(wxDC &dc)
                         : strip_brand_prefix(item.text, group);
         if (!text_off && !text.IsEmpty() && !icon_fills_row) {
             int text_right = rcContent.GetRight();
-            if ((item.style & DD_ITEM_STYLE_SYNCED) != 0 && synced_bitmap.bmp().IsOk())
-                text_right -= synced_bitmap.GetBmpSize().x + 5;
             if (suffix_col > 0 && !item.suffix.IsEmpty())
-                text_right -= suffix_col + suffix_gap + suffix_pad;
+                text_right -= suffix_badge_col + suffix_col + suffix_gap + suffix_pad;
+            else if ((item.style & DD_ITEM_STYLE_SYNCED) != 0 && synced_bitmap.bmp().IsOk())
+                text_right -= synced_bitmap.GetBmpSize().x + 5;
             wxSize tSize = dc.GetMultiLineTextExtent(text);
             if (pt.x + tSize.x > text_right) {
                 if (is_hover && item.tip.IsEmpty())
@@ -445,7 +448,8 @@ void DropDown::render(wxDC &dc)
             if (!item.suffix.IsEmpty()) {
                 dc.SetFont(::Label::Body_13);
                 const wxSize sSize = dc.GetTextExtent(item.suffix);
-                const int    sx    = rcContent.GetRight() - suffix_pad - sSize.GetWidth();
+                // Left edge of the shared column, so every suffix starts at the same x.
+                const int    sx    = rcContent.GetRight() - suffix_badge_col - suffix_pad - suffix_col;
                 const int    sy    = rcContent.y + (rcContent.height - sSize.GetHeight()) / 2;
                 dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#ACACAC")));
                 dc.DrawText(item.suffix, wxPoint(sx, sy));
@@ -465,6 +469,16 @@ void DropDown::render(wxDC &dc)
         }
         rcContent.y += rowSize.y;
     }
+}
+
+int DropDown::synced_badge_width() const
+{
+    if (!synced_bitmap.bmp().IsOk())
+        return 0;
+    for (const auto &item : items)
+        if ((item.style & DD_ITEM_STYLE_SYNCED) != 0)
+            return synced_bitmap.GetBmpSize().x + FromDIP(4);
+    return 0;
 }
 
 int DropDown::hoverIndex()
@@ -602,7 +616,7 @@ void DropDown::messureSize()
         if (size1.x > textSize.x) textSize = size1;
     }
     if (suffix_col > 0)
-        textSize.x += FromDIP(12) + suffix_col + FromDIP(8);
+        textSize.x += FromDIP(12) + suffix_col + FromDIP(8) + synced_badge_width();
     if (!align_icon) iconSize.x = 0;
     wxSize szContent = textSize;
     if (szContent.x < FromDIP(120))

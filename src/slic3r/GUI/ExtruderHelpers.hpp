@@ -18,8 +18,6 @@ class MachineObject;
 
 namespace GUI {
 
-enum class NozzleStatus : int;
-
 /**
  * \brief One nozzle diameter installed on the printer and how many nozzles of each volume type carry it.
  */
@@ -29,17 +27,35 @@ struct NozzleOption
     std::unordered_map<int, std::unordered_map<NozzleVolumeType, int>> extruder_nozzle_stats; ///< extruder id -> volume type -> nozzle count
 };
 
+/// \brief Health of a nozzle slot as the printer reports it
+enum class NozzleStatus : int
+{
+    nsNormal = 0,
+    nsError,
+    nsUnknown
+};
+
+/**
+ * \brief One nozzle slot of an extruder
+ *
+ * Caution: this type mixes two sources. `diameter` and `volume` are the project's slot, which the user
+ * edits. `status`, `ams_slots` and `has_bind_ams` are a printer snapshot that
+ * collect_nozzle_configs_from_machine() takes at sync time; they go stale once the user edits the slot.
+ *
+ * TODO: move the printer fields into their own machine-slot type with one collector. That type would
+ * also carry the 2D tool kind, which machine_slot_tool_kinds() now reports on a separate path.
+ */
 struct NozzleConfig
 {
-    wxString                         diameter;
-    NozzleVolumeType                 volume{nvtStandard};
-    NozzleStatus                     status{2}; // unknown
-    std::vector<std::pair<int, int>> ams_slots;
-    bool                             has_bind_ams = false;
+    wxString                         diameter;                        ///< project; empty means no nozzle
+    NozzleVolumeType                 volume{nvtStandard};             ///< project
+    NozzleStatus                     status{NozzleStatus::nsUnknown}; ///< printer snapshot
+    std::vector<std::pair<int, int>> ams_slots;                       ///< printer snapshot: feed and preload AMS slots
+    bool                             has_bind_ams = false;            ///< printer snapshot; nothing reads it yet
 
     NozzleConfig() = default;
     NozzleConfig(const wxString &diameter_, NozzleVolumeType volume_, NozzleStatus status_) : diameter(diameter_), volume(volume_), status(status_) {}
-    NozzleConfig(const wxString &diameter_, NozzleVolumeType volume_) : diameter(diameter_), volume(volume_), status(static_cast<NozzleStatus>(0)) {}
+    NozzleConfig(const wxString &diameter_, NozzleVolumeType volume_) : diameter(diameter_), volume(volume_), status(NozzleStatus::nsNormal) {}
 
     bool is_empty() const { return diameter.IsEmpty(); }
 };
@@ -131,7 +147,39 @@ bool is_extruder_stat_synced(int target_extruder_id = -1);
 
 // The nozzles the machine reports for one logical extruder, as slot-ordered configs; slots the
 // machine cannot describe come back with an empty diameter. Always `extruder_nozzle_count` entries.
+// Caution: its health rule (IsNormal/IsUnknown, on rack printers only) is not the device-page rule that
+// machine_slot_tool_kinds() applies, so one slot can read healthy here and faulty there.
 std::vector<NozzleConfig> collect_nozzle_configs_from_machine(MachineObject *obj, int extruder_idx, int extruder_nozzle_count);
+
+/**
+ * \brief Tool kind in each slot of one extruder, as the device page shows it
+ *
+ * \param obj       connected printer; nullptr gives an empty result
+ * \param extruder  logic extruder id
+ * \return one entry per slot of the edited printer preset. Unknown also covers an absent, lost,
+ *         unknown or comm-error slot, because the device page hides the tool behind a bad health state.
+ *         Empty when the printer has no nozzle system or the preset has no slot count.
+ *
+ * The sidebar calls this on every printer message, not only on sync, so the tiles follow a tool swap.
+ */
+std::vector<DevNozzle::NozzleToolKind> machine_slot_tool_kinds(const MachineObject *obj, int extruder);
+
+/// \brief How a nozzle slot looks on the sidebar tile and the nozzle settings card
+enum class SlotFace
+{
+    Hotend, ///< the project has a nozzle in this slot
+    Empty,  ///< no usable nozzle in this slot
+    Cutter, ///< the printer reports a cutter in a slot the project leaves empty
+    Pen,    ///< the printer reports a pen in a slot the project leaves empty
+};
+
+/**
+ * \brief The face of one slot: the project's nozzle, or the 2D tool the printer reports in an empty slot
+ *
+ * \param project  the slot in the project
+ * \param machine  what the printer shows in that slot; pass Unknown when not synced
+ */
+SlotFace slot_face(const NozzleConfig &project, DevNozzle::NozzleToolKind machine);
 
 // What the printer reports right now, for callers deciding "is this nozzle layout synced".
 // `synced` only means a connected printer of the selected preset's model answered; it says nothing

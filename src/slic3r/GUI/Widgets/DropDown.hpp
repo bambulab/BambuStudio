@@ -139,6 +139,11 @@ private:
 
     int selectedItem();
 
+    /**
+     * \brief Width to keep free at the row's right edge for the synced badge, or 0 when no row shows it
+     */
+    int synced_badge_width() const;
+
     friend class ComboBox;
     void messureSize();
     void autoPosition();

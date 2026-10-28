@@ -776,19 +776,22 @@ bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, b
         wxBitmap bmp(*ams_bmp);
         auto     text = get_preset_name(*iter);
 
+        // The nozzle goes in the item suffix, not the label, so the dropdown draws it as a lighter
+        // secondary column after the filament name.
+        wxString nozzle_suffix;
         if (multi_diameter_mode) {
             const auto *tray_nd = tray.option<ConfigOptionFloats>("tray_nozzle_diameter");
             const auto *tray_vt = tray.option<ConfigOptionInts>("tray_nozzle_volume_type");
             if (tray_nd && !tray_nd->values.empty() && tray_vt && !tray_vt->values.empty()) {
                 auto volume_type = static_cast<NozzleVolumeType>(tray_vt->values.front());
-                text += " | " + from_u8(format_diameter_to_str(tray_nd->values.front()) + " " + DevNozzle::ToNozzleVolumeShortString(volume_type));
+                nozzle_suffix = "| " + from_u8(format_diameter_to_str(tray_nd->values.front()) + " " + DevNozzle::ToNozzleVolumeShortString(volume_type));
             }
         }
 
         // Match by filament_id + color (same criteria tray_is_synced_source uses for the per-row
-        // dropdown badge), NOT by text/label comparison. Label matching was fragile: text carries the
-        // " | 0.4 Std" suffix in multi-diameter mode, and get_preset_name(*iter) returns the fully-
-        // qualified name (with the printer/nozzle suffix) when the found variant's alias is empty.
+        // dropdown badge), NOT by text/label comparison. Label matching was fragile: get_preset_name(*iter)
+        // returns the fully-qualified name (with the printer/nozzle suffix) when the found variant's
+        // alias is empty.
         bool row_matches_current = false;
         if (slot_colors_opt && (size_t) m_filament_idx < slot_colors_opt->values.size()) {
             const Preset *slot_preset = (size_t) m_filament_idx < m_preset_bundle->filament_presets.size()
@@ -853,6 +856,8 @@ bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, b
 
         const int index = Append(text, bmp.ConvertToImage(), &m_first_ams_filament + entry_key, item_style);
         SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
+        if (!nozzle_suffix.IsEmpty())
+            SetItemSuffix(index, nozzle_suffix);
         // Two ways a tray can be unusable, and they need different answers: a flow mismatch is about
         // this tray's own material and nozzle, which the nozzle settings cannot reconcile, while a
         // diameter mismatch only means the project is printing at another diameter right now.

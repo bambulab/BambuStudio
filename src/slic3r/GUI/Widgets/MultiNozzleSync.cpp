@@ -4,6 +4,7 @@
 #include "../Tab.hpp"
 #include "../DeviceCore/DevConfigUtil.h"
 #include "../DeviceCore/DevManager.h"
+#include "StateColor.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/LocalesUtils.hpp"
 #include <wx/sizer.h>
@@ -388,7 +389,7 @@ HotEndTable::HotEndTable(wxWindow* parent) :  wxPanel(parent, wxID_ANY, wxDefaul
     m_brow_nozzle_box = CreateNozzleBox({ 1,3,5 });
     main_sizer->Add(label, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxBOTTOM, FromDIP(5));
     main_sizer->Add(m_arow_nozzle_box, 0, wxLEFT | wxRIGHT, FromDIP(5));
-    main_sizer->Add(m_brow_nozzle_box, 0, wxLEFT | wxRIGHT, FromDIP(5));
+    main_sizer->Add(m_brow_nozzle_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
     SetBackgroundColour("#F8F8F8");
 
     SetSizer(main_sizer);
@@ -469,8 +470,8 @@ void HotEndTable::MarkRelatedItems(const NozzleOption& option)
 
 void HotEndTable::UnMarkRelatedItems(const NozzleOption& option)
 {
-    static const wxColour bg_color("#EEEEEE");
-    static const wxColour bd_color("#CECECE");
+    static const wxColour bg_color(ThemeColor::White);
+    static const wxColour bd_color(ThemeColor::Grey400);
     const static StateColor bg_green(
         std::pair<wxColour, int>(bg_color, StateColor::Normal)
     );
@@ -505,9 +506,9 @@ StaticBox* HotEndTable::CreateNozzleBox(const std::vector<int>& nozzle_indices)
     wxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
     for (auto idx : nozzle_indices) {
         wgtDeviceNozzleRackNozzleItem* nozzle_item = new wgtDeviceNozzleRackNozzleItem(nozzle_box, idx);
-        nozzle_item->SetBackgroundColorNormal("#EEEEEE");
+        nozzle_item->SetBackgroundColorNormal(ThemeColor::White);
         for (auto& child : nozzle_item->GetChildren())
-            child->SetBackgroundColour("#EEEEEE");
+            child->SetBackgroundColour(ThemeColor::White);
         m_nozzle_items[idx] = nozzle_item;
         h_sizer->Add(nozzle_item, 0, wxALL, FromDIP(8));
     }
@@ -528,9 +529,12 @@ void HotEndTable::OnPaint(wxPaintEvent& evt)
     wxPaintDC dc(this);
     wxSize size = GetClientSize();
 
-    dc.SetPen(wxPen(wxColour("#EEEEEE"), 2));
+    // A pen is centred on the path, so inset by half its width to keep the whole stroke inside the window.
+    const int pen_width = FromDIP(2);
+    const int inset     = pen_width / 2;
+    dc.SetPen(wxPen(StateColor::darkModeColorFor(ThemeColor::Grey300), pen_width));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRoundedRectangle(0, 0, size.GetWidth()-2, size.GetHeight()-2, 5);
+    dc.DrawRoundedRectangle(inset, inset, size.GetWidth() - pen_width, size.GetHeight() - pen_width, FromDIP(4));
 }
 
 NozzleListTable::NozzleListTable(wxWindow* parent) : wxPanel(parent,wxID_ANY,wxDefaultPosition,wxDefaultSize ,wxNO_BORDER)

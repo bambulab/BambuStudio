@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <functional>
 #include <memory>
+#include <optional>
 
 #include "I18N.hpp"
 #include "GUI_App.hpp"
@@ -375,6 +376,7 @@ constexpr int    TILE_ICON_TOP     = 4;  // tile top to the icon
 constexpr int    TILE_BADGE_D      = 16;
 constexpr int    TILE_BADGE_TEXT_W = 12; // widest label inside the badge circle; longer labels get a smaller font
 constexpr int    TILE_TEXT_GAP     = 2;  // icon bottom to the diameter line
+constexpr int    TILE_EMPTY_ICON   = 16; // the "no nozzle" glyph that stands in for both text lines
 constexpr double TILE_DIM_OPACITY  = 0.3;
 
 static wxColour faded_tile_colour(const wxColour &colour, const wxColour &background)
@@ -432,16 +434,20 @@ class NozzleSlotTile : public wxPanel
 {
 public:
     /**
-     * \param icon  hotend image name; the image must have the height of the single-head icon
-     * \param label short slot name stamped on the icon, such as "3", "L" or "R1"
+     * \param icon      hotend image name; the image must have the height of the single-head icon
+     * \param label     short slot name stamped on the icon, such as "3", "L" or "R1"
+     * \param diameter  first text line; ignored for an empty face, which shows a glyph instead
+     * \param flow      second text line; ignored for an empty face
+     * \param face      what the slot holds
      */
-    NozzleSlotTile(wxWindow *parent, const std::string &icon, const wxString &label, const wxString &diameter, const wxString &flow, NozzleStatus status)
+    NozzleSlotTile(wxWindow *parent, const std::string &icon, const wxString &label, const wxString &diameter, const wxString &flow, SlotFace face)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
         , m_icon(this, icon, TILE_ICON_H)
         , m_label(label)
         , m_diameter(diameter)
         , m_flow(flow)
     {
+        if (face == SlotFace::Empty) m_empty_glyph.emplace(this, "nozzle_slot_empty", TILE_EMPTY_ICON);
         SetBackgroundStyle(wxBG_STYLE_PAINT);
         SetBackgroundColour(parent->GetBackgroundColour()); // the surface the rounded corners reveal
         update_min_size();
@@ -467,6 +473,7 @@ public:
     void Rescale()
     {
         m_icon.msw_rescale();
+        if (m_empty_glyph) m_empty_glyph->msw_rescale();
         update_min_size();
         Refresh();
     }
@@ -484,11 +491,12 @@ private:
         SetMinSize(wxSize(FromDIP(TILE_W), height));
     }
 
-    ScalableBitmap m_icon;
-    wxString       m_label;
-    wxString       m_diameter;
-    wxString       m_flow;
-    bool           m_dimmed{false};
+    ScalableBitmap                m_icon;
+    std::optional<ScalableBitmap> m_empty_glyph; // set for an empty slot, drawn in place of the text lines
+    wxString                      m_label;
+    wxString                      m_diameter;
+    wxString                      m_flow;
+    bool                          m_dimmed{false};
 };
 
 void NozzleSlotTile::OnPaint(wxPaintEvent &evt)
@@ -508,13 +516,16 @@ void NozzleSlotTile::OnPaint(wxPaintEvent &evt)
     auto tile_colour = StateColor::darkModeColorFor(ThemeColor::Grey350);
     auto badge_colour = StateColor::darkModeColorFor(wxColour("#ADADAD"));
     auto text_colour = StateColor::darkModeColorFor(ThemeColor::TextPrimary);
+    // The badge stays light in both themes, so its label keeps the dark text colour.
+    auto badge_text_colour = ThemeColor::TextPrimary;
     if (m_dimmed) {
         // BeginLayer(opacity) is not implemented by wxWidgets' default GDI+ renderer on Windows.
         // Blend every visual with the card surface instead, producing the same 30% result on every
         // graphics backend.
-        tile_colour  = faded_tile_colour(tile_colour, background);
-        badge_colour = faded_tile_colour(badge_colour, background);
-        text_colour  = faded_tile_colour(text_colour, background);
+        tile_colour       = faded_tile_colour(tile_colour, background);
+        badge_colour      = faded_tile_colour(badge_colour, background);
+        text_colour       = faded_tile_colour(text_colour, background);
+        badge_text_colour = faded_tile_colour(badge_text_colour, background);
     }
 
     gc->SetPen(*wxTRANSPARENT_PEN);
@@ -536,7 +547,7 @@ void NozzleSlotTile::OnPaint(wxPaintEvent &evt)
     gc->DrawEllipse(badge_x, badge_y, badge_d, badge_d);
 
     // dc mirrors the label font so its metrics centre the ink on the badge.
-    dc.SetFont(set_fitting_font(*gc, m_label, FromDIP(TILE_BADGE_TEXT_W), text_colour));
+    dc.SetFont(set_fitting_font(*gc, m_label, FromDIP(TILE_BADGE_TEXT_W), badge_text_colour));
     double text_w = 0.0, text_h = 0.0, descent = 0.0, leading = 0.0;
     gc->GetTextExtent(m_label, &text_w, &text_h, &descent, &leading);
     const wxFontMetrics label_metrics = dc.GetFontMetrics();
@@ -547,6 +558,13 @@ void NozzleSlotTile::OnPaint(wxPaintEvent &evt)
     dc.SetFont(Label::Body_12);
     const double line_h = dc.GetFontMetrics().height;
     double       y      = icon_y + icon_size.y + FromDIP(TILE_TEXT_GAP);
+    if (m_empty_glyph) {
+        // The glyph takes the whole text area, so an empty tile keeps the height of the others.
+        const wxSize   glyph_size = m_empty_glyph->GetBmpSize();
+        const wxBitmap glyph      = m_dimmed ? faded_tile_bitmap(m_empty_glyph->bmp(), background) : m_empty_glyph->bmp();
+        gc->DrawBitmap(glyph, (size.x - glyph_size.x) / 2.0, y + (2 * line_h - glyph_size.y) / 2.0, glyph_size.x, glyph_size.y);
+        return;
+    }
     for (const wxString &line : {m_diameter, m_flow}) {
         set_fitting_font(*gc, line, size.x, text_colour);
         gc->GetTextExtent(line, &text_w, &text_h, &descent, &leading);
@@ -816,10 +834,26 @@ wxString slot_label(int extruder_count, int extruder, int slot, int slots_on_ext
 }
 
 // Why a slot cannot print at the selected diameter; empty when it can.
-wxString unavailable_reason(const NozzleConfig &cfg, bool usable)
+wxString unavailable_reason(SlotFace face, bool usable)
 {
     if (usable) return {};
-    return cfg.is_empty() ? _L("No nozzle is installed in this slot.") : _L("Nozzle diameter mismatch. This nozzle cannot be used.");
+    switch (face) {
+    case SlotFace::Cutter:
+    case SlotFace::Pen: return _L("Settings for CutTool and DrawTool are not supported yet.");
+    case SlotFace::Empty: return _L("No nozzle is installed in this slot.");
+    default: return _L("Nozzle diameter mismatch. This nozzle cannot be used.");
+    }
+}
+
+// The tile image for a face. The design has 2D tool art for the single-head tile only.
+std::string tile_icon(SlotFace face, int extruder_count)
+{
+    if (extruder_count > 1) return "prepare_nozzle_normal_dua";
+    switch (face) {
+    case SlotFace::Cutter: return "prepare_nozzle_cutter_short";
+    case SlotFace::Pen: return "prepare_nozzle_pen_short";
+    default: return "prepare_nozzle_normal_short";
+    }
 }
 } // namespace
 
@@ -905,52 +939,76 @@ wxSizer *NozzleRackPanel::CreateAmsRow()
 
 void NozzleRackPanel::UpdateNozzles(const std::vector<std::vector<NozzleConfig>> &extruders, const wxString &selected_diameter)
 {
+    m_extruders         = extruders;
+    m_selected_diameter = selected_diameter;
+    rebuild_tiles();
+}
+
+void NozzleRackPanel::sync_machine_slots(int extruder, std::vector<DevNozzle::NozzleToolKind> kinds)
+{
+    if (extruder < 0 || extruder >= MAX_EXTRUDERS) return;
+    if (m_machine_kinds[extruder] == kinds) return; // runs on every printer message; redraw on change only
+    m_machine_kinds[extruder] = std::move(kinds);
+    if (!m_extruders.empty()) rebuild_tiles(); // else UpdateNozzles() applies the kinds when it builds the tiles
+}
+
+void NozzleRackPanel::rebuild_tiles()
+{
     m_tile_row->Clear(true); // destroy the tiles from the previous projection
 
-    const int count  = std::min(static_cast<int>(extruders.size()), MAX_EXTRUDERS);
+    const int count  = std::min(static_cast<int>(m_extruders.size()), MAX_EXTRUDERS);
     m_extruder_count = std::max(count, 1);
 
     // Multi-diameter mode exists for single-extruder printers only.
-    const bool        multi_diameter = m_extruder_count == 1 && multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
-    const std::string icon           = m_extruder_count == 1 ? "prepare_nozzle_normal_short" : "prepare_nozzle_normal_dua";
+    const bool multi_diameter = m_extruder_count == 1 && multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
     m_ams_enabled.fill(true);
     const DynamicPrintConfig &printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
     if (m_extruder_count == 1 && is_single_ext_multi_nozzle(printer_config)) {
         const int ams_nozzle_idx = printer_config.opt_int("ams_nozzle_idx", -1);
-        const bool valid_ams_nozzle = ams_nozzle_idx >= 0 && !extruders.empty() &&
-                                      ams_nozzle_idx < static_cast<int>(extruders[0].size());
-        m_ams_enabled[0] = valid_ams_nozzle && !extruders[0][ams_nozzle_idx].is_empty() &&
-                           (multi_diameter || extruders[0][ams_nozzle_idx].diameter == selected_diameter);
+        const bool valid_ams_nozzle = ams_nozzle_idx >= 0 && !m_extruders.empty() &&
+                                      ams_nozzle_idx < static_cast<int>(m_extruders[0].size());
+        m_ams_enabled[0] = valid_ams_nozzle && !m_extruders[0][ams_nozzle_idx].is_empty() &&
+                           (multi_diameter || m_extruders[0][ams_nozzle_idx].diameter == m_selected_diameter);
     }
 
     int matching = 0;
-    for (int extruder = 0; extruder < count; ++extruder) {
-        const std::vector<NozzleConfig> &configs = extruders[extruder];
-        const int                        slots   = static_cast<int>(configs.size());
-        for (int slot = 0; slot < slots; ++slot) {
-            const NozzleConfig &cfg         = configs[slot];
-            const bool          on_selected = !cfg.is_empty() && cfg.diameter == selected_diameter;
-            if (on_selected) matching++;
-
-            // Same copy as the nozzle-settings card: an empty slot has no diameter and no flow type.
-            const wxString diameter = cfg.is_empty() ? _L("Empty") : cfg.diameter;
-            const wxString flow     = cfg.is_empty() ? wxString("--") : volume_short(cfg.volume);
-            const wxString label    = slot_label(m_extruder_count, extruder, slot, slots);
-            auto          *tile     = new NozzleSlotTile(this, icon, label, diameter, flow, cfg.status);
-            // Single-diameter mode dims every slot that cannot print at the selected diameter and says why on hover.
-            tile->SetUnavailable(unavailable_reason(cfg, multi_diameter || on_selected));
-
-            if (!m_tile_row->IsEmpty()) m_tile_row->AddSpacer(FromDIP(TILE_GAP));
-            m_tile_row->Add(tile, 1, wxALIGN_CENTER_VERTICAL);
-            wxGetApp().UpdateDarkUIWin(tile); // tiles are created after the constructor's dark-mode pass
-        }
-    }
+    for (int extruder = 0; extruder < count; ++extruder)
+        matching += add_extruder_tiles(extruder, multi_diameter);
 
     // Every configured diameter is valid in multi-diameter mode, so the mismatch warning only
     // applies once a single diameter has been picked for the whole plate.
     show_mismatch(!multi_diameter && matching == 0);
 
     update_ams(); // the extruder count decides which AMS halves show; this also lays out the new tiles
+}
+
+int NozzleRackPanel::add_extruder_tiles(int extruder, bool multi_diameter)
+{
+    const std::vector<NozzleConfig>              &configs  = m_extruders[extruder];
+    const std::vector<DevNozzle::NozzleToolKind> &machine  = m_machine_kinds[extruder];
+    const int                                     slots    = static_cast<int>(configs.size());
+    int                                           matching = 0;
+    for (int slot = 0; slot < slots; ++slot) {
+        const NozzleConfig &cfg  = configs[slot];
+        const auto          kind = slot < static_cast<int>(machine.size()) ? machine[slot] : DevNozzle::NozzleToolKind::Unknown;
+        const bool on_selected = !cfg.is_empty() && cfg.diameter == m_selected_diameter;
+        if (on_selected) matching++;
+
+        const SlotFace face = slot_face(cfg, kind);
+        // A 2D tool has no diameter or flow; an empty slot shows a glyph in place of both lines.
+        const bool     tool     = face == SlotFace::Cutter || face == SlotFace::Pen;
+        const wxString diameter = tool ? wxString("-") : cfg.diameter;
+        const wxString flow     = tool ? wxString() : volume_short(cfg.volume);
+        const wxString label    = slot_label(m_extruder_count, extruder, slot, slots);
+        auto          *tile     = new NozzleSlotTile(this, tile_icon(face, m_extruder_count), label, diameter, flow, face);
+        // Single-diameter mode dims every slot that cannot print at the selected diameter and says why on hover.
+        tile->SetUnavailable(unavailable_reason(face, multi_diameter || on_selected));
+
+        if (!m_tile_row->IsEmpty()) m_tile_row->AddSpacer(FromDIP(TILE_GAP));
+        m_tile_row->Add(tile, 1, wxALIGN_CENTER_VERTICAL);
+        wxGetApp().UpdateDarkUIWin(tile); // tiles are created after the constructor's dark-mode pass
+    }
+    return matching;
 }
 
 void NozzleRackPanel::show_mismatch(bool mismatch)
