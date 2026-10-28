@@ -8323,10 +8323,12 @@ bool SelectMachineDialog::CheckWarningHotendLowTempResidue(MachineObject* obj_, 
     std::set<int> residue_display_ids;
     for (int fid : used_fila_ids) {
         for (const auto& [pos_id, nozzle] : get_mapped_nozzles(fid)) {
-            if (skip_pos_ids.count(pos_id) || !nozzle.HasFilamentAtNozzleInlet()) {
+            if (skip_pos_ids.count(pos_id))
                 continue;
-            }
-
+            
+            const bool filament_in_nozzle = !nozzle.GetFilamentId().empty() || !nozzle.GetFilamentColor().empty();
+            if (!filament_in_nozzle)
+                continue;
             std::string fila_type;
             if (!nozzle.GetFilamentId().empty()) {
                 if (auto info = wxGetApp().preset_bundle->get_filament_by_filament_id(nozzle.GetFilamentId())) {
