@@ -353,6 +353,12 @@
     "hot_plate_temp_initial_layer": [
         "60"
     ],
+    "effect_plate_temp": [
+        "0"
+    ],
+    "effect_plate_temp_initial_layer": [
+        "0"
+    ],
     "impact_strength_z": [
         "10"
     ],

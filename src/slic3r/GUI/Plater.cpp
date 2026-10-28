@@ -660,7 +660,8 @@ static std::map<BedType, std::string> bed_type_thumbnails = {
     {BedType::btEP, "bed_engineering"},
     {BedType::btPEI, "bed_high_templ"},
     {BedType::btPTE, "bed_texture"},
-    {BedType::btSuperTack, "bed_cool_supertack"}
+    {BedType::btSuperTack, "bed_cool_supertack"},
+    {BedType::bt3DEffect, "bed_3d_effect"}
 };
 
 enum SlicedInfoIdx

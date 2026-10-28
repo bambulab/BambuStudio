@@ -154,6 +154,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "eng_plate_temp_initial_layer",
         "hot_plate_temp_initial_layer",
         "textured_plate_temp_initial_layer",
+        "effect_plate_temp_initial_layer",
         "gcode_add_line_number",
         "layer_change_gcode",
         "time_lapse_gcode",
@@ -316,6 +317,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "textured_plate_temp"
             || opt_key == "enable_prime_tower"
             || opt_key == "enable_wrapping_detection"
+            || opt_key == "effect_plate_temp"
             || opt_key == "prime_tower_enable_framework"
             || opt_key == "prime_tower_width"
             || opt_key == "prime_tower_max_speed"
@@ -1808,7 +1810,9 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
         const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key(m_config.curr_bed_type));
         for (unsigned int extruder_id : extruders) {
             int curr_bed_temp = bed_temp_opt->get_at(extruder_id);
-            if (curr_bed_temp == 0 && bed_type_keys_map != nullptr) {
+            bool unsupported_effect_plate = m_config.curr_bed_type == bt3DEffect
+                && get_filament_temp_type(m_config.filament_type.get_at(extruder_id)) != FilamentTempType::LowTemp;
+            if ((curr_bed_temp == 0 || unsupported_effect_plate) && bed_type_keys_map != nullptr) {
                 std::string bed_type_name;
                 for (auto item : *bed_type_keys_map) {
                     if (item.second == m_config.curr_bed_type) {
@@ -3141,9 +3145,9 @@ FilamentTempType Print::get_filament_temp_type(const std::string& filament_type)
         catch (const json::parse_error& err){
             in.close();
             BOOST_LOG_TRIVIAL(error) << "parse " << file_path.string() << " got a nlohmann::detail::parse_error, reason = " << err.what();
-            filament_temp_type_map[HighTempFilamentStr] = {"ABS","ASA","PC","PA","PA-CF","PA-GF","PA6-CF","PET-CF","PPS","PPS-CF","PPA-GF","PPA-CF","ABS-Aero","ABS-GF"};
-            filament_temp_type_map[LowTempFilamentStr] = {"PLA","TPU","PLA-CF","PLA-AERO","PVA","BVOH"};
-            filament_temp_type_map[HighLowCompatibleFilamentStr] = { "HIPS","PETG","PCTG","PE","PP","EVA","PE-CF","PP-CF","PP-GF","PHA"};
+            filament_temp_type_map[HighTempFilamentStr] = {"ABS","ASA","ASA-CF","PC","PA","PA-CF","PA-GF","PA6-CF","PET-CF","PPS","PPS-CF","PPA-CF","PPA-GF","ABS-GF","ASA-AERO"};
+            filament_temp_type_map[LowTempFilamentStr] = {"PLA","TPU","TPU-AMS","PLA-CF","PLA-AERO","PVA","BVOH","PCTG","PETG","PETG-CF"};
+            filament_temp_type_map[HighLowCompatibleFilamentStr] = {"HIPS","PE","PP","EVA","PE-CF","PP-CF","PP-GF","PHA"};
         }
     }
 

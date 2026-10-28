@@ -96,6 +96,12 @@
     "hot_plate_temp_initial_layer": [
         "55"
     ],
+    "effect_plate_temp": [
+        "55"
+    ],
+    "effect_plate_temp_initial_layer": [
+        "55"
+    ],
     "impact_strength_z": [
         "10.0"
     ],

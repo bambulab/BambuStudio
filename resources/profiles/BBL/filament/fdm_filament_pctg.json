@@ -84,6 +84,12 @@
     "hot_plate_temp_initial_layer": [
         "80"
     ],
+    "effect_plate_temp": [
+        "80"
+    ],
+    "effect_plate_temp_initial_layer": [
+        "80"
+    ],
     "nozzle_temperature": [
         "255"
     ],

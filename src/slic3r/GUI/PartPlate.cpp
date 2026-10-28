@@ -7938,6 +7938,8 @@ void PartPlateList::init_bed_type_info(const VendorProfile::PrinterModel *printe
     BedTextureInfo::TexturePart ep_part2(74, -10, 148, 12, "bbl_bed_ep_bottom.svg");
     BedTextureInfo::TexturePart pei_part1(10, 52, 8.393f, 192, "bbl_bed_pei_left.svg");
     BedTextureInfo::TexturePart pei_part2(74, -10, 148, 12, "bbl_bed_pei_bottom.svg");
+    BedTextureInfo::TexturePart effect_part1(10, 52, 8.393f, 192, "bbl_bed_3de_left.svg");
+    BedTextureInfo::TexturePart effect_part2(74, -10, 148, 12, "bbl_bed_3de_bottom.svg");
     BedTextureInfo::TexturePart pte_part1(10, 52, 8.393f, 192, "bbl_bed_pte_left.svg");
     BedTextureInfo::TexturePart pte_part2(74, -10, 148, 12, "bbl_bed_pte_bottom.svg");
     auto bed_texture_maps = printer_model ? printer_model->get_bed_texture_maps() : wxGetApp().plater()->get_bed_texture_maps();
@@ -8009,6 +8011,15 @@ void PartPlateList::init_bed_type_info(const VendorProfile::PrinterModel *printe
                                              bind_name, bottom_texture_end_name, bottom_rect, bottom_rect_longer,
                                              btPEI, longer_ignore_list);
 
+        effect_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_3de_middle.svg");
+        if (middle_rect[2] > 0.f) {
+            effect_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_3de_middle.svg");
+        }
+        effect_part2 = BedTextureInfo::TexturePart(45, -14.5, 70, 8, "bbl_bed_3de_left_bottom.svg");
+        BedTextureInfo::apply_bottom_texture(effect_part2, "bbl_bed_3de_left_bottom", "bbl_bed_3de_bottom",
+                                             bind_name, bottom_texture_end_name, bottom_rect, bottom_rect_longer,
+                                             bt3DEffect, longer_ignore_list);
+
         st_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_st_middle.svg");
         if (middle_rect[2] > 0.f) {
             st_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_st_middle.svg");
@@ -8046,6 +8057,7 @@ void PartPlateList::init_bed_type_info(const VendorProfile::PrinterModel *printe
             pc_part2.update_file("bbl_bed_pc_bottom_" + bottom_texture_end_name + ".svg");
             ep_part2.update_file("bbl_bed_ep_bottom_" + bottom_texture_end_name + ".svg");
             pei_part2.update_file("bbl_bed_pei_bottom_" + bottom_texture_end_name + ".svg");
+            effect_part2.update_file("bbl_bed_3de_bottom_" + bottom_texture_end_name + ".svg");
             pte_part2.update_file("bbl_bed_pte_bottom_" + bottom_texture_end_name + ".svg");
         }
     }
@@ -8062,6 +8074,8 @@ void PartPlateList::init_bed_type_info(const VendorProfile::PrinterModel *printe
 	bed_texture_info[btEP].parts.push_back(ep_part2);
 	bed_texture_info[btPEI].parts.push_back(pei_part1);
 	bed_texture_info[btPEI].parts.push_back(pei_part2);
+	bed_texture_info[bt3DEffect].parts.push_back(effect_part1);
+	bed_texture_info[bt3DEffect].parts.push_back(effect_part2);
 	bed_texture_info[btPTE].parts.push_back(pte_part1);
 	bed_texture_info[btPTE].parts.push_back(pte_part2);
 

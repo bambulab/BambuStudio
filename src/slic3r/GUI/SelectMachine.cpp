@@ -289,10 +289,11 @@ void                SelectMachineDialog::init_machine_bed_types()
                                    _L("Bamabu Engineering Plate"),
                                    _L("Bamabu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
                                    _L("Bamabu Textured PEI Plate"),
-                                   _L("Bambu Cool Plate SuperTack")
+                                   _L("Bambu Cool Plate SuperTack"),
+                                   _L("3D Effect Plate")
         };
         MachineBedTypeString    = {//"auto",
-                                   "pc", "pe", "pei", "pte", "suprtack"};
+                                   "pc", "pe", "pei", "pte", "suprtack", "3deffect"};
     }
 }
 SelectMachineDialog::SelectMachineDialog(Plater *plater)
@@ -9450,6 +9451,10 @@ void PrinterInfoBox::UpdatePlate(const std::string& plate_name, const std::strin
         else if (plate_name == "Supertack Plate") {
             name = _L("Bambu Cool Plate SuperTack");
             image_name = "bed_cool_supertack";
+        }
+        else if (plate_name == "3D Effect Plate") {
+            name = _L("3D Effect");
+            image_name = "bed_3d_effect";
         }
 
         if (!image_name.empty()) {

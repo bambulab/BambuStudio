@@ -36,13 +36,14 @@ static const std::string temp_gcode_path = temp_dir + "/temp.gcode";
 static const std::string path            = temp_dir + "/test.3mf";
 static const std::string config_3mf_path = temp_dir + "/test_config.3mf";
 
-static std::string MachineBedTypeString[6] = {
+static std::string MachineBedTypeString[7] = {
     "auto",
     "pc",
     "ep",
     "pei",
     "pte",
-    "suprtack"
+    "suprtack",
+    "3deffect"
 };
 
 static wxString nozzle_not_set_text = _L("The printer nozzle information has not been set.\nPlease configure it before proceeding with the calibration.");

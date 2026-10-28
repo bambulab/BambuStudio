@@ -2456,6 +2456,7 @@ enum BambuBedType {
     bbtHighTemperaturePlate = 3,
     bbtTexturedPEIPlate         = 4,
     bbtSuperTackPlate = 5,
+    bbt3DEffectPlate = 6,
 };
 
 static BambuBedType to_bambu_bed_type(BedType type)
@@ -2471,6 +2472,8 @@ static BambuBedType to_bambu_bed_type(BedType type)
         bambu_bed_type = bbtTexturedPEIPlate;
     else if (type == btSuperTack)
         bambu_bed_type = bbtSuperTackPlate;
+    else if (type == bt3DEffect)
+        bambu_bed_type = bbt3DEffectPlate;
 
     return bambu_bed_type;
 }

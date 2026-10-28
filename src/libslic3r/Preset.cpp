@@ -1150,6 +1150,7 @@ static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", 
     // BBS
     "cool_plate_temp", "eng_plate_temp", "hot_plate_temp", "textured_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer", "hot_plate_temp_initial_layer","textured_plate_temp_initial_layer",
     "supertack_plate_temp_initial_layer", "supertack_plate_temp",
+    "effect_plate_temp_initial_layer", "effect_plate_temp",
     "circle_compensation_speed", "counter_coef_1", "counter_coef_2", "counter_coef_3", "hole_coef_1", "hole_coef_2", "hole_coef_3",
     "counter_limit_min", "counter_limit_max", "hole_limit_min", "hole_limit_max", "diameter_limit",
     // "bed_type",

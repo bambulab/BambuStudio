@@ -843,6 +843,8 @@ void CreateFilamentWebDialog::send_filament_params(const std::string &preset_nam
     params["hot_plate_temp_initial_layer"]     = get_int("hot_plate_temp_initial_layer");
     params["textured_plate_temp"]              = get_int("textured_plate_temp");
     params["textured_plate_temp_initial_layer"] = get_int("textured_plate_temp_initial_layer");
+    params["effect_plate_temp"]                = get_int("effect_plate_temp");
+    params["effect_plate_temp_initial_layer"]  = get_int("effect_plate_temp_initial_layer");
     params["filament_shrink"]                = get_percent_str("filament_shrink");
     params["default_filament_colour"]        = get_str("default_filament_colour");
 
