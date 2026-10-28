@@ -9430,23 +9430,23 @@ void PrinterInfoBox::UpdatePlate(const std::string& plate_name, const std::strin
         wxString    name;
         std::string image_name;
         if (plate_name == "Cool Plate") {
-            name = _L("Cool");
+            name = _L("Cool Plate");
             image_name = "bed_cool";
         }
         else if (plate_name == "Engineering Plate") {
-            name = _L("Engineering");
+            name = _L("Engineering Plate");
             image_name = "bed_engineering";
         }
         else if (plate_name == "High Temp Plate") {
-            name = _L("High Temp");
+            name = _L("High temperature Plate");
             image_name = "bed_high_templ";
         }
         else if (plate_name == "Textured PEI Plate") {
-            name = "PEI";
+            name = _L("Textured PEI Plate");
             image_name = "bed_texture";
         }
         else if (plate_name == "Supertack Plate") {
-            name = _L("Cool(Supertack)");
+            name = _L("Bambu Cool Plate SuperTack");
             image_name = "bed_cool_supertack";
         }
 
@@ -9459,14 +9459,20 @@ void PrinterInfoBox::UpdatePlate(const std::string& plate_name, const std::strin
             m_bed_image->SetBitmap(create_scaled_bitmap(image_name, this, 32));
         }
 
-        if (name.length() > 8) {
-            m_text_bed_type->SetFont(Label::Body_9);
+        m_text_bed_type->SetFont(Label::Body_11);
+
+        wxClientDC dc(m_text_bed_type);
+        dc.SetFont(m_text_bed_type->GetFont());
+        const wxString display_name = wxControl::Ellipsize(name, dc, wxELLIPSIZE_END, m_text_bed_type->GetMaxSize().GetWidth(), wxELLIPSIZE_FLAGS_NONE);
+        m_text_bed_type->SetLabelText(display_name);
+        if (display_name != name) {
+            m_text_bed_type->SetToolTip(name);
         }
-        else{
-            m_text_bed_type->SetFont(Label::Body_12);
+        else {
+            m_text_bed_type->UnsetToolTip();
         }
-        m_text_bed_type->SetLabelText(name);
         m_text_bed_type->Show();
+        m_text_bed_type->GetParent()->Layout();
     }
 }
 
