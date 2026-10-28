@@ -650,7 +650,7 @@ void tree_supports_generate_paths(
             if (area > support_params.tree_branch_diameter_double_wall_area_scaled) {
                 BOOST_LOG_TRIVIAL(debug)<< "TreeSupports: double wall area: " << area<< " > " << support_params.tree_branch_diameter_double_wall_area_scaled;
                 eec = std::make_unique<ExtrusionEntityCollection>();
-                // Don't reorder internal / external loops of the same island, always start with the internal loop.
+                // Don't reorder internal / external loops of the same island.
                 eec->no_sort = true;
                 // Make the tree branch stable by adding another perimeter.
                 ExPolygons level2 = offset2_ex({expoly}, -1.5 * flow.scaled_width(), 0.5 * flow.scaled_width());
@@ -691,7 +691,6 @@ void tree_supports_generate_paths(
                 ClipperLib_Z::Path *closest_contour = nullptr;
                 Vec2d               closest_point;
                 int                 closest_point_idx = -1;
-                double              closest_point_t   = 0.;
                 double              d2min             = std::numeric_limits<double>::max();
                 Vec2d               seam_pt           = pl.back().cast<double>();
                 for (ClipperLib_Z::Path &path : anchor_candidates)
@@ -713,7 +712,6 @@ void tree_supports_generate_paths(
                                     closest_contour   = &path;
                                     closest_point     = fp;
                                     closest_point_idx = i;
-                                    closest_point_t   = t;
                                 }
                             }
                         }
@@ -721,38 +719,29 @@ void tree_supports_generate_paths(
                 if (d2min < sqr(flow.scaled_width() * 3.) && Slic3r::area(regions_to_draw_inner_wall) + scale_(EPSILON) > area && !shrink_ex({expoly}, -2.*flow.scaled_width()).empty()) {
                     // Try to cut an anchor from the closest_contour.
                     // Both closest_contour and pl are CW oriented.
+                    // Walk the CW contour backwards, so once pl is reversed the anchor lies ahead of the seam in
+                    // the CCW print direction. A double wall above starts its inner loop at the same seam and runs
+                    // CCW too, so it is laid on top of the anchor instead of moving away from it.
                     pl.points.emplace_back(closest_point.cast<coord_t>());
                     const ClipperLib_Z::Path &path             = *closest_contour;
+                    const int                 num_points       = int(path.size());
                     double                    remaining_length = std::min(anchor_length - (seam_pt - closest_point).norm(), pl.length() / 12.);
-                    int                       i                = closest_point_idx;
-                    int                       j                = next_idx_modulo(i, *closest_contour);
-                    Vec2d                     pi(path[i].x(), path[i].y());
-                    Vec2d                     pj(path[j].x(), path[j].y());
-                    Vec2d                     v = pj - pi;
-                    double                    l = v.norm();
-                    if (remaining_length < (1. - closest_point_t) * l) {
-                        // Just trim the current line.
-                        pl.points.emplace_back((closest_point + v * (remaining_length / l)).cast<coord_t>());
-                    } else {
-                        // Take the rest of the current line, continue with the other lines.
-                        pl.points.emplace_back(path[j].x(), path[j].y());
-                        pi = pj;
-                        for (i = j; path[i].z() == idx_loop && remaining_length > 0; i = j, pi = pj) {
-                            j  = next_idx_modulo(i, path);
-                            pj = Vec2d(path[j].x(), path[j].y());
-                            v  = pj - pi;
-                            l  = v.norm();
-                            if (i == closest_point_idx) {
-                                // Back at the first segment. Most likely this should not happen and we may end the anchor.
-                                break;
-                            }
-                            if (remaining_length <= l) {
-                                pl.points.emplace_back((pi + v * (remaining_length / l)).cast<coord_t>());
-                                break;
-                            }
-                            pl.points.emplace_back(path[j].x(), path[j].y());
-                            remaining_length -= l;
+                    // Walk at most once around the contour, stopping where it leaves the source loop.
+                    Vec2d p = closest_point;
+                    for (int j = closest_point_idx, step = 0; remaining_length > 0 && step < num_points;
+                         ++ step, j = prev_idx_modulo(j, num_points)) {
+                        const Vec2d  pj(path[j].x(), path[j].y());
+                        const double l = (pj - p).norm();
+                        if (remaining_length <= l) {
+                            pl.points.emplace_back((p + (pj - p) * (remaining_length / l)).cast<coord_t>());
+                            break;
                         }
+                        if (l > EPSILON)
+                            pl.points.emplace_back(path[j].x(), path[j].y());
+                        remaining_length -= l;
+                        if (path[j].z() != idx_loop)
+                            break;
+                        p = pj;
                     }
                 }
                 // Start with the anchor.
@@ -766,7 +755,10 @@ void tree_supports_generate_paths(
                                             false);
         }
         if (eec) {
-            std::reverse(eec->entities.begin(), eec->entities.end());
+            // Loops were appended external first. Print the internal loop first, except in multi nozzle
+            // diameter mode, which keeps the external loop first.
+            if (! support_params.multi_nozzle_diameter_mode)
+                std::reverse(eec->entities.begin(), eec->entities.end());
             dst.emplace_back(eec.release());
         }
     }

@@ -151,6 +151,9 @@ struct SupportNode
     // Position of this node on the folded grid, counted from the bed. Drives the interface pattern
     // alternation that used to be derived from the object layer number.
     int            slab_index { -1 };
+    // BBS multi-diameter: wall line width of this base node when it sits next to a nozzle change, set by
+    // smooth_line_width_multi_diameter(). 0 keeps the layer's default support line width.
+    coordf_t       line_width { 0. };
     bool           fading          = false;
     double         overhang_degree = 0.0;  // overhang degree for cooling just like perimeter
     ExPolygon      overhang; // when type==ePolygon, set this value to get original overhang area
@@ -593,6 +596,10 @@ private:
      */
     void insert_dropped_node(std::vector<SupportNode*>& nodes_layer, SupportNode* node);
     void create_tree_support_layers();
+    // BBS multi-diameter: ramp the wall line width of the thin side of every nozzle change towards the
+    // coarse side, so the two extrusions overlap. Only rendered base nodes within a short Z distance of a
+    // change are touched, each capped at twice its own nozzle's default width. Runs right after folding.
+    void smooth_line_width_multi_diameter();
     // BBS multi-diameter: fold the node chains onto the slab grid a coarse nozzle can extrude, and renumber
     // the per node layer counters into printed layers so draw_circles() classifies roof / roof_1st_layer /
     // base from them unchanged. Runs between smooth_nodes() and generate_support_ring_struts().

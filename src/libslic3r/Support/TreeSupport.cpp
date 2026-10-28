@@ -2579,6 +2579,94 @@ void TreeSupport::fold_nodes_multi_diameter()
                             << (fold_interface ? "on" : "off");
 }
 
+// BBS multi-diameter: a fine branch section sitting next to a coarse slab only overlaps the coarse wall over its
+// own narrow bead, so the joint is weak. Widen the wall of the fine side close to every nozzle change, ramping
+// back to the default width within a short distance. Only base disks that draw_circles() actually renders take
+// part, a node away from any change keeps line_width == 0, and nothing runs in single-diameter mode.
+void TreeSupport::smooth_line_width_multi_diameter()
+{
+    // Lightning roots are trimmed against the default wall, so a wider wall there would overlap them.
+    if (! m_support_merge_plan.enabled || m_support_params.base_fill_pattern == ipLightning)
+        return;
+
+    const std::vector<LayerHeightData> &layer_heights = m_ts_data->layer_heights;
+    const size_t num_layers = std::min(contact_nodes.size(), layer_heights.size());
+    const bool   has_roof   = m_support_params.num_top_interface_layers > 0;
+    // Same classification as draw_circles(): what ends up as a plain base disk.
+    auto is_base_disk = [has_roof](const SupportNode *node) {
+        return node != nullptr && ! node->fading && node->type != ePolygon &&
+               node->distance_to_top >= 0 && (! has_roof || node->support_roof_layers_below < 0);
+    };
+
+    // width: default base width of the node's layer; target: the widened width, raised pairwise below.
+    struct Disk { coordf_t width; coordf_t top; coordf_t bottom; coordf_t target; };
+    std::unordered_map<SupportNode *, Disk> disks;
+    coordf_t min_width = std::numeric_limits<coordf_t>::max();
+    coordf_t max_width = 0.;
+    coordf_t max_span  = 0.;
+    for (size_t layer_nr = 0; layer_nr < num_layers; ++ layer_nr) {
+        if (layer_heights[layer_nr].height < EPSILON || contact_nodes[layer_nr].empty())
+            continue;
+        // Default base width of this layer, resolved the way generate_toolpaths() does.
+        const SupportLayer *ts_layer = m_object->get_support_layer(layer_nr + m_raft_layers);
+        const coordf_t width = ts_layer != nullptr && ts_layer->planned_nozzle_diameter > EPSILON ?
+            m_support_params.support_material_flow_for_nozzle(ts_layer->planned_nozzle_diameter,
+                                                              float(layer_heights[layer_nr].height)).width() :
+            m_support_params.support_extrusion_width;
+        for (SupportNode *node : contact_nodes[layer_nr]) {
+            if (! is_base_disk(node) || node->height < EPSILON)
+                continue;
+            disks.emplace(node, Disk{ width, node->print_z, node->print_z - node->height, width });
+            min_width = std::min(min_width, width);
+            max_width = std::max(max_width, width);
+            max_span  = std::max(max_span, node->height);
+        }
+    }
+    // No nozzle change anywhere: every node keeps its default width.
+    if (disks.empty() || max_width - min_width < EPSILON)
+        return;
+
+    // The finer disk of a pair ramps from its capped width (the coarse width, at most twice its own) at contact
+    // back to its own over max(coarse slab, two own layers) plus one own layer, so no partner farther than this
+    // matters.
+    const coordf_t reach = 3. * max_span;
+    // Every node has a single child towards the bed, so walking down from each disk meets every pair of
+    // rendered disks on one chain exactly once. Nodes swallowed by a fold are walked through: they only
+    // bridge the Z gap between the disks that remain.
+    for (auto &[node, upper] : disks)
+        for (SupportNode *c = node->child; c != nullptr && upper.bottom - c->print_z <= reach; c = c->child) {
+            const auto it = disks.find(c);
+            if (it == disks.end())
+                continue;
+            Disk &lower = it->second;
+            if (std::abs(upper.width - lower.width) < EPSILON)
+                continue;
+            Disk          &fine   = upper.width < lower.width ? upper : lower;
+            const Disk    &coarse = upper.width < lower.width ? lower : upper;
+            // Ramp towards the capped peak rather than the coarse width, so the cap does not flatten the layers
+            // next to the change. One own layer is added so the last widened layer does not snap back.
+            const coordf_t fine_h = fine.top - fine.bottom;
+            const coordf_t peak   = std::min(coarse.width, 2. * fine.width);
+            const coordf_t ramp   = std::max(coarse.top - coarse.bottom, 2. * fine_h) + fine_h;
+            const coordf_t gap    = std::max(0., upper.bottom - lower.top);
+            if (gap < ramp)
+                fine.target = std::max(fine.target, fine.width + (peak - fine.width) * (1. - gap / ramp));
+        }
+
+    size_t widened = 0;
+    for (auto &[node, disk] : disks) {
+        // The target is already capped at twice the own width by the peak. It is also kept within the disk radius,
+        // or the wall inset in tree_supports_generate_paths() would eat a thin branch away.
+        const coordf_t width = std::min(disk.target, std::max(disk.width, coordf_t(node->radius)));
+        if (width > disk.width + EPSILON) {
+            node->line_width = width;
+            ++ widened;
+        }
+    }
+    BOOST_LOG_TRIVIAL(info) << "support line width smoothing widened " << widened << " of " << disks.size()
+                            << " base nodes, default widths " << min_width << " to " << max_width;
+}
+
 std::vector<size_t> TreeSupport::fold_carriers_above(size_t layer_nr) const
 {
     std::vector<size_t> carriers;
@@ -2997,10 +3085,15 @@ void TreeSupport::generate_toolpaths()
                                     erSupportMaterial, filler_support.get(), support_density);
                             }
                             else {
+                                // BBS multi-diameter: an area widened at a nozzle change also gets the second wall
+                                // when the wall count is automatic. Its paths are inset by half their own width, so
+                                // the bead's outer edge stays on the contour and it grows inwards onto the coarse bead.
+                                const bool widened = area_group.line_width > flow.width() + EPSILON;
                                 SupportParameters support_params = m_support_params;
-                                if (area_group.need_extra_wall && object_config.tree_support_wall_count.value == -1)
+                                if ((area_group.need_extra_wall || widened) && object_config.tree_support_wall_count.value == -1)
                                     support_params.tree_branch_diameter_double_wall_area_scaled = 0.1;
-                                tree_supports_generate_paths(ts_layer->support_fills.entities, loops, flow, support_params);
+                                const Flow wall_flow = widened ? flow.with_width(float(area_group.line_width)) : flow;
+                                tree_supports_generate_paths(ts_layer->support_fills.entities, loops, wall_flow, support_params);
                             }
                         }
 
@@ -3267,6 +3360,7 @@ void TreeSupport::generate()
     // follow smoothing, which needs the fine grid samples, and precede everything that turns nodes into
     // geometry, so the floating support prune and the disks all see the folded tree.
     fold_nodes_multi_diameter();
+    smooth_line_width_multi_diameter();
 
     //Generate support areas.
     profiler.stage_start(STAGE_DRAW_CIRCLES);
@@ -3550,6 +3644,12 @@ void TreeSupport::draw_circles()
         return;
     BOOST_LOG_TRIVIAL(info) << "for object: " << m_object->model_object()->name;
 
+    // BBS multi-diameter: disk of a node whose wall is widened at a nozzle change.
+    struct WidenedArea {
+        ExPolygon   area;
+        BoundingBox bbox;
+        coordf_t    width;
+    };
     // BBS multi-diameter: the per layer state handed from drawing the nodes to finishing the areas. The two run
     // as separate passes so the finishing one can read the roof gaps of every layer a folded slab swallowed.
     struct LayerDrawData
@@ -3563,6 +3663,8 @@ void TreeSupport::draw_circles()
         ExPolygons area_poly;
         ExPolygons extra_wall_area;
         ExPolygons cooldown_area;
+        // Sorted by width, widest first.
+        std::vector<WidenedArea> widened_areas;
     };
     std::vector<LayerDrawData> layer_draw_data(m_ts_data->layer_heights.size());
 
@@ -3650,6 +3752,7 @@ void TreeSupport::draw_circles()
                 ExPolygons area_poly;  // the polygon node area which will be printed as normal support
                 ExPolygons extra_wall_area; //where nodes would have extra walls
                 ExPolygons cooldown_area;
+                std::vector<WidenedArea> widened_areas;
                 for (const SupportNode* p_node : curr_layer_nodes)
                 {
                     if (print->canceled())
@@ -3727,6 +3830,9 @@ void TreeSupport::draw_circles()
                     }
                     else
                     {
+                        if (node.line_width > EPSILON)
+                            for (const ExPolygon &expoly : area)
+                                widened_areas.push_back({ expoly, get_extents(expoly), node.line_width });
                         append(base_areas, area);
                         max_layers_above_base = std::max(max_layers_above_base, node.dist_mm_to_top);
                     }
@@ -3758,6 +3864,9 @@ void TreeSupport::draw_circles()
                 data.area_poly              = std::move(area_poly);
                 data.extra_wall_area        = std::move(extra_wall_area);
                 data.cooldown_area          = std::move(cooldown_area);
+                std::sort(widened_areas.begin(), widened_areas.end(),
+                          [](const WidenedArea &a, const WidenedArea &b) { return a.width > b.width; });
+                data.widened_areas          = std::move(widened_areas);
             }
         });
 
@@ -3871,6 +3980,13 @@ void TreeSupport::draw_circles()
                     bool need_extra_wall = overlaps({expoly},extra_wall_area);
                     area_groups.back().need_extra_wall = need_extra_wall && !area_groups.back().need_infill;
                     area_groups.back().need_cooling = overlaps({ expoly }, cooldown_area);
+                    // The whole island takes the widest wall among the widened disks that overlap it.
+                    const BoundingBox expoly_bbox = get_extents(expoly);
+                    for (const WidenedArea &widened : data.widened_areas)
+                        if (widened.bbox.overlap(expoly_bbox) && widened.area.overlaps(expoly)) {
+                            area_groups.back().line_width = widened.width;
+                            break;
+                        }
                 }
                 ExPolygons new_roofs;
                 for (auto &expoly : ts_layer->roof_areas) {

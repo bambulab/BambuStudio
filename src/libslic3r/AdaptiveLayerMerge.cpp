@@ -28,7 +28,7 @@ AdaptiveLayerHeightRange adaptive_layer_height_range(double nozzle_diameter)
 
 float support_top_z_for_nozzle(double nozzle_diameter)
 {
-    static constexpr std::pair<double, float> table[] = {{0.2, 0.1f}, {0.4, 0.2f}, {0.6, 0.2f}, {0.8, 0.3f}};
+    static constexpr std::pair<double, float> table[] = {{0.2, 0.1f}, {0.4, 0.2f}, {0.6, 0.2f}, {0.8, 0.4f}};
     const std::pair<double, float> *best = &table[0];
     for (const std::pair<double, float> &entry : table)
         if (std::abs(entry.first - nozzle_diameter) < std::abs(best->first - nozzle_diameter))

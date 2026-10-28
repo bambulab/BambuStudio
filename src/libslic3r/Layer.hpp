@@ -400,6 +400,8 @@ protected:
         bool need_infill = false;
         bool need_extra_wall = false;
         bool       need_cooling    = false;
+        // BBS multi-diameter tree support: widened wall width at a nozzle change, 0 for the layer default.
+        coordf_t   line_width      = 0.;
         AreaGroup(ExPolygon *a, int t, coordf_t d) : area(a), type(t), dist_to_top(d) {}
     };
     std::vector<AreaGroup>                    area_groups;
