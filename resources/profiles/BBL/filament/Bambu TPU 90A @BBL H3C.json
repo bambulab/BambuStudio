@@ -88,12 +88,12 @@
         "-1"
     ],
     "nozzle_temperature": [
-        "225",
-        "225"
+        "230",
+        "230"
     ],
     "nozzle_temperature_initial_layer": [
-        "225",
-        "225"
+        "230",
+        "230"
     ],
     "optional_cooling_fan_speed": [
         "100"
