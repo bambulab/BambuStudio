@@ -11,8 +11,10 @@
 }
 
 /* Picker view: half the group list's padding above the title and half its gap
-   below it, so the title band stays compact in the narrow dialog. */
+   below it, so the title band stays compact in the narrow dialog. At least as
+   tall as the dialog so the footer can sit at its bottom edge. */
 .refill-page--picker {
+  min-height: 100%;
   padding-top: 8px;
   gap: 6px;
 }
@@ -636,12 +638,13 @@ body.refill-slot-dragging * {
   white-space: nowrap;
 }
 
-/* 724px content column; the 16px padding of .refill-page brings the host
-   dialog to the 756px of the design. */
+/* Fills the dialog like the group list does, so dragging it wider fits more
+   units per row (auto-fill below). At the 756px design width the 16px padding
+   of .refill-page leaves the 724px column of the design. */
 .add-refill-page {
   box-sizing: border-box;
-  width: 724px;
-  max-width: 100%;
+  width: 100%;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
 }
@@ -665,7 +668,11 @@ body.refill-slot-dragging * {
 
 .add-refill-page__units {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* Side by side only while each unit still fits four cards at their minimum
+     width (4 * 72 + 3 * 4 gap + 2 * 12 padding = 324); a narrower dialog
+     stacks the units instead of squeezing the cards. min() keeps a single
+     column from overflowing a dialog narrower than that. */
+  grid-template-columns: repeat(auto-fill, minmax(min(324px, 100%), 1fr));
   gap: 12px;
 }
 
@@ -697,9 +704,11 @@ body.refill-slot-dragging * {
 }
 
 /* Each row is centered on its own, so the 4-card row and the 5-card row of
-   the hotend unit line up the way the design does. */
+   the hotend unit line up the way the design does. Wraps when even a stacked
+   unit cannot fit its cards at their minimum width. */
 .add-refill-unit__row {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 4px;
 }
@@ -707,7 +716,11 @@ body.refill-slot-dragging * {
 .add-refill-slot {
   position: relative;
   box-sizing: border-box;
-  width: 80px;
+  /* 80px by design, shrinking to 72px (the spool and name width) when a
+     classic scrollbar takes its share; never below, or the spool is clipped.
+     The 72px basis is what flex-wrap measures, so cards shrink before wrapping. */
+  flex: 1 0 72px;
+  max-width: 80px;
   height: 131px;
   padding: 4px 4px 8px;
   display: flex;
@@ -845,11 +858,21 @@ body.refill-slot-dragging * {
   color: var(--ams-error);
 }
 
+/* Pinned to the bottom of the dialog: pushed down when the units are short,
+   kept in view over them when they scroll. The background hides the units
+   passing underneath, and the negative bottom margin plus matching padding
+   carries it over the page's 16px bottom padding to the dialog edge. */
 .add-refill-page__footer {
-  margin-top: 12px;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin-top: auto;
+  margin-bottom: -16px;
+  padding: 12px 0 16px;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  background: var(--color-fm-base);
 }
 
 .add-refill-page__button {
