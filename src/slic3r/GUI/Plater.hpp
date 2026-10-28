@@ -313,6 +313,9 @@ private:
     bool            m_is_gcode_file{ false };
     bool            m_update_3d_state{false};
     bool            m_need_auto_sync_after_connect_printer{false};
+    // Set while sync_ams_list() is running. The function opens modal dialogs,
+    // whose nested event loops can dispatch another sync request into it.
+    bool            m_in_sync_ams_list{false};
 };
 
 class Plater: public wxPanel
