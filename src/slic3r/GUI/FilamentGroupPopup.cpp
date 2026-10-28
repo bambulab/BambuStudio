@@ -443,16 +443,9 @@ void FilamentGroupPopup::Init(const std::vector<FilamentMapMode>& available_mode
         m_mode = fmmManual;
 
     // 选择当前 UI 可用模式：当前模式不可选，或便捷模式需要设备连接但当前未连接时，统一回退到第一个可用模式。
-    const bool mode_available = std::find(m_available_modes.begin(), m_available_modes.end(), m_mode) != m_available_modes.end();
-    const bool need_fallback  = !mode_available || (m_mode == fmmAutoForMatch && !m_connected);
-    if (need_fallback)
-        m_mode = m_available_modes.empty() ? fmmAutoForFlush : m_available_modes.front();
-
-    // 回退时需要写回配置；全盘切片时也要把当前模式同步到所有 plate。
-    if (need_fallback || m_slice_all) {
-        // reset the filament map mode in slice all mode
-        SetFilamentMapMode(m_mode);
-    }
+    // Display only: hovering must not change the config behind a valid slice result. The same fallback,
+    // and the slice-all sync across plates, are written by try_pop_up_before_slice() right before slicing.
+    m_mode = resolve_fallback_filament_map_mode(m_mode, m_available_modes, m_connected);
 
     UpdateButtonStatus();
     GetSizer()->Layout();

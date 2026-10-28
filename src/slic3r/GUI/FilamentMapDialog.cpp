@@ -9,6 +9,7 @@
 #include "MsgDialog.hpp"
 #include "PartPlate.hpp"
 #include "libslic3r/Config.hpp"
+#include "libslic3r/Log.hpp"
 
 #include <algorithm>
 #include <wx/display.h>
@@ -128,6 +129,16 @@ std::vector<FilamentMapMode> resolve_available_auto_modes(Print* print_obj, cons
         result.push_back(fmmAutoForFlush);
 
     return result;
+}
+
+FilamentMapMode resolve_fallback_filament_map_mode(FilamentMapMode mode, const std::vector<FilamentMapMode>& available_modes, bool machine_synced)
+{
+    if (!is_auto_filament_map_mode(mode))
+        return mode;
+    const bool mode_available = std::find(available_modes.begin(), available_modes.end(), mode) != available_modes.end();
+    if (mode_available && !(mode == fmmAutoForMatch && !machine_synced))
+        return mode;
+    return available_modes.empty() ? fmmAutoForFlush : available_modes.front();
 }
 
 bool build_multi_nozzle_manual_maps(const ConfigBase       &config,
@@ -260,22 +271,6 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     if (applied_mode == fmmNozzleManual)
         applied_mode = fmmManual;
 
-    // 跳过这一次弹窗的条件：待放行的确认就是这张盘的，且确认之后这张盘没再发生过切片失效
-    const bool tpu_regroup_confirmed = !is_slice_all
-        && pending_confirmation.plate_id == partplate_ref->id()
-        && pending_confirmation.slice_invalid_epoch == partplate_ref->get_slice_invalid_epoch();
-    if (!force_pop_up && (applied_mode != fmmManual || tpu_regroup_confirmed))
-        return true;
-
-    std::vector<int> filament_lists;
-    if (is_slice_all) {
-        filament_lists.resize(filament_colors.size());
-        std::iota(filament_lists.begin(), filament_lists.end(), 1);
-    }
-    else {
-        filament_lists = partplate_ref->get_extruders();
-    }
-
     std::vector<FilamentMapMode> requested_modes = get_default_auto_modes();
     Print* print_obj = partplate_ref->fff_print();
     std::vector<FilamentMapMode> available_modes;
@@ -287,6 +282,43 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
             requested_modes,
             plater_ref->get_machine_sync_status()
         );
+    }
+
+    // The hover popup only displays the fallback mode; it is written here, right before slicing, so a
+    // slice never runs with a mode the UI considers unavailable and a valid result is never left behind
+    // a config that changed under it.
+    const FilamentMapMode fallback_mode = resolve_fallback_filament_map_mode(applied_mode, available_modes, plater_ref->get_machine_sync_status());
+    if (fallback_mode != applied_mode) {
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::plate_id, partplate_ref->get_index()) << "filament map mode " << int(applied_mode)
+                                << " is unavailable, fall back to " << int(fallback_mode) << ", slice_all " << is_slice_all;
+        applied_mode = fallback_mode;
+    }
+
+    // 跳过这一次弹窗的条件：待放行的确认就是这张盘的，且确认之后这张盘没再发生过切片失效
+    const bool tpu_regroup_confirmed = !is_slice_all
+        && pending_confirmation.plate_id == partplate_ref->id()
+        && pending_confirmation.slice_invalid_epoch == partplate_ref->get_slice_invalid_epoch();
+    if (!force_pop_up && (applied_mode != fmmManual || tpu_regroup_confirmed)) {
+        // Slice all uses one auto mode on every plate. Manual modes are left alone: applied_mode has
+        // fmmNozzleManual folded into fmmManual, and writing that back would clear the plate maps.
+        if (is_auto_filament_map_mode(applied_mode)) {
+            const auto& proj_config = wxGetApp().preset_bundle->project_config;
+            std::vector<PartPlate*> plates = is_slice_all ? plater_ref->get_partplate_list().get_plate_list()
+                                                          : std::vector<PartPlate*>{partplate_ref};
+            for (PartPlate* plate : plates)
+                if (plate && plate->get_real_filament_map_mode(proj_config) != applied_mode)
+                    plate->set_filament_map_mode(applied_mode);
+        }
+        return true;
+    }
+
+    std::vector<int> filament_lists;
+    if (is_slice_all) {
+        filament_lists.resize(filament_colors.size());
+        std::iota(filament_lists.begin(), filament_lists.end(), 1);
+    }
+    else {
+        filament_lists = partplate_ref->get_extruders();
     }
 
     FilamentMapDialog map_dlg(plater_ref,

@@ -31,6 +31,17 @@ class SmartFilamentPanel;
 bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref, bool force_pop_up = false);
 std::vector<FilamentMapMode> resolve_available_auto_modes(Print *print_obj, const std::vector<FilamentMapMode> &requested_modes, bool machine_synced);
 /**
+ * @brief Mode to use when the stored one cannot be used right now.
+ *
+ * An auto mode falls back to the first available mode when it is not available, or when it is
+ * the convenience mode and the printer is not synced. Other modes are returned unchanged.
+ *
+ * @param mode            Stored mode, fmmNozzleManual already mapped to fmmManual
+ * @param available_modes Modes that can be chosen now; the first one is the fallback
+ * @param machine_synced  Whether the selected printer matches the printer preset
+ */
+FilamentMapMode resolve_fallback_filament_map_mode(FilamentMapMode mode, const std::vector<FilamentMapMode> &available_modes, bool machine_synced);
+/**
  * @brief Translate a custom-panel result into the maps the backend expects.
  *
  * On single-extruder multi-nozzle machines filament_map stays all-1 (there is only one real extruder)
