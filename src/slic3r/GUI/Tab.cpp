@@ -5991,7 +5991,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
             //optgroup->append_single_option_line("default_nozzle_volume_type", "", extruder_idx);
 
-            append_multi_nozzle_auto_line(optgroup, "nozzle_volume", "", extruder_idx);
+            optgroup->append_single_option_line("nozzle_volume", "", extruder_idx);
             optgroup->append_single_option_line("extruder_printable_height", "", extruder_idx);
             Option option         = optgroup->get_option("extruder_printable_area", extruder_idx);
             option.opt.full_width = true;

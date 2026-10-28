@@ -210,18 +210,12 @@ double multi_nozzle_support_z_distance(double nozzle_diameter, double preset_val
     return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.1, 0.2, 0.2, 0.2 });
 }
 
-double multi_nozzle_nozzle_volume(double nozzle_diameter, double preset_value)
-{
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 32.0, 125.9, 125.9, 125.9 });
-}
-
 bool is_multi_nozzle_auto_option(const std::string &opt_key)
 {
     static const std::set<std::string> auto_options {
         "retraction_length",
         "min_layer_height",
         "max_layer_height",
-        "nozzle_volume",
         "ironing_inset",
         "wall_loops",
         "top_shell_layers",
@@ -10552,6 +10546,31 @@ void align_filament_variant_overrides(DynamicPrintConfig &config)
     }
 }
 
+// Multi-diameter: the machine retraction_length is stored per machine variant, and one variant can carry
+// nozzles of different diameters. Filament rows without their own filament_retraction_length take the
+// length for the diameter of the nozzle the filament is assigned to.
+static void apply_multi_nozzle_retraction_length(const DynamicPrintConfig &config, const ConfigOptionFloatsNullable &filament_retraction,
+                                                 ConfigOptionFloatsNullable &retraction)
+{
+    const auto *self_index = config.option<ConfigOptionInts>("filament_self_index");
+    const auto *selected   = config.option<ConfigOptionStrings>("filament_diameter_map");
+    if (self_index == nullptr || selected == nullptr || self_index->values.size() != retraction.values.size())
+        throw ConfigurationError("filament_self_index does not match the filament retraction rows");
+
+    for (size_t row = 0; row < retraction.values.size(); ++row) {
+        if (!filament_retraction.is_nil(row))
+            continue;
+        const int filament_id = self_index->values[row];
+        if (filament_id < 1 || size_t(filament_id) > selected->values.size())
+            throw ConfigurationError("filament_self_index is out of the filament_diameter_map range");
+        const std::string &diameter_str = selected->values[filament_id - 1];
+        if (diameter_str.empty() || diameter_str.find(';') != std::string::npos)
+            continue;
+        const double diameter = string_to_double_decimal_point(diameter_str.c_str());
+        retraction.values[row] = multi_nozzle_retraction_length(diameter, retraction.values[row]);
+    }
+}
+
 void compute_filament_override_value(const std::string& opt_key, const ConfigOption *opt_old_machine, const ConfigOption *opt_new_machine, const ConfigOption *opt_new_filament, const DynamicPrintConfig& new_full_config,
     t_config_option_keys& diff_keys, DynamicPrintConfig& filament_overrides, std::vector<int>& f_map_indices)
 {
@@ -10576,6 +10595,9 @@ void compute_filament_override_value(const std::string& opt_key, const ConfigOpt
 
     auto opt_copy = opt_new_machine->clone();
     opt_copy->apply_override(opt_new_filament, f_map_indices);
+    if (opt_key == "retraction_length" && multi_nozzle_diameter_mode_enabled(new_full_config))
+        apply_multi_nozzle_retraction_length(new_full_config, *static_cast<const ConfigOptionFloatsNullable *>(opt_new_filament),
+                                             *static_cast<ConfigOptionFloatsNullable *>(opt_copy));
     bool changed = *opt_old_machine != *opt_copy;
 
     if (changed) {

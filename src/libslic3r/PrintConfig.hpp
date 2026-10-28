@@ -2250,7 +2250,6 @@ double multi_nozzle_bottom_shell_thickness(double nozzle_diameter, double preset
 int    multi_nozzle_top_color_penetration_layers(double nozzle_diameter, int preset_value);
 int    multi_nozzle_bottom_color_penetration_layers(double nozzle_diameter, int preset_value);
 double multi_nozzle_support_z_distance(double nozzle_diameter, double preset_value);
-double multi_nozzle_nozzle_volume(double nozzle_diameter, double preset_value);
 
 // Options shown as "Auto" while multi_nozzle_diameter_mode is on: their preset value is not editable there
 // and slicing resolves them per nozzle diameter. Accepts both "key" and "key#idx".

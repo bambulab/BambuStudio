@@ -5038,43 +5038,6 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     out.option<ConfigOptionStrings>("filament_diameter_map", true)->values =
         std::move(selected_nozzle_diameters);
 
-    // Stabilize the effective machine defaults before the config reaches Print::apply(). Filament
-    // retraction overrides remain in filament_retraction_length and are folded on top later, so their
-    // existing higher priority is preserved without causing a first-slice config transition.
-    if (multi_diameter_mode) {
-        const auto *selected = out.option<ConfigOptionStrings>("filament_diameter_map");
-        auto *retraction = out.option<ConfigOptionFloatsNullable>("retraction_length");
-        auto *nozzle_volume = out.option<ConfigOptionFloatsNullable>("nozzle_volume");
-        const bool has_retraction = retraction != nullptr && !retraction->values.empty();
-        const bool has_nozzle_volume = nozzle_volume != nullptr && !nozzle_volume->values.empty();
-        if (selected != nullptr && (has_retraction || has_nozzle_volume)) {
-            GCodeConfig index_config;
-            index_config.apply(out, true);
-            for (size_t filament_id = 0; filament_id < selected->values.size(); ++filament_id) {
-                const std::string &diameter_str = selected->values[filament_id];
-                if (diameter_str.empty() || diameter_str.find(';') != std::string::npos)
-                    continue;
-                const double diameter = string_to_double_decimal_point(diameter_str.c_str());
-                if (diameter <= 0.)
-                    continue;
-                const size_t config_idx = Slic3r::get_filament_config_idx(
-                    index_config, (unsigned int) filament_id);
-                if (has_retraction) {
-                    if (config_idx >= retraction->values.size())
-                        retraction->values.resize(config_idx + 1, retraction->values.front());
-                    retraction->values[config_idx] =
-                        multi_nozzle_retraction_length(diameter, retraction->values[config_idx]);
-                }
-                if (has_nozzle_volume) {
-                    if (config_idx >= nozzle_volume->values.size())
-                        nozzle_volume->values.resize(config_idx + 1, nozzle_volume->values.front());
-                    nozzle_volume->values[config_idx] =
-                        multi_nozzle_nozzle_volume(diameter, nozzle_volume->values[config_idx]);
-                }
-            }
-        }
-    }
-
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
 }
