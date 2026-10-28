@@ -81,6 +81,8 @@ public:
 
     wxSize GetVideoSize();
 
+    wxSize GetIdleImageSize() const { return m_idle_image_size; }
+
     void SetConstrainByAspectRatio(bool constrain) { m_constrain_by_aspect_ratio = constrain; }
     bool GetConstrainByAspectRatio() const { return m_constrain_by_aspect_ratio; }
     void SuppressPauseIcon(bool suppress);
@@ -118,6 +120,7 @@ protected:
 private:
     wxString m_idle_image;
     wxImage  m_idle_image_raw; // last idle image applied via the wxImage overload (UI thread only)
+    wxSize   m_idle_image_size = wxDefaultSize;
     wxString m_watermark_text;
     wxString m_live_badge_text;
     wxBitmap m_pause_bitmap;     // cached rasterized pause icon (UI thread only)

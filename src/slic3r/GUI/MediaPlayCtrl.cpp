@@ -1545,6 +1545,15 @@ void wxMediaCtrl_OnSize(wxWindow * ctrl, wxSize const & videoSize, int width, in
 #endif
 
     wxSize size = videoSize;
+#ifndef __WXMAC__
+    if (!size.IsFullySpecified()) {
+        if (auto *media3 = dynamic_cast<wxMediaCtrl3 *>(ctrl)) {
+            wxSize idle = media3->GetIdleImageSize();
+            if (idle.IsFullySpecified() && idle.GetWidth() > 0 && idle.GetHeight() > 0)
+                size = idle;
+        }
+    }
+#endif
     if (!size.IsFullySpecified()) size = {16, 9};
     int maxHeight = (width * size.GetHeight() + size.GetHeight() - 1) / size.GetWidth();
     if (maxHeight != ctrl->GetMaxHeight()) {

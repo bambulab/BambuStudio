@@ -193,10 +193,15 @@ void wxMediaCtrl3::SetIdleImage(const wxImage &image, wxString const &watermark_
     m_idle_image.clear();
     m_watermark_text = watermark_text;
     if (m_url == nullptr) {
-        std::unique_lock<std::mutex> lk(m_ui_mutex);
-        m_frame = image;
-        m_frame_is_default_bg = false;
-        assert(m_frame.IsOk());
+        {
+            std::unique_lock<std::mutex> lk(m_ui_mutex);
+            m_frame = image;
+            m_frame_is_default_bg = false;
+            assert(m_frame.IsOk());
+        }
+        m_idle_image_size = image.GetSize();
+        wxSize sz = GetSize();
+        wxMediaCtrl_OnSize(this, m_idle_image_size, sz.x, sz.y);
         Refresh();
     }
 }
