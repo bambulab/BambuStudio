@@ -2141,7 +2141,6 @@ void PreferencesDialog::on_reset_preferences()
         "auto_transfer_when_switch_preset",
         "sync_user_preset",
         "sync_system_preset",
-        "disable_fins_extrude_safe_temp",
         "zoom_to_mouse",
         "reverse_mouse_wheel_zoom",
         "canvas_drag_to_move",

@@ -14794,7 +14794,6 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     }
 
     background_process.fff_print()->set_show_high_temp_filament_warning(wxGetApp().app_config->get("no_warn_high_temp_filament") != "true");
-    background_process.fff_print()->set_disable_fins_extrude_safe_temp(wxGetApp().app_config->get("disable_fins_extrude_safe_temp") == "true");
 
     Print::ApplyStatus invalidated;
     const auto& preset_bundle = wxGetApp().preset_bundle;
@@ -30585,7 +30584,6 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
         Polygons polygons;
         std::vector<std::pair<Polygon, float>> height_polygons;
         p->background_process.fff_print()->set_show_high_temp_filament_warning(wxGetApp().app_config->get("no_warn_high_temp_filament") != "true");
-        p->background_process.fff_print()->set_disable_fins_extrude_safe_temp(wxGetApp().app_config->get("disable_fins_extrude_safe_temp") == "true");
         StringObjectException err = p->background_process.validate(&warnings, &polygons, &height_polygons);
         // update string by type
         post_process_string_object_exception(err);

@@ -3070,7 +3070,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("chamber_temperature", new ConfigOptionInts({ max_chamber_temp }));
         m_placeholder_parser.set("overall_chamber_temperature", new ConfigOptionInt(max_chamber_temp));
         m_placeholder_parser.set("enable_high_low_temp_mix", new ConfigOptionBool(true));
-        m_placeholder_parser.set("disable_fins_extrude_safe_temp", new ConfigOptionBool(print.disable_fins_extrude_safe_temp()));
         m_placeholder_parser.set("min_vitrification_temperature", new ConfigOptionInt(min_temperature_vitrification));
 
         //support variables `first_layer_temperature` and `first_layer_bed_temperature`

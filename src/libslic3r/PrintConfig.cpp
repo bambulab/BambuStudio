@@ -3636,7 +3636,7 @@ void PrintConfigDef::init_fff_params()
     // BBS: per-filament safe hotend temperature for fin extrusion, also accessible in custom G-code via {fins_extrude_safe_temp[...]}.
     def = this->add("fins_extrude_safe_temp", coInts);
     def->label = L("Fin extrude safe temperature");
-    def->tooltip = L("Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp.");
+    def->tooltip = L("Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp.");
     def->sidetext = "°C";
     def->mode = comAdvanced;
     def->min = 0;

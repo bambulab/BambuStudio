@@ -1174,10 +1174,6 @@ public:
     void set_show_high_temp_filament_warning(bool show) { m_show_high_temp_filament_warning = show; }
     bool need_show_high_temp_filament_warning() const { return m_show_high_temp_filament_warning; }
 
-    // BBS: pass the Preferences toggle through to G-code as placeholder disable_fins_extrude_safe_temp.
-    void set_disable_fins_extrude_safe_temp(bool disable) { m_disable_fins_extrude_safe_temp = disable; }
-    bool disable_fins_extrude_safe_temp() const { return m_disable_fins_extrude_safe_temp; }
-
     // scaled point
     Vec2d translate_to_print_space(const Point& point) const;
     static FilamentTempType get_filament_temp_type(const std::string& filament_type);
@@ -1351,7 +1347,6 @@ private:
     Calib_Params m_calib_params;
 
     bool m_show_high_temp_filament_warning{true};
-    bool m_disable_fins_extrude_safe_temp{false};
 
     // To allow GCode to set the Print's GCodeExport step status.
     friend class GCode;
