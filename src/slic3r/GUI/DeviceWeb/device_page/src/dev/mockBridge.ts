@@ -396,8 +396,8 @@ function setMockHotendTaking(displayIndex: number) {
 
 function setMockHotendTemperature(payload: Record<string, unknown>) {
   const displayIndex = Number(payload.display_index ?? 0);
-  const targetTemp = Number(payload.target_temp ?? -1);
-  if (!displayIndex || !Number.isInteger(targetTemp) || targetTemp < 0 || targetTemp > 350) return;
+  const requestedTemp = Number(payload.target_temp ?? -1);
+  if (!displayIndex || !Number.isInteger(requestedTemp) || requestedTemp < 0) return;
 
   AMS_FILAMENT_HOTEND_STATE = {
     ...AMS_FILAMENT_HOTEND_STATE,
@@ -407,6 +407,7 @@ function setMockHotendTemperature(payload: Record<string, unknown>) {
         if (slot.display_index !== displayIndex) return slot;
         const hotend = slot.hotend ?? {};
         if (hotend.tool_kind === 'empty' || hotend.op_state === 'Error') return slot;
+        const targetTemp = Math.min(requestedTemp, hotend.max_temp ?? 350);
 
         const currentTemp = typeof hotend.current_temp === 'number' ? hotend.current_temp : null;
         const tempTrend = currentTemp === null || currentTemp === targetTemp

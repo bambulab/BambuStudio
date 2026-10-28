@@ -124,11 +124,12 @@ export function HotendCard({
 
   const submitTemperature = () => {
     if (!editingTemp) return;
-    const parsed = Number(draftTemp.trim());
-    if (!Number.isInteger(parsed) || parsed < 0 || parsed > 350) {
+    let parsed = Number(draftTemp.trim());
+    if (!Number.isInteger(parsed) || parsed < 0) {
       setEditingTemp(false);
       return;
     }
+    parsed = Math.min(parsed, hot.max_temp ?? 350);
     setEditingTemp(false);
     if (parsed !== (hot.target_temp ?? 0)) {
       onAction('set_hotend_temperature', slot, { target_temp: parsed });

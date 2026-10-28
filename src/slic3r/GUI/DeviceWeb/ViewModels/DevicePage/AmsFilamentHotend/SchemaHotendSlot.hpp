@@ -35,6 +35,7 @@ namespace hotend_menu_actions {
 namespace hotend {
     inline constexpr const char* current_temp   = "current_temp";
     inline constexpr const char* target_temp    = "target_temp";
+    inline constexpr const char* max_temp       = "max_temp";   // upper bound for target_temp; larger input is clamped
     inline constexpr const char* op_state       = "op_state";   // values::hotend_op_state
     inline constexpr const char* temp_trend     = "temp_trend"; // values::hotend_temp_trend
     inline constexpr const char* tool_kind      = "tool_kind";  // values::tool_kind

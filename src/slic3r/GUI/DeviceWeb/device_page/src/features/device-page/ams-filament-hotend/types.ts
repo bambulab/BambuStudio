@@ -62,6 +62,7 @@ export type HotendToolKind =
 export interface HotendSlotInfo {
   current_temp?: number | null; // 当前温度, deg C; null / undefined => "--"
   target_temp?: number;      // 目标温度, deg C; 0 / undefined => "0℃"
+  max_temp?: number;         // 目标温度上限, deg C; 超出时截断到该值; undefined => 350
   op_state?: HotendOpState;  // 健康态 / 刀架作业态
   temp_trend?: HotendTempTrend; // 温度趋势, 与 op_state 正交
   tool_kind?: HotendToolKind;

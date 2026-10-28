@@ -209,10 +209,11 @@
     function submitTemperature() {
       if (!editingTemp) return;
       var parsed = Number(String(draftTemp).trim());
-      if (!isFinite(parsed) || Math.floor(parsed) !== parsed || parsed < 0 || parsed > 350) {
+      if (!isFinite(parsed) || Math.floor(parsed) !== parsed || parsed < 0) {
         setEditingTemp(false);
         return;
       }
+      parsed = Math.min(parsed, pick(hot.max_temp, 350));
       setEditingTemp(false);
       if (parsed !== pick(hot.target_temp, 0)) {
         onAction('set_hotend_temperature', slot, { target_temp: parsed });

@@ -123,6 +123,15 @@ int addr_id_to_display_idx(int addr_id) { return addr_id + 1; }
 
 int rack_pos_id_from_addr_id(int addr_id) { return addr_id + 0x10; }
 
+constexpr int kDefaultHotendMaxTemp = 350;
+
+int hotend_max_temp(const MachineObject* machine_obj)
+{
+    if (machine_obj && machine_obj->nozzle_temp_range.size() >= 2 && machine_obj->nozzle_temp_range[1] > 0)
+        return machine_obj->nozzle_temp_range[1];
+    return kDefaultHotendMaxTemp;
+}
+
 class HotendDetailDialog : public DPIDialog
 {
 public:
@@ -433,6 +442,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
             : nlohmann::json(nullptr);
         hotend[SK::hotend::current_temp] = is_nozzle_tool ? nlohmann::json(rack_nozzle_opt->GetCurrentTemp()) : nlohmann::json(nullptr);
         hotend[SK::hotend::target_temp] = is_nozzle_tool ? rack_nozzle_opt->GetTargetTemp() : 0;
+        hotend[SK::hotend::max_temp] = hotend_max_temp(machine_obj);
         hotend[SK::hotend::selected] = is_on_extruder;
     }
 
@@ -664,8 +674,8 @@ std::optional<nlohmann::json> DevicePageHotendActionHandler::TryHandle(DevicePag
         });
     } else if (action == "set_hotend_temperature") {
         const int addr_id = payload.value("addr_id", -1);
-        const int target_temp = payload.value("target_temp", -1);
-        if (addr_id < 0 || target_temp < 0 || target_temp > 350) {
+        int target_temp = payload.value("target_temp", -1);
+        if (addr_id < 0 || target_temp < 0) {
             return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("Invalid hotend temperature payload"), vm.BuildState());
         }
         auto nozzle_system = machine_obj->GetNozzleSystem();
@@ -678,6 +688,7 @@ std::optional<nlohmann::json> DevicePageHotendActionHandler::TryHandle(DevicePag
         if (!rack_nozzle.IsExist() || rack_nozzle.IsAbnormal()) {
             return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("Hotend cannot set temperature"), vm.BuildState());
         }
+        target_temp = std::min(target_temp, hotend_max_temp(machine_obj));
         nozzle_rack->SetNozzleTargetTemp(rack_pos_id, target_temp);
     } else if (action == "nozzle_hint") {
         const int addr_id = payload.value("addr_id", -1);
