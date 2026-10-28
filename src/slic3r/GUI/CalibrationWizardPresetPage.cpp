@@ -1757,15 +1757,16 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<CaliFilam
     return is_filaments_compatiable(prests, bed_temp, incompatiable_filament_name, error_tips);
 }
 
-bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset, std::string& error_tips)
+bool CalibrationPresetPage::is_filament_in_blacklist(const CaliFilamentInfo& fila_info, std::string& error_tips)
 {
-    if (!curr_obj)
+    Preset* preset = fila_info.filament_preset;
+    if (!curr_obj || !preset)
         return true;
 
     int ams_id;
     int slot_id;
     int out_tray_id;
-    get_tray_ams_and_slot_id(curr_obj, tray_id, ams_id, slot_id, out_tray_id);
+    get_tray_ams_and_slot_id(curr_obj, fila_info.tray_id, ams_id, slot_id, out_tray_id);
 
     if (wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
         DevFilaBlacklist::CheckResult result;
@@ -1776,13 +1777,20 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
         preset->get_filament_type(check_info.fila_type);
         check_info.ams_id = ams_id;
         check_info.slot_id = slot_id;
-        check_info.nozzle_flow = curr_obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id)); // NOTE: to be fixed
         check_info.fila_name = preset->alias;
         check_info.has_filament_switch = curr_obj->GetFilaSwitch()->IsInstalled();
 
-        if (!curr_obj->GetNozzleRack()->IsSupported()) {
-            int extruder_id = curr_obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
-            check_info.nozzle_diameter = curr_obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
+        if (fila_info.nozzle_pos_id >= 0) {
+            const DevNozzle nozzle = curr_obj->get_nozzle_by_id_code(fila_info.nozzle_pos_id);
+            if (nozzle.IsEmpty()) {
+                BOOST_LOG_TRIVIAL(warning) << "selected nozzle unavailable, blacklist check uses its default nozzle info, nozzle_pos_id="
+                                           << fila_info.nozzle_pos_id << " tray_id=" << fila_info.tray_id;
+            }
+            check_info.nozzle_flow = DevNozzle::GetNozzleFlowTypeString(nozzle.GetNozzleFlowType());
+            check_info.nozzle_diameter = nozzle.GetNozzleDiameter();
+        } else {
+            BOOST_LOG_TRIVIAL(warning) << "no nozzle selected, blacklist check skips nozzle flow and diameter, nozzle_pos_id="
+                                       << fila_info.nozzle_pos_id << " tray_id=" << fila_info.tray_id;
         }
 
         if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO)
@@ -1800,6 +1808,10 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
                 combined_msg += item.info_msg + "\n";
             }
 
+            BOOST_LOG_TRIVIAL(warning) << "calibration filament prohibited by blacklist, ams_id=" << ams_id << " slot_id=" << slot_id
+                                       << " filament_id=" << check_info.fila_id << " nozzle_pos_id=" << fila_info.nozzle_pos_id
+                                       << " nozzle_flow=" << check_info.nozzle_flow.value_or("")
+                                       << " nozzle_diameter=" << check_info.nozzle_diameter.value_or(-1.f) << " msg: " << combined_msg;
             error_tips = combined_msg.ToUTF8().data();
             return false;
         }
@@ -1870,7 +1882,7 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<CaliFilam
         filament_types.push_back(item_preset->config.get_filament_type(display_filament_type, 0));
 
         // check is it in the filament blacklist
-        if (!is_filament_in_blacklist(item.tray_id, item_preset, error_tips))
+        if (!is_filament_in_blacklist(item, error_tips))
             return false;
     }
 
@@ -3567,6 +3579,11 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
             sel_evt.SetEventObject(m_owner);
             sel_evt.SetInt(tray_id);
             wxPostEvent(m_owner, sel_evt);
+
+            // Popup events never reach the page; re-check compatibility via the owner (queued after sel_evt).
+            wxCommandEvent tray_evt(EVT_CALI_TRAY_CHANGED);
+            tray_evt.SetEventObject(m_owner);
+            wxPostEvent(m_owner, tray_evt);
             evt.Skip();
         });
         check_box->Bind(wxEVT_TOGGLEBUTTON, [this, fcb, check_box](wxCommandEvent& evt) {
@@ -3583,6 +3600,10 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
             m_owner->RefreshSubAmsLabel(_L("Not Selected"));
             // Parent ext_fcb tracks "any sub-AMS row picked" in MULITI mode.
             m_owner->SetValue(!m_owner->GetSubAmsSelection().empty(), /*send_event=*/false);
+
+            wxCommandEvent tray_evt(EVT_CALI_TRAY_CHANGED);
+            tray_evt.SetEventObject(m_owner);
+            wxPostEvent(m_owner, tray_evt);
             evt.Skip();
         });
 #ifdef __WXOSX__
@@ -3600,6 +3621,10 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
             info.nozzle_pos_id = m_owner->GetNozzlePosId();  // row fcb has no combo; pos id comes from the owning ext_fcb
             m_owner->SetSubAmsSelected(tray_id, info, fcb->GetComboBox());
             m_owner->RefreshSubAmsLabel(_L("Not Selected"));
+
+            wxCommandEvent tray_evt(EVT_CALI_TRAY_CHANGED);
+            tray_evt.SetEventObject(m_owner);
+            wxPostEvent(m_owner, tray_evt);
         });
 
         row->Add(radio_btn, 0, wxALIGN_CENTER);

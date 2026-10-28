@@ -5369,7 +5369,16 @@ DevNozzle MachineObject::get_nozzle_by_id_code(int id_code) const
         }
     } else if (id_code >= 0x10) {
         /* rack nozzle*/
-        auto rack       = m_nozzle_system->GetNozzleRack();
+        auto rack = m_nozzle_system->GetNozzleRack();
+        if (rack->IsDirectConnectedRack()) {
+            // Pos id is addr_id + 0x10; a nozzle picked up by the toolhead keeps its addr_id but leaves the rack map.
+            if (auto nozzle = m_nozzle_system->GetNozzleOptByAddrId(id_code - 0x10); nozzle.has_value()) {
+                return nozzle.value();
+            }
+            BOOST_LOG_TRIVIAL(warning) << "nozzle not found on direct connected rack, use default nozzle, nozzle_pos_id=" << id_code;
+            return DevNozzle();
+        }
+
         auto nozzle_map = rack->GetRackNozzles();
         return nozzle_map[id_code - 0x10];
     } else {
