@@ -217,12 +217,13 @@ unsigned int LayerTools::filament_slot_by_role(const ExtrusionEntityCollection &
 }
 
 // Layer height the tower gaps are measured against. A multi-diameter plate printing with a single diameter is
-// sliced at that nozzle's layer height, which may be above or below the authored one; any other plate keeps the
-// authored height.
-static double sliced_layer_height(const PrintObject &object)
+// sliced at that nozzle's layer heights, which may be above or below the authored ones. Its variable layer height
+// profile and height ranges reach up to the nozzle's maximum, which bounds every layer it slices. Any other plate
+// keeps the authored height.
+static double object_max_layer_height(const PrintObject &object)
 {
     return object.print()->single_diameter_layering_nozzle() > EPSILON ?
-        object.slicing_parameters().layer_height : object.config().layer_height.value;
+        object.slicing_parameters().max_layer_height : object.config().layer_height.value;
 }
 
 static double calc_max_layer_height(const PrintConfig &config, double max_object_layer_height)
@@ -462,7 +463,7 @@ void ToolOrdering::sort_and_build_data(const Print& print, unsigned int first_ex
                 break;
             }
         }
-        max_layer_height = std::max(max_layer_height, sliced_layer_height(*object));
+        max_layer_height = std::max(max_layer_height, object_max_layer_height(*object));
     }
 
     max_layer_height = calc_max_layer_height(print.config(), max_layer_height);
@@ -485,7 +486,7 @@ void ToolOrdering::sort_and_build_data(const PrintObject& object , unsigned int 
     this->enforce_mixed_component_order();
     m_sorted = true;
 
-    double max_layer_height = calc_max_layer_height(object.print()->config(), sliced_layer_height(object));
+    double max_layer_height = calc_max_layer_height(object.print()->config(), object_max_layer_height(object));
 
     this->collect_extruder_statistics(prime_multi_material);
 
@@ -546,7 +547,7 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
 
     this->collect_extruder_statistics(prime_multi_material);
 
-    double max_layer_height = calc_max_layer_height(object.print()->config(), sliced_layer_height(object));
+    double max_layer_height = calc_max_layer_height(object.print()->config(), object_max_layer_height(object));
 
     this->mark_skirt_layers(object.print()->config(), max_layer_height);
 }
@@ -569,7 +570,7 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
             for (auto layer : object->support_layers())
                 zs.emplace_back(layer->print_z);
 
-            max_layer_height = std::max(max_layer_height, sliced_layer_height(*object));
+            max_layer_height = std::max(max_layer_height, object_max_layer_height(*object));
         }
         this->initialize_layers(zs);
     }

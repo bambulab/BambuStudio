@@ -647,21 +647,6 @@ double Print::resolve_single_diameter_layering_nozzle() const
 {
     if (! multi_nozzle_diameter_mode_enabled(m_full_print_config) || m_objects.empty())
         return 0.;
-    // Variable layer height profiles are authored per layer. Stacking them proportionally could leave the
-    // nozzle's printable window, which the merge path clamps against, so keep that path. A layer range may
-    // only switch filament; it blocks direct layering only when it actually changes the layer height.
-    if (std::any_of(m_objects.begin(), m_objects.end(), [](const PrintObject *object) {
-            const ModelObject *model_object = object->model_object();
-            if (! model_object->layer_height_profile.empty())
-                return true;
-            return std::any_of(model_object->layer_config_ranges.begin(), model_object->layer_config_ranges.end(),
-                [object](const auto &range) {
-                    const ConfigOption *height = range.second.option("layer_height");
-                    return height != nullptr &&
-                           std::abs(height->getFloat() - object->config().layer_height.value) > EPSILON;
-                });
-        }))
-        return 0.;
 
     // printed_filaments() sees what the plate will actually print with: painted colours, part, feature and
     // layer-range filaments, support filaments, and the custom G-code tool changes that take effect.
@@ -680,6 +665,48 @@ double Print::resolve_single_diameter_layering_nozzle() const
             return std::abs(object->compute_slicing_parameters(diameter).first_print_layer_height - first_layer_height) > EPSILON;
         }))
         return 0.;
+    // Variable layer height profiles and height ranges are scaled like the object's layer height, by the ratio of
+    // the nozzle's band to the authored height. Inside the preset nozzle's limits that ratio is the diameter ratio,
+    // and every height they carry lands inside the nozzle's printable window. An object layer height kept outside
+    // those limits changes the band and with it the ratio. A profile then leaving the window would be reset by the
+    // slicing, so such a plate keeps the merge path, where the profile is laid on the fine grid as authored.
+    bool has_custom_layering = false;
+    for (const PrintObject *object : m_objects) {
+        const ModelObject *model_object = object->model_object();
+        if (! model_object->has_custom_layering())
+            continue;
+        has_custom_layering = true;
+        if (! custom_layer_heights_within_limits(object->compute_slicing_parameters(diameter),
+                                                 model_object->layer_height_profile.get(),
+                                                 model_object->layer_config_ranges)) {
+            BOOST_LOG_TRIVIAL(warning) << KV(log_key::nozzle_diameter, diameter)
+                                       << "custom layer heights of object " << model_object->name
+                                       << " leave the nozzle's printable window, keeping the merge path";
+            return 0.;
+        }
+    }
+    // A prime tower or support ring merges the objects' commensurate custom layer heights only through the merge
+    // planning of the fine grid. Sliced straight, the objects have to lay identical Z series, otherwise such a plate
+    // keeps the merge path.
+    if (has_custom_layering && m_objects.size() > 1 && this->tool_change_structure_active(m_config.enable_prime_tower.value)) {
+        std::vector<coordf_t> reference_layers;
+        for (const PrintObject *object : m_objects) {
+            const SlicingParameters params = object->compute_slicing_parameters(diameter);
+            std::vector<coordf_t> profile;
+            bool nozzle_range_reset = false;
+            PrintObject::update_layer_height_profile(*object->model_object(), params, profile, nozzle_range_reset);
+            std::vector<coordf_t> layers = generate_object_layers(params, profile, object->config().precise_z_height.value);
+            if (reference_layers.size() < layers.size())
+                std::swap(reference_layers, layers);
+            // The shorter series has to be a prefix of the taller one, as Print::validate() requires.
+            for (size_t i = 0; i < layers.size(); ++i)
+                if (std::abs(layers[i] - reference_layers[i]) > 0.5 * EPSILON) {
+                    BOOST_LOG_TRIVIAL(warning) << KV(log_key::nozzle_diameter, diameter)
+                                               << "objects lay different custom layer heights under a tool change structure, keeping the merge path";
+                    return 0.;
+                }
+        }
+    }
     return diameter;
 }
 

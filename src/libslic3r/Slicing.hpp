@@ -162,6 +162,14 @@ extern std::vector<coordf_t> layer_height_profile_from_ranges(
     const SlicingParameters     &slicing_params,
     const t_layer_config_ranges &layer_config_ranges);
 
+// Whether every authored height the object is sliced with, converted with slicing_params, lies within
+// slicing_params' min / max layer height: those of the variable layer height profile, or of the height ranges
+// when there is no profile. A profile failing this is reset when the object is sliced.
+extern bool custom_layer_heights_within_limits(
+    const SlicingParameters     &slicing_params,
+    const std::vector<coordf_t> &layer_height_profile,
+    const t_layer_config_ranges &layer_config_ranges);
+
 extern std::vector<double> layer_height_profile_adaptive(
     const SlicingParameters& slicing_params,
     const ModelObject& object, float quality_factor);

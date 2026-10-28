@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <limits>
 
 #include "libslic3r.h"
@@ -206,6 +207,27 @@ SlicingParameters SlicingParameters::create_from_config(
 
     params.valid = true;
     return params;
+}
+
+bool custom_layer_heights_within_limits(
+    const SlicingParameters     &slicing_params,
+    const std::vector<coordf_t> &layer_height_profile,
+    const t_layer_config_ranges &layer_config_ranges)
+{
+    auto within_limits = [&slicing_params](coordf_t authored_height) {
+        const coordf_t height = slicing_params.to_base_layer_height(authored_height);
+        return height >= slicing_params.min_layer_height - EPSILON && height <= slicing_params.max_layer_height + EPSILON;
+    };
+    // A profile overrides the heights of the ranges, which are laid only without one.
+    if (! layer_height_profile.empty()) {
+        for (size_t i = 1; i < layer_height_profile.size(); i += 2)
+            if (! within_limits(layer_height_profile[i]))
+                return false;
+        return true;
+    }
+    return std::all_of(layer_config_ranges.begin(), layer_config_ranges.end(), [&within_limits](const auto &range) {
+        return within_limits(range.second.option("layer_height")->getFloat());
+    });
 }
 
 // Convert layer_config_ranges to layer_height_profile. Both are referenced to z=0, meaning the raft layers are not accounted for
