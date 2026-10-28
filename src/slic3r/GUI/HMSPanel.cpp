@@ -54,8 +54,12 @@ HMSNotifyItem::HMSNotifyItem(const std::string& dev_id, wxWindow *parent, DevHMS
     m_hms_content->SetForegroundColour(*wxBLACK);
     m_hms_content->SetSize(HMS_NOTIFY_ITEM_TEXT_SIZE);
     m_hms_content->SetMinSize(HMS_NOTIFY_ITEM_TEXT_SIZE);
-    m_hms_content->SetLabelText(hms_row_text(dev_id, m_hms_item));
-    m_hms_content->Wrap(HMS_NOTIFY_ITEM_TEXT_SIZE.GetX());
+    // wxStaticText::Wrap only breaks at spaces, which splits CJK text badly
+    wxClientDC dc(m_hms_content);
+    dc.SetFont(m_hms_content->GetFont());
+    wxString wrapped_text;
+    Label::split_lines(dc, HMS_NOTIFY_ITEM_TEXT_SIZE.GetX(), hms_row_text(dev_id, m_hms_item), wrapped_text);
+    m_hms_content->SetLabelText(wrapped_text);
 
     m_bitmap_arrow = new wxStaticBitmap(m_panel_hms, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
     if (!m_url.empty())
