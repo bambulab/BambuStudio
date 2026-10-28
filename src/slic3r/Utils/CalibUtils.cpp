@@ -118,6 +118,14 @@ static int get_filament_nozzle_map_value(const MachineObject* obj, int nozzle_po
     return nozzle_pos_id;
 }
 
+// Whether one calibration run carries filaments on more than one nozzle diameter.
+static bool is_multi_diameter_calib(const std::vector<CalibInfo> &calib_infos)
+{
+    return !std::all_of(calib_infos.begin(), calib_infos.end(), [&calib_infos](const CalibInfo &info) {
+        return is_approx(info.nozzle_diameter, calib_infos.front().nozzle_diameter);
+    });
+}
+
 static void sync_calib_per_slot_nozzle_options(DynamicPrintConfig& config, const std::vector<CalibInfo>& calib_infos,
                                                const std::vector<int>& filament_maps, const std::vector<int>& filament_nozzle_maps)
 {
@@ -1310,6 +1318,18 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     DynamicPrintConfig full_config   = PresetBundle::construct_full_config(printer_preset, print_preset, preset_bundle->project_config, filament_presets, false, filament_map, f_volume_maps);
 
+    // The multi-diameter gate and per-filament diameters follow the calibrated nozzles, not the
+    // project: only this calibration config is written, the user's project selection stays untouched.
+    const bool multi_diameter = is_multi_diameter_calib(sorted_calib_infos);
+    full_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode", true)->value = multi_diameter;
+    std::vector<std::string> &diameter_map = full_config.option<ConfigOptionStrings>("filament_diameter_map", true)->values;
+    diameter_map.assign(sorted_calib_infos.size(), std::string());
+    if (multi_diameter) {
+        for (size_t i = 0; i < sorted_calib_infos.size(); ++i)
+            diameter_map[i] = format_diameter_to_str(sorted_calib_infos[i].nozzle_diameter);
+    }
+    BOOST_LOG_TRIVIAL(info) << "auto PA calibration multi_nozzle_diameter_mode=" << multi_diameter;
+
     set_for_auto_pa_model_and_config(sorted_calib_infos, full_config, model);
 
     auto rack = obj_->GetNozzleSystem()->GetNozzleRack();
@@ -1990,7 +2010,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
         return true;
 
     const bool mixed_diameter_calib = obj->GetConfig() && obj->GetConfig()->SupportMultiDiameterCalibration();
-    if(!mixed_diameter_calib && !std::all_of(cali_infos.begin(), cali_infos.end(), [&](auto& info){ return is_approx(info.nozzle_diameter, cali_infos.front().nozzle_diameter);}))
+    if (!mixed_diameter_calib && is_multi_diameter_calib(cali_infos))
     {
         error_message = _L("Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again.");
         return false;

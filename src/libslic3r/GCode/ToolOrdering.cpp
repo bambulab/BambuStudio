@@ -2559,7 +2559,9 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
             print, layer_filaments, physical_unprintables, geometric_unprintables, unprintable_volumes, mode, nozzle_status);
 
         std::vector<int> ret;
-        if (single_ext_multi_nozzle && multi_diameter_mode) {
+        // Auto flow calibration pins each filament to the nozzle it calibrates through filament_nozzle_map.
+        if (single_ext_multi_nozzle && multi_diameter_mode &&
+            print->calib_params().mode != CalibMode::Calib_Auto_PA_Line) {
             // Assign from the user's per-filament (diameter, flow) rather than copying
             // filament_nozzle_map: that map is built in the filament panel against physical slots only,
             // so several same-spec filaments all point at one nozzle and end up charged flush against
