@@ -681,6 +681,17 @@ private:
         return (filament_id >= 0 && size_t(filament_id) < m_filpar.size() && m_filpar[filament_id].nozzle_change_perimeter_width > 0.f) ?
             m_filpar[filament_id].nozzle_change_perimeter_width : m_nozzle_change_perimeter_width;
     }
+    // 1.25x the nozzle of the filament; the configured width when the nozzle is unknown.
+    float nozzle_based_width(int filament_id) const {
+        if (filament_id >= 0 && size_t(filament_id) < m_filpar.size() && m_filpar[filament_id].nozzle_diameter > 0.f)
+            return m_filpar[filament_id].nozzle_diameter * Width_To_Nozzle_Ratio;
+        return filament_perimeter_width(filament_id);
+    }
+    // min(1.25x the nozzle, configured tower line width): the outer wall and the sparse grid are capped at
+    // this width to save material. A configured width of 0 already resolves to 1.25x the nozzle.
+    float capped_wall_grid_width(int filament_id) const {
+        return std::min(nozzle_based_width(filament_id), filament_perimeter_width(filament_id));
+    }
 
     int    m_slice_used_filaments      = 0;
     int    m_wrapping_detection_layers = 0;
@@ -690,6 +701,10 @@ private:
     Vec2f  m_wipe_tower_pos; 			// Left front corner of the wipe tower in mm.
 	float  m_wipe_tower_width; 			// Width of the wipe tower.
 	float  m_wipe_tower_depth 	= 0.f; 	// Depth of the wipe tower
+    // Layer and line width of the outer wall only_generate_out_wall() drew (smooth timelapse / wrapping
+    // detection). finish_layer_new() then puts the brim and chamfer loops around that wall.
+    float  m_out_wall_only_z     = -1.f;
+    float  m_out_wall_only_width = 0.f;
 	// BBS
 	float  m_wipe_tower_height = 0.f;
     float  m_wipe_tower_brim_width      = 0.f; 	// Width of brim (mm) from config

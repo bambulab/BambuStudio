@@ -763,6 +763,9 @@ public:
 	WipeTowerWriter& 			 set_extrusion_flow(float flow)
 		{ m_extrusion_flow = flow; return *this; }
 
+	WipeTowerWriter&				 set_line_width(float line_width)
+		{ m_line_width = line_width; return *this; }
+
 	WipeTowerWriter&				 set_y_shift(float shift) {
         m_current_pos.y() -= shift-m_y_shift;
         m_y_shift = shift;
@@ -4139,13 +4142,26 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
                                     [this](const WipeTowerInfo::ToolChange &tch) { return m_filpar[tch.new_tool].is_soluble || m_filpar[tch.old_tool].is_soluble; });
     solid_infill |= first_layer && m_adhesion;
 
+    // The sparse grid, the rectangle around it and the outer wall may extrude at a capped width narrower
+    // than wall_width; their positions and spacing still follow wall_width.
+    const float capped_width  = capped_wall_grid_width(m_current_tool);
+    const bool  grid_narrowed = capped_width + WT_EPSILON < wall_width;
+
     for (size_t i = 0; i < fill_boxes.size(); ++i) {
         const box_coordinates &fill_box = fill_boxes[i];
         if (i > 0)
             writer.travel(m_left_to_right ? fill_box.ru : fill_box.lu);
 
         if (extrude_fill_wall && (fill_box.ru.y() - fill_box.rd.y() > WT_EPSILON))
+        {
+            // The rectangle around the grid follows the capped width too, except on the first layer.
+            const bool narrow_rect = grid_narrowed && !first_layer;
+            if (narrow_rect)
+                writer.set_line_width(capped_width).set_extrusion_flow(extrusion_flow_for(m_layer_height, capped_width)).change_analyzer_line_width(capped_width);
             writer.rectangle_fill_box(this, fill_box, finish_rect_wipe_path, feedrate);
+            if (narrow_rect)
+                writer.set_line_width(wall_width).set_extrusion_flow(wall_flow).change_analyzer_line_width(wall_width);
+        }
         // Extrude infill to support the material to be printed above.
         const float         dy    = (fill_box.lu.y() - fill_box.ld.y() - wall_width);
         float               left  = fill_box.lu.x() + 2 * wall_width;
@@ -4176,6 +4192,8 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
                 writer.extrude(writer.x(), fill_box.lu.y());
             } else {
                 // Extrude an inverse U at the left of the region and the sparse infill.
+                if (grid_narrowed)
+                    writer.set_extrusion_flow(extrusion_flow_for(m_layer_height, capped_width)).change_analyzer_line_width(capped_width);
                 writer.extrude(fill_box.lu + Vec2f(wall_width * 2, 0.f), feedrate);
 
                 // A box narrower than the inset leaves nothing to bridge over and no line count to divide by.
@@ -4186,6 +4204,8 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
                     writer.travel(x, writer.y());
                     writer.extrude(x, i % 2 ? fill_box.rd.y() : fill_box.ru.y());
                 }
+                if (grid_narrowed)
+                    writer.set_extrusion_flow(wall_flow).change_analyzer_line_width(wall_width);
 
                 finish_rect_wipe_path.clear();
                 // BBS: add wipe_path for this case: only with finish rectangle
@@ -4227,8 +4247,22 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     //    else
     //        generate_support_wall(writer, wt_box, feedrate, first_layer);
     //}
+    // The outer wall itself may extrude at the capped width; brim and chamfer loops keep wall_width. The
+    // wall's first layer keeps the full width for bed adhesion.
+    const bool outer_wall_narrowed = extrude_perimeter && grid_narrowed && !wall_first_layer;
+    // Width of the outer wall the brim and chamfer loops surround: the one drawn below, or the one
+    // only_generate_out_wall() drew on this layer.
+    float drawn_wall_width = wall_width;
+    if (outer_wall_narrowed)
+        drawn_wall_width = capped_width;
+    else if (!extrude_perimeter && std::abs(m_out_wall_only_z - m_z_pos) < WT_EPSILON)
+        drawn_wall_width = m_out_wall_only_width;
+    if (outer_wall_narrowed)
+        writer.set_extrusion_flow(extrusion_flow_for(wall_height, capped_width)).change_analyzer_line_width(capped_width);
     Polygon outer_wall;
     outer_wall = generate_support_wall_new(writer, wt_box, feedrate, wall_first_layer, m_use_rib_wall, extrude_perimeter, m_use_gap_wall);
+    if (outer_wall_narrowed)
+        writer.set_extrusion_flow(perimeter_flow).change_analyzer_line_width(wall_width);
     if (extrude_perimeter) {
         Polyline shift_polyline = to_polyline(outer_wall);
         shift_polyline.translate(0, scaled(m_y_shift));
@@ -4308,9 +4342,11 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
         loops_num = 0;
 
     if (loops_num > 0) {
+        // The surrounded wall may be narrower than the loops, so the first loop moves in to stay against it.
+        const float first_loop_step = extrusion_spacing_for(wall_height, 0.5f * (drawn_wall_width + wall_width));
         //box_coordinates box = wt_box;
         for (size_t i = 0; i < loops_num; ++i) {
-            Polygons expanded = offset(outer_wall, scaled(spacing));
+            Polygons expanded = offset(outer_wall, scaled(i == 0 ? first_loop_step : spacing));
             if (expanded.empty())
                 break;
             outer_wall = std::move(expanded.front());
@@ -4326,7 +4362,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
         if (wall_first_layer) {
             // Save actual brim width to be later passed to the Print object, which will use it
             // for skirt calculation and pass it to GLCanvas for precise preview box
-            m_wipe_tower_brim_width_real = loops_num * spacing + spacing / 2.f;
+            m_wipe_tower_brim_width_real = first_loop_step + (loops_num - 1) * spacing + spacing / 2.f;
             //m_wipe_tower_brim_width_real = wt_box.ld.x() - box.ld.x() + spacing / 2.f;
         }
         //wt_box = box;
@@ -4389,9 +4425,19 @@ WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block,
     bool toolchanges_on_layer = m_layer_info->toolchanges_depth() > WT_EPSILON;
 
     std::vector<Vec2f> finish_rect_wipe_path;
+    // The sparse grid and the rectangle around it may extrude at a capped width narrower than fill_width;
+    // their positions and spacing still follow fill_width.
+    const float capped_width  = capped_wall_grid_width(filament_id);
+    const bool  grid_narrowed = capped_width + WT_EPSILON < fill_width;
+    const float capped_flow   = slab_height * extrusion_spacing_for(slab_height, capped_width) / m_filpar[filament_id].filament_area;
     // inner perimeter of the sparse section, if there is space for it:
     if (fill_box.ru.y() - fill_box.rd.y() > WT_EPSILON) {
+        const bool narrow_rect = grid_narrowed && !first_layer;
+        if (narrow_rect)
+            writer.set_line_width(capped_width).set_extrusion_flow(capped_flow).change_analyzer_line_width(capped_width);
         writer.rectangle_fill_box(this, fill_box, finish_rect_wipe_path, feedrate);
+        if (narrow_rect)
+            writer.set_line_width(fill_width).set_extrusion_flow(filament_e_flow).change_analyzer_line_width(fill_width);
     }
 
     // Extrude infill to support the material to be printed above.
@@ -4431,6 +4477,8 @@ WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block,
             writer.extrude(writer.x(), fill_box.lu.y());
         } else {
             // Extrude an inverse U at the left of the region and the sparse infill.
+            if (grid_narrowed)
+                writer.set_extrusion_flow(capped_flow).change_analyzer_line_width(capped_width);
             writer.extrude(fill_box.lu + Vec2f(fill_width * 2, 0.f), feedrate);
 
             // A box narrower than the inset leaves nothing to bridge over and no line count to divide by.
@@ -4441,6 +4489,8 @@ WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block,
                 writer.travel(x, writer.y());
                 writer.extrude(x, i % 2 ? fill_box.rd.y() : fill_box.ru.y());
             }
+            if (grid_narrowed)
+                writer.set_extrusion_flow(filament_e_flow).change_analyzer_line_width(fill_width);
             finish_rect_wipe_path.clear();
             // BBS: add wipe_path for this case: only with finish rectangle
             finish_rect_wipe_path.emplace_back(writer.pos());
@@ -8136,8 +8186,17 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
 {
     size_t old_tool = m_current_tool;
 
-    WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar, m_enable_arc_fitting);
-    writer.set_extrusion_flow(m_extrusion_flow)
+    // Drawn like the regular outer wall in finish_layer_new(): capped width, except on the first layer.
+    bool        first_layer = is_first_layer();
+    const float full_width  = filament_perimeter_width(int(m_current_tool));
+    const float capped      = capped_wall_grid_width(int(m_current_tool));
+    const float wall_width  = (!first_layer && capped + WT_EPSILON < full_width) ? capped : full_width;
+    const float wall_flow  = extrusion_flow_for(m_layer_height, wall_width);
+    m_out_wall_only_z     = m_z_pos;
+    m_out_wall_only_width = wall_width;
+
+    WipeTowerWriter writer(m_layer_height, wall_width, m_gcode_flavor, m_filpar, m_enable_arc_fitting);
+    writer.set_extrusion_flow(wall_flow)
         .set_z(m_z_pos)
         .set_initial_tool(m_current_tool)
         .set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f));
@@ -8145,7 +8204,6 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
     set_for_wipe_tower_writer(writer);
 
     // Slow down on the 1st layer.
-    bool first_layer = is_first_layer();
     float feedrate = calc_tower_feedrate(m_current_tool, m_extrusion_flow);
     float           fill_box_y = m_layer_info->toolchanges_depth() + m_perimeter_width;
     box_coordinates fill_box(Vec2f(m_perimeter_width, fill_box_y), m_wipe_tower_width - 2 * m_perimeter_width, m_layer_info->depth - fill_box_y);
