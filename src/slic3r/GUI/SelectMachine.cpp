@@ -3443,8 +3443,16 @@ void SelectMachineDialog::update_option_dynamic_state(MachineObject *obj)
 
     if (m_options_line_panel->IsShown() != old_options_line_shown ||
         m_pa_value_panel->IsShown() != old_pa_shown) {
+        const int width = m_options_other->GetSize().GetWidth();
         m_options_other->Layout();
         m_options_other->Fit();
+        if (width > m_options_other->GetSize().GetWidth()) {
+            const int height = m_options_other->GetSize().GetHeight();
+            m_options_other->SetMinSize(wxSize(width, -1));
+            m_options_other->SetMaxSize(wxDefaultSize);
+            m_options_other->SetSize(wxSize(width, height));
+            m_options_other->Layout();
+        }
     }
 }
 
