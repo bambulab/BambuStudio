@@ -40,9 +40,6 @@
         "0",
         "0"
     ],
-    "max_temperature_drop_when_ec": [
-        "175"
-    ],
     "nozzle_temperature": [
         "255",
         "255"
