@@ -669,14 +669,16 @@ void PrintJob::process()
         curr_percent = 80;
         this->update_status(curr_percent, _L("Refreshing printer access code"));
 
-        wxGetApp().CallAfter([state, obj]() {
+        MachineObject* machine_obj = obj;
+        std::weak_ptr<int> machine_token = machine_obj ? machine_obj->get_token() : std::weak_ptr<int>();
+        wxGetApp().CallAfter([state, machine_obj, machine_token]() {
             {
                 std::lock_guard<std::mutex> lock(state->mutex);
                 if (state->done)
                     return;
             }
 
-            if (!obj) {
+            if (machine_token.expired()) {
                 std::lock_guard<std::mutex> lock(state->mutex);
                 state->done = true;
                 state->success = false;
@@ -685,7 +687,7 @@ void PrintJob::process()
                 return;
             }
 
-            const std::string sequence_id = obj->request_access_code(
+            const std::string sequence_id = machine_obj->request_access_code(
                 [state](bool success, std::string access_code, std::string print_status) {
                     std::lock_guard<std::mutex> lock(state->mutex);
                     if (state->done)
@@ -714,7 +716,7 @@ void PrintJob::process()
                 }
             }
             if (cancel_request)
-                obj->cancel_access_code_request(sequence_id);
+                machine_obj->cancel_access_code_request(sequence_id);
         });
 
         const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(ACCESS_CODE_REFRESH_TIMEOUT_MS);
@@ -727,7 +729,10 @@ void PrintJob::process()
                 const std::string sequence_id = state->sequence_id;
                 lock.unlock();
                 if (!sequence_id.empty())
-                    wxGetApp().CallAfter([obj, sequence_id]() { obj->cancel_access_code_request(sequence_id); });
+                    wxGetApp().CallAfter([machine_obj, machine_token, sequence_id]() {
+                        if (!machine_token.expired())
+                            machine_obj->cancel_access_code_request(sequence_id);
+                    });
                 return state;
             }
             if (state->cv.wait_until(lock, deadline) == std::cv_status::timeout && !state->done) {
@@ -737,7 +742,10 @@ void PrintJob::process()
                 const std::string sequence_id = state->sequence_id;
                 lock.unlock();
                 if (!sequence_id.empty())
-                    wxGetApp().CallAfter([obj, sequence_id]() { obj->cancel_access_code_request(sequence_id); });
+                    wxGetApp().CallAfter([machine_obj, machine_token, sequence_id]() {
+                        if (!machine_token.expired())
+                            machine_obj->cancel_access_code_request(sequence_id);
+                    });
                 return state;
             }
         }

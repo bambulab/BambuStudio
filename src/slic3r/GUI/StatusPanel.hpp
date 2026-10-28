@@ -627,7 +627,13 @@ protected:
     Button *m_button_retry {nullptr};
     Button *m_fila_change_abort {nullptr};
     StaticBox* m_filament_load_box;
+    std::string m_devid;
 
+private:
+    friend class StatusPanel;
+    MachineObject *get_current_dev() const;
+
+protected:
     // Virtual event handlers, override them in your derived class
     virtual void on_subtask_partskip(wxCommandEvent &event) { event.Skip(); }
     virtual void on_subtask_pause_resume(wxCommandEvent &event) { event.Skip(); }
@@ -657,7 +663,6 @@ public:
 
     ~StatusBasePanel();
 
-    MachineObject* obj{ nullptr };
     void init_bitmaps();
     wxBoxSizer *create_monitoring_page();
     std::vector<wxString> collect_device_operations() const;
@@ -920,6 +925,7 @@ public:
     void show_ams_filament_hint(const std::string& ams_id, const std::string& slot_id);
     void open_new_official_filament_hint(const std::string& ams_id, const std::string& slot_id);
     void apply_control_area_force_disable();
+    void sync_current_dev(MachineObject *obj);
 
 public:
     StatusPanel(wxWindow *      parent,

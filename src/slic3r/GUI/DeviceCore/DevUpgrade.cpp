@@ -77,8 +77,10 @@ void DevUpgrade::ParseUpgradeDisplayState(const json &upgrade_state_jj)
 
             // update the version after upgrade finished
             if (m_upgrade_display_state == DevFirmwareUpgradeState::UpgradingFinished) {
-                Slic3r::GUI::wxGetApp().CallAfter([this] {
-                    m_owner->command_get_version();
+                MachineObject* owner = m_owner;
+                Slic3r::GUI::wxGetApp().CallAfter([owner, token = owner ? owner->get_token() : std::weak_ptr<int>()] {
+                    if (token.expired()) return;
+                    owner->command_get_version();
                 });
             }
 

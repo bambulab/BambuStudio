@@ -211,6 +211,7 @@ public:
 
     std::string get_dev_id() const;
     void set_dev_id(std::string val);
+    std::weak_ptr<int> get_token() const { return m_token; }
 
     std::string connection_type() const;
     bool        is_lan_mode_printer() const;

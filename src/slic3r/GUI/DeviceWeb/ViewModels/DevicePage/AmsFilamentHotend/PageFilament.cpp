@@ -476,7 +476,10 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
     } else if (action == "manual_pull_close") {
         wxGetApp().CallAfter([]() { close_filament_manual_pull_dialog(); });
     } else if (action == "manual_pull_exit") {
-        wxGetApp().CallAfter([machine_obj]() { confirm_exit_filament_manual_pull(machine_obj); });
+        wxGetApp().CallAfter([machine_obj, token = machine_obj ? machine_obj->get_token() : std::weak_ptr<int>()]() {
+            if (token.expired()) return;
+            confirm_exit_filament_manual_pull(machine_obj);
+        });
     } else if (action == "batch_run") {
         namespace SK = AmsHotendSchema::keys;
         namespace SV = AmsHotendSchema::values;

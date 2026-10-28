@@ -129,7 +129,8 @@ nlohmann::json AutoRefillRefillInfoActions::Handle(AutoRefillRefillInfoVM& vm,
 
     if (action == SV::action::open_add_group) {
         const std::weak_ptr<bool> alive = vm.m_alive;
-        wxGetApp().CallAfter([vm_ptr = &vm, alive, obj]() {
+        wxGetApp().CallAfter([vm_ptr = &vm, alive, obj, token = obj->get_token()]() {
+            if (token.expired()) return;
             OpenAutoRefillFilamentsDialog(obj, AutoRefillFilamentsDialogMode::CreateGroup);
             const auto guard = alive.lock();
             if (guard && *guard) {
@@ -145,7 +146,8 @@ nlohmann::json AutoRefillRefillInfoActions::Handle(AutoRefillRefillInfoVM& vm,
         const DevAmsSlotId group_head{payload[SK::command::ams_id].get<int>(),
                                       payload[SK::command::slot_id].get<int>()};
         const std::weak_ptr<bool> alive = vm.m_alive;
-        wxGetApp().CallAfter([vm_ptr = &vm, alive, obj, group_head]() {
+        wxGetApp().CallAfter([vm_ptr = &vm, alive, obj, token = obj->get_token(), group_head]() {
+            if (token.expired()) return;
             OpenAutoRefillFilamentsDialog(obj, AutoRefillFilamentsDialogMode::AddToGroup, group_head);
             const auto guard = alive.lock();
             if (guard && *guard) {

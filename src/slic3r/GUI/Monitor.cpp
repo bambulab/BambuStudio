@@ -421,7 +421,7 @@ void MonitorPanel::update_all()
 
     if (current_page == m_status_info_panel) {
         if (m_status_info_panel->IsShown()) {
-            m_status_info_panel->obj = obj;
+            m_status_info_panel->sync_current_dev(obj);
             m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
             m_status_info_panel->update(obj);
         }

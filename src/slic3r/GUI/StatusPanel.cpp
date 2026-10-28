@@ -1986,7 +1986,8 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
     this->SetScrollRate(25, 25);
     Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
-    obj = dev->get_selected_machine();
+    MachineObject *selected_obj = dev->get_selected_machine();
+    m_devid = selected_obj ? selected_obj->get_dev_id() : std::string();
 
     init_bitmaps();
 
@@ -2309,6 +2310,12 @@ StatusBasePanel::~StatusBasePanel()
     if (m_ctrl_area_mask_hint) m_ctrl_area_mask_hint->Destroy();
     close_camera_fullscreen();
     delete m_media_play_ctrl;
+}
+
+MachineObject *StatusBasePanel::get_current_dev() const
+{
+    auto *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+    return dev_manager && !m_devid.empty() ? dev_manager->get_my_machine(m_devid) : nullptr;
 }
 
 bool StatusBasePanel::can_show_camera_fullscreen() const { return m_media_ctrl != nullptr && IsShownOnScreen(); }
@@ -3324,6 +3331,7 @@ wxBoxSizer *StatusBasePanel::create_filament_group(wxWindow *parent)
 
     m_button_retry->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         BOOST_LOG_TRIVIAL(info) << "on_ams_retry";
+        MachineObject *obj = get_current_dev();
         if (obj) { obj->command_ams_control("resume"); }
     });
 
@@ -3337,6 +3345,7 @@ wxBoxSizer *StatusBasePanel::create_filament_group(wxWindow *parent)
 
     m_fila_change_abort->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         BOOST_LOG_TRIVIAL(info) << "on_ams_abort";
+        MachineObject *obj = get_current_dev();
         if (obj) { obj->command_ams_control("abort"); }
     });
 
@@ -3366,6 +3375,7 @@ void StatusBasePanel::expand_filament_loading(wxMouseEvent &e)
         m_img_filament_loading->SetBitmap(create_scaled_bitmap("filament_load_expand", this, 24));
     }
 
+    MachineObject *obj = get_current_dev();
     if (obj) {
         static int load_img_size = 215;
         const auto &ext_system    = obj->GetExtderSystem();
@@ -3421,6 +3431,7 @@ void StatusBasePanel::show_ams_group(bool show)
         }
     } else if (m_ams_control_web_active) {
         bool refresh_layout = false;
+        MachineObject *obj = get_current_dev();
         if (m_ams_control_box->IsShown()) {
             m_ams_control_box->Show(false);
             refresh_layout = true;
@@ -3453,6 +3464,7 @@ void StatusBasePanel::show_ams_group(bool show)
 
 void StatusBasePanel::show_filament_load_group(bool show)
 {
+    MachineObject *obj = get_current_dev();
     if (m_scale_panel->IsShown() != show) {
         m_scale_panel->Show(show);
         if (!show) {
@@ -3463,8 +3475,10 @@ void StatusBasePanel::show_filament_load_group(bool show)
         // m_scale_panel control the display of m_filament_load_box
         if (!show && m_filament_load_box->IsShown()) { m_filament_load_box->Show(false); }
 
-        auto cur_ext = obj->GetExtderSystem()->GetCurrentExtder();
-        m_filament_step->SetupSteps(obj, cur_ext ? cur_ext->HasFilamentInExt() : false);
+        if (obj) {
+            auto cur_ext = obj->GetExtderSystem()->GetCurrentExtder();
+            m_filament_step->SetupSteps(obj, cur_ext ? cur_ext->HasFilamentInExt() : false);
+        }
 
         Layout();
         Fit();
@@ -3476,6 +3490,7 @@ void StatusBasePanel::show_filament_load_group(bool show)
 
 void StatusBasePanel::jump_to_Rack()
 {
+    MachineObject *obj = get_current_dev();
     if (obj && obj->GetNozzleRack()->IsSupported()) {
         m_ams_rack_switch->updateState("right");
         m_ams_control_box->Show(false);
@@ -3494,6 +3509,7 @@ void StatusBasePanel::jump_to_Rack()
 
 void StatusBasePanel::on_ams_rack_switch(wxCommandEvent &e)
 {
+    MachineObject *obj = get_current_dev();
     if (!m_ams_control_box->IsShown() && e.GetInt() == 1) {
 #if BBL_ENABLE_AMS_CONTROL_WEB
         if (m_ams_control_web_switch) {
@@ -3537,6 +3553,7 @@ void StatusBasePanel::on_ams_rack_switch(wxCommandEvent &e)
 #if BBL_ENABLE_AMS_CONTROL_WEB
 void StatusBasePanel::on_ams_control_web_switch(wxCommandEvent &e)
 {
+    MachineObject *obj = get_current_dev();
     m_ams_control_web_active = (e.GetInt() == 0) || ams_control_use_web();
     if (m_ams_control_web_active) {
         if (m_ams_control_box) {
@@ -3564,6 +3581,7 @@ void StatusBasePanel::on_ams_control_web_switch(wxCommandEvent &e)
 std::vector<wxString> StatusBasePanel::collect_device_operations() const
 {
     std::vector<wxString> ops;
+    MachineObject *obj = get_current_dev();
     if (!obj) return ops;
 
     if (obj->is_recording()) {
@@ -3654,7 +3672,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_buttons.push_back(m_bpButton_e_10);
     m_buttons.push_back(m_bpButton_e_down_10);
 
-    obj                     = nullptr;
+    m_devid.clear();
     m_score_data            = new ScoreData;
     m_score_data->rating_id = -1;
     /* set default values */
@@ -3852,6 +3870,7 @@ void StatusPanel::init_scaled_buttons()
 
 void StatusPanel::on_market_scoring(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj && obj->is_makeworld_subtask() && obj->rating_info && obj->rating_info->request_successful) { // model is mall model and has rating_id
         BOOST_LOG_TRIVIAL(info);
         if (m_score_data && m_score_data->rating_id == obj->rating_info->rating_id) { // current score data for model is same as mall model
@@ -3908,6 +3927,7 @@ void StatusPanel::on_market_scoring(wxCommandEvent &event)
 
 void StatusPanel::on_market_retry(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         obj->get_model_mall_result_need_retry = true;
     } else {
@@ -3932,8 +3952,7 @@ void StatusPanel::on_subtask_partskip(wxCommandEvent &event)
 {
     if (m_partskip_dlg == nullptr) { m_partskip_dlg = new PartSkipDialog(this->GetParent()); }
 
-    auto dm = GUI::wxGetApp().getDeviceManager();
-    m_partskip_dlg->InitSchedule(dm->get_selected_machine());
+    m_partskip_dlg->InitSchedule(get_current_dev());
     BOOST_LOG_TRIVIAL(info) << "part skip: initial part skip dialog.";
     if (m_partskip_dlg->ShowModal() == wxID_OK) {
         int cnt = m_partskip_dlg->GetAllSkippedPartsNum();
@@ -3945,6 +3964,7 @@ void StatusPanel::on_subtask_partskip(wxCommandEvent &event)
 
 void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         if (obj->can_resume()) {
             BOOST_LOG_TRIVIAL(info) << "monitor: resume current print task " << KV(log_key::dev_id, obj->get_dev_id());
@@ -3961,6 +3981,7 @@ void StatusPanel::on_subtask_abort(wxCommandEvent &event)
     if (abort_dlg == nullptr) {
         abort_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Cancel print"));
         abort_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
+            MachineObject *obj = get_current_dev();
             if (obj) {
                 BOOST_LOG_TRIVIAL(info) << "monitor: stop current print task " << KV(log_key::dev_id, obj->get_dev_id());
                 obj->command_task_abort();
@@ -4013,6 +4034,9 @@ void StatusPanel::repaint_project_task_if_needed()
 
 void StatusPanel::on_print_error_clean(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
+    if (!obj) return;
+
     error_info_reset();
     skip_print_error = obj->print_error;
     char buf[32];
@@ -4034,7 +4058,7 @@ void StatusPanel::on_webrequest_state(wxWebRequestEvent &evt)
             m_project_task_panel->set_thumbnail_img(resize_img, "");
             m_project_task_panel->set_brightness_value(get_brightness_value(resize_img));
         }
-        if (obj) {
+        if (MachineObject *obj = get_current_dev()) {
             m_project_task_panel->set_plate_index(obj->m_plate_index);
         } else {
             m_project_task_panel->set_plate_index(-1);
@@ -4058,6 +4082,7 @@ void StatusPanel::on_webrequest_state(wxWebRequestEvent &evt)
 
 void StatusPanel::refresh_thumbnail_webrequest(wxMouseEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (!obj) return;
     if (task_thumbnail_state != ThumbnailState::BROKEN_IMG) return;
 
@@ -4089,6 +4114,7 @@ bool StatusPanel::is_task_changed(MachineObject *obj)
 
 void StatusPanel::update(MachineObject *obj)
 {
+    m_devid = obj ? obj->get_dev_id() : std::string();
     update_ctrl_area_masks();
 
     if (!obj || !obj->is_info_ready()) {
@@ -4253,12 +4279,14 @@ void StatusPanel::show_recenter_dialog()
 {
     RecenterDialog dlg(this);
     if (dlg.ShowModal() == wxID_OK) {
+        MachineObject *obj = get_current_dev();
         if (obj) { obj->GetAxis()->Ctrl_GoHome(); }
     }
 }
 
 void StatusPanel::update_error_message()
 {
+    MachineObject *obj = get_current_dev();
     if (!obj) return;
 
     static int last_error = -1;
@@ -4305,6 +4333,11 @@ void StatusPanel::update_error_message()
     }
 
     last_error = current_error;
+}
+
+void StatusPanel::sync_current_dev(MachineObject *obj)
+{
+    m_devid = obj ? obj->get_dev_id() : std::string();
 }
 
 void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
@@ -4950,6 +4983,7 @@ void sGetSwitchInfo(MachineObject *obj, const std::string &ams_id, const std::st
 
 void StatusPanel::update_ams_control_state(std::string ams_id, std::string slot_id)
 {
+    MachineObject *obj = get_current_dev();
     wxString load_error_info, unload_error_info;
     sGetSwitchInfo(obj, ams_id, slot_id, load_error_info, unload_error_info);
     m_ams_control->EnableLoadFilamentBtn(load_error_info.empty(), ams_id, slot_id, load_error_info);
@@ -5009,6 +5043,7 @@ void StatusPanel::update_market_scoring(bool show)
 
 void StatusPanel::update_basic_print_data(bool def)
 {
+    MachineObject *obj = get_current_dev();
     if (def) {
         if (!obj) return;
         if (!obj->slice_info) return;
@@ -5025,10 +5060,12 @@ void StatusPanel::update_model_info()
 {
     auto get_subtask_fn = [this](BBLModelTask *subtask) {
         CallAfter([this, subtask]() {
+            MachineObject *obj = get_current_dev();
             if (obj && obj->subtask_id_ == subtask->task_id) { obj->set_modeltask(subtask); }
         });
     };
 
+    MachineObject *obj = get_current_dev();
     if (wxGetApp().getAgent() && obj) {
         BBLSubTask *curr_task = obj->get_subtask();
         if (curr_task) {
@@ -5323,7 +5360,7 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
                         m_project_task_panel->set_thumbnail_img(resize_img, "");
                         m_project_task_panel->set_brightness_value(get_brightness_value(resize_img));
                     }
-                    if (this->obj) {
+                    if (get_current_dev()) {
                         m_project_task_panel->set_plate_index(obj->m_plate_index);
                     } else {
                         m_project_task_panel->set_plate_index(-1);
@@ -5360,6 +5397,7 @@ void StatusPanel::update_sdcard_subtask(MachineObject *obj)
 
 void StatusPanel::reset_printing_values()
 {
+    MachineObject *obj = get_current_dev();
     m_project_task_panel->update_pausing_state(false);
     m_project_task_panel->update_stopping_state(false);
     m_project_task_panel->enable_partskip_button(nullptr, false);
@@ -5396,6 +5434,7 @@ void StatusPanel::reset_printing_values()
 
 void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (!obj) return;
 
     // check is at home
@@ -5433,6 +5472,7 @@ void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
             axis_go_home_dlg->update_text(_L("Are you sure you want to trigger auto homing?"));
             axis_go_home_dlg->m_button_ok->SetLabel(_L("Homing"));
             axis_go_home_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
+                MachineObject *obj = get_current_dev();
                 if (obj) { obj->GetAxis()->Ctrl_GoHome(); }
             });
         }
@@ -5455,6 +5495,7 @@ bool StatusPanel::check_axis_z_at_home(MachineObject *obj)
 
 void StatusPanel::on_axis_ctrl_z_up_10(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         obj->GetAxis()->Ctrl_Axis("Z", 1.0, -10.0f, 900);
         if (!check_axis_z_at_home(obj)) return;
@@ -5463,6 +5504,7 @@ void StatusPanel::on_axis_ctrl_z_up_10(wxCommandEvent &event)
 
 void StatusPanel::on_axis_ctrl_z_up_1(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         obj->GetAxis()->Ctrl_Axis("Z", 1.0, -1.0f, 900);
         if (!check_axis_z_at_home(obj)) return;
@@ -5471,6 +5513,7 @@ void StatusPanel::on_axis_ctrl_z_up_1(wxCommandEvent &event)
 
 void StatusPanel::on_axis_ctrl_z_down_1(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         obj->GetAxis()->Ctrl_Axis("Z", 1.0, 1.0f, 900);
         if (!check_axis_z_at_home(obj)) return;
@@ -5479,6 +5522,7 @@ void StatusPanel::on_axis_ctrl_z_down_1(wxCommandEvent &event)
 
 void StatusPanel::on_axis_ctrl_z_down_10(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         obj->GetAxis()->Ctrl_Axis("Z", 1.0, 10.0f, 900);
         if (!check_axis_z_at_home(obj)) return;
@@ -5504,6 +5548,7 @@ void StatusPanel::axis_ctrl_e_hint(bool up_down)
 
 void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent& event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         auto ext = obj->GetExtderSystem()->GetCurrentExtder();
         if (ext && ext->GetCurrentTemp() >= TEMP_THRESHOLD_ALLOW_E_CTRL) {
@@ -5520,6 +5565,7 @@ void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent& event)
 
 void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent& event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         auto ext = obj->GetExtderSystem()->GetCurrentExtder();
         if (ext && ext->GetCurrentTemp() >= TEMP_THRESHOLD_ALLOW_E_CTRL)
@@ -5537,6 +5583,7 @@ void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent& event)
 
 void StatusPanel::on_set_bed_temp()
 {
+    MachineObject *obj = get_current_dev();
     if (!obj) { return; }
 
     wxString str = m_tempCtrl_bed->GetTextCtrl()->GetValue();
@@ -5564,6 +5611,7 @@ void StatusPanel::on_set_bed_temp()
 
 void StatusPanel::on_set_nozzle_temp(int nozzle_id)
 {
+    MachineObject *obj = get_current_dev();
     if (!obj) { return; }
 
     try {
@@ -5616,6 +5664,7 @@ void StatusPanel::on_set_nozzle_temp(int nozzle_id)
 
 void StatusPanel::on_set_chamber_temp()
 {
+    MachineObject *obj = get_current_dev();
     if (!obj) { return; }
 
     wxString str = m_tempCtrl_chamber->GetTextCtrl()->GetValue();
@@ -5669,6 +5718,9 @@ void StatusPanel::on_ams_load(SimpleEvent &event)
 
 void StatusPanel::update_load_with_temp()
 {
+    MachineObject *obj = get_current_dev();
+    if (!obj) return;
+
     if (!obj->is_filament_at_extruder()) {
         m_is_load_with_temp = true;
     } else {
@@ -5678,7 +5730,9 @@ void StatusPanel::update_load_with_temp()
 
 wxString StatusPanel::getTrayName(const std::string amsID, const std::string slotID)
 {
+    MachineObject *obj = get_current_dev();
     if (!amsID.empty() && !slotID.empty()) {
+        if (!obj) return wxString();
         std::shared_ptr<DevFilaSystem> filaSys = obj->GetFilaSystem();
         if (filaSys != nullptr) {
             DevAms *ams = filaSys->GetAmsById(amsID);
@@ -5693,6 +5747,7 @@ wxString StatusPanel::getTrayName(const std::string amsID, const std::string slo
 
 void StatusPanel::on_ams_load_curr()
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         std::string curr_ams_id = m_ams_control->GetCurentAms();
         std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
@@ -5815,6 +5870,7 @@ void StatusPanel::on_ams_load_vams(wxCommandEvent &event)
 
 void StatusPanel::on_ams_switch(SimpleEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         /*right*/
         if (auto ext = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID); ext.has_value()) {
@@ -5846,6 +5902,7 @@ void StatusPanel::on_ams_switch(SimpleEvent &event)
 
 void StatusPanel::on_ams_unload(SimpleEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         std::string curr_ams_id = m_ams_control->GetCurentAms();
         std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
@@ -5866,6 +5923,7 @@ void StatusPanel::on_ams_unload(SimpleEvent &event)
 
 void StatusPanel::on_ams_filament_backup(SimpleEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         ShowAutoRefillDialog(this, obj);
     }
@@ -5873,6 +5931,7 @@ void StatusPanel::on_ams_filament_backup(SimpleEvent &event)
 
 void StatusPanel::on_ams_setting_click(SimpleEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         if (!m_ams_setting_dlg) { m_ams_setting_dlg = new AMSSetting((wxWindow *) this, wxID_ANY); }
 
@@ -5885,6 +5944,7 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
 {
     if (!m_extrusion_cali_dlg) m_extrusion_cali_dlg = new ExtrusionCalibration((wxWindow *) this, wxID_ANY);
 
+    MachineObject *obj = get_current_dev();
     if (obj) {
         m_extrusion_cali_dlg->obj = obj;
         std::string ams_id        = m_ams_control->GetCurentAms();
@@ -5934,6 +5994,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
     auto drect              = wxDisplay(GetParent()).GetGeometry().GetHeight() - FromDIP(50);
     current_position_y = current_position_y + FromDIP(503) > drect ? drect - FromDIP(503) : current_position_y;
 
+    MachineObject *obj = get_current_dev();
     if (obj) {
         int ams_id  = event.GetInt();
         long slot_id_long = 0;
@@ -6058,6 +6119,7 @@ static nlohmann::json build_ams_tray_batch_create(DevAmsTray* tray,
 
 void StatusPanel::dismiss_filament_hint_ui(const std::string& dev_id, const std::string& ams_id, const std::string& slot_id)
 {
+    MachineObject *obj = get_current_dev();
     if (auto* sync = wxGetApp().fila_manager_sync())
         sync->dismiss_pending_badge(dev_id, ams_id, slot_id);
     // 只在当前仍显示的就是这台设备时才动控件，避免清到切换后的新设备同名槽位。
@@ -6140,6 +6202,7 @@ void StatusPanel::on_new_official_filament_hint(wxCommandEvent &event)
 
 void StatusPanel::open_new_official_filament_hint(const std::string& ams_id, const std::string& slot_id)
 {
+    MachineObject *obj = get_current_dev();
     if (!m_new_official_filament_dlg)
         m_new_official_filament_dlg = new AMSNewOfficialFilamentDlg(this);
     m_new_official_filament_dlg->SetTrayContext(obj, ams_id, slot_id);
@@ -6176,6 +6239,7 @@ void StatusPanel::open_new_official_filament_hint(const std::string& ams_id, con
                 << "[soft_match_pending] parsed: hits=" << m_soft_match_pending.hits.size()
                 << " candidates=" << m_soft_match_pending.candidates.size();
 
+            MachineObject *obj = get_current_dev();
             DevAmsTray* tray = obj ? obj->get_ams_tray(ams_id, slot_id) : nullptr;
             std::string tray_rfid = (tray && !tray->uuid.empty()) ? tray->uuid : "";
 
@@ -6236,6 +6300,7 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
     auto drect              = wxDisplay(GetParent()).GetGeometry().GetHeight() - FromDIP(50);
     current_position_y = current_position_y + FromDIP(503) > drect ? drect - FromDIP(503) : current_position_y;
 
+    MachineObject *obj = get_current_dev();
     if (obj) {
         int ams_id  = event.GetInt();
         long slot_id_long = 0;
@@ -6301,6 +6366,7 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
 
 void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         // std::string curr_ams_id = m_ams_control->GetCurentAms();
         if (event.GetInt() < 0 || event.GetInt() > VIRTUAL_TRAY_MAIN_ID) { return; }
@@ -6355,6 +6421,7 @@ void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
 
 void StatusPanel::on_ams_selected(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         std::string curr_ams_id          = m_ams_control->GetCurentAms();
         std::string curr_selected_ams_id = std::to_string(event.GetInt());
@@ -6401,6 +6468,7 @@ void StatusPanel::on_ams_guide(wxCommandEvent &event)
 void StatusPanel::on_ams_retry(wxCommandEvent &event)
 {
     BOOST_LOG_TRIVIAL(info);
+    MachineObject *obj = get_current_dev();
     if (obj) { obj->command_ams_control("resume"); }
 }
 
@@ -6449,6 +6517,7 @@ void StatusPanel::on_nozzle_temp_set_focus(wxFocusEvent &event)
 
 void StatusPanel::on_switch_speed(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     auto now = boost::posix_time::microsec_clock::universal_time();
     if ((now - speed_dismiss_time).total_milliseconds() < 200) {
         speed_dismiss_time = now - boost::posix_time::seconds(1);
@@ -6490,6 +6559,7 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
 
     step->Bind(EVT_STEP_CHANGED, [this](auto &e) {
         this->speed_lvl = e.GetInt() + 1;
+        MachineObject *obj = get_current_dev();
         if (obj) {
             set_hold_count(this->speed_lvl_timeout);
             obj->command_set_printing_speed((DevPrintingSpeedLevel) this->speed_lvl);
@@ -6531,6 +6601,7 @@ void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
         m_fan_control_popup = nullptr;
     }
 
+    MachineObject *obj = get_current_dev();
     if (!obj) { return; }
     if (obj->GetFan()->GetAirDuctData().modes.empty()) { obj->GetFan()->converse_to_duct(true, obj->GetFan()->GetSupportAuxFanData(), obj->GetFan()->GetSupportChamberFan()); }
 
@@ -6554,6 +6625,7 @@ void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
 }
 void StatusPanel::on_lamp_switch(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (!obj) return;
 
     bool value = m_switch_lamp->GetValue();
@@ -6591,6 +6663,7 @@ void StatusPanel::on_switch_vcamera(wxCommandEvent &event)
 
 void StatusPanel::on_camera_enter(wxMouseEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         if (m_camera_popup == nullptr) {
             m_camera_popup = std::make_shared<CameraPopup>(this);
@@ -6611,11 +6684,13 @@ void StatusPanel::on_camera_enter(wxMouseEvent &event)
 
 void StatusPanel::on_camera_leave(wxMouseEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj && m_camera_popup) { m_camera_popup->Dismiss(); }
 }
 
 void StatusPanel::on_nozzle_selected(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         /*Enable switch head while printing is paused STUDIO-9789*/
         if ((obj->is_in_printing() && !obj->is_in_printing_pause()) || obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
@@ -6639,6 +6714,7 @@ void StatusPanel::on_nozzle_selected(wxCommandEvent &event)
 
 void StatusPanel::on_show_print_options(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         // Always show print options dialog for all machines
         if (print_options_dlg == nullptr) {
@@ -6656,6 +6732,7 @@ void StatusPanel::on_show_print_options(wxCommandEvent &event)
 
 void StatusPanel::on_show_safety_options(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         std::string current_printer_type = obj->printer_type;
         bool        supports_safety      = DevPrinterConfigUtil::support_safety_options(current_printer_type);
@@ -6748,6 +6825,7 @@ void StatusPanel::CloseHotendFilamentDialog()
 
 void StatusPanel::on_show_parts_options(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         if (print_parts_dlg == nullptr) {
             print_parts_dlg = new PrinterPartsDialog(this);
@@ -6762,6 +6840,7 @@ void StatusPanel::on_show_parts_options(wxCommandEvent &event)
 
 void StatusPanel::on_show_hotend_filament_web(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     ShowHotendFilamentDialog(obj);
 }
 
@@ -6823,6 +6902,7 @@ void StatusPanel::CloseHotendFilamentHtmlDialog()
 
 void StatusPanel::on_show_hotend_filament_html(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     ShowHotendFilamentHtmlDialog(obj);
 }
 
@@ -6838,6 +6918,7 @@ void StatusPanel::update_printer_parts_options(MachineObject *obj_)
 
 void StatusPanel::on_start_calibration(wxCommandEvent &event)
 {
+    MachineObject *obj = get_current_dev();
     if (obj) {
         if (calibration_dlg == nullptr) {
             calibration_dlg = new CalibrationDialog();
@@ -6869,7 +6950,7 @@ void StatusPanel::set_default()
 {
     BOOST_LOG_TRIVIAL(trace) << "status_panel: set_default";
     close_camera_fullscreen();
-    obj                           = nullptr;
+    m_devid.clear();
     last_subtask                  = nullptr;
     last_tray_exist_bits          = -1;
     speed_lvl                     = 1;
@@ -6988,6 +7069,7 @@ void StatusPanel::update_camera_title_bar_theme()
     if (!m_setting_button_light || !m_camera_title_pill || !m_camera_title_separator || !m_breathing_dot_light) return;
 
     rescale_camera_icons();
+    MachineObject *obj = get_current_dev();
     if (obj)
         update_camera_state(obj);
 
@@ -7006,6 +7088,7 @@ void StatusPanel::on_sys_color_changed()
 
 void StatusPanel::msw_rescale()
 {
+    MachineObject *obj = get_current_dev();
     init_bitmaps();
     m_project_task_panel->init_bitmaps();
     m_project_task_panel->msw_rescale();
