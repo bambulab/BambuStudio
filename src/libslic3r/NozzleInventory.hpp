@@ -229,16 +229,20 @@ public:
      * Counts the slots of the selected diameter, or all installed slots if none has it.
      *
      * \param extruder_id  0-based extruder
+     * \param diameter     count only the slots of this diameter, without that fallback; use it to ask how many
+     *                     nozzles a print of one diameter can really use
      */
-    std::map<NozzleVolumeType, int> counts(int extruder_id) const;
+    std::map<NozzleVolumeType, int> counts(int extruder_id, const std::optional<std::string> &diameter = std::nullopt) const;
 
     /**
      * \brief One entry of counts()
      *
      * \param extruder_id  0-based extruder
      * \param type         volume type to count; none or Hybrid gives the total
+     * \param diameter     as in counts()
      */
-    int count(int extruder_id, std::optional<NozzleVolumeType> type = std::nullopt) const;
+    int count(int extruder_id, std::optional<NozzleVolumeType> type = std::nullopt,
+              const std::optional<std::string> &diameter = std::nullopt) const;
 
     /**
      * \brief Volume type of one extruder

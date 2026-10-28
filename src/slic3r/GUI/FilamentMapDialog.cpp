@@ -522,6 +522,9 @@ void FilamentMapDialog::make_body(
     }
     if (m_manual_panel) {
         m_manual_panel->Bind(wxEVT_INVALID_MANUAL_MAP, [this](wxCommandEvent &event) {
+            // The panel also validates while the dialog is being built, before the footer exists.
+            if (m_ok_btn == nullptr)
+                return;
             if (m_page_type != PageType::ptManual) {
                 if (!m_ok_btn->IsEnabled()) { m_ok_btn->Enable(); }
                 return;
@@ -631,16 +634,17 @@ void FilamentMapDialog::update_panel_status(PageType page)
         m_manual_btn->Select(is_manual);
     m_auto_btn->Select(!is_manual);
 
+    // Before showing the manual panel: showing it validates the grouping at once, and that result must decide OK.
+    if (!is_manual)
+        m_ok_btn->Enable(m_auto_mode_available);
+    else if (!m_ok_btn->IsEnabled())
+        m_ok_btn->Enable();
+
     if (m_manual_panel)
         m_manual_panel->Show(is_manual);
     if (m_manual_scroll)
         m_manual_scroll->Show(is_manual);
     m_auto_panel->Show(!is_manual);
-
-    if (!is_manual)
-        m_ok_btn->Enable(m_auto_mode_available);
-    else if (!m_ok_btn->IsEnabled())
-        m_ok_btn->Enable();
 
     if (smart_filament) smart_filament->Show(get_mode() == fmmAutoForFlush);
 

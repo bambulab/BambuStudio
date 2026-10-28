@@ -749,14 +749,22 @@ const ExtruderSlots &NozzleInventory::slots(int extruder_id) const
     return m_impl->valid_extruder(extruder_id) ? m_impl->result[extruder_id] : none;
 }
 
-std::map<NozzleVolumeType, int> NozzleInventory::counts(int extruder_id) const
+std::map<NozzleVolumeType, int> NozzleInventory::counts(int extruder_id, const std::optional<std::string> &diameter) const
 {
-    return count_slots(slots(extruder_id), m_impl->printer, m_impl->multi_diameter());
+    if (!diameter)
+        return count_slots(slots(extruder_id), m_impl->printer, m_impl->multi_diameter());
+
+    const std::string wanted = format_diameter_to_str(string_to_double_decimal_point(*diameter));
+    std::map<NozzleVolumeType, int> counts;
+    for (const NozzleSlot &slot : slots(extruder_id))
+        if (!slot.empty() && slot.diameter == wanted)
+            ++counts[slot.volume_type];
+    return counts;
 }
 
-int NozzleInventory::count(int extruder_id, std::optional<NozzleVolumeType> type) const
+int NozzleInventory::count(int extruder_id, std::optional<NozzleVolumeType> type, const std::optional<std::string> &diameter) const
 {
-    const std::map<NozzleVolumeType, int> all = counts(extruder_id);
+    const std::map<NozzleVolumeType, int> all = counts(extruder_id, diameter);
     if (!type || *type == nvtHybrid) {
         int total = 0;
         for (const auto &entry : all)

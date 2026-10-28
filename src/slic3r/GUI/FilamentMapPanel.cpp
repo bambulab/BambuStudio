@@ -228,6 +228,35 @@ static std::vector<std::set<std::string>> get_backend_extruder_diameters()
     return result;
 }
 
+/**
+ * \brief Diameter of the nozzles an extruder can slice with, or none if every installed nozzle can
+ *
+ * Without the multi-diameter mode, slicing disables the nozzles whose diameter differs from the extruder's.
+ *
+ * \param extruder_id  0-based extruder
+ */
+static std::optional<std::string> usable_nozzle_diameter(int extruder_id)
+{
+    const PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (multi_nozzle_diameter_mode_enabled(preset_bundle->project_config))
+        return std::nullopt;
+    const auto *diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    if (diameters == nullptr || extruder_id < 0 || extruder_id >= int(diameters->values.size()))
+        return std::nullopt;
+    return format_diameter_to_str(diameters->values[extruder_id]);
+}
+
+/**
+ * \brief Number of nozzles an extruder can slice with
+ *
+ * \param extruder_id  0-based extruder
+ * \param type         volume type to count; none or Hybrid gives the total
+ */
+static int usable_nozzle_count(int extruder_id, std::optional<NozzleVolumeType> type = std::nullopt)
+{
+    return wxGetApp().preset_bundle->nozzle_inventory.count(extruder_id, type, usable_nozzle_diameter(extruder_id));
+}
+
 // Build a drag-drop accept predicate for a panel whose working diameter is target_diameter. Filaments
 // with unknown native diameters stay unrestricted so nothing is accidentally blocked.
 static std::function<bool(int)> make_diameter_accept_predicate(const std::vector<std::set<std::string>> &native_diameters,
@@ -732,15 +761,14 @@ void FilamentMapManualPanel::UpdateNozzleCountDisplay()
     wxString dep_ext_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(fmp_up_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase));
     wxString main_ext_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(fmp_up_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase));
 
-    const NozzleInventory &nozzles = preset_bundle->nozzle_inventory;
-    int left_count = nozzles.count(0);
+    int left_count = usable_nozzle_count(0);
     wxString left_title = wxString::Format(dep_ext_name + "(%d)", left_count);
     m_left_panel->UpdateLabel(left_title);
 
     if (m_right_panel->IsUseSeparation()) {
-        int standard_count = nozzles.count(1, NozzleVolumeType::nvtStandard);
-        int highflow_count = nozzles.count(1, NozzleVolumeType::nvtHighFlow);
-        int tpu_count = nozzles.count(1, NozzleVolumeType::nvtTPUHighFlow) + nozzles.count(1, NozzleVolumeType::nvtTPU285);
+        int standard_count = usable_nozzle_count(1, NozzleVolumeType::nvtStandard);
+        int highflow_count = usable_nozzle_count(1, NozzleVolumeType::nvtHighFlow);
+        int tpu_count = usable_nozzle_count(1, NozzleVolumeType::nvtTPUHighFlow) + usable_nozzle_count(1, NozzleVolumeType::nvtTPU285);
         wxString right_title;
         if (tpu_count > 0)
             right_title = wxString::Format(main_ext_name + "(Std: %d, HF: %d, TPU285: %d)", standard_count, highflow_count, tpu_count);
@@ -748,7 +776,7 @@ void FilamentMapManualPanel::UpdateNozzleCountDisplay()
             right_title = wxString::Format(main_ext_name + "(Std: %d, HF: %d)", standard_count, highflow_count);
         m_right_panel->UpdateLabel(right_title);
     } else {
-        int right_count = nozzles.count(1);
+        int right_count = usable_nozzle_count(1);
         wxString right_title = wxString::Format(main_ext_name + "(%d)", right_count);
         m_right_panel->UpdateLabel(right_title);
     }
@@ -795,7 +823,13 @@ bool FilamentMapManualPanel::Show(bool show)
         m_timer->Stop();
     }
 
-    return FilamentMapPanel::Show(show);
+    const bool ret = FilamentMapPanel::Show(show);
+    // Validate at once rather than on the first tick: until then OK stays enabled for an invalid grouping.
+    if (show) {
+        wxTimerEvent evt;
+        OnTimer(evt);
+    }
+    return ret;
 }
 
 // ===================== FilamentMapMultiNozzlePanel =====================
@@ -1427,7 +1461,13 @@ bool FilamentMapMultiNozzlePanel::Show(bool show)
     else
         m_timer->Stop();
 
-    return FilamentMapPanel::Show(show);
+    const bool ret = FilamentMapPanel::Show(show);
+    // Validate at once rather than on the first tick: until then OK stays enabled for an invalid grouping.
+    if (show) {
+        wxTimerEvent evt;
+        OnTimer(evt);
+    }
+    return ret;
 }
 
 // ===================== FilamentMapBtnPanel =====================

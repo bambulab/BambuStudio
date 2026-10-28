@@ -21495,11 +21495,18 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
             dlg.Fit();
             if (dlg.ShowModal() == wxID_YES) {
                 if (GUI::wxGetApp().sidebar().sync_extruder_list() && wxGetApp().check_slice_version_policy()) {
-                    if (is_slice_all)
-                        wxPostEvent(q, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
-                    else
-                        wxPostEvent(q, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
-                    wxGetApp().mainframe->m_tabpanel->SetSelection(MainFrame::TabPosition::tpPreview);
+                    // The sync changed the nozzles, so the grouping the caller was about to check is stale: check it here,
+                    // as the slice button does, before the slice request below skips straight to slicing.
+                    PartPlate *plate = partplate_list.get_curr_plate();
+                    if (try_pop_up_before_slice(is_slice_all, q, plate, false)) {
+                        if (is_slice_all)
+                            wxPostEvent(q, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
+                        else
+                            wxPostEvent(q, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+                        // The slice request switches to the preview itself. SetSelection would enter it a second time
+                        // through the tab event, which runs the sync popup, the grouping dialog and the slice again.
+                        wxGetApp().mainframe->m_tabpanel->ChangeSelection(MainFrame::TabPosition::tpPreview);
+                    }
                 }
                 return false;
             }
