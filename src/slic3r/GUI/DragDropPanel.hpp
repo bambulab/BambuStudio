@@ -151,6 +151,7 @@ public:
 
 private:
     void UpdateLayout();
+    DragDropPanel *ResolveSeparatedTargetPanel(NozzleVolumeType volume_type = nvtStandard) const;
 
     wxBoxSizer   *m_main_sizer;
     wxPanel      *m_content_panel;
@@ -165,6 +166,11 @@ private:
 
     bool m_use_separation;
     bool m_use_fixed_grid_item_size{false};
+    bool m_has_volume_type_counts{false};
+    int  m_std_count{0};
+    int  m_hf_count{0};
+    int  m_tpu_count{0};
+    std::vector<wxWindow *> m_separators;
     std::function<bool(int)> m_accept_filament;
 
     struct DiameterVolumePanel

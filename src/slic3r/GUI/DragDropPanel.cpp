@@ -624,6 +624,9 @@ SeparatedDragDropPanel::SeparatedDragDropPanel(wxWindow *parent, const wxString 
 void SeparatedDragDropPanel::UpdateLayout()
 {
     m_content_sizer->Clear(false);
+    for (wxWindow *sep : m_separators)
+        sep->Destroy();
+    m_separators.clear();
 
     if (!m_diameter_volume_panels.empty()) {
         m_high_flow_panel->Hide();
@@ -659,9 +662,10 @@ void SeparatedDragDropPanel::UpdateLayout()
             }
         }
 
-        bool has_std = !m_standard_panel->get_filament_blocks().empty() || has_nozzle_type(NozzleVolumeType::nvtStandard) || variant_has_std;
-        bool has_hf  = !m_high_flow_panel->get_filament_blocks().empty() || has_nozzle_type(NozzleVolumeType::nvtHighFlow) || variant_has_hf;
-        bool has_tpu = !m_tpu_panel->get_filament_blocks().empty() || ((has_nozzle_type(NozzleVolumeType::nvtTPUHighFlow) || has_nozzle_type(NozzleVolumeType::nvtTPU285)) && variant_has_tpu);
+        // 若外部已传入各流量类型的可用喷嘴数（如多喷嘴固定组），仅展示数量 > 0 的流量列
+        bool has_std = m_has_volume_type_counts ? (m_std_count > 0) : (!m_standard_panel->get_filament_blocks().empty() || has_nozzle_type(NozzleVolumeType::nvtStandard) || variant_has_std);
+        bool has_hf  = m_has_volume_type_counts ? (m_hf_count > 0)  : (!m_high_flow_panel->get_filament_blocks().empty() || has_nozzle_type(NozzleVolumeType::nvtHighFlow) || variant_has_hf);
+        bool has_tpu = m_has_volume_type_counts ? (m_tpu_count > 0) : (!m_tpu_panel->get_filament_blocks().empty() || ((has_nozzle_type(NozzleVolumeType::nvtTPUHighFlow) || has_nozzle_type(NozzleVolumeType::nvtTPU285)) && variant_has_tpu));
 
         m_standard_panel->Show(has_std);
         m_high_flow_panel->Show(has_hf);
@@ -672,21 +676,23 @@ void SeparatedDragDropPanel::UpdateLayout()
             separator->SetBackgroundColour(0xCCCCCC);
             separator->SetMinSize(wxSize(FromDIP(1), -1));
             m_content_sizer->Add(separator, 0, wxEXPAND | wxALL, FromDIP(4));
+            m_separators.push_back(separator);
         };
 
-        bool need_separator = false;
-        if (has_std) {
-            m_content_sizer->Add(m_standard_panel, 1, wxEXPAND | wxLEFT, FromDIP(8));
-            need_separator = true;
-        }
-        if (has_hf) {
-            if (need_separator) add_separator();
-            m_content_sizer->Add(m_high_flow_panel, 1, wxEXPAND);
-            need_separator = true;
-        }
-        if (has_tpu) {
-            if (need_separator) add_separator();
-            m_content_sizer->Add(m_tpu_panel, 1, wxEXPAND | wxRIGHT, FromDIP(8));
+        std::vector<DragDropPanel *> visible_panels;
+        if (has_std) visible_panels.push_back(m_standard_panel);
+        if (has_hf)  visible_panels.push_back(m_high_flow_panel);
+        if (has_tpu) visible_panels.push_back(m_tpu_panel);
+
+        for (size_t i = 0; i < visible_panels.size(); ++i) {
+            if (i > 0)
+                add_separator();
+            int flags = wxEXPAND;
+            if (i == 0)
+                flags |= wxLEFT;
+            if (i + 1 == visible_panels.size())
+                flags |= wxRIGHT;
+            m_content_sizer->Add(visible_panels[i], 1, flags, FromDIP(8));
         }
     } else {
         m_diameter_volume_container->Hide();
@@ -778,13 +784,56 @@ void SeparatedDragDropPanel::UpdateUnifiedLabel(const wxString &label)
         m_unified_panel->UpdateLabel(label);
 }
 
+// 根据流量类型解析目标子面板；若该流量类型喷嘴数量为 0（列已隐藏），则自动回退到首个数量 > 0 的可见面板
+DragDropPanel *SeparatedDragDropPanel::ResolveSeparatedTargetPanel(NozzleVolumeType volume_type) const
+{
+    DragDropPanel *target = m_standard_panel;
+    if (volume_type == NozzleVolumeType::nvtHighFlow)
+        target = m_high_flow_panel;
+    else if (volume_type == NozzleVolumeType::nvtTPUHighFlow || volume_type == NozzleVolumeType::nvtTPU285)
+        target = m_tpu_panel;
+
+    if (!m_has_volume_type_counts)
+        return target;
+    if ((target == m_standard_panel && m_std_count > 0) ||
+        (target == m_high_flow_panel && m_hf_count > 0) ||
+        (target == m_tpu_panel && m_tpu_count > 0))
+        return target;
+    if (m_std_count > 0) return m_standard_panel;
+    if (m_hf_count > 0)  return m_high_flow_panel;
+    if (m_tpu_count > 0) return m_tpu_panel;
+    return target;
+}
+
 void SeparatedDragDropPanel::UpdateVolumeTypeCounts(int standard_count, int high_flow_count, int tpu_count)
 {
+    m_has_volume_type_counts = true;
+    m_std_count              = standard_count;
+    m_hf_count               = high_flow_count;
+    m_tpu_count              = tpu_count;
+
+    // 当某流量类型的喷嘴数变为 0 时，将该隐藏列中已有的耗材色块迁移到可见列
+    if (m_use_separation) {
+        DragDropPanel *fallback = ResolveSeparatedTargetPanel();
+        auto migrate_if_hidden = [fallback](DragDropPanel *panel, int count) {
+            if (count > 0 || panel == fallback)
+                return;
+            auto blocks = panel->get_filament_blocks();
+            for (auto *block : blocks) {
+                fallback->AddColorBlock(block->GetType(), block->GetFilamentId(), false);
+                panel->RemoveColorBlock(block, false);
+            }
+        };
+        migrate_if_hidden(m_standard_panel, m_std_count);
+        migrate_if_hidden(m_high_flow_panel, m_hf_count);
+        migrate_if_hidden(m_tpu_panel, m_tpu_count);
+    }
+
     auto with_count = [](const wxString &name, int count) { return wxString::Format("%s: %d", name, count); };
     m_standard_panel->UpdateLabel(with_count(_L("Standard"), standard_count));
     m_high_flow_panel->UpdateLabel(with_count(_L("High Flow"), high_flow_count));
     m_tpu_panel->UpdateLabel(with_count(_L("TPU285"), tpu_count));
-    Layout();
+    UpdateLayout();
 }
 
 void SeparatedDragDropPanel::SetUnifiedGridColumns(int cols)
@@ -879,9 +928,10 @@ void SeparatedDragDropPanel::SetUseSeparation(bool use_separation)
         m_use_separation = use_separation;
 
         if (use_separation) {
+            DragDropPanel *target = ResolveSeparatedTargetPanel();
             auto blocks = m_unified_panel->get_filament_blocks();
             for (auto &block : blocks) {
-                m_standard_panel->AddColorBlock(block->GetType(), block->GetFilamentId(), false);
+                target->AddColorBlock(block->GetType(), block->GetFilamentId(), false);
                 m_unified_panel->RemoveColorBlock(block, false);
             }
         } else {
@@ -922,14 +972,7 @@ void SeparatedDragDropPanel::AddColorBlock(const std::string &type, int filament
         group->panel->AddColorBlock(type, filament_id, update_ui);
         UpdateDiameterVolumeLayout();
     } else if (m_use_separation) {
-        if (volume_type == NozzleVolumeType::nvtHighFlow) {
-            m_high_flow_panel->AddColorBlock(type, filament_id, update_ui);
-        } else if (volume_type == NozzleVolumeType::nvtTPUHighFlow || volume_type == NozzleVolumeType::nvtTPU285) {
-            m_tpu_panel->AddColorBlock(type, filament_id, update_ui);
-        } else {
-            m_standard_panel->AddColorBlock(type, filament_id, update_ui);
-        }
-
+        ResolveSeparatedTargetPanel(volume_type)->AddColorBlock(type, filament_id, update_ui);
     } else {
         m_unified_panel->AddColorBlock(type, filament_id, update_ui);
     }
