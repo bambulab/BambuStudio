@@ -2507,8 +2507,22 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         float layer_height = m_config->opt_float("layer_height");
         bool exceed_minimum_flag = (layer_height_floor - layer_height) > EPSILON;
         bool exceed_maximum_flag = (layer_height - layer_height_ceil) > EPSILON;
+        // Same ceiling as Print::validate(), which refuses to slice above it.
+        const double nozzle_diameter = primary_nozzle_diameter(m_preset_bundle->full_config());
+        bool exceed_nozzle_flag = nozzle_diameter > EPSILON && (layer_height - nozzle_diameter) > EPSILON;
 
-        if (exceed_maximum_flag || exceed_minimum_flag) {
+        if (exceed_nozzle_flag) {
+            wxString msg_text = _L("Layer height cannot exceed nozzle diameter. It will be reset to the default value.");
+            MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxOK);
+            dialog.SetButtonLabel(wxID_OK, _L("OK"));
+            dialog.ShowModal();
+            auto new_conf = *m_config;
+            ConfigOption *default_layer_height = clone_default_support_value("layer_height");
+            new_conf.set_key_value("layer_height", default_layer_height ? default_layer_height : new ConfigOptionFloat(0.2));
+            m_config_manipulation.apply(m_config, &new_conf);
+            wxGetApp().plater()->update();
+        }
+        else if (exceed_maximum_flag || exceed_minimum_flag) {
             if(layer_height < EPSILON){
                 wxString msg_text = _(L("Layer height is too small.\nIt will set to min_layer_height\n"));
                 MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxOK);
