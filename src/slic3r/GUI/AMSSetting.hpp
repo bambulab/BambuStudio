@@ -86,15 +86,12 @@ protected:
     CheckBox *    m_checkbox_Insert_material_auto_read;
     wxStaticText *m_title_Insert_material_auto_read;
     Label* m_tip_Insert_material_line1;
-    Label* m_tip_Insert_material_line2;
-    Label* m_tip_Insert_material_line3;
     Label* m_tip_Insert_material_external_ams;
 
     wxPanel*      m_panel_starting = nullptr;
     CheckBox *    m_checkbox_starting_auto_read;
     wxStaticText *m_title_starting_auto_read;
     Label* m_tip_starting_line1;
-    Label* m_tip_starting_line2;
     Label* m_tip_starting_external_ams;
 
     CheckBox *    m_checkbox_remain;

@@ -112,30 +112,7 @@ void AMSSetting::create()
     m_tip_Insert_material_line1->SetForegroundColour(AMS_SETTING_GREY700);
     m_tip_Insert_material_line1->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
     m_tip_Insert_material_line1->Wrap(AMS_SETTING_BODY_WIDTH);
-    m_tip_Insert_material_line1->Hide();
     m_sizer_Insert_material_tip_inline->Add(m_tip_Insert_material_line1, 0, wxEXPAND, 0);
-
-    // tip line2
-    m_tip_Insert_material_line2 = new Label(m_panel_Insert_material,
-        _L("Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed.")
-    );
-    m_tip_Insert_material_line2->SetFont(::Label::Body_13);
-    m_tip_Insert_material_line2->SetForegroundColour(AMS_SETTING_GREY700);
-    m_tip_Insert_material_line2->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
-    m_tip_Insert_material_line2->Wrap(AMS_SETTING_BODY_WIDTH);
-    m_tip_Insert_material_line2->Hide();
-    m_sizer_Insert_material_tip_inline->Add(m_tip_Insert_material_line2, 0, wxEXPAND | wxTOP, 8);
-
-    // tip line3
-    m_tip_Insert_material_line3 = new Label(m_panel_Insert_material,
-        _L("When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually.")
-    );
-    m_tip_Insert_material_line3->SetFont(::Label::Body_13);
-    m_tip_Insert_material_line3->SetForegroundColour(AMS_SETTING_GREY700);
-    m_tip_Insert_material_line3->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
-    m_tip_Insert_material_line3->Wrap(AMS_SETTING_BODY_WIDTH);
-    m_tip_Insert_material_line3->Hide();
-    m_sizer_Insert_material_tip_inline->Add(m_tip_Insert_material_line3, 0, wxEXPAND, 0);
 
     // extra tip line for the hotend rack machines whose own slots always read the filament
     m_tip_Insert_material_external_ams = new Label(m_panel_Insert_material, _L("Only for AMS/AMS 2pro/AMS HT."));
@@ -174,22 +151,13 @@ void AMSSetting::create()
     m_sizer_starting_tip_inline = new wxBoxSizer(wxVERTICAL);
 
     m_tip_starting_line1 = new Label(m_panel_starting,
-        _L("The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools.")
+        _L("The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools.")
     );
     m_tip_starting_line1->SetFont(::Label::Body_13);
     m_tip_starting_line1->SetForegroundColour(AMS_SETTING_GREY700);
     m_tip_starting_line1->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
     m_tip_starting_line1->Wrap(AMS_SETTING_BODY_WIDTH);
     m_sizer_starting_tip_inline->Add(m_tip_starting_line1, 0, wxEXPAND, 0);
-
-    m_tip_starting_line2 = new Label(m_panel_starting,
-        _L("The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown.")
-    );
-    m_tip_starting_line2->SetFont(::Label::Body_13);
-    m_tip_starting_line2->SetForegroundColour(AMS_SETTING_GREY700);
-    m_tip_starting_line2->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
-    m_tip_starting_line2->Wrap(AMS_SETTING_BODY_WIDTH);
-    m_sizer_starting_tip_inline->Add(m_tip_starting_line2, 0, wxEXPAND,0);
 
     // extra tip line for the hotend rack machines whose own slots always read the filament
     m_tip_starting_external_ams = new Label(m_panel_starting, _L("Only for AMS/AMS 2pro/AMS HT."));
@@ -504,30 +472,18 @@ void AMSSetting::update_insert_material_read_mode(bool selected, std::string ver
         m_checkbox_Insert_material_auto_read->Hide();
         m_title_Insert_material_auto_read->Hide();
         m_tip_Insert_material_line1->Hide();
-        m_tip_Insert_material_line2->Hide();
-        m_tip_Insert_material_line3->Hide();
         m_tip_Insert_material_external_ams->Hide();
         m_panel_Insert_material->Hide();
     }
     else {
         state_changed = !m_panel_Insert_material->IsShown() ||
-                         m_checkbox_Insert_material_auto_read->GetValue() != selected ||
                          m_tip_Insert_material_external_ams->IsShown() != show_external_ams_text;
         m_tip_Insert_material_external_ams->Show(show_external_ams_text);
         m_panel_Insert_material->Show();
         m_checkbox_Insert_material_auto_read->SetValue(selected);
         m_checkbox_Insert_material_auto_read->Show();
         m_title_Insert_material_auto_read->Show();
-        if (selected) {
-            m_tip_Insert_material_line1->Show();
-            m_tip_Insert_material_line2->Show();
-            m_tip_Insert_material_line3->Hide();
-        }
-        else {
-            m_tip_Insert_material_line1->Hide();
-            m_tip_Insert_material_line2->Hide();
-            m_tip_Insert_material_line3->Show();
-        }
+        m_tip_Insert_material_line1->Show();
     }
 
     if (!state_changed)
@@ -593,20 +549,13 @@ void AMSSetting::update_starting_read_mode(bool selected)
     const bool show_external_ams_text = m_obj && DevPrinterConfigUtil::support_ams_settings_hide_insert_power(m_obj->printer_type);
 
     bool state_changed = !m_panel_starting->IsShown() ||
-                          m_checkbox_starting_auto_read->GetValue() != selected ||
                           m_tip_starting_external_ams->IsShown() != show_external_ams_text;
 
     m_panel_starting->Show(true);
     m_tip_starting_external_ams->Show(show_external_ams_text);
 
     m_checkbox_starting_auto_read->SetValue(selected);
-    if (selected) { // selected
-        m_tip_starting_line1->Show();
-        m_tip_starting_line2->Hide();
-    } else { // unselected
-        m_tip_starting_line1->Hide();
-        m_tip_starting_line2->Show();
-    }
+    m_tip_starting_line1->Show();
 
     if (!state_changed)
         return;
@@ -685,18 +634,6 @@ void AMSSetting::update_filament_tab_auto_read_rfid(MachineObject* obj)
 
 void AMSSetting::on_insert_material_read(wxCommandEvent &event)
 {
-    // send command
-    if (m_checkbox_Insert_material_auto_read->GetValue()) {
-        // checked
-        m_tip_Insert_material_line1->Show();
-        m_tip_Insert_material_line2->Show();
-        m_tip_Insert_material_line3->Hide();
-    } else {
-        // unchecked
-        m_tip_Insert_material_line1->Hide();
-        m_tip_Insert_material_line2->Hide();
-        m_tip_Insert_material_line3->Show();
-    }
     m_checkbox_Insert_material_auto_read->SetValue(event.GetInt());
 
     bool start_read_opt = m_checkbox_starting_auto_read->GetValue();
@@ -705,24 +642,11 @@ void AMSSetting::on_insert_material_read(wxCommandEvent &event)
 
     m_obj->command_ams_user_settings(start_read_opt, tray_read_opt, remain_opt);
 
-    m_sizer_Insert_material_tip_inline->Layout();
-    Layout();
-    Fit();
-
     event.Skip();
 }
 
 void AMSSetting::on_starting_read(wxCommandEvent &event)
 {
-    if (m_checkbox_starting_auto_read->GetValue()) {
-        // checked
-        m_tip_starting_line1->Show();
-        m_tip_starting_line2->Hide();
-    } else {
-        // unchecked
-        m_tip_starting_line1->Hide();
-        m_tip_starting_line2->Show();
-    }
     m_checkbox_starting_auto_read->SetValue(event.GetInt());
 
     bool start_read_opt = m_checkbox_starting_auto_read->GetValue();
@@ -730,10 +654,6 @@ void AMSSetting::on_starting_read(wxCommandEvent &event)
     bool remain_opt = m_checkbox_remain->GetValue();
 
     m_obj->command_ams_user_settings(start_read_opt, tray_read_opt, remain_opt);
-
-    m_sizer_starting_tip_inline->Layout();
-    Layout();
-    Fit();
 
     event.Skip();
 }
