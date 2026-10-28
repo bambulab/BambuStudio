@@ -12,7 +12,7 @@
   /* Remain capsule: a gray frame plus a track darker than the spool fill, so a
      white filament still reads as "almost full" instead of blending into it. */
   --ams-web-remain-track: #cecece;
-  --ams-web-remain-frame: #828280;
+  --ams-web-remain-frame: #c8c8c6;
   /* Lite AMSLib uses darkModeColorFor(#F8F8F8) = Grey200. Generic remain canvas does not. */
   --ams-web-lite-lib-bg: #f8f8f8;
   --ams-web-chip-bg: #f7f7f7;

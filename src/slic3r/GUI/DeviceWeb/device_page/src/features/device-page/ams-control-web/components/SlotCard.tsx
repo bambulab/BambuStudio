@@ -175,8 +175,6 @@ function SlotSwatch({
   );
 }
 
-// Capsule above the card: light-grey outline, filament fill stays inside the
-// border and never overlaps it.
 function SlotRemainLineBar({
   slot,
   left,
@@ -189,37 +187,42 @@ function SlotRemainLineBar({
   width: number;
 }) {
   const { height, border, borderColor, trackColor } = SLOT_REMAIN_LINE;
-  const innerWidth = width - 2 * border;
-  const innerHeight = height - 2 * border;
-  const fillWidth = Math.round(innerWidth * remainLineRatio(slot.slot_remain_line.remain_percent));
+  const fillWidth = Math.round(width * remainLineRatio(slot.slot_remain_line.remain_percent));
 
   return (
     <span
       data-testid={`ams-slot-remain-line-${slot.ams_id}-${slot.slot_id}`}
-      className="pointer-events-none absolute z-[1] box-border block"
+      className="pointer-events-none absolute z-[1] block overflow-hidden"
       style={{
         left: px(left),
         top: px(top),
         width: px(width),
         height: px(height),
         borderRadius: px(height / 2),
-        border: `${border}px solid ${borderColor}`,
         background: trackColor,
       }}
     >
       {fillWidth > 0 ? (
         <span
-          className="absolute block"
+          className="absolute inset-y-0 left-0 block"
           style={{
-            left: 0,
-            top: 0,
             width: px(fillWidth),
-            height: px(innerHeight),
-            borderRadius: px(innerHeight / 2),
+            borderRadius: px(height / 2),
             background: remainBarFill(slot),
+            boxShadow: `inset 0 0 0 ${border}px ${borderColor}`,
           }}
         />
       ) : null}
+      {/* Frame as an overlay after the fill so it paints on top (a parent inset
+          shadow sits under the child fill). Keeps the single rounded clip box,
+          so the fractional-zoom seam fix holds. */}
+      <span
+        className="absolute inset-0 block"
+        style={{
+          borderRadius: px(height / 2),
+          boxShadow: `inset 0 0 0 ${border}px ${borderColor}`,
+        }}
+      />
     </span>
   );
 }
