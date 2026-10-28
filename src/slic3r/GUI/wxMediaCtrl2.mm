@@ -394,8 +394,11 @@ void wxMediaCtrl2::Stop()
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 close];
     m_suppress_pause_icon = false;
-    // Restore idle image after stopping (must run on main thread for CALayer)
-    dispatch_async(dispatch_get_main_queue(), ^{ updateIdleLayer(); });
+    dispatch_async(dispatch_get_main_queue(), ^{
+        AVSampleBufferDisplayLayer *videoLayer = (AVSampleBufferDisplayLayer *)m_video_layer;
+        [videoLayer flushAndRemoveImage];
+        updateIdleLayer();
+    });
     NotifyStopped();
 }
 
