@@ -831,7 +831,7 @@ void SyncMachineInfoDialog::BuildButtonBar(wxBoxSizer *root)
                               std::pair<wxColour, int>(C(ThemeColor::BrandGreenPressed), StateColor::Pressed),
                               std::pair<wxColour, int>(C(ThemeColor::BrandGreenHovered), StateColor::Hovered),
                               std::pair<wxColour, int>(C(ThemeColor::BrandGreen), StateColor::Normal));
-    StateColor confirm_text(std::pair<wxColour, int>(ThemeColor::White, StateColor::Normal));
+    StateColor confirm_text(std::pair<wxColour, int>(ThemeColor::WhiteFixed, StateColor::Normal));
 
     m_confirm_btn = new Button(this, _L("Confirm"), "", 0, 0, wxID_ANY);
     m_confirm_btn->SetMinSize(wxSize(FromDIP(70), FromDIP(24)));

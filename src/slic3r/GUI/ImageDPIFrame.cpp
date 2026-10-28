@@ -11,6 +11,7 @@
 #include "MainFrame.hpp"
 #include <chrono>
 #include "wxExtensions.hpp"
+#include "Widgets/StateColor.hpp"
 
 using namespace Slic3r;
 using namespace Slic3r::GUI;
@@ -26,7 +27,6 @@ ImageDPIFrame::ImageDPIFrame()
     //SetTransparent(0);
     SetMinSize(wxSize(FromDIP(width), FromDIP(height)));
     SetMaxSize(wxSize(FromDIP(width), FromDIP(height)));
-    SetBackgroundColour(wxColour(242, 242, 242, 255));
 #ifdef __APPLE__
     SetWindowStyleFlag(GetWindowStyleFlag() | wxSTAY_ON_TOP);
 #endif
@@ -54,6 +54,9 @@ ImageDPIFrame::~ImageDPIFrame() {
 
 bool ImageDPIFrame::Show(bool show)
 {
+    // The frame is cached across theme switches, so resolve the colour on every show
+    if (show)
+        SetBackgroundColour(StateColor::darkModeColorFor(ThemeColor::Grey250));
     Layout();
     return DPIFrame::Show(show);
 }

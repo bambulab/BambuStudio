@@ -739,7 +739,7 @@ void NozzleSettingsCardDialog::build_button_bar(wxBoxSizer *main_sizer)
 {
     StateColor ok_bg(std::pair<wxColour, int>(ThemeColor::BrandGreenPressed, StateColor::Pressed), std::pair<wxColour, int>(ThemeColor::BrandGreenHovered, StateColor::Hovered),
                      std::pair<wxColour, int>(ThemeColor::BrandGreen, StateColor::Normal));
-    StateColor ok_text(std::pair<wxColour, int>(ThemeColor::White, StateColor::Normal));
+    StateColor ok_text(std::pair<wxColour, int>(ThemeColor::WhiteFixed, StateColor::Normal));
     StateColor cancel_bg(std::pair<wxColour, int>(ThemeColor::Grey400, StateColor::Pressed), std::pair<wxColour, int>(ThemeColor::Grey300, StateColor::Hovered),
                          std::pair<wxColour, int>(ThemeColor::White, StateColor::Normal));
     StateColor cancel_bd(std::pair<wxColour, int>(ThemeColor::TextPrimary, StateColor::Normal));

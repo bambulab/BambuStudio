@@ -4251,7 +4251,7 @@ Sidebar::Sidebar(Plater *parent)
             wxPaintDC dc(line_panel);
             wxSize sz = line_panel->GetClientSize();
             int y = sz.GetHeight() / 2;
-            dc.SetPen(wxPen(wxColour("#CECECE"), 1, wxPENSTYLE_SOLID));
+            dc.SetPen(wxPen(StateColor::darkModeColorFor(ThemeColor::Grey400), 1, wxPENSTYLE_SOLID));
             dc.DrawLine(0, y, sz.GetWidth(), y);
         });
         subtitle_sizer->Add(line_panel, 1, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(8));
@@ -4390,7 +4390,7 @@ Sidebar::Sidebar(Plater *parent)
             wxPaintDC dc(mixed_line_panel);
             wxSize sz = mixed_line_panel->GetClientSize();
             int y = sz.GetHeight() / 2;
-            dc.SetPen(wxPen(wxColour("#CECECE"), 1, wxPENSTYLE_SOLID));
+            dc.SetPen(wxPen(StateColor::darkModeColorFor(ThemeColor::Grey400), 1, wxPENSTYLE_SOLID));
             dc.DrawLine(0, y, sz.GetWidth(), y);
         });
         title_sizer->Add(mixed_line_panel, 1, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(8));
@@ -28912,7 +28912,11 @@ void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id, int r
     };
     remap_support_filament(*p->config);
     remap_support_filament(wxGetApp().preset_bundle->prints.get_edited_preset().config);
-    if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) print_tab->reload_config();
+    // The remap bypasses Tab::on_value_change(), so refresh the modified/reset marks as well.
+    if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) {
+        print_tab->update_dirty();
+        print_tab->reload_config();
+    }
 
     // update UI — runs after remap so update_mixed_filament_list() won't clip remapped extruder IDs
     sidebar().on_filaments_delete(filament_id);
@@ -29040,8 +29044,10 @@ void Plater::remap_mixed_filament_ids(size_t old_physical_count, size_t new_phys
     remap_support_filament(*p->config);
     remap_support_filament(wxGetApp().preset_bundle->prints.get_edited_preset().config);
     if (support_changed)
-        if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
+        if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) {
+            print_tab->update_dirty();
             print_tab->reload_config();
+        }
 
     for (auto &plate_gcodes : p->model.plates_custom_gcodes) {
         auto &gcodes = plate_gcodes.second.gcodes;

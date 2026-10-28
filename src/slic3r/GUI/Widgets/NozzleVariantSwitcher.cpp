@@ -1,5 +1,6 @@
 #include "NozzleVariantSwitcher.hpp"
 #include "Label.hpp"
+#include "StateColor.hpp"
 #include "slic3r/GUI/I18N.hpp"
 
 #include <wx/colour.h>
@@ -16,29 +17,21 @@ constexpr int StateNormal   = 0;
 constexpr int StateChecked  = 1 << 0;
 constexpr int StateModified = 1 << 1;
 
-const wxColor &border_color(int state)
+// Colours resolve per call, so they follow the current light/dark theme.
+wxColour border_color(int state)
 {
-    static wxColour normal{"#CECECE"};
-    static wxColour checked{"#00AE42"};
-
-    return (state & StateChecked) ? checked : normal;
+    return StateColor::darkModeColorFor((state & StateChecked) ? ThemeColor::BrandGreen : ThemeColor::Grey400);
 }
 
-const wxColor &text_color(int state)
+wxColour text_color(int state)
 {
-    static wxColour normal{"#000000"};
-    static wxColour checked{"#00AE42"};
-    static wxColour modified{"#FF6F00"};
-
-    return (state & StateModified) ? modified : (state & StateChecked) ? checked : normal;
+    if (state & StateModified) return StateColor::darkModeColorFor(ThemeColor::Warning);
+    return StateColor::darkModeColorFor((state & StateChecked) ? ThemeColor::BrandGreen : ThemeColor::TextPrimary);
 }
 
-const wxColor &bg_color(int state)
+wxColour bg_color(int state)
 {
-    static wxColour normal{"#EEEEEE"};
-    static wxColour checked{"#EBF9F0"};
-
-    return (state & StateChecked) ? checked : normal;
+    return StateColor::darkModeColorFor((state & StateChecked) ? ThemeColor::LightGreen : ThemeColor::Grey300);
 }
 
 int make_state(bool selected, bool modified = false)
