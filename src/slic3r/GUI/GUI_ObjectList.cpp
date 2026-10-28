@@ -6823,6 +6823,8 @@ void GUI::ObjectList::smooth_mesh()
     plater->take_snapshot("smooth_mesh");
     std::vector<int> obj_idxs, vol_idxs;
     get_selection_indexes(obj_idxs, vol_idxs);
+    if (obj_idxs.empty())
+        return;
     auto object_idx = obj_idxs.front();
     ModelObject *obj{nullptr};
     auto show_warning_dlg = [this](int cur_face_count,std::string name,bool is_part) {
@@ -6847,6 +6849,8 @@ void GUI::ObjectList::smooth_mesh()
     bool has_show_smooth_mesh_error_dlg = false;
     if (vol_idxs.empty()) {
         obj        = object(object_idx);
+        if (!obj)
+            return;
         auto             future_face_count = static_cast<int>(obj->facets_count()) * 4;
         if (show_warning_dlg(future_face_count, obj->name,false)) {
             return;
@@ -6872,6 +6876,8 @@ void GUI::ObjectList::smooth_mesh()
         plater->changed_mesh(object_idx);
     } else {
         obj = object(obj_idxs.front());
+        if (!obj)
+            return;
         for (int vol_idx : vol_idxs) {
             auto mv = obj->volumes[vol_idx];
             auto future_face_count = static_cast<int>(mv->mesh().facets_count()) * 4;
