@@ -3315,6 +3315,52 @@ std::string get_system_info()
     return out.str();
 }
 
+// Restores the previous flag on destruction, including when MainFrame
+// construction throws. release() drops the suspend before Show().
+class PlaterConfigChangeSuspend {
+public:
+    explicit PlaterConfigChangeSuspend(GUI_App& app)
+        : m_app(app)
+        , m_prev(app.m_plater_on_config_change_suspended)
+    {
+        m_app.m_plater_on_config_change_suspended = true;
+    }
+    ~PlaterConfigChangeSuspend() { release(); }
+    void release()
+    {
+        if (!m_active)
+            return;
+        m_app.m_plater_on_config_change_suspended = m_prev;
+        m_active = false;
+    }
+    PlaterConfigChangeSuspend(const PlaterConfigChangeSuspend&) = delete;
+    PlaterConfigChangeSuspend& operator=(const PlaterConfigChangeSuspend&) = delete;
+private:
+    GUI_App& m_app;
+    bool     m_prev;
+    bool     m_active{ true };
+};
+
+void GUI_App::finish_suspended_plater_config(bool apply_full_config)
+{
+    if (!plater_)
+        return;
+    plater_->sidebar().flush_pending_filament_ui_refresh();
+    if (apply_full_config && preset_bundle) {
+        PERF_TRACE("startup.plater.on_config_change_full");
+        plater_->on_config_change(preset_bundle->full_config());
+        // full_config() merges print + filament + project config. Bed STL
+        // selection and the edge texture quads follow the printer preset,
+        // which load_current_presets applies via force_print_bed_update().
+        // That call was swallowed while suspended, so replay it last.
+        plater_->force_print_bed_update();
+        if (Tab* printer_tab = get_tab(Preset::TYPE_PRINTER)) {
+            if (DynamicPrintConfig* printer_config = printer_tab->get_config())
+                plater_->on_config_change(*printer_config);
+        }
+    }
+}
+
 bool GUI_App::on_init_inner()
 {
     PERF_TRACE("startup.on_init_inner");
@@ -3808,6 +3854,11 @@ bool GUI_App::on_init_inner()
     }
 
     BOOST_LOG_TRIVIAL(info) << "create the main window";
+    // Defer Plater::on_config_change across MainFrame + load_current_presets.
+    // Released before Show() so the first paint does not see printer_model
+    // "bbl_empty" or the default bed. G-code viewer skips full_config: its
+    // update_layout() 200x200 bed must remain.
+    PlaterConfigChangeSuspend suspend_plater_config(*this);
     {
         PERF_TRACE("startup.create_mainframe");
         mainframe = new MainFrame();
@@ -3836,6 +3887,11 @@ bool GUI_App::on_init_inner()
     }
     else
         load_current_presets();
+
+    // Flush before the dirty baseline. Diameter validation rewrites
+    // project_config; recording the baseline first marks a fresh project dirty.
+    suspend_plater_config.release();
+    finish_suspended_plater_config(!is_gcode_viewer());
 
     if (plater_ != nullptr) {
         plater_->reset_project_dirty_initial_presets();
@@ -4633,6 +4689,10 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     old_main_frame->SetClientObject(new ClientData);
 
     switch_window_pools();
+    // Same coalesce window as on_init_inner: defer config applies across
+    // MainFrame construction + load_current_presets, then one full_config
+    // before Show() so project_config reaches the new Plater.
+    PlaterConfigChangeSuspend suspend_plater_config(*this);
     mainframe = new MainFrame();
     if (is_editor())
         // hide settings tabs after first Layout
@@ -4649,6 +4709,8 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     dlg.Update(80, _L("Loading current presets") + dots);
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
     load_current_presets();
+    suspend_plater_config.release();
+    finish_suspended_plater_config(true);
     mainframe->Show(true);
     //mainframe->refresh_plugin_tips();
 
@@ -8357,6 +8419,11 @@ bool GUI_App::checked_tab(Tab* tab)
 //BBS: add preset combo box re-activate logic
 void GUI_App::load_current_presets(bool active_preset_combox/*= false*/, bool check_printer_presets_ /*= true*/)
 {
+    static int s_load_current_presets_left = 12;
+    if (s_load_current_presets_left > 0) {
+        --s_load_current_presets_left;
+        perf_mark("startup.load_current_presets call#" + std::to_string(12 - s_load_current_presets_left));
+    }
     PERF_TRACE("startup.load_current_presets");
 
     // check printer_presets for the containing information about "Print Host upload"

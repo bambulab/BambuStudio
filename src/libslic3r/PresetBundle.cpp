@@ -951,7 +951,7 @@ std::vector<Preset*> PresetBundle::get_current_project_embedded_presets()
 }
 
 //BBS: reset project embedded presets
-void PresetBundle::reset_project_embedded_presets()
+bool PresetBundle::reset_project_embedded_presets()
 {
     std::string prefer_printer;
     Preset& current_printer = this->printers.get_selected_preset();
@@ -960,9 +960,10 @@ void PresetBundle::reset_project_embedded_presets()
         prefer_printer = dynamic_cast<ConfigOptionString *>(inherits)->value;
     }
     //first printer, then filament, then print
-    bool printer_reselect = this->printers.reset_project_embedded_presets();
-    bool filament_reselect = this->filaments.reset_project_embedded_presets();
-    bool print_reselect = this->prints.reset_project_embedded_presets();
+    bool printer_removed = false, filament_removed = false, print_removed = false;
+    bool printer_reselect = this->printers.reset_project_embedded_presets(&printer_removed);
+    bool filament_reselect = this->filaments.reset_project_embedded_presets(&filament_removed);
+    bool print_reselect = this->prints.reset_project_embedded_presets(&print_removed);
 
     if (printer_reselect) {
         if (!prefer_printer.empty())
@@ -992,11 +993,13 @@ void PresetBundle::reset_project_embedded_presets()
     //this->update_multi_material_filament_presets();
 
     //update filament_presets
+    bool slots_rewritten = false;
     for (size_t i = 0; i < filament_presets.size(); ++ i)
     {
         Preset* selected_filament = this->filaments.find_preset(filament_presets[i], false);
         if (!selected_filament) {
             //it should be the project embedded presets
+            slots_rewritten = true;
             Preset& current_printer = this->printers.get_selected_preset();
             const std::vector<std::string> &prefered_filament_profiles = current_printer.config.option<ConfigOptionStrings>("default_filament_profile")->values;
             const std::string prefered_filament_profile = prefered_filament_profiles.empty() ? std::string() : prefered_filament_profiles.front();
@@ -1010,6 +1013,8 @@ void PresetBundle::reset_project_embedded_presets()
             settle_filament_slot_flow(*this, i);
         }
     }
+
+    return printer_removed || filament_removed || print_removed || slots_rewritten;
 }
 
 //BBS: get bed texture for printer model

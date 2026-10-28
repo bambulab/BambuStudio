@@ -255,7 +255,9 @@ public:
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
     std::vector<Preset*> get_current_project_embedded_presets();
-    void reset_project_embedded_presets();
+    // Returns true if any project-embedded preset was removed or a filament
+    // slot was rewritten onto a preset that still exists (UI may need reload).
+    bool reset_project_embedded_presets();
 
     //BBS: find printer model
     std::string get_texture_for_printer_model(std::string model_name);

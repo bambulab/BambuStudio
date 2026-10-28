@@ -194,6 +194,9 @@ public:
     void init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx);
     void remove_unused_filament_combos(const size_t current_extruder_count);
     void refresh_filament_diameter_buttons(bool validate_selections = false);
+    // Coalesce startup / recreate_GUI diameter+combo refreshes into one call after
+    // plater_on_config_change_suspended is cleared.
+    void flush_pending_filament_ui_refresh();
     void sync_multi_nozzle_mode_from_project();
     /**
      * \brief Pick a printer preset that belongs to the other multi-diameter mode.

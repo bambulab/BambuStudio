@@ -1687,12 +1687,9 @@ void MainFrame::init_tabpanel()
     }
 
     if (m_plater) {
-        PERF_TRACE("startup.mainframe.plater_on_config_change");
-        // load initial config
+        // Skip sync on_config_change here: GUI_App suspends it across MainFrame
+        // + load_current_presets and applies full_config once before Show().
         auto full_config = wxGetApp().preset_bundle->full_config();
-        m_plater->on_config_change(full_config);
-
-        // Show a correct number of filament fields.
         // nozzle_diameter is undefined when SLA printer is selected
         // BBS
         if (full_config.has("filament_colour")) {

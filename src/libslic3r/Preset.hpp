@@ -535,7 +535,9 @@ public:
     //BBS: add project embedded presets logic
     void load_project_embedded_presets(std::vector<Preset*>& project_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
     std::vector<Preset*> get_project_embedded_presets();
-    bool reset_project_embedded_presets();
+    // Returns true if the previously selected preset was removed (caller must reselect).
+    // If out_removed is set, receives whether any project-embedded preset was erased.
+    bool reset_project_embedded_presets(bool *out_removed = nullptr);
 
     // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
     // and select it, losing previous modifications.

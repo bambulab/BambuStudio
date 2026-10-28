@@ -1845,10 +1845,11 @@ std::vector<Preset*> PresetCollection::get_project_embedded_presets()
 }
 
 //BBS: reset project embedded presets
-bool PresetCollection::reset_project_embedded_presets()
+bool PresetCollection::reset_project_embedded_presets(bool *out_removed)
 {
     std::deque<Preset>::iterator it = m_presets.begin();
     bool re_select = false;
+    bool removed_any = false;
     int count = -1;
 
     lock();
@@ -1857,7 +1858,8 @@ bool PresetCollection::reset_project_embedded_presets()
         count++;
         //if (preset.type != Preset::get_type_from_string(type)) continue;
         if (it->is_project_embedded) {
-            BOOST_LOG_TRIVIAL(debug) << boost::format("type %1% , delete preset %2%")%Preset::get_type_string(m_type) % it->name;
+            removed_any = true;
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" type %1% , delete preset %2%")%Preset::get_type_string(m_type) % it->name;
             if ((!re_select) && (m_idx_selected == count))
                 re_select = true;
             if (m_idx_selected > count) {
@@ -1874,6 +1876,9 @@ bool PresetCollection::reset_project_embedded_presets()
         m_idx_selected = -1;
 
     unlock();
+
+    if (out_removed)
+        *out_removed = removed_any;
 
     return re_select;
 }

@@ -1162,6 +1162,8 @@ struct Sidebar::priv
     bool              m_mixed_list_rebuilding{false};
     bool              m_mixed_relayouting{false};
     bool              m_filament_area_syncing{false};
+    // Set while GUI_App suspends Plater::on_config_change; flush once on unsuspend.
+    bool              filament_ui_refresh_pending{false};
     bool              m_updating_mixed{false};
     bool              m_mixed_reload_scheduled{false};
     void              relayout_mixed_filament_grid(bool force);
@@ -5668,8 +5670,24 @@ void Sidebar::select_printer_across_multi_nozzle_mode(const std::string &printer
         printer_tab->update_preset_choice();
 }
 
+void Sidebar::flush_pending_filament_ui_refresh()
+{
+    if (!p->filament_ui_refresh_pending)
+        return;
+    p->filament_ui_refresh_pending = false;
+    PERF_TRACE("startup.sidebar.flush_filament_ui_refresh");
+    refresh_filament_diameter_buttons(true);
+}
+
 void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
 {
+    // During on_init_inner / recreate_GUI, filament count sync + load_current_presets
+    // would each rebuild nozzle labels / validate maps. Defer to one flush at the end.
+    if (wxGetApp().plater_on_config_change_suspended()) {
+        p->filament_ui_refresh_pending = true;
+        return;
+    }
+
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     p->diameter_btns->SetMultiDiameterMode(multi_nozzle_diameter_mode_enabled(preset_bundle->project_config));
     // Ensure per-plate + project maps stay in sync with the current filament_diameter_map
@@ -5876,12 +5894,16 @@ void Sidebar::update_all_preset_comboboxes()
     // Update the printer choosers, update the dirty flags.
     //p->combo_printer->update();
     // Update the filament choosers to only contain the compatible presets, update the color preview,
-    // update the dirty flags.
+    // update the dirty flags. Deferred while startup coalesce is active (see flush_pending…).
     if (print_tech == ptFFF && !p->is_syncing_extruder_list_model_switch && !p->is_switching_diameter) {
-        preset_bundle.validate_filament_nozzle_diameter_selections();
-        for (PlaterPresetComboBox* cb : p->combos_filament)
-            cb->update();
-        refresh_filament_diameter_buttons();
+        if (wxGetApp().plater_on_config_change_suspended()) {
+            p->filament_ui_refresh_pending = true;
+        } else {
+            preset_bundle.validate_filament_nozzle_diameter_selections();
+            for (PlaterPresetComboBox* cb : p->combos_filament)
+                cb->update();
+            refresh_filament_diameter_buttons();
+        }
     }
 
     if (p->combo_printer) {
@@ -5926,11 +5948,15 @@ void Sidebar::update_presets(Preset::Type preset_type)
         // validating here too -- see is_syncing_extruder_list_model_switch's declaration; the caller
         // that triggered the switch performs the real validation once its own data is correct.
         if (!p->is_syncing_extruder_list_model_switch && !p->is_switching_diameter) {
-            preset_bundle.validate_filament_nozzle_diameter_selections();
-            for (size_t i = 0; i < filament_cnt; i++)
-                p->combos_filament[i]->update();
-            refresh_filament_tab_preset_choice();
-            refresh_filament_diameter_buttons();
+            if (wxGetApp().plater_on_config_change_suspended()) {
+                p->filament_ui_refresh_pending = true;
+            } else {
+                preset_bundle.validate_filament_nozzle_diameter_selections();
+                for (size_t i = 0; i < filament_cnt; i++)
+                    p->combos_filament[i]->update();
+                refresh_filament_tab_preset_choice();
+                refresh_filament_diameter_buttons();
+            }
         }
 
         dynamic_filament_list.update();
@@ -14702,10 +14728,13 @@ void Plater::priv::reset(bool apply_presets_change)
 
     wxGetApp().sidebar().printer_combox()->clear_selected_dev_id();
     //BBS: reset all project embedded presets
-    wxGetApp().preset_bundle->reset_project_embedded_presets();
+    // Skip load_current_presets when no embedded preset was removed and no
+    // filament slot was rewritten. new_project / load_project / delete-all
+    // all come through here; a no-op reset would reload the same tabs (~0.5s).
+    const bool embedded_presets_changed = wxGetApp().preset_bundle->reset_project_embedded_presets();
     if (apply_presets_change)
         wxGetApp().apply_keeped_preset_modifications();
-    else
+    else if (embedded_presets_changed)
         wxGetApp().load_current_presets(false, false);
 
     //BBS
@@ -29656,10 +29685,42 @@ void Plater::config_change_notification(const DynamicPrintConfig &config, const 
 
 void Plater::on_config_change(const DynamicPrintConfig &config)
 {
+    if (wxGetApp().plater_on_config_change_suspended()) {
+        static int s_perf_on_config_change_skip_left = 12;
+        if (s_perf_on_config_change_skip_left > 0) {
+            --s_perf_on_config_change_skip_left;
+            perf_mark("startup.plater.on_config_change skip_suspended");
+        }
+        return;
+    }
+
+    t_config_option_keys diff_keys = p->config->diff(config);
+
+    // Cap traces; RAII timer spans the rest of this function so cost includes real work.
+    static int s_perf_on_config_change_left = 12;
+    std::optional<PerfTimer> perf_timer;
+    if (s_perf_on_config_change_left > 0) {
+        --s_perf_on_config_change_left;
+        std::string mark = "startup.plater.on_config_change diff=" + std::to_string(diff_keys.size());
+        if (!diff_keys.empty()) {
+            int n = 0;
+            mark += " [";
+            for (const auto &k : diff_keys) {
+                if (n > 0) mark += ",";
+                mark += k;
+                if (++n >= 8) {
+                    mark += ",...";
+                    break;
+                }
+            }
+            mark += "]";
+        }
+        perf_timer.emplace(mark);
+    }
+
     bool update_scheduled = false;
     bool bed_shape_changed = false;
     //bool print_sequence_changed = false;
-    t_config_option_keys diff_keys = p->config->diff(config);
 
     size_t old_nozzle_size = 1, new_nozzle_size = 1;
     auto * opt_old = p->config->option<ConfigOptionFloatsNullable>("nozzle_diameter");
@@ -29755,6 +29816,15 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
                  opt_key == "solid_infill_filament") {
             update_scheduled = true;
         }
+    }
+
+    static int s_perf_on_config_change_fx_left = 12;
+    if (s_perf_on_config_change_fx_left > 0) {
+        --s_perf_on_config_change_fx_left;
+        perf_mark(std::string("startup.plater.on_config_change.fx bed=") +
+                  (bed_shape_changed || preset_custom_change ? "1" : "0") +
+                  " update=" + (update_scheduled ? "1" : "0") +
+                  " preset_custom=" + (preset_custom_change ? "1" : "0"));
     }
 
     if (bed_shape_changed || preset_custom_change) {
