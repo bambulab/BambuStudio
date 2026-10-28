@@ -3678,7 +3678,9 @@ bool Print::has_wipe_tower() const
         if (enable_timelapse_print())
             return true;
 
-        return !m_config.spiral_mode.value && this->extruders(true).size() > 1;
+        const std::vector<unsigned int> used_filaments = expand_mixed_filaments(
+            this->extruders(true), m_config.filament_is_mixed.values, m_config.filament_mixed_components.values);
+        return !m_config.spiral_mode.value && used_filaments.size() > 1;
     }
     return false;
 }
