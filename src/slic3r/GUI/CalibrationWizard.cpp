@@ -395,7 +395,7 @@ void CalibrationWizard::cache_preset_info(MachineObject *obj, float nozzle_dia, 
 
         CaliPresetInfo result;
         result.tray_id          = item.tray_id;
-        result.nozzle_diameter  = nozzle_dia;
+        result.nozzle_diameter  = preset_page->get_nozzle_diameter(item.nozzle_pos_id);
         result.bed_type         = bed_type;
         result.filament_id      = item.filament_preset->filament_id;
         result.setting_id       = item.filament_preset->setting_id;
@@ -408,7 +408,6 @@ void CalibrationWizard::cache_preset_info(MachineObject *obj, float nozzle_dia, 
             int ams_id, slot_id, tray_id;
             get_tray_ams_and_slot_id(curr_obj, result.tray_id, ams_id, slot_id, tray_id);
             result.extruder_id = item.extruder_id;
-            result.nozzle_diameter  = preset_page->get_nozzle_diameter(result.extruder_id);
         }
         else {
             result.extruder_id = 0;
