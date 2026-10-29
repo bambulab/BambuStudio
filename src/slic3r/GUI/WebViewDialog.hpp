@@ -274,6 +274,7 @@ private:
     // restricted is fetched again only when this flips back to allowed.
     bool m_online_access_disabled { false };
     bool m_makerlab_access_disabled { false };
+    bool m_printhistory_access_disabled { false };
     // Starts at construction so the first retry cannot race the OnLoaded fetch.
     std::chrono::steady_clock::time_point m_content_retry_last { std::chrono::steady_clock::now() };
     // Doubles after every round that still had something to retry, so a

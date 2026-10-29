@@ -755,7 +755,7 @@ void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
             }
         }
 
-        if (m_TaskInfo == "" && m_browser && phShow != "false")
+        if (m_TaskInfo == "" && m_browser && phShow != "false" && !IsMenuAccessDisabled("printhistory"))
         {
             SetPrintHistoryTaskID(0);
             ShowUserPrintTask(true);
@@ -1522,7 +1522,7 @@ void WebViewPanel::get_4u_staffpick(int seed, int limit, std::function<void(std:
 void WebViewPanel::ShowUserPrintTask(bool bShow, bool bForce)
 {
     std::string phShow = wxGetApp().app_config->get("app", "show_print_history");
-    if (bShow && phShow == "false") bShow = false;
+    if (bShow && (phShow == "false" || IsMenuAccessDisabled("printhistory"))) bShow = false;
 
     if (bShow)
     {
@@ -2620,8 +2620,9 @@ void WebViewPanel::SetLeftMenuShow(std::string menuname, int show)
 
 bool WebViewPanel::IsMenuAccessDisabled(const std::string &menu) const
 {
-    // Account restrictions from the minors decisions; "search" is the MakerWorld search page.
-    if (menu == "home" || menu == "online" || menu == "search")
+    // Account restrictions from the minors decisions; "search" is the MakerWorld search page,
+    // "printhistory" is the MakerWorld print-history page.
+    if (menu == "home" || menu == "online" || menu == "search" || menu == "printhistory")
         return wxGetApp().is_maker_world_access_disabled();
     if (menu == "makerlab")
         return wxGetApp().is_maker_lab_access_disabled();
@@ -2634,6 +2635,7 @@ void WebViewPanel::RefreshMenuAccess()
 {
     const bool online_disabled   = IsMenuAccessDisabled("online");
     const bool makerlab_disabled = IsMenuAccessDisabled("makerlab");
+    const bool printhistory_disabled = IsMenuAccessDisabled("printhistory");
     BOOST_LOG_TRIVIAL(info) << "homepage menu access: maker_world_disabled=" << online_disabled
                             << " maker_lab_disabled=" << makerlab_disabled
                             << " maker_supply_disabled=" << IsMenuAccessDisabled("makersupply");
@@ -2657,8 +2659,14 @@ void WebViewPanel::RefreshMenuAccess()
         SendMakerlabList();
     }
 
+    if (printhistory_disabled)
+        ShowUserPrintTask(false);
+    else if (m_printhistory_access_disabled)
+        ShowUserPrintTask(true, true);
+
     m_online_access_disabled   = online_disabled;
     m_makerlab_access_disabled = makerlab_disabled;
+    m_printhistory_access_disabled = printhistory_disabled;
 
     json m_Res                 = json::object();
     m_Res["command"]           = "homepage_access_restrict";
