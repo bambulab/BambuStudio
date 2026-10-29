@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
+#include <iterator>
 #include <sstream>
 
 #include <boost/algorithm/string.hpp>
@@ -612,6 +613,17 @@ std::optional<NozzleOption> deserialize_nozzle_option(const std::string& option_
     return option;
 }
 
+namespace {
+// Priority rank of a diameter among several usable ones, 0 first: 0.4, 0.2, 0.6, 0.8, then any other.
+int diameter_priority_rank(double diameter)
+{
+    const double preferred[] = {0.4, 0.2, 0.6, 0.8};
+    for (int rank = 0; rank < (int) std::size(preferred); ++rank)
+        if (std::abs(diameter - preferred[rank]) < EPSILON) return rank;
+    return (int) std::size(preferred);
+}
+} // namespace
+
 float get_best_diameter(MachineObject *obj, int extruder_index)
 {
     int                  physical_idx = DevExtder::to_physical_extruder_id(obj->GetExtderSystem()->GetTotalExtderCount(), extruder_index);
@@ -628,25 +640,42 @@ float get_best_diameter(MachineObject *obj, int extruder_index)
     // the most available diameter
     if (diameter_cnt.empty()) return 0.4;
 
-    // when counts tie, prefer diameter in this order: 0.4 > 0.2 > 0.6 > 0.8 > others
-    auto priority = [](float d) -> int {
-        if (std::abs(d - 0.4f) < EPSILON) return 0;
-        if (std::abs(d - 0.2f) < EPSILON) return 1;
-        if (std::abs(d - 0.6f) < EPSILON) return 2;
-        if (std::abs(d - 0.8f) < EPSILON) return 3;
-        return 4;
-    };
-
     float best_diameter = 0.0f;
     int   best_count    = -1;
     for (const auto &[diameter, count] : diameter_cnt) {
-        if (count > best_count || (count == best_count && priority(diameter) < priority(best_diameter))) {
+        if (count > best_count || (count == best_count && diameter_priority_rank(diameter) < diameter_priority_rank(best_diameter))) {
             best_count    = count;
             best_diameter = diameter;
         }
     }
 
     return best_diameter;
+}
+
+wxString usable_nozzle_diameter(const wxString &wanted, const std::vector<NozzleConfig> &nozzles)
+{
+    // Among diameters outside the priority list, the one nearest 0.4 wins.
+    const auto rank = [](double diameter) { return std::make_pair(diameter_priority_rank(diameter), std::abs(diameter - 0.4)); };
+
+    std::optional<wxString> best;
+    double                  best_value = 0.;
+    for (const NozzleConfig &nozzle : nozzles) {
+        if (nozzle.is_empty()) continue;
+        if (nozzle.diameter == wanted) return wanted;
+        double value = 0.;
+        if (!nozzle.diameter.ToCDouble(&value)) continue;
+        if (!best || rank(value) < rank(best_value)) {
+            best       = nozzle.diameter;
+            best_value = value;
+        }
+    }
+    if (!best) {
+        BOOST_LOG_TRIVIAL(warning) << "no nozzle is configured, slicing diameter stays at " << wanted;
+        return wanted;
+    }
+
+    BOOST_LOG_TRIVIAL(warning) << "no " << wanted << "mm nozzle is left, slicing diameter falls back to " << *best;
+    return *best;
 }
 
 bool machine_has_nozzle_diameter(MachineObject *obj, int extruder_index, float diameter)

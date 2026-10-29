@@ -216,6 +216,16 @@ std::optional<NozzleOption> deserialize_nozzle_option(const std::string &option_
 // 0.4 -> 0.2 -> 0.6 -> 0.8
 float get_best_diameter(MachineObject *obj, int extruder_index);
 
+/**
+ * \brief The diameter to slice at with the given nozzle slots
+ *
+ * \param wanted   the diameter the user selected
+ * \param nozzles  every configured nozzle slot of the printer
+ * \return \p wanted while a nozzle carries it; else the carried diameter first in the order
+ *         0.4, 0.2, 0.6, 0.8, others; \p wanted when no slot carries a nozzle
+ */
+wxString usable_nozzle_diameter(const wxString &wanted, const std::vector<NozzleConfig> &nozzles);
+
 // Whether the machine currently carries at least one usable nozzle of `diameter` on `extruder_index`.
 // A nozzle-rack machine holds several diameters at once, so the nozzle mounted on the extruder does
 // not tell whether a diameter is available: the whole inventory (extruder + rack) has to be checked.

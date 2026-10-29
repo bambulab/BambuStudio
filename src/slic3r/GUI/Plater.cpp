@@ -1006,7 +1006,7 @@ struct Sidebar::priv
     int  FromDIP(int n) { return plater->FromDIP(n); }
     void layout_printer(bool isBBL, NozzleLayout layout);
     void update_extruder_panel();
-    void open_extruder_settings_dialog(const wxString &preselect_diameter = wxString());
+    void open_extruder_settings_dialog();
     bool apply_multi_nozzle_diameter_mode(bool enabled, const std::optional<std::string> &target_printer = std::nullopt);
     void stash_multi_nozzle_auto_process_edits();
     void restore_multi_nozzle_auto_process_edits();
@@ -2467,7 +2467,7 @@ static std::optional<wxString> common_nozzle_diameter(const std::vector<NozzleCo
     return common;
 }
 
-void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diameter)
+void Sidebar::priv::open_extruder_settings_dialog()
 {
     const NozzleLayout layout = nozzle_layout_of(wxGetApp().preset_bundle->printers.get_edited_preset().config);
     // Without a rack, nozzles are picked on the sidebar's combo boxes, so there is nothing to edit here.
@@ -2475,21 +2475,7 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
         return;
     const bool is_dual = is_dual_extruder(layout);
 
-    auto diameter = preselect_diameter.IsEmpty() ? diameter_btns->GetSelectedDiameter() : preselect_diameter;
-
-    // Grey-button path: the clicked diameter has no configured nozzle. Confirm the user
-    // wants to modify the nozzle type before opening the settings dialog.
-    if (!preselect_diameter.IsEmpty()) {
-        MessageDialog confirm(static_cast<wxWindow *>(wxGetApp().mainframe),
-                              wxString::Format(_L("There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."), diameter, diameter),
-                              _L("Configure Nozzle diameter"),
-                              wxYES | wxNO);
-        confirm.SetButtonLabel(wxID_YES, _L("Modify Nozzle Type"));
-        confirm.SetButtonLabel(wxID_NO, _L("Cancel"));
-        if (confirm.ShowModal() != wxID_YES) {
-            return;
-        }
-    }
+    const wxString diameter = diameter_btns->GetSelectedDiameter();
 
     bool                      accepted = false;
     wxString                  selected_diameter;
@@ -2615,6 +2601,12 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
                                             << " to 0.4 Standard, its nozzle left the rack";
                 }
             }
+        }
+        // Single-diameter mode slices at one diameter, so it has to be one the rack still carries.
+        if (!target_multi_diameter_mode) {
+            std::vector<NozzleConfig> nozzles = is_dual ? l_ext_cfg : s_ext_cfg;
+            if (is_dual) nozzles.insert(nozzles.end(), r_ext_cfg.begin(), r_ext_cfg.end());
+            selected_diameter = usable_nozzle_diameter(selected_diameter, nozzles);
         }
         // The list dialog is single-diameter only. Confirming a different diameter switches
         // the printer preset to the selected diameter; N1X multi-diameter mode stays anchored
@@ -3985,12 +3977,6 @@ Sidebar::Sidebar(Plater *parent)
             }
 
             return false;
-        });
-
-        // Clicking a grey (NoNozzle) diameter opens the settings dialog seeded on that
-        // diameter, so the user can configure a nozzle for it instead of switching to it.
-        p->diameter_btns->SetNoNozzleClickCallback([this](const wxString &diameter) {
-            p->open_extruder_settings_dialog(diameter);
         });
 
         p->diameter_btns->Bind(wxEVT_BUTTON, [this](wxCommandEvent &evt) {
@@ -7091,9 +7077,9 @@ void Sidebar::enable_purge_mode_btn(bool enable)
     });
 }
 
-void Sidebar::open_extruder_settings_dialog(const wxString &preselect_diameter)
+void Sidebar::open_extruder_settings_dialog()
 {
-    p->open_extruder_settings_dialog(preselect_diameter);
+    p->open_extruder_settings_dialog();
 }
 
 void Sidebar::load_ams_list(MachineObject* obj)

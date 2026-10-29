@@ -266,7 +266,7 @@ public:
     void reset_fila_switch();
     void enable_nozzle_count_edit(bool enable);
     void enable_purge_mode_btn(bool enable);
-    void open_extruder_settings_dialog(const wxString &preselect_diameter = wxString());
+    void open_extruder_settings_dialog();
 
     PlaterPresetComboBox *  printer_combox();
     ObjectList*             obj_list();

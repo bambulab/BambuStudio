@@ -66,7 +66,6 @@ class DiameterButtonPanel : public wxPanel
 {
 public:
     using NozzleQueryCallback = std::function<bool(const wxString &diameter)>;
-    using NoNozzleClickCallback = std::function<void(const wxString &diameter)>;
     using MultiDiameterModeCallback = std::function<void(bool enabled)>;
 
     enum ButtonState { Selected, HasNozzle, NoNozzle };
@@ -79,7 +78,6 @@ public:
     bool        IsMultiDiameterMode() const { return m_multi_diameter_mode_enabled; }
     void        SetSelectedDiameter(const wxString &diameter);
     void        SetNozzleQueryCallback(NozzleQueryCallback callback) { m_nozzle_query_callback = callback; }
-    void        SetNoNozzleClickCallback(NoNozzleClickCallback callback) { m_no_nozzle_click_callback = callback; }
     void        SetMultiDiameterMode(bool enabled);
     void        SetMultiDiameterModeCallback(MultiDiameterModeCallback callback) { m_multi_diameter_mode_callback = callback; }
     void        SetShowTitle(bool show);
@@ -134,7 +132,6 @@ private:
     bool                  m_multi_diameter_mode_enabled{false};
     DisabledTooltipContext m_tooltip_context{PrinterContext};
     NozzleQueryCallback   m_nozzle_query_callback{nullptr};
-    NoNozzleClickCallback m_no_nozzle_click_callback{nullptr};
     MultiDiameterModeCallback m_multi_diameter_mode_callback{nullptr};
     ComboBox              *m_multi_diameter_mode_combo{nullptr}; // owned by the nozzle card, not by this panel
     wxBoxSizer            *m_title_sizer{nullptr};
@@ -249,9 +246,8 @@ private:
     wxSizer *CreateAmsRow();
     void     update_ams();
     void     show_ams_units(int extruder, ExtruderAms &ams, bool visible, bool enabled);
-    void     show_mismatch(bool mismatch); // no slot matches the selected diameter
-    void     rebuild_tiles();              // from the project slots and the printer's slots
-    int      add_extruder_tiles(int extruder, bool multi_diameter); // returns the slots on the selected diameter
+    void     rebuild_tiles(); // from the project slots and the printer's slots
+    void     add_extruder_tiles(int extruder, bool multi_diameter);
 
     // Two sources at two rates: the project slots change on user edits and sync (UpdateNozzles), the
     // printer's slots on every printer message (sync_machine_slots). Either one rebuilds the tiles.
@@ -260,7 +256,6 @@ private:
     std::array<std::vector<MachineSlot>, MAX_EXTRUDERS> m_machine_slots;
 
     int                                   m_extruder_count{1};
-    wxStaticBitmap                       *m_warning_icon{nullptr};
     wxBoxSizer                           *m_tile_row{nullptr};
     std::array<ExtruderAms, MAX_EXTRUDERS> m_ams;
     std::array<bool, MAX_EXTRUDERS>        m_ams_enabled{{true, true}};

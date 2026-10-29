@@ -231,12 +231,9 @@ void DiameterButtonPanel::OnButtonClicked(wxCommandEvent &event)
 
     wxString diameter = clicked_btn->GetLabel();
 
-    // A grey (NoNozzle) button has no nozzle configured for this diameter. Instead of
-    // switching to it, open the extruder settings dialog so the user can set one up.
-    if (clicked_btn->IsGrayed()) {
-        if (m_no_nozzle_click_callback) m_no_nozzle_click_callback(diameter);
-        return;
-    }
+    // A grey (NoNozzle) button cannot be picked; its tooltip says why. It stays enabled, because a
+    // disabled window gets no mouse events and so would never show that tooltip.
+    if (clicked_btn->IsGrayed()) return;
 
     SetSelectedDiameter(diameter);
 
@@ -338,7 +335,7 @@ void DiameterButtonPanel::UpdateSingleButtonState(Button *btn, const wxString &d
 
     wxString tip = m_tooltip_context == FilamentContext
         ? wxString::Format(_L("This filament does not support the %smm nozzle, or no matching nozzle is configured."), btn->GetLabel())
-        : wxString::Format(_L("Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."), btn->GetLabel());
+        : wxString::Format(_L("This printer isn’t configured with a %s mm nozzle. Please configure it in “Settings” before slicing."), btn->GetLabel());
     state == NoNozzle ? btn->SetToolTip(tip) : btn->UnsetToolTip();
     btn->Refresh();
 }
@@ -818,15 +815,6 @@ bool HorizontalScrollView::ScrollByWheel(const wxMouseEvent &evt)
 // ----------------------------------------------------------------------------
 
 namespace {
-// Set (or clear) a tooltip on a window and its whole descendant tree.
-void set_tooltip_recursive(wxWindow *window, const wxString &tooltip, bool clear)
-{
-    // A slot tile carries its own reason for being unusable.
-    if (!window || dynamic_cast<NozzleSlotTile *>(window)) return;
-    clear ? window->UnsetToolTip() : window->SetToolTip(tooltip);
-    for (auto *child : window->GetChildren()) set_tooltip_recursive(child, tooltip, clear);
-}
-
 wxString volume_short(NozzleVolumeType volume) { return wxString::FromUTF8(DevNozzle::ToNozzleVolumeShortString(volume)); }
 
 /**
@@ -878,11 +866,6 @@ NozzleRackPanel::NozzleRackPanel(wxWindow *parent) : wxPanel(parent, wxID_ANY, w
     auto *main_sizer = new wxBoxSizer(wxVERTICAL);
     // Floor the panel on the sizer, not on the window: a min height on the window would also cap it.
     main_sizer->SetMinSize(wxSize(-1, FromDIP(40)));
-
-    // Shown by UpdateNozzles when no slot matches the selected diameter.
-    m_warning_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning", this, 20), wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), 0);
-    m_warning_icon->Hide();
-    main_sizer->Add(m_warning_icon, 0, wxRIGHT, FromDIP(8));
 
     // The rack stays on one line at the design's minimum tile width, so the panel is as wide as the
     // whole rack; the card scrolls it rather than shrinking or clipping the trailing slots.
@@ -982,28 +965,21 @@ void NozzleRackPanel::rebuild_tiles()
                            (multi_diameter || m_extruders[0][ams_nozzle_idx].diameter == m_selected_diameter);
     }
 
-    int matching = 0;
     for (int extruder = 0; extruder < count; ++extruder)
-        matching += add_extruder_tiles(extruder, multi_diameter);
-
-    // Every configured diameter is valid in multi-diameter mode, so the mismatch warning only
-    // applies once a single diameter has been picked for the whole plate.
-    show_mismatch(!multi_diameter && matching == 0);
+        add_extruder_tiles(extruder, multi_diameter);
 
     update_ams(); // the extruder count decides which AMS halves show; this also lays out the new tiles
 }
 
-int NozzleRackPanel::add_extruder_tiles(int extruder, bool multi_diameter)
+void NozzleRackPanel::add_extruder_tiles(int extruder, bool multi_diameter)
 {
-    const std::vector<NozzleConfig>              &configs  = m_extruders[extruder];
-    const std::vector<MachineSlot>               &machine  = m_machine_slots[extruder];
-    const int                                     slots    = static_cast<int>(configs.size());
-    int                                           matching = 0;
+    const std::vector<NozzleConfig> &configs = m_extruders[extruder];
+    const std::vector<MachineSlot>  &machine = m_machine_slots[extruder];
+    const int                        slots   = static_cast<int>(configs.size());
     for (int slot = 0; slot < slots; ++slot) {
         const NozzleConfig &cfg  = configs[slot];
         const auto          kind = slot < static_cast<int>(machine.size()) ? machine[slot] : MachineSlot::Blank;
         const bool on_selected = !cfg.is_empty() && cfg.diameter == m_selected_diameter;
-        if (on_selected) matching++;
 
         const SlotFace face = slot_face(cfg, kind);
         // A 2D tool or an unknown tool has no diameter or flow; an empty slot shows a glyph in place of both lines.
@@ -1019,22 +995,10 @@ int NozzleRackPanel::add_extruder_tiles(int extruder, bool multi_diameter)
         m_tile_row->Add(tile, 1, wxALIGN_CENTER_VERTICAL);
         wxGetApp().UpdateDarkUIWin(tile); // tiles are created after the constructor's dark-mode pass
     }
-    return matching;
-}
-
-void NozzleRackPanel::show_mismatch(bool mismatch)
-{
-    m_warning_icon->Show(mismatch);
-
-    auto tooltip = mismatch ? _L("This extruder has a different nozzle diameter from the selected printing diameter. "
-                                 "Printing with mixed nozzle diameters is experimental.") :
-                              wxString();
-    set_tooltip_recursive(this, tooltip, !mismatch);
 }
 
 void NozzleRackPanel::Rescale()
 {
-    m_warning_icon->SetBitmap(create_scaled_bitmap("warning", this, 20));
     for (wxSizerItem *item : m_tile_row->GetChildren())
         if (auto *tile = dynamic_cast<NozzleSlotTile *>(item->GetWindow())) tile->Rescale();
 
