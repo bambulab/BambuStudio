@@ -2413,17 +2413,14 @@ public:
         Bind(wxEVT_TIMER, &MatchThresholdPopup::on_hover_timer, this);
 
         const int pad = FromDIP(12);
-        // Grow with the title's single line. Cap so a long translation still wraps.
-        const int max_pop_w = FromDIP(360);
+        m_pop_w = FromDIP(296);
         const int slider_row_min = FromDIP(80) + FromDIP(8) + FromDIP(64);
-        const int max_content_w = std::max(slider_row_min, max_pop_w - 2 * pad);
+        const int content_w = std::max(slider_row_min, m_pop_w - 2 * pad);
 
         auto* title = new Label(this, Label::Head_14,
             _L("Set filament match color difference threshold"), wxST_NO_AUTORESIZE);
         title->SetForegroundColour(texture_import_dialog_fg());
         title->SetBackgroundColour(pop_bg);
-        const int title_w = title->GetBestSize().x;
-        const int content_w = std::min(std::max(title_w, slider_row_min), max_content_w);
         title->Wrap(content_w);
         title->SetMinSize(wxSize(content_w, title->GetBestSize().y));
 
@@ -2434,8 +2431,6 @@ public:
         hint->SetBackgroundColour(pop_bg);
         hint->Wrap(content_w);
         hint->SetMinSize(wxSize(content_w, hint->GetBestSize().y));
-
-        m_pop_w = content_w + 2 * pad;
 
         m_slider = new GreenSlider(this, std::clamp(value, kMatchDeltaThresholdMin, kMatchDeltaThresholdMax),
                                    kMatchDeltaThresholdMin, kMatchDeltaThresholdMax);
@@ -2867,7 +2862,7 @@ public:
                         std::function<void(int)>                 on_select,
                         std::function<void()>                    on_add_filament,
                         std::function<void(int)>                 on_delete,
-                        std::function<void(bool)>                on_close,
+                        std::function<void(FilamentSelectPopup*)> on_close,
                         std::vector<int>                         display_numbers)
         : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
         , m_entries(entries)
@@ -2881,7 +2876,7 @@ public:
         , m_on_close(std::move(on_close))
         , m_display_numbers(std::move(display_numbers))
     {
-        // Host bitmaps on the dialog, not this popup: an unshown wxPopupTransientWindow
+        // Host bitmaps on the dialog, not this popup: an unshown popup
         // can report scale-factor 1 on Retina, which yields an empty/tiny trash icon.
         wxWindow* bmp_host = GetParent() ? GetParent() : static_cast<wxWindow*>(this);
         m_bmp_delete = ScalableBitmap(bmp_host, "tree_delete", 16);
@@ -2935,10 +2930,13 @@ public:
             evt.Skip();
         });
 #ifdef __WXOSX__
-        // PopupWindow releases mouse on idle, which drops MOTION/ENTER needed
-        // for hover-only delete icons. Swallow idle like DropDown does.
+        // Keep the transient popup's capture stable. This mirrors DropDown and
+        // avoids wx releasing capture from idle before the first click completes.
         Bind(wxEVT_IDLE, [](wxIdleEvent&) {});
 #endif
+        Bind(wxEVT_MOUSE_CAPTURE_LOST, [this](wxMouseCaptureLostEvent&) {
+            cancel_pressed();
+        });
 
         m_content = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
         m_content->SetBackgroundColour(pop_bg);
@@ -2959,10 +2957,10 @@ public:
             if (add_filament_at_limit())
                 return;
             auto on_add_filament = m_on_add_filament;
-            m_closing_from_action = true;
-            Dismiss();
-            if (on_add_filament)
-                on_add_filament();
+            wxWindow* owner = GetParent();
+            DismissAndNotify();
+            if (on_add_filament && owner && !owner->IsBeingDeleted())
+                owner->CallAfter([on_add_filament]() { on_add_filament(); });
         });
 
         rebuild_content();
@@ -2987,43 +2985,36 @@ public:
 
     ~FilamentSelectPopup()
     {
-        uninstall_outside_click_monitor();
+        uninstall_external_click_monitor();
+        unbind_app_activate();
+        cancel_pressed();
         detach_dialog_anchor();
     }
 
     void Popup(wxWindow* focus = nullptr) override
     {
+        if (m_dismissed || IsShown())
+            return;
         PopupWindow::Popup(focus);
-#ifdef __WXMSW__
-        BindUnfocusEvent();
-#endif
-        install_outside_click_monitor();
+        if (m_dismissed || !IsShown())
+            return;
+        if (wxTheApp && !m_activate_app_bound) {
+            wxTheApp->Bind(wxEVT_ACTIVATE_APP, &FilamentSelectPopup::on_activate_app, this);
+            m_activate_app_bound = true;
+        }
+        install_external_click_monitor();
     }
 
-    // wxPopupTransientWindowBase only calls OnDismiss() from DismissAndNotify(),
-    // i.e. never for a direct Dismiss(). All of this popup's own close paths use
-    // Dismiss() (the action labels, ProcessLeftDown, the macOS outside-click
-    // monitor, app deactivation, the owning dialog), so without this override the
-    // teardown never runs: the outside-click monitor stays installed and the
-    // window is only hidden, never destroyed. On macOS, where that monitor is the
-    // only click-outside path, every close leaked a hidden native window.
     void Dismiss() override
     {
-        // Invalidate the cached macOS shadow while still shown so Hide()
-        // dirties the full overhang; then tear down via OnDismiss().
+        if (m_dismissed)
+            return;
+
+        // Invalidate the cached macOS shadow while still shown so the native
+        // dismiss dirties the full overhang.
         refresh_native_shadow();
         PopupWindow::Dismiss();
-        OnDismiss();
-    }
-
-    bool ProcessLeftDown(wxMouseEvent& event) override
-    {
-        const wxPoint screen = ClientToScreen(event.GetPosition());
-        if (!GetScreenRect().Contains(screen)) {
-            Dismiss();
-            return false;
-        }
-        return PopupWindow::ProcessLeftDown(event);
+        finish_close();
     }
 
     void refresh_filaments(const std::vector<TextureFilamentEntry>& entries,
@@ -3037,7 +3028,6 @@ public:
         m_names = names;
         m_existing_count = existing_count;
         m_display_numbers = std::move(display_numbers);
-        m_refreshing = true;
         Freeze();
         rebuild_content();
         if (wxSizer* sizer = GetSizer()) {
@@ -3048,12 +3038,9 @@ public:
         }
         Thaw();
         Refresh();
-        m_refreshing = false;
-        if (!IsShown())
-            Show();
     }
 
-    // wxPopupTransientWindow ignores SetShape on MSW; round the native HWND
+    // The native popup ignores SetShape on MSW; round the native HWND
     // after it exists (post-Popup). Matches ParamTooltip / FilamentGroupPopup.
     // macOS: SetShape requires wxFRAME_SHAPED and is a no-op here; corners are
     // made clear via wxBG_STYLE_TRANSPARENT + rounded paint instead.
@@ -3106,23 +3093,28 @@ public:
     }
 
 private:
+    void cancel_pressed()
+    {
+        m_pressed_target = nullptr;
+        if (HasCapture())
+            ReleaseMouse();
+    }
+
     void rebuild_content()
     {
         if (!m_content)
             return;
 
+        cancel_pressed();
+#ifdef __WXOSX__
+        ClearHovered();
+#endif
         m_hover_idx = -1;
         m_hover_row = nullptr;
         m_row_windows.clear();
-        m_pressed_target = nullptr;
         int scroll_x = 0;
         int scroll_y = 0;
         m_content->GetViewStart(&scroll_x, &scroll_y);
-
-        // Keep focus on a widget that survives the list rebuild so
-        // wxPopupTransientWindow does not treat child destruction as dismiss.
-        if (IsShown())
-            SetFocus();
 
         if (wxSizer* old = m_content->GetSizer())
             old->Clear(true);
@@ -3238,27 +3230,6 @@ private:
 #endif
     }
 
-    void OnDismiss() override
-    {
-        if (m_refreshing) {
-            if (!IsShown())
-                Show();
-            return;
-        }
-        // Reachable twice for one close: our Dismiss() override notifies, and
-        // wx's own DismissAndNotify() then calls OnDismiss() again.
-        if (m_dismissed)
-            return;
-        m_dismissed = true;
-        uninstall_outside_click_monitor();
-        restore_cursor_state();
-        detach_dialog_anchor();
-        if (m_on_close) m_on_close(m_closing_from_action);
-        m_closing_from_action = false;
-        wxPopupTransientWindow::OnDismiss();
-        schedule_destroy();
-    }
-
     void on_dialog_anchor_destroyed(wxWindowDestroyEvent& e)
     {
         e.Skip();
@@ -3273,45 +3244,69 @@ private:
         m_dialog_anchor = nullptr;
     }
 
-    static void on_outside_click(void* context)
+    void OnDismiss() override
     {
-        auto* self = static_cast<FilamentSelectPopup*>(context);
-        if (!self || self->IsBeingDeleted() || !self->IsShown())
-            return;
-        self->Dismiss();
+        finish_close();
     }
 
-    void install_outside_click_monitor()
+    void finish_close()
     {
-        if (m_outside_click_monitor)
+        if (m_dismissed)
             return;
-        m_outside_click_monitor = install_texture_import_outside_click_monitor(
-            this, &FilamentSelectPopup::on_outside_click, this);
-        // Windows' hook only sees this thread; app deactivation covers clicks
-        // in other processes. The macOS monitor already sees those.
-        if (wxTheApp && !m_activate_app_bound) {
-            wxTheApp->Bind(wxEVT_ACTIVATE_APP, &FilamentSelectPopup::on_activate_app, this);
-            m_activate_app_bound = true;
-        }
-    }
-
-    void uninstall_outside_click_monitor()
-    {
-        if (wxTheApp && m_activate_app_bound) {
-            wxTheApp->Unbind(wxEVT_ACTIVATE_APP, &FilamentSelectPopup::on_activate_app, this);
-            m_activate_app_bound = false;
-        }
-        if (!m_outside_click_monitor)
-            return;
-        uninstall_texture_import_outside_click_monitor(m_outside_click_monitor);
-        m_outside_click_monitor = nullptr;
+        m_dismissed = true;
+        uninstall_external_click_monitor();
+        unbind_app_activate();
+        cancel_pressed();
+        restore_cursor_state();
+        detach_dialog_anchor();
+        auto on_close = std::move(m_on_close);
+        if (on_close)
+            on_close(this);
+        schedule_destroy();
     }
 
     void on_activate_app(wxActivateEvent& e)
     {
         e.Skip();
-        if (!e.GetActive() && IsShown())
-            Dismiss();
+        if (e.GetActive() || !IsShown())
+            return;
+#ifdef __WXOSX__
+        if (m_external_click_monitor) {
+            request_texture_import_external_click_monitor_dismiss(m_external_click_monitor);
+            return;
+        }
+#endif
+        DismissAndNotify();
+    }
+
+    static void on_external_click(void* context)
+    {
+        auto* self = static_cast<FilamentSelectPopup*>(context);
+        if (self && !self->IsBeingDeleted() && self->IsShown())
+            self->DismissAndNotify();
+    }
+
+    void install_external_click_monitor()
+    {
+        if (!m_external_click_monitor && GetParent())
+            m_external_click_monitor = install_texture_import_external_click_monitor(
+                this, GetParent(), &FilamentSelectPopup::on_external_click, this);
+    }
+
+    void uninstall_external_click_monitor()
+    {
+        if (!m_external_click_monitor)
+            return;
+        uninstall_texture_import_external_click_monitor(m_external_click_monitor);
+        m_external_click_monitor = nullptr;
+    }
+
+    void unbind_app_activate()
+    {
+        if (!wxTheApp || !m_activate_app_bound)
+            return;
+        wxTheApp->Unbind(wxEVT_ACTIVATE_APP, &FilamentSelectPopup::on_activate_app, this);
+        m_activate_app_bound = false;
     }
 
     void restore_cursor_state()
@@ -3440,20 +3435,25 @@ private:
         });
     }
 
-    // macOS 27: dismissing on mouseDown hides the NSPanel while its mouse
-    // tracking session is still open; the paired mouseUp then orders the panel
-    // front again and its background stays on screen. Act on mouseUp instead,
-    // and only when the press started on the same target and the pointer is
-    // still over it, so pressing and dragging out cancels the click.
+    // Commit actions on mouse-up, matching DropDown. Capture on the popup so
+    // the release cannot be lost while Cocoa redirects events to the transient
+    // window; capture loss only cancels the action.
     void bind_click(wxWindow* target, std::function<void()> on_click)
     {
         target->Bind(wxEVT_LEFT_DOWN, [this, target](wxMouseEvent&) {
+            if (!IsShown())
+                return;
             m_pressed_target = target;
+            if (!HasCapture())
+                CaptureMouse();
         });
         target->Bind(wxEVT_LEFT_UP, [this, target, on_click = std::move(on_click)](wxMouseEvent&) {
-            if (m_pressed_target != target)
-                return;
+            wxWindow* pressed = m_pressed_target ? m_pressed_target.get() : nullptr;
             m_pressed_target = nullptr;
+            if (HasCapture())
+                ReleaseMouse();
+            if (pressed != target)
+                return;
             if (!target->GetScreenRect().Contains(wxGetMousePosition()))
                 return;
             on_click();
@@ -3471,10 +3471,11 @@ private:
                 on_delete(idx);
             return;
         }
-        if (m_on_select)
-            m_on_select(idx);
-        m_closing_from_action = true;
-        Dismiss();
+        auto on_select = m_on_select;
+        wxWindow* owner = GetParent();
+        DismissAndNotify();
+        if (on_select && owner && !owner->IsBeingDeleted())
+            owner->CallAfter([on_select, idx]() { on_select(idx); });
     }
 
     wxPanel* create_item_row(size_t idx, int row_h)
@@ -3672,7 +3673,7 @@ private:
     std::function<void(int)>                   m_on_select;
     std::function<void()>                      m_on_add_filament;
     std::function<void(int)>                   m_on_delete;
-    std::function<void(bool)>                  m_on_close;
+    std::function<void(FilamentSelectPopup*)>  m_on_close;
     // 1-based display number per dialog_index, mirroring the post-apply
     // sidebar ordering (ExistingPhysical, NewPhysical, ExistingMixed, NewMixed).
     std::vector<int>                           m_display_numbers;
@@ -3686,15 +3687,12 @@ private:
     int                                        m_hover_idx = -1;
     wxWindow*                                  m_hover_row = nullptr;
     std::vector<std::pair<int, wxWindow*>>     m_row_windows;
-    // Compared by address only; never dereferenced.
-    wxWindow*                                  m_pressed_target = nullptr;
-    bool                                       m_closing_from_action = false;
+    wxWeakRef<wxWindow>                        m_pressed_target;
     bool                                       m_dismissed = false;
     bool                                       m_destroy_scheduled = false;
-    bool                                       m_refreshing = false;
-    void*                                      m_outside_click_monitor = nullptr;
     bool                                       m_activate_app_bound = false;
-    WindowShadow                               m_shadow;
+    void*                                      m_external_click_monitor = nullptr;
+    WindowShadow                              m_shadow;
 
     // Returns the display number for a dialog_index, falling back to idx + 1
     // when no mapping is available (e.g. index out of range).
@@ -5610,8 +5608,10 @@ void TextureImportDialog::build_bottom_buttons(wxSizer* sizer)
         texture_import_warning_body_font(this),
         _L("Some colors have no matching filament. Please match them before importing."));
     m_unmatched_warning_label->SetForegroundColour(wxColour(225, 71, 71));
-    m_unmatched_add_link = new wxStaticText(m_unmatched_warning, wxID_ANY,
-        _L("Complete All Filaments"));
+    m_unmatched_add_link = new Label(m_unmatched_warning,
+        texture_import_action_link_font(this), _L("Complete All Filaments"));
+    m_unmatched_add_link->SetWindowStyleFlag(
+        m_unmatched_add_link->GetWindowStyleFlag() | LB_HYPERLINK);
     m_unmatched_add_link->SetForegroundColour(wxColour(0, 174, 66));
     m_unmatched_add_link->SetFont(texture_import_action_link_font(this));
     m_unmatched_add_link->SetCursor(wxCursor(wxCURSOR_HAND));
@@ -7618,9 +7618,7 @@ void TextureImportDialog::dismiss_filament_popup()
     FilamentSelectPopup* popup = m_filament_popup;
     m_filament_popup = nullptr;
     m_filament_popup_row = -1;
-    // FilamentSelectPopup::Dismiss() hides and runs the full teardown (monitor
-    // removal, m_on_close, destroy), and is idempotent, so it also covers a popup
-    // wx already hid behind our back.
+    // Dismiss() owns the complete teardown and is idempotent.
     popup->Dismiss();
 }
 
@@ -8322,16 +8320,11 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
 
     hide_match_threshold_popup();
 
-    if (m_skip_next_filament_popup_row == (int)row_index) {
-        m_skip_next_filament_popup_row = -1;
-        return;
-    }
-
-    if (m_filament_popup && m_filament_popup->IsShown()) {
-        if (m_filament_popup_row == (int)row_index) {
-            dismiss_filament_popup();
+    if (m_filament_popup) {
+        // Opening is idempotent. Closing the current row is decided by the
+        // anchor gesture, not by a second call racing this one.
+        if (m_filament_popup->IsShown() && m_filament_popup_row == (int)row_index)
             return;
-        }
         dismiss_filament_popup();
     }
 
@@ -8402,8 +8395,8 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
         });
     };
 
-    auto on_delete_filament = [this, row_index](int dialog_index) {
-        CallAfter([this, row_index, dialog_index]() {
+    auto on_delete_filament = [this](int dialog_index) {
+        CallAfter([this, dialog_index]() {
             if (IsBeingDeleted())
                 return;
             if (!remove_virtual_filament(dialog_index)) {
@@ -8411,31 +8404,20 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
                 return;
             }
             drop_unused_new_filaments_and_refresh();
-            if (!(m_filament_popup && m_filament_popup->IsShown()) &&
-                row_index < m_mapping_rows.size()) {
-                show_filament_popup(row_index);
-            }
         });
     };
 
     wxPanel* tp = m_mapping_rows[row_index].target_panel;
     if (!tp) return;
 
-    auto on_close = [this, row_index](bool closed_by_action) {
+    auto on_close = [this, row_index](FilamentSelectPopup* popup) {
         if (IsBeingDeleted())
             return;
-        if (m_filament_popup_row == (int)row_index) {
+        m_last_filament_popup_dismiss_row = (int)row_index;
+        m_filament_popup_dismiss_time = std::chrono::steady_clock::now();
+        if (m_filament_popup == popup) {
             m_filament_popup = nullptr;
             m_filament_popup_row = -1;
-        }
-        if (!closed_by_action) {
-            m_skip_next_filament_popup_row = (int)row_index;
-            CallAfter([this, row_index]() {
-                if (IsBeingDeleted())
-                    return;
-                if (m_skip_next_filament_popup_row == (int)row_index)
-                    m_skip_next_filament_popup_row = -1;
-            });
         }
     };
 
@@ -8463,7 +8445,7 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
     });
     m_filament_popup = popup;
     m_filament_popup_row = (int)row_index;
-    popup->Popup();
+    popup->Popup(popup);
 }
 
 void TextureImportDialog::drop_virtual_filaments_keep_project()
@@ -8570,6 +8552,7 @@ void TextureImportDialog::rebuild_mapping_rows()
     if (!m_mapping_scroll || !m_mapping_sizer)
         return;
 
+    dismiss_filament_popup();
     m_mapping_scroll->Freeze();
     m_mapping_sizer->Clear(true);
     m_mapping_rows.clear();
@@ -8918,6 +8901,15 @@ void TextureImportDialog::rebuild_mapping_rows()
         });
 
         row.target_panel->Bind(wxEVT_LEFT_DOWN, [this, ci](wxMouseEvent&) {
+            if (m_filament_popup && m_filament_popup_row == (int)ci) {
+                dismiss_filament_popup();
+                return;
+            }
+
+            const auto elapsed = std::chrono::steady_clock::now() - m_filament_popup_dismiss_time;
+            if (m_last_filament_popup_dismiss_row == (int)ci &&
+                elapsed < std::chrono::milliseconds(20))
+                return;
             show_filament_popup(ci);
         });
         row.target_panel->Bind(wxEVT_SIZE, [](wxSizeEvent& e) {

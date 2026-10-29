@@ -23,6 +23,7 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <functional>
 #include <map>
 #include <memory>
@@ -581,7 +582,8 @@ private:
     int                   m_filament_popup_row = -1;
     MatchThresholdGear*   m_match_threshold_gear = nullptr;
     MatchThresholdPopup*  m_match_threshold_popup = nullptr;
-    int                   m_skip_next_filament_popup_row = -1;
+    int                   m_last_filament_popup_dismiss_row = -1;
+    std::chrono::steady_clock::time_point m_filament_popup_dismiss_time;
 
     TexturePreviewCanvas* m_preview_canvas       = nullptr;
     TexturePreviewCanvas* m_preview_canvas_right = nullptr;
@@ -604,7 +606,7 @@ private:
     wxPanel*      m_unmatched_warning  = nullptr;
     wxStaticBitmap* m_unmatched_warning_icon = nullptr;
     Label*        m_unmatched_warning_label = nullptr;
-    wxStaticText* m_unmatched_add_link = nullptr;
+    Label*        m_unmatched_add_link = nullptr;
     ScalableBitmap m_bmp_unmatched;
     ScalableBitmap m_bmp_brand;
     wxBoxSizer*   m_footer_btn_sizer   = nullptr;
