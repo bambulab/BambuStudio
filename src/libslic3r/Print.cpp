@@ -685,10 +685,10 @@ double Print::resolve_single_diameter_layering_nozzle() const
             return 0.;
         }
     }
-    // A prime tower or support ring merges the objects' commensurate custom layer heights only through the merge
-    // planning of the fine grid. Sliced straight, the objects have to lay identical Z series, otherwise such a plate
-    // keeps the merge path.
-    if (has_custom_layering && m_objects.size() > 1 && this->tool_change_structure_active(m_config.enable_prime_tower.value)) {
+    // A prime tower merges the objects' commensurate custom layer heights only through the merge planning of the
+    // fine grid. Sliced straight, the objects have to lay identical Z series, otherwise such a plate keeps the
+    // merge path.
+    if (has_custom_layering && m_objects.size() > 1 && this->has_wipe_tower()) {
         std::vector<coordf_t> reference_layers;
         for (const PrintObject *object : m_objects) {
             const SlicingParameters params = object->compute_slicing_parameters(diameter);
