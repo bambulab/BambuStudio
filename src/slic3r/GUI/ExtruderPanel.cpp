@@ -377,6 +377,8 @@ constexpr int    TILE_BADGE_D      = 16;
 constexpr int    TILE_BADGE_TEXT_W = 12; // widest label inside the badge circle; longer labels get a smaller font
 constexpr int    TILE_TEXT_GAP     = 2;  // icon bottom to the diameter line
 constexpr int    TILE_EMPTY_ICON   = 16; // the "no nozzle" glyph that stands in for both text lines
+constexpr int    TILE_UNKNOWN_D    = 12; // the "?" badge on an unknown tool, below the slot label
+constexpr int    TILE_UNKNOWN_TOP  = 16; // icon top to the "?" badge, clear of the slot label
 constexpr double TILE_DIM_OPACITY  = 0.3;
 
 static wxColour faded_tile_colour(const wxColour &colour, const wxColour &background)
@@ -448,6 +450,7 @@ public:
         , m_flow(flow)
     {
         if (face == SlotFace::Empty) m_empty_glyph.emplace(this, "nozzle_slot_empty", TILE_EMPTY_ICON);
+        if (face == SlotFace::Unknown) m_unknown_badge.emplace(this, "hotend_unknown_badge", TILE_UNKNOWN_D);
         SetBackgroundStyle(wxBG_STYLE_PAINT);
         SetBackgroundColour(parent->GetBackgroundColour()); // the surface the rounded corners reveal
         update_min_size();
@@ -474,6 +477,7 @@ public:
     {
         m_icon.msw_rescale();
         if (m_empty_glyph) m_empty_glyph->msw_rescale();
+        if (m_unknown_badge) m_unknown_badge->msw_rescale();
         update_min_size();
         Refresh();
     }
@@ -492,7 +496,8 @@ private:
     }
 
     ScalableBitmap                m_icon;
-    std::optional<ScalableBitmap> m_empty_glyph; // set for an empty slot, drawn in place of the text lines
+    std::optional<ScalableBitmap> m_empty_glyph;   // set for an empty slot, drawn in place of the text lines
+    std::optional<ScalableBitmap> m_unknown_badge; // set for an unknown tool, drawn over the hotend
     wxString                      m_label;
     wxString                      m_diameter;
     wxString                      m_flow;
@@ -537,6 +542,11 @@ void NozzleSlotTile::OnPaint(wxPaintEvent &evt)
     const double icon_y    = FromDIP(TILE_ICON_TOP);
     const wxBitmap icon = m_dimmed ? faded_tile_bitmap(m_icon.bmp(), background) : m_icon.bmp();
     gc->DrawBitmap(icon, icon_x, icon_y, icon_size.x, icon_size.y);
+    if (m_unknown_badge) {
+        const wxSize   mark_size = m_unknown_badge->GetBmpSize();
+        const wxBitmap mark      = m_dimmed ? faded_tile_bitmap(m_unknown_badge->bmp(), background) : m_unknown_badge->bmp();
+        gc->DrawBitmap(mark, (size.x - mark_size.x) / 2.0, icon_y + FromDIP(TILE_UNKNOWN_TOP), mark_size.x, mark_size.y);
+    }
 
     // The label goes on the icon, not beside it: the tile is barely wider than the icon itself.
     // The badge stays a circle for every label; labels like "R1" take a smaller font instead.
@@ -841,6 +851,7 @@ wxString unavailable_reason(SlotFace face, bool usable)
     case SlotFace::Cutter:
     case SlotFace::Pen: return _L("Settings for CutTool and DrawTool are not supported yet.");
     case SlotFace::Empty: return _L("No nozzle is installed in this slot.");
+    case SlotFace::Unknown: return _L("Hotend information is unknown. Please refresh nozzle information before use.");
     default: return _L("Nozzle diameter mismatch. This nozzle cannot be used.");
     }
 }
@@ -944,12 +955,12 @@ void NozzleRackPanel::UpdateNozzles(const std::vector<std::vector<NozzleConfig>>
     rebuild_tiles();
 }
 
-void NozzleRackPanel::sync_machine_slots(int extruder, std::vector<DevNozzle::NozzleToolKind> kinds)
+void NozzleRackPanel::sync_machine_slots(int extruder, std::vector<MachineSlot> slots)
 {
     if (extruder < 0 || extruder >= MAX_EXTRUDERS) return;
-    if (m_machine_kinds[extruder] == kinds) return; // runs on every printer message; redraw on change only
-    m_machine_kinds[extruder] = std::move(kinds);
-    if (!m_extruders.empty()) rebuild_tiles(); // else UpdateNozzles() applies the kinds when it builds the tiles
+    if (m_machine_slots[extruder] == slots) return; // runs on every printer message; redraw on change only
+    m_machine_slots[extruder] = std::move(slots);
+    if (!m_extruders.empty()) rebuild_tiles(); // else UpdateNozzles() applies the slots when it builds the tiles
 }
 
 void NozzleRackPanel::rebuild_tiles()
@@ -985,18 +996,18 @@ void NozzleRackPanel::rebuild_tiles()
 int NozzleRackPanel::add_extruder_tiles(int extruder, bool multi_diameter)
 {
     const std::vector<NozzleConfig>              &configs  = m_extruders[extruder];
-    const std::vector<DevNozzle::NozzleToolKind> &machine  = m_machine_kinds[extruder];
+    const std::vector<MachineSlot>               &machine  = m_machine_slots[extruder];
     const int                                     slots    = static_cast<int>(configs.size());
     int                                           matching = 0;
     for (int slot = 0; slot < slots; ++slot) {
         const NozzleConfig &cfg  = configs[slot];
-        const auto          kind = slot < static_cast<int>(machine.size()) ? machine[slot] : DevNozzle::NozzleToolKind::Unknown;
+        const auto          kind = slot < static_cast<int>(machine.size()) ? machine[slot] : MachineSlot::Blank;
         const bool on_selected = !cfg.is_empty() && cfg.diameter == m_selected_diameter;
         if (on_selected) matching++;
 
         const SlotFace face = slot_face(cfg, kind);
-        // A 2D tool has no diameter or flow; an empty slot shows a glyph in place of both lines.
-        const bool     tool     = face == SlotFace::Cutter || face == SlotFace::Pen;
+        // A 2D tool or an unknown tool has no diameter or flow; an empty slot shows a glyph in place of both lines.
+        const bool     tool     = face == SlotFace::Cutter || face == SlotFace::Pen || face == SlotFace::Unknown;
         const wxString diameter = tool ? wxString("-") : cfg.diameter;
         const wxString flow     = tool ? wxString() : volume_short(cfg.volume);
         const wxString label    = slot_label(m_extruder_count, extruder, slot, slots);

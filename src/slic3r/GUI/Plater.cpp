@@ -3592,7 +3592,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
             single_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
             nozzle_card->ShowBadge(true);
             nozzle_card->GetPanel()->sync_ams(0, obj, machine_extruder_infos[0].ams_internal, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1, machine_extruder_infos[0].ext_v);
-            nozzle_card->GetPanel()->sync_machine_slots(0, machine_slot_tool_kinds(obj, LOGIC_UNIQUE_EXTRUDER_ID));
+            nozzle_card->GetPanel()->sync_machine_slots(0, machine_slots(obj, LOGIC_UNIQUE_EXTRUDER_ID));
             extruder_synced[0] = true;
         }
         else {
@@ -3609,7 +3609,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
             left_extruder->ShowBadge(true);
             left_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
             nozzle_card->GetPanel()->sync_ams(0, obj, {}, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1, machine_extruder_infos[0].ext_v);
-            nozzle_card->GetPanel()->sync_machine_slots(0, machine_slot_tool_kinds(obj, LOGIC_L_EXTRUDER_ID));
+            nozzle_card->GetPanel()->sync_machine_slots(0, machine_slots(obj, LOGIC_L_EXTRUDER_ID));
             extruder_synced[0] = true;
         }
         else {
@@ -3623,7 +3623,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
             right_extruder->ShowBadge(true);
             right_extruder->sync_ams(obj, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1);
             nozzle_card->GetPanel()->sync_ams(1, obj, {}, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1, machine_extruder_infos[1].ext_v);
-            nozzle_card->GetPanel()->sync_machine_slots(1, machine_slot_tool_kinds(obj, LOGIC_R_EXTRUDER_ID));
+            nozzle_card->GetPanel()->sync_machine_slots(1, machine_slots(obj, LOGIC_R_EXTRUDER_ID));
             extruder_synced[1] = true;
         }
         else {

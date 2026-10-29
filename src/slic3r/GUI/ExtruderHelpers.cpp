@@ -292,12 +292,22 @@ std::vector<const DevNozzle *> placed_nozzles(const DevNozzleSystem &nozzle_syst
     return nozzles;
 }
 
-/// Device-page health states under which the device page shows the slot's tool, not a fault.
-bool shows_tool(const std::string &nozzle_state)
+/// What the device page shows for \p nozzle: its tool under a healthy state, a question mark under
+/// the unknown state, and nothing under the other states.
+MachineSlot machine_slot(MachineObject *obj, const DevNozzle &nozzle)
 {
     namespace SV = AmsHotendSchema::values;
-    return nozzle_state == SV::nozzle_state::normal || nozzle_state == SV::nozzle_state::active ||
-           nozzle_state == SV::nozzle_state::feed_suspect;
+    const std::string state = DevicePageFilamentSlotStateResolver::ResolveNozzleState(obj, nozzle, {});
+    if (state == SV::nozzle_state::unknown) return MachineSlot::Unknown;
+    if (state != SV::nozzle_state::normal && state != SV::nozzle_state::active && state != SV::nozzle_state::feed_suspect)
+        return MachineSlot::Blank;
+
+    switch (nozzle.GetToolKind()) {
+    case DevNozzle::NozzleToolKind::Hotend: return MachineSlot::Hotend;
+    case DevNozzle::NozzleToolKind::Cutter: return MachineSlot::Cutter;
+    case DevNozzle::NozzleToolKind::Pen: return MachineSlot::Pen;
+    default: return MachineSlot::Unknown;
+    }
 }
 
 } // namespace
@@ -360,7 +370,7 @@ std::vector<NozzleConfig> collect_nozzle_configs_from_machine(MachineObject *obj
     return nozzle_configs;
 }
 
-std::vector<DevNozzle::NozzleToolKind> machine_slot_tool_kinds(const MachineObject *obj, int extruder)
+std::vector<MachineSlot> machine_slots(const MachineObject *obj, int extruder)
 {
     if (!obj || !obj->GetNozzleSystem()) return {};
 
@@ -374,21 +384,20 @@ std::vector<DevNozzle::NozzleToolKind> machine_slot_tool_kinds(const MachineObje
     // The resolver takes a mutable printer but never touches it.
     MachineObject *resolver_obj = const_cast<MachineObject *>(obj);
 
-    std::vector<DevNozzle::NozzleToolKind> kinds;
-    kinds.reserve(slot_count);
-    for (const DevNozzle *nozzle : placed_nozzles(*obj->GetNozzleSystem(), extruder, slot_count)) {
-        const bool healthy = nozzle && shows_tool(DevicePageFilamentSlotStateResolver::ResolveNozzleState(resolver_obj, *nozzle, {}));
-        kinds.push_back(healthy ? nozzle->GetToolKind() : DevNozzle::NozzleToolKind::Unknown);
-    }
-    return kinds;
+    std::vector<MachineSlot> slots;
+    slots.reserve(slot_count);
+    for (const DevNozzle *nozzle : placed_nozzles(*obj->GetNozzleSystem(), extruder, slot_count))
+        slots.push_back(nozzle ? machine_slot(resolver_obj, *nozzle) : MachineSlot::Blank);
+    return slots;
 }
 
-SlotFace slot_face(const NozzleConfig &project, DevNozzle::NozzleToolKind machine)
+SlotFace slot_face(const NozzleConfig &project, MachineSlot machine)
 {
     if (!project.is_empty()) return SlotFace::Hotend;
     switch (machine) {
-    case DevNozzle::NozzleToolKind::Cutter: return SlotFace::Cutter;
-    case DevNozzle::NozzleToolKind::Pen: return SlotFace::Pen;
+    case MachineSlot::Cutter: return SlotFace::Cutter;
+    case MachineSlot::Pen: return SlotFace::Pen;
+    case MachineSlot::Unknown: return SlotFace::Unknown;
     default: return SlotFace::Empty;
     }
 }

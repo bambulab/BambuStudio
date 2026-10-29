@@ -43,7 +43,7 @@ enum class NozzleStatus : int
  * collect_nozzle_configs_from_machine() takes at sync time; they go stale once the user edits the slot.
  *
  * TODO: move the printer fields into their own machine-slot type with one collector. That type would
- * also carry the 2D tool kind, which machine_slot_tool_kinds() now reports on a separate path.
+ * also carry what the slot shows, which machine_slots() now reports on a separate path.
  */
 struct NozzleConfig
 {
@@ -148,21 +148,30 @@ bool is_extruder_stat_synced(int target_extruder_id = -1);
 // The nozzles the machine reports for one logical extruder, as slot-ordered configs; slots the
 // machine cannot describe come back with an empty diameter. Always `extruder_nozzle_count` entries.
 // Caution: its health rule (IsNormal/IsUnknown, on rack printers only) is not the device-page rule that
-// machine_slot_tool_kinds() applies, so one slot can read healthy here and faulty there.
+// machine_slots() applies, so one slot can read healthy here and faulty there.
 std::vector<NozzleConfig> collect_nozzle_configs_from_machine(MachineObject *obj, int extruder_idx, int extruder_nozzle_count);
 
+/// \brief What the printer shows in one nozzle slot
+enum class MachineSlot
+{
+    Blank,   ///< nothing to show: no printer, or the slot is absent, lost or faulty
+    Hotend,  ///< a healthy hotend
+    Cutter,  ///< a healthy cutter
+    Pen,     ///< a healthy pen
+    Unknown, ///< the printer has not identified the tool yet; a refresh resolves it
+};
+
 /**
- * \brief Tool kind in each slot of one extruder, as the device page shows it
+ * \brief What each slot of one extruder shows, as the device page shows it
  *
  * \param obj       connected printer; nullptr gives an empty result
  * \param extruder  logic extruder id
- * \return one entry per slot of the edited printer preset. Unknown also covers an absent, lost,
- *         unknown or comm-error slot, because the device page hides the tool behind a bad health state.
- *         Empty when the printer has no nozzle system or the preset has no slot count.
+ * \return one entry per slot of the edited printer preset. Empty when the printer has no nozzle
+ *         system or the preset has no slot count.
  *
  * The sidebar calls this on every printer message, not only on sync, so the tiles follow a tool swap.
  */
-std::vector<DevNozzle::NozzleToolKind> machine_slot_tool_kinds(const MachineObject *obj, int extruder);
+std::vector<MachineSlot> machine_slots(const MachineObject *obj, int extruder);
 
 /// \brief How a nozzle slot looks on the sidebar tile and the nozzle settings card
 enum class SlotFace
@@ -171,15 +180,16 @@ enum class SlotFace
     Empty,  ///< no usable nozzle in this slot
     Cutter, ///< the printer reports a cutter in a slot the project leaves empty
     Pen,    ///< the printer reports a pen in a slot the project leaves empty
+    Unknown, ///< the printer reports an unidentified tool in a slot the project leaves empty
 };
 
 /**
- * \brief The face of one slot: the project's nozzle, or the 2D tool the printer reports in an empty slot
+ * \brief The face of one slot: the project's nozzle, or what the printer reports in an empty slot
  *
  * \param project  the slot in the project
- * \param machine  what the printer shows in that slot; pass Unknown when not synced
+ * \param machine  what the printer shows in that slot; pass Blank when not synced
  */
-SlotFace slot_face(const NozzleConfig &project, DevNozzle::NozzleToolKind machine);
+SlotFace slot_face(const NozzleConfig &project, MachineSlot machine);
 
 // What the printer reports right now, for callers deciding "is this nozzle layout synced".
 // `synced` only means a connected printer of the selected preset's model answered; it says nothing

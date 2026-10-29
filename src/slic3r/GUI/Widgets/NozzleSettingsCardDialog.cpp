@@ -159,9 +159,9 @@ public:
 
     // machine_cfg: what the connected printer reports for this nozzle slot right now, or nullptr when
     // no printer is connected. The synced badge compares the card against this, never against the seed.
-    // machine_kind: the tool the printer shows in this slot; Unknown when not synced.
+    // machine_slot: what the printer shows in this slot; Blank when not synced.
     NozzleCard(wxWindow *parent, int number, int extruder_index, const NozzleConfig &seed, const NozzleConfig *machine_cfg,
-               DevNozzle::NozzleToolKind machine_kind, const std::vector<std::string> &diameters, ChangedFn on_changed);
+               MachineSlot machine_slot, const std::vector<std::string> &diameters, ChangedFn on_changed);
     ~NozzleCard() override;
 
     // Consulted by apply_pick() before the card changes. Returning false abandons the pick, leaving
@@ -169,7 +169,7 @@ public:
     void SetConfirmChange(std::function<bool(const NozzleConfig &)> cb) { m_confirm_change = std::move(cb); }
 
     NozzleConfig GetConfig() const;
-    SlotFace     face() const { return slot_face(GetConfig(), m_machine_kind); } // what the hotend under the card shows
+    SlotFace     face() const { return slot_face(GetConfig(), m_machine_slot); } // what the hotend under the card shows
     wxString     GetDiameter() const; // parsed value ("" when Empty)
     void RefreshState(); // re-derive the synced badge after an edit
     void Rescale();
@@ -187,7 +187,7 @@ private:
     int                              m_extruder_index{0};
     NozzleConfig                     m_seed;
     std::optional<NozzleConfig>      m_machine_cfg; // connected printer's config for this slot; unset when disconnected
-    DevNozzle::NozzleToolKind        m_machine_kind{DevNozzle::NozzleToolKind::Unknown};
+    MachineSlot                      m_machine_slot{MachineSlot::Blank};
     std::vector<std::string>         m_diameters;
     ChangedFn                        m_on_changed;
     std::function<bool(const NozzleConfig &)> m_confirm_change;
@@ -212,12 +212,12 @@ private:
 };
 
 NozzleCard::NozzleCard(wxWindow *parent, int number, int extruder_index, const NozzleConfig &seed, const NozzleConfig *machine_cfg,
-                       DevNozzle::NozzleToolKind machine_kind, const std::vector<std::string> &diameters, ChangedFn on_changed)
+                       MachineSlot machine_slot, const std::vector<std::string> &diameters, ChangedFn on_changed)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
     , m_extruder_index(extruder_index)
     , m_seed(seed)
     , m_machine_cfg(machine_cfg ? std::optional<NozzleConfig>(*machine_cfg) : std::nullopt)
-    , m_machine_kind(machine_kind)
+    , m_machine_slot(machine_slot)
     , m_diameters(diameters)
     , m_on_changed(std::move(on_changed))
     , m_status(seed.status)
@@ -305,14 +305,15 @@ void NozzleCard::build_value_rows(wxSizer *v)
 
 void NozzleCard::refresh_values()
 {
-    // An empty slot or a 2D tool has no flow type to report, so the row reads as a dash rather than
+    // An empty slot, a 2D tool or an unknown tool has no flow type to report, so the row reads as a dash rather than
     // claiming the Standard the config happens to default to.
     wxString diameter = m_diameter; // no unit, as in the design: "0.4 mm" does not fit beside the caption at 12px
     wxString flow     = flow_label(m_volume);
     switch (face()) {
     case SlotFace::Empty: diameter = _L("Empty"); flow = "-"; break;
     case SlotFace::Cutter:
-    case SlotFace::Pen: diameter = "-"; flow = "-"; break;
+    case SlotFace::Pen:
+    case SlotFace::Unknown: diameter = "-"; flow = "-"; break;
     default: break;
     }
     // A long translation such as "Empty" would be cut off at 12px in the narrow card.
@@ -564,6 +565,7 @@ constexpr int    TUBE_MIN_H   = 24; // tube length under a lower-row card
 constexpr int    HOTEND_W     = 24;
 constexpr int    HOTEND_H     = 48;
 constexpr double TOOL_OPACITY = 0.5; // a 2D tool is drawn faded: the project cannot print with it
+constexpr int    UNKNOWN_D    = 20;  // the "?" badge centred on an unknown tool
 
 /**
  * \brief \p bitmap blended onto \p background at \p opacity
@@ -660,6 +662,10 @@ void NozzleRackView::OnPaint(wxPaintEvent &)
         // Logical width, not GetWidth(): on macOS the bitmap carries a 2x scale factor, so its pixel
         // width is twice what DrawBitmap lays down and centering on it pushes the hotend a full icon left.
         dc.DrawBitmap(hotend, cx - int(hotend.GetScaledWidth()) / 2, hotend_top, true);
+        if (card->face() == SlotFace::Unknown) {
+            const wxBitmap mark = create_scaled_bitmap("hotend_unknown_badge", this, UNKNOWN_D);
+            dc.DrawBitmap(mark, cx - int(mark.GetScaledWidth()) / 2, hotend_top + (FromDIP(HOTEND_H) - int(mark.GetScaledHeight())) / 2, true);
+        }
     }
 }
 
@@ -714,18 +720,18 @@ void NozzleSettingsCardDialog::build_card_grid(wxBoxSizer *main_sizer, const std
 
     // What the connected printer reports right now; the per-card synced badge compares against this,
     // never against the seed. A disconnected printer leaves `synced` false, so no card is ever synced.
-    // The tool kind comes from a second read with its own health rule; one machine-slot collector
+    // What each slot shows comes from a second read with its own health rule; one machine-slot collector
     // would remove this pairing (see the TODO on NozzleConfig).
     const MachineNozzleBaseline baseline     = collect_machine_nozzle_baseline(false); // card dialog is single-extruder
     const auto                 &machine_cfgs = baseline.configs[0];
     DeviceManager              *dev          = wxGetApp().getDeviceManager();
-    const auto machine_kinds = baseline.synced ? machine_slot_tool_kinds(dev ? dev->get_selected_machine() : nullptr, LOGIC_UNIQUE_EXTRUDER_ID)
-                                               : std::vector<DevNozzle::NozzleToolKind>{};
+    const auto shown = baseline.synced ? machine_slots(dev ? dev->get_selected_machine() : nullptr, LOGIC_UNIQUE_EXTRUDER_ID)
+                                       : std::vector<MachineSlot>{};
 
     // Single extruder: nozzles number 1..n in the order the rack receives them.
     for (int i = 0; i < (int) seeds.size(); ++i) {
         const NozzleConfig *machine_cfg = (baseline.synced && i < (int) machine_cfgs.size()) ? &machine_cfgs[i] : nullptr;
-        const auto          kind        = i < (int) machine_kinds.size() ? machine_kinds[i] : DevNozzle::NozzleToolKind::Unknown;
+        const auto          kind        = i < (int) shown.size() ? shown[i] : MachineSlot::Blank;
         auto               *card        = new NozzleCard(rack, i + 1, 0, seeds[i], machine_cfg, kind, diameters, on_changed);
         card->SetConfirmChange([this](const NozzleConfig &from) { return confirm_nozzle_change(from); });
         m_cards.push_back(card);
