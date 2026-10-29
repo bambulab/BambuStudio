@@ -34,7 +34,6 @@
         "0",
         "0"
     ],
-    "enable_tower_interface_features": "1",
     "gap_infill_speed": [
         "250",
         "250",
@@ -51,17 +50,17 @@
     ],
     "inner_wall_speed": [
         "300",
-        "600",
         "300",
-        "600",
-        "600"
+        "300",
+        "300",
+        "300"
     ],
     "internal_solid_infill_speed": [
         "250",
-        "600",
+        "300",
         "250",
-        "600",
-        "600"
+        "300",
+        "300"
     ],
     "initial_layer_travel_acceleration": [
         "6000",
@@ -93,10 +92,10 @@
     ],
     "outer_wall_speed": [
         "200",
-        "500",
         "200",
-        "500",
-        "500"
+        "200",
+        "200",
+        "200"
     ],
     "overhang_totally_speed": [
         "10",

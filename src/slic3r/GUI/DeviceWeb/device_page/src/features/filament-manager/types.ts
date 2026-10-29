@@ -67,6 +67,19 @@ export interface PresetOptions {
   vendors: PresetVendor[];
 }
 
+export interface CreatedFilamentDescriptor {
+  vendor: string;
+  type: string;
+  name: string;
+  filament_id: string;
+}
+
+export interface CustomFilamentCreateResult {
+  clientRequestId: string;
+  ok: boolean;
+  created?: CreatedFilamentDescriptor;
+}
+
 // Machine list
 export interface MachineItem {
   dev_id: string;
@@ -113,6 +126,7 @@ export interface AmsTray {
   diameter?: number | string;
   is_bbl?: boolean;
   tray_id_name?: string;
+  tray_label?: string;
 }
 
 export interface AmsUnit {

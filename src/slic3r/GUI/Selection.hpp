@@ -199,6 +199,7 @@ public:
         std::unique_ptr<Model> m_model;
 
         Selection::EMode m_mode;
+        int m_copy_volume_step{0};
 
     public:
         Clipboard();
@@ -214,6 +215,8 @@ public:
 
         Selection::EMode get_mode() const { return m_mode; }
         void set_mode(Selection::EMode mode) { m_mode = mode; }
+        int copy_volume_step() const { return m_copy_volume_step; }
+        void copy_volume_step_up() { ++m_copy_volume_step; }
     };
 
 private:

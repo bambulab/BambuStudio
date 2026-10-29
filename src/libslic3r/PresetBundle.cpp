@@ -60,6 +60,7 @@ static std::vector<std::string> s_project_options {
     "filament_volume_map",
     "filament_nozzle_map",
     "extruder_nozzle_stats",
+    "extruder_nozzle_stats_new",
     "prime_volume_mode",
     "enable_filament_dynamic_map",
     "filament_is_mixed",
@@ -1072,7 +1073,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                 if (status) {
                     std::string file_name = file_stat.m_filename;
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Form zip file: " << file << ". Read file name: " << file_stat.m_filename;
-                    size_t index = file_name.find_last_of('/');
+                    size_t index = file_name.find_last_of("/\\");
                     if (std::string::npos != index) {
                         file_name = file_name.substr(index + 1);
                     }
@@ -1286,11 +1287,11 @@ void PresetBundle::update_system_preset_setting_ids(std::map<std::string, std::m
             continue;
         }
         PresetCollection *preset_collection = nullptr;
-        if (type_iter->second == PRESET_IOT_PRINTER_TYPE) {
-            preset_collection = &(this->printers);
+        if (type_iter->second == PRESET_IOT_PRINT_TYPE) {
+            preset_collection = &(this->prints);
         }
-        else if (type_iter->second == PRESET_IOT_PRINTER_TYPE) {
-            preset_collection = &(this->printers);
+        else if (type_iter->second == PRESET_IOT_FILAMENT_TYPE) {
+            preset_collection = &(this->filaments);
         }
         else if (type_iter->second == PRESET_IOT_PRINTER_TYPE) {
             preset_collection = &(this->printers);
@@ -2161,11 +2162,28 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
         // Old projects may not contain filament_mixed_gradient_curve; resize unconditionally.
         auto& vals = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_curve")->values;
         if (config.has("presets", "filament_mixed_gradient_curve")) {
+            const std::string raw = config.get("presets", "filament_mixed_gradient_curve");
+            // New format: C-style escaped ";" (escape_strings_cstyle), safe for curve values
+            // that contain "|" (the intra-slot control-point delimiter). Legacy format used
+            // "|" as the inter-slot delimiter, which collided with the intra-slot "|" and
+            // split multi-point curves across slots. Disambiguate by size: the new format
+            // always round-trips to exactly n_filaments elements; a legacy "|" split of a
+            // corrupted curve yields != n_filaments. Invariant: a non-empty curve implies a
+            // mixed gradient slot, which requires n_filaments >= 3, so the new format's
+            // escaped form always contains ";" and unescapes to size == n_filaments.
             std::vector<std::string> parts;
-            boost::algorithm::split(parts, config.get("presets", "filament_mixed_gradient_curve"), boost::algorithm::is_any_of("|"));
-            vals = std::move(parts);
+            if (Slic3r::unescape_strings_cstyle(raw, parts) && parts.size() == n_filaments) {
+                vals = std::move(parts);
+            } else {
+                std::vector<std::string> legacy_parts;
+                boost::algorithm::split(legacy_parts, raw, boost::algorithm::is_any_of("|"));
+                vals = std::move(legacy_parts);
+            }
         }
         vals.resize(n_filaments, std::string{});
+        // Heal legacy corruption: clear any non-empty slot that ended up with < 2 points
+        // (e.g. a curve split across slots by the old "|" delimiter). Falls back to linear.
+        Slic3r::sanitize_mixed_gradient_curve_array(vals);
     }
     {
         // 兜底：旧工程没有 filament_mixed_gradient_per_part 时也保证数组长度与 n_filaments 一致
@@ -2255,6 +2273,9 @@ void PresetBundle::export_selections(AppConfig &config)
 	assert(this->printers.get_edited_preset().printer_technology() != ptFFF || filament_presets.size() >= 1);
 	//assert(this->printers.get_edited_preset().printer_technology() != ptFFF || filament_presets.size() > 1 || filaments.get_selected_preset_name() == filament_presets.front());
     config.clear_section("presets");
+    // clear_section() above wipes the whole presets section, so any key not re-emitted here is lost on save.
+    // Re-emit the per-extruder AMS counts from the source-of-truth member (mirrors AMSCountPopupWindow::SetAMSCount).
+    config.set("presets", "extruder_ams_count", boost::algorithm::join(save_extruder_ams_count_to_string(this->extruder_ams_counts), ","));
     config.set("presets", PRESET_PRINT_NAME,        prints.get_selected_preset_name());
     config.set("presets", PRESET_FILAMENT_NAME,     filament_presets.front());
     for (unsigned i = 1; i < filament_presets.size(); ++i) {
@@ -2321,7 +2342,11 @@ void PresetBundle::export_selections(AppConfig &config)
     if (auto* opt = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_range"))
         config.set("presets", "filament_mixed_gradient_range", boost::algorithm::join(opt->values, "|"));
     if (auto* opt = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_curve"))
-        config.set("presets", "filament_mixed_gradient_curve", boost::algorithm::join(opt->values, "|"));
+        // Use C-style escaped ";" encoding (same as ConfigOptionStrings::serialize) instead
+        // of "|" join: each slot's curve value may itself contain "|" as the control-point
+        // delimiter (serialize_gradient_curve), which would collide with "|" as the inter-
+        // slot delimiter and split the curve across slots on the next load_selections.
+        config.set("presets", "filament_mixed_gradient_curve", Slic3r::escape_strings_cstyle(opt->values));
     if (auto* opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part")) {
         std::string s;
         for (size_t i = 0; i < opt->values.size(); ++i) {
@@ -5466,6 +5491,15 @@ VendorProfile::PrinterModel PresetBundle::load_vendor_configs_from_json(const st
                 model.bottom_texture_rect = it.value();
             } else if (boost::iequals(it.key(), BBL_JSON_KEY_BOTTOM_TEXTURE_RECT_LONGER)) {
                 model.bottom_texture_rect_longer = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_BOTTOM_TEXTURE_RECT_LONGER_IGNORE_LIST)) {
+                std::string longer_ignore_field = it.value();
+                if (Slic3r::unescape_strings_cstyle(longer_ignore_field, model.bottom_texture_rect_longer_ignore_list)) {
+                    Slic3r::sort_remove_duplicates(model.bottom_texture_rect_longer_ignore_list);
+                    if (!model.bottom_texture_rect_longer_ignore_list.empty() && model.bottom_texture_rect_longer_ignore_list.front().empty())
+                        model.bottom_texture_rect_longer_ignore_list.erase(model.bottom_texture_rect_longer_ignore_list.begin());
+                } else {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": invalid bottom_texture_rect_longer_ignore_list %1% for Vendor") % longer_ignore_field;
+                }
             } else if (boost::iequals(it.key(), BBL_JSON_KEY_MIDDLE_TEXTURE_RECT)) {
                 model.middle_texture_rect = it.value();
             } else if (boost::iequals(it.key(), BBL_JSON_KEY_USE_RECT_GRID)) {
@@ -5499,6 +5533,8 @@ VendorProfile::PrinterModel PresetBundle::load_vendor_configs_from_json(const st
                 }
             } else if (boost::iequals(it.key(), BBL_JSON_KEY_SUPPORT_SIDE_PANEL_FAN)) {
                 model.support_side_panel_fan = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_RESOURCE_BIND_NAME)) {
+                model.resource_bind_name = it.value();
             }
         }
     } catch (nlohmann::detail::parse_error &err) {

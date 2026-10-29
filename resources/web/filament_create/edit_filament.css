@@ -1,0 +1,198 @@
+/* edit_filament.css */
+
+body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.ef-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 100vh;
+    box-sizing: border-box;
+    padding: 16px 0 0;
+}
+
+.ef-header {
+    flex-shrink: 0;
+    width: 700px;
+    padding-bottom: 12px;
+    box-sizing: border-box;
+}
+
+.ef-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.ef-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #262E30;
+    white-space: nowrap;
+}
+
+.ef-filament-name {
+    font-size: 14px;
+    color: #5C5C5C;
+}
+
+.ef-btn-add {
+    margin-left: auto;
+    height: 28px;
+    padding: 0 16px;
+    border: 1px solid #CECECE;
+    border-radius: 14px;
+    background: #fff;
+    font-size: 12px;
+    color: #262E30;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.ef-btn-add:hover {
+    border-color: #00AE42;
+    color: #00AE42;
+}
+
+/* List container — matches #CFilament_List style */
+.ef-list-container {
+    width: 700px;
+    overflow-y: auto;
+    border: 1px solid #EEEEEE;
+    border-radius: 8px;
+    background: #F9F9F9;
+    margin-top: 8px;
+    max-height: 420px;
+    box-sizing: border-box;
+}
+
+.ef-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100px;
+    font-size: 13px;
+    color: #999;
+}
+
+/* Group title and items stretch full width */
+.ef-list-container .CFilament_GroupTitle,
+.ef-list-container .CFilament_GroupItems {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.ef-list-container .CFilament_GroupTitle {
+    background: #F9F9F9;
+}
+
+/* Item row */
+.ef-item {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    padding: 10px 16px 10px 24px;
+    border-bottom: 1px solid #F5F5F5;
+    gap: 12px;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.ef-item:last-child {
+    border-bottom: none;
+}
+
+.ef-item-printer {
+    flex: 1;
+    font-size: 13px;
+    color: #262E30;
+    word-break: break-word;
+    min-width: 0;
+    padding-top: 2px;
+}
+
+.ef-item-base-preset {
+    font-size: 13px;
+    color: #5C5C5C;
+    width: 220px;
+    flex-shrink: 0;
+    word-break: break-word;
+    padding-top: 2px;
+}
+
+.ef-item-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-top: 1px;
+}
+
+.ef-btn-action {
+    height: 24px;
+    padding: 0 12px;
+    border: 1px solid #CECECE;
+    border-radius: 12px;
+    background: #fff;
+    font-size: 12px;
+    color: #262E30;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.ef-btn-action:hover {
+    border-color: #00AE42;
+    color: #00AE42;
+}
+
+.ef-btn-action.remove:hover {
+    border-color: #E53935;
+    color: #E53935;
+}
+
+/* Footer — matches .footer-actions in step1.css */
+.ef-footer {
+    display: flex;
+    height: 54px;
+    width: 700px;
+    padding: 0;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    margin-top: auto;
+}
+
+.ef-btn-primary {
+    padding: 0 16px;
+    height: 32px;
+    border-radius: 16px;
+    background: #00AE42;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+}
+
+.ef-btn-primary:hover { background: #3DCB73; }
+
+.ef-btn-secondary {
+    padding: 0 16px;
+    height: 32px;
+    border-radius: 16px;
+    background: transparent;
+    border: 1px solid #999;
+    color: #262E30;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.ef-btn-secondary:hover { background: #F8F8F8; }

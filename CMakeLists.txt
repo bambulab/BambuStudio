@@ -49,6 +49,27 @@ option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
 option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
 option(SLIC3R_PERL_XS           "Compile XS Perl module and enable Perl unit and integration tests" 0)
 option(SLIC3R_ASAN              "Enable ASan on Clang and GCC" 0)
+option(SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN "Enable experimental OpenMeshCraft mesh boolean backend" 1)
+option(SLIC3R_ALLOW_MCUT_BOOLEAN "Allow compiling mesh boolean with MCUT only (no OpenMeshCraft)" 0)
+option(LINUX_CLI_COMPILE "Linux CLI build: skip prebuilt OpenMeshCraft lib (ABI mismatch vs server libstdc+), use MCUT/stub path" 0)
+if(LINUX_CLI_COMPILE)
+    # The prebuilt libOpenMeshCraft.a / libOpenMeshCraftBoolean.a in dep_linux_new were built
+    # against a newer libstdc++ ABI (std::__throw_bad_array_new_length, std::to_chars,
+    # std::basic_string::_M_replace_cold) than the build-server toolchain, causing link failure.
+    # Force OpenMeshCraft off and allow MCUT so the link succeeds. MeshBoolean.cpp already has
+    # #if SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN guards + stubs for the off path.
+    set(SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN OFF CACHE BOOL "" FORCE)
+    set(SLIC3R_ALLOW_MCUT_BOOLEAN ON CACHE BOOL "" FORCE)
+    # Also clear the find_package() result cached on a previous configure (set in src/CMakeLists.txt
+    # without FORCE, so it would otherwise survive a re-configure and keep linking OMC).
+    set(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN FALSE CACHE INTERNAL "" FORCE)
+    message(STATUS "LINUX_CLI_COMPILE=ON: OpenMeshCraft disabled (prebuilt lib ABI mismatch), using MCUT/stub mesh-boolean path.")
+endif()
+if(NOT SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN AND NOT SLIC3R_ALLOW_MCUT_BOOLEAN)
+    message(FATAL_ERROR
+        "OpenMeshCraft boolean is required. "
+        "Keep SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN=ON, or pass -DSLIC3R_ALLOW_MCUT_BOOLEAN=ON.")
+endif()
 # If SLIC3R_FHS is 1 -> SLIC3R_DESKTOP_INTEGRATION is always 0, othrewise variable.
 CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow performing desktop integration during runtime" 1 "NOT SLIC3R_FHS" 0)
 
@@ -83,6 +104,19 @@ elseif (MSVC)
         if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|x86_64)$") AND (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
             message(STATUS " is cross compile set to true.............")
             set(IS_CROSS_COMPILE TRUE)
+        endif ()
+        if (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64EC")
+            # On ARM64EC the x86 SIMD headers (immintrin.h etc.) refuse direct
+            # inclusion - they must come via <intrin.h> so the softintrin
+            # emulation layer is set up first. Several bundled libraries
+            # (eigen, imgui, clipper2, tinybvh, libigl, minih264) include them
+            # directly, so force-include intrin.h globally instead of patching
+            # each one.
+            add_compile_options(/FIintrin.h)
+            # Software implementations of x86 intrinsics that have no native
+            # ARM64EC lowering (e.g. _mm_cvtsd_si64). MSBuild does not add this
+            # automatically for CMake-generated projects.
+            add_link_options(softintrin.lib)
         endif ()
 endif ()
 
@@ -132,7 +166,19 @@ if (MSVC)
     # /bigobj (Increase Number of Sections in .Obj file)
     # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
     # Generate symbols at every build target, even for the release.
-    add_compile_options(-bigobj -Zm520 /Zi)
+    if (CMAKE_GENERATOR MATCHES "Ninja")
+        # /Z7 embeds debug info in the objects instead of writing per-target
+        # .pdb files during compilation: /Zi's shared-PDB writes fail with
+        # C1041 under Ninja's parallelism (the VS generator serializes them
+        # via /FS+mspdbsrv) and defeat compiler-launcher caches like sccache.
+        # Only debug-carrying configs get it - embedding into every object of
+        # a Release build pushes libslic3r_gui.lib past the 4 GB .lib format
+        # limit (LNK1248), and plain Release omits debug info in standard
+        # CMake semantics anyway.
+        add_compile_options(-bigobj -Zm520 "$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Debug>>:/Z7>")
+    else ()
+        add_compile_options(-bigobj -Zm520 /Zi)
+    endif ()
     # Disable STL4007: Many result_type typedefs and all argument_type, first_argument_type, and second_argument_type typedefs are deprecated in C++17.
     #FIXME Remove this line after eigen library adapts to the new C++17 adaptor rules.
     add_compile_options(-D_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING)
@@ -304,7 +350,7 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
     # such as Xcode 26), so probe for it instead of relying on the version number.
     if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
         include(CheckCXXCompilerFlag)
-        check_cxx_compiler_flag("-Werror=enum-constexpr-conversion" HAVE_FLAG_ENUM_CONSTEXPR_CONVERSION)
+        check_cxx_compiler_flag("-Wno-error=enum-constexpr-conversion" HAVE_FLAG_ENUM_CONSTEXPR_CONVERSION)
         if(HAVE_FLAG_ENUM_CONSTEXPR_CONVERSION)
             add_compile_options(-Wno-error=enum-constexpr-conversion)
         endif()
@@ -340,6 +386,19 @@ endif ()
 if (APPLE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=partial-availability -Werror=unguarded-availability -Werror=unguarded-availability-new")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=partial-availability -Werror=unguarded-availability -Werror=unguarded-availability-new")
+
+    # Release 默认没有调试信息，补上调试信息以便产出独立的 .dSYM 符号文件；
+    # 原先开启了-g（完整调试信息），libslic3r_gui又是模板重度的静态库，.o里的DWARF调试段被大量重复实例化的模板符号撑大；
+    # 在低版本（macOS 12.7+xcode14.2）打包机工具链上，Mach-O文件大小上限为4个G；高版本（macOS26.x+xcode26.x）可以突破4G限制
+    # 原先-g配置下，单架构的libslic3r_gui.a就超出了4个G，双架构直接到8个G以上，导致编译失败；
+    # 现调整为用-gline-tables-only而非完整-g：只保留“地址 -> 文件:行号”的行号表，足够对崩溃栈做符号化；
+    # 但体积比完整-g大幅减少，实际测试libslic3r_gui.a大小为之前的十分之一，最终的.dSYM符号文件约为之前的五分之一。
+    string(APPEND CMAKE_C_FLAGS_RELEASE   " -gline-tables-only")
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -gline-tables-only")
+
+    # Xcode generator：只让 Release 配置生成独立 .dSYM，Debug 保持原速
+    set(CMAKE_XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+    set(CMAKE_XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT[variant=Release] "dwarf-with-dsym")
 endif ()
 
 if(MSVC)
@@ -455,6 +514,46 @@ else()
     target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
 endif()
 
+# Boost::iostreams pulls in an imported zstd target that (on some system
+# packages) only exports one build configuration (often the empty/NONE one).
+# Multi-config builds such as RelWithDebInfo then fail with "IMPORTED_LOCATION
+# not set". Copy an existing configuration's location onto the missing ones so
+# every consumer of boost_libs can resolve zstd.
+function(slic3r_backfill_imported_configs tgt)
+    if(NOT TARGET ${tgt})
+        return()
+    endif()
+    get_target_property(_have ${tgt} IMPORTED_CONFIGURATIONS)
+    if(NOT _have)
+        return()
+    endif()
+    list(GET _have 0 _src)
+    get_target_property(_loc ${tgt} IMPORTED_LOCATION_${_src})
+    get_target_property(_imp ${tgt} IMPORTED_IMPLIB_${_src})
+    get_target_property(_son ${tgt} IMPORTED_SONAME_${_src})
+    foreach(_cfg RELEASE RELWITHDEBINFO MINSIZEREL DEBUG)
+        if(NOT _cfg IN_LIST _have)
+            set_property(TARGET ${tgt} APPEND PROPERTY IMPORTED_CONFIGURATIONS ${_cfg})
+            if(_loc)
+                set_target_properties(${tgt} PROPERTIES IMPORTED_LOCATION_${_cfg} "${_loc}")
+            endif()
+            if(_imp)
+                set_target_properties(${tgt} PROPERTIES IMPORTED_IMPLIB_${_cfg} "${_imp}")
+            endif()
+            if(_son)
+                set_target_properties(${tgt} PROPERTIES IMPORTED_SONAME_${_cfg} "${_son}")
+            endif()
+        endif()
+    endforeach()
+endfunction()
+
+# Only needed on Linux, where boost_iostreams pulls the system zstd package
+# whose CMake config exports a single (NONE) configuration. On Windows/macOS
+# zstd comes from the prebuilt deps / vcpkg with all configurations present.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    slic3r_backfill_imported_configs(zstd::libzstd_shared)
+    slic3r_backfill_imported_configs(zstd::libzstd_static)
+endif()
 
 
 # Find and configure intel-tbb
@@ -636,7 +735,15 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
         set(_bits 32)
     endif ()
 
-    if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
+    # Generator platform takes precedence over the host processor so an ARM64
+    # host can build x64 or ARM64EC targets (both consume the x64 runtime DLLs;
+    # ARM64EC processes load x64 DLLs via emulation).
+    set(_copydll_plat "${CMAKE_GENERATOR_PLATFORM}")
+    if (NOT _copydll_plat)
+        set(_copydll_plat "${CMAKE_SYSTEM_PROCESSOR}")
+    endif ()
+    string(TOUPPER "${_copydll_plat}" _copydll_plat)
+    if (_copydll_plat MATCHES "^(ARM64|AARCH64)$")
         set(_gmpdll win_arm64/gmp-10.dll)
         set(_mpfrdll win_arm64/mpfr-6.dll)
         set(output_gmpdll gmp-10.dll)

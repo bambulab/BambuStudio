@@ -65,6 +65,7 @@
 			"support_ams_filament_change_abort": true
 		},
 		"model_id": "O1C",
+		"sn_prefix": "31B",
 		"auto_pa_cali_thumbnail_image": "fd_calibration_auto_multi_extruders_o1c",
 		"support_wrapping_detection": true,
 		"printer_modes": [ "fdm", "laser", "cut" ],

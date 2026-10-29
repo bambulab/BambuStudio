@@ -139,6 +139,10 @@ func_get_mw_user_preference         NetworkAgent::get_mw_user_preference_ptr = n
 func_get_mw_user_4ulist             NetworkAgent::get_mw_user_4ulist_ptr     = nullptr;
 func_get_hms_snapshot               NetworkAgent::get_hms_snapshot_ptr       = nullptr;
 func_sync_ams_filaments             NetworkAgent::sync_ams_filaments_ptr     = nullptr;
+func_sync_slot_mappings             NetworkAgent::sync_slot_mappings_ptr     = nullptr;
+func_get_soft_match_pending         NetworkAgent::get_soft_match_pending_ptr  = nullptr;
+func_post_soft_match_pending        NetworkAgent::post_soft_match_pending_ptr = nullptr;
+func_post_device_region             NetworkAgent::post_device_region_ptr       = nullptr;
 
 NetworkAgent::NetworkAgent(std::string log_dir)
 {
@@ -392,6 +396,10 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
     get_mw_user_4ulist_ptr     = reinterpret_cast<func_get_mw_user_4ulist>(get_network_function("bambu_network_get_mw_user_4ulist"));
     get_hms_snapshot_ptr       = reinterpret_cast<func_get_hms_snapshot>(get_network_function("bambu_network_get_hms_snapshot"));
     sync_ams_filaments_ptr     = reinterpret_cast<func_sync_ams_filaments>(get_network_function("bambu_network_sync_ams_filaments"));
+    sync_slot_mappings_ptr         = reinterpret_cast<func_sync_slot_mappings>(get_network_function("bambu_network_sync_slot_mappings"));
+    get_soft_match_pending_ptr     = reinterpret_cast<func_get_soft_match_pending>(get_network_function("bambu_network_get_soft_match_pending"));
+    post_soft_match_pending_ptr    = reinterpret_cast<func_post_soft_match_pending>(get_network_function("bambu_network_post_soft_match_pending"));
+    post_device_region_ptr         = reinterpret_cast<func_post_device_region>(get_network_function("bambu_network_post_device_region"));
 
     return 0;
 }
@@ -521,6 +529,10 @@ int NetworkAgent::unload_network_module()
     get_mw_user_preference_ptr        = nullptr;
     get_mw_user_4ulist_ptr            = nullptr;
     sync_ams_filaments_ptr            = nullptr;
+    sync_slot_mappings_ptr            = nullptr;
+    get_soft_match_pending_ptr        = nullptr;
+    post_soft_match_pending_ptr       = nullptr;
+    post_device_region_ptr            = nullptr;
 
     return 0;
 }
@@ -1188,10 +1200,12 @@ int NetworkAgent::start_send_gcode_to_sdcard(PrintParams params, OnUpdateStatusF
 
 int NetworkAgent::start_local_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
 {
-    int ret = 0;
+    int ret = BAMBU_NETWORK_ERR_INVALID_HANDLE;
     if (network_agent && start_local_print_ptr) {
         ret = start_local_print_ptr(network_agent, params, update_fn, cancel_fn);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(params.dev_id) %params.task_name %params.project_name;
+    } else {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" invalid handle: network_agent=%1%, start_local_print_ptr=%2%, dev_id=%3%") % network_agent % start_local_print_ptr % BBLCrossTalk::Crosstalk_DevId(params.dev_id);
     }
     return ret;
 }
@@ -1550,6 +1564,54 @@ int NetworkAgent::sync_ams_filaments(AmsSyncParams params, std::string* http_bod
         return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
     int ret = sync_ams_filaments_ptr(network_agent, params, http_body);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") % network_agent % ret;
+    return ret;
+}
+
+int NetworkAgent::sync_slot_mappings(SlotMappingsSyncParams params, std::string* http_body)
+{
+    if (!network_agent || !sync_slot_mappings_ptr) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
+            << network_agent << " func_ptr=" << (void*)sync_slot_mappings_ptr << ")";
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    }
+    int ret = sync_slot_mappings_ptr(network_agent, params, http_body);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") % network_agent % ret;
+    return ret;
+}
+
+int NetworkAgent::get_soft_match_pending(SoftMatchPendingParams params, std::string* http_body)
+{
+    if (!network_agent || !get_soft_match_pending_ptr) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
+            << network_agent << " func_ptr=" << (void*)get_soft_match_pending_ptr << ")";
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    }
+    int ret = get_soft_match_pending_ptr(network_agent, params, http_body);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") % network_agent % ret;
+    return ret;
+}
+
+int NetworkAgent::post_soft_match_pending(SoftMatchPendingActionParams params, std::string* http_body)
+{
+    if (!network_agent || !post_soft_match_pending_ptr) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
+            << network_agent << " func_ptr=" << (void*)post_soft_match_pending_ptr << ")";
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    }
+    int ret = post_soft_match_pending_ptr(network_agent, params, http_body);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") % network_agent % ret;
+    return ret;
+}
+
+int NetworkAgent::post_device_region(DeviceRegionParams params, std::string* http_body)
+{
+    if (!network_agent || !post_device_region_ptr) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
+            << network_agent << " func_ptr=" << (void*)post_device_region_ptr << ")";
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    }
+    int ret = post_device_region_ptr(network_agent, params, http_body);
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") % network_agent % ret;
     return ret;
 }

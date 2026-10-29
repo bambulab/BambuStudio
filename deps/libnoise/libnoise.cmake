@@ -6,4 +6,5 @@ bambustudio_add_cmake_project(libnoise
     URL_HASH SHA256=7aae3433e4c841a1b15ddf40dc995b3d32efb154b92b6796888002e275bff859
     CMAKE_ARGS
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+        "-DCMAKE_DEBUG_POSTFIX:STRING="
 )

@@ -47,9 +47,6 @@
     "filament_wipe_distance": [
         "1"
     ],
-    "filament_z_hop": [
-        ""
-    ],
     "filament_z_hop_types": [
         "Spiral Lift"
     ],

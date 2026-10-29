@@ -4,6 +4,7 @@
 #include "NetworkAgent.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "BindDialog.hpp"
 #include "MsgDialog.hpp"
 
 #include "DeviceCore/DevManager.h"
@@ -57,8 +58,11 @@ int UserManager::parse_json(std::string payload)
                     GUI::MessageDialog msgdialog(nullptr, _L("Log in successful."), "", wxAPPLY | wxOK);
                     msgdialog.ShowModal();
                 }
-                dev->update_user_machine_list_info();
-                dev->set_selected_machine(dev_id);
+                dev->update_user_machine_list_info([dev, dev_id](bool parsed) {
+                    if (parsed) {
+                        dev->set_selected_machine(dev_id);
+                    }
+                });
                 return 0;
             }
             else if (command == "unbind" && result == "success") {

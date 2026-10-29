@@ -61,6 +61,8 @@ class Mouse3DController
         size_t 					 input_queue_max_size { 15 };
         // Whether to swap Y/Z axes or not.
         bool 					 swap_yz{ false };
+        // Whether to keep the horizon level while rotating or not.
+        bool 					 lock_horizon{ false };
     };
 
 	// Queue of the 3DConnexion input events (translations, rotations, button presses).

@@ -135,12 +135,6 @@
         "Direct Drive Standard,Direct Drive High Flow",
         "Direct Drive Standard,Direct Drive High Flow"
     ],
-    "nozzle_type": [
-        "hardened_steel",
-        "hardened_steel",
-        "hardened_steel",
-        "hardened_steel"
-    ],
     "nozzle_volume": [
         "130",
         "133",

@@ -26,6 +26,9 @@
     "eng_plate_temp_initial_layer": [
         "55"
     ],
+    "filament_change_length": [
+        "4"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10",
@@ -39,7 +42,10 @@
     "filament_max_volumetric_speed": [
         "25",
         "40",
-        "40"
+        "25"
+    ],
+    "filament_prime_volume": [
+        "30"
     ],
     "filament_retraction_length": [
         "0.4",

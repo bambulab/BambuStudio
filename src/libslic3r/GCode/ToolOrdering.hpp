@@ -317,6 +317,10 @@ public:
     // For a multi-material print, the printing extruders are ordered in the order they shall be primed.
     const std::vector<unsigned int>& all_extruders() const { return m_all_printing_extruders; }
 
+    // 0-based mixed (virtual) filament slots that actually appeared in layer tools before
+    // resolve_mixed_filaments() expanded them to physical components. Empty when unused.
+    const std::vector<unsigned int>& used_mixed_filaments() const { return m_used_mixed_filaments; }
+
     // Find LayerTools with the closest print_z.
     const LayerTools&	tools_for_layer(coordf_t print_z) const;
     LayerTools&			tools_for_layer(coordf_t print_z) { return const_cast<LayerTools&>(std::as_const(*this).tools_for_layer(print_z)); }
@@ -421,6 +425,9 @@ private:
     // Per-object gradient tracking: slot(0-based) -> PrintObject* -> list of layer indices
     // where that object uses the slot. Populated by collect_extruders, consumed by resolve_mixed_filaments.
     std::map<unsigned int, std::map<const PrintObject*, std::vector<size_t>>> m_mixed_object_layers;
+
+    // 0-based mixed slots actually present in any LayerTools::extruders before resolution.
+    std::vector<unsigned int> m_used_mixed_filaments;
 
     // All layer indices (in m_layer_tools) where each object has any layer.
     // Used by gradient run detection to distinguish real gaps (object has a layer

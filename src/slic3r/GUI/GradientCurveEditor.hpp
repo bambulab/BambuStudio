@@ -5,6 +5,7 @@
 #include <wx/colour.h>
 #include <wx/event.h>
 #include <wx/gdicmn.h>
+#include <wx/geometry.h>
 #include <wx/panel.h>
 
 #include "libslic3r/FilamentMixer.hpp"
@@ -74,6 +75,10 @@ private:
 
     // Coordinate mapping between data (x, y in [0,1]) and pixels in plot area.
     wxRect plot_rect() const;
+    // Sub-pixel accurate mapping, used for drawing: rounding the curve vertices to whole
+    // pixels leaves a staircase that anti-aliasing cannot smooth out, and the step is
+    // twice as coarse on 2x (Retina) displays.
+    wxPoint2DDouble data_to_px_f(double x, double y) const;
     wxPoint data_to_px(double x, double y) const;
     void    px_to_data(int px, int py, double& x, double& y) const;
     // Anchor hit test for the currently-selected curve (uses translated visual y).

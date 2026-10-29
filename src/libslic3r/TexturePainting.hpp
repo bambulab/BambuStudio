@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <functional>
 #include <memory>
@@ -13,6 +14,18 @@ namespace Slic3r {
 
 class TriangleMesh;
 class ModelVolume;
+
+namespace tex2color {
+struct MeshRepairCache;
+}
+
+// Incomplete-type helpers so GUI code can own a MeshRepairCache without
+// including TextureToColor.hpp (that header pulls Point.hpp via TriMesh).
+struct MeshRepairCacheDeleter {
+    void operator()(tex2color::MeshRepairCache* p) const;
+};
+using MeshRepairCachePtr = std::unique_ptr<tex2color::MeshRepairCache, MeshRepairCacheDeleter>;
+MeshRepairCachePtr make_mesh_repair_cache();
 
 struct TextureImage {
     int width  = 0;
@@ -38,6 +51,18 @@ struct TexturedMesh {
     std::vector<std::array<int,3>>    uv_indices;   // per-face UV indices into uv_coords
 
     bool has_face_uvs() const { return !uv_indices.empty() && !uv_coords.empty(); }
+
+    // Pre-computed per-face colors (e.g. from OBJ vertex colors or MTL Kd).
+    // When non-empty, the pipeline skips texture decode/sample/oversample and
+    // consumes these instead of sampling a texture.
+    // Each entry is {R, G, B} in [0..255].
+    std::vector<std::array<std::size_t,3>> precomputed_face_colors;
+
+    // Per-vertex colors from OBJ (RGBA, [0..1]), indexed by vertex index.
+    // On a low-poly mesh these are quantized into a small palette and the mesh is
+    // split along the resulting cluster boundaries, so color borders stay sharp
+    // instead of being averaged away into a single color per face.
+    std::vector<std::array<float,4>> precomputed_vertex_colors;
 };
 
 struct PaintedMesh {
@@ -60,14 +85,35 @@ struct TexturePaintingSettings {
     double      smooth_weight      = 0.5;
     std::size_t oversampling_iters = 0;
     enum class MeshRepairDecision {
-        Ask,
         ImportWithoutRepair,
         RepairAndImport
     };
     MeshRepairDecision mesh_repair_decision = MeshRepairDecision::ImportWithoutRepair;
-    bool* mesh_repair_decision_required = nullptr;
     PaintMeshRepairCallback mesh_repair_callback;
+    // Max wait for Windows 3D repair. Timed-out repair is cancelled and the
+    // original mesh is kept. Zero disables the timeout (homepage repair).
+    // Texture import sets this to 90s.
+    std::chrono::seconds mesh_repair_timeout{0};
+    tex2color::MeshRepairCache* mesh_repair_cache = nullptr;
 };
+
+// True if the cache holds a prepared mesh matching this input. Mismatched
+// identity clears prepared geometry but keeps win10_attempt.
+bool mesh_repair_cache_can_skip_input(const MeshRepairCachePtr& cache,
+                                      std::size_t input_face_count,
+                                      const TexturePaintingSettings& settings);
+bool mesh_repair_cache_win10_failed(const MeshRepairCachePtr& cache);
+
+// Copy the oversampled, unclustered prepared mesh for the original-model preview.
+// Returns false when the cache has no prepared geometry.
+bool copy_prepared_mesh_from_cache(const MeshRepairCachePtr& cache, PaintedMesh& out);
+
+// Cluster/smooth a previously prepared cache mesh. Does not read TexturedMesh.
+bool cluster_from_repair_cache(
+    PaintedMesh& painted,
+    const TexturePaintingSettings& settings,
+    PaintProgressCallback progress = nullptr,
+    PaintCancelCallback cancel = nullptr);
 
 struct FilamentMatch {
     int    cluster_index   = -1;
@@ -79,6 +125,16 @@ struct FilamentMatch {
 
 bool texture_to_painting(
     const TexturedMesh& textured,
+    PaintedMesh& painted,
+    const TexturePaintingSettings& settings = {},
+    PaintProgressCallback progress = nullptr,
+    PaintCancelCallback cancel = nullptr);
+
+// Turn pre-computed per-face colors into a painted mesh, skipping texture decode
+// and UV sampling. A low-poly mesh that also carries precomputed_vertex_colors is
+// split along quantized color boundaries, which replaces its geometry.
+bool face_colors_to_painting(
+    const TexturedMesh& mesh,
     PaintedMesh& painted,
     const TexturePaintingSettings& settings = {},
     PaintProgressCallback progress = nullptr,

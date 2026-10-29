@@ -624,7 +624,11 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     m_layers_slider->SetTicksValues(ticks_info_from_curr_plate);
 
     auto print_mode_stat = m_gcode_result->print_statistics.modes.front();
-    m_layers_slider->SetLayersTimes(print_mode_stat.layers_times, print_mode_stat.time);
+    // The slider has one tick per extrusion Z, which mixed-color sublayers make finer than the
+    // logical layers layers_times is built from. Prefer the matching partition when it exists.
+    const std::vector<float>& slider_layers_times = print_mode_stat.preview_layers_times.empty() ?
+        print_mode_stat.layers_times : print_mode_stat.preview_layers_times;
+    m_layers_slider->SetLayersTimes(slider_layers_times, print_mode_stat.time);
 
     // Suggest the auto color change, if model looks like sign
     if (m_layers_slider->IsNewPrint()) {
@@ -840,7 +844,6 @@ bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrint
     m_canvas->enable_slope(false);
     //BBS: GUI refactor: GLToolbar
     m_canvas->enable_return_toolbar(true);
-    //m_canvas->set_show_world_axes(true);//wait for GitHub users to see if they have this requirement
     // BBS: set volume_selection_mode to Volume
     //same to 3d //m_canvas->get_selection().set_volume_selection_mode(Selection::Instance);
     //m_canvas->get_selection().lock_volume_selection_mode();

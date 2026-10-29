@@ -4,6 +4,7 @@
 #include "../GUI/DeviceManager.hpp"
 #include "../GUI/Jobs/ProgressIndicator.hpp"
 #include "../GUI/PartPlate.hpp"
+#include "../GUI/GLCanvas3D.hpp"
 #include "../GUI/OpenGLManager.hpp"
 
 #include "libslic3r/Model.hpp"
@@ -320,13 +321,6 @@ static bool is_same_nozzle_diameters(const DynamicPrintConfig &full_config, cons
         return true;
 
     try {
-        std::string nozzle_type;
-
-        const ConfigOptionEnumsGenericNullable * config_nozzle_type = full_config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
-        std::vector<std::string> config_nozzle_types_str(config_nozzle_type->size());
-        for (size_t idx = 0; idx < config_nozzle_type->size(); ++idx)
-            config_nozzle_types_str[idx] = NozzleTypeEumnToStr[NozzleType(config_nozzle_type->values[idx])];
-
         auto opt_nozzle_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
 
         std::vector<float> config_nozzle_diameters(opt_nozzle_diameters->size());
@@ -998,6 +992,12 @@ void CalibUtils::calib_pa_pattern(const MachineObject *obj, const CalibInfo &cal
 
 void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &calib_infos, DynamicPrintConfig &full_config, Model &model)
 {
+    assert(!calib_infos.empty());
+    if (calib_infos.empty()) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": calib_infos is empty, skip auto PA model/config setup";
+        return;
+    }
+
     DynamicPrintConfig print_config    = calib_infos[0].print_prest->config;
 
     float nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
@@ -1130,6 +1130,12 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
 
 bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_infos, wxString &error_message)
 {
+    if (calib_infos.empty()) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": calib_infos is empty, abort auto PA calibration";
+        error_message = _L("Please select filament to calibrate.");
+        return false;
+    }
+
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) {
         error_message = _L("Need select printer");
@@ -1773,12 +1779,11 @@ bool CalibUtils::get_pa_k_n_value_by_cali_idx(const MachineObject *obj, int cali
     if (!obj)
         return false;
 
-    for (auto pa_calib_info : obj->GetCalib()->GetPAHistory()) {
-        if (pa_calib_info.cali_idx == cali_idx) {
-            out_k = pa_calib_info.k_value;
-            out_n = pa_calib_info.n_coef;
-            return true;
-        }
+    PaHistoryFilter pa_history_filter = obj->GetCalib()->GetPaHistoryFilter();
+    if (const PACalibResult *info = pa_history_filter.find_by_cali_idx(cali_idx)) {
+        out_k = info->k_value;
+        out_n = info->n_coef;
+        return true;
     }
     return false;
 }
@@ -2333,6 +2338,12 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
 
 void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxString &error_message, int flow_ratio_mode)
 {
+    if (calib_infos.empty()) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": calib_infos is empty, abort sending calibration job";
+        error_message = _L("Please select filament to calibrate.");
+        return;
+    }
+
     std::string                        dev_id      = calib_infos[0].dev_id;
     std::shared_ptr<ProgressIndicator> process_bar = calib_infos[0].process_bar;
     BedType                            bed_type    = calib_infos[0].bed_type;

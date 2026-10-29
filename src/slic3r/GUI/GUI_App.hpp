@@ -16,7 +16,6 @@
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
 #include "slic3r/GUI/WebUserLoginDialog.hpp"
-#include "slic3r/GUI/BindDialog.hpp"
 #include "slic3r/GUI/HMS.hpp"
 #include "slic3r/GUI/fila_manager/wgtFilaManagerStore.h"
 #include "slic3r/GUI/fila_manager/wgtFilaManagerSync.h"
@@ -28,6 +27,7 @@
 #include "slic3r/GUI/UnsavedChangesDialog.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "slic3r/GUI/GLEnums.hpp"
+#include "slic3r/Utils/VersionPolicyManager.hpp"
 
 #include <wx/app.h>
 #include <wx/timer.h>
@@ -73,6 +73,7 @@ namespace Slic3r {
 
 class AppConfig;
 class FilamentColorCodeQuery;
+class GLShaderProgram;
 class PresetBundle;
 class PresetUpdater;
 class ModelObject;
@@ -96,7 +97,7 @@ class ParamsPanel;
 class NotificationManager;
 struct GUI_InitParams;
 class ParamsDialog;
-class HMSQuery;
+class HMSQueryMgr;
 class ModelMallDialog;
 class PingCodeBindDialog;
 class NetworkErrorDialog;
@@ -363,7 +364,7 @@ private:
     VersionInfo version_info;
     VersionInfo privacy_version_info;
     static std::string version_display;
-    HMSQuery    *hms_query { nullptr };
+    HMSQueryMgr *hms_query_mgr { nullptr };
     FilamentColorCodeQuery* m_filament_color_code_query{ nullptr };
 
     boost::thread    m_sync_update_thread;
@@ -414,6 +415,8 @@ public:
     wgtFilaManagerCloudSync*        fila_manager_cloud_sync()   { return m_fila_manager_cloud_sync; }
     wgtFilaManagerCloudDispatcher*  fila_manager_cloud_disp()   { return m_fila_manager_cloud_disp; }
     bool                            is_fila_manager_disabled() const { return m_disable_fila_manager; }
+    void notify_new_rfid_filament(const std::string& ams_id, const std::string& slot_id);
+    void open_new_official_filament_hint(const std::string& ams_id, const std::string& slot_id);
 #if !BBL_RELEASE_TO_PUBLIC
     void set_fila_debug_sink(std::function<void(const nlohmann::json&)> sink)
     {
@@ -427,7 +430,7 @@ public:
                              const std::string& title,
                              const std::string& summary,
                              const nlohmann::json& detail = nlohmann::json::object());
-    HMSQuery* get_hms_query() { return hms_query; }
+    HMSQueryMgr* get_hms_query_mgr() { return hms_query_mgr; }
     NetworkAgent* getAgent() { return m_agent; }
     FilamentColorCodeQuery* get_filament_color_code_query();
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
@@ -473,7 +476,13 @@ public:
     void            UpdateDlgDarkUI(wxDialog* dlg);
     void            UpdateFrameDarkUI(wxFrame* dlg);
     // update color mode for DataViewControl
-    void            UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited = false);
+    /**
+     * \brief Apply the dark-mode theme to a wxDataViewCtrl and its header.
+     * \param dvc         Control to theme.
+     * \param highlited   Use the highlighted dark background.
+     * \param header_font Optional header font; nullptr keeps the app's normal font.
+     */
+    void            UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited = false, const wxFont* header_font = nullptr);
     // update color mode for panel including all static texts controls
     void            UpdateAllStaticTextDarkUI(wxWindow* parent);
     void            init_fonts();
@@ -566,6 +575,7 @@ public:
     void            check_update(bool show_tips, int by_user);
     void            check_new_version(bool show_tips = false, int by_user = 0);
     void            check_cert();
+    void            post_device_region();
     bool            process_network_msg(std::string dev_id, std::string msg);
     void            check_beta_version(bool show_tips_when_no_beta = false);
     void            request_new_version(int by_user);
@@ -593,12 +603,67 @@ public:
     void            report_consent(std::string expand);
     void            check_track_enable();
 
+    /**
+     * @brief Asks the cloud version policy about a check point.
+     *
+     * Only answers what the policy says. Showing a VersionPolicyDialog and
+     * deciding what its buttons do is left to the caller, since what a hit
+     * means differs per check point.
+     *
+     * @param point Check point to evaluate.
+     * @return The hits, if any. An empty result means the caller may carry on
+     *         silently, which is also what any failure below resolves to.
+     * @note Does not throw and performs no network I/O.
+     */
+    PolicyCheckResult check_version_policy(PolicyCheckPoint point);
+
+    /**
+     * @brief Shows the policy that matched at startup, if any.
+     *
+     * Quits the application on a block: such a version must not reach the
+     * workspace at all.
+     */
+    void            check_startup_version_policy();
+
+    /**
+     * @brief Shows the policy that guards slicing, if any.
+     *
+     * Call it on an explicit slice request, before any slicing work starts.
+     *
+     * @return true when slicing may go ahead: nothing matched, or the user
+     *         chose to continue through a warning. A block always returns false.
+     */
+    bool            check_slice_version_policy();
+
+    /**
+     * @brief Silent (no dialog) test of whether the current version is hard-blocked
+     *        from slicing by the cloud policy.
+     *
+     * Use it to short-circuit expensive pre-slice work (AMS sync checks, first-time
+     * tutorial popups) without raising the policy dialog. The single user-facing
+     * dialog is still raised by check_slice_version_policy() at the actual slice.
+     *
+     * @return true only when a BeforeSlice policy of severity "block" matches; a
+     *         warning-only match or no match returns false.
+     */
+    bool            is_slice_version_blocked();
+
+    /**
+     * @brief Shows the policy that guards printing, if any.
+     *
+     * Call it right before the send to printer dialog would come up.
+     *
+     * @return true when the dialog may come up: nothing matched, or the user
+     *         chose to continue through a warning. A block always returns false.
+     */
+    bool            check_send_print_version_policy();
+
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 
     //for helio slice
     bool            is_helio_enable();
     static void     request_helio_pat(std::function<void(std::string)> func);
-    static void     request_helio_supported_data();
+    static void     request_helio_supported_data(bool force_refresh = false);
 	//static std::vector<Slic3r::HelioQuery::SupportedPrinters> get_helio_support_printer_model();
 
     void                                               persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);
@@ -788,6 +853,11 @@ public:
 
     void update_log_sink_region();
 
+    // Apply a "severity_level" string (fatal/error/warning/info/debug/trace) to
+    // both the Boost.Log and wx logging verbosity, keeping them in sync. Single
+    // entry point used at init and by the preference combobox.
+    void set_severity_level(const std::string &level);
+
 private:
     int             updating_bambu_networking();
     bool            on_init_inner();
@@ -858,7 +928,12 @@ static std::vector<wxLanguage> s_supported_languages = {
     wxLANGUAGE_UKRAINIAN,
     wxLANGUAGE_PORTUGUESE_BRAZILIAN,
     wxLANGUAGE_TURKISH,
-    wxLANGUAGE_POLISH
+    wxLANGUAGE_POLISH,
+    wxLANGUAGE_THAI,
+    wxLANGUAGE_ROMANIAN,
+    wxLANGUAGE_GREEK,
+    wxLANGUAGE_INDONESIAN,
+    wxLANGUAGE_VIETNAMESE
 };
 } // namespace GUI
 } // Slic3r

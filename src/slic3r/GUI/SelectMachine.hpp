@@ -39,6 +39,7 @@
 #include "PrePrintChecker.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/StaticBox.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
@@ -54,6 +55,7 @@
 // Previous definitions
 namespace Slic3r{
     class DevExtder;
+    struct GCodeProcessorResult;
 }
 
 namespace Slic3r { namespace GUI {
@@ -405,6 +407,7 @@ protected:
     wxSimplebook*                       m_simplebook{nullptr};
     wxStaticText*                       m_rename_text{nullptr};
     Label*                              m_stext_time{ nullptr };
+    Label*                              m_time_estimate_tip{ nullptr };
     Label*                              m_stext_weight{ nullptr };
     Label*                              m_saveTimeText{ nullptr };
     PrinterMsgPanel *                   m_statictext_ams_msg{nullptr};
@@ -653,7 +656,14 @@ private:
 
 
 
-    void refresh_save_time(MachineObject *obj);
+    // update time
+    bool support_filament_mapping_estimate() const;
+    void update_time_estimate_tip(bool show);
+    void refresh_print_time(MachineObject *obj);
+    void set_print_time_display(float sliced_seconds, float display_seconds);
+    void refresh_print_time_normal(MachineObject* obj, float sliced_seconds);
+    void refresh_print_time_ams_mapping(MachineObject* obj, const GCodeProcessorResult* slice_result, float sliced_seconds);
+    void update_save_time_hint(MachineObject* obj, const std::optional<float>& save_time);
 
     bool has_bowden_extuder(MachineObject *obj);
 };
@@ -693,7 +703,15 @@ private:
     Label*         m_text_bed_type;
 };
 
-class NozzleStatePanel : public wxPanel
+// One nozzle row: rack machines use the whole row, others split it to highlight one part
+struct NozzleRowLabels
+{
+    Label* whole    = nullptr;
+    Label* diameter = nullptr;
+    Label* flow     = nullptr;
+};
+
+class NozzleStatePanel : public StaticBox
 {
 public:
     NozzleStatePanel(wxWindow* parent);
@@ -707,16 +725,19 @@ private:
                     const ExtruderNozzleInfos& machine_nozzle_infos);
     void UpdateGui();
     void UpdateLabelColour();
+    void AppendNozzleRows(wxSizer* vbox, int ext_id, bool slicing_side);
 
 private:
     ExtruderNozzleInfos m_slicing_nozzles;
     ExtruderNozzleInfos m_installed_nozzles;
     std::string         m_printer_type;
+    int                 m_total_ext_count = 1;
+    bool                m_has_rack = false;
 
     wxSizer* m_sizer;
 
-    // key(extruder_id) -> { key1(nozzle type info), val1(label)}
-    std::unordered_map<int, std::unordered_map<NozzleDef, Label*>> m_slicing_labels;
+    // key(extruder_id) -> { key1(nozzle type info), val1(labels)}
+    std::unordered_map<int, std::unordered_map<NozzleDef, NozzleRowLabels>> m_slicing_labels;
 };
 
 wxDECLARE_EVENT(EVT_SWITCH_PRINT_OPTION, wxCommandEvent);

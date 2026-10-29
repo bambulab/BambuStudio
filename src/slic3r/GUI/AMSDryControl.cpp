@@ -1701,7 +1701,7 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
     bool has_ready = false;
     const auto fallback_preset = DevUtilBackend::GetFilamentDryingPreset("GFA00");
     for (const auto& tray_pair : dev_ams->GetTrays()) {
-        if (!tray_pair.second || !tray_pair.second->is_tray_info_ready()) continue;
+        if (!tray_pair.second || !tray_pair.second->is_exists) continue;
         has_ready = true;
         wxString filament_type = tray_pair.second->get_display_filament_type();
         Slic3r::DevFilamentDryingPreset preset;

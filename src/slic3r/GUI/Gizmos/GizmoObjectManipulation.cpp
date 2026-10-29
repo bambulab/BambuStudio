@@ -110,7 +110,7 @@ void GizmoObjectManipulation::update_ui_from_settings()
     }
 }
 void delete_negative_sign(Vec3d& value) {
-    for (size_t i = 0; i < value.size(); i++) {
+    for (int i = 0; i < value.size(); i++) {
         if (abs(value[i]) < 0.001)
             value[i] = 0.f;
     }

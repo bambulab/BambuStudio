@@ -1,0 +1,205 @@
+/* Step 2 Copy specific styles */
+
+.copy-section {
+    width: 663px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex: 1;
+    overflow: hidden;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    margin-bottom: 12px;
+    width: 100%;
+}
+
+.info-label {
+    width: 140px;
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text-main);
+}
+
+/* Printer dropdown panel — anchored below the input, not covering the preset table */
+.printer-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 100;
+    width: 480px;
+    border: 1px solid var(--color-border-light);
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    overflow: hidden;
+}
+
+/* Empty state inside the printer dropdown (no compatible printers).
+   Text only — no icon, no bottom Confirm bar (see step2_copy.js). */
+.printer-dropdown .dropdown-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 0;
+    color: var(--color-text-muted);
+}
+.printer-dropdown .dropdown-empty .empty-state-text {
+    font-size: 12px;
+    color: var(--color-text-muted);
+}
+
+/* Full-panel empty-state placeholder (icon + hint, reused across step2_type/step2_copy) */
+.empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 260px;
+    color: var(--color-text-muted);
+}
+.empty-state-img {
+    width: 160px;
+    height: 128px;
+}
+.empty-state-text {
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+
+.printer-dropdown .selection-area {
+    display: flex;
+    gap: 0;
+    height: 220px;
+}
+
+.printer-dropdown .printer-list,
+.printer-dropdown .nozzle-list {
+    flex: 1;
+    border: none;
+    border-radius: 0;
+    overflow-y: auto;
+    border-right: 1px solid var(--color-border-light);
+}
+
+.printer-dropdown .nozzle-list {
+    border-right: none;
+}
+
+.dropdown-confirm-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 12px;
+    border-top: 1px solid var(--color-border-light);
+    background: #FAFAFA;
+}
+
+/* Preset table header */
+.preset-table-header {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text-main);
+    margin-bottom: 8px;
+    padding: 4px 0 4px 0;
+    width: 100%;
+}
+
+/* Preset table area — flex-fills the remaining vertical space so the table
+   stretches down close to the footer buttons instead of leaving dead space. */
+#preset-table-area {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    padding-bottom: 12px;
+}
+
+/* Preset table */
+.preset-table {
+    width: 651px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: 1px solid var(--color-border-light);
+    border-radius: 6px;
+    box-sizing: border-box;
+    padding: 8px 0;
+}
+
+/* Group separator */
+.preset-group-divider {
+    height: 1px;
+    background: var(--color-border-light);
+    margin: 0;
+}
+
+/* Each preset row */
+.preset-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--color-text-main);
+    border-bottom: 1px solid #F5F5F5;
+    gap: 4px;
+}
+.preset-row:last-child { border-bottom: none; }
+
+.preset-row .nozzle-name {
+    width: 300px;
+    flex-shrink: 0;
+    color: var(--color-text-main);
+    font-size: 13px;
+    line-height: 21px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.preset-row .preset-select-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.preset-row .preset-select-wrapper::before {
+    content: '›';
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #CECECE;
+    font-size: 14px;
+    pointer-events: none;
+}
+
+.preset-row input.preset-input,
+.preset-row select.preset-input {
+    width: 327px;
+    height: 24px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 0 8px 0 20px;
+    font-size: 12px;
+    color: var(--color-text-main);
+    outline: none;
+    box-sizing: border-box;
+    cursor: pointer;
+    background: #fff;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* Disabled next button */
+#btn-next:disabled {
+    background: #CECECE;
+    cursor: not-allowed;
+}
+#btn-next:disabled:hover { background: #CECECE; }

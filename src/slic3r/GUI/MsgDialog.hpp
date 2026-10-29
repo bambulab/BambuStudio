@@ -131,6 +131,20 @@ public:
 	virtual ~WarningDialog() = default;
 };
 
+class MsgNoteDialog : public MsgDialog
+{
+public:
+    MsgNoteDialog(wxWindow *parent, const wxString &title, long style = wxICON_WARNING);
+    ~MsgNoteDialog() override = default;
+
+    void AddMessage(const wxString &message);
+    void AddNote(const wxString &note);
+    void Finalize();
+
+private:
+    Label *create_wrapped_label(const wxString &text, const wxFont &font, const wxColour &color);
+};
+
 // Post-processing script confirmation before slicing (3MF with post_process scripts)
 class PostProcessScriptDialog : public MsgDialog
 {

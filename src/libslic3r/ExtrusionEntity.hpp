@@ -670,6 +670,10 @@ inline void extrusion_entities_append_paths(ExtrusionEntitiesPtr &dst, Polylines
 //BBS: a kind of special extrusion path has start and end wiping for half spacing
 inline void extrusion_entities_append_paths_with_wipe(ExtrusionEntitiesPtr &dst, Polylines &&polylines, ExtrusionRole role, double mm3_per_mm, float width, float height, float nozzle_diameter, float overlap_gap_compensation_ratio)
 {
+    // 空输入直接返回，避免 new 出空 MultiPath 后既不入 dst 又未释放。
+    if (polylines.empty())
+        return;
+
     constexpr double overlap_rate = 1.0;
     dst.reserve(dst.size() + polylines.size());
     Point last_end_point;
@@ -719,6 +723,8 @@ inline void extrusion_entities_append_paths_with_wipe(ExtrusionEntitiesPtr &dst,
     }
     if (!multi_path->empty())
         dst.push_back(multi_path);
+    else
+        delete multi_path; // 全部被 is_valid 滤掉时同样会留下空 MultiPath。
     polylines.clear();
     dst.shrink_to_fit();
 }

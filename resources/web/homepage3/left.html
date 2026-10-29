@@ -2,6 +2,10 @@
 <html>
 <head>
 <meta charset="utf-8">
+<!-- Scripts may only come from the bundled resources; no remote code, see home.html.
+     'unsafe-eval' is required: the host pushes every menu update through
+     evaluateJavaScript(), which WebKit before macOS 26 checks against this policy. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' file:; style-src 'self' 'unsafe-inline' file:; img-src 'self' file: data: blob: https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'" />
 <meta http-equiv="Cache-Control" content="max-age=7200" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,user-scalable=no">
 <title>homepage</title>
@@ -98,7 +102,7 @@
 			<div menu="manual" class="BtnItem TopDivider" onClick="GotoMenu('manual')">
 				<div class="BtnIcon "><img class="LeftIcon" src="img/left_manual.svg" /></div>
 				<div class="BtnText trans" tid="t87">User Manual</div>
-				<div class="BtnIcon BtnIcon-Right"><img class="RightIcon" src="img/left_link.svg"/></div>
+				<div class="BtnIcon BtnIcon-Right" onClick="OnManualExternalLinkClick(event)"><img class="RightIcon" src="img/left_link.svg"/></div>
 			</div>
 		</div>
 	</div>

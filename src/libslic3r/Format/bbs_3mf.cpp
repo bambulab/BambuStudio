@@ -11,6 +11,7 @@
 #include "../Time.hpp"
 
 #include "../I18N.hpp"
+#include "../FilamentMixer.hpp"
 
 #include "bbs_3mf.hpp"
 
@@ -209,6 +210,14 @@ static constexpr const char* BUILD_TAG = "build";
 static constexpr const char* ITEM_TAG = "item";
 static constexpr const char* METADATA_TAG = "metadata";
 static constexpr const char* FILAMENT_TAG = "filament";
+static constexpr const char* MIXED_FILAMENT_TAG = "mixed_filament";
+static constexpr const char* MIXED_FILAMENT_COMPONENTS_TAG = "components";
+static constexpr const char* PAUSE_LIST_TAG = "pause_list";
+static constexpr const char* PAUSE_TAG = "pause";
+static constexpr const char* PAUSE_INDEX_ATTR = "index";
+static constexpr const char* PAUSE_LAYER_ATTR = "layer";
+static constexpr const char* PAUSE_PERCENT_ATTR = "percent";
+static constexpr const char* PAUSE_REMAINING_TIME_ATTR = "remaining_time";
 static constexpr const char* SLICE_WARNING_TAG = "warning";
 static constexpr const char* WARNING_MSG_TAG = "msg";
 static constexpr const char *FILAMENT_ID_TAG   = "id";
@@ -218,6 +227,8 @@ static constexpr const char *FILAMENT_USED_M_TAG = "used_m";
 static constexpr const char *FILAMENT_USED_G_TAG = "used_g";
 static constexpr const char *FILAMENT_USED_FOR_SUPPORT     = "used_for_support";
 static constexpr const char *FILAMENT_USED_FOR_OBJECT      = "used_for_object";
+static constexpr const char *FILAMENT_TOTAL_LOAD_TIME_TAG   = "total_load_time";
+static constexpr const char *FILAMENT_TOTAL_UNLOAD_TIME_TAG = "total_unload_time";
 static constexpr const char *FILAMENT_TRAY_INFO_ID_TAG     = "tray_info_idx";
 static constexpr const char *LAYER_FILAMENT_LISTS_TAG      = "layer_filament_lists";
 static constexpr const char *LAYER_FILAMENT_LIST_TAG       = "layer_filament_list";
@@ -225,6 +236,12 @@ static constexpr const char *FILAMENT_NOZZLE_GROUP_ID_TAG    = "group_id";
 static constexpr const char *FILAMENT_NOZZLE_DIAMETER_TAG    = "nozzle_diameter";
 static constexpr const char *FILAMENT_NOZZLE_VOLUME_TYPE_TAG = "volume_type";
 static constexpr const char *NOZZLE_TAG                      = "nozzle";
+static constexpr const char *DEFAULT_AMS_TYPE_ATTR           = "default_ams_type";
+static constexpr const char *AMS_LIST_TAG                    = "ams_list";
+static constexpr const char *AMS_ITEM_TAG                    = "ams";
+static constexpr const char *AMS_TYPE_ATTR                   = "ams_type";
+static constexpr const char *AMS_LOAD_TIME_ATTR             = "load_time";
+static constexpr const char *AMS_UNLOAD_TIME_ATTR           = "unload_time";
 
 
 static constexpr const char* CONFIG_TAG = "config";
@@ -335,15 +352,16 @@ static constexpr const char* PLATE_IDX_ATTR = "index";
 static constexpr const char* PRINTER_MODEL_ID_ATTR = "printer_model_id";
 static constexpr const char* EXTRUDER_TYPE_ATTR = "extruder_type";
 static constexpr const char* NOZZLE_VOLUME_TYPE_ATTR = "nozzle_volume_type";
-static constexpr const char* NOZZLE_TYPE_ATTR          = "nozzle_types";
 static constexpr const char* NOZZLE_DIAMETERS_ATTR = "nozzle_diameters";
 static constexpr const char* SLICE_PREDICTION_ATTR = "prediction";
 static constexpr const char* SLICE_WEIGHT_ATTR = "weight";
+static constexpr const char* PAUSE_COUNT_ATTR = "pause_count";
 static constexpr const char* FIRST_LAYER_TIME_ATTR = "first_layer_time";
 static constexpr const char* TIMELAPSE_TYPE_ATTR = "timelapse_type";
 static constexpr const char* OUTSIDE_ATTR = "outside";
 static constexpr const char* SUPPORT_USED_ATTR = "support_used";
 static constexpr const char* LABEL_OBJECT_ENABLED_ATTR = "label_object_enabled";
+static constexpr const char* SUPPORT_MATERIAL_ON_WIPE_TOWER_ATTR = "support_material_on_wipe_tower";
 static constexpr const char* ENABLE_FILAMENT_DYNAMIC_MAP_ATTR = "enable_filament_dynamic_map";
 static constexpr const char* HAS_FILAMENT_SWITCHER_ATTR = "has_filament_switcher";
 static constexpr const char* SKIPPED_ATTR = "skipped";
@@ -656,6 +674,95 @@ bool bbs_is_valid_object_type(const std::string& type)
     return false;
 }
 
+static std::string bbs_join_path_within_dir(const std::string& base_dir, const std::string& rel_path)
+{
+    std::string joined = base_dir + "/" + rel_path;
+    boost::filesystem::path base = boost::filesystem::path(base_dir).lexically_normal();
+    boost::filesystem::path joined_path = boost::filesystem::path(joined).lexically_normal();
+    const std::string base_str = base.generic_string();
+    const std::string joined_str = joined_path.generic_string();
+    bool inside = joined_str.size() >= base_str.size() &&
+        joined_str.compare(0, base_str.size(), base_str) == 0 &&
+        (joined_str.size() == base_str.size() || joined_str[base_str.size()] == '/');
+    return inside ? joined : std::string();
+}
+
+// encode_path() calls WideCharToMultiByte without WC_NO_BEST_FIT_CHARS, so on
+// systems with a best-fit code page (e.g. CP1252) U+FF0E/U+FF0F map to '.'/'/'.
+// A member such as "Auxiliaries/．．／evil" therefore passes the UTF-8 ".."
+// checks and only becomes a real "../" at encoding time — which is what fopen()
+// sees. Reject that. Do not reject a filename that merely contains ".." as
+// bytes inside one component (e.g. "foo..bar.png", or fullwidth dots that
+// best-fit to dots but do not form a ".." path segment or a new separator).
+static bool bbs_encoded_has_dotdot_component(const std::string& encoded)
+{
+    if (encoded.empty())
+        return true;
+    if (encoded[0] == '/' || encoded[0] == '\\')
+        return true;
+    for (size_t i = 0; i <= encoded.size();) {
+        const size_t j = std::min(encoded.find_first_of("/\\", i), encoded.size());
+        if (j - i == 2 && encoded[i] == '.' && encoded[i + 1] == '.')
+            return true;
+        if (j == encoded.size())
+            break;
+        i = j + 1;
+    }
+    return false;
+}
+
+static bool bbs_auxiliary_subpath_safe_for_encoding(const std::string& subpath)
+{
+    if (subpath.empty())
+        return false;
+    return !bbs_encoded_has_dotdot_component(Slic3r::encode_path(subpath.c_str()));
+}
+
+// Drop encoded "." / ".." components (e.g. fullwidth U+FF0E/U+FF0F best-fit to "../")
+// and keep the remaining relative path so the file still lands under the auxiliary
+// dir instead of being discarded. Result is UTF-8 (decode_path of the encoded rest)
+// so the later encode_path(final_path) is not a double encode.
+static std::string bbs_auxiliary_sanitize_after_encoding(const std::string& subpath)
+{
+    if (subpath.empty())
+        return std::string();
+    const std::string encoded = Slic3r::encode_path(subpath.c_str());
+    if (encoded.empty() || encoded[0] == '/' || encoded[0] == '\\')
+        return std::string();
+
+    std::vector<std::string> parts;
+    boost::split(parts, encoded, boost::is_any_of("/\\"), boost::token_compress_on);
+
+    std::string out;
+    for (const std::string& part : parts) {
+        if (part.empty() || part == "." || part == "..")
+            continue;
+        if (!out.empty())
+            out += '/';
+        out += part;
+    }
+    if (out.empty() || bbs_encoded_has_dotdot_component(out))
+        return std::string();
+    return Slic3r::decode_path(out.c_str());
+}
+
+// Backstop for the check above: the encoded destination must remain inside the equally
+// encoded extraction root directory, so no matter what the local code page best-fit
+// mapping turns the member name into, the extracted file can never be written outside
+// of the auxiliary files temp directory.
+static bool bbs_encoded_path_within_dir(const std::string& encoded_dir, const std::string& encoded_path)
+{
+    if (encoded_path.size() <= encoded_dir.size())
+        return false;
+    if (encoded_path.compare(0, encoded_dir.size(), encoded_dir) != 0)
+        return false;
+    const char sep = encoded_path[encoded_dir.size()];
+    if (sep != '/' && sep != '\\')
+        return false;
+    const std::string rest = encoded_path.substr(encoded_dir.size() + 1);
+    return !rest.empty() && !bbs_encoded_has_dotdot_component(rest);
+}
+
 namespace Slic3r {
 
 void PlateData::parse_filament_info(GCodeProcessorResult *result)
@@ -690,6 +797,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         info.id = it->first;
         info.used_g = used_filament_g;
         info.used_m = used_filament_m;
+        {
+            auto load_it = ps.load_time_per_filament.find(it->first);
+            if (load_it != ps.load_time_per_filament.end())
+                info.total_load_time = load_it->second;
+            auto unload_it = ps.unload_time_per_filament.find(it->first);
+            if (unload_it != ps.unload_time_per_filament.end())
+                info.total_unload_time = unload_it->second;
+        }
 
         if (result && result->nozzle_group_result) {
             auto nozzles_for_filament = result->nozzle_group_result->get_nozzles_for_filament(it->first);
@@ -968,7 +1083,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string object_path;
             std::string zip_path;
             _BBS_3MF_Importer *top_importer{nullptr};
-            XML_Parser object_xml_parser;
+            XML_Parser object_xml_parser { nullptr };
             bool obj_parse_error { false };
             std::string obj_parse_error_message;
 
@@ -1334,11 +1449,17 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _handle_start_config_filament(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_filament();
 
+        bool _handle_start_config_pause(const char** attributes, unsigned int num_attributes);
+
+        bool _handle_start_config_mixed_filament(const char** attributes, unsigned int num_attributes);
+
         bool _handle_start_config_warning(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_warning();
 
         bool _handle_start_config_nozzle(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_nozzle();
+
+        bool _handle_start_config_ams_item(const char** attributes, unsigned int num_attributes);
 
         //BBS: add plater config parse functions
         bool _handle_start_config_plater(const char** attributes, unsigned int num_attributes);
@@ -1667,6 +1788,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate->toolpath_outside = it->second->toolpath_outside;
             plate->is_support_used = it->second->is_support_used;
             plate->is_label_object_enabled = it->second->is_label_object_enabled;
+            plate->support_material_on_wipe_tower = it->second->support_material_on_wipe_tower;
             plate->skipped_objects = it->second->skipped_objects;
             plate->slice_filaments_info = it->second->slice_filaments_info;
             plate->nozzles_info = it->second->nozzles_info;
@@ -2254,8 +2376,19 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (cut_object_info != m_cut_object_infos.end()) {
                 model_object->cut_id = cut_object_info->second.id;
 
-                for (auto connector : cut_object_info->second.connectors) {
-                    assert(0 <= connector.volume_id && connector.volume_id <= int(model_object->volumes.size()));
+                for (const auto &connector : cut_object_info->second.connectors) {
+                    // volume_id and type come straight out of Metadata/cut_information.xml, i.e. from
+                    // untrusted file content. They must be range-checked before use: assert() is compiled
+                    // out in release builds, so a crafted or corrupted 3MF would index ModelObject::volumes
+                    // out of bounds and write a CutInfo through the resulting garbage pointer.
+                    if (connector.volume_id < 0 || connector.volume_id >= int(model_object->volumes.size())) {
+                        add_error("Invalid cut connector volume_id " + std::to_string(connector.volume_id));
+                        continue;
+                    }
+                    if (connector.type < 0 || connector.type > int(CutConnectorType::Undef)) {
+                        add_error("Invalid cut connector type " + std::to_string(connector.type));
+                        continue;
+                    }
                     model_object->volumes[connector.volume_id]->cut_info =
                         ModelVolume::CutInfo(CutConnectorType(connector.type), connector.radius, connector.height, connector.r_tolerance, connector.h_tolerance, true);
                 }
@@ -2372,22 +2505,23 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->plate_index = it->second->plate_index-1;
             plate_data_list[it->first-1]->plate_name  = it->second->plate_name;
             plate_data_list[it->first-1]->obj_inst_map = it->second->obj_inst_map;
-            plate_data_list[it->first-1]->gcode_file = (m_load_restore || it->second->gcode_file.empty()) ? it->second->gcode_file : m_backup_path + "/" + it->second->gcode_file;
+            plate_data_list[it->first-1]->gcode_file = (m_load_restore || it->second->gcode_file.empty()) ? it->second->gcode_file : bbs_join_path_within_dir(m_backup_path, it->second->gcode_file);
             plate_data_list[it->first-1]->gcode_prediction = it->second->gcode_prediction;
             plate_data_list[it->first-1]->gcode_weight = it->second->gcode_weight;
             plate_data_list[it->first-1]->toolpath_outside = it->second->toolpath_outside;
             plate_data_list[it->first-1]->is_support_used = it->second->is_support_used;
             plate_data_list[it->first-1]->is_label_object_enabled = it->second->is_label_object_enabled;
+            plate_data_list[it->first-1]->support_material_on_wipe_tower = it->second->support_material_on_wipe_tower;
             plate_data_list[it->first-1]->slice_filaments_info = it->second->slice_filaments_info;
             plate_data_list[it->first-1]->nozzles_info  = it->second->nozzles_info;
             plate_data_list[it->first-1]->skipped_objects = it->second->skipped_objects;
             plate_data_list[it->first-1]->warnings = it->second->warnings;
-            plate_data_list[it->first-1]->thumbnail_file = (m_load_restore || it->second->thumbnail_file.empty()) ? it->second->thumbnail_file : m_backup_path + "/" + it->second->thumbnail_file;
+            plate_data_list[it->first-1]->thumbnail_file = (m_load_restore || it->second->thumbnail_file.empty()) ? it->second->thumbnail_file : bbs_join_path_within_dir(m_backup_path, it->second->thumbnail_file);
             //plate_data_list[it->first-1]->pattern_file = (m_load_restore || it->second->pattern_file.empty()) ? it->second->pattern_file : m_backup_path + "/" + it->second->pattern_file;
-            plate_data_list[it->first-1]->no_light_thumbnail_file = (m_load_restore || it->second->no_light_thumbnail_file.empty()) ? it->second->no_light_thumbnail_file : m_backup_path + "/" + it->second->no_light_thumbnail_file;
-            plate_data_list[it->first-1]->top_file = (m_load_restore || it->second->top_file.empty()) ? it->second->top_file : m_backup_path + "/" + it->second->top_file;
-            plate_data_list[it->first-1]->pick_file = (m_load_restore || it->second->pick_file.empty()) ? it->second->pick_file : m_backup_path + "/" + it->second->pick_file;
-            plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : m_backup_path + "/" + it->second->pattern_bbox_file;
+            plate_data_list[it->first-1]->no_light_thumbnail_file = (m_load_restore || it->second->no_light_thumbnail_file.empty()) ? it->second->no_light_thumbnail_file : bbs_join_path_within_dir(m_backup_path, it->second->no_light_thumbnail_file);
+            plate_data_list[it->first-1]->top_file = (m_load_restore || it->second->top_file.empty()) ? it->second->top_file : bbs_join_path_within_dir(m_backup_path, it->second->top_file);
+            plate_data_list[it->first-1]->pick_file = (m_load_restore || it->second->pick_file.empty()) ? it->second->pick_file : bbs_join_path_within_dir(m_backup_path, it->second->pick_file);
+            plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : bbs_join_path_within_dir(m_backup_path, it->second->pattern_bbox_file);
             plate_data_list[it->first-1]->config = it->second->config;
             plate_data_list[it->first-1]->filament_maps = it->second->filament_maps;
             plate_data_list[it->first-1]->filament_change_sequence = it->second->filament_change_sequence;
@@ -2742,6 +2876,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return;
             }
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", load project config file successfully from %1%\n") % PathSanitizer::sanitize(dest_file);
+
+            // Heal any gradient-curve slots corrupted by the legacy "|" separator collision
+            // (see FilamentMixer::sanitize_mixed_gradient_curve_array). The 3MF JSON itself
+            // is safe (";" + C-style escape), but older projects saved through the buggy
+            // export_selections/load_selections path may already carry single-point entries
+            // that fail MakerWorld's "curve needs >= 2 points" check.
+            if (auto* curve_opt = config.option<ConfigOptionStrings>("filament_mixed_gradient_curve"))
+                Slic3r::sanitize_mixed_gradient_curve_array(curve_opt->values);
         }
     }
 
@@ -2878,6 +3020,17 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return;
             }
 
+            if (!bbs_auxiliary_subpath_safe_for_encoding(dest_file)) {
+                std::string safe_dest = bbs_auxiliary_sanitize_after_encoding(dest_file);
+                if (safe_dest.empty() || !bbs_auxiliary_subpath_safe_for_encoding(safe_dest)) {
+                    BOOST_LOG_TRIVIAL(error) << "Invalid sub path: unsafe after local path encoding";
+                    return;
+                }
+                BOOST_LOG_TRIVIAL(warning) << "Auxiliary sub path rewritten for local encoding safety: "
+                    << PathSanitizer::sanitize(dest_file) << " -> " << PathSanitizer::sanitize(safe_dest);
+                dest_file = std::move(safe_dest);
+            }
+
             if (dest_file.find('/') != std::string::npos || dest_file.find('\\') != std::string::npos) {
                 boost::filesystem::path src_path = boost::filesystem::path(dest_file);
                 boost::filesystem::path parent_path = src_path.parent_path();
@@ -2890,6 +3043,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             boost::filesystem::path final_path = dir / dest_file;
             std::string dest_zip_file = encode_path(final_path.string().c_str());
+
+            if (!bbs_encoded_path_within_dir(encode_path(temp_path.c_str()), dest_zip_file)) {
+                BOOST_LOG_TRIVIAL(error) << "Invalid sub path: escapes extraction dir after local path encoding";
+                return;
+            }
 
             mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % PathSanitizer::sanitize(dest_file) % stat.m_filename % res;
@@ -3622,10 +3780,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_start_config_plater_instance(attributes, num_attributes);
         else if (::strcmp(FILAMENT_TAG, name) == 0)
             res = _handle_start_config_filament(attributes, num_attributes);
+        else if (::strcmp(PAUSE_TAG, name) == 0)
+            res = _handle_start_config_pause(attributes, num_attributes);
+        else if (::strcmp(MIXED_FILAMENT_TAG, name) == 0)
+            res = _handle_start_config_mixed_filament(attributes, num_attributes);
         else if (::strcmp(SLICE_WARNING_TAG, name) == 0)
             res = _handle_start_config_warning(attributes, num_attributes);
         else if (::strcmp(NOZZLE_TAG, name) == 0)
             res = _handle_start_config_nozzle(attributes, num_attributes);
+        else if (::strcmp(AMS_ITEM_TAG, name) == 0)
+            res = _handle_start_config_ams_item(attributes, num_attributes);
         else if (::strcmp(ASSEMBLE_TAG, name) == 0)
             res = _handle_start_assemble(attributes, num_attributes);
         else if (::strcmp(ASSEMBLE_ITEM_TAG, name) == 0)
@@ -4697,6 +4861,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (m_curr_plater)
                     m_curr_plater->gcode_weight = value;
             }
+            else if (key == DEFAULT_AMS_TYPE_ATTR)
+            {
+                if (m_curr_plater)
+                    m_curr_plater->default_ams_type = value;
+            }
             else if (key == OUTSIDE_ATTR)
             {
                 if (m_curr_plater)
@@ -4711,6 +4880,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 if (m_curr_plater)
                     std::istringstream(value) >> std::boolalpha >> m_curr_plater->is_label_object_enabled;
+            }
+            else if (key == SUPPORT_MATERIAL_ON_WIPE_TOWER_ATTR)
+            {
+                if (m_curr_plater)
+                    std::istringstream(value) >> std::boolalpha >> m_curr_plater->support_material_on_wipe_tower;
             }
             else if (key == ENABLE_FILAMENT_DYNAMIC_MAP_ATTR)
             {
@@ -4774,8 +4948,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             filament_info.used_g = atof(used_g.c_str());
             filament_info.filament_id = filament_id;
             filament_info.group_id = parse_int_list(group_id);
-            filament_info.nozzle_diameter = atof(nozzle_diameter.c_str());
+            filament_info.nozzle_diameter = string_to_double_decimal_point(nozzle_diameter);
             filament_info.nozzle_volume_type = volume_type;
+            std::string total_load_time   = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_TOTAL_LOAD_TIME_TAG);
+            std::string total_unload_time = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_TOTAL_UNLOAD_TIME_TAG);
+            filament_info.total_load_time   = total_load_time.empty() ? 0.0 : atof(total_load_time.c_str());
+            filament_info.total_unload_time = total_unload_time.empty() ? 0.0 : atof(total_unload_time.c_str());
             m_curr_plater->slice_filaments_info.push_back(filament_info);
         }
         return true;
@@ -4784,6 +4962,35 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     bool _BBS_3MF_Importer::_handle_end_config_filament()
     {
         // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_config_pause(const char** attributes, unsigned int num_attributes)
+    {
+        if (m_curr_plater) {
+            GCodeProcessorResult::PausePrintInfo pause_info;
+            pause_info.percent = atoi(bbs_get_attribute_value_string(attributes, num_attributes, PAUSE_PERCENT_ATTR).c_str());
+            pause_info.remaining_time = atoi(bbs_get_attribute_value_string(attributes, num_attributes, PAUSE_REMAINING_TIME_ATTR).c_str());
+            pause_info.layer_id = atoi(bbs_get_attribute_value_string(attributes, num_attributes, PAUSE_LAYER_ATTR).c_str());
+            m_curr_plater->pause_printing.push_back(pause_info);
+        }
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_config_mixed_filament(const char** attributes, unsigned int num_attributes)
+    {
+        if (m_curr_plater) {
+            std::string id         = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_ID_TAG);
+            std::string type       = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_TYPE_TAG);
+            std::string color      = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_COLOR_TAG);
+            std::string components = bbs_get_attribute_value_string(attributes, num_attributes, MIXED_FILAMENT_COMPONENTS_TAG);
+            PlateMixedFilamentInfo mixed_info;
+            mixed_info.id         = atoi(id.c_str());
+            mixed_info.type       = type;
+            mixed_info.color      = color;
+            mixed_info.components = components;
+            m_curr_plater->mixed_filaments_info.push_back(mixed_info);
+        }
         return true;
     }
 
@@ -4841,6 +5048,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     bool _BBS_3MF_Importer::_handle_end_config_nozzle()
     {
         // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_config_ams_item(const char** attributes, unsigned int num_attributes)
+    {
+        if (m_curr_plater) {
+            AmsLoadUnloadTimeInfo ams_info;
+            ams_info.ams_type    = bbs_get_attribute_value_string(attributes, num_attributes, AMS_TYPE_ATTR);
+            ams_info.load_time   = bbs_get_attribute_value_float(attributes, num_attributes, AMS_LOAD_TIME_ATTR);
+            ams_info.unload_time = bbs_get_attribute_value_float(attributes, num_attributes, AMS_UNLOAD_TIME_ATTR);
+            m_curr_plater->ams_list.push_back(ams_info);
+        }
         return true;
     }
 
@@ -4942,7 +5161,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     m_pending_volume_assemble.push_back({object_id, volume_id, transform});
             } else {
                 ModelObject *mo = m_model->objects[object_id];
-                if (instance_id < (int) mo->instances.size()) {
+                if (instance_id < 0 || instance_id >= (int) mo->instances.size()) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ":" << __LINE__ << boost::format("invalid instance id %1%\n") % instance_id;
+                } else {
                     mo->instances[instance_id]->set_assemble_from_transform(transform);
                     mo->instances[instance_id]->set_offset_to_assembly(ofs2ass);
                 }
@@ -4986,6 +5207,31 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         text_info.m_embeded_depth = bbs_get_attribute_value_float(attributes, num_attributes, EMBEDED_DEPTH_ATTR);
         text_info.m_rotate_angle  = bbs_get_attribute_value_float(attributes, num_attributes, ROTATE_ANGLE_ATTR);
         text_info.m_text_gap      = bbs_get_attribute_value_float(attributes, num_attributes, TEXT_GAP_ATTR);
+        // Persist FontProp::line_gap (font points), same as face_name on text_configuration.
+        // Missing attribute must not become an explicit 0 that later overwrites a loaded style.
+        if (bbs_has_attribute_value_int(attributes, num_attributes, LINE_GAP_ATTR)) {
+            const int line_gap = bbs_get_attribute_value_int(attributes, num_attributes, LINE_GAP_ATTR);
+            if (line_gap != 0)
+                text_info.text_configuration.style.prop.line_gap = line_gap;
+        }
+        // FontProp::align, same names as EmbossStyleManager. Missing attribute keeps the default center.
+        {
+            const std::string h = bbs_get_attribute_value_string(attributes, num_attributes, HORIZONTAL_ALIGN_ATTR);
+            if (h == "left" || h == "0")
+                text_info.text_configuration.style.prop.align.first = FontProp::HorizontalAlign::left;
+            else if (h == "right" || h == "2")
+                text_info.text_configuration.style.prop.align.first = FontProp::HorizontalAlign::right;
+            else if (!h.empty())
+                text_info.text_configuration.style.prop.align.first = FontProp::HorizontalAlign::center;
+
+            const std::string v = bbs_get_attribute_value_string(attributes, num_attributes, VERTICAL_ALIGN_ATTR);
+            if (v == "top" || v == "0")
+                text_info.text_configuration.style.prop.align.second = FontProp::VerticalAlign::top;
+            else if (v == "bottom" || v == "2")
+                text_info.text_configuration.style.prop.align.second = FontProp::VerticalAlign::bottom;
+            else if (!v.empty())
+                text_info.text_configuration.style.prop.align.second = FontProp::VerticalAlign::center;
+        }
 
         text_info.m_bold      = bbs_get_attribute_value_int(attributes, num_attributes, BOLD_ATTR);
         text_info.m_italic    = bbs_get_attribute_value_int(attributes, num_attributes, ITALIC_ATTR);
@@ -7966,7 +8212,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     {
         const std::string& temp_path = model.get_backup_path();
         std::string temp_file = temp_path + std::string("/") + "_temp_1.config";
-        config.save_to_json(temp_file, std::string("project_settings"), std::string("project"), std::string(SLIC3R_VERSION));
+        DynamicPrintConfig export_config = config;
+        split_nozzle_stats_for_export(export_config);
+        export_config.save_to_json(temp_file, std::string("project_settings"), std::string("project"), std::string(SLIC3R_VERSION));
         return _add_file_to_archive(archive, BBS_PROJECT_CONFIG_FILE, temp_file);
     }
 
@@ -8015,7 +8263,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     void _add_text_info_to_archive(std::stringstream& stream, const TextInfo& text_info) {
         stream << "      <" << TEXT_INFO_TAG << " ";
 
-        stream << TEXT_ATTR << "=\"" << xml_escape(text_info.m_text) << "\" ";
+        stream << TEXT_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(text_info.m_text) << "\" ";
         stream << FONT_NAME_ATTR << "=\"" << xml_escape(text_info.m_font_name) << "\" ";
         stream << FONT_VERSION_ATTR << "=\"" << text_info.m_font_version << "\" ";
         stream << STYLE_NAME_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(text_info.text_configuration.style.name) << "\" ";
@@ -8029,6 +8277,24 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         stream << EMBEDED_DEPTH_ATTR << "=\"" << text_info.m_embeded_depth << "\" ";
         stream << ROTATE_ANGLE_ATTR << "=\"" << text_info.m_rotate_angle << "\" ";
         stream << TEXT_GAP_ATTR << "=\"" << text_info.m_text_gap << "\" ";
+        if (text_info.text_configuration.style.prop.line_gap.has_value())
+            stream << LINE_GAP_ATTR << "=\"" << *text_info.text_configuration.style.prop.line_gap << "\" ";
+        {
+            const auto h = text_info.text_configuration.style.prop.align.first;
+            const char *h_name = "center";
+            if (h == FontProp::HorizontalAlign::left)
+                h_name = "left";
+            else if (h == FontProp::HorizontalAlign::right)
+                h_name = "right";
+            stream << HORIZONTAL_ALIGN_ATTR << "=\"" << h_name << "\" ";
+            const auto v = text_info.text_configuration.style.prop.align.second;
+            const char *v_name = "middle";
+            if (v == FontProp::VerticalAlign::top)
+                v_name = "top";
+            else if (v == FontProp::VerticalAlign::bottom)
+                v_name = "bottom";
+            stream << VERTICAL_ALIGN_ATTR << "=\"" << v_name << "\" ";
+        }
 
         stream << BOLD_ATTR << "=\"" << (text_info.m_bold ? 1 : 0) << "\" ";
         stream << ITALIC_ATTR << "=\"" << (text_info.m_italic ? 1 : 0) << "\" ";
@@ -8556,10 +8822,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << TIMELAPSE_TYPE_ATTR << "\" " << VALUE_ATTR << "=\"" << timelapse_type << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_PREDICTION_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->get_gcode_prediction_str() << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_WEIGHT_ATTR      << "\" " << VALUE_ATTR << "=\"" <<  plate_data->get_gcode_weight_str() << "\"/>\n";
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PAUSE_COUNT_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->pause_printing.size() << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << FIRST_LAYER_TIME_ATTR      << "\" " << VALUE_ATTR << "=\"" <<  plate_data->first_layer_time << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OUTSIDE_ATTR      << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->toolpath_outside << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SUPPORT_USED_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->is_support_used << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LABEL_OBJECT_ENABLED_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->is_label_object_enabled << "\"/>\n";
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SUPPORT_MATERIAL_ON_WIPE_TOWER_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << plate_data->support_material_on_wipe_tower << "\"/>\n";
                 if (plate_data && plate_data->nozzle_group_result)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << ENABLE_FILAMENT_DYNAMIC_MAP_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << plate_data->nozzle_group_result->is_support_dynamic_nozzle_map() << "\"/>\n";
                 else
@@ -8581,6 +8849,17 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LIMIT_FILAMENT_MAP_ATTR << "\" " << VALUE_ATTR << "=\"";
                     add_vector<int>(stream, plate_data->limit_filament_maps);
                     stream << "\"/>\n";
+                }
+
+                // AMS type the preset assumes for the time estimation, written as the canonical AMS type name
+                {
+                    int default_ams_type = -1;
+                    if (auto* opt = config.option<ConfigOptionInt>("default_ams_type"))
+                        default_ams_type = opt->value;
+                    if (default_ams_type >= 0) {
+                        std::string default_ams_type_str = get_ams_type_name(default_ams_type);
+                        stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << DEFAULT_AMS_TYPE_ATTR << "\" " << VALUE_ATTR << "=\"" << xml_escape(default_ams_type_str) << "\"/>\n";
+                    }
                 }
 
                 for (auto it = plate_data->objects_and_instances.begin(); it != plate_data->objects_and_instances.end(); it++)
@@ -8632,7 +8911,20 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                            << FILAMENT_NOZZLE_DIAMETER_TAG << "=\"" << it->nozzle_diameter << "\" "
                            << FILAMENT_NOZZLE_VOLUME_TYPE_TAG << "=\"" << it->nozzle_volume_type << "\" "
                            << FILAMENT_USED_FOR_OBJECT << "=\"" << it->used_for_object << "\" "
-                           << FILAMENT_USED_FOR_SUPPORT << "=\"" << it->used_for_support << "\"/>\n";
+                           << FILAMENT_USED_FOR_SUPPORT << "=\"" << it->used_for_support << "\" "
+                           << FILAMENT_TOTAL_LOAD_TIME_TAG << "=\"" << it->total_load_time << "\" "
+                           << FILAMENT_TOTAL_UNLOAD_TIME_TAG << "=\"" << it->total_unload_time << "\"/>\n";
+                }
+
+                // Mixed (virtual) filaments used by this plate. These are resolved to physical
+                // components before g-code statistics, so they are not present in the <filament>
+                // list above and are recorded separately here.
+                for (auto it = plate_data->mixed_filaments_info.begin(); it != plate_data->mixed_filaments_info.end(); it++)
+                {
+                    stream << "    <" << MIXED_FILAMENT_TAG << " " << FILAMENT_ID_TAG << "=\"" << std::to_string(it->id) << "\" "
+                           << FILAMENT_TYPE_TAG << "=\"" << it->type << "\" "
+                           << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
+                           << MIXED_FILAMENT_COMPONENTS_TAG << "=\"" << it->components << "\"/>\n";
                 }
 
                 for (auto it = plate_data->warnings.begin(); it != plate_data->warnings.end(); it++) {
@@ -8646,6 +8938,38 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         for(auto& used_nozzle: used_nozzle_list){
                             stream <<"    <"<< NOZZLE_TAG <<" "<< used_nozzle.serialize() << "/>\n";
                         }
+                    }
+                }
+
+                // Per-AMS load/unload time list. Grouped with the other list tags near the end of the plate.
+                // Each AMS type has its own pair of timing options; the type is reported under the
+                // canonical name from get_ams_type_name. Types with both times zero are skipped.
+                {
+                    const std::vector<double> ams_load_times   = get_ams_load_times(config);
+                    const std::vector<double> ams_unload_times = get_ams_unload_times(config);
+
+                    struct AmsItem { std::string name; double load_time; double unload_time; };
+                    std::vector<AmsItem> ams_items;
+                    for (const int ams_type : get_ams_time_types()) {
+                        const size_t ams_idx     = static_cast<size_t>(ams_type);
+                        const double load_time   = ams_load_times[ams_idx];
+                        const double unload_time = ams_unload_times[ams_idx];
+                        if (load_time <= 0.0 && unload_time <= 0.0)
+                            continue;
+                        std::string name = get_ams_type_name(ams_type);
+                        if (name.empty())
+                            continue;
+                        ams_items.push_back({ name, load_time, unload_time });
+                    }
+                    if (!ams_items.empty()) {
+                        stream << "    <" << AMS_LIST_TAG << ">\n";
+                        for (const AmsItem& item : ams_items) {
+                            stream << "      <" << AMS_ITEM_TAG << " "
+                                   << AMS_TYPE_ATTR << "=\"" << xml_escape(item.name) << "\" "
+                                   << AMS_LOAD_TIME_ATTR << "=\"" << item.load_time << "\" "
+                                   << AMS_UNLOAD_TIME_ATTR << "=\"" << item.unload_time << "\"/>\n";
+                        }
+                        stream << "    </" << AMS_LIST_TAG << ">\n";
                     }
                 }
 
@@ -8670,6 +8994,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         stream << "      <" << LAYER_FILAMENT_LIST_TAG << " filament_list=\"" << key_stream.str() << "\" layer_ranges=\"" << value_stream.str() << "\" />\n";
                     }
                     stream << "    </" << LAYER_FILAMENT_LISTS_TAG << ">\n";
+                }
+
+                if (!plate_data->pause_printing.empty()) {
+                    stream << "    <" << PAUSE_LIST_TAG << ">\n";
+                    for (size_t pause_index = 0; pause_index < plate_data->pause_printing.size(); ++pause_index) {
+                        const auto& pause_info = plate_data->pause_printing[pause_index];
+                        stream << "      <" << PAUSE_TAG << " " << PAUSE_INDEX_ATTR << "=\"" << pause_index + 1 << "\" "
+                               << PAUSE_LAYER_ATTR << "=\"" << pause_info.layer_id << "\" "
+                               << PAUSE_PERCENT_ATTR << "=\"" << pause_info.percent << "\" "
+                               << PAUSE_REMAINING_TIME_ATTR << "=\"" << pause_info.remaining_time << "\" />\n";
+                    }
+                    stream << "    </" << PAUSE_LIST_TAG << ">\n";
                 }
 
                 stream << "  </" << PLATE_TAG << ">\n";
@@ -8979,6 +9315,30 @@ public:
         m_post_callback = c;
     }
 
+    // Quiesce the backup worker before the owning MainFrame is torn down (app close, or the
+    // language-switch GUI rebuild). Stops the periodic timer, drops the UI callback and any
+    // queued Backup UI posts, so the worker thread cannot post to / export through a frame that
+    // is about to be destroyed. The worker thread itself keeps running; a freshly created
+    // MainFrame re-arms it via set_backup_interval()/set_backup_callback(). On-disk file tasks
+    // (AddObject/RemoveObject/RemoveBackup) are left intact so the backup stays consistent.
+    void stop() {
+        boost::unique_lock lock(m_mutex);
+        if (m_interval > 0) {
+            m_next_backup -= boost::posix_time::seconds(m_interval);
+            m_interval = 0;
+        }
+        m_post_callback = nullptr;
+        for (auto it = m_ui_tasks.begin(); it != m_ui_tasks.end();) {
+            if (it->type == Backup) it = m_ui_tasks.erase(it);
+            else ++it;
+        }
+        for (auto it = m_tasks.begin(); it != m_tasks.end();) {
+            if (it->type == Backup) it = m_tasks.erase(it);
+            else ++it;
+        }
+        m_cond.notify_all();
+    }
+
     void run_ui_tasks() {
         std::deque<Task> tasks;
         {
@@ -9270,14 +9630,20 @@ public:
                     continue;
             }
             m_tasks.pop_front();
-            auto callback = m_post_callback;
             lock.unlock();
             process_task(t);
             lock.lock();
             if (t.type > None) {
                 m_ui_tasks.push_back(t);
-                if (m_ui_tasks.size() == 1 && callback)
-                    callback(0);
+                // Read and invoke the UI post-callback under the re-acquired lock, not a
+                // copy captured before process_task(). This serializes with set_post_callback()
+                // and stop(): once the callback is cleared under m_mutex no new invocation can
+                // begin, and this call returning proves none is in flight -- so the MainFrame it
+                // targets cannot be used after free during shutdown. action==0 only does
+                // wxPostEvent (it never re-enters this manager), so holding the lock across the
+                // call cannot deadlock.
+                if (m_ui_tasks.size() == 1 && m_post_callback)
+                    m_post_callback(0);
             }
         }
     }
@@ -9437,6 +9803,11 @@ void set_backup_interval(long interval)
 void set_backup_callback(std::function<void(int)> callback)
 {
     _BBS_Backup_Manager::get().set_post_callback(callback);
+}
+
+void stop_backup()
+{
+    _BBS_Backup_Manager::get().stop();
 }
 
 void run_backup_ui_tasks()

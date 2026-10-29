@@ -45,6 +45,27 @@ export function formatSpoolDisplayName(s: { brand?: string; material_type?: stri
   return [brand, namePart].filter(Boolean).join(' ');
 }
 
+// Map Filament Manager Brand + Material Type onto Create Custom Filament
+// Step 1 (vendor / type / serial). FM stores Material Type as a combined
+// filamentName (`series`, e.g. "PLA Basic") plus a split `material_type`
+// ("PLA"); the create dialog wants the short series ("Basic").
+export function toCreateFilamentPrefill(
+  brand?: string,
+  materialType?: string,
+  series?: string,
+): { vendor: string; type: string; serial: string } {
+  const vendor = (brand || '').trim();
+  const type = (materialType || '').trim();
+  const full = (series || '').trim() || type;
+  if (!type) {
+    const first = full.split(/\s+/).filter(Boolean)[0] || '';
+    return { vendor, type: first, serial: first ? full.slice(first.length).trim() : full };
+  }
+  if (!full || full === type) return { vendor, type, serial: '' };
+  if (full.startsWith(`${type} `)) return { vendor, type, serial: full.slice(type.length + 1).trim() };
+  return { vendor, type, serial: full };
+}
+
 // Maps numeric ams_type (C++ DevAmsType enum) to product display names.
 export const AMS_TYPE_NAMES: Record<number, string> = {
   0: 'External Spool',
@@ -65,13 +86,15 @@ export function formatSlotLocation(
   trayLabel?: string
 ): string | null {
   if (!deviceName) return null;
-  const amsTypeName = amsType != null && amsType >= 0
+  const amsTypeName = (amsType != null && amsType >= 0 && slotId !== '255')
     ? (AMS_TYPE_NAMES[amsType] ?? `AMS(${amsType})`)
     : null;
   const slotLabel = trayLabel
     ? trayLabel
-    : (slotId != null && slotId !== ''
-      ? t('Slot {{n}}', { n: Number(slotId) + 1 })
-      : null);
+    : slotId === '255'
+      ? t('External Spool')
+      : (slotId != null && slotId !== ''
+        ? t('Slot {{n}}', { n: Number(slotId) + 1 })
+        : null);
   return [deviceName, amsTypeName, slotLabel].filter(Boolean).join(' · ');
 }

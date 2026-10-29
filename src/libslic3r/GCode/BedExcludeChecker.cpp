@@ -1,6 +1,7 @@
 #include "GCodeProcessor.hpp"
 #include "BedExcludeChecker.hpp"
 
+#include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/EdgeGrid.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Polygon.hpp"
@@ -174,6 +175,24 @@ bool toolpath_intersects_bed_exclude_area_2d(const GCodeProcessorResult& gcode_r
 
     return !all_segments_clear;
 #endif
+}
+
+bool toolpath_exceeds_boundary_2d(const GCodeProcessorResult& gcode_result, const Polygon& boundary)
+{
+    if (boundary.size() < 3)
+        return false;
+
+    const bool boundary_is_convex = polygon_is_convex(boundary);
+    const bool all_segments_inside = visit_extrusion_segments(gcode_result, [&](const Point& start, const Point& end) {
+        if (!boundary.contains(start) || !boundary.contains(end))
+            return false;
+
+        // Endpoints are sufficient for convex boundaries. Clip only for the
+        // uncommon concave case where a segment may leave and re-enter.
+        return boundary_is_convex || diff_pl(Polyline{start, end}, Polygons{boundary}).empty();
+    });
+
+    return !all_segments_inside;
 }
 
 } // namespace Slic3r

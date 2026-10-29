@@ -125,7 +125,7 @@ static std::vector<double> get_nozzle_diameters_by_nozzle_id(const MultiNozzleUt
         auto nozzle = group_result->get_nozzle_from_id(id);
         if (!nozzle)
             break;
-        diameters.push_back(std::stod(nozzle->diameter));
+        diameters.push_back(string_to_double_decimal_point(nozzle->diameter));
     }
     return diameters;
 }
@@ -163,6 +163,10 @@ static const double smooth_speed_step = 10;
 static const double not_split_length = scale_(1.0);
 static const double max_step_length = scale_(1.0); // cut path if the path too long
 static const double min_step_length = scale_(0.4); // cut step
+// Temporary workaround for X2D: an extra temperature drop before entering the wipe tower when a filament
+// switcher is combined with mixed extruder types. Condition mirrors the pre-cooling/pre-heating injector
+// in GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating().
+static const double g_filament_switcher_extra_cooling_before_tower = 10.;
 
 Vec2d travel_point_1;
 Vec2d travel_point_2;
@@ -782,7 +786,18 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         double current_z = gcodegen.writer().get_position().z();
         if (z == -1.) // in case no specific z was provided, print at current_z pos
             z = current_z;
-        if (! is_approx(z, current_z)) {
+        // BBS: wipe_tower_no_sparse_layers crash guard.
+        // With sparse layers skipped the wipe tower is compacted far below the object
+        // (e.g. object at z=25, tower at z=0.4). Descending straight to the tower z here is
+        // only safe once the nozzle is already parked over the tower, which is what the
+        // is_finish_first travel above does. When the object is NOT finished first the nozzle
+        // is still parked over the printed model, so descending now would drive it straight
+        // down into the object and hit it. In that case defer the descent: it is re-issued
+        // over the tower after the toolchange travel (see the compaction descents in the
+        // nozzle-change block and after change_filament_gcode below).
+        bool defer_compacted_descend = m_sparse_layers_skipped
+            && !tcr.priming && !tcr.is_finish_first && (current_z - z) > EPSILON;
+        if (! is_approx(z, current_z) && ! defer_compacted_descend) {
             gcode += gcodegen.writer().retract();
             gcode += gcodegen.writer().travel_to_z(z, "Travel down to the last wipe tower layer.");
             gcode += gcodegen.writer().unretract();
@@ -844,11 +859,41 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         std::string nozzle_change_gcode_trans;
         if (is_nozzle_change) {
             // move to start_pos before nozzle change
+            auto nc_start_pos = wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.start_pos) + plate_origin_2d);
+
+            // BBS: wipe_tower_no_sparse_layers compaction optimization (gated on m_sparse_layers_skipped).
+            // With sparse layers skipped the wipe tower is compacted far below the object.
+            // travel_to() normally lifts the nozzle up to the object layer height (max_layer_z)
+            // to clear the object during travel. That lift is required when we arrive from the
+            // model (nozzle still parked up at object height, e.g. the right/non-finish-first
+            // nozzle), but it is pure waste when we are already parked down on the compacted
+            // tower (e.g. right after the tower wall printed before this toolchange): it forces
+            // a full-height Z bounce (compacted z -> max_layer_z -> compacted z) just to reach a
+            // ramming start that already sits on the tower.
+            // Detect that case (tower compacted AND nozzle already down on it) and travel at the
+            // compacted z directly, which also makes the re-descend below unnecessary.
+            double cur_z = gcodegen.writer().get_position().z();
+            bool compact_intower_nc_travel = m_sparse_layers_skipped
+                && z >= 0. && (tcr.print_z - z) > EPSILON   // tower compacted below the object
+                && (tcr.print_z - cur_z) > EPSILON;         // nozzle already down on the tower, not up on the model
+
             std::string start_pos_str;
-            start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.start_pos) + plate_origin_2d), erMixed,
-                "Move to nozzle change start pos");
+            start_pos_str = gcodegen.travel_to(nc_start_pos, erMixed, "Move to nozzle change start pos",
+                compact_intower_nc_travel ? z : DBL_MAX);
             check_add_eol(start_pos_str);
             nozzle_change_gcode_trans += start_pos_str;
+            // travel_to above may lift the nozzle up to max_layer_z to clear the object.
+            // The nozzle-change wipe that follows (transform_gcode below) carries no explicit
+            // Z, so it would extrude at the object-layer height and float above the compacted
+            // wipe tower. Re-descend to the compacted wipe tower z before those extrusions run.
+            // Skipped when the travel above already stayed at the compacted z.
+            if (!compact_intower_nc_travel
+                && m_sparse_layers_skipped
+                && z >= 0. && (tcr.print_z - z) > EPSILON) {
+                std::string nc_z_descend = gcodegen.writer().travel_to_z(z, "Descend to compacted wipe tower z (no sparse layers)");
+                check_add_eol(nc_z_descend);
+                nozzle_change_gcode_trans += nc_z_descend;
+            }
             nozzle_change_gcode_trans += gcodegen.unretract();
             nozzle_change_gcode_trans += transform_gcode(tcr.nozzle_change_result.gcode, tcr.nozzle_change_result.start_pos, wipe_tower_offset, wipe_tower_rotation);
             gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.end_pos) + plate_origin_2d));
@@ -959,6 +1004,11 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                     std::vector<double> flush_v_speed(num_filaments);
                     std::vector<int>    flush_temps(num_filaments);
                     std::vector<double> filament_cooling_before_tower(num_filaments);
+                    const auto& extruder_types = m_print_config->extruder_type.values;
+                    bool has_mixed_extruder_types = extruder_types.size() > 1 &&
+                        std::adjacent_find(extruder_types.begin(), extruder_types.end(), [](int lhs, int rhs) { return lhs != rhs; }) != extruder_types.end();
+                    double extra_cooling_before_tower = (m_print_config->has_filament_switcher.value && has_mixed_extruder_types) ?
+                        g_filament_switcher_extra_cooling_before_tower : 0.;
                     for (size_t idx = 0; idx < num_filaments; ++idx) {
                         size_t fi = gcodegen.get_filament_config_index(idx);
                         flush_v_speed[idx] = m_print_config->filament_flush_volumetric_speed.get_at(fi);
@@ -968,7 +1018,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                                                          : m_print_config->filament_flush_temp.get_at(fi);
                         if (flush_temps[idx] == 0)
                             flush_temps[idx] = m_print_config->nozzle_temperature_range_high.get_at(idx);
-                        filament_cooling_before_tower[idx] = m_print_config->filament_cooling_before_tower.get_at(fi);
+                        filament_cooling_before_tower[idx] = m_print_config->filament_cooling_before_tower.get_at(fi) + extra_cooling_before_tower;
                     }
                     if (tcr.is_contact || gcodegen.m_layer_index == 0) std::fill(filament_cooling_before_tower.begin(), filament_cooling_before_tower.end(), 0);
                     config.set_key_value("flush_volumetric_speeds", new ConfigOptionFloats(flush_v_speed));
@@ -1186,6 +1236,21 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         start_filament_gcode_str = start_filament_gcode_str + wipe_next_start_point_str + toolchange_unretract_str;
 
+        // BBS: wipe_tower_no_sparse_layers compaction fix.
+        // When sparse layers are skipped, the whole wipe tower layer is compacted down to `z`.
+        // The custom change_filament_gcode lifts the nozzle to object-layer height
+        // (max_layer_z + N) and the following unretract de-hops back to the object layer z.
+        // Any wipe tower extrusions emitted AFTER change_filament_gcode within this tcr
+        // (the wipe/purge moves, and the wall when it is printed after the toolchange)
+        // carry no explicit Z, so they would float at object height regardless of is_finish_first.
+        // Re-descend to the compacted wipe tower z before those extrusions run.
+        if (m_sparse_layers_skipped
+            && z >= 0. && (tcr.print_z - z) > EPSILON) {
+            std::string z_descend = gcodegen.writer().travel_to_z(z, "Descend to compacted wipe tower z (no sparse layers)");
+            check_add_eol(z_descend);
+            start_filament_gcode_str += z_descend;
+        }
+
         // Insert the end filament, toolchange, and start filament gcode into the generated gcode.
         DynamicConfig config;
         config.set_key_value("filament_end_gcode", new ConfigOptionString(end_filament_gcode_str));
@@ -1339,11 +1404,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // resulting in a wipe tower with sparse layers.
         double wipe_tower_z  = -1;
         bool   ignore_sparse = false;
-        if (gcodegen.config().wipe_tower_no_sparse_layers.value) {
-            wipe_tower_z  = m_last_wipe_tower_print_z;
-            ignore_sparse = (m_tool_changes[m_layer_idx].size() == 1 && m_tool_changes[m_layer_idx].front().initial_tool == m_tool_changes[m_layer_idx].front().new_tool);
-            if (m_tool_change_idx == 0 && !ignore_sparse)
-                wipe_tower_z = m_last_wipe_tower_print_z + m_tool_changes[m_layer_idx].front().layer_height;
+        if (m_sparse_layers_skipped) {
+            ignore_sparse = wipe_tower_layer_is_sparse(m_tool_changes[m_layer_idx]);
+            wipe_tower_z  = m_compacted_tower_z[m_layer_idx];
         }
 
         if ((m_enable_timelapse_print || m_enable_wrapping_detection) && m_is_first_print) {
@@ -1355,10 +1418,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
             if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size())) throw Slic3r::RuntimeError("Wipe tower generation failed, possibly due to empty first layer.");
 
-            if (!ignore_sparse) {
+            if (!ignore_sparse)
                 gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][m_tool_change_idx++], extruder_id, wipe_tower_z);
-                m_last_wipe_tower_print_z = wipe_tower_z;
-            }
         }
 
         return gcode;
@@ -1371,8 +1432,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             return true;
 
         bool   ignore_sparse = false;
-        if (gcodegen.config().wipe_tower_no_sparse_layers.value) {
-            ignore_sparse = (m_tool_changes[m_layer_idx].size() == 1 && m_tool_changes[m_layer_idx].front().initial_tool == m_tool_changes[m_layer_idx].front().new_tool);
+        if (m_sparse_layers_skipped) {
+            ignore_sparse = wipe_tower_layer_is_sparse(m_tool_changes[m_layer_idx]);
         }
 
         if ((m_enable_timelapse_print || m_enable_wrapping_detection) && m_is_first_print) {
@@ -1946,6 +2007,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     print->set_done(psGCodeExport);
     //BBS: set enable_label_object
     result->label_object_enabled = m_enable_label_object;
+    result->support_material_on_wipe_tower = print->support_material_on_wipe_tower();
     // Write the profiler measurements to file
     PROFILE_UPDATE();
     PROFILE_OUTPUT(debug_out_path("gcode-export-profile.txt").c_str());
@@ -2416,6 +2478,32 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         }
         file.writeln(out.str());
     }
+
+    {
+        const bool support_material_on_wipe_tower = print.support_material_on_wipe_tower();
+        file.write_format("; support_material_on_wipe_tower: %d\n", int(support_material_on_wipe_tower));
+    }
+
+    // BBS: legal and compliance notice (last lines of HEADER_BLOCK)
+    file.write_format("; Legal and Compliance Notice\n");
+    file.write_format(
+        "; Certain features are offered on a regional basis and are intended to be used only "
+        "by consumers located in the corresponding region(s). Bambu Lab does not authorize "
+        "cross-region use of the product and assumes no responsibility or liability for any "
+        "use undertaken without the necessary authorizations or otherwise not in compliance "
+        "with applicable regional requirements; you agree to indemnify and hold Bambu Lab "
+        "harmless from any resulting claims, including claims resulting from attempts to "
+        "circumvent regional restrictions on Bambu products. Using Bambu products outside "
+        "their intended region (including through such measures as importing or exporting "
+        "the product, modifying the software, G-code or files generated by the software, "
+        "misrepresenting or manipulating information, altering any identifiers or "
+        "authorizations, including those embodied in G-code) may implicate a range of "
+        "authorizations and compliance requirements, such as intellectual property rights, "
+        "environmental compliance, network-access/telecommunications certification, "
+        "mandatory product certifications and safety standards, privacy and data-protection "
+        "requirements, customs and import/export clearances, and other applicable laws or "
+        "third-party rights. Before taking such action, you must obtain all related "
+        "authorizations and ensure compliance yourself.\n");
 
     file.write_format("; HEADER_BLOCK_END\n\n");
 
@@ -3419,6 +3507,7 @@ void GCode::export_layer_filaments(GCodeProcessorResult* result)
             if (group_result)
                 result->nozzle_change_sequence.emplace_back(group_result->get_nozzle_id(fidx, 0));
         }
+        result->used_mixed_filaments = m_print->get_slice_used_mixed_filaments();
 
         std::vector<int> optimal_assignment;
         if (group_result) {
@@ -4415,7 +4504,13 @@ GCode::TimelapseGCodeResult GCode::generate_timelapse_gcode(const Print &print, 
     }
 
     double z_before_timelapse = m_writer.get_position()(2);
-    m_writer.set_current_position_clear(false);
+    // Only the safe-pos branch relocates the head (firmware side, via M9711). The inline photo
+    // branch just triggers the shutter where the head already is, so the tracked position stays
+    // valid; clearing it would downgrade the next spiral lift to a plain vertical lift and split
+    // the following travel into separate XY and Z moves. If an inline template still emits G
+    // motion, fix that machine's time_lapse_gcode rather than scanning for motion here.
+    if (!skip_pos_pick)
+        m_writer.set_current_position_clear(false);
 
     double temp_z_after_tool_change;
     if (GCodeProcessor::get_last_z_from_gcode(timelapse_gcode, temp_z_after_tool_change)) {
@@ -4719,7 +4814,8 @@ GCode::LayerResult GCode::process_layer(
                 continue;
             int temperature = print.config().nozzle_temperature.get_at(extruder.id());
             if (temperature > 0 && temperature != print.config().nozzle_temperature_initial_layer.get_at(extruder.id()))
-                gcode += m_writer.set_temperature(temperature, false, extruder.id());
+                gcode += m_writer.set_temperature(
+                    temperature, false, extruder.id(), TemperatureCommandType::LayerChange);
         }
 
         // BBS
@@ -5492,6 +5588,7 @@ GCode::LayerResult GCode::process_layer(
             m_sub_layer_flow_ratio = default_sub_h / lh;
             m_sub_layer_height     = default_sub_h;
             m_nominal_z            = default_sub_z;
+            m_writer.set_avoid_z_descent_travel(true);
 
             std::string set_ext_gcode = this->set_extruder(extruder_id, default_sub_z);
             gcode += set_ext_gcode;
@@ -5723,7 +5820,7 @@ GCode::LayerResult GCode::process_layer(
                 if (instance_to_print.object_by_extruder.support && !instance_to_print.object_by_extruder.support->empty()) {
                     if (use_per_volume) {
                         m_nominal_z = obj_sub_z;
-                        gcode += m_writer.travel_to_z(obj_sub_z, "restore Z for support");
+                        m_need_change_layer_lift_z = true;
                     }
                     ExtrusionRole support_role = instance_to_print.object_by_extruder.support_extrusion_role;
                     gcode += this->extrude_support(instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, support_role));
@@ -5752,6 +5849,7 @@ GCode::LayerResult GCode::process_layer(
 
             m_sub_layer_flow_ratio = 0.0;
             m_sub_layer_height     = 0.0;
+            m_writer.set_avoid_z_descent_travel(false);
         }
         // Flush any pending object end label before leaving the sublayer block,
         // otherwise the wipe tower's add_object_end_labels may consume it into a
@@ -5759,7 +5857,7 @@ GCode::LayerResult GCode::process_layer(
         if (!layer_tools.mixed_sub_layer_groups.empty()) {
             m_writer.add_object_end_labels(gcode);
             m_nominal_z = print_z;
-            gcode += m_writer.travel_to_z(print_z, "restore Z after sublayers");
+            m_need_change_layer_lift_z = true;
         }
     }
     if (first_layer) {
@@ -6477,7 +6575,10 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
         } else{
             ironing_extrusions.clear();
         }
-        chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
+        // Respect no_sort: collections flagged no_sort (e.g. interface walls-before-infill)
+        // carry a deliberate order that greedy nearest-point chaining would destroy.
+        if (! support_fills.no_sort)
+            chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
 
         const double support_speed  = NOZZLE_CONFIG(support_speed);
         const double support_interface_speed = NOZZLE_CONFIG(support_interface_speed);
@@ -7193,24 +7294,20 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             // initial_layer_speed is also on_first_layer()-gated.
             //
             // A bottom hanging over a void is classified as stBottomBridge and already
-            // dispatched to erBridgeInfill (bridge speed) before reaching this branch, so it
-            // is not handled here. This includes overhangs held by ordinary support towers:
-            // the support is not part of the object's own lower-layer slices, so such bottoms
-            // are stBottomBridge (also forced for soluble support, see #3507) and never reach
-            // this erBottomSurface branch.
+            // dispatched to erBridgeInfill (bridge speed) before reaching this branch.
+            // Overhangs held by ordinary (non-zero-gap) support towers stay stBottomBridge
+            // because support is not part of the object's own lower-layer slices.
             //
-            // What can still arrive here as erBottomSurface on a non-bed layer is stBottom,
-            // which has two physically different sub-cases:
+            // What can still arrive here as erBottomSurface on a non-bed layer is stBottom:
             //   1. The first object layer printed over a raft with a Z gap
             //      (gap_raft_object > 0): it actually bridges the air gap above the raft
             //      interface, so it needs bridge speed.
-            //   2. A bottom resting on solid below with no gap: the first object layer sitting
-            //      directly on a gapless (soluble) raft interface, or, with interface_shells,
-            //      a region bottom lying on another region's solid. It should print at the
-            //      regular solid-infill speed; using bridge speed here would needlessly slow
-            //      down well-supported bottoms. Note: stacked bottom-shell layers above the
-            //      contact layer are stInternalSolid (erSolidInfill), not erBottomSurface, so
-            //      they are unaffected by this branch.
+            //   2. A bottom resting on solid below with no gap: a gapless (soluble) raft
+            //      interface, interface_shells onto another region's solid, or a zero-gap
+            //      Normal support contact reclassified from stBottomBridge in prepare_infill
+            //      (github #11540). These should print at regular solid-infill speed.
+            // Stacked bottom-shell layers above the contact layer are stInternalSolid
+            // (erSolidInfill), not erBottomSurface, so they are unaffected by this branch.
             if (on_first_layer()) {
                 speed = NOZZLE_CONFIG(initial_layer_infill_speed);
             } else if (object_layer_over_raft() && m_layer != nullptr &&
@@ -7576,11 +7673,16 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     bool could_be_wipe_disabled       = false;
     // Save state of use_external_mp_once for the case that will be needed to call twice m_avoid_crossing_perimeters.travel_to.
     const bool used_external_mp_once  = m_avoid_crossing_perimeters.used_external_mp_once();
+    // Custom gcode blocks (timelapse, wrapping detection, filament change, machine start gcode) may move
+    // the head on their own, after which the writer flags the position as unknown. last_pos() is stale
+    // then, so a detour planned from it would emit its first hop back at the stale point and drag the
+    // nozzle across what was just printed. Fall back to a single straight move to the destination.
+    const bool can_plan_detour = m_config.reduce_crossing_wall && m_writer.is_current_position_clear();
 
     // if a retraction would be needed, try to use reduce_crossing_wall to plan a
     // multi-hop travel path inside the configuration space
     // if (
-    if (m_config.reduce_crossing_wall && !m_avoid_crossing_perimeters.disabled_once() && travel.length() > scale_(FILAMENT_CONFIG(retraction_minimum_travel)))
+    if (can_plan_detour && !m_avoid_crossing_perimeters.disabled_once() && travel.length() > scale_(FILAMENT_CONFIG(retraction_minimum_travel)))
     // BBS: don't generate detour travel paths when current position is very close to the last position(travel lenght too short)
     {
         travel = m_avoid_crossing_perimeters.travel_to(*this, point, &could_be_wipe_disabled);
@@ -7602,7 +7704,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         // When "Wipe while retracting" is enabled, then extruder moves to another position, and travel from this position can cross perimeters.
         // Because of it, it is necessary to call avoid crossing perimeters again with new starting point after calling retraction()
         // FIXME Lukas H.: Try to predict if this second calling of avoid crossing perimeters will be needed or not. It could save computations.
-        if (last_post_before_retract != this->last_pos() && m_config.reduce_crossing_wall) {
+        if (last_post_before_retract != this->last_pos() && can_plan_detour) {
             // If in the previous call of m_avoid_crossing_perimeters.travel_to was use_external_mp_once set to true restore this value for next call.
             if (used_external_mp_once)
                 m_avoid_crossing_perimeters.use_external_mp_once();
@@ -7656,6 +7758,9 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
             // No lazy z lift for spiral vase mode
             for (size_t i = 1; i < travel.size(); ++i)
                 gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment, use_short_travel_accel);
+            const double target_z = z == DBL_MAX ? m_nominal_z : z;
+            if (std::abs(m_writer.get_position().z() - target_z) > EPSILON)
+                gcode += m_writer.travel_to_z(target_z, "restore spiral vase layer Z");
         } else {
             if (travel.size() == 2) {
                 // No extra movements emitted by avoid_crossing_perimeters, simply move to the end point with z change
@@ -7834,10 +7939,12 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
             should_reduce = (metal_stickiness == int(fmsLow) || metal_stickiness == int(fmsNone));
         }
         // rirDisabled: should_reduce remains false
+        const double wall_proximity_distance = m_config.inner_wall_line_width.value > 0 ?
+            m_config.inner_wall_line_width.value : EXTRUDER_CONFIG(nozzle_diameter);
         if (should_reduce && !is_perimeter(role) && m_layer != nullptr && m_config.sparse_infill_density.value > 0 &&
-            m_retract_when_crossing_perimeters.travel_inside_internal_regions_no_wall_crossing(*m_layer, travel))
-            // Skip retraction if travel is contained in an internal slice *and*
-            // internal infill is enabled (so that stringing is entirely not visible).
+            m_retract_when_crossing_perimeters.travel_inside_internal_regions_no_wall_crossing(
+                *m_layer, travel, scale_(wall_proximity_distance), scale_(FILAMENT_CONFIG(retraction_minimum_travel))))
+            // 内部空驶不穿墙且未长距离贴墙时跳过回抽。
             //FIXME any_internal_region_slice_contains() is potentionally very slow, it shall test for the bounding boxes first.
             return false;
     }

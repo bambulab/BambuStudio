@@ -1,14 +1,44 @@
 #include "DeviceErrorDialog.hpp"
 #include "HMS.hpp"
 
+#include "DeviceManager.hpp"
+#include "DeviceCore/DevManager.h"
 #include "Widgets/Button.hpp"
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "ReleaseNote.hpp"
 
+#include <wx/modalhook.h>
+
 namespace Slic3r {
 namespace GUI
 {
+
+wxDEFINE_EVENT(EVT_ELEVATE_ERROR_DIALOG, wxCommandEvent);
+
+// Detects when any OTHER dialog is about to enter its modal loop. A pre-existing
+// non-modal error dialog would otherwise be disabled by that dialog's
+// wxWindowDisabler (visible-but-dead). We post an event so the error dialog can
+// re-enable itself and nest its own ShowModal() on top, staying both on-top and
+// interactive across Win/macOS/GTK.
+class ErrorDialogModalHook : public wxModalDialogHook
+{
+public:
+    explicit ErrorDialogModalHook(DeviceErrorDialog* dlg) : m_dlg(dlg) {}
+
+    int Enter(wxDialog* dialog) override
+    {
+        if (dialog != m_dlg && m_dlg->IsShown() && !m_dlg->IsModal() && !m_dlg->m_elevate_pending) {
+            m_dlg->m_elevate_pending = true;
+            wxCommandEvent event(EVT_ELEVATE_ERROR_DIALOG);
+            wxPostEvent(m_dlg, event);
+        }
+        return wxID_NONE;
+    }
+
+private:
+    DeviceErrorDialog* m_dlg{nullptr};
+};
 
 static std::unordered_set<std::string> message_containing_retry{
     "0701-8004",
@@ -23,7 +53,7 @@ static std::unordered_set<std::string> message_containing_retry{
 
 
 DeviceErrorDialog::DeviceErrorDialog(MachineObject* obj, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
-    :DPIDialog(parent, id, title, pos, size, style), m_obj(obj)
+    : DPIDialog(parent, id, title, pos, size, style), m_dev_id(obj ? obj->get_dev_id() : std::string())
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -85,16 +115,35 @@ DeviceErrorDialog::DeviceErrorDialog(MachineObject* obj, wxWindow* parent, wxWin
 
     Bind(wxEVT_WEBREQUEST_STATE, &DeviceErrorDialog::on_webrequest_state, this);
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &e){
-        if (m_obj) { m_obj->command_clean_print_error_uiop(m_obj->print_error); }
+        if (!m_uiop_sent) {
+            if (MachineObject* machine = get_machine_object()) {
+                m_uiop_sent = true;
+                machine->command_clean_print_error_uiop(m_error_code);
+            }
+        }
+        if (!IsModal()) {
+            Destroy();
+            return;
+        }
         e.Skip();
     });
 
     m_request_timer = new wxTimer(this);
     Bind(wxEVT_TIMER, &DeviceErrorDialog::on_request_timeout, this, m_request_timer->GetId());
+
+    Bind(EVT_ELEVATE_ERROR_DIALOG, &DeviceErrorDialog::elevate_to_modal, this);
+    m_modal_hook = new ErrorDialogModalHook(this);
+    m_modal_hook->Register();
 }
 
 DeviceErrorDialog::~DeviceErrorDialog()
 {
+    if (m_modal_hook) {
+        m_modal_hook->Unregister();
+        delete m_modal_hook;
+        m_modal_hook = nullptr;
+    }
+
     if (m_request_timer) {
         m_request_timer->Stop();
         m_request_timer->Disconnect();
@@ -108,6 +157,16 @@ DeviceErrorDialog::~DeviceErrorDialog()
         web_request.Cancel();
     }
     m_error_picture->SetBitmap(wxBitmap());
+}
+
+MachineObject* DeviceErrorDialog::get_machine_object() const
+{
+    if (m_dev_id.empty()) { return nullptr; }
+
+    DeviceManager* dev_manager = wxGetApp().getDeviceManager();
+    if (!dev_manager) { return nullptr; }
+    if (MachineObject* obj = dev_manager->get_user_machine(m_dev_id)) { return obj; }
+    return dev_manager->get_local_machine(m_dev_id);
 }
 
 void DeviceErrorDialog::on_request_timeout(wxTimerEvent& event)
@@ -235,50 +294,152 @@ wxString DeviceErrorDialog::parse_error_level(int error_code)
 }
 
 static const std::unordered_set<string> s_jump_liveview_error_codes = { "0300-8003", "0300-8002", "0300-800A"};
-wxString DeviceErrorDialog::show_error_code(int error_code)
+
+void DeviceErrorDialog::apply_result(const HMSResult& r)
 {
-    if (m_error_code == error_code) { return wxEmptyString;}
-    if (wxGetApp().get_hms_query()->is_internal_error(m_obj, error_code)) { return wxEmptyString;}
+    const std::string error_str   = MachineObject::get_error_code_str(m_error_code);
+    const wxString    error_level = parse_error_level(m_error_code);
 
-    /* error code str*/
-    std::string error_str = m_obj->get_error_code_str(error_code);
-    m_error_code = error_code;
+    wxString error_msg = r.text;
+    if (r.status == HMSStatus::Loading)      error_msg = _L("Loading error details ...");
+    else if (r.status == HMSStatus::Failed)  error_msg = _L("Unable to load error details.");
+    else if (error_msg.IsEmpty())            error_msg = _L("Unknown error.");
 
-    /* error code message*/
-    wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(m_obj, error_code);
-    if (error_msg.IsEmpty()) { error_msg = _L("Unknown error.");}
-
-    /* parse error level */
-    wxString error_level = parse_error_level(error_code);
-
-    /* error_str is old error code*/
     if (message_containing_retry.count(error_str)) {
-        /* convert old error code to pseudo buttons*/
         std::vector<int> pseudo_button = convert_to_pseudo_buttons(error_str);
-
-        /* do update*/
         update_contents(error_level, error_msg, error_str, wxEmptyString, pseudo_button);
     } else {
-        /* action buttons*/
         std::vector<int> used_button;
-        wxString         error_image_url = wxGetApp().get_hms_query()->query_print_image_action(m_obj, error_code, used_button);
+        wxString         error_image_url;
+        if (r.status == HMSStatus::Ready) {
+            HMSResult action    = wxGetApp().get_hms_query_mgr()->query_action(m_dev_id, m_error_code);
+            used_button         = action.actions;
+            error_image_url     = action.image_url;
+        }
         if (s_jump_liveview_error_codes.count(error_str)) { used_button.emplace_back(DeviceErrorDialog::JUMP_TO_LIVEVIEW); } // special case
-
-        /* do update*/
         update_contents(error_level, error_msg, error_str, error_image_url, used_button);
     }
 
     wxGetApp().UpdateDlgDarkUI(this);
-    Show();
-    Raise();
+}
+
+void DeviceErrorDialog::apply_loading()
+{
+    const std::string error_str = MachineObject::get_error_code_str(m_error_code);
+    const wxString    show_time = wxDateTime::Now().Format("%H%M%d");
+
+    m_error_code_label->SetMaxSize(wxSize(FromDIP(300), -1));
+    m_error_code_label->SetMinSize(wxSize(FromDIP(300), -1));
+    m_error_code_label->SetLabelText(wxString::Format("[%S %S]", wxString::FromUTF8(error_str), show_time));
+
+    m_error_msg_label->SetMaxSize(wxSize(FromDIP(300), -1));
+    m_error_msg_label->SetMinSize(wxSize(FromDIP(300), -1));
+    m_error_msg_label->SetLabelText(_L("Loading error details ..."));
+
+    SetTitle(parse_error_level(m_error_code));
+
+    const MachineObject* obj           = get_machine_object();
+    const bool           reserve_image = obj && !obj->m_print_error_img_id.empty();
+    if (m_error_picture) {
+        if (reserve_image) {
+            m_error_picture->SetBitmap(get_default_loading_image());
+            m_error_picture->Show();
+        } else {
+            m_error_picture->Hide();
+        }
+    }
+
+    m_scroll_area->Layout();
+    const int text_h = m_error_msg_label->GetBestSize().y;
+    if (text_h < FromDIP(360)) {
+        const int extra = reserve_image ? FromDIP(220) : FromDIP(50);
+        m_scroll_area->SetMinSize(wxSize(FromDIP(320), text_h + extra));
+    } else {
+        m_scroll_area->SetMinSize(wxSize(FromDIP(320), FromDIP(340)));
+    }
+
+    Layout();
+    Fit();
+}
+
+void DeviceErrorDialog::handle_hms_result(const HMSResult& r)
+{
+    if (IsBeingDeleted()) { return; }
+    if (r.status == HMSStatus::Ready && r.is_internal) { Close(); return; }
+
+    if (r.status == HMSStatus::Loading)
+        apply_loading();
+    else
+        apply_result(r);
+
+    show_error_dialog();
+}
+
+static bool is_other_modal_dialog_shown(const DeviceErrorDialog *error_dialog)
+{
+    for (wxWindowList::compatibility_iterator node = wxTopLevelWindows.GetFirst(); node != nullptr; node = node->GetNext()) {
+        auto *dialog = dynamic_cast<wxDialog *>(node->GetData());
+        if (dialog != nullptr && dialog != error_dialog && dialog->IsShown() && dialog->IsModal()) { return true; }
+    }
+
+    return false;
+}
+
+void DeviceErrorDialog::show_error_dialog()
+{
+    if (IsModal()) {
+        Raise();
+        return;
+    }
 
 #ifdef __WXOSX__
     SetWindowStyleFlag(GetWindowStyleFlag() | wxSTAY_ON_TOP);
 #endif
 
-    this->RequestUserAttention(wxUSER_ATTENTION_ERROR);
+    // Another modal dialog already owns the event loop: showing non-modally now
+    // would leave us disabled (visible-but-dead), so become the top nested modal.
+    if (is_other_modal_dialog_shown(this)) {
+        Enable(true);
+        Raise();
+        ShowModal();
+        Destroy();
+        return;
+    }
 
-    return error_msg;
+    Show();
+    Raise();
+    this->RequestUserAttention(wxUSER_ATTENTION_ERROR);
+}
+
+void DeviceErrorDialog::elevate_to_modal(wxCommandEvent& event)
+{
+    m_elevate_pending = false;
+
+    if (!IsShown() || IsModal()) { return; }
+
+    // The other dialog's ShowModal() disabled us via wxWindowDisabler; re-enable,
+    // rise above it, and take over as the active nested modal so we stay closable.
+    Enable(true);
+    Raise();
+    ShowModal();
+    Destroy();
+}
+
+wxString DeviceErrorDialog::show_error_code(int error_code)
+{
+    if (m_error_code == error_code) { return wxEmptyString; }
+    m_error_code = error_code;
+    m_uiop_sent = false;
+
+    HMSResult r = wxGetApp().get_hms_query_mgr()->query_error(
+        m_dev_id, error_code, [this](const HMSResult& r) { handle_hms_result(r); }, m_hms_sub);
+
+    // fail-open: suppress only a KNOWN internal error (Ready). m_hms_sub is empty here, so
+    // nothing is subscribed and the dialog is never shown.
+    if (r.status == HMSStatus::Ready && r.is_internal) { return wxEmptyString; }
+
+    handle_hms_result(r);
+    return r.text;
 }
 
 std::vector<int> DeviceErrorDialog::convert_to_pseudo_buttons(std::string error_str)
@@ -360,12 +521,13 @@ wxBitmap DeviceErrorDialog::get_default_error_image()
 
 bool DeviceErrorDialog::get_fail_snapshot_from_cloud()
 {
-    if (!m_obj || m_obj->m_print_error_img_id.empty()) { return false; }
+    const MachineObject* obj = get_machine_object();
+    if (!obj || obj->m_print_error_img_id.empty()) { return false; }
 
     NetworkAgent* agent = GUI::wxGetApp().getAgent();
     if (!agent) { return false; }
 
-    int ret = agent->get_hms_snapshot(m_obj->get_dev_id(), m_obj->m_print_error_img_id,
+    int ret = agent->get_hms_snapshot(m_dev_id, obj->m_print_error_img_id,
     [this](std::string body, int status) {
         if (status == 200) {
             wxMemoryInputStream stream(body.data(), body.size());
@@ -409,7 +571,7 @@ bool DeviceErrorDialog::get_fail_snapshot_from_local(const wxString& image_url)
         return false;
     }
 
-    const wxImage& img = wxGetApp().get_hms_query()->query_image_from_local(image_url);
+    const wxImage& img = wxGetApp().get_hms_query_mgr()->query_image_from_local(image_url);
     if (!img.IsOk() && image_url.Contains("http"))
     {
         web_request = wxWebSession::GetDefault().CreateRequest(this, image_url);
@@ -509,11 +671,13 @@ void DeviceErrorDialog::update_contents(const wxString& title, const wxString& t
 
     /* update layout*/
     {
+        const MachineObject* obj = get_machine_object();
+
         m_scroll_area->Layout();
         auto text_size = m_error_msg_label->GetBestSize();
         if (text_size.y < FromDIP(360))
         {
-            if (!image_url.empty() || !m_obj->m_print_error_img_id.empty())
+            if (!image_url.empty() || (obj && !obj->m_print_error_img_id.empty()))
             {
                 m_scroll_area->SetMinSize(wxSize(FromDIP(320), text_size.y + FromDIP(220)));
             }
@@ -534,21 +698,28 @@ void DeviceErrorDialog::update_contents(const wxString& title, const wxString& t
 
 void DeviceErrorDialog::on_button_click(ActionButton btn_id)
 {
+    // Resolved once per click: the machine may already be gone, in which case the
+    // printer commands below are silently dropped while navigation still works.
+    MachineObject* obj = get_machine_object();
+    if (!obj) {
+        BOOST_LOG_TRIVIAL(warning) << "DeviceErrorDialog: machine is gone, drop action " << btn_id;
+    }
+
     switch (btn_id) {
     case DeviceErrorDialog::RESUME_PRINTING: {
-        m_obj->command_hms_resume(std::to_string(m_error_code), m_obj->job_id_);
+        if (obj) { obj->command_hms_resume(std::to_string(m_error_code), obj->job_id_); }
         break;
     }
     case DeviceErrorDialog::RESUME_PRINTING_DEFECTS: {
-        m_obj->command_hms_resume(std::to_string(m_error_code), m_obj->job_id_);
+        if (obj) { obj->command_hms_resume(std::to_string(m_error_code), obj->job_id_); }
         break;
     }
     case DeviceErrorDialog::RESUME_PRINTING_PROBELM_SOLVED: {
-        m_obj->command_hms_resume(std::to_string(m_error_code), m_obj->job_id_);
+        if (obj) { obj->command_hms_resume(std::to_string(m_error_code), obj->job_id_); }
         break;
     }
     case DeviceErrorDialog::STOP_PRINTING: {
-        m_obj->command_hms_stop(std::to_string(m_error_code), m_obj->job_id_);
+        if (obj) { obj->command_hms_stop(std::to_string(m_error_code), obj->job_id_); }
         break;
     }
     case DeviceErrorDialog::CHECK_ASSISTANT: {
@@ -556,15 +727,15 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
         break;
     }
     case DeviceErrorDialog::FILAMENT_EXTRUDED: {
-        m_obj->command_ams_control("done");
+        if (obj) { obj->command_ams_control("done"); }
         break;
     }
     case DeviceErrorDialog::RETRY_FILAMENT_EXTRUDED: {
-        m_obj->command_ams_control("resume");
+        if (obj) { obj->command_ams_control("resume"); }
         break;
     }
     case DeviceErrorDialog::CONTINUE: {
-        m_obj->command_ams_control("resume");
+        if (obj) { obj->command_ams_control("resume"); }
         break;
     }
     case DeviceErrorDialog::LOAD_VIRTUAL_TRAY: {
@@ -573,11 +744,11 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
         break;/*AP, unknown what it is*/
     }
     case DeviceErrorDialog::OK_BUTTON: {
-        m_obj->command_clean_print_error(m_obj->subtask_id_, m_error_code);
+        if (obj) { obj->command_clean_print_error(obj->subtask_id_, m_error_code); }
         break;/*do nothing*/
     }
     case DeviceErrorDialog::FILAMENT_LOAD_RESUME: {
-        m_obj->command_hms_resume(std::to_string(m_error_code), m_obj->job_id_);
+        if (obj) { obj->command_hms_resume(std::to_string(m_error_code), obj->job_id_); }
         break;
     }
     case DeviceErrorDialog::JUMP_TO_LIVEVIEW: {
@@ -586,44 +757,44 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
         break;
     }
     case DeviceErrorDialog::NO_REMINDER_NEXT_TIME: {
-        m_obj->command_hms_idle_ignore(std::to_string(m_error_code), 0); /*the type is 0, supported by AP*/
+        if (obj) { obj->command_hms_idle_ignore(std::to_string(m_error_code), 0); } /*the type is 0, supported by AP*/
         break;
     }
     case DeviceErrorDialog::REFRESH_NOZZLE: {
-        m_obj->command_refresh_nozzle();
+        if (obj) { obj->command_refresh_nozzle(); }
         break;
     }
     case DeviceErrorDialog::IGNORE_NO_REMINDER_NEXT_TIME: {
-        m_obj->command_hms_ignore(std::to_string(m_error_code), m_obj->job_id_);
+        if (obj) { obj->command_hms_ignore(std::to_string(m_error_code), obj->job_id_); }
         break;
     }
     case DeviceErrorDialog::IGNORE_RESUME: {
-        m_obj->command_hms_ignore(std::to_string(m_error_code), m_obj->job_id_);
+        if (obj) { obj->command_hms_ignore(std::to_string(m_error_code), obj->job_id_); }
         break;
     }
     case DeviceErrorDialog::PROBLEM_SOLVED_RESUME: {
-        m_obj->command_hms_resume(std::to_string(m_error_code), m_obj->job_id_);
+        if (obj) { obj->command_hms_resume(std::to_string(m_error_code), obj->job_id_); }
         break;
     }
     case DeviceErrorDialog::TURN_OFF_FIRE_ALARM: {
-        m_obj->command_stop_buzzer();
+        if (obj) { obj->command_stop_buzzer(); }
         break;
     }
     case DeviceErrorDialog::RETRY_PROBLEM_SOLVED: {
-        m_obj->command_ams_control("resume");
+        if (obj) { obj->command_ams_control("resume"); }
         break;
     }
     case DeviceErrorDialog::CANCLE: {
         break;
     }
     case DeviceErrorDialog::STOP_DRYING: {
-        m_obj->command_ams_drying_stop();
+        if (obj) { obj->command_ams_drying_stop(); }
         break;
     }
     case DeviceErrorDialog::PROCEED: {
-        if(!m_action_json.is_null()){
+        if (obj && !m_action_json.is_null()){
             try{
-                m_obj->command_ack_proceed(m_action_json);
+                obj->command_ack_proceed(m_action_json);
             } catch(...){
                 BOOST_LOG_TRIVIAL(error) << "DeviceErrorDialog: Action Proceed missing params.";
             }
@@ -638,20 +809,20 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
     }
     case DeviceErrorDialog::ABORT:
     {
-        m_obj->command_ams_control("abort");
+        if (obj) { obj->command_ams_control("abort"); }
         break;
     }
 
     case DeviceErrorDialog::DISABLE_PURIFICATION:
     {
-        m_obj->command_purification_disable();
+        if (obj) { obj->command_purification_disable(); }
         break;
     }
 
     case DeviceErrorDialog::DONT_REMIND_NEXT_TIME:
     {
-        if(!m_action_json.is_null()){
-            m_obj->command_dont_remind_next_time(m_action_json);
+        if (obj && !m_action_json.is_null()){
+            obj->command_dont_remind_next_time(m_action_json);
         }
         break;
     }
@@ -663,7 +834,7 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
     }
     case DeviceErrorDialog::DBL_CHECK_DONE: {
         // post EVT_SECONDARY_CHECK_DONE
-        m_obj->command_ams_control("done");
+        if (obj) { obj->command_ams_control("done"); }
         break;
     }
     case DeviceErrorDialog::DBL_CHECK_RETRY: {
@@ -680,15 +851,14 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
     }
     case DeviceErrorDialog::DBL_CHECK_OK: {
         // post EVT_SECONDARY_CHECK_CONFIRM
-        m_obj->command_clean_print_error(m_obj->subtask_id_, m_error_code);
-        m_obj->command_clean_print_error_uiop(m_error_code);
+        if (obj) { obj->command_clean_print_error(obj->subtask_id_, m_error_code); }
         break;
     }
 
     default: break;
     }
 
-    Hide();
+    CallAfter([this]() { Close(); });
 }
 
 }

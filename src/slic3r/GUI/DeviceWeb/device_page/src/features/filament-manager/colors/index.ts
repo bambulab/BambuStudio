@@ -14,6 +14,8 @@ export {
   hexEqual,
   hexMultisetKey,
   isTransparentHex,
+  getAlphaByte,
+  hasPartialTransparency,
 } from './hex';
 
 export {
@@ -22,6 +24,8 @@ export {
   colorNameWithHexLabel,
   TRANSPARENT_CHECKERED_BG,
   isTransparentRenderInput,
+  translucentBackground,
+  isPartiallyTransparentRenderInput,
 } from './render';
 export type { ColorRenderInput } from './render';
 

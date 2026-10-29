@@ -20,6 +20,9 @@
     "counter_limit_min": [
         "-0.055"
     ],
+    "filament_change_length": [
+        "4"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10",
@@ -46,6 +49,9 @@
         "8",
         "8",
         "8"
+    ],
+    "filament_prime_volume": [
+        "30"
     ],
     "filament_ramming_travel_time": [
         "0",

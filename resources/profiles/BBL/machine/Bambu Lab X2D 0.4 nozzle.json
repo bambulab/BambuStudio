@@ -74,9 +74,9 @@
     "machine_max_acceleration_e": [
         "30000",
         "5000",
-        "30000",
         "5000",
         "30000",
+        "5000",
         "5000",
         "5000",
         "5000",
@@ -88,15 +88,15 @@
     "machine_max_acceleration_retracting": [
         "30000",
         "5000",
-        "30000",
         "5000",
         "30000",
         "5000",
-        "30000",
         "5000",
         "30000",
         "5000",
+        "5000",
         "30000",
+        "5000",
         "5000"
     ],
     "machine_max_speed_e": [
@@ -428,14 +428,6 @@
         "92",
         "92",
         "92"
-    ],
-    "nozzle_type": [
-        "hardened_steel",
-        "hardened_steel",
-        "hardened_steel",
-        "hardened_steel",
-        "hardened_steel",
-        "hardened_steel"
     ],
     "nozzle_flush_dataset": [
         "1",

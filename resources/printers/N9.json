@@ -51,9 +51,11 @@
 			"support_ams_settings_reorder": true,
 			"support_ams_settings_hide_image": true,
 			"support_high_tempbed_calibration": true,
-			"support_print_time_estimate_warning": true
+			"support_print_time_estimate_warning": true,
+			"support_ams_list": [ "AMS", "AMS_LITE", "N3F_S" ]
 		},
 		"model_id": "N9",
+		"sn_prefix": "26A",
 		"compatible_machine": [],
 		"auto_on_cali_warning_tpu_filaments": [ "GFU03", "GFU04", "GFU01", "GFU00"],
 		"auto_pa_cali_thumbnail_image": "fd_calibration_auto_i3",

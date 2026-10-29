@@ -34,6 +34,24 @@ struct Header
     std::uint64_t ts{0};
 };
 
+inline bool IsValidWebMessageEnvelope(const nlohmann::json& message)
+{
+    if (!message.is_object())
+        return false;
+    const auto head = message.find("head");
+    const auto body = message.find("body");
+    return head != message.end() && head->is_object() &&
+           body != message.end() && body->is_object();
+}
+
+inline std::string WebMessageStringField(const nlohmann::json& object, const char* key)
+{
+    if (!object.is_object())
+        return {};
+    const auto value = object.find(key);
+    return value != object.end() && value->is_string() ? value->get<std::string>() : std::string();
+}
+
 inline void to_json(nlohmann::json& j, const Header& h)
 {
     std::string type_str;

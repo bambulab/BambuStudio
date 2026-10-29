@@ -15,7 +15,8 @@
 //   - otherwise → flat single hex (fallback to `'#888'` only when no hex
 //     is available at all, never to obscure a bad input silently).
 
-import { canonicalizeHex, canonicalizeHexList, isTransparentHex } from './hex';
+import type { CSSProperties } from 'react';
+import { canonicalizeHex, canonicalizeHexList, hasPartialTransparency, isTransparentHex } from './hex';
 
 export interface ColorRenderInput {
   /**
@@ -102,6 +103,47 @@ export function cssBackgroundFor(input: ColorRenderInput): string {
   }
   if (hexes.length === 1) return hexes[0];
   return primary || '#888';
+}
+
+/**
+ * Checkerboard tile pattern shared by partially-transparent swatches.
+ * Same 4-stop conic-gradient used by FilamentColorSwatch in the auto-refill
+ * feature so all translucent swatches in the app render identically.
+ */
+const CHECKER_PATTERN_TRANSLUCENT =
+  'conic-gradient(#d9d9d9 25%, #ffffff 0 50%, #d9d9d9 0 75%, #ffffff 0)';
+
+/**
+ * CSS background properties for a partially-transparent colour swatch.
+ * Layers the RGBA colour on top of a checkerboard so the chip reads as
+ * "translucent" rather than as a solid opaque fill — matching the C++
+ * prepare-page rendering (ImGuiWrapper::draw_single_color_swatch).
+ *
+ * The caller must spread the returned object into `style={{ ... }}`:
+ *   <span style={{ ...chipStyle, ...translucentBackground(rawHex) }} />
+ *
+ * `hex8` must be an 8-char `#RRGGBBAA` or `RRGGBBAA` value. Browsers
+ * supporting CSS Color Level 4 (all modern Chromium / WebView2) parse
+ * 8-char hex natively in `linear-gradient` colour stops.
+ */
+export function translucentBackground(hex8: string): CSSProperties {
+  const rgba = hex8.startsWith('#') ? hex8 : `#${hex8}`;
+  return {
+    backgroundImage: `linear-gradient(${rgba} 0%, ${rgba} 100%), ${CHECKER_PATTERN_TRANSLUCENT}`,
+    backgroundSize: '100% 100%, 8px 8px',
+  };
+}
+
+/**
+ * True when the primary colour input (before canonicalisation strips alpha)
+ * is partially transparent (alpha 1–254). Used by SpoolColorChip to gate
+ * the translucent-checkerboard rendering path.
+ */
+export function isPartiallyTransparentRenderInput(input: ColorRenderInput): boolean {
+  return (
+    hasPartialTransparency(input.hexes?.[0]) ||
+    hasPartialTransparency(input.primaryHex)
+  );
 }
 
 /**

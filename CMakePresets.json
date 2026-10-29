@@ -1,0 +1,74 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 20,
+        "patch": 0
+    },    
+    "configurePresets": [        
+        {
+            "name": "msvc_debug",
+            "displayName": "windows debug Build",
+            "description": "",
+            "binaryDir": "${sourceDir}/build/debug",
+            "generator": "Visual Studio 18",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_PREFIX_PATH": "D:/dep_win_new/usr/local",
+                "CMAKE_INSTALL_PREFIX": "D:/dep_win_new/usr/local",
+                "BBL_RELEASE_TO_PUBLIC": "0"
+            },
+            "environment": {
+                "VSLANG": "1033"
+            }
+        },
+        {
+            "name": "msvc_debug_public",
+            "displayName": "windows debug Build",
+            "description": "",
+            "binaryDir": "${sourceDir}/build/debug",
+            "generator": "Visual Studio 18",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_PREFIX_PATH": "D:/dep_win_new/usr/local",
+                "CMAKE_INSTALL_PREFIX": "D:/dep_win_new/usr/local",
+                "BBL_RELEASE_TO_PUBLIC": "1"
+            },
+            "environment": {
+                "VSLANG": "1033"
+            }
+        },
+        {
+            "name": "msvc_release",
+            "displayName": "windows release Build",
+            "description": "",
+            "binaryDir": "${sourceDir}/build/release",
+            "generator": "Visual Studio 17",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_PREFIX_PATH": "D:/dep_win_new/usr/local",
+                "CMAKE_INSTALL_PREFIX": "D:/dep_win_new/usr/local",
+                "BBL_RELEASE_TO_PUBLIC": "0"
+            },
+            "environment": {
+                "VSLANG": "1033"
+            }
+        },
+        {
+            "name": "msvc_release_public",
+            "displayName": "windows release Build",
+            "description": "",
+            "binaryDir": "${sourceDir}/build/release",
+            "generator": "Visual Studio 18",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_PREFIX_PATH": "D:/dep_win_new/usr/local",
+                "CMAKE_INSTALL_PREFIX": "D:/dep_win_new/usr/local",
+                "BBL_RELEASE_TO_PUBLIC": "1"
+            },
+            "environment": {
+                "VSLANG": "1033"
+            }
+        }
+    ]
+}

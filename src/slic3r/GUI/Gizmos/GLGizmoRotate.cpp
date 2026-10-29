@@ -63,6 +63,14 @@ void GLGizmoRotate::set_angle(double angle)
     m_angle = angle;
 }
 
+double GLGizmoRotate::get_angle_relative_to_upright() const
+{
+    // Grabber rest pose is +PI/2 (up); report signed delta so drag starts near 0°.
+    double rel = m_angle - 0.5 * double(PI);
+    Geometry::to_range_pi_pi(rel);
+    return rel;
+}
+
 std::string GLGizmoRotate::get_tooltip() const
 {
     std::string axis;
@@ -73,6 +81,22 @@ std::string GLGizmoRotate::get_tooltip() const
     case Z: { axis = "Z"; break; }
     }
     return (m_hover_id == 0 || m_grabbers[0].dragging) ? axis + ": " + format((float)Geometry::rad2deg(m_angle), 2) : "";
+}
+
+std::string GLGizmoRotate::get_tooltip_relative_to_upright() const
+{
+    if (m_hover_id != 0 && !m_grabbers[0].dragging)
+        return "";
+
+    std::string axis;
+    switch (m_axis)
+    {
+    case X: { axis = "X"; break; }
+    case Y: { axis = "Y"; break; }
+    case Z: { axis = "Z"; break; }
+    }
+
+    return axis + ": " + Slic3r::string_printf("%+.2f", Geometry::rad2deg(get_angle_relative_to_upright()));
 }
 
 bool GLGizmoRotate::on_init()
@@ -703,7 +727,8 @@ bool GLGizmoRotate3D::on_is_activable() const
 {
     const Selection &selection = m_parent.get_selection();
     return !selection.is_empty() && !selection.is_wipe_tower() // BBS: don't support rotate wipe tower
-        &&!selection.is_any_cut_volume() && !selection.is_any_connector();
+        && !selection.is_any_cut_volume() && !selection.is_any_connector()
+        && m_parent.is_allow_gizmo_active();
 }
 
 void GLGizmoRotate3D::on_start_dragging()

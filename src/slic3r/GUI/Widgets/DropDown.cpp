@@ -388,9 +388,17 @@ void DropDown::render(wxDC &dc)
         // it already contains all text; skip drawing text on top to avoid duplicates.
         const bool icon_fills_row = !is_top_level_group && icon.IsOk()
                                     && size2.y > textSize.y * 2;
+        auto strip_brand_prefix = [](const wxString &text, const wxString &grp) -> wxString {
+            if (grp.EndsWith(' ')) return text;
+            wxString prefix = grp.BeforeFirst(' ');
+            if (prefix.IsEmpty()) prefix = grp;
+            if (text.StartsWith(prefix))
+                return text.substr(prefix.size()).Trim(false);
+            return text;
+        };
         auto text = group.IsEmpty()
                         ? (item.group.IsEmpty() ? item.text : item.group)
-                        : (item.text.StartsWith(group) && !group.EndsWith(' ') ? item.text.substr(group.size()).Trim(false) : item.text);
+                        : strip_brand_prefix(item.text, group);
         if (!text_off && !text.IsEmpty() && !icon_fills_row) {
             wxSize tSize = dc.GetMultiLineTextExtent(text);
             if (pt.x + tSize.x > rcContent.GetRight()) {
@@ -418,8 +426,20 @@ int DropDown::hoverIndex()
 {
     if (hover_item < 0)
         return -1;
-    if (count == items.size())
-        return hover_item;
+    if (count == items.size()) {
+        // Fast path assumes "count == items.size() implies no grouping folded any rows".
+        // That's true when items are truly flat, but a group with exactly one member
+        // makes count and items.size() coincide by accident — in that case we'd need to
+        // encode the group-header row as -i-2, not return it as a positive index. Only
+        // keep the shortcut when the top-level view actually has no group headers.
+        bool any_grouped_at_top_level = false;
+        if (group.IsEmpty()) {
+            for (const auto &item : items)
+                if (!item.group.IsEmpty()) { any_grouped_at_top_level = true; break; }
+        }
+        if (!any_grouped_at_top_level)
+            return hover_item;
+    }
     int index = -1;
     std::set<wxString> groups;
     for (int i = 0; i < items.size(); ++i) {
@@ -500,9 +520,17 @@ void DropDown::messureSize()
         ++count;
         wxSize size1;
         if (!text_off) {
+            auto strip_brand_prefix = [](const wxString &text, const wxString &grp) -> wxString {
+                if (grp.EndsWith(' ')) return text;
+                wxString prefix = grp.BeforeFirst(' ');
+                if (prefix.IsEmpty()) prefix = grp;
+                if (text.StartsWith(prefix))
+                    return text.substr(prefix.size()).Trim(false);
+                return text;
+            };
             auto text = group.IsEmpty()
                         ? (item.group.IsEmpty() ? item.text : item.group)
-                        : (item.text.StartsWith(group) && !group.EndsWith(' ') ? item.text.substr(group.size()).Trim(false) : item.text);
+                        : strip_brand_prefix(item.text, group);
             size1 = dc.GetMultiLineTextExtent(text);
             if (group.IsEmpty() && !item.group.IsEmpty())
                 size1.x += 5 + arrow_bitmap.GetBmpWidth();
@@ -663,6 +691,27 @@ void DropDown::mouseReleased(wxMouseEvent& event)
             ReleaseMouse();
         if (hover_item < 0)
             return;
+
+        // If the clicked row is a top-level group header, open (or focus) the drill-down
+        // submenu instead of dismissing the dropdown. Previously this path only fired via
+        // hover in mouseMove — which is flaky for narrow (1-row) groups and unreachable
+        // via keyboard/tap. Clicking on the header is the natural UX for a two-level menu.
+        int idx = hoverIndex();
+        if (idx < -1 && subDropDown) {
+            const wxString &target_group = items[-idx - 2].group;
+            auto &drop = *subDropDown;
+            if (drop.group != target_group) {
+                drop.group     = target_group;
+                drop.need_sync = true;
+                drop.messureSize();
+                drop.autoPosition();
+                drop.paintNow();
+            }
+            if (!drop.IsShown())
+                drop.Popup(&drop);
+            return;
+        }
+
         if (hover_item >= 0 && (subDropDown == nullptr || subDropDown->group.empty())) { // not moved
             sendDropDownEvent();
             if (mainDropDown)
@@ -709,7 +758,7 @@ void DropDown::mouseMove(wxMouseEvent &event)
             return;
         }
     }
-    if (!pressedDown || hover_item >= 0) {
+    if (rowSize.y > 0 && (!pressedDown || hover_item >= 0)) {
         int hover = (pt.y - offset.y) / rowSize.y;
         if (hover >= (int) count) hover = -1;
         if (hover == hover_item) return;

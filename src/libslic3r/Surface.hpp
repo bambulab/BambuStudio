@@ -18,6 +18,8 @@ enum SurfaceType {
     stFloatingVerticalShell,
     // Full infill, supporting the top surfaces and/or defining the verticall wall thickness.
     stInternalSolid,
+    // Internal solid immediately below a visible top fill island (sub-top).
+    stSubTop,
     // 1st layer of dense infill over sparse infill, printed with a bridging extrusion flow.
     stInternalBridge,
     // stInternal turns into void surfaces if the sparse infill is used for supports only,
@@ -108,7 +110,8 @@ public:
 	bool   is_external() const { return this->is_top() || this->is_bottom(); }
 	bool   is_internal() const { return ! this->is_external(); }
     bool   is_floating_vertical_shell() const { return this->surface_type == stFloatingVerticalShell; }
-	bool   is_solid()    const { return this->is_external() || this->is_floating_vertical_shell() || this->surface_type == stInternalSolid || this->surface_type == stInternalBridge; }
+    bool   is_sub_top()  const { return this->surface_type == stSubTop; }
+	bool   is_solid()    const { return this->is_external() || this->is_floating_vertical_shell() || this->surface_type == stInternalSolid || this->surface_type == stSubTop || this->surface_type == stInternalBridge; }
 	bool   is_solid_infill() const { return this->surface_type == stInternalSolid; }
 };
 

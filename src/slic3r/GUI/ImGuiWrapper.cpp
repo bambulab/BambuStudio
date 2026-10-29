@@ -35,6 +35,7 @@
 #include "Search.hpp"
 #include "BitmapCache.hpp"
 #include "FilamentBitmapUtils.hpp"
+#include "slic3r/GUI/UIHelpers/ImGuiFilamentWidgets.hpp"
 
 #include "../Utils/MacDarkMode.hpp"
 #ifdef __APPLE__
@@ -383,8 +384,21 @@ void ImGuiWrapper::set_language(const std::string &language)
         0x1EA0, 0x1EF9,
         0,
     };
+    // Same set as GetGlyphRangesOthers() plus the Greek and Coptic block, whose glyphs the
+    // bundled font already provides but the catch-all range never rasterized.
+    static const ImWchar ranges_greek[] =
+    {
+        0x0020, 0x00FF, // Basic Latin + Latin Supplement
+        0x0100, 0x017F, // Latin Extended-A
+        0x0180, 0x024F, // Latin Extended-B
+        0x0370, 0x03FF, // Greek and Coptic
+        0x2000, 0x206F, // General Punctuation
+        0xFF00, 0xFFEF, // Half-width characters
+        0,
+    };
     m_font_cjk = false;
     m_is_korean = false;
+    m_is_thai = false;
     if (lang == "cs" || lang == "pl") {
         ranges = ranges_latin2;
     } else if (lang == "ru" || lang == "uk") {
@@ -411,6 +425,9 @@ void ImGuiWrapper::set_language(const std::string &language)
         m_font_cjk = true;
     } else if (lang == "th") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesThai(); // Default + Thai characters
+        m_is_thai = true;
+    } else if (lang == "el") {
+        ranges = ranges_greek;
     }
     else if (lang == "en") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesEnglish(); // Basic Latin
@@ -2695,6 +2712,19 @@ void ImGuiWrapper::init_font(bool compress)
 
     ImFontConfig cfg = ImFontConfig();
     cfg.OversampleH = cfg.OversampleV = 1;
+
+    // None of the bundled UI fonts contains Thai glyphs, and unlike wxWidgets (which gets OS level
+    // font linking for free) ImGui draws every missing codepoint as the '?' fallback. Merge a
+    // Thai-only font on top of the font just added; merged fonts never overwrite glyphs the base
+    // font already provides, so Latin, CJK and the custom icon rects stay untouched.
+    auto merge_thai_font = [&](const char *file_name) {
+        if (!m_is_thai)
+            return;
+        ImFontConfig thai_cfg = cfg;
+        thai_cfg.MergeMode = true;
+        io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + file_name).c_str(), m_font_size, &thai_cfg, ranges.Data);
+    };
+
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
     if (m_is_korean)
@@ -2707,6 +2737,7 @@ void ImGuiWrapper::init_font(bool compress)
             throw Slic3r::RuntimeError("ImGui: Could not load deafult font");
         }
     }
+    merge_thai_font("NotoSansThai-Regular.ttf");
 
     if (m_is_korean)
         bold_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "NanumGothic-Bold.ttf").c_str(), m_font_size, &cfg, ranges.Data);
@@ -2716,6 +2747,7 @@ void ImGuiWrapper::init_font(bool compress)
         bold_font = io.Fonts->AddFontDefault();
         if (bold_font == nullptr) { throw Slic3r::RuntimeError("ImGui: Could not load deafult font"); }
     }
+    merge_thai_font("NotoSansThai-Bold.ttf");
 
 #ifdef _WIN32
     // Render the text a bit larger (see GLCanvas3D::_resize() and issue #3401), but only if the scale factor
@@ -2925,6 +2957,8 @@ void ImGuiWrapper::init_input()
             mac_ime_set_caret(view, x, y, 0);
     };
 #endif
+    // Windows: keep imgui's default ImeSetInputScreenPosFn (ImmSetCompositionWindow).
+    // It needs io.ImeWindowHandle = canvas HWND, set in GLCanvas3D focus / ImGui click.
 
     // Setup clipboard interaction callbacks
     io.SetClipboardTextFn = clipboard_set;
@@ -3201,106 +3235,29 @@ std::tuple<ImVec2, bool>  ImGuiWrapper::calculate_filament_group_text_size(const
     return { { final_width,final_height },is_multiline };
 }
 
-static ImU32 wxcolour_to_imu32(const wxColour& c)
-{
-    return IM_COL32(c.Red(), c.Green(), c.Blue(), c.Alpha());
-}
-
-// Draw a multi-color filament swatch into draw_list over [p_min, p_max], mirroring
-// create_filament_bitmap's layout: dual = left/right split, triple = vertical thirds,
-// quad = 2x2, gradient (and 5+ colors) = horizontal gradient segments. Assumes colors.size() > 1.
-static void draw_multi_color_swatch(ImDrawList* draw_list, const ImVec2& p_min, const ImVec2& p_max,
-                                    const std::vector<wxColour>& colors, bool is_gradient)
-{
-    const float x0 = p_min.x, y0 = p_min.y, x1 = p_max.x, y1 = p_max.y;
-    const size_t n = colors.size();
-
-    if (is_gradient || n > 4) {
-        const int   seg_count = (int) n - 1;
-        const float seg_w     = (x1 - x0) / (float) seg_count;
-        float       left      = x0;
-        for (int i = 0; i < seg_count; ++i) {
-            const float right = (i == seg_count - 1) ? x1 : left + seg_w;
-            const ImU32 c_l = wxcolour_to_imu32(colors[i]);
-            const ImU32 c_r = wxcolour_to_imu32(colors[i + 1]);
-            draw_list->AddRectFilledMultiColor(ImVec2(left, y0), ImVec2(right, y1), c_l, c_r, c_r, c_l);
-            left = right;
-        }
-    } else if (n == 2) {
-        const float xm = std::round(0.5f * (x0 + x1));
-        draw_list->AddRectFilled(ImVec2(x0, y0), ImVec2(xm, y1), wxcolour_to_imu32(colors[0]));
-        draw_list->AddRectFilled(ImVec2(xm, y0), ImVec2(x1, y1), wxcolour_to_imu32(colors[1]));
-    } else if (n == 3) {
-        const float w  = (x1 - x0) / 3.f;
-        const float xa = x0 + w, xb = x0 + 2.f * w;
-        draw_list->AddRectFilled(ImVec2(x0, y0), ImVec2(xa, y1), wxcolour_to_imu32(colors[0]));
-        draw_list->AddRectFilled(ImVec2(xa, y0), ImVec2(xb, y1), wxcolour_to_imu32(colors[1]));
-        draw_list->AddRectFilled(ImVec2(xb, y0), ImVec2(x1, y1), wxcolour_to_imu32(colors[2]));
-    } else { // exactly 4
-        const float xm = std::round(0.5f * (x0 + x1));
-        const float ym = std::round(0.5f * (y0 + y1));
-        draw_list->AddRectFilled(ImVec2(x0, y0), ImVec2(xm, ym), wxcolour_to_imu32(colors[0]));
-        draw_list->AddRectFilled(ImVec2(xm, y0), ImVec2(x1, ym), wxcolour_to_imu32(colors[1]));
-        draw_list->AddRectFilled(ImVec2(x0, ym), ImVec2(xm, y1), wxcolour_to_imu32(colors[2]));
-        draw_list->AddRectFilled(ImVec2(xm, ym), ImVec2(x1, y1), wxcolour_to_imu32(colors[3]));
-    }
-}
-
 void ImGuiWrapper::filament_group(const std::string& filament_type, const char* hex_color, unsigned char filament_id, float align_width)
 {
     //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-    std::string id = std::to_string(static_cast<unsigned int> (filament_id + 1));
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    static ImTextureID transparent;
-    ImVec2             text_size = ImGui::CalcTextSize(filament_type.c_str());
     // BBS image sizing based on text width (DPI scaling)
     float         img_width = ImGui::CalcTextSize("ABC").x;
     ImVec2        img_size = { img_width, img_width };
-    ImVec2        id_text_size = this->calc_text_size(id);
 
-    // Full color set for this filament (gradient / dual / multi); single-color falls back to hex_color.
-    std::vector<wxColour> multi_colors;
-    bool                  is_gradient = false;
-    get_filament_colors_by_id(static_cast<int>(filament_id), multi_colors, is_gradient);
-    const bool is_multi_color = multi_colors.size() > 1;
-    // The id label's contrast is driven by the primary (first) color; fall back to the passed hex_color.
-    const std::string primary_color = multi_colors.empty() ? std::string(hex_color)
-                                                           : multi_colors.front().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-
-    unsigned char rgba[4];
-    rgba[3] = 0xff;
-    Slic3r::GUI::BitmapCache::parse_color4(primary_color, rgba);
-    std::string svg_path = "/images/outlined_rect.svg";
-    if (rgba[3] == 0x00) {
-        svg_path = "/images/outlined_rect_transparent.svg";
-    }
-    if (!is_multi_color)
-        BitmapCache::load_from_svg_file_change_color(Slic3r::resources_dir() + svg_path, img_size.x, img_size.y, transparent, primary_color.c_str());
     ImGui::BeginGroup();
     {
         ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
-        if (is_multi_color)
-            draw_multi_color_swatch(draw_list, cursor_pos, { cursor_pos.x + img_size.x, cursor_pos.y + img_size.y }, multi_colors, is_gradient);
-        else
-            draw_list->AddImage(transparent, cursor_pos, { cursor_pos.x + img_size.x, cursor_pos.y + img_size.y }, { 0, 0 }, { 1, 1 }, ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 1.f)));
-        // image border test
-        // draw_list->AddRect(cursor_pos, {cursor_pos.x + img_size.x, cursor_pos.y + img_size.y}, IM_COL32(0, 0, 0, 255));
-        ImVec2 current_cursor = ImGui::GetCursorPos();
-        ImGui::SetCursorPos({ current_cursor.x + (img_size.x - id_text_size.x) * 0.5f, current_cursor.y + (img_size.y - id_text_size.y) * 0.5f });
-
-        float gray = 0.299 * rgba[0] + 0.587 * rgba[1] + 0.114 * rgba[2];
-        ImVec4 text_color = gray < 80 ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImVec4(0, 0, 0, 1.0f);
-        this->text_colored(text_color, id.c_str());
+        const ImVec2 swatch_max = { cursor_pos.x + img_size.x, cursor_pos.y + img_size.y };
+        ImGuiFilament::draw_filament_icon(draw_list, cursor_pos, swatch_max, static_cast<int>(filament_id), hex_color);
+        ImGui::Dummy(img_size);
 
         auto wrapped_text_info = calculate_filament_group_text_size(filament_type);
         ImVec2 wrapped_text_size = std::get<0>(wrapped_text_info);
         bool is_multiline = std::get<1>(wrapped_text_info);
 
         float text_y_offset = 4.f;
-        float text_x_offset = is_multiline ? (img_size.x - wrapped_text_size.x) * 0.5f + 2.f : (img_size.x - wrapped_text_size.x) * 0.5f + 2.f;
+        float text_x_offset = (img_size.x - wrapped_text_size.x) * 0.5f + 2.f;
 
-        auto cursor_x_before_text = ImGui::GetCursorPosX();
-        current_cursor = ImGui::GetCursorPos();
+        ImVec2 current_cursor = ImGui::GetCursorPos();
         ImGui::SetCursorPos({
             current_cursor.x + text_x_offset,
             current_cursor.y + text_y_offset

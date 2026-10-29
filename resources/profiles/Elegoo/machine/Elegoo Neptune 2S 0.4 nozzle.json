@@ -20,7 +20,6 @@
     "retract_lift_below":[
         "249"
     ],
-    "nozzle_type": "hardened_steel",
     "auxiliary_fan": "0",
     "machine_max_acceleration_extruding": [
         "500",

@@ -26,6 +26,9 @@
     "fan_min_speed": [
         "20"
     ],
+    "filament_change_length": [
+        "4"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10",
@@ -37,7 +40,7 @@
     "filament_max_volumetric_speed": [
         "25",
         "40",
-        "40"
+        "25"
     ],
     "filament_retraction_length": [
         "0.4",

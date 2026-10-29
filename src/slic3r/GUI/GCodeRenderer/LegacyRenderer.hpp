@@ -483,7 +483,7 @@ namespace Slic3r {
                 void render_toolpaths();
                 void draw_render_path(const RenderPath& t_render_path, unsigned int t_draw_type, int uniform_color, const Color& t_color);
 #if ENABLE_GCODE_VIEWER_STATISTICS
-                void render_statistics();
+                void render_statistics(float canvas_width);
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 bool is_visible(const Path& path) const;
                 void log_memory_used(const std::string& label, int64_t additional = 0) const;

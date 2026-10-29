@@ -15,6 +15,8 @@ import { Route as FilamentmanagerImport } from './routes/filament_manager'
 import { Route as AppImport } from './routes/app'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
+import { Route as DevicepageAmscontrolwebdebugImport } from './routes/device_page/ams_control_web_debug'
+import { Route as DevicepageAmscontrolwebImport } from './routes/device_page/ams_control_web'
 
 // Create/Update Routes
 
@@ -39,6 +41,19 @@ const AboutRoute = AboutImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DevicepageAmscontrolwebdebugRoute =
+  DevicepageAmscontrolwebdebugImport.update({
+    id: '/device_page/ams_control_web_debug',
+    path: '/device_page/ams_control_web_debug',
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const DevicepageAmscontrolwebRoute = DevicepageAmscontrolwebImport.update({
+  id: '/device_page/ams_control_web',
+  path: '/device_page/ams_control_web',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -74,6 +89,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FilamentmanagerImport
       parentRoute: typeof rootRoute
     }
+    '/device_page/ams_control_web': {
+      id: '/device_page/ams_control_web'
+      path: '/device_page/ams_control_web'
+      fullPath: '/device_page/ams_control_web'
+      preLoaderRoute: typeof DevicepageAmscontrolwebImport
+      parentRoute: typeof rootRoute
+    }
+    '/device_page/ams_control_web_debug': {
+      id: '/device_page/ams_control_web_debug'
+      path: '/device_page/ams_control_web_debug'
+      fullPath: '/device_page/ams_control_web_debug'
+      preLoaderRoute: typeof DevicepageAmscontrolwebdebugImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -84,6 +113,8 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
   '/filament_manager': typeof FilamentmanagerRoute
+  '/device_page/ams_control_web': typeof DevicepageAmscontrolwebRoute
+  '/device_page/ams_control_web_debug': typeof DevicepageAmscontrolwebdebugRoute
 }
 
 export interface FileRoutesByTo {
@@ -91,6 +122,8 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
   '/filament_manager': typeof FilamentmanagerRoute
+  '/device_page/ams_control_web': typeof DevicepageAmscontrolwebRoute
+  '/device_page/ams_control_web_debug': typeof DevicepageAmscontrolwebdebugRoute
 }
 
 export interface FileRoutesById {
@@ -99,14 +132,35 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
   '/filament_manager': typeof FilamentmanagerRoute
+  '/device_page/ams_control_web': typeof DevicepageAmscontrolwebRoute
+  '/device_page/ams_control_web_debug': typeof DevicepageAmscontrolwebdebugRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/app' | '/filament_manager'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/app'
+    | '/filament_manager'
+    | '/device_page/ams_control_web'
+    | '/device_page/ams_control_web_debug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/app' | '/filament_manager'
-  id: '__root__' | '/' | '/about' | '/app' | '/filament_manager'
+  to:
+    | '/'
+    | '/about'
+    | '/app'
+    | '/filament_manager'
+    | '/device_page/ams_control_web'
+    | '/device_page/ams_control_web_debug'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/app'
+    | '/filament_manager'
+    | '/device_page/ams_control_web'
+    | '/device_page/ams_control_web_debug'
   fileRoutesById: FileRoutesById
 }
 
@@ -115,6 +169,8 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AppRoute: typeof AppRoute
   FilamentmanagerRoute: typeof FilamentmanagerRoute
+  DevicepageAmscontrolwebRoute: typeof DevicepageAmscontrolwebRoute
+  DevicepageAmscontrolwebdebugRoute: typeof DevicepageAmscontrolwebdebugRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -122,6 +178,8 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AppRoute: AppRoute,
   FilamentmanagerRoute: FilamentmanagerRoute,
+  DevicepageAmscontrolwebRoute: DevicepageAmscontrolwebRoute,
+  DevicepageAmscontrolwebdebugRoute: DevicepageAmscontrolwebdebugRoute,
 }
 
 export const routeTree = rootRoute
@@ -137,7 +195,9 @@ export const routeTree = rootRoute
         "/",
         "/about",
         "/app",
-        "/filament_manager"
+        "/filament_manager",
+        "/device_page/ams_control_web",
+        "/device_page/ams_control_web_debug"
       ]
     },
     "/": {
@@ -151,6 +211,12 @@ export const routeTree = rootRoute
     },
     "/filament_manager": {
       "filePath": "filament_manager.tsx"
+    },
+    "/device_page/ams_control_web": {
+      "filePath": "device_page/ams_control_web.tsx"
+    },
+    "/device_page/ams_control_web_debug": {
+      "filePath": "device_page/ams_control_web_debug.tsx"
     }
   }
 }

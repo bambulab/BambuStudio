@@ -90,6 +90,7 @@ extern std::string format_memsize_MB(size_t n);
 // The string is non-empty if the loglevel >= info (3) or ignore_loglevel==true.
 // Latter is used to get the memory info from SysInfoDialog.
 extern std::string log_memory_info(bool ignore_loglevel = false);
+extern double get_peak_rss_mb();
 extern void disable_multi_threading();
 // Returns the size of physical memory (RAM) in bytes.
 extern size_t total_physical_memory();
@@ -824,21 +825,28 @@ inline std::string format_time_hm(const std::tm* tm, bool use_12h_format = false
     return formattedTime.str();
 }
 
-inline std::string get_bbl_finish_time_dhm(float time_in_secs, bool use_12h_format = false)
+struct BBLFinishTime
 {
-    if (time_in_secs < 1) return "Finished";
+    std::string time;
+    int         day_offset{0};
+};
+
+inline BBLFinishTime get_bbl_finish_time(float time_in_secs, bool use_12h_format = false)
+{
+    if (time_in_secs < 1) return {};
 
     // Get current time first
     time_t   current_time   = std::time(nullptr);
     std::tm *current_tm     = std::localtime(&current_time);
+    if (current_tm == nullptr) return {};
     int      current_day    = current_tm->tm_yday;
     int      current_year   = current_tm->tm_year + 1900;
 
     // Calculate finish time and get its local time
     time_t   finish_time    = current_time + static_cast<time_t>(time_in_secs);
-    std::tm  finish_tm      = *std::localtime(&finish_time);  // Copy to avoid overwrite
-    int      finish_hour    = finish_tm.tm_hour;
-    int      finish_minute  = finish_tm.tm_min;
+    std::tm *finish_tm_ptr  = std::localtime(&finish_time);
+    if (finish_tm_ptr == nullptr) return {};
+    std::tm  finish_tm      = *finish_tm_ptr;  // Copy to avoid overwrite
     int      finish_day     = finish_tm.tm_yday;
     int      finish_year    = finish_tm.tm_year + 1900;
 
@@ -859,21 +867,15 @@ inline std::string get_bbl_finish_time_dhm(float time_in_secs, bool use_12h_form
         diff_day = finish_day - current_day;
     }
 
-    std::string finish_time_str{};
-    //using 24 hour clock format
-    if (current_tm == nullptr)
-    {
-        std::ostringstream formattedTime;
-        formattedTime << std::setw(2) << std::setfill('0') << finish_hour << ":" << std::setw(2) << std::setfill('0') << finish_minute;
-        finish_time_str = formattedTime.str();
-    }
-    else
-    {
-        finish_time_str = format_time_hm(&finish_tm, use_12h_format);
-    }
-    if (diff_day != 0) finish_time_str += "+" + std::to_string(diff_day);
+    return {format_time_hm(&finish_tm, use_12h_format), diff_day};
+}
 
-    return finish_time_str;
+inline std::string get_bbl_finish_time_dhm(float time_in_secs, bool use_12h_format = false)
+{
+    if (time_in_secs < 1) return "Finished";
+
+    const BBLFinishTime finish_time = get_bbl_finish_time(time_in_secs, use_12h_format);
+    return finish_time.time + (finish_time.day_offset == 0 ? "" : "+" + std::to_string(finish_time.day_offset));
 }
 
 inline std::string get_bbl_remain_time_dhms(float time_in_secs)

@@ -39,12 +39,12 @@
     "filament_max_volumetric_speed": [
         "25",
         "35",
-        "35"
+        "25"
     ],
     "filament_retraction_length": [
         "0.4",
         "0.6",
-        "0.6"
+        "0.4"
     ],
     "filament_wipe": [
         "1",
@@ -89,6 +89,9 @@
     ],
     "filament_change_length_nc": [
         "4"
+    ],
+    "first_x_layer_fan_speed": [
+        "0"
     ],
     "hole_coef_2": [
         "-0.0042"
@@ -139,6 +142,9 @@
         "20",
         "20",
         "20"
+    ],
+    "temperature_vitrification": [
+        "55"
     ],
     "compatible_printers": [
         "Bambu Lab H2C 0.4 nozzle"

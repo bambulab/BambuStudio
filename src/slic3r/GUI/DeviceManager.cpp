@@ -36,6 +36,7 @@
 
 #include "DeviceCore/DevAxis.h"
 #include "DeviceCore/DevChamber.h"
+#include "DeviceCore/DevHMSQuery.h"
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevFilaSwitch.h"
 #include "DeviceCore/DevExtensionTool.h"
@@ -402,20 +403,6 @@ static wxString _generate_nozzle_id(NozzleVolumeType nozzle_type, const std::str
     nozzle_id += "-";
     nozzle_id += diameter;
     return nozzle_id;
-}
-
-NozzleVolumeType convert_to_nozzle_type(const std::string &str)
-{
-    if (str.size() < 8) {
-        assert(false);
-        return NozzleVolumeType::nvtStandard;
-    }
-    NozzleVolumeType res = NozzleVolumeType::nvtStandard;
-    if (str[1] == 'S')
-        res = NozzleVolumeType::nvtStandard;
-    else if (str[1] == 'H')
-        res = NozzleVolumeType::nvtHighFlow;
-    return res;
 }
 
 wxString MachineObject::get_printer_type_display_str() const
@@ -931,28 +918,20 @@ bool MachineObject::check_version_valid()
 
 std::map<int, DevFirmwareVersionInfo> MachineObject::get_ams_version()
 {
-    std::vector<std::string> multi_tray_ams_type = {"ams", "n3f"};
     std::map<int, DevFirmwareVersionInfo> result;
-    for (int i = 0; i < 8; i++) {
-        std::string ams_id;
-        for (auto type : multi_tray_ams_type)
-        {
-            ams_id = type + "/" + std::to_string(i);
-            auto it = module_vers.find(ams_id);
-            if (it != module_vers.end()) {
-                result.emplace(std::pair(i, it->second));
-            }
-        }
-    }
+    for (const auto &module : module_vers) {
+        const std::string &key       = module.first;
+        auto               slash_pos = key.find('/');
+        if (slash_pos == std::string::npos) continue;
 
-    std::string single_tray_ams_type = "n3s";
-    int n3s_start_id = 128;
-    for (int i = n3s_start_id; i < n3s_start_id + 8; i++) {
-        std::string ams_id;
-        ams_id = single_tray_ams_type + "/" + std::to_string(i);
-        auto it = module_vers.find(ams_id);
-        if (it != module_vers.end()) {
-            result.emplace(std::pair(i, it->second));
+        std::string type = key.substr(0, slash_pos);
+        if (type != "ams" && type != "ams_f1" && type != "n3f" && type != "n3s") continue;
+
+        try {
+            int ams_id = std::stoi(key.substr(slash_pos + 1));
+            result.emplace(ams_id, module.second);
+        } catch (...) {
+            continue;
         }
     }
     return result;
@@ -1291,6 +1270,47 @@ int MachineObject::command_get_access_code() {
     j["system"]["command"] = "get_access_code";
 
     return this->publish_json(j);
+}
+
+std::string MachineObject::request_access_code(AccessCodeRefreshCallback callback)
+{
+    if (!callback)
+        return {};
+
+    json j;
+    const std::string sequence_id = std::to_string(MachineObject::m_sequence_id++);
+    j["system"]["sequence_id"] = sequence_id;
+    j["system"]["command"] = "get_access_code";
+
+    {
+        std::lock_guard<std::mutex> lock(m_access_code_refresh_mutex);
+        if (m_access_code_refresh_callback)
+            return {};
+        m_access_code_refresh_sequence_id = sequence_id;
+        m_access_code_refresh_callback = std::move(callback);
+    }
+
+    if (this->publish_json(j) != 0) {
+        AccessCodeRefreshCallback failed_callback;
+        {
+            std::lock_guard<std::mutex> lock(m_access_code_refresh_mutex);
+            failed_callback = std::move(m_access_code_refresh_callback);
+            m_access_code_refresh_sequence_id.clear();
+        }
+        if (failed_callback)
+            failed_callback(false, {}, print_status);
+    }
+
+    return sequence_id;
+}
+
+void MachineObject::cancel_access_code_request(const std::string& sequence_id)
+{
+    std::lock_guard<std::mutex> lock(m_access_code_refresh_mutex);
+    if (m_access_code_refresh_sequence_id == sequence_id) {
+        m_access_code_refresh_sequence_id.clear();
+        m_access_code_refresh_callback = nullptr;
+    }
 }
 
 
@@ -1994,9 +2014,18 @@ int MachineObject::command_delete_pa_calibration(const PACalibIndexInfo& pa_cali
     return this->publish_json(j);
 }
 
+bool MachineObject::supports_full_pa_calib_table() const
+{
+    /* TODO: drive this from the printer json instead of the extruder count */
+    if (is_multi_extruders())
+        return true;
+
+    auto rack = GetNozzleRack();
+    return rack && rack->IsSupported();
+}
+
 int MachineObject::command_get_pa_calibration_tab(const PACalibExtruderInfo &calib_info)
 {
-
     json j;
     j["print"]["command"]         = "extrusion_cali_get";
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
@@ -2005,7 +2034,8 @@ int MachineObject::command_get_pa_calibration_tab(const PACalibExtruderInfo &cal
         j["print"]["extruder_id"] = calib_info.extruder_id;
     if (calib_info.use_nozzle_volume_type)
         j["print"]["nozzle_id"] = _generate_nozzle_id(calib_info.nozzle_volume_type, to_string_nozzle_diameter(calib_info.nozzle_diameter)).ToStdString();
-    j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(calib_info.nozzle_diameter);
+    if (calib_info.use_nozzle_diameter)
+        j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(calib_info.nozzle_diameter);
 
     if (calib_info.nozzle_pos_id >= 0) {
         j["print"]["nozzle_pos"] = calib_info.nozzle_pos_id;
@@ -2305,6 +2335,7 @@ void MachineObject::reset()
     m_plate_index = -1;
     device_cert_installed = false;
     clear_auto_nozzle_mapping();// reset nozzle mapping
+    m_printTaskInfo.reset();
 
     // reset print_json
     json empty_j;
@@ -2597,12 +2628,35 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
         }
         if (j_pre.contains("system")) {
             if (j_pre["system"].contains("command")) {
-                if (j_pre["system"]["command"].get<std::string>() == "get_access_code") {
+                std::string system_command = j_pre["system"]["command"].get<std::string>();
+                if (system_command == "get_access_code") {
+                    std::string access_code;
                     if (j_pre["system"].contains("access_code")) {
-                        std::string access_code = j_pre["system"]["access_code"].get<std::string>();
+                        access_code = j_pre["system"]["access_code"].get<std::string>();
                         if (!access_code.empty()) {
                             set_access_code(access_code);
                             set_user_access_code(access_code);
+                        }
+                    }
+                    if (j_pre["system"].contains("sequence_id")) {
+                        std::string sequence_id;
+                        if (j_pre["system"]["sequence_id"].is_string())
+                            sequence_id = j_pre["system"]["sequence_id"].get<std::string>();
+                        else if (j_pre["system"]["sequence_id"].is_number_integer())
+                            sequence_id = std::to_string(j_pre["system"]["sequence_id"].get<long long>());
+
+                        AccessCodeRefreshCallback callback;
+                        {
+                            std::lock_guard<std::mutex> lock(m_access_code_refresh_mutex);
+                            if (sequence_id == m_access_code_refresh_sequence_id) {
+                                callback = std::move(m_access_code_refresh_callback);
+                                m_access_code_refresh_sequence_id.clear();
+                            }
+                        }
+                        if (callback)
+                        {
+                            const bool has_access_code = !access_code.empty();
+                            callback(has_access_code, std::move(access_code), print_status);
                         }
                     }
                 }
@@ -2780,6 +2834,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 
         if (j.contains("print")) {
             json jj = j["print"];
+            m_printTaskInfo.parse(jj);
             int sequence_id = 0;
             if (jj.contains("sequence_id")) {
                 if (jj["sequence_id"].is_string()) {
@@ -4077,10 +4132,22 @@ bool MachineObject::is_firmware_info_valid()
 }
 
 
+DevAmsTray* MachineObject::get_vt_tray(const std::string &ams_id)
+{
+    for (int idx = 0; idx < vt_slot.size(); idx++) {
+        if (vt_slot[idx].id == ams_id) {
+            return &vt_slot[idx];
+        }
+    }
+
+    return nullptr;
+}
+
 DevAmsTray MachineObject::parse_vt_tray(json vtray)
 {
     auto vt_tray = DevAmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID));
     vt_tray.ams_type = DevAmsType::EXT_SPOOL;
+    vt_tray.is_exists = true;
 
     if (vtray.contains("id")) {
         std::string id = vtray["id"].get<std::string>();
@@ -4096,6 +4163,14 @@ DevAmsTray MachineObject::parse_vt_tray(json vtray)
             vt_tray.id = std::to_string((id_int >> 8) + (id_int & 0xff));
         } else {
             vt_tray.id = id;
+        }
+    }
+    vt_tray.ams_id = vt_tray.id;
+
+    if (auto old_vt_tray = get_vt_tray(vt_tray.id)) {
+        if (old_vt_tray->hold_count > 0) {
+            old_vt_tray->hold_count--;
+            return *old_vt_tray;
         }
     }
 
@@ -4904,12 +4979,16 @@ std::string MachineObject::get_error_code_str(int error_code)
 void MachineObject::add_command_error_code_dlg(int command_err, json action_json)
 {
     BOOST_LOG_TRIVIAL(error) << __FUNCTION__  << command_err;
-    if (command_err > 0 && !Slic3r::GUI::wxGetApp().get_hms_query()->is_internal_error(this, command_err))
+
+    GUI::HMSResult hms_res = Slic3r::GUI::wxGetApp().get_hms_query_mgr()->query_error(get_dev_id(), command_err);
+    bool suppress = (hms_res.status == GUI::HMSStatus::Ready) && hms_res.is_internal;
+    if (command_err > 0 && !suppress)
     {
         GUI::wxGetApp().CallAfter([this, command_err, action_json, token = std::weak_ptr<int>(m_token)]
         {
             if (token.expired()) { return;}
             GUI::DeviceErrorDialog* device_error_dialog = new GUI::DeviceErrorDialog(this, (wxWindow*)GUI::wxGetApp().mainframe);
+            m_command_error_code_dlgs.insert(device_error_dialog);
             device_error_dialog->Bind(wxEVT_DESTROY, [this, token = std::weak_ptr<int>(m_token)](auto& event)
                 {
                     if (!token.expired()) { m_command_error_code_dlgs.erase((GUI::DeviceErrorDialog*)event.GetEventObject());}
@@ -4918,7 +4997,7 @@ void MachineObject::add_command_error_code_dlg(int command_err, json action_json
 
             if(!action_json.is_null()) device_error_dialog->set_action_json(action_json);
             device_error_dialog->show_error_code(command_err);
-            m_command_error_code_dlgs.insert(device_error_dialog);
+            if (!device_error_dialog->IsShown() && !device_error_dialog->IsModal()) { device_error_dialog->Destroy(); }
         });
     };
 }

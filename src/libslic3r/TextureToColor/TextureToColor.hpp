@@ -3,13 +3,15 @@
 #include "Callbacks.hpp"
 #include "TriMesh.hpp"
 #include "opencv2/core.hpp"
+#include <array>
+#include <chrono>
 #include <functional>
 #include <string>
+#include <vector>
 
 namespace Slic3r { namespace tex2color {
 
 enum class MeshRepairDecision {
-    Ask,
     ImportWithoutRepair,
     RepairAndImport
 };
@@ -19,6 +21,51 @@ using MeshRepairCallback = std::function<bool(const indexed_triangle_set& mesh,
                                               std::function<void(const char* message, unsigned progress)> progress_callback,
                                               std::function<bool()> cancel_callback,
                                               std::string* error_message)>;
+
+enum class MeshRepairAttempt {
+    NotAttempted,  // never tried, or the last attempt was cancelled
+    Succeeded,
+    Failed         // tried and failed (including timeout); do not retry Win10 repair
+};
+
+// Session cache for one mesh. Callers must use a given pointer serially and
+// must not share it across unrelated meshes.
+struct MeshRepairCache {
+    MeshRepairAttempt win10_attempt = MeshRepairAttempt::NotAttempted;
+    bool has_prepared_mesh = false;
+    TriMesh mesh;  // oversampled + repaired geometry
+    std::vector<std::array<std::size_t, 3>> face_colors;  // pre-cluster face colors
+
+    std::size_t key_input_face_count = 0;
+    std::size_t key_oversampling_iters = 0;
+    std::size_t key_oversampling_min_face_count = 0;
+    std::size_t key_oversampling_max_face_count = 0;
+
+    bool matches_input(std::size_t face_count,
+                       std::size_t oversampling_iters,
+                       std::size_t oversampling_min_face_count,
+                       std::size_t oversampling_max_face_count) const
+    {
+        return has_prepared_mesh &&
+               key_input_face_count == face_count &&
+               key_oversampling_iters == oversampling_iters &&
+               key_oversampling_min_face_count == oversampling_min_face_count &&
+               key_oversampling_max_face_count == oversampling_max_face_count;
+    }
+
+    // Drops prepared geometry. win10_attempt is kept so a Failed Win10
+    // attempt is not retried for the rest of the session.
+    void invalidate_prepared_mesh()
+    {
+        has_prepared_mesh = false;
+        mesh = {};
+        face_colors.clear();
+        key_input_face_count = 0;
+        key_oversampling_iters = 0;
+        key_oversampling_min_face_count = 0;
+        key_oversampling_max_face_count = 0;
+    }
+};
 
 struct TextureToColorSettings {
     std::size_t target_colors_num = 4;  // 目标颜色数量, 为0时, 自适应计算; 否则计算指定数目的颜色聚类
@@ -35,10 +82,18 @@ struct TextureToColorSettings {
 
     MeshRepairDecision mesh_repair_decision = MeshRepairDecision::ImportWithoutRepair;
 
-    // Set by TextureToColor when Ask is selected and mesh repair needs user confirmation.
-    bool* mesh_repair_decision_required = nullptr;
-
     MeshRepairCallback mesh_repair_callback;
+
+    // Max wait for Windows 3D repair. Timed-out repair is cancelled and the
+    // input mesh is kept; CGAL RepairMesh may still run afterwards. Zero
+    // disables the timeout (homepage / other callers). Texture import sets
+    // this explicitly.
+    std::chrono::seconds mesh_repair_timeout{0};
+
+    // Optional session cache. When set, a successful repair is stored so later
+    // recomputes can skip Win10 / CGAL repair. Failed Win10 attempts are also
+    // recorded so they are not retried. User cancel does not count as failure.
+    MeshRepairCache* mesh_repair_cache = nullptr;
 };
 
 /**
@@ -60,6 +115,44 @@ struct TextureToColorSettings {
 bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<Vec2f>>& uv_coords, const cv::Mat& texture, TriMesh& color_mesh,
                     std::vector<std::array<std::size_t, 3>>& face_colors, const TextureToColorSettings& settings = TextureToColorSettings(),
                     AlgoProgressCallback progress_callback = nullptr, AlgoCancelCallback cancel_callback = nullptr);
+
+/**
+ * @brief Turn pre-computed per-face colors into a clustered color mesh (no texture/UV).
+ *
+ * Used for OBJ vertex colors and MTL face colors, which bypass texture sampling.
+ * Two routes are possible:
+ * - Low-poly meshes carrying per-vertex colors: the vertex colors are quantized
+ *   into a small palette and the mesh is geometrically split along cluster
+ *   boundaries, reproducing the split topology of the legacy OBJ vertex-color
+ *   import. Output colors are then exact cluster centers, so mesh repair,
+ *   re-clustering and smoothing are skipped.
+ * - Everything else: mesh repair, color clustering (K-Means or adaptive) and
+ *   region smoothing, sharing the same pipeline as TextureToColor.
+ *
+ * @param[in]      mesh               Input triangle mesh
+ * @param[in]      input_face_colors  Pre-computed per-face RGB colors [0..255]
+ * @param[out]     out_mesh           Output mesh. Geometry is subdivided on the
+ *                                    vertex-color route, and may still be replaced
+ *                                    by mesh repair on the generic route.
+ * @param[out]     out_face_colors    Output per-face colors, one entry per out_mesh face
+ * @param[in]      settings           Algorithm parameters (target_colors_num, smooth_weight;
+ *                                    oversampling_min_face_count doubles as the low-poly
+ *                                    threshold for the vertex-color route)
+ * @param[in]      progress_callback  Progress callback
+ * @param[in]      cancel_callback    Cancel callback
+ * @param[in]      vertex_colors      Optional per-vertex RGBA [0..1]. Must match
+ *                                    mesh.vertices in size to enable the vertex-color
+ *                                    route; otherwise it is ignored.
+ * @return true on success, false on failure or cancellation
+ */
+bool ClusterAndSmooth(const TriMesh& mesh,
+                      const std::vector<std::array<std::size_t, 3>>& input_face_colors,
+                      TriMesh& out_mesh,
+                      std::vector<std::array<std::size_t, 3>>& out_face_colors,
+                      const TextureToColorSettings& settings = TextureToColorSettings(),
+                      AlgoProgressCallback progress_callback = nullptr,
+                      AlgoCancelCallback cancel_callback = nullptr,
+                      const std::vector<std::array<float, 4>>& vertex_colors = {});
 
 }  // namespace tex2color
 }  // namespace Slic3r

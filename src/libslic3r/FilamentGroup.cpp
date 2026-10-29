@@ -1,6 +1,7 @@
 #include "FilamentGroup.hpp"
 #include "GCode/ToolOrderUtils.hpp"
 #include "FlushVolPredictor.hpp"
+#include <cmath>
 #include <queue>
 #include <random>
 #include <cassert>
@@ -13,6 +14,27 @@ namespace Slic3r
     static constexpr long long ENUM_THRESHOLD = 10000;
     static constexpr long long ENUM_EARLY_EXIT = 10000000;
     constexpr uint32_t GOLDEN_RATIO_32 = 0x9e3779b9;
+
+    // 计算单对“工程耗材—设备耗材”的匹配成本，供最小费用算法汇总整个匹配方案。
+    static int calc_match_mode_cost(float color_distance, const std::string& model_filament_id,
+                                    const std::string& machine_filament_id, int max_assignment_count)
+    {
+        // 1. 将颜色距离保留两位精度并转为整数，避免直接转换造成截断。
+        constexpr int kColorDistanceScale = 100;
+
+        // 2. 一个方案最多有 N 次小类不匹配；使用 N+1 权重，保证颜色差异始终优先。
+        const int color_priority_weight    = std::max(1, max_assignment_count) + 1;
+        const int quantized_color_distance = static_cast<int>(std::lround(color_distance * kColorDistanceScale));
+        const int weighted_color_cost      = quantized_color_distance * color_priority_weight;
+
+        // 3. filament_id 表示耗材小类：一致不加成本，不一致加 1，仅在同色时择优。
+        const bool filament_id_match = !model_filament_id.empty() && !machine_filament_id.empty()
+                                    && model_filament_id == machine_filament_id;
+        const int filament_id_mismatch_cost = filament_id_match ? 0 : 1;
+
+        // 4. 单对成本 = 颜色成本 × (N+1) + 小类不匹配成本，求解器再对全部匹配求和。
+        return weighted_color_cost + filament_id_mismatch_cost;
+    }
 
     // clear the array and heap,save the groups in heap to the array
     static void change_memoryed_heaps_to_arrays(MemoryedGroupHeap& heap,const int total_filament_num,const std::vector<unsigned int>& used_filaments, std::vector<std::vector<int>>& arrs)
@@ -62,13 +84,14 @@ namespace Slic3r
         return h;
     }
 
+    // 冲刷体积(mm^3)折算成时间等价分(秒)：体积→质量(密度/1000)→冲刷耗时(速度)→×2修正
+    // evaluate_score 与 calc_one_change_budget 共用，避免两处系数漂移
+    static constexpr double FLUSH_VOLUME_TO_SCORE = 1.26 /*密度g/cm^3*/ * 180.0 /*冲刷s/g*/ * 2.0 /*修正*/ / 1000.0; // == 0.4536
+
     static double evaluate_score(const double flush, const double time, const bool with_time = false) {
         if (!with_time) return flush;
 
-        double approx_density = 1.26;    //   g/cm^3
-        double approx_flush_speed = 180; //   s/g
-        double correction_factor = 2;
-        double flush_score = flush * approx_density * approx_flush_speed * correction_factor / 1000;
+        double flush_score = flush * FLUSH_VOLUME_TO_SCORE;
         return flush_score + time;
     }
 
@@ -203,6 +226,33 @@ namespace Slic3r
         return total / std::max(dedup_factor, 1);
     }
 
+    double FilamentGroup::calc_one_change_budget(const std::vector<unsigned int>& used_filaments) const
+    {
+        // “一次换料”预算：对所有已用料两两组合，各取“较贵方向”的 flush，再取中位数作为
+        // “典型一次换料”的代价。中位数天然对个别极端色对（如纯黑↔纯白）免疫，随调色板自适应：
+        // 暗↔亮预算大、近似色预算小。最后折算到与 evaluate_score 相同的分数尺度。
+        // 空/单料/零矩阵时返回 0，退回 update_memoryed_groups 里的绝对/相对下限兜底。
+        const size_t n = used_filaments.size();
+        if (n < 2 || ctx.model_info.flush_matrix.empty())
+            return 0.0;
+
+        std::vector<float> pair_flush;
+        for (const auto& fm : ctx.model_info.flush_matrix)
+            for (size_t i = 0; i < n; ++i)
+                for (size_t j = i + 1; j < n; ++j)
+                    pair_flush.push_back(std::max(fm[used_filaments[i]][used_filaments[j]],
+                                                  fm[used_filaments[j]][used_filaments[i]]));
+        if (pair_flush.empty())
+            return 0.0;
+
+        const size_t mid = pair_flush.size() / 2;
+        std::nth_element(pair_flush.begin(), pair_flush.begin() + mid, pair_flush.end());
+        const double typical_flush = pair_flush[mid];
+
+        constexpr double kOneChangeMargin = 1.2; // 留余量，保证完整一次换料仍在容忍度内
+        return typical_flush * FLUSH_VOLUME_TO_SCORE * kOneChangeMargin;
+    }
+
     std::vector<int> FilamentGroup::calc_group_by_enum(
         int k,
         const std::vector<unsigned int>& used_filaments,
@@ -215,6 +265,7 @@ namespace Slic3r
         static constexpr int BEST_FIT_LIMIT_REWARD = 10;
 
         int n = (int)used_filaments.size();
+        const double one_change_budget = calc_one_change_budget(used_filaments);
 
         std::vector<std::vector<int>> candidates(n);
         for (int i = 0; i < n; i++) {
@@ -341,7 +392,7 @@ namespace Slic3r
             }
 
             MemoryedGroup mg(used_labels, score, prefer_level);
-            update_memoryed_groups(mg, ctx.group_info.max_gap_threshold, m_memoryed_heap);
+            update_memoryed_groups(mg, one_change_budget, ctx.group_info.max_gap_threshold, m_memoryed_heap);
         }
 
         if (cost) *cost = best_flush;
@@ -359,6 +410,7 @@ namespace Slic3r
         KMediods PAM(k, (int)used_filaments.size(), distance_evaluator, ctx.machine_info.master_extruder_id);
         PAM.set_unplacable_limits(unplaceable_limits);
         PAM.set_memory_threshold(ctx.group_info.max_gap_threshold);
+        PAM.set_one_change_budget(calc_one_change_budget(used_filaments));
 
         std::vector<std::pair<std::set<int>, int>> cluster_size_limit;
         for (auto& [extruder_id, nozzles] : ctx.nozzle_info.extruder_nozzle_list) {
@@ -421,6 +473,12 @@ namespace Slic3r
         std::vector<std::vector<MachineFilamentInfo>> machine_filament_info = machine_filament_info_;
         machine_filament_info.resize(2);
 
+        // 设备侧完全没有耗材信息（未连接打印机 / 未同步 AMS）时，所有候选代价相同，
+        // AMS 匹配没有参考价值，直接保留最小冲刷方案，避免结果由平局顺序决定。
+        if (std::all_of(machine_filament_info.begin(), machine_filament_info.end(),
+                        [](const std::vector<MachineFilamentInfo>& filaments) { return filaments.empty(); }))
+            return filament_to_nozzles.size() ? filament_to_nozzles.front() : std::vector<int>();
+
         int best_cost = std::numeric_limits<int>::max();
         std::vector<int>best_map;
 
@@ -440,7 +498,9 @@ namespace Slic3r
                 if (group_colors[i].empty())
                     continue;
                 if (machine_filament_info[i].empty()) {
-                    group_cost += group_colors.size() * fail_cost;
+                    // 按耗材根数计罚，与下方匹配分支保持同一尺度；
+                    // 若按分组数计罚，则"用的头越少越便宜"，会把所有耗材压到同一个挤出机。
+                    group_cost += (int) group_colors[i].size() * fail_cost;
                     continue;
                 }
                 std::vector<std::vector<float>>distance_matrix(group_colors[i].size(), std::vector<float>(machine_filament_info[i].size()));
@@ -493,13 +553,14 @@ namespace Slic3r
     }
 
 
-    void FilamentGroupUtils::update_memoryed_groups(const MemoryedGroup& item, const double gap_threshold, MemoryedGroupHeap& groups)
+    void FilamentGroupUtils::update_memoryed_groups(const MemoryedGroup& item, const double one_change_budget, const double gap_threshold, MemoryedGroupHeap& groups)
     {
-        // Use the more lenient of absolute/relative tolerance to avoid losing valid candidates
-        // when scores are small, while still allowing proportional expansion when scores are large.
-        auto emplace_if_accepatle = [gap_threshold](MemoryedGroupHeap& heap, const MemoryedGroup& elem, const MemoryedGroup& best) {
+        // 保留比最优多约五次换料代价的候选，让 select_best_group_for_ams 能优先选
+        // 匹配 AMS 的分组(如两个料都留在已装载的挤出机)，而非纯最小冲刷的左右拆分。
+        // one_change_budget 随色对自适应；绝对/相对下限兜底退化情况(空/零冲刷矩阵、极小分数)。
+        auto emplace_if_accepatle = [one_change_budget, gap_threshold](MemoryedGroupHeap& heap, const MemoryedGroup& elem, const MemoryedGroup& best) {
             double gap = std::abs(elem.cost - best.cost);
-            double tolerance = std::max(ABSOLUTE_FLUSH_GAP_TOLERANCE * 6.0, best.cost * gap_threshold);
+            double tolerance = std::max(std::max(ABSOLUTE_FLUSH_GAP_TOLERANCE * 6.0, one_change_budget* 5.0), best.cost * gap_threshold);
             if (gap <= tolerance)
                 heap.push(elem);
             };
@@ -821,7 +882,7 @@ namespace Slic3r
             double           curr_cluster_cost   = evaluate_labels(curr_cluster_labels);
 
             MemoryedGroup g(curr_cluster_labels, curr_cluster_cost, 1);
-            update_memoryed_groups(g, memory_threshold, memoryed_groups);
+            update_memoryed_groups(g, m_one_change_budget, memory_threshold, memoryed_groups);
 
             bool mediods_changed = true;
             while (mediods_changed && T.time_machine_end() < timeout_ms) {
@@ -856,7 +917,7 @@ namespace Slic3r
                     curr_cluster_cost   = evaluate_labels(curr_cluster_labels);
 
                     MemoryedGroup g(curr_cluster_labels, curr_cluster_cost, 1);
-                    update_memoryed_groups(g, memory_threshold, memoryed_groups);
+                    update_memoryed_groups(g, m_one_change_budget, memory_threshold, memoryed_groups);
                 }
             }
 
@@ -1048,13 +1109,21 @@ namespace Slic3r
         extract_unprintable_limit_indices(ctx.model_info.unprintable_filaments, used_filaments, unprintable_limit_indices);
         unprintable_limit_indices = rebuild_unprintables(used_filaments, unprintable_limit_indices);
 
-        std::vector<std::vector<float>> color_dist_matrix(used_filament_list.size(), std::vector<float>(machine_filament_list.size()));
+        // 行为工程耗材，列为设备耗材，成本越小越优先匹配。
+        std::vector<std::vector<float>> match_cost_matrix(used_filament_list.size(), std::vector<float>(machine_filament_list.size()));
         for (size_t i = 0; i < used_filament_list.size(); ++i) {
+            // 映射回工程耗材下标，读取表示耗材小类的 filament_id。
+            const auto        model_filament_idx = used_filaments[i];
+            const std::string model_filament_id  = model_filament_idx < ctx.model_info.filament_ids.size()
+                                                       ? ctx.model_info.filament_ids[model_filament_idx]
+                                                       : std::string();
             for (size_t j = 0; j < machine_filament_list.size(); ++j) {
-                color_dist_matrix[i][j] = calc_color_distance(
+                const float color_dist = calc_color_distance(
                     RGBColor(used_filament_list[i].color.r, used_filament_list[i].color.g, used_filament_list[i].color.b),
-                    RGBColor(machine_filament_list[j].color.r, machine_filament_list[j].color.g, machine_filament_list[j].color.b)
-                );
+                    RGBColor(machine_filament_list[j].color.r, machine_filament_list[j].color.g, machine_filament_list[j].color.b));
+                // 颜色优先；同色时优先匹配相同耗材小类。
+                match_cost_matrix[i][j] = calc_match_mode_cost(color_dist, model_filament_id, machine_filament_list[j].filament_id,
+                                                               static_cast<int>(used_filament_list.size()));
             }
         }
 
@@ -1148,9 +1217,10 @@ namespace Slic3r
                     }
                 }
 
-                // 第三阶段：在最佳偏好得分的候选方案中选择最均衡负载的方案
+                // 第三阶段：匹配成本优先，成本相同时选择负载更均衡的方案。
                 int best_candidate = -1;
                 int best_gap = std::numeric_limits<int>::max();
+                float best_match_cost = std::numeric_limits<float>::max();
 
                 for (const auto& candidate : valid_candidates) {
                     // 只考虑具有最佳偏好得分的候选方案
@@ -1159,9 +1229,11 @@ namespace Slic3r
                     if (score == best_preference_score) {
                         int new_extruder_id = machine_filament_list[machine_filament].extruder_id;
                         int new_gap = std::abs(extruder_filament_count[new_extruder_id] + 1 - extruder_filament_count[1 - new_extruder_id]);
+                        float match_cost = match_cost_matrix[filament_idx][machine_filament];
 
-                        // 在偏好得分相同的方案中寻找负载最均衡的选项
-                        if (new_gap < best_gap) {
+                        // 优先选择匹配成本更低的候选，成本相同时选择负载更均衡的候选。
+                        if (match_cost < best_match_cost || (match_cost == best_match_cost && new_gap < best_gap)) {
+                            best_match_cost = match_cost;
                             best_gap = new_gap;
                             best_candidate = machine_filament;
                         }
@@ -1187,7 +1259,7 @@ namespace Slic3r
             });
 
         {
-            MatchModeGroupSolver s(color_dist_matrix, l_nodes, r_nodes, machine_filament_capacity, unlink_limits_full);
+            MatchModeGroupSolver s(match_cost_matrix, l_nodes, r_nodes, machine_filament_capacity, unlink_limits_full);
             ungrouped_filaments = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes,group);
             if (ungrouped_filaments.empty())
                 return group;
@@ -1200,7 +1272,7 @@ namespace Slic3r
                 return is_extruder_filament_compatible(used_filament_idx, machine_filament_list[machine_filament_idx].extruder_id);
                 });
 
-            MatchModeGroupSolver s(color_dist_matrix, l_nodes, r_nodes, machine_filament_capacity, unlink_limits);
+            MatchModeGroupSolver s(match_cost_matrix, l_nodes, r_nodes, machine_filament_capacity, unlink_limits);
             ungrouped_filaments = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes, group);
             if (ungrouped_filaments.empty())
                 return group;
@@ -1209,7 +1281,7 @@ namespace Slic3r
         // remove all limits
         {
             l_nodes = ungrouped_filaments;
-            MatchModeGroupSolver s(color_dist_matrix, l_nodes, r_nodes, machine_filament_capacity, {});
+            MatchModeGroupSolver s(match_cost_matrix, l_nodes, r_nodes, machine_filament_capacity, {});
             auto ret = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes, group);
             for (size_t idx = 0; idx < ret.size(); ++idx) {
                 if (ret[idx] == MaxFlowGraph::INVALID_ID)

@@ -1,11 +1,13 @@
 #include "FilamentMixer.hpp"
 
 #include <algorithm>
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <limits>
+#include <set>
 #include <sstream>
 #include <numeric>
 
@@ -549,6 +551,280 @@ void expand_mixed_slots_in_unprintables(
         }
         unprintable_set = std::move(expanded);
     }
+}
+
+void sanitize_mixed_gradient_curve_array(std::vector<std::string>& vals)
+{
+    for (size_t i = 0; i < vals.size(); ++i) {
+        if (vals[i].empty())
+            continue;
+        // parse_gradient_curve returns empty for both "empty input" and "<2 valid points";
+        // we already skipped empty, so an empty result means a corrupted single-point slot.
+        if (parse_gradient_curve(vals[i]).empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "sanitize_mixed_gradient_curve_array: slot "
+                << i << " curve \"" << vals[i]
+                << "\" has fewer than 2 valid points; clearing to linear";
+            vals[i].clear();
+        }
+    }
+}
+
+bool try_parse_mixed_components_strict(const std::string &str,
+                                       std::vector<unsigned int> &components,
+                                       std::string &err)
+{
+    components.clear();
+    if (str.empty()) {
+        err = "empty component list";
+        return false;
+    }
+    std::istringstream ss(str);
+    std::string token;
+    while (std::getline(ss, token, ',')) {
+        if (token.empty()) {
+            err = "empty component index";
+            return false;
+        }
+        try {
+            const long val = std::stol(token);
+            if (val < 1) {
+                err = "component index must be >= 1 (got " + token + ")";
+                return false;
+            }
+            components.push_back(static_cast<unsigned int>(val));
+        } catch (...) {
+            err = "invalid component index \"" + token + "\"";
+            return false;
+        }
+    }
+    if (components.size() < 2) {
+        err = "at least 2 components required (got " + std::to_string(components.size()) + ")";
+        return false;
+    }
+    std::set<unsigned int> seen;
+    for (unsigned int c : components) {
+        if (!seen.insert(c).second) {
+            err = "duplicate component index " + std::to_string(c);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool try_parse_mixed_ratios_strict(const std::string &str,
+                                   size_t n_components,
+                                   std::string &err)
+{
+    if (str.empty())
+        return true;
+
+    CNumericLocalesSetter c_locale_setter;
+    std::vector<double> ratios;
+    std::istringstream ss(str);
+    std::string token;
+    while (std::getline(ss, token, ',')) {
+        if (token.empty()) {
+            err = "empty ratio value";
+            return false;
+        }
+        try {
+            const double val = std::stod(token);
+            if (!(val > 0.0)) {
+                err = "ratio must be positive (got " + token + ")";
+                return false;
+            }
+            ratios.push_back(val);
+        } catch (...) {
+            err = "invalid ratio \"" + token + "\"";
+            return false;
+        }
+    }
+    if (ratios.size() != n_components) {
+        err = "expected " + std::to_string(n_components) + " ratio(s), got "
+            + std::to_string(ratios.size());
+        return false;
+    }
+    return true;
+}
+
+bool validate_gradient_range_strict(const std::string &str, std::string &err)
+{
+    if (str.empty())
+        return true;
+
+    CNumericLocalesSetter c_locale_setter;
+    float v0 = 0.f, v1 = 0.f;
+    if (std::sscanf(str.c_str(), "%f,%f", &v0, &v1) != 2) {
+        err = "expected two comma-separated floats, e.g. \"0.10,0.90\"";
+        return false;
+    }
+    if (!(v0 > 0.f && v0 < 1.f && v1 > 0.f && v1 < 1.f)) {
+        err = "start and end ratios must be in (0, 1)";
+        return false;
+    }
+    return true;
+}
+
+static void append_error(std::map<std::string, std::string> &errors,
+                         const std::string &key,
+                         const std::string &msg)
+{
+    auto it = errors.find(key);
+    if (it == errors.end())
+        errors.emplace(key, msg);
+    else
+        it->second += "; " + msg;
+}
+
+static bool has_mixed_sub_params_specified(
+    const std::vector<std::string>   &comp_strs,
+    const std::vector<std::string>   &ratio_strs,
+    const std::vector<unsigned char> &gradient_flags)
+{
+    for (const std::string &s : comp_strs)
+        if (!s.empty()) return true;
+    for (const std::string &s : ratio_strs)
+        if (!s.empty()) return true;
+    for (unsigned char g : gradient_flags)
+        if (g) return true;
+    return false;
+}
+
+static bool mixed_string_array_was_specified(const std::vector<std::string> &vals)
+{
+    for (const std::string &s : vals)
+        if (!s.empty())
+            return true;
+    return false;
+}
+
+static bool mixed_bool_array_was_specified(const std::vector<unsigned char> &vals)
+{
+    for (unsigned char v : vals)
+        if (v)
+            return true;
+    return false;
+}
+
+static void check_mixed_array_size_required(std::map<std::string, std::string> &errors,
+                                            const std::string &opt_key,
+                                            size_t actual_size,
+                                            size_t expected_size)
+{
+    if (actual_size != expected_size) {
+        append_error(errors, opt_key,
+            "array size " + std::to_string(actual_size)
+            + " does not match filament slot count " + std::to_string(expected_size));
+    }
+}
+
+std::map<std::string, std::string> validate_mixed_filament_params(
+    const std::vector<unsigned char> &is_mixed,
+    const std::vector<std::string>   &comp_strs,
+    const std::vector<std::string>   &ratio_strs,
+    const std::vector<unsigned char> &gradient_flags,
+    const std::vector<std::string>   &gradient_range_strs,
+    const std::vector<std::string>   &gradient_curve_strs)
+{
+    std::map<std::string, std::string> errors;
+
+    if (has_mixed_sub_params_specified(comp_strs, ratio_strs, gradient_flags)
+        && !has_any_mixed_filament(is_mixed)) {
+        append_error(errors, "filament_is_mixed",
+            "must be set when mixed filament parameters are specified");
+        return errors;
+    }
+
+    if (!has_any_mixed_filament(is_mixed))
+        return errors;
+
+    const size_t slot_count = is_mixed.size();
+
+    // Rule 1: mixed filament model → components & ratios arrays must cover every slot.
+    check_mixed_array_size_required(errors, "filament_mixed_components", comp_strs.size(), slot_count);
+    check_mixed_array_size_required(errors, "filament_mixed_sublayer_ratios", ratio_strs.size(), slot_count);
+
+    // Rule 2: gradient passed (any slot true) → gradient & range arrays must cover every slot.
+    const bool gradient_specified = mixed_bool_array_was_specified(gradient_flags);
+    if (gradient_specified) {
+        check_mixed_array_size_required(errors, "filament_mixed_gradient", gradient_flags.size(), slot_count);
+        check_mixed_array_size_required(errors, "filament_mixed_gradient_range", gradient_range_strs.size(), slot_count);
+    }
+
+    // Rule 3: curve passed (any non-empty entry) → curve array must cover every slot.
+    const bool curve_specified = mixed_string_array_was_specified(gradient_curve_strs);
+    if (curve_specified)
+        check_mixed_array_size_required(errors, "filament_mixed_gradient_curve", gradient_curve_strs.size(), slot_count);
+
+    size_t num_physical = 0;
+    for (unsigned char v : is_mixed)
+        if (!v) ++num_physical;
+
+    for (size_t i = 0; i < is_mixed.size(); ++i) {
+        if (!is_mixed[i])
+            continue;
+
+        const std::string slot = "slot " + std::to_string(i + 1);
+        const std::string comp_str = i < comp_strs.size() ? comp_strs[i] : "";
+
+        std::vector<unsigned int> components;
+        std::string comp_err;
+        if (!try_parse_mixed_components_strict(comp_str, components, comp_err)) {
+            append_error(errors, "filament_mixed_components", slot + ": " + comp_err);
+            continue;
+        }
+
+        for (unsigned int c : components) {
+            if (c > num_physical) {
+                append_error(errors, "filament_mixed_components",
+                       slot + ": component " + std::to_string(c)
+                       + " out of range (max physical filament index is "
+                       + std::to_string(num_physical) + ")");
+                break;
+            }
+            if (c == i + 1) {
+                append_error(errors, "filament_mixed_components",
+                       slot + ": cannot reference itself as a component");
+                break;
+            }
+            const size_t idx0 = static_cast<size_t>(c - 1);
+            if (idx0 < is_mixed.size() && is_mixed[idx0]) {
+                append_error(errors, "filament_mixed_components",
+                       slot + ": component " + std::to_string(c)
+                       + " references a mixed filament slot");
+                break;
+            }
+        }
+
+        std::string ratio_err;
+        const std::string ratio_str = i < ratio_strs.size() ? ratio_strs[i] : "";
+        if (!try_parse_mixed_ratios_strict(ratio_str, components.size(), ratio_err))
+            append_error(errors, "filament_mixed_sublayer_ratios", slot + ": " + ratio_err);
+
+        const bool gradient_on = i < gradient_flags.size() && gradient_flags[i];
+        if (gradient_on) {
+            if (components.size() != 2) {
+                append_error(errors, "filament_mixed_gradient",
+                       slot + ": gradient requires exactly 2 components");
+            }
+
+            if (gradient_specified) {
+                std::string range_err;
+                const std::string range_str = i < gradient_range_strs.size() ? gradient_range_strs[i] : "";
+                if (!validate_gradient_range_strict(range_str, range_err))
+                    append_error(errors, "filament_mixed_gradient_range", slot + ": " + range_err);
+            }
+
+            if (curve_specified) {
+                const std::string curve_str = i < gradient_curve_strs.size() ? gradient_curve_strs[i] : "";
+                if (!curve_str.empty() && parse_gradient_curve(curve_str).empty())
+                    append_error(errors, "filament_mixed_gradient_curve",
+                           slot + ": invalid curve (need at least 2 valid control points)");
+            }
+        }
+    }
+
+    return errors;
 }
 
 } // namespace Slic3r

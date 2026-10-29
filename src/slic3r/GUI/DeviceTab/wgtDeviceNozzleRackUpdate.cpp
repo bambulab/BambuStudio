@@ -11,6 +11,7 @@
 #include "slic3r/GUI/DeviceCore/DevUpgrade.h"
 
 #include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/GUI/FilamentBitmapUtils.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
@@ -18,6 +19,13 @@
 
 #include "slic3r/GUI/Widgets/Button.hpp"
 #include "slic3r/GUI/Widgets/Label.hpp"
+
+#include <wx/dcmemory.h>
+
+#include <algorithm>
+#include <cctype>
+#include <cstdlib>
+#include <optional>
 
 #define WX_DIP_SIZE(x, y) wxSize(FromDIP(x), FromDIP(y))
 
@@ -116,6 +124,64 @@ void wgtDeviceNozzleRackUprade::CreateGui()
     this->Layout();
 }
 
+namespace {
+
+bool is_hex_color_string(const std::string& value)
+{
+    return std::all_of(value.begin(), value.end(), [](unsigned char ch) {
+        return std::isxdigit(ch) != 0;
+    });
+}
+
+std::optional<wxColour> parse_filament_color(const std::string& value)
+{
+    if (value.empty())
+        return std::nullopt;
+
+    std::string hex = value;
+    if (!hex.empty() && hex.front() == '#')
+        hex.erase(hex.begin());
+
+    if (hex.size() != 6 && hex.size() != 8)
+        return std::nullopt;
+    if (!is_hex_color_string(hex))
+        return std::nullopt;
+
+    wxColour color("#" + hex);
+    if (!color.IsOk())
+        return std::nullopt;
+    return color;
+}
+
+bool needs_contrast_border(const wxColour& swatch, const wxColour& bg)
+{
+    const int distance = std::abs(swatch.Red() - bg.Red()) +
+                         std::abs(swatch.Green() - bg.Green()) +
+                         std::abs(swatch.Blue() - bg.Blue());
+    return distance <= 30;
+}
+
+wxBitmap add_bitmap_border(wxBitmap bitmap, const wxColour& border_color)
+{
+    if (!bitmap.IsOk())
+        return bitmap;
+
+    wxMemoryDC dc;
+    dc.SelectObject(bitmap);
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.SetPen(wxPen(border_color, 1, wxPENSTYLE_SOLID));
+    dc.DrawRectangle(0, 0, bitmap.GetWidth(), bitmap.GetHeight());
+    dc.SelectObject(wxNullBitmap);
+    return bitmap;
+}
+
+wxColour pick_contrast_border_color(const wxColour& bg)
+{
+    return bg.GetLuminance() > 0.5 ? wxColour(130, 130, 128) : wxColour(207, 207, 207);
+}
+
+} // namespace
+
 void wgtDeviceNozzleRackUprade::UpdateRackInfo(const std::shared_ptr<DevNozzleRack> rack)
 {
     m_nozzle_rack = rack;
@@ -211,18 +277,13 @@ void wgtDeviceNozzleRackHotendUpdate::CreateGui()
     m_material_label->SetFont(Label::Body_12);
     m_material_label->SetBackgroundColour(WGT_DEVICE_NOZZLE_RACK_HOTEND_UPDATE_DEFAULT_BG);
 
-    m_colour_box = new StaticBox(type_panel);
+    m_colour_box = new wxStaticBitmap(type_panel, wxID_ANY, wxNullBitmap);
     m_colour_box->SetMaxSize(WX_DIP_SIZE(16, 16));
     m_colour_box->SetMinSize(WX_DIP_SIZE(16, 16));
-    m_colour_box->SetCornerRadius(FromDIP(2));
     m_colour_box->SetSize(wxSize(FromDIP(16), FromDIP(16)));
-    // m_colour_box->SetBackgroundColour(*wxRED);
 
-    // type_sizer_row_1->AddStretchSpacer();
     type_sizer_row_1->Add(m_colour_box, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
-    type_sizer_row_1->AddStretchSpacer(1);
-    type_sizer_row_1->Add(m_material_label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
-    // type_sizer_row_1->AddStretchSpacer();
+    type_sizer_row_1->Add(m_material_label, 1, wxALIGN_CENTER_VERTICAL | wxLEFT | wxEXPAND, FromDIP(4));
 
     m_diameter_label = new Label(type_panel);
     m_diameter_label->SetFont(Label::Body_12);
@@ -243,9 +304,9 @@ void wgtDeviceNozzleRackHotendUpdate::CreateGui()
     main_type_sizer->Add(type_sizer_row_1, 0, wxALIGN_LEFT);
     main_type_sizer->Add(type_sizer_row_2, 1, wxALIGN_LEFT | wxEXPAND | wxTOP, FromDIP(4));
     type_panel->SetSizer(main_type_sizer);
-    type_panel->SetMaxSize(WX_DIP_SIZE(160, 40));
-    type_panel->SetMinSize(WX_DIP_SIZE(160, 40));
-    type_panel->SetSize(WX_DIP_SIZE(160, 40));
+    type_panel->SetMaxSize(WX_DIP_SIZE(220, 40));
+    type_panel->SetMinSize(WX_DIP_SIZE(220, 40));
+    type_panel->SetSize(WX_DIP_SIZE(220, 40));
 
     content_sizer->Add(type_panel, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
 
@@ -490,6 +551,33 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateRackNozzleInfo(const std::shared_ptr
     }
 }
 
+bool wgtDeviceNozzleRackHotendUpdate::UpdateFilamentColourSwatch(const std::string& display_color)
+{
+    const auto parsed_color = parse_filament_color(display_color);
+    if (!parsed_color.has_value())
+        return false;
+
+    const wxSize swatch_size = WX_DIP_SIZE(16, 16);
+    wxBitmap     swatch_bmp;
+    if (parsed_color->Alpha() == 0) {
+        // For fully transparent colors, render a tinted checkerboard (same visual language as other color pickers)
+        // so users can still perceive the hue instead of seeing a neutral gray/white placeholder.
+        const wxColour tinted_rgb(parsed_color->Red(), parsed_color->Green(), parsed_color->Blue(), wxALPHA_OPAQUE);
+        swatch_bmp = create_translucent_round_rect_bitmap(tinted_rgb, swatch_size, FromDIP(2));
+    } else {
+        swatch_bmp = create_filament_bitmap({parsed_color.value()}, swatch_size);
+    }
+    if (!swatch_bmp.IsOk())
+        return false;
+
+    const wxColour bg_color = m_colour_box->GetParent() ? m_colour_box->GetParent()->GetBackgroundColour() : GetBackgroundColour();
+    if (needs_contrast_border(wxColour(parsed_color->Red(), parsed_color->Green(), parsed_color->Blue(), wxALPHA_OPAQUE), bg_color))
+        swatch_bmp = add_bitmap_border(swatch_bmp, pick_contrast_border_color(bg_color));
+
+    m_colour_box->SetBitmap(swatch_bmp);
+    return true;
+}
+
 void wgtDeviceNozzleRackHotendUpdate::UpdateInfo(const DevNozzle& nozzle)
 {
     /*update nozzle possition and background*/
@@ -511,15 +599,18 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateInfo(const DevNozzle& nozzle)
     }
 
     wxString filamentDisplayName{};
-    for (auto iter = GUI::wxGetApp().preset_bundle->filaments.begin(); iter != GUI::wxGetApp().preset_bundle->filaments.end(); ++iter) 
+    for (auto iter = GUI::wxGetApp().preset_bundle->filaments.begin(); iter != GUI::wxGetApp().preset_bundle->filaments.end(); ++iter)
     {
         const Preset& filament_preset = *iter;
         // const auto& config = filament_preset.config;
-        if (filament_preset.filament_id == nozzle.GetFilamentId()) 
+        if (filament_preset.filament_id == nozzle.GetFilamentId())
         {
             filamentDisplayName = wxString(filament_preset.alias);
         }
     }
+
+    const std::string display_color = nozzle.GetFilamentColor();
+    const bool        has_color     = UpdateFilamentColourSwatch(display_color);
 
     if (nozzle.IsEmpty() && m_nozzle_status != NOZZLE_STATUS_EMPTY)
     {
@@ -549,10 +640,8 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateInfo(const DevNozzle& nozzle)
         m_nozzle_status = NOZZLE_STATUS_NORMAL;
 
         m_material_label->SetLabel(filamentDisplayName);
-        m_colour_box->SetBackgroundColour(wxColour("#" + nozzle.GetFilamentColor()));
-        m_colour_box->SetBorderColor(wxColour("#" + nozzle.GetFilamentColor()));
         m_material_label->Show(true);
-        m_colour_box->Show(true);
+        m_colour_box->Show(has_color);
 
         m_diameter_label->Show(true);
         m_flowtype_label->Show(true);
@@ -575,10 +664,8 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateInfo(const DevNozzle& nozzle)
         m_nozzle_status = NOZZLE_STATUS_ABNORMAL;
 
         m_material_label->SetLabel(filamentDisplayName);
-        m_colour_box->SetBackgroundColour(wxColour("#" + nozzle.GetFilamentColor()));
-        m_colour_box->SetBorderColor(wxColour("#" + nozzle.GetFilamentColor()));
         m_material_label->Show(true);
-        m_colour_box->Show(true);
+        m_colour_box->Show(has_color);
 
         m_diameter_label->Show(true);
         m_flowtype_label->Show(true);

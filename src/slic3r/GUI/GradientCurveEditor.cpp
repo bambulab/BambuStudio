@@ -183,13 +183,17 @@ wxRect GradientCurveEditor::plot_rect() const
     return wxRect(x, y, side, side);
 }
 
-wxPoint GradientCurveEditor::data_to_px(double x, double y) const
+wxPoint2DDouble GradientCurveEditor::data_to_px_f(double x, double y) const
 {
     const wxRect r = plot_rect();
-    const int px = r.x + static_cast<int>(std::lround(x * r.width));
     // y axis is inverted: y=1 should sit at the top.
-    const int py = r.y + static_cast<int>(std::lround((1.0 - y) * r.height));
-    return wxPoint(px, py);
+    return wxPoint2DDouble(r.x + x * r.width, r.y + (1.0 - y) * r.height);
+}
+
+wxPoint GradientCurveEditor::data_to_px(double x, double y) const
+{
+    const wxPoint2DDouble p = data_to_px_f(x, y);
+    return wxPoint(static_cast<int>(std::lround(p.m_x)), static_cast<int>(std::lround(p.m_y)));
 }
 
 void GradientCurveEditor::px_to_data(int px, int py, double& x, double& y) const
@@ -321,6 +325,9 @@ void GradientCurveEditor::on_paint(wxPaintEvent& /*evt*/)
     // Render through wxGCDC so curves, arrows and anchor circles get anti-aliased; the buffered
     // DC is the actual back buffer that gets blitted to the window.
     wxGCDC dc(raw_dc);
+    // The curve and its anchors are drawn straight on the graphics context so their
+    // coordinates stay sub-pixel accurate (see data_to_px_f).
+    wxGraphicsContext* gc = dc.GetGraphicsContext();
 
     const wxRect rc = plot_rect();
     if (rc.width <= 0 || rc.height <= 0)
@@ -416,7 +423,7 @@ void GradientCurveEditor::on_paint(wxPaintEvent& /*evt*/)
     dc.SetTextForeground(label_muted);
     dc.DrawText(axis_x_title, x_title_x, x_axis_y - x_title_sz.y / 2);
 
-    if (m_points.size() < 2)
+    if (m_points.size() < 2 || !gc)
         return;
 
     auto color_for_curve = [&](int curve_idx) -> wxColour {
@@ -428,22 +435,26 @@ void GradientCurveEditor::on_paint(wxPaintEvent& /*evt*/)
         return c;
     };
 
-    auto build_polyline = [&](int curve_idx) -> std::vector<wxPoint> {
+    auto build_polyline = [&](int curve_idx) -> std::vector<wxPoint2DDouble> {
         const int samples = std::max(128, rc.width * 2);
-        std::vector<wxPoint> poly;
+        std::vector<wxPoint2DDouble> poly;
         poly.reserve(samples + 1);
         for (int s = 0; s <= samples; ++s) {
             const double x  = double(s) / samples;
             const double y0 = sample_curve_y(x);
             const double vy = to_visual_y(curve_idx, y0);
-            poly.push_back(data_to_px(x, vy));
+            poly.push_back(data_to_px_f(x, vy));
         }
         return poly;
     };
 
-    auto draw_polyline = [&](const std::vector<wxPoint>& poly, const wxColour& col, int stroke_dip) {
+    // Only the geometry goes through the graphics context: dc.DrawLines() takes integer
+    // wxPoint and would quantize the curve back to whole pixels.  The pen is still set on
+    // the dc, which forwards it to this same context while keeping the dc's own cached
+    // state in sync, so later dc drawing does not inherit the curve's pen.
+    auto draw_polyline = [&](const std::vector<wxPoint2DDouble>& poly, const wxColour& col, int stroke_dip) {
         dc.SetPen(wxPen(col, FromDIP(stroke_dip)));
-        dc.DrawLines(static_cast<int>(poly.size()), poly.data());
+        gc->StrokeLines(poly.size(), poly.data());
     };
 
     // Outline only when the curve color is perceptually close to the background; otherwise
@@ -472,13 +483,16 @@ void GradientCurveEditor::on_paint(wxPaintEvent& /*evt*/)
     draw_one(m_selected_curve, kStrokeSelected);
 
     // Control points (selected curve only): hollow circle with axis-color border, theme-aware fill.
-    const int r = FromDIP(kPointRadius);
+    // Drawn on the graphics context with a sub-pixel center so the ring stays centered on the
+    // curve instead of drifting up to half a pixel off it; pen and brush go through the dc for
+    // the same reason as in draw_polyline above.
+    const double r = FromDIP(kPointRadius);
     dc.SetPen(wxPen(axis_color, 1));
     dc.SetBrush(wxBrush(point_fill));
     for (size_t i = 0; i < m_points.size(); ++i) {
         const double vy = to_visual_y(m_selected_curve, m_points[i].y);
-        const wxPoint p = data_to_px(m_points[i].x, vy);
-        dc.DrawCircle(p.x, p.y, r);
+        const wxPoint2DDouble p = data_to_px_f(m_points[i].x, vy);
+        gc->DrawEllipse(p.m_x - r, p.m_y - r, r * 2, r * 2);
     }
 }
 

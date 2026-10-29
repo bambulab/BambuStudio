@@ -91,13 +91,9 @@
     "extruder_variant_list": [
         "Direct Drive Standard,Direct Drive High Flow"
     ],
-    "nozzle_type": [
-        "hardened_steel",
-        "hardened_steel"
-    ],
     "nozzle_volume": [
-        "32",
-        "32"
+        "145",
+        "148"
     ],
     "printer_extruder_id": [
         "1",

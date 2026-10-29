@@ -22,7 +22,7 @@
     "filament_flow_ratio": [
         "1.029",
         "0.98",
-        "0.98",
+        "1.029",
         "0.98",
         "0.98",
         "0.98"
@@ -30,7 +30,7 @@
     "filament_max_volumetric_speed": [
         "16",
         "40",
-        "40",
+        "16",
         "16",
         "16",
         "16"
@@ -52,39 +52,39 @@
         "10"
     ],
     "filament_retraction_length": [
-        "nil",
-        "nil",
-        "nil",
+        "0.4",
+        "0.4",
+        "0.4",
         "3",
         "3",
         "3"
     ],
     "filament_tower_interface_print_temp": [
-        "210"
+        "220"
     ],
     "filament_wipe": [
-        "nil",
-        "nil",
-        "nil",
         "1",
-        "nil",
-        "nil"
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
     ],
     "filament_wipe_distance": [
-        "nil",
-        "nil",
-        "nil",
         "1",
-        "nil",
-        "nil"
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
     ],
     "filament_z_hop_types": [
-        "nil",
-        "nil",
-        "nil",
         "Spiral Lift",
-        "nil",
-        "nil"
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift"
     ],
     "first_x_layer_fan_speed": [
         "40"
@@ -93,20 +93,20 @@
         "fdm_filament_template_direct_bowden_e3d"
     ],
     "nozzle_temperature": [
-        "210",
-        "210",
-        "210",
-        "210",
-        "210",
-        "210"
+        "220",
+        "220",
+        "220",
+        "220",
+        "220",
+        "220"
     ],
     "nozzle_temperature_initial_layer": [
-        "210",
-        "210",
-        "210",
-        "210",
-        "210",
-        "210"
+        "220",
+        "220",
+        "220",
+        "220",
+        "220",
+        "220"
     ],
     "retraction_distances_when_ec": [
         "3",

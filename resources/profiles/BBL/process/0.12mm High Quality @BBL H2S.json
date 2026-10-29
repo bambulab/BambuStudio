@@ -25,7 +25,6 @@
         "1",
         "1"
     ],
-    "enable_tower_interface_features": "1",
     "gap_infill_speed": [
         "230",
         "230",
@@ -177,7 +176,7 @@
         "150",
         "150"
     ],
-    "top_color_penetration_layers": "7",
+    "top_color_penetration_layers": "5",
     "top_solid_infill_flow_ratio": [
         "1",
         "1",

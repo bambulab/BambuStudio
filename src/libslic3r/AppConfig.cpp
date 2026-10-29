@@ -134,6 +134,8 @@ void AppConfig::set_defaults()
             set_bool("single_instance", false);
         if (get("import_3mf_as_project").empty())
             set_bool("import_3mf_as_project", true);
+        if (get("show_bed_heat_soak_area").empty())
+            set_bool("show_bed_heat_soak_area", true);
 #ifdef SUPPORT_REMEMBER_OUTPUT_PATH
         if (get("remember_output_path").empty())
             set_bool("remember_output_path", true);
@@ -167,10 +169,8 @@ void AppConfig::set_defaults()
         set_bool("use_free_camera", false);
 #endif
 
-#ifdef SUPPORT_REVERSE_MOUSE_ZOOM
     if (get("reverse_mouse_wheel_zoom").empty())
         set_bool("reverse_mouse_wheel_zoom", false);
-#endif
     if (get("enable_append_color_by_sync_ams").empty())
         set_bool("enable_append_color_by_sync_ams", true);
     if (get("enable_merge_color_by_sync_ams").empty())
@@ -184,7 +184,9 @@ void AppConfig::set_defaults()
         set_bool("export_sources_full_pathnames", false);
 
     if (get("zoom_to_mouse").empty())
-        set_bool("zoom_to_mouse", false);
+        set_bool("zoom_to_mouse", true);
+    if (get("canvas_drag_to_move").empty())
+        set_bool("canvas_drag_to_move", true);
     if (get("show_shells_in_preview").empty())
         set_bool("show_shells_in_preview", true);
     if (get("enable_text_styles").empty())
@@ -293,6 +295,9 @@ void AppConfig::set_defaults()
     if (get("internal_developer_mode").empty())
         set_bool("internal_developer_mode", false);
 
+    if (get("enable_webview_devtools").empty())
+        set_bool("enable_webview_devtools", false);
+
     if (get("disable_auto_flow_cali_tips").empty())
         set_bool("disable_auto_flow_cali_tips", false);
 
@@ -328,6 +333,10 @@ void AppConfig::set_defaults()
 
     if (get("enable_high_low_temp_mixed_printing").empty()){
         set_bool("enable_high_low_temp_mixed_printing", false);
+    }
+
+    if (get("auto_optimize_wipe_tower_placement").empty()) {
+        set_bool("auto_optimize_wipe_tower_placement", true);
     }
 
     if (get("camera_fullscreen_active_monitor_only").empty()){
@@ -1279,7 +1288,7 @@ void AppConfig::set_recent_projects(const std::vector<std::string>& recent_proje
 }
 
 void AppConfig::set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone,
-                                 float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz)
+                                 float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz, bool lock_horizon)
 {
     std::string key = std::string("mouse_device:") + name;
     auto it = m_storage.find(key);
@@ -1293,6 +1302,7 @@ void AppConfig::set_mouse_device(const std::string& name, double translation_spe
     it->second["rotation_deadzone"] = float_to_string_decimal_point(rotation_deadzone);
     it->second["zoom_speed"] = float_to_string_decimal_point(zoom_speed);
     it->second["swap_yz"] = swap_yz ? "1" : "0";
+    it->second["lock_horizon"] = lock_horizon ? "1" : "0";
 }
 
 std::vector<std::string> AppConfig::get_mouse_device_names() const

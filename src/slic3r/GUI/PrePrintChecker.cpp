@@ -407,7 +407,8 @@ void PrinterMsgPanel::AppendStyles(const prePrintInfo& info)
     if (info.testStyle(prePrintInfoStyle::NozzleState)) {
         NozzleStatePanel* nozzle_info = new NozzleStatePanel(this);
         nozzle_info->UpdateInfoBy(m_select_dialog->get_plater(), m_select_dialog->get_current_machine());
-        m_sizer->Add(nozzle_info, 0, wxLEFT, FromDIP(16));
+        // Full message width, no indent
+        m_sizer->Add(nozzle_info, 0, wxEXPAND);
         m_sizer->AddSpacer(FromDIP(4));
     }
 }

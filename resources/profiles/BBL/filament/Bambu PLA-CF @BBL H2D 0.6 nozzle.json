@@ -23,6 +23,9 @@
     "eng_plate_temp_initial_layer": [
         "55"
     ],
+    "filament_change_length": [
+        "4"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10",
@@ -38,10 +41,8 @@
         "18",
         "18"
     ],
-    "filament_preheat_temperature_delta": [
-        "20",
-        "20",
-        "20"
+    "filament_prime_volume": [
+        "30"
     ],
     "filament_ramming_travel_time": [
         "0",

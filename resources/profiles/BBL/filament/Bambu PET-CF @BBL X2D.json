@@ -26,13 +26,18 @@
     "eng_plate_temp_initial_layer": [
         "100"
     ],
+    "fan_cooling_layer_time": [
+        "80"
+    ],
     "fan_max_speed": [
-        "40"
+        "80"
     ],
     "fan_min_speed": [
-        "20"
+        "1"
     ],
     "filament_cooling_before_tower": [
+        "10",
+        "10",
         "10",
         "10",
         "10",
@@ -42,18 +47,40 @@
         "24"
     ],
     "filament_flow_ratio": [
+        "0.9555",
+        "1",
         "1",
         "1",
         "1",
         "1"
     ],
     "filament_max_volumetric_speed": [
+        "5",
+        "8",
         "8",
         "8",
         "8",
         "8"
     ],
+    "filament_overhang_2_4_speed": [
+        "35",
+        "50",
+        "50",
+        "50",
+        "50",
+        "50"
+    ],
+    "filament_overhang_3_4_speed": [
+        "35",
+        "30",
+        "30",
+        "30",
+        "30",
+        "30"
+    ],
     "filament_ramming_travel_time": [
+        "0",
+        "0",
         "0",
         "0",
         "0",
@@ -75,9 +102,11 @@
         "0.167"
     ],
     "include": [
-        "fdm_filament_template_direct_bowden"
+        "fdm_filament_template_direct_bowden_e3d"
     ],
     "nozzle_temperature": [
+        "270",
+        "270",
         "270",
         "270",
         "270",
@@ -87,7 +116,20 @@
         "270",
         "270",
         "270",
+        "270",
+        "270",
         "270"
+    ],
+    "overhang_fan_speed": [
+        "75"
+    ],
+    "override_process_overhang_speed": [
+        "1",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
     ],
     "reduce_fan_stop_start_freq": [
         "0"
@@ -95,10 +137,17 @@
     "retraction_distances_when_ec": [
         "3",
         "3",
+        "3",
+        "4",
         "4",
         "4"
     ],
+    "slow_down_layer_time": [
+        "1"
+    ],
     "slow_down_min_speed": [
+        "35",
+        "20",
         "20",
         "20",
         "20",

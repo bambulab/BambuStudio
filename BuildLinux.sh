@@ -24,6 +24,11 @@ function check_available_memory_and_disk() {
     fi
 }
 
+# 构建类型说明：
+#   -b 和 -y 都不加   -> 默认走 release 模式，CMAKE_BUILD_TYPE=Release
+#   -y RelWithDebInfo -> CMAKE_BUILD_TYPE=RelWithDebInfo（优化 + 调试信息）
+#   -b                -> CMAKE_BUILD_TYPE=Debug，且会忽略 -y
+#   -b 和 -y 同时存在 -> 以 -b 为准，走 Debug 模式（-y 无效）
 function usage() {
     echo "Usage: ./BuildLinux.sh [-1][-b][-c][-d][-i][-r][-s][-u]"
     echo "   -1: limit builds to 1 core (where possible)"
@@ -37,12 +42,13 @@ function usage() {
     echo "   -s: build bambu-studio (optional)"
     echo "   -u: update and build dependencies (optional and need sudo)"
     echo "   -t: set internal testing level (default=0, 1=debug, 2=beta)"
+    echo "   -y: set release build type (Release|RelWithDebInfo, default=Release; ignored with -b)"
     echo "For a first use, you want to 'sudo ./BuildLinux.sh -u'"
     echo "   and then './BuildLinux.sh -dsi'"
 }
 
 unset name
-while getopts ":1fbcdhirsut:" opt; do
+while getopts ":1fbcdhirsut:y:" opt; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
@@ -76,6 +82,9 @@ while getopts ":1fbcdhirsut:" opt; do
         ;;
     t )
         INTERNAL_TESTING="$OPTARG"
+        ;;
+    y )
+        SLIC3R_BUILD_TYPE="$OPTARG"
         ;;
   esac
 done
@@ -191,7 +200,7 @@ then
     then
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=${INTERNAL_TESTING}"
     else
-        BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=${INTERNAL_TESTING}"
+        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=${SLIC3R_BUILD_TYPE:-Release} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=${INTERNAL_TESTING}"
     fi
     echo -e "cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH="${PWD}/deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 ${BUILD_ARGS}"
     cmake -S . -B build -G Ninja \
@@ -203,6 +212,25 @@ then
     cmake --build build --target BambuStudio
     echo "done"
 fi
+
+
+
+# 当构建类型为 RelWithDebInfo 时，分离出独立的调试符号文件并打包
+if [ "${SLIC3R_BUILD_TYPE}" = "RelWithDebInfo" ]; then
+    echo "Extracting debug symbols (RelWithDebInfo) ..."
+    pushd ${ROOT}/build/src
+        if [[ -e bambu-studio ]]; then
+            objcopy --only-keep-debug bambu-studio bambu-studio.debug
+            tar -czvf ${ROOT}/build/bambu-studio.debug.tar.gz bambu-studio.debug
+            rm -f bambu-studio.debug
+            echo "done"
+        else
+            echo "WARNING: build/src/bambu-studio not found, skip debug symbol extraction"
+        fi
+    popd
+fi
+
+
 
 if [[ -e ${ROOT}/build/src/BuildLinuxImage.sh ]]; then
 # Give proper permissions to script

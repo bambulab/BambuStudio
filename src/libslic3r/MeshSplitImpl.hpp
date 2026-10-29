@@ -46,7 +46,7 @@ struct NeighborVisitor {
     void visit(Visitor visitor)
     {
         // find the next unvisited facet and push the index
-        auto facet = std::find(m_visited.begin() + m_seed, m_visited.end(), false);
+        auto facet = std::find(m_visited.begin() + m_seed, m_visited.end(), static_cast<char>(false));
         m_seed = facet - m_visited.begin();
 
         if (facet != m_visited.end()) {

@@ -53,7 +53,9 @@ bool is_decimal_separator_point()
 
 double string_to_double_decimal_point(const std::string_view str, size_t* pos /* = nullptr*/)
 {
-    double out;
+    // Initialize to 0 so an unparseable input yields 0.0 (matching atof/strtod semantics)
+    // instead of an uninitialized value: fast_float leaves `out` untouched on parse failure.
+    double out = 0.;
     size_t p = fast_float::from_chars(str.data(), str.data() + str.size(), out).ptr - str.data();
     if (pos)
         *pos = p;

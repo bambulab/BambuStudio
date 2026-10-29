@@ -19,12 +19,7 @@
     "filament_max_volumetric_speed": [
         "21",
         "28",
-        "28"
-    ],
-    "filament_preheat_temperature_delta": [
-        "20",
-        "20",
-        "20"
+        "21"
     ],
     "filament_prime_volume": [
         "30"
@@ -68,12 +63,12 @@
     "nozzle_temperature": [
         "250",
         "255",
-        "255"
+        "250"
     ],
     "nozzle_temperature_initial_layer": [
         "245",
         "255",
-        "255"
+        "245"
     ],
     "pre_start_fan_time": [
         "2"

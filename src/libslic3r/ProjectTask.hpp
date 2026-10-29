@@ -54,6 +54,8 @@ struct FilamentInfo
     int         mapping_result = 0;
     bool        used_for_support{false};
     bool        used_for_object{false};
+    double      total_load_time{0.0};
+    double      total_unload_time{0.0};
 
     /*for multi nozzle*/
     std::vector<int> group_id;
@@ -165,6 +167,11 @@ public:
     std::string                 model_id;
     std::string                 model_name;
     std::string                 profile_name;
+
+    std::string                 design_title;
+    std::string                 title;
+    std::string                 instance_title;
+    std::string                 create_client;
 };
 
 class BBLSubTask {

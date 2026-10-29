@@ -274,6 +274,8 @@ include(NLopt/NLopt.cmake)
 
 include(libnoise/libnoise.cmake)
 
+include(OpenMeshCraft/OpenMeshCraft.cmake)
+
 set(OPENSSL_PKG "")
 if (DEP_BUILD_OPENSSL)
     include(OpenSSL/OpenSSL.cmake)
@@ -311,6 +313,7 @@ set(_dep_list
     dep_Cereal
     dep_NLopt
     dep_libnoise
+    dep_OpenMeshCraft
     dep_OpenVDB
     dep_OpenCSG
     dep_OpenCV

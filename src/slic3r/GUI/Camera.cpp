@@ -563,10 +563,15 @@ void Camera::rotate_local_around_target(const Vec3d& rotation_rad)
 
 void Camera::set_rotation(const Transform3d &rotation)
 {
-    const Vec3d translation = m_view_matrix.translation() + m_view_rotation * m_target;
+    set_rotation(rotation, m_target);
+}
+
+void Camera::set_rotation(const Transform3d &rotation, const Vec3d &pivot)
+{
+    const Vec3d translation = m_view_matrix.translation() + m_view_rotation * pivot;
     m_view_rotation         = Eigen::Quaterniond(rotation.matrix().template block<3, 3>(0, 0));
     m_view_rotation.normalize();
-    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-m_target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
+    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-pivot) + translation, m_view_rotation, Vec3d(1., 1., 1.));
     update_zenit();
 }
 

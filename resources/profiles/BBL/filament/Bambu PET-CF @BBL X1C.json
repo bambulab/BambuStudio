@@ -5,13 +5,30 @@
     "from": "system",
     "setting_id": "GFST01",
     "instantiation": "true",
+    "fan_cooling_layer_time": [
+        "80"
+    ],
+    "fan_max_speed": [
+        "80"
+    ],
+    "fan_min_speed": [
+        "1"
+    ],
     "filament_flow_ratio": [
-        "1",
+        "0.9555",
         "1"
     ],
     "filament_max_volumetric_speed": [
-        "8",
+        "5",
         "8"
+    ],
+    "filament_overhang_2_4_speed": [
+        "35",
+        "50"
+    ],
+    "filament_overhang_3_4_speed": [
+        "35",
+        "30"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -32,6 +49,13 @@
         "270",
         "270"
     ],
+    "overhang_fan_speed": [
+        "75"
+    ],
+    "override_process_overhang_speed": [
+        "1",
+        "0"
+    ],
     "reduce_fan_stop_start_freq": [
         "0"
     ],
@@ -39,8 +63,11 @@
         "0",
         "0"
     ],
+    "slow_down_layer_time": [
+        "1"
+    ],
     "slow_down_min_speed": [
-        "20",
+        "35",
         "20"
     ],
     "compatible_printers": [

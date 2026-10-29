@@ -23,6 +23,8 @@ import type {
   CloudSyncState,
   CloudFilamentConfig,
 } from '../features/filament-manager/types';
+import { applySlotSelection, mockAmsControlWebState } from '../features/device-page/ams-control-web/mockData';
+import type { AmsControlWebViewModel } from '../features/device-page/ams-control-web/types';
 
 interface RequestPacket {
   head: { version: string; type: string; seq: number; ts: number };
@@ -31,6 +33,8 @@ interface RequestPacket {
 
 const SDK_VERSION = '1.0';
 const mockAmsFilamentHotendState: Record<string, unknown> = {};
+
+let amsControlWebMockState: AmsControlWebViewModel = mockAmsControlWebState;
 
 // --- Mock catalogue ---------------------------------------------------------
 
@@ -282,6 +286,34 @@ function handleRequest(pkt: RequestPacket) {
     if (submod === 'action') {
       dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAmsFilamentHotendState));
       dispatchReport(makeModuleOk(module, 'state', 'changed', mockAmsFilamentHotendState));
+      return;
+    }
+  }
+  if (module === 'device_page_ams_control_web') {
+    if (submod === 'state' && (action === 'get' || action === 'init')) {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, amsControlWebMockState));
+      return;
+    }
+    if (submod === 'action' && action === 'select_slot') {
+      const amsId = String((payload as Record<string, unknown>).ams_id ?? '');
+      const slotId = String((payload as Record<string, unknown>).slot_id ?? '');
+      amsControlWebMockState = applySlotSelection(amsControlWebMockState, amsId, slotId);
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, amsControlWebMockState));
+      return;
+    }
+    if (submod === 'action' && (action === 'open_filament_mgr_hint' || action === 'dismiss_filament_mgr_hint' || action === 'open_humidity')) {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, amsControlWebMockState));
+      return;
+    }
+    if (submod === 'debug') {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, {
+        created_ts: Date.now(),
+        cpp_state: amsControlWebMockState,
+        web_state: (payload as Record<string, unknown>).web_state ?? {},
+        web_trace: (payload as Record<string, unknown>).web_trace ?? [],
+        cpp_trace: [],
+        dialog_cpp_state: amsControlWebMockState,
+      }));
       return;
     }
   }

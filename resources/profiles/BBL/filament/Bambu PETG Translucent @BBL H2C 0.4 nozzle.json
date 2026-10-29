@@ -77,6 +77,9 @@
         "20",
         "20"
     ],
+    "first_x_layer_fan_speed": [
+        "0"
+    ],
     "include": [
         "fdm_filament_template_direct_dual_e3d"
     ],
@@ -101,6 +104,9 @@
     ],
     "slow_down_layer_time": [
         "8"
+    ],
+    "temperature_vitrification": [
+        "55"
     ],
     "compatible_printers": [
         "Bambu Lab H2C 0.4 nozzle"

@@ -10,21 +10,26 @@
     ],
     "filament_cooling_before_tower": [
         "10",
+        "10",
         "10"
     ],
     "filament_flow_ratio": [
+        "0.52",
         "0.52",
         "0.52"
     ],
     "filament_max_volumetric_speed": [
         "6",
+        "6",
         "6"
     ],
     "filament_retraction_length": [
         "1.5",
+        "1.5",
         "1.5"
     ],
     "filament_wipe_distance": [
+        "5",
         "5",
         "5"
     ],
@@ -33,13 +38,16 @@
     ],
     "filament_z_hop": [
         "0",
+        "0",
         "0"
     ],
     "filament_z_hop_types": [
         "Normal Lift",
+        "Normal Lift",
         "Normal Lift"
     ],
     "filament_ramming_travel_time": [
+        "0",
         "0",
         "0"
     ],
@@ -47,25 +55,30 @@
         "4"
     ],
     "include": [
-        "fdm_filament_template_direct_dual"
+        "fdm_filament_template_direct_dual_e3d"
     ],
     "long_retractions_when_ec": [
+        "0",
         "0",
         "0"
     ],
     "nozzle_temperature": [
         "270",
+        "270",
         "270"
     ],
     "nozzle_temperature_initial_layer": [
+        "270",
         "270",
         "270"
     ],
     "retraction_distances_when_ec": [
         "0",
+        "0",
         "0"
     ],
     "slow_down_min_speed": [
+        "20",
         "20",
         "20"
     ],

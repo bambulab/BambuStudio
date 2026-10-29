@@ -100,10 +100,6 @@
     "extruder_variant_list": [
         "Direct Drive Standard,Direct Drive High Flow"
     ],
-    "nozzle_type": [
-        "hardened_steel",
-        "hardened_steel"
-    ],
     "nozzle_volume": [
         "110",
         "110"
@@ -205,16 +201,16 @@
         "20"
     ],
     "machine_max_speed_y": [
-        "600",
-        "600",
-        "600",
-        "600"
+        "1000",
+        "1000",
+        "1000",
+        "1000"
     ],
     "machine_max_speed_x": [
-        "600",
-        "600",
-        "600",
-        "600"
+        "1000",
+        "1000",
+        "1000",
+        "1000"
     ],
     "machine_max_speed_e": [
         "30",

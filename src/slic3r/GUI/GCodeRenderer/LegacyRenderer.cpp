@@ -15,7 +15,6 @@
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/GUI_Utils.hpp"
 #include "slic3r/GUI/GUI.hpp"
-#include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GLToolbar.hpp"
 #include "slic3r/GUI/GUI_Preview.hpp"
 #include "slic3r/GUI/IMSlider.hpp"
@@ -351,7 +350,7 @@ namespace Slic3r {
                 }
                 render_sequential_view(canvas_width, canvas_height, right_margin);
 #if ENABLE_GCODE_VIEWER_STATISTICS
-                render_statistics();
+                render_statistics(float(canvas_width));
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 //BBS render slider
                 render_slider(canvas_width, canvas_height);
@@ -1904,7 +1903,7 @@ namespace Slic3r {
                 else {
                     p_sequential_view->current.last = keep_sequential_current_last ? std::clamp(p_sequential_view->current.last, global_endpoints.first, global_endpoints.last) : global_endpoints.last;
                 }
-                // get the world position from the vertex buffer
+                // get the world position of the current move
                 bool found = false;
                 for (const TBuffer& buffer : m_buffers) {
                     if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::InstancedModel ||
@@ -1927,46 +1926,17 @@ namespace Slic3r {
                             if (path.contains(p_sequential_view->current.last)) {
                                 const int sub_path_id = path.get_id_of_sub_path_containing(p_sequential_view->current.last);
                                 if (sub_path_id != -1) {
-                                    const Path::Sub_Path& sub_path = path.sub_paths[sub_path_id];
-                                    unsigned int offset = static_cast<unsigned int>(p_sequential_view->current.last - sub_path.first.s_id);
-                                    if (offset > 0) {
-                                        if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Line) {
-                                            for (size_t i = sub_path.first.s_id + 1; i < p_sequential_view->current.last + 1; i++) {
-                                                size_t move_id = m_ssid_to_moveid_map[i];
-                                                const GCodeProcessorResult::MoveVertex& curr = m_gcode_result->moves[move_id];
-                                                if (curr.is_arc_move()) {
-                                                    offset += curr.interpolation_points.size();
-                                                }
-                                            }
-                                            offset = 2 * offset - 1;
-                                        }
-                                        else if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
-                                            unsigned int indices_count = buffer.indices_per_segment();
-                                            // BBS: modify to support moves which has internal point
-                                            for (size_t i = sub_path.first.s_id + 1; i < p_sequential_view->current.last + 1; i++) {
-                                                size_t move_id = m_ssid_to_moveid_map[i];
-                                                const GCodeProcessorResult::MoveVertex& curr = m_gcode_result->moves[move_id];
-                                                if (curr.is_arc_move()) {
-                                                    offset += curr.interpolation_points.size();
-                                                }
-                                            }
-                                            offset = indices_count * (offset - 1) + (indices_count - 2);
-                                            if (sub_path_id == 0)
-                                                offset += 6; // add 2 triangles for starting cap
-                                        }
-                                    }
-                                    offset += static_cast<unsigned int>(sub_path.first.i_id);
-                                    // gets the vertex index from the index buffer on gpu
-                                    if (sub_path.first.b_id >= 0 && sub_path.first.b_id < buffer.indices.size()) {
-                                        const IBuffer& i_buffer = buffer.indices[sub_path.first.b_id];
-                                        unsigned int index = 0;
-                                        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
-                                        glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLintptr>(offset * sizeof(IBufferType)), static_cast<GLsizeiptr>(sizeof(IBufferType)), static_cast<void*>(&index)));
-                                        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-                                        // gets the position from the vertices buffer on gpu
-                                        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
-                                        glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(index* buffer.vertices.vertex_size_bytes()), static_cast<GLsizeiptr>(3 * sizeof(float)), static_cast<void*>(p_sequential_view->current_position.data())));
-                                        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+                                    // Take the nozzle position straight from the move. The vertex buffer only holds
+                                    // the corners of the extruded prism, which are half an extrusion width and half
+                                    // a layer height away from the tool path itself, so reading it back would report
+                                    // a position which does not match the one shown by AdvancedRenderer.
+                                    // AdvancedRenderer counterpart: AdvancedRenderer::render() obtains the move id
+                                    // from LayerManager::get_current_move_id() and reads the same MoveVertex::position
+                                    // (AdvancedRenderer.cpp:730-735 and 2511-2515).
+                                    if (m_gcode_result != nullptr && p_sequential_view->current.last < m_ssid_to_moveid_map.size()) {
+                                        const size_t move_id = m_ssid_to_moveid_map[p_sequential_view->current.last];
+                                        if (move_id < m_gcode_result->moves.size())
+                                            p_sequential_view->current_position = m_gcode_result->moves[move_id].position;
                                     }
                                     p_sequential_view->current_offset = Vec3f::Zero();
                                     found = true;
@@ -2389,7 +2359,7 @@ namespace Slic3r {
             }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-            void LegacyRenderer::render_statistics()
+            void LegacyRenderer::render_statistics(float canvas_width)
             {
                 static const float offset = 275.0f;
                 ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -2424,7 +2394,7 @@ namespace Slic3r {
                     ImGui::SameLine(offset);
                     imgui.text(std::to_string(counter));
                     };
-                imgui.set_next_window_pos(0.5f * wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_width(), 0.0f, ImGuiCond_Once, 0.5f, 0.0f);
+                imgui.set_next_window_pos(0.5f * canvas_width, 0.0f, ImGuiCond_Once, 0.5f, 0.0f);
                 ImGui::SetNextWindowSizeConstraints({ 300.0f, 100.0f }, { 600.0f, 900.0f });
                 imgui.begin(std::string("GCodeViewer Statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
                 ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());

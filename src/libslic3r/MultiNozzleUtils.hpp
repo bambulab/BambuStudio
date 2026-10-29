@@ -9,6 +9,8 @@
 
 namespace Slic3r {
 struct FilamentInfo;
+struct GCodeProcessorResult;
+class DynamicPrintConfig;
 namespace MultiNozzleUtils {
 
 // 存储单个喷嘴的信息
@@ -281,6 +283,50 @@ std::vector<NozzleInfo> load_nozzle_infos_with_compatibility(
     const std::vector<NozzleVolumeType>& extruder_volume_types,
     const std::vector<double>& nozzle_diameter
 );
+
+// ==================== AMS 换料时间查表 ====================
+// Resolve load/unload for one AMS type. Returns true when both values come from the
+// AMS tables; false when legacy_load/legacy_unload are used (ams_type < 0 or OOR).
+// Shared by G-code time estimation and the mapped print-time recalc below.
+bool resolve_ams_load_unload(const std::vector<double>& loads,
+                             const std::vector<double>& unloads,
+                             int                        ams_type,
+                             float                      legacy_load,
+                             float                      legacy_unload,
+                             float&                     out_load,
+                             float&                     out_unload);
+
+// ==================== 按实际映射重算打印预估时间 ====================
+// Recalculate the estimated print time after the actual filament mapping is known.
+// The slicer accounts change time with a single AMS type; on the device pages the user
+// may map filaments to other AMS hardware types (including mixed AMS), so the screen
+// estimate can diverge from the Studio estimate. This differential recalc keeps the
+// print body time and only replaces the change-time portion.
+enum class FailReason {
+    Ok = 0,
+    UnsupportedTopology,
+    MissingSequence,
+    MissingTimeParams,
+    InvalidMapping,
+    InconsistentInput,
+};
+
+struct PrintTimeRecalcResult {
+    float      total_seconds{0.f};
+    float      gap_seconds{0.f};
+    FailReason reason{FailReason::Ok};
+};
+
+// Recalculate the total estimated print time from the slice result + printer config
+// (same preset used when slicing) and the actual per-filament AMS types.
+// actual_ams_type_per_filament: index == logical filament id, value == AmsTimeType
+// timing-vector index (external spool: 0, unused/unsupported: -1).
+// PartPlate is GUI-only — pass plate->get_slice_result() here; with a Preset pass &preset.config.
+// On reason != Ok the caller should fall back to the sliced total time.
+PrintTimeRecalcResult estimate_mapped_print_time(const GCodeProcessorResult* slice_result,
+                                                 const DynamicPrintConfig*   printer_config,
+                                                 const std::vector<int>&     actual_ams_type_per_filament);
+
 } // namespace MultiNozzleUtils
 } // namespace Slic3r
 

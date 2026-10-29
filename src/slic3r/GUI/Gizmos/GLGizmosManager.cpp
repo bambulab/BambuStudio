@@ -35,6 +35,7 @@
 #include "libslic3r/PresetBundle.hpp"
 
 #include <wx/glcanvas.h>
+#include <algorithm>
 
 namespace Slic3r {
 namespace GUI {
@@ -56,10 +57,20 @@ GLGizmosManager::GLGizmosManager(GLCanvas3D& parent)
     m_timer_set_color.Bind(wxEVT_TIMER, &GLGizmosManager::on_set_color_timer, this);
 }
 
-std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
+std::vector<size_t> GLGizmosManager::get_selectable_idxs(bool ignore_selectable_include_right_click_trigger) const
 {
     std::vector<size_t> out;
     if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+        // Prefer canvas-provided allow-list (AssembleView -> Move + Rotate).
+        const std::vector<int> special = m_parent.get_special_allow_gizmos();
+        if (!special.empty()) {
+            for (size_t i = 0; i < m_gizmos.size(); ++i) {
+                const int sid = static_cast<int>(m_gizmos[i]->get_sprite_id());
+                if (std::find(special.begin(), special.end(), sid) != special.end())
+                    out.push_back(i);
+            }
+            return out;
+        }
         for (size_t i = 0; i < m_gizmos.size(); ++i)
             if (m_gizmos[i]->get_sprite_id() == (unsigned int) Move ||
                 m_gizmos[i]->get_sprite_id() == (unsigned int) Rotate ||
@@ -69,9 +80,14 @@ std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
                 out.push_back(i);
     }
     else {
-        for (size_t i = 0; i < m_gizmos.size(); ++i)
-            if (m_gizmos[i]->is_selectable())
+        for (size_t i = 0; i < m_gizmos.size(); ++i){
+            if (ignore_selectable_include_right_click_trigger) {
                 out.push_back(i);
+            }else{
+                if (m_gizmos[i]->is_selectable())
+                    out.push_back(i);
+            }
+        }
     }
     return out;
 }
@@ -376,7 +392,18 @@ bool GLGizmosManager::check_gizmos_closed_except(EType type) const
 
 void GLGizmosManager::set_hover_id(int id)
 {
-    if (m_current == EType::Measure || m_current == EType::Assembly) { return; }
+    if (m_current == EType::Measure || m_current == EType::Assembly) {
+        // Measure/Assembly manage feature hover via their own raycasters.
+        // Only forward framebuffer picking for the assembly rotate grabber (id 0).
+        // Do NOT forward -1: clearing hover here would wipe Measure's feature hover
+        // before on_render restores it and breaks selected-face persistence.
+        if (id != 0)
+            return;
+        if (!m_enabled)
+            return;
+        m_gizmos[m_current]->set_hover_id(id);
+        return;
+    }
     if (!m_enabled || m_current == Undefined)
         return;
 
@@ -675,6 +702,14 @@ bool GLGizmosManager::is_paint_gizmo() const
            m_current == EType::FuzzySkin ||
            m_current == EType::MmuSegmentation ||
            m_current == EType::Seam;
+}
+
+bool GLGizmosManager::is_allow_x_ray_in_assembly() const
+{
+    if (m_current == Undefined || m_current == EType::Move || m_current == EType::Rotate || m_current == EType::Scale) {
+        return true;
+    }
+    return false;
 }
 
 bool GLGizmosManager::is_allow_select_all() const {
@@ -1383,8 +1418,6 @@ void GLGizmosManager::add_toolbar_items(const std::shared_ptr<GLToolbar>& p_tool
         return;
     }
 
-    std::vector<size_t> selectable_idxs = get_selectable_idxs();
-
     auto p_gizmo_manager = this;
     for (size_t i = 0; i < m_gizmos.size(); ++i)
     {
@@ -1428,9 +1461,12 @@ void GLGizmosManager::add_toolbar_items(const std::shared_ptr<GLToolbar>& p_tool
         item.pressed_recheck_callback = [p_gizmo_manager, t_type]()->bool {
             return p_gizmo_manager->m_current == t_type;
         };
-        const bool b_is_selectable = (std::find(selectable_idxs.begin(), selectable_idxs.end(), idx) != selectable_idxs.end());
-        item.visibility_callback = [p_gizmo_manager, idx, b_is_selectable]()->bool {
-            bool rt = b_is_selectable;
+        // Re-query selectable idxs each frame so OverallPreview's special allow-list
+        // (Move / Rotate) can show/hide without rebuilding the toolbar.
+        item.visibility_callback = [p_gizmo_manager, idx]()->bool {
+            const std::vector<size_t> selectable_idxs = p_gizmo_manager->get_selectable_idxs();
+            bool rt = std::find(selectable_idxs.begin(), selectable_idxs.end(), idx) !=
+                      selectable_idxs.end();
             if (idx == EType::Svg) {
                 rt = rt && (p_gizmo_manager->m_current == EType::Svg);
             }
@@ -1439,7 +1475,7 @@ void GLGizmosManager::add_toolbar_items(const std::shared_ptr<GLToolbar>& p_tool
             }
             return rt;
         };
-        item.visible = b_is_selectable;
+        item.visible = true;
         p_toolbar->add_item(item);
     }
 }
@@ -1584,6 +1620,9 @@ bool GLGizmosManager::activate_gizmo(EType type)
             }
         }
         catch (...) {}
+    } else {
+        // Gizmo closed (type -> Undefined): restore assembly display mode when X-Ray is allowed.
+        m_parent.do_something_after_gizmo_exit();
     }
     return true;
 }

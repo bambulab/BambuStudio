@@ -9,6 +9,7 @@
 
 #include "libslic3r/MultiNozzleUtils.hpp"
 #include "libslic3r/Print.hpp"
+#include "libslic3r/LocalesUtils.hpp"
 
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/Plater.hpp"
@@ -209,12 +210,14 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1(Slic3r::GUI::Plater* plater
         nozzle_info["id"] = used_logic_nozzle.group_id;
         nozzle_info["ext"] = (used_logic_nozzle.extruder_id + 1);
 
-        try {
-            nozzle_info["dia"] = std::stof(used_logic_nozzle.diameter);
-        } catch(const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": e=" << e.what();
+        // Locale-independent parse: the diameter string is produced with a decimal point
+        // (format_diameter_to_str), so std::stof would misread it as 0 under comma-decimal
+        // locales (de/it). Keep skipping entries whose diameter string is empty.
+        if (used_logic_nozzle.diameter.empty()) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": empty nozzle diameter, skip";
             continue;
         }
+        nozzle_info["dia"] = string_to_double_decimal_point(used_logic_nozzle.diameter);
 
         if (used_logic_nozzle.volume_type == NozzleVolumeType::nvtHighFlow) {
             nozzle_info["vol"] = "High Flow";

@@ -11,6 +11,8 @@
 
 #include "I18N.hpp"
 
+#include <algorithm>
+#include <boost/log/trivial.hpp>
 #include <iostream>
 #include <regex>
 
@@ -190,11 +192,6 @@ void BBLStatusBarPrint::show_error_info(wxString msg, int code, wxString descrip
     m_link_show_error->Show();
     m_static_bitmap_show_error->Show();
 
-    top_panel->SetMinSize(wxSize(m_self->FromDIP(550), m_self->FromDIP(32)));
-    top_panel->SetMaxSize(wxSize(m_self->FromDIP(550), m_self->FromDIP(32)));
-    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(440), m_self->FromDIP(32)));
-    m_status_text->SetMinSize(wxSize(m_self->FromDIP(440), m_self->FromDIP(32)));
-
     m_cancelbutton->Show();
     m_self->Layout();
     m_sizer->Layout();
@@ -327,8 +324,29 @@ void BBLStatusBarPrint::set_status_text(const wxString& txt)
     //    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(400), m_self->FromDIP(32)));
     //    m_status_text->SetMinSize(wxSize(m_self->FromDIP(400), m_self->FromDIP(32)));
     //}
+    if (m_status_text_raw != txt) {
+        BOOST_LOG_TRIVIAL(debug) << "BBLStatusBarPrint::set_status_text: " << txt.ToUTF8().data();
+    }
+    m_status_text_raw = txt;
     m_status_text->SetLabelText(txt);
+    const int text_width = m_self->FromDIP(440);
+    m_status_text->SetMinSize(wxSize(text_width, -1));
+    m_status_text->SetMaxSize(wxSize(text_width, -1));
+    m_status_text->Wrap(text_width);
+
+    const int top_panel_height = std::max(m_self->FromDIP(26), m_status_text->GetBestSize().GetHeight());
+    top_panel->SetMinSize(wxSize(m_self->FromDIP(550), top_panel_height));
+    top_panel->SetMaxSize(wxSize(m_self->FromDIP(550), top_panel_height));
+    m_status_text->SetMinSize(wxSize(text_width, top_panel_height));
+    m_status_text->SetMaxSize(wxSize(text_width, top_panel_height));
+
     m_self->Layout();
+    const int status_panel_height = top_panel_height + m_self->FromDIP(6);
+    if (m_status_panel_height != status_panel_height) {
+        m_status_panel_height = status_panel_height;
+        if (m_status_height_changed_callback)
+            m_status_height_changed_callback(status_panel_height);
+    }
 
     //m_status_text->Wrap(m_self->FromDIP(360));
     //m_status_text->Layout();
@@ -360,7 +378,7 @@ void BBLStatusBarPrint::msw_rescale() {
 
 wxString BBLStatusBarPrint::get_status_text() const
 {
-    return m_status_text->GetLabelText();
+    return m_status_text_raw;
 }
 
 bool BBLStatusBarPrint::update_status(wxString &msg, bool &was_cancel, int percent, bool yield)
@@ -384,11 +402,6 @@ void BBLStatusBarPrint::reset()
     m_cancelbutton->Enable();
     m_cancelbutton->Show();
     m_was_cancelled = false;
-
-    top_panel->SetMinSize(wxSize(m_self->FromDIP(550), m_self->FromDIP(26)));
-    top_panel->SetMaxSize(wxSize(m_self->FromDIP(550), m_self->FromDIP(26)));
-    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(440), m_self->FromDIP(26)));
-    m_status_text->SetMinSize(wxSize(m_self->FromDIP(440), m_self->FromDIP(26)));
 
     set_status_text("");
     set_progress(0);

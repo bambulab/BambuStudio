@@ -160,34 +160,39 @@ void SendJob::process()
 
     int total_plate_num = m_plater->get_partplate_list().get_plate_count();
 
-    PartPlate* plate = m_plater->get_partplate_list().get_plate(job_data.plate_idx);
-    if (plate == nullptr) {
-        if (job_data.plate_idx == PLATE_ALL_IDX) {
-            //all plate
-            for (int index = 0; index < total_plate_num; index++)
-            {
-                PartPlate* plate_n = m_plater->get_partplate_list().get_plate(index);
-                if (plate_n && plate_n->is_valid_gcode_file())
+    // Imported file (.gcode / .gcode.3mf): send the original file directly, no re-export/validation.
+    bool is_imported_file = wxGetApp().plater()->using_exported_file() || wxGetApp().plater()->only_gcode_mode();
+
+    if (!is_imported_file) {
+        PartPlate* plate = m_plater->get_partplate_list().get_plate(job_data.plate_idx);
+        if (plate == nullptr) {
+            if (job_data.plate_idx == PLATE_ALL_IDX) {
+                //all plate
+                for (int index = 0; index < total_plate_num; index++)
                 {
-                    plate = plate_n;
-                    break;
+                    PartPlate* plate_n = m_plater->get_partplate_list().get_plate(index);
+                    if (plate_n && plate_n->is_valid_gcode_file())
+                    {
+                        plate = plate_n;
+                        break;
+                    }
                 }
             }
+            else {
+                plate = m_plater->get_partplate_list().get_curr_plate();
+            }
+            if (plate == nullptr) {
+                BOOST_LOG_TRIVIAL(error) << "can not find plate with valid gcode file when sending to print, plate_index="<< job_data.plate_idx;
+                update_status(curr_percent, CHECK_GCODE_FAILED_STR);
+                return;
+            }
         }
-        else {
-            plate = m_plater->get_partplate_list().get_curr_plate();
-        }
-        if (plate == nullptr) {
-            BOOST_LOG_TRIVIAL(error) << "can not find plate with valid gcode file when sending to print, plate_index="<< job_data.plate_idx;
+
+        /* check gcode is valid */
+        if (!plate->is_valid_gcode_file()) {
             update_status(curr_percent, CHECK_GCODE_FAILED_STR);
             return;
         }
-    }
-
-    /* check gcode is valid */
-    if (!plate->is_valid_gcode_file()) {
-        update_status(curr_percent, CHECK_GCODE_FAILED_STR);
-        return;
     }
 
     if (was_canceled()) {
@@ -203,14 +208,30 @@ void SendJob::process()
         curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
 
     params.dev_id               = m_dev_id;
-    params.project_name         = m_project_name + ".gcode.3mf";
     params.preset_name          = wxGetApp().preset_bundle->prints.get_selected_preset_name();
 
     if (wxGetApp().plater()->using_exported_file())
         params.filename = wxGetApp().plater()->get_3mf_filename();
+    else if (wxGetApp().plater()->only_gcode_mode())
+        params.filename = m_plater->get_partplate_list().get_curr_plate()->get_gcode_filename();
     else
         params.filename = job_data._3mf_path.string();
 
+    // Imported file keeps its original basename; sliced -> project + .gcode.3mf.
+    if (is_imported_file)
+        params.project_name = fs::path(params.filename).filename().string();
+    else
+        params.project_name = m_project_name + ".gcode.3mf";
+
+    if (is_imported_file) {
+        boost::system::error_code ec;
+        boost::uintmax_t          file_size = fs::file_size(params.filename, ec);
+        if (ec || file_size == 0) {
+            BOOST_LOG_TRIVIAL(error) << "send_job: imported file missing or empty, file=" << params.filename;
+            update_status(curr_percent, FILE_IS_NOT_EXISTS_STR);
+            return;
+        }
+    }
 
     params.config_filename      = job_data._3mf_config_path.string();
 

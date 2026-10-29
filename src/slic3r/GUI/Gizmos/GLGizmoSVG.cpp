@@ -2168,6 +2168,10 @@ void GLGizmoSVG::register_single_mesh_pick()
         }
         auto world_tran = v->get_instance_transformation() * v->get_volume_transformation();
         auto mesh       = const_cast<TriangleMesh *>(v->ori_mesh);
+        // PickRaycaster dereferences mesh unconditionally (MeshRaycaster(*mesh)); a
+        // volume without an original mesh would crash the raycaster setup.
+        if (mesh == nullptr)
+            continue;
         if (m_mesh_raycaster_map.find(v) != m_mesh_raycaster_map.end()) {
             m_mesh_raycaster_map[v]->world_tran.set_from_transform(world_tran.get_matrix());
         } else {

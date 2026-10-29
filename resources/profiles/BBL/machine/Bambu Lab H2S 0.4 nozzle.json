@@ -191,15 +191,10 @@
         "2",
         "2"
     ],
-    "nozzle_type": [
-        "hardened_steel",
-        "hardened_steel",
-        "hardened_steel"
-    ],
     "nozzle_volume": [
-        "32",
-        "32",
-        "32"
+        "145",
+        "148",
+        "148"
     ],
     "printable_area": [
         "0x0",

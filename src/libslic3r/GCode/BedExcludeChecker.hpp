@@ -13,6 +13,9 @@ struct GCodeProcessorResult;
 // (for example: bed exclude area + optional clumping detection area).
 bool toolpath_intersects_bed_exclude_area_2d(const GCodeProcessorResult& gcode_result, const std::vector<Polygon>& combined_exclude_area_for_toolpath_check);
 
+// Returns true when an extrusion segment leaves the supplied boundary.
+bool toolpath_exceeds_boundary_2d(const GCodeProcessorResult& gcode_result, const Polygon& boundary);
+
 } // namespace Slic3r
 
 #endif // slic3r_BedExcludeChecker_hpp_

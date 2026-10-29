@@ -123,12 +123,15 @@ void SelectionInfo::on_update()
     const Selection& selection = get_pool()->get_canvas()->get_selection();
     // BBS still keep object pointer when selection is volume
     //if (selection.is_single_full_instance()) {
+    m_model_object = nullptr;
     if (!selection.is_empty()) {
-        m_model_object = selection.get_model()->objects[selection.get_object_idx()];
-        m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
+        const Model* model = selection.get_model();
+        const int object_idx = selection.get_object_idx();
+        if (model != nullptr && object_idx >= 0 && object_idx < int(model->objects.size())) {
+            m_model_object = model->objects[object_idx];
+            m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
+        }
     }
-    else
-        m_model_object = nullptr;
 }
 
 void SelectionInfo::on_release()

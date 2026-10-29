@@ -4,7 +4,6 @@
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/ModelArrange.hpp"
 #include "slic3r/GUI/Plater.hpp"
-#include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "libnest2d/common.hpp"
 
@@ -171,6 +170,12 @@ void FillBedJob::prepare()
             ModelObject *mo = m_plater->model().objects[m_object_idx];
             ModelObject* newObj = m_plater->model().add_object(*mo);
             newObj->name = mo->name +" "+ std::to_string(p.itemid);
+            // add_object copies part_guid; force new GUIDs so assembly sync does
+            // not treat fill-bed copies as already mapped to the source object
+            // (same as Selection paste_objects_from_clipboard).
+            for (ModelVolume *mv : newObj->volumes)
+                if (mv->is_model_part())
+                    mv->ensure_part_guid(true);
             for (ModelInstance *newInst : newObj->instances) {
                 newInst->set_transformation(mi_orig_trafo);
                 newInst->apply_arrange_result(p.translation.cast<double>(), p.rotation);

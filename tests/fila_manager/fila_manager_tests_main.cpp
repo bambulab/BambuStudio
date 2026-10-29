@@ -105,7 +105,7 @@ namespace {
         FilamentSpool s;
         s.spool_id     = sid;
         s.tag_uid      = tag;
-        s.setting_id   = "GFB99";
+        s.filament_id  = "GFB99";
         s.color_code   = "#00AE42";
         s.color_name   = "Bambu Green";
         s.material_type= "PLA";

@@ -45,10 +45,10 @@
     "filament_max_volumetric_speed": [
         "16",
         "25",
-        "25",
+        "16",
         "16",
         "18",
-        "18"
+        "16"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -66,32 +66,40 @@
         "10",
         "10"
     ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4",
+        "0.4",
+        "nil",
+        "nil",
+        "nil"
+    ],
     "filament_tower_interface_print_temp": [
         "270"
     ],
     "filament_wipe": [
-        "nil",
-        "nil",
-        "nil",
         "1",
-        "nil",
-        "nil"
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
     ],
     "filament_wipe_distance": [
-        "nil",
-        "nil",
-        "nil",
         "1",
-        "nil",
-        "nil"
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
     ],
     "filament_z_hop_types": [
-        "nil",
-        "nil",
-        "nil",
         "Spiral Lift",
-        "nil",
-        "nil"
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift"
     ],
     "hole_coef_2": [
         "-0.0008"

@@ -1,0 +1,164 @@
+/* Dark theme for guide/23 (系统材料 / 自定义材料 tabs).  The old
+   guide/css/dark.css only covers the legacy layout, so the redesigned
+   filter panel + custom-filaments list added by 23.css need their own
+   overrides here.  Loaded by SwitchDarkMode("dark.css") from
+   guide/23/index.html — Studio flips it in/out of the DOM based on the
+   webview's dark/light UA tag. */
+
+/* 23.css line 3 has `html, body { background-color: #fff !important; }` —
+   have to fight that with our own !important, or the whole page stays white
+   in dark mode. Same applies to any hardcoded color rule below that turned
+   out to be stronger than a plain override. */
+html, body {
+    background-color: #2B2E31 !important;
+    color: #E6E6E8 !important;
+}
+
+/* Tabs (系统材料 / 自定义材料). 23.css uses #Title div.TitleSelected /
+   .TitleUnselected — need the same specificity to win. */
+#Title { border-bottom-color: #3F4347 !important; }
+#Title div.TitleSelected   { color: #E6E6E8 !important; }
+#Title div.TitleUnselected { color: #9DA1A5 !important; }
+#Title div.TitleUnselected:hover { color: #E6E6E8 !important; }
+
+/* Search bar */
+#searchBar {
+    background: #34383B;
+    border-color: #4A4E52;
+}
+#searchBar input {
+    background: transparent;
+    color: #E6E6E8;
+}
+#searchBar input::placeholder { color: #6E7378; }
+
+/* Left filter panel (23.css uses #filterPanel, lowercase 'f') */
+#filterPanel { border-right-color: #3F4347 !important; }
+#filterPanel::after { background: #3F4347 !important; }
+.filter-separator { background: #3F4347 !important; }
+/* "筛选条件" heading */
+.filter-title { color: #9DA1A5 !important; }
+/* 材料类型 / 打印机 / 供应商 labels — 23.css hardcodes #333, need to force */
+.filter-label { color: #E6E6E8 !important; }
+.filter-count { color: #9DA1A5 !important; }
+.filter-arrow { color: #9DA1A5 !important; }
+.filter-item,
+.filter-section > * { color: #E6E6E8; }
+.filter-item:hover { background: #3A3E42 !important; }
+.filter-dd-title { color: #E6E6E8 !important; }
+.filter-dd-title:hover { background: #3F4347 !important; }
+.filter-dd {
+    background: #34383B !important;
+    border-color: #4A4E52 !important;
+}
+.filter-dd-item { color: #E6E6E8 !important; }
+.filter-dd-item:hover { background: #3F4347 !important; }
+.filter-dd-item.select-all { border-bottom-color: #3F4347 !important; }
+
+/* Filter result info + Select-all label above the material list */
+#filterResultText { color: #9DA1A5 !important; }
+#selectAllCurrent { color: #E6E6E8 !important; }
+
+/* Filter section icons (材料类型 / 打印机 / 供应商).  The three svgs use
+   dark fills (#5C5C5C or black) meant for a light background — inverting
+   flips them white for dark mode.  vendor.svg has an extra opacity="0.65"
+   baked in that makes it look dimmer than the other two even after invert,
+   so bump its brightness back up. */
+.filter-icon { filter: brightness(0) invert(0.85); }
+.filter-icon[src*="vendor"] { filter: brightness(0) invert(1) opacity(1.5); }
+
+/* Tags area (search chips shown when a filter is active) */
+#tagsArea { border-bottom-color: #3F4347; }
+
+/* -----------------------------------------------------------------
+   System Filaments Area — material type groups (PLA / ABS / PETG …)
+   Keep the group header background transparent so it doesn't draw a
+   visible "box" edge against the surrounding container.
+   ----------------------------------------------------------------- */
+.fila-group-header {
+    background: transparent !important;
+    border-radius: 0 !important;
+}
+.fila-group-title { color: #E6E6E8 !important; }
+.fila-group-count { color: #9DA1A5 !important; }
+.fila-group-arrow { color: #9DA1A5 !important; }
+.fila-item        { color: #E6E6E8 !important; }
+.fila-item:hover  { background: #3A3E42 !important; }
+
+/* Sort dropdown */
+#CFilament_Sort {
+    background: #34383B;
+    color: #E6E6E8;
+    border-color: #4A4E52;
+}
+#CFilament_Sort option {
+    background: #34383B;
+    color: #E6E6E8;
+}
+
+/* Header count + select-all */
+#CFilament_Header,
+#CFilament_Count,
+#selectAllCurrent { color: #E6E6E8 !important; }
+
+/* Filament list container */
+#CFilament_List {
+    background: #2B2E31 !important;
+    border-color: #3F4347 !important;
+}
+
+/* Custom-filaments group headers (今天 / 一周内 / 更早) */
+.CFilament_GroupTitle {
+    background: #34383B !important;
+    color: #E6E6E8 !important;
+}
+
+/* Individual filament row */
+.CFilament_Item {
+    background: #2B2E31 !important;
+    border-bottom-color: #3F4347 !important;
+}
+.CFilament_Item:hover      { background: #3A3E42 !important; }
+.CFilament_Name            { color: #E6E6E8 !important; }
+.CFilament_Type,
+.CFilament_Date            { color: #9DA1A5 !important; }
+
+/* Edit / Delete icons flip white on dark bg */
+.CFilament_EditBtn,
+.CFilament_DeleteBtn        { filter: brightness(0) invert(1); opacity: 0.7; }
+.CFilament_EditBtn:hover,
+.CFilament_DeleteBtn:hover  { opacity: 1; }
+
+/* "+ 新建自定义材料" button */
+.CFilament_CreateBtn {
+    background: #34383B;
+    color: #E6E6E8;
+    border-color: #6A6E72;
+}
+.CFilament_CreateBtn:hover { background: #3F4347; }
+
+/* System-material list groups + rows.
+   Header stays transparent (see the primary rule higher up); only the
+   surrounding container gets a subtle border color. */
+.fila-group    { border-color: #3F4347; }
+.fila-item     { color: #E6E6E8; }
+.fila-item:hover { background: #3A3E42; }
+
+/* Footer confirm bar */
+#AcceptArea,
+.CFilament_FooterBar {
+    background: #2B2E31;
+    border-top-color: #3F4347;
+}
+
+/* Native <input type="checkbox"> in dark mode */
+input[type="checkbox"] { accent-color: #00AE42; }
+
+/* Empty state (0 matches or no custom filaments) */
+#emptyState,
+.empty-text          { color: #9DA1A5; }
+.empty-icon          { opacity: 0.55; }
+
+/* Scrollbars */
+.ZScrol::-webkit-scrollbar-thumb { background-color: #6A6E72; }
+.ZScrol::-webkit-scrollbar-track { background: #2B2E31; }

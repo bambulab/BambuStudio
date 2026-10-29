@@ -70,7 +70,6 @@ using namespace nlohmann;
 #include "libslic3r/Orient.hpp"
 #include "libslic3r/PNGReadWrite.hpp"
 #include "libslic3r/ObjColorUtils.hpp"
-#include "libslic3r/FilamentMixer.hpp"
 
 #include "BambuStudio.hpp"
 //BBS: add exception handler for win32
@@ -89,6 +88,14 @@ using namespace nlohmann;
 
 #ifdef __WXGTK__
 #include <X11/Xlib.h>
+#endif
+
+// BBS: for the out-of-memory new-handler (bbl_out_of_memory_handler)
+#include <new> // std::set_new_handler
+#if defined(__APPLE__)
+#include <CoreFoundation/CoreFoundation.h> // CFUserNotificationDisplayNotice
+#elif !defined(_MSC_VER) && !defined(__MINGW32__)
+#include <unistd.h> // write(), STDERR_FILENO
 #endif
 
 #ifdef SLIC3R_GUI
@@ -198,6 +205,7 @@ typedef struct  _sliced_plate_info{
     size_t make_perimeters_time {0};
     size_t infill_time {0};
     size_t generate_support_material_time {0};
+    std::unordered_map<std::string, long long> slice_stage_times;
     size_t triangle_count{0};
     std::string warning_message;
 
@@ -224,6 +232,10 @@ typedef struct _sliced_info {
     std::vector<sliced_plate_info_t> sliced_plates;
     size_t prepare_time;
     size_t export_time;
+    size_t export_3mf_time {0};
+    size_t export_slicedata_time {0};
+    size_t load_slicedata_time {0};
+    size_t import_time {0};
     float  layer_height{0.f};
     float  sparse_infill_density{0.f};
     int    wall_loops{0};
@@ -494,8 +506,15 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
         j["plate_index"] = plate_id;
         j["return_code"] = code;
         j["error_string"] = error_message;
-        j["prepare_time"] = sliced_info.prepare_time;
-        j["export_time"] = sliced_info.export_time;
+        json task_times = json::object();
+        task_times["prepare_time"] = sliced_info.prepare_time;
+        task_times["export_time"] = sliced_info.export_time;
+        task_times["export_3mf_time"] = sliced_info.export_3mf_time;
+        task_times["export_slicedata_time"] = sliced_info.export_slicedata_time;
+        task_times["load_slicedata_time"] = sliced_info.load_slicedata_time;
+        task_times["import_time"] = sliced_info.import_time;
+        j["times"] = std::move(task_times);
+        j["peak_rss_mb"] = Slic3r::get_peak_rss_mb();
         j["layer_height"] = sliced_info.layer_height;
         j["wall_loops"] = sliced_info.wall_loops;
         j["sparse_infill_density"] = sliced_info.sparse_infill_density;
@@ -512,11 +531,37 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
             json plate_json;
             sliced_plate_info_t& sliced_plate_info = sliced_info.sliced_plates[index];
             plate_json["id"] = sliced_plate_info.plate_id;
-            plate_json["sliced_time"] = sliced_plate_info.sliced_time;
-            plate_json["sliced_time_with_cache"] = sliced_plate_info.sliced_time_with_cache;
-            plate_json["make_perimeters_time"] = sliced_plate_info.make_perimeters_time;
-            plate_json["infill_time"] = sliced_plate_info.infill_time;
-            plate_json["generate_support_material_time"] = sliced_plate_info.generate_support_material_time;
+            const auto stage_time = [&sliced_plate_info](const char *key) {
+                const auto it = sliced_plate_info.slice_stage_times.find(key);
+                return it == sliced_plate_info.slice_stage_times.end() ? 0LL : it->second;
+            };
+            json plate_times = json::object();
+            plate_times["sliced_time"] = sliced_plate_info.sliced_time;
+            plate_times["sliced_time_with_cache"] = sliced_plate_info.sliced_time_with_cache;
+            plate_times["make_perimeters_time"] = sliced_plate_info.make_perimeters_time;
+            plate_times[TIME_SLICE_LAYERS] = stage_time(TIME_SLICE_LAYERS);
+            plate_times[TIME_REGION_SPLIT] = stage_time(TIME_REGION_SPLIT);
+            plate_times[TIME_MM_SEGMENT_2D] = stage_time(TIME_MM_SEGMENT_2D);
+            plate_times[TIME_WALL] = stage_time(TIME_WALL);
+            plate_times["infill_time"] = sliced_plate_info.infill_time;
+            plate_times[TIME_PREPARE_INFILL] = stage_time(TIME_PREPARE_INFILL);
+            plate_times[TIME_INFILL_GENERATE] = stage_time(TIME_INFILL_GENERATE);
+            plate_times[TIME_IRONING] = stage_time(TIME_IRONING);
+            plate_times["generate_support_material_time"] = sliced_plate_info.generate_support_material_time;
+            plate_times[TIME_SUPPORT_DETECT] = stage_time(TIME_SUPPORT_DETECT);
+            plate_times[TIME_SUPPORT_TREE_GENERATE] = stage_time(TIME_SUPPORT_TREE_GENERATE);
+            plate_times[TIME_SUPPORT_NORMAL_GENERATE] = stage_time(TIME_SUPPORT_NORMAL_GENERATE);
+            plate_times[TIME_SUPPORT_INTERFACE] = stage_time(TIME_SUPPORT_INTERFACE);
+            plate_times[TIME_SUPPORT_TOOLPATH] = stage_time(TIME_SUPPORT_TOOLPATH);
+            plate_times[TIME_DETECT_OVERHANGS] = stage_time(TIME_DETECT_OVERHANGS);
+            plate_times[TIME_SKIRT_BRIM] = stage_time(TIME_SKIRT_BRIM);
+            plate_times[TIME_WIPE_TOWER] = stage_time(TIME_WIPE_TOWER);
+            plate_times[TIME_FLUSH_PLAN] = stage_time(TIME_FLUSH_PLAN);
+            plate_times[TIME_CONFLICT_CHECK] = stage_time(TIME_CONFLICT_CHECK);
+            plate_times[TIME_TOOLPATH] = stage_time(TIME_TOOLPATH);
+            plate_times[TIME_EXPORT_GCODE] = stage_time(TIME_EXPORT_GCODE);
+            plate_times[TIME_OTHER_SLICE] = stage_time(TIME_OTHER_SLICE);
+            plate_json["times"] = std::move(plate_times);
             plate_json["triangle_count"] = sliced_plate_info.triangle_count;
             plate_json["warning_message"] = sliced_plate_info.warning_message;
 
@@ -1351,15 +1396,6 @@ static bool is_preset_compatible_with_printer(const std::vector<std::string> &co
     return std::find(compatible_printers.begin(), compatible_printers.end(), printer_system_name) != compatible_printers.end();
 }
 
-// todo: temp modify: P1P/P1S share filament presets loosely; skip compatible_printers validation for them.
-static bool is_p1p_or_p1s_printer(const std::string &printer_model_name, const std::string &printer_system_name)
-{
-    if (printer_model_name == "Bambu Lab P1P" || printer_model_name == "Bambu Lab P1S")
-        return true;
-    return printer_system_name.find("P1P") != std::string::npos
-        || printer_system_name.find("P1S") != std::string::npos;
-}
-
 // For estimate_mode: given a source filament preset name (e.g. "Bambu PLA Basic @BBL P1S 0.4 nozzle")
 // and the new machine's BBL tag (e.g. "X2D 0.4 nozzle"), construct the target filament preset name
 // (e.g. "Bambu PLA Basic @BBL X2D 0.4 nozzle") and verify it exists in filament_full_dir.
@@ -1667,7 +1703,7 @@ int CLI::run(int argc, char **argv)
         }
     }
 
-    global_begin_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+    global_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     BOOST_LOG_TRIVIAL(warning) << boost::format("cli mode, Current BambuStudio Version %1%")%SLIC3R_VERSION;
 
     //BBS: add plate data related logic
@@ -1675,7 +1711,7 @@ int CLI::run(int argc, char **argv)
     std::vector<plate_obj_size_info_t> plate_obj_size_infos;
     //int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0, current_extruder_count = 1, new_extruder_count = 1, current_printer_variant_count = 1, current_print_variant_count = 1, new_printer_variant_count = 1;
-    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false, has_support = false, estimate_mode = false;
+    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false, has_support = false, estimate_mode = false, check_preset = false;
     bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false, current_is_multi_extruder = false, new_is_multi_extruder = false, allow_mix_temp = false, enable_wrapping_detect = false;
     Semver file_version;
     Slic3r::GUI::Camera::ViewAngleType camera_view = Slic3r::GUI::Camera::ViewAngleType::Iso;
@@ -1747,6 +1783,10 @@ int CLI::run(int argc, char **argv)
     ConfigOptionBool* estimate_mode_option = m_config.option<ConfigOptionBool>("estimate_mode");
     if (estimate_mode_option)
         estimate_mode = estimate_mode_option->value;
+
+    ConfigOptionBool* check_preset_option = m_config.option<ConfigOptionBool>("check_preset");
+    if (check_preset_option)
+        check_preset = check_preset_option->value;
 
     ConfigOptionInt* camera_view_option = m_config.option<ConfigOptionInt>("camera_view");
     if (camera_view_option)
@@ -1862,6 +1902,8 @@ int CLI::run(int argc, char **argv)
             //BBS: add plate related logic
             //bool load_aux = false;
             BOOST_LOG_TRIVIAL(info) << "read model file:" << file << "\n";
+            const long long import_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
+            bool import_time_recorded = false;
             try {
                 // When loading an AMF or 3MF, config is imported as well, including the printer technology.
                 DynamicPrintConfig config;
@@ -1887,6 +1929,8 @@ int CLI::run(int argc, char **argv)
                 //LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig|LoadStrategy::AddDefaultInstances;
                 //if (load_aux) strategy = strategy | LoadStrategy::LoadAuxiliary;
                 model = Model::read_from_file(file, &config, &config_substitutions, strategy, &plate_data_src, &project_presets, &is_bbl_3mf, &file_version, nullptr, nullptr, nullptr, plate_to_slice);
+                sliced_info.import_time += (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - import_begin_time);
+                import_time_recorded = true;
                 if (is_bbl_3mf)
                 {
                     if (!first_file)
@@ -1954,13 +1998,6 @@ int CLI::run(int argc, char **argv)
                                 record_exit_reson(outfile_dir, CLI_POSTPROCESS_NOT_SUPPORTED, 0, cli_errors[CLI_POSTPROCESS_NOT_SUPPORTED], sliced_info);
                                 flush_and_exit(CLI_POSTPROCESS_NOT_SUPPORTED);
                             }
-                        }
-
-                        ConfigOptionBools* filament_is_mixed = config.option<ConfigOptionBools>("filament_is_mixed");
-                        if (filament_is_mixed && has_any_mixed_filament(filament_is_mixed->values)) {
-                            BOOST_LOG_TRIVIAL(error) << "normative_check: mixed filament is not supported";
-                            record_exit_reson(outfile_dir, CLI_3MF_FEATURE_NOT_SUPPORTED, 0, cli_errors[CLI_3MF_FEATURE_NOT_SUPPORTED], sliced_info);
-                            flush_and_exit(CLI_3MF_FEATURE_NOT_SUPPORTED);
                         }
                     }
 
@@ -2152,6 +2189,9 @@ int CLI::run(int argc, char **argv)
                 input_index++;
             }
             catch (std::exception& e) {
+                if (!import_time_recorded)
+                    sliced_info.import_time +=
+                        (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - import_begin_time);
                 boost::nowide::cerr << file << ": " << e.what() << std::endl;
                 record_exit_reson(outfile_dir, CLI_DATA_FILE_ERROR, 0, cli_errors[CLI_DATA_FILE_ERROR], sliced_info);
                 flush_and_exit(CLI_DATA_FILE_ERROR);
@@ -2166,9 +2206,12 @@ int CLI::run(int argc, char **argv)
     else {
         //parse the json and assemble object here
         Model model;
+        const long long import_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
 
         int ret = load_assemble_plate_list(load_assemble_list, assemble_plate_info_list);
         if (ret) {
+            sliced_info.import_time +=
+                (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - import_begin_time);
             record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
             flush_and_exit(ret);
         }
@@ -2176,17 +2219,23 @@ int CLI::run(int argc, char **argv)
         try {
             ret = construct_assemble_list(assemble_plate_info_list, model, plate_data_src, input_obj_colours);
             if (ret) {
+                sliced_info.import_time +=
+                    (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - import_begin_time);
                 record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
                 flush_and_exit(ret);
             }
         }
         catch (std::exception& e) {
+            sliced_info.import_time +=
+                (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - import_begin_time);
             boost::nowide::cerr << construct_assemble_list << ": " << e.what() << std::endl;
             record_exit_reson(outfile_dir, CLI_DATA_FILE_ERROR, 0, cli_errors[CLI_DATA_FILE_ERROR], sliced_info);
             flush_and_exit(CLI_DATA_FILE_ERROR);
         }
         model.add_default_instances();
         m_models.push_back(std::move(model));
+        sliced_info.import_time +=
+            (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - import_begin_time);
     }
 
     if (!is_bbl_3mf && plate_to_slice > 0)
@@ -3010,33 +3059,29 @@ int CLI::run(int argc, char **argv)
     }
 
     // Validate compatible_printers for externally loaded filament presets.
-    // {
-    //     std::string effective_printer_system_name;
-    //     if (!new_printer_system_name.empty())
-    //         effective_printer_system_name = new_printer_system_name;
-    //     else
-    //         effective_printer_system_name = current_printer_system_name;
-    //
-    //     const std::string effective_printer_model = !printer_model.empty() ? printer_model : current_printer_model;
-    //
-    //     if (!is_p1p_or_p1s_printer(effective_printer_model, effective_printer_system_name)
-    //         && !effective_printer_system_name.empty()) {
-    //         for (size_t index = 0; index < load_filaments_config.size(); ++index) {
-    //             const auto *compatible_printers_opt = load_filaments_config[index].option<ConfigOptionStrings>("compatible_printers");
-    //             if (!compatible_printers_opt)
-    //                 continue;
-    //             const std::vector<std::string> &compatible_printers = compatible_printers_opt->values;
-    //             if (is_preset_compatible_with_printer(compatible_printers, effective_printer_system_name))
-    //                 continue;
-    //
-    //             const std::string &filament_name = (index < load_filaments_name.size()) ? load_filaments_name[index] : "";
-    //             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" %1%: filament preset %2% (slot %3%) is not compatible with printer %4%.")
-    //                 % __LINE__ % filament_name % (index + 1) % effective_printer_system_name;
-    //             record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
-    //             flush_and_exit(CLI_CONFIG_FILE_ERROR);
-    //         }
-    //     }
-    // }
+    if (check_preset) {
+        std::string effective_printer_system_name;
+        if (!new_printer_system_name.empty())
+            effective_printer_system_name = new_printer_system_name;
+        else
+            effective_printer_system_name = current_printer_system_name;
+
+        if (!effective_printer_system_name.empty()) {
+            for (size_t index = 0; index < load_filaments_config.size(); ++index) {
+                const auto *compatible_printers_opt = load_filaments_config[index].option<ConfigOptionStrings>("compatible_printers");
+                if (!compatible_printers_opt) continue;
+                const std::vector<std::string> &compatible_printers = compatible_printers_opt->values;
+                if (is_preset_compatible_with_printer(compatible_printers, effective_printer_system_name)) continue;
+
+                const std::string &filament_name = (index < load_filaments_name.size()) ? load_filaments_name[index] : "";
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+                                         << boost::format(" %1%: filament preset %2% (slot %3%) is not compatible with printer %4%.") % __LINE__ % filament_name % (index + 1) %
+                                                effective_printer_system_name;
+                record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                flush_and_exit(CLI_CONFIG_FILE_ERROR);
+            }
+        }
+    }
 
     if (estimate_mode && (new_printer_name.empty() || current_printer_name.empty() || (new_printer_name == current_printer_name))) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" %1%: estimate_mode requires a machine switch via --load_settings") % __LINE__;
@@ -4107,7 +4152,7 @@ int CLI::run(int argc, char **argv)
     2. 判断是否切换了机型，若机型切换，则需要重新设置默认值（此时会将默认参数修复）
     3. 判断是否切换了流量，若流量切换，重新设置对应流量，并复制原先的喷嘴数量
     */
-    bool has_extruder_nozzle_stats = m_print_config.has("extruder_nozzle_stats");
+    bool has_extruder_nozzle_stats = m_print_config.has("extruder_nozzle_stats_new") || m_print_config.has("extruder_nozzle_stats");
     ExtruderNozzleStat nozzle_stats_obj;
 
     // Synchronize the default parameters and the ones received on the command line.
@@ -4157,8 +4202,11 @@ int CLI::run(int argc, char **argv)
         nozzle_stats_obj.on_printer_model_change_cli(curr_volume_map_value, max_nozzle_count);
     }
     else {
-        auto nozzle_stat_str = m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats")->values;
-        nozzle_stats_obj.set_raw_stat(get_extruder_nozzle_stats(nozzle_stat_str));
+        const auto *nozzle_stats_opt = m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats_new");
+        if (nozzle_stats_opt == nullptr || nozzle_stats_opt->values.empty())
+            nozzle_stats_opt = m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats");
+        if (nozzle_stats_opt != nullptr)
+            nozzle_stats_obj.set_raw_stat(get_extruder_nozzle_stats(nozzle_stats_opt->values));
     }
 
 
@@ -4480,7 +4528,7 @@ int CLI::run(int argc, char **argv)
         const ConfigOptionBool * wrapping_detection = print_config.option<ConfigOptionBool>("enable_wrapping_detection");
         bool enable_wrapping = (wrapping_detection != nullptr) && wrapping_detection->value;
 
-        Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, get_max_element(wipe_volume), new_extruder_count, filaments_cnt, false, enable_wrapping);
+        Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, get_max_element(wipe_volume), new_extruder_count, filaments_cnt, false, enable_wrapping, true);
         plate_obj_size_info.wipe_width = wipe_tower_size(0);
         plate_obj_size_info.wipe_depth = wipe_tower_size(1);
 
@@ -5412,7 +5460,7 @@ int CLI::run(int argc, char **argv)
                     wipe_y_option->set_at(&wt_y_opt, i, 0);
 
                     Vec3d wipe_tower_size, wipe_tower_pos;
-                    ArrangePolygon wipe_tower_ap = cur_plate->estimate_wipe_tower_polygon(m_print_config, i, wipe_tower_pos, wipe_tower_size, new_extruder_count, assemble_plate.filaments_count, true);
+                    ArrangePolygon wipe_tower_ap = cur_plate->estimate_wipe_tower_polygon(m_print_config, i, wipe_tower_pos, wipe_tower_size, new_extruder_count, assemble_plate.filaments_count, true, true);
 
                     //update the new wp position
                     wt_x_opt.value = wipe_tower_pos(0);
@@ -5708,7 +5756,7 @@ int CLI::run(int argc, char **argv)
                             }
 
                             Vec3d wipe_tower_size, wipe_tower_pos;
-                            ArrangePolygon wipe_tower_ap = partplate_list.get_plate(plate_index_valid)->estimate_wipe_tower_polygon(m_print_config, plate_index_valid, wipe_tower_pos, wipe_tower_size, new_extruder_count, extruder_size, true);
+                            ArrangePolygon wipe_tower_ap = partplate_list.get_plate(plate_index_valid)->estimate_wipe_tower_polygon(m_print_config, plate_index_valid, wipe_tower_pos, wipe_tower_size, new_extruder_count, extruder_size, true, true);
 
                             //update the new wp position
                             if (bedid < plate_count) {
@@ -5816,7 +5864,7 @@ int CLI::run(int argc, char **argv)
                             const ConfigOptionBool *wrapping_detection = m_print_config.option<ConfigOptionBool>("enable_wrapping_detection");
                             bool   enable_wrapping    = (wrapping_detection != nullptr) && wrapping_detection->value;
 
-                            Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, get_max_element(v), new_extruder_count, filaments_cnt, false, enable_wrapping);
+                            Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, get_max_element(v), new_extruder_count, filaments_cnt, false, enable_wrapping, true);
                             Vec3d plate_origin = cur_plate->get_origin();
                             int plate_width, plate_depth, plate_height;
                             partplate_list.get_plate_size(plate_width, plate_depth, plate_height);
@@ -6203,7 +6251,7 @@ int CLI::run(int argc, char **argv)
     std::vector<bool> plate_has_skips(partplate_list.get_plate_count(), false);
     std::vector<std::vector<size_t>> plate_skipped_objects(partplate_list.get_plate_count());
 
-    global_current_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+    global_current_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     sliced_info.prepare_time = (size_t) (global_current_time - global_begin_time);
     global_begin_time = global_current_time;
 
@@ -6500,7 +6548,11 @@ int CLI::run(int argc, char **argv)
                         slice_time[TIME_INFILL] = 0;
                         slice_time[TIME_GENERATE_SUPPORT] = 0;
 
-                        start_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+                        start_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
+                        long long plate_other_ms = 0;
+                        auto add_plate_other = [&plate_other_ms](long long begin) {
+                            plate_other_ms += Slic3r::Utils::get_current_milliseconds_time_monotonic() - begin;
+                        };
                         //get the current partplate
                         Slic3r::GUI::PartPlate* part_plate = partplate_list.get_plate(index);
                         part_plate->get_print(&print, &gcode_result, &print_index);
@@ -6526,7 +6578,9 @@ int CLI::run(int argc, char **argv)
 #else
                         BuildVolume build_volume(part_plate->get_shape(), print_height, part_plate->get_extruder_areas(), current_extruder_print_heights);
                         //model.update_print_volume_state(build_volume);
+                        const long long volume_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                         unsigned int count = model.update_print_volume_state(build_volume);
+                        add_plate_other(volume_begin_time);
 
                         if (count == 0) {
                             BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Nothing to be sliced, Either the print is empty or no object is fully inside the print volume before apply." << std::endl;
@@ -6856,25 +6910,55 @@ int CLI::run(int argc, char **argv)
                                         }
                                     }
 
-                                    for (int f_index = 0; f_index < plate_filaments.size(); f_index++) {
-                                        for (int f_index = 0; f_index < plate_filaments.size(); f_index++) {
-                                            if (plate_filaments[f_index] <= filament_count) {
-                                                int filament_extruder = filament_maps[plate_filaments[f_index] - 1];
-                                                std::string filament_type;
-                                                m_print_config.get_filament_type(filament_type, plate_filaments[f_index] - 1);
-                                                auto *filament_printable_status = dynamic_cast<const ConfigOptionInts *>(m_print_config.option("filament_printable"));
-                                                if (filament_printable_status && (filament_printable_status->values.size() >= plate_filaments[f_index])) {
-                                                    int status = filament_printable_status->values.at(plate_filaments[f_index] - 1);
-                                                    if (!(status >> (filament_extruder - 1) & 1)) {
-                                                        BOOST_LOG_TRIVIAL(error)
-                                                            << boost::format(
-                                                                   "plate %1% : filament %2% can not be printed on extruder %3%, under manual mode for multi extruder printer") %
-                                                                   (index + 1) % filament_type % filament_extruder;
-                                                        record_exit_reson(outfile_dir, CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER, index + 1,
-                                                                          cli_errors[CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER], sliced_info);
-                                                        flush_and_exit(CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER);
-                                                    }
-                                                }
+                                    // Validate per-filament printability under manual multi-extruder mode.
+                                    // After --load-filaments shrinks the active filament set, ModelVolume "extruder"
+                                    // configs loaded from the source 3MF may still reference original (higher) slot
+                                    // numbers. Guard every index into filament_maps and filament_printable to avoid
+                                    // out-of-bounds reads (which previously surfaced as a bogus extruder id, e.g.
+                                    // "filament TPU can not be printed on extruder 21842") and avoid undefined
+                                    // behaviour from shifting by >= width of int when a stale filament_extruder is
+                                    // out of range. See related upstream reports: bambulab/BambuStudio#10408, #9963,
+                                    // #10402, and vertical-cloud-lab/tensegrity-optimization#64.
+                                    for (int f_index = 0; f_index < (int)plate_filaments.size(); f_index++) {
+                                        const int fid = plate_filaments[f_index];
+                                        if (fid < 1 || fid > filament_count)
+                                            continue;
+                                        if ((size_t)fid > filament_maps.size()) {
+                                            BOOST_LOG_TRIVIAL(error) << boost::format(
+                                                "plate %1% : filament slot %2% is not present in filament_map "
+                                                "(size %3%); per-part extruder map was not rebuilt after "
+                                                "--load-filaments. Pass --filament-map with %4% entries or "
+                                                "re-author the input 3MF so every per-volume \"extruder\" is "
+                                                "within 1..%4%.")
+                                                % (index + 1) % fid % filament_maps.size() % filament_count;
+                                            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, index + 1,
+                                                              cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                                            flush_and_exit(CLI_INVALID_PARAMS);
+                                        }
+                                        const int filament_extruder = filament_maps[fid - 1];
+                                        if (filament_extruder < 1 || filament_extruder > new_extruder_count) {
+                                            BOOST_LOG_TRIVIAL(error) << boost::format(
+                                                "plate %1% : filament %2% has invalid extruder id %3% "
+                                                "(expected 1..%4%); per-part extruder assignment was not "
+                                                "remapped after --load-filaments.")
+                                                % (index + 1) % fid % filament_extruder % new_extruder_count;
+                                            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, index + 1,
+                                                              cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                                            flush_and_exit(CLI_INVALID_PARAMS);
+                                        }
+                                        std::string filament_type;
+                                        m_print_config.get_filament_type(filament_type, fid - 1);
+                                        auto *filament_printable_status = dynamic_cast<const ConfigOptionInts *>(m_print_config.option("filament_printable"));
+                                        if (filament_printable_status && (filament_printable_status->values.size() >= (size_t)fid)) {
+                                            const int status = filament_printable_status->values.at(fid - 1);
+                                            if (!(status >> (filament_extruder - 1) & 1)) {
+                                                BOOST_LOG_TRIVIAL(error)
+                                                    << boost::format(
+                                                           "plate %1% : filament %2% can not be printed on extruder %3%, under manual mode for multi extruder printer") %
+                                                           (index + 1) % filament_type % filament_extruder;
+                                                record_exit_reson(outfile_dir, CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER, index + 1,
+                                                                  cli_errors[CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER], sliced_info);
+                                                flush_and_exit(CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER);
                                             }
                                         }
                                     }
@@ -6975,12 +7059,16 @@ int CLI::run(int argc, char **argv)
                             part_plate->set_filament_volume_maps(final_volume_maps);
                         }
 
+                        const long long apply_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                         print->apply(model, new_print_config);
+                        add_plate_other(apply_begin_time);
                         BOOST_LOG_TRIVIAL(info) << boost::format("set no_check to %1%:")%no_check;
                         print->set_no_check_flag(no_check);//BBS
                         StringObjectException warning;
                         print_fff->set_check_multi_filaments_compatibility(!allow_mix_temp);
+                        const long long validate_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                         auto err = print->validate(&warning);
+                        add_plate_other(validate_begin_time);
                         if (!err.string.empty()) {
                             if ((STRING_EXCEPT_LAYER_HEIGHT_EXCEEDS_LIMIT == err.type) && no_check) {
                                 BOOST_LOG_TRIVIAL(warning) << "got warnings: "<< err.string << std::endl;
@@ -7071,15 +7159,20 @@ int CLI::run(int argc, char **argv)
 
                                 //update information for brim
                                 const PrintConfig& print_config = print_fff->config();
+                                const long long brim_info_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                                 Model::setExtruderParams(m_print_config, filament_count);
                                 Model::setPrintSpeedTable(m_print_config, print_config);
+                                add_plate_other(brim_info_begin_time);
                                 if (load_slicedata) {
                                     std::string plate_dir = load_slice_data_dir+"/"+std::to_string(index+1);
+                                    const long long load_slicedata_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                                     int ret = print->load_cached_data(plate_dir);
+                                    sliced_info.load_slicedata_time +=
+                                        (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - load_slicedata_begin_time);
                                     if (ret) {
                                         BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": load Slicing data error, ret=" << ret;
                                         BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": switch normal slicing";
-                                        print->process();
+                                        print->process(&slice_time);
                                     }
                                     else {
                                         BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": load cached data success, go on.";
@@ -7097,6 +7190,7 @@ int CLI::run(int argc, char **argv)
                                     print->process(&slice_time);
                                     BOOST_LOG_TRIVIAL(info) << "print::process: first time_using_cache is " << slice_time[TIME_USING_CACHE] << " secs.";
                                 }
+                                slice_time[TIME_OTHER_SLICE] += plate_other_ms;
                                 if (printer_technology == ptFFF) {
                                     FilamentMapMode current_map_mode = print_fff->config().filament_map_mode.value;
                                     if (is_auto_filament_map_mode(current_map_mode)) {
@@ -7176,7 +7270,7 @@ int CLI::run(int argc, char **argv)
                                         part_plate->set_tmp_gcode_path(outfile);
                                     }
                                     BOOST_LOG_TRIVIAL(info) << "process finished, will export gcode temporily to " << outfile << std::endl;
-                                    temp_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+                                    temp_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                                     if (is_bbl_vendor_preset) {
                                         outfile = print_fff->export_gcode(outfile, gcode_result, nullptr);
                                     }
@@ -7185,7 +7279,10 @@ int CLI::run(int argc, char **argv)
                                             opengl_valid = init_opengl_and_colors(model, colors);
                                         outfile = opengl_valid ? print_fff->export_gcode(outfile, gcode_result, cli_generate_thumbnails) : print_fff->export_gcode(outfile, gcode_result, nullptr);
                                     }
-                                    slice_time[TIME_USING_CACHE] = slice_time[TIME_USING_CACHE] + ((long long)Slic3r::Utils::get_current_milliseconds_time_utc() - temp_time);
+                                    const long long export_gcode_time =
+                                        Slic3r::Utils::get_current_milliseconds_time_monotonic() - temp_time;
+                                    slice_time[TIME_USING_CACHE] += export_gcode_time;
+                                    slice_time[TIME_EXPORT_GCODE] = export_gcode_time;
                                     BOOST_LOG_TRIVIAL(info) << "export_gcode finished: time_using_cache update to " << slice_time[TIME_USING_CACHE] << " secs.";
 
                                     if (gcode_result && gcode_result->gcode_check_result.error_code) {
@@ -7248,7 +7345,10 @@ int CLI::run(int argc, char **argv)
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% will export Slicing data to %2%")%(index+1) %export_slice_data_dir;
                                     std::string plate_dir = export_slice_data_dir+"/"+std::to_string(index+1);
                                     bool with_space = (get_logging_level() >= 4)?true:false;
+                                    const long long export_slicedata_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                                     int ret = print->export_cached_data(plate_dir, sliced_plate_info.obj_cached_cnt, with_space);
+                                    sliced_info.export_slicedata_time +=
+                                        (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - export_slicedata_begin_time);
                                     if (ret) {
                                         BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": export Slicing data error, ret=" << ret;
                                         export_slicedata_error = true;
@@ -7259,12 +7359,13 @@ int CLI::run(int argc, char **argv)
                                     }
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% exported %2% objects")%(index+1) %(sliced_plate_info.obj_cached_cnt);
                                 }
-                                end_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+                                end_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                                 sliced_plate_info.sliced_time = end_time - start_time;
                                 sliced_plate_info.sliced_time_with_cache = slice_time[TIME_USING_CACHE];
                                 sliced_plate_info.make_perimeters_time = slice_time[TIME_MAKE_PERIMETERS];
                                 sliced_plate_info.infill_time = slice_time[TIME_INFILL];
                                 sliced_plate_info.generate_support_material_time = slice_time[TIME_GENERATE_SUPPORT];
+                                sliced_plate_info.slice_stage_times = slice_time;
 
                                 //get predication and filament change
                                 PrintEstimatedStatistics& print_estimated_stat = gcode_result->print_statistics;
@@ -7475,7 +7576,7 @@ int CLI::run(int argc, char **argv)
         }
     }
 
-    global_begin_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+    global_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     if (export_to_3mf) {
         //BBS: export as bbl 3mf
         std::vector<ThumbnailData *> thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails;
@@ -7788,7 +7889,8 @@ int CLI::run(int argc, char **argv)
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s thumbnail, need to regenerate")%(i+1);
                                     Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(p_opengl_mgr, *thumbnail_data,
                                         thumbnail_width, thumbnail_height, thumbnail_params,
-                                        partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
+                                        partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho,
+                                        Slic3r::GUI::Camera::ViewAngleType::Iso_3);
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s thumbnail,finished rendering")%(i+1);
                                 }
                             }
@@ -7822,7 +7924,7 @@ int CLI::run(int argc, char **argv)
                                     Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(p_opengl_mgr, *no_light_thumbnail,
                                         thumbnail_width, thumbnail_height, thumbnail_params,
                                         partplate_list, model.objects, glvolume_collection, colors_out, shader,
-                                        Slic3r::GUI::Camera::EType::Ortho, Slic3r::GUI::Camera::ViewAngleType::Iso,
+                                        Slic3r::GUI::Camera::EType::Ortho, Slic3r::GUI::Camera::ViewAngleType::Iso_3,
                                         false, true);
                                     plate_data->no_light_thumbnail_file = "valid_no_light";
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s no_light thumbnail,finished rendering")%(i+1);
@@ -8153,8 +8255,13 @@ int CLI::run(int argc, char **argv)
             }
         }
 
-        if (!this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails,
-                                calibration_thumbnails, plate_bboxes, &m_print_config, minimum_save, plate_to_slice - 1))
+        const long long export_3mf_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
+        const bool export_3mf_success =
+            this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails,
+                                 calibration_thumbnails, plate_bboxes, &m_print_config, minimum_save, plate_to_slice - 1);
+        sliced_info.export_3mf_time =
+            (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - export_3mf_begin_time);
+        if (!export_3mf_success)
         {
             release_PlateData_list(plate_data_list);
             record_exit_reson(outfile_dir, CLI_EXPORT_3MF_ERROR, 0, cli_errors[CLI_EXPORT_3MF_ERROR], sliced_info);
@@ -8254,7 +8361,7 @@ int CLI::run(int argc, char **argv)
     }
     //BBS: flush logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", Finished" << std::endl;
-    global_current_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+    global_current_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     sliced_info.export_time = (size_t) (global_current_time - global_begin_time);
 
     //record the duplicate here
@@ -8633,6 +8740,52 @@ LONG WINAPI VectoredExceptionHandler(PEXCEPTION_POINTERS pExceptionInfo)
     return EXCEPTION_CONTINUE_SEARCH;
 }*/
 
+// BBS: out-of-memory new-handler, installed on every platform
+#define BBL_OOM_TITLE "Bambu Studio - Out of Memory"
+#define BBL_OOM_BODY \
+    "Bambu Studio has run out of memory and must close.\n\n" \
+    "Your project may be too large for the available memory. " \
+    "Try closing other applications, reducing the model complexity " \
+    "or plate count, and restart."
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+// Windows: raw Win32 MessageBoxW with static wide literals; no wx, no allocation.
+static void bbl_oom_notify_windows() { ::MessageBoxW(nullptr, L"" BBL_OOM_BODY, L"" BBL_OOM_TITLE, MB_OK | MB_ICONERROR | MB_TOPMOST | MB_SETFOREGROUND); }
+#elif defined(__APPLE__)
+// macOS: CFUserNotification works without a running event loop and takes static
+// CFString literals (no heap use beyond CF internals). Best-effort.
+static void bbl_oom_notify_macos()
+{ CFUserNotificationDisplayNotice(0.0, kCFUserNotificationStopAlertLevel, nullptr, nullptr, nullptr, CFSTR(BBL_OOM_TITLE), CFSTR(BBL_OOM_BODY), nullptr); }
+#else
+// Linux: no allocation-free GUI primitive is safe under OOM (GTK allocates; fork+exec
+// of zenity can itself fail when memory is gone). Emit an async-signal-safe message to
+// stderr instead of a dialog.
+static void bbl_oom_notify_linux()
+{
+    const char msg[] = "\n" BBL_OOM_TITLE "\n" BBL_OOM_BODY "\n\n";
+    ssize_t    n     = ::write(STDERR_FILENO, msg, sizeof(msg) - 1);
+    (void) n;
+}
+#endif
+
+static void bbl_out_of_memory_handler()
+{
+    // Notify once; if new keeps failing (or fails on another thread), avoid stacking
+    // dialogs or recursing.
+    static volatile long s_reported = 0;
+#if defined(_MSC_VER) || defined(__MINGW32__)
+    if (::InterlockedCompareExchange(&s_reported, 1, 0) == 0) bbl_oom_notify_windows();
+#elif defined(__APPLE__)
+    if (__sync_val_compare_and_swap(&s_reported, 0, 1) == 0) bbl_oom_notify_macos();
+#else
+    if (__sync_val_compare_and_swap(&s_reported, 0, 1) == 0) bbl_oom_notify_linux();
+#endif
+
+    // Fall through: crash so a dump is still generated.
+    int *a = nullptr;
+    *a     = 0;
+}
+
 #if defined(_MSC_VER) || defined(__MINGW32__)
 extern "C" {
     __declspec(dllexport) int __stdcall bambustu_main(int argc, wchar_t **argv)
@@ -8652,10 +8805,7 @@ extern "C" {
         //AddVectoredExceptionHandler(1, CBaseException::UnhandledExceptionFilter);
         //SET_DEFULTER_HANDLER();
 #endif
-        std::set_new_handler([]() {
-            int *a = nullptr;
-            *a     = 0;
-            });
+        std::set_new_handler(bbl_out_of_memory_handler);
         // Call the UTF8 main.
         return CLI().run(argc, argv_ptrs.data());
     }
@@ -8663,6 +8813,7 @@ extern "C" {
 #else /* _MSC_VER */
 int main(int argc, char **argv)
 {
+    std::set_new_handler(bbl_out_of_memory_handler);
     return CLI().run(argc, argv);
 }
 #endif /* _MSC_VER */

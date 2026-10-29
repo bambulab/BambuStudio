@@ -259,5 +259,20 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/DeviceWebManager.hpp
     GUI/DeviceWeb/ViewModels/FilamentManager/FilamentManagerVM.cpp
     GUI/DeviceWeb/ViewModels/FilamentManager/FilamentManagerVM.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/DevicePageDialogHelpers.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/DevicePageDialogHelpers.h
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModel.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModel.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModelActions.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModelActions.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModelDataBuilder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModelDataBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModelDisplayBuilder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModelDisplayBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModelLayoutBuilder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModelLayoutBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/Schema.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/SchemaData.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/SchemaDisplay.hpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)

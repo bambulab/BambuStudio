@@ -240,7 +240,9 @@ bool ObjectSettings::update_settings_list()
                 return false;
             plate_configs.emplace(ppl.get_plate(plate_id), &cfg);
             parent_object = object;
-            const int vol_idx = objects_model->GetVolumeIdByItem(item);
+            // The object tree hides cut connectors, so GetVolumeIdByItem() returns a UI-local index that
+            // skips them. Translate it back to the real index inside ModelObject::volumes
+            const int vol_idx = objects_model->get_real_volume_index_in_3d(obj_idx, objects_model->GetVolumeIdByItem(item));
             assert(vol_idx >= 0);
             auto volume = object->volumes[vol_idx];
             object_configs.emplace(volume, &volume->config);

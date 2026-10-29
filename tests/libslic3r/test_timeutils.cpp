@@ -94,6 +94,7 @@ TEST_CASE("12_Hour_Time_Format", "[Timeutils]") {
     // Test with 1 hour remaining (3600 seconds)
     std::string finish_time_24h = get_bbl_finish_time_dhm(3600.0f, false);
     std::string finish_time_12h = get_bbl_finish_time_dhm(3600.0f, true);
+    BBLFinishTime structured_finish_time = get_bbl_finish_time(3600.0f, false);
 
     // 24-hour format should have HH:MM format
     REQUIRE(finish_time_24h.find(":") != std::string::npos);
@@ -102,4 +103,6 @@ TEST_CASE("12_Hour_Time_Format", "[Timeutils]") {
 
     // 12-hour format should have either AM or PM
     REQUIRE((finish_time_12h.find("AM") != std::string::npos || finish_time_12h.find("PM") != std::string::npos));
+    REQUIRE(structured_finish_time.time.find(":") != std::string::npos);
+    REQUIRE((structured_finish_time.day_offset == 0 || structured_finish_time.day_offset == 1));
 }

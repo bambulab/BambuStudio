@@ -24,7 +24,6 @@
 		"0x220"
 	],
 	"printable_height": "245",
-	"nozzle_type": "brass",
 	"auxiliary_fan": "0",
 	"machine_max_acceleration_extruding": [
 		"8000",

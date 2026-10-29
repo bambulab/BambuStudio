@@ -21,7 +21,10 @@
         "0.0183"
     ],
     "fan_max_speed": [
-        "40"
+        "55"
+    ],
+    "fan_min_speed": [
+        "25"
     ],
     "filament_cooling_before_tower": [
         "10",
@@ -42,10 +45,10 @@
     "filament_max_volumetric_speed": [
         "18",
         "30",
-        "30",
+        "18",
         "18",
         "20",
-        "20"
+        "18"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -55,8 +58,40 @@
         "0",
         "0"
     ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4",
+        "0.4",
+        "nil",
+        "nil",
+        "nil"
+    ],
     "filament_tower_interface_print_temp": [
         "280"
+    ],
+    "filament_wipe": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift"
     ],
     "hole_coef_2": [
         "0.0009"
@@ -88,6 +123,9 @@
         "270",
         "270",
         "270"
+    ],
+    "overhang_fan_speed": [
+        "75"
     ],
     "retraction_distances_when_ec": [
         "3",

@@ -5,6 +5,7 @@
 #include "wx/dcgraph.h"
 #include "I18N.hpp"
 #include "PartPlate.hpp"
+#include "Plater.hpp"
 #include "FilamentMapDialog.hpp"
 #include "DeviceCore/DevConfigUtil.h"
 

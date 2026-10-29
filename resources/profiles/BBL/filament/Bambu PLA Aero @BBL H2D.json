@@ -16,17 +16,21 @@
     ],
     "filament_cooling_before_tower": [
         "10",
+        "10",
         "10"
     ],
     "filament_flow_ratio": [
+        "0.6",
         "0.6",
         "0.6"
     ],
     "filament_max_volumetric_speed": [
         "6",
+        "6",
         "6"
     ],
     "filament_ramming_travel_time": [
+        "0",
         "0",
         "0"
     ],
@@ -37,13 +41,15 @@
         "4"
     ],
     "include": [
-        "fdm_filament_template_direct_dual"
+        "fdm_filament_template_direct_dual_e3d"
     ],
     "nozzle_temperature": [
+        "220",
         "220",
         "220"
     ],
     "nozzle_temperature_initial_layer": [
+        "220",
         "220",
         "220"
     ],
@@ -51,6 +57,7 @@
         "8"
     ],
     "slow_down_min_speed": [
+        "20",
         "20",
         "20"
     ],

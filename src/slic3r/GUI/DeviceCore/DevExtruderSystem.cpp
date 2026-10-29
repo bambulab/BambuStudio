@@ -215,9 +215,23 @@ namespace Slic3r
         std::vector<DevAmsSlotId> backup_group;
         for (const auto& extruder : m_extders) {
             for (int fila_backup : extruder.GetFilamBackup()) {
+                bool is_in_back_up_group = false;
                 for (auto [tray_id,  is_valid] : DevExtder::GetBackupStatus(fila_backup)) {
-                    if (is_valid && tray_map.find(tray_id) != tray_map.end() && tray_map[tray_id] != ams_slot_id) {
-                        backup_group.emplace_back(tray_map[tray_id]);
+                    if (is_valid && tray_map.find(tray_id) != tray_map.end() && tray_map[tray_id] == ams_slot_id) {
+                        is_in_back_up_group = true;
+                        break;
+                    }
+                }
+
+                if (is_in_back_up_group) {
+                    for (auto [tray_id, is_valid] : DevExtder::GetBackupStatus(fila_backup)) {
+                        if (is_valid && tray_map.find(tray_id) != tray_map.end() && tray_map[tray_id] != ams_slot_id) {
+                            backup_group.emplace_back(tray_map[tray_id]);
+                        }
+                    }
+
+                    if (!backup_group.empty()) {
+                        return backup_group;
                     }
                 }
             }

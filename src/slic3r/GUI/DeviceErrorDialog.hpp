@@ -1,11 +1,13 @@
 #pragma once
 
+#include <string>
 #include <unordered_set>
 #include <wx/statbmp.h>
 #include <wx/webrequest.h>
 
 #include "GUI_Utils.hpp"
 #include "Widgets/StateColor.hpp"
+#include "DeviceCore/DevHMSQuery.h"
 #include <nlohmann/json.hpp>
 
 class Label;
@@ -17,8 +19,16 @@ class MachineObject;//Previous definitions
 
 namespace GUI {
 
+class DeviceErrorDialog;
+
+// Fired (via wxPostEvent) when another dialog enters its modal loop while this
+// error dialog is shown non-modally, asking it to elevate itself to a nested modal.
+wxDECLARE_EVENT(EVT_ELEVATE_ERROR_DIALOG, wxCommandEvent);
+
 class DeviceErrorDialog : public DPIDialog
 {
+    friend class ErrorDialogModalHook;
+
 public:
     enum ActionButton : int {
         RESUME_PRINTING = 2,
@@ -77,6 +87,15 @@ public:
     void     set_action_json(const nlohmann::json &action_json) { m_action_json = action_json; }
 
 protected:
+    /* The machine may be released while this dialog is still alive (logout, token
+     * expiry, device unbound). Never cache the pointer: resolve it on every use and
+     * treat nullptr as "device is gone, skip the command". */
+    MachineObject* get_machine_object() const;
+
+    void apply_result(const HMSResult& r);
+    void apply_loading();
+    void handle_hms_result(const HMSResult& r);
+
     void init_button_list();
     void init_button(ActionButton style, wxString buton_text);
 
@@ -94,11 +113,19 @@ protected:
     void clear_request_timer();
     bool get_fail_snapshot_from_cloud();
     bool get_fail_snapshot_from_local(const wxString& image_url);
+    void show_error_dialog();
+    void elevate_to_modal(wxCommandEvent& event);
 
 private:
-    MachineObject* m_obj;
+    std::string m_dev_id;
 
+    bool m_uiop_sent = false;
     int m_error_code = 0;
+
+    class ErrorDialogModalHook* m_modal_hook{nullptr};
+    bool m_elevate_pending{false};
+
+    HMSSubscription m_hms_sub;
     std::unordered_set<Button*> m_used_button;
 
     wxWebRequest web_request;

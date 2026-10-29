@@ -395,7 +395,11 @@ void Node::removeJunctionOverlap(Polylines &result_lines, const coord_t line_ove
             const Point ab = b - a;
             const auto ab_len = coord_t(ab.cast<double>().norm());
             if (ab_len >= to_be_reduced) {
-                polyline.points.back() = a + (ab.cast<double>() * (double(to_be_reduced) / ab_len)).cast<coord_t>();
+                // ab_len and to_be_reduced are both zero when the last two points coincide and no
+                // overlap has to be removed. Dividing then yields NaN, and casting that back to a
+                // coordinate puts the end point tens of metres off the plate.
+                polyline.points.back() = ab_len > 0 ?
+                    a + (ab.cast<double>() * (double(to_be_reduced) / ab_len)).cast<coord_t>() : a;
                 break;
             } else {
                 to_be_reduced -= ab_len;
