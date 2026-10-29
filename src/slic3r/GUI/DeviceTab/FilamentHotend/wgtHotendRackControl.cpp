@@ -2,7 +2,9 @@
 
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
+#include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/Widgets/Button.hpp"
 #include "slic3r/GUI/Widgets/Label.hpp"
@@ -110,9 +112,9 @@ void wgtHotendRackControl::create_ui()
 
 void wgtHotendRackControl::UpdateByMachine(Slic3r::MachineObject* obj)
 {
-    m_obj = obj;
+    m_devid = obj ? obj->get_dev_id() : std::string();
 
-    auto rack = get_rack(m_obj);
+    auto rack = get_rack(obj);
     const bool show = is_single_rack_supported(rack);
     if (IsShown() != show) {
         Show(show);
@@ -121,8 +123,9 @@ void wgtHotendRackControl::UpdateByMachine(Slic3r::MachineObject* obj)
     update_state();
 }
 
-void wgtHotendRackControl::SetControlEnabled(bool enabled)
+void wgtHotendRackControl::SetControlEnabled(Slic3r::MachineObject* obj, bool enabled)
 {
+    m_devid = obj ? obj->get_dev_id() : std::string();
     m_control_enabled = enabled;
     if (m_label && m_label->GetForegroundColour() != (enabled ? kLabelNormal : kTextDisabled)) {
         m_label->SetForegroundColour(enabled ? kLabelNormal : kTextDisabled);
@@ -141,6 +144,12 @@ void wgtHotendRackControl::Rescale()
         btn->Rescale();
     }
     Layout();
+}
+
+MachineObject* wgtHotendRackControl::get_current_dev() const
+{
+    auto* dev_manager = wxGetApp().getDeviceManager();
+    return dev_manager && !m_devid.empty() ? dev_manager->get_my_machine(m_devid) : nullptr;
 }
 
 void wgtHotendRackControl::update_state()
@@ -171,7 +180,7 @@ void wgtHotendRackControl::update_state()
     bool center_enable = m_control_enabled;
     bool lower_enable  = m_control_enabled;
 
-    auto rack = get_rack(m_obj);
+    auto rack = get_rack(get_current_dev());
     if (rack) {
         if (rack->GetReadingCount() > 0) {
             center_label = _L("Reading");
@@ -202,7 +211,7 @@ void wgtHotendRackControl::update_state()
 
 void wgtHotendRackControl::dispatch_rack_move(RackMoveDir dir)
 {
-    auto rack = get_rack(m_obj);
+    auto rack = get_rack(get_current_dev());
     if (is_single_rack_supported(rack)) {
         DevNozzleRack::DirectRackPos pos = DevNozzleRack::DirectRackPos::RACK_POS_CENTRE;
         if (dir == RackMoveDir::Lift)  pos = DevNozzleRack::DirectRackPos::RACK_POS_UP;

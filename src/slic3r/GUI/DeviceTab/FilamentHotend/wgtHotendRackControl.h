@@ -2,6 +2,8 @@
 
 #include <wx/panel.h>
 
+#include <string>
+
 class Button;
 
 namespace Slic3r {
@@ -17,7 +19,7 @@ public:
     ~wgtHotendRackControl() override = default;
 
     void UpdateByMachine(Slic3r::MachineObject* obj);
-    void SetControlEnabled(bool enabled);
+    void SetControlEnabled(Slic3r::MachineObject* obj, bool enabled);
     void Rescale();
 
 private:
@@ -27,9 +29,11 @@ private:
     void update_state();
     void dispatch_rack_move(RackMoveDir dir);
 
+    Slic3r::MachineObject* get_current_dev() const;
+
 private:
-    Slic3r::MachineObject* m_obj{ nullptr };
-    bool                   m_control_enabled{ true };
+    std::string m_devid;
+    bool        m_control_enabled{ true };
 
     wxStaticText* m_label{ nullptr };
     Button*       m_btn_lift{ nullptr };

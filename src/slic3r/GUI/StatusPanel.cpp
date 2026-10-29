@@ -4379,7 +4379,7 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
         m_extruder_label->SetForegroundColour(TEXT_LIGHT_FONT_COL);
     }
-    if (m_hotend_rack_control) m_hotend_rack_control->SetControlEnabled(ctrl_area);
+    if (m_hotend_rack_control) m_hotend_rack_control->SetControlEnabled(get_current_dev(), ctrl_area);
     if (m_rack_extruder_panel) m_rack_extruder_panel->SetControlEnabled(ctrl_area);
 
     if (!temp_area) {
@@ -4433,7 +4433,7 @@ void StatusPanel::apply_control_area_force_disable()
 #endif
 
         if (m_ams_control) m_ams_control->Enable(false);
-        if (m_hotend_rack_control) m_hotend_rack_control->SetControlEnabled(false);
+        if (m_hotend_rack_control) m_hotend_rack_control->SetControlEnabled(get_current_dev(), false);
         if (m_rack_extruder_panel) m_rack_extruder_panel->SetControlEnabled(false);
         if (m_legacy_extruder_panel) m_legacy_extruder_panel->Enable(false);
     }
