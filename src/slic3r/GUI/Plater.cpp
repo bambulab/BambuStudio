@@ -5547,8 +5547,8 @@ void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
     // / filament_volume_map for single-ext multi-nozzle machines. Placed OUTSIDE the validate_selections
     // gate so every refresh (including non-validating ones that fire after project load / plate ops)
     // gets a chance to normalize any short/stale project vs per-plate map arrays before a save.
-    // No-op if not (is_single_ext_multi_nozzle && multi_nozzle_diameter_mode_enabled).
     // sync 必须在前：apply_nozzle_manual_maps_to_plates() 要按盘的模式决定写不写 map。
+    // 非单挤出机多喷嘴机型上，sync 只把残留的喷嘴手动改回手动。
     sync_custom_map_mode_with_diameter_mode();
     apply_nozzle_manual_maps_to_plates();
     if (validate_selections) {
@@ -12303,6 +12303,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                     *proj_cfg.opt<ConfigOptionStrings>("filament_diameter_map", true) =
                                         *file_selected_nozzle_diameters;
                                 preset_bundle->validate_filament_nozzle_diameter_selections();
+                                // Plates are already loaded. A file saved on a multi-nozzle machine can
+                                // still spell custom grouping as Nozzle Manual; fold that back to Manual
+                                // once the loaded printer cannot host it.
+                                sync_custom_map_mode_with_diameter_mode();
                                 //BBS: rewrite wipe tower pos stored in 3mf file , the code above should be seriously reconsidered
                                  ConfigOptionFloats* wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
                                 ConfigOptionFloats* wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");

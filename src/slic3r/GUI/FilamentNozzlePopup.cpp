@@ -473,15 +473,10 @@ void sync_custom_map_mode_with_diameter_mode()
     Plater       *plater        = wxGetApp().plater();
     if (preset_bundle == nullptr || plater == nullptr) return;
 
-    // 「机型是单挤出机多喷嘴」和「多口径模式开关打开」都满足，才把自定义写成 fmmNozzleManual；
-    // 任意一个不满足就走反方向。注意「换到了别的机型」也算不满足，所以从这类机型换走时，
-    // 盘上残留的 fmmNozzleManual 会被翻译回 fmmManual，不会跟着 3mf 传到不支持它的机型上。
-
-    if (!is_single_ext_multi_nozzle(preset_bundle->full_config()))
-        return;
-
-    const bool multi_diameter = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) &&
-                                is_single_ext_multi_nozzle(preset_bundle->full_config());
+    // Nozzle Manual is only the spelling of custom grouping on a single-extruder multi-nozzle
+    // machine with multi-diameter on. Leaving that machine, or turning the gate off, must spell
+    // it Manual again. The maps are left alone: set_filament_map_mode() would clear them.
+    const bool multi_diameter = is_single_ext_multi_nozzle(preset_bundle->full_config()) && multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
     const FilamentMapMode from = multi_diameter ? fmmManual : fmmNozzleManual;
     const FilamentMapMode to   = multi_diameter ? fmmNozzleManual : fmmManual;
 
