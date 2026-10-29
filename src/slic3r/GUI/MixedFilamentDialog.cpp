@@ -2593,7 +2593,7 @@ wxBoxSizer* MixedFilamentDialog::create_match_header()
 
     // Empty state shown instead of the recipe when no mix can be matched.
     m_match_empty_sizer = new wxBoxSizer(wxVERTICAL);
-    // diff_empty_state has no dark variant; preset_empty(_dark) is the same illustration with both themes.
+    // preset_empty(_dark) provides the illustration for both themes.
     auto* empty_bmp = new wxStaticBitmap(this, wxID_ANY,
         create_scaled_bitmap(wxGetApp().dark_mode() ? "preset_empty_dark" : "preset_empty", this, 90));
     m_match_empty_sizer->Add(empty_bmp, 0, wxALIGN_CENTER_HORIZONTAL);
