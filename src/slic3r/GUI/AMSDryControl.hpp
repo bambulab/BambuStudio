@@ -120,7 +120,7 @@ private:
     wxStaticBitmap* m_image_description_icon{nullptr};
     ScalableBitmap m_description_icon_bitmap;
 
-    // ZMULTI_A overlay: a single panel that paints the device image plus
+    // Multi-zone overlay (e.g. AMS 3H): a single panel that paints the device image plus
     // two temperature/humidity badges and a green dashed connector line.
     // Everything is drawn in OnPaint to avoid native-widget z-order/flicker
     // issues on Windows at fractional DPI scaling.
@@ -129,7 +129,12 @@ private:
     wxPanel* m_zmulti_m2y_pill{nullptr};
     ScalableBitmap m_zmulti_humidity_icon;
     ScalableBitmap m_zmulti_temp_icon;
-    int m_last_visible_zmulti_a = -1; // -1=unset, 0=hidden, 1=shown
+    int m_last_multi_zone_layout = -1; // -1=unset, 0=generic, 1=multi-zone
+
+    // Generic: one image for the whole AMS (humidity level / drying status).
+    // MultiZone: AMS with dryable and non-dryable zones, device image painted with a badge per zone.
+    enum class DryImageLayout { Generic, MultiZone };
+    std::optional<DryImageLayout> m_image_layout;
     int m_last_desc_section_shown = -1; // -1=unset, 0=hidden, 1=shown
     int m_last_time_container_shown = -1; // -1=unset, 0=hidden, 1=shown
     int m_ambient_humidity_percent = -1;
@@ -164,8 +169,23 @@ private:
     Button* m_unload_button{nullptr};
 
     // guide page description
-    Label* m_guide_title_label{nullptr};
     Label* m_guide_description_label{nullptr};
+    Label* m_guide_note_label{nullptr};
+    wxBoxSizer* m_guide_image_sizer{nullptr};
+    wxBoxSizer* m_guide_buttons_sizer{nullptr};
+
+    // Wrappable texts in the guide page's left column; `leading` is an icon/checkbox placed before the text on the same row
+    struct GuideText
+    {
+        Label*    label{nullptr};
+        wxWindow* leading{nullptr};
+        int       gap_dip{0};
+    };
+    std::vector<GuideText> m_guide_texts;
+    wxBoxSizer* m_guide_error_sizer{nullptr};
+    wxStaticBitmap* m_guide_error_icon{nullptr};
+    ScalableBitmap m_guide_error_bmp;
+    Label* m_guide_error_label{nullptr};
 
     wxCheckBox* m_rotate_spool_toggle{nullptr};
     Label* m_rotate_spool_toggle_description{nullptr};
@@ -233,7 +253,9 @@ private:
     wxBoxSizer* create_main_content_section(wxPanel* parent);
     wxBoxSizer* create_guide_info_filament(wxPanel* parent);
     wxBoxSizer* create_guide_info_section(wxPanel* parent);
-    wxBoxSizer* create_guide_right_section(wxPanel* parent);
+    wxBoxSizer* create_guide_error_section(wxPanel* parent);
+    wxBoxSizer* create_guide_image_section(wxPanel* parent);
+    wxBoxSizer* create_guide_buttons_section(wxPanel* parent);
     wxBoxSizer* create_main_page_sizer(wxPanel* parent);
     wxBoxSizer* create_left_panel(wxPanel* parent);
     wxBoxSizer* create_humidity_status_section(wxPanel* parent);
@@ -268,7 +290,10 @@ private:
     void fit_preview_strip_width();
 
     bool check_values_changed(DevAms* dev_ams);
-    int update_image(DevAmsType type, DevAms::DryStatus status, DevAms::DrySubStatus sub_status, int humidity_percent);
+    int update_image(DevAms* dev_ams);
+    int update_generic_image(DevAmsType model, DevAms::DryStatus status, DevAms::DrySubStatus sub_status, int humidity_percent);
+    int update_multi_zone_image(DevAmsType model, DevAms::DryStatus status, DevAms::DrySubStatus sub_status);
+    void resize_image_overlay(const wxSize& size);
     void update_img_description(DevAms::DryStatus status, DevAms::DrySubStatus sub_status);
     void update_normal_description(DevAms* dev_ams);
     int update_state(DevAms* dev_ams);
@@ -276,6 +301,10 @@ private:
     int update_ams_change(DevAms* dev_ams);
     int update_filament_list(DevAms* dev_ams, MachineObject* obj);
     void update_filament_guide_info(DevAms* dev_ams);
+    wxString build_guide_points(int dryable_count, int total_count, const wxString& dryable_slot_names) const;
+    void add_guide_text(Label* label, wxWindow* leading = nullptr, int gap_dip = 0);
+    int  guide_text_width() const;
+    void wrap_guide_texts();
     void update_normal_state(DevAms* dev_ams);
     void update_dry_zone(DevAms* dev_ams);
     void update_printer_state(MachineObject* obj);

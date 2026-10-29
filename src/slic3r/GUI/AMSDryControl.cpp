@@ -28,7 +28,7 @@
 namespace Slic3r { namespace GUI {
 
 const int AMS_DRY_STATUS_IMAGE_SIZE = 96;
-const int AMS_DRY_STATUS_IMAGE_SIZE_ZMULTI = 200;
+const int AMS_DRY_STATUS_IMAGE_SIZE_MULTI_ZONE = 200;
 
 // The dryable zone this dialog controls; only one per AMS for now.
 // nullopt: AMS without zone info, the whole AMS is dried.
@@ -68,41 +68,56 @@ static std::string get_humidity_level_img_path(int humidity_percent)
 
 }
 
+// AMS with both dryable and non-dryable zones (e.g. AMS 3H): the whole device is shown with a badge per zone
+static bool is_multi_zone_ams(const DevAms* dev_ams)
+{
+    if (!dev_ams) return false;
+    const auto zones = dev_ams->GetZones();
+    return !zones.empty() && dev_ams->GetDryableZoneIds().size() < zones.size();
+}
+
+// Image names follow dev_ams_dry_ctr_<model>_<state>
+static std::string get_dry_img_prefix(DevAmsType type)
+{
+    switch (type) {
+        case DevAmsType::N3S:      return "dev_ams_dry_ctr_n3s_";
+        case DevAmsType::N3F:      return "dev_ams_dry_ctr_n3f_";
+        case DevAmsType::ZMULTI_A: return "dev_ams_dry_ctr_zmulti_a_";
+        default:                   return "";
+    }
+}
+
+// Active drying states, shared by all layouts; empty when the state has no image
 static std::string get_dry_status_img_path(DevAmsType type, DevAms::DryStatus status, DevAms::DrySubStatus sub_status)
 {
-    std::string img_name = "dev_ams_dry_ctr_";
-    switch (type) {
-        case DevAmsType::N3S:
-            img_name += "n3s";
-            break;
-        case DevAmsType::N3F:
-            img_name += "n3f";
-            break;
-        case DevAmsType::ZMULTI_A:
-            // ZMULTI_A uses a single "heating" image for all active states
-            // (the dryable area border turns red)
-            return "dev_ams_dry_ctr_zmulti_a_heating";
-        default:
-            return "";
-    }
+    const std::string prefix = get_dry_img_prefix(type);
+    if (prefix.empty()) return "";
 
-    img_name += "_";
-    switch (status) {
-        case DevAms::DryStatus::Error:
-            img_name += "error";
-            return img_name;
-    }
-
-    switch (sub_status) {
-        case DevAms::DrySubStatus::Heating:
-            img_name += "heating";
-            return img_name;
-        case DevAms::DrySubStatus::Dehumidify:
-            img_name += "dehumidifying";
-            return img_name;
-    }
-
+    if (status == DevAms::DryStatus::Error) return prefix + "error";
+    if (sub_status == DevAms::DrySubStatus::Heating) return prefix + "heating";
+    if (sub_status == DevAms::DrySubStatus::Dehumidify) return prefix + "dehumidifying";
     return "";
+}
+
+// Generic layout: humidity level while idle, status image while drying
+static std::string get_generic_img_path(DevAmsType type, DevAms::DryStatus status, DevAms::DrySubStatus sub_status, int humidity_percent)
+{
+    if (status == DevAms::DryStatus::Off && sub_status == DevAms::DrySubStatus::Off) {
+        return get_humidity_level_img_path(humidity_percent);
+    }
+    return get_dry_status_img_path(type, status, sub_status);
+}
+
+// Multi-zone layout: a device image for every state, so the image never goes blank
+static std::string get_multi_zone_img_path(DevAmsType type, DevAms::DryStatus status, DevAms::DrySubStatus sub_status)
+{
+    const std::string prefix = get_dry_img_prefix(type);
+    if (prefix.empty()) return "";
+
+    if (status == DevAms::DryStatus::Off) return prefix + "idle";
+    if (status == DevAms::DryStatus::Cooling) return prefix + "cooling";
+    const std::string active = get_dry_status_img_path(type, status, sub_status);
+    return active.empty() ? prefix + "heating" : active;
 }
 
 static std::string get_drying_filament_type_for_command(const FilamentBaseInfo& filament)
@@ -426,13 +441,11 @@ struct ZMultiBadgeStyle {
     int      pad_v_dip; // vertical padding (each side)
 };
 
-constexpr double kFigmaImageW = 200.0;
 constexpr double kFigmaImageH = 180.0;
-// Figma badge anchor positions (top-left), in figma image-local coords.
-constexpr int kFigmaDryableX = 91;
+// Figma badge anchor Y positions, in figma image-local coords.
+// Both badges are horizontally centred on the image instead of using an X anchor.
 constexpr int kFigmaDryableY = 0;
-constexpr int kFigmaNormalX  = 40;
-constexpr int kFigmaNormalY  = 116;
+constexpr int kFigmaNormalY  = 130;
 
 } // namespace
 
@@ -456,8 +469,7 @@ void AMSDryCtrWin::on_overlay_paint(wxPaintEvent&)
     bdc.SetBackground(wxBrush(m_zmulti_image_overlay->GetBackgroundColour()));
     bdc.Clear();
 
-    bool is_zmulti = (m_ams_info.m_model == DevAmsType::ZMULTI_A);
-    if (!is_zmulti || !m_humidity_image.bmp().IsOk()) {
+    if (m_image_layout != DryImageLayout::MultiZone || !m_humidity_image.bmp().IsOk()) {
         return;
     }
 
@@ -581,15 +593,14 @@ void AMSDryCtrWin::on_overlay_paint(wxPaintEvent&)
     wxSize sz_normal = measure_badge(style_normal, normal_hum_text, normal_temp_text);
     wxSize sz_dryable = measure_badge(style_dryable, dryable_hum_text, dryable_temp_text);
 
-    double sx = bmp_sz.GetWidth() / kFigmaImageW;
     double sy = bmp_sz.GetHeight() / kFigmaImageH;
 
     // Place the dryable badge so its centre line sits at figma y=0 (i.e. on
     // the upper edge of the device image). Half of it spills into the reserved
     // top strip we added in compute_zmulti_overlay_size().
-    double dryable_x = bmp_x + kFigmaDryableX * sx;
+    double dryable_x = bmp_x + (bmp_sz.GetWidth() - sz_dryable.GetWidth()) / 2.0;
     double dryable_y = bmp_y + kFigmaDryableY * sy - sz_dryable.GetHeight() / 2.0;
-    double normal_x  = bmp_x + kFigmaNormalX * sx;
+    double normal_x  = bmp_x + (bmp_sz.GetWidth() - sz_normal.GetWidth()) / 2.0;
     double normal_y  = bmp_y + kFigmaNormalY * sy;
 
     draw_badge(normal_x, normal_y, style_normal, sz_normal, normal_hum_text, normal_temp_text);
@@ -1028,25 +1039,25 @@ wxBoxSizer* AMSDryCtrWin::create_guide_info_section(wxPanel* parent)
 {
     wxBoxSizer* info_section = new wxBoxSizer(wxVERTICAL);
 
-    // Part 1: Title
-    m_guide_title_label = new Label(parent, _L("Please remove and store the filament (as shown)."));
-    m_guide_title_label->SetForegroundColour(*wxBLACK);
-    m_guide_title_label->SetFont(Label::Head_18);
-    m_guide_title_label->Wrap(FromDIP(300)); // Wrap text to fit within panel
-    info_section->Add(m_guide_title_label, 0, wxEXPAND | wxALL, FromDIP(5));
-
-    // Part 2: Description
-    m_guide_description_label = new Label(parent, _L("The AMS can rotate the filament which is properly stored, providing better drying results."));
+    // Part 1: Points (no title, so the first line starts level with the image's top)
+    m_guide_description_label = new Label(parent, "");
     m_guide_description_label->SetForegroundColour(*wxBLACK);
     m_guide_description_label->SetFont(Label::Body_14);
-    m_guide_description_label->Wrap(FromDIP(300)); // Wrap text to fit within panel
+    add_guide_text(m_guide_description_label);
     info_section->Add(m_guide_description_label, 0, wxEXPAND | wxALL, FromDIP(5));
 
-    // Part 3: filament panel
+    // Part 2: filament panel
     wxBoxSizer* fila_section = create_guide_info_filament(parent);
     info_section->Add(fila_section, 0, wxEXPAND | wxALL, FromDIP(5));
 
-    // Part 4: Circular toggle with description
+    m_guide_note_label = new Label(parent, "*" + _L("Unknown filaments will be treated as PLA."));
+    m_guide_note_label->SetForegroundColour(wxColour("#6B6B6B"));
+    m_guide_note_label->SetFont(Label::Body_12);
+    add_guide_text(m_guide_note_label);
+    m_guide_note_label->Hide();
+    info_section->Add(m_guide_note_label, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(5));
+
+    // Part 3: Circular toggle with description
     wxBoxSizer* toggle_section = new wxBoxSizer(wxHORIZONTAL);
 
     m_rotate_spool_toggle = new wxCheckBox(parent, wxID_ANY, "");
@@ -1060,31 +1071,52 @@ wxBoxSizer* AMSDryCtrWin::create_guide_info_section(wxPanel* parent)
     toggle_section->Add(m_rotate_spool_toggle, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
 
     // Toggle description
-    m_rotate_spool_toggle_description = new Label(parent, _L("Rotate spool when drying"), LB_AUTO_WRAP);
+    m_rotate_spool_toggle_description = new Label(parent, _L("Rotate spool when drying"));
     m_rotate_spool_toggle_description->SetForegroundColour(*wxBLACK);
     m_rotate_spool_toggle_description->SetFont(Label::Body_12);
-    toggle_section->Add(m_rotate_spool_toggle_description, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, 0);
+    add_guide_text(m_rotate_spool_toggle_description, m_rotate_spool_toggle, 10);
+
+    const wxString rotate_tip = _L("After turning on, the AMS automatically rotates slots where filament ends are stowed on the spool, for better drying");
+    m_rotate_spool_toggle->SetToolTip(rotate_tip);
+    m_rotate_spool_toggle_description->SetToolTip(rotate_tip);
+    toggle_section->Add(m_rotate_spool_toggle_description, 1, wxALIGN_CENTER_VERTICAL, 0);
 
     info_section->Add(toggle_section, 0, wxEXPAND | wxALL, FromDIP(5));
 
     return info_section;
 }
 
-wxBoxSizer* AMSDryCtrWin::create_guide_right_section(wxPanel* parent)
+wxBoxSizer* AMSDryCtrWin::create_guide_error_section(wxPanel* parent)
 {
-    wxBoxSizer* right_section = new wxBoxSizer(wxVERTICAL);
+    // Error icon + ThemeColor::Danger text
+    m_guide_error_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_guide_error_bmp = ScalableBitmap(parent, "error", 16);
+    m_guide_error_icon = new wxStaticBitmap(parent, wxID_ANY, m_guide_error_bmp.bmp());
+    m_guide_error_sizer->Add(m_guide_error_icon, 0, wxTOP, FromDIP(2));
+    m_guide_error_label = new Label(parent, "");
+    m_guide_error_label->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::Danger));
+    m_guide_error_label->SetFont(Label::Body_14);
+    add_guide_text(m_guide_error_label, m_guide_error_icon, 4);
+    m_guide_error_sizer->Add(m_guide_error_label, 1, wxLEFT, FromDIP(4));
+    m_guide_error_sizer->ShowItems(false);
 
-    // Upper part: Image section
+    return m_guide_error_sizer;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_guide_image_section(wxPanel* parent)
+{
     m_image_placeholder = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap);
     m_guide_image = ScalableBitmap(parent, "dev_ams_dry_ctr_filament_in_chamber", 256);
     m_image_placeholder->SetBitmap(m_guide_image.bmp());
 
-    wxBoxSizer* image_container = new wxBoxSizer(wxHORIZONTAL);
-    image_container->AddStretchSpacer(1);
-    image_container->Add(m_image_placeholder, 0, wxALL, FromDIP(5));
+    m_guide_image_sizer = new wxBoxSizer(wxVERTICAL);
+    m_guide_image_sizer->Add(m_image_placeholder, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
 
-    right_section->Add(image_container, 0, wxEXPAND | wxALL, FromDIP(5));
+    return m_guide_image_sizer;
+}
 
+wxBoxSizer* AMSDryCtrWin::create_guide_buttons_section(wxPanel* parent)
+{
     wxBoxSizer* buttons_container = new wxBoxSizer(wxHORIZONTAL);
     buttons_container->AddStretchSpacer(1);
 
@@ -1121,22 +1153,55 @@ wxBoxSizer* AMSDryCtrWin::create_guide_right_section(wxPanel* parent)
 
     buttons_container->Add(m_start_button, 0, wxALL, FromDIP(5));
 
-    right_section->Add(buttons_container, 0, wxEXPAND | wxALL, FromDIP(5));
-
-    return right_section;
+    m_guide_buttons_sizer = buttons_container;
+    return buttons_container;
 }
 
 wxBoxSizer* AMSDryCtrWin::create_guide_page_sizer(wxPanel* parent)
 {
-    wxBoxSizer* guide_sizer = new wxBoxSizer(wxHORIZONTAL);
+    // 2x2 grid: info | image
+    //           error | buttons
+    // Only the left column and the top row stretch, so the error row stays level with the buttons.
+    wxFlexGridSizer* grid = new wxFlexGridSizer(2, 2, 0, 0);
+    grid->AddGrowableCol(0, 1);
+    grid->AddGrowableRow(0, 1);
 
-    wxBoxSizer* info_section = create_guide_info_section(parent);
-    guide_sizer->Add(info_section, 1, wxEXPAND | wxALL, FromDIP(10));
+    grid->Add(create_guide_info_section(parent), 1, wxEXPAND | wxALL, FromDIP(10));
+    grid->Add(create_guide_image_section(parent), 0, wxALIGN_RIGHT | wxALL, FromDIP(10));
+    // 15dp horizontally so the error text lines up with the info labels (10dp cell + 5dp label border)
+    grid->Add(create_guide_error_section(parent), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(15));
+    grid->Add(create_guide_buttons_section(parent), 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(10));
 
-    wxBoxSizer* right_section = create_guide_right_section(parent);
-    guide_sizer->Add(right_section, 0, wxEXPAND | wxALL, FromDIP(10));
-
+    // Lift the bottom row off the page's bottom edge
+    wxBoxSizer* guide_sizer = new wxBoxSizer(wxVERTICAL);
+    guide_sizer->Add(grid, 1, wxEXPAND | wxBOTTOM, FromDIP(30));
     return guide_sizer;
+}
+
+void AMSDryCtrWin::add_guide_text(Label* label, wxWindow* leading, int gap_dip)
+{
+    m_guide_texts.push_back({label, leading, gap_dip});
+}
+
+int AMSDryCtrWin::guide_text_width() const
+{
+    // Right column = the wider of the image and buttons cells.
+    // 20dp = book border, 40dp = both columns' 10dp cell borders, 10dp = the labels' 5dp side borders.
+    const int right_w = std::max(m_guide_image_sizer->CalcMin().GetWidth(), m_guide_buttons_sizer->CalcMin().GetWidth());
+    const int width = GetClientSize().GetWidth() - FromDIP(20) - right_w - FromDIP(40) - FromDIP(10);
+    return width < FromDIP(100) ? FromDIP(300) : width;
+}
+
+void AMSDryCtrWin::wrap_guide_texts()
+{
+    const int width = guide_text_width();
+    for (const GuideText& text : m_guide_texts) {
+        int text_width = width;
+        if (text.leading) {
+            text_width -= text.leading->GetBestSize().GetWidth() + FromDIP(text.gap_dip);
+        }
+        text.label->Wrap(text_width);
+    }
 }
 
 void AMSDryCtrWin::start_sending_drying_command()
@@ -1414,6 +1479,7 @@ void AMSDryCtrWin::create()
     wxBoxSizer* guide_sizer = create_guide_page_sizer(m_guide_page);
     m_guide_page->SetSizer(guide_sizer);
     m_main_simplebook->AddPage(m_guide_page, "Guide Page");
+    wrap_guide_texts();
 
     // Create progress page
     m_progress_page = new wxPanel(m_main_simplebook, wxID_ANY);
@@ -1458,6 +1524,7 @@ void AMSDryCtrWin::msw_rescale()
     if (m_time_box) {m_time_box->Rescale();}
     if (m_humidity_img && m_humidity_image.bmp().IsOk()) {m_humidity_image.msw_rescale(); m_humidity_img->SetBitmap(m_humidity_image.bmp());}
     if (m_image_placeholder && m_guide_image.bmp().IsOk()) {m_guide_image.msw_rescale();m_image_placeholder->SetBitmap(m_guide_image.bmp());}
+    if (m_guide_error_icon) {m_guide_error_bmp.msw_rescale();m_guide_error_icon->SetBitmap(m_guide_error_bmp.bmp());}
     if (m_image_description_icon && m_description_icon_bitmap.bmp().IsOk()) {m_description_icon_bitmap.msw_rescale(); m_image_description_icon->SetBitmap(m_description_icon_bitmap.bmp());}
 
     // Rescale and update button sizes based on text content
@@ -1496,7 +1563,7 @@ void AMSDryCtrWin::msw_rescale()
         if (prv) { prv->msw_rescale(); }
     }
 
-    if (m_guide_page) {m_guide_page->Layout();}
+    if (m_guide_page) {wrap_guide_texts(); m_guide_page->Layout();}
     if (m_original_page) {m_original_page->Layout();}
 
     Fit();
@@ -1641,60 +1708,69 @@ void AMSDryCtrWin::update_img_description(DevAms::DryStatus status, DevAms::DryS
     }
 }
 
-int AMSDryCtrWin::update_image(DevAmsType model, DevAms::DryStatus status, DevAms::DrySubStatus sub_status, int humidity_percent)
+int AMSDryCtrWin::update_image(DevAms* dev_ams)
 {
-    if (model == m_ams_info.m_model && status == m_ams_info.m_dry_status
-        && sub_status == m_ams_info.m_dry_sub_status && humidity_percent == m_ams_info.m_humidity_percent) {
+    const DryView dry = get_dry_view(dev_ams);
+    const DevAmsType model = dev_ams->GetAmsType();
+    const DevAms::DryStatus status = dry.dry_status.value_or(DevAms::DryStatus::Off);
+    const DevAms::DrySubStatus sub_status = dry.dry_sub_status.value_or(DevAms::DrySubStatus::Off);
+    const DryImageLayout layout = is_multi_zone_ams(dev_ams) ? DryImageLayout::MultiZone : DryImageLayout::Generic;
+
+    if (layout == m_image_layout && model == m_ams_info.m_model && status == m_ams_info.m_dry_status
+        && sub_status == m_ams_info.m_dry_sub_status && dry.humidity_percent == m_ams_info.m_humidity_percent) {
         return 0;
     }
+    m_image_layout = layout;
 
-    std::string img_path;
+    return (layout == DryImageLayout::MultiZone) ? update_multi_zone_image(model, status, sub_status)
+                                                 : update_generic_image(model, status, sub_status, dry.humidity_percent);
+}
 
-    bool is_idle = (status == DevAms::DryStatus::Off || status == DevAms::DryStatus::Cooling);
-    if (model == DevAmsType::ZMULTI_A) {
-        img_path = is_idle ? "dev_ams_dry_ctr_zmulti_a_idle" : "dev_ams_dry_ctr_zmulti_a_heating";
-    } else if (status == DevAms::DryStatus::Off && sub_status == DevAms::DrySubStatus::Off) {
-        img_path = get_humidity_level_img_path(humidity_percent);
-    } else {
-        img_path = get_dry_status_img_path(model, status, sub_status);
-    }
+int AMSDryCtrWin::update_generic_image(DevAmsType model, DevAms::DryStatus status, DevAms::DrySubStatus sub_status, int humidity_percent)
+{
+    // Description/icon follow the status even when there is no image for it
+    update_img_description(status, sub_status);
 
+    const std::string img_path = get_generic_img_path(model, status, sub_status, humidity_percent);
     if (img_path.empty()) {
         return 0;
     }
 
-    int img_size = (model == DevAmsType::ZMULTI_A) ? AMS_DRY_STATUS_IMAGE_SIZE_ZMULTI : AMS_DRY_STATUS_IMAGE_SIZE;
-    m_humidity_image = ScalableBitmap(this, img_path, img_size);
-
-    if (model == DevAmsType::ZMULTI_A) {
-        m_humidity_img->Show(false);
-        wxSize overlay_sz = compute_zmulti_overlay_size();
-        if (m_zmulti_image_overlay->GetMinSize() != overlay_sz) {
-            m_zmulti_image_overlay->SetMinSize(overlay_sz);
-            m_zmulti_image_overlay->SetSize(overlay_sz);
-            if (m_original_page) m_original_page->Layout();
-        }
-        m_zmulti_image_overlay->Refresh();
-    } else {
-        m_humidity_img->Show(true);
-        m_humidity_img->SetBitmap(m_humidity_image.bmp());
-        m_humidity_img->SetMinSize(m_humidity_image.bmp().GetSize());
-        m_humidity_img->SetSize(m_humidity_image.bmp().GetSize());
-        wxSize bmp_sz = m_humidity_image.bmp().GetSize();
-        if (m_zmulti_image_overlay->GetMinSize() != bmp_sz) {
-            m_zmulti_image_overlay->SetMinSize(bmp_sz);
-            m_zmulti_image_overlay->SetSize(bmp_sz);
-            if (m_original_page) m_original_page->Layout();
-        }
-    }
-
-    if (model == DevAmsType::ZMULTI_A) {
-        m_image_description_icon->Show(false);
-    } else {
-        update_img_description(status, sub_status);
-    }
-
+    m_humidity_image = ScalableBitmap(this, img_path, AMS_DRY_STATUS_IMAGE_SIZE);
+    const wxSize bmp_sz = m_humidity_image.bmp().GetSize();
+    m_humidity_img->Show(true);
+    m_humidity_img->SetBitmap(m_humidity_image.bmp());
+    m_humidity_img->SetMinSize(bmp_sz);
+    m_humidity_img->SetSize(bmp_sz);
+    resize_image_overlay(bmp_sz);
     return 1;
+}
+
+int AMSDryCtrWin::update_multi_zone_image(DevAmsType model, DevAms::DryStatus status, DevAms::DrySubStatus sub_status)
+{
+    // The zone badges carry the status, so no description icon
+    m_image_description_icon->Show(false);
+
+    const std::string img_path = get_multi_zone_img_path(model, status, sub_status);
+    if (img_path.empty()) {
+        return 0;
+    }
+
+    m_humidity_image = ScalableBitmap(this, img_path, AMS_DRY_STATUS_IMAGE_SIZE_MULTI_ZONE);
+    m_humidity_img->Show(false); // the overlay paints the bitmap itself, together with the badges
+    resize_image_overlay(compute_zmulti_overlay_size());
+    m_zmulti_image_overlay->Refresh();
+    return 1;
+}
+
+void AMSDryCtrWin::resize_image_overlay(const wxSize& size)
+{
+    if (m_zmulti_image_overlay->GetMinSize() == size) {
+        return;
+    }
+    m_zmulti_image_overlay->SetMinSize(size);
+    m_zmulti_image_overlay->SetSize(size);
+    if (m_original_page) m_original_page->Layout();
 }
 
 bool AMSDryCtrWin::check_values_changed(DevAms* dev_ams)
@@ -2021,11 +2097,11 @@ int AMSDryCtrWin::update_dryness_status(DevAms* dev_ams)
         updated += 1;
     }
 
-    const bool is_zmulti_a = (dev_ams->GetAmsType() == DevAmsType::ZMULTI_A);
+    const bool is_multi_zone = (m_image_layout == DryImageLayout::MultiZone);
     const bool idle = is_dry_ctr_idle(dev_ams);
     bool need_layout = false;
 
-    const bool show_desc_section = !is_zmulti_a || !idle;
+    const bool show_desc_section = !is_multi_zone || !idle;
     if (m_descriptions_section_sizer && m_last_desc_section_shown != (show_desc_section ? 1 : 0)) {
         m_last_desc_section_shown = show_desc_section ? 1 : 0;
         m_descriptions_section_sizer->ShowItems(show_desc_section);
@@ -2054,16 +2130,16 @@ int AMSDryCtrWin::update_dryness_status(DevAms* dev_ams)
         }
     }
 
-    int visible_now = is_zmulti_a ? 1 : 0;
-    if (m_last_visible_zmulti_a != visible_now) {
-        m_last_visible_zmulti_a = visible_now;
-        if (m_image_desc_sizer) m_image_desc_sizer->ShowItems(!is_zmulti_a);
-        if (m_zmulti_m2y_pill) m_zmulti_m2y_pill->Show(is_zmulti_a);
+    int visible_now = is_multi_zone ? 1 : 0;
+    if (m_last_multi_zone_layout != visible_now) {
+        m_last_multi_zone_layout = visible_now;
+        if (m_image_description) m_image_description->Show(!is_multi_zone);
+        if (m_zmulti_m2y_pill) m_zmulti_m2y_pill->Show(is_multi_zone);
         need_layout = true;
     }
     if (need_layout && m_original_page) m_original_page->Layout();
 
-    if (is_zmulti_a && updated > 0 && m_zmulti_image_overlay) {
+    if (is_multi_zone && updated > 0 && m_zmulti_image_overlay) {
         m_zmulti_image_overlay->Refresh();
     }
 
@@ -2096,7 +2172,9 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
                       m_temperature_input->GetValue().ToLong(&input_temp);
     bool can_start = true;
 
-    int slot_count = 0, empty_count = 0;
+    int slot_count = 0, empty_count = 0, total_count = 0;
+    bool has_unknown = false;
+    wxString dryable_slot_names;
     for (auto& tray_pair : dev_ams->GetTrays()) {
         if (!tray_pair.second) {
             continue;
@@ -2104,9 +2182,12 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
 
         int slot_id = 0;
         try { slot_id = std::stoi(tray_pair.first); } catch (...) { continue; }
+        ++total_count;
         if (!dev_ams->IsDryableSlot(slot_id)) continue;
 
         ++slot_count;
+        if (!dryable_slot_names.IsEmpty()) dryable_slot_names += ", ";
+        dryable_slot_names += wxString::Format("%d", slot_id + 1);
         if (!tray_pair.second->is_exists) {
             m_ams_filament_panel->AddFilamentItem("/", "dev_ams_dry_ctr_enable");
             ++empty_count;
@@ -2119,6 +2200,7 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
             auto fallback_preset = DevUtilBackend::GetFilamentDryingPreset("GFA00");
             preset = fallback_preset.value();
             filament_type = "?";
+            has_unknown = true;
         } else if (preset_opt.has_value()) {
             preset = preset_opt.value();
         } else {
@@ -2137,30 +2219,43 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
         can_start = false;
     }
 
-    if (can_start) {
-        if (m_can_auto_retract) {
-            m_guide_title_label->SetLabel(_L("For better drying results, remove the filament and allow it to rotate."));
-            m_guide_description_label->SetLabel(_L("The AMS will automatically rotate the stored filament slots to enhance the drying performance.") +
-                "\n" + _L("Alternatively, you can dry the filament without removing it.") +
-                "\n" + "*" + _L("Unknown filaments will be treated as PLA."));
-        } else {
-            m_guide_title_label->SetLabel(_L("For better drying results, remove the filament."));
-            m_guide_description_label->SetLabel(_L("Alternatively, you can dry the filament without removing it.") +
-                "\n" + "*" + _L("Unknown filaments will be treated as PLA."));
-        }
-        m_guide_title_label->Wrap(FromDIP(300));
-        m_guide_description_label->Wrap(FromDIP(300));
-    } else {
-        m_guide_title_label->SetLabel(_L("Please store the filament marked with an exclamation mark."));
-        m_guide_description_label->SetLabel(_L("Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU.") +
-            "\n" + "*" + _L("Unknown filaments will be treated as PLA."));
-        m_guide_title_label->Wrap(FromDIP(300));
-        m_guide_description_label->Wrap(FromDIP(300));
+    const wxString description = build_guide_points(slot_count, total_count, dryable_slot_names);
+
+    wxString error;
+    if (!can_start) {
+        error = _L("The current drying temperature is higher than the softening temperature of some filaments. Filament ends left in the inlet may soften and clog it. Pull out the filaments marked with an exclamation mark before drying.");
     }
+    m_guide_error_label->SetLabel(error);
+    m_guide_error_sizer->ShowItems(!error.IsEmpty());
+    m_guide_description_label->SetLabel(description);
+    m_guide_description_label->Show(!description.IsEmpty());
+    m_guide_note_label->Show(has_unknown);
+
+    wrap_guide_texts();
 
     m_start_button->Enable(can_start);
     m_guide_page->Layout();
     m_guide_page->Thaw();
+}
+
+wxString AMSDryCtrWin::build_guide_points(int dryable_count, int total_count, const wxString& dryable_slot_names) const
+{
+    std::vector<wxString> points;
+    // Rack AMS only dries part of its slots; say which ones so the panel isn't mistaken for the whole AMS.
+    if (dryable_count > 0 && dryable_count < total_count) {
+        points.push_back(_L("Slots that currently support drying:") + " " + dryable_slot_names);
+    }
+    points.push_back(_L("It is recommended to pull the filament end out of the inlet before drying to prevent it from softening due to high temperature."));
+    if (m_can_auto_retract) {
+        points.push_back(_L("For better drying results, pull the filament end out of the inlet and allow it to rotate."));
+    }
+
+    wxString text;
+    for (size_t i = 0; i < points.size(); ++i) {
+        if (i > 0) text += "\n";
+        text += (points.size() > 1) ? wxString(L"• ") + points[i] : points[i];
+    }
+    return text;
 }
 
 int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
@@ -2434,13 +2529,7 @@ void AMSDryCtrWin::update(std::shared_ptr<DevFilaSystem> fila_system, MachineObj
 
     update_ams_change(dev_ams);
 
-    {
-        DryView dry = get_dry_view(dev_ams);
-        update_image(dev_ams->GetAmsType(),
-            dry.dry_status.has_value()? dry.dry_status.value(): DevAms::DryStatus::Off,
-            dry.dry_sub_status.has_value()? dry.dry_sub_status.value(): DevAms::DrySubStatus::Off,
-            dry.humidity_percent);
-    }
+    update_image(dev_ams);
 
     update_state(dev_ams);
     update_dryness_status(dev_ams);
