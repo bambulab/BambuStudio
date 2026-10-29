@@ -538,15 +538,15 @@ static void init_multi_extruder_params_for_cali(DynamicPrintConfig& config, cons
     const auto& max_nozzle_counts = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count", true)->values;
     const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(config);
 
-    if (obj->GetNozzleSystem()->GetNozzleRack()->IsSupported() || single_ext_multi_nozzle) {
-        int nozzle_map = get_filament_nozzle_map_value(obj, calib_info.nozzle_pos_id);
-        if (single_ext_multi_nozzle && calib_info.nozzle_pos_id >= 0x10 && (nozzle_map < 0 || nozzle_map >= max_nozzle_counts.front()))
-            nozzle_map = calib_info.nozzle_pos_id - 0x10;
-        const std::vector<int> nozzle_maps = {nozzle_map};
+    int nozzle_map = get_filament_nozzle_map_value(obj, calib_info.nozzle_pos_id);
+    if (single_ext_multi_nozzle && calib_info.nozzle_pos_id >= 0x10 && (nozzle_map < 0 || nozzle_map >= max_nozzle_counts.front()))
+        nozzle_map = calib_info.nozzle_pos_id - 0x10;
+    const std::vector<int> nozzle_maps = {nozzle_map};
+    sync_calib_per_slot_nozzle_options(config, {calib_info}, {extruder_id}, nozzle_maps);
 
+    if (obj->GetNozzleSystem()->GetNozzleRack()->IsSupported() || single_ext_multi_nozzle) {
         config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmNozzleManual;
         config.option<ConfigOptionInts>("filament_nozzle_map", true)->values = nozzle_maps;
-        sync_calib_per_slot_nozzle_options(config, {calib_info}, {extruder_id}, nozzle_maps);
 
         ExtruderNozzleStat nozzle_stat;
         nozzle_stat.set_extruder_nozzle_count(extruder_id - 1, calib_info.nozzle_volume_type, 1, false);
