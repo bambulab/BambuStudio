@@ -165,7 +165,7 @@ export function SpoolTable({
 
   // STUDIO-17977: per-fila_id candidate cache lives in the global store; the
   // row tail reads it to surface official colour name + BBL fila code for
-  // each spool, including legacy spools whose own `color_name` field is
+  // matching Bambu-family spools, including those whose `color_name` field is
   // empty. The cache is primed on first dialog open by AddEditDialog and on
   // a best-effort prefetch from useFilamentManagerBridge after the spool list
   // loads, so the data is usually warm by the time the table renders.

@@ -810,6 +810,8 @@ nlohmann::json FilamentManagerVM::build_spool_list()
 
     for (auto& sp_json : spools) {
         if (!sp_json.is_object()) continue;
+        wxString brand = wxString::FromUTF8(sp_json.value("brand", std::string()));
+        if (brand.Trim(true).Trim(false).CmpNoCase("Bambu Lab") != 0) continue;
         if (!sp_json.value("color_name", std::string()).empty()) continue;
 
         const std::string setting_id = sp_json.value("setting_id", std::string());
@@ -1011,7 +1013,7 @@ nlohmann::json FilamentManagerVM::build_ams_data()
                             int color_type  = from_ams_color_type(tray->ctype, colors.size());
                             t["color_type"] = color_type;
 
-                            if (!tray->setting_id.empty() && !colors.empty()) {
+                            if (tray->is_bbl && !tray->setting_id.empty() && !colors.empty()) {
                                 if (auto* clr_query = wxGetApp().get_filament_color_code_query()) {
                                     std::vector<wxString> hex_colors;
                                     for (const auto& c : colors) {

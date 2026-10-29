@@ -1,27 +1,35 @@
-// STUDIO-17977: candidate-colour identification + reverse-lookup primitives
-// shared by the list row tail (`SpoolTable.resolveCandidateForSpool`) and
-// the add/edit dialog candidate-selection highlight
-// (`AddEditDialog.isCandidateSelected`).
-//
-// Background:
-//   - `AddEditDialog::effectiveCandidates` merges three layers into the
-//     visible candidate panel:
-//       (1) official BBL candidates from FilamentColorCodeQuery,
-//       (2) aggregated material-level fallbacks (still official),
-//       (3) user-owned candidates synthesised from existing spools, where
-//           `color_code` is set to the spool hex itself and `name` is
-//           usually empty.
-//   - Reverse lookup must prefer the official layer, otherwise a user-owned
-//     spool eats its own self-synthesised candidate and the list row keeps
-//     showing an empty colour name even though the official catalogue
-//     would yield e.g. "柠檬黄 / 11400".
-//
-// The four-stage fallback (own→cross-fila→user-owned) used to live inline
-// in SpoolTable; centralised here so future surfaces (DetailDialog,
-// AddEditDialog, AMS slot tooltips) can reuse the same chain.
+// Color identity must match the filament family and preserve transparency.
 
 import type { Spool, CandidateColor } from '../types';
-import { canonicalizeHex, canonicalizeHexList, hexEqual, hexMultisetKey } from './hex';
+// Keep identity comparison separate from six-digit display formatting.
+export function colorIdentityKey(value: string | undefined | null): string {
+  const raw = (value ?? '').trim().replace(/^#/, '').toUpperCase();
+  if (/^[0-9A-F]{6}$/.test(raw)) return raw + 'FF';
+  return /^[0-9A-F]{8}$/.test(raw) ? raw : '';
+}
+
+function identityList(values: readonly string[] | undefined): string[] {
+  if (!values) return [];
+  const keys = values.map(colorIdentityKey);
+  return keys.every(Boolean) ? keys : [];
+}
+
+function identitySetKey(values: readonly string[]): string {
+  return identityList(values).sort().join(',');
+}
+
+export function isBambuBrand(brand: string): boolean {
+  return brand.trim().toLowerCase() === 'bambu lab';
+}
+
+// A borrowed palette supplies colors, not a different product's identity.
+export function paletteForFilament(
+  candidates: readonly CandidateColor[], brand: string, sameFamily: boolean,
+): CandidateColor[] {
+  if (isBambuBrand(brand) && sameFamily) return [...candidates];
+  return candidates.map(c => ({ ...c, colors: [...c.colors], name: '',
+    color_code: c.colors[0] || '' }));
+}
 
 /**
  * "Official" candidates have a real BBL fila code (e.g. "11400" / "Q01B00")
@@ -56,100 +64,27 @@ export function matchHexMultiset(
   options: MatchOptions = {},
 ): CandidateColor | null {
   if (!Array.isArray(list) || list.length === 0) return null;
-  const target = canonicalizeHexList(targetHexes);
+  const target = identityList(targetHexes);
   if (target.length === 0) return null;
-  const targetKey = hexMultisetKey(target);
+  const targetKey = identitySetKey(target);
   for (const c of list) {
     if (options.officialOnly && !isOfficialCandidate(c)) continue;
-    const cHexes = canonicalizeHexList(c.colors);
+    const cHexes = identityList(c.colors);
     if (options.singleHexOnly && cHexes.length !== 1) continue;
     if (cHexes.length !== target.length) continue;
-    if (hexMultisetKey(cHexes) === targetKey) return c;
+    if (identitySetKey(cHexes) === targetKey) return c;
   }
   return null;
 }
 
-function matchOfficialContainingHex(
-  list: readonly CandidateColor[] | undefined,
-  hex: string,
-): CandidateColor | null {
-  if (!Array.isArray(list) || list.length === 0) return null;
-  const target = canonicalizeHex(hex);
-  if (!target) return null;
-  for (const c of list) {
-    if (!isOfficialCandidate(c)) continue;
-    const cHexes = canonicalizeHexList(c.colors);
-    if (cHexes.some((item) => hexEqual(item, target))) return c;
-  }
-  return null;
-}
-
-/**
- * Four-stage fallback for the list row tail "official colour name + BBL
- * fila code" lookup. Stages (acceptance feedback 2026-05-09):
- *
- *   1. own fila_id, official only, full `spool.colors[]` multiset.
- *      Catches AMS-imported multi-hex SKUs (e.g. PLA Silk 13906 "马卡龙").
- *   2. own fila_id, official only, fallback to `spool.color_code` single
- *      hex. Catches AMS-derived single-colour SKUs and legacy spools whose
- *      `colors[]` field is empty.
- *   3. cross-fila_id, official only, single hex. Same hex often exists in
- *      multiple BBL series (e.g. "11400" 柠檬黄 in PLA Basic / Matte /
- *      Lite); a same-hex match in another fila_id still surfaces the
- *      right *colour name*. Multi-hex stage 3 is intentionally omitted —
- *      borrowing a multi-colour SKU name from a different series would
- *      mislead.
- *   4. own fila_id (last resort), any layer including user-owned. Lets us
- *      still pick up *something* when the spool's hex is genuinely
- *      off-catalogue (e.g. user-pasted custom hex). Typically yields a
- *      candidate with empty name + hex code, which the caller treats as
- *      "no official name available" and renders only the hex tail.
- */
+/** Match only the spool's own Bambu family and complete color identity. */
 export function resolveCandidateForSpool(
-  s: Spool,
-  cache: Record<string, CandidateColor[]>,
+  s: Spool, cache: Record<string, CandidateColor[]>,
 ): CandidateColor | null {
-  const filaId = (s.setting_id || '').trim();
-  const ownList = filaId ? cache[filaId] : undefined;
-  const colorsList = canonicalizeHexList(s.colors);
-  const single = canonicalizeHex(s.color_code);
-
-  // Stage 1: own fila_id, official only, full colors[] multiset.
-  if (ownList) {
-    const m = matchHexMultiset(ownList, colorsList, { officialOnly: true });
-    if (m) return m;
-  }
-  // Stage 2: own fila_id, official only, single color_code.
-  if (ownList && single) {
-    const m = matchHexMultiset(ownList, [single], { officialOnly: true });
-    if (m) return m;
-  }
-  // Stage 2b: own fila_id, official only, containing-hex fallback.
-  // Cloud/list legacy rows can lose `colors[]` and keep only the primary
-  // `color_code` even though the official SKU is multi-hex. Matching by
-  // contained hex within the same fila_id lets the list recover display-only
-  // multicolor information even when AMS / BBL order differs.
-  if (ownList && single) {
-    const m = matchOfficialContainingHex(ownList, single);
-    if (m) return m;
-  }
-  // Stage 3: cross-fila_id, official only, single hex only.
-  if (single) {
-    for (const [otherFilaId, list] of Object.entries(cache)) {
-      if (otherFilaId === filaId) continue;
-      const m = matchHexMultiset(list, [single], { officialOnly: true, singleHexOnly: true });
-      if (m) return m;
-    }
-  }
-  // Stage 4: own fila_id, any layer (incl. user-owned), colors[] then single.
-  if (ownList) {
-    const m = matchHexMultiset(ownList, colorsList);
-    if (m) return m;
-  }
-  if (ownList && single) {
-    return matchHexMultiset(ownList, [single]);
-  }
-  return null;
+  if (!isBambuBrand(s.brand)) return null;
+  const ownList = cache[(s.setting_id || '').trim()];
+  const colors = s.colors?.length ? s.colors : [s.color_code];
+  return matchHexMultiset(ownList, colors, { officialOnly: true });
 }
 
 /**
@@ -167,22 +102,22 @@ export function candidateMatchesFormState(args: {
   formColors: readonly string[];
 }): boolean {
   const { candidate, formColorCode, formColors } = args;
-  const formCode = canonicalizeHex(formColorCode);
+  const formCode = colorIdentityKey(formColorCode);
   if (!formCode) return false;
-  const candPrimary = canonicalizeHex((candidate.colors ?? [])[0]);
+  const candPrimary = colorIdentityKey((candidate.colors ?? [])[0]);
   if (candidate.color_type === 2) {
     // A single-hex candidate matches any single-hex form state.  The
     // canonical invariant is `formColors=[]` for single, but we tolerate
     // `formColors=[hex]` (length 1) for older AMS payloads / defensive
     // copies. Reject only when the form has 2+ hexes.
     if (formColors.length > 1) return false;
-    return hexEqual(formCode, candPrimary);
+    return formCode === candPrimary;
   }
   // Multi-hex candidate (color_type 0=gradient or 1=multicolor). Treat
   // colors[] as a multiset (ignoring colorType) — same SKU may persist
   // hexes in different orders across AMS / BBL preset registry.
   if (formColors.length < 2) return false;
-  const candHexes = canonicalizeHexList(candidate.colors);
+  const candHexes = identityList(candidate.colors);
   if (candHexes.length !== formColors.length) return false;
-  return hexMultisetKey(candHexes) === hexMultisetKey(formColors);
+  return identitySetKey(candHexes) === identitySetKey(formColors);
 }

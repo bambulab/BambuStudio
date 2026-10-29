@@ -4,6 +4,7 @@ import type {
   Spool, PresetVendor, MachineItem, AmsData, AmsUnit, AmsTray,
   BridgeResponseBody, CandidateColor, FilamentColorCodesResponse,
 } from './types';
+import { paletteForFilament } from './colors/candidate';
 import { BAMBU_COLORS, formatTypeSeries } from './constants';
 import { SpoolColorChip } from './SpoolColorChip';
 import useStore from '../../store/AppStore';
@@ -563,8 +564,8 @@ export function AddEditDialog({
   // (notably the colorName resolver) don't see a fresh `candidates` array
   // identity on every render and re-run pointlessly.
   const candidates: CandidateColor[] = useMemo(
-    () => (filaId ? (candidatesByFilaId[filaId] ?? []) : []),
-    [filaId, candidatesByFilaId],
+    () => paletteForFilament(filaId ? (candidatesByFilaId[filaId] ?? []) : [], brand, true),
+    [filaId, candidatesByFilaId, brand],
   );
 
   // STUDIO-17977 follow-up requirement 3: when the user is editing a
@@ -642,7 +643,7 @@ export function AddEditDialog({
         }
       }
       if (out.length > 0) {
-        return out;
+        return paletteForFilament(out, brand, false);
       }
     }
     return materialType ? bambuFallbackCandidates : [];
@@ -652,6 +653,7 @@ export function AddEditDialog({
     candidatesByFilaId,
     materialType,
     bambuFallbackCandidates,
+    brand,
   ]);
 
   // STUDIO-17977 F1.3: derived preview-bar visuals.
