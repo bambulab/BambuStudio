@@ -39,6 +39,9 @@
     "filament_prime_tower_speed_factor_curve": [
         "0.5,1"
     ],
+    "filament_prime_volume": [
+        "35"
+    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
