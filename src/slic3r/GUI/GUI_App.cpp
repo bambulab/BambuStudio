@@ -7048,6 +7048,13 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         sync_count = preset_bundle->prints.get_user_presets(preset_bundle, presets_to_sync);
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
+                                // The token is reset on shutdown. Bail out here instead of only at
+                                // the while condition, otherwise OnExit()'s join waits for the whole
+                                // batch: every preset costs a blocking put_setting plus the sleep below.
+                                if (t.expired()) {
+                                    BOOST_LOG_TRIVIAL(info) << "sync user preset cancelled";
+                                    return;
+                                }
                                 sync_preset(&preset);
                                 boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
@@ -7057,6 +7064,13 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         sync_count = preset_bundle->filaments.get_user_presets(preset_bundle, presets_to_sync);
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
+                                // The token is reset on shutdown. Bail out here instead of only at
+                                // the while condition, otherwise OnExit()'s join waits for the whole
+                                // batch: every preset costs a blocking put_setting plus the sleep below.
+                                if (t.expired()) {
+                                    BOOST_LOG_TRIVIAL(info) << "sync user preset cancelled";
+                                    return;
+                                }
                                 sync_preset(&preset);
                                 boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
@@ -7066,6 +7080,13 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         sync_count = preset_bundle->printers.get_user_presets(preset_bundle, presets_to_sync);
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
+                                // The token is reset on shutdown. Bail out here instead of only at
+                                // the while condition, otherwise OnExit()'s join waits for the whole
+                                // batch: every preset costs a blocking put_setting plus the sleep below.
+                                if (t.expired()) {
+                                    BOOST_LOG_TRIVIAL(info) << "sync user preset cancelled";
+                                    return;
+                                }
                                 sync_preset(&preset);
                                 boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
@@ -7084,7 +7105,10 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         /* get list witch need to be deleted*/
                         std::vector<string> delete_cache_presets = get_delete_cache_presets_lock();
                         for (auto it = delete_cache_presets.begin(); it != delete_cache_presets.end();) {
-                            if ((*it).empty()) continue;
+                            if ((*it).empty()) {
+                                it = delete_cache_presets.erase(it);
+                                continue;
+                            }
                             std::string del_setting_id = *it;
                             int result = m_agent->delete_setting(del_setting_id);
                             if (result == 0) {
