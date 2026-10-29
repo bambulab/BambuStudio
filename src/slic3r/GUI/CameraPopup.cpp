@@ -9,6 +9,7 @@
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
 #include <wx/dcgraph.h>
+#include <wx/dcmemory.h>
 #include "GUI_App.hpp"
 #include <slic3r/GUI/StatusPanel.hpp>
 
@@ -549,17 +550,29 @@ void CameraPopup::wrap_hints()
     if (target == m_content_width && shown == m_wrap_last_shown)
         return;
 
+    wxMemoryDC dc;
+    wxBitmap   bmp(1, 1);
+    dc.SelectObject(bmp);
+
     for (size_t i = 0; i < m_wrap_hints.size(); ++i) {
         auto& h = m_wrap_hints[i];
         if (!h.text) continue;
         if (shown & (1u << i)) {
-            h.text->SetLabel(h.original);
             const int w = target - FromDIP(h.reserved_dip);
-            if (w > 0) h.text->Wrap(w);
+            if (w > 0) {
+                dc.SetFont(h.text->GetFont());
+                wxString wrapped;
+                Label::split_lines(dc, w, h.original, wrapped);
+                h.text->SetLabel(wrapped);
+            } else {
+                h.text->SetLabel(h.original);
+            }
         } else {
             h.text->SetLabel(wxEmptyString);
         }
     }
+
+    dc.SelectObject(wxNullBitmap);
 
     m_content_width = target;
     m_wrap_last_shown = shown;
