@@ -896,23 +896,30 @@ void AMSSettingArrangeAMSOrder::CreateGui()
 
 void AMSSettingArrangeAMSOrder::Update(const MachineObject* obj)
 {
+    bool show = false;
     if (obj) {
         m_ams_firmware_switch = obj->GetFilaSystem()->GetAmsFirmwareSwitch();
         const auto& print_jj = DevPrinterConfigUtil::get_json_from_config(obj->printer_type, "print");
         if (print_jj.contains("support_ams_settings_reorder")) {
-            bool show = DevJsonValParser::GetVal<bool>(print_jj, "support_ams_settings_reorder", false);
+            show = DevJsonValParser::GetVal<bool>(print_jj, "support_ams_settings_reorder", false);
 
             const bool direct_rack = obj->GetNozzleRack()->IsDirectConnectedRack();
             if (show && direct_rack && !obj->GetFilaSystem()->HasSubAms()) {
                 show = false;
             }
-
-            Show(show);
-            return;
         }
     }
 
-    Show(false);
+    const bool was_shown = IsShown();
+    Show(show);
+#ifdef __WXOSX__
+    if (was_shown != show) {
+        if (wxWindow* top = wxGetTopLevelParent(this)) {
+            top->Layout();
+            top->Fit();
+        }
+    }
+#endif
 }
 
 void AMSSettingArrangeAMSOrder::OnBtnRearrangeClicked(wxCommandEvent& event)
