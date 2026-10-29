@@ -310,10 +310,11 @@
    the fault is the one thing that must stay legible on a disabled card. */
 .ams-map-hotend__nozzle-info__badge {
   position: absolute;
-  left: 0;
+  left: 50%;
   bottom: 1px;
   width: 14px;
   height: 14px;
+  transform: translateX(-50%);
   pointer-events: none;
 }
 
