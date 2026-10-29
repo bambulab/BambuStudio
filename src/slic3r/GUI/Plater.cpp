@@ -27609,10 +27609,23 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     publish(p->model, strategy);
 
     DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
-    if (const auto *selected = wxGetApp().preset_bundle->project_config.option<ConfigOptionStrings>(
-            "filament_diameter_map"))
-        cfg.option<ConfigOptionStrings>("filament_diameter_map", true)->values =
-            selected->values;
+    // project_config keeps the per-slot diameters after multi-diameter mode is turned off, so turning it
+    // back on restores them. In single-diameter mode those values are inactive, and every slot prints on
+    // the printer's own diameter, which is what the file stores.
+    const DynamicPrintConfig &project_cfg = wxGetApp().preset_bundle->project_config;
+    auto *diameter_map = cfg.option<ConfigOptionStrings>("filament_diameter_map", true);
+    if (multi_nozzle_diameter_mode_enabled(project_cfg)) {
+        if (const auto *selected = project_cfg.option<ConfigOptionStrings>("filament_diameter_map"))
+            diameter_map->values = selected->values;
+    } else {
+        const double primary = primary_nozzle_diameter(cfg);
+        if (primary <= 0.)
+            throw Slic3r::RuntimeError("Single-diameter mode has no printer nozzle diameter for filament_diameter_map");
+        const std::string diameter = format_diameter_to_str(primary);
+        diameter_map->values.assign(diameter_map->values.size(), diameter);
+        BOOST_LOG_TRIVIAL(info) << "single-diameter save, filament_diameter_map slots=" << diameter_map->values.size()
+                                << " " << KV(log_key::nozzle_diameter, diameter);
+    }
     const std::string path_u8 = into_u8(path);
     wxBusyCursor wait;
 
