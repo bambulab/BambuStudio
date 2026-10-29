@@ -1851,24 +1851,33 @@ void TreeSupport::fold_nodes_multi_diameter()
             fn(node->parent);
     };
 
-    // One column's slab. Its extrusion spans from the slab bottom up to the carrier, the column's top.
+    // One column's slab. Its extrusion spans from bottom_z up to the carrier, the column's top.
     struct Carrier
     {
+        size_t   slab_idx { 0 };
+        size_t   top_layer { 0 };
         size_t   base_source_layer { 0 };
+        size_t   bottom_obj_layer { 0 };
         size_t   obj_layer { 0 };
+        coordf_t bottom_z { 0. };
         coordf_t top_z { 0. };
         coordf_t slab_height { 0. };
+        size_t   original_base_source_layer { 0 };
+        size_t   original_bottom_obj_layer { 0 };
+        coordf_t original_bottom_z { 0. };
+        coordf_t original_slab_height { 0. };
         ExPolygons footprint;
         ExPolygons base_footprint;
+        ExPolygons interface_footprint;
         BoundingBox footprint_bbox;
         BoundingBox base_footprint_bbox;
         std::vector<size_t> partial_heads;
+        Carrier *lower_carrier { nullptr };
         bool     folds { false };
     };
     // Per slab: the column top of every foldable node, and the candidate carriers keyed by support layer.
     std::vector<std::unordered_map<const SupportNode *, size_t>> column_top(plan.slabs.size());
     std::vector<std::map<size_t, Carrier>>                       carriers(plan.slabs.size());
-    std::vector<size_t>                                          bottom_obj_layer(plan.slabs.size(), 0);
 
     const bool square_support = avg_node_per_layer > 200;
     const int circle_resolution = square_support ? 4 : 25;
@@ -1964,7 +1973,7 @@ void TreeSupport::fold_nodes_multi_diameter()
 
         const size_t   front         = layers.front();
         const coordf_t slab_bottom_z = layer_heights[front].print_z - layer_heights[front].height;
-        bottom_obj_layer[slab_idx]   = layer_heights[front].obj_layer_nr;
+        const size_t   slab_bottom_obj_layer = layer_heights[front].obj_layer_nr;
         // Without a raft the first band starts on the bed, so its bed face is the representative cross
         // section - the same choice the model band planner makes, and the one that keeps the adhesion
         // geometry. With a raft the band rests on the raft and behaves like any other.
@@ -1972,11 +1981,15 @@ void TreeSupport::fold_nodes_multi_diameter()
 
         // Carriers ascend, and so does the span each one has to clear: grow it incrementally.
         ExPolygons span_collision;
-        size_t     span_top_obj_layer = bottom_obj_layer[slab_idx];
+        size_t     span_top_obj_layer = slab_bottom_obj_layer;
         for (auto &[carrier_layer, carrier] : carriers[slab_idx]) {
-            carrier.obj_layer   = layer_heights[carrier_layer].obj_layer_nr;
-            carrier.top_z       = layer_heights[carrier_layer].print_z;
-            carrier.slab_height = carrier.top_z - slab_bottom_z;
+            carrier.slab_idx          = slab_idx;
+            carrier.top_layer         = carrier_layer;
+            carrier.obj_layer         = layer_heights[carrier_layer].obj_layer_nr;
+            carrier.bottom_obj_layer = slab_bottom_obj_layer;
+            carrier.bottom_z         = slab_bottom_z;
+            carrier.top_z            = layer_heights[carrier_layer].print_z;
+            carrier.slab_height      = carrier.top_z - slab_bottom_z;
             // A column whose top is the slab's bottom layer has nothing to fold.
             if (carrier.slab_height <= layer_heights[carrier_layer].height + EPSILON)
                 continue;
@@ -1995,6 +2008,10 @@ void TreeSupport::fold_nodes_multi_diameter()
                         break;
                     }
                 }
+            carrier.original_base_source_layer = carrier.base_source_layer;
+            carrier.original_bottom_obj_layer  = carrier.bottom_obj_layer;
+            carrier.original_bottom_z          = carrier.bottom_z;
+            carrier.original_slab_height       = carrier.slab_height;
 
             // A slab is one extrusion over its whole Z span, so it has to clear the object everywhere in that
             // span and not only at the face its cross-section was taken from. Refuse the fold outright when
@@ -2064,6 +2081,18 @@ void TreeSupport::fold_nodes_multi_diameter()
         }
     }
 
+    auto move_target = [&](size_t slab_idx, const SupportNode *node) -> Carrier * {
+        const auto top_it = column_top[slab_idx].find(node);
+        if (top_it == column_top[slab_idx].end())
+            return nullptr;
+        Carrier *carrier = &carriers[slab_idx].at(top_it->second);
+        while (node->print_z <= carrier->bottom_z + EPSILON &&
+               carrier->lower_carrier != nullptr)
+            carrier = carrier->lower_carrier;
+        return carrier->folds && node->print_z > carrier->bottom_z + EPSILON ?
+            carrier : nullptr;
+    };
+
     // A carrier extrudes its whole layer at the slab height, so it may not share the layer with a node that
     // stays there: that node was already printed on the layers below and would be extruded a second time.
     // Refusing a carrier leaves its own column behind on lower layers, which may be carriers in turn.
@@ -2082,7 +2111,7 @@ void TreeSupport::fold_nodes_multi_diameter()
                                 return false;
                             const auto top_it = tops.find(node);
                             return top_it != tops.end() && top_it->second != carrier_layer &&
-                                   ! carriers[slab_idx].at(top_it->second).folds;
+                                   move_target(slab_idx, node) == nullptr;
                         });
                     if (shared) {
                         carrier.folds = false;
@@ -2094,96 +2123,62 @@ void TreeSupport::fold_nodes_multi_diameter()
     };
     refuse_shared_carriers();
 
-    // Resolve each dominant parent chain before overlap validation so the probe and the rendered
-    // representative use the same folded radius.
-    std::unordered_map<const SupportNode *, coordf_t> folded_radius;
-    for (size_t slab_idx = 0; slab_idx < plan.slabs.size(); ++ slab_idx) {
-        struct FoldedColumn {
-            FoldedColumn *parent { nullptr };
-            coordf_t      max_radius;
-            size_t        carrier_layer;
-        };
-        std::unordered_map<const SupportNode *, FoldedColumn> columns;
-        columns.reserve(column_top[slab_idx].size());
-        for (size_t layer_nr : layers_per_slab[slab_idx])
-            for (const SupportNode *node : contact_nodes[layer_nr]) {
-                if (node == nullptr)
-                    continue;
-                const auto top_it = column_top[slab_idx].find(node);
-                if (top_it == column_top[slab_idx].end() ||
-                    ! carriers[slab_idx].at(top_it->second).folds)
-                    continue;
-                FoldedColumn &column = columns.emplace(
-                    node, FoldedColumn { nullptr, node->radius, top_it->second }).first->second;
-                column.parent = &column;
-            }
-        auto find_column = [](FoldedColumn *column) {
-            FoldedColumn *root = column;
-            while (root->parent != root)
-                root = root->parent;
-            while (column->parent != column) {
-                FoldedColumn *next = column->parent;
-                column->parent = root;
-                column = next;
-            }
-            return root;
-        };
-        for (auto &[node, column] : columns) {
-            if (node->parent == nullptr)
-                continue;
-            const auto parent_column = columns.find(node->parent);
-            if (parent_column == columns.end() ||
-                parent_column->second.carrier_layer != column.carrier_layer)
-                continue;
-            FoldedColumn *node_root   = find_column(&column);
-            FoldedColumn *parent_root = find_column(&parent_column->second);
-            if (node_root != parent_root) {
-                parent_root->max_radius = std::max(parent_root->max_radius, node_root->max_radius);
-                node_root->parent = parent_root;
-            }
-        }
-        for (auto &[node, column] : columns)
-            folded_radius.emplace(node, find_column(&column)->max_radius);
-    }
-
-    // Every folded span is built on the support-layer grid. Interface material may contain a finer span:
-    // the final-area pass removes what it covers. A genuine partial overlap cannot be repaired in XY,
-    // and folded base material has no such precedence rule, so reject those carriers before nodes move.
-    auto spans_partially_overlap = [](coordf_t lhs_bottom, coordf_t lhs_top,
-                                      coordf_t rhs_bottom, coordf_t rhs_top) {
-        const bool overlaps = std::min(lhs_top, rhs_top) >
-                              std::max(lhs_bottom, rhs_bottom) + EPSILON;
-        if (! overlaps)
-            return false;
-        const bool lhs_contains_rhs =
-            lhs_bottom <= rhs_bottom + EPSILON && lhs_top >= rhs_top - EPSILON;
-        const bool rhs_contains_lhs =
-            rhs_bottom <= lhs_bottom + EPSILON && rhs_top >= lhs_top - EPSILON;
-        return ! lhs_contains_rhs && ! rhs_contains_lhs;
-    };
-    struct CarrierSpan {
-        Carrier *carrier;
-        coordf_t bottom_z;
-    };
-    std::vector<CarrierSpan> folded_spans;
-    for (size_t slab_idx = 0; slab_idx < plan.slabs.size(); ++ slab_idx) {
-        const std::vector<size_t> &layers = layers_per_slab[slab_idx];
-        if (layers.empty())
-            continue;
-        const size_t front = layers.front();
-        const coordf_t slab_bottom_z =
-            layer_heights[front].print_z - layer_heights[front].height;
-        for (auto &entry : carriers[slab_idx])
-            if (entry.second.folds)
-                folded_spans.push_back({ &entry.second, slab_bottom_z });
-    }
-
-    std::sort(folded_spans.begin(), folded_spans.end(), [](const CarrierSpan &lhs, const CarrierSpan &rhs) {
-        return lhs.bottom_z < rhs.bottom_z;
-    });
-
     using NodeMoves = std::unordered_map<const SupportNode *, size_t>;
     using NodeCounters = std::unordered_map<SupportNode *, std::pair<int, int>>;
+    std::unordered_map<const SupportNode *, coordf_t> folded_radius;
+    auto evaluate_folded_radius = [&](const NodeMoves &moves) {
+        folded_radius.clear();
+        for (size_t slab_idx = 0; slab_idx < plan.slabs.size(); ++ slab_idx) {
+            struct FoldedColumn {
+                FoldedColumn *parent { nullptr };
+                coordf_t      max_radius;
+                size_t        carrier_layer;
+            };
+            std::unordered_map<const SupportNode *, FoldedColumn> columns;
+            columns.reserve(column_top[slab_idx].size());
+            for (const auto &entry : column_top[slab_idx]) {
+                const SupportNode *node = entry.first;
+                const auto move_it = moves.find(node);
+                if (move_it == moves.end())
+                    continue;
+                FoldedColumn &column = columns.emplace(
+                    node, FoldedColumn { nullptr, node->radius, move_it->second }).first->second;
+                column.parent = &column;
+            }
+            auto find_column = [](FoldedColumn *column) {
+                FoldedColumn *root = column;
+                while (root->parent != root)
+                    root = root->parent;
+                while (column->parent != column) {
+                    FoldedColumn *next = column->parent;
+                    column->parent = root;
+                    column = next;
+                }
+                return root;
+            };
+            for (auto &[node, column] : columns) {
+                if (node->parent == nullptr)
+                    continue;
+                const auto parent_column = columns.find(node->parent);
+                if (parent_column == columns.end() ||
+                    parent_column->second.carrier_layer != column.carrier_layer)
+                    continue;
+                FoldedColumn *node_root   = find_column(&column);
+                FoldedColumn *parent_root = find_column(&parent_column->second);
+                if (node_root != parent_root) {
+                    parent_root->max_radius = std::max(parent_root->max_radius, node_root->max_radius);
+                    node_root->parent = parent_root;
+                }
+            }
+            for (auto &[node, column] : columns)
+                folded_radius.emplace(node, find_column(&column)->max_radius);
+        }
+    };
+
+    // Every folded span is built on the support-layer grid. Interface material may contain a finer span:
+    // the final-area pass removes what it covers. A genuine partial overlap cannot be repaired in XY, so
+    // reject the less useful carrier first; the fixed-point check also rejects the survivor if the fine
+    // layers left behind still overlap it unsafely.
     auto evaluate_roof_layers = [&](const NodeMoves &moves) {
         NodeCounters counters;
         if (! fold_interface)
@@ -2224,7 +2219,30 @@ void TreeSupport::fold_nodes_multi_diameter()
         return ! lhs.empty() && ! rhs.empty() && lhs_bbox.overlap(rhs_bbox) &&
                ! intersection_ex(lhs, rhs).empty();
     };
+    auto contains_span = [](const Carrier &outer, const Carrier &inner) {
+        return outer.bottom_z <= inner.bottom_z + EPSILON && outer.top_z >= inner.top_z - EPSILON;
+    };
     size_t misaligned_carriers = 0;
+    auto refuse_carriers = [&](const std::unordered_set<Carrier *> &refused) {
+        misaligned_carriers += refused.size();
+        for (Carrier *carrier : refused)
+            carrier->folds = false;
+        // Survivors changed, so every split is rebuilt from its original span in the next pass.
+        for (auto &slab_carriers : carriers)
+            for (auto &entry : slab_carriers) {
+                Carrier &carrier = entry.second;
+                if (carrier.lower_carrier == nullptr)
+                    continue;
+                carrier.base_source_layer = carrier.original_base_source_layer;
+                carrier.bottom_obj_layer  = carrier.original_bottom_obj_layer;
+                carrier.bottom_z          = carrier.original_bottom_z;
+                carrier.slab_height       = carrier.original_slab_height;
+                carrier.lower_carrier     = nullptr;
+            }
+        refuse_shared_carriers();
+    };
+    NodeMoves moves_to;
+    NodeCounters final_counters;
     // Recompute the tentative printed counters and footprints after every refusal. The roof/base split is
     // defined in printed-layer units, so using the original counters here could omit a node that Pass 2
     // later turns into interface material.
@@ -2232,10 +2250,10 @@ void TreeSupport::fold_nodes_multi_diameter()
         NodeMoves tentative_moves;
         for (size_t slab_idx = 0; slab_idx < plan.slabs.size(); ++ slab_idx)
             for (const auto &[node, top] : column_top[slab_idx])
-                if (carriers[slab_idx].at(top).folds)
-                    tentative_moves.emplace(node, top);
+                if (const Carrier *carrier = move_target(slab_idx, node))
+                    tentative_moves.emplace(node, carrier->top_layer);
 
-        const NodeCounters future_counters = evaluate_roof_layers(tentative_moves);
+        NodeCounters future_counters = evaluate_roof_layers(tentative_moves);
         auto future_roof = [&](SupportNode *node) {
             const auto it = future_counters.find(node);
             return it == future_counters.end() ? node->support_roof_layers_below : it->second.second;
@@ -2245,24 +2263,27 @@ void TreeSupport::fold_nodes_multi_diameter()
                    (roof_layers > 1 || (roof_layers >= 0 && ! node->is_sharp_tail));
         };
 
+        // Every loop follows a split or refusal, so the radius groups always match the current destinations.
+        evaluate_folded_radius(tentative_moves);
         for (size_t slab_idx = 0; slab_idx < plan.slabs.size(); ++ slab_idx)
             for (auto &entry : carriers[slab_idx]) {
                 Carrier &carrier = entry.second;
                 carrier.footprint.clear();
                 carrier.base_footprint.clear();
+                carrier.interface_footprint.clear();
                 carrier.footprint_bbox = {};
                 carrier.base_footprint_bbox = {};
             }
         for (size_t slab_idx = 0; slab_idx < plan.slabs.size(); ++ slab_idx)
             for (size_t layer_nr : layers_per_slab[slab_idx])
                 for (SupportNode *node : contact_nodes[layer_nr]) {
-                    const auto top_it = column_top[slab_idx].find(node);
-                    if (top_it == column_top[slab_idx].end())
+                    const auto move_it = tentative_moves.find(node);
+                    if (move_it == tentative_moves.end())
                         continue;
-                    Carrier &carrier = carriers[slab_idx].at(top_it->second);
+                    Carrier &carrier = carriers[slab_idx].at(move_it->second);
                     const int roof_layers = future_roof(node);
                     const bool interface_node =
-                        is_interface_role(node, roof_layers, top_it->second);
+                        is_interface_role(node, roof_layers, carrier.top_layer);
                     if (! carrier.folds || (! interface_node && layer_nr != carrier.base_source_layer))
                         continue;
                     ExPolygons final_base_probe;
@@ -2277,24 +2298,120 @@ void TreeSupport::fold_nodes_multi_diameter()
                     }
                     if (probe->empty())
                         continue;
-                    append(carrier.footprint, *probe);
-                    if (! interface_node)
+                    if (interface_node)
+                        append(carrier.interface_footprint, *probe);
+                    else
                         append(carrier.base_footprint, *probe);
                 }
         for (size_t slab_idx = 0; slab_idx < plan.slabs.size(); ++ slab_idx)
             for (auto &entry : carriers[slab_idx]) {
                 Carrier &carrier = entry.second;
-                if (carrier.folds && ! carrier.footprint.empty()) {
-                    carrier.footprint = union_ex(carrier.footprint);
-                    carrier.footprint_bbox = get_extents(carrier.footprint);
-                    if (! carrier.base_footprint.empty()) {
-                        carrier.base_footprint = union_ex(carrier.base_footprint);
-                        carrier.base_footprint_bbox = get_extents(carrier.base_footprint);
-                    }
+                if (! carrier.folds)
+                    continue;
+                if (! carrier.base_footprint.empty()) {
+                    carrier.base_footprint = union_ex(carrier.base_footprint);
+                    carrier.base_footprint_bbox = get_extents(carrier.base_footprint);
+                    append(carrier.footprint, carrier.base_footprint);
                 }
+                if (! carrier.interface_footprint.empty()) {
+                    carrier.interface_footprint = union_ex(carrier.interface_footprint);
+                    append(carrier.footprint, carrier.interface_footprint);
+                }
+                if (! carrier.footprint.empty())
+                    carrier.footprint_bbox = get_extents(carrier.footprint);
             }
 
+        std::vector<Carrier *> folded_spans;
+        for (auto &slab_carriers : carriers)
+            for (auto &entry : slab_carriers)
+                if (entry.second.folds)
+                    folded_spans.push_back(&entry.second);
+        std::sort(folded_spans.begin(), folded_spans.end(),
+                  [](const Carrier *lhs, const Carrier *rhs) {
+                      if (lhs->bottom_z != rhs->bottom_z)
+                          return lhs->bottom_z < rhs->bottom_z;
+                      if (lhs->slab_idx != rhs->slab_idx)
+                          return lhs->slab_idx < rhs->slab_idx;
+                      return lhs->top_layer < rhs->top_layer;
+                  });
+
+        // Select every split from this immutable footprint/span snapshot. Applying a split while scanning
+        // would make later pairs depend on sort order and could leave an old partial-overlap refusal behind.
+        struct SplitDecision {
+            Carrier *highest_inner { nullptr };
+            bool     required { false };
+        };
+        std::unordered_map<Carrier *, SplitDecision> split_candidates;
+        for (size_t lhs = 0; lhs < folded_spans.size(); ++ lhs) {
+            Carrier *lhs_carrier = folded_spans[lhs];
+            for (size_t rhs = lhs + 1; rhs < folded_spans.size(); ++ rhs) {
+                Carrier *rhs_carrier = folded_spans[rhs];
+                if (rhs_carrier->bottom_z >= lhs_carrier->top_z - EPSILON)
+                    break;
+                const bool lhs_contains_rhs = contains_span(*lhs_carrier, *rhs_carrier);
+                const bool rhs_contains_lhs = contains_span(*rhs_carrier, *lhs_carrier);
+                if (lhs_contains_rhs == rhs_contains_lhs)
+                    continue;
+
+                Carrier &outer = lhs_contains_rhs ? *lhs_carrier : *rhs_carrier;
+                Carrier &inner = lhs_contains_rhs ? *rhs_carrier : *lhs_carrier;
+                if (outer.slab_idx != inner.slab_idx ||
+                    inner.top_z <= outer.bottom_z + EPSILON)
+                    continue;
+
+                // Interface-over-base creates the need to split. Once a split is needed, use the highest
+                // overlapping inner boundary so the shortened outer cannot partially overlap another inner.
+                // A base-only overlap does not trigger a split by itself; final geometry trimming handles it.
+                SplitDecision &decision = split_candidates[&outer];
+                const Carrier *best = decision.highest_inner;
+                const bool higher = best == nullptr || inner.top_z > best->top_z ||
+                    (inner.top_z == best->top_z && inner.top_layer > best->top_layer);
+                // Interface-over-base implies a full-footprint overlap. Once a split is required, a lower inner
+                // cannot change the decision, so skip both polygon tests.
+                if ((! higher && decision.required) ||
+                    ! footprints_overlap(inner.footprint, inner.footprint_bbox,
+                                         outer.footprint, outer.footprint_bbox))
+                    continue;
+                decision.required = decision.required ||
+                    footprints_overlap(inner.interface_footprint, inner.footprint_bbox,
+                                       outer.base_footprint, outer.base_footprint_bbox);
+                if (higher)
+                    decision.highest_inner = &inner;
+            }
+        }
+
+        std::unordered_set<Carrier *> split_misaligned;
+        bool carriers_shortened = false;
+        for (const auto &[outer_ptr, decision] : split_candidates) {
+            if (! decision.required)
+                continue;
+            Carrier &outer = *outer_ptr;
+            Carrier &inner = *decision.highest_inner;
+
+            outer.bottom_z          = inner.top_z;
+            outer.base_source_layer = outer.top_layer;
+            outer.lower_carrier     = &inner;
+            outer.slab_height       = outer.top_z - outer.bottom_z;
+            const auto first_layer_above = std::upper_bound(
+                layer_heights.begin(), layer_heights.begin() + num_layers, outer.bottom_z + EPSILON,
+                [](coordf_t z, const LayerHeightData &layer) { return z < layer.print_z; });
+            outer.bottom_obj_layer = first_layer_above == layer_heights.begin() + num_layers ?
+                outer.obj_layer : first_layer_above->obj_layer_nr;
+            carriers_shortened = true;
+            if (outer.slab_height <= layer_heights[outer.top_layer].height + EPSILON ||
+                ! adaptive_layer_height_range(plan.slabs[outer.slab_idx].nozzle_diameter)
+                      .contains(outer.slab_height))
+                split_misaligned.insert(&outer);
+        }
+
+        if (carriers_shortened) {
+            if (! split_misaligned.empty())
+                refuse_carriers(split_misaligned);
+            continue;
+        }
+
         std::vector<ExPolygons> stationary_footprints(num_layers);
+        std::vector<ExPolygons> stationary_interface_footprints(num_layers);
         std::vector<BoundingBox> stationary_bboxes(num_layers);
         std::vector<bool> stationary_ready(num_layers, false);
         auto ensure_stationary = [&](size_t layer_nr) {
@@ -2303,50 +2420,71 @@ void TreeSupport::fold_nodes_multi_diameter()
             for (SupportNode *node : contact_nodes[layer_nr])
                 if (tentative_moves.count(node) == 0) {
                     const int roof_layers = future_roof(node);
-                    append(stationary_footprints[layer_nr],
-                           cached_probe_of(node, use_interface_shape(node, roof_layers)));
+                    const ExPolygons &probe =
+                        cached_probe_of(node, use_interface_shape(node, roof_layers));
+                    append(stationary_footprints[layer_nr], probe);
+                    if (is_interface_role(node, roof_layers, layer_nr))
+                        append(stationary_interface_footprints[layer_nr], probe);
                 }
             if (! stationary_footprints[layer_nr].empty())
-                stationary_bboxes[layer_nr] = get_extents(stationary_footprints[layer_nr]);
+                stationary_bboxes[layer_nr] =
+                    get_extents(stationary_footprints[layer_nr]);
             stationary_ready[layer_nr] = true;
         };
 
+        // No carrier changed after the snapshot above, so overlap refusals now describe the current spans.
+        // Same-slab containment was either split at the highest valid boundary or rejected as unprintable.
         std::unordered_set<Carrier *> newly_misaligned;
         for (size_t lhs = 0; lhs < folded_spans.size(); ++ lhs) {
-            const CarrierSpan &lhs_span = folded_spans[lhs];
-            if (! lhs_span.carrier->folds)
+            Carrier *lhs_carrier = folded_spans[lhs];
+            if (! lhs_carrier->folds || newly_misaligned.count(lhs_carrier) > 0)
                 continue;
             for (size_t rhs = lhs + 1; rhs < folded_spans.size(); ++ rhs) {
-                const CarrierSpan &rhs_span = folded_spans[rhs];
-                if (rhs_span.bottom_z >= lhs_span.carrier->top_z - EPSILON)
+                Carrier *rhs_carrier = folded_spans[rhs];
+                if (rhs_carrier->bottom_z >= lhs_carrier->top_z - EPSILON)
                     break;
-                if (! rhs_span.carrier->folds)
+                if (! rhs_carrier->folds || newly_misaligned.count(rhs_carrier) > 0)
                     continue;
-                const bool partial_z =
-                    spans_partially_overlap(lhs_span.bottom_z, lhs_span.carrier->top_z,
-                                            rhs_span.bottom_z, rhs_span.carrier->top_z);
-                const bool overlaps_xy = partial_z ?
-                    footprints_overlap(lhs_span.carrier->footprint, lhs_span.carrier->footprint_bbox,
-                                       rhs_span.carrier->footprint, rhs_span.carrier->footprint_bbox) :
-                    footprints_overlap(lhs_span.carrier->base_footprint, lhs_span.carrier->base_footprint_bbox,
-                                       rhs_span.carrier->footprint, rhs_span.carrier->footprint_bbox) ||
-                    footprints_overlap(rhs_span.carrier->base_footprint, rhs_span.carrier->base_footprint_bbox,
-                                       lhs_span.carrier->footprint, lhs_span.carrier->footprint_bbox);
-                if (overlaps_xy) {
-                    newly_misaligned.insert(lhs_span.carrier);
-                    newly_misaligned.insert(rhs_span.carrier);
+                const bool lhs_contains_rhs = contains_span(*lhs_carrier, *rhs_carrier);
+                const bool rhs_contains_lhs = contains_span(*rhs_carrier, *lhs_carrier);
+                if (! lhs_contains_rhs && ! rhs_contains_lhs) {
+                    if (! footprints_overlap(lhs_carrier->footprint, lhs_carrier->footprint_bbox,
+                                             rhs_carrier->footprint, rhs_carrier->footprint_bbox))
+                        continue;
+                    const coordf_t lhs_height = lhs_carrier->slab_height;
+                    const coordf_t rhs_height = rhs_carrier->slab_height;
+                    Carrier *rejected = lhs_height + EPSILON < rhs_height ? lhs_carrier :
+                        rhs_height + EPSILON < lhs_height ? rhs_carrier :
+                        lhs_carrier->top_z < rhs_carrier->top_z ? lhs_carrier : rhs_carrier;
+                    newly_misaligned.insert(rejected);
+                    if (rejected == lhs_carrier)
+                        break;
+                    continue;
+                }
+                if (lhs_contains_rhs && rhs_contains_lhs)
+                    continue;
+
+                Carrier &outer = lhs_contains_rhs ? *lhs_carrier : *rhs_carrier;
+                Carrier &inner = lhs_contains_rhs ? *rhs_carrier : *lhs_carrier;
+                if (outer.slab_idx != inner.slab_idx &&
+                    inner.top_z > outer.bottom_z + EPSILON &&
+                    footprints_overlap(inner.interface_footprint, inner.footprint_bbox,
+                                       outer.base_footprint, outer.base_footprint_bbox)) {
+                    newly_misaligned.insert(&outer);
+                    if (&outer == lhs_carrier)
+                        break;
                 }
             }
         }
 
         // Only material left on its original fine layer can conflict with a folded span here. Nodes assigned
         // to another surviving carrier are covered by the carrier-to-carrier check above.
-        for (const CarrierSpan &span : folded_spans) {
-            Carrier &carrier = *span.carrier;
+        for (Carrier *span : folded_spans) {
+            Carrier &carrier = *span;
             if (! carrier.folds || carrier.footprint.empty())
                 continue;
             const auto first_layer = std::lower_bound(
-                layer_heights.begin(), layer_heights.begin() + num_layers, span.bottom_z + EPSILON,
+                layer_heights.begin(), layer_heights.begin() + num_layers, carrier.bottom_z + EPSILON,
                 [](const LayerHeightData &layer, coordf_t z) { return layer.print_z < z; });
             for (size_t layer_nr = size_t(first_layer - layer_heights.begin());
                  layer_nr < num_layers; ++ layer_nr) {
@@ -2354,53 +2492,64 @@ void TreeSupport::fold_nodes_multi_diameter()
                     continue;
                 const coordf_t layer_top    = layer_heights[layer_nr].print_z;
                 const coordf_t layer_bottom = layer_top - layer_heights[layer_nr].height;
-                if (layer_top <= span.bottom_z + EPSILON)
+                if (layer_top <= carrier.bottom_z + EPSILON)
                     continue;
                 if (layer_bottom >= carrier.top_z - EPSILON)
                     break;
-                const bool partial_z =
-                    spans_partially_overlap(span.bottom_z, carrier.top_z, layer_bottom, layer_top);
-                if (! partial_z && carrier.base_footprint.empty())
-                    continue;
+                const bool carrier_contains_layer =
+                    carrier.bottom_z <= layer_bottom + EPSILON &&
+                    carrier.top_z >= layer_top - EPSILON;
+                const bool layer_contains_carrier =
+                    layer_bottom <= carrier.bottom_z + EPSILON &&
+                    layer_top >= carrier.top_z - EPSILON;
+                const bool partial_z = ! carrier_contains_layer && ! layer_contains_carrier;
 
                 ensure_stationary(layer_nr);
                 const ExPolygons &stationary = stationary_footprints[layer_nr];
                 if (stationary.empty())
                     continue;
-                const ExPolygons &carrier_probe =
-                    partial_z ? carrier.footprint : carrier.base_footprint;
-                const BoundingBox &carrier_probe_bbox =
-                    partial_z ? carrier.footprint_bbox : carrier.base_footprint_bbox;
-                if (footprints_overlap(stationary, stationary_bboxes[layer_nr],
-                                       carrier_probe, carrier_probe_bbox)) {
+                if (partial_z) {
+                    if (! footprints_overlap(stationary, stationary_bboxes[layer_nr],
+                                             carrier.footprint, carrier.footprint_bbox))
+                        continue;
                     newly_misaligned.insert(&carrier);
                     break;
                 }
+
+                ExPolygons uncovered_interface_overlap;
+                if (! stationary_interface_footprints[layer_nr].empty() &&
+                    ! carrier.base_footprint.empty() &&
+                    stationary_bboxes[layer_nr].overlap(carrier.base_footprint_bbox)) {
+                    ExPolygons overlap = intersection_ex(stationary_interface_footprints[layer_nr],
+                                                         carrier.base_footprint);
+                    if (! overlap.empty())
+                        uncovered_interface_overlap = diff_ex(overlap, carrier.interface_footprint);
+                }
+                if (! carrier_contains_layer || ! uncovered_interface_overlap.empty()) {
+                    if (footprints_overlap(stationary, stationary_bboxes[layer_nr],
+                                           carrier.base_footprint,
+                                           carrier.base_footprint_bbox)) {
+                        newly_misaligned.insert(&carrier);
+                        break;
+                    }
+                    continue;
+                }
             }
         }
-        if (newly_misaligned.empty())
+        if (newly_misaligned.empty()) {
+            moves_to      = std::move(tentative_moves);
+            final_counters = std::move(future_counters);
             break;
-        misaligned_carriers += newly_misaligned.size();
-        for (Carrier *carrier : newly_misaligned) {
-            carrier->folds = false;
         }
-        refuse_shared_carriers();
+        refuse_carriers(newly_misaligned);
     }
     if (misaligned_carriers > 0)
         BOOST_LOG_TRIVIAL(warning) << "refused " << misaligned_carriers
                                    << " folded support carriers with unsafe Z overlap";
 
-    // Where every node that moves ends up. A node of a column whose carrier refused stays on its own layer.
-    NodeMoves moves_to;
-    for (size_t slab_idx = 0; slab_idx < plan.slabs.size(); ++ slab_idx)
-        for (const auto &[node, top] : column_top[slab_idx])
-            if (carriers[slab_idx].at(top).folds)
-                moves_to.emplace(node, top);
-
     // A rejected carrier keeps its original fine-grid geometry. Pin that material to the finest candidate
     // that can print the fine layer, otherwise ToolOrdering may select the coarse support nozzle even though
     // no coarse slab was emitted there.
-    const NodeCounters final_counters = evaluate_roof_layers(moves_to);
     std::vector<bool> fine_base_layers(num_layers, false);
     std::vector<bool> fine_interface_layers(num_layers, false);
     for (size_t slab_idx = 0; slab_idx < plan.slabs.size(); ++ slab_idx)
@@ -2408,7 +2557,7 @@ void TreeSupport::fold_nodes_multi_diameter()
             for (SupportNode *node : contact_nodes[layer_nr]) {
                 const auto top_it = column_top[slab_idx].find(node);
                 if (top_it == column_top[slab_idx].end() ||
-                    carriers[slab_idx].at(top_it->second).folds)
+                    moves_to.count(node) > 0)
                     continue;
                 const auto counter_it = final_counters.find(node);
                 const int roof_layers = counter_it == final_counters.end() ?
@@ -2512,7 +2661,7 @@ void TreeSupport::fold_nodes_multi_diameter()
         if (adopted.empty())
             continue;
 
-        std::vector<size_t> &slab_carriers = m_fold_carriers.emplace_back();
+        std::vector<FoldCarrier> &slab_carriers = m_fold_carriers.emplace_back();
         for (auto &[carrier_layer, nodes] : adopted) {
             const Carrier &carrier = carriers[slab_idx].at(carrier_layer);
             for (std::vector<SupportNode *> *group : { &nodes.first, &nodes.second })
@@ -2520,13 +2669,13 @@ void TreeSupport::fold_nodes_multi_diameter()
                     if (group == &nodes.first)
                         node->radius = folded_radius.at(node);
                     node->slab_height           = carrier.slab_height;
-                    node->slab_bottom_obj_layer = bottom_obj_layer[slab_idx];
+                    node->slab_bottom_obj_layer = carrier.bottom_obj_layer;
                     node->obj_layer_nr          = int(carrier.obj_layer);
                     node->print_z               = carrier.top_z;
                     node->height                = carrier.slab_height;
                     contact_nodes[carrier_layer].emplace_back(node);
                 }
-            slab_carriers.emplace_back(carrier_layer);
+            slab_carriers.push_back({ carrier_layer, carrier.bottom_z });
             ++ folded_carriers;
 
             SupportLayer *ts_layer = m_object->get_support_layer(carrier_layer + m_raft_layers);
@@ -2672,9 +2821,10 @@ std::vector<size_t> TreeSupport::fold_carriers_above(size_t layer_nr) const
     std::vector<size_t> carriers;
     if (layer_nr >= m_fold_slab_of_layer.size() || m_fold_slab_of_layer[layer_nr] < 0)
         return carriers;
-    for (size_t carrier : m_fold_carriers[size_t(m_fold_slab_of_layer[layer_nr])])
-        if (carrier > layer_nr)
-            carriers.emplace_back(carrier);
+    const coordf_t layer_top = m_ts_data->layer_heights[layer_nr].print_z;
+    for (const FoldCarrier &carrier : m_fold_carriers[size_t(m_fold_slab_of_layer[layer_nr])])
+        if (carrier.layer > layer_nr && layer_top > carrier.bottom_z + EPSILON)
+            carriers.emplace_back(carrier.layer);
     return carriers;
 }
 
@@ -4462,6 +4612,42 @@ void TreeSupport::resolve_material_covered_by_folded_interfaces()
                 trim_layer(*source, base_priority_cut, {}))
                 ++ trimmed_layers;
         }
+
+        // Nested folded bases share a complete Z interval, so the outer carrier already extrudes their XY
+        // intersection. Trim that duplicate from the shorter layer using the final rendered geometry. True
+        // partial-Z overlaps and interface-over-base conflicts were rejected before folding.
+        if (source->base_slab_height > source->height + EPSILON && ! source->base_areas.empty()) {
+            const coordf_t source_top    = source->print_z;
+            const coordf_t source_bottom = source_top - source->base_slab_height;
+            const ExPolygons &source_base = source->base_areas;
+            const BoundingBox source_bbox = get_extents(source_base);
+
+            for (size_t victim_idx = source_idx; victim_idx -- > size_t(m_raft_layers);) {
+                if (m_object->print()->canceled())
+                    return;
+                const SupportLayer *victim = layers[victim_idx];
+                if (victim == nullptr || victim->height < EPSILON || victim->base_areas.empty())
+                    continue;
+                const coordf_t victim_top    = victim->print_z;
+                const coordf_t victim_bottom = victim_top - base_height(*victim);
+                if (victim_top <= source_bottom + EPSILON)
+                    break;
+                if (! source_bbox.overlap(get_extents(victim->base_areas)))
+                    continue;
+
+                ExPolygons overlap = intersection_ex(victim->base_areas, source_base);
+                if (overlap.empty())
+                    continue;
+                if (source_bottom <= victim_bottom + EPSILON &&
+                    source_top >= victim_top - EPSILON)
+                    append(base_cut[victim_idx], std::move(overlap));
+                else
+                    BOOST_LOG_TRIVIAL(warning)
+                        << "Folded support base overlaps only part of a base Z span: source z=["
+                        << source_bottom << ',' << source_top << "], victim z=["
+                        << victim_bottom << ',' << victim_top << "]; keeping both regions";
+            }
+        }
         if (! is_folded_interface(*source))
             continue;
 
@@ -4476,7 +4662,7 @@ void TreeSupport::resolve_material_covered_by_folded_interfaces()
         auto collect_cut = [&](size_t victim_idx, coordf_t victim_height,
                                const ExPolygons &victim_areas, ExPolygons &cut,
                                const char *victim_type) {
-            if (victim_areas.empty())
+            if (victim_height < EPSILON || victim_areas.empty())
                 return;
             const coordf_t victim_top    = layers[victim_idx]->print_z;
             const coordf_t victim_bottom = victim_top - victim_height;
