@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -11404,17 +11404,14 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Reziduuri de filament la temperatură scăzută detectate în Hotend %s. Imprimarea la temperatură ridicată a camerei poate cauza înfundarea duzelor. Vă rugăm să încărcați mai întâi filamentul."
 
-msgid "Cool"
-msgstr "Răcire"
-
-msgid "Engineering"
-msgstr "Inginerie"
-
-msgid "High Temp"
-msgstr "Temperatură ridicată"
-
-msgid "Cool(Supertack)"
+msgid "Cool Plate"
 msgstr ""
+
+msgid "Engineering Plate"
+msgstr "Placă tehnică"
+
+msgid "Textured PEI Plate"
+msgstr "Placă PEI texturată"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Faceți clic aici dacă nu vă puteți conecta la imprimantă"
@@ -11975,14 +11972,8 @@ msgstr "Temperatura de imprimare"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "Temperatura patului atunci când este instalată placa de răcire. Valoarea 0 înseamnă că filamentul nu este compatibil cu imprimarea pe Bambu Cool Plate SuperTack"
 
-msgid "Cool Plate"
-msgstr ""
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "Temperatura patului atunci când este instalată placa de răcire. Valoarea 0 înseamnă că filamentul nu este compatibil cu imprimarea pe Cool Plate"
-
-msgid "Engineering Plate"
-msgstr "Placă tehnică"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "Temperatura patului atunci când este instalată placa tehnică. Valoarea 0 înseamnă că filamentul nu acceptă imprimarea pe placa tehnică"
@@ -11992,9 +11983,6 @@ msgstr "Placă PEI netedă / Placă de înaltă temperatură"
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "Temperatura patului când este instalată placa PEI netedă/placa de înaltă temperatură. Valoarea 0 înseamnă că filamentul nu acceptă imprimarea pe placa PEI netedă/placa pentru temperaturi ridicate"
-
-msgid "Textured PEI Plate"
-msgstr "Placă PEI texturată"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "Temperatura patului când este instalată placa PEI texturată. Valoarea 0 înseamnă că filamentul nu este compatibil cu imprimarea pe placa PEI texturată"
@@ -15130,7 +15118,7 @@ msgstr "Volumul de material necesar pentru amorsarea extruderului pentru schimba
 msgid "Pre-heating when extruder change"
 msgstr "Preîncălzire la schimbarea extruderului"
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -20055,6 +20043,9 @@ msgstr "Mai întâi, setați pentru imprimantă, în secțiunea de mai jos, o du
 msgid "No nozzle is installed in this slot."
 msgstr "Nu este instalată nicio duză în acest slot."
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Nepotrivire a diametrului duzei. Această duză nu poate fi utilizată."
 
@@ -20246,9 +20237,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"
@@ -21095,6 +21083,15 @@ msgid ""
 msgstr ""
 "Fiabilitate de la prima încercare\n"
 "Mai puțină supraveghere, rezultate mai previzibile. Exemplu: o fermă mică care produce piese PETG evită surprizele de tip „defecțiune la ora 6” și menține loturile la timp."
+
+#~ msgid "Cool"
+#~ msgstr "Răcire"
+
+#~ msgid "Engineering"
+#~ msgstr "Inginerie"
+
+#~ msgid "High Temp"
+#~ msgstr "Temperatură ridicată"
 
 #~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
 #~ msgstr "Notă: dacă se introduce un filament nou în timpul imprimării, AMS nu va citi automat nicio informație până la finalizarea imprimării."

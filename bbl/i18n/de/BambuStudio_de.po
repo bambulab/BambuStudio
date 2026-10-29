@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -11392,17 +11392,14 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Rückstände von Niedertemperatur-Filament im Hotend %s festgestellt. Hohe Kammertemperaturen beim Drucken können zu Düsenverstopfungen führen. Bitte laden Sie zuerst Filament."
 
-msgid "Cool"
-msgstr ""
+msgid "Cool Plate"
+msgstr "Cool Plate/PLA Plate"
 
-msgid "Engineering"
-msgstr ""
+msgid "Engineering Plate"
+msgstr "Engineering Plate"
 
-msgid "High Temp"
-msgstr ""
-
-msgid "Cool(Supertack)"
-msgstr ""
+msgid "Textured PEI Plate"
+msgstr "Textured PEI Plate"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Klicken Sie hier, wenn Sie keine Verbindung zum Drucker herstellen können"
@@ -11965,14 +11962,8 @@ msgstr "Drucktemperatur"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "Betriebstemperatur des Bettes bei installierter Cool Plate. Der Wert 0 bedeutet, dass das Filament das Drucken auf der Bambu Cool Plate (SuperTack) nicht unterstützt."
 
-msgid "Cool Plate"
-msgstr "Cool Plate/PLA Plate"
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "Dies ist die Betttemperatur, wenn die Cool Plate installiert ist. Ein Wert von 0 bedeutet, dass das Filament auf der Cool Plate nicht unterstützt."
-
-msgid "Engineering Plate"
-msgstr "Engineering Plate"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "Dies ist die Betttemperatur, wenn die Engineering Plate installiert wird. Ein Wert von 0 bedeutet, dass das Filament auf der Engineering Plate nicht unterstützt wird."
@@ -11982,9 +11973,6 @@ msgstr "Smooth PEI Plate / High Temp Plate"
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "Betttemperatur, wenn Smooth PEI Plate/High Temperature Plate installiert ist. Der Wert 0 bedeutet, dass das Filament ein Druck auf der Smooth PEI Plate/High Temp Plate nicht unterstützt"
-
-msgid "Textured PEI Plate"
-msgstr "Textured PEI Plate"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "Betttemperatur, wenn die texturierte PEI-Platte installiert ist. 0 bedeutet, dass das Filament nicht auf der texturierten PEI-Platte unterstützt wird."
@@ -15116,7 +15104,7 @@ msgstr "Das Materialvolumen, das erforderlich ist, um den Extruder für einen Ho
 msgid "Pre-heating when extruder change"
 msgstr "Vorheizen beim Extruderwechsel"
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -20040,6 +20028,9 @@ msgstr "Bitte stellen Sie im folgenden Abschnitt zunächst eine Düse mit einem 
 msgid "No nozzle is installed in this slot."
 msgstr "In diesem Steckplatz ist keine Düse installiert."
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Düsendurchmesser stimmen nicht überein. Diese Düse kann nicht verwendet werden."
 
@@ -20234,9 +20225,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"

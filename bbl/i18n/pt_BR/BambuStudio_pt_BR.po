@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -11389,17 +11389,14 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Detectado resíduo de filamento de baixa temperatura no Hotend %s. A impressão com alta temperatura da câmara pode causar entupimento do bico. Por favor, carregue o filamento primeiro."
 
-msgid "Cool"
-msgstr "Frio"
+msgid "Cool Plate"
+msgstr "Placa fria/Placa PLA"
 
-msgid "Engineering"
-msgstr "Engenharia"
+msgid "Engineering Plate"
+msgstr "Placa de engenharia"
 
-msgid "High Temp"
-msgstr "Alta temperatura"
-
-msgid "Cool(Supertack)"
-msgstr ""
+msgid "Textured PEI Plate"
+msgstr "Placa PEI texturizada"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Clique aqui se você não conseguir se conectar à impressora"
@@ -11964,14 +11961,8 @@ msgstr "Temperatura de impressão"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "Temperatura da mesa quando a Cool Plate é instalada. Valor 0 significa que o filamento não suporta impressão na Bambu Cool Plate (SuperTack)."
 
-msgid "Cool Plate"
-msgstr "Placa fria/Placa PLA"
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "Esta é a temperatura da mesa quando a placa fria é instalada. Um valor de 0 significa que o filamento não suporta impressão na placa fria."
-
-msgid "Engineering Plate"
-msgstr "Placa de engenharia"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "Esta é a temperatura da mesa quando a placa de engenharia é instalada. Um valor de 0 significa que o filamento não suporta impressão na placa de engenharia."
@@ -11981,9 +11972,6 @@ msgstr "Placa PEI lisa/placa de alta temperatura"
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "Temperatura do leito quando a placa PEI lisa/placa de alta temperatura está instalada. O valor 0 significa que o filamento não suporta a impressão na placa PEI lisa/placa de alta temperatura"
-
-msgid "Textured PEI Plate"
-msgstr "Placa PEI texturizada"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "Temperatura da cama quando a placa PEI texturizada está instalada. 0 significa que o filamento não é compatível com a placa PEI texturizada"
@@ -15117,7 +15105,7 @@ msgstr "O volume de material necessário para preparar o extrusor para uma troca
 msgid "Pre-heating when extruder change"
 msgstr "Pré-aquecimento na troca de extrusora"
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -20045,6 +20033,9 @@ msgstr "Primeiro, defina um bico de %s mm para a impressora na seção abaixo a
 msgid "No nozzle is installed in this slot."
 msgstr "Não há bico instalado neste slot."
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Diâmetro do bico incompatível. Este bico não pode ser usado."
 
@@ -20239,9 +20230,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"
@@ -21087,6 +21075,15 @@ msgid ""
 msgstr ""
 "Confiabilidade na Primeira Tentativa\n"
 "Menos supervisão, saída mais previsível. Exemplo: uma pequena fazenda produzindo peças de PETG evita surpresas de \"falha na hora 6\" e mantém os lotes no cronograma."
+
+#~ msgid "Cool"
+#~ msgstr "Frio"
+
+#~ msgid "Engineering"
+#~ msgstr "Engenharia"
+
+#~ msgid "High Temp"
+#~ msgstr "Alta temperatura"
 
 #~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
 #~ msgstr "Nota: se um novo filamento for inserido durante a impressão, o AMS não lerá automaticamente nenhuma informação até que a impressão seja concluída."

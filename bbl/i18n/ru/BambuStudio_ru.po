@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -11538,17 +11538,14 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "В хотенде %s обнаружены остатки низкотемпературного филамента. Печать при высокой температуре в камере может привести к закупорке сопла. Сначала загрузите филамент."
 
-msgid "Cool"
+msgid "Cool Plate"
 msgstr "Холодная пластина"
 
-msgid "Engineering"
+msgid "Engineering Plate"
 msgstr "Инженерная пластина"
 
-msgid "High Temp"
-msgstr "Высокотемпературная пластина"
-
-msgid "Cool(Supertack)"
-msgstr "Холодная пластина (SuperTack)"
+msgid "Textured PEI Plate"
+msgstr "Текстурированная PEI пластина"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Нажмите здесь, если не удаётся подключиться к принтеру"
@@ -12124,14 +12121,8 @@ msgstr "Температура печати"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "Температура плиты при установленной холодной пластине. Значение 0 означает, что этот филамент не поддерживает печать на холодной пластине Bambu SuperTack."
 
-msgid "Cool Plate"
-msgstr "Холодная пластина"
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "Температура плиты при установленной холодной пластине. Значение 0 означает, что этот филамент не поддерживает печать на холодной пластине."
-
-msgid "Engineering Plate"
-msgstr "Инженерная пластина"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "Температура плиты при установленной инженерной пластине. Значение 0 означает, что этот филамент не поддерживает печать на инженерной пластине."
@@ -12141,9 +12132,6 @@ msgstr "Гладкая PEI пластина / Высокотемпературн
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "Температура плиты при установленной гладкой PEI пластине/высокотемпературной пластине. Значение 0 означает, что этот филамент не поддерживает печать на гладкой PEI пластине/высокотемпературной пластине."
-
-msgid "Textured PEI Plate"
-msgstr "Текстурированная PEI пластина"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "Температура плиты при установленной текстурированной PEI пластине. Значение 0 означает, что этот филамент не поддерживает печать на текстурированной PEI пластине."
@@ -15311,7 +15299,7 @@ msgstr "Объём материала, необходимый для прока�
 msgid "Pre-heating when extruder change"
 msgstr "Предварительный нагрев при смене экструдера"
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -20282,6 +20270,9 @@ msgstr "Прежде чем использовать этот диаметр д�
 msgid "No nozzle is installed in this slot."
 msgstr "В этом слоте не установлено сопло."
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Несоответствие диаметра сопла. Это сопло нельзя использовать."
 
@@ -20480,9 +20471,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"
@@ -21331,6 +21319,18 @@ msgid ""
 msgstr ""
 "Надёжный результат с первой попытки\n"
 "Меньше постоянного контроля — более предсказуемый результат. Например, небольшая ферма, печатающая детали из PETG, избегает неожиданных сбоев на шестом часу печати и выпускает партии по графику."
+
+#~ msgid "Cool"
+#~ msgstr "Холодная пластина"
+
+#~ msgid "Engineering"
+#~ msgstr "Инженерная пластина"
+
+#~ msgid "High Temp"
+#~ msgstr "Высокотемпературная пластина"
+
+#~ msgid "Cool(Supertack)"
+#~ msgstr "Холодная пластина (SuperTack)"
 
 #~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
 #~ msgstr "Примечание: если во время печати установить новый филамент, AMS не будет автоматически считывать его данные до завершения печати."

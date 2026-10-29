@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -11091,16 +11091,13 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
-msgid "Cool"
+msgid "Cool Plate"
 msgstr ""
 
-msgid "Engineering"
+msgid "Engineering Plate"
 msgstr ""
 
-msgid "High Temp"
-msgstr ""
-
-msgid "Cool(Supertack)"
+msgid "Textured PEI Plate"
 msgstr ""
 
 msgid "Click here if you can't connect to the printer"
@@ -11643,13 +11640,7 @@ msgstr ""
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Cool Plate"
-msgstr ""
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
-msgstr ""
-
-msgid "Engineering Plate"
 msgstr ""
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
@@ -11659,9 +11650,6 @@ msgid "Smooth PEI Plate / High Temp Plate"
 msgstr ""
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
-msgstr ""
-
-msgid "Textured PEI Plate"
 msgstr ""
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
@@ -14730,7 +14718,7 @@ msgstr ""
 msgid "Pre-heating when extruder change"
 msgstr ""
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -19526,6 +19514,9 @@ msgstr ""
 msgid "No nozzle is installed in this slot."
 msgstr ""
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr ""
 
@@ -19717,9 +19708,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"

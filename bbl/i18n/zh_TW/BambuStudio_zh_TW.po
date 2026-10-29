@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -11343,17 +11343,14 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "在熱端 %s 中偵測到低溫線材殘留物。高腔體溫度列印可能造成噴頭堵塞。請先裝入線材。"
 
-msgid "Cool"
-msgstr "冷卻"
+msgid "Cool Plate"
+msgstr "低溫列印板"
 
-msgid "Engineering"
-msgstr "工程"
+msgid "Engineering Plate"
+msgstr "工程材料列印板"
 
-msgid "High Temp"
-msgstr "高溫"
-
-msgid "Cool(Supertack)"
-msgstr "冷卻（超黏）"
+msgid "Textured PEI Plate"
+msgstr "紋理PEI列印板"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "如果您無法連線印表機，請點選這裡"
@@ -11912,14 +11909,8 @@ msgstr "列印溫度"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "安裝冷卻板時的床溫。值0表示耗材絲不支援在增穩低溫列印板上列印。"
 
-msgid "Cool Plate"
-msgstr "低溫列印板"
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "安裝低溫列印板時的熱床溫度。0值表示這個耗材絲不支援低溫列印熱板"
-
-msgid "Engineering Plate"
-msgstr "工程材料列印板"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "安裝工程材料列印板時的熱床溫度。0值表示這個耗材絲不支援工程材料列印板"
@@ -11929,9 +11920,6 @@ msgstr "光面PEI列印板 / 高溫列印板"
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "安裝光面PEI列印板/高溫列印板時的熱床溫度。0值表示這個耗材絲不支援光面PEI列印板/高溫列印板"
-
-msgid "Textured PEI Plate"
-msgstr "紋理PEI列印板"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "安裝紋理PEI列印板時的熱床溫度。0值表示這個耗材絲不支援紋理PEI列印板"
@@ -15063,7 +15051,7 @@ msgstr "換熱端所需的擦料塔上的清理量。"
 msgid "Pre-heating when extruder change"
 msgstr "換擠出機時預熱"
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -19970,6 +19958,9 @@ msgstr "請先在下方區段為印表機設定 %smm 直徑噴頭，再使用此
 msgid "No nozzle is installed in this slot."
 msgstr "此槽位未安裝噴頭。"
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "噴頭直徑不符。此噴頭無法使用。"
 
@@ -20163,9 +20154,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"
@@ -21010,6 +20998,18 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
+
+#~ msgid "Cool"
+#~ msgstr "冷卻"
+
+#~ msgid "Engineering"
+#~ msgstr "工程"
+
+#~ msgid "High Temp"
+#~ msgstr "高溫"
+
+#~ msgid "Cool(Supertack)"
+#~ msgstr "冷卻（超黏）"
 
 #~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
 #~ msgstr "注意：如果是在列印過程中插入新的耗材絲，AMS會在列印結束後自動讀取此耗材絲資訊。"

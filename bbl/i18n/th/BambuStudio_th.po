@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -11379,17 +11379,14 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "ตรวจพบเศษเส้นวัสดุอุณหภูมิต่ำตกค้างอยู่ในชุดหัวพิมพ์ %s การพิมพ์ในขณะที่อุณหภูมิห้องพิมพ์สูงเกินไป อาจทำให้หัวฉีดอุดตันได้ โปรดใส่เส้นวัสดุก่อน"
 
-msgid "Cool"
-msgstr "อุณหภูมิต่ำ"
+msgid "Cool Plate"
+msgstr "แผ่นชนิดอุณหภูมิต่ำ"
 
-msgid "Engineering"
-msgstr "วิศวกรรม"
+msgid "Engineering Plate"
+msgstr "แผ่นเกรดวิศวกรรม"
 
-msgid "High Temp"
-msgstr "อุณหภูมิสูง"
-
-msgid "Cool(Supertack)"
-msgstr "อุณหภูมิต่ำ (Supertack)"
+msgid "Textured PEI Plate"
+msgstr "แผ่น PEI ผิวหยาบ"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "คลิกที่นี่หากไม่สามารถเชื่อมต่อกับเครื่องพิมพ์"
@@ -11949,14 +11946,8 @@ msgstr "อุณหภูมิการพิมพ์"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "อุณหภูมิฐานเมื่อติดตั้งแผ่นฐานชนิดอุณหภูมิต่ำ ค่า 0 หมายถึงเส้นวัสดุไม่รองรับการพิมพ์บนแผ่นชนิดอุณหภูมิต่ำรุ่น SuperTack Bambu"
 
-msgid "Cool Plate"
-msgstr "แผ่นชนิดอุณหภูมิต่ำ"
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "อุณหภูมิฐานเมื่อติดตั้งแผ่นฐานชนิดอุณหภูมิต่ำ ค่า 0 หมายถึงเส้นวัสดุไม่รองรับการพิมพ์บนแผ่นฐานชนิดอุณหภูมิต่ำ"
-
-msgid "Engineering Plate"
-msgstr "แผ่นเกรดวิศวกรรม"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "อุณหภูมิฐานเมื่อติดตั้งแผ่นวิศวกรรม ค่า 0 หมายถึงเส้นวัสดุไม่รองรับการพิมพ์บนแผ่นวิศวกรรม"
@@ -11966,9 +11957,6 @@ msgstr "แผ่น PEI ผิวเรียบ / แผ่นทนควา�
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "อุณหภูมิฐานเมื่อติดตั้งแผ่น PEI ผิวเรียบ/แผ่นทนความร้อนสูง ค่า 0 หมายถึงเส้นวัสดุไม่รองรับการพิมพ์บนแผ่น PEI ผิวเรียบ/แผ่นทนความร้อนสูง"
-
-msgid "Textured PEI Plate"
-msgstr "แผ่น PEI ผิวหยาบ"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "อุณหภูมิฐานเมื่อติดตั้งแผ่น PEI ผิวหยาบ ค่า 0 หมายถึงเส้นวัสดุไม่รองรับการพิมพ์บนแผ่น PEI ผิวหยาบ"
@@ -15100,7 +15088,7 @@ msgstr "ปริมาตรวัสดุที่จำเป็นสำห
 msgid "Pre-heating when extruder change"
 msgstr "ให้ความร้อนล่วงหน้าเมื่อเปลี่ยนเอ็กซ์ทรูเดอร์"
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -20023,6 +20011,9 @@ msgstr "โปรดตั้งค่าหัวฉีดเส้นผ่า
 msgid "No nozzle is installed in this slot."
 msgstr "ไม่มีหัวฉีดติดตั้งอยู่ในช่องนี้"
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "ขนาดเส้นผ่านศูนย์กลางหัวฉีดไม่ตรงกัน หัวฉีดนี้ไม่สามารถใช้งานได้"
 
@@ -20214,9 +20205,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"
@@ -21061,6 +21049,18 @@ msgid ""
 msgstr ""
 "ความน่าเชื่อถือแบบสำเร็จตั้งแต่ครั้งแรก\n"
 "ไม่ต้องคอยเฝ้า ได้ผลลัพธ์ที่คาดเดาได้มากขึ้น ตัวอย่าง: ฟาร์มพิมพ์ขนาดเล็กที่ผลิตชิ้นส่วน PETG สามารถหลีกเลี่ยงปัญหา 'งานเสียในชั่วโมงที่ 6' และส่งมอบงานได้ตรงตามกำหนด"
+
+#~ msgid "Cool"
+#~ msgstr "อุณหภูมิต่ำ"
+
+#~ msgid "Engineering"
+#~ msgstr "วิศวกรรม"
+
+#~ msgid "High Temp"
+#~ msgstr "อุณหภูมิสูง"
+
+#~ msgid "Cool(Supertack)"
+#~ msgstr "อุณหภูมิต่ำ (Supertack)"
 
 #~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
 #~ msgstr "หมายเหตุ: หากใส่เส้นวัสดุใหม่ระหว่างการพิมพ์ AMS จะไม่อ่านข้อมูลอัตโนมัติจนกว่าจะพิมพ์เสร็จสิ้น"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -11384,17 +11384,14 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Hotend %s içinde düşük sıcaklık filamenti kalıntısı tespit edildi. Yüksek oda sıcaklığında yazdırma, püskürtme ucunun tıkanmasına neden olabilir. Lütfen önce filamenti yükleyin."
 
-msgid "Cool"
-msgstr "Soğutma"
+msgid "Cool Plate"
+msgstr "Soğutma Tablası"
 
-msgid "Engineering"
-msgstr "Mühendislik"
+msgid "Engineering Plate"
+msgstr "Mühendislik Tablası"
 
-msgid "High Temp"
-msgstr "Yüksek Sıcaklık"
-
-msgid "Cool(Supertack)"
-msgstr "Soğutma (SuperTack)"
+msgid "Textured PEI Plate"
+msgstr "Dokulu PEI Tabla"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Yazıcıya bağlanamıyorsan buraya tıkla."
@@ -11956,14 +11953,8 @@ msgstr "Yazdırma sıcaklığı"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "Soğutma Tablası takıldığında yatak sıcaklığı. 0 değeri, filamentin Bambu Soğutma Tablası SuperTack üzerinde yazdırmayı desteklemediği anlamına gelir."
 
-msgid "Cool Plate"
-msgstr "Soğutma Tablası"
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "Soğutma Tablası takıldığında yatak sıcaklığı. 0 değeri, filamentin Soğutma Tablası üzerinde yazdırmayı desteklemediği anlamına gelir."
-
-msgid "Engineering Plate"
-msgstr "Mühendislik Tablası"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "Mühendislik Tablası takıldığında yatak sıcaklığı. 0 değeri, filamentin Mühendislik Tablası üzerinde yazdırmayı desteklemediği anlamına gelir."
@@ -11973,9 +11964,6 @@ msgstr "Pürüzsüz PEI Tabla / Yüksek Sıcaklık Tablası"
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "Pürüzsüz PEI Tabla/Yüksek Sıcaklık Tablası takıldığında yatak sıcaklığı. 0 değeri, filamentin Pürüzsüz PEI Tabla/Yüksek Sıcaklık Tablası üzerinde yazdırmayı desteklemediği anlamına gelir."
-
-msgid "Textured PEI Plate"
-msgstr "Dokulu PEI Tabla"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "Dokulu PEI Tabla takıldığında yatak sıcaklığı. 0 değeri, filamentin Dokulu PEI Tabla üzerinde yazdırmayı desteklemediği anlamına gelir."
@@ -15105,7 +15093,7 @@ msgstr "Kulede hotend değişimi sırasında ekstrüderi hazırlamak için gerek
 msgid "Pre-heating when extruder change"
 msgstr "Ekstrüder değişimi sırasında ön ısıtma"
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -20027,6 +20015,9 @@ msgstr "Bu çapı dilimleme için kullanmadan önce lütfen aşağıdaki bölüm
 msgid "No nozzle is installed in this slot."
 msgstr "Bu yuvada herhangi bir püskürtme ucu takılı değil."
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Püskürtme ucu çapı uyuşmuyor. Bu püskürtme ucu kullanılamaz."
 
@@ -20222,9 +20213,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"
@@ -21070,6 +21058,18 @@ msgid ""
 msgstr ""
 "İlk Seferde Başarı Güvenilirliği\n"
 "Daha az gözetim, daha öngörülebilir sonuçlar. Örnek: PETG parçaları üreten küçük bir yazıcı çiftliği, \"6. saatte baskının başarısız olması\" gibi sürprizlerden kaçınır ve partileri programa uygun şekilde tamamlar."
+
+#~ msgid "Cool"
+#~ msgstr "Soğutma"
+
+#~ msgid "Engineering"
+#~ msgstr "Mühendislik"
+
+#~ msgid "High Temp"
+#~ msgstr "Yüksek Sıcaklık"
+
+#~ msgid "Cool(Supertack)"
+#~ msgstr "Soğutma (SuperTack)"
 
 #~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
 #~ msgstr "Not: Baskı sırasında yeni bir filament takılırsa, AMS baskı tamamlanana kadar otomatik olarak herhangi bir bilgi okumaz."

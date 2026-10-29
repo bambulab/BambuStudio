@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4973,7 +4973,7 @@ msgid "Power on update"
 msgstr "开机时检测"
 
 msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
-msgstr ""
+msgstr "每次开机时，AMS将会自动读取其所插入的耗材信息(读取过程会转料卷)。需要花时大约1分钟。"
 
 msgid "Automatically refresh unloaded filaments"
 msgstr "自动刷新未装载的耗材"
@@ -11343,17 +11343,14 @@ msgstr "本次打印涉及换头，%d号槽的TPU可能从打印头脱出，建�
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "在热端 %s 中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"
 
-msgid "Cool"
-msgstr "Cool"
+msgid "Cool Plate"
+msgstr "低温打印板"
 
-msgid "Engineering"
-msgstr "Engineering"
+msgid "Engineering Plate"
+msgstr "工程材料打印板"
 
-msgid "High Temp"
-msgstr "High Temp"
-
-msgid "Cool(Supertack)"
-msgstr "增稳低温打印板"
+msgid "Textured PEI Plate"
+msgstr "纹理PEI打印板"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "如果您无法连接打印机，请点击这里"
@@ -11717,7 +11714,7 @@ msgid "Do you want to apply these settings?"
 msgstr "是否应用这些配置？"
 
 msgid "When enabling ironing, We recommend the following settings:"
-msgstr ""
+msgstr "启用熨烫功能时，我们推荐配置以下参数："
 
 msgid "Top surface"
 msgstr "顶面"
@@ -11726,7 +11723,7 @@ msgid "mm/s"
 msgstr "mm/s"
 
 msgid "Layer height cannot exceed nozzle diameter. It will be reset to the default value."
-msgstr ""
+msgstr "层高不能超过喷嘴直径。将重置为默认值。"
 
 msgid ""
 "Layer height is too small.\n"
@@ -11912,14 +11909,8 @@ msgstr "打印温度"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "安装冷却板时的床温。值0表示耗材丝不支持在增稳低温打印板上打印。"
 
-msgid "Cool Plate"
-msgstr "低温打印板"
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "安装低温打印板时的热床温度。0值表示这个耗材丝不支持低温打印热板"
-
-msgid "Engineering Plate"
-msgstr "工程材料打印板"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "安装工程材料打印板时的热床温度。0值表示这个耗材丝不支持工程材料打印板"
@@ -11929,9 +11920,6 @@ msgstr "光面PEI打印板 / 高温打印板"
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "安装光面PEI打印板/高温打印板时的热床温度。0值表示这个耗材丝不支持光面PEI打印板/高温打印板"
-
-msgid "Textured PEI Plate"
-msgstr "纹理PEI打印板"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "安装纹理PEI打印板时的热床温度。0值表示这个耗材丝不支持纹理PEI打印板"
@@ -15064,8 +15052,8 @@ msgstr "换热端所需的擦料塔上的清理量。"
 msgid "Pre-heating when extruder change"
 msgstr "切换喷嘴前预热"
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
-msgstr ""
+msgid "Pre-heat the hotend during the idle period before an extruder change."
+msgstr "在切换喷嘴前的空闲时段预加热热端"
 
 msgid "Preheat temperature delta"
 msgstr "预热温度差"
@@ -15131,7 +15119,7 @@ msgid "Fin extrude safe temperature"
 msgstr "鳍片挤出安全温度"
 
 msgid "Safe hotend temperature for fin extrusion. 0 means disabled. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr ""
+msgstr "鳍片挤出时的安全热端温度。0 表示禁用。可在自定义 G-code 中通过 fins_extrude_safe_temp 访问。"
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "为了防止溢料，预冲刷完成后，喷嘴会进行一段时间的反向空驶。该设置用于定义空驶时间。"
@@ -17201,7 +17189,7 @@ msgid "Filament switch retraction length"
 msgstr "切换耗材回抽长度"
 
 msgid "Filament switch extra length on restart"
-msgstr ""
+msgstr "切料额外回填长度"
 
 msgid "Override overhang speed"
 msgstr "覆盖工艺悬垂速度"
@@ -19974,6 +19962,9 @@ msgstr "请先在下方为打印机设置 %smm 直径喷嘴，然后再使用该
 msgid "No nozzle is installed in this slot."
 msgstr "此插槽中未安装喷嘴。"
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr "热端信息未知。请在使用前刷新喷嘴信息。"
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "喷嘴直径不匹配。此喷嘴无法使用。"
 
@@ -20178,9 +20169,6 @@ msgstr "未知耗材"
 msgid "Hotend status is abnormal and not available. Click to update firmware."
 msgstr "热端状态异常，无法使用。点击更新固件。"
 
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
-msgstr "热端信息未知。请在使用前刷新喷嘴信息。"
-
 msgid "Extruder Settings"
 msgstr "喷嘴设置"
 
@@ -20225,7 +20213,7 @@ msgid "Don't show this again when opening 3MF files"
 msgstr "打开3mf文件时不再显示弹窗"
 
 msgid "Adapt Settings"
-msgstr "应用迁移"
+msgstr "迁移"
 
 #, c-format, boost-format
 msgid "Nozzle %d: "
@@ -21028,6 +21016,18 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Cool"
+#~ msgstr "Cool"
+
+#~ msgid "Engineering"
+#~ msgstr "Engineering"
+
+#~ msgid "High Temp"
+#~ msgstr "High Temp"
+
+#~ msgid "Cool(Supertack)"
+#~ msgstr "增稳低温打印板"
 
 #~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
 #~ msgstr "注意：如果是在打印过程中插入新的耗材丝，AMS会在打印结束后自动读取此耗材丝信息。"

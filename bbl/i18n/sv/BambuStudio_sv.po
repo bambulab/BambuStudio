@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -11370,17 +11370,14 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Filamentrester från lågtemperaturfilament har upptäckts i hotend %s. Om du skriver ut när kammarens temperatur är hög kan det orsaka nozzle-clogging. Ladda filamentet först."
 
-msgid "Cool"
-msgstr ""
+msgid "Cool Plate"
+msgstr "Cool Plate"
 
-msgid "Engineering"
-msgstr "Teknik"
+msgid "Engineering Plate"
+msgstr "Engineering Plate"
 
-msgid "High Temp"
-msgstr "Hög temp"
-
-msgid "Cool(Supertack)"
-msgstr ""
+msgid "Textured PEI Plate"
+msgstr "Texturerad PEI-platta"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Klicka här om du inte kan ansluta till printern"
@@ -11943,14 +11940,8 @@ msgstr "Utskrifts temperatur"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "Bäddtemperatur när cool plattan är installerad. Värde 0 innebär att filamentet inte stöder utskrift på Bambu Cool Plate (SuperTack)."
 
-msgid "Cool Plate"
-msgstr "Cool Plate"
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "Detta är byggplattans temperatur när Cool Plate är installerad. Värdet 0 betyder att filamentet inte stöder utskrift på Cool Plate."
-
-msgid "Engineering Plate"
-msgstr "Engineering Plate"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "Detta är byggplattans temperatur när Engineering Plate är installerad. Ett värde på 0 betyder att filamentet inte stöder utskrift på Engineering Plate."
@@ -11960,9 +11951,6 @@ msgstr "Slät PEI platta / Högtemperaturs platta"
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "Bäddtemperatur när slät PEI-platta/Högtemperatur platta är installerad. Värde 0 betyder att filamentet inte stöder utskrift på den släta PEI-plattan/högtemperaturplattan"
-
-msgid "Textured PEI Plate"
-msgstr "Texturerad PEI-platta"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "Byggplattans temperatur när texturerad PEI-platta är installerad. 0 betyder att filamentet inte stöds på den texturerade PEI-plattan"
@@ -15093,7 +15081,7 @@ msgstr "Volymen av material som krävs för att prima extrudern för en hotend f
 msgid "Pre-heating when extruder change"
 msgstr "Förvärmning vid extruderbyte"
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -20022,6 +20010,9 @@ msgstr "Ange först en nozzle med diametern %s mm för skrivaren i sektionen ned
 msgid "No nozzle is installed in this slot."
 msgstr "Ingen nozzle är installerad på denna plats."
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Nozzle-diametern stämmer inte överens. Denna nozzle kan inte användas."
 
@@ -20216,9 +20207,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"
@@ -21062,6 +21050,12 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#~ msgid "Engineering"
+#~ msgstr "Teknik"
+
+#~ msgid "High Temp"
+#~ msgstr "Hög temp"
 
 #~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
 #~ msgstr "Obs:  Om ett nytt filament sätts in under utskriften kommer AMS inte att automatiskt läsa av någon information förrän utskriften är klar."

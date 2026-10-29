@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -11384,17 +11384,14 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Alacsony hőmérsékletű filamentmaradvány észlelhető a(z) %s hotendben. A magas kamrahőmérsékleten történő nyomtatás a fúvóka eltömődését okozhatja. Kérjük, először töltsd be a filamentet."
 
-msgid "Cool"
-msgstr ""
+msgid "Cool Plate"
+msgstr "Cool Plate"
 
-msgid "Engineering"
-msgstr ""
+msgid "Engineering Plate"
+msgstr "Engineering Plate"
 
-msgid "High Temp"
-msgstr ""
-
-msgid "Cool(Supertack)"
-msgstr ""
+msgid "Textured PEI Plate"
+msgstr "Textured PEI Plate"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Kattints ide, ha nem tudsz csatlakozni a nyomtatóhoz"
@@ -11956,14 +11953,8 @@ msgstr "Nyomtatási hőmérséklet"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "Az asztalhőmérséklet a Cool plate használatakor. A 0 érték azt jelenti, hogy az filament nem támogatja a Bambu Cool Plate SuperTack tálcára való nyomtatást"
 
-msgid "Cool Plate"
-msgstr "Cool Plate"
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "Asztalhőmérséklet a hideg tálca használatával. A 0 érték azt jelenti, hogy a filament nem támogatja a Cool Plate-re történő nyomtatást"
-
-msgid "Engineering Plate"
-msgstr "Engineering Plate"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "Asztalhőmérséklet a mérnöki tálca használatával. A 0 érték azt jelenti, hogy a filament nem támogatja az Engineering Plate-re történő nyomtatást"
@@ -11973,9 +11964,6 @@ msgstr "Smooth PEI Plate / High Temp Plate"
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "Az asztal hőmérséklete Smooth PEI / High Temperature tálca használatakor. A 0 érték azt jelenti, hogy a filament nem támogatja Smooth PEI / High Temperature tálcára történő nyomtatást"
-
-msgid "Textured PEI Plate"
-msgstr "Textured PEI Plate"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "Asztalhőmérséklet a „Textured PEI“ tálca használatával. A 0 érték azt jelenti, hogy a filament nem támogatja a „Textured PEI“ tálcára történő nyomtatást"
@@ -15109,7 +15097,7 @@ msgstr "Az extruder átöblítéséhez szükséges anyagmennyiség a hotend cser
 msgid "Pre-heating when extruder change"
 msgstr "Előmelegítés extruderváltáskor"
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -20029,6 +20017,9 @@ msgstr "Kérjük, mielőtt ezt az átmérőt szeleteléshez használnád, elősz
 msgid "No nozzle is installed in this slot."
 msgstr "Ebben a nyílásban nincs beszerelve fúvóka."
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Eltérő fúvókaátmérő. Ez a fúvóka nem használható."
 
@@ -20222,9 +20213,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"

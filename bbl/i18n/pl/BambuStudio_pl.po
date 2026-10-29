@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -11396,17 +11396,14 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "W hotendzie %s wykryto pozostałości filamentu niskotemperaturowego. Wysoka temperatura w komorze druku może spowodować zatkanie dyszy. Najpierw załaduj filament."
 
-msgid "Cool"
-msgstr ""
+msgid "Cool Plate"
+msgstr "Cool Plate/PLA Plate"
 
-msgid "Engineering"
-msgstr ""
+msgid "Engineering Plate"
+msgstr "Engineering Plate"
 
-msgid "High Temp"
-msgstr ""
-
-msgid "Cool(Supertack)"
-msgstr ""
+msgid "Textured PEI Plate"
+msgstr "Textured PEI Plate"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Kliknij tutaj, jeśli nie możesz połączyć się z drukarką"
@@ -11974,14 +11971,8 @@ msgstr "Temperatura druku"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "Temperatura stołu, gdy zamontowana jest Cool Plate. Wartość 0 oznacza, że filament nie obsługuje druku na Bambu Cool Plate (SuperTack)."
 
-msgid "Cool Plate"
-msgstr "Cool Plate/PLA Plate"
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "Temperatura stołu, gdy zamontowana jest Cool Plate. Wartość 0 oznacza, że filament nie obsługuje druku na Cool Plate"
-
-msgid "Engineering Plate"
-msgstr "Engineering Plate"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "Temperatura stołu, gdy zamontowana jest Engineering Plate. Wartość 0 oznacza, że filament nie obsługuje druku na Engineering Plate"
@@ -11991,9 +11982,6 @@ msgstr "Smooth PEI Plate / High Temp Plate"
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "Temperatura stołu, gdy zamontowana jest Smooth PEI Plate/High Temp. Wartość 0 oznacza, że filament nie obsługuje druku na Smooth PEI Plate/High Temp"
-
-msgid "Textured PEI Plate"
-msgstr "Textured PEI Plate"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "Temperatura stołu, gdy zamontowana jest Textured PEI. 0 oznacza, że filament nie jest obsługiwany na Textured PEI"
@@ -15136,7 +15124,7 @@ msgstr "Objętość materiału wymagana do oczyszczania ekstrudera na wieży prz
 msgid "Pre-heating when extruder change"
 msgstr "Podgrzewanie wstępne przy zmianie ekstrudera"
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -20067,6 +20055,9 @@ msgstr "Przed użyciem tej średnicy do cięcia należy najpierw ustawić dla dr
 msgid "No nozzle is installed in this slot."
 msgstr "W tym gnieździe nie zamontowano żadnej dyszy."
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Niezgodność średnicy dyszy. Ta dysza nie może być używana."
 
@@ -20261,9 +20252,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"

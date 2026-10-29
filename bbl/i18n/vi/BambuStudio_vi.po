@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -11380,17 +11380,14 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Phát hiện sợi nhựa nhiệt độ thấp còn sót lại trong đầu nung %s. Việc in ở nhiệt độ buồng in cao có thể gây tắc nghẽn vòi phun. Vui lòng nạp sợi nhựa trước."
 
-msgid "Cool"
-msgstr "Làm mát"
+msgid "Cool Plate"
+msgstr "Tấm in làm mát"
 
-msgid "Engineering"
-msgstr "Kỹ thuật"
+msgid "Engineering Plate"
+msgstr "Tấm in kỹ thuật"
 
-msgid "High Temp"
-msgstr "Nhiệt độ cao"
-
-msgid "Cool(Supertack)"
-msgstr "Mát (Supertack)"
+msgid "Textured PEI Plate"
+msgstr "Tấm in PEI nhám"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Nhấp vào đây nếu bạn không thể kết nối với máy in"
@@ -11950,14 +11947,8 @@ msgstr "Nhiệt độ in"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "Nhiệt độ bàn in khi lắp đặt tấm in làm mát. Giá trị 0 có nghĩa là sợi nhựa không hỗ trợ in trên Tấm in làm mát Bambu SuperTack"
 
-msgid "Cool Plate"
-msgstr "Tấm in làm mát"
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "Nhiệt độ bàn in khi lắp đặt tấm in làm mát. Giá trị 0 có nghĩa là sợi nhựa không hỗ trợ in trên Tấm in làm mát"
-
-msgid "Engineering Plate"
-msgstr "Tấm in kỹ thuật"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "Nhiệt độ bàn in khi lắp đặt tấm in kỹ thuật. Giá trị 0 có nghĩa là sợi nhựa không hỗ trợ in trên Tấm in kỹ thuật"
@@ -11967,9 +11958,6 @@ msgstr "Tấm in PEI mịn / Tấm in chịu nhiệt độ cao"
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "Nhiệt độ bàn in khi lắp đặt Tấm in PEI mịn/Tấm in chịu nhiệt độ cao. Giá trị 0 có nghĩa là sợi nhựa không hỗ trợ in trên Tấm in PEI mịn/Tấm in chịu nhiệt độ cao"
-
-msgid "Textured PEI Plate"
-msgstr "Tấm in PEI nhám"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "Nhiệt độ bàn in khi lắp đặt Tấm in PEI nhám. Giá trị 0 có nghĩa là sợi nhựa không hỗ trợ in trên Tấm in PEI nhám"
@@ -15101,7 +15089,7 @@ msgstr "Lượng vật liệu cần thiết để mồi vòi đùn nhựa cho vi
 msgid "Pre-heating when extruder change"
 msgstr "Làm nóng sơ bộ khi chuyển đổi vòi đùn nhựa"
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -20024,6 +20012,9 @@ msgstr "Vui lòng thiết lập vòi phun có đường kính %s mm cho máy in 
 msgid "No nozzle is installed in this slot."
 msgstr "Không có vòi phun nào được lắp đặt trong khe này."
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Đường kính vòi phun không khớp. Vòi phun này không thể sử dụng được."
 
@@ -20215,9 +20206,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"
@@ -21062,6 +21050,18 @@ msgid ""
 msgstr ""
 "Độ tin cậy thành công ngay lần đầu\n"
 "Giảm bớt việc phải theo dõi liên tục, tăng tính dự đoán được của kết quả đầu ra. Ví dụ: một cụm máy in nhỏ in các bộ phận bằng PETG sẽ tránh được những sự cố bất ngờ như \"hỏng hóc sau 6 giờ\" và đảm bảo các lô sản phẩm được hoàn tất đúng tiến độ."
+
+#~ msgid "Cool"
+#~ msgstr "Làm mát"
+
+#~ msgid "Engineering"
+#~ msgstr "Kỹ thuật"
+
+#~ msgid "High Temp"
+#~ msgstr "Nhiệt độ cao"
+
+#~ msgid "Cool(Supertack)"
+#~ msgstr "Mát (Supertack)"
 
 #~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
 #~ msgstr "Lưu ý: nếu một sợi nhựa mới được lắp vào trong quá trình in, AMS sẽ không tự động đọc bất kỳ thông tin nào cho đến khi quá trình in hoàn tất."

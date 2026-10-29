@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -11385,17 +11385,14 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
-msgid "Cool"
-msgstr "Chladná"
+msgid "Cool Plate"
+msgstr "Chladicí podložka"
 
-msgid "Engineering"
-msgstr "Technická"
+msgid "Engineering Plate"
+msgstr "Inženýrská podložka"
 
-msgid "High Temp"
-msgstr "Vysoká teplota"
-
-msgid "Cool(Supertack)"
-msgstr "Chladná (Supertack)"
+msgid "Textured PEI Plate"
+msgstr "Texturovaná PEI podložka"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Klikněte zde, pokud se nemůžete připojit k tiskárně"
@@ -11962,14 +11959,8 @@ msgstr "Teplota tisku"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "Teplota podložky při použití chladicí podložky. Hodnota 0 znamená, že filament nepodpěruje tisk na chladicí podložce Bambu SuperTack"
 
-msgid "Cool Plate"
-msgstr "Chladicí podložka"
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "Teplota podložky při použití chladicí podložky. Hodnota 0 znamená, že filament nepodpěruje tisk na chladicí podložce"
-
-msgid "Engineering Plate"
-msgstr "Inženýrská podložka"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "Teplota podložky při instalaci inženýrské podložky. Hodnota 0 znamená, že filament nepodpěruje tisk na inženýrské podložce"
@@ -11979,9 +11970,6 @@ msgstr "Hladká PEI podložka / podložka pro vysoké teploty"
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "Teplota podložky při instalaci hladké PEI podložky/podložky pro vysoké teploty. Hodnota 0 znamená, že filament nepodpěruje tisk na hladké PEI podložce/podložce pro vysoké teploty"
-
-msgid "Textured PEI Plate"
-msgstr "Texturovaná PEI podložka"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "Teplota podložky při použití texturované PEI podložky. Hodnota 0 znamená, že filament nepodpěruje tisk na texturované PEI podložce"
@@ -15128,7 +15116,7 @@ msgstr "Objem materiálu potřebný k předplnění extruderu při výměně hot
 msgid "Pre-heating when extruder change"
 msgstr ""
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -20105,6 +20093,9 @@ msgstr ""
 msgid "No nozzle is installed in this slot."
 msgstr ""
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr ""
 
@@ -20296,9 +20287,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"
@@ -21169,6 +21157,18 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid "Cool"
+#~ msgstr "Chladná"
+
+#~ msgid "Engineering"
+#~ msgstr "Technická"
+
+#~ msgid "High Temp"
+#~ msgstr "Vysoká teplota"
+
+#~ msgid "Cool(Supertack)"
+#~ msgstr "Chladná (Supertack)"
 
 #~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
 #~ msgstr "Poznámka: Pokud během tisku vložíte nový filament, AMS jeho informace automaticky nenačte, dokud tisk neskončí."

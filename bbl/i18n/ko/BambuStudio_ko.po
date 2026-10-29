@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -11375,17 +11375,14 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "핫엔드 %s에서 저온 필라멘트 잔류물이 검출되었습니다. 챔버 온도가 높으면 출력 중 노즐 막힘이 발생할 수 있습니다. 먼저 필라멘트를 로드해 주세요."
 
-msgid "Cool"
-msgstr "쿨한"
+msgid "Cool Plate"
+msgstr "쿨 플레이트/PLA 플레이트"
 
-msgid "Engineering"
-msgstr "엔지니어링"
+msgid "Engineering Plate"
+msgstr "엔지니어링 플레이트"
 
-msgid "High Temp"
-msgstr "고온"
-
-msgid "Cool(Supertack)"
-msgstr "쿨(슈퍼스택)"
+msgid "Textured PEI Plate"
+msgstr "Textured PEI 플레이트"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "프린터에 연결할 수 없는 경우 여기를 클릭하세요"
@@ -11946,14 +11943,8 @@ msgstr "출력 온도"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "쿨 플레이트가 설치되었을 때의 베드 온도입니다. 값 0은 필라멘트가 Bambu 쿨 플레이트 슈퍼택에 출력할 수 없음을 의미합니다"
 
-msgid "Cool Plate"
-msgstr "쿨 플레이트/PLA 플레이트"
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "Cool plate 를 사용할 때의 베드 온도입니다. 값이 0이면 필라멘트가 Cool Plate에서의 출력을 지원하지 않음을 의미합니다."
-
-msgid "Engineering Plate"
-msgstr "엔지니어링 플레이트"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "엔지니어링 플레이트를 사용할 때의 베드 온도입니다.값이 0이면 필라멘트가 엔지니어링 플레이트에서의 출력을 지원하지 않는다는 의미입니다."
@@ -11963,9 +11954,6 @@ msgstr "부드러운 PEI 플레이트 / 고온 플레이트"
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "스무스 PEI 플레이트/고온 플레이트가 설치된 경우의 베드 온도입니다. 값 0은 필라멘트가 스무스 PEI 플레이트/고온 플레이트에 출력할 수 없음을 의미합니다"
-
-msgid "Textured PEI Plate"
-msgstr "Textured PEI 플레이트"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "텍스처 PEI 플레이트가 설치되었을 때의 베드 온도입니다. 0은 필라멘트가 텍스처 PEI 플레이트에서 출력을 지원하지 않음을 의미합니다."
@@ -15098,7 +15086,7 @@ msgstr "타워에서 핫엔드를 교체하기 위해 압출기를 준비하는 
 msgid "Pre-heating when extruder change"
 msgstr "압출기 교체 시 예열"
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -20025,6 +20013,9 @@ msgstr "이 직경을 슬라이싱에 사용하기 전에 아래 섹션에서 �
 msgid "No nozzle is installed in this slot."
 msgstr "이 슬롯에는 노즐이 설치되어 있지 않습니다."
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "노즐 직경 불일치. 이 노즐은 사용할 수 없습니다."
 
@@ -20219,9 +20210,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"
@@ -21066,6 +21054,18 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#~ msgid "Cool"
+#~ msgstr "쿨한"
+
+#~ msgid "Engineering"
+#~ msgstr "엔지니어링"
+
+#~ msgid "High Temp"
+#~ msgstr "고온"
+
+#~ msgid "Cool(Supertack)"
+#~ msgstr "쿨(슈퍼스택)"
 
 #~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
 #~ msgstr "참고: 출력 중에 새 필라멘트를 삽입하면, 출력이 완료될 때까지 AMS가 자동으로 정보를 읽지 않습니다."

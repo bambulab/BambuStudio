@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -11391,17 +11391,14 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Ανιχνεύτηκαν υπολείμματα νήματος χαμηλής θερμοκρασίας στο θερμό άκρο %s. Η εκτύπωση σε υψηλή θερμοκρασία θαλάμου ενδέχεται να προκαλέσει απόφραξη των ακροφυσίων. Φορτώστε πρώτα το νήμα."
 
-msgid "Cool"
-msgstr "Ψύξη"
+msgid "Cool Plate"
+msgstr "Ψυχρή πλακέτα"
 
-msgid "Engineering"
-msgstr "Μηχανική"
+msgid "Engineering Plate"
+msgstr "Πλάκα μηχανικής χρήσης"
 
-msgid "High Temp"
-msgstr "Υψηλή θερμοκρασία"
-
-msgid "Cool(Supertack)"
-msgstr "Ψύξη(Supertack)"
+msgid "Textured PEI Plate"
+msgstr "Ανάγλυφη πλακέτα PEI"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Κάντε κλικ εδώ αν δεν μπορείτε να συνδεθείτε στον εκτυπωτή"
@@ -11962,14 +11959,8 @@ msgstr "Θερμοκρασία εκτύπωσης"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "Θερμοκρασία κλίνης/επιφάνειας όταν έχει εγκατασταθεί η πλακέτα ψύξης. Η τιμή 0 σημαίνει ότι το νήμα δεν υποστηρίζει την εκτύπωση στην Ψυχρή πλακέτα SuperTack Bambu"
 
-msgid "Cool Plate"
-msgstr "Ψυχρή πλακέτα"
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "Θερμοκρασία κλίνης/επιφάνειας όταν έχει εγκατασταθεί η πλακέτα ψύξης. Η τιμή 0 σημαίνει ότι το νήμα δεν υποστηρίζει την εκτύπωση στην πλακέτα ψύξης"
-
-msgid "Engineering Plate"
-msgstr "Πλάκα μηχανικής χρήσης"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "Θερμοκρασία κλίνης/επιφάνειας κατά την εγκατάσταση της πλακέτας μηχανικής. Η τιμή 0 σημαίνει ότι το νήμα δεν υποστηρίζει την εκτύπωση στην πλακέτα μηχανικής"
@@ -11979,9 +11970,6 @@ msgstr "Λεία πλακέτα PEI/Πλακέτα υψηλής θερμοκρα
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "Θερμοκρασία κλίνης/επιφάνειας όταν έχει εγκατασταθεί η Λεία πλακέτα PEI/Πλακέτα υψηλής θερμοκρασίας. Η τιμή 0 σημαίνει ότι το νήμα δεν υποστηρίζει την εκτύπωση στη Λεία πλακέτα PEI/Πλακέτα υψηλής θερμοκρασίας"
-
-msgid "Textured PEI Plate"
-msgstr "Ανάγλυφη πλακέτα PEI"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "Θερμοκρασία κλίνης/επιφάνειας κατά την εγκατάσταση της Ανάγλυφης πλακέτας PEI. Η τιμή 0 σημαίνει ότι το νήμα δεν υποστηρίζει την εκτύπωση στην ανάγλυφη πλάκα PEI"
@@ -15115,7 +15103,7 @@ msgstr "Ο όγκος του υλικού που απαιτείται για τ�
 msgid "Pre-heating when extruder change"
 msgstr "Προθέρμανση κατά την αλλαγή του εξωθητήρα"
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -20039,6 +20027,9 @@ msgstr "Ορίστε ένα ακροφύσιο διαμέτρου %s mm για �
 msgid "No nozzle is installed in this slot."
 msgstr "Δεν έχει εγκατασταθεί ακροφύσιο σε αυτήν την υποδοχή."
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Ασυμφωνία διαμέτρου ακροφυσίου. Αυτό το ακροφύσιο δεν μπορεί να χρησιμοποιηθεί."
 
@@ -20230,9 +20221,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"
@@ -21078,6 +21066,18 @@ msgid ""
 msgstr ""
 "Αξιοπιστία με την πρώτη\n"
 "Λιγότερη ταλαιπωρία, πιο προβλέψιμη απόδοση. Παράδειγμα: μια μικρή εταιρεία που εκτυπώνει τμήματα PETG αποφεύγει τις εκπλήξεις που προκαλούνται από «αστοχίες την 6η ώρα» και διατηρεί τις παρτίδες εντός χρονοδιαγράμματος."
+
+#~ msgid "Cool"
+#~ msgstr "Ψύξη"
+
+#~ msgid "Engineering"
+#~ msgstr "Μηχανική"
+
+#~ msgid "High Temp"
+#~ msgstr "Υψηλή θερμοκρασία"
+
+#~ msgid "Cool(Supertack)"
+#~ msgstr "Ψύξη(Supertack)"
 
 #~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
 #~ msgstr "Σημείωση: εάν εισαχθεί νέο νήμα κατά την εκτύπωση, το AMS δεν θα διαβάσει αυτόματα καμία πληροφορία μέχρι να ολοκληρωθεί η εκτύπωση."

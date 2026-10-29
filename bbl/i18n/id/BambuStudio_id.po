@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 21:55+0800\n"
+"POT-Creation-Date: 2026-10-29 15:34+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -11378,17 +11378,14 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Residu filamen suhu rendah terdeteksi di Hotend %s. Pencetakan dengan suhu ruang yang tinggi dapat menyebabkan penyumbatan nosel. Masukkan filamen terlebih dahulu."
 
-msgid "Cool"
-msgstr "Dingin"
+msgid "Cool Plate"
+msgstr "Pelat Dingin"
 
-msgid "Engineering"
-msgstr "Teknik"
+msgid "Engineering Plate"
+msgstr "Pelat Rekayasa"
 
-msgid "High Temp"
-msgstr "Suhu Tinggi"
-
-msgid "Cool(Supertack)"
-msgstr "Dingin (Sangat Lengket)"
+msgid "Textured PEI Plate"
+msgstr "Pelat PEI Tertekstur"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Klik di sini jika Anda tidak dapat terhubung ke printer"
@@ -11948,14 +11945,8 @@ msgstr "Suhu cetak"
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "Suhu alas saat pelat dingin terpasang. Nilai 0 berarti filamen tidak mendukung pencetakan pada SuperTack Pelat Dingin Bambu"
 
-msgid "Cool Plate"
-msgstr "Pelat Dingin"
-
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "Suhu alas saat pelat dingin terpasang. Nilai 0 berarti filamen tidak mendukung pencetakan pada Pelat Dingin"
-
-msgid "Engineering Plate"
-msgstr "Pelat Rekayasa"
 
 msgid "Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate"
 msgstr "Suhu alas saat pelat teknik terpasang. Nilai 0 berarti filamen tidak mendukung pencetakan pada Pelat Teknik"
@@ -11965,9 +11956,6 @@ msgstr "Pelat PEI Halus / Pelat Suhu Tinggi"
 
 msgid "Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate"
 msgstr "Suhu alas saat Pelat PEI Halus/Pelat suhu tinggi terpasang. Nilai 0 berarti filamen tidak mendukung pencetakan pada Pelat PEI Halus/Pelat Suhu Tinggi"
-
-msgid "Textured PEI Plate"
-msgstr "Pelat PEI Tertekstur"
 
 msgid "Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate"
 msgstr "Suhu alas saat Pelat PEI Bertekstur terpasang. Nilai 0 berarti filamen tidak mendukung pencetakan pada Pelat PEI Bertekstur"
@@ -15099,7 +15087,7 @@ msgstr "Volume material yang diperlukan untuk mengisi awal ekstruder di menara s
 msgid "Pre-heating when extruder change"
 msgstr "Pemanasan awal saat pergantian ekstruder"
 
-msgid "pre-heat the hotend during the idle period before an extruder change. 0 indicates disabled, 1 indicates enabled"
+msgid "Pre-heat the hotend during the idle period before an extruder change."
 msgstr ""
 
 msgid "Preheat temperature delta"
@@ -20022,6 +20010,9 @@ msgstr "Atur nosel berdiameter %smm untuk printer pada bagian di bawah terlebih 
 msgid "No nozzle is installed in this slot."
 msgstr "Tidak ada nosel yang terpasang di slot ini."
 
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Diameter nosel tidak sesuai. Nosel ini tidak dapat digunakan."
 
@@ -20213,9 +20204,6 @@ msgid "Unknown Filament"
 msgstr ""
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
 msgstr ""
 
 msgid "Extruder Settings"
@@ -21060,6 +21048,18 @@ msgid ""
 msgstr ""
 "Keandalan Tepat di Percobaan Pertama \n"
 "Lebih sedikit pengawasan, hasil yang lebih terprediksi. Contoh: fasilitas print farm kecil yang mencetak komponen PETG menghindari kejutan 'gagal pada jam ke-6' dan menjaga produksi tetap sesuai jadwal."
+
+#~ msgid "Cool"
+#~ msgstr "Dingin"
+
+#~ msgid "Engineering"
+#~ msgstr "Teknik"
+
+#~ msgid "High Temp"
+#~ msgstr "Suhu Tinggi"
+
+#~ msgid "Cool(Supertack)"
+#~ msgstr "Dingin (Sangat Lengket)"
 
 #~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
 #~ msgstr "Catatan: jika filamen baru dimasukkan selama pencetakan, AMS tidak akan secara otomatis membaca informasi apa pun hingga pencetakan selesai."
