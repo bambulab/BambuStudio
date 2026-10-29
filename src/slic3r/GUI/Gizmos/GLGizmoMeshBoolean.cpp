@@ -20,6 +20,7 @@
 #endif
 #include <imgui/imgui_internal.h>
 #include <algorithm>
+#include <chrono>
 #include <unordered_set>
 #include <memory>
 #include "libslic3r/Log.hpp"
@@ -1213,6 +1214,9 @@ std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes_as
     if (operation == MeshBooleanConfig::OP_INTERSECTION)
         return accumulate_intersection_stable(meshes, cancel_cb, progress_cb);
 
+    if (operation == MeshBooleanConfig::OP_UNION && meshes.size() > 2)
+        return union_meshes_tree(meshes, cancel_cb, progress_cb);
+
     TriangleMesh accumulated_result = meshes[0];
     const size_t total_ops = meshes.size() - 1;
 
@@ -1316,6 +1320,75 @@ std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes_as
         }
     }
     return accumulated_result;
+}
+
+std::optional<TriangleMesh> BooleanOperationEngine::union_meshes_tree(
+    const std::vector<TriangleMesh>& meshes,
+    std::function<bool()> cancel_cb,
+    std::function<void(float)> progress_cb) const
+{
+    const auto start    = std::chrono::steady_clock::now();
+    auto       canceled = [&cancel_cb]() { return cancel_cb && cancel_cb(); };
+
+    // Every pairwise union removes one mesh, so N-1 unions in total whatever the tree shape.
+    const size_t total_unions = meshes.size() - 1;
+    size_t       done_unions  = 0;
+    size_t       rounds       = 0;
+    BOOST_LOG_TRIVIAL(info) << "[Mesh Boolean] tree union start, meshes " << meshes.size();
+
+    std::vector<TriangleMesh> current = meshes;
+    while (current.size() > 1) {
+        ++rounds;
+        std::vector<TriangleMesh> next;
+        next.reserve((current.size() + 1) / 2);
+        for (size_t i = 0; i + 1 < current.size(); i += 2) {
+            if (canceled())
+                return std::nullopt;
+
+            std::function<void(float)> sub_progress;
+            if (progress_cb) {
+                const size_t base = done_unions;
+                sub_progress = [&progress_cb, base, total_unions](float p) {
+                    const float sub = std::clamp(p, 0.f, 100.f) / 100.f;
+                    progress_cb(std::clamp((float(base) + sub) / float(total_unions), 0.f, 1.f));
+                };
+            }
+
+            std::vector<TriangleMesh> result_meshes;
+            try {
+                Slic3r::MeshBoolean::make_boolean(current[i], current[i + 1], result_meshes,
+                                                  MeshBooleanConfig::OP_UNION, cancel_cb, sub_progress);
+            } catch (const std::exception &e) {
+                BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] tree union failed in round " << rounds << ": " << e.what();
+                return std::nullopt;
+            }
+            if (canceled())
+                return std::nullopt;
+            if (result_meshes.empty() || result_meshes.front().empty()) {
+                BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] tree union returned an empty mesh in round " << rounds;
+                return std::nullopt;
+            }
+
+            TriangleMesh merged = std::move(result_meshes.front());
+            // Same minimal cleanup as the sequential union, to preserve precision.
+            its_remove_degenerate_faces(merged.its);
+            its_compactify_vertices(merged.its);
+            next.push_back(std::move(merged));
+
+            ++done_unions;
+            if (progress_cb)
+                progress_cb(float(done_unions) / float(total_unions));
+        }
+        // An odd mesh out waits for the next round.
+        if (current.size() % 2 == 1)
+            next.push_back(std::move(current.back()));
+        current = std::move(next);
+    }
+
+    const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
+    BOOST_LOG_TRIVIAL(info) << "[Mesh Boolean] tree union finished, meshes " << meshes.size() << " rounds " << rounds
+                            << " in " << ms << " ms";
+    return std::move(current.front());
 }
 
 #endif  // USE_ASYNC_BOOLEAN_MODE

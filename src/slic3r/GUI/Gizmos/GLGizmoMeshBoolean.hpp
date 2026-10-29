@@ -323,6 +323,14 @@ private:
         std::function<bool()> cancel_cb = nullptr,
         std::function<void(float)> progress_cb = nullptr) const;
 
+    // Pairwise union reduced as a balanced tree (1+2, 3+4, ... then the results), so the
+    // two operands of every union stay comparable in size instead of one growing mesh
+    // absorbing each part in turn.
+    std::optional<TriangleMesh> union_meshes_tree(
+        const std::vector<TriangleMesh>& meshes,
+        std::function<bool()> cancel_cb,
+        std::function<void(float)> progress_cb) const;
+
     // ========================== MODEL MANIPULATION HELPERS ==========================
     // source_world: world matrix the source volume was baked with (its instance * volume matrix).
     // Null = instance 0 of target_object, which is only right when the operand came from it.

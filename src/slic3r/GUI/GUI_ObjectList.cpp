@@ -3738,23 +3738,6 @@ void ObjectList::boolean()
 
     ModelObject* object = (*m_objects)[obj_idxs.front()];
 
-    // BBS: limit the number of parts participating in the mesh boolean operation.
-    // Combining too many parts can freeze the UI, so cap it and warn the user.
-    static const size_t MAX_BOOLEAN_PARTS = 32;
-    size_t model_part_count = 0;
-    for (const ModelVolume* v : object->volumes) {
-        if (v != nullptr && v->is_model_part())
-            ++model_part_count;
-    }
-    if (model_part_count > MAX_BOOLEAN_PARTS) {
-        MessageDialog dlg(nullptr,
-            wxString::Format(_L("The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."),
-                (int) MAX_BOOLEAN_PARTS, (int) model_part_count),
-            _L("Warning"), wxICON_WARNING | wxOK);
-        dlg.ShowModal();
-        return;
-    }
-
     auto *gizmo = dynamic_cast<GLGizmoMeshBoolean *>(
         wxGetApp().plater()->canvas3D()->get_gizmos_manager().get_gizmo(GLGizmosManager::MeshBoolean));
     if (gizmo != nullptr)

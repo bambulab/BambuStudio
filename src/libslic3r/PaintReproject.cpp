@@ -10,11 +10,18 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <cmath>
+#include <exception>
+#include <functional>
 #include <limits>
 #include <memory>
+#include <thread>
 #include <utility>
+
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 #include "libslic3r/Log.hpp"
 
 namespace Slic3r {
@@ -1896,6 +1903,298 @@ static void append_shifted_annotation(FacetsAnnotation &dst, const FacetsAnnotat
             dst.set_triangle_from_string(face_offset + tid, s);
     }
 }
+
+struct BooleanOperand {
+    TriangleMesh             mesh;
+    PaintKeepPrepared        ann;
+    int                      base_filament = 0;
+    AABBTreeIndirect::Tree3f tree;
+    BoundingBoxf3            bbox;
+    double                   extent = 0.0;
+};
+
+// Slab half-width reproject_paint_geometric() uses for an operand: 1/100 of its diagonal.
+static double operand_band(const BooleanOperand &op) { return op.extent / 100.0; }
+
+// How far from its bounding box an operand can still put paint on a destination face.
+// The coverage query widens the slab by sqrt(3) along the projection axis, so a leaf
+// can match up to sqrt(3) * band away; doubled for margin, plus a floor so a covering
+// hit (closest point within 1e-3) always counts as within reach.
+static double operand_reach(const BooleanOperand &op) { return 2.0 * 1.7320508 * operand_band(op) + 1.0e-3; }
+
+// What one operand looks like from one destination face: the squared distance from the
+// face centroid, and whether the operand actually covers the face (the closest point of
+// some sample falls strictly inside one of its faces, not on an edge).
+struct OperandHit {
+    int   op       = -1;
+    float distance = std::numeric_limits<float>::max();
+    bool  covers   = false;
+};
+
+static OperandHit measure_operand(const BooleanOperand &op, int op_idx, const std::array<Vec3f, 4> &samples)
+{
+    OperandHit hit;
+    hit.op = op_idx;
+    for (int s = 0; s < 4; ++s) {
+        size_t hit_face = 0;
+        Vec3f  closest;
+        const double d2 = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
+            op.mesh.its.vertices, op.mesh.its.indices, op.tree, samples[s], hit_face, closest);
+        if (s == 0)
+            hit.distance = d2 < 0.0 ? std::numeric_limits<float>::max() : float(d2);
+        if (hit.covers || d2 < 0.0 || d2 > 1.0e-6 || hit_face >= op.mesh.its.indices.size())
+            continue;
+        const Vec3i &sf  = op.mesh.its.indices[hit_face];
+        const Vec3f &A   = op.mesh.its.vertices[sf[0]];
+        const Vec3f  v0  = op.mesh.its.vertices[sf[1]] - A;
+        const Vec3f  v1  = op.mesh.its.vertices[sf[2]] - A;
+        const Vec3f  v2  = closest - A;
+        const float  d00 = v0.dot(v0), d01 = v0.dot(v1), d11 = v1.dot(v1);
+        const float  d20 = v2.dot(v0), d21 = v2.dot(v1);
+        const float  den = d00 * d11 - d01 * d01;
+        if (std::abs(den) > 0.f) {
+            const float v = (d11 * d20 - d01 * d21) / den;
+            const float w = (d00 * d21 - d01 * d20) / den;
+            const float u = 1.f - v - w;
+            const float e = 1.0e-4f;
+            if (u > e && v > e && w > e)
+                hit.covers = true;
+        }
+    }
+    return hit;
+}
+
+// The centroid and the three corners pulled in towards it. Testing the centroid alone
+// misreads a face that only reaches into an operand with part of itself, which is exactly
+// what happens where the boolean did not cut along the seam between two coplanar parts.
+static std::array<Vec3f, 4> face_samples(const indexed_triangle_set &its, int f)
+{
+    const Vec3i &tri      = its.indices[f];
+    const Vec3f  centroid = (its.vertices[tri[0]] + its.vertices[tri[1]] + its.vertices[tri[2]]) / 3.0f;
+    return { centroid,
+             centroid + (its.vertices[tri[0]] - centroid) * 0.75f,
+             centroid + (its.vertices[tri[1]] - centroid) * 0.75f,
+             centroid + (its.vertices[tri[2]] - centroid) * 0.75f };
+}
+
+// Operands that can own each destination face, nearest first: covering before merely
+// near, then by distance (quantized so coincident surfaces compare equal and the order
+// stays strict-weak), then the smaller part, whose colour belongs on a shared patch.
+// Only operands whose reach box contains the face are measured, and faces run in
+// parallel, so the cost follows how many parts overlap a face instead of parts x faces.
+static bool rank_operands_per_face(const indexed_triangle_set              &dst,
+                                   const std::vector<BooleanOperand>       &ops,
+                                   std::vector<std::vector<OperandHit>>    &ranked,
+                                   const std::function<void(int)>          &progress,
+                                   const PaintReprojectCancelCallback      &cancel)
+{
+    const int dst_nf = int(dst.indices.size());
+    ranked.assign(size_t(dst_nf), {});
+
+    // A tree over the operands' reach boxes picks the candidates for a face in log time.
+    struct ReachBox {
+        size_t                                   m_idx;
+        AABBTreeIndirect::Tree3f::BoundingBox    m_bbox;
+        AABBTreeIndirect::Tree3f::VectorType     m_centroid;
+        size_t idx() const { return m_idx; }
+        const AABBTreeIndirect::Tree3f::BoundingBox &bbox() const { return m_bbox; }
+        const AABBTreeIndirect::Tree3f::VectorType  &centroid() const { return m_centroid; }
+    };
+    std::vector<ReachBox> reach_boxes;
+    reach_boxes.reserve(ops.size());
+    for (size_t i = 0; i < ops.size(); ++i) {
+        const float r = float(operand_reach(ops[i]));
+        ReachBox    box;
+        box.m_idx  = i;
+        box.m_bbox = AABBTreeIndirect::Tree3f::BoundingBox(ops[i].bbox.min.cast<float>() - Vec3f(r, r, r),
+                                                           ops[i].bbox.max.cast<float>() + Vec3f(r, r, r));
+        box.m_centroid = box.m_bbox.center();
+        reach_boxes.emplace_back(box);
+    }
+    AABBTreeIndirect::Tree3f reach_tree;
+    reach_tree.build(std::move(reach_boxes));
+    // An operand that is not a candidate lies farther than its own reach, so at least this
+    // far, from the face; a candidate nearer than this cannot be beaten by any of them.
+    double min_reach = std::numeric_limits<double>::max();
+    for (const BooleanOperand &op : ops)
+        min_reach = std::min(min_reach, operand_reach(op));
+    const float min_reach_sq = float(min_reach * min_reach);
+
+    auto distance_key = [](float d) { return (long long) std::llround(std::min<double>(double(d), 1.0e12) * 1.0e6); };
+
+    std::atomic<bool>  canceled { false };
+    std::atomic<bool>  finished { false };
+    std::atomic<int>   done { 0 };
+    std::exception_ptr error;
+    auto worker = [&]() {
+        try {
+        tbb::parallel_for(tbb::blocked_range<int>(0, dst_nf, 1024), [&](const tbb::blocked_range<int> &range) {
+            if (canceled.load(std::memory_order_relaxed))
+                return;
+            std::vector<size_t> candidates;
+            for (int f = range.begin(); f < range.end(); ++f) {
+                const std::array<Vec3f, 4> samples = face_samples(dst, f);
+                AABBTreeIndirect::Tree3f::BoundingBox face_box(samples[0], samples[0]);
+                for (int k = 0; k < 3; ++k)
+                    face_box.extend(dst.vertices[dst.indices[f][k]]);
+                candidates.clear();
+                AABBTreeIndirect::traverse(reach_tree, AABBTreeIndirect::intersecting(face_box),
+                                           [&candidates](const AABBTreeIndirect::Tree3f::Node &node) {
+                                               candidates.emplace_back(node.idx);
+                                               return true;
+                                           });
+                std::vector<OperandHit> &hits = ranked[size_t(f)];
+                hits.reserve(candidates.size());
+                bool  any_covers = false;
+                float nearest    = std::numeric_limits<float>::max();
+                for (size_t i : candidates) {
+                    hits.emplace_back(measure_operand(ops[i], int(i), samples));
+                    any_covers |= hits.back().covers;
+                    nearest = std::min(nearest, hits.back().distance);
+                }
+                // Covering needs the operand within 1e-3 of the face, which makes it a
+                // candidate, so a covering candidate is the owner. Otherwise the owner is the
+                // nearest operand, and only a candidate nearer than min_reach is sure to be
+                // it; failing that, measure every operand.
+                if (! any_covers && nearest > min_reach_sq && candidates.size() < ops.size()) {
+                    hits.clear();
+                    for (size_t i = 0; i < ops.size(); ++i)
+                        hits.emplace_back(measure_operand(ops[i], int(i), samples));
+                }
+                std::sort(hits.begin(), hits.end(), [&](const OperandHit &a, const OperandHit &b) {
+                    if (a.covers != b.covers) return a.covers;
+                    const long long ka = distance_key(a.distance), kb = distance_key(b.distance);
+                    if (ka != kb) return ka < kb;
+                    if (ops[size_t(a.op)].extent != ops[size_t(b.op)].extent)
+                        return ops[size_t(a.op)].extent < ops[size_t(b.op)].extent;
+                    return a.op < b.op;
+                });
+            }
+            done.fetch_add(int(range.size()), std::memory_order_relaxed);
+        });
+        } catch (...) {
+            error = std::current_exception();
+        }
+        finished = true;
+    };
+
+    // Progress and cancel callbacks may touch the UI or job state, so they are only
+    // called on this thread while the workers run on the TBB pool.
+    std::thread runner(worker);
+    while (! finished) {
+        if (! canceled && cancel && cancel())
+            canceled = true;
+        if (progress && dst_nf > 0)
+            progress(int(int64_t(done.load()) * 100 / dst_nf));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+    runner.join();
+    if (error)
+        std::rethrow_exception(error);
+    return ! canceled;
+}
+
+// Boolean result whose operands carry no brush paint, only their own filament. A face
+// takes the filament of its owning operand. Seam faces, where another operand of a
+// different filament is within painting distance, are cleared and repainted with the
+// same geometric region painter reproject_paint_geometric() uses, so the colour
+// boundary follows where the parts really meet: larger operands first, so a smaller
+// part wins where surfaces coincide.
+static bool paint_by_operand_filament(const TriangleMesh                         &dst_mesh,
+                                      const std::vector<BooleanOperand>          &ops,
+                                      const std::vector<std::vector<OperandHit>> &ranked,
+                                      FacetsAnnotation                           &dst_mmu,
+                                      const Transform3d                          *dst_world_matrix,
+                                      int                                         cover_span,
+                                      const std::function<void(int)>             &report,
+                                      const PaintReprojectCancelCallback         &cancel,
+                                      std::chrono::steady_clock::time_point       started_at)
+{
+    const int dst_nf = int(dst_mesh.its.indices.size());
+    auto near_enough = [&ops](const OperandHit &hit) {
+        if (hit.covers)
+            return true;
+        const double band = operand_band(ops[size_t(hit.op)]);
+        return double(hit.distance) <= band * band;
+    };
+
+    std::vector<int>  filament(size_t(dst_nf), 0);
+    std::vector<char> seam(size_t(dst_nf), 0);
+    size_t            seam_count = 0;
+    for (int f = 0; f < dst_nf; ++f) {
+        const std::vector<OperandHit> &hits = ranked[size_t(f)];
+        if (hits.empty())
+            continue;
+        const int own = ops[size_t(hits.front().op)].base_filament;
+        filament[size_t(f)] = own;
+        for (size_t k = 1; k < hits.size(); ++k)
+            if (ops[size_t(hits[k].op)].base_filament != own && near_enough(hits[k])) {
+                seam[size_t(f)] = 1;
+                ++seam_count;
+                break;
+            }
+    }
+
+    TriangleSelector colour(dst_mesh);
+    for (int f = 0; f < dst_nf; ++f)
+        if (! seam[size_t(f)] && filament[size_t(f)] > 0)
+            colour.set_facet(f, EnforcerBlockerType(filament[size_t(f)]));
+
+    if (seam_count > 0) {
+        const RegionEdgeLimit edge_limit(dst_mesh, dst_world_matrix);
+        std::vector<size_t> order(ops.size());
+        for (size_t i = 0; i < ops.size(); ++i)
+            order[i] = i;
+        std::stable_sort(order.begin(), order.end(), [&ops](size_t a, size_t b) { return ops[a].extent > ops[b].extent; });
+
+        // Seam faces each operand can paint, collected in one pass over the faces.
+        std::vector<std::vector<int>> seeds(ops.size());
+        for (int f = 0; f < dst_nf; ++f)
+            if (seam[size_t(f)])
+                for (const OperandHit &hit : ranked[size_t(f)])
+                    if (near_enough(hit))
+                        seeds[size_t(hit.op)].emplace_back(f);
+
+        for (size_t n = 0; n < order.size(); ++n) {
+            if (cancel && cancel())
+                return false;
+            report(cover_span + int(n * size_t(99 - cover_span) / order.size()));
+            const size_t          i  = order[n];
+            const BooleanOperand &op = ops[i];
+            if (op.base_filament <= 0 || seeds[i].empty())
+                continue;
+            const PaintRegionSource source(op.mesh, op.ann.mmu.get_data(), operand_band(op));
+            if (source.empty())
+                continue;
+            // Same budget rule as reproject_one_annotation_by_region().
+            const size_t leaves      = source.leaf_count();
+            const size_t node_budget = std::max<size_t>(
+                ReprojectMinNodeBudget,
+                std::min<size_t>(ReprojectMaxNodeBudget, leaves > ReprojectMaxNodeBudget / 16 ? ReprojectMaxNodeBudget : leaves * 16));
+            const EnforcerBlockerType state = EnforcerBlockerType(op.base_filament);
+            const TriangleSelector::RegionCoverageEvaluator coverage =
+                [&source, state](const std::array<Vec3f, 3> &triangle) { return source.coverage(state, triangle); };
+            const TriangleSelector::RegionPaintResult result = colour.paint_region(
+                seeds[i], coverage, state, edge_limit.value(), node_budget,
+                ReprojectMaxSubdivisionDepth, cancel, &seam, edge_limit.trafo());
+            if (result.canceled)
+                return false;
+        }
+        // A seam face that no operand painted keeps its owner's filament.
+        for (int f = 0; f < dst_nf; ++f)
+            if (seam[size_t(f)] && filament[size_t(f)] > 0) {
+                const auto &tr = colour.get_triangles()[size_t(f)];
+                if (! tr.is_split() && tr.get_state() == EnforcerBlockerType::NONE)
+                    colour.set_facet(f, EnforcerBlockerType(filament[size_t(f)]));
+            }
+    }
+    dst_mmu.set(colour);
+    report(99);
+    const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - started_at).count();
+    BOOST_LOG_TRIVIAL(info) << "Paint reprojection by filament: operands " << ops.size() << ", faces " << dst_nf
+                            << ", seam faces " << seam_count << ", elapsed " << ms << " ms";
+    return true;
+}
 } // namespace
 
 bool reproject_paint_from_volumes(const TriangleMesh                   &dst_mesh,
@@ -1978,14 +2277,16 @@ bool reproject_paint_from_volumes(const TriangleMesh                   &dst_mesh
     // reproject each operand's paint onto the whole destination and keep, per face, only
     // its attributed operand's result. Single-source-per-operand reprojection has no
     // overlap ambiguity, so every face is a faithful copy of its own part's paint.
-    struct Operand { TriangleMesh mesh; PaintKeepPrepared ann; int base_filament = 0; };
-    std::vector<Operand> ops;
+    std::vector<BooleanOperand> ops;
     ops.reserve(sources.size());
+    bool any_brush_paint = false;
     for (const PaintSourceVolume &src : sources) {
         if (src.mesh == nullptr || src.mesh->its.indices.empty())
             continue;
+        any_brush_paint |= (src.supported && ! src.supported->empty()) || (src.seam && ! src.seam->empty()) ||
+                           (src.fuzzy && ! src.fuzzy->empty()) || (src.mmu && ! src.mmu->empty());
         ops.emplace_back();
-        Operand &op = ops.back();
+        BooleanOperand &op = ops.back();
         op.mesh = *src.mesh;
         op.mesh.transform(src.source_to_destination, true /*fix_left_handed*/);
         op.base_filament = src.base_filament;
@@ -2011,10 +2312,16 @@ bool reproject_paint_from_volumes(const TriangleMesh                   &dst_mesh
     if (ops.empty())
         return true;
 
-    const int dst_nf = int(dst_mesh.its.indices.size());
+    const int  dst_nf     = int(dst_mesh.its.indices.size());
+    const auto started_at = std::chrono::steady_clock::now();
+    for (BooleanOperand &op : ops) {
+        op.tree   = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(op.mesh.its.vertices, op.mesh.its.indices);
+        op.bbox   = op.mesh.bounding_box();
+        op.extent = op.bbox.size().norm();
+    }
 
-    // Progress: the coverage scan below takes the first CoverSpan percent (only with more
-    // than one operand), the per-operand reprojection the rest up to 99.
+    // Progress: ranking the operands per face takes the first CoverSpan percent (only
+    // with more than one operand), the reprojection the rest up to 99.
     const int CoverSpan = ops.size() > 1 ? 20 : 0;
     auto report = [&progress](int percent) {
         if (progress)
@@ -2022,93 +2329,25 @@ bool reproject_paint_from_volumes(const TriangleMesh                   &dst_mesh
     };
     report(0);
 
-    // Distance from every destination face to every operand surface, so a face can be
-    // resolved against the operand it actually lies on, nearest first.
-    std::vector<std::vector<float>> op_distance(ops.size(), std::vector<float>(size_t(dst_nf), 0.f));
-    // Whether an operand actually covers a face, rather than merely lying near it: the
-    // closest point has to fall inside one of its faces, not on that face's edge. Two
-    // parts sharing a plane are a hair away from each other's patches all along the
-    // seam, so distance alone lets one part's colour bleed past its own outline.
-    std::vector<std::vector<char>> op_covers(ops.size(), std::vector<char>(size_t(dst_nf), 1));
+    // ranked[f]: the operands that can reach face f, nearest first. With one operand it
+    // owns every face, so the ranking is skipped.
+    std::vector<std::vector<OperandHit>> ranked;
     if (ops.size() > 1) {
-        for (size_t i = 0; i < ops.size(); ++i) {
-            const AABBTreeIndirect::Tree3f tree =
-                AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
-                    ops[i].mesh.its.vertices, ops[i].mesh.its.indices);
-            for (int f = 0; f < dst_nf; ++f) {
-                if ((f & 0x3fff) == 0 && f > 0) {
-                    if (cancel && cancel())
-                        return false;
-                    report(int((i * size_t(dst_nf) + size_t(f)) * CoverSpan / (ops.size() * size_t(dst_nf))));
-                }
-                const Vec3i &tri = dst_mesh.its.indices[f];
-                const Vec3f  centroid = (dst_mesh.its.vertices[tri[0]] + dst_mesh.its.vertices[tri[1]] +
-                                         dst_mesh.its.vertices[tri[2]]) / 3.0f;
-                // Sample the centroid and the three corners pulled in towards it. Testing the
-                // centroid alone misreads a face that only reaches into this operand with part
-                // of itself, which is exactly what happens where the boolean did not cut along
-                // the seam between two coplanar parts.
-                const Vec3f samples[4] = { centroid,
-                                           centroid + (dst_mesh.its.vertices[tri[0]] - centroid) * 0.75f,
-                                           centroid + (dst_mesh.its.vertices[tri[1]] - centroid) * 0.75f,
-                                           centroid + (dst_mesh.its.vertices[tri[2]] - centroid) * 0.75f };
-                char covers = 0;
-                for (int s = 0; s < 4; ++s) {
-                    size_t hit_face = 0; Vec3f closest;
-                    const double d2 = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
-                        ops[i].mesh.its.vertices, ops[i].mesh.its.indices, tree, samples[s], hit_face, closest);
-                    if (s == 0)
-                        op_distance[i][size_t(f)] = d2 < 0.0 ? std::numeric_limits<float>::max() : float(d2);
-                    if (covers || d2 < 0.0 || d2 > 1.0e-6 || hit_face >= ops[i].mesh.its.indices.size())
-                        continue;
-                    const Vec3i &sf = ops[i].mesh.its.indices[hit_face];
-                    const Vec3f &A  = ops[i].mesh.its.vertices[sf[0]];
-                    const Vec3f  v0 = ops[i].mesh.its.vertices[sf[1]] - A;
-                    const Vec3f  v1 = ops[i].mesh.its.vertices[sf[2]] - A;
-                    const Vec3f  v2 = closest - A;
-                    const float  d00 = v0.dot(v0), d01 = v0.dot(v1), d11 = v1.dot(v1);
-                    const float  d20 = v2.dot(v0), d21 = v2.dot(v1);
-                    const float  den = d00 * d11 - d01 * d01;
-                    if (std::abs(den) > 0.f) {
-                        const float v = (d11 * d20 - d01 * d21) / den;
-                        const float w = (d00 * d21 - d01 * d20) / den;
-                        const float u = 1.f - v - w;
-                        const float e = 1.0e-4f;
-                        if (u > e && v > e && w > e)
-                            covers = 1;
-                    }
-                }
-                op_covers[i][size_t(f)] = covers;
-            }
-        }
+        if (! rank_operands_per_face(dst_mesh.its, ops, ranked,
+                                     [&report, CoverSpan](int p) { report(p * CoverSpan / 100); }, cancel))
+            return false;
+    } else {
+        ranked.assign(size_t(dst_nf), std::vector<OperandHit>{ OperandHit{ 0, 0.f, true } });
     }
-    // Surface extent of each operand, used to break ties. Where operand surfaces
-    // coincide - two parts sharing a coplanar face, such as both sitting on the build
-    // plane - the distance cannot tell them apart, and the smaller, more local part is
-    // the one whose colour belongs on that patch.
-    std::vector<double> op_extent(ops.size(), 0.0);
-    for (size_t i = 0; i < ops.size(); ++i)
-        op_extent[i] = ops[i].mesh.bounding_box().size().norm();
-    // Quantized so coincident surfaces compare equal, and so the comparator stays a
-    // strict weak ordering (a raw epsilon test would not be transitive).
-    auto distance_key = [](float d) {
-        return (long long) std::llround(std::min<double>(double(d), 1.0e12) * 1.0e6);
-    };
-    auto operands_nearest_first = [&](int f) {
-        std::vector<int> order(ops.size());
-        for (size_t i = 0; i < ops.size(); ++i) order[i] = int(i);
-        std::sort(order.begin(), order.end(), [&](int a, int b) {
-            const int ca = op_covers[size_t(a)][size_t(f)] ? 0 : 1;
-            const int cb = op_covers[size_t(b)][size_t(f)] ? 0 : 1;
-            if (ca != cb) return ca < cb;
-            const long long ka = distance_key(op_distance[size_t(a)][size_t(f)]);
-            const long long kb = distance_key(op_distance[size_t(b)][size_t(f)]);
-            if (ka != kb) return ka < kb;
-            if (op_extent[size_t(a)] != op_extent[size_t(b)]) return op_extent[size_t(a)] < op_extent[size_t(b)];
-            return a < b;
-        });
-        return order;
-    };
+
+    // Fast path for unpainted operands that only differ in filament, the common case of a
+    // multi-colour model built from parts. Each operand's colour map is then just its
+    // filament, so a face owned by one operand takes that filament directly. Only the seam
+    // faces, covered by two operands of different filaments, go through the geometric
+    // painter so the colour boundary lands where the parts actually meet.
+    if (! any_brush_paint)
+        return paint_by_operand_filament(dst_mesh, ops, ranked, dst_mmu, dst_world_matrix, CoverSpan, report, cancel,
+                                         started_at);
 
     // Reproject every operand's paint onto the whole destination (single source each,
     // so no overlap ambiguity), then keep per face only its attributed operand's paint.
@@ -2146,25 +2385,27 @@ bool reproject_paint_from_volumes(const TriangleMesh                   &dst_mesh
     // Resolve every destination face against the nearest operand that actually has paint
     // there. Taking only the single nearest operand would blank a face whose nearest
     // operand is out of sampling reach, even though the other operand covers it.
-    auto take_nearest = [&](const std::vector<int> &order, int f,
+    // Only operands within reach are ranked for a face; any other one is beyond the cull
+    // distance of reproject_paint_geometric() and left that face unpainted anyway.
+    auto take_nearest = [&](const std::vector<OperandHit> &order, int f,
                             FacetsAnnotation PaintKeepPrepared::*layer, FacetsAnnotation &dst) {
-        for (int i : order) {
-            const std::string s = (per_op[size_t(i)].*layer).get_triangle_as_string(f);
-            if (! s.empty()) { dst.set_triangle_from_string(f, s); return i; }
+        for (const OperandHit &hit : order) {
+            const std::string s = (per_op[size_t(hit.op)].*layer).get_triangle_as_string(f);
+            if (! s.empty()) { dst.set_triangle_from_string(f, s); return hit.op; }
         }
         return -1;
     };
     std::vector<int> plain_fill(size_t(dst_nf), 0);
     bool             any_plain_fill = false;
     for (int f = 0; f < dst_nf; ++f) {
-        const std::vector<int> order = operands_nearest_first(f);
+        const std::vector<OperandHit> &order = ranked[size_t(f)];
         take_nearest(order, f, &PaintKeepPrepared::supported, dst_supported);
         take_nearest(order, f, &PaintKeepPrepared::seam,      dst_seam);
         take_nearest(order, f, &PaintKeepPrepared::fuzzy,     dst_fuzzy);
-        if (take_nearest(order, f, &PaintKeepPrepared::mmu, dst_mmu) < 0) {
+        if (take_nearest(order, f, &PaintKeepPrepared::mmu, dst_mmu) < 0 && ! order.empty()) {
             // No operand reached this face: give it the nearest operand's plain colour
             // so it still prints as its own part rather than the result's one extruder.
-            const int filament = ops[size_t(order.front())].base_filament;
+            const int filament = ops[size_t(order.front().op)].base_filament;
             if (filament > 0) { plain_fill[size_t(f)] = filament; any_plain_fill = true; }
         }
     }
@@ -2177,8 +2418,9 @@ bool reproject_paint_from_volumes(const TriangleMesh                   &dst_mesh
                 colour.set_facet(f, EnforcerBlockerType(plain_fill[size_t(f)]));
         dst_mmu.set(colour);
     }
-
-
+    const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - started_at).count();
+    BOOST_LOG_TRIVIAL(info) << "Paint reprojection by operand: operands " << ops.size() << ", faces " << dst_nf
+                            << ", elapsed " << ms << " ms";
     return true;
 }
 
