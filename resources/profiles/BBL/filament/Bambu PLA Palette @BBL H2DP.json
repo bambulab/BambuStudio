@@ -23,12 +23,6 @@
     "eng_plate_temp_initial_layer": [
         "55"
     ],
-    "fan_max_speed": [
-        "80"
-    ],
-    "fan_min_speed": [
-        "60"
-    ],
     "filament_cooling_before_tower": [
         "10",
         "10"
@@ -38,7 +32,7 @@
         "0.98"
     ],
     "filament_max_volumetric_speed": [
-        "25",
+        "15",
         "35"
     ],
     "filament_ramming_travel_time": [
@@ -46,7 +40,7 @@
         "0"
     ],
     "filament_retraction_length": [
-        "0.4",
+        "0.8",
         "0.4"
     ],
     "filament_wipe": [
@@ -77,6 +71,9 @@
     ],
     "pre_start_fan_time": [
         "2"
+    ],
+    "slow_down_layer_time": [
+        "8"
     ],
     "slow_down_min_speed": [
         "20",
