@@ -3613,7 +3613,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool, bool sol
     writer.set_first_layer(first_layer);
 
     if (new_tool != (unsigned) (-1))
-        writer.append( std::string("; material : " + (m_current_tool < m_filpar.size() ? m_filpar[m_current_tool].material : "(NONE)") + " -> " + m_filpar[new_tool].material + "\n").c_str())
+        writer.append( std::string("; material : " + (old_tool < m_filpar.size() ? m_filpar[old_tool].material : "(NONE)") + " -> " + m_filpar[new_tool].material + "\n").c_str())
             .append(";--------------------\n");
 
     writer.speed_override_backup();
