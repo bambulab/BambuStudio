@@ -170,6 +170,11 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     comboBox_sizer->AddSpacer(10);
 
     m_comboBox_nozzle_dia = new ComboBox(comboBox_panel, wxID_ANY, "", wxDefaultPosition, wxSize(-1, FromDIP(24)), 0, nullptr, wxCB_READONLY);
+    m_comboBox_nozzle_dia->SetMaxSize(wxSize(HISTORY_WINDOW_SIZE.x - FromDIP(40), -1));
+    m_comboBox_nozzle_dia->Bind(wxEVT_SIZE, [this](wxSizeEvent &evt) {
+        evt.Skip();
+        m_comboBox_nozzle_dia->GetDropDown().Rescale();
+    });
     comboBox_sizer->Add(m_comboBox_nozzle_dia, 0, wxLEFT | wxEXPAND | wxRIGHT, FromDIP(15));
     comboBox_sizer->AddSpacer(10);
 
