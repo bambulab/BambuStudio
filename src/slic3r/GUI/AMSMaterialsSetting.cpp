@@ -425,6 +425,12 @@ void AMSMaterialsSetting::create_panel_weight(wxWindow* parent)
     sizer_weight_inputs->Add(m_sizer_remain_weight, 0, wxEXPAND, 0);
     sizer_weight_inputs->Add(0, 0, 0, wxTOP, FromDIP(8));
     sizer_weight_inputs->Add(m_sizer_total_weight, 0, wxEXPAND, 0);
+    int weight_label_width = AMS_MATERIALS_SETTING_LABEL_WIDTH;
+    for (auto title : {m_title_remain_weight, m_title_total_weight})
+        weight_label_width = std::max(weight_label_width, title->GetTextExtent(title->GetLabel()).GetWidth() + FromDIP(4));
+    for (auto title : {m_title_remain_weight, m_title_total_weight}) {
+        title->SetMinSize(wxSize(weight_label_width, -1));
+    }
     m_sizer_filament_weight->Add(sizer_weight_inputs, 0, wxALL | wxALIGN_CENTER, 0);
     m_sizer_filament_weight->AddStretchSpacer();
 
