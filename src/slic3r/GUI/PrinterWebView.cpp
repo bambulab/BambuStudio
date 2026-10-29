@@ -80,7 +80,8 @@ void PrinterWebView::load_url(const wxString& url)
 //    this->Raise();
     if (m_browser == nullptr)
         return;
-    m_browser->LoadURL(url);
+
+    WebView::LoadUrl(m_browser, url);
     //m_browser->SetFocus();
     UpdateState();
 }
