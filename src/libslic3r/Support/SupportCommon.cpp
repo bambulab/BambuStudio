@@ -2619,8 +2619,25 @@ void generate_support_toolpaths(
                         idx_layer_intermediate < intermediate_layers.size() &&
                         base_layer.layer == intermediate_layers[idx_layer_intermediate] &&
                         ! (*lightning_infill_lines)[idx_layer_intermediate].empty()) {
-                        extrusion_entities_append_paths(base_layer.extrusions,
-                            std::move((*lightning_infill_lines)[idx_layer_intermediate]),
+                        // The lines were planned before these toolpaths existed. Keep them 0.85 w off the
+                        // sheath centrelines (enough overlap left to bond) and off the contact / interface areas.
+                        Polylines &lightning = (*lightning_infill_lines)[idx_layer_intermediate];
+                        const BoundingBox bbox = get_extents(lightning).inflated(flow.scaled_width());
+                        Polylines sheath;
+                        for (const ExtrusionEntity *entity : base_layer.extrusions)
+                            entity->collect_polylines(sheath);
+                        sheath.erase(std::remove_if(sheath.begin(), sheath.end(),
+                            [&bbox](const Polyline &pl) { return ! bbox.overlap(get_extents(pl)); }), sheath.end());
+                        Polygons blocked = offset(sheath, 0.85f * float(flow.scaled_width()));
+                        for (const SupportGeneratorLayerExtruded *other :
+                             { &bottom_contact_layer, &top_contact_layer, &interface_layer, &base_interface_layer })
+                            if (! other->empty())
+                                append(blocked, offset(ClipperUtils::clip_clipper_polygons_with_subject_bbox(
+                                    other->polygons_to_extrude(), bbox), 0.5f * float(flow.scaled_width())));
+                        lightning = diff_pl(lightning, blocked);
+                        lightning.erase(std::remove_if(lightning.begin(), lightning.end(),
+                            [](const Polyline &pl) { return pl.length() < scaled<double>(1.); }), lightning.end());
+                        extrusion_entities_append_paths(base_layer.extrusions, std::move(lightning),
                             ExtrusionRole::erSupportMaterial, float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
                     }
                     done = true;
