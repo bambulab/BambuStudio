@@ -114,12 +114,12 @@
         "fdm_filament_template_direct_dual_e3d"
     ],
     "nozzle_temperature": [
-        "220",
+        "225",
         "220",
         "220"
     ],
     "nozzle_temperature_initial_layer": [
-        "220",
+        "225",
         "220",
         "220"
     ],
