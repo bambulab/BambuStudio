@@ -1205,6 +1205,8 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
             float new_flow_ratio = 0.0f;
             wxString temp_name = ""; // unused
             auto coarse_save_page = static_cast<CalibrationFlowCoarseSavePage*>(m_curr_step->page);
+            if (!check_cached_cali_info())
+                return;
             if (!coarse_save_page->get_result(&new_flow_ratio, &temp_name)) {
                 return;
             }
@@ -1464,6 +1466,9 @@ void FlowRateWizard::on_cali_save()
             msg_dlg.ShowModal();
         }
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
+            if (!check_cached_cali_info())
+                return;
+
             float new_flow_ratio = 0.0f;
             wxString new_preset_name = "";
             if(m_curr_step->page->get_page_type() == CaliPageType::CALI_PAGE_COARSE_SAVE)
@@ -1515,6 +1520,28 @@ void FlowRateWizard::on_cali_save()
     }
     back_preset_info(curr_obj, true);
     show_step(start_step);
+}
+
+bool FlowRateWizard::check_cached_cali_info()
+{
+    if (!curr_obj)
+        return false;
+
+    const float  base_flow_ratio = curr_obj->GetCalib()->GetStashFlowRatio();
+    const size_t preset_count    = curr_obj->GetCalib()->GetSelectedCalibPreset().size();
+    if (preset_count > 0 && base_flow_ratio > 0.0f && base_flow_ratio < 2.0f)
+        return true;
+
+    BOOST_LOG_TRIVIAL(warning) << "flow_rate_cali: cached calibration info invalid, stash_flow_ratio = " << base_flow_ratio
+                               << ", selected_presets_count = " << preset_count;
+    WarningDialog warn_dlg(nullptr, _L("Failed to get calibration parameters. Calibration results can only be obtained on the client that started the calibration."),
+                           wxEmptyString, wxICON_WARNING | wxOK);
+    warn_dlg.ShowModal();
+
+    back_preset_info(curr_obj, true);
+    if (!m_page_steps.empty())
+        show_step(m_page_steps.front());
+    return false;
 }
 
 void FlowRateWizard::update(MachineObject* obj)
