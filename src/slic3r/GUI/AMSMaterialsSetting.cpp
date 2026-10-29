@@ -2217,8 +2217,26 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         else
             m_rfid_clr_picker->set_color(m_clr_picker->m_colour);
 
-        if (!temp_min.IsEmpty() && !temp_max.IsEmpty())
-            m_rfid_lbl_temp->SetLabel(_L("Nozzle Temperature") + ": " + temp_min + "~" + temp_max + wxString::FromUTF8(" \xe2\x84\x83"));
+        wxString card_tmin = temp_min;
+        wxString card_tmax = temp_max;
+        if (Preset* temp_preset = get_filament_by_id(ams_filament_id, true)) {
+            wxString preset_tmin, preset_tmax;
+            if (ConfigOption* opt_min = temp_preset->config.option("nozzle_temperature_range_low")) {
+                if (ConfigOptionInts* opt_min_ints = dynamic_cast<ConfigOptionInts*>(opt_min))
+                    preset_tmin = wxString::Format("%d", opt_min_ints->get_at(0));
+            }
+            if (ConfigOption* opt_max = temp_preset->config.option("nozzle_temperature_range_high")) {
+                if (ConfigOptionInts* opt_max_ints = dynamic_cast<ConfigOptionInts*>(opt_max))
+                    preset_tmax = wxString::Format("%d", opt_max_ints->get_at(0));
+            }
+            if (!preset_tmin.IsEmpty() && !preset_tmax.IsEmpty()) {
+                card_tmin = preset_tmin;
+                card_tmax = preset_tmax;
+            }
+        }
+
+        if (!card_tmin.IsEmpty() && !card_tmax.IsEmpty())
+            m_rfid_lbl_temp->SetLabel(_L("Nozzle Temperature") + ": " + card_tmin + "~" + card_tmax + wxString::FromUTF8(" \xe2\x84\x83"));
         else
             m_rfid_lbl_temp->SetLabel(_L("Nozzle Temperature") + ": --");
 
