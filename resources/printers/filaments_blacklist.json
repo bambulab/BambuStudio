@@ -89,9 +89,10 @@
       "description": "The current filament doesn't support the TPU high-flow nozzle and can't be used."
     },
     {
-      "white_fila_ids": ["GFU06", "GFU97"],
+      "white_names": ["2.85mm"],
       "nozzle_flows": ["TPU285"],
       "action": "prohibition",
+      "hide_in": ["pre_check", "double_check"],
       "description": "%s is not supported by the current 2.85 mm TPU hotend. Please confirm the filament type and try again."
     },
     {
