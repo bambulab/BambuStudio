@@ -7104,6 +7104,52 @@ int CLI::run(int argc, char **argv)
                                     std::vector<std::map<NozzleVolumeType, int>> extruder_nozzle_stats_maps(new_extruder_count, std::map<NozzleVolumeType, int>{});
                                     std::vector<int> extruder_nozzle_counts = m_extra_config.option<ConfigOptionInts>("extruder_nozzle_count")->values;
                                     std::vector<int> extruder_nozzle_volume_types = m_extra_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type")->values;
+                                    // 已有喷嘴的口径：CLI 显式传入时沿用；未传时按当前机型口径铺满已有槽位。
+                                    // 未传时不能留空，否则总喷嘴数为 1 时会和默认值 {0.4} 长度一致，非 0.4 喷嘴会被误判禁用。
+                                    std::vector<double> extruder_nozzle_diameters;
+                                    if (m_extra_config.has("extruder_nozzle_diameter"))
+                                        extruder_nozzle_diameters = m_extra_config.option<ConfigOptionFloats>("extruder_nozzle_diameter")->values;
+                                    else {
+                                        const auto* nd_opt = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+                                        const double fallback = (nd_opt && !nd_opt->values.empty()) ? nd_opt->values.front() : 0.4;
+                                        extruder_nozzle_diameters.assign(extruder_nozzle_volume_types.size(), fallback);
+                                    }
+                                    // extruder_nozzle_count 为 0 的挤出机没有对应槽位。补成 1 个 standard 喷嘴，
+                                    // 直径取当前列表里还没出现过的口径，优先 0.2，其次 0.4、0.6、0.8。
+                                    {
+                                        static const double k_pad_diameters[] = {0.2, 0.4, 0.6, 0.8};
+                                        auto next_unused_diameter = [&extruder_nozzle_diameters]() {
+                                            for (double candidate : k_pad_diameters) {
+                                                bool used = false;
+                                                for (double existing : extruder_nozzle_diameters) {
+                                                    if (std::abs(existing - candidate) < 1e-3) {
+                                                        used = true;
+                                                        break;
+                                                    }
+                                                }
+                                                if (!used)
+                                                    return candidate;
+                                            }
+                                            return k_pad_diameters[0];
+                                        };
+                                        int insert_at = 0;
+                                        const int extruder_n = std::min(new_extruder_count, (int) extruder_nozzle_counts.size());
+                                        for (int e_index = 0; e_index < extruder_n; ++e_index) {
+                                            if (extruder_nozzle_counts[e_index] > 0) {
+                                                insert_at += extruder_nozzle_counts[e_index];
+                                                continue;
+                                            }
+                                            extruder_nozzle_counts[e_index] = 1;
+                                            const double pad_diameter = next_unused_diameter();
+                                            const int volume_at = std::min(insert_at, (int) extruder_nozzle_volume_types.size());
+                                            const int diameter_at = std::min(insert_at, (int) extruder_nozzle_diameters.size());
+                                            extruder_nozzle_volume_types.insert(extruder_nozzle_volume_types.begin() + volume_at, (int) nvtStandard);
+                                            extruder_nozzle_diameters.insert(extruder_nozzle_diameters.begin() + diameter_at, pad_diameter);
+                                            BOOST_LOG_TRIVIAL(info) << boost::format("extruder %1% nozzle count is 0, pad to 1 standard nozzle with diameter %2%")
+                                                % (e_index + 1) % pad_diameter;
+                                            insert_at += 1;
+                                        }
+                                    }
                                     int nozzle_index = 0;
                                     for (int e_index = 0; e_index < new_extruder_count; e_index++) {
                                         std::map<NozzleVolumeType, int> nozzle_volume_type_maps;
@@ -7122,14 +7168,7 @@ int CLI::run(int argc, char **argv)
                                     // CLI 未显式传入 ams_nozzle_idx 时默认置为 -1（无 AMS 喷嘴），避免沿用机型预设或 3MF 中的物理槽位默认值。
                                     if (!m_extra_config.has("ams_nozzle_idx"))
                                         m_print_config.option<ConfigOptionInts>("ams_nozzle_idx", true)->values = { -1 };
-                                    // CLI 未传 extruder_nozzle_diameter 时按当前机型口径补齐，避免总喷嘴数为 1 时与默认值 {0.4} 长度一致导致非 0.4 喷嘴被误判禁用。
-                                    if (m_extra_config.has("extruder_nozzle_diameter"))
-                                        m_print_config.option<ConfigOptionFloats>("extruder_nozzle_diameter", true)->values = m_extra_config.option<ConfigOptionFloats>("extruder_nozzle_diameter")->values;
-                                    else {
-                                        const auto* nd_opt = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-                                        m_print_config.option<ConfigOptionFloats>("extruder_nozzle_diameter", true)->values.assign(
-                                            extruder_nozzle_volume_types.size(), (nd_opt && !nd_opt->values.empty()) ? nd_opt->values.front() : 0.4);
-                                    }
+                                    m_print_config.option<ConfigOptionFloats>("extruder_nozzle_diameter", true)->values = extruder_nozzle_diameters;
                                 } else {
                                     // 工程中的完整逐槽布局是权威数据，数量可以多于只统计当前口径的 nozzle_stats。
                                     if (!per_slot_nozzle_options_consistent(m_print_config)) {
