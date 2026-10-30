@@ -42,7 +42,7 @@
     "filament_max_volumetric_speed": [
         "20",
         "30",
-        "20"
+        "45"
     ],
     "filament_prime_volume": [
         "30"
@@ -55,7 +55,7 @@
     "filament_retraction_length": [
         "0.4",
         "0.4",
-        "0.4"
+        "0.8"
     ],
     "filament_wipe": [
         "1",
