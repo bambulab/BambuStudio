@@ -4924,12 +4924,14 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
                 for (const auto& extder : obj_->GetExtderSystem()->GetExtruders()) { // check vitrification
                     if (extder.HasFilamentInExt()) {
                         if (warn_soften_on_unknown_only) {
-                            // Unknown matches the "?" shown on the filament card: tray info not ready.
-                            const auto feed_tray = obj_->get_tray(extder.GetSlotNow().ams_id, extder.GetSlotNow().slot_id);
-                            if (extder.HasNozzleInstalled() &&
-                                (!feed_tray.has_value() || !feed_tray->is_tray_info_ready()) &&
-                                43 - chamber_temp <= 5) {
-                                unknown_fila_soften_extruders.insert(extder.GetExtId());
+                            const auto ext_nozzle = obj_->GetNozzleSystem()->GetExtNozzle(extder.GetExtId());
+                            if (extder.HasNozzleInstalled() && !ext_nozzle.IsEmpty() && ext_nozzle.HasFilamentAtNozzleInlet()) {
+                                // Unknown matches the "?" shown on the filament card: tray info not ready.
+                                const auto feed_tray = ext_nozzle.GetSlotNow();
+                                if ((!feed_tray.has_value() || !feed_tray->is_tray_info_ready()) &&
+                                    43 - chamber_temp <= 5) {
+                                    unknown_fila_soften_extruders.insert(extder.GetExtId());
+                                }
                             }
                             continue;
                         }
