@@ -10324,6 +10324,7 @@ public:
     void on_action_split_objects(SimpleEvent&);
     void on_action_split_volumes(SimpleEvent&);
     void on_action_layersediting(SimpleEvent&);
+    void exit_layers_editing();
     void on_create_filament(SimpleEvent &);
     void on_modify_filament(SimpleEvent &);
     void on_add_filament(SimpleEvent &);
@@ -14176,8 +14177,7 @@ void Plater::priv::reset(bool apply_presets_change)
     set_project_filename("");
     BOOST_LOG_TRIVIAL(info) << "call set_project_filename: empty";
 
-    if (view3D->is_layers_editing_enabled())
-        view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
+    exit_layers_editing();
     view3D->get_canvas3d()->reset_all_gizmos();
 
     reset_gcode_toolpaths();
@@ -21968,6 +21968,18 @@ void Plater::priv::on_action_layersediting(SimpleEvent&)
     notification_manager->set_move_from_overlay(view3D->is_layers_editing_enabled());
 }
 
+void Plater::priv::exit_layers_editing()
+{
+    if (!view3D->is_layers_editing_enabled())
+        return;
+    // Do not use the toolbar left action: it only posts a toggle, so the mode stays
+    // active until the event runs, after the model may already be gone.
+    GLCanvas3D* canvas = view3D->get_canvas3d();
+    canvas->enable_layers_editing(false);
+    canvas->release_layers_editing_toolbar_item();
+    notification_manager->set_move_from_overlay(false);
+}
+
 void Plater::priv::on_create_filament(SimpleEvent &)
 {
     CreateFilamentWebDialog dlg(wxGetApp().mainframe);
@@ -23380,7 +23392,7 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
 
     // Disable layer editing before the Undo / Redo jump.
     if (!new_variable_layer_editing_active && view3D->is_layers_editing_enabled())
-        view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
+        exit_layers_editing();
 
     // Make a copy of the snapshot, undo/redo could invalidate the iterator
     const UndoRedo::Snapshot snapshot_copy = *it_snapshot;

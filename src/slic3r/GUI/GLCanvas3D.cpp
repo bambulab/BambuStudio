@@ -315,6 +315,12 @@ bool GLCanvas3D::LayersEditing::is_enabled() const
 void GLCanvas3D::LayersEditing::set_enabled(bool enabled)
 {
     m_enabled = is_allowed() && enabled;
+    if (!m_enabled) {
+        m_model_object = nullptr;
+        last_object_id = -1;
+        m_object_max_z = 0.0f;
+        state = Unknown;
+    }
 }
 
 float GLCanvas3D::LayersEditing::s_overlay_window_width;
@@ -2655,6 +2661,12 @@ void GLCanvas3D::enable_layers_editing(bool enable)
 {
     m_layers_editing.set_enabled(enable);
     set_as_dirty();
+}
+
+void GLCanvas3D::release_layers_editing_toolbar_item()
+{
+    if (m_main_toolbar)
+        m_main_toolbar->release_toggled_item("layersediting");
 }
 
 void GLCanvas3D::enable_legend_texture(bool enable)

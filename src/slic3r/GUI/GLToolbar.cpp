@@ -1233,6 +1233,20 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
     return processed;
 }
 
+void GLToolbar::release_toggled_item(const std::string& name)
+{
+    for (int i = 0; i < (int)m_items.size(); ++i) {
+        const auto& item = m_items[i];
+        if (!item || item->get_name() != name)
+            continue;
+        if (item->is_pressed())
+            item->set_state(item->is_hovered() ? GLToolbarItem::Hover : GLToolbarItem::Normal);
+        if (m_pressed_toggable_id == i)
+            m_pressed_toggable_id = -1;
+        return;
+    }
+}
+
 void GLToolbar::do_action(GLToolbarItem::EActionType type, int item_id, GLCanvas3D& parent, bool check_hover)
 {
     if (item_id < 0 || item_id >= (int)m_items.size()) {

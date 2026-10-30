@@ -993,6 +993,7 @@ public:
     bool is_reload_delayed() const;
 
     void enable_layers_editing(bool enable);
+    void release_layers_editing_toolbar_item();
     void enable_legend_texture(bool enable);
     void enable_picking(bool enable);
     void enable_moving(bool enable);
