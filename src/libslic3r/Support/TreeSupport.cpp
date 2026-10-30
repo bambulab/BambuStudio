@@ -2183,31 +2183,42 @@ void TreeSupport::fold_nodes_multi_diameter()
         NodeCounters counters;
         if (! fold_interface)
             return counters;
-        std::unordered_map<const SupportNode *, std::pair<int, size_t>> chain;
+        // The roof counter is carried down the chain like steps. Deriving it from the node's own fine counters
+        // (roof + distance_to_top - steps) breaks below a merge: the merged node keeps the larger distance_to_top
+        // of one branch and the larger roof of another, so their sum no longer matches the chain above and a deep
+        // base node could come out as roof / roof_1st_layer again.
+        struct ChainState { int steps; int roof; size_t printed; };
+        std::unordered_map<const SupportNode *, ChainState> chain;
         for (size_t layer_nr = num_layers; layer_nr -- > 0;)
             for (SupportNode *node : contact_nodes[layer_nr]) {
                 if (node == nullptr || node->distance_to_top < 0)
                     continue;
                 const auto move_it = moves.find(node);
                 const size_t printed = move_it == moves.end() ? layer_nr : move_it->second;
-                int steps = -1;
+                int  steps      = -1;
+                int  roof       = 0;
+                bool has_parent = false;
                 for_each_parent(node, [&](const SupportNode *parent) {
                     const auto parent_it = chain.find(parent);
-                    if (parent_it != chain.end())
-                        steps = std::max(steps, parent_it->second.first +
-                                               (parent_it->second.second != printed ? 1 : 0));
+                    if (parent_it == chain.end())
+                        return;
+                    const int step = parent_it->second.printed != printed ? 1 : 0;
+                    steps = std::max(steps, parent_it->second.steps + step);
+                    roof  = has_parent ? std::max(roof, parent_it->second.roof - step) : parent_it->second.roof - step;
+                    has_parent = true;
                 });
-                if (steps < 0)
+                if (! has_parent) {
                     steps = node->distance_to_top;
-                chain[node] = { steps, printed };
-                const int roof = node->support_roof_layers_below + node->distance_to_top - steps;
+                    roof  = node->support_roof_layers_below;
+                }
+                chain[node] = { steps, roof, printed };
                 counters[node] = { steps, roof };
             }
         return counters;
     };
-    auto is_interface_role = [&](const SupportNode *node, int roof_layers, size_t printed_layer) {
-        const int distance_to_top =
-            node->support_roof_layers_below + node->distance_to_top - roof_layers;
+    // counters is { distance_to_top, support_roof_layers_below } in printed layers.
+    auto is_interface_role = [&](const std::pair<int, int> &counters, size_t printed_layer) {
+        const auto [distance_to_top, roof_layers] = counters;
         return m_support_params.num_top_interface_layers > 0 &&
                layer_heights[printed_layer].obj_layer_nr > 0 &&
                (roof_layers > 0 ||
@@ -2254,9 +2265,10 @@ void TreeSupport::fold_nodes_multi_diameter()
                     tentative_moves.emplace(node, carrier->top_layer);
 
         NodeCounters future_counters = evaluate_roof_layers(tentative_moves);
-        auto future_roof = [&](SupportNode *node) {
+        auto future_of = [&](SupportNode *node) {
             const auto it = future_counters.find(node);
-            return it == future_counters.end() ? node->support_roof_layers_below : it->second.second;
+            return it == future_counters.end() ?
+                std::make_pair(node->distance_to_top, node->support_roof_layers_below) : it->second;
         };
         auto use_interface_shape = [&](const SupportNode *node, int roof_layers) {
             return m_support_params.num_top_interface_layers > 0 &&
@@ -2281,9 +2293,9 @@ void TreeSupport::fold_nodes_multi_diameter()
                     if (move_it == tentative_moves.end())
                         continue;
                     Carrier &carrier = carriers[slab_idx].at(move_it->second);
-                    const int roof_layers = future_roof(node);
-                    const bool interface_node =
-                        is_interface_role(node, roof_layers, carrier.top_layer);
+                    const std::pair<int, int> counters = future_of(node);
+                    const int roof_layers = counters.second;
+                    const bool interface_node = is_interface_role(counters, carrier.top_layer);
                     if (! carrier.folds || (! interface_node && layer_nr != carrier.base_source_layer))
                         continue;
                     ExPolygons final_base_probe;
@@ -2419,11 +2431,11 @@ void TreeSupport::fold_nodes_multi_diameter()
                 return;
             for (SupportNode *node : contact_nodes[layer_nr])
                 if (tentative_moves.count(node) == 0) {
-                    const int roof_layers = future_roof(node);
+                    const std::pair<int, int> counters = future_of(node);
                     const ExPolygons &probe =
-                        cached_probe_of(node, use_interface_shape(node, roof_layers));
+                        cached_probe_of(node, use_interface_shape(node, counters.second));
                     append(stationary_footprints[layer_nr], probe);
-                    if (is_interface_role(node, roof_layers, layer_nr))
+                    if (is_interface_role(counters, layer_nr))
                         append(stationary_interface_footprints[layer_nr], probe);
                 }
             if (! stationary_footprints[layer_nr].empty())
@@ -2560,9 +2572,9 @@ void TreeSupport::fold_nodes_multi_diameter()
                     moves_to.count(node) > 0)
                     continue;
                 const auto counter_it = final_counters.find(node);
-                const int roof_layers = counter_it == final_counters.end() ?
-                    node->support_roof_layers_below : counter_it->second.second;
-                const bool interface_node = is_interface_role(node, roof_layers, layer_nr);
+                const std::pair<int, int> counters = counter_it == final_counters.end() ?
+                    std::make_pair(node->distance_to_top, node->support_roof_layers_below) : counter_it->second;
+                const bool interface_node = is_interface_role(counters, layer_nr);
                 if (interface_node)
                     fine_interface_layers[layer_nr] = true;
                 else
@@ -2644,7 +2656,7 @@ void TreeSupport::fold_nodes_multi_diameter()
                 }
                 const size_t   carrier_layer = move_it->second;
                 const Carrier &carrier       = carriers[slab_idx].at(carrier_layer);
-                if (is_interface_role(node, node->support_roof_layers_below, carrier_layer)) {
+                if (is_interface_role({ node->distance_to_top, node->support_roof_layers_below }, carrier_layer)) {
                     // Every roof in the column contributes: one extrusion covers all of them.
                     adopted[carrier_layer].second.emplace_back(node);
                 } else if (layer_nr == carrier.base_source_layer) {
