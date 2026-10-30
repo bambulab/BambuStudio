@@ -5,6 +5,7 @@
 #include "MainFrame.hpp"
 #include "libslic3r/Preset.hpp"
 #include "I18N.hpp"
+#include <algorithm>
 #include <iterator>
 #include <wx/colordlg.h>
 #include <wx/dcgraph.h>
@@ -416,7 +417,7 @@ void AMSMaterialsSetting::create_panel_weight(wxWindow* parent)
     m_input_remain_weight->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     m_input_remain_weight->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     m_input_remain_weight->GetTextCtrl()->Bind(wxEVT_TEXT,
-        [this](wxCommandEvent& e) { e.Skip(); update_total_weight_preview(); });
+        [this](wxCommandEvent& e) { e.Skip(); clamp_remain_weight_input(); update_total_weight_preview(); });
     m_sizer_remain_weight->Add(m_input_remain_weight, 0, wxALIGN_CENTER, 0);
     auto m_unit_remain_weight = new wxStaticText(m_panel_filament_weight, wxID_ANY, "g", wxDefaultPosition, wxDefaultSize, 0);
     m_unit_remain_weight->SetFont(::Label::Body_13);
@@ -731,6 +732,35 @@ bool AMSMaterialsSetting::can_edit_filament_weight() const
     return m_is_third || obj->GetConfig()->SupportFilamentRemainEditRfid();
 }
 
+int AMSMaterialsSetting::remain_weight_upper_bound() const
+{
+    return m_is_third ? DevFilamentWeight::MAX_TOTAL_GRAMS : DevFilamentWeight::MAX_RFID_REMAIN_GRAMS;
+}
+
+void AMSMaterialsSetting::clamp_remain_weight_input()
+{
+    if (!can_edit_filament_weight()) return;
+    if (m_suppress_remain_preview) return;
+
+    wxTextCtrl* ctrl = m_input_remain_weight->GetTextCtrl();
+    wxString    text = ctrl->GetValue();
+    if (text.IsEmpty()) return;
+
+    long remain = 0;
+    if (!text.ToLong(&remain)) remain = DevFilamentWeight::MIN_TOTAL_GRAMS;
+
+    const int clamped = std::clamp<int>(static_cast<int>(remain), DevFilamentWeight::MIN_TOTAL_GRAMS, remain_weight_upper_bound());
+    const wxString clamped_text = wxString::Format("%d", clamped);
+    if (clamped_text != text) {
+        BOOST_LOG_TRIVIAL(debug) << "remain weight clamped from " << text << " to " << clamped;
+        m_suppress_remain_preview = true;
+        ctrl->SetValue(clamped_text);
+        ctrl->SetInsertionPointEnd();
+        m_suppress_remain_preview = false;
+        update_total_weight_preview();
+    }
+}
+
 #define DEFAULT_TOTAL_WEIGHT 1000
 bool AMSMaterialsSetting::validate_filament_weight_inputs(bool is_target_bbl, int& cmd_total_weight, int& cmd_remain_weight) const
 {
@@ -763,17 +793,8 @@ bool AMSMaterialsSetting::validate_filament_weight_inputs(bool is_target_bbl, in
     }
 
     long remain = 0;
-    if (!remain_text.ToLong(&remain)) {
-        MessageDialog msg_dlg(nullptr, _L("Please enter valid filament weights."), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
-        return false;
-    }
-
-    if (!m_is_third && remain > 1000) {
-        MessageDialog msg_dlg(nullptr, _L("Please enter valid filament weight within 1000g."), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
-        return false;
-    }
+    if (!remain_text.ToLong(&remain)) remain = DevFilamentWeight::MIN_TOTAL_GRAMS;
+    remain = std::clamp<int>(static_cast<int>(remain), DevFilamentWeight::MIN_TOTAL_GRAMS, remain_weight_upper_bound());
 
 	long total = 0;
 	if (!total_text.ToLong(&total)) {
@@ -783,13 +804,7 @@ bool AMSMaterialsSetting::validate_filament_weight_inputs(bool is_target_bbl, in
     if (remain > total) {
         total = remain;
     }
-
-    const auto validation = DevFilamentWeight::Validate(static_cast<int>(total), static_cast<int>(remain));
-    if (!validation.valid) {
-        MessageDialog msg_dlg(nullptr, from_u8(validation.message), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
-        return false;
-    }
+    total = std::clamp<int>(static_cast<int>(total), DevFilamentWeight::MIN_TOTAL_GRAMS, DevFilamentWeight::MAX_TOTAL_GRAMS);
 
     cmd_total_weight = static_cast<int>(total);
     cmd_remain_weight = static_cast<int>(remain);

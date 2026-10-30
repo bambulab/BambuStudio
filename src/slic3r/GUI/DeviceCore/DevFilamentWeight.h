@@ -17,6 +17,7 @@ class DevFilamentWeight
 public:
     static constexpr int MIN_TOTAL_GRAMS = 1;
     static constexpr int MAX_TOTAL_GRAMS = 10000;
+    static constexpr int MAX_RFID_REMAIN_GRAMS = 1000;
 
     static DevFilamentWeightValidation Validate(int total, int remain)
     {

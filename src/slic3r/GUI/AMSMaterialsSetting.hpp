@@ -224,6 +224,8 @@ protected:
 
     bool support_filament_remain_edit() const;
     bool can_edit_filament_weight() const;
+    int  remain_weight_upper_bound() const;
+    void clamp_remain_weight_input();
     bool validate_filament_weight_inputs(bool is_target_bbl, int& total_weight, int& remain_weight) const;
     bool filament_weight_changed(int total_weight, int remain_weight) const;
     void update_filament_weight_editing();
