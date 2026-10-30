@@ -5078,6 +5078,8 @@ void GUI_App::fetch_minors_decisions()
 
     if (m_minors_decisions_thread.joinable())
         m_minors_decisions_thread.join();
+    m_minors_decisions_pending = true;
+    m_sync_prompt_deferred     = false;
     m_minors_decisions_thread = Slic3r::create_thread(
         [this] {
             std::vector<MinorsDecisionResult> decisions;
@@ -5131,10 +5133,17 @@ void GUI_App::fetch_minors_decisions()
                 m_access_maker_supply.store(maker_supply);
                 refresh_monitor_ctrl_area_ui();
                 refresh_homepage_access_ui();
+                m_minors_decisions_pending = false;
+                bool show_sync_prompt      = m_sync_prompt_deferred;
+                m_sync_prompt_deferred     = false;
                 if (uep_outcome == UepOutcome::ForceLogout) {
+                    if (show_sync_prompt)
+                        BOOST_LOG_TRIVIAL(info) << "fetch_minors_decisions: drop deferred cloud-sync prompt, forcing logout";
                     force_logout_uep_login_invalid(signin_url);
                 } else {
                     apply_uep_gate(uep_gate, /*force=*/true);
+                    if (show_sync_prompt && mainframe)
+                        mainframe->show_sync_dialog();
                 }
             });
         });
@@ -6010,7 +6019,12 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
         preset_bundle->load_user_presets(m_agent->get_user_id(), ForwardCompatibilitySubstitutionRule::Enable);
         mainframe->update_side_preset_ui();
 
-        GUI::wxGetApp().mainframe->show_sync_dialog();
+        if (m_minors_decisions_pending) {
+            BOOST_LOG_TRIVIAL(info) << "on_user_login_handle: defer cloud-sync prompt until minors decisions return";
+            m_sync_prompt_deferred = true;
+        } else {
+            GUI::wxGetApp().mainframe->show_sync_dialog();
+        }
 
         if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
             mainframe->web_device()->NotifyFilamentSessionState();

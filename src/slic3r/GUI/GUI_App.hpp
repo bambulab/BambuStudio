@@ -395,6 +395,10 @@ private:
     std::atomic<MinorDecision> m_access_maker_world{MinorDecision::Allow};
     std::atomic<MinorDecision> m_access_maker_lab{MinorDecision::Allow};
     std::atomic<MinorDecision> m_access_maker_supply{MinorDecision::Allow};
+    // The cloud-preset sync prompt is held back until the minors decisions return,
+    // so a force-logged-out minor account never sees it.
+    bool             m_minors_decisions_pending{false};
+    bool             m_sync_prompt_deferred{false};
     // UEP (Join User Experience Program) decision is re-fetched when Preferences
     // opens; the open dialog is tracked here so the result can refresh its checkbox.
     PreferencesDialog* m_preferences_dialog{nullptr};
