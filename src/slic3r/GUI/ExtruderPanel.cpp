@@ -1061,17 +1061,23 @@ void NozzleRackPanel::show_ams_units(int extruder, ExtruderAms &ams, bool visibl
         AMSinfo placeholder;
         placeholder.ams_type = type;
         placeholder.cans.resize(type == DevAmsType::AMS ? 4 : 1);
+        if (!enabled) {
+            for (Caninfo &can : placeholder.cans)
+                can.material_colour = AMS_CONTROL_DISABLE_COLOUR;
+        }
 
         for (size_t i = 0; i < wanted && pool_offset + i < ams.previews.size(); ++i) {
             auto *preview = ams.previews[pool_offset + i];
             const AMSinfo *content = nullptr;
-            if (selected && i < selected->size() && !(*selected)[i].empty()) {
-                const auto found = std::find_if(known.begin(), known.end(), [&](const AMSinfo &info) {
-                    return info.ams_id == (*selected)[i];
-                });
-                if (found != known.end()) content = &*found;
-            } else if (!selected && i < known.size()) {
-                content = &known[i];
+            if (enabled) {
+                if (selected && i < selected->size() && !(*selected)[i].empty()) {
+                    const auto found = std::find_if(known.begin(), known.end(), [&](const AMSinfo &info) {
+                        return info.ams_id == (*selected)[i];
+                    });
+                    if (found != known.end()) content = &*found;
+                } else if (!selected && i < known.size()) {
+                    content = &known[i];
+                }
             }
             preview->Update(content ? *content : placeholder);
             preview->Enable(enabled);
