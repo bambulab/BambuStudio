@@ -87,6 +87,7 @@ src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/PageHotend.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverDeviceState.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ViewModel.cpp
+src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendVM.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/ViewModel.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/refill_info/Actions.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/refill_info/Builder.cpp
