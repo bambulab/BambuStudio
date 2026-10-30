@@ -2138,22 +2138,6 @@ void Sidebar::priv::restore_multi_nozzle_auto_process_edits()
     reload_print_tab_from_edited_preset();
 }
 
-// The sidebar's nozzle configs as inventory slots; an empty config is an empty slot.
-static ExtruderSlots nozzle_slots_of(const std::vector<NozzleConfig> &configs)
-{
-    ExtruderSlots slots;
-    for (const NozzleConfig &cfg : configs) {
-        if (cfg.is_empty()) {
-            slots.push_back(NozzleSlot());
-            continue;
-        }
-        const NozzleSlotStatus status = cfg.status == NozzleStatus::nsError   ? NozzleSlotStatus::Error :
-                                        cfg.status == NozzleStatus::nsUnknown ? NozzleSlotStatus::Unknown :
-                                                                                NozzleSlotStatus::Normal;
-        slots.push_back({into_u8(cfg.diameter), cfg.volume, status});
-    }
-    return slots;
-}
 
 // Hand a changed nozzle setup to the printer tab, which refreshes everything that follows the nozzles.
 static void notify_nozzles_changed()

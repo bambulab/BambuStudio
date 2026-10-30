@@ -10,6 +10,7 @@
 
 #include <wx/string.h>
 
+#include "libslic3r/NozzleInventory.hpp"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
 
 namespace Slic3r {
@@ -141,8 +142,13 @@ using AmsIdMap = std::map<std::pair<int, int>, std::vector<std::string>>;
 AmsIdMap collect_ams_ids(MachineObject *obj);
 std::map<std::pair<int, int>, int> collect_ams_counts(MachineObject *obj);
 
-// True when the selected printer preset's type matches the connected machine and the nozzle
-// groups agree. extruder = -1 means check both extruders.
+/**
+ * \brief Check if the nozzle inventory matches the selected machine slot for slot
+ *
+ * Returns false when the printer model differs. AMS is not checked.
+ *
+ * \param target_extruder_id  0-based logical extruder, -1 for all extruders
+ */
 bool is_extruder_stat_synced(int target_extruder_id = -1);
 
 // The nozzles the machine reports for one logical extruder, as slot-ordered configs; slots the
@@ -150,6 +156,15 @@ bool is_extruder_stat_synced(int target_extruder_id = -1);
 // Caution: its health rule (IsNormal/IsUnknown, on rack printers only) is not the device-page rule that
 // machine_slots() applies, so one slot can read healthy here and faulty there.
 std::vector<NozzleConfig> collect_nozzle_configs_from_machine(MachineObject *obj, int extruder_idx, int extruder_nozzle_count);
+
+/**
+ * \brief Convert nozzle configs into nozzle inventory slots
+ *
+ * Every write into the nozzle inventory and the synced check use it, so they read a slot the same way.
+ *
+ * \param configs  slot-ordered configs; an empty config gives an empty slot
+ */
+ExtruderSlots nozzle_slots_of(const std::vector<NozzleConfig> &configs);
 
 /// \brief What the printer shows in one nozzle slot
 enum class MachineSlot
