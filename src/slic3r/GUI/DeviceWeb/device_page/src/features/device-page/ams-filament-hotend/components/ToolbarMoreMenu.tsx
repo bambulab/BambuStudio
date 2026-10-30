@@ -68,7 +68,7 @@ export function ToolbarMoreMenu({
               data-testid="ams-hotend-action-load-auto"
               onClick={() => run('load_auto')}
             >
-              {t('Load')}
+              {t('Load', { context: 'AmsHotendWebRackA' })}
             </button>
           )}
           <button
@@ -76,6 +76,7 @@ export function ToolbarMoreMenu({
             role="menuitem"
             data-testid="ams-hotend-action-load-external"
             disabled={!canLoadExternal}
+            title={t('Supports batch loading from the direct feed port or external feed port.')}
             onClick={() => run('load_external')}
           >
             {t('Manual Loading')}

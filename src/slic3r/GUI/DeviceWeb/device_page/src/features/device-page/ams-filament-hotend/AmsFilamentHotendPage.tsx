@@ -354,6 +354,7 @@ export function AmsFilamentHotendPage() {
         <BatchModeFooter
           mode={currentMode}
           selectableSlots={selectableSlots}
+          selectedSlots={selectedSlots}
           selectedKeys={selectedKeys}
           onSelectAll={onSelectAll}
           onClearSelection={onClearSelection}

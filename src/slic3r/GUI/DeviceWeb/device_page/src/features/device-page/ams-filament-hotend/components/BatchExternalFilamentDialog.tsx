@@ -26,7 +26,7 @@ export function BatchExternalFilamentDialog({
   const hasUnknown = slots.some((slot) => slot.filament_card.state === 'Unknown');
   const title = t('Edit Filament');
   const confirmLabel = intent === 'run'
-    ? t(mode === 'batch_ams_load' ? 'Auto Load' : 'Load')
+    ? (mode === 'batch_ams_load' ? t('Load', { context: 'AmsHotendWebRackA' }) : t('Load'))
     : t('Confirm');
 
   const dialog = (
@@ -66,24 +66,19 @@ export function BatchExternalFilamentDialog({
             return (
               <div className="batch-ext-dialog-row" role="row" key={`${slot.ams_id}-${slot.slot_id}`}>
                 <span>{slot.display_index}</span>
-                <button
-                  type="button"
+                <span
                   className={`batch-ext-select${unknown ? ' placeholder' : ''}`}
-                  onClick={() => onEditSlot(slot)}
-                  title={unknown ? t('Edit Filament') : typeText}
+                  title={typeText}
                 >
                   <span>{typeText}</span>
-                  <span className="batch-ext-select-arrow">⌄</span>
-                </button>
-                <button
-                  type="button"
+                </span>
+                <span
                   className={`batch-ext-color${unknown ? ' unknown' : ''}`}
-                  onClick={() => onEditSlot(slot)}
-                  aria-label={t('Edit color')}
+                  aria-label={t('Color')}
                   style={!unknown ? { ['--ext-color' as never]: card.color } : undefined}
                 >
                   {unknown ? '?' : ''}
-                </button>
+                </span>
                 <button
                   type="button"
                   className="batch-ext-row-edit"

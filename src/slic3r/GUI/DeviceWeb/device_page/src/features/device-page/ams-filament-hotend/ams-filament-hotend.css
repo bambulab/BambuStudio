@@ -1257,7 +1257,6 @@
   background: var(--ams-card-text-bg);
   color: var(--ams-text-strong);
   font: inherit;
-  cursor: pointer;
   box-sizing: border-box;
 }
 
@@ -1285,7 +1284,6 @@
   color: var(--ams-text-muted);
   font: inherit;
   font-weight: 600;
-  cursor: pointer;
 }
 
 .batch-ext-color.unknown {

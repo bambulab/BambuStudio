@@ -8,7 +8,7 @@ import type { AmsFilamentHotendSlotViewModel, FilamentPageMode } from '../types'
 // matching MQTT command. Literal t() so i18next-parser can extract keys.
 function batchCommitLabel(mode: FilamentPageMode, t: TFunction): string {
   switch (mode) {
-    case 'batch_ams_load': return t('Auto Load');
+    case 'batch_ams_load': return t('Load', { context: 'AmsHotendWebRackA' });
     case 'batch_ext_load': return t('Manual Loading');
     case 'batch_unload': return t('Unload');
     default: return t('Confirm');
@@ -18,6 +18,7 @@ function batchCommitLabel(mode: FilamentPageMode, t: TFunction): string {
 export function BatchModeFooter({
   mode,
   selectableSlots,
+  selectedSlots,
   selectedKeys,
   onSelectAll,
   onClearSelection,
@@ -27,6 +28,7 @@ export function BatchModeFooter({
 }: {
   mode: FilamentPageMode;
   selectableSlots: AmsFilamentHotendSlotViewModel[];
+  selectedSlots: AmsFilamentHotendSlotViewModel[];
   selectedKeys: ReadonlySet<string>;
   // Toggles the master "select all" checkbox: ticks every selectable slot
   // when not all-selected, clears selection when fully-selected.
@@ -47,7 +49,8 @@ export function BatchModeFooter({
   const allSelected = totalSelectable > 0 && selectedCount === totalSelectable;
   const someSelected = selectedCount > 0 && selectedCount < totalSelectable;
   const canCommit = selectedCount > 0;
-  const showEdit = mode === 'batch_ext_load' || mode === 'batch_ams_load';
+  const hasSelectedUnknown = selectedSlots.some((slot) => slot.filament_card.state === 'Unknown');
+  const showEdit = mode === 'batch_ext_load' || (mode === 'batch_ams_load' && hasSelectedUnknown);
 
   const commitLabel = batchCommitLabel(mode, t);
 
