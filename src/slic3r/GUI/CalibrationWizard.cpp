@@ -685,6 +685,18 @@ static bool get_flow_ratio(const DynamicConfig& config, float& flow_ratio)
     return false;
 }
 
+// tray_id may come from a cached calibration preset that no longer matches the AMS snapshot
+static std::string get_tray_filament_colour(const std::map<int, DynamicPrintConfig>& filament_list, int tray_id)
+{
+    if (auto it = filament_list.find(tray_id); it != filament_list.end()) {
+        const ConfigOptionStrings* colour_opt = it->second.option<ConfigOptionStrings>("filament_colour");
+        if (colour_opt && !colour_opt->values.empty() && !colour_opt->values.front().empty())
+            return colour_opt->values.front();
+    }
+    BOOST_LOG_TRIVIAL(warning) << "filament colour not found, use default " << KV(log_key::tray_id, tray_id);
+    return "#000000";
+}
+
 void PressureAdvanceWizard::on_cali_start()
 {
     if (!curr_obj) {
@@ -797,9 +809,7 @@ void PressureAdvanceWizard::on_cali_start()
             calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, calib_info.nozzle_diameter);
             calib_info.print_prest   = preset_page->get_print_preset(calib_info.nozzle_diameter);
             calib_info.filament_prest = temp_filament_preset;
-
-            std::map<int, DynamicPrintConfig> filament_list = preset_page->get_filament_ams_list();
-            calib_info.filament_color = filament_list[selected_filaments.begin()->tray_id].opt_string("filament_colour", 0u);
+            calib_info.filament_color = get_tray_filament_colour(preset_page->get_filament_ams_list(), selected_filaments.begin()->tray_id);
 
             wxArrayString values = preset_page->get_custom_range_values();
             if (values.size() != 3) {
@@ -895,8 +905,7 @@ void PressureAdvanceWizard::on_cali_start()
             calib_info.printer_prest  = preset_page->get_printer_preset(curr_obj, calib_info.nozzle_diameter);
             calib_info.print_prest    = preset_page->get_print_preset(calib_info.nozzle_diameter);
             calib_info.filament_prest = temp_filament_preset;
-            std::map<int, DynamicPrintConfig> filament_list = preset_page->get_filament_ams_list();
-            calib_info.filament_color = filament_list[item.tray_id].opt_string("filament_colour", 0u);
+            calib_info.filament_color = get_tray_filament_colour(preset_page->get_filament_ams_list(), item.tray_id);
             calib_info.params.mode    = CalibMode::Calib_Auto_PA_Line;
             calib_infos.emplace_back(calib_info);
         }
@@ -1378,9 +1387,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
                 }
             }
             calib_info.filament_prest = temp_filament_preset;
-
-            std::map<int, DynamicPrintConfig> filament_list = preset_page->get_filament_ams_list();
-            calib_info.filament_color = filament_list[selected_filaments.begin()->tray_id].opt_string("filament_colour", 0u);
+            calib_info.filament_color = get_tray_filament_colour(preset_page->get_filament_ams_list(), selected_filaments.begin()->tray_id);
 
             if (cali_stage > 0) {
                 if (!CalibUtils::calib_flowrate(cali_stage, calib_info, wx_err_string)) {
@@ -1797,8 +1804,7 @@ void MaxVolumetricSpeedWizard::on_cali_start()
         calib_info.filament_prest     = selected_filaments.begin()->filament_preset;
         calib_info.nozzle_pos_id      = selected_filaments.begin()->nozzle_pos_id;
         calib_info.nozzle_sn          = selected_filaments.begin()->nozzle_sn;
-        std::map<int, DynamicPrintConfig> filament_list = preset_page->get_filament_ams_list();
-        calib_info.filament_color = filament_list[selected_filaments.begin()->tray_id].opt_string("filament_colour", 0u);
+        calib_info.filament_color     = get_tray_filament_colour(preset_page->get_filament_ams_list(), selected_filaments.begin()->tray_id);
     }
 
     calib_info.bed_type      = plate_type;
