@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 15:34+0800\n"
+"POT-Creation-Date: 2026-10-30 17:17+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1013,6 +1013,15 @@ msgstr "自检"
 msgid "No selected machine"
 msgstr "未选择设备"
 
+msgid "Please check the hotend cable and try again."
+msgstr "请检查热端连接线后重试。"
+
+msgid "Hotend communication error"
+msgstr "热端通信异常"
+
+msgid "View Details"
+msgstr "查看详情"
+
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
 msgstr "是否确认从该续料组中移除“%s”？"
@@ -1680,7 +1689,7 @@ msgid "Tolerance"
 msgstr "容差"
 
 msgid "Mesh name"
-msgstr "模型名"
+msgstr "Mesh名"
 
 msgid "Detail level"
 msgstr "细节等级"
@@ -1701,6 +1710,9 @@ msgstr "简化"
 msgid "Simplification is currently only allowed when a single part is selected"
 msgstr "仅支持对单个零件做简化"
 
+msgid "Simplification method"
+msgstr ""
+
 msgid "Extra high"
 msgstr "非常高"
 
@@ -1716,9 +1728,9 @@ msgstr "低"
 msgid "Extra low"
 msgstr "非常低"
 
-#, c-format, boost-format
-msgid "%d triangles"
-msgstr "%d 个三角形"
+#, boost-format
+msgid "Triangles after simplification: %1%"
+msgstr ""
 
 msgid "Show wireframe"
 msgstr "显示线框"
@@ -1730,17 +1742,10 @@ msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all 
 msgstr "包括颜色绘制、Z缝绘制、支撑绘制和绒毛表面绘制。不勾选时，布尔结果不保留任何绘制。"
 
 msgid "All painting (color, seam, support and fuzzy skin) will be removed from the simplified model. Check \"Keep all painting\" to keep it."
-msgstr "简化后的模型将删除所有绘制（颜色、Z缝、支撑和绒毛表面）。勾选\"保留所有绘制\"可保留绘制。"
+msgstr ""
 
 msgid "Calculating simplified preview..."
-msgstr "正在计算简化预览..."
-
-msgid "Simplification method"
-msgstr "简化方式"
-
-#, boost-format
-msgid "Triangles after simplification: %1%"
-msgstr "简化后三角面片数：%1%"
+msgstr ""
 
 #, boost-format
 msgid "%1%"
@@ -3286,10 +3291,6 @@ msgstr "目标对象仅包含一个零件，无法被拆分。"
 
 msgid "Assembly"
 msgstr "组合体"
-
-#, boost-format
-msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
-msgstr "网格布尔运算最多支持 %1% 个部件，但所选对象包含 %2% 个部件。请减少部件数量后重试。"
 
 msgid "Cut Connectors information"
 msgstr "切割连接件信息"
@@ -9107,16 +9108,6 @@ msgstr "AMS（4槽）"
 msgid "AMS(1 slot)"
 msgstr "AMS（单槽）"
 
-#, c-format, boost-format
-msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
-msgstr "已配置的喷嘴类型中没有 %smm 直径，因此无法使用 %smm 直径进行切片。"
-
-msgid "Configure Nozzle diameter"
-msgstr "配置喷嘴直径"
-
-msgid "Modify Nozzle Type"
-msgstr "修改喷嘴类型"
-
 msgid "Not installed"
 msgstr "未安装"
 
@@ -13237,9 +13228,6 @@ msgstr "打印"
 
 msgid "Print the enhanced part immediately"
 msgstr "立即打印增强后的零件"
-
-msgid "View Details"
-msgstr "查看详情"
 
 msgid "Verify Print Success Results"
 msgstr "验证打印成功结果"
@@ -17528,6 +17516,9 @@ msgstr "请至少选择一种材料进行校准。"
 msgid "Flow rate calibration result has been saved to preset"
 msgstr "流量比例校准结果已保存到预设"
 
+msgid "Failed to get calibration parameters. Calibration results can only be obtained on the client that started the calibration."
+msgstr "获取校准参数失败，仅支持在发起校准的客户端中获取校准结果。"
+
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr "最大体积速度校准结果已保存到预设值"
 
@@ -19583,14 +19574,14 @@ msgstr "烘干错误"
 msgid "Please check the Assistant for troubleshooting"
 msgstr "请查看助手以进行故障排除"
 
-msgid "Please remove and store the filament (as shown)."
-msgstr "请拔出并收起耗材（如图）"
-
-msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
-msgstr "AMS会自动旋转耗材收起的槽位，会有更好的烘干效果。"
+msgid "Unknown filaments will be treated as PLA."
+msgstr "*未知的耗材会被当作PLA处理。"
 
 msgid "Rotate spool when drying"
 msgstr "烘干时旋转料盘"
+
+msgid "After turning on, the AMS automatically rotates slots where filament ends are stowed on the spool, for better drying"
+msgstr "开启后AMS会自动旋转耗材收起的槽位，会有更好的烘干效果"
 
 msgctxt "amsdrying"
 msgid "Back"
@@ -19667,26 +19658,17 @@ msgstr "系统正忙"
 msgid "  Initiating other drying processes, please wait a few seconds..."
 msgstr "  正在开启其他烘干，请稍等几秒……"
 
-msgid "For better drying results, remove the filament and allow it to rotate."
+msgid "The current drying temperature is higher than the softening temperature of some filaments. Filament ends left in the inlet may soften and clog it. Pull out the filaments marked with an exclamation mark before drying."
+msgstr "当前烘干温度高于部分耗材的软化温度，料头留在进料口内烘干可能软化并堵塞进料口，请将带叹号的耗材拔出后烘干。"
+
+msgid "Slots that currently support drying:"
+msgstr "支持烘干的槽位："
+
+msgid "It is recommended to pull the filament end out of the inlet before drying to prevent it from softening due to high temperature."
+msgstr "建议在烘干之前将耗材拔出，以免温度过高导致耗材软化。"
+
+msgid "For better drying results, pull the filament end out of the inlet and allow it to rotate."
 msgstr "拔出耗材并旋转烘干会有更好的效果。"
-
-msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
-msgstr "AMS会自动旋转耗材收起的槽位，会有更好的烘干效果。"
-
-msgid "Alternatively, you can dry the filament without removing it."
-msgstr "或者，您可以在不取出耗材的情况下进行干燥。"
-
-msgid "Unknown filaments will be treated as PLA."
-msgstr "*未知的耗材会被当作PLA处理。"
-
-msgid "For better drying results, remove the filament."
-msgstr "拔出耗材烘干会有更好的效果。"
-
-msgid "Please store the filament marked with an exclamation mark."
-msgstr "请收起带感叹号的耗材。"
-
-msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
-msgstr "材料插在进料口中烘干可能会软化，这是因为烘干温度超出了耗材的软化温度，常见于PLA、TPU等易软化的材料。"
 
 msgid "Starting: Checking adapter connection"
 msgstr "正在启动：检查适配器连接"
@@ -19969,8 +19951,8 @@ msgid "This filament does not support the %smm nozzle, or no matching nozzle is 
 msgstr "该耗材不支持 %smm 喷嘴，或尚未配置匹配的喷嘴。"
 
 #, c-format, boost-format
-msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
-msgstr "请先在下方为打印机设置 %smm 直径喷嘴，然后再使用该直径进行切片。"
+msgid "This printer isn’t configured with a %s mm nozzle. Please configure it in “Settings” before slicing."
+msgstr "当前打印机未配置 %s mm 喷嘴，请先前往“设置”完成配置后再切片。"
 
 msgid "No nozzle is installed in this slot."
 msgstr "此插槽中未安装喷嘴。"
@@ -19980,9 +19962,6 @@ msgstr "热端信息未知。请在使用前刷新喷嘴信息。"
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "喷嘴直径不匹配。此喷嘴无法使用。"
-
-msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
-msgstr "该挤出机的喷嘴直径与当前所选打印直径不同。混合喷嘴直径打印仍为实验性功能。"
 
 msgid "Nozzle Settings"
 msgstr "喷嘴设置"
@@ -21029,6 +21008,55 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#, c-format, boost-format
+#~ msgid "%d triangles"
+#~ msgstr "%d 个三角形"
+
+#, boost-format
+#~ msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
+#~ msgstr "网格布尔运算最多支持 %1% 个部件，但所选对象包含 %2% 个部件。请减少部件数量后重试。"
+
+#, c-format, boost-format
+#~ msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
+#~ msgstr "已配置的喷嘴类型中没有 %smm 直径，因此无法使用 %smm 直径进行切片。"
+
+#~ msgid "Configure Nozzle diameter"
+#~ msgstr "配置喷嘴直径"
+
+#~ msgid "Modify Nozzle Type"
+#~ msgstr "修改喷嘴类型"
+
+#~ msgid "Please remove and store the filament (as shown)."
+#~ msgstr "请拔出并收起耗材（如图）"
+
+#~ msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+#~ msgstr "AMS会自动旋转耗材收起的槽位，会有更好的烘干效果。"
+
+#~ msgid "For better drying results, remove the filament and allow it to rotate."
+#~ msgstr "拔出耗材并旋转烘干会有更好的效果。"
+
+#~ msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
+#~ msgstr "AMS会自动旋转耗材收起的槽位，会有更好的烘干效果。"
+
+#~ msgid "Alternatively, you can dry the filament without removing it."
+#~ msgstr "或者，您可以在不取出耗材的情况下进行干燥。"
+
+#~ msgid "For better drying results, remove the filament."
+#~ msgstr "拔出耗材烘干会有更好的效果。"
+
+#~ msgid "Please store the filament marked with an exclamation mark."
+#~ msgstr "请收起带感叹号的耗材。"
+
+#~ msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
+#~ msgstr "材料插在进料口中烘干可能会软化，这是因为烘干温度超出了耗材的软化温度，常见于PLA、TPU等易软化的材料。"
+
+#, c-format, boost-format
+#~ msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
+#~ msgstr "请先在下方为打印机设置 %smm 直径喷嘴，然后再使用该直径进行切片。"
+
+#~ msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
+#~ msgstr "该挤出机的喷嘴直径与当前所选打印直径不同。混合喷嘴直径打印仍为实验性功能。"
 
 #~ msgid "Cool"
 #~ msgstr "Cool"

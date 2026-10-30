@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 15:34+0800\n"
+"POT-Creation-Date: 2026-10-30 17:17+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -216,7 +216,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "%s ondersteunt geen afdrukken met %s, omdat het filament kan breken in de gebogen PTFE-buis boven de printkop."
 
 msgid "Special attention should be paid to the feeding method of TPU."
 msgstr ""
@@ -253,7 +253,7 @@ msgstr "PPA-CF is bros en kan breken in een gebogen PTFE-buis boven de toolhead.
 
 #, c-format, boost-format
 msgid "%s filament is brittle. Use %s feeding with caution."
-msgstr ""
+msgstr "%s filament is broos. Wees voorzichtig met invoeren via %s."
 
 #, c-format, boost-format
 msgid "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing."
@@ -279,11 +279,11 @@ msgstr "%s kan leiden tot verstopping van de nozzle bij gebruik van 0,4, 0,6 en 
 
 #, c-format, boost-format
 msgid "Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "Gebruik %s voorzichtig in %s, omdat het kan breken in de gebogen PTFE-buis boven de printkop."
 
 #, c-format, boost-format
 msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
-msgstr ""
+msgstr "PLA Glow kan slijtage veroorzaken aan de eerstetrapsinvoer van %s. Gebruik in plaats daarvan een externe spoel."
 
 #, c-format, boost-format
 msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
@@ -291,15 +291,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s."
-msgstr ""
+msgstr "%s filament is broos en heeft een hoge invoerweerstand. Wees voorzichtig bij het laden ervan via %s."
 
 #, c-format, boost-format
 msgid "PPA-CF filament does not support %s feeding. Use an external spool instead."
-msgstr ""
+msgstr "PPA-CF-filament ondersteunt geen invoer via %s. Gebruik in plaats daarvan een externe spoel."
 
 #, c-format, boost-format
 msgid "%s may fail to load or unload due to the Filament Track Switch."
-msgstr ""
+msgstr "Het laden of ontladen van %s kan mislukken vanwege de Filementwisselaar."
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
@@ -319,7 +319,7 @@ msgstr "%s wordt gebruikt met de hulpextruder en brengt een hoger risico met zic
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may break inside the filament tube."
-msgstr ""
+msgstr "Door de Filementwisselaar kan, %s in de filamentbuis breken."
 
 #, c-format, boost-format
 msgid "%s is used with the auxiliary extruder and may impact print quality."
@@ -359,7 +359,7 @@ msgstr "%s gebruikt met een standaard %s nozzle kan tot moeizame extrusie leiden
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may fail to load or unload."
-msgstr ""
+msgstr "Door de Filementwisselaar kan het laden of ontladen van, %s mislukken."
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
@@ -776,11 +776,11 @@ msgstr "Plaats het filament uit sleuf %1% handmatig in de laadopening van de ext
 
 #, boost-format
 msgid "Slot %1% filament loading in progress"
-msgstr ""
+msgstr "Filament in sleuf %1% wordt geladen"
 
 #, boost-format
 msgid "Slot %1% filament unloading in progress"
-msgstr ""
+msgstr "Filament in sleuf %1% wordt ontladen"
 
 msgid "Other filaments are info-only"
 msgstr "Andere filamenten zijn alleen ter informatie"
@@ -1006,6 +1006,15 @@ msgstr "Zelftest"
 
 msgid "No selected machine"
 msgstr "Geen machine geselecteerd"
+
+msgid "Please check the hotend cable and try again."
+msgstr ""
+
+msgid "Hotend communication error"
+msgstr ""
+
+msgid "View Details"
+msgstr "Bekijk details"
 
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
@@ -1695,6 +1704,9 @@ msgstr "Vereenvoudigen"
 msgid "Simplification is currently only allowed when a single part is selected"
 msgstr "Vereenvoudiging is momenteel alleen toegestaan wanneer een enkel onderdeel is geselecteerd"
 
+msgid "Simplification method"
+msgstr ""
+
 msgid "Extra high"
 msgstr "Extra hoog"
 
@@ -1710,9 +1722,9 @@ msgstr "Laag"
 msgid "Extra low"
 msgstr "Extra laag"
 
-#, c-format, boost-format
-msgid "%d triangles"
-msgstr "%d -driehoeken"
+#, boost-format
+msgid "Triangles after simplification: %1%"
+msgstr ""
 
 msgid "Show wireframe"
 msgstr "Draadmodel tonen"
@@ -1722,6 +1734,12 @@ msgstr "Alle beschildering behouden"
 
 msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr "Inclusief beschildering voor kleur, naad, ondersteuning en fuzzy skin. Indien niet aangevinkt, wordt alle beschildering uit het resultaat verwijderd."
+
+msgid "All painting (color, seam, support and fuzzy skin) will be removed from the simplified model. Check \"Keep all painting\" to keep it."
+msgstr ""
+
+msgid "Calculating simplified preview..."
+msgstr ""
 
 #, boost-format
 msgid "%1%"
@@ -3280,10 +3298,6 @@ msgstr "Het doelobject bevat slechts één deel en kan niet worden gesplitst."
 msgid "Assembly"
 msgstr "Montage"
 
-#, boost-format
-msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
-msgstr "De booleaanse meshbewerking ondersteunt maximaal %1% onderdelen, maar het geselecteerde object bevat %2% onderdelen. Verminder het aantal onderdelen en probeer het opnieuw."
-
 msgid "Cut Connectors information"
 msgstr "Snede connectors informatie"
 
@@ -4417,7 +4431,7 @@ msgstr "Nieuwe gemengde filamenten"
 
 #, boost-format
 msgid "The project supports up to %1% physical filaments."
-msgstr ""
+msgstr "Het project ondersteunt maximaal %1% fysieke filamenten."
 
 msgid "Updating"
 msgstr "Bijwerken…"
@@ -4512,7 +4526,7 @@ msgstr "Het aantal kleuren mag het oorspronkelijke aantal kleuren niet overschri
 
 #, c-format, boost-format
 msgid "Up to %d colors supported."
-msgstr ""
+msgstr "Maximaal %d kleuren ondersteund."
 
 msgid "Click to select a matching filament"
 msgstr "Klik om een bijpassend filament te selecteren"
@@ -4525,14 +4539,14 @@ msgstr "Standaard mengsets gebruiken"
 
 #, boost-format
 msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit, so at least %2% project filament(s) must be deleted first. The following unused project filaments will be deleted automatically:"
-msgstr ""
+msgstr "Het project heeft te veel filamenten. Het toevoegen van de mengset overschrijdt de limiet van %1% filamenten, dus er moeten eerst minstens %2% projectfilament(en) worden verwijderd. De volgende ongebruikte projectfilamenten worden automatisch verwijderd:"
 
 #, boost-format
 msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit. Please delete at least %2% filament(s) on the Prepare page, then add the kit again."
-msgstr ""
+msgstr "Het project heeft te veel filamenten. Het toevoegen van de mengset overschrijdt de limiet van %1% filamenten. Verwijder minstens %2% filament(en) op de pagina ‘Voorbereiden’ en voeg de set daarna opnieuw toe."
 
 msgid "Existing project filaments"
-msgstr ""
+msgstr "Bestaande projectfilamenten"
 
 msgid "What is the CMYKW mixing kit?"
 msgstr "Wat is de CMYKW-mengset?"
@@ -6590,10 +6604,10 @@ msgid "Tips"
 msgstr "Tips"
 
 msgid "Start Anyway"
-msgstr ""
+msgstr "Toch starten"
 
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
-msgstr ""
+msgstr "U hebt 'Hoge temperatuur bednivellering' geselecteerd. Om te voorkomen dat het filament in de extruder zacht wordt, dient u het filament te ontladen vóór de kalibratie."
 
 msgid "Live Camera Recording"
 msgstr "Live camera-opname"
@@ -6605,7 +6619,7 @@ msgid "Go Live"
 msgstr "Live gaan"
 
 msgid "BirdsEye Camera Recording"
-msgstr ""
+msgstr "Opname met BirdsEye Camera"
 
 msgid "Liveview Retry"
 msgstr "Liveweergave opnieuw proberen"
@@ -7228,10 +7242,10 @@ msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "Pluginbibliotheek kon niet worden geladen. Klik hier om de oplossing te bekijken."
 
 msgid "Switch to BirdsEye Camera"
-msgstr ""
+msgstr "Overschakelen naar BirdsEye Camera"
 
 msgid "Switch to Liveview Camera"
-msgstr ""
+msgstr "Overschakelen naar Liveview Camera"
 
 msgid "Switch live camera view"
 msgstr "Live-cameraweergave wisselen"
@@ -7317,7 +7331,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "De live streaming-functie is afhankelijk van Bambu Studio om te functioneren, en de stream wordt beëindigd korte tijd nadat de app is gesloten."
 
 msgid "Non-live image."
-msgstr ""
+msgstr "Niet-live beeld."
 
 #, c-format, boost-format
 msgid "Captured at %s"
@@ -7694,13 +7708,13 @@ msgstr "Bijna voltooid"
 
 #, c++-format
 msgid "For users under the age of majority, some services will be restricted. See our {0} for Bambu Lab Account. To understand our privacy practices, see {1}."
-msgstr ""
+msgstr "Voor minderjarige gebruikers worden sommige diensten beperkt. Bekijk onze {0} voor het Bambu Lab-account. Om inzicht te krijgen in onze privacypraktijken, zie {1}."
 
 msgid "Age Requirements"
-msgstr ""
+msgstr "Leeftijdsvereisten"
 
 msgid "Privacy Notice"
-msgstr ""
+msgstr "Privacyverklaring"
 
 msgid "Camera"
 msgstr "Camera"
@@ -7736,16 +7750,16 @@ msgid "Filament loading..."
 msgstr "Draad laden..."
 
 msgid "Live Camera recording"
-msgstr ""
+msgstr "Opname met Live Camera"
 
 msgid "BirdsEye Camera recording"
-msgstr ""
+msgstr "Opname met BirdsEye Camera"
 
 msgid "Timelapse recording"
-msgstr ""
+msgstr "Timelapse-opname"
 
 msgid "Go Live streaming"
-msgstr ""
+msgstr "Livestream starten"
 
 msgid "Cancel print"
 msgstr "Print annuleren"
@@ -7952,7 +7966,7 @@ msgstr ""
 "to give a positive rating (4 or 5 stars)."
 
 msgid "Active operations"
-msgstr ""
+msgstr "Actieve bewerkingen"
 
 msgid "Live"
 msgstr ""
@@ -8054,17 +8068,17 @@ msgstr "Nieuwere versie 3mf"
 
 #, c-format, boost-format
 msgid "The 3mf file is Beta version %s, current version: %s"
-msgstr ""
+msgstr "Het 3mf-bestand is bètaversie %s, huidige versie: %s"
 
 #, c-format, boost-format
 msgid "The 3mf file is version %s, current version: %s"
-msgstr ""
+msgstr "Het 3mf-bestand is versie %s, huidige versie: %s"
 
 msgid "Importing a newer 3mf file may cause compatibility issues. We recommend downloading the latest version before use. Please click"
-msgstr ""
+msgstr "Het importeren van een nieuwer 3mf-bestand kan compatibiliteitsproblemen veroorzaken. Wij raden aan om voor gebruik de nieuwste versie te downloaden. Klik op"
 
 msgid "Download Latest Version"
-msgstr ""
+msgstr "Nieuwste versie downloaden"
 
 msgctxt "Software"
 msgid "Update"
@@ -9130,16 +9144,6 @@ msgstr ""
 msgid "AMS(1 slot)"
 msgstr "AMS (1 sleuf)"
 
-#, c-format, boost-format
-msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
-msgstr "Er is geen diameter van %smm in je geconfigureerde nozzletypes, dus je kunt geen diameter van %smm gebruiken voor het slicen."
-
-msgid "Configure Nozzle diameter"
-msgstr "Nozzlediameter configureren"
-
-msgid "Modify Nozzle Type"
-msgstr "Nozzletype wijzigen"
-
 msgid "Not installed"
 msgstr "Niet geïnstalleerd"
 
@@ -9232,7 +9236,7 @@ msgid "This filament does not support printing with the current nozzle"
 msgstr "Dit filament is niet geschikt voor afdrukken met de huidige nozzle"
 
 msgid "The current nozzle settings have no nozzle of this type"
-msgstr ""
+msgstr "De huidige nozzle-instellingen bevatten geen nozzle van dit type"
 
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
@@ -9300,10 +9304,10 @@ msgstr "Kan filamenten met verschillende nozzlediameters niet mengen"
 
 #, c-format, boost-format
 msgid "Up to %d mixed filaments can be created"
-msgstr ""
+msgstr "Er kunnen maximaal %d gemengde filamenten worden gemaakt"
 
 msgid "At least two filaments are required to create a mixed filament"
-msgstr ""
+msgstr "Voor het maken van een gemengd filament zijn minstens twee filamenten nodig"
 
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
@@ -9614,7 +9618,7 @@ msgstr "waarschuwingen"
 
 #, boost-format
 msgid "\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."
-msgstr ""
+msgstr "\"%1%\" maakt gebruik van zowel een gemengde kleurensublaag als een variabele laaghoogte, wat de afdrukkwaliteit kan beïnvloeden."
 
 msgid "Invalid data"
 msgstr "Interne solide vulling (infill)"
@@ -10231,7 +10235,7 @@ msgid "Top front"
 msgstr "Bovenkant voorkant"
 
 msgid "For users under the age of majority, some services will be restricted. This is managed by your parent or guardian in Family Hub."
-msgstr ""
+msgstr "Voor minderjarige gebruikers worden sommige diensten beperkt. Dit wordt beheerd door uw ouder of voogd in Family Hub."
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "Het huidige project heeft niet-opgeslagen wijzigingen. Wilt u eerst opslaan voordat u verder gaat?"
@@ -10727,6 +10731,12 @@ msgid ""
 "- Unsaved projects.\n"
 "- Delete a filament used by a model"
 msgstr ""
+"- Printerpresets synchroniseren na het laden van een bestand\n"
+"- Instellingen van het dialoogvenster \"Load 3MF\"\n"
+"- Het uitvoeren van nabewerkingsscripts\n"
+"- Melding met aanbeveling voor supportstructuur\n"
+"- Niet-opgeslagen projecten.\n"
+"- Een filament verwijderen dat door een model wordt gebruikt"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "Weet u zeker dat u alle voorkeuren wilt resetten? De wijzigingen worden na een herstart van kracht."
@@ -11142,7 +11152,7 @@ msgid "There are some unknown filaments in the AMS mappings. Please check whethe
 msgstr "Er staan enkele onbekende filamenten in de AMS mappings. Controleer of dit de vereiste filamenten zijn. Als ze in orde zijn, drukt u op \"Bevestigen\" om te beginnen met printen."
 
 msgid "Pre-print check"
-msgstr ""
+msgstr "Controle vóór het afdrukken"
 
 msgid "Please check the following:"
 msgstr "Controleer het volgende:"
@@ -11372,7 +11382,7 @@ msgstr "De filamenten van het externe AMS en %1$s zijn beide geselecteerd voor P
 
 #, c-format, boost-format
 msgid "TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."
-msgstr ""
+msgstr "TPU in slot %d kan tijdens het wisselen van Printgereedschap eruit glijden. Verplaats het naar een ander slot en probeer het opnieuw."
 
 #, c-format, boost-format
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
@@ -11418,7 +11428,7 @@ msgid "The printer is executing instructions. Please restart printing after it e
 msgstr "De printer is instructies aan het uitvoeren. Begin opnieuw met printen nadat dit is voltooid"
 
 msgid "Cold pull in progress. Unable to start a task."
-msgstr ""
+msgstr "Cold pull wordt uitgevoerd. Kan geen taak starten."
 
 msgid "AMS is setting up. Please try again later."
 msgstr "AMS wordt ingesteld. Probeer het later nog eens."
@@ -13267,9 +13277,6 @@ msgstr "Printplaat"
 
 msgid "Print the enhanced part immediately"
 msgstr "Print het verbeterde onderdeel direct"
-
-msgid "View Details"
-msgstr "Bekijk details"
 
 msgid "Verify Print Success Results"
 msgstr "Verifieer de succesvolle printresultaten"
@@ -16885,7 +16892,7 @@ msgid "Support ring angle"
 msgstr "Hoek van ondersteuningsring"
 
 msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider. A set angle keeps one piece, from 200° to 300°. -1 means auto: the angle is worked out from the purge of each filament change, so the purge is laid a few rings thick. When that comes out below 200°, the ring is split into two facing pieces with a second opening on the side away from the camera."
-msgstr ""
+msgstr "De hoek die de ondersteuningsring rond het object beslaat, gemeten vanaf het midden van de ring. De rest blijft open, gecentreerd op de richting van de camera in de kamer, zodat deze het object kan zien. Elke ring van de constructie is in dezelfde twee richtingen geopend, en boomondersteuningen voorkomen dat takken in de opening terechtkomen. Een kleinere hoek zorgt voor een kortere veeglengte per ring, waardoor de ring breder wordt. Een ingestelde hoek houdt de ring in één stuk, van 200° tot 300°. -1 betekent automatisch: de hoek wordt berekend aan de hand van de spoeling bij elke filamentwissel, waardoor de spoeling enkele ringen dik wordt aangebracht. Als die hoek onder 200° uitkomt, wordt de ring gesplitst in twee tegenover elkaar liggende delen met een tweede opening aan de kant die van de camera is afgekeerd."
 
 msgid "Support ring skip points"
 msgstr "Overslagpunten van ondersteuningsring"
@@ -17555,6 +17562,9 @@ msgstr "Selecteer ten minste één filament voor kalibratie"
 
 msgid "Flow rate calibration result has been saved to preset"
 msgstr "Het resultaat van de debietkalibratie is opgeslagen in een voorkeursinstelling."
+
+msgid "Failed to get calibration parameters. Calibration results can only be obtained on the client that started the calibration."
+msgstr ""
 
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr "Het kalibratieresultaat van de maximale volumetrische snelheid is opgeslagen in de vooraf ingestelde waarde"
@@ -19558,13 +19568,13 @@ msgid "Please confirm whether the required nozzle diameter and flow rate match t
 msgstr "Bevestigt u of de vereiste nozzle diameter en doorvoersnelheid overeenkomen met de momenteel weergegeven waarden."
 
 msgid "No usable nozzle is detected on your printer."
-msgstr ""
+msgstr "Er is geen bruikbare nozzle op uw printer gedetecteerd."
 
 msgid "Your printer has nozzles of different diameters installed."
-msgstr ""
+msgstr "Op uw printer zijn nozzles met verschillende diameters geïnstalleerd."
 
 msgid "All nozzles installed on your printer have the same diameter."
-msgstr ""
+msgstr "Alle nozzles die op uw printer zijn geïnstalleerd, hebben dezelfde diameter."
 
 msgid "Purge Mode Settings"
 msgstr "Instellingen voor spoelmodus"
@@ -19588,24 +19598,26 @@ msgid "TPU Usage Notes"
 msgstr "Opmerkingen over TPU-gebruik"
 
 msgid "TPU Filament Installation && Feeding Guide"
-msgstr ""
+msgstr "Installatie- en invoerhandleiding voor TPU-filament"
 
 msgid "Important Notice:"
-msgstr ""
+msgstr "Belangrijke mededeling:"
 
 msgid ""
 "• First time printing with TPU ? We strongly recommend reading the official guide first to avoid clogs or feeding failures.\n"
 "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
 msgstr ""
+"• Drukt u voor het eerst af met TPU? Wij raden ten zeerste aan om eerst de officiële handleiding te lezen om verstoppingen of invoerfouten te voorkomen.\n"
+"• Als u 2,85 mm TPU gebruikt, zorg er dan voor dat er een TPU285-nozzle is geïnstalleerd en dat de apparaatinformatie is gesynchroniseerd."
 
 msgid "Don't show this again"
-msgstr ""
+msgstr "Niet meer tonen"
 
 msgid "View User Guide"
-msgstr ""
+msgstr "Gebruikershandleiding bekijken"
 
 msgid "I know risks, continue"
-msgstr ""
+msgstr "Ik ken de risico’s, doorgaan"
 
 msgid "AMS Dryness Control"
 msgstr "AMS-droogtecontrole"
@@ -19625,14 +19637,14 @@ msgstr "Droogfout"
 msgid "Please check the Assistant for troubleshooting"
 msgstr "Controleer de assistent voor hulp bij het oplossen van problemen"
 
-msgid "Please remove and store the filament (as shown)."
-msgstr "Verwijder en bewaar het filament (zoals afgebeeld)."
-
-msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
-msgstr "De AMS kan het filament dat goed is opgeborgen draaien, wat zorgt voor betere droogresultaten."
+msgid "Unknown filaments will be treated as PLA."
+msgstr "Onbekende filamenten worden behandeld als PLA."
 
 msgid "Rotate spool when drying"
 msgstr "Draai de spoel tijdens het drogen"
+
+msgid "After turning on, the AMS automatically rotates slots where filament ends are stowed on the spool, for better drying"
+msgstr ""
 
 msgctxt "amsdrying"
 msgid "Back"
@@ -19709,26 +19721,17 @@ msgstr "Systeem is bezet"
 msgid "  Initiating other drying processes, please wait a few seconds..."
 msgstr "  Opstarten van andere droogprocessen, graag een paar seconden te wachten..."
 
-msgid "For better drying results, remove the filament and allow it to rotate."
-msgstr "Voor een beter droogresultaat kun je het filament verwijderen en laten draaien."
+msgid "The current drying temperature is higher than the softening temperature of some filaments. Filament ends left in the inlet may soften and clog it. Pull out the filaments marked with an exclamation mark before drying."
+msgstr ""
 
-msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
-msgstr "De AMS zal automatisch de opgeslagen filamentsleuven roteren om de droogprestaties te verbeteren."
+msgid "Slots that currently support drying:"
+msgstr ""
 
-msgid "Alternatively, you can dry the filament without removing it."
-msgstr "Je kunt het filament ook drogen zonder het te verwijderen."
+msgid "It is recommended to pull the filament end out of the inlet before drying to prevent it from softening due to high temperature."
+msgstr ""
 
-msgid "Unknown filaments will be treated as PLA."
-msgstr "Onbekende filamenten worden behandeld als PLA."
-
-msgid "For better drying results, remove the filament."
-msgstr "Verwijder het filament voor een beter droogresultaat."
-
-msgid "Please store the filament marked with an exclamation mark."
-msgstr "Sla het filament op dat is gemarkeerd met een uitroepteken."
-
-msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
-msgstr "Filament dat tijdens het drogen in de feeder achterblijft, kan zacht worden omdat de droogtemperatuur het verwekingspunt van materialen zoals PLA en TPU overschrijdt."
+msgid "For better drying results, pull the filament end out of the inlet and allow it to rotate."
+msgstr ""
 
 msgid "Starting: Checking adapter connection"
 msgstr "Beginnen: Adapterverbinding controleren"
@@ -19873,7 +19876,7 @@ msgid "Edit Mixed Filament"
 msgstr "Voeg gemengd filament toe"
 
 msgid "Mixed result preview"
-msgstr ""
+msgstr "Voorbeeld van gemengd resultaat"
 
 msgid "Effect Preview"
 msgstr "Effectvoorbeeld"
@@ -19937,25 +19940,25 @@ msgid "Color Matching"
 msgstr "Kleurafstemming"
 
 msgid "Target Filament"
-msgstr ""
+msgstr "Doelfilament"
 
 msgid "(The system will mix 2-3 filaments to approximate this color)"
-msgstr ""
+msgstr "(Het systeem mengt 2-3 filamenten om deze kleur te benaderen)"
 
 msgid "Target color filament"
-msgstr ""
+msgstr "Filament in doelkleur"
 
 msgid "Select Target Color"
 msgstr "Doelkleur selecteren"
 
 msgid "Mixed Result"
-msgstr ""
+msgstr "Gemengd resultaat"
 
 msgid "Discard changes and match again"
 msgstr "Wijzigingen negeren en opnieuw afstemmen"
 
 msgid "No results"
-msgstr ""
+msgstr "Geen resultaten"
 
 msgid "Replace the target color on models with the mixed result"
 msgstr "Vervang de doelkleur op modellen door het gemengde resultaat"
@@ -20011,20 +20014,17 @@ msgid "This filament does not support the %smm nozzle, or no matching nozzle is 
 msgstr "Dit filament ondersteunt de nozzle van %smm niet, of er is geen bijpassende nozzle geconfigureerd."
 
 #, c-format, boost-format
-msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
-msgstr "Stel eerst in het onderstaande gedeelte een nozzle met een diameter van %smm in voor de printer, voordat je deze diameter gebruikt voor het slicen."
+msgid "This printer isn’t configured with a %s mm nozzle. Please configure it in “Settings” before slicing."
+msgstr ""
 
 msgid "No nozzle is installed in this slot."
 msgstr "In deze sleuf is geen nozzle geïnstalleerd."
 
 msgid "Hotend information is unknown. Please refresh nozzle information before use."
-msgstr ""
+msgstr "Informatie over de hotend is onbekend. Vernieuw de informatie over de nozzle vóór gebruik."
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Nozzlediameter komt niet overeen. Deze nozzle kan niet worden gebruikt."
-
-msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
-msgstr "Deze extruder heeft een andere nozzlediameter dan de geselecteerde afdrukdiameter. Afdrukken met gemengde nozzlediameters is experimenteel."
 
 msgid "Nozzle Settings"
 msgstr "Nozzle-instellingen"
@@ -20063,233 +20063,245 @@ msgid "OK"
 msgstr "Bevestigen"
 
 msgid "Remark"
-msgstr ""
+msgstr "Opmerking"
 
 msgid "Matched filament"
-msgstr ""
+msgstr "Gekoppeld filament"
 
 msgid "Add as new filament"
-msgstr ""
+msgstr "Toevoegen als nieuw filament"
 
 msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS heeft een nieuw filament gedetecteerd. Toevoegen aan Filament Manager?"
 
 msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr ""
+msgstr "In Filament Manager werd een vergelijkbaar filament gevonden en automatisch gekoppeld."
 
 msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
-msgstr ""
+msgstr "In Filament Manager werden meerdere vergelijkbare filamenten gevonden. Bevestig de koppeling."
 
 msgid "New Filament"
-msgstr ""
+msgstr "Nieuw filament"
 
 msgid "New filament information has been recorded."
-msgstr ""
+msgstr "Er is nieuwe informatie over het filament vastgelegd."
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
 "interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Bij gebruik van oplosbaar supportmateriaal raden wij de volgende instellingen aan:\n"
+"supporttype op normaal (auto), supportwandlussen op 1, top-z-afstand op 0, bodem-z-afstand op 0, interface-afstand op 0, support/object-xy-afstand op 0,\n"
+"verstrengeld rechtlijnig patroon, schakel onafhankelijke support-laaghoogte uit, en gebruik oplosbare materialen voor zowel de support-interface als de support-basis"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Bij gebruik van oplosbaar supportmateriaal raden wij de volgende instellingen aan:\n"
+"supporttype op normaal (auto), supportwandlussen op 1, top-z-afstand op 0, interface-afstand op 0, support/object-xy-afstand op 0, verstrengeld rechtlijnig\n"
+"patroon, schakel onafhankelijke support-laaghoogte uit, en gebruik oplosbare materialen voor zowel de support-interface als de support-basis"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Bij gebruik van oplosbaar supportmateriaal raden wij de volgende instellingen aan:\n"
+"top-z-afstand op 0, bodem-z-afstand op 0, interface-afstand op 0, support/object-xy-afstand op 0, verstrengeld rechtlijnig\n"
+"patroon, schakel onafhankelijke support-laaghoogte uit, en gebruik oplosbare materialen voor zowel de support-interface als de support-basis"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
 "independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
-"Als je oplosbaar materiaal gebruikt voor de support, raden we de volgende instellingen aan:\n"
-"0 top z afstand, 0 interface afstand, 0 support/object xy afstand, interlaced rectilinear patroon, schakel uit \n"
-"onafhankelijke laaghoogte voor support en gebruik oplosbare materialen voor zowel support interface als support basis"
+"Bij gebruik van oplosbaar supportmateriaal raden wij de volgende instellingen aan:\n"
+"top-z-afstand op 0, interface-afstand op 0, support/object-xy-afstand op 0, verstrengeld rechtlijnig patroon, schakel\n"
+"onafhankelijke support-laaghoogte uit, en gebruik oplosbare materialen voor zowel de support-interface als de support-basis"
 
 msgid "Support interface speed"
-msgstr "Support-interface snelheid"
+msgstr "Support-interfacesnelheid"
 
 msgid "The following settings of the current plate will be restored to default:"
-msgstr ""
+msgstr "De volgende instellingen van de huidige plaat worden teruggezet naar de standaardwaarden:"
 
 msgid "Restore these settings of the current plate to default?"
-msgstr ""
+msgstr "Deze instellingen van de huidige plaat terugzetten naar de standaardwaarden?"
 
 msgid "The following settings locked on the current selection will be restored to default:"
-msgstr ""
+msgstr "De volgende instellingen die op de huidige selectie zijn vergrendeld, worden teruggezet naar de standaardwaarden:"
 
 msgid "Restore these settings of the current selection to default?"
-msgstr ""
+msgstr "Deze instellingen van de huidige selectie terugzetten naar de standaardwaarden?"
 
 msgid "The following settings locked on the objects below will be restored to default:"
-msgstr ""
+msgstr "De volgende instellingen die op de onderstaande objecten zijn vergrendeld, worden teruggezet naar de standaardwaarden:"
 
 msgid "Restore these settings to default?"
-msgstr ""
+msgstr "Deze instellingen terugzetten naar de standaardwaarden?"
 
 msgid "The following global settings will be restored to default:"
-msgstr ""
+msgstr "De volgende globale instellingen worden teruggezet naar de standaardwaarden:"
 
 msgid "Restore these global settings to default?"
-msgstr ""
+msgstr "Deze globale instellingen terugzetten naar de standaardwaarden?"
 
 msgid "It looks like you are no longer using a support material combination for the support interface. Are you exiting support material usage?"
-msgstr ""
+msgstr "Het lijkt erop dat u geen combinatie van supportmaterialen meer gebruikt voor de support-interface. Stopt u met het gebruik van supportmateriaal?"
 
 msgid "The same settings applied globally will be restored as well."
-msgstr ""
+msgstr "Dezelfde instellingen die globaal zijn toegepast, worden ook teruggezet."
 
 msgid "Other objects also have these settings locked:"
-msgstr ""
+msgstr "Ook andere objecten hebben deze instellingen vergrendeld:"
 
 msgid "Affected objects:"
-msgstr ""
+msgstr "Betrokken objecten:"
 
 msgid "These objects also have these settings locked:"
-msgstr ""
+msgstr "Deze objecten hebben ook deze instellingen vergrendeld:"
 
 msgid "Restore the current selection only, or all of them?"
-msgstr ""
+msgstr "Alleen de huidige selectie terugzetten, of allemaal?"
 
 msgid "Restore all of them to default?"
-msgstr ""
+msgstr "Allemaal terugzetten naar de standaardwaarden?"
 
 msgid "Performing desktop integration failed - boost::filesystem::canonical did not return appimage path."
-msgstr ""
+msgstr "Het uitvoeren van desktopintegratie is mislukt - boost::filesystem::canonical heeft het pad naar de appimage niet geretourneerd."
 
 msgid "Performing desktop integration failed - Could not find executable."
-msgstr ""
+msgstr "Het uitvoeren van desktopintegratie is mislukt - Uitvoerbaar bestand niet gevonden."
 
 msgid "Performing desktop integration failed because the application directory was not found."
-msgstr ""
+msgstr "Het uitvoeren van desktopintegratie is mislukt omdat de toepassingsmap niet is gevonden."
 
 msgid "Performing desktop integration failed - could not create Gcodeviewer desktop file. BambuStudio desktop file was probably created successfully."
-msgstr ""
+msgstr "Het uitvoeren van desktopintegratie is mislukt - er kon geen Gcodeviewer-desktopbestand worden aangemaakt. Het BambuStudio-desktopbestand is waarschijnlijk succesvol aangemaakt."
 
 msgid "Desktop Integration"
-msgstr ""
+msgstr "Desktopintegratie"
 
 msgid ""
 "Desktop Integration sets this binary to be searchable by the system.\n"
 "\n"
 "Press \"Perform\" to proceed."
 msgstr ""
+"Desktopintegratie zorgt ervoor dat dit binaire bestand door het systeem kan worden gevonden.\n"
+"\n"
+"Druk op \"Uitvoeren\" om verder te gaan."
 
 msgid "Color mixing requires at least two filaments of the same type, but only one is available. The following filaments will be added based on the model colors:"
-msgstr ""
+msgstr "Voor het mengen van kleuren zijn minstens twee filamenten van hetzelfde type nodig, maar er is er slechts één beschikbaar. De volgende filamenten worden toegevoegd op basis van de kleuren van het model:"
 
 msgid "Color mixing requires at least two filaments of the same type. The following filaments will be added based on the model colors:"
-msgstr ""
+msgstr "Voor het mengen van kleuren zijn minstens twee filamenten van hetzelfde type nodig. De volgende filamenten worden toegevoegd op basis van de kleuren van het model:"
 
 msgid "New filament"
-msgstr ""
+msgstr "Nieuw filament"
 
 msgid "Note: You can also delete or modify the newly added filaments in the drop-down list of the filament matching dialog."
-msgstr ""
+msgstr "Opmerking: U kunt de nieuw toegevoegde filamenten ook verwijderen of wijzigen in de vervolgkeuzelijst van het dialoogvenster voor filamentkoppeling."
 
 msgid "System Information"
-msgstr ""
+msgstr "Systeeminformatie"
 
 msgid "Blacklisted libraries loaded into BambuStudio process:"
-msgstr ""
+msgstr "Bibliotheken op de zwarte lijst die in het BambuStudio-proces zijn geladen:"
 
 msgid "SIMD is supported:"
-msgstr ""
+msgstr "SIMD wordt ondersteund:"
 
 msgid "Copy to Clipboard"
-msgstr ""
+msgstr "Kopiëren naar klembord"
 
 #, c-format, boost-format
 msgid "Nozzle %d "
 msgstr ""
 
 msgid "Unknown Filament"
-msgstr ""
+msgstr "Onbekend filament"
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
+msgstr "De hotendstatus is abnormaal en niet beschikbaar. Klik om de firmware bij te werken."
 
 msgid "Extruder Settings"
-msgstr ""
+msgstr "Extruderinstellingen"
 
 msgid "Hotend status is abnormal. Please update the firmware."
-msgstr ""
+msgstr "De hotendstatus is abnormaal. Werk de firmware bij."
 
 msgid "Update Firmware"
-msgstr ""
+msgstr "Firmware bijwerken"
 
 msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
-msgstr ""
+msgstr "Printerinformatie synchroniseren"
 
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
-msgstr ""
+msgstr "Het printermodel en de instellingen in dit 3MF-bestand komen niet overeen met de aangesloten printer. Wilt u deze slice-instellingen aanpassen voor deze printer?"
 
 msgid "Printer model comparison"
-msgstr ""
+msgstr "Vergelijking van printermodellen"
 
 msgid "Nozzle comparison"
-msgstr ""
+msgstr "Vergelijking van nozzles"
 
 msgid "Note: After adapting the settings, some print parameters will be automatically adjusted for the new printer model."
-msgstr ""
+msgstr "Opmerking: Na het aanpassen van de instellingen worden sommige afdrukparameters automatisch aangepast aan het nieuwe printermodel."
 
 msgid "3MF File Settings"
-msgstr ""
+msgstr "3MF-bestandsinstellingen"
 
 msgid "Connected Printer"
-msgstr ""
+msgstr "Aangesloten printer"
 
 #, c-format, boost-format
 msgid "%s (only supported)"
-msgstr ""
+msgstr "%s (alleen ondersteund)"
 
 msgid "Using a larger nozzle after adapting the settings may reduce fine details in your model. Please proceed with caution."
-msgstr ""
+msgstr "Het gebruik van een grotere nozzle na het aanpassen van de instellingen kan leiden tot verlies van fijne details in uw model. Ga voorzichtig te werk."
 
 msgid "Don't show this again when opening 3MF files"
-msgstr ""
+msgstr "Niet meer tonen bij het openen van 3MF-bestanden"
 
 msgid "Adapt Settings"
-msgstr ""
+msgstr "Instellingen aanpassen"
 
 #, c-format, boost-format
 msgid "Nozzle %d: "
 msgstr ""
 
 msgid "Nozzle Details"
-msgstr ""
+msgstr "Details van de nozzle"
 
 #, c-format, boost-format
 msgid "Please input a number greater than or equal to %d"
-msgstr ""
+msgstr "Voer een getal in dat groter is dan of gelijk aan %d"
 
 #, c-format, boost-format
 msgid "Please enter a number between %d and %d."
-msgstr ""
+msgstr "Voer een getal in tussen %d en %d."
 
 #, c-format, boost-format
 msgid "Please enter a float greater than or equal to %f."
-msgstr ""
+msgstr "Voer een zwevendekommagetal in dat groter is dan of gelijk aan %f."
 
 #, c-format, boost-format
 msgid "Please enter a float between %f and %f."
-msgstr ""
+msgstr "Voer een zwevendekommagetal in tussen %f en %f."
 
 msgid "4 slots AMS"
-msgstr ""
+msgstr "4-slot AMS"
 
 msgid "1 slot AMS"
-msgstr ""
+msgstr "1-slot AMS"
 
 msgid "Remove this AMS"
 msgstr "Verwijder deze AMS"
@@ -20299,317 +20311,320 @@ msgid ""
 "\n"
 "Please install or repair the Microsoft Edge WebView2 Runtime, then restart Bambu Studio."
 msgstr ""
+"Starten van de ingebouwde browser mislukt. Pagina's zoals de homepage, de apparaatpagina en het inlogscherm blijven leeg.\n"
+"\n"
+"Installeer of repareer de Microsoft Edge WebView2 Runtime en start Bambu Studio opnieuw."
 
 msgid "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank."
-msgstr ""
+msgstr "Starten van de ingebouwde browser mislukt. Pagina's zoals de homepage, de apparaatpagina en het inlogscherm blijven leeg."
 
 msgid "Embedded Browser Unavailable"
-msgstr ""
+msgstr "Ingebouwde browser niet beschikbaar"
 
 msgid "Unmapped"
-msgstr "Niet in kaart gebracht"
+msgstr "Niet gekoppeld"
 
 msgid "The current nozzle diameter is incompatible with the printer"
-msgstr ""
+msgstr "De huidige nozzlediameter is niet compatibel met de printer"
 
 msgid "Lock supports under new islands"
-msgstr ""
+msgstr "Supports onder nieuwe eilanden vergrendelen"
 
 msgid "Remove all points"
-msgstr ""
+msgstr "Alle punten verwijderen"
 
 msgid "Apply changes"
-msgstr ""
+msgstr "Wijzigingen toepassen"
 
 msgid "Discard changes"
-msgstr ""
+msgstr "Wijzigingen weggooien"
 
 msgid "Minimal points distance"
-msgstr ""
+msgstr "Minimale puntenafstand"
 
 msgid "Support points density"
-msgstr ""
+msgstr "Dichtheid van supportpunten"
 
 msgid "Manual editing"
-msgstr ""
+msgstr "Handmatige bewerking"
 
 msgid "Clipping of view"
-msgstr "Knipsel van de weergave"
+msgstr "Bijsnijden van de weergave"
 
 msgid "SLA Support Points"
-msgstr ""
+msgstr "SLA-supportpunten"
 
 msgid "Do you want to save your manually edited support points?"
-msgstr ""
+msgstr "Wilt u uw handmatig bewerkte supportpunten opslaan?"
 
 msgid "Save support points?"
-msgstr ""
+msgstr "Supportpunten opslaan?"
 
 msgid "Autogeneration will erase all manually edited points."
-msgstr ""
+msgstr "Bij automatische generatie worden alle handmatig bewerkte punten verwijderd."
 
 msgid "Are you sure you want to do it?"
-msgstr ""
+msgstr "Weet u zeker dat u dit wilt doen?"
 
 msgid "SLA gizmo keyboard shortcuts"
-msgstr ""
+msgstr "Sneltoetsen voor SLA-gizmo"
 
 msgid "Note: some shortcuts work in (non)editing mode only."
-msgstr ""
+msgstr "Opmerking: sommige sneltoetsen werken alleen in de (niet-)bewerkingsmodus."
 
 msgid "Add point"
-msgstr ""
+msgstr "Punt toevoegen"
 
 msgid "Remove point"
-msgstr ""
+msgstr "Punt verwijderen"
 
 msgid "Move point"
-msgstr ""
+msgstr "Punt verplaatsen"
 
 msgid "Add point to selection"
-msgstr ""
+msgstr "Punt aan selectie toevoegen"
 
 msgid "Remove point from selection"
-msgstr ""
+msgstr "Punt uit selectie verwijderen"
 
 msgid "Select by rectangle"
-msgstr ""
+msgstr "Selecteren met rechthoek"
 
 msgid "Deselect by rectangle"
-msgstr ""
+msgstr "Deselecteren met rechthoek"
 
 msgid "Select all points"
-msgstr ""
+msgstr "Alle punten selecteren"
 
 msgid "Move clipping plane"
-msgstr ""
+msgstr "Verplaats het snijvlak"
 
 msgid "Reset clipping plane"
-msgstr ""
+msgstr "Het snijvlak opnieuw instellen"
 
 msgid "Switch to editing mode"
-msgstr ""
+msgstr "Overschakelen naar bewerkingsmodus"
 
 msgid "Keep upper part"
-msgstr "Bewaar het bovenstee deel"
+msgstr "Bovenste deel behouden"
 
 msgid "Keep lower part"
-msgstr "Bewaar het onderste deel"
+msgstr "Onderste deel behouden"
 
 msgid "Rotate lower part upwards"
-msgstr ""
+msgstr "Onderste deel naar boven draaien"
 
 msgid "Entering Measure gizmo"
-msgstr ""
+msgstr "Meetgizmo openen"
 
 msgid "Leaving Measure gizmo"
-msgstr ""
+msgstr "Meetgizmo sluiten"
 
 msgid "Entering Assembly gizmo"
-msgstr ""
+msgstr "Assemblagegizmo openen"
 
 msgid "Leaving Assembly gizmo"
-msgstr ""
+msgstr "Assemblagegizmo sluiten"
 
 msgid "Hollow this object"
-msgstr ""
+msgstr "Dit object uithollen"
 
 msgid "Preview hollowed and drilled model"
-msgstr ""
+msgstr "Voorbeeld van een uitgehold en geboord model"
 
 msgid "Offset"
 msgstr ""
 
 msgid "Closing distance"
-msgstr ""
+msgstr "Sluitafstand"
 
 msgid "Hole diameter"
-msgstr ""
+msgstr "Gatdiameter"
 
 msgid "Hole depth"
-msgstr ""
+msgstr "Gatdiepte"
 
 msgid "Remove selected holes"
-msgstr ""
+msgstr "Geselecteerde gaten verwijderen"
 
 msgid "Remove all holes"
-msgstr ""
+msgstr "Alle gaten verwijderen"
 
 msgid "Show supports"
-msgstr ""
+msgstr "Supports tonen"
 
 msgid "Hollow and drill"
-msgstr ""
+msgstr "Uithollen en boren"
 
 msgid "Alternate nozzles:"
-msgstr ""
+msgstr "Alternatieve nozzles:"
 
 msgid "All standard"
-msgstr ""
+msgstr "Allemaal standaard"
 
 #, c-format, boost-format
 msgid "Welcome to the %s Configuration Assistant"
-msgstr ""
+msgstr "Welkom bij de %s Configuratieassistent"
 
 #, c-format, boost-format
 msgid "Welcome to the %s Configuration Wizard"
-msgstr ""
+msgstr "Welkom bij de %s Configuratiewizard"
 
 msgid "Welcome"
-msgstr ""
+msgstr "Welkom"
 
 #, c-format, boost-format
 msgid "Hello, welcome to %s! This %s helps you with the initial configuration; just a few settings and you will be ready to print."
-msgstr ""
+msgstr "Hallo, welkom bij %s! Deze %s helpt u bij de eerste configuratie; met slechts een paar instellingen bent u klaar om af te drukken."
 
 msgid "Remove user profiles (a snapshot will be taken beforehand)"
-msgstr ""
+msgstr "Gebruikersprofielen verwijderen (er wordt vooraf een momentopname gemaakt)"
 
 msgid "Perform desktop integration (Sets this binary to be searchable by the system)."
-msgstr ""
+msgstr "Desktopintegratie uitvoeren (hiermee kan dit binaire bestand door het systeem worden gevonden)."
 
 #, c-format, boost-format
 msgid "%s Family"
-msgstr ""
+msgstr "%s Familie"
 
 msgid "Printer:"
 msgstr ""
 
 msgid "Vendor:"
-msgstr ""
+msgstr "Leverancier:"
 
 msgid "Profile:"
-msgstr ""
+msgstr "Profiel:"
 
 msgid "(All)"
-msgstr ""
+msgstr "(Alle)"
 
 #, boost-format
 msgid "%1% marked with <b>*</b> are <b>not</b> compatible with some installed printers."
-msgstr ""
+msgstr "%1% gemarkeerd met <b>*</b> zijn <b>niet</b> compatibel met sommige geïnstalleerde printers."
 
 msgid "SLA materials"
-msgstr ""
+msgstr "SLA-materialen"
 
 #, boost-format
 msgid "All installed printers are compatible with the selected %1%."
-msgstr ""
+msgstr "Alle geïnstalleerde printers zijn compatibel met het geselecteerde %1%."
 
 msgid "filament"
 msgstr ""
 
 msgid "SLA material"
-msgstr ""
+msgstr "SLA-materiaal"
 
 msgid "Only the following installed printers are compatible with the selected filaments"
-msgstr ""
+msgstr "Alleen de volgende geïnstalleerde printers zijn compatibel met de geselecteerde filamenten"
 
 msgid "Only the following installed printers are compatible with the selected SLA materials"
-msgstr ""
+msgstr "Alleen de volgende geïnstalleerde printers zijn compatibel met de geselecteerde SLA-materialen"
 
 msgid "Custom Printer Setup"
-msgstr ""
+msgstr "Aangepaste printer instellen"
 
 msgid "Custom Printer"
-msgstr ""
+msgstr "Aangepaste printer"
 
 msgid "Define a custom printer profile"
-msgstr ""
+msgstr "Een aangepast printerprofiel definiëren"
 
 msgid "Custom profile name:"
-msgstr ""
+msgstr "Aangepaste profielnaam:"
 
 msgid "Firmware Type"
-msgstr ""
+msgstr "Firmwaretype"
 
 msgid "Firmware"
 msgstr ""
 
 msgid "Choose the type of firmware used by your printer."
-msgstr ""
+msgstr "Kies het type firmware dat uw printer gebruikt."
 
 msgid "Bed Shape and Size"
-msgstr ""
+msgstr "Vorm en afmetingen van het bed"
 
 msgid "Set the shape of your printer's bed."
-msgstr ""
+msgstr "Stel de vorm van het bed van uw printer in."
 
 msgid "Invalid numeric input."
-msgstr ""
+msgstr "Ongeldige numerieke invoer."
 
 msgid "Filament and Nozzle Diameters"
-msgstr ""
+msgstr "Filament- en nozzlediameters"
 
 msgid "Print Diameters"
-msgstr ""
+msgstr "Afdrukdiameters"
 
 msgid "Enter the diameter of your printer's hot end nozzle."
-msgstr ""
+msgstr "Voer de diameter van de hotendnozzle van uw printer in."
 
 msgid "Nozzle Diameter:"
-msgstr ""
+msgstr "Nozzlediameter:"
 
 msgid "Enter the diameter of your filament."
-msgstr ""
+msgstr "Voer de diameter van uw filament in."
 
 msgid "Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average."
-msgstr ""
+msgstr "Een hoge mate van precisie is vereist, dus gebruik een schuifmaat, voer meerdere metingen uit langs het filament en bereken vervolgens het gemiddelde."
 
 msgid "Filament Diameter:"
-msgstr ""
+msgstr "Filamentdiameter:"
 
 msgid "Nozzle and Bed Temperatures"
-msgstr ""
+msgstr "Nozzle- en bedtemperaturen"
 
 msgid "Temperatures"
-msgstr ""
+msgstr "Temperaturen"
 
 msgid "Enter the nozzle_temperature needed for extruding your filament."
-msgstr ""
+msgstr "Voer de benodigde nozzletemperatuur in voor het extruderen van uw filament."
 
 msgid "A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."
-msgstr ""
+msgstr "Als vuistregel geldt 160 tot 230 °C voor PLA en 215 tot 250 °C voor ABS."
 
 msgid "Extrusion Temperature:"
-msgstr ""
+msgstr "Extrusietemperatuur:"
 
 msgid "Enter the bed temperature needed for getting your filament to stick to your heated bed."
-msgstr ""
+msgstr "Voer de benodigde bedtemperatuur in zodat uw filament aan het verwarmde bed hecht."
 
 msgid "A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have no heated bed."
-msgstr ""
+msgstr "Als vuistregel geldt 60 °C voor PLA en 110 °C voor ABS. Laat nul staan als u geen verwarmd bed hebt."
 
 msgid "Bed Temperature:"
-msgstr ""
+msgstr "Bedtemperatuur:"
 
 msgid "SLA Materials"
-msgstr ""
+msgstr "SLA-materialen"
 
 msgid "FFF Technology Printers"
-msgstr ""
+msgstr "FFF-technologieprinters"
 
 msgid "SLA Technology Printers"
-msgstr ""
+msgstr "SLA-technologieprinters"
 
 #, boost-format
 msgid "Following printer profiles has no default filament: %1%Please select one manually."
-msgstr ""
+msgstr "De volgende printerprofielen hebben geen standaardfilament: %1%Selecteer er handmatig één."
 
 #, boost-format
 msgid "Following printer profiles has no default material: %1%Please select one manually."
-msgstr ""
+msgstr "De volgende printerprofielen hebben geen standaardmateriaal: %1%Selecteer er handmatig één."
 
 msgid "The following FFF printer models have no filament selected:"
-msgstr ""
+msgstr "Bij de volgende FFF-printermodellen is geen filament geselecteerd:"
 
 msgid "Do you want to select default filaments for these FFF printer models?"
-msgstr ""
+msgstr "Wilt u standaardfilamenten selecteren voor deze FFF-printermodellen?"
 
 msgid "Configuration is edited in ConfigWizard"
-msgstr ""
+msgstr "Configuratie is bewerkt in ConfigWizard"
 
 msgid "All user presets will be deleted."
-msgstr ""
+msgstr "Alle gebruikerspresets worden verwijderd."
 
 msgid "A new vendor was installed and one of its printers will be activated"
 msgid_plural "New vendors were installed and one of theirs printers will be activated"
@@ -20617,140 +20632,140 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "A new Printer was installed and it will be activated."
-msgstr ""
+msgstr "Er is een nieuwe printer geïnstalleerd en deze zal worden geactiveerd."
 
 msgid "Some Printers were uninstalled."
-msgstr ""
+msgstr "Sommige printers zijn verwijderd."
 
 msgid "A new filament was installed and it will be activated."
-msgstr ""
+msgstr "Er is een nieuw filament geïnstalleerd en dit zal worden geactiveerd."
 
 msgid "A new SLA material was installed and it will be activated."
-msgstr ""
+msgstr "Er is een nieuw SLA-materiaal geïnstalleerd en dit zal worden geactiveerd."
 
 msgid "Some filaments were uninstalled."
-msgstr ""
+msgstr "Sommige filamenten zijn verwijderd."
 
 msgid "Custom printer was installed and it will be activated."
-msgstr ""
+msgstr "De aangepaste printer is geïnstalleerd en zal worden geactiveerd."
 
 msgid "<Back"
-msgstr ""
+msgstr "<Terug"
 
 msgid "Next>"
-msgstr ""
+msgstr "Volgende>"
 
 msgid "Filament Profiles Selection"
-msgstr ""
+msgstr "Selectie van filamentprofielen"
 
 msgid "Configuration Assistant"
-msgstr ""
+msgstr "Configuratieassistent"
 
 msgid "Configuration &Assistant"
-msgstr ""
+msgstr "Configuratie&assistent"
 
 msgid "Configuration Wizard"
-msgstr ""
+msgstr "Configuratiewizard"
 
 msgid "Configuration &Wizard"
-msgstr ""
+msgstr "Configuratie&wizard"
 
 msgid "Windows Media Player is required for this task! Do you want to enable 'Windows Media Player' for your operation system?"
-msgstr ""
+msgstr "Voor deze taak is Windows Media Player vereist! Wilt u ‘Windows Media Player’ inschakelen voor uw besturingssysteem?"
 
 msgid "BambuSource has not correctly been registered for media playing! Press Yes to re-register it."
-msgstr ""
+msgstr "BambuSource is niet correct geregistreerd voor het afspelen van media! Druk op Ja om het opnieuw te registreren."
 
 msgid "Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."
-msgstr ""
+msgstr "Het BambuSource-component dat is geregistreerd voor het afspelen van media ontbreekt! Installeer BambuStudio opnieuw of neem contact op met de klantenservice."
 
 msgid "Using a BambuSource from a different install, video play may not work correctly! Press Yes to fix it."
-msgstr ""
+msgstr "Als u een BambuSource van een andere installatie gebruikt, werkt de videoweergave mogelijk niet correct! Druk op Ja om het te corrigeren."
 
 msgid "Your system is missing H.264 codecs for GStreamer, which are required to play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart Bambu Studio?)"
-msgstr ""
+msgstr "Uw systeem mist de H.264-codecs voor GStreamer, die nodig zijn om video af te spelen.  (Probeer de pakketten gstreamer1.0-plugins-bad of gstreamer1.0-libav te installeren en Bambu Studio opnieuw op te starten?)"
 
 msgid "Model Pictures"
-msgstr ""
+msgstr "Modelfoto's"
 
 msgid "3D Models"
-msgstr "3D Modellen"
+msgstr "3D-modellen"
 
 msgid "Click to return (Command + Left Arrow)"
-msgstr ""
+msgstr "Klik om terug te keren (Command + Pijl-links)"
 
 msgid "Click to continue (Command + Right Arrow)"
-msgstr ""
+msgstr "Klik om door te gaan (Command + Pijl-rechts)"
 
 msgid "Click to return (Alt + Left Arrow)"
-msgstr ""
+msgstr "Klik om terug te keren (Alt + Pijl-links)"
 
 msgid "Click to continue (Alt + Right Arrow)"
-msgstr ""
+msgstr "Klik om door te gaan (Alt + Pijl-rechts)"
 
 msgid "Taking a configuration snapshot failed."
-msgstr ""
+msgstr "Het maken van een momentopname van de configuratie is mislukt."
 
 msgid "BambuStudio has encountered an error while taking a configuration snapshot."
-msgstr ""
+msgstr "BambuStudio heeft een fout ondervonden tijdens het maken van een momentopname van de configuratie."
 
 msgid "BambuStudio error"
-msgstr ""
+msgstr "BambuStudio-fout"
 
 msgid "Support ring generation failed because no printable model projection was found."
-msgstr ""
+msgstr "Het genereren van de ondersteuningsring is mislukt omdat er geen afdrukbare modelprojectie is gevonden."
 
 msgid "Support ring generation failed while adapting tool-change paths."
-msgstr ""
+msgstr "Het genereren van de ondersteuningsring is mislukt tijdens het aanpassen van de toolwisselpaden."
 
 msgid "Generating support ring"
-msgstr ""
+msgstr "Ondersteuningsring wordt gegenereerd"
 
 #, boost-format
 msgid "Generating support ring: layer %1%"
-msgstr ""
+msgstr "Ondersteuningsring wordt gegenereerd: laag %1%"
 
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
+msgstr "Hoogtemperatuur filament gedetecteerd in AMS. Niet mengen met filamenten voor lage temperaturen."
 
 msgid "Click Wiki for help."
 msgstr "Klik op Wiki voor hulp."
 
 msgid "Nozzle and Filament Sync"
-msgstr ""
+msgstr "Synchronisatie van nozzle en filament"
 
 msgid "Mapping"
 msgstr "Toewijzen"
 
 msgid "Direct Override"
-msgstr ""
+msgstr "Direct overschrijven"
 
 msgid "After modification, the filament list cannot be restored."
-msgstr ""
+msgstr "Na de wijziging kan de lijst met filamenten niet meer worden hersteld."
 
 msgid "Overwrite the project filaments list with the filaments in the printer."
-msgstr ""
+msgstr "Overschrijf de lijst met projectfilamenten met de filamenten in de printer."
 
 msgid "Match the project filaments with the filaments in the printer according to the matching mode. After syncing, the mapped results will be used."
-msgstr ""
+msgstr "Koppel de projectfilamenten aan de filamenten in de printer volgens de koppelingsmodus. Na de synchronisatie worden de toegewezen resultaten gebruikt."
 
 msgid "After overwriting"
 msgstr "Na het overschrijven"
 
 msgid "After mapping"
-msgstr "Na het in kaart brengen"
+msgstr "Na het toewijzen"
 
 msgid "Filament matching"
-msgstr ""
+msgstr "Filamentafstemming"
 
 msgid "Color first"
-msgstr ""
+msgstr "Kleur eerst"
 
 msgid "Precision first"
-msgstr ""
+msgstr "Precisie eerst"
 
 msgid "Reset all filament mapping"
-msgstr "Alle toewijzingen van gloeidraden resetten"
+msgstr "Alle filamenttoewijzingen resetten"
 
 msgid "Add unused filaments to filaments list."
 msgstr "Ongebruikte filamenten toevoegen aan filamentenlijst."
@@ -20759,7 +20774,7 @@ msgid "Add unused AMS filaments to filaments list."
 msgstr "Ongebruikte AMS-filamenten toevoegen aan filamentenlijst."
 
 msgid "Automatically merge the same colors in the model after mapping."
-msgstr "Automatisch dezelfde kleuren samenvoegen in het model na mapping."
+msgstr "Automatisch dezelfde kleuren samenvoegen in het model na het toewijzen."
 
 msgid "Synchronize now"
 msgstr "Nu synchroniseren"
@@ -21059,6 +21074,55 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#, c-format, boost-format
+#~ msgid "%d triangles"
+#~ msgstr "%d -driehoeken"
+
+#, boost-format
+#~ msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
+#~ msgstr "De booleaanse meshbewerking ondersteunt maximaal %1% onderdelen, maar het geselecteerde object bevat %2% onderdelen. Verminder het aantal onderdelen en probeer het opnieuw."
+
+#, c-format, boost-format
+#~ msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
+#~ msgstr "Er is geen diameter van %smm in je geconfigureerde nozzletypes, dus je kunt geen diameter van %smm gebruiken voor het slicen."
+
+#~ msgid "Configure Nozzle diameter"
+#~ msgstr "Nozzlediameter configureren"
+
+#~ msgid "Modify Nozzle Type"
+#~ msgstr "Nozzletype wijzigen"
+
+#~ msgid "Please remove and store the filament (as shown)."
+#~ msgstr "Verwijder en bewaar het filament (zoals afgebeeld)."
+
+#~ msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+#~ msgstr "De AMS kan het filament dat goed is opgeborgen draaien, wat zorgt voor betere droogresultaten."
+
+#~ msgid "For better drying results, remove the filament and allow it to rotate."
+#~ msgstr "Voor een beter droogresultaat kun je het filament verwijderen en laten draaien."
+
+#~ msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
+#~ msgstr "De AMS zal automatisch de opgeslagen filamentsleuven roteren om de droogprestaties te verbeteren."
+
+#~ msgid "Alternatively, you can dry the filament without removing it."
+#~ msgstr "Je kunt het filament ook drogen zonder het te verwijderen."
+
+#~ msgid "For better drying results, remove the filament."
+#~ msgstr "Verwijder het filament voor een beter droogresultaat."
+
+#~ msgid "Please store the filament marked with an exclamation mark."
+#~ msgstr "Sla het filament op dat is gemarkeerd met een uitroepteken."
+
+#~ msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
+#~ msgstr "Filament dat tijdens het drogen in de feeder achterblijft, kan zacht worden omdat de droogtemperatuur het verwekingspunt van materialen zoals PLA en TPU overschrijdt."
+
+#, c-format, boost-format
+#~ msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
+#~ msgstr "Stel eerst in het onderstaande gedeelte een nozzle met een diameter van %smm in voor de printer, voordat je deze diameter gebruikt voor het slicen."
+
+#~ msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
+#~ msgstr "Deze extruder heeft een andere nozzlediameter dan de geselecteerde afdrukdiameter. Afdrukken met gemengde nozzlediameters is experimenteel."
 
 #~ msgid "Cool"
 #~ msgstr "Koel"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 15:34+0800\n"
+"POT-Creation-Date: 2026-10-30 17:17+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -220,7 +220,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "Το %s δεν υποστηρίζει εκτύπωση %s, καθώς το νήμα ενδέχεται να σπάσει στον λυγισμένο σωλήνα PTFE πάνω από την κεφαλή εργαλείου."
 
 msgid "Special attention should be paid to the feeding method of TPU."
 msgstr ""
@@ -257,7 +257,7 @@ msgstr "Το PPA-CF είναι εύθραυστο και μπορεί να σπ�
 
 #, c-format, boost-format
 msgid "%s filament is brittle. Use %s feeding with caution."
-msgstr ""
+msgstr "Το νήμα %s είναι εύθραυστο. Χρησιμοποιήστε την τροφοδοσία %s με προσοχή."
 
 #, c-format, boost-format
 msgid "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing."
@@ -283,11 +283,11 @@ msgstr "Το %s παρουσιάζει κίνδυνο απόφραξης των 
 
 #, c-format, boost-format
 msgid "Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "Χρησιμοποιήστε %s σε %s με προσοχή, καθώς ενδέχεται να σπάσει στον λυγισμένο σωλήνα PTFE πάνω από την κεφαλή του εργαλείου."
 
 #, c-format, boost-format
 msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
-msgstr ""
+msgstr "Το PLA Glow ενδέχεται να φθείρει τον τροφοδότη πρώτου σταδίου %s. Χρησιμοποιήστε αντ' αυτού εξωτερικό καρούλι."
 
 #, c-format, boost-format
 msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
@@ -295,15 +295,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s."
-msgstr ""
+msgstr "Το νήμα %s είναι εύθραυστο και έχει υψηλή αντίσταση στην τροφοδοσία. Να είστε προσεκτικοί κατά τη φόρτωσή του μέσω %s."
 
 #, c-format, boost-format
 msgid "PPA-CF filament does not support %s feeding. Use an external spool instead."
-msgstr ""
+msgstr "Το νήμα PPA-CF δεν υποστηρίζει τροφοδοσία %s. Χρησιμοποιήστε αντ' αυτού εξωτερικό καρούλι."
 
 #, c-format, boost-format
 msgid "%s may fail to load or unload due to the Filament Track Switch."
-msgstr ""
+msgstr "Το %s ενδέχεται να μην μπορεί να φορτωθεί ή εκφορτωθεί, λόγω του Διακόπτη γραμμής νήματος."
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
@@ -323,7 +323,7 @@ msgstr "Το %s χρησιμοποιείται με τον βοηθητικό ε
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may break inside the filament tube."
-msgstr ""
+msgstr "Λόγω του διακόπτη γραμμής νήματος, το %s ενδέχεται να σπάσει μέσα στον σωλήνα νήματος."
 
 #, c-format, boost-format
 msgid "%s is used with the auxiliary extruder and may impact print quality."
@@ -363,7 +363,7 @@ msgstr "Όταν το %s χρησιμοποιείται με τυπικό ακρ
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may fail to load or unload."
-msgstr ""
+msgstr "Λόγω του διακόπτη γραμμής νήματος, το %s ενδέχεται να μην μπορεί να φορτωθεί ή εκφορτωθεί."
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
@@ -780,11 +780,11 @@ msgstr "Εισαγάγετε χειροκίνητα το νήμα από την 
 
 #, boost-format
 msgid "Slot %1% filament loading in progress"
-msgstr ""
+msgstr "Φόρτωση νήματος στην υποδοχή %1% σε εξέλιξη"
 
 #, boost-format
 msgid "Slot %1% filament unloading in progress"
-msgstr ""
+msgstr "Εκφόρτωση νήματος στην υποδοχή %1% σε εξέλιξη"
 
 msgid "Other filaments are info-only"
 msgstr "Άλλα νήματα παρέχονται αποκλειστικά για ενημερωτικούς σκοπούς"
@@ -1010,6 +1010,15 @@ msgstr "Αυτοέλεγχος"
 
 msgid "No selected machine"
 msgstr "Δεν έχει επιλεγεί μηχάνημα"
+
+msgid "Please check the hotend cable and try again."
+msgstr ""
+
+msgid "Hotend communication error"
+msgstr ""
+
+msgid "View Details"
+msgstr "Προβολή λεπτομερειών"
 
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
@@ -1699,6 +1708,9 @@ msgstr "Απλοποίηση"
 msgid "Simplification is currently only allowed when a single part is selected"
 msgstr "Η απλοποίηση επιτρέπεται προς το παρόν μόνο όταν έχει επιλεγεί ένα μόνο τμήμα"
 
+msgid "Simplification method"
+msgstr ""
+
 msgid "Extra high"
 msgstr "Εξαιρετικά υψηλό"
 
@@ -1714,9 +1726,9 @@ msgstr "Χαμηλό"
 msgid "Extra low"
 msgstr "Εξαιρετικά χαμηλό"
 
-#, c-format, boost-format
-msgid "%d triangles"
-msgstr "%d τρίγωνα"
+#, boost-format
+msgid "Triangles after simplification: %1%"
+msgstr ""
 
 msgid "Show wireframe"
 msgstr "Εμφάνιση πλαισίου καλωδίωσης"
@@ -1726,6 +1738,12 @@ msgstr "Να διατηρηθεί όλος ο χρωματισμός"
 
 msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr "Περιλαμβάνει επιλογές χρωματισμού σε χρώμα, ραφή, υποστήριξη και ασαφές δέρμα. Εάν δεν ενεργοποιηθεί αυτή η επιλογή, όλος ο χρωματισμός θα αφαιρεθεί από το αποτέλεσμα."
+
+msgid "All painting (color, seam, support and fuzzy skin) will be removed from the simplified model. Check \"Keep all painting\" to keep it."
+msgstr ""
+
+msgid "Calculating simplified preview..."
+msgstr ""
 
 #, boost-format
 msgid "%1%"
@@ -3284,10 +3302,6 @@ msgstr "Το αντικείμενο-στόχος περιέχει μόνο έν�
 msgid "Assembly"
 msgstr "Συναρμολόγηση"
 
-#, boost-format
-msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
-msgstr "Η πράξη Boole πλέγματος υποστηρίζει έως %1% τμήματα, αλλά το επιλεγμένο αντικείμενο περιέχει %2% τμήματα. Μειώστε τον αριθμό των τμημάτων και προσπαθήστε ξανά."
-
 msgid "Cut Connectors information"
 msgstr "Πληροφορίες για τους συνδέσμους κοπής"
 
@@ -4421,7 +4435,7 @@ msgstr "Νέα μικτά νήματα"
 
 #, boost-format
 msgid "The project supports up to %1% physical filaments."
-msgstr ""
+msgstr "Το έργο υποστηρίζει έως και %1% φυσικά νήματα."
 
 msgid "Updating"
 msgstr "Ενημέρωση"
@@ -4516,7 +4530,7 @@ msgstr "Ο αριθμός χρωμάτων δεν μπορεί να υπερβα
 
 #, c-format, boost-format
 msgid "Up to %d colors supported."
-msgstr ""
+msgstr "Υποστηρίζονται έως και %d χρώματα."
 
 msgid "Click to select a matching filament"
 msgstr "Κάντε κλικ για να επιλέξετε ένα νήμα που αντιστοιχεί"
@@ -4529,14 +4543,14 @@ msgstr "Πώς να χρησιμοποιήσετε τα τυπικά κιτ αν
 
 #, boost-format
 msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit, so at least %2% project filament(s) must be deleted first. The following unused project filaments will be deleted automatically:"
-msgstr ""
+msgstr "Το έργο έχει πάρα πολλά νήματα. Η προσθήκη του κιτ ανάμειξης υπερβαίνει το όριο %1% νημάτων, άρα τουλάχιστον %2% νήματα/-τα του έργου πρέπει να διαγραφεί/-ούν πρώτα. Τα ακόλουθα αχρησιμοποίητα νήματα έργου θα διαγραφούν αυτόματα:"
 
 #, boost-format
 msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit. Please delete at least %2% filament(s) on the Prepare page, then add the kit again."
-msgstr ""
+msgstr "Το έργο έχει πάρα πολλά νήματα. Η προσθήκη του κιτ ανάμειξης υπερβαίνει το όριο %1% νημάτων. Διαγράψτε τουλάχιστον %2% νήμα/-τα στη σελίδα Προετοιμασία και, στη συνέχεια, προσθέστε ξανά το κιτ."
 
 msgid "Existing project filaments"
-msgstr ""
+msgstr "Υφιστάμενα νήματα έργου"
 
 msgid "What is the CMYKW mixing kit?"
 msgstr "Τι είναι το κιτ ανάμειξης CMYKW;"
@@ -6599,10 +6613,10 @@ msgid "Tips"
 msgstr "Συμβουλές"
 
 msgid "Start Anyway"
-msgstr ""
+msgstr "Έναρξη παρ’ όλα αυτά"
 
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
-msgstr ""
+msgstr "Έχετε επιλέξει Ισοπέδωση κλίνης σε υψηλή θερμοκρασία. Για να αποτρέψετε το μαλάκωμα του νήματος στον εξωθητήρα, εκφορτώστε το νήμα πριν από τη βαθμονόμηση."
 
 msgid "Live Camera Recording"
 msgstr "Εγγραφή κάμερας ζωντανής προβολής"
@@ -6614,7 +6628,7 @@ msgid "Go Live"
 msgstr "Ζωντανή μετάδοση"
 
 msgid "BirdsEye Camera Recording"
-msgstr ""
+msgstr "Εγγραφή πανοραμικής κάμερας"
 
 msgid "Liveview Retry"
 msgstr "Επανάληψη ζωντανής προβολής"
@@ -7237,10 +7251,10 @@ msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "Η φόρτωση της βιβλιοθήκης προσθέτων απέτυχε. Κάντε κλικ εδώ για να δείτε τη λύση."
 
 msgid "Switch to BirdsEye Camera"
-msgstr ""
+msgstr "Μετάβαση στην πανοραμική κάμερα"
 
 msgid "Switch to Liveview Camera"
-msgstr ""
+msgstr "Μετάβαση σε κάμερα ζωντανής προβολής"
 
 msgid "Switch live camera view"
 msgstr "Εναλλαγή προβολής κάμερας ζωντανής προβολής"
@@ -7326,7 +7340,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "Η λειτουργία ζωντανής ροής βασίζεται στο Bambu Studio για να εκτελεστεί και η ροή τερματίζεται κάποια στιγμή μετά το κλείσιμο της εφαρμογής."
 
 msgid "Non-live image."
-msgstr ""
+msgstr "Μη ζωντανή εικόνα."
 
 #, c-format, boost-format
 msgid "Captured at %s"
@@ -7703,13 +7717,13 @@ msgstr "Σχεδόν ολοκληρώθηκε"
 
 #, c++-format
 msgid "For users under the age of majority, some services will be restricted. See our {0} for Bambu Lab Account. To understand our privacy practices, see {1}."
-msgstr ""
+msgstr "Για χρήστες που δεν έχουν συμπληρώσει την ηλικία ενηλικίωσης, ορισμένες υπηρεσίες θα είναι περιορισμένες. Δείτε την {0} για τον λογαριασμό Bambu Lab. Για να κατανοήσετε τις πρακτικές απορρήτου μας, ανατρέξτε στην {1}."
 
 msgid "Age Requirements"
-msgstr ""
+msgstr "Απαιτήσεις ηλικίας"
 
 msgid "Privacy Notice"
-msgstr ""
+msgstr "Δήλωση απορρήτου"
 
 msgid "Camera"
 msgstr "Κάμερα"
@@ -7745,16 +7759,16 @@ msgid "Filament loading..."
 msgstr "Φόρτωση νήματος..."
 
 msgid "Live Camera recording"
-msgstr ""
+msgstr "Εγγραφή κάμερας ζωντανής προβολής"
 
 msgid "BirdsEye Camera recording"
-msgstr ""
+msgstr "Εγγραφή πανοραμικής κάμερας"
 
 msgid "Timelapse recording"
-msgstr ""
+msgstr "Εγγραφή χρονικής παρόδου (timelapse)"
 
 msgid "Go Live streaming"
-msgstr ""
+msgstr "Ζωντανή μετάδοση"
 
 msgid "Cancel print"
 msgstr "Ακύρωση εκτύπωσης"
@@ -7961,14 +7975,14 @@ msgstr ""
 "για παροχή θετικής βαθμολογίας (4 ή 5 αστέρια)."
 
 msgid "Active operations"
-msgstr ""
+msgstr "Ενεργές λειτουργίες"
 
 msgid "Live"
 msgstr "Σε εξέλιξη"
 
 #, c-format, boost-format
 msgid "Zoom %.1fx"
-msgstr ""
+msgstr "Ζουμ %.1fx"
 
 msgid "Step file import parameters"
 msgstr "Παράμετροι εισαγωγής αρχείου STEP"
@@ -8063,17 +8077,17 @@ msgstr "Νεότερη έκδοση 3mf"
 
 #, c-format, boost-format
 msgid "The 3mf file is Beta version %s, current version: %s"
-msgstr ""
+msgstr "Το αρχείο 3mf αποτελεί έκδοση Beta %s, τρέχουσα έκδοση: %s"
 
 #, c-format, boost-format
 msgid "The 3mf file is version %s, current version: %s"
-msgstr ""
+msgstr "Το αρχείο 3mf είναι η έκδοση %s, τρέχουσα έκδοση: %s"
 
 msgid "Importing a newer 3mf file may cause compatibility issues. We recommend downloading the latest version before use. Please click"
-msgstr ""
+msgstr "Η εισαγωγή ενός νεότερου αρχείου 3mf ενδέχεται να προκαλέσει προβλήματα συμβατότητας. Συνιστάται η λήψη της πιο πρόσφατης έκδοσης πριν από τη χρήση. Κάντε κλικ"
 
 msgid "Download Latest Version"
-msgstr ""
+msgstr "Λήψη τελευταίας έκδοσης"
 
 msgctxt "Software"
 msgid "Update"
@@ -9139,16 +9153,6 @@ msgstr "AMS (4 υποδοχές)"
 msgid "AMS(1 slot)"
 msgstr "AMS (1 υποδοχή)"
 
-#, c-format, boost-format
-msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
-msgstr "Δεν υπάρχει διάμετρος %s mm στους διαμορφωμένους τύπους ακροφυσίων σας. Κατά συνέπεια, δεν μπορείτε να χρησιμοποιήσετε διάμετρο %s mm για τεμαχισμό."
-
-msgid "Configure Nozzle diameter"
-msgstr "Ρύθμιση παραμέτρων διαμέτρου ακροφυσίου"
-
-msgid "Modify Nozzle Type"
-msgstr "Τροποποίηση τύπου ακροφυσίου"
-
 msgid "Not installed"
 msgstr "Δεν έχει εγκατασταθεί"
 
@@ -9241,7 +9245,7 @@ msgid "This filament does not support printing with the current nozzle"
 msgstr "Αυτό το νήμα δεν υποστηρίζει εκτύπωση με το τρέχον ακροφύσιο"
 
 msgid "The current nozzle settings have no nozzle of this type"
-msgstr ""
+msgstr "Στις τρέχουσες ρυθμίσεις ακροφυσίου δεν υπάρχει ακροφύσιο αυτού του τύπου"
 
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
@@ -9309,10 +9313,10 @@ msgstr "Δεν είναι δυνατή η ανάμειξη νημάτων με �
 
 #, c-format, boost-format
 msgid "Up to %d mixed filaments can be created"
-msgstr ""
+msgstr "Μπορούν να δημιουργηθούν έως %d μικτά νήματα"
 
 msgid "At least two filaments are required to create a mixed filament"
-msgstr ""
+msgstr "Απαιτούνται τουλάχιστον δύο νημάτια για τη δημιουργία ενός μικτού νήματος"
 
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
@@ -9625,7 +9629,7 @@ msgstr "προειδοποιήσεις"
 
 #, boost-format
 msgid "\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."
-msgstr ""
+msgstr "Το \"%1%\" χρησιμοποιεί τόσο υπο-επίπεδο μικτών χρωμάτων όσο και μεταβλητό ύψος επιπέδου, γεγονός που ενδέχεται να επηρεάσει την ποιότητα εκτύπωσης."
 
 msgid "Invalid data"
 msgstr "Μη έγκυρα δεδομένα"
@@ -10246,7 +10250,7 @@ msgid "Top front"
 msgstr "Πάνω μπροστά"
 
 msgid "For users under the age of majority, some services will be restricted. This is managed by your parent or guardian in Family Hub."
-msgstr ""
+msgstr "Για χρήστες που δεν έχουν συμπληρώσει την ηλικία ενηλικίωσης, ορισμένες υπηρεσίες θα είναι περιορισμένες. Η διαχείριση γίνεται από τον γονέα ή τον κηδεμόνα σας στο Κέντρο οικογένειας."
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "Το τρέχον έργο έχει μη αποθηκευμένες αλλαγές. Θέλετε να το αποθηκεύσετε πριν συνεχίσετε;"
@@ -10742,6 +10746,12 @@ msgid ""
 "- Unsaved projects.\n"
 "- Delete a filament used by a model"
 msgstr ""
+"- Συγχρονισμός προεπιλογών εκτυπωτή μετά τη φόρτωση ενός αρχείου\n"
+"- Ρυθμίσεις πλαισίου διαλόγου «Φόρτωση 3MF»\n"
+"- Εκτέλεση σεναρίων μετεπεξεργασίας\n"
+"- Προτροπή πρότασης δομής υποστήριξης\n"
+"- Μη αποθηκευμένα έργα.\n"
+"- Διαγραφή ενός νήματος που χρησιμοποιείται από ένα μοντέλο"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "Είστε βέβαιοι ότι θέλετε να επαναφέρετε όλες τις προτιμήσεις; Οι αλλαγές θα τεθούν σε ισχύ μετά την επανεκκίνηση."
@@ -11155,7 +11165,7 @@ msgid "There are some unknown filaments in the AMS mappings. Please check whethe
 msgstr "Υπάρχουν ορισμένα άγνωστα νήματα στις χαρτογραφήσεις AMS. Ελέγξτε αν πρόκειται για τα απαιτούμενα νήματα. Εάν είναι εντάξει, πατήστε «Επιβεβαίωση» για να ξεκινήσει η εκτύπωση."
 
 msgid "Pre-print check"
-msgstr ""
+msgstr "Έλεγχος πριν από την εκτύπωση"
 
 msgid "Please check the following:"
 msgstr "Ελέγξτε τα εξής:"
@@ -11385,7 +11395,7 @@ msgstr "Τα νήματα του Εξωτερικού AMS και τα νήματ
 
 #, c-format, boost-format
 msgid "TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."
-msgstr ""
+msgstr "Το TPU στην υποδοχή %d ενδέχεται να γλιστρήσει έξω κατά την αλλαγή του Εργαλείου εκτύπωσης. Μετακινήστε το σε άλλη υποδοχή και προσπαθήστε ξανά."
 
 #, c-format, boost-format
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
@@ -11431,7 +11441,7 @@ msgid "The printer is executing instructions. Please restart printing after it e
 msgstr "Ο εκτυπωτής εκτελεί οδηγίες. Επανεκκινήστε την εκτύπωση αφού ολοκληρωθεί"
 
 msgid "Cold pull in progress. Unable to start a task."
-msgstr ""
+msgstr "Ψυχρή έλξη σε εξέλιξη. Δεν είναι δυνατή η έναρξη μιας εργασίας."
 
 msgid "AMS is setting up. Please try again later."
 msgstr "Το AMS προετοιμάζεται. Προσπαθήστε ξανά αργότερα."
@@ -13279,9 +13289,6 @@ msgstr "Πλακέτα εκτύπωσης"
 
 msgid "Print the enhanced part immediately"
 msgstr "Εκτυπώστε αμέσως το βελτιωμένο τμήμα"
-
-msgid "View Details"
-msgstr "Προβολή λεπτομερειών"
 
 msgid "Verify Print Success Results"
 msgstr "Επαλήθευση αποτελεσμάτων επιτυχίας εκτύπωσης"
@@ -16895,7 +16902,7 @@ msgid "Support ring angle"
 msgstr "Γωνία δακτυλίου υποστήριξης"
 
 msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider. A set angle keeps one piece, from 200° to 300°. -1 means auto: the angle is worked out from the purge of each filament change, so the purge is laid a few rings thick. When that comes out below 200°, the ring is split into two facing pieces with a second opening on the side away from the camera."
-msgstr ""
+msgstr "Η γωνία που διατηρεί ο δακτύλιος υποστήριξης γύρω από το αντικείμενο, μετρούμενη από το κέντρο του δακτυλίου. Το υπόλοιπο αφήνεται ανοιχτό, κεντραρισμένο στην κατεύθυνση της κάμερας του θαλάμου, ώστε να μπορεί να βλέπει το αντικείμενο. Κάθε δακτύλιος της δομής ανοίγει προς τις ίδιες δύο κατευθύνσεις και οι υποστηρίξεις δέντρων συγκρατούν τους κλάδους έξω από το άνοιγμα. Μια μικρότερη γωνία αφήνει μικρότερο μήκος καθαρισμού ανά δακτύλιο, και, κατά συνέπεια, ο δακτύλιος γίνεται πλατύτερος. Μια καθορισμένη γωνία διατηρεί ένα κομμάτι, από 200° έως 300°. - 1 σημαίνει αυτόματο: η γωνία υπολογίζεται από τον καθαρισμό κάθε αλλαγής νήματος, επομένως ο καθαρισμός εφαρμόζεται σε πάχος μερικών δακτυλίων. Όταν αυτό βγαίνει κάτω από 200°, ο δακτύλιος χωρίζεται σε δύο αντικριστά κομμάτια με ένα δεύτερο άνοιγμα στην πλευρά μακριά από την κάμερα."
 
 msgid "Support ring skip points"
 msgstr "Σημεία παράλειψης δακτυλίου υποστήριξης"
@@ -17567,6 +17574,9 @@ msgstr "Επιλέξτε τουλάχιστον ένα νήμα για βαθμ�
 
 msgid "Flow rate calibration result has been saved to preset"
 msgstr "Το αποτέλεσμα βαθμονόμησης ρυθμού ροής έχει αποθηκευτεί στην προεπιλογή"
+
+msgid "Failed to get calibration parameters. Calibration results can only be obtained on the client that started the calibration."
+msgstr ""
 
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr "Το αποτέλεσμα της βαθμονόμησης μέγιστης ογκομετρικής ταχύτητας έχει αποθηκευτεί στην προεπιλογή"
@@ -19568,13 +19578,13 @@ msgid "Please confirm whether the required nozzle diameter and flow rate match t
 msgstr "Ελέγξτε αν η απαιτούμενη διάμετρος ακροφυσίου και ο ρυθμός ροής αντιστοιχούν με τις εμφανιζόμενες τιμές."
 
 msgid "No usable nozzle is detected on your printer."
-msgstr ""
+msgstr "Δεν εντοπίστηκε χρησιμοποιήσιμο ακροφύσιο στον εκτυπωτή σας."
 
 msgid "Your printer has nozzles of different diameters installed."
-msgstr ""
+msgstr "Ο εκτυπωτής σας έχει εγκατεστημένα ακροφύσια διαφορετικών διαμέτρων."
 
 msgid "All nozzles installed on your printer have the same diameter."
-msgstr ""
+msgstr "Όλα τα ακροφύσια που είναι εγκατεστημένα στον εκτυπωτή σας έχουν την ίδια διάμετρο."
 
 msgid "Purge Mode Settings"
 msgstr "Ρυθμίσεις λειτουργίας καθαρισμού"
@@ -19598,24 +19608,26 @@ msgid "TPU Usage Notes"
 msgstr "Σημειώσεις χρήσης TPU"
 
 msgid "TPU Filament Installation && Feeding Guide"
-msgstr ""
+msgstr "Οδηγός εγκατάστασης και τροφοδοσίας νήματος TPU"
 
 msgid "Important Notice:"
-msgstr ""
+msgstr "Σημαντική ειδοποίηση:"
 
 msgid ""
 "• First time printing with TPU ? We strongly recommend reading the official guide first to avoid clogs or feeding failures.\n"
 "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
 msgstr ""
+"• Εκτυπώνετε για πρώτη φορά με TPU; Συνιστάται ανεπιφύλακτα να διαβάσετε πρώτα τον επίσημο οδηγό, για να αποφύγετε αποφράξεις ή αποτυχίες τροφοδοσίας.\n"
+"• Εάν χρησιμοποιείτε TPU 2,85 mm, βεβαιωθείτε ότι έχει εγκατασταθεί ακροφύσιο TPU285 και ότι οι πληροφορίες της συσκευής έχουν συγχρονιστεί."
 
 msgid "Don't show this again"
-msgstr ""
+msgstr "Να μην εμφανιστεί ξανά"
 
 msgid "View User Guide"
-msgstr ""
+msgstr "Προβολή Οδηγού χρήστη"
 
 msgid "I know risks, continue"
-msgstr ""
+msgstr "Γνωρίζω τους κινδύνους, συνέχεια"
 
 msgid "AMS Dryness Control"
 msgstr "Έλεγχος ξήρανσης AMS"
@@ -19635,14 +19647,14 @@ msgstr "Σφάλμα ξήρανσης"
 msgid "Please check the Assistant for troubleshooting"
 msgstr "Ανατρέξτε στον Βοηθό για αντιμετώπιση προβλημάτων"
 
-msgid "Please remove and store the filament (as shown)."
-msgstr "Αφαιρέστε και αποθηκεύστε το νήμα (όπως φαίνεται)."
-
-msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
-msgstr "Το AMS θα περιστρέφει αυτόματα το νήμα που έχει αποθηκευτεί σωστά, παρέχοντας καλύτερα αποτελέσματα ξήρανσης."
+msgid "Unknown filaments will be treated as PLA."
+msgstr "Τα άγνωστα νήματα θα αντιμετωπίζονται ως PLA."
 
 msgid "Rotate spool when drying"
 msgstr "Περιστροφή καρουλιού κατά την ξήρανση"
+
+msgid "After turning on, the AMS automatically rotates slots where filament ends are stowed on the spool, for better drying"
+msgstr ""
 
 msgctxt "amsdrying"
 msgid "Back"
@@ -19719,26 +19731,17 @@ msgstr "Το σύστημα είναι απασχολημένο"
 msgid "  Initiating other drying processes, please wait a few seconds..."
 msgstr "  Εκκίνηση άλλων διαδικασιών ξήρανσης. Περιμένετε μερικά δευτερόλεπτα..."
 
-msgid "For better drying results, remove the filament and allow it to rotate."
-msgstr "Για καλύτερα αποτελέσματα ξήρανσης, αφαιρέστε το νήμα και αφήστε το να περιστραφεί."
+msgid "The current drying temperature is higher than the softening temperature of some filaments. Filament ends left in the inlet may soften and clog it. Pull out the filaments marked with an exclamation mark before drying."
+msgstr ""
 
-msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
-msgstr "Το AMS θα περιστρέφει αυτόματα τις αποθηκευμένες υποδοχές νήματος για να βελτιώσει την απόδοση ξήρανσης."
+msgid "Slots that currently support drying:"
+msgstr ""
 
-msgid "Alternatively, you can dry the filament without removing it."
-msgstr "Εναλλακτικά, μπορείτε να ξηράνετε το νήμα χωρίς να το αφαιρέσετε."
+msgid "It is recommended to pull the filament end out of the inlet before drying to prevent it from softening due to high temperature."
+msgstr ""
 
-msgid "Unknown filaments will be treated as PLA."
-msgstr "Τα άγνωστα νήματα θα αντιμετωπίζονται ως PLA."
-
-msgid "For better drying results, remove the filament."
-msgstr "Για καλύτερα αποτελέσματα ξήρανσης, αφαιρέστε το νήμα."
-
-msgid "Please store the filament marked with an exclamation mark."
-msgstr "Αποθηκεύστε το νήμα που έχει επισημανθεί με θαυμαστικό."
-
-msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
-msgstr "Το νήμα που παραμένει στον τροφοδότη κατά τη διάρκεια της ξήρανσης ενδέχεται να μαλακώσει, επειδή η θερμοκρασία ξήρανσης υπερβαίνει το σημείο στο οποίο μαλακώνουν υλικά όπως PLA και TPU."
+msgid "For better drying results, pull the filament end out of the inlet and allow it to rotate."
+msgstr ""
 
 msgid "Starting: Checking adapter connection"
 msgstr "Έναρξη: Έλεγχος σύνδεσης προσαρμογέα"
@@ -19883,7 +19886,7 @@ msgid "Edit Mixed Filament"
 msgstr "Επεξεργασία μικτού νήματος"
 
 msgid "Mixed result preview"
-msgstr ""
+msgstr "Προεπισκόπηση μικτού αποτελέσματος"
 
 msgid "Effect Preview"
 msgstr "Προεπισκόπηση εφέ"
@@ -19947,25 +19950,25 @@ msgid "Color Matching"
 msgstr "Αντιστοίχιση χρωμάτων"
 
 msgid "Target Filament"
-msgstr ""
+msgstr "Νήμα-στόχος"
 
 msgid "(The system will mix 2-3 filaments to approximate this color)"
-msgstr ""
+msgstr "(Το σύστημα θα αναμίξει 2-3 νήματα για να προσεγγίσει αυτό το χρώμα)"
 
 msgid "Target color filament"
-msgstr ""
+msgstr "Νήμα χρώματος-στόχου"
 
 msgid "Select Target Color"
 msgstr "Επιλογή χρώματος-στόχου"
 
 msgid "Mixed Result"
-msgstr ""
+msgstr "Μικτό αποτέλεσμα"
 
 msgid "Discard changes and match again"
 msgstr "Απόρριψη αλλαγών και αντιστοίχιση ξανά"
 
 msgid "No results"
-msgstr ""
+msgstr "Δεν υπάρχουν αποτελέσματα"
 
 msgid "Replace the target color on models with the mixed result"
 msgstr "Αντικαταστήστε το χρώμα-στόχο στα μοντέλα με το μικτό αποτέλεσμα"
@@ -20021,20 +20024,17 @@ msgid "This filament does not support the %smm nozzle, or no matching nozzle is 
 msgstr "Αυτό το νήμα δεν υποστηρίζει το ακροφύσιο %s mm ή δεν έχει διαμορφωθεί αντίστοιχο ακροφύσιο."
 
 #, c-format, boost-format
-msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
-msgstr "Ορίστε ένα ακροφύσιο διαμέτρου %s mm για τον εκτυπωτή στην παρακάτω ενότητα, προτού χρησιμοποιήσετε αυτήν τη διάμετρο για τεμαχισμό."
+msgid "This printer isn’t configured with a %s mm nozzle. Please configure it in “Settings” before slicing."
+msgstr ""
 
 msgid "No nozzle is installed in this slot."
 msgstr "Δεν έχει εγκατασταθεί ακροφύσιο σε αυτήν την υποδοχή."
 
 msgid "Hotend information is unknown. Please refresh nozzle information before use."
-msgstr ""
+msgstr "Οι πληροφορίες για το θερμό άκρο δεν είναι γνωστές. Ανανεώστε τις πληροφορίες του ακροφυσίου πριν από τη χρήση."
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Ασυμφωνία διαμέτρου ακροφυσίου. Αυτό το ακροφύσιο δεν μπορεί να χρησιμοποιηθεί."
-
-msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
-msgstr "Αυτός ο εξωθητήρας έχει διαφορετική διάμετρο ακροφυσίου από την επιλεγμένη διάμετρο εκτύπωσης. Η εκτύπωση με μικτές διαμέτρους ακροφυσίων είναι πειραματική."
 
 msgid "Nozzle Settings"
 msgstr "Ρυθμίσεις ακροφυσίου"
@@ -20073,550 +20073,568 @@ msgid "OK"
 msgstr "ΟΚ"
 
 msgid "Remark"
-msgstr ""
+msgstr "Παρατήρηση"
 
 msgid "Matched filament"
-msgstr ""
+msgstr "Αντιστοιχισμένο νήμα"
 
 msgid "Add as new filament"
-msgstr ""
+msgstr "Προσθήκη ως νέο νήμα"
 
 msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "Το AMS ανίχνευσε ένα νέο νήμα. Να προστεθεί στη Διαχείριση νημάτων;"
 
 msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr ""
+msgstr "Ένα παρόμοιο νήμα βρέθηκε στη Διαχείριση νημάτων και αντιστοιχίστηκε αυτόματα."
 
 msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
-msgstr ""
+msgstr "Πολλαπλά παρόμοια νήματα βρέθηκαν στη Διαχείριση νημάτων. Επιβεβαιώστε την αντιστοίχιση."
 
 msgid "New Filament"
-msgstr ""
+msgstr "Νέο νήμα"
 
 msgid "New filament information has been recorded."
-msgstr ""
+msgstr "Έχουν καταγραφεί πληροφορίες νέου νήματος."
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
 "interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Όταν χρησιμοποιείτε διαλυτό υλικό για την υποστήριξη, συνιστώνται οι ακόλουθες ρυθμίσεις:\n"
+"τύπος κανονικής (αυτόματης) υποστήριξης, 1 θηλιά τοίχου υποστήριξης, 0 κορυφαία απόσταση z, 0 κάτω απόσταση z, 0 απόσταση διεπαφής, 0 απόσταση υποστήριξης/αντικειμένου xy, πεπλεγμένο ευθύγραμμο μοτίβο, απενεργοποίηση \n"
+"ύψους επιπέδου ανεξάρτητης υποστήριξης και χρήση διαλυτών υλικών τόσο για τη διεπαφή υποστήριξης όσο και για τη βάση υποστήριξης"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Όταν χρησιμοποιείτε διαλυτό υλικό για την υποστήριξη, συνιστώνται οι ακόλουθες ρυθμίσεις:\n"
+"τύπος κανονικής (αυτόματης) υποστήριξης, 1 θηλιά τοίχου υποστήριξης, 0 κορυφαία απόσταση z, 0 απόσταση διεπαφής, 0 απόσταση υποστήριξης/αντικειμένου xy, πεπλεγμένο ευθύγραμμο μοτίβο, απενεργοποίηση \n"
+"ύψους επιπέδου ανεξάρτητης υποστήριξης και χρήση διαλυτών υλικών τόσο για τη διεπαφή υποστήριξης όσο και για τη βάση υποστήριξης"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Όταν χρησιμοποιείτε διαλυτό υλικό για την υποστήριξη, συνιστώνται οι ακόλουθες ρυθμίσεις:\n"
+"0 κορυφαία απόσταση z, 0 κάτω απόσταση z, 0 απόσταση διεπαφής, 0 απόσταση υποστήριξης/αντικειμένου xy, πεπλεγμένο ευθύγραμμο μοτίβο, απενεργοποίηση \n"
+"ύψους επιπέδου ανεξάρτητης υποστήριξης και χρήση διαλυτών υλικών τόσο για τη διεπαφή υποστήριξης όσο και για τη βάση υποστήριξης"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
 "independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Όταν χρησιμοποιείτε διαλυτό υλικό για την υποστήριξη, συνιστώνται οι ακόλουθες ρυθμίσεις:\n"
+"0 κορυφαία απόσταση z, 0 απόσταση διεπαφής, 0 απόσταση υποστήριξης/αντικειμένου xy, πεπλεγμένο ευθύγραμμο μοτίβο, απενεργοποίηση \n"
+"ύψους επιπέδου ανεξάρτητης υποστήριξης και χρήση διαλυτών υλικών τόσο για τη διεπαφή υποστήριξης όσο και για τη βάση υποστήριξης"
 
 msgid "Support interface speed"
-msgstr ""
+msgstr "Ταχύτητα διεπαφής υποστήριξης"
 
 msgid "The following settings of the current plate will be restored to default:"
-msgstr ""
+msgstr "Θα γίνει επαναφορά των ακόλουθων ρυθμίσεων της τρέχουσας πλάκας στις προεπιλεγμένες τιμές:"
 
 msgid "Restore these settings of the current plate to default?"
-msgstr ""
+msgstr "Επαναφορά αυτών των ρυθμίσεων της τρέχουσας πλάκας στις προεπιλεγμένες τιμές;"
 
 msgid "The following settings locked on the current selection will be restored to default:"
-msgstr ""
+msgstr "Θα γίνει επαναφορά των ακόλουθων ρυθμίσεων που είναι κλειδωμένες στην τρέχουσα επιλογή στις προεπιλεγμένες τιμές:"
 
 msgid "Restore these settings of the current selection to default?"
-msgstr ""
+msgstr "Επαναφορά αυτών των ρυθμίσεων της τρέχουσας επιλογής στις προεπιλεγμένες τιμές;"
 
 msgid "The following settings locked on the objects below will be restored to default:"
-msgstr ""
+msgstr "Θα γίνει επαναφορά των ακόλουθων ρυθμίσεων που είναι κλειδωμένες στα παρακάτω αντικείμενα στις προεπιλεγμένες τιμές:"
 
 msgid "Restore these settings to default?"
-msgstr ""
+msgstr "Επαναφορά αυτών των ρυθμίσεων στις προεπιλεγμένες τιμές;"
 
 msgid "The following global settings will be restored to default:"
-msgstr ""
+msgstr "Θα γίνει επαναφορά των ακόλουθων γενικών ρυθμίσεων στις προεπιλεγμένες τιμές:"
 
 msgid "Restore these global settings to default?"
-msgstr ""
+msgstr "Επαναφορά αυτών των γενικών ρυθμίσεων στις προεπιλεγμένες τιμές;"
 
 msgid "It looks like you are no longer using a support material combination for the support interface. Are you exiting support material usage?"
-msgstr ""
+msgstr "Φαίνεται ότι δεν χρησιμοποιείτε πλέον συνδυασμό υλικού υποστήριξης για τη διεπαφή υποστήριξης. Εξέρχεστε από τη χρήση υλικού υποστήριξης;"
 
 msgid "The same settings applied globally will be restored as well."
-msgstr ""
+msgstr "Θα γίνει επίσης επαναφορά των ίδιων ρυθμίσεων που εφαρμόστηκαν γενικά."
 
 msgid "Other objects also have these settings locked:"
-msgstr ""
+msgstr "Αυτές οι ρυθμίσεις είναι επίσης κλειδωμένες σε άλλα αντικείμενα:"
 
 msgid "Affected objects:"
-msgstr ""
+msgstr "Επηρεαζόμενα αντικείμενα:"
 
 msgid "These objects also have these settings locked:"
-msgstr ""
+msgstr "Αυτές οι ρυθμίσεις είναι επίσης κλειδωμένες σε αυτά τα αντικείμενα:"
 
 msgid "Restore the current selection only, or all of them?"
-msgstr ""
+msgstr "Επαναφορά μόνο της τρέχουσας επιλογής ή όλων;"
 
 msgid "Restore all of them to default?"
-msgstr ""
+msgstr "Επαναφορά όλων στις προεπιλεγμένες τιμές;"
 
 msgid "Performing desktop integration failed - boost::filesystem::canonical did not return appimage path."
-msgstr ""
+msgstr "Η εκτέλεση της ενσωμάτωσης στην επιφάνεια εργασίας απέτυχε - το boost::filesystem::canonical δεν επέστρεψε τη διαδρομή appimage."
 
 msgid "Performing desktop integration failed - Could not find executable."
-msgstr ""
+msgstr "Η εκτέλεση της ενσωμάτωσης στην επιφάνεια εργασίας απέτυχε - Δεν ήταν δυνατή η εύρεση του εκτελέσιμου αρχείου."
 
 msgid "Performing desktop integration failed because the application directory was not found."
-msgstr ""
+msgstr "Η εκτέλεση της ενσωμάτωσης στην επιφάνεια εργασίας απέτυχε επειδή δεν βρέθηκε ο κατάλογος εφαρμογής."
 
 msgid "Performing desktop integration failed - could not create Gcodeviewer desktop file. BambuStudio desktop file was probably created successfully."
-msgstr ""
+msgstr "Η εκτέλεση της ενσωμάτωσης στην επιφάνεια εργασίας απέτυχε - δεν ήταν δυνατή η δημιουργία του αρχείου Gcodeviewer στην επιφάνεια εργασίας. Το αρχείο BambuStudio για επιφάνεια εργασίας πιθανότατα δημιουργήθηκε με επιτυχία."
 
 msgid "Desktop Integration"
-msgstr ""
+msgstr "Ενσωμάτωση στην επιφάνεια εργασίας"
 
 msgid ""
 "Desktop Integration sets this binary to be searchable by the system.\n"
 "\n"
 "Press \"Perform\" to proceed."
 msgstr ""
+"Η ενσωμάτωση στην επιφάνεια εργασίας ορίζει αυτό το δυαδικό αρχείο ώστε να είναι αναζητήσιμο από το σύστημα.\n"
+"\n"
+"Πατήστε \"Εκτέλεση\" για να συνεχίσετε."
 
 msgid "Color mixing requires at least two filaments of the same type, but only one is available. The following filaments will be added based on the model colors:"
-msgstr ""
+msgstr "Η ανάμειξη χρωμάτων απαιτεί τουλάχιστον δύο νήματα του ίδιου τύπου, αλλά μόνο ένα είναι διαθέσιμο. Τα ακόλουθα νήματα θα προστεθούν με βάση τα χρώματα του μοντέλου:"
 
 msgid "Color mixing requires at least two filaments of the same type. The following filaments will be added based on the model colors:"
-msgstr ""
+msgstr "Η ανάμειξη χρωμάτων απαιτεί τουλάχιστον δύο νήματα του ίδιου τύπου. Τα ακόλουθα νήματα θα προστεθούν με βάση τα χρώματα του μοντέλου:"
 
 msgid "New filament"
-msgstr ""
+msgstr "Νέο νήμα"
 
 msgid "Note: You can also delete or modify the newly added filaments in the drop-down list of the filament matching dialog."
-msgstr ""
+msgstr "Σημείωση: Μπορείτε επίσης να διαγράψετε ή να τροποποιήσετε τα νέα νήματα που προστέθηκαν στην αναπτυσσόμενη λίστα του παραθύρου διαλόγου αντιστοίχισης νημάτων."
 
 msgid "System Information"
-msgstr ""
+msgstr "Πληροφορίες συστήματος"
 
 msgid "Blacklisted libraries loaded into BambuStudio process:"
-msgstr ""
+msgstr "Βιβλιοθήκες που έχουν συμπεριληφθεί στη μαύρη λίστα και έχουν φορτωθεί στη διεργασία BambuStudio:"
 
 msgid "SIMD is supported:"
-msgstr ""
+msgstr "Υποστήριξη SIMD:"
 
 msgid "Copy to Clipboard"
-msgstr ""
+msgstr "Αντιγραφή στο πρόχειρο"
 
 #, c-format, boost-format
 msgid "Nozzle %d "
-msgstr ""
+msgstr "Ακροφύσιο %d "
 
 msgid "Unknown Filament"
-msgstr ""
+msgstr "Άγνωστο νήμα"
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
+msgstr "Η κατάσταση του θερμού άκρου δεν είναι φυσιολογική και δεν είναι διαθέσιμη. Κάντε κλικ για να ενημερώσετε το υλικολογισμικό."
 
 msgid "Extruder Settings"
-msgstr ""
+msgstr "Ρυθμίσεις εξωθητήρα"
 
 msgid "Hotend status is abnormal. Please update the firmware."
-msgstr ""
+msgstr "Η κατάσταση του θερμού άκρου δεν είναι φυσιολογική. Ενημερώστε το υλικολογισμικό."
 
 msgid "Update Firmware"
-msgstr ""
+msgstr "Ενημέρωση υλικολογισμικού"
 
 msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
-msgstr ""
+msgstr "Συγχρονισμός πληροφοριών εκτυπωτή"
 
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
-msgstr ""
+msgstr "Το μοντέλο και οι ρυθμίσεις του εκτυπωτή σε αυτό το αρχείο 3MF δεν αντιστοιχούν με τον συνδεδεμένο εκτυπωτή. Θέλετε να προσαρμόσετε αυτές τις ρυθμίσεις τεμαχισμού για αυτόν τον εκτυπωτή;"
 
 msgid "Printer model comparison"
-msgstr ""
+msgstr "Σύγκριση μοντέλων εκτυπωτή"
 
 msgid "Nozzle comparison"
-msgstr ""
+msgstr "Σύγκριση ακροφυσίων"
 
 msgid "Note: After adapting the settings, some print parameters will be automatically adjusted for the new printer model."
-msgstr ""
+msgstr "Σημείωση: Μετά την προσαρμογή των ρυθμίσεων, ορισμένες παράμετροι εκτύπωσης θα προσαρμοστούν αυτόματα για το νέο μοντέλο εκτυπωτή."
 
 msgid "3MF File Settings"
-msgstr ""
+msgstr "Ρυθμίσεις αρχείου 3MF"
 
 msgid "Connected Printer"
-msgstr ""
+msgstr "Συνδεδεμένος εκτυπωτής"
 
 #, c-format, boost-format
 msgid "%s (only supported)"
-msgstr ""
+msgstr "%s (υποστηρίζεται μόνο)"
 
 msgid "Using a larger nozzle after adapting the settings may reduce fine details in your model. Please proceed with caution."
-msgstr ""
+msgstr "Η χρήση μεγαλύτερου ακροφυσίου μετά την προσαρμογή των ρυθμίσεων ενδέχεται να μειώσει τις μικρές λεπτομέρειες στο μοντέλο σας. Συνεχίστε με προσοχή."
 
 msgid "Don't show this again when opening 3MF files"
-msgstr ""
+msgstr "Να μην εμφανιστεί ξανά κατά το άνοιγμα αρχείων 3MF"
 
 msgid "Adapt Settings"
-msgstr ""
+msgstr "Προσαρμογή ρυθμίσεων"
 
 #, c-format, boost-format
 msgid "Nozzle %d: "
-msgstr ""
+msgstr "Ακροφύσιο %d: "
 
 msgid "Nozzle Details"
-msgstr ""
+msgstr "Λεπτομέρειες ακροφυσίου"
 
 #, c-format, boost-format
 msgid "Please input a number greater than or equal to %d"
-msgstr ""
+msgstr "Εισαγάγετε έναν αριθμό μεγαλύτερο από ή ίσο με %d"
 
 #, c-format, boost-format
 msgid "Please enter a number between %d and %d."
-msgstr ""
+msgstr "Εισαγάγετε έναν αριθμό μεταξύ %d και %d."
 
 #, c-format, boost-format
 msgid "Please enter a float greater than or equal to %f."
-msgstr ""
+msgstr "Εισαγάγετε έναν αριθμό κινητής υποδιαστολής μεγαλύτερο ή ίσο με %f."
 
 #, c-format, boost-format
 msgid "Please enter a float between %f and %f."
-msgstr ""
+msgstr "Εισαγάγετε έναν αριθμό κινητής υποδιαστολής μεταξύ %f και %f."
 
 msgid "4 slots AMS"
-msgstr ""
+msgstr "4 υποδοχές AMS"
 
 msgid "1 slot AMS"
-msgstr ""
+msgstr "1 υποδοχή AMS"
 
 msgid "Remove this AMS"
-msgstr ""
+msgstr "Κατάργηση αυτού του AMS"
 
 msgid ""
 "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank.\n"
 "\n"
 "Please install or repair the Microsoft Edge WebView2 Runtime, then restart Bambu Studio."
 msgstr ""
+"Αποτυχία εκκίνησης του ενσωματωμένου προγράμματος περιήγησης. Σελίδες όπως η αρχική σελίδα, η σελίδα της συσκευής και το παράθυρο σύνδεσης θα παραμείνουν κενές.\n"
+"\n"
+"Εγκαταστήστε ή επιδιορθώστε το Microsoft Edge WebView2 Runtime και, στη συνέχεια, επανεκκινήστε το Bambu Studio."
 
 msgid "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank."
-msgstr ""
+msgstr "Αποτυχία εκκίνησης του ενσωματωμένου προγράμματος περιήγησης. Σελίδες όπως η αρχική σελίδα, η σελίδα της συσκευής και το παράθυρο σύνδεσης θα παραμείνουν κενές."
 
 msgid "Embedded Browser Unavailable"
-msgstr ""
+msgstr "Το ενσωματωμένο πρόγραμμα περιήγησης δεν είναι διαθέσιμο"
 
 msgid "Unmapped"
 msgstr "Χωρίς χαρτογράφηση"
 
 msgid "The current nozzle diameter is incompatible with the printer"
-msgstr ""
+msgstr "Η διάμετρος του τρέχοντος ακροφυσίου δεν είναι συμβατή με τον εκτυπωτή"
 
 msgid "Lock supports under new islands"
-msgstr ""
+msgstr "Κλείδωμα υποστηρίξεων κάτω από νέες νησίδες"
 
 msgid "Remove all points"
-msgstr ""
+msgstr "Αφαίρεση όλων των σημείων"
 
 msgid "Apply changes"
-msgstr ""
+msgstr "Εφαρμογή αλλαγών"
 
 msgid "Discard changes"
-msgstr ""
+msgstr "Απόρριψη αλλαγών"
 
 msgid "Minimal points distance"
-msgstr ""
+msgstr "Ελάχιστη απόσταση σημείων"
 
 msgid "Support points density"
-msgstr ""
+msgstr "Πυκνότητα σημείων υποστήριξης"
 
 msgid "Manual editing"
-msgstr ""
+msgstr "Χειροκίνητη επεξεργασία"
 
 msgid "Clipping of view"
-msgstr ""
+msgstr "Αποκοπή της προβολής"
 
 msgid "SLA Support Points"
-msgstr ""
+msgstr "Σημεία υποστήριξης SLA"
 
 msgid "Do you want to save your manually edited support points?"
-msgstr ""
+msgstr "Θέλετε να αποθηκεύσετε τα σημεία υποστήριξης που έχετε επεξεργαστεί χειροκίνητα;"
 
 msgid "Save support points?"
-msgstr ""
+msgstr "Αποθήκευση σημείων υποστήριξης;"
 
 msgid "Autogeneration will erase all manually edited points."
-msgstr ""
+msgstr "Η αυτόματη δημιουργία θα διαγράψει όλα τα σημεία που έχουν υποστεί χειροκίνητη επεξεργασία."
 
 msgid "Are you sure you want to do it?"
-msgstr ""
+msgstr "Είστε βέβαιοι ότι θέλετε να την εκτελέσετε;"
 
 msgid "SLA gizmo keyboard shortcuts"
-msgstr ""
+msgstr "Συντομεύσεις πληκτρολογίου SLA gizmo"
 
 msgid "Note: some shortcuts work in (non)editing mode only."
-msgstr ""
+msgstr "Σημείωση: ορισμένες συντομεύσεις λειτουργούν μόνο σε λειτουργία (μη) επεξεργασίας."
 
 msgid "Add point"
-msgstr ""
+msgstr "Προσθήκη σημείου"
 
 msgid "Remove point"
-msgstr ""
+msgstr "Αφαίρεση σημείου"
 
 msgid "Move point"
-msgstr ""
+msgstr "Μετακίνηση σημείου"
 
 msgid "Add point to selection"
-msgstr ""
+msgstr "Προσθήκη σημείου στην επιλογή"
 
 msgid "Remove point from selection"
-msgstr ""
+msgstr "Αφαίρεση σημείου από την επιλογή"
 
 msgid "Select by rectangle"
-msgstr ""
+msgstr "Επιλογή κατά ορθογώνιο"
 
 msgid "Deselect by rectangle"
-msgstr ""
+msgstr "Αποεπιλογή κατά ορθογώνιο"
 
 msgid "Select all points"
-msgstr ""
+msgstr "Επιλογή όλων των σημείων"
 
 msgid "Move clipping plane"
-msgstr ""
+msgstr "Μετακίνηση επιπέδου αποκοπής"
 
 msgid "Reset clipping plane"
-msgstr ""
+msgstr "Επαναφορά επιπέδου αποκοπής"
 
 msgid "Switch to editing mode"
-msgstr ""
+msgstr "Μετάβαση σε λειτουργία επεξεργασίας"
 
 msgid "Keep upper part"
-msgstr ""
+msgstr "Διατήρηση επάνω τμήματος"
 
 msgid "Keep lower part"
-msgstr ""
+msgstr "Διατήρηση κάτω τμήματος"
 
 msgid "Rotate lower part upwards"
-msgstr ""
+msgstr "Περιστροφή κάτω τμήματος προς τα πάνω"
 
 msgid "Entering Measure gizmo"
-msgstr ""
+msgstr "Είσοδος στο gizmo μέτρησης"
 
 msgid "Leaving Measure gizmo"
-msgstr ""
+msgstr "Αποχώρηση από το gizmo μέτρησης"
 
 msgid "Entering Assembly gizmo"
-msgstr ""
+msgstr "Είσοδος στο gizmo συναρμολόγησης"
 
 msgid "Leaving Assembly gizmo"
-msgstr ""
+msgstr "Αποχώρηση από το gizmo συναρμολόγησης"
 
 msgid "Hollow this object"
-msgstr ""
+msgstr "Βαθούλωμα αντικειμένου"
 
 msgid "Preview hollowed and drilled model"
-msgstr ""
+msgstr "Προεπισκόπηση μοντέλου με βαθούλωμα και τρύπημα"
 
 msgid "Offset"
-msgstr ""
+msgstr "Μετατόπιση"
 
 msgid "Closing distance"
-msgstr ""
+msgstr "Απόσταση κλεισίματος"
 
 msgid "Hole diameter"
-msgstr ""
+msgstr "Διάμετρος οπής"
 
 msgid "Hole depth"
-msgstr ""
+msgstr "Βάθος οπής"
 
 msgid "Remove selected holes"
-msgstr ""
+msgstr "Αφαίρεση επιλεγμένων οπών"
 
 msgid "Remove all holes"
-msgstr ""
+msgstr "Αφαίρεση όλων των οπών"
 
 msgid "Show supports"
-msgstr ""
+msgstr "Εμφάνιση υποστηρίξεων"
 
 msgid "Hollow and drill"
-msgstr ""
+msgstr "Βαθούλωμα και τρύπημα"
 
 msgid "Alternate nozzles:"
-msgstr ""
+msgstr "Εναλλακτικά ακροφύσια:"
 
 msgid "All standard"
-msgstr ""
+msgstr "Όλα τα τυπικά"
 
 #, c-format, boost-format
 msgid "Welcome to the %s Configuration Assistant"
-msgstr ""
+msgstr "Καλώς ορίσατε στον Βοηθό διαμόρφωσης %s"
 
 #, c-format, boost-format
 msgid "Welcome to the %s Configuration Wizard"
-msgstr ""
+msgstr "Καλώς ορίσατε στον Οδηγό διαμόρφωσης %s"
 
 msgid "Welcome"
-msgstr ""
+msgstr "Καλώς ορίσατε"
 
 #, c-format, boost-format
 msgid "Hello, welcome to %s! This %s helps you with the initial configuration; just a few settings and you will be ready to print."
-msgstr ""
+msgstr "Γεια σας, καλώς ορίσατε στο %s! Αυτό το %s σάς βοηθά με την αρχική διαμόρφωση. Ολοκληρώστε μερικές ρυθμίσεις και είστε έτοιμοι για εκτύπωση."
 
 msgid "Remove user profiles (a snapshot will be taken beforehand)"
-msgstr ""
+msgstr "Κατάργηση προφίλ χρηστών (θα ληφθεί ένα στιγμιότυπο εκ των προτέρων)"
 
 msgid "Perform desktop integration (Sets this binary to be searchable by the system)."
-msgstr ""
+msgstr "Εκτέλεση ενσωμάτωσης στην επιφάνεια εργασίας (Ορίζει αυτό το δυαδικό αρχείο ώστε να είναι αναζητήσιμο από το σύστημα)."
 
 #, c-format, boost-format
 msgid "%s Family"
-msgstr ""
+msgstr "Οικογένεια %s"
 
 msgid "Printer:"
-msgstr ""
+msgstr "Εκτυπωτής:"
 
 msgid "Vendor:"
-msgstr ""
+msgstr "Προμηθευτής:"
 
 msgid "Profile:"
-msgstr ""
+msgstr "Προφίλ:"
 
 msgid "(All)"
-msgstr ""
+msgstr "(Όλα)"
 
 #, boost-format
 msgid "%1% marked with <b>*</b> are <b>not</b> compatible with some installed printers."
-msgstr ""
+msgstr "Τα %1% που επισημαίνονται με <b>*</b> <b>δεν</b> είναι συμβατά με ορισμένους εγκατεστημένους εκτυπωτές."
 
 msgid "SLA materials"
-msgstr ""
+msgstr "Υλικά SLA"
 
 #, boost-format
 msgid "All installed printers are compatible with the selected %1%."
-msgstr ""
+msgstr "Όλοι οι εγκατεστημένοι εκτυπωτές είναι συμβατοί με τα επιλεγμένα %1%."
 
 msgid "filament"
-msgstr ""
+msgstr "Νήμα"
 
 msgid "SLA material"
-msgstr ""
+msgstr "Υλικό SLA"
 
 msgid "Only the following installed printers are compatible with the selected filaments"
-msgstr ""
+msgstr "Μόνο οι ακόλουθοι εγκατεστημένοι εκτυπωτές είναι συμβατοί με τα επιλεγμένα νήματα"
 
 msgid "Only the following installed printers are compatible with the selected SLA materials"
-msgstr ""
+msgstr "Μόνο οι ακόλουθοι εγκατεστημένοι εκτυπωτές είναι συμβατοί με τα επιλεγμένα υλικά SLA"
 
 msgid "Custom Printer Setup"
-msgstr ""
+msgstr "Ρύθμιση προσαρμοσμένου εκτυπωτή"
 
 msgid "Custom Printer"
-msgstr ""
+msgstr "Προσαρμοσμένος εκτυπωτής"
 
 msgid "Define a custom printer profile"
-msgstr ""
+msgstr "Ορισμός προσαρμοσμένου προφίλ εκτυπωτή"
 
 msgid "Custom profile name:"
-msgstr ""
+msgstr "Όνομα προσαρμοσμένου προφίλ:"
 
 msgid "Firmware Type"
-msgstr ""
+msgstr "Τύπος υλικολογισμικού"
 
 msgid "Firmware"
-msgstr ""
+msgstr "Υλικολογισμικό"
 
 msgid "Choose the type of firmware used by your printer."
-msgstr ""
+msgstr "Επιλέξτε τον τύπο υλικολογισμικού που χρησιμοποιείται από τον εκτυπωτή σας."
 
 msgid "Bed Shape and Size"
-msgstr ""
+msgstr "Σχήμα και μέγεθος κλίνης"
 
 msgid "Set the shape of your printer's bed."
-msgstr ""
+msgstr "Ορίστε το σχήμα της κλίνης του εκτυπωτή σας."
 
 msgid "Invalid numeric input."
-msgstr ""
+msgstr "Μη έγκυρη αριθμητική εισαγωγή."
 
 msgid "Filament and Nozzle Diameters"
-msgstr ""
+msgstr "Διάμετροι νήματος και ακροφυσίου"
 
 msgid "Print Diameters"
-msgstr ""
+msgstr "Διάμετροι εκτύπωσης"
 
 msgid "Enter the diameter of your printer's hot end nozzle."
-msgstr ""
+msgstr "Εισαγάγετε τη διάμετρο του ακροφυσίου θερμού άκρου του εκτυπωτή σας."
 
 msgid "Nozzle Diameter:"
-msgstr ""
+msgstr "Διάμετρος ακροφυσίου:"
 
 msgid "Enter the diameter of your filament."
-msgstr ""
+msgstr "Εισαγάγετε τη διάμετρο του νήματος σας."
 
 msgid "Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average."
-msgstr ""
+msgstr "Απαιτείται υψηλή ακρίβεια. Κατά συνέπεια, χρησιμοποιήστε ένα παχύμετρο, πραγματοποιήστε πολλαπλές μετρήσεις κατά μήκος του νήματος και, στη συνέχεια, υπολογίστε τον μέσο όρο."
 
 msgid "Filament Diameter:"
-msgstr ""
+msgstr "Διάμετρος νήματος:"
 
 msgid "Nozzle and Bed Temperatures"
-msgstr ""
+msgstr "Θερμοκρασίες ακροφυσίου και κλίνης/επιφάνειας"
 
 msgid "Temperatures"
-msgstr ""
+msgstr "Θερμοκρασίες"
 
 msgid "Enter the nozzle_temperature needed for extruding your filament."
-msgstr ""
+msgstr "Εισαγάγετε το απαιτούμενο nozzle_temperature (θερμοκρασία ακροφυσίου) για την εξώθηση του νήματος σας."
 
 msgid "A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."
-msgstr ""
+msgstr "Ένας εμπειρικός κανόνας είναι 160 έως 230 °C για το PLA και 215 έως 250 °C για το ABS."
 
 msgid "Extrusion Temperature:"
-msgstr ""
+msgstr "Θερμοκρασία εξώθησης:"
 
 msgid "Enter the bed temperature needed for getting your filament to stick to your heated bed."
-msgstr ""
+msgstr "Εισαγάγετε τη θερμοκρασία κλίνης/επιφάνειας που απαιτείται για να συγκολληθεί το νήμα σας στη θερμαινόμενη κλίνη σας."
 
 msgid "A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have no heated bed."
-msgstr ""
+msgstr "Ένας εμπειρικός κανόνας είναι 60 °C για το PLA και 110 °C για το ABS. Αφήστε την τιμή στο μηδέν αν δεν έχετε θερμαινόμενη κλίνη."
 
 msgid "Bed Temperature:"
-msgstr ""
+msgstr "Θερμοκρασία κλίνης/επιφάνειας:"
 
 msgid "SLA Materials"
-msgstr ""
+msgstr "Υλικά SLA"
 
 msgid "FFF Technology Printers"
-msgstr ""
+msgstr "Εκτυπωτές τεχνολογίας FFF"
 
 msgid "SLA Technology Printers"
-msgstr ""
+msgstr "Εκτυπωτές τεχνολογίας SLA"
 
 #, boost-format
 msgid "Following printer profiles has no default filament: %1%Please select one manually."
-msgstr ""
+msgstr "Τα ακόλουθα προφίλ εκτυπωτή δεν έχουν προεπιλεγμένο νήμα: %1%Επιλέξτε ένα χειροκίνητα."
 
 #, boost-format
 msgid "Following printer profiles has no default material: %1%Please select one manually."
-msgstr ""
+msgstr "Τα ακόλουθα προφίλ εκτυπωτή δεν έχουν προεπιλεγμένο υλικό: %1%Επιλέξτε ένα χειροκίνητα."
 
 msgid "The following FFF printer models have no filament selected:"
-msgstr ""
+msgstr "Τα ακόλουθα μοντέλα εκτυπωτή FFF δεν έχουν επιλεγμένο νήμα:"
 
 msgid "Do you want to select default filaments for these FFF printer models?"
-msgstr ""
+msgstr "Θέλετε να επιλέξετε προεπιλεγμένα νήματα για αυτά τα μοντέλα εκτυπωτή FFF;"
 
 msgid "Configuration is edited in ConfigWizard"
-msgstr ""
+msgstr "Η διαμόρφωση υποβάλλεται σε επεξεργασία στο ConfigWizard"
 
 msgid "All user presets will be deleted."
-msgstr ""
+msgstr "Όλες οι προεπιλογές χρήστη θα διαγραφούν."
 
 msgid "A new vendor was installed and one of its printers will be activated"
 msgid_plural "New vendors were installed and one of theirs printers will be activated"
@@ -20624,122 +20642,122 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "A new Printer was installed and it will be activated."
-msgstr ""
+msgstr "Εγκαταστάθηκε και θα ενεργοποιηθεί νέος εκτυπωτής."
 
 msgid "Some Printers were uninstalled."
-msgstr ""
+msgstr "Ορισμένοι εκτυπωτές απεγκαταστάθηκαν."
 
 msgid "A new filament was installed and it will be activated."
-msgstr ""
+msgstr "Εγκαταστάθηκε και θα ενεργοποιηθεί νέο νήμα."
 
 msgid "A new SLA material was installed and it will be activated."
-msgstr ""
+msgstr "Εγκαταστάθηκε και θα ενεργοποιηθεί νέο υλικό SLA."
 
 msgid "Some filaments were uninstalled."
-msgstr ""
+msgstr "Ορισμένα νήματα απεγκαταστάθηκαν."
 
 msgid "Custom printer was installed and it will be activated."
-msgstr ""
+msgstr "Ο προσαρμοσμένος εκτυπωτής εγκαταστάθηκε και θα ενεργοποιηθεί."
 
 msgid "<Back"
-msgstr ""
+msgstr "<Επιστροφή"
 
 msgid "Next>"
-msgstr ""
+msgstr "Επόμενο>"
 
 msgid "Filament Profiles Selection"
-msgstr ""
+msgstr "Επιλογή προφίλ νημάτων"
 
 msgid "Configuration Assistant"
-msgstr ""
+msgstr "Βοηθός διαμόρφωσης"
 
 msgid "Configuration &Assistant"
-msgstr ""
+msgstr "Διαμόρφωση και Βοηθός"
 
 msgid "Configuration Wizard"
-msgstr ""
+msgstr "Οδηγός διαμόρφωσης"
 
 msgid "Configuration &Wizard"
-msgstr ""
+msgstr "Διαμόρφωση και Οδηγός"
 
 msgid "Windows Media Player is required for this task! Do you want to enable 'Windows Media Player' for your operation system?"
-msgstr ""
+msgstr "Για αυτήν την εργασία απαιτείται το Windows Media Player! Θέλετε να ενεργοποιήσετε το 'Windows Media Player' στο λειτουργικό σας σύστημα;"
 
 msgid "BambuSource has not correctly been registered for media playing! Press Yes to re-register it."
-msgstr ""
+msgstr "Το BambuSource δεν έχει καταχωρηθεί σωστά για αναπαραγωγή πολυμέσων! Πατήστε Ναι για να το καταχωρήσετε ξανά."
 
 msgid "Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."
-msgstr ""
+msgstr "Λείπει το στοιχείο BambuSource που καταχωρήθηκε για αναπαραγωγή πολυμέσων! Εγκαταστήστε ξανά το BambuStutio ή ζητήστε βοήθεια μετά την πώληση."
 
 msgid "Using a BambuSource from a different install, video play may not work correctly! Press Yes to fix it."
-msgstr ""
+msgstr "Αν χρησιμοποιήσετε BambuSource από διαφορετική εγκατάσταση, η αναπαραγωγή βίντεο ενδέχεται να μη λειτουργεί σωστά! Πατήστε Ναι για να το διορθώσετε."
 
 msgid "Your system is missing H.264 codecs for GStreamer, which are required to play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart Bambu Studio?)"
-msgstr ""
+msgstr "Το σύστημά σας δεν διαθέτει κωδικοποιητές H.264 για το GStreamer, οι οποίοι είναι απαραίτητοι για την αναπαραγωγή βίντεο.  (Θέλετε να δοκιμάσετε να εγκαταστήσετε τα πακέτα gstreamer1.0-plugins-bad ή gstreamer1.0-libav και, στη συνέχεια, να επανεκκινήσετε το Bambu Studio;)"
 
 msgid "Model Pictures"
-msgstr ""
+msgstr "Εικόνες μοντέλων"
 
 msgid "3D Models"
-msgstr ""
+msgstr "Μοντέλα 3D"
 
 msgid "Click to return (Command + Left Arrow)"
-msgstr ""
+msgstr "Κάντε κλικ για επιστροφή (Command + Αριστερό βέλος)"
 
 msgid "Click to continue (Command + Right Arrow)"
-msgstr ""
+msgstr "Κάντε κλικ για να συνεχίσετε (Command + Δεξί βέλος)"
 
 msgid "Click to return (Alt + Left Arrow)"
-msgstr ""
+msgstr "Κάντε κλικ για επιστροφή (Alt + Αριστερό βέλος)"
 
 msgid "Click to continue (Alt + Right Arrow)"
-msgstr ""
+msgstr "Κάντε κλικ για να συνεχίσετε (Alt + Δεξί βέλος)"
 
 msgid "Taking a configuration snapshot failed."
-msgstr ""
+msgstr "Η λήψη στιγμιότυπου διαμόρφωσης απέτυχε."
 
 msgid "BambuStudio has encountered an error while taking a configuration snapshot."
-msgstr ""
+msgstr "Το BambuStudio αντιμετώπισε σφάλμα κατά τη λήψη ενός στιγμιότυπου διαμόρφωσης."
 
 msgid "BambuStudio error"
-msgstr ""
+msgstr "Σφάλμα BambuStudio"
 
 msgid "Support ring generation failed because no printable model projection was found."
-msgstr ""
+msgstr "Η δημιουργία δακτυλίου υποστήριξης απέτυχε επειδή δεν βρέθηκε εκτυπώσιμη προβολή μοντέλου."
 
 msgid "Support ring generation failed while adapting tool-change paths."
-msgstr ""
+msgstr "Η δημιουργία δακτυλίου υποστήριξης απέτυχε κατά την προσαρμογή των διαδρομών αλλαγής εργαλείων."
 
 msgid "Generating support ring"
-msgstr ""
+msgstr "Δημιουργία δακτυλίου υποστήριξης"
 
 #, boost-format
 msgid "Generating support ring: layer %1%"
-msgstr ""
+msgstr "Δημιουργία δακτυλίου υποστήριξης: επίπεδο %1%"
 
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
+msgstr "Ανιχνεύτηκε νήμα υψηλής θερμοκρασίας στο AMS. Μην το αναμιγνύετε με νήματα χαμηλής θερμοκρασίας."
 
 msgid "Click Wiki for help."
 msgstr "Κάντε κλικ στο Wiki για βοήθεια."
 
 msgid "Nozzle and Filament Sync"
-msgstr ""
+msgstr "Συγχρονισμός ακροφυσίου και νήματος"
 
 msgid "Mapping"
 msgstr "Χαρτογράφηση"
 
 msgid "Direct Override"
-msgstr ""
+msgstr "Άμεση παράκαμψη"
 
 msgid "After modification, the filament list cannot be restored."
-msgstr ""
+msgstr "Μετά την τροποποίηση, δεν είναι δυνατή η επαναφορά της λίστας νημάτων."
 
 msgid "Overwrite the project filaments list with the filaments in the printer."
-msgstr ""
+msgstr "Αντικαταστήστε τη λίστα νημάτων έργου με τα νήματα στον εκτυπωτή."
 
 msgid "Match the project filaments with the filaments in the printer according to the matching mode. After syncing, the mapped results will be used."
-msgstr ""
+msgstr "Αντιστοιχίστε τα νήματα του έργου με τα νήματα στον εκτυπωτή, σύμφωνα με τη λειτουργία αντιστοίχισης. Μετά τον συγχρονισμό, θα χρησιμοποιηθούν τα χαρτογραφημένα αποτελέσματα."
 
 msgid "After overwriting"
 msgstr "Μετά την αντικατάσταση"
@@ -20748,13 +20766,13 @@ msgid "After mapping"
 msgstr "Μετά τη χαρτογράφηση"
 
 msgid "Filament matching"
-msgstr ""
+msgstr "Αντιστοίχιση νημάτων"
 
 msgid "Color first"
-msgstr ""
+msgstr "Προτεραιότητα στο χρώμα"
 
 msgid "Precision first"
-msgstr ""
+msgstr "Προτεραιότητα στην ακρίβεια"
 
 msgid "Reset all filament mapping"
 msgstr "Επαναφορά όλων των χαρτογραφήσεων νημάτων"
@@ -21066,6 +21084,55 @@ msgid ""
 msgstr ""
 "Αξιοπιστία με την πρώτη\n"
 "Λιγότερη ταλαιπωρία, πιο προβλέψιμη απόδοση. Παράδειγμα: μια μικρή εταιρεία που εκτυπώνει τμήματα PETG αποφεύγει τις εκπλήξεις που προκαλούνται από «αστοχίες την 6η ώρα» και διατηρεί τις παρτίδες εντός χρονοδιαγράμματος."
+
+#, c-format, boost-format
+#~ msgid "%d triangles"
+#~ msgstr "%d τρίγωνα"
+
+#, boost-format
+#~ msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
+#~ msgstr "Η πράξη Boole πλέγματος υποστηρίζει έως %1% τμήματα, αλλά το επιλεγμένο αντικείμενο περιέχει %2% τμήματα. Μειώστε τον αριθμό των τμημάτων και προσπαθήστε ξανά."
+
+#, c-format, boost-format
+#~ msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
+#~ msgstr "Δεν υπάρχει διάμετρος %s mm στους διαμορφωμένους τύπους ακροφυσίων σας. Κατά συνέπεια, δεν μπορείτε να χρησιμοποιήσετε διάμετρο %s mm για τεμαχισμό."
+
+#~ msgid "Configure Nozzle diameter"
+#~ msgstr "Ρύθμιση παραμέτρων διαμέτρου ακροφυσίου"
+
+#~ msgid "Modify Nozzle Type"
+#~ msgstr "Τροποποίηση τύπου ακροφυσίου"
+
+#~ msgid "Please remove and store the filament (as shown)."
+#~ msgstr "Αφαιρέστε και αποθηκεύστε το νήμα (όπως φαίνεται)."
+
+#~ msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+#~ msgstr "Το AMS θα περιστρέφει αυτόματα το νήμα που έχει αποθηκευτεί σωστά, παρέχοντας καλύτερα αποτελέσματα ξήρανσης."
+
+#~ msgid "For better drying results, remove the filament and allow it to rotate."
+#~ msgstr "Για καλύτερα αποτελέσματα ξήρανσης, αφαιρέστε το νήμα και αφήστε το να περιστραφεί."
+
+#~ msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
+#~ msgstr "Το AMS θα περιστρέφει αυτόματα τις αποθηκευμένες υποδοχές νήματος για να βελτιώσει την απόδοση ξήρανσης."
+
+#~ msgid "Alternatively, you can dry the filament without removing it."
+#~ msgstr "Εναλλακτικά, μπορείτε να ξηράνετε το νήμα χωρίς να το αφαιρέσετε."
+
+#~ msgid "For better drying results, remove the filament."
+#~ msgstr "Για καλύτερα αποτελέσματα ξήρανσης, αφαιρέστε το νήμα."
+
+#~ msgid "Please store the filament marked with an exclamation mark."
+#~ msgstr "Αποθηκεύστε το νήμα που έχει επισημανθεί με θαυμαστικό."
+
+#~ msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
+#~ msgstr "Το νήμα που παραμένει στον τροφοδότη κατά τη διάρκεια της ξήρανσης ενδέχεται να μαλακώσει, επειδή η θερμοκρασία ξήρανσης υπερβαίνει το σημείο στο οποίο μαλακώνουν υλικά όπως PLA και TPU."
+
+#, c-format, boost-format
+#~ msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
+#~ msgstr "Ορίστε ένα ακροφύσιο διαμέτρου %s mm για τον εκτυπωτή στην παρακάτω ενότητα, προτού χρησιμοποιήσετε αυτήν τη διάμετρο για τεμαχισμό."
+
+#~ msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
+#~ msgstr "Αυτός ο εξωθητήρας έχει διαφορετική διάμετρο ακροφυσίου από την επιλεγμένη διάμετρο εκτύπωσης. Η εκτύπωση με μικτές διαμέτρους ακροφυσίων είναι πειραματική."
 
 #~ msgid "Cool"
 #~ msgstr "Ψύξη"

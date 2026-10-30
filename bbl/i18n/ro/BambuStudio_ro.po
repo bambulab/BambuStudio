@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 15:34+0800\n"
+"POT-Creation-Date: 2026-10-30 17:17+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -221,7 +221,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "%s nu este compatibil cu imprimarea prin %s, deoarece filamentul se poate rupe în tubul PTFE îndoit de deasupra capului de imprimare."
 
 msgid "Special attention should be paid to the feeding method of TPU."
 msgstr ""
@@ -258,7 +258,7 @@ msgstr "PPA-CF este fragil și se poate rupe în tubul PTFE îndoit de deasupra 
 
 #, c-format, boost-format
 msgid "%s filament is brittle. Use %s feeding with caution."
-msgstr ""
+msgstr "%s filamentul este fragil. Utilizați cu precauție alimentarea cu %s."
 
 #, c-format, boost-format
 msgid "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing."
@@ -284,11 +284,11 @@ msgstr "%s există riscul de înfundare a duzei atunci când se utilizează duze
 
 #, c-format, boost-format
 msgid "Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "Folosiți cu precauție %s în %s, deoarece filamentul se poate rupe în tubul PTFE îndoit de deasupra capului de imprimare."
 
 #, c-format, boost-format
 msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
-msgstr ""
+msgstr "PLA Glow poate uza alimentatorul din prima treaptă al %s . Folosiți în schimb o rolă externă."
 
 #, c-format, boost-format
 msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
@@ -296,15 +296,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s."
-msgstr ""
+msgstr "Filamentul %s este fragil și are o rezistență ridicată la alimentare. Procedați cu atenție când încărcați filamentul prin %s."
 
 #, c-format, boost-format
 msgid "PPA-CF filament does not support %s feeding. Use an external spool instead."
-msgstr ""
+msgstr "Filamentul PPA-CF nu este compatibil cu alimentarea prin %s. Folosiți în schimb o rolă externă."
 
 #, c-format, boost-format
 msgid "%s may fail to load or unload due to the Filament Track Switch."
-msgstr ""
+msgstr "Din cauza comutatorului traseu filament, încărcarea sau descărcarea filamentului %s poate eșua."
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
@@ -324,7 +324,7 @@ msgstr "%s este utilizat cu extruderul auxiliar și prezintă un risc mai mare, 
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may break inside the filament tube."
-msgstr ""
+msgstr "Din cauza comutatorului traseu filament, filamentul %s se poate rupe în tubul pentru filament."
 
 #, c-format, boost-format
 msgid "%s is used with the auxiliary extruder and may impact print quality."
@@ -364,7 +364,7 @@ msgstr "%s utilizat cu o duză standard %s poate duce la o extrudare dificilă."
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may fail to load or unload."
-msgstr ""
+msgstr "Din cauza comutatorului traseu filament, încărcarea sau descărcarea filamentului %s poate eșua."
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
@@ -781,11 +781,11 @@ msgstr "Introduceți manual filamentul din slotul %1% în orificiul de încărca
 
 #, boost-format
 msgid "Slot %1% filament loading in progress"
-msgstr ""
+msgstr "Încărcarea filamentului din slotul %1% este în curs"
 
 #, boost-format
 msgid "Slot %1% filament unloading in progress"
-msgstr ""
+msgstr "Descărcarea filamentului din slotul %1% este în curs"
 
 msgid "Other filaments are info-only"
 msgstr "Celelalte filamente sunt afișate doar în scop informativ"
@@ -1011,6 +1011,15 @@ msgstr "Autotest"
 
 msgid "No selected machine"
 msgstr "Nicio mașină selectată"
+
+msgid "Please check the hotend cable and try again."
+msgstr ""
+
+msgid "Hotend communication error"
+msgstr ""
+
+msgid "View Details"
+msgstr "Vizualizare detalii"
 
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
@@ -1700,6 +1709,9 @@ msgstr "Simplificare"
 msgid "Simplification is currently only allowed when a single part is selected"
 msgstr "Simplificarea este permisă în prezent doar atunci când este selectată o singură piesă"
 
+msgid "Simplification method"
+msgstr ""
+
 msgid "Extra high"
 msgstr "Foarte ridicat"
 
@@ -1715,9 +1727,9 @@ msgstr "Scăzut"
 msgid "Extra low"
 msgstr "Foarte scăzut"
 
-#, c-format, boost-format
-msgid "%d triangles"
-msgstr "%d triunghiuri"
+#, boost-format
+msgid "Triangles after simplification: %1%"
+msgstr ""
 
 msgid "Show wireframe"
 msgstr "Afișare wireframe"
@@ -1727,6 +1739,12 @@ msgstr "Păstrați toate zonele pictate"
 
 msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr "Include zonele pictate pentru culoare, cusătură, suporturi și suprafață pufoasă. Dacă opțiunea nu este bifată, toate zonele pictate vor fi eliminate din rezultat."
+
+msgid "All painting (color, seam, support and fuzzy skin) will be removed from the simplified model. Check \"Keep all painting\" to keep it."
+msgstr ""
+
+msgid "Calculating simplified preview..."
+msgstr ""
 
 #, boost-format
 msgid "%1%"
@@ -3289,10 +3307,6 @@ msgstr "Obiectul țintă conține o singură piesă și nu poate fi separat."
 msgid "Assembly"
 msgstr "Asamblare"
 
-#, boost-format
-msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
-msgstr "Operația booleană asupra plasei acceptă cel mult %1% părți, dar obiectul selectat conține %2% părți. Vă rugăm să reduceți numărul de piese și să încercați din nou."
-
 msgid "Cut Connectors information"
 msgstr "Informații despre conectorii tăiați"
 
@@ -4428,7 +4442,7 @@ msgstr "Filamente mixte noi"
 
 #, boost-format
 msgid "The project supports up to %1% physical filaments."
-msgstr ""
+msgstr "Proiectul acceptă până la %1% filamente fizice."
 
 msgid "Updating"
 msgstr "Se actualizează"
@@ -4523,7 +4537,7 @@ msgstr "Numărul de culori nu poate depăși numărul inițial de culori origina
 
 #, c-format, boost-format
 msgid "Up to %d colors supported."
-msgstr ""
+msgstr "Sunt acceptate până la %d culori."
 
 msgid "Click to select a matching filament"
 msgstr "Faceți clic pentru a selecta un filament potrivit"
@@ -4536,14 +4550,14 @@ msgstr "Cum se utilizează kiturile standard de amestecare"
 
 #, boost-format
 msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit, so at least %2% project filament(s) must be deleted first. The following unused project filaments will be deleted automatically:"
-msgstr ""
+msgstr "Proiectul are prea multe filamente. Adăugarea kitului de amestecare depășește limita de %1% filamente, așa că trebuie șterse mai întâi cel puțin %2% filamente din proiect. Următoarele filamente de proiect neutilizate vor fi șterse automat:"
 
 #, boost-format
 msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit. Please delete at least %2% filament(s) on the Prepare page, then add the kit again."
-msgstr ""
+msgstr "Proiectul are prea multe filamente. Adăugarea kitului de amestecare depășește limita de %1% filamente. Ștergeți cel puțin %2% filament(e) pe pagina „Pregătire”, apoi adăugați din nou kitul."
 
 msgid "Existing project filaments"
-msgstr ""
+msgstr "Filamente de proiect existente"
 
 msgid "What is the CMYKW mixing kit?"
 msgstr "Ce este kitul de amestecare CMYKW?"
@@ -6605,10 +6619,10 @@ msgid "Tips"
 msgstr "Sfaturi"
 
 msgid "Start Anyway"
-msgstr ""
+msgstr "Porniți oricum"
 
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
-msgstr ""
+msgstr "Ați selectat nivelarea patului la temperatură înaltă. Pentru a preveni înmuierea filamentului în extruder, vă rugăm să descărcați filamentul înainte de calibrare."
 
 msgid "Live Camera Recording"
 msgstr "Înregistrare live cu cameră"
@@ -6620,7 +6634,7 @@ msgid "Go Live"
 msgstr "Lansează live"
 
 msgid "BirdsEye Camera Recording"
-msgstr ""
+msgstr "Înregistrare cu camera BirdsEye"
 
 msgid "Liveview Retry"
 msgstr "Reîncercare vizualizare live"
@@ -7245,10 +7259,10 @@ msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "Biblioteca de pluginuri nu s-a putut încărca. Faceți clic aici pentru a vizualiza soluția."
 
 msgid "Switch to BirdsEye Camera"
-msgstr ""
+msgstr "Comutare la camera BirdsEye"
 
 msgid "Switch to Liveview Camera"
-msgstr ""
+msgstr "Comutare la camera Liveview"
 
 msgid "Switch live camera view"
 msgstr "Comutați la vizualizarea camerei principale în timp real"
@@ -7334,7 +7348,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "Funcția de streaming live se bazează pe Bambu Studio pentru a rula, iar streamingul se va încheia la ceva timp după închiderea aplicației."
 
 msgid "Non-live image."
-msgstr ""
+msgstr "Imagine fără transmisie live."
 
 #, c-format, boost-format
 msgid "Captured at %s"
@@ -7712,13 +7726,13 @@ msgstr "Aproape complet"
 
 #, c++-format
 msgid "For users under the age of majority, some services will be restricted. See our {0} for Bambu Lab Account. To understand our privacy practices, see {1}."
-msgstr ""
+msgstr "Pentru utilizatorii sub vârsta majoratului, unele servicii vor fi restricționate. Consultați {0} pentru contul Bambu Lab. Pentru a înțelege practicile noastre privind confidențialitatea, consultați {1}."
 
 msgid "Age Requirements"
-msgstr ""
+msgstr "Cerințe de vârstă"
 
 msgid "Privacy Notice"
-msgstr ""
+msgstr "Notificare de confidențialitate"
 
 msgid "Camera"
 msgstr "Cameră"
@@ -7754,16 +7768,16 @@ msgid "Filament loading..."
 msgstr "Se încarcă filamentul..."
 
 msgid "Live Camera recording"
-msgstr ""
+msgstr "Înregistrare video cu camera live"
 
 msgid "BirdsEye Camera recording"
-msgstr ""
+msgstr "Înregistrare cu camera BirdsEye"
 
 msgid "Timelapse recording"
-msgstr ""
+msgstr "Înregistrare timelapse"
 
 msgid "Go Live streaming"
-msgstr ""
+msgstr "Transmitere în direct"
 
 msgid "Cancel print"
 msgstr "Anulează imprimarea"
@@ -7970,7 +7984,7 @@ msgstr ""
 "pentru a acorda o evaluare pozitivă (4 sau 5 stele)."
 
 msgid "Active operations"
-msgstr ""
+msgstr "Operațiuni active"
 
 msgid "Live"
 msgstr "În timp real"
@@ -8072,17 +8086,17 @@ msgstr "Versiune 3mf mai nouă"
 
 #, c-format, boost-format
 msgid "The 3mf file is Beta version %s, current version: %s"
-msgstr ""
+msgstr "Fișierul 3MF este în versiunea beta %s; versiunea curentă: %s"
 
 #, c-format, boost-format
 msgid "The 3mf file is version %s, current version: %s"
-msgstr ""
+msgstr "Fișierul 3MF este în versiunea %s; versiunea curentă: %s"
 
 msgid "Importing a newer 3mf file may cause compatibility issues. We recommend downloading the latest version before use. Please click"
-msgstr ""
+msgstr "Importarea unei versiuni mai noi a fișierului 3MF poate cauza probleme de compatibilitate. Vă recomandăm să descărcați cea mai recentă versiune înainte de utilizare. Vă rugăm să faceți clic"
 
 msgid "Download Latest Version"
-msgstr ""
+msgstr "Descărcați cea mai recentă versiune"
 
 msgctxt "Software"
 msgid "Update"
@@ -9152,16 +9166,6 @@ msgstr "AMS (4 sloturi)"
 msgid "AMS(1 slot)"
 msgstr ""
 
-#, c-format, boost-format
-msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
-msgstr "Nu există o duză cu diametrul de %s mm în tipurile de duze configurate, așadar nu puteți utiliza pentru feliere o duză cu diametrul de %smm."
-
-msgid "Configure Nozzle diameter"
-msgstr "Configurați diametrul duzei"
-
-msgid "Modify Nozzle Type"
-msgstr "Modificare tip duză"
-
 msgid "Not installed"
 msgstr "Neinstalat"
 
@@ -9254,7 +9258,7 @@ msgid "This filament does not support printing with the current nozzle"
 msgstr "Acest filament nu permite imprimarea cu duza actuală"
 
 msgid "The current nozzle settings have no nozzle of this type"
-msgstr ""
+msgstr "Setările actuale ale duzei nu includ nicio duză de acest tip"
 
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
@@ -9322,10 +9326,10 @@ msgstr "Nu se pot amesteca filamente folosind duze de diametre diferite"
 
 #, c-format, boost-format
 msgid "Up to %d mixed filaments can be created"
-msgstr ""
+msgstr "Se pot crea până la %d filamente amestecate"
 
 msgid "At least two filaments are required to create a mixed filament"
-msgstr ""
+msgstr "Sunt necesare cel puțin două filamente pentru a crea un filament mixt"
 
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
@@ -9638,7 +9642,7 @@ msgstr "Avertismente"
 
 #, boost-format
 msgid "\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."
-msgstr ""
+msgstr "„%1%” utilizează atât un strat inferior cu culori mixte, cât și o înălțime variabilă a stratului, ceea ce poate afecta calitatea imprimării."
 
 msgid "Invalid data"
 msgstr "Date nevalide"
@@ -10259,7 +10263,7 @@ msgid "Top front"
 msgstr "Față superioară"
 
 msgid "For users under the age of majority, some services will be restricted. This is managed by your parent or guardian in Family Hub."
-msgstr ""
+msgstr "Pentru utilizatorii sub vârsta majoratului, unele servicii vor fi restricționate. Acest lucru este gestionat de părintele sau tutorele dumneavoastră în Family Hub."
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "Proiectul curent are modificări nesalvate. Salvați-l înainte de a continua?"
@@ -10755,6 +10759,12 @@ msgid ""
 "- Unsaved projects.\n"
 "- Delete a filament used by a model"
 msgstr ""
+"- Sincronizarea presetărilor imprimantei după încărcarea unui fișier\n"
+"- Setările casetei de dialog „Încărcare 3MF”\n"
+"- Executarea scripturilor de post-procesare\n"
+"- Solicitarea de recomandare a structurii de suport\n"
+"- Proiectele nesalvate.\n"
+"- Ștergeți un filament utilizat de un model"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "Sigur vrei să resetezi toate preferințele? Modificările vor intra în vigoare după repornire."
@@ -11168,7 +11178,7 @@ msgid "There are some unknown filaments in the AMS mappings. Please check whethe
 msgstr "Există câteva filamente necunoscute în mapările AMS. Vă rugăm să verificați dacă acestea sunt filamentele necesare. Dacă sunt în regulă, apăsați „Confirmare” pentru a începe imprimarea."
 
 msgid "Pre-print check"
-msgstr ""
+msgstr "Verificare pre-imprimare"
 
 msgid "Please check the following:"
 msgstr "Vă rugăm să verificați următoarele:"
@@ -11398,7 +11408,7 @@ msgstr "Atât filamentele din AMS extern, cât și filamentele %1$s sunt selecta
 
 #, c-format, boost-format
 msgid "TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."
-msgstr ""
+msgstr "TPU din slotul %d se poate desprinde în timpul schimbării uneltei de imprimare. Mutați-l într-un alt slot și încercați din nou."
 
 #, c-format, boost-format
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
@@ -11444,7 +11454,7 @@ msgid "The printer is executing instructions. Please restart printing after it e
 msgstr "Imprimanta execută instrucțiuni. Vă rugăm să reluați imprimarea după ce se termină"
 
 msgid "Cold pull in progress. Unable to start a task."
-msgstr ""
+msgstr "Tragerea la rece este în curs. Nu se poate porni o sarcină."
 
 msgid "AMS is setting up. Please try again later."
 msgstr "AMS se configurează. Vă rugăm să încercați din nou mai târziu."
@@ -13294,9 +13304,6 @@ msgstr "Placă de imprimare"
 
 msgid "Print the enhanced part immediately"
 msgstr "Imprimați imediat piesa îmbunătățită"
-
-msgid "View Details"
-msgstr "Vizualizare detalii"
 
 msgid "Verify Print Success Results"
 msgstr "Verificarea rezultatelor cu succes ale imprimării"
@@ -16910,7 +16917,7 @@ msgid "Support ring angle"
 msgstr "Unghiul inelului de susținere"
 
 msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider. A set angle keeps one piece, from 200° to 300°. -1 means auto: the angle is worked out from the purge of each filament change, so the purge is laid a few rings thick. When that comes out below 200°, the ring is split into two facing pieces with a second opening on the side away from the camera."
-msgstr ""
+msgstr "Unghiul pe care inelul de susținere îl face în jurul obiectului, măsurat din centrul inelului. Restul este lăsat deschis, centrat pe direcția camerei video din incinta imprimantei, astfel încât aceasta să poată vedea obiectul. Fiecare inel al structurii este deschis în aceleași două direcții, iar suporturile de tip arbore mențin ramurile în afara deschiderii. Un unghi mai mic lasă o lungime de ștergere mai mică pe fiecare inel, astfel încât inelul devine mai lat. La un unghi setat între 200° și 300°, se păstrează o singură piesă. -1 înseamnă automat: unghiul este calculat pe baza purjării la fiecare schimbare de filament, astfel încât purjarea formează un strat de câteva inele grosime. Dacă unghiul rezultat este sub 200°, inelul se împarte în două piese opuse, cu o a doua deschidere pe partea opusă camerei."
 
 msgid "Support ring skip points"
 msgstr "Puncte de omitere a inelului de susținere"
@@ -17582,6 +17589,9 @@ msgstr "Vă rugăm să selectați cel puțin un filament pentru calibrare"
 
 msgid "Flow rate calibration result has been saved to preset"
 msgstr "Rezultatul calibrării debitului a fost salvat în presetarea filamentului."
+
+msgid "Failed to get calibration parameters. Calibration results can only be obtained on the client that started the calibration."
+msgstr ""
 
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr "Rezultatul calibrării vitezei volumetrice maxime a fost salvat în presetarea filamentului."
@@ -19584,13 +19594,13 @@ msgid "Please confirm whether the required nozzle diameter and flow rate match t
 msgstr "Verificați dacă diametrul necesar al duzei și debitul corespund valorilor afișate în prezent."
 
 msgid "No usable nozzle is detected on your printer."
-msgstr ""
+msgstr "Nu a fost detectată nicio duză utilizabilă pe imprimantă."
 
 msgid "Your printer has nozzles of different diameters installed."
-msgstr ""
+msgstr "Imprimanta dumneavoastră are instalate duze de diametre diferite."
 
 msgid "All nozzles installed on your printer have the same diameter."
-msgstr ""
+msgstr "Toate duzele instalate pe imprimantă au același diametru."
 
 msgid "Purge Mode Settings"
 msgstr "Setări pentru modul de purjare"
@@ -19614,24 +19624,26 @@ msgid "TPU Usage Notes"
 msgstr "Note privind utilizarea TPU"
 
 msgid "TPU Filament Installation && Feeding Guide"
-msgstr ""
+msgstr "Ghid de instalare și alimentare a filamentului TPU"
 
 msgid "Important Notice:"
-msgstr ""
+msgstr "Notificare importantă:"
 
 msgid ""
 "• First time printing with TPU ? We strongly recommend reading the official guide first to avoid clogs or feeding failures.\n"
 "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
 msgstr ""
+"• Imprimați pentru prima dată cu TPU? Vă recomandăm insistent să citiți mai întâi ghidul oficial pentru a evita blocajele sau defecțiunile de alimentare.\n"
+"• Dacă utilizați TPU de 2,85 mm, asigurați-vă că este instalată o duză TPU285 și că informațiile despre dispozitiv au fost sincronizate."
 
 msgid "Don't show this again"
-msgstr ""
+msgstr "Nu mai afișați acest mesaj"
 
 msgid "View User Guide"
-msgstr ""
+msgstr "Vizualizați Ghidul utilizatorului"
 
 msgid "I know risks, continue"
-msgstr ""
+msgstr "Cunosc riscurile, continui"
 
 msgid "AMS Dryness Control"
 msgstr "Controlul uscăciunii AMS"
@@ -19651,14 +19663,14 @@ msgstr "Eroare de uscare"
 msgid "Please check the Assistant for troubleshooting"
 msgstr "Consultați Asistentul pentru depanare"
 
-msgid "Please remove and store the filament (as shown)."
-msgstr "Îndepărtați și depozitați filamentul (conform imaginii)."
-
-msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
-msgstr "AMS poate roti filamentul depozitat corespunzător, oferind rezultate mai bune de uscare."
+msgid "Unknown filaments will be treated as PLA."
+msgstr "Filamentele necunoscute vor fi tratate ca PLA."
 
 msgid "Rotate spool when drying"
 msgstr "Rotiți rola în timpul uscării"
+
+msgid "After turning on, the AMS automatically rotates slots where filament ends are stowed on the spool, for better drying"
+msgstr ""
 
 msgctxt "amsdrying"
 msgid "Back"
@@ -19735,26 +19747,17 @@ msgstr "Sistemul este ocupat"
 msgid "  Initiating other drying processes, please wait a few seconds..."
 msgstr "  Se inițiază alte procese de uscare, vă rugăm să așteptați câteva secunde..."
 
-msgid "For better drying results, remove the filament and allow it to rotate."
-msgstr "Pentru rezultate mai bune de uscare, scoateți filamentul și lăsați-l să se rotească."
+msgid "The current drying temperature is higher than the softening temperature of some filaments. Filament ends left in the inlet may soften and clog it. Pull out the filaments marked with an exclamation mark before drying."
+msgstr ""
 
-msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
-msgstr "AMS va roti automat sloturile pentru filamentul depozitat pentru a îmbunătăți performanța de uscare."
+msgid "Slots that currently support drying:"
+msgstr ""
 
-msgid "Alternatively, you can dry the filament without removing it."
-msgstr "Alternativ, puteți usca filamentul fără a-l scoate."
+msgid "It is recommended to pull the filament end out of the inlet before drying to prevent it from softening due to high temperature."
+msgstr ""
 
-msgid "Unknown filaments will be treated as PLA."
-msgstr "Filamentele necunoscute vor fi tratate ca PLA."
-
-msgid "For better drying results, remove the filament."
-msgstr "Pentru rezultate mai bune de uscare, îndepărtați filamentul."
-
-msgid "Please store the filament marked with an exclamation mark."
-msgstr "Vă rugăm să depozitați filamentul marcat cu semnul exclamării."
-
-msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
-msgstr "Filamentul rămas în alimentator se poate înmuia în timpul uscării, deoarece temperatura de uscare depășește punctul de înmuiere al materialelor precum PLA și TPU."
+msgid "For better drying results, pull the filament end out of the inlet and allow it to rotate."
+msgstr ""
 
 msgid "Starting: Checking adapter connection"
 msgstr "Se pornește: Se verifică conexiunea adaptorului"
@@ -19899,7 +19902,7 @@ msgid "Edit Mixed Filament"
 msgstr "Editare filament mixt"
 
 msgid "Mixed result preview"
-msgstr ""
+msgstr "Previzualizare rezultat mixt"
 
 msgid "Effect Preview"
 msgstr "Previzualizare efect"
@@ -19963,25 +19966,25 @@ msgid "Color Matching"
 msgstr "Potrivirea culorilor"
 
 msgid "Target Filament"
-msgstr ""
+msgstr "Filament țintă"
 
 msgid "(The system will mix 2-3 filaments to approximate this color)"
-msgstr ""
+msgstr "(Sistemul va amesteca 2-3 filamente pentru a obține aproximativ această culoare)"
 
 msgid "Target color filament"
-msgstr ""
+msgstr "Filament de culoare țintă"
 
 msgid "Select Target Color"
 msgstr "Selectați culoarea țintă"
 
 msgid "Mixed Result"
-msgstr ""
+msgstr "Rezultat mixt"
 
 msgid "Discard changes and match again"
 msgstr "Renunțați la modificări și efectuați din nou potrivirea"
 
 msgid "No results"
-msgstr ""
+msgstr "Niciun rezultat"
 
 msgid "Replace the target color on models with the mixed result"
 msgstr "Înlocuiți culoarea țintă de pe modele cu rezultatul amestecării"
@@ -20037,20 +20040,17 @@ msgid "This filament does not support the %smm nozzle, or no matching nozzle is 
 msgstr "Acest filament nu acceptă o duză de%s mm sau nu este configurată nicio duză compatibilă."
 
 #, c-format, boost-format
-msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
-msgstr "Mai întâi, setați pentru imprimantă, în secțiunea de mai jos, o duză cu diametrul de %s mm, apoi utilizați acest diametru pentru feliere."
+msgid "This printer isn’t configured with a %s mm nozzle. Please configure it in “Settings” before slicing."
+msgstr ""
 
 msgid "No nozzle is installed in this slot."
 msgstr "Nu este instalată nicio duză în acest slot."
 
 msgid "Hotend information is unknown. Please refresh nozzle information before use."
-msgstr ""
+msgstr "Informațiile despre hotend sunt necunoscute. Vă rugăm să actualizați informațiile despre duză înainte de utilizare."
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Nepotrivire a diametrului duzei. Această duză nu poate fi utilizată."
-
-msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
-msgstr "Acest extruder are un diametru al duzei diferit de cel selectat pentru imprimare. Imprimarea cu diametre mixte ale duzelor este experimentală."
 
 msgid "Nozzle Settings"
 msgstr "Setări duză"
@@ -20089,550 +20089,564 @@ msgid "OK"
 msgstr ""
 
 msgid "Remark"
-msgstr ""
+msgstr "Remarcă"
 
 msgid "Matched filament"
-msgstr ""
+msgstr "Filament potrivit"
 
 msgid "Add as new filament"
-msgstr ""
+msgstr "Adăugați ca filament nou"
 
 msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS a detectat un filament nou. Adăugați-l în Managerul de filamente?"
 
 msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr ""
+msgstr "Un filament similar a fost găsit în Filament Manager și s-a potrivit automat."
 
 msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
-msgstr ""
+msgstr "Mai multe filamente similare au fost găsite în Filament Manager. Vă rugăm să confirmați potrivirea."
 
 msgid "New Filament"
-msgstr ""
+msgstr "Filament nou"
 
 msgid "New filament information has been recorded."
-msgstr ""
+msgstr "Au fost înregistrate informații noi despre filament."
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
 "interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Pentru utilizarea materialului solubil ca suport, recomandăm următoarele setări:\n"
+"Tip de suport normal (automat); 1 buclă de perete pentru suport; distanță Z superioară 0; distanță Z inferioară 0; distanță între interfețe 0; distanță XY între suport și obiect 0; model rectiliniar intercalat; dezactivați înălțimea independentă a stratului de suport și utilizați materiale solubile atât pentru interfața, cât și pentru baza suportului"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Pentru utilizarea materialului solubil ca suport, recomandăm următoarele setări:\n"
+"Tip de suport normal (automat); 1 buclă de perete pentru suport; distanță Z superioară 0; distanță între interfețe 0; distanță XY între suport și obiect 0; model rectiliniar intercalat; dezactivați înălțimea independentă a stratului de suport și utilizați materiale solubile atât pentru interfața, cât și pentru baza suportului"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Când se utilizează material solubil pentru suport, recomandăm următoarele setări:\n"
+"Distanță Z superioară 0; distanță Z inferioară 0; distanță între interfețe 0; distanță XY între suport și obiect 0; model rectiliniar intercalat; dezactivați înălțimea independentă a stratului de suport și utilizați materiale solubile atât pentru interfața, cât și pentru baza suportului"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
 "independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Când se utilizează material solubil pentru suport, recomandăm următoarele setări:\n"
+"Distanță Z superioară 0, spațiere a interfeței 0, distanță XY între suport și obiect 0, model rectiliniar intercalat, dezactivarea înălțimii independente a stratului de suport și utilizarea materialelor solubile atât pentru interfața suportului, cât și pentru baza suportului"
 
 msgid "Support interface speed"
-msgstr ""
+msgstr "Viteza interfeței de suport"
 
 msgid "The following settings of the current plate will be restored to default:"
-msgstr ""
+msgstr "Următoarele setări ale plăcii curente vor fi restaurate la valorile implicite:"
 
 msgid "Restore these settings of the current plate to default?"
-msgstr ""
+msgstr "Restaurați aceste setări ale plăcii curente la valorile implicite?"
 
 msgid "The following settings locked on the current selection will be restored to default:"
-msgstr ""
+msgstr "Următoarele setări blocate pentru selecția curentă vor fi restaurate la valorile implicite:"
 
 msgid "Restore these settings of the current selection to default?"
-msgstr ""
+msgstr "Restaurați aceste setări ale selecției curente la valorile implicite?"
 
 msgid "The following settings locked on the objects below will be restored to default:"
-msgstr ""
+msgstr "Următoarele setări blocate pentru obiectele de mai jos vor fi restaurate la valorile implicite:"
 
 msgid "Restore these settings to default?"
-msgstr ""
+msgstr "Restaurați aceste setări la valorile implicite?"
 
 msgid "The following global settings will be restored to default:"
-msgstr ""
+msgstr "Următoarele setări globale vor fi restaurate la valorile implicite:"
 
 msgid "Restore these global settings to default?"
-msgstr ""
+msgstr "Restaurați aceste setări globale la valorile implicite?"
 
 msgid "It looks like you are no longer using a support material combination for the support interface. Are you exiting support material usage?"
-msgstr ""
+msgstr "Se pare că nu mai utilizați o combinație de materiale de suport pentru interfața suportului. Renunțați la utilizarea materialelor de suport?"
 
 msgid "The same settings applied globally will be restored as well."
-msgstr ""
+msgstr "Aceleași setări aplicate la nivel global vor fi, de asemenea, restaurate."
 
 msgid "Other objects also have these settings locked:"
-msgstr ""
+msgstr "Și alte obiecte au aceste setări blocate:"
 
 msgid "Affected objects:"
-msgstr ""
+msgstr "Obiecte afectate:"
 
 msgid "These objects also have these settings locked:"
-msgstr ""
+msgstr "Aceste obiecte au și aceste setări blocate:"
 
 msgid "Restore the current selection only, or all of them?"
-msgstr ""
+msgstr "Restaurați doar selecția curentă sau pe toate?"
 
 msgid "Restore all of them to default?"
-msgstr ""
+msgstr "Doriți să le restaurați pe toate la valorile implicite?"
 
 msgid "Performing desktop integration failed - boost::filesystem::canonical did not return appimage path."
-msgstr ""
+msgstr "Integrarea desktopului a eșuat: funcția boost::filesystem::canonical nu a returnat calea către appimage."
 
 msgid "Performing desktop integration failed - Could not find executable."
-msgstr ""
+msgstr "Integrarea desktopului a eșuat: executabilul nu a fost găsit."
 
 msgid "Performing desktop integration failed because the application directory was not found."
-msgstr ""
+msgstr "Integrarea desktopului a eșuat deoarece directorul aplicației nu a fost găsit."
 
 msgid "Performing desktop integration failed - could not create Gcodeviewer desktop file. BambuStudio desktop file was probably created successfully."
-msgstr ""
+msgstr "Integrarea desktopului a eșuat: nu s-a putut crea fișierul desktop Gcodeviewer. Fișierul desktop BambuStudio a fost probabil creat cu succes."
 
 msgid "Desktop Integration"
-msgstr ""
+msgstr "Integrare desktop"
 
 msgid ""
 "Desktop Integration sets this binary to be searchable by the system.\n"
 "\n"
 "Press \"Perform\" to proceed."
 msgstr ""
+"Integrarea desktopului face ca acest fișier binar să poată fi găsit de sistem.\n"
+"\n"
+"Apăsați „Executare” pentru a continua."
 
 msgid "Color mixing requires at least two filaments of the same type, but only one is available. The following filaments will be added based on the model colors:"
-msgstr ""
+msgstr "Amestecarea culorilor necesită cel puțin două filamente de același tip, dar este disponibil doar unul. Următoarele filamente vor fi adăugate în funcție de culorile modelului:"
 
 msgid "Color mixing requires at least two filaments of the same type. The following filaments will be added based on the model colors:"
-msgstr ""
+msgstr "Amestecarea culorilor necesită cel puțin două filamente de același tip. Următoarele filamente vor fi adăugate în funcție de culorile modelului:"
 
 msgid "New filament"
-msgstr ""
+msgstr "Filament nou"
 
 msgid "Note: You can also delete or modify the newly added filaments in the drop-down list of the filament matching dialog."
-msgstr ""
+msgstr "Notă: De asemenea, puteți șterge sau modifica filamentele nou adăugate în lista derulantă a casetei de dialog de potrivire a filamentelor."
 
 msgid "System Information"
-msgstr ""
+msgstr "Informații despre sistem"
 
 msgid "Blacklisted libraries loaded into BambuStudio process:"
-msgstr ""
+msgstr "Bibliotecile incluse în lista neagră încărcate în procesul BambuStudio:"
 
 msgid "SIMD is supported:"
-msgstr ""
+msgstr "SIMD este acceptat:"
 
 msgid "Copy to Clipboard"
-msgstr ""
+msgstr "Copiere în clipboard"
 
 #, c-format, boost-format
 msgid "Nozzle %d "
-msgstr ""
+msgstr "Duză %d "
 
 msgid "Unknown Filament"
-msgstr ""
+msgstr "Filament necunoscut"
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
+msgstr "Starea hotend-ului este anormală și nu este disponibilă. Faceți clic pentru a actualiza firmware-ul."
 
 msgid "Extruder Settings"
-msgstr ""
+msgstr "Setări extruder"
 
 msgid "Hotend status is abnormal. Please update the firmware."
-msgstr ""
+msgstr "Starea hotend-ului este anormală. Vă rugăm să actualizați firmware-ul."
 
 msgid "Update Firmware"
-msgstr ""
+msgstr "Actualizați firmware-ul"
 
 msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
-msgstr ""
+msgstr "Sincronizați informațiile despre imprimantă"
 
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
-msgstr ""
+msgstr "Modelul și setările imprimantei din acest fișier 3MF nu se potrivesc cu imprimanta conectată. Doriți să adaptați aceste setări de feliere pentru această imprimantă?"
 
 msgid "Printer model comparison"
-msgstr ""
+msgstr "Compararea modelelor de imprimantă"
 
 msgid "Nozzle comparison"
-msgstr ""
+msgstr "Compararea duzelor"
 
 msgid "Note: After adapting the settings, some print parameters will be automatically adjusted for the new printer model."
-msgstr ""
+msgstr "Notă: După adaptarea setărilor, unii parametri de imprimare vor fi ajustați automat pentru noul model de imprimantă."
 
 msgid "3MF File Settings"
-msgstr ""
+msgstr "Setări fișier 3MF"
 
 msgid "Connected Printer"
-msgstr ""
+msgstr "Imprimantă conectată"
 
 #, c-format, boost-format
 msgid "%s (only supported)"
-msgstr ""
+msgstr "%s (doar cele acceptate)"
 
 msgid "Using a larger nozzle after adapting the settings may reduce fine details in your model. Please proceed with caution."
-msgstr ""
+msgstr "Utilizarea unei duze mai mari după adaptarea setărilor poate reduce detaliile fine din model. Vă rugăm să procedați cu prudență."
 
 msgid "Don't show this again when opening 3MF files"
-msgstr ""
+msgstr "Nu mai afișați acest mesaj la deschiderea fișierelor 3MF"
 
 msgid "Adapt Settings"
-msgstr ""
+msgstr "Adaptați setările"
 
 #, c-format, boost-format
 msgid "Nozzle %d: "
-msgstr ""
+msgstr "Duză %d: "
 
 msgid "Nozzle Details"
-msgstr ""
+msgstr "Detalii duză"
 
 #, c-format, boost-format
 msgid "Please input a number greater than or equal to %d"
-msgstr ""
+msgstr "Vă rugăm să introduceți un număr mai mare sau egal cu %d"
 
 #, c-format, boost-format
 msgid "Please enter a number between %d and %d."
-msgstr ""
+msgstr "Vă rugăm să introduceți un număr între %d și %d."
 
 #, c-format, boost-format
 msgid "Please enter a float greater than or equal to %f."
-msgstr ""
+msgstr "Introduceți un număr zecimal mai mare sau egal cu %f."
 
 #, c-format, boost-format
 msgid "Please enter a float between %f and %f."
-msgstr ""
+msgstr "Introduceți un număr zecimal între %f și %f."
 
 msgid "4 slots AMS"
-msgstr ""
+msgstr "4 sloturi AMS"
 
 msgid "1 slot AMS"
 msgstr ""
 
 msgid "Remove this AMS"
-msgstr ""
+msgstr "Eliminați acest AMS"
 
 msgid ""
 "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank.\n"
 "\n"
 "Please install or repair the Microsoft Edge WebView2 Runtime, then restart Bambu Studio."
 msgstr ""
+"Nu s-a putut porni browserul integrat. Pagini precum pagina principală, pagina dispozitivului și fereastra de conectare vor rămâne goale.\n"
+"\n"
+"Vă rugăm să instalați sau să reparați Microsoft Edge WebView2 Runtime, apoi să reporniți Bambu Studio."
 
 msgid "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank."
-msgstr ""
+msgstr "Nu s-a putut porni browserul integrat. Pagini precum pagina principală, pagina dispozitivului și fereastra de conectare vor rămâne goale."
 
 msgid "Embedded Browser Unavailable"
-msgstr ""
+msgstr "Browser încorporat indisponibil"
 
 msgid "Unmapped"
 msgstr "Nu este mapat"
 
 msgid "The current nozzle diameter is incompatible with the printer"
-msgstr ""
+msgstr "Diametrul actual al duzei este incompatibil cu imprimanta"
 
 msgid "Lock supports under new islands"
-msgstr ""
+msgstr "Blocați suporturile sub insulele noi"
 
 msgid "Remove all points"
-msgstr ""
+msgstr "Eliminați toate punctele"
 
 msgid "Apply changes"
-msgstr ""
+msgstr "Aplicați modificările"
 
 msgid "Discard changes"
-msgstr ""
+msgstr "Renunțați la modificări"
 
 msgid "Minimal points distance"
-msgstr ""
+msgstr "Distanța minimă dintre puncte"
 
 msgid "Support points density"
-msgstr ""
+msgstr "Densitatea punctelor de suport"
 
 msgid "Manual editing"
-msgstr ""
+msgstr "Editare manuală"
 
 msgid "Clipping of view"
-msgstr ""
+msgstr "Decuparea vizualizării"
 
 msgid "SLA Support Points"
-msgstr ""
+msgstr "Puncte de suport SLA"
 
 msgid "Do you want to save your manually edited support points?"
-msgstr ""
+msgstr "Doriți să salvați punctele de susținere editate manual?"
 
 msgid "Save support points?"
-msgstr ""
+msgstr "Salvați punctele de suport?"
 
 msgid "Autogeneration will erase all manually edited points."
-msgstr ""
+msgstr "Generarea automată va șterge toate punctele editate manual."
 
 msgid "Are you sure you want to do it?"
-msgstr ""
+msgstr "Sunteți sigur(ă) că doriți să continuați?"
 
 msgid "SLA gizmo keyboard shortcuts"
-msgstr ""
+msgstr "Comenzi rapide de la tastatură pentru instrumentul SLA"
 
 msgid "Note: some shortcuts work in (non)editing mode only."
-msgstr ""
+msgstr "Notă: unele comenzi rapide funcționează doar în modul de editare sau în afara acestuia."
 
 msgid "Add point"
-msgstr ""
+msgstr "Adăugați punct"
 
 msgid "Remove point"
-msgstr ""
+msgstr "Eliminați punctul"
 
 msgid "Move point"
-msgstr ""
+msgstr "Deplasați punctul"
 
 msgid "Add point to selection"
-msgstr ""
+msgstr "Adăugați un punct la selecție"
 
 msgid "Remove point from selection"
-msgstr ""
+msgstr "Eliminați punctul din selecție"
 
 msgid "Select by rectangle"
-msgstr ""
+msgstr "Selectați prin trasarea unui dreptunghi"
 
 msgid "Deselect by rectangle"
-msgstr ""
+msgstr "Deselectați prin trasarea unui dreptunghi"
 
 msgid "Select all points"
-msgstr ""
+msgstr "Selectați toate punctele"
 
 msgid "Move clipping plane"
-msgstr ""
+msgstr "Deplasați planul de decupare"
 
 msgid "Reset clipping plane"
-msgstr ""
+msgstr "Resetați planul de decupare"
 
 msgid "Switch to editing mode"
-msgstr ""
+msgstr "Comutare la modul de editare"
 
 msgid "Keep upper part"
-msgstr ""
+msgstr "Păstrați partea superioară"
 
 msgid "Keep lower part"
-msgstr ""
+msgstr "Păstrați partea inferioară"
 
 msgid "Rotate lower part upwards"
-msgstr ""
+msgstr "Rotiți partea inferioară în sus"
 
 msgid "Entering Measure gizmo"
-msgstr ""
+msgstr "Accesarea instrumentului de măsurare"
 
 msgid "Leaving Measure gizmo"
-msgstr ""
+msgstr "Ieșirea din instrumentul de măsurare"
 
 msgid "Entering Assembly gizmo"
-msgstr ""
+msgstr "Accesarea instrumentului de asamblare"
 
 msgid "Leaving Assembly gizmo"
-msgstr ""
+msgstr "Ieșirea din instrumentul de asamblare"
 
 msgid "Hollow this object"
-msgstr ""
+msgstr "Goliți acest obiect"
 
 msgid "Preview hollowed and drilled model"
-msgstr ""
+msgstr "Previzualizați modelul golit și perforat"
 
 msgid "Offset"
-msgstr ""
+msgstr "Decalaj"
 
 msgid "Closing distance"
-msgstr ""
+msgstr "Distanța de închidere"
 
 msgid "Hole diameter"
-msgstr ""
+msgstr "Diametrul găurii"
 
 msgid "Hole depth"
-msgstr ""
+msgstr "Adâncimea găurii"
 
 msgid "Remove selected holes"
-msgstr ""
+msgstr "Eliminați găurile selectate"
 
 msgid "Remove all holes"
-msgstr ""
+msgstr "Îndepărtați toate găurile"
 
 msgid "Show supports"
-msgstr ""
+msgstr "Afișați suporturile"
 
 msgid "Hollow and drill"
-msgstr ""
+msgstr "Golire și perforare"
 
 msgid "Alternate nozzles:"
-msgstr ""
+msgstr "Duze alternative:"
 
 msgid "All standard"
-msgstr ""
+msgstr "Toate standard"
 
 #, c-format, boost-format
 msgid "Welcome to the %s Configuration Assistant"
-msgstr ""
+msgstr "Bun venit la Asistentul de configurare %s"
 
 #, c-format, boost-format
 msgid "Welcome to the %s Configuration Wizard"
-msgstr ""
+msgstr "Bun venit la Expertul de configurare %s"
 
 msgid "Welcome"
-msgstr ""
+msgstr "Bine ați venit"
 
 #, c-format, boost-format
 msgid "Hello, welcome to %s! This %s helps you with the initial configuration; just a few settings and you will be ready to print."
-msgstr ""
+msgstr "Bună ziua, bine ați venit la %s! Acest %s vă ajută la configurarea inițială: trebuie doar să modificați câteva setări și veți putea începe imprimarea."
 
 msgid "Remove user profiles (a snapshot will be taken beforehand)"
-msgstr ""
+msgstr "Eliminați profilurile de utilizator (în prealabil se va crea un instantaneu)"
 
 msgid "Perform desktop integration (Sets this binary to be searchable by the system)."
-msgstr ""
+msgstr "Efectuați integrarea desktopului (aceasta face ca fișierul binar să poată fi găsit de sistem)."
 
 #, c-format, boost-format
 msgid "%s Family"
-msgstr ""
+msgstr "%s Familie"
 
 msgid "Printer:"
-msgstr ""
+msgstr "Imprimantă:"
 
 msgid "Vendor:"
-msgstr ""
+msgstr "Furnizor:"
 
 msgid "Profile:"
-msgstr ""
+msgstr "Profil:"
 
 msgid "(All)"
-msgstr ""
+msgstr "(Toate)"
 
 #, boost-format
 msgid "%1% marked with <b>*</b> are <b>not</b> compatible with some installed printers."
-msgstr ""
+msgstr "%1% marcate cu <b>*</b> <b>nu</b> sunt compatibile cu unele imprimante instalate."
 
 msgid "SLA materials"
-msgstr ""
+msgstr "Materiale SLA"
 
 #, boost-format
 msgid "All installed printers are compatible with the selected %1%."
-msgstr ""
+msgstr "Toate imprimantele instalate sunt compatibile cu materialele selectate %1%."
 
 msgid "filament"
 msgstr ""
 
 msgid "SLA material"
-msgstr ""
+msgstr "Material SLA"
 
 msgid "Only the following installed printers are compatible with the selected filaments"
-msgstr ""
+msgstr "Doar următoarele imprimante instalate sunt compatibile cu filamentele selectate"
 
 msgid "Only the following installed printers are compatible with the selected SLA materials"
-msgstr ""
+msgstr "Doar următoarele imprimante instalate sunt compatibile cu materialele SLA selectate"
 
 msgid "Custom Printer Setup"
-msgstr ""
+msgstr "Configurare imprimantă personalizată"
 
 msgid "Custom Printer"
-msgstr ""
+msgstr "Imprimantă personalizată"
 
 msgid "Define a custom printer profile"
-msgstr ""
+msgstr "Definiți un profil de imprimantă personalizat"
 
 msgid "Custom profile name:"
-msgstr ""
+msgstr "Nume profil personalizat:"
 
 msgid "Firmware Type"
-msgstr ""
+msgstr "Tip de firmware"
 
 msgid "Firmware"
 msgstr ""
 
 msgid "Choose the type of firmware used by your printer."
-msgstr ""
+msgstr "Alegeți tipul de firmware utilizat de imprimantă."
 
 msgid "Bed Shape and Size"
-msgstr ""
+msgstr "Forma și dimensiunea patului"
 
 msgid "Set the shape of your printer's bed."
-msgstr ""
+msgstr "Setați forma patului imprimantei."
 
 msgid "Invalid numeric input."
-msgstr ""
+msgstr "Intrare numerică nevalidă."
 
 msgid "Filament and Nozzle Diameters"
-msgstr ""
+msgstr "Diametrele filamentului și ale duzei"
 
 msgid "Print Diameters"
-msgstr ""
+msgstr "Diametre de imprimare"
 
 msgid "Enter the diameter of your printer's hot end nozzle."
-msgstr ""
+msgstr "Introduceți diametrul duzei hotendului imprimantei."
 
 msgid "Nozzle Diameter:"
-msgstr ""
+msgstr "Diametrul duzei:"
 
 msgid "Enter the diameter of your filament."
-msgstr ""
+msgstr "Introduceți diametrul filamentului."
 
 msgid "Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average."
-msgstr ""
+msgstr "Este necesară o precizie bună, așa că folosiți un șubler și faceți mai multe măsurători de-a lungul filamentului, apoi calculați media."
 
 msgid "Filament Diameter:"
-msgstr ""
+msgstr "Diametru filament:"
 
 msgid "Nozzle and Bed Temperatures"
-msgstr ""
+msgstr "Temperaturile duzei și ale patului"
 
 msgid "Temperatures"
-msgstr ""
+msgstr "Temperaturi"
 
 msgid "Enter the nozzle_temperature needed for extruding your filament."
-msgstr ""
+msgstr "Introduceți temperatura nozzle_temperature necesară pentru extrudarea filamentului."
 
 msgid "A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."
-msgstr ""
+msgstr "Ca regulă generală, temperatura este de 160–230 °C pentru PLA și de 215–250 °C pentru ABS."
 
 msgid "Extrusion Temperature:"
-msgstr ""
+msgstr "Temperatura de extrudare:"
 
 msgid "Enter the bed temperature needed for getting your filament to stick to your heated bed."
-msgstr ""
+msgstr "Introduceți temperatura patului de imprimare necesară pentru ca filamentul să se lipească de patul încălzit."
 
 msgid "A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have no heated bed."
-msgstr ""
+msgstr "Ca regulă generală, temperatura este de 60 °C pentru PLA și de 110 °C pentru ABS. Lăsați zero dacă nu aveți un pat încălzit."
 
 msgid "Bed Temperature:"
-msgstr ""
+msgstr "Temperatura patului:"
 
 msgid "SLA Materials"
-msgstr ""
+msgstr "Materiale SLA"
 
 msgid "FFF Technology Printers"
-msgstr ""
+msgstr "Imprimante cu tehnologie FFF"
 
 msgid "SLA Technology Printers"
-msgstr ""
+msgstr "Imprimante cu tehnologie SLA"
 
 #, boost-format
 msgid "Following printer profiles has no default filament: %1%Please select one manually."
-msgstr ""
+msgstr "Următoarele profiluri de imprimantă nu au un filament implicit: %1%Vă rugăm să selectați unul manual."
 
 #, boost-format
 msgid "Following printer profiles has no default material: %1%Please select one manually."
-msgstr ""
+msgstr "Următoarele profiluri de imprimantă nu au un material implicit: %1%Vă rugăm să selectați unul manual."
 
 msgid "The following FFF printer models have no filament selected:"
-msgstr ""
+msgstr "Următoarele modele de imprimante FFF nu au filament selectat:"
 
 msgid "Do you want to select default filaments for these FFF printer models?"
-msgstr ""
+msgstr "Doriți să selectați filamentele implicite pentru aceste modele de imprimante FFF?"
 
 msgid "Configuration is edited in ConfigWizard"
-msgstr ""
+msgstr "Configurația este editată în ConfigWizard"
 
 msgid "All user presets will be deleted."
-msgstr ""
+msgstr "Toate presetările utilizatorului vor fi șterse."
 
 msgid "A new vendor was installed and one of its printers will be activated"
 msgid_plural "New vendors were installed and one of theirs printers will be activated"
@@ -20641,122 +20655,122 @@ msgstr[1] ""
 msgstr[2] ""
 
 msgid "A new Printer was installed and it will be activated."
-msgstr ""
+msgstr "O imprimantă nouă a fost instalată și va fi activată."
 
 msgid "Some Printers were uninstalled."
-msgstr ""
+msgstr "Unele imprimante au fost dezinstalate."
 
 msgid "A new filament was installed and it will be activated."
-msgstr ""
+msgstr "Un filament nou a fost instalat și va fi activat."
 
 msgid "A new SLA material was installed and it will be activated."
-msgstr ""
+msgstr "Un nou material SLA a fost instalat și va fi activat."
 
 msgid "Some filaments were uninstalled."
-msgstr ""
+msgstr "Unele filamente au fost dezinstalate."
 
 msgid "Custom printer was installed and it will be activated."
-msgstr ""
+msgstr "Imprimanta personalizată a fost instalată și va fi activată."
 
 msgid "<Back"
-msgstr ""
+msgstr "<Înapoi"
 
 msgid "Next>"
-msgstr ""
+msgstr "Înainte>"
 
 msgid "Filament Profiles Selection"
-msgstr ""
+msgstr "Selectarea profilurilor de filament"
 
 msgid "Configuration Assistant"
-msgstr ""
+msgstr "Asistent de configurare"
 
 msgid "Configuration &Assistant"
-msgstr ""
+msgstr "Asistent de configurare"
 
 msgid "Configuration Wizard"
-msgstr ""
+msgstr "Expert de configurare"
 
 msgid "Configuration &Wizard"
-msgstr ""
+msgstr "Configurare și expert"
 
 msgid "Windows Media Player is required for this task! Do you want to enable 'Windows Media Player' for your operation system?"
-msgstr ""
+msgstr "Este necesar Windows Media Player pentru această sarcină! Doriți să activați „Windows Media Player” pentru sistemul dvs. de operare?"
 
 msgid "BambuSource has not correctly been registered for media playing! Press Yes to re-register it."
-msgstr ""
+msgstr "BambuSource nu a fost înregistrat corect pentru redarea media! Apăsați Da pentru a-l reînregistra."
 
 msgid "Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."
-msgstr ""
+msgstr "Componenta BambuSource înregistrată pentru redarea media lipsește! Vă rugăm să reinstalați Bambu Studio sau să solicitați asistență post-vânzare."
 
 msgid "Using a BambuSource from a different install, video play may not work correctly! Press Yes to fix it."
-msgstr ""
+msgstr "Dacă utilizați o versiune BambuSource dintr-o altă instalare, este posibil ca redarea video să nu funcționeze corect! Apăsați Da pentru a remedia problema."
 
 msgid "Your system is missing H.264 codecs for GStreamer, which are required to play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart Bambu Studio?)"
-msgstr ""
+msgstr "Sistemului dumneavoastră îi lipsesc codecurile H.264 pentru GStreamer, necesare pentru redarea videoclipurilor.  (Încercați să instalați pachetele gstreamer1.0-plugins-bad sau gstreamer1.0-libav, apoi să reporniți Bambu Studio?)"
 
 msgid "Model Pictures"
-msgstr ""
+msgstr "Imagini cu modele"
 
 msgid "3D Models"
-msgstr ""
+msgstr "Modele 3D"
 
 msgid "Click to return (Command + Left Arrow)"
-msgstr ""
+msgstr "Faceți clic pentru a reveni (Command + săgeată la stânga)"
 
 msgid "Click to continue (Command + Right Arrow)"
-msgstr ""
+msgstr "Faceți clic pentru a continua (Command + săgeată la dreapta)"
 
 msgid "Click to return (Alt + Left Arrow)"
-msgstr ""
+msgstr "Faceți clic pentru a reveni (Alt + săgeată la stânga)"
 
 msgid "Click to continue (Alt + Right Arrow)"
-msgstr ""
+msgstr "Faceți clic pentru a continua (Alt + săgeată la dreapta)"
 
 msgid "Taking a configuration snapshot failed."
-msgstr ""
+msgstr "Crearea unui instantaneu de configurare a eșuat."
 
 msgid "BambuStudio has encountered an error while taking a configuration snapshot."
-msgstr ""
+msgstr "BambuStudio a întâmpinat o eroare la realizarea unui instantaneu de configurare."
 
 msgid "BambuStudio error"
-msgstr ""
+msgstr "Eroare BambuStudio"
 
 msgid "Support ring generation failed because no printable model projection was found."
-msgstr ""
+msgstr "Generarea inelului de suport a eșuat deoarece nu a fost găsită nicio proiecție imprimabilă a modelului."
 
 msgid "Support ring generation failed while adapting tool-change paths."
-msgstr ""
+msgstr "Generarea inelului de suport a eșuat la adaptarea traseelor de schimbare a uneltei de imprimare."
 
 msgid "Generating support ring"
-msgstr ""
+msgstr "Se generează inelul de suport"
 
 #, boost-format
 msgid "Generating support ring: layer %1%"
-msgstr ""
+msgstr "Se generează inelul de suport: stratul %1%"
 
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
+msgstr "A fost detectat în AMS un filament pentru temperaturi înalte. Nu îl amestecați cu filamente pentru temperaturi scăzute."
 
 msgid "Click Wiki for help."
 msgstr "Faceți clic pe Wiki pentru ajutor."
 
 msgid "Nozzle and Filament Sync"
-msgstr ""
+msgstr "Sincronizarea duzei și a filamentului"
 
 msgid "Mapping"
 msgstr "Mapare"
 
 msgid "Direct Override"
-msgstr ""
+msgstr "Suprascriere directă"
 
 msgid "After modification, the filament list cannot be restored."
-msgstr ""
+msgstr "După modificare, lista de filamente nu poate fi restaurată."
 
 msgid "Overwrite the project filaments list with the filaments in the printer."
-msgstr ""
+msgstr "Înlocuiți lista de filamente a proiectului cu lista de filamente din imprimantă."
 
 msgid "Match the project filaments with the filaments in the printer according to the matching mode. After syncing, the mapped results will be used."
-msgstr ""
+msgstr "Potriviți filamentele proiectului cu filamentele din imprimantă conform modului de potrivire. După sincronizare, vor fi utilizate rezultatele asocierii."
 
 msgid "After overwriting"
 msgstr "După suprascriere"
@@ -20765,16 +20779,16 @@ msgid "After mapping"
 msgstr "După mapare"
 
 msgid "Filament matching"
-msgstr ""
+msgstr "Potrivirea filamentelor"
 
 msgid "Color first"
-msgstr ""
+msgstr "Mai întâi culoarea"
 
 msgid "Precision first"
-msgstr ""
+msgstr "Mai întâi precizia"
 
 msgid "Reset all filament mapping"
-msgstr "Resetează toată maparea filamentelor"
+msgstr "Resetați toate mapările filamentelor"
 
 msgid "Add unused filaments to filaments list."
 msgstr "Adăugați filamentele neutilizate la lista de filamente."
@@ -20786,7 +20800,7 @@ msgid "Automatically merge the same colors in the model after mapping."
 msgstr "Îmbinați automat aceleași culori în model după mapare."
 
 msgid "Synchronize now"
-msgstr "Sincronizează acum"
+msgstr "Sincronizați acum"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -21083,6 +21097,55 @@ msgid ""
 msgstr ""
 "Fiabilitate de la prima încercare\n"
 "Mai puțină supraveghere, rezultate mai previzibile. Exemplu: o fermă mică care produce piese PETG evită surprizele de tip „defecțiune la ora 6” și menține loturile la timp."
+
+#, c-format, boost-format
+#~ msgid "%d triangles"
+#~ msgstr "%d triunghiuri"
+
+#, boost-format
+#~ msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
+#~ msgstr "Operația booleană asupra plasei acceptă cel mult %1% părți, dar obiectul selectat conține %2% părți. Vă rugăm să reduceți numărul de piese și să încercați din nou."
+
+#, c-format, boost-format
+#~ msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
+#~ msgstr "Nu există o duză cu diametrul de %s mm în tipurile de duze configurate, așadar nu puteți utiliza pentru feliere o duză cu diametrul de %smm."
+
+#~ msgid "Configure Nozzle diameter"
+#~ msgstr "Configurați diametrul duzei"
+
+#~ msgid "Modify Nozzle Type"
+#~ msgstr "Modificare tip duză"
+
+#~ msgid "Please remove and store the filament (as shown)."
+#~ msgstr "Îndepărtați și depozitați filamentul (conform imaginii)."
+
+#~ msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+#~ msgstr "AMS poate roti filamentul depozitat corespunzător, oferind rezultate mai bune de uscare."
+
+#~ msgid "For better drying results, remove the filament and allow it to rotate."
+#~ msgstr "Pentru rezultate mai bune de uscare, scoateți filamentul și lăsați-l să se rotească."
+
+#~ msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
+#~ msgstr "AMS va roti automat sloturile pentru filamentul depozitat pentru a îmbunătăți performanța de uscare."
+
+#~ msgid "Alternatively, you can dry the filament without removing it."
+#~ msgstr "Alternativ, puteți usca filamentul fără a-l scoate."
+
+#~ msgid "For better drying results, remove the filament."
+#~ msgstr "Pentru rezultate mai bune de uscare, îndepărtați filamentul."
+
+#~ msgid "Please store the filament marked with an exclamation mark."
+#~ msgstr "Vă rugăm să depozitați filamentul marcat cu semnul exclamării."
+
+#~ msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
+#~ msgstr "Filamentul rămas în alimentator se poate înmuia în timpul uscării, deoarece temperatura de uscare depășește punctul de înmuiere al materialelor precum PLA și TPU."
+
+#, c-format, boost-format
+#~ msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
+#~ msgstr "Mai întâi, setați pentru imprimantă, în secțiunea de mai jos, o duză cu diametrul de %s mm, apoi utilizați acest diametru pentru feliere."
+
+#~ msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
+#~ msgstr "Acest extruder are un diametru al duzei diferit de cel selectat pentru imprimare. Imprimarea cu diametre mixte ale duzelor este experimentală."
 
 #~ msgid "Cool"
 #~ msgstr "Răcire"

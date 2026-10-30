@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 15:34+0800\n"
+"POT-Creation-Date: 2026-10-30 17:17+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -220,7 +220,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "%s ไม่รองรับการพิมพ์แบบ %s เนื่องจากเส้นวัสดุอาจขาดในท่อ PTFE ที่โค้งงออยู่เหนือชุดหัวจ่าย"
 
 msgid "Special attention should be paid to the feeding method of TPU."
 msgstr ""
@@ -257,7 +257,7 @@ msgstr "PPA-CF มีความเปราะและอาจหักใ�
 
 #, c-format, boost-format
 msgid "%s filament is brittle. Use %s feeding with caution."
-msgstr ""
+msgstr "เส้นวัสดุ %s เปราะ โปรดใช้การป้อนวัสดุ %s ด้วยความระมัดระวัง"
 
 #, c-format, boost-format
 msgid "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing."
@@ -283,11 +283,11 @@ msgstr "%s มีความเสี่ยงที่จะเกิดหั
 
 #, c-format, boost-format
 msgid "Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "ใช้ %s ใน %s ด้วยความระมัดระวัง เนื่องจากอาจแตกหักได้ในท่อ PTFE ที่โค้งงออยู่เหนือชุดหัวจ่าย"
 
 #, c-format, boost-format
 msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
-msgstr ""
+msgstr "PLA Glow อาจทำให้ชุดป้อนเส้นวัสดุขั้นแรกของ %s สึกหรอ ให้ใช้ม้วนวัสดุจากภายนอกแทน"
 
 #, c-format, boost-format
 msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
@@ -295,15 +295,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s."
-msgstr ""
+msgstr "เส้นวัสดุ %s มีลักษณะเปราะและมีความต้านทานการป้อนสูง โปรดใช้ความระมัดระวังเมื่อใส่เส้นวัสดุผ่าน %s"
 
 #, c-format, boost-format
 msgid "PPA-CF filament does not support %s feeding. Use an external spool instead."
-msgstr ""
+msgstr "เส้นวัสดุ PPA-CF ไม่รองรับการป้อน %s ให้ใช้ม้วนวัสดุจากภายนอกแทน"
 
 #, c-format, boost-format
 msgid "%s may fail to load or unload due to the Filament Track Switch."
-msgstr ""
+msgstr "%s อาจไม่สามารถใส่เข้าหรือลำเลียงออกได้เนื่องจากชุดสับรางเส้นวัสดุ"
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
@@ -323,7 +323,7 @@ msgstr "%s ที่ใช้กับเอ็กซ์ทรูเดอร์
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may break inside the filament tube."
-msgstr ""
+msgstr "ได้รับผลกระทบจากชุดสับรางเส้นวัสดุ %s อาจแตกหักภายในท่อเส้นวัสดุได้"
 
 #, c-format, boost-format
 msgid "%s is used with the auxiliary extruder and may impact print quality."
@@ -363,7 +363,7 @@ msgstr "%s ที่ใช้กับหัวฉีด %s แบบมาต�
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may fail to load or unload."
-msgstr ""
+msgstr "ได้รับผลกระทบจากชุดสับรางเส้นวัสดุ %s อาจใส่เข้าหรือลำเลียงออกไม่สำเร็จ"
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
@@ -780,11 +780,11 @@ msgstr "โปรดใส่เส้นวัสดุจากช่อง %1
 
 #, boost-format
 msgid "Slot %1% filament loading in progress"
-msgstr ""
+msgstr "กำลังใส่เส้นวัสดุในช่อง %1%"
 
 #, boost-format
 msgid "Slot %1% filament unloading in progress"
-msgstr ""
+msgstr "กำลังลำเลียงเส้นวัสดุออกจากช่อง %1%"
 
 msgid "Other filaments are info-only"
 msgstr "เส้นวัสดุอื่นๆเป็นเพียงข้อมูลเท่านั้น"
@@ -1010,6 +1010,15 @@ msgstr "การทดสอบตนเอง"
 
 msgid "No selected machine"
 msgstr "ยังไม่ได้เลือกเครื่อง"
+
+msgid "Please check the hotend cable and try again."
+msgstr ""
+
+msgid "Hotend communication error"
+msgstr ""
+
+msgid "View Details"
+msgstr "ดูรายละเอียด"
 
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
@@ -1699,6 +1708,9 @@ msgstr "ลดความละเอียด"
 msgid "Simplification is currently only allowed when a single part is selected"
 msgstr "ขณะนี้อนุญาตให้ลดความละเอียดได้เมื่อเลือกชิ้นส่วนเดียว"
 
+msgid "Simplification method"
+msgstr ""
+
 msgid "Extra high"
 msgstr "สูงเป็นพิเศษ"
 
@@ -1714,9 +1726,9 @@ msgstr "ต่ำ"
 msgid "Extra low"
 msgstr "ต่ำเป็นพิเศษ"
 
-#, c-format, boost-format
-msgid "%d triangles"
-msgstr "รูปสามเหลี่ยม %d รูป"
+#, boost-format
+msgid "Triangles after simplification: %1%"
+msgstr ""
 
 msgid "Show wireframe"
 msgstr "แสดงโครงร่างเส้น"
@@ -1726,6 +1738,12 @@ msgstr "คงการระบายสีทั้งหมดไว้"
 
 msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr "รวมถึงการระบายสี รอยตะเข็บ โครงสร้างรองรับ และการระบายสีผิวขรุขระ หากไม่เลือกตัวเลือกนี้ การระบายสีทั้งหมดจะถูกลบออกจากผลลัพธ์"
+
+msgid "All painting (color, seam, support and fuzzy skin) will be removed from the simplified model. Check \"Keep all painting\" to keep it."
+msgstr ""
+
+msgid "Calculating simplified preview..."
+msgstr ""
 
 #, boost-format
 msgid "%1%"
@@ -3280,10 +3298,6 @@ msgstr "วัตถุเป้าหมายมีเพียงชิ้น
 msgid "Assembly"
 msgstr "ชิ้นส่วนประกอบ"
 
-#, boost-format
-msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
-msgstr "การดำเนินการบูลีนเมชรองรับได้สูงสุด %1% ชิ้นส่วน แต่วัตถุที่เลือกประกอบด้วย %2% ชิ้นส่วน โปรดลดจำนวนชิ้นส่วนแล้วลองอีกครั้ง"
-
 msgid "Cut Connectors information"
 msgstr "ข้อมูลตัวเชื่อมต่อที่ตัด"
 
@@ -4415,7 +4429,7 @@ msgstr "เส้นวัสดุผสมใหม่"
 
 #, boost-format
 msgid "The project supports up to %1% physical filaments."
-msgstr ""
+msgstr "โปรเจกต์นี้รองรับเส้นวัสดุจริงสูงสุด %1% เส้น"
 
 msgid "Updating"
 msgstr "กำลังอัปเดต"
@@ -4510,7 +4524,7 @@ msgstr "จำนวนสีต้องไม่เกินจำนวนส
 
 #, c-format, boost-format
 msgid "Up to %d colors supported."
-msgstr ""
+msgstr "รองรับสูงสุด %d สี"
 
 msgid "Click to select a matching filament"
 msgstr "คลิกเพื่อเลือกเส้นวัสดุที่ตรงกัน"
@@ -4523,14 +4537,14 @@ msgstr "วิธีการใช้งานชุดผสมมาตรฐ
 
 #, boost-format
 msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit, so at least %2% project filament(s) must be deleted first. The following unused project filaments will be deleted automatically:"
-msgstr ""
+msgstr "โปรเจกต์นี้มีเส้นวัสดุมากเกินไป การเพิ่มชุดผสมจะทำให้จำนวนเส้นวัสดุเกินขีดจำกัด %1% รายการ จึงต้องลบเส้นวัสดุในโปรเจกต์อย่างน้อย %2% รายการก่อน เส้นวัสดุในโปรเจกต์ที่ไม่ได้ใช้งานต่อไปนี้จะถูกลบออกโดยอัตโนมัติ:"
 
 #, boost-format
 msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit. Please delete at least %2% filament(s) on the Prepare page, then add the kit again."
-msgstr ""
+msgstr "โปรเจกต์นี้มีเส้นวัสดุมากเกินไป การเพิ่มชุดผสมจะทำให้เกินขีดจำกัดเส้นวัสดุ %1% โปรดลบเส้นวัสดุอย่างน้อย %2% รายการในหน้าเตรียมพิมพ์ แล้วเพิ่มชุดผสมอีกครั้ง"
 
 msgid "Existing project filaments"
-msgstr ""
+msgstr "เส้นวัสดุที่มีอยู่ในโปรเจกต์"
 
 msgid "What is the CMYKW mixing kit?"
 msgstr "ชุดผสม CMYKW คืออะไร"
@@ -6594,10 +6608,10 @@ msgid "Tips"
 msgstr "เคล็ดลับ"
 
 msgid "Start Anyway"
-msgstr ""
+msgstr "เริ่มต่อไป"
 
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
-msgstr ""
+msgstr "คุณได้เลือกการปรับระดับฐานที่อุณหภูมิสูงแล้ว เพื่อป้องกันไม่ให้เส้นวัสดุอ่อนตัวในเอ็กซ์ทรูเดอร์ โปรดลำเลียงเส้นวัสดุออกเอ็กซ์ทรูเดอร์ก่อนทำการปรับเทียบ"
 
 msgid "Live Camera Recording"
 msgstr "การบันทึกด้วยกล้องแบบเรียลไทม์"
@@ -6609,7 +6623,7 @@ msgid "Go Live"
 msgstr "เริ่มถ่ายทอดสด"
 
 msgid "BirdsEye Camera Recording"
-msgstr ""
+msgstr "การบันทึกภาพด้วยกล้อง BirdsEye"
 
 msgid "Liveview Retry"
 msgstr "ลองโหลดมุมมองสดอีกครั้ง"
@@ -7230,10 +7244,10 @@ msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "โหลดไลบรารีปลั๊กอินล้มเหลว คลิกที่นี่เพื่อดูวิธีแก้ไข"
 
 msgid "Switch to BirdsEye Camera"
-msgstr ""
+msgstr "เปลี่ยนไปใช้กล้อง BirdsEye"
 
 msgid "Switch to Liveview Camera"
-msgstr ""
+msgstr "เปลี่ยนไปใช้กล้อง Liveview"
 
 msgid "Switch live camera view"
 msgstr "สลับมุมมองกล้องเรียลไทม์"
@@ -7319,7 +7333,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "ฟีเจอร์ไลฟ์สตรีมต้องใช้ Bambu Studio และการสตรีมจะสิ้นสุดลงหลังจากปิดแอปไปแล้วสักครู่"
 
 msgid "Non-live image."
-msgstr ""
+msgstr "ภาพนี้ไม่ใช่ภาพสด"
 
 #, c-format, boost-format
 msgid "Captured at %s"
@@ -7695,13 +7709,13 @@ msgstr "ใกล้เสร็จสมบูรณ์แล้ว"
 
 #, c++-format
 msgid "For users under the age of majority, some services will be restricted. See our {0} for Bambu Lab Account. To understand our privacy practices, see {1}."
-msgstr ""
+msgstr "บริการบางอย่างจะถูกจำกัดสำหรับผู้ใช้ที่ยังไม่บรรลุนิติภาวะ ดู {0} ของเราสำหรับบัญชี Bambu Lab หากต้องการทำความเข้าใจเกี่ยวกับแนวปฏิบัติด้านความเป็นส่วนตัวของเรา โปรดดูที่ {1}"
 
 msgid "Age Requirements"
-msgstr ""
+msgstr "ข้อกำหนดด้านอายุ"
 
 msgid "Privacy Notice"
-msgstr ""
+msgstr "ประกาศความเป็นส่วนตัว"
 
 msgid "Camera"
 msgstr "กล้อง"
@@ -7737,16 +7751,16 @@ msgid "Filament loading..."
 msgstr "กำลังป้อนเส้นวัสดุ..."
 
 msgid "Live Camera recording"
-msgstr ""
+msgstr "การบันทึกภาพด้วยกล้องเรียลไทม์"
 
 msgid "BirdsEye Camera recording"
-msgstr ""
+msgstr "การบันทึกภาพด้วยกล้อง BirdsEye"
 
 msgid "Timelapse recording"
-msgstr ""
+msgstr "การบันทึกแบบไทม์แลปส์"
 
 msgid "Go Live streaming"
-msgstr ""
+msgstr "เริ่มถ่ายทอดสด"
 
 msgid "Cancel print"
 msgstr "ยกเลิกการพิมพ์"
@@ -7953,14 +7967,14 @@ msgstr ""
 "เพื่อที่จะให้คะแนนในเชิงบวก (4 หรือ 5 ดาว)"
 
 msgid "Active operations"
-msgstr ""
+msgstr "การดำเนินการที่กำลังทำงานอยู่"
 
 msgid "Live"
 msgstr "ไลฟ์สด"
 
 #, c-format, boost-format
 msgid "Zoom %.1fx"
-msgstr ""
+msgstr "ซูม %.1fx"
 
 msgid "Step file import parameters"
 msgstr "พารามิเตอร์การนำเข้าไฟล์ Step"
@@ -8055,17 +8069,17 @@ msgstr "ไฟล์ 3mf เวอร์ชันใหม่กว่า"
 
 #, c-format, boost-format
 msgid "The 3mf file is Beta version %s, current version: %s"
-msgstr ""
+msgstr "ไฟล์ 3mf เป็นเวอร์ชันเบต้า %s, เวอร์ชันปัจจุบัน: %s"
 
 #, c-format, boost-format
 msgid "The 3mf file is version %s, current version: %s"
-msgstr ""
+msgstr "ไฟล์ 3mf เป็นเวอร์ชัน %s, เวอร์ชันปัจจุบัน: %s"
 
 msgid "Importing a newer 3mf file may cause compatibility issues. We recommend downloading the latest version before use. Please click"
-msgstr ""
+msgstr "การนำเข้าไฟล์ 3mf เวอร์ชันใหม่กว่าอาจทำให้เกิดปัญหาความเข้ากันได้ เราแนะนำให้ดาวน์โหลดเวอร์ชันล่าสุดก่อนใช้งาน โปรดคลิก"
 
 msgid "Download Latest Version"
-msgstr ""
+msgstr "ดาวน์โหลดเวอร์ชันล่าสุด"
 
 msgctxt "Software"
 msgid "Update"
@@ -9127,16 +9141,6 @@ msgstr "AMS (4 ช่อง)"
 msgid "AMS(1 slot)"
 msgstr "AMS (1 ช่อง)"
 
-#, c-format, boost-format
-msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
-msgstr "ไม่มีหัวฉีดขนาดเส้นผ่านศูนย์กลาง %sมม. ในประเภทหัวฉีดที่คุณกำหนดค่าไว้ ดังนั้นคุณจึงไม่สามารถใช้ขนาดเส้นผ่านศูนย์กลาง %sมม. ในการตัดแบ่งได้"
-
-msgid "Configure Nozzle diameter"
-msgstr "ตั้งค่าเส้นผ่านศูนย์กลางหัวฉีด"
-
-msgid "Modify Nozzle Type"
-msgstr "แก้ไขประเภทหัวฉีด"
-
 msgid "Not installed"
 msgstr "ยังไม่ได้ติดตั้ง"
 
@@ -9229,7 +9233,7 @@ msgid "This filament does not support printing with the current nozzle"
 msgstr "เส้นวัสดุนี้ไม่รองรับการพิมพ์ด้วยหัวฉีดปัจจุบัน"
 
 msgid "The current nozzle settings have no nozzle of this type"
-msgstr ""
+msgstr "การตั้งค่าหัวฉีดปัจจุบันไม่มีหัวฉีดประเภทนี้"
 
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
@@ -9297,10 +9301,10 @@ msgstr "ไม่สามารถผสมเส้นวัสดุที่
 
 #, c-format, boost-format
 msgid "Up to %d mixed filaments can be created"
-msgstr ""
+msgstr "สามารถสร้างเส้นวัสดุผสมได้สูงสุด %d ชนิด"
 
 msgid "At least two filaments are required to create a mixed filament"
-msgstr ""
+msgstr "ต้องใช้เส้นวัสดุอย่างน้อยสองเส้นในการสร้างเส้นวัสดุผสม"
 
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
@@ -9613,7 +9617,7 @@ msgstr "คำเตือน"
 
 #, boost-format
 msgid "\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."
-msgstr ""
+msgstr "\"%1%\" ใช้ทั้งเลเยอร์ย่อยสีผสมและความสูงเลเยอร์แบบแปรผัน ซึ่งอาจส่งผลต่อคุณภาพการพิมพ์"
 
 msgid "Invalid data"
 msgstr "ข้อมูลไม่ถูกต้อง"
@@ -10234,7 +10238,7 @@ msgid "Top front"
 msgstr "ด้านหน้าบน"
 
 msgid "For users under the age of majority, some services will be restricted. This is managed by your parent or guardian in Family Hub."
-msgstr ""
+msgstr "บริการบางอย่างจะถูกจำกัดสำหรับผู้ใช้ที่ยังไม่บรรลุนิติภาวะ ซึ่งได้รับการจัดการโดยพ่อแม่หรือผู้ปกครองของคุณใน Family Hub"
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "โปรเจกต์ปัจจุบันมีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก บันทึกก่อนดำเนินการต่อหรือไม่?"
@@ -10730,6 +10734,12 @@ msgid ""
 "- Unsaved projects.\n"
 "- Delete a filament used by a model"
 msgstr ""
+"- ซิงค์พรีเซตของเครื่องพิมพ์หลังจากโหลดไฟล์\n"
+"- การตั้งค่ากล่องโต้ตอบ \"โหลด 3MF\"\n"
+"- การรันสคริปต์ประมวลผลหลังการพิมพ์\n"
+"- ข้อความแนะนำโครงสร้างส่วนรองรับ\n"
+"- โปรเจกต์ที่ยังไม่ได้บันทึก\n"
+"- ลบเส้นวัสดุที่โมเดลใช้งานอยู่"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "คุณแน่ใจหรือไม่ว่าต้องการรีเซ็ตการตั้งค่าส่วนบุคคลทั้งหมด? การเปลี่ยนแปลงจะมีผลหลังจากรีสตาร์ท"
@@ -11143,7 +11153,7 @@ msgid "There are some unknown filaments in the AMS mappings. Please check whethe
 msgstr "พบเส้นวัสดุที่ไม่รู้จักในการจับคู่ AMS โปรดตรวจสอบว่าเป็นเส้นวัสดุที่ต้องการหรือไม่ หากถูกต้องแล้ว ให้กด \"ยืนยัน\" เพื่อเริ่มการพิมพ์"
 
 msgid "Pre-print check"
-msgstr ""
+msgstr "ตรวจสอบก่อนพิมพ์"
 
 msgid "Please check the following:"
 msgstr "โปรดตรวจสอบสิ่งต่อไปนี้:"
@@ -11373,7 +11383,7 @@ msgstr "AMS ภายนอกและเส้นวัสดุ %1$s ทั�
 
 #, c-format, boost-format
 msgid "TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."
-msgstr ""
+msgstr "TPU ในช่อง %d อาจหลุดออกระหว่างการเปลี่ยนเครื่องมือพิมพ์ ย้ายไปช่องอื่นแล้วลองใหม่อีกครั้ง"
 
 #, c-format, boost-format
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
@@ -11419,7 +11429,7 @@ msgid "The printer is executing instructions. Please restart printing after it e
 msgstr "เครื่องพิมพ์กำลังดำเนินการตามคำสั่ง โปรดเริ่มการพิมพ์ใหม่หลังจากเสร็จสิ้น"
 
 msgid "Cold pull in progress. Unable to start a task."
-msgstr ""
+msgstr "กำลังดำเนินการดึงเย็น ไม่สามารถเริ่มงานได้"
 
 msgid "AMS is setting up. Please try again later."
 msgstr "AMS กำลังตั้งค่า โปรดลองอีกครั้งในภายหลัง"
@@ -13264,9 +13274,6 @@ msgstr "พิมพ์แผ่นฐาน"
 
 msgid "Print the enhanced part immediately"
 msgstr "พิมพ์ชิ้นส่วนที่ปรับปรุงแล้วทันที"
-
-msgid "View Details"
-msgstr "ดูรายละเอียด"
 
 msgid "Verify Print Success Results"
 msgstr "ตรวจสอบผลลัพธ์ความสำเร็จของการพิมพ์"
@@ -16880,7 +16887,7 @@ msgid "Support ring angle"
 msgstr "มุมของวงแหวนรองรับ"
 
 msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider. A set angle keeps one piece, from 200° to 300°. -1 means auto: the angle is worked out from the purge of each filament change, so the purge is laid a few rings thick. When that comes out below 200°, the ring is split into two facing pieces with a second opening on the side away from the camera."
-msgstr ""
+msgstr "วัดมุมที่วงแหวนรองรับโอบรอบวัตถุจากจุดศูนย์กลางของวงแหวน ส่วนที่เหลือเปิดโล่งไว้ โดยยึดทิศทางของกล้องภายในห้องพิมพ์เป็นศูนย์กลาง เพื่อให้สามารถมองเห็นวัตถุได้ วงแหวนทุกวงของโครงสร้างถูกเปิดออกในทิศทางเดียวกันทั้งสองทิศทาง โดยมีโครงสร้างค้ำยันรูปต้นไม้จะคอยกันกิ่งก้านไม่ให้ออกนอกช่องเปิด มุมที่แคบลงจะทำให้ความยาวในการเช็ดต่อวงแหวนลดลง ส่งผลให้วงแหวนขยายกว้างขึ้น มุมที่กำหนดในช่วง 200° ถึง 300° ทำให้ชิ้นงานคงเป็นชิ้นเดียว -1 หมายถึงอัตโนมัติ: มุมจะคำนวณจากปริมาณวัสดุส่วนเกินในการเปลี่ยนเส้นวัสดุแต่ละครั้ง เพื่อให้วัสดุส่วนเกินถูกวางเป็นแนววงแหวนหนาสองสามวง เมื่อคำนวณมุมได้ต่ำกว่า 200° วงแหวนจะแยกเป็นสองชิ้นที่หันหน้าเข้าหากัน โดยจะมีช่องเปิดที่สองอยู่ทางด้านที่หันออกจากกล้อง"
 
 msgid "Support ring skip points"
 msgstr "จุดข้ามวงแหวนรองรับ"
@@ -17552,6 +17559,9 @@ msgstr "โปรดเลือกเส้นวัสดุอย่างน
 
 msgid "Flow rate calibration result has been saved to preset"
 msgstr "ผลลัพธ์การปรับเทียบอัตราการไหลถูกบันทึกไปยังค่าที่ตั้งไว้ล่วงหน้าแล้ว"
+
+msgid "Failed to get calibration parameters. Calibration results can only be obtained on the client that started the calibration."
+msgstr ""
 
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr "ผลลัพธ์การปรับเทียบความเร็วตามปริมาตรสูงสุดถูกบันทึกไปยังค่าที่ตั้งไว้ล่วงหน้าแล้ว"
@@ -19552,13 +19562,13 @@ msgid "Please confirm whether the required nozzle diameter and flow rate match t
 msgstr "โปรดยืนยันว่าเส้นผ่านศูนย์กลางหัวฉีดและอัตราการไหลที่ต้องการตรงกับค่าที่แสดงในปัจจุบันหรือไม่"
 
 msgid "No usable nozzle is detected on your printer."
-msgstr ""
+msgstr "ตรวจไม่พบหัวฉีดที่ใช้งานได้บนเครื่องพิมพ์ของคุณ"
 
 msgid "Your printer has nozzles of different diameters installed."
-msgstr ""
+msgstr "เครื่องพิมพ์ของคุณมีหัวฉีดที่มีขนาดเส้นผ่านศูนย์กลางแตกต่างกันติดตั้งอยู่"
 
 msgid "All nozzles installed on your printer have the same diameter."
-msgstr ""
+msgstr "หัวฉีดทั้งหมดที่ติดตั้งในเครื่องพิมพ์ของคุณมีเส้นผ่านศูนย์กลางเท่ากัน"
 
 msgid "Purge Mode Settings"
 msgstr "การตั้งค่าโหมดวัสดุส่วนเกิน"
@@ -19582,24 +19592,26 @@ msgid "TPU Usage Notes"
 msgstr "ข้อควรทราบในการใช้งาน TPU"
 
 msgid "TPU Filament Installation && Feeding Guide"
-msgstr ""
+msgstr "คู่มือการติดตั้งและการป้อนเส้นวัสดุ TPU"
 
 msgid "Important Notice:"
-msgstr ""
+msgstr "ข้อควรทราบสำคัญ:"
 
 msgid ""
 "• First time printing with TPU ? We strongly recommend reading the official guide first to avoid clogs or feeding failures.\n"
 "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
 msgstr ""
+"• นี่เป็นครั้งแรกที่คุณพิมพ์ด้วย TPU หรือไม่ เราขอแนะนำอย่างยิ่งให้อ่านคู่มืออย่างเป็นทางการก่อน เพื่อหลีกเลี่ยงการอุดตันหรือการป้อนวัสดุไม่สำเร็จ\n"
+"• หากคุณใช้ TPU ขนาด 2.85 มม. โปรดตรวจสอบให้แน่ใจว่าได้ติดตั้งหัวฉีด TPU285 แล้ว และข้อมูลอุปกรณ์ได้รับการซิงค์เรียบร้อยแล้ว"
 
 msgid "Don't show this again"
-msgstr ""
+msgstr "ไม่ต้องแสดงอีก"
 
 msgid "View User Guide"
-msgstr ""
+msgstr "ดูคู่มือการใช้งาน"
 
 msgid "I know risks, continue"
-msgstr ""
+msgstr "ฉันทราบถึงความเสี่ยงแล้ว ดำเนินการต่อ"
 
 msgid "AMS Dryness Control"
 msgstr "การควบคุมความแห้งของ AMS"
@@ -19619,14 +19631,14 @@ msgstr "เกิดข้อผิดพลาดในการอบแห้
 msgid "Please check the Assistant for troubleshooting"
 msgstr "โปรดตรวจสอบตัวช่วยเพื่อแก้ไขปัญหา"
 
-msgid "Please remove and store the filament (as shown)."
-msgstr "โปรดนำเส้นวัสดุออกและจัดเก็บ (ตามที่แสดง)"
-
-msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
-msgstr "AMS สามารถหมุนเส้นวัสดุที่จัดเก็บไว้อย่างเหมาะสม เพื่อให้ได้ผลลัพธ์การอบแห้งที่ดีขึ้น"
+msgid "Unknown filaments will be treated as PLA."
+msgstr "เส้นวัสดุที่ไม่รู้จักจะถูกจัดการในฐานะ PLA"
 
 msgid "Rotate spool when drying"
 msgstr "หมุนม้วนวัสดุขณะอบแห้ง"
+
+msgid "After turning on, the AMS automatically rotates slots where filament ends are stowed on the spool, for better drying"
+msgstr ""
 
 msgctxt "amsdrying"
 msgid "Back"
@@ -19703,26 +19715,17 @@ msgstr "ระบบไม่ว่าง"
 msgid "  Initiating other drying processes, please wait a few seconds..."
 msgstr "  กำลังเริ่มกระบวนการอบแห้งอื่น ๆ โปรดรอสักครู่..."
 
-msgid "For better drying results, remove the filament and allow it to rotate."
-msgstr "เพื่อให้การทำให้แห้งมีประสิทธิภาพดีขึ้น ให้ถอดเส้นวัสดุออกแล้วปล่อยให้หมุน"
+msgid "The current drying temperature is higher than the softening temperature of some filaments. Filament ends left in the inlet may soften and clog it. Pull out the filaments marked with an exclamation mark before drying."
+msgstr ""
 
-msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
-msgstr "AMS จะหมุนช่องเก็บเส้นวัสดุอัตโนมัติเพื่อปรับปรุงผลการอบแห้ง"
+msgid "Slots that currently support drying:"
+msgstr ""
 
-msgid "Alternatively, you can dry the filament without removing it."
-msgstr "นอกจากนี้ คุณยังสามารถอบแห้งเส้นวัสดุโดยไม่ต้องนำออก"
+msgid "It is recommended to pull the filament end out of the inlet before drying to prevent it from softening due to high temperature."
+msgstr ""
 
-msgid "Unknown filaments will be treated as PLA."
-msgstr "เส้นวัสดุที่ไม่รู้จักจะถูกจัดการในฐานะ PLA"
-
-msgid "For better drying results, remove the filament."
-msgstr "เพื่อให้ได้ผลลัพธ์การอบแห้งที่ดีขึ้น ให้ถอดเส้นวัสดุออก"
-
-msgid "Please store the filament marked with an exclamation mark."
-msgstr "โปรดจัดเก็บเส้นวัสดุที่มีเครื่องหมายอัศเจรีย์กำกับไว้"
-
-msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
-msgstr "เส้นวัสดุที่คาอยู่ในชุดป้อนวัสดุระหว่างการอบแห้งอาจอ่อนตัวลง เนื่องจากอุณหภูมิการอบแห้งสูงกว่าจุดอ่อนตัวของวัสดุอย่าง PLA และ TPU"
+msgid "For better drying results, pull the filament end out of the inlet and allow it to rotate."
+msgstr ""
 
 msgid "Starting: Checking adapter connection"
 msgstr "กำลังเริ่มต้น: กำลังตรวจสอบการเชื่อมต่ออะแดปเตอร์"
@@ -19867,7 +19870,7 @@ msgid "Edit Mixed Filament"
 msgstr "แก้ไขเส้นวัสดุผสม"
 
 msgid "Mixed result preview"
-msgstr ""
+msgstr "ดูตัวอย่างผลลัพธ์ที่ผสม"
 
 msgid "Effect Preview"
 msgstr "ตัวอย่างแสดงผล"
@@ -19931,25 +19934,25 @@ msgid "Color Matching"
 msgstr "การจับคู่สี"
 
 msgid "Target Filament"
-msgstr ""
+msgstr "เส้นวัสดุเป้าหมาย"
 
 msgid "(The system will mix 2-3 filaments to approximate this color)"
-msgstr ""
+msgstr "(ระบบจะผสมเส้นวัสดุ 2-3 เส้นเพื่อให้ได้สีที่ใกล้เคียงกับสีนี้)"
 
 msgid "Target color filament"
-msgstr ""
+msgstr "เส้นวัสดุสีเป้าหมาย"
 
 msgid "Select Target Color"
 msgstr "เลือกสีเป้าหมาย"
 
 msgid "Mixed Result"
-msgstr ""
+msgstr "ผลลัพธ์ที่ผสม"
 
 msgid "Discard changes and match again"
 msgstr "ยกเลิกการเปลี่ยนแปลงและจับคู่ใหม่อีกครั้ง"
 
 msgid "No results"
-msgstr ""
+msgstr "ไม่พบผลลัพธ์"
 
 msgid "Replace the target color on models with the mixed result"
 msgstr "แทนที่สีเป้าหมายบนโมเดลด้วยผลลัพธ์ที่ผสมได้"
@@ -20005,20 +20008,17 @@ msgid "This filament does not support the %smm nozzle, or no matching nozzle is 
 msgstr "เส้นวัสดุนี้ไม่รองรับหัวฉีดขนาด %s มิลลิเมตร หรือไม่ได้ตั้งค่าหัวฉีดที่ตรงกันไว้"
 
 #, c-format, boost-format
-msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
-msgstr "โปรดตั้งค่าหัวฉีดเส้นผ่านศูนย์กลาง %s มิลลิเมตร สำหรับเครื่องพิมพ์ในส่วนด้านล่างก่อน ก่อนใช้ขนาดนี้ในการตัดแบ่ง"
+msgid "This printer isn’t configured with a %s mm nozzle. Please configure it in “Settings” before slicing."
+msgstr ""
 
 msgid "No nozzle is installed in this slot."
 msgstr "ไม่มีหัวฉีดติดตั้งอยู่ในช่องนี้"
 
 msgid "Hotend information is unknown. Please refresh nozzle information before use."
-msgstr ""
+msgstr "ไม่ทราบข้อมูลชุดหัวพิมพ์ โปรดรีเฟรชข้อมูลหัวฉีดก่อนใช้งาน"
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "ขนาดเส้นผ่านศูนย์กลางหัวฉีดไม่ตรงกัน หัวฉีดนี้ไม่สามารถใช้งานได้"
-
-msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
-msgstr "เอ็กซ์ทรูเดอร์นี้มีเส้นผ่านศูนย์กลางหัวฉีดแตกต่างจากเส้นผ่านศูนย์กลางการพิมพ์ที่เลือกไว้ การพิมพ์ด้วยหัวฉีดหลายขนาดผสมกันเป็นคุณสมบัติทดลอง"
 
 msgid "Nozzle Settings"
 msgstr "การตั้งค่าหัวฉีด"
@@ -20057,672 +20057,690 @@ msgid "OK"
 msgstr "ตกลง"
 
 msgid "Remark"
-msgstr ""
+msgstr "หมายเหตุ"
 
 msgid "Matched filament"
-msgstr ""
+msgstr "เส้นวัสดุที่ตรงกัน"
 
 msgid "Add as new filament"
-msgstr ""
+msgstr "เพิ่มเป็นเส้นวัสดุใหม่"
 
 msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS ตรวจพบเส้นวัสดุใหม่ เพิ่มลงใน Filament Manager หรือไม่"
 
 msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr ""
+msgstr "พบเส้นวัสดุที่คล้ายกันใน Filament Manager และทำการจับคู่โดยอัตโนมัติ"
 
 msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
-msgstr ""
+msgstr "พบเส้นวัสดุที่คล้ายกันหลายเส้นใน Filament Manager โปรดยืนยันการจับคู่"
 
 msgid "New Filament"
-msgstr ""
+msgstr "เส้นวัสดุใหม่"
 
 msgid "New filament information has been recorded."
-msgstr ""
+msgstr "บันทึกข้อมูลเส้นวัสดุใหม่เรียบร้อยแล้ว"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
 "interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"เมื่อใช้วัสดุละลายน้ำสำหรับโครงสร้างรองรับ เราขอแนะนำให้ตั้งค่าดังนี้:\n"
+"ประเภทโครงสร้างรองรับเป็นปกติ (อัตโนมัติ), จำนวนผนังโครงสร้างรองรับเป็น 1, ระยะห่างแกน Z ด้านบน 0, ระยะห่างแกน Z ด้านล่าง 0, ระยะห่างส่วนเชื่อมต่อ 0, ระยะห่างแกน XY ของโครงสร้างรองรับ/วัตถุ 0, รูปแบบ\n"
+"เส้นใยประสานแนวตรง, ปิดใช้งานความหนาต่อชั้นของโครงสร้างรองรับแบบอิสระ และใช้วัสดุละลายน้ำทั้งส่วนเชื่อมต่อโครงสร้างรองรับและฐานรองรับ"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"เมื่อใช้วัสดุละลายน้ำสำหรับโครงสร้างรองรับ เราขอแนะนำให้ตั้งค่าดังนี้:\n"
+"ประเภทโครงสร้างรองรับเป็นปกติ (อัตโนมัติ), จำนวนผนังโครงสร้างรองรับเป็น 1, ระยะห่างแกน Z ด้านบน 0, ระยะห่างส่วนเชื่อมต่อ 0, ระยะห่างแกน XY ของโครงสร้างรองรับ/วัตถุ 0, รูปแบบ\n"
+"เส้นใยประสานแนวตรง, ปิดใช้งานความหนาต่อชั้นของโครงสร้างรองรับแบบอิสระ และใช้วัสดุละลายน้ำทั้งส่วนเชื่อมต่อโครงสร้างรองรับและฐานรองรับ"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"เมื่อใช้วัสดุละลายน้ำสำหรับโครงสร้างรองรับ เราขอแนะนำให้ตั้งค่าดังนี้:\n"
+"ระยะห่างแกน Z ด้านบน 0, ระยะห่างแกน Z ด้านล่าง 0, ระยะห่างส่วนเชื่อมต่อ 0, ระยะห่างแกน XY ของโครงสร้างรองรับ/วัตถุ 0, รูปแบบ\n"
+"เส้นใยประสานแนวตรง, ปิดใช้งานความหนาต่อชั้นของโครงสร้างรองรับแบบอิสระ และใช้วัสดุละลายน้ำทั้งส่วนเชื่อมต่อโครงสร้างรองรับและฐานรองรับ"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
 "independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"เมื่อใช้วัสดุละลายน้ำสำหรับโครงสร้างรองรับ เราขอแนะนำให้ตั้งค่าดังนี้:\n"
+"ระยะห่างแกน Z ด้านบน 0, ระยะห่างส่วนเชื่อมต่อ 0, ระยะห่างแกน XY ของโครงสร้างรองรับ/วัตถุ 0, รูปแบบเส้นใยประสานแนวตรง, ปิดใช้งาน\n"
+"ความหนาต่อชั้นของโครงสร้างรองรับแบบแยกอิสระ และใช้วัสดุละลายน้ำทั้งส่วนเชื่อมต่อโครงสร้างรองรับและฐานรองรับ"
 
 msgid "Support interface speed"
-msgstr ""
+msgstr "ความเร็วส่วนเชื่อมต่อโครงสร้างรองรับ"
 
 msgid "The following settings of the current plate will be restored to default:"
-msgstr ""
+msgstr "การตั้งค่าต่อไปนี้ของแผ่นพิมพ์ปัจจุบันจะถูกคืนค่าเป็นค่าเริ่มต้น:"
 
 msgid "Restore these settings of the current plate to default?"
-msgstr ""
+msgstr "ต้องการคืนค่าการตั้งค่าเหล่านี้ของแผ่นพิมพ์ปัจจุบันเป็นค่าเริ่มต้นหรือไม่"
 
 msgid "The following settings locked on the current selection will be restored to default:"
-msgstr ""
+msgstr "การตั้งค่าต่อไปนี้ที่ถูกล็อกไว้ในการเลือกปัจจุบันจะถูกคืนค่าเป็นค่าเริ่มต้น:"
 
 msgid "Restore these settings of the current selection to default?"
-msgstr ""
+msgstr "ต้องการกู้คืนการตั้งค่าของการเลือกปัจจุบันให้เป็นค่าเริ่มต้นหรือไม่"
 
 msgid "The following settings locked on the objects below will be restored to default:"
-msgstr ""
+msgstr "การตั้งค่าต่อไปนี้ที่ถูกล็อกไว้บนวัตถุด้านล่างจะถูกคืนค่าเป็นค่าเริ่มต้น:"
 
 msgid "Restore these settings to default?"
-msgstr ""
+msgstr "ต้องการคืนค่าการตั้งค่าเหล่านี้เป็นค่าเริ่มต้นหรือไม่"
 
 msgid "The following global settings will be restored to default:"
-msgstr ""
+msgstr "การตั้งค่าส่วนกลางต่อไปนี้จะถูกคืนค่าเป็นค่าเริ่มต้น:"
 
 msgid "Restore these global settings to default?"
-msgstr ""
+msgstr "ต้องการคืนค่าการตั้งค่าส่วนกลางเหล่านี้กลับเป็นค่าเริ่มต้นหรือไม่"
 
 msgid "It looks like you are no longer using a support material combination for the support interface. Are you exiting support material usage?"
-msgstr ""
+msgstr "ดูเหมือนว่าคุณไม่ได้ใช้ชุดวัสดุรองรับสำหรับส่วนเชื่อมต่อโครงสร้างรองรับอีกต่อไปแล้ว คุณกำลังยกเลิกการใช้งานวัสดุรองรับหรือไม่"
 
 msgid "The same settings applied globally will be restored as well."
-msgstr ""
+msgstr "การตั้งค่าเดียวกันที่ใช้ทั่วโลกจะถูกคืนค่ากลับมาด้วยเช่นกัน"
 
 msgid "Other objects also have these settings locked:"
-msgstr ""
+msgstr "วัตถุอื่นๆ ก็มีการล็อกการตั้งค่าเหล่านี้เช่นกัน:"
 
 msgid "Affected objects:"
-msgstr ""
+msgstr "วัตถุที่ได้รับผลกระทบ:"
 
 msgid "These objects also have these settings locked:"
-msgstr ""
+msgstr "วัตถุเหล่านี้มีการล็อกการตั้งค่าเหล่านี้ไว้เช่นกัน:"
 
 msgid "Restore the current selection only, or all of them?"
-msgstr ""
+msgstr "ต้องการกู้คืนเฉพาะรายการที่เลือกในปัจจุบัน หรือทั้งหมด"
 
 msgid "Restore all of them to default?"
-msgstr ""
+msgstr "คืนค่าทั้งหมดกลับเป็นค่าเริ่มต้นหรือไม่"
 
 msgid "Performing desktop integration failed - boost::filesystem::canonical did not return appimage path."
-msgstr ""
+msgstr "การผสานรวมเดสก์ท็อปไม่สำเร็จ - boost::filesystem::canonical ไม่ส่งคืนพาธของแอปอิมเมจ"
 
 msgid "Performing desktop integration failed - Could not find executable."
-msgstr ""
+msgstr "การผสานรวมเดสก์ท็อปไม่สำเร็จ - ไม่พบไฟล์ที่สามารถดำเนินการได้"
 
 msgid "Performing desktop integration failed because the application directory was not found."
-msgstr ""
+msgstr "การผสานรวมเดสก์ท็อปไม่สำเร็จเนื่องจากไม่พบไดเร็กทอรีของแอปพลิเคชัน"
 
 msgid "Performing desktop integration failed - could not create Gcodeviewer desktop file. BambuStudio desktop file was probably created successfully."
-msgstr ""
+msgstr "การผสานรวมเดสก์ท็อปไม่สำเร็จ - ไม่สามารถสร้างไฟล์เดสก์ท็อป Gcodeviewer ได้ ไฟล์เดสก์ท็อป BambuStudio น่าจะถูกสร้างขึ้นสำเร็จแล้ว"
 
 msgid "Desktop Integration"
-msgstr ""
+msgstr "การผสานรวมเดสก์ท็อป"
 
 msgid ""
 "Desktop Integration sets this binary to be searchable by the system.\n"
 "\n"
 "Press \"Perform\" to proceed."
 msgstr ""
+"การผสานรวมเดสก์ท็อปจะตั้งค่าให้ระบบสามารถค้นหาไฟล์ไบนารีนี้ได้\n"
+"\n"
+"กด \"ดำเนินการ\" เพื่อดำเนินการต่อ"
 
 msgid "Color mixing requires at least two filaments of the same type, but only one is available. The following filaments will be added based on the model colors:"
-msgstr ""
+msgstr "การผสมสีต้องใช้เส้นวัสดุชนิดเดียวกันอย่างน้อย 2 ชนิด แต่ปัจจุบันมีให้เลือกเพียงชนิดเดียว เส้นวัสดุต่อไปนี้จะถูกเพิ่มเข้าไปตามสีของโมเดล:"
 
 msgid "Color mixing requires at least two filaments of the same type. The following filaments will be added based on the model colors:"
-msgstr ""
+msgstr "การผสมสีต้องใช้เส้นวัสดุชนิดเดียวกันอย่างน้อย 2 เส้น เส้นวัสดุต่อไปนี้จะถูกเพิ่มเข้าไปตามสีของโมเดล:"
 
 msgid "New filament"
-msgstr ""
+msgstr "เส้นวัสดุใหม่"
 
 msgid "Note: You can also delete or modify the newly added filaments in the drop-down list of the filament matching dialog."
-msgstr ""
+msgstr "หมายเหตุ: นอกจากนี้ คุณยังสามารถลบหรือแก้ไขเส้นวัสดุที่เพิ่มเข้ามาใหม่ในรายการดรอปดาวน์ของกล่องโต้ตอบการจับคู่เส้นวัสดุได้อีกด้วย"
 
 msgid "System Information"
-msgstr ""
+msgstr "ข้อมูลระบบ"
 
 msgid "Blacklisted libraries loaded into BambuStudio process:"
-msgstr ""
+msgstr "ไลบรารีในรายการบล็อกถูกโหลดเข้าสู่โปรเซสของ BambuStudio:"
 
 msgid "SIMD is supported:"
-msgstr ""
+msgstr "รองรับ SIMD:"
 
 msgid "Copy to Clipboard"
-msgstr ""
+msgstr "คัดลอกไปยังคลิปบอร์ด"
 
 #, c-format, boost-format
 msgid "Nozzle %d "
-msgstr ""
+msgstr "หัวฉีด %d "
 
 msgid "Unknown Filament"
-msgstr ""
+msgstr "เส้นวัสดุที่ไม่รู้จัก"
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
+msgstr "สถานะชุดหัวพิมพ์ผิดปกติและไม่สามารถใช้งานได้ คลิกเพื่ออัปเดตเฟิร์มแวร์"
 
 msgid "Extruder Settings"
-msgstr ""
+msgstr "การตั้งค่าเอ็กซ์ทรูเดอร์"
 
 msgid "Hotend status is abnormal. Please update the firmware."
-msgstr ""
+msgstr "สถานะชุดหัวพิมพ์ผิดปกติ โปรดอัปเดตเฟิร์มแวร์"
 
 msgid "Update Firmware"
-msgstr ""
+msgstr "อัปเดตเฟิร์มแวร์"
 
 msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
-msgstr ""
+msgstr "ซิงค์ข้อมูลเครื่องพิมพ์"
 
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
-msgstr ""
+msgstr "รุ่นเครื่องพิมพ์และการตั้งค่าในไฟล์ 3MF นี้ไม่ตรงกับเครื่องพิมพ์ที่เชื่อมต่ออยู่ คุณต้องการปรับการตั้งค่าการตัดแบ่งเหล่านี้สำหรับเครื่องพิมพ์นี้หรือไม่"
 
 msgid "Printer model comparison"
-msgstr ""
+msgstr "การเปรียบเทียบรุ่นเครื่องพิมพ์"
 
 msgid "Nozzle comparison"
-msgstr ""
+msgstr "การเปรียบเทียบหัวฉีด"
 
 msgid "Note: After adapting the settings, some print parameters will be automatically adjusted for the new printer model."
-msgstr ""
+msgstr "หมายเหตุ: หลังจากปรับการตั้งค่าแล้ว พารามิเตอร์การพิมพ์บางอย่างจะถูกปรับโดยอัตโนมัติสำหรับเครื่องพิมพ์รุ่นใหม่"
 
 msgid "3MF File Settings"
-msgstr ""
+msgstr "การตั้งค่าไฟล์ 3MF"
 
 msgid "Connected Printer"
-msgstr ""
+msgstr "เครื่องพิมพ์ที่เชื่อมต่ออยู่"
 
 #, c-format, boost-format
 msgid "%s (only supported)"
-msgstr ""
+msgstr "%s (รองรับเท่านั้น)"
 
 msgid "Using a larger nozzle after adapting the settings may reduce fine details in your model. Please proceed with caution."
-msgstr ""
+msgstr "การใช้หัวฉีดขนาดใหญ่ขึ้นหลังจากปรับการตั้งค่าแล้ว อาจทำให้รายละเอียดเล็กๆ ในโมเดลของคุณลดลงได้ โปรดดำเนินการด้วยความระมัดระวัง"
 
 msgid "Don't show this again when opening 3MF files"
-msgstr ""
+msgstr "ไม่ต้องแสดงข้อความนี้อีกเมื่อเปิดไฟล์ 3MF"
 
 msgid "Adapt Settings"
-msgstr ""
+msgstr "ปรับการตั้งค่า"
 
 #, c-format, boost-format
 msgid "Nozzle %d: "
-msgstr ""
+msgstr "หัวฉีด %d: "
 
 msgid "Nozzle Details"
-msgstr ""
+msgstr "รายละเอียดหัวฉีด"
 
 #, c-format, boost-format
 msgid "Please input a number greater than or equal to %d"
-msgstr ""
+msgstr "โปรดป้อนตัวเลขที่มากกว่าหรือเท่ากับ %d"
 
 #, c-format, boost-format
 msgid "Please enter a number between %d and %d."
-msgstr ""
+msgstr "โปรดป้อนตัวเลขระหว่าง %d และ %d"
 
 #, c-format, boost-format
 msgid "Please enter a float greater than or equal to %f."
-msgstr ""
+msgstr "โปรดป้อนค่าทศนิยมที่มากกว่าหรือเท่ากับ %f"
 
 #, c-format, boost-format
 msgid "Please enter a float between %f and %f."
-msgstr ""
+msgstr "โปรดป้อนค่าทศนิยมระหว่าง %f และ %f"
 
 msgid "4 slots AMS"
-msgstr ""
+msgstr "AMS 4 ช่อง"
 
 msgid "1 slot AMS"
-msgstr ""
+msgstr "AMS 1 ช่อง"
 
 msgid "Remove this AMS"
-msgstr ""
+msgstr "ลบ AMS นี้ออก"
 
 msgid ""
 "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank.\n"
 "\n"
 "Please install or repair the Microsoft Edge WebView2 Runtime, then restart Bambu Studio."
 msgstr ""
+"ไม่สามารถเริ่มต้นเบราว์เซอร์แบบฝังได้ หน้าต่างๆ เช่น หน้าแรก หน้าอุปกรณ์ และหน้าต่างล็อกอิน จะยังคงว่างเปล่าอยู่\n"
+"\n"
+"โปรดติดตั้งหรือซ่อมแซม Microsoft Edge WebView2 Runtime แล้วรีสตาร์ท Bambu Studio"
 
 msgid "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank."
-msgstr ""
+msgstr "ไม่สามารถเริ่มต้นเบราว์เซอร์แบบฝังได้ หน้าต่างๆ เช่น หน้าแรก หน้าอุปกรณ์ และหน้าต่างล็อกอิน จะยังคงว่างเปล่าอยู่"
 
 msgid "Embedded Browser Unavailable"
-msgstr ""
+msgstr "เบราว์เซอร์แบบฝังไม่พร้อมใช้งาน"
 
 msgid "Unmapped"
 msgstr "ไม่ได้จับคู่"
 
 msgid "The current nozzle diameter is incompatible with the printer"
-msgstr ""
+msgstr "เส้นผ่านศูนย์กลางหัวฉีดปัจจุบันไม่เข้ากันกับเครื่องพิมพ์"
 
 msgid "Lock supports under new islands"
-msgstr ""
+msgstr "ล็อกโครงสร้างรองรับใต้ส่วนลอยตัวใหม่"
 
 msgid "Remove all points"
-msgstr ""
+msgstr "ลบจุดทั้งหมด"
 
 msgid "Apply changes"
-msgstr ""
+msgstr "นำการเปลี่ยนแปลงไปใช้"
 
 msgid "Discard changes"
-msgstr ""
+msgstr "ละทิ้งการเปลี่ยนแปลง"
 
 msgid "Minimal points distance"
-msgstr ""
+msgstr "ระยะห่างขั้นต่ำระหว่างจุด"
 
 msgid "Support points density"
-msgstr ""
+msgstr "ความหนาแน่นของจุดรองรับ"
 
 msgid "Manual editing"
-msgstr ""
+msgstr "การแก้ไขด้วยตนเอง"
 
 msgid "Clipping of view"
-msgstr ""
+msgstr "การตัดมุมมอง"
 
 msgid "SLA Support Points"
-msgstr ""
+msgstr "จุดรองรับ SLA"
 
 msgid "Do you want to save your manually edited support points?"
-msgstr ""
+msgstr "คุณต้องการบันทึกจุดรองรับที่คุณแก้ไขด้วยตนเองหรือไม่"
 
 msgid "Save support points?"
-msgstr ""
+msgstr "บันทึกจุดรองรับหรือไม่"
 
 msgid "Autogeneration will erase all manually edited points."
-msgstr ""
+msgstr "การสร้างจุดอัตโนมัติจะลบจุดทั้งหมดที่แก้ไขด้วยตนเองออกไป"
 
 msgid "Are you sure you want to do it?"
-msgstr ""
+msgstr "คุณแน่ใจหรือไม่ว่าต้องการดำเนินการนี้"
 
 msgid "SLA gizmo keyboard shortcuts"
-msgstr ""
+msgstr "คีย์ลัดแป้นพิมพ์สำหรับ SLA Gizmo"
 
 msgid "Note: some shortcuts work in (non)editing mode only."
-msgstr ""
+msgstr "หมายเหตุ: คีย์ลัดบางส่วนจะใช้งานได้ในโหมด (ไม่) แก้ไขเท่านั้น"
 
 msgid "Add point"
-msgstr ""
+msgstr "เพิ่มจุด"
 
 msgid "Remove point"
-msgstr ""
+msgstr "ลบจุด"
 
 msgid "Move point"
-msgstr ""
+msgstr "ย้ายจุด"
 
 msgid "Add point to selection"
-msgstr ""
+msgstr "เพิ่มจุดลงในการเลือก"
 
 msgid "Remove point from selection"
-msgstr ""
+msgstr "ลบจุดออกจากการเลือก"
 
 msgid "Select by rectangle"
-msgstr ""
+msgstr "เลือกด้วยการลากกรอบสี่เหลี่ยมผืนผ้า"
 
 msgid "Deselect by rectangle"
-msgstr ""
+msgstr "ยกเลิกการเลือกด้วยการลากกรอบสี่เหลี่ยมผืนผ้า"
 
 msgid "Select all points"
-msgstr ""
+msgstr "เลือกทุกจุด"
 
 msgid "Move clipping plane"
-msgstr ""
+msgstr "เลื่อนระนาบตัด"
 
 msgid "Reset clipping plane"
-msgstr ""
+msgstr "รีเซ็ตระนาบตัด"
 
 msgid "Switch to editing mode"
-msgstr ""
+msgstr "เปลี่ยนไปใช้โหมดแก้ไข"
 
 msgid "Keep upper part"
-msgstr ""
+msgstr "เก็บส่วนบนไว้"
 
 msgid "Keep lower part"
-msgstr ""
+msgstr "เก็บส่วนล่างไว้"
 
 msgid "Rotate lower part upwards"
-msgstr ""
+msgstr "หมุนส่วนล่างขึ้นด้านบน"
 
 msgid "Entering Measure gizmo"
-msgstr ""
+msgstr "กำลังเข้าสู่โหมด Measure Gizmo"
 
 msgid "Leaving Measure gizmo"
-msgstr ""
+msgstr "กำลังออกจากโหมด Measure Gizmo"
 
 msgid "Entering Assembly gizmo"
-msgstr ""
+msgstr "กำลังเข้าสู่โหมด Assembly gizmo"
 
 msgid "Leaving Assembly gizmo"
-msgstr ""
+msgstr "กำลังออกจากโหมด Assembly gizmo"
 
 msgid "Hollow this object"
-msgstr ""
+msgstr "ทำให้โมเดลนี้เป็นโพรง"
 
 msgid "Preview hollowed and drilled model"
-msgstr ""
+msgstr "ดูตัวอย่างโมเดลที่ทำเป็นโพรงและเจาะรูแล้ว"
 
 msgid "Offset"
-msgstr ""
+msgstr "ออฟเซ็ต"
 
 msgid "Closing distance"
-msgstr ""
+msgstr "ระยะปิด"
 
 msgid "Hole diameter"
-msgstr ""
+msgstr "เส้นผ่านศูนย์กลางรู"
 
 msgid "Hole depth"
-msgstr ""
+msgstr "ความลึกของรู"
 
 msgid "Remove selected holes"
-msgstr ""
+msgstr "ลบรูที่เลือกไว้"
 
 msgid "Remove all holes"
-msgstr ""
+msgstr "ลบรูทั้งหมด"
 
 msgid "Show supports"
-msgstr ""
+msgstr "แสดงโครงสร้างรองรับ"
 
 msgid "Hollow and drill"
-msgstr ""
+msgstr "ทำให้เป็นโพรงและเจาะรู"
 
 msgid "Alternate nozzles:"
-msgstr ""
+msgstr "หัวฉีดสำรอง:"
 
 msgid "All standard"
-msgstr ""
+msgstr "มาตรฐานทั้งหมด"
 
 #, c-format, boost-format
 msgid "Welcome to the %s Configuration Assistant"
-msgstr ""
+msgstr "ยินดีต้อนรับสู่ผู้ช่วยการกำหนดค่า %s"
 
 #, c-format, boost-format
 msgid "Welcome to the %s Configuration Wizard"
-msgstr ""
+msgstr "ยินดีต้อนรับสู่ตัวช่วยการกำหนดค่า %s"
 
 msgid "Welcome"
-msgstr ""
+msgstr "ยินดีต้อนรับ"
 
 #, c-format, boost-format
 msgid "Hello, welcome to %s! This %s helps you with the initial configuration; just a few settings and you will be ready to print."
-msgstr ""
+msgstr "สวัสดี ยินดีต้อนรับสู่ %s %s นี้จะช่วยคุณในการตั้งค่าเริ่มต้น เพียงแค่ตั้งค่าไม่กี่ขั้นตอน คุณก็พร้อมที่จะพิมพ์ได้"
 
 msgid "Remove user profiles (a snapshot will be taken beforehand)"
-msgstr ""
+msgstr "ลบโปรไฟล์ผู้ใช้ (ระบบจะทำสแนปช็อตไว้ก่อน)"
 
 msgid "Perform desktop integration (Sets this binary to be searchable by the system)."
-msgstr ""
+msgstr "ดำเนินการผสานรวมเดสก์ท็อป (ตั้งค่าให้ระบบสามารถค้นหาไฟล์ไบนารีนี้ได้)"
 
 #, c-format, boost-format
 msgid "%s Family"
-msgstr ""
+msgstr "ตระกูล %s"
 
 msgid "Printer:"
-msgstr ""
+msgstr "เครื่องพิมพ์:"
 
 msgid "Vendor:"
-msgstr ""
+msgstr "ผู้จำหน่าย:"
 
 msgid "Profile:"
-msgstr ""
+msgstr "โปรไฟล์:"
 
 msgid "(All)"
-msgstr ""
+msgstr "(ทั้งหมด)"
 
 #, boost-format
 msgid "%1% marked with <b>*</b> are <b>not</b> compatible with some installed printers."
-msgstr ""
+msgstr "%1% ที่ทำเครื่องหมายด้วย <b>*</b> จะ <b>ไม่</b> สามารถใช้งานร่วมกับเครื่องพิมพ์บางเครื่องที่ติดตั้งไว้"
 
 msgid "SLA materials"
-msgstr ""
+msgstr "วัสดุ SLA"
 
 #, boost-format
 msgid "All installed printers are compatible with the selected %1%."
-msgstr ""
+msgstr "เครื่องพิมพ์ที่ติดตั้งทั้งหมดสามารถใช้งานร่วมกับ %1% ที่เลือกไว้ได้"
 
 msgid "filament"
-msgstr ""
+msgstr "เส้นวัสดุ"
 
 msgid "SLA material"
-msgstr ""
+msgstr "วัสดุ SLA"
 
 msgid "Only the following installed printers are compatible with the selected filaments"
-msgstr ""
+msgstr "เฉพาะเครื่องพิมพ์ที่ติดตั้งไว้ต่อไปนี้เท่านั้นที่สามารถใช้งานร่วมกับเส้นวัสดุที่เลือกได้"
 
 msgid "Only the following installed printers are compatible with the selected SLA materials"
-msgstr ""
+msgstr "เฉพาะเครื่องพิมพ์ที่ติดตั้งไว้ต่อไปนี้เท่านั้นที่สามารถใช้งานร่วมกับวัสดุ SLA ที่เลือกได้"
 
 msgid "Custom Printer Setup"
-msgstr ""
+msgstr "การตั้งค่าเครื่องพิมพ์แบบกำหนดเอง"
 
 msgid "Custom Printer"
-msgstr ""
+msgstr "เครื่องพิมพ์แบบกำหนดเอง"
 
 msgid "Define a custom printer profile"
-msgstr ""
+msgstr "กำหนดค่าโปรไฟล์เครื่องพิมพ์แบบกำหนดเอง"
 
 msgid "Custom profile name:"
-msgstr ""
+msgstr "ชื่อโปรไฟล์ที่กำหนดเอง:"
 
 msgid "Firmware Type"
-msgstr ""
+msgstr "ประเภทเฟิร์มแวร์"
 
 msgid "Firmware"
-msgstr ""
+msgstr "เฟิร์มแวร์"
 
 msgid "Choose the type of firmware used by your printer."
-msgstr ""
+msgstr "เลือกประเภทเฟิร์มแวร์ที่เครื่องพิมพ์ของคุณใช้"
 
 msgid "Bed Shape and Size"
-msgstr ""
+msgstr "รูปทรงและขนาดของฐาน"
 
 msgid "Set the shape of your printer's bed."
-msgstr ""
+msgstr "ตั้งค่ารูปทรงของฐานของเครื่องพิมพ์ของคุณ"
 
 msgid "Invalid numeric input."
-msgstr ""
+msgstr "ป้อนตัวเลขไม่ถูกต้อง"
 
 msgid "Filament and Nozzle Diameters"
-msgstr ""
+msgstr "ขนาดเส้นผ่านศูนย์กลางของเส้นวัสดุและหัวฉีด"
 
 msgid "Print Diameters"
-msgstr ""
+msgstr "เส้นผ่านศูนย์กลางการพิมพ์"
 
 msgid "Enter the diameter of your printer's hot end nozzle."
-msgstr ""
+msgstr "ป้อนขนาดเส้นผ่านศูนย์กลางของหัวฉีดชุดหัวพิมพ์ของเครื่องพิมพ์ของคุณ"
 
 msgid "Nozzle Diameter:"
-msgstr ""
+msgstr "เส้นผ่านศูนย์กลางหัวฉีด:"
 
 msgid "Enter the diameter of your filament."
-msgstr ""
+msgstr "ป้อนขนาดเส้นผ่านศูนย์กลางของเส้นวัสดุของคุณ"
 
 msgid "Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average."
-msgstr ""
+msgstr "จำเป็นต้องมีความแม่นยำสูง ดังนั้นควรใช้เวอร์เนียร์คาลิเปอร์วัดหลายๆ ครั้งตามแนวเส้นวัสดุ แล้วคำนวณหาค่าเฉลี่ย"
 
 msgid "Filament Diameter:"
-msgstr ""
+msgstr "เส้นผ่านศูนย์กลางของเส้นวัสดุ:"
 
 msgid "Nozzle and Bed Temperatures"
-msgstr ""
+msgstr "อุณหภูมิหัวฉีดและฐาน"
 
 msgid "Temperatures"
-msgstr ""
+msgstr "อุณหภูมิ"
 
 msgid "Enter the nozzle_temperature needed for extruding your filament."
-msgstr ""
+msgstr "ป้อนอุณหภูมิหัวฉีดที่ต้องการสำหรับการอัดเส้นวัสดุของคุณ"
 
 msgid "A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."
-msgstr ""
+msgstr "โดยทั่วไปแล้ว อุณหภูมิที่เหมาะสมสำหรับ PLA จะอยู่ที่ 160 ถึง 230 องศาเซลเซียส และสำหรับ ABS จะอยู่ที่ 215 ถึง 250 องศาเซลเซียส"
 
 msgid "Extrusion Temperature:"
-msgstr ""
+msgstr "อุณหภูมิการอัด:"
 
 msgid "Enter the bed temperature needed for getting your filament to stick to your heated bed."
-msgstr ""
+msgstr "ป้อนอุณหภูมิฐานที่ต้องการเพื่อให้เส้นวัสดุยึดติดกับฐานทำความร้อนของคุณ"
 
 msgid "A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have no heated bed."
-msgstr ""
+msgstr "โดยทั่วไปแล้ว อุณหภูมิที่เหมาะสมสำหรับ PLA คือ 60 °C และสำหรับ ABS คือ 110 °C หากไม่มีฐานทำความร้อน ให้ใส่ค่าศูนย์"
 
 msgid "Bed Temperature:"
-msgstr ""
+msgstr "อุณหภูมิฐาน:"
 
 msgid "SLA Materials"
-msgstr ""
+msgstr "วัสดุ SLA"
 
 msgid "FFF Technology Printers"
-msgstr ""
+msgstr "เครื่องพิมพ์เทคโนโลยี FFF"
 
 msgid "SLA Technology Printers"
-msgstr ""
+msgstr "เครื่องพิมพ์เทคโนโลยี SLA"
 
 #, boost-format
 msgid "Following printer profiles has no default filament: %1%Please select one manually."
-msgstr ""
+msgstr "โปรไฟล์เครื่องพิมพ์ต่อไปนี้ไม่มีเส้นวัสดุเริ่มต้น: %1%โปรดเลือกหนึ่งรายการด้วยตนเอง"
 
 #, boost-format
 msgid "Following printer profiles has no default material: %1%Please select one manually."
-msgstr ""
+msgstr "โปรไฟล์เครื่องพิมพ์ต่อไปนี้ไม่มีวัสดุเริ่มต้น: %1%โปรดเลือกหนึ่งรายการด้วยตนเอง"
 
 msgid "The following FFF printer models have no filament selected:"
-msgstr ""
+msgstr "เครื่องพิมพ์ FFF รุ่นต่อไปนี้ยังไม่ได้เลือกเส้นวัสดุ:"
 
 msgid "Do you want to select default filaments for these FFF printer models?"
-msgstr ""
+msgstr "คุณต้องการเลือกเส้นวัสดุเริ่มต้นสำหรับเครื่องพิมพ์ FFF รุ่นเหล่านี้หรือไม่"
 
 msgid "Configuration is edited in ConfigWizard"
-msgstr ""
+msgstr "การกำหนดค่าจะถูกแก้ไขใน ConfigWizard"
 
 msgid "All user presets will be deleted."
-msgstr ""
+msgstr "พรีเซตของผู้ใช้ทั้งหมดจะถูกลบออก"
 
 msgid "A new vendor was installed and one of its printers will be activated"
 msgid_plural "New vendors were installed and one of theirs printers will be activated"
 msgstr[0] ""
 
 msgid "A new Printer was installed and it will be activated."
-msgstr ""
+msgstr "มีการติดตั้งเครื่องพิมพ์ใหม่และจะถูกเปิดใช้งาน"
 
 msgid "Some Printers were uninstalled."
-msgstr ""
+msgstr "เครื่องพิมพ์บางเครื่องถูกถอนการติดตั้งแล้ว"
 
 msgid "A new filament was installed and it will be activated."
-msgstr ""
+msgstr "มีการติดตั้งเส้นวัสดุใหม่แล้ว และจะถูกเปิดใช้งาน"
 
 msgid "A new SLA material was installed and it will be activated."
-msgstr ""
+msgstr "มีการติดตั้งวัสดุ SLA ใหม่แล้ว และจะถูกเปิดใช้งาน"
 
 msgid "Some filaments were uninstalled."
-msgstr ""
+msgstr "เส้นวัสดุบางส่วนถูกถอดออกแล้ว"
 
 msgid "Custom printer was installed and it will be activated."
-msgstr ""
+msgstr "มีการติดตั้งเครื่องพิมพ์แบบกำหนดเองแล้ว และจะถูกเปิดใช้งาน"
 
 msgid "<Back"
-msgstr ""
+msgstr "<กลับ"
 
 msgid "Next>"
-msgstr ""
+msgstr "ถัดไป>"
 
 msgid "Filament Profiles Selection"
-msgstr ""
+msgstr "การเลือกโปรไฟล์เส้นวัสดุ"
 
 msgid "Configuration Assistant"
-msgstr ""
+msgstr "ผู้ช่วยการกำหนดค่า"
 
 msgid "Configuration &Assistant"
-msgstr ""
+msgstr "การกำหนดค่าและผู้ช่วย"
 
 msgid "Configuration Wizard"
-msgstr ""
+msgstr "ตัวช่วยการกำหนดค่า"
 
 msgid "Configuration &Wizard"
-msgstr ""
+msgstr "การกำหนดค่าและตัวช่วย"
 
 msgid "Windows Media Player is required for this task! Do you want to enable 'Windows Media Player' for your operation system?"
-msgstr ""
+msgstr "จำเป็นต้องใช้ Windows Media Player สำหรับงานนี้ คุณต้องการเปิดใช้งาน 'Windows Media Player' สำหรับระบบปฏิบัติการของคุณหรือไม่"
 
 msgid "BambuSource has not correctly been registered for media playing! Press Yes to re-register it."
-msgstr ""
+msgstr "BambuSource ยังไม่ได้ลงทะเบียนเพื่อเล่นสื่ออย่างถูกต้อง กด \"ใช่\" เพื่อลงทะเบียนใหม่"
 
 msgid "Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."
-msgstr ""
+msgstr "ไม่พบส่วนประกอบ BambuSource ที่ลงทะเบียนไว้สำหรับการเล่นสื่อ โปรดติดตั้ง BambuStudio ใหม่ หรือขอความช่วยเหลือจากฝ่ายบริการหลังการขาย"
 
 msgid "Using a BambuSource from a different install, video play may not work correctly! Press Yes to fix it."
-msgstr ""
+msgstr "หากใช้ BambuSource จากการติดตั้งอื่น การเล่นวิดีโออาจทำงานไม่ถูกต้อง กด \"ใช่\" เพื่อแก้ไข"
 
 msgid "Your system is missing H.264 codecs for GStreamer, which are required to play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart Bambu Studio?)"
-msgstr ""
+msgstr "ระบบของคุณขาดโคเดก H.264 สำหรับ GStreamer ซึ่งจำเป็นสำหรับการเล่นวิดีโอ  (ลองติดตั้งแพ็กเกจ gstreamer1.0-plugins-bad หรือ gstreamer1.0-libav แล้วรีสตาร์ท Bambu Studio หรือไม่)"
 
 msgid "Model Pictures"
-msgstr ""
+msgstr "ภาพโมเดล"
 
 msgid "3D Models"
-msgstr ""
+msgstr "โมเดล 3 มิติ"
 
 msgid "Click to return (Command + Left Arrow)"
-msgstr ""
+msgstr "คลิกเพื่อกลับ (Command + ลูกศรซ้าย)"
 
 msgid "Click to continue (Command + Right Arrow)"
-msgstr ""
+msgstr "คลิกเพื่อดำเนินการต่อ (Command + ลูกศรขวา)"
 
 msgid "Click to return (Alt + Left Arrow)"
-msgstr ""
+msgstr "คลิกเพื่อกลับ (Alt + ลูกศรซ้าย)"
 
 msgid "Click to continue (Alt + Right Arrow)"
-msgstr ""
+msgstr "คลิกเพื่อดำเนินการต่อ (Alt + ลูกศรขวา)"
 
 msgid "Taking a configuration snapshot failed."
-msgstr ""
+msgstr "ถ่ายภาพสแนปช็อตของการกำหนดค่าไม่สำเร็จ"
 
 msgid "BambuStudio has encountered an error while taking a configuration snapshot."
-msgstr ""
+msgstr "BambuStudio พบข้อผิดพลาดขณะถ่ายภาพสแนปช็อตการกำหนดค่า"
 
 msgid "BambuStudio error"
-msgstr ""
+msgstr "ข้อผิดพลาดของ BambuStudio"
 
 msgid "Support ring generation failed because no printable model projection was found."
-msgstr ""
+msgstr "การสร้างวงแหวนรองรับไม่สำเร็จเนื่องจากไม่พบการฉายภาพโมเดลที่สามารถพิมพ์ได้"
 
 msgid "Support ring generation failed while adapting tool-change paths."
-msgstr ""
+msgstr "การสร้างวงแหวนรองรับไม่สำเร็จในระหว่างการปรับเส้นทางการเปลี่ยนเครื่องมือ"
 
 msgid "Generating support ring"
-msgstr ""
+msgstr "การสร้างวงแหวนรองรับ"
 
 #, boost-format
 msgid "Generating support ring: layer %1%"
-msgstr ""
+msgstr "การสร้างวงแหวนรองรับ: เลเยอร์ %1%"
 
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
+msgstr "ตรวจพบเส้นวัสดุทนความร้อนสูงใน AMS อย่าผสมกับเส้นวัสดุอุณหภูมิต่ำ"
 
 msgid "Click Wiki for help."
 msgstr "คลิกที่ Wiki สำหรับความช่วยเหลือ"
 
 msgid "Nozzle and Filament Sync"
-msgstr ""
+msgstr "การซิงค์หัวฉีดและเส้นวัสดุ"
 
 msgid "Mapping"
 msgstr "การจับคู่"
 
 msgid "Direct Override"
-msgstr ""
+msgstr "การเขียนทับโดยตรง"
 
 msgid "After modification, the filament list cannot be restored."
-msgstr ""
+msgstr "หลังจากแก้ไขแล้ว จะไม่สามารถกู้คืนรายการเส้นวัสดุได้"
 
 msgid "Overwrite the project filaments list with the filaments in the printer."
-msgstr ""
+msgstr "เขียนทับรายการเส้นวัสดุของโปรเจ็กต์ด้วยเส้นวัสดุในเครื่องพิมพ์"
 
 msgid "Match the project filaments with the filaments in the printer according to the matching mode. After syncing, the mapped results will be used."
-msgstr ""
+msgstr "จับคู่เส้นวัสดุสำหรับโปรเจ็กต์กับเส้นวัสดุในเครื่องพิมพ์ตามโหมดการจับคู่ หลังจากซิงค์แล้ว ผลลัพธ์ที่จับคู่ไว้จะถูกนำไปใช้งาน"
 
 msgid "After overwriting"
 msgstr "หลังเขียนทับ"
@@ -20731,13 +20749,13 @@ msgid "After mapping"
 msgstr "หลังจับคู่"
 
 msgid "Filament matching"
-msgstr ""
+msgstr "การจับคู่เส้นวัสดุ"
 
 msgid "Color first"
-msgstr ""
+msgstr "เน้นสีเป็นอันดับแรก"
 
 msgid "Precision first"
-msgstr ""
+msgstr "เน้นความแม่นยำเป็นอันดับแรก"
 
 msgid "Reset all filament mapping"
 msgstr "รีเซ็ตการจับคู่เส้นวัสดุทั้งหมด"
@@ -21049,6 +21067,55 @@ msgid ""
 msgstr ""
 "ความน่าเชื่อถือแบบสำเร็จตั้งแต่ครั้งแรก\n"
 "ไม่ต้องคอยเฝ้า ได้ผลลัพธ์ที่คาดเดาได้มากขึ้น ตัวอย่าง: ฟาร์มพิมพ์ขนาดเล็กที่ผลิตชิ้นส่วน PETG สามารถหลีกเลี่ยงปัญหา 'งานเสียในชั่วโมงที่ 6' และส่งมอบงานได้ตรงตามกำหนด"
+
+#, c-format, boost-format
+#~ msgid "%d triangles"
+#~ msgstr "รูปสามเหลี่ยม %d รูป"
+
+#, boost-format
+#~ msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
+#~ msgstr "การดำเนินการบูลีนเมชรองรับได้สูงสุด %1% ชิ้นส่วน แต่วัตถุที่เลือกประกอบด้วย %2% ชิ้นส่วน โปรดลดจำนวนชิ้นส่วนแล้วลองอีกครั้ง"
+
+#, c-format, boost-format
+#~ msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
+#~ msgstr "ไม่มีหัวฉีดขนาดเส้นผ่านศูนย์กลาง %sมม. ในประเภทหัวฉีดที่คุณกำหนดค่าไว้ ดังนั้นคุณจึงไม่สามารถใช้ขนาดเส้นผ่านศูนย์กลาง %sมม. ในการตัดแบ่งได้"
+
+#~ msgid "Configure Nozzle diameter"
+#~ msgstr "ตั้งค่าเส้นผ่านศูนย์กลางหัวฉีด"
+
+#~ msgid "Modify Nozzle Type"
+#~ msgstr "แก้ไขประเภทหัวฉีด"
+
+#~ msgid "Please remove and store the filament (as shown)."
+#~ msgstr "โปรดนำเส้นวัสดุออกและจัดเก็บ (ตามที่แสดง)"
+
+#~ msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+#~ msgstr "AMS สามารถหมุนเส้นวัสดุที่จัดเก็บไว้อย่างเหมาะสม เพื่อให้ได้ผลลัพธ์การอบแห้งที่ดีขึ้น"
+
+#~ msgid "For better drying results, remove the filament and allow it to rotate."
+#~ msgstr "เพื่อให้การทำให้แห้งมีประสิทธิภาพดีขึ้น ให้ถอดเส้นวัสดุออกแล้วปล่อยให้หมุน"
+
+#~ msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
+#~ msgstr "AMS จะหมุนช่องเก็บเส้นวัสดุอัตโนมัติเพื่อปรับปรุงผลการอบแห้ง"
+
+#~ msgid "Alternatively, you can dry the filament without removing it."
+#~ msgstr "นอกจากนี้ คุณยังสามารถอบแห้งเส้นวัสดุโดยไม่ต้องนำออก"
+
+#~ msgid "For better drying results, remove the filament."
+#~ msgstr "เพื่อให้ได้ผลลัพธ์การอบแห้งที่ดีขึ้น ให้ถอดเส้นวัสดุออก"
+
+#~ msgid "Please store the filament marked with an exclamation mark."
+#~ msgstr "โปรดจัดเก็บเส้นวัสดุที่มีเครื่องหมายอัศเจรีย์กำกับไว้"
+
+#~ msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
+#~ msgstr "เส้นวัสดุที่คาอยู่ในชุดป้อนวัสดุระหว่างการอบแห้งอาจอ่อนตัวลง เนื่องจากอุณหภูมิการอบแห้งสูงกว่าจุดอ่อนตัวของวัสดุอย่าง PLA และ TPU"
+
+#, c-format, boost-format
+#~ msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
+#~ msgstr "โปรดตั้งค่าหัวฉีดเส้นผ่านศูนย์กลาง %s มิลลิเมตร สำหรับเครื่องพิมพ์ในส่วนด้านล่างก่อน ก่อนใช้ขนาดนี้ในการตัดแบ่ง"
+
+#~ msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
+#~ msgstr "เอ็กซ์ทรูเดอร์นี้มีเส้นผ่านศูนย์กลางหัวฉีดแตกต่างจากเส้นผ่านศูนย์กลางการพิมพ์ที่เลือกไว้ การพิมพ์ด้วยหัวฉีดหลายขนาดผสมกันเป็นคุณสมบัติทดลอง"
 
 #~ msgid "Cool"
 #~ msgstr "อุณหภูมิต่ำ"

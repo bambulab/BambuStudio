@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 15:34+0800\n"
+"POT-Creation-Date: 2026-10-30 17:17+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -216,7 +216,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "%s는 %s 출력을 지원하지 않습니다. 툴헤드 위쪽의 구부러진 PTFE 튜브에서 필라멘트가 끊어질 수 있기 때문입니다."
 
 msgid "Special attention should be paid to the feeding method of TPU."
 msgstr ""
@@ -253,7 +253,7 @@ msgstr "PPA-CF는 취성이 강하여 툴헤드 위의 구부러진 PTFE 튜브�
 
 #, c-format, boost-format
 msgid "%s filament is brittle. Use %s feeding with caution."
-msgstr ""
+msgstr "%s 필라멘트는 부서지기 쉽습니다. %s 공급 시 주의하십시오."
 
 #, c-format, boost-format
 msgid "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing."
@@ -279,11 +279,11 @@ msgstr "%s은(는) 0.4, 0.6, 0.8mm 고유량 노즐 사용 시 노즐 막힘 위
 
 #, c-format, boost-format
 msgid "Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "%s 사용 시 %s에서 툴헤드 위쪽의 구부러진 PTFE 튜브에서 끊어질 수 있으므로 주의하십시오."
 
 #, c-format, boost-format
 msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
-msgstr ""
+msgstr "PLA Glow는 %s 1단계 공급기를 마모시킬 수 있습니다. 대신 외부 스풀을 사용하십시오."
 
 #, c-format, boost-format
 msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
@@ -291,15 +291,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s."
-msgstr ""
+msgstr "%s 필라멘트가 부서지기 쉽고 공급 저항이 높습니다. %s를 통해 로딩할 때 주의하십시오."
 
 #, c-format, boost-format
 msgid "PPA-CF filament does not support %s feeding. Use an external spool instead."
-msgstr ""
+msgstr "PPA-CF 필라멘트는 %s 공급을 지원하지 않습니다. 대신 외부 스풀을 사용하십시오."
 
 #, c-format, boost-format
 msgid "%s may fail to load or unload due to the Filament Track Switch."
-msgstr ""
+msgstr "%s 필라멘트 트랙 스위치 문제로 인해 로드 또는 언로드가 실패할 수 있습니다."
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
@@ -319,7 +319,7 @@ msgstr "보조 압출기와 함께 %s 사용 시 위험이 더 높아 출력 실
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may break inside the filament tube."
-msgstr ""
+msgstr "필라멘트 트랙 스위치의 영향으로 필라멘트 튜브 내부에서 %s 파손이 발생할 수 있습니다."
 
 #, c-format, boost-format
 msgid "%s is used with the auxiliary extruder and may impact print quality."
@@ -359,7 +359,7 @@ msgstr "%s를 표준 %s 노즐과 함께 사용할 경우 압출이 어려울 �
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may fail to load or unload."
-msgstr ""
+msgstr "필라멘트 트랙 스위치의 영향으로 %s를 로드하거나 언로드하지 못할 수 있습니다."
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
@@ -776,11 +776,11 @@ msgstr "슬롯 %1%의 필라멘트를 압출기 로드 포트에 더 이상 밀�
 
 #, boost-format
 msgid "Slot %1% filament loading in progress"
-msgstr ""
+msgstr "슬롯 %1% 필라멘트 로딩 진행 중"
 
 #, boost-format
 msgid "Slot %1% filament unloading in progress"
-msgstr ""
+msgstr "슬롯 %1% 필라멘트 언로딩 진행 중"
 
 msgid "Other filaments are info-only"
 msgstr "다른 필라멘트는 정보 제공용입니다"
@@ -1006,6 +1006,15 @@ msgstr "셀프 테스트"
 
 msgid "No selected machine"
 msgstr "선택된 기기가 없습니다"
+
+msgid "Please check the hotend cable and try again."
+msgstr ""
+
+msgid "Hotend communication error"
+msgstr ""
+
+msgid "View Details"
+msgstr "세부 정보 보기"
 
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
@@ -1695,6 +1704,9 @@ msgstr "단순화"
 msgid "Simplification is currently only allowed when a single part is selected"
 msgstr "단순화는 현재 단일 부품을 선택한 경우에만 허용됩니다."
 
+msgid "Simplification method"
+msgstr ""
+
 msgid "Extra high"
 msgstr "매우 높음"
 
@@ -1710,9 +1722,9 @@ msgstr "낮음"
 msgid "Extra low"
 msgstr "매우 낮음"
 
-#, c-format, boost-format
-msgid "%d triangles"
-msgstr "%d개의 삼각형"
+#, boost-format
+msgid "Triangles after simplification: %1%"
+msgstr ""
 
 msgid "Show wireframe"
 msgstr "와이어프레임 보기"
@@ -1722,6 +1734,12 @@ msgstr "모든 페인팅 유지"
 
 msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr "컬러, 이음새, 서포트 및 퍼지 스킨 페인팅이 포함됩니다. 이 옵션을 선택하지 않으면 결과물에서 모든 페인팅이 제거됩니다."
+
+msgid "All painting (color, seam, support and fuzzy skin) will be removed from the simplified model. Check \"Keep all painting\" to keep it."
+msgstr ""
+
+msgid "Calculating simplified preview..."
+msgstr ""
 
 #, boost-format
 msgid "%1%"
@@ -3276,10 +3294,6 @@ msgstr "대상 객체는 하나의 부분만 포함하며 분할할 수 없습�
 msgid "Assembly"
 msgstr "결합"
 
-#, boost-format
-msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
-msgstr "메쉬 부울 연산은 최대 %1%개의 파트를 지원하지만, 선택한 객체에는 %2%개의 파트가 포함되어 있습니다. 파트 수를 줄이고 다시 시도해 주세요."
-
 msgid "Cut Connectors information"
 msgstr "컷 커넥터 정보"
 
@@ -4411,7 +4425,7 @@ msgstr "새 혼합 필라멘트"
 
 #, boost-format
 msgid "The project supports up to %1% physical filaments."
-msgstr ""
+msgstr "이 프로젝트는 최대 %1%개의 실제 필라멘트를 지원합니다."
 
 msgid "Updating"
 msgstr "업데이트 중"
@@ -4506,7 +4520,7 @@ msgstr "색상 개수는 원래 색상 개수(%d)를 초과할 수 없습니다.
 
 #, c-format, boost-format
 msgid "Up to %d colors supported."
-msgstr ""
+msgstr "최대 %d개 색상 지원."
 
 msgid "Click to select a matching filament"
 msgstr "클릭하여 매칭할 필라멘트를 선택하세요"
@@ -4519,14 +4533,14 @@ msgstr "표준 혼합 키트 사용 방법"
 
 #, boost-format
 msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit, so at least %2% project filament(s) must be deleted first. The following unused project filaments will be deleted automatically:"
-msgstr ""
+msgstr "이 프로젝트에는 필라멘트가 너무 많습니다. 믹싱 키트를 추가하면 필라멘트 한도 %1%개를 초과하므로 먼저 프로젝트 필라멘트를 최소 %2%개 삭제해야 합니다. 다음과 같은 사용되지 않는 프로젝트 필라멘트는 자동으로 삭제됩니다."
 
 #, boost-format
 msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit. Please delete at least %2% filament(s) on the Prepare page, then add the kit again."
-msgstr ""
+msgstr "이 프로젝트에는 필라멘트가 너무 많습니다. 믹싱 키트를 추가하면 필라멘트 한도 %1%개를 초과합니다. 준비 페이지에서 필라멘트를 최소 %2%개 삭제한 다음 키트를 다시 추가하세요."
 
 msgid "Existing project filaments"
-msgstr ""
+msgstr "기존 프로젝트 필라멘트"
 
 msgid "What is the CMYKW mixing kit?"
 msgstr "CMYKW 믹싱 키트란 무엇인가요?"
@@ -6590,10 +6604,10 @@ msgid "Tips"
 msgstr "팁"
 
 msgid "Start Anyway"
-msgstr ""
+msgstr "그래도 시작"
 
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
-msgstr ""
+msgstr "고온 베드 수평 조절을 선택하셨습니다. 압출기에서 필라멘트가 연화되는 것을 방지하려면 캘리브레이션 전에 필라멘트를 언로드하십시오."
 
 msgid "Live Camera Recording"
 msgstr "라이브 카메라 녹화"
@@ -6605,7 +6619,7 @@ msgid "Go Live"
 msgstr "라이브 시작"
 
 msgid "BirdsEye Camera Recording"
-msgstr ""
+msgstr "전망 카메라 녹화"
 
 msgid "Liveview Retry"
 msgstr "라이브뷰 재시도"
@@ -7226,10 +7240,10 @@ msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "플러그인 라이브러리를 로드하지 못했습니다. 해결책을 보려면 여기를 클릭하세요."
 
 msgid "Switch to BirdsEye Camera"
-msgstr ""
+msgstr "전망 카메라로 전환"
 
 msgid "Switch to Liveview Camera"
-msgstr ""
+msgstr "라이브 뷰 카메라로 전환"
 
 msgid "Switch live camera view"
 msgstr "라이브 카메라 보기 전환"
@@ -7315,7 +7329,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "라이브 스트리밍 기능을 사용하려면 Bambu Studio를 실행해야 하며, 앱을 닫은 후 일정 시간이 지나면 스트리밍이 종료됩니다."
 
 msgid "Non-live image."
-msgstr ""
+msgstr "실시간 영상이 아닙니다."
 
 #, c-format, boost-format
 msgid "Captured at %s"
@@ -7691,13 +7705,13 @@ msgstr "거의 완료"
 
 #, c++-format
 msgid "For users under the age of majority, some services will be restricted. See our {0} for Bambu Lab Account. To understand our privacy practices, see {1}."
-msgstr ""
+msgstr "미성년 사용자의 경우 일부 서비스 이용이 제한될 수 있습니다. Bambu Lab 계정에 대한 자세한 내용은 {0}에서 확인하세요. 개인정보 보호 관행에 대한 자세한 내용은 {1}에서 확인하세요."
 
 msgid "Age Requirements"
-msgstr ""
+msgstr "연령 요건"
 
 msgid "Privacy Notice"
-msgstr ""
+msgstr "개인정보 처리방침"
 
 msgid "Camera"
 msgstr "카메라"
@@ -7733,16 +7747,16 @@ msgid "Filament loading..."
 msgstr "필라멘트 로딩 중..."
 
 msgid "Live Camera recording"
-msgstr ""
+msgstr "라이브 카메라 녹화"
 
 msgid "BirdsEye Camera recording"
-msgstr ""
+msgstr "전망 카메라 녹화"
 
 msgid "Timelapse recording"
-msgstr ""
+msgstr "타임랩스 녹화"
 
 msgid "Go Live streaming"
-msgstr ""
+msgstr "라이브 스트리밍 시작"
 
 msgid "Cancel print"
 msgstr "출력 취소"
@@ -7949,14 +7963,14 @@ msgstr ""
 "긍정적 평가(별 4개 또는 5개)를 받으려면."
 
 msgid "Active operations"
-msgstr ""
+msgstr "활성 작업"
 
 msgid "Live"
 msgstr "라이브"
 
 #, c-format, boost-format
 msgid "Zoom %.1fx"
-msgstr ""
+msgstr "확대 %.1fx"
 
 msgid "Step file import parameters"
 msgstr "스텝 파일 가져오기 매개변수"
@@ -8051,17 +8065,17 @@ msgstr "최신 3mf 버전"
 
 #, c-format, boost-format
 msgid "The 3mf file is Beta version %s, current version: %s"
-msgstr ""
+msgstr "3mf 파일은 베타 버전 %s이며, 현재 버전: %s"
 
 #, c-format, boost-format
 msgid "The 3mf file is version %s, current version: %s"
-msgstr ""
+msgstr "3mf 파일 버전은 %s이며, 현재 버전: %s"
 
 msgid "Importing a newer 3mf file may cause compatibility issues. We recommend downloading the latest version before use. Please click"
-msgstr ""
+msgstr "더 새로운 버전의 3mf 파일을 가져오면 호환성 문제가 발생할 수 있습니다. 사용하시기 전에 최신 버전을 다운로드하시는 것을 권장합니다. 클릭해 주세요"
 
 msgid "Download Latest Version"
-msgstr ""
+msgstr "최신 버전 다운로드"
 
 msgctxt "Software"
 msgid "Update"
@@ -9123,16 +9137,6 @@ msgstr "AMS(4 슬롯)"
 msgid "AMS(1 slot)"
 msgstr "AMS(1 슬롯)"
 
-#, c-format, boost-format
-msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
-msgstr "설정된 노즐 종류에는 직경 %smm가 없으므로 슬라이싱에 직경 %smm를 사용할 수 없습니다."
-
-msgid "Configure Nozzle diameter"
-msgstr "노즐 직경 설정"
-
-msgid "Modify Nozzle Type"
-msgstr "노즐 종류 변경"
-
 msgid "Not installed"
 msgstr "설치되지 않음"
 
@@ -9225,7 +9229,7 @@ msgid "This filament does not support printing with the current nozzle"
 msgstr "이 필라멘트는 현재 노즐로는 출력이 불가능합니다"
 
 msgid "The current nozzle settings have no nozzle of this type"
-msgstr ""
+msgstr "현재 노즐 설정에는 해당 유형의 노즐이 없습니다"
 
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
@@ -9293,10 +9297,10 @@ msgstr "노즐 직경이 다른 필라멘트는 혼합하여 사용할 수 없�
 
 #, c-format, boost-format
 msgid "Up to %d mixed filaments can be created"
-msgstr ""
+msgstr "최대 %d개의 혼합 필라멘트를 만들 수 있습니다"
 
 msgid "At least two filaments are required to create a mixed filament"
-msgstr ""
+msgstr "혼합 필라멘트를 만들려면 최소 두 개의 필라멘트가 필요합니다"
 
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
@@ -9607,7 +9611,7 @@ msgstr "경고"
 
 #, boost-format
 msgid "\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."
-msgstr ""
+msgstr "\"%1%\"은 혼합 색상 서브레이어와 가변 레이어 높이를 모두 사용하므로 출력 품질에 영향을 줄 수 있습니다."
 
 msgid "Invalid data"
 msgstr "잘못된 데이터"
@@ -10228,7 +10232,7 @@ msgid "Top front"
 msgstr "상단 전면"
 
 msgid "For users under the age of majority, some services will be restricted. This is managed by your parent or guardian in Family Hub."
-msgstr ""
+msgstr "미성년 사용자의 경우 일부 서비스 이용이 제한될 수 있습니다. 이 항목은 패밀리 허브에서 부모 또는 보호자가 관리합니다."
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "현재 프로젝트에 저장되지 않은 변경 내용이 있습니다. 계속하기 전에 저장하시겠습니까?"
@@ -10724,6 +10728,12 @@ msgid ""
 "- Unsaved projects.\n"
 "- Delete a filament used by a model"
 msgstr ""
+"- 파일 로드 후 프린터 사전 설정 동기화\n"
+"- \"3MF 로드\" 대화 상자 설정\n"
+"- 후처리 스크립트 실행\n"
+"- 서포트 구조 권장 메시지\n"
+"- 저장되지 않은 프로젝트.\n"
+"- 모델이 사용하는 필라멘트를 삭제합니다"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "모든 설정을 초기화할까요? 변경 사항은 재시작 후 적용됩니다."
@@ -11139,7 +11149,7 @@ msgid "There are some unknown filaments in the AMS mappings. Please check whethe
 msgstr "AMS 매핑에는 알려지지 않은 필라멘트가 몇 개 있습니다. 필수 필라멘트인지 확인하십시오. 문제가 없으면 “확인”을 클릭하여 출력을 시작하십시오."
 
 msgid "Pre-print check"
-msgstr ""
+msgstr "출력 전 검사"
 
 msgid "Please check the following:"
 msgstr "다음을 확인하십시오."
@@ -11369,7 +11379,7 @@ msgstr "외부 AMS와 %1$s 필라멘트가 모두 프린트툴 %2$d용으로 선
 
 #, c-format, boost-format
 msgid "TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."
-msgstr ""
+msgstr "슬롯 %d의 TPU가 프린트툴 교체 중에 빠져나올 수 있습니다. 다른 슬롯으로 옮겨서 다시 시도해 보세요."
 
 #, c-format, boost-format
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
@@ -11415,7 +11425,7 @@ msgid "The printer is executing instructions. Please restart printing after it e
 msgstr "프린터가 명령 실행중입니다. 종료 후 다시 출력을 시작하세요."
 
 msgid "Cold pull in progress. Unable to start a task."
-msgstr ""
+msgstr "콜드 풀 진행 중. 작업을 시작할 수 없습니다."
 
 msgid "AMS is setting up. Please try again later."
 msgstr "AMS를 설정하는 중입니다. 나중에 다시 시도하세요."
@@ -13261,9 +13271,6 @@ msgstr "플레이트 출력하기"
 
 msgid "Print the enhanced part immediately"
 msgstr "개선된 부분을 즉시 출력하기"
-
-msgid "View Details"
-msgstr "세부 정보 보기"
 
 msgid "Verify Print Success Results"
 msgstr "출력 성공 결과 확인"
@@ -16878,7 +16885,7 @@ msgid "Support ring angle"
 msgstr "서포트 링 각도"
 
 msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider. A set angle keeps one piece, from 200° to 300°. -1 means auto: the angle is worked out from the purge of each filament change, so the purge is laid a few rings thick. When that comes out below 200°, the ring is split into two facing pieces with a second opening on the side away from the camera."
-msgstr ""
+msgstr "서포트 링이 물체 주위에서 유지하는 각도는 링의 중심을 기준으로 측정합니다. 나머지 부분은 챔버 카메라 방향을 중심으로 비워져 있어 카메라가 물체를 볼 수 있습니다. 구조의 각 링은 동일한 두 방향으로 열려 있으며, 트리 서포트의 브랜치는 열린 부분을 침범하지 않도록 유지됩니다. 각도가 작을수록 링당 와이프 길이가 짧아져 링이 더 넓어집니다. 각도를 200°에서 300° 사이로 설정하면 하나의 조각으로 유지됩니다. -1은 자동을 의미합니다. 각도는 각 필라멘트 교체 시의 퍼지 양을 기준으로 계산되며, 퍼지는 여러 겹의 링 두께로 쌓입니다. 그 각도가 200° 미만이 되면 링은 서로 마주 보는 두 부분으로 나뉘고, 카메라 반대쪽에 두 번째 개구부가 생깁니다."
 
 msgid "Support ring skip points"
 msgstr "서포트 링 스킵 포인트"
@@ -17550,6 +17557,9 @@ msgstr "보정할 필라멘트를 하나 이상 선택하세요"
 
 msgid "Flow rate calibration result has been saved to preset"
 msgstr "압출 보정 결과가 프리셋에 저장되었습니다."
+
+msgid "Failed to get calibration parameters. Calibration results can only be obtained on the client that started the calibration."
+msgstr ""
 
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr "최대 체적 속도 보정 결과가 프리셋에 저장되었습니다"
@@ -19554,13 +19564,13 @@ msgid "Please confirm whether the required nozzle diameter and flow rate match t
 msgstr "필요한 노즐 직경과 유량이 현재 표시된 값과 일치하는지 확인하세요."
 
 msgid "No usable nozzle is detected on your printer."
-msgstr ""
+msgstr "프린터에서 사용 가능한 노즐이 감지되지 않았습니다."
 
 msgid "Your printer has nozzles of different diameters installed."
-msgstr ""
+msgstr "프린터에는 직경이 서로 다른 노즐이 설치되어 있습니다."
 
 msgid "All nozzles installed on your printer have the same diameter."
-msgstr ""
+msgstr "프린터에 설치된 모든 노즐의 직경은 동일합니다."
 
 msgid "Purge Mode Settings"
 msgstr "퍼지 모드 설정"
@@ -19584,24 +19594,26 @@ msgid "TPU Usage Notes"
 msgstr "TPU 사용 시 주의사항"
 
 msgid "TPU Filament Installation && Feeding Guide"
-msgstr ""
+msgstr "TPU 필라멘트 설치 && 공급 가이드"
 
 msgid "Important Notice:"
-msgstr ""
+msgstr "중요 안내:"
 
 msgid ""
 "• First time printing with TPU ? We strongly recommend reading the official guide first to avoid clogs or feeding failures.\n"
 "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
 msgstr ""
+"• TPU로 처음 출력하시나요? 막힘이나 급지 오류를 방지하려면 공식 설명서를 먼저 읽어보시기를 강력히 권장합니다.\n"
+"• 2.85mm TPU를 사용하는 경우 TPU285 노즐이 설치되어 있고 장치 정보가 동기화되었는지 확인하십시오."
 
 msgid "Don't show this again"
-msgstr ""
+msgstr "다시 표시하지 않음"
 
 msgid "View User Guide"
-msgstr ""
+msgstr "사용자 가이드 보기"
 
 msgid "I know risks, continue"
-msgstr ""
+msgstr "위험을 인지했습니다, 계속 진행"
 
 msgid "AMS Dryness Control"
 msgstr "AMS 건조 제어"
@@ -19621,14 +19633,14 @@ msgstr "건조 오류"
 msgid "Please check the Assistant for troubleshooting"
 msgstr "문제 해결을 위해 도우미를 확인하세요"
 
-msgid "Please remove and store the filament (as shown)."
-msgstr "필라멘트를 제거하여 보관해 주세요(그림 참조)."
-
-msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
-msgstr "AMS는 적절히 보관된 필라멘트를 회전시켜 더 나은 건조 결과를 제공합니다."
+msgid "Unknown filaments will be treated as PLA."
+msgstr "알 수 없는 필라멘트는 PLA로 취급됩니다."
 
 msgid "Rotate spool when drying"
 msgstr "건조 시 스풀을 회전하세요"
+
+msgid "After turning on, the AMS automatically rotates slots where filament ends are stowed on the spool, for better drying"
+msgstr ""
 
 msgctxt "amsdrying"
 msgid "Back"
@@ -19705,26 +19717,17 @@ msgstr "시스템 사용 중"
 msgid "  Initiating other drying processes, please wait a few seconds..."
 msgstr "  다른 건조 과정을 시작하는 중 잠시만 기다려주세요..."
 
-msgid "For better drying results, remove the filament and allow it to rotate."
-msgstr "더 나은 건조 결과를 위해 필라멘트를 옮기고 회전시키세요."
+msgid "The current drying temperature is higher than the softening temperature of some filaments. Filament ends left in the inlet may soften and clog it. Pull out the filaments marked with an exclamation mark before drying."
+msgstr ""
 
-msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
-msgstr "AMS는 건조 성능을 향상시키기 위해 보관된 필라멘트 슬롯을 자동으로 회전시킵니다."
+msgid "Slots that currently support drying:"
+msgstr ""
 
-msgid "Alternatively, you can dry the filament without removing it."
-msgstr "또는 필라멘트를 옮기지 않고 건조할 수도 있습니다."
+msgid "It is recommended to pull the filament end out of the inlet before drying to prevent it from softening due to high temperature."
+msgstr ""
 
-msgid "Unknown filaments will be treated as PLA."
-msgstr "알 수 없는 필라멘트는 PLA로 취급됩니다."
-
-msgid "For better drying results, remove the filament."
-msgstr "건조 효과를 높이려면 필라멘트를 제거하십시오."
-
-msgid "Please store the filament marked with an exclamation mark."
-msgstr "느낌표가 표시된 필라멘트를 보관하십시오."
-
-msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
-msgstr "건조 중 공급기에 남아 있는 필라멘트는 건조 온도가 PLA 및 TPU와 같은 소재의 연화점을 초과하기 때문에 연화될 수 있습니다."
+msgid "For better drying results, pull the filament end out of the inlet and allow it to rotate."
+msgstr ""
 
 msgid "Starting: Checking adapter connection"
 msgstr "시작하기: 어댑터 연결 확인"
@@ -19869,7 +19872,7 @@ msgid "Edit Mixed Filament"
 msgstr "혼합 필라멘트 편집"
 
 msgid "Mixed result preview"
-msgstr ""
+msgstr "혼합 결과 미리보기"
 
 msgid "Effect Preview"
 msgstr "효과 미리보기"
@@ -19933,25 +19936,25 @@ msgid "Color Matching"
 msgstr "색상 매칭"
 
 msgid "Target Filament"
-msgstr ""
+msgstr "목표 필라멘트"
 
 msgid "(The system will mix 2-3 filaments to approximate this color)"
-msgstr ""
+msgstr "(시스템은 이와 유사한 색상을 구현하기 위해 2~3가지 필라멘트를 혼합합니다.)"
 
 msgid "Target color filament"
-msgstr ""
+msgstr "목표 색상 필라멘트"
 
 msgid "Select Target Color"
 msgstr "목표 색상을 선택하세요"
 
 msgid "Mixed Result"
-msgstr ""
+msgstr "혼합 결과"
 
 msgid "Discard changes and match again"
 msgstr "변경 사항을 버리고 다시 매칭하세요"
 
 msgid "No results"
-msgstr ""
+msgstr "결과 없음"
 
 msgid "Replace the target color on models with the mixed result"
 msgstr "모델의 목표 색상을 혼합 결과로 대체하세요"
@@ -20007,20 +20010,17 @@ msgid "This filament does not support the %smm nozzle, or no matching nozzle is 
 msgstr "이 필라멘트는 %smm 노즐을 지원하지 않거나, 일치하는 노즐이 구성되어 있지 않습니다."
 
 #, c-format, boost-format
-msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
-msgstr "이 직경을 슬라이싱에 사용하기 전에 아래 섹션에서 먼저 프린터에 %smm 직경 노즐을 설정해 주세요."
+msgid "This printer isn’t configured with a %s mm nozzle. Please configure it in “Settings” before slicing."
+msgstr ""
 
 msgid "No nozzle is installed in this slot."
 msgstr "이 슬롯에는 노즐이 설치되어 있지 않습니다."
 
 msgid "Hotend information is unknown. Please refresh nozzle information before use."
-msgstr ""
+msgstr "핫엔드 정보는 알 수 없습니다. 사용 전에 노즐 정보를 새로고침하십시오."
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "노즐 직경 불일치. 이 노즐은 사용할 수 없습니다."
-
-msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
-msgstr "이 압출기는 선택한 출력 직경과 노즐 직경이 다릅니다. 노즐 직경을 혼합하여 출력하는 것은 실험적인 단계입니다."
 
 msgid "Nozzle Settings"
 msgstr "노즐 설정"
@@ -20059,675 +20059,685 @@ msgid "OK"
 msgstr "확인"
 
 msgid "Remark"
-msgstr ""
+msgstr "참고"
 
 msgid "Matched filament"
-msgstr ""
+msgstr "매칭된 필라멘트"
 
 msgid "Add as new filament"
-msgstr ""
+msgstr "새 필라멘트로 추가"
 
 msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS가 새로운 필라멘트를 감지했습니다. 필라멘트 매니저에 추가하시겠습니까?"
 
 msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr ""
+msgstr "필라멘트 매니저에서 유사한 필라멘트가 발견되어 자동으로 매칭되었습니다."
 
 msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
-msgstr ""
+msgstr "필라멘트 매니저에서 유사한 필라멘트가 여러 개 발견되었습니다. 매칭이 올바른지 확인해 주세요."
 
 msgid "New Filament"
-msgstr ""
+msgstr "새 필라멘트"
 
 msgid "New filament information has been recorded."
-msgstr ""
+msgstr "새 필라멘트 정보가 기록되었습니다."
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
 "interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"서포트에 용해성 소재를 사용하는 경우 다음 설정을 권장합니다:\n"
+"일반(자동) 서포트 유형, 서포트 벽 수 1, 상단 z 거리 0, 하단 z 거리 0, 인터페이스 간격 0, 서포트/객체 xy 거리 0, \n"
+"인터레이스 직선형 패턴, 독립적인 서포트 레이어 높이 비활성화, 서포트 인터페이스와 서포트 베이스 모두에 용해성 소재 사용"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
+msgstr "서포트에 용해성 소재를 사용하는 경우 다음 설정을 권장합니다: 일반(자동) 서포트 유형, 서포트 벽 수 1, 상단 z 거리 0, 인터페이스 간격 0, 서포트/객체 xy 거리 0, 인터레이스 직선형 패턴, 독립적인 서포트 레이어 높이 비활성화, 서포트 인터페이스와 서포트 베이스 모두에 용해성 소재 사용"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"서포트에 용해성 재료를 사용하는 경우 다음 설정을 권장합니다.\n"
+"상단 Z 거리 0, 하단 Z 거리 0, 인터페이스 간격 0, 서포트/객체 XY 거리 0, 인터레이스 직선형 패턴, 독립적인 서포트 레이어 높이 비활성화, 서포트 인터페이스와 서포트 베이스 모두에 용해성 재료 사용"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
 "independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
-"용해성 소재를 지지대로 사용하는 경우 다음 설정을 권장합니다:\n"
-"0 상단 z 거리, 0 인터페이스 간격, 0 지지대/물체 xy 거리, 인터레이스된 직선 패턴, 비활성화 \n"
-"독립적인 지지대 레이어 높이 및 지지대 접촉과 지지대 베이스 모두에 용해성 재료 사용"
+"서포트에 용해성 재료를 사용하는 경우 다음 설정을 권장합니다.\n"
+"상단 z 거리 0, 인터페이스 간격 0, 서포트/객체 xy 거리 0, 인터레이스 직선형 패턴, 독립적인 서포트 레이어 높이 비활성화, 서포트 인터페이스와 서포트 베이스 모두에 용해성 재료 사용"
 
 msgid "Support interface speed"
-msgstr "지지대 인터페이스 속도"
+msgstr "서포트 인터페이스 속도"
 
 msgid "The following settings of the current plate will be restored to default:"
-msgstr ""
+msgstr "현재 플레이트의 다음 설정이 기본값으로 복원됩니다."
 
 msgid "Restore these settings of the current plate to default?"
-msgstr ""
+msgstr "현재 플레이트의 설정을 기본값으로 복원하시겠습니까?"
 
 msgid "The following settings locked on the current selection will be restored to default:"
-msgstr ""
+msgstr "현재 선택 항목에 고정된 다음 설정은 기본값으로 복원됩니다."
 
 msgid "Restore these settings of the current selection to default?"
-msgstr ""
+msgstr "현재 선택 항목의 설정을 기본값으로 복원하시겠습니까?"
 
 msgid "The following settings locked on the objects below will be restored to default:"
-msgstr ""
+msgstr "아래 객체에 잠겨 있는 다음 설정이 기본값으로 복원됩니다."
 
 msgid "Restore these settings to default?"
-msgstr ""
+msgstr "이 설정을 기본값으로 복원하시겠습니까?"
 
 msgid "The following global settings will be restored to default:"
-msgstr ""
+msgstr "다음 글로벌 설정은 기본값으로 복원됩니다."
 
 msgid "Restore these global settings to default?"
-msgstr ""
+msgstr "이러한 글로벌 설정을 기본값으로 복원하시겠습니까?"
 
 msgid "It looks like you are no longer using a support material combination for the support interface. Are you exiting support material usage?"
-msgstr ""
+msgstr "현재 서포트 인터페이스에 대한 서포트 재료 조합을 더 이상 사용하지 않는 것 같습니다. 서포트 재료 사용을 중단하시겠습니까?"
 
 msgid "The same settings applied globally will be restored as well."
-msgstr ""
+msgstr "글로벌로 적용된 동일한 설정도 복원됩니다."
 
 msgid "Other objects also have these settings locked:"
-msgstr ""
+msgstr "다른 객체에도 이러한 설정이 잠겨 있습니다."
 
 msgid "Affected objects:"
-msgstr ""
+msgstr "영향을 받는 객체:"
 
 msgid "These objects also have these settings locked:"
-msgstr ""
+msgstr "이 객체들에도 이러한 설정이 잠겨 있습니다."
 
 msgid "Restore the current selection only, or all of them?"
-msgstr ""
+msgstr "현재 선택된 항목만 복원하시겠습니까, 아니면 전체를 복원하시겠습니까?"
 
 msgid "Restore all of them to default?"
-msgstr ""
+msgstr "모든 설정을 기본값으로 복원하시겠습니까?"
 
 msgid "Performing desktop integration failed - boost::filesystem::canonical did not return appimage path."
-msgstr ""
+msgstr "데스크톱 통합을 수행하는 데 실패했습니다. boost::filesystem::canonical이 AppImage 경로를 반환하지 않았습니다."
 
 msgid "Performing desktop integration failed - Could not find executable."
-msgstr ""
+msgstr "데스크톱 통합 작업에 실패했습니다. 실행 파일을 찾을 수 없습니다."
 
 msgid "Performing desktop integration failed because the application directory was not found."
-msgstr ""
+msgstr "데스크톱 통합을 수행하는 데 실패했습니다. 응용 프로그램 디렉터리를 찾을 수 없습니다."
 
 msgid "Performing desktop integration failed - could not create Gcodeviewer desktop file. BambuStudio desktop file was probably created successfully."
-msgstr ""
+msgstr "데스크톱 통합 작업에 실패했습니다. Gcodeviewer 데스크톱 파일을 생성할 수 없습니다. BambuStudio 데스크톱 파일이 성공적으로 생성된 것 같습니다."
 
 msgid "Desktop Integration"
-msgstr ""
+msgstr "데스크톱 통합"
 
 msgid ""
 "Desktop Integration sets this binary to be searchable by the system.\n"
 "\n"
 "Press \"Perform\" to proceed."
 msgstr ""
+"데스크톱 통합 기능은 이 바이너리 파일을 시스템에서 검색할 수 있도록 설정합니다.\n"
+"\n"
+"진행하려면 \"실행\"을 누르십시오."
 
 msgid "Color mixing requires at least two filaments of the same type, but only one is available. The following filaments will be added based on the model colors:"
-msgstr ""
+msgstr "색상을 혼합하려면 동일한 종류의 필라멘트가 최소 두 개 이상 필요하지만, 하나만 사용할 수 있습니다. 모델 색상에 따라 다음과 같은 필라멘트가 추가됩니다."
 
 msgid "Color mixing requires at least two filaments of the same type. The following filaments will be added based on the model colors:"
-msgstr ""
+msgstr "색상을 혼합하려면 동일한 종류의 필라멘트가 최소 두 개 필요합니다. 모델 색상에 따라 다음과 같은 필라멘트가 추가됩니다."
 
 msgid "New filament"
-msgstr ""
+msgstr "새 필라멘트"
 
 msgid "Note: You can also delete or modify the newly added filaments in the drop-down list of the filament matching dialog."
-msgstr ""
+msgstr "참고: 필라멘트 매칭 대화 상자의 드롭다운 목록에서 새로 추가된 필라멘트를 삭제하거나 수정할 수도 있습니다."
 
 msgid "System Information"
-msgstr ""
+msgstr "시스템 정보"
 
 msgid "Blacklisted libraries loaded into BambuStudio process:"
-msgstr ""
+msgstr "블랙리스트에 등록된 라이브러리가 BambuStudio 프로세스에 로드되었습니다."
 
 msgid "SIMD is supported:"
-msgstr ""
+msgstr "SIMD 지원됨:"
 
 msgid "Copy to Clipboard"
-msgstr ""
+msgstr "클립보드에 복사"
 
 #, c-format, boost-format
 msgid "Nozzle %d "
-msgstr ""
+msgstr "노즐 %d "
 
 msgid "Unknown Filament"
-msgstr ""
+msgstr "알 수 없는 필라멘트"
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
+msgstr "핫엔드 상태가 비정상이며 사용할 수 없습니다. 펌웨어를 업데이트하려면 클릭하세요."
 
 msgid "Extruder Settings"
-msgstr ""
+msgstr "압출기 설정"
 
 msgid "Hotend status is abnormal. Please update the firmware."
-msgstr ""
+msgstr "핫엔드 상태가 비정상입니다. 펌웨어를 업데이트하세요."
 
 msgid "Update Firmware"
-msgstr ""
+msgstr "펌웨어 업데이트"
 
 msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
-msgstr ""
+msgstr "프린터 정보 동기화"
 
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
-msgstr ""
+msgstr "이 3MF 파일에 있는 프린터 모델 및 설정이 연결된 프린터와 일치하지 않습니다. 이 프린터에 맞게 슬라이싱 설정을 변경하시겠습니까?"
 
 msgid "Printer model comparison"
-msgstr ""
+msgstr "프린터 모델 비교"
 
 msgid "Nozzle comparison"
-msgstr ""
+msgstr "노즐 비교"
 
 msgid "Note: After adapting the settings, some print parameters will be automatically adjusted for the new printer model."
-msgstr ""
+msgstr "참고: 설정을 조정한 후에는 일부 출력 매개변수가 새 프린터 모델에 맞게 자동으로 조정됩니다."
 
 msgid "3MF File Settings"
-msgstr ""
+msgstr "3MF 파일 설정"
 
 msgid "Connected Printer"
-msgstr ""
+msgstr "연결된 프린터"
 
 #, c-format, boost-format
 msgid "%s (only supported)"
-msgstr ""
+msgstr "%s (지원되는 경우에만 해당)"
 
 msgid "Using a larger nozzle after adapting the settings may reduce fine details in your model. Please proceed with caution."
-msgstr ""
+msgstr "설정을 조정한 후 더 큰 노즐을 사용하면 모델의 미세한 디테일이 손실될 수 있습니다. 주의해서 진행하십시오."
 
 msgid "Don't show this again when opening 3MF files"
-msgstr ""
+msgstr "3MF 파일을 열 때 이 메시지를 다시 표시하지 마세요"
 
 msgid "Adapt Settings"
-msgstr ""
+msgstr "설정 조정"
 
 #, c-format, boost-format
 msgid "Nozzle %d: "
-msgstr ""
+msgstr "노즐 %d: "
 
 msgid "Nozzle Details"
-msgstr ""
+msgstr "노즐 상세 정보"
 
 #, c-format, boost-format
 msgid "Please input a number greater than or equal to %d"
-msgstr ""
+msgstr "%d보다 크거나 같은 숫자를 입력하세요"
 
 #, c-format, boost-format
 msgid "Please enter a number between %d and %d."
-msgstr ""
+msgstr "%d와 %d 사이의 숫자를 입력하세요."
 
 #, c-format, boost-format
 msgid "Please enter a float greater than or equal to %f."
-msgstr ""
+msgstr "%f 이상의 실수를 입력하십시오."
 
 #, c-format, boost-format
 msgid "Please enter a float between %f and %f."
-msgstr ""
+msgstr "%f와 %f 사이의 실수를 입력하십시오."
 
 msgid "4 slots AMS"
-msgstr ""
+msgstr "4슬롯 AMS"
 
 msgid "1 slot AMS"
-msgstr ""
+msgstr "1슬롯 AMS"
 
 msgid "Remove this AMS"
-msgstr "이 AMS 제거"
+msgstr "이 AMS를 제거하세요"
 
 msgid ""
 "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank.\n"
 "\n"
 "Please install or repair the Microsoft Edge WebView2 Runtime, then restart Bambu Studio."
 msgstr ""
+"내장 브라우저를 시작하는 데 실패했습니다. 홈페이지, 기기 페이지, 로그인 창 등의 페이지는 빈 화면으로 유지됩니다.\n"
+"\n"
+"Microsoft Edge WebView2 런타임을 설치 또는 복구한 다음 Bambu Studio를 다시 시작하십시오."
 
 msgid "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank."
-msgstr ""
+msgstr "내장 브라우저를 시작하는 데 실패했습니다. 홈페이지, 기기 페이지, 로그인 창 등의 페이지는 빈 화면으로 유지됩니다."
 
 msgid "Embedded Browser Unavailable"
-msgstr ""
+msgstr "내장 브라우저를 사용할 수 없습니다"
 
 msgid "Unmapped"
 msgstr "매핑되지 않음"
 
 msgid "The current nozzle diameter is incompatible with the printer"
-msgstr ""
+msgstr "현재 노즐 직경이 프린터와 호환되지 않습니다"
 
 msgid "Lock supports under new islands"
-msgstr ""
+msgstr "새 아일랜드 아래의 서포트 잠금"
 
 msgid "Remove all points"
-msgstr ""
+msgstr "모든 포인트 제거"
 
 msgid "Apply changes"
-msgstr ""
+msgstr "변경 사항 적용"
 
 msgid "Discard changes"
-msgstr ""
+msgstr "변경 사항 무시"
 
 msgid "Minimal points distance"
-msgstr ""
+msgstr "포인트 간 최소 거리"
 
 msgid "Support points density"
-msgstr ""
+msgstr "서포트 포인트 밀도"
 
 msgid "Manual editing"
-msgstr ""
+msgstr "수동 편집"
 
 msgid "Clipping of view"
-msgstr ""
+msgstr "뷰 클리핑"
 
 msgid "SLA Support Points"
-msgstr ""
+msgstr "SLA 서포트 포인트"
 
 msgid "Do you want to save your manually edited support points?"
-msgstr ""
+msgstr "수동으로 편집한 서포트 포인트를 저장하시겠습니까?"
 
 msgid "Save support points?"
-msgstr ""
+msgstr "서포트 포인트를 저장하시겠습니까?"
 
 msgid "Autogeneration will erase all manually edited points."
-msgstr ""
+msgstr "자동 생성 기능은 수동으로 편집한 모든 포인트를 삭제합니다."
 
 msgid "Are you sure you want to do it?"
-msgstr ""
+msgstr "정말 진행하시겠습니까?"
 
 msgid "SLA gizmo keyboard shortcuts"
-msgstr ""
+msgstr "SLA 기즈모 키보드 단축키"
 
 msgid "Note: some shortcuts work in (non)editing mode only."
-msgstr ""
+msgstr "참고: 일부 단축키는 편집 모드 또는 비편집 모드에서만 작동합니다."
 
 msgid "Add point"
-msgstr ""
+msgstr "포인트를 추가합니다"
 
 msgid "Remove point"
-msgstr ""
+msgstr "포인트 제거"
 
 msgid "Move point"
-msgstr ""
+msgstr "포인트 이동"
 
 msgid "Add point to selection"
-msgstr ""
+msgstr "선택 영역에 포인트 추가"
 
 msgid "Remove point from selection"
-msgstr ""
+msgstr "선택 항목에서 포인트를 제거합니다"
 
 msgid "Select by rectangle"
-msgstr ""
+msgstr "사각형 선택"
 
 msgid "Deselect by rectangle"
-msgstr ""
+msgstr "사각형으로 선택 해제"
 
 msgid "Select all points"
-msgstr ""
+msgstr "모든 포인트 선택"
 
 msgid "Move clipping plane"
-msgstr ""
+msgstr "클리핑 평면 이동"
 
 msgid "Reset clipping plane"
-msgstr ""
+msgstr "평면 클리핑 재설정"
 
 msgid "Switch to editing mode"
-msgstr ""
+msgstr "편집 모드로 전환"
 
 msgid "Keep upper part"
-msgstr ""
+msgstr "상단 유지"
 
 msgid "Keep lower part"
-msgstr ""
+msgstr "아랫부분을 유지하세요"
 
 msgid "Rotate lower part upwards"
-msgstr ""
+msgstr "아랫부분을 위쪽으로 회전시키세요"
 
 msgid "Entering Measure gizmo"
-msgstr ""
+msgstr "측정 기즈모 진입"
 
 msgid "Leaving Measure gizmo"
-msgstr ""
+msgstr "측정 기즈모 나가기"
 
 msgid "Entering Assembly gizmo"
-msgstr ""
+msgstr "어셈블리 기즈모 진입"
 
 msgid "Leaving Assembly gizmo"
-msgstr ""
+msgstr "어셈블리 기즈모 나가기"
 
 msgid "Hollow this object"
-msgstr ""
+msgstr "이 객체 속 비우기"
 
 msgid "Preview hollowed and drilled model"
-msgstr ""
+msgstr "속이 비어있고 구멍이 뚫린 모델 미리보기"
 
 msgid "Offset"
-msgstr ""
+msgstr "오프셋"
 
 msgid "Closing distance"
-msgstr ""
+msgstr "닫힘 거리"
 
 msgid "Hole diameter"
-msgstr ""
+msgstr "구멍 직경"
 
 msgid "Hole depth"
-msgstr ""
+msgstr "구멍 깊이"
 
 msgid "Remove selected holes"
-msgstr ""
+msgstr "선택한 구멍을 제거합니다"
 
 msgid "Remove all holes"
-msgstr ""
+msgstr "모든 구멍을 제거하세요"
 
 msgid "Show supports"
-msgstr ""
+msgstr "서포트 표시"
 
 msgid "Hollow and drill"
-msgstr ""
+msgstr "속을 비우고 드릴로 뚫으세요"
 
 msgid "Alternate nozzles:"
-msgstr ""
+msgstr "대체 노즐:"
 
 msgid "All standard"
-msgstr ""
+msgstr "모든 표준"
 
 #, c-format, boost-format
 msgid "Welcome to the %s Configuration Assistant"
-msgstr ""
+msgstr "%s 구성 도우미에 오신 것을 환영합니다"
 
 #, c-format, boost-format
 msgid "Welcome to the %s Configuration Wizard"
-msgstr ""
+msgstr "%s 구성 마법사에 오신 것을 환영합니다"
 
 msgid "Welcome"
-msgstr ""
+msgstr "환영"
 
 #, c-format, boost-format
 msgid "Hello, welcome to %s! This %s helps you with the initial configuration; just a few settings and you will be ready to print."
-msgstr ""
+msgstr "안녕하세요, %s에 오신 것을 환영합니다! 이 %s는 초기 구성을 도와줍니다. 몇 가지 설정만 완료하면 바로 출력할 수 있습니다."
 
 msgid "Remove user profiles (a snapshot will be taken beforehand)"
-msgstr ""
+msgstr "사용자 프로필을 삭제합니다(삭제 전에 스냅샷이 생성됩니다)"
 
 msgid "Perform desktop integration (Sets this binary to be searchable by the system)."
-msgstr ""
+msgstr "데스크톱 통합을 수행합니다(이 바이너리 파일을 시스템에서 검색할 수 있도록 설정합니다)."
 
 #, c-format, boost-format
 msgid "%s Family"
-msgstr ""
+msgstr "%s 제품군"
 
 msgid "Printer:"
-msgstr ""
+msgstr "프린터:"
 
 msgid "Vendor:"
-msgstr ""
+msgstr "공급업체:"
 
 msgid "Profile:"
-msgstr ""
+msgstr "프로필:"
 
 msgid "(All)"
-msgstr ""
+msgstr "(모두)"
 
 #, boost-format
 msgid "%1% marked with <b>*</b> are <b>not</b> compatible with some installed printers."
-msgstr ""
+msgstr "<b>*</b>(으)로 표시된 %1%은(는) 설치된 일부 프린터와 <b>호환되지 않습니다</b>."
 
 msgid "SLA materials"
-msgstr ""
+msgstr "SLA 소재"
 
 #, boost-format
 msgid "All installed printers are compatible with the selected %1%."
-msgstr ""
+msgstr "설치된 모든 프린터는 선택한 %1%와(과) 호환됩니다."
 
 msgid "filament"
-msgstr ""
+msgstr "필라멘트"
 
 msgid "SLA material"
-msgstr ""
+msgstr "SLA 소재"
 
 msgid "Only the following installed printers are compatible with the selected filaments"
-msgstr ""
+msgstr "설치된 다음 프린터만 선택한 필라멘트와 호환됩니다"
 
 msgid "Only the following installed printers are compatible with the selected SLA materials"
-msgstr ""
+msgstr "다음 설치된 프린터만 선택한 SLA 소재와 호환됩니다"
 
 msgid "Custom Printer Setup"
-msgstr ""
+msgstr "맞춤형 프린터 설정"
 
 msgid "Custom Printer"
-msgstr ""
+msgstr "맞춤형 프린터"
 
 msgid "Define a custom printer profile"
-msgstr ""
+msgstr "사용자 지정 프린터 프로필을 정의하세요"
 
 msgid "Custom profile name:"
-msgstr ""
+msgstr "사용자 지정 프로필 이름:"
 
 msgid "Firmware Type"
-msgstr ""
+msgstr "펌웨어 유형"
 
 msgid "Firmware"
-msgstr ""
+msgstr "펌웨어"
 
 msgid "Choose the type of firmware used by your printer."
-msgstr ""
+msgstr "프린터에서 사용하는 펌웨어 유형을 선택하십시오."
 
 msgid "Bed Shape and Size"
-msgstr ""
+msgstr "베드 모양과 크기"
 
 msgid "Set the shape of your printer's bed."
-msgstr ""
+msgstr "프린터 베드의 모양을 설정하세요."
 
 msgid "Invalid numeric input."
-msgstr ""
+msgstr "잘못된 숫자 입력입니다."
 
 msgid "Filament and Nozzle Diameters"
-msgstr ""
+msgstr "필라멘트 및 노즐 직경"
 
 msgid "Print Diameters"
-msgstr ""
+msgstr "출력 직경"
 
 msgid "Enter the diameter of your printer's hot end nozzle."
-msgstr ""
+msgstr "프린터 핫엔드 노즐의 직경을 입력하십시오."
 
 msgid "Nozzle Diameter:"
-msgstr ""
+msgstr "노즐 직경:"
 
 msgid "Enter the diameter of your filament."
-msgstr ""
+msgstr "필라멘트의 직경을 입력하세요."
 
 msgid "Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average."
-msgstr ""
+msgstr "정밀도가 중요하므로 캘리퍼를 사용하여 필라멘트를 따라 여러 번 측정한 다음 평균값을 계산하십시오."
 
 msgid "Filament Diameter:"
-msgstr ""
+msgstr "필라멘트 직경:"
 
 msgid "Nozzle and Bed Temperatures"
-msgstr ""
+msgstr "노즐 및 베드 온도"
 
 msgid "Temperatures"
-msgstr ""
+msgstr "온도"
 
 msgid "Enter the nozzle_temperature needed for extruding your filament."
-msgstr ""
+msgstr "필라멘트 압출에 필요한 노즐 온도를 입력하십시오."
 
 msgid "A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."
-msgstr ""
+msgstr "일반적으로 PLA는 160~230°C, ABS는 215~250°C가 적정 온도입니다."
 
 msgid "Extrusion Temperature:"
-msgstr ""
+msgstr "압출 온도:"
 
 msgid "Enter the bed temperature needed for getting your filament to stick to your heated bed."
-msgstr ""
+msgstr "필라멘트가 히팅 베드에 잘 붙도록 필요한 베드 온도를 입력하세요."
 
 msgid "A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have no heated bed."
-msgstr ""
+msgstr "일반적으로 PLA는 60°C, ABS는 110°C가 적정 온도입니다. 히트베드가 없으면 0을 입력하세요."
 
 msgid "Bed Temperature:"
-msgstr ""
+msgstr "베드 온도:"
 
 msgid "SLA Materials"
-msgstr ""
+msgstr "SLA 소재"
 
 msgid "FFF Technology Printers"
-msgstr ""
+msgstr "FFF 기술 프린터"
 
 msgid "SLA Technology Printers"
-msgstr ""
+msgstr "SLA 기술 프린터"
 
 #, boost-format
 msgid "Following printer profiles has no default filament: %1%Please select one manually."
-msgstr ""
+msgstr "다음 프린터 프로필에는 기본 필라멘트가 없습니다. %1%하나를 직접 선택해 주세요."
 
 #, boost-format
 msgid "Following printer profiles has no default material: %1%Please select one manually."
-msgstr ""
+msgstr "다음 프린터 프로필에는 기본 재료가 없습니다. %1%하나를 직접 선택해 주세요."
 
 msgid "The following FFF printer models have no filament selected:"
-msgstr ""
+msgstr "다음 FFF 프린터 모델에는 선택된 필라멘트가 없습니다."
 
 msgid "Do you want to select default filaments for these FFF printer models?"
-msgstr ""
+msgstr "이 FFF 프린터 모델에 사용할 기본 필라멘트를 선택하시겠습니까?"
 
 msgid "Configuration is edited in ConfigWizard"
-msgstr ""
+msgstr "설정은 ConfigWizard에서 편집됩니다"
 
 msgid "All user presets will be deleted."
-msgstr ""
+msgstr "모든 사용자 프리셋이 삭제됩니다."
 
 msgid "A new vendor was installed and one of its printers will be activated"
 msgid_plural "New vendors were installed and one of theirs printers will be activated"
 msgstr[0] ""
 
 msgid "A new Printer was installed and it will be activated."
-msgstr ""
+msgstr "새 프린터가 설치되었으며 곧 활성화될 예정입니다."
 
 msgid "Some Printers were uninstalled."
-msgstr ""
+msgstr "일부 프린터가 설치 제거되었습니다."
 
 msgid "A new filament was installed and it will be activated."
-msgstr ""
+msgstr "새로운 필라멘트가 설치되었으며 곧 활성화될 예정입니다."
 
 msgid "A new SLA material was installed and it will be activated."
-msgstr ""
+msgstr "새로운 SLA 소재가 설치되었으며 곧 활성화될 예정입니다."
 
 msgid "Some filaments were uninstalled."
-msgstr ""
+msgstr "일부 필라멘트가 설치 제거되었습니다."
 
 msgid "Custom printer was installed and it will be activated."
-msgstr ""
+msgstr "맞춤형 프린터가 설치되었으며 곧 활성화될 예정입니다."
 
 msgid "<Back"
-msgstr ""
+msgstr "<뒤로가기"
 
 msgid "Next>"
-msgstr ""
+msgstr "다음>"
 
 msgid "Filament Profiles Selection"
-msgstr ""
+msgstr "필라멘트 프로필 선택"
 
 msgid "Configuration Assistant"
-msgstr ""
+msgstr "구성 도우미"
 
 msgid "Configuration &Assistant"
-msgstr ""
+msgstr "구성 도우미(&A)"
 
 msgid "Configuration Wizard"
-msgstr ""
+msgstr "구성 마법사"
 
 msgid "Configuration &Wizard"
-msgstr ""
+msgstr "구성 마법사(&W)"
 
 msgid "Windows Media Player is required for this task! Do you want to enable 'Windows Media Player' for your operation system?"
-msgstr ""
+msgstr "이 작업을 수행하려면 Windows Media Player가 필요합니다! 운영 체제에서 'Windows Media Player'를 활성화하시겠습니까?"
 
 msgid "BambuSource has not correctly been registered for media playing! Press Yes to re-register it."
-msgstr ""
+msgstr "BambuSource가 미디어 재생을 위해 올바르게 등록되지 않았습니다! 다시 등록하려면 '예'를 누르세요."
 
 msgid "Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."
-msgstr ""
+msgstr "미디어 재생을 위해 등록된 BambuSource 구성 요소가 누락되었습니다! BambuStudio를 다시 설치하거나 고객 지원팀에 문의하십시오."
 
 msgid "Using a BambuSource from a different install, video play may not work correctly! Press Yes to fix it."
-msgstr ""
+msgstr "다른 설치 환경에서 가져온 BambuSource를 사용하면 동영상 재생이 제대로 작동하지 않을 수 있습니다! 문제를 해결하려면 '예'를 누르세요."
 
 msgid "Your system is missing H.264 codecs for GStreamer, which are required to play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart Bambu Studio?)"
-msgstr ""
+msgstr "시스템에 GStreamer용 H.264 코덱이 설치되어 있지 않아 동영상을 재생할 수 없습니다.  (gstreamer1.0-plugins-bad 또는 gstreamer1.0-libav 패키지를 설치한 다음 Bambu Studio를 다시 시작해 보시겠습니까?)"
 
 msgid "Model Pictures"
-msgstr ""
+msgstr "모델 사진"
 
 msgid "3D Models"
-msgstr ""
+msgstr "3D 모델"
 
 msgid "Click to return (Command + Left Arrow)"
-msgstr ""
+msgstr "돌아가려면 클릭하세요(Command + 왼쪽 화살표)"
 
 msgid "Click to continue (Command + Right Arrow)"
-msgstr ""
+msgstr "계속하려면 클릭하세요(Command + 오른쪽 화살표)"
 
 msgid "Click to return (Alt + Left Arrow)"
-msgstr ""
+msgstr "돌아가려면 클릭하세요(Alt + 왼쪽 화살표)"
 
 msgid "Click to continue (Alt + Right Arrow)"
-msgstr ""
+msgstr "계속하려면 클릭하세요(Alt + 오른쪽 화살표)"
 
 msgid "Taking a configuration snapshot failed."
-msgstr ""
+msgstr "구성 스냅샷을 생성하는 데 실패했습니다."
 
 msgid "BambuStudio has encountered an error while taking a configuration snapshot."
-msgstr ""
+msgstr "BambuStudio에서 구성 스냅샷을 생성하는 동안 오류가 발생했습니다."
 
 msgid "BambuStudio error"
-msgstr ""
+msgstr "BambuStudio 오류"
 
 msgid "Support ring generation failed because no printable model projection was found."
-msgstr ""
+msgstr "출력 가능한 모델 투영을 찾을 수 없어 서포트 링 생성에 실패했습니다."
 
 msgid "Support ring generation failed while adapting tool-change paths."
-msgstr ""
+msgstr "공구 교환 경로를 조정하는 동안 서포트 링 생성에 실패했습니다."
 
 msgid "Generating support ring"
-msgstr ""
+msgstr "서포트 링 생성 중"
 
 #, boost-format
 msgid "Generating support ring: layer %1%"
-msgstr ""
+msgstr "서포트 링 생성 중: 레이어 %1%"
 
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
+msgstr "AMS에서 고온 필라멘트가 검출되었습니다. 저온용 필라멘트와 혼합하지 마십시오."
 
 msgid "Click Wiki for help."
 msgstr "위키를 클릭하여 도움을 받습니다."
 
 msgid "Nozzle and Filament Sync"
-msgstr ""
+msgstr "노즐 및 필라멘트 동기화"
 
 msgid "Mapping"
-msgstr "맵핑"
+msgstr "매핑"
 
 msgid "Direct Override"
-msgstr ""
+msgstr "직접 재정의"
 
 msgid "After modification, the filament list cannot be restored."
-msgstr ""
+msgstr "수정 후에는 필라멘트 목록을 복원할 수 없습니다."
 
 msgid "Overwrite the project filaments list with the filaments in the printer."
-msgstr ""
+msgstr "프린터에 있는 필라멘트로 프로젝트 필라멘트 목록을 덮어쓰세요."
 
 msgid "Match the project filaments with the filaments in the printer according to the matching mode. After syncing, the mapped results will be used."
-msgstr ""
+msgstr "매칭 모드에 따라 프로젝트 필라멘트와 프린터의 필라멘트를 매칭하세요. 동기화가 완료되면 매핑된 결과가 사용됩니다."
 
 msgid "After overwriting"
 msgstr "덮어쓰기 후"
@@ -20736,13 +20746,13 @@ msgid "After mapping"
 msgstr "매핑 후"
 
 msgid "Filament matching"
-msgstr ""
+msgstr "필라멘트 매칭"
 
 msgid "Color first"
-msgstr ""
+msgstr "색상 우선"
 
 msgid "Precision first"
-msgstr ""
+msgstr "정확도 우선"
 
 msgid "Reset all filament mapping"
 msgstr "모든 필라멘트 매핑 재설정"
@@ -21054,6 +21064,55 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#, c-format, boost-format
+#~ msgid "%d triangles"
+#~ msgstr "%d개의 삼각형"
+
+#, boost-format
+#~ msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
+#~ msgstr "메쉬 부울 연산은 최대 %1%개의 파트를 지원하지만, 선택한 객체에는 %2%개의 파트가 포함되어 있습니다. 파트 수를 줄이고 다시 시도해 주세요."
+
+#, c-format, boost-format
+#~ msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
+#~ msgstr "설정된 노즐 종류에는 직경 %smm가 없으므로 슬라이싱에 직경 %smm를 사용할 수 없습니다."
+
+#~ msgid "Configure Nozzle diameter"
+#~ msgstr "노즐 직경 설정"
+
+#~ msgid "Modify Nozzle Type"
+#~ msgstr "노즐 종류 변경"
+
+#~ msgid "Please remove and store the filament (as shown)."
+#~ msgstr "필라멘트를 제거하여 보관해 주세요(그림 참조)."
+
+#~ msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+#~ msgstr "AMS는 적절히 보관된 필라멘트를 회전시켜 더 나은 건조 결과를 제공합니다."
+
+#~ msgid "For better drying results, remove the filament and allow it to rotate."
+#~ msgstr "더 나은 건조 결과를 위해 필라멘트를 옮기고 회전시키세요."
+
+#~ msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
+#~ msgstr "AMS는 건조 성능을 향상시키기 위해 보관된 필라멘트 슬롯을 자동으로 회전시킵니다."
+
+#~ msgid "Alternatively, you can dry the filament without removing it."
+#~ msgstr "또는 필라멘트를 옮기지 않고 건조할 수도 있습니다."
+
+#~ msgid "For better drying results, remove the filament."
+#~ msgstr "건조 효과를 높이려면 필라멘트를 제거하십시오."
+
+#~ msgid "Please store the filament marked with an exclamation mark."
+#~ msgstr "느낌표가 표시된 필라멘트를 보관하십시오."
+
+#~ msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
+#~ msgstr "건조 중 공급기에 남아 있는 필라멘트는 건조 온도가 PLA 및 TPU와 같은 소재의 연화점을 초과하기 때문에 연화될 수 있습니다."
+
+#, c-format, boost-format
+#~ msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
+#~ msgstr "이 직경을 슬라이싱에 사용하기 전에 아래 섹션에서 먼저 프린터에 %smm 직경 노즐을 설정해 주세요."
+
+#~ msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
+#~ msgstr "이 압출기는 선택한 출력 직경과 노즐 직경이 다릅니다. 노즐 직경을 혼합하여 출력하는 것은 실험적인 단계입니다."
 
 #~ msgid "Cool"
 #~ msgstr "쿨한"

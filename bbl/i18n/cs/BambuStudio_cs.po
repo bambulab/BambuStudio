@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 15:34+0800\n"
+"POT-Creation-Date: 2026-10-30 17:17+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -1006,6 +1006,15 @@ msgstr ""
 msgid "No selected machine"
 msgstr ""
 
+msgid "Please check the hotend cable and try again."
+msgstr ""
+
+msgid "Hotend communication error"
+msgstr ""
+
+msgid "View Details"
+msgstr "Zobrazit podrobnosti"
+
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
 msgstr ""
@@ -1693,6 +1702,9 @@ msgstr "Zjednodušit"
 msgid "Simplification is currently only allowed when a single part is selected"
 msgstr "Zjednodušení je aktuálně povoleno pouze při výběru jedné součásti"
 
+msgid "Simplification method"
+msgstr ""
+
 msgid "Extra high"
 msgstr "Velmi vysoký"
 
@@ -1708,9 +1720,9 @@ msgstr "Nízký"
 msgid "Extra low"
 msgstr "Velmi nízký"
 
-#, c-format, boost-format
-msgid "%d triangles"
-msgstr "%d trojúhelníků"
+#, boost-format
+msgid "Triangles after simplification: %1%"
+msgstr ""
 
 msgid "Show wireframe"
 msgstr "Zobrazit drátový model"
@@ -1719,6 +1731,12 @@ msgid "Keep all painting"
 msgstr ""
 
 msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
+msgstr ""
+
+msgid "All painting (color, seam, support and fuzzy skin) will be removed from the simplified model. Check \"Keep all painting\" to keep it."
+msgstr ""
+
+msgid "Calculating simplified preview..."
 msgstr ""
 
 #, boost-format
@@ -3285,10 +3303,6 @@ msgstr "Cílový objekt obsahuje pouze jednu část a nelze jej rozdělit."
 
 msgid "Assembly"
 msgstr "Sestava"
-
-#, boost-format
-msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
-msgstr ""
 
 msgid "Cut Connectors information"
 msgstr "Informace o ořezových konektorech"
@@ -9117,16 +9131,6 @@ msgstr "AMS (4 sloty)"
 msgid "AMS(1 slot)"
 msgstr "AMS (1 slot)"
 
-#, c-format, boost-format
-msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
-msgstr ""
-
-msgid "Configure Nozzle diameter"
-msgstr ""
-
-msgid "Modify Nozzle Type"
-msgstr ""
-
 msgid "Not installed"
 msgstr "Nenainstalováno"
 
@@ -13285,9 +13289,6 @@ msgstr "Tisková podložka"
 
 msgid "Print the enhanced part immediately"
 msgstr "Ihned vytisknout vylepšený díl"
-
-msgid "View Details"
-msgstr "Zobrazit podrobnosti"
 
 msgid "Verify Print Success Results"
 msgstr "Ověřit výsledky úspěšnosti tisku"
@@ -17584,6 +17585,9 @@ msgstr "Vyberte alespoň jeden filament ke kalibraci"
 msgid "Flow rate calibration result has been saved to preset"
 msgstr "Výsledek kalibrace průtoku byl uložen do přednastavení"
 
+msgid "Failed to get calibration parameters. Calibration results can only be obtained on the client that started the calibration."
+msgstr ""
+
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr "Výsledek kalibrace maximální objemové rychlosti byl uložen do přednastavení"
 
@@ -19701,14 +19705,14 @@ msgstr "Chyba sušení"
 msgid "Please check the Assistant for troubleshooting"
 msgstr "Zkontrolujte prosím Asistenta řešení problémů"
 
-msgid "Please remove and store the filament (as shown)."
-msgstr "Vyjměte a uložte filament (viz obrázek)."
-
-msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
-msgstr "AMS může otáčet správně uloženým filamentem, aby zajistil lepší výsledky sušení."
+msgid "Unknown filaments will be treated as PLA."
+msgstr "Neznámé filamenty budou považovány za PLA."
 
 msgid "Rotate spool when drying"
 msgstr "Během sušení otáčet cívkou"
+
+msgid "After turning on, the AMS automatically rotates slots where filament ends are stowed on the spool, for better drying"
+msgstr ""
 
 msgctxt "amsdrying"
 msgid "Back"
@@ -19785,26 +19789,17 @@ msgstr "Systém je zaneprázdněn"
 msgid "  Initiating other drying processes, please wait a few seconds..."
 msgstr "  Spouštějí se jiné procesy sušení, počkejte prosím několik sekund..."
 
-msgid "For better drying results, remove the filament and allow it to rotate."
-msgstr "Pro lepší výsledky sušení filament vyjměte a nechte ho otáčet."
-
-msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
-msgstr "AMS bude automaticky otáčet uloženými cívkami filamentu, aby se zlepšila účinnost sušení."
-
-msgid "Alternatively, you can dry the filament without removing it."
-msgstr "Případně můžete filament sušit i bez vyjmutí."
-
-msgid "Unknown filaments will be treated as PLA."
-msgstr "Neznámé filamenty budou považovány za PLA."
-
-msgid "For better drying results, remove the filament."
+msgid "The current drying temperature is higher than the softening temperature of some filaments. Filament ends left in the inlet may soften and clog it. Pull out the filaments marked with an exclamation mark before drying."
 msgstr ""
 
-msgid "Please store the filament marked with an exclamation mark."
-msgstr "Uložte prosím filament označený vykřičníkem."
+msgid "Slots that currently support drying:"
+msgstr ""
 
-msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
-msgstr "Filament ponechaný během sušení v podavači může změknout, protože teplota sušení překračuje bod měknutí materiálů, jako jsou PLA a TPU."
+msgid "It is recommended to pull the filament end out of the inlet before drying to prevent it from softening due to high temperature."
+msgstr ""
+
+msgid "For better drying results, pull the filament end out of the inlet and allow it to rotate."
+msgstr ""
 
 msgid "Starting: Checking adapter connection"
 msgstr "Spouštění: Kontrola připojení adaptéru"
@@ -20087,7 +20082,7 @@ msgid "This filament does not support the %smm nozzle, or no matching nozzle is 
 msgstr ""
 
 #, c-format, boost-format
-msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
+msgid "This printer isn’t configured with a %s mm nozzle. Please configure it in “Settings” before slicing."
 msgstr ""
 
 msgid "No nozzle is installed in this slot."
@@ -20097,9 +20092,6 @@ msgid "Hotend information is unknown. Please refresh nozzle information before u
 msgstr ""
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
-msgstr ""
-
-msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
 msgstr ""
 
 msgid "Nozzle Settings"
@@ -21157,6 +21149,31 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#, c-format, boost-format
+#~ msgid "%d triangles"
+#~ msgstr "%d trojúhelníků"
+
+#~ msgid "Please remove and store the filament (as shown)."
+#~ msgstr "Vyjměte a uložte filament (viz obrázek)."
+
+#~ msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+#~ msgstr "AMS může otáčet správně uloženým filamentem, aby zajistil lepší výsledky sušení."
+
+#~ msgid "For better drying results, remove the filament and allow it to rotate."
+#~ msgstr "Pro lepší výsledky sušení filament vyjměte a nechte ho otáčet."
+
+#~ msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
+#~ msgstr "AMS bude automaticky otáčet uloženými cívkami filamentu, aby se zlepšila účinnost sušení."
+
+#~ msgid "Alternatively, you can dry the filament without removing it."
+#~ msgstr "Případně můžete filament sušit i bez vyjmutí."
+
+#~ msgid "Please store the filament marked with an exclamation mark."
+#~ msgstr "Uložte prosím filament označený vykřičníkem."
+
+#~ msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
+#~ msgstr "Filament ponechaný během sušení v podavači může změknout, protože teplota sušení překračuje bod měknutí materiálů, jako jsou PLA a TPU."
 
 #~ msgid "Cool"
 #~ msgstr "Chladná"

@@ -148,7 +148,7 @@
   "Last AMS Auto-Sync": "最近一次 AMS 自动同步",
   "Last synced: {{time}}": "上次同步：{{time}}",
   "Lifting Hotend Rack": "热端挂架抬升",
-  "Load": "进料",
+  "Load": "AMS进料",
   "Manual Loading": "手动进料",
   "Loading the task list…": "正在加载任务列表…",
   "Loading...": "加载中…",

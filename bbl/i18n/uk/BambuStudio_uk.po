@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 15:34+0800\n"
+"POT-Creation-Date: 2026-10-30 17:17+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -1005,6 +1005,15 @@ msgstr ""
 msgid "No selected machine"
 msgstr ""
 
+msgid "Please check the hotend cable and try again."
+msgstr ""
+
+msgid "Hotend communication error"
+msgstr ""
+
+msgid "View Details"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
 msgstr ""
@@ -1691,6 +1700,9 @@ msgstr "Спростити"
 msgid "Simplification is currently only allowed when a single part is selected"
 msgstr "Спрощення наразі дозволено лише при виборі окремої деталі"
 
+msgid "Simplification method"
+msgstr ""
+
 msgid "Extra high"
 msgstr "Надвисокий"
 
@@ -1706,9 +1718,9 @@ msgstr "Низький"
 msgid "Extra low"
 msgstr "Наднизький"
 
-#, c-format, boost-format
-msgid "%d triangles"
-msgstr "%d трикутники"
+#, boost-format
+msgid "Triangles after simplification: %1%"
+msgstr ""
 
 msgid "Show wireframe"
 msgstr "Показати каркас"
@@ -1717,6 +1729,12 @@ msgid "Keep all painting"
 msgstr ""
 
 msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
+msgstr ""
+
+msgid "All painting (color, seam, support and fuzzy skin) will be removed from the simplified model. Check \"Keep all painting\" to keep it."
+msgstr ""
+
+msgid "Calculating simplified preview..."
 msgstr ""
 
 #, boost-format
@@ -3266,10 +3284,6 @@ msgstr "Цільовий об’єкт містить лише одну част
 
 msgid "Assembly"
 msgstr "Складання"
-
-#, boost-format
-msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
-msgstr ""
 
 msgid "Cut Connectors information"
 msgstr "Інформація про відрізані з'єднувачі"
@@ -9036,16 +9050,6 @@ msgstr ""
 msgid "AMS(1 slot)"
 msgstr ""
 
-#, c-format, boost-format
-msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
-msgstr ""
-
-msgid "Configure Nozzle diameter"
-msgstr ""
-
-msgid "Modify Nozzle Type"
-msgstr ""
-
 msgid "Not installed"
 msgstr ""
 
@@ -13096,9 +13100,6 @@ msgid "Print Plate"
 msgstr ""
 
 msgid "Print the enhanced part immediately"
-msgstr ""
-
-msgid "View Details"
 msgstr ""
 
 msgid "Verify Print Success Results"
@@ -17354,6 +17355,9 @@ msgstr "Будь ласка, виберіть принаймні один мат
 msgid "Flow rate calibration result has been saved to preset"
 msgstr "Результат калібрування витрати матеріалу було збережено в налаштування за замовчуванням"
 
+msgid "Failed to get calibration parameters. Calibration results can only be obtained on the client that started the calibration."
+msgstr ""
+
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr "Результат калібрування максимальної об’ємної швидкості було збережено в налаштування попередньо заданого значення"
 
@@ -19394,13 +19398,13 @@ msgstr ""
 msgid "Please check the Assistant for troubleshooting"
 msgstr ""
 
-msgid "Please remove and store the filament (as shown)."
-msgstr ""
-
-msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+msgid "Unknown filaments will be treated as PLA."
 msgstr ""
 
 msgid "Rotate spool when drying"
+msgstr ""
+
+msgid "After turning on, the AMS automatically rotates slots where filament ends are stowed on the spool, for better drying"
 msgstr ""
 
 msgctxt "amsdrying"
@@ -19478,25 +19482,16 @@ msgstr ""
 msgid "  Initiating other drying processes, please wait a few seconds..."
 msgstr ""
 
-msgid "For better drying results, remove the filament and allow it to rotate."
+msgid "The current drying temperature is higher than the softening temperature of some filaments. Filament ends left in the inlet may soften and clog it. Pull out the filaments marked with an exclamation mark before drying."
 msgstr ""
 
-msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
+msgid "Slots that currently support drying:"
 msgstr ""
 
-msgid "Alternatively, you can dry the filament without removing it."
+msgid "It is recommended to pull the filament end out of the inlet before drying to prevent it from softening due to high temperature."
 msgstr ""
 
-msgid "Unknown filaments will be treated as PLA."
-msgstr ""
-
-msgid "For better drying results, remove the filament."
-msgstr ""
-
-msgid "Please store the filament marked with an exclamation mark."
-msgstr ""
-
-msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
+msgid "For better drying results, pull the filament end out of the inlet and allow it to rotate."
 msgstr ""
 
 msgid "Starting: Checking adapter connection"
@@ -19772,7 +19767,7 @@ msgid "This filament does not support the %smm nozzle, or no matching nozzle is 
 msgstr ""
 
 #, c-format, boost-format
-msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
+msgid "This printer isn’t configured with a %s mm nozzle. Please configure it in “Settings” before slicing."
 msgstr ""
 
 msgid "No nozzle is installed in this slot."
@@ -19782,9 +19777,6 @@ msgid "Hotend information is unknown. Please refresh nozzle information before u
 msgstr ""
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
-msgstr ""
-
-msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
 msgstr ""
 
 msgid "Nozzle Settings"
@@ -20800,6 +20792,10 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#, c-format, boost-format
+#~ msgid "%d triangles"
+#~ msgstr "%d трикутники"
 
 #~ msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
 #~ msgstr "Примітка: якщо під час друку вставлений новий філамент, AMS автоматично не прочитає жодної інформації, поки друк не буде завершено."

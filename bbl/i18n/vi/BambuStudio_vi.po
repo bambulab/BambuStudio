@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 15:34+0800\n"
+"POT-Creation-Date: 2026-10-30 17:17+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -221,7 +221,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "%s không hỗ trợ chế độ in %s vì sợi nhựa có thể bị đứt trong ống PTFE bị uốn cong phía trên đầu in."
 
 msgid "Special attention should be paid to the feeding method of TPU."
 msgstr ""
@@ -258,7 +258,7 @@ msgstr "PPA-CF giòn và có thể gãy trong ống PTFE bị uốn cong phía t
 
 #, c-format, boost-format
 msgid "%s filament is brittle. Use %s feeding with caution."
-msgstr ""
+msgstr "sợi nhựa %s dễ gãy. Thận trọng khi sử dụng chức năng cấp liệu %s."
 
 #, c-format, boost-format
 msgid "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing."
@@ -284,11 +284,11 @@ msgstr "%s có nguy cơ làm tắc nghẽn vòi phun khi sử dụng vòi phun 0
 
 #, c-format, boost-format
 msgid "Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "Thận trọng khi sử dụng %s trong %s, vì nó có thể bị gãy trong ống PTFE bị uốn cong phía trên đầu in."
 
 #, c-format, boost-format
 msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
-msgstr ""
+msgstr "PLA Glow có thể gây mài mòn bộ phận cấp liệu giai đoạn đầu của %s. Hãy sử dụng cuộn nhựa ngoài thay thế."
 
 #, c-format, boost-format
 msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
@@ -296,15 +296,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s."
-msgstr ""
+msgstr "sợi nhựa %s giòn và có lực cản cấp liệu cao. Hãy thận trọng khi nạp sợi nhựa qua %s."
 
 #, c-format, boost-format
 msgid "PPA-CF filament does not support %s feeding. Use an external spool instead."
-msgstr ""
+msgstr "Sợi nhựa PPA-CF không hỗ trợ cấp liệu qua %s. Hãy sử dụng cuộn nhựa ngoài thay thế."
 
 #, c-format, boost-format
 msgid "%s may fail to load or unload due to the Filament Track Switch."
-msgstr ""
+msgstr "%s có thể không nạp hoặc xả nhựa được do Công tắc theo dõi sợi nhựa."
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
@@ -324,7 +324,7 @@ msgstr "Việc sử dụng %s với vòi đùn nhựa phụ tiềm ẩn rủi ro
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may break inside the filament tube."
-msgstr ""
+msgstr "Do ảnh hưởng của Công tắc theo dõi sợi nhựa, %s có thể bị đứt bên trong ống dẫn sợi nhựa."
 
 #, c-format, boost-format
 msgid "%s is used with the auxiliary extruder and may impact print quality."
@@ -364,7 +364,7 @@ msgstr "Việc sử dụng %s với vòi phun %s tiêu chuẩn có thể gây kh
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may fail to load or unload."
-msgstr ""
+msgstr "Do ảnh hưởng của Công tắc theo dõi sợi nhựa, %s có thể không nạp hoặc xả nhựa được."
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
@@ -781,11 +781,11 @@ msgstr "Vui lòng dùng tay đưa sợi nhựa từ khe cắm %1% vào cổng n�
 
 #, boost-format
 msgid "Slot %1% filament loading in progress"
-msgstr ""
+msgstr "Đang nạp sợi nhựa vào khe %1%"
 
 #, boost-format
 msgid "Slot %1% filament unloading in progress"
-msgstr ""
+msgstr "Đang xả sợi nhựa khỏi khe %1%"
 
 msgid "Other filaments are info-only"
 msgstr "Thông tin về các loại sợi nhựa khác chỉ mang tính tham khảo"
@@ -1011,6 +1011,15 @@ msgstr "Tự kiểm tra"
 
 msgid "No selected machine"
 msgstr "Chưa chọn máy nào"
+
+msgid "Please check the hotend cable and try again."
+msgstr ""
+
+msgid "Hotend communication error"
+msgstr ""
+
+msgid "View Details"
+msgstr "Xem chi tiết"
 
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
@@ -1700,6 +1709,9 @@ msgstr "Đơn giản hóa"
 msgid "Simplification is currently only allowed when a single part is selected"
 msgstr "Chức năng đơn giản hóa hiện chỉ được phép khi chọn một bộ phận duy nhất"
 
+msgid "Simplification method"
+msgstr ""
+
 msgid "Extra high"
 msgstr "Cực cao"
 
@@ -1715,9 +1727,9 @@ msgstr "Thấp"
 msgid "Extra low"
 msgstr "Rất thấp"
 
-#, c-format, boost-format
-msgid "%d triangles"
-msgstr "%d tam giác"
+#, boost-format
+msgid "Triangles after simplification: %1%"
+msgstr ""
 
 msgid "Show wireframe"
 msgstr "Hiển thị khung dây"
@@ -1727,6 +1739,12 @@ msgstr "Giữ nguyên toàn bộ phần tô màu"
 
 msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr "Bao gồm tô màu, tô mối nối, tô vùng hỗ trợ và tô bề mặt nhám. Nếu bỏ chọn, toàn bộ phần tô màu sẽ bị xóa khỏi kết quả."
+
+msgid "All painting (color, seam, support and fuzzy skin) will be removed from the simplified model. Check \"Keep all painting\" to keep it."
+msgstr ""
+
+msgid "Calculating simplified preview..."
+msgstr ""
 
 #, boost-format
 msgid "%1%"
@@ -3281,10 +3299,6 @@ msgstr "Vật thể đích chỉ chứa một bộ phận và không thể tách
 msgid "Assembly"
 msgstr "Lắp ráp"
 
-#, boost-format
-msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
-msgstr "Phép toán Boolean trên lưới chỉ hỗ trợ tối đa %1% phần, nhưng đối tượng được chọn có %2% phần. Vui lòng giảm số lượng phần rồi thử lại."
-
 msgid "Cut Connectors information"
 msgstr "Thông tin khớp nối vết cắt"
 
@@ -4416,7 +4430,7 @@ msgstr "Sợi nhựa phối trộn mới"
 
 #, boost-format
 msgid "The project supports up to %1% physical filaments."
-msgstr ""
+msgstr "Dự án hỗ trợ tối đa %1% sợi nhựa vật lý."
 
 msgid "Updating"
 msgstr "Đang cập nhật"
@@ -4511,7 +4525,7 @@ msgstr "Số lượng màu không được vượt quá số lượng màu ban �
 
 #, c-format, boost-format
 msgid "Up to %d colors supported."
-msgstr ""
+msgstr "Hỗ trợ tối đa %d màu sắc."
 
 msgid "Click to select a matching filament"
 msgstr "Nhấp chuột để chọn loại sợi nhựa phù hợp"
@@ -4524,14 +4538,14 @@ msgstr "Cách sử dụng bộ dụng cụ trộn màu tiêu chuẩn"
 
 #, boost-format
 msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit, so at least %2% project filament(s) must be deleted first. The following unused project filaments will be deleted automatically:"
-msgstr ""
+msgstr "Dự án này có quá nhiều sợi nhựa. Việc thêm bộ dụng cụ trộn sẽ vượt quá giới hạn %1% sợi nhựa, vì vậy trước tiên cần xóa ít nhất %2% sợi nhựa trong dự án. Các sợi nhựa dự án không sử dụng sau đây sẽ tự động bị xóa:"
 
 #, boost-format
 msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit. Please delete at least %2% filament(s) on the Prepare page, then add the kit again."
-msgstr ""
+msgstr "Dự án này có quá nhiều sợi nhựa. Việc thêm bộ dụng cụ trộn sẽ vượt quá giới hạn %1% sợi nhựa. Vui lòng xóa ít nhất %2% sợi nhựa trên trang Chuẩn bị, sau đó thêm lại bộ kit."
 
 msgid "Existing project filaments"
-msgstr ""
+msgstr "Các sợi nhựa hiện có trong dự án"
 
 msgid "What is the CMYKW mixing kit?"
 msgstr "Bộ dụng cụ trộn màu CMYKW là gì?"
@@ -6595,10 +6609,10 @@ msgid "Tips"
 msgstr "Mẹo"
 
 msgid "Start Anyway"
-msgstr ""
+msgstr "Vẫn bắt đầu"
 
 msgid "You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."
-msgstr ""
+msgstr "Bạn đã chọn chế độ Cân chỉnh bàn in khi nhiệt độ cao. Để tránh sợi nhựa bị mềm trong vòi đùn nhựa, vui lòng xả sợi nhựa trước khi hiệu chuẩn."
 
 msgid "Live Camera Recording"
 msgstr "Ghi hình trực tiếp bằng camera"
@@ -6610,7 +6624,7 @@ msgid "Go Live"
 msgstr "Phát trực tiếp"
 
 msgid "BirdsEye Camera Recording"
-msgstr ""
+msgstr "Ghi hình bằng camera trên cao"
 
 msgid "Liveview Retry"
 msgstr "Thử lại chế độ xem trực tiếp"
@@ -7231,10 +7245,10 @@ msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "Thư viện plugin không tải được. Nhấp vào đây để xem giải pháp."
 
 msgid "Switch to BirdsEye Camera"
-msgstr ""
+msgstr "Chuyển sang camera trên cao"
 
 msgid "Switch to Liveview Camera"
-msgstr ""
+msgstr "Chuyển sang camera xem trực tiếp"
 
 msgid "Switch live camera view"
 msgstr "Chuyển chế độ xem trực tiếp từ camera"
@@ -7320,7 +7334,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "Tính năng phát trực tiếp phụ thuộc vào Bambu Studio để hoạt động, và buổi phát trực tiếp sẽ kết thúc một thời gian sau khi ứng dụng được đóng."
 
 msgid "Non-live image."
-msgstr ""
+msgstr "Hình ảnh tĩnh."
 
 #, c-format, boost-format
 msgid "Captured at %s"
@@ -7696,13 +7710,13 @@ msgstr "Gần hoàn thành"
 
 #, c++-format
 msgid "For users under the age of majority, some services will be restricted. See our {0} for Bambu Lab Account. To understand our privacy practices, see {1}."
-msgstr ""
+msgstr "Đối với người dùng chưa đủ tuổi thành niên, một số dịch vụ sẽ bị hạn chế. Xem {0} của chúng tôi dành cho tài khoản Bambu Lab. Để hiểu rõ cách chúng tôi xử lý thông tin cá nhân, vui lòng xem {1}."
 
 msgid "Age Requirements"
-msgstr ""
+msgstr "Yêu cầu về độ tuổi"
 
 msgid "Privacy Notice"
-msgstr ""
+msgstr "Thông báo về quyền riêng tư"
 
 msgid "Camera"
 msgstr ""
@@ -7738,16 +7752,16 @@ msgid "Filament loading..."
 msgstr "Đang nạp sợi nhựa..."
 
 msgid "Live Camera recording"
-msgstr ""
+msgstr "Ghi hình trực tiếp bằng camera"
 
 msgid "BirdsEye Camera recording"
-msgstr ""
+msgstr "Ghi hình bằng camera trên cao"
 
 msgid "Timelapse recording"
-msgstr ""
+msgstr "Quay phim Timelapse"
 
 msgid "Go Live streaming"
-msgstr ""
+msgstr "Bắt đầu phát trực tiếp"
 
 msgid "Cancel print"
 msgstr "Hủy in"
@@ -7954,14 +7968,14 @@ msgstr ""
 "để đưa ra đánh giá tích cực (4 hoặc 5 sao)."
 
 msgid "Active operations"
-msgstr ""
+msgstr "Hoạt động đang diễn ra"
 
 msgid "Live"
 msgstr "Trực tiếp"
 
 #, c-format, boost-format
 msgid "Zoom %.1fx"
-msgstr ""
+msgstr "Độ phóng đại %.1fx"
 
 msgid "Step file import parameters"
 msgstr "Tham số nhập tệp STEP"
@@ -8056,17 +8070,17 @@ msgstr "Phiên bản 3mf mới hơn"
 
 #, c-format, boost-format
 msgid "The 3mf file is Beta version %s, current version: %s"
-msgstr ""
+msgstr "Tệp 3mf là phiên bản Beta %s, phiên bản hiện tại: %s"
 
 #, c-format, boost-format
 msgid "The 3mf file is version %s, current version: %s"
-msgstr ""
+msgstr "Tệp 3mf là phiên bản %s, phiên bản hiện tại: %s"
 
 msgid "Importing a newer 3mf file may cause compatibility issues. We recommend downloading the latest version before use. Please click"
-msgstr ""
+msgstr "Việc nhập tệp 3mf mới hơn có thể gây ra các vấn đề về khả năng tương thích. Chúng tôi khuyên bạn nên tải xuống phiên bản mới nhất trước khi sử dụng. Vui lòng nhấp chuột"
 
 msgid "Download Latest Version"
-msgstr ""
+msgstr "Tải xuống phiên bản mới nhất"
 
 msgctxt "Software"
 msgid "Update"
@@ -9128,16 +9142,6 @@ msgstr "AMS (4 khe)"
 msgid "AMS(1 slot)"
 msgstr "AMS (1 khe)"
 
-#, c-format, boost-format
-msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
-msgstr "Trong các loại vòi phun đã cấu hình, không có vòi phun nào có đường kính %s mm, vì vậy bạn không thể sử dụng đường kính %s mm để phân lát."
-
-msgid "Configure Nozzle diameter"
-msgstr "Cấu hình đường kính vòi phun"
-
-msgid "Modify Nozzle Type"
-msgstr "Thay đổi loại vòi phun"
-
 msgid "Not installed"
 msgstr "Chưa lắp đặt"
 
@@ -9230,7 +9234,7 @@ msgid "This filament does not support printing with the current nozzle"
 msgstr "Vòi phun hiện tại không hỗ trợ in bằng sợi nhựa này"
 
 msgid "The current nozzle settings have no nozzle of this type"
-msgstr ""
+msgstr "Cài đặt vòi phun hiện tại không có loại vòi phun này"
 
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
@@ -9298,10 +9302,10 @@ msgstr "Không thể trộn các sợi nhựa sử dụng vòi phun có đườn
 
 #, c-format, boost-format
 msgid "Up to %d mixed filaments can be created"
-msgstr ""
+msgstr "Có thể tạo tối đa %d sợi nhựa hỗn hợp"
 
 msgid "At least two filaments are required to create a mixed filament"
-msgstr ""
+msgstr "Cần ít nhất hai sợi nhựa để tạo ra một sợi nhựa hỗn hợp"
 
 #, c-format, boost-format
 msgid "Up to %d filaments can be created"
@@ -9614,7 +9618,7 @@ msgstr "cảnh báo"
 
 #, boost-format
 msgid "\"%1%\" uses both mixed color sublayer and variable layer height, which may affect print quality."
-msgstr ""
+msgstr "\"%1%\" sử dụng cả lớp phụ pha trộn màu và chiều cao lớp thay đổi, điều này có thể ảnh hưởng đến chất lượng in."
 
 msgid "Invalid data"
 msgstr "Dữ liệu không hợp lệ"
@@ -10235,7 +10239,7 @@ msgid "Top front"
 msgstr "Phần trước trên cùng"
 
 msgid "For users under the age of majority, some services will be restricted. This is managed by your parent or guardian in Family Hub."
-msgstr ""
+msgstr "Đối với người dùng chưa đủ tuổi thành niên, một số dịch vụ sẽ bị hạn chế. Việc này do cha mẹ hoặc người giám hộ của bạn quản lý trong Family Hub."
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "Dự án hiện tại có thay đổi chưa lưu, bạn có muốn lưu trước khi tiếp tục không?"
@@ -10731,6 +10735,12 @@ msgid ""
 "- Unsaved projects.\n"
 "- Delete a filament used by a model"
 msgstr ""
+"- Đồng bộ các thiết lập sẵn của máy in sau khi mở tệp\n"
+"- Cài đặt của hộp thoại \"Mở 3MF\"\n"
+"- Thực thi các kịch bản xử lý hậu kỳ\n"
+"- Thông báo gợi ý về cấu trúc hỗ trợ\n"
+"- Các dự án chưa được lưu.\n"
+"- Xóa một sợi nhựa mà mô hình đang sử dụng"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "Bạn có chắc muốn đặt lại tất cả tùy chọn không? Các thay đổi sẽ có hiệu lực sau khi khởi động lại."
@@ -11144,7 +11154,7 @@ msgid "There are some unknown filaments in the AMS mappings. Please check whethe
 msgstr "Có một số sợi nhựa không xác định trong các ánh xạ AMS. Vui lòng kiểm tra xem chúng có phải là sợi nhựa cần thiết không. Nếu chúng ổn, nhấn \"Xác nhận\" để bắt đầu in."
 
 msgid "Pre-print check"
-msgstr ""
+msgstr "Kiểm tra trước khi in"
 
 msgid "Please check the following:"
 msgstr "Vui lòng kiểm tra những điều sau:"
@@ -11374,7 +11384,7 @@ msgstr "Cả AMS ngoài và sợi nhựa %1$s đều được chọn cho công c
 
 #, c-format, boost-format
 msgid "TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."
-msgstr ""
+msgstr "TPU trong khe %d có thể bị tuột ra trong quá trình thay đổi Công cụ in. Hãy chuyển nó sang khe khác và thử lại."
 
 #, c-format, boost-format
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
@@ -11420,7 +11430,7 @@ msgid "The printer is executing instructions. Please restart printing after it e
 msgstr "Máy in đang thực thi các lệnh. Vui lòng bắt đầu in lại sau khi hoàn tất"
 
 msgid "Cold pull in progress. Unable to start a task."
-msgstr ""
+msgstr "Đang tiến hành kéo nguội. Không thể bắt đầu một tác vụ."
 
 msgid "AMS is setting up. Please try again later."
 msgstr "AMS đang thiết lập. Vui lòng thử lại sau."
@@ -13265,9 +13275,6 @@ msgstr "Tấm in"
 
 msgid "Print the enhanced part immediately"
 msgstr "In ngay bộ phận đã tăng cường"
-
-msgid "View Details"
-msgstr "Xem chi tiết"
 
 msgid "Verify Print Success Results"
 msgstr "Xác minh kết quả in thành công"
@@ -16881,7 +16888,7 @@ msgid "Support ring angle"
 msgstr "Góc vòng đỡ"
 
 msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider. A set angle keeps one piece, from 200° to 300°. -1 means auto: the angle is worked out from the purge of each filament change, so the purge is laid a few rings thick. When that comes out below 200°, the ring is split into two facing pieces with a second opening on the side away from the camera."
-msgstr ""
+msgstr "Góc bao quanh vật thể của vòng đỡ, được đo từ tâm vòng đỡ. Phần còn lại được để hở, với khoảng hở hướng về camera trong buồng in để camera có thể quan sát vật thể. Mỗi vòng trong cấu trúc đều có khe hở theo cùng hai hướng và các cấu trúc hỗ trợ dạng cây giúp ngăn các nhánh đi vào khe hở. Góc càng nhỏ, chiều dài đoạn lau trên mỗi vòng càng ngắn, khiến vòng đỡ càng rộng. Góc cố định từ 200° đến 300° giúp duy trì cấu trúc một mảnh. -1 nghĩa là tự động: góc được tính toán dựa trên lượng nhựa đùn ra mỗi khi thay sợi nhựa, sao cho phần nhựa đùn ra được xếp thành vài vòng chồng lên nhau. Khi góc lệch xuống dưới 200°, vòng tròn sẽ tách thành hai mảnh đối diện nhau, với một khe hở thứ hai ở phía đối diện với camera."
 
 msgid "Support ring skip points"
 msgstr "Các điểm bỏ qua trên vòng đỡ"
@@ -17553,6 +17560,9 @@ msgstr "Vui lòng chọn ít nhất một sợi nhựa để hiệu chuẩn"
 
 msgid "Flow rate calibration result has been saved to preset"
 msgstr "Kết quả hiệu chuẩn tốc độ lưu lượng đã được lưu vào cài đặt sẵn"
+
+msgid "Failed to get calibration parameters. Calibration results can only be obtained on the client that started the calibration."
+msgstr ""
 
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr "Kết quả hiệu chuẩn tốc độ thể tích tối đa đã được lưu vào cài đặt sẵn"
@@ -19553,13 +19563,13 @@ msgid "Please confirm whether the required nozzle diameter and flow rate match t
 msgstr "Vui lòng xác nhận xem đường kính vòi phun và tốc độ lưu lượng yêu cầu có khớp với các giá trị đang hiển thị hay không."
 
 msgid "No usable nozzle is detected on your printer."
-msgstr ""
+msgstr "Máy in của bạn không phát hiện thấy vòi phun nào có thể sử dụng được."
 
 msgid "Your printer has nozzles of different diameters installed."
-msgstr ""
+msgstr "Máy in của bạn có các vòi phun với đường kính khác nhau được lắp đặt."
 
 msgid "All nozzles installed on your printer have the same diameter."
-msgstr ""
+msgstr "Tất cả các vòi phun được lắp đặt trên máy in của bạn đều có cùng đường kính."
 
 msgid "Purge Mode Settings"
 msgstr "Cài đặt chế độ xả nhựa"
@@ -19583,24 +19593,26 @@ msgid "TPU Usage Notes"
 msgstr "Ghi chú sử dụng TPU"
 
 msgid "TPU Filament Installation && Feeding Guide"
-msgstr ""
+msgstr "Hướng dẫn lắp đặt && cấp liệu sợi nhựa TPU"
 
 msgid "Important Notice:"
-msgstr ""
+msgstr "Thông báo quan trọng:"
 
 msgid ""
 "• First time printing with TPU ? We strongly recommend reading the official guide first to avoid clogs or feeding failures.\n"
 "• If you are using 2.85 mm TPU, make sure a TPU285 nozzle is installed and the device information has been synced."
 msgstr ""
+"• Lần đầu tiên in với chất liệu TPU? Chúng tôi đặc biệt khuyên bạn nên đọc hướng dẫn chính thức trước để tránh tắc nghẽn hoặc lỗi cấp liệu.\n"
+"• Nếu bạn đang sử dụng TPU 2,85 mm, hãy đảm bảo rằng vòi phun TPU285 đã được lắp đặt và thông tin thiết bị đã được đồng bộ hóa."
 
 msgid "Don't show this again"
-msgstr ""
+msgstr "Không hiển thị lại"
 
 msgid "View User Guide"
-msgstr ""
+msgstr "Xem hướng dẫn sử dụng"
 
 msgid "I know risks, continue"
-msgstr ""
+msgstr "Tôi hiểu các rủi ro và vẫn muốn tiếp tục"
 
 msgid "AMS Dryness Control"
 msgstr "Kiểm soát độ khô AMS"
@@ -19620,14 +19632,14 @@ msgstr "Lỗi sấy"
 msgid "Please check the Assistant for troubleshooting"
 msgstr "Vui lòng kiểm tra Trợ lý để khắc phục sự cố"
 
-msgid "Please remove and store the filament (as shown)."
-msgstr "Vui lòng gỡ và bảo quản sợi nhựa (như hình)."
-
-msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
-msgstr "AMS có thể xoay sợi nhựa được cất giữ đúng cách, giúp kết quả sấy tốt hơn."
+msgid "Unknown filaments will be treated as PLA."
+msgstr "Sợi nhựa không xác định sẽ được xử lý như PLA."
 
 msgid "Rotate spool when drying"
 msgstr "Xoay cuộn nhựa khi sấy khô"
+
+msgid "After turning on, the AMS automatically rotates slots where filament ends are stowed on the spool, for better drying"
+msgstr ""
 
 msgctxt "amsdrying"
 msgid "Back"
@@ -19704,26 +19716,17 @@ msgstr "Hệ thống đang bận"
 msgid "  Initiating other drying processes, please wait a few seconds..."
 msgstr "  Đang khởi tạo các quy trình sấy khác, vui lòng đợi vài giây..."
 
-msgid "For better drying results, remove the filament and allow it to rotate."
-msgstr "Để có kết quả sấy khô tốt hơn, hãy tháo sợi nhựa ra và để nó quay."
+msgid "The current drying temperature is higher than the softening temperature of some filaments. Filament ends left in the inlet may soften and clog it. Pull out the filaments marked with an exclamation mark before drying."
+msgstr ""
 
-msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
-msgstr "AMS sẽ tự động xoay các ô sợi nhựa đã lưu trữ để tăng cường hiệu suất sấy khô."
+msgid "Slots that currently support drying:"
+msgstr ""
 
-msgid "Alternatively, you can dry the filament without removing it."
-msgstr "Ngoài ra, bạn có thể sấy sợi nhựa mà không cần tháo ra."
+msgid "It is recommended to pull the filament end out of the inlet before drying to prevent it from softening due to high temperature."
+msgstr ""
 
-msgid "Unknown filaments will be treated as PLA."
-msgstr "Sợi nhựa không xác định sẽ được xử lý như PLA."
-
-msgid "For better drying results, remove the filament."
-msgstr "Để đạt hiệu quả sấy tốt hơn, hãy lấy sợi nhựa ra."
-
-msgid "Please store the filament marked with an exclamation mark."
-msgstr "Vui lòng cất sợi nhựa được đánh dấu bằng dấu chấm than."
-
-msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
-msgstr "Sợi nhựa còn lại trong bộ nạp trong quá trình sấy có thể bị mềm do nhiệt độ sấy vượt quá điểm làm mềm của các vật liệu như PLA và TPU."
+msgid "For better drying results, pull the filament end out of the inlet and allow it to rotate."
+msgstr ""
 
 msgid "Starting: Checking adapter connection"
 msgstr "Đang bắt đầu: Kiểm tra kết nối bộ chuyển đổi"
@@ -19868,7 +19871,7 @@ msgid "Edit Mixed Filament"
 msgstr "Chỉnh sửa sợi nhựa phối trộn"
 
 msgid "Mixed result preview"
-msgstr ""
+msgstr "Xem trước kết quả hỗn hợp"
 
 msgid "Effect Preview"
 msgstr "Xem trước hiệu ứng"
@@ -19932,25 +19935,25 @@ msgid "Color Matching"
 msgstr "Khớp màu"
 
 msgid "Target Filament"
-msgstr ""
+msgstr "Sợi nhựa mục tiêu"
 
 msgid "(The system will mix 2-3 filaments to approximate this color)"
-msgstr ""
+msgstr "(Hệ thống sẽ trộn 2–3 sợi nhựa để tạo ra màu sắc gần giống màu này)"
 
 msgid "Target color filament"
-msgstr ""
+msgstr "Sợi nhựa có màu mục tiêu"
 
 msgid "Select Target Color"
 msgstr "Chọn màu mục tiêu"
 
 msgid "Mixed Result"
-msgstr ""
+msgstr "Kết quả hỗn hợp"
 
 msgid "Discard changes and match again"
 msgstr "Hủy các thay đổi và khớp màu lại"
 
 msgid "No results"
-msgstr ""
+msgstr "Không có kết quả nào"
 
 msgid "Replace the target color on models with the mixed result"
 msgstr "Thay thế màu mục tiêu trên các mô hình bằng màu phối được tạo ra"
@@ -20006,20 +20009,17 @@ msgid "This filament does not support the %smm nozzle, or no matching nozzle is 
 msgstr "Sợi nhựa này không hỗ trợ vòi phun có đường kính %s mm hoặc chưa được cấu hình vòi phun phù hợp."
 
 #, c-format, boost-format
-msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
-msgstr "Vui lòng thiết lập vòi phun có đường kính %s mm cho máy in trong phần bên dưới trước khi sử dụng đường kính này để phân lát."
+msgid "This printer isn’t configured with a %s mm nozzle. Please configure it in “Settings” before slicing."
+msgstr ""
 
 msgid "No nozzle is installed in this slot."
 msgstr "Không có vòi phun nào được lắp đặt trong khe này."
 
 msgid "Hotend information is unknown. Please refresh nozzle information before use."
-msgstr ""
+msgstr "Thông tin về đầu nung hiện chưa rõ. Vui lòng làm mới thông tin vòi phun trước khi sử dụng."
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Đường kính vòi phun không khớp. Vòi phun này không thể sử dụng được."
-
-msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
-msgstr "Vòi đùn nhựa này có đường kính vòi phun khác với đường kính vòi phun đã chọn để in. Việc in bằng các vòi phun có đường kính khác nhau vẫn đang trong giai đoạn thử nghiệm."
 
 msgid "Nozzle Settings"
 msgstr "Cài đặt vòi phun"
@@ -20058,672 +20058,687 @@ msgid "OK"
 msgstr "Xác nhận"
 
 msgid "Remark"
-msgstr ""
+msgstr "Ghi chú"
 
 msgid "Matched filament"
-msgstr ""
+msgstr "Sợi nhựa đã khớp"
 
 msgid "Add as new filament"
-msgstr ""
+msgstr "Thêm làm sợi nhựa mới"
 
 msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS đã phát hiện một sợi nhựa mới. Thêm nó vào Trình quản lý sợi nhựa?"
 
 msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr ""
+msgstr "Một loại sợi nhựa tương tự đã được tìm thấy trong Trình quản lý sợi nhựa và được tự động ghép nối."
 
 msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
-msgstr ""
+msgstr "Nhiều sợi nhựa tương tự nhau đã được tìm thấy trong Trình quản lý sợi nhựa. Vui lòng xác nhận sự trùng khớp."
 
 msgid "New Filament"
-msgstr ""
+msgstr "Sợi nhựa mới"
 
 msgid "New filament information has been recorded."
-msgstr ""
+msgstr "Thông tin sợi nhựa mới đã được ghi lại."
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
 "interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Khi sử dụng vật liệu hòa tan làm cấu trúc đỡ, chúng tôi khuyên bạn nên sử dụng các cài đặt sau:\n"
+"Loại cấu trúc đỡ thông thường (tự động), 1 vòng tường cấu trúc đỡ, khoảng cách Z phía trên bằng 0, khoảng cách Z phía dưới bằng 0, khoảng cách lớp tiếp xúc bằng 0, khoảng cách xy giữa cấu trúc đỡ và vật thể bằng 0, kiểu đường thẳng đan xen, tắt tùy chọn chiều cao lớp độc lập của cấu trúc đỡ và sử dụng vật liệu hòa tan cho cả lớp tiếp xúc và đế của cấu trúc đỡ"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Khi sử dụng vật liệu hòa tan để làm cấu trúc đỡ, chúng tôi khuyên dùng các cài đặt sau:\n"
+"Loại cấu trúc đỡ thông thường (tự động), 1 vòng tường cấu trúc đỡ, khoảng cách Z phía trên bằng 0, khoảng cách lớp tiếp xúc bằng 0, khoảng cách xy giữa cấu trúc đỡ và vật thể bằng 0, kiểu đường thẳng đan xen, tắt tùy chọn chiều cao lớp độc lập của cấu trúc đỡ và sử dụng vật liệu hòa tan cho cả lớp tiếp xúc và đế của cấu trúc đỡ"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Khi sử dụng vật liệu hòa tan để làm cấu trúc đỡ, chúng tôi khuyên dùng các cài đặt sau:\n"
+"Khoảng cách Z phía trên bằng 0, khoảng cách Z phía dưới bằng 0, khoảng cách lớp tiếp xúc bằng 0, khoảng cách xy giữa cấu trúc đỡ và vật thể bằng 0, kiểu đường thẳng đan xen, tắt tùy chọn chiều cao lớp độc lập của cấu trúc đỡ và sử dụng vật liệu hòa tan cho cả lớp tiếp xúc và đế của cấu trúc đỡ"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
 "independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Khi sử dụng vật liệu hòa tan để làm cấu trúc đỡ, chúng tôi khuyên dùng các cài đặt sau:\n"
+"Khoảng cách z phía trên bằng 0, khoảng cách lớp tiếp xúc bằng 0, khoảng cách xy giữa cấu trúc đỡ và vật thể bằng 0, kiểu đường thẳng đan xen, tắt \n"
+"tùy chọn chiều cao lớp độc lập của cấu trúc đỡ và sử dụng vật liệu hòa tan cho cả lớp tiếp xúc và đế của cấu trúc đỡ"
 
 msgid "Support interface speed"
-msgstr ""
+msgstr "Tốc độ lớp tiếp xúc cấu trúc đỡ"
 
 msgid "The following settings of the current plate will be restored to default:"
-msgstr ""
+msgstr "Các cài đặt sau đây của bàn in hiện tại sẽ được khôi phục về mặc định:"
 
 msgid "Restore these settings of the current plate to default?"
-msgstr ""
+msgstr "Khôi phục các cài đặt này của bàn in hiện tại về mặc định?"
 
 msgid "The following settings locked on the current selection will be restored to default:"
-msgstr ""
+msgstr "Các thiết lập bị khóa ở lựa chọn hiện tại sẽ được khôi phục về mặc định:"
 
 msgid "Restore these settings of the current selection to default?"
-msgstr ""
+msgstr "Bạn có muốn khôi phục các thiết lập của lựa chọn hiện tại về mặc định không?"
 
 msgid "The following settings locked on the objects below will be restored to default:"
-msgstr ""
+msgstr "Các thiết lập bị khóa trên các đối tượng bên dưới sẽ được khôi phục về mặc định:"
 
 msgid "Restore these settings to default?"
-msgstr ""
+msgstr "Khôi phục các cài đặt này về mặc định?"
 
 msgid "The following global settings will be restored to default:"
-msgstr ""
+msgstr "Các cài đặt chung sau đây sẽ được khôi phục về mặc định:"
 
 msgid "Restore these global settings to default?"
-msgstr ""
+msgstr "Khôi phục các cài đặt chung này về mặc định?"
 
 msgid "It looks like you are no longer using a support material combination for the support interface. Are you exiting support material usage?"
-msgstr ""
+msgstr "Có vẻ như bạn không còn sử dụng kết hợp các vật liệu đỡ cho lớp tiếp xúc của cấu trúc đỡ nữa. Bạn có đang ngừng sử dụng vật liệu đỡ không?"
 
 msgid "The same settings applied globally will be restored as well."
-msgstr ""
+msgstr "Các cài đặt tương ứng được áp dụng chung cũng sẽ được khôi phục."
 
 msgid "Other objects also have these settings locked:"
-msgstr ""
+msgstr "Các đối tượng khác cũng bị khóa các thiết lập này:"
 
 msgid "Affected objects:"
-msgstr ""
+msgstr "Các đối tượng bị ảnh hưởng:"
 
 msgid "These objects also have these settings locked:"
-msgstr ""
+msgstr "Các đối tượng này cũng có các thiết lập này bị khóa:"
 
 msgid "Restore the current selection only, or all of them?"
-msgstr ""
+msgstr "Chỉ khôi phục lựa chọn hiện tại hay tất cả?"
 
 msgid "Restore all of them to default?"
-msgstr ""
+msgstr "Khôi phục tất cả về cài đặt mặc định?"
 
 msgid "Performing desktop integration failed - boost::filesystem::canonical did not return appimage path."
-msgstr ""
+msgstr "Quá trình tích hợp máy tính để bàn thất bại - boost::filesystem::canonical không trả về đường dẫn appimage."
 
 msgid "Performing desktop integration failed - Could not find executable."
-msgstr ""
+msgstr "Quá trình tích hợp máy tính để bàn thất bại - Không tìm thấy tệp thực thi."
 
 msgid "Performing desktop integration failed because the application directory was not found."
-msgstr ""
+msgstr "Quá trình tích hợp máy tính để bàn thất bại do không tìm thấy thư mục ứng dụng."
 
 msgid "Performing desktop integration failed - could not create Gcodeviewer desktop file. BambuStudio desktop file was probably created successfully."
-msgstr ""
+msgstr "Quá trình tích hợp máy tính để bàn thất bại - không thể tạo tệp desktop của Gcodeviewer. Tệp desktop của BambuStudio có lẽ đã được tạo thành công."
 
 msgid "Desktop Integration"
-msgstr ""
+msgstr "Tích hợp máy tính để bàn"
 
 msgid ""
 "Desktop Integration sets this binary to be searchable by the system.\n"
 "\n"
 "Press \"Perform\" to proceed."
 msgstr ""
+"Tích hợp máy tính để bàn cho phép hệ thống tìm kiếm tệp nhị phân này.\n"
+"\n"
+"Nhấn \"Thực hiện\" để tiếp tục."
 
 msgid "Color mixing requires at least two filaments of the same type, but only one is available. The following filaments will be added based on the model colors:"
-msgstr ""
+msgstr "Việc pha trộn màu sắc yêu cầu ít nhất hai sợi nhựa cùng loại, nhưng hiện chỉ có một sợi nhựa khả dụng. Các loại sợi nhựa sau đây sẽ được thêm vào dựa trên màu sắc của mô hình:"
 
 msgid "Color mixing requires at least two filaments of the same type. The following filaments will be added based on the model colors:"
-msgstr ""
+msgstr "Việc pha trộn màu sắc yêu cầu ít nhất hai sợi nhựa cùng loại. Các loại sợi nhựa sau đây sẽ được thêm vào dựa trên màu sắc của mô hình:"
 
 msgid "New filament"
-msgstr ""
+msgstr "Sợi nhựa mới"
 
 msgid "Note: You can also delete or modify the newly added filaments in the drop-down list of the filament matching dialog."
-msgstr ""
+msgstr "Lưu ý: Bạn cũng có thể xóa hoặc chỉnh sửa các sợi nhựa mới được thêm vào trong danh sách thả xuống của hộp thoại khớp sợi nhựa."
 
 msgid "System Information"
-msgstr ""
+msgstr "Thông tin hệ thống"
 
 msgid "Blacklisted libraries loaded into BambuStudio process:"
-msgstr ""
+msgstr "Các thư viện bị cấm được tải vào tiến trình BambuStudio:"
 
 msgid "SIMD is supported:"
-msgstr ""
+msgstr "SIMD được hỗ trợ:"
 
 msgid "Copy to Clipboard"
-msgstr ""
+msgstr "Sao chép vào khay nhớ tạm"
 
 #, c-format, boost-format
 msgid "Nozzle %d "
-msgstr ""
+msgstr "Vòi phun %d "
 
 msgid "Unknown Filament"
-msgstr ""
+msgstr "Sợi nhựa không xác định"
 
 msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr ""
+msgstr "Trạng thái đầu nung bất thường và không khả dụng. Nhấp vào đây để cập nhật firmware."
 
 msgid "Extruder Settings"
-msgstr ""
+msgstr "Cài đặt vòi đùn nhựa"
 
 msgid "Hotend status is abnormal. Please update the firmware."
-msgstr ""
+msgstr "Trạng thái đầu nung bất thường. Vui lòng cập nhật firmware."
 
 msgid "Update Firmware"
-msgstr ""
+msgstr "Cập nhật Firmware"
 
 msgid "Current printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
-msgstr ""
+msgstr "Đồng bộ thông tin máy in"
 
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
-msgstr ""
+msgstr "Thông tin về kiểu máy in và cài đặt trong tệp 3MF này không khớp với máy in đang được kết nối. Bạn có muốn điều chỉnh các cài đặt phân lát này cho máy in này không?"
 
 msgid "Printer model comparison"
-msgstr ""
+msgstr "So sánh các mẫu máy in"
 
 msgid "Nozzle comparison"
-msgstr ""
+msgstr "So sánh vòi phun"
 
 msgid "Note: After adapting the settings, some print parameters will be automatically adjusted for the new printer model."
-msgstr ""
+msgstr "Lưu ý: Sau khi điều chỉnh cài đặt, một số thông số in sẽ được tự động điều chỉnh cho phù hợp với kiểu máy in mới."
 
 msgid "3MF File Settings"
-msgstr ""
+msgstr "Cài đặt tệp 3MF"
 
 msgid "Connected Printer"
-msgstr ""
+msgstr "Máy in đã kết nối"
 
 #, c-format, boost-format
 msgid "%s (only supported)"
-msgstr ""
+msgstr "%s (chỉ được hỗ trợ)"
 
 msgid "Using a larger nozzle after adapting the settings may reduce fine details in your model. Please proceed with caution."
-msgstr ""
+msgstr "Việc sử dụng vòi phun lớn hơn sau khi điều chỉnh cài đặt có thể làm giảm độ chi tiết của mô hình. Hãy tiến hành cẩn trọng."
 
 msgid "Don't show this again when opening 3MF files"
-msgstr ""
+msgstr "Đừng hiển thị lại thông báo này khi mở các tệp 3MF"
 
 msgid "Adapt Settings"
-msgstr ""
+msgstr "Điều chỉnh cài đặt"
 
 #, c-format, boost-format
 msgid "Nozzle %d: "
-msgstr ""
+msgstr "Vòi phun %d: "
 
 msgid "Nozzle Details"
-msgstr ""
+msgstr "Chi tiết vòi phun"
 
 #, c-format, boost-format
 msgid "Please input a number greater than or equal to %d"
-msgstr ""
+msgstr "Vui lòng nhập một số lớn hơn hoặc bằng %d"
 
 #, c-format, boost-format
 msgid "Please enter a number between %d and %d."
-msgstr ""
+msgstr "Vui lòng nhập một số trong khoảng %d và %d."
 
 #, c-format, boost-format
 msgid "Please enter a float greater than or equal to %f."
-msgstr ""
+msgstr "Vui lòng nhập một số thập phân lớn hơn hoặc bằng %f."
 
 #, c-format, boost-format
 msgid "Please enter a float between %f and %f."
-msgstr ""
+msgstr "Vui lòng nhập một số thực nằm giữa %f và %f."
 
 msgid "4 slots AMS"
-msgstr ""
+msgstr "4 khe cắm AMS"
 
 msgid "1 slot AMS"
-msgstr ""
+msgstr "1 khe cắm AMS"
 
 msgid "Remove this AMS"
-msgstr ""
+msgstr "Xóa AMS này"
 
 msgid ""
 "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank.\n"
 "\n"
 "Please install or repair the Microsoft Edge WebView2 Runtime, then restart Bambu Studio."
 msgstr ""
+"Không thể khởi động trình duyệt nhúng. Các trang như trang chủ, trang thiết bị và cửa sổ đăng nhập sẽ vẫn trống.\n"
+"\n"
+"Vui lòng lắp đặt hoặc sửa chữa Microsoft Edge WebView2 Runtime, sau đó khởi động lại Bambu Studio."
 
 msgid "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank."
-msgstr ""
+msgstr "Không thể khởi động trình duyệt nhúng. Các trang như trang chủ, trang thiết bị và cửa sổ đăng nhập sẽ vẫn trống."
 
 msgid "Embedded Browser Unavailable"
-msgstr ""
+msgstr "Trình duyệt nhúng không khả dụng"
 
 msgid "Unmapped"
 msgstr "Chưa ánh xạ"
 
 msgid "The current nozzle diameter is incompatible with the printer"
-msgstr ""
+msgstr "Đường kính vòi phun hiện tại không tương thích với máy in"
 
 msgid "Lock supports under new islands"
-msgstr ""
+msgstr "Khóa các cấu trúc đỡ bên dưới các vùng in độc lập mới"
 
 msgid "Remove all points"
-msgstr ""
+msgstr "Xóa tất cả các điểm"
 
 msgid "Apply changes"
-msgstr ""
+msgstr "Áp dụng các thay đổi"
 
 msgid "Discard changes"
-msgstr ""
+msgstr "Hủy bỏ thay đổi"
 
 msgid "Minimal points distance"
-msgstr ""
+msgstr "Khoảng cách điểm tối thiểu"
 
 msgid "Support points density"
-msgstr ""
+msgstr "Mật độ điểm hỗ trợ"
 
 msgid "Manual editing"
-msgstr ""
+msgstr "Chỉnh sửa thủ công"
 
 msgid "Clipping of view"
-msgstr ""
+msgstr "Cắt xén khung nhìn"
 
 msgid "SLA Support Points"
-msgstr ""
+msgstr "Điểm hỗ trợ SLA"
 
 msgid "Do you want to save your manually edited support points?"
-msgstr ""
+msgstr "Bạn có muốn lưu lại các điểm hỗ trợ đã chỉnh sửa thủ công của mình không?"
 
 msgid "Save support points?"
-msgstr ""
+msgstr "Lưu điểm hỗ trợ?"
 
 msgid "Autogeneration will erase all manually edited points."
-msgstr ""
+msgstr "Chức năng tự động tạo sẽ xóa tất cả các điểm đã được chỉnh sửa thủ công."
 
 msgid "Are you sure you want to do it?"
-msgstr ""
+msgstr "Bạn có chắc chắn muốn thực hiện thao tác này không?"
 
 msgid "SLA gizmo keyboard shortcuts"
-msgstr ""
+msgstr "Các phím tắt cho công cụ SLA gizmo"
 
 msgid "Note: some shortcuts work in (non)editing mode only."
-msgstr ""
+msgstr "Lưu ý: Một số phím tắt chỉ hoạt động ở chế độ chỉnh sửa hoặc chế độ không chỉnh sửa."
 
 msgid "Add point"
-msgstr ""
+msgstr "Thêm điểm"
 
 msgid "Remove point"
-msgstr ""
+msgstr "Xóa điểm"
 
 msgid "Move point"
-msgstr ""
+msgstr "Di chuyển điểm"
 
 msgid "Add point to selection"
-msgstr ""
+msgstr "Thêm điểm vào vùng chọn"
 
 msgid "Remove point from selection"
-msgstr ""
+msgstr "Loại bỏ điểm khỏi vùng chọn"
 
 msgid "Select by rectangle"
-msgstr ""
+msgstr "Chọn theo hình chữ nhật"
 
 msgid "Deselect by rectangle"
-msgstr ""
+msgstr "Bỏ chọn theo hình chữ nhật"
 
 msgid "Select all points"
-msgstr ""
+msgstr "Chọn tất cả các điểm"
 
 msgid "Move clipping plane"
-msgstr ""
+msgstr "Di chuyển mặt phẳng cắt"
 
 msgid "Reset clipping plane"
-msgstr ""
+msgstr "Đặt lại mặt phẳng cắt"
 
 msgid "Switch to editing mode"
-msgstr ""
+msgstr "Chuyển sang chế độ chỉnh sửa"
 
 msgid "Keep upper part"
-msgstr ""
+msgstr "Giữ phần trên"
 
 msgid "Keep lower part"
-msgstr ""
+msgstr "Giữ phần dưới"
 
 msgid "Rotate lower part upwards"
-msgstr ""
+msgstr "Xoay phần dưới lên trên"
 
 msgid "Entering Measure gizmo"
-msgstr ""
+msgstr "Chuyển sang công cụ đo lường"
 
 msgid "Leaving Measure gizmo"
-msgstr ""
+msgstr "Thoát khỏi công cụ đo lường"
 
 msgid "Entering Assembly gizmo"
-msgstr ""
+msgstr "Chuyển sang công cụ lắp ráp"
 
 msgid "Leaving Assembly gizmo"
-msgstr ""
+msgstr "Thoát khỏi công cụ lắp ráp"
 
 msgid "Hollow this object"
-msgstr ""
+msgstr "Làm rỗng vật thể này"
 
 msgid "Preview hollowed and drilled model"
-msgstr ""
+msgstr "Xem trước mô hình đã được làm rỗng và khoan lỗ"
 
 msgid "Offset"
-msgstr ""
+msgstr "Bù trừ"
 
 msgid "Closing distance"
-msgstr ""
+msgstr "Khoảng cách khép kín"
 
 msgid "Hole diameter"
-msgstr ""
+msgstr "Đường kính lỗ"
 
 msgid "Hole depth"
-msgstr ""
+msgstr "Độ sâu lỗ"
 
 msgid "Remove selected holes"
-msgstr ""
+msgstr "Loại bỏ các lỗ đã chọn"
 
 msgid "Remove all holes"
-msgstr ""
+msgstr "Loại bỏ tất cả các lỗ"
 
 msgid "Show supports"
-msgstr ""
+msgstr "Hiển thị cấu trúc đỡ"
 
 msgid "Hollow and drill"
-msgstr ""
+msgstr "Làm rỗng và khoan lỗ"
 
 msgid "Alternate nozzles:"
-msgstr ""
+msgstr "Các vòi phun thay thế:"
 
 msgid "All standard"
-msgstr ""
+msgstr "Tất cả đều là loại tiêu chuẩn"
 
 #, c-format, boost-format
 msgid "Welcome to the %s Configuration Assistant"
-msgstr ""
+msgstr "Chào mừng bạn đến với Trợ lý cấu hình %s"
 
 #, c-format, boost-format
 msgid "Welcome to the %s Configuration Wizard"
-msgstr ""
+msgstr "Chào mừng bạn đến với Trình hướng dẫn cấu hình %s"
 
 msgid "Welcome"
-msgstr ""
+msgstr "Chào mừng"
 
 #, c-format, boost-format
 msgid "Hello, welcome to %s! This %s helps you with the initial configuration; just a few settings and you will be ready to print."
-msgstr ""
+msgstr "Xin chào, chào mừng đến với %s! %s này sẽ giúp bạn thực hiện cấu hình ban đầu; chỉ cần thiết lập một vài tùy chọn là bạn đã sẵn sàng in."
 
 msgid "Remove user profiles (a snapshot will be taken beforehand)"
-msgstr ""
+msgstr "Xóa hồ sơ người dùng (một bản chụp nhanh sẽ được tạo trước khi thực hiện)"
 
 msgid "Perform desktop integration (Sets this binary to be searchable by the system)."
-msgstr ""
+msgstr "Thực hiện tích hợp máy tính để bàn (Thiết lập để hệ thống có thể tìm kiếm được tệp nhị phân này)."
 
 #, c-format, boost-format
 msgid "%s Family"
-msgstr ""
+msgstr "%s Dòng máy"
 
 msgid "Printer:"
-msgstr ""
+msgstr "Máy in:"
 
 msgid "Vendor:"
-msgstr ""
+msgstr "Nhà cung cấp:"
 
 msgid "Profile:"
-msgstr ""
+msgstr "Cấu hình:"
 
 msgid "(All)"
-msgstr ""
+msgstr "(Tất cả)"
 
 #, boost-format
 msgid "%1% marked with <b>*</b> are <b>not</b> compatible with some installed printers."
-msgstr ""
+msgstr "%1% được đánh dấu bằng <b>*</b> là <b>không</b> tương thích với một số máy in đã được lắp đặt."
 
 msgid "SLA materials"
-msgstr ""
+msgstr "Vật liệu SLA"
 
 #, boost-format
 msgid "All installed printers are compatible with the selected %1%."
-msgstr ""
+msgstr "Tất cả các máy in đã được lắp đặt đều tương thích với %1% đã chọn."
 
 msgid "filament"
-msgstr ""
+msgstr "sợi nhựa"
 
 msgid "SLA material"
-msgstr ""
+msgstr "Vật liệu SLA"
 
 msgid "Only the following installed printers are compatible with the selected filaments"
-msgstr ""
+msgstr "Chỉ những máy in đã được lắp đặt sau đây mới tương thích với các sợi nhựa đã chọn"
 
 msgid "Only the following installed printers are compatible with the selected SLA materials"
-msgstr ""
+msgstr "Chỉ những máy in đã được lắp đặt sau đây mới tương thích với các vật liệu SLA đã chọn"
 
 msgid "Custom Printer Setup"
-msgstr ""
+msgstr "Thiết lập máy in tùy chỉnh"
 
 msgid "Custom Printer"
-msgstr ""
+msgstr "Máy in tùy chỉnh"
 
 msgid "Define a custom printer profile"
-msgstr ""
+msgstr "Xác định hồ sơ cấu hình máy in tùy chỉnh"
 
 msgid "Custom profile name:"
-msgstr ""
+msgstr "Tên hồ sơ tùy chỉnh:"
 
 msgid "Firmware Type"
-msgstr ""
+msgstr "Loại firmware"
 
 msgid "Firmware"
 msgstr ""
 
 msgid "Choose the type of firmware used by your printer."
-msgstr ""
+msgstr "Chọn loại firmware mà máy in của bạn sử dụng."
 
 msgid "Bed Shape and Size"
-msgstr ""
+msgstr "Hình dạng và kích thước bàn in"
 
 msgid "Set the shape of your printer's bed."
-msgstr ""
+msgstr "Thiết lập hình dạng cho bàn in của máy in."
 
 msgid "Invalid numeric input."
-msgstr ""
+msgstr "Nhập số không hợp lệ."
 
 msgid "Filament and Nozzle Diameters"
-msgstr ""
+msgstr "Đường kính sợi nhựa và vòi phun"
 
 msgid "Print Diameters"
-msgstr ""
+msgstr "Đường kính in"
 
 msgid "Enter the diameter of your printer's hot end nozzle."
-msgstr ""
+msgstr "Nhập đường kính vòi phun của đầu nung máy in."
 
 msgid "Nozzle Diameter:"
-msgstr ""
+msgstr "Đường kính vòi phun:"
 
 msgid "Enter the diameter of your filament."
-msgstr ""
+msgstr "Nhập đường kính của sợi nhựa."
 
 msgid "Good precision is required, so use a caliper and do multiple measurements along the filament, then compute the average."
-msgstr ""
+msgstr "Cần độ chính xác cao, vì vậy hãy sử dụng thước kẹp để đo nhiều lần tại các vị trí khác nhau dọc theo sợi nhựa, sau đó tính giá trị trung bình."
 
 msgid "Filament Diameter:"
-msgstr ""
+msgstr "Đường kính sợi nhựa:"
 
 msgid "Nozzle and Bed Temperatures"
-msgstr ""
+msgstr "Nhiệt độ vòi phun và bàn in"
 
 msgid "Temperatures"
-msgstr ""
+msgstr "Nhiệt độ"
 
 msgid "Enter the nozzle_temperature needed for extruding your filament."
-msgstr ""
+msgstr "Nhập nhiệt độ vòi phun cần thiết để đùn sợi nhựa."
 
 msgid "A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."
-msgstr ""
+msgstr "Theo kinh nghiệm, nhiệt độ tham khảo là từ 160 đến 230 °C đối với PLA và từ 215 đến 250 °C đối với ABS."
 
 msgid "Extrusion Temperature:"
-msgstr ""
+msgstr "Nhiệt độ ép đùn:"
 
 msgid "Enter the bed temperature needed for getting your filament to stick to your heated bed."
-msgstr ""
+msgstr "Nhập nhiệt độ bàn in cần thiết để sợi nhựa bám dính vào bàn in đã được làm nóng."
 
 msgid "A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have no heated bed."
-msgstr ""
+msgstr "Theo kinh nghiệm, nhiệt độ tham khảo là 60 °C đối với PLA và 110 °C đối với ABS. Hãy để giá trị bằng 0 nếu máy in của bạn không có bàn in có gia nhiệt."
 
 msgid "Bed Temperature:"
-msgstr ""
+msgstr "Nhiệt độ bàn in:"
 
 msgid "SLA Materials"
-msgstr ""
+msgstr "Vật liệu SLA"
 
 msgid "FFF Technology Printers"
-msgstr ""
+msgstr "Máy in công nghệ FFF"
 
 msgid "SLA Technology Printers"
-msgstr ""
+msgstr "Máy in công nghệ SLA"
 
 #, boost-format
 msgid "Following printer profiles has no default filament: %1%Please select one manually."
-msgstr ""
+msgstr "Các cấu hình máy in sau đây không có sợi nhựa mặc định: %1%Vui lòng chọn một sợi nhựa theo cách thủ công."
 
 #, boost-format
 msgid "Following printer profiles has no default material: %1%Please select one manually."
-msgstr ""
+msgstr "Các cấu hình máy in sau đây không có vật liệu mặc định: %1%Vui lòng chọn một sợi nhựa theo cách thủ công."
 
 msgid "The following FFF printer models have no filament selected:"
-msgstr ""
+msgstr "Các mẫu máy in FFF sau đây chưa chọn sợi nhựa:"
 
 msgid "Do you want to select default filaments for these FFF printer models?"
-msgstr ""
+msgstr "Bạn có muốn chọn sợi nhựa mặc định cho các mẫu máy in FFF này không?"
 
 msgid "Configuration is edited in ConfigWizard"
-msgstr ""
+msgstr "Cấu hình được chỉnh sửa trong ConfigWizard"
 
 msgid "All user presets will be deleted."
-msgstr ""
+msgstr "Tất cả các thiết lập sẵn của người dùng sẽ bị xóa."
 
 msgid "A new vendor was installed and one of its printers will be activated"
 msgid_plural "New vendors were installed and one of theirs printers will be activated"
 msgstr[0] ""
 
 msgid "A new Printer was installed and it will be activated."
-msgstr ""
+msgstr "Máy in mới đã được lắp đặt và sẽ được kích hoạt."
 
 msgid "Some Printers were uninstalled."
-msgstr ""
+msgstr "Một số máy in đã bị gỡ cài đặt."
 
 msgid "A new filament was installed and it will be activated."
-msgstr ""
+msgstr "Một sợi nhựa mới đã được cài đặt và sẽ được kích hoạt."
 
 msgid "A new SLA material was installed and it will be activated."
-msgstr ""
+msgstr "Vật liệu SLA mới đã được lắp đặt và sẽ được kích hoạt."
 
 msgid "Some filaments were uninstalled."
-msgstr ""
+msgstr "Một số cấu hình sợi nhựa đã bị gỡ cài đặt."
 
 msgid "Custom printer was installed and it will be activated."
-msgstr ""
+msgstr "Máy in tùy chỉnh đã được lắp đặt và sẽ được kích hoạt."
 
 msgid "<Back"
-msgstr ""
+msgstr "<Quay lại"
 
 msgid "Next>"
-msgstr ""
+msgstr "Tiếp theo>"
 
 msgid "Filament Profiles Selection"
-msgstr ""
+msgstr "Lựa chọn cấu hình sợi nhựa"
 
 msgid "Configuration Assistant"
-msgstr ""
+msgstr "Trợ lý cấu hình"
 
 msgid "Configuration &Assistant"
-msgstr ""
+msgstr "Trợ lý &cấu hình"
 
 msgid "Configuration Wizard"
-msgstr ""
+msgstr "Trình hướng dẫn cấu hình"
 
 msgid "Configuration &Wizard"
-msgstr ""
+msgstr "Trình hướng dẫn &cấu hình"
 
 msgid "Windows Media Player is required for this task! Do you want to enable 'Windows Media Player' for your operation system?"
-msgstr ""
+msgstr "Bạn cần có Windows Media Player để thực hiện tác vụ này! Bạn có muốn kích hoạt 'Windows Media Player' cho hệ điều hành của mình không?"
 
 msgid "BambuSource has not correctly been registered for media playing! Press Yes to re-register it."
-msgstr ""
+msgstr "BambuSource chưa được đăng ký đúng cách để phát đa phương tiện! Nhấn Có để đăng ký lại."
 
 msgid "Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."
-msgstr ""
+msgstr "Thiếu thành phần BambuSource đã đăng ký để phát đa phương tiện! Vui lòng lắp đặt lại BambuStudio hoặc liên hệ bộ phận hỗ trợ sau bán hàng."
 
 msgid "Using a BambuSource from a different install, video play may not work correctly! Press Yes to fix it."
-msgstr ""
+msgstr "Nếu sử dụng BambuSource từ một bản lắp đặt khác, video có thể không phát đúng cách! Hãy nhấn Có để khắc phục sự cố."
 
 msgid "Your system is missing H.264 codecs for GStreamer, which are required to play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart Bambu Studio?)"
-msgstr ""
+msgstr "Hệ thống của bạn thiếu các bộ mã hóa và giải mã H.264 cho GStreamer, vốn cần thiết để phát video.  (Hãy thử lắp đặt các gói gstreamer1.0-plugins-bad hoặc gstreamer1.0-libav, sau đó khởi động lại Bambu Studio?)"
 
 msgid "Model Pictures"
-msgstr ""
+msgstr "Hình ảnh mô hình"
 
 msgid "3D Models"
-msgstr ""
+msgstr "Mô hình 3D"
 
 msgid "Click to return (Command + Left Arrow)"
-msgstr ""
+msgstr "Nhấp chuột để quay lại (Command + Mũi tên trái)"
 
 msgid "Click to continue (Command + Right Arrow)"
-msgstr ""
+msgstr "Nhấp chuột để tiếp tục (Command + Mũi tên phải)"
 
 msgid "Click to return (Alt + Left Arrow)"
-msgstr ""
+msgstr "Nhấp chuột để quay lại (Alt + Mũi tên trái)"
 
 msgid "Click to continue (Alt + Right Arrow)"
-msgstr ""
+msgstr "Nhấp chuột để tiếp tục (Alt + Mũi tên phải)"
 
 msgid "Taking a configuration snapshot failed."
-msgstr ""
+msgstr "Không thể tạo bản chụp nhanh cấu hình."
 
 msgid "BambuStudio has encountered an error while taking a configuration snapshot."
-msgstr ""
+msgstr "BambuStudio đã gặp lỗi trong quá trình tạo bản chụp nhanh cấu hình."
 
 msgid "BambuStudio error"
-msgstr ""
+msgstr "Lỗi BambuStudio"
 
 msgid "Support ring generation failed because no printable model projection was found."
-msgstr ""
+msgstr "Quá trình tạo vòng đỡ thất bại do không tìm thấy hình chiếu mô hình có thể in được."
 
 msgid "Support ring generation failed while adapting tool-change paths."
-msgstr ""
+msgstr "Quá trình tạo vòng đỡ thất bại khi điều chỉnh đường di chuyển để thay đổi công cụ."
 
 msgid "Generating support ring"
-msgstr ""
+msgstr "Đang tạo vòng đỡ"
 
 #, boost-format
 msgid "Generating support ring: layer %1%"
-msgstr ""
+msgstr "Đang tạo vòng đỡ: lớp %1%"
 
 msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
+msgstr "Phát hiện sợi nhựa chịu nhiệt cao trong AMS. Không trộn sợi nhựa này với các loại sợi nhựa chịu nhiệt thấp."
 
 msgid "Click Wiki for help."
 msgstr "Nhấp Wiki để được trợ giúp."
 
 msgid "Nozzle and Filament Sync"
-msgstr ""
+msgstr "Đồng bộ hóa vòi phun và sợi nhựa"
 
 msgid "Mapping"
 msgstr "Ánh xạ"
 
 msgid "Direct Override"
-msgstr ""
+msgstr "Ghi đè trực tiếp"
 
 msgid "After modification, the filament list cannot be restored."
-msgstr ""
+msgstr "Sau khi chỉnh sửa, danh sách sợi nhựa không thể khôi phục lại."
 
 msgid "Overwrite the project filaments list with the filaments in the printer."
-msgstr ""
+msgstr "Ghi đè danh sách sợi nhựa của dự án bằng danh sách sợi nhựa trong máy in."
 
 msgid "Match the project filaments with the filaments in the printer according to the matching mode. After syncing, the mapped results will be used."
-msgstr ""
+msgstr "Ghép các sợi nhựa trong dự án với các sợi nhựa trong máy in theo chế độ ghép tương ứng. Sau khi đồng bộ hóa, các kết quả đã được ánh xạ sẽ được sử dụng."
 
 msgid "After overwriting"
 msgstr "Sau khi ghi đè"
@@ -20732,13 +20747,13 @@ msgid "After mapping"
 msgstr "Sau khi ánh xạ"
 
 msgid "Filament matching"
-msgstr ""
+msgstr "Ghép sợi nhựa"
 
 msgid "Color first"
-msgstr ""
+msgstr "Ưu tiên màu sắc"
 
 msgid "Precision first"
-msgstr ""
+msgstr "Ưu tiên độ chính xác"
 
 msgid "Reset all filament mapping"
 msgstr "Đặt lại tất cả ánh xạ sợi nhựa"
@@ -21050,6 +21065,55 @@ msgid ""
 msgstr ""
 "Độ tin cậy thành công ngay lần đầu\n"
 "Giảm bớt việc phải theo dõi liên tục, tăng tính dự đoán được của kết quả đầu ra. Ví dụ: một cụm máy in nhỏ in các bộ phận bằng PETG sẽ tránh được những sự cố bất ngờ như \"hỏng hóc sau 6 giờ\" và đảm bảo các lô sản phẩm được hoàn tất đúng tiến độ."
+
+#, c-format, boost-format
+#~ msgid "%d triangles"
+#~ msgstr "%d tam giác"
+
+#, boost-format
+#~ msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
+#~ msgstr "Phép toán Boolean trên lưới chỉ hỗ trợ tối đa %1% phần, nhưng đối tượng được chọn có %2% phần. Vui lòng giảm số lượng phần rồi thử lại."
+
+#, c-format, boost-format
+#~ msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
+#~ msgstr "Trong các loại vòi phun đã cấu hình, không có vòi phun nào có đường kính %s mm, vì vậy bạn không thể sử dụng đường kính %s mm để phân lát."
+
+#~ msgid "Configure Nozzle diameter"
+#~ msgstr "Cấu hình đường kính vòi phun"
+
+#~ msgid "Modify Nozzle Type"
+#~ msgstr "Thay đổi loại vòi phun"
+
+#~ msgid "Please remove and store the filament (as shown)."
+#~ msgstr "Vui lòng gỡ và bảo quản sợi nhựa (như hình)."
+
+#~ msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+#~ msgstr "AMS có thể xoay sợi nhựa được cất giữ đúng cách, giúp kết quả sấy tốt hơn."
+
+#~ msgid "For better drying results, remove the filament and allow it to rotate."
+#~ msgstr "Để có kết quả sấy khô tốt hơn, hãy tháo sợi nhựa ra và để nó quay."
+
+#~ msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
+#~ msgstr "AMS sẽ tự động xoay các ô sợi nhựa đã lưu trữ để tăng cường hiệu suất sấy khô."
+
+#~ msgid "Alternatively, you can dry the filament without removing it."
+#~ msgstr "Ngoài ra, bạn có thể sấy sợi nhựa mà không cần tháo ra."
+
+#~ msgid "For better drying results, remove the filament."
+#~ msgstr "Để đạt hiệu quả sấy tốt hơn, hãy lấy sợi nhựa ra."
+
+#~ msgid "Please store the filament marked with an exclamation mark."
+#~ msgstr "Vui lòng cất sợi nhựa được đánh dấu bằng dấu chấm than."
+
+#~ msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
+#~ msgstr "Sợi nhựa còn lại trong bộ nạp trong quá trình sấy có thể bị mềm do nhiệt độ sấy vượt quá điểm làm mềm của các vật liệu như PLA và TPU."
+
+#, c-format, boost-format
+#~ msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
+#~ msgstr "Vui lòng thiết lập vòi phun có đường kính %s mm cho máy in trong phần bên dưới trước khi sử dụng đường kính này để phân lát."
+
+#~ msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
+#~ msgstr "Vòi đùn nhựa này có đường kính vòi phun khác với đường kính vòi phun đã chọn để in. Việc in bằng các vòi phun có đường kính khác nhau vẫn đang trong giai đoạn thử nghiệm."
 
 #~ msgid "Cool"
 #~ msgstr "Làm mát"
