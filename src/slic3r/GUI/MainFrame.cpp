@@ -49,6 +49,8 @@
 #include "../Utils/MacDarkMode.hpp"
 #include "../Utils/MacUtils.hpp"
 
+#include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <mutex>
 #include <string_view>
@@ -82,6 +84,7 @@
 #endif // _WIN32
 #include <slic3r/GUI/CreatePresetsDialog.hpp>
 #include "libslic3r/Log.hpp"
+#include "libslic3r/Utils.hpp"
 
 
 namespace Slic3r {
@@ -4534,10 +4537,15 @@ void MainFrame::FileHistory::AddFileToHistory(const wxString &file)
     if (this->m_fileMaxFiles == 0)
         return;
     wxFileHistory::AddFileToHistory(file);
-    if (m_load_called)
-        m_thumbnails.push_front(bbs_3mf_get_thumbnail(into_u8(file).c_str()));
-    else
+    if (m_load_called) {
+        // The async scan has already run, so this entry has to be read here on the main thread.
+        std::string thumbnail = bbs_3mf_get_thumbnail(into_u8(file).c_str());
+        if (thumbnail.empty())
+            BOOST_LOG_TRIVIAL(warning) << "no thumbnail in recent project " << PathSanitizer::sanitize(into_u8(file));
+        m_thumbnails.push_front(std::move(thumbnail));
+    } else {
         m_thumbnails.push_front("");
+    }
 }
 
 void MainFrame::FileHistory::RemoveFileFromHistory(size_t i)
@@ -4567,8 +4575,12 @@ void MainFrame::FileHistory::LoadThumbnailsAsync()
     // path in AddFileToHistory, instead of getting an empty thumbnail that nothing ever fills in.
     m_load_called = true;
 
-    if (files.empty())
+    if (files.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "no recent project to load thumbnails for";
         return;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << KV(log_key::file_count, files.size()) << "load recent project thumbnails start";
 
     auto state = m_state;
     std::thread([this, state, files = std::move(files)]() mutable {
@@ -4580,6 +4592,7 @@ void MainFrame::FileHistory::LoadThumbnailsAsync()
         try {
             // Touches nothing but its own stack, so there is no race against the main thread
             // reading m_thumbnails through GetThumbnailUrl() while this runs.
+            auto                     start = std::chrono::steady_clock::now();
             std::vector<std::string> data(files.size());
             tbb::parallel_for(tbb::blocked_range<size_t>(0, files.size()), [&files, &data, &state](const tbb::blocked_range<size_t> &range) {
                 for (size_t i = range.begin(); i < range.end(); ++i) {
@@ -4587,9 +4600,24 @@ void MainFrame::FileHistory::LoadThumbnailsAsync()
                     // its contents have been evicted, so stop fetching the rest once the frame
                     // is on its way out.
                     if (state->cancelled) return;
-                    data[i] = bbs_3mf_get_thumbnail(into_u8(files[i]).c_str());
+                    std::string path = into_u8(files[i]);
+                    data[i]          = bbs_3mf_get_thumbnail(path.c_str());
+                    // bbs_3mf_get_thumbnail() logs why the parse failed, but not which file it was
+                    // reading: it runs on several worker threads at once, so the two cannot be
+                    // matched up by thread id afterwards. Name the file here instead.
+                    if (data[i].empty())
+                        BOOST_LOG_TRIVIAL(warning) << "no thumbnail in recent project " << PathSanitizer::sanitize(path);
                 }
             });
+
+            auto   ms     = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
+            size_t loaded = std::count_if(data.begin(), data.end(), [](const std::string &one) { return !one.empty(); });
+            if (state->cancelled)
+                BOOST_LOG_TRIVIAL(info) << KV(log_key::file_count, files.size()) << KV(log_key::thumbnail_count, loaded)
+                                        << "load recent project thumbnails cancelled after " << ms << " ms";
+            else
+                BOOST_LOG_TRIVIAL(info) << KV(log_key::file_count, files.size()) << KV(log_key::thumbnail_count, loaded)
+                                        << "load recent project thumbnails finished in " << ms << " ms";
 
             // wxGetApp() dereferences wxApp::GetInstance(), which wxEntryCleanup() clears on the
             // way out, so the check and the post have to be atomic with respect to cancel(). The
@@ -4617,13 +4645,23 @@ void MainFrame::FileHistory::ApplyThumbnails(const std::vector<wxString> &files,
     // Main thread. The history may have been added to or trimmed while the scan ran, which shifts
     // every index, so look each file up again by path. FindFileInHistory returns (size_t)wxNOT_FOUND
     // when the entry is gone, which the size check below rejects along with any stale index.
+    size_t applied = 0;
+    size_t dropped = 0;
     for (size_t i = 0; i < files.size(); ++i) {
         if (data[i].empty())
             continue;
         size_t idx = FindFileInHistory(files[i]);
-        if (idx < m_thumbnails.size())
+        if (idx < m_thumbnails.size()) {
             m_thumbnails[idx] = data[i];
+            ++applied;
+        } else {
+            ++dropped;
+        }
     }
+    BOOST_LOG_TRIVIAL(info) << KV(log_key::thumbnail_count, applied) << "applied recent project thumbnails";
+    if (dropped > 0)
+        BOOST_LOG_TRIVIAL(warning) << KV(log_key::thumbnail_count, dropped)
+                                   << "dropped recent project thumbnails, the entries were removed while scanning";
 }
 
 inline void MainFrame::FileHistory::SetMaxFiles(int max)
@@ -4636,6 +4674,9 @@ inline void MainFrame::FileHistory::SetMaxFiles(int max)
 
 void MainFrame::get_recent_projects(boost::property_tree::wptree &tree, int images)
 {
+    size_t sent       = 0;
+    size_t with_image = 0;
+    size_t missing    = 0;
     for (size_t i = 0; i < m_recent_projects.GetCount(); ++i) {
         boost::property_tree::wptree item;
         std::wstring proj = m_recent_projects.GetHistoryFile(i).ToStdWstring();
@@ -4671,13 +4712,24 @@ void MainFrame::get_recent_projects(boost::property_tree::wptree &tree, int imag
             }
             if (i <= images) {
                 auto thumbnail = m_recent_projects.GetThumbnailUrl(i);
-                if (!thumbnail.empty()) item.put(L"image", thumbnail);
+                if (!thumbnail.empty()) {
+                    item.put(L"image", thumbnail);
+                    ++with_image;
+                }
             }
         } else {
             item.put(L"time", _L("File is missing"));
+            ++missing;
         }
         tree.push_back({L"", item});
+        ++sent;
     }
+
+    // The home page renders whatever this builds, so this line says what it had to work with.
+    // images is the index up to which thumbnails are attached: -1 wraps around to SIZE_MAX in the
+    // comparison above, which is how callers ask for every one of them.
+    BOOST_LOG_TRIVIAL(info) << KV(log_key::file_count, sent) << KV(log_key::thumbnail_count, with_image)
+                            << "send recent project list, images up to " << images << ", missing files " << missing;
 }
 
 void MainFrame::open_recent_project(size_t file_id, wxString const & filename)
