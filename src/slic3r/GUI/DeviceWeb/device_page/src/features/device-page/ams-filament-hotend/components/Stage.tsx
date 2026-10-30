@@ -21,29 +21,27 @@ const COLUMN_WIDTH = 80;
 // touch the stage edges, so the pitch depends on the total slot count: with 9
 // slots it is 1/8 of the free width, with 5 slots 1/4 of it. Deriving it here
 // keeps the tiers interleaved for any slot count instead of hard-coding the
-// 9-slot case in CSS. cqw resolves against `.stage` (see the CSS).
+// 9-slot case in CSS. The measured width is stored in pixels: container units
+// are not reliable in older WKWebView builds, while percentages resolve where
+// they are used and can give a nested dryer child the wrong geometry basis.
 export function stagePitchStyle(totalSlots: number): CSSProperties {
   const gaps = totalSlots - 1;
   return {
-    ['--slot-pitch' as never]: gaps > 0 ? `calc((${STAGE_WIDTH} - ${COLUMN_WIDTH}px) / ${gaps})` : '0px',
+    ['--slot-pitch' as never]: gaps > 0 ? `calc((var(--lw-stage-w, 0px) - ${COLUMN_WIDTH}px) / ${gaps})` : '0px',
   } as CSSProperties;
 }
 
-// Container query units need Safari 16; older macOS WKWebView gets the
-// stage's content width measured into a variable instead.
-const HAS_CQ = typeof CSS !== 'undefined' && CSS.supports('width', '1cqw');
-const STAGE_WIDTH = HAS_CQ ? '100cqw' : 'var(--lw-stage-w, 0px)';
-
 // A callback ref rather than an effect, so the observer follows the <section>
 // itself and is torn down with it whenever React remounts it.
-function stageWidthFallbackRef(el: HTMLElement | null) {
-  if (HAS_CQ || !el) return;
+function stageWidthRef(el: HTMLElement | null) {
+  if (!el) return;
   const update = () => {
     const cs = getComputedStyle(el);
     const w = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
     el.style.setProperty('--lw-stage-w', `${w}px`);
   };
   update();
+  if (typeof ResizeObserver !== 'function') return;
   const ro = new ResizeObserver(update);
   ro.observe(el);
   return () => ro.disconnect();
@@ -87,7 +85,7 @@ export function Stage({
 
   return (
     <section
-      ref={stageWidthFallbackRef}
+      ref={stageWidthRef}
       className={`stage${hotendMode ? ' hotend-mode' : ''}${mode !== 'normal' ? ' batch-mode' : ''}`}
       style={stagePitchStyle(topSlots.length + bottomSlots.length)}
     >
