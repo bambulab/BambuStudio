@@ -113,12 +113,11 @@ bool AVVideoDecoder::toWxImage(wxImage &image, wxSize const &size2)
     if (!size1.IsFullySpecified())
         size1 = {frame_->width, frame_->height };
     auto size = size1;
-    if (size.GetWidth() & 0x0f) {
+    if (size.GetWidth() & 0x0f)
         size.SetWidth((size.GetWidth() & ~0x0f) + 0x10);
-        if (size.GetWidth() != width_) {
-            std::fill(bits_.begin(), bits_.end(), 0);
-            width_ = size.GetWidth();
-        }
+    if (size.GetWidth() != width_) {
+        std::fill(bits_.begin(), bits_.end(), 0);
+        width_ = size.GetWidth();
     }
     AVPixelFormat wxFmt = AV_PIX_FMT_RGB24;
     sws_ctx_   = sws_getCachedContext(sws_ctx_,
@@ -153,12 +152,11 @@ bool AVVideoDecoder::toWxBitmap(wxBitmap &bitmap, wxSize const &size2)
     if (!size1.IsFullySpecified())
         size1 = {frame_->width, frame_->height };
     auto size = size1;
-    if (size.GetWidth() & 0x0f) {
+    if (size.GetWidth() & 0x0f)
         size.SetWidth((size.GetWidth() & ~0x0f) + 0x10);
-        if (size.GetWidth() != width_) {
-            std::fill(bits_.begin(), bits_.end(), 0);
-            width_ = size.GetWidth();
-        }
+    if (size.GetWidth() != width_) {
+        std::fill(bits_.begin(), bits_.end(), 0);
+        width_ = size.GetWidth();
     }
     AVPixelFormat wxFmt = AV_PIX_FMT_RGB32;
     sws_ctx_ = sws_getCachedContext(sws_ctx_,

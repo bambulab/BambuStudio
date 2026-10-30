@@ -3654,6 +3654,11 @@ void StatusPanel::update_camera_state(MachineObject *obj)
         m_panel_monitoring_title->Layout();
     }
 
+    if (m_device_operations_tooltip && m_device_operations_tooltip->IsShown()) {
+        if (!want_breathe || !m_camera_title_pill->GetScreenRect().Contains(wxGetMousePosition()))
+            m_device_operations_tooltip->Hide();
+    }
+
     // camera setting
     if (m_camera_popup && m_camera_popup->IsShown()) {
         bool show_vcamera = m_media_play_ctrl->IsStreaming();
@@ -6950,6 +6955,7 @@ void StatusPanel::set_default()
 {
     BOOST_LOG_TRIVIAL(trace) << "status_panel: set_default";
     close_camera_fullscreen();
+    if (m_device_operations_tooltip) m_device_operations_tooltip->Hide();
     m_devid.clear();
     last_subtask                  = nullptr;
     last_tray_exist_bits          = -1;
