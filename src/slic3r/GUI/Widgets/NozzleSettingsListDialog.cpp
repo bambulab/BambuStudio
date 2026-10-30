@@ -12,9 +12,11 @@
 
 #include <wx/gdicmn.h>
 #include <wx/sizer.h>
+#include <wx/statbmp.h>
 #include <wx/stattext.h>
 
 #include "slic3r/GUI/ExtruderPanel.hpp"
+#include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
@@ -482,6 +484,61 @@ void NozzleRow::Rescale()
         if (filament.box) filament.box->SetSize(dip(m_parent, 16, 16));
 }
 
+/**
+ * rief Green text link with a chevron that folds or unfolds a section.
+ *
+ * Starts folded. It only reports the new state: the owner shows or hides the section and lays out again.
+ */
+class DisclosureView : public wxPanel
+{
+public:
+    DisclosureView(wxWindow *parent, const wxString &text, std::function<void(bool expanded)> on_toggle)
+        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+        , m_on_toggle(std::move(on_toggle))
+        , m_expanded_icon(this, "drop_down_green", 16)
+        , m_collapsed_icon(this, "drop_right_green", 16)
+    {
+        SetBackgroundColour(parent->GetBackgroundColour());
+        m_label = new Label(this, Label::Body_13, text);
+        m_label->SetForegroundColour(ThemeColor::BrandGreen);
+        m_chevron = new wxStaticBitmap(this, wxID_ANY, m_collapsed_icon.bmp());
+
+        auto *sizer = new wxBoxSizer(wxHORIZONTAL);
+        sizer->Add(m_label, 0, wxALIGN_CENTER_VERTICAL);
+        sizer->Add(m_chevron, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
+        SetSizer(sizer);
+
+        // The whole link is the click target, not only the panel behind the text.
+        for (wxWindow *target : std::initializer_list<wxWindow *>{this, m_label, m_chevron}) {
+            target->SetCursor(wxCURSOR_HAND);
+            target->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &) { toggle(); });
+        }
+        Bind(wxEVT_DPI_CHANGED, [this](wxDPIChangedEvent &e) {
+            m_expanded_icon.msw_rescale();
+            m_collapsed_icon.msw_rescale();
+            update_chevron();
+            e.Skip();
+        });
+    }
+
+private:
+    void toggle()
+    {
+        m_expanded = !m_expanded;
+        update_chevron();
+        if (m_on_toggle) m_on_toggle(m_expanded);
+    }
+
+    void update_chevron() { m_chevron->SetBitmap((m_expanded ? m_expanded_icon : m_collapsed_icon).bmp()); }
+
+    std::function<void(bool)> m_on_toggle;
+    ScalableBitmap            m_expanded_icon;
+    ScalableBitmap            m_collapsed_icon;
+    Label                    *m_label{nullptr};
+    wxStaticBitmap           *m_chevron{nullptr};
+    bool                      m_expanded{false};
+};
+
 } // namespace
 
 class NozzleColumn : public wxPanel
@@ -646,8 +703,9 @@ void NozzleSettingsListDialog::build_columns(wxBoxSizer *main_sizer, const std::
     });
 }
 
-// Read-only rack of the connected printer, below the columns. Only a printer of the selected
-// preset's model with a nozzle rack qualifies; otherwise the section does not exist at all.
+// Read-only rack of the connected printer, below the columns, folded behind a link until the user
+// opens it. Only a printer of the selected preset's model with a nozzle rack qualifies; otherwise
+// the section does not exist at all.
 void NozzleSettingsListDialog::build_printer_status(wxBoxSizer *main_sizer)
 {
     if (!m_machine_baseline.synced) return; // no printer, or a printer of another model
@@ -658,7 +716,18 @@ void NozzleSettingsListDialog::build_printer_status(wxBoxSizer *main_sizer)
 
     auto *status = new MultiNozzleStatusTable(this, _L("Current printer status"));
     status->UpdateRackInfo(rack);
-    main_sizer->Add(status, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
+    status->Hide();
+
+    const wxString link_text = wxString::Format(_L("Connected printer %s, view machine status"), from_u8(obj->get_dev_name()));
+    auto *disclosure = new DisclosureView(this, link_text, [this, status](bool expanded) {
+        status->Show(expanded);
+        Layout();
+        Fit(); // shrink back as well as grow
+        Refresh();
+    });
+
+    main_sizer->Add(disclosure, 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(12));
+    main_sizer->Add(status, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(12));
 }
 
 void NozzleSettingsListDialog::build_button_bar(wxBoxSizer *main_sizer)
