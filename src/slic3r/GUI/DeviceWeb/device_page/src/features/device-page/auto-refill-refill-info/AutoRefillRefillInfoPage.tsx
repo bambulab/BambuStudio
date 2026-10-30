@@ -67,7 +67,7 @@ export function AutoRefillRefillInfoPage() {
     confirmAddRefillFilaments,
     resetGroup,
     removeSlot,
-    openAmsSettings,
+    enableAutoRefill,
     moveSlot,
     applyingRefillEdit,
     toasts,
@@ -230,7 +230,7 @@ export function AutoRefillRefillInfoPage() {
             <button
               type="button"
               className="refill-page__open-settings"
-              onClick={() => { void openAmsSettings(); }}
+              onClick={() => { void enableAutoRefill(); }}
             >
               {t('Open Auto Refill')}
             </button>

@@ -51,7 +51,7 @@ const PASS_THROUGH_ERROR_KEYS = new Set<string>([
   'Add refill filaments failed',
   'Reset refill group failed',
   'Remove refill slot failed',
-  'Open AMS settings failed',
+  'Enable auto refill failed',
   'Move refill slot failed',
   'The printer did not respond to the refill command.',
 ]);
@@ -639,9 +639,9 @@ export function useAutoRefillRefillInfoBridge() {
     return true;
   }, [request, setFriendlyError]);
 
-  const openAmsSettings = useCallback(async (): Promise<boolean> => {
+  const enableAutoRefill = useCallback(async (): Promise<boolean> => {
     const resp = await request<ReturnType<typeof makeBody>, BridgeResponseBody<AutoRefillRefillInfoViewModel>>(
-      makeBody('action', 'open_ams_settings'),
+      makeBody('action', 'enable_auto_refill'),
       5000,
     );
     if (!resp.ok) {
@@ -649,12 +649,13 @@ export function useAutoRefillRefillInfoBridge() {
       return false;
     }
     if (resp.value.error_code !== 0) {
-      setFriendlyError(resp.value.message ?? 'Open AMS settings failed');
+      setFriendlyError(resp.value.message ?? 'Enable auto refill failed');
       return false;
     }
+    if (isStatePayload(resp.value.payload)) applyState(resp.value.payload);
     setError('');
     return true;
-  }, [request, setFriendlyError]);
+  }, [applyState, request, setFriendlyError]);
 
   useEffect(() => {
     const mockError = readMockErrorPreview();
@@ -701,7 +702,7 @@ export function useAutoRefillRefillInfoBridge() {
     confirmAddRefillFilaments,
     resetGroup,
     removeSlot,
-    openAmsSettings,
+    enableAutoRefill,
     moveSlot,
     applyingRefillEdit,
     toasts,

@@ -13,6 +13,8 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
 
+#include "libslic3r/Log.hpp"
+
 #include <algorithm>
 #include <memory>
 
@@ -109,8 +111,12 @@ nlohmann::json AutoRefillRefillInfoActions::Handle(AutoRefillRefillInfoVM& vm,
         return Reply(vm, action, 1, "no printer");
     }
 
-    if (action == SV::action::open_ams_settings) {
-        wxGetApp().CallAfter([]() { OpenAmsSettingsDialog(); });
+    if (action == SV::action::enable_auto_refill) {
+        if (!obj->GetFilaSystem()->GetAutoRefillMgr().IsSupported()) {
+            return Reply(vm, action, 1, "auto refill not supported");
+        }
+        BOOST_LOG_TRIVIAL(info) << "enable auto refill from refill page";
+        obj->command_ams_switch_filament(true);
         return Reply(vm, action, 0, "");
     }
 

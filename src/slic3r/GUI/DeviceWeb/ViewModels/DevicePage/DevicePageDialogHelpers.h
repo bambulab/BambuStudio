@@ -41,9 +41,6 @@ struct EditedFilamentInfo {
 // `view_only` locks the dialog (2D laser/cut mode).
 std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams_id, const std::string& slot_id, bool view_only = false);
 
-// Open the native AMS settings dialog. Must run on the UI thread.
-void OpenAmsSettingsDialog();
-
 // Load actions require a known filament profile. Returns true when the target
 // tray is unknown and a warning popup was queued, so the caller must stop.
 bool BlockLoadForUnknownFilament(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id);

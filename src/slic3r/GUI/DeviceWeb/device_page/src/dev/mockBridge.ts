@@ -550,7 +550,7 @@ function handleRequest(pkt: RequestPacket) {
       dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, { suppressed: false }));
       return;
     }
-    if (submod === 'action' && (action === 'rendered' || action === 'open_ams_settings')) {
+    if (submod === 'action' && (action === 'rendered' || action === 'enable_auto_refill')) {
       dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAutoRefillRefillInfoState));
       return;
     }

@@ -106,7 +106,7 @@ namespace nozzle_flow_type {
 
 namespace action {
     inline constexpr const char* rendered   = "rendered";
-    inline constexpr const char* open_ams_settings = "open_ams_settings";
+    inline constexpr const char* enable_auto_refill = "enable_auto_refill";
     inline constexpr const char* open_add_group = "open_add_group";
     inline constexpr const char* open_add_filament = "open_add_filament";
     inline constexpr const char* reset      = "reset";
