@@ -8363,9 +8363,15 @@ void Sidebar::update_mixed_filament_list(bool reload_3d)
                 wxBufferedPaintDC dc(content_panel);
                 wxSize sz = content_panel->GetClientSize();
 
+                // Fill every pixel of the buffer: its bitmap is not cleared on macOS, and an outlined
+                // DrawRectangle leaves the last Retina row/column unpainted, so stale buffer content
+                // (old swatches/borders) showed up below and right of the box. Drawing the border as
+                // two fills also gives an even 1px border on all sides, like the physical rows.
+                dc.SetBackground(wxBrush(mc_border));
+                dc.Clear();
+                dc.SetPen(*wxTRANSPARENT_PEN);
                 dc.SetBrush(wxBrush(mc_bg));
-                dc.SetPen(wxPen(mc_border, 1));
-                dc.DrawRectangle(0, 0, sz.GetWidth(), sz.GetHeight());
+                dc.DrawRectangle(1, 1, sz.GetWidth() - 2, sz.GetHeight() - 2);
 
                 dc.SetFont(::Label::Body_13);
                 int x = cp_pad;
