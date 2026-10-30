@@ -12,6 +12,7 @@
 #include "SupportLayer.hpp"
 #include "SupportParameters.hpp"
 
+#include <functional>
 #include <map>
 #include "libslic3r/Log.hpp"
 
@@ -119,7 +120,9 @@ void generate_support_toolpaths(
     // otherwise printed sheath-only / hollow). Indexed like intermediate_layers after undefined layers
     // are removed. Look up by idx_layer_intermediate (print_z), not by support_layer_id (raft / contacts).
     // Non-owning; entries are moved from when extruded. Null when the caller has no organic lightning.
-    std::vector<Polylines>              *lightning_infill_lines = nullptr);
+    std::vector<Polylines>              *lightning_infill_lines = nullptr,
+    // Organic tree only: checks cancellation while tagging paths that overlap cooldown areas.
+    std::function<void()>                throw_on_cancel = {});
 
 // FN_HIGHER_EQUAL: the provided object pointer has a Z value >= of an internal threshold.
 // Find the first item with Z value >= of an internal threshold of fn_higher_equal.

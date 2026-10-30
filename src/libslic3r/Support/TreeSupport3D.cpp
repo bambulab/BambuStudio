@@ -5104,7 +5104,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         const long long support_toolpath_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
         generate_support_toolpaths(print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
             raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers,
-            cooldown_areas, &lightning_infill_lines);
+            cooldown_areas, &lightning_infill_lines, throw_on_cancel);
         print_object.support_stage_times().toolpath_generate +=
             Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_toolpath_begin_time;
 

@@ -2279,7 +2279,8 @@ void generate_support_toolpaths(
     const SupportGeneratorLayersPtr     &interface_layers,
     const SupportGeneratorLayersPtr     &base_interface_layers,
     const std::vector<ExPolygons>       &cooldown_areas,
-    std::vector<Polylines>              *lightning_infill_lines)
+    std::vector<Polylines>              *lightning_infill_lines,
+    std::function<void()>                throw_on_cancel)
 {
     std::vector<float>      angles { support_params.base_angle };
     if (config.support_base_pattern == smpRectilinearGrid)
@@ -2295,10 +2296,12 @@ void generate_support_toolpaths(
 
     tbb::parallel_for(tbb::blocked_range<size_t>(0, n_raft_layers),
         [&support_layers, &raft_layers, &intermediate_layers, &config, &support_params, &slicing_params,
-            &bbox_object, link_max_length_factor]
+            &bbox_object, &throw_on_cancel, link_max_length_factor]
             (const tbb::blocked_range<size_t>& range) {
         for (size_t support_layer_id = range.begin(); support_layer_id < range.end(); ++ support_layer_id)
         {
+            if (throw_on_cancel)
+                throw_on_cancel();
             assert(support_layer_id < raft_layers.size());
             SupportLayer               &support_layer = *support_layers[support_layer_id];
             assert(support_layer.support_fills.entities.empty());
@@ -2404,7 +2407,7 @@ void generate_support_toolpaths(
     std::vector<LayerCache>             layer_caches(support_layers.size());
 
     tbb::parallel_for(tbb::blocked_range<size_t>(n_raft_layers, support_layers.size()),
-        [&config, &slicing_params, &support_params, &support_layers, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &base_interface_layers, &cooldown_areas, &lightning_infill_lines, &layer_caches,
+        [&config, &slicing_params, &support_params, &support_layers, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &base_interface_layers, &cooldown_areas, &lightning_infill_lines, &layer_caches, &throw_on_cancel,
             &bbox_object, &angles, n_raft_layers, link_max_length_factor]
             (const tbb::blocked_range<size_t>& range) {
         // Indices of the 1st layer in their respective container at the support layer height.
@@ -2438,6 +2441,8 @@ void generate_support_toolpaths(
         filler_support->set_bounding_box(bbox_object);
         for (size_t support_layer_id = range.begin(); support_layer_id < range.end(); ++ support_layer_id)
         {
+            if (throw_on_cancel)
+                throw_on_cancel();
             SupportLayer &support_layer = *support_layers[support_layer_id];
             LayerCache   &layer_cache   = layer_caches[support_layer_id];
             const float support_interface_angle = support_params.support_interface_angle(support_layer.interface_id(), config.support_interface_pattern);
@@ -2716,9 +2721,22 @@ void generate_support_toolpaths(
             }
 
             if (support_layer_id < cooldown_areas.size() && !cooldown_areas[support_layer_id].empty()) {
+                std::function<void(const ExtrusionEntity *, Polygons &)> polygonsCoveredByWidth =
+                    [&](const ExtrusionEntity *entity, Polygons &polygons) {
+                        if (throw_on_cancel)
+                            throw_on_cancel();
+                        if (const ExtrusionEntityCollection *collection = dynamic_cast<const ExtrusionEntityCollection *>(entity)) {
+                            for (const ExtrusionEntity *child : collection->entities)
+                                polygonsCoveredByWidth(child, polygons);
+                        } else {
+                            entity->polygons_covered_by_width(polygons, 0.f);
+                        }
+                    };
                 std::function<void(ExtrusionEntitiesPtr &)> setOverhangDegreeImpl = [&](ExtrusionEntitiesPtr &entities) {
                     for (auto entityPtr : entities) {
-                        if (overlaps(to_expolygons(entityPtr->polygons_covered_by_width()), cooldown_areas[support_layer_id])) {
+                        Polygons polygons;
+                        polygonsCoveredByWidth(entityPtr, polygons);
+                        if (overlaps(to_expolygons(std::move(polygons)), cooldown_areas[support_layer_id])) {
                             if (ExtrusionEntityCollection *collection = dynamic_cast<ExtrusionEntityCollection *>(entityPtr)) {
                                 setOverhangDegreeImpl(collection->entities);
                             } else if (ExtrusionPath *path = dynamic_cast<ExtrusionPath *>(entityPtr)) {
@@ -2736,6 +2754,8 @@ void generate_support_toolpaths(
                 setOverhangDegreeImpl(bottom_contact_layer.extrusions);
                 setOverhangDegreeImpl(interface_layer.extrusions);
                 setOverhangDegreeImpl(base_interface_layer.extrusions);
+                if (throw_on_cancel)
+                    throw_on_cancel();
             }
 
             // Merge base_interface_layers to base_layers to avoid unneccessary retractions
@@ -2789,9 +2809,11 @@ void generate_support_toolpaths(
 
     // Now modulate the support layer height in parallel.
     tbb::parallel_for(tbb::blocked_range<size_t>(n_raft_layers, support_layers.size()),
-        [&support_layers, &layer_caches, &support_params, &bbox_object]
+        [&support_layers, &layer_caches, &support_params, &bbox_object, &throw_on_cancel]
             (const tbb::blocked_range<size_t>& range) {
         for (size_t support_layer_id = range.begin(); support_layer_id < range.end(); ++ support_layer_id) {
+            if (throw_on_cancel)
+                throw_on_cancel();
             SupportLayer &support_layer = *support_layers[support_layer_id];
             LayerCache   &layer_cache   = layer_caches[support_layer_id];
             // For all extrusion types at this print_z, ordered by decreasing layer height:
