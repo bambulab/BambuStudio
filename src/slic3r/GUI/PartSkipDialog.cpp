@@ -779,7 +779,6 @@ void PartSkipDialog::InitDialogUI()
             }
             label->SetLabel(wxString::FromUTF8(m_parts_name[part_id]));
             label->SetBackgroundColour(*wxWHITE);
-            label->SetForegroundColour(wxColor(107, 107, 107));
             label->Wrap(-1);
             label->SetMinSize(wxSize(-1, FromDIP(18)));
             checkbox->SetBackgroundColour(*wxWHITE);
@@ -795,6 +794,7 @@ void PartSkipDialog::InitDialogUI()
     }
 
     m_scroll_sizer->Layout();
+    wxGetApp().UpdateDarkUIWin(m_list_view);
     m_list_view->FitInside();
     UpdateApplyButtonStatus();
     UpdateCountLabel();
