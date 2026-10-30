@@ -180,7 +180,7 @@ wgtRackToolhead::wgtRackToolhead(wxWindow* parent, const wxString& image_name, i
 
 void wgtRackToolhead::reload_bitmap()
 {
-    m_bitmap = create_scaled_bitmap(m_image_name.ToStdString(), this, FromDIP(m_art_height_dip));
+    m_bitmap = create_scaled_bitmap(m_image_name.ToStdString(), this, m_art_height_dip);
     if (m_bitmap.IsOk()) {
         const wxSize size(m_bitmap.GetWidth(), m_bitmap.GetHeight());
         SetMinSize(size);
