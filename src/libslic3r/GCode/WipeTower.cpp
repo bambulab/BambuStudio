@@ -4126,8 +4126,10 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     // if they were and all of them dropped out, there is genuinely nothing to fill.
     if (fill_boxes.empty() && !multi_block_fill) {
         float fill_box_depth = m_wipe_tower_depth - 2 * wall_width;
+        // Use the band's own depth: m_layer_info->depth is locked to the full tower depth when the outer
+        // walls are kept unshrunk (side scrape), which would lay the grid over an area nothing supports.
         if (m_wipe_tower_blocks.size() == 1)
-            fill_box_depth = m_layer_info->depth - 2 * wall_width;
+            fill_box_depth = band_fill_depth(m_wipe_tower_blocks.front(), m_cur_layer_id) - 2 * wall_width;
         fill_boxes.emplace_back(Vec2f(wall_width, wall_width), m_wipe_tower_width - 2 * wall_width, fill_box_depth);
     }
 
