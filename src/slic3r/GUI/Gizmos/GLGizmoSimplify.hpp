@@ -11,6 +11,7 @@
 
 namespace Slic3r {
 class ModelVolume;
+class ModelObject;
 class Model;
 
 namespace GUI {
@@ -45,6 +46,7 @@ protected:
     CommonGizmosDataID on_get_requirements() const override;
 
 private:
+    static void push_simplify_suggestion(const ModelObject &object, NotificationManager &manager);
     void apply_simplify();
     void close();
 
@@ -63,7 +65,7 @@ private:
         bool use_count = false;
         float    decimate_ratio = 50.f; // in percent
         uint32_t wanted_count = 0; // initialize by percents
-        float max_error = 1.; // maximal quadric error
+        float max_error = 0.1f; // maximal quadric error, matches the default detail level "Medium"
 
         void fix_count_by_ratio(size_t triangle_count);
         bool operator==(const Configuration& rhs) {
@@ -76,6 +78,9 @@ private:
     };
 
     Configuration m_configuration;
+    // Detail level slider position (0 = extra high .. 4 = extra low), kept per opened model so
+    // the slider always matches the max_error the preview is computed with.
+    int m_detail_level = 2;
 
     bool m_move_to_center; // opening gizmo
         
@@ -89,6 +94,9 @@ private:
     // Set when Apply was clicked but the work is deferred to run outside the render frame
     // (apply may pop a modal dialog). Prevents re-triggering Apply while it is pending.
     bool m_apply_pending = false;
+    // Objects whose simplify suggestion was hidden on selection here; shown again when the
+    // gizmo closes if the object still needs simplifying.
+    std::vector<ObjectID> m_hidden_suggestions;
     GLModel m_glmodel;
     size_t m_triangle_count; // triangle count of the model currently shown
 

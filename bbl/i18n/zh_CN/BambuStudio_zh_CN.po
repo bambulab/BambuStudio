@@ -1680,7 +1680,7 @@ msgid "Tolerance"
 msgstr "容差"
 
 msgid "Mesh name"
-msgstr "Mesh名"
+msgstr "模型名"
 
 msgid "Detail level"
 msgstr "细节等级"
@@ -1728,6 +1728,19 @@ msgstr "保留所有绘制"
 
 msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr "包括颜色绘制、Z缝绘制、支撑绘制和绒毛表面绘制。不勾选时，布尔结果不保留任何绘制。"
+
+msgid "All painting (color, seam, support and fuzzy skin) will be removed from the simplified model. Check \"Keep all painting\" to keep it."
+msgstr "简化后的模型将删除所有绘制（颜色、Z缝、支撑和绒毛表面）。勾选\"保留所有绘制\"可保留绘制。"
+
+msgid "Calculating simplified preview..."
+msgstr "正在计算简化预览..."
+
+msgid "Simplification method"
+msgstr "简化方式"
+
+#, boost-format
+msgid "Triangles after simplification: %1%"
+msgstr "简化后三角面片数：%1%"
 
 #, boost-format
 msgid "%1%"
