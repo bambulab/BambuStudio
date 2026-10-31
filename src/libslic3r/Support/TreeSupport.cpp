@@ -1807,6 +1807,7 @@ void TreeSupport::fold_nodes_multi_diameter()
 {
     m_fold_carriers.clear();
     m_fold_slab_of_layer.clear();
+    m_base_only_fold_layers.clear();
 
     const SupportMergePlan &plan = m_support_merge_plan;
     if (! plan.enabled || plan.slabs.empty())
@@ -2189,6 +2190,16 @@ void TreeSupport::fold_nodes_multi_diameter()
         // base node could come out as roof / roof_1st_layer again.
         struct ChainState { int steps; int roof; size_t printed; };
         std::unordered_map<const SupportNode *, ChainState> chain;
+        std::vector<const SupportNode *> merged;
+        // 汇合时被另一父节点完整包住的父节点（圆在多边形内、小圆在大圆内）不参与计数，以外层父节点为准。
+        auto contained_in = [](const SupportNode *inner, const SupportNode *outer) {
+            if (inner == outer || inner->type == ePolygon)
+                return false;
+            if (outer->type == ePolygon)
+                return ! outer->overhang.empty() && outer->overhang.contains(inner->position);
+            const double r_in = scale_(inner->radius), r_out = scale_(outer->radius);
+            return r_out > r_in + SCALED_EPSILON && (outer->position - inner->position).cast<double>().norm() + r_in <= r_out;
+        };
         for (size_t layer_nr = num_layers; layer_nr -- > 0;)
             for (SupportNode *node : contact_nodes[layer_nr]) {
                 if (node == nullptr || node->distance_to_top < 0)
@@ -2198,15 +2209,22 @@ void TreeSupport::fold_nodes_multi_diameter()
                 int  steps      = -1;
                 int  roof       = 0;
                 bool has_parent = false;
+                merged.clear();
                 for_each_parent(node, [&](const SupportNode *parent) {
-                    const auto parent_it = chain.find(parent);
-                    if (parent_it == chain.end())
-                        return;
-                    const int step = parent_it->second.printed != printed ? 1 : 0;
-                    steps = std::max(steps, parent_it->second.steps + step);
-                    roof  = has_parent ? std::max(roof, parent_it->second.roof - step) : parent_it->second.roof - step;
-                    has_parent = true;
+                    if (chain.count(parent))
+                        merged.emplace_back(parent);
                 });
+                for (const SupportNode *parent : merged) {
+                    if (merged.size() > 1 && std::any_of(merged.begin(), merged.end(),
+                            [&](const SupportNode *other) { return contained_in(parent, other); }))
+                        continue;
+                    const ChainState &state = chain.at(parent);
+                    const int step = state.printed != printed ? 1 : 0;
+                    // 分支汇合处：层数取大、接触面层数取小，汇合点按更深的分支算主体（各分支汇合前至少已打一层接触面）。
+                    steps = std::max(steps, state.steps + step);
+                    roof  = has_parent ? std::min(roof, state.roof - step) : state.roof - step;
+                    has_parent = true;
+                }
                 if (! has_parent) {
                     steps = node->distance_to_top;
                     roof  = node->support_roof_layers_below;
@@ -2559,6 +2577,101 @@ void TreeSupport::fold_nodes_multi_diameter()
         BOOST_LOG_TRIVIAL(warning) << "refused " << misaligned_carriers
                                    << " folded support carriers with unsafe Z overlap";
 
+    // 第二轮：第一轮被拒的合并段，只把贯穿整段的支撑主体合并到段顶，接触面/转换层保持细层。
+    // 角色沿用第一轮 final_counters；整段合并只会完全覆盖段内细层，重叠由裁剪处理。
+    struct BaseFold { size_t slab_idx; std::vector<std::pair<SupportNode *, coordf_t>> tops; };
+    std::vector<BaseFold>                   base_folds;
+    std::unordered_set<const SupportNode *> base_folded; // 被并入第二轮合并段的节点（含段顶）
+    {
+        auto counters_of = [&](const SupportNode *node) {
+            const auto it = final_counters.find(const_cast<SupportNode *>(node));
+            return it == final_counters.end() ? std::make_pair(node->distance_to_top, node->support_roof_layers_below) : it->second;
+        };
+        auto unmoved = [&](const SupportNode *node) {
+            return node != nullptr && node->distance_to_top >= 0 && moves_to.count(node) == 0;
+        };
+        auto is_left_base = [&](const SupportNode *node, size_t layer_nr) {
+            return foldable(node) && moves_to.count(node) == 0 && ! is_interface_role(counters_of(node), layer_nr);
+        };
+        // 段顶允许留下的细层接触面；转换层由主体材料挤出，仅当接触面也指定为本段材料时才能留在细层。
+        auto stays_roof = [&](const SupportNode *node, bool keep_transition) {
+            const auto [dist, roof] = counters_of(node);
+            const int  if_layers  = int(m_support_params.num_top_interface_layers);
+            const bool transition = (roof == 0 || roof == 1) && dist >= if_layers;
+            return if_layers > 0 && (transition ? keep_transition : roof > 0);
+        };
+        std::unordered_set<const SupportNode *> members, fine, reaches;
+        for (size_t slab_idx = 0; slab_idx < plan.slabs.size(); ++ slab_idx) {
+            const std::vector<size_t>    &layers = layers_per_slab[slab_idx];
+            const SupportMergePlan::Slab &slab   = plan.slabs[slab_idx];
+            if (layers.size() < 2 || (slab.bottom_anchor && m_raft_layers == 0))
+                continue;
+            const size_t top = layers.back(), bottom = layers.front();
+            if (const auto it = carriers[slab_idx].find(top); it != carriers[slab_idx].end() && it->second.folds)
+                continue;
+            const coordf_t slab_height = layer_heights[top].print_z - layer_heights[bottom].print_z + layer_heights[bottom].height;
+            const bool keep_transition = explicit_interface_filament == slab.filament_id;
+            if (! adaptive_layer_height_range(slab.nozzle_diameter).contains(slab_height) ||
+                std::any_of(contact_nodes[top].begin(), contact_nodes[top].end(), [&](const SupportNode *node) {
+                    return unmoved(node) && ! is_left_base(node, top) && ! stays_roof(node, keep_transition);
+                }))
+                continue;
+            // 自上而下：剩余主体都是成员；父节点不全是非 fine 成员（接触面下方、段内新分支）的标为 fine，保持细层托住接触面。
+            members.clear();
+            fine.clear();
+            for (auto it = layers.rbegin(); it != layers.rend(); ++ it)
+                for (const SupportNode *node : contact_nodes[*it])
+                    if (is_left_base(node, *it)) {
+                        bool keep = *it != top && node->parent == nullptr && node->parents.empty();
+                        if (*it != top)
+                            for_each_parent(node, [&](const SupportNode *p) { keep = keep || ! members.count(p) || fine.count(p); });
+                        if (keep)
+                            fine.insert(node);
+                        members.insert(node);
+                    }
+            if (members.empty())
+                continue;
+            // 自下而上：只有经主体节点连到段底的支撑柱才能合并，否则合并层会悬空或被接触面裁空（R1）。
+            reaches.clear();
+            for (size_t layer_nr : layers)
+                for (const SupportNode *node : contact_nodes[layer_nr])
+                    if (members.count(node) && (layer_nr == bottom || (node->child != nullptr && reaches.count(node->child))))
+                        reaches.insert(node);
+            // 段顶的非主体节点已在上面检查过；段顶主体必须都能经主体连到段底，否则放弃整段（R3）。
+            BaseFold fold { slab_idx, {} };
+            bool     ok = true;
+            for (SupportNode *node : contact_nodes[top]) {
+                if (! members.count(node))
+                    continue;
+                if (! (ok = reaches.count(node) > 0))
+                    break;
+                coordf_t radius = node->radius;
+                for (const SupportNode *n = node->child; n != nullptr && members.count(n); n = n->child)
+                    radius = std::max(radius, coordf_t(n->radius));
+                fold.tops.emplace_back(node, radius);
+            }
+            if (! ok || fold.tops.empty())
+                continue;
+            // 与第一轮相同：整段被模型挡住、没有任何截面能留下时不合并。
+            ExPolygons span_collision;
+            for (size_t l = layer_heights[bottom].obj_layer_nr; l < layer_heights[top].obj_layer_nr && l < m_ts_data->m_layer_outlines.size(); ++ l)
+                append(span_collision, offset_ex(m_ts_data->m_layer_outlines[l], float(xy_distance_scaled)));
+            if (! span_collision.empty()) {
+                span_collision = union_ex(span_collision);
+                if (std::none_of(fold.tops.begin(), fold.tops.end(), [&](const auto &top_node) {
+                        ExPolygons probe;
+                        probe_of(top_node.first, false, probe, top_node.second);
+                        return probe.empty() || ! diff_ex(probe, span_collision).empty();
+                    }))
+                    continue;
+            }
+            for (const SupportNode *node : reaches)
+                if (members.count(node) && ! fine.count(node))
+                    base_folded.insert(node);
+            base_folds.emplace_back(std::move(fold));
+        }
+    }
+
     // A rejected carrier keeps its original fine-grid geometry. Pin that material to the finest candidate
     // that can print the fine layer, otherwise ToolOrdering may select the coarse support nozzle even though
     // no coarse slab was emitted there.
@@ -2569,7 +2682,7 @@ void TreeSupport::fold_nodes_multi_diameter()
             for (SupportNode *node : contact_nodes[layer_nr]) {
                 const auto top_it = column_top[slab_idx].find(node);
                 if (top_it == column_top[slab_idx].end() ||
-                    moves_to.count(node) > 0)
+                    moves_to.count(node) > 0 || base_folded.count(node) > 0)
                     continue;
                 const auto counter_it = final_counters.find(node);
                 const std::pair<int, int> counters = counter_it == final_counters.end() ?
@@ -2613,7 +2726,7 @@ void TreeSupport::fold_nodes_multi_diameter()
             }
         }
     }
-    if (moves_to.empty()) {
+    if (moves_to.empty() && base_folds.empty()) {
         BOOST_LOG_TRIVIAL(info) << "nothing folded of " << plan.slabs.size() << " slabs";
         return;
     }
@@ -2721,6 +2834,40 @@ void TreeSupport::fold_nodes_multi_diameter()
         m_fold_slab_of_layer.clear();
     }
 
+    // 应用第二轮：被并入的节点从细层移除，段顶节点扩成整段高度。
+    if (! base_folds.empty() && m_fold_slab_of_layer.empty())
+        m_fold_slab_of_layer.assign(num_layers, -1);
+    for (const BaseFold &fold : base_folds) {
+        const SupportMergePlan::Slab &slab   = plan.slabs[fold.slab_idx];
+        const std::vector<size_t>    &layers = layers_per_slab[fold.slab_idx];
+        const size_t   top      = layers.back();
+        const coordf_t bottom_z = layer_heights[layers.front()].print_z - layer_heights[layers.front()].height;
+        const coordf_t height   = layer_heights[top].print_z - bottom_z;
+        for (size_t layer_nr : layers)
+            if (layer_nr != top)
+                contact_nodes[layer_nr].erase(std::remove_if(contact_nodes[layer_nr].begin(), contact_nodes[layer_nr].end(),
+                    [&](const SupportNode *node) { return base_folded.count(node) > 0; }), contact_nodes[layer_nr].end());
+        for (const auto &[node, radius] : fold.tops) {
+            node->radius                = radius;
+            node->height = node->slab_height = height;
+            node->slab_bottom_obj_layer = layer_heights[layers.front()].obj_layer_nr;
+        }
+        if (SupportLayer *ts_layer = m_object->get_support_layer(top + m_raft_layers)) {
+            ts_layer->base_slab_height        = height;
+            ts_layer->planned_filament_id     = slab.filament_id;
+            ts_layer->planned_nozzle_diameter = slab.nozzle_diameter;
+        }
+        int &slab_ref = m_fold_slab_of_layer[top];
+        if (slab_ref < 0) {
+            m_fold_carriers.emplace_back();
+            for (size_t layer_nr : layers)
+                m_fold_slab_of_layer[layer_nr] = int(m_fold_carriers.size() - 1);
+        }
+        m_fold_carriers[size_t(slab_ref)].push_back({ top, bottom_z });
+        m_base_only_fold_layers.emplace_back(top); // slab 按 Z 升序，结果天然有序
+    }
+    folded_carriers += base_folds.size();
+
     // Pass 4: printed layer index for the interface pattern. Consecutive printed layers have to alternate,
     // and a folded stack prints several object layers apart, so count the layers that still print.
     if (fold_interface && folded_carriers > 0) {
@@ -2737,7 +2884,7 @@ void TreeSupport::fold_nodes_multi_diameter()
 
     BOOST_LOG_TRIVIAL(info) << "folded " << folded_carriers << " column carriers over "
                             << m_fold_carriers.size() << " of " << plan.slabs.size() << " slabs, interface fold "
-                            << (fold_interface ? "on" : "off");
+                            << (fold_interface ? "on" : "off") << ", base only " << base_folds.size();
 }
 
 // BBS multi-diameter: a fine branch section sitting next to a coarse slab only overlaps the coarse wall over its
@@ -4631,6 +4778,25 @@ void TreeSupport::resolve_material_covered_by_folded_interfaces()
         if (source->base_slab_height > source->height + EPSILON && ! source->base_areas.empty()) {
             const coordf_t source_top    = source->print_z;
             const coordf_t source_bottom = source_top - source->base_slab_height;
+            // 第二轮合并层让开段内保留细层的接触面/转换层：段内细层主体托住它们，粗层在其投影处留空（第一轮合并前已检查过）。
+            if (std::binary_search(m_base_only_fold_layers.begin(), m_base_only_fold_layers.end(),
+                                   source_idx - size_t(m_raft_layers))) {
+                const BoundingBox base_bbox = get_extents(source->base_areas);
+                ExPolygons        fine_interface;
+                for (size_t victim_idx = source_idx; victim_idx -- > size_t(m_raft_layers);) {
+                    const SupportLayer *victim = layers[victim_idx];
+                    if (victim == nullptr || victim->height < EPSILON)
+                        continue;
+                    if (victim->print_z <= source_bottom + EPSILON)
+                        break;
+                    for (const ExPolygons *areas : { &victim->roof_areas, &victim->roof_1st_layer })
+                        for (const ExPolygon &area : *areas)
+                            if (base_bbox.overlap(get_extents(area)))
+                                fine_interface.emplace_back(area);
+                }
+                if (! fine_interface.empty() && trim_layer(*source, union_ex(fine_interface), {}))
+                    ++ trimmed_layers;
+            }
             const ExPolygons &source_base = source->base_areas;
             const BoundingBox source_bbox = get_extents(source_base);
 

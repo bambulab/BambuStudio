@@ -615,6 +615,8 @@ private:
     // Per support layer, the index into m_fold_carriers of the folded slab covering it, -1 for none.
     // Both are filled by fold_nodes_multi_diameter() and empty when nothing folded.
     std::vector<int>                 m_fold_slab_of_layer;
+    // 第二轮仅合并主体的段顶支撑层（升序），其段内接触面保持细层，需在裁剪时让开。
+    std::vector<size_t>              m_base_only_fold_layers;
     // Carriers of the same slab whose actual Z span covers layer_nr from above.
     std::vector<size_t> fold_carriers_above(size_t layer_nr) const;
     void generate_toolpaths();
