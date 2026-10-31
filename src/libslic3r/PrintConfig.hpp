@@ -1142,7 +1142,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,               role_base_wipe_speed))
     ((ConfigOptionBool,               precise_z_height)) // BBS
 
-    ((ConfigOptionBool, interlocking_beam))
     ((ConfigOptionFloat,interlocking_beam_width))
     ((ConfigOptionFloat,interlocking_orientation))
     ((ConfigOptionInt,  interlocking_beam_layer_count))
@@ -1287,6 +1286,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 seam_slope_inner_walls))
     ((ConfigOptionBool,                 embedding_wall_into_infill))
     ((ConfigOptionBool,                 alternate_extra_wall))
+    ((ConfigOptionBool,                 interlocking_beam))
 )
 
 // Effective wall loop count for a layer. Spiral vase ignores alternate_extra_wall.

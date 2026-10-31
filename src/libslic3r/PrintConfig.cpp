@@ -4764,7 +4764,7 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("interlocking_beam", coBool);
     def->label    = L("Use beam interlocking");
-    def->tooltip  = L("Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials.");
+    def->tooltip  = L("Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials.");
     def->category = L("Advanced");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));

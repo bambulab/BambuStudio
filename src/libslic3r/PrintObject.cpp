@@ -1012,7 +1012,7 @@ void PrintObject::prepare_infill()
     } // for each region
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
-    if (m_config.interlocking_beam.value)
+    if (this->has_interlocking_beam())
         discover_shell_for_perimeters();
     reset_slice_surfaces(slice_surfaces_cpy);
     // Only active if config->infill_only_where_needed. This step trims the sparse infill,
@@ -2686,6 +2686,14 @@ void PrintObject::discover_vertical_shells()
 }
 
 
+
+bool PrintObject::has_interlocking_beam() const
+{
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id)
+        if (this->printing_region(region_id).config().interlocking_beam.value)
+            return true;
+    return false;
+}
 
 void PrintObject::discover_shell_for_perimeters()
 {
