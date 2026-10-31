@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 17:17+0800\n"
+"POT-Creation-Date: 2026-10-31 09:59+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4728,12 +4728,6 @@ msgstr "Mẹo: Không hỗ trợ thiết lập thông tin khe AMS trong khi in"
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
 msgstr "Mẹo: Không hỗ trợ thiết lập thông tin khe cắm ảo trong khi in"
-
-msgid "Please enter valid filament weights."
-msgstr "Vui lòng nhập trọng lượng sợi nhựa hợp lệ."
-
-msgid "Please enter valid filament weight within 1000g."
-msgstr "Vui lòng nhập trọng lượng sợi nhựa hợp lệ, không vượt quá 1000g."
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Bạn có chắc chắn muốn xóa thông tin sợi nhựa không?"
@@ -21065,6 +21059,12 @@ msgid ""
 msgstr ""
 "Độ tin cậy thành công ngay lần đầu\n"
 "Giảm bớt việc phải theo dõi liên tục, tăng tính dự đoán được của kết quả đầu ra. Ví dụ: một cụm máy in nhỏ in các bộ phận bằng PETG sẽ tránh được những sự cố bất ngờ như \"hỏng hóc sau 6 giờ\" và đảm bảo các lô sản phẩm được hoàn tất đúng tiến độ."
+
+#~ msgid "Please enter valid filament weights."
+#~ msgstr "Vui lòng nhập trọng lượng sợi nhựa hợp lệ."
+
+#~ msgid "Please enter valid filament weight within 1000g."
+#~ msgstr "Vui lòng nhập trọng lượng sợi nhựa hợp lệ, không vượt quá 1000g."
 
 #, c-format, boost-format
 #~ msgid "%d triangles"

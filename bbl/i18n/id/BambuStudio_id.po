@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 17:17+0800\n"
+"POT-Creation-Date: 2026-10-31 09:59+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4728,12 +4728,6 @@ msgstr "Tips: Pengaturan informasi slot AMS saat pencetakan tidak didukung"
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
 msgstr "Tips: Pengaturan informasi slot Virtual saat pencetakan tidak didukung"
-
-msgid "Please enter valid filament weights."
-msgstr "Masukkan berat filamen yang valid."
-
-msgid "Please enter valid filament weight within 1000g."
-msgstr "Masukkan berat filamen yang valid, maksimal 1000 g."
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Apakah Anda yakin ingin menghapus informasi filamen?"
@@ -21066,6 +21060,12 @@ msgid ""
 msgstr ""
 "Keandalan Tepat di Percobaan Pertama \n"
 "Lebih sedikit pengawasan, hasil yang lebih terprediksi. Contoh: fasilitas print farm kecil yang mencetak komponen PETG menghindari kejutan 'gagal pada jam ke-6' dan menjaga produksi tetap sesuai jadwal."
+
+#~ msgid "Please enter valid filament weights."
+#~ msgstr "Masukkan berat filamen yang valid."
+
+#~ msgid "Please enter valid filament weight within 1000g."
+#~ msgstr "Masukkan berat filamen yang valid, maksimal 1000 g."
 
 #, c-format, boost-format
 #~ msgid "%d triangles"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 17:17+0800\n"
+"POT-Creation-Date: 2026-10-31 09:59+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -4729,12 +4729,6 @@ msgstr "İpucu: Yazdırma sırasında AMS yuva bilgilerinin ayarlanması destekl
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
 msgstr "İpucu: Yazdırma sırasında sanal yuva bilgilerinin ayarlanması desteklenmiyor."
-
-msgid "Please enter valid filament weights."
-msgstr "Lütfen geçerli filament ağırlıklarını girin."
-
-msgid "Please enter valid filament weight within 1000g."
-msgstr "Lütfen 1000 g'ı aşmayan geçerli bir filament ağırlığı girin."
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Filament bilgilerini silmek istediğinden emin misin?"
@@ -21068,6 +21062,12 @@ msgid ""
 msgstr ""
 "İlk Seferde Başarı Güvenilirliği\n"
 "Daha az gözetim, daha öngörülebilir sonuçlar. Örnek: PETG parçaları üreten küçük bir yazıcı çiftliği, \"6. saatte baskının başarısız olması\" gibi sürprizlerden kaçınır ve partileri programa uygun şekilde tamamlar."
+
+#~ msgid "Please enter valid filament weights."
+#~ msgstr "Lütfen geçerli filament ağırlıklarını girin."
+
+#~ msgid "Please enter valid filament weight within 1000g."
+#~ msgstr "Lütfen 1000 g'ı aşmayan geçerli bir filament ağırlığı girin."
 
 #, c-format, boost-format
 #~ msgid "%d triangles"

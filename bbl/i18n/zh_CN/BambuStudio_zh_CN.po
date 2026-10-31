@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 17:17+0800\n"
+"POT-Creation-Date: 2026-10-31 09:59+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4717,12 +4717,6 @@ msgstr "提示：不支持在打印时设置AMS槽位信息"
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
 msgstr "提示：不支持在打印时设置虚拟槽位信息"
-
-msgid "Please enter valid filament weights."
-msgstr "请输入有效的耗材重量。"
-
-msgid "Please enter valid filament weight within 1000g."
-msgstr "请输入 1000g 以内的有效耗材重量。"
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "您确定要清除耗材丝信息吗？"
@@ -21008,6 +21002,12 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Please enter valid filament weights."
+#~ msgstr "请输入有效的耗材重量。"
+
+#~ msgid "Please enter valid filament weight within 1000g."
+#~ msgstr "请输入 1000g 以内的有效耗材重量。"
 
 #, c-format, boost-format
 #~ msgid "%d triangles"

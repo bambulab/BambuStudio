@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 17:17+0800\n"
+"POT-Creation-Date: 2026-10-31 09:59+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4733,12 +4733,6 @@ msgstr "Συμβουλή: Ο ορισμός πληροφοριών υποδοχ�
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
 msgstr "Συμβουλή: Ο ορισμός πληροφοριών εικονικής υποδοχής κατά την εκτύπωση δεν υποστηρίζεται"
-
-msgid "Please enter valid filament weights."
-msgstr "Εισαγάγετε έγκυρα βάρη νημάτων."
-
-msgid "Please enter valid filament weight within 1000g."
-msgstr "Εισαγάγετε έγκυρο βάρος νήματος έως 1000 g."
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Είστε βέβαιοι ότι θέλετε να διαγράψετε τις πληροφορίες του νήματος;"
@@ -21084,6 +21078,12 @@ msgid ""
 msgstr ""
 "Αξιοπιστία με την πρώτη\n"
 "Λιγότερη ταλαιπωρία, πιο προβλέψιμη απόδοση. Παράδειγμα: μια μικρή εταιρεία που εκτυπώνει τμήματα PETG αποφεύγει τις εκπλήξεις που προκαλούνται από «αστοχίες την 6η ώρα» και διατηρεί τις παρτίδες εντός χρονοδιαγράμματος."
+
+#~ msgid "Please enter valid filament weights."
+#~ msgstr "Εισαγάγετε έγκυρα βάρη νημάτων."
+
+#~ msgid "Please enter valid filament weight within 1000g."
+#~ msgstr "Εισαγάγετε έγκυρο βάρος νήματος έως 1000 g."
 
 #, c-format, boost-format
 #~ msgid "%d triangles"

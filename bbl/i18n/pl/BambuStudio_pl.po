@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 17:17+0800\n"
+"POT-Creation-Date: 2026-10-31 09:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -260,7 +260,7 @@ msgid "%s filament has a higher risk of clogging when printed with a 0.2mm hoten
 msgstr "W przypadku filamentu %s istnieje większe ryzyko zatykania się, gdy jest on drukowany przy użyciu hotendu o średnicy 0,2 mm. Przed drukowaniem użyj innego, kompatybilnego hotendu."
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "Filamenty CF/GF są twarde i kruche. Łatwo się łamią lub zacinają w AMS, prosimy o ostrożne korzystanie z nich."
+msgstr "Filamenty CF/GF są twarde i kruche, dlatego łatwo mogą się złamać lub zablokować w AMS. Należy zachować ostrożność podczas ich stosowania."
 
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr "Domyślne ustawienia mogą wpływać na jakość wydruku. Dostosuj je w razie potrzeby, aby uzyskać najlepsze rezultaty."
@@ -4736,12 +4736,6 @@ msgstr "Wskazówka: Ustawianie informacji o gnieździe AMS podczas drukowania ni
 msgid "Tip: Setting Virtual slot information while printing is not supported"
 msgstr "Wskazówka: Ustawianie informacji o wirtualnym slocie podczas drukowania nie jest obsługiwane"
 
-msgid "Please enter valid filament weights."
-msgstr "Wprowadź prawidłową wagę filamentu."
-
-msgid "Please enter valid filament weight within 1000g."
-msgstr "Podaj prawidłową wagę filamentu do 1000 g."
-
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Czy na pewno chcesz usunąć informacje o filamencie?"
 
@@ -5412,7 +5406,7 @@ msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
 msgstr ""
-"głębokość blokady powinna być mniejsza od głębokości skóry.\n"
+"Głębokość blokady powinna być mniejsza od głębokości skóry.\n"
 "Zresetuj do 50% głębokości skóry"
 
 msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
@@ -8449,7 +8443,7 @@ msgid "Automatically capture and upload print photos, showing defects during pri
 msgstr "Automatycznie przechwytuj i przesyłaj zdjęcia wydruków, pokazujące wady powstałe w trakcie drukowania oraz końcowy efekt w celu zdalnego podglądu."
 
 msgid "Automatically match the corresponding switch strategy for leak-prone filaments (disable blob detection) and regular filaments (enable blob detection)."
-msgstr "Automatycznie dopasuj odpowiednią strategię przełączania filamentów podatnych na przeciekanie (wyłącz wykrywanie plam) i zwykłych filamentów (włącz wykrywanie plam)."
+msgstr "Automatycznie dobieraj odpowiednią strategię przełączania dla filamentów podatnych na wyciekanie (wyłącz wykrywanie blob) oraz zwykłych filamentów (włącz wykrywanie blob)."
 
 msgid "Detect whether the nozzle is wrapped by filament or other foreign matter."
 msgstr "Sprawdź, czy na dyszę nie nawinął się filament lub inne ciało obce."
@@ -8544,7 +8538,7 @@ msgid "Controls where each layer's outer wall starts and ends."
 msgstr "Steruje miejscem, w którym zaczyna się i kończy zewnętrzna ściana każdej warstwy."
 
 msgid "That point can leave a small blob or seam line, so choosing a suitable position reduces the seam's impact on the model's appearance."
-msgstr "W tym miejscu może pozostać niewielka plama lub linia szwu, dlatego wybierając odpowiednie miejsce, można zmniejszyć wpływ szwu na wygląd modelu."
+msgstr "W tym miejscu może pozostać niewielki blob lub linia szwu, dlatego wybierając odpowiednie miejsce, można zmniejszyć wpływ szwu na wygląd modelu."
 
 msgid "Prints only a single wall loop on top surfaces so the top is filled as much as possible by the infill pattern, for a more consistent look."
 msgstr "Drukuje pojedynczą pętlę ścienną na górnych powierzchniach, dzięki czemu część górna jest wypełniona wzorem wypełnienia w jak największym stopniu, co zapewnia bardziej spójny wygląd."
@@ -21112,6 +21106,12 @@ msgid ""
 msgstr ""
 "Niezawodność od pierwszego razu\n"
 "Mniej nadzoru, bardziej przewidywalne wyniki. Przykład: mała farma drukarek 3D produkująca części z PETG unika niespodzianek typu „awaria po 6 godzinach” i utrzymuje harmonogram partii."
+
+#~ msgid "Please enter valid filament weights."
+#~ msgstr "Wprowadź prawidłową wagę filamentu."
+
+#~ msgid "Please enter valid filament weight within 1000g."
+#~ msgstr "Podaj prawidłową wagę filamentu do 1000 g."
 
 #, c-format, boost-format
 #~ msgid "%d triangles"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 17:17+0800\n"
+"POT-Creation-Date: 2026-10-31 09:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4729,12 +4729,6 @@ msgstr "Tipp: Az AMS-filamentnyílás adatainak beállítása nyomtatás közben
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
 msgstr "Tipp: A virtuális filamentnyílás adatainak beállítása nyomtatás közben nem támogatott"
-
-msgid "Please enter valid filament weights."
-msgstr "Kérjük, add meg a filamentek érvényes tömegértékeit."
-
-msgid "Please enter valid filament weight within 1000g."
-msgstr "Kérjük, adj meg egy érvényes, legfeljebb 1000 g-os filamenttömeget."
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Biztos, hogy törölni akarod a filament adatait?"
@@ -21072,6 +21066,12 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid "Please enter valid filament weights."
+#~ msgstr "Kérjük, add meg a filamentek érvényes tömegértékeit."
+
+#~ msgid "Please enter valid filament weight within 1000g."
+#~ msgstr "Kérjük, adj meg egy érvényes, legfeljebb 1000 g-os filamenttömeget."
 
 #, c-format, boost-format
 #~ msgid "%d triangles"

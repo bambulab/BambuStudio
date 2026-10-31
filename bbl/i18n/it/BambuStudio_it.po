@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 17:17+0800\n"
+"POT-Creation-Date: 2026-10-31 09:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4731,12 +4731,6 @@ msgstr "Suggerimento: L'impostazione dei valori sullo slot AMS non è supportata
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
 msgstr "Suggerimento: L'impostazione dei valori sullo slot Virtuale durante la stampa non è supportata"
-
-msgid "Please enter valid filament weights."
-msgstr "Inserisci valori di peso validi per i filamenti."
-
-msgid "Please enter valid filament weight within 1000g."
-msgstr "Inserisci un peso del filamento valido, non superiore a 1000 g."
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Sei sicuro di voler cancellare le informazioni del filamento?"
@@ -21070,6 +21064,12 @@ msgid ""
 msgstr ""
 "Affidabilità al Primo Tentativo\n"
 "Meno supervisione, risultati più prevedibili. Ad esempio: una piccola produzione che stampa parti in PETG evita sorprese tipo \"fallimento alla sesta ora\" e mantiene i lotti nei tempi previsti."
+
+#~ msgid "Please enter valid filament weights."
+#~ msgstr "Inserisci valori di peso validi per i filamenti."
+
+#~ msgid "Please enter valid filament weight within 1000g."
+#~ msgstr "Inserisci un peso del filamento valido, non superiore a 1000 g."
 
 #, c-format, boost-format
 #~ msgid "%d triangles"

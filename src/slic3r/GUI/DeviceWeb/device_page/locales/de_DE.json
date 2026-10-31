@@ -430,5 +430,19 @@
   "Printing will continue with identical filament when available": "Der Druckvorgang wird mit identischem Filament fortgesetzt, sobald dieses verfügbar ist",
   "Unloading Filament": "Wird entladen",
   "Cutter": "Cutter",
-  "Pen": "Stift"
+  "Pen": "Stift",
+  "+ Add similar": "+ Add similar",
+  "+ Add similar filament": "+ Add similar filament",
+  "Associated AMS: {{count}}_one": "",
+  "Associated AMS: {{count}}_other": "",
+  "Connected Slots": "Connected Slots",
+  "Drag spools to adjust their priority.": "Drag spools to adjust their priority.",
+  "Load_AmsHotendWebRackA": "AMS Load",
+  "Supports batch loading from the direct feed port or external feed port.": "Supports batch loading from the direct feed port or external feed port.",
+  "No auto-refill filament.": "No auto-refill filament.",
+  "The system has created auto-refill groups based on material type, color, and brand.": "The system has created auto-refill groups based on material type, color, and brand.",
+  "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one.": "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one.",
+  "When the current spool runs out, the printer automatically continues with a spool of the same brand, type, and color. Refill relations can also be edited manually, so spools of the same type in a different color can be used for refilling.": "When the current spool runs out, the printer automatically continues with a spool of the same brand, type, and color. Refill relations can also be edited manually, so spools of the same type in a different color can be used for refilling.",
+  "Please confirm whether the hotend type in the current slot matches the refill group. If it doesn't, please go to the printer and edit the hotend type before trying again.": "Please confirm whether the hotend type in the current slot matches the refill group. If it doesn't, please go to the printer and edit the hotend type before trying again.",
+  "External Spool {{n}}": "External Spool {{n}}"
 }

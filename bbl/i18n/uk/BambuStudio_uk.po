@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 17:17+0800\n"
+"POT-Creation-Date: 2026-10-31 09:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -4723,12 +4723,6 @@ msgid "Tip: Setting AMS slot information while printing is not supported"
 msgstr ""
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
-msgstr ""
-
-msgid "Please enter valid filament weights."
-msgstr ""
-
-msgid "Please enter valid filament weight within 1000g."
 msgstr ""
 
 msgid "Are you sure you want to clear the filament information?"

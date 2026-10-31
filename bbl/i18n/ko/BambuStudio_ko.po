@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 17:17+0800\n"
+"POT-Creation-Date: 2026-10-31 09:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4723,12 +4723,6 @@ msgstr "팁: 출력 중 AMS 슬롯 정보 설정은 지원되지 않습니다."
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
 msgstr "팁: 출력 중 가상 슬롯 정보 설정은 지원되지 않습니다."
-
-msgid "Please enter valid filament weights."
-msgstr "유효한 필라멘트 무게를 입력해 주세요."
-
-msgid "Please enter valid filament weight within 1000g."
-msgstr "필라멘트 무게를 1000g 이내로 입력해 주세요."
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "필라멘트 정보를 지우시겠습니까?"
@@ -21064,6 +21058,12 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#~ msgid "Please enter valid filament weights."
+#~ msgstr "유효한 필라멘트 무게를 입력해 주세요."
+
+#~ msgid "Please enter valid filament weight within 1000g."
+#~ msgstr "필라멘트 무게를 1000g 이내로 입력해 주세요."
 
 #, c-format, boost-format
 #~ msgid "%d triangles"

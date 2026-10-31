@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 17:17+0800\n"
+"POT-Creation-Date: 2026-10-31 09:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4729,12 +4729,6 @@ msgstr "Tip: Het instellen van AMS-sleufinformatie tijdens het afdrukken wordt n
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
 msgstr "Tip: Het instellen van informatie over de virtuele sleuf tijdens het afdrukken wordt niet ondersteund"
-
-msgid "Please enter valid filament weights."
-msgstr "Voer geldige filamentgewichten in."
-
-msgid "Please enter valid filament weight within 1000g."
-msgstr "Voer een geldig filamentgewicht van maximaal 1000 g in."
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Weet je zeker dat je de filament informatie wilt wissen?"
@@ -21074,6 +21068,12 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#~ msgid "Please enter valid filament weights."
+#~ msgstr "Voer geldige filamentgewichten in."
+
+#~ msgid "Please enter valid filament weight within 1000g."
+#~ msgstr "Voer een geldig filamentgewicht van maximaal 1000 g in."
 
 #, c-format, boost-format
 #~ msgid "%d triangles"

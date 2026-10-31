@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 17:17+0800\n"
+"POT-Creation-Date: 2026-10-31 09:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4713,12 +4713,6 @@ msgstr "ヒント：造形中に、AMSスロットを設定できません"
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
 msgstr "ヒント：造形中は仮想スロット情報を設定できません"
-
-msgid "Please enter valid filament weights."
-msgstr "有効なフィラメント重量を入力してください。"
-
-msgid "Please enter valid filament weight within 1000g."
-msgstr "1000g以内の有効なフィラメント重量を入力してください。"
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "フィラメント情報をクリアしてもよろしいですか?"
@@ -21053,6 +21047,12 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Please enter valid filament weights."
+#~ msgstr "有効なフィラメント重量を入力してください。"
+
+#~ msgid "Please enter valid filament weight within 1000g."
+#~ msgstr "1000g以内の有効なフィラメント重量を入力してください。"
 
 #, c-format, boost-format
 #~ msgid "%d triangles"
