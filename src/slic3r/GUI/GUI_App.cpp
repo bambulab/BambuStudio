@@ -3227,7 +3227,24 @@ bool GUI_App::on_init_inner()
 
     init_live_view_track_context(app_config);
 
+// Apply the saved density before fonts and the main frame are constructed.
+#ifdef __APPLE__
+    int ui_scale = 100;
+    try {
+        const auto saved = app_config->get("ui_scale_percent");
+        if (!saved.empty()) {
+            size_t consumed = 0;
+            const int value = std::stoi(saved, &consumed);
+            if (consumed == saved.size() && value >= 75 && value <= 150)
+                ui_scale = value;
+        }
+    } catch (...) { /* Invalid configuration falls back to normal density. */ }
+    app_config->set("ui_scale_percent", std::to_string(ui_scale));
+    wxSystemOptions::SetOption("bambu-ui-scale-percent", ui_scale);
+#endif
+
 // initialize label colors and fonts
+
     if (app_config) {
         ::Label::initSysFont(app_config->get_language_code(), false);
     }
@@ -4234,8 +4251,10 @@ void GUI_App::init_fonts()
     m_normal_font = Label::Body_10;
 
 #ifdef __WXMAC__
-    m_small_font.SetPointSize(11);
-    m_bold_font.SetPointSize(13);
+    const int percent = wxSystemOptions::GetOptionInt("bambu-ui-scale-percent");
+    const double scale = percent >= 75 && percent <= 150 ? percent / 100.0 : 1.0;
+    m_small_font.SetFractionalPointSize(11 * scale);
+    m_bold_font.SetFractionalPointSize(13 * scale);
 #endif /*__WXMAC__*/
 
     // wxSYS_OEM_FIXED_FONT and wxSYS_ANSI_FIXED_FONT use the same as

@@ -153,6 +153,9 @@ public:
         // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
         m_em_unit = std::max<size_t>(10, this->GetTextExtent("m").x - 1);
 #endif // __WXGTK__
+#ifdef __WXOSX__
+        m_em_unit = this->FromDIP(m_em_unit);
+#endif
 
 //        recalc_font();
 
@@ -321,6 +324,9 @@ private:
 
         // update em_unit value for new window font
         m_em_unit = std::max<int>(10, 10.0f * m_scale_factor);
+#ifdef __WXOSX__
+        m_em_unit = this->FromDIP(m_em_unit);
+#endif
 
         // rescale missed controls sizes and images
         on_dpi_changed(suggested_rect);

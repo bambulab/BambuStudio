@@ -456,6 +456,10 @@ void ImGuiWrapper::set_scaling(float font_size, float scale_style, float scale_b
 {
     font_size *= scale_both;
     scale_style *= scale_both;
+#ifdef __WXOSX__
+    // Font size already comes from the scaled em unit; scale spacing once.
+    scale_style *= wxWindow::FromDIP(100, nullptr) * 0.01f;
+#endif
 
     if (m_font_size == font_size && m_style_scaling == scale_style) {
         return;
