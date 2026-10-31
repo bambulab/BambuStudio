@@ -5997,7 +5997,7 @@ void GUI_App::on_update_machine_list(wxCommandEvent &evt)
 
 void GUI_App::on_user_login_handle(wxCommandEvent &evt)
 {
-    if (!m_agent) { return; }
+    if (!m_agent || !m_agent->is_user_login()) { return; }
 
     int online_login = evt.GetInt();
     m_agent->connect_server();

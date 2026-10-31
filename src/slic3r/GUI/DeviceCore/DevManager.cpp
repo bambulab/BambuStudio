@@ -935,7 +935,7 @@ namespace Slic3r
 
     void DeviceManager::update_user_machine_list_info(std::function<void(bool)> on_completed)
     {
-        if (!m_agent) {
+        if (!m_agent || !m_agent->is_user_login()) {
             if (on_completed) {
                 Slic3r::GUI::wxGetApp().CallAfter([on_completed]() { on_completed(false); });
             }
