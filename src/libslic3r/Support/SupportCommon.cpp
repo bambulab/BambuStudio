@@ -1143,6 +1143,54 @@ static std::string dbg_index_to_color(int idx)
 //
 // Modulate thickness (increase bottom_z) of extrusions_in_out generated for this_layer
 // if they overlap with overlapping_layers, whose print_z is above this_layer.bottom_z() and below this_layer.print_z.
+// 只保留靠近 keep_bbox 的线段（两侧各多留一段）。keep_bbox 需比实际关心的区域外扩 1.5 倍偏移距离，
+// 这样截断后再偏移，结果在关心区域内与原来一致。
+static void keep_polylines_near_bbox(Polylines &polylines, const BoundingBox &keep_bbox)
+{
+    auto segment_near = [&keep_bbox](const Point &a, const Point &b) {
+        return std::max(a.x(), b.x()) >= keep_bbox.min.x() && std::min(a.x(), b.x()) <= keep_bbox.max.x() &&
+               std::max(a.y(), b.y()) >= keep_bbox.min.y() && std::min(a.y(), b.y()) <= keep_bbox.max.y();
+    };
+    Polylines out;
+    out.reserve(polylines.size());
+    std::vector<char> keep;
+    for (Polyline &polyline : polylines) {
+        const Points &points = polyline.points;
+        if (points.size() < 2) {
+            out.emplace_back(std::move(polyline));
+            continue;
+        }
+        const size_t num_segments = points.size() - 1;
+        keep.assign(num_segments, 0);
+        bool all_near = true;
+        for (size_t i = 0; i < num_segments; ++ i)
+            if (segment_near(points[i], points[i + 1])) {
+                keep[i] = 1;
+                if (i > 0)
+                    keep[i - 1] = 1;
+                if (i + 1 < num_segments)
+                    keep[i + 1] |= 2;
+            } else
+                all_near = false;
+        if (all_near) {
+            out.emplace_back(std::move(polyline));
+            continue;
+        }
+        for (size_t i = 0; i < num_segments;) {
+            if (! keep[i]) {
+                ++ i;
+                continue;
+            }
+            size_t j = i;
+            while (j < num_segments && keep[j])
+                ++ j;
+            out.emplace_back(Points(points.begin() + i, points.begin() + j + 1));
+            i = j;
+        }
+    }
+    polylines = std::move(out);
+}
+
 static void modulate_extrusion_paths_by_overlapping_layers(
     // Extrusions generated for this_layer.
     ExtrusionEntitiesPtr                               &extrusions_in_out,
@@ -1245,12 +1293,23 @@ static void modulate_extrusion_paths_by_overlapping_layers(
 
     // Fragment the path segments by overlapping layers. The overlapping layers are sorted by an increasing print_z.
     // Trim by the highest overlapping layer first.
+    // 重叠层外扩后碰不到路径时跳过裁剪，结果不变。
+    BoundingBox paths_bbox;
+    for (const Polyline &polyline : path_fragments.back().polylines)
+        if (! polyline.points.empty())
+            paths_bbox.merge(get_extents(polyline));
     for (int i_overlapping_layer = int(n_overlapping_layers) - 1; i_overlapping_layer >= 0; -- i_overlapping_layer) {
         const SupportGeneratorLayer &overlapping_layer = *overlapping_layers[i_overlapping_layer];
         ExtrusionPathFragment &frag = path_fragments[i_overlapping_layer];
-        Polygons polygons_trimming = offset(union_ex(overlapping_layer.polygons), float(scale_(0.5*extrusion_width)));
-        frag.polylines = intersection_pl(path_fragments.back().polylines, polygons_trimming);
-        path_fragments.back().polylines = diff_pl(path_fragments.back().polylines, polygons_trimming);
+        BoundingBox trimming_bbox = get_extents(overlapping_layer.polygons);
+        // miter 尖角最多伸出 DefaultMiterLimit 倍偏移距离
+        if (trimming_bbox.defined)
+            trimming_bbox.offset(coord_t(DefaultMiterLimit * scale_(0.5 * extrusion_width)) + SCALED_EPSILON);
+        if (paths_bbox.defined && trimming_bbox.defined && paths_bbox.overlap(trimming_bbox)) {
+            Polygons polygons_trimming = offset(union_ex(overlapping_layer.polygons), float(scale_(0.5*extrusion_width)));
+            frag.polylines = intersection_pl(path_fragments.back().polylines, polygons_trimming);
+            path_fragments.back().polylines = diff_pl(path_fragments.back().polylines, polygons_trimming);
+        }
         // Adjust the extrusion parameters for a reduced layer height and a non-bridging flow (nozzle_dmr = -1, does not matter).
         assert(this_layer.print_z > overlapping_layer.print_z);
         frag.height = float(this_layer.print_z - overlapping_layer.print_z);
@@ -1507,15 +1566,20 @@ void merge_support_layers_multi_diameter(
     // Collect the print_z levels that carry support areas. The raft is only listed so the level indices match
     // the support layer ids; its layers are never merged.
     std::vector<SupportMergeLevel> levels;
-    auto level_at = [&levels](coordf_t print_z) -> SupportMergeLevel & {
-        auto it = std::find_if(levels.begin(), levels.end(),
-            [print_z](const SupportMergeLevel &level) { return std::abs(level.print_z - print_z) < EPSILON; });
-        if (it == levels.end()) {
+    // print_z -> levels 下标，避免逐个扫描；命中多个时取最早创建的，与原线性查找一致。
+    std::multimap<coordf_t, size_t> level_index;
+    auto level_at = [&levels, &level_index](coordf_t print_z) -> SupportMergeLevel & {
+        size_t found = std::numeric_limits<size_t>::max();
+        for (auto it = level_index.upper_bound(print_z - EPSILON); it != level_index.end() && it->first < print_z + EPSILON; ++ it)
+            if (std::abs(it->first - print_z) < EPSILON)
+                found = std::min(found, it->second);
+        if (found == std::numeric_limits<size_t>::max()) {
+            found = levels.size();
             levels.emplace_back();
-            it = std::prev(levels.end());
-            it->print_z = print_z;
+            levels.back().print_z = print_z;
+            level_index.emplace(print_z, found);
         }
-        return *it;
+        return levels[found];
     };
 
     for (const SupportGeneratorLayer *layer : raft_layers)
@@ -2620,7 +2684,11 @@ void generate_support_toolpaths(
                             entity->collect_polylines(sheath);
                         sheath.erase(std::remove_if(sheath.begin(), sheath.end(),
                             [&bbox](const Polyline &pl) { return ! bbox.overlap(get_extents(pl)); }), sheath.end());
-                        Polygons blocked = offset(sheath, 0.85f * float(flow.scaled_width()));
+                        // 外墙远长于闪电线，只偏移闪电线附近的一段外墙，结果不变。
+                        const float sheath_offset = 0.85f * float(flow.scaled_width());
+                        keep_polylines_near_bbox(sheath,
+                            get_extents(lightning).inflated(coord_t(1.5f * sheath_offset) + SCALED_EPSILON));
+                        Polygons blocked = offset(sheath, sheath_offset);
                         for (const SupportGeneratorLayerExtruded *other :
                              { &bottom_contact_layer, &top_contact_layer, &interface_layer, &base_interface_layer })
                             if (! other->empty())

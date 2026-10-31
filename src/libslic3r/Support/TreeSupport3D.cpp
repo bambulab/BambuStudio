@@ -4455,11 +4455,14 @@ static void organic_lightning_infill(
     // contours[L] carries the outer boundary and the hole rims, so a hole-interior overhang sample
     // grounds onto the surrounding support ring (Layer::getBestGroundingLocation scans every ring).
     std::vector<ExPolygons> support_ex(num_layers);
-    for (size_t layer_idx = 0; layer_idx < num_layers; ++ layer_idx) {
-        support_ex[layer_idx] = support_at(layer_idx);
-        contours[layer_idx]   = to_polygons(support_ex[layer_idx]);
-        throw_on_cancel();
-    }
+    // 各层互不依赖，并行计算
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers), [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+            support_ex[layer_idx] = support_at(layer_idx);
+            contours[layer_idx]   = to_polygons(support_ex[layer_idx]);
+            throw_on_cancel();
+        }
+    });
 
     // ---- Internal-void ("floating") detection -------------------------------------------------------
     // Organic trunks print a sheath only (outer contour + hole rims). The filled support_ex is a lie
@@ -4493,24 +4496,25 @@ static void organic_lightning_infill(
     auto to_mm2 = [](double a) -> double { return a * 1e-10; };
     double dbg_feed_area = 0.; int dbg_feed_layers = 0;
 #endif
-    // sheath[L] is sheath_below for layer L+1; keep the previous result instead of recomputing.
-    Polygons sheath_below;
-    for (size_t layer_idx = 1; layer_idx < num_layers; ++ layer_idx) {
-        throw_on_cancel();
-        Polygons sheath_here = sheath_of(support_ex[layer_idx]);
-        if (sheath_here.empty()) {
-            sheath_below.clear();
-            continue;
+    // 先并行算出每层外墙，下一层检测时直接读取。
+    std::vector<Polygons> sheaths(num_layers);
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers), [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+            sheaths[layer_idx] = sheath_of(support_ex[layer_idx]);
+            throw_on_cancel();
         }
-        if (layer_idx == 1 || sheath_below.empty())
-            sheath_below = sheath_of(support_ex[layer_idx - 1]);
+    });
+    auto detect_floating = [&](size_t layer_idx) {
+        const Polygons &sheath_here  = sheaths[layer_idx];
+        if (sheath_here.empty())
+            return;
+        const Polygons &sheath_below = sheaths[layer_idx - 1];
         const float support_tolerance = layer_support_tolerance(layer_idx);
         Polygons floating = sheath_below.empty()
             ? sheath_here
             : diff(sheath_here, offset(sheath_below, support_tolerance));
-        sheath_below = std::move(sheath_here);
         if (floating.empty())
-            continue;
+            return;
 
         // Drop outer-wall growth: keep only floating sheath inside the branch. An empty inset means every
         // branch on this layer is thinner than two line widths and has no interior to seed into, so the
@@ -4521,10 +4525,10 @@ static void organic_lightning_infill(
             append(branch_interior, to_polygons(inset));
         }
         if (branch_interior.empty())
-            continue;
+            return;
         floating = intersection(floating, union_(branch_interior));
         if (floating.empty())
-            continue;
+            return;
 
         // Apply the feed-area window to floating sheath pieces before thickening. Thickening can merge
         // several valid rims into one polygon larger than max_feed_area; re-applying max afterwards
@@ -4540,7 +4544,7 @@ static void organic_lightning_infill(
             }
             floating = std::move(filtered_floating);
             if (floating.empty())
-                continue;
+                return;
         }
 
         // Thicken the unsupported rim slightly into the adjacent void so DistanceField gets enough
@@ -4560,7 +4564,7 @@ static void organic_lightning_infill(
             filtered.emplace_back(std::move(p));
         }
         if (filtered.empty())
-            continue;
+            return;
         lightning_overhangs[layer_idx] = std::move(filtered);
 #ifdef LIGHTNING_INFILL_DEBUG
         dbg_feed_area += area(lightning_overhangs[layer_idx]); ++ dbg_feed_layers;
@@ -4570,7 +4574,21 @@ static void organic_lightning_infill(
             << " fed(mm2)=" << to_mm2(area(lightning_overhangs[layer_idx]))
             << " status=FED");
 #endif
+    };
+#ifdef LIGHTNING_INFILL_DEBUG
+    // 调试统计跨层累加，保持串行
+    for (size_t layer_idx = 1; layer_idx < num_layers; ++ layer_idx) {
+        throw_on_cancel();
+        detect_floating(layer_idx);
     }
+#else
+    tbb::parallel_for(tbb::blocked_range<size_t>(1, std::max<size_t>(1, num_layers)), [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+            throw_on_cancel();
+            detect_floating(layer_idx);
+        }
+    });
+#endif
 
 #ifdef LIGHTNING_INFILL_DEBUG
     LIGHTNING_DBG("Lightning infill floating-sheath detection done. num_layers=" << num_layers
@@ -4654,21 +4672,25 @@ static void organic_lightning_infill(
     size_t dbg_total_lines = 0, dbg_kept_lines = 0;
     double dbg_kept_length = 0.;
 #endif
+    // 闪电线可走范围：填实空洞的截面内缩半线宽并扣除模型。只算有闪电树的层，并行计算。
+    std::vector<Polygons> footprints(num_layers);
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers), [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+            if (generator.getTreesForLayer(layer_idx).tree_roots.empty())
+                continue;
+            Polygons &footprint = footprints[layer_idx];
+            for (const ExPolygon &ep : support_ex[layer_idx])
+                footprint.emplace_back(ep.contour);
+            footprint = offset(union_(footprint), -half_line_width);
+            if (! footprint.empty())
+                footprint = diff_clipped(footprint, volumes.getCollision(0, layer_idx, true));
+            throw_on_cancel();
+        }
+    });
+    // convertToPolylines() 内部用 rand()，必须按层串行以保证结果一致
     for (size_t layer_idx = 0; layer_idx < num_layers; ++ layer_idx) {
         throw_on_cancel();
-        // Clip to this layer's filled branch footprint minus the model. Filling the holes is required:
-        // that is where the grounding network has to run, and clipping against the holed cross-section
-        // would delete it. Subtracting the radius-0 min_xy collision then drops any path that would
-        // land inside the part (a hole that is the model's silhouette, not a merge void), without
-        // eating wall-hugging min_xy sheath. Same getCollision(0, layer, true) trim as
-        // organic_draw_branches uses on its slices.
-        // Shrink by half a line width so the extrusion axis stays inside the sheath.
-        Polygons footprint;
-        for (const ExPolygon &ep : support_ex[layer_idx])
-            footprint.emplace_back(ep.contour);
-        footprint = offset(union_(footprint), -half_line_width);
-        if (! footprint.empty())
-            footprint = diff_clipped(footprint, volumes.getCollision(0, layer_idx, true));
+        const Polygons &footprint = footprints[layer_idx];
         if (footprint.empty())
             continue;
 

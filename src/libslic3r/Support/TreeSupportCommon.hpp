@@ -40,13 +40,16 @@ struct TreeSupportMeshGroupSettings {
 
         // Keep the per-region widths so overhang tips in multi-diameter prints use the clearance of
         // the region they support instead of inheriting the widest nozzle in the object.
+        // 仅多口径使用，否则会多预计算无用半径的碰撞/避让区
+        const bool per_region_xy_distance = print_object.print()->uses_multiple_nozzle_diameters();
         coordf_t external_perimeter_width = 0.;
         for (size_t region_id = 0; region_id < print_object.num_printing_regions(); ++ region_id) {
             const PrintRegion &region = print_object.printing_region(region_id);
             const coordf_t width = region.flow(print_object, frExternalPerimeter, config.layer_height).width();
             external_perimeter_width = std::max<coordf_t>(external_perimeter_width, width);
-            this->support_xy_distance_overhang_per_region.emplace_back(
-                scaled<coord_t>(std::min(config.support_object_xy_distance.value, 0.5 * width)));
+            if (per_region_xy_distance)
+                this->support_xy_distance_overhang_per_region.emplace_back(
+                    scaled<coord_t>(std::min(config.support_object_xy_distance.value, 0.5 * width)));
         }
 
         // The tree grows one object layer per step, and multi-diameter slicing cuts the preset's layer height
