@@ -7,8 +7,8 @@
 
 namespace Slic3r { namespace GUI {
 
-static const wxColour TEXT_COLOUR = wxColour(0x26, 0x2E, 0x30);
-static const wxColour LINK_COLOUR = wxColour(0, 174, 66); // BambuLab brand green #00AE42
+static const wxColour TEXT_COLOUR = ThemeColor::TextPrimary; // #262E30, dark-mode mapped to #EFEFF0
+static const wxColour LINK_COLOUR = ThemeColor::BrandGreen;  // #00AE42, dark-mode mapped to #21A452
 
 // A run of mixed body text where some segments are bold and some are clickable links.
 struct RichSegment {
@@ -133,7 +133,7 @@ private:
         dc.Clear();
         for (const auto& run : m_runs) {
             dc.SetFont(font_for(run.bold, run.is_link));
-            dc.SetTextForeground(run.is_link ? LINK_COLOUR : TEXT_COLOUR);
+            dc.SetTextForeground(StateColor::darkModeColorFor(run.is_link ? LINK_COLOUR : TEXT_COLOUR));
             dc.DrawText(run.text, run.position);
         }
     }
