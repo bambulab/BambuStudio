@@ -69,7 +69,9 @@
         "600",
         "250"
     ],
-    "ironing_flow": "25%",
+    "ironing_flow": "24%",
+    "ironing_spacing": "0.19",
+    "ironing_speed": "40",
     "monotonic_travel_into_wall": "45.0",
     "outer_wall_acceleration": [
         "7000",

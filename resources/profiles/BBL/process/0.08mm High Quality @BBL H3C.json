@@ -67,7 +67,9 @@
         "150",
         "150"
     ],
-    "ironing_flow": "25%",
+    "ironing_flow": "24%",
+    "ironing_spacing": "0.19",
+    "ironing_speed": "40",
     "line_width": "0.8",
     "monotonic_travel_into_wall": "45.0",
     "outer_wall_acceleration": [
