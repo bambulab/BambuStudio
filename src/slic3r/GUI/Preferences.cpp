@@ -1448,6 +1448,15 @@ wxWindow *PreferencesDialog::create_general_tab()
     auto flags = row_flags();
 
     sizer->Add(wrap_option_row(scrolled, item_language), flags);
+#ifdef __APPLE__
+    auto item_ui_scale = create_item_combobox(
+        _L("UI scale (restart required)"), scrolled,
+        _L("Scale desktop controls and text. Restart Bambu Studio to apply. 100% restores the default. Embedded web pages may use their own scaling."),
+        "ui_scale_percent", {"75%", "80%", "90%", "100%", "110%", "125%", "150%"},
+        {"75", "80", "90", "100", "110", "125", "150"});
+    sizer->Add(wrap_option_row(scrolled, item_ui_scale), flags);
+#endif
+
     sizer->Add(wrap_option_row(scrolled, item_region), flags);
     sizer->Add(wrap_option_row(scrolled, item_currency), flags);
     sizer->Add(wrap_option_row(scrolled, item_auto_flush), flags);

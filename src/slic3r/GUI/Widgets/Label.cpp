@@ -7,6 +7,9 @@
 
 #include <wx/dcclient.h>
 #include <wx/settings.h>
+#include <wx/sysopt.h>
+#include <algorithm>
+#include <cmath>
 
 wxFont Label::sysFont(int size, bool bold, std::string lang_code)
 {
@@ -35,7 +38,13 @@ wxFont Label::sysFont(int size, bool bold, std::string lang_code)
         font.SetPointSize(size);
     }
 
+#ifdef __APPLE__
+    const int percent = wxSystemOptions::GetOptionInt("bambu-ui-scale-percent");
+    if (percent >= 75 && percent <= 150)
+        font.SetFractionalPointSize(std::max(1.0, size * percent / 100.0));
+#endif
     return font;
+
 }
 wxFont Label::Head_48;
 wxFont Label::Head_32;
