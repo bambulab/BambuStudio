@@ -8,6 +8,7 @@
 #include <set>
 #include <sstream>
 #include <iomanip>
+#include <optional>
 #include <stdexcept>
 #include "GCodeProcessor.hpp"
 #include "../AdaptiveLayerMerge.hpp"
@@ -7585,7 +7586,9 @@ int WipeTower::get_block_fill_filament(
 // model. It operates uniformly on any trailing toolpath (outer wall / wipe line / grid) and on
 // both linear (G1) and arc (G2/G3) moves. The wipe-tower writer emits relative E, so a move's
 // extruded volume equals E * filament_area. `tail_volume <= 0` slows the whole visit.
-static void apply_wipe_tower_tail_slowdown(std::string &gcode, float tail_volume, float speed_factor, float filament_area)
+static void apply_wipe_tower_tail_slowdown(std::string &gcode, float tail_volume, float speed_factor, float filament_area,
+                                           const std::optional<Vec2f> &initial_position = std::nullopt,
+                                           const std::optional<Vec2f> &tool_change_start_position = std::nullopt)
 {
     if (gcode.empty() || filament_area <= 0.f || speed_factor >= 1.f - 1e-4f)
         return;
@@ -7657,11 +7660,21 @@ static void apply_wipe_tower_tail_slowdown(std::string &gcode, float tail_volume
     struct Move { int line_idx; float e; float feedrate; bool splittable; Vec2f from; Vec2f to; };
     std::vector<Move> moves;
     float current_feedrate = 0.f;
-    // The writer emits absolute X/Y; the start is unknown until the first move that names both.
-    Vec2f position = Vec2f::Zero();
-    bool  has_x_known = false, has_y_known = false;
+    // Mirror post_process_wipe_tower_moves(): the placeholder resets local XY to the tool-change
+    // start. Continuing from pre-toolchange coordinates would create a bogus split point.
+    Vec2f position = initial_position.value_or(Vec2f::Zero());
+    bool  has_x_known = initial_position.has_value(), has_y_known = initial_position.has_value();
     for (int idx = 0; idx < (int) lines.size(); ++idx) {
         const std::string &line = lines[idx];
+        if (line == "[change_filament_gcode]") {
+            if (tool_change_start_position) {
+                position = *tool_change_start_position;
+                has_x_known = has_y_known = true;
+            } else {
+                has_x_known = has_y_known = false;
+            }
+            continue;
+        }
         size_t p = line.find_first_not_of(' ');
         if (p == std::string::npos || line[p] != 'G') continue;
         size_t q = line.find(' ', p);
@@ -8052,7 +8065,8 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
             auto slow_visit = [&](ToolChangeResult &tcr) {
                 size_t tail_tool = tcr.new_tool < m_filpar.size() ? tcr.new_tool : m_current_tool;
                 float  area      = tail_tool < m_filpar.size() ? m_filpar[tail_tool].filament_area : 0.f;
-                apply_wipe_tower_tail_slowdown(tcr.gcode, m_tail_slowdown_volume, m_tail_speed_factor, area);
+                apply_wipe_tower_tail_slowdown(tcr.gcode, m_tail_slowdown_volume, m_tail_speed_factor, area,
+                                               tcr.start_pos, tcr.tool_change_start_pos);
             };
             // Single-diameter: the nominal layer height is the extrusion height.
             if (!has_multiple_nozzle_diameters()) {
