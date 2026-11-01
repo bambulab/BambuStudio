@@ -4256,7 +4256,7 @@ void SelectMachineDialog::update_user_printer()
     if (!m_list.empty())
     {
         int prefer_idx = 0;
-        if (m_print_type != FROM_PRINT_QUEUE && m_printer_last_select.empty()) {
+        if (m_print_type == FROM_NORMAL && m_printer_last_select.empty()) {
             prefer_idx = find_preset_matched_index();
             BOOST_LOG_TRIVIAL(info) << "pick printer by source model " << KV(log_key::dev_id, m_list[prefer_idx]->get_dev_id());
         }
