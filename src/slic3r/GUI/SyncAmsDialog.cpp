@@ -417,19 +417,19 @@ wxSizer *build_mix_temp_tip(wxWindow *parent, const wxColour &bg)
 {
     auto *icon = new wxStaticBitmap(parent, wxID_ANY, create_scaled_bitmap("warning", parent, 16));
     icon->SetBackgroundColour(bg);
-    auto *text = new ::Label(parent, _L("Mixing high- and low-temperature filaments is not recommended"), LB_AUTO_WRAP);
+    auto *text = new ::Label(parent, _L("Mixing high- and low-temperature filaments is not recommended."), LB_AUTO_WRAP);
     text->SetFont(::Label::Body_13);
     text->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::Warning));
     text->SetBackgroundColour(bg);
 
-    auto *link = new LinkLabel(parent, _L("Wiki") + " ->", "https://e.bambulab.com/t?c=obIOA5Zy4e5K3YBL");
+    auto *link = new LinkLabel(parent, _L("Wiki for details") + wxT("\u2192"), "https://e.bambulab.com/t?c=obIOA5Zy4e5K3YBL");
     link->getLabel()->SetFont(::Label::Body_13);
     link->SeLinkLabelFColour(StateColor::darkModeColorFor(ThemeColor::BrandGreen));
     link->SeLinkLabelBColour(bg);
 
     auto *h = new wxBoxSizer(wxHORIZONTAL);
     h->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, parent->FromDIP(4));
-    h->Add(text, 1, wxALIGN_CENTER_VERTICAL);
+    h->Add(text, 0, wxALIGN_CENTER_VERTICAL);
     h->Add(link, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, parent->FromDIP(4));
     return h;
 }
