@@ -1,5 +1,6 @@
 #pragma once
 
+#include <climits>
 #include <optional>
 #include <utility>
 
@@ -17,8 +18,13 @@ public:
 
     std::optional<int> take(bool ready)
     {
-        if (!ready)
+        if (!ready) {
+            // Saving other projects can move a requested thumbnail to another
+            // index before the page is shown. Refresh the images together then.
+            if (m_images && *m_images >= 0)
+                m_images = INT_MAX;
             return std::nullopt;
+        }
         return std::exchange(m_images, std::nullopt);
     }
 

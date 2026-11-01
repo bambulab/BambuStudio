@@ -13,7 +13,7 @@ TEST_CASE("Recent project refresh waits until the target is visible", "[RecentPr
 
     REQUIRE_FALSE(refresh.take(false).has_value());
     REQUIRE_FALSE(refresh.take(false).has_value());
-    REQUIRE(refresh.take(true) == 0);
+    REQUIRE(refresh.take(true) == INT_MAX);
     REQUIRE_FALSE(refresh.take(true).has_value());
 }
 
@@ -61,6 +61,22 @@ TEST_CASE("Recent project refresh starts empty and accepts requests after consum
     REQUIRE(refresh.take(true) == -1);
 
     refresh.request(INT_MAX);
+    REQUIRE(refresh.take(true) == INT_MAX);
+    REQUIRE_FALSE(refresh.take(true).has_value());
+}
+
+TEST_CASE("Hidden saves refresh thumbnails after recent projects change order", "[RecentProjects]")
+{
+    RecentProjectsRefresh refresh;
+    refresh.request(INT_MAX);
+    REQUIRE(refresh.take(true) == INT_MAX);
+
+    // A is newest when its save requests image zero. B then moves A to index
+    // one; the home page must receive both updates when it is shown again.
+    refresh.request(0);
+    REQUIRE_FALSE(refresh.take(false).has_value());
+    refresh.request(0);
+    REQUIRE_FALSE(refresh.take(false).has_value());
     REQUIRE(refresh.take(true) == INT_MAX);
     REQUIRE_FALSE(refresh.take(true).has_value());
 }
