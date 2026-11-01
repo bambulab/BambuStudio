@@ -11,6 +11,7 @@ EVT_LEFT_DOWN(ComboBox::mouseDown)
 EVT_LEFT_DCLICK(ComboBox::mouseDown)
 //EVT_MOUSEWHEEL(ComboBox::mouseWheelMoved)
 EVT_KEY_DOWN(ComboBox::keyDown)
+EVT_SIZE(ComboBox::onSize)
 
 // catch paint events
 END_EVENT_TABLE()
@@ -416,6 +417,18 @@ void ComboBox::keyDown(wxKeyEvent& event)
 void ComboBox::onMove(wxMoveEvent &event)
 {
     event.Skip();
+    drop.DismissAll();
+}
+
+void ComboBox::onSize(wxSizeEvent &event)
+{
+    event.Skip();
+    // TextInput::Create() can send size events before the popup is created.
+    if (!drop.GetParent())
+        return;
+    // The dropdown caches its row width, including the combo's width. Recompute
+    // it after a layout change and close any popup still anchored at the old size.
+    drop.Invalidate();
     drop.DismissAll();
 }
 

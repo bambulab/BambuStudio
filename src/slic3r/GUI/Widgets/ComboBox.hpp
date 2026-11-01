@@ -117,6 +117,7 @@ private:
     void mouseWheelMoved(wxMouseEvent &event);
     void keyDown(wxKeyEvent &event);
     void onMove(wxMoveEvent &event);
+    void onSize(wxSizeEvent &event);
 
     DECLARE_EVENT_TABLE()
 };
