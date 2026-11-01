@@ -3,8 +3,8 @@
 #include "format.hpp"
 #include "I18N.hpp"
 #include "GUI_ObjectList.hpp"
-#include "GLCanvas3D.hpp"
 #include "MainFrame.hpp"
+#include "Plater.hpp"
 #include "Tab.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Utils.hpp"
@@ -460,18 +460,18 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path, std
 				}
 				else if (dict["hypertext_type"] == "plater") {
 					std::string	item = dict["hypertext_plater_item"];
-					HintData	hint_data{ id_string, key, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, internal_only, [item]() { wxGetApp().plater()->canvas3D()->highlight_toolbar_item(item); } };
+					HintData	hint_data{ id_string, key, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, internal_only, [item]() { wxGetApp().plater()->highlight_toolbar_item(item); } };
 					hints_vector.emplace_back(hint_data);
 				}
 				else if (dict["hypertext_type"] == "gizmo") {
 					std::string	item = dict["hypertext_gizmo_item"];
-					HintData	hint_data{ id_string, key, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, internal_only, [item]() { wxGetApp().plater()->canvas3D()->highlight_gizmo(item); } };
+					HintData	hint_data{ id_string, key, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, internal_only, [item]() { wxGetApp().plater()->highlight_gizmo(item); } };
 					hints_vector.emplace_back(hint_data);
 				}
 				else if (dict["hypertext_type"] == "gallery") {
 					HintData	hint_data{ id_string, key, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, img_url, internal_only, []() {
 						// Deselect all objects, otherwise gallery wont show.
-						wxGetApp().plater()->canvas3D()->deselect_all();
+						wxGetApp().plater()->deselect_current_canvas();
 						//wxGetApp().obj_list()->load_shape_object_from_gallery(); }
 					} };
 					hints_vector.emplace_back(hint_data);

@@ -59,7 +59,16 @@ public:
     /*printer*/
     // info
     static std::map<std::string, std::string> get_all_model_id_with_name();
+    // Missing printer_modes: keep the printer. Public builds hide printers whose
+    // printer_modes exists and does not contain "fdm". Internal/Beta builds keep all.
+    static bool is_printer_visible_in_this_build(const std::string& type_str);
+    static bool is_printer_visible_in_this_build(const nlohmann::json& printer_00);
     static std::string get_printer_type(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "printer_type"); }
+    // Resolve the printer identity from the SN prefix (the leading 3 chars of dev_id). The mapping
+    // comes from the sn_prefix field in printers/*.json, so it works without network or a reachable
+    // device. Returns an empty string when the prefix is unknown.
+    static std::string get_model_id_by_dev_id(const std::string& dev_id);
+    static std::string get_printer_type_by_dev_id(const std::string& dev_id);
     static std::string get_printer_display_name(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "display_name"); }
     static std::string get_printer_series_str(std::string type_str) { return get_value_from_config<std::string>(type_str, "printer_series"); }
     static PrinterArch get_printer_arch(std::string type_str);

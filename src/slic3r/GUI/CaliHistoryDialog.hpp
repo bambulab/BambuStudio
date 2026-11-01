@@ -41,6 +41,7 @@ protected:
     MachineObject*             curr_obj { nullptr };
 
     bool                       m_ui_op_lock{ false };
+    bool                       m_pending_sync{ false }; // combo/extruder change: wait for fetch, then sync once
 };
 
 class EditCalibrationHistoryDialog : public DPIDialog

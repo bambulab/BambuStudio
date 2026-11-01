@@ -735,7 +735,8 @@ void MediaFilePanel::doAction(size_t index, int action)
                     SHELLEXECUTEINFO info{sizeof(info), 0, NULL, NULL, wfile.c_str(), L"", SW_HIDE};
                     ::ShellExecuteEx(&info);
 #elif __APPLE__
-                    wxShell("open " + file.local_path);
+                    const char *argv[] = { "open", file.local_path.data(), nullptr };
+                    ::wxExecute(const_cast<char **>(argv), wxEXEC_ASYNC, nullptr, nullptr);
 #else
                     // Create non-const copies of the strings to avoid const_cast
                     // wxExecute may modify the argv array, so we need non-const storage

@@ -1,0 +1,128 @@
+diff --git a/code/AssetLib/glTF/glTFAsset.inl b/code/AssetLib/glTF/glTFAsset.inl
+index 5e554a3..34d4f0a 100644
+--- a/code/AssetLib/glTF/glTFAsset.inl
++++ b/code/AssetLib/glTF/glTFAsset.inl
+@@ -419,6 +419,26 @@ inline void CopyData(size_t count,
+         }
+     }
+ }
++
++// SECURITY: a bufferView's byteOffset/byteLength are taken from the file with no
++// validation at all (see BufferView::Read), so they can describe a region far
++// larger than the buffer allocation they point into. Checking that an accessor
++// stays inside its bufferView is therefore not enough on its own - the view has
++// to be proven to fit in the buffer as well, or reads through it run off the end
++// of the heap block. Buffer::byteLength always matches the allocation made in
++// Buffer::Read/LoadFromStream, which makes it the one bound worth trusting.
++inline void ValidateBufferViewBounds(BufferView &bv) {
++    if (bv.buffer->EncodedRegion_Current != nullptr) {
++        // GetPointer() serves this view out of a separate decoded block, which
++        // the buffer length does not describe.
++        return;
++    }
++    if (bv.byteOffset > bv.buffer->byteLength ||
++            bv.byteLength > bv.buffer->byteLength - bv.byteOffset) {
++        throw DeadlyImportError("GLTF: bufferView of ", bv.byteLength, " bytes at offset ",
++                bv.byteOffset, " exceeds the bounds of its ", bv.buffer->byteLength, " byte buffer");
++    }
++}
+ } // namespace
+ 
+ template <class T>
+@@ -432,8 +452,34 @@ bool Accessor::ExtractData(T *&outData) {
+     const size_t stride = byteStride ? byteStride : elemSize;
+ 
+     const size_t targetElemSize = sizeof(T);
++    // SECURITY: elemSize is derived from the accessor type/componentType declared
++    // in the file, so a malicious asset can make it exceed sizeof(T) (e.g. a
++    // MAT4/FLOAT accessor is 64 bytes against a 12 byte aiVector3D) and overflow
++    // the outData elements memcpy'd below. The ai_assert is compiled out in
++    // Release builds, so reject such accessors at runtime instead.
++    if (elemSize > targetElemSize) {
++        throw DeadlyImportError("GLTF: accessor element size ", elemSize,
++            " exceeds destination element size ", targetElemSize);
++    }
+     ai_assert(elemSize <= targetElemSize);
+ 
++    // SECURITY: count, byteOffset, byteStride and the bufferView bounds are read
++    // from the file without any validation, and this ai_assert is compiled out in
++    // Release builds too (it also ignores byteOffset, which GetPointer() already
++    // added to data). Verify that the region actually copied below lies inside
++    // the bufferView, and that the bufferView lies inside the buffer allocation,
++    // or a crafted asset reads past the end of the heap block.
++    if (count > 0) {
++        if (stride == 0 || count - 1 > (SIZE_MAX - elemSize - byteOffset) / stride) {
++            throw DeadlyImportError("GLTF: accessor range overflows");
++        }
++        const size_t accessorEnd = byteOffset + (count - 1) * stride + elemSize;
++        if (accessorEnd > bufferView->byteLength) {
++            throw DeadlyImportError("GLTF: accessor reads ", accessorEnd,
++                " bytes of a ", bufferView->byteLength, " byte bufferView");
++        }
++        ValidateBufferViewBounds(*bufferView);
++    }
+     ai_assert(count * stride <= bufferView->byteLength);
+ 
+     outData = new T[count];
+@@ -470,8 +516,28 @@ template <class T>
+ T Accessor::Indexer::GetValue(int i) {
+     ai_assert(data);
+     ai_assert(i * stride < accessor.bufferView->byteLength);
++    // SECURITY: both ai_asserts above are compiled out in Release builds, so the
++    // read offset is unchecked there while i and stride derive from the file.
++    // Clamping the copy size below only protects the destination - the source
++    // still has to be proven in bounds, byteOffset included, since GetPointer()
++    // folded it into data.
++    if (data == nullptr) {
++        throw DeadlyImportError("GLTF: accessor has no backing buffer data");
++    }
++    if (i < 0 || stride == 0 ||
++            static_cast<size_t>(i) > (SIZE_MAX - elemSize - accessor.byteOffset) / stride ||
++            accessor.byteOffset + static_cast<size_t>(i) * stride + elemSize > accessor.bufferView->byteLength) {
++        throw DeadlyImportError("GLTF: accessor element ", i, " lies outside its bufferView");
++    }
++    ValidateBufferViewBounds(*accessor.bufferView);
+     T value = T();
+-    memcpy(&value, data + i * stride, elemSize);
++    // SECURITY: elemSize is attacker controlled through the accessor's declared
++    // type/componentType and may be larger than this fixed-size stack local
++    // (e.g. a MAT4/FLOAT index accessor is 64 bytes against a 4 byte unsigned
++    // int), so clamp the copy. The bounds ai_asserts above are compiled out in
++    // Release builds and are not a substitute for this check.
++    const size_t copySize = elemSize < sizeof(value) ? elemSize : sizeof(value);
++    memcpy(&value, data + i * stride, copySize);
+     //value >>= 8 * (sizeof(T) - elemSize);
+     return value;
+ }
+diff --git a/code/AssetLib/glTF/glTFImporter.cpp b/code/AssetLib/glTF/glTFImporter.cpp
+index 2443205..0e8ce35 100644
+--- a/code/AssetLib/glTF/glTFImporter.cpp
++++ b/code/AssetLib/glTF/glTFImporter.cpp
+@@ -286,9 +286,27 @@ void glTFImporter::ImportMeshes(glTF::Asset &r) {
+             unsigned int nFaces = 0;
+ 
+             if (prim.indices) {
++                // SECURITY: glTF requires index accessors to be scalars of an
++                // unsigned integer type. Reject anything else up front so that a
++                // wider declared element (e.g. MAT4/FLOAT) can never reach the
++                // element copy in Accessor::Indexer::GetValue below. Defense in
++                // depth next to the clamp applied there.
++                if (prim.indices->type != AttribType::SCALAR ||
++                        (prim.indices->componentType != ComponentType_UNSIGNED_BYTE &&
++                                prim.indices->componentType != ComponentType_UNSIGNED_SHORT &&
++                                prim.indices->componentType != ComponentType_UNSIGNED_INT)) {
++                    throw DeadlyImportError("GLTF: index accessor must be a scalar of an unsigned integer type");
++                }
++
+                 unsigned int count = prim.indices->count;
+ 
+                 Accessor::Indexer data = prim.indices->GetIndexer();
++                // SECURITY: this ai_assert is compiled out in Release builds, so
++                // an accessor with no backing buffer would otherwise reach the
++                // reads below. Reject it before any face array is allocated.
++                if (!data.IsValid()) {
++                    throw DeadlyImportError("GLTF: index accessor has no backing buffer data");
++                }
+                 ai_assert(data.IsValid());
+ 
+                 switch (prim.mode) {

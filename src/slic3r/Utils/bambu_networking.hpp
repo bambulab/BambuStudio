@@ -46,6 +46,8 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_GET_FILAMENT_CONFIG_FAILED    -31
 #define BAMBU_NETWORK_ERR_AMS_SYNC_FAILED               -32
 #define BAMBU_NETWORK_ERR_SLOT_MAPPINGS_SYNC_FAILED     -33
+#define BAMBU_NETWORK_ERR_GET_SOFT_MATCH_PENDING_FAILED -34
+#define BAMBU_NETWORK_ERR_POST_SOFT_MATCH_PENDING_FAILED -35
 #define BAMBU_NETWORK_ERR_CREATE_PRINT_QUEUE_PROJECT_FAILED       -36
 #define BAMBU_NETWORK_ERR_GET_PRINT_QUEUE_PROJECTS_FAILED         -37
 #define BAMBU_NETWORK_ERR_UPDATE_PRINT_QUEUE_PROJECT_FAILED       -38
@@ -70,6 +72,8 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_PRINT_QUEUE_PATCH_PROJECT_FAILED        -57
 #define BAMBU_NETWORK_ERR_DOWNLOAD_PRINT_QUEUE_CONFIG_FAILED      -58
 #define BAMBU_NETWORK_ERR_START_PRINT_QUEUE_TASK_FAILED           -59
+#define BAMBU_NETWORK_ERR_POST_DEVICE_REGION_FAILED               -60
+
 
 //bind error
 #define BAMBU_NETWORK_ERR_BIND_CREATE_SOCKET_FAILED          -1010 //failed to create socket
@@ -130,7 +134,7 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "02.08.02.54"
+#define BAMBU_NETWORK_AGENT_VERSION         "02.08.04.57"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -434,6 +438,24 @@ struct SlotMappingItem {
 struct SlotMappingsSyncParams {
     std::string                  devId;
     std::vector<SlotMappingItem> mappings;
+};
+
+struct SoftMatchPendingParams {
+    std::string devId;
+    std::string amsSn;
+};
+
+struct SoftMatchPendingActionParams {
+    std::string action;
+    int         spoolId       = 0;
+    int         targetSpoolId = 0;
+};
+
+struct DeviceRegionParams {
+    std::string DeviceId;
+    std::string ClientType;
+    std::string country;
+    std::string XClientCountry;
 };
 
 struct PublishParams {

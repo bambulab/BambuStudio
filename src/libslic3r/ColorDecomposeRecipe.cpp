@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <fstream>
 #include <limits>
+#include <unordered_map>
 #include <utility>
 
 namespace Slic3r {
@@ -192,6 +193,72 @@ static const std::vector<StandardRecipeEntry>& standard_entries()
 {
     static const std::vector<StandardRecipeEntry> entries = load_standard_entries();
     return entries;
+}
+
+// Canonical form of a component list: (normalized hex, ratio) pairs sorted so
+// that matching is independent of the caller's component order. The key is the
+// concatenated hexes, which also encodes the component count because every
+// normalized hex is exactly 7 characters. Returns false on any invalid hex.
+static bool canonicalize_blend_components(const std::vector<std::string>& hexes,
+                                          const std::vector<int>& ratios,
+                                          std::string& key_out,
+                                          std::vector<int>& ratios_out)
+{
+    const size_t n = hexes.size();
+    if (n == 0 || n != ratios.size())
+        return false;
+
+    std::vector<std::pair<std::string, int>> pairs;
+    pairs.reserve(n);
+    for (size_t i = 0; i < n; ++i) {
+        ColorDecomposeRgb rgb;
+        if (!color_decompose_hex_to_rgb(hexes[i], rgb))
+            return false;
+        char buf[8];
+        std::snprintf(buf, sizeof(buf), "#%02X%02X%02X", rgb.r, rgb.g, rgb.b);
+        pairs.emplace_back(buf, ratios[i]);
+    }
+    std::sort(pairs.begin(), pairs.end());
+
+    key_out.clear();
+    key_out.reserve(n * 7);
+    ratios_out.clear();
+    ratios_out.reserve(n);
+    for (const auto& p : pairs) {
+        key_out += p.first;
+        ratios_out.push_back(p.second);
+    }
+    return true;
+}
+
+struct MeasuredBlendAnchor {
+    std::vector<int> ratios; // reordered to match the canonical hex order
+    LabColor         lab;
+    std::string      hex;
+};
+
+// Measured/interpolated entries grouped by their canonical component set. Built
+// once: re-normalizing and re-sorting every entry's components on each lookup
+// used to dominate the decomposition search, which issues one lookup per point
+// of the ratio grid for every candidate filament combination.
+static const std::unordered_map<std::string, std::vector<MeasuredBlendAnchor>>& measured_blend_index()
+{
+    static const std::unordered_map<std::string, std::vector<MeasuredBlendAnchor>> index = [] {
+        std::unordered_map<std::string, std::vector<MeasuredBlendAnchor>> out;
+        for (const StandardRecipeEntry& entry : standard_entries()) {
+            if (entry.source != "measured" && entry.source != "interpolated")
+                continue;
+            std::string         key;
+            MeasuredBlendAnchor anchor;
+            if (!canonicalize_blend_components(entry.component_hexes, entry.ratios, key, anchor.ratios))
+                continue;
+            anchor.lab = entry.measured_lab;
+            anchor.hex = entry.measured_hex;
+            out[key].push_back(std::move(anchor));
+        }
+        return out;
+    }();
+    return index;
 }
 
 static void evaluate_candidate(const ColorDecomposeRgb& target,
@@ -378,36 +445,13 @@ std::string lookup_measured_blend_color(const std::vector<std::string>& componen
     if (component_hexes.size() < 2 || component_hexes.size() != ratios.size())
         return {};
 
-    auto normalize_hex = [](const std::string& hex) -> std::string {
-        ColorDecomposeRgb rgb;
-        if (!color_decompose_hex_to_rgb(hex, rgb))
-            return {};
-        char buf[8];
-        std::snprintf(buf, sizeof(buf), "#%02X%02X%02X", rgb.r, rgb.g, rgb.b);
-        return std::string(buf);
-    };
-
     // Stage 1: canonicalize input by sorting (hex, ratio) pairs so matching
     // is independent of the caller's component order.
     const size_t n = component_hexes.size();
-    std::vector<std::pair<std::string, int>> in_pairs;
-    in_pairs.reserve(n);
-    for (size_t i = 0; i < n; ++i) {
-        std::string nh = normalize_hex(component_hexes[i]);
-        if (nh.empty())
-            return {};
-        in_pairs.emplace_back(std::move(nh), ratios[i]);
-    }
-    std::sort(in_pairs.begin(), in_pairs.end());
-
-    std::vector<std::string> in_hexes;
+    std::string in_key;
     std::vector<int> in_ratios;
-    in_hexes.reserve(n);
-    in_ratios.reserve(n);
-    for (const auto& p : in_pairs) {
-        in_hexes.push_back(p.first);
-        in_ratios.push_back(p.second);
-    }
+    if (!canonicalize_blend_components(component_hexes, ratios, in_key, in_ratios))
+        return {};
 
     // Normalize ratios to sum=100 (callers may pass arbitrary weights,
     // e.g. MixedFilamentDialog uses ratio*10000).
@@ -442,43 +486,16 @@ std::string lookup_measured_blend_color(const std::vector<std::string>& componen
             return {};
     }
 
-    // Stage 2: collect anchors with the same component hex set; try exact match.
-    struct Anchor {
-        std::vector<int> ratios;
-        LabColor         lab;
-        std::string      hex;
-    };
-    std::vector<Anchor> anchors;
+    // Stage 2: anchors sharing the component set; try exact ratio match.
+    const auto& index = measured_blend_index();
+    const auto  it    = index.find(in_key);
+    if (it == index.end())
+        return {};
+    const std::vector<MeasuredBlendAnchor>& anchors = it->second;
 
-    for (const StandardRecipeEntry& entry : standard_entries()) {
-        if (entry.source != "measured" && entry.source != "interpolated")
-            continue;
-        if (entry.component_hexes.size() != n)
-            continue;
-
-        std::vector<std::pair<std::string, int>> e_pairs;
-        e_pairs.reserve(n);
-        for (size_t i = 0; i < n; ++i)
-            e_pairs.emplace_back(normalize_hex(entry.component_hexes[i]), entry.ratios[i]);
-        std::sort(e_pairs.begin(), e_pairs.end());
-
-        bool same_set = true;
-        for (size_t i = 0; i < n; ++i)
-            if (e_pairs[i].first != in_hexes[i]) { same_set = false; break; }
-        if (!same_set)
-            continue;
-
-        Anchor a;
-        a.ratios.reserve(n);
-        for (const auto& p : e_pairs) a.ratios.push_back(p.second);
-        a.lab = entry.measured_lab;
-        a.hex = entry.measured_hex;
-
+    for (const MeasuredBlendAnchor& a : anchors)
         if (a.ratios == in_ratios)
             return a.hex;
-
-        anchors.push_back(std::move(a));
-    }
 
     if (anchors.size() < 2)
         return {};
@@ -486,14 +503,18 @@ std::string lookup_measured_blend_color(const std::vector<std::string>& componen
     // Stage 3: interpolation in Lab space.
     if (n == 2) {
         // 1D linear interpolation along ratio[0].
-        std::sort(anchors.begin(), anchors.end(),
-                  [](const Anchor& a, const Anchor& b) { return a.ratios[0] < b.ratios[0]; });
+        std::vector<const MeasuredBlendAnchor*> by_ratio;
+        by_ratio.reserve(anchors.size());
+        for (const MeasuredBlendAnchor& a : anchors)
+            by_ratio.push_back(&a);
+        std::sort(by_ratio.begin(), by_ratio.end(),
+                  [](const MeasuredBlendAnchor* a, const MeasuredBlendAnchor* b) { return a->ratios[0] < b->ratios[0]; });
         const double x = static_cast<double>(in_ratios[0]);
         size_t lo = 0;
-        while (lo + 2 < anchors.size() && static_cast<double>(anchors[lo + 1].ratios[0]) <= x)
+        while (lo + 2 < by_ratio.size() && static_cast<double>(by_ratio[lo + 1]->ratios[0]) <= x)
             ++lo;
-        const Anchor& a0 = anchors[lo];
-        const Anchor& a1 = anchors[lo + 1];
+        const MeasuredBlendAnchor& a0 = *by_ratio[lo];
+        const MeasuredBlendAnchor& a1 = *by_ratio[lo + 1];
         const double span = static_cast<double>(a1.ratios[0] - a0.ratios[0]);
         const double t = span > 0.0 ? (x - static_cast<double>(a0.ratios[0])) / span : 0.0;
         return lab_to_srgb_hex({a0.lab.l + t * (a1.lab.l - a0.lab.l),
@@ -504,9 +525,9 @@ std::string lookup_measured_blend_color(const std::vector<std::string>& componen
     // 3+ color: IDW (p=2) with 3 nearest anchors in the (ratio[0], ratio[1]) plane.
     const double ra = static_cast<double>(in_ratios[0]);
     const double rb = static_cast<double>(in_ratios[1]);
-    std::vector<std::pair<double, const Anchor*>> dists;
+    std::vector<std::pair<double, const MeasuredBlendAnchor*>> dists;
     dists.reserve(anchors.size());
-    for (const Anchor& a : anchors) {
+    for (const MeasuredBlendAnchor& a : anchors) {
         const double d = std::sqrt(std::pow(ra - static_cast<double>(a.ratios[0]), 2.0) +
                                    std::pow(rb - static_cast<double>(a.ratios[1]), 2.0));
         if (d == 0.0)

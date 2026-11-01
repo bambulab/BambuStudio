@@ -1489,7 +1489,8 @@ void generate_support_toolpaths(
     const SupportGeneratorLayersPtr     &interface_layers,
     const SupportGeneratorLayersPtr     &base_interface_layers,
     const std::vector<ExPolygons>       &cooldown_areas,
-    const std::vector<ExPolygons>       &lightning_infill_areas)
+    std::vector<Polylines>              *lightning_infill_lines,
+    const std::vector<ExPolygons>       &floating_column_areas)
 {
     // loop_interface_processor with a given circle radius.
     LoopInterfaceProcessor loop_interface_processor(1.5 * support_params.support_material_interface_flow.scaled_width());
@@ -1618,7 +1619,7 @@ void generate_support_toolpaths(
     std::vector<LayerCache>             layer_caches(support_layers.size());
 
     tbb::parallel_for(tbb::blocked_range<size_t>(n_raft_layers, support_layers.size()),
-        [&config, &slicing_params, &support_params, &support_layers, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &base_interface_layers, &cooldown_areas, &lightning_infill_areas, &layer_caches, &loop_interface_processor,
+        [&config, &slicing_params, &support_params, &support_layers, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &base_interface_layers, &cooldown_areas, &lightning_infill_lines, &floating_column_areas, &layer_caches, &loop_interface_processor,
             &bbox_object, &angles, n_raft_layers, link_max_length_factor]
             (const tbb::blocked_range<size_t>& range) {
         // Indices of the 1st layer in their respective container at the support layer height.
@@ -1837,23 +1838,51 @@ void generate_support_toolpaths(
                     if (support_layer.print_z > 100.0)
                         support_params2.tree_branch_diameter_double_wall_area_scaled = 0.1;
                     tree_supports_generate_paths(base_layer.extrusions, base_layer.polygons_to_extrude(), flow, support_params2);
-                    // Close internal floating voids. The organic tree base above is printed sheath-only
-                    // (hollow), so a ceiling over an internal hole gets no support. Emit the pre-computed
-                    // lightning-grounded infill regions as solid rectilinear support.
-                    if (support_layer_id < lightning_infill_areas.size() && ! lightning_infill_areas[support_layer_id].empty()) {
-                        ExPolygons lf_regions = intersection_ex(to_polygons(lightning_infill_areas[support_layer_id]), base_layer.polygons_to_extrude());
-                        if (! lf_regions.empty()) {
-                            auto lf_filler = std::unique_ptr<Fill>(Fill::new_from_type(ipRectilinear));
-                            lf_filler->set_bounding_box(bbox_object);
-                            lf_filler->angle   = angles[support_layer_id % angles.size()];
-                            lf_filler->spacing = flow.spacing();
-                            fill_expolygons_generate_paths(
-                                base_layer.extrusions,
-                                std::move(lf_regions),
-                                lf_filler.get(), 1.0f,
-                                ExtrusionRole::erSupportMaterial, flow);
-                        }
+                    // Ground internal floating voids (lightning) and close floating-face columns left by
+                    // model intrusion. The organic tree base above is printed sheath-only (hollow), so
+                    // material printed over an internal hole gets no support from the sheath alone. Both
+                    // channels are indexed like the compacted intermediate_layers (print_z), not like
+                    // support_layers (which also holds raft and contact-only rows), and are emitted only
+                    // for the intermediate row already bound as this support layer's base.
+                    // Lightning: precomputed polylines, extruded directly (owned by the lightning pass).
+                    // Record their footprint (the line band) before the lines are moved out, so the
+                    // floating-column fill below can subtract it: a column descending through a
+                    // lightning-grounded void would otherwise be extruded a second time over the same XY.
+                    Polygons lightning_footprint;
+                    if (lightning_infill_lines &&
+                        idx_layer_intermediate < lightning_infill_lines->size() &&
+                        idx_layer_intermediate < intermediate_layers.size() &&
+                        base_layer.layer == intermediate_layers[idx_layer_intermediate] &&
+                        ! (*lightning_infill_lines)[idx_layer_intermediate].empty()) {
+                        Polylines &ll = (*lightning_infill_lines)[idx_layer_intermediate];
+                        lightning_footprint = offset(ll, 0.5f * float(flow.scaled_width()));
+                        extrusion_entities_append_paths(base_layer.extrusions,
+                            std::move(ll),
+                            ExtrusionRole::erSupportMaterial, float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
                     }
+                    // Floating-face columns: sparse rectilinear at support_density (peelable, not solid caps).
+                    auto fill_channel = [&](const std::vector<ExPolygons> &areas, size_t area_idx, float density) {
+                        if (area_idx >= areas.size() || areas[area_idx].empty())
+                            return;
+                        ExPolygons regions = intersection_ex(to_polygons(areas[area_idx]), base_layer.polygons_to_extrude());
+                        // Drop the part already covered by the lightning network on this layer (no double fill).
+                        if (! lightning_footprint.empty())
+                            regions = diff_ex(regions, lightning_footprint);
+                        if (regions.empty())
+                            return;
+                        auto filler = std::unique_ptr<Fill>(Fill::new_from_type(ipRectilinear));
+                        filler->set_bounding_box(bbox_object);
+                        filler->angle   = angles[support_layer_id % angles.size()];
+                        filler->spacing = flow.spacing();
+                        fill_expolygons_generate_paths(
+                            base_layer.extrusions,
+                            std::move(regions),
+                            filler.get(), density,
+                            ExtrusionRole::erSupportMaterial, flow);
+                    };
+                    if (idx_layer_intermediate < intermediate_layers.size() &&
+                        base_layer.layer == intermediate_layers[idx_layer_intermediate])
+                        fill_channel(floating_column_areas, idx_layer_intermediate, float(support_params.support_density));
                     done = true;
                 }
                 if (! done)

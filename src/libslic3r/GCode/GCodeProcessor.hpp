@@ -22,7 +22,6 @@ namespace Slic3r {
 
 // slice warnings enum strings
 #define NOZZLE_HRC_CHECKER                                          "the_actual_nozzle_hrc_smaller_than_the_required_nozzle_hrc"
-#define BED_TEMP_TOO_HIGH_THAN_FILAMENT                             "bed_temperature_too_high_than_filament"
 #define NOT_SUPPORT_TRADITIONAL_TIMELAPSE                           "not_support_traditional_timelapse"
 #define NOT_GENERATE_TIMELAPSE                                      "not_generate_timelapse"
 #define SMOOTH_TIMELAPSE_WITHOUT_PRIME_TOWER                        "smooth_timelapse_without_prime_tower"
@@ -73,6 +72,9 @@ namespace Slic3r {
             std::vector<std::pair<EMoveType, float>> moves_times;
             std::vector<std::pair<ExtrusionRole, float>> roles_times;
             std::vector<float> layers_times;
+            // Like layers_times but sliced by unique extrusion Z, for the preview slider only.
+            // Filled only for mixed-color sublayers (empty otherwise, slider falls back to layers_times).
+            std::vector<float> preview_layers_times;
 
             void reset() {
                 time = 0.0f;
@@ -85,6 +87,8 @@ namespace Slic3r {
                 roles_times.shrink_to_fit();
                 layers_times.clear();
                 layers_times.shrink_to_fit();
+                preview_layers_times.clear();
+                preview_layers_times.shrink_to_fit();
             }
         };
 
@@ -300,7 +304,6 @@ namespace Slic3r {
         std::vector<std::pair<float, std::pair<size_t, size_t>>> spiral_vase_layers;
         //BBS
         std::vector<SliceWarning> warnings;
-        std::vector<NozzleType> nozzle_type;
         // first key stores filaments, second keys stores the layer ranges(enclosed) that use the filaments
         std::unordered_map<std::vector<unsigned int>, std::vector<std::pair<int, int>>,FilamentSequenceHash> layer_filaments;
         std::vector<unsigned int> nozzle_change_sequence;
@@ -1242,7 +1245,7 @@ namespace Slic3r {
 
     public:
         GCodeProcessor();
-        void init_filament_maps_and_nozzle_type_when_import_only_gcode();
+        void init_filament_maps_when_import_only_gcode();
         // check whether the gcode path meets the filament_map grouping requirements
         bool check_multi_extruder_gcode_valid(const int                               extruder_size,
                                               const Pointfs                           plate_printable_area,
@@ -1493,7 +1496,6 @@ namespace Slic3r {
         float get_filament_unload_time(size_t extruder_id);
         float get_extruder_change_time(size_t extruder_id);
         float get_hotend_change_time();
-        int   get_filament_vitrification_temperature(size_t extrude_id);
         void process_custom_gcode_time(CustomGCode::Type code);
         void process_filaments(CustomGCode::Type code);
 
@@ -1501,6 +1503,10 @@ namespace Slic3r {
         void simulate_st_synchronize(float additional_time = 0.0f, ExtrusionRole target_role =ExtrusionRole::erNone);
 
         void update_estimated_times_stats();
+        // Fill PrintEstimatedStatistics::Mode::preview_layers_times, sliced by extrusion Z so the
+        // preview slider (one tick per extrusion Z) keeps showing an increasing time even when
+        // mixed-color sublayers make it finer than the logical layers layers_times is built from.
+        void update_preview_layers_times_stats();
         //BBS:
         void update_slice_warnings();
 

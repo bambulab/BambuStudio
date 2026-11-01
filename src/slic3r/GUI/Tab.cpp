@@ -2065,6 +2065,21 @@ static bool suggest_disable_thick_bridges_if_needed(DynamicPrintConfig *config, 
     return true;
 }
 
+// 对象可以通过对象级覆盖单独打开精确 Z 高度，此时全局值仍然是关闭的。这种覆盖破坏料塔 Z 网格的
+// 方式和全局设置完全一样，所以料塔的提示也必须扫一遍对象配置。
+static bool any_object_has_precise_z_height()
+{
+    Plater *plater = wxGetApp().plater();
+    if (plater == nullptr)
+        return false;
+    for (const ModelObject *object : plater->model().objects) {
+        const ConfigOptionBool *opt = object->config.get().option<ConfigOptionBool>("precise_z_height");
+        if (opt != nullptr && opt->value)
+            return true;
+    }
+    return false;
+}
+
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
     if (wxGetApp().plater() == nullptr) {
@@ -2181,7 +2196,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             }
             wxGetApp().plater()->update();
         }
-        bool is_precise_z_height = m_config->option<ConfigOptionBool>("precise_z_height")->value;
+        bool is_precise_z_height = m_config->option<ConfigOptionBool>("precise_z_height")->value || any_object_has_precise_z_height();
         if (boost::any_cast<bool>(value) && is_precise_z_height) {
             MessageDialog dlg(wxGetApp().plater(), _L("Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"),
                 _L("Warning"), wxICON_WARNING | wxYES | wxNO);
@@ -2285,7 +2300,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         if (timelapse_type && timelapse_type->value == TimelapseType::tlSmooth) {
             MessageDialog dlg(wxGetApp().plater(),
                               _L("\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. "
-                                 "Timelapse has been switched to traditional mode."),
+                                 "Timelapse has been switched to instant mode."),
                               _L("Warning"), wxICON_WARNING | wxOK);
             dlg.ShowModal();
             DynamicPrintConfig new_conf = *m_config;
@@ -2298,7 +2313,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "print_sequence" && m_config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject) {
         auto printer_structure_opt = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
         if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
-            wxString msg_text = _(L("The current printer does not support timelapse in Traditional Mode when printing By-Object."));
+            wxString msg_text = _(L("The current printer does not support timelapse in Instant Mode when printing By-Object."));
             msg_text += "\n\n" + _(L("Still print by object?"));
 
             MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
@@ -2655,6 +2670,15 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             }
         }
     }
+
+    // Paint penetration may not reach the sparse infill. Checked after the layer_height block above
+    // so that a corrected layer height is used to resolve the shell thickness into layers.
+    if (!m_postpone_update_ui &&
+        (opt_key == "top_color_penetration_layers" || opt_key == "bottom_color_penetration_layers" ||
+         opt_key == "top_shell_layers" || opt_key == "bottom_shell_layers" ||
+         opt_key == "top_shell_thickness" || opt_key == "bottom_shell_thickness" ||
+         opt_key == "layer_height"))
+        m_config_manipulation.check_color_penetration_layers(m_config, opt_key);
 
     string opt_key_without_idx = opt_key.substr(0, opt_key.find('#'));
 
@@ -3205,6 +3229,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Line width"), L"param_line_width");
         optgroup->append_single_option_line("line_width","parameter/line-width");
         optgroup->append_single_option_line("initial_layer_line_width","parameter/line-width");
+        optgroup->append_single_option_line("initial_layer_infill_line_width","parameter/line-width");
         optgroup->append_single_option_line("outer_wall_line_width","parameter/line-width");
         optgroup->append_single_option_line("inner_wall_line_width","parameter/line-width");
         optgroup->append_single_option_line("top_surface_line_width","parameter/line-width");
@@ -3307,6 +3332,13 @@ void TabPrint::build()
         optgroup->append_single_option_line("sparse_infill_density");
         optgroup->append_single_option_line("fill_multiline");
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
+        optgroup->append_single_option_line("conformal_infill", "", -1, true);
+        optgroup->append_single_option_line("conformal_stagger", "", -1, true);
+        optgroup->append_single_option_line("conformal_link_keep_layers", "", -1, true);
+        optgroup->append_single_option_line("conformal_link_flip_layers", "", -1, true);
+        optgroup->append_single_option_line("conformal_pole", "", -1, true);
+        optgroup->append_single_option_line("conformal_ray_count", "", -1, true);
+        optgroup->append_single_option_line("conformal_hub_radius", "", -1, true);
         optgroup->append_single_option_line("locked_skin_infill_pattern", "fill-patterns#infill types and their properties of sparse", -1, true);
         optgroup->append_single_option_line("skin_infill_density", "", -1, true);
         optgroup->append_single_option_line("locked_skeleton_infill_pattern", "fill-patterns#infill types and their properties of sparse", -1, true);
@@ -3334,6 +3366,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("minimum_sparse_infill_area","parameter/strength-advance-settings");
         optgroup->append_single_option_line("infill_combination","parameter/strength-advance-settings");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill","parameter/strength-advance-settings");
+        optgroup->append_single_option_line("sub_top_surface_pattern","parameter/strength-advance-settings");
         optgroup->append_single_option_line("ensure_vertical_shell_thickness","parameter/strength-advance-settings");
         optgroup->append_single_option_line("detect_floating_vertical_shell","parameter/strength-advance-settings");
         //optgroup->append_single_option_line("internal_bridge_support_thickness","parameter/strength-advance-settings");
@@ -3971,7 +4004,14 @@ void TabPrintModel::on_value_change(const std::string& opt_id, const boost::any&
         m_null_keys.erase(inull);
     if (m_back_to_sys || set) update_changed_ui();
     m_back_to_sys = false;
+    // 基类可能因为确认框（精确 Z 高度与料塔同时开启）而把值回退掉。当回退后的值恰好和全局值相等时，
+    // reload_config() 不会把这次回退写回对象配置，所以这里必须补上。
+    std::unique_ptr<ConfigOption> value_before(m_config->option(opt_key) ? m_config->option(opt_key)->clone() : nullptr);
     TabPrint::on_value_change(opt_id, value);
+    if (value_before && m_config->option(opt_key) && *m_config->option(opt_key) != *value_before) {
+        for (auto config : m_object_configs)
+            config.second->apply_only(*m_config, {opt_key});
+    }
     for (auto config : m_object_configs) {
         config.second->touch();
         notify_changed(config.first);
@@ -4290,6 +4330,50 @@ TabPrintPart::TabPrintPart(ParamsPanel* parent) :
     m_parent_tab = wxGetApp().get_model_tab();
 }
 
+void TabPrintPart::build()
+{
+    TabPrintModel::build();
+    PageShp others;
+    for (auto &page : m_pages) {
+        if (page->title() == L("Others")) {
+            others = page;
+            break;
+        }
+    }
+    if (!others)
+        others = add_options_page(L("Others"), "advanced");
+    auto optgroup = others->new_optgroup(L("Modifier cycle"), L"param_wall");
+    optgroup->have_sys_config = [this] {
+        m_back_to_sys = true;
+        return true;
+    };
+    optgroup->append_single_option_line("periodic_modifier");
+    optgroup->append_single_option_line("periodic_modifier_skip_layers");
+    optgroup->append_single_option_line("periodic_modifier_apply_layers");
+    optgroup->append_single_option_line("modifier_ignore_infill");
+}
+
+void TabPrintPart::toggle_options()
+{
+    TabPrint::toggle_options();
+    bool is_modifier = false;
+    if (!m_object_configs.empty()) {
+        is_modifier = true;
+        for (auto &item : m_object_configs) {
+            auto *vol = dynamic_cast<ModelVolume *>(item.first);
+            if (!vol || !vol->is_modifier()) {
+                is_modifier = false;
+                break;
+            }
+        }
+    }
+    toggle_line("periodic_modifier", is_modifier);
+    const bool show_nm = is_modifier && m_config->has("periodic_modifier") && m_config->opt_bool("periodic_modifier");
+    toggle_line("periodic_modifier_skip_layers", show_nm);
+    toggle_line("periodic_modifier_apply_layers", show_nm);
+    toggle_line("modifier_ignore_infill", is_modifier);
+}
+
 void TabPrintPart::notify_changed(ObjectBase * object)
 {
     auto vol = dynamic_cast<ModelVolume*>(object);
@@ -4365,6 +4449,87 @@ static void validate_custom_gcode_cb(Tab* tab, ConfigOptionsGroupShp opt_group, 
     }
 }
 
+int TabFilament::get_override_variant_index(const std::string &opt_key)
+{
+    const int   selection = m_variant_combo ? m_variant_combo->GetSelection() : 0;
+    const auto *opt       = dynamic_cast<const ConfigOptionVectorBase *>(m_config->option(opt_key));
+    if (!opt || selection < 0 || selection >= static_cast<int>(opt->size()))
+        return 0;
+    return selection;
+}
+
+void TabFilament::discard_override_last_values_on_preset_change()
+{
+    const std::string &preset_name = m_presets->get_edited_preset().name;
+    if (m_override_last_values_preset == preset_name)
+        return;
+
+    // Values remembered for another filament preset must not leak into this one.
+    m_override_last_values.clear();
+    m_override_last_values_preset = preset_name;
+}
+
+void TabFilament::remember_filament_override_value(ConfigOptionsGroupShp optgroup, const std::string &opt_key)
+{
+    discard_override_last_values_on_preset_change();
+
+    const int   variant_idx = get_override_variant_index(opt_key);
+    const auto *opt         = dynamic_cast<const ConfigOptionVectorBase *>(m_config->option(opt_key));
+    if (!opt || opt->is_nil(variant_idx))
+        return;
+
+    boost::any value = optgroup->get_config_value(*m_config, opt_key, variant_idx);
+    if (value.empty())
+        return;
+
+    m_override_last_values[std::make_pair(opt_key, variant_idx)] = value;
+}
+
+bool TabFilament::restore_filament_override_value(Field *field, const std::string &opt_key)
+{
+    if (!field)
+        return false;
+
+    discard_override_last_values_on_preset_change();
+
+    const auto it = m_override_last_values.find(std::make_pair(opt_key, get_override_variant_index(opt_key)));
+    if (it == m_override_last_values.end() || it->second.empty())
+        return false;
+
+    field->set_value(it->second, false);
+    field->set_last_meaningful_value();
+    return true;
+}
+
+bool TabFilament::seed_filament_override_from_printer(ConfigOptionsGroupShp optgroup, Field *field, const std::string &opt_key)
+{
+    static const std::string filament_prefix = "filament_";
+    if (!field || opt_key.compare(0, filament_prefix.size(), filament_prefix) != 0)
+        return false;
+
+    const std::string printer_key = opt_key.substr(filament_prefix.size());
+    const DynamicPrintConfig &printer_config = m_preset_bundle->printers.get_edited_preset().config;
+    if (!printer_config.option(printer_key))
+        return false;
+
+    const auto *filament_variants = m_config->option<ConfigOptionStrings>("filament_extruder_variant");
+    int filament_idx = m_variant_combo ? m_variant_combo->GetSelection() : 0;
+    if (!filament_variants || filament_idx < 0 || filament_idx >= static_cast<int>(filament_variants->size()))
+        return false;
+
+    const int printer_idx = find_printer_variant_index(printer_config, filament_variants->get_at(filament_idx));
+    if (printer_idx < 0)
+        return false;
+
+    boost::any printer_value = optgroup->get_config_value(printer_config, printer_key, printer_idx);
+    if (printer_value.empty())
+        return false;
+
+    field->set_value(printer_value, false);
+    field->set_last_meaningful_value();
+    return true;
+}
+
 void TabFilament::add_filament_overrides_page()
 {
     //BBS
@@ -4380,15 +4545,21 @@ void TabFilament::add_filament_overrides_page()
         line.near_label_widget = [this, optgroup, opt_key, opt_index](wxWindow* parent) {
             wxCheckBox* check_box = new wxCheckBox(parent, wxID_ANY, "");
 
-            check_box->Bind(wxEVT_CHECKBOX, [optgroup, opt_key, opt_index](wxCommandEvent& evt) {
+            check_box->Bind(wxEVT_CHECKBOX, [this, optgroup, opt_key, opt_index](wxCommandEvent& evt) {
                 const bool is_checked = evt.IsChecked();
                 Field* field = optgroup->get_fieldc(opt_key, opt_index);
                 if (field != nullptr) {
                     field->toggle(is_checked);
-                    if (is_checked)
-                        field->set_last_meaningful_value();
-                    else
+                    if (is_checked) {
+                        // Restore what the user had before unchecking, and only fall back to the
+                        // printer value of the current extruder variant when nothing is remembered.
+                        if (!restore_filament_override_value(field, opt_key) &&
+                            !seed_filament_override_from_printer(optgroup, field, opt_key))
+                            field->set_last_meaningful_value();
+                    } else {
+                        remember_filament_override_value(optgroup, opt_key);
                         field->set_na_value();
+                    }
                 }
             }, check_box->GetId());
 
@@ -5062,6 +5233,8 @@ void TabFilament::clear_pages()
 
     //BBS: GUI refactor
     m_overrides_options.clear();
+    m_override_last_values.clear();
+    m_override_last_values_preset.clear();
 }
 
 wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticText, wxString text /*= wxEmptyString*/)
@@ -5290,7 +5463,6 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("extruder_clearance_height_to_lid");
 
         optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
-        optgroup->append_single_option_line("nozzle_type");
         optgroup->append_single_option_line("auxiliary_fan");
         optgroup->append_single_option_line("fan_direction");
         optgroup->append_single_option_line("support_chamber_temp_control");
@@ -5488,7 +5660,11 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
         m_preset_bundle->on_extruders_count_changed(extruders_count, reset_volume_type);
         is_count_changed = true;
 
-        wxGetApp().plater()->get_partplate_list().on_extruder_count_changed((int)m_extruders_count);
+        // Only clear per-plate filament_volume_map on a genuine printer switch, not while loading a project. 
+        // During load, single-extruder plates carry their own filament_volume_map from the 3mf; 
+        // clearing it forces a nozzle_volume_type default that differs from the loaded value, which puts filament_volume_map into
+        // full_config_diff and invalidates psGCodeExport, discarding the imported G-code.
+        if (reset_volume_type) wxGetApp().plater()->get_partplate_list().on_extruder_count_changed((int)m_extruders_count);
     }
     // BBS
 #if 1
@@ -6612,6 +6788,15 @@ bool Tab::select_preset(
     assert(! delete_current || (m_presets->get_edited_preset().name != preset_name && (m_presets->get_edited_preset().is_user() || m_presets->get_edited_preset().is_project_embedded)));
     //assert(! delete_current || (m_presets->get_edited_preset().name != preset_name && m_presets->get_edited_preset().is_user()));
     bool current_dirty = ! delete_current && m_presets->current_is_dirty();
+
+    // No-op reselection backstop: re-selecting the already-active, clean preset would still run
+    // the full update_compatible + load_current_preset + full_config rebuild for no change. Skip
+    // it so a redundant reselection (e.g. driven by device pushes) can't saturate the UI thread.
+    if (!delete_current && !force_select && !preset_name.empty() && m_presets->get_selected_preset().name == preset_name && !current_dirty) {
+        BOOST_LOG_TRIVIAL(warning) << "trying to select the already selected preset, skip: " << preset_name;
+        return true;
+    }
+
     bool print_tab     = m_presets->type() == Preset::TYPE_PRINT || m_presets->type() == Preset::TYPE_SLA_PRINT;
     bool printer_tab   = m_presets->type() == Preset::TYPE_PRINTER;
     bool canceled      = false;

@@ -31,6 +31,9 @@ public:
 public:
     void  UpdateInfo(const DevFirmwareVersionInfo& info);
 
+    // Model / serial / version as shown, for the "copy device info" action.
+    wxString GetInfoText() const;
+
 private:
     void  CreateWidgets();
 

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 52 52" fill="none">
+  <g stroke="#00AE42" stroke-width="3" stroke-linecap="round" fill="none">
+    <!-- Head (alpha = 1) at 12 o'clock, tracing clockwise around the ring.
+         Alpha drops linearly to 0 over 260°; last ~100° (right side) is the gap. -->
+    <path d="M 26,2     A 24,24 0 0 1 38,5.22"   stroke-opacity="0.94"/>
+    <path d="M 38,5.22  A 24,24 0 0 1 46.78,14"  stroke-opacity="0.83"/>
+    <path d="M 46.78,14 A 24,24 0 0 1 50,26"     stroke-opacity="0.71"/>
+    <path d="M 50,26    A 24,24 0 0 1 46.78,38"  stroke-opacity="0.60"/>
+    <path d="M 46.78,38 A 24,24 0 0 1 38,46.78"  stroke-opacity="0.48"/>
+    <path d="M 38,46.78 A 24,24 0 0 1 26,50"     stroke-opacity="0.37"/>
+    <path d="M 26,50    A 24,24 0 0 1 14,46.78"  stroke-opacity="0.25"/>
+    <path d="M 14,46.78 A 24,24 0 0 1 5.22,38"   stroke-opacity="0.14"/>
+    <path d="M 5.22,38  A 24,24 0 0 1 2,26"      stroke-opacity="0.02"/>
+  </g>
+</svg>

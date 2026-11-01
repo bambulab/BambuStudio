@@ -13,7 +13,10 @@
 
 // https://github.com/AngusJohnson/Clipper2/discussions/334
 // #discussioncomment-4248602
-#if defined(_MSC_VER) && ( defined(_M_AMD64) || defined(_M_X64) )
+// ARM64EC defines _M_X64 but _mm_cvtsd_si64 has neither a native EC lowering
+// nor a softintrin fallback; the standard C functions compile to native ARM64
+// rounding/min/max instructions there anyway.
+#if defined(_MSC_VER) && ( defined(_M_AMD64) || defined(_M_X64) ) && !defined(_M_ARM64EC)
 #include <xmmintrin.h>
 #include <emmintrin.h>
 #define fmin(a,b) _mm_cvtsd_f64(_mm_min_sd(_mm_set_sd(a),_mm_set_sd(b)))

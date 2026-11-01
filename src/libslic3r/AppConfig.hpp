@@ -240,7 +240,7 @@ public:
     std::vector<std::string> get_recent_projects() const;
     void set_recent_projects(const std::vector<std::string>& recent_projects);
 
-	void set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz);
+	void set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz, bool lock_horizon);
 	std::vector<std::string> get_mouse_device_names() const;
 	bool get_mouse_device_translation_speed(const std::string& name, double& speed) const
 		{ return get_3dmouse_device_numeric_value(name, "translation_speed", speed); }
@@ -254,6 +254,8 @@ public:
 		{ return get_3dmouse_device_numeric_value(name, "zoom_speed", speed); }
 	bool get_mouse_device_swap_yz(const std::string& name, bool& swap) const
 		{ return get_3dmouse_device_numeric_value(name, "swap_yz", swap); }
+	bool get_mouse_device_lock_horizon(const std::string& name, bool& lock) const
+		{ return get_3dmouse_device_numeric_value(name, "lock_horizon", lock); }
 
 	static const std::string SECTION_FILAMENTS;
     static const std::string SECTION_MATERIALS;

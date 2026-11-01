@@ -59,7 +59,10 @@
 
 #if defined(_MSC_VER) && defined(_WIN64)
 	#include <intrin.h>
+	// _mul128 exists only on x64; ARM64 MSVC uses __umulh (also from <intrin.h>).
+	#ifdef _M_X64
 	#pragma intrinsic(_mul128)
+	#endif
 #endif
 
 //------------------------------------------------------------------------------

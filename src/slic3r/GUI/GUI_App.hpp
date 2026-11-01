@@ -14,7 +14,6 @@
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
 #include "slic3r/GUI/WebUserLoginDialog.hpp"
-#include "slic3r/GUI/BindDialog.hpp"
 #include "slic3r/GUI/HMS.hpp"
 #include "slic3r/GUI/fila_manager/wgtFilaManagerStore.h"
 #include "slic3r/GUI/fila_manager/wgtFilaManagerSync.h"
@@ -80,6 +79,7 @@ namespace Slic3r {
 
 class AppConfig;
 class FilamentColorCodeQuery;
+class GLShaderProgram;
 class PresetBundle;
 class PresetUpdater;
 class ModelObject;
@@ -103,7 +103,7 @@ class ParamsPanel;
 class NotificationManager;
 struct GUI_InitParams;
 class ParamsDialog;
-class HMSQuery;
+class HMSQueryMgr;
 class ModelMallDialog;
 class PingCodeBindDialog;
 class NetworkErrorDialog;
@@ -368,7 +368,7 @@ private:
     VersionInfo version_info;
     VersionInfo privacy_version_info;
     static std::string version_display;
-    HMSQuery    *hms_query { nullptr };
+    HMSQueryMgr *hms_query_mgr { nullptr };
     FilamentColorCodeQuery* m_filament_color_code_query{ nullptr };
 
     boost::thread    m_sync_update_thread;
@@ -419,6 +419,8 @@ public:
     wgtFilaManagerCloudSync*        fila_manager_cloud_sync()   { return m_fila_manager_cloud_sync; }
     wgtFilaManagerCloudDispatcher*  fila_manager_cloud_disp()   { return m_fila_manager_cloud_disp; }
     bool                            is_fila_manager_disabled() const { return m_disable_fila_manager; }
+    void notify_new_rfid_filament(const std::string& ams_id, const std::string& slot_id);
+    void open_new_official_filament_hint(const std::string& ams_id, const std::string& slot_id);
 #if !BBL_RELEASE_TO_PUBLIC
     void set_fila_debug_sink(std::function<void(const nlohmann::json&)> sink)
     {
@@ -432,7 +434,7 @@ public:
                              const std::string& title,
                              const std::string& summary,
                              const nlohmann::json& detail = nlohmann::json::object());
-    HMSQuery* get_hms_query() { return hms_query; }
+    HMSQueryMgr* get_hms_query_mgr() { return hms_query_mgr; }
     NetworkAgent* getAgent() { return m_agent; }
     FilamentColorCodeQuery* get_filament_color_code_query();
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
@@ -478,7 +480,13 @@ public:
     void            UpdateDlgDarkUI(wxDialog* dlg);
     void            UpdateFrameDarkUI(wxFrame* dlg);
     // update color mode for DataViewControl
-    void            UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited = false);
+    /**
+     * \brief Apply the dark-mode theme to a wxDataViewCtrl and its header.
+     * \param dvc         Control to theme.
+     * \param highlited   Use the highlighted dark background.
+     * \param header_font Optional header font; nullptr keeps the app's normal font.
+     */
+    void            UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited = false, const wxFont* header_font = nullptr);
     // update color mode for panel including all static texts controls
     void            UpdateAllStaticTextDarkUI(wxWindow* parent);
     void            init_fonts();
@@ -569,6 +577,7 @@ public:
     void            check_update(bool show_tips, int by_user);
     void            check_new_version(bool show_tips = false, int by_user = 0);
     void            check_cert();
+    void            post_device_region();
     bool            process_network_msg(std::string dev_id, std::string msg);
     void            check_beta_version(bool show_tips_when_no_beta = false);
     void            request_new_version(int by_user);
@@ -921,7 +930,12 @@ static std::vector<wxLanguage> s_supported_languages = {
     wxLANGUAGE_UKRAINIAN,
     wxLANGUAGE_PORTUGUESE_BRAZILIAN,
     wxLANGUAGE_TURKISH,
-    wxLANGUAGE_POLISH
+    wxLANGUAGE_POLISH,
+    wxLANGUAGE_THAI,
+    wxLANGUAGE_ROMANIAN,
+    wxLANGUAGE_GREEK,
+    wxLANGUAGE_INDONESIAN,
+    wxLANGUAGE_VIETNAMESE
 };
 } // namespace GUI
 } // Slic3r

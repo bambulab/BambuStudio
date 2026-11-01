@@ -398,6 +398,46 @@ WarningDialog::WarningDialog(wxWindow *parent,
     finalize();
 }
 
+MsgNoteDialog::MsgNoteDialog(wxWindow *parent, const wxString &title, long style)
+    : MsgDialog(parent, title, wxEmptyString, style)
+{
+}
+
+Label *MsgNoteDialog::create_wrapped_label(const wxString &text, const wxFont &font, const wxColour &color)
+{
+    const int content_width = FromDIP(430);
+    const wxColour background = StateColor::darkModeColorFor(*wxWHITE);
+    wxClientDC dc(this);
+    dc.SetFont(font);
+    wxString wrapped_text;
+    const wxSize text_size = Label::split_lines(dc, content_width, text, wrapped_text);
+    auto *label = new Label(this, font, wrapped_text, 0,
+                            wxSize(content_width, text_size.GetHeight() + FromDIP(4)));
+    label->SetForegroundColour(color);
+    label->SetBackgroundColour(background);
+    label->SetMinSize(wxSize(content_width, text_size.GetHeight() + FromDIP(4)));
+    return label;
+}
+
+void MsgNoteDialog::AddMessage(const wxString &message)
+{
+    auto *message_label = create_wrapped_label(
+        message, Label::Body_14, StateColor::darkModeColorFor(wxColour("#262E30")));
+    content_sizer->Add(message_label, 0, wxEXPAND);
+}
+
+void MsgNoteDialog::AddNote(const wxString &note)
+{
+    auto *note_label = create_wrapped_label(
+        note, Label::Body_12, StateColor::darkModeColorFor(wxColour("#6B6B6B")));
+    content_sizer->Add(note_label, 0, wxEXPAND | wxTOP, FromDIP(8));
+}
+
+void MsgNoteDialog::Finalize()
+{
+    finalize();
+}
+
 PostProcessScriptDialog::PostProcessScriptDialog(wxWindow* parent, const wxString& message, const wxString& script_content)
     : MsgDialog(parent,
         wxString::Format(_L("%s warning"), SLIC3R_APP_FULL_NAME),

@@ -163,6 +163,7 @@ public:
 
     //BBS: add m_loaded_print logic
     bool is_loaded() const { return (m_loaded_print != nullptr); }
+    bool is_print_loaded(const Slic3r::PrintBase* print) const { return m_loaded_print != nullptr && m_loaded_print == print; }
     //BBS
     void on_tick_changed(CustomGCode::Type type);
 

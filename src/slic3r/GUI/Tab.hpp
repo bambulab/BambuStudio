@@ -576,6 +576,8 @@ public:
 	//BBS: GUI refactor
 	TabPrintPart(ParamsPanel* parent);
 	~TabPrintPart() {}
+	void build() override;
+	void toggle_options() override;
 protected:
 	virtual void    notify_changed(ObjectBase * object) override;
 };
@@ -602,9 +604,18 @@ private:
 
     void            add_filament_overrides_page();
     void            update_filament_overrides_page();
+    int             get_override_variant_index(const std::string &opt_key);
+    void            discard_override_last_values_on_preset_change();
+    void            remember_filament_override_value(ConfigOptionsGroupShp optgroup, const std::string &opt_key);
+    bool            restore_filament_override_value(Field *field, const std::string &opt_key);
+    bool            seed_filament_override_from_printer(ConfigOptionsGroupShp optgroup, Field *field, const std::string &opt_key);
 	void 			update_volumetric_flow_preset_hints();
 
     std::map<std::string, wxCheckBox*> m_overrides_options;
+    // Value each override held before it was unchecked, kept per extruder variant so that
+    // re-checking restores the user value instead of re-seeding from the printer preset.
+    std::map<std::pair<std::string, int>, boost::any> m_override_last_values;
+    std::string                                       m_override_last_values_preset;
 
 public:
 	//BBS: GUI refactor

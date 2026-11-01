@@ -20,10 +20,6 @@
     "min_layer_height": [
         "0.16"
     ],
-    "nozzle_type": [
-        "hardened_steel",
-        "hardened_steel"
-    ],
     "retract_length_toolchange": [
         "3",
         "3"

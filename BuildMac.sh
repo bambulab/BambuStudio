@@ -181,6 +181,9 @@ function build_slicer() {
             rm -rf ./BambuStudio.app
             # fully copy newly built app
             cp -pR "../src$BUILD_DIR_CONFIG_SUBDIR/BambuStudio.app" ./BambuStudio.app
+            # copy standalone dSYM symbol bundle if present (Release only)
+            rm -rf ./BambuStudio.app.dSYM
+            cp -pR "../src$BUILD_DIR_CONFIG_SUBDIR/BambuStudio.app.dSYM" ./BambuStudio.app.dSYM 2>/dev/null || true
             # fix resources
             resources_path=$(readlink ./BambuStudio.app/Contents/Resources)
             rm ./BambuStudio.app/Contents/Resources
@@ -214,8 +217,26 @@ function build_universal() {
         "$PROJECT_DIR/build/x86_64/BambuStudio/BambuStudio.app/$BINARY_PATH" \
         "$PROJECT_DIR/build/arm64/BambuStudio/BambuStudio.app/$BINARY_PATH" \
         -output "$UNIVERSAL_APP/$BINARY_PATH"
-        
+
     echo "Universal binary created at $UNIVERSAL_APP"
+
+    # Create universal dSYM by merging the per-arch DWARF (Release only)
+    UNIVERSAL_DSYM="$PROJECT_BUILD_DIR/BambuStudio/BambuStudio.app.dSYM"
+    ARM64_DSYM="$PROJECT_DIR/build/arm64/BambuStudio/BambuStudio.app.dSYM"
+    X86_64_DSYM="$PROJECT_DIR/build/x86_64/BambuStudio/BambuStudio.app.dSYM"
+    DWARF_PATH="Contents/Resources/DWARF/BambuStudio"
+    if [ -d "$ARM64_DSYM" ] && [ -d "$X86_64_DSYM" ]; then
+        echo "Creating universal dSYM..."
+        rm -rf "$UNIVERSAL_DSYM"
+        cp -R "$ARM64_DSYM" "$UNIVERSAL_DSYM"
+        lipo -create \
+            "$X86_64_DSYM/$DWARF_PATH" \
+            "$ARM64_DSYM/$DWARF_PATH" \
+            -output "$UNIVERSAL_DSYM/$DWARF_PATH"
+        echo "Universal dSYM created at $UNIVERSAL_DSYM"
+    else
+        echo "Per-arch dSYM not found, skipping universal dSYM"
+    fi
 }
 
 case "${BUILD_TARGET}" in

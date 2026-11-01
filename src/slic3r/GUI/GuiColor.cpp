@@ -1,5 +1,7 @@
 #include "GuiColor.hpp"
 
+#include <cmath>
+
 namespace Slic3r { namespace GUI {
 wxColour convert_to_wxColour(const RGBA &color)
 {
@@ -23,11 +25,7 @@ RGBA convert_to_rgba(const wxColour &color)
 
 float calc_color_distance(wxColour c1, wxColour c2)
 {
-    float lab[2][3];
-    RGB2Lab(c1.Red(), c1.Green(), c1.Blue(), &lab[0][0], &lab[0][1], &lab[0][2]);
-    RGB2Lab(c2.Red(), c2.Green(), c2.Blue(), &lab[1][0], &lab[1][1], &lab[1][2]);
-
-    return DeltaE76(lab[0][0], lab[0][1], lab[0][2], lab[1][0], lab[1][1], lab[1][2]);
+    return calc_color_distance(convert_to_rgba(c1), convert_to_rgba(c2));
 }
 
 float calc_color_distance(RGBA c1, RGBA c2)
@@ -36,7 +34,11 @@ float calc_color_distance(RGBA c1, RGBA c2)
     RGB2Lab(c1[0], c1[1], c1[2], &lab[0][0], &lab[0][1], &lab[0][2]);
     RGB2Lab(c2[0], c2[1], c2[2], &lab[1][0], &lab[1][1], &lab[1][2]);
 
-    return DeltaE76(lab[0][0], lab[0][1], lab[0][2], lab[1][0], lab[1][1], lab[1][2]);
+    const float de = DeltaE76(lab[0][0], lab[0][1], lab[0][2], lab[1][0], lab[1][1], lab[1][2]);
+    // Alpha is [0, 1]; scale to CIE L* range [0, 100] so opacity mismatch
+    // contributes on the same order as a full lightness swing.
+    const float da = (c1[3] - c2[3]) * 100.f;
+    return std::sqrt(de * de + da * da);
 }
 
 } }

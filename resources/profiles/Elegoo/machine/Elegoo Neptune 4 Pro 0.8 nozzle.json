@@ -19,7 +19,6 @@
     "0x230"
   ],
   "printable_height": "265",
-  "nozzle_type": "hardened_steel",
   "auxiliary_fan": "0",
   "machine_max_acceleration_e": [
     "5000",

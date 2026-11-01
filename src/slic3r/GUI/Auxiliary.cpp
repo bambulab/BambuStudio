@@ -1019,13 +1019,22 @@ void AuxiliaryPanel::Reload(wxString aux_path)
     std::vector<fs::path>  dir_cache;
     fs::directory_iterator iter_end;
 
+    // Only sub directories are scanned below. A 3mf package may legally place plain files
+    // directly under Auxiliaries/, constructing a directory_iterator on those would throw.
     for (fs::directory_iterator iter(new_aux_path); iter != iter_end; iter++) {
-        wxString path = iter->path().generic_wstring();
+        boost::system::error_code ec;
+        if (!fs::is_directory(iter->path(), ec) || ec) continue;
         dir_cache.push_back(iter->path());
     }
 
     for (auto dir : dir_cache) {
-        for (fs::directory_iterator iter(dir); iter != iter_end; iter++) {
+        boost::system::error_code dir_ec;
+        fs::directory_iterator iter(dir, dir_ec);
+        if (dir_ec) {
+            BOOST_LOG_TRIVIAL(error) << "Failed iterating the auxiliary directory: " << dir_ec.message();
+            continue;
+        }
+        for (; iter != iter_end; iter++) {
             if (fs::is_directory(iter->path())) continue;
             wxString file_path     = iter->path().generic_wstring();
             //auto     file_path_str = encode_path(file_path.c_str());

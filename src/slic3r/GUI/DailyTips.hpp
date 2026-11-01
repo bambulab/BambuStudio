@@ -64,7 +64,7 @@ public:
     DailyTipsWindow();
     void open();
     void close();
-    void render();
+    void render(float cnv_width, float cnv_height);
     void on_change_color_mode(bool is_dark);
 
 private:

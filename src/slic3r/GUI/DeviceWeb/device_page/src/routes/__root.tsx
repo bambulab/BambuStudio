@@ -2,6 +2,8 @@ import { createRootRoute, Link, Outlet, useRouterState } from '@tanstack/react-r
 
 const embeddedRoutes = new Set([
   '/filament_manager',
+  '/device_page/ams_control_web',
+  '/device_page/ams_control_web_debug',
 ])
 
 function RootComponent() {

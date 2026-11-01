@@ -131,6 +131,12 @@ set(lisbslic3r_sources
     Fill/Lightning/TreeNode.hpp
     Fill/FillRectilinear.cpp
     Fill/FillRectilinear.hpp
+    Fill/FillConformal.cpp
+    Fill/FillConformal.hpp
+    Fill/FillConformalChart.cpp
+    Fill/FillConformalChart.hpp
+    Fill/FillRadialZigZag.cpp
+    Fill/FillRadialZigZag.hpp
     Fill/FillFloatingConcentric.hpp
     Fill/FillFloatingConcentric.cpp
     Flow.cpp
@@ -363,6 +369,8 @@ set(lisbslic3r_sources
     TriangleMesh.hpp
     MeshDiagnostics.hpp
     MeshDiagnostics.cpp
+    MeshRaycast.hpp
+    MeshRaycast.cpp
     TriangleMeshDeal.cpp
     TriangleMeshDeal.hpp
     TriangleMeshSlicer.cpp
@@ -540,6 +548,43 @@ if(MSVC AND MSVC_VERSION GREATER_EQUAL 1950 AND NOT DEFINED OpenCV_RUNTIME)
         set(OpenCV_RUNTIME vc17)
     endif()
 endif()
+if(MSVC AND NOT DEFINED OpenCV_ARCH)
+    # OpenCVConfig.cmake's arch dispatcher matches CMAKE_GENERATOR_PLATFORM against
+    # "ARM64" case-sensitively, but build_win.bat passes -A arm64 (lowercase), so it
+    # falls back to x64 and misses the ARM64/<runtime>/staticlib install layout.
+    # Select the arch explicitly for any spelling of an ARM64 target. The dispatcher
+    # only honours pre-set values when BOTH OpenCV_ARCH and OpenCV_RUNTIME are
+    # defined, so pin the runtime too (our deps build installs the vc17 layout).
+    set(_slic3r_gen_platform "${CMAKE_GENERATOR_PLATFORM}")
+    if(NOT _slic3r_gen_platform)
+        set(_slic3r_gen_platform "${CMAKE_SYSTEM_PROCESSOR}")
+    endif()
+    string(TOUPPER "${_slic3r_gen_platform}" _slic3r_gen_platform)
+    if(_slic3r_gen_platform MATCHES "^(ARM64|AARCH64)$")
+        set(OpenCV_ARCH ARM64)
+        if(NOT DEFINED OpenCV_RUNTIME)
+            set(OpenCV_RUNTIME vc17)
+        endif()
+    elseif(_slic3r_gen_platform STREQUAL "ARM64EC")
+        # ARM64EC consumes either dependency flavor (EC and x64 code
+        # interoperate): the in-repo ARM64EC deps bundle installs OpenCV under
+        # ARM64/vc17 (its recipe treats EC like arm64), while an x64 deps
+        # prefix uses x64/vc17. Pick whichever layout the prefix provides.
+        # MSVC 19.4x also falls in a gap in OpenCV 4.6's runtime table, so the
+        # runtime must be pinned here too.
+        set(OpenCV_ARCH x64)
+        foreach(_slic3r_prefix ${CMAKE_PREFIX_PATH})
+            if(EXISTS "${_slic3r_prefix}/ARM64/vc17")
+                set(OpenCV_ARCH ARM64)
+            endif()
+        endforeach()
+        unset(_slic3r_prefix)
+        if(NOT DEFINED OpenCV_RUNTIME)
+            set(OpenCV_RUNTIME vc17)
+        endif()
+    endif()
+    unset(_slic3r_gen_platform)
+endif()
 find_package(OpenCV REQUIRED core)
 find_package(assimp REQUIRED)
 cmake_policy(POP)
@@ -550,7 +595,7 @@ add_library(libslic3r_cgal STATIC
     MeshBoolean.hpp MeshBoolean.cpp
     TryCatchSignal.hpp TryCatchSignal.cpp
     Triangulation.hpp Triangulation.cpp)
-target_include_directories(libslic3r_cgal PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libslic3r_cgal PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 # Reset compile options of libslic3r_cgal. Despite it being linked privately, CGAL options
 # (-frounding-math) still propagate to dependent libs which is not desired.
@@ -576,6 +621,51 @@ if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14.1)
 endif()
 
 target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl mcut)
+if(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN)
+    # GMP/MPFR usually come with CGAL/DEP, but may not be visible to find_library
+    # in non-standard layouts. Missing deps used to fall back to MCUT silently;
+    # that is only allowed with SLIC3R_ALLOW_MCUT_BOOLEAN.
+    if(NOT GMP_LIBRARIES)
+        if(GMP_LIBRARY_RELEASE)
+            set(GMP_LIBRARIES ${GMP_LIBRARY_RELEASE})
+        else()
+            find_library(GMP_LIBRARIES NAMES libgmp-10 gmp)
+        endif()
+    endif()
+    if(NOT MPFR_LIBRARIES)
+        if(MPFR_LIBRARY_RELEASE)
+            set(MPFR_LIBRARIES ${MPFR_LIBRARY_RELEASE})
+        else()
+            find_library(MPFR_LIBRARIES NAMES libmpfr-4 mpfr)
+        endif()
+    endif()
+    if(GMP_LIBRARIES AND MPFR_LIBRARIES)
+        # MeshBoolean.cpp is compiled in libslic3r_cgal, not libslic3r.
+        target_compile_definitions(libslic3r PUBLIC SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN=1)
+        target_compile_definitions(libslic3r_cgal PRIVATE SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN=1)
+        target_sources(libslic3r_cgal PRIVATE MeshBooleanOpenMeshCraft.cpp)
+        target_link_libraries(libslic3r_cgal PRIVATE
+            OpenMeshCraftBoolean
+            ${GMP_LIBRARIES}
+            ${MPFR_LIBRARIES}
+        )
+    elseif(SLIC3R_ALLOW_MCUT_BOOLEAN)
+        set(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN FALSE CACHE INTERNAL "" FORCE)
+        message(STATUS "OpenMeshCraft boolean disabled: GMP/MPFR not found; using MCUT.")
+    else()
+        message(FATAL_ERROR
+            "OpenMeshCraft boolean is enabled but GMP/MPFR were not found. "
+            "Refusing silent MCUT fallback. Fix GMP/MPFR in the dep prefix.")
+    endif()
+elseif(SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN)
+    if(SLIC3R_ALLOW_MCUT_BOOLEAN)
+        message(STATUS "OpenMeshCraft was not packaged; using MCUT (SLIC3R_ALLOW_MCUT_BOOLEAN=ON).")
+    else()
+        message(FATAL_ERROR
+            "OpenMeshCraft was not packaged. "
+            "Refusing an MCUT-only build. Install the prefix package or pass -DSLIC3R_ALLOW_MCUT_BOOLEAN=ON.")
+    endif()
+endif()
 
 if (MSVC AND "${CMAKE_SIZEOF_VOID_P}" STREQUAL "4") # 32 bit MSVC workaround
     target_compile_definitions(libslic3r_cgal PRIVATE CGAL_DO_NOT_USE_MPZF)
@@ -587,8 +677,18 @@ target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTI
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/TextureToColor PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
 
-# Find the OCCT and related libraries
-set(OpenCASCADE_DIR "${CMAKE_PREFIX_PATH}/lib/cmake/occt")
+# Find the OCCT and related libraries.
+# CMAKE_PREFIX_PATH may be a list (e.g. after sibling dep probes); do not
+# concatenate "/lib/cmake/occt" onto the whole list string.
+if(NOT OpenCASCADE_DIR)
+    foreach(_occt_prefix IN LISTS CMAKE_PREFIX_PATH)
+        if(EXISTS "${_occt_prefix}/lib/cmake/occt")
+            set(OpenCASCADE_DIR "${_occt_prefix}/lib/cmake/occt")
+            break()
+        endif()
+    endforeach()
+    unset(_occt_prefix)
+endif()
 find_package(OpenCASCADE REQUIRED)
 target_include_directories(libslic3r PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 

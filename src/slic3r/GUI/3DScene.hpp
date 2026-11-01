@@ -686,6 +686,10 @@ private:
     std::array<float, 4>    m_color_clip_plane;
     bool                     m_use_color_clip_plane{false};
     std::array<ColorRGBA, 2> m_color_clip_plane_colors{ColorRGBA::RED(), ColorRGBA::BLUE()};
+    bool        m_use_dovetail_clip{false};
+    Transform3d m_dovetail_clip_matrix{Transform3d::Identity()};
+    Vec4f       m_dovetail_clip_params{Vec4f::Zero()};
+    Vec2f       m_dovetail_clip_tolerance{Vec2f::Zero()};
 
     // Volume-based color override for gizmos (e.g., mesh boolean)
     bool m_use_volume_color_override{false};
@@ -814,6 +818,13 @@ public:
         m_color_clip_plane[3] = offset;
     }
     void set_color_clip_plane_colors(const std::array<ColorRGBA, 2> &colors) { m_color_clip_plane_colors = colors; }
+    void set_use_dovetail_clip(bool use) { m_use_dovetail_clip = use; }
+    void set_dovetail_clip(const Transform3d &world_to_groove, const Vec4f &params, const Vec2f &tolerance)
+    {
+        m_dovetail_clip_matrix = world_to_groove;
+        m_dovetail_clip_params = params;
+        m_dovetail_clip_tolerance = tolerance;
+    }
 
     // Volume color override methods (similar to color_clip_plane methods)
     void set_use_volume_color_override(bool use) { m_use_volume_color_override = use; }

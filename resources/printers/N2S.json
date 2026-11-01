@@ -46,6 +46,7 @@
 			"support_ams_ext_mix_print": true
 		},
 		"model_id": "N2S",
+		"sn_prefix": "039",
 		"compatible_machine": [],
 		"auto_cali_not_support_filaments": [ "GFU03", "GFU04" ],
 		"support_wrapping_detection": false,

@@ -18,6 +18,23 @@ add_subdirectory(libigl)
 add_subdirectory(hints)
 add_subdirectory(mcut)
 
+set(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN FALSE CACHE INTERNAL "")
+if(SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN)
+    # Prefer the Config installed by deps/OpenMeshCraft into the dependency
+    # prefix (same pattern as CGAL / TBB). No Find module under cmake/modules.
+    find_package(OpenMeshCraft QUIET CONFIG)
+    if(OpenMeshCraft_FOUND AND (TARGET OpenMeshCraft OR TARGET OpenMeshCraftBoolean))
+        set(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN TRUE CACHE INTERNAL "" FORCE)
+        message(STATUS "OpenMeshCraft boolean backend enabled.")
+    elseif(SLIC3R_ALLOW_MCUT_BOOLEAN)
+        message(STATUS "OpenMeshCraft package is unavailable; using MCUT (SLIC3R_ALLOW_MCUT_BOOLEAN=ON).")
+    else()
+        message(FATAL_ERROR
+            "OpenMeshCraft is required. "
+            "Install the package into CMAKE_PREFIX_PATH, or pass -DSLIC3R_ALLOW_MCUT_BOOLEAN=ON.")
+    endif()
+endif()
+
 # Adding libnest2d project for bin packing...
 add_subdirectory(libnest2d)
 
@@ -197,6 +214,20 @@ if (SLIC3R_GUI AND TARGET device_page_build)
     endif()
 endif()
 
+# On non-Xcode generators (Ninja / Unix Makefiles) CMake does not create a
+# .dSYM bundle automatically. Run dsymutil so builds still get standalone symbols.
+if (APPLE AND NOT XCODE)
+    if (CMAKE_MACOSX_BUNDLE)
+        set(_bbl_dsym_out "$<TARGET_BUNDLE_DIR:BambuStudio>.dSYM")
+    else ()
+        set(_bbl_dsym_out "$<TARGET_FILE:BambuStudio>.dSYM")
+    endif ()
+    add_custom_command(TARGET BambuStudio POST_BUILD
+        COMMAND dsymutil "$<TARGET_FILE:BambuStudio>" -o "${_bbl_dsym_out}"
+        COMMENT "Generating standalone dSYM"
+        VERBATIM)
+endif()
+
 # Link the resources dir to where Slic3r GUI expects it
 set(output_dlls_Release "")
 set(output_dlls_Debug "")
@@ -315,4 +346,13 @@ else ()
         install(FILES ${output_sos_${build_type}} DESTINATION "${CMAKE_INSTALL_PREFIX}")
     endif()
     install(TARGETS BambuStudio RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR})
+    # Install the standalone .dSYM next to the app bundle
+    if (APPLE AND CMAKE_MACOSX_BUNDLE)
+        if (CMAKE_CONFIGURATION_TYPES)
+            set(_bbl_dsym_install "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/BambuStudio.app.dSYM")
+        else ()
+            set(_bbl_dsym_install "${CMAKE_CURRENT_BINARY_DIR}/BambuStudio.app.dSYM")
+        endif ()
+        install(DIRECTORY "${_bbl_dsym_install}" DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    endif ()
 endif ()

@@ -71,6 +71,18 @@ void Label::initSysFont(std::string lang_code, bool load_font_resource)
         font_path = wxString::FromUTF8(resource_path+"/fonts/HarmonyOS_Sans_SC_Regular.ttf");
         result = wxFont::AddPrivateFont(font_path);
         BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Regular returns %1%")%result;
+        font_path = wxString::FromUTF8(resource_path + "/fonts/SourceHanSansJP-Normal.otf");
+        result    = wxFont::AddPrivateFont(font_path);
+        BOOST_LOG_TRIVIAL(info) << boost::format("add font of SourceHanSansJP-Normal returns %1%")%result;
+        font_path = wxString::FromUTF8(resource_path + "/fonts/SourceHanSansJP-Bold.otf");
+        result    = wxFont::AddPrivateFont(font_path);
+        BOOST_LOG_TRIVIAL(info) << boost::format("add font of SourceHanSansJP-Bold returns %1%")%result;
+        font_path = wxString::FromUTF8(resource_path + "/fonts/NanumGothic-Regular.ttf");
+        result    = wxFont::AddPrivateFont(font_path);
+        BOOST_LOG_TRIVIAL(info) << boost::format("add font of NanumGothic-Regular returns %1%")%result;
+        font_path = wxString::FromUTF8(resource_path + "/fonts/NanumGothic-Bold.ttf");
+        result    = wxFont::AddPrivateFont(font_path);
+        BOOST_LOG_TRIVIAL(info) << boost::format("add font of NanumGothic-Bold returns %1%")%result;
     }
 #endif
     Head_48 = Label::sysFont(48, true, lang_code);
@@ -336,6 +348,23 @@ void Label::Wrap(int width)
     // the base extent path derefs a null font. LB_AUTO_WRAP re-wraps on EVT_SIZE.
     if (!GetHandle()) return;
 
+    DoWrap(width);
+    if (width <= 0) return; // no room to give back; the base class breaks per character here
+
+    // The wrapper breaks lines on the raw text extent, but the width a sizer reserves for the label
+    // is its best size: that extent plus whatever the native control pads around the text (the
+    // margin added above on MSW, the NSTextFieldCell insets on macOS). A line that measured just
+    // inside `width` is therefore laid out just outside it, and macOS drops the overflow rather than
+    // re-wrapping it (see the header for why). Re-wrapping by the measured overflow makes the label
+    // fit the width it was asked for, whatever that padding turns out to be. This converges in one
+    // pass: the narrower break can only reduce the best width, never grow it back past `width`.
+    InvalidateBestSize();
+    const int overflow = GetBestSize().GetWidth() - width;
+    if (overflow > 0) DoWrap(width - overflow);
+}
+
+void Label::DoWrap(int width)
+{
     wxLabelWrapper2 wrapper;
     wrapper.Wrap(this, m_text, width);
     m_skip_size_evt = true;

@@ -11,6 +11,7 @@
 
 #include "GUI_App.hpp"
 #include "GUI_Colors.hpp"
+#include "Plater.hpp"
 #include "GLCanvas3D.hpp"
 #include "OpenGLManager.hpp"
 #include "PartPlate.hpp"

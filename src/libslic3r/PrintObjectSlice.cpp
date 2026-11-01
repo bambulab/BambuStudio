@@ -5,6 +5,8 @@
 #include "Print.hpp"
 #include "ClipperUtils.hpp"
 #include "Interlocking/InterlockingGenerator.hpp"
+#include "Time.hpp"
+#include "Utils.hpp"
 //BBS
 #include "ShortestPath.hpp"
 
@@ -392,8 +394,11 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                 RegionSlice &parent_slice = temp_slices[region.parent];
                                 RegionSlice &this_slice   = temp_slices[idx_region];
                                 ExPolygons   source       = std::move(this_slice.expolygons);
-                                if (parent_slice.expolygons.empty()) {
-                                    this_slice  .expolygons.clear();
+                                const bool skip_periodic = region.region
+                                    && region.region->config().periodic_modifier.value
+                                    && !periodic_modifier_active(region.region->config(), int(z_idx));
+                                if (skip_periodic || parent_slice.expolygons.empty()) {
+                                    this_slice.expolygons.clear();
                                 } else {
                                     this_slice  .expolygons = intersection_ex(parent_slice.expolygons, source);
                                     parent_slice.expolygons = diff_ex        (parent_slice.expolygons, source);
@@ -805,6 +810,13 @@ void PrintObject::slice()
 {
     if (! this->set_started(posSlice))
         return;
+
+    long long slice_begin_time = 0;
+    long long region_split_time = 0;
+    long long mm_segment_time = 0;
+    if (m_print->m_slice_time)
+        slice_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
+
     //BBS: add flag to reload scene for shell rendering
     m_print->set_status(5, L("Slicing mesh"), PrintBase::SlicingStatus::RELOAD_SCENE);
     std::vector<coordf_t> layer_height_profile;
@@ -818,7 +830,7 @@ void PrintObject::slice()
     m_typed_slices = false;
     this->clear_layers();
     m_layers = new_layers(this, generate_object_layers(m_slicing_params, layer_height_profile, m_config.precise_z_height.value));
-    this->slice_volumes();
+    this->slice_volumes(&region_split_time, &mm_segment_time);
     m_print->throw_if_canceled();
     int firstLayerReplacedBy = 0;
 
@@ -854,6 +866,11 @@ void PrintObject::slice()
         });
     if (m_layers.empty())
         throw Slic3r::SlicingError(L("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"));
+
+    if (m_print->m_slice_time) {
+        const long long elapsed = Slic3r::Utils::get_current_milliseconds_time_monotonic() - slice_begin_time;
+        (*m_print->m_slice_time)[TIME_SLICE_LAYERS] += std::max(0LL, elapsed - region_split_time - mm_segment_time);
+    }
 
     // BBS
     this->set_done(posSlice);
@@ -1093,6 +1110,20 @@ template<typename ThrowOnCancel> void apply_fuzzy_skin_segmentation(PrintObject 
     }); // end of parallel_for
 }
 
+// MMU cannot apply filament shrinkage compensation.
+static bool should_skip_filament_shrink(const PrintObject &object)
+{
+    const Print *print = object.print();
+    if (print == nullptr || print->config().filament_diameter.size() <= 1 || ! object.is_mm_painted())
+        return false;
+
+    const std::vector<double> &filament_shrink = print->config().filament_shrink.values;
+    const std::vector<unsigned int> object_filaments = object.object_extruders();
+    return std::any_of(object_filaments.begin(), object_filaments.end(), [&filament_shrink](unsigned int extruder) {
+        return extruder < filament_shrink.size() && filament_shrink[extruder] != 0. && filament_shrink[extruder] != 100.;
+    });
+}
+
 // 1) Decides Z positions of the layers,
 // 2) Initializes layers and their regions
 // 3) Slices the object meshes
@@ -1102,7 +1133,7 @@ template<typename ThrowOnCancel> void apply_fuzzy_skin_segmentation(PrintObject 
 // Resulting expolygons of layer regions are marked as Internal.
 //
 // this should be idempotent
-void PrintObject::slice_volumes()
+void PrintObject::slice_volumes(long long *region_split_ms_out, long long *mm_segment_ms_out)
 {
     BOOST_LOG_TRIVIAL(info) << "Slicing volumes..." << log_memory_info();
     const Print *print                      = this->print();
@@ -1136,6 +1167,7 @@ void PrintObject::slice_volumes()
     //applyNegtiveVolumes(this->model_object()->volumes, objSliceByVolume, firstLayerObjSliceByGroups, scaled_resolution);
     firstLayerObjSliceByVolume = objSliceByVolume;
 
+    const long long region_split_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     std::vector<std::vector<ExPolygons>> region_slices = slices_to_regions(this->model_object()->volumes, *m_shared_regions, slice_zs,
         std::move(objSliceByVolume),
         PrintObject::clip_multipart_objects,
@@ -1148,6 +1180,12 @@ void PrintObject::slice_volumes()
             m_layers[layer_id]->regions()[region_id]->slices.append(std::move(by_layer[layer_id]), stInternal);
     }
     region_slices.clear();
+    const long long region_split_time =
+        Slic3r::Utils::get_current_milliseconds_time_monotonic() - region_split_begin_time;
+    if (region_split_ms_out)
+        *region_split_ms_out += region_split_time;
+    if (m_print->m_slice_time)
+        (*m_print->m_slice_time)[TIME_REGION_SPLIT] += region_split_time;
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - removing top empty layers";
     while (! m_layers.empty()) {
@@ -1160,6 +1198,15 @@ void PrintObject::slice_volumes()
     if (! m_layers.empty())
         m_layers.back()->upper_layer = nullptr;
     m_print->throw_if_canceled();
+
+    const bool skip_filament_shrink = should_skip_filament_shrink(*this);
+
+    if (skip_filament_shrink) {
+        this->active_step_add_warning(
+            PrintStateBase::WarningLevel::CRITICAL,
+            L("Shrinkage compensation does not take effect on color-painted models."));
+        BOOST_LOG_TRIVIAL(info) << "filament shrink compensation will not work for object " << this->model_object()->name << " for multi filament.";
+    }
 
     // Is any ModelVolume MMU painted?
     if (const auto& volumes = this->model_object()->volumes;
@@ -1177,7 +1224,14 @@ void PrintObject::slice_volumes()
         }
 
         BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - MMU segmentation";
+        const long long mm_segment_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
         apply_mm_segmentation(*this, [print]() { print->throw_if_canceled(); });
+        const long long mm_segment_elapsed =
+            Slic3r::Utils::get_current_milliseconds_time_monotonic() - mm_segment_begin_time;
+        if (mm_segment_ms_out)
+            *mm_segment_ms_out += mm_segment_elapsed;
+        if (m_print->m_slice_time)
+            (*m_print->m_slice_time)[TIME_MM_SEGMENT_2D] += mm_segment_elapsed;
     }
 
      // Is any ModelVolume fuzzy skin painted?
@@ -1206,20 +1260,23 @@ void PrintObject::slice_volumes()
     //   into posSlice geometry. Current impl scales whole region by the wall_filament's shrink, which:
     //     (1) forces posSlice invalidation whenever wall_filament changes (see PrintObject::invalidate_state_by_config_options),
     //     (2) ignores per-role shrink (infill/solid_infill filament may differ from wall_filament).
-    // SuperSlicer: filament shrink
-    for (Layer *layer : m_layers) {
-        for (size_t i = 0; i < layer->region_count(); ++i) {
-            LayerRegion *region = layer->get_region(i);
-            ExPolygons ex_polys = to_expolygons(region->slices.surfaces);
-            int       filament_id = region->region().extruder(FlowRole::frPerimeter) - 1;
-            double       scale       = print->config().filament_shrink.values[filament_id] * 0.01;
-            if (scale != 1) {
-                scale = 1 / scale;
-                for (ExPolygon &poly : ex_polys)
-                    poly.scale(scale);
-            }
+    // SuperSlicer: filament shrink. Color-painted objects use the same multi-material gate as
+    // XY compensation and skip scaling when any filament used by this object enables shrinkage.
+    if (!skip_filament_shrink) {
+        for (Layer *layer : m_layers) {
+            for (size_t i = 0; i < layer->region_count(); ++i) {
+                LayerRegion *region = layer->get_region(i);
+                ExPolygons ex_polys = to_expolygons(region->slices.surfaces);
+                int       filament_id = region->region().extruder(FlowRole::frPerimeter) - 1;
+                double       scale       = print->config().filament_shrink.values[filament_id] * 0.01;
+                if (scale != 1) {
+                    scale = 1 / scale;
+                    for (ExPolygon &poly : ex_polys)
+                        poly.scale(scale);
+                }
 
-            region->slices.set(std::move(ex_polys), stInternal);
+                region->slices.set(std::move(ex_polys), stInternal);
+            }
         }
     }
 
@@ -1405,6 +1462,9 @@ double PrintObject::support_shrinkage_scale() const
 {
     const Print *print = this->print();
     if (print == nullptr || this->num_printing_regions() == 0)
+        return 1.;
+    // Keep supports aligned with object contours whenever object shrinkage is skipped.
+    if (should_skip_filament_shrink(*this))
         return 1.;
     const std::vector<double> &shrink = print->config().filament_shrink.values;
     if (shrink.empty())

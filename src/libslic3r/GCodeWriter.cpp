@@ -70,6 +70,7 @@ void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
 {
     std::sort(extruder_ids.begin(), extruder_ids.end());
     m_curr_extruder_id = -1;
+    m_current_process_config_idx = 0;
     std::fill(m_curr_filament_extruder.begin(), m_curr_filament_extruder.end(), nullptr);
     m_filament_extruders.clear();
     m_filament_extruders.reserve(extruder_ids.size());
@@ -118,7 +119,8 @@ std::string GCodeWriter::postamble() const
     return gcode.str();
 }
 
-std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool) const
+std::string GCodeWriter::set_temperature(
+    unsigned int temperature, bool wait, int tool, TemperatureCommandType command_type) const
 {
     if (wait && (FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)))
         return "";
@@ -137,7 +139,10 @@ std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, in
     }
 
     std::ostringstream gcode;
-    gcode << code << " ";
+    gcode << code;
+    if (command_type == TemperatureCommandType::LayerChange && code == "M104")
+        gcode << " M";
+    gcode << " ";
     if (FLAVOR_IS(gcfMach3) || FLAVOR_IS(gcfMachinekit)) {
         gcode << "P";
     } else {
@@ -404,6 +409,7 @@ std::string GCodeWriter::toolchange(unsigned int filament_id, unsigned int nozzl
     assert(filament_extruder_iter != m_filament_extruders.end() && filament_extruder_iter->id() == filament_id);
     m_curr_extruder_id = filament_extruder_iter->extruder_id();
     m_curr_filament_extruder[m_curr_extruder_id] = &*filament_extruder_iter;
+    m_current_process_config_idx = get_process_config_idx(this->config, filament_id);
 
     // return the toolchange command
     // if we are running a single-extruder setup, just set the extruder and return nothing
@@ -452,7 +458,7 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
 
     GCodeG1Formatter w;
     w.emit_xy(point_on_plate);
-    w.emit_f(this->config.travel_speed.get_at(get_process_config_idx(this->config, filament()->id())) * 60.0);
+    w.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return set_travel_acceleration(use_short_travel_acceleration) + w.string();
@@ -650,7 +656,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
                 Vec3d slope_top_point = Vec3d(temp(0), temp(1), delta(2)) + source;
                 GCodeG1Formatter w0;
                 w0.emit_xyz(slope_top_point);
-                w0.emit_f(this->config.travel_speed.get_at(get_process_config_idx(this->config, filament()->id())) * 60.0);
+                w0.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
                 //BBS
                 w0.emit_comment(GCodeWriter::full_gcode_comment, "slope lift Z");
                 slop_move = w0.string();
@@ -665,13 +671,13 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             GCodeG1Formatter w0;
             if (this->is_current_position_clear()) {
                 w0.emit_xyz(target);
-                w0.emit_f(this->config.travel_speed.get_at(get_process_config_idx(this->config, filament()->id())) * 60.0);
+                w0.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
                 w0.emit_comment(GCodeWriter::full_gcode_comment, comment);
                 xy_z_move = w0.string();
             }
             else {
                 w0.emit_xy(Vec2d(target.x(), target.y()));
-                w0.emit_f(this->config.travel_speed.get_at(get_process_config_idx(this->config, filament()->id())) * 60.0);
+                w0.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
                 w0.emit_comment(GCodeWriter::full_gcode_comment, comment);
                 xy_z_move = w0.string() + _travel_to_z(target.z(), comment);
             }
@@ -701,17 +707,19 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     Vec3d point_on_plate = { dest_point(0) - m_x_offset, dest_point(1) - m_y_offset, dest_point(2) };
     std::string out_string;
     GCodeG1Formatter w;
-    if (!this->is_current_position_clear())
+    if (!this->is_current_position_clear() ||
+        (m_avoid_z_descent_travel && point_on_plate.z() < m_pos.z() - EPSILON))
     {
-        //force to move xy first then z after filament change
+        // Split XY + Z: required after filament change (position unknown),
+        // or when mixed sub-layer Z must descend to avoid diagonal collision.
         w.emit_xy(Vec2d(point_on_plate.x(), point_on_plate.y()));
-        w.emit_f(this->config.travel_speed.get_at(get_process_config_idx(this->config, filament()->id())) * 60.0);
+        w.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
         w.emit_comment(GCodeWriter::full_gcode_comment, comment);
         out_string = w.string() + _travel_to_z(point_on_plate.z(), comment);
     } else {
         GCodeG1Formatter w;
         w.emit_xyz(point_on_plate);
-        w.emit_f(this->config.travel_speed.get_at(get_process_config_idx(this->config, filament()->id())) * 60.0);
+        w.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
         w.emit_comment(GCodeWriter::full_gcode_comment, comment);
         out_string = w.string();
     }
@@ -744,9 +752,9 @@ std::string GCodeWriter::_travel_to_z(double z, const std::string &comment, bool
 {
     m_pos(2) = z;
 
-    double speed = this->config.travel_speed_z.get_at(get_process_config_idx(this->config, filament()->id()));
+    double speed = this->config.travel_speed_z.get_at(m_current_process_config_idx);
     if (speed == 0.)
-        speed = this->config.travel_speed.get_at(get_process_config_idx(this->config, filament()->id()));
+        speed = this->config.travel_speed.get_at(m_current_process_config_idx);
     if (tool_change && this->config.prime_tower_lift_speed.value>0) {
         speed = this->config.prime_tower_lift_speed.value; // lift speed
     }
@@ -762,9 +770,9 @@ std::string GCodeWriter::_spiral_travel_to_z(double z, const Vec2d &ij_offset, c
 {
     m_pos(2) = z;
 
-    double speed = this->config.travel_speed_z.get_at(get_process_config_idx(this->config, filament()->id()));
+    double speed = this->config.travel_speed_z.get_at(m_current_process_config_idx);
     if (speed == 0.)
-        speed = this->config.travel_speed.get_at(get_process_config_idx(this->config, filament()->id()));
+        speed = this->config.travel_speed.get_at(m_current_process_config_idx);
     if (tool_change && this->config.prime_tower_lift_speed.value>0) {
         speed = this->config.prime_tower_lift_speed.value; // lift speed
     }
@@ -1061,6 +1069,7 @@ void GCodeWriter::init_extruder(unsigned int filament_id,unsigned int nozzle_id)
         assert(filament_extruder_iter != m_filament_extruders.end() && filament_extruder_iter->id() == filament_id);
         m_curr_extruder_id = nozzle_id>0;
         m_curr_filament_extruder[m_curr_extruder_id] = &*filament_extruder_iter;
+        m_current_process_config_idx = get_process_config_idx(this->config, filament_id);
     }
 }
 

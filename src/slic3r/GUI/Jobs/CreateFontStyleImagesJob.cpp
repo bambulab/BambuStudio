@@ -7,7 +7,6 @@
 // ability to request new frame after finish rendering
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
-#include "slic3r/GUI/GLCanvas3D.hpp"
 
 using namespace Slic3r;
 using namespace Slic3r::Emboss;
@@ -154,5 +153,5 @@ void CreateFontStyleImagesJob::finalize(bool canceled, std::exception_ptr &)
     glsafe(::glBindTexture(target, no_texture_id));
 
     // show rendered texture
-    wxGetApp().plater()->canvas3D()->schedule_extra_frame(0);
+    wxGetApp().plater()->schedule_extra_frame(0);
 }

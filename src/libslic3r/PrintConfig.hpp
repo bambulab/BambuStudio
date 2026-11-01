@@ -21,6 +21,7 @@
 #include "Config.hpp"
 #include "Polygon.hpp"
 #include <atomic>
+#include <set>
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
@@ -88,7 +89,23 @@ enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
     ipLightning, ipCrossHatch, ipZigZag, ipCrossZag,ipFloatingConcentric, ipLockedZag, ip2DLattice,
+    ipIroningArchimedeanSpiral, ipGlobalMonotonicLine,
     ipCount,
+};
+
+enum class ConformalStagger {
+    None,
+    HalfStep,
+    Orthogonal,
+    Alternate,
+    Count,
+};
+
+enum class ConformalPole {
+    Layer,
+    Axis,
+    Bezier,
+    Count,
 };
 
 enum EnsureVerticalThicknessLevel{
@@ -404,6 +421,10 @@ extern std::string get_extruder_variant_string(ExtruderType extruder_type, Nozzl
 // 最基础的参数idx查找方法，遍历varint list寻找对应的idx
 extern int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_type, int variant_id_1based, const std::vector<std::string>& variant_list, const std::vector<int>& variant_ids_1based);
 
+// Map a filament_extruder_variant string onto printer_extruder_variant.
+// Returns -1 when the printer preset has no matching variant.
+extern int find_printer_variant_index(const DynamicPrintConfig &printer_config, const std::string &filament_variant);
+
 static std::set<NozzleVolumeType> get_valid_nozzle_volume_type() {
     std::set<NozzleVolumeType> type;
     for (int i = 0; i <= nvtMaxNozzleVolumeType; ++i) {
@@ -415,6 +436,12 @@ static std::set<NozzleVolumeType> get_valid_nozzle_volume_type() {
     }
     return type;
 }
+
+// The nozzle volume types the given extruder physically provides, as declared by the printer
+// profile's extruder_variant_list. An empty set means the profile could not be read and must be
+// treated as "unknown", not as "none". nvtHybrid is never reported: it describes an extruder
+// holding a mix of nozzles, not a nozzle the profile can offer.
+extern std::set<NozzleVolumeType> get_extruder_supported_nozzle_volume_types(const DynamicPrintConfig &printer_config, int extruder_id);
 
 std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type);
 
@@ -526,6 +553,8 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NoiseType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FuzzySkinMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(InfillPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(IroningType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ConformalStagger)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ConformalPole)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SlicingMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialStyle)
@@ -635,9 +664,9 @@ public:
     void                normalize_fdm();
     void                normalize_fdm_1();
     
-    // Repair nil/invalid filament_max_volumetric_speed entries carried by corrupted/legacy
-    // project files, before they propagate NaN into slicing speeds
-    void                repair_nil_filament_max_volumetric_speed();
+    // Repair invalid filament extrusion parameters carried by corrupted/legacy project files,
+    // before they propagate NaN into slicing speeds or extrusion amounts.
+    void                repair_invalid_filament_extrusion_parameters();
 
     // Normalize FDM config based on print conditions (single/multi filament, print sequence, etc.)
     // Returns the list of config keys that were changed.
@@ -1076,6 +1105,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent, top_surface_density))
     ((ConfigOptionPercent, bottom_surface_density))
     ((ConfigOptionEnum<InfillPattern>, internal_solid_infill_pattern))
+    ((ConfigOptionEnum<InfillPattern>, sub_top_surface_pattern))
     ((ConfigOptionFloat, outer_wall_line_width))
     ((ConfigOptionFloatsNullable, outer_wall_speed))
     ((ConfigOptionFloat, infill_direction))
@@ -1091,6 +1121,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, infill_lock_depth))
     ((ConfigOptionFloat, skin_infill_depth))
     ((ConfigOptionEnum<InfillPattern>, sparse_infill_pattern))
+    ((ConfigOptionBool, conformal_infill))
+    ((ConfigOptionEnum<ConformalStagger>, conformal_stagger))
+    ((ConfigOptionInt, conformal_link_keep_layers))
+    ((ConfigOptionInt, conformal_link_flip_layers))
+    ((ConfigOptionEnum<ConformalPole>, conformal_pole))
+    ((ConfigOptionInt, conformal_ray_count))
+    ((ConfigOptionFloat, conformal_hub_radius))
     ((ConfigOptionEnum<InfillPattern>, locked_skin_infill_pattern))
     ((ConfigOptionEnum<InfillPattern>, locked_skeleton_infill_pattern))
     ((ConfigOptionEnum<FuzzySkinType>, fuzzy_skin))
@@ -1128,6 +1165,12 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable, inner_wall_speed))
     // Total number of perimeters.
     ((ConfigOptionInt, wall_loops))
+    // Modifier-only: apply this modifier for m layers, then skip it for n layers.
+    ((ConfigOptionBool, periodic_modifier))
+    ((ConfigOptionInt, periodic_modifier_skip_layers))
+    ((ConfigOptionInt, periodic_modifier_apply_layers))
+    // Modifier-only: do not apply this volume's internal infill overrides.
+    ((ConfigOptionBool, modifier_ignore_infill))
     ((ConfigOptionFloat, minimum_sparse_infill_area))
     ((ConfigOptionInt, solid_infill_filament))
     ((ConfigOptionFloat, internal_solid_infill_line_width))
@@ -1180,6 +1223,28 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 embedding_wall_into_infill))
     ((ConfigOptionBool,                 alternate_extra_wall))
 )
+
+// Effective wall loop count for a layer. Spiral vase ignores alternate_extra_wall.
+inline int effective_wall_loops(const PrintRegionConfig &cfg, int layer_id, bool spiral_vase)
+{
+    int loops = cfg.wall_loops.value;
+    if (cfg.alternate_extra_wall.value && (layer_id % 2 == 1) && !spiral_vase)
+        ++loops;
+    return loops;
+}
+
+// Whether a periodic modifier should overlay this layer. Disabled modifiers are always "active"
+// so callers can write: cfg.periodic_modifier && !periodic_modifier_active(cfg, layer_id).
+inline bool periodic_modifier_active(const PrintRegionConfig &cfg, int layer_id)
+{
+    if (!cfg.periodic_modifier.value || cfg.periodic_modifier_apply_layers.value < 1 || layer_id < 0)
+        return true;
+    const int m = cfg.periodic_modifier_apply_layers.value;
+    int n = cfg.periodic_modifier_skip_layers.value;
+    if (n < 0)
+        n = 0;
+    return (layer_id % (m + n)) < m;
+}
 
 PRINT_CONFIG_CLASS_DEFINE(
     MachineEnvelopeConfig,
@@ -1355,7 +1420,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              machine_pause_gcode))
     ((ConfigOptionString,              template_custom_gcode))
     //BBS
-    ((ConfigOptionEnumsGenericNullable,nozzle_type))
     ((ConfigOptionEnum<PrinterStructure>,printer_structure))
     ((ConfigOptionBool,                auxiliary_fan))
     ((ConfigOptionEnum<FanDirection>,fan_direction))
@@ -1472,6 +1536,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloatsNullable,     outer_wall_acceleration))
     ((ConfigOptionFloatsNullable,     initial_layer_acceleration))
     ((ConfigOptionFloat,              initial_layer_line_width))
+    ((ConfigOptionFloat,              initial_layer_infill_line_width))
     ((ConfigOptionFloat,              initial_layer_print_height))
     ((ConfigOptionFloatsNullable,     initial_layer_speed))
     //BBS

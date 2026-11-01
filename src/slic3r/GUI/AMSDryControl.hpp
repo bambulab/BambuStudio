@@ -3,6 +3,7 @@
 #include "slic3r/GUI/Widgets/AMSItem.hpp"
 #include "slic3r/GUI/Widgets/Label.hpp"
 #include "slic3r/GUI/Widgets/PopupWindow.hpp"
+#include "slic3r/GUI/Widgets/ProgressBar.hpp"
 
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"

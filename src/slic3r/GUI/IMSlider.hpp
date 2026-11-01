@@ -6,6 +6,7 @@
 #include <wx/slider.h>
 
 #include <set>
+#include <functional>
 
 class wxMenu;
 struct IMGUI_API ImRect;
@@ -129,6 +130,7 @@ public:
     void set_scale(float scale = 1.0);
     void on_change_color_mode(bool is_dark);
     void set_menu_enable(bool enable = true) { m_menu_enable = enable; }
+    void set_request_canvas_focus(std::function<void()> fn) { m_request_canvas_focus = std::move(fn); }
 
 protected:
     void add_custom_gcode(std::string custom_gcode);
@@ -184,6 +186,9 @@ private:
 
     SelectedSlider m_selection;
     bool m_is_one_layer       = false;
+    // Span saved when entering one-layer mode, restored on exit.
+    int  m_pre_one_layer_lower  = 0;
+    int  m_pre_one_layer_higher = 0;
     bool m_menu_enable        = true; //menu
     bool m_show_menu          = false; //menu
     bool m_show_custom_gcode_window = false; //menu
@@ -230,6 +235,7 @@ private:
 
     char m_custom_gcode[1024] = { 0 }; //menu
     char m_layer_number[64] = { 0 }; //menu
+    std::function<void()> m_request_canvas_focus;
 };
 
 }

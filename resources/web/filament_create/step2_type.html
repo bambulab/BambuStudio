@@ -1,0 +1,77 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>创建自定义耗材 - 步骤2（基于类型）</title>
+    <link rel="stylesheet" href="../guide/css/common.css" />
+    <link rel="stylesheet" href="step1.css" />
+    <link rel="stylesheet" href="step2_type.css" />
+    <script src="../guide/js/jquery-3.6.0.min.js"></script>
+    <script src="../guide/js/globalapi.js"></script>
+    <script>SwitchDarkMode('dark.css');</script>
+    <script src="../data/text.js"></script>
+    <script src="step2_type.js"></script>
+</head>
+<body>
+    <div class="window-frame">
+<div class="page-wrapper">
+            <!-- Steps Header -->
+            <header class="steps-container">
+                <div class="step-item done">
+                    <div class="step-circle"></div>
+                    <div class="step-label trans" tid="t200">Basic Info</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item active">
+                    <div class="step-circle">2</div>
+                    <div class="step-label trans" tid="t201">Set Parameters</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item">
+                    <div class="step-circle">3</div>
+                    <div class="step-label trans" tid="t202">Complete</div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="content-container">
+                <section class="form-section type-section">
+
+                    <!-- 基准材料预设 -->
+                    <div class="info-row">
+                        <span class="info-label required trans" tid="t223">Base Filament Preset:</span>
+                        <div class="input-wrapper select-arrow" style="width: 314px; height: 24px; position: relative;">
+                            <input type="text" id="input-base-preset" placeholder="Select a filament preset" data-ph-tid="t226" readonly />
+                            <div id="base-preset-dropdown" class="dropdown-list hidden">
+                                <div id="base-preset-options" class="dropdown-options"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 选择支持的打印机标签常驻，列表选完预设后展示 -->
+                    <div class="info-row" style="margin-top: 16px; margin-bottom: 12px;">
+                        <span class="info-label required trans" tid="t227">Select supported printers:</span>
+                    </div>
+                    <div class="empty-state" id="empty-state">
+                        <img class="empty-state-img" src="img/preset_empty.svg" alt="" />
+                        <div class="empty-state-text trans" tid="t268">Please select a base filament preset</div>
+                    </div>
+                    <div class="selection-area" id="selection-area" style="display: none;">
+                        <div class="printer-list" id="printer-list"></div>
+                        <div class="nozzle-list" id="nozzle-list"></div>
+                    </div>
+
+                </section>
+            </main>
+
+            <!-- Footer Actions -->
+            <footer class="footer-actions">
+                <button id="btn-prev" class="btn-secondary trans" tid="t8">Back</button>
+                <button id="btn-next" class="btn-primary trans" tid="t9" disabled>Next</button>
+                <button id="btn-cancel" class="btn-secondary trans" tid="t38">Cancel</button>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>

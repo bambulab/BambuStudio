@@ -830,7 +830,6 @@ void BackgroundSlicingProcess::finalize_gcode()
     {
         std::unique_lock<std::mutex> lck(m_mutex);
         skip = m_skip_post_process_once;
-        m_skip_post_process_once = false;
     }
     if (skip) {
         m_print->set_status(100, _utf8(L("Slicing complete")));
@@ -847,7 +846,7 @@ void BackgroundSlicingProcess::finalize_gcode()
     // IMPORTANT: only update fields that reflect G-code TEXT content (moves,
     // lines_ends). We must NOT replace the whole result — slicer-computed
     // state (filament_maps, nozzle_group_result, filament_change_sequence,
-    // required_nozzle_HRC, extruder_colors, nozzle_type, print_statistics,
+    // required_nozzle_HRC, extruder_colors, print_statistics,
     // etc.) is derived from config during slicing and is not reconstructable
     // from the G-code text alone. Replacing it wholesale breaks the H2C/H2D
     // send-to-printer nozzle auto-mapping flow (the printer rejects the
@@ -941,18 +940,25 @@ void BackgroundSlicingProcess::prepare_upload()
 	boost::filesystem::path source_path = boost::filesystem::temp_directory_path()
 		/ boost::filesystem::unique_path("." SLIC3R_APP_KEY ".upload.%%%%-%%%%-%%%%-%%%%");
 
+	bool skip_post_process = false;
+	{
+		std::unique_lock<std::mutex> lck(m_mutex);
+		skip_post_process = m_skip_post_process_once;
+	}
 	if (m_print == m_fff_print) {
-		m_print->set_status(95, _utf8(L("Running post-processing scripts")));
 		std::string error_message;
 		if (copy_file(m_temp_output_path, source_path.string(), error_message) != SUCCESS)
 			throw Slic3r::RuntimeError(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
         m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
-        // Make a copy of the source path, as run_post_process_scripts() is allowed to change it when making a copy of the source file
-        // (not here, but when the final target is a file).
-        std::string source_path_str = source_path.string();
-        std::string output_name_str = m_upload_job.upload_data.upload_path.string();
-		if (run_post_process_scripts(source_path_str, false, m_upload_job.printhost->get_name(), output_name_str, m_fff_print->full_print_config()))
-			m_upload_job.upload_data.upload_path = output_name_str;
+        if (!skip_post_process) {
+            m_print->set_status(95, _utf8(L("Running post-processing scripts")));
+            // Make a copy of the source path, as run_post_process_scripts() is allowed to change it when making a copy of the source file
+            // (not here, but when the final target is a file).
+            std::string source_path_str = source_path.string();
+            std::string output_name_str = m_upload_job.upload_data.upload_path.string();
+            if (run_post_process_scripts(source_path_str, false, m_upload_job.printhost->get_name(), output_name_str, m_fff_print->full_print_config()))
+                m_upload_job.upload_data.upload_path = output_name_str;
+        }
     } else {
         m_upload_job.upload_data.upload_path = m_sla_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
         ThumbnailsList thumbnails = this->render_thumbnails(

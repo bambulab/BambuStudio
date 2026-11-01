@@ -654,7 +654,15 @@ bool ProgressDialog::Show(bool show)
     // reenable other windows before hiding this one because otherwise
     // Windows wouldn't give the focus back to the window which had
     // been previously focused because it would still be disabled
-    if (!show) ReenableOtherWindows();
+    if (!show) {
+        ReenableOtherWindows();
+    } else if (HasPDFlag(wxPD_APP_MODAL) && !m_winDisabler) {
+        // Restore APP_MODAL after a Hide/Show round-trip (e.g. texture import
+        // dialog). Skip when m_winDisabler is already set to avoid leaking a
+        // second wxWindowDisabler. On macOS m_winDisabler stays null and
+        // DisableOtherWindows() only toggles the parent window.
+        DisableOtherWindows();
+    }
     return wxDialog::Show(show);
 }
 

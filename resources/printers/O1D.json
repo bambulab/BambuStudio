@@ -68,6 +68,7 @@
 			"support_user_first_setup_tpu_check_url": "https://e.bambulab.com/t?c=fwWqpBg37Liel92N"
 		},
 		"model_id": "O1D",
+		"sn_prefix": "094",
 		"subseries": [ "O1D-V2" ],
 		"support_wrapping_detection": true,
 		"auto_pa_cali_thumbnail_image": "fd_calibration_auto_multi_extruders",

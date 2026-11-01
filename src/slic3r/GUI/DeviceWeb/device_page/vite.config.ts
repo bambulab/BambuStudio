@@ -62,7 +62,10 @@ export default defineConfig({
   },
 
   build: {
-    // STUDIO-17977 debug: emit `assets/index.js.map` so Chrome DevTools can
+    // Keep in step with package.json browserslist; unset lets Vite's default drift.
+    target: ['chrome111', 'edge111', 'safari16.4'],
+    cssTarget: ['chrome111', 'edge111', 'safari16.4'],
+    // Debug: emit `assets/index.js.map` so Chrome DevTools can
     // attach to the live WebView2 over CDP and let the developer set
     // source-level breakpoints inside .ts source. This adds ~1MB to dist/
     // (gzipped only when served compressed) but does NOT affect the
@@ -72,7 +75,10 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       output: {
-        // replace hash with real name
+        // fileProtocolCompat() strips type="module"; IIFE is required for file://.
+        format: 'iife',
+        name: 'DevicePageApp',
+        inlineDynamicImports: true,
         entryFileNames: 'assets/[name].js',
         chunkFileNames: 'assets/[name].js',
         assetFileNames: 'assets/[name].[ext]'

@@ -240,7 +240,9 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "zigzag",             ipZigZag },
     { "crosszag",           ipCrossZag },
     { "lockedzag",          ipLockedZag },
-    { "2dlattice",          ip2DLattice  }
+    { "2dlattice",          ip2DLattice  },
+    { "ironingarchimedeanspiral", ipIroningArchimedeanSpiral },
+    { "globalmonotonicline", ipGlobalMonotonicLine }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -251,6 +253,21 @@ static t_config_enum_values s_keys_map_IroningType {
     { "solid",          int(IroningType::AllSolid) }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(IroningType)
+
+static t_config_enum_values s_keys_map_ConformalStagger {
+    { "none",       int(ConformalStagger::None) },
+    { "halfstep",   int(ConformalStagger::HalfStep) },
+    { "orthogonal", int(ConformalStagger::Orthogonal) },
+    { "alternate",  int(ConformalStagger::Alternate) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ConformalStagger)
+
+static t_config_enum_values s_keys_map_ConformalPole {
+    { "layer",  int(ConformalPole::Layer) },
+    { "axis",   int(ConformalPole::Axis) },
+    { "bezier", int(ConformalPole::Bezier) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ConformalPole)
 
 //BBS:
 static t_config_enum_values s_keys_map_TopOneWallType {
@@ -572,6 +589,26 @@ std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolume
     return variant_string;
 }
 
+std::set<NozzleVolumeType> get_extruder_supported_nozzle_volume_types(const DynamicPrintConfig &printer_config, int extruder_id)
+{
+    std::set<NozzleVolumeType> supported_types;
+
+    auto *variant_list   = printer_config.option<ConfigOptionStrings>("extruder_variant_list");
+    auto *extruder_types = printer_config.option<ConfigOptionEnumsGeneric>("extruder_type");
+    if (!variant_list || !extruder_types || extruder_id < 0 ||
+        extruder_id >= (int) variant_list->values.size() || extruder_id >= (int) extruder_types->values.size())
+        return supported_types;
+
+    const ExtruderType extruder_type = ExtruderType(extruder_types->values[extruder_id]);
+    for (NozzleVolumeType volume_type : get_valid_nozzle_volume_type()) {
+        // An unsupported extruder type yields an empty name, which would match any list.
+        const std::string variant = get_extruder_variant_string(extruder_type, volume_type);
+        if (!variant.empty() && variant_list->values[extruder_id].find(variant) != std::string::npos)
+            supported_types.insert(volume_type);
+    }
+    return supported_types;
+}
+
 int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_type, int variant_id_1based, const std::vector<std::string>& variant_list, const std::vector<int>& variant_ids_1based)
 {
     assert(variant_list.size() == variant_ids_1based.size());
@@ -579,10 +616,26 @@ int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_ty
     for (int index = 0; index < int(variant_list.size()); ++index) {
         if (extruder_variant == variant_list[index] && variant_ids_1based[index] == variant_id_1based) { return index; }
     }
+    // index 是同一套耗材参数数组的行下标；找不到当前喷嘴流量时，返回该耗材已有行的下标（一般为 Standard）。
+    for (int index = 0; index < int(variant_list.size()); ++index) {
+        if (variant_ids_1based[index] == variant_id_1based) { return index; }
+    }
     // BOOST_LOG_TRIVIAL(error) << __FUNCTION__
     //                          << boost::format(", Line %1%: could not found the parameter corresponding to extruder_and_nozzle_type %2%, variant_id %3%") % __LINE__ %
     //                                 extruder_variant % variant_id_1based;
     return 0;
+}
+
+int find_printer_variant_index(const DynamicPrintConfig &printer_config, const std::string &filament_variant)
+{
+    const auto *printer_variants = printer_config.option<ConfigOptionStrings>("printer_extruder_variant");
+    if (!printer_variants || filament_variant.empty())
+        return -1;
+    for (size_t i = 0; i < printer_variants->values.size(); ++i) {
+        if (printer_variants->values[i] == filament_variant)
+            return static_cast<int>(i);
+    }
+    return -1;
 }
 
 
@@ -837,59 +890,74 @@ bool is_nozzle_printable_for_filament(NozzleVolumeType machine_nvt, const std::v
     return false;
 }
 
-void DynamicPrintConfig::repair_nil_filament_max_volumetric_speed()
+void DynamicPrintConfig::repair_invalid_filament_extrusion_parameters()
 {
-    auto* speed_opt   = this->option<ConfigOptionFloats>("filament_max_volumetric_speed");
     auto* variant_opt = this->option<ConfigOptionStrings>("filament_extruder_variant");
     auto* self_opt    = this->option<ConfigOptionInts>("filament_self_index");
-    if (!speed_opt || !variant_opt || !self_opt)
+    if (!variant_opt || !self_opt)
         return;
 
-    std::vector<double>& speeds = speed_opt->values;
     const std::vector<std::string>& variants = variant_opt->values;
     const std::vector<int>& self_idx = self_opt->values;
-    const size_t n = speeds.size();
-    if (variants.size() != n || self_idx.size() != n)
+    const size_t n = variants.size();
+    if (self_idx.size() != n)
         return; // arrays not aligned, skip repair to stay safe
 
-    // First valid (finite, positive) speed of `filament_id` whose variant satisfies `variant_pred`.
-    auto find_speed = [&](int filament_id, auto variant_pred) -> double {
-        for (size_t i = 0; i < n; ++i) {
-            if (self_idx[i] != filament_id) continue;
-            if (!variant_pred(variants[i])) continue;
-            if (std::isfinite(speeds[i]) && speeds[i] > 0.) return speeds[i];
-        }
-        return 0.;
+    struct RepairParameter {
+        const char* key;
+        double      fallback;
     };
 
-    for (size_t i = 0; i < n; ++i) {
-        if (std::isfinite(speeds[i]) && speeds[i] > 0.)
-            continue; // valid, nothing to repair
+    static const RepairParameter repair_parameters[] = {
+        { "filament_max_volumetric_speed", 3. },
+        { "filament_flow_ratio",           1. }
+    };
 
-        const int              filament_id  = self_idx[i];
-        const std::string&     slot_variant = variants[i];
-        const NozzleVolumeType nvt          = convert_to_nvt_type(slot_variant);
+    for (const RepairParameter& parameter : repair_parameters) {
+        auto* option = this->option<ConfigOptionFloats>(parameter.key);
+        if (!option || option->values.size() != n)
+            continue; // Keep other parameters repairable when this array is missing or misaligned.
 
-        double filled = 0.;
+        std::vector<double>& values = option->values;
 
-        // 1) DD High Flow: borrow the same nozzle volume type from the Bowden extruder of the same
-        if (nvt != nvtStandard) {
-            const std::string bowden_variant = get_extruder_variant_string(etBowden, nvt);
-            filled = find_speed(filament_id, [&](const std::string& v) { return v == bowden_variant; });
+        // First valid (finite, positive) value of `filament_id` whose variant satisfies `variant_pred`.
+        auto find_value = [&](int filament_id, auto variant_pred) -> double {
+            for (size_t i = 0; i < n; ++i) {
+                if (self_idx[i] != filament_id) continue;
+                if (!variant_pred(variants[i])) continue;
+                if (std::isfinite(values[i]) && values[i] > 0.) return values[i];
+            }
+            return 0.;
+        };
+
+        for (size_t i = 0; i < n; ++i) {
+            if (std::isfinite(values[i]) && values[i] > 0.)
+                continue; // valid, nothing to repair
+
+            const int              filament_id  = self_idx[i];
+            const std::string&     slot_variant = variants[i];
+            const NozzleVolumeType nvt          = convert_to_nvt_type(slot_variant);
+
+            double filled = 0.;
+
+            // 1) DD High Flow: borrow the same nozzle volume type from the Bowden extruder of the same
+            if (nvt != nvtStandard) {
+                const std::string bowden_variant = get_extruder_variant_string(etBowden, nvt);
+                filled = find_value(filament_id, [&](const std::string& v) { return v == bowden_variant; });
+            }
+
+            // 2) any Standard value of the same filament (Direct Drive / Bowden interchangeable):
+            //    Standard <= High Flow, so it is always safe to fill any remaining slot.
+            if (filled <= 0.)
+                filled = find_value(filament_id, [&](const std::string& v) { return convert_to_nvt_type(v) == nvtStandard; });
+
+            const double repaired = filled > 0. ? filled : parameter.fallback;
+
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__
+                << boost::format(": repaired invalid %1% at index %2% (filament %3%, variant '%4%') -> %5%")
+                   % parameter.key % i % filament_id % slot_variant % repaired;
+            values[i] = repaired;
         }
-
-        // 2) any Standard value of the same filament (Direct Drive / Bowden interchangeable):
-        //    Standard <= High Flow, so it is always safe to fill any remaining slot.
-        if (filled <= 0.)
-            filled = find_speed(filament_id, [&](const std::string& v) { return convert_to_nvt_type(v) == nvtStandard; });
-
-        // 3) safe floor when the filament has no usable value at all.
-        const double repaired = filled > 0. ? filled : 3.;
-
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__
-            << boost::format(": repaired nil filament_max_volumetric_speed at index %1% (filament %2%, variant '%3%') -> %4% mm3/s")
-               % i % filament_id % slot_variant % repaired;
-        speeds[i] = repaired;
     }
 }
 
@@ -1158,8 +1226,9 @@ void PrintConfigDef::init_fff_params()
 {
     ConfigOptionDef* def;
 
-    // Maximum extruder temperature, bumped to 1500 to support printing of glass.
-    const int max_temp = 1500;
+    // the upper limit supported by machine currently is 350
+    // limit to the max with some margin
+    const int max_temp = 360;
 
     def = this->add("reduce_crossing_wall", coBool);
     def->label = L("Avoid crossing wall");
@@ -1420,6 +1489,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("overhang_fan_threshold", coEnums);
     def->label = L("Cooling overhang threshold");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. "
                      "Expressed as percentage which indicides how much width of the line without support from lower layer. "
                      "0% means forcing cooling for all outer wall no matter how much overhang degree");
@@ -1442,6 +1512,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("overhang_threshold_participating_cooling", coEnums);
     def->label = L("Overhang threshold for participating cooling");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Decide which overhang part join the cooling function to slow down the speed."
                      "Expressed as percentage which indicides how much width of the line without support from lower layer. "
                      "100% means forcing cooling for all outer wall no matter how much overhang degree");
@@ -1510,6 +1581,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 2;
     def->mode = comDevelop;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{1});
 
     def = this->add("initial_layer_flow_ratio", coFloat);
@@ -1607,7 +1679,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("100%");
     def->category = L("Speed");
     def->full_label = "100%";
-    def->tooltip    = L("Speed of 100%% overhang wall which has 0 overlap with the lower layer.");
+    // xgettext:no-c-format, no-boost-format
+    def->tooltip    = L("Speed of 100% overhang wall which has 0 overlap with the lower layer.");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -2080,6 +2153,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("zig-zag");
     def->enum_values.push_back("monotonic");
     def->enum_values.push_back("monotonicline");
+    def->enum_values.push_back("globalmonotonicline");
     def->enum_values.push_back("alignedrectilinear");
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
@@ -2088,6 +2162,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Monotonic"));
     def->enum_labels.push_back(L("Monotonic line"));
+    def->enum_labels.push_back(L("Global monotonic line"));
     def->enum_labels.push_back(L("Aligned Rectilinear"));
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
@@ -2128,6 +2203,7 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("bottom_surface_density", coPercent);
     def->label    = L("Bottom surface density");
     def->category = L("Strength");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip  = L("Density of bottom surface infill, 100% means a fully solid filled top layer."
                        "Lower values create a textured bottom surface, "
                        "Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
@@ -2146,6 +2222,16 @@ void PrintConfigDef::init_fff_params()
     def->enum_values   = def_top_fill_pattern->enum_values;
     def->enum_labels   = def_top_fill_pattern->enum_labels;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+
+    def                = this->add("sub_top_surface_pattern", coEnum);
+    def->label         = L("Sub-top surface pattern");
+    def->category      = L("Strength");
+    def->tooltip       = L("Line pattern of the solid layer that supports a visible top surface. Its lines can print through and mark the top, so a monotonic pattern gives the smoothest result. The whole solid area that a top surface reaches uses this pattern, not only the part directly beneath it.");
+    def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
+    def->enum_values   = def_top_fill_pattern->enum_values;
+    def->enum_labels   = def_top_fill_pattern->enum_labels;
+    def->mode          = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonic));
 
     def = this->add("outer_wall_line_width", coFloat);
     def->label = L("Outer wall");
@@ -3085,6 +3171,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("sparse_infill_density", coPercent);
     def->label = L("Sparse infill density");
     def->category = L("Strength");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Density of internal sparse infill, 100% means solid throughout");
     def->sidetext = "%";
     def->min = 0;
@@ -3358,6 +3445,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
 
+    def = this->add("initial_layer_infill_line_width", coFloat);
+    def->label = L("Initial layer infill");
+    def->category = L("Quality");
+    def->tooltip = L("Line width of the infill of initial layer, including sparse infill, solid infill and top surface. "
+                     "Walls, support and everything else of the initial layer are not affected and keep using the line width "
+                     "of initial layer. Zero means to use the line width of initial layer.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
     def = this->add("initial_layer_print_height", coFloat);
     def->label = L("Initial layer height");
     def->category = L("Quality");
@@ -3630,25 +3728,6 @@ void PrintConfigDef::init_fff_params()
     // def->mode = comSimple;
     // def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("nozzle_type", coEnums);
-    def->label = L("Nozzle type");
-    def->tooltip = L("The metallic material of nozzle. This determines the abrasive resistance of nozzle, and "
-                     "what kind of filament can be printed");
-    def->enum_keys_map = &ConfigOptionEnum<NozzleType>::get_enum_values();
-    def->enum_values.push_back("undefine");
-    def->enum_values.push_back("hardened_steel");
-    def->enum_values.push_back("stainless_steel");
-    def->enum_values.push_back("tungsten_carbide");
-    def->enum_values.push_back("brass");
-    def->enum_labels.push_back(L("Undefine"));
-    def->enum_labels.push_back(L("Hardened steel"));
-    def->enum_labels.push_back(L("Stainless steel"));
-    def->enum_labels.push_back(L("Tungsten carbide"));
-    def->enum_labels.push_back(L("Brass"));
-    def->mode = comDevelop;
-    def->nullable = true;
-    def->set_default_value(new ConfigOptionEnumsGenericNullable({ ntUndefine }));
-
     def = this->add("printer_structure", coEnum);
     def->label = L("Printer structure");
     def->tooltip = L("The physical arrangement and components of a printing device");
@@ -3847,6 +3926,88 @@ void PrintConfigDef::init_fff_params()
     def->min      = 0;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
+
+    def           = this->add("conformal_infill", coBool);
+    def->label    = L("Conformal infill");
+    def->category = L("Strength");
+    def->tooltip  = L("Make sparse infill follow each layer's outline instead of using one set of parallel lines. "
+                      "On elongated or curved shapes, lines radiate from a center. "
+                      "Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("conformal_stagger", coEnum);
+    def->label    = L("Layer stagger");
+    def->category = L("Strength");
+    def->tooltip  = L("How neighboring layers are offset. Off stacks the same layout. "
+                      "Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding.");
+    def->enum_keys_map = &ConfigOptionEnum<ConformalStagger>::get_enum_values();
+    def->enum_values.push_back("none");
+    def->enum_values.push_back("alternate");
+    def->enum_labels.push_back(L("Off"));
+    def->enum_labels.push_back(L("Alternate"));
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<ConformalStagger>(ConformalStagger::None));
+
+    def           = this->add("conformal_link_keep_layers", coInt);
+    def->label    = L("Forward layers");
+    def->full_label = L("Conformal forward layers");
+    def->category = L("Strength");
+    def->tooltip  = L("Number of consecutive layers that keep the forward zigzag. "
+                      "Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer.");
+    def->sidetext = L("layers");
+    def->min      = 0;
+    def->max      = 1000;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(1));
+
+    def           = this->add("conformal_link_flip_layers", coInt);
+    def->label    = L("Reverse layers");
+    def->full_label = L("Conformal reverse layers");
+    def->category = L("Strength");
+    def->tooltip  = L("Number of consecutive layers that reverse the zigzag (start from the opposite rim). "
+                      "0 disables reversing. Forward 1 and Reverse 1 reverses every other layer.");
+    def->sidetext = L("layers");
+    def->min      = 0;
+    def->max      = 1000;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(0));
+
+    def           = this->add("conformal_pole", coEnum);
+    def->label    = L("Radial center");
+    def->category = L("Strength");
+    def->tooltip  = L("Where the radial center comes from. Each layer picks a center on that slice. "
+                      "Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers.");
+    def->enum_keys_map = &ConfigOptionEnum<ConformalPole>::get_enum_values();
+    def->enum_values.push_back("layer");
+    def->enum_values.push_back("axis");
+    def->enum_values.push_back("bezier");
+    def->enum_labels.push_back(L("Each layer"));
+    def->enum_labels.push_back(L("Axis"));
+    def->enum_labels.push_back(L("Smooth curve"));
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<ConformalPole>(ConformalPole::Layer));
+
+    def           = this->add("conformal_ray_count", coInt);
+    def->label    = L("Radial line count");
+    def->category = L("Strength");
+    def->tooltip  = L("How many radial lines around the center. 0 uses the count from sparse infill density. "
+                      "A positive value is the radial line count, rounded up to an even number of at least 4.");
+    def->min      = 0;
+    def->max      = 1000;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(0));
+
+    def           = this->add("conformal_hub_radius", coFloat);
+    def->label    = L("Center region radius");
+    def->category = L("Strength");
+    def->tooltip  = L("Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. "
+                      "0 chooses the radius automatically. A positive value is in millimeters.");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 200;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def           = this->add("symmetric_infill_y_axis", coBool);
     def->label    = L("Symmetric infill y axis");
@@ -4089,8 +4250,10 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("zig-zag");
+    def->enum_values.push_back("ironingarchimedeanspiral");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
+    def->enum_labels.push_back(L("Archimedean Chords"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 
@@ -4605,12 +4768,47 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Embedding the wall into the infill");
     def->category = L("Strength");
     def->tooltip  = L("Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill.");
+    def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("alternate_extra_wall", coBool);
     def->label = L("Alternate extra wall");
     def->category = L("Strength");
     def->tooltip  = L("Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("periodic_modifier", coBool);
+    def->label = L("Periodic modifier");
+    def->category = L("Others");
+    def->tooltip = L("Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there.");
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("periodic_modifier_skip_layers", coInt);
+    def->label = L("Skip for");
+    def->full_label = L("Periodic modifier skip layers");
+    def->category = L("Others");
+    def->tooltip = L("Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer.");
+    def->sidetext = L("layers");
+    def->min = 0;
+    def->max = 1000;
+    def->set_default_value(new ConfigOptionInt(1));
+
+    def = this->add("periodic_modifier_apply_layers", coInt);
+    def->label = L("Apply for");
+    def->full_label = L("Periodic modifier apply layers");
+    def->category = L("Others");
+    def->tooltip = L("Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for.");
+    def->sidetext = L("layers");
+    def->min = 1;
+    def->max = 1000;
+    def->set_default_value(new ConfigOptionInt(1));
+
+    def = this->add("modifier_ignore_infill", coBool);
+    def->label = L("Ignore infill settings");
+    def->full_label = L("Modifier ignore infill settings");
+    def->category = L("Others");
+    def->tooltip = L("Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region.");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("post_process", coStrings);
@@ -5306,7 +5504,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("timelapse_type", coEnum);
     def->label = L("Timelapse");
-    def->tooltip = L("If smooth or traditional mode is selected, a timelapse video will be generated for each print. "
+    def->tooltip = L("If smooth or instant mode is selected, a timelapse video will be generated for each print. "
                      "After each layer is printed, a snapshot is taken with the chamber camera. "
                      "All of these snapshots are composed into a timelapse video when printing completes. "
                      "If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed "
@@ -5316,7 +5514,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<TimelapseType>::get_enum_values();
     def->enum_values.emplace_back("0");
     def->enum_values.emplace_back("1");
-    def->enum_labels.emplace_back(L("Traditional"));
+    def->enum_labels.emplace_back(L("Instant"));
     def->enum_labels.emplace_back(L("Smooth"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<TimelapseType>(tlTraditional));
@@ -5325,7 +5523,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Farthest point timelapse");
     def->tooltip = L("When enabled, the timelapse snapshot is taken at the farthest point from camera "
                      "instead of traveling to the wipe tower or excess chute. "
-                     "Only effective in traditional timelapse mode on non-I3 printers.");
+                     "Only effective in instant timelapse mode on non-I3 printers.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -6282,7 +6480,7 @@ void PrintConfigDef::init_fff_params()
     def->label   = L("Rib wall");
     def->tooltip = L("The wall of prime tower will add four ribs and make its "
                      "cross-section as close to a square as possible, so the width will be fixed.");
-    def->mode    = comSimple;
+    def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
     def          = this->add("prime_tower_fillet_wall", coBool);
@@ -7400,7 +7598,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "z_hop_type","nozzle_hrc","chamber_temperature","only_one_wall_top","bed_temperature_difference","long_retraction_when_cut",
         "retraction_distance_when_cut",
         "prime_volume",
-        "apply_top_surface_compensation"
+        "apply_top_surface_compensation",
+        "nozzle_type"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
@@ -7540,7 +7739,6 @@ std::set<std::string> printer_options_with_variant_1 = {
     "retract_restart_extra_toolchange",
     "long_retractions_when_cut",
     "retraction_distances_when_cut",
-    "nozzle_type",
     "printer_extruder_id",
     "printer_extruder_variant",
     "hotend_cooling_rate",
@@ -7670,6 +7868,9 @@ void DynamicPrintConfig::normalize_fdm()
         // Resolution will be above 1um.
         opt_gcode_resolution->value = std::max(opt_gcode_resolution->value, 0.001);
 
+    // Repair invalid filament extrusion parameters carried by corrupted/legacy project files,
+    // before they propagate NaN into slicing speeds or extrusion amounts.
+    this->repair_invalid_filament_extrusion_parameters();
 }
 
 //BBS:divide normalize_fdm to 2 steps and call them one by one in Print::Apply
@@ -8644,9 +8845,14 @@ int DynamicPrintConfig::get_extruder_nozzle_volume_count(int extruder_count, std
         count = 0;
         for (int i = 0; i < extruder_count;  i++)
         {
-            count += extruder_nozzle_counts[i].size();
             for (auto& iter: extruder_nozzle_counts[i])
-                nozzle_volume_types[i].push_back(iter.first);
+            {
+                if (iter.second > 0)
+                {
+                    count++;
+                    nozzle_volume_types[i].push_back(iter.first);
+                }
+            }
         }
     }
     /*auto opt_extruder_nozzle_volume_types = dynamic_cast<const ConfigOptionInts*>(this->option("extruder_nozzle_volume_type"));
@@ -8692,6 +8898,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
         }
 
         if (extruder_id > 0 && extruder_id <= static_cast<unsigned> (extruder_count)) {
+            //材料参数处理
             variant_index.resize(1);
             ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(extruder_id - 1));
             NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(extruder_id - 1));
@@ -8718,6 +8925,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
             variant_count = 1;
         }
         else {
+            //机器和工艺参数处理
             if  (extruder_nozzle_volume_count > extruder_count){
                 variant_count = extruder_nozzle_volume_count;
             } else
@@ -9472,6 +9680,21 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     if (cfg.wall_loops.value < 0) {
         error_message.emplace("wall_loops", L("invalid value ") + std::to_string(cfg.wall_loops.value));
     }
+    if (cfg.periodic_modifier_skip_layers.value < 0) {
+        error_message.emplace("periodic_modifier_skip_layers", L("invalid value ") + std::to_string(cfg.periodic_modifier_skip_layers.value));
+    }
+    if (cfg.periodic_modifier_apply_layers.value < 1) {
+        error_message.emplace("periodic_modifier_apply_layers", L("invalid value ") + std::to_string(cfg.periodic_modifier_apply_layers.value));
+    }
+    if (cfg.conformal_link_keep_layers.value < 0) {
+        error_message.emplace("conformal_link_keep_layers", L("invalid value ") + std::to_string(cfg.conformal_link_keep_layers.value));
+    }
+    if (cfg.conformal_link_flip_layers.value < 0) {
+        error_message.emplace("conformal_link_flip_layers", L("invalid value ") + std::to_string(cfg.conformal_link_flip_layers.value));
+    }
+    if (cfg.conformal_ray_count.value < 0) {
+        error_message.emplace("conformal_ray_count", L("invalid value ") + std::to_string(cfg.conformal_ray_count.value));
+    }
 
     // --solid-layers
     if (cfg.top_shell_layers < 0) {
@@ -9524,10 +9747,15 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
         error_message.emplace("internal_solid_infill_pattern", L("invalid value ") + cfg.internal_solid_infill_pattern.serialize());
     }
 
+    if (!print_config_def.get("sub_top_surface_pattern")->has_enum_value(cfg.sub_top_surface_pattern.serialize())) {
+        error_message.emplace("sub_top_surface_pattern", L("invalid value ") + cfg.sub_top_surface_pattern.serialize());
+    }
+
     // --fill-density
     if (fabs(cfg.sparse_infill_density.value - 100.) < EPSILON &&
         ! print_config_def.get("top_surface_pattern")->has_enum_value(cfg.sparse_infill_pattern.serialize())) {
-        error_message.emplace("sparse_infill_pattern", cfg.sparse_infill_pattern.serialize() + L(" doesn't work at 100%% density "));
+        // xgettext:no-c-format, no-boost-format
+        error_message.emplace("sparse_infill_pattern", cfg.sparse_infill_pattern.serialize() + L(" doesn't work at 100% density "));
     }
 
     // --skirt-height
@@ -10245,6 +10473,8 @@ Polygon get_shared_poly(const std::vector<Pointfs>& extruder_polys)
             Polygon extruer_poly;
             extruer_poly.points = to_points(extruder_area);
             Polygons result_polygon = intersection(extruer_poly, result);
+            if (result_polygon.empty())
+                return {};
             result = result_polygon[0];
         }
     }
@@ -10269,6 +10499,8 @@ Points get_bed_shape(const DynamicPrintConfig &config, bool use_share)
         if (extruder_area_opt && (extruder_area_opt->size() > 0)) {
             const std::vector<Pointfs>& extruder_areas = extruder_area_opt->values;
             bed_poly = get_shared_poly(extruder_areas);
+            if (bed_poly.points.empty())
+                bed_poly.points = to_points(bed_shape_opt->values);
         }
         else
             bed_poly.points = to_points(bed_shape_opt->values);
@@ -10286,6 +10518,8 @@ Points get_bed_shape(const PrintConfig &cfg, bool use_share)
         const std::vector<Pointfs>& extruder_areas = cfg.extruder_printable_area.values;
         if (extruder_areas.size() > 0) {
             bed_poly = get_shared_poly(extruder_areas);
+            if (bed_poly.points.empty())
+                bed_poly.points = to_points(cfg.printable_area.values);
         }
         else
             bed_poly.points = to_points(cfg.printable_area.values);

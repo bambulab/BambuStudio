@@ -19,12 +19,32 @@ public:
 
     void SetWindowStyleFlag(long style) override;
 
+	/**
+	 * \brief Break the label's text so that it renders inside \p width.
+	 *
+	 * Unlike the non-virtual wxStaticText::Wrap this also breaks CJK runs, which carry no spaces to
+	 * break on, and it accounts for the padding the native control adds around the text: the width a
+	 * sizer reserves for the label is its best size, not the bare text extent the line breaks were
+	 * measured against. Overshooting that is silent on MSW but not on macOS, where wx gives every
+	 * wxStaticText a paragraph style with NSLineBreakByClipping — an NSTextField narrower than its
+	 * text clips the tail away instead of re-wrapping it.
+	 *
+	 * \param width Width the label is laid out in, in pixels. Values <= 0 break after one character
+	 *              per line, matching the base class.
+	 */
 	void Wrap(int width);
 
 protected:
 	wxSize DoGetBestClientSize() const override;
 
 private:
+	/**
+	 * \brief Break the text at \p width and push the result to the base control.
+	 *
+	 * \param width Width to break the lines at, in pixels; negative disables wrapping.
+	 */
+	void DoWrap(int width);
+
 	void OnSize(wxSizeEvent & evt);
 
 private:

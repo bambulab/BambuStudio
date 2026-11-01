@@ -275,4 +275,34 @@ void wgtFilaManagerCloudClient::sync_slot_mappings(
                            std::move(on_ok), std::move(on_err));
 }
 
+void wgtFilaManagerCloudClient::get_soft_match_pending(
+    BBL::SoftMatchPendingParams params, SuccessFn on_ok, ErrorFn on_err)
+{
+    if (!check_login(on_err)) return;
+
+    dispatch_agent_request("get_soft_match_pending",
+                           {{"method", "GET"}, {"devId", params.devId}, {"amsSn", params.amsSn}},
+                           [params = std::move(params)](NetworkAgent* agent,
+                                                        std::string& response_body) mutable {
+                               return agent->get_soft_match_pending(params, &response_body);
+                           },
+                           std::move(on_ok), std::move(on_err));
+}
+
+void wgtFilaManagerCloudClient::post_soft_match_pending(
+    BBL::SoftMatchPendingActionParams params, SuccessFn on_ok, ErrorFn on_err)
+{
+    if (!check_login(on_err)) return;
+
+    dispatch_agent_request("post_soft_match_pending",
+                           {{"method", "POST"}, {"action", params.action},
+                            {"spoolId", params.spoolId},
+                            {"targetSpoolId", params.targetSpoolId}},
+                           [params = std::move(params)](NetworkAgent* agent,
+                                                        std::string& response_body) mutable {
+                               return agent->post_soft_match_pending(params, &response_body);
+                           },
+                           std::move(on_ok), std::move(on_err));
+}
+
 }} // namespace Slic3r::GUI

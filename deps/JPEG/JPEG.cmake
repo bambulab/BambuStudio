@@ -12,7 +12,14 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 if (MSVC)
-    if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
+    # Generator platform takes precedence over the host processor; SIMD is off
+    # for ARM64 (no x86 asm) and ARM64EC (deterministic pure-C build).
+    set(_jpeg_plat "${CMAKE_GENERATOR_PLATFORM}")
+    if (NOT _jpeg_plat)
+        set(_jpeg_plat "${CMAKE_SYSTEM_PROCESSOR}")
+    endif ()
+    string(TOUPPER "${_jpeg_plat}" _jpeg_plat)
+    if (_jpeg_plat MATCHES "^(ARM64|AARCH64|ARM64EC)$")
         set(_use_SIMD "-DWITH_SIMD=OFF")
     endif ()
 endif ()

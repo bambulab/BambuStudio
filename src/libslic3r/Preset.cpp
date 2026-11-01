@@ -478,9 +478,9 @@ void Preset::normalize(DynamicPrintConfig &config)
 
     handle_legacy_sla(config);
 
-    // Repair nil/invalid filament_max_volumetric_speed entries carried by corrupted/legacy
-    // project files, before they propagate NaN into slicing speeds (the -35791396 bug).
-    config.repair_nil_filament_max_volumetric_speed();
+    // Repair invalid filament extrusion parameters carried by corrupted/legacy project files,
+    // before they propagate NaN into slicing speeds or extrusion amounts.
+    config.repair_invalid_filament_extrusion_parameters();
 }
 
 std::string Preset::remove_invalid_keys(DynamicPrintConfig &config, const DynamicPrintConfig &default_config)
@@ -598,6 +598,16 @@ void Preset::save_info(std::string file)
         idx_file.replace_extension(".info");
         file = idx_file.string();
     }
+
+    // Symmetric with load_info() above: a freshly-cloned preset arrives here with
+    // updated_time == 0 (clone_presets doesn't stamp it), which then propagates to
+    // the .info file and any UI reading updated_time — so a newly-created custom
+    // filament shows no date until the next app launch (load_info's own fallback
+    // stamps it there). For logged-in users this is masked by the sync flow, which
+    // overwrites updated_time with the server timestamp; offline users see the
+    // empty date. Stamping here fills that gap once, at save time.
+    if (this->updated_time == 0)
+        this->updated_time = (long long)Slic3r::Utils::get_current_time_utc();
 
     boost::nowide::ofstream c;
     c.open(file, std::ios::out | std::ios::trunc);
@@ -1016,9 +1026,9 @@ static std::vector<std::string> s_Preset_print_options {
     "detect_overhang_wall", "top_color_penetration_layers", "bottom_color_penetration_layers",
     "infill_instead_top_bottom_surfaces",
     "smooth_speed_discontinuity_area","smooth_coefficient", "seam_position", "seam_placement_away_from_overhangs", "wall_sequence", "is_infill_first", "sparse_infill_density", "fill_multiline",
-    "sparse_infill_pattern", "sparse_infill_anchor", "sparse_infill_anchor_max", "top_surface_pattern", "monotonic_travel_into_wall",
+    "sparse_infill_pattern", "conformal_infill", "conformal_stagger", "conformal_link_keep_layers", "conformal_link_flip_layers", "conformal_pole", "conformal_ray_count", "conformal_hub_radius", "sparse_infill_anchor", "sparse_infill_anchor_max", "top_surface_pattern", "monotonic_travel_into_wall",
     "locked_skin_infill_pattern", "locked_skeleton_infill_pattern",
-    "bottom_surface_pattern", "internal_solid_infill_pattern", "infill_direction", "bridge_angle", "infill_shift_step", "skeleton_infill_density", "infill_lock_depth", "skin_infill_depth", "skin_infill_density",
+    "bottom_surface_pattern", "internal_solid_infill_pattern", "sub_top_surface_pattern", "infill_direction", "bridge_angle", "infill_shift_step", "skeleton_infill_density", "infill_lock_depth", "skin_infill_depth", "skin_infill_density",
     "infill_rotate_step","top_surface_density", "bottom_surface_density",
     "symmetric_infill_y_axis","sparse_infill_lattice_angle_1","sparse_infill_lattice_angle_2",
     "minimum_sparse_infill_area", "reduce_infill_retraction_mode", "ironing_pattern", "ironing_type",
@@ -1049,7 +1059,8 @@ static std::vector<std::string> s_Preset_print_options {
     "bridge_no_support", "thick_bridges", "max_bridge_length", "print_sequence",
     "filename_format", "wall_filament", "support_bottom_z_distance",
     "sparse_infill_filament", "solid_infill_filament", "support_filament", "support_interface_filament","support_interface_not_for_body",
-    "ooze_prevention", "standby_temperature_delta", "interface_shells", "line_width", "initial_layer_line_width", "inner_wall_line_width",
+    "ooze_prevention", "standby_temperature_delta", "interface_shells", "line_width", "initial_layer_line_width",
+    "initial_layer_infill_line_width", "inner_wall_line_width",
     "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width",
     "skin_infill_line_width","skeleton_infill_line_width",
     "top_surface_line_width", "support_line_width", "infill_wall_overlap", "bridge_flow", "counterbore_hole_bridging",
@@ -1082,7 +1093,7 @@ static std::vector<std::string> s_Preset_print_options {
     "seam_slope_start_height", "seam_slope_entire_loop", "seam_slope_min_length",
     "seam_slope_steps", "seam_slope_inner_walls", "role_base_wipe_speed", "seam_slope_gap", "precise_outer_wall",
     "interlocking_beam", "interlocking_orientation", "interlocking_beam_layer_count", "interlocking_depth", "interlocking_boundary_avoidance", "interlocking_beam_width", "embedding_wall_into_infill",
-    "alternate_extra_wall" };
+    "alternate_extra_wall", "periodic_modifier", "periodic_modifier_skip_layers", "periodic_modifier_apply_layers", "modifier_ignore_infill" };
 
 static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", */ "default_filament_colour", "required_nozzle_HRC", "filament_diameter", "volumetric_speed_coefficients", "filament_type",
                                                           "filament_soluble", "filament_is_support", "filament_printable", "filament_extruder_compatibility", "filament_scarf_seam_type", "filament_scarf_height",
@@ -1161,7 +1172,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "scan_first_layer", "wrapping_detection_layers", "wrapping_exclude_area", "machine_load_filament_time", "machine_unload_filament_time",
     "ams_filament_load_time_ams", "ams_filament_load_time_ams_lite", "ams_filament_load_time_n3f_s",
     "ams_filament_unload_time_ams", "ams_filament_unload_time_ams_lite", "ams_filament_unload_time_n3f_s", "default_ams_type", "machine_pause_gcode", "template_custom_gcode","machine_hotend_change_time",
-    "nozzle_type","auxiliary_fan", "fan_direction", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","support_cooling_filter","cooling_filter_enabled","printer_structure","farthest_point_timelapse","thumbnail_size",
+    "auxiliary_fan", "fan_direction", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","support_cooling_filter","cooling_filter_enabled","printer_structure","farthest_point_timelapse","thumbnail_size",
     "best_object_pos", "head_wrap_detect_zone","printer_notes","print_in_clockwise",
     "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut",
     //OrcaSlicer
@@ -2832,6 +2843,11 @@ const Preset *PresetCollection::get_preset_base(const Preset &child) const
     if (child.inherits().empty())
         return &child; // this is user root
     auto inherits = find_preset(child.inherits());
+
+    // Guard against a self-referential "inherits" (corrupt data where inherits == own name):
+    // find_preset() resolves back to child, so recursing would loop forever. Treat it as its own root.
+    if (inherits == &child) return &child;
+
     return inherits ? get_preset_base(*inherits) : nullptr;
 }
 
@@ -3303,16 +3319,24 @@ std::vector<std::string> PresetCollection::merge_presets(PresetCollection &&othe
     return duplicates;
 }
 
+void inline static sync_vendor_ptr(const VendorMap &new_vendors, Preset &preset)
+{
+    if (!preset.vendor) return;
+
+    auto it = new_vendors.find(preset.vendor->id);
+    assert(it != new_vendors.end());
+    preset.vendor = &it->second;
+}
+
 void PresetCollection::update_vendor_ptrs_after_copy(const VendorMap &new_vendors)
 {
-    for (Preset &preset : m_presets)
-        if (preset.vendor != nullptr) {
-            assert(! preset.is_default && ! preset.is_external);
-            // Re-assign a pointer to the vendor structure in the new PresetBundle.
-            auto it = new_vendors.find(preset.vendor->id);
-            assert(it != new_vendors.end());
-            preset.vendor = &it->second;
-        }
+    for (Preset &preset : m_presets) {
+        assert(preset.vendor == nullptr || (!preset.is_default && !preset.is_external));
+        sync_vendor_ptr(new_vendors, preset);
+    }
+
+    sync_vendor_ptr(new_vendors, m_edited_preset);
+    sync_vendor_ptr(new_vendors, m_saved_preset);
 }
 
 void PresetCollection::update_map_alias_to_profile_name()

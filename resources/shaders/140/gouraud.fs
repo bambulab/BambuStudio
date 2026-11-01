@@ -34,6 +34,12 @@ uniform bool use_color_clip_plane;
 uniform vec4 uniform_color_clip_plane_1;
 uniform vec4 uniform_color_clip_plane_2;
 uniform vec4 color_clip_plane;
+uniform bool use_dovetail_clip;
+uniform mat4 dovetail_clip_matrix;
+// x = depth, y = width, z = flaps angle, w = groove angle.
+uniform vec4 dovetail_clip_params;
+// x = depth tolerance, y = width tolerance.
+uniform vec2 dovetail_clip_tolerance;
 uniform SlopeDetection slope;
 
 //BBS: add outline_color
@@ -59,6 +65,30 @@ in vec3 eye_normal;
 
 out vec4 frag_color;
 
+bool is_upper_dovetail_part(vec3 local_pos)
+{
+    float depth = max(dovetail_clip_params.x, EPSILON);
+    float width = max(dovetail_clip_params.y, EPSILON);
+    float flaps_angle = dovetail_clip_params.z;
+    float groove_angle = dovetail_clip_params.w;
+
+    float half_depth = 0.5 * depth;
+    if (local_pos.z > half_depth)
+        return true;
+    if (local_pos.z < -half_depth + dovetail_clip_tolerance.x)
+        return false;
+
+    float sin_flap = max(abs(sin(flaps_angle)), 0.01);
+    float flaps_width = 2.0 * (depth / sin_flap) * cos(flaps_angle);
+    float upper_half_width = 0.5 * width;
+    float lower_half_width = 0.5 * (width + flaps_width);
+    float t = clamp((local_pos.z + half_depth) / depth, 0.0, 1.0);
+    float half_width = mix(lower_half_width, upper_half_width, t) - 0.5 * dovetail_clip_tolerance.y;
+
+    float skewed_x = local_pos.x - local_pos.y * tan(groove_angle);
+    return abs(skewed_x) <= half_width;
+}
+
 void main()
 {
     if (any(lessThan(clipping_planes_dots, ZERO)))
@@ -67,8 +97,10 @@ void main()
     float alpha = uniform_color.a;
 
     if (use_color_clip_plane){
-        float color_clip_plane_dot = dot(world_pos, color_clip_plane);
-        vec4 full_color = (color_clip_plane_dot < EPSILON) ? uniform_color_clip_plane_1 : uniform_color_clip_plane_2;
+        bool is_upper = use_dovetail_clip ?
+            is_upper_dovetail_part((dovetail_clip_matrix * world_pos).xyz) :
+            dot(world_pos, color_clip_plane) < EPSILON;
+        vec4 full_color = is_upper ? uniform_color_clip_plane_1 : uniform_color_clip_plane_2;
         color = full_color.rgb;
         alpha = full_color.a;
     }

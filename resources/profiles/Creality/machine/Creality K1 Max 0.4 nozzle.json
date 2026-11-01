@@ -11,7 +11,6 @@
 	"nozzle_diameter": [
 		"0.4"
 	],
-	"nozzle_type": "stainless_steel",
 	"printer_structure": "corexy",
 	"thumbnail_size": [
 		"96x96",

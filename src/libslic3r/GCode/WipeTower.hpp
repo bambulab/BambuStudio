@@ -30,6 +30,9 @@ public:
 	// WipeTower height to minimum depth map
 	static const std::map<float, float> min_depth_per_height;
     static float get_limit_depth_by_height(float max_height);
+    // Minimum tower depth for wrapping detection; the pre-slice size estimate must floor
+    // its depth at this same value so it doesn't disagree with what gets sliced.
+    static constexpr double wrapping_wipe_tower_depth = 10.0;
     static float get_auto_brim_by_height(float max_height);
     static TriangleMesh                 its_make_rib_tower(float width, float depth, float height, float rib_length, float rib_width, bool fillet_wall);
     static TriangleMesh                 its_make_rib_brim(const Polygon& brim, float layer_height);

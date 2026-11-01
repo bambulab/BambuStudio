@@ -220,9 +220,13 @@ void TextInput::SetMinSize(const wxSize& size)
 
 void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
+    const wxSize oldSize = GetSize();
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
     if (sizeFlags & wxSIZE_USE_EXISTING) return;
     wxSize size = GetSize();
+    // The border/background/dropdown arrow are custom-painted from the full bounds; a partial
+    // erase on grow would leave the old right edge stale, so force a full repaint on any resize.
+    if (size != oldSize) Refresh();
     wxPoint textPos = {5, 0};
     if (this->icon.bmp().IsOk()) {
         wxSize szIcon = this->icon.GetBmpSize();

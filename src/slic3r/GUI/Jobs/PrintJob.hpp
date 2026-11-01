@@ -70,6 +70,7 @@ public:
     std::string connection_type;
     std::string m_print_type;
     std::string m_dst_path;
+    std::string m_imported_3mf_path;
 
     bool m_is_calibration_task = false;
 
@@ -132,6 +133,7 @@ public:
     void finalize() override;
     void set_project_name(std::string name);
     void set_dst_name(std::string path);
+    void set_imported_3mf_path(std::string path) { m_imported_3mf_path = std::move(path); }
     void on_check_ip_address_fail(std::function<void()> func);
     void on_check_ip_address_success(std::function<void()> func);
     void connect_to_local_mqtt();

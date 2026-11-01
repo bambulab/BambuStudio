@@ -121,6 +121,12 @@ hr {
 #projectDescription img {
   max-width: 80%;
 }
+/* CKEditor wraps block images in <figure class="image">; this page does not load
+   ckeditor5-content.css, so drop the UA default margin of 1em 40px. */
+#projectDescription figure.image,
+#profileDescript figure.image {
+  margin: 8px 0;
+}
 .subTitle {
   font-size: 16px;
   font-weight: 700;

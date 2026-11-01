@@ -2,6 +2,7 @@
 #define SLIC3R_FILAMENT_MIXER_HPP
 
 #include <limits>
+#include <map>
 #include <set>
 #include <string>
 #include <utility>

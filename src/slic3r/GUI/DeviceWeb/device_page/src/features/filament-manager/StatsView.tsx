@@ -2,6 +2,7 @@ import { useEffect, useRef, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Spool } from './types';
 import { SpoolColorChip } from './SpoolColorChip';
+import { canonicalizeHex } from './colors';
 
 const PIE_COLORS = ['#8BC34A','#4CAF50','#009688','#3F51B5','#FF9800','#F44336','#9C27B0','#00BCD4','#FFC107','#795548'];
 
@@ -149,7 +150,11 @@ function countByColor(arr: Spool[]): PieItem[] {
   const map: Record<string, { count: number; color: string }> = {};
   arr.forEach((s) => {
     const name = s.color_name || 'Other';
-    if (!map[name]) map[name] = { count: 0, color: s.color_code || '#888' };
+    // Canonicalise to #RRGGBB: canvas fillStyle and inline background do not
+    // reliably handle 8-char #RRGGBBAA hex (alpha causes transparency against
+    // the page background rather than the intended opaque colour block).
+    const color = canonicalizeHex(s.color_code) || '#888';
+    if (!map[name]) map[name] = { count: 0, color };
     map[name].count++;
   });
   return Object.entries(map)

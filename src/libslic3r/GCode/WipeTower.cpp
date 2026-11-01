@@ -1581,7 +1581,9 @@ WipeTower::ToolChangeResult WipeTower::construct_block_tcr(WipeTowerWriter &writ
 }
 
 // BBS
-const double wrapping_wipe_tower_depth = 10;
+// Local alias so uses below don't need rewriting; the header value is shared with
+// PartPlate::estimate_wipe_tower_size.
+static constexpr double wrapping_wipe_tower_depth = WipeTower::wrapping_wipe_tower_depth;
 
 // BBS
 const std::map<float, float> WipeTower::min_depth_per_height = {

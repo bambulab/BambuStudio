@@ -1,0 +1,73 @@
+@PACKAGE_INIT@
+
+# Config installed by deps/OpenMeshCraft build recipe into
+#   <prefix>/lib/cmake/OpenMeshCraft/
+# Prefers a single OpenMeshCraftBoolean archive when present (Layout A),
+# otherwise wires the wrapper + upstream + shewchuk split install.
+
+set(_OPENMESHCRAFT_PREFIX "${PACKAGE_PREFIX_DIR}")
+
+find_path(OPENMESHCRAFT_INCLUDE_DIR
+  NAMES OpenMeshCraft/OpenMeshCraftBoolean.h
+  PATHS "${_OPENMESHCRAFT_PREFIX}/include"
+  NO_DEFAULT_PATH
+)
+
+find_library(OPENMESHCRAFT_BOOLEAN_LIBRARY
+  NAMES OpenMeshCraftBoolean
+  PATHS "${_OPENMESHCRAFT_PREFIX}/lib"
+  NO_DEFAULT_PATH
+)
+
+find_library(OPENMESHCRAFT_CORE_LIBRARY
+  NAMES OpenMeshCraft
+  PATHS "${_OPENMESHCRAFT_PREFIX}/lib"
+  NO_DEFAULT_PATH
+)
+
+find_library(OPENMESHCRAFT_SHEWCHUK_LIBRARY
+  NAMES shewchuk_predicates
+  PATHS "${_OPENMESHCRAFT_PREFIX}/lib"
+  NO_DEFAULT_PATH
+)
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(OpenMeshCraft
+  REQUIRED_VARS OPENMESHCRAFT_INCLUDE_DIR OPENMESHCRAFT_BOOLEAN_LIBRARY
+)
+
+if(NOT OpenMeshCraft_FOUND)
+  return()
+endif()
+
+set(_OPENMESHCRAFT_LINK_LIBS "${OPENMESHCRAFT_BOOLEAN_LIBRARY}")
+if(OPENMESHCRAFT_CORE_LIBRARY)
+  list(APPEND _OPENMESHCRAFT_LINK_LIBS "${OPENMESHCRAFT_CORE_LIBRARY}")
+endif()
+if(OPENMESHCRAFT_SHEWCHUK_LIBRARY)
+  list(APPEND _OPENMESHCRAFT_LINK_LIBS "${OPENMESHCRAFT_SHEWCHUK_LIBRARY}")
+endif()
+
+if(NOT TARGET OpenMeshCraft::OpenMeshCraftBoolean)
+  add_library(OpenMeshCraft::OpenMeshCraftBoolean INTERFACE IMPORTED)
+  set_target_properties(OpenMeshCraft::OpenMeshCraftBoolean PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${OPENMESHCRAFT_INCLUDE_DIR}"
+    INTERFACE_LINK_LIBRARIES "${_OPENMESHCRAFT_LINK_LIBS}"
+  )
+endif()
+
+if(NOT TARGET OpenMeshCraftBoolean)
+  add_library(OpenMeshCraftBoolean INTERFACE IMPORTED)
+  set_target_properties(OpenMeshCraftBoolean PROPERTIES
+    INTERFACE_LINK_LIBRARIES OpenMeshCraft::OpenMeshCraftBoolean
+  )
+endif()
+
+if(NOT TARGET OpenMeshCraft)
+  add_library(OpenMeshCraft INTERFACE IMPORTED)
+  set_target_properties(OpenMeshCraft PROPERTIES
+    INTERFACE_LINK_LIBRARIES OpenMeshCraft::OpenMeshCraftBoolean
+  )
+endif()
+
+check_required_components(OpenMeshCraft)

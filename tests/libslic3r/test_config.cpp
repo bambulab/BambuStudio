@@ -274,3 +274,18 @@ SCENARIO("get_real_skirt_dist calculates the correct boundary including loop wid
         }
     }
 }
+
+TEST_CASE("Bed shape falls back when extruder areas do not overlap", "[Config]")
+{
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.opt<ConfigOptionPoints>("printable_area")->values =
+        {{0., 0.}, {30., 0.}, {30., 10.}, {0., 10.}};
+    config.opt<ConfigOptionPointsGroups>("extruder_printable_area")->values = {
+        {{0., 0.}, {10., 0.}, {10., 10.}, {0., 10.}},
+        {{20., 0.}, {30., 0.}, {30., 10.}, {20., 10.}}
+    };
+
+    const Points bed_shape = get_bed_shape(config, true);
+    REQUIRE(bed_shape.size() == 4);
+    REQUIRE(Polygon(bed_shape).bounding_box().defined);
+}

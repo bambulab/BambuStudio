@@ -7367,6 +7367,102 @@
             ]
         },
         {
+            "fila_color_code": "30701",
+            "fila_id": "GFG00",
+            "fila_color_type": "单色",
+            "fila_type": "PETG Basic",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Purple",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "紫色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "P01",
+            "fila_color": [
+                "#8A75D1FF"
+            ]
+        },
+        {
+            "fila_color_code": "30404",
+            "fila_id": "GFG00",
+            "fila_color_type": "单色",
+            "fila_type": "PETG Basic",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Sunflower Yellow",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "芒果橙",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "Y04",
+            "fila_color": [
+                "#FFB81CFF"
+            ]
+        },
+        {
+            "fila_color_code": "30504",
+            "fila_id": "GFG00",
+            "fila_color_type": "单色",
+            "fila_type": "PETG Basic",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Bright Green",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "苹果绿",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "G04",
+            "fila_color": [
+                "#97D700FF"
+            ]
+        },
+        {
+            "fila_color_code": "30702",
+            "fila_id": "GFG00",
+            "fila_color_type": "单色",
+            "fila_type": "PETG Basic",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Hot Pink",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "粉紫色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "P02",
+            "fila_color": [
+                "#F277C6FF"
+            ]
+        },
+        {
             "fila_color_code": "35100",
             "fila_id": "GFG03",
             "fila_color_type": "单色",
@@ -7559,5 +7655,5 @@
             ]
         }
     ],
-    "total": 314
+    "total": 318
 }

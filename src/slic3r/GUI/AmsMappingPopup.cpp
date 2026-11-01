@@ -819,7 +819,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      Bind(wxEVT_PAINT, &AmsMapingPopup::paintEvent, this);
 
 #ifdef __APPLE__
-     Bind(wxEVT_LEFT_DOWN, &AmsMapingPopup::on_left_down, this);
+     Bind(wxEVT_LEFT_UP, &AmsMapingPopup::on_left_down, this);
      Bind(wxEVT_MOTION, &AmsMapingPopup::on_mouse_move, this);
 #endif
 

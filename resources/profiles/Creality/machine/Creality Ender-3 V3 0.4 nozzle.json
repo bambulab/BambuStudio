@@ -20,7 +20,6 @@
         "0x220"
     ],
     "printable_height": "250",
-    "nozzle_type": "hardened_steel",
     "auxiliary_fan": "1",
     "support_air_filtration": "0",
     "support_multi_bed_types": "1",

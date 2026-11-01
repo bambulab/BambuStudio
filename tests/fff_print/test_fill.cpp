@@ -1,15 +1,45 @@
 #include <catch2/catch.hpp>
 
+#include <algorithm>
+#include <cerrno>
+#include <cmath>
+#include <cstdio>
+#ifdef _WIN32
+#include <share.h>
+#include <excpt.h>
+#endif
+#include <fstream>
+#include <limits>
+#include <map>
+#include <memory>
 #include <numeric>
+#include <set>
 #include <sstream>
+#include <utility>
+#include <vector>
+#include <boost/filesystem.hpp>
 
 #include "libslic3r/ClipperUtils.hpp"
+#include "libslic3r/ExPolygon.hpp"
 #include "libslic3r/Fill/Fill.hpp"
+#include "libslic3r/Fill/FillBase.hpp"
+#include "libslic3r/Fill/FillConformalChart.hpp"
+#include "libslic3r/Fill/FillRadialZigZag.hpp"
 #include "libslic3r/Flow.hpp"
+#include "libslic3r/Format/STL.hpp"
+#include "libslic3r/Format/bbs_3mf.hpp"
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/Layer.hpp"
+#include "libslic3r/Line.hpp"
+#include "libslic3r/Model.hpp"
 #include "libslic3r/Print.hpp"
+#include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/SVG.hpp"
+#include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/Utils.hpp"
 #include "libslic3r/libslic3r.h"
+#include "libslic3r/miniz_extension.hpp"
+#include <nlohmann/json.hpp>
 
 #include "test_data.hpp"
 
@@ -475,4 +505,1402 @@ bool test_if_solid_surface_filled(const ExPolygon& expolygon, double flow_spacin
 #endif
 
     return uncovered.empty(); // solid surface is fully filled
+}
+
+static Polygon make_regular_ngon(coordf_t radius_mm, int n)
+{
+    Polygon poly;
+    poly.points.reserve(n);
+    for (int i = 0; i < n; ++i) {
+        const double a = 2. * PI * double(i) / double(n);
+        poly.points.push_back(Point::new_scale(radius_mm * std::cos(a), radius_mm * std::sin(a)));
+    }
+    return poly;
+}
+
+static size_t count_long_segment_angle_bins(const Polylines &paths, double min_len_mm, double bin_deg)
+{
+    std::set<int> bins;
+    const double  min_len = scale_(min_len_mm);
+    for (const Polyline &pl : paths) {
+        for (size_t i = 1; i < pl.points.size(); ++i) {
+            Vec2d  d   = (pl.points[i] - pl.points[i - 1]).cast<double>();
+            double len = d.norm();
+            if (len < min_len)
+                continue;
+            double deg = std::atan2(d.y(), d.x()) * 180. / PI;
+            if (deg < 0)
+                deg += 180.; // directionless
+            bins.insert(int(std::floor(deg / bin_deg)));
+        }
+    }
+    return bins.size();
+}
+
+static FillParams make_conformal_params(ConformalStagger stagger = ConformalStagger::None,
+                                        InfillPattern pattern = ipZigZag,
+                                        ConformalPole pole = ConformalPole::Layer)
+{
+    FillParams params;
+    params.density            = 0.2f;
+    params.conformal          = true;
+    params.conformal_stagger  = stagger;
+    params.conformal_pole     = pole;
+    params.dont_adjust        = true;
+    params.anchor_length      = 1.f;
+    params.anchor_length_max  = 10.f;
+    params.pattern            = pattern;
+    params.conformal_hub_radius = -1.f;
+    return params;
+}
+
+static std::unique_ptr<Fill> make_conformal_filler(const ExPolygon &poly, size_t layer_id, BoundingBox obj_bb = BoundingBox(),
+                                                   const char *type = "zigzag", double z = 0.)
+{
+    std::unique_ptr<Fill> filler(Fill::new_from_type(type));
+    filler->bounding_box = obj_bb.defined ? obj_bb : get_extents(poly);
+    filler->spacing      = 0.4;
+    filler->angle        = 0.f;
+    filler->layer_id     = layer_id;
+    filler->z            = z;
+    return filler;
+}
+
+static Polylines fill_conformal(const ExPolygon &poly, size_t layer_id, ConformalStagger stagger,
+                                BoundingBox obj_bb = BoundingBox(), bool connect = true,
+                                ConformalPole pole = ConformalPole::Layer, double z = 0.)
+{
+    auto       filler = make_conformal_filler(poly, layer_id, obj_bb, "zigzag", z);
+    FillParams params = make_conformal_params(stagger, ipZigZag, pole);
+    if (!connect) {
+        params.anchor_length     = 0.f;
+        params.anchor_length_max = 0.f;
+    }
+    Surface surface(stInternal, poly);
+    return filler->fill_surface(&surface, params);
+}
+
+static size_t count_long_polylines(const Polylines &pls, size_t min_pts = 6)
+{
+    size_t n = 0;
+    for (const Polyline &pl : pls)
+        if (pl.points.size() >= min_pts)
+            ++n;
+    return n;
+}
+
+static std::vector<double> undirected_long_angles(const Polylines &paths, double min_len_mm)
+{
+    std::vector<double> out;
+    const double min_len = scale_(min_len_mm);
+    for (const Polyline &pl : paths) {
+        for (size_t i = 1; i < pl.points.size(); ++i) {
+            Vec2d  d   = (pl.points[i] - pl.points[i - 1]).cast<double>();
+            double len = d.norm();
+            if (len < min_len)
+                continue;
+            double deg = std::atan2(d.y(), d.x()) * 180. / PI;
+            if (deg < 0)
+                deg += 180.;
+            out.push_back(deg);
+        }
+    }
+    std::sort(out.begin(), out.end());
+    return out;
+}
+
+static double mean_signed_lean(const Polylines &paths, const Point &pole, double min_len_mm)
+{
+    const double min_len = scale_(min_len_mm);
+    double       sum     = 0.;
+    size_t       n       = 0;
+    for (const Polyline &pl : paths) {
+        for (size_t i = 1; i < pl.points.size(); ++i) {
+            const double len = (pl.points[i] - pl.points[i - 1]).cast<double>().norm();
+            if (len < min_len)
+                continue;
+            const double r0 = (pl.points[i - 1] - pole).cast<double>().norm();
+            const double r1 = (pl.points[i] - pole).cast<double>().norm();
+            const Point &pt_near = r0 <= r1 ? pl.points[i - 1] : pl.points[i];
+            const Point &pt_far  = r0 <= r1 ? pl.points[i] : pl.points[i - 1];
+            const Vec2d  u       = (pt_near - pole).cast<double>();
+            const Vec2d  v       = (pt_far - pole).cast<double>();
+            sum += u.x() * v.y() - u.y() * v.x();
+            ++n;
+        }
+    }
+    return n ? sum / double(n) : 0.;
+}
+
+static bool first_scan_goes_out(const Polylines &paths, const Point &pole, double min_len_mm = 2.0)
+{
+    const double min_len = scale_(min_len_mm);
+    for (const Polyline &pl : paths) {
+        for (size_t i = 1; i < pl.points.size(); ++i) {
+            const double len = (pl.points[i] - pl.points[i - 1]).cast<double>().norm();
+            if (len < min_len)
+                continue;
+            const double r0 = (pl.points[i - 1] - pole).cast<double>().norm();
+            const double r1 = (pl.points[i] - pole).cast<double>().norm();
+            return r1 > r0;
+        }
+    }
+    return false;
+}
+
+static double mean_angular_span_deg(const Polylines &paths, const Point &pole, double min_len_mm)
+{
+    const double min_len = scale_(min_len_mm);
+    double       sum     = 0.;
+    size_t       n       = 0;
+    for (const Polyline &pl : paths) {
+        for (size_t i = 1; i < pl.points.size(); ++i) {
+            const double len = (pl.points[i] - pl.points[i - 1]).cast<double>().norm();
+            if (len < min_len)
+                continue;
+            const double r0 = (pl.points[i - 1] - pole).cast<double>().norm();
+            const double r1 = (pl.points[i] - pole).cast<double>().norm();
+            const Point &pt_near = r0 <= r1 ? pl.points[i - 1] : pl.points[i];
+            const Point &pt_far  = r0 <= r1 ? pl.points[i] : pl.points[i - 1];
+            const Vec2d  u       = (pt_near - pole).cast<double>();
+            const Vec2d  v       = (pt_far - pole).cast<double>();
+            double       d    = std::atan2(v.y(), v.x()) - std::atan2(u.y(), u.x());
+            while (d > PI)
+                d -= 2. * PI;
+            while (d < -PI)
+                d += 2. * PI;
+            sum += std::abs(d) * 180. / PI;
+            ++n;
+        }
+    }
+    return n ? sum / double(n) : 0.;
+}
+
+static double mean_nearest_angle_gap(const std::vector<double> &a0, const std::vector<double> &a1)
+{
+    std::vector<double> nearest;
+    nearest.reserve(a1.size());
+    for (double b : a1) {
+        double best = 180.;
+        for (double a : a0)
+            best = std::min(best, std::abs(b - a));
+        nearest.push_back(best);
+    }
+    if (nearest.empty())
+        return 0.;
+    return std::accumulate(nearest.begin(), nearest.end(), 0.) / double(nearest.size());
+}
+
+static bool polyline_is_closed(const Polyline &pl)
+{
+    return pl.size() >= 4 && (pl.front() - pl.back()).cast<double>().norm() < double(scale_(0.6));
+}
+
+static bool polylines_have_interior_crossing(const Polylines &pls)
+{
+    const double end_eps = scale_(0.4);
+    for (size_t i = 0; i < pls.size(); ++i) {
+        const Polyline &a = pls[i];
+        for (size_t ia = 1; ia < a.points.size(); ++ia) {
+            Vec2d p1 = a.points[ia - 1].cast<double>();
+            Vec2d v1 = a.points[ia].cast<double>() - p1;
+            for (size_t j = i + 1; j < pls.size(); ++j) {
+                const Polyline &b = pls[j];
+                for (size_t ib = 1; ib < b.points.size(); ++ib) {
+                    Vec2d p2 = b.points[ib - 1].cast<double>();
+                    Vec2d v2 = b.points[ib].cast<double>() - p2;
+                    Vec2d hit;
+                    if (!Geometry::segment_segment_intersection(p1, v1, p2, v2, hit))
+                        continue;
+                    const double da0 = (hit - p1).norm();
+                    const double da1 = (hit - (p1 + v1)).norm();
+                    const double db0 = (hit - p2).norm();
+                    const double db1 = (hit - (p2 + v2)).norm();
+                    if (std::min(da0, da1) > end_eps && std::min(db0, db1) > end_eps)
+                        return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+static size_t count_collinear_opposite_pairs(const Polylines &pls, double min_len_mm, double ang_deg, double line_tol_mm)
+{
+    struct Seg { Point a, b; double ang; };
+    std::vector<Seg> segs;
+    const double min_len = scale_(min_len_mm);
+    for (const Polyline &pl : pls) {
+        for (size_t i = 1; i < pl.points.size(); ++i) {
+            Vec2d d = (pl.points[i] - pl.points[i - 1]).cast<double>();
+            if (d.norm() < min_len)
+                continue;
+            double deg = std::atan2(d.y(), d.x()) * 180. / PI;
+            if (deg < 0)
+                deg += 180.;
+            segs.push_back({ pl.points[i - 1], pl.points[i], deg });
+        }
+    }
+    const double tol = scale_(line_tol_mm);
+    size_t pairs = 0;
+    for (size_t i = 0; i < segs.size(); ++i) {
+        Vec2d dir = (segs[i].b - segs[i].a).cast<double>();
+        const double dn = dir.norm();
+        if (dn < 1.)
+            continue;
+        dir /= dn;
+        for (size_t j = i + 1; j < segs.size(); ++j) {
+            double da = std::abs(segs[i].ang - segs[j].ang);
+            da = std::min(da, 180. - da);
+            if (da > ang_deg)
+                continue;
+            Vec2d mid = 0.5 * (segs[j].a + segs[j].b).cast<double>();
+            Vec2d rel = mid - segs[i].a.cast<double>();
+            const double dist = std::abs(rel.x() * dir.y() - rel.y() * dir.x());
+            if (dist < tol)
+                ++pairs;
+        }
+    }
+    return pairs;
+}
+
+static double fraction_lines_through_point(const Polylines &pls, const Point &pt, double min_len_mm, double dist_mm)
+{
+    size_t n_near = 0, n_total = 0;
+    const double min_len = scale_(min_len_mm);
+    const double tol     = scale_(dist_mm);
+    for (const Polyline &pl : pls) {
+        for (size_t i = 1; i < pl.points.size(); ++i) {
+            Vec2d d = (pl.points[i] - pl.points[i - 1]).cast<double>();
+            if (d.norm() < min_len)
+                continue;
+            ++n_total;
+            Vec2d a = pl.points[i - 1].cast<double>();
+            const double len = d.norm();
+            Vec2d dir = d / len;
+            Vec2d rel = pt.cast<double>() - a;
+            const double dist = std::abs(rel.x() * dir.y() - rel.y() * dir.x());
+            if (dist < tol)
+                ++n_near;
+        }
+    }
+    return n_total ? double(n_near) / double(n_total) : 0.;
+}
+
+static ExPolygon make_annulus(coordf_t r_out, coordf_t r_in)
+{
+    ExPolygon ring;
+    ring.contour = make_regular_ngon(r_out, 48);
+    Polygon hole = make_regular_ngon(r_in, 48);
+    std::reverse(hole.points.begin(), hole.points.end());
+    ring.holes.push_back(std::move(hole));
+    return ring;
+}
+
+static void dump_conformal_overlay(const std::string &, const ExPolygon &,
+                                   const Polylines &, const Polylines &)
+{
+}
+
+TEST_CASE("Fill: conformal zigzag on an annulus varies in direction", "[Fill][Conformal]") {
+    ExPolygon ring = make_annulus(20., 10.);
+    const BoundingBox obj_bb = get_extents(ring);
+
+    Polylines paths = fill_conformal(ring, 0, ConformalStagger::None, obj_bb);
+    REQUIRE_FALSE(paths.empty());
+    for (const Polyline &pl : paths)
+        for (const Point &pt : pl.points)
+            REQUIRE(ring.contains(pt));
+    REQUIRE(count_long_segment_angle_bins(paths, 2.0, 20.0) >= 4);
+    REQUIRE(paths.size() <= 8);
+
+    Polylines even_n = fill_conformal(ring, 0, ConformalStagger::None, obj_bb, false);
+    Polylines odd_n  = fill_conformal(ring, 1, ConformalStagger::None, obj_bb, false);
+    dump_conformal_overlay("annulus_none", ring, even_n, odd_n);
+
+    REQUIRE_FALSE(polylines_have_interior_crossing(even_n));
+    REQUIRE_FALSE(polylines_have_interior_crossing(odd_n));
+    REQUIRE(fraction_lines_through_point(even_n, ring.holes.front().centroid(), 2.0, 2.0) > 0.7);
+    REQUIRE(paths.size() < even_n.size());
+    REQUIRE(paths.size() <= std::max(size_t(6), even_n.size() / 4));
+    REQUIRE_FALSE(polylines_have_interior_crossing(paths));
+
+    Polylines even_a = fill_conformal(ring, 0, ConformalStagger::Alternate, obj_bb, false);
+    Polylines odd_a  = fill_conformal(ring, 1, ConformalStagger::Alternate, obj_bb, false);
+    dump_conformal_overlay("annulus_alternate", ring, even_a, odd_a);
+
+    Polylines even_o = fill_conformal(ring, 0, ConformalStagger::Orthogonal, obj_bb, false);
+    Polylines odd_o  = fill_conformal(ring, 1, ConformalStagger::Orthogonal, obj_bb, false);
+    dump_conformal_overlay("annulus_orthogonal", ring, even_o, odd_o);
+    REQUIRE_FALSE(odd_o.empty());
+}
+
+TEST_CASE("Fill: conformal polar disk is not a single parallel family", "[Fill][Conformal]") {
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    Polylines paths = fill_conformal(disk, 0, ConformalStagger::None);
+    REQUIRE_FALSE(paths.empty());
+    REQUIRE(count_long_segment_angle_bins(paths, 2.0, 20.0) >= 4);
+    dump_conformal_overlay("disk", disk, paths, {});
+}
+
+TEST_CASE("Fill: conformal cylinder layers stack with stagger off", "[Fill][Conformal]") {
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+    Polylines even_paths = fill_conformal(disk, 0, ConformalStagger::None, obj_bb, false);
+    Polylines odd_paths  = fill_conformal(disk, 1, ConformalStagger::None, obj_bb, false);
+    REQUIRE_FALSE(even_paths.empty());
+    REQUIRE_FALSE(odd_paths.empty());
+    dump_conformal_overlay("cylinder_none", disk, even_paths, odd_paths);
+
+    auto a0 = undirected_long_angles(even_paths, 2.0);
+    auto a1 = undirected_long_angles(odd_paths, 2.0);
+    REQUIRE(a0.size() >= 4);
+    REQUIRE(a1.size() >= 4);
+    // Same θ_k: every even-layer heading has a near neighbor on the odd layer.
+    size_t matched = 0;
+    for (double a : a0) {
+        double best = 180.;
+        for (double b : a1)
+            best = std::min(best, std::abs(a - b));
+        if (best < 4.0)
+            ++matched;
+    }
+    REQUIRE(matched >= a0.size() * 3 / 4);
+}
+
+TEST_CASE("Fill: conformal start rivet holds a fixed lock angle", "[Fill][Conformal]") {
+    auto first_outer_theta_deg = [](const Polylines &paths, const Point &pole, double min_len_mm) {
+        const double min_len = scale_(min_len_mm);
+        for (const Polyline &pl : paths) {
+            for (size_t i = 1; i < pl.points.size(); ++i) {
+                const double len = (pl.points[i] - pl.points[i - 1]).cast<double>().norm();
+                if (len < min_len)
+                    continue;
+                const double r0 = (pl.points[i - 1] - pole).cast<double>().norm();
+                const double r1 = (pl.points[i] - pole).cast<double>().norm();
+                const Point &pt_far = r0 <= r1 ? pl.points[i] : pl.points[i - 1];
+                return std::atan2(double(pt_far.y() - pole.y()), double(pt_far.x() - pole.x())) * 180. / PI;
+            }
+        }
+        return 0.;
+    };
+    auto abs_deg = [](double a, double b) {
+        double d = a - b;
+        while (d > 180.)
+            d -= 360.;
+        while (d < -180.)
+            d += 360.;
+        return std::abs(d);
+    };
+
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+    const Point pole = obj_bb.center();
+    FillRadialZigZag::reset_n_lock();
+    FillRadialZigZag::pin_scan_counts({ { disk }, { disk }, { disk } }, 2.0);
+    Polylines p0 = fill_conformal(disk, 0, ConformalStagger::None, obj_bb, true);
+    Polylines p2 = fill_conformal(disk, 2, ConformalStagger::None, obj_bb, true);
+    FillRadialZigZag::reset_n_lock();
+    REQUIRE_FALSE(p0.empty());
+    REQUIRE_FALSE(p2.empty());
+    REQUIRE(abs_deg(first_outer_theta_deg(p0, pole, 2.0), first_outer_theta_deg(p2, pole, 2.0)) < 6.0);
+
+    ExPolygon a = make_annulus(20.0, 10.0);
+    ExPolygon b = make_annulus(20.5, 10.2);
+    const BoundingBox abb = get_extents(a);
+    const Point apole = abb.center();
+    FillRadialZigZag::reset_n_lock();
+    FillRadialZigZag::pin_scan_counts({ { a }, { b } }, 2.0);
+    Polylines pa = fill_conformal(a, 0, ConformalStagger::None, abb, true);
+    Polylines pb = fill_conformal(b, 1, ConformalStagger::None, abb, true);
+    FillRadialZigZag::reset_n_lock();
+    REQUIRE_FALSE(pa.empty());
+    REQUIRE_FALSE(pb.empty());
+    REQUIRE(abs_deg(first_outer_theta_deg(pa, apole, 2.0), first_outer_theta_deg(pb, apole, 2.0)) < 15.0);
+}
+
+TEST_CASE("Fill: conformal none ignores CrossZag horiz_move", "[Fill][Conformal]") {
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+    auto filler0 = make_conformal_filler(disk, 0, obj_bb);
+    auto filler1 = make_conformal_filler(disk, 1, obj_bb);
+    FillParams p0 = make_conformal_params(ConformalStagger::None);
+    FillParams p1 = p0;
+    p0.anchor_length = p1.anchor_length = 0.f;
+    p0.anchor_length_max = p1.anchor_length_max = 0.f;
+    p1.horiz_move = float(scale_(8.));
+    Surface s0(stInternal, disk);
+    Surface s1(stInternal, disk);
+    Polylines even_paths = filler0->fill_surface(&s0, p0);
+    Polylines odd_paths  = filler1->fill_surface(&s1, p1);
+    REQUIRE_FALSE(even_paths.empty());
+    REQUIRE_FALSE(odd_paths.empty());
+    auto a0 = undirected_long_angles(even_paths, 2.0);
+    auto a1 = undirected_long_angles(odd_paths, 2.0);
+    size_t matched = 0;
+    for (double a : a0) {
+        double best = 180.;
+        for (double b : a1)
+            best = std::min(best, std::abs(a - b));
+        if (best < 4.0)
+            ++matched;
+    }
+    REQUIRE(a0.size() >= 4);
+    REQUIRE(matched >= a0.size() * 3 / 4);
+}
+
+TEST_CASE("Fill: conformal CrossZag rotates the fan by horiz_move", "[Fill][Conformal]") {
+    auto first_outer_theta_deg = [](const Polylines &paths, const Point &pole, double min_len_mm) {
+        const double min_len = scale_(min_len_mm);
+        for (const Polyline &pl : paths) {
+            for (size_t i = 1; i < pl.points.size(); ++i) {
+                const double len = (pl.points[i] - pl.points[i - 1]).cast<double>().norm();
+                if (len < min_len)
+                    continue;
+                const double r0 = (pl.points[i - 1] - pole).cast<double>().norm();
+                const double r1 = (pl.points[i] - pole).cast<double>().norm();
+                const Point &pt_far = r0 <= r1 ? pl.points[i] : pl.points[i - 1];
+                return std::atan2(double(pt_far.y() - pole.y()), double(pt_far.x() - pole.x())) * 180. / PI;
+            }
+        }
+        return 0.;
+    };
+    auto abs_deg = [](double a, double b) {
+        double d = a - b;
+        while (d > 180.)
+            d -= 360.;
+        while (d < -180.)
+            d += 360.;
+        return std::abs(d);
+    };
+
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+    const Point pole = obj_bb.center();
+    FillRadialZigZag::reset_n_lock();
+    FillRadialZigZag::pin_scan_counts({ { disk }, { disk } }, 2.0);
+    auto run = [&](size_t layer, float horiz) {
+        auto       filler = make_conformal_filler(disk, layer, obj_bb, "crosszag");
+        FillParams p      = make_conformal_params(ConformalStagger::None, ipCrossZag);
+        p.anchor_length     = 0.f;
+        p.anchor_length_max = 0.f;
+        p.horiz_move        = horiz;
+        Surface s(stInternal, disk);
+        return filler->fill_surface(&s, p);
+    };
+    const Polylines even0  = run(0, 0.f);
+    const Polylines odd0   = run(1, 0.f);
+    const Polylines even_s = run(0, float(scale_(2.)));
+    FillRadialZigZag::reset_n_lock();
+    REQUIRE_FALSE(even0.empty());
+    REQUIRE_FALSE(odd0.empty());
+    REQUIRE_FALSE(even_s.empty());
+    dump_conformal_overlay("cylinder_crosszag", disk, even0, even_s);
+    const double t0 = first_outer_theta_deg(even0, pole, 2.0);
+    const double t1 = first_outer_theta_deg(odd0, pole, 2.0);
+    const double ts = first_outer_theta_deg(even_s, pole, 2.0);
+    REQUIRE(abs_deg(t0, t1) < 6.0);
+    REQUIRE(abs_deg(t0, ts) > 6.0);
+    REQUIRE(abs_deg(t0, ts) < 20.0);
+}
+
+TEST_CASE("Fill: conformal CrossZag even/odd layers rotate opposite ways", "[Fill][Conformal]") {
+    auto first_outer_theta_deg = [](const Polylines &paths, const Point &pole, double min_len_mm) {
+        const double min_len = scale_(min_len_mm);
+        for (const Polyline &pl : paths) {
+            for (size_t i = 1; i < pl.points.size(); ++i) {
+                const double len = (pl.points[i] - pl.points[i - 1]).cast<double>().norm();
+                if (len < min_len)
+                    continue;
+                const double r0 = (pl.points[i - 1] - pole).cast<double>().norm();
+                const double r1 = (pl.points[i] - pole).cast<double>().norm();
+                const Point &pt_far = r0 <= r1 ? pl.points[i] : pl.points[i - 1];
+                return std::atan2(double(pt_far.y() - pole.y()), double(pt_far.x() - pole.x())) * 180. / PI;
+            }
+        }
+        return 0.;
+    };
+    auto signed_deg = [](double a, double b) {
+        double d = a - b;
+        while (d > 180.)
+            d -= 360.;
+        while (d < -180.)
+            d += 360.;
+        return d;
+    };
+
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+    const Point pole = obj_bb.center();
+    const float step = float(scale_(0.4));
+    FillRadialZigZag::reset_n_lock();
+    FillRadialZigZag::pin_scan_counts({ { disk }, { disk }, { disk } }, 2.0);
+    auto run = [&](size_t layer, float horiz) {
+        auto       filler = make_conformal_filler(disk, layer, obj_bb, "crosszag");
+        FillParams p      = make_conformal_params(ConformalStagger::None, ipCrossZag);
+        p.anchor_length     = 0.f;
+        p.anchor_length_max = 0.f;
+        p.horiz_move        = horiz;
+        Surface s(stInternal, disk);
+        return filler->fill_surface(&s, p);
+    };
+    // Same even/odd accumulation Fill.cpp uses for CrossZag.
+    const double t10 = first_outer_theta_deg(run(10, -step * 5.f), pole, 2.0);
+    const double t11 = first_outer_theta_deg(run(11,  step * 5.f), pole, 2.0);
+    const double t12 = first_outer_theta_deg(run(12, -step * 6.f), pole, 2.0);
+    FillRadialZigZag::reset_n_lock();
+    const double d1011 = signed_deg(t11, t10);
+    const double d1112 = signed_deg(t12, t11);
+    REQUIRE(std::abs(d1011) > 0.4);
+    REQUIRE(d1011 * d1112 < 0.);
+}
+
+TEST_CASE("Fill: conformal CrossZag C vs ring keep the same fan rotation", "[Fill][Conformal]") {
+    auto first_outer_theta_deg = [](const Polylines &paths, const Point &pole, double min_len_mm) {
+        const double min_len = scale_(min_len_mm);
+        for (const Polyline &pl : paths) {
+            for (size_t i = 1; i < pl.points.size(); ++i) {
+                const double len = (pl.points[i] - pl.points[i - 1]).cast<double>().norm();
+                if (len < min_len)
+                    continue;
+                const double r0 = (pl.points[i - 1] - pole).cast<double>().norm();
+                const double r1 = (pl.points[i] - pole).cast<double>().norm();
+                const Point &pt_far = r0 <= r1 ? pl.points[i] : pl.points[i - 1];
+                return std::atan2(double(pt_far.y() - pole.y()), double(pt_far.x() - pole.x())) * 180. / PI;
+            }
+        }
+        return 0.;
+    };
+    auto abs_deg = [](double a, double b) {
+        double d = a - b;
+        while (d > 180.)
+            d -= 360.;
+        while (d < -180.)
+            d += 360.;
+        return std::abs(d);
+    };
+
+    ExPolygon ring = make_annulus(20., 12.);
+    ExPolygon cee  = ring;
+    cee.holes.clear();
+    const BoundingBox obj_bb = get_extents(ring);
+    const Point pole = obj_bb.center();
+    FillRadialZigZag::reset_n_lock();
+    FillRadialZigZag::pin_scan_counts({ { ring }, { cee } }, 2.0);
+    const float horiz = float(scale_(8.));
+    auto run = [&](const ExPolygon &ex, size_t layer) {
+        auto       filler = make_conformal_filler(ex, layer, obj_bb, "crosszag");
+        FillParams p      = make_conformal_params(ConformalStagger::None, ipCrossZag);
+        p.anchor_length     = 0.f;
+        p.anchor_length_max = 0.f;
+        p.horiz_move        = horiz;
+        Surface s(stInternal, ex);
+        return filler->fill_surface(&s, p);
+    };
+    const Polylines ring_paths = run(ring, 0);
+    const Polylines cee_paths  = run(cee, 1);
+    FillRadialZigZag::reset_n_lock();
+    REQUIRE_FALSE(ring_paths.empty());
+    REQUIRE_FALSE(cee_paths.empty());
+    const double tr = first_outer_theta_deg(ring_paths, pole, 2.0);
+    const double tc = first_outer_theta_deg(cee_paths, pole, 2.0);
+    REQUIRE(abs_deg(tr, tc) < 4.0);
+}
+
+TEST_CASE("Fill: conformal Alternate odd layer sits in the gaps and starts inward", "[Fill][Conformal]") {
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+    const Point pole = obj_bb.center();
+    Polylines even_open = fill_conformal(disk, 0, ConformalStagger::Alternate, obj_bb, false);
+    Polylines odd_open  = fill_conformal(disk, 1, ConformalStagger::Alternate, obj_bb, false);
+    Polylines even_conn = fill_conformal(disk, 0, ConformalStagger::Alternate, obj_bb, true);
+    Polylines odd_conn  = fill_conformal(disk, 1, ConformalStagger::Alternate, obj_bb, true);
+    REQUIRE_FALSE(even_open.empty());
+    REQUIRE_FALSE(odd_open.empty());
+    REQUIRE_FALSE(even_conn.empty());
+    REQUIRE_FALSE(odd_conn.empty());
+    dump_conformal_overlay("cylinder_alternate", disk, even_conn, odd_conn);
+
+    const double lean0 = mean_signed_lean(even_open, pole, 2.0);
+    const double lean1 = mean_signed_lean(odd_open, pole, 2.0);
+    REQUIRE(mean_angular_span_deg(even_open, pole, 2.0) > 4.0);
+    REQUIRE(mean_angular_span_deg(odd_open, pole, 2.0) > 4.0);
+    REQUIRE(lean0 * lean1 < 0.);
+}
+
+TEST_CASE("Fill: conformal reverse 2 keep 1 flip starts from the opposite rim every third layer", "[Fill][Conformal]") {
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+    const Point pole = obj_bb.center();
+    FillRadialZigZag::reset_n_lock();
+    FillRadialZigZag::pin_scan_counts({ { disk }, { disk }, { disk } }, 2.0);
+    auto run = [&](size_t layer) {
+        auto       filler = make_conformal_filler(disk, layer, obj_bb);
+        FillParams p      = make_conformal_params(ConformalStagger::None);
+        p.conformal_link_keep_layers = 2;
+        p.conformal_link_flip_layers = 1;
+        Surface s(stInternal, disk);
+        return filler->fill_surface(&s, p);
+    };
+    const Polylines p0 = run(0);
+    const Polylines p1 = run(1);
+    const Polylines p2 = run(2);
+    FillRadialZigZag::reset_n_lock();
+    REQUIRE_FALSE(p0.empty());
+    REQUIRE_FALSE(p1.empty());
+    REQUIRE_FALSE(p2.empty());
+    REQUIRE(first_scan_goes_out(p0, pole));
+    REQUIRE(first_scan_goes_out(p1, pole));
+    REQUIRE_FALSE(first_scan_goes_out(p2, pole));
+}
+
+TEST_CASE("Fill: conformal Alternate pairing stays odd/even when reverse period is 2+1", "[Fill][Conformal]") {
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+    const Point pole = obj_bb.center();
+    FillRadialZigZag::reset_n_lock();
+    FillRadialZigZag::pin_scan_counts({ { disk }, { disk }, { disk } }, 2.0);
+    auto run = [&](size_t layer, bool connect) {
+        auto       filler = make_conformal_filler(disk, layer, obj_bb);
+        FillParams p      = make_conformal_params(ConformalStagger::Alternate);
+        p.conformal_link_keep_layers = 2;
+        p.conformal_link_flip_layers = 1;
+        if (!connect) {
+            p.anchor_length     = 0.f;
+            p.anchor_length_max = 0.f;
+        }
+        Surface s(stInternal, disk);
+        return filler->fill_surface(&s, p);
+    };
+    const Polylines o0 = run(0, false);
+    const Polylines o1 = run(1, false);
+    const Polylines o2 = run(2, false);
+    const Polylines c0 = run(0, true);
+    const Polylines c1 = run(1, true);
+    const Polylines c2 = run(2, true);
+    FillRadialZigZag::reset_n_lock();
+    const double l0 = mean_signed_lean(o0, pole, 2.0);
+    const double l1 = mean_signed_lean(o1, pole, 2.0);
+    const double l2 = mean_signed_lean(o2, pole, 2.0);
+    REQUIRE(l0 * l1 < 0.);
+    REQUIRE(l0 * l2 > 0.);
+    REQUIRE(first_scan_goes_out(c0, pole));
+    REQUIRE(first_scan_goes_out(c1, pole));
+    REQUIRE_FALSE(first_scan_goes_out(c2, pole));
+}
+
+TEST_CASE("Fill: conformal reverse 1 keep 1 flip starts from the opposite rim on odd layers", "[Fill][Conformal]") {
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+    const Point pole = obj_bb.center();
+    FillRadialZigZag::reset_n_lock();
+    FillRadialZigZag::pin_scan_counts({ { disk }, { disk } }, 2.0);
+    auto run = [&](size_t layer) {
+        auto       filler = make_conformal_filler(disk, layer, obj_bb);
+        FillParams p      = make_conformal_params(ConformalStagger::None);
+        p.conformal_link_keep_layers = 1;
+        p.conformal_link_flip_layers = 1;
+        Surface s(stInternal, disk);
+        return filler->fill_surface(&s, p);
+    };
+    const Polylines even = run(0);
+    const Polylines odd  = run(1);
+    FillRadialZigZag::reset_n_lock();
+    REQUIRE_FALSE(even.empty());
+    REQUIRE_FALSE(odd.empty());
+    REQUIRE(first_scan_goes_out(even, pole));
+    REQUIRE_FALSE(first_scan_goes_out(odd, pole));
+}
+
+TEST_CASE("Fill: conformal HalfStep aliases Alternate", "[Fill][Conformal]") {
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+    const Point pole = obj_bb.center();
+    Polylines alt_odd_open = fill_conformal(disk, 1, ConformalStagger::Alternate, obj_bb, false);
+    Polylines hs_odd_open  = fill_conformal(disk, 1, ConformalStagger::HalfStep, obj_bb, false);
+    REQUIRE_FALSE(alt_odd_open.empty());
+    REQUIRE_FALSE(hs_odd_open.empty());
+    REQUIRE(std::abs(mean_angular_span_deg(alt_odd_open, pole, 2.0) -
+                     mean_angular_span_deg(hs_odd_open, pole, 2.0)) < 1.0);
+}
+
+TEST_CASE("Fill: conformal CrossZag Alternate starts inward on odd layers", "[Fill][Conformal]") {
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+    const Point pole = obj_bb.center();
+    auto filler0 = make_conformal_filler(disk, 0, obj_bb, "crosszag");
+    auto filler1 = make_conformal_filler(disk, 1, obj_bb, "crosszag");
+    FillParams p0 = make_conformal_params(ConformalStagger::Alternate, ipCrossZag);
+    FillParams p1 = p0;
+    p0.anchor_length = p1.anchor_length = 0.f;
+    p0.anchor_length_max = p1.anchor_length_max = 0.f;
+    Surface s0(stInternal, disk);
+    Surface s1(stInternal, disk);
+    Polylines even_open = filler0->fill_surface(&s0, p0);
+    Polylines odd_open  = filler1->fill_surface(&s1, p1);
+    p0.anchor_length = p1.anchor_length = 1.f;
+    p0.anchor_length_max = p1.anchor_length_max = 10.f;
+    Polylines even_conn = filler0->fill_surface(&s0, p0);
+    Polylines odd_conn  = filler1->fill_surface(&s1, p1);
+    REQUIRE_FALSE(even_open.empty());
+    REQUIRE_FALSE(odd_open.empty());
+    REQUIRE_FALSE(even_conn.empty());
+    REQUIRE_FALSE(odd_conn.empty());
+    dump_conformal_overlay("cylinder_crosszag_alternate", disk, even_conn, odd_conn);
+    const double lean0 = mean_signed_lean(even_open, pole, 2.0);
+    const double lean1 = mean_signed_lean(odd_open, pole, 2.0);
+    REQUIRE(mean_angular_span_deg(even_open, pole, 2.0) > 4.0);
+    REQUIRE(lean0 * lean1 < 0.);
+}
+
+TEST_CASE("Fill: conformal orthogonal uses offset loops on odd layers", "[Fill][Conformal]") {
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+    Polylines even_paths = fill_conformal(disk, 0, ConformalStagger::Orthogonal, obj_bb, false);
+    Polylines odd_paths  = fill_conformal(disk, 1, ConformalStagger::Orthogonal, obj_bb, false);
+    REQUIRE_FALSE(even_paths.empty());
+    REQUIRE_FALSE(odd_paths.empty());
+    dump_conformal_overlay("cylinder_orthogonal", disk, even_paths, odd_paths);
+
+    REQUIRE(count_long_segment_angle_bins(even_paths, 2.0, 20.0) >= 4);
+    size_t closed = 0;
+    for (const Polyline &pl : odd_paths)
+        if (polyline_is_closed(pl))
+            ++closed;
+    REQUIRE(closed >= 1);
+}
+
+TEST_CASE("Fill: conformal cone keeps the same headings", "[Fill][Conformal]") {
+    ExPolygon base;
+    base.contour = make_regular_ngon(20., 48);
+    ExPolygon tip;
+    tip.contour = make_regular_ngon(12., 48);
+    const BoundingBox obj_bb = get_extents(base);
+    Polylines base_paths = fill_conformal(base, 0, ConformalStagger::None, obj_bb, false);
+    Polylines tip_paths  = fill_conformal(tip,  8, ConformalStagger::None, obj_bb, false);
+    REQUIRE_FALSE(base_paths.empty());
+    REQUIRE_FALSE(tip_paths.empty());
+    dump_conformal_overlay("cone_none", base, base_paths, tip_paths);
+
+    auto a0 = undirected_long_angles(base_paths, 1.5);
+    auto a1 = undirected_long_angles(tip_paths, 1.0);
+    REQUIRE(a0.size() >= 4);
+    REQUIRE(a1.size() >= 4);
+    size_t matched = 0;
+    for (double a : a1) {
+        double best = 180.;
+        for (double b : a0)
+            best = std::min(best, std::abs(a - b));
+        if (best < 6.0)
+            ++matched;
+    }
+    REQUIRE(matched >= a1.size() * 2 / 3);
+}
+
+TEST_CASE("Fill: conformal zigzag on a solid square still produces paths", "[Fill][Conformal]") {
+    Points sq;
+    for (const Vec2d &p : { Vec2d(0, 0), Vec2d(40, 0), Vec2d(40, 40), Vec2d(0, 40) })
+        sq.push_back(Point::new_scale(p.x(), p.y()));
+    ExPolygon square(sq);
+    Polylines paths = fill_conformal(square, 0, ConformalStagger::None);
+    REQUIRE_FALSE(paths.empty());
+    for (const Polyline &pl : paths)
+        REQUIRE(pl.size() >= 2);
+    dump_conformal_overlay("square", square, paths, {});
+}
+
+TEST_CASE("Fill: conformal L-shape still produces paths", "[Fill][Conformal]") {
+    Points pts;
+    for (const Vec2d &p : { Vec2d(0, 0), Vec2d(40, 0), Vec2d(40, 10), Vec2d(10, 10), Vec2d(10, 40), Vec2d(0, 40) })
+        pts.push_back(Point::new_scale(p.x(), p.y()));
+    ExPolygon ell(pts);
+    Polylines paths = fill_conformal(ell, 0, ConformalStagger::None, get_extents(ell), false);
+    REQUIRE_FALSE(paths.empty());
+    REQUIRE_FALSE(polylines_have_interior_crossing(paths));
+    REQUIRE(count_long_segment_angle_bins(paths, 1.5, 20.0) >= 2);
+    dump_conformal_overlay("l_shape", ell, paths, {});
+}
+
+TEST_CASE("Fill: conformal off-center hole is not centroid-polar", "[Fill][Conformal]") {
+    Points outer;
+    for (const Vec2d &p : { Vec2d(0, 0), Vec2d(80, 0), Vec2d(80, 24), Vec2d(0, 24) })
+        outer.push_back(Point::new_scale(p.x(), p.y()));
+    ExPolygon poly(outer);
+    Polygon hole = make_regular_ngon(5., 24);
+    const Point hole_c = Point::new_scale(18., 12.);
+    for (Point &p : hole.points)
+        p += hole_c;
+    std::reverse(hole.points.begin(), hole.points.end());
+    poly.holes.push_back(std::move(hole));
+
+    Polylines paths = fill_conformal(poly, 0, ConformalStagger::None, get_extents(poly), false);
+    REQUIRE_FALSE(paths.empty());
+    dump_conformal_overlay("rect_offcenter_hole", poly, paths, {});
+    // Old polar shot every diameter through the hole centroid. Radial uses the
+    // bbox center (here equal to the outer centroid), so the hole is not a star.
+    REQUIRE(fraction_lines_through_point(paths, hole_c, 2.0, 2.0) < 0.5);
+
+    Polylines connected = fill_conformal(poly, 0, ConformalStagger::None, get_extents(poly), true);
+    REQUIRE_FALSE(connected.empty());
+    REQUIRE(connected.size() < paths.size());
+    REQUIRE(connected.size() <= std::max(size_t(16), paths.size() / 2));
+}
+
+TEST_CASE("Fill: conformal infill processes a cube without throwing", "[Fill][Conformal]") {
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({
+        { "sparse_infill_density", 20 },
+        { "sparse_infill_pattern", "zigzag" },
+        { "conformal_infill", 1 },
+        { "conformal_stagger", "none" },
+        { "top_shell_layers", 0 },
+        { "bottom_shell_layers", 0 },
+        { "wall_loops", 1 },
+        { "gcode_comments", 1 }
+    });
+    Model model;
+    ModelObject *object = model.add_object();
+    object->name = "cube.stl";
+    object->add_volume(make_cube(20., 20., 20.));
+    object->add_instance();
+    object->ensure_on_bed();
+    Print print;
+    print.auto_assign_extruders(object);
+    print.apply(model, config);
+    print.validate();
+    print.set_status_silent();
+    REQUIRE_NOTHROW(print.process());
+    REQUIRE_FALSE(print.objects().empty());
+    bool any_fill = false;
+    for (const Layer *layer : print.objects().front()->layers())
+        for (const LayerRegion *region : layer->regions())
+            if (!region->fills.entities.empty())
+                any_fill = true;
+    REQUIRE(any_fill);
+}
+
+static ExPolygon make_bar(coordf_t len_mm, coordf_t width_mm)
+{
+    Points pts{
+        Point::new_scale(0., 0.),
+        Point::new_scale(len_mm, 0.),
+        Point::new_scale(len_mm, width_mm),
+        Point::new_scale(0., width_mm),
+    };
+    return ExPolygon(pts);
+}
+
+TEST_CASE("Fill: medial chart lofts open bars then closed rings", "[Fill][Conformal]") {
+    const ExPolygon bar  = make_bar(60., 6.);
+    const ExPolygon ring = make_annulus(20., 10.);
+    std::vector<ExPolygon> islands;
+    std::vector<double>    zs;
+    islands.reserve(8);
+    zs.reserve(8);
+    for (int i = 0; i < 4; ++i) {
+        islands.push_back(bar);
+        zs.push_back(0.2 * double(i));
+    }
+    for (int i = 4; i < 8; ++i) {
+        islands.push_back(ring);
+        zs.push_back(0.2 * double(i));
+    }
+
+    auto chart = FillConformal::MedialChart::build(islands, zs, 0.4);
+    REQUIRE(chart);
+    REQUIRE(chart->layer_count() == 8);
+    for (size_t i = 0; i < 4; ++i) {
+        const FillConformal::LayerGenerator *g = chart->layer(i);
+        REQUIRE(g != nullptr);
+        REQUIRE_FALSE(g->closed);
+        REQUIRE(g->polyline.size() >= 2);
+    }
+    for (size_t i = 4; i < 8; ++i) {
+        const FillConformal::LayerGenerator *g = chart->layer(i);
+        REQUIRE(g != nullptr);
+        REQUIRE(g->closed);
+        REQUIRE(g->polyline.size() >= 4);
+    }
+
+    const Point aligned0 = chart->layer(0)->polyline.front();
+    const Point aligned1 = chart->layer(1)->polyline.front();
+    const double aligned_start = (aligned1 - aligned0).cast<double>().norm();
+
+    FillConformal::LayerGenerator g0, g1;
+    REQUIRE(FillConformal::extract_generator(bar, 0.4, g0));
+    REQUIRE(FillConformal::extract_generator(bar, 0.4, g1));
+    g1.polyline.reverse();
+    const double unaligned_start = (g1.polyline.front() - g0.polyline.front()).cast<double>().norm();
+    REQUIRE(aligned_start < unaligned_start);
+    REQUIRE(aligned_start < scale_(2.));
+}
+
+TEST_CASE("Fill: radial zigzag on synthetic annuli", "[Fill][Conformal]") {
+    auto check_ring = [](const ExPolygon &ring, const char *name) {
+        const BoundingBox obj_bb = get_extents(ring);
+        Polylines connected = fill_conformal(ring, 0, ConformalStagger::None, obj_bb, true);
+        REQUIRE_FALSE(connected.empty());
+        for (const Polyline &pl : connected)
+            for (const Point &pt : pl.points)
+                REQUIRE(ring.contains(pt));
+        REQUIRE_FALSE(polylines_have_interior_crossing(connected));
+        REQUIRE(count_long_polylines(connected) <= 8);
+
+        Polylines open = fill_conformal(ring, 0, ConformalStagger::None, obj_bb, false);
+        REQUIRE(open.size() >= 3);
+        dump_conformal_overlay(name, ring, connected, open);
+    };
+
+    check_ring(make_annulus(20., 10.), "radial_annulus");
+
+    ExPolygon ecc = make_annulus(24., 8.);
+    const Point shift = Point::new_scale(6., 2.);
+    for (Point &p : ecc.holes.front().points)
+        p += shift;
+    check_ring(ecc, "radial_eccentric");
+}
+
+TEST_CASE("Fill: radial zigzag hops hug the annulus contour", "[Fill][Conformal]") {
+    auto dist_to_poly_mm = [](const Polygon &poly, const Point &p) {
+        double best = std::numeric_limits<double>::max();
+        const Points &pts = poly.points;
+        for (size_t i = 0; i < pts.size(); ++i) {
+            const Point &a = pts[i];
+            const Point &b = pts[(i + 1) % pts.size()];
+            Vec2d ab = (b - a).cast<double>();
+            const double len2 = ab.squaredNorm();
+            double u = 0.;
+            if (len2 > 1.)
+                u = std::max(0., std::min(1., (p - a).cast<double>().dot(ab) / len2));
+            const Point q = a + Point(coord_t(std::lround(ab.x() * u)), coord_t(std::lround(ab.y() * u)));
+            best = std::min(best, (p - q).cast<double>().norm());
+        }
+        return unscale<double>(best);
+    };
+    ExPolygon ring = make_annulus(20., 10.);
+    const BoundingBox obj_bb = get_extents(ring);
+    Polylines connected = fill_conformal(ring, 0, ConformalStagger::None, obj_bb, true);
+    Polylines open = fill_conformal(ring, 0, ConformalStagger::None, obj_bb, false);
+    REQUIRE_FALSE(connected.empty());
+    REQUIRE(open.size() >= 8);
+    size_t n_pts = 0;
+    int    n_contour_hops = 0;
+    for (const Polyline &pl : connected) {
+        n_pts += pl.points.size();
+        for (size_t i = 1; i + 1 < pl.points.size(); ++i) {
+            const double d_out = dist_to_poly_mm(ring.contour, pl.points[i]);
+            const double d_in  = dist_to_poly_mm(ring.holes.front(), pl.points[i]);
+            if (d_out < 0.8 || d_in < 0.8)
+                ++n_contour_hops;
+        }
+    }
+    // Inner hops still follow the hole (straight chord would cross empty space).
+    // Outer hops are straight chords so the path stays continuous at the joints.
+    REQUIRE(n_pts > 2 * open.size());
+    REQUIRE(n_contour_hops >= 4);
+    REQUIRE_FALSE(polylines_have_interior_crossing(connected));
+}
+
+TEST_CASE("Fill: radial zigzag on a solid disk", "[Fill][Conformal]") {
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+
+    Polylines connected = fill_conformal(disk, 0, ConformalStagger::None, obj_bb, true);
+    REQUIRE_FALSE(connected.empty());
+    for (const Polyline &pl : connected)
+        for (const Point &pt : pl.points)
+            REQUIRE(disk.contains(pt));
+    REQUIRE_FALSE(polylines_have_interior_crossing(connected));
+    REQUIRE(count_long_polylines(connected) <= 8);
+    REQUIRE(count_long_segment_angle_bins(connected, 2.0, 20.0) >= 4);
+
+    Polylines open = fill_conformal(disk, 0, ConformalStagger::None, obj_bb, false);
+    REQUIRE(open.size() >= 8);
+    REQUIRE(fraction_lines_through_point(open, obj_bb.center(), 2.0, 2.0) > 0.7);
+    dump_conformal_overlay("radial_disk", disk, connected, open);
+}
+
+static double pt_radius_mm(const Point &pt, const Point &c)
+{
+    return unscale<double>((pt - c).cast<double>().norm());
+}
+
+static size_t count_angle_bins_in_ring(const Polylines &paths, const Point &c,
+                                       double r0_mm, double r1_mm, double min_len_mm, double bin_deg)
+{
+    std::set<int> bins;
+    const double  min_len = scale_(min_len_mm);
+    for (const Polyline &pl : paths) {
+        for (size_t i = 1; i < pl.points.size(); ++i) {
+            Vec2d  d   = (pl.points[i] - pl.points[i - 1]).cast<double>();
+            double len = d.norm();
+            if (len < min_len)
+                continue;
+            const Point mid((pl.points[i].x() + pl.points[i - 1].x()) / 2,
+                            (pl.points[i].y() + pl.points[i - 1].y()) / 2);
+            const double r = pt_radius_mm(mid, c);
+            if (r < r0_mm || r > r1_mm)
+                continue;
+            double deg = std::atan2(d.y(), d.x()) * 180. / PI;
+            if (deg < 0)
+                deg += 180.;
+            bins.insert(int(std::floor(deg / bin_deg)));
+        }
+    }
+    return bins.size();
+}
+
+static bool polyline_spans_hub_and_rim(const Polylines &paths, const Point &c, double hub_mm, double rim_mm)
+{
+    for (const Polyline &pl : paths) {
+        bool in_hub = false, in_rim = false;
+        for (const Point &pt : pl.points) {
+            const double r = pt_radius_mm(pt, c);
+            if (r < hub_mm)
+                in_hub = true;
+            if (r > rim_mm)
+                in_rim = true;
+        }
+        if (in_hub && in_rim)
+            return true;
+    }
+    return false;
+}
+
+// One-shot 大圆边: many consecutive vertices on a constant radius.
+static double longest_hub_stroke_mm(const Polylines &pls, const Point &c, double r_mm, double tol_mm)
+{
+    double best = 0.;
+    for (const Polyline &pl : pls) {
+        if (pl.size() < 8)
+            continue;
+        double run = 0.;
+        int    n_on = 0;
+        for (size_t i = 0; i < pl.points.size(); ++i) {
+            const bool on = std::abs(pt_radius_mm(pl.points[i], c) - r_mm) < tol_mm;
+            if (on) {
+                if (i > 0 && n_on > 0)
+                    run += unscale<double>((pl.points[i] - pl.points[i - 1]).cast<double>().norm());
+                ++n_on;
+            } else {
+                if (n_on >= 8)
+                    best = std::max(best, run);
+                run  = 0.;
+                n_on = 0;
+            }
+        }
+        if (n_on >= 8)
+            best = std::max(best, run);
+    }
+    return best;
+}
+
+TEST_CASE("Fill: hub clip splits solid disk into rectilinear and radial", "[Fill][Conformal]") {
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+    const Point       c      = obj_bb.center();
+    auto              filler = make_conformal_filler(disk, 0, obj_bb);
+    FillParams        params = make_conformal_params();
+    params.conformal_hub_radius = 6.f;
+    Surface surface(stInternal, disk);
+    Polylines paths = filler->fill_surface(&surface, params);
+    REQUIRE_FALSE(paths.empty());
+    dump_conformal_overlay("radial_disk_hub", disk, paths, Polylines{});
+    for (const Polyline &pl : paths)
+        for (const Point &pt : pl.points)
+            REQUIRE(disk.contains(pt));
+    REQUIRE_FALSE(polyline_spans_hub_and_rim(paths, c, 3.5, 10.0));
+    REQUIRE(count_angle_bins_in_ring(paths, c, 0.0, 4.5, 1.5, 20.0) <= 3);
+    REQUIRE(count_angle_bins_in_ring(paths, c, 10.0, 22.0, 2.0, 20.0) >= 4);
+    // Geometric r=6 circle is a gap; do not trace a circular 圆边 there.
+    double on_circle = 0.;
+    const double min_len = scale_(0.25);
+    for (const Polyline &pl : paths) {
+        for (size_t i = 1; i < pl.points.size(); ++i) {
+            Vec2d d = (pl.points[i] - pl.points[i - 1]).cast<double>();
+            if (d.norm() < min_len)
+                continue;
+            const Point mid((pl.points[i].x() + pl.points[i - 1].x()) / 2,
+                            (pl.points[i].y() + pl.points[i - 1].y()) / 2);
+            const double r = pt_radius_mm(mid, c);
+            if (r >= 5.8 && r <= 6.2)
+                on_circle += unscale<double>(d.norm());
+        }
+    }
+    REQUIRE(on_circle < 2.0);
+}
+
+TEST_CASE("Fill: hub clip is a circle", "[Fill][Conformal]") {
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+    auto              filler = make_conformal_filler(disk, 0, obj_bb);
+    FillParams        params = make_conformal_params();
+    params.conformal_hub_radius = 6.f;
+    Point     pole;
+    ExPolygon hdisk;
+    REQUIRE(FillRadialZigZag::make_hub_disk(disk, *filler, params, pole, hdisk));
+    REQUIRE(hdisk.contour.size() >= 16);
+    const double half = 0.5 * unscale<double>(get_extents(hdisk).size().x());
+    REQUIRE(std::abs(half - 6.0) < 0.15);
+}
+
+TEST_CASE("Fill: hub clip does not stroke circle B on an open C", "[Fill][Conformal]") {
+    ExPolygon ring = make_annulus(40., 6.);
+    Polygon wedge;
+    wedge.points.push_back(Point::new_scale(0., 0.));
+    const double a0 = -40. * PI / 180.;
+    const double a1 =  40. * PI / 180.;
+    for (int i = 0; i <= 8; ++i) {
+        const double a = a0 + (a1 - a0) * double(i) / 8.;
+        wedge.points.push_back(Point::new_scale(50. * std::cos(a), 50. * std::sin(a)));
+    }
+    ExPolygons cands = diff_ex(ExPolygons{ ring }, ExPolygons{ ExPolygon(wedge) });
+    REQUIRE_FALSE(cands.empty());
+    ExPolygon c = cands.front();
+    for (const ExPolygon &ex : cands)
+        if (std::abs(ex.area()) > std::abs(c.area()))
+            c = ex;
+    const BoundingBox obj_bb = get_extents(c);
+    const Point       origin = Point::new_scale(0., 0.);
+    auto              filler = make_conformal_filler(c, 0, obj_bb);
+    FillParams        params = make_conformal_params();
+    params.conformal_hub_radius = 14.f;
+    Surface   surface(stInternal, c);
+    Polylines paths = filler->fill_surface(&surface, params);
+    REQUIRE_FALSE(paths.empty());
+    dump_conformal_overlay("radial_c_hub_nostroke", c, paths, Polylines{});
+    // Inner 铆线 are 2-point chords. A one-shot 大圆边 has 8+ verts on circle B.
+    const double hug = longest_hub_stroke_mm(paths, origin, 14.4, 1.6);
+    INFO("hub stroke mm " << hug);
+    REQUIRE(hug < 12.0);
+}
+
+TEST_CASE("Fill: hub auto formula clips a solid disk", "[Fill][Conformal]") {
+    ExPolygon disk;
+    disk.contour = make_regular_ngon(20., 48);
+    const BoundingBox obj_bb = get_extents(disk);
+    auto              filler = make_conformal_filler(disk, 0, obj_bb);
+    FillParams        params = make_conformal_params();
+    params.conformal_hub_radius = 0.f;
+    Point     pole;
+    ExPolygon hdisk;
+    REQUIRE(FillRadialZigZag::make_hub_disk(disk, *filler, params, pole, hdisk));
+    REQUIRE_FALSE(intersection_ex(disk, hdisk).empty());
+    Surface   surface(stInternal, disk);
+    Polylines paths = filler->fill_surface(&surface, params);
+    REQUIRE_FALSE(paths.empty());
+    dump_conformal_overlay("radial_disk_hub_auto", disk, paths, Polylines{});
+}
+
+TEST_CASE("Fill: radial zigzag on a U shape with an open side", "[Fill][Conformal]") {
+    Points pts;
+    for (const Vec2d &p : {
+            Vec2d(0, 0), Vec2d(40, 0), Vec2d(40, 10), Vec2d(12, 10),
+            Vec2d(12, 30), Vec2d(40, 30), Vec2d(40, 40), Vec2d(0, 40)
+        })
+        pts.push_back(Point::new_scale(p.x(), p.y()));
+    ExPolygon u(pts);
+    const BoundingBox obj_bb = get_extents(u);
+    Polylines connected = fill_conformal(u, 0, ConformalStagger::None, obj_bb, true);
+    REQUIRE_FALSE(connected.empty());
+    for (const Polyline &pl : connected)
+        for (const Point &pt : pl.points)
+            REQUIRE(u.contains(pt));
+    REQUIRE_FALSE(polylines_have_interior_crossing(connected));
+    // Open U: hops must stitch adjacent rays. Extra short polylines are the
+    // other-rim 铆线. A missing zigzag 铆线 splits into many long paths.
+    REQUIRE(count_long_polylines(connected) <= 4);
+    Polylines open = fill_conformal(u, 0, ConformalStagger::None, obj_bb, false);
+    REQUIRE(open.size() >= 6);
+    dump_conformal_overlay("radial_u_open", u, connected, open);
+}
+
+TEST_CASE("Fill: radial zigzag hops stay linked on a dented C", "[Fill][Conformal]") {
+    // Open C (annulus minus a wedge) with a concave bite on the outer rim.
+    // Vertex-mean radius used to pick the long way around the bite, dropping hops.
+    ExPolygon ring = make_annulus(40., 28.);
+    Polygon wedge;
+    wedge.points.push_back(Point::new_scale(0., 0.));
+    const double a0 = -28. * PI / 180.;
+    const double a1 =  28. * PI / 180.;
+    for (int i = 0; i <= 8; ++i) {
+        const double a = a0 + (a1 - a0) * double(i) / 8.;
+        wedge.points.push_back(Point::new_scale(52. * std::cos(a), 52. * std::sin(a)));
+    }
+    ExPolygons cands = diff_ex(ExPolygons{ ring }, ExPolygons{ ExPolygon(wedge) });
+    ExPolygon dent;
+    dent.contour = make_regular_ngon(9., 24);
+    dent.translate(Point::new_scale(-40., 0.));
+    cands = diff_ex(cands, ExPolygons{ dent });
+    REQUIRE_FALSE(cands.empty());
+    ExPolygon c = cands.front();
+    for (const ExPolygon &ex : cands)
+        if (std::abs(ex.area()) > std::abs(c.area()))
+            c = ex;
+    REQUIRE(c.holes.empty());
+    const BoundingBox obj_bb = get_extents(c);
+    Polylines connected = fill_conformal(c, 0, ConformalStagger::None, obj_bb, true);
+    Polylines open = fill_conformal(c, 0, ConformalStagger::None, obj_bb, false);
+    REQUIRE_FALSE(connected.empty());
+    REQUIRE(open.size() >= 8);
+    for (const Polyline &pl : connected)
+        for (const Point &pt : pl.points)
+            REQUIRE(c.contains(pt));
+    REQUIRE_FALSE(polylines_have_interior_crossing(connected));
+    REQUIRE(count_long_polylines(connected) <= 4);
+    dump_conformal_overlay("radial_c_dent", c, connected, open);
+}
+
+TEST_CASE("Fill: radial n lock uses the max section", "[Fill][Conformal]") {
+    // Unlocked, these rings want different even n. Locked, both use the larger n.
+    ExPolygon a = make_annulus(20.0, 10.0);
+    ExPolygon b = make_annulus(22.0, 11.0);
+    const BoundingBox bb = get_extents(a);
+
+    FillRadialZigZag::reset_n_lock();
+    FillRadialZigZag::debug_clear();
+    FillRadialZigZag::debug_enable(true);
+    (void) fill_conformal(a, 0, ConformalStagger::None, bb, true);
+    (void) fill_conformal(b, 1, ConformalStagger::None, bb, true);
+    FillRadialZigZag::debug_enable(false);
+    const auto unlocked = FillRadialZigZag::debug_snapshot();
+    REQUIRE(unlocked.size() >= 2);
+    REQUIRE(unlocked[0].success);
+    REQUIRE(unlocked[1].success);
+    REQUIRE(unlocked[0].n_scan != unlocked[1].n_scan);
+    const int n_max = std::max(unlocked[0].n_scan, unlocked[1].n_scan);
+
+    FillRadialZigZag::reset_n_lock();
+    FillRadialZigZag::pin_scan_counts({ { a }, { b } }, 2.0);
+    FillRadialZigZag::debug_clear();
+    FillRadialZigZag::debug_enable(true);
+    (void) fill_conformal(a, 0, ConformalStagger::None, bb, true);
+    (void) fill_conformal(b, 1, ConformalStagger::None, bb, true);
+    FillRadialZigZag::debug_enable(false);
+    const auto locked = FillRadialZigZag::debug_snapshot();
+    FillRadialZigZag::reset_n_lock();
+    REQUIRE(locked.size() >= 2);
+    REQUIRE(locked[0].success);
+    REQUIRE(locked[1].success);
+    REQUIRE(locked[0].n_scan == locked[1].n_scan);
+    REQUIRE(locked[0].n_scan == n_max);
+    REQUIRE(locked[1].n_lock == n_max);
+}
+
+TEST_CASE("Fill: radial pole lock holds across bbox jitter", "[Fill][Conformal]") {
+    ExPolygon a = make_annulus(20.0, 10.0);
+    ExPolygon b = a;
+    b.translate(scale_(2.0), 0.);
+    const BoundingBox bb = get_extents(a);
+
+    FillRadialZigZag::reset_n_lock();
+    FillRadialZigZag::debug_clear();
+    FillRadialZigZag::debug_enable(true);
+    (void) fill_conformal(a, 0, ConformalStagger::None, bb, true);
+    (void) fill_conformal(b, 1, ConformalStagger::None, bb, true);
+    FillRadialZigZag::debug_enable(false);
+    const auto unlocked = FillRadialZigZag::debug_snapshot();
+    REQUIRE(unlocked.size() >= 2);
+    REQUIRE(unlocked[0].success);
+    REQUIRE(unlocked[1].success);
+    REQUIRE(std::abs(unlocked[1].pole_x - unlocked[0].pole_x) > 1.5);
+
+    FillRadialZigZag::reset_n_lock();
+    FillRadialZigZag::pin_scan_counts({ { a }, { b } }, 2.0);
+    FillRadialZigZag::debug_clear();
+    FillRadialZigZag::debug_enable(true);
+    (void) fill_conformal(a, 0, ConformalStagger::None, bb, true);
+    (void) fill_conformal(b, 1, ConformalStagger::None, bb, true);
+    FillRadialZigZag::debug_enable(false);
+    const auto locked = FillRadialZigZag::debug_snapshot();
+    FillRadialZigZag::reset_n_lock();
+    REQUIRE(locked.size() >= 2);
+    REQUIRE(locked[0].success);
+    REQUIRE(locked[1].success);
+    REQUIRE(std::abs(locked[1].pole_x - locked[0].pole_x) < 0.7);
+}
+
+TEST_CASE("Fill: radial axis pole follows fitted 3D line", "[Fill][Conformal]") {
+    ExPolygon a = make_annulus(20.0, 10.0);
+    ExPolygon b = a;
+    b.translate(scale_(4.0), scale_(6.0));
+    ExPolygon c = a;
+    c.translate(scale_(8.0), 0.);
+    BoundingBox bb = get_extents(a);
+    bb.merge(get_extents(b));
+    bb.merge(get_extents(c));
+
+    FillRadialZigZag::reset_n_lock();
+    FillRadialZigZag::pin_scan_counts({ { a }, { b }, { c } }, 2.0, { 0., 10., 20. });
+    FillRadialZigZag::debug_clear();
+    FillRadialZigZag::debug_enable(true);
+    REQUIRE_FALSE(fill_conformal(a, 0, ConformalStagger::None, bb, true, ConformalPole::Axis, 0.).empty());
+    REQUIRE_FALSE(fill_conformal(b, 1, ConformalStagger::None, bb, true, ConformalPole::Axis, 10.).empty());
+    REQUIRE_FALSE(fill_conformal(c, 2, ConformalStagger::None, bb, true, ConformalPole::Axis, 20.).empty());
+    FillRadialZigZag::debug_enable(false);
+    const auto diags = FillRadialZigZag::debug_snapshot();
+    FillRadialZigZag::reset_n_lock();
+    REQUIRE(diags.size() >= 3);
+    REQUIRE(diags[0].success);
+    REQUIRE(diags[1].success);
+    REQUIRE(diags[2].success);
+    // Least-squares of centroids (0,0), (4,6), (8,0) vs z=0/10/20 is x=0.4 z, y=2.
+    // Layer-mode would track the raw (4,6) hole; axis mode must stay on the line.
+    REQUIRE(std::abs(diags[1].pole_x - 4.0) < 0.6);
+    REQUIRE(std::abs(diags[1].pole_y - 2.0) < 0.6);
+    REQUIRE(std::abs(diags[1].pole_y - 6.0) > 2.0);
+}
+
+TEST_CASE("Fill: radial bezier pole damps bbox-center jumps", "[Fill][Conformal]") {
+    // Five concentric rings. Bounding-box centers track the translations.
+    // Four sit on y=0; the middle one jumps +8 mm. A quadratic Bezier in z
+    // cannot follow that spike, so the pole stays near the smooth midline.
+    std::vector<ExPolygon> rings;
+    std::vector<double>    zs { 0., 5., 10., 15., 20. };
+    const double dx[] = { 0., 2., 4., 6., 8. };
+    const double dy[] = { 0., 0., 8., 0., 0. };
+    BoundingBox bb;
+    for (int i = 0; i < 5; ++i) {
+        ExPolygon r = make_annulus(20.0, 10.0);
+        r.translate(scale_(dx[i]), scale_(dy[i]));
+        bb.merge(get_extents(r));
+        rings.push_back(std::move(r));
+    }
+
+    FillRadialZigZag::reset_n_lock();
+    FillRadialZigZag::pin_scan_counts(
+        { { rings[0] }, { rings[1] }, { rings[2] }, { rings[3] }, { rings[4] } }, 2.0, zs);
+    FillRadialZigZag::debug_clear();
+    FillRadialZigZag::debug_enable(true);
+    for (int i = 0; i < 5; ++i)
+        REQUIRE_FALSE(fill_conformal(rings[size_t(i)], size_t(i), ConformalStagger::None, bb, true,
+                                     ConformalPole::Bezier, zs[size_t(i)])
+                          .empty());
+    FillRadialZigZag::debug_enable(false);
+    const auto diags = FillRadialZigZag::debug_snapshot();
+    FillRadialZigZag::reset_n_lock();
+    REQUIRE(diags.size() >= 5);
+    for (size_t i = 0; i < 5; ++i)
+        REQUIRE(diags[i].success);
+    REQUIRE(std::abs(diags[2].pole_x - 4.0) < 1.0);
+    REQUIRE(std::abs(diags[2].pole_y) < 4.0);
+    REQUIRE(std::abs(diags[2].pole_y - 8.0) > 3.0);
+    REQUIRE(std::abs(diags[2].pole_y - diags[1].pole_y) < 4.0);
+    REQUIRE(std::abs(diags[2].pole_y - diags[3].pole_y) < 4.0);
 }

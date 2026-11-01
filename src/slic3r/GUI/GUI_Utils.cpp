@@ -481,6 +481,7 @@ bool generate_image(const std::string &filename, wxImage &image, wxSize img_size
 }
 
 std::deque<wxDialog*> dialogStack;
+bool dialogStackForceEnd = false;
 
 WikiPanel::WikiPanel(wxWindow *parent, const wxString &wiki_text, const wxString &tooltip, const std::string &wiki_url)
     : wxPanel(parent, wxID_ANY), m_wiki_url(wiki_url), m_wiki_text(wiki_text), m_tooltip(tooltip)

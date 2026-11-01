@@ -110,7 +110,7 @@ function ShowModelInfo(pModel)
   let rawName = decodeURIComponent(pModel.name);
   let rawAuthor = decodeURIComponent(pModel.author);
   let rawDesc = decodeURIComponent(pModel.description);
-  rawDesc = HtmlDecodeFrom3MF(rawDesc);
+  rawDesc = DecodeDescriptionFrom3MF(rawDesc);
 
   const sanitizeCfg = {
     ADD_TAGS: ['span','img','font','u','s','a'],
@@ -170,14 +170,6 @@ function ShowModelInfo(pModel)
 }
 
 
-function HtmlDecodeFrom3MF(strInput)
-{
-  const el = document.createElement('textarea');
-  el.innerHTML = strInput;
-  el.innerHTML = el.value;
-  return el.value;
-}
-
 function ShowFileInfo( pFile ){
   let pBOM=pFile['BOM'];
 	let pAssembly=pFile['Assembly'];
@@ -228,7 +220,7 @@ function ShowProfileInfo( pProfile )
   };
   let sProfileName=DOMPurify.sanitize(decodeURIComponent(pProfile.name));
 	let sProfileAuthor=DOMPurify.sanitize(decodeURIComponent(pProfile.author));
-	let sProfileDesc=HtmlDecodeFrom3MF(decodeURIComponent(pProfile.description));
+	let sProfileDesc=DecodeDescriptionFrom3MF(decodeURIComponent(pProfile.description));
 	sProfileDesc=DOMPurify.sanitize(sProfileDesc, sanitizeCfg);
   let ModelPreviewList=pProfile.preview_img;
   let modelImages=[];

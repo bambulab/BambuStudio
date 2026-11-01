@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <cmath>
 
-#include "EncodedFilament.hpp"
 #include "FilamentBitmapUtils.hpp"
 #include "GUI_App.hpp"
 #include "libslic3r/Utils.hpp"
@@ -128,6 +127,16 @@ wxBitmap create_translucent_circle_bitmap(const wxColour& color, int diameter, i
     return wxBitmap(img);
 }
 
+wxBitmap scale_bitmap_to_diameter(const wxBitmap& src, int diameter)
+{
+    if (diameter <= 0 || !src.IsOk()) return wxNullBitmap;
+    if (src.GetWidth() == diameter && src.GetHeight() == diameter) return src;
+    wxImage img = src.ConvertToImage();
+    if (!img.IsOk()) return src;
+    img.Rescale(diameter, diameter, wxIMAGE_QUALITY_HIGH);
+    return wxBitmap(img);
+}
+
 wxBitmap create_translucent_round_rect_bitmap(const wxColour& color, const wxSize& size, double radius)
 {
     const int w = size.GetWidth();
@@ -192,19 +201,6 @@ static wxBitmap create_transparent_bitmap(const wxSize& size) {
 
     bdc.dc.SelectObject(wxNullBitmap);
     return bdc.bitmap;
-}
-
-// Sort colors by HSV values (primarily by hue, then saturation, then value)
-static void sort_colors_by_hsv(std::vector<wxColour>& colors) {
-    if (colors.size() < 2) return;
-    std::sort(colors.begin(), colors.end(),
-        [](const wxColour& a, const wxColour& b) {
-            ColourHSV ha = wxColourToHSV(a);
-            ColourHSV hb = wxColourToHSV(b);
-            if (ha.h != hb.h) return ha.h < hb.h;
-            if (ha.s != hb.s) return ha.s < hb.s;
-            return ha.v < hb.v;
-        });
 }
 
 static wxBitmap create_single_filament_bitmap(const wxColour& color, const wxSize& size)
@@ -352,24 +348,16 @@ wxBitmap create_filament_bitmap(const std::vector<wxColour>& colors, const wxSiz
 {
     if (colors.empty()) return wxNullBitmap;
 
-    // Make a copy to sort without modifying original
-    std::vector<wxColour> sorted_colors = colors;
-
-    // Sort colors by HSV when there are 2 or more colors
-    if (sorted_colors.size() >= 2) {
-        sort_colors_by_hsv(sorted_colors);
+    if (force_gradient && colors.size() >= 2) {
+        return create_gradient_filament_bitmap(colors, size);
     }
 
-    if (force_gradient && sorted_colors.size() >= 2) {
-        return create_gradient_filament_bitmap(sorted_colors, size);
-    }
-
-    switch (sorted_colors.size()) {
-        case 1: return create_single_filament_bitmap(sorted_colors[0], size);
-        case 2: return create_dual_filament_bitmap(sorted_colors[0], sorted_colors[1], size);
-        case 3: return create_triple_filament_bitmap(sorted_colors, size);
-        case 4: return create_quadruple_filament_bitmap(sorted_colors, size);
-        default: return create_gradient_filament_bitmap(sorted_colors, size);
+    switch (colors.size()) {
+        case 1: return create_single_filament_bitmap(colors[0], size);
+        case 2: return create_dual_filament_bitmap(colors[0], colors[1], size);
+        case 3: return create_triple_filament_bitmap(colors, size);
+        case 4: return create_quadruple_filament_bitmap(colors, size);
+        default: return create_gradient_filament_bitmap(colors, size);
     }
 }
 

@@ -1386,6 +1386,11 @@ void AMSLib::render_lite_lib(wxDC& dc)
     wxSize size = GetSize();
     auto libsize = AMS_LITE_CAN_LIB_SIZE;
 
+    const AMSCanType cur_state_lite = m_info.material_state;
+    if (cur_state_lite == AMSCanType::AMS_CAN_TYPE_EMPTY) {
+        m_show_new_filament_hint = false;
+    }
+
     ScalableBitmap tray_bitmap, tray_bitmap_hover, tray_bitmap_selected;
     if (m_ams_model == DevAmsType::AMS_LITE){
         tray_bitmap = (m_can_index <= 1) ? m_bitmap_extra_tray_left : m_bitmap_extra_tray_right;
@@ -1534,6 +1539,11 @@ void AMSLib::render_lite_lib(wxDC& dc)
 
 void AMSLib::render_generic_lib(wxDC &dc)
 {
+    const AMSCanType cur_state = m_info.material_state;
+    if (cur_state == AMSCanType::AMS_CAN_TYPE_EMPTY) {
+        m_show_new_filament_hint = false;
+    }
+
     wxSize size = GetSize();
     auto   tmp_lib_colour = m_info.material_colour;
     change_the_opacity(tmp_lib_colour);

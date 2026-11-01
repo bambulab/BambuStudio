@@ -247,7 +247,9 @@ static bool obj_parseline(const char *line, ObjData &data)
             else
 				-- vertex.normalIdx;
 			if (vertex.textureCoordIdx < 0)
-                vertex.textureCoordIdx += (int)data.textureCoordinates.size() / 3;
+                // Texture coordinates are stored as u/v pairs (OBJ_VERTEX_LENGTH is not used here),
+                // so a negative (relative) index is rebased against the pair count, not a triple.
+                vertex.textureCoordIdx += (int)data.textureCoordinates.size() / 2;
             else
 				-- vertex.textureCoordIdx;
 			data.vertices.push_back(vertex);

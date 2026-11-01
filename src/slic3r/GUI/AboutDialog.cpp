@@ -135,6 +135,7 @@ void CopyrightsDialog::fill_entries()
         { "nlohmann/json",                                  "",      "https://json.nlohmann.me" },
         { "Open Cascade",                                   "",      "https://www.opencascade.com" },
         { "OpenGL",                                         "",      "https://www.opengl.org" },
+        { "OpenMeshCraft",                                  "",      "https://github.com/mangoleaves/OpenMeshCraft" },
         { "PoEdit",                                         "",      "https://poedit.net" },
         { "PrusaSlicer",                                    "",      "https://www.prusa3d.com" },
         { "Qhull",                                          "",      "http://qhull.org" },

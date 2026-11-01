@@ -275,7 +275,7 @@ bool OverviewUtils::reset_assembly_to_origin(wxEvtHandler *)
 
     GLCanvas3D *canvas = plater->get_current_canvas3D();
     sync_canvas_glvolume_instance_offsets_from_model(canvas, primary_model);
-    if (canvas && canvas->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView)
+    if (canvas && canvas->get_canvas_type() == ECanvasType::CanvasAssembleView)
         canvas->zoom_to_fit();
 
     GLCanvas3D::s_bvh_primary_bounds.reset();
@@ -380,7 +380,7 @@ bool OverviewUtils::move_isolated_volumes_closer(wxEvtHandler *)
 
     GLCanvas3D *canvas = plater->get_current_canvas3D();
     sync_canvas_glvolume_instance_offsets_from_model(canvas, primary_model);
-    if (canvas && canvas->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+    if (canvas && canvas->get_canvas_type() == ECanvasType::CanvasAssembleView) {
         Selection &sel = canvas->get_selection();
         sel.clear();
         for (int oi : moved_object_idxs) {

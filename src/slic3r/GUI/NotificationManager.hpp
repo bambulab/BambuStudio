@@ -2,8 +2,7 @@
 #define slic3r_GUI_NotificationManager_hpp_
 
 #include "GUI_App.hpp"
-#include "Plater.hpp"
-#include "GLCanvas3D.hpp"
+#include "GLCanvasType.hpp"
 #include "Event.hpp"
 #include "I18N.hpp"
 #include "Jobs/ProgressIndicator.hpp"
@@ -20,6 +19,11 @@
 #include <functional>
 
 namespace Slic3r {
+
+// Formerly pulled in via Plater.hpp; keep a light forward decl so this hub
+// header does not need PrintBase.hpp / Plater.hpp.
+struct StringObjectException;
+
 namespace GUI {
 
 using EjectDriveNotificationClickedEvent = SimpleEvent;
@@ -30,6 +34,8 @@ using PresetUpdateAvailableClickedEvent = SimpleEvent;
 wxDECLARE_EVENT(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, PresetUpdateAvailableClickedEvent);
 using PrinterConfigUpdateAvailableClickedEvent = SimpleEvent;
 wxDECLARE_EVENT(EVT_PRINTER_CONFIG_UPDATE_AVAILABLE_CLICKED, PrinterConfigUpdateAvailableClickedEvent);
+// Declared here so NotificationManager.hpp does not need Plater.hpp; defined in Plater.cpp.
+wxDECLARE_EVENT(EVT_UPDATE_PLUGINS_WHEN_LAUNCH, wxCommandEvent);
 
 using CancelFn = std::function<void()>;
 
@@ -328,11 +334,11 @@ public:
     void render_notifications(GLCanvas3D &canvas, float overlay_width, float bottom_margin, float right_margin);
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
-    void remove_notification_of_type(const NotificationType type);
+    void remove_notification_of_type(const NotificationType type, bool remove_all = false);
     bool has_notification_of_type(const NotificationType type);
     void clear_all();
 	// Hides warnings in G-code preview. Should be called from plater only when 3d view/ preview is changed
-    void set_canvas_type(GLCanvas3D::ECanvasType t_canvas_type);
+    void set_canvas_type(ECanvasType t_canvas_type);
 	// Calls set_in_preview to apply appearing or disappearing of some notificatons;
 	void apply_canvas_type() { set_canvas_type(m_canvas_type); }
 	// Move to left to avoid colision with variable layer height gizmo.
@@ -493,7 +499,7 @@ private:
         void                   set_not_rendered() { m_rendered_this_frame = false; }
 		void				   set_hovered() { if (m_state != EState::Finished && m_state != EState::ClosePending && m_state != EState::Hidden && m_state != EState::Unknown) m_state = EState::Hovered; }
 		// set start of notification to now. Used by delayed notifications
-		void                   reset_timer() { m_notification_start = GLCanvas3D::timestamp_now(); m_state = EState::Shown; }
+		void                   reset_timer() { m_notification_start = canvas_timestamp_now(); m_state = EState::Shown; }
         void set_Multiline(bool Multi) { m_multiline = Multi; }
 		virtual void on_change_color_mode(bool is_dark);
 		void set_scale(float scale) { m_scale = scale; }
@@ -662,8 +668,8 @@ private:
 	public:
 		PlaterWarningNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) {}
         void close() override;
-		void		 real_close()      { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
-		void         show()            { m_state = EState::Unknown; }
+        void         real_close();
+        void         show()            { m_state = EState::Unknown; }
 	};
 
 
@@ -839,7 +845,7 @@ private:
     public:
         AssemblyWarningNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) {}
         void close() override;
-        void		 real_close() { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
+        void         real_close();
         void         show() { m_state = EState::Unknown; }
     };
 
@@ -911,7 +917,7 @@ private:
 	std::vector<DelayedNotification> m_waiting_notifications;
 	//timestamps used for slicing finished - notification could be gone so it needs to be stored here
 	std::unordered_set<int>      m_used_timestamps;
-	GLCanvas3D::ECanvasType m_canvas_type { GLCanvas3D::ECanvasType::CanvasView3D };
+    ECanvasType m_canvas_type { ECanvasType::CanvasView3D };
     // True if the layer editing is enabled in Plater, so that the notifications are shifted left of it.
     bool                         m_move_from_overlay { false };
 	// Timestamp of last rendering
@@ -951,9 +957,12 @@ private:
 			_u8L("Details"),
                          [](wxEvtHandler* evnthndlr) {
                 //BBS set feishu release page by default
-                 wxCommandEvent* evt = new wxCommandEvent(EVT_UPDATE_PLUGINS_WHEN_LAUNCH);
-				 wxQueueEvent(wxGetApp().plater(), evt);
-				 return true;
+                // m_evt_handler is the Plater (same target as the former wxGetApp().plater() call).
+                if (evnthndlr == nullptr)
+                    return true;
+                wxCommandEvent* evt = new wxCommandEvent(EVT_UPDATE_PLUGINS_WHEN_LAUNCH);
+                wxQueueEvent(evnthndlr, evt);
+                return true;
              }},
 
         NotificationData{NotificationType::BBLPrinterConfigUpdateAvailable, NotificationLevel::ImportantNotificationLevel, BBL_NOTICE_MAX_INTERVAL,

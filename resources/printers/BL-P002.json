@@ -56,6 +56,7 @@
 			}
 		},
 		"model_id": "BL-P002",
+		"sn_prefix": "00W",
 		"auto_pa_cali_thumbnail_image": "fd_calibration_auto",
 		"compatible_machine": [ "BL-P001", "C11", "C12", "C13" ],
 		"auto_cali_not_support_filaments": [ "GFU03", "GFU04" ],

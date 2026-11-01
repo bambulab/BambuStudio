@@ -13,6 +13,7 @@ import type {
   CloudFilamentConfig,
   CloudAutoPushSummary,
   DebugLogEntry,
+  CustomFilamentCreateResult,
 } from './types';
 
 function makeBody(submod: string, action: string, payload?: Record<string, unknown>) {
@@ -72,6 +73,7 @@ export function useFilamentManagerBridge() {
   const request = useDeviceBridge();
   const setSpools    = useStore((s) => s.filament.setSpools);
   const setPresets   = useStore((s) => s.filament.setPresets);
+  const setCustomFilamentCreateResult = useStore((s) => s.filament.setCustomFilamentCreateResult);
   const setMachines  = useStore((s) => s.filament.setMachines);
   const setAmsData   = useStore((s) => s.filament.setAmsData);
   const setSelectedMachineDevId = useStore((s) => s.filament.setSelectedMachineDevId);
@@ -152,6 +154,24 @@ export function useFilamentManagerBridge() {
       if (body.submod === 'spool') {
         const spools = body.payload as Spool[] | undefined;
         if (spools) setSpools(spools);
+        return;
+      }
+
+      if (body.submod === 'preset') {
+        if (body.action === 'create_custom_done') {
+          const payload = (body.payload ?? {}) as {
+            ok?: boolean;
+            client_request_id?: string;
+            created?: CustomFilamentCreateResult['created'];
+          };
+          setCustomFilamentCreateResult({
+            clientRequestId: String(payload.client_request_id ?? ''),
+            ok: payload.ok === true,
+            created: payload.created,
+          });
+        } else if (body.action === 'list' && body.payload) {
+          setPresets(body.payload as unknown as PresetOptions);
+        }
         return;
       }
 
@@ -311,7 +331,7 @@ export function useFilamentManagerBridge() {
       const agg = pushDoneAggRef.current;
       if (agg.timer) { clearTimeout(agg.timer); agg.timer = null; }
     };
-  }, [setSpools, setCloudSync, setCloudConfig, pushToast, appendCloudSyncHistory, appendDebugLog, setMachines, setAmsData, setSelectedMachineDevId, setCloudAutoPushSummary, t, flushPushDoneAgg]);
+  }, [setSpools, setPresets, setCloudSync, setCloudConfig, pushToast, appendCloudSyncHistory, appendDebugLog, setMachines, setAmsData, setSelectedMachineDevId, setCloudAutoPushSummary, t, flushPushDoneAgg]);
 
   // STUDIO-17977: candidate prefetch — runs whenever the spool list changes.
   // Drives the list row tail (colorName + BBL fila code) without waiting on

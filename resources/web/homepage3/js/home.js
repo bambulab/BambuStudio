@@ -321,21 +321,44 @@ function SetMallUrl( strUrl )
 }
 
 
+// DOMPurify sanitizes body content and leaves '"' alone, so it does not make a value safe to paste
+// into a quoted HTML attribute. Escape here instead - this is safe in both contexts.
+function EscapeHtmlValue( sValue )
+{
+	if( sValue===undefined || sValue===null )  return '';
+
+	return String(sValue).replace(/&/g,'&amp;')
+	                     .replace(/</g,'&lt;')
+	                     .replace(/>/g,'&gt;')
+	                     .replace(/"/g,'&quot;')
+	                     .replace(/'/g,'&#39;');
+}
+
+// Thumbnails always arrive as data: URLs built by the app; anything else does not belong in src.
+function IsSafeThumbnailUrl( sUrl )
+{
+	return typeof sUrl==='string' && /^data:image\//i.test(sUrl);
+}
+
 function ShowRecentFileList( pList )
 {
 	let nTotal=pList.length;
-	
+
 	let strHtml='';
 	for(let n=0;n<nTotal;n++)
 	{
 		let OneFile=pList[n];
 		
-		let sPath=DOMPurify.sanitize(OneFile['path']);
-		let sImg=DOMPurify.sanitize(OneFile["image"]) || sImages[sPath];
-		let sTime=OneFile['time'];
-		let sName=DOMPurify.sanitize(OneFile['project_name']);
-		sImages[sPath] = sImg;
-		
+		// Cache on the raw path, escape only what goes into the markup below.
+		let sRawPath=OneFile['path'] || '';
+		let sRawImg=OneFile['image'] || sImages[sRawPath] || '';
+		sImages[sRawPath]=sRawImg;
+
+		let sPath=EscapeHtmlValue(sRawPath);
+		let sImg=EscapeHtmlValue(IsSafeThumbnailUrl(sRawImg)?sRawImg:'img/d.png');
+		let sTime=EscapeHtmlValue(OneFile['time']);
+		let sName=EscapeHtmlValue(OneFile['project_name']);
+
 		//let index=sPath.lastIndexOf('\\')>0?sPath.lastIndexOf('\\'):sPath.lastIndexOf('\/');
 		//let sShortName=sPath.substring(index+1,sPath.length);
 		
@@ -548,7 +571,8 @@ function SendMsg_GetMakerlabList()
 	
 	SendWXMessage( JSON.stringify(tSend) );
 	
-	setTimeout("SendMsg_GetMakerlabList()",3600*1000*6);
+	// Function, not source text - the string form is an eval and CSP refuses it.
+	setTimeout(SendMsg_GetMakerlabList,3600*1000*6);
 }
 
 function SwitchContent(strMenu)
@@ -677,7 +701,8 @@ function SendMsg_GetStaffPick()
 	
 	SendWXMessage( JSON.stringify(tSend) );
 	
-    setTimeout("SendMsg_GetStaffPick()",3600*1000*6);
+    // Function, not source text - the string form is an eval and CSP refuses it.
+    setTimeout(SendMsg_GetStaffPick,3600*1000*6);
 }
 
 function ExNumber( number )

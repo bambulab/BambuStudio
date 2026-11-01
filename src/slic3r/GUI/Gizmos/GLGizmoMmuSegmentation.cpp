@@ -3,6 +3,7 @@
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/ImGuiWrapper.hpp"
+#include "slic3r/GUI/UIHelpers/ImGuiFilamentWidgets.hpp"
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/BitmapCache.hpp"
@@ -630,72 +631,21 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     }
 
     float start_pos_x = ImGui::GetCursorPos().x;
-    const ImVec2 max_label_size = ImGui::CalcTextSize("99", NULL, true);
-    const float item_spacing = m_imgui->scaled(0.8f);
+    const ImVec2 filament_icon_size = ImGuiFilament::default_icon_size();
     size_t n_extruder_colors = std::min((size_t)EnforcerBlockerType::ExtruderMax, m_extruders_colors.size());
     for (int extruder_idx = 0; extruder_idx < n_extruder_colors; extruder_idx++) {
-        const std::array<float, 4> &extruder_color = m_extruders_colors[extruder_idx];
-        ImVec4 color_vec(extruder_color[0], extruder_color[1], extruder_color[2], extruder_color[3]);
-        std::string color_label = std::string("##extruder color ") + std::to_string(extruder_idx);
-        std::string item_text = std::to_string(extruder_idx + 1);
-        const ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
-
-        const ImVec2 button_size(max_label_size.x + m_imgui->scaled(0.5f),0.f);
-
         float button_offset = start_pos_x;
         if (extruder_idx % max_filament_items_per_line != 0) {
             button_offset += filament_item_width * (extruder_idx % max_filament_items_per_line);
             ImGui::SameLine(button_offset);
         }
 
-        // draw filament background
-        ImGuiColorEditFlags flags = ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoTooltip;
-        if (m_selected_extruder_idx != extruder_idx) flags |= ImGuiColorEditFlags_NoBorder;
-        #ifdef __APPLE__
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
-            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0);
-            bool color_picked = ImGui::ColorButton(color_label.c_str(), color_vec, flags, button_size);
-            ImGui::PopStyleVar(2);
-            ImGui::PopStyleColor(1);
-        #else
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
-            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
-            ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0);
-            bool color_picked = ImGui::ColorButton(color_label.c_str(), color_vec, flags, button_size);
-            ImGui::PopStyleVar(2);
-            ImGui::PopStyleColor(1);
-        #endif
-        if (extruder_idx < (int)m_gradient_info.size() && m_gradient_info[extruder_idx].is_gradient) {
-            auto to_imu32 = [](const std::array<float, 4> &c) -> ImU32 {
-                return IM_COL32(uint8_t(c[0]*255.f), uint8_t(c[1]*255.f), uint8_t(c[2]*255.f), uint8_t(c[3]*255.f));
-            };
-            ImVec2 r_min = ImGui::GetItemRectMin();
-            ImVec2 r_max = ImGui::GetItemRectMax();
-            ImU32 col_from = to_imu32(m_gradient_info[extruder_idx].color_from);
-            ImU32 col_to   = to_imu32(m_gradient_info[extruder_idx].color_to);
-            ImGui::GetWindowDrawList()->AddRectFilledMultiColor(r_min, r_max, col_from, col_to, col_to, col_from);
-        }
+        if (ImGuiFilament::filament_icon_button(extruder_idx, filament_icon_size, m_selected_extruder_idx == extruder_idx))
+            m_selected_extruder_idx = extruder_idx;
+
         color_button_high = ImGui::GetCursorPos().y - color_button - 2.0;
-        if (color_picked) { m_selected_extruder_idx = extruder_idx; }
-
-        if (extruder_idx < 16 && ImGui::IsItemHovered()) m_imgui->tooltip(_L("Shortcut Key ") + std::to_string(extruder_idx + 1), max_tooltip_width);
-
-        // draw filament id
-        float gray = 0.299 * extruder_color[0] + 0.587 * extruder_color[1] + 0.114 * extruder_color[2];
-        ImGui::SameLine(button_offset + (button_size.x - label_size.x) / 2.f);
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {10.0,15.0});
-        if (abs(color_vec.w - 1) < 0.01) {
-            if (gray * 255.f < 80.f)
-                ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), item_text.c_str());
-            else
-                ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 1.0f), item_text.c_str());
-        }
-        else {//alpha
-            ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 1.0f), item_text.c_str());
-        }
-
-        ImGui::PopStyleVar();
+        if (extruder_idx < 16 && ImGui::IsItemHovered())
+            m_imgui->tooltip(_L("Shortcut Key ") + std::to_string(extruder_idx + 1), max_tooltip_width);
     }
     //ImGui::NewLine();
     ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));

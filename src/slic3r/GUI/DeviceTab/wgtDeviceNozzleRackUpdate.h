@@ -13,7 +13,10 @@
 #include "slic3r/GUI/Widgets/AnimaController.hpp"
 
 #include <wx/panel.h>
+#include <wx/statbmp.h>
+
 #include <memory>
+#include <string>
 
 // Previous definitions
 class Button;
@@ -103,6 +106,7 @@ private:
     void CreateGui();
 
     void UpdateInfo(const DevNozzle& nozzle);
+    bool UpdateFilamentColourSwatch(const std::string& display_color);
 
     void OnBitmapHoverEnter(wxMouseEvent& event);
     void OnBitmapHoverLeave(wxMouseEvent& event);
@@ -145,7 +149,7 @@ private:
     wxStaticBitmap* m_status_bitmap{ nullptr };
 
     Label* m_material_label{ nullptr };
-    StaticBox* m_colour_box{ nullptr };
+    wxStaticBitmap* m_colour_box{ nullptr };
     wxFrame* m_hoverFrame{ nullptr };
 
     Label* m_status_label{ nullptr };

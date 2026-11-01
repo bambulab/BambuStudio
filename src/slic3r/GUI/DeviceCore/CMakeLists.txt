@@ -46,6 +46,8 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevPrintTaskInfo.cpp
     GUI/DeviceCore/DevHMS.h
     GUI/DeviceCore/DevHMS.cpp
+    GUI/DeviceCore/DevHMSQuery.h
+    GUI/DeviceCore/DevHMSQuery.cpp
     GUI/DeviceCore/DevInfo.h
     GUI/DeviceCore/DevInfo.cpp
     GUI/DeviceCore/DevLamp.h

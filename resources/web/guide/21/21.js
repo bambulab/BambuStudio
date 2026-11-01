@@ -169,7 +169,7 @@ function GotoFilamentPage()
 	let nChoose=OnExit();
 	
 	if(nChoose>0)
-		window.open('../22/index.html','_self');
+		window.open('../23/index.html?wizard=1','_self');
 }
 
 function OnExit()

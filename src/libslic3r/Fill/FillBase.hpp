@@ -97,6 +97,15 @@ struct FillParams
     bool            symmetric_infill_y_axis{false};
     coord_t         symmetric_y_axis{0};
     bool            locked_zag{false};
+    bool            conformal{false};
+    ConformalStagger conformal_stagger{ConformalStagger::None};
+    int              conformal_link_keep_layers{1};
+    int              conformal_link_flip_layers{0};
+    ConformalPole    conformal_pole{ConformalPole::Layer};
+    // 0 = auto from density / locked n; >0 = force even ray count (>= 4).
+    int              conformal_ray_count{0};
+    // 0 = auto n*1.2*line_width/(2π); >0 = mm; <0 = disable hub clip.
+    float            conformal_hub_radius{0.f};
 
     // For 2D lattice
     coordf_t        lattice_angle_1{0.f};
@@ -109,6 +118,9 @@ class Fill
 public:
     // Index of the layer.
     size_t      layer_id;
+    // Print-object region index; radial lock tables are keyed by this so a
+    // conformal modifier does not share n / Axis with the parent remainder.
+    size_t      lock_region_id { 0 };
     // Z coordinate of the top print surface, in unscaled coordinates
     coordf_t    z;
     // in unscaled coordinates
@@ -163,6 +175,7 @@ public:
     virtual void fill_surface_extrusion(const Surface *surface, const FillParams &params, ExtrusionEntitiesPtr &out);
     virtual void copy_fill_data(const Fill *f){
         layer_id              = f->layer_id;
+        lock_region_id        = f->lock_region_id;
         z                     = f->z;
         spacing               = f->spacing;
         overlap               = f->overlap;

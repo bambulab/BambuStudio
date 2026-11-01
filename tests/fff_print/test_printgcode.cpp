@@ -15,6 +15,79 @@ boost::regex perimeters_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; perimeter");
 boost::regex infill_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; infill");
 boost::regex skirt_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; skirt");
 
+namespace {
+
+struct SpiralRaftGCodeResult
+{
+    double first_model_extrusion_z { -1. };
+    double highest_z_before_model  { 0. };
+    double nominal_model_layer_z   { 0. };
+    size_t layer_z_restores        { 0 };
+    bool   model_z_is_continuous   { true };
+};
+
+SpiralRaftGCodeResult spiral_raft_gcode_result(const std::string &change_filament_gcode)
+{
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_num_extruders(2);
+    config.set_deserialize_strict({
+        { "spiral_mode",                       true },
+        { "wall_loops",                        1 },
+        { "top_shell_layers",                  0 },
+        { "bottom_shell_layers",               1 },
+        { "sparse_infill_density",             "0%" },
+        { "raft_layers",                       2 },
+        { "support_material_extruder",         2 },
+        { "support_material_interface_extruder", 2 },
+        { "perimeter_extruder",                1 },
+        { "infill_extruder",                   1 },
+        { "solid_infill_extruder",             1 },
+        { "retraction_length",                 0 },
+        { "skirts",                            0 },
+        { "gcode_comments",                    true },
+        { "start_gcode",                       "T[initial_tool]\n" },
+        { "change_filament_gcode",             change_filament_gcode }
+    });
+
+    Slic3r::Print print;
+    Slic3r::Model model;
+    Slic3r::Test::init_print({ TestMesh::cube_20x20x20 }, print, model, config);
+    std::string gcode = Slic3r::Test::gcode(print);
+
+    SpiralRaftGCodeResult result;
+    result.nominal_model_layer_z = print.objects().front()->layers().front()->print_z;
+    int                   current_tool = -1;
+    bool                  raft_tool_seen = false;
+    double                last_model_extrusion_z = -1.;
+    GCodeReader           reader;
+    reader.apply_config(config);
+    reader.parse_buffer(gcode, [&result, &current_tool, &raft_tool_seen, &last_model_extrusion_z](GCodeReader &self, const GCodeReader::GCodeLine &line) {
+        if (line.cmd().size() > 1 && line.cmd().front() == 'T') {
+            current_tool = atoi(line.cmd().data() + 1);
+            raft_tool_seen |= current_tool == 1;
+        }
+
+        if (result.first_model_extrusion_z < 0.) {
+            result.highest_z_before_model = std::max(result.highest_z_before_model, static_cast<double>(self.z()));
+            if (line.comment().find("restore spiral vase layer Z") != std::string_view::npos)
+                ++result.layer_z_restores;
+            if (raft_tool_seen && current_tool == 0 && line.extruding(self) && line.dist_XY(self) > 0.)
+                result.first_model_extrusion_z = self.z();
+        }
+
+        if (raft_tool_seen && current_tool == 0 && line.extruding(self) && line.dist_XY(self) > 0.) {
+            if (last_model_extrusion_z >= 0.) {
+                double z_step = self.z() - last_model_extrusion_z;
+                result.model_z_is_continuous &= z_step >= -EPSILON && z_step <= 0.21;
+            }
+            last_model_extrusion_z = self.z();
+        }
+    });
+    return result;
+}
+
+} // namespace
+
 SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
     GIVEN("A default configuration and a print test object") {
         WHEN("the output is executed with no support material") {
@@ -267,5 +340,32 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
 				REQUIRE(z == Approx(20.));
 			}
         }
+    }
+}
+
+TEST_CASE("Spiral vase restores object layer Z after a raft tool change", "[PrintGCode][SpiralVase]")
+{
+    SECTION("tool change ends at an elevated clearance Z") {
+        SpiralRaftGCodeResult result = spiral_raft_gcode_result("G1 X5 F12000\nG1 Z{max_layer_z + 3.0} F1200\nT[next_extruder]\n");
+
+        REQUIRE(result.first_model_extrusion_z == Approx(result.nominal_model_layer_z));
+        REQUIRE(result.highest_z_before_model >= result.nominal_model_layer_z + 2.);
+        REQUIRE(result.layer_z_restores == 1);
+    }
+
+    SECTION("tool change does not alter Z") {
+        SpiralRaftGCodeResult result = spiral_raft_gcode_result("T[next_extruder]\n");
+
+        REQUIRE(result.first_model_extrusion_z == Approx(result.nominal_model_layer_z));
+        REQUIRE(result.layer_z_restores == 0);
+        REQUIRE(result.model_z_is_continuous);
+    }
+
+    SECTION("tool change leaves the XY position unknown at clearance Z") {
+        SpiralRaftGCodeResult result = spiral_raft_gcode_result("G1 Z{max_layer_z + 3.0} F1200\nT[next_extruder]\n");
+
+        REQUIRE(result.first_model_extrusion_z == Approx(result.nominal_model_layer_z));
+        REQUIRE(result.highest_z_before_model >= result.nominal_model_layer_z + 2.);
+        REQUIRE(result.layer_z_restores == 1);
     }
 }

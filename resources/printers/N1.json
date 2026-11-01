@@ -46,6 +46,7 @@
 			"support_ams_ext_mix_print": true
 		},
 		"model_id": "N1",
+		"sn_prefix": "030",
 		"support_wrapping_detection": false,
 		"auto_pa_cali_thumbnail_image": "fd_calibration_auto_i3",
 		"compatible_machine": [],

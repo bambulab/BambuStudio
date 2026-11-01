@@ -20,7 +20,6 @@
 	],
 	"printable_height": "480",
 	"nozzle_hrc": "0",
-	"nozzle_type": "brass",
 	"nozzle_volume": "0",
 	"cooling_tube_length": "5",
     "cooling_tube_retraction": "91.5",

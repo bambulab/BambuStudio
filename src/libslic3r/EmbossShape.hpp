@@ -192,6 +192,10 @@ struct EmbossShape
     std::vector<float>     text_absolute_cursors;
     std::vector<Vec2f>     text_align_offsets;
     std::pair<int, int>    align_type;
+    // [mm] distance between base lines of neighbour text lines
+    float line_height = 0.f;
+    // [mm] base line offset of the first text line against single line text (vertical align of whole text)
+    float first_line_offset_y = 0.f;
     // undo / redo stack recovery
     template<class Archive> void save(Archive &ar) const
     {

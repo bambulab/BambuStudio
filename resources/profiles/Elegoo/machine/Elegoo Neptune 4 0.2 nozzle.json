@@ -19,7 +19,6 @@
 		"0x225"
 	],
 	"printable_height": "265",
-	"nozzle_type": "hardened_steel",
 	"auxiliary_fan": "0",
 
 	"max_layer_height": [

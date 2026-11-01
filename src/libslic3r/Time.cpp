@@ -187,6 +187,12 @@ time_t get_current_milliseconds_time_utc()
     return static_cast<time_t>(milliseconds);
 }
 
+long long get_current_milliseconds_time_monotonic()
+{
+    using clk = std::chrono::steady_clock;
+    return std::chrono::duration_cast<std::chrono::milliseconds>(clk::now().time_since_epoch()).count();
+}
+
 static std::string tm2str(const std::tm *tms, const char *fmt)
 {
     std::stringstream ss;
