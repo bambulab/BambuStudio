@@ -124,7 +124,11 @@ public:
 
     bool HasDismissLongTime();
 
+    // Close the whole menu, including a grouped submenu, and notify the combo.
+    void DismissAll();
+
 protected:
+    void DismissOnOwnerChange() override;
     void Dismiss() override;
 
     void OnDismiss() override;

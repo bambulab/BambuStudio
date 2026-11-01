@@ -348,7 +348,7 @@ void ComboBox::mouseDown(wxMouseEvent &event)
 
     SetFocus();
     if (drop_down) {
-        drop.Hide();
+        drop.DismissAll();
     } else if (drop.HasDismissLongTime()) {
         drop.autoPosition();
         drop_down = true;
@@ -376,7 +376,7 @@ void ComboBox::keyDown(wxKeyEvent& event)
         case WXK_RETURN:
         case WXK_SPACE:
             if (drop_down) {
-                drop.DismissAndNotify();
+                drop.DismissAll();
             } else if (drop.HasDismissLongTime()) {
                 drop.autoPosition();
                 drop_down = true;
@@ -384,6 +384,12 @@ void ComboBox::keyDown(wxKeyEvent& event)
                 wxCommandEvent e(wxEVT_COMBOBOX_DROPDOWN);
                 GetEventHandler()->ProcessEvent(e);
             }
+            break;
+        case WXK_ESCAPE:
+            if (drop_down)
+                drop.DismissAll();
+            else
+                event.Skip();
             break;
         case WXK_UP:
         case WXK_DOWN:
@@ -410,7 +416,7 @@ void ComboBox::keyDown(wxKeyEvent& event)
 void ComboBox::onMove(wxMoveEvent &event)
 {
     event.Skip();
-    drop.Hide();
+    drop.DismissAll();
 }
 
 void ComboBox::OnEdit()

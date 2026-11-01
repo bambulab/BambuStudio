@@ -1,8 +1,11 @@
 #include "PopupWindow.hpp"
+#include <wx/app.h>
 
 static wxWindow *GetTopParent(wxWindow *pWindow)
 {
     wxWindow *pWin = pWindow;
+    if (!pWin)
+        return nullptr;
     while (pWin->GetParent()) {
         pWin = pWin->GetParent();
         if (auto top = dynamic_cast<wxNonOwnedWindow*>(pWin))
@@ -16,7 +19,16 @@ bool PopupWindow::Create(wxWindow *parent, int style)
     if (!wxPopupTransientWindow::Create(parent, style))
         return false;
 #ifdef __WXGTK__
-    GetTopParent(parent)->Bind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
+    // GTK popups are separate native windows and can outlive their visible
+    // anchor when the app loses focus or a modeless helper is hidden/resized.
+    m_owner = GetTopParent(parent);
+    if (m_owner) {
+        m_owner->Bind(wxEVT_ICONIZE, &PopupWindow::topWindowIconize, this);
+        m_owner->Bind(wxEVT_SHOW, &PopupWindow::topWindowShow, this);
+        m_owner->Bind(wxEVT_MOVE, &PopupWindow::topWindowMove, this);
+        m_owner->Bind(wxEVT_SIZE, &PopupWindow::topWindowSize, this);
+    }
+    wxTheApp->Bind(wxEVT_ACTIVATE_APP, &PopupWindow::appActivate, this);
 #endif
 #ifdef __WXOSX__
     if (style & wxPU_CONTAINS_CONTROLS)
@@ -29,13 +41,25 @@ bool PopupWindow::Create(wxWindow *parent, int style)
 PopupWindow::~PopupWindow()
 {
 #ifdef __WXGTK__
-    GetTopParent(this)->Unbind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
+    wxTheApp->Unbind(wxEVT_ACTIVATE_APP, &PopupWindow::appActivate, this);
+    if (m_owner) {
+        m_owner->Unbind(wxEVT_ICONIZE, &PopupWindow::topWindowIconize, this);
+        m_owner->Unbind(wxEVT_SHOW, &PopupWindow::topWindowShow, this);
+        m_owner->Unbind(wxEVT_MOVE, &PopupWindow::topWindowMove, this);
+        m_owner->Unbind(wxEVT_SIZE, &PopupWindow::topWindowSize, this);
+    }
 #endif
 #ifdef __WXMSW__
     GetTopParent(this)->Unbind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
     GetTopParent(this)->Unbind(wxEVT_ICONIZE, &PopupWindow::topWindowIconize, this);
     GetTopParent(this)->Unbind(wxEVT_SHOW, &PopupWindow::topWindowShow, this);
 #endif
+}
+
+void PopupWindow::DismissOnOwnerChange()
+{
+    if (IsShown())
+        DismissAndNotify();
 }
 
 #ifdef __WXOSX__
@@ -102,9 +126,37 @@ void PopupWindow::OnMouseEvent2(wxMouseEvent &evt)
 #endif
 
 #ifdef __WXGTK__
-void PopupWindow::topWindowActivate(wxActivateEvent &event)
+void PopupWindow::appActivate(wxActivateEvent &event)
 {
     event.Skip();
+    if (!event.GetActive())
+        DismissOnOwnerChange();
+}
+
+void PopupWindow::topWindowIconize(wxIconizeEvent &event)
+{
+    event.Skip();
+    if (event.IsIconized())
+        DismissOnOwnerChange();
+}
+
+void PopupWindow::topWindowShow(wxShowEvent &event)
+{
+    event.Skip();
+    if (!event.IsShown())
+        DismissOnOwnerChange();
+}
+
+void PopupWindow::topWindowMove(wxMoveEvent &event)
+{
+    event.Skip();
+    DismissOnOwnerChange();
+}
+
+void PopupWindow::topWindowSize(wxSizeEvent &event)
+{
+    event.Skip();
+    DismissOnOwnerChange();
 }
 #endif
 
@@ -118,22 +170,23 @@ void PopupWindow::BindUnfocusEvent()
 
 void PopupWindow::topWindowActivate(wxActivateEvent &event)
 {
+    event.Skip();
     if (!event.GetActive())
-        Dismiss();
+        DismissOnOwnerChange();
 }
 
 void PopupWindow::topWindowIconize(wxIconizeEvent &event)
 {
     event.Skip();
     if (event.IsIconized())
-        Dismiss();
+        DismissOnOwnerChange();
 }
 
 void PopupWindow::topWindowShow(wxShowEvent &event)
 {
     event.Skip();
     if (!event.IsShown())
-        Dismiss();
+        DismissOnOwnerChange();
 }
 #endif
 
@@ -145,7 +198,7 @@ void PopupWindow::topWindowShow(wxShowEvent &event)
 WXLRESULT PopupWindow::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
     if (nMsg == WM_ACTIVATEAPP && wParam == FALSE && IsShown())
-        DismissAndNotify();
+        DismissOnOwnerChange();
     return wxPopupTransientWindow::MSWWindowProc(nMsg, wParam, lParam);
 }
 #endif
