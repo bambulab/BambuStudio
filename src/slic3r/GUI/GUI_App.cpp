@@ -2422,14 +2422,7 @@ void GUI_App::init_networking_callbacks()
         };
         m_agent->set_on_local_message_fn(lan_message_arrive_fn);
         m_agent->set_queue_on_main_fn([this](std::function<void()> callback) {
-            if (is_closing())
-                return;
-            CallAfter([this, callback = std::move(callback)] {
-                // The event may have been queued before shutdown started, but
-                // dispatched by a nested event loop during window teardown.
-                if (!is_closing())
-                    callback();
-            });
+            CallAfter(callback);
         });
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": exit, m_agent=%1%")%m_agent;
@@ -2928,8 +2921,6 @@ bool GUI_App::OnInit()
 
 int GUI_App::OnExit()
 {
-    // Also cover exits that did not pass through MainFrame::shutdown().
-    // Plugin callbacks must stop before their application-side owners go away.
     set_closing(true);
 
 #ifdef __APPLE__
@@ -2945,6 +2936,12 @@ int GUI_App::OnExit()
     // network library's 10s timeout).
     if (m_check_cert_thread.joinable())
         m_check_cert_thread.join();
+
+    // Stop and join discovery before freeing either its agent or the managers
+    // used by its callbacks. The plugin's agent destructor alone does not stop
+    // the SSDP receiver threads on macOS.
+    if (m_agent)
+        m_agent->start_discovery(false, false);
 
     if (m_fila_manager_cloud_disp) {
         delete m_fila_manager_cloud_disp;
@@ -2983,10 +2980,6 @@ int GUI_App::OnExit()
     }
 
     if (m_agent) {
-        // BBS avoid a crash on mac platform
-#ifdef __WINDOWS__
-        m_agent->start_discovery(false, false);
-#endif
         delete m_agent;
         m_agent = nullptr;
     }
