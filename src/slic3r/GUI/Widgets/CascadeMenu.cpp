@@ -1,5 +1,7 @@
 #include "CascadeMenu.hpp"
 
+#include <utility>
+
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 #include <wx/dcmemory.h>
@@ -153,8 +155,13 @@ CascadeMenuItem::CascadeMenuItem(wxWindow *parent, const wxString &text, bool en
         Refresh();
         e.Skip();
     });
+    // Consumed on every row, disabled ones too: a press left unhandled bubbles into
+    // wxPopupTransientWindow, which reads the completed click as a reason to dismiss the menu.
+    Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { m_pressed = true; });
+    Bind(wxEVT_LEFT_UP, &CascadeMenuItem::OnLeftUp, this);
     Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &e) {
-        m_hover = false;
+        m_hover   = false;
+        m_pressed = false; // dragging off the row cancels the pick, as in a native menu
         if (!m_tip.IsEmpty())
             if (auto *menu = dynamic_cast<CascadeMenuPopup *>(GetParent())) menu->HideTip();
         Refresh();
@@ -170,6 +177,25 @@ void CascadeMenuItem::SetDimmed(bool dimmed)
 }
 
 void CascadeMenuItem::SetTip(const wxString &tip) { m_tip = tip; }
+
+void CascadeMenuItem::OnLeftUp(wxMouseEvent &)
+{
+    // A release without a press on this row is the tail of some other click -- typically the one
+    // that opened this menu under the pointer -- and must not pick.
+    const bool pressed = std::exchange(m_pressed, false);
+    if (!pressed || !m_enabled) return;
+
+    // Screen position rather than the event's: on macOS a release can reach the row routed across
+    // the cascade's levels, and each hop rewrites the event coordinates.
+    if (!GetClientRect().Contains(ScreenToClient(wxGetMousePosition()))) return;
+
+    // Not propagated: the popup's parent is the owning window, whose own wxEVT_BUTTON handlers
+    // must never see a menu pick. Nothing is read after dispatch, since a pick may close the menu.
+    wxCommandEvent evt(wxEVT_BUTTON, GetId());
+    evt.SetEventObject(this);
+    evt.StopPropagation();
+    HandleWindowEvent(evt);
+}
 
 void CascadeMenuItem::OnPaint(wxPaintEvent &)
 {

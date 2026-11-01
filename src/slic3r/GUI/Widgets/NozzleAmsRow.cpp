@@ -184,7 +184,7 @@ void show_ams_add_menu(wxWindow *anchor, int extruder_index, PopupWindow *&curre
     auto add_item  = [&](const wxString &label, bool enabled, int slot_count) {
         auto *item = new CascadeMenuItem(menu, label, enabled, false, false);
         if (enabled)
-            item->Bind(wxEVT_LEFT_DOWN, [menu, extruder_index, slot_count, on_changed](wxMouseEvent &) {
+            item->Bind(wxEVT_BUTTON, [menu, extruder_index, slot_count, on_changed](wxCommandEvent &) {
                 add_ams_unit(extruder_index, slot_count);
                 if (on_changed) on_changed();
                 menu->CloseCascade();

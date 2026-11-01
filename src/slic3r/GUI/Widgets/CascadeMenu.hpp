@@ -12,6 +12,7 @@
 #include "slic3r/GUI/Widgets/RoundedPopupWindow.hpp"
 
 class wxBoxSizer;
+class wxMouseEvent;
 class wxPaintEvent;
 
 namespace Slic3r::GUI {
@@ -93,6 +94,10 @@ private:
 /**
  * \brief One row of a nozzle menu: a tick for the current value, the label, and for a first-level
  *        row a trailing chevron that says it opens a submenu.
+ *
+ * Sends wxEVT_BUTTON when the user clicks an enabled row: press and release both on it. The
+ * release, not the press, picks: a menu closed on the press hands the release to whatever window
+ * lies under it. The event stops at the row, so an unhandled pick never reaches the menu's owner.
  */
 class CascadeMenuItem : public wxPanel
 {
@@ -113,6 +118,7 @@ public:
 
 private:
     void OnPaint(wxPaintEvent &evt);
+    void OnLeftUp(wxMouseEvent &evt);
 
     wxString m_text;
     wxString m_tip;
@@ -121,6 +127,7 @@ private:
     bool     m_has_submenu{false};
     bool     m_hover{false};
     bool     m_dimmed{false};
+    bool     m_pressed{false}; // a press started on this row and has not left it yet
     wxBitmap m_tick;
     wxBitmap m_chevron;
 };

@@ -201,11 +201,7 @@ void FilamentNozzlePopup::open_flow_menu(const std::string &diameter, const wxWi
         if (pickable)
             // apply_pick closes both levels itself, at the point in its write-back sequence where
             // the sidebar expects the menu to be gone.
-            item->Bind(wxEVT_LEFT_DOWN, [this, diameter, flow](wxMouseEvent &) { apply_pick(diameter, flow.volume); });
-        else
-            // Swallow the click rather than leave the row unbound: an unhandled one bubbles into
-            // wxPopupTransientWindow, which treats the completed click as a reason to dismiss.
-            item->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &) {});
+            item->Bind(wxEVT_BUTTON, [this, diameter, volume = flow.volume](wxCommandEvent &) { apply_pick(diameter, volume); });
 
         CascadeMenu::AddItem(sub_box, item, first);
         first = false;

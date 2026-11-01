@@ -392,7 +392,7 @@ void NozzleCard::show_edit_menu()
             for (const auto &flow : flow_options_for_diameter(m_extruder_index, diameter)) {
                 const bool checked  = diameter == m_diameter && flow.volume == m_volume;
                 auto      *sub_item = new CascadeMenuItem(sub, flow.label, true, checked, false);
-                sub_item->Bind(wxEVT_LEFT_DOWN, [this, diameter, flow](wxMouseEvent &) {
+                sub_item->Bind(wxEVT_BUTTON, [this, diameter, flow](wxCommandEvent &) {
                     // Tear the menus down first and let this handler return before applying: the pick
                     // can raise a modal confirmation, and a modal loop entered from inside a menu
                     // item's own handler lets the popup lose focus and destroy itself (it is created
@@ -428,7 +428,7 @@ void NozzleCard::show_edit_menu()
 
     // Clearing the slot needs no flow type, so it stays a leaf rather than a diameter row.
     auto *empty_item = new CascadeMenuItem(menu, _L("Empty"), true, m_diameter.IsEmpty(), false);
-    empty_item->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) {
+    empty_item->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
         // Same ordering as the flow items above -- see the comment there.
         close_menus();
         const NozzleVolumeType volume = m_volume;
