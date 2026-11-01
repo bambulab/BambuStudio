@@ -5185,6 +5185,14 @@ void PrintObject::combine_adaptive_infill()
             top_area = opening_ex(
                 diff_ex(solid_area, extrusion_footprint(top_idx + 1, region_id), ApplySafetyOffset::Yes),
                 layerm->flow(frExternalPerimeter).scaled_width() / 10.f);
+            // The group top keeps the top surfaces typed on the fine grid. process_external_surfaces() grew
+            // them into the solid under the material above, so the top pattern reaches the walls there.
+            // The slab footprint above only adds faces the fine grid could not see; it must not shrink them.
+            Polygons top_polygons = to_polygons(top_area);
+            for (const Surface &surface : layerm->fill_surfaces.surfaces)
+                if (surface.surface_type == stTop)
+                    polygons_append(top_polygons, to_polygons(surface.expolygon));
+            top_area = union_ex(top_polygons);
             if (! object_bottom_area.empty())
                 top_area = diff_ex(top_area, object_bottom_area);
         }
