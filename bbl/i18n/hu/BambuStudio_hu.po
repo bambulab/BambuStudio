@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13829,9 +13829,6 @@ msgstr " túl közel van a tiltott területhez, a nyomtatás során előfordulha
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " túl közel van a feltapadásészlelési területhez, a nyomtatás során előfordulhat ütközés.\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "Az aktuális nyomtatótálcán magas hőmérsékletű filamentet használnak. Ne keverd alacsony hőmérsékletű filamentekkel."
-
 msgid "No extrusions under current settings."
 msgstr "A jelenlegi beállítások mellett nincsenek extrudálások."
 
@@ -15791,8 +15788,8 @@ msgstr "Szegmentált régió összekapcsolódási mélysége. A 0 érték letilt
 msgid "Use beam interlocking"
 msgstr "Összekapcsolt gerendák használata"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "Összekapcsolt gerendaszerkezetet hoz létre azokon a helyeken, ahol a különböző filamentek összeérnek. Ez javítja a filamentek közötti tapadást, különösen a különböző anyagokból nyomtatott modelleknél."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "Összekapcsolt gerenda szélessége"
@@ -20231,6 +20228,10 @@ msgstr "Firmware frissítése"
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr "Nyomtatóadatok szinkronizálása"
 
@@ -20716,11 +20717,8 @@ msgstr "Támasztógyűrű létrehozása"
 msgid "Generating support ring: layer %1%"
 msgstr "Támasztógyűrű létrehozása: %1%. réteg"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "Magas hőmérsékletű filament észlelve az AMS-ben. Ne keverd alacsony hőmérsékletű filamentekkel."
-
-msgid "Click Wiki for help."
-msgstr "Kattints a Wikire a segítségért."
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "A fúvóka és a filament szinkronizálása"
@@ -21066,6 +21064,18 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "Az aktuális nyomtatótálcán magas hőmérsékletű filamentet használnak. Ne keverd alacsony hőmérsékletű filamentekkel."
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "Összekapcsolt gerendaszerkezetet hoz létre azokon a helyeken, ahol a különböző filamentek összeérnek. Ez javítja a filamentek közötti tapadást, különösen a különböző anyagokból nyomtatott modelleknél."
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "Magas hőmérsékletű filament észlelve az AMS-ben. Ne keverd alacsony hőmérsékletű filamentekkel."
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "Kattints a Wikire a segítségért."
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "Kérjük, add meg a filamentek érvényes tömegértékeit."

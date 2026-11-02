@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13816,9 +13816,6 @@ msgstr " est trop proche d'une zone d'exclusion. Cela va entraîner des collisio
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " est trop proche de la zone de détection d'encrassement, ce qui provoquera des collisions.\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "Un filament haute température est utilisé sur la plaque actuelle. Ne pas mélanger avec des filaments basse température."
-
 msgid "No extrusions under current settings."
 msgstr "Aucune extrusion dans les paramètres actuels."
 
@@ -15778,8 +15775,8 @@ msgstr "Profondeur d’emboîtement d’une région segmentée. Zéro désactive
 msgid "Use beam interlocking"
 msgstr "Utiliser l'emboîtement des poutres"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "Génère une structure de poutres imbriquées aux endroits où les différents filaments se touchent. Cela améliore l'adhérence entre les filaments, en particulier pour les modèles imprimés dans des matériaux différents."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "Largeur du faisceau d'emboîtement"
@@ -20227,6 +20224,10 @@ msgstr "Mise à jour du firmware"
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr "Synchroniser les informations de l'imprimante"
 
@@ -20712,11 +20713,8 @@ msgstr "Génération d'un anneau de support"
 msgid "Generating support ring: layer %1%"
 msgstr "Génération d'un anneau de support : couche %1%"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "Filament haute température détecté dans l'AMS. Ne pas mélanger avec des filaments basse température."
-
-msgid "Click Wiki for help."
-msgstr "Cliquez sur Wiki pour obtenir de l'aide."
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "Synchronisation de la buse et du filament"
@@ -21061,6 +21059,18 @@ msgid ""
 msgstr ""
 "Fiabilité Garantie du Premier Coup\n"
 "Moins de surveillance, une production plus prévisible. Exemple : une petite exploitation agricole produisant des pièces en PETG évite les mauvaises surprises \"panne au bout de 6 h\" et respecte les délais de production."
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "Un filament haute température est utilisé sur la plaque actuelle. Ne pas mélanger avec des filaments basse température."
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "Génère une structure de poutres imbriquées aux endroits où les différents filaments se touchent. Cela améliore l'adhérence entre les filaments, en particulier pour les modèles imprimés dans des matériaux différents."
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "Filament haute température détecté dans l'AMS. Ne pas mélanger avec des filaments basse température."
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "Cliquez sur Wiki pour obtenir de l'aide."
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "Veuillez saisir des poids de filament valides."

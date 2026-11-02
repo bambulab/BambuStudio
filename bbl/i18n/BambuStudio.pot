@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -13468,9 +13468,6 @@ msgstr ""
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr ""
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr ""
-
 msgid "No extrusions under current settings."
 msgstr ""
 
@@ -15396,7 +15393,7 @@ msgstr ""
 msgid "Use beam interlocking"
 msgstr ""
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
 msgstr ""
 
 msgid "Interlocking beam width"
@@ -19708,6 +19705,10 @@ msgstr ""
 msgid "Current printer status"
 msgstr ""
 
+#, possible-c-format, possible-boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr ""
 
@@ -20190,10 +20191,7 @@ msgstr ""
 msgid "Generating support ring: layer %1%"
 msgstr ""
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
-
-msgid "Click Wiki for help."
+msgid "Mixing high- and low-temperature filaments is not recommended."
 msgstr ""
 
 msgid "Nozzle and Filament Sync"

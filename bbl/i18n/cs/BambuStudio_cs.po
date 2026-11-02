@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -13834,9 +13834,6 @@ msgstr " je příliš blízko vyloučené oblasti a dojde ke kolizím.\n"
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " je příliš blízko oblasti detekce shlukování a dojde ke kolizím.\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr ""
-
 msgid "No extrusions under current settings."
 msgstr "Při aktuálním nastavení nedochází k žádné extruzi."
 
@@ -15804,8 +15801,8 @@ msgstr "Hloubka propojení segmentované oblasti. Nastavení na nulu tuto funkci
 msgid "Use beam interlocking"
 msgstr "Použít vzájemné prokládání nosníků"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "Generuje vzájemně propletenou nosníkovou strukturu v místech, kde se dotýkají různé filamenty. To zlepšuje přilnavost mezi filamenty, zejména u modelů tištěných z různých materiálů."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "Šířka propojovacího nosníku"
@@ -20287,6 +20284,10 @@ msgstr ""
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr ""
 
@@ -20769,11 +20770,8 @@ msgstr ""
 msgid "Generating support ring: layer %1%"
 msgstr ""
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+msgid "Mixing high- and low-temperature filaments is not recommended."
 msgstr ""
-
-msgid "Click Wiki for help."
-msgstr "Klikněte na Wiki pro nápovědu."
 
 msgid "Nozzle and Filament Sync"
 msgstr ""
@@ -21143,6 +21141,12 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "Generuje vzájemně propletenou nosníkovou strukturu v místech, kde se dotýkají různé filamenty. To zlepšuje přilnavost mezi filamenty, zejména u modelů tištěných z různých materiálů."
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "Klikněte na Wiki pro nápovědu."
 
 #, c-format, boost-format
 #~ msgid "%d triangles"

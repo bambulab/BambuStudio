@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -13607,9 +13607,6 @@ msgstr " is too close to exclusion area, there may be collisions when printing.\
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " is too close to probing area of clumping detection, and collisions will be caused.\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr ""
-
 msgid "No extrusions under current settings."
 msgstr "No extrusions under current settings."
 
@@ -15535,7 +15532,7 @@ msgstr "Interlocking depth of a segmented region. Zero disables this feature."
 msgid "Use beam interlocking"
 msgstr ""
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
 msgstr ""
 
 msgid "Interlocking beam width"
@@ -19911,6 +19908,10 @@ msgstr ""
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr ""
 
@@ -20393,10 +20394,7 @@ msgstr ""
 msgid "Generating support ring: layer %1%"
 msgstr ""
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
-
-msgid "Click Wiki for help."
+msgid "Mixing high- and low-temperature filaments is not recommended."
 msgstr ""
 
 msgid "Nozzle and Filament Sync"

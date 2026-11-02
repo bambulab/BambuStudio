@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -13850,9 +13850,6 @@ msgstr " este prea aproape de zona de excludere și vor fi cauzate coliziuni.\n"
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " este prea aproape de zona de detectare a aglomerărilor și vor fi cauzate coliziuni.\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "Pe placa curentă se folosește filament pentru temperatură înaltă. Nu îl amestecați cu filamente pentru temperaturi scăzute."
-
 msgid "No extrusions under current settings."
 msgstr "Nicio extrudare în setările actuale."
 
@@ -15812,8 +15809,8 @@ msgstr "Adâncimea de interconectare a unei regiuni segmentate. Zero dezactiveaz
 msgid "Use beam interlocking"
 msgstr "Utilizează interblocarea grinzilor"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "Generați o structură de grinzi interconectate în locurile în care diferite filamente se ating. Acest lucru îmbunătățește aderența dintre filamente, în special a modelelor imprimate în materiale diferite."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "Lățimea grinzilor interconectate"
@@ -20256,6 +20253,10 @@ msgstr "Actualizați firmware-ul"
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr "Sincronizați informațiile despre imprimantă"
 
@@ -20742,11 +20743,8 @@ msgstr "Se generează inelul de suport"
 msgid "Generating support ring: layer %1%"
 msgstr "Se generează inelul de suport: stratul %1%"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "A fost detectat în AMS un filament pentru temperaturi înalte. Nu îl amestecați cu filamente pentru temperaturi scăzute."
-
-msgid "Click Wiki for help."
-msgstr "Faceți clic pe Wiki pentru ajutor."
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "Sincronizarea duzei și a filamentului"
@@ -21091,6 +21089,18 @@ msgid ""
 msgstr ""
 "Fiabilitate de la prima încercare\n"
 "Mai puțină supraveghere, rezultate mai previzibile. Exemplu: o fermă mică care produce piese PETG evită surprizele de tip „defecțiune la ora 6” și menține loturile la timp."
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "Pe placa curentă se folosește filament pentru temperatură înaltă. Nu îl amestecați cu filamente pentru temperaturi scăzute."
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "Generați o structură de grinzi interconectate în locurile în care diferite filamente se ating. Acest lucru îmbunătățește aderența dintre filamente, în special a modelelor imprimate în materiale diferite."
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "A fost detectat în AMS un filament pentru temperaturi înalte. Nu îl amestecați cu filamente pentru temperaturi scăzute."
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "Faceți clic pe Wiki pentru ajutor."
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "Introduceți greutăți valide pentru filament."

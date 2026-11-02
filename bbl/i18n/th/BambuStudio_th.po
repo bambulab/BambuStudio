@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -13820,9 +13820,6 @@ msgstr " อยู่ใกล้กับเขตห้ามวางมา�
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " อยู่ใกล้กับพื้นที่ตรวจจับการจับเป็นก้อนมากเกินไป อาจเกิดการชน\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "แผ่นพิมพ์ปัจจุบันใช้เส้นวัสดุทนความร้อนสูง อย่าผสมกับเส้นวัสดุอุณหภูมิต่ำ"
-
 msgid "No extrusions under current settings."
 msgstr "ไม่มีการฉีดในการตั้งค่าปัจจุบัน"
 
@@ -15782,8 +15779,8 @@ msgstr "ความลึกของการยึดประสานขอ
 msgid "Use beam interlocking"
 msgstr "ใช้คานยึดประสาน"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "สร้างโครงสร้างคานยึดประสานในบริเวณที่เส้นวัสดุต่างประเภทกันสัมผัสกัน ซึ่งช่วยปรับปรุงการยึดเกาะระหว่างเส้นวัสดุ โดยเฉพาะโมเดลที่พิมพ์ด้วยวัสดุต่างประเภทกัน"
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "ความกว้างของคานยึดประสาน"
@@ -20228,6 +20225,10 @@ msgstr "อัปเดตเฟิร์มแวร์"
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr "ซิงค์ข้อมูลเครื่องพิมพ์"
 
@@ -20712,11 +20713,8 @@ msgstr "การสร้างวงแหวนรองรับ"
 msgid "Generating support ring: layer %1%"
 msgstr "การสร้างวงแหวนรองรับ: เลเยอร์ %1%"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "ตรวจพบเส้นวัสดุทนความร้อนสูงใน AMS อย่าผสมกับเส้นวัสดุอุณหภูมิต่ำ"
-
-msgid "Click Wiki for help."
-msgstr "คลิกที่ Wiki สำหรับความช่วยเหลือ"
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "การซิงค์หัวฉีดและเส้นวัสดุ"
@@ -21061,6 +21059,18 @@ msgid ""
 msgstr ""
 "ความน่าเชื่อถือแบบสำเร็จตั้งแต่ครั้งแรก\n"
 "ไม่ต้องคอยเฝ้า ได้ผลลัพธ์ที่คาดเดาได้มากขึ้น ตัวอย่าง: ฟาร์มพิมพ์ขนาดเล็กที่ผลิตชิ้นส่วน PETG สามารถหลีกเลี่ยงปัญหา 'งานเสียในชั่วโมงที่ 6' และส่งมอบงานได้ตรงตามกำหนด"
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "แผ่นพิมพ์ปัจจุบันใช้เส้นวัสดุทนความร้อนสูง อย่าผสมกับเส้นวัสดุอุณหภูมิต่ำ"
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "สร้างโครงสร้างคานยึดประสานในบริเวณที่เส้นวัสดุต่างประเภทกันสัมผัสกัน ซึ่งช่วยปรับปรุงการยึดเกาะระหว่างเส้นวัสดุ โดยเฉพาะโมเดลที่พิมพ์ด้วยวัสดุต่างประเภทกัน"
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "ตรวจพบเส้นวัสดุทนความร้อนสูงใน AMS อย่าผสมกับเส้นวัสดุอุณหภูมิต่ำ"
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "คลิกที่ Wiki สำหรับความช่วยเหลือ"
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "โปรดป้อนน้ำหนักเส้นวัสดุที่ถูกต้อง"

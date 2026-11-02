@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13823,9 +13823,6 @@ msgstr " bevindt zich te dicht bij het uitsluitingsgebied en er zullen botsingen
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " te dicht bij het klonteringsdetectiegebied, er gaan botsingen optreden bij het printen.\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "Op de huidige plaat wordt filament voor hoge temperaturen gebruikt. Niet mengen met filamenten voor lage temperaturen."
-
 msgid "No extrusions under current settings."
 msgstr "Geen extrusion onder de huidige instellingen"
 
@@ -15787,8 +15784,8 @@ msgstr "Insluitdiepte van een gesegmenteerd gebied. Nul schakelt deze functie ui
 msgid "Use beam interlocking"
 msgstr "Gebruik balkvergrendeling"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "Genereer een in elkaar grijpende balkstructuur op de locaties waar verschillende filamenten elkaar raken. Dit verbetert de hechting tussen filamenten, vooral voor modellen die in verschillende materialen zijn geprint."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "In elkaar grijpende balkbreedte"
@@ -20234,6 +20231,10 @@ msgstr "Firmware bijwerken"
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr "Printerinformatie synchroniseren"
 
@@ -20719,11 +20720,8 @@ msgstr "Ondersteuningsring wordt gegenereerd"
 msgid "Generating support ring: layer %1%"
 msgstr "Ondersteuningsring wordt gegenereerd: laag %1%"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "Hoogtemperatuur filament gedetecteerd in AMS. Niet mengen met filamenten voor lage temperaturen."
-
-msgid "Click Wiki for help."
-msgstr "Klik op Wiki voor hulp."
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "Synchronisatie van nozzle en filament"
@@ -21068,6 +21066,18 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "Op de huidige plaat wordt filament voor hoge temperaturen gebruikt. Niet mengen met filamenten voor lage temperaturen."
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "Genereer een in elkaar grijpende balkstructuur op de locaties waar verschillende filamenten elkaar raken. Dit verbetert de hechting tussen filamenten, vooral voor modellen die in verschillende materialen zijn geprint."
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "Hoogtemperatuur filament gedetecteerd in AMS. Niet mengen met filamenten voor lage temperaturen."
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "Klik op Wiki voor hulp."
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "Voer geldige filamentgewichten in."

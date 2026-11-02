@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13836,9 +13836,6 @@ msgstr " ist zu nahe am Sperrbereich und es werden Kollisionen verursacht.\n"
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " ist zu nahe am Bereich der Klumpenerkennung, wodurch Kollisionen verursacht werden.\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "Auf der aktuellen Druckplatte wird Hochtemperatur-Filament verwendet. Mischen Sie es nicht mit Niedertemperatur-Filamenten."
-
 msgid "No extrusions under current settings."
 msgstr "Keine Extrusion unter den aktuellen Einstellungen."
 
@@ -15798,8 +15795,8 @@ msgstr "Ineinandergreifungstiefe eines segmentierten Bereichs. Null deaktiviert 
 msgid "Use beam interlocking"
 msgstr "Verwende Interlock-Strukturen"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "Erzeugt eine ineinandergreifendes Muster an den Stellen, an denen sich verschiedene Filamente berühren. Dies verbessert die Haftung zwischen den Filamenten, insbesondere bei Modellen, die aus verschiedenen Materialien gedruckt wurden."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "Interlock-Struktur-Breite"
@@ -20241,6 +20238,10 @@ msgstr "Firmware aktualisieren"
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr "Druckerinformationen synchronisieren"
 
@@ -20726,11 +20727,8 @@ msgstr "Stützring wird generiert"
 msgid "Generating support ring: layer %1%"
 msgstr "Stützring wird generiert: Schicht %1%"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "Hochtemperatur-Filament im AMS erkannt. Mischen Sie es nicht mit Niedertemperatur-Filamenten."
-
-msgid "Click Wiki for help."
-msgstr "Klicken Sie auf Wiki für Hilfe."
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "Düsen- und Filamentsynchronisierung"
@@ -21075,6 +21073,18 @@ msgid ""
 msgstr ""
 "Zuverlässigkeit auf Anhieb\n"
 "Weniger Überwachung, vorhersagbarere Ausgabe. Beispiel: Eine kleine Farm, die PETG-Teile druckt, vermeidet Überraschungen wie \"Ausfall in Stunde 6\" und hält Chargen im Zeitplan."
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "Auf der aktuellen Druckplatte wird Hochtemperatur-Filament verwendet. Mischen Sie es nicht mit Niedertemperatur-Filamenten."
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "Erzeugt eine ineinandergreifendes Muster an den Stellen, an denen sich verschiedene Filamente berühren. Dies verbessert die Haftung zwischen den Filamenten, insbesondere bei Modellen, die aus verschiedenen Materialien gedruckt wurden."
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "Hochtemperatur-Filament im AMS erkannt. Mischen Sie es nicht mit Niedertemperatur-Filamenten."
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "Klicken Sie auf Wiki für Hilfe."
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "Bitte geben Sie gültige Filamentgewichte ein."

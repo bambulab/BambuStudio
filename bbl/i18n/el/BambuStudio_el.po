@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -13835,9 +13835,6 @@ msgstr " βρίσκεται πολύ κοντά στην περιοχή αποκ
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " βρίσκεται πολύ κοντά στην περιοχή ανίχνευσης συσσωμάτωσης και θα προκληθούν συγκρούσεις.\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "Χρησιμοποιείται νήμα υψηλής θερμοκρασίας στην τρέχουσα πλάκα. Μην το αναμιγνύετε με νήματα χαμηλής θερμοκρασίας."
-
 msgid "No extrusions under current settings."
 msgstr "Δεν υπάρχουν εξωθήσεις υπό τις τρέχουσες ρυθμίσεις."
 
@@ -15797,8 +15794,8 @@ msgstr "Βάθος αλληλοσύνδεσης μιας τμηματοποιη�
 msgid "Use beam interlocking"
 msgstr "Χρήση δοκών με ενδοασφάλιση"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "Δημιουργήστε δομή δοκού με ενδοασφάλιση στις θέσεις όπου εφάπτονται διαφορετικά νήματα. Αυτό βελτιώνει τη συγκόλληση μεταξύ των νημάτων, ειδικά των μοντέλων που είναι εκτυπωμένα σε διαφορετικά υλικά."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "Πλάτος δοκού με ενδοασφάλιση"
@@ -20244,6 +20241,10 @@ msgstr "Ενημέρωση υλικολογισμικού"
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr "Συγχρονισμός πληροφοριών εκτυπωτή"
 
@@ -20729,11 +20730,8 @@ msgstr "Δημιουργία δακτυλίου υποστήριξης"
 msgid "Generating support ring: layer %1%"
 msgstr "Δημιουργία δακτυλίου υποστήριξης: επίπεδο %1%"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "Ανιχνεύτηκε νήμα υψηλής θερμοκρασίας στο AMS. Μην το αναμιγνύετε με νήματα χαμηλής θερμοκρασίας."
-
-msgid "Click Wiki for help."
-msgstr "Κάντε κλικ στο Wiki για βοήθεια."
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "Συγχρονισμός ακροφυσίου και νήματος"
@@ -21078,6 +21076,18 @@ msgid ""
 msgstr ""
 "Αξιοπιστία με την πρώτη\n"
 "Λιγότερη ταλαιπωρία, πιο προβλέψιμη απόδοση. Παράδειγμα: μια μικρή εταιρεία που εκτυπώνει τμήματα PETG αποφεύγει τις εκπλήξεις που προκαλούνται από «αστοχίες την 6η ώρα» και διατηρεί τις παρτίδες εντός χρονοδιαγράμματος."
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "Χρησιμοποιείται νήμα υψηλής θερμοκρασίας στην τρέχουσα πλάκα. Μην το αναμιγνύετε με νήματα χαμηλής θερμοκρασίας."
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "Δημιουργήστε δομή δοκού με ενδοασφάλιση στις θέσεις όπου εφάπτονται διαφορετικά νήματα. Αυτό βελτιώνει τη συγκόλληση μεταξύ των νημάτων, ειδικά των μοντέλων που είναι εκτυπωμένα σε διαφορετικά υλικά."
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "Ανιχνεύτηκε νήμα υψηλής θερμοκρασίας στο AMS. Μην το αναμιγνύετε με νήματα χαμηλής θερμοκρασίας."
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "Κάντε κλικ στο Wiki για βοήθεια."
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "Εισαγάγετε έγκυρα βάρη νημάτων."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -13825,9 +13825,6 @@ msgstr " hariç tutma alanına çok yakın ve çarpışmalara neden olacaktır.\
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " kümelenme tespit alanına çok yakın olduğundan çarpışmalar meydana gelecektir.\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "Mevcut baskı tablasında yüksek sıcaklık filamenti kullanılıyor. Düşük sıcaklık filamentleriyle karıştırmayın."
-
 msgid "No extrusions under current settings."
 msgstr "Mevcut ayarlarda ekstrüzyon yapılmamaktadır."
 
@@ -15787,8 +15784,8 @@ msgstr "Bölümlere ayrılmış bir bölgenin kenetlenen derinliği. Sıfır de�
 msgid "Use beam interlocking"
 msgstr "Kiriş kilitlemesini kullanın."
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "Farklı filamentlerin temas ettiği noktalarda kenetlenen kiriş yapısı oluştur. Bu, özellikle farklı malzemelerle basılmış modellerde, filamentler arasındaki yapışmayı iyileştirir."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "Kenetlenen kiriş genişliği"
@@ -20228,6 +20225,10 @@ msgstr "Ürün Yazılımını Güncelle"
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr "Yazıcı Bilgilerini Senkronize Et"
 
@@ -20713,11 +20714,8 @@ msgstr "Destek halkası oluşturuluyor"
 msgid "Generating support ring: layer %1%"
 msgstr "Destek halkası oluşturuluyor: katman %1%"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "AMS'de yüksek sıcaklık filamenti tespit edildi. Düşük sıcaklık filamentleriyle karıştırmayın."
-
-msgid "Click Wiki for help."
-msgstr "Yardım için Wiki'ye tıkla."
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "Meme ve Filament Senkronizasyonu"
@@ -21062,6 +21060,18 @@ msgid ""
 msgstr ""
 "İlk Seferde Başarı Güvenilirliği\n"
 "Daha az gözetim, daha öngörülebilir sonuçlar. Örnek: PETG parçaları üreten küçük bir yazıcı çiftliği, \"6. saatte baskının başarısız olması\" gibi sürprizlerden kaçınır ve partileri programa uygun şekilde tamamlar."
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "Mevcut baskı tablasında yüksek sıcaklık filamenti kullanılıyor. Düşük sıcaklık filamentleriyle karıştırmayın."
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "Farklı filamentlerin temas ettiği noktalarda kenetlenen kiriş yapısı oluştur. Bu, özellikle farklı malzemelerle basılmış modellerde, filamentler arasındaki yapışmayı iyileştirir."
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "AMS'de yüksek sıcaklık filamenti tespit edildi. Düşük sıcaklık filamentleriyle karıştırmayın."
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "Yardım için Wiki'ye tıkla."
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "Lütfen geçerli filament ağırlıklarını girin."

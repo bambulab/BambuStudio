@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13768,9 +13768,6 @@ msgstr "除外領域に近すぎます。衝突が発生します。\n"
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr "クラミング検出エリアに近すぎるため、衝突が発生します。\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "現在のプレートでは高温フィラメントが使用されています。低温フィラメントと混合しないでください。"
-
 msgid "No extrusions under current settings."
 msgstr "現在の設定では造形しません"
 
@@ -15746,8 +15743,8 @@ msgstr "分割領域のかみ合わせ深さ。0にするとこの機能が無�
 msgid "Use beam interlocking"
 msgstr "梁のインターロックを使用"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "異なるフィラメントが接する箇所に、かみ合わせ式のビーム構造を生成します。これにより、特に異なる材料で印刷されたモデルのフィラメント間の接着性が向上します。"
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "かみ合わせビーム幅"
@@ -20217,6 +20214,10 @@ msgstr "ファームウェアを更新"
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr "プリンター情報を同期"
 
@@ -20701,11 +20702,8 @@ msgstr "サポートリングを生成中"
 msgid "Generating support ring: layer %1%"
 msgstr "サポートリングを生成中：第%1%層"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "AMSで高温フィラメントが検出されました。低温フィラメントと混合しないでください。"
-
-msgid "Click Wiki for help."
-msgstr "詳しくはWikiをクリックしてください。"
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "ノズルとフィラメントの同期"
@@ -21047,6 +21045,18 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "現在のプレートでは高温フィラメントが使用されています。低温フィラメントと混合しないでください。"
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "異なるフィラメントが接する箇所に、かみ合わせ式のビーム構造を生成します。これにより、特に異なる材料で印刷されたモデルのフィラメント間の接着性が向上します。"
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "AMSで高温フィラメントが検出されました。低温フィラメントと混合しないでください。"
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "詳しくはWikiをクリックしてください。"
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "有効なフィラメント重量を入力してください。"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -13819,9 +13819,6 @@ msgstr " terlalu dekat dengan area yang tidak dapat dicetak, dan dapat menyebabk
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " terlalu dekat dengan area deteksi penggumpalan, dan akan menyebabkan tabrakan.\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "Filamen suhu tinggi digunakan pada pelat saat ini. Jangan mencampurnya dengan filamen bersuhu rendah."
-
 msgid "No extrusions under current settings."
 msgstr "Tidak ada ekstrusi berdasarkan pengaturan saat ini."
 
@@ -15781,8 +15778,8 @@ msgstr "Kedalaman penguncian area tersegmentasi. Nol menonaktifkan fitur ini."
 msgid "Use beam interlocking"
 msgstr "Gunakan balok saling mengunci"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "Hasilkan struktur balok saling mengunci di lokasi di mana filamen yang berbeda bersentuhan. Ini meningkatkan daya rekat antar filamen, terutama model yang dicetak dengan material berbeda."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "Lebar balok saling mengunci"
@@ -20227,6 +20224,10 @@ msgstr "Perbarui Firmware"
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr "Sinkronkan Informasi Printer"
 
@@ -20711,11 +20712,8 @@ msgstr "Menghasilkan cincin penyangga"
 msgid "Generating support ring: layer %1%"
 msgstr "Menghasilkan cincin penyangga: lapisan %1%"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "Filamen suhu tinggi terdeteksi di AMS. Jangan mencampurnya dengan filamen bersuhu rendah."
-
-msgid "Click Wiki for help."
-msgstr "Klik Wiki untuk bantuan."
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "Sinkronisasi Nosel dan Filamen"
@@ -21060,6 +21058,18 @@ msgid ""
 msgstr ""
 "Keandalan Tepat di Percobaan Pertama \n"
 "Lebih sedikit pengawasan, hasil yang lebih terprediksi. Contoh: fasilitas print farm kecil yang mencetak komponen PETG menghindari kejutan 'gagal pada jam ke-6' dan menjaga produksi tetap sesuai jadwal."
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "Filamen suhu tinggi digunakan pada pelat saat ini. Jangan mencampurnya dengan filamen bersuhu rendah."
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "Hasilkan struktur balok saling mengunci di lokasi di mana filamen yang berbeda bersentuhan. Ini meningkatkan daya rekat antar filamen, terutama model yang dicetak dengan material berbeda."
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "Filamen suhu tinggi terdeteksi di AMS. Jangan mencampurnya dengan filamen bersuhu rendah."
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "Klik Wiki untuk bantuan."
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "Masukkan berat filamen yang valid."

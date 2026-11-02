@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13817,9 +13817,6 @@ msgstr "출력배제영역에 너무 가까워 출력시 충돌이 발생할 수
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " 뭉침 감지 영역에 너무 가까워 충돌이 발생할 수 있습니다.\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "현재 플레이트에 고온 필라멘트가 사용되고 있습니다. 저온용 필라멘트와 혼합하지 마십시오."
-
 msgid "No extrusions under current settings."
 msgstr "현재 설정에서는 압출이 안됩니다."
 
@@ -15780,8 +15777,8 @@ msgstr "분할된 영역의 연동 깊이. 0은 이 기능을 비활성화합니
 msgid "Use beam interlocking"
 msgstr "빔 연동 사용"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "서로 다른 필라멘트가 맞닿는 위치에 연동 빔 구조를 생성합니다. 이렇게 하면 필라멘트 간의 접착력, 특히 서로 다른 재질로 출력된 모델 간의 접착력이 향상됩니다."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "연동 빔 폭"
@@ -20225,6 +20222,10 @@ msgstr "펌웨어 업데이트"
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr "프린터 정보 동기화"
 
@@ -20709,11 +20710,8 @@ msgstr "서포트 링 생성 중"
 msgid "Generating support ring: layer %1%"
 msgstr "서포트 링 생성 중: 레이어 %1%"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "AMS에서 고온 필라멘트가 검출되었습니다. 저온용 필라멘트와 혼합하지 마십시오."
-
-msgid "Click Wiki for help."
-msgstr "위키를 클릭하여 도움을 받습니다."
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "노즐 및 필라멘트 동기화"
@@ -21058,6 +21056,18 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "현재 플레이트에 고온 필라멘트가 사용되고 있습니다. 저온용 필라멘트와 혼합하지 마십시오."
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "서로 다른 필라멘트가 맞닿는 위치에 연동 빔 구조를 생성합니다. 이렇게 하면 필라멘트 간의 접착력, 특히 서로 다른 재질로 출력된 모델 간의 접착력이 향상됩니다."
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "AMS에서 고온 필라멘트가 검출되었습니다. 저온용 필라멘트와 혼합하지 마십시오."
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "위키를 클릭하여 도움을 받습니다."
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "유효한 필라멘트 무게를 입력해 주세요."

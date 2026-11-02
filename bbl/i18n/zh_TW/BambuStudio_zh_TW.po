@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -13780,9 +13780,6 @@ msgstr "離不可列印區域太近，會發生碰撞。\n"
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " 太靠近裹頭檢測區域，會發生碰撞。\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "目前列印板使用了高溫線材。請勿與低溫線材混合。"
-
 msgid "No extrusions under current settings."
 msgstr "根據當前設定，不會生成任何列印。"
 
@@ -15745,8 +15742,8 @@ msgstr "分割區域的交錯深度。0 則禁用此功能。"
 msgid "Use beam interlocking"
 msgstr "啟用互鎖梁"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "在不同位置生成互鎖梁結構細絲接觸。這提高了細絲之間的附著力，尤其是用不同材料印刷的模型。"
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "互鎖梁寬度"
@@ -20174,6 +20171,10 @@ msgstr "更新韌體"
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr "同步印表機資訊"
 
@@ -20658,11 +20659,8 @@ msgstr "正在產生支撐環"
 msgid "Generating support ring: layer %1%"
 msgstr "正在產生支撐環：第 %1% 層"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "AMS 中偵測到高溫線材。請勿與低溫線材混合。"
-
-msgid "Click Wiki for help."
-msgstr "點選Wiki尋求幫助。"
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "噴頭與線材同步"
@@ -21007,6 +21005,18 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "目前列印板使用了高溫線材。請勿與低溫線材混合。"
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "在不同位置生成互鎖梁結構細絲接觸。這提高了細絲之間的附著力，尤其是用不同材料印刷的模型。"
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "AMS 中偵測到高溫線材。請勿與低溫線材混合。"
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "點選Wiki尋求幫助。"
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "請輸入有效的線材重量。"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -14010,9 +14010,6 @@ msgstr " находится слишком близко к запретной з
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " находится слишком близко к зоне обнаружения слипания; при печати произойдут столкновения.\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "На текущей пластине используется высокотемпературный филамент. Не смешивайте его с низкотемпературными филаментами."
-
 msgid "No extrusions under current settings."
 msgstr "При текущих настройках экструзия отсутствует."
 
@@ -15998,8 +15995,8 @@ msgstr "Глубина взаимосвязи сегментированной �
 msgid "Use beam interlocking"
 msgstr "Использовать взаимосвязанную структуру"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "Создавать взаимосвязанную балочную структуру в местах контакта разных филаментов. Это улучшает сцепление между филаментами, особенно при печати модели из разных материалов."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "Ширина взаимосвязанных структур"
@@ -20489,6 +20486,10 @@ msgstr "Обновить прошивку"
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr "Синхронизировать информацию о принтере"
 
@@ -20976,11 +20977,8 @@ msgstr "Создание кольца поддержки"
 msgid "Generating support ring: layer %1%"
 msgstr "Создание кольца поддержки: слой %1%"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "В AMS обнаружен высокотемпературный филамент. Не смешивайте его с низкотемпературными филаментами."
-
-msgid "Click Wiki for help."
-msgstr "Нажмите Wiki для получения справки."
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "Синхронизация сопла и филамента"
@@ -21326,6 +21324,18 @@ msgid ""
 msgstr ""
 "Надёжный результат с первой попытки\n"
 "Меньше постоянного контроля — более предсказуемый результат. Например, небольшая ферма, печатающая детали из PETG, избегает неожиданных сбоев на шестом часу печати и выпускает партии по графику."
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "На текущей пластине используется высокотемпературный филамент. Не смешивайте его с низкотемпературными филаментами."
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "Создавать взаимосвязанную балочную структуру в местах контакта разных филаментов. Это улучшает сцепление между филаментами, особенно при печати модели из разных материалов."
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "В AMS обнаружен высокотемпературный филамент. Не смешивайте его с низкотемпературными филаментами."
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "Нажмите Wiki для получения справки."
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "Пожалуйста, введите допустимые значения веса филаментов."

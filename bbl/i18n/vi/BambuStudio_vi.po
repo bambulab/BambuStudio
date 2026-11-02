@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -13821,9 +13821,6 @@ msgstr " quá gần với khu vực loại trừ và sẽ gây va chạm.\n"
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " quá gần khu vực phát hiện vón cục, và sẽ gây ra va chạm.\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "Sợi nhựa chịu nhiệt cao đang được sử dụng trên bàn in hiện tại. Không trộn sợi nhựa này với các loại sợi nhựa chịu nhiệt thấp."
-
 msgid "No extrusions under current settings."
 msgstr "Không có đường đùn nào với cài đặt hiện tại."
 
@@ -15783,8 +15780,8 @@ msgstr "Độ sâu liên kết của vùng phân đoạn. Bằng 0 sẽ tắt t�
 msgid "Use beam interlocking"
 msgstr "Sử dụng thanh liên kết"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "Tạo cấu trúc thanh liên kết tại các vị trí tiếp xúc giữa các sợi nhựa khác nhau. Điều này cải thiện độ bám dính giữa các sợi nhựa, đặc biệt là các mô hình được in bằng vật liệu khác nhau."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "Chiều rộng thanh liên kết"
@@ -20226,6 +20223,10 @@ msgstr "Cập nhật Firmware"
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr "Đồng bộ thông tin máy in"
 
@@ -20710,11 +20711,8 @@ msgstr "Đang tạo vòng đỡ"
 msgid "Generating support ring: layer %1%"
 msgstr "Đang tạo vòng đỡ: lớp %1%"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "Phát hiện sợi nhựa chịu nhiệt cao trong AMS. Không trộn sợi nhựa này với các loại sợi nhựa chịu nhiệt thấp."
-
-msgid "Click Wiki for help."
-msgstr "Nhấp Wiki để được trợ giúp."
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "Đồng bộ hóa vòi phun và sợi nhựa"
@@ -21059,6 +21057,18 @@ msgid ""
 msgstr ""
 "Độ tin cậy thành công ngay lần đầu\n"
 "Giảm bớt việc phải theo dõi liên tục, tăng tính dự đoán được của kết quả đầu ra. Ví dụ: một cụm máy in nhỏ in các bộ phận bằng PETG sẽ tránh được những sự cố bất ngờ như \"hỏng hóc sau 6 giờ\" và đảm bảo các lô sản phẩm được hoàn tất đúng tiến độ."
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "Sợi nhựa chịu nhiệt cao đang được sử dụng trên bàn in hiện tại. Không trộn sợi nhựa này với các loại sợi nhựa chịu nhiệt thấp."
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "Tạo cấu trúc thanh liên kết tại các vị trí tiếp xúc giữa các sợi nhựa khác nhau. Điều này cải thiện độ bám dính giữa các sợi nhựa, đặc biệt là các mô hình được in bằng vật liệu khác nhau."
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "Phát hiện sợi nhựa chịu nhiệt cao trong AMS. Không trộn sợi nhựa này với các loại sợi nhựa chịu nhiệt thấp."
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "Nhấp Wiki để được trợ giúp."
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "Vui lòng nhập trọng lượng sợi nhựa hợp lệ."

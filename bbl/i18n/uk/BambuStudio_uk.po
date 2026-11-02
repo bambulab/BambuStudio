@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -13646,9 +13646,6 @@ msgstr " знаходиться надто близько до зони відч
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr ""
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr ""
-
 msgid "No extrusions under current settings."
 msgstr "Немає екструзій під час поточних налаштувань."
 
@@ -15586,7 +15583,7 @@ msgstr "Глибина взаємного взаємодії сегментов�
 msgid "Use beam interlocking"
 msgstr ""
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
 msgstr ""
 
 msgid "Interlocking beam width"
@@ -19972,6 +19969,10 @@ msgstr ""
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr ""
 
@@ -20454,11 +20455,8 @@ msgstr ""
 msgid "Generating support ring: layer %1%"
 msgstr ""
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+msgid "Mixing high- and low-temperature filaments is not recommended."
 msgstr ""
-
-msgid "Click Wiki for help."
-msgstr "Натисніть Wiki для допомоги."
 
 msgid "Nozzle and Filament Sync"
 msgstr ""
@@ -20786,6 +20784,9 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "Натисніть Wiki для допомоги."
 
 #, c-format, boost-format
 #~ msgid "%d triangles"

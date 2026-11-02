@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -13813,9 +13813,6 @@ msgstr " är för nära uteslutningsområdet, och kollisioner kommer att orsakas
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " är för nära klumpar detekterings området, och kollisioner kommer att orsakas.\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "Högtemperatursfilament används på den aktuella plattan. Blanda det inte med lågtemperaturfilament."
-
 msgid "No extrusions under current settings."
 msgstr "Nuvarande inställning har ingen extrudering."
 
@@ -15775,8 +15772,8 @@ msgstr "Sammankopplingsdjup för en segmenterad region. Noll inaktiverar denna f
 msgid "Use beam interlocking"
 msgstr "Använd balk förregling"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "Skapa en sammankopplad balkstruktur på de ställen där olika filament rör vid varandra. Detta förbättrar vidhäftningen mellan filamenten, särskilt för modeller som är utskrivna i olika material."
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr ""
 
 msgid "Interlocking beam width"
 msgstr "Sammankopplad balk bredd"
@@ -20227,6 +20224,10 @@ msgstr "Uppdatera firmware"
 msgid "Current printer status"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr ""
+
 msgid "Sync Printer Information"
 msgstr "Synkronisera skrivarinformation"
 
@@ -20712,11 +20713,8 @@ msgstr "Genererar stödring"
 msgid "Generating support ring: layer %1%"
 msgstr "Genererar stödring: lager %1%"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "Högtemperatursfilament detekterat i AMS. Blanda det inte med lågtemperaturfilament."
-
-msgid "Click Wiki for help."
-msgstr "Klicka på Wiki för hjälp."
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "Synkronisering av nozzle och filament"
@@ -21059,6 +21057,18 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "Högtemperatursfilament används på den aktuella plattan. Blanda det inte med lågtemperaturfilament."
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "Skapa en sammankopplad balkstruktur på de ställen där olika filament rör vid varandra. Detta förbättrar vidhäftningen mellan filamenten, särskilt för modeller som är utskrivna i olika material."
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "Högtemperatursfilament detekterat i AMS. Blanda det inte med lågtemperaturfilament."
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "Klicka på Wiki för hjälp."
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "Ange giltiga filamentvikter."

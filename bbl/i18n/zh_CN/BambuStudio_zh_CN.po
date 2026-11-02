@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 15:04+0800\n"
+"POT-Creation-Date: 2026-11-02 12:14+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1711,7 +1711,7 @@ msgid "Simplification is currently only allowed when a single part is selected"
 msgstr "仅支持对单个零件做简化"
 
 msgid "Simplification method"
-msgstr ""
+msgstr "简化方式"
 
 msgid "Extra high"
 msgstr "非常高"
@@ -1730,7 +1730,7 @@ msgstr "非常低"
 
 #, boost-format
 msgid "Triangles after simplification: %1%"
-msgstr ""
+msgstr "简化后的三角形数量：%1%"
 
 msgid "Show wireframe"
 msgstr "显示线框"
@@ -1742,10 +1742,10 @@ msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all 
 msgstr "包括颜色绘制、Z缝绘制、支撑绘制和绒毛表面绘制。不勾选时，布尔结果不保留任何绘制。"
 
 msgid "All painting (color, seam, support and fuzzy skin) will be removed from the simplified model. Check \"Keep all painting\" to keep it."
-msgstr ""
+msgstr "所有绘制（颜色绘制、Z缝绘制、支撑绘制和绒毛表面绘制）将从简化后的模型中移除。勾选“保留所有绘制”可保留这些绘制。"
 
 msgid "Calculating simplified preview..."
-msgstr ""
+msgstr "计算简化预览"
 
 #, boost-format
 msgid "%1%"
@@ -13774,9 +13774,6 @@ msgstr "离不可打印区域太近，会发生碰撞。\n"
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " 太靠近裹头检测区域，会发生碰撞。\n"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
-msgstr "检测到当前盘使用了高温材料，请注意不要和低温材料混合打印。"
-
 msgid "No extrusions under current settings."
 msgstr "根据当前设置，不会生成任何打印。"
 
@@ -15740,8 +15737,8 @@ msgstr "分割区域的交错深度。0 则禁用此功能。"
 msgid "Use beam interlocking"
 msgstr "启用互锁梁"
 
-msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "在不同位置生成互锁梁结构细丝接触。这提高了细丝之间的附着力，尤其是用不同材料印刷的模型。"
+msgid "Generate interlocking beam structure at the locations where different filaments touch, only between two parts that both enable this option. This improves the adhesion between filaments, especially models printed in different materials."
+msgstr "在不同耗材接触的位置生成互锁梁结构，只在两个都开启了此选项的部件之间生成。可以提高耗材之间的粘接力，对使用不同材料打印的模型效果尤其明显。"
 
 msgid "Interlocking beam width"
 msgstr "互锁梁宽度"
@@ -19569,7 +19566,7 @@ msgid "Please check the Assistant for troubleshooting"
 msgstr "请查看助手以进行故障排除"
 
 msgid "Unknown filaments will be treated as PLA."
-msgstr "*未知的耗材会被当作PLA处理。"
+msgstr "未知的耗材会被当作PLA处理。"
 
 msgid "Rotate spool when drying"
 msgstr "烘干时旋转料盘"
@@ -20167,6 +20164,10 @@ msgstr "更新固件"
 msgid "Current printer status"
 msgstr "当前打印机状态"
 
+#, c-format, boost-format
+msgid "Connected printer %s, view machine status"
+msgstr "已连接打印机 %s，查看机器状态"
+
 msgid "Sync Printer Information"
 msgstr "同步打印机信息"
 
@@ -20653,11 +20654,8 @@ msgstr "正在生成支撑环"
 msgid "Generating support ring: layer %1%"
 msgstr "正在生成支撑环：层 %1%"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr "AMS中检测到高温耗材。请勿与低温耗材混用。"
-
-msgid "Click Wiki for help."
-msgstr "点击Wiki寻求帮助。"
+msgid "Mixing high- and low-temperature filaments is not recommended."
+msgstr ""
 
 msgid "Nozzle and Filament Sync"
 msgstr "喷嘴耗材同步"
@@ -21002,6 +21000,18 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+#~ msgstr "检测到当前盘使用了高温材料，请注意不要和低温材料混合打印。"
+
+#~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
+#~ msgstr "在不同位置生成互锁梁结构细丝接触。这提高了细丝之间的附着力，尤其是用不同材料印刷的模型。"
+
+#~ msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+#~ msgstr "AMS中检测到高温耗材。请勿与低温耗材混用。"
+
+#~ msgid "Click Wiki for help."
+#~ msgstr "点击Wiki寻求帮助。"
 
 #~ msgid "Please enter valid filament weights."
 #~ msgstr "请输入有效的耗材重量。"
