@@ -24123,6 +24123,7 @@ int Plater::load_project(wxString const &filename2,
     const bool import_as_model = !load_restore && boost::algorithm::iends_with(path.string(), ".3mf") && !is_bbs_project_3mf(path.string());
     if (import_as_model)
         strategy = LoadStrategy::LoadModel;
+    m_syncing_printer_after_load = !import_as_model && !wxGetApp().app_config->get_bool("skip_printer_check_on_3mf_load");
 
     // Take the Undo / Redo snapshot.
     reset();
@@ -24200,6 +24201,10 @@ int Plater::load_project(wxString const &filename2,
         if (ok && nozzle_diameter > 1) {
             sidebar().pop_sync_nozzle_and_ams_dialog();
         }
+    }
+    if (m_syncing_printer_after_load) {
+        m_syncing_printer_after_load = false;
+        get_view3D_canvas3D()->reload_scene(false);
     }
     statistics_burial_data(filename.utf8_string());
 

@@ -468,6 +468,7 @@ public:
         m_exported_file = exported_file;
     }
     bool is_loading_project() const { return m_loading_project; }
+    bool is_syncing_printer_after_load() const { return m_syncing_printer_after_load; }
     bool is_empty_project();
     bool is_multi_extruder_ams_empty();
     // BBS
@@ -1131,6 +1132,9 @@ private:
     bool m_exported_file { false };
     bool skip_thumbnail_invalid { false };
     bool m_loading_project {false };
+    // Set from the start of a 3mf load until the post-load printer sync is done, unless the printer
+    // check on load is turned off: until then the nozzles may not be the connected printer's yet.
+    bool m_syncing_printer_after_load {false};
     bool m_new_project_and_check_state{false};
     std::string m_preview_only_filename;
     int m_valid_plates_count { 0 };

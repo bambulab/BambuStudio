@@ -4372,7 +4372,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             bool tpu285_missing = cur_plate->check_missing_tpu285_nozzle(full_config_temp);
 
             bool filament_printable = cur_plate->check_filament_printable(full_config_temp, filament_printable_error_msg);
-            _set_warning_notification(EWarning::FilamentPrintableError, !filament_printable && !tpu285_missing);
+            // Held until the post-load printer sync is done, which re-runs this on the synced nozzles.
+            if (!wxGetApp().plater()->is_syncing_printer_after_load())
+                _set_warning_notification(EWarning::FilamentPrintableError, !filament_printable && !tpu285_missing);
 
             bool mix_pla_and_petg = cur_plate->check_mixture_of_pla_and_petg(full_config_temp);
             _set_warning_notification(EWarning::MixUsePLAAndPETG, !mix_pla_and_petg);
