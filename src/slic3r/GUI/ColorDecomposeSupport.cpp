@@ -6,6 +6,7 @@
 #include "I18N.hpp"
 #include "format.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Utils.hpp"
@@ -15,6 +16,8 @@
 #include <fstream>
 #include <algorithm>
 #include <cctype>
+#include <limits>
+#include <utility>
 
 using json = nlohmann::json;
 
@@ -337,6 +340,17 @@ std::vector<DecomposeOfficialComponent> pla_palette_cmykw_official_components()
     return out;
 }
 
+bool OfficialMixingKitGroup::complete() const
+{
+    return !config_indices.empty()
+        && std::find(config_indices.begin(), config_indices.end(), -1) == config_indices.end();
+}
+
+size_t OfficialMixingKitGroup::present_count() const
+{
+    return size_t(std::count_if(config_indices.begin(), config_indices.end(), [](int idx) { return idx >= 0; }));
+}
+
 namespace {
 
 struct ProjectPhysicalFilaments {
@@ -359,24 +373,168 @@ ProjectPhysicalFilaments collect_project_physical_filaments()
     return out;
 }
 
-std::vector<DecomposeOfficialComponent> missing_official_mixing_kit_components(
-    const ProjectPhysicalFilaments& physical,
-    std::set<size_t>* existing_indices = nullptr)
+bool official_kit_diameter_mode_enabled(const PresetBundle& pb)
 {
+    return is_single_ext_multi_nozzle(pb.printers.get_edited_preset().config) && multi_nozzle_diameter_mode_enabled(pb.project_config);
+}
+
+std::string official_kit_effective_diameter(const PresetBundle& pb, size_t config_idx)
+{
+    if (!official_kit_diameter_mode_enabled(pb))
+        return {};
+    const auto* selected = pb.project_config.option<ConfigOptionStrings>("filament_diameter_map");
+    std::string diameter = (selected && config_idx < selected->values.size()) ? selected->values[config_idx] : std::string();
+    if (diameter.empty()) {
+        const std::vector<std::string> options = pb.get_filament_nozzle_diameter_options(config_idx);
+        if (!options.empty())
+            diameter = options.front();
+    }
+    if (diameter.empty())
+        return {};
+    return format_diameter_to_str(string_to_double_decimal_point(diameter));
+}
+
+std::pair<int, double> official_kit_diameter_rank(const std::string& diameter)
+{
+    if (diameter.empty())
+        return {5, 0.0};
+    const double value = string_to_double_decimal_point(diameter);
+    const std::string normalized = format_diameter_to_str(value);
+    if (normalized == "0.4")
+        return {0, value};
+    if (normalized == "0.2")
+        return {1, value};
+    if (normalized == "0.6")
+        return {2, value};
+    if (normalized == "0.8")
+        return {3, value};
+    return {4, value > 0.0 ? value : std::numeric_limits<double>::max()};
+}
+
+bool official_kit_group_better(const OfficialMixingKitGroup& lhs, const OfficialMixingKitGroup& rhs)
+{
+    const size_t lhs_count = lhs.present_count();
+    const size_t rhs_count = rhs.present_count();
+    if (lhs_count != rhs_count)
+        return lhs_count > rhs_count;
+    return official_kit_diameter_rank(lhs.diameter) < official_kit_diameter_rank(rhs.diameter);
+}
+
+const OfficialMixingKitGroup* find_best_partial_official_mixing_kit(const std::vector<OfficialMixingKitGroup>& groups)
+{
+    const OfficialMixingKitGroup* best = nullptr;
+    for (const OfficialMixingKitGroup& group : groups) {
+        if (!best || official_kit_group_better(group, *best))
+            best = &group;
+    }
+    return best;
+}
+
+std::string choose_new_official_kit_diameter(const PresetBundle& pb, const std::vector<OfficialMixingKitGroup>& groups)
+{
+    if (!official_kit_diameter_mode_enabled(pb))
+        return {};
+    if (const OfficialMixingKitGroup* best = find_best_partial_official_mixing_kit(groups))
+        return best->diameter;
+
+    std::string best_diameter;
+    for (const auto& variant : pb.get_installed_nozzle_variants()) {
+        if (best_diameter.empty() || official_kit_diameter_rank(variant.first) < official_kit_diameter_rank(best_diameter))
+            best_diameter = variant.first;
+    }
+    return best_diameter.empty() ? std::string("0.4") : best_diameter;
+}
+
+std::vector<DecomposeOfficialComponent> missing_official_mixing_kit_components(
+    const std::vector<OfficialMixingKitGroup>& groups,
+    std::set<size_t>* existing_indices = nullptr,
+    std::string* target_diameter = nullptr)
+{
+    std::vector<DecomposeOfficialComponent> components = pla_palette_cmykw_official_components();
+    PresetBundle& pb = *wxGetApp().preset_bundle;
+    if (const OfficialMixingKitGroup* complete = find_complete_official_mixing_kit(groups)) {
+        if (existing_indices) {
+            for (int idx : complete->config_indices)
+                existing_indices->insert(size_t(idx));
+        }
+        if (target_diameter)
+            *target_diameter = complete->diameter;
+        return {};
+    }
+
+    const OfficialMixingKitGroup* base = find_best_partial_official_mixing_kit(groups);
+    if (target_diameter)
+        *target_diameter = choose_new_official_kit_diameter(pb, groups);
+
     std::vector<DecomposeOfficialComponent> missing;
-    for (const DecomposeOfficialComponent& official : pla_palette_cmykw_official_components()) {
-        const int existing = find_existing_decompose_component(official, physical.colors, physical.indices);
-        if (existing > 0) {
+    for (size_t i = 0; i < components.size(); ++i) {
+        const int existing = (base && i < base->config_indices.size()) ? base->config_indices[i] : -1;
+        if (existing >= 0) {
             if (existing_indices)
-                existing_indices->insert(size_t(existing - 1));
+                existing_indices->insert(size_t(existing));
             continue;
         }
-        missing.push_back(official);
+        missing.push_back(components[i]);
     }
     return missing;
 }
 
 } // namespace
+
+std::vector<OfficialMixingKitGroup> collect_official_mixing_kit_groups(const std::set<size_t>& excluded_indices)
+{
+    std::vector<OfficialMixingKitGroup> groups;
+    if (!wxGetApp().preset_bundle)
+        return groups;
+
+    PresetBundle& pb = *wxGetApp().preset_bundle;
+    const ProjectPhysicalFilaments physical = collect_project_physical_filaments();
+    const std::vector<DecomposeOfficialComponent> components = pla_palette_cmykw_official_components();
+    for (size_t i = 0; i < physical.indices.size(); ++i) {
+        const size_t cfg_idx = physical.indices[i];
+        if (excluded_indices.count(cfg_idx) > 0)
+            continue;
+        if (decompose_color_block_reason(int(cfg_idx)) != DecomposeColorBlockReason::None)
+            continue;
+
+        const std::string& preset_name = cfg_idx < pb.filament_presets.size() ? pb.filament_presets[cfg_idx] : std::string();
+        Preset* preset = preset_name.empty() ? nullptr : pb.filaments.find_preset(preset_name);
+        const bool is_palette = (preset && preset->filament_id == kDecomposePlaPaletteFilamentId)
+            || official_basic_type_from_preset_name(preset_name) == kDecomposePlaPaletteType;
+        if (!is_palette)
+            continue;
+
+        const std::string color_hex = decompose_normalize_color_hex(physical.colors[i]);
+        const auto component = std::find_if(components.begin(), components.end(),
+            [&](const DecomposeOfficialComponent& official) { return official.color_hex == color_hex; });
+        if (component == components.end())
+            continue;
+
+        const std::string diameter = official_kit_effective_diameter(pb, cfg_idx);
+        auto group = std::find_if(groups.begin(), groups.end(),
+            [&](const OfficialMixingKitGroup& g) { return g.diameter == diameter; });
+        if (group == groups.end()) {
+            groups.push_back({diameter, std::vector<int>(components.size(), -1)});
+            group = std::prev(groups.end());
+        }
+        int& existing = group->config_indices[size_t(component - components.begin())];
+        if (existing < 0)
+            existing = int(cfg_idx);
+    }
+    return groups;
+}
+
+const OfficialMixingKitGroup* find_complete_official_mixing_kit(const std::vector<OfficialMixingKitGroup>& groups)
+{
+    const OfficialMixingKitGroup* best = nullptr;
+    for (const OfficialMixingKitGroup& group : groups) {
+        if (!group.complete())
+            continue;
+        if (!best || official_kit_diameter_rank(group.diameter) < official_kit_diameter_rank(best->diameter))
+            best = &group;
+    }
+    return best;
+}
 
 OfficialMixingKitAddPlan plan_official_mixing_kit_addition(size_t reserve_slots,
                                                            const std::set<size_t>& protected_indices)
@@ -390,7 +548,7 @@ OfficialMixingKitAddPlan plan_official_mixing_kit_addition(size_t reserve_slots,
     PresetBundle& pb = *wxGetApp().preset_bundle;
     const ProjectPhysicalFilaments physical = collect_project_physical_filaments();
     std::set<size_t> keep = protected_indices;
-    plan.missing_count = missing_official_mixing_kit_components(physical, &keep).size();
+    plan.missing_count = missing_official_mixing_kit_components(collect_official_mixing_kit_groups(), &keep).size();
     if (plan.missing_count == 0) {
         plan.kit_already_present = true;
         return plan;
@@ -445,7 +603,10 @@ bool add_official_mixing_kit_to_project(wxWindow* parent, const OfficialMixingKi
 
     PresetBundle& pb = *wxGetApp().preset_bundle;
     const ProjectPhysicalFilaments physical = collect_project_physical_filaments();
-    const std::vector<DecomposeOfficialComponent> missing = missing_official_mixing_kit_components(physical);
+    const std::vector<OfficialMixingKitGroup> groups = collect_official_mixing_kit_groups();
+    std::string target_diameter;
+    const std::vector<DecomposeOfficialComponent> missing =
+        missing_official_mixing_kit_components(groups, nullptr, &target_diameter);
     if (missing.empty())
         return true;
     if (physical.indices.size() + missing.size() > MAX_PHYSICAL_FILAMENT_COUNT ||
@@ -461,12 +622,30 @@ bool add_official_mixing_kit_to_project(wxWindow* parent, const OfficialMixingKi
         to_add.emplace_back(col, preset_name);
     }
 
+    int inherit_nozzle_from = -1;
+    if (const OfficialMixingKitGroup* base = find_best_partial_official_mixing_kit(groups)) {
+        if (base->diameter == target_diameter) {
+            const auto existing = std::find_if(base->config_indices.begin(), base->config_indices.end(),
+                [](int idx) { return idx >= 0; });
+            if (existing != base->config_indices.end())
+                inherit_nozzle_from = *existing;
+        }
+    }
+
     wxBusyCursor wait;
-    const size_t insert_pos = sidebar.add_custom_filaments(to_add);
+    const size_t insert_pos = sidebar.add_custom_filaments(to_add, inherit_nozzle_from);
     const size_t added = (insert_pos == size_t(-1)) ? 0 :
         std::min(to_add.size(), sidebar.combos_filament().size() - insert_pos);
     for (size_t i = 0; i < added; ++i)
         set_created_standard_component_metadata(insert_pos + i, missing[i]);
+
+    // A new kit has no existing slot to inherit nozzle settings from.
+    if (inherit_nozzle_from < 0 && !target_diameter.empty() && official_kit_diameter_mode_enabled(pb)) {
+        for (size_t i = 0; i < added; ++i)
+            pb.set_filament_nozzle_diameter(insert_pos + i, target_diameter);
+        pb.validate_filament_nozzle_diameter_selections();
+        sidebar.refresh_filament_diameter_buttons();
+    }
     return added == missing.size();
 }
 

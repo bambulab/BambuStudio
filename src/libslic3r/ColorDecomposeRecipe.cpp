@@ -376,6 +376,18 @@ ColorDecomposeRecipeResult recommend_from_physical_filaments(
         return !color_decompose_hex_to_rgb(filament.color_hex, ignored);
     }), candidates.end());
 
+    // Identical colors are one pigment: keep the first slot so recipes never repeat a color.
+    std::vector<std::string> seen_hexes;
+    candidates.erase(std::remove_if(candidates.begin(), candidates.end(), [&seen_hexes](const auto& filament) {
+        ColorDecomposeRgb rgb;
+        color_decompose_hex_to_rgb(filament.color_hex, rgb);
+        const std::string hex = color_decompose_rgb_to_hex(rgb);
+        if (std::find(seen_hexes.begin(), seen_hexes.end(), hex) != seen_hexes.end())
+            return true;
+        seen_hexes.push_back(hex);
+        return false;
+    }), candidates.end());
+
     constexpr size_t kMaxCandidates = 8;
     if (candidates.size() > kMaxCandidates) {
         const LabColor target_lab = rgb_to_lab(target);

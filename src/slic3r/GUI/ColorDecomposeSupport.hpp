@@ -45,6 +45,15 @@ struct DecomposeOfficialComponent {
     std::string        filament_id;
 };
 
+struct OfficialMixingKitGroup {
+    std::string        diameter;
+    // 0-based project config indices, ordered like pla_palette_cmykw_official_components().
+    std::vector<int>   config_indices;
+
+    bool complete() const;
+    size_t present_count() const;
+};
+
 struct OfficialMixingKitAddPlan {
     size_t              missing_count{0};
     size_t              required_delete_count{0};
@@ -108,6 +117,12 @@ int find_existing_decompose_component(
 
 // Official PLA Palette CMYKW mixing kit, one entry per base (white / cyan / magenta / yellow / black).
 std::vector<DecomposeOfficialComponent> pla_palette_cmykw_official_components();
+
+// Groups project PLA Palette CMYKW filaments by effective nozzle diameter.
+std::vector<OfficialMixingKitGroup> collect_official_mixing_kit_groups(const std::set<size_t>& excluded_indices = {});
+
+// Returns the preferred complete group, or nullptr when no same-diameter kit is complete.
+const OfficialMixingKitGroup* find_complete_official_mixing_kit(const std::vector<OfficialMixingKitGroup>& groups);
 
 // Computes the space needed for the missing kit filaments. Unused filaments are selected for
 // deletion when the project is full; protected_indices are 0-based config indices to keep.
