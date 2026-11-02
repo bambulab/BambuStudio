@@ -718,7 +718,7 @@ void NozzleSettingsListDialog::build_printer_status(wxBoxSizer *main_sizer)
     status->UpdateRackInfo(rack);
     status->Hide();
 
-    const wxString link_text = wxString::Format(_L("Connected printer %s, view machine status"), from_u8(obj->get_dev_name()));
+    const wxString link_text = wxString::Format(_L("Connected printer %s, view printer status"), from_u8(obj->get_dev_name()));
     auto *disclosure = new DisclosureView(this, link_text, [this, status](bool expanded) {
         status->Show(expanded);
         Layout();

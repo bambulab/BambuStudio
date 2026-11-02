@@ -601,7 +601,7 @@ wxWindow *SyncAmsDialog::build_header()
     m_desc->SetMinSize(FromDIP(wxSize(640, -1)));
 
     auto *warn      = new wxBoxSizer(wxHORIZONTAL);
-    auto *warn_icon = new wxStaticBitmap(card, wxID_ANY, create_scaled_bitmap("warning", card, 16));
+    auto *warn_icon = new wxStaticBitmap(card, wxID_ANY, create_scaled_bitmap("warning_gray", card, 16));
     warn_icon->SetBackgroundColour(card_bg); // the card paints its own fill; the bitmap does not inherit it
     auto *warn_text = new ::Label(card, _L("After modification, the filament list cannot be restored."));
     warn_text->SetFont(::Label::Body_12);

@@ -183,6 +183,9 @@ ModelPreview::ModelPreview(wxWindow *parent) : wxWindow(parent, wxID_ANY), m_cam
     m_canvas->Bind(wxEVT_MOUSE_CAPTURE_LOST, [this](wxMouseCaptureLostEvent &) { m_drag = Drag::None; });
     m_canvas->Bind(wxEVT_MOTION, &ModelPreview::on_mouse, this);
     m_canvas->Bind(wxEVT_MOUSEWHEEL, &ModelPreview::on_wheel, this);
+    // Without this, wxOSX sends no pinch event, and a trackpad pinch reaches us only as stray wheel events.
+    m_canvas->Bind(wxEVT_GESTURE_ZOOM, &ModelPreview::on_zoom_gesture, this);
+    m_canvas->EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
 }
 
 ModelPreview::~ModelPreview() = default; // m_ctx is the app's shared context — not owned
@@ -279,7 +282,22 @@ void ModelPreview::on_mouse(wxMouseEvent &e)
 
 void ModelPreview::on_wheel(wxMouseEvent &e)
 {
-    m_camera->update_zoom(e.GetWheelRotation() > 0 ? 1.0 : -1.0);
+    // A trackpad sends zero-rotation wheel events (resting fingers, scroll phase changes); they must not zoom.
+    if (e.GetWheelRotation() == 0 || e.GetWheelDelta() == 0) return;
+    double delta = double(e.GetWheelRotation()) / double(e.GetWheelDelta());
+    if (wxGetApp().app_config->get_bool("reverse_mouse_wheel_zoom")) delta = -delta;
+    m_camera->set_zoom(m_camera->calc_zoom_from_delta(delta));
+    if (m_camera_changed) m_camera_changed(*m_camera);
+    m_canvas->Refresh();
+}
+
+void ModelPreview::on_zoom_gesture(wxZoomGestureEvent &e)
+{
+    // The zoom factor is relative to the gesture start, not to the previous event.
+    if (e.IsGestureStart()) m_pinch_start_zoom = m_camera->get_zoom();
+    double factor = e.GetZoomFactor();
+    if (wxGetApp().app_config->get_bool("reverse_mouse_wheel_zoom")) factor = 1.0 / std::max(factor, 1e-3);
+    m_camera->set_zoom(m_pinch_start_zoom * factor);
     if (m_camera_changed) m_camera_changed(*m_camera);
     m_canvas->Refresh();
 }

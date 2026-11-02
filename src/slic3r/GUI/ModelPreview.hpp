@@ -36,7 +36,7 @@ public:
 /**
  * \brief A lightweight interactive 3D viewer — the Sync-AMS preview cards, and future previews.
  *
- * Owns a \ref Camera (mouse orbit / wheel zoom) and draws a pluggable \ref PreviewScene. Reuses the
+ * Owns a \ref Camera (mouse orbit / wheel and pinch zoom) and draws a pluggable \ref PreviewScene. Reuses the
  * app's single GL context on its own matched-format canvas, so it sees already-uploaded geometry
  * read-only; it owns its full per-frame GL state and never mutates shared resources. Sharing the
  * camera-changed callback between two instances gives a linked-camera comparison.
@@ -80,6 +80,7 @@ private:
     void on_paint();
     void on_mouse(wxMouseEvent &e);
     void on_wheel(wxMouseEvent &e);
+    void on_zoom_gesture(wxZoomGestureEvent &e);
 
     wxGLCanvas                         *m_canvas{nullptr};
     wxGLContext                        *m_ctx{nullptr}; // the app's shared context — not owned
@@ -89,6 +90,7 @@ private:
     bool                                m_framed{false};
     Drag                                m_drag{Drag::None};
     wxPoint                             m_last;
+    double                              m_pinch_start_zoom{1.0}; // camera zoom when the current pinch began
 };
 
 /**
