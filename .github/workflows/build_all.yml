@@ -38,15 +38,17 @@ on:
             options:
               - all
               - linux-macos
+              - linux
+              - macos
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}${{ github.event_name == 'workflow_dispatch' && format('-{0}', inputs.build-platforms) || '' }}
   cancel-in-progress: true
 
 jobs:
   build_all:
     name: Build All
-    if: github.event_name != 'workflow_dispatch' || inputs.build-platforms != 'linux-macos'
+    if: github.event_name != 'workflow_dispatch' || inputs.build-platforms == 'all'
     strategy:
       fail-fast: false
       matrix:
@@ -68,9 +70,9 @@ jobs:
       build-deps-only: ${{ inputs.build-deps-only || false }}
     secrets: inherit
 
-  build_linux_macos:
-    name: Linux 和 macOS 构建验证
-    if: github.event_name == 'workflow_dispatch' && inputs.build-platforms == 'linux-macos'
+  build_linux:
+    name: Linux 构建验证
+    if: github.event_name == 'workflow_dispatch' && (inputs.build-platforms == 'linux-macos' || inputs.build-platforms == 'linux')
     permissions:
       contents: read
     strategy:
@@ -78,6 +80,20 @@ jobs:
       matrix:
         include:
           - os: ubuntu-22.04
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os: ${{ matrix.os }}
+      build-deps-only: ${{ inputs.build-deps-only || false }}
+
+  build_macos:
+    name: macOS 构建验证
+    if: github.event_name == 'workflow_dispatch' && (inputs.build-platforms == 'linux-macos' || inputs.build-platforms == 'macos')
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
           - os: macos-15-intel
             arch: x86_64
           - os: macos-15

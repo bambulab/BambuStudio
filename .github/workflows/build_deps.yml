@@ -96,7 +96,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
             brew install automake texinfo nasm yasm x264
-            brew uninstall --ignore-dependencies zstd
+            brew unlink zstd
             brew unlink cmake || true
             brew tap-new $USER/old-cmake
             brew extract --version=3.31.0 cmake $USER/old-cmake
@@ -108,14 +108,14 @@ jobs:
                 (cd "${{ github.workspace }}/deps/build/${arch}" && \
                 find . -mindepth 1 -maxdepth 1 ! -name 'BambuStudio_deps' -exec rm -rf {} +)
             done
-            brew install zstd
+            brew link zstd
       
       - name: Build on Mac ${{ inputs.arch }}
         if: inputs.os == 'macos-15' || inputs.os == 'macos-26'
         working-directory: ${{ github.workspace }}
         run: |
             brew install automake texinfo nasm yasm x264
-            brew uninstall --ignore-dependencies zstd
+            brew unlink zstd
             brew unlink cmake || true
             brew tap-new $USER/old-cmake
             brew extract --version=3.31.0 cmake $USER/old-cmake
@@ -127,7 +127,7 @@ jobs:
                 (cd "${{ github.workspace }}/deps/build/${arch}" && \
                 find . -mindepth 1 -maxdepth 1 ! -name 'BambuStudio_deps' -exec rm -rf {} +)
             done
-            brew install zstd
+            brew link zstd
 
       - name: pack deps on Macos
         if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15' || inputs.os == 'macos-26'
