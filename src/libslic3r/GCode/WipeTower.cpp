@@ -7711,16 +7711,30 @@ static void apply_wipe_tower_tail_slowdown(std::string &gcode, float tail_volume
         const float remaining = tail_len - acc;
         acc += move.e;
         if (move.splittable && move.e > remaining + 1e-5f) {
-            // Only the end of this move is in the tail: its head keeps the original feedrate.
-            std::string &line   = lines[move.line_idx];
             const float  t_head = 1.f - remaining / move.e;
             const Vec2f  mid    = move.from + (move.to - move.from) * t_head;
+            const std::string mid_x = float_to_string_decimal_point(mid.x(), 3);
+            const std::string mid_y = float_to_string_decimal_point(mid.y(), 3);
+            // post_process_wipe_tower_moves() rewrites X/Y only when the position changes, so a split
+            // point that prints identical to either end would leave raw tower coordinates in the G-code.
+            const auto prints_as = [&mid_x, &mid_y](const Vec2f &p) {
+                return mid_x == float_to_string_decimal_point(p.x(), 3) && mid_y == float_to_string_decimal_point(p.y(), 3);
+            };
+            // Tail too short to print on its own: keep this move at its original feedrate.
+            if (prints_as(move.to))
+                break;
+            // Head too short to print on its own: slow the whole move below.
+            if (prints_as(move.from)) {
+                set_feedrate(lines[move.line_idx], move.feedrate * speed_factor);
+                break;
+            }
+            // Only the end of this move is in the tail: its head keeps the original feedrate.
+            std::string &line   = lines[move.line_idx];
             const std::string e_head = float_to_string_decimal_point(move.e * t_head, 5);
             const float  e_tail = move.e - float(string_to_double_decimal_point(e_head));
             float f_head = 0.f;
             const bool has_f_head = get_param(line, 'F', f_head);
-            std::string head = "G1 X" + float_to_string_decimal_point(mid.x(), 3) + " Y" +
-                               float_to_string_decimal_point(mid.y(), 3) + " E" + e_head;
+            std::string head = "G1 X" + mid_x + " Y" + mid_y + " E" + e_head;
             if (has_f_head)
                 head += " F" + float_to_string_decimal_point(f_head, 3);
             std::string tail = "G1 X" + float_to_string_decimal_point(move.to.x(), 3) + " Y" +
