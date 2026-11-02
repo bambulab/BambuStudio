@@ -2302,6 +2302,7 @@ StatusBasePanel::~StatusBasePanel()
     for (auto *mask : m_ctrl_area_masks)
         if (mask) mask->Destroy();
     if (m_ctrl_area_mask_hint) m_ctrl_area_mask_hint->Destroy();
+    if (m_fila_change_abort_dlg != nullptr) delete m_fila_change_abort_dlg;
     close_camera_fullscreen();
     delete m_media_play_ctrl;
 }
@@ -3337,11 +3338,7 @@ wxBoxSizer *StatusBasePanel::create_filament_group(wxWindow *parent)
     m_fila_change_abort->SetBackgroundColor(btn_bg_white);
     m_fila_change_abort->Hide();
 
-    m_fila_change_abort->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
-        BOOST_LOG_TRIVIAL(info) << "on_ams_abort";
-        MachineObject *obj = get_current_dev();
-        if (obj) { obj->command_ams_control("abort"); }
-    });
+    m_fila_change_abort->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { on_fila_change_abort(); });
 
     fila_change_sizer->Add(m_button_retry, 0, wxRIGHT, FromDIP(7));
     fila_change_sizer->Add(m_fila_change_abort, 0, wxLEFT, FromDIP(7));
@@ -3396,6 +3393,39 @@ void StatusBasePanel::expand_filament_loading(wxMouseEvent &e)
     Fit();
     wxGetApp().mainframe->m_monitor->get_status_panel()->Layout();
     wxGetApp().mainframe->m_monitor->Layout();
+}
+
+void StatusBasePanel::on_fila_change_abort()
+{
+    // Remember the device by id; the confirm callback re-resolves it instead of holding a pointer.
+    m_fila_change_abort_devid = m_devid;
+    if (m_fila_change_abort_dlg == nullptr) {
+        m_fila_change_abort_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Stop"));
+        // The dialog lays out OK on the left; swap roles so Cancel sits left and Confirm right.
+        m_fila_change_abort_dlg->Bind(EVT_SECONDARY_CHECK_CANCEL, [this](wxCommandEvent &e) {
+            if (m_fila_change_abort_devid != m_devid) {
+                BOOST_LOG_TRIVIAL(warning) << "ams abort dropped, device changed while confirming";
+                return;
+            }
+            MachineObject *obj = get_current_dev();
+            if (!obj) {
+                BOOST_LOG_TRIVIAL(warning) << "ams abort dropped, device released while confirming";
+                return;
+            }
+            BOOST_LOG_TRIVIAL(info) << "on_ams_abort " << KV(log_key::dev_id, obj->get_dev_id());
+            obj->command_ams_control("abort");
+        });
+    }
+    m_fila_change_abort_dlg->update_text(_L("Exit the filament loading process?"));
+    m_fila_change_abort_dlg->m_button_ok->SetBackgroundColor(m_fila_change_abort_dlg->btn_bg_white);
+    m_fila_change_abort_dlg->m_button_ok->SetBorderColor(wxColour(38, 46, 48));
+    m_fila_change_abort_dlg->m_button_ok->SetTextColor(*wxBLACK);
+    m_fila_change_abort_dlg->m_button_cancel->SetBackgroundColor(m_fila_change_abort_dlg->btn_bg_green);
+    m_fila_change_abort_dlg->m_button_cancel->SetBorderColor(*wxWHITE);
+    m_fila_change_abort_dlg->m_button_cancel->SetTextColor(wxColour("#FFFFFE"));
+    m_fila_change_abort_dlg->update_btn_label(_L("Cancel"), _L("OK"));
+    m_fila_change_abort_dlg->on_show();
+    m_fila_change_abort_dlg->Raise();
 }
 
 void StatusBasePanel::show_ams_group(bool show)

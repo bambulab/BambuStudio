@@ -3,6 +3,8 @@
 #include "BuilderFilamentManualPullStatus.hpp"
 #include "Schema.hpp"
 
+#include "libslic3r/Log.hpp"
+
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -125,12 +127,17 @@ void confirm_exit_filament_manual_pull(MachineObject* machine_obj)
 
     const ManualPullExitConfirmKind kind = resolve_manual_pull_exit_confirm_kind(machine_obj);
 
+    // ShowModal pumps events; the machine may be freed before it returns.
+    const std::weak_ptr<int> token = machine_obj->get_token();
     MessageDialog dlg(wxGetApp().mainframe, manual_pull_exit_message(kind), _L("Tip"), wxOK | wxCANCEL | wxICON_WARNING);
     dlg.SetButtonLabel(wxID_CANCEL, _L("Cancel"));
     dlg.SetButtonLabel(wxID_OK, manual_pull_exit_ok_label(kind));
-    if (dlg.ShowModal() == wxID_OK) {
-        machine_obj->command_ams_control("abort");
+    if (dlg.ShowModal() != wxID_OK) return;
+    if (token.expired()) {
+        BOOST_LOG_TRIVIAL(warning) << "manual pull exit dropped, machine released while confirming";
+        return;
     }
+    machine_obj->command_ams_control("abort");
 }
 
 }} // namespace Slic3r::GUI

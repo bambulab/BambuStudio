@@ -632,6 +632,10 @@ protected:
 private:
     friend class StatusPanel;
     MachineObject *get_current_dev() const;
+    void on_fila_change_abort();
+
+    SecondaryCheckDialog *m_fila_change_abort_dlg {nullptr};
+    std::string m_fila_change_abort_devid;
 
 protected:
     // Virtual event handlers, override them in your derived class

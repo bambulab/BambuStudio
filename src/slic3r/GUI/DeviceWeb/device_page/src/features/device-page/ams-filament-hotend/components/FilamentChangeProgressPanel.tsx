@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import type { FilamentChangeStatus } from '../types';
 import { BatchProgressStrip } from './BatchProgressStrip';
 import { Nozzle } from './Nozzle';
+import { ConfirmDialog } from '../../../filament-manager/ConfirmDialog';
 
 const STEP_IDLE = 0x00;
 const STEP_PAUSE = 0x01;
@@ -116,6 +118,12 @@ export function FilamentChangeProgressPanel({
   onAction?: (action: string) => void;
 }) {
   const { t } = useTranslation();
+  const [stopConfirmOpen, setStopConfirmOpen] = useState(false);
+  const active = !!status?.active;
+  // The panel renders null instead of unmounting, so drop a pending confirm once the flow ends.
+  useEffect(() => {
+    if (!active) setStopConfirmOpen(false);
+  }, [active]);
   if (!status?.active && status?.mode !== 'batch_reserved') return null;
   if (status.mode === 'batch_manual_pull') return null;
 
@@ -222,11 +230,21 @@ export function FilamentChangeProgressPanel({
         <button
           type="button"
           disabled={status.can_stop === false}
-          onClick={() => onAction?.('stop_filament_change')}
+          onClick={() => setStopConfirmOpen(true)}
         >
           {t('Stop')}
         </button>
       </div>
+
+      <ConfirmDialog
+        open={stopConfirmOpen}
+        title={t('Exit the filament loading process?')}
+        onCancel={() => setStopConfirmOpen(false)}
+        onConfirm={() => {
+          setStopConfirmOpen(false);
+          onAction?.('stop_filament_change');
+        }}
+      />
     </section>
   );
 }
