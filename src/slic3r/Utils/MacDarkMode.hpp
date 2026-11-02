@@ -3,6 +3,8 @@
 
 #include <wx/event.h>
 
+#include <functional>
+
 namespace Slic3r {
 namespace GUI {
 
@@ -12,7 +14,7 @@ extern double mac_max_scaling_factor();
 extern void set_miniaturizable(void * window);
 void WKWebView_evaluateJavaScript(void * web, wxString const & script, void (*callback)(wxString const &));
 void WKWebView_setTransparentBackground(void * web);
-void WKWebView_clearBambulabTokenCookies();
+void WKWebView_clearBambulabTokenCookies(std::function<void(bool)> completed);
 // 为指定 WKWebView 注册 Web Content 进程崩溃回调。
 // 进程终止时在主线程调用 callback(context)。传 nullptr callback 表示注销。
 void WKWebView_setCrashHandler(void* web, void (*callback)(void*), void* context);

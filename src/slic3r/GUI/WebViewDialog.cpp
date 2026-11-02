@@ -434,15 +434,35 @@ WebViewPanel::~WebViewPanel()
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " End";
 }
 
-void WebViewPanel::ResetWholePage()
+bool WebViewPanel::is_print_history_session_current(unsigned long session, NetworkAgent *agent) const
+{
+    GUI_App &app = GUI::wxGetApp();
+    return !app.is_closing() && app.getAgent() == agent && agent != nullptr &&
+           agent->is_user_login() && app.account_session_generation() == session;
+}
+
+void WebViewPanel::ResetWholePage(bool force)
 {
     std::string tmp_Region = wxGetApp().app_config->get_country_code();
-    if (tmp_Region == m_Region) return;
+    if (!force && tmp_Region == m_Region) return;
 
+    const unsigned long session = GUI::wxGetApp().account_session_generation();
     m_Region = tmp_Region;
 
     //loginstatus
     m_loginstatus = -1;
+    ++m_makerworld_sso_flow_id;
+    m_makerworld_sso_navigation_pending = false;
+    m_makerworld_sso_redirect_completed = false;
+    m_online_history_cleared = false;
+    m_makerlab_history_cleared = false;
+    m_online_last_url.clear();
+    for (wxWebView* browser : {m_browserMW, m_browserML}) {
+        if (browser) {
+            browser->Stop();
+            browser->LoadURL("about:blank");
+        }
+    }
 
     //left
     if (m_browserLeft != nullptr && m_leftfirst) m_browserLeft->Reload();
@@ -460,6 +480,16 @@ void WebViewPanel::ResetWholePage()
     m_onlinefirst = false;
 
     //PrintHistory
+    if (m_browserPH != nullptr && GUI::wxGetApp().account_session_generation() == session) {
+        m_browserPH->Stop();
+        m_browserPH->LoadURL("about:blank");
+    }
+    if (GUI::wxGetApp().account_session_generation() != session)
+        return;
+
+    SetLeftMenuShow("printhistory", 0);
+    m_TaskInfo.clear();
+    m_print_task_last_request_ms = 0;
     SetPrintHistoryTaskID(0);
     m_printhistoryfirst = false;
 
@@ -470,6 +500,7 @@ void WebViewPanel::ResetWholePage()
     //Wiki
     m_WikiFirst = false;
     m_Wiki_LastUrl.Clear();
+    SwitchWebContent("home");
 }
 
 wxString WebViewPanel::MakeDisconnectUrl(std::string MenuName)
@@ -1430,57 +1461,72 @@ void WebViewPanel::get_4u_staffpick(int seed, int limit, std::function<void(std:
 
 void WebViewPanel::ShowUserPrintTask(bool bShow, bool bForce)
 {
-    std::string phShow = wxGetApp().app_config->get("app", "show_print_history");
+    GUI_App &app = GUI::wxGetApp();
+    const unsigned long session = app.account_session_generation();
+    std::string phShow = app.app_config->get("app", "show_print_history");
     if (bShow && phShow == "false") bShow = false;
 
     if (bShow)
     {
-        NetworkAgent *agent = GUI::wxGetApp().getAgent();
+        NetworkAgent *agent = app.getAgent();
         if (agent && agent->is_user_login()) {
-            static long long PrintTaskMs = 0;
-
-            auto      now       = std::chrono::system_clock::now();
-            long long TmpMs     = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-            long long nInterval = TmpMs - PrintTaskMs;
-            if (!bForce && nInterval < 1000 * 60 * 10) return;
-            PrintTaskMs = TmpMs;
+            const auto now = std::chrono::system_clock::now();
+            const std::uint64_t current_ms =
+                std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+            const std::uint64_t interval = current_ms - m_print_task_last_request_ms;
+            if (!bForce && m_print_task_last_request_ms != 0 && interval < 1000 * 60 * 10)
+                return;
+            if (!is_print_history_session_current(session, agent))
+                return;
+            m_print_task_last_request_ms = current_ms;
 
             BBL::TaskQueryParams task_query_params;
             task_query_params.limit  = 5;
             task_query_params.offset = 0;
-            int result               = agent->get_user_tasks(task_query_params, &m_TaskInfo);
+            std::string task_info;
+            int result = agent->get_user_tasks(task_query_params, &task_info);
+
+            if (!is_print_history_session_current(session, agent))
+                return;
 
 #if !BBL_RELEASE_TO_PUBLIC
-            BOOST_LOG_TRIVIAL(trace) << "task_manager: get_task_list task_info=" << m_TaskInfo;
+            BOOST_LOG_TRIVIAL(trace) << "task_manager: get_task_list task_info=" << task_info;
 #endif
 
             if (result == 0) {
-                try {
-                    json j = json::parse(m_TaskInfo);
-                    BOOST_LOG_TRIVIAL(trace) << "task_manager: get_task_list task count =" << j["hits"].size();
-
-                    auto body2 = from_u8(m_TaskInfo);
-                    body2.insert(1, "\"command\": \"printhistory_task_show\", ");
-                    WebView::RunScript(m_browserLeft, wxString::Format("window.postMessage(%s)", body2));
-                    RunScript(wxString::Format("window.postMessage(%s)", body2));
-
-                    SetLeftMenuShow("printhistory", 1);
-
+                json message = json::parse(task_info);
+                message["command"] = "printhistory_task_show";
+                if (!is_print_history_session_current(session, agent))
                     return;
-                } catch (...) {}
+                m_TaskInfo = task_info;
+                const auto script = wxString::FromUTF8("window.postMessage(" + message.dump() + ")");
+                WebView::RunScript(m_browserLeft, script);
+                if (!is_print_history_session_current(session, agent))
+                    return;
+                RunScript(script);
+                if (!is_print_history_session_current(session, agent))
+                    return;
+                SetLeftMenuShow("printhistory", 1);
+                return;
             }
-            else
+            else if (is_print_history_session_current(session, agent))
                 m_TaskInfo = "";
         }
     }
     else
     {
+        if (app.account_session_generation() != session)
+            return;
+
         //Hide Left Menu
         SetLeftMenuShow("printhistory", 0);
         m_TaskInfo = "";
+        m_print_task_last_request_ms = 0;
 
         //Hide WebBrowser
         if (m_contentname == "printhistory") SwitchLeftMenu("home");
+        if (m_browserPH != nullptr)
+            m_browserPH->LoadURL("about:blank");
 
         //refresh url
         // auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
@@ -1676,6 +1722,9 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
     */
 void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
 {
+    if (m_browserPH != nullptr && evt.GetId() == m_browserPH->GetId() &&
+        IsBlankWebUrl(m_browserPH->GetCurrentURL()))
+        m_browserPH->ClearHistory();
     if (m_browserMW!=nullptr && evt.GetId() == m_browserMW->GetId())
     {
         wxString current_url = m_browserMW->GetCurrentURL();

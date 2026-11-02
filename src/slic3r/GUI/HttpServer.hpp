@@ -2,6 +2,7 @@
 #define slic3r_Http_App_hpp_
 
 #include <iostream>
+#include <future>
 #include <mutex>
 #include <stack>
 
@@ -25,7 +26,7 @@ namespace GUI {
     class TicketLoginTask {
     public:
         static std::string perform_sync(const std::string &ticket);
-        static void perform_async(const std::string &ticket, std::function<void(std::string)> cb);
+        static std::future<void> perform_async(const std::string &ticket, std::function<void(std::string)> cb);
     private:
         static std::optional<std::string> do_request_login_info(const std::string &ticket);
     };

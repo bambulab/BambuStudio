@@ -181,6 +181,8 @@ public:
     std::string build_login_cmd();
     std::string build_logout_cmd();
     std::string build_login_info();
+    std::vector<unsigned char> export_user_session() const;
+    bool restore_user_session(const std::vector<unsigned char>& session_data);
     int ping_bind(std::string ping_code);
     int bind_detect(std::string dev_ip, std::string sec_link, detectResult& detect);
     int report_consent(std::string expand);
@@ -251,6 +253,7 @@ public:
 
 private:
     bool enable_track = false;
+    std::string m_config_dir;
     void*                   network_agent { nullptr };
 
     static func_check_debug_consistent         check_debug_consistent_ptr;

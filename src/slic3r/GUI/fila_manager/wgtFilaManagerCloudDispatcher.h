@@ -1,8 +1,10 @@
 #ifndef slic3r_wgtFilaManagerCloudDispatcher_h_
 #define slic3r_wgtFilaManagerCloudDispatcher_h_
 
+#include <cstdint>
 #include <deque>
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 #include "nlohmann/json.hpp"
@@ -65,7 +67,8 @@ public:
     void enqueue_sync_ams(BBL::AmsSyncParams params,
                           std::function<void()> on_cloud_ok = nullptr);
 
-    // Clear any not-yet-started push ops.  Does not cancel the in-flight op.
+    // 开始新的账号会话。排队操作直接丢弃；已经发出的请求继续等待网络返回，
+    // 但旧会话代次禁止它发布任何结果。
     void clear_pending();
 
     // Observable state.
@@ -77,16 +80,21 @@ public:
 
 private:
     using Op = std::function<void()>;
+    using SessionGeneration = std::uint64_t;
 
     void schedule_next();   // UI thread
-    void on_op_done();      // UI thread, dispatched via CallAfter from callbacks
+    void on_op_done(SessionGeneration generation, bool was_pull = false);
 
-    void run_pull_op();
-    void run_push_create_op(const FilamentSpool& spool);
-    void run_push_update_op(const std::string& spool_id,
+    bool is_session_current(SessionGeneration generation) const;
+
+    void run_pull_op(SessionGeneration generation);
+    void run_push_create_op(SessionGeneration generation, const FilamentSpool& spool);
+    void run_push_update_op(SessionGeneration generation, const std::string& spool_id,
                             const nlohmann::json& local_patch);
-    void run_push_delete_op(const std::vector<std::string>& spool_ids);
-    void run_sync_ams_op(BBL::AmsSyncParams params,
+    void run_push_delete_op(SessionGeneration generation,
+                            const std::vector<std::string>& spool_ids);
+    void run_sync_ams_op(SessionGeneration generation,
+                         BBL::AmsSyncParams params,
                          std::function<void()> on_cloud_ok);
 
     void update_last_synced_now();
@@ -99,13 +107,7 @@ private:
     std::deque<Op> m_queue;
     bool           m_busy     = false;
     bool           m_pulling  = false;
-    // STUDIO-17956: collapse redundant post-push reconciliation pulls. Each
-    // push_done (batch add 5 spools -> 5 push_done callbacks) enqueues a pull
-    // for "cloud is source of truth", but the single-slot dispatcher would
-    // then run pull 5 times. We only need one. This flag is true while a
-    // not-yet-started pull sits in m_queue; additional enqueue_pull() calls
-    // are skipped until run_pull_op() pops it off and clears the flag.
-    bool           m_pending_pull_queued = false;
+    std::optional<SessionGeneration> m_pull_generation;
 
     std::string m_last_synced_at;
     int         m_last_error_code    = 0;

@@ -2,6 +2,8 @@ Build
 Build.bat
 /build/
 /build2022/
+/build-account-store/
+/build-*/
 deps/build
 MYMETA.json
 MYMETA.yml
@@ -30,6 +32,9 @@ doc/
 **/filament_full/
 test.js
 /.cache/
+/log_iotc.txt
+saved_accounts.dat
+BambuNetworkEngine.conf
 .clangd
 dep_win_new
 compile_commands.json

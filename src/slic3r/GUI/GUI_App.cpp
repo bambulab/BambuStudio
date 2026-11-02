@@ -5,6 +5,7 @@
 #include "GUI_Factories.hpp"
 #include "slic3r/GUI/DeviceWeb/DeviceWebPage.hpp"
 #include "slic3r/GUI/UserManager.hpp"
+#include "slic3r/GUI/AccountStore.hpp"
 #include "slic3r/GUI/TaskManager.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include "slic3r/GUI/PerfTrace.hpp"
@@ -12,6 +13,7 @@
 #include <wx/language.h>
 #include <wx/string.h>
 #include <wx/weakref.h>
+#include <wx/utils.h>
 
 // Localization headers: include libslic3r version first so everything in this file
 // uses the slic3r/GUI version (the macros will take precedence over the functions).
@@ -2091,18 +2093,19 @@ void GUI_App::init_networking_callbacks()
             if (is_closing()) {
             return;
             }
+            const auto session = account_session_generation();
             if (return_code == 5) {
-                GUI::wxGetApp().CallAfter([this] {
-                    this->request_user_logout();
-                    MessageDialog msg_dlg(nullptr, _L("Login information expired. Please login again."), "", wxAPPLY | wxOK);
-                    if (msg_dlg.ShowModal() == wxOK) {
+                GUI::wxGetApp().CallAfter([this, session] {
+                    if (is_closing() || account_session_generation() != session)
                         return;
-                    }
+                    verify_current_account();
                 });
                 return;
             }
             if (return_code < 0) { //#define MQTTASYNC_SUCCESS 0
-                GUI::wxGetApp().CallAfter([this] {
+                GUI::wxGetApp().CallAfter([this, session] {
+                    if (is_closing() || account_session_generation() != session)
+                        return;
                     m_homepage_server_connect_failed = true;
                     sync_left_server_connect_status();
 
@@ -2115,8 +2118,8 @@ void GUI_App::init_networking_callbacks()
                 });
                 return;
             }
-            GUI::wxGetApp().CallAfter([this] {
-                    if (is_closing())
+            GUI::wxGetApp().CallAfter([this, session] {
+                    if (is_closing() || account_session_generation() != session)
                         return;
                     m_homepage_server_connect_failed = false;
                     sync_left_server_connect_status();
@@ -2268,8 +2271,9 @@ void GUI_App::init_networking_callbacks()
             if (is_closing()) {
                 return;
             }
-            CallAfter([this, dev_id, msg] {
-                if (is_closing())
+            const auto session = account_session_generation();
+            CallAfter([this, dev_id, msg, session] {
+                if (is_closing() || account_session_generation() != session)
                     return;
 
                 if (process_network_msg(dev_id, msg)) {
@@ -2311,8 +2315,9 @@ void GUI_App::init_networking_callbacks()
             if (is_closing()) {
                 return;
             }
-            CallAfter([this, user_id, msg] {
-                if (is_closing())
+            const auto session = account_session_generation();
+            CallAfter([this, user_id, msg, session] {
+                if (is_closing() || account_session_generation() != session)
                     return;
 
                 //check user
@@ -2842,6 +2847,21 @@ bool GUI_App::OnInit()
 
 int GUI_App::OnExit()
 {
+    set_closing(true);
+    stop_http_server();
+    for (auto& task : m_ticket_login_tasks)
+        task.get();
+    m_ticket_login_tasks.clear();
+    {
+        std::lock_guard<std::mutex> lock(m_account_verification_mutex);
+        m_account_verification_stopping = true;
+    }
+    m_account_verification_condition.notify_one();
+    if (m_account_verification_thread.joinable())
+        m_account_verification_thread.join();
+    stop_sync_user_preset();
+    if (m_agent && m_agent->is_user_login())
+        remember_current_account();
 #ifdef __APPLE__
     UnRegisterMacPowerCallBack();
 #endif
@@ -3478,6 +3498,10 @@ bool GUI_App::on_init_inner()
             m_fila_manager_store = new wgtFilaManagerStore();
             BOOST_LOG_TRIVIAL(info) << "Filament Manager store initialized";
         }
+        if (m_agent && m_agent->is_user_login())
+            m_fila_manager_store->activate_account(app_config->get_country_code() + ":" + m_agent->get_user_id());
+        else
+            m_fila_manager_store->activate_local();
         if (!m_fila_manager_sync) {
             m_fila_manager_sync = new wgtFilaManagerSync(m_fila_manager_store);
             BOOST_LOG_TRIVIAL(info) << "Filament Manager sync initialized";
@@ -4409,19 +4433,29 @@ void GUI_App::ShowUserLogin(bool show)
 {
     // BBS: User Login Dialog
     if (show) {
-        try {
-            if (!login_dlg)
-                login_dlg = new ZUserLogin();
-            else {
-                delete login_dlg;
-                login_dlg = new ZUserLogin();
+        if (is_login_dialog_open()) {
+            login_dlg->Raise();
+            return;
+        }
+        ++m_user_login_generation;
+        delete login_dlg;
+        login_dlg = nullptr;
+        login_dlg = new ZUserLogin();
+        login_dlg->ShowModal();
+        ++m_user_login_generation;
+        if (m_account_switching) {
+            if (m_account_activation_pending) {
+                if (!m_account_window_disabler)
+                    m_account_window_disabler = std::make_unique<wxWindowDisabler>();
+            } else {
+                if (mainframe && mainframe->m_webview)
+                    mainframe->m_webview->ResetWholePage(true);
+                get_login_info();
+                send_account_result(true);
             }
-            login_dlg->ShowModal();
-        } catch (std::exception &) {
-            ;
         }
     } else {
-        if (login_dlg)
+        if (login_dlg && login_dlg->IsModal())
             login_dlg->EndModal(wxID_OK);
     }
 }
@@ -4688,6 +4722,7 @@ void GUI_App::get_login_info()
 {
     if (m_agent) {
         if (m_agent->is_user_login()) {
+            remember_current_account();
             std::string login_cmd = m_agent->build_login_cmd();
             wxString strJS = wxString::Format("window.postMessage(%s)", login_cmd);
             GUI::wxGetApp().run_script_left(strJS);
@@ -4701,6 +4736,234 @@ void GUI_App::get_login_info()
         }
     }
     sync_left_server_connect_status();
+    send_saved_accounts();
+}
+
+AccountStore& GUI_App::account_store()
+{
+    if (!m_account_store)
+        m_account_store = std::make_unique<AccountStore>(data_dir());
+    return *m_account_store;
+}
+
+void GUI_App::remember_current_account()
+{
+    if (!m_agent || !m_agent->is_user_login())
+        throw std::runtime_error("当前没有已登录的账号，无法保存登录状态。");
+    SavedAccount account;
+    account.user_id = m_agent->get_user_id();
+    account.country_code = app_config->get_country_code();
+    account.id = account.country_code + ":" + account.user_id;
+    if (!m_disable_fila_manager && m_fila_manager_store &&
+        m_fila_manager_store->active_account_id() != account.id) {
+        m_fila_manager_store->activate_account(account.id);
+        if (mainframe && mainframe->web_device())
+            mainframe->web_device()->NotifyFilamentSessionState();
+    }
+    account.name = m_agent->get_user_nickanme();
+    if (account.name.empty())
+        account.name = m_agent->get_user_name();
+    account.region = app_config->get("region");
+    account.session_data = m_agent->export_user_session();
+    if (const auto previous = account_store().find(account.id)) {
+        account.last_machine_id = previous->last_machine_id;
+        account.needs_login = previous->needs_login;
+    }
+    if (m_device_manager) {
+        if (auto* machine = m_device_manager->get_selected_machine())
+            account.last_machine_id = machine->get_dev_id();
+    }
+    account_store().remember(std::move(account));
+}
+
+void GUI_App::send_saved_accounts()
+{
+    const bool logged_in = m_agent && m_agent->is_user_login();
+    const std::string current_id = logged_in ?
+        app_config->get_country_code() + ":" + m_agent->get_user_id() : std::string();
+    json message{{"command", "homepage_accounts"}, {"accounts", json::array()},
+                 {"busy", m_account_switching}};
+    for (const auto& account : account_store().accounts()) {
+        message["accounts"].push_back({
+            {"id", account.id}, {"name", account.name},
+            {"region", std::string(wxGetTranslation(wxString::FromUTF8(account.region)).ToUTF8())},
+            {"active", account.id == current_id}, {"needs_login", account.needs_login}
+        });
+    }
+    run_script_left(wxString::FromUTF8("window.postMessage(" + message.dump() + ")"));
+}
+
+void GUI_App::send_account_result(bool success, const std::string& error)
+{
+    if (success && m_account_activation_pending) {
+        send_saved_accounts();
+        return;
+    }
+    if (m_account_keep_preset_changes) {
+        apply_keeped_preset_modifications();
+        m_account_keep_preset_changes = false;
+    }
+    m_account_switching = false;
+    m_account_login_prepared = false;
+    m_account_login_pending = false;
+    m_account_activation_pending = false;
+    m_account_window_disabler.reset();
+    json response{{"command", "homepage_account_result"}, {"success", success},
+                  {"error", error}};
+    run_script_left(wxString::FromUTF8("window.postMessage(" + response.dump() + ")"));
+}
+
+bool GUI_App::apply_user_login(const std::string& login_data, const std::string& expected_user_id)
+{
+    if (!m_agent || login_data.empty())
+        return false;
+    if (!json::parse(login_data).is_object())
+        throw std::runtime_error("登录数据必须是 JSON 对象。");
+    if (!m_account_login_prepared && !prepare_account_change())
+        return false;
+    clear_user_session(false);
+    if (m_agent->change_user(login_data) != 0 || !m_agent->is_user_login())
+        return false;
+    return activate_user_session(expected_user_id, m_account_login_prepared);
+}
+
+bool GUI_App::activate_user_session(const std::string& expected_user_id, bool reuse_sync_settings)
+{
+    if (!m_agent || !m_agent->is_user_login())
+        return false;
+    ++m_account_session_generation;
+    if (!expected_user_id.empty() && m_agent->get_user_id() != expected_user_id)
+        throw std::runtime_error("恢复的登录状态与所选账号不一致。");
+    const std::string account_id = app_config->get_country_code() + ":" + m_agent->get_user_id();
+    const auto pending = m_account_preset_deletions.find(account_id);
+    if (pending == m_account_preset_deletions.end())
+        set_delete_cache_presets({});
+    else {
+        set_delete_cache_presets(std::move(pending->second));
+        m_account_preset_deletions.erase(pending);
+    }
+    remember_current_account();
+    account_store().set_needs_login(app_config->get_country_code() + ":" + m_agent->get_user_id(), false);
+    m_account_switching = true;
+    if (!m_account_window_disabler && !is_login_dialog_open())
+        m_account_window_disabler = std::make_unique<wxWindowDisabler>();
+    m_account_activation_pending = true;
+    request_user_login(reuse_sync_settings ? 2 : 1);
+    return true;
+}
+
+void GUI_App::switch_saved_account(const std::string& id)
+{
+    if (m_account_switching)
+        return;
+    const auto account = account_store().find(id);
+    if (!account) {
+        send_saved_accounts();
+        send_account_result(false, "missing_account");
+        return;
+    }
+    if (!m_agent || !is_compatibility_version()) {
+        send_account_result(false, "unavailable");
+        return;
+    }
+    const std::string current_id = m_agent->is_user_login() ?
+        app_config->get_country_code() + ":" + m_agent->get_user_id() : std::string();
+    if (id == current_id) {
+        if (account->needs_login) {
+            add_saved_account();
+            return;
+        }
+        get_login_info();
+        send_account_result(true);
+        return;
+    }
+    m_account_switching = true;
+    if (!prepare_account_change()) {
+        send_account_result(true);
+        return;
+    }
+    m_account_login_prepared = true;
+    m_account_window_disabler = std::make_unique<wxWindowDisabler>();
+    WebView::ClearBambulabTokenCookies([this, account](bool cleared) {
+        if (is_closing())
+            return;
+        if (!cleared) {
+            send_account_result(false, "clear_failed");
+            return;
+        }
+        CallAfter([this, account] {
+            if (is_closing())
+                return;
+            clear_user_session(false);
+            app_config->set("region", account->region);
+            app_config->save();
+            if (m_agent->set_country_code(account->country_code) != 0)
+                throw std::runtime_error("无法设置已保存账号的服务器区域。");
+            init_http_extra_header();
+            if (!m_agent->restore_user_session(account->session_data) ||
+                !activate_user_session(account->user_id, true)) {
+                account_store().set_needs_login(account->id, true);
+                get_login_info();
+                send_account_result(false, "expired");
+                ShowUserLogin();
+                return;
+            }
+            if (m_device_manager) {
+                m_device_manager->record_user_last_machine(account->last_machine_id);
+                m_load_last_machine.InnerLoad(m_agent, m_device_manager);
+            }
+            get_login_info();
+            send_account_result(true);
+        });
+    });
+}
+
+void GUI_App::add_saved_account()
+{
+    if (m_account_switching)
+        return;
+    if (!m_agent || !is_compatibility_version()) {
+        send_account_result(false, "unavailable");
+        return;
+    }
+    m_account_switching = true;
+    if (!prepare_account_change()) {
+        send_account_result(true);
+        return;
+    }
+    if (m_agent->is_user_login())
+        remember_current_account();
+    m_account_login_prepared = true;
+    m_account_window_disabler = std::make_unique<wxWindowDisabler>();
+    WebView::ClearBambulabTokenCookies([this](bool cleared) {
+        if (is_closing())
+            return;
+        if (!cleared) {
+            send_account_result(false, "clear_failed");
+            return;
+        }
+        CallAfter([this] {
+            if (is_closing())
+                return;
+            ShowUserLogin();
+        });
+    });
+}
+
+void GUI_App::remove_saved_account(const std::string& id)
+{
+    if (m_account_switching)
+        return;
+    const std::string current_id = m_agent && m_agent->is_user_login() ?
+        app_config->get_country_code() + ":" + m_agent->get_user_id() : std::string();
+    if (id == current_id) {
+        send_account_result(false, "remove_current");
+        return;
+    }
+    if (account_store().find(id))
+        account_store().remove(id);
+    send_saved_accounts();
+    send_account_result(true);
 }
 
 void GUI_App::sync_left_server_connect_status()
@@ -4740,6 +5003,9 @@ void GUI_App::request_user_handle(int online_login)
 {
     auto evt = new wxCommandEvent(EVT_USER_LOGIN_HANDLE);
     evt->SetInt(online_login);
+    evt->SetExtraLong(static_cast<long>(account_session_generation()));
+    if (m_agent)
+        evt->SetString(wxString::FromUTF8(app_config->get_country_code() + ":" + m_agent->get_user_id()));
     wxQueueEvent(this, evt);
 }
 
@@ -4747,31 +5013,164 @@ void GUI_App::request_user_login(int online_login)
 {
     auto evt = new wxCommandEvent(EVT_USER_LOGIN);
     evt->SetInt(online_login);
+    evt->SetExtraLong(static_cast<long>(account_session_generation()));
+    if (m_agent)
+        evt->SetString(wxString::FromUTF8(app_config->get_country_code() + ":" + m_agent->get_user_id()));
     wxQueueEvent(this, evt);
 }
 
-void GUI_App::request_user_logout()
+bool GUI_App::prepare_account_change()
 {
+    if (m_task_manager) {
+        for (const auto& entry : m_task_manager->get_local_task_list()) {
+            auto* task = entry.second;
+            if (!task)
+                continue;
+            const auto state = task->state();
+            if (state == TS_PENDING || state == TS_SENDING) {
+                MessageDialog dialog(mainframe, _L("The uploads are still ongoing"), _L("Ongoing uploads"), wxOK);
+                dialog.ShowModal();
+                return false;
+            }
+        }
+    }
+    if (!m_agent)
+        return true;
+    m_account_keep_preset_changes = false;
+    const wxString header = _L("Some presets are modified.") + "\n" +
+        _L("You can keep the modified presets for the new project, discard or save changes as new presets.");
+    using ab = UnsavedChangesDialog::ActionButtons;
+    return check_and_keep_current_preset_changes(_L("Login"), header, ab::KEEP | ab::SAVE,
+                                                 &m_account_keep_preset_changes, ForceOption::fopNone);
+}
+
+bool GUI_App::request_user_logout(bool forget_account)
+{
+    if (!prepare_account_change())
+        return false;
+    clear_user_session(forget_account);
+    if (m_account_keep_preset_changes) {
+        apply_keeped_preset_modifications();
+        m_account_keep_preset_changes = false;
+    }
+    get_login_info();
+    if (mainframe && mainframe->m_webview)
+        mainframe->m_webview->SendLoginInfo();
+    return true;
+}
+
+void GUI_App::expire_current_account()
+{
+    if (!m_agent || !m_agent->is_user_login())
+        return;
+    const std::string id = app_config->get_country_code() + ":" + m_agent->get_user_id();
+    if (m_account_activation_pending) {
+        clear_user_session(false);
+        get_login_info();
+        if (mainframe && mainframe->m_webview)
+            mainframe->m_webview->SendLoginInfo();
+    } else
+        request_user_logout(false);
+    if (account_store().find(id))
+        account_store().set_needs_login(id, true);
+    WebView::ClearBambulabTokenCookies();
+    send_saved_accounts();
+    send_account_result(false, "expired");
+}
+
+void GUI_App::verify_current_account()
+{
+    if (is_closing() || !m_agent || !m_agent->is_user_login())
+        return;
+    const auto session = account_session_generation();
+    if (m_account_verifying && m_account_verification_session == session)
+        return;
+    {
+        std::lock_guard<std::mutex> lock(m_account_verification_mutex);
+        if (m_account_verification_stopping)
+            return;
+        m_account_verification_request = session;
+    }
+    m_account_verifying = true;
+    m_account_verification_session = session;
+    if (!m_account_verification_thread.joinable()) {
+        m_account_verification_thread = boost::thread([this] {
+            for (;;) {
+                unsigned long session;
+                {
+                    std::unique_lock<std::mutex> lock(m_account_verification_mutex);
+                    m_account_verification_condition.wait(lock, [this] {
+                        return m_account_verification_stopping || m_account_verification_request.has_value();
+                    });
+                    if (m_account_verification_stopping)
+                        return;
+                    session = *m_account_verification_request;
+                    m_account_verification_request.reset();
+                }
+                unsigned int http_code = 0;
+                std::string body;
+                if (!is_closing() && account_session_generation() == session &&
+                    m_agent && m_agent->is_user_login())
+                    m_agent->get_user_print_info(&http_code, &body);
+                if (is_closing())
+                    continue;
+                CallAfter([this, session, http_code] {
+                    if (is_closing())
+                        return;
+                    if (m_account_verification_session == session)
+                        m_account_verifying = false;
+                    if (account_session_generation() != session || http_code != 401 ||
+                        !m_agent || !m_agent->is_user_login())
+                        return;
+                    if (m_account_switching && !m_account_activation_pending) {
+                        const std::string id = app_config->get_country_code() + ":" + m_agent->get_user_id();
+                        if (account_store().find(id))
+                            account_store().set_needs_login(id, true);
+                        send_saved_accounts();
+                        return;
+                    }
+                    expire_current_account();
+                    if (!m_show_error_msgdlg) {
+                        m_show_error_msgdlg = true;
+                        MessageDialog dialog(nullptr, _L("Login information expired. Please login again."), "", wxAPPLY | wxOK);
+                        dialog.ShowModal();
+                        m_show_error_msgdlg = false;
+                    }
+                });
+            }
+        });
+    }
+    m_account_verification_condition.notify_one();
+}
+
+void GUI_App::clear_user_session(bool forget_account)
+{
+    ++m_account_session_generation;
+    m_account_activation_pending = false;
     m_homepage_server_connect_failed = false;
     sync_left_server_connect_status();
 
-    if (m_agent && m_agent->is_user_login()) {
+    if (m_agent) {
+        const bool logged_in = m_agent->is_user_login();
+        const std::string account_id = app_config->get_country_code() + ":" + m_agent->get_user_id();
+        stop_sync_user_preset();
+        if (!forget_account && logged_in)
+            remember_current_account();
+        auto pending_deletions = get_delete_cache_presets_lock();
+        if (logged_in || !pending_deletions.empty())
+            m_account_preset_deletions[account_id] = std::move(pending_deletions);
+        set_delete_cache_presets({});
+        m_create_preset_blocked = {false, false, false, false, false, false};
         m_load_last_machine.is_list_ok = false;
         m_load_last_machine.is_mqtt_ok = false;
-        // Update data first before showing dialogs
-        m_agent->user_logout(true);
-        WebView::ClearBambulabTokenCookies();
+        if (logged_in && m_agent->user_logout(forget_account) != 0)
+            throw std::runtime_error("无法结束当前账号的登录状态。");
+        if (forget_account)
+            WebView::ClearBambulabTokenCookies();
         if (auto obj = m_device_manager->get_selected_machine();
             obj && obj->is_cloud_mode_printer()) {
             m_device_manager->record_user_last_machine("");
         }
-
-        /* delete old user settings */
-        bool     transfer_preset_changes = false;
-        wxString header = _L("Some presets are modified.") + "\n" +
-            _L("You can keep the modified presets for the new project, discard or save changes as new presets.");
-        using ab        = UnsavedChangesDialog::ActionButtons;
-        wxGetApp().check_and_keep_current_preset_changes(_L("User logged out"), header, ab::KEEP | ab::SAVE, &transfer_preset_changes);
 
         m_device_manager->clean_user_info();
         remove_user_presets();
@@ -4779,12 +5178,14 @@ void GUI_App::request_user_logout()
         preset_bundle->load_user_presets(DEFAULT_USER_FOLDER_NAME, ForwardCompatibilitySubstitutionRule::Enable);
         mainframe->update_side_preset_ui();
 
-        GUI::wxGetApp().stop_sync_user_preset();
-
         // Drop queued cloud ops so they don't fire against a stale user.
         if (!m_disable_fila_manager && m_fila_manager_cloud_disp) {
             m_fila_manager_cloud_disp->clear_pending();
         }
+        if (m_fila_manager_sync)
+            m_fila_manager_sync->reset_account_state();
+        if (!m_disable_fila_manager && m_fila_manager_store)
+            m_fila_manager_store->activate_local();
         // STUDIO-18155: 清 AMS auto-push 节流账本，避免账号 A 的 cooldown
         // 影响登入账号 B 后第一次 sync 触发 push 的时机。
         if (!m_disable_fila_manager && m_fila_manager_cloud_sync) {
@@ -4793,6 +5194,8 @@ void GUI_App::request_user_logout()
         if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
             mainframe->web_device()->NotifyFilamentSessionState();
         }
+        if (forget_account && account_store().find(account_id))
+            account_store().remove(account_id);
     }
 }
 
@@ -4854,7 +5257,23 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 }
                 #endif
             }
+            else if (command_str == "homepage_get_accounts") {
+                CallAfter([this] { send_saved_accounts(); });
+            }
+            else if (command_str == "homepage_switch_account") {
+                const std::string id = root.get<std::string>("account_id");
+                CallAfter([this, id] { switch_saved_account(id); });
+            }
+            else if (command_str == "homepage_add_account") {
+                CallAfter([this] { add_saved_account(); });
+            }
+            else if (command_str == "homepage_remove_account") {
+                const std::string id = root.get<std::string>("account_id");
+                CallAfter([this, id] { remove_saved_account(id); });
+            }
             else if (command_str.compare("homepage_login_or_register") == 0) {
+                if (m_account_switching)
+                    return "";
                 //Check Plugin
                 bool bValid = is_compatibility_version();
                 if (!bValid) {
@@ -4881,7 +5300,8 @@ std::string GUI_App::handle_web_request(std::string cmd)
             }
             else if (command_str.compare("homepage_logout") == 0) {
                 CallAfter([this] {
-                    wxGetApp().request_user_logout();
+                    if (!m_account_switching)
+                        request_user_logout();
                 });
             }
             else if (command_str.compare("homepage_modeldepot") == 0) {
@@ -5196,31 +5616,42 @@ std::string GUI_App::handle_web_request(std::string cmd)
 
 void GUI_App::handle_script_message(std::string msg)
 {
-    try {
-        json j = json::parse(msg);
-        if (j.contains("command")) {
-            wxString cmd = j["command"];
-            if (cmd == "user_login") {
-                if (m_agent) {
-                    m_agent->change_user(j.dump());
-                    if (m_agent->is_user_login()) {
-                        request_user_login(1);
-                    }
-                }
-            }
-            if (cmd == "user_ticket_login") {
-                std::string ticket = j["data"]["ticket"];
-                TicketLoginTask::perform_async(ticket, [this](std::string login_info) {
-                    if (m_agent && !login_info.empty()) {
-                        m_agent->change_user(login_info);
-                        if (m_agent->is_user_login()) { request_user_login(1); }
-                    }
-                });
-            }
-        }
+    const json message = json::parse(msg);
+    const std::string command = message.at("command").get<std::string>();
+    if (command == "user_login") {
+        if (!is_login_dialog_open())
+            return;
+        const bool success = apply_user_login(message.dump());
+        get_login_info();
+        send_account_result(success, success ? "" : "login_failed");
     }
-    catch (...) {
-        ;
+    else if (command == "user_ticket_login") {
+        if (!is_login_dialog_open() || m_account_login_pending)
+            return;
+        const std::string ticket = message.at("data").at("ticket").get<std::string>();
+        if (ticket.empty())
+            throw std::runtime_error("登录票据不能为空。");
+        for (auto task = m_ticket_login_tasks.begin(); task != m_ticket_login_tasks.end();) {
+            if (task->wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+                task->get();
+                task = m_ticket_login_tasks.erase(task);
+            } else
+                ++task;
+        }
+        m_account_login_pending = true;
+        m_account_switching = true;
+        send_saved_accounts();
+        const auto session = account_session_generation();
+        const auto login_generation = user_login_generation();
+        m_ticket_login_tasks.emplace_back(TicketLoginTask::perform_async(ticket, [this, session, login_generation](std::string login_info) {
+            if (is_closing() || account_session_generation() != session ||
+                user_login_generation() != login_generation || !is_login_dialog_open())
+                return;
+            const bool success = apply_user_login(login_info);
+            get_login_info();
+            send_account_result(success, success ? "" : "login_failed");
+            ShowUserLogin(false);
+        }));
     }
 }
 
@@ -5287,6 +5718,7 @@ void GUI_App::handle_http_error(unsigned int status, std::string body)
     // tips body size must less than 1024
     auto evt = new wxCommandEvent(EVT_HTTP_ERROR);
     evt->SetInt(status);
+    evt->SetExtraLong(static_cast<long>(account_session_generation()));
     evt->SetString(wxString(body));
     wxQueueEvent(this, evt);
 }
@@ -5294,6 +5726,9 @@ void GUI_App::handle_http_error(unsigned int status, std::string body)
 void GUI_App::on_http_error(wxCommandEvent &evt)
 {
     int status = evt.GetInt();
+    if (status == 401 &&
+        static_cast<unsigned long>(evt.GetExtraLong()) != account_session_generation())
+        return;
 
     int code = 0;
     std::string error;
@@ -5345,18 +5780,7 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
 
     // request login
     if (status == 401) {
-        if (m_agent) {
-            if (m_agent->is_user_login()) {
-                this->request_user_logout();
-                if (!m_show_error_msgdlg) {
-                    MessageDialog msg_dlg(nullptr, _L("Login information expired. Please login again."), "", wxAPPLY | wxOK);
-                    m_show_error_msgdlg = true;
-                    auto modal_result = msg_dlg.ShowModal();
-                    m_show_error_msgdlg = false;
-                    return;
-                }
-            }
-        }
+        verify_current_account();
         return;
     }
 }
@@ -5426,6 +5850,12 @@ void GUI_App::on_update_machine_list(wxCommandEvent &evt)
 void GUI_App::on_user_login_handle(wxCommandEvent &evt)
 {
     if (!m_agent) { return; }
+    const auto session = account_session_generation();
+    if (static_cast<unsigned long>(evt.GetExtraLong()) != session)
+        return;
+    const std::string session_id = app_config->get_country_code() + ":" + m_agent->get_user_id();
+    if (!evt.GetString().empty() && evt.GetString() != wxString::FromUTF8(session_id))
+        return;
 
     int online_login = evt.GetInt();
     m_agent->connect_server();
@@ -5433,13 +5863,26 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
 
-    boost::thread update_thread = boost::thread([this, dev] {
-        dev->update_user_machine_list_info();
-        CallAfter([this, dev]() {
-            m_load_last_machine.TryLoadFromHttpCB(m_agent, dev);
-            dev->restore_local_machines_from_user_access_config();
-        });
+    boost::thread update_thread = boost::thread([this, dev, session] {
+        dev->update_user_machine_list_info([this, dev, session](bool loaded) {
+            if (is_closing() || !m_agent || !m_agent->is_user_login() ||
+                account_session_generation() != session)
+                return;
+            if (loaded) {
+                m_load_last_machine.TryLoadFromHttpCB(m_agent, dev);
+                dev->restore_local_machines_from_user_access_config();
+                const std::string id = app_config->get_country_code() + ":" + m_agent->get_user_id();
+                if (const auto account = account_store().find(id); account && account->needs_login)
+                    account_store().set_needs_login(id, false);
+            }
+            if (m_account_activation_pending) {
+                m_account_activation_pending = false;
+                get_login_info();
+                send_account_result(true);
+            }
+        }, session);
     });
+    update_thread.detach();
 
     if (online_login) {
         remove_user_presets();
@@ -5447,7 +5890,15 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
         preset_bundle->load_user_presets(m_agent->get_user_id(), ForwardCompatibilitySubstitutionRule::Enable);
         mainframe->update_side_preset_ui();
 
-        GUI::wxGetApp().mainframe->show_sync_dialog();
+        if (online_login == 1)
+            GUI::wxGetApp().mainframe->show_sync_dialog();
+
+        if (m_account_keep_preset_changes) {
+            apply_keeped_preset_modifications();
+            m_account_keep_preset_changes = false;
+        }
+        if (online_login == 2 && app_config->get_bool("sync_user_preset"))
+            start_sync_user_preset();
 
         // Trigger filament-manager cloud pull on the dispatcher queue; no-op if
         // already pulling.  Runs after login so auth token is available.
@@ -5494,6 +5945,17 @@ void GUI_App::check_track_enable()
 void GUI_App::on_user_login(wxCommandEvent &evt)
 {
     if (!m_agent) { return; }
+    if (static_cast<unsigned long>(evt.GetExtraLong()) != account_session_generation())
+        return;
+    if (!evt.GetString().empty() && evt.GetString() != wxString::FromUTF8(
+            app_config->get_country_code() + ":" + m_agent->get_user_id()))
+        return;
+    if (m_agent->is_user_login()) {
+        remember_current_account();
+        get_login_info();
+        if (mainframe && mainframe->m_webview)
+            mainframe->m_webview->ResetWholePage(true);
+    }
     int online_login = evt.GetInt();
     // check privacy before handle
     check_privacy_version(online_login);
@@ -6011,7 +6473,9 @@ void GUI_App::show_check_privacy_dlg(wxCommandEvent& evt)
             app_config->save();
             report_consent_common(false, "studio_privacy_policy_enable", "SoftwarePrivacy");
             if (m_agent) {
-                m_agent->user_logout();
+                clear_user_session(false);
+                get_login_info();
+                send_account_result(false, "privacy_declined");
             }
         });
 
@@ -6241,6 +6705,7 @@ void GUI_App::remove_user_presets()
 
 void GUI_App::sync_preset(Preset* preset)
 {
+    const auto session = account_session_generation();
     int result = -1;
     unsigned int http_code = 200;
     std::string updated_info;
@@ -6349,7 +6814,9 @@ void GUI_App::sync_preset(Preset* preset)
 
     if (http_code >= 400 && values_map["code"] == "14") { // Limit
         m_create_preset_blocked[preset->type] = true;
-        CallAfter([this] {
+        CallAfter([this, session] {
+            if (is_closing() || account_session_generation() != session)
+                return;
             plater()->get_notification_manager()->push_notification(NotificationType::BBLUserPresetExceedLimit);
             static bool dialog_notified = false;
             if (dialog_notified)
@@ -6402,24 +6869,26 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                 dlg->Update(percent, _L("Loading user preset"));
             });
         };
-        cancelFn = [this, dlg]() {
-            return is_closing() || dlg->WasCanceled();
+        cancelFn = [this, dlg, t = std::weak_ptr(m_user_sync_token)]() {
+            return t.expired() || is_closing() || dlg->WasCanceled();
         };
         finishFn = [this, userid = m_agent->get_user_id(), dlg, t = std::weak_ptr(m_user_sync_token)](bool ok) {
             CallAfter([=]{
                 dlg->Destroy();
-                if (ok && m_agent && t.lock() == m_user_sync_token && userid == m_agent->get_user_id()) reload_settings();
+                if (ok && !t.expired() && m_agent && t.lock() == m_user_sync_token &&
+                    userid == m_agent->get_user_id()) reload_settings();
             });
         };
     }
     else {
         finishFn = [this, userid = m_agent->get_user_id(), t = std::weak_ptr(m_user_sync_token)](bool ok) {
             CallAfter([=] {
-                if (ok && m_agent && t.lock() == m_user_sync_token && userid == m_agent->get_user_id()) reload_settings();
+                if (ok && !t.expired() && m_agent && t.lock() == m_user_sync_token &&
+                    userid == m_agent->get_user_id()) reload_settings();
             });
         };
-        cancelFn = [this]() {
-            return is_closing();
+        cancelFn = [this, t = std::weak_ptr(m_user_sync_token)]() {
+            return t.expired() || is_closing();
         };
     }
 
@@ -6465,6 +6934,8 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         sync_count = preset_bundle->prints.get_user_presets(preset_bundle, presets_to_sync);
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
+                                if (t.expired())
+                                    return;
                                 sync_preset(&preset);
                                 boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
@@ -6474,6 +6945,8 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         sync_count = preset_bundle->filaments.get_user_presets(preset_bundle, presets_to_sync);
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
+                                if (t.expired())
+                                    return;
                                 sync_preset(&preset);
                                 boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
@@ -6483,6 +6956,8 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         sync_count = preset_bundle->printers.get_user_presets(preset_bundle, presets_to_sync);
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
+                                if (t.expired())
+                                    return;
                                 sync_preset(&preset);
                                 boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
@@ -6490,8 +6965,8 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         total_count += sync_count;
 
                         if (total_count == 0) {
-                            CallAfter([this] {
-                                if (!is_closing())
+                            CallAfter([this, t] {
+                                if (!t.expired() && !is_closing())
                                     plater()->get_notification_manager()->close_notification_of_type(NotificationType::BBLUserPresetExceedLimit);
                             });
                         }
@@ -6501,7 +6976,12 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         /* get list witch need to be deleted*/
                         std::vector<string> delete_cache_presets = get_delete_cache_presets_lock();
                         for (auto it = delete_cache_presets.begin(); it != delete_cache_presets.end();) {
-                            if ((*it).empty()) continue;
+                            if (t.expired())
+                                return;
+                            if ((*it).empty()) {
+                                ++it;
+                                continue;
+                            }
                             std::string del_setting_id = *it;
                             int result = m_agent->delete_setting(del_setting_id);
                             if (result == 0) {
@@ -6525,16 +7005,9 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 
 void GUI_App::stop_sync_user_preset()
 {
-    if (!m_user_sync_token)
-        return;
-
     m_user_sync_token.reset();
-    if (m_sync_update_thread.joinable()) {
-        if (is_closing())
-            m_sync_update_thread.join();
-        else
-            m_sync_update_thread.detach();
-    }
+    if (m_sync_update_thread.joinable())
+        m_sync_update_thread.join();
 }
 
 void GUI_App::start_http_server()
@@ -7594,6 +8067,12 @@ std::vector<std::string> GUI_App::get_delete_cache_presets_lock()
 {
     std::scoped_lock l(mutex_delete_cache_presets);
     return need_delete_presets;
+}
+
+void GUI_App::set_delete_cache_presets(std::vector<std::string> setting_ids)
+{
+    std::scoped_lock lock(mutex_delete_cache_presets);
+    need_delete_presets = std::move(setting_ids);
 }
 
 void GUI_App::delete_preset_from_cloud(std::string setting_id)

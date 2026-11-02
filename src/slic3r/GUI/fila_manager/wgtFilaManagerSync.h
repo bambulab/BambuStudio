@@ -32,6 +32,9 @@ public:
     // 在该 uuid 对应的耗材拔出之前，抑制角标重复弹出。
     void skip_new_filament_hint(const std::string& uuid);
 
+    // 账号作用域发生变化后清空槽位与提示缓存，避免旧账号状态影响新账号。
+    void reset_account_state();
+
 private:
     // 匹配一条 AMS tray 到 store 中的 spool。优先复用用户已手动绑定过的
     // 槽位锚（in_printer + dev_id/ams_id/slot_id 三者匹配的 spool），命中

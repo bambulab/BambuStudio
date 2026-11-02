@@ -358,24 +358,29 @@ void session::handle_login()
     auto login_params = parse_login_params(req_);
 
     if (login_params) {
+        const auto session = wxGetApp().account_session_generation();
+        const auto login_generation = wxGetApp().user_login_generation();
         auto login_info = TicketLoginTask::perform_sync(login_params->ticket);
         if (login_info.empty()) {
             BOOST_LOG_TRIVIAL(info) << "third_party_login: login info empty, login failed";
             do_write_302(*login_params, false);
         }
         else {
-            NetworkAgent *agent = wxGetApp().getAgent();
-            agent->change_user(login_info);
-            if (agent->is_user_login()) {
-                wxGetApp().request_user_login(1);
-                BOOST_LOG_TRIVIAL(info) << "third_party_login: all good, login successful";
-                do_write_302(*login_params, true);
-            }
-            else {
-                BOOST_LOG_TRIVIAL(info) << "third_party_login: after applying the login information, the application remains unlogged, login failed";
-                do_write_302(*login_params, false);
-            }
-            GUI::wxGetApp().CallAfter([this] { wxGetApp().ShowUserLogin(false); });
+            auto self = shared_from_this();
+            const auto params = *login_params;
+            GUI::wxGetApp().CallAfter([self, params, session, login_generation, login_info = std::move(login_info)] {
+                auto& app = wxGetApp();
+                if (app.is_closing() || app.account_session_generation() != session ||
+                    app.user_login_generation() != login_generation || !app.is_login_dialog_open()) {
+                    self->do_write_302(params, false);
+                    return;
+                }
+                const bool success = app.apply_user_login(login_info);
+                app.get_login_info();
+                app.send_account_result(success, success ? "" : "login_failed");
+                self->do_write_302(params, success);
+                app.ShowUserLogin(false);
+            });
         }
     }
     else {
@@ -500,17 +505,15 @@ std::string TicketLoginTask::perform_sync(const std::string &ticket)
         return {};
 }
 
-void TicketLoginTask::perform_async(const std::string &ticket, std::function<void(std::string)> cb)
+std::future<void> TicketLoginTask::perform_async(const std::string &ticket, std::function<void(std::string)> cb)
 {
-    boost::thread([cb = std::move(cb), ticket]() {
+    return std::async(std::launch::async, [cb = std::move(cb), ticket]() {
         auto login_info = do_request_login_info(ticket);
         auto result     = login_info ? *login_info : std::string();
-        if (wxTheApp) {
+        if (wxTheApp && !wxGetApp().is_closing()) {
             wxTheApp->CallAfter([cb, result = std::move(result)]() mutable { cb(std::move(result)); });
-        } else {
-            cb(result);
         }
-    }).detach();
+    });
 }
 
 std::optional<std::string> TicketLoginTask::do_request_login_info(const std::string &ticket)

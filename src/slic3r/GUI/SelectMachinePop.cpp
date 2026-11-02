@@ -389,21 +389,32 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
 
     if (wxGetApp().is_user_login()) {
         if (!get_print_info_thread) {
-            get_print_info_thread = new boost::thread(Slic3r::create_thread([this, token = std::weak_ptr(m_token)] {
-                NetworkAgent* agent = wxGetApp().getAgent();
-                unsigned int http_code;
+            NetworkAgent *agent = wxGetApp().getAgent();
+            const unsigned long session = wxGetApp().account_session_generation();
+            get_print_info_thread = new boost::thread(Slic3r::create_thread([this, token = std::weak_ptr(m_token), agent, session] {
+                unsigned int http_code = 0;
                 std::string body;
                 int result = agent->get_user_print_info(&http_code, &body);
-                CallAfter([token, this, result, body]() {
-                    if (token.expired()) {return;}
+                CallAfter([token, this, agent, session, result, body]() {
+                    if (token.expired() || wxGetApp().account_session_generation() != session ||
+                        wxGetApp().getAgent() != agent || !agent->is_user_login())
+                        return;
+
                     if (result == 0) {
                         m_print_info = body;
+                        if (!m_print_info.empty()) {
+                            if (DeviceManager *dev = wxGetApp().getDeviceManager())
+                                dev->parse_user_print_info(m_print_info);
+                        }
                     }
                     else {
-                        m_print_info = "";
+                        m_print_info.clear();
                     }
+                    m_print_info.clear();
+
                     wxCommandEvent event(EVT_UPDATE_USER_MACHINE_LIST);
                     event.SetEventObject(this);
+                    event.SetExtraLong(static_cast<long>(session + 1));
                     wxPostEvent(this, event);
                 });
             }));
@@ -804,6 +815,12 @@ void SelectMachinePopup::on_dissmiss_win(wxCommandEvent &event)
 
 void SelectMachinePopup::update_machine_list(wxCommandEvent &event)
 {
+    if (event.GetExtraLong() != 0 &&
+        static_cast<unsigned long>(event.GetExtraLong()) - 1 != wxGetApp().account_session_generation()) {
+        m_print_info.clear();
+        return;
+    }
+
     update_user_devices();
     update_other_devices();
     BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup update_machine_list end";

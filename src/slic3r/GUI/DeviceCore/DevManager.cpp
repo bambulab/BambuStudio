@@ -515,6 +515,7 @@ namespace Slic3r
             }
         }
         userMachineList.clear();
+        subscribe_list_cache.clear();
     }
 
     bool DeviceManager::set_selected_machine(std::string dev_id)
@@ -871,9 +872,11 @@ namespace Slic3r
         return true;
     }
 
-    void DeviceManager::update_user_machine_list_info(std::function<void(bool)> on_completed)
+    void DeviceManager::update_user_machine_list_info(std::function<void(bool)> on_completed,
+                                                     std::optional<unsigned long> expected_session)
     {
-        if (!m_agent) {
+        const auto session = expected_session.value_or(GUI::wxGetApp().account_session_generation());
+        if (!m_agent || session != GUI::wxGetApp().account_session_generation()) {
             if (on_completed) {
                 Slic3r::GUI::wxGetApp().CallAfter([on_completed]() { on_completed(false); });
             }
@@ -885,7 +888,13 @@ namespace Slic3r
         std::string body;
         int result = m_agent->get_user_print_info(&http_code, &body);
         if (result == 0) {
-            Slic3r::GUI::wxGetApp().CallAfter([this, body, on_completed]() {
+            Slic3r::GUI::wxGetApp().CallAfter([this, body, on_completed, session]() {
+                if (GUI::wxGetApp().is_closing() ||
+                    session != GUI::wxGetApp().account_session_generation()) {
+                    if (on_completed)
+                        on_completed(false);
+                    return;
+                }
                 const bool parsed = parse_user_print_info(body);
                 if (on_completed) {
                     on_completed(parsed);

@@ -17,6 +17,9 @@ struct FilamentSpool;
 
 class wgtFilaManagerCloudSync {
 public:
+    using SessionGeneration = std::uint64_t;
+    using SessionCurrentFn = std::function<bool()>;
+
     // STUDIO-18155：sync 通过此结构告知 cloud_sync 哪些 spool 发生了变化。
     // 仅承载 throttle / PUT body 需要的最小字段集，identity 字段不传。
     struct AmsChangedSpool {
@@ -33,6 +36,7 @@ public:
     ~wgtFilaManagerCloudSync() = default;
 
     void pull_from_cloud();
+    void pull_from_cloud(SessionGeneration generation, SessionCurrentFn session_is_current);
     void push_spool_to_cloud(const std::string& spool_id);
     // Push a selective update. `local_patch` contains only the fields the user
     // actually changed this time (local schema names). Fields outside the cloud

@@ -296,7 +296,8 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
         wxString strCmd = j["command"];
         if (strCmd == "user_login" || strCmd == "user_ticket_login") {
             wxGetApp().handle_script_message(j.dump());
-            Close();
+            if (strCmd == "user_login")
+                Close();
         }
         else if (strCmd == "get_localhost_url") {
             BOOST_LOG_TRIVIAL(info) << "thirdparty_login: get_localhost_url";

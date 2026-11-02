@@ -81,3 +81,38 @@
 .auto-hide {
     display: none!important;
   }
+
+#AccountSwitcher
+{
+	padding: 8px 4px;
+}
+
+.AccountSwitcherHeading
+{
+	justify-content: center;
+}
+
+#AccountSwitcherTitle,
+.SavedAccountState,
+.RemoveAccountButton,
+#AccountSwitcherStatus
+{
+	display: none;
+}
+
+#AddAccountButton
+{
+	font-size: 10px;
+}
+
+.SavedAccountButton
+{
+	align-items: center;
+	padding: 8px 2px;
+}
+
+.SavedAccountName
+{
+	max-width: 50px;
+	font-size: 10px;
+}

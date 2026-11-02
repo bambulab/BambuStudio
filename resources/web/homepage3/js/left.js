@@ -26,10 +26,13 @@ function OnInit()
 		$("#DropdownWrapper").css("visibility", "hidden");
 	});
 	OnUpdatePluginInstalltip();
+	InitAccountSwitcher();
 }
 
 function HandleStudio( pVal )
 {
+	if (HandleAccountSwitcherMessage(pVal))
+		return;
 	let strCmd = pVal['command'];
 
 	if(strCmd=='studio_userlogin')
@@ -71,6 +74,7 @@ function HandleStudio( pVal )
 			$("#NoPluginTip").hide();
 			m_HasNetworkPlugin=true;
 		}
+		SetAccountSwitcherBusy(AccountSwitcherBusy);
 	}
 	else if(strCmd=='homepage_leftmenu_clicked')
 	{
@@ -230,6 +234,8 @@ function SendMsg_GetLoginInfo()
 
 function OnLoginOrRegister()
 {
+	if (AccountSwitcherBusy)
+		return;
 	var tSend={};
 
 	if( m_HasNetworkPlugin )
@@ -248,6 +254,8 @@ function OnLoginOrRegister()
 
 function OnLogOut()
 {
+	if (AccountSwitcherBusy)
+		return;
 	var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="homepage_logout";

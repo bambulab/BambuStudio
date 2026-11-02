@@ -101,7 +101,7 @@ public:
     void OnFreshLoginStatus(wxTimerEvent &event);
 
 public:
-    void ResetWholePage();
+    void ResetWholePage(bool force = false);
 
     // Login
     void SendLoginInfo();
@@ -171,6 +171,7 @@ public:
     //PrintHistory
     std::string m_TaskInfo;
     bool        m_printhistoryfirst; // print history first load
+    std::uint64_t m_print_task_last_request_ms { 0 };
     wxString    m_print_history_LastUrl;
     void ShowUserPrintTask(bool bShow, bool bForce=false);
 
@@ -182,6 +183,7 @@ private:
     std::string m_Region;
 
     wxBoxSizer *topsizer { nullptr };
+    bool is_print_history_session_current(unsigned long session, NetworkAgent *agent) const;
 
     int         m_loginstatus;
     bool        m_makerworld_sso_navigation_pending { false };

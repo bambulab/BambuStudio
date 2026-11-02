@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
+#include <stdexcept>
 #if defined(_MSC_VER) || defined(_WIN32)
 #include <Windows.h>
 #else
@@ -7,6 +11,7 @@
 #endif
 
 #include <boost/log/trivial.hpp>
+#include <boost/nowide/convert.hpp>
 #include "libslic3r/Utils.hpp"
 #include "slic3r/Utils/BBLUtil.hpp"
 #include "NetworkAgent.hpp"
@@ -23,6 +28,16 @@ namespace Slic3r {
 #if defined(_MSC_VER) || defined(_WIN32)
 static HMODULE networking_module = NULL;
 static HMODULE source_module = NULL;
+
+static HMODULE load_plugin_library(const std::wstring& path)
+{
+    HMODULE module = LoadLibraryW(path.c_str());
+    if (!module) {
+        const DWORD error = GetLastError();
+        BOOST_LOG_TRIVIAL(error) << "网络插件加载失败，Windows 错误码：" << error;
+    }
+    return module;
+}
 #else
 static void* networking_module = NULL;
 static void* source_module = NULL;
@@ -205,21 +220,19 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
     //first load the library
 #if defined(_MSC_VER) || defined(_WIN32)
     library = plugin_folder.string() + "\\" + std::string(BAMBU_NETWORK_LIBRARY) + ".dll";
-    wchar_t lib_wstr[128];
-    memset(lib_wstr, 0, sizeof(lib_wstr));
-    ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
+    std::wstring lib_wstr = boost::nowide::widen(library);
     if (self_cert_summary) {
         module_cert_summary = SummarizeModule(library);
         if (module_cert_summary) {
             if (IsSamePublisher(*self_cert_summary, *module_cert_summary))
-                networking_module = LoadLibrary(lib_wstr);
+                networking_module = load_plugin_library(lib_wstr);
             else
                 BOOST_LOG_TRIVIAL(info) << "module is from another publisher:" << module_cert_summary->as_print();
         }
         else
             BOOST_LOG_TRIVIAL(info) << "module_cert is null";
     } else
-        networking_module = LoadLibrary(lib_wstr);
+        networking_module = load_plugin_library(lib_wstr);
     if (!networking_module) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", try load library directly from current directory");
 
@@ -228,13 +241,12 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", can not get path in current directory for %1%") % BAMBU_NETWORK_LIBRARY;
             return -1;
         }
-        memset(lib_wstr, 0, sizeof(lib_wstr));
-        ::MultiByteToWideChar(CP_UTF8, NULL, library_path.c_str(), strlen(library_path.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
+        lib_wstr = boost::nowide::widen(library_path);
         if (self_cert_summary) {
             module_cert_summary = SummarizeModule(library_path);
             if (module_cert_summary) {
                 if (IsSamePublisher(*self_cert_summary, *module_cert_summary))
-                    networking_module = LoadLibrary(lib_wstr);
+                    networking_module = load_plugin_library(lib_wstr);
                 else
                     BOOST_LOG_TRIVIAL(info) << "module is from another publisher:" << module_cert_summary->as_print();
             }
@@ -242,7 +254,7 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
                 BOOST_LOG_TRIVIAL(info) << "module_cert is null";
         }
         else
-            networking_module = LoadLibrary(lib_wstr);
+            networking_module = load_plugin_library(lib_wstr);
     }
 #else
     #if defined(__WXMAC__)
@@ -543,13 +555,10 @@ void* NetworkAgent::get_bambu_source_entry()
     boost::filesystem::path data_dir_path(data_dir_str);
     auto plugin_folder = data_dir_path / "plugins";
 #if defined(_MSC_VER) || defined(_WIN32)
-    wchar_t lib_wstr[128];
-
     //goto load bambu source
     library = plugin_folder.string() + "/" + std::string(BAMBU_SOURCE_LIBRARY) + ".dll";
-    memset(lib_wstr, 0, sizeof(lib_wstr));
-    ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
-    source_module = LoadLibrary(lib_wstr);
+    std::wstring lib_wstr = boost::nowide::widen(library);
+    source_module = load_plugin_library(lib_wstr);
     if (!source_module) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", try load BambuSource directly from current directory");
         std::string library_path = get_libpath_in_current_directory(std::string(BAMBU_SOURCE_LIBRARY));
@@ -558,9 +567,8 @@ void* NetworkAgent::get_bambu_source_entry()
             return source_module;
         }
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", line %1%")%__LINE__;
-        memset(lib_wstr, 0, sizeof(lib_wstr));
-        ::MultiByteToWideChar(CP_UTF8, NULL, library_path.c_str(), strlen(library_path.c_str()) + 1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
-        source_module = LoadLibrary(lib_wstr);
+        lib_wstr = boost::nowide::widen(library_path);
+        source_module = load_plugin_library(lib_wstr);
     }
 #else
 #if defined(__WXMAC__)
@@ -639,6 +647,8 @@ int NetworkAgent::set_config_dir(std::string config_dir)
     int ret = 0;
     if (network_agent && set_config_dir_ptr) {
         ret = set_config_dir_ptr(network_agent, config_dir);
+        if (ret == 0)
+            m_config_dir = config_dir;
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, config_dir=%3%")%network_agent %ret %config_dir ;
     }
@@ -1059,6 +1069,56 @@ std::string NetworkAgent::build_login_info()
         ret = build_login_info_ptr(network_agent);
     }
     return ret;
+}
+
+std::vector<unsigned char> NetworkAgent::export_user_session() const
+{
+    if (m_config_dir.empty())
+        throw std::runtime_error("网络插件的账号数据目录尚未初始化。");
+    const auto path = std::filesystem::u8path(m_config_dir) / "BambuNetworkEngine.conf";
+    std::ifstream input(path, std::ios::binary);
+    if (!input.is_open())
+        throw std::runtime_error("无法读取网络插件的账号认证文件。");
+    std::vector<unsigned char> data{std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
+    if (input.bad() || data.empty())
+        throw std::runtime_error("网络插件的账号认证文件不完整。");
+    return data;
+}
+
+bool NetworkAgent::restore_user_session(const std::vector<unsigned char>& session_data)
+{
+    if (!network_agent || !set_config_dir_ptr || !start_ptr || !is_user_login_ptr)
+        throw std::runtime_error("网络插件不支持恢复账号认证状态。");
+    if (is_user_login())
+        throw std::runtime_error("恢复账号前必须结束当前登录状态。");
+    if (m_config_dir.empty() || session_data.empty())
+        throw std::runtime_error("待恢复的账号认证数据不完整。");
+    const auto path = std::filesystem::u8path(m_config_dir) / "BambuNetworkEngine.conf";
+    auto pending = path;
+    pending += ".pending";
+    {
+        std::ofstream output(pending, std::ios::binary | std::ios::trunc);
+        if (!output.is_open())
+            throw std::runtime_error("无法创建网络插件的账号认证文件。");
+        output.write(reinterpret_cast<const char*>(session_data.data()), session_data.size());
+        output.flush();
+        if (!output.good())
+            throw std::runtime_error("无法写入网络插件的账号认证文件。");
+        output.close();
+        if (!output.good())
+            throw std::runtime_error("无法关闭网络插件的账号认证文件。");
+    }
+#if defined(_MSC_VER) || defined(_WIN32)
+    if (!MoveFileExW(pending.c_str(), path.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
+        throw std::runtime_error("无法替换网络插件的账号认证文件。");
+#else
+    std::filesystem::permissions(pending, std::filesystem::perms::owner_read | std::filesystem::perms::owner_write,
+                                 std::filesystem::perm_options::replace);
+    std::filesystem::rename(pending, path);
+#endif
+    if (set_config_dir(m_config_dir) != 0 || start() != 0)
+        throw std::runtime_error("网络插件无法重新加载账号认证状态。");
+    return is_user_login();
 }
 
 int NetworkAgent::ping_bind(std::string ping_code)

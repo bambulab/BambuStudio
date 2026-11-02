@@ -1,4 +1,5 @@
 #include "WebView.hpp"
+#include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/Utils/MacDarkMode.hpp"
 
@@ -266,7 +267,7 @@ wxString WebView::BuildEdgeUserDataPath()
     static wxString data_dir;
     if (!data_dir.empty()) { return data_dir; }
 
-    data_dir = wxStandardPaths::Get().GetUserLocalDataDir();
+    data_dir = wxString::FromUTF8(Slic3r::data_dir());
     data_dir.append("\\WebView2Cache\\");
 
     // find a path
@@ -523,7 +524,7 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
 #  endif
 #endif
 
-void WebView::ClearBambulabTokenCookies()
+void WebView::ClearBambulabTokenCookies(std::function<void(bool)> completed)
 {
     // Dispatch on the active webview backend, not the platform: the cookie store
     // is owned by the backend (WebView2 / WebKit / CEF), so a future backend
@@ -537,6 +538,8 @@ void WebView::ClearBambulabTokenCookies()
     // libcef headers are part of the build.
     BOOST_LOG_TRIVIAL(warning)
         << "WebView: ClearBambulabTokenCookies not yet implemented for the Chromium/CEF backend";
+    if (completed)
+        completed(false);
 #elif defined(__WIN32__) && wxUSE_WEBVIEW_EDGE
     using Microsoft::WRL::ComPtr;
     using Microsoft::WRL::Callback;
@@ -550,56 +553,74 @@ void WebView::ClearBambulabTokenCookies()
     }
     if (!backend) {
         BOOST_LOG_TRIVIAL(warning) << "WebView: ClearBambulabTokenCookies skipped, no WebView2 backend ready";
+        if (completed)
+            completed(false);
         return;
     }
 
     ComPtr<ICoreWebView2_2> webView2_2;
     if (FAILED(backend->QueryInterface(IID_PPV_ARGS(&webView2_2))) || !webView2_2) {
         BOOST_LOG_TRIVIAL(warning) << "WebView: ClearBambulabTokenCookies failed to get ICoreWebView2_2";
+        if (completed)
+            completed(false);
         return;
     }
 
     ComPtr<ICoreWebView2CookieManager> cookieManager;
-    if (FAILED(webView2_2->get_CookieManager(&cookieManager)) || !cookieManager)
+    if (FAILED(webView2_2->get_CookieManager(&cookieManager)) || !cookieManager) {
+        if (completed)
+            completed(false);
         return;
+    }
 
     // nullptr uri => enumerate all cookies; capturing cookieManager keeps it alive
     // until the async handler runs. WRL handles the handler's lifetime/refcount.
-    cookieManager->GetCookies(
+    HRESULT request_result = cookieManager->GetCookies(
         nullptr,
         Callback<ICoreWebView2GetCookiesCompletedHandler>(
-            [cookieManager](HRESULT result, ICoreWebView2CookieList *list) -> HRESULT {
-                if (FAILED(result) || !list)
+            [cookieManager, completed](HRESULT result, ICoreWebView2CookieList *list) -> HRESULT {
+                if (FAILED(result) || !list) {
+                    if (completed)
+                        completed(false);
                     return S_OK;
+                }
                 UINT count = 0;
-                list->get_Count(&count);
+                bool success = SUCCEEDED(list->get_Count(&count));
                 for (UINT i = 0; i < count; ++i) {
                     ComPtr<ICoreWebView2Cookie> cookie;
-                    if (FAILED(list->GetValueAtIndex(i, &cookie)) || !cookie)
+                    if (FAILED(list->GetValueAtIndex(i, &cookie)) || !cookie) {
+                        success = false;
                         continue;
+                    }
                     LPWSTR name = nullptr, domain = nullptr;
-                    cookie->get_Name(&name);
-                    cookie->get_Domain(&domain);
+                    success = SUCCEEDED(cookie->get_Name(&name)) && success;
+                    success = SUCCEEDED(cookie->get_Domain(&domain)) && success;
                     if (name && wcscmp(name, kLogoutCookieName) == 0 && domain_matches_bambulab(domain)) {
-                        cookieManager->DeleteCookie(cookie.Get());
+                        success = SUCCEEDED(cookieManager->DeleteCookie(cookie.Get())) && success;
                         BOOST_LOG_TRIVIAL(info) << "WebView: cleared bambulab token cookie";
                     }
                     CoTaskMemFree(name);
                     CoTaskMemFree(domain);
                 }
+                if (completed)
+                    completed(success);
                 return S_OK;
             })
             .Get());
+    if (FAILED(request_result) && completed)
+        completed(false);
 #elif defined(__WXOSX__)
     // Native WebKit backend only. Under a macOS CEF build this branch is skipped
     // because BBL_WEBVIEW_USE_CEF wins above; WKWebsiteDataStore does not own the
     // CEF cookie store, so it must not run there.
     // wxWebView WebKit uses the default WKWebsiteDataStore; cookies are process-wide.
-    Slic3r::GUI::WKWebView_clearBambulabTokenCookies();
+    Slic3r::GUI::WKWebView_clearBambulabTokenCookies(std::move(completed));
     BOOST_LOG_TRIVIAL(info) << "WebView: requested bambulab token cookie cleanup (WebKit)";
 #else
     BOOST_LOG_TRIVIAL(warning)
         << "WebView: ClearBambulabTokenCookies has no implementation for the active webview backend";
+    if (completed)
+        completed(false);
 #endif
 }
 

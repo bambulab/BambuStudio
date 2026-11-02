@@ -10,7 +10,11 @@
 #import <AppKit/NSScreen.h>
 #import <WebKit/WebKit.h>
 
+#include <dispatch/dispatch.h>
 #include <objc/runtime.h>
+
+#include <memory>
+#include <utility>
 
 @interface MacDarkMode : NSObject {}
 @end
@@ -115,19 +119,58 @@ void WKWebView_setTransparentBackground(void * web)
     [webView registerForDraggedTypes: @[NSFilenamesPboardType]];
 }
 
-void WKWebView_clearBambulabTokenCookies()
+namespace {
+
+struct BambulabTokenCookieCleanupState
 {
-    WKHTTPCookieStore *store = [WKWebsiteDataStore defaultDataStore].httpCookieStore;
-    [store getAllCookies:^(NSArray<NSHTTPCookie *> *cookies) {
-        for (NSHTTPCookie *cookie in cookies) {
-            if (![cookie.name isEqualToString:@"token"])
-                continue;
-            NSRange found = [cookie.domain rangeOfString:@"bambulab"
-                                                 options:NSCaseInsensitiveSearch];
-            if (found.location != NSNotFound)
-                [store deleteCookie:cookie completionHandler:nil];
-        }
-    }];
+    explicit BambulabTokenCookieCleanupState(std::function<void(bool)> completed) :
+        completed(std::move(completed))
+    {}
+
+    std::function<void(bool)> completed;
+    std::size_t               pending_deletes = 0;
+};
+
+} // namespace
+
+void WKWebView_clearBambulabTokenCookies(std::function<void(bool)> completed)
+{
+    // 异步 block 持有共享状态，保证 std::function 在全部删除完成后释放。
+    auto state = std::make_shared<BambulabTokenCookieCleanupState>(std::move(completed));
+    // WKHTTPCookieStore 及其 completion 属于主线程，最终回调也在此执行。
+    dispatch_async(dispatch_get_main_queue(), ^{
+        WKHTTPCookieStore *store = [WKWebsiteDataStore defaultDataStore].httpCookieStore;
+        [store getAllCookies:^(NSArray<NSHTTPCookie *> *cookies) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSMutableArray<NSHTTPCookie *> *matching_cookies = [NSMutableArray array];
+                for (NSHTTPCookie *cookie in cookies) {
+                    if (![cookie.name isEqualToString:@"token"])
+                        continue;
+                    NSRange found = [cookie.domain rangeOfString:@"bambulab"
+                                                         options:NSCaseInsensitiveSearch];
+                    if (found.location != NSNotFound)
+                        [matching_cookies addObject:cookie];
+                }
+
+                if (matching_cookies.count == 0) {
+                    if (state->completed)
+                        state->completed(true);
+                    return;
+                }
+
+                state->pending_deletes = matching_cookies.count;
+                for (NSHTTPCookie *cookie in matching_cookies) {
+                    [store deleteCookie:cookie completionHandler:^{
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            --state->pending_deletes;
+                            if (state->pending_deletes == 0 && state->completed)
+                                state->completed(true);
+                        });
+                    }];
+                }
+            });
+        }];
+    });
 }
 
 void openFolderForFile(wxString const & file)

@@ -72,6 +72,8 @@ body
 
 #LeftBoard
 {
+	display: flex;
+	flex-direction: column;
 	border-right-width: 1px;
 	border-right-style: solid;
 	width: calc(100% - 1px);
@@ -81,6 +83,7 @@ body
 #LoginArea
 {
 	height: 90px;
+	flex-shrink: 0;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -239,10 +242,114 @@ body
 /*------------------*/
 #BtnArea
 {
-	height: calc(100% - 91px);
+	flex: 1;
+	min-height: 0;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
+}
+
+#AccountSwitcher
+{
+	padding: 12px;
+	border-bottom: 1px solid;
+	flex-shrink: 0;
+}
+
+.AccountSwitcherHeading
+{
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 6px;
+	font-size: 12px;
+	margin-bottom: 6px;
+}
+
+#AddAccountButton
+{
+	background: transparent;
+	color: #00AE42;
+	cursor: pointer;
+	font-size: 12px;
+	padding: 4px 0;
+}
+
+#SavedAccountList
+{
+	max-height: 190px;
+	overflow-y: auto;
+}
+
+.SavedAccountRow
+{
+	display: flex;
+	align-items: center;
+	border-radius: 5px;
+	margin-top: 3px;
+}
+
+.SavedAccountRow:hover,
+.SavedAccountActive
+{
+	background: #E0FCEB;
+}
+
+.SavedAccountButton
+{
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+	flex: 1;
+	min-width: 0;
+	padding: 7px 8px;
+	background: transparent;
+	color: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.SavedAccountName
+{
+	max-width: 100%;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	font-size: 13px;
+}
+
+.SavedAccountState
+{
+	font-size: 10px;
+	color: #6B6B6B;
+}
+
+.RemoveAccountButton
+{
+	background: transparent;
+	color: #6B6B6B;
+	cursor: pointer;
+	font-size: 20px;
+	padding: 8px;
+}
+
+#AccountSwitcher button:focus-visible
+{
+	outline: 2px solid #00AE42;
+	outline-offset: -2px;
+}
+
+#AccountSwitcher button:disabled
+{
+	cursor: default;
+}
+
+#AccountSwitcherStatus
+{
+	font-size: 11px;
+	line-height: 16px;
+	overflow-wrap: anywhere;
 }
 
 .BtnItem

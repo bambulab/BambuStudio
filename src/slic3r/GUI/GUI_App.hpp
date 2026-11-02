@@ -1,8 +1,13 @@
 #ifndef slic3r_GUI_App_hpp_
 #define slic3r_GUI_App_hpp_
 
+#include <atomic>
+#include <condition_variable>
 #include <functional>
+#include <future>
+#include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include "ImGuiWrapper.hpp"
 #include "ConfigWizard.hpp"
@@ -64,6 +69,7 @@ class wxDataViewCtrl;
 class wxBookCtrlBase;
 class wxGLContext;
 class wxGLCanvas;
+class wxWindowDisabler;
 // BBS
 class Notebook;
 struct wxLanguageInfo;
@@ -77,6 +83,7 @@ class PresetUpdater;
 class ModelObject;
 class Model;
 class UserManager;
+class AccountStore;
 class DeviceManager;
 class NetworkAgent;
 class TaskManager;
@@ -340,6 +347,24 @@ private:
     Slic3r::UserManager* m_user_manager { nullptr };
     Slic3r::TaskManager* m_task_manager { nullptr };
     NetworkAgent* m_agent { nullptr };
+    std::unique_ptr<AccountStore> m_account_store;
+    bool m_account_switching = false;
+    bool m_account_login_prepared = false;
+    bool m_account_login_pending = false;
+    bool m_account_activation_pending = false;
+    std::atomic<unsigned long> m_account_session_generation{0};
+    std::atomic<unsigned long> m_user_login_generation{0};
+    bool m_account_verifying = false;
+    unsigned long m_account_verification_session = 0;
+    boost::thread m_account_verification_thread;
+    std::mutex m_account_verification_mutex;
+    std::condition_variable m_account_verification_condition;
+    std::optional<unsigned long> m_account_verification_request;
+    bool m_account_verification_stopping = false;
+    std::vector<std::future<void>> m_ticket_login_tasks;
+    std::unique_ptr<wxWindowDisabler> m_account_window_disabler;
+    bool m_account_keep_preset_changes = false;
+    std::map<std::string, std::vector<std::string>> m_account_preset_deletions;
 
     wgtFilaManagerStore*            m_fila_manager_store        { nullptr };
     wgtFilaManagerSync*             m_fila_manager_sync         { nullptr };
@@ -529,11 +554,27 @@ public:
     bool            check_login();
     void            get_login_info();
     void            sync_left_server_connect_status();
+    AccountStore&   account_store();
+    void            remember_current_account();
+    void            send_saved_accounts();
+    void            send_account_result(bool success, const std::string& error = {});
+    void            switch_saved_account(const std::string& id);
+    void            add_saved_account();
+    void            remove_saved_account(const std::string& id);
+    bool            prepare_account_change();
+    void            clear_user_session(bool forget_account);
+    bool            apply_user_login(const std::string& login_data, const std::string& expected_user_id = {});
+    bool            activate_user_session(const std::string& expected_user_id = {}, bool reuse_sync_settings = false);
     bool            is_user_login();
 
     void            request_user_login(int online_login = 0);
     void            request_user_handle(int online_login = 0);
-    void            request_user_logout();
+    bool            request_user_logout(bool forget_account = true);
+    void            expire_current_account();
+    void            verify_current_account();
+    unsigned long   account_session_generation() const { return m_account_session_generation.load(); }
+    unsigned long   user_login_generation() const { return m_user_login_generation.load(); }
+    bool            is_login_dialog_open() const { return login_dlg && login_dlg->IsModal(); }
     int             request_user_unbind(std::string dev_id);
     std::string     handle_web_request(std::string cmd);
     void            handle_script_message(std::string msg);
@@ -687,6 +728,7 @@ public:
     void            load_current_presets(bool active_preset_combox = false, bool check_printer_presets = true);
     std::vector<std::string> &get_delete_cache_presets();
     std::vector<std::string> get_delete_cache_presets_lock();
+    void            set_delete_cache_presets(std::vector<std::string> setting_ids);
     void            delete_preset_from_cloud(std::string setting_id);
     void            preset_deleted_from_cloud(std::string setting_id);
 

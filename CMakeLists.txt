@@ -126,6 +126,7 @@ else ()
 endif ()
 
 if (MSVC)
+    add_compile_options(/utf-8)
     if (SLIC3R_MSVC_COMPILE_PARALLEL AND NOT IS_CLANG_CL)
            add_compile_options(/MP)
     endif ()
@@ -742,6 +743,15 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
             ${CMAKE_PREFIX_PATH}/bin/avutil-59.dll
          DESTINATION ${_out_dir})
 
+    set(_tiff_runtime_dll "")
+    foreach(_dependency_prefix IN LISTS CMAKE_PREFIX_PATH)
+        if(EXISTS "${_dependency_prefix}/bin/tiff.dll")
+            file(COPY "${_dependency_prefix}/bin/tiff.dll" DESTINATION "${_out_dir}")
+            set(_tiff_runtime_dll "${_out_dir}/tiff.dll")
+            break()
+        endif()
+    endforeach()
+
     set(${output_dlls}
         ${_out_dir}/${output_gmpdll}
         ${_out_dir}/${output_mpfrdll}
@@ -779,6 +789,7 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
         ${_out_dir}/swresample-5.dll
         ${_out_dir}/swscale-8.dll
         ${_out_dir}/avutil-59.dll
+        ${_tiff_runtime_dll}
         PARENT_SCOPE
     )
 

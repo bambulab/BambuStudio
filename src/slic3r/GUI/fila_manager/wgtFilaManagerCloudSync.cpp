@@ -14,6 +14,7 @@
 #include <chrono>
 #include <cmath>
 #include <set>
+#include <stdexcept>
 
 namespace Slic3r { namespace GUI {
 
@@ -351,10 +352,22 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_json(const FilamentSpool&
 
 void wgtFilaManagerCloudSync::pull_from_cloud()
 {
+    const SessionGeneration generation = wxGetApp().account_session_generation();
+    pull_from_cloud(generation, [generation] {
+        return !wxGetApp().is_closing() &&
+            static_cast<SessionGeneration>(wxGetApp().account_session_generation()) == generation;
+    });
+}
+
+void wgtFilaManagerCloudSync::pull_from_cloud(SessionGeneration generation,
+                                              SessionCurrentFn   session_is_current)
+{
+    if (!session_is_current)
+        throw std::invalid_argument("云端拉取必须提供账号会话检查。");
     if (m_syncing) return;
 
     NetworkAgent* agent = wxGetApp().getAgent();
-    if (!agent || !agent->is_user_login()) return;
+    if (!agent || !agent->is_user_login() || !session_is_current()) return;
 
     m_syncing = true;
     m_last_pull_succeeded = false;
@@ -366,8 +379,14 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                                    nlohmann::json::object());
 
     m_client->list_spools({},
-        [this](const nlohmann::json& data) {
-            wxTheApp->CallAfter([this, data]() {
+        [this, generation, session_is_current](const nlohmann::json& data) {
+            wxTheApp->CallAfter([this, generation, data, session_is_current]() {
+                if (!session_is_current()) {
+                    m_syncing = false;
+                    BOOST_LOG_TRIVIAL(info) << "[FilaCloudSync] 已忽略旧账号的拉取结果，generation="
+                                            << generation;
+                    return;
+                }
                 try {
                     // Cloud ListFilamentV2Resp returns { total, hits: [...] }
                     // at the root; tolerate a few alternative shapes for
@@ -394,11 +413,23 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                     };
 
                     for (const auto& item : list) {
+                        if (!session_is_current()) {
+                            m_syncing = false;
+                            BOOST_LOG_TRIVIAL(info) << "[FilaCloudSync] 账号会话已经变化，停止合并拉取结果，generation="
+                                                    << generation;
+                            return;
+                        }
                         FilamentSpool cloud_spool = cloud_json_to_spool(item);
                         if (cloud_spool.spool_id.empty()) continue;
                         cloud_spool.cloud_synced = true;
                         cloud_ids.insert(cloud_spool.spool_id);
 
+                        if (!session_is_current()) {
+                            m_syncing = false;
+                            BOOST_LOG_TRIVIAL(info) << "[FilaCloudSync] 账号会话已经变化，跳过耗材写入，generation="
+                                                    << generation;
+                            return;
+                        }
                         if (const FilamentSpool* existing = m_store->get_spool(cloud_spool.spool_id)) {
                             // 判断本地是否有来自该机器的实时 MQTT 数据。
                             // 条件：existing->dev_id 对应的机器当前在线。
@@ -424,6 +455,12 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                     }
 
                     for (const auto& existing : m_store->spools_to_json()) {
+                        if (!session_is_current()) {
+                            m_syncing = false;
+                            BOOST_LOG_TRIVIAL(info) << "[FilaCloudSync] 账号会话已经变化，停止清理旧耗材，generation="
+                                                    << generation;
+                            return;
+                        }
                         const std::string existing_id = existing.value("spool_id", "");
                         if (existing_id.empty()) continue;
                         if (cloud_ids.count(existing_id) == 0) {
@@ -432,6 +469,12 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                         }
                     }
 
+                    if (!session_is_current()) {
+                        m_syncing = false;
+                        BOOST_LOG_TRIVIAL(info) << "[FilaCloudSync] 发布前发现账号会话变化，丢弃旧拉取结果，generation="
+                                                << generation;
+                        return;
+                    }
                     m_last_pull_succeeded = true;
                     BOOST_LOG_TRIVIAL(info) << "[FilaCloudSync] pull_from_cloud completed, "
                                             << list.size() << " items kept, "
@@ -452,8 +495,14 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                 m_syncing = false;
             });
         },
-        [this](int code, const std::string& err) {
-            wxTheApp->CallAfter([this, code, err]() {
+        [this, generation, session_is_current](int code, const std::string& err) {
+            wxTheApp->CallAfter([this, generation, code, err, session_is_current]() {
+                if (!session_is_current()) {
+                    m_syncing = false;
+                    BOOST_LOG_TRIVIAL(info) << "[FilaCloudSync] 已忽略旧账号的拉取错误，generation="
+                                            << generation;
+                    return;
+                }
                 m_last_pull_succeeded = false;
                 m_last_pull_error_code = code;
                 m_last_pull_error_message = err;

@@ -424,12 +424,24 @@ void wgtFilaManagerSync::skip_new_filament_hint(const std::string& uuid)
     m_skipped_uuids.insert(uuid);
 }
 
+void wgtFilaManagerSync::reset_account_state()
+{
+    m_prev_tray_exists.clear();
+    m_skipped_uuids.clear();
+    m_slot_skipped_uuid.clear();
+}
+
 void wgtFilaManagerSync::notify_new_filament_hint(const std::string& ams_id,
                                                    const std::string& slot_id,
                                                    bool               show)
 {
-    wxGetApp().CallAfter([ams_id, slot_id, show]() {
-        auto* mf = wxGetApp().mainframe;
+    const auto generation = wxGetApp().account_session_generation();
+    wxGetApp().CallAfter([generation, ams_id, slot_id, show]() {
+        auto& app = wxGetApp();
+        if (app.is_closing() || app.account_session_generation() != generation)
+            return;
+
+        auto* mf = app.mainframe;
         if (!mf || !mf->m_monitor) return;
         auto* panel = mf->m_monitor->get_status_panel();
         if (panel) panel->set_ams_new_filament_hint(ams_id, slot_id, show);

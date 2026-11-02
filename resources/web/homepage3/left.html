@@ -17,6 +17,7 @@
 <script type="text/javascript" src="../data/text.js"></script>		
 	
 <script type="text/javascript" src="js/left.js"></script>
+<script type="text/javascript" src="js/account-switcher.js"></script>
 </head>
 <body class="ZScrol" onLoad="OnInit()">
 <div id="LeftBoard">
@@ -58,6 +59,15 @@
 	    <div id="NoPluginText"><a class="RedFont trans" tid="t76">Please </a><a Class="LinkBtn trans" onClick="BeginDownloadNetworkPlugin()" tid="t77">install</a><a class="RedFont trans" tid="t78"> the network plugin before logging in.</a></div>
 	</div>
 	</div>
+
+	<section id="AccountSwitcher" aria-labelledby="AccountSwitcherTitle">
+		<div class="AccountSwitcherHeading">
+			<span id="AccountSwitcherTitle" class="TextS2"></span>
+			<button id="AddAccountButton" type="button"></button>
+		</div>
+		<div id="SavedAccountList" role="group"></div>
+		<div id="AccountSwitcherStatus" class="TextS2" role="status" aria-live="polite"></div>
+	</section>
 
 	<div id="BtnArea">
 		<div class="TopContainer">

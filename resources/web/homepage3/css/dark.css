@@ -33,6 +33,23 @@ html,body
 	background-color: #4a4a4d;
 }
 
+#AccountSwitcher
+{
+	color: #efeff0;
+}
+
+.SavedAccountRow:hover,
+.SavedAccountActive
+{
+	background: #243E30;
+}
+
+.SavedAccountState,
+.RemoveAccountButton
+{
+	color: #B3B3B5;
+}
+
 /*---字体----*/
 .ZScrol::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
     background-color: #939594;

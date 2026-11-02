@@ -2,9 +2,7 @@
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 
-#include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/nowide/fstream.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -13,10 +11,9 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include <stdexcept>
 
 namespace Slic3r { namespace GUI {
-
-namespace fs = boost::filesystem;
 
 static std::string generate_uuid()
 {
@@ -149,20 +146,56 @@ bool FilamentSpool::is_valid_tag_uid(const std::string& tag_uid)
 
 // ---------- wgtFilaManagerStore ----------
 
-std::string wgtFilaManagerStore::get_storage_path() const
+void wgtFilaManagerStore::activate_local()
 {
-    return (fs::path(data_dir()) / "filament_inventory" / "spools.json").string();
+    activate_scope(StorageScope::Local, {});
+}
+
+void wgtFilaManagerStore::activate_account(const std::string& account_id)
+{
+    activate_scope(StorageScope::Account, account_id);
+}
+
+void wgtFilaManagerStore::activate_scope(StorageScope scope, const std::string& account_id)
+{
+    if (scope == StorageScope::Account && account_id.empty())
+        throw std::invalid_argument("账号标识不能为空。");
+    if (m_scope == scope && m_active_account_id == account_id)
+        return;
+
+    ScopeSnapshot current_scope;
+    current_scope.spools = std::move(m_spools);
+    current_scope.dirty = m_dirty;
+    if (m_scope == StorageScope::Account)
+        m_account_scopes[m_active_account_id] = std::move(current_scope);
+    else
+        m_local_scope = std::move(current_scope);
+
+    m_scope = scope;
+    m_active_account_id = account_id;
+    m_spools.clear();
+    m_dirty = false;
+
+    if (scope == StorageScope::Account) {
+        const auto it = m_account_scopes.find(account_id);
+        if (it != m_account_scopes.end()) {
+            m_spools = std::move(it->second.spools);
+            m_dirty = it->second.dirty;
+            m_account_scopes.erase(it);
+        }
+    } else {
+        m_spools = std::move(m_local_scope.spools);
+        m_dirty = m_local_scope.dirty;
+        m_local_scope = {};
+    }
 }
 
 void wgtFilaManagerStore::load()
 {
-    // local persistence removed — store starts empty, populated by cloud pull after login
 }
 
 void wgtFilaManagerStore::save()
 {
-    // local persistence removed
-    m_dirty = false;
 }
 
 // ---------- CRUD ----------

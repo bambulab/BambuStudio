@@ -111,8 +111,14 @@ public:
     wgtFilaManagerStore() = default;
     ~wgtFilaManagerStore() = default;
 
+    // 切换到独立的未登录作用域或账号作用域。对象和观察者保持稳定。
+    void activate_local();
+    void activate_account(const std::string& account_id);
+
     void load();
     void save();
+
+    const std::string& active_account_id() const { return m_active_account_id; }
 
     std::string add_spool(const FilamentSpool& spool);
     void update_spool(const FilamentSpool& spool);
@@ -194,10 +200,24 @@ public:
                           std::vector<EjectedSlotSnapshot>* out_ejected = nullptr);
 
 private:
-    std::string get_storage_path() const;
+    enum class StorageScope {
+        Local,
+        Account
+    };
+
+    struct ScopeSnapshot {
+        std::map<std::string, FilamentSpool> spools;
+        bool                                 dirty = false;
+    };
+
+    void activate_scope(StorageScope scope, const std::string& account_id);
 
     std::map<std::string, FilamentSpool> m_spools;
     bool                                 m_dirty = false;
+    StorageScope                         m_scope = StorageScope::Local;
+    std::string                          m_active_account_id;
+    ScopeSnapshot                        m_local_scope;
+    std::map<std::string, ScopeSnapshot> m_account_scopes;
 };
 
 }} // namespace Slic3r::GUI

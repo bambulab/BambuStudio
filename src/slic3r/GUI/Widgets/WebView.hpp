@@ -2,6 +2,7 @@
 #define slic3r_GUI_WebView_hpp_
 
 #include <wx/webview.h>
+#include <functional>
 
 class WebView
 {
@@ -16,7 +17,7 @@ public:
 
     // Remove WebView cookies named "token" on domains containing "bambulab".
     // Windows: WebView2 CookieManager; macOS: WKHTTPCookieStore (default data store).
-    static void ClearBambulabTokenCookies();
+    static void ClearBambulabTokenCookies(std::function<void(bool)> completed = {});
 
     /*Find a user data path*/
     static wxString BuildEdgeUserDataPath();

@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <mutex>
+#include <optional>
 #include "libslic3r/CommonDefs.hpp"
 
 #include "slic3r/Utils/json_diff.hpp"
@@ -67,7 +68,8 @@ public:
     void record_user_last_machine(const std::string& dev_id);
     std::string get_user_last_machine() const;
 
-    void update_user_machine_list_info(std::function<void(bool)> on_completed = {});
+    void update_user_machine_list_info(std::function<void(bool)> on_completed = {},
+                                      std::optional<unsigned long> expected_session = {});
     bool parse_user_print_info(std::string body);
     void reload_printer_settings();
 
