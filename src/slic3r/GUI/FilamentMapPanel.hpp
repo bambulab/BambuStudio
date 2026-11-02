@@ -19,6 +19,8 @@ bool has_groupable_tpu285_nozzle(const ConfigBase& config);
 bool is_multi_diameter_without_ams(const ConfigBase& config);
 // Skip grouping when no AMS is connected and grouping cannot make a useful choice.
 bool should_skip_filament_grouping(const ConfigBase& config);
+// Show custom grouping only when the current nozzle topology provides a meaningful drag target.
+bool can_customize_filament_grouping(const ConfigBase& config);
 // Auto grouping modes offered on single-extruder multi-nozzle machines, shared by every grouping entry.
 std::vector<FilamentMapMode> get_single_ext_multi_nozzle_auto_modes(const ConfigBase& config);
 class FilamentMapBtnPanel;

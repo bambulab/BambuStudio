@@ -459,11 +459,9 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                           *parent,
     m_fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
     auto       full_config          = wxGetApp().preset_bundle->full_config();
     const bool is_multi_nozzle_mode = is_single_ext_multi_nozzle(full_config);
-    const bool multi_diameter_mode  = multi_nozzle_diameter_mode_enabled(full_config);
-    const bool has_ams = get_effective_ams_nozzle_idx(full_config) >= 0;
     const bool single_default_mode  = false;
     const bool only_convenience_mode = modes_to_use.size() == 1 && modes_to_use.front() == fmmAutoForMatch;
-    const bool show_manual_mode = !(is_multi_nozzle_mode && multi_diameter_mode && !has_ams);
+    const bool show_manual_mode = can_customize_filament_grouping(full_config);
     const bool only_saving_mode = !only_convenience_mode && m_fila_switch_ready &&
         (std::find(modes_to_use.cbegin(), modes_to_use.cend(), FilamentMapMode::fmmAutoForQuality) == modes_to_use.cend());
     m_auto_mode_available = !(only_convenience_mode && !machine_synced);

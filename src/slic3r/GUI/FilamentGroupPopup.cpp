@@ -474,7 +474,8 @@ void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice
         const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(full_config);
         if (single_ext_multi_nozzle) {
             new_available_modes = get_single_ext_multi_nozzle_auto_modes(full_config);
-            new_available_modes.push_back(fmmManual);
+            if (can_customize_filament_grouping(full_config))
+                new_available_modes.push_back(fmmManual);
         } else {
             std::vector<FilamentMapMode> requested_modes = { fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality };
             Print* print_obj = partplate ? partplate->fff_print() : nullptr;

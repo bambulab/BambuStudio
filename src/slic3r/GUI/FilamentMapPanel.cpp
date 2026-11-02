@@ -163,6 +163,35 @@ bool should_skip_filament_grouping(const ConfigBase& config)
     return get_single_fixed_nozzle_volume_from_full_stat(-1, false, active_diameter).has_value();
 }
 
+bool can_customize_filament_grouping(const ConfigBase& config)
+{
+    if (!is_single_ext_multi_nozzle(config))
+        return true;
+
+    const int ams_nozzle_idx = get_effective_ams_nozzle_idx_for_active_diameter(config);
+    const ExtruderSlots &slots = wxGetApp().preset_bundle->nozzle_inventory.slots(0);
+    if (multi_nozzle_diameter_mode_enabled(config)) {
+        if (ams_nozzle_idx < 0 || ams_nozzle_idx >= int(slots.size()) || slots[ams_nozzle_idx].empty())
+            return false;
+
+        const NozzleSlot &ams_slot = slots[ams_nozzle_idx];
+        return std::any_of(slots.begin(), slots.end(), [&](const NozzleSlot &slot) {
+            return &slot != &ams_slot && !slot.empty() &&
+                   format_diameter_to_str(string_to_double_decimal_point(slot.diameter)) ==
+                       format_diameter_to_str(string_to_double_decimal_point(ams_slot.diameter)) &&
+                   slot.volume_type == ams_slot.volume_type;
+        });
+    }
+
+    const auto* nd = dynamic_cast<const ConfigOptionFloatsNullable*>(config.option("nozzle_diameter"));
+    const std::string active_diameter = (nd && !nd->values.empty()) ? format_diameter_to_str(nd->values.front()) : std::string();
+    bool has_full_stat = false;
+    const auto fixed_counts = get_fixed_nozzle_counts_from_full_stat(
+        ams_nozzle_idx, ams_nozzle_idx >= 0, active_diameter, has_full_stat);
+    const size_t group_count = fixed_counts.size() + (ams_nozzle_idx >= 0 ? 1 : 0);
+    return has_full_stat && group_count > 1;
+}
+
 static NozzleVolumeType get_ams_nozzle_volume_from_full_stat(int ams_nozzle_idx)
 {
     auto preset_bundle = wxGetApp().preset_bundle;
