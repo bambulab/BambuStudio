@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1043,6 +1043,55 @@ msgstr "Systemet har skapat grupper för automatisk påfyllning baserat på mate
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr "Vid utskrift, efter att den aktuella spolen tar slut, växlar skrivaren automatiskt till nästa kompatibla spole i gruppordningen och loopar tillbaka till den första spolen efter den sista."
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "Skrivaren är upptagen med ett annat utskriftsjobb."
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "När utskriften är pausad stöds endast filament inmatning och utmatning för externa fack."
+
+msgid "Current extruder is busy changing filament"
+msgstr "Aktuell extruder är upptagen med att byta filament"
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "Välj ett AMS fack och tryck sedan på knappen \"Ladda\" eller \"Mata ut\" för att automatiskt ladda eller mata ut filament."
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "\"Ladda\" eller \"Mata ut\" stöds inte för extern spole vid användning av Filament spårbytare."
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "Filament spårbytaren har inte konfigurerats. Konfigurera på printern."
+
+msgid "Current slot has alread been loaded"
+msgstr "Aktuellt fack har redan laddats"
+
+msgid "The selected slot is empty."
+msgstr "Det valda facket är tomt."
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "Det valda facket är inte laddat i extrudern."
+
+msgid "No extruder found for the selected slot."
+msgstr "Ingen extruder hittades för den valda platsen."
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "Kan inte läsa filament info: filamentet är laddat i verktygshuvudet, mata ut filamentet och försök igen."
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "laddar"
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "AMS har inte initialiserats. Initiera den före användning."
 
 msgid "Supports Painting"
 msgstr "Färgläggning av Support"
@@ -3568,18 +3617,8 @@ msgstr "Ladda"
 msgid "Unload"
 msgstr "Mata ut"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "AMS har inte initialiserats. Initiera den före användning."
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "Välj ett AMS fack och tryck sedan på knappen \"Ladda\" eller \"Mata ut\" för att automatiskt ladda eller mata ut filament."
-
 msgid "/"
 msgstr "/"
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr "laddar"
 
 msgid "Confirm"
 msgstr "Bekräfta"
@@ -7756,33 +7795,6 @@ msgstr "Avbryt utskrift"
 msgid "Are you sure you want to stop this print?"
 msgstr "Är du säker på att du vill stoppa utskriften?"
 
-msgid "The printer is busy on other print job"
-msgstr "Skrivaren är upptagen med ett annat utskriftsjobb."
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "När utskriften är pausad stöds endast filament inmatning och utmatning för externa fack."
-
-msgid "Current extruder is busy changing filament"
-msgstr "Aktuell extruder är upptagen med att byta filament"
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "\"Ladda\" eller \"Mata ut\" stöds inte för extern spole vid användning av Filament spårbytare."
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "Filament spårbytaren har inte konfigurerats. Konfigurera på printern."
-
-msgid "Current slot has alread been loaded"
-msgstr "Aktuellt fack har redan laddats"
-
-msgid "The selected slot is empty."
-msgstr "Det valda facket är tomt."
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "Det valda facket är inte laddat i extrudern."
-
-msgid "No extruder found for the selected slot."
-msgstr "Ingen extruder hittades för den valda platsen."
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "Printerns 2D läge stöder inte 3D kalibrering"
 
@@ -7831,9 +7843,6 @@ msgstr "Om kammar temperaturen överstiger 40 °C växlar systemet automatiskt t
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Välj ett AMS-fack innan kalibrering"
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "Kan inte läsa filament info: filamentet är laddat i verktygshuvudet, mata ut filamentet och försök igen."
 
 msgid "This only takes effect during printing"
 msgstr "Detta gäller endast under utskrift."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -1045,6 +1045,55 @@ msgstr ""
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr ""
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "Tiskárna je zaneprázdněná jinou tiskovou úlohou"
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "Při pozastavení tisku je načítání a vyjímání filamentu podpěrováno pouze pro externí sloty."
+
+msgid "Current extruder is busy changing filament"
+msgstr "Aktuální extruder právě provádí výměnu filamentu"
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "Vyberte slot AMS a poté stiskněte tlačítko „Načíst“ nebo „Vysunout“, aby se filament automaticky načetl nebo vysunul."
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "\"Načíst\" nebo \"Vyjmout\" není při použití Přepínače dráhy filamentu pro externí cívku podpěrováno."
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "Přepínač dráhy filamentu nebyl nastaven. Proveďte nastavení na tiskárně."
+
+msgid "Current slot has alread been loaded"
+msgstr "Aktuální slot již byl načten"
+
+msgid "The selected slot is empty."
+msgstr "Vybraný slot je prázdný."
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "Vybraný slot není načten v extruderu."
+
+msgid "No extruder found for the selected slot."
+msgstr "Pro vybraný slot nebyl nalezen žádný extruder."
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "Nelze načíst informace o filamentu: filament je zaveden do tiskové hlavy, vysuňte jej prosím a zkuste to znovu."
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr ""
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "AMS nebyl inicializován. Před použitím jej prosím inicializujte."
 
 msgid "Supports Painting"
 msgstr "Malování podpěr"
@@ -3577,18 +3626,8 @@ msgstr "Načíst"
 msgid "Unload"
 msgstr "Vysunout"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "AMS nebyl inicializován. Před použitím jej prosím inicializujte."
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "Vyberte slot AMS a poté stiskněte tlačítko „Načíst“ nebo „Vysunout“, aby se filament automaticky načetl nebo vysunul."
-
 msgid "/"
 msgstr "/"
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr ""
 
 msgid "Confirm"
 msgstr "Potvrdit"
@@ -7805,33 +7844,6 @@ msgstr "Zrušit tisk"
 msgid "Are you sure you want to stop this print?"
 msgstr "Opravdu chcete zastavit tento tisk?"
 
-msgid "The printer is busy on other print job"
-msgstr "Tiskárna je zaneprázdněná jinou tiskovou úlohou"
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "Při pozastavení tisku je načítání a vyjímání filamentu podpěrováno pouze pro externí sloty."
-
-msgid "Current extruder is busy changing filament"
-msgstr "Aktuální extruder právě provádí výměnu filamentu"
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "\"Načíst\" nebo \"Vyjmout\" není při použití Přepínače dráhy filamentu pro externí cívku podpěrováno."
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "Přepínač dráhy filamentu nebyl nastaven. Proveďte nastavení na tiskárně."
-
-msgid "Current slot has alread been loaded"
-msgstr "Aktuální slot již byl načten"
-
-msgid "The selected slot is empty."
-msgstr "Vybraný slot je prázdný."
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "Vybraný slot není načten v extruderu."
-
-msgid "No extruder found for the selected slot."
-msgstr "Pro vybraný slot nebyl nalezen žádný extruder."
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "2D režim tiskárny nepodpěruje 3D kalibraci"
 
@@ -7880,9 +7892,6 @@ msgstr "Pokud teplota komory překročí 40℃, systém automaticky přepne do r
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Před kalibrací zvolte slot AMS"
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "Nelze načíst informace o filamentu: filament je zaveden do tiskové hlavy, vysuňte jej prosím a zkuste to znovu."
 
 msgid "This only takes effect during printing"
 msgstr "Toto platí pouze během tisku"

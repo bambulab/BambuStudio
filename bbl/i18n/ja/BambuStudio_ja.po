@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1046,6 +1046,55 @@ msgstr "システムは、素材の種類、色、ブランドに基づいて自
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr "造形時、現在のスプールがなくなると、プリンターはグループ順に次の対応スプールに自動的に切り替え、最後のスプールの後は最初のスプールに戻ります。"
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "プリンタは別の印刷ジョブでビジー状態です。"
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "造形が一時停止中の場合、フィラメントのロードおよびアンロードは外部スロットでのみ対応しています。"
+
+msgid "Current extruder is busy changing filament"
+msgstr "押出機がフィラメントを交換中です。"
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "AMSスロットを選択し、「ロード」または「アンロード」ボタンを押すと、フィラメントを自動で装填または取り外します。"
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "フィラメント経路切替器使用中は、外部スプールでの「ロード」および「アンロード」は利用できません。"
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "フィラメント経路切替器がセットアップされていません。プリンター本体でセットアップを行ってください。"
+
+msgid "Current slot has alread been loaded"
+msgstr "現在のスロットにはすでにフィラメントがロードされています。"
+
+msgid "The selected slot is empty."
+msgstr "選択されたスロットは空です。"
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "選択したスロットのフィラメントが押出機にロードされていません。"
+
+msgid "No extruder found for the selected slot."
+msgstr "選択したスロットに対応する押出機が見つかりません。"
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "フィラメント情報を読み取れません。フィラメントがツールヘッドにロードされています。アンロードしてから再度お試しください。"
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "読み込み中"
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "AMS が初期化されていません。使用前に初期化してください。"
 
 msgid "Supports Painting"
 msgstr "サポート編集"
@@ -3563,18 +3612,8 @@ msgstr "ロード"
 msgid "Unload"
 msgstr "アンロード"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "AMS が初期化されていません。使用前に初期化してください。"
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "AMSスロットを選択し、「ロード」または「アンロード」ボタンを押すと、フィラメントを自動で装填または取り外します。"
-
 msgid "/"
 msgstr "/"
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr "読み込み中"
 
 msgid "Confirm"
 msgstr "確認"
@@ -7728,33 +7767,6 @@ msgstr "造形を取消し"
 msgid "Are you sure you want to stop this print?"
 msgstr "この印刷を停止してもよろしいですか?"
 
-msgid "The printer is busy on other print job"
-msgstr "プリンタは別の印刷ジョブでビジー状態です。"
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "造形が一時停止中の場合、フィラメントのロードおよびアンロードは外部スロットでのみ対応しています。"
-
-msgid "Current extruder is busy changing filament"
-msgstr "押出機がフィラメントを交換中です。"
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "フィラメント経路切替器使用中は、外部スプールでの「ロード」および「アンロード」は利用できません。"
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "フィラメント経路切替器がセットアップされていません。プリンター本体でセットアップを行ってください。"
-
-msgid "Current slot has alread been loaded"
-msgstr "現在のスロットにはすでにフィラメントがロードされています。"
-
-msgid "The selected slot is empty."
-msgstr "選択されたスロットは空です。"
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "選択したスロットのフィラメントが押出機にロードされていません。"
-
-msgid "No extruder found for the selected slot."
-msgstr "選択したスロットに対応する押出機が見つかりません。"
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "プリンターの2Dモードは3Dキャリブレーションに対応していません"
 
@@ -7803,9 +7815,6 @@ msgstr "チャンバー温度が40℃を超えると、システムは自動的�
 
 msgid "Please select an AMS slot before calibration"
 msgstr "キャリブレーションの前に、AMSスロットを選択してください。"
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "フィラメント情報を読み取れません。フィラメントがツールヘッドにロードされています。アンロードしてから再度お試しください。"
 
 msgid "This only takes effect during printing"
 msgstr "造形時の設定"

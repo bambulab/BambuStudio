@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1046,6 +1046,55 @@ msgstr "A rendszer automatikus utántöltési csoportokat hozott létre az anyag
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr "Nyomtatás közben, amikor az aktuális tekercsen lévő filament elfogy, a nyomtató automatikusan a csoport sorrendjében következő kompatibilis tekercsre vált, az utolsó után pedig visszatér az első tekercshez."
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "A nyomtató egy másik nyomtatási feladattal van elfoglalva."
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "Nyomtatás szüneteltetésekor a filament betöltés és kitöltés csak külső helyek esetén lehetséges."
+
+msgid "Current extruder is busy changing filament"
+msgstr "A jelenlegi extruder a filament cseréjével van elfoglalva"
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "Válassz ki egy AMS-helyet, majd nyomd meg a „Betöltés” vagy a „Kitöltés” gombot az filament automatikus betöltéséhez vagy eltávolításához."
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "A „Betöltés“ és „Kitöltés“ nem támogatott külső tekercs esetében filamentváltó használatakor."
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "A filamentváltó nincs beállítva. Kérjük, állítsd be a nyomtatón."
+
+msgid "Current slot has alread been loaded"
+msgstr "A jelenlegi slot már töltve van"
+
+msgid "The selected slot is empty."
+msgstr "A kiválasztott hely üres."
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "A kiválasztott hely nincs betöltve az extruderbe."
+
+msgid "No extruder found for the selected slot."
+msgstr "A kiválasztott helyen nem található extruder."
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "Nem olvasható a filamentinformáció: filament van betöltve a szerszámfejbe, kérjük távolítsd el a filamentet és próbáld újra."
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "Betöltés"
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "Az AMS nincs inicializálva. Kérjük, használat előtt inicializáld."
 
 msgid "Supports Painting"
 msgstr "Támaszok festése"
@@ -3571,18 +3620,8 @@ msgstr "Betöltés"
 msgid "Unload"
 msgstr "Kitöltés"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "Az AMS nincs inicializálva. Kérjük, használat előtt inicializáld."
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "Válassz ki egy AMS-helyet, majd nyomd meg a „Betöltés” vagy a „Kitöltés” gombot az filament automatikus betöltéséhez vagy eltávolításához."
-
 msgid "/"
 msgstr "/"
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr "Betöltés"
 
 msgid "Confirm"
 msgstr "Megerősítés"
@@ -7767,33 +7806,6 @@ msgstr "Nyomtatás megszakítása"
 msgid "Are you sure you want to stop this print?"
 msgstr "Biztos, hogy leállítod ezt a nyomtatást?"
 
-msgid "The printer is busy on other print job"
-msgstr "A nyomtató egy másik nyomtatási feladattal van elfoglalva."
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "Nyomtatás szüneteltetésekor a filament betöltés és kitöltés csak külső helyek esetén lehetséges."
-
-msgid "Current extruder is busy changing filament"
-msgstr "A jelenlegi extruder a filament cseréjével van elfoglalva"
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "A „Betöltés“ és „Kitöltés“ nem támogatott külső tekercs esetében filamentváltó használatakor."
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "A filamentváltó nincs beállítva. Kérjük, állítsd be a nyomtatón."
-
-msgid "Current slot has alread been loaded"
-msgstr "A jelenlegi slot már töltve van"
-
-msgid "The selected slot is empty."
-msgstr "A kiválasztott hely üres."
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "A kiválasztott hely nincs betöltve az extruderbe."
-
-msgid "No extruder found for the selected slot."
-msgstr "A kiválasztott helyen nem található extruder."
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "A nyomtató 2D-módja nem támogatja a 3D-kalibrációt"
 
@@ -7842,9 +7854,6 @@ msgstr "Ha a kamra hőmérséklete meghaladja a 40 ℃-ot, a rendszer automatiku
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Válassz egy AMS-helyet a kalibrálás előtt"
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "Nem olvasható a filamentinformáció: filament van betöltve a szerszámfejbe, kérjük távolítsd el a filamentet és próbáld újra."
 
 msgid "This only takes effect during printing"
 msgstr "Ez csak a nyomtatás során érvényesül"

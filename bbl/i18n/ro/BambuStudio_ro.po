@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -1051,6 +1051,55 @@ msgstr "Sistemul a creat grupuri de reumplere automată pe baza tipului de mater
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr "În timpul imprimării, după ce rola curentă se termină, imprimanta trece automat la următoarea rolă compatibilă din ordinea grupului și revine la prima rolă după ce o epuizează pe ultima."
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "Imprimanta este ocupată cu o altă lucrare de imprimare"
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "Când imprimarea este întreruptă, încărcarea și descărcarea filamentului sunt acceptate numai pentru sloturile externe."
+
+msgid "Current extruder is busy changing filament"
+msgstr "Extruderul curent este ocupat să schimbe filamentul"
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "Alegeți un slot AMS, apoi apăsați butonul „Încărcare” sau „Descărcare” pentru a încărca sau descărca filamentul."
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "„Încărcare” sau „Descărcare” nu sunt acceptate pentru rola externă atunci când utilizați comutatorul traseu filament."
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "Comutatorul traseu filament nu a fost configurat. Vă rugăm să configurați pe imprimantă."
+
+msgid "Current slot has alread been loaded"
+msgstr "Slotul curent a fost deja încărcat"
+
+msgid "The selected slot is empty."
+msgstr "Slotul selectat este gol."
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "Slotul selectat nu este încărcat în extruder."
+
+msgid "No extruder found for the selected slot."
+msgstr "Nu s-a găsit niciun extruder pentru slotul selectat."
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "Nu se pot citi informațiile despre filament: filamentul este încărcat în capul de imprimare; descărcați filamentul și încercați din nou."
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "Se încarcă"
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "AMS nu a fost inițializat. Vă rugăm să îl inițializați înainte de utilizare."
 
 msgid "Supports Painting"
 msgstr "Pictare suporturi"
@@ -3582,18 +3631,8 @@ msgstr "Încărcare"
 msgid "Unload"
 msgstr "Descărcare"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "AMS nu a fost inițializat. Vă rugăm să îl inițializați înainte de utilizare."
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "Alegeți un slot AMS, apoi apăsați butonul „Încărcare” sau „Descărcare” pentru a încărca sau descărca filamentul."
-
 msgid "/"
 msgstr ""
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr "Se încarcă"
 
 msgid "Confirm"
 msgstr "Confirmați"
@@ -7779,33 +7818,6 @@ msgstr "Anulează imprimarea"
 msgid "Are you sure you want to stop this print?"
 msgstr "Sigur doriți să opriți această imprimare?"
 
-msgid "The printer is busy on other print job"
-msgstr "Imprimanta este ocupată cu o altă lucrare de imprimare"
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "Când imprimarea este întreruptă, încărcarea și descărcarea filamentului sunt acceptate numai pentru sloturile externe."
-
-msgid "Current extruder is busy changing filament"
-msgstr "Extruderul curent este ocupat să schimbe filamentul"
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "„Încărcare” sau „Descărcare” nu sunt acceptate pentru rola externă atunci când utilizați comutatorul traseu filament."
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "Comutatorul traseu filament nu a fost configurat. Vă rugăm să configurați pe imprimantă."
-
-msgid "Current slot has alread been loaded"
-msgstr "Slotul curent a fost deja încărcat"
-
-msgid "The selected slot is empty."
-msgstr "Slotul selectat este gol."
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "Slotul selectat nu este încărcat în extruder."
-
-msgid "No extruder found for the selected slot."
-msgstr "Nu s-a găsit niciun extruder pentru slotul selectat."
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "Modul 2D al imprimantei nu acceptă calibrarea 3D"
 
@@ -7854,9 +7866,6 @@ msgstr "Dacă temperatura camerei depășește 40℃, sistemul va trece automat 
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Vă rugăm să selectați un slot AMS înainte de calibrare"
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "Nu se pot citi informațiile despre filament: filamentul este încărcat în capul de imprimare; descărcați filamentul și încercați din nou."
 
 msgid "This only takes effect during printing"
 msgstr "Acest lucru are efect doar în timpul imprimării"

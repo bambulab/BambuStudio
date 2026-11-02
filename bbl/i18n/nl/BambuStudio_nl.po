@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1046,6 +1046,55 @@ msgstr "Het systeem heeft automatische navulgroepen aangemaakt op basis van mate
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr "Tijdens het afdrukken schakelt de printer, zodra de huidige spoel op is, automatisch over naar de volgende compatibele spoel in de groepsvolgorde en begint na de laatste spoel weer bij de eerste."
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "De printer is bezig met een andere printtaak."
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "Wanneer het printen is gepauzeerd, worden filament laden en lossen alleen ondersteund voor externe slots."
+
+msgid "Current extruder is busy changing filament"
+msgstr "Huidige extruder is bezig met het verwisselen van filament"
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "Kies een AMS-sleuf en druk op de knop \"Laden\" of \"Lossen\" om automatisch filament te laden of te ontladen."
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "\"Laden\" of \"Lossen\" wordt niet ondersteund voor externe spoel tijdens gebruik van filamentwisselaar."
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "De filamentwisselaar is niet ingesteld. Stel deze alstublieft in op de printer."
+
+msgid "Current slot has alread been loaded"
+msgstr "Huidige sleuf is al geladen"
+
+msgid "The selected slot is empty."
+msgstr "De geselecteerde sleuf is leeg."
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "Het geselecteerde slot is niet in de extruder geladen."
+
+msgid "No extruder found for the selected slot."
+msgstr "Geen extruder gevonden voor het geselecteerde slot."
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "Kan filamentinformatie niet lezen: het filament is geladen in de printkop, los het filament en probeer het opnieuw."
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "Bezig met laden"
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "AMS is nog niet geïnitialiseerd. Initialiseer het voor gebruik."
 
 msgid "Supports Painting"
 msgstr "Onderteuning (Support) tekenen"
@@ -3571,18 +3620,8 @@ msgstr "Laden"
 msgid "Unload"
 msgstr "Lossen"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "AMS is nog niet geïnitialiseerd. Initialiseer het voor gebruik."
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "Kies een AMS-sleuf en druk op de knop \"Laden\" of \"Lossen\" om automatisch filament te laden of te ontladen."
-
 msgid "/"
 msgstr "/"
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr "Bezig met laden"
 
 msgid "Confirm"
 msgstr "Bevestigen"
@@ -7761,33 +7800,6 @@ msgstr "Print annuleren"
 msgid "Are you sure you want to stop this print?"
 msgstr "Weet je zeker dat je deze print wilt stoppen?"
 
-msgid "The printer is busy on other print job"
-msgstr "De printer is bezig met een andere printtaak."
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "Wanneer het printen is gepauzeerd, worden filament laden en lossen alleen ondersteund voor externe slots."
-
-msgid "Current extruder is busy changing filament"
-msgstr "Huidige extruder is bezig met het verwisselen van filament"
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "\"Laden\" of \"Lossen\" wordt niet ondersteund voor externe spoel tijdens gebruik van filamentwisselaar."
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "De filamentwisselaar is niet ingesteld. Stel deze alstublieft in op de printer."
-
-msgid "Current slot has alread been loaded"
-msgstr "Huidige sleuf is al geladen"
-
-msgid "The selected slot is empty."
-msgstr "De geselecteerde sleuf is leeg."
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "Het geselecteerde slot is niet in de extruder geladen."
-
-msgid "No extruder found for the selected slot."
-msgstr "Geen extruder gevonden voor het geselecteerde slot."
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "Printer 2D-modus ondersteunt geen 3D-calibratie"
 
@@ -7836,9 +7848,6 @@ msgstr "Als de kamertemperatuur boven de 40℃ komt, schakelt het systeem automa
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Selecteer een AMS-sleuf voor kalibratie"
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "Kan filamentinformatie niet lezen: het filament is geladen in de printkop, los het filament en probeer het opnieuw."
 
 msgid "This only takes effect during printing"
 msgstr "Dit is alleen van kracht tijdens het printen"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -1050,6 +1050,55 @@ msgstr "ระบบได้สร้างกลุ่มรีฟิลอั
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr "เมื่อพิมพ์ หลังจากม้วนวัสดุปัจจุบันหมด เครื่องพิมพ์จะสลับไปใช้ม้วนวัสดุที่เข้ากันได้ถัดไปตามลำดับกลุ่มโดยอัตโนมัติ และจะวนกลับไปที่ม้วนวัสดุแรกหลังจากใช้หมดม้วนสุดท้าย"
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "เครื่องพิมพ์กำลังทำงานพิมพ์อื่นอยู่"
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "เมื่อหยุดการพิมพ์ชั่วคราว การป้อนเข้าและลำเลียงออกเส้นวัสดุรองรับเฉพาะช่องภายนอก"
+
+msgid "Current extruder is busy changing filament"
+msgstr "เอ็กซ์ทรูเดอร์ปัจจุบันกำลังเปลี่ยนเส้นวัสดุ"
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "เลือกช่อง AMS จากนั้นกดปุ่ม \"ป้อนเข้า\" หรือ \"ลำเลียงออก\" เพื่อป้อนเข้าหรือลำเลียงออกเส้นวัสดุโดยอัตโนมัติ"
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "ไม่รองรับการ \"ป้อนเข้า\" หรือ \"ลำเลียงออก\" สำหรับม้วนวัสดุจากภายนอกขณะใช้ชุดสับรางเส้นวัสดุ"
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "ยังไม่ได้ตั้งค่าชุดสับรางเส้นวัสดุ โปรดตั้งค่าบนเครื่องพิมพ์"
+
+msgid "Current slot has alread been loaded"
+msgstr "ช่องปัจจุบันป้อนวัสดุไปแล้ว"
+
+msgid "The selected slot is empty."
+msgstr "ช่องที่เลือกว่างเปล่า"
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "ช่องที่เลือกไม่ได้ถูกป้อนเข้าในเอ็กซ์ทรูเดอร์"
+
+msgid "No extruder found for the selected slot."
+msgstr "ไม่พบเอ็กซ์ทรูเดอร์สำหรับช่องที่เลือก"
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "ไม่สามารถอ่านข้อมูลเส้นวัสดุ: เส้นวัสดุถูกป้อนเข้าชุดหัวจ่ายแล้ว โปรดลำเลียงออกเส้นวัสดุแล้วลองอีกครั้ง"
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "กำลังโหลด"
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "ยังไม่ได้เริ่มต้นใช้งาน AMS โปรดเริ่มต้นใช้งานก่อนใช้งาน"
 
 msgid "Supports Painting"
 msgstr "รองรับการระบายสี"
@@ -3569,18 +3618,8 @@ msgstr "ป้อนเข้า"
 msgid "Unload"
 msgstr "นำวัสดุออก"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "ยังไม่ได้เริ่มต้นใช้งาน AMS โปรดเริ่มต้นใช้งานก่อนใช้งาน"
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "เลือกช่อง AMS จากนั้นกดปุ่ม \"ป้อนเข้า\" หรือ \"ลำเลียงออก\" เพื่อป้อนเข้าหรือลำเลียงออกเส้นวัสดุโดยอัตโนมัติ"
-
 msgid "/"
 msgstr ""
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr "กำลังโหลด"
 
 msgid "Confirm"
 msgstr "ยืนยัน"
@@ -7762,33 +7801,6 @@ msgstr "ยกเลิกการพิมพ์"
 msgid "Are you sure you want to stop this print?"
 msgstr "คุณแน่ใจหรือไม่ว่าต้องการหยุดการพิมพ์นี้?"
 
-msgid "The printer is busy on other print job"
-msgstr "เครื่องพิมพ์กำลังทำงานพิมพ์อื่นอยู่"
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "เมื่อหยุดการพิมพ์ชั่วคราว การป้อนเข้าและลำเลียงออกเส้นวัสดุรองรับเฉพาะช่องภายนอก"
-
-msgid "Current extruder is busy changing filament"
-msgstr "เอ็กซ์ทรูเดอร์ปัจจุบันกำลังเปลี่ยนเส้นวัสดุ"
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "ไม่รองรับการ \"ป้อนเข้า\" หรือ \"ลำเลียงออก\" สำหรับม้วนวัสดุจากภายนอกขณะใช้ชุดสับรางเส้นวัสดุ"
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "ยังไม่ได้ตั้งค่าชุดสับรางเส้นวัสดุ โปรดตั้งค่าบนเครื่องพิมพ์"
-
-msgid "Current slot has alread been loaded"
-msgstr "ช่องปัจจุบันป้อนวัสดุไปแล้ว"
-
-msgid "The selected slot is empty."
-msgstr "ช่องที่เลือกว่างเปล่า"
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "ช่องที่เลือกไม่ได้ถูกป้อนเข้าในเอ็กซ์ทรูเดอร์"
-
-msgid "No extruder found for the selected slot."
-msgstr "ไม่พบเอ็กซ์ทรูเดอร์สำหรับช่องที่เลือก"
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "โหมดเครื่องพิมพ์ 2 มิติ ไม่รองรับการปรับเทียบ 3 มิติ"
 
@@ -7837,9 +7849,6 @@ msgstr "หากอุณหภูมิห้องพิมพ์เกิน
 
 msgid "Please select an AMS slot before calibration"
 msgstr "โปรดเลือกช่อง AMS ก่อนการปรับเทียบ"
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "ไม่สามารถอ่านข้อมูลเส้นวัสดุ: เส้นวัสดุถูกป้อนเข้าชุดหัวจ่ายแล้ว โปรดลำเลียงออกเส้นวัสดุแล้วลองอีกครั้ง"
 
 msgid "This only takes effect during printing"
 msgstr "มีผลขณะพิมพ์เท่านั้น"

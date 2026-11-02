@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -1051,6 +1051,55 @@ msgstr "Hệ thống đã tự động tạo các nhóm nạp lại dựa trên 
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr "Trong quá trình in, khi cuộn nhựa hiện tại hết, máy in sẽ tự động chuyển sang cuộn nhựa tương thích tiếp theo theo thứ tự trong nhóm. Sau cuộn nhựa cuối cùng, máy in sẽ quay lại cuộn nhựa đầu tiên."
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "Máy in đang bận thực hiện lệnh in khác"
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "Khi quá trình in tạm dừng, việc nạp và tháo sợi nhựa chỉ được hỗ trợ cho các khe cắm bên ngoài."
+
+msgid "Current extruder is busy changing filament"
+msgstr "Vòi đùn nhựa hiện tại đang bận thay sợi nhựa"
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "Chọn một khe AMS rồi nhấn nút \"Nạp\" hoặc \"Tháo\" để tự động nạp hoặc tháo sợi nhựa."
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "Không hỗ trợ \"Nạp\" hoặc \"Tháo\" cho cuộn nhựa ngoài khi sử dụng Công tắc chuyển hướng sợi nhựa."
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "Công tắc chuyển hướng sợi nhựa chưa được thiết lập. Vui lòng thiết lập trên máy in."
+
+msgid "Current slot has alread been loaded"
+msgstr "Khe hiện tại đã được nạp"
+
+msgid "The selected slot is empty."
+msgstr "Khe cắm đã chọn trống."
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "Khe đã chọn chưa được nạp vào vòi đùn nhựa."
+
+msgid "No extruder found for the selected slot."
+msgstr "Không tìm thấy vòi đùn nhựa cho khe đã chọn."
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "Không thể đọc thông tin sợi nhựa: sợi nhựa đã nạp vào đầu in, vui lòng tháo sợi nhựa và thử lại."
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "đang nạp"
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "AMS chưa được khởi tạo. Vui lòng khởi tạo trước khi sử dụng."
 
 msgid "Supports Painting"
 msgstr "Tô cấu trúc đỡ"
@@ -3570,18 +3619,8 @@ msgstr "Nạp nhựa"
 msgid "Unload"
 msgstr "Tháo nhựa"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "AMS chưa được khởi tạo. Vui lòng khởi tạo trước khi sử dụng."
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "Chọn một khe AMS rồi nhấn nút \"Nạp\" hoặc \"Tháo\" để tự động nạp hoặc tháo sợi nhựa."
-
 msgid "/"
 msgstr ""
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr "đang nạp"
 
 msgid "Confirm"
 msgstr "Xác nhận"
@@ -7763,33 +7802,6 @@ msgstr "Hủy in"
 msgid "Are you sure you want to stop this print?"
 msgstr "Bạn có chắc chắn muốn dừng lệnh in này không?"
 
-msgid "The printer is busy on other print job"
-msgstr "Máy in đang bận thực hiện lệnh in khác"
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "Khi quá trình in tạm dừng, việc nạp và tháo sợi nhựa chỉ được hỗ trợ cho các khe cắm bên ngoài."
-
-msgid "Current extruder is busy changing filament"
-msgstr "Vòi đùn nhựa hiện tại đang bận thay sợi nhựa"
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "Không hỗ trợ \"Nạp\" hoặc \"Tháo\" cho cuộn nhựa ngoài khi sử dụng Công tắc chuyển hướng sợi nhựa."
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "Công tắc chuyển hướng sợi nhựa chưa được thiết lập. Vui lòng thiết lập trên máy in."
-
-msgid "Current slot has alread been loaded"
-msgstr "Khe hiện tại đã được nạp"
-
-msgid "The selected slot is empty."
-msgstr "Khe cắm đã chọn trống."
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "Khe đã chọn chưa được nạp vào vòi đùn nhựa."
-
-msgid "No extruder found for the selected slot."
-msgstr "Không tìm thấy vòi đùn nhựa cho khe đã chọn."
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "Chế độ 2D của máy in không hỗ trợ hiệu chuẩn 3D"
 
@@ -7838,9 +7850,6 @@ msgstr "Nếu nhiệt độ buồng in vượt quá 40℃, hệ thống sẽ t�
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Vui lòng chọn khe AMS trước khi hiệu chuẩn"
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "Không thể đọc thông tin sợi nhựa: sợi nhựa đã nạp vào đầu in, vui lòng tháo sợi nhựa và thử lại."
 
 msgid "This only takes effect during printing"
 msgstr "Điều này chỉ có hiệu lực trong quá trình in"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -1050,6 +1050,55 @@ msgstr "Το σύστημα έχει δημιουργήσει ομάδες αυ�
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr "Κατά την εκτύπωση, αφού εξαντληθεί το τρέχον καρούλι, ο εκτυπωτής μεταβαίνει αυτόματα στο επόμενο συμβατό καρούλι στη σειρά ομάδας και επιστρέφει στο πρώτο καρούλι μετά το τελευταίο."
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "Ο εκτυπωτής είναι απασχολημένος με άλλη εργασία εκτύπωσης"
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "Όταν η εκτύπωση τίθεται σε παύση, η φόρτωση και η εκφόρτωση νημάτων υποστηρίζονται μόνο για εξωτερικές υποδοχές."
+
+msgid "Current extruder is busy changing filament"
+msgstr "Ο τρέχων εξωθητήρας είναι απασχολημένος με την αλλαγή νήματος"
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "Επιλέξτε μια υποδοχή AMS και, στη συνέχεια, πατήστε το κουμπί «Φόρτωση» ή «Εκφόρτωση» για να φορτώσετε ή να εκφορτώσετε το νήμα αυτόματα."
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "Η λειτουργία «Φόρτωση» ή «Εκφόρτωση» δεν υποστηρίζεται για εξωτερικό καρούλι κατά τη χρήση του Διακόπτη γραμμής νήματος."
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "Ο διακόπτης γραμμής νήματος δεν έχει ρυθμιστεί. Ρυθμίστε στον εκτυπωτή."
+
+msgid "Current slot has alread been loaded"
+msgstr "Η τρέχουσα υποδοχή έχει ήδη φορτωθεί"
+
+msgid "The selected slot is empty."
+msgstr "Η επιλεγμένη υποδοχή είναι κενή."
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "Η επιλεγμένη υποδοχή δεν είναι φορτωμένη στον εξωθητήρα."
+
+msgid "No extruder found for the selected slot."
+msgstr "Δεν βρέθηκε εξωθητήρας για την επιλεγμένη υποδοχή."
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "Δεν είναι δυνατή η ανάγνωση πληροφοριών νήματος: το νήμα έχει φορτωθεί στην κεφαλή εργαλείου. Εκφορτώστε το νήμα και προσπαθήστε ξανά."
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "φόρτωση"
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "Το AMS δεν έχει αρχικοποιηθεί. Πραγματοποιήστε αρχικοποίηση πριν από τη χρήση."
 
 msgid "Supports Painting"
 msgstr "Υποστηρίζει τη ζωγραφική"
@@ -3575,18 +3624,8 @@ msgstr "Φόρτωση"
 msgid "Unload"
 msgstr "Εκφόρτωση"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "Το AMS δεν έχει αρχικοποιηθεί. Πραγματοποιήστε αρχικοποίηση πριν από τη χρήση."
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "Επιλέξτε μια υποδοχή AMS και, στη συνέχεια, πατήστε το κουμπί «Φόρτωση» ή «Εκφόρτωση» για να φορτώσετε ή να εκφορτώσετε το νήμα αυτόματα."
-
 msgid "/"
 msgstr ""
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr "φόρτωση"
 
 msgid "Confirm"
 msgstr "Επιβεβαίωση"
@@ -7770,33 +7809,6 @@ msgstr "Ακύρωση εκτύπωσης"
 msgid "Are you sure you want to stop this print?"
 msgstr "Είστε βέβαιοι ότι θέλετε να σταματήσετε αυτήν την εκτύπωση;"
 
-msgid "The printer is busy on other print job"
-msgstr "Ο εκτυπωτής είναι απασχολημένος με άλλη εργασία εκτύπωσης"
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "Όταν η εκτύπωση τίθεται σε παύση, η φόρτωση και η εκφόρτωση νημάτων υποστηρίζονται μόνο για εξωτερικές υποδοχές."
-
-msgid "Current extruder is busy changing filament"
-msgstr "Ο τρέχων εξωθητήρας είναι απασχολημένος με την αλλαγή νήματος"
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "Η λειτουργία «Φόρτωση» ή «Εκφόρτωση» δεν υποστηρίζεται για εξωτερικό καρούλι κατά τη χρήση του Διακόπτη γραμμής νήματος."
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "Ο διακόπτης γραμμής νήματος δεν έχει ρυθμιστεί. Ρυθμίστε στον εκτυπωτή."
-
-msgid "Current slot has alread been loaded"
-msgstr "Η τρέχουσα υποδοχή έχει ήδη φορτωθεί"
-
-msgid "The selected slot is empty."
-msgstr "Η επιλεγμένη υποδοχή είναι κενή."
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "Η επιλεγμένη υποδοχή δεν είναι φορτωμένη στον εξωθητήρα."
-
-msgid "No extruder found for the selected slot."
-msgstr "Δεν βρέθηκε εξωθητήρας για την επιλεγμένη υποδοχή."
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "Η λειτουργία 2D του εκτυπωτή δεν υποστηρίζει βαθμονόμηση 3D"
 
@@ -7845,9 +7857,6 @@ msgstr "Εάν η θερμοκρασία θαλάμου υπερβεί τους 
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Επιλέξτε μια υποδοχή AMS πριν από τη βαθμονόμηση"
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "Δεν είναι δυνατή η ανάγνωση πληροφοριών νήματος: το νήμα έχει φορτωθεί στην κεφαλή εργαλείου. Εκφορτώστε το νήμα και προσπαθήστε ξανά."
 
 msgid "This only takes effect during printing"
 msgstr "Αυτό ισχύει μόνο κατά την εκτύπωση"

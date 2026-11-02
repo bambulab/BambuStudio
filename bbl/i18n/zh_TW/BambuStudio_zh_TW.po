@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1051,6 +1051,55 @@ msgstr "系統已根據材料類型、顏色及品牌建立自動續料群組。
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr "列印時，當目前料盤用盡後，印表機會依群組順序自動切換至下一個相容的料盤，並在最後一個之後循環回到第一個料盤。"
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "印表機正在執行其他列印任務"
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "當列印暫停時，只有外掛耗材槽位支援進/退料。"
+
+msgid "Current extruder is busy changing filament"
+msgstr "當前擠出機正在換料"
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "選擇1個AMS槽位，然後點選進料/退料按鈕以自動進料/退料。"
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "使用線材路徑切換器時，不支援對外部料盤執行「進料」或「退料」。"
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "線材路徑切換器尚未設定。請在印表機上進行設定。"
+
+msgid "Current slot has alread been loaded"
+msgstr "當前槽位已載入"
+
+msgid "The selected slot is empty."
+msgstr "當前選擇的槽位是空的"
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "選定的槽位未被載入到擠出機中。"
+
+msgid "No extruder found for the selected slot."
+msgstr "未找到所選槽位的擠出機。"
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "無法讀取線材資訊：線材已裝入工具頭，請退出線材後再試一次。"
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "進料中"
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "AMS 尚未初始化。請先初始化後再使用。"
 
 msgid "Supports Painting"
 msgstr "支撐繪製"
@@ -3562,18 +3611,8 @@ msgstr "進料"
 msgid "Unload"
 msgstr "退料"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "AMS 尚未初始化。請先初始化後再使用。"
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "選擇1個AMS槽位，然後點選進料/退料按鈕以自動進料/退料。"
-
 msgid "/"
 msgstr "/"
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr "進料中"
 
 msgid "Confirm"
 msgstr "確定"
@@ -7736,33 +7775,6 @@ msgstr "取消列印"
 msgid "Are you sure you want to stop this print?"
 msgstr "您確定要停止列印嗎？"
 
-msgid "The printer is busy on other print job"
-msgstr "印表機正在執行其他列印任務"
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "當列印暫停時，只有外掛耗材槽位支援進/退料。"
-
-msgid "Current extruder is busy changing filament"
-msgstr "當前擠出機正在換料"
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "使用線材路徑切換器時，不支援對外部料盤執行「進料」或「退料」。"
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "線材路徑切換器尚未設定。請在印表機上進行設定。"
-
-msgid "Current slot has alread been loaded"
-msgstr "當前槽位已載入"
-
-msgid "The selected slot is empty."
-msgstr "當前選擇的槽位是空的"
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "選定的槽位未被載入到擠出機中。"
-
-msgid "No extruder found for the selected slot."
-msgstr "未找到所選槽位的擠出機。"
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "印表機 2D 模式不支援 3D 校準"
 
@@ -7811,9 +7823,6 @@ msgstr "如果腔室溫度超過40℃, 系統將自動切換到腔溫保持模�
 
 msgid "Please select an AMS slot before calibration"
 msgstr "請先選擇一個AMS槽位後進行校準"
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "無法讀取線材資訊：線材已裝入工具頭，請退出線材後再試一次。"
 
 msgid "This only takes effect during printing"
 msgstr "僅在列印過程中生效"

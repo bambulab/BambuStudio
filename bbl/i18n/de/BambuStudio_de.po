@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1046,6 +1046,55 @@ msgstr "Das System hat anhand von Materialart, Farbe und Marke Gruppen für auto
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr "Beim Drucken schaltet der Drucker, sobald die aktuelle Spule leer ist, automatisch auf die nächste kompatible Spule in der Gruppenreihenfolge um und beginnt nach der letzten Spule wieder bei der ersten Spule."
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "Der Drucker ist mit einem anderen Druckauftrag beschäftigt."
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "Wenn der Druckvorgang pausiert ist, wird das Laden und Entladen von Filament nur für externe Slots unterstützt."
+
+msgid "Current extruder is busy changing filament"
+msgstr "Der aktuelle Extruder ist mit dem Wechseln des Filaments beschäftigt."
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "Wählen Sie einen AMS-Slot und drücken Sie dann die Taste \"Laden\" oder \"Entladen\", um automatisch Filament zu laden oder zu entladen."
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "\"Laden\" oder \"Entladen\" wird für externe Spulen bei Verwendung der Filamentweiche nicht unterstützt."
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "Die Filamentweiche wurde nicht eingerichtet. Bitte richten Sie diese am Drucker ein."
+
+msgid "Current slot has alread been loaded"
+msgstr "Der aktuelle Slot wurde bereits geladen."
+
+msgid "The selected slot is empty."
+msgstr "Der ausgewählte Slot ist leer."
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "Der ausgewählte Slot ist nicht in den Extruder geladen."
+
+msgid "No extruder found for the selected slot."
+msgstr "Kein Extruder für den ausgewählten Slot gefunden."
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "Filamentinformationen können nicht gelesen werden: Das Filament ist in den Werkzeugkopf geladen. Bitte entladen Sie das Filament und versuchen Sie es erneut."
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "Wird geladen"
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "Das AMS wurde nicht initialisiert. Bitte initialisieren Sie es vor der Verwendung."
 
 msgid "Supports Painting"
 msgstr "Aufmalstützen"
@@ -3571,18 +3620,8 @@ msgstr "Laden"
 msgid "Unload"
 msgstr "Entladen"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "Das AMS wurde nicht initialisiert. Bitte initialisieren Sie es vor der Verwendung."
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "Wählen Sie einen AMS-Slot und drücken Sie dann die Taste \"Laden\" oder \"Entladen\", um automatisch Filament zu laden oder zu entladen."
-
 msgid "/"
 msgstr "/"
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr "Wird geladen"
 
 msgid "Confirm"
 msgstr "Bestätigen"
@@ -7769,33 +7808,6 @@ msgstr "Druck abbrechen"
 msgid "Are you sure you want to stop this print?"
 msgstr "Möchten Sie diesen Druck wirklich beenden?"
 
-msgid "The printer is busy on other print job"
-msgstr "Der Drucker ist mit einem anderen Druckauftrag beschäftigt."
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "Wenn der Druckvorgang pausiert ist, wird das Laden und Entladen von Filament nur für externe Slots unterstützt."
-
-msgid "Current extruder is busy changing filament"
-msgstr "Der aktuelle Extruder ist mit dem Wechseln des Filaments beschäftigt."
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "\"Laden\" oder \"Entladen\" wird für externe Spulen bei Verwendung der Filamentweiche nicht unterstützt."
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "Die Filamentweiche wurde nicht eingerichtet. Bitte richten Sie diese am Drucker ein."
-
-msgid "Current slot has alread been loaded"
-msgstr "Der aktuelle Slot wurde bereits geladen."
-
-msgid "The selected slot is empty."
-msgstr "Der ausgewählte Slot ist leer."
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "Der ausgewählte Slot ist nicht in den Extruder geladen."
-
-msgid "No extruder found for the selected slot."
-msgstr "Kein Extruder für den ausgewählten Slot gefunden."
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "Der 2D-Modus des Druckers unterstützt keine 3D-Kalibrierung"
 
@@ -7844,9 +7856,6 @@ msgstr "Wenn die Kammertemperatur 40 °C übersteigt, schaltet das System automa
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Bitte wählen Sie vor der Kalibrierung einen AMS-Slot aus."
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "Filamentinformationen können nicht gelesen werden: Das Filament ist in den Werkzeugkopf geladen. Bitte entladen Sie das Filament und versuchen Sie es erneut."
 
 msgid "This only takes effect during printing"
 msgstr "Diese Funktion ist nur während des Druckens wirksam."

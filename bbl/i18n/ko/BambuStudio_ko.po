@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1046,6 +1046,55 @@ msgstr "시스템은 재료 종류, 색상 및 브랜드에 따라 자동 리필
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr "출력 시 현재 스풀이 소진되면 프린터는 그룹 순서에 따라 자동으로 다음 호환 스풀로 전환하고, 마지막 스풀 이후에는 다시 첫 번째 스풀로 돌아갑니다."
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "프린터가 다른 출력 작업에 사용중입니다."
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "출력이 일시 중지된 경우 필라멘트 로딩 및 언로딩은 외부 슬롯에서만 지원됩니다."
+
+msgid "Current extruder is busy changing filament"
+msgstr "현재 압출기가 필라멘트 교체 중입니다."
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "AMS 슬롯을 선택한 다음 \"로드\" 또는 \"언로드\" 버튼을 누르면 필라멘트를 자동으로 로드하거나 언로드할 수 있습니다."
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "필라멘트 트랙 스위치를 사용하는 동안에는 외부 스풀에 대해 \"로드\" 또는 \"언로드\" 기능을 지원하지 않습니다."
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "필라멘트 트랙 스위치가 설정되지 않았습니다. 프린터에서 설정해 주십시오."
+
+msgid "Current slot has alread been loaded"
+msgstr "현재 슬롯이 이미 로드되었습니다."
+
+msgid "The selected slot is empty."
+msgstr "선택한 슬롯이 비어 있습니다."
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "선택한 슬롯이 압출기에 로드되지 않았습니다."
+
+msgid "No extruder found for the selected slot."
+msgstr "선택한 슬롯에 압출기가 없습니다"
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "필라멘트 정보를 읽을 수 없음: 필라멘트가 툴헤드에 로드되었습니다. 필라멘트를 언로드하고 다시 시도하십시오."
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "로딩 중"
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "AMS가 초기화되지 않았습니다. 사용 전에 초기화하십시오."
 
 msgid "Supports Painting"
 msgstr "페인팅 지원"
@@ -3565,18 +3614,8 @@ msgstr "로드"
 msgid "Unload"
 msgstr "언로드"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "AMS가 초기화되지 않았습니다. 사용 전에 초기화하십시오."
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "AMS 슬롯을 선택한 다음 \"로드\" 또는 \"언로드\" 버튼을 누르면 필라멘트를 자동으로 로드하거나 언로드할 수 있습니다."
-
 msgid "/"
 msgstr "/"
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr "로딩 중"
 
 msgid "Confirm"
 msgstr "확인"
@@ -7758,33 +7797,6 @@ msgstr "출력 취소"
 msgid "Are you sure you want to stop this print?"
 msgstr "이 출력을 중지하시겠습니까?"
 
-msgid "The printer is busy on other print job"
-msgstr "프린터가 다른 출력 작업에 사용중입니다."
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "출력이 일시 중지된 경우 필라멘트 로딩 및 언로딩은 외부 슬롯에서만 지원됩니다."
-
-msgid "Current extruder is busy changing filament"
-msgstr "현재 압출기가 필라멘트 교체 중입니다."
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "필라멘트 트랙 스위치를 사용하는 동안에는 외부 스풀에 대해 \"로드\" 또는 \"언로드\" 기능을 지원하지 않습니다."
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "필라멘트 트랙 스위치가 설정되지 않았습니다. 프린터에서 설정해 주십시오."
-
-msgid "Current slot has alread been loaded"
-msgstr "현재 슬롯이 이미 로드되었습니다."
-
-msgid "The selected slot is empty."
-msgstr "선택한 슬롯이 비어 있습니다."
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "선택한 슬롯이 압출기에 로드되지 않았습니다."
-
-msgid "No extruder found for the selected slot."
-msgstr "선택한 슬롯에 압출기가 없습니다"
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "프린터 2D 모드는 3D 교정을 지원하지 않습니다"
 
@@ -7833,9 +7845,6 @@ msgstr "챔버 온도가 40℃를 초과하면 시스템이 자동으로 난방 
 
 msgid "Please select an AMS slot before calibration"
 msgstr "캘리브레이션 전에 AMS 슬롯을 선택하십시오."
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "필라멘트 정보를 읽을 수 없음: 필라멘트가 툴헤드에 로드되었습니다. 필라멘트를 언로드하고 다시 시도하십시오."
 
 msgid "This only takes effect during printing"
 msgstr "이는 출력 중에만 적용됩니다."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1046,6 +1046,55 @@ msgstr "El sistema ha creado grupos de relleno automático basados en el tipo de
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr "Al imprimir, una vez agotada la bobina actual, la impresora cambia automáticamente a la siguiente bobina compatible en el orden del grupo y vuelve a la primera bobina tras la última."
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "La impresora está ocupada con otro trabajo de impresión."
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "Cuando la impresión está en pausa, la carga y descarga de filamento solo se admiten en ranuras externas."
+
+msgid "Current extruder is busy changing filament"
+msgstr "El extrusor actual está ocupado cambiando el filamento"
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "Elija una ranura AMS y pulse el botón \"Cargar\" o \"Descargar\" para cargar o descargar automáticamente el filamento."
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "\"Cargar\" o \"Descargar\" no es compatible con bobinas externas al usar el Interruptor de Seguimiento del Filamento."
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "El interruptor de seguimiento de filamento no ha sido configurado. Por favor, configúrelo en la impresora."
+
+msgid "Current slot has alread been loaded"
+msgstr "La ranura actual ya se ha cargado"
+
+msgid "The selected slot is empty."
+msgstr "La ranura seleccionada está vacía."
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "La ranura seleccionada no está cargada en el extrusor."
+
+msgid "No extruder found for the selected slot."
+msgstr "No se ha encontrado el extrusor para la ranura seleccionada."
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "No se puede leer la información del filamento: el filamento está cargado en el cabezal de herramienta, por favor, descarga el filamento e inténtalo de nuevo."
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "Cargando"
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "AMS no se ha inicializado. Por favor, inicialícelo antes de usarlo."
 
 msgid "Supports Painting"
 msgstr "Pintando Soportes"
@@ -3571,18 +3620,8 @@ msgstr "Cargar"
 msgid "Unload"
 msgstr "Descarga"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "AMS no se ha inicializado. Por favor, inicialícelo antes de usarlo."
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "Elija una ranura AMS y pulse el botón \"Cargar\" o \"Descargar\" para cargar o descargar automáticamente el filamento."
-
 msgid "/"
 msgstr "/"
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr "Cargando"
 
 msgid "Confirm"
 msgstr "Confirmar"
@@ -7767,33 +7806,6 @@ msgstr "Cancelar impresión"
 msgid "Are you sure you want to stop this print?"
 msgstr "¿Está seguro de que desea detener esta impresión?"
 
-msgid "The printer is busy on other print job"
-msgstr "La impresora está ocupada con otro trabajo de impresión."
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "Cuando la impresión está en pausa, la carga y descarga de filamento solo se admiten en ranuras externas."
-
-msgid "Current extruder is busy changing filament"
-msgstr "El extrusor actual está ocupado cambiando el filamento"
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "\"Cargar\" o \"Descargar\" no es compatible con bobinas externas al usar el Interruptor de Seguimiento del Filamento."
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "El interruptor de seguimiento de filamento no ha sido configurado. Por favor, configúrelo en la impresora."
-
-msgid "Current slot has alread been loaded"
-msgstr "La ranura actual ya se ha cargado"
-
-msgid "The selected slot is empty."
-msgstr "La ranura seleccionada está vacía."
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "La ranura seleccionada no está cargada en el extrusor."
-
-msgid "No extruder found for the selected slot."
-msgstr "No se ha encontrado el extrusor para la ranura seleccionada."
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "El modo 2D de la impresora no admite la calibración 3D"
 
@@ -7842,9 +7854,6 @@ msgstr "Si la temperatura de la cámara supera los 40 ℃, el sistema cambiará 
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Seleccione una ranura AMS antes de la calibración"
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "No se puede leer la información del filamento: el filamento está cargado en el cabezal de herramienta, por favor, descarga el filamento e inténtalo de nuevo."
 
 msgid "This only takes effect during printing"
 msgstr "Esto solo tiene efecto durante la impresión"

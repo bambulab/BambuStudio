@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -1046,6 +1046,55 @@ msgstr "Sistem, malzeme türü, renk ve markaya göre otomatik doldurma gruplar�
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr "Yazdırma sırasında mevcut makaradaki filament bittiğinde yazıcı, grup sırasındaki bir sonraki uyumlu makaraya otomatik olarak geçer ve son makaradan sonra ilk makaraya geri döner."
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "Yazıcı başka bir yazdırma işiyle meşgul."
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "Yazdırma işlemi duraklatıldığında, filament yükleme ve boşaltma işlemleri yalnızca harici yuvalar için desteklenir."
+
+msgid "Current extruder is busy changing filament"
+msgstr "Şu anki ekstrüder filament değiştirme işlemiyle meşgul."
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "Bir AMS yuvası seç ve ardından filamentleri otomatik olarak yüklemek veya boşaltmak için \"Yükle\" ya da \"Boşalt\" düğmesine bas."
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "Filament Hattı Değiştirici kullanılırken harici makara için \"Yükle\" veya \"Boşalt\" işlemleri desteklenmez."
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "Filament Hattı Değiştirici henüz ayarlanmadı. Lütfen yazıcıda ayarla."
+
+msgid "Current slot has alread been loaded"
+msgstr "Mevcut yuvadaki filament zaten yüklü."
+
+msgid "The selected slot is empty."
+msgstr "Seçilen filament yuvası boş."
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "Seçilen yuvadaki filament ekstrüdere yüklenmemiş."
+
+msgid "No extruder found for the selected slot."
+msgstr "Seçilen yuva için ekstrüder bulunamadı."
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "Filament bilgileri okunamıyor: Filament takım kafasına yüklenmiş. Lütfen filamenti boşalt ve tekrar dene."
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "yükleniyor"
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "AMS başlatılmadı. Lütfen kullanmadan önce başlat."
 
 msgid "Supports Painting"
 msgstr "Destek Boyama"
@@ -3571,18 +3620,8 @@ msgstr "Yükle"
 msgid "Unload"
 msgstr "Boşalt"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "AMS başlatılmadı. Lütfen kullanmadan önce başlat."
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "Bir AMS yuvası seç ve ardından filamentleri otomatik olarak yüklemek veya boşaltmak için \"Yükle\" ya da \"Boşalt\" düğmesine bas."
-
 msgid "/"
 msgstr "/"
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr "yükleniyor"
 
 msgid "Confirm"
 msgstr "Onayla"
@@ -7765,33 +7804,6 @@ msgstr "Yazdırmayı iptal et"
 msgid "Are you sure you want to stop this print?"
 msgstr "Bu yazdırmayı durdurmak istediğinden emin misin?"
 
-msgid "The printer is busy on other print job"
-msgstr "Yazıcı başka bir yazdırma işiyle meşgul."
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "Yazdırma işlemi duraklatıldığında, filament yükleme ve boşaltma işlemleri yalnızca harici yuvalar için desteklenir."
-
-msgid "Current extruder is busy changing filament"
-msgstr "Şu anki ekstrüder filament değiştirme işlemiyle meşgul."
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "Filament Hattı Değiştirici kullanılırken harici makara için \"Yükle\" veya \"Boşalt\" işlemleri desteklenmez."
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "Filament Hattı Değiştirici henüz ayarlanmadı. Lütfen yazıcıda ayarla."
-
-msgid "Current slot has alread been loaded"
-msgstr "Mevcut yuvadaki filament zaten yüklü."
-
-msgid "The selected slot is empty."
-msgstr "Seçilen filament yuvası boş."
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "Seçilen yuvadaki filament ekstrüdere yüklenmemiş."
-
-msgid "No extruder found for the selected slot."
-msgstr "Seçilen yuva için ekstrüder bulunamadı."
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "Yazıcının 2D modu 3D kalibrasyonunu desteklemiyor."
 
@@ -7840,9 +7852,6 @@ msgstr "Oda sıcaklığı 40℃'yi aşarsa, sistem otomatik olarak ısıtma modu
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Kalibrasyondan önce lütfen bir AMS yuvası seç."
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "Filament bilgileri okunamıyor: Filament takım kafasına yüklenmiş. Lütfen filamenti boşalt ve tekrar dene."
 
 msgid "This only takes effect during printing"
 msgstr "Bu yalnızca yazdırma sırasında geçerli olur."

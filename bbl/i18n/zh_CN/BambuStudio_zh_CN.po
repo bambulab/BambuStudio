@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1052,6 +1052,55 @@ msgstr "系统已根据材料类型、颜色和品牌为您创建自动续料组
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr "打印时，当前耗材用完后，将按组内顺序自动切换到下一卷兼容耗材，列表末尾会自动回到开头继续。"
+
+msgid "Connected Slots"
+msgstr "已连接耗材"
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr "请选择打印机"
+
+msgid "The printer is busy on other print job"
+msgstr "打印机正在执行其他打印任务"
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "当打印暂停时，只有外挂耗材槽位支持进/退料。"
+
+msgid "Current extruder is busy changing filament"
+msgstr "当前挤出机正在换料"
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "选择1个AMS槽位，然后点击进料/退料按钮以自动进料/退料。"
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "使用耗材变轨器时，不支持对外挂槽执行“进料”或“退料”操作。"
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "耗材变轨器尚未设置。请在打印机上进行设置。"
+
+msgid "Current slot has alread been loaded"
+msgstr "当前槽位已加载"
+
+msgid "The selected slot is empty."
+msgstr "当前选择的槽位是空的"
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "选定的槽位未被加载到挤出机中。"
+
+msgid "No extruder found for the selected slot."
+msgstr "未找到所选槽位的挤出机。"
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "无法读取耗材丝信息：耗材丝已经加载到工具头，请退出耗材丝后再重试。"
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "加载中"
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "AMS尚未初始化。请先初始化后再使用。"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -3563,18 +3612,8 @@ msgstr "进料"
 msgid "Unload"
 msgstr "退料"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "AMS尚未初始化。请先初始化后再使用。"
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "选择1个AMS槽位，然后点击进料/退料按钮以自动进料/退料。"
-
 msgid "/"
 msgstr ""
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr "加载中"
 
 msgid "Confirm"
 msgstr "确定"
@@ -7735,33 +7774,6 @@ msgstr "取消打印"
 msgid "Are you sure you want to stop this print?"
 msgstr "您确定要停止打印吗？"
 
-msgid "The printer is busy on other print job"
-msgstr "打印机正在执行其他打印任务"
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "当打印暂停时，只有外挂耗材槽位支持进/退料。"
-
-msgid "Current extruder is busy changing filament"
-msgstr "当前挤出机正在换料"
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "使用耗材变轨器时，不支持对外挂槽执行“进料”或“退料”操作。"
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "耗材变轨器尚未设置。请在打印机上进行设置。"
-
-msgid "Current slot has alread been loaded"
-msgstr "当前槽位已加载"
-
-msgid "The selected slot is empty."
-msgstr "当前选择的槽位是空的"
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "选定的槽位未被加载到挤出机中。"
-
-msgid "No extruder found for the selected slot."
-msgstr "未找到所选槽位的挤出机。"
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "打印机 2D 模式不支持 3D 校准"
 
@@ -7810,9 +7822,6 @@ msgstr "如果腔室温度超过40℃, 系统将自动切换到腔温保持模�
 
 msgid "Please select an AMS slot before calibration"
 msgstr "请先选择一个AMS槽位后进行校准"
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "无法读取耗材丝信息：耗材丝已经加载到工具头，请退出耗材丝后再重试。"
 
 msgid "This only takes effect during printing"
 msgstr "仅在打印过程中生效"
@@ -20163,7 +20172,7 @@ msgstr "当前打印机状态"
 
 #, c-format, boost-format
 msgid "Connected printer %s, view printer status"
-msgstr ""
+msgstr "已连接打印机 %s，查看机器状态"
 
 msgid "Sync Printer Information"
 msgstr "同步打印机信息"
@@ -30302,9 +30311,3 @@ msgstr ""
 
 #~ msgid "Start the application"
 #~ msgstr "启动应用程序"
-
-msgid "Connected Slots"
-msgstr "已连接耗材"
-
-msgid "Please select a printer"
-msgstr "请选择打印机"

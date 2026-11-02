@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:27+0800\n"
+"POT-Creation-Date: 2026-11-02 20:20+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -1058,6 +1058,55 @@ msgstr "Система создала группы для автоматичес
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
 msgstr "Во время печати, когда филамент на текущей катушке заканчивается, принтер автоматически переключается на следующую совместимую катушку в порядке их расположения в группе, а после последней возвращается к первой."
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "AMS Control Web Debug"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "Принтер занят другой задачей печати."
+
+msgid "When printing is paused, filament loading and unloading are only supported for external slots."
+msgstr "Когда печать приостановлена, загрузка и выгрузка филамента поддерживаются только для внешних слотов."
+
+msgid "Current extruder is busy changing filament"
+msgstr "Текущий экструдер занят сменой филамента."
+
+msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
+msgstr "Выберите слот AMS, затем нажмите «Загрузить» или «Выгрузить», чтобы автоматически загрузить или выгрузить филамент."
+
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "«Загрузить» и «Выгрузить» для внешней катушки недоступны при использовании переключателя тракта филамента."
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "Переключатель тракта филамента не настроен. Настройте его на принтере."
+
+msgid "Current slot has alread been loaded"
+msgstr "Текущий слот уже загружен."
+
+msgid "The selected slot is empty."
+msgstr "Выбранный слот пуст."
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "Филамент из выбранного слота не загружен в экструдер."
+
+msgid "No extruder found for the selected slot."
+msgstr "Для выбранного слота не найден экструдер."
+
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "Не удалось считать информацию о филаменте: филамент загружен в печатающую головку. Выгрузите филамент и повторите попытку."
+
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "Загрузка"
+
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "AMS не инициализирована. Инициализируйте AMS перед использованием."
 
 msgid "Supports Painting"
 msgstr "Покраска поддержки"
@@ -3628,18 +3677,8 @@ msgstr "Загрузить"
 msgid "Unload"
 msgstr "Выгрузить"
 
-msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "AMS не инициализирована. Инициализируйте AMS перед использованием."
-
-msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "Выберите слот AMS, затем нажмите «Загрузить» или «Выгрузить», чтобы автоматически загрузить или выгрузить филамент."
-
 msgid "/"
 msgstr ""
-
-msgctxt "AMS filament"
-msgid "loading"
-msgstr "Загрузка"
 
 msgid "Confirm"
 msgstr "Подтвердить"
@@ -7874,33 +7913,6 @@ msgstr "Отменить печать"
 msgid "Are you sure you want to stop this print?"
 msgstr "Вы уверены, что хотите остановить печать?"
 
-msgid "The printer is busy on other print job"
-msgstr "Принтер занят другой задачей печати."
-
-msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "Когда печать приостановлена, загрузка и выгрузка филамента поддерживаются только для внешних слотов."
-
-msgid "Current extruder is busy changing filament"
-msgstr "Текущий экструдер занят сменой филамента."
-
-msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "«Загрузить» и «Выгрузить» для внешней катушки недоступны при использовании переключателя тракта филамента."
-
-msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "Переключатель тракта филамента не настроен. Настройте его на принтере."
-
-msgid "Current slot has alread been loaded"
-msgstr "Текущий слот уже загружен."
-
-msgid "The selected slot is empty."
-msgstr "Выбранный слот пуст."
-
-msgid "The selected slot is not loaded in the extruder."
-msgstr "Филамент из выбранного слота не загружен в экструдер."
-
-msgid "No extruder found for the selected slot."
-msgstr "Для выбранного слота не найден экструдер."
-
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "2D-режим принтера не поддерживает 3D-калибровку"
 
@@ -7950,9 +7962,6 @@ msgstr "Если температура камеры превысит 40℃, с�
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Перед калибровкой выберите слот AMS."
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr "Не удалось считать информацию о филаменте: филамент загружен в печатающую головку. Выгрузите филамент и повторите попытку."
 
 msgid "This only takes effect during printing"
 msgstr "Действует только во время печати."
