@@ -348,7 +348,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
         const Polygon polygon = apply_fuzzy_skin(loop.polygon, *(perimeter_generator.config), *(perimeter_generator.perimeter_regions),
                                 perimeter_generator.layer_id, loop.depth, loop.is_contour, perimeter_generator.slice_z);
 
-        if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
+        if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers &&
+            ! perimeter_generator.starts_at_object_base) {
             // get non 100% overhang paths by intersecting this loop with the grown lower slices
             // prepare grown lower layer slices for overhang detection
             BoundingBox bbox(polygon.points);
@@ -662,7 +663,9 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
         ExtrusionPaths paths;
         // detect overhanging/bridging perimeters
-        if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
+      
+        if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers &&
+            ! perimeter_generator.starts_at_object_base) {
                         ClipperLib_Z::Path extrusion_path;
             extrusion_path.reserve(extrusion->size());
 

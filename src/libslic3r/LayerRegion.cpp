@@ -175,9 +175,11 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const Perimet
         fill_only ? &discarded_loop_nodes : &loop_nodes
     );
 
+    // A merged band anchored at the object base stands on the bed, like layer 0. The physical layer below
+    // its group top lies inside the band itself, so it is no support for the walls.
     if (lower_slices_override != nullptr)
         g.lower_slices = lower_slices_override;
-    else if (this->layer()->lower_layer != nullptr)
+    else if (this->layer()->lower_layer != nullptr && ! first_object_layer)
         // Cummulative sum of polygons over all the regions.
         g.lower_slices = &this->layer()->lower_layer->lslices;
     if (upper_slices_override != nullptr)
