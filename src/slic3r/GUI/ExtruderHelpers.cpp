@@ -11,6 +11,8 @@
 #include "DeviceCore/DevNozzleSystem.h"
 #include "GUI_App.hpp"
 #include "I18N.hpp"
+#include "MainFrame.hpp"
+#include "MsgDialog.hpp"
 #include "Plater.hpp"
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/Utils.hpp"
@@ -153,6 +155,20 @@ bool slots_match_machine(MachineObject *obj, int extruder_id, const ExtruderSlot
 }
 
 } // namespace
+
+void show_filament_switcher_tip(bool ready)
+{
+    wxString msg = ready ? _L("Filament switcher detected. All AMS filaments are now available for both extruders. "
+                              "The slicer will auto-assign for optimal printing. ") :
+                           _L("A filament switcher is detected but not calibrated and thus currently unavailable. "
+                              "Please calibrate it on the printer and synchronize before use. ");
+
+    long style = ready ? (wxICON_INFORMATION | wxOK) : (wxICON_WARNING | wxOK);
+    MessageDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), msg, _L("Tips"), style, "", _L("Learn more"),
+                      [](const wxString &url) { wxLaunchDefaultBrowser("https://e.bambulab.com/t?c=yElVKjHwyw9o3pND"); });
+    dlg.CenterOnParent();
+    dlg.ShowModal();
+}
 
 // Compare whole slots, not the groups of the slicing diameter: on a rack one extruder can hold other
 // diameters only, and a group compare then never matches, even right after a sync.

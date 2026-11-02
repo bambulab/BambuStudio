@@ -1212,7 +1212,6 @@ struct Sidebar::priv
     bool is_fila_switch_ready();
     void update_extruder_separator_icon(bool show, bool ready);
     void position_extruder_separator_icon();
-    void show_fila_switch_msg(bool ready);
 
 #ifdef _WIN32
     wxString btn_reslice_tip;
@@ -1349,16 +1348,16 @@ void Sidebar::priv::show_filament_switcher_dialog(bool is_ready, bool is_manual)
     if (is_ready) {
         if (wxGetApp().app_config->get("show_fila_switch_tips") == "true") {
             wxGetApp().app_config->set("show_fila_switch_tips", "false");
-            show_fila_switch_msg(true);
+            show_filament_switcher_tip(true);
         }
     } else {
         if (is_manual) {
             fila_switch_warning_shown = true;
-            show_fila_switch_msg(false);
+            show_filament_switcher_tip(false);
         } else {
             if (!fila_switch_warning_shown) {
                 fila_switch_warning_shown = true;
-                show_fila_switch_msg(false);
+                show_filament_switcher_tip(false);
             }
         }
     }
@@ -1499,21 +1498,6 @@ void Sidebar::priv::position_extruder_separator_icon()
     center_x -= icon_size.GetWidth() / 2;
     center_y -= icon_size.GetHeight() / 2;
     extruder_separator_icon->SetPosition(wxPoint(center_x, center_y));
-}
-
-void Sidebar::priv::show_fila_switch_msg(bool ready)
-{
-    wxString msg = ready ? _L("Filament switcher detected. All AMS filaments are now available for both extruders. "
-                              "The slicer will auto-assign for optimal printing. ") :
-                           _L("A filament switcher is detected but not calibrated and thus currently unavailable. "
-                              "Please calibrate it on the printer and synchronize before use. ");
-
-    long style = ready ? (wxICON_INFORMATION | wxOK) : (wxICON_WARNING | wxOK);
-    MessageDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), msg, _L("Tips"), style, "", _L("Learn more"),
-                      [](const wxString &url) { wxLaunchDefaultBrowser("https://e.bambulab.com/t?c=yElVKjHwyw9o3pND"); });
-    // dlg.SetSize(wxSize(FromDIP(520), FromDIP(180)));
-    dlg.CenterOnParent();
-    dlg.ShowModal();
 }
 
 Sidebar::priv::~priv()
@@ -2487,7 +2471,7 @@ void Sidebar::priv::open_extruder_settings_dialog()
             }
         }
     } else {
-        NozzleSettingsListDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), l_ext_cfg, r_ext_cfg, CustomSeparator::State::Hidden);
+        NozzleSettingsListDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), l_ext_cfg, r_ext_cfg);
         accepted = dlg.ShowModal() == wxID_OK;
         if (accepted) {
             // The dialog no longer picks a diameter; the plate keeps slicing at the current one.
@@ -3000,7 +2984,7 @@ void Sidebar::priv::create_dual_extruder_groups()
     extruder_separator_icon = new wxStaticBitmap(m_panel_printer_content, wxID_ANY, bitmap.bmp(), wxDefaultPosition, bitmap.GetBmpSize());
     extruder_separator_icon->Hide();
     extruder_separator_icon->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &evt) {
-        show_fila_switch_msg(is_fila_switch_ready());
+        show_filament_switcher_tip(is_fila_switch_ready());
         evt.Skip();
     });
     left_extruder->Bind(wxEVT_SIZE, [this](wxSizeEvent &evt) {

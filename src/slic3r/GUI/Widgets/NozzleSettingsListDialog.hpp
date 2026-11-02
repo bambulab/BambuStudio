@@ -26,8 +26,7 @@ class NozzleSettingsListDialog : public DPIDialog
 public:
     NozzleSettingsListDialog(wxWindow                        *parent,
                            const std::vector<NozzleConfig> &left_configs,
-                           const std::vector<NozzleConfig> &right_configs,
-                           CustomSeparator::State           separator_state = CustomSeparator::State::Hidden);
+                           const std::vector<NozzleConfig> &right_configs);
 
     std::vector<NozzleConfig> GetExtruderConfigs(int index) const; // 0 = left, 1 = right
 

@@ -1191,35 +1191,26 @@ CustomSeparator::CustomSeparator(wxWindow *parent, bool is_small) : wxPanel(pare
     m_normal_bitmap = ScalableBitmap(this, "fila_switch", size);
     m_error_bitmap  = ScalableBitmap(this, "fila_switch_error", size);
 
-    CreateLayout();
-}
-
-void CustomSeparator::CreateLayout()
-{
-    auto main_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    m_separator_line = new wxPanel(this, wxID_ANY);
-    m_separator_line->SetBackgroundColour(ThemeColor::Grey400);
-    m_separator_line->SetSize(wxSize(FromDIP(1), -1));
-
-    m_icon = new wxStaticBitmap(this, wxID_ANY, m_normal_bitmap.bmp(),
-                                wxDefaultPosition, m_normal_bitmap.GetBmpSize());
-    m_icon->SetBackgroundColour(GetBackgroundColour());
-    m_icon->Hide();
-
-    auto overlay_sizer = new wxBoxSizer(wxVERTICAL);
-    overlay_sizer->AddStretchSpacer();
-    overlay_sizer->Add(m_icon, 0, wxALIGN_CENTER_HORIZONTAL);
-    overlay_sizer->AddStretchSpacer();
-
-    main_sizer->AddStretchSpacer(1);
-    main_sizer->Add(m_separator_line, 0, wxEXPAND);
-    main_sizer->AddStretchSpacer(1);
-
-    SetSizer(main_sizer);
-
-    Bind(wxEVT_SIZE, [this](wxSizeEvent& evt) {
-        UpdatePosition();
+    // Line and icon are painted in one pass, not as overlapping child windows: wxMSW does not clip
+    // siblings, so a child icon over a child line only stays on top by repaint-order luck.
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
+    Bind(wxEVT_PAINT, &CustomSeparator::on_paint, this);
+    Bind(wxEVT_SIZE, [this](wxSizeEvent &evt) {
+        Refresh(); // the line spans the full height and the icon may be centred
+        evt.Skip();
+    });
+    Bind(wxEVT_MOTION, [this](wxMouseEvent &evt) {
+        SetCursor(icon_rect().Contains(evt.GetPosition()) ? wxCURSOR_HAND : wxCURSOR_ARROW);
+        evt.Skip();
+    });
+    Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &evt) {
+        if (icon_rect().Contains(evt.GetPosition())) show_filament_switcher_tip(m_state == Normal);
+        evt.Skip();
+    });
+    Bind(wxEVT_DPI_CHANGED, [this](wxDPIChangedEvent &evt) {
+        m_normal_bitmap.msw_rescale();
+        m_error_bitmap.msw_rescale();
+        SetMinSize(wxSize(2 * m_normal_bitmap.GetBmpWidth(), -1));
         evt.Skip();
     });
 }
@@ -1227,51 +1218,43 @@ void CustomSeparator::CreateLayout()
 void CustomSeparator::SetState(State state)
 {
     if (m_state == state) return;
-
     m_state = state;
-
-    switch (state) {
-    case Normal:
-        m_icon->SetBitmap(m_normal_bitmap.bmp());
-        m_icon->Show();
-        Show();
-        break;
-
-    case Error:
-        m_icon->SetBitmap(m_error_bitmap.bmp());
-        m_icon->Show();
-        Show();
-        break;
-
-    case Hidden:
-        m_icon->Hide();
-        Show();
-        break;
-    }
-
-    UpdatePosition();
     Refresh();
 }
 
-void CustomSeparator::UpdatePosition()
+void CustomSeparator::SetIconYOffset(int offset)
 {
-    if (!m_icon) return;
+    if (m_icon_y_offset == offset) return;
+    m_icon_y_offset = offset;
+    Refresh();
+}
 
-    wxSize panel_size = GetSize();
-    wxSize icon_size  = m_icon->GetSize();
+wxRect CustomSeparator::icon_rect() const
+{
+    if (m_state == Hidden) return {};
 
-    int x = (panel_size.x - icon_size.x) / 2;
-    int y;
-    if (m_icon_y_offset < 0) {
-        y = (panel_size.y - icon_size.y) / 2;
-    } else {
-        y = m_icon_y_offset - icon_size.y / 2;
-    }
+    const wxSize panel = GetClientSize();
+    const wxSize icon  = m_normal_bitmap.GetBmpSize();
+    const int    x     = (panel.x - icon.x) / 2;
+    int          y     = m_icon_y_offset < 0 ? (panel.y - icon.y) / 2 : m_icon_y_offset - icon.y / 2;
+    y                  = std::max(0, std::min(y, panel.y - icon.y));
+    return {wxPoint(x, y), icon};
+}
 
-    y = std::max(0, std::min(y, panel_size.y - icon_size.y));
+void CustomSeparator::on_paint(wxPaintEvent &)
+{
+    wxAutoBufferedPaintDC dc(this);
+    // Colours are read here, not cached, so a theme switch shows on the next repaint.
+    dc.SetBackground(wxBrush(GetBackgroundColour()));
+    dc.Clear();
 
-    m_icon->SetPosition(wxPoint(x, y));
-    m_icon->Raise();
+    const wxSize panel = GetClientSize();
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.SetBrush(wxBrush(StateColor::darkModeColorFor(ThemeColor::Grey400)));
+    dc.DrawRectangle(panel.x / 2, 0, std::max(1, FromDIP(1)), panel.y);
+
+    const wxRect icon = icon_rect();
+    if (!icon.IsEmpty()) dc.DrawBitmap((m_state == Normal ? m_normal_bitmap : m_error_bitmap).bmp(), icon.GetTopLeft(), true);
 }
 
 } // namespace Slic3r::GUI

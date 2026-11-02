@@ -151,6 +151,13 @@ std::map<std::pair<int, int>, int> collect_ams_counts(MachineObject *obj);
  */
 bool is_extruder_stat_synced(int target_extruder_id = -1);
 
+/**
+ * \brief Show the filament switcher tip with a "Learn more" wiki link (modal, centred on the main window)
+ *
+ * \param ready  true if the switcher is calibrated and usable; false shows the calibrate warning
+ */
+void show_filament_switcher_tip(bool ready);
+
 // The nozzles the machine reports for one logical extruder, as slot-ordered configs; slots the
 // machine cannot describe come back with an empty diameter. Always `extruder_nozzle_count` entries.
 // Caution: its health rule (IsNormal/IsUnknown, on rack printers only) is not the device-page rule that

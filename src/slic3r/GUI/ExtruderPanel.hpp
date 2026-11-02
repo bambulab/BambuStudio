@@ -33,6 +33,11 @@ constexpr int MODE_PILL_PAD_X  = 8;  // inset before the label and after the che
 constexpr int MODE_PILL_GAP    = 6;  // label to chevron
 constexpr int MODE_PILL_ICON_D = 16; // drop-down chevron
 
+/**
+ * \brief Vertical divider between two extruder columns, with an optional filament switcher icon on it
+ *
+ * Clicking the icon shows the filament switcher tip for the current state.
+ */
 class CustomSeparator : public wxPanel
 {
 public:
@@ -42,24 +47,21 @@ public:
 
     void  SetState(State state);
     State GetState() const { return m_state; }
-    void  UpdatePosition();
-    void  SetIconYOffset(int offset)
-    {
-        m_icon_y_offset = offset;
-        UpdatePosition();
-    }
+
+    /**
+     * \brief Centre the icon vertically on `offset` (client y); -1 centres it in the panel
+     */
+    void SetIconYOffset(int offset);
 
 private:
-    wxPanel        *m_separator_line{nullptr};
-    wxStaticBitmap *m_icon{nullptr};
-
     ScalableBitmap m_normal_bitmap;
     ScalableBitmap m_error_bitmap;
 
     State m_state{Hidden};
     int   m_icon_y_offset{-1};
 
-    void CreateLayout();
+    wxRect icon_rect() const; // empty when Hidden
+    void   on_paint(wxPaintEvent &evt);
 };
 
 class DiameterButtonPanel : public wxPanel

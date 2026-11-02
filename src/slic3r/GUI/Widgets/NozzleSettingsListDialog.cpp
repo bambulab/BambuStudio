@@ -36,6 +36,7 @@
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
+#include "slic3r/GUI/DeviceCore/DevFilaSwitch.h"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/PrintConfig.hpp"
@@ -93,6 +94,18 @@ FilamentDisplay resolve_filament_display(const std::pair<int, int> &slot)
     if (fd.colors.empty()) fd.colors.push_back(tray.get_color());
     fd.is_gradient = tray.ctype == DevFilaColorType::CTYPE_GRADIANT && fd.colors.size() >= 2;
     return fd;
+}
+
+// Filament switcher icon between the two columns, mirroring the sidebar: shown only while the edits
+// still match a connected printer that has a switcher installed; Error until it is calibrated.
+CustomSeparator::State filament_switcher_state(bool synced)
+{
+    if (!synced) return CustomSeparator::State::Hidden;
+    MachineObject *obj = selected_machine();
+    if (!obj || !obj->is_online()) return CustomSeparator::State::Hidden;
+    std::shared_ptr<DevFilaSwitch> fila_switch = obj->GetFilaSwitch();
+    if (!fila_switch || !fila_switch->IsInstalled()) return CustomSeparator::State::Hidden;
+    return fila_switch->IsReady() ? CustomSeparator::State::Normal : CustomSeparator::State::Error;
 }
 
 bool extruder_configs_match(const std::vector<NozzleConfig> &edited, const std::vector<NozzleConfig> &seed)
@@ -631,8 +644,7 @@ void NozzleColumn::RestoreAms()
 
 NozzleSettingsListDialog::NozzleSettingsListDialog(wxWindow                        *parent,
                                                const std::vector<NozzleConfig> &left_configs,
-                                               const std::vector<NozzleConfig> &right_configs,
-                                               CustomSeparator::State           separator_state)
+                                               const std::vector<NozzleConfig> &right_configs)
     : DPIDialog(parent, wxID_ANY, _L("Extruder Settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
 {
     std::vector<NozzleConfig> left_seeds  = left_configs;
@@ -645,7 +657,6 @@ NozzleSettingsListDialog::NozzleSettingsListDialog(wxWindow                     
 
     SetBackgroundColour(*wxWHITE);
     create_layout(left_seeds, right_seeds);
-    if (m_separator) m_separator->SetState(separator_state);
     CentreOnParent();
     wxGetApp().UpdateDlgDarkUI(this);
 }
@@ -790,6 +801,7 @@ void NozzleSettingsListDialog::update_dialog_state()
     scan(m_right_column, 1);
 
     show_synced(all_synced);
+    if (m_separator) m_separator->SetState(filament_switcher_state(all_synced));
 
     Layout();
     Fit();
