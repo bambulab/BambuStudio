@@ -3096,8 +3096,11 @@ private:
     void cancel_pressed()
     {
         m_pressed_target = nullptr;
-        if (HasCapture())
+        // The transient popup may already own capture for event routing.
+        // Release only capture explicitly acquired for the current click.
+        if (m_click_capture_owned && HasCapture())
             ReleaseMouse();
+        m_click_capture_owned = false;
     }
 
     void rebuild_content()
@@ -3233,6 +3236,9 @@ private:
     void on_dialog_anchor_destroyed(wxWindowDestroyEvent& e)
     {
         e.Skip();
+        // Defensive: destroy events bubble, so ignore any future child of the anchor.
+        if (e.GetEventObject() != m_dialog_anchor)
+            return;
         m_dialog_anchor = nullptr;
     }
 
@@ -3435,22 +3441,30 @@ private:
         });
     }
 
-    // Commit actions on mouse-up, matching DropDown. Capture on the popup so
-    // the release cannot be lost while Cocoa redirects events to the transient
-    // window; capture loss only cancels the action.
+    // Commit actions on mouse-up, matching DropDown. On macOS capture on the
+    // popup so the release cannot be lost while Cocoa redirects events to the
+    // transient window; PopupWindow forwards captured events to the child.
+    // MSW and GTK have no such forwarding: a capture would route the mouse-up
+    // to the popup itself and the row would never see it.
     void bind_click(wxWindow* target, std::function<void()> on_click)
     {
         target->Bind(wxEVT_LEFT_DOWN, [this, target](wxMouseEvent&) {
             if (!IsShown())
                 return;
             m_pressed_target = target;
-            if (!HasCapture())
+#ifdef __WXOSX__
+            if (!HasCapture()) {
                 CaptureMouse();
+                m_click_capture_owned = true;
+            }
+#endif
         });
         target->Bind(wxEVT_LEFT_UP, [this, target, on_click = std::move(on_click)](wxMouseEvent&) {
             wxWindow* pressed = m_pressed_target ? m_pressed_target.get() : nullptr;
             m_pressed_target = nullptr;
-            if (HasCapture())
+            const bool release_capture = m_click_capture_owned;
+            m_click_capture_owned = false;
+            if (release_capture && HasCapture())
                 ReleaseMouse();
             if (pressed != target)
                 return;
@@ -3688,6 +3702,7 @@ private:
     wxWindow*                                  m_hover_row = nullptr;
     std::vector<std::pair<int, wxWindow*>>     m_row_windows;
     wxWeakRef<wxWindow>                        m_pressed_target;
+    bool                                       m_click_capture_owned = false;
     bool                                       m_dismissed = false;
     bool                                       m_destroy_scheduled = false;
     bool                                       m_activate_app_bound = false;
@@ -8438,6 +8453,9 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
     });
     popup->Bind(wxEVT_DESTROY, [this, popup](wxWindowDestroyEvent& e) {
         e.Skip();
+        // Destroy events bubble up from child rows rebuilt in place.
+        if (e.GetEventObject() != popup)
+            return;
         if (m_filament_popup == popup) {
             m_filament_popup = nullptr;
             m_filament_popup_row = -1;
