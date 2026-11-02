@@ -129,7 +129,15 @@ nlohmann::json DevicePageHotendRackProgressStatusBuilder::Build(MachineObject* m
         rack_job = nozzle_rack->GetJob();
         rack_status = nozzle_rack->GetStatus();
     }
+
     const std::string rack_operation = rack_operation_for_job(rack_job, reading_count);
+    if (nozzle_rack && rack_operation == SV::rack_operation::read_all) {
+        // sometimes the reading_count comes with delay
+        if (reading_count == 0 || reading_idx == 0) {
+            reading_idx = 1;
+            reading_count = nozzle_rack->GetTotalRackNozzleCount();
+        }
+    }
 
     const bool rack_reading = reading_count > 0;
     const bool rack_busy = rack_job != 0 || rack_reading;
