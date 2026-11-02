@@ -31,6 +31,13 @@ on:
             description: 'Only build dependencies (bypasses caching)'
             type: boolean
             default: false
+        build-platforms:
+            description: '选择构建平台'
+            type: choice
+            default: all
+            options:
+              - all
+              - linux-macos
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -39,6 +46,7 @@ concurrency:
 jobs:
   build_all:
     name: Build All
+    if: github.event_name != 'workflow_dispatch' || inputs.build-platforms != 'linux-macos'
     strategy:
       fail-fast: false
       matrix:
@@ -59,3 +67,23 @@ jobs:
       arch: ${{ matrix.arch }}
       build-deps-only: ${{ inputs.build-deps-only || false }}
     secrets: inherit
+
+  build_linux_macos:
+    name: Linux 和 macOS 构建验证
+    if: github.event_name == 'workflow_dispatch' && inputs.build-platforms == 'linux-macos'
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+          - os: macos-15-intel
+            arch: x86_64
+          - os: macos-15
+            arch: arm64
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-deps-only: ${{ inputs.build-deps-only || false }}
