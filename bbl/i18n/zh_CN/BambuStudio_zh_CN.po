@@ -1790,6 +1790,15 @@ msgstr "显示线框"
 msgid "Keep all painting"
 msgstr "保留所有绘制"
 
+msgid "Colors and painting will be remapped to the new mesh, which may cause deviations or loss."
+msgstr "简化后颜色与涂抹信息将重新映射到新的网格上，可能产生偏差或丢失"
+
+msgid "Mesh name:"
+msgstr "模型名："
+
+msgid "Triangle count:"
+msgstr "三角面片数："
+
 msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr "包括颜色绘制、Z缝绘制、支撑绘制和绒毛表面绘制。不勾选时，布尔结果不保留任何绘制。"
 
