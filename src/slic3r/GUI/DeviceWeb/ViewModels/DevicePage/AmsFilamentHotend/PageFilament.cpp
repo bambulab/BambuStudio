@@ -151,7 +151,7 @@ void open_ams_materials_setting(const std::string& ams_id, const std::string& sl
 
     std::string sn_number;
     if (tray.tag_uid.size() == 16 && tray.tag_uid.substr(12, 2) == "01") {
-        sn_number = tray.uuid;
+        sn_number = tray.tag_uid;
     }
 
     wxString total_weight;
