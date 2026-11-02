@@ -19,6 +19,12 @@
     "cool_plate_temp_initial_layer": [
         "35"
     ],
+    "effect_plate_temp": [
+        "55"
+    ],
+    "effect_plate_temp_initial_layer": [
+        "55"
+    ],
     "eng_plate_temp": [
         "55"
     ],
@@ -59,8 +65,8 @@
         "45",
         "55",
         "55",
-        "45",
-        "45"
+        "55",
+        "55"
     ],
     "filament_dev_ams_drying_time": [
         "12",
@@ -94,12 +100,6 @@
         "55"
     ],
     "hot_plate_temp_initial_layer": [
-        "55"
-    ],
-    "effect_plate_temp": [
-        "55"
-    ],
-    "effect_plate_temp_initial_layer": [
         "55"
     ],
     "impact_strength_z": [
