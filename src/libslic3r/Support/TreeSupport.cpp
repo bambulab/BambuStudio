@@ -1958,6 +1958,8 @@ void TreeSupport::fold_nodes_multi_diameter()
         std::vector<size_t> partial_heads;
         Carrier *lower_carrier { nullptr };
         bool     folds { false };
+        // 固定首段的载体：强制把 [0, H] 合成一层，不参与后续的拒绝检查。
+        bool     forced { false };
     };
     // Per slab: the column top of every foldable node, and the candidate carriers keyed by support layer.
     std::vector<std::unordered_map<const SupportNode *, size_t>> column_top(plan.slabs.size());
@@ -2021,7 +2023,31 @@ void TreeSupport::fold_nodes_multi_diameter()
         // When differently aligned columns merge, start a new carrier at the merge layer. This leaves their
         // partial heads on the fine grid without carrying that refusal into the common trunk below.
         std::unordered_map<const SupportNode *, size_t> &tops = column_top[slab_idx];
-        for (auto it = layers.rbegin(); it != layers.rend(); ++ it)
+        const bool forced_slab = slab_idx == 0 && m_first_support_layer_z > EPSILON && m_raft_layers == 0;
+        if (forced_slab) {
+            // 固定首段：经主体连到床面的支撑柱整体并到段顶。不随段折叠的接触面连同其下方支撑柱留在细层，
+            // 间隙节点不参与判断。
+            std::unordered_set<const SupportNode *> under_fine, reaches;
+            for (auto it = layers.rbegin(); it != layers.rend(); ++ it)
+                for (const SupportNode *node : contact_nodes[*it]) {
+                    if (node == nullptr || node->distance_to_top < 0)
+                        continue;
+                    bool fine = ! foldable(node);
+                    for_each_parent(node, [&](const SupportNode *parent) { fine = fine || under_fine.count(parent) > 0; });
+                    if (fine)
+                        under_fine.insert(node);
+                }
+            for (size_t layer_nr : layers)
+                for (const SupportNode *node : contact_nodes[layer_nr])
+                    if (foldable(node) && under_fine.count(node) == 0 &&
+                        (layer_nr == layers.front() || (node->child != nullptr && reaches.count(node->child) > 0))) {
+                        reaches.insert(node);
+                        tops[node] = layers.back();
+                    }
+            if (! tops.empty())
+                carriers[slab_idx][layers.back()];
+        }
+        for (auto it = layers.rbegin(); ! forced_slab && it != layers.rend(); ++ it)
             for (const SupportNode *node : contact_nodes[*it]) {
                 if (! foldable(node))
                     continue;
@@ -2068,6 +2094,7 @@ void TreeSupport::fold_nodes_multi_diameter()
         size_t     span_top_obj_layer = slab_bottom_obj_layer;
         for (auto &[carrier_layer, carrier] : carriers[slab_idx]) {
             carrier.slab_idx          = slab_idx;
+            carrier.forced            = forced_slab;
             carrier.top_layer         = carrier_layer;
             carrier.obj_layer         = layer_heights[carrier_layer].obj_layer_nr;
             carrier.bottom_obj_layer = slab_bottom_obj_layer;
@@ -2186,7 +2213,7 @@ void TreeSupport::fold_nodes_multi_diameter()
             for (size_t slab_idx = 0; slab_idx < plan.slabs.size(); ++ slab_idx) {
                 const std::unordered_map<const SupportNode *, size_t> &tops = column_top[slab_idx];
                 for (auto &[carrier_layer, carrier] : carriers[slab_idx]) {
-                    if (! carrier.folds)
+                    if (! carrier.folds || carrier.forced)
                         continue;
                     // Structured bindings cannot be captured before C++20 (clang rejects it), hence the init-capture.
                     const bool shared = std::any_of(contact_nodes[carrier_layer].begin(), contact_nodes[carrier_layer].end(),
@@ -2656,6 +2683,9 @@ void TreeSupport::fold_nodes_multi_diameter()
                 }
             }
         }
+        // 固定首段一定合并，重叠交给最终面积的裁切处理。
+        for (auto it = newly_misaligned.begin(); it != newly_misaligned.end();)
+            it = (*it)->forced ? newly_misaligned.erase(it) : std::next(it);
         if (newly_misaligned.empty()) {
             moves_to      = std::move(tentative_moves);
             final_counters = std::move(future_counters);
@@ -3292,6 +3322,8 @@ void TreeSupport::generate_toolpaths()
                                                                          ts_layer->planned_nozzle_diameter;
                 const bool base_starts_on_bed =
                     m_raft_layers == 0 && ts_layer->print_z - bed_height <= EPSILON;
+                const bool fixed_first_support_layer =
+                    m_first_support_layer_z > EPSILON && std::abs(ts_layer->print_z - m_first_support_layer_z) <= EPSILON;
                 const Flow support_flow = ts_layer->planned_nozzle_diameter > EPSILON ?
                     m_support_params.support_material_flow_for_nozzle(ts_layer->planned_nozzle_diameter, float(base_height)) :
                     Flow(support_extrusion_width, base_height, nozzle_diameter);
@@ -3338,7 +3370,8 @@ void TreeSupport::generate_toolpaths()
                         // interface
                         // BBS multi-diameter: the bed band is emitted on its top layer once folded, so the
                         // brim belongs to whichever layer's material actually reaches the bed.
-                        if (base_starts_on_bed) {
+                        // 固定首层的接触面按自身图案打印，再加 brim 会重复挤出。
+                        if (base_starts_on_bed && ! fixed_first_support_layer) {
                             // This brim belongs to the tree support, so its flow must follow support_filament.
                             // Print::brim_flow() is derived from a model wall filament and may use a different
                             // nozzle diameter in multi-diameter mode.
@@ -3644,6 +3677,11 @@ void TreeSupport::generate()
     create_tree_support_layers();
     //m_ts_data = m_object->alloc_tree_support_preview_cache();
     m_ts_data->is_slim = is_slim;
+    // The tree geometry is generated on the fine support-node grid, while a coarse support nozzle prints
+    // several of those nodes as one fixed-grid slab. Cache the plan before the support layers are planned, so
+    // the pinned bed slab and the per-node growth can both be normalized to what will eventually be emitted.
+    m_support_merge_plan = make_support_merge_plan(*m_object);
+    pin_first_support_slab();
     // // get the ring of outside plate
     // auto tmp= diff_ex(offset_ex(m_machine_border, scale_(100)), m_machine_border);
     // if (!tmp.empty()) m_ts_data->m_machine_border = tmp[0];
@@ -3705,11 +3743,6 @@ void TreeSupport::generate()
 
     m_ts_data->layer_heights = plan_layer_heights();
 #endif
-
-    // The tree geometry is generated on the fine support-node grid, while a coarse support nozzle prints
-    // several of those nodes as one fixed-grid slab. Cache the plan before dropping nodes so per-node growth
-    // can be normalized to the slab that will eventually be emitted.
-    m_support_merge_plan = make_support_merge_plan(*m_object);
 
     //Drop nodes to lower layers.
     profiler.stage_start(STAGE_DROP_DOWN_NODES);
@@ -6396,6 +6429,67 @@ void TreeSupport::smooth_nodes(const TreeSupport3D::TreeSupportSettings& config)
 }
 #endif
 
+// 多口径：未指定支撑耗材且模型有贴床合并段时沿用该段；否则按首层口径换算设定首层层高
+// （0.4 预设首层 0.2，口径 0.6 为 0.3），改写为从第 0 层起的贴床合并段，[0, H] 由现有贴床折叠合成一层。
+void TreeSupport::pin_first_support_slab()
+{
+    m_first_support_layer_z = 0.;
+    SupportMergePlan &plan = m_support_merge_plan;
+    if (! plan.enabled || m_raft_layers > 0 || plan.layer_print_z.size() < 2)
+        return;
+    const bool model_bed_slab = ! plan.slabs.empty() && plan.slabs.front().bottom_idx == 0;
+    if (m_object_config->support_filament.value <= 0 && model_bed_slab) {
+        m_first_support_layer_z = plan.slabs.front().top_z;
+        return;
+    }
+
+    // 指定支撑耗材时取该耗材，否则取模型首层最粗的口径。
+    SupportMergePlan::Candidate bed;
+    for (const SupportMergePlan::Candidate &candidate : plan.candidates_per_layer.front())
+        if (! bed.valid() || candidate.nozzle_diameter > bed.nozzle_diameter)
+            bed = candidate;
+    const double preset_nozzle = primary_nozzle_diameter(m_object->print()->full_print_config());
+    if (! bed.valid() || preset_nozzle <= EPSILON)
+        return;
+    const coordf_t initial = m_print_config->initial_layer_print_height.value > 0. ?
+        m_print_config->initial_layer_print_height.value : m_object_config->layer_height.value;
+
+    // 向上对齐对象层，避免低于设定首层；超出口径最大层高时再向下回退。只占一个对象层时无需固定。
+    const AdaptiveLayerHeightRange range = adaptive_layer_height_range(bed.nozzle_diameter);
+    const std::vector<double> &zs = plan.layer_print_z;
+    size_t top = std::min(size_t(std::lower_bound(zs.begin(), zs.end(), initial * bed.nozzle_diameter / preset_nozzle - EPSILON) - zs.begin()),
+                          zs.size() - 1);
+    while (top > 0 && zs[top] > range.max_height + EPSILON)
+        -- top;
+    if (top == 0 || ! range.contains(zs[top]))
+        return;
+
+    SupportMergePlan::Slab slab;
+    slab.top_idx         = top;
+    slab.top_z           = zs[top];
+    slab.height          = zs[top];
+    slab.filament_id     = bed.filament_id;
+    slab.nozzle_diameter = bed.nozzle_diameter;
+    slab.bottom_anchor   = true;
+    // 与首段重叠的原合并段让出，被截断的剩余层留在细层。
+    plan.slabs.erase(plan.slabs.begin(), std::find_if(plan.slabs.begin(), plan.slabs.end(),
+        [top](const SupportMergePlan::Slab &other) { return other.bottom_idx > top; }));
+    plan.slabs.insert(plan.slabs.begin(), slab);
+    std::fill(plan.slab_index_per_layer.begin(), plan.slab_index_per_layer.end(), -1);
+    for (size_t slab_idx = 0; slab_idx < plan.slabs.size(); ++ slab_idx)
+        for (size_t idx = plan.slabs[slab_idx].bottom_idx; idx <= plan.slabs[slab_idx].top_idx; ++ idx)
+            plan.slab_index_per_layer[idx] = int(slab_idx);
+    // 首段口径变了，指定的接触面耗材能否随合并段折叠需重新判断。
+    if (const int interface_filament = m_object_config->support_interface_filament.value; interface_filament > 0) {
+        const double interface_nozzle = nozzle_diameter_for_filament(*m_print_config, (unsigned int) interface_filament);
+        plan.interface_fold_enabled = interface_nozzle > EPSILON &&
+            std::all_of(plan.slabs.begin(), plan.slabs.end(), [interface_nozzle](const SupportMergePlan::Slab &other) {
+                return std::abs(other.nozzle_diameter - interface_nozzle) <= EPSILON;
+            });
+    }
+    m_first_support_layer_z = slab.top_z;
+}
+
 std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
 {
     std::vector<LayerHeightData> layer_heights;
@@ -6412,6 +6506,9 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
         std::map<coordf_t, coordf_t> bounds; // print_z: height
         // Keep first layer still
         bounds[m_object->get_layer(0)->print_z] = {m_object->get_layer(0)->height};
+        // 固定首层的顶面需要落在支撑层上，贴床折叠才能以它为载体。
+        if (m_first_support_layer_z > EPSILON)
+            bounds.emplace(m_first_support_layer_z, 0.);
         std::vector<float> obj_layer_zs;
         obj_layer_zs.reserve(m_object->layer_count());
         for (const Layer *l : m_object->layers()) obj_layer_zs.emplace_back((float) l->print_z);
@@ -6502,6 +6599,8 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
         coordf_t new_height = layer_heights[layer_nr].height;
         if (std::abs(node1->height - new_height) < EPSILON) continue;
         if (top_z_distance < EPSILON && node1->height < EPSILON) continue; // top_z_distance==0, this is soluable interface
+        // 固定首层是有意加厚的，节点不能重编号成顶部间隙，交给贴床折叠处理。
+        if (layer_heights[layer_nr].print_z <= m_first_support_layer_z + EPSILON) continue;
         coordf_t              accum_height = 0;
         int                   num_layers   = 0;
         for (int i=layer_nr;i>=0;i--){

@@ -574,6 +574,10 @@ private:
     */
 
     std::vector<LayerHeightData> plan_layer_heights();
+    // 多口径：按口径换算首层层高，改写贴床合并段的顶，由现有贴床折叠合成一层。
+    void pin_first_support_slab();
+    // 固定的支撑首层顶面高度，0 表示未固定（单口径、有筏层或无需固定）。
+    coordf_t m_first_support_layer_z { 0. };
     /*!
      * \brief Creates points where support contacts the model.
      *
