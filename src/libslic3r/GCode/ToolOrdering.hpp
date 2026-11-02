@@ -350,6 +350,10 @@ public:
     std::vector<LayerTools>& layer_tools() { return m_layer_tools; }
     const std::vector<LayerTools>          &layer_tools() const { return m_layer_tools; }
     bool 				has_wipe_tower() const { return ! m_layer_tools.empty() && m_first_printing_extruder != (unsigned int)-1 && m_layer_tools.front().has_wipe_tower; }
+    // Give the first tower layer a filament when nothing else prints on it, so that GCode::process_layer
+    // emits the foundation planned there. Only call it once that foundation is known to be emitted, and pass
+    // the filament the tower planned it with: G-code export replays that result with the layer's filament.
+    void                seed_first_tower_layer(unsigned int filament);
 
     int                 get_most_used_extruder() const { return m_most_used_extruder; }
     const MultiNozzleUtils::LayeredNozzleGroupResult &get_layered_nozzle_group_result() const { return m_nozzle_group_result; }

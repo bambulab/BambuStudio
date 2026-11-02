@@ -1391,6 +1391,14 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
         }
 }
 
+void ToolOrdering::seed_first_tower_layer(unsigned int filament)
+{
+    auto first = std::find_if(m_layer_tools.begin(), m_layer_tools.end(), [](const LayerTools &lt) { return lt.has_wipe_tower; });
+    if (first == m_layer_tools.end() || ! first->extruders.empty())
+        return;
+    first->extruders.push_back(filament);
+}
+
 void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
 {
     m_first_printing_extruder = (unsigned int)-1;

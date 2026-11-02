@@ -4141,6 +4141,19 @@ void Print::validate_compacted_wipe_tower_clearance() const
     }
 }
 
+// A multi-diameter first band can leave the first tower layer without object extrusions, and G-code export
+// skips a layer without filaments, so the foundation planned there would never be printed. Seed that layer
+// only when its foundation is emitted: the planner may fold it into the layer above (empty result), and a
+// compacted tower skips it as a sparse layer. Otherwise the layer would become a change without extrusion.
+static void seed_emitted_tower_foundation(WipeTowerData &data, bool sparse_layers_skipped)
+{
+    if (data.tool_changes.empty() || data.tool_changes.front().empty())
+        return;
+    if (sparse_layers_skipped && wipe_tower_layer_is_sparse(data.tool_changes.front()))
+        return;
+    data.tool_ordering.seed_first_tower_layer((unsigned int) data.tool_changes.front().front().new_tool);
+}
+
 void Print::_make_wipe_tower()
 {
     m_wipe_tower_data.clear();
@@ -4338,6 +4351,7 @@ void Print::_make_wipe_tower()
     // Generate the wipe tower layers.
     m_wipe_tower_data.tool_changes.reserve(m_wipe_tower_data.tool_ordering.layer_tools().size());
     wipe_tower.generate_new(m_wipe_tower_data.tool_changes);
+    seed_emitted_tower_foundation(m_wipe_tower_data, wipe_tower_sparse_layers_skipped(m_config));
     // generate_new() keeps an empty slot per planned layer for G-code indexing. A tower with no content at all
     // must still leave tool_changes empty, which consumers read as "no wipe tower was generated".
     if (std::all_of(m_wipe_tower_data.tool_changes.begin(), m_wipe_tower_data.tool_changes.end(),
