@@ -1896,7 +1896,7 @@ int MachineObject::command_ams_select_tray(std::string tray_id)
     return this->publish_gcode(gcode_cmd);
 }
 
-int MachineObject::command_ams_control(std::string action)
+int MachineObject::command_ams_control(std::string action, const AmsControlOptions& options)
 {
     if (action == "resume" && check_resume_condition()) return 0;
 
@@ -1906,6 +1906,7 @@ int MachineObject::command_ams_control(std::string action)
         j["print"]["command"] = "ams_control";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
         j["print"]["param"] = action;
+        if (options.mc_remind_disable) { j["print"]["mc_remind_disable"] = *options.mc_remind_disable; }
         return this->publish_json(j);
     }
     return -1;

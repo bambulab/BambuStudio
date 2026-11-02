@@ -112,6 +112,11 @@ struct DevNozzle;
 // filament_id is matched case-sensitively against the official Bambu Lab IDs.
 bool is_stringing_prone_filament(const std::string& filament_id, float nozzle_diameter);
 
+// Optional fields of the "ams_control" command; unset fields are not sent.
+struct AmsControlOptions
+{
+    std::optional<bool> mc_remind_disable;
+};
 
 class MachineObject
 {
@@ -735,7 +740,7 @@ public:
     // indirect (only un-fed slots), 1 = active (all slots). slot_bits is
     // omitted so mode drives the selection.
     int command_ams_read_all(int ams_id, int mode);
-    int command_ams_control(std::string action);
+    int command_ams_control(std::string action, const AmsControlOptions& options = {});
     int command_ams_drying_stop();
     int command_start_extrusion_cali(int tray_index, int nozzle_temp, int bed_temp, float max_volumetric_speed, std::string setting_id = "");
     int command_stop_extrusion_cali();
