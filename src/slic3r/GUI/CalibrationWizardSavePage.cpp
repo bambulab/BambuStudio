@@ -56,6 +56,27 @@ static wxString get_default_name(wxString filament_name, CalibMode mode){
     return filament_name;
 }
 
+// MachineObject may be rebuilt on reconnect before on_device_connected restores the cache
+static std::vector<CaliPresetInfo> get_selected_cali_preset(MachineObject* obj)
+{
+    std::vector<CaliPresetInfo> presets = obj->GetCalib()->GetSelectedCalibPreset();
+    if (!presets.empty()) {
+        BOOST_LOG_TRIVIAL(debug) << "selected_cali_preset from memory, count = " << presets.size();
+        return presets;
+    }
+
+    for (const PrinterCaliInfo& info : wxGetApp().app_config->get_printer_cali_infos()) {
+        if (info.dev_id == obj->get_dev_id()) {
+            obj->GetCalib()->SetSelectedCalibPreset(info.selected_presets);
+            BOOST_LOG_TRIVIAL(warning) << "selected_cali_preset restored from cache, count = " << info.selected_presets.size() << " "
+                                       << KV(log_key::dev_id, obj->get_dev_id());
+            return info.selected_presets;
+        }
+    }
+    BOOST_LOG_TRIVIAL(warning) << "selected_cali_preset is empty and no cache found " << KV(log_key::dev_id, obj->get_dev_id());
+    return presets;
+}
+
 CalibrationCommonSavePage::CalibrationCommonSavePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationWizardPage(parent, id, pos, size, style)
 {
@@ -1017,7 +1038,7 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
     out_result.k_value = k;
     out_result.name = into_u8(name);
     if (m_obj) {
-        auto selected_cali_preset = m_obj->GetCalib()->GetSelectedCalibPreset();
+        auto selected_cali_preset = get_selected_cali_preset(m_obj);
         assert(selected_cali_preset.size() <= 1);
         if (!selected_cali_preset.empty()) {
             auto item       = selected_cali_preset[0];
@@ -1031,7 +1052,7 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
             out_result.nozzle_volume_type   = item.nozzle_volume_type;
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "CaliPASaveManual: obj->selected_cali_preset is empty";
+            BOOST_LOG_TRIVIAL(error) << "CaliPASaveManual: obj->selected_cali_preset is empty";
             return false;
         }
     }
@@ -1046,7 +1067,7 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
 bool CaliPASaveManualPanel::Show(bool show) {
     if (show) {
         if (m_obj) {
-            auto selected_cali_preset = m_obj->GetCalib()->GetSelectedCalibPreset();
+            auto selected_cali_preset = get_selected_cali_preset(m_obj);
             if (!selected_cali_preset.empty()) {
                 wxString default_name = get_default_name(selected_cali_preset[0].name, CalibMode::Calib_PA_Line);
                 if (m_obj->is_multi_extruders()) {
