@@ -276,7 +276,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         m_top_panel->SetBackgroundColor(ThemeColor::Grey350);
         m_top_panel->SetBackgroundColor2(ThemeColor::Grey350);
 
-        m_process_icon = new ScalableButton(m_top_panel, wxID_ANY, "sidebar_menu_up");
+        m_process_icon = new ScalableButton(m_top_panel, wxID_ANY, "sidebar_menu_process");
 
         m_title_label = new Label(m_top_panel, _L("Process"));
 
