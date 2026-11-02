@@ -22,7 +22,11 @@
         "12",
         "4",
         "12",
-        "4"
+        "4",
+        "4",
+        "4",
+        "12",
+        "12"
     ],
     "filament_flow_ratio": [
         "0.95"
@@ -36,18 +40,8 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
-    "filament_dev_ams_drying_time": [
-        "12",
-        "4",
-        "12",
-        "4",
-        "4",
-        "4",
-        "12",
-        "12"
-    ],
     "fins_extrude_safe_temp": [
-        "55"
+        "100"
     ],
     "nozzle_temperature_range_high": [
         "270"
