@@ -675,7 +675,7 @@ void ImGuiWrapper::set_next_window_size(float x, float y, ImGuiCond cond)
 }
 
 /* BBL style widgets */
-bool ImGuiWrapper::bbl_combo_with_filter(const char* label, const std::string& preview_value, const std::vector<std::string>& all_items, std::vector<int>* filtered_items_idx, bool* is_filtered, float item_height)
+bool ImGuiWrapper::bbl_combo_with_filter(const char* label, const std::string& preview_value, const std::vector<std::string>& all_items, std::vector<int>* filtered_items_idx, bool* is_filtered, float item_height, float popup_width)
 {
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
@@ -717,8 +717,10 @@ bool ImGuiWrapper::bbl_combo_with_filter(const char* label, const std::string& p
 
     float item_rect_width = ImGui::GetItemRectSize().x;
     float item_rect_height = item_height ? item_height : ImGui::GetItemRectSize().y;
+    // Optional wider popup keeps a side preview inside the list. The closed combo stays item_rect_width.
+    const float popup_w = popup_width > item_rect_width ? popup_width : item_rect_width;
     ImGui::SetNextWindowPos({ CursorPos.x, ImGui::GetItemRectMax().y + 4 * m_style_scaling });
-    ImGui::SetNextWindowSize({ item_rect_width, 0 });
+    ImGui::SetNextWindowSize({ popup_w, 0 });
     if (ImGui::BeginPopup(label))
     {
         ImGuiWindow* popup_window = ImGui::GetCurrentWindow();
@@ -728,7 +730,8 @@ bool ImGuiWrapper::bbl_combo_with_filter(const char* label, const std::string& p
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f * m_style_scaling, item_rect_height - g.FontSize) * 0.5f);
         wchar_t ICON_SEARCH = *pattern_buffer != '\0' ? ImGui::TextSearchCloseIcon : ImGui::TextSearchIcon;
         const ImVec2 label_size = ImGui::CalcTextSize(into_u8(ICON_SEARCH).c_str(), nullptr, true);
-        const ImVec2 search_icon_pos(ImGui::GetItemRectMax().x - label_size.x, popup_window->DC.CursorPos.y + style.FramePadding.y);
+        const float search_right = popup_w > item_rect_width + 0.5f ? popup_window->Pos.x + popup_w : ImGui::GetItemRectMax().x;
+        const ImVec2 search_icon_pos(search_right - label_size.x, popup_window->DC.CursorPos.y + style.FramePadding.y);
         ImGui::RenderText(search_icon_pos, into_u8(ICON_SEARCH).c_str());
 
         auto temp = popup_window->DC.CursorPos;
@@ -747,7 +750,7 @@ bool ImGuiWrapper::bbl_combo_with_filter(const char* label, const std::string& p
         popup_window->DC.CursorPos = temp;
 
 
-        ImGui::PushItemWidth(item_rect_width);
+        ImGui::PushItemWidth(popup_w);
         if (is_new_open)
             ImGui::SetKeyboardFocusHere();
         ImGui::InputText("##bbl_combo_with_filter_inputText", pattern_buffer, sizeof(pattern_buffer));
@@ -775,7 +778,7 @@ bool ImGuiWrapper::bbl_combo_with_filter(const char* label, const std::string& p
 
         popup_window->DC.CursorPos.y -= 1 * m_style_scaling;
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.0f, 1.0f) * m_style_scaling);
-        if (ImGui::BeginListBox("##bbl_combo_with_filter_listBox", { item_rect_width, item_rect_height * 7.75f})) {
+        if (ImGui::BeginListBox("##bbl_combo_with_filter_listBox", { popup_w, item_rect_height * 7.75f})) {
             ImGui::PopStyleVar(2);
             return true;
         }
