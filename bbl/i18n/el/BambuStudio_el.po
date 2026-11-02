@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -9437,12 +9437,6 @@ msgstr "Βρέθηκαν μη έγκυρες τιμές στο 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "Διορθώστε τις στις καρτέλες παραμέτρων"
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr "Οι υφές 3MF δεν υποστηρίζονται και έχουν απορριφθεί."
-
-msgid "Parts without color will default to gray."
-msgstr "Τα τμήματα χωρίς χρώμα θα έχουν από προεπιλογή γκρι χρώμα."
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "Το 3mf έχει τους ακόλουθους τροποποιημένους κώδικες G στις προεπιλογές νήματος ή εκτυπωτή:"
 
@@ -9477,11 +9471,14 @@ msgstr "Προειδοποίηση για μη κλειστό κέλυφος"
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "Αποτυχία φόρτωσης αρχείου «%1%». Βρέθηκε μη έγκυρη διαμόρφωση."
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr "Οι υφές 3MF δεν υποστηρίζονται και έχουν απορριφθεί."
+
+msgid "Parts without color will default to gray."
+msgstr "Τα τμήματα χωρίς χρώμα θα έχουν από προεπιλογή γκρι χρώμα."
+
 msgid "Objects with zero volume removed"
 msgstr "Αφαιρέθηκαν αντικείμενα με μηδενικό όγκο"
-
-msgid "The volume of the object is zero"
-msgstr "Ο όγκος του αντικειμένου είναι μηδενικός"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21076,6 +21073,9 @@ msgid ""
 msgstr ""
 "Αξιοπιστία με την πρώτη\n"
 "Λιγότερη ταλαιπωρία, πιο προβλέψιμη απόδοση. Παράδειγμα: μια μικρή εταιρεία που εκτυπώνει τμήματα PETG αποφεύγει τις εκπλήξεις που προκαλούνται από «αστοχίες την 6η ώρα» και διατηρεί τις παρτίδες εντός χρονοδιαγράμματος."
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "Ο όγκος του αντικειμένου είναι μηδενικός"
 
 #~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
 #~ msgstr "Χρησιμοποιείται νήμα υψηλής θερμοκρασίας στην τρέχουσα πλάκα. Μην το αναμιγνύετε με νήματα χαμηλής θερμοκρασίας."

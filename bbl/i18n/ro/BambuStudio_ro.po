@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -9450,12 +9450,6 @@ msgstr "Valori nevalide găsite în 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "Vă rugăm să le corectați în filele de parametri"
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr "Texturile 3MF nu sunt compatibile și au fost eliminate."
-
-msgid "Parts without color will default to gray."
-msgstr "Părțile fără culoare vor fi afișate implicit în gri."
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "Fișierul 3MF conține următoarele coduri G modificate în presetările filamentului sau ale imprimantei:"
 
@@ -9490,11 +9484,14 @@ msgstr "Avertisment privind învelișul neînchis"
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "Încărcarea fișierului a eșuat „%1%\". A fost găsită o configurație nevalidă."
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr "Texturile 3MF nu sunt compatibile și au fost eliminate."
+
+msgid "Parts without color will default to gray."
+msgstr "Părțile fără culoare vor fi afișate implicit în gri."
+
 msgid "Objects with zero volume removed"
 msgstr "Obiecte cu volum zero eliminate"
-
-msgid "The volume of the object is zero"
-msgstr "Volumul obiectului este zero"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21089,6 +21086,9 @@ msgid ""
 msgstr ""
 "Fiabilitate de la prima încercare\n"
 "Mai puțină supraveghere, rezultate mai previzibile. Exemplu: o fermă mică care produce piese PETG evită surprizele de tip „defecțiune la ora 6” și menține loturile la timp."
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "Volumul obiectului este zero"
 
 #~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
 #~ msgstr "Pe placa curentă se folosește filament pentru temperatură înaltă. Nu îl amestecați cu filamente pentru temperaturi scăzute."

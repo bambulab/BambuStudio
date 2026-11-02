@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9436,12 +9436,6 @@ msgstr "Ungültige Werte in der 3mf gefunden:"
 msgid "Please correct them in the param tabs"
 msgstr "Bitte korrigieren Sie diese in den Parameter-Registerkarten"
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr "3MF-Texturen werden nicht unterstützt und wurden verworfen."
-
-msgid "Parts without color will default to gray."
-msgstr "Teile ohne Farbe werden standardmäßig grau dargestellt."
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "The 3mf has following modified G-code in filament or printer presets:"
 
@@ -9476,11 +9470,14 @@ msgstr "Warnung zu nicht geschlossener Schale"
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "Das Laden der Datei \"%1%\" ist fehlgeschlagen. Es wurde eine ungültige Konfiguration erkannt."
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr "3MF-Texturen werden nicht unterstützt und wurden verworfen."
+
+msgid "Parts without color will default to gray."
+msgstr "Teile ohne Farbe werden standardmäßig grau dargestellt."
+
 msgid "Objects with zero volume removed"
 msgstr "Objekte mit nicht vorhandenem Volumen entfernt"
-
-msgid "The volume of the object is zero"
-msgstr "Das Volumen des Objekts ist Null"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21073,6 +21070,9 @@ msgid ""
 msgstr ""
 "Zuverlässigkeit auf Anhieb\n"
 "Weniger Überwachung, vorhersagbarere Ausgabe. Beispiel: Eine kleine Farm, die PETG-Teile druckt, vermeidet Überraschungen wie \"Ausfall in Stunde 6\" und hält Chargen im Zeitplan."
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "Das Volumen des Objekts ist Null"
 
 #~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
 #~ msgstr "Auf der aktuellen Druckplatte wird Hochtemperatur-Filament verwendet. Mischen Sie es nicht mit Niedertemperatur-Filamenten."

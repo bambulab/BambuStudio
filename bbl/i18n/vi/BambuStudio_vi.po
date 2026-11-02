@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -9426,12 +9426,6 @@ msgstr "Tìm thấy giá trị không hợp lệ trong tệp 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "Vui lòng sửa chúng trong các thẻ tham số"
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr "Các chất liệu 3MF không được hỗ trợ và đã bị loại bỏ."
-
-msgid "Parts without color will default to gray."
-msgstr "Các phần không có màu sẽ mặc định là màu xám."
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "Tệp 3mf có các Mã G đã sửa đổi sau trong cài đặt sẵn sợi nhựa hoặc máy in:"
 
@@ -9466,11 +9460,14 @@ msgstr "Cảnh báo vỏ chưa đóng"
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "Không tải được tệp \"%1%\". Tìm thấy cấu hình không hợp lệ."
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr "Các chất liệu 3MF không được hỗ trợ và đã bị loại bỏ."
+
+msgid "Parts without color will default to gray."
+msgstr "Các phần không có màu sẽ mặc định là màu xám."
+
 msgid "Objects with zero volume removed"
 msgstr "Các vật thể có thể tích bằng 0 đã bị xóa"
-
-msgid "The volume of the object is zero"
-msgstr "Thể tích của vật thể bằng 0"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21057,6 +21054,9 @@ msgid ""
 msgstr ""
 "Độ tin cậy thành công ngay lần đầu\n"
 "Giảm bớt việc phải theo dõi liên tục, tăng tính dự đoán được của kết quả đầu ra. Ví dụ: một cụm máy in nhỏ in các bộ phận bằng PETG sẽ tránh được những sự cố bất ngờ như \"hỏng hóc sau 6 giờ\" và đảm bảo các lô sản phẩm được hoàn tất đúng tiến độ."
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "Thể tích của vật thể bằng 0"
 
 #~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
 #~ msgstr "Sợi nhựa chịu nhiệt cao đang được sử dụng trên bàn in hiện tại. Không trộn sợi nhựa này với các loại sợi nhựa chịu nhiệt thấp."

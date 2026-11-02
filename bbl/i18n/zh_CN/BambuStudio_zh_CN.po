@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -8630,7 +8630,7 @@ msgid ""
 "100% means fully solid, where only the Concentric, Rectilinear, Monotonic, Monotonic Line, Aligned Rectilinear, Hilbert Curve, Archimedean Chords, and Octagram Spiral patterns are available."
 msgstr ""
 "常规模型建议 10–15%，功能件可适当提高。\n"
-"100% 表示完全实心，仅同心、直线、单调、单调线、直线排列、希尔伯特曲线、阿基米德弦、八角螺旋可用"
+"100% 表示完全实心，仅同心、直线、单调、单调线、直线排列、希尔伯特曲线、阿基米德弦、八角螺旋可用。"
 
 msgid "Enables multi-line infill, printing each infill path as several parallel lines side by side."
 msgstr "启用多线填充模式，把每条填充路径打成多根并排线"
@@ -9207,7 +9207,7 @@ msgid "The filament you are deleting is used by model \"%s\". After deletion, th
 msgstr "您正在删除的耗材正被模型“%s”使用。删除后，模型的耗材将被重置为剩余的第一个耗材。"
 
 msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
-msgstr "提示：如果您想将其替换为其他耗材，请右键单击该耗材，然后使用“组合到”。"
+msgstr "提示：如果您想将其替换为其他耗材，请右键单击该耗材，然后使用“合并到”。"
 
 msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
 msgstr "此耗材丝也被以下混合耗材使用，删除后将无法使用："
@@ -9390,12 +9390,6 @@ msgstr "在3mf文件中发现无效值："
 msgid "Please correct them in the param tabs"
 msgstr "请在参数页更正它们"
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr "暂不支持 3MF 纹理，已自动丢失。"
-
-msgid "Parts without color will default to gray."
-msgstr "文件中无颜色信息的部分，将默认显示为灰色。"
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "该3mf文件中的材料或者打印机预设包含以下修改过的G-codes:"
 
@@ -9430,11 +9424,14 @@ msgstr "未闭合壳体警告"
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "加载文件“%1%”失败。发现无效配置。"
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr "暂不支持 3MF 纹理，已自动丢失。"
+
+msgid "Parts without color will default to gray."
+msgstr "文件中无颜色信息的部分，将默认显示为灰色。"
+
 msgid "Objects with zero volume removed"
 msgstr "体积为零的对象已被移除"
-
-msgid "The volume of the object is zero"
-msgstr "对象的体积为零"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21000,6 +20997,9 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "对象的体积为零"
 
 #~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
 #~ msgstr "检测到当前盘使用了高温材料，请注意不要和低温材料混合打印。"

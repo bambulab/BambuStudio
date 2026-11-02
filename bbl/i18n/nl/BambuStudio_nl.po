@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9426,12 +9426,6 @@ msgstr "Ongeldige waarden gevonden in de 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "Corrigeer ze alstublieft in de parameter tabbladen"
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr "3MF-texturen worden niet ondersteund en zijn verwijderd."
-
-msgid "Parts without color will default to gray."
-msgstr "Onderdelen zonder kleur worden standaard grijs weergegeven."
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "The 3mf has following modified G-code in filament or printer presets:"
 
@@ -9466,11 +9460,14 @@ msgstr "Waarschuwing voor niet-gesloten shell"
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "Kan bestand \"%1%\" niet laden. Er is een ongeldige configuratie gevonden."
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr "3MF-texturen worden niet ondersteund en zijn verwijderd."
+
+msgid "Parts without color will default to gray."
+msgstr "Onderdelen zonder kleur worden standaard grijs weergegeven."
+
 msgid "Objects with zero volume removed"
 msgstr "Objecten zonder inhoud zijn verwijderd"
-
-msgid "The volume of the object is zero"
-msgstr "Het volume van het object is 0"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21066,6 +21063,9 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "Het volume van het object is 0"
 
 #~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
 #~ msgstr "Op de huidige plaat wordt filament voor hoge temperaturen gebruikt. Niet mengen met filamenten voor lage temperaturen."

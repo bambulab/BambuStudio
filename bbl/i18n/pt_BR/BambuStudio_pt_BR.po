@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9435,12 +9435,6 @@ msgstr "Valores inválidos encontrados no 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "Corrija-os nas guias Parâmetros"
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr "As texturas 3MF não são compatíveis e foram descartadas."
-
-msgid "Parts without color will default to gray."
-msgstr "As peças sem cor definida serão exibidas em cinza por padrão."
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "O 3mf tem os seguintes códigos G modificados em predefinições de filamento ou impressora:"
 
@@ -9475,11 +9469,14 @@ msgstr "Aviso de superfície não fechada"
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "Falha ao carregar o arquivo \"%1%”. Foi encontrada uma configuração inválida."
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr "As texturas 3MF não são compatíveis e foram descartadas."
+
+msgid "Parts without color will default to gray."
+msgstr "As peças sem cor definida serão exibidas em cinza por padrão."
+
 msgid "Objects with zero volume removed"
 msgstr "Objetos com volume zero removidos"
-
-msgid "The volume of the object is zero"
-msgstr "O volume do objeto é zero"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21079,6 +21076,9 @@ msgid ""
 msgstr ""
 "Confiabilidade na Primeira Tentativa\n"
 "Menos supervisão, saída mais previsível. Exemplo: uma pequena fazenda produzindo peças de PETG evita surpresas de \"falha na hora 6\" e mantém os lotes no cronograma."
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "O volume do objeto é zero"
 
 #~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
 #~ msgstr "Há um filamento de alta temperatura em uso na placa atual. Não o misture com filamentos de baixa temperatura."

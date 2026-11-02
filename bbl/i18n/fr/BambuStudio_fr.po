@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9419,12 +9419,6 @@ msgstr "Valeurs invalides trouvées dans le 3mf :"
 msgid "Please correct them in the param tabs"
 msgstr "Veuillez les corriger dans les onglets de paramètres"
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr "Les textures 3MF ne sont pas prises en charge et ont été ignorées."
-
-msgid "Parts without color will default to gray."
-msgstr "Les parties sans couleur seront grises par défaut."
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "The 3mf has following modified G-code in filament or printer presets:"
 
@@ -9459,11 +9453,14 @@ msgstr "Avertissement de coque non fermée"
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "Échec du chargement du fichier \"%1%\". Une configuration invalide a été trouvée."
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr "Les textures 3MF ne sont pas prises en charge et ont été ignorées."
+
+msgid "Parts without color will default to gray."
+msgstr "Les parties sans couleur seront grises par défaut."
+
 msgid "Objects with zero volume removed"
 msgstr "Objets avec zéro volume supprimé"
-
-msgid "The volume of the object is zero"
-msgstr "Le volume de l'objet est nul"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21059,6 +21056,9 @@ msgid ""
 msgstr ""
 "Fiabilité Garantie du Premier Coup\n"
 "Moins de surveillance, une production plus prévisible. Exemple : une petite exploitation agricole produisant des pièces en PETG évite les mauvaises surprises \"panne au bout de 6 h\" et respecte les délais de production."
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "Le volume de l'objet est nul"
 
 #~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
 #~ msgstr "Un filament haute température est utilisé sur la plaque actuelle. Ne pas mélanger avec des filaments basse température."

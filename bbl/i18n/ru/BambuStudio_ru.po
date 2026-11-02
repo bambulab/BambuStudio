@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -9555,12 +9555,6 @@ msgstr "В файле 3MF обнаружены недопустимые знач
 msgid "Please correct them in the param tabs"
 msgstr "Исправьте их на вкладках параметров."
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr "Текстуры формата 3MF не поддерживаются и были удалены."
-
-msgid "Parts without color will default to gray."
-msgstr "Детали без цвета по умолчанию будут серыми."
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "Файл 3MF содержит следующие изменённые G-коды в предустановках филамента или принтера:"
 
@@ -9595,11 +9589,14 @@ msgstr "Предупреждение о незамкнутой оболочке"
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "Не удалось загрузить файл \"%1%\". Обнаружена недопустимая конфигурация."
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr "Текстуры формата 3MF не поддерживаются и были удалены."
+
+msgid "Parts without color will default to gray."
+msgstr "Детали без цвета по умолчанию будут серыми."
+
 msgid "Objects with zero volume removed"
 msgstr "Объекты с нулевым объёмом удалены"
-
-msgid "The volume of the object is zero"
-msgstr "Объём объекта равен нулю"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21324,6 +21321,9 @@ msgid ""
 msgstr ""
 "Надёжный результат с первой попытки\n"
 "Меньше постоянного контроля — более предсказуемый результат. Например, небольшая ферма, печатающая детали из PETG, избегает неожиданных сбоев на шестом часу печати и выпускает партии по графику."
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "Объём объекта равен нулю"
 
 #~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
 #~ msgstr "На текущей пластине используется высокотемпературный филамент. Не смешивайте его с низкотемпературными филаментами."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -9330,12 +9330,6 @@ msgstr "У 3mf знайдено неприпустимі значення:"
 msgid "Please correct them in the param tabs"
 msgstr "Будь ласка, виправте їх у вкладках параметрів"
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr ""
-
-msgid "Parts without color will default to gray."
-msgstr ""
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "У файлі 3mf знаходяться наступні змінені G-коди в налаштуваннях філаменту або принтера:"
 
@@ -9370,11 +9364,14 @@ msgstr ""
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "Не вдалося завантажити файл \\%1%\\. Виявлено неприпустиму конфігурацію."
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr ""
+
+msgid "Parts without color will default to gray."
+msgstr ""
+
 msgid "Objects with zero volume removed"
 msgstr "Об'єкти з нульовим об'ємом видалені"
-
-msgid "The volume of the object is zero"
-msgstr "Об'єм об'єкта дорівнює нулю"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -20784,6 +20781,9 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "Об'єм об'єкта дорівнює нулю"
 
 #~ msgid "Click Wiki for help."
 #~ msgstr "Натисніть Wiki для допомоги."

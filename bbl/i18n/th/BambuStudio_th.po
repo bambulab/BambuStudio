@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -9425,12 +9425,6 @@ msgstr "พบค่าที่ไม่ถูกต้องใน 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "โปรดแก้ไขในแท็บพารามิเตอร์"
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr "ไม่รองรับเท็กซ์เจอร์ 3MF และถูกละทิ้งแล้ว"
-
-msgid "Parts without color will default to gray."
-msgstr "ชิ้นส่วนที่ไม่มีการทำสีจะถูกตั้งค่าเป็นสีเทาโดยเริ่มต้น"
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "3mf มี G-code ที่แก้ไขดังต่อไปนี้ในค่าที่ตั้งไว้ล่วงหน้าของเส้นวัสดุหรือเครื่องพิมพ์:"
 
@@ -9465,11 +9459,14 @@ msgstr "คำเตือนเปลือกที่ยังไม่ปิ
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "โหลดไฟล์ \"%1%\" ล้มเหลว พบการกำหนดค่าที่ไม่ถูกต้อง"
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr "ไม่รองรับเท็กซ์เจอร์ 3MF และถูกละทิ้งแล้ว"
+
+msgid "Parts without color will default to gray."
+msgstr "ชิ้นส่วนที่ไม่มีการทำสีจะถูกตั้งค่าเป็นสีเทาโดยเริ่มต้น"
+
 msgid "Objects with zero volume removed"
 msgstr "ลบวัตถุที่มีปริมาตรเป็นศูนย์ออกแล้ว"
-
-msgid "The volume of the object is zero"
-msgstr "ปริมาตรของวัตถุเป็นศูนย์"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21059,6 +21056,9 @@ msgid ""
 msgstr ""
 "ความน่าเชื่อถือแบบสำเร็จตั้งแต่ครั้งแรก\n"
 "ไม่ต้องคอยเฝ้า ได้ผลลัพธ์ที่คาดเดาได้มากขึ้น ตัวอย่าง: ฟาร์มพิมพ์ขนาดเล็กที่ผลิตชิ้นส่วน PETG สามารถหลีกเลี่ยงปัญหา 'งานเสียในชั่วโมงที่ 6' และส่งมอบงานได้ตรงตามกำหนด"
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "ปริมาตรของวัตถุเป็นศูนย์"
 
 #~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
 #~ msgstr "แผ่นพิมพ์ปัจจุบันใช้เส้นวัสดุทนความร้อนสูง อย่าผสมกับเส้นวัสดุอุณหภูมิต่ำ"

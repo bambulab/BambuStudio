@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -9203,12 +9203,6 @@ msgstr ""
 msgid "Please correct them in the param tabs"
 msgstr ""
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr ""
-
-msgid "Parts without color will default to gray."
-msgstr ""
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr ""
 
@@ -9243,10 +9237,13 @@ msgstr ""
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr ""
 
-msgid "Objects with zero volume removed"
+msgid "3MF textures are unsupported and have been discarded."
 msgstr ""
 
-msgid "The volume of the object is zero"
+msgid "Parts without color will default to gray."
+msgstr ""
+
+msgid "Objects with zero volume removed"
 msgstr ""
 
 #, possible-c-format, possible-boost-format

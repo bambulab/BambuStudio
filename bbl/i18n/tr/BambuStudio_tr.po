@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -9430,12 +9430,6 @@ msgstr "3MF'de geçersiz değerler bulundu:"
 msgid "Please correct them in the param tabs"
 msgstr "Lütfen bunları parametre sekmelerinde düzelt."
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr "3MF dokuları desteklenmediğinden kaldırıldı."
-
-msgid "Parts without color will default to gray."
-msgstr "Renk atanmamış parçalar varsayılan olarak gri olur."
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "3MF dosyasındaki filament veya yazıcı ön ayarlarında aşağıdaki değiştirilmiş G-kodları bulunuyor:"
 
@@ -9470,11 +9464,14 @@ msgstr "Kapanmamış Kabuk Uyarısı"
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "\"%1%\" dosyası yüklenemedi. Geçersiz bir yapılandırma bulundu."
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr "3MF dokuları desteklenmediğinden kaldırıldı."
+
+msgid "Parts without color will default to gray."
+msgstr "Renk atanmamış parçalar varsayılan olarak gri olur."
+
 msgid "Objects with zero volume removed"
 msgstr "Hacmi sıfır olan nesneler kaldırıldı."
-
-msgid "The volume of the object is zero"
-msgstr "Nesnenin hacmi sıfırdır."
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21060,6 +21057,9 @@ msgid ""
 msgstr ""
 "İlk Seferde Başarı Güvenilirliği\n"
 "Daha az gözetim, daha öngörülebilir sonuçlar. Örnek: PETG parçaları üreten küçük bir yazıcı çiftliği, \"6. saatte baskının başarısız olması\" gibi sürprizlerden kaçınır ve partileri programa uygun şekilde tamamlar."
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "Nesnenin hacmi sıfırdır."
 
 #~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
 #~ msgstr "Mevcut baskı tablasında yüksek sıcaklık filamenti kullanılıyor. Düşük sıcaklık filamentleriyle karıştırmayın."

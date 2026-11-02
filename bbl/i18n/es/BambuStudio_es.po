@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9432,12 +9432,6 @@ msgstr "Se han encontrado valores no válidos en el 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "Corríjalos en las pestañas de Parámetros"
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr "Las texturas 3MF no son compatibles y se han descartado."
-
-msgid "Parts without color will default to gray."
-msgstr "Las piezas sin color se mostrarán en gris por defecto."
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "The 3mf has following modified G-code in filament or printer presets:"
 
@@ -9472,11 +9466,14 @@ msgstr "Advertencia sobre superficie exterior sin cerrar"
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "Ha fallado la carga del archivo \"%1%\". Se ha encontrado una configuración no válida."
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr "Las texturas 3MF no son compatibles y se han descartado."
+
+msgid "Parts without color will default to gray."
+msgstr "Las piezas sin color se mostrarán en gris por defecto."
+
 msgid "Objects with zero volume removed"
 msgstr "Objetos con volumen cero eliminados"
-
-msgid "The volume of the object is zero"
-msgstr "El volumen del objeto es cero"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21079,6 +21076,9 @@ msgid ""
 msgstr ""
 "Fiabilidad a la primera\n"
 "Menos supervisión, resultados más predecibles. Ejemplo: una pequeña granja que procesa piezas de PETG evita sorpresas de \"fallo a la hora 6\" y mantiene los lotes según lo previsto."
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "El volumen del objeto es cero"
 
 #~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
 #~ msgstr "Se utiliza filamento de alta temperatura en la placa actual. No lo mezcles con filamentos de baja temperatura."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -9417,12 +9417,6 @@ msgstr "Byly nalezeny neplatné hodnoty v souboru 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "Opravte je prosím v záložkách parametrů"
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr ""
-
-msgid "Parts without color will default to gray."
-msgstr ""
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "Soubor 3mf obsahuje následující upravené G-kódy ve filamentových nebo předvolbách tiskárny:"
 
@@ -9457,11 +9451,14 @@ msgstr "Varování na neuzavřené skořepiny"
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "Soubor „%1%“ se nepodařilo načíst. Byla zjištěna neplatná konfigurace."
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr ""
+
+msgid "Parts without color will default to gray."
+msgstr ""
+
 msgid "Objects with zero volume removed"
 msgstr "Objekty s nulovým objemem byly odstraněny"
-
-msgid "The volume of the object is zero"
-msgstr "Objem objektu je nula"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21141,6 +21138,9 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "Objem objektu je nula"
 
 #~ msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
 #~ msgstr "Generuje vzájemně propletenou nosníkovou strukturu v místech, kde se dotýkají různé filamenty. To zlepšuje přilnavost mezi filamenty, zejména u modelů tištěných z různých materiálů."

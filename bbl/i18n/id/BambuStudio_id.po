@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -9424,12 +9424,6 @@ msgstr "Ditemukan nilai tidak valid dalam 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "Harap perbaikinya di tab parameter"
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr "Tekstur 3MF tidak didukung dan telah dihapus."
-
-msgid "Parts without color will default to gray."
-msgstr "Bagian tanpa warna akan menggunakan warna abu-abu secara default."
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "File 3mf ini memiliki G-code berikut yang dimodifikasi dalam preset filamen atau printer:"
 
@@ -9464,11 +9458,14 @@ msgstr "Peringatan Cangkang Tidak Tertutup"
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "Gagal memuat file \"%1%\". Ditemukan konfigurasi tidak valid."
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr "Tekstur 3MF tidak didukung dan telah dihapus."
+
+msgid "Parts without color will default to gray."
+msgstr "Bagian tanpa warna akan menggunakan warna abu-abu secara default."
+
 msgid "Objects with zero volume removed"
 msgstr "Objek dengan volume nol telah dihapus"
-
-msgid "The volume of the object is zero"
-msgstr "Volume objek adalah nol"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21058,6 +21055,9 @@ msgid ""
 msgstr ""
 "Keandalan Tepat di Percobaan Pertama \n"
 "Lebih sedikit pengawasan, hasil yang lebih terprediksi. Contoh: fasilitas print farm kecil yang mencetak komponen PETG menghindari kejutan 'gagal pada jam ke-6' dan menjaga produksi tetap sesuai jadwal."
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "Volume objek adalah nol"
 
 #~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
 #~ msgstr "Filamen suhu tinggi digunakan pada pelat saat ini. Jangan mencampurnya dengan filamen bersuhu rendah."

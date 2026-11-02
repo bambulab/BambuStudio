@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9387,12 +9387,6 @@ msgstr "3mf内に無効な値が見つかりました："
 msgid "Please correct them in the param tabs"
 msgstr "パラメータタブで修正してください。"
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr "3MFテクスチャはサポートされていないため、破棄されました。"
-
-msgid "Parts without color will default to gray."
-msgstr "色のないパーツはデフォルトでグレーになります。"
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "3MFファイルには、フィラメントまたはプリンターのプリセットに次の修正されたG-codeが含まれています："
 
@@ -9427,11 +9421,14 @@ msgstr "未閉鎖シェル警告"
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "ファイル %1% を読み込めませんでした。"
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr "3MFテクスチャはサポートされていないため、破棄されました。"
+
+msgid "Parts without color will default to gray."
+msgstr "色のないパーツはデフォルトでグレーになります。"
+
 msgid "Objects with zero volume removed"
 msgstr "体積が０のオブジェクトを削除しました"
-
-msgid "The volume of the object is zero"
-msgstr "オブジェクトの体積が0です"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21045,6 +21042,9 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "オブジェクトの体積が0です"
 
 #~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
 #~ msgstr "現在のプレートでは高温フィラメントが使用されています。低温フィラメントと混合しないでください。"

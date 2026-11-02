@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 12:14+0800\n"
+"POT-Creation-Date: 2026-11-02 16:27+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -9395,12 +9395,6 @@ msgstr "在3mf檔案中發現無效值："
 msgid "Please correct them in the param tabs"
 msgstr "請在引數頁更正它們"
 
-msgid "3MF textures are unsupported and have been discarded."
-msgstr "不支援 3MF 紋理，已捨棄。"
-
-msgid "Parts without color will default to gray."
-msgstr "沒有顏色的零件將預設為灰色。"
-
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "該3mf檔案中的材料或者印表機預設包含以下修改過的G-codes:"
 
@@ -9435,11 +9429,14 @@ msgstr "未封閉外殼警告"
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "載入檔案“%1%”失敗。發現無效配置。"
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr "不支援 3MF 紋理，已捨棄。"
+
+msgid "Parts without color will default to gray."
+msgstr "沒有顏色的零件將預設為灰色。"
+
 msgid "Objects with zero volume removed"
 msgstr "體積為零的物件已被移除"
-
-msgid "The volume of the object is zero"
-msgstr "物件的體積為零"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -21005,6 +21002,9 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
+
+#~ msgid "The volume of the object is zero"
+#~ msgstr "物件的體積為零"
 
 #~ msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
 #~ msgstr "目前列印板使用了高溫線材。請勿與低溫線材混合。"
