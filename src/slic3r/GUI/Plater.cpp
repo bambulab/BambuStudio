@@ -3390,14 +3390,17 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         wxGetApp().plater()->sidebar().refresh_filament_diameter_buttons(true);
         preset_bundle->block_filament_fallback_substitution = false;
     } else if (!is_single_ext_multi_nozzle(machine_preset->config)) {
-        // A single-extruder multi-nozzle machine always falls through to the automatic
-        // sync_ams_list() call below, which re-validates against the freshly-synced AMS/tray
-        // mapping. Validating here too would flag every slot against a nozzle diameter whose
-        // filament mapping has not been synced yet, flashing a red/incompatible state that
-        // clears itself a moment later once that call finishes -- so leave the validation to it.
         preset_bundle->validate_filament_nozzle_diameter_selections();
         if (dual_diameter_switched)
             preset_bundle->block_filament_fallback_substitution = false;
+    } else if (migration) {
+        // A live connection on this machine type relies on the later sync_ams_list() call to
+        // re-validate and refresh the badges once the AMS mapping lands. A 3MF migration has no
+        // such follow-up -- opening a project never syncs AMS -- so do both here instead, or the
+        // slots apply_nozzle_migration() just flagged above stay red until the user syncs by hand.
+        preset_bundle->validate_filament_nozzle_diameter_selections();
+        for (auto *combo : combos_filament)
+            combo->update();
     }
 
     // Per-slot nozzle data is derived from the nozzle inventory in full_config(). Selecting the same
