@@ -35,6 +35,11 @@ namespace Slic3r { namespace GUI {
 
 namespace {
 
+std::string wx_to_utf8(const wxString& value)
+{
+    return std::string(value.ToUTF8().data());
+}
+
 bool is_spool_cloud_write_action(const std::string& action)
 {
     return action == "add"
@@ -901,16 +906,26 @@ nlohmann::json FilamentManagerVM::build_ams_data()
                     nlohmann::json trays = nlohmann::json::array();
                     const int slot_count = ams->GetSlotCount();
 
+                    const DevAmsType raw_type = ams->IsAmsLiteMixed()
+                        ? DevAmsType::AMS_LITE_MIXED
+                        : ams->GetAmsType();
+
                     for (int i = 0; i < slot_count; ++i) {
                         const std::string slot_id = std::to_string(i);
                         DevAmsTray* tray = ams->GetTray(slot_id);
                         if (!tray) continue;
-                        std::string name = wxGetApp().transition_tridid(ams->GetTrayId(i), std::nullopt, sel).ToStdString();
+                        std::string name;
+                        try {
+                            name = DevFilaSystem::GetTrayNameByAmsSlotId(sel_id, std::stoi(ams_id), i, raw_type);
+                        } catch (...) {
+                            name = wxGetApp().transition_tridid(ams->GetTrayId(i), std::nullopt, sel).ToStdString();
+                        }
                         trays.push_back(build_tray_json(
                             tray, slot_id, name, tray->is_exists));
                     }
                     ams_arr.push_back({{"ams_id", ams_id},
                                        {"ams_type", static_cast<int>(ams->GetAmsType())},
+                                       {"display_name", wx_to_utf8(ams->GetDisplayName())},
                                        {"trays", trays}});
                 }
 
@@ -918,7 +933,13 @@ nlohmann::json FilamentManagerVM::build_ams_data()
                 for (auto it = vt_slots.crbegin(); it != vt_slots.crend(); ++it) {
                     const DevAmsTray& vt_tray = it->second;
                     const std::string ams_id = vt_tray.id.empty() ? it->first : vt_tray.id;
-                    std::string label = vt_tray.get_slot_name(sel);
+                    std::string label;
+                    try {
+                        const int vt_id_int = std::stoi(ams_id);
+                        label = DevFilaSystem::GetTrayNameByAmsSlotId(sel_id, vt_id_int, vt_id_int, DevAmsType::EXT_SPOOL);
+                    } catch (...) {
+                        label = vt_tray.get_slot_name(sel);
+                    }
                     if (label == "Ext-L" || label == "Ext-R") label = "Ext";
                     const bool exists = vt_tray.is_exists || vt_tray.is_tray_info_ready();
                     nlohmann::json t = build_tray_json(&vt_tray, "0", label, exists);

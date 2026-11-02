@@ -197,7 +197,7 @@ const AMS: AmsData = {
   is_rack: true,
   ams_units: [
     {
-      ams_id: 'ams-1', ams_type: 0,
+      ams_id: 'ams-1', ams_type: 0, display_name: 'AMS(1)',
       trays: [
         // slot 0: firmware reports remain_g -> UI shows 842g, not the 850g
         //         the weight * remain% formula would produce. `remain_weight`

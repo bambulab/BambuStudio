@@ -136,6 +136,7 @@ export interface AmsTray {
 export interface AmsUnit {
   ams_id: string;
   ams_type: number;
+  display_name?: string;
   trays: AmsTray[];
 }
 

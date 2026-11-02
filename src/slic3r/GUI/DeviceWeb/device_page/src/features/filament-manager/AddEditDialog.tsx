@@ -2113,7 +2113,7 @@ export function AddEditDialog({
                         data-testid={isExtUnit ? 'ams-unit-ext' : `ams-unit-${u.ams_id}`}
                         data-active={u.ams_id === selectedUnit ? 'true' : 'false'}
                         className={`rounded-[4px] border bg-transparent cursor-pointer flex items-center p-[4px] transition-colors duration-150 hover:border-fm-text-secondary ${u.ams_id === selectedUnit ? 'border-fm-brand' : 'border-fm-border-focus'}`}
-                        title={isExtUnit ? t('Virtual Slot') : `AMS ${parseInt(u.ams_id, 10) + 1}`}
+                        title={isExtUnit ? t('Virtual Slot') : (u.display_name || `AMS ${parseInt(u.ams_id, 10) + 1}`)}
                         // STUDIO-18344: switching AMS unit keeps the
                         // selected slots across units (per the ticket UX
                         // confirmation). Only handleDeviceChange clears.
