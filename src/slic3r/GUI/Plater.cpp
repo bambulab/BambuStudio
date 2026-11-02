@@ -6560,7 +6560,8 @@ static wxString delete_used_filament_message(const std::vector<wxString> &models
     }
 
     if (mixed.empty()) {
-        msg += "\n\n" + _L("Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\".");
+        msg += "\n\n" + _L("Tip: If you want to replace it with another filament, please use the \"Merge with\" function on "
+                             "the right side of the filament list.");
         return msg;
     }
 
