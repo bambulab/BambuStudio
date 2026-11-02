@@ -470,7 +470,12 @@ nlohmann::json ConnectedSlotsVM::BuildState() const
     std::vector<const DevAms*> sources;      // parallel to items, null entry = Ext
     std::optional<DevAmsTray>  ext_tray;
     const int ext_tray_id = VIRTUAL_TRAY_MAIN_ID - addr_id;
-    const bool ext_source_active = feed.has_value() && feed->first == ext_tray_id && fila_sys->IsVirtualTrayId(std::to_string(feed->first));
+    bool ext_source_active = true;
+    if (nozzle.has_value() && nozzle->GetBindAms().size() > 0) {
+        // only show loaded external spool when bind_ams is intalled
+        ext_source_active = feed.has_value() && feed->first == ext_tray_id && fila_sys->IsVirtualTrayId(std::to_string(feed->first));
+    }
+
     if (auto vt = m_obj->GetFilaSystem()->GetVirtualTray(ext_tray_id); ext_source_active && vt.has_value()) {
         ext_tray = vt;
         SchemaFormat::SchematicItem item;
