@@ -270,9 +270,9 @@ namespace Slic3r
         return picked.remain == 0 || candidate.remain < picked.remain;
     }
 
-    static bool _prefer_mapping_tie_break(bool cur_ext, bool new_ext, bool cur_id_match, bool new_id_match)
+    static bool _prefer_mapping_tie_break(bool cur_id_match, bool new_id_match)
     {
-        return (!cur_ext && new_ext) || (cur_ext == new_ext && !cur_id_match && new_id_match);
+        return !cur_id_match && new_id_match;
     }
 
     // On a same-color tie, a slot on the built-in rack AMS or on the external spool
@@ -332,8 +332,6 @@ namespace Slic3r
                             best_j = j;
                         continue;
                     }
-                    const bool cur_ext = distance_map[i][best_j].is_ext;
-                    const bool new_ext = dv.is_ext;
                     const bool cur_sub_ams = distance_map[i][best_j].is_sub_ams;
                     const bool new_sub_ams = dv.is_sub_ams;
                     auto       cur_tray = tray_filaments.find(distance_map[i][best_j].slot_key);
@@ -342,9 +340,9 @@ namespace Slic3r
                         && filaments[i].filament_id == cur_tray->second.filament_id;
                     const bool new_id_match = new_tray != tray_filaments.end()
                         && filaments[i].filament_id == new_tray->second.filament_id;
-                    if (_prefer_mapping_tie_break(cur_ext, new_ext, cur_id_match, new_id_match)
+                    if (_prefer_mapping_tie_break(cur_id_match, new_id_match)
                         || _prefer_non_sub_ams(cur_sub_ams, new_sub_ams)
-                        || (cur_ext == new_ext && cur_sub_ams == new_sub_ams
+                        || (cur_sub_ams == new_sub_ams
                             && cur_tray != tray_filaments.end() && new_tray != tray_filaments.end()
                             && _prefer_tray_by_remain(filaments[i], new_tray->second, cur_tray->second)))
                         best_j = j;
@@ -416,13 +414,10 @@ namespace Slic3r
                             auto new_tray = slot_at(i, j);
                             if (cur_tray == tray_filaments.end() || new_tray == tray_filaments.end())
                                 continue;
-                            const bool cur_ext      = distance_map[picked_src_idx][picked_tar_idx].is_ext;
-                            const bool new_ext      = distance_map[i][j].is_ext;
                             const bool cur_id_match = filaments[picked_src_idx].filament_id == cur_tray->second.filament_id;
                             const bool new_id_match = filaments[i].filament_id == new_tray->second.filament_id;
-                            if (_prefer_mapping_tie_break(cur_ext, new_ext, cur_id_match, new_id_match)
-                                || (cur_ext == new_ext
-                                    && _prefer_tray_by_remain(filaments[i], new_tray->second, cur_tray->second))) {
+                            if (_prefer_mapping_tie_break(cur_id_match, new_id_match)
+                                || _prefer_tray_by_remain(filaments[i], new_tray->second, cur_tray->second)) {
                                 picked_src_idx = i;
                                 picked_tar_idx = j;
                             }
@@ -445,13 +440,10 @@ namespace Slic3r
                                 auto new_tray = slot_at(i, j);
                                 if (cur_tray == tray_filaments.end() || new_tray == tray_filaments.end())
                                     continue;
-                                const bool cur_ext      = distance_map[picked_src_idx][picked_tar_idx].is_ext;
-                                const bool new_ext      = distance_map[i][j].is_ext;
                                 const bool cur_id_match = filaments[picked_src_idx].filament_id == cur_tray->second.filament_id;
                                 const bool new_id_match = filaments[i].filament_id == new_tray->second.filament_id;
-                                if (_prefer_mapping_tie_break(cur_ext, new_ext, cur_id_match, new_id_match)
-                                    || (cur_ext == new_ext
-                                        && _prefer_tray_by_remain(filaments[i], new_tray->second, cur_tray->second))) {
+                                if (_prefer_mapping_tie_break(cur_id_match, new_id_match)
+                                    || _prefer_tray_by_remain(filaments[i], new_tray->second, cur_tray->second)) {
                                     picked_src_idx = i;
                                     picked_tar_idx = j;
                                 }
