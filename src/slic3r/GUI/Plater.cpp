@@ -11673,6 +11673,32 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         VolumeColorInfoMap volume_color_data;
         bool has_3mf_textures = false;
         bool has_3mf_unit = false;
+        En3mfType en_3mf_file_type = En3mfType::From_BBS;
+        auto add_missing_filaments = [this, &model]() {
+            std::set<int> extruderIds;
+            for (ModelObject *o : model.objects) {
+                if (o->config.option("extruder")) extruderIds.insert(o->config.extruder());
+                for (auto volume : o->volumes) {
+                    if (volume->config.option("extruder")) extruderIds.insert(volume->config.extruder());
+                    // The current print preset already refers to existing filaments, only the model's own ids can exceed them.
+                    for (int extruder : volume->get_extruders({})) { extruderIds.insert(extruder); }
+                }
+            }
+            int size = extruderIds.size() == 0 ? 0 : *(extruderIds.rbegin());
+
+            // Insert physical filaments before mixed ones. set_num_filaments() takes the total count,
+            // so growing it by the physical count would truncate mixed slots and append physicals after them.
+            const int physical_size   = int(sidebar->combos_filament().size());
+            const int target_physical = std::min(size, int(MAX_PHYSICAL_FILAMENT_COUNT));
+            if (physical_size < target_physical) {
+                std::vector<std::pair<wxColour, std::string>> new_filaments;
+                new_filaments.reserve(size_t(target_physical - physical_size));
+                for (int i = physical_size; i < target_physical; ++i)
+                    new_filaments.emplace_back(Plater::get_next_color_for_filament(), std::string());
+                sidebar->add_custom_filaments(new_filaments);
+            }
+            wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+        };
         // BBS: add auxiliary files related logic
         bool load_aux = strategy & LoadStrategy::LoadAuxiliary, load_old_project = false;
         if (load_model && load_config && type_3mf) {
@@ -11686,7 +11712,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             if (type_3mf) {
                 DynamicPrintConfig config;
                 Semver             file_version;
-                En3mfType          en_3mf_file_type = En3mfType::From_BBS;
                 std::optional<bool> loaded_multi_nozzle_diameter_mode;
                 // The nozzle keys exactly as the file has them; the merge with defaults below fills missing keys.
                 DynamicPrintConfig  file_nozzle_keys;
@@ -11737,31 +11762,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     // Other non-Bambu models may open the color import dialog, which adds only the filaments the user
                     // confirms there, so their filaments are added below once it is known the dialog is not shown.
                     const bool defer_filament_add = load_model && en_3mf_file_type == En3mfType::From_Other;
-                    auto add_missing_filaments = [this, &model]() {
-                        std::set<int> extruderIds;
-                        for (ModelObject *o : model.objects) {
-                            if (o->config.option("extruder")) extruderIds.insert(o->config.extruder());
-                            for (auto volume : o->volumes) {
-                                if (volume->config.option("extruder")) extruderIds.insert(volume->config.extruder());
-                                // The current print preset already refers to existing filaments, only the model's own ids can exceed them.
-                                for (int extruder : volume->get_extruders({})) { extruderIds.insert(extruder); }
-                            }
-                        }
-                        int size = extruderIds.size() == 0 ? 0 : *(extruderIds.rbegin());
-
-                        // Insert physical filaments before mixed ones. set_num_filaments() takes the total count,
-                        // so growing it by the physical count would truncate mixed slots and append physicals after them.
-                        const int physical_size   = int(sidebar->combos_filament().size());
-                        const int target_physical = std::min(size, int(MAX_PHYSICAL_FILAMENT_COUNT));
-                        if (physical_size < target_physical) {
-                            std::vector<std::pair<wxColour, std::string>> new_filaments;
-                            new_filaments.reserve(size_t(target_physical - physical_size));
-                            for (int i = physical_size; i < target_physical; ++i)
-                                new_filaments.emplace_back(Plater::get_next_color_for_filament(), std::string());
-                            sidebar->add_custom_filaments(new_filaments);
-                        }
-                        wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
-                    };
                     if (need_filament_add && !defer_filament_add)
                         add_missing_filaments();
 
@@ -11992,51 +11992,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         this->model.design_info = model.design_info;
                         this->model.model_info = model.model_info;
                     }
-
-                    // Preview mesh for the single import dialog. It covers every part of the file,
-                    // uncolored ones in grey, so the dialog opens once; the model itself is left
-                    // untouched and the painting is applied per volume afterwards. Textures are
-                    // ignored, which the dialog points out. A file without any usable color is
-                    // imported as is, with a notification instead of the dialog.
-                    // BBS's own 3MF files keep their existing logic, Prusa ones keep their painting.
-                    // Files of slicers derived from BBS (e.g. OrcaSlicer) carry their own painting,
-                    // which the dialog would overwrite, so they are loaded as painted.
-                    auto has_painting = [&model]() {
-                        for (const ModelObject* object : model.objects)
-                            for (const ModelVolume* volume : object->volumes)
-                                if (volume->is_model_part() && !volume->mmu_segmentation_facets.empty())
-                                    return true;
-                        return false;
-                    };
-                    if (load_model && en_3mf_file_type == En3mfType::From_Other && !model.objects.empty()) {
-                        const bool show_source_warning = wxGetApp().app_config->get_bool("skip_non_bambu_3mf_warning") != true;
-                        const wxString source_warning = _L("The 3mf is not from Bambu Lab, load geometry data and color data only.");
-                        auto tex_mesh = std::make_shared<TexturedMesh>();
-                        bool has_uncolored = false;
-                        if (!has_painting() && standard_3mf_to_textured_meshes(model, color_group_map, volume_color_data, *tex_mesh, has_uncolored)) {
-                            // Shown by the import dialog instead of a notification; the source warning takes a line of its own.
-                            if (show_source_warning)
-                                standard_3mf_hint = source_warning + "\n";
-                            if (has_3mf_textures)
-                                standard_3mf_hint += _L("3MF textures are unsupported and have been discarded.") + " ";
-                            if (has_uncolored)
-                                standard_3mf_hint += _L("Parts without color will default to gray.");
-                            standard_3mf_hint.Trim(); // drops the separator a missing later part leaves behind
-                            standard_3mf_color_mesh = std::move(tex_mesh);
-                            // The ids the reader derived from the color groups may exceed the project filaments. Confirm
-                            // reassigns them from the dialog's matching; skip and cancel import geometry only.
-                            for (ModelObject* object : model.objects) {
-                                object->config.erase("extruder");
-                                for (ModelVolume* volume : object->volumes)
-                                    volume->config.erase("extruder");
-                            }
-                        } else if (show_source_warning) {
-                            q->get_notification_manager()->push_notification(NotificationType::CustomNotification,
-                                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(source_warning));
-                        }
-                    }
-                    if (need_filament_add && defer_filament_add && !standard_3mf_color_mesh)
-                        add_missing_filaments();
                 }
 
                 if (load_config) {
@@ -12500,17 +12455,17 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             auto convert_from_imperial_units = [](Model &model, bool only_small_volumes) { model.convert_from_imperial_units(only_small_volumes); };
 
             // BBS: add load_old_project logic
+            int deleted_objects = 0;
             if ((!is_project_file) && (!load_old_project)) {
                 // if (!is_project_file) {
-                if (int deleted_objects = model.removed_objects_with_zero_volume(); deleted_objects > 0) {
+                deleted_objects = model.removed_objects_with_zero_volume();
+                if (deleted_objects > 0 && model.objects.empty()) {
                     // GLB / glTF / FBX may have produced a textured ModelObject via
                     // add_textured_mesh_to_model(). When that single object gets
                     // removed (e.g. non-watertight surface whose signed volume
                     // integrates to ~0), drop model.texture_mesh as well so the
                     // texture-import dialog does not pop up over an empty model.
-                    if (model.objects.empty())
-                        model.texture_mesh.reset();
-                    MessageDialog(q, _L("Objects with zero volume removed"), _L("The volume of the object is zero"), wxICON_INFORMATION | wxOK).ShowModal();
+                    model.texture_mesh.reset();
                 }
                 if (imperial_units)
                     // Convert even if the object is big.
@@ -12567,6 +12522,46 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 //        convert_model_if(model, answer == wxID_YES);
                 //}
                 // convert_model_if(model, answer_convert_from_imperial_units == wxID_YES);
+            }
+
+            // Build the standard 3MF color preview mesh after zero-volume parts have been removed,
+            // so deleted parts do not contribute colors, extruders, or bounding-box offsets.
+            if (type_3mf && en_3mf_file_type == En3mfType::From_Other && !model.objects.empty()) {
+                auto has_painting = [&model]() {
+                    for (const ModelObject* object : model.objects)
+                        for (const ModelVolume* volume : object->volumes)
+                            if (volume->is_model_part() && !volume->mmu_segmentation_facets.empty())
+                                return true;
+                    return false;
+                };
+                const bool show_source_warning = wxGetApp().app_config->get_bool("skip_non_bambu_3mf_warning") != true;
+                const wxString source_warning = _L("The 3mf is not from Bambu Lab, load geometry data and color data only.");
+                auto tex_mesh = std::make_shared<TexturedMesh>();
+                bool has_uncolored = false;
+                if (!has_painting() && standard_3mf_to_textured_meshes(model, color_group_map, volume_color_data, *tex_mesh, has_uncolored)) {
+                    if (show_source_warning)
+                        standard_3mf_hint = source_warning + "\n";
+                    if (has_3mf_textures)
+                        standard_3mf_hint += _L("3MF textures are unsupported and have been discarded.") + " ";
+                    if (has_uncolored)
+                        standard_3mf_hint += _L("Parts without color will default to gray.") + " ";
+                    if (deleted_objects > 0)
+                        standard_3mf_hint += _L("Objects with zero volume removed");
+                    standard_3mf_hint.Trim();
+                    standard_3mf_color_mesh = std::move(tex_mesh);
+                    for (ModelObject* object : model.objects) {
+                        object->config.erase("extruder");
+                        for (ModelVolume* volume : object->volumes)
+                            volume->config.erase("extruder");
+                    }
+                } else {
+                    if (show_source_warning) {
+                        q->get_notification_manager()->push_notification(NotificationType::CustomNotification,
+                            NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(source_warning));
+                    }
+                    if (!load_config)
+                        add_missing_filaments();
+                }
             }
 
             if (!is_project_file && model.looks_like_multipart_object()) {
