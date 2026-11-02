@@ -641,9 +641,13 @@ namespace Slic3r
                         val.distance += is_class_match ? class_step : type_step;
                     }
 
-                    // Project filaments are always single colour, so any gradient slot is a fallback.
-                    if (tray->second.colors.size() > 1)
-                        val.distance += kMultiColorPenalty;
+                    // MultiColorPenalty
+                    // Sliced filaments are always single colour, so any gradient slot is a fallback.
+                    if (filaments[i].colors.size() != 1 || tray->second.colors.size() != 1) {
+                        if ((tray->second.ctype != filaments[i].ctype) || (filaments[i].colors.size() != tray->second.colors.size())) {
+                            val.distance += kMultiColorPenalty;
+                        }
+                    }
 
                     val.is_type_match = true;
                 }
