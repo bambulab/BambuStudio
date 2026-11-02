@@ -41,7 +41,8 @@ bool PopupWindow::Create(wxWindow *parent, int style)
 PopupWindow::~PopupWindow()
 {
 #ifdef __WXGTK__
-    wxTheApp->Unbind(wxEVT_ACTIVATE_APP, &PopupWindow::appActivate, this);
+    if (wxTheApp)
+        wxTheApp->Unbind(wxEVT_ACTIVATE_APP, &PopupWindow::appActivate, this);
     if (m_owner) {
         m_owner->Unbind(wxEVT_ICONIZE, &PopupWindow::topWindowIconize, this);
         m_owner->Unbind(wxEVT_SHOW, &PopupWindow::topWindowShow, this);

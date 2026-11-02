@@ -76,6 +76,15 @@ ComboBox::ComboBox(wxWindow *parent,
         wxCommandEvent e(wxEVT_COMBOBOX_CLOSEUP);
         GetEventHandler()->ProcessEvent(e);
     });
+    // CHAR_HOOK reaches the focused combo before DPIDialog's handler, which
+    // closes the whole dialog on ESC. Close only the open dropdown instead.
+    Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent &e) {
+        if (e.GetKeyCode() == WXK_ESCAPE && drop_down)
+            drop.DismissAll();
+        else
+            e.Skip();
+    });
+    m_last_width = GetSize().x;
     for (int i = 0; i < n; ++i) Append(choices[i]);
 }
 
@@ -386,12 +395,6 @@ void ComboBox::keyDown(wxKeyEvent& event)
                 GetEventHandler()->ProcessEvent(e);
             }
             break;
-        case WXK_ESCAPE:
-            if (drop_down)
-                drop.DismissAll();
-            else
-                event.Skip();
-            break;
         case WXK_UP:
         case WXK_DOWN:
         case WXK_LEFT:
@@ -426,8 +429,11 @@ void ComboBox::onSize(wxSizeEvent &event)
     // TextInput::Create() can send size events before the popup is created.
     if (!drop.GetParent())
         return;
+    if (event.GetSize().x == m_last_width)
+        return;
+    m_last_width = event.GetSize().x;
     // The dropdown caches its row width, including the combo's width. Recompute
-    // it after a layout change and close any popup still anchored at the old size.
+    // it after a width change and close any popup still anchored at the old size.
     drop.Invalidate();
     drop.DismissAll();
 }
