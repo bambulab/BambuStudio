@@ -6871,10 +6871,10 @@ int CLI::run(int argc, char **argv)
                                                 }
                                             }
                                             std::vector<int> &filament_volume_maps = m_extra_config.option<ConfigOptionInts>("filament_volume_map", true)->values;
-                                            std::vector<int> &filament_maps        = m_extra_config.option<ConfigOptionInts>("filament_map")->values;
+                                            // filament_maps above comes from --filament-map, or from the plate when it wasn't passed
                                             // 缺省使用标准流量打印
                                             filament_volume_maps.resize(filament_count, (int)(nvtStandard));
-                                            for (int f_index = 0; f_index < filament_count; f_index++) {
+                                            for (int f_index = 0; f_index < filament_count && f_index < (int)filament_maps.size(); f_index++) {
                                                 int f_extruder_index = filament_maps[f_index] - 1;
                                                 if (using_nozzle_volume_type[f_extruder_index] != nvtHybrid) {
                                                     filament_volume_maps[f_index] = int(using_nozzle_volume_type[f_extruder_index]);
