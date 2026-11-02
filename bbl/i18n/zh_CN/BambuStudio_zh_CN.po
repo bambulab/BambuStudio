@@ -30302,3 +30302,9 @@ msgstr ""
 
 #~ msgid "Start the application"
 #~ msgstr "启动应用程序"
+
+msgid "Connected Slots"
+msgstr "已连接耗材"
+
+msgid "Please select a printer"
+msgstr "请选择打印机"

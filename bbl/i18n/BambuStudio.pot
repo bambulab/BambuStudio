@@ -20382,3 +20382,9 @@ msgstr ""
 #: resources/data/helio_hints.ini: [hint: First-Time-Right Reliability]
 msgid "First-Time-Right Reliability\nLess babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+msgid "Connected Slots"
+msgstr ""
+
+msgid "Please select a printer"
+msgstr ""
