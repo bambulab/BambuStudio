@@ -99,6 +99,95 @@ namespace Slic3r {
 
 static std::map<const TriangleMesh*, std::set<GLVolume*>> g_mesh_volumes_map;
 
+namespace {
+
+struct PaintedGeometryBinding {
+    GLVolume *owner;
+    const TriangleMesh *mesh;
+    ObjectBase::Timestamp timestamp;
+    ObjectBase::Timestamp owner_timestamp;
+};
+
+// The owning GLVolume retains the buffers. Bindings are invalidated when its
+// geometry changes or it leaves the existing shared-mesh volume registry.
+std::map<const GLVolume *, PaintedGeometryBinding> painted_geometry_bindings;
+
+// Detached volumes must use their uploaded geometry without consulting Model
+// indices, including when another volume owns their shared painted buffers.
+const std::vector<GLIndexedVertexArray> &detached_painted_geometry(const GLVolume &volume)
+{
+    const auto binding = painted_geometry_bindings.find(&volume);
+    if (binding != painted_geometry_bindings.end()) {
+        const auto &cached = binding->second;
+        const auto mesh_volumes = g_mesh_volumes_map.find(cached.mesh);
+        if (mesh_volumes != g_mesh_volumes_map.end() && mesh_volumes->second.count(cached.owner) != 0 &&
+            cached.owner->mmuseg_ts == cached.owner_timestamp && !cached.owner->mmuseg_ivas.empty())
+            return cached.owner->mmuseg_ivas;
+        painted_geometry_bindings.erase(binding);
+    }
+    return volume.mmuseg_ivas;
+}
+
+const std::vector<GLIndexedVertexArray> &painted_geometry(
+    const GLVolume &volume, const ModelVolume &model_volume, const ModelObjectPtrs &model_objects)
+{
+    const auto &facets = model_volume.mmu_segmentation_facets;
+    const auto timestamp = facets.timestamp();
+    if (volume.mmuseg_ts == timestamp && !volume.mmuseg_ivas.empty())
+        return volume.mmuseg_ivas;
+
+    const TriangleMesh *mesh = model_volume.mesh_ptr();
+    const auto mesh_volumes = g_mesh_volumes_map.find(mesh);
+    const auto binding = painted_geometry_bindings.find(&volume);
+    if (binding != painted_geometry_bindings.end()) {
+        const auto &cached = binding->second;
+        if (cached.mesh == mesh && cached.timestamp == timestamp &&
+            mesh_volumes != g_mesh_volumes_map.end() && mesh_volumes->second.count(cached.owner) != 0 &&
+            cached.owner->mmuseg_ts == cached.owner_timestamp && !cached.owner->mmuseg_ivas.empty())
+            return cached.owner->mmuseg_ivas;
+        painted_geometry_bindings.erase(binding);
+    }
+
+    if (mesh_volumes != g_mesh_volumes_map.end()) {
+        for (GLVolume *other : mesh_volumes->second) {
+            if (other == &volume || other->mmuseg_detached_from_model || other->mmuseg_ivas.empty())
+                continue;
+            const int object_idx = other->object_idx();
+            const int volume_idx = other->volume_idx();
+            if (object_idx < 0 || size_t(object_idx) >= model_objects.size())
+                continue;
+            const ModelObject *object = model_objects[object_idx];
+            if (object == nullptr || volume_idx < 0 || size_t(volume_idx) >= object->volumes.size())
+                continue;
+            const ModelVolume *other_volume = object->volumes[volume_idx];
+            if (other_volume == nullptr || other_volume->mesh_ptr() != mesh ||
+                other->mmuseg_ts != other_volume->mmu_segmentation_facets.timestamp() ||
+                !facets.equals(other_volume->mmu_segmentation_facets))
+                continue;
+
+            volume.mmuseg_ivas.clear();
+            volume.mmuseg_ts = 0;
+            painted_geometry_bindings.emplace(&volume, PaintedGeometryBinding{other, mesh, timestamp, other->mmuseg_ts});
+            return other->mmuseg_ivas;
+        }
+    }
+
+    volume.mmuseg_ivas.clear();
+    std::vector<indexed_triangle_set> its_per_color;
+    facets.get_facets(model_volume, its_per_color);
+    volume.mmuseg_ivas.resize(its_per_color.size());
+    for (size_t idx = 0; idx < its_per_color.size(); ++idx) {
+        if (!its_per_color[idx].indices.empty()) {
+            volume.mmuseg_ivas[idx].load_its_flat_shading(its_per_color[idx]);
+            volume.mmuseg_ivas[idx].finalize_geometry(true);
+        }
+    }
+    volume.mmuseg_ts = timestamp;
+    return volume.mmuseg_ivas;
+}
+
+} // namespace
+
 #if ENABLE_SMOOTH_NORMALS
 static void smooth_normals_corner(TriangleMesh& mesh, std::vector<stl_normal>& normals)
 {
@@ -236,6 +325,11 @@ void GLIndexedVertexArray::finalize_geometry(bool opengl_initialized)
         glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
         this->quad_indices.clear();
     }
+
+    // Uploading leaves the CPU vectors empty, but clear() retains their capacity.
+    // Painted volumes keep one array per color and copy, so retaining these
+    // buffers can exhaust system RAM even after the geometry is on the GPU.
+    this->shrink_to_fit();
 }
 
 void GLIndexedVertexArray::release_geometry()
@@ -859,6 +953,7 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
     // BBS: add logic for mmu segmentation rendering
     auto render_body = [&]() {
         bool color_volume = false;
+        const std::vector<GLIndexedVertexArray> *color_geometry = &mmuseg_ivas;
         ModelObjectPtrs &model_objects = model.objects;
         do {
             // Skip MMU colors if disabled (e.g., when volume color override is active)
@@ -868,7 +963,8 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
             if (mmuseg_detached_from_model) {
                 // Keep the colors already uploaded instead of resolving composite_id onto whatever
                 // sits at that index now that the Model has moved on.
-                color_volume = !mmuseg_ivas.empty();
+                color_geometry = &detached_painted_geometry(*this);
+                color_volume = !color_geometry->empty();
                 break;
             }
 
@@ -888,24 +984,7 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
             }
 
             color_volume = true;
-            if (mv->mmu_segmentation_facets.timestamp() != mmuseg_ts) {
-                BOOST_LOG_TRIVIAL(debug) << boost::format("this %1%, name %2%, current mmuseg_ts %3%, current color size %4%")
-                    %this %this->name %mmuseg_ts %mmuseg_ivas.size() ;
-                mmuseg_ivas.clear();
-                std::vector<indexed_triangle_set> its_per_color;
-                mv->mmu_segmentation_facets.get_facets(*mv, its_per_color);
-                mmuseg_ivas.resize(its_per_color.size());
-
-                for (int idx = 0; idx < its_per_color.size(); idx++) {
-                    if (its_per_color[idx].indices.size() > 0) {
-                        mmuseg_ivas[idx].load_its_flat_shading(its_per_color[idx]);
-                        mmuseg_ivas[idx].finalize_geometry(true);
-                    }
-                }
-                mmuseg_ts = mv->mmu_segmentation_facets.timestamp();
-                BOOST_LOG_TRIVIAL(debug) << boost::format("this %1%, name %2%, new mmuseg_ts %3%, new color size %4%")
-                    %this %this->name %mmuseg_ts  %mmuseg_ivas.size();
-            }
+            color_geometry = &painted_geometry(*this, *mv, model_objects);
         } while (0);
 
         const auto shader = GUI::wxGetApp().get_current_shader();
@@ -916,8 +995,8 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
                 for (int index = 0; index < colors.size(); index ++)
                     cp_colors[index][3] = render_color[3];
             }
-            for (int idx = 0; idx < mmuseg_ivas.size(); idx++) {
-                GLIndexedVertexArray* iva = &mmuseg_ivas[idx];
+            for (size_t idx = 0; idx < color_geometry->size(); ++idx) {
+                const GLIndexedVertexArray* iva = &(*color_geometry)[idx];
                 if (iva->triangle_indices_size == 0 && iva->quad_indices_size == 0)
                     continue;
 
@@ -1142,13 +1221,15 @@ void GLVolume::simple_render(const std::shared_ptr<GLShaderProgram>& shader, Mod
     glsafe(::glCullFace(GL_BACK));
 
     bool color_volume = false;
+    const std::vector<GLIndexedVertexArray> *color_geometry = &mmuseg_ivas;
     ModelObject* model_object = nullptr;
     ModelVolume* model_volume = nullptr;
     do {
         if (mmuseg_detached_from_model) {
             // Same as in render(): the Model no longer matches composite_id, so keep what is already
             // uploaded rather than rebuilding from a different ModelVolume.
-            color_volume = !mmuseg_ivas.empty();
+            color_geometry = &detached_painted_geometry(*this);
+            color_volume = !color_geometry->empty();
             break;
         }
 
@@ -1163,23 +1244,12 @@ void GLVolume::simple_render(const std::shared_ptr<GLShaderProgram>& shader, Mod
             break;
 
         color_volume = true;
-        if (model_volume->mmu_segmentation_facets.timestamp() != mmuseg_ts) {
-            mmuseg_ivas.clear();
-            std::vector<indexed_triangle_set> its_per_color;
-            model_volume->mmu_segmentation_facets.get_facets(*model_volume, its_per_color);
-            mmuseg_ivas.resize(its_per_color.size());
-            for (int idx = 0; idx < its_per_color.size(); idx++) {
-                mmuseg_ivas[idx].load_its_flat_shading(its_per_color[idx]);
-                mmuseg_ivas[idx].finalize_geometry(true);
-            }
-
-            mmuseg_ts = model_volume->mmu_segmentation_facets.timestamp();
-        }
+        color_geometry = &painted_geometry(*this, *model_volume, model_objects);
     } while (0);
 
     if (color_volume && !picking) {
-        for (int idx = 0; idx < mmuseg_ivas.size(); idx++) {
-            GLIndexedVertexArray& iva = mmuseg_ivas[idx];
+        for (size_t idx = 0; idx < color_geometry->size(); ++idx) {
+            const GLIndexedVertexArray& iva = (*color_geometry)[idx];
             if (iva.triangle_indices_size == 0 && iva.quad_indices_size == 0)
                 continue;
 
@@ -1449,6 +1519,12 @@ void GLVolumeCollection::clear()
 
 void GLVolumeCollection::release_volume (GLVolume* volume)
 {
+    for (auto it = painted_geometry_bindings.begin(); it != painted_geometry_bindings.end();) {
+        if (it->first == volume || it->second.owner == volume)
+            it = painted_geometry_bindings.erase(it);
+        else
+            ++it;
+    }
     if (volume->ori_mesh) {
         std::map<const TriangleMesh*, std::set<GLVolume*>>::iterator iter = g_mesh_volumes_map.find(volume->ori_mesh);
         if (iter != g_mesh_volumes_map.end()) {
