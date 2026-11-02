@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 16:27+0800\n"
+"POT-Creation-Date: 2026-11-02 17:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9254,8 +9254,8 @@ msgstr ", und %d mehr"
 msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
 msgstr "Das Filament, das Sie löschen, wird vom Modell „%s“ verwendet. Nach dem Löschen wird das Filament des Modells auf das erste verbleibende Filament zurückgesetzt."
 
-msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
-msgstr "Tipp: Wenn Sie es durch ein anderes Filament ersetzen möchten, klicken Sie mit der rechten Maustaste auf das Filament und wählen Sie „Zusammenführen mit“."
+msgid "Tip: If you want to replace it with another filament, please use the \"Merge with\" function on the right side of the filament list."
+msgstr ""
 
 msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
 msgstr "Es wird auch von den folgenden gemischten Filamenten verwendet, die nach der Löschung unbrauchbar werden:"
@@ -20236,7 +20236,7 @@ msgid "Current printer status"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Connected printer %s, view machine status"
+msgid "Connected printer %s, view printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -21070,6 +21070,9 @@ msgid ""
 msgstr ""
 "Zuverlässigkeit auf Anhieb\n"
 "Weniger Überwachung, vorhersagbarere Ausgabe. Beispiel: Eine kleine Farm, die PETG-Teile druckt, vermeidet Überraschungen wie \"Ausfall in Stunde 6\" und hält Chargen im Zeitplan."
+
+#~ msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
+#~ msgstr "Tipp: Wenn Sie es durch ein anderes Filament ersetzen möchten, klicken Sie mit der rechten Maustaste auf das Filament und wählen Sie „Zusammenführen mit“."
 
 #~ msgid "The volume of the object is zero"
 #~ msgstr "Das Volumen des Objekts ist Null"

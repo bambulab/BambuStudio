@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 16:27+0800\n"
+"POT-Creation-Date: 2026-11-02 17:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9244,8 +9244,8 @@ msgstr ", en nog %d meer"
 msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
 msgstr "Het filament dat je verwijdert, wordt gebruikt door model “%s“. Na verwijdering wordt het filament van het model teruggezet naar het eerste resterende filament."
 
-msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
-msgstr "Tip: Als je het wilt vervangen door een ander filament, klik dan met de rechtermuisknop op het filament en gebruik “Samenvoegen met”."
+msgid "Tip: If you want to replace it with another filament, please use the \"Merge with\" function on the right side of the filament list."
+msgstr ""
 
 msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
 msgstr "Het wordt ook gebruikt door de volgende gemengde filamenten, die na verwijdering onbruikbaar worden:"
@@ -20229,7 +20229,7 @@ msgid "Current printer status"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Connected printer %s, view machine status"
+msgid "Connected printer %s, view printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -21063,6 +21063,9 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#~ msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
+#~ msgstr "Tip: Als je het wilt vervangen door een ander filament, klik dan met de rechtermuisknop op het filament en gebruik “Samenvoegen met”."
 
 #~ msgid "The volume of the object is zero"
 #~ msgstr "Het volume van het object is 0"

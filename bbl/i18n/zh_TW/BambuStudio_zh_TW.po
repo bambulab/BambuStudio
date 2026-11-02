@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 16:27+0800\n"
+"POT-Creation-Date: 2026-11-02 17:27+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -9211,8 +9211,8 @@ msgstr "，以及另外 %d 項"
 msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
 msgstr "您正在刪除的線材由模型「%s」使用。刪除後，模型的線材將重設為第一個剩餘的線材。"
 
-msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
-msgstr "提示：若要將其替換為其他線材，請以滑鼠右鍵點選線材，並使用「合併至」。"
+msgid "Tip: If you want to replace it with another filament, please use the \"Merge with\" function on the right side of the filament list."
+msgstr ""
 
 msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
 msgstr "它也用於以下混合線材，這些線材在刪除後將無法使用："
@@ -20169,7 +20169,7 @@ msgid "Current printer status"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Connected printer %s, view machine status"
+msgid "Connected printer %s, view printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -21002,6 +21002,9 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
+
+#~ msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
+#~ msgstr "提示：若要將其替換為其他線材，請以滑鼠右鍵點選線材，並使用「合併至」。"
 
 #~ msgid "The volume of the object is zero"
 #~ msgstr "物件的體積為零"

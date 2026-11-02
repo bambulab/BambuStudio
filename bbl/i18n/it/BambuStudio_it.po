@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 16:27+0800\n"
+"POT-Creation-Date: 2026-11-02 17:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9241,8 +9241,8 @@ msgstr ", e altri %d"
 msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
 msgstr "Il filamento che stai eliminando è in uso dal modello \"%s\". Dopo l'eliminazione, il filamento del modello verrà ripristinato al primo filamento rimasto."
 
-msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
-msgstr "Suggerimento: se si desidera sostituirlo con un altro filamento, fare clic con il pulsante destro del mouse sul filamento e selezionare \"Unisci con\"."
+msgid "Tip: If you want to replace it with another filament, please use the \"Merge with\" function on the right side of the filament list."
+msgstr ""
 
 msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
 msgstr "Viene utilizzato anche dai seguenti filamenti misti, che diventeranno inutilizzabili dopo l'eliminazione:"
@@ -20225,7 +20225,7 @@ msgid "Current printer status"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Connected printer %s, view machine status"
+msgid "Connected printer %s, view printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -21059,6 +21059,9 @@ msgid ""
 msgstr ""
 "Affidabilità al Primo Tentativo\n"
 "Meno supervisione, risultati più prevedibili. Ad esempio: una piccola produzione che stampa parti in PETG evita sorprese tipo \"fallimento alla sesta ora\" e mantiene i lotti nei tempi previsti."
+
+#~ msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
+#~ msgstr "Suggerimento: se si desidera sostituirlo con un altro filamento, fare clic con il pulsante destro del mouse sul filamento e selezionare \"Unisci con\"."
 
 #~ msgid "The volume of the object is zero"
 #~ msgstr "Il volume dell'oggetto è zero"

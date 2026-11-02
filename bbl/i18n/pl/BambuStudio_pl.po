@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 16:27+0800\n"
+"POT-Creation-Date: 2026-11-02 17:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9260,8 +9260,8 @@ msgstr ", i %d więcej"
 msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
 msgstr "Usuwany przez Ciebie filament jest używany przez model „%s”. Po usunięciu do modelu zostanie przypisany pierwszy z pozostałych filamentów."
 
-msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
-msgstr "Wskazówka: Jeśli chcesz zastąpić go innym filamentem, kliknij go prawym przyciskiem myszy i wybierz opcję „Scal z”."
+msgid "Tip: If you want to replace it with another filament, please use the \"Merge with\" function on the right side of the filament list."
+msgstr ""
 
 msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
 msgstr "Ten element jest również używany przez następujące filamenty mieszane, które po jego usunięciu staną się bezużyteczne:"
@@ -20266,7 +20266,7 @@ msgid "Current printer status"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Connected printer %s, view machine status"
+msgid "Connected printer %s, view printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -21101,6 +21101,9 @@ msgid ""
 msgstr ""
 "Niezawodność od pierwszego razu\n"
 "Mniej nadzoru, bardziej przewidywalne wyniki. Przykład: mała farma drukarek 3D produkująca części z PETG unika niespodzianek typu „awaria po 6 godzinach” i utrzymuje harmonogram partii."
+
+#~ msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
+#~ msgstr "Wskazówka: Jeśli chcesz zastąpić go innym filamentem, kliknij go prawym przyciskiem myszy i wybierz opcję „Scal z”."
 
 #~ msgid "The volume of the object is zero"
 #~ msgstr "Objętość tego obiektu wynosi zero"

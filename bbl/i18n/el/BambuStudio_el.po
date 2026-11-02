@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 16:27+0800\n"
+"POT-Creation-Date: 2026-11-02 17:27+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -9253,8 +9253,8 @@ msgstr ", και %d ακόμη"
 msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
 msgstr "Το νήμα που διαγράφετε χρησιμοποιείται από το μοντέλο \"%s\". Μετά τη διαγραφή, το νήμα του μοντέλου θα επανέλθει στο πρώτο νήμα που απομένει."
 
-msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
-msgstr "Συμβουλή: Αν θέλετε να το αντικαταστήσετε με ένα άλλο νήμα, κάντε δεξί κλικ στο νήμα και χρησιμοποιήστε την επιλογή \"Συγχώνευση με\"."
+msgid "Tip: If you want to replace it with another filament, please use the \"Merge with\" function on the right side of the filament list."
+msgstr ""
 
 msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
 msgstr "Χρησιμοποιείται επίσης από τα ακόλουθα μικτά νήματα, τα οποία θα καταστούν άχρηστα μετά τη διαγραφή:"
@@ -20239,7 +20239,7 @@ msgid "Current printer status"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Connected printer %s, view machine status"
+msgid "Connected printer %s, view printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -21073,6 +21073,9 @@ msgid ""
 msgstr ""
 "Αξιοπιστία με την πρώτη\n"
 "Λιγότερη ταλαιπωρία, πιο προβλέψιμη απόδοση. Παράδειγμα: μια μικρή εταιρεία που εκτυπώνει τμήματα PETG αποφεύγει τις εκπλήξεις που προκαλούνται από «αστοχίες την 6η ώρα» και διατηρεί τις παρτίδες εντός χρονοδιαγράμματος."
+
+#~ msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
+#~ msgstr "Συμβουλή: Αν θέλετε να το αντικαταστήσετε με ένα άλλο νήμα, κάντε δεξί κλικ στο νήμα και χρησιμοποιήστε την επιλογή \"Συγχώνευση με\"."
 
 #~ msgid "The volume of the object is zero"
 #~ msgstr "Ο όγκος του αντικειμένου είναι μηδενικός"

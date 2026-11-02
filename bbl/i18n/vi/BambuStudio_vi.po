@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 16:27+0800\n"
+"POT-Creation-Date: 2026-11-02 17:27+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -9242,8 +9242,8 @@ msgstr ", và còn %d hơn"
 msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
 msgstr "Sợi nhựa bạn đang xóa đang được mô hình \"%s\" sử dụng. Sau khi xóa, sợi nhựa của mô hình sẽ được đặt lại thành sợi nhựa đầu tiên trong số các sợi nhựa còn lại."
 
-msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
-msgstr "Mẹo: Nếu bạn muốn thay thế bằng sợi nhựa khác, hãy nhấp chuột phải vào sợi nhựa và chọn \"Sáp nhập với\"."
+msgid "Tip: If you want to replace it with another filament, please use the \"Merge with\" function on the right side of the filament list."
+msgstr ""
 
 msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
 msgstr "Sợi nhựa này cũng được sử dụng trong các sợi nhựa hỗn hợp sau đây. Nếu xóa sợi nhựa này, các sợi nhựa hỗn hợp đó sẽ không thể sử dụng được:"
@@ -20221,7 +20221,7 @@ msgid "Current printer status"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Connected printer %s, view machine status"
+msgid "Connected printer %s, view printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -21054,6 +21054,9 @@ msgid ""
 msgstr ""
 "Độ tin cậy thành công ngay lần đầu\n"
 "Giảm bớt việc phải theo dõi liên tục, tăng tính dự đoán được của kết quả đầu ra. Ví dụ: một cụm máy in nhỏ in các bộ phận bằng PETG sẽ tránh được những sự cố bất ngờ như \"hỏng hóc sau 6 giờ\" và đảm bảo các lô sản phẩm được hoàn tất đúng tiến độ."
+
+#~ msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
+#~ msgstr "Mẹo: Nếu bạn muốn thay thế bằng sợi nhựa khác, hãy nhấp chuột phải vào sợi nhựa và chọn \"Sáp nhập với\"."
 
 #~ msgid "The volume of the object is zero"
 #~ msgstr "Thể tích của vật thể bằng 0"

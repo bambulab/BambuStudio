@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 16:27+0800\n"
+"POT-Creation-Date: 2026-11-02 17:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9250,8 +9250,8 @@ msgstr ", és további %d"
 msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
 msgstr "A törölni kívánt filamentet a(z) „%s” modell használja. Törlés után a modell filamentje az első megmaradt filamentre lesz visszaállítva."
 
-msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
-msgstr "Tipp: Ha egy másik filamenttel szeretnéd lecserélni, kattints a filamentre jobb gombbal, és válaszd az „Egyesítés ezzel” lehetőséget."
+msgid "Tip: If you want to replace it with another filament, please use the \"Merge with\" function on the right side of the filament list."
+msgstr ""
 
 msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
 msgstr "A következő vegyes filamentek is használják, amelyek a törlés után használhatatlanná válnak:"
@@ -20226,7 +20226,7 @@ msgid "Current printer status"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Connected printer %s, view machine status"
+msgid "Connected printer %s, view printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -21061,6 +21061,9 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
+#~ msgstr "Tipp: Ha egy másik filamenttel szeretnéd lecserélni, kattints a filamentre jobb gombbal, és válaszd az „Egyesítés ezzel” lehetőséget."
 
 #~ msgid "The volume of the object is zero"
 #~ msgstr "Az objektum térfogata nulla"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 16:27+0800\n"
+"POT-Creation-Date: 2026-11-02 17:27+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -9246,8 +9246,8 @@ msgstr ", ve %d tane daha"
 msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
 msgstr "Silmekte olduğunuz filament \"%s\" modeli tarafından kullanılıyor. Silme işleminden sonra modelin filament ataması, kalan ilk filamente sıfırlanacaktır."
 
-msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
-msgstr "İpucu: Eğer onu başka bir filamentle değiştirmek istiyorsanız, filamente sağ tıklayın ve \"Şununla Birleştir\" seçeneğini kullanın."
+msgid "Tip: If you want to replace it with another filament, please use the \"Merge with\" function on the right side of the filament list."
+msgstr ""
 
 msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
 msgstr "Aşağıdaki karışık filamentler tarafından da kullanılır ve silindikten sonra kullanılamaz hale gelirler:"
@@ -20223,7 +20223,7 @@ msgid "Current printer status"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Connected printer %s, view machine status"
+msgid "Connected printer %s, view printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -21057,6 +21057,9 @@ msgid ""
 msgstr ""
 "İlk Seferde Başarı Güvenilirliği\n"
 "Daha az gözetim, daha öngörülebilir sonuçlar. Örnek: PETG parçaları üreten küçük bir yazıcı çiftliği, \"6. saatte baskının başarısız olması\" gibi sürprizlerden kaçınır ve partileri programa uygun şekilde tamamlar."
+
+#~ msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
+#~ msgstr "İpucu: Eğer onu başka bir filamentle değiştirmek istiyorsanız, filamente sağ tıklayın ve \"Şununla Birleştir\" seçeneğini kullanın."
 
 #~ msgid "The volume of the object is zero"
 #~ msgstr "Nesnenin hacmi sıfırdır."

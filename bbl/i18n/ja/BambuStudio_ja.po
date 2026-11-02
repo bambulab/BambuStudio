@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 16:27+0800\n"
+"POT-Creation-Date: 2026-11-02 17:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9205,8 +9205,8 @@ msgstr "、他%d件"
 msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
 msgstr "削除しようとしているフィラメントは、モデル「%s」で使用されています。削除後、モデルのフィラメントは残りの最初のフィラメントにリセットされます。"
 
-msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
-msgstr "ヒント：別のフィラメントに置き換えたい場合は、フィラメントを右クリックして「結合」を選択してください。"
+msgid "Tip: If you want to replace it with another filament, please use the \"Merge with\" function on the right side of the filament list."
+msgstr ""
 
 msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
 msgstr "以下の混合フィラメントでも使用されており、削除後は使用できなくなります："
@@ -20212,7 +20212,7 @@ msgid "Current printer status"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Connected printer %s, view machine status"
+msgid "Connected printer %s, view printer status"
 msgstr ""
 
 msgid "Sync Printer Information"
@@ -21042,6 +21042,9 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
+#~ msgstr "ヒント：別のフィラメントに置き換えたい場合は、フィラメントを右クリックして「結合」を選択してください。"
 
 #~ msgid "The volume of the object is zero"
 #~ msgstr "オブジェクトの体積が0です"

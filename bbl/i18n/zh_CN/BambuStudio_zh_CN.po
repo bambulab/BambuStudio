@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 16:27+0800\n"
+"POT-Creation-Date: 2026-11-02 17:27+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -9206,8 +9206,8 @@ msgstr "，和其他 %d"
 msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
 msgstr "您正在删除的耗材正被模型“%s”使用。删除后，模型的耗材将被重置为剩余的第一个耗材。"
 
-msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
-msgstr "提示：如果您想将其替换为其他耗材，请右键单击该耗材，然后使用“合并到”。"
+msgid "Tip: If you want to replace it with another filament, please use the \"Merge with\" function on the right side of the filament list."
+msgstr "注意：如果你想要使用其他耗材替换，请使用耗材列表右侧的“合并到”功能。"
 
 msgid "It is also used by the following mixed filaments, which will become unusable after deletion:"
 msgstr "此耗材丝也被以下混合耗材使用，删除后将无法使用："
@@ -20162,8 +20162,8 @@ msgid "Current printer status"
 msgstr "当前打印机状态"
 
 #, c-format, boost-format
-msgid "Connected printer %s, view machine status"
-msgstr "已连接打印机 %s，查看机器状态"
+msgid "Connected printer %s, view printer status"
+msgstr ""
 
 msgid "Sync Printer Information"
 msgstr "同步打印机信息"
@@ -20652,7 +20652,7 @@ msgid "Generating support ring: layer %1%"
 msgstr "正在生成支撑环：层 %1%"
 
 msgid "Mixing high- and low-temperature filaments is not recommended."
-msgstr ""
+msgstr "不建议混用高温耗材和低温耗材。"
 
 msgid "Nozzle and Filament Sync"
 msgstr "喷嘴耗材同步"
@@ -20997,6 +20997,13 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\"."
+#~ msgstr "提示：如果您想将其替换为其他耗材，请右键单击该耗材，然后使用“合并到”。"
+
+#, c-format, boost-format
+#~ msgid "Connected printer %s, view machine status"
+#~ msgstr "已连接打印机 %s，查看机器状态"
 
 #~ msgid "The volume of the object is zero"
 #~ msgstr "对象的体积为零"
