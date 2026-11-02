@@ -187,6 +187,11 @@ export function SpoolTable({
         );
         return sortAsc ? typeCmp : -typeCmp;
       }
+      if (sortKey === 'remain_percent') {
+        const ra = getDisplayedRemainWeight(a);
+        const rb = getDisplayedRemainWeight(b);
+        return sortAsc ? ra - rb : rb - ra;
+      }
       const va = (a as any)[sortKey];
       const vb = (b as any)[sortKey];
       if (typeof va === 'number' && typeof vb === 'number') return sortAsc ? va - vb : vb - va;

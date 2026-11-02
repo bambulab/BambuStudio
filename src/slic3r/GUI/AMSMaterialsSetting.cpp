@@ -1295,10 +1295,25 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
                         new_spool.series        = compute_series(*fila_opt);
                     }
 
-                    new_spool.initial_weight = 1000.0;
-                    new_spool.net_weight     = 1000.0;
+                    int add_total  = DEFAULT_TOTAL_WEIGHT;
+                    int add_remain = DEFAULT_TOTAL_WEIGHT;
+                    if (can_edit_filament_weight()) {
+                        int tw = DEFAULT_TOTAL_WEIGHT;
+                        int rw = -1;
+                        if (validate_filament_weight_inputs(/*is_target_bbl=*/false, tw, rw)) {
+                            add_total  = tw > 0 ? tw : DEFAULT_TOTAL_WEIGHT;
+                            add_remain = rw >= 0 ? rw : add_total; // rw == -1 means no remain entered
+                        }
+                    }
+                    new_spool.initial_weight = add_total;
+                    new_spool.net_weight     = add_remain;
+                    new_spool.remain_percent = add_total > 0
+                        ? std::clamp<int>(static_cast<int>(std::lround(add_remain * 100.0 / add_total)), 0, 100)
+                        : 100;
 
                     const std::string new_id = store->add_spool(new_spool);
+                    BOOST_LOG_TRIVIAL(info) << "add filament to library, initial_weight=" << add_total
+                                            << " net_weight=" << add_remain;
 
                     // Async cloud push — fires after this function returns
                     if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
