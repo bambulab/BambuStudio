@@ -548,6 +548,29 @@ namespace detail {
 		}
 	};
 
+	// Whether a box may hold a primitive closer to p than sqrt(up_sqr_d).
+	// Eigen's AlignedBox<int>::squaredExteriorDistance() squares and sums in int: with libslic3r's 32-bit coord_t it
+	// overflows once the box is more than 46341 units (0.46 mm) away. The wrapped value is still a lower bound, so the
+	// searches stay correct, but it is far too low and disables almost all pruning: a nearest-line query over a
+	// layer's walls then visits most of the tree. This exact double bound is checked in addition to the original test.
+	// A subtree it rejects has no primitive strictly closer than up_sqr_d, so skipping it changes nothing, not even
+	// which of several equally close primitives is reported. Floating point boxes keep the original test only.
+	template<typename BBox, typename Vector>
+	inline bool box_may_contain_closer(const BBox &bbox, const Vector &p, double up_sqr_d)
+	{
+		if constexpr (std::is_integral<typename BBox::Scalar>::value) {
+			double d2 = 0.;
+			for (int k = 0; k < int(BBox::AmbientDimAtCompileTime); ++ k) {
+				const double lo = double(bbox.min()[k]), hi = double(bbox.max()[k]), x = double(p[k]);
+				const double a  = lo > x ? lo - x : (x > hi ? x - hi : 0.);
+				d2 += a * a;
+			}
+			// The margin absorbs the rounding of the primitives' own distances.
+			return d2 * (1. - 1e-12) < up_sqr_d;
+		} else
+			return true;
+	}
+
 	template<typename IndexedPrimitivesDistancerType, typename Scalar>
     static inline Scalar squared_distance_to_indexed_primitives_recursive(
         IndexedPrimitivesDistancerType	&distancer,
@@ -617,14 +640,14 @@ namespace detail {
 			Scalar left_up_sqr_d  = node_left.bbox.squaredExteriorDistance(distancer.origin);
 			Scalar right_up_sqr_d = node_right.bbox.squaredExteriorDistance(distancer.origin);
 			if (left_up_sqr_d < right_up_sqr_d) {
-			  	if (! looked_left && left_up_sqr_d < up_sqr_d)
+			  	if (! looked_left && left_up_sqr_d < up_sqr_d && box_may_contain_closer(node_left.bbox, distancer.origin, up_sqr_d))
 			    	look_left();
-			  	if (! looked_right && right_up_sqr_d < up_sqr_d)
+			  	if (! looked_right && right_up_sqr_d < up_sqr_d && box_may_contain_closer(node_right.bbox, distancer.origin, up_sqr_d))
 			    	look_right();
 			} else {
-			  	if (! looked_right && right_up_sqr_d < up_sqr_d)
+			  	if (! looked_right && right_up_sqr_d < up_sqr_d && box_may_contain_closer(node_right.bbox, distancer.origin, up_sqr_d))
 			    	look_right();
-			  	if (! looked_left && left_up_sqr_d < up_sqr_d)
+			  	if (! looked_left && left_up_sqr_d < up_sqr_d && box_may_contain_closer(node_left.bbox, distancer.origin, up_sqr_d))
 			    	look_left();
 			}
 		}
@@ -651,11 +674,13 @@ namespace detail {
             assert(node_left.is_valid());
             assert(node_right.is_valid());
 
-            if (node_left.bbox.squaredExteriorDistance(distancer.origin) < squared_distance_limit) {
+            if (node_left.bbox.squaredExteriorDistance(distancer.origin) < squared_distance_limit &&
+                box_may_contain_closer(node_left.bbox, distancer.origin, squared_distance_limit)) {
                 indexed_primitives_within_distance_squared_recurisve(distancer, left_node_idx, squared_distance_limit,
                                                                      found_primitives_indices);
             }
-            if (node_right.bbox.squaredExteriorDistance(distancer.origin) < squared_distance_limit) {
+            if (node_right.bbox.squaredExteriorDistance(distancer.origin) < squared_distance_limit &&
+                box_may_contain_closer(node_right.bbox, distancer.origin, squared_distance_limit)) {
                 indexed_primitives_within_distance_squared_recurisve(distancer, right_node_idx, squared_distance_limit,
                                                                      found_primitives_indices);
             }
