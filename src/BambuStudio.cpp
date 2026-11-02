@@ -8096,6 +8096,19 @@ int CLI::run(int argc, char **argv)
         if (nozzle_diameter_option)
             nozzle_diameter_str = nozzle_diameter_option->serialize();
 
+        // Released packages have no profiles/BBL/machine_full folder, so the lookups above find no model id. Without it the
+        // sliced file doesn't name its printer, and the print dialog reads that as a printer mismatch.
+        if (printer_model_id.empty()) {
+            const std::string &model_name = printer_model.empty() ? current_printer_model : printer_model;
+            std::string printer_model_path = resources_dir() + "/profiles/BBL/machine/" + model_name + ".json";
+            if (!model_name.empty() && boost::filesystem::exists(printer_model_path)) {
+                std::map<std::string, std::string> key_values;
+                load_key_values_from_json(printer_model_path, key_values);
+                if (key_values.find("model_id") != key_values.end())
+                    printer_model_id = key_values["model_id"];
+            }
+        }
+
         for (int i = 0; i < plate_data_list.size(); i++) {
             PlateData *plate_data = plate_data_list[i];
             bool skip_this_plate = ((plate_to_slice != 0) && (plate_to_slice != (i + 1)))?true:false;
