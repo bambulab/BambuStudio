@@ -233,8 +233,12 @@ double interpolate_width(const ZPath& path,
         size_t next_z_idx = path[next_idx].z();
         width_next = line.get_width_at(next_z_idx);
     }
-    Point prev(path[prev_idx].x(), path[prev_idx].y());
-    Point next(path[next_idx].x(), path[next_idx].y());
+    // Without a subject point on one side, interpolate from the end of the path on that side
+    // (path[-1] / path[size()] are outside the vector).
+    const int prev_pos_idx = std::max(prev_idx, 0);
+    const int next_pos_idx = std::min(next_idx, int(path.size()) - 1);
+    Point prev(path[prev_pos_idx].x(), path[prev_pos_idx].y());
+    Point next(path[next_pos_idx].x(), path[next_pos_idx].y());
     Point curr(path[idx].x(), path[idx].y());
     double d_total = (next - prev).cast<double>().norm();
     double d_curr = (curr - prev).cast<double>().norm();
@@ -693,9 +697,11 @@ FloatingThickPolylines FillFloatingConcentric::resplit_order_loops(Point curr_po
             Polyline polyline = thick_polyline;
             auto bbox_line = get_extents(polyline);
 
+            // The grid only references the points it is created from: they have to outlive it.
+            const std::vector<Points> grid_contours { polyline.points };
             EdgeGrid::Grid grid;
             grid.set_bbox(bbox_line);
-            grid.create({ polyline.points }, scaled<coord_t>(10.), !all_extrusions[idx]->is_closed);
+            grid.create(grid_contours, scaled<coord_t>(10.), !all_extrusions[idx]->is_closed);
             if (grid.has_intersecting_edges())
                 is_self_intersect = true;
         }
