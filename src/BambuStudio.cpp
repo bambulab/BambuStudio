@@ -3804,6 +3804,20 @@ int CLI::run(int argc, char **argv)
     //compute the flush volume
     ConfigOptionStrings *selected_filament_colors_option = m_extra_config.option<ConfigOptionStrings>("filament_colour");
     ConfigOptionStrings *project_filament_colors_option = m_print_config.option<ConfigOptionStrings>("filament_colour");
+    // Every filament needs a color: the flush table (prepare_flush_matrices) and the color segmentation
+    // (multi_material_segmentation_by_painting) size their per-filament arrays by filament_colour, and reading the entry of a
+    // filament past its end crashes. Stock filament presets carry no filament_colour, and a project written by another tool can
+    // list fewer colors than filaments. Give the missing ones the default color, as PresetBundle does, so that colors nobody
+    // chose add no extra flushing.
+    if (filament_count > 1 && !selected_filament_colors_option &&
+        (!project_filament_colors_option || (project_filament_colors_option->values.size() < size_t(filament_count))))
+    {
+        BOOST_LOG_TRIVIAL(info) << boost::format("%1% filament colors for %2% filaments, using the default color for the rest")
+            % (project_filament_colors_option ? project_filament_colors_option->values.size() : 0) % filament_count;
+        project_filament_colors_option = m_print_config.option<ConfigOptionStrings>("filament_colour", true);
+        project_filament_colors_option->values.resize(filament_count, "#00AE42");
+    }
+
     if ((!project_filament_colors_option || (project_filament_colors_option->values.size() == 0)) && selected_filament_colors_option)
     {
         BOOST_LOG_TRIVIAL(info) << boost::format("initial project_filament_colors is null, create it due to filament_colour set in cli");
