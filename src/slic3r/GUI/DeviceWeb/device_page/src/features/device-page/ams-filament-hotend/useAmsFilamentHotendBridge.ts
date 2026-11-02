@@ -59,6 +59,9 @@ function normalizeState(payload: AmsFilamentHotendViewModel): AmsFilamentHotendV
   const amsEnvUnits = Array.isArray(incomingFp.ams_env_units)
     ? incomingFp.ams_env_units
     : mockAmsFilamentHotendState.filament_page.ams_env_units ?? [];
+  const showAmsEnvUnits = typeof incomingFp.show_ams_env_units === 'boolean'
+    ? incomingFp.show_ams_env_units
+    : mockAmsFilamentHotendState.filament_page.show_ams_env_units ?? true;
 
   return {
     filament_page: {
@@ -74,6 +77,7 @@ function normalizeState(payload: AmsFilamentHotendViewModel): AmsFilamentHotendV
       },
       ams_dry_zones: amsDryZones,
       ams_env_units: amsEnvUnits,
+      show_ams_env_units: showAmsEnvUnits,
       hotend_slots: filamentSlots,
     },
     hotend_page: {

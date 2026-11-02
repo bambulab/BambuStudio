@@ -93,6 +93,35 @@ test.describe('AMS filament hotend page', () => {
     expect(extAmbientBox!.x + extAmbientBox!.width).toBeLessThanOrEqual(extSlot2Box!.x);
   });
 
+  test('hides AMS unit humidity and temperature when the payload disables it', async ({ page }) => {
+    await expect(page.getByTestId('ams-hotend-ambient-info')).toHaveCount(1);
+
+    await page.evaluate(() => {
+      document.dispatchEvent(new CustomEvent('cpp:device', {
+        detail: {
+          head: { version: '1.0', type: 'report', seq: 9100, ts: Date.now() },
+          body: {
+            module: 'device_page_ams_filament_hotend',
+            submod: 'state',
+            action: 'changed',
+            error_code: 0,
+            message: '',
+            payload: {
+              filament_page: {
+                mode: 'batch_ext_load',
+                actions: {},
+                show_ams_env_units: false,
+              },
+              hotend_page: { actions: {}, hotend_slots: [] },
+            },
+          },
+        },
+      }));
+    });
+
+    await expect(page.getByTestId('ams-hotend-ambient-info')).toHaveCount(0);
+  });
+
   test('clicking the dryer chamber readout opens drying for that unit', async ({ page }) => {
     const dryRequests = async () => {
       const trace = await page.evaluate(() =>

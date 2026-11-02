@@ -461,6 +461,7 @@ export interface FilamentPageViewModel {
   // Unit-level temperature / humidity for AMS units that are not entirely a
   // dryer chamber.
   ams_env_units?: AmsFilamentHotendEnvUnit[];
+  show_ams_env_units?: boolean;
   hotend_slots: AmsFilamentHotendSlotViewModel[];
 }
 

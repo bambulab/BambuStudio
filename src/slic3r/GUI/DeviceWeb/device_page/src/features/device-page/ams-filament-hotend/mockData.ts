@@ -268,6 +268,7 @@ export const mockAmsFilamentHotendState: AmsFilamentHotendViewModel = {
         temp: 24,
       },
     ],
+    show_ams_env_units: true,
     hotend_slots: slotSeeds.map((seed) => buildSlot(seed)),
   },
   hotend_page: {

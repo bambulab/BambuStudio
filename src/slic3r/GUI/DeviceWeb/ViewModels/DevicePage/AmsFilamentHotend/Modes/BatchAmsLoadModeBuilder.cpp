@@ -115,6 +115,7 @@ nlohmann::json BatchAmsLoadModeBuilder::BuildFilamentPage(
 {
     nlohmann::json page;
     page[SK::filament_page::mode] = SV::mode::batch_ams_load;
+    page[SK::filament_page::show_ams_env_units] = false;
 
     // In batch mode every toolbar action carries `{ enabled, reason }`. The
     // currently-active mode's own button stays enabled; the other two are

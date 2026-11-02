@@ -111,6 +111,7 @@ export function AmsFilamentHotendPage() {
   const inBatchMode = currentMode !== 'normal';
 
   const fp = state.filament_page;
+  const showAmsEnvUnits = fp.show_ams_env_units ?? true;
   const hp = state.hotend_page;
   const manualPullStatus = fp.filament_change_status?.mode === 'batch_manual_pull'
     ? fp.filament_change_status.manual_pull
@@ -323,7 +324,7 @@ export function AmsFilamentHotendPage() {
             topSlots={topSlots}
             bottomSlots={bottomSlots}
             amsDryZones={fp.ams_dry_zones ?? []}
-            amsEnvUnits={fp.ams_env_units ?? []}
+            amsEnvUnits={showAmsEnvUnits ? fp.ams_env_units ?? [] : []}
             hotendMode={false}
             mode={currentMode}
             selectedKeys={selectedKeys}

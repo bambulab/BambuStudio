@@ -47,6 +47,7 @@ namespace filament_page {
     inline constexpr const char* filament_change_status = "filament_change_status";
     inline constexpr const char* ams_dry_zones          = "ams_dry_zones";
     inline constexpr const char* ams_env_units          = "ams_env_units";
+    inline constexpr const char* show_ams_env_units     = "show_ams_env_units";
     inline constexpr const char* hotend_slots           = "hotend_slots";
 }
 

@@ -37,6 +37,7 @@ nlohmann::json BatchUnloadModeBuilder::BuildFilamentPage(
 {
     nlohmann::json page;
     page[SK::filament_page::mode] = SV::mode::batch_unload;
+    page[SK::filament_page::show_ams_env_units] = false;
 
     // `can_dry` is mirrored from the normal-mode actions so the side-channel
     // dry dialog remains reachable in batch mode (mirrors BatchAmsLoadModeBuilder).
