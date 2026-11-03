@@ -26,10 +26,6 @@
     "filament_change_length_nc": [
         "0"
     ],
-    "filament_cooling_before_tower": [
-        "0",
-        "0"
-    ],
     "filament_flow_ratio": [
         "0.98",
         "0.98"
@@ -85,7 +81,7 @@
         "2"
     ],
     "slow_down_layer_time": [
-        "6"
+        "8"
     ],
     "slow_down_min_speed": [
         "20",
