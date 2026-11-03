@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 20:20+0800\n"
+"POT-Creation-Date: 2026-11-03 14:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7968,6 +7968,26 @@ msgstr ""
 "At least one successful print record of this print profile is required \n"
 "to give a positive rating (4 or 5 stars)."
 
+msgid "Automatically logged out"
+msgstr ""
+
+msgid "For users under the age of majority, some services will be restricted ."
+msgstr ""
+
+msgid ""
+"Automatically logged out. Please log in again after binding a parent/\n"
+"guardian account. "
+msgstr ""
+
+msgid "See our "
+msgstr ""
+
+msgid "Age Requirements for Bambu Lab Account"
+msgstr ""
+
+msgid "To understand our privacy practices, see "
+msgstr ""
+
 msgid "Active operations"
 msgstr "Actieve bewerkingen"
 
@@ -9128,15 +9148,6 @@ msgstr "Geschatte tijd"
 
 msgid "Filament changes"
 msgstr "Filament wisselingen"
-
-msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr "Filamentwisselaar gedetecteerd. Alle AMS-filamenten zijn nu beschikbaar voor beide extruders. De slicer zal automatisch het juiste filament toewijzen voor optimaal printen. "
-
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr "Er is een filamentwisselaar gedetecteerd, maar deze is niet gekalibreerd en daarom momenteel niet beschikbaar. Kalibreer de wisselaar op de printer en synchroniseer deze voordat je hem kunt gebruiken. "
-
-msgid "Learn more"
-msgstr "Leer meer"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Stel het aantal AMS in dat op de spuitdop is geïnstalleerd."
@@ -11177,6 +11188,9 @@ msgstr "Dit proces bepaalt de dynamische stroomwaarden om de algehele afdrukkwal
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
 msgstr "Na het inschakelen van Timelapse zal de printer, ongeacht of de modus Instant of Smooth is geselecteerd, de bouwplaat en de toolhead vóór elke opname verplaatsen, wat de totale afdruktijd kan verlengen."
+
+msgid "Learn more"
+msgstr "Leer meer"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -20327,6 +20341,12 @@ msgstr "Niet gekoppeld"
 
 msgid "The current nozzle diameter is incompatible with the printer"
 msgstr "De huidige nozzlediameter is niet compatibel met de printer"
+
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
+msgstr "Filamentwisselaar gedetecteerd. Alle AMS-filamenten zijn nu beschikbaar voor beide extruders. De slicer zal automatisch het juiste filament toewijzen voor optimaal printen. "
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
+msgstr "Er is een filamentwisselaar gedetecteerd, maar deze is niet gekalibreerd en daarom momenteel niet beschikbaar. Kalibreer de wisselaar op de printer en synchroniseer deze voordat je hem kunt gebruiken. "
 
 msgid "Lock supports under new islands"
 msgstr "Supports onder nieuwe eilanden vergrendelen"

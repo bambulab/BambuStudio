@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 20:20+0800\n"
+"POT-Creation-Date: 2026-11-03 14:32+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -7986,6 +7986,26 @@ msgstr ""
 "Este necesară cel puțin o înregistrare de imprimare reușită pentru acest profil de imprimare\n"
 "pentru a acorda o evaluare pozitivă (4 sau 5 stele)."
 
+msgid "Automatically logged out"
+msgstr ""
+
+msgid "For users under the age of majority, some services will be restricted ."
+msgstr ""
+
+msgid ""
+"Automatically logged out. Please log in again after binding a parent/\n"
+"guardian account. "
+msgstr ""
+
+msgid "See our "
+msgstr ""
+
+msgid "Age Requirements for Bambu Lab Account"
+msgstr ""
+
+msgid "To understand our privacy practices, see "
+msgstr ""
+
 msgid "Active operations"
 msgstr "Operațiuni active"
 
@@ -9150,15 +9170,6 @@ msgstr "Timp estimat"
 
 msgid "Filament changes"
 msgstr "Schimbări de filament"
-
-msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr "Comutator de filamente detectat. Toate filamentele AMS sunt acum disponibile pentru ambele extrudere. Slicerul va atribui automat pentru imprimare optimă. "
-
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr "Un comutator de filament este detectat, dar nu este calibrat și, prin urmare, este momentan indisponibil. Vă rugăm să îl calibrați pe imprimantă și să îl sincronizați înainte de utilizare. "
-
-msgid "Learn more"
-msgstr "Aflați mai multe"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Setați numărul de AMS instalate pe duză."
@@ -11203,6 +11214,9 @@ msgstr "Acest proces determină valorile debitului dinamic pentru a îmbunătă�
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
 msgstr "După activarea funcției Timelapse, indiferent dacă este selectat modul Instant sau Smooth, imprimanta va mișca placa de construcție și capul de imprimare înainte de fiecare fotografie, ceea ce poate crește timpul total de imprimare."
+
+msgid "Learn more"
+msgstr "Aflați mai multe"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -20349,6 +20363,12 @@ msgstr "Nu este mapat"
 
 msgid "The current nozzle diameter is incompatible with the printer"
 msgstr "Diametrul actual al duzei este incompatibil cu imprimanta"
+
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
+msgstr "Comutator de filamente detectat. Toate filamentele AMS sunt acum disponibile pentru ambele extrudere. Slicerul va atribui automat pentru imprimare optimă. "
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
+msgstr "Un comutator de filament este detectat, dar nu este calibrat și, prin urmare, este momentan indisponibil. Vă rugăm să îl calibrați pe imprimantă și să îl sincronizați înainte de utilizare. "
 
 msgid "Lock supports under new islands"
 msgstr "Blocați suporturile sub insulele noi"

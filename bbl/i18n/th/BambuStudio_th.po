@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 20:20+0800\n"
+"POT-Creation-Date: 2026-11-03 14:32+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -7969,6 +7969,26 @@ msgstr ""
 "จำเป็นต้องมีบันทึกการพิมพ์ที่สำเร็จอย่างน้อยหนึ่งรายการสำหรับโปรไฟล์การพิมพ์นี้\n"
 "เพื่อที่จะให้คะแนนในเชิงบวก (4 หรือ 5 ดาว)"
 
+msgid "Automatically logged out"
+msgstr ""
+
+msgid "For users under the age of majority, some services will be restricted ."
+msgstr ""
+
+msgid ""
+"Automatically logged out. Please log in again after binding a parent/\n"
+"guardian account. "
+msgstr ""
+
+msgid "See our "
+msgstr ""
+
+msgid "Age Requirements for Bambu Lab Account"
+msgstr ""
+
+msgid "To understand our privacy practices, see "
+msgstr ""
+
 msgid "Active operations"
 msgstr "การดำเนินการที่กำลังทำงานอยู่"
 
@@ -9125,15 +9145,6 @@ msgstr "เวลาโดยประมาณ"
 
 msgid "Filament changes"
 msgstr "การเปลี่ยนเส้นวัสดุ"
-
-msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr "ตรวจพบชุดสับรางเส้นวัสดุ เส้นวัสดุ AMS ทั้งหมดพร้อมใช้งานสำหรับเอ็กซ์ทรูเดอร์ทั้งสอง ซอฟต์แวร์ตัดแบ่งจะกำหนดเส้นวัสดุโดยอัตโนมัติเพื่อการพิมพ์ที่เหมาะสมที่สุด"
-
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr "ตรวจพบอุปกรณ์เปลี่ยนเส้นวัสดุแต่ยังไม่ได้ปรับเทียบจึงไม่สามารถใช้งานได้ในขณะนี้ โปรดปรับเทียบอุปกรณ์บนเครื่องพิมพ์และซิงโครไนซ์ก่อนใช้งาน"
-
-msgid "Learn more"
-msgstr "เรียนรู้เพิ่มเติม"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "ตั้งค่าจำนวน AMS ที่ติดตั้งบนหัวฉีด"
@@ -11178,6 +11189,9 @@ msgstr "กระบวนการนี้จะกำหนดค่าพล
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
 msgstr "หลังจากเปิดใช้งานโหมดไทม์แลปส์แล้ว ไม่ว่าจะเลือกโหมด Instant หรือ Smooth เครื่องพิมพ์จะเลื่อนแผ่นฐานและหัวจ่ายก่อนการถ่ายภาพแต่ละครั้ง ซึ่งอาจส่งผลให้เวลาในการพิมพ์โดยรวมเพิ่มขึ้น"
+
+msgid "Learn more"
+msgstr "เรียนรู้เพิ่มเติม"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -20321,6 +20335,12 @@ msgstr "ไม่ได้จับคู่"
 
 msgid "The current nozzle diameter is incompatible with the printer"
 msgstr "เส้นผ่านศูนย์กลางหัวฉีดปัจจุบันไม่เข้ากันกับเครื่องพิมพ์"
+
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
+msgstr "ตรวจพบชุดสับรางเส้นวัสดุ เส้นวัสดุ AMS ทั้งหมดพร้อมใช้งานสำหรับเอ็กซ์ทรูเดอร์ทั้งสอง ซอฟต์แวร์ตัดแบ่งจะกำหนดเส้นวัสดุโดยอัตโนมัติเพื่อการพิมพ์ที่เหมาะสมที่สุด"
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
+msgstr "ตรวจพบอุปกรณ์เปลี่ยนเส้นวัสดุแต่ยังไม่ได้ปรับเทียบจึงไม่สามารถใช้งานได้ในขณะนี้ โปรดปรับเทียบอุปกรณ์บนเครื่องพิมพ์และซิงโครไนซ์ก่อนใช้งาน"
 
 msgid "Lock supports under new islands"
 msgstr "ล็อกโครงสร้างรองรับใต้ส่วนลอยตัวใหม่"

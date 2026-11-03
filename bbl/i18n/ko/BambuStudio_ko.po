@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 20:20+0800\n"
+"POT-Creation-Date: 2026-11-03 14:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7965,6 +7965,26 @@ msgstr ""
 "이 출력 프로필의 출력 성공 기록이 하나 이상 필요합니다\n"
 "긍정적 평가(별 4개 또는 5개)를 받으려면."
 
+msgid "Automatically logged out"
+msgstr ""
+
+msgid "For users under the age of majority, some services will be restricted ."
+msgstr ""
+
+msgid ""
+"Automatically logged out. Please log in again after binding a parent/\n"
+"guardian account. "
+msgstr ""
+
+msgid "See our "
+msgstr ""
+
+msgid "Age Requirements for Bambu Lab Account"
+msgstr ""
+
+msgid "To understand our privacy practices, see "
+msgstr ""
+
 msgid "Active operations"
 msgstr "활성 작업"
 
@@ -9121,15 +9141,6 @@ msgstr "예상 시간"
 
 msgid "Filament changes"
 msgstr "필라멘트 변경"
-
-msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr "필라멘트 스위처가 감지되었습니다. 모든 AMS 필라멘트가 두 압출기 모두에서 사용 가능합니다. 슬라이서는 최적의 프린팅을 위해 자동으로 지정합니다."
-
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr "필라멘트 스위처가 감지되었지만 보정이 되지 않아 현재 사용할 수 없습니다. 사용 전에 프린터에서 보정하고 동기화하십시오. "
-
-msgid "Learn more"
-msgstr "더 보기"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "노즐에 설치된 AMS의 개수를 설정합니다."
@@ -11174,6 +11185,9 @@ msgstr "이 프로세스는 동적 흐름 값을 결정하여 전체 인쇄 품�
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
 msgstr "타임랩스를 활성화하면 인스턴트 모드 또는 스무스 모드 중 어느 모드를 선택하더라도 프린터가 촬영 전에 매번 빌드 플레이트와 툴헤드를 이동하므로 전체 출력 시간이 늘어날 수 있습니다."
+
+msgid "Learn more"
+msgstr "더 보기"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -20318,6 +20332,12 @@ msgstr "매핑되지 않음"
 
 msgid "The current nozzle diameter is incompatible with the printer"
 msgstr "현재 노즐 직경이 프린터와 호환되지 않습니다"
+
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
+msgstr "필라멘트 스위처가 감지되었습니다. 모든 AMS 필라멘트가 두 압출기 모두에서 사용 가능합니다. 슬라이서는 최적의 프린팅을 위해 자동으로 지정합니다."
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
+msgstr "필라멘트 스위처가 감지되었지만 보정이 되지 않아 현재 사용할 수 없습니다. 사용 전에 프린터에서 보정하고 동기화하십시오. "
 
 msgid "Lock supports under new islands"
 msgstr "새 아일랜드 아래의 서포트 잠금"

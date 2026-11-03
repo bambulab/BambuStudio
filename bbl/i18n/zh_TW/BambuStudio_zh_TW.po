@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 20:20+0800\n"
+"POT-Creation-Date: 2026-11-03 14:32+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -7941,6 +7941,26 @@ msgid ""
 "to give a positive rating(4 or 5stars)."
 msgstr "至少需要一個成功的列印記錄，才能給出積極的評價（4星或5星）。"
 
+msgid "Automatically logged out"
+msgstr ""
+
+msgid "For users under the age of majority, some services will be restricted ."
+msgstr ""
+
+msgid ""
+"Automatically logged out. Please log in again after binding a parent/\n"
+"guardian account. "
+msgstr ""
+
+msgid "See our "
+msgstr ""
+
+msgid "Age Requirements for Bambu Lab Account"
+msgstr ""
+
+msgid "To understand our privacy practices, see "
+msgstr ""
+
 msgid "Active operations"
 msgstr "作用中的操作"
 
@@ -9095,15 +9115,6 @@ msgstr "預估列印時間"
 
 msgid "Filament changes"
 msgstr "材料切換"
-
-msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr "偵測到線材路徑切換器。所有 AMS 線材現在皆可用於兩個擠出機。切片器將自動指派以獲得最佳列印效果。 "
-
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr "偵測到線材路徑切換器但尚未校正，因此目前無法使用。請在印表機上進行校正並同步後再使用。 "
-
-msgid "Learn more"
-msgstr "更多資訊檢視Wiki"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "設定該噴嘴上安裝的AMS數量。"
@@ -11142,6 +11153,9 @@ msgstr "此過程確定動態流量校準的最佳係數，從而提升列印質
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
 msgstr "啟用縮時攝影後，無論選擇即時或平滑模式，印表機將在每次拍攝前移動列印板與工具頭，可能增加整體列印時間。"
+
+msgid "Learn more"
+msgstr "更多資訊檢視Wiki"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -20267,6 +20281,12 @@ msgstr "未對映"
 
 msgid "The current nozzle diameter is incompatible with the printer"
 msgstr "目前的噴頭直徑與印表機不相容"
+
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
+msgstr "偵測到線材路徑切換器。所有 AMS 線材現在皆可用於兩個擠出機。切片器將自動指派以獲得最佳列印效果。 "
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
+msgstr "偵測到線材路徑切換器但尚未校正，因此目前無法使用。請在印表機上進行校正並同步後再使用。 "
 
 msgid "Lock supports under new islands"
 msgstr "將支撐鎖定於新島狀結構下方"

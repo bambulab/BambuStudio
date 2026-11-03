@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 20:20+0800\n"
+"POT-Creation-Date: 2026-11-03 14:32+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -7970,6 +7970,26 @@ msgstr ""
 "Setidaknya diperlukan satu catatan cetak yang berhasil dari profil cetak ini \n"
 "untuk memberikan penilaian positif (4 atau 5 bintang)."
 
+msgid "Automatically logged out"
+msgstr ""
+
+msgid "For users under the age of majority, some services will be restricted ."
+msgstr ""
+
+msgid ""
+"Automatically logged out. Please log in again after binding a parent/\n"
+"guardian account. "
+msgstr ""
+
+msgid "See our "
+msgstr ""
+
+msgid "Age Requirements for Bambu Lab Account"
+msgstr ""
+
+msgid "To understand our privacy practices, see "
+msgstr ""
+
 msgid "Active operations"
 msgstr "Operasi aktif"
 
@@ -9124,15 +9144,6 @@ msgstr "Estimasi waktu"
 
 msgid "Filament changes"
 msgstr "Perubahan Filamen"
-
-msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr "Pengalih filamen terdeteksi. Semua filamen AMS sekarang tersedia untuk kedua ekstruder. Slicer akan secara otomatis menetapkan untuk pencetakan optimal. "
-
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr "Pengalih filamen terdeteksi tetapi belum dikalibrasi sehingga saat ini tidak tersedia. Harap kalibrasi di printer dan sinkronkan sebelum digunakan. "
-
-msgid "Learn more"
-msgstr "Pelajari lebih lanjut"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Atur jumlah AMS yang terpasang pada nosel."
@@ -11177,6 +11188,9 @@ msgstr "Proses ini menentukan nilai aliran dinamika untuk meningkatkan kualitas 
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
 msgstr "Setelah Timelapse diaktifkan, terlepas dari apakah mode Instan atau Halus dipilih, printer akan menggerakkan pelat cetak dan toolhead sebelum setiap pengambilan gambar, yang dapat menambah waktu cetak secara keseluruhan."
+
+msgid "Learn more"
+msgstr "Pelajari lebih lanjut"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -20320,6 +20334,12 @@ msgstr "Tidak Cocok"
 
 msgid "The current nozzle diameter is incompatible with the printer"
 msgstr "Diameter nosel saat ini tidak kompatibel dengan printer"
+
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
+msgstr "Pengalih filamen terdeteksi. Semua filamen AMS sekarang tersedia untuk kedua ekstruder. Slicer akan secara otomatis menetapkan untuk pencetakan optimal. "
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
+msgstr "Pengalih filamen terdeteksi tetapi belum dikalibrasi sehingga saat ini tidak tersedia. Harap kalibrasi di printer dan sinkronkan sebelum digunakan. "
 
 msgid "Lock supports under new islands"
 msgstr "Kunci penyangga di bawah pulau baru"

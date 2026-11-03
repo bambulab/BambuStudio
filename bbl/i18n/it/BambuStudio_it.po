@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 20:20+0800\n"
+"POT-Creation-Date: 2026-11-03 14:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7965,6 +7965,26 @@ msgid ""
 "to give a positive rating(4 or 5stars)."
 msgstr "Per fornire una valutazione positiva (4 o 5 stelle) è necessario almeno una stampa riuscita con questo profilo."
 
+msgid "Automatically logged out"
+msgstr ""
+
+msgid "For users under the age of majority, some services will be restricted ."
+msgstr ""
+
+msgid ""
+"Automatically logged out. Please log in again after binding a parent/\n"
+"guardian account. "
+msgstr ""
+
+msgid "See our "
+msgstr ""
+
+msgid "Age Requirements for Bambu Lab Account"
+msgstr ""
+
+msgid "To understand our privacy practices, see "
+msgstr ""
+
 msgid "Active operations"
 msgstr "Operazioni attive"
 
@@ -9125,15 +9145,6 @@ msgstr "Tempo stimato"
 
 msgid "Filament changes"
 msgstr "Cambi filamento"
-
-msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr "Rilevato filament switcher. Tutti i filamenti AMS sono ora disponibili per entrambi gli estrusori. Lo slicer assegnerà automaticamente i filamenti per una stampa ottimale. "
-
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr "È stato rilevato un filament switcher ma non è calibrato e quindi al momento non disponibile. Calibralo sulla stampante e sincronizzalo prima dell'uso. "
-
-msgid "Learn more"
-msgstr "Ulteriori informazioni"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Imposta il numero di AMS installati sul nozzle."
@@ -11172,6 +11183,9 @@ msgstr "Questo processo determina i valori del flusso dinamico per migliorare la
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
 msgstr "Dopo aver attivato la funzione Timelapse, indipendentemente dalla modalità selezionata, Istantanea o Fluida, la stampante sposterà il piatto e la testa di stampa prima di ogni scatto, il che potrebbe aumentare il tempo di stampa complessivo."
+
+msgid "Learn more"
+msgstr "Ulteriori informazioni"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -20323,6 +20337,12 @@ msgstr "Non mappato"
 
 msgid "The current nozzle diameter is incompatible with the printer"
 msgstr "Il diametro attuale del nozzle non è compatibile con la stampante"
+
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
+msgstr "Rilevato filament switcher. Tutti i filamenti AMS sono ora disponibili per entrambi gli estrusori. Lo slicer assegnerà automaticamente i filamenti per una stampa ottimale. "
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
+msgstr "È stato rilevato un filament switcher ma non è calibrato e quindi al momento non disponibile. Calibralo sulla stampante e sincronizzalo prima dell'uso. "
 
 msgid "Lock supports under new islands"
 msgstr "Blocca i supporti sotto le nuove isole"

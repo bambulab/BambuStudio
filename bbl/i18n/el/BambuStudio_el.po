@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 20:20+0800\n"
+"POT-Creation-Date: 2026-11-03 14:32+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -7977,6 +7977,26 @@ msgstr ""
 "Απαιτείται τουλάχιστον μία επιτυχημένη εγγραφή εκτύπωσης αυτού του προφίλ εκτύπωσης \n"
 "για παροχή θετικής βαθμολογίας (4 ή 5 αστέρια)."
 
+msgid "Automatically logged out"
+msgstr ""
+
+msgid "For users under the age of majority, some services will be restricted ."
+msgstr ""
+
+msgid ""
+"Automatically logged out. Please log in again after binding a parent/\n"
+"guardian account. "
+msgstr ""
+
+msgid "See our "
+msgstr ""
+
+msgid "Age Requirements for Bambu Lab Account"
+msgstr ""
+
+msgid "To understand our privacy practices, see "
+msgstr ""
+
 msgid "Active operations"
 msgstr "Ενεργές λειτουργίες"
 
@@ -9137,15 +9157,6 @@ msgstr "Εκτιμώμενος χρόνος"
 
 msgid "Filament changes"
 msgstr "Αλλαγές νήματος"
-
-msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr "Εντοπίστηκε διακόπτης νήματος. Όλα τα νήματα AMS είναι πλέον διαθέσιμα και για τους δύο εξωθητήρες. Ο τεμαχιστής πραγματοποιεί αυτόματη αντιστοίχιση για βέλτιστη εκτύπωση. "
-
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr "Εντοπίστηκε διακόπτης νήματος, αλλά δεν είναι βαθμονομημένος και επομένως δεν είναι διαθέσιμος αυτήν τη στιγμή. Βαθμονομήστε τον στον εκτυπωτή και συγχρονίστε πριν από τη χρήση. "
-
-msgid "Learn more"
-msgstr "Μάθετε περισσότερα"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Ορίστε τον αριθμό AMS που είναι εγκατεστημένα στο ακροφύσιο."
@@ -11190,6 +11201,9 @@ msgstr "Αυτή η διαδικασία καθορίζει τις τιμές δ
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
 msgstr "Αφού ενεργοποιήσετε τη λειτουργία Χρονική πάροδος (timelapse), ανεξάρτητα από το αν έχει επιλεγεί η λειτουργία Άμεση ή Ομαλή, ο εκτυπωτής θα μετακινεί την πλακέτα κατασκευής και την κεφαλή εργαλείου πριν από κάθε λήψη, γεγονός που ενδέχεται να αυξήσει τον συνολικό χρόνο εκτύπωσης."
+
+msgid "Learn more"
+msgstr "Μάθετε περισσότερα"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -20337,6 +20351,12 @@ msgstr "Χωρίς χαρτογράφηση"
 
 msgid "The current nozzle diameter is incompatible with the printer"
 msgstr "Η διάμετρος του τρέχοντος ακροφυσίου δεν είναι συμβατή με τον εκτυπωτή"
+
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
+msgstr "Εντοπίστηκε διακόπτης νήματος. Όλα τα νήματα AMS είναι πλέον διαθέσιμα και για τους δύο εξωθητήρες. Ο τεμαχιστής πραγματοποιεί αυτόματη αντιστοίχιση για βέλτιστη εκτύπωση. "
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
+msgstr "Εντοπίστηκε διακόπτης νήματος, αλλά δεν είναι βαθμονομημένος και επομένως δεν είναι διαθέσιμος αυτήν τη στιγμή. Βαθμονομήστε τον στον εκτυπωτή και συγχρονίστε πριν από τη χρήση. "
 
 msgid "Lock supports under new islands"
 msgstr "Κλείδωμα υποστηρίξεων κάτω από νέες νησίδες"

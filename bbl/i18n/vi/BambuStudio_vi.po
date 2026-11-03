@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 20:20+0800\n"
+"POT-Creation-Date: 2026-11-03 14:32+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -7970,6 +7970,26 @@ msgstr ""
 "Cần ít nhất một bản ghi in thành công của cấu hình in này\n"
 "để đưa ra đánh giá tích cực (4 hoặc 5 sao)."
 
+msgid "Automatically logged out"
+msgstr ""
+
+msgid "For users under the age of majority, some services will be restricted ."
+msgstr ""
+
+msgid ""
+"Automatically logged out. Please log in again after binding a parent/\n"
+"guardian account. "
+msgstr ""
+
+msgid "See our "
+msgstr ""
+
+msgid "Age Requirements for Bambu Lab Account"
+msgstr ""
+
+msgid "To understand our privacy practices, see "
+msgstr ""
+
 msgid "Active operations"
 msgstr "Hoạt động đang diễn ra"
 
@@ -9126,15 +9146,6 @@ msgstr "Thời gian ước tính"
 
 msgid "Filament changes"
 msgstr "Thay đổi sợi nhựa"
-
-msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr "Đã phát hiện bộ chuyển sợi nhựa. Tất cả sợi nhựa AMS hiện đã khả dụng cho cả hai vòi đùn nhựa. Bộ cắt lớp sẽ tự động gán để in tối ưu."
-
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr "Phát hiện bộ chuyển đổi sợi nhựa nhưng chưa được hiệu chuẩn nên hiện không khả dụng. Vui lòng hiệu chuẩn bộ chuyển sợi nhựa trên máy in và đồng bộ trước khi sử dụng. "
-
-msgid "Learn more"
-msgstr "Tìm hiểu thêm"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Đặt số lượng AMS đã lắp trên vòi phun."
@@ -11179,6 +11190,9 @@ msgstr "Quy trình này xác định các giá trị lưu lượng động để
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
 msgstr "Sau khi bật chế độ Timelapse, bất kể bạn chọn Instant hay Smooth, máy in sẽ di chuyển bàn in và đầu in trước mỗi lần chụp, điều này có thể làm tăng thời gian in tổng thể."
+
+msgid "Learn more"
+msgstr "Tìm hiểu thêm"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -20319,6 +20333,12 @@ msgstr "Chưa ánh xạ"
 
 msgid "The current nozzle diameter is incompatible with the printer"
 msgstr "Đường kính vòi phun hiện tại không tương thích với máy in"
+
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
+msgstr "Đã phát hiện bộ chuyển sợi nhựa. Tất cả sợi nhựa AMS hiện đã khả dụng cho cả hai vòi đùn nhựa. Bộ cắt lớp sẽ tự động gán để in tối ưu."
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
+msgstr "Phát hiện bộ chuyển đổi sợi nhựa nhưng chưa được hiệu chuẩn nên hiện không khả dụng. Vui lòng hiệu chuẩn bộ chuyển sợi nhựa trên máy in và đồng bộ trước khi sử dụng. "
 
 msgid "Lock supports under new islands"
 msgstr "Khóa các cấu trúc đỡ bên dưới các vùng in độc lập mới"

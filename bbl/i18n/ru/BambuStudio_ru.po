@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 20:20+0800\n"
+"POT-Creation-Date: 2026-11-03 14:32+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -8083,6 +8083,26 @@ msgstr ""
 "Для этого профиля требуется как минимум одна успешная запись печати\n"
 "для выставления положительной оценки (4 или 5 звёзд)."
 
+msgid "Automatically logged out"
+msgstr ""
+
+msgid "For users under the age of majority, some services will be restricted ."
+msgstr ""
+
+msgid ""
+"Automatically logged out. Please log in again after binding a parent/\n"
+"guardian account. "
+msgstr ""
+
+msgid "See our "
+msgstr ""
+
+msgid "Age Requirements for Bambu Lab Account"
+msgstr ""
+
+msgid "To understand our privacy practices, see "
+msgstr ""
+
 msgid "Active operations"
 msgstr "Активные операции"
 
@@ -9252,15 +9272,6 @@ msgstr "Расчётное время"
 
 msgid "Filament changes"
 msgstr "Смены филамента"
-
-msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr "Обнаружен переключатель филамента. Теперь все филаменты AMS доступны для обоих экструдеров. Слайсер автоматически распределит филаменты для оптимальной печати. "
-
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr "Обнаружен переключатель филамента, но он не откалиброван и поэтому сейчас недоступен. Перед использованием откалибруйте его на принтере и выполните синхронизацию. "
-
-msgid "Learn more"
-msgstr "Подробнее"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Укажите количество AMS, установленных для сопла."
@@ -11336,6 +11347,9 @@ msgstr "В ходе этого процесса определяются зна�
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
 msgstr "После включения таймлапса, независимо от выбора режима «Мгновенный» или «Плавный», перед каждым снимком принтер будет перемещать печатную пластину и печатающую головку, что может увеличить общее время печати."
+
+msgid "Learn more"
+msgstr "Подробнее"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -20583,6 +20597,12 @@ msgstr "Не сопоставлено"
 
 msgid "The current nozzle diameter is incompatible with the printer"
 msgstr "Текущий диаметр сопла несовместим с принтером"
+
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
+msgstr "Обнаружен переключатель филамента. Теперь все филаменты AMS доступны для обоих экструдеров. Слайсер автоматически распределит филаменты для оптимальной печати. "
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
+msgstr "Обнаружен переключатель филамента, но он не откалиброван и поэтому сейчас недоступен. Перед использованием откалибруйте его на принтере и выполните синхронизацию. "
 
 msgid "Lock supports under new islands"
 msgstr "Заблокировать точки поддержки под новыми островками"

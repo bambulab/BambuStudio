@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 20:20+0800\n"
+"POT-Creation-Date: 2026-11-03 14:32+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -7970,6 +7970,26 @@ msgid ""
 "to give a positive rating(4 or 5stars)."
 msgstr "Bu yazdırma profiline olumlu bir puan (4 veya 5 yıldız) verebilmek için bu profille en az bir başarılı yazdırma kaydı gerekir."
 
+msgid "Automatically logged out"
+msgstr ""
+
+msgid "For users under the age of majority, some services will be restricted ."
+msgstr ""
+
+msgid ""
+"Automatically logged out. Please log in again after binding a parent/\n"
+"guardian account. "
+msgstr ""
+
+msgid "See our "
+msgstr ""
+
+msgid "Age Requirements for Bambu Lab Account"
+msgstr ""
+
+msgid "To understand our privacy practices, see "
+msgstr ""
+
 msgid "Active operations"
 msgstr "Etkin işlemler"
 
@@ -9130,15 +9150,6 @@ msgstr "Tahmini süre"
 
 msgid "Filament changes"
 msgstr "Filament değişiklikleri"
-
-msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr "Filament değiştirici tespit edildi. AMS filamentlerinin tamamı artık her iki ekstrüder için de mevcuttur. Dilimleme programı, en uygun baskı için otomatik olarak atama yapacaktır. "
-
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr "Filament değiştirici algılandı ancak kalibre edilmediği için şu anda kullanılamıyor. Lütfen kullanmadan önce yazıcıda kalibre et ve senkronize et. "
-
-msgid "Learn more"
-msgstr "Daha fazla bilgi edin"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Püskürtme ucuna takılı AMS sayısını ayarla."
@@ -11183,6 +11194,9 @@ msgstr "Bu işlem, genel baskı kalitesini iyileştirmek için dinamik akış de
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
 msgstr "Hızlandırılmış çekim etkinleştirildikten sonra, Anlık veya Pürüzsüz Mod seçilmiş olmasına bakılmaksızın yazıcı her çekimden önce baskı tablasını ve Takım kafasını hareket ettirir; bu da toplam baskı süresini artırabilir."
+
+msgid "Learn more"
+msgstr "Daha fazla bilgi edin"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -20321,6 +20335,12 @@ msgstr "Eşleştirilmemiş"
 
 msgid "The current nozzle diameter is incompatible with the printer"
 msgstr "Mevcut püskürtme ucu çapı yazıcıyla uyumlu değil"
+
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
+msgstr "Filament değiştirici tespit edildi. AMS filamentlerinin tamamı artık her iki ekstrüder için de mevcuttur. Dilimleme programı, en uygun baskı için otomatik olarak atama yapacaktır. "
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
+msgstr "Filament değiştirici algılandı ancak kalibre edilmediği için şu anda kullanılamıyor. Lütfen kullanmadan önce yazıcıda kalibre et ve senkronize et. "
 
 msgid "Lock supports under new islands"
 msgstr "Yeni adaların altındaki destekleri kilitle"
