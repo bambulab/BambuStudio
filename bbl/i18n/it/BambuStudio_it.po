@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 16:29+0800\n"
+"POT-Creation-Date: 2026-11-03 18:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9249,6 +9249,9 @@ msgstr "Questo filamento non è compatibile con il nozzle attualmente in uso per
 msgid "The current nozzle settings have no nozzle of this type"
 msgstr "Le impostazioni attuali del nozzle non prevedono un nozzle di questo tipo"
 
+msgid "The current nozzle settings have no nozzle that fits this filament"
+msgstr ""
+
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
 msgstr "Questo filamento non è compatibile con il nozzle %s per la stampa"
@@ -9356,6 +9359,10 @@ msgstr "Il filamento %s non è configurato per le impostazioni del nozzle corren
 #, c-format, boost-format
 msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
 msgstr "Il filamento %s non presenta il nozzle %s nelle impostazioni del nozzle. Specificare il tipo di nozzle prima dell'uso."
+
+#, c-format, boost-format
+msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 16:29+0800\n"
+"POT-Creation-Date: 2026-11-03 18:30+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -9214,6 +9214,9 @@ msgstr "该耗材不支持使用当前喷嘴打印"
 msgid "The current nozzle settings have no nozzle of this type"
 msgstr "当前喷嘴设置中没有该喷嘴类型"
 
+msgid "The current nozzle settings have no nozzle that fits this filament"
+msgstr "当前喷嘴设置没有适配该耗材的喷嘴"
+
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
 msgstr "该耗材不支持使用 %s 喷嘴打印"
@@ -9321,6 +9324,10 @@ msgstr "%s 耗材配置不支持当前喷嘴设置，请更换喷嘴或耗材后
 #, c-format, boost-format
 msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
 msgstr "喷嘴设置中没有 %s 耗材对应的 %s 喷嘴，请添加对应喷嘴类型后使用。"
+
+#, c-format, boost-format
+msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
+msgstr "耗材 %s在喷嘴设置中没有适配的喷嘴，请使用前添加对应喷嘴类型"
 
 #, c-format, boost-format
 msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 16:29+0800\n"
+"POT-Creation-Date: 2026-11-03 18:30+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -9261,6 +9261,9 @@ msgstr "Αυτό το νήμα δεν υποστηρίζει εκτύπωση μ
 msgid "The current nozzle settings have no nozzle of this type"
 msgstr "Στις τρέχουσες ρυθμίσεις ακροφυσίου δεν υπάρχει ακροφύσιο αυτού του τύπου"
 
+msgid "The current nozzle settings have no nozzle that fits this filament"
+msgstr ""
+
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
 msgstr "Αυτό το νήμα δεν υποστηρίζει εκτύπωση με το ακροφύσιο %s"
@@ -9368,6 +9371,10 @@ msgstr "Το νήμα %s δεν έχει διαμορφωθεί για τις τ
 #, c-format, boost-format
 msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
 msgstr "Το νήμα %s δεν έχει το ακροφύσιο %s στις ρυθμίσεις ακροφυσίου. Προσθέστε αυτόν τον τύπο ακροφυσίου πριν από τη χρήση."
+
+#, c-format, boost-format
+msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 16:29+0800\n"
+"POT-Creation-Date: 2026-11-03 18:30+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -9248,6 +9248,9 @@ msgstr "Filamen ini tidak mendukung pencetakan menggunakan nosel saat ini"
 msgid "The current nozzle settings have no nozzle of this type"
 msgstr "Pengaturan nosel saat ini tidak memiliki nosel dengan jenis ini"
 
+msgid "The current nozzle settings have no nozzle that fits this filament"
+msgstr ""
+
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
 msgstr "Filamen ini tidak mendukung pencetakan menggunakan nosel %s"
@@ -9355,6 +9358,10 @@ msgstr "Filamen %s tidak dikonfigurasi untuk pengaturan nosel saat ini. Ganti no
 #, c-format, boost-format
 msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
 msgstr "Filamen %s tidak memiliki nosel %s dalam pengaturan nosel. Tambahkan jenis nosel tersebut sebelum digunakan."
+
+#, c-format, boost-format
+msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."

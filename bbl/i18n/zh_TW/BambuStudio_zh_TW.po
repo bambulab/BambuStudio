@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 16:29+0800\n"
+"POT-Creation-Date: 2026-11-03 18:30+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -9219,6 +9219,9 @@ msgstr "此線材不支援使用目前噴頭列印"
 msgid "The current nozzle settings have no nozzle of this type"
 msgstr "目前的噴頭設定沒有此類型的噴頭"
 
+msgid "The current nozzle settings have no nozzle that fits this filament"
+msgstr ""
+
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
 msgstr "此線材不支援使用 %s 噴頭列印"
@@ -9326,6 +9329,10 @@ msgstr "線材 %s 未針對目前噴頭設定進行設定。請在使用前變�
 #, c-format, boost-format
 msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
 msgstr "線材 %s 在噴頭設定中沒有 %s 噴頭。請在使用前新增該噴頭類型。"
+
+#, c-format, boost-format
+msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."

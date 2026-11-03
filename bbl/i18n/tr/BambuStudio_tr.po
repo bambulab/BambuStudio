@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 16:29+0800\n"
+"POT-Creation-Date: 2026-11-03 18:30+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -9254,6 +9254,9 @@ msgstr "Bu filament mevcut püskürtme ucuyla yazdırmaya uygun değil"
 msgid "The current nozzle settings have no nozzle of this type"
 msgstr "Mevcut püskürtme ucu ayarlarında bu tipte bir püskürtme ucu bulunmuyor"
 
+msgid "The current nozzle settings have no nozzle that fits this filament"
+msgstr ""
+
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
 msgstr "Bu filament %s püskürtme ucuyla yazdırmaya uygun değil"
@@ -9361,6 +9364,10 @@ msgstr "Filament %s mevcut püskürtme ucu ayarları için yapılandırılmamı�
 #, c-format, boost-format
 msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
 msgstr "Filament %s için püskürtme ucu ayarlarında %s püskürtme ucu bulunmuyor. Lütfen kullanmadan önce bu püskürtme ucu tipini ekleyin."
+
+#, c-format, boost-format
+msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."

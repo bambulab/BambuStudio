@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 16:29+0800\n"
+"POT-Creation-Date: 2026-11-03 18:30+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -9250,6 +9250,9 @@ msgstr "Vòi phun hiện tại không hỗ trợ in bằng sợi nhựa này"
 msgid "The current nozzle settings have no nozzle of this type"
 msgstr "Cài đặt vòi phun hiện tại không có loại vòi phun này"
 
+msgid "The current nozzle settings have no nozzle that fits this filament"
+msgstr ""
+
 #, c-format, boost-format
 msgid "This filament does not support printing with the %s nozzle"
 msgstr "Vòi phun %s không hỗ trợ in bằng sợi nhựa này"
@@ -9357,6 +9360,10 @@ msgstr "Sợi nhựa %s chưa được cấu hình cho các thiết lập vòi p
 #, c-format, boost-format
 msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
 msgstr "Sợi nhựa %s không có vòi phun %s trong phần cài đặt vòi phun. Vui lòng thêm loại vòi phun đó trước khi sử dụng."
+
+#, c-format, boost-format
+msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."

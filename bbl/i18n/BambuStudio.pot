@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 16:29+0800\n"
+"POT-Creation-Date: 2026-11-03 18:30+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -9029,6 +9029,9 @@ msgstr ""
 msgid "The current nozzle settings have no nozzle of this type"
 msgstr ""
 
+msgid "The current nozzle settings have no nozzle that fits this filament"
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid "This filament does not support printing with the %s nozzle"
 msgstr ""
@@ -9135,6 +9138,10 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
