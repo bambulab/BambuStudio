@@ -1084,13 +1084,14 @@ void WebViewPanel::get_design_staffpick(int offset, int limit, std::function<voi
     std::string url = (boost::format("%1%/?offset=%2%&limit=%3%") % host % offset % limit).str();
 
     Http http = Http::get(url);
-    http.header("accept", "application/json")
+    perform_http_request(http.timeout_connect(5).timeout_max(10)
+        .header("accept", "application/json")
         .header("Content-Type", "application/json")
-        .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
-        .on_error([this, callback](std::string body, std::string error, unsigned status) {
+        .on_complete([callback](std::string body, unsigned status) { callback(body); })
+        .on_error([callback](std::string body, std::string error, unsigned status) {
             callback(body + error);
         })
-        .perform();
+        );
 }
 
 void WebViewPanel::get_makerlab_list(std::function<void(std::string)> callback)
@@ -1098,11 +1099,12 @@ void WebViewPanel::get_makerlab_list(std::function<void(std::string)> callback)
     std::string url = wxGetApp().get_http_url(wxGetApp().app_config->get_country_code(), "v1/operation-service/makerlabhomepage");
 
     Http http = Http::get(url);
-    http.header("accept", "application/json")
+    perform_http_request(http.timeout_connect(5).timeout_max(10)
+        .header("accept", "application/json")
         .header("Content-Type", "application/json")
-        .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
-        .on_error([this, callback](std::string body, std::string error, unsigned status) { callback(body + error); })
-        .perform();
+        .on_complete([callback](std::string body, unsigned status) { callback(body); })
+        .on_error([callback](std::string body, std::string error, unsigned status) { callback(body + error); })
+        );
 }
 
 void WebViewPanel::SetMakerlabUrl(std::string url) {

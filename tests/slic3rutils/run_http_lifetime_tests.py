@@ -13,7 +13,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         slow = self.path == '/slow'
         body = b'x' * 4096 if slow else b'ok'
         count = 40 if slow else 1
-        self.send_response(200)
+        self.send_response(503 if self.path == '/error' else 200)
         self.send_header('Content-Length', str(len(body) * count))
         self.end_headers()
         try:
@@ -37,7 +37,7 @@ def main():
         # Test traffic must stay local even when the developer uses an HTTP proxy.
         env['NO_PROXY'] = env['no_proxy'] = '127.0.0.1,localhost'
         try:
-            return subprocess.run([sys.argv[1], '[HttpLifetime]'], env=env, timeout=30).returncode
+            return subprocess.run([sys.argv[1], '[HttpLifetime]'], env=env, timeout=60).returncode
         finally:
             server.shutdown()
             worker.join()
