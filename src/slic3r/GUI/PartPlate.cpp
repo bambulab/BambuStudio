@@ -1677,8 +1677,13 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
         NozzleVolumeType variant_name     = convert_to_nvt_type(extruder_variant);
         // In single-extruder multi-nozzle mode the filament carries its own nozzle selection, which
         // takes precedence over the extruder-level variant.
-        if (single_ext_multi_nozzle && extruder_idx == 0 && filament_id < (int) filament_volume_map.size())
-            variant_name = (NozzleVolumeType) filament_volume_map[filament_id];
+        if (single_ext_multi_nozzle && extruder_idx == 0 && filament_id < (int) filament_volume_map.size()) {
+            const auto assigned = static_cast<NozzleVolumeType>(filament_volume_map[filament_id]);
+            // Hybrid 只是混合喷嘴架的汇总值，不是这一槽指定的流量。
+            if (assigned == nvtHybrid || assigned >= nvtCount)
+                continue;
+            variant_name = assigned;
+        }
 
         if (!is_nozzle_printable_for_filament(variant_name, filament_variants, fil_collection.is_bbl_brand_filament(*fil_preset))) {
             auto             volume_names = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
