@@ -168,10 +168,14 @@ const std::vector<GLIndexedVertexArray> &painted_geometry(
             volume.mmuseg_ivas.clear();
             volume.mmuseg_ts = 0;
             painted_geometry_bindings.emplace(&volume, PaintedGeometryBinding{other, mesh, timestamp, other->mmuseg_ts});
+            BOOST_LOG_TRIVIAL(debug) << boost::format("this %1%, name %2%, shared owner %3%, mmuseg_ts %4%, owner mmuseg_ts %5%, color size %6%")
+                % &volume % volume.name % other % timestamp % other->mmuseg_ts % other->mmuseg_ivas.size();
             return other->mmuseg_ivas;
         }
     }
 
+    BOOST_LOG_TRIVIAL(debug) << boost::format("this %1%, name %2%, current mmuseg_ts %3%, current color size %4%")
+        % &volume % volume.name % volume.mmuseg_ts % volume.mmuseg_ivas.size();
     volume.mmuseg_ivas.clear();
     std::vector<indexed_triangle_set> its_per_color;
     facets.get_facets(model_volume, its_per_color);
@@ -183,6 +187,8 @@ const std::vector<GLIndexedVertexArray> &painted_geometry(
         }
     }
     volume.mmuseg_ts = timestamp;
+    BOOST_LOG_TRIVIAL(debug) << boost::format("this %1%, name %2%, new mmuseg_ts %3%, new color size %4%")
+        % &volume % volume.name % volume.mmuseg_ts % volume.mmuseg_ivas.size();
     return volume.mmuseg_ivas;
 }
 
