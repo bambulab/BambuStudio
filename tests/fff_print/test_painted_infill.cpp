@@ -65,6 +65,36 @@ TEST_CASE("Painted regions respect explicit sparse infill and retain painted sur
 {
     PaintedCube cube;
     SECTION("Default follows paint") { cube.apply(); cube.check_regions(2); }
+    SECTION("Global choice") {
+        cube.config.set_key_value("sparse_infill_filament", new ConfigOptionInt(1));
+        cube.apply(); cube.check_regions(1);
+    }
+    SECTION("Object overrides global choice") {
+        cube.config.set_key_value("sparse_infill_filament", new ConfigOptionInt(1));
+        cube.object->config.set("sparse_infill_filament", 3);
+        cube.apply(); cube.check_regions(3);
+    }
+    SECTION("Explicit object Default restores painting over global choice") {
+        cube.config.set_key_value("sparse_infill_filament", new ConfigOptionInt(1));
+        cube.object->config.set("sparse_infill_filament", 0);
+        cube.apply(); cube.check_regions(2);
+    }
+    SECTION("Part Default restores painting over global choice") {
+        cube.config.set_key_value("sparse_infill_filament", new ConfigOptionInt(1));
+        cube.volume->config.set("sparse_infill_filament", 0);
+        cube.apply(); cube.check_regions(2);
+    }
+    SECTION("Height filament prevents inheriting global feature choice") {
+        cube.config.set_key_value("sparse_infill_filament", new ConfigOptionInt(1));
+        cube.object->layer_config_ranges[{0., 10.}].set("extruder", 3);
+        cube.apply(); cube.check_regions(2);
+    }
+    SECTION("Modifier inherits global choice") {
+        cube.config.set_key_value("sparse_infill_filament", new ConfigOptionInt(1));
+        auto *modifier = cube.object->add_volume(make_cube(6., 12., 4.), ModelVolumeType::PARAMETER_MODIFIER);
+        modifier->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(30.));
+        cube.apply(); cube.check_regions(1);
+    }
     SECTION("Object choice") {
         cube.object->config.set("sparse_infill_filament", 1);
         cube.apply(); cube.check_regions(1);
@@ -116,8 +146,13 @@ TEST_CASE("Changing painted sparse infill invalidates and regenerates infill", "
     cube.apply();
     cube.print.process();
     cube.check_regions(2);
+    const bool global_choice = GENERATE(false, true);
+    CAPTURE(global_choice);
     for (int filament : {1, 0, 3, 0}) {
-        cube.object->config.set("sparse_infill_filament", filament);
+        if (global_choice)
+            cube.config.set_key_value("sparse_infill_filament", new ConfigOptionInt(filament));
+        else
+            cube.object->config.set("sparse_infill_filament", filament);
         REQUIRE(cube.apply() == Print::APPLY_STATUS_INVALIDATED);
         REQUIRE_FALSE(cube.print.objects().front()->is_step_done(posInfill));
         cube.print.process();
@@ -153,7 +188,12 @@ TEST_CASE("Multiple painted colors share the explicitly selected sparse infill",
     for (int i = 0; i < int(cube.volume->mesh().its.indices.size()); ++i)
         selector.set_facet(i, static_cast<EnforcerBlockerType>(i < 6 ? 2 : 3));
     cube.volume->mmu_segmentation_facets.set(selector);
-    cube.object->config.set("sparse_infill_filament", 1);
+    const bool global_choice = GENERATE(false, true);
+    CAPTURE(global_choice);
+    if (global_choice)
+        cube.config.set_key_value("sparse_infill_filament", new ConfigOptionInt(1));
+    else
+        cube.object->config.set("sparse_infill_filament", 1);
     cube.apply();
     cube.print.process();
     std::set<unsigned int> wall_filaments;

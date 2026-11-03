@@ -736,7 +736,8 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
 // The resolved region config cannot distinguish an explicit infill choice from
 // the object's default filament. Follow the same override precedence as
 // region_config_from_model_volume before deciding whether painting may replace it.
-static bool has_explicit_sparse_infill_filament(const PrintObjectRegions::LayerRangeRegions &layer_range, int region_id)
+static bool has_explicit_sparse_infill_filament(const PrintObjectRegions::LayerRangeRegions &layer_range, int region_id,
+                                               const PrintRegionConfig &default_region_config)
 {
     while (region_id >= 0) {
         const auto &region = layer_range.volume_regions[region_id];
@@ -751,18 +752,27 @@ static bool has_explicit_sparse_infill_filament(const PrintObjectRegions::LayerR
                     choice = range_choice;
             if (choice && choice->value > 0)
                 return true;
+            if (volume.is_model_part()) {
+                // A local Default explicitly opts out of the global feature
+                // selection. A filament-by-height assignment also takes precedence.
+                const auto *height_filament = layer_range.config ?
+                    layer_range.config->opt<ConfigOptionInt>("extruder") : nullptr;
+                return !choice && !(height_filament && height_filament->value > 0) &&
+                    default_region_config.sparse_infill_filament.value > 0;
+            }
         }
         region_id = region.parent;
     }
     return false;
 }
 
-static PrintRegionConfig painted_region_config(const PrintObjectRegions::LayerRangeRegions &layer_range, int parent_id, unsigned int filament)
+static PrintRegionConfig painted_region_config(const PrintObjectRegions::LayerRangeRegions &layer_range, int parent_id, unsigned int filament,
+                                               const PrintRegionConfig &default_region_config)
 {
     PrintRegionConfig cfg = layer_range.volume_regions[parent_id].region->config();
     cfg.wall_filament.value = filament;
     cfg.solid_infill_filament.value = filament;
-    if (!has_explicit_sparse_infill_filament(layer_range, parent_id))
+    if (!has_explicit_sparse_infill_filament(layer_range, parent_id, default_region_config))
         cfg.sparse_infill_filament.value = filament;
     return cfg;
 }
@@ -856,7 +866,7 @@ bool verify_update_print_object_regions(
     // Verify and / or update PrintRegions produced by color painting.
     for (const PrintObjectRegions::LayerRangeRegions &layer_range : print_object_regions.layer_ranges)
         for (const PrintObjectRegions::PaintedRegion &region : layer_range.painted_regions) {
-            PrintRegionConfig cfg = painted_region_config(layer_range, region.parent, region.extruder_id);
+            PrintRegionConfig cfg = painted_region_config(layer_range, region.parent, region.extruder_id, default_region_config);
             if (cfg != region.region->config()) {
                 // Region configuration changed.
                 if (print_region_ref_cnt(*region.region) == 0) {
@@ -1162,7 +1172,7 @@ static PrintObjectRegions* generate_print_object_regions(
             for (int parent_region_id = 0; parent_region_id < int(layer_range.volume_regions.size()); ++ parent_region_id)
                 if (const PrintObjectRegions::VolumeRegion &parent_region = layer_range.volume_regions[parent_region_id];
                     parent_region.model_volume->is_model_part() || parent_region.model_volume->is_modifier()) {
-                    PrintRegionConfig cfg = painted_region_config(layer_range, parent_region_id, painted_extruder_id);
+                    PrintRegionConfig cfg = painted_region_config(layer_range, parent_region_id, painted_extruder_id, default_region_config);
                     layer_range.painted_regions.push_back({ painted_extruder_id, parent_region_id, get_create_region(std::move(cfg))});
                 }
         // Sort the regions by parent region::print_object_region_id() and extruder_id to help the slicing algorithm when applying MMU segmentation.
