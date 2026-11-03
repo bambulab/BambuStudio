@@ -7043,7 +7043,14 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
     const auto renderer = column->GetRenderer();
     if (!renderer->GetEditorCtrl()) {
         renderer->StartEditing(item, GetItemRect(item, column));
-        if (col == colName) // TODO: for colName editing, disable shortcuts
+        // TODO: for colName editing, disable shortcuts
+        // Only the item types the name renderer actually opens an editor for (see the
+        // can_create_editor_ctrl function set in the ctor). Layers and ranges reach this point too,
+        // but CreateEditorCtrl() refuses them, so dropping the accelerators there would turn the
+        // list's shortcuts off without any edit having started -- and nothing would turn them back
+        // on, because this path Veto()s the event and EDITING_DONE, which restores the table, never
+        // fires.
+        if (col == colName && (m_objects_model->GetItemType(item) & (itVolume | itObject | itPlate)))
             SetAcceleratorTable(wxNullAcceleratorTable);
     }
 #ifdef __WXOSX__
