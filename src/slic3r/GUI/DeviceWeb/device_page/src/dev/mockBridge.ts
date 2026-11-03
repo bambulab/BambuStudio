@@ -29,6 +29,8 @@ import type { AmsFilamentHotendViewModel } from '../features/device-page/ams-fil
 import { mockAmsFilamentHotendState } from '../features/device-page/ams-filament-hotend/mockData';
 import { mockAmsMappingHotendState } from '../features/device-page/ams-mapping-hotend/mockData';
 import { mockAutoRefillRefillInfoState } from '../features/device-page/auto-refill-refill-info/mockData';
+import { mockControlPanelState } from '../features/device-page/control-panel/mockData';
+import type { ControlPanelState } from '../features/device-page/control-panel/types';
 
 interface RequestPacket {
   head: { version: string; type: string; seq: number; ts: number };
@@ -38,6 +40,7 @@ interface RequestPacket {
 const SDK_VERSION = '1.0';
 
 let amsControlWebMockState: AmsControlWebViewModel = mockAmsControlWebState;
+let controlPanelMockState: ControlPanelState = mockControlPanelState;
 
 // --- Mock catalogue ---------------------------------------------------------
 
@@ -552,6 +555,82 @@ function handleRequest(pkt: RequestPacket) {
     }
     if (submod === 'action' && (action === 'rendered' || action === 'enable_auto_refill')) {
       dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAutoRefillRefillInfoState));
+      return;
+    }
+  }
+  if (module === 'device_page_control_panel') {
+    if (submod === 'state' && (action === 'get' || action === 'init')) {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, controlPanelMockState));
+      return;
+    }
+    if (submod === 'action') {
+      if (action === 'set_extruder_temp') {
+        const payloadRecord = payload as Record<string, unknown>;
+        const extruderId = String(payloadRecord.extruder_id ?? 'main');
+        const value = Number(payloadRecord.value ?? 0);
+        controlPanelMockState = {
+          ...controlPanelMockState,
+          display: {
+            ...controlPanelMockState.display,
+            extruder_temp: {
+              ...controlPanelMockState.display.extruder_temp,
+              extruders: controlPanelMockState.display.extruder_temp.extruders.map((item) => (
+                item.id === extruderId ? { ...item, target: value, temp_status: value > (item.current ?? 0) ? 'heating' : 'idle' } : item
+              )),
+            },
+          },
+        };
+      } else if (action === 'set_bed_temp') {
+        const value = Number((payload as Record<string, unknown>).value ?? 0);
+        controlPanelMockState = {
+          ...controlPanelMockState,
+          display: {
+            ...controlPanelMockState.display,
+            bed_temp: { ...controlPanelMockState.display.bed_temp, target: value, temp_status: value > (controlPanelMockState.display.bed_temp.current ?? 0) ? 'heating' : 'idle' },
+          },
+        };
+      } else if (action === 'set_chamber_temp') {
+        const value = Number((payload as Record<string, unknown>).value ?? 0);
+        controlPanelMockState = {
+          ...controlPanelMockState,
+          display: {
+            ...controlPanelMockState.display,
+            chamber_temp: { ...controlPanelMockState.display.chamber_temp, target: value, temp_status: value > (controlPanelMockState.display.chamber_temp.current ?? 0) ? 'heating' : 'idle' },
+          },
+        };
+      } else if (action === 'toggle_lamp') {
+        const on = Boolean((payload as Record<string, unknown>).on);
+        controlPanelMockState = {
+          ...controlPanelMockState,
+          display: {
+            ...controlPanelMockState.display,
+            lamp: { ...controlPanelMockState.display.lamp, lamp_on: on },
+          },
+        };
+      } else if (action === 'set_speed') {
+        const level = Number((payload as Record<string, unknown>).level ?? 2) as 1 | 2 | 3 | 4;
+        const labels: Record<number, string> = { 1: '50%', 2: '100%', 3: '124%', 4: '166%' };
+        controlPanelMockState = {
+          ...controlPanelMockState,
+          display: {
+            ...controlPanelMockState.display,
+            speed: { ...controlPanelMockState.display.speed, speed_level: level, speed_text: labels[level] ?? '100%' },
+          },
+        };
+      }
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, controlPanelMockState));
+      dispatchReport(makeModuleOk(module, 'state', 'changed', controlPanelMockState));
+      return;
+    }
+    if (submod === 'debug') {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, {
+        created_ts: Date.now(),
+        cpp_state: controlPanelMockState,
+        web_state: (payload as Record<string, unknown>).web_state ?? {},
+        web_trace: (payload as Record<string, unknown>).web_trace ?? [],
+        cpp_trace: [],
+        dialog_cpp_state: controlPanelMockState,
+      }));
       return;
     }
   }

@@ -38,6 +38,7 @@
 #include "Widgets/ImageSwitchButton.hpp"
 #include "Widgets/AMSControl.hpp"
 #include "Widgets/FilamentLoad.hpp"
+#include "DeviceTab/ControlPanel/ControlPanelWebEnable.hpp"
 #include "Widgets/FanControl.hpp"
 #include "DeviceTab/AmsControl/AmsControlWebEnable.hpp"
 #include "HMS.hpp"
@@ -61,6 +62,9 @@ class MessageDialog;
 class wgtDeviceFilamentHotendWebDialog;
 class wgtDeviceFilamentHotendHtmlDialog;
 class wgtDeviceNozzleRack;
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+class wgtDeviceControlPanelWebPanel;
+#endif
 #if BBL_ENABLE_AMS_CONTROL_WEB
 class wgtAmsControlWebPanel;
 #endif
@@ -613,6 +617,9 @@ protected:
 
     wxPanel *       m_machine_ctrl_panel;
     StaticBox*                        m_temp_axis_ctrl_box{nullptr};
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+    wgtDeviceControlPanelWebPanel*    m_control_panel_web_panel{ nullptr };
+#endif
     std::vector<CtrlAreaMaskOverlay*> m_ctrl_area_masks;
     std::vector<wxWindow*>            m_ctrl_area_mask_excludes;
     bool                              m_ctrl_area_mask_dark{false};

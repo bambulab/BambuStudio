@@ -18,6 +18,8 @@ import { Route as IndexImport } from './routes/index'
 import { Route as DevicepagePrintqueueImport } from './routes/device_page/print_queue'
 import { Route as DevicepageHotenddetailImport } from './routes/device_page/hotend_detail'
 import { Route as DevicepageFilamentmanualpullImport } from './routes/device_page/filament_manual_pull'
+import { Route as DevicepageControlpaneldebugImport } from './routes/device_page/control_panel_debug'
+import { Route as DevicepageControlpanelImport } from './routes/device_page/control_panel'
 import { Route as DevicepageConnectedslotsImport } from './routes/device_page/connected_slots'
 import { Route as DevicepageAutorefillrefillinfoImport } from './routes/device_page/auto_refill_refill_info'
 import { Route as DevicepageAmsmappinghotendImport } from './routes/device_page/ams_mapping_hotend'
@@ -72,6 +74,19 @@ const DevicepageFilamentmanualpullRoute =
     path: '/device_page/filament_manual_pull',
     getParentRoute: () => rootRoute,
   } as any)
+
+const DevicepageControlpaneldebugRoute =
+  DevicepageControlpaneldebugImport.update({
+    id: '/device_page/control_panel_debug',
+    path: '/device_page/control_panel_debug',
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const DevicepageControlpanelRoute = DevicepageControlpanelImport.update({
+  id: '/device_page/control_panel',
+  path: '/device_page/control_panel',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const DevicepageConnectedslotsRoute = DevicepageConnectedslotsImport.update({
   id: '/device_page/connected_slots',
@@ -228,6 +243,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevicepageConnectedslotsImport
       parentRoute: typeof rootRoute
     }
+    '/device_page/control_panel': {
+      id: '/device_page/control_panel'
+      path: '/device_page/control_panel'
+      fullPath: '/device_page/control_panel'
+      preLoaderRoute: typeof DevicepageControlpanelImport
+      parentRoute: typeof rootRoute
+    }
+    '/device_page/control_panel_debug': {
+      id: '/device_page/control_panel_debug'
+      path: '/device_page/control_panel_debug'
+      fullPath: '/device_page/control_panel_debug'
+      preLoaderRoute: typeof DevicepageControlpaneldebugImport
+      parentRoute: typeof rootRoute
+    }
     '/device_page/filament_manual_pull': {
       id: '/device_page/filament_manual_pull'
       path: '/device_page/filament_manual_pull'
@@ -268,6 +297,8 @@ export interface FileRoutesByFullPath {
   '/device_page/ams_mapping_hotend': typeof DevicepageAmsmappinghotendRoute
   '/device_page/auto_refill_refill_info': typeof DevicepageAutorefillrefillinfoRoute
   '/device_page/connected_slots': typeof DevicepageConnectedslotsRoute
+  '/device_page/control_panel': typeof DevicepageControlpanelRoute
+  '/device_page/control_panel_debug': typeof DevicepageControlpaneldebugRoute
   '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
   '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
   '/device_page/print_queue': typeof DevicepagePrintqueueRoute
@@ -287,6 +318,8 @@ export interface FileRoutesByTo {
   '/device_page/ams_mapping_hotend': typeof DevicepageAmsmappinghotendRoute
   '/device_page/auto_refill_refill_info': typeof DevicepageAutorefillrefillinfoRoute
   '/device_page/connected_slots': typeof DevicepageConnectedslotsRoute
+  '/device_page/control_panel': typeof DevicepageControlpanelRoute
+  '/device_page/control_panel_debug': typeof DevicepageControlpaneldebugRoute
   '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
   '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
   '/device_page/print_queue': typeof DevicepagePrintqueueRoute
@@ -307,6 +340,8 @@ export interface FileRoutesById {
   '/device_page/ams_mapping_hotend': typeof DevicepageAmsmappinghotendRoute
   '/device_page/auto_refill_refill_info': typeof DevicepageAutorefillrefillinfoRoute
   '/device_page/connected_slots': typeof DevicepageConnectedslotsRoute
+  '/device_page/control_panel': typeof DevicepageControlpanelRoute
+  '/device_page/control_panel_debug': typeof DevicepageControlpaneldebugRoute
   '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
   '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
   '/device_page/print_queue': typeof DevicepagePrintqueueRoute
@@ -328,6 +363,8 @@ export interface FileRouteTypes {
     | '/device_page/ams_mapping_hotend'
     | '/device_page/auto_refill_refill_info'
     | '/device_page/connected_slots'
+    | '/device_page/control_panel'
+    | '/device_page/control_panel_debug'
     | '/device_page/filament_manual_pull'
     | '/device_page/hotend_detail'
     | '/device_page/print_queue'
@@ -346,6 +383,8 @@ export interface FileRouteTypes {
     | '/device_page/ams_mapping_hotend'
     | '/device_page/auto_refill_refill_info'
     | '/device_page/connected_slots'
+    | '/device_page/control_panel'
+    | '/device_page/control_panel_debug'
     | '/device_page/filament_manual_pull'
     | '/device_page/hotend_detail'
     | '/device_page/print_queue'
@@ -364,6 +403,8 @@ export interface FileRouteTypes {
     | '/device_page/ams_mapping_hotend'
     | '/device_page/auto_refill_refill_info'
     | '/device_page/connected_slots'
+    | '/device_page/control_panel'
+    | '/device_page/control_panel_debug'
     | '/device_page/filament_manual_pull'
     | '/device_page/hotend_detail'
     | '/device_page/print_queue'
@@ -384,6 +425,8 @@ export interface RootRouteChildren {
   DevicepageAmsmappinghotendRoute: typeof DevicepageAmsmappinghotendRoute
   DevicepageAutorefillrefillinfoRoute: typeof DevicepageAutorefillrefillinfoRoute
   DevicepageConnectedslotsRoute: typeof DevicepageConnectedslotsRoute
+  DevicepageControlpanelRoute: typeof DevicepageControlpanelRoute
+  DevicepageControlpaneldebugRoute: typeof DevicepageControlpaneldebugRoute
   DevicepageFilamentmanualpullRoute: typeof DevicepageFilamentmanualpullRoute
   DevicepageHotenddetailRoute: typeof DevicepageHotenddetailRoute
   DevicepagePrintqueueRoute: typeof DevicepagePrintqueueRoute
@@ -403,6 +446,8 @@ const rootRouteChildren: RootRouteChildren = {
   DevicepageAmsmappinghotendRoute: DevicepageAmsmappinghotendRoute,
   DevicepageAutorefillrefillinfoRoute: DevicepageAutorefillrefillinfoRoute,
   DevicepageConnectedslotsRoute: DevicepageConnectedslotsRoute,
+  DevicepageControlpanelRoute: DevicepageControlpanelRoute,
+  DevicepageControlpaneldebugRoute: DevicepageControlpaneldebugRoute,
   DevicepageFilamentmanualpullRoute: DevicepageFilamentmanualpullRoute,
   DevicepageHotenddetailRoute: DevicepageHotenddetailRoute,
   DevicepagePrintqueueRoute: DevicepagePrintqueueRoute,
@@ -431,6 +476,8 @@ export const routeTree = rootRoute
         "/device_page/ams_mapping_hotend",
         "/device_page/auto_refill_refill_info",
         "/device_page/connected_slots",
+        "/device_page/control_panel",
+        "/device_page/control_panel_debug",
         "/device_page/filament_manual_pull",
         "/device_page/hotend_detail",
         "/device_page/print_queue"
@@ -474,6 +521,12 @@ export const routeTree = rootRoute
     },
     "/device_page/connected_slots": {
       "filePath": "device_page/connected_slots.tsx"
+    },
+    "/device_page/control_panel": {
+      "filePath": "device_page/control_panel.tsx"
+    },
+    "/device_page/control_panel_debug": {
+      "filePath": "device_page/control_panel_debug.tsx"
     },
     "/device_page/filament_manual_pull": {
       "filePath": "device_page/filament_manual_pull.tsx"

@@ -1,0 +1,657 @@
+.control-panel-page {
+  --cp-brand: #00ae42;
+  --cp-surface: #ffffff;
+  --cp-bg: #f8f8f8;
+  --cp-btn-light: #f2f2f2;
+  --cp-btn-dark: #dbdbdb;
+  --cp-border: #e5e5e5;
+  --cp-text: #1f1f1f;
+  --cp-subtle: #6b6b6b;
+  --cp-muted: #909090;
+  --cp-disabled-text: #acacac;
+  --cp-dial-outer: #eeeeee;
+  --cp-dial-inner: #cecece;
+  width: 586px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--cp-border);
+  border-radius: 5px;
+  background: var(--cp-surface);
+  color: var(--cp-text);
+  overflow: hidden;
+  font-size: 12px;
+  user-select: none;
+}
+
+[data-theme='dark'] .control-panel-page {
+  --cp-surface: #1c1f21;
+  --cp-bg: #2d3234;
+  --cp-btn-light: #363b3e;
+  --cp-btn-dark: #4a4f51;
+  --cp-border: #3a3f41;
+  --cp-text: #e5e5e5;
+  --cp-subtle: #a6a9aa;
+  --cp-muted: #8a8e90;
+  --cp-disabled-text: #6e7375;
+  --cp-dial-outer: #2d3234;
+  --cp-dial-inner: #3e4447;
+}
+
+.control-panel-page.hidden {
+  display: none;
+}
+
+.cp-section {
+  box-sizing: border-box;
+  border-right: 1px solid var(--cp-border);
+}
+
+.cp-section:last-of-type {
+  border-right: none;
+}
+
+/* ==================== Left Column: Temperature + Misc ==================== */
+
+.cp-temperature {
+  width: 158px;
+  flex-shrink: 0;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.cp-temp-list {
+  display: flex;
+  flex-direction: column;
+  flex: 3 1 0;
+}
+
+.cp-row {
+  flex: 1 1 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+  border-bottom: 1px solid var(--cp-border);
+}
+
+.cp-row-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.cp-row-label img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  display: block;
+}
+
+.cp-nozzle-badge {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #d9d9d9;
+  color: #323a3d;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.cp-temp-input {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.cp-temp-values {
+  width: 100%;
+  height: 28px;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 3px;
+  border: 1.5px solid transparent;
+  border-radius: 4px;
+  padding: 0 2px;
+  box-sizing: border-box;
+}
+
+.cp-temp-input:not(.disabled) .cp-temp-values:hover,
+.cp-temp-input:not(.disabled) .cp-temp-values:focus-within {
+  border-color: var(--cp-brand);
+}
+
+.cp-temp-current {
+  min-width: 26px;
+  text-align: right;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--cp-text);
+}
+
+.cp-temp-sep {
+  color: var(--cp-subtle);
+  font-size: 12px;
+  margin: 0 1px;
+}
+
+.cp-temp-input input {
+  width: 30px;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--cp-text);
+  text-align: right;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.cp-temp-unit {
+  color: var(--cp-subtle);
+  font-size: 14px;
+  margin-left: 2px;
+}
+
+.cp-temp-input.disabled .cp-temp-current,
+.cp-temp-input.disabled .cp-temp-sep,
+.cp-temp-input.disabled .cp-temp-unit,
+.cp-temp-input input:disabled {
+  color: var(--cp-disabled-text);
+}
+
+.cp-unclamped {
+  flex: 1;
+  color: var(--cp-muted);
+  font-size: 12px;
+  padding-left: 4px;
+}
+
+.cp-misc {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex: 2 1 0;
+}
+
+.cp-fan-button {
+  width: 100%;
+  flex: 1 1 0;
+  min-height: 44px;
+  border: 0;
+  border-bottom: 1px solid var(--cp-border);
+  background: transparent;
+  color: var(--cp-text);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cp-fan-button img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.cp-fan-button:hover:not(:disabled) {
+  background: var(--cp-bg);
+}
+
+.cp-fan-button:disabled {
+  color: var(--cp-disabled-text);
+  cursor: default;
+}
+
+.cp-misc-bottom {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 0;
+  min-height: 48px;
+}
+
+.cp-speed-button,
+.cp-lamp-button {
+  flex: 1 1 0;
+  min-height: 48px;
+  border: 0;
+  background: transparent;
+  color: var(--cp-text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 2px 0;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cp-speed-button {
+  border-right: 1px solid var(--cp-border);
+}
+
+.cp-speed-button img,
+.cp-lamp-button img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.cp-speed-button strong {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cp-speed-button:hover:not(:disabled),
+.cp-lamp-button:hover:not(:disabled) {
+  background: var(--cp-bg);
+}
+
+.cp-speed-button:disabled,
+.cp-lamp-button:disabled {
+  color: var(--cp-disabled-text);
+  cursor: default;
+}
+
+/* ==================== Center Column: XY Dial + Z / Rack ==================== */
+
+.cp-motion {
+  position: relative;
+  width: 294px;
+  flex-shrink: 0;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.cp-debug-btn {
+  position: absolute;
+  right: 8px;
+  bottom: 50px;
+  z-index: 3;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid #c2c2c2;
+  border-radius: 9999px;
+  background: var(--cp-surface);
+  color: var(--cp-text);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.cp-debug-btn:hover:not(:disabled) {
+  background: var(--cp-bg);
+}
+
+.cp-debug-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.cp-axis-dial {
+  position: relative;
+  width: 214px;
+  height: 214px;
+  flex-shrink: 0;
+}
+
+.cp-axis-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.cp-dial-sector.outer {
+  fill: var(--cp-dial-outer);
+  cursor: pointer;
+  transition: fill 0.1s ease;
+}
+
+.cp-dial-sector.inner {
+  fill: var(--cp-dial-inner);
+  cursor: pointer;
+  transition: fill 0.1s ease;
+}
+
+.cp-dial-sector.disabled {
+  cursor: default;
+}
+
+.cp-dial-sector.hovered {
+  stroke: var(--cp-brand);
+  stroke-width: 2px;
+}
+
+.cp-dial-sector:active:not(.disabled) {
+  fill: #acacac;
+}
+
+.cp-dial-gaps rect {
+  fill: var(--cp-surface);
+}
+
+.cp-dial-center-gap {
+  fill: var(--cp-surface);
+}
+
+.cp-dial-home-circle {
+  fill: var(--cp-dial-outer);
+  transition: stroke 0.1s ease;
+}
+
+.cp-dial-home-circle.hovered {
+  stroke: var(--cp-brand);
+  stroke-width: 2px;
+}
+
+.cp-dial-axis-labels text {
+  fill: var(--cp-subtle);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.cp-dial-step-labels text {
+  fill: var(--cp-subtle);
+  font-size: 11px;
+}
+
+.cp-dial-home-btn {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cp-dial-home-btn:disabled {
+  cursor: default;
+}
+
+.cp-dial-home-btn img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: block;
+}
+
+.cp-z-stack {
+  width: 236px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cp-z-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.cp-step-btn {
+  width: 48px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 0;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--cp-subtle);
+  cursor: pointer;
+}
+
+.cp-step-btn.light {
+  background: var(--cp-btn-light);
+}
+
+.cp-step-btn.dark {
+  background: var(--cp-btn-dark);
+}
+
+.cp-step-btn:hover:not(:disabled) {
+  border-color: var(--cp-brand);
+}
+
+.cp-step-btn:disabled {
+  color: var(--cp-disabled-text);
+  cursor: default;
+}
+
+.cp-step-btn img {
+  width: 15px;
+  height: 15px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.cp-z-label {
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--cp-muted);
+  white-space: nowrap;
+}
+
+.cp-rack-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cp-rack-title {
+  font-size: 12px;
+  color: var(--cp-muted);
+  white-space: nowrap;
+}
+
+.cp-rack-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cp-rack-btn {
+  width: 55px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cp-rack-btn.light {
+  background: var(--cp-btn-light);
+}
+
+.cp-rack-btn.dark {
+  background: var(--cp-btn-dark);
+}
+
+.cp-rack-btn:hover:not(:disabled) {
+  border-color: var(--cp-brand);
+}
+
+.cp-rack-btn:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.cp-rack-btn img {
+  width: 15px;
+  height: 15px;
+  object-fit: contain;
+}
+
+/* ==================== Right Column: Toolhead & Extruder ==================== */
+
+.cp-extruder {
+  width: 132px;
+  flex-shrink: 0;
+  padding: 14px 8px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cp-extruder-switch {
+  display: flex;
+  border: 1px solid var(--cp-brand);
+  border-radius: 13px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.cp-extruder-switch button {
+  min-width: 52px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  color: var(--cp-text);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.cp-extruder-switch button.active {
+  background: var(--cp-brand);
+  color: #ffffff;
+}
+
+.cp-extruder-body {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.cp-extruder-arrow {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cp-extruder-arrow:disabled {
+  cursor: default;
+}
+
+.cp-extruder-arrow img {
+  width: 40px;
+  height: 40px;
+  display: block;
+}
+
+.cp-nozzle-info {
+  min-height: 54px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--cp-text);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.cp-nozzle-index-circle {
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  border-radius: 50%;
+  background: var(--cp-brand);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.cp-extruder-icon {
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+  display: block;
+}
+
+.cp-toolhead-art {
+  position: relative;
+  width: 72px;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cp-rack-toolhead {
+  width: 72px;
+  height: 110px;
+  object-fit: contain;
+  display: block;
+}
+
+.cp-toolhead-overlay {
+  position: absolute;
+  inset: 0;
+  width: 72px;
+  height: 110px;
+  pointer-events: none;
+}
+
+.cp-error {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 4px;
+  color: #d9534f;
+  font-size: 11px;
+}

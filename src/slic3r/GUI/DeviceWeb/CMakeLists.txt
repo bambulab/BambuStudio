@@ -391,6 +391,16 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/PageConnectedSlots.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/PageConnectedSlots.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/Schema.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/ViewModel.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/ViewModel.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/ViewModelActions.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/ViewModelActions.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/ViewModelExtruderStateBuilder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/ViewModelExtruderStateBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/ViewModelStateBuilder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/ViewModelStateBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/Schema.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/Schema2Json.cpp
     GUI/DeviceWeb/ViewModels/PrintQueue/PrintQueueVM.cpp
     GUI/DeviceWeb/ViewModels/PrintQueue/PrintQueueVM.hpp
 )

@@ -76,6 +76,10 @@
 #include "DeviceTab/FilamentHotend/wgtHotendRackControl.h"
 #include "DeviceTab/wgtDeviceAutoRefillWebDialog.h"
 #include "DeviceTab/wgtRackExtruder.h"
+#include "DeviceTab/ControlPanel/ControlPanelWebEnable.hpp"
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+#include "DeviceTab/ControlPanel/wgtDeviceControlPanelWebPanel.h"
+#endif
 #if BBL_ENABLE_AMS_CONTROL_WEB
 #include "DeviceTab/AmsControl/wgtAmsControlWebPanel.h"
 #endif
@@ -2662,6 +2666,17 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
 
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(8));
     bSizer_control->Add(temp_axis_ctrl_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+    m_control_panel_web_panel = new wgtDeviceControlPanelWebPanel(parent);
+    m_control_panel_web_panel->Hide();
+    bSizer_control->Add(m_control_panel_web_panel, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
+    if (control_panel_use_web()) {
+        if (m_temp_axis_ctrl_box) {
+            m_temp_axis_ctrl_box->Hide();
+        }
+        m_control_panel_web_panel->ShowAndLoad();
+    }
+#endif
     bSizer_control->Add(m_ams_rack_switch, 0, wxALIGN_CENTRE | wxTOP, FromDIP(6));
 #if BBL_ENABLE_AMS_CONTROL_WEB
     bSizer_control->Add(m_ams_control_web_switch, 0, wxALIGN_CENTRE | wxTOP, FromDIP(6));
@@ -4184,6 +4199,11 @@ void StatusPanel::update(MachineObject *obj)
 
     update_temp_ctrl(obj);
     update_misc_ctrl(obj);
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+    if (m_control_panel_web_panel && control_panel_use_web()) {
+        m_control_panel_web_panel->UpdateByMachine(obj);
+    }
+#endif
 
     update_calib_history(obj);
     update_ams(obj);

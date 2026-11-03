@@ -20,6 +20,7 @@
 #include "ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendVM.hpp"
 #include "ViewModels/DevicePage/AutoRefill_RefillInfo/ViewModel.hpp"
 #include "ViewModels/DevicePage/ConnectedSlots/ViewModel.hpp"
+#include "ViewModels/DevicePage/ControlPanel/ViewModel.hpp"
 #include "ViewModels/PrintQueue/PrintQueueVM.hpp"
 #include "slic3r/GUI/PrinterWebView.hpp"
 #include "slic3r/GUI/Widgets/WebViewWatcher.hpp"
@@ -34,6 +35,7 @@ enum class DeviceWebHostMode {
     DevicePageAmsMappingHotend,
     DevicePageAutoRefillRefillInfo,
     DevicePageConnectedSlots,
+    DevicePageControlPanel,
     PrintQueue,
     AllForDebug
 };
@@ -69,6 +71,7 @@ public:
     void NotifyDeviceFilamentChanged();
     void NotifyAmsMappingChanged();
     void NotifyAmsControlWebChanged();
+    void NotifyControlPanelChanged();
     // Dispatch a JSON-RPC command directly to the matching ViewModel (fire-and-forget).
     // body must contain: module, submod, action, payload.
     void DispatchCommand(const nlohmann::json& body);
