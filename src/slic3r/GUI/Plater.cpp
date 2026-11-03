@@ -4919,6 +4919,7 @@ struct FilamentNozzleSlotState {
     // creating it. A system filament's variant list is complete, so the same symptom means the
     // material genuinely cannot print there and no new preset would change that.
     bool             custom_preset = false;
+    bool             flow_unprintable = false;
 };
 
 static FilamentNozzleSlotState filament_nozzle_slot_state(PresetBundle *preset_bundle, PartPlate *plate, size_t idx)
@@ -4960,19 +4961,30 @@ static FilamentNozzleSlotState filament_nozzle_slot_state(PresetBundle *preset_b
         }
     }
 
+    const bool flow_printable = is_nozzle_printable_for_filament(state.type, filament_variants, variants_complete);
+    state.flow_unprintable = !flow_printable;
+
     state.stored_installed = preset_bundle->get_installed_nozzle_variants().count(
         std::make_pair(state.diameter, state.type)) != 0;
-    // Telling the user to add this nozzle is only an answer when adding it would actually help, so
-    // the question is not "is it installed" but "would installing it fix the slot". A filament that
-    // declares only one specialised flow, parked on a flow the rack does not carry, fails both -- yet
-    // adding that flow changes nothing, because the filament cannot print in it at any diameter. That
-    // belongs in "the filament does not support this nozzle" instead.
-    const bool flow_printable = is_nozzle_printable_for_filament(state.type, filament_variants, variants_complete);
-    // ... and whether such a nozzle is made at all. A slot can name a pairing that exists in no
-    // diameter but one, and sending the user off to add it leads to a dialog that will not offer it.
-    // That is the filament not suiting the nozzle settings, which the other wording already says.
-    state.missing = !state.stored_installed && flow_printable &&
-                    nozzle_variant_exists(state.diameter, state.type);
+    if (per_slot_diameters) {
+        // Telling the user to add this nozzle is only an answer when adding it would actually help, so
+        // the question is not "is it installed" but "would installing it fix the slot". A filament that
+        // declares only one specialised flow, parked on a flow the rack does not carry, fails both -- yet
+        // adding that flow changes nothing, because the filament cannot print in it at any diameter. That
+        // belongs in "the filament does not support this nozzle" instead.
+        // ... and whether such a nozzle is made at all. A slot can name a pairing that exists in no
+        // diameter but one, and sending the user off to add it leads to a dialog that will not offer it.
+        // That is the filament not suiting the nozzle settings, which the other wording already says.
+        state.missing = !state.stored_installed && flow_printable &&
+                        nozzle_variant_exists(state.diameter, state.type);
+    } else {
+        // Outside multi-diameter mode the slot's flow is not a user choice -- it is the auto-grouping
+        // algorithm's assignment, which never puts a filament on a flow it cannot print. So a system
+        // filament flagged here is never genuinely mismatched; the nozzle the group picked is simply
+        // not in the nozzle settings. Only a custom filament (no preset at all for that flow) can still
+        // be a real mismatch, which the no_preset bucket already covers.
+        state.missing = !state.stored_installed && !state.custom_preset;
+    }
     return state;
 }
 
@@ -5026,8 +5038,13 @@ void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
                 // settings -- so the wording below would point at the wrong thing. Naming the nozzle
                 // would too: it is the one that is missing. The other two reasons share that wording;
                 // the corner notifications are where each gets its own instruction.
-                if (state.missing)
-                    append_tip(_L("The current nozzle settings have no nozzle of this type"));
+                const bool force_unsupported = per_slot_nozzles && state.flow_unprintable;
+                const bool force_missing     = !per_slot_nozzles && state.flow_unprintable;
+                const bool show_as_missing   = force_missing || (state.missing && !force_unsupported);
+                if (show_as_missing)
+                    append_tip(per_slot_nozzles
+                        ? _L("The current nozzle settings have no nozzle of this type")
+                        : _L("The current nozzle settings have no nozzle that fits this filament"));
                 else
                     append_tip(per_slot_nozzles && !state.diameter.empty()
                         ? wxString::Format(_L("This filament does not support printing with the %s nozzle"), nozzle_name)
@@ -8775,27 +8792,6 @@ void Sidebar::update_incompatible_nozzle_notifications()
     FlaggedSlots unsupported; // the filament itself cannot print on that nozzle -- change one of them
     FlaggedSlots missing;     // printer carries no nozzle of that kind -- add it in the nozzle settings
     FlaggedSlots no_preset;   // custom filament with no preset for that nozzle -- create one
-    if (!incompatible_now.empty()) {
-        // Same classification as the row tooltip (filament_nozzle_slot_state).
-        for (size_t idx : incompatible_now) {
-            const FilamentNozzleSlotState state = filament_nozzle_slot_state(preset_bundle, plate, idx);
-            const std::string &diameter = state.diameter;
-            const NozzleVolumeType type = state.type;
-            const bool nozzle_is_missing = state.missing;
-
-            // Order matters: a slot pointing at a nozzle that is simply not installed is the same
-            // problem whoever made the filament, so that case is answered before asking who did.
-            FlaggedSlots &bucket = nozzle_is_missing ? missing
-                                 : state.custom_preset ? no_preset
-                                                       : unsupported;
-            // Always the slot's own nozzle, even when that nozzle is not installed: it is what the
-            // row's chip shows and what the slot is configured for, so the sentence still reads true.
-            // Listing every installed nozzle instead (what this did while the list was a deduped set)
-            // cannot work once each slot needs exactly one nozzle opposite it.
-            bucket.slots.push_back(wxString::Format("%d", (int) idx + 1));
-            bucket.nozzles.push_back(nozzle_desc(diameter, type));
-        }
-    }
     auto slot_list = [](const FlaggedSlots &bucket) {
         wxString out;
         for (const wxString &slot : bucket.slots) {
@@ -8821,15 +8817,51 @@ void Sidebar::update_incompatible_nozzle_notifications()
     const bool per_slot_nozzles =
         multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) &&
         is_single_ext_multi_nozzle(preset_bundle->printers.get_edited_preset().config);
+
+    if (!incompatible_now.empty()) {
+        // Same classification as the row tooltip (filament_nozzle_slot_state).
+        for (size_t idx : incompatible_now) {
+            const FilamentNozzleSlotState state = filament_nozzle_slot_state(preset_bundle, plate, idx);
+            const std::string &diameter = state.diameter;
+            const NozzleVolumeType type = state.type;
+            const bool nozzle_is_missing = state.missing;
+
+            // Order matters: a slot pointing at a nozzle that is simply not installed is the same
+            // problem whoever made the filament, so that case is answered before asking who did.
+            // If the flow is strictly unprintable (e.g. TPU285 on a Standard nozzle) in multi-diameter mode,
+            // the user made a bad manual choice, so it goes to unsupported.
+            // In single-diameter mode, the assigned flow is chosen by the auto-grouping algorithm.
+            // Any mismatch here is a stale value before the algorithm runs. Because the user cannot
+            // manually fix the flow in single-diameter mode, the only way to unblock a genuinely missing
+            // flow (e.g. TPU285) is to add the nozzle to the rack, so we force it to 'missing' (Add nozzle).
+            const bool force_unsupported = per_slot_nozzles && state.flow_unprintable;
+            const bool force_missing     = !per_slot_nozzles && state.flow_unprintable;
+            FlaggedSlots &bucket = force_unsupported ? unsupported
+                                 : force_missing     ? missing
+                                 : nozzle_is_missing ? missing
+                                 : state.custom_preset ? no_preset
+                                                       : unsupported;
+            // Always the slot's own nozzle, even when that nozzle is not installed: it is what the
+            // row's chip shows and what the slot is configured for, so the sentence still reads true.
+            // Listing every installed nozzle instead (what this did while the list was a deduped set)
+            // cannot work once each slot needs exactly one nozzle opposite it.
+            bucket.slots.push_back(wxString::Format("%d", (int) idx + 1));
+            bucket.nozzles.push_back(nozzle_desc(diameter, type));
+        }
+    }
+
     const std::string unsupported_text = unsupported.slots.empty() ? std::string() :
         into_u8(per_slot_nozzles
             ? wxString::Format(_L("Filament %s is not configured for the %s nozzle. Please change the nozzle or the filament before use."),
                                slot_list(unsupported), nozzle_list(unsupported))
             : wxString::Format(_L("Filament %s is not configured for the current nozzle settings. Please change the nozzle or the filament before use."),
                                slot_list(unsupported)));
-    const std::string missing_text = missing.slots.empty() ? std::string() : into_u8(wxString::Format(
-        _L("Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."),
-        slot_list(missing), nozzle_list(missing)));
+    const std::string missing_text = missing.slots.empty() ? std::string() :
+        into_u8(per_slot_nozzles
+            ? wxString::Format(_L("Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."),
+                               slot_list(missing), nozzle_list(missing))
+            : wxString::Format(_L("Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."),
+                               slot_list(missing)));
     const std::string no_preset_text = no_preset.slots.empty() ? std::string() :
         into_u8(per_slot_nozzles
             ? wxString::Format(_L("Filament %s has no preset for the %s nozzle. Please create the matching filament preset."),

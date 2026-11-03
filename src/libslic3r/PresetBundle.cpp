@@ -50,6 +50,12 @@
 
 namespace Slic3r {
 
+// Settles a slot's filament_volume_map entry onto a flow the slot's current filament preset can
+// actually use at its current (or, failing that, first available) diameter. Called wherever a slot's
+// filament preset is substituted with no user intent behind the substitution -- see the callers for
+// why each one qualifies.
+static void settle_filament_slot_flow(PresetBundle &bundle, size_t idx);
+
 static std::vector<std::string> s_project_options {
     "flush_volumes_vector",
     "flush_volumes_matrix",
@@ -800,6 +806,10 @@ void PresetBundle::reset_project_embedded_presets()
                 filament_presets[i] = prefered_filament_profile;
             else
             filament_presets[i] = this->filaments.first_visible().name;
+            // The embedded preset this slot had is gone along with its project; nothing here is a
+            // user choice to preserve, including whatever flow it happened to be sitting on, which
+            // may not even exist for the filament that just replaced it (see settle_filament_slot_flow()).
+            settle_filament_slot_flow(*this, i);
         }
     }
 }
@@ -3894,6 +3904,36 @@ static std::vector<std::string> get_filament_nozzle_diameter_options(
     return result;
 }
 
+static void settle_filament_slot_flow(PresetBundle &bundle, size_t idx)
+{
+    ConfigOptionInts *volume_map = bundle.project_config.option<ConfigOptionInts>("filament_volume_map");
+    if (volume_map == nullptr)
+        return;
+    if (idx >= volume_map->values.size())
+        volume_map->values.resize(idx + 1, static_cast<int>(nvtStandard));
+
+    const auto printer_name_to_diameter = build_printer_name_to_diameter(bundle);
+    const auto configured                = collect_configured_nozzle_diameters(bundle);
+    const auto options = get_filament_nozzle_diameter_options(bundle, idx, printer_name_to_diameter, configured);
+    if (options.empty())
+        return;
+
+    const auto *selected_diameters = bundle.project_config.option<ConfigOptionStrings>("filament_diameter_map");
+    std::string target_diameter = (selected_diameters != nullptr && idx < selected_diameters->values.size()) ?
+        selected_diameters->values[idx] : std::string();
+    if (target_diameter.empty() ||
+        std::find(options.begin(), options.end(), target_diameter) == options.end())
+        target_diameter = options.front();
+
+    const auto installed = collect_installed_nozzle_variants(bundle);
+    const auto flows      = get_filament_nozzle_flow_options(bundle, idx, target_diameter, installed);
+    if (flows.empty())
+        return;
+    const NozzleVolumeType current_flow = static_cast<NozzleVolumeType>(volume_map->values[idx]);
+    if (std::find(flows.begin(), flows.end(), current_flow) == flows.end())
+        volume_map->values[idx] = static_cast<int>(flows.front());
+}
+
 // Repairs filament_volume_map so every slot's flow is one the rack carries at that slot's nozzle
 // diameter and that the slot's filament can print. Only invoked where the filament panel's per-slot
 // selector owns the flow; everywhere else the map is still a grouping result.
@@ -4475,10 +4515,15 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
         // That leftover is still "installed" on a rack, so the usual checks below would treat the
         // slot as fine (or AMS sync would move it onto options.front()). Hold the red mark until
         // the stored diameter is actually in this filament's option list.
-        if (was_marked_incompatible(i)) {
+        //
+        // An empty stored value is not such a leftover though -- set_filament_preset() blanks it on
+        // any filament swap that is not just a diameter-variant change, including swapping back to
+        // the very filament this slot was red for in the first place. Carrying the red mark over here
+        // would skip the empty-diameter fallback below and leave the slot stuck red until the user
+        // re-picks a nozzle by hand, even though nothing about the new selection is actually wrong.
+        if (was_marked_incompatible(i) && !selected->values[i].empty()) {
             const std::string stored = format_diameter_to_str(string_to_double_decimal_point(selected->values[i].c_str()));
-            if (stored.empty() ||
-                std::find(options.begin(), options.end(), stored) == options.end()) {
+            if (std::find(options.begin(), options.end(), stored) == options.end()) {
                 incompatible_nozzle_diameter_slots.push_back(i);
                 continue;
             }
@@ -7218,8 +7263,19 @@ private:
 
 // Replaces each built-in default filament slot with the printer's preferred filament for that slot.
 // Returns true if any slot changed.
-bool replace_default_filament_slots(const PresetCollection &filaments, std::vector<std::string> &slots, const std::vector<std::string> &prefered_names)
+//
+// A slot here never had a user choice behind it -- it is still the system default, waiting for this
+// one-time substitution to give it a real material. So unlike every other filament swap (which leaves
+// the slot's stored diameter/flow alone and lets validation flag a genuine mismatch -- see
+// PresetBundle::set_filament_preset()), there is no prior user intent to preserve: a flow left over
+// from whatever this printer preset's defaults happened to carry (e.g. a project-embedded TPU285
+// filament this slot never got to pick) would otherwise outlive the swap and immediately flag the
+// slot red. Settle it onto a flow the new filament can actually use instead.
+bool replace_default_filament_slots(PresetBundle &bundle, const std::vector<std::string> &prefered_names)
 {
+    const PresetCollection   &filaments = bundle.filaments;
+    std::vector<std::string> &slots     = bundle.filament_presets;
+
     bool changed = false;
     for (size_t idx = 0; idx < slots.size(); ++idx) {
         const Preset *preset = filaments.find_preset(slots[idx], false);
@@ -7232,6 +7288,7 @@ bool replace_default_filament_slots(const PresetCollection &filaments, std::vect
         BOOST_LOG_TRIVIAL(info) << "[default-preset] filament slot " << idx << ": replace \"" << slots[idx] << "\" with \"" << replacement.name << "\"";
         slots[idx] = replacement.name;
         changed    = true;
+        settle_filament_slot_flow(bundle, idx);
     }
     return changed;
 }
@@ -7272,7 +7329,7 @@ bool PresetBundle::replace_default_presets()
     const ConfigOptionStrings *prefered_filaments = printer.config.option<ConfigOptionStrings>("default_filament_profile");
     if (prefered_filaments == nullptr || prefered_filaments->values.empty()) return changed;
 
-    if (replace_default_filament_slots(filaments, filament_presets, prefered_filaments->values)) {
+    if (replace_default_filament_slots(*this, prefered_filaments->values)) {
         if (filaments.get_edited_preset().is_default)
             filaments.select_preset_by_name(filament_presets.front(), true);
         changed = true;
@@ -7607,45 +7664,23 @@ void PresetBundle::set_filament_preset(size_t idx, const std::string &name)
         BOOST_LOG_TRIVIAL(warning) << boost::format("Warning: set_filament_preset out of range %1% - %2%") % idx % filament_presets.size();
         return;
     }
-    const std::string old_name = filament_presets[idx];
-    const Preset *old_preset = filaments.find_preset(old_name, false);
     filament_presets[idx] = Preset::remove_suffix_modified(name);
 
     auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map");
     if (selected == nullptr)
         return;
     selected->values.resize(filament_presets.size());
-    const std::string previous_diameter = selected->values[idx];
 
-    const Preset *preset = filaments.find_preset(filament_presets[idx], false);
-    if (preset == nullptr) {
+    if (filaments.find_preset(filament_presets[idx], false) == nullptr)
         selected->values[idx].clear();
-        return;
-    }
-
-    const std::string printer_model = printers.get_edited_preset().config.opt_string("printer_model");
-    std::map<std::string, std::string> printer_name_to_diameter;
-    for (auto it = printers.begin(); it != printers.end(); ++it) {
-        if (it->config.opt_string("printer_model") != printer_model)
-            continue;
-        const double diameter = string_to_double_decimal_point(it->config.opt_string("printer_variant").c_str());
-        if (diameter > 0.0)
-            printer_name_to_diameter[it->name] = format_diameter_to_str(diameter);
-    }
-
-    const auto native_diameters = filament_preset_diameters_for_model(*preset, printer_name_to_diameter);
-    // Selecting a sibling diameter variant of the same filament is an explicit diameter choice.
-    // Re-selecting the current preset keeps the choice, while changing to a different material clears it
-    // so validation cannot silently select a sibling variant using the previous material's diameter.
-    if (old_name == filament_presets[idx])
-        selected->values[idx] = previous_diameter;
-    else if (old_preset != nullptr && ! preset->filament_id.empty() &&
-             old_preset->filament_id == preset->filament_id) {
-        selected->values[idx] = native_diameters.size() == 1 ?
-            *native_diameters.begin() : previous_diameter;
-    } else {
-        selected->values[idx].clear();
-    }
+    // Picking a different material for this slot is not a diameter choice, so the slot's diameter
+    // stays exactly as it was -- clearing it here used to make validate_filament_nozzle_diameter_selections()
+    // fall back to the smallest installed diameter (get_filament_nozzle_diameter_options() sorts
+    // ascending), silently moving the slot off a larger nozzle it was perfectly happy on (e.g. a
+    // TPU285 filament on 0.4 swapped for a PLA that also prints at 0.4, landing on 0.2 instead because
+    // that happened to be the smallest nozzle installed). Leaving the stored value alone instead lets
+    // validate_filament_nozzle_diameter_selections() flag the slot red if the new material genuinely
+    // cannot use it, same as it already does for any other stored-but-unsupported diameter.
 }
 
 void PresetBundle::set_default_suppressed(bool default_suppressed)
