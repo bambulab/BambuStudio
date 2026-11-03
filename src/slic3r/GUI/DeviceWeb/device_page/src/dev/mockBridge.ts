@@ -31,6 +31,8 @@ import { mockAmsMappingHotendState } from '../features/device-page/ams-mapping-h
 import { mockAutoRefillRefillInfoState } from '../features/device-page/auto-refill-refill-info/mockData';
 import { mockControlPanelState } from '../features/device-page/control-panel/mockData';
 import type { ControlPanelState } from '../features/device-page/control-panel/types';
+import { mockHotendRackState } from '../features/device-page/hotend-rack/mockData';
+import type { HotendRackState } from '../features/device-page/hotend-rack/types';
 
 interface RequestPacket {
   head: { version: string; type: string; seq: number; ts: number };
@@ -41,6 +43,7 @@ const SDK_VERSION = '1.0';
 
 let amsControlWebMockState: AmsControlWebViewModel = mockAmsControlWebState;
 let controlPanelMockState: ControlPanelState = mockControlPanelState;
+let hotendRackMockState: HotendRackState = mockHotendRackState;
 
 // --- Mock catalogue ---------------------------------------------------------
 
@@ -630,6 +633,44 @@ function handleRequest(pkt: RequestPacket) {
         web_trace: (payload as Record<string, unknown>).web_trace ?? [],
         cpp_trace: [],
         dialog_cpp_state: controlPanelMockState,
+      }));
+      return;
+    }
+  }
+  if (module === 'device_page_hotend_rack') {
+    if (submod === 'state' && (action === 'get' || action === 'init')) {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, hotendRackMockState));
+      return;
+    }
+    if (submod === 'action') {
+      if (action === 'move_row') {
+        const row = String((payload as Record<string, unknown>).row ?? 'A');
+        hotendRackMockState = {
+          ...hotendRackMockState,
+          display: {
+            ...hotendRackMockState.display,
+            rack: {
+              ...hotendRackMockState.display.rack,
+              position: row === 'B' ? 'b_top' : 'a_top',
+              rows: hotendRackMockState.display.rack.rows.map((item) => ({
+                ...item,
+                raised: item.id === row,
+                move_control: { enabled: item.id !== row, disabled_reason: '' },
+              })).sort((a, b) => (a.raised === b.raised ? 0 : a.raised ? -1 : 1)),
+            },
+          },
+        };
+      }
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, hotendRackMockState));
+      dispatchReport(makeModuleOk(module, 'state', 'changed', hotendRackMockState));
+      return;
+    }
+    if (submod === 'debug') {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, {
+        created_ts: Date.now(),
+        cpp_state: hotendRackMockState,
+        web_state: (payload as Record<string, unknown>).web_state ?? {},
+        cpp_trace: [],
       }));
       return;
     }

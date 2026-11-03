@@ -62,6 +62,7 @@ class MessageDialog;
 class wgtDeviceFilamentHotendWebDialog;
 class wgtDeviceFilamentHotendHtmlDialog;
 class wgtDeviceNozzleRack;
+class wgtDeviceHotendRackWebPanel;
 #if BBL_ENABLE_CONTROL_PANEL_WEB
 class wgtDeviceControlPanelWebPanel;
 #endif
@@ -596,6 +597,7 @@ protected:
     wxStaticBitmap* m_bitmap_extruder_img;
 
     wgtDeviceNozzleRack* m_panel_nozzle_rack{ nullptr };
+    wgtDeviceHotendRackWebPanel* m_hotend_rack_web_panel{ nullptr };
 
     wxPanel *       m_panel_separator_right;
     wxPanel *       m_panel_separotor_bottom;

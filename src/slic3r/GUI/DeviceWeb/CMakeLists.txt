@@ -401,6 +401,14 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/ViewModelStateBuilder.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/Schema.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/Schema2Json.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/HotendRack/ViewModel.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/HotendRack/ViewModel.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/HotendRack/ViewModelActions.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/HotendRack/ViewModelActions.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/HotendRack/ViewModelStateBuilder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/HotendRack/ViewModelStateBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/HotendRack/Schema.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/HotendRack/Schema2Json.cpp
     GUI/DeviceWeb/ViewModels/PrintQueue/PrintQueueVM.cpp
     GUI/DeviceWeb/ViewModels/PrintQueue/PrintQueueVM.hpp
 )

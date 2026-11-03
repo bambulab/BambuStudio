@@ -1,0 +1,122 @@
+#include "ViewModel.hpp"
+
+#include "ViewModelActions.hpp"
+#include "ViewModelStateBuilder.hpp"
+
+#include "slic3r/GUI/DeviceWeb/DeviceWebBridge.hpp"
+#include "slic3r/GUI/DeviceCore/DevManager.h"
+#include "slic3r/GUI/GUI_App.hpp"
+
+#include "libslic3r/Log.hpp"
+
+#include <chrono>
+#include <utility>
+
+namespace Slic3r { namespace GUI {
+
+nlohmann::json DevicePageHotendRackVM::OnCommand(const std::string& submod,
+                                                 const std::string& action,
+                                                 const nlohmann::json& payload)
+{
+    try {
+        if (submod == "state" && (action == "get" || action == "init")) {
+            return MakeResponse(GetModule(), submod, action, 0, "", BuildState());
+        }
+        if (submod == "action") {
+            return HandleAction(action, payload);
+        }
+#if !BBL_RELEASE_TO_PUBLIC
+        if (submod == "debug") {
+            return HandleDebug(action, payload);
+        }
+#endif
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << "hotend rack web exception: " << e.what();
+        return MakeResponse(GetModule(), submod, action, 2, e.what(), BuildState());
+    }
+
+    return MakeResponse(GetModule(), submod, action, 1, "unknown hotend rack command", BuildState());
+}
+
+nlohmann::json DevicePageHotendRackVM::HandleAction(const std::string& action, const nlohmann::json& payload)
+{
+    MachineObject* machine_obj = wxGetApp().getDeviceManager()
+        ? wxGetApp().getDeviceManager()->get_selected_machine()
+        : nullptr;
+
+    if (auto handled = HotendRackActionHandler::TryHandle(*this, action, payload, machine_obj))
+        return std::move(handled.value());
+
+    return MakeResponse(GetModule(), "action", action, 1, "unknown hotend rack action", BuildState());
+}
+
+nlohmann::json DevicePageHotendRackVM::BuildState() const
+{
+    MachineObject* machine_obj = wxGetApp().getDeviceManager()
+        ? wxGetApp().getDeviceManager()->get_selected_machine()
+        : nullptr;
+    return HotendRack::BuildState(machine_obj);
+}
+
+nlohmann::json DevicePageHotendRackVM::BuildDebugSnapshot(const nlohmann::json& payload) const
+{
+    nlohmann::json snapshot;
+    snapshot["created_ts"] = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    snapshot["cpp_state"] = BuildState();
+    snapshot["web_state"] = payload.value("web_state", nlohmann::json::object());
+    snapshot["cpp_trace"] = m_bridge ? m_bridge->RecentTrace() : nlohmann::json::array();
+    return snapshot;
+}
+
+nlohmann::json DevicePageHotendRackVM::HandleDebug(const std::string& action, const nlohmann::json& payload)
+{
+#if !BBL_RELEASE_TO_PUBLIC
+    if (action == "open_bridge_trace" || action == "snapshot")
+        return MakeResponse(GetModule(), "debug", action, 0, "", BuildDebugSnapshot(payload));
+#else
+    (void) payload;
+#endif
+    return MakeResponse(GetModule(), "debug", action, 1, "unknown debug action", nlohmann::json::object());
+}
+
+void DevicePageHotendRackVM::ReportState(const std::string& submod, const std::string& action)
+{
+    if (!m_bridge) return;
+
+    nlohmann::json state = BuildState();
+
+    std::string state_key;
+    try {
+        state_key = state.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << "hotend rack state.dump() failed: " << e.what();
+        return;
+    }
+    if (state_key == m_last_report_state) return;
+
+    m_last_report_state = state_key;
+    m_bridge->ReportMsg(MakeResponse(GetModule(), submod, action, 0, "", state));
+}
+
+void DevicePageHotendRackVM::OnResponseSent(const nlohmann::json& response)
+{
+    const auto payload_it = response.find("payload");
+    if (payload_it == response.end()) return;
+    try {
+        m_last_report_state = payload_it->dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
+    } catch (...) {
+        m_last_report_state.clear();
+    }
+}
+
+void DevicePageHotendRackVM::OnSysColorChanged()
+{
+    if (!m_bridge) return;
+    const bool dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+    nlohmann::json data;
+    data["theme"] = dark ? "dark" : "light";
+    m_bridge->ReportMsg(MakeResponse(GetModule(), "init", "theme_changed", 0, "", data));
+}
+
+}} // namespace Slic3r::GUI

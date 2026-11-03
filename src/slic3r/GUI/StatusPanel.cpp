@@ -80,6 +80,7 @@
 #if BBL_ENABLE_CONTROL_PANEL_WEB
 #include "DeviceTab/ControlPanel/wgtDeviceControlPanelWebPanel.h"
 #endif
+#include "DeviceTab/HotendRack/wgtDeviceHotendRackWebPanel.h"
 #if BBL_ENABLE_AMS_CONTROL_WEB
 #include "DeviceTab/AmsControl/wgtAmsControlWebPanel.h"
 #endif
@@ -2652,6 +2653,10 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     m_panel_nozzle_rack->Show(false);
     ams_rack_sizer->Add(m_panel_nozzle_rack, 0, wxEXPAND | wxLEFT);
 
+    m_hotend_rack_web_panel = new wgtDeviceHotendRackWebPanel(parent);
+    m_hotend_rack_web_panel->Hide();
+    ams_rack_sizer->Add(m_hotend_rack_web_panel, 0, wxEXPAND | wxLEFT);
+
     m_ams_rack_switch = new SwitchBoard(parent, _L("Filament"), _L("Hotends"), wxSize(FromDIP(126), FromDIP(26)));
     m_ams_rack_switch->updateState("left");
     m_ams_rack_switch->Hide();
@@ -3541,7 +3546,16 @@ void StatusBasePanel::jump_to_Rack()
             m_ams_control_web_panel->HideAndSuspend();
         }
 #endif
-        m_panel_nozzle_rack->Show(true);
+        const bool use_hotend_rack_web = obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_AB;
+        m_panel_nozzle_rack->Show(!use_hotend_rack_web);
+        if (m_hotend_rack_web_panel) {
+            if (use_hotend_rack_web) {
+                m_hotend_rack_web_panel->ShowAndLoad();
+                m_hotend_rack_web_panel->UpdateByMachine(obj);
+            } else {
+                m_hotend_rack_web_panel->HideAndSuspend();
+            }
+        }
         Layout();
     }
 }
@@ -3557,6 +3571,9 @@ void StatusBasePanel::on_ams_rack_switch(wxCommandEvent &e)
         if (m_ams_control_web_active) {
             m_ams_control_box->Show(false);
             m_panel_nozzle_rack->Show(false);
+            if (m_hotend_rack_web_panel) {
+                m_hotend_rack_web_panel->HideAndSuspend();
+            }
             if (m_ams_control_web_panel) {
                 m_ams_control_web_panel->ShowAndLoad();
                 m_ams_control_web_panel->UpdateByMachine(obj);
@@ -3570,9 +3587,22 @@ void StatusBasePanel::on_ams_rack_switch(wxCommandEvent &e)
         }
 #endif
         m_ams_control_box->Show(e.GetInt() == 1 && !ams_control_use_web());
-        m_panel_nozzle_rack->Show(e.GetInt() == 0);
+        if (e.GetInt() == 0 && obj && obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_AB) {
+            m_panel_nozzle_rack->Show(false);
+            if (m_hotend_rack_web_panel) {
+                m_hotend_rack_web_panel->ShowAndLoad();
+                m_hotend_rack_web_panel->UpdateByMachine(obj);
+            }
+        } else {
+            m_panel_nozzle_rack->Show(e.GetInt() == 0);
+            if (m_hotend_rack_web_panel) {
+                m_hotend_rack_web_panel->HideAndSuspend();
+            }
+        }
         Layout();
-    } else if (!m_panel_nozzle_rack->IsShown() && e.GetInt() == 0) {
+    } else if (e.GetInt() == 0 &&
+               !m_panel_nozzle_rack->IsShown() &&
+               (!m_hotend_rack_web_panel || !m_hotend_rack_web_panel->IsShown())) {
 #if BBL_ENABLE_AMS_CONTROL_WEB
         if (m_ams_control_web_switch) {
             m_ams_control_web_switch->Show(false);
@@ -3582,7 +3612,18 @@ void StatusBasePanel::on_ams_rack_switch(wxCommandEvent &e)
         }
 #endif
         m_ams_control_box->Show(e.GetInt() == 1 && !ams_control_use_web());
-        m_panel_nozzle_rack->Show(e.GetInt() == 0);
+        if (obj && obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_AB) {
+            m_panel_nozzle_rack->Show(false);
+            if (m_hotend_rack_web_panel) {
+                m_hotend_rack_web_panel->ShowAndLoad();
+                m_hotend_rack_web_panel->UpdateByMachine(obj);
+            }
+        } else {
+            m_panel_nozzle_rack->Show(e.GetInt() == 0);
+            if (m_hotend_rack_web_panel) {
+                m_hotend_rack_web_panel->HideAndSuspend();
+            }
+        }
         Layout();
     }
 
@@ -7047,6 +7088,9 @@ void StatusPanel::set_default()
     m_ams_rack_switch->updateState("left");
     m_ams_rack_switch->Hide();
     m_panel_nozzle_rack->Hide();
+    if (m_hotend_rack_web_panel) {
+        m_hotend_rack_web_panel->HideAndSuspend();
+    }
     m_scale_panel->Hide();
     m_filament_load_box->Hide();
     m_filament_step->Hide();
@@ -7247,7 +7291,27 @@ void StatusPanel::update_rack(MachineObject *obj)
         if (m_ams_rack_switch->Show()) {
             refresh_layout = true;
         }
-        m_panel_nozzle_rack->UpdateRackInfo(obj->GetNozzleSystem()->GetNozzleRack());
+        const bool show_hotend_rack = !m_ams_rack_switch->switch_left;
+        const bool show_ams_panel = m_ams_rack_switch->switch_left && !ams_control_use_web();
+        if (m_ams_control_box->IsShown() != show_ams_panel) {
+            m_ams_control_box->Show(show_ams_panel);
+            refresh_layout = true;
+        }
+        if (m_panel_nozzle_rack->Show(false)) {
+            refresh_layout = true;
+        }
+        if (m_hotend_rack_web_panel) {
+            if (show_hotend_rack && !m_hotend_rack_web_panel->IsShown()) {
+                m_hotend_rack_web_panel->ShowAndLoad();
+                refresh_layout = true;
+            } else if (!show_hotend_rack && m_hotend_rack_web_panel->IsShown()) {
+                m_hotend_rack_web_panel->HideAndSuspend();
+                refresh_layout = true;
+            }
+            if (show_hotend_rack) {
+                m_hotend_rack_web_panel->UpdateByMachine(obj);
+            }
+        }
     } else if (obj && obj->GetNozzleRack()->IsDirectConnectedRack()) {
         if (m_ams_rack_switch->Show(false)) {
             refresh_layout = true;
@@ -7255,11 +7319,19 @@ void StatusPanel::update_rack(MachineObject *obj)
         if (m_panel_nozzle_rack->Show(false)) {
             refresh_layout = true;
         }
+        if (m_hotend_rack_web_panel && m_hotend_rack_web_panel->IsShown()) {
+            m_hotend_rack_web_panel->HideAndSuspend();
+            refresh_layout = true;
+        }
     } else {
         if (m_ams_rack_switch->Show(false)) {
             refresh_layout = true;
         }
         if (m_panel_nozzle_rack->Show(false)) {
+            refresh_layout = true;
+        }
+        if (m_hotend_rack_web_panel && m_hotend_rack_web_panel->IsShown()) {
+            m_hotend_rack_web_panel->HideAndSuspend();
             refresh_layout = true;
         }
     }
