@@ -412,7 +412,8 @@ public:
 
     // BBS. Replace title bar and menu bar with top bar.
     BBLTopbar*            m_topbar{ nullptr };
-    PrintHostQueueDialog* printhost_queue_dlg() { return m_printhost_queue_dlg; }
+    // Lazily constructed; first Show / upload / job-queue bind creates it.
+    PrintHostQueueDialog *printhost_queue_dlg();
     Plater*               m_plater { nullptr };
     //BBS: GUI refactor
     MonitorPanel*         m_monitor{ nullptr };
@@ -440,9 +441,11 @@ public:
     ParamsDialog*         m_param_dialog{ nullptr };
     //BBS
     SettingsDialog        m_settings_dialog;
-    DiffPresetDialog      diff_dialog;
+    // DiffPresetDialog deep-copies PresetBundle twice; create on first compare.
+    std::unique_ptr<DiffPresetDialog> m_diff_dialog;
+    DiffPresetDialog &diff_dialog();
     wxWindow*             m_plater_page{ nullptr };
-    PrintHostQueueDialog* m_printhost_queue_dlg;
+    PrintHostQueueDialog* m_printhost_queue_dlg{nullptr};
 
     // BBS
     mutable int m_print_select{ ePrintAll };

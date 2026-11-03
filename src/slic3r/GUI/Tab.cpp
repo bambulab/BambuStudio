@@ -7761,7 +7761,7 @@ void Tab::OnKeyDown(wxKeyEvent& event)
 
 void Tab::compare_preset()
 {
-    wxGetApp().mainframe->diff_dialog.show(m_type);
+    wxGetApp().mainframe->diff_dialog().show(m_type);
 }
 
 // Save the current preset into file.
@@ -7921,8 +7921,9 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
             wxGetApp().get_tab(preset_type)->update_tab_ui();
     }
 
-    // update preset comboboxes in DiffPresetDlg
-    wxGetApp().mainframe->diff_dialog.update_presets(m_type);
+    // update preset comboboxes in DiffPresetDlg (skip if never opened)
+    if (wxGetApp().mainframe->m_diff_dialog)
+        wxGetApp().mainframe->m_diff_dialog->update_presets(m_type);
 }
 
 // Called for a currently selected preset.

@@ -227,13 +227,15 @@ static const wxString ctrl = _L("Ctrl+");
 
 MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_STYLE, "mainframe")
-    , m_printhost_queue_dlg(new PrintHostQueueDialog(this))
     // BBS
     , m_recent_projects(18)
     , m_settings_dialog(this)
-    , diff_dialog(this)
 {
     PERF_TRACE("startup.creating_main_window");
+
+    // DiffPresetDialog / PrintHostQueueDialog are created on first use (see
+    // diff_dialog() / printhost_queue_dlg()) so startup skips dual PresetBundle
+    // copies and queue-dialog UI build.
 
 #ifdef __WXOSX__
     set_miniaturizable(GetHandle());
@@ -762,7 +764,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             return;
         }
         else if (evt.CmdDown() && evt.GetKeyCode() == 'G') { if (can_export_gcode()) { wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); } evt.Skip(); return; }
-        if (evt.CmdDown() && evt.GetKeyCode() == 'J') { m_printhost_queue_dlg->Show(); return; }
+        if (evt.CmdDown() && evt.GetKeyCode() == 'J') { printhost_queue_dlg()->Show(); return; }
         if (evt.CmdDown() && evt.GetKeyCode() == 'N') { m_plater->new_project(); return;}
         if (evt.CmdDown() && evt.GetKeyCode() == 'O') { m_plater->load_project(); return;}
         if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'S') { if (can_save_as()) m_plater->save_project(true); return;}
@@ -1074,6 +1076,20 @@ void  MainFrame::show_log_window()
 {
     m_log_window = new wxLogWindow(this, _L("Logging"), true, false);
     m_log_window->Show();
+}
+
+DiffPresetDialog &MainFrame::diff_dialog()
+{
+    if (!m_diff_dialog)
+        m_diff_dialog = std::make_unique<DiffPresetDialog>(this);
+    return *m_diff_dialog;
+}
+
+PrintHostQueueDialog *MainFrame::printhost_queue_dlg()
+{
+    if (!m_printhost_queue_dlg)
+        m_printhost_queue_dlg = new PrintHostQueueDialog(this);
+    return m_printhost_queue_dlg;
 }
 
 //BBS GUI refactor: remove unused layout new/dlg
@@ -2982,8 +2998,9 @@ void MainFrame::on_sys_color_changed()
 
     MenuFactory::sys_color_changed(m_menubar);
 
-    // update DiffPresetDialog from here, we're friends
-    diff_dialog.on_sys_color_changed();
+    // Skip if DiffPresetDialog was never opened (lazy creation).
+    if (m_diff_dialog)
+        m_diff_dialog->on_sys_color_changed();
 
     WebView::RecreateAll();
 
@@ -4964,8 +4981,9 @@ void MainFrame::RunScriptLeft(wxString js)
 
 void MainFrame::technology_changed()
 {
-    // upadte DiffDlg
-    diff_dialog.update_presets();
+    // Skip if DiffPresetDialog was never opened (lazy creation).
+    if (m_diff_dialog)
+        m_diff_dialog->update_presets();
 
     // update menu titles
     PrinterTechnology pt = plater()->printer_technology();

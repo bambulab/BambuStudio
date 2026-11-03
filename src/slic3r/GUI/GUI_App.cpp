@@ -3877,7 +3877,11 @@ bool GUI_App::on_init_inner()
 
     plater_->init_notification_manager();
 
-    m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
+    // Dialog is created on first enqueue, before the upload thread starts.
+    // Bind the frame here so a later rebuild cannot retarget that getter.
+    MainFrame* queue_frame = mainframe;
+    m_printhost_job_queue.reset(new PrintHostJobQueue(
+        [queue_frame]() { return queue_frame->printhost_queue_dlg(); }));
 
     if (is_gcode_viewer()) {
         mainframe->update_layout();
@@ -4704,10 +4708,17 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     SetTopWindow(mainframe);
 
     dlg.Update(30, _L("Rebuild") + dots);
+    // Stop the old queue before Destroy so its upload thread is not still
+    // posting to the dialog owned by the frame going away.
+    m_printhost_job_queue.reset();
+    {
+        MainFrame* queue_frame = mainframe;
+        m_printhost_job_queue.reset(new PrintHostJobQueue(
+            [queue_frame]() { return queue_frame->printhost_queue_dlg(); }));
+    }
     old_main_frame->Destroy();
 
     dlg.Update(80, _L("Loading current presets") + dots);
-    m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
     load_current_presets();
     suspend_plater_config.release();
     finish_suspended_plater_config(true);
@@ -8382,6 +8393,9 @@ bool GUI_App::check_print_host_queue()
 {
     wxString dirty;
     std::vector<std::pair<std::string, std::string>> jobs;
+    // Never created => no jobs were ever shown / tracked in the queue UI.
+    if (!mainframe->m_printhost_queue_dlg)
+        return true;
     // Get ongoing jobs from dialog
     mainframe->m_printhost_queue_dlg->get_active_jobs(jobs);
     if (jobs.empty())
