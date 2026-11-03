@@ -20,22 +20,6 @@
     "filament_change_length_nc": [
         "0"
     ],
-    "filament_cooling_before_tower": [
-        "0",
-        "0"
-    ],
-    "filament_deretraction_speed": [
-        "nil",
-        "nil"
-    ],
-    "filament_enable_overhang_speed": [
-        "1",
-        "1"
-    ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
-    ],
     "filament_flow_ratio": [
         "1",
         "1"
@@ -55,6 +39,9 @@
     "filament_retraction_length": [
         "nil",
         "0.4"
+    ],
+    "fins_extrude_safe_temp": [
+        "0"
     ],
     "include": [
         "fdm_filament_template_direct_dual",
