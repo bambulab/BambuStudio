@@ -14420,7 +14420,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                     auto callback = [](wxEvtHandler*) {
                         auto plater = wxGetApp().plater();
                         auto partplate = plater->get_partplate_list().get_curr_plate();
-                        try_pop_up_before_slice(false, plater, partplate, true); // ignore the return value
+                        try_pop_up_before_slice(false, plater, partplate, true, true); // ignore the return value
                         return false;
                     };
                     notification_manager.push_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationLevel::ErrorNotificationLevel, text,  _u8L("Click here to regroup"), callback);
