@@ -17,10 +17,6 @@
     "filament_change_length_nc": [
         "0"
     ],
-    "filament_cooling_before_tower": [
-        "0",
-        "0"
-    ],
     "filament_idle_travel_cooling_enabled": "0",
     "filament_max_volumetric_speed": [
         "21",
@@ -70,6 +66,12 @@
     ],
     "pre_start_fan_time": [
         "2"
+    ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
     ],
     "compatible_printers": [
         "Bambu Lab P3C 0.6 nozzle",
