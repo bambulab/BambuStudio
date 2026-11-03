@@ -732,6 +732,40 @@ PrintObjectRegions::BoundingBox find_modifier_volume_extents(const PrintObjectRe
 
 PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_or_parent_region_config, const DynamicPrintConfig *layer_range_config, const ModelVolume &volume, size_t num_extruders, std::vector<int>& variant_index);
 
+// The resolved region config cannot distinguish an explicit infill choice from
+// the object's default filament. Follow the same override precedence as
+// region_config_from_model_volume before deciding whether painting may replace it.
+static bool has_explicit_sparse_infill_filament(const PrintObjectRegions::LayerRangeRegions &layer_range, int region_id)
+{
+    while (region_id >= 0) {
+        const auto &region = layer_range.volume_regions[region_id];
+        const ModelVolume &volume = *region.model_volume;
+        const auto *ignore = volume.config.get().opt<ConfigOptionBool>("modifier_ignore_infill");
+        if (!(volume.is_modifier() && ignore && ignore->value)) {
+            const auto *choice = volume.config.get().opt<ConfigOptionInt>("sparse_infill_filament");
+            if (!choice)
+                choice = volume.get_object()->config.get().opt<ConfigOptionInt>("sparse_infill_filament");
+            if (volume.is_model_part() && layer_range.config)
+                if (const auto *range_choice = layer_range.config->opt<ConfigOptionInt>("sparse_infill_filament"))
+                    choice = range_choice;
+            if (choice && choice->value > 0)
+                return true;
+        }
+        region_id = region.parent;
+    }
+    return false;
+}
+
+static PrintRegionConfig painted_region_config(const PrintObjectRegions::LayerRangeRegions &layer_range, int parent_id, unsigned int filament)
+{
+    PrintRegionConfig cfg = layer_range.volume_regions[parent_id].region->config();
+    cfg.wall_filament.value = filament;
+    cfg.solid_infill_filament.value = filament;
+    if (!has_explicit_sparse_infill_filament(layer_range, parent_id))
+        cfg.sparse_infill_filament.value = filament;
+    return cfg;
+}
+
 void print_region_ref_inc(PrintRegion &r) { ++ r.m_ref_cnt; }
 void print_region_ref_reset(PrintRegion &r) { r.m_ref_cnt = 0; }
 int  print_region_ref_cnt(const PrintRegion &r) { return r.m_ref_cnt; }
@@ -821,11 +855,7 @@ bool verify_update_print_object_regions(
     // Verify and / or update PrintRegions produced by color painting.
     for (const PrintObjectRegions::LayerRangeRegions &layer_range : print_object_regions.layer_ranges)
         for (const PrintObjectRegions::PaintedRegion &region : layer_range.painted_regions) {
-            const PrintObjectRegions::VolumeRegion &parent_region   = layer_range.volume_regions[region.parent];
-            PrintRegionConfig                       cfg             = parent_region.region->config();
-            cfg.wall_filament.value    = region.extruder_id;
-            cfg.solid_infill_filament.value = region.extruder_id;
-            cfg.sparse_infill_filament.value       = region.extruder_id;
+            PrintRegionConfig cfg = painted_region_config(layer_range, region.parent, region.extruder_id);
             if (cfg != region.region->config()) {
                 // Region configuration changed.
                 if (print_region_ref_cnt(*region.region) == 0) {
@@ -1131,10 +1161,7 @@ static PrintObjectRegions* generate_print_object_regions(
             for (int parent_region_id = 0; parent_region_id < int(layer_range.volume_regions.size()); ++ parent_region_id)
                 if (const PrintObjectRegions::VolumeRegion &parent_region = layer_range.volume_regions[parent_region_id];
                     parent_region.model_volume->is_model_part() || parent_region.model_volume->is_modifier()) {
-                    PrintRegionConfig cfg = parent_region.region->config();
-                    cfg.wall_filament.value    = painted_extruder_id;
-                    cfg.solid_infill_filament.value = painted_extruder_id;
-                    cfg.sparse_infill_filament.value       = painted_extruder_id;
+                    PrintRegionConfig cfg = painted_region_config(layer_range, parent_region_id, painted_extruder_id);
                     layer_range.painted_regions.push_back({ painted_extruder_id, parent_region_id, get_create_region(std::move(cfg))});
                 }
         // Sort the regions by parent region::print_object_region_id() and extruder_id to help the slicing algorithm when applying MMU segmentation.
