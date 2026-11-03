@@ -673,7 +673,7 @@ namespace Slic3r {
             // hard limit for the travel acceleration, to which the firmware will clamp.
             float max_travel_acceleration; // mm/s^2
             float extrude_factor_override_percentage;
-            float time; // s
+            double time; // s
             struct StopTime
             {
                 unsigned int g1_line_id;

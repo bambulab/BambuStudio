@@ -506,11 +506,11 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, floa
             prepare_time += block_time;
 
         if(!g1_times_cache.empty() && g1_times_cache.back().id == block.g1_line_id)
-            g1_times_cache.back().elapsed_time = time;
+            g1_times_cache.back().elapsed_time = static_cast<float>(time);
         else
-            g1_times_cache.push_back({ block.g1_line_id, time });
+            g1_times_cache.push_back({ block.g1_line_id, static_cast<float>(time) });
         // update times for remaining time to printer stop placeholders
-        const float elapsed_time = time;
+        const float elapsed_time = static_cast<float>(time);
         auto update_elapsed_time = [block, elapsed_time](std::vector<StopTime>& times) {
             auto it_stop_time = std::lower_bound(times.begin(), times.end(), block.g1_line_id,
                 [](const StopTime& t, unsigned int value) { return t.g1_line_id < value; });
@@ -2861,7 +2861,7 @@ void GCodeProcessor::finalize(bool post_process)
     for (const auto& pause_time : normal_machine.pause_times) {
         GCodeProcessorResult::PausePrintInfo pause_info;
         pause_info.percent = normal_machine.time > 0.0f ? int(100.0f * pause_time.elapsed_time / normal_machine.time) : 0;
-        pause_info.remaining_time = int((std::max(0.0f, normal_machine.time - pause_time.elapsed_time) + 0.5f) / 60.0f);
+        pause_info.remaining_time = int((std::max(0.0, normal_machine.time - pause_time.elapsed_time) + 0.5) / 60.0);
         pause_info.layer_id = pause_time.layer_id;
         m_result.pause_printing.push_back(pause_info);
     }
@@ -2887,7 +2887,8 @@ void GCodeProcessor::finalize(bool post_process)
 
 float GCodeProcessor::get_time(PrintEstimatedStatistics::ETimeMode mode) const
 {
-    return (mode < PrintEstimatedStatistics::ETimeMode::Count) ? m_time_processor.machines[static_cast<size_t>(mode)].time : 0.0f;
+    return (mode < PrintEstimatedStatistics::ETimeMode::Count) ?
+        static_cast<float>(m_time_processor.machines[static_cast<size_t>(mode)].time) : 0.0f;
 }
 
 float GCodeProcessor::get_prepare_time(PrintEstimatedStatistics::ETimeMode mode) const
