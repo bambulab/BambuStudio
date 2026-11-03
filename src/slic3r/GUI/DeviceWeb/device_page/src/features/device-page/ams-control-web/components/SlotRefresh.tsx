@@ -23,7 +23,7 @@ export function SlotRefresh({
   onRefresh,
 }: {
   slot: SlotView;
-  onRefresh: (slot: SlotView) => void;
+  onRefresh: (slot: SlotView) => Promise<boolean>;
 }) {
   const [optimisticReading, setOptimisticReading] = useState(false);
   const playing = slot.reading || optimisticReading;
@@ -58,7 +58,11 @@ export function SlotRefresh({
         e.stopPropagation();
         if (playing) return;
         setOptimisticReading(true);
-        onRefresh(slot);
+        // A refused read never reaches tray_reading_bits, so without this the
+        // spinner would keep turning until OPTIMISTIC_READING_MS expires.
+        void onRefresh(slot).then((accepted) => {
+          if (!accepted) setOptimisticReading(false);
+        });
       }}
     >
       {playing ? (

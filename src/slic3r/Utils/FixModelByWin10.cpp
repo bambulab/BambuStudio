@@ -26,7 +26,6 @@
 #include <utility>
 
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/thread.hpp>
@@ -42,6 +41,7 @@
 
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
+#include "libslic3r/Log.hpp"
 
 extern "C"{
 	// from rapi.h
@@ -444,13 +444,19 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 	std::condition_variable			condition;
 	std::unique_lock<std::mutex>	lock(mutex);
 	struct Progress {
-		std::string 				message;
+		// Start with the first stage so the message line is never blank before the worker reports.
+		std::string 				message = L("Exporting objects");
 		int 						percent  = 0;
 		bool						updated = false;
 	} progress;
 	std::atomic<bool>				canceled = false;
 	std::atomic<bool>				finished = false;
 	progress_dialog.EnableYield(true);
+	const bool						percent_layout = progress_dialog.ShowsPercent();
+	if (percent_layout) {
+		progress_dialog.SetSubject(msg_header);
+		progress_dialog.SetGaugeTitle(_L("Repairing"));
+	}
 
 	std::vector<ModelVolume*> volumes;
 	if (volume_idx == -1)
@@ -538,6 +544,7 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 			success  = true;
 			finished = true;
 		} catch (RepairCanceledException & /* ex */) {
+			BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 			canceled = true;
 			finished = true;
 			phase = RepairProgressPhase::Reproject;
@@ -562,9 +569,10 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 		lock.unlock();
 		// decrease progress.percent value to avoid closing of the progress dialog
 		const int dialog_progress = progress_percent > 0 ? progress_percent - 1 : 0;
-		if (progress_dialog.WasCancelled() || !progress_dialog.Update(dialog_progress, msg_header + _(progress_message)))
+		const wxString stage_message = _(progress_message);
+		if (progress_dialog.WasCancelled() || !progress_dialog.Update(dialog_progress, percent_layout ? stage_message : msg_header + stage_message))
 			canceled = true;
-		else
+		else if (!percent_layout)
 			progress_dialog.Fit();
 		lock.lock();
 		condition.wait_for(lock, std::chrono::milliseconds(50), [&progress, &finished]{ return progress.updated || finished.load(); });
@@ -579,6 +587,28 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 	}
 	worker_thread.join();
 	return !canceled;
+}
+
+} // namespace Slic3r
+
+#else /* HAS_WIN10SDK */
+
+#include "FixModelByWin10.hpp"
+#include "libslic3r/Win10ModelRepair.hpp"
+
+namespace Slic3r {
+
+bool is_windows10() { return false; }
+
+bool fix_model_by_win10_sdk_gui(ModelObject &, int, GUI::ProgressDialog &, const wxString &, std::string &) { return false; }
+
+bool is_win10_model_repair_available() { return false; }
+
+bool fix_mesh_by_win10_sdk(const indexed_triangle_set&, indexed_triangle_set&, Win10RepairProgressFn, Win10RepairCancelFn, std::string* error_message)
+{
+	if (error_message)
+		*error_message = "Windows 3D repair service is not available in this build.";
+	return false;
 }
 
 } // namespace Slic3r

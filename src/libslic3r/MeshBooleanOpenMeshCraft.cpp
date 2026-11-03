@@ -5,9 +5,8 @@
 
 #include <OpenMeshCraft/OpenMeshCraftBoolean.h>
 
-#include "boost/log/trivial.hpp"
-
 #include <array>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace MeshBoolean {

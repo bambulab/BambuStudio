@@ -71,7 +71,7 @@ void InterlockingGenerator::generate_interlocking_structure(PrintObject* print_o
 {
     const auto& config = print_object->config();
     // Check if interlocking is enabled, and avoid errors like division by zero due to invalid configuration.
-    if (!config.interlocking_beam || config.interlocking_beam_layer_count < 1 || config.interlocking_depth < 1 || config.interlocking_beam_width < EPSILON ) {
+    if (!print_object->has_interlocking_beam() || config.interlocking_beam_layer_count < 1 || config.interlocking_depth < 1 || config.interlocking_beam_width < EPSILON ) {
         return;
     }
 
@@ -95,10 +95,17 @@ void InterlockingGenerator::generate_interlocking_structure(PrintObject* print_o
 
     for (size_t region_a_index = 0; region_a_index < print_object->num_printing_regions(); region_a_index++) {
         const PrintRegion& region_a      = print_object->printing_region(region_a_index);
+        if (!region_a.config().interlocking_beam.value) {
+            continue;
+        }
         const auto         extruder_nr_a = region_a.extruder(FlowRole::frExternalPerimeter);
 
         for (size_t region_b_index = region_a_index + 1; region_b_index < print_object->num_printing_regions(); region_b_index++) {
             const PrintRegion& region_b      = print_object->printing_region(region_b_index);
+            // Beams are only generated between two regions which both enable interlocking.
+            if (!region_b.config().interlocking_beam.value) {
+                continue;
+            }
             const auto         extruder_nr_b = region_b.extruder(FlowRole::frExternalPerimeter);
             if (extruder_nr_a == extruder_nr_b) {
                 continue;
@@ -158,7 +165,7 @@ void InterlockingGenerator::handleThinAreas(const std::unordered_set<GridPoint3>
     }
     for (auto& near_interlock : near_interlock_per_layer) {
         near_interlock = offset(union_(closing(near_interlock, rounding_errors)), detect);
-        polygons_rotate(near_interlock, rotation);
+        polygons_rotate(near_interlock, -rotation);
     }
 
     // Only alter layers when they are present in both meshes, zip should take care if that.
@@ -200,7 +207,7 @@ void  InterlockingGenerator::generateInterlockingwall(Layer* layer) const{
     has_any_mesh.merge(has_all_meshes); // perform union and intersection simultaneously. Cannibalizes voxels_per_mesh
 
     if (has_all_meshes.empty()) {
-        return; 
+        return;
     }
 
     ExPolygons layer_regions;
@@ -239,6 +246,9 @@ void InterlockingGenerator::generateInterlockingStructure() const
         for (const GridPoint3& p : air_cells) {
             has_all_meshes.erase(p);
         }
+
+        if (has_all_meshes.empty())
+            return;
 
         handleThinAreas(has_all_meshes);
     }

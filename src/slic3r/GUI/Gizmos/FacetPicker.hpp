@@ -48,14 +48,6 @@ public:
 
     const Hit &hit() const { return m_hit; }
 
-    // World-space unit normal of a facet whose mesh-local normal is mesh_normal, for a
-    // volume placed by trafo. Returns zero for a degenerate facet.
-    //
-    // Uses the inverse-transpose of the linear part, not the linear part itself: on a
-    // non-uniformly scaled instance the latter yields a normal that is visibly not
-    // perpendicular to the facet.
-    static Vec3d world_normal(const Transform3d &trafo, const Vec3f &mesh_normal);
-
 private:
     bool    m_active{false};
     Hit     m_hit;

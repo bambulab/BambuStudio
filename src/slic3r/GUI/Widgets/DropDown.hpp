@@ -14,6 +14,7 @@
 #define DD_ITEM_STYLE_SPLIT_ITEM  0x0001 // ----text----, text with horizontal line arounds
 #define DD_ITEM_STYLE_DISABLED    0x0002 // ----text----, text with horizontal line arounds
 #define DD_ITEM_STYLE_DIMMED      0x0004 // gray text, but still selectable
+#define DD_ITEM_STYLE_SYNCED      0x0008 // draw a small synced badge at the row's right edge
 
 wxDECLARE_EVENT(EVT_DISMISS, wxCommandEvent);
 
@@ -30,6 +31,7 @@ public:
         wxString group{};
         wxString alias{};
         wxString tip{};
+        wxString suffix{};
         int      flag{0};
         int      style{ 0 };// the style of item
     };
@@ -51,10 +53,12 @@ private:
     bool   align_icon        = false;
     bool   text_off          = false;
     int    max_visible_rows  = 15;
+    int    trailing_padding  = 0; // DIP
 
     wxSize textSize;
     wxSize iconSize;
     wxSize rowSize;
+    int    fit_width = 0; // row width before the display clamp, so a clamped popup can grow back
 
     StateHandler state_handler;
     StateColor   text_color;
@@ -63,6 +67,7 @@ private:
     StateColor   selector_background_color;
     ScalableBitmap check_bitmap;
     ScalableBitmap arrow_bitmap;
+    ScalableBitmap synced_bitmap;
 
     bool pressedDown = false;
     boost::posix_time::ptime dismissTime;
@@ -97,9 +102,22 @@ public:
 
     void SetSelectorBackgroundColor(StateColor const &color);
 
+    /**
+     * \brief Size the list to its widest item instead of the control width
+     *
+     * \param use                      list width follows the widest item, never narrower than the control
+     * \param limit_max_content_width  list width stops at a fixed maximum; longer items end with "..."
+     */
     void SetUseContentWidth(bool use, bool limit_max_content_width = false);
 
     void SetAlignIcon(bool align);
+
+    /**
+     * \brief Reserve extra blank space after each item's content, which widens the list
+     *
+     * \param padding    extra width in DIP; only grows the list when it sizes to its content
+     */
+    void SetTrailingPadding(int padding);
 
 public:
     void Rescale();
@@ -121,9 +139,15 @@ private:
 
     int selectedItem();
 
+    /**
+     * \brief Width to keep free at the row's right edge for the synced badge, or 0 when no row shows it
+     */
+    int synced_badge_width() const;
+
     friend class ComboBox;
     void messureSize();
     void autoPosition();
+    void fitWidthToDisplay(wxSize &size);
 
     // some useful events
     void mouseDown(wxMouseEvent& event);

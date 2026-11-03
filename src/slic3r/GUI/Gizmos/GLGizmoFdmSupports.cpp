@@ -17,8 +17,7 @@
 
 
 #include <GL/glew.h>
-
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r::GUI {
 
@@ -40,13 +39,13 @@ void GLGizmoFdmSupports::on_shutdown()
     if (m_thread.joinable()) {
         Print *print = m_print_instance.print_object->print();
         if (print) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "cancel the print";
+            BOOST_LOG_TRIVIAL(info) << "cancel the print";
             print->cancel();
         }
         //join the thread
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "try to join thread for 2000 ms";
+        BOOST_LOG_TRIVIAL(info) << "try to join thread for 2000 ms";
         auto ret = m_thread.try_join_for(boost::chrono::milliseconds(2000));
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "join thread returns "<<ret;
+        BOOST_LOG_TRIVIAL(info) << "join thread returns "<<ret;
     }
 
     m_print_instance.print_object = NULL;
@@ -740,7 +739,7 @@ void GLGizmoFdmSupports::init_print_instance()
     //check the print
     if (!print)
     {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",print invalid\n";
+        BOOST_LOG_TRIVIAL(info) << "print invalid\n";
         return;
     }
 
@@ -748,7 +747,7 @@ void GLGizmoFdmSupports::init_print_instance()
     {
         if (object->model_object()->id() == model_object->id())
         {
-            BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ",found a PrintObject, id is" << model_object->id().id;
+            BOOST_LOG_TRIVIAL(trace) << "found a PrintObject, id is" << model_object->id().id;
             print_object = object;
             break;
         }
@@ -757,7 +756,7 @@ void GLGizmoFdmSupports::init_print_instance()
     //check the pring object
     if (!print_object)
     {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",can not find a PrintObject\n";
+        BOOST_LOG_TRIVIAL(info) << "can not find a PrintObject\n";
         return;
     }
 
@@ -766,7 +765,7 @@ void GLGizmoFdmSupports::init_print_instance()
     {
         if (instance.model_instance->id() == model_instance->id())
         {
-            BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ",found a PrintInstance, id is" << model_instance->id().id;
+            BOOST_LOG_TRIVIAL(trace) << "found a PrintInstance, id is" << model_instance->id().id;
             m_print_instance = instance;
             break;
         }
@@ -775,14 +774,14 @@ void GLGizmoFdmSupports::init_print_instance()
     //check the pring object
     if (!m_print_instance.print_object)
     {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",can not find a PrintInstance\n";
+        BOOST_LOG_TRIVIAL(info) << "can not find a PrintInstance\n";
         return;
     }
 
     const PrintObjectConfig& config = m_print_instance.print_object->config();
     m_angle_threshold_deg = config.support_angle;
     m_is_tree_support = config.enable_support.value && is_tree(config.support_type.value);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",get support_angle "<< m_angle_threshold_deg<<", is_tree "<<m_is_tree_support;
+    BOOST_LOG_TRIVIAL(info) << "get support_angle "<< m_angle_threshold_deg<<", is_tree "<<m_is_tree_support;
 
     return;
 }
@@ -796,7 +795,7 @@ void GLGizmoFdmSupports::invalid_support_volumes(bool invalid_step)
     {
         Print *print = m_print_instance.print_object->print();
         if (print) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "cancel the print";
+            BOOST_LOG_TRIVIAL(info) << "cancel the print";
             print->cancel();
         }
     }
@@ -815,7 +814,7 @@ bool GLGizmoFdmSupports::need_regenerate_support_volumes()
 
     if (m_object_id != m_print_instance.print_object->id().id)
     {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",object_id changed from " << m_object_id << " to " << m_print_instance.print_object->id().id << ", need to regenerate";
+        BOOST_LOG_TRIVIAL(info) << "object_id changed from " << m_object_id << " to " << m_print_instance.print_object->id().id << ", need to regenerate";
         return true;
     }
 
@@ -825,10 +824,15 @@ bool GLGizmoFdmSupports::need_regenerate_support_volumes()
             continue;
 
         ++volume_id;
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",volume_id "<<volume_id<<", record_timestamp "<< m_volume_timestamps[volume_id]
-                <<", current_timestamp "<<mv->supported_facets.timestamp();
-        if (m_volume_timestamps[volume_id] != mv->supported_facets.timestamp())
-        {
+        try {
+            BOOST_LOG_TRIVIAL(info) << "volume_id "<<volume_id<<", record_timestamp "<< m_volume_timestamps.at(volume_id)
+                    <<", current_timestamp "<<mv->supported_facets.timestamp();
+            if (m_volume_timestamps.at(volume_id) != mv->supported_facets.timestamp())
+            {
+                return true;
+            }
+        } catch (const std::out_of_range& e) {
+            BOOST_LOG_TRIVIAL(warning) << "volume timestamp out of range, volume_id " << volume_id << ": " << e.what();
             return true;
         }
     }
@@ -842,13 +846,13 @@ void GLGizmoFdmSupports::update_support_volumes()
 
     if ((!m_print_instance.print_object))
     {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",invalid param, m_volume_ready="<< m_volume_ready;
+        BOOST_LOG_TRIVIAL(info) << "invalid param, m_volume_ready="<< m_volume_ready;
         return;
     }
 
     if (m_volume_valid || !need_regenerate_support_volumes())
     {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",no need to regenerate support volume, return directly";
+        BOOST_LOG_TRIVIAL(info) << "no need to regenerate support volume, return directly";
 
         std::unique_lock<std::mutex> lck(m_mutex);
         m_volume_ready = true;
@@ -871,13 +875,13 @@ void GLGizmoFdmSupports::update_support_volumes()
 
     if (m_thread.joinable()) {
         //join the thread in ui thread
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "try to join thread for 100 ms";
+        BOOST_LOG_TRIVIAL(info) << "try to join thread for 100 ms";
         auto ret = m_thread.try_join_for(boost::chrono::milliseconds(100));
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "join thread returns "<<ret;
+        BOOST_LOG_TRIVIAL(info) << "join thread returns "<<ret;
     }
     m_cancel = false;
     m_thread = create_thread([this]{this->run_thread();});
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",created thread to generate support volumes";
+    BOOST_LOG_TRIVIAL(info) << "created thread to generate support volumes";
     return;
 }
 
@@ -887,13 +891,13 @@ void GLGizmoFdmSupports::run_thread()
         Print *print = m_print_instance.print_object->print();
 
         print->restart();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",before generate_support_preview";
+        BOOST_LOG_TRIVIAL(info) << "before generate_support_preview";
         m_print_instance.print_object->generate_support_preview();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",after generate_support_preview";
+        BOOST_LOG_TRIVIAL(info) << "after generate_support_preview";
 
         if (m_cancel)
         {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", cancelled";
+            BOOST_LOG_TRIVIAL(info) << "cancelled";
             goto _finished;
         }
 
@@ -908,6 +912,14 @@ void GLGizmoFdmSupports::run_thread()
         {
             const ModelObject* mo = m_c->selection_info()->model_object();
 
+            // Size the list to the current parts first, so parts added since it was built get a slot.
+            // The size only changes when parts were added or removed; otherwise the values are updated in place.
+            size_t part_count = 0;
+            for (const ModelVolume* mv : mo->volumes)
+                if (mv->is_model_part())
+                    ++part_count;
+            m_volume_timestamps.resize(part_count);
+
             int volume_id = -1;
             for (const ModelVolume* mv : mo->volumes) {
                 if (!mv->is_model_part())
@@ -920,13 +932,13 @@ void GLGizmoFdmSupports::run_thread()
 
         if (m_cancel)
         {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", cancelled";
+            BOOST_LOG_TRIVIAL(info) << "cancelled";
             goto _finished;
         }
 
         if (!m_print_instance.print_object->support_layers().size())
         {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",no support layer found, update status to 100%\n";
+            BOOST_LOG_TRIVIAL(info) << "no support layer found, update status to 100%\n";
             print->set_status(100, L("Support Generated"));
             goto _finished;
         }
@@ -937,13 +949,13 @@ void GLGizmoFdmSupports::run_thread()
                 _3DScene::extrusionentity_to_verts(extrusion_entity, float(support_layer->print_z), m_print_instance.shift, *m_support_volume);
             }
         }
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished extrusionentity_to_verts, update status to 100%";
+        BOOST_LOG_TRIVIAL(info) << "finished extrusionentity_to_verts, update status to 100%";
         print->set_status(100, L("Support Generated"));
 
         record_timestamp();
     }
     catch (...) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ",exception catched, mostly cancelling from gui!";
+        BOOST_LOG_TRIVIAL(error) << "exception catched, mostly cancelling from gui!";
         //wxTheApp->OnUnhandledException();
     }
 
@@ -955,13 +967,13 @@ _finished:
     lck.unlock();
     m_parent.set_as_dirty();
     m_parent.post_event(SimpleEvent(wxEVT_PAINT));
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished all";
+    BOOST_LOG_TRIVIAL(info) << "finished all";
     return;
 }
 
 void GLGizmoFdmSupports::generate_support_volume()
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",before finalize_geometry";
+    BOOST_LOG_TRIVIAL(info) << "before finalize_geometry";
     m_support_volume->indexed_vertex_array->finalize_geometry(m_parent.is_initialized());
 
     std::unique_lock<std::mutex> lck(m_mutex);
@@ -970,7 +982,7 @@ void GLGizmoFdmSupports::generate_support_volume()
     m_object_id = m_print_instance.print_object->id().id;
     lck.unlock();
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",finished finalize_geometry";
+    BOOST_LOG_TRIVIAL(info) << "finished finalize_geometry";
 }
 
 } // namespace Slic3r::GUI

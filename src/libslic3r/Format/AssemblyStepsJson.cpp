@@ -1,15 +1,16 @@
 #include "AssemblyStepsJson.hpp"
 
+#include "libslic3r/Log.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Utils.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/nowide/fstream.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <cmath>
 #include <functional>
 #include <map>
+#include <set>
 
 namespace Slic3r {
 namespace {
@@ -781,7 +782,8 @@ std::string AssemblyStepJson::to_json_string() const
 {
     try {
         nlohmann::json root;
-        root["version"] = 1.1;//V1.0 2020610 //V1.1 2020715
+        // Current steps-file version. A loaded version above this is kept by the caller.
+        root["version"] = 1.2;//V1.0 20220610 //V1.1 20220715
         root["assembly_part_number_label_font_size"] = m_assembly_part_number_label_font_size;
         root["camera_ref_viewport_w"] = m_camera_ref_viewport_w;
         root["camera_ref_viewport_h"] = m_camera_ref_viewport_h;
@@ -821,6 +823,278 @@ bool AssemblyStepJson::save(const std::string &path) const
     } catch (const std::exception &e) {
         BOOST_LOG_TRIVIAL(error) << "AssemblyStepJson: write error: " << e.what();
         return false;
+    }
+}
+
+bool assembly_steps_json_last_step_is_final_assembly(const std::string &json_str)
+{
+    if (json_str.empty())
+        return false;
+    try {
+        const nlohmann::json root = nlohmann::json::parse(json_str);
+        if (!root.contains("items") || !root["items"].is_array())
+            return false;
+
+        const nlohmann::json *last_step = nullptr;
+        for (const auto &item : root["items"]) {
+            if (!item.is_object())
+                continue;
+            std::string type;
+            if (!json_get_string(item, "type", type) || type != "sub")
+                continue;
+            int kind = AssemblyStepKind::Normal;
+            json_get_assembly_step_kind(item, "is_final_assembly", kind);
+            if (kind == AssemblyStepKind::OverallPreview)
+                continue;
+            last_step = &item;
+        }
+        if (last_step == nullptr)
+            return false;
+        int kind = AssemblyStepKind::Normal;
+        json_get_assembly_step_kind(*last_step, "is_final_assembly", kind);
+        return kind == AssemblyStepKind::FinalAssembly;
+    } catch (const std::exception &e) {
+        BOOST_LOG_TRIVIAL(warning) << "AssemblyStepJson: last-step check failed: " << e.what();
+        return false;
+    }
+}
+
+namespace {
+void collect_step_objects(const nlohmann::json &node, std::set<int> &idxs, std::set<size_t> &ids)
+{
+    if (!node.is_object())
+        return;
+    int idx = -1;
+    if (json_get_int(node, "object_idx", idx) && idx >= 0)
+        idxs.insert(idx);
+    size_t id = 0;
+    if (json_get_size_t(node, "object_id", id) && id != 0)
+        ids.insert(id);
+    if (node.contains("inherited_object_ids") && node["inherited_object_ids"].is_array()) {
+        for (const auto &v : node["inherited_object_ids"]) {
+            if (!v.is_number_integer())
+                continue;
+            const auto raw = v.get<long long>();
+            if (raw > 0)
+                ids.insert(static_cast<size_t>(raw));
+        }
+    }
+    if (!node.contains("children") || !node["children"].is_array())
+        return;
+    for (const auto &child : node["children"])
+        collect_step_objects(child, idxs, ids);
+}
+
+const nlohmann::json *find_step_by_id(const nlohmann::json &items, int step_id)
+{
+    for (const auto &item : items) {
+        if (!item.is_object())
+            continue;
+        std::string type;
+        if (!json_get_string(item, "type", type) || type != "sub")
+            continue;
+        int id = -1;
+        if (json_get_int(item, "id", id) && id == step_id)
+            return &item;
+    }
+    return nullptr;
+}
+} // namespace
+
+bool assembly_steps_json_last_step_covers_model(const std::string &json_str, const Model &model,
+                                                        const std::string &assembly_model_json)
+{
+    if (json_str.empty() || model.objects.empty())
+        return false;
+    try {
+        const nlohmann::json root = nlohmann::json::parse(json_str);
+        if (!root.contains("items") || !root["items"].is_array())
+            return false;
+
+        const nlohmann::json *last_step = nullptr;
+        for (const auto &item : root["items"]) {
+            if (!item.is_object())
+                continue;
+            std::string type;
+            if (!json_get_string(item, "type", type) || type != "sub")
+                continue;
+            int kind = AssemblyStepKind::Normal;
+            json_get_assembly_step_kind(item, "is_final_assembly", kind);
+            if (kind == AssemblyStepKind::OverallPreview)
+                continue;
+            last_step = &item;
+        }
+        if (last_step == nullptr)
+            return false;
+
+        // Restore gives each assembly object a new id. The id written in assembly_model.json
+        // is the one the steps file stored.
+        std::vector<size_t> persisted_ids;
+        if (!assembly_model_json.empty()) {
+            const nlohmann::json aroot = nlohmann::json::parse(assembly_model_json);
+            if (aroot.contains("nodes") && aroot["nodes"].is_array()) {
+                for (const auto &node : aroot["nodes"]) {
+                    size_t id = 0;
+                    if (node.is_object())
+                        json_get_size_t(node, "id", id);
+                    persisted_ids.push_back(id);
+                }
+            }
+        }
+
+        std::set<int>    idxs;
+        std::set<size_t> ids;
+        std::set<int>    seen_ids;
+        const nlohmann::json *step = last_step;
+        while (step != nullptr) {
+            collect_step_objects(*step, idxs, ids);
+            int self_id = -1;
+            json_get_int(*step, "id", self_id);
+            if (self_id >= 0 && !seen_ids.insert(self_id).second)
+                break;
+            int parent_id = -1;
+            if (!json_get_int(*step, "inherited_from_step_id", parent_id) || parent_id < 0)
+                break;
+            if (!seen_ids.insert(parent_id).second)
+                break;
+            step = find_step_by_id(root["items"], parent_id);
+        }
+
+        int expected = 0;
+        int covered  = 0;
+        for (int oi = 0; oi < (int) model.objects.size(); ++oi) {
+            const ModelObject *obj = model.objects[oi];
+            if (obj == nullptr)
+                continue;
+            bool has_part = false;
+            for (const ModelVolume *mv : obj->volumes) {
+                if (mv != nullptr && mv->is_model_part()) {
+                    has_part = true;
+                    break;
+                }
+            }
+            if (!has_part)
+                continue;
+            ++expected;
+            const size_t persisted_id = (static_cast<size_t>(oi) < persisted_ids.size()) ? persisted_ids[oi] : 0;
+            const bool by_idx = idxs.count(oi) != 0;
+            const bool by_id  = (obj->id().id != 0 && ids.count(obj->id().id) != 0)
+                             || (persisted_id != 0 && ids.count(persisted_id) != 0);
+            if (by_idx || by_id)
+                ++covered;
+        }
+        return expected > 0 && covered == expected;
+    } catch (const std::exception &e) {
+        BOOST_LOG_TRIVIAL(warning) << "AssemblyStepJson: last-step model coverage check failed: " << e.what();
+        return false;
+    }
+}
+
+std::string assembly_steps_json_mark_last_step_final_assembly(const std::string &json_str)
+{
+    if (json_str.empty())
+        return json_str;
+    try {
+        nlohmann::json root = nlohmann::json::parse(json_str);
+        if (!root.contains("items") || !root["items"].is_array())
+            return json_str;
+
+        nlohmann::json *last_step = nullptr;
+        for (auto &item : root["items"]) {
+            if (!item.is_object())
+                continue;
+            std::string type;
+            if (!json_get_string(item, "type", type) || type != "sub")
+                continue;
+            int kind = AssemblyStepKind::Normal;
+            json_get_assembly_step_kind(item, "is_final_assembly", kind);
+            if (kind == AssemblyStepKind::OverallPreview)
+                continue;
+            last_step = &item;
+        }
+        if (last_step == nullptr)
+            return json_str;
+
+        int kind = AssemblyStepKind::Normal;
+        json_get_assembly_step_kind(*last_step, "is_final_assembly", kind);
+        if (kind == AssemblyStepKind::FinalAssembly)
+            return json_str;
+        (*last_step)["is_final_assembly"] = AssemblyStepKind::FinalAssembly;
+        return root.dump(2);
+    } catch (const std::exception &e) {
+        BOOST_LOG_TRIVIAL(warning) << "AssemblyStepJson: mark last step final assembly failed: " << e.what();
+        return json_str;
+    }
+}
+
+std::string assembly_steps_json_with_qualified_assembly(const std::string &json_str, bool qualified)
+{
+    if (json_str.empty())
+        return json_str;
+    try {
+        nlohmann::json root = nlohmann::json::parse(json_str);
+        const bool has_flag = root.contains(kAssemblyStepsQualifiedKey);
+        if (qualified) {
+            if (has_flag && root[kAssemblyStepsQualifiedKey].is_boolean() && root[kAssemblyStepsQualifiedKey].get<bool>())
+                return json_str;
+            root[kAssemblyStepsQualifiedKey] = true;
+        } else {
+            if (!has_flag)
+                return json_str;
+            root.erase(kAssemblyStepsQualifiedKey);
+        }
+        return root.dump(2);
+    } catch (const std::exception &e) {
+        BOOST_LOG_TRIVIAL(warning) << "AssemblyStepJson: qualified_assembly update failed: " << e.what();
+        return json_str;
+    }
+}
+
+std::string qualified_assembly_result_json(bool qualified, bool need_rewrite_3mf)
+{
+    nlohmann::json root;
+    root[kQualifiedAssemblyResultKey] = qualified ? "true" : "false";
+    root[kNeedRewrite3mfResultKey] = need_rewrite_3mf ? "true" : "false";
+    return root.dump(2);
+}
+
+AssemblyStepsFileMeta assembly_steps_json_file_meta(const std::string &json_str)
+{
+    AssemblyStepsFileMeta meta;
+    if (json_str.empty())
+        return meta;
+    try {
+        const nlohmann::json root = nlohmann::json::parse(json_str);
+        if (root.contains("version") && root["version"].is_number())
+            meta.version = root["version"].get<double>();
+        if (root.contains(kAssemblyStepsQualifiedKey)) {
+            meta.has_qualified = true;
+            const auto &value = root[kAssemblyStepsQualifiedKey];
+            if (value.is_boolean())
+                meta.qualified = value.get<bool>();
+            else if (value.is_string())
+                meta.qualified = value.get<std::string>() == "true";
+        }
+    } catch (const std::exception &e) {
+        BOOST_LOG_TRIVIAL(warning) << "AssemblyStepJson: file meta parse failed: " << e.what();
+    }
+    return meta;
+}
+
+std::string assembly_steps_json_with_version(const std::string &json_str, double version)
+{
+    if (json_str.empty())
+        return json_str;
+    try {
+        nlohmann::json root = nlohmann::json::parse(json_str);
+        if (root.contains("version") && root["version"].is_number() &&
+            std::abs(root["version"].get<double>() - version) < 1e-6)
+            return json_str;
+        root["version"] = version;
+        return root.dump(2);
+    } catch (const std::exception &e) {
+        BOOST_LOG_TRIVIAL(warning) << "AssemblyStepJson: version update failed: " << e.what();
+        return json_str;
     }
 }
 
@@ -1096,7 +1370,7 @@ bool AssemblyStepsTreeData::from_json_string(
             if (root_idx >= 0 && root_idx < (int) parsed.nodes.size())
                 total_children += parsed.nodes[root_idx].children.size();
         }
-        BOOST_LOG_TRIVIAL(info) << "AssemblyStepsTreeData::from_json_string loaded nodes="
+        BOOST_LOG_TRIVIAL(info) << "loaded nodes="
                                 << parsed.nodes.size() << " roots=" << parsed.roots.size()
                                 << " total_root_children=" << total_children;
 

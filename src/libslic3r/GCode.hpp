@@ -125,6 +125,10 @@ private:
     // Postprocesses gcode: rotates and moves G1 extrusions and returns result
     std::string post_process_wipe_tower_moves(const WipeTower::ToolChangeResult& tcr, const Vec2f& translation, float angle) const;
 
+    // Print z of the compacted tower's own first layer, i.e. its top surface right above the bed.
+    // Returns 0 when the tower is not compacted.
+    double compacted_tower_base_z() const;
+
     // Left / right edges of the wipe tower, for the planning of wipe moves.
     const float                                                  m_left;
     const float                                                  m_right;
@@ -239,8 +243,8 @@ public:
 
     // BBS: detect lift type in needs_retraction
     bool        needs_retraction(const Polyline &travel, ExtrusionRole role, LiftType &lift_type);
-    std::string retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift, bool apply_instantly = false);
-    std::string unretract(float extra_retract = 0.f) { return m_writer.unlift() + m_writer.unretract(extra_retract); }
+    std::string retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift, bool apply_instantly = false, bool slow_lift = false);
+    std::string unretract(float extra_retract = 0.f, bool include_unlift = true);
     //BBS
     bool is_BBL_Printer();
 
@@ -622,16 +626,36 @@ private:
 
     // Heights (print_z) at which the skirt has already been extruded.
     std::vector<coordf_t>               m_skirt_done;
+    // Zero based filament of the last skirt layer, preferred again on the next one in multi-diameter prints.
+    unsigned int                        m_skirt_last_filament = (unsigned int)-1;
     // Has the brim been extruded already? Brim is being extruded only for the first object of a multi-object print.
     bool                                m_brim_done;
     // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
     bool                                m_second_layer_things_done;
+    // Whether the bed has switched from its first layer temperature. Multi-diameter first bands rest on the
+    // bed above the second physical layer, so this can happen later than m_second_layer_things_done.
+    bool                                m_bed_temp_transition_done = false;
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
     //BBS
     bool m_enable_label_object;
     std::vector<size_t> m_label_objects_ids;
     std::string _encode_label_ids_to_base64(std::vector<size_t> ids);
+    // Bit i mirrors m_label_objects_ids[i] and stays set while that object still has
+    // something left to print. Broadcast to the firmware through M639 so it can end the
+    // print early once every remaining object has been skipped.
+    uint64_t            m_remaining_objects_bitmap{0};
+    // Set when an object finished on the layer being generated; the next layer emits the
+    // broadcast right after change_layer(), which is guaranteed to sit outside M624/M625.
+    bool                m_pending_remaining_objects_gcode{false};
+    // Maps a layer index to the objects whose last layer it is. Only filled in by-layer mode.
+    std::map<size_t, std::vector<size_t>> m_objects_finished_at_layer;
+    bool        _is_object_skip_early_end_enabled() const;
+    void        _init_remaining_objects_bitmap();
+    std::string _remaining_objects_gcode() const;
+    void        _clear_remaining_object(size_t label_id);
+    void        _mark_objects_finished(size_t layer_idx);
+    void        _precompute_object_last_layers(const std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> &layers_to_print);
     float               m_smooth_coefficient{0.0f};
 
     // 1 << 0: A1 series cannot supprot traditional timelapse when printing by object (cannot turn on timelapse)
@@ -687,6 +711,16 @@ private:
     // On the first printing layer. This flag triggers first layer speeds.
     //BBS
     bool                                on_first_layer() const { return m_layer != nullptr && m_layer->id() == 0 && abs(m_layer->bottom_z()) < EPSILON; }
+    bool                                filament_in_first_layer_phase(unsigned int filament_id) const;
+    // A merged first band is emitted above layer 0, but its extrusion height reaches back to the bed.
+    bool                                path_touches_bed(const ExtrusionPath &path) const {
+        return m_layer != nullptr && m_layer->print_z - path.height <= EPSILON;
+    }
+    bool                                path_starts_at_object_base(const ExtrusionPath &path) const {
+        return m_layer != nullptr && !m_layer->object()->layers().empty() &&
+               m_layer->print_z - path.height <=
+                   m_layer->object()->layers().front()->bottom_z() + EPSILON;
+    }
     // To control print speed of 1st object layer over raft interface.
     bool                                object_layer_over_raft() const { return m_object_layer_over_raft; }
 

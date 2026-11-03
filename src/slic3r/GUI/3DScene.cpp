@@ -36,7 +36,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -198,7 +198,7 @@ void GLIndexedVertexArray::load_its_flat_shading(const indexed_triangle_set &its
         this->push_triangle(vertices_count, vertices_count + 1, vertices_count + 2);
         vertices_count += 3;
     }
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, indices size %2%, vertices %3%, triangles %4% ")
+    BOOST_LOG_TRIVIAL(debug) << boost::format("this %1%, indices size %2%, vertices %3%, triangles %4% ")
             %this %its.indices.size() %this->vertices_and_normals_interleaved.size() %this->triangle_indices.size() ;
 }
 
@@ -214,7 +214,7 @@ void GLIndexedVertexArray::finalize_geometry(bool opengl_initialized)
 		return;
 	}
 
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1% ") %this;
+    BOOST_LOG_TRIVIAL(debug) << boost::format("this %1% ") %this;
     if (! this->vertices_and_normals_interleaved.empty()) {
         glsafe(::glGenBuffers(1, &this->vertices_and_normals_interleaved_VBO_id));
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id));
@@ -702,6 +702,7 @@ bool GLVolume::simplify_mesh(const indexed_triangle_set &_its, std::shared_ptr<G
             try { // Start the actual calculation.
                 its_quadric_edge_collapse(*its, triangle_count, &max_error, throw_on_cancel, statusfn);
             } catch (std::exception&) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 state->status = State::idle;
             }
             if (state->status == State::Status::running) {
@@ -864,6 +865,13 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
             if (disable_mmu_colors)
                 break;
 
+            if (mmuseg_detached_from_model) {
+                // Keep the colors already uploaded instead of resolving composite_id onto whatever
+                // sits at that index now that the Model has moved on.
+                color_volume = !mmuseg_ivas.empty();
+                break;
+            }
+
             if ((!printable) || object_idx() >= model_objects.size())
                 break;
 
@@ -881,7 +889,7 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
 
             color_volume = true;
             if (mv->mmu_segmentation_facets.timestamp() != mmuseg_ts) {
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, name %2%, current mmuseg_ts %3%, current color size %4%")
+                BOOST_LOG_TRIVIAL(debug) << boost::format("this %1%, name %2%, current mmuseg_ts %3%, current color size %4%")
                     %this %this->name %mmuseg_ts %mmuseg_ivas.size() ;
                 mmuseg_ivas.clear();
                 std::vector<indexed_triangle_set> its_per_color;
@@ -895,7 +903,7 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
                     }
                 }
                 mmuseg_ts = mv->mmu_segmentation_facets.timestamp();
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, name %2%, new mmuseg_ts %3%, new color size %4%")
+                BOOST_LOG_TRIVIAL(debug) << boost::format("this %1%, name %2%, new mmuseg_ts %3%, new color size %4%")
                     %this %this->name %mmuseg_ts  %mmuseg_ivas.size();
             }
         } while (0);
@@ -915,9 +923,14 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
 
                 if (shader) {
                     if (idx == 0) {
-                        ModelObject* mo = model_objects[object_idx()];
-                        ModelVolume* mv = mo->volumes[volume_idx()];
-                        int extruder_id = mv->extruder_id();
+                        // While detached, composite_id must not be used to index the Model at all;
+                        // GLVolume::extruder_id is the copy reload_scene() keeps in sync.
+                        int extruder_id = this->extruder_id;
+                        if (!mmuseg_detached_from_model) {
+                            ModelObject* mo = model_objects[object_idx()];
+                            ModelVolume* mv = mo->volumes[volume_idx()];
+                            extruder_id = mv->extruder_id();
+                        }
                         //to make black not too hard too see
                         if (extruder_id <= 0) { extruder_id = 1; }
                         if (extruder_id > (int)cp_colors.size()) { extruder_id = 1; }
@@ -939,7 +952,7 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
                 }
                 iva->render(shader, this->tverts_range, this->qverts_range);
                 /*if (force_native_color && (render_color[3] < 1.0)) {
-                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, name %2%, tverts_range {%3,%4}, qverts_range{%5%, %6%}")
+                    BOOST_LOG_TRIVIAL(debug) << boost::format("this %1%, name %2%, tverts_range {%3,%4}, qverts_range{%5%, %6%}")
                      %this %this->name %this->tverts_range.first  %this->tverts_range.second
                      % this->qverts_range.first % this->qverts_range.second;
                 }*/
@@ -1132,6 +1145,13 @@ void GLVolume::simple_render(const std::shared_ptr<GLShaderProgram>& shader, Mod
     ModelObject* model_object = nullptr;
     ModelVolume* model_volume = nullptr;
     do {
+        if (mmuseg_detached_from_model) {
+            // Same as in render(): the Model no longer matches composite_id, so keep what is already
+            // uploaded rather than rebuilding from a different ModelVolume.
+            color_volume = !mmuseg_ivas.empty();
+            break;
+        }
+
         if ((!printable) || object_idx() >= model_objects.size())
             break;
         model_object = model_objects[object_idx()];
@@ -1165,7 +1185,8 @@ void GLVolume::simple_render(const std::shared_ptr<GLShaderProgram>& shader, Mod
 
             if (shader) {
                 if (idx == 0) {
-                    int extruder_id = model_volume->extruder_id();
+                    // model_volume stays null while detached from the Model, see above.
+                    int extruder_id = model_volume != nullptr ? model_volume->extruder_id() : this->extruder_id;
                     if (extruder_id <= 0) { extruder_id = 1; }
                     //to make black not too hard too see
                     if (extruder_id > (int)extruder_colors.size()) { extruder_id = 1; }
@@ -1989,6 +2010,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     BuildVolume plate_build_volume(pp_bed_shape, build_volume.printable_height(), build_volume.extruder_areas(), build_volume.extruder_heights());
     const std::vector<BoundingBoxf3>& exclude_areas = curr_plate->get_exclude_areas();
 
+    const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_config(GUI::wxGetApp().preset_bundle->prints.get_edited_preset().config, GUI::wxGetApp().filaments_cnt());
     std::map<ModelObject*, std::map<int, std::set<int>>> objects_unprintable_filaments;
     int extruder_count = build_volume.get_extruder_area_count();
     std::vector<std::set<int>> unprintable_filament_ids(extruder_count, std::set<int>());
@@ -2039,14 +2061,14 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                     // Only check for single-color object
                     std::set<int> object_filaments;
                     for (ModelVolume *m_volume : model_object->volumes) {
-                        std::vector<int> filaments = m_volume->get_extruders();
+                        std::vector<int> filaments = m_volume->get_extruders(global_features);
                         object_filaments.insert(filaments.begin(), filaments.end());
                     }
                     if (object_filaments.size() == 1) {
                         ModelVolume *model_volume = model_object->volumes[volume->volume_idx()];
                         for (size_t i = 0; i < inside_extruders.size(); ++i) {
                             if (!inside_extruders[i]) {
-                                std::vector<int> filaments = model_volume->get_extruders();
+                                std::vector<int> filaments = model_volume->get_extruders(global_features);
                                 unprintable_filament_ids[i].insert(filaments.begin(), filaments.end());
                                 if (object_results) {
                                     std::map<int, std::set<int>> &obj_extruder_filament_maps = objects_unprintable_filaments[model_object];

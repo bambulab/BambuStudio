@@ -10,7 +10,7 @@
     "bottom_texture_rect_longer": "40,-14.5,260,8",
     "bottom_texture_rect_longer_ignore_list": "High Temp Plate;Textured PEI Plate",
     "default_bed_type": "Textured PEI Plate",
-    "image_bed_type": "o",
+    "image_bed_type": "350",
     "not_support_bed_type": "Cool Plate",
     "right_icon_offset_bed": "10;-5",
     "family": "BBL-3DP",

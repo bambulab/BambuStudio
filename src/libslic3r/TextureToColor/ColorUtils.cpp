@@ -27,7 +27,7 @@
 
 #include "CgalUtils.hpp"
 #include "libslic3r/AABBTreeIndirect.hpp"
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace tex2color {
 namespace color_utils {
@@ -299,7 +299,7 @@ static bool smooth_region_geom_boundary(CGALMesh& mesh, std::vector<std::size_t>
         std::vector<CGAL::SM_Vertex_index> polyline{mesh.source(halfedge), mesh.target(halfedge)};
         trace_polyline(polyline);
         if (polyline.front() != polyline.back()) {
-            std::cerr << "[Error]:  loop polyline but not closed!!!\n";
+            BOOST_LOG_TRIVIAL(error) << "loop polyline but not closed";
         }
         polylines.push_back(std::move(polyline));
     }
@@ -758,7 +758,7 @@ bool remesh_mesh(TriMesh& bbs_mesh, std::vector<std::size_t>& face_labels, doubl
     }
 
 #ifdef DEBUG_FLAG
-    BOOST_LOG_TRIVIAL(debug) << "remesh_mesh: feature_edges.size() = " << feature_edges.size() << ".\n";
+    BOOST_LOG_TRIVIAL(debug) << "feature_edges.size() = " << feature_edges.size() << ".\n";
 
     std::vector<std::vector<CGALKernel::Point_3>> polylines;
     for (auto edge : feature_edges) {
@@ -1247,12 +1247,12 @@ std::vector<Color> cluster_adaptive(const std::vector<Color>& colors, const Clus
     auto last = std::unique(unique_colors.begin(), unique_colors.end());
     unique_colors.erase(last, unique_colors.end());
 
-    BOOST_LOG_TRIVIAL(debug) << "cluster_adaptive: colors=" << colors.size()
+    BOOST_LOG_TRIVIAL(debug) << "colors=" << colors.size()
                              << " unique=" << unique_colors.size()
                              << " max_color_distance=" << max_color_distance;
 
     if (unique_colors.size() <= ADAPTIVE_CLUSTER_SKIP_UNIQUE_COUNT) {
-        BOOST_LOG_TRIVIAL(debug) << "cluster_adaptive: skip clustering, unique=" << unique_colors.size()
+        BOOST_LOG_TRIVIAL(debug) << "skip clustering, unique=" << unique_colors.size()
                                  << " <= " << ADAPTIVE_CLUSTER_SKIP_UNIQUE_COUNT;
         return unique_colors;
     }
@@ -1308,7 +1308,7 @@ std::vector<Color> cluster_adaptive(const std::vector<Color>& colors, const Clus
         if (cancel_cb && cancel_cb()) return {};
         double max_radius = calc_max_radius(centers);
 
-        BOOST_LOG_TRIVIAL(debug) << "cluster_adaptive binary search: k=" << mid << " max_radius=" << max_radius;
+        BOOST_LOG_TRIVIAL(debug) << "binary search: k=" << mid << " max_radius=" << max_radius;
 
         if (max_radius <= max_color_distance) {
             best_k = mid;
@@ -1322,11 +1322,11 @@ std::vector<Color> cluster_adaptive(const std::vector<Color>& colors, const Clus
     if (best_k == 0) {
         best_k = std::min<std::size_t>(max_k, unique_colors.size());
         best_centers = kmeans_core(working_colors, best_k, max_iter, working_dist_func, cancel_cb);
-        BOOST_LOG_TRIVIAL(warning) << "cluster_adaptive: binary search found no k satisfying max_radius<="
+        BOOST_LOG_TRIVIAL(warning) << "binary search found no k satisfying max_radius<="
                                    << max_color_distance << ", fallback to k=" << best_k;
     }
 
-    BOOST_LOG_TRIVIAL(debug) << "cluster_adaptive: best_k=" << best_k;
+    BOOST_LOG_TRIVIAL(debug) << "best_k=" << best_k;
 
     // ==========================================
     // 3. Convert centers back to RGB

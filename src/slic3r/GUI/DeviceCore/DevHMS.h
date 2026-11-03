@@ -64,9 +64,6 @@ public:
     std::string get_long_error_code() const;
     HMSMessageLevel get_level() const { return m_msg_level; }
 
-    void set_read() { m_already_read = true; };
-    bool has_read() const { return m_already_read; };
-
 protected:
     friend void DevHMS::ParseHMSItems(const json& hms_json);
     bool parse_hms_info(unsigned attr, unsigned code);
@@ -78,7 +75,6 @@ private:
     unsigned        m_reserved;
     HMSMessageLevel m_msg_level = HMS_UNKNOWN;
     int             m_msg_code = 0;
-    bool            m_already_read = false;
 };
 
 };// End of namespace Slic3r

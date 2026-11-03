@@ -32,6 +32,7 @@
         "326"
     ],
     "upward_compatible_machine": [
-        "Bambu Lab H2S 0.8 nozzle"
+        "Bambu Lab H2S 0.8 nozzle",
+        "Bambu Lab H3C 0.8 nozzle"
     ]
 }

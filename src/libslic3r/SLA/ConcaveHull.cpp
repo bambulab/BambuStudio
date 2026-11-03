@@ -4,8 +4,6 @@
 #include <libslic3r/MTUtils.hpp>
 #include <libslic3r/ClipperUtils.hpp>
 
-#include <boost/log/trivial.hpp>
-
 namespace Slic3r {
 namespace sla {
 

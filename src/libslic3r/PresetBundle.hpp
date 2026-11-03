@@ -3,13 +3,16 @@
 
 #include "Preset.hpp"
 #include "AppConfig.hpp"
+#include "NozzleInventory.hpp"
 #include "enum_bitmask.hpp"
 
 #include <memory>
 #include <unordered_map>
 #include <optional>
-#include <variant>
+#include <utility>
 #include <map>
+#include <set>
+#include <functional>
 #include <boost/filesystem/path.hpp>
 
 #define DEFAULT_USER_FOLDER_NAME "default"
@@ -28,6 +31,12 @@ struct AMSMapInfo
     /*for new ams mapping*/ // from struct FilamentInfo
     std::string ams_id{""};
     std::string slot_id{""};
+    std::string nozzle_diameter{""};
+    // Flow of the nozzle this tray feeds, as the machine reports it. Carried alongside the diameter
+    // because the two together identify a nozzle: a rack can hold the same diameter in two flows, so
+    // syncing only the diameter leaves a slot on whichever flow it happened to have. Empty when the
+    // machine said nothing about it -- nvtStandard is a real value and cannot stand in for "unknown".
+    std::optional<NozzleVolumeType> nozzle_volume_type;
 };
 struct AMSComboInfo
 {
@@ -83,53 +92,13 @@ private:
     int  m_filament_extruder_compatibility = 0;
 };
 
-// Recommended parameters for support filament combination
-struct FilamentCombinationParams
-{
-    // 山苍: 使用 variant 支持多种类型: double, bool, string, int, vector<double>
-    using ParamValue = std::variant<double, bool, std::string, int, std::vector<double>>;
-    std::map<std::string, ParamValue> params;  // 通用参数存储
-    bool hasRecommendedParams() const {
-        return !params.empty();
-    }
-
-    // 辅助函数：获取参数值
-    template<typename T>
-    std::optional<T> get(const std::string& key) const {
-        auto it = params.find(key);
-        if (it != params.end()) {
-            if (auto* val = std::get_if<T>(&it->second)) {
-                return *val;
-            }
-        }
-        return std::nullopt;
-    }
-};
-
-// 支撑推荐参数：通过 (support_material, model_material) 查询
-struct SupportRecommendedParams
-{
-    std::string model_material;                     // 主体料（类型或名称）
-    std::string model_material_type;                // "name" 或 "type"
-    std::vector<std::string> support_material_list; // 支撑料列表（类型或名称）
-    std::string support_material_type;              // "name" 或 "type"
-    int priority{0};                                // 优先级，数字越大优先级越高
-    FilamentCombinationParams params;               // 推荐参数
-};
-
-class PresetBundle;
+/// Nozzle counts per extruder and volume type; the value type behind the legacy extruder_nozzle_stats key.
 struct ExtruderNozzleStat
 {
 public:
-    enum NozzleDataFlag {
-        ndfMachine = 0,
-        ndfNone
-    };
-public:
     ExtruderNozzleStat() = default;
-    ExtruderNozzleStat(const std::vector<std::map<NozzleVolumeType, int>>& nozzle_counts, const NozzleDataFlag flag = ndfNone) : extruder_nozzle_counts(nozzle_counts), data_flag(flag) {}
+    explicit ExtruderNozzleStat(const std::vector<std::map<NozzleVolumeType, int>>& nozzle_counts) : extruder_nozzle_counts(nozzle_counts) {}
     void on_volume_type_switch(int extruder_id, NozzleVolumeType type);
-    void on_printer_model_change(PresetBundle* preset_bundle);
     void on_printer_model_change_cli(const std::vector<int> &nozzle_volume_type, const std::vector<int> &max_nozzle_count);
     void set_extruder_nozzle_count(int extruder_id, NozzleVolumeType type, int count, bool clear);
     int get_extruder_nozzle_count(int extruder_id, std::optional<NozzleVolumeType> volume_type = std::nullopt) const;
@@ -137,12 +106,78 @@ public:
     const std::vector<std::map<NozzleVolumeType, int>> get_raw_stat() const { return extruder_nozzle_counts; }
     void set_raw_stat(const std::vector<std::map<NozzleVolumeType, int>>& data) { extruder_nozzle_counts = data; }
 
-    void set_nozzle_data_flag(NozzleDataFlag flag){ data_flag = flag; }
-    void set_force_keep_flag(bool flag) { force_keep_stat = flag; }
 private:
-    bool force_keep_stat{ false };
     std::vector<std::map<NozzleVolumeType,int>> extruder_nozzle_counts;
-    NozzleDataFlag data_flag{ ndfNone };
+};
+
+struct ExtruderFullStat
+{
+public:
+    ExtruderFullStat() = default;
+    ExtruderFullStat(const std::vector<std::vector<std::pair<std::string, std::string>>> &stats) : extruder_nozzle_stats(stats) {}
+    const std::vector<std::vector<std::pair<std::string, std::string>>> &get_raw_stat() const { return extruder_nozzle_stats; }
+    void set_raw_stat(const std::vector<std::vector<std::pair<std::string, std::string>>> &data) { extruder_nozzle_stats = data; }
+    int get_extruder_count() const { return extruder_nozzle_stats.size(); }
+    int get_extruder_nozzle_count(size_t extruder_id) const
+    {
+        if (extruder_id >= extruder_nozzle_stats.size()) return 0;
+        return extruder_nozzle_stats[extruder_id].size();
+    }
+    const std::vector<std::pair<std::string, std::string>> get_extruder_stats(size_t extruder_id) const
+    {
+        if (extruder_id >= extruder_nozzle_stats.size()) return {};
+        return extruder_nozzle_stats[extruder_id];
+    }
+    void resize(size_t extruder_count) { extruder_nozzle_stats.resize(extruder_count); }
+    void set_extruder_stats(size_t extruder_id, const std::vector<std::pair<std::string, std::string>> &stats)
+    {
+        if (extruder_id >= extruder_nozzle_stats.size()) extruder_nozzle_stats.resize(extruder_id + 1);
+        extruder_nozzle_stats[extruder_id] = stats;
+    }
+    void clear_extruder(size_t extruder_id)
+    {
+        if (extruder_id < extruder_nozzle_stats.size()) extruder_nozzle_stats[extruder_id].clear();
+    }
+    void clear() { extruder_nozzle_stats.clear(); }
+    bool empty() const { return extruder_nozzle_stats.empty(); }
+
+    // Save every extruder's full stats.
+    // Outer vector: extruder index.
+    // Inner vector: nozzle index.
+    // Pair: <diameter, volume>.
+private:
+    std::vector<std::vector<std::pair<std::string, std::string>>> extruder_nozzle_stats;
+};
+
+// GUI(PresetBundle)与 CLI(BambuStudio.cpp)共用的逐槽喷嘴对账:两端用同一套判据和重建逻辑,
+// 从权威 ExtruderNozzleStat 生成逐槽四字段(count / volume_type / diameter / slot)。
+ExtruderFullStat build_extruder_full_stat_from_nozzle_stat(const ExtruderNozzleStat &nozzle_stat,
+                                                           const std::vector<int>   &extruder_max_nozzle_count,
+                                                           const std::string        &diameter_str);
+void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, const ExtruderFullStat &full_stat);
+bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config);
+
+/**
+ * \brief Count one extruder's physical nozzle slots by their preset default volume type
+ *
+ * \param printer_config  printer config holding default_nozzle_volume_type
+ * \param extruder_id     0-based extruder id
+ * \param slot_count      number of physical nozzle slots of the extruder
+ * \return volume type -> slot count; never contains Hybrid
+ */
+std::map<NozzleVolumeType, int> count_default_nozzle_volume_types(const ConfigBase &printer_config, int extruder_id, int slot_count);
+
+/// Untranslated name of a volume type, as BambuStudio.conf and the per-slot snapshot store it ("High Flow").
+std::string GetNozzleVolumeTypeStr(const NozzleVolumeType &type);
+
+// Ordered AMS units selected for one logical extruder. A non-empty string is a device AMS id;
+// an empty string is a virtual unit. This runtime identity layer complements the persisted counts.
+struct ExtruderAmsSelection
+{
+    bool                     initialized{false};
+    std::string              device_id;
+    std::vector<std::string> ams4;
+    std::vector<std::string> ams1;
 };
 
 // Bundle of Print + Filament + Printer presets.
@@ -217,11 +252,6 @@ public:
 
     std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name = std::string(), bool only_system = false) const;
 
-    // Load support recommended params from JSON file
-    void load_support_recommended_params();
-    // Get support recommended params by (support_material, model_material)
-    std::optional<SupportRecommendedParams> get_support_recommended_params(const std::string& support_material, const std::string& model_material) const;
-
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
     std::vector<Preset*> get_current_project_embedded_presets();
@@ -241,6 +271,8 @@ public:
 
     bool is_mixed_filament(size_t idx) const;
     std::vector<size_t> physical_filament_config_indices() const;
+    size_t physical_filament_count() const;
+    size_t mixed_filament_count() const;
 
     void         get_ams_cobox_infos(AMSComboInfo &combox_info,bool skip_ext = false);
     unsigned int sync_ams_list(std::vector<std::pair<DynamicPrintConfig *, std::string>> &unknowns,
@@ -251,8 +283,6 @@ public:
                                bool                                                       skip_ext = false);
     //BBS: check whether this is the only edited filament
     bool is_the_only_edited_filament(unsigned int filament_index);
-
-    void reset_default_nozzle_volume_type();
 
     std::vector<int> get_used_tpu_filaments(const std::vector<int> &used_filaments);
     void set_calibrate_printer(std::string name);
@@ -270,6 +300,100 @@ public:
                                                                                                std::string &      nozzle_temp_max,
                                                                                                std::string &      preset_setting_id);
     Preset *                    get_similar_printer_preset(std::string printer_model, std::string printer_variant);
+    // BBS multi-diameter: printer preset names of the current printer model whose nozzle-diameter variant
+    // matches any diameter selected via "set nozzle diameter" (stored in nozzle_inventory). Returns an
+    // empty list when no multi-diameter selection exists, keeping single-diameter behavior unchanged.
+    std::vector<std::string>    get_extra_compatible_printers_by_full_stat();
+
+    // Multi-diameter grouping restriction: for each loaded filament, the ';'-joined list of nozzle
+    // diameters its preset natively supports (compatible_printers x printer_variant). This uses the
+    // filament preset's own compatible_printers only and never the broadened selectable set.
+    std::vector<std::string>    compute_filament_supported_nozzle_diameters(size_t num_filaments) const;
+    // Returns the configured nozzle diameters supported by the logical filament in this slot.
+    std::vector<std::string>    get_filament_nozzle_diameter_options(size_t filament_index) const;
+    bool                        is_filament_nozzle_diameter_valid(size_t filament_index, const std::string &diameter) const;
+    // (diameter, flow) of every slot that actually carries a nozzle. Built from the same per-slot
+    // snapshot the diameter option list above comes from, so the filament panel's diameter list and
+    // its per-diameter flow list cannot disagree. The printer preset's extruder_variant_list only
+    // says what the model could take and must not be used to offer flow types on its own.
+    std::set<std::pair<std::string, NozzleVolumeType>> get_installed_nozzle_variants() const;
+    // Updates the selected diameter and switches to a matching system preset when the current preset cannot serve it.
+    // `diameter_picked_by_user` keeps a diameter the machine does not currently carry: the request then
+    // only has to be one the filament has a preset for. Picking a tray by hand is such a case -- the
+    // tray reports the nozzle it was loaded on, which may since have been retyped in the nozzle
+    // settings -- and refusing it leaves the slot silently on its old nozzle, as if the pick had not
+    // happened. The slot is flagged afterwards instead, which is what tells the user to add that nozzle.
+    bool                        set_filament_nozzle_diameter(size_t filament_index, const std::string &diameter,
+                                                           std::string *selected_preset_name = nullptr,
+                                                           bool diameter_picked_by_user = false);
+    // Nozzle diameter the machine reports for the tray this slot's filament came from, or an empty
+    // string when no tray matches. Matched on filament_id + colour, the same pair the sync badge
+    // uses to decide whether a slot still corresponds to a tray.
+    std::string                 tray_diameter_for_filament_slot(size_t filament_index) const;
+    // First single-diameter -> multi-diameter toggle: give every physical slot a diameter and the
+    // first printable flow for it. Prefers what the machine says the slot's tray is mounted on,
+    // falling back to `fallback_diameter` (the printer_variant in effect before the switch) when no
+    // tray matches or its diameter is not one this filament has a preset for. Slots that cannot use
+    // the result keep it anyway so validation can flag them instead of rewriting them to the
+    // smallest remaining option.
+    void                        seed_filament_nozzles_for_multi_diameter(const std::string &fallback_diameter);
+    // Writes printer_nozzle_diameter_mode on the edited printer preset right before it is saved, so a
+    // user/project printer remembers which multi-diameter mode it was saved in. Printers that cannot do
+    // multi-diameter get an empty value.
+    void                        stamp_printer_nozzle_diameter_mode();
+    // Whether `preset` is a user/project printer preset that belongs to multi-diameter mode.
+    bool                        is_multi_nozzle_user_printer_preset(const Preset &preset) const;
+    // Resizes selections and fills missing or invalid values with a deterministic supported default.
+    // Device mappings, when supplied, take precedence and bind a filament to its physical slot diameter.
+    // `device_maps_are_user_chosen` says whether those mappings came from the matching dialog, where
+    // the user picked each pairing by hand, rather than from the positional merge an overwrite sync
+    // does on its own. A pairing the user chose is applied even when it does not fit, and the slot is
+    // flagged; one the program chose is left alone instead, since nobody asked for it.
+    void                        validate_filament_nozzle_diameter_selections(
+                                    const std::map<int, AMSMapInfo> *device_maps = nullptr,
+                                    bool device_maps_are_user_chosen = false);
+    // When true, update_compatible() and validate_filament_nozzle_diameter_selections() skip their
+    // silent fallback substitution of incompatible filament presets, recording the affected slots into
+    // incompatible_nozzle_diameter_slots instead of replacing them. Used by the single-diameter-mode
+    // nozzle-diameter switch entry points so the user's original filament selection is preserved.
+    bool                        block_filament_fallback_substitution = false;
+    std::vector<size_t>         incompatible_nozzle_diameter_slots;
+
+    // A tray whose material the current printer has no preset for. Sync falls back the same way the
+    // AMS dropdown does -- to a "Generic <type>" of the same material class -- and records it here so
+    // the user is told what was swapped for what, rather than finding a material they did not pick.
+    struct AmsSyncSubstitution
+    {
+        size_t      slot = 0;
+        std::string tray;    // the tray it came from, labelled as the machine reports it
+        std::string wanted;  // the material that tray holds, by its display name
+        std::string applied; // what went into the slot; empty when nothing could be applied at all
+    };
+    std::vector<AmsSyncSubstitution> ams_sync_substitutions;
+
+    /**
+     * \brief Set the ams count for extruder \p index
+     *
+     * \param index logical index of extruer
+     * \param ams4  count of the 4-slot ams
+     * \param ams1  count of the 1-slot ams
+     */
+    void set_ams_count(int index, int ams4, int ams1);
+
+    /**
+     * \brief get the ams count for extruder \p index, <4-slot, 1-slot>
+     *
+     * \param index logical index of extruer
+     */
+    std::pair<int, int> get_ams_count(int index);
+    void initialize_ams_selection(int index, const std::string &device_id,
+                                  const std::vector<std::string> &ams4_ids, const std::vector<std::string> &ams1_ids);
+    void resize_ams_selection(int index, const std::string &device_id,
+                              const std::vector<std::string> &ams4_ids, const std::vector<std::string> &ams1_ids,
+                              int ams4, int ams1);
+    void replace_ams_selection(int index, const std::string &device_id,
+                               const std::vector<std::string> &ams4_ids, const std::vector<std::string> &ams1_ids);
+    ExtruderAmsSelection *get_ams_selection(int index);
 
     PresetCollection            prints;
     PresetCollection            sla_prints;
@@ -287,7 +411,7 @@ public:
     std::vector<std::vector<std::string>> ams_multi_color_filment;
 
     std::vector<std::map<int, int>> extruder_ams_counts;
-    ExtruderNozzleStat extruder_nozzle_stat;
+    std::vector<ExtruderAmsSelection> extruder_ams_selections;
     // Calibrate
     Preset const * calibrate_printer = nullptr;
     std::set<Preset const *> calibrate_filaments;
@@ -296,6 +420,8 @@ public:
     // they are being serialized / deserialized from / to the .amf, .3mf, .config, .gcode,
     // and they are being used by slicing core.
     DynamicPrintConfig          project_config;
+    /// Nozzles of the selected printer; writes its keys into project_config, so it is declared after it.
+    NozzleInventory             nozzle_inventory{project_config};
 
     // There will be an entry for each system profile loaded,
     // and the system profiles will point to the VendorProfile instances owned by PresetBundle::vendors.
@@ -309,9 +435,6 @@ public:
         std::vector<std::string> printers;
     };
     ObsoletePresets             obsolete_presets;
-
-    // Support recommended params: key = "support_material|model_material"
-    std::map<std::string, SupportRecommendedParams> support_recommended_params_map;
 
     bool                        has_defauls_only() const
         { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }
@@ -394,6 +517,16 @@ public:
     // preset if the current print or filament preset is not compatible.
     void                        update_compatible(PresetSelectCompatibleType select_other_print_if_incompatible, PresetSelectCompatibleType select_other_filament_if_incompatible);
     void                        update_compatible(PresetSelectCompatibleType select_other_if_incompatible) { this->update_compatible(select_other_if_incompatible, select_other_if_incompatible); }
+
+    /**
+     * \brief Replace the built-in default process and filament presets with the printer's preferred ones
+     *
+     * Only compatible presets are selected. A default preset stays if no compatible preset exists.
+     * Edits on a default preset are dropped, not transferred. The caller must refresh the UI and export selections.
+     *
+     * \return true if any selection changed
+     */
+    bool                        replace_default_presets();
 
     // Set the is_visible flag for printer vendors, printer models and printer variants
     // based on the user configuration.

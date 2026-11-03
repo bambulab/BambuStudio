@@ -11,5 +11,8 @@
     ],
     "filament_vendor": [
         "Generic"
+    ],
+    "temperature_vitrification": [
+        "70"
     ]
 }

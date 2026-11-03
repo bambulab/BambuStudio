@@ -16,13 +16,13 @@
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 
-#include <boost/log/trivial.hpp>
 #include <algorithm>
 #include <chrono>
 #include <optional>
 #include <string>
 #include <utility>
 #include <wx/sizer.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -170,7 +170,7 @@ nlohmann::json DevicePageAmsControlWebVM::OnCommand(const std::string& submod,
         }
 #endif
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "DevicePageAmsControlWebVM::OnCommand exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
         return MakeResponse(GetModule(), submod, action, 2, e.what(), BuildState());
     }
 
@@ -254,7 +254,7 @@ void DevicePageAmsControlWebVM::ReportState(const std::string& submod, const std
     try {
         state_key = state.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " state.dump() failed: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "state.dump() failed: " << e.what();
         return;
     }
     if (state_key == m_last_report_state) return;

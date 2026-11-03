@@ -1,0 +1,13 @@
+{
+    "type": "filament",
+    "name": "fdm_filament_template_h3c",
+    "from": "system",
+    "instantiation": "false",
+    "filament_cooling_before_tower": [
+        "0",
+        "0"
+    ],
+    "min_temperature_when_ec": [
+        "0"
+    ]
+}

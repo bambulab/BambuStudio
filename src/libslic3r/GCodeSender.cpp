@@ -7,6 +7,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/lexical_cast.hpp>
+#include "libslic3r/Log.hpp"
 
 #if defined(__APPLE__) || defined(__OpenBSD__)
 #include <termios.h>
@@ -137,21 +138,21 @@ GCodeSender::set_baud_rate(unsigned int baud_rate)
 #elif __linux__
         termios2 ios;
         if (ioctl(handle, TCGETS2, &ios))
-            printf("Error in TCGETS2: %s\n", strerror(errno));
+            BOOST_LOG_TRIVIAL(error) << "Error in TCGETS2: " << strerror(errno);
         ios.c_ispeed = ios.c_ospeed = baud_rate;
         ios.c_cflag &= ~CBAUD;
         ios.c_cflag |= BOTHER | CLOCAL | CREAD;
         ios.c_cc[VMIN] = 1; // Minimum of characters to read, prevents eof errors when 0 bytes are read
         ios.c_cc[VTIME] = 1;
         if (ioctl(handle, TCSETS2, &ios))
-            printf("Error in TCSETS2: %s\n", strerror(errno));
+            BOOST_LOG_TRIVIAL(error) << "Error in TCSETS2: " << strerror(errno);
 		
 #elif __OpenBSD__
 		struct termios ios;
 		::tcgetattr(handle, &ios);
 		::cfsetspeed(&ios, baud_rate);
 		if (::tcsetattr(handle, TCSAFLUSH, &ios) != 0)
-			printf("Failed to set baud rate: %s\n", strerror(errno));
+			BOOST_LOG_TRIVIAL(error) << "Failed to set baud rate: " << strerror(errno);
 #else
         //throw Slic3r::InvalidArgument("OS does not currently support custom bauds");
 #endif
@@ -393,7 +394,7 @@ GCodeSender::on_read(const boost::system::error_code& error,
                 }
                 this->send();
             } else {
-                printf("Cannot resend %zu (oldest we have is %zu)\n", toresend, this->sent - this->last_sent.size());
+                BOOST_LOG_TRIVIAL(warning) << "Cannot resend " << toresend << " (oldest we have is " << this->sent - this->last_sent.size() << ")";
             }
         } else if (boost::starts_with(line, "wait")) {
             // ignore

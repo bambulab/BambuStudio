@@ -245,7 +245,9 @@ export function buildSpoolFromTray(input: BuildSpoolFromTrayInput): BuildSpoolFr
     tag_uid: trayTagUid,
     tray_id_name: tray.tray_id_name || '',
     setting_id: resolved.matchedSettingId || tray.setting_id || '',
-    bound_ams_id: unit.ams_id,
+    // Virtual/ext slots carry their own ams_id (they have no enclosing AmsUnit);
+    // regular trays leave tray.ams_id undefined and fall back to the unit's id.
+    bound_ams_id: tray.ams_id ?? unit.ams_id,
     bound_dev_id: devId,
   };
 

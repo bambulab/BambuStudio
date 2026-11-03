@@ -6,6 +6,7 @@
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceManager.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -53,6 +54,27 @@ static wxString get_default_name(wxString filament_name, CalibMode mode){
         break;
     }
     return filament_name;
+}
+
+// MachineObject may be rebuilt on reconnect before on_device_connected restores the cache
+static std::vector<CaliPresetInfo> get_selected_cali_preset(MachineObject* obj)
+{
+    std::vector<CaliPresetInfo> presets = obj->GetCalib()->GetSelectedCalibPreset();
+    if (!presets.empty()) {
+        BOOST_LOG_TRIVIAL(debug) << "selected_cali_preset from memory, count = " << presets.size();
+        return presets;
+    }
+
+    for (const PrinterCaliInfo& info : wxGetApp().app_config->get_printer_cali_infos()) {
+        if (info.dev_id == obj->get_dev_id()) {
+            obj->GetCalib()->SetSelectedCalibPreset(info.selected_presets);
+            BOOST_LOG_TRIVIAL(warning) << "selected_cali_preset restored from cache, count = " << info.selected_presets.size() << " "
+                                       << KV(log_key::dev_id, obj->get_dev_id());
+            return info.selected_presets;
+        }
+    }
+    BOOST_LOG_TRIVIAL(warning) << "selected_cali_preset is empty and no cache found " << KV(log_key::dev_id, obj->get_dev_id());
+    return presets;
 }
 
 CalibrationCommonSavePage::CalibrationCommonSavePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -210,6 +232,13 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
 
     m_grid_panel->Show();
     m_multi_extruder_grid_panel->Hide();
+
+    /* Rack machines can produce far more results than the ~4 that fit as columns. */
+    auto rack = m_obj ? m_obj->GetNozzleRack() : nullptr;
+    if (rack && rack->IsSupported() && rack->IsDirectConnectedRack()) {
+        sync_cali_result_for_single_rack(cali_result);
+        return;
+    }
 
     m_calib_results.clear();
     for (auto& item : cali_result) {
@@ -378,6 +407,111 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
     Layout();
 }
 
+void CaliPASaveAutoPanel::sync_cali_result_for_single_rack(const std::vector<PACalibResult>& cali_result)
+{
+    if (!m_obj) return;
+
+    m_calib_results.clear();
+    for (auto& item : cali_result) {
+        if (item.confidence == 0)
+            m_calib_results.push_back(item);
+    }
+
+    m_grid_panel->DestroyChildren();
+
+    const int COLUMN_GAP = FromDIP(20);
+    const int ROW_GAP    = FromDIP(8);
+
+    /* One row per result, so extra results extend downward instead of off-screen. */
+    auto* grid_sizer = new wxFlexGridSizer(3, ROW_GAP, COLUMN_GAP);
+
+    {
+        auto* slot_title = new Label(m_grid_panel, _L("Nozzle ID"));
+        slot_title->SetFont(Label::Head_14);
+        grid_sizer->Add(slot_title, 0, wxALIGN_CENTER_VERTICAL);
+
+        auto* k_title = new Label(m_grid_panel, _L("Factor K"));
+        k_title->SetFont(Label::Head_14);
+        grid_sizer->Add(k_title, 0, wxALIGN_CENTER_VERTICAL);
+
+        auto* name_title = new Label(m_grid_panel, _L("Name"));
+        name_title->SetFont(Label::Head_14);
+        grid_sizer->Add(name_title, 0, wxALIGN_CENTER_VERTICAL);
+    }
+
+    m_is_all_failed  = true;
+    bool part_failed = false;
+    if (cali_result.empty())
+        part_failed = true;
+
+    std::vector<std::pair<int, std::string>> preset_names;
+    for (auto& info : m_obj->GetCalib()->GetSelectedCalibPreset()) {
+        preset_names.push_back({info.tray_id, info.name});
+    }
+    preset_names = default_naming(preset_names);
+
+    std::vector<PACalibResult> sorted_cali_result = cali_result;
+    std::sort(sorted_cali_result.begin(), sorted_cali_result.end(), [](const PACalibResult& left, const PACalibResult& right) { return left.tray_id < right.tray_id; });
+
+    for (auto& item : sorted_cali_result) {
+        bool result_failed = (item.confidence != 0);
+        if (result_failed)
+            part_failed = true;
+        else
+            m_is_all_failed = false;
+
+        auto* slot_text = new Label(m_grid_panel, m_obj->GetFilaSystem()->GetTrayNameByTrayId(item.tray_id));
+        slot_text->SetFont(Label::Body_14);
+        grid_sizer->Add(slot_text, 0, wxALIGN_CENTER_VERTICAL);
+
+        if (result_failed) {
+            grid_sizer->Add(new Label(m_grid_panel, _L("Failed")), 0, wxALIGN_CENTER_VERTICAL);
+            grid_sizer->Add(new Label(m_grid_panel, " - "), 0, wxALIGN_CENTER_VERTICAL);
+            continue;
+        }
+
+        /* col_idx/extruder_id must match the result so save_to_result_from_widgets() can find it back. */
+        auto* k_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_NUMBER_INPUT_SIZE, item.tray_id,
+                                         GridTextInputType::K, item.extruder_id);
+        k_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+        k_value->GetTextCtrl()->SetValue(wxString::Format("%.3f", item.k_value));
+        grid_sizer->Add(k_value, 0, wxALIGN_CENTER_VERTICAL);
+
+        auto* comboBox_tray_name = new GridComboBox(m_grid_panel, CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, item.extruder_id);
+
+        wxArrayString selections;
+        if (!item.filament_id.empty()) {
+            PaHistoryFilter pa_history_filter = m_obj->GetCalib()->GetPaHistoryFilter();
+            for (const auto &history : pa_history_filter.set_filament_id(item.filament_id).get())
+                selections.push_back(from_u8(history.name));
+        }
+        comboBox_tray_name->Set(selections);
+
+        for (auto& name : preset_names) {
+            if (item.tray_id == name.first) {
+                comboBox_tray_name->SetValue(from_u8(name.second));
+                break;
+            }
+        }
+        grid_sizer->Add(comboBox_tray_name, 0, wxALIGN_CENTER_VERTICAL);
+    }
+
+    m_grid_panel->SetSizer(grid_sizer, true);
+    m_grid_panel->Bind(wxEVT_LEFT_DOWN, [this](auto& e) { SetFocusIgnoringChildren(); });
+
+    if (part_failed) {
+        m_part_failed_panel->Show();
+        m_complete_text_panel->Show(!m_is_all_failed);
+    } else {
+        m_complete_text_panel->Show();
+        m_part_failed_panel->Hide();
+    }
+
+    wxGetApp().UpdateDarkUIWin(this);
+
+    Layout();
+}
+
 void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* out_is_valid, wxString* out_msg) {
     if (!window)
         return;
@@ -453,12 +587,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
 {
     if (!m_obj || !m_obj->GetNozzleSystem()) return;
 
-    std::map<int, DynamicPrintConfig> old_full_filament_ams_list = build_filament_ams_list(m_obj);
-    std::map<int, DynamicPrintConfig> full_filament_ams_list;
-    for (auto ams_item : old_full_filament_ams_list) {
-        int key = ams_item.first & 0x0FFFF;
-        full_filament_ams_list[key] = std::move(ams_item.second);
-    }
+    std::map<int, DynamicPrintConfig> full_filament_ams_list = CalibUtils::build_filament_ams_list(m_obj);
 
     m_is_all_failed  = true;
     bool part_failed = false;
@@ -684,13 +813,14 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
                     nozzle_id_str += wxString::Format("%d | ", (item.nozzle_pos_id & 0x0f) + 1);
                 }else{
                     nozzle_id_str += "N/A | ";
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Nozzle position id is -1 or invalid.";
+                    BOOST_LOG_TRIVIAL(warning) << "Nozzle position id is -1 or invalid.";
                 }
                 nozzle_id_str += wxString::Format("%.1f mm ", item.nozzle_diameter);
                 switch(item.nozzle_volume_type){
                     case NozzleVolumeType::nvtStandard:     nozzle_id_str += _L("Standard Flow"); break;
                     case NozzleVolumeType::nvtHighFlow:     nozzle_id_str += _L("High Flow"); break;
                     case NozzleVolumeType::nvtTPUHighFlow:  nozzle_id_str += _L("TPU High Flow"); break;
+                    case NozzleVolumeType::nvtTPU285:       nozzle_id_str += _L("TPU285"); break;
                     default: break;
                 }
                 nozzle_id_value->SetLabel(nozzle_id_str);
@@ -908,7 +1038,7 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
     out_result.k_value = k;
     out_result.name = into_u8(name);
     if (m_obj) {
-        auto selected_cali_preset = m_obj->GetCalib()->GetSelectedCalibPreset();
+        auto selected_cali_preset = get_selected_cali_preset(m_obj);
         assert(selected_cali_preset.size() <= 1);
         if (!selected_cali_preset.empty()) {
             auto item       = selected_cali_preset[0];
@@ -922,12 +1052,12 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
             out_result.nozzle_volume_type   = item.nozzle_volume_type;
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "CaliPASaveManual: obj->selected_cali_preset is empty";
+            BOOST_LOG_TRIVIAL(error) << "CaliPASaveManual: obj->selected_cali_preset is empty";
             return false;
         }
     }
     else {
-        BOOST_LOG_TRIVIAL(trace) << "CaliPASaveManual::get_result(): obj is nullptr";
+        BOOST_LOG_TRIVIAL(trace) << "obj is nullptr";
         return false;
     }
 
@@ -937,7 +1067,7 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
 bool CaliPASaveManualPanel::Show(bool show) {
     if (show) {
         if (m_obj) {
-            auto selected_cali_preset = m_obj->GetCalib()->GetSelectedCalibPreset();
+            auto selected_cali_preset = get_selected_cali_preset(m_obj);
             if (!selected_cali_preset.empty()) {
                 wxString default_name = get_default_name(selected_cali_preset[0].name, CalibMode::Calib_PA_Line);
                 if (m_obj->is_multi_extruders()) {
@@ -962,7 +1092,7 @@ bool CaliPASaveManualPanel::Show(bool show) {
             }
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "CaliPASaveManual::Show(): obj is nullptr";
+            BOOST_LOG_TRIVIAL(trace) << "obj is nullptr";
         }
     }
     return wxPanel::Show(show);
@@ -1730,8 +1860,7 @@ bool CalibrationFlowCoarseSavePage::Show(bool show) {
         if (curr_obj) {
             auto selected_cali_preset=curr_obj->GetCalib()->GetSelectedCalibPreset();
 
-            BOOST_LOG_TRIVIAL(info) << "CoarseSavePage::Show()"
-                                    << ", selected_cali_preset.size = " << selected_cali_preset.size()
+            BOOST_LOG_TRIVIAL(info) << ", selected_cali_preset.size = " << selected_cali_preset.size()
                                     << ", stash_flow_ratio = " << curr_obj->GetCalib()->GetStashFlowRatio();
 
             assert(selected_cali_preset.size() <= 1);
@@ -1740,11 +1869,11 @@ bool CalibrationFlowCoarseSavePage::Show(bool show) {
                 set_default_options(default_name);
                 set_curr_flow_ratio(curr_obj->GetCalib()->GetStashFlowRatio());
             } else {
-                BOOST_LOG_TRIVIAL(warning) << "CoarseSavePage::Show(): selected_cali_preset is EMPTY, flow ratio may be invalid";
+                BOOST_LOG_TRIVIAL(warning) << "selected_cali_preset is EMPTY, flow ratio may be invalid";
             }
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "CalibrationFlowCoarseSave::Show(): obj is nullptr";
+            BOOST_LOG_TRIVIAL(trace) << "obj is nullptr";
         }
     }
     return wxPanel::Show(show);
@@ -1915,8 +2044,7 @@ bool CalibrationFlowFineSavePage::Show(bool show) {
         if (curr_obj) {
             auto selected_cali_preset = curr_obj->GetCalib()->GetSelectedCalibPreset();
 
-            BOOST_LOG_TRIVIAL(info) << "FineSavePage::Show"
-                                    << ", selected_cali_preset.size = " << selected_cali_preset.size()
+            BOOST_LOG_TRIVIAL(info) << ", selected_cali_preset.size = " << selected_cali_preset.size()
                                     << ", stash_flow_ratio = " << curr_obj->GetCalib()->GetStashFlowRatio();
 
             assert(selected_cali_preset.size() <= 1);
@@ -1925,11 +2053,11 @@ bool CalibrationFlowFineSavePage::Show(bool show) {
                 set_default_options(default_name);
                 set_curr_flow_ratio(curr_obj->GetCalib()->GetStashFlowRatio());
             } else {
-                BOOST_LOG_TRIVIAL(warning) << "FineSavePage::Show: selected_cali_preset is EMPTY, flow ratio may be invalid";
+                BOOST_LOG_TRIVIAL(warning) << "selected_cali_preset is EMPTY, flow ratio may be invalid";
             }
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "CalibrationFlowFineSave::Show(): obj is nullptr";
+            BOOST_LOG_TRIVIAL(trace) << "obj is nullptr";
         }
     }
     return wxPanel::Show(show);
@@ -2019,7 +2147,7 @@ bool CalibrationMaxVolumetricSpeedSavePage::Show(bool show) {
             }
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "CalibrationMaxVolumetricSpeedSave::Show(): obj is nullptr";
+            BOOST_LOG_TRIVIAL(trace) << "obj is nullptr";
         }
     }
     return wxPanel::Show(show);

@@ -22,10 +22,10 @@
 #include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/format/format_fwd.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include "libslic3r/Log.hpp"
 
 #ifdef WIN32
 //FIXME replace the two following includes with <boost/md5.hpp> after it becomes mainstream.
@@ -180,6 +180,11 @@ void AppConfig::set_defaults()
     if (get("enable_sidebar_floatable").empty())
         set_bool("enable_sidebar_floatable", false);
 
+#if !BBL_RELEASE_TO_PUBLIC
+    if (get("timelapse_memory_test").empty())
+        set_bool("timelapse_memory_test", false);
+#endif
+
     if (get("export_sources_full_pathnames").empty())
         set_bool("export_sources_full_pathnames", false);
 
@@ -295,6 +300,9 @@ void AppConfig::set_defaults()
     if (get("internal_developer_mode").empty())
         set_bool("internal_developer_mode", false);
 
+    if (get("texture_import_color_tolerance").empty())
+        set("texture_import_color_tolerance", "5");
+
     if (get("enable_webview_devtools").empty())
         set_bool("enable_webview_devtools", false);
 
@@ -331,12 +339,12 @@ void AppConfig::set_defaults()
         set("auto_calculate_flush","all");
     }
 
-    if (get("enable_high_low_temp_mixed_printing").empty()){
-        set_bool("enable_high_low_temp_mixed_printing", false);
-    }
-
     if (get("auto_optimize_wipe_tower_placement").empty()) {
         set_bool("auto_optimize_wipe_tower_placement", true);
+    }
+
+    if (get("disable_fins_extrude_safe_temp").empty()){
+        set_bool("disable_fins_extrude_safe_temp", false);
     }
 
     if (get("camera_fullscreen_active_monitor_only").empty()){
@@ -613,7 +621,7 @@ std::string AppConfig::load()
         auto path = AppConfig::loading_path();
         ifs.open(path);
         if (!ifs.is_open()) {
-            BOOST_LOG_TRIVIAL(info) << "AppConfig::load() open fail:" << PathSanitizer::sanitize(path);
+            BOOST_LOG_TRIVIAL(info) << "open fail:" << PathSanitizer::sanitize(path);
             return "Line break format may be incorrect.";
         }
 #ifdef WIN32
@@ -621,7 +629,7 @@ std::string AppConfig::load()
         input_stream << ifs.rdbuf();
         std::string total_string = input_stream.str();
         if (total_string.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "AppConfig::load() read fail:" << PathSanitizer::sanitize(path);
+            BOOST_LOG_TRIVIAL(info) << "read fail:" << PathSanitizer::sanitize(path);
             return "read fail.";
         } else {
             size_t      last_pos    = total_string.find_last_of('}');

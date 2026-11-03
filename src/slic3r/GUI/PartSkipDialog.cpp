@@ -29,6 +29,7 @@
 #include "MediaPlayCtrl.h"
 
 #include "DeviceCore/DevManager.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -424,7 +425,7 @@ void PartSkipDialog::DownloadPartsFile()
     m_plate_idx = m_obj ? m_obj->m_plate_index : -1;
     if (m_plate_idx < 0) {
         m_plate_idx = 1;
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "part skip: printer plate index is invalid.";
+        BOOST_LOG_TRIVIAL(warning) << "part skip: printer plate index is invalid.";
     }
 
     m_local_paths.push_back(m_tmp_path + "Metadata/pick_" + std::to_string(m_plate_idx) + ".png");
@@ -442,14 +443,14 @@ void PartSkipDialog::DownloadPartsFile()
             m_file_sys->Bind(EVT_STATUS_CHANGED, &PartSkipDialog::OnFileSystemEvent, this);
             m_file_sys->Bind(EVT_RAMDOWNLOAD, &PartSkipDialog::OnFileSystemResult, this);
             m_file_sys->Start();
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "part skip: print file system start.";
+            BOOST_LOG_TRIVIAL(info) << "part skip: print file system start.";
         } else {
             m_file_sys->Retry();
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "part skip: print file system retry.";
+            BOOST_LOG_TRIVIAL(info) << "part skip: print file system retry.";
         }
     } else {
         m_file_sys->SendExistedFile();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "part skip: local parts info file is existed.";
+        BOOST_LOG_TRIVIAL(info) << "part skip: local parts info file is existed.";
     }
 }
 // actor
@@ -573,12 +574,12 @@ void PartSkipDialog::OnFileSystemResult(wxCommandEvent &event)
         InitDialogUI();
         SetSimplebookPage(2);
         m_file_sys->Stop();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "part skip: on file system result success.";
+        BOOST_LOG_TRIVIAL(info) << "part skip: on file system result success.";
     } else {
         m_url_state = URL_TCP;
         SetSimplebookPage(1);
         m_file_sys->Stop();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "part skip: on file system result failed.";
+        BOOST_LOG_TRIVIAL(info) << "part skip: on file system result failed.";
     }
 }
 
@@ -778,7 +779,6 @@ void PartSkipDialog::InitDialogUI()
             }
             label->SetLabel(wxString::FromUTF8(m_parts_name[part_id]));
             label->SetBackgroundColour(*wxWHITE);
-            label->SetForegroundColour(wxColor(107, 107, 107));
             label->Wrap(-1);
             label->SetMinSize(wxSize(-1, FromDIP(18)));
             checkbox->SetBackgroundColour(*wxWHITE);
@@ -794,6 +794,7 @@ void PartSkipDialog::InitDialogUI()
     }
 
     m_scroll_sizer->Layout();
+    wxGetApp().UpdateDarkUIWin(m_list_view);
     m_list_view->FitInside();
     UpdateApplyButtonStatus();
     UpdateCountLabel();

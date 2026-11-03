@@ -13,6 +13,7 @@
 #include <wx/dcmemory.h>
 #include <wx/settings.h>
 #include <wx/glcanvas.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -183,9 +184,11 @@ void GLToolbarItem::set_state(EState state)
                             existing_time = std::stoi(value);
                         }
                     }
-                    catch (...) {}
+                    catch (...) {
+                        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                    }
 
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " tool name:" << name << " duration: " << times + existing_time;
+                    BOOST_LOG_TRIVIAL(info) << "tool name:" << name << " duration: " << times + existing_time;
                     agent->track_update_property(name, std::to_string(times + existing_time));
                 }
             }
@@ -1141,6 +1144,13 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
 
     if (evt.Moving())
         update_hover_state(mouse_pos, parent);
+    else if (evt.Leaving())
+        // No LeftUp reaches the canvas when the button is released over another window
+        // (e.g. the title bar buttons), and update_hover_state() only runs on Moving,
+        // so hover would stay latched on the last item. Since contains_mouse() reports
+        // items purely by their hover state, that latched item would then swallow every
+        // later click in the canvas and block volume picking entirely.
+        update_hover_state(Vec2d(-1.0, -1.0), parent);
     else if (evt.LeftUp()) {
         if (m_mouse_capture.left) {
             processed = true;
@@ -1221,6 +1231,20 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
     }
 
     return processed;
+}
+
+void GLToolbar::release_toggled_item(const std::string& name)
+{
+    for (int i = 0; i < (int)m_items.size(); ++i) {
+        const auto& item = m_items[i];
+        if (!item || item->get_name() != name)
+            continue;
+        if (item->is_pressed())
+            item->set_state(item->is_hovered() ? GLToolbarItem::Hover : GLToolbarItem::Normal);
+        if (m_pressed_toggable_id == i)
+            m_pressed_toggable_id = -1;
+        return;
+    }
 }
 
 void GLToolbar::do_action(GLToolbarItem::EActionType type, int item_id, GLCanvas3D& parent, bool check_hover)
@@ -1307,6 +1331,9 @@ void GLToolbar::update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent)
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
     Size cnv_size = parent.get_canvas_size();
     Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
+    // Negative coordinates are the "mouse is outside the canvas" sentinel shared with
+    // GLCanvas3D::m_mouse.position, and must not land inside any item after scaling.
+    const bool mouse_outside = mouse_pos.x() < 0.0 || mouse_pos.y() < 0.0;
 
     for (const auto& item : m_items)
     {
@@ -1320,7 +1347,7 @@ void GLToolbar::update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent)
         if (item->get_type() == GLToolbarItem::EType::SeparatorLine) {
             continue;
         }
-        bool inside = item->is_inside(scaled_mouse_pos);
+        bool inside = !mouse_outside && item->is_inside(scaled_mouse_pos);
         GLToolbarItem::EState state = item->get_state();
         switch (state)
         {

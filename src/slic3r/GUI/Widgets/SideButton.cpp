@@ -327,6 +327,11 @@ void SideButton::messureSize()
 
 void SideButton::mouseDown(wxMouseEvent& event)
 {
+    // This control hand-binds mouse events, and on macOS they still reach a
+    // disabled window, so a greyed-out button would otherwise fire. Swallow the
+    // click when disabled to match Windows.
+    if (!IsThisEnabled())
+        return;
     event.Skip();
     pressedDown = true;
     SetFocus();
@@ -335,6 +340,14 @@ void SideButton::mouseDown(wxMouseEvent& event)
 
 void SideButton::mouseReleased(wxMouseEvent& event)
 {
+    if (!IsThisEnabled()) {
+        // Still drop any capture a prior (enabled) press may have taken, so the
+        // mouse can never get stuck captured if the button was disabled mid-press.
+        if (HasCapture())
+            ReleaseMouse();
+        pressedDown = false;
+        return;
+    }
     event.Skip();
 
     if (HasCapture())

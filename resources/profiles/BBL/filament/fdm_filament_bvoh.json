@@ -53,13 +53,22 @@
         "12",
         "12",
         "12",
+        "12",
+        "12",
+        "12",
+        "12",
         "12"
     ],
     "filament_dev_ams_drying_ams_limitations": [
         "1",
-        "0"
+        "0",
+        "2",
+        "3"
     ],
     "filament_dev_ams_drying_heat_distortion_temperature": [
+        "65",
+        "65",
+        "65",
         "65"
     ],
     "filament_dev_drying_cooling_temperature": [
@@ -69,9 +78,16 @@
         "60",
         "60",
         "45",
+        "45",
+        "60",
+        "45",
+        "60",
         "45"
     ],
     "filament_dev_drying_softening_temperature": [
+        "50",
+        "50",
+        "50",
         "50"
     ],
     "hot_plate_temp": [
@@ -102,7 +118,7 @@
         "20"
     ],
     "temperature_vitrification": [
-        "45"
+        "40"
     ],
     "textured_plate_temp": [
         "55"

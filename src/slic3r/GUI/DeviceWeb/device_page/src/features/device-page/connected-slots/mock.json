@@ -1,0 +1,177 @@
+{
+  "selected_dev_id": "mock-dev",
+  "session_seq": 0,
+  "slots": [
+    {
+      "addr_id": 4,
+      "display_index": 5,
+      "top_slots_area": {
+        "left_slot": {
+          "schematic": {
+            "kind": "ams",
+            "selected": true,
+            "slot_count": 9,
+            "selected_index": 4
+          },
+          "unit": {
+            "ams_id": "128",
+            "ams_type": "N3S",
+            "display_name": "AMS H3",
+            "slot_count": 1,
+            "can_dry": false,
+            "humidity_raw": -1,
+            "humidity_level": -1,
+            "humidity_display_type": "percent",
+            "temp": null,
+            "dry_status": "",
+            "dry_status_text": "",
+            "trays": [
+              {
+                "ams_id": "128",
+                "slot_id": "0",
+                "exists": true,
+                "tray_state": "ready",
+                "filament_type": "PLA",
+                "filament_name": "PLA Basic",
+                "color": "#00e64d",
+                "color_type": "single",
+                "colors": ["#00e64d"],
+                "remain": 80
+              }
+            ]
+          },
+          "line": {
+            "state": "no_filament",
+            "has_filament": false,
+            "filament_color": ""
+          }
+        },
+        "right_slots": {
+          "schematic": {
+            "kind": "ext",
+            "selected": false,
+            "items": [
+              {
+                "ext_index": 1,
+                "ams_id": "",
+                "label": "Ext",
+                "color": "#ff8181",
+                "slot_count": 1,
+                "empty": false,
+                "selected": false
+              },
+              {
+                "ext_index": 2,
+                "ams_id": "0",
+                "label": "AMS-A",
+                "color": "#d9d9d9,#00e64d,#7a75ff,#00e64d",
+                "slot_count": 4,
+                "empty": false,
+                "selected": true
+              },
+              {
+                "ext_index": 3,
+                "ams_id": "1",
+                "label": "AMS-B",
+                "color": ",,,",
+                "slot_count": 4,
+                "empty": false,
+                "selected": false
+              },
+              {
+                "ext_index": 4,
+                "ams_id": "2",
+                "label": "AMS-C",
+                "color": "#7a75ff",
+                "slot_count": 1,
+                "empty": false,
+                "selected": false
+              }
+            ]
+          },
+          "unit": {
+            "ams_id": "0",
+            "ams_type": "N3F",
+            "display_name": "AMS-A",
+            "slot_count": 4,
+            "can_dry": true,
+            "humidity_raw": 24,
+            "humidity_level": -1,
+            "humidity_display_type": "percent",
+            "temp": null,
+            "dry_status": "Drying",
+            "dry_status_text": "Drying",
+            "trays": [
+              {
+                "ams_id": "0",
+                "slot_id": "0",
+                "exists": true,
+                "tray_state": "unknown",
+                "filament_type": "",
+                "filament_name": "",
+                "color": "#d9d9d9",
+                "color_type": "single",
+                "colors": ["#d9d9d9"],
+                "remain": 0
+              },
+              {
+                "ams_id": "0",
+                "slot_id": "1",
+                "exists": true,
+                "tray_state": "ready",
+                "filament_type": "PLA",
+                "filament_name": "PLA Basic",
+                "color": "#00e64d",
+                "color_type": "single",
+                "colors": ["#00e64d"],
+                "remain": 80
+              },
+              {
+                "ams_id": "0",
+                "slot_id": "2",
+                "exists": true,
+                "tray_state": "ready",
+                "filament_type": "PLA",
+                "filament_name": "PLA Basic",
+                "color": "#7a75ff",
+                "color_type": "single",
+                "colors": ["#7a75ff"],
+                "remain": 60
+              },
+              {
+                "ams_id": "0",
+                "slot_id": "3",
+                "exists": true,
+                "tray_state": "ready",
+                "filament_type": "PLA",
+                "filament_name": "PLA Basic",
+                "color": "#00e64d",
+                "color_type": "single",
+                "colors": ["#00e64d"],
+                "remain": 90
+              }
+            ]
+          },
+          "line": {
+            "state": "loaded",
+            "has_filament": true,
+            "filament_color": "#00e64d"
+          }
+        }
+      },
+      "bottom_hotend": {
+        "line": {
+          "state": "loaded",
+          "has_filament": true,
+          "filament_color": "#00e64d"
+        },
+        "nozzle": {
+          "state": "Active",
+          "has_filament": true,
+          "filament_color": "#00e64d",
+          "on_extruder": false
+        }
+      }
+    }
+  ]
+}

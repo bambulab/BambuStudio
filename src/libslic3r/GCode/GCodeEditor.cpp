@@ -2,7 +2,6 @@
 #include "GCodeEditor.hpp"
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/log/trivial.hpp>
 #include <iostream>
 #include <float.h>
 
@@ -13,11 +12,16 @@
 #endif
 
 #include <assert.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
 GCodeEditor::GCodeEditor(GCode &gcodegen) : m_config(gcodegen.config()), m_toolchange_prefix(gcodegen.writer().toolchange_prefix()), m_current_extruder(0)
 {
+    m_aux_fan_slots = collect_aux_fan_slots(m_config);
+    m_aux_fan_speeds.assign(m_aux_fan_slots.size(), -1);
+    m_aux_fan_pending_layer_change.assign(m_aux_fan_slots.size(), 0);
+
     this->reset(gcodegen.writer().get_position());
 
     const std::vector<Extruder> &extruders = gcodegen.writer().extruders();
@@ -37,7 +41,7 @@ void GCodeEditor::reset(const Vec3d &position)
     m_current_pos[2] = float(position.z());
     m_current_pos[4] = float(m_config.travel_speed.get_at(get_process_config_idx(m_config, m_current_extruder)));
     m_fan_speed = -1;
-    m_additional_fan_speed = -1;
+    std::fill(m_aux_fan_speeds.begin(), m_aux_fan_speeds.end(), -1);
     m_current_fan_speed = -1;
 }
 
@@ -353,6 +357,23 @@ std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(  const      
     return per_extruder_adjustments;
 }
 
+// Ramps one auxiliary fan from its initial-layer speed up to its target speed.
+// Below "initial_layers" the fan runs at the initial-layer speed; between that and
+// "full_speed_layer" the speed is interpolated; above it the target speed is used.
+static int calc_aux_fan_speed(size_t layer_id, int target_speed, int initial_layer_speed,
+                              int initial_layers, int full_speed_layer)
+{
+    if (int(layer_id) < initial_layers)
+        return initial_layer_speed;
+
+    if (int(layer_id) + 1 < full_speed_layer && full_speed_layer > initial_layers) {
+        const float factor = float(int(layer_id + 1) - initial_layers) / float(full_speed_layer - initial_layers);
+        return std::clamp(int(float(initial_layer_speed) * (1.0f - factor) + float(target_speed) * factor + 0.5f), 0, 100);
+    }
+
+    return target_speed;
+}
+
 // Apply slow down over G-code lines stored in per_extruder_adjustments, enable fan if needed.
 // Returns the adjusted G-code.
 std::string GCodeEditor::write_layer_gcode(
@@ -401,11 +422,7 @@ std::string GCodeEditor::write_layer_gcode(
         int fan_min_speed = EXTRUDER_CONFIG(fan_min_speed);
         int fan_speed_new = EXTRUDER_CONFIG(reduce_fan_stop_start_freq) ? fan_min_speed : 0;
         //BBS
-        int additional_fan_speed_new = EXTRUDER_CONFIG(additional_cooling_fan_speed);
         int close_fan_the_first_x_layers = EXTRUDER_CONFIG(close_fan_the_first_x_layers);
-        int close_additional_fan_first_x_layers = EXTRUDER_CONFIG(close_additional_fan_first_x_layers);
-        int additional_fan_full_speed_layer = EXTRUDER_CONFIG(additional_fan_full_speed_layer);
-        int first_x_layer_fan_speed = EXTRUDER_CONFIG(first_x_layer_fan_speed);
         // Is the fan speed ramp enabled?
         int full_fan_speed_layer = EXTRUDER_CONFIG(full_fan_speed_layer);
         if (close_fan_the_first_x_layers <= 0 && full_fan_speed_layer > 0) {
@@ -449,12 +466,16 @@ std::string GCodeEditor::write_layer_gcode(
             fan_speed_new      = EXTRUDER_CONFIG(first_x_layer_part_fan_speed);
         }
 
-        // BBS: Independent control for additional fan
-        if (int(layer_id) < close_additional_fan_first_x_layers) {
-            additional_fan_speed_new = first_x_layer_fan_speed;
-        } else if (int(layer_id) + 1 < additional_fan_full_speed_layer && additional_fan_full_speed_layer > close_additional_fan_first_x_layers) {
-            float factor = float(int(layer_id + 1) - close_additional_fan_first_x_layers) / float(additional_fan_full_speed_layer - close_additional_fan_first_x_layers);
-            additional_fan_speed_new = std::clamp(int(float(first_x_layer_fan_speed) * (1.0f - factor) + float(additional_fan_speed_new) * factor + 0.5f), 0, 100);
+        // BBS: each auxiliary fan reads its own filament settings
+        std::vector<int> aux_fan_speed_new(m_aux_fan_slots.size(), 0);
+        for (size_t i = 0; i < m_aux_fan_slots.size(); ++i) {
+            const bool is_optional = m_aux_fan_slots[i].optional;
+            aux_fan_speed_new[i] = calc_aux_fan_speed(
+                layer_id,
+                is_optional ? EXTRUDER_CONFIG(optional_cooling_fan_speed)            : EXTRUDER_CONFIG(additional_cooling_fan_speed),
+                is_optional ? int(EXTRUDER_CONFIG(first_x_layer_optional_fan_speed)) : int(EXTRUDER_CONFIG(first_x_layer_fan_speed)),
+                is_optional ? EXTRUDER_CONFIG(close_optional_fan_first_x_layers)     : EXTRUDER_CONFIG(close_additional_fan_first_x_layers),
+                is_optional ? EXTRUDER_CONFIG(optional_fan_full_speed_layer)         : EXTRUDER_CONFIG(additional_fan_full_speed_layer));
         }
 
 #undef EXTRUDER_CONFIG
@@ -469,12 +490,17 @@ std::string GCodeEditor::write_layer_gcode(
             //BBS: don't need to handle change filament, because we are always force to resume fan speed when filament change is finished
         }
         //BBS
-        if (additional_fan_speed_new != m_additional_fan_speed) {
-            m_additional_fan_speed = additional_fan_speed_new;
+        for (size_t i = 0; i < m_aux_fan_slots.size(); ++i) {
+            // A fan without independent control just mirrors the standard one.
+            const int speed_new = m_aux_fan_slots[i].independent ? aux_fan_speed_new[i] : aux_fan_speed_new[0];
+            if (speed_new == m_aux_fan_speeds[i])
+                continue;
+
+            m_aux_fan_speeds[i] = speed_new;
             if (type == SetFanType::sfImmediatelyApply && m_set_fan_changing_filament_start && m_config.auxiliary_fan.value)
-                new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
+                new_gcode += GCodeWriter::set_additional_fan(m_aux_fan_slots[i].gcode_index, speed_new);
             else if (type == SetFanType::sfChangingLayer && !not_set_additional_fan)
-                this->m_set_addition_fan_changing_layer = true;
+                m_aux_fan_pending_layer_change[i] = 1;
             //BBS: don't need to handle change filament, because we are always force to resume fan speed when filament change is finished
         }
         //BBS: set fan pre start time value
@@ -485,7 +511,7 @@ std::string GCodeEditor::write_layer_gcode(
     int                 current_feedrate  = 0;
     //BBS
     m_set_fan_changing_layer = false;
-    m_set_addition_fan_changing_layer = false;
+    std::fill(m_aux_fan_pending_layer_change.begin(), m_aux_fan_pending_layer_change.end(), 0);
     change_extruder_set_fan(SetFanType::sfChangingLayer);
 
     //BBS: start the fan earlier for overhangs
@@ -557,17 +583,24 @@ std::string GCodeEditor::write_layer_gcode(
             //BBS: force to write a fan speed command again
             if (m_current_fan_speed != -1)
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
-            if (m_additional_fan_speed != -1 && m_set_fan_changing_filament_start && m_config.auxiliary_fan.value)
-                new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
+            if (m_set_fan_changing_filament_start && m_config.auxiliary_fan.value) {
+                for (size_t i = 0; i < m_aux_fan_slots.size(); ++i)
+                    if (m_aux_fan_speeds[i] != -1)
+                        new_gcode += GCodeWriter::set_additional_fan(m_aux_fan_slots[i].gcode_index, m_aux_fan_speeds[i]);
+            }
         } else if (line->type & CoolingLine::TYPE_SET_FAN_CHANGING_LAYER) {
             //BBS: check whether fan speed need to changed when change layer
             if (m_current_fan_speed != -1 && m_set_fan_changing_layer) {
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
                 m_set_fan_changing_layer = false;
             }
-            if (m_additional_fan_speed != -1 && m_set_addition_fan_changing_layer && m_config.auxiliary_fan.value) {
-                new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
-                m_set_addition_fan_changing_layer = false;
+            if (m_config.auxiliary_fan.value) {
+                for (size_t i = 0; i < m_aux_fan_slots.size(); ++i) {
+                    if (m_aux_fan_speeds[i] != -1 && m_aux_fan_pending_layer_change[i]) {
+                        new_gcode += GCodeWriter::set_additional_fan(m_aux_fan_slots[i].gcode_index, m_aux_fan_speeds[i]);
+                        m_aux_fan_pending_layer_change[i] = 0;
+                    }
+                }
             }
         }
         else if (line->type & CoolingLine::TYPE_EXTRUDE_END) {

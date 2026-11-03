@@ -12,9 +12,163 @@
 #include "slic3r/GUI/DeviceCore/DevPrintOptions.h"
 #include "slic3r/GUI/DeviceCore/DevUpgrade.h"
 
+#include <algorithm>
 #include <set>
+#include <wx/dcbuffer.h>
+#include <wx/dcclient.h>
 
 namespace Slic3r { namespace GUI {
+
+class WikiWarningLabel : public wxPanel
+{
+public:
+    WikiWarningLabel(
+        wxWindow* parent,
+        const wxString& prefix,
+        const wxString& link,
+        const wxString& suffix,
+        const wxString& url,
+        const wxColour& colour,
+        int width)
+        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(width, 1), wxBORDER_NONE)
+        , m_prefix(prefix)
+        , m_link(link)
+        , m_suffix(suffix)
+        , m_url(url)
+        , m_colour(colour)
+        , m_width(width)
+    {
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        SetBackgroundColour(parent->GetBackgroundColour());
+        SetCursor(wxCURSOR_ARROW);
+        layout_text();
+
+        Bind(wxEVT_PAINT, &WikiWarningLabel::on_paint, this);
+        Bind(wxEVT_MOTION, &WikiWarningLabel::on_motion, this);
+        Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent&) {
+            m_link_hovered = false;
+            SetCursor(wxCURSOR_ARROW);
+        });
+        Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& event) {
+            if (hit_link(event.GetPosition()))
+                wxLaunchDefaultBrowser(m_url);
+        });
+    }
+
+private:
+    struct TextRun {
+        wxString text;
+        wxPoint position;
+        wxSize size;
+        bool is_link;
+    };
+
+    void layout_text()
+    {
+        wxClientDC dc(this);
+        dc.SetFont(Label::Body_13);
+        const int line_height = dc.GetCharHeight();
+        int x = 0;
+        int y = 0;
+        int line_count = 1;
+
+        auto place_token = [&](const wxString& token, bool is_link) {
+            if (token.empty()) return;
+            dc.SetFont(is_link ? Label::Body_13.Underlined() : Label::Body_13);
+            const wxSize size = dc.GetTextExtent(token);
+            const bool is_space = token == " " || token == "\t";
+            if (!is_space && x > 0 && x + size.x > m_width) {
+                x = 0;
+                y += line_height;
+                ++line_count;
+            }
+            if (is_space && x == 0) return;
+            m_runs.push_back({token, wxPoint(x, y), wxSize(size.x, line_height), is_link});
+            if (is_link)
+                m_link_rects.emplace_back(x, y, size.x, line_height);
+            x += size.x;
+        };
+
+        auto append_text = [&](const wxString& text, bool is_link) {
+            wxString token;
+            auto flush_token = [&]() {
+                if (!token.empty()) {
+                    place_token(token, is_link);
+                    token.clear();
+                }
+            };
+
+            for (const wxUniChar ch : text) {
+                if (ch == '\n') {
+                    flush_token();
+                    x = 0;
+                    y += line_height;
+                    ++line_count;
+                } else if (ch == ' ' || ch == '\t') {
+                    flush_token();
+                    wxString whitespace;
+                    whitespace += ch;
+                    place_token(whitespace, is_link);
+                } else if (ch.GetValue() >= 0x2E80) {
+                    flush_token();
+                    wxString character;
+                    character += ch;
+                    place_token(character, is_link);
+                } else {
+                    token += ch;
+                }
+            }
+            flush_token();
+        };
+
+        append_text(m_prefix, false);
+        append_text(m_link, true);
+        append_text(m_suffix, false);
+
+        const int height = std::max(line_height, y + line_height);
+        SetMinSize(wxSize(m_width, height));
+        SetMaxSize(wxSize(m_width, height));
+    }
+
+    void on_paint(wxPaintEvent&)
+    {
+        wxAutoBufferedPaintDC dc(this);
+        dc.SetBackground(wxBrush(GetBackgroundColour()));
+        dc.Clear();
+        dc.SetTextForeground(m_colour);
+        for (const auto& run : m_runs) {
+            dc.SetFont(run.is_link ? Label::Body_13.Underlined() : Label::Body_13);
+            dc.DrawText(run.text, run.position);
+        }
+    }
+
+    void on_motion(wxMouseEvent& event)
+    {
+        const bool is_link = hit_link(event.GetPosition());
+        if (is_link != m_link_hovered) {
+            m_link_hovered = is_link;
+            SetCursor(is_link ? wxCursor(wxCURSOR_HAND) : wxCursor(wxCURSOR_ARROW));
+        }
+    }
+
+    bool hit_link(const wxPoint& point) const
+    {
+        return std::any_of(m_link_rects.begin(), m_link_rects.end(), [&point](const wxRect& rect) {
+            return rect.Contains(point);
+        });
+    }
+
+private:
+    wxString m_prefix;
+    wxString m_link;
+    wxString m_suffix;
+    wxString m_url;
+    wxColour m_colour;
+    int m_width;
+    bool m_link_hovered{false};
+    std::vector<TextRun> m_runs;
+    std::vector<wxRect> m_link_rects;
+};
 
 std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
 {
@@ -31,6 +185,7 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusInUpgrading: return "PrintStatusInUpgrading";
     case PrintStatusModeNotFDM: return "PrintStatusModeNotFDM";
     case PrintStatusInSystemPrinting: return "PrintStatusInSystemPrinting";
+    case PrintStatusInColdPull: return "PrintStatusInColdPull";
     case PrintStatusInPrinting: return "PrintStatusInPrinting";
     case PrintStatusNozzleMatchInvalid: return "PrintStatusNozzleMatchInvalid";
     case PrintStatusNozzleNoMatchedHotends: return "PrintStatusNozzleNoMatchedHotends";
@@ -46,11 +201,19 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusNeedForceUpgrading: return "PrintStatusNeedForceUpgrading";
     case PrintStatusNeedConsistencyUpgrading: return "PrintStatusNeedConsistencyUpgrading";
     case PrintStatusNotSupportedPrintAll: return "PrintStatusNotSupportedPrintAll";
+    case PrintStatusNotSupportedMultiNozzleDiameterFromSdcard: return "PrintStatusNotSupportedMultiNozzleDiameterFromSdcard";
     case PrintStatusBlankPlate: return "PrintStatusBlankPlate";
+    case PrintStatusSliceResultInvalid: return "PrintStatusSliceResultInvalid";
     case PrintStatusUnsupportedPrinter: return "PrintStatusUnsupportedPrinter";
     case PrintStatusColorQuantityExceed: return "PrintStatusColorQuantityExceed";
     // Handle filament errors
     case PrintStatusRackReading: return "PrintStatusRackReading";
+    case PrintStatusRackMoving: return "PrintStatusRackMoving";
+    case PrintStatusNoAvailableHotend: return "PrintStatusNoAvailableHotend";
+    case PrintStatusHotendLost: return "PrintStatusHotendLost";
+    case PrintStatusCutterLost: return "PrintStatusCutterLost";
+    case PrintStatusPenLost: return "PrintStatusPenLost";
+    case PrintStatusNoneHotendDockingCali: return "PrintStatusNoneHotendDockingCali";
     case PrintStatusRackNozzleMappingWaiting: return "PrintStatusRackNozzleMappingWaiting";
     case PrintStatusRackNozzleMappingError: return "PrintStatusRackNozzleMappingError";
     case PrintStatusInvalidMapping: return "PrintStatusInvalidMapping";
@@ -69,12 +232,20 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusRackNozzleMappingWarning: return "PrintStatusRackNozzleMappingWarning";
     case PrintStatusWarningKvalueNotUsed: return "PrintStatusWarningKvalueNotUsed";
     case PrintStatusHasFilamentInBlackListWarning: return "PrintStatusHasFilamentInBlackListWarning";
+    case PrintStatusHasFilamentInBlackListCriticalWarning: return "PrintStatusHasFilamentInBlackListCriticalWarning";
     case PrintStatusFilamentWarningHighChamberTemp: return "PrintStatusFilamentWarningHighChamberTemp";
     case PrintStatusFilamentWarningHighChamberTempCloseDoor: return "PrintStatusFilamentWarningHighChamberTempCloseDoor";
     case PrintStatusFilamentWarningHighChamberTempSoft: return "PrintStatusFilamentWarningHighChamberTempSoft";
     case PrintStatusFilamentWarningUnknownHighChamberTempSoft: return "PrintStatusFilamentWarningUnknownHighChamberTempSoft";
     case PrintStatusFilamentWarningRemainNotEnough: return "PrintStatusFilamentWarningRemainNotEnough";
     case PrintStatusSmartNozzleBlobNeedAuto: return "PrintStatusSmartNozzleBlobNeedAuto";
+    case PrintStatusFilamentSuspectEngagementWarning: return "PrintStatusFilamentSuspectEngagementWarning";
+    case PrintStatusExtSpoolNotLoadedWarning: return "PrintStatusExtSpoolNotLoadedWarning";
+    case PrintStatusAmsSlotNotLoadedWarning: return "PrintStatusAmsSlotNotLoadedWarning";
+    case PrintStatusRackAmsNeedManualUnloadWarning: return "PrintStatusRackAmsNeedManualUnloadWarning";
+    case PrintStatusRackAmsMixExtAmsWarning: return "PrintStatusRackAmsMixExtAmsWarning";
+    case PrintStatusFilamentWarningHotendLowTempResidue: return "PrintStatusFilamentWarningHotendLowTempResidue";
+    case PrintStatusTpuSlipOnToolChangeWarning: return "PrintStatusTpuSlipOnToolChangeWarning";
     case PrintStatusReadingFinished: return "PrintStatusReadingFinished";
     case PrintStatusSendingCanceled: return "PrintStatusSendingCanceled";
     case PrintStatusAmsMappingSuccess: return "PrintStatusAmsMappingSuccess";
@@ -97,6 +268,7 @@ wxString PrePrintChecker::get_pre_state_msg(PrintDialogStatus status)
     case PrintStatusModeNotFDM: return _L("Cannot send the print job when the printer is not at FDM mode");
     case PrintStatusInUpgrading: return _L("Cannot send the print job when the printer is updating firmware");
     case PrintStatusInSystemPrinting: return _L("The printer is executing instructions. Please restart printing after it ends");
+    case PrintStatusInColdPull: return _L("Cold pull in progress. Unable to start a task.");
     case PrintStatusInPrinting: return _L("The printer is busy on other print job");
     case PrintStatusAmsOnSettingup: return _L("AMS is setting up. Please try again later.");
     case PrintStatusAmsMappingInvalid: return _L("Not all filaments used in slicing are mapped to the printer. Please check the mapping of filaments.");
@@ -108,8 +280,10 @@ wxString PrePrintChecker::get_pre_state_msg(PrintDialogStatus status)
     case PrintStatusNeedForceUpgrading: return _L("Cannot send the print job to a printer whose firmware is required to get updated.");
     case PrintStatusNeedConsistencyUpgrading: return _L("Cannot send the print job to a printer whose firmware is required to get updated.");
     case PrintStatusBlankPlate: return _L("Cannot send the print job for empty plate");
+    case PrintStatusSliceResultInvalid: return _L("The slicing result of the current plate is invalid. Please re-slice and try again");
     case PrintStatusTimelapseNoSdcard: return _L("Storage needs to be inserted to record timelapse.");
     case PrintStatusMixAmsAndVtSlotWarning: return _L("You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing.");
+    case PrintStatusFilamentWarningHotendLowTempResidue: return _L("Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first.");
     case PrintStatusTPUUnsupportAutoCali: 
         return _L("TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. "
                   "If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process.");
@@ -118,6 +292,9 @@ wxString PrePrintChecker::get_pre_state_msg(PrintDialogStatus status)
                   "If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process.");
     case PrintStatusWarningKvalueNotUsed: return _L("Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value.");
     case PrintStatusNotSupportedPrintAll: return _L("This printer does not support printing all plates");
+    case PrintStatusNotSupportedMultiNozzleDiameterFromSdcard:
+        return _L("Printing a project that uses multiple nozzle diameters directly from storage is not supported yet. "
+                  "You can download the file and import it into Studio to print.");
     case PrintStatusHasUnreliableNozzleWarning: return _L("Please check if the required nozzle diameter and flow rate match the current display.");
     case PrintStatusColorQuantityExceed: return _L("The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support.");
     }
@@ -247,9 +424,20 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
 
         if (!info.msg.empty())
         {
-            Label* label = new Label(this);
-            label->SetFont(::Label::Body_13);
-            label->SetForegroundColour(_GetLabelColour(info));
+            const bool use_wiki_rich_text =
+                !info.testStyle(prePrintInfoStyle::BtnSwitchNozzleBlobAuto) &&
+                !info.link_callback && !info.wiki_url.empty();
+            Label* label = nullptr;
+            wxWindow* message_widget = nullptr;
+            ScalableButton* btn = CreateTypeButton(info);
+            const int message_width = this->GetMinSize().GetWidth() - btn->GetSize().x - FromDIP(6);
+
+            if (!use_wiki_rich_text) {
+                label = new Label(this);
+                label->SetFont(::Label::Body_13);
+                label->SetForegroundColour(_GetLabelColour(info));
+                message_widget = label;
+            }
 
             if (info.testStyle(prePrintInfoStyle::BtnSwitchNozzleBlobAuto))
             {
@@ -281,20 +469,23 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
             }
             else
             {
-                // external wiki url
-                label->SetLabel(info.msg + " " + _L("Please refer to Wiki before use->"));
-                label->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-                label->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-                label->Bind(wxEVT_LEFT_DOWN, [info](wxMouseEvent& event) { wxLaunchDefaultBrowser(info.wiki_url); });
+                message_widget = new WikiWarningLabel(
+                    this,
+                    info.msg + _L(" Please "),
+                    _L("refer to the Wiki User Guide"),
+                    _L(" before continuing."),
+                    info.wiki_url,
+                    _GetLabelColour(info),
+                    message_width);
             }
 
-            ScalableButton* btn = CreateTypeButton(info);
-            label->Wrap(this->GetMinSize().GetWidth() - btn->GetSize().x - FromDIP(6));
+            if (label)
+                label->Wrap(message_width);
 
             wxSizer* msg_sizer = new wxBoxSizer(wxHORIZONTAL);
             msg_sizer->Add(btn, 0, wxLEFT | wxTOP, FromDIP(2));
             msg_sizer->AddSpacer(FromDIP(2));
-            msg_sizer->Add(label, 0, wxLEFT | wxBOTTOM);
+            msg_sizer->Add(message_widget, 0, wxLEFT | wxBOTTOM);
             msg_sizer->Layout();
             m_sizer->Add(msg_sizer, 0, wxBOTTOM, FromDIP(4));
 

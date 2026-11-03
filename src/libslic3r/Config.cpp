@@ -19,7 +19,6 @@
 #include <boost/config.hpp>
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -28,6 +27,7 @@
 #include <string.h>
 //BBS: add json support
 #include "nlohmann/json.hpp"
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 
@@ -36,6 +36,16 @@ using namespace nlohmann;
 #include "PrintConfig.hpp"
 
 namespace Slic3r {
+
+// The optional auxiliary fan (P10) has no entry in any profile: its settings fall back to
+// the standard fan (P2) of the same profile level, so presets and 3MFs that predate the
+// split keep driving both fans at the same speed.
+static const std::vector<std::pair<std::string, std::string>> s_aux_fan_standard_to_optional_keys = {
+    { "additional_cooling_fan_speed",        "optional_cooling_fan_speed" },
+    { "close_additional_fan_first_x_layers", "close_optional_fan_first_x_layers" },
+    { "first_x_layer_fan_speed",             "first_x_layer_optional_fan_speed" },
+    { "additional_fan_full_speed_layer",     "optional_fan_full_speed_layer" },
+};
 
 //BBS: add json support
 //static const std::string CONFIG_VERSION_KEY = "version";
@@ -563,7 +573,7 @@ std::string ConfigBase::opt_serialize(const t_config_option_key &opt_key) const
         // marked). serialize()'s own message never carries the key, so we log it here where the key
         // is known, then rethrow an enriched error so the caller can name the setting to the user.
         std::string details = describe_option_values(opt);
-        BOOST_LOG_TRIVIAL(error) << "opt_serialize failed for option \"" << opt_key << "\": "
+        BOOST_LOG_TRIVIAL(error) << "failed for option \"" << opt_key << "\": "
                                  << err.what() << " | " << details;
         throw ConfigurationError(std::string("Failed to serialize option \"") + opt_key + "\": "
                                  + err.what() + " (" + details + ")");
@@ -753,8 +763,25 @@ double ConfigBase::get_abs_value(const t_config_option_key &opt_key) const
         // Compute absolute value over the absolute value of the base option.
         //FIXME there are some ratio_over chains, which end with empty ratio_with.
         // For example, XXX_extrusion_width parameters are not handled by get_abs_value correctly.
-        return opt_def->ratio_over.empty() ? 0. :
-            static_cast<const ConfigOptionFloatOrPercent*>(raw_opt)->get_abs_value(this->get_abs_value(opt_def->ratio_over));
+        if (opt_def->ratio_over.empty())
+            return 0.;
+        const ConfigOptionFloatOrPercent *opt = static_cast<const ConfigOptionFloatOrPercent*>(raw_opt);
+        // The "ratio_over" reference may point to a per-extruder vector option (e.g. line width
+        // expressed as a percentage of nozzle_diameter); resolve it over the first value in that case.
+        const ConfigOption *ratio_opt = this->option(opt_def->ratio_over);
+        if (ratio_opt == nullptr)
+            return opt->percent ? 0. : opt->value;
+
+        double ratio_over_value = 0.;
+        if (ratio_opt->type() == coFloats) {
+            const auto *vec = static_cast<const ConfigOptionVector<double>*>(ratio_opt);
+            if (vec->values.empty() || std::isnan(vec->values.front()))
+                return opt->percent ? 0. : opt->value;
+            ratio_over_value = vec->values.front();
+        } else {
+            ratio_over_value = this->get_abs_value(opt_def->ratio_over);
+        }
+        return opt->get_abs_value(ratio_over_value);
     }
     std::string err_info = "ConfigBase::get_abs_value(): Not a valid option type for get_abs_value(), parameter : " + opt_key;
     throw ConfigurationError(err_info);
@@ -815,6 +842,16 @@ ConfigSubstitutions ConfigBase::load_string_map(std::map<std::string, std::strin
                 dst->set(src);
         }
     }
+    for (const auto &keys : s_aux_fan_standard_to_optional_keys) {
+        if (!this->has(keys.first) || this->has(keys.second))
+            continue;
+        auto *src = this->option(keys.first);
+        if (src == nullptr)
+            continue;
+        auto *dst = this->option(keys.second, true);
+        if (dst)
+            dst->set(src);
+    }
     return std::move(substitutions_ctxt.substitutions);
 }
 
@@ -829,7 +866,7 @@ ConfigSubstitutions ConfigBase::load(const std::string &file, ForwardCompatibili
         return this->load_from_json(file, compatibility_rule, key_values, reason);
     }
     else {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "unsupported format for config file" << file;
+        BOOST_LOG_TRIVIAL(error) << "unsupported format for config file" << file;
         return ConfigSubstitutions();
         //return this->load_from_ini(file, compatibility_rule);
     }
@@ -848,7 +885,7 @@ ConfigSubstitutions ConfigBase::load_from_json(const std::string &file, ForwardC
 int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContext& substitution_context, bool load_inherits_to_config, std::map<std::string, std::string>& key_values, std::string& reason)
 {
     if (!boost::filesystem::exists(file)) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("%1% file not exist.") % file;
+        BOOST_LOG_TRIVIAL(error) << boost::format("%1% file not exist.") % file;
         return -1;
     }
     json j;
@@ -911,7 +948,7 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
 
         const ConfigDef* config_def = this->def();
         if (config_def == nullptr) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": no config defs!";
+            BOOST_LOG_TRIVIAL(error) << "no config defs!";
             return -1;
         }
         //parse the json elements
@@ -1036,7 +1073,7 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                     // BBS: we only support 2 depth array
                     valid = parse_str_arr(it, single_sep, array_sep,escape_string_type, value_str);
                     if (!valid) {
-                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << file << " error, invalid json array for " << it.key();
+                        BOOST_LOG_TRIVIAL(error) << "parse " << file << " error, invalid json array for " << it.key();
                         break;
                     }
                     if (valid)
@@ -1044,7 +1081,7 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 }
                 else {
                     //should not happen
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" error, invalid json type for " << it.key();
+                    BOOST_LOG_TRIVIAL(error) << "parse "<<file<<" error, invalid json type for " << it.key();
                 }
             }
         }
@@ -1068,6 +1105,30 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                         }
                     }
                 }
+            }
+        }
+
+        // The optional auxiliary fan inherits the standard one whenever this config level
+        // does not set it explicitly, so both fans keep running at the same speed for
+        // every preset and 3MF written before the optional fan became configurable.
+        for (const auto &keys : s_aux_fan_standard_to_optional_keys) {
+            if (!this->has(keys.first) || this->has(keys.second))
+                continue;
+            auto *src = this->option(keys.first);
+            if (src == nullptr)
+                continue;
+            auto *dst = this->option(keys.second, true);
+            if (dst)
+                dst->set(src);
+        }
+        if (this->has("different_settings_to_system")) {
+            auto *diff_opt = this->option<ConfigOptionStrings>("different_settings_to_system");
+            if (diff_opt) {
+                for (auto &diff_str : diff_opt->values)
+                    for (const auto &keys : s_aux_fan_standard_to_optional_keys)
+                        if (diff_str.find(keys.first) != std::string::npos &&
+                            diff_str.find(keys.second) == std::string::npos)
+                            diff_str += ";" + keys.second;
             }
         }
 
@@ -1165,17 +1226,17 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
         return 0;
     }
     catch (const std::ifstream::failure &err)  {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a ifstream error, reason = " << err.what();
+        BOOST_LOG_TRIVIAL(error) << "parse "<<file<<" got a ifstream error, reason = " << err.what();
         reason = std::string("ifstreamError: ") + err.what();
         //throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file, e.what()));
     }
     catch(nlohmann::detail::parse_error &err) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a nlohmann::detail::parse_error, reason = " << err.what();
+        BOOST_LOG_TRIVIAL(error) << "parse "<<file<<" got a nlohmann::detail::parse_error, reason = " << err.what();
         reason = std::string("JsonParseError: ") + err.what();
         //throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file, err.what()));
     }
     catch(std::exception &err) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a generic exception, reason = " << err.what();
+        BOOST_LOG_TRIVIAL(error) << "parse "<<file<<" got a generic exception, reason = " << err.what();
         reason = std::string("std::exception: ") + err.what();
     }
     return -1;
@@ -1412,7 +1473,7 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
 {
     // Read a 64k block from the end of the G-code.
 	boost::nowide::ifstream ifs(file);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  before parse_file %1%") % file.c_str();
+    BOOST_LOG_TRIVIAL(info) << boost::format("before parse_file %1%") % file.c_str();
     // Look for Slic3r or BambuStudio header.
     // Look for the header across the whole file as the G-code may have been extended at the start by a post-processing script or the user.
     //BBS
@@ -1440,7 +1501,7 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
             std::string error_message = "Not a gcode file generated by ";
             error_message += SLIC3R_APP_FULL_NAME;
             error_message += ".";
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << error_message;
+            BOOST_LOG_TRIVIAL(error) << error_message;
             throw Slic3r::RuntimeError(error_message.c_str());
         }
     }
@@ -1510,11 +1571,11 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
     }
 
     if (key_value_pairs < 80) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << format("Suspiciously low number of configuration values extracted from %1%: %2%", file, key_value_pairs);
+        BOOST_LOG_TRIVIAL(error) << format("Suspiciously low number of configuration values extracted from %1%: %2%", file, key_value_pairs);
         throw Slic3r::RuntimeError(format("Suspiciously low number of configuration values extracted from %1%: %2%", file, key_value_pairs));
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  finished to parse_file %1%") % file.c_str();
+    BOOST_LOG_TRIVIAL(info) << boost::format("finished to parse_file %1%") % file.c_str();
     return std::move(substitutions_ctxt.substitutions);
 }
 
@@ -1571,7 +1632,7 @@ void ConfigBase::save_to_json(const std::string &file, const std::string &name, 
     c << std::setw(4) << j << std::endl;
     c.close();
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", saved config to %1%\n") % PathSanitizer::sanitize(file);
+    BOOST_LOG_TRIVIAL(info) << boost::format("saved config to %1%\n") % PathSanitizer::sanitize(file);
 }
 
 void ConfigBase::save(const std::string &file) const
@@ -1583,7 +1644,7 @@ void ConfigBase::save(const std::string &file) const
         c << opt_key << " = " << this->opt_serialize(opt_key) << std::endl;
     c.close();
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", saved config to %1%\n")%file;
+    BOOST_LOG_TRIVIAL(info) << boost::format("saved config to %1%\n")%file;
 }
 
 // Set all the nullable values to nils.

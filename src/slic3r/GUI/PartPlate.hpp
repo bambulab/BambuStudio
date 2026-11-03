@@ -50,15 +50,21 @@ inline int compute_colum_count(int count)
 }
 
 
-extern const float WIPE_TOWER_DEFAULT_X_POS;
-extern const float WIPE_TOWER_DEFAULT_Y_POS;  // Max y
-
-extern const float I3_WIPE_TOWER_DEFAULT_X_POS;
-extern const float I3_WIPE_TOWER_DEFAULT_Y_POS; // Max y
-
-
-
 namespace Slic3r {
+
+std::pair<float, float> get_wipe_tower_default_pos(const DynamicPrintConfig &config, int plate_width, int plate_depth);
+
+namespace GUI { class PartPlate; }
+
+arrangement::ArrangePolygon init_clamped_wipe_tower_pos(
+    DynamicPrintConfig &config,
+    const GUI::PartPlate *plate,
+    int plate_index,
+    int plate_width,
+    int plate_depth,
+    int extruder_count,
+    int plate_extruder_count,
+    bool legacy_behavior = false);
 
 class Model;
 class ModelObject;
@@ -105,11 +111,16 @@ private:
     bool m_locked;
     bool m_ready_for_slice;
     bool m_slice_result_valid;
+    // 切片结果被置为无效的次数。故意不参与下面 load()/save()：它只能往前走，
+    // undo/redo 恢复了 m_slice_result_valid 也不该让它倒回去
+    size_t m_slice_invalid_epoch {0};
     bool m_apply_invalid {false};
     bool m_helio_apply_invalid {false};
     // BBS: whether this plate's wipe tower has already been placed once. Survives
     // undo/redo (included in load()/save() below) but deliberately not written to 3mf.
     bool m_wipe_tower_placed {false};
+    Vec3d m_wipe_tower_last_est_size {Vec3d::Zero()}; // not serialized; size change detector
+    bool  m_wipe_tower_last_wrapping {false};         // not serialized; paired with m_wipe_tower_last_est_size
     std::unique_ptr<HelioPlateResult> m_helio_result;
     float m_slice_percent;
 
@@ -262,6 +273,7 @@ public:
 
     void clear_filament_map();
     void clear_filament_map_mode();
+    void reset_default_filament_map_mode(const ConfigBase* printer_config);
     void clear_filament_nozzle_map();
     void clear_filament_volume_map();
 
@@ -353,6 +365,8 @@ public:
     int  get_physical_extruder_by_filament_id(const DynamicConfig& g_config, int idx) const;
     int  get_physical_extruder_by_logical_extruder(const DynamicConfig& g_config, int logical_extruder) const;
     bool check_filament_printable(const DynamicPrintConfig & config, wxString& error_message);
+    // True when a used 2.85mm/TPU285 filament is present but the printer preset has no TPU285 nozzle.
+    bool check_missing_tpu285_nozzle(const DynamicPrintConfig &config) const;
     bool check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments);
     bool check_mixture_of_pla_and_petg(const DynamicPrintConfig & config);
     bool check_multi_filament_without_prime_tower(const DynamicPrintConfig &config);
@@ -453,6 +467,10 @@ public:
     // plate object itself is freshly constructed (new plate, delete_plate(), or 3mf reload).
     bool is_wipe_tower_placed() const { return m_wipe_tower_placed; }
     void set_wipe_tower_placed(bool state) { m_wipe_tower_placed = state; }
+    const Vec3d &get_wipe_tower_last_est_size() const { return m_wipe_tower_last_est_size; }
+    void set_wipe_tower_last_est_size(const Vec3d &size) { m_wipe_tower_last_est_size = size; }
+    bool get_wipe_tower_last_wrapping() const { return m_wipe_tower_last_wrapping; }
+    void set_wipe_tower_last_wrapping(bool on) { m_wipe_tower_last_wrapping = on; }
 
     //is a printable plate or not
     bool is_printable() const { return m_printable; }
@@ -504,6 +522,12 @@ public:
     bool is_slice_result_valid() const
     {
         return m_slice_result_valid;
+    }
+
+    // 用来判断两个时刻之间有没有发生过"切片结果被置无效"
+    size_t get_slice_invalid_epoch() const
+    {
+        return m_slice_invalid_epoch;
     }
 
     //is slice result ready for print

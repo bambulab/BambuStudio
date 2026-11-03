@@ -3,11 +3,14 @@
 
 #include "libslic3r.h"
 #include "BoundingBox.hpp"
+#include "AdaptiveLayerMerge.hpp"
 #include "Flow.hpp"
 #include "SurfaceCollection.hpp"
 #include "ExtrusionEntityCollection.hpp"
 #include "RegionExpansion.hpp"
 #include <libslic3r/Print.hpp>
+
+#include <algorithm>
 
 namespace Slic3r {
 
@@ -64,6 +67,10 @@ public:
     // BBS: Unspecified fill polygons, used for interecting when we don't want the infill/perimeter overlap
     ExPolygons                  fill_no_overlap_expolygons;
 
+    // BBS multi-diameter adaptive layer height (runtime only, recomputed every make_perimeters, never serialized).
+    // Bands are a global grid per nozzle diameter, so a region holds at most one patch on a given layer.
+    std::vector<AdaptiveMergePatch> adaptive_merge_patches;
+
     // collection of expolygons representing the bridged areas (thus not
     // needing support material)
 //    Polygons                    bridged;
@@ -92,7 +99,21 @@ public:
                             const PerimeterRegions &perimeter_regions,
                             SurfaceCollection     *fill_surfaces,
                             ExPolygons            *fill_no_overlap,
-                            std::vector<LoopNode> &loop_nodes);
+                            std::vector<LoopNode> &loop_nodes,
+                            // BBS multi-diameter: override the layer height used for wall flow/height (0 = use layer height).
+                            double                 perimeter_layer_height = 0.,
+                            // BBS multi-diameter: when false, keep previously generated perimeters/thin_fills (second pass).
+                            bool                   clear_outputs = true,
+                            // BBS multi-diameter: a merged wall is supported from below its group bottom,
+                            // not from the physical layer immediately below its group top.
+                            const ExPolygons      *lower_slices_override = nullptr,
+                            // BBS multi-diameter: compare a group top against the next printed slab,
+                            // not against a physical layer swallowed by that slab.
+                            const ExPolygons      *upper_slices_override = nullptr,
+                            // Preserve the patch's fill boundary and surface roles without emitting walls.
+                            bool                   fill_only = false,
+                            // The merged span starts at object layer 0 even when it is emitted on a later layer.
+                            bool                   starts_at_object_base = false);
     void    process_external_surfaces(const Layer *lower_layer, const Polygons *lower_layer_covered);
     double  infill_area_threshold() const;
     // Trim surfaces by trimming polygons. Used by the elephant foot compensation at the 1st layer.
@@ -217,6 +238,30 @@ public:
     // Is there any valid extrusion assigned to this LayerRegion?
     virtual bool            has_extrusions() const { for (auto layerm : m_regions) if (layerm->has_extrusions()) return true; return false; }
 
+    // BBS multi-diameter adaptive layer height: the maximum Z span covered by any group-top patch.
+    virtual coordf_t        effective_print_height() const {
+        coordf_t h = this->height;
+        for (const LayerRegion *layerm : m_regions)
+            for (const AdaptiveMergePatch &patch : layerm->adaptive_merge_patches)
+                if (patch.group_top && patch.merged_height > h)
+                    h = patch.merged_height;
+        return h;
+    }
+    // BBS multi-diameter adaptive layer height: true when this layer takes part in adaptive merging and
+    // carries no extrusions of its own. What it would have printed either moved up into the group-top layer
+    // or the group had nothing printable to begin with (a merged span that is internal void everywhere still
+    // owns its patches but extrudes nothing, and a group top whose slices moved to another region ends up
+    // empty as well). In none of those cases is the empty Z span a printability gap the merge planner left
+    // behind, so the layer above must not be reported as unsupported.
+    bool                    is_adaptive_merged_out() const {
+        if (m_regions.empty() || this->has_extrusions())
+            return false;
+        for (const LayerRegion *layerm : m_regions)
+            if (! layerm->adaptive_merge_patches.empty())
+                return true;
+        return false;
+    }
+
     //BBS
     void simplify_wall_extrusion_path() { for (auto layerm : m_regions) layerm->simplify_wall_extrusion_entity();}
     void simplify_infill_extrusion_path() { for (auto layerm : m_regions) layerm->simplify_infill_extrusion_entity(); }
@@ -298,8 +343,30 @@ public:
     ExPolygons base_areas;
 
 
+    // BBS multi-diameter: filament (1 based) this support layer's base was planned for while support_filament
+    // is 0. Set only on layers the merge plan made thicker than the object layers, because those can no longer
+    // be extruded by an arbitrary "don't care" filament. 0 keeps the default resolution in
+    // GCode::process_layer(). The areas facing the object keep the base layer height and are never pinned.
+    int                         planned_filament_id { 0 };
+    // Nozzle diameter of planned_filament_id. support_material_flow() resolves the nozzle from support_filament,
+    // which is 0 here, so the toolpath generator has to be told which nozzle actually extrudes this base.
+    double                      planned_nozzle_diameter { 0. };
+    // Contact/interface counterpart. Set even for an unmerged thin layer when support_interface_filament is
+    // "don't care", so G-code cannot pick a nozzle that is unable to print that layer height.
+    int                         planned_interface_filament_id { 0 };
+    double                      planned_interface_nozzle_diameter { 0. };
+    // Height of the merged base, which the tree support generators keep separate from the layer height: their
+    // base, roof and floor areas share one SupportLayer, and only the base is merged. 0 means base_areas are
+    // extruded at the layer height, like everything else on the layer.
+    double                      base_slab_height { 0. };
+    // Equivalent override for merged tree-support roof/contact areas.
+    double                      interface_slab_height { 0. };
+
     // Is there any valid extrusion assigned to this LayerRegion?
     virtual bool                has_extrusions() const { return ! support_fills.empty(); }
+    coordf_t                    effective_print_height() const override {
+        return std::max({Layer::effective_print_height(), base_slab_height, interface_slab_height});
+    }
 
     // Zero based index of an interface layer, used for alternating direction of interface / contact layers.
     size_t                      interface_id() const { return m_interface_id; }
@@ -333,6 +400,8 @@ protected:
         bool need_infill = false;
         bool need_extra_wall = false;
         bool       need_cooling    = false;
+        // BBS multi-diameter tree support: widened wall width at a nozzle change, 0 for the layer default.
+        coordf_t   line_width      = 0.;
         AreaGroup(ExPolygon *a, int t, coordf_t d) : area(a), type(t), dist_to_top(d) {}
     };
     std::vector<AreaGroup>                    area_groups;
@@ -362,11 +431,13 @@ struct ExpansionZone {
 * Extract bridging surfaces from "surfaces", expand them into "shells" using expansion_params,
 * detect bridges.
 * Trim "shells" by the expanded bridges.
+* solid_spacing: scaled solid infill spacing, sets the resolution of splitting anchors shared by bridges of different directions.
 */
 Surfaces expand_bridges_detect_orientations(
     Surfaces &surfaces,
     std::vector<ExpansionZone>& expansion_zones,
-    const float closing_radius
+    const float closing_radius,
+    const float solid_spacing
 );
 
 /**

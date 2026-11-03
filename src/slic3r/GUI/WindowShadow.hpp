@@ -49,6 +49,9 @@ public:
     /// Drop the cached render so the next Sync() repaints. Call on a theme or DPI change.
     void Invalidate();
 
+    /// Replace the appearance. Takes effect on the next Sync(); lengths stay in DIP.
+    void SetParams(const WindowShadowParams &params) { m_params = params; }
+
     /// Give @p win a self-managing shadow: binds its show/move/size to keep the shadow
     /// glued, and deletes itself when @p win is destroyed. Use when the window's own
     /// visibility events are enough; otherwise own a WindowShadow and drive Sync().

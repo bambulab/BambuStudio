@@ -6,7 +6,6 @@
 #include <stdexcept>
 
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 #include <boost/algorithm/string/predicate.hpp>
@@ -45,6 +44,7 @@
 #include "nanosvg/nanosvgrast.h"
 #include "OpenGLManager.hpp"
 #include "GUI_App.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -137,6 +137,8 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     //{ImGui::DocumentationDarkButton     , "notification_documentation_dark"      },
     //{ImGui::DocumentationHoverDarkButton, "notification_documentation_hover_dark"},
     {ImGui::BlockNotifErrorIcon,          "block_notification_error"             },
+    {ImGui::CloseNotifCardButton,         "notification_card_close"              },
+    {ImGui::CollapseNotifCardButton,      "notification_card_collapse"           },
     {ImGui::PrevArrowBtnIcon,             "notification_arrow_left"              },
     {ImGui::NextArrowBtnIcon,             "notification_arrow_right"             },
     {ImGui::CompleteIcon,                 "notification_slicing_complete"        },
@@ -1572,13 +1574,14 @@ static bool selectable(const char* label, bool selected, ImGuiSelectableFlags fl
         ImGui::TablePopBackgroundChannel();
 
     // mark a label with a ColorMarkerHovered, if item is hovered
+    // Bound the copy: a menu label at or above 512 bytes must not write past this fixed buffer.
     char marked_label[512]; //255 symbols is not enough for translated string (e.t. to Russian)
     if (hovered || selected) {
-        sprintf(marked_label, "%c%s", ImGui::ColorMarkerHovered, label);
+        snprintf(marked_label, sizeof(marked_label), "%c%s", ImGui::ColorMarkerHovered, label);
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     }
     else
-        strcpy(marked_label, label);
+        snprintf(marked_label, sizeof(marked_label), "%s", label);
 
     if (flags & ImGuiSelectableFlags_Disabled) ImGui::PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]);
     ImGui::RenderTextClipped(text_min, text_max, marked_label, NULL, &label_size, style.SelectableTextAlign, &bb);

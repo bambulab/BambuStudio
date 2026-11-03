@@ -15,6 +15,7 @@
 #include "DeviceCore/DevManager.h"
 
 #include "DeviceTab/wgtDeviceNozzleRackUpdate.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -188,6 +189,9 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
     m_main_left_sizer->Add(m_ota_sizer, 0, wxEXPAND, 0);
 
+    createHotendAmsWidgets(m_main_left_sizer);
+    show_hotend_ams(false);
+
     m_staticline = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
     m_staticline->SetBackgroundColour(wxColour(206,206,206));
     m_staticline->Show(false);
@@ -278,6 +282,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     createRotaryWidgets(m_main_left_sizer);
     createFilaTrackSwitchWidgets(m_main_left_sizer);
     createExhaustFan(m_main_left_sizer);
+    createAirPurifierWidgets(m_main_left_sizer);
 
     // nozzle rack widgets
     createNozzleRackWidgets(m_main_left_sizer);
@@ -535,6 +540,31 @@ wxString MachineInfoPanel::get_device_info_text() const
     return text;
 }
 
+void MachineInfoPanel::createHotendAmsWidgets(wxBoxSizer* main_left_sizer)
+{
+    m_hotend_ams_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_hotend_ams_line_above->SetBackgroundColour(wxColour(206, 206, 206));
+
+    m_hotend_ams_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+    m_hotend_ams_img->SetBitmap(m_img_hotend_ams.bmp());
+
+    auto        panel_hotend_ams    = new wxPanel(this);
+    wxBoxSizer* content_sizer_v = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* content_sizer_h = new wxBoxSizer(wxHORIZONTAL);
+
+    m_hotend_ams_version = new uiDeviceUpdateVersion(panel_hotend_ams, wxID_ANY);
+    content_sizer_h->Add(m_hotend_ams_version, 0, wxALIGN_CENTER, 0);
+    content_sizer_v->Add(content_sizer_h, 1, wxLEFT, 0);
+    panel_hotend_ams->SetSizer(content_sizer_v);
+
+    m_hotend_ams_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_hotend_ams_sizer->Add(m_hotend_ams_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+    m_hotend_ams_sizer->Add(panel_hotend_ams, 1, wxEXPAND, 0);
+
+    main_left_sizer->Add(m_hotend_ams_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
+    main_left_sizer->Add(m_hotend_ams_sizer, 0, wxEXPAND, 0);
+}
+
 void MachineInfoPanel::createAirPumpWidgets(wxBoxSizer* main_left_sizer)
 {
     m_air_pump_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
@@ -752,6 +782,7 @@ void MachineInfoPanel::init_bitmaps()
     try {
         m_img_printer     = ScalableBitmap(this, "printer_thumbnail_png", 160);
         m_img_monitor_ams = ScalableBitmap(this, "monitor_upgrade_ams_png", 150);
+        m_img_hotend_ams  = ScalableBitmap(this, "monitor_upgrade_ams_png", 150);
         m_img_ext         = ScalableBitmap(this, "monitor_upgrade_ext", 160);
         m_img_air_pump    = ScalableBitmap(this, "air_pump", 160);
         m_img_extra_ams   = ScalableBitmap(this, "extra_icon_png", 160);
@@ -760,6 +791,7 @@ void MachineInfoPanel::init_bitmaps()
         m_img_extinguish  = ScalableBitmap(this, "extinguish", 160);
         m_img_rotary      = ScalableBitmap(this, "rotary", 160);
         m_img_filatrack   = ScalableBitmap(this, "filament_track_switch", 160);
+        m_img_air_purifier = ScalableBitmap(this, "air_purifier", 160);
         m_img_nozzle_rack = ScalableBitmap(this, "nozzle_rack", 160);
         m_img_exhaustfan  = ScalableBitmap(this, "exhaustfan", 160);
         m_img_amshub      = ScalableBitmap(this, "amshub_N7", 160);
@@ -770,10 +802,10 @@ void MachineInfoPanel::init_bitmaps()
     }
     catch (const std::exception &e)
     {
-        BOOST_LOG_TRIVIAL(error) << "init_bitmaps failed to load resources: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "failed to load resources: " << e.what();
     } catch (...)
     {
-        BOOST_LOG_TRIVIAL(error) << "init_bitmaps failed to load resources: unknown error";
+        BOOST_LOG_TRIVIAL(error) << "failed to load resources: unknown error";
     }
 }
 
@@ -823,11 +855,11 @@ void MachineInfoPanel::update_printer_imgs(MachineObject* obj)
     }
     catch (const std::exception &e)
     {
-        BOOST_LOG_TRIVIAL(error) << "update_printer_imgs error : " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "error : " << e.what();
     }
     catch (...)
     {
-        BOOST_LOG_TRIVIAL(error) << "update_printer_imgs failed: unknown error";
+        BOOST_LOG_TRIVIAL(error) << "failed: unknown error";
     }
 }
 
@@ -906,6 +938,9 @@ void MachineInfoPanel::update(MachineObject* obj)
         // update version
         update_version_text(obj);
 
+        update_rack_imgs(obj);
+        update_hotend_ams(obj);
+
         // update ams and extension
         update_ams_ext(obj);
 
@@ -917,6 +952,7 @@ void MachineInfoPanel::update(MachineObject* obj)
         update_laszer(obj);
         update_extinguish(obj);
         update_filatrack(obj);
+        update_air_purifier(obj);
         update_nozzle_rack(obj);
         update_exhaustfan(obj);
 
@@ -1127,6 +1163,20 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
             if (iter->second.name == extra_ams_it->first) {
                 ver_list.erase(iter);
                 break;
+            }
+        }
+    }
+
+    // The hotend integrated AMS has its own panel above too, and get_ams_version() reports it on
+    // purpose because the other callers look up its sn by ams id. Only drop it once that panel is
+    // actually shown, and drop every entry because one module can be mapped to several ams ids.
+    if (obj->hotend_ams_version_info.isValid()) {
+        const std::string& hotend_ams_name = obj->hotend_ams_version_info.name;
+        for (auto iter = ver_list.begin(); iter != ver_list.end();) {
+            if (iter->second.name == hotend_ams_name) {
+                iter = ver_list.erase(iter);
+            } else {
+                ++iter;
             }
         }
     }
@@ -1351,6 +1401,46 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
     this->Fit();
 }
 
+// The hotend rack and the rack AMS differ per printer model, so their images come from
+// "hotend_rack_image" / "hotend_ams_image" in resources/printers/<model>.json. Models without
+// those keys keep the legacy shared images. Reading the config is file IO, so it is only
+// redone when the bound printer model changes.
+void MachineInfoPanel::update_rack_imgs(MachineObject* obj)
+{
+    if (!obj || m_rack_imgs_printer_type == obj->printer_type) { return; }
+    m_rack_imgs_printer_type = obj->printer_type;
+
+    std::string rack_img = DevPrinterConfigUtil::get_hotend_rack_img(obj->printer_type);
+    if (rack_img.empty()) { rack_img = "nozzle_rack"; }
+
+    std::string rack_ams_img = DevPrinterConfigUtil::get_hotend_ams_img(obj->printer_type);
+    if (rack_ams_img.empty()) { rack_ams_img = "monitor_upgrade_ams_png"; }
+
+    try {
+        m_img_nozzle_rack = ScalableBitmap(this, rack_img, 160);
+        m_nozzle_rack_img->SetBitmap(m_img_nozzle_rack.bmp());
+
+        m_img_hotend_ams = ScalableBitmap(this, rack_ams_img, 150);
+        m_hotend_ams_img->SetBitmap(m_img_hotend_ams.bmp());
+    }
+    catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << "error : " << e.what();
+    }
+    catch (...) {
+        BOOST_LOG_TRIVIAL(error) << "failed: unknown error";
+    }
+}
+
+void MachineInfoPanel::update_hotend_ams(MachineObject* obj)
+{
+    if (obj && obj->hotend_ams_version_info.isValid()) {
+        m_hotend_ams_version->UpdateInfo(obj->hotend_ams_version_info);
+        show_hotend_ams(true);
+    } else {
+        show_hotend_ams(false);
+    }
+}
+
 void MachineInfoPanel::update_air_pump(MachineObject* obj)
 {
     if (obj && obj->air_pump_version_info.isValid())
@@ -1566,6 +1656,15 @@ void MachineInfoPanel::show_extra_ams(bool show, bool force_update) {
     m_last_extra_ams_show = show;
 }
 
+void MachineInfoPanel::show_hotend_ams(bool show)
+{
+    if (m_hotend_ams_version->IsShown() != show) {
+        m_hotend_ams_img->Show(show);
+        m_hotend_ams_line_above->Show(show);
+        m_hotend_ams_version->Show(show);
+    }
+}
+
 void MachineInfoPanel::show_air_pump(bool show)
 {
     if (m_air_pump_version->IsShown() != show)
@@ -1666,6 +1765,55 @@ void MachineInfoPanel::show_filatrack(bool show)
         m_filatrack_img->Show(show);
         m_filatrack_line_above->Show(show);
         m_filatrack_version->Show(show);
+    }
+}
+
+void MachineInfoPanel::createAirPurifierWidgets(wxBoxSizer* main_left_sizer)
+{
+    m_air_purifier_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_air_purifier_line_above->SetBackgroundColour(wxColour(206, 206, 206));
+    main_left_sizer->Add(m_air_purifier_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
+
+    m_air_purifier_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+    m_air_purifier_img->SetBitmap(m_img_air_purifier.bmp());
+
+    auto        panel_air_purifier = new wxPanel(this);
+    wxBoxSizer *content_sizer_h    = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *content_sizer_v    = new wxBoxSizer(wxVERTICAL);
+
+    m_air_purifier_version = new uiDeviceUpdateVersion(panel_air_purifier, wxID_ANY);
+
+    content_sizer_h->Add(m_air_purifier_version, 0, wxALIGN_CENTER, 0);
+    content_sizer_v->Add(content_sizer_h, 1, wxLEFT, 0);
+
+    panel_air_purifier->SetSizer(content_sizer_v);
+
+    m_air_purifier_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_air_purifier_sizer->Add(m_air_purifier_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+    m_air_purifier_sizer->Add(panel_air_purifier, 1, wxEXPAND, 0);
+
+    main_left_sizer->Add(m_air_purifier_sizer, 0, wxEXPAND, 0);
+}
+
+void MachineInfoPanel::update_air_purifier(MachineObject* obj)
+{
+    if (obj && obj->air_purifier_version_info.isValid()) {
+        DevFirmwareVersionInfo info = obj->air_purifier_version_info;
+        // Older firmware may report the "aps" module without a product name
+        if (info.product_name.empty()) { info.product_name = L("Air Purifier"); }
+        m_air_purifier_version->UpdateInfo(info);
+        show_air_purifier(true);
+    } else {
+        show_air_purifier(false);
+    }
+}
+
+void MachineInfoPanel::show_air_purifier(bool show)
+{
+    if (m_air_purifier_version->IsShown() != show) {
+        m_air_purifier_img->Show(show);
+        m_air_purifier_line_above->Show(show);
+        m_air_purifier_version->Show(show);
     }
 }
 
@@ -1789,6 +1937,10 @@ void MachineInfoPanel::on_show_release_note(wxMouseEvent &event)
 UpgradePanel::UpgradePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
     :wxPanel(parent, id, pos, size, style)
 {
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
     this->SetBackgroundColour(wxColour(238, 238, 238));
 
     auto m_main_sizer = new wxBoxSizer(wxVERTICAL);

@@ -45,6 +45,9 @@
     "filament_z_hop_types": [
         "Normal Lift"
     ],
+    "fins_extrude_safe_temp": [
+        "85"
+    ],
     "impact_strength_z": [
         "3.4"
     ],
@@ -62,5 +65,8 @@
     ],
     "slow_down_layer_time": [
         "5"
+    ],
+    "temperature_vitrification": [
+        "70"
     ]
 }
