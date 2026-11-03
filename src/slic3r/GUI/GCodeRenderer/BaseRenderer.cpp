@@ -3867,6 +3867,9 @@ namespace Slic3r
                 std::string x = ImGui::ColorMarkerStart + std::string("X: ") + ImGui::ColorMarkerEnd;
                 std::string y = ImGui::ColorMarkerStart + std::string("Y: ") + ImGui::ColorMarkerEnd;
                 std::string z = ImGui::ColorMarkerStart + std::string("Z: ") + ImGui::ColorMarkerEnd;
+                std::string nozzle = ImGui::ColorMarkerStart + std::string("nozzle: ") + ImGui::ColorMarkerEnd;
+                // Filament view only: 1-based filament id, same "label: value" spacing as nozzle.
+                std::string filament = ImGui::ColorMarkerStart + (_u8L("Filament") + ": ") + ImGui::ColorMarkerEnd;
                 std::string height = ImGui::ColorMarkerStart + _u8L("Height: ") + ImGui::ColorMarkerEnd;
                 std::string width = ImGui::ColorMarkerStart + _u8L("Width: ") + ImGui::ColorMarkerEnd;
                 std::string speed = ImGui::ColorMarkerStart + _u8L("Speed: ") + ImGui::ColorMarkerEnd;
@@ -3887,12 +3890,145 @@ namespace Slic3r
                 char buf[1024];
                 // extra text depends on whether current move is extrude type
                 bool show_extra_text = m_curr_move.type == EMoveType::Extrude;
-                // FeatureType and ColorPrint shall only show x,y,z
+                // FeatureType and ColorPrint stay compact; nozzle/filament are appended below.
                 if (view_type == EViewType::FeatureType || view_type == EViewType::ColorPrint)
                     show_extra_text = false;
                 // Feedrate and LayerTime shall always show extra text
                 else if (view_type == EViewType::Feedrate || view_type == EViewType::LayerTime)
                     show_extra_text = true;
+                // Ink edges, not CalcTextSize. Color-marker bytes are not drawn, but CalcTextSize
+                // still adds their fallback advance, and SameLine() after that width opens a wider gap.
+                // x = left ink edge, y = right ink edge, both relative to the text cursor.
+                auto text_ink = [](const char* text) -> ImVec2 {
+                    ImFont* font = ImGui::GetFont();
+                    const float scale = (font->FontSize > 0.0f) ? (ImGui::GetFontSize() / font->FontSize) : 1.0f;
+                    float pen = 0.0f;
+                    float left = 0.0f;
+                    float right = 0.0f;
+                    bool any = false;
+                    const char* p = text;
+                    while (*p != '\0') {
+                        const unsigned char marker = static_cast<unsigned char>(*p);
+                        if (marker == static_cast<unsigned char>(ImGui::ColorMarkerStart) ||
+                            marker == static_cast<unsigned char>(ImGui::ColorMarkerEnd) ||
+                            marker == static_cast<unsigned char>(ImGui::ColorMarkerHovered)) {
+                            ++p;
+                            continue;
+                        }
+                        unsigned int cp = 0;
+                        const int consumed = ImTextCharFromUtf8(&cp, p, nullptr);
+                        if (consumed <= 0 || cp == 0)
+                            break;
+                        p += consumed;
+                        const ImFontGlyph* glyph = font->FindGlyph(static_cast<ImWchar>(cp));
+                        if (glyph == nullptr)
+                            continue;
+                        if (glyph->Visible) {
+                            const float x0 = pen + glyph->X0 * scale;
+                            const float x1 = pen + glyph->X1 * scale;
+                            if (!any) {
+                                left = x0;
+                                any = true;
+                            }
+                            right = x1;
+                        }
+                        pen += glyph->AdvanceX * scale;
+                    }
+                    if (!any)
+                        right = pen;
+                    return ImVec2(left, right);
+                };
+                // Same two-space gutter the XYZ columns were sized with, measured between glyph ink.
+                const float field_gap = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, 0.0f, "  ", nullptr).x;
+                float next_ink_left = 0.0f;
+                bool field_open = false;
+                // ItemSize grows the window from CalcTextSize, which counts color-marker advances that are not drawn.
+                // Keep the content edge on the visible ink so the right padding matches the left.
+                float visible_max_x = 0.0f;
+                float first_ink_left = 0.0f;
+                auto note_visible_right = [&](float cursor_local, const ImVec2& ink) {
+                    ImGuiWindow* window = ImGui::GetCurrentWindow();
+                    visible_max_x = ImMax(visible_max_x, window->Pos.x - window->Scroll.x + cursor_local + ink.y);
+                };
+                auto draw_field = [&](const char* formatted) {
+                    const ImVec2 ink = text_ink(formatted);
+                    if (!field_open) {
+                        const float cursor = ImGui::GetCursorPosX();
+                        ImGui::PushItemWidth(item_size);
+                        imgui.text(formatted);
+                        first_ink_left = ink.x;
+                        note_visible_right(cursor, ink);
+                        next_ink_left = cursor + ink.y + field_gap;
+                        field_open = true;
+                        return;
+                    }
+                    const float cursor = next_ink_left - ink.x;
+                    ImGui::SameLine(cursor);
+                    ImGui::PushItemWidth(item_size);
+                    imgui.text(formatted);
+                    note_visible_right(cursor, ink);
+                    next_ink_left = cursor + ink.y + field_gap;
+                };
+                // Same labels as the sidebar nozzle tiles (ExtruderPanel::slot_label).
+                // Stored nozzle_id is the 0-based slot. One nozzle: hide. One extruder: slot+1.
+                // Two extruders: L/R, with a 1-based index when that side has more than one slot.
+                auto sidebar_nozzle_label = [&]() -> std::string {
+                    if (m_curr_move.nozzle_id < 0)
+                        return {};
+                    const PresetBundle* bundle = wxGetApp().preset_bundle;
+                    if (bundle == nullptr)
+                        return {};
+                    const DynamicPrintConfig& printer = bundle->printers.get_edited_preset().config;
+                    // X1's printer preset has no extruder_nozzle_count. extruder_max_nozzle_count is on every machine.
+                    std::vector<int> counts;
+                    if (const auto* counts_opt = printer.option<ConfigOptionInts>("extruder_nozzle_count"); counts_opt != nullptr && !counts_opt->values.empty())
+                        counts = counts_opt->values;
+                    else if (const auto* max_opt = printer.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count"); max_opt != nullptr)
+                        counts = max_opt->values;
+                    int total = 0;
+                    for (int count : counts)
+                        total += std::max(count, 0);
+                    if (total <= 1)
+                        return {};
+                    const auto* slots_opt = printer.option<ConfigOptionInts>("extruder_nozzle_slot");
+                    const bool has_slots = slots_opt != nullptr && !slots_opt->values.empty();
+                    const int extruder_count = static_cast<int>(counts.size());
+                    auto label_for_nozzle_id = [&](int nozzle_id) -> std::string {
+                        int vi = 0;
+                        for (int extruder = 0; extruder < extruder_count; ++extruder) {
+                            const int slots_on_extruder = std::max(counts[extruder], 0);
+                            for (int slot = 0; slot < slots_on_extruder; ++slot, ++vi) {
+                                const int idx = (has_slots && vi < static_cast<int>(slots_opt->values.size())) ? slots_opt->values[vi] : vi;
+                                if (idx != nozzle_id)
+                                    continue;
+                                if (extruder_count < 2)
+                                    return std::to_string(slot + 1);
+                                const char* side = extruder == 0 ? "L" : "R";
+                                if (slots_on_extruder == 1)
+                                    return side;
+                                return std::string(side) + std::to_string(slot + 1);
+                            }
+                        }
+                        return {};
+                    };
+                    std::string label = label_for_nozzle_id(m_curr_move.nozzle_id);
+                    if (!label.empty())
+                        return label;
+                    if (plate != nullptr) {
+                        const std::vector<int> filament_nozzle_map = plate->get_filament_nozzle_maps();
+                        const int filament_id = static_cast<int>(m_curr_move.extruder_id);
+                        if (filament_id >= 0 && filament_id < static_cast<int>(filament_nozzle_map.size()))
+                            return label_for_nozzle_id(filament_nozzle_map[filament_id]);
+                    }
+                    return {};
+                };
+                const std::string nozzle_label = sidebar_nozzle_label();
+                auto draw_filament_field = [&]() {
+                    if (view_type != EViewType::ColorPrint && view_type != EViewType::FilamentId)
+                        return;
+                    sprintf(buf, "%s%d", filament.c_str(), static_cast<int>(m_curr_move.extruder_id) + 1);
+                    draw_field(buf);
+                };
                 if (show_extra_text)
                 {
                     // helio
@@ -3900,77 +4036,64 @@ namespace Slic3r
                     float startx3 = window_padding + 2 * (item_size + item_spacing);
                     // end helio
                     sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
-                    ImGui::PushItemWidth(item_size);
-                    imgui.text(buf);
-                    ImGui::SameLine(window_padding + item_size + item_spacing);
+                    draw_field(buf);
                     sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
-                    ImGui::PushItemWidth(item_size);
-                    imgui.text(buf);
+                    draw_field(buf);
                     sprintf(buf, "%s%.3f", z.c_str(), position.z());
-                    ImGui::PushItemWidth(item_size);
-                    imgui.text(buf);
+                    draw_field(buf);
+                    if (!nozzle_label.empty()) {
+                        sprintf(buf, "%s%s", nozzle.c_str(), nozzle_label.c_str());
+                        draw_field(buf);
+                    }
+                    draw_filament_field();
                     // helio
                     if (view_type == EViewType::ThermalIndexMin || view_type == EViewType::ThermalIndexMax || view_type == EViewType::ThermalIndexMean) {
                         sprintf(buf, "%s", thermal_index.c_str());
+                        const float cursor = ImGui::GetCursorPosX();
                         ImGui::PushItemWidth(item_size);
                         imgui.text(buf);
+                        note_visible_right(cursor, text_ink(buf));
                     }
                     // end helio
                     switch (view_type) {
                     case EViewType::Height: {
-                        ImGui::SameLine(window_padding + item_size + item_spacing);
                         sprintf(buf, "%s%.2f", height.c_str(), m_curr_move.height);
-                        ImGui::PushItemWidth(item_size);
-                        imgui.text(buf);
+                        draw_field(buf);
                         break;
                     }
                     case EViewType::Width: {
-                        ImGui::SameLine(window_padding + item_size + item_spacing);
                         sprintf(buf, "%s%.2f", width.c_str(), m_curr_move.width);
-                        ImGui::PushItemWidth(item_size);
-                        imgui.text(buf);
+                        draw_field(buf);
                         break;
                     }
                     case EViewType::Feedrate: {
-                        ImGui::SameLine(window_padding + item_size + item_spacing);
                         sprintf(buf, "%s%.0f", speed.c_str(), m_curr_move.feedrate);
-                        ImGui::PushItemWidth(item_size);
-                        imgui.text(buf);
+                        draw_field(buf);
                         break;
                     }
                     case EViewType::VolumetricRate: {
-                        ImGui::SameLine(window_padding + item_size + item_spacing);
                         sprintf(buf, "%s%.2f", flow.c_str(), m_curr_move.volumetric_rate());
-                        ImGui::PushItemWidth(item_size);
-                        imgui.text(buf);
+                        draw_field(buf);
                         break;
                     }
                     case EViewType::FanSpeed: {
-                        ImGui::SameLine(window_padding + item_size + item_spacing);
                         sprintf(buf, "%s%.0f", fanspeed.c_str(), m_curr_move.fan_speed);
-                        ImGui::PushItemWidth(item_size);
-                        imgui.text(buf);
+                        draw_field(buf);
                         break;
                     }
                     case EViewType::AdditionalFanSpeed: {
-                        ImGui::SameLine(window_padding + item_size + item_spacing);
                         sprintf(buf, "%s%.0f", additional_fanspeed.c_str(), m_curr_move.additional_fan_speed);
-                        ImGui::PushItemWidth(item_size);
-                        imgui.text(buf);
+                        draw_field(buf);
                         break;
                     }
                     case EViewType::Temperature: {
-                        ImGui::SameLine(window_padding + item_size + item_spacing);
                         sprintf(buf, "%s%.0f", temperature.c_str(), m_curr_move.temperature);
-                        ImGui::PushItemWidth(item_size);
-                        imgui.text(buf);
+                        draw_field(buf);
                         break;
                     }
                     case EViewType::LayerTime: {
-                        ImGui::SameLine(window_padding + item_size + item_spacing);
                         sprintf(buf, "%s%.1f", layer_time.c_str(), m_curr_move.layer_duration);
-                        ImGui::PushItemWidth(item_size);
-                        imgui.text(buf);
+                        draw_field(buf);
                         break;
                     }
                     // helio
@@ -3983,8 +4106,10 @@ namespace Slic3r
                         else
                             sprintf(buf, "%s%.1f", min.c_str(), m_curr_move.thermal_index_min);
 
+                        float cursor = ImGui::GetCursorPosX();
                         ImGui::PushItemWidth(item_size);
                         imgui.text(buf);
+                        note_visible_right(cursor, text_ink(buf));
 
                         ImGui::SameLine(startx2);
 
@@ -3992,8 +4117,10 @@ namespace Slic3r
                             sprintf(buf, "%snull", max.c_str());
                         else
                             sprintf(buf, "%s%.1f", max.c_str(), m_curr_move.thermal_index_max);
+                        cursor = startx2;
                         ImGui::PushItemWidth(item_size);
                         imgui.text(buf);
+                        note_visible_right(cursor, text_ink(buf));
 
                         ImGui::SameLine(startx3);
 
@@ -4001,26 +4128,36 @@ namespace Slic3r
                             sprintf(buf, "%snull", mean.c_str());
                         else
                             sprintf(buf, "%s%.1f", mean.c_str(), m_curr_move.thermal_index_mean);
+                        cursor = startx3;
                         ImGui::PushItemWidth(item_size);
                         imgui.text(buf);
+                        note_visible_right(cursor, text_ink(buf));
                         break;
                     }
                     // end helio
                     default:
                         break;
                     }
-                    text_line = 2;
+                    text_line = (view_type == EViewType::ThermalIndexMin || view_type == EViewType::ThermalIndexMax || view_type == EViewType::ThermalIndexMean) ? 2 : 1;
                 }
                 else {
                     sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
-                    imgui.text(buf);
-                    ImGui::SameLine();
+                    draw_field(buf);
                     sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
-                    imgui.text(buf);
-                    ImGui::SameLine();
+                    draw_field(buf);
                     sprintf(buf, "%s%.3f", z.c_str(), position.z());
-                    imgui.text(buf);
+                    draw_field(buf);
+                    if (!nozzle_label.empty()) {
+                        sprintf(buf, "%s%s", nozzle.c_str(), nozzle_label.c_str());
+                        draw_field(buf);
+                    }
+                    draw_filament_field();
                     text_line = 1;
+                }
+                if (visible_max_x > 0.0f) {
+                    ImGuiWindow* position_window = ImGui::GetCurrentWindow();
+                    // Add the first glyph's left bearing so the ink-to-edge gap matches on both sides.
+                    position_window->DC.CursorMaxPos.x = visible_max_x + first_ink_left;
                 }
                 // force extra frame to automatically update window size
                 float window_width = ImGui::GetWindowWidth();

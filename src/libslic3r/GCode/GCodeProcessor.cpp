@@ -7,6 +7,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/spirit/include/qi_int.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/filesystem/path.hpp>
@@ -2076,6 +2077,16 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_filament_maps = filament_maps->values;
         std::transform(m_filament_maps.begin(), m_filament_maps.end(), m_filament_maps.begin(), [](int value) {return value - 1; });
     }
+    m_filament_nozzle_map = config.filament_nozzle_map.values;
+    m_physical_nozzle_ids = config.extruder_nozzle_slot.values;
+    if (m_physical_nozzle_ids.empty() && !config.extruder_nozzle_count.values.empty()) {
+        int total = 0;
+        for (int count : config.extruder_nozzle_count.values)
+            total += std::max(count, 0);
+        m_physical_nozzle_ids.reserve(total);
+        for (int id = 0; id < total; ++id)
+            m_physical_nozzle_ids.push_back(id);
+    }
     ensure_nozzle_group_result(static_cast<int>(m_result.filaments_count));
 
     const ConfigOptionBool* spiral_vase = config.option<ConfigOptionBool>("spiral_mode");
@@ -2289,6 +2300,24 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (filament_maps != nullptr) {
         m_filament_maps = filament_maps->values;
         std::transform(m_filament_maps.begin(), m_filament_maps.end(), m_filament_maps.begin(), [](int value) {return value - 1; });
+    }
+    if (const auto *filament_nozzle_map = config.option<ConfigOptionInts>("filament_nozzle_map"))
+        m_filament_nozzle_map = filament_nozzle_map->values;
+    m_physical_nozzle_ids.clear();
+    if (const auto *slots = config.option<ConfigOptionInts>("extruder_nozzle_slot"); slots != nullptr && !slots->values.empty()) {
+        m_physical_nozzle_ids = slots->values;
+    } else {
+        int total = 0;
+        if (const auto *counts = config.option<ConfigOptionInts>("extruder_nozzle_count"); counts != nullptr && !counts->values.empty()) {
+            for (int count : counts->values)
+                total += std::max(count, 0);
+        } else if (const auto *max_counts = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count"); max_counts != nullptr) {
+            for (int count : max_counts->values)
+                total += std::max(count, 0);
+        }
+        m_physical_nozzle_ids.reserve(total);
+        for (int id = 0; id < total; ++id)
+            m_physical_nozzle_ids.push_back(id);
     }
     ensure_nozzle_group_result(static_cast<int>(m_result.filaments_count));
 
@@ -2638,6 +2667,10 @@ void GCodeProcessor::reset()
     m_seams_count = 0;
 
     m_nozzle_group_result.reset();
+    m_nozzle_group_from_context = false;
+    m_gcode_nozzle_id = -1;
+    m_filament_nozzle_map.clear();
+    m_physical_nozzle_ids.clear();
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     m_mm3_per_mm_compare.reset();
@@ -2742,6 +2775,8 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
     // process gcode
     m_result.filename = filename;
     m_result.id = ++s_result_id;
+    // A previous parse on this processor must not leak an explicit nozzle into this file.
+    m_gcode_nozzle_id = -1;
     // 1st move must be a dummy move
     m_result.moves.emplace_back(GCodeProcessorResult::MoveVertex());
     size_t parse_line_callback_cntr = 10000;
@@ -2779,6 +2814,7 @@ void GCodeProcessor::initialize(const std::string& filename)
 void GCodeProcessor::initialize_from_context(const std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase>& nozzle_group_result)
 {
     m_nozzle_group_result = nozzle_group_result;
+    m_nozzle_group_from_context = nozzle_group_result != nullptr;
 }
 
 
@@ -3456,6 +3492,21 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
     if (boost::starts_with(comment, reserved_tag(ETags::Wipe_Tower_End))) {
         m_wipe_tower = false;
         m_used_filaments.process_wipe_tower_cache(this);
+        return;
+    }
+
+    // ; NOZZLE_CHANGE_START/END OF.. NF.. ON.. NN..  — NN is the nozzle the following moves use.such as  NOZZLE_CHANGE_START OF0 NF1 ON7 NN5.
+    if (boost::starts_with(comment, reserved_tag(ETags::NozzleChangeStart))
+        || boost::starts_with(comment, reserved_tag(ETags::NozzleChangeEnd))) {
+        const auto pos = comment.find("NN");
+        if (pos != std::string_view::npos && pos + 2 <= comment.size()) {
+            const char* first = comment.data() + pos + 2;
+            const char* last = comment.data() + comment.size();
+            int nozzle_id = 0;
+            // qi::int_ converts the digits at first and stops at the first non-digit.
+            if (boost::spirit::qi::parse(first, last, boost::spirit::qi::int_, nozzle_id) && nozzle_id >= 0)
+                m_gcode_nozzle_id = nozzle_id;
+        }
         return;
     }
 
@@ -6084,6 +6135,8 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
 
         int new_nozzle_id_in_extruder = target_nozzle_info->group_id;
         int old_nozzle_id_in_extruder = m_nozzle_status_recorder.get_nozzle_in_extruder(new_extruder_id);
+        // H on T/M1020 names the nozzle in the gcode. A bare T keeps the slice / header map.
+        m_gcode_nozzle_id = (nozzle_id >= 0) ? new_nozzle_id_in_extruder : -1;
 
         int new_filament_id = id;
         int old_filament_in_nozzle = m_nozzle_status_recorder.get_filament_in_nozzle(new_nozzle_id_in_extruder);
@@ -6157,6 +6210,39 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
     simulate_st_synchronize(extra_time, erFlush);
 }
 
+int GCodeProcessor::resolve_move_nozzle_id() const
+{
+    // Explicit nozzle from T/M1020 H or a NOZZLE_CHANGE NN comment.
+    const bool explicit_nozzle_is_physical = m_gcode_nozzle_id >= 0 &&
+        (m_physical_nozzle_ids.empty() ||
+         std::find(m_physical_nozzle_ids.begin(), m_physical_nozzle_ids.end(), m_gcode_nozzle_id) != m_physical_nozzle_ids.end());
+    if (explicit_nozzle_is_physical && (!m_nozzle_group_result || m_nozzle_group_result->get_nozzle_from_id(m_gcode_nozzle_id)))
+        return m_gcode_nozzle_id;
+
+    const int filament_id = get_filament_id(false);
+    if (filament_id < 0)
+        return -1;
+
+    // Slice-time group is layer-accurate. A bare T (no H) follows that map.
+    if (m_nozzle_group_from_context && m_nozzle_group_result) {
+        int id = -1;
+        if (const auto layered = std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(m_nozzle_group_result)) {
+            const int layer_index = m_layer_id > 0 ? static_cast<int>(m_layer_id) - 1 : -1;
+            id = layered->get_nozzle_id(filament_id, layer_index);
+        }
+        if (id < 0) {
+            if (const auto info = m_nozzle_group_result->get_first_nozzle_for_filament(filament_id))
+                id = info->group_id;
+        }
+        if (id >= 0)
+            return id;
+    }
+
+    if (filament_id < static_cast<int>(m_filament_nozzle_map.size()))
+        return m_filament_nozzle_map[filament_id];
+    return -1;
+}
+
 void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
 {
     int filament_id = get_filament_id();
@@ -6202,7 +6288,8 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         m_interpolation_points,
         m_object_label_id,
         m_print_z,
-        m_pa_line_calibration
+        m_pa_line_calibration,
+        resolve_move_nozzle_id()
     });
 
     if (type == EMoveType::Seam) {

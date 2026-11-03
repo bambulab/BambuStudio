@@ -233,6 +233,8 @@ namespace Slic3r {
             int  object_label_id{-1};
             float print_z{0.0f};
             bool is_pa_line_calibration{false};
+            // Logical nozzle (group id) active while this move was parsed. -1 when unknown.
+            int nozzle_id{-1};
 
             float volumetric_rate() const { return feedrate * mm3_per_mm; }
             //BBS: new function to support arc move
@@ -1226,6 +1228,14 @@ namespace Slic3r {
         float m_additional_fan_speed; // percentage (auxiliary/side fan, M106 P2)
         ExtrusionRole m_extrusion_role;
         std::vector<int> m_filament_maps;
+        // filament_nozzle_map from the gcode header / print config. Used when no slice-time nozzle group is attached.
+        std::vector<int> m_filament_nozzle_map;
+        // Physical nozzle slot ids from the gcode header / print config. Used to reject stale virtual NN ids.
+        std::vector<int> m_physical_nozzle_ids;
+        // Nozzle written on the latest T/M1020 H or NOZZLE_CHANGE NN. -1 when the gcode did not name one.
+        int m_gcode_nozzle_id{-1};
+        // True when initialize_from_context() supplied the slice-time nozzle group (layer-accurate).
+        bool m_nozzle_group_from_context{false};
         std::vector<unsigned char> m_last_filament_id;
         std::vector<unsigned char> m_filament_id;
         unsigned char m_extruder_id;
@@ -1514,6 +1524,8 @@ namespace Slic3r {
         void process_M623(const GCodeReader::GCodeLine &line);
 
         void process_filament_change(int filament_id, int nozzle_id);
+        // Logical nozzle id of the move currently being parsed.
+        int resolve_move_nozzle_id() const;
         //BBS: different path_type is only used for arc move
         void store_move_vertex(EMoveType type, EMovePathType path_type = EMovePathType::Noop_move);
 
