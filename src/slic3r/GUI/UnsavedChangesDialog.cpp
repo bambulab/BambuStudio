@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <functional>
 #include <iterator>
+#include <set>
 #include <string>
 #include <vector>
 #include <boost/algorithm/string.hpp>
@@ -41,6 +42,7 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/TextTabbar.hpp"
+#include "libslic3r/Log.hpp"
 
 using boost::optional;
 
@@ -997,7 +999,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     }
 
     if (params || (dependent_presets &&
-        ((dependent_presets->type() != Preset::Type::TYPE_FILAMENT && dependent_presets->type() != Preset::Type::TYPE_PRINTER) || !dependent_presets->find_preset(new_selected_preset)))) {
+        (dependent_presets->type() != Preset::Type::TYPE_PRINTER || !dependent_presets->find_preset(new_selected_preset)))) {
         m_panel_tab = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE.x, -1), wxTAB_TRAVERSAL);
         m_panel_tab->SetBackgroundColour(GREY200);
         wxBoxSizer *m_sizer_tab = new wxBoxSizer(wxVERTICAL);
@@ -1145,7 +1147,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 
     { // "Don't save" / "Discard" button
         std::string btn_icon  = (ActionButtons::DONT_SAVE & m_buttons) ? "" : (dependent_presets || (ActionButtons::KEEP & m_buttons)) ? "blank_16" : "exit";
-        wxString    btn_label = (ActionButtons::TRANSFER & m_buttons) ? _L("Discard Modified Value") : is_copy ? _L("No") : _L("Don't save");
+        wxString    btn_label = is_copy ? _L("No") : _L("Discard Modified Value");
         add_btn(&m_discard_btn, m_continue_btn_id, Action::Discard, btn_label, false);
     }
 
@@ -1982,7 +1984,7 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
                     category = category.substr(0, 8);
 
                 if (variant_index >= (int) extruder_variant->values.size()) {
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": variant_index " << variant_index
+                    BOOST_LOG_TRIVIAL(warning) << "variant_index " << variant_index
                             << " out of range for extruder_variant (size=" << extruder_variant->values.size()
                             << ") on opt_key=" << opt_key << "; skip variant suffix";
                 } else {
@@ -2269,9 +2271,12 @@ private:
     std::map<Preset::Type, std::string> m_last_sel_right;
 };
 
+// The combo's item text is not the preset name in multi-diameter mode (the canonical printer is shown as
+// "... Multiple nozzle", its processes as "Multi-diameter ..."), so the selection is resolved through the
+// combo's own item -> name map.
 static std::string get_selection(PresetComboBox* preset_combo)
 {
-    return into_u8(preset_combo->GetString(preset_combo->GetSelection()));
+    return preset_combo->preset_name_for_selection(preset_combo->GetSelection());
 }
 
 PresetSelectorPanel::PresetSelectorPanel(wxWindow *parent, PresetBundle *bundle_left, PresetBundle *bundle_right)
@@ -2326,7 +2331,7 @@ void PresetSelectorPanel::rebuild_combo(PresetComboBox *&cb, wxBoxSizer *column,
     // (tab switch). Capturing this local instead binds the callback to its own combo for good.
     PresetComboBox *combo = cb;
     combo->set_selection_changed_function([this, &memory, bundle, combo](int selection) {
-        std::string preset_name = combo->GetString(selection).ToUTF8().data();
+        std::string preset_name = combo->preset_name_for_selection(selection);
         // Remember the pick so it survives the combo being rebuilt on a later tab switch.
         memory[m_type] = preset_name;
         if (on_compatibility) on_compatibility(Preset::remove_suffix_modified(preset_name), m_type, bundle);
@@ -2759,7 +2764,21 @@ void DiffPresetDialog::update_tree()
                                                   presets->dirty_options(right_preset, left_preset, deep_compare) :
                                                   presets->dirty_options(left_preset, right_preset, deep_compare);
 
-    if (dirty_options.empty()) { return on_empty(_L("Please select two different presets A and B to compare"), "equal"); }
+    const bool had_dirty_options = !dirty_options.empty();
+    if (multi_nozzle_diameter_mode_enabled(m_preset_bundle_left->project_config) &&
+        (type == Preset::TYPE_PRINTER || type == Preset::TYPE_PRINT)) {
+        dirty_options.erase(
+            std::remove_if(dirty_options.begin(), dirty_options.end(), is_multi_nozzle_auto_option),
+            dirty_options.end());
+    }
+
+    if (dirty_options.empty()) {
+        // Identical presets stay on the "pick two different" hint. Presets that only differ in
+        // multi-nozzle Auto fields are treated as having no visible differences.
+        return on_empty(had_dirty_options ? _L("These two presets have no visible differences") :
+                                            _L("Please select two different presets A and B to compare"),
+                        "equal");
+    }
 
     do_update_tree(left_preset, right_preset, dirty_options);
 }

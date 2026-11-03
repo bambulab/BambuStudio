@@ -17,9 +17,9 @@
 #define BOOST_NO_CXX17_HDR_STRING_VIEW
 #endif
 
-#include <boost/log/trivial.hpp>
 #include <boost/multiprecision/integer.hpp>
 #include <boost/rational.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace libnest2d {
 #if !defined(_MSC_VER) && defined(__SIZEOF_INT128__) && !defined(__APPLE__)
@@ -85,7 +85,16 @@ void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig & pri
 {
     // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
     // So we can't do max but do adding instead.
-    params.brim_skirt_distance = get_real_skirt_dist(print_cfg);
+    // Feed the filaments of the arranged items into the estimation so that it follows the same
+    // "widest spacing wins" rule as Print::skirt_flow(), which drives both the real skirt and the
+    // sequential print collision check.
+    std::vector<unsigned int> used_filaments;
+    for (const ArrangePolygon &ap : selected)
+        for (const auto &filament : ap.extrude_id_filament_types)
+            if (filament.first > 0)
+                used_filaments.emplace_back(static_cast<unsigned int>(filament.first));
+    sort_remove_duplicates(used_filaments);
+    params.brim_skirt_distance = get_real_skirt_dist(print_cfg, used_filaments);
     params.bed_shrink_x += params.brim_skirt_distance;
     params.bed_shrink_y += params.brim_skirt_distance;
     if (params.is_seq_print) {
@@ -1000,24 +1009,36 @@ void _arrange(
                 auto rotsh = itm.rawShape();
                 sl::rotate(rotsh, angle);
                 bb = sl::boundingBox(rotsh);
-                bp2d::Coord infl = std::min(original_infl, static_cast<bp2d::Coord>(std::floor(std::min(pure_bin_width - bb.width(), pure_bin_height - bb.height())) / 2.0));
 
-                // check and correct the inflation
-                if (infl > 0 && infl < original_infl){
-                    sl::offset(rotsh, infl);
-                    auto box = sl::boundingBox(rotsh);
-                    auto diff_w = box.width() - pure_bin_width;
-                    auto diff_h = box.height() - pure_bin_height;
-                    if (diff_w > 1 || diff_h > 1)
-                    {
-                        infl -= static_cast<bp2d::Coord>(std::max(diff_w, diff_h));
+                bp2d::Coord infl;
+                if (params.is_seq_print) {
+                    // bin is already inflated by min_obj_distance/2 per side to host this
+                    // inflation; shrinking the inflation overflows the plate and eats
+                    // object clearance. pure_bin is the real plate for seq_print.
+                    if (bb.width() > pure_bin_width + 1 || bb.height() > pure_bin_height + 1)
+                        continue;
+                    infl = original_infl;
+                } else {
+                    infl = std::min(original_infl, static_cast<bp2d::Coord>(std::floor(std::min(pure_bin_width - bb.width(), pure_bin_height - bb.height())) / 2.0));
+
+                    // check and correct the inflation
+                    if (infl > 0 && infl < original_infl){
+                        sl::offset(rotsh, infl);
+                        auto box = sl::boundingBox(rotsh);
+                        auto diff_w = box.width() - pure_bin_width;
+                        auto diff_h = box.height() - pure_bin_height;
+                        if (diff_w > 1 || diff_h > 1)
+                        {
+                            infl -= static_cast<bp2d::Coord>(std::max(diff_w, diff_h));
+                        }
+                    }
+
+                    if (infl >= 0 && params.bed_shrink_x < 0) {
+                        infl = std::max(infl,(bp2d::Coord) scale_(-params.bed_shrink_x));
                     }
                 }
 
                 if (infl >= 0) {
-                    if (params.bed_shrink_x < 0) {
-                        infl = std::max(infl,(bp2d::Coord) scale_(-params.bed_shrink_x));
-                    }
                     itm.allowed_rotations.push_back({angle, infl});
                 }
             }

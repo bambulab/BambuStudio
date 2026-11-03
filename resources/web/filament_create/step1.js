@@ -7,6 +7,9 @@ var TYPE_LIST = []; // filled dynamically from C++ init_data
 var SUPPORTED_TYPES = null;
 let customVendors = [];
 let vendorReadonly = false;
+// Name awaiting the C++ reserved-vendor check (see check_reserved_vendor /
+// reserved_vendor_result below); null when no check is in flight.
+let pendingVendorName = null;
 
 function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, function (c) {
@@ -164,8 +167,17 @@ $(document).ready(function () {
                 var selectedVendor = (data.selected_vendor || '').trim();
                 var selectedType   = (data.selected_type || '').trim();
                 var selectedSerial = (data.selected_serial || '').trim();
-                applyVendorReadonly(data.vendor_readonly === true && !!selectedVendor);
-                if (selectedVendor || selectedType || selectedSerial) {
+                // vendor_readonly reflects a property of the dialog instance (did the caller
+                // lock the vendor?) and must keep applying on every reload, independent of
+                // whether the prefill fields below are resent — see fresh_open.
+                applyVendorReadonly(data.vendor_readonly === true);
+                // C++ only includes the prefill fields (and sets fresh_open) on the very
+                // first init_data for this dialog instance. send_init_data() is re-sent on
+                // every reload of this page, including the reload from clicking "Back" from
+                // step2 — reapplying the prefill then would stomp whatever the user just
+                // typed, so later reloads must leave the form (and its sessionStorage draft)
+                // alone.
+                if (data.fresh_open && (selectedVendor || selectedType || selectedSerial)) {
                     if (selectedVendor) {
                         var knownVendors = VENDOR_LIST.concat(customVendors);
                         if (knownVendors.indexOf(selectedVendor) < 0) {
@@ -183,6 +195,9 @@ $(document).ready(function () {
                     sessionStorage.removeItem('step1');
                 }
                 updateNextBtn();
+            } else if (data.command === 'reserved_vendor_result') {
+                if (!data.reserved && pendingVendorName) commitNewVendor(pendingVendorName);
+                pendingVendorName = null;
             } else if (data.command === 'device_status') {
                 if (data.connected) {
                     $('#opt-current-printer').removeClass('disabled');
@@ -308,9 +323,22 @@ $(document).ready(function () {
             inputEl.addClass('error');
             return;
         }
+        // Reserved names ("Bambu"/"Generic") are validated by the C++ host so this
+        // dialog shows the exact same native warning as the final step3 confirm,
+        // instead of duplicating that string/logic here. commitNewVendor() runs once
+        // reserved_vendor_result comes back clear (see HandleStudio below).
+        if (typeof SendWXMessage !== 'undefined') {
+            pendingVendorName = val;
+            SendWXMessage(JSON.stringify({ sequence_id: Math.round(Date.now() / 1000), command: 'check_reserved_vendor', vendor: val }));
+        } else {
+            commitNewVendor(val);
+        }
+    });
+
+    function commitNewVendor(val) {
         customVendors.push(val);
         renderVendors();
         $('#input-vendor').val(val);
         $('#vendor-dialog-mask, #vendor-dialog').addClass('hidden');
-    });
+    }
 });

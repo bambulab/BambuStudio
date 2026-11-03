@@ -38,34 +38,6 @@
     "filament_max_volumetric_speed": [
         "6"
     ],
-    "filament_dev_chamber_drying_bed_temperature": [
-        "80"
-    ],
-    "filament_dev_ams_drying_time": [
-        "12",
-        "12",
-        "12",
-        "12"
-    ],
-    "filament_dev_ams_drying_ams_limitations": [
-        "1",
-        "0"
-    ],
-    "filament_dev_ams_drying_heat_distortion_temperature": [
-        "75"
-    ],
-    "filament_dev_drying_cooling_temperature": [
-        "55"
-    ],
-    "filament_dev_ams_drying_temperature": [
-        "65",
-        "65",
-        "55",
-        "55"
-    ],
-    "filament_dev_drying_softening_temperature": [
-        "60"
-    ],
     "hot_plate_temp": [
         "70"
     ],
@@ -86,9 +58,6 @@
     ],
     "slow_down_layer_time": [
         "12"
-    ],
-    "temperature_vitrification": [
-        "90"
     ],
     "textured_plate_temp": [
         "70"

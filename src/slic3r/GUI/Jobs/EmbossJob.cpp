@@ -2,7 +2,6 @@
 #include <stdexcept>
 #include <algorithm>
 #include <type_traits>
-#include <boost/log/trivial.hpp>
 //
 #include <libslic3r/ClipperUtils.hpp>
 #include <libslic3r/Line.hpp>
@@ -29,6 +28,7 @@
 #include "slic3r/GUI/Jobs/Worker.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 #include <wx/regex.h>
+#include "libslic3r/Log.hpp"
 // #define EXECUTE_UPDATE_ON_MAIN_THREAD // debug execution on main thread
 using namespace Slic3r::Emboss;
 namespace Slic3r {
@@ -342,7 +342,16 @@ void UpdateSurfaceVolumeJob::process(Ctl &ctl)
 {
     if (!check(m_input))
         throw JobException("Bad input data for UseSurfaceJob.");
-    m_result = cut_surface(*m_input.base, m_input); //, was_canceled(ctl, *m_input.base)
+    try {
+        m_result = cut_surface(*m_input.base, m_input); //, was_canceled(ctl, *m_input.base)
+    } catch (const JobException &) {
+        throw;
+    } catch (const std::exception &e) {
+        // Geometry kernel (CGAL) may throw on degenerated input; only JobException is handled in finalize.
+        BOOST_LOG_TRIVIAL(error) << "UpdateSurfaceVolumeJob: cut surface failed: " << e.what();
+        is_use_surfae_error = true;
+        throw JobException(_u8L("There is no valid surface for text projection.").c_str());
+    }
 }
 bool UpdateSurfaceVolumeJob::is_use_surfae_error =false;
 
@@ -529,7 +538,14 @@ void CreateSurfaceVolumeJob::process(Ctl &ctl)
 {
     if (!check(m_input))
         throw JobException("Bad input data for CreateSurfaceVolumeJob.");
-    m_result = cut_surface(*m_input.base, m_input); // was_canceled(ctl, *m_input.base)
+    try {
+        m_result = cut_surface(*m_input.base, m_input); // was_canceled(ctl, *m_input.base)
+    } catch (const JobException &) {
+        throw;
+    } catch (const std::exception &e) {
+        BOOST_LOG_TRIVIAL(error) << "CreateSurfaceVolumeJob: cut surface failed: " << e.what();
+        throw JobException(_u8L("There is no valid surface for text projection.").c_str());
+    }
 }
 void CreateSurfaceVolumeJob::finalize(bool canceled, std::exception_ptr &eptr)
 {
@@ -1293,7 +1309,7 @@ void create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result, st
     bool              is_all_space = re.Matches(input_text);
     if (is_all_space) { return; }
     if (input_text.size() != shape.shapes_with_ids.size()) {
-        BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< "error: input_text.size() != shape.shapes_with_ids.size()";
+        BOOST_LOG_TRIVIAL(info) << "error: input_text.size() != shape.shapes_with_ids.size()";
     }
     for (int i = 0; i < shape.shapes_with_ids.size(); i++) {
         auto &temp_shape = shape.shapes_with_ids[i];

@@ -68,6 +68,9 @@
     "filament_change_length_nc": [
         "4"
     ],
+    "fins_extrude_safe_temp": [
+        "227"
+    ],
     "hole_coef_2": [
         "-0.0051"
     ],

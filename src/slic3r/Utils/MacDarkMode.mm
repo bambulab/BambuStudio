@@ -121,6 +121,35 @@ void WKWebView_setTransparentBackground(void * web)
     [webView registerForDraggedTypes: @[NSFilenamesPboardType]];
 }
 
+static const char kBBLWebSuperviewKey = 0;
+
+void WKWebView_setCompositorSuppressed(void * web, bool suppress)
+{
+    WKWebView * webView = (WKWebView *) web;
+    if (!webView)
+        return;
+
+    if (suppress) {
+        NSView * parent = [webView superview];
+        if (parent)
+            objc_setAssociatedObject(webView, &kBBLWebSuperviewKey, parent, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        [webView setHidden:YES];
+        [webView setAlphaValue:0.0];
+        if ([webView layer])
+            [[webView layer] setOpacity:0.0];
+        if ([webView superview])
+            [webView removeFromSuperview];
+    } else {
+        [webView setAlphaValue:1.0];
+        if ([webView layer])
+            [[webView layer] setOpacity:1.0];
+        [webView setHidden:NO];
+        NSView * parent = (NSView *) objc_getAssociatedObject(webView, &kBBLWebSuperviewKey);
+        if (parent && [webView superview] == nil)
+            [parent addSubview:webView];
+    }
+}
+
 void WKWebView_setInspectable(void * web, bool enable)
 {
     WKWebView * webView = (WKWebView*)web;

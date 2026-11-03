@@ -83,6 +83,8 @@ void TabCtrl::Rescale()
 {
     for (auto & b : btns)
         b->Rescale();
+    InvalidateBestSize();
+    relayout();
 }
 
 bool TabCtrl::SetFont(wxFont const& font)
@@ -112,6 +114,7 @@ int TabCtrl::AppendItem(const wxString &item,
         sizer->GetItem(sizer->GetItemCount() - 1)->SetMinSize({0, 0});
     sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, TAB_BUTTON_SPACE);
     sizer->AddStretchSpacer(1);
+    InvalidateBestSize();
     relayout();
     return btns.size() - 1;
 }
@@ -143,6 +146,7 @@ void TabCtrl::SetItemText(unsigned int item, wxString const &value)
 {
     if (item >= btns.size()) return;
     btns[item]->SetLabel(value);
+    InvalidateBestSize();
 }
 
 bool TabCtrl::GetItemBold(unsigned int item) const
@@ -181,6 +185,7 @@ void TabCtrl::SetItemPaddingSize(unsigned int item, const wxSize &size)
 {
     if (item >= btns.size()) return;
     btns[item]->SetPaddingSize(size);
+    InvalidateBestSize();
 }
 
 void TabCtrl::SetItemTextColour(unsigned int item, const StateColor &col)
@@ -210,6 +215,24 @@ void TabCtrl::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
     if (size == GetSize()) return;
     relayout();
+}
+
+void TabCtrl::SetFitAllItems(bool fit)
+{
+    if (fit_all_items == fit) return;
+    fit_all_items = fit;
+    InvalidateBestSize();
+}
+
+// Size by all items instead of the visible ones, so items hidden by relayout() can come back
+wxSize TabCtrl::DoGetBestSize() const
+{
+    wxSize size = StaticBox::DoGetBestSize();
+    if (!fit_all_items) return size;
+    size.x = 10;
+    for (auto b : btns)
+        size.x += b->GetMinSize().x + TAB_BUTTON_SPACE * 2;
+    return size;
 }
 
 #ifdef __WIN32__

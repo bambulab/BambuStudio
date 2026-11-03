@@ -3,6 +3,7 @@
 #include "wgtFilaManagerCloudSync.h"
 #include "wgtFilaManagerCloudClient.h"
 #include "wgtFilaManagerCloudDispatcher.h"
+#include "nlohmann/json.hpp"
 #include "AmsAutoPushThrottle.h"
 
 #include "slic3r/GUI/GUI_App.hpp"
@@ -12,9 +13,9 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 
 #include <wx/app.h>
-#include <boost/log/trivial.hpp>
 
 #include <cmath>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -89,7 +90,8 @@ void wgtFilaManagerSync::calibrate_pending_badges(MachineObject* obj)
 void wgtFilaManagerSync::check_and_register_new_rfid_spools(MachineObject* obj)
 {
     if (!obj || !m_store) return;
-
+    // automatic filament record is disabled temporarily in LAN mode because the cloud is not supported
+    if (obj->is_lan_mode_printer()) return;
     auto* disp = wxGetApp().fila_manager_cloud_disp();
     const bool pull_ready = !disp || (!disp->last_synced_at().empty() && !disp->is_pulling());
     if (!pull_ready) return;
@@ -184,6 +186,13 @@ void wgtFilaManagerSync::dismiss_pending_badge(const std::string& dev_id,
     m_pending_badges.erase(dev_id + ":" + ams_id + ":" + slot_id);
 }
 
+bool wgtFilaManagerSync::has_pending_badge(const std::string& dev_id,
+                                           const std::string& ams_id,
+                                           const std::string& slot_id) const
+{
+    return m_pending_badges.find(dev_id + ":" + ams_id + ":" + slot_id) != m_pending_badges.end();
+}
+
 bool wgtFilaManagerSync::on_device_disconnect(const std::string& dev_id,
                                               const std::string& dev_name)
 {
@@ -230,26 +239,22 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
 
         const FilamentSpool* matched = match_tray(tray, dev_id, ams_id);
         if (!matched) {
-            BOOST_LOG_TRIVIAL(info)
-                << "[ams-sync] unmatched tray, skip"
-                << " ams_id=" << ams_id
-                << " slot_id=" << tray.id
-                << " setting_id=" << tray.setting_id
-                << " tag_uid=" << tray.tag_uid
-                << " color=" << tray.color;
+            BOOST_LOG_TRIVIAL(info) << "[ams-sync] unmatched tray, skip " << KV(log_key::ams_id, ams_id) << KV(log_key::slot_id, tray.id)
+                                    << KV(log_key::setting_id, tray.setting_id) << "tag_uid=" << tray.tag_uid << " color=" << tray.color;
             return;
         }
 
-        BOOST_LOG_TRIVIAL(info)
-            << "[ams-sync] matched tray -> spool_id=" << matched->spool_id
-            << " ams_id=" << ams_id << " slot_id=" << tray.id;
+        BOOST_LOG_TRIVIAL(info) << "[ams-sync] matched tray -> spool_id=" << matched->spool_id << " " << KV(log_key::ams_id, ams_id)
+                                << KV(log_key::slot_id, tray.id);
 
         if (!handled_spools.insert(matched->spool_id).second) {
             return;
         }
 
         int ams_id_int = -1;
-        try { ams_id_int = std::stoi(ams_id); } catch (...) {}
+        try { ams_id_int = std::stoi(ams_id); } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
         MountUpdate mu;
         mu.ams_id   = ams_id_int;
         mu.ams_type = ams_type_int;
@@ -261,7 +266,8 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         present_now[matched->spool_id] = mu;
 
         if (tray.remain_fetch_status == DevAmsTray::RemainFetchStatus::Refreshing ||
-            tray.remain_fetch_status == DevAmsTray::RemainFetchStatus::Initializing) {
+            tray.remain_fetch_status == DevAmsTray::RemainFetchStatus::Initializing ||
+            tray.is_reading(obj)) {
             return;
         }
 
@@ -293,6 +299,7 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         updated.bound_dev_id   = dev_id;
         updated.bound_ams_id   = ams_id;
 
+        const bool nw_changed = (static_cast<double>(net_weight_g) != matched->net_weight);
         if (m_store->update_spool_if_changed(updated)) {
             any_changed = true;
             const bool manual_rfid_bind =
@@ -304,7 +311,8 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
                 changed.push_back({
                     matched->spool_id,
                     tag,
-                    net_weight_g
+                    net_weight_g,
+                    nw_changed
                 });
             }
         }
@@ -317,7 +325,7 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
             if (tray) handle_tray(*tray, ams_id, ams_type_int);
         }
     }
-    for (auto& vt_tray : obj->vt_slot) {
+    for (const auto& [vt_id, vt_tray] : fila_sys->GetVirtualTrays()) {
         handle_tray(vt_tray, "ext", static_cast<int>(DevAmsType::EXT_SPOOL));
     }
 
@@ -332,6 +340,20 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         if (auto* cloud = wxGetApp().fila_manager_cloud_sync()) {
             const auto device_state = compute_device_state(obj);
             cloud->notify_ams_synced(changed, device_state);
+        }
+    }
+
+    // Extenal spool netweight changed
+    if (!changed.empty()) {
+        if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
+            for (const auto& item : changed) {
+                if (!item.net_weight_changed) continue;
+                const FilamentSpool* sp = m_store->get_spool(item.spool_id);
+                if (!sp || sp->ams_type != static_cast<int>(DevAmsType::EXT_SPOOL)) continue;
+                nlohmann::json w_patch;
+                w_patch["net_weight"] = static_cast<double>(item.net_weight);
+                disp->enqueue_push_update(item.spool_id, w_patch);
+            }
         }
     }
 

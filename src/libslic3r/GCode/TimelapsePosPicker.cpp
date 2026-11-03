@@ -305,7 +305,9 @@ namespace Slic3r {
         double interface_raft_height = slice_params.interface_raft_layer_height;
         double contact_raft_layer_height = slice_params.contact_raft_layer_height;
 
-        double ret = print->config().initial_layer_print_height;
+        // A multi-diameter plate printing with a single diameter lays its first layer at that nozzle's height.
+        double ret = print->single_diameter_layering_nozzle() > EPSILON ?
+            slice_params.first_print_layer_height : print->config().initial_layer_print_height.value;
         if (base_raft_layers - 1 > 0)
             ret += (base_raft_layers - 1) * base_raft_height;
         if (interface_raft_layers - 1 > 0)

@@ -1,0 +1,976 @@
+.refill-page {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-weight: 400;
+  color: var(--ams-text-strong);
+}
+
+/* Picker view: half the group list's padding above the title and half its gap
+   below it, so the title band stays compact in the narrow dialog. At least as
+   tall as the dialog so the footer can sit at its bottom edge. */
+.refill-page--picker {
+  min-height: 100%;
+  padding-top: 8px;
+  gap: 6px;
+}
+
+.refill-page__intro {
+  box-sizing: border-box;
+  width: calc(100% - 48px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.refill-page__title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.refill-page__desc {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: pre-line;
+  color: var(--ams-text-strong);
+}
+
+.refill-page__error {
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--ams-danger);
+}
+
+.refill-picker-error {
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.refill-page__disabled {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 591px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refill-page__disabled-card {
+  width: min(448px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.refill-page__disabled-image {
+  display: block;
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+
+.refill-page__disabled-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--ams-text-strong);
+  text-align: center;
+}
+
+.refill-page__disabled-title,
+.refill-page__disabled-desc {
+  width: 100%;
+  font-size: 15px;
+  line-height: 22px;
+  word-break: break-word;
+}
+
+.refill-page__disabled-title {
+  font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei UI', sans-serif;
+  font-weight: 500;
+}
+
+.refill-page__disabled-desc {
+  color: var(--ams-text-secondary);
+  font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei UI', sans-serif;
+  font-weight: 400;
+}
+
+.refill-page__open-settings {
+  height: 32px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+[data-theme='dark'] .refill-page__open-settings {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.refill-page__empty {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--ams-surface-subtle);
+}
+
+.refill-page__empty-image {
+  display: block;
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+
+[data-theme='dark'] .refill-page__disabled-image,
+[data-theme='dark'] .refill-page__empty-image {
+  opacity: 0.82;
+  filter: brightness(0.68) contrast(1.02);
+}
+
+.refill-page__empty-label {
+  width: min(448px, 100%);
+  color: var(--ams-text-strong);
+  font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 22px;
+  text-align: center;
+}
+
+.refill-page__columns {
+  box-sizing: border-box;
+  width: calc(100% - 48px);
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: stretch;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.refill-page__columns--spread {
+  justify-content: space-between;
+}
+
+.refill-group {
+  box-sizing: border-box;
+  /* 204px is the narrowest width that still fits a full filament name ("PLA
+     Basic") next to the manual tag and the delete button. The inner rows
+     derive their width from this one plus the padding below. */
+  width: 204px;
+  flex: 0 0 204px;
+  align-self: stretch;
+  border: 1px solid var(--ams-border);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.refill-group__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.refill-group__header > .spool {
+  display: block;
+  flex: 0 0 52px;
+}
+
+.refill-group__caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 22px;
+}
+
+.refill-group__type {
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 22px;
+  white-space: nowrap;
+}
+
+.refill-group__nozzle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei UI', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 19px;
+  color: var(--ams-text-button);
+  white-space: nowrap;
+}
+
+.refill-group__nozzle-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.refill-group__slots {
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.refill-slot {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 60px;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 8px;
+  background: var(--ams-surface-subtle);
+}
+
+.refill-slot--divider {
+  border-bottom: 1px solid var(--ams-divider);
+}
+
+.refill-slot__handle {
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  object-fit: contain;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.refill-slot__handle:active {
+  cursor: grabbing;
+}
+
+body.refill-slot-dragging,
+body.refill-slot-dragging * {
+  cursor: grabbing !important;
+  user-select: none;
+}
+
+.refill-slot--dragging {
+  opacity: 0.55;
+}
+
+.refill-slot--drop-before {
+  box-shadow: inset 0 2px 0 var(--ams-brand);
+}
+
+.refill-slot--drop-after {
+  box-shadow: inset 0 -2px 0 var(--ams-brand);
+}
+
+.refill-slot__info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.refill-slot__remove {
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.refill-slot__remove img {
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+
+/* Bitmap assets use light-theme strokes; lift them only in dark mode. */
+[data-theme='dark'] .refill-slot__remove img,
+[data-theme='dark'] .refill-group__reset img {
+  filter: brightness(0) invert(0.937);
+}
+
+[data-theme='dark'] .refill-slot__remove {
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.refill-slot__remove:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.refill-slot__brand-row,
+.refill-slot__meta-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 20px;
+}
+
+.refill-slot__swatch {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  overflow: hidden;
+  border: 2px solid var(--ams-chip-ring);
+  border-radius: 6px;
+}
+
+.refill-slot__brand {
+  min-width: 0;
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.refill-slot__tag {
+  /* The filament name next to it is the only part allowed to shrink, so the
+     tag keeps its single line instead of wrapping when the row gets tight. */
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 14px;
+  padding: 1px 5px;
+  border-radius: 8px;
+  color: var(--ams-brand);
+  background: var(--ams-brand-tint);
+}
+
+/* "A1 ｜ 1000g": plain secondary text, not a pill (Figma 8015:39144). */
+.refill-slot__meta-row {
+  gap: 2px;
+  color: var(--ams-text-secondary);
+  font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.refill-group__footer {
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.refill-group__add,
+.refill-group__reset {
+  box-sizing: border-box;
+  height: 28px;
+  border: 1px solid var(--ams-border);
+  border-radius: 4px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-strong);
+  cursor: pointer;
+}
+
+.refill-group__add {
+  min-width: 0;
+  flex: 1;
+  padding: 4px 8px;
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.refill-group__reset {
+  width: 28px;
+  flex: 0 0 28px;
+  padding: 4px;
+}
+
+[data-theme='dark'] .refill-group__reset {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.refill-group__reset img {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.refill-group__reset:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.refill-page__actions {
+  box-sizing: border-box;
+  width: calc(100% - 48px);
+  margin: 0 auto;
+  display: flex;
+}
+
+.refill-page__add-group {
+  height: 32px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+/* Debug-only affordance. Fixed positioning keeps it out of the page flow. */
+.refill-debug-button {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 20;
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--ams-border);
+  border-radius: 12px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-secondary);
+  font: inherit;
+  font-size: 12px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.refill-debug-button:hover {
+  background: var(--ams-soft-border);
+}
+
+.refill-debug-panel {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 44px;
+  z-index: 21;
+  box-sizing: border-box;
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--ams-border);
+  border-radius: 8px;
+  background: #1e1e1e;
+}
+
+.refill-debug-panel__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.refill-debug-panel__view {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: #d6d6d6;
+  font-size: 11px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.refill-debug-panel__action {
+  height: 20px;
+  padding: 0 8px;
+  border: 1px solid #4a4a4a;
+  border-radius: 10px;
+  background: #2b2b2b;
+  color: #d6d6d6;
+  font: inherit;
+  font-size: 11px;
+  line-height: 18px;
+  cursor: pointer;
+}
+
+.refill-debug-panel__json {
+  margin: 0;
+  padding: 8px;
+  overflow: auto;
+  color: #d6d6d6;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 16px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.refill-loading {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.refill-loading__spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--ams-spinner-track);
+  border-top-color: var(--ams-brand);
+  border-radius: 50%;
+  animation: refill-loading-spin 0.8s linear infinite;
+}
+
+.refill-loading__label {
+  color: var(--ams-text-strong);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  text-align: center;
+  word-break: break-word;
+}
+
+@keyframes refill-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Success toasts, centered near the top of the page as in the design. */
+.refill-toasts {
+  position: fixed;
+  top: 46px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.refill-toast {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: 1px solid var(--ams-success);
+  border-radius: 4px;
+  background: var(--ams-success-bg);
+}
+
+.refill-toast__icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+}
+
+.refill-toast__text {
+  color: var(--ams-success);
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 22px;
+  white-space: nowrap;
+}
+
+/* Fills the dialog like the group list does, so dragging it wider fits more
+   units per row (auto-fill below). At the 756px design width the 16px padding
+   of .refill-page leaves the 724px column of the design. */
+.add-refill-page {
+  box-sizing: border-box;
+  width: 100%;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.add-refill-page__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.add-refill-page__notice {
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 9px 12px;
+  border-radius: 4px;
+  background: var(--ams-notice-bg);
+  color: var(--ams-text-primary);
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.add-refill-page__units {
+  display: grid;
+  /* Side by side only while each unit still fits four cards at their minimum
+     width (4 * 72 + 3 * 4 gap + 2 * 12 padding = 324); a narrower dialog
+     stacks the units instead of squeezing the cards. min() keeps a single
+     column from overflowing a dialog narrower than that. */
+  grid-template-columns: repeat(auto-fill, minmax(min(324px, 100%), 1fr));
+  gap: 12px;
+}
+
+/* No bottom padding: the slot rows sit flush against the unit's bottom edge. */
+.add-refill-unit {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 6px 12px 0;
+  border-radius: 4px;
+  background: var(--ams-surface-subtle);
+}
+
+.add-refill-unit--wide {
+  grid-column: 1 / -1;
+}
+
+.add-refill-unit__title {
+  margin: 0;
+  color: var(--ams-text-strong);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.add-refill-unit__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Each row is centered on its own, so the 4-card row and the 5-card row of
+   the hotend unit line up the way the design does. Wraps when even a stacked
+   unit cannot fit its cards at their minimum width. */
+.add-refill-unit__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.add-refill-slot {
+  position: relative;
+  box-sizing: border-box;
+  /* 80px by design, shrinking to 72px (the spool and name width) when a
+     classic scrollbar takes its share; never below, or the spool is clipped.
+     The 72px basis is what flex-wrap measures, so cards shrink before wrapping. */
+  flex: 1 0 72px;
+  max-width: 80px;
+  height: 131px;
+  padding: 4px 4px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: var(--ams-surface-muted);
+  color: var(--ams-text-primary);
+  cursor: pointer;
+}
+
+.add-refill-slot:hover:not(:disabled),
+.add-refill-slot--selected {
+  border-color: var(--ams-brand);
+  background: var(--ams-brand-wash);
+}
+
+.add-refill-slot:disabled {
+  color: var(--ams-text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.add-refill-slot__head {
+  box-sizing: border-box;
+  width: 100%;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.add-refill-slot__index {
+  min-width: 14px;
+  max-width: 50px;
+  height: 14px;
+  padding: 0 2px;
+  overflow: hidden;
+  border-radius: 7px;
+  background: var(--ams-border);
+  color: var(--ams-text-strong);
+  font-size: 12px;
+  line-height: 14px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.add-refill-slot__check {
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--ams-border);
+  border-radius: 2px;
+  background: var(--ams-page-bg);
+  color: var(--ams-text-on-brand);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 14px;
+  text-align: center;
+}
+
+.add-refill-slot__check--selected {
+  border-color: var(--ams-brand);
+  background: var(--ams-brand);
+}
+
+.add-refill-slot__spool {
+  width: 72px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-refill-slot__name {
+  width: 72px;
+  max-width: 72px;
+  overflow: hidden;
+  color: var(--ams-text-strong);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.add-refill-slot__divider {
+  width: 100%;
+  height: 1px;
+  flex: 0 0 1px;
+  background: var(--ams-divider);
+}
+
+.add-refill-slot__nozzle {
+  min-width: 0;
+  height: 19px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--ams-text-primary);
+  font-size: 12px;
+  line-height: 19px;
+  white-space: nowrap;
+}
+
+.add-refill-slot__nozzle-icon {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+.add-refill-slot__nozzle-icon > img:first-child {
+  position: absolute;
+  top: -0.42px;
+  left: 1.07px;
+  width: 14.441px;
+  height: 16.848px;
+}
+
+.add-refill-slot__nozzle-icon > .add-refill-slot__nozzle-badge {
+  position: absolute;
+  top: 1.5px;
+  left: 2px;
+  width: 13px;
+  height: 13px;
+}
+
+.add-refill-slot__nozzle[data-state='Error'] {
+  color: var(--ams-error);
+}
+
+/* Pinned to the bottom of the dialog: pushed down when the units are short,
+   kept in view over them when they scroll. The background hides the units
+   passing underneath, and the negative bottom margin plus matching padding
+   carries it over the page's 16px bottom padding to the dialog edge. */
+.add-refill-page__footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin-top: auto;
+  margin-bottom: -16px;
+  padding: 12px 0 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: var(--color-fm-base);
+}
+
+.add-refill-page__button {
+  box-sizing: border-box;
+  width: 96px;
+  height: 36px;
+  border: 1px solid var(--ams-border);
+  border-radius: 4px;
+  background: var(--ams-page-bg);
+  color: var(--ams-text-primary);
+  cursor: pointer;
+}
+
+.add-refill-page__button--primary {
+  width: 92px;
+  border-color: var(--ams-brand);
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+}
+
+.add-refill-page__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* ---- Block-code dialog (add-refill picker) ----
+   One dialog per `block` code; all copy comes from C++ so only layout
+   lives here. Rendered inside the picker, on top of the card grid. */
+
+.refill-block-dialog__scrim {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 20;
+}
+
+.refill-block-dialog {
+  width: min(420px, calc(100vw - 32px));
+  border: 1px solid var(--ams-border);
+  border-radius: 8px;
+  background: var(--ams-popover-bg);
+  color: var(--ams-text-strong);
+  box-shadow: var(--ams-popover-shadow);
+  overflow: hidden;
+}
+
+.refill-block-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.refill-block-dialog__title {
+  font-weight: 600;
+}
+
+/* "Refill group filament: PLA" - label and value on one line. */
+.refill-block-dialog__detail {
+  display: flex;
+  gap: 4px;
+}
+
+.refill-block-dialog__message {
+  margin-top: 4px;
+}
+
+.refill-block-dialog__dsa {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.refill-block-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+/* Block-code confirm labels are phrases ("Select anyway", "Go to Edit on
+   printer"), not the picker footer's single verbs, so they size to content
+   instead of the fixed width those buttons use. */
+.refill-block-dialog__footer .add-refill-page__button {
+  width: auto;
+  min-width: 96px;
+  padding: 0 16px;
+  white-space: nowrap;
+}
+
+/* Blocked cards stay clickable so the reason can be shown. */
+.add-refill-slot--dimmed {
+  opacity: 0.45;
+}

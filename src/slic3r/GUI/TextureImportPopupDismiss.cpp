@@ -14,9 +14,9 @@ namespace GUI {
 namespace {
 
 struct MonitorState {
-    wxWindow *                             popup    = nullptr;
-    TextureImportOutsideClickCallback      callback = nullptr;
-    void *                                 context  = nullptr;
+    wxWindow *                         popup    = nullptr;
+    TextureImportOutsideClickCallback  callback = nullptr;
+    void *                             context  = nullptr;
 #ifdef _WIN32
     HHOOK hook = nullptr;
 #endif
@@ -29,8 +29,7 @@ bool point_in_popup(wxWindow *popup, POINT pt)
 {
     if (!popup || popup->IsBeingDeleted())
         return false;
-    const wxRect rc = popup->GetScreenRect();
-    return rc.Contains(pt.x, pt.y);
+    return popup->GetScreenRect().Contains(pt.x, pt.y);
 }
 
 LRESULT CALLBACK mouse_hook(int nCode, WPARAM wParam, LPARAM lParam)
@@ -68,30 +67,33 @@ LRESULT CALLBACK mouse_hook(int nCode, WPARAM wParam, LPARAM lParam)
 
 } // namespace
 
-void *install_texture_import_outside_click_monitor(wxWindow *popup,
-                                                   TextureImportOutsideClickCallback callback,
-                                                   void *context)
+void *install_texture_import_external_click_monitor(wxWindow *popup,
+                                                    wxWindow * /*owner*/,
+                                                    TextureImportOutsideClickCallback callback,
+                                                    void *context)
 {
     auto *state     = new MonitorState;
     state->popup    = popup;
     state->callback = callback;
     state->context  = context;
 #ifdef _WIN32
-    // Only one popup is watched at a time; a stale routing target would silently
-    // swallow the previous popup's dismiss.
-    wxASSERT_MSG(g_active == nullptr, "texture import outside-click monitor already installed");
+    // Only one popup is watched at a time.
+    wxASSERT_MSG(g_active == nullptr, "texture import external-click monitor already installed");
     g_active = state;
     // Thread hook, not WH_MOUSE_LL: this dialog runs clustering on the UI thread and
     // Windows silently drops a low-level hook whose owner blocks past
-    // LowLevelHooksTimeout. It also matches the macOS side, which only watches events
-    // of this application; clicks landing in another app are handled by
-    // wxEVT_ACTIVATE_APP instead.
+    // LowLevelHooksTimeout. Clicks that land in another process never reach this
+    // thread; WM_ACTIVATEAPP on the popup HWND closes the list instead.
     state->hook = SetWindowsHookEx(WH_MOUSE, mouse_hook, nullptr, GetCurrentThreadId());
 #endif
     return state;
 }
 
-void uninstall_texture_import_outside_click_monitor(void *monitor)
+void request_texture_import_external_click_monitor_dismiss(void *)
+{
+}
+
+void uninstall_texture_import_external_click_monitor(void *monitor)
 {
     auto *state = static_cast<MonitorState *>(monitor);
     if (!state)

@@ -207,6 +207,15 @@ public:
     void     SetSelection(int index);
     wxString GetSelectedText() const;
 
+    // Forward the enabled state to the option buttons: wxWindow only blocks the clicks,
+    // the greyed palette has to be applied on the buttons themselves.
+    bool Enable(bool enable = true) override;
+
+    // By default the options share the width of the control evenly, which pads short
+    // labels when the control is wider than its text. Enable this to let every option
+    // keep the width of its own label instead. Can be called before or after SetOptions().
+    void SetFitOptionsToText(bool fit = true);
+
     Button*  GetButton(unsigned int index) const
     {
         return index >= 0 && index < btns.size() ? btns[index] : nullptr;
@@ -245,6 +254,7 @@ private:
     StateColor m_text_color_grayed;
     double     m_button_radius;
     wxSize     m_button_padding;
+    bool       m_fit_options_to_text = false;
 };
 
 #endif // !slic3r_GUI_SwitchButton_hpp_

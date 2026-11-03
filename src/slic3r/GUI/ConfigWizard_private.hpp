@@ -8,7 +8,6 @@
 #include <unordered_map>
 #include <functional>
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <wx/sizer.h>
 #include <wx/panel.h>
@@ -28,6 +27,7 @@
 #include "GUI.hpp"
 #include "wxExtensions.hpp"
 #include "Widgets/Button.hpp"
+#include "libslic3r/Log.hpp"
 
 
 namespace fs = boost::filesystem;

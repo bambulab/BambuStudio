@@ -5,7 +5,9 @@ const {
 	Paragraph,
 	ImageUtils,
 	ImageEditing,
-	Image,
+	// Renamed: a top-level `Image` binding shadows window.Image, which editor.js
+	// needs for `new Image()` when building picture thumbnails.
+	Image: ImagePlugin,
 	GeneralHtmlSupport,
 	Link,
 	LinkImage,
@@ -106,7 +108,7 @@ const editorConfig = {
 		],
 		shouldNotGroupWhenFull: false
 	},
-	plugins: [Alignment, AutoLink, Autosave, Bold, Essentials, GeneralHtmlSupport, Heading, Image, ImageEditing, ImageUtils, Italic, Link, LinkImage, List, Paragraph, Underline],
+	plugins: [Alignment, AutoLink, Autosave, Bold, Essentials, GeneralHtmlSupport, Heading, ImagePlugin, ImageEditing, ImageUtils, Italic, Link, LinkImage, List, Paragraph, Underline],
 	heading: {
 		options: [
 			{

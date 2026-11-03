@@ -7,6 +7,7 @@
 #include "slic3r/GUI/I18N.hpp"
 #include "libslic3r/Measure.hpp"
 #include "libslic3r/Model.hpp"
+#include "slic3r/Utils/OBB.hpp"
 
 #include <memory>
 #include <optional>
@@ -207,6 +208,9 @@ protected:
     double                         m_last_rotate_gizmo_angle{0.0};
     // One-frame signal from framebuffer picking (hover id 0); consumed in on_render.
     bool                 m_rotate_gizmo_hover_from_picking{false};
+    // Keeps get_assembly_rotate_gizmo_angle_from_face_obb() off the per frame cost of scanning
+    // the whole face patch.
+    mutable Utils::PlanarOBBCache m_face_obb_cache;
 
     KeyAutoRepeatFilter m_shift_kar_filter;
 

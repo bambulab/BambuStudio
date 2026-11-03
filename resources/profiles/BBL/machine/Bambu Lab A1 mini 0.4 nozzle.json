@@ -68,6 +68,7 @@
     ],
     "printable_height": "180",
     "printer_structure": "i3",
+    "default_wipe_tower_pos": "0.0x1.0",
     "retract_lift_below": [
         "179"
     ],
@@ -84,6 +85,7 @@
         "Bambu Lab P2S 0.4 nozzle",
         "Bambu Lab H2C 0.4 nozzle",
         "Bambu Lab X2D 0.4 nozzle",
-        "Bambu Lab A2L 0.4 nozzle"
+        "Bambu Lab A2L 0.4 nozzle",
+        "Bambu Lab H3C 0.4 nozzle"
     ]
 }

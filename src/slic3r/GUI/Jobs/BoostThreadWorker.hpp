@@ -6,7 +6,6 @@
 #include "Worker.hpp"
 
 #include <libslic3r/Thread.hpp>
-#include <boost/log/trivial.hpp>
 
 #include "ThreadSafeQueue.hpp"
 #include "slic3r/GUI/GUI.hpp"

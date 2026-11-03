@@ -16,7 +16,7 @@
 #include <fstream>
 #include "Repair.hpp"
 #include "libslic3r/AABBTreeIndirect.hpp"
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace tex2color {
 
@@ -29,7 +29,7 @@ static void SaveToOFF(const std::string& path, const TriMesh& mesh, const std::v
     std::filesystem::create_directories(std::filesystem::path(path).parent_path());
     std::ofstream ofs(path);
     if (!ofs.is_open()) {
-        BOOST_LOG_TRIVIAL(warning) << "SaveToOFF: failed to open " << path;
+        BOOST_LOG_TRIVIAL(warning) << "failed to open " << path;
         return;
     }
 
@@ -404,30 +404,45 @@ static bool quantize_vertex_colors(
         }
     }
 
+    return quantize_colors(vertex_rgb, settings, cancel_callback, out_centers, out_vertex_cluster_ids);
+}
+
+bool quantize_colors(
+    const std::vector<std::array<std::size_t, 3>>& colors,
+    const TextureToColorSettings& settings,
+    AlgoCancelCallback cancel_callback,
+    std::vector<std::array<std::size_t, 3>>& out_centers,
+    std::vector<std::size_t>& out_cluster_ids)
+{
+    out_centers.clear();
+    out_cluster_ids.clear();
+    if (colors.empty())
+        return false;
+
     ClusterParameters para;
     para.cancel_callback = cancel_callback ? [&]() { return cancel_callback(); } : std::function<bool()>{};
     if (settings.target_colors_num == 0) {
         para.max_color_distance = settings.max_color_distance;
         para.max_cluster_k      = settings.max_cluster_k;
-        out_centers = cluster_adaptive(vertex_rgb, para);
+        out_centers = cluster_adaptive(colors, para);
     } else {
         para.cluster_k = settings.target_colors_num;
-        out_centers = cluster_k_means(vertex_rgb, para);
+        out_centers = cluster_k_means(colors, para);
     }
     if (out_centers.empty()) {
-        BOOST_LOG_TRIVIAL(debug) << "quantize_vertex_colors: no cluster center generated.";
+        BOOST_LOG_TRIVIAL(debug) << "no cluster center generated.";
         return false;
     }
 
-    out_vertex_cluster_ids.resize(vertex_rgb.size());
-    for (std::size_t i = 0; i < vertex_rgb.size(); ++i) {
+    out_cluster_ids.resize(colors.size());
+    for (std::size_t i = 0; i < colors.size(); ++i) {
         std::size_t nearest_id = 0;
-        if (!calc_nearest_color_id(out_centers, vertex_rgb[i], nearest_id))
+        if (!calc_nearest_color_id(out_centers, colors[i], nearest_id))
             nearest_id = 0;
-        out_vertex_cluster_ids[i] = nearest_id;
+        out_cluster_ids[i] = nearest_id;
     }
-    BOOST_LOG_TRIVIAL(debug) << "quantize_vertex_colors: quantized " << vertex_rgb.size()
-                             << " vertex colors into " << out_centers.size() << " clusters.";
+    BOOST_LOG_TRIVIAL(debug) << "quantized " << colors.size()
+                             << " colors into " << out_centers.size() << " clusters.";
     return true;
 }
 
@@ -439,7 +454,7 @@ static bool quantize_vertex_colors(
 // if its two endpoints belong to different clusters. Because that predicate reads
 // only the shared endpoints, adjacent faces always reach the same conclusion and
 // no T-junctions can appear.
-static bool adaptive_split_by_vertex_clusters(
+bool adaptive_split_by_vertex_clusters(
     TriMesh& mesh,
     const std::vector<std::size_t>& vertex_cluster_ids,
     const std::vector<RGB>& cluster_centers,
@@ -450,7 +465,7 @@ static bool adaptive_split_by_vertex_clusters(
     if (original_vertices.empty() || original_faces.empty() || cluster_centers.empty())
         return false;
     if (vertex_cluster_ids.size() != original_vertices.size()) {
-        BOOST_LOG_TRIVIAL(warning) << "adaptive_split_by_vertex_clusters: cluster id count ("
+        BOOST_LOG_TRIVIAL(warning) << "cluster id count ("
                                    << vertex_cluster_ids.size() << ") != vertex count ("
                                    << original_vertices.size() << ").";
         return false;
@@ -563,7 +578,7 @@ static bool adaptive_split_by_vertex_clusters(
         }
     }
 
-    BOOST_LOG_TRIVIAL(info) << "adaptive_split_by_vertex_clusters: faces " << original_faces.size()
+    BOOST_LOG_TRIVIAL(info) << "faces " << original_faces.size()
                             << " -> " << out_faces.size() << ", vertices " << original_vertices.size()
                             << " -> " << out_vertices.size();
     mesh = TriMesh(out_faces, out_vertices);
@@ -860,7 +875,7 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
     };
     auto cancelled = [&]() -> bool {
         if (cancel_callback && cancel_callback()) {
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " cancelled";
+            BOOST_LOG_TRIVIAL(debug) << "cancelled";
             return true;
         }
         return false;
@@ -893,29 +908,29 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
     if (settings.mesh_repair_cache && settings.mesh_repair_cache->has_prepared_mesh && !use_prepared)
         settings.mesh_repair_cache->invalidate_prepared_mesh();
     if (use_prepared) {
-        BOOST_LOG_TRIVIAL(info) << "TextureToColor: using cached prepared mesh, skipping oversampling and texture sampling.";
+        BOOST_LOG_TRIVIAL(info) << "using cached prepared mesh, skipping oversampling and texture sampling.";
         color_mesh = settings.mesh_repair_cache->mesh;
         face_colors = settings.mesh_repair_cache->face_colors;
     } else {
     if (texture_mesh.indices.size() == 0) {
-        BOOST_LOG_TRIVIAL(debug) << "TextureToColor: texture mesh has no faces.";
+        BOOST_LOG_TRIVIAL(debug) << "texture mesh has no faces.";
         return false;
     }
     if (texture.empty()) {
-        BOOST_LOG_TRIVIAL(debug) << "TextureToColor: texture is empty.";
+        BOOST_LOG_TRIVIAL(debug) << "texture is empty.";
         return false;
     }
     if (texture.channels() < 3) {
-        BOOST_LOG_TRIVIAL(debug) << "TextureToColor: texture must have at least 3 channels, got " << texture.channels();
+        BOOST_LOG_TRIVIAL(debug) << "texture must have at least 3 channels, got " << texture.channels();
         return false;
     }
     if (texture_mesh_uv_coords.size() != texture_mesh.indices.size()) {
-        BOOST_LOG_TRIVIAL(debug) << "TextureToColor: uv_coords size is not equal to texture mesh faces size.";
+        BOOST_LOG_TRIVIAL(debug) << "uv_coords size is not equal to texture mesh faces size.";
         return false;
     }
     for (std::size_t fid = 0; fid < texture_mesh.indices.size(); ++fid) {
         if (texture_mesh_uv_coords[fid].size() != 3) {
-            BOOST_LOG_TRIVIAL(debug) << "TextureToColor: uv_coords of single face size is not equal to 3.";
+            BOOST_LOG_TRIVIAL(debug) << "uv_coords of single face size is not equal to 3.";
             return false;
         }
     }
@@ -1044,7 +1059,7 @@ bool ClusterAndSmooth(const TriMesh& mesh,
     };
     auto cancelled = [&]() -> bool {
         if (cancel_callback && cancel_callback()) {
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " cancelled";
+            BOOST_LOG_TRIVIAL(debug) << "cancelled";
             return true;
         }
         return false;
@@ -1054,11 +1069,11 @@ bool ClusterAndSmooth(const TriMesh& mesh,
     out_face_colors.clear();
 
     if (mesh.indices.empty() || input_face_colors.empty()) {
-        BOOST_LOG_TRIVIAL(debug) << "ClusterAndSmooth: empty mesh or face colors.";
+        BOOST_LOG_TRIVIAL(debug) << "empty mesh or face colors.";
         return false;
     }
     if (input_face_colors.size() != mesh.indices.size()) {
-        BOOST_LOG_TRIVIAL(warning) << "ClusterAndSmooth: face_colors size ("
+        BOOST_LOG_TRIVIAL(warning) << "face_colors size ("
                                    << input_face_colors.size() << ") != indices size ("
                                    << mesh.indices.size() << "), clamping.";
     }
@@ -1088,14 +1103,14 @@ bool ClusterAndSmooth(const TriMesh& mesh,
         std::vector<RGB>         cluster_centers;
         std::vector<std::size_t> vertex_cluster_ids;
         if (!quantize_vertex_colors(vertex_colors, settings, cancel_callback, cluster_centers, vertex_cluster_ids)) {
-            BOOST_LOG_TRIVIAL(debug) << "ClusterAndSmooth: vertex color quantization failed.";
+            BOOST_LOG_TRIVIAL(debug) << "vertex color quantization failed.";
             return false;
         }
         if (cancelled()) return false;
 
         report(50, "Splitting color boundaries");
         if (!adaptive_split_by_vertex_clusters(out_mesh, vertex_cluster_ids, cluster_centers, face_colors)) {
-            BOOST_LOG_TRIVIAL(debug) << "ClusterAndSmooth: adaptive vertex-color split failed.";
+            BOOST_LOG_TRIVIAL(debug) << "adaptive vertex-color split failed.";
             return false;
         }
         if (cancelled()) return false;

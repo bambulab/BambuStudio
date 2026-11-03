@@ -1032,9 +1032,9 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
         ImGuiWrapper::pop_combo_style();
         float temp_tip_caption_max = imgui_wrapper->calc_text_size(_L("Align top-bottom center") + " (-X)").x * 1.3f;
         if (ImGui::IsItemHovered()) {
-            imgui_wrapper->tooltip(_L("Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and "
-                                      "click by left mouse button can select multiple parts"),
-                                   temp_tip_caption_max * 1.5);
+            // Negative wrap width disables ImGui word wrap; only the explicit newline breaks the tip.
+            imgui_wrapper->tooltip(_L("Ctrl+left-click:select multiple objects.\nAlt+left-click:select multiple parts."),
+                                   -1.0f);
         }
         float scale_icon           = 1.2f;
         float icon_size            = ImGui::GetFrameHeight() * scale_icon;

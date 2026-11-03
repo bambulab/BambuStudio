@@ -1,5 +1,6 @@
 #pragma once
 #include "libslic3r/Calib.hpp"
+#include "../GUI/Widgets/ComboBox.hpp"
 #include "../GUI/DeviceManager.hpp"
 #include "../GUI/Jobs/PrintJob.hpp"
 
@@ -19,7 +20,7 @@ public:
     int                                extruder_id = 0;
     int                                ams_id = 0;
     int                                slot_id = 0;
-    float                              nozzle_diameter;
+    float                              nozzle_diameter = -1.f;
     int                                nozzle_pos_id = -1;  //-1 means no nozzle pos;   0:right extruder, 1:left extruder, 0x10~0x15: nozzle pos
     std::string                        nozzle_sn;
     ExtruderType                       extruder_type{ExtruderType::etDirectDrive};
@@ -97,14 +98,16 @@ public:
     static bool check_printable_status_before_cali(const MachineObject *obj, const std::vector<CalibInfo> &cali_infos, wxString &error_message);
 
     static bool check_tpu_volume_type_before_cali(const CalibMode& cali_mode, const std::vector<CalibInfo> &cali_infos, wxString& error_message);
+    static bool check_tpu_volume_type_before_cali(const CalibMode& cali_mode, const X1CCalibInfos& cali_infos, wxString& error_message);
+
+    // Build filament/AMS map for the calibration pages.
+    static std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
 
 private:
     static bool process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, wxString& error_message);
     static void send_to_print(const CalibInfo &calib_info, wxString& error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
     static void send_to_print(const std::vector<CalibInfo> &calib_infos, wxString &error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
 };
-
-extern std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
 
 extern void get_tray_ams_and_slot_id(MachineObject* obj, int in_tray_id, int &ams_id, int &slot_id, int &tray_id);
 
@@ -114,6 +117,32 @@ extern bool     is_pa_params_valid(const Calib_Params &params);
 
 extern void update_speed_parameter(const std::string &key);
 extern std::vector<double> generate_max_speed_parameter_value(const std::string &key);
+template<typename T>
+inline bool switch_combox_to_target(ComboBox* combox, const T& target)
+{
+    for (unsigned int i = 0; i < combox->GetCount(); i++) {
+        if (combox->GetClientData(i) != nullptr && target == T(*(int*)combox->GetClientData(i))) {
+            combox->SetSelection(i);
+            return true;
+        }
+    }
+    combox->SetSelection(-1);
+    return false;
+}
+
+/* Read the enum value attached as ClientData(int*) on the currently selected
+   item. Returns `fallback` when combox is null, no item is selected, or
+   ClientData is missing. */
+template<typename T>
+inline T get_combox_selected_value(const ComboBox* combox, T fallback)
+{
+    if (!combox) return fallback;
+    int sel = combox->GetSelection();
+    if (sel == wxNOT_FOUND) return fallback;
+    int* data = reinterpret_cast<int*>(combox->GetClientData(sel));
+    return data ? static_cast<T>(*data) : fallback;
+}
+
 
 }
 }

@@ -13,6 +13,7 @@ function OnInit()
 
 	UpdateServerConnectFailTipVisible();
 	SendMsg_GetLoginInfo();
+	SendMsg_GetMenuAccess();
 	GotoMenu( 'home' );
 	$("#Login2").click(function() {
 		$("#DropdownWrapper").css("visibility", "visible");
@@ -263,6 +264,15 @@ function SendMsg_GetLoginInfo()
 	var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="get_login_info";
+
+	SendWXMessage( JSON.stringify(tSend) );
+}
+
+function SendMsg_GetMenuAccess()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_leftmenu_access_get";
 
 	SendWXMessage( JSON.stringify(tSend) );
 }

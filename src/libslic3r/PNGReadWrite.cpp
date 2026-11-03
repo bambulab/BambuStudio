@@ -5,8 +5,8 @@
 #include <cstdio>
 #include <png.h>
 
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace png {
 
@@ -107,7 +107,7 @@ bool decode_colored_png(IStream &in_buf, ImageColorscale &out_img)
     std::vector<png_byte> sig(PNG_SIG_BYTES, 0);
     in_buf.read(sig.data(), PNG_SIG_BYTES);
     if (!png_check_sig(sig.data(), PNG_SIG_BYTES)) {
-        BOOST_LOG_TRIVIAL(error) << boost::format("decode_colored_png: png_check_sig failed");
+        BOOST_LOG_TRIVIAL(error) << boost::format("png_check_sig failed");
         return false;
     }
 
@@ -116,13 +116,13 @@ bool decode_colored_png(IStream &in_buf, ImageColorscale &out_img)
                                      nullptr);
 
     if(!dsc.png) {
-        BOOST_LOG_TRIVIAL(error) << boost::format("decode_colored_png: png_create_read_struct failed");
+        BOOST_LOG_TRIVIAL(error) << boost::format("png_create_read_struct failed");
         return false;
     }
 
     dsc.info = png_create_info_struct(dsc.png);
     if(!dsc.info) {
-        BOOST_LOG_TRIVIAL(error) << boost::format("decode_colored_png: png_create_info_struct failed");
+        BOOST_LOG_TRIVIAL(error) << boost::format("png_create_info_struct failed");
         png_destroy_read_struct(&dsc.png, &dsc.info, NULL);
         return false;
     }

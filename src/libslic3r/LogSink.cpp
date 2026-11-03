@@ -6,6 +6,7 @@
 #include "slic3r/Utils/Http.hpp"
 
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -14,6 +15,12 @@
 #include <openssl/aes.h>
 
 #include <fstream>
+
+#ifdef _WIN32
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
 
 //#define DEBUG_LOG_ENC
 
@@ -24,6 +31,27 @@ namespace Slic3r
 {
 
 static std::string s_message_newline = "\n";
+
+namespace {
+// True while this thread is inside LogSinkBackend::consume().
+thread_local bool t_consuming = false;
+
+// Marks the current thread as consuming for the lifetime of the scope, also when it exits by an exception.
+class ConsumingScope
+{
+public:
+    ConsumingScope() { t_consuming = true; }
+    ~ConsumingScope() { t_consuming = false; }
+
+    ConsumingScope(const ConsumingScope&)            = delete;
+    ConsumingScope& operator=(const ConsumingScope&) = delete;
+};
+} // namespace
+
+bool LogSinkBackend::is_consuming_on_this_thread()
+{
+    return t_consuming;
+}
 
 LogSinkBackend::LogSinkBackend(const std::string& base_path, const LogEncOptions& options)
     : m_log_enc_options(options)
@@ -80,6 +108,8 @@ static int s_get_enc_block_size(LogEncOptions::LogEncType enc_type)
 
 void LogSinkBackend::consume(const boost::log::record_view& rec, const std::string& formatted_message)
 {
+    ConsumingScope consuming;
+
 #ifdef DEBUG_LOG_ENC
     static std::string s_empty_string;
     static std::string s_encrpted_string;
@@ -405,15 +435,26 @@ bool LogSinkBackend::DecodeAES256LogFile(const std::string& file_path, const std
     return true;
 }
 
+namespace {
+unsigned current_pid()
+{
+#ifdef _WIN32
+    return static_cast<unsigned>(_getpid());
+#else
+    return static_cast<unsigned>(::getpid());
+#endif
+}
+} // namespace
+
 // rules
 // studio_%a_%b_%d_%H_%M_%S_<pid>[_enc][_cn].log.%N
-std::string LogSinkUtil::get_log_filaname_format(const LogEncOptions& enc_opts)
+std::string LogSinkUtil::get_log_filename_format(const std::string& log_dir, const LogEncOptions& enc_opts)
 {
     std::time_t       t = std::time(0);
     std::tm* now_time = std::localtime(&t);
     std::stringstream buf;
     buf << std::put_time(now_time, "studio_%a_%b_%d_%H_%M_%S_");
-    buf << get_current_pid();
+    buf << current_pid();
     if (enc_opts.enc_type == LogEncOptions::LOG_ENC_NONE) {
         buf << ".log.%N";
     } else {
@@ -432,7 +473,7 @@ std::string LogSinkUtil::get_log_filaname_format(const LogEncOptions& enc_opts)
 
     //BBS log file at C:\\Users\\[yourname]\\AppData\\Roaming\\BambuStudio\\log\\[log_filename].log
     try {
-        auto log_folder = boost::filesystem::path(Slic3r::data_dir()) / "log";
+        auto log_folder = boost::filesystem::path(log_dir);
         if (!boost::filesystem::exists(log_folder)) {
             boost::filesystem::create_directories(log_folder);
         }

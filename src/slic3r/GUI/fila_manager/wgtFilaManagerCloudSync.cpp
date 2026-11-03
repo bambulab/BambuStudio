@@ -10,10 +10,10 @@
 #include "../DeviceCore/DevManager.h"
 
 #include <wx/app.h>
-#include <boost/log/trivial.hpp>
 #include <chrono>
 #include <cmath>
 #include <set>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

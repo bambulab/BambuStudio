@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "nlohmann/json.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -144,6 +145,7 @@ HelioRetryKind helio_classify_graphql_response(unsigned status, const std::strin
     try {
         return helio_classify_graphql_response(status, nlohmann::json::parse(body));
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return HelioRetryKind::None;
     }
 }

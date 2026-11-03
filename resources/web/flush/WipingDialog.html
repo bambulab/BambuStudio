@@ -113,13 +113,28 @@
           margin: 0;
       }
 
+      /* Same colors as the native TextInput widget */
       input[type="number"].multiplier-input {
         width: 60px;
+        padding: 2px 4px;
+        border: 1px solid #dbdbdb;
+        border-radius: 4px;
+        outline: none;
+        background-color: #ffffff;
+        color: #262e30;
+      }
+      input[type="number"].multiplier-input:hover,
+      input[type="number"].multiplier-input:focus {
+        border-color: #00ae42;
       }
       body.dark-mode input[type="number"].multiplier-input {
-        width: 60px;
-        background-color: #4c4c55;
-        color: white;
+        border-color: #4a4a51;
+        background-color: #2d2d31;
+        color: #efeff0;
+      }
+      body.dark-mode input[type="number"].multiplier-input:hover,
+      body.dark-mode input[type="number"].multiplier-input:focus {
+        border-color: #21a452;
       }
 
       .warning-text {
@@ -202,6 +217,11 @@
       }
 
       /* 暗色模式样式 */
+      /* Root scheme drives native scrollbars of the page and of .scroll-container */
+      html.dark-mode {
+        color-scheme: dark;
+      }
+
       body.dark-mode {
         background-color: #2d2d31;
         color: #e0e0e0;
@@ -526,8 +546,10 @@
         m_min_flush_multiplier = data.min_flush_multiplier
         m_max_flush_multiplier = data.max_flush_multiplier
 
-        if(data.is_dark_mode == true)
+        if(data.is_dark_mode == true) {
+          document.documentElement.classList.add('dark-mode');
           document.body.classList.add('dark-mode');
+        }
 
         updateFlushMultiplier(m_curr_extruder_id)
 
@@ -650,7 +672,7 @@
         if (val !== 1.0) {
             input.style.color = 'orange';
         } else {
-            input.style.color = 'black';
+            input.style.removeProperty('color');
         }
 
         let hasException = false;

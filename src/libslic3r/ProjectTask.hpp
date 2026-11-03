@@ -9,6 +9,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -54,6 +55,9 @@ struct FilamentInfo
     int         mapping_result = 0;
     bool        used_for_support{false};
     bool        used_for_object{false};
+    // True when this project filament slot is used directly; false when it only
+    // appears in slice statistics as a component of a mixed (virtual) filament.
+    bool        directly_used{true};
     double      total_load_time{0.0};
     double      total_unload_time{0.0};
 
@@ -75,7 +79,9 @@ public:
         {
             return stoi(ams_id);
         }
-        catch (...) {};
+        catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        };
 
         return -1;
     };
@@ -86,7 +92,9 @@ public:
 
         try {
             return stoi(slot_id);
-        } catch (...) {};
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        };
 
         return -1;
     };

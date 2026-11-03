@@ -1,6 +1,7 @@
 #include "GLGizmoMeshBoolean.hpp"
 #include "slic3r/GUI/UIHelpers/MeshBooleanUI.hpp"
 #include "libslic3r/MeshBoolean.hpp"
+#include "libslic3r/PaintReproject.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
@@ -8,6 +9,7 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/NotificationManager.hpp"
 #include "libslic3r/CSGMesh/CSGMesh.hpp"
 #include "libslic3r/CSGMesh/ModelToCSGMesh.hpp"
 #include "libslic3r/CSGMesh/PerformCSGMeshBooleans.hpp"
@@ -18,8 +20,10 @@
 #endif
 #include <imgui/imgui_internal.h>
 #include <algorithm>
+#include <chrono>
 #include <unordered_set>
 #include <memory>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -368,7 +372,9 @@ bool BooleanWarningManager::is_general_warning(const std::string& warning_text) 
 {
     return warning_text == MeshBooleanWarnings::COMMON ||
            warning_text == MeshBooleanWarnings::JOB_CANCELED ||
-           warning_text == MeshBooleanWarnings::JOB_FAILED;
+           warning_text == MeshBooleanWarnings::JOB_FAILED ||
+           warning_text == MeshBooleanWarnings::GROUPING ||
+           warning_text == MeshBooleanWarnings::PREPAREING;
 }
 
 bool BooleanWarningManager::is_mode_specific_warning(const std::string& warning_text, MeshBooleanOperation mode) const
@@ -874,6 +880,62 @@ static void attach_ignored_non_models_to_target(ModelObject* target_object,
     }
 }
 
+// Move a result that keeps its operands next to them instead of on top of them: try the four
+// sides of the operands' footprint and take the first spot that stays on the operands' plate
+// and does not overlap any other object. Falls back to the right-hand side.
+static void place_beside_operands(ModelObject *result, const std::vector<const ModelObject *> &operands, const Model &model)
+{
+    if (result == nullptr || operands.empty())
+        return;
+    const double gap = 5.;
+
+    BoundingBoxf3 operands_bb;
+    for (const ModelObject *mo : operands)
+        operands_bb.merge(mo->bounding_box());
+    result->invalidate_bounding_box();
+    const BoundingBoxf3 result_bb = result->bounding_box();
+    if (!operands_bb.defined || !result_bb.defined)
+        return;
+
+    BoundingBoxf3 plate_bb;
+    {
+        const auto it = std::find(model.objects.begin(), model.objects.end(), operands.front());
+        auto &plate_list = wxGetApp().plater()->get_partplate_list();
+        const int plate_idx = it == model.objects.end() ? -1 : plate_list.find_instance(int(it - model.objects.begin()), 0);
+        if (PartPlate *plate = plate_idx >= 0 ? plate_list.get_plate(plate_idx) : nullptr)
+            plate_bb = plate->get_plate_box();
+    }
+
+    auto overlaps_xy = [](const BoundingBoxf3 &a, const BoundingBoxf3 &b) {
+        return a.min.x() < b.max.x() && b.min.x() < a.max.x() && a.min.y() < b.max.y() && b.min.y() < a.max.y();
+    };
+    auto fits = [&](const Vec3d &shift) {
+        const BoundingBoxf3 moved(result_bb.min + shift, result_bb.max + shift);
+        if (plate_bb.defined &&
+            (moved.min.x() < plate_bb.min.x() || moved.max.x() > plate_bb.max.x() ||
+             moved.min.y() < plate_bb.min.y() || moved.max.y() > plate_bb.max.y()))
+            return false;
+        for (const ModelObject *mo : model.objects)
+            if (mo != nullptr && mo != result && overlaps_xy(moved, mo->bounding_box()))
+                return false;
+        return true;
+    };
+
+    const Vec3d candidates[] = {
+        { operands_bb.max.x() - result_bb.min.x() + gap, 0., 0. },
+        { operands_bb.min.x() - result_bb.max.x() - gap, 0., 0. },
+        { 0., operands_bb.max.y() - result_bb.min.y() + gap, 0. },
+        { 0., operands_bb.min.y() - result_bb.max.y() - gap, 0. },
+    };
+    Vec3d shift = candidates[0];
+    for (const Vec3d &c : candidates)
+        if (fits(c)) { shift = c; break; }
+
+    for (ModelInstance *inst : result->instances)
+        inst->set_offset(inst->get_offset() + shift);
+    result->invalidate_bounding_box();
+}
+
 // ========================================================================================
 // BOOLEAN OPERATION ENGINE IMPLEMENTATION
 // ========================================================================================
@@ -996,7 +1058,7 @@ BooleanOperationResult BooleanOperationEngine::perform_difference(const VolumeLi
                         b_union = execute_boolean_operation(b_union, bm, MeshBooleanConfig::OP_UNION);
                         if (b_union.empty()) { result.error_message = MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE; return result; }
                     } catch (const std::exception &e) {
-                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << __LINE__ << ": " << e.what();
+                        BOOST_LOG_TRIVIAL(warning) << e.what();
                         result.error_message = MeshBooleanWarnings::GROUPING;
                         return result;
                     }
@@ -1020,7 +1082,7 @@ BooleanOperationResult BooleanOperationEngine::perform_difference(const VolumeLi
                 try {
                     accumulated_result = execute_boolean_operation(accumulated_result, b_union, MeshBooleanConfig::OP_DIFFERENCE);
                 } catch (const std::exception& e) {
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << __LINE__ << ": " << e.what();
+                    BOOST_LOG_TRIVIAL(warning) << e.what();
                     result.error_message = MeshBooleanWarnings::JOB_FAILED;
                     return result;
                 }
@@ -1121,7 +1183,7 @@ TriangleMesh BooleanOperationEngine::execute_boolean_operation(const TriangleMes
                                                              const TriangleMesh& mesh_b,
                                                              const std::string& operation_name) const {
     std::vector<TriangleMesh> result_meshes;
-    Slic3r::MeshBoolean::mcut::make_boolean(mesh_a, mesh_b, result_meshes, operation_name);
+    Slic3r::MeshBoolean::make_boolean(mesh_a, mesh_b, result_meshes, operation_name);
 
     if (!result_meshes.empty()) {
         return result_meshes[0];
@@ -1152,6 +1214,9 @@ std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes_as
     if (operation == MeshBooleanConfig::OP_INTERSECTION)
         return accumulate_intersection_stable(meshes, cancel_cb, progress_cb);
 
+    if (operation == MeshBooleanConfig::OP_UNION && meshes.size() > 2)
+        return union_meshes_tree(meshes, cancel_cb, progress_cb);
+
     TriangleMesh accumulated_result = meshes[0];
     const size_t total_ops = meshes.size() - 1;
 
@@ -1179,7 +1244,7 @@ std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes_as
         try {
             // Execute boolean operation
             std::vector<TriangleMesh> result_meshes;
-            Slic3r::MeshBoolean::mcut::make_boolean(
+            Slic3r::MeshBoolean::make_boolean(
                 accumulated_result, meshes[i], result_meshes,
                 operation, cancel_cb, sub_progress_cb);
 
@@ -1206,7 +1271,7 @@ std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes_as
                     TriangleMesh acc_before = meshes[0];
                     for (size_t j = 1; j < i; ++j) {
                         std::vector<TriangleMesh> temp_result;
-                        Slic3r::MeshBoolean::mcut::make_boolean(
+                        Slic3r::MeshBoolean::make_boolean(
                             acc_before, meshes[j], temp_result,
                             operation, cancel_cb, nullptr);
                         if (!temp_result.empty()) {
@@ -1257,6 +1322,75 @@ std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes_as
     return accumulated_result;
 }
 
+std::optional<TriangleMesh> BooleanOperationEngine::union_meshes_tree(
+    const std::vector<TriangleMesh>& meshes,
+    std::function<bool()> cancel_cb,
+    std::function<void(float)> progress_cb) const
+{
+    const auto start    = std::chrono::steady_clock::now();
+    auto       canceled = [&cancel_cb]() { return cancel_cb && cancel_cb(); };
+
+    // Every pairwise union removes one mesh, so N-1 unions in total whatever the tree shape.
+    const size_t total_unions = meshes.size() - 1;
+    size_t       done_unions  = 0;
+    size_t       rounds       = 0;
+    BOOST_LOG_TRIVIAL(info) << "[Mesh Boolean] tree union start, meshes " << meshes.size();
+
+    std::vector<TriangleMesh> current = meshes;
+    while (current.size() > 1) {
+        ++rounds;
+        std::vector<TriangleMesh> next;
+        next.reserve((current.size() + 1) / 2);
+        for (size_t i = 0; i + 1 < current.size(); i += 2) {
+            if (canceled())
+                return std::nullopt;
+
+            std::function<void(float)> sub_progress;
+            if (progress_cb) {
+                const size_t base = done_unions;
+                sub_progress = [&progress_cb, base, total_unions](float p) {
+                    const float sub = std::clamp(p, 0.f, 100.f) / 100.f;
+                    progress_cb(std::clamp((float(base) + sub) / float(total_unions), 0.f, 1.f));
+                };
+            }
+
+            std::vector<TriangleMesh> result_meshes;
+            try {
+                Slic3r::MeshBoolean::make_boolean(current[i], current[i + 1], result_meshes,
+                                                  MeshBooleanConfig::OP_UNION, cancel_cb, sub_progress);
+            } catch (const std::exception &e) {
+                BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] tree union failed in round " << rounds << ": " << e.what();
+                return std::nullopt;
+            }
+            if (canceled())
+                return std::nullopt;
+            if (result_meshes.empty() || result_meshes.front().empty()) {
+                BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] tree union returned an empty mesh in round " << rounds;
+                return std::nullopt;
+            }
+
+            TriangleMesh merged = std::move(result_meshes.front());
+            // Same minimal cleanup as the sequential union, to preserve precision.
+            its_remove_degenerate_faces(merged.its);
+            its_compactify_vertices(merged.its);
+            next.push_back(std::move(merged));
+
+            ++done_unions;
+            if (progress_cb)
+                progress_cb(float(done_unions) / float(total_unions));
+        }
+        // An odd mesh out waits for the next round.
+        if (current.size() % 2 == 1)
+            next.push_back(std::move(current.back()));
+        current = std::move(next);
+    }
+
+    const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
+    BOOST_LOG_TRIVIAL(info) << "[Mesh Boolean] tree union finished, meshes " << meshes.size() << " rounds " << rounds
+                            << " in " << ms << " ms";
+    return std::move(current.front());
+}
+
 #endif  // USE_ASYNC_BOOLEAN_MODE
 
 // ========================== PRIVATE: MODEL MANIPULATION HELPERS ==========================
@@ -1283,6 +1417,118 @@ void BooleanOperationEngine::update_delete_list(BooleanOperationResult& result,
             result.volumes_to_delete.push_back(volumes[i].model_volume);
         }
     }
+}
+
+// Copy triangle by triangle: FacetsAnnotation has no public assignment, and assign() does
+// nothing when the two timestamps happen to match (fresh annotations all start at 1).
+static void copy_facets_annotation(const FacetsAnnotation &src, FacetsAnnotation &dst)
+{
+    dst.reset();
+    for (const std::pair<int, int> &entry : src.get_data().first) {
+        const std::string s = src.get_triangle_as_string(entry.first);
+        if (! s.empty())
+            dst.set_triangle_from_string(entry.first, s);
+    }
+}
+
+// Worker-thread paint reprojection for the async boolean: reprojects the copied operand
+// paint onto every result mesh, in the frame create_result_volume() will give it (same
+// transform, so the faces and their vertex order match the final volume). Fills
+// data.result_paints; progress is 0-100 over all results. Returns false if canceled.
+static bool reproject_job_paint(BooleanJobData &data, const std::function<void(int)> &progress,
+                                const std::function<bool()> &cancel)
+{
+    const size_t result_count = data.result.result_meshes.size();
+    data.result_paints.assign(result_count, nullptr);
+    if (data.paint_operands.empty() || result_count == 0)
+        return true;
+
+    for (size_t i = 0; i < result_count && i < data.volumes_a.size(); ++i) {
+        const Transform3d &frame     = data.volumes_a[i].result_frame;
+        const Transform3d  frame_inv = frame.inverse();
+        auto paint  = std::make_shared<PaintKeepPrepared>();
+        paint->mesh = data.result.result_meshes[i];
+        paint->mesh.transform(frame_inv, true);
+
+        std::vector<PaintSourceVolume> sources;
+        sources.reserve(data.paint_operands.size());
+        for (const BooleanJobData::PaintOperand &op : data.paint_operands) {
+            PaintSourceVolume s;
+            s.mesh                  = &op.paint->mesh;
+            s.supported             = &op.paint->supported;
+            s.seam                  = &op.paint->seam;
+            s.mmu                   = &op.paint->mmu;
+            s.fuzzy                 = &op.paint->fuzzy;
+            s.source_to_destination = frame_inv * op.world;
+            s.base_filament         = op.base_filament;
+            sources.push_back(s);
+        }
+        auto result_progress = [&progress, i, result_count](int percent, const char *) {
+            if (progress)
+                progress(int((i * 100 + size_t(std::clamp(percent, 0, 100))) / result_count));
+        };
+        if (! reproject_paint_from_volumes(paint->mesh, sources, paint->supported, paint->seam, paint->mmu, paint->fuzzy,
+                                           result_progress, cancel, &frame)) {
+            if (cancel && cancel())
+                return false;
+            continue;
+        }
+        data.result_paints[i] = std::move(paint);
+    }
+    return true;
+}
+
+// Shared paint reprojection for boolean results. Maps each operand's paint into the
+// result volume's local frame (source_to_destination = dst_world^-1 * operand_world)
+// and reprojects it via the geometric sampler. Used by BOTH the sync
+// (apply_result_to_model) and the async completion paths - the async path is the
+// default and creates result volumes directly, bypassing apply_result_to_model, so
+// without this call there the boolean result loses all paint.
+static void reproject_boolean_paint(ModelVolume *new_volume,
+                                    const Transform3d &dst_world,
+                                    const std::vector<std::pair<ModelVolume *, Transform3d>> &operands)
+{
+    if (new_volume == nullptr || operands.empty())
+        return;
+    // Nothing to carry when no operand is painted and they all print in one filament: the
+    // result volume's own extruder already stands for them. A part that is unpainted but
+    // assigned a different filament still has to be carried, or it loses its colour.
+    bool any_paint = false, mixed_filament = false;
+    int  first_filament = -1;
+    for (const auto &op : operands) {
+        if (op.first == nullptr)
+            continue;
+        if (! op.first->mmu_segmentation_facets.empty() || ! op.first->supported_facets.empty() ||
+            ! op.first->seam_facets.empty() || ! op.first->fuzzy_skin_facets.empty())
+            any_paint = true;
+        const int filament = op.first->extruder_id();
+        if (first_filament < 0)
+            first_filament = filament;
+        else if (filament != first_filament)
+            mixed_filament = true;
+    }
+    if (! any_paint && ! mixed_filament)
+        return;
+    const Transform3d dst_world_inv = dst_world.inverse();
+    std::vector<PaintSourceVolume> sources;
+    sources.reserve(operands.size());
+    for (const auto &op : operands) {
+        if (op.first == nullptr)
+            continue;
+        PaintSourceVolume s;
+        s.mesh                  = &op.first->mesh();
+        s.supported             = &op.first->supported_facets;
+        s.seam                  = &op.first->seam_facets;
+        s.mmu                   = &op.first->mmu_segmentation_facets;
+        s.fuzzy                 = &op.first->fuzzy_skin_facets;
+        s.source_to_destination = dst_world_inv * op.second;
+        s.base_filament         = op.first->extruder_id(); // bake solid part color into paint
+        sources.push_back(s);
+    }
+    (void) reproject_paint_from_volumes(new_volume->mesh(), sources,
+        new_volume->supported_facets, new_volume->seam_facets,
+        new_volume->mmu_segmentation_facets, new_volume->fuzzy_skin_facets,
+        nullptr, nullptr, &dst_world);
 }
 
 //NOTE: keep watching
@@ -1363,6 +1609,45 @@ void BooleanOperationEngine::apply_result_to_model(const BooleanOperationResult&
         return true;
     };
 
+    // Carry painting (colour / support / seam / fuzzy skin) from the boolean operands onto
+    // each rebuilt result volume. For a difference only the A group contributes: the B tool
+    // carves new surface, which belongs to the part that remains, not to the tool.
+    auto instance_matrix_of = [](const ModelObject *obj) -> Transform3d {
+        return (obj != nullptr && !obj->instances.empty() && obj->instances[0]) ?
+            obj->instances[0]->get_matrix(false) : Transform3d::Identity();
+    };
+    auto reproject_paint_onto = [&](ModelVolume *new_volume, ModelVolume *source_volume) {
+        // "Keep all painting" off: leave the result as a plain single-color mesh.
+        if (!settings.preserve_color)
+            return;
+        if (new_volume == nullptr)
+            return;
+        std::vector<std::pair<ModelVolume *, Transform3d>> operands;
+        auto add_object_parts = [&](ModelObject *o) {
+            if (o == nullptr)
+                return;
+            for (ModelVolume *v : o->volumes)
+                if (v != nullptr && v != new_volume && v->is_model_part())
+                    operands.emplace_back(v, instance_matrix_of(o) * v->get_matrix());
+        };
+        if (mode == MeshBooleanOperation::Difference) {
+            // A - B: only the A minuend contributes; B (the tool) must not leave any paint.
+            // The surface B newly carves belongs to the part that remains, and is filled
+            // with the nearest A operand's plain filament by the reprojection itself.
+            if (settings.target_mode == BooleanTargetMode::Part) {
+                if (source_volume != nullptr && source_volume != new_volume && source_volume->is_model_part())
+                    operands.emplace_back(source_volume, instance_matrix_of(target_object) * source_volume->get_matrix());
+            } else {
+                for (ModelObject *o : a_group_objects) add_object_parts(o);
+            }
+        } else if (settings.target_mode == BooleanTargetMode::Part) {
+            add_object_parts(target_object);
+        } else {
+            for (ModelObject *o : participating_objects) add_object_parts(o);
+        }
+        reproject_boolean_paint(new_volume, instance_matrix_of(target_object) * new_volume->get_matrix(), operands);
+    };
+
     // ===== STEP 2: Create new result volumes =====
     // Collect sources that need to be replaced (deleted after new volumes are created)
     std::vector<ModelVolume*> sources_to_replace;
@@ -1377,6 +1662,9 @@ void BooleanOperationEngine::apply_result_to_model(const BooleanOperationResult&
         ModelVolume* new_volume = create_result_volume(target_object, result.result_meshes[i], source_volume);
         if (!new_volume) continue;
         new_volume->set_type(ModelVolumeType::MODEL_PART);
+
+        // Preserve the operands' painting on the rebuilt result.
+        reproject_paint_onto(new_volume, source_volume);
 
         // Mark source for replacement if policy allows
         if (should_replace_source(source_volume)) {
@@ -1482,7 +1770,8 @@ void BooleanOperationEngine::apply_result_to_model(const BooleanOperationResult&
 //NOTE: keep watching
 ModelVolume* BooleanOperationEngine::create_result_volume(ModelObject* target_object,
                                                         const TriangleMesh& result_mesh,
-                                                        ModelVolume* source_volume) {
+                                                        ModelVolume* source_volume,
+                                                        const Transform3d* source_world) {
     // Convert world mesh to target's local space using target instance and source volume transforms:
     // local = (T_inst_target * T_vol_source)^{-1} * world
     TriangleMesh local_mesh = result_mesh;
@@ -1496,7 +1785,8 @@ ModelVolume* BooleanOperationEngine::create_result_volume(ModelObject* target_ob
         source_volume_matrix = source_volume->get_transformation().get_matrix();
 
     // World -> (target instance * source volume) local
-    Transform3d world_to_target_local = (target_instance_matrix * source_volume_matrix).inverse();
+    Transform3d world_to_target_local = source_world ? source_world->inverse() :
+                                                       (target_instance_matrix * source_volume_matrix).inverse();
     local_mesh.transform(world_to_target_local, true);
 
     // Create new volume with the local coordinate mesh (no re-centering), then copy metadata
@@ -1727,7 +2017,7 @@ BooleanOperationResult BooleanOperationEngine::part_level_sub(
                     return result;
                 }
             } catch (const std::exception& e) {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << __LINE__ << ": " << e.what();
+                BOOST_LOG_TRIVIAL(warning) << e.what();
                 result.error_message = MeshBooleanWarnings::JOB_FAILED;
                 return result;
             }
@@ -1826,6 +2116,11 @@ GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, unsigned int sprite_i
         // Return progress from thread-safe member variable (0-100)
         std::lock_guard<std::mutex> lk(m_async_mutex);
         return m_async_boolean_operation_progress;
+    };
+
+    m_ui->get_async_status = [this]() -> std::string {
+        std::lock_guard<std::mutex> lk(m_async_mutex);
+        return m_async_status;
     };
 
     m_ui->on_cancel_async_operation = [this]() {
@@ -1951,59 +2246,95 @@ std::string GLGizmoMeshBoolean::get_icon_filename(bool b_dark_mode) const
     return b_dark_mode ? "toolbar_meshboolean_dark.svg" : "toolbar_meshboolean.svg";
 }
 
-bool GLGizmoMeshBoolean::is_on_same_plate(const Selection& selection) const
+void GLGizmoMeshBoolean::save_object_visibility() const
 {
-    const auto &content = selection.get_content();
-    if (content.empty()) return false;
+    // Snapshot per-object visibility (keyed by the stable ModelObject id, not the volatile
+    // index) BEFORE we hide anything, so it survives the objects being added/removed by the
+    // boolean.
+    //
+    // Visibility here must mean "did the user hide this object" (the object-list eye icon),
+    // NOT the transient GLVolume::is_active render flag. is_active is also cleared for
+    // objects that merely sit on another plate (and by gizmos/selection), so keying off it
+    // recorded those as hidden and restore_object_visibility() then switched them off on
+    // exit - whereas the old behavior revealed everything. ModelInstance::printable is the
+    // user-driven eye-icon state, so an object counts as visible when any instance is
+    // printable, independent of which plate is current.
+    m_saved_object_visibility.clear();
+    const Model *model = m_parent.get_model();
+    if (model == nullptr)
+        return;
+    for (const ModelObject *mo : model->objects) {
+        if (mo == nullptr)
+            continue;
+        bool user_visible = false;
+        for (const ModelInstance *inst : mo->instances)
+            if (inst != nullptr && inst->printable) { user_visible = true; break; }
+        m_saved_object_visibility[mo->id()] = user_visible;
+    }
+    m_object_visibility_saved = true;
+}
 
-    auto &plate_list = wxGetApp().plater()->get_partplate_list();
-    int target_plate = -1;
-    PartPlate* target = nullptr;
-
-    for (const auto &kv : content) {
-        int obj_id = kv.first;
-        if (obj_id >= 1000) continue; // skip wipe tower
-        for (int inst_id : kv.second) {
-            if (inst_id < 0) inst_id = 0;
-            if (target_plate < 0) {
-                target_plate = plate_list.find_instance(obj_id, inst_id);
-                if (target_plate < 0) return false;
-                target = plate_list.get_plate(target_plate);
-                if (!target) return false;
-            } else {
-                if (!target->contain_instance_totally(obj_id, inst_id))
-                    return false;
-            }
+void GLGizmoMeshBoolean::restore_object_visibility() const
+{
+    // No snapshot (e.g. part mode) -> keep the previous behavior of revealing everything.
+    if (!m_object_visibility_saved) {
+        m_parent.toggle_model_objects_visibility(true);
+        return;
+    }
+    const Model *model = m_parent.get_model();
+    // Hide all, then re-show only what was visible on entry. Objects created while the gizmo
+    // was open (e.g. the boolean result) are not in the snapshot and default to visible.
+    hide_all_model_objects();
+    if (model != nullptr) {
+        for (ModelObject *mo : model->objects) {
+            if (mo == nullptr)
+                continue;
+            const auto it = m_saved_object_visibility.find(mo->id());
+            const bool visible = (it == m_saved_object_visibility.end()) ? true : it->second;
+            if (visible)
+                m_parent.toggle_model_objects_visibility(true, mo, -1);
         }
     }
-    return true;
+    m_saved_object_visibility.clear();
+    m_object_visibility_saved = false;
 }
 
 void GLGizmoMeshBoolean::apply_object_visibility(const Selection& selection) const
 {
     const auto &volume_idxs = selection.get_volume_idxs();
-    if (!volume_idxs.empty()) {
-        const GLVolume *first = selection.get_volume(*volume_idxs.begin());
-        if (first) {
-            int obj_id = first->object_idx();
-            int inst_id = first->instance_idx();
-            if (inst_id < 0) inst_id = 0;
-            auto &plate_list = wxGetApp().plater()->get_partplate_list();
-            int plate_idx = plate_list.find_instance(obj_id, inst_id);
-            if (plate_idx >= 0) {
-                if (plate_idx == m_last_plate_idx_for_visibility) return; // no change
-                // hide all, then show the same plate objects
-                m_parent.toggle_model_objects_visibility(false);
-                PartPlate *plate = plate_list.get_plate(plate_idx);
-                if (plate) {
-                    auto objs = plate->get_objects_on_this_plate();
-                    for (ModelObject *mo : objs) {
-                        m_parent.toggle_model_objects_visibility(true, mo, -1);
-                    }
-                }
-                m_last_plate_idx_for_visibility = plate_idx;
-            }
-        }
+    if (volume_idxs.empty())
+        return;
+    const Model *model = m_parent.get_model();
+    if (model == nullptr)
+        return;
+
+    // Show ONLY the objects participating in the boolean (the user-selected objects) and
+    // hide everything else - including unrelated objects that merely share the same plate,
+    // such as the result of a previous boolean. The gizmo does not enable InstancesHider,
+    // so this is the only place other objects get hidden; showing the whole plate here left
+    // those siblings visible.
+    hide_all_model_objects();
+    std::set<int> shown_objects;
+    for (unsigned int idx : volume_idxs) {
+        const GLVolume *glv = selection.get_volume(idx);
+        if (glv == nullptr)
+            continue;
+        const int obj_id = glv->object_idx();
+        if (obj_id < 0 || obj_id >= (int)model->objects.size())
+            continue;
+        if (!shown_objects.insert(obj_id).second)
+            continue; // already shown
+        m_parent.toggle_model_objects_visibility(true, model->objects[obj_id], -1);
+    }
+
+    // Remember the operands' plate. Recomputed every call (no early-out) because the set of
+    // participating objects can change while staying on the same plate.
+    auto &plate_list = wxGetApp().plater()->get_partplate_list();
+    const GLVolume *first = selection.get_volume(*volume_idxs.begin());
+    if (first != nullptr) {
+        int inst_id = first->instance_idx();
+        if (inst_id < 0) inst_id = 0;
+        m_last_plate_idx_for_visibility = plate_list.find_instance(first->object_idx(), inst_id);
     }
 }
 
@@ -2012,10 +2343,23 @@ void GLGizmoMeshBoolean::apply_part_visibility(const Selection& selection) const
     const int obj_idx = selection.get_object_idx();
     if (obj_idx < 0) return;
     const int inst_idx = selection.get_instance_idx();
-    m_parent.toggle_model_objects_visibility(false);
     const Model *model = m_parent.get_model();
     if (!model || obj_idx >= (int)model->objects.size()) return;
+    hide_all_model_objects();
     m_parent.toggle_model_objects_visibility(true, model->objects[obj_idx], inst_idx);
+    for (const ModelObject *mo : model->objects)
+        if (mo != nullptr && m_kept_result_objects.count(mo->id()))
+            m_parent.toggle_model_objects_visibility(true, mo, -1);
+}
+
+void GLGizmoMeshBoolean::hide_all_model_objects() const
+{
+    const Model *model = m_parent.get_model();
+    if (model == nullptr)
+        return;
+    for (const ModelObject *mo : model->objects)
+        if (mo != nullptr)
+            m_parent.toggle_model_objects_visibility(false, mo, -1);
 }
 
 bool GLGizmoMeshBoolean::on_init()
@@ -2036,9 +2380,12 @@ bool GLGizmoMeshBoolean::on_is_activable() const
     if (selection.is_empty())
         return false;
 
-    // Object mode: select 2 or more objects (full object or instance)
+    // Object mode: select 2 or more objects (full object or instance).
+    // Boolean runs in world space from each object's instance transform, so it does not
+    // require the objects to sit (fully) on a plate. Off-plate / cross-plate selections are
+    // allowed; the result is placed back on the bed afterwards (ensure_on_bed()).
     if (selection.is_multiple_full_object() || selection.is_multiple_full_instance())
-        return is_on_same_plate(selection);
+        return true;
 
     // Part mode: single object, and it contains at least 2 meshes
     bool is_activa_when_off = m_state == EState::Off && (selection.is_single_full_object() || selection.is_single_full_instance());
@@ -2092,6 +2439,7 @@ void GLGizmoMeshBoolean::on_set_state()
 {
 
     m_warning_manager.clear_warnings();
+    m_kept_result_objects.clear();
     if (m_state == EState::On) {
         const Selection& selection = m_parent.get_selection();
         m_target_mode = update_cur_mode(selection);
@@ -2100,11 +2448,17 @@ void GLGizmoMeshBoolean::on_set_state()
             m_state = EState::Off;
             m_volume_manager.clear_all();
             restore_list_color_overrides();
-            m_parent.toggle_model_objects_visibility(true);
+            restore_object_visibility();
             m_last_plate_idx_for_visibility = -1;
             return;
         }
-        if (m_target_mode == BooleanTargetMode::Object) apply_object_visibility(selection);
+        if (m_target_mode == BooleanTargetMode::Object) {
+            // Remember the pre-tool visibility so exit can restore it (see restore_object_visibility).
+            save_object_visibility();
+            apply_object_visibility(selection);
+        } else {
+            apply_part_visibility(selection);
+        }
         if (m_ui) m_ui->set_target_mode(m_target_mode);
 
         init_volume_manager();
@@ -2129,20 +2483,27 @@ void GLGizmoMeshBoolean::on_set_state()
         restore_list_color_overrides();
         m_volume_manager.clear_all();
         m_target_mode = BooleanTargetMode::Unknown;
-        m_parent.toggle_model_objects_visibility(true);
+        restore_object_visibility();
         m_last_plate_idx_for_visibility = -1;
     }
 }
 
+// Closing by assigning m_state skips on_set_state(), so run its Off cleanup here.
+void GLGizmoMeshBoolean::close_from_render()
+{
+    m_kept_result_objects.clear();
+    restore_list_color_overrides();
+    m_volume_manager.clear_all();
+    m_target_mode = BooleanTargetMode::Unknown;
+    restore_object_visibility();
+    m_last_plate_idx_for_visibility = -1;
+    m_state = EState::Off;
+}
+
 CommonGizmosDataID GLGizmoMeshBoolean::on_get_requirements() const
 {
-    // Object mode: do not hide other objects;
-    // Part mode: hide other objects (enable InstancesHider)
-    if (m_target_mode == BooleanTargetMode::Part) {
-        return CommonGizmosDataID(
-            int(CommonGizmosDataID::SelectionInfo)
-          | int(CommonGizmosDataID::InstancesHider));
-    }
+    // No InstancesHider in either mode: it raises the "Only the object being edited is visible"
+    // notification. Visibility is managed by apply_object_visibility / apply_part_visibility.
     return CommonGizmosDataID(int(CommonGizmosDataID::SelectionInfo));
 }
 
@@ -2154,8 +2515,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     const Selection &sel = m_parent.get_selection();
     m_target_mode = update_cur_mode(sel);
     if (sel.get_content().empty() || m_target_mode == BooleanTargetMode::Unknown) {
-        restore_list_color_overrides();
-        m_state = EState::Off;
+        close_from_render();
         return;
     }
     // Rebuild lists and color/visibility when selection changes (undo/redo)
@@ -2173,15 +2533,13 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
                         || !m_volume_manager.get_list_a().empty()
                         || !m_volume_manager.get_list_b().empty();
     if (!has_any_items) {
-        restore_list_color_overrides();
-        m_state = EState::Off;
+        close_from_render();
         return;
     }
 
     // Safety check: if UI is not available, close the gizmo
     if (!m_ui) {
-        restore_list_color_overrides();
-        m_state = EState::Off;
+        close_from_render();
         return;
     }
 
@@ -2202,6 +2560,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
         m_ui->set_target_mode(m_target_mode);
         m_ui->set_keep_original_models(m_keep_original_models);
         m_ui->set_entity_only(m_entity_only);
+        m_ui->set_preserve_color(m_preserve_color);
 
         m_ui->render_content(m_parent, GLGizmoBase::m_imgui, GLGizmoBase::m_is_dark_mode);
 
@@ -2216,6 +2575,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
         m_target_mode = m_ui->get_target_mode();
         m_keep_original_models = m_ui->get_keep_original_models();
         m_entity_only = m_ui->get_entity_only();
+        m_preserve_color = m_ui->get_preserve_color();
     }
 
     // Close ImGui window (Gizmo's responsibility)
@@ -2338,6 +2698,7 @@ BooleanJobData GLGizmoMeshBoolean::prepare_job_data()
     job_data.operation_mode = m_operation_mode;
     job_data.settings.keep_original_models = m_keep_original_models;
     job_data.settings.entity_only = m_entity_only;
+    job_data.settings.preserve_color = m_preserve_color;
     job_data.settings.target_mode = m_target_mode;
 
     // Collect non-model volumes for Object mode
@@ -2396,9 +2757,10 @@ BooleanJobData GLGizmoMeshBoolean::prepare_job_data()
         }
     };
 
+    std::vector<BooleanOperationEngine::VolumeInfo> volumes_a;
     if (m_operation_mode == MeshBooleanOperation::Difference) {
         // Difference mode: prepare A and B groups
-        auto volumes_a = m_boolean_engine.prepare_volumes(
+        volumes_a = m_boolean_engine.prepare_volumes(
             m_volume_manager.get_list_a(), selection);
         auto volumes_b = m_boolean_engine.prepare_volumes(
             m_volume_manager.get_list_b(), selection);
@@ -2416,16 +2778,52 @@ BooleanJobData GLGizmoMeshBoolean::prepare_job_data()
         job_data.total_steps = volumes_a.size() * volumes_b.size();
     } else {
         // Union/Intersection mode: only use A group
-        auto volumes = m_boolean_engine.prepare_volumes(
+        volumes_a = m_boolean_engine.prepare_volumes(
             m_volume_manager.get_working_list(), selection);
 
-        filter_volumes(volumes);
+        filter_volumes(volumes_a);
 
-        for (const auto& vol : volumes) {
+        for (const auto& vol : volumes_a) {
             job_data.volumes_a.push_back(prepare_volume_data(vol));
         }
 
-        job_data.total_steps = volumes.size();
+        job_data.total_steps = volumes_a.size();
+    }
+
+    // Result frames, matching apply_boolean_result_from_job(): part mode maps each result
+    // through its operand's baked world matrix; object mode builds a new object carrying
+    // instance 0 of the first operand's object, with the source volume's own matrix.
+    const ModelObject *first_object = volumes_a.empty() ? nullptr : volumes_a.front().model_volume->get_object();
+    const Transform3d first_instance = (first_object && !first_object->instances.empty() && first_object->instances[0]) ?
+        first_object->instances[0]->get_transformation().get_matrix() : Transform3d::Identity();
+    for (size_t i = 0; i < volumes_a.size(); ++i)
+        job_data.volumes_a[i].result_frame = m_target_mode == BooleanTargetMode::Object ?
+            Transform3d(first_instance * volumes_a[i].model_volume->get_transformation().get_matrix()) :
+            job_data.volumes_a[i].transformation;
+
+    // Operand paint for the worker. The difference subtrahend B leaves no paint, and the
+    // union/intersection operands are all in A. Nothing to carry when nothing is painted and
+    // everything prints in one filament: the result keeps its own filament.
+    if (job_data.settings.preserve_color) {
+        bool any_paint = false, mixed_filament = false;
+        const int first_filament = volumes_a.empty() ? 0 : volumes_a.front().model_volume->extruder_id();
+        for (const auto &vol : volumes_a) {
+            const ModelVolume *mv = vol.model_volume;
+            any_paint      |= mv->is_mm_painted() || mv->is_fdm_support_painted() || mv->is_seam_painted() || mv->is_fuzzy_skin_facets_painted();
+            mixed_filament |= mv->extruder_id() != first_filament;
+        }
+        if (any_paint || mixed_filament) {
+            for (const auto &vol : volumes_a) {
+                const ModelVolume *mv = vol.model_volume;
+                auto paint  = std::make_shared<PaintKeepPrepared>();
+                paint->mesh = mv->mesh();
+                copy_facets_annotation(mv->supported_facets,        paint->supported);
+                copy_facets_annotation(mv->seam_facets,             paint->seam);
+                copy_facets_annotation(mv->mmu_segmentation_facets, paint->mmu);
+                copy_facets_annotation(mv->fuzzy_skin_facets,       paint->fuzzy);
+                job_data.paint_operands.push_back({ std::move(paint), vol.transformation, mv->extruder_id() });
+            }
+        }
     }
 
     return job_data;
@@ -2434,7 +2832,8 @@ BooleanJobData GLGizmoMeshBoolean::prepare_job_data()
 // Helper: Group volumes by object and union within each object (for Object mode)
 std::vector<TriangleMesh> GLGizmoMeshBoolean::group_and_union_by_object(
     const std::vector<BooleanJobData::VolumeData>& volumes,
-    std::function<bool()> cancel_cb)
+    std::function<bool()> cancel_cb,
+    std::function<void(float)> progress_cb)
 {
     // Group volumes by object_index
     std::map<int, std::vector<size_t>> volumes_by_object;
@@ -2444,6 +2843,12 @@ std::vector<TriangleMesh> GLGizmoMeshBoolean::group_and_union_by_object(
 
     std::vector<TriangleMesh> per_object_meshes;
     per_object_meshes.reserve(volumes_by_object.size());
+
+    // Progress (0-1) is shared evenly by the unions over all objects
+    size_t total_ops = 0;
+    for (const auto& [obj_idx, vol_indices] : volumes_by_object)
+        total_ops += vol_indices.size() - 1;
+    size_t done_ops = 0;
 
     // Union volumes within each object
     for (const auto& [obj_idx, vol_indices] : volumes_by_object) {
@@ -2458,15 +2863,21 @@ std::vector<TriangleMesh> GLGizmoMeshBoolean::group_and_union_by_object(
             // Multiple volumes - union them
             TriangleMesh obj_merged = volumes[vol_indices[0]].mesh;
             for (size_t i = 1; i < vol_indices.size(); ++i) {
+                std::function<void(float)> sub_progress_cb;
+                if (progress_cb)
+                    sub_progress_cb = [&progress_cb, done_ops, total_ops](float sub_progress) {
+                        progress_cb((float(done_ops) + std::clamp(sub_progress, 0.f, 100.f) / 100.f) / float(total_ops));
+                    };
                 std::vector<TriangleMesh> temp_result;
-                Slic3r::MeshBoolean::mcut::make_boolean(
+                Slic3r::MeshBoolean::make_boolean(
                     obj_merged, volumes[vol_indices[i]].mesh, temp_result,
-                    MeshBooleanConfig::OP_UNION, cancel_cb, nullptr);
+                    MeshBooleanConfig::OP_UNION, cancel_cb, sub_progress_cb);
 
                 if (temp_result.empty()) {
-                    return {}; // Failed
+                    return {}; // Failed or canceled
                 }
                 obj_merged = std::move(temp_result[0]);
+                ++done_ops;
 
                 // Cleanup after each internal union
                 its_remove_degenerate_faces(obj_merged.its);
@@ -2483,11 +2894,12 @@ std::vector<TriangleMesh> GLGizmoMeshBoolean::group_and_union_by_object(
 std::vector<TriangleMesh> GLGizmoMeshBoolean::prepare_meshes_for_operation(
     const std::vector<BooleanJobData::VolumeData>& volumes,
     BooleanTargetMode target_mode,
-    std::function<bool()> cancel_cb)
+    std::function<bool()> cancel_cb,
+    std::function<void(float)> progress_cb)
 {
     if (target_mode == BooleanTargetMode::Object) {
         // Object mode: Group by object and union within each object
-        return group_and_union_by_object(volumes, cancel_cb);
+        return group_and_union_by_object(volumes, cancel_cb, progress_cb);
     } else {
         // Part mode: Extract meshes directly
         std::vector<TriangleMesh> meshes;
@@ -2505,7 +2917,8 @@ std::optional<TriangleMesh> GLGizmoMeshBoolean::accumulate_boolean_operations(
     const std::string& operation,
     BooleanJobData& data,
     JobNew::Ctl& ctl,
-    BooleanOperationResult& result)
+    BooleanOperationResult& result,
+    const std::function<void(float)>& progress_cb)
 {
     if (meshes.empty()) {
         result.error_message = MeshBooleanWarnings::PREPAREING;
@@ -2518,7 +2931,7 @@ std::optional<TriangleMesh> GLGizmoMeshBoolean::accumulate_boolean_operations(
 
     // Use the shared core logic from BooleanOperationEngine
     auto opt_result = m_boolean_engine.execute_boolean_on_meshes_async(
-        meshes, operation, data.cancel_cb, data.progress_cb);
+        meshes, operation, data.cancel_cb, progress_cb);
 
     // Check result and set appropriate error message
     if (!opt_result.has_value()) {
@@ -2559,12 +2972,36 @@ BooleanOperationResult GLGizmoMeshBoolean::perform_boolean_operation_async(
                 return result;
             }
 
+            // Progress split by operation count: object mode first unions the parts inside each
+            // object (grouping), then combines the objects; part mode has no grouping phase.
+            float group_weight = 0.f;
+            if (data.settings.target_mode == BooleanTargetMode::Object) {
+                std::set<int> objects;
+                for (const auto& vol : data.volumes_a)
+                    objects.insert(vol.object_index);
+                const size_t group_ops = data.volumes_a.size() - objects.size();
+                const size_t cross_ops = objects.size() - 1;
+                if (group_ops + cross_ops > 0)
+                    group_weight = float(group_ops) / float(group_ops + cross_ops);
+            }
+            std::function<void(float)> group_progress_cb, op_progress_cb;
+            if (data.progress_cb) {
+                group_progress_cb = [&data, group_weight](float p) { data.progress_cb(std::clamp(p, 0.f, 1.f) * group_weight); };
+                op_progress_cb = [&data, group_weight](float p) {
+                    data.progress_cb(group_weight + std::clamp(p, 0.f, 1.f) * (1.f - group_weight));
+                };
+            }
+
             // Prepare meshes (handles Object/Part mode internally)
             std::vector<TriangleMesh> meshes = prepare_meshes_for_operation(
-                data.volumes_a, data.settings.target_mode, data.cancel_cb);
+                data.volumes_a, data.settings.target_mode, data.cancel_cb, group_progress_cb);
 
             if (meshes.empty()) {
-                result.error_message = MeshBooleanWarnings::JOB_CANCELED;
+                if (ctl.was_canceled() || (data.cancel_cb && data.cancel_cb()))
+                    result.error_message = MeshBooleanWarnings::JOB_CANCELED;
+                else
+                    result.error_message = data.settings.target_mode == BooleanTargetMode::Object ?
+                        MeshBooleanWarnings::GROUPING : MeshBooleanWarnings::PREPAREING;
                 return result;
             }
 
@@ -2584,7 +3021,7 @@ BooleanOperationResult GLGizmoMeshBoolean::perform_boolean_operation_async(
             const std::string& operation = (data.operation_mode == MeshBooleanOperation::Union) ?
                 MeshBooleanConfig::OP_UNION : MeshBooleanConfig::OP_INTERSECTION;
 
-            auto opt_result = accumulate_boolean_operations(meshes, operation, data, ctl, result);
+            auto opt_result = accumulate_boolean_operations(meshes, operation, data, ctl, result, op_progress_cb);
 
             if (opt_result.has_value()) {
                 result.result_meshes.push_back(*opt_result);
@@ -2834,8 +3271,27 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
         return nullptr;
     };
 
-    // Part mode: Apply results to the same object
-    if (job_data.settings.target_mode == BooleanTargetMode::Part) {
+    // Paint reprojected by the worker for result i ("Keep all painting" off: none).
+    auto apply_result_paint = [&job_data](ModelVolume* new_volume, size_t i) {
+        if (i >= job_data.result_paints.size() || !job_data.result_paints[i])
+            return;
+        const PaintKeepPrepared &paint = *job_data.result_paints[i];
+        if (paint.mesh.its.indices.size() != new_volume->mesh().its.indices.size()) {
+            BOOST_LOG_TRIVIAL(error) << "[Mesh Boolean] Reprojected paint does not match the result mesh ("
+                << paint.mesh.its.indices.size() << " vs " << new_volume->mesh().its.indices.size() << " faces), paint dropped";
+            return;
+        }
+        copy_facets_annotation(paint.supported, new_volume->supported_facets);
+        copy_facets_annotation(paint.seam,      new_volume->seam_facets);
+        copy_facets_annotation(paint.mmu,       new_volume->mmu_segmentation_facets);
+        copy_facets_annotation(paint.fuzzy,     new_volume->fuzzy_skin_facets);
+    };
+
+    // Part mode: Apply results to the same object. With "keep original models" the result goes
+    // into a new object below instead: overlapping parts of one object merge when sliced, so a
+    // result kept next to its operands inside the same object would have no effect.
+    const bool keep_originals = job_data.settings.keep_original_models;
+    if (job_data.settings.target_mode == BooleanTargetMode::Part && !keep_originals) {
         // Check volumes_a is not empty before accessing [0]
         if (job_data.volumes_a.empty()) {
             m_warning_manager.add_error(MeshBooleanWarnings::PREPAREING);
@@ -2865,14 +3321,17 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
 
             if (!source_volume) continue;
 
-            // Create new result volume
+            // The operands were baked with the selected instance, not necessarily instance 0.
+            const Transform3d &source_world = job_data.volumes_a[i].transformation;
             ModelVolume* new_volume = m_boolean_engine.create_result_volume(
-                target_object, job_data.result.result_meshes[i], source_volume);
+                target_object, job_data.result.result_meshes[i], source_volume, &source_world);
 
             if (!new_volume) continue;
 
             // Force result to be MODEL_PART (same as sync version)
             new_volume->set_type(ModelVolumeType::MODEL_PART);
+
+            apply_result_paint(new_volume, i);
 
             // Determine if source should be replaced based on operation mode
             bool should_replace = false;
@@ -2967,8 +3426,9 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
             }
         }
     }
-    // Object mode: Create ONE new result object (same as sync version)
-    else if (job_data.settings.target_mode == BooleanTargetMode::Object) {
+    // Object mode, or Part mode keeping the originals: Create ONE new result object
+    else {
+        const bool part_mode = job_data.settings.target_mode == BooleanTargetMode::Part;
         // Find first source object to get Model reference
         ModelObject* first_source_obj = !job_data.volumes_a.empty() ?
             find_object_by_volume_id(job_data.volumes_a[0].volume_id) : nullptr;
@@ -2984,19 +3444,23 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
         new_obj->name = first_source_obj->name + "_Boolean";
         new_obj->config.assign_config(first_source_obj->config);
 
-        // Copy instance
-        if (!first_source_obj->instances.empty() && first_source_obj->instances[0]) {
+        // Part mode: the result lives in the object's local frame, so every instance of the
+        // object gets one. Object mode: the operands were specific instances combined in world
+        // space, so the result exists exactly once, placed by instance 0 of the first operand.
+        if (part_mode) {
+            for (const ModelInstance *inst : first_source_obj->instances)
+                if (inst != nullptr)
+                    new_obj->add_instance(*inst);
+        } else if (!first_source_obj->instances.empty() && first_source_obj->instances[0]) {
             new_obj->add_instance(*first_source_obj->instances[0]);
-        } else {
-            new_obj->add_instance();
         }
+        if (new_obj->instances.empty())
+            new_obj->add_instance();
 
         // Initialize assemble transformation
-        if (!new_obj->instances.empty() && new_obj->instances[0] &&
-            !new_obj->instances[0]->is_assemble_initialized()) {
-            new_obj->instances[0]->set_assemble_transformation(
-                new_obj->instances[0]->get_transformation());
-        }
+        for (ModelInstance *inst : new_obj->instances)
+            if (inst != nullptr && !inst->is_assemble_initialized())
+                inst->set_assemble_transformation(inst->get_transformation());
 
         // Add ALL result meshes to this single object (same as sync version)
         for (size_t i = 0; i < job_data.result.result_meshes.size(); ++i) {
@@ -3010,13 +3474,21 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
 
             if (!source_volume) continue;
 
-            // Create result volume
+            // Part mode: new_obj carries copies of the source object's instances, so the frame of
+            // the selected instance the operands were baked with is valid here too.
+            const Transform3d *source_world = part_mode ? &job_data.volumes_a[i].transformation : nullptr;
             ModelVolume* new_volume = m_boolean_engine.create_result_volume(
-                new_obj, job_data.result.result_meshes[i], source_volume);
+                new_obj, job_data.result.result_meshes[i], source_volume, source_world);
 
             if (new_volume) {
                 // Force result to be MODEL_PART
                 new_volume->set_type(ModelVolumeType::MODEL_PART);
+                // Part mode copies the object config above, so the part's own settings
+                // (e.g. its filament) stay meaningful in the new object.
+                if (part_mode)
+                    new_volume->config.apply(source_volume->config);
+
+                apply_result_paint(new_volume, i);
             }
         }
 
@@ -3038,25 +3510,23 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
             }
         };
 
-        if (job_data.operation_mode == MeshBooleanOperation::Difference) {
-            // Difference: Always delete A group objects
-            for (const auto& vol_data : job_data.volumes_a) {
-                add_obj_idx_by_volume(vol_data.volume_id);
-            }
+        // Every participating object, kept or not; the result is placed clear of them below.
+        std::vector<const ModelObject *> operand_objects;
+        auto add_operand_object = [&](const ObjectID &vol_id) {
+            const ModelObject *obj = find_object_by_volume_id(vol_id);
+            if (obj && obj != new_obj && std::find(operand_objects.begin(), operand_objects.end(), obj) == operand_objects.end())
+                operand_objects.push_back(obj);
+        };
+        for (const auto &vol_data : job_data.volumes_a) add_operand_object(vol_data.volume_id);
+        for (const auto &vol_data : job_data.volumes_b) add_operand_object(vol_data.volume_id);
 
-            // Delete B group objects only if not keeping originals
-            if (!job_data.settings.keep_original_models) {
-                for (const auto& vol_data : job_data.volumes_b) {
+        // Keeping the originals keeps all of them, the difference minuend A included.
+        if (!keep_originals) {
+            for (const auto& vol_data : job_data.volumes_a)
+                add_obj_idx_by_volume(vol_data.volume_id);
+            if (job_data.operation_mode == MeshBooleanOperation::Difference)
+                for (const auto& vol_data : job_data.volumes_b)
                     add_obj_idx_by_volume(vol_data.volume_id);
-                }
-            }
-        } else {
-            // Union/Intersection: Delete all participating objects only if not keeping originals
-            if (!job_data.settings.keep_original_models) {
-                for (const auto& vol_data : job_data.volumes_a) {
-                    add_obj_idx_by_volume(vol_data.volume_id);
-                }
-            }
         }
 
         // Delete source objects
@@ -3070,6 +3540,10 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
 
         // Ensure the new object is on the build plate (missing in original async implementation)
         new_obj->ensure_on_bed();
+        if (keep_originals)
+            place_beside_operands(new_obj, operand_objects, *model);
+        if (part_mode)
+            m_kept_result_objects.insert(new_obj->id());
 
         // Add new object to sidebar and update UI (same as sync version line 1165-1173)
         auto* obj_list = wxGetApp().obj_list();
@@ -3089,17 +3563,43 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
 
     // Update plater to refresh object positions and collision detection (same as sync version line 1329)
     wxGetApp().plater()->update();
+
+    // The kept result's GLVolumes exist only after the update above.
+    if (!m_kept_result_objects.empty() && m_state == EState::On && m_target_mode == BooleanTargetMode::Part)
+        apply_part_visibility(m_parent.get_selection());
 }
 
 #endif  // USE_ASYNC_BOOLEAN_MODE
 
 // ========================== BOOLEAN OPERATION EXECUTION ==========================
 
+void GLGizmoMeshBoolean::set_async_progress(float percent, const std::string& status)
+{
+    {
+        std::lock_guard<std::mutex> lk(m_async_mutex);
+        m_async_boolean_operation_progress = std::clamp(percent, 0.f, 100.f);
+        m_async_status = status;
+    }
+    // The gizmo manager and the canvas belong to the UI thread. One queued redraw at a time.
+    if (!m_async_redraw_pending.exchange(true))
+        wxGetApp().CallAfter([this]() {
+            m_async_redraw_pending = false;
+            if (check_if_active()) {
+                set_dirty();
+                m_parent.schedule_extra_frame(0);
+            }
+        });
+}
+
 void GLGizmoMeshBoolean::execute_mesh_boolean()
 {
-    Plater::TakeSnapshot Snap(wxGetApp().plater(), "Bool execution");
     if (m_state != EState::On)
         return;
+    if (m_object_union_job_running) {
+        m_warning_manager.add_warning(_u8L("Another mesh boolean operation is running. Please try again after it finishes."));
+        return;
+    }
+    Plater::TakeSnapshot Snap(wxGetApp().plater(), "Bool execution");
 
     const Selection& selection = m_parent.get_selection();
 
@@ -3114,6 +3614,7 @@ void GLGizmoMeshBoolean::execute_mesh_boolean()
     BooleanOperationSettings settings;
     settings.keep_original_models = m_keep_original_models;
     settings.entity_only = m_entity_only;
+    settings.preserve_color = m_preserve_color;
     settings.target_mode = m_target_mode;
 
     // Map current single non-model handling choice to settings
@@ -3253,26 +3754,43 @@ void GLGizmoMeshBoolean::execute_mesh_boolean()
     m_async_job_running = true;
     m_async_job_cancel_requested = false;
 
-    // Initialize progress to 0
-    {
-        std::lock_guard<std::mutex> lk(m_async_mutex);
-        m_async_boolean_operation_progress = 0.0f;
-    }
+    // Translated here: the worker thread only passes the strings on.
+    const std::string computing_msg = _u8L("Computing...");
+    const std::string paint_msg     = _u8L("Restoring painting");
+    const std::string applying_msg  = _u8L("Applying result..");
+    set_async_progress(0.f, computing_msg);
 
     // Create async Job
     auto boolean_job = std::make_unique<BooleanOperationJob<BooleanJobData>>();
 
     // Set process callback (runs in background thread)
     boolean_job->set_process_callback(
-        [this](JobNew::Ctl& ctl, BooleanJobData& data) {
+        [this, computing_msg, paint_msg, applying_msg](JobNew::Ctl& ctl, BooleanJobData& data) {
             data.state = EBooleanOperationState::Running;
+            auto canceled = [&data]() { return data.cancel_cb && data.cancel_cb(); };
+
+            // The boolean fills the bar up to 90% when painting is reprojected afterwards
+            // (90-99%), otherwise all of it.
+            const bool  reproject    = !data.paint_operands.empty();
+            const float boolean_span = reproject ? 90.f : 100.f;
+            data.progress_cb = [this, boolean_span, computing_msg](float p) {
+                set_async_progress(std::clamp(p, 0.f, 1.f) * boolean_span, computing_msg);
+            };
 
             try {
                 // Execute boolean operation (uses deep copied mesh data)
                 data.result = perform_boolean_operation_async(data, ctl);
 
+                if (!canceled() && data.result.success && reproject) {
+                    set_async_progress(boolean_span, paint_msg);
+                    auto paint_progress = [this, boolean_span, paint_msg](int percent) {
+                        set_async_progress(boolean_span + float(percent) * (99.f - boolean_span) / 100.f, paint_msg);
+                    };
+                    reproject_job_paint(data, paint_progress, canceled);
+                }
+
                 // Check for cancellation
-                if (data.cancel_cb && data.cancel_cb()) {
+                if (canceled()) {
                     data.state = EBooleanOperationState::Canceled;
                     data.result.success = false;
                     data.result.error_message = MeshBooleanWarnings::JOB_CANCELED;
@@ -3282,6 +3800,8 @@ void GLGizmoMeshBoolean::execute_mesh_boolean()
                 data.state = data.result.success ?
                     EBooleanOperationState::Finished :
                     EBooleanOperationState::Failed;
+                if (data.result.success)
+                    set_async_progress(100.f, applying_msg);
 
             } catch (const std::exception& e) {
                 data.state = EBooleanOperationState::Failed;
@@ -3374,31 +3894,198 @@ void GLGizmoMeshBoolean::execute_mesh_boolean()
         }
     );
 
-    // Set progress callback
-    boolean_job->set_progress_callback(
-        [this](float progress) {
-            // Check if gizmo is still active
-            if (!check_if_active()) {
-                return;
-            }
-            // Thread-safe update of progress percentage (0-100)
-            {
-                std::lock_guard<std::mutex> lk(m_async_mutex);
-                // Convert 0-1 to 0-100 and clamp to valid range
-                float progress_percent = progress * 100.0f;
-                m_async_boolean_operation_progress = std::min(100.0f, std::max(0.0f, progress_percent));
-            }
-            // Request UI update
-            set_dirty();
-            m_parent.schedule_extra_frame(0);
-        }
-    );
-
     // Set data and submit to worker queue
     boolean_job->set_data(job_data);
 
     Worker& worker = wxGetApp().plater()->get_ui_job_worker();
     worker.push(std::move(boolean_job));
+#endif  // USE_ASYNC_BOOLEAN_MODE
+}
+
+bool GLGizmoMeshBoolean::run_object_union_async(ModelObject *object)
+{
+#if USE_ASYNC_BOOLEAN_MODE
+    NotificationManager *notifications = wxGetApp().notification_manager();
+    // MeshBooleanWarnings are initialized before the dictionary is loaded, translate on use.
+    auto notify = [notifications](NotificationManager::NotificationLevel level, const std::string &text) {
+        if (notifications)
+            notifications->push_notification(NotificationType::CustomNotification, level, _u8L(text));
+    };
+
+    if (object == nullptr || object->instances.empty() || object->instances.front() == nullptr)
+        return false;
+    if (m_async_job_running || m_object_union_job_running) {
+        notify(NotificationManager::NotificationLevel::WarningNotificationLevel,
+               _u8L("Another mesh boolean operation is running. Please try again after it finishes."));
+        return false;
+    }
+    const Model *model = object->get_model();
+    if (model == nullptr)
+        return false;
+    const auto obj_it = std::find(model->objects.begin(), model->objects.end(), object);
+    if (obj_it == model->objects.end())
+        return false;
+
+    std::vector<const ModelVolume *> parts;
+    for (const ModelVolume *v : object->volumes)
+        if (v != nullptr && v->is_model_part() && ! v->mesh().empty())
+            parts.push_back(v);
+    if (parts.empty())
+        return false;
+
+    BooleanJobData job_data;
+    job_data.operation_mode                    = MeshBooleanOperation::Union;
+    job_data.settings.keep_original_models     = false;
+    job_data.settings.entity_only              = true;
+    job_data.settings.preserve_color           = true;
+    job_data.settings.target_mode              = BooleanTargetMode::Part;
+
+    // Same frames as prepare_volumes() / create_result_volume(): operands are baked into
+    // world space with instance[0], the result is mapped back into the first part's frame.
+    const Transform3d inst_matrix  = object->instances.front()->get_transformation().get_matrix();
+    const Transform3d result_frame = inst_matrix * parts.front()->get_transformation().get_matrix();
+
+    for (const ModelVolume *v : parts) {
+        const Transform3d world = inst_matrix * v->get_transformation().get_matrix();
+        auto add_operand = [&](TriangleMesh mesh) {
+            BooleanJobData::VolumeData vd;
+            mesh.transform(world, true);
+            vd.mesh           = std::move(mesh);
+            vd.transformation = world;
+            vd.result_frame   = result_frame;
+            vd.volume_id      = v->id();
+            vd.object_id      = object->id();
+            vd.object_index   = int(obj_it - model->objects.begin());
+            vd.name           = v->name;
+            job_data.volumes_a.push_back(std::move(vd));
+        };
+        // A single part is unioned shell by shell. its_split rather than TriangleMesh::split:
+        // the latter flips negative shells and drops tiny ones. A part with an inner cavity
+        // shell (negative volume) is not split, a union would fill the cavity.
+        std::vector<indexed_triangle_set> shells;
+        if (parts.size() == 1)
+            shells = its_split(v->mesh().its);
+        const bool has_cavity = std::any_of(shells.begin(), shells.end(),
+                                            [](const indexed_triangle_set &its) { return its_volume(its) < 0.f; });
+        if (shells.size() > 1 && ! has_cavity) {
+            for (indexed_triangle_set &shell : shells)
+                add_operand(TriangleMesh(std::move(shell)));
+        } else {
+            add_operand(v->mesh());
+        }
+    }
+    if (job_data.volumes_a.size() < 2) {
+        notify(NotificationManager::NotificationLevel::WarningNotificationLevel, MeshBooleanWarnings::MIN_VOLUMES_UNION);
+        return false;
+    }
+
+    // Nothing painted and one filament throughout: the result keeps the first part's config
+    // (and so its filament), no reprojection needed.
+    bool any_paint      = false;
+    bool multi_filament = false;
+    const int first_filament = parts.front()->extruder_id();
+    for (const ModelVolume *v : parts) {
+        any_paint      |= v->is_mm_painted() || v->is_fdm_support_painted() || v->is_seam_painted() || v->is_fuzzy_skin_facets_painted();
+        multi_filament |= v->extruder_id() != first_filament;
+    }
+    if (any_paint || multi_filament) {
+        for (const ModelVolume *v : parts) {
+            auto paint  = std::make_shared<PaintKeepPrepared>();
+            paint->mesh = v->mesh();
+            copy_facets_annotation(v->supported_facets,        paint->supported);
+            copy_facets_annotation(v->seam_facets,             paint->seam);
+            copy_facets_annotation(v->mmu_segmentation_facets, paint->mmu);
+            copy_facets_annotation(v->fuzzy_skin_facets,       paint->fuzzy);
+            job_data.paint_operands.push_back({ std::move(paint), inst_matrix * v->get_transformation().get_matrix(), v->extruder_id() });
+        }
+    }
+
+    const std::string boolean_msg = _u8L("Mesh boolean");
+    const std::string paint_msg   = _u8L("Restoring painting");
+
+    auto boolean_job = std::make_unique<BooleanOperationJob<BooleanJobData>>();
+
+    boolean_job->set_process_callback(
+        [this, boolean_msg, paint_msg](JobNew::Ctl &ctl, BooleanJobData &data) {
+            data.state = EBooleanOperationState::Running;
+            auto canceled = [&data]() { return data.cancel_cb && data.cancel_cb(); };
+
+            // Progress notification: the boolean fills the bar up to 90% when painting is
+            // reprojected afterwards (90-99%). 100 closes the notification, so it is sent on every exit.
+            const bool reproject    = ! data.paint_operands.empty();
+            const int  boolean_span = reproject ? 90 : 99;
+            ctl.update_status(0, boolean_msg);
+            data.progress_cb = [&ctl, boolean_span, boolean_msg](float p) {
+                ctl.update_status(int(std::clamp(p, 0.f, 1.f) * float(boolean_span)), boolean_msg);
+            };
+
+            try {
+                data.result = perform_boolean_operation_async(data, ctl);
+
+                if (! canceled() && data.result.success && reproject) {
+                    ctl.update_status(boolean_span, paint_msg);
+                    auto progress = [&ctl, boolean_span, paint_msg](int percent) {
+                        ctl.update_status(boolean_span + percent * (99 - boolean_span) / 100, paint_msg);
+                    };
+                    reproject_job_paint(data, progress, canceled);
+                }
+
+                if (canceled()) {
+                    data.state = EBooleanOperationState::Canceled;
+                    data.result.success = false;
+                    data.result.error_message = MeshBooleanWarnings::JOB_CANCELED;
+                } else {
+                    data.state = data.result.success ? EBooleanOperationState::Finished : EBooleanOperationState::Failed;
+                }
+            } catch (const std::exception &e) {
+                data.state = EBooleanOperationState::Failed;
+                data.result.success = false;
+                data.result.error_message = MeshBooleanWarnings::JOB_FAILED;
+                BOOST_LOG_TRIVIAL(error) << "[Mesh Boolean] Object union failed: " << e.what();
+            }
+            ctl.update_status(100, boolean_msg);
+        });
+
+    boolean_job->set_finalize_callback(
+        [this, notify](BooleanJobData &data) {
+            m_object_union_job_running = false;
+
+            if (data.state == EBooleanOperationState::Canceled) {
+                notify(NotificationManager::NotificationLevel::RegularNotificationLevel, MeshBooleanWarnings::JOB_CANCELED);
+                return;
+            }
+            if (data.state != EBooleanOperationState::Finished || ! data.result.success || data.result.result_meshes.empty()) {
+                notify(NotificationManager::NotificationLevel::WarningNotificationLevel,
+                       data.result.error_message.empty() ? MeshBooleanWarnings::JOB_FAILED : data.result.error_message);
+                return;
+            }
+
+            // The object may have been edited or deleted while the job was running.
+            const Model *model = m_parent.get_model();
+            bool target_found = false;
+            if (model != nullptr && ! data.volumes_a.empty())
+                for (const ModelObject *mo : model->objects)
+                    for (const ModelVolume *mv : mo->volumes)
+                        target_found |= mv->id() == data.volumes_a.front().volume_id;
+            if (! target_found) {
+                notify(NotificationManager::NotificationLevel::WarningNotificationLevel, MeshBooleanWarnings::JOB_FAILED);
+                return;
+            }
+
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Mesh boolean");
+            apply_boolean_result_from_job(data);
+        });
+
+    boolean_job->set_cancel_callback(
+        [](JobNew::Ctl &ctl, BooleanJobData &) -> bool { return ctl.was_canceled(); });
+
+    boolean_job->set_data(job_data);
+    m_object_union_job_running = true;
+    wxGetApp().plater()->get_ui_job_worker().push(std::move(boolean_job));
+    return true;
+#else
+    (void) object;
+    return false;
 #endif  // USE_ASYNC_BOOLEAN_MODE
 }
 
@@ -3444,6 +4131,10 @@ bool GLGizmoMeshBoolean::get_cur_entity_only() const
 
 void GLGizmoMeshBoolean::apply_color_overrides_for_mode(MeshBooleanOperation mode)
 {
+    // Always flatten volumes into A/B (or working-list) colors while the boolean gizmo is
+    // active, so set membership is visible in the 3D view. "Keep all painting" only controls
+    // whether paint is reprojected onto the boolean result, not the edit-time preview.
+
     // Enable volume color override
     m_parent.set_use_volume_color_override(true);
 

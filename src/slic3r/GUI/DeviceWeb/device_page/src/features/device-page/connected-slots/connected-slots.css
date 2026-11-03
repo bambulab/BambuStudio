@@ -1,0 +1,505 @@
+.cs-page {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  /* Not 100vh: vh is zoomed a second time under useFitHostWidth. 100% relies
+     on html/body/#root all being height: 100%; keep any wrapper around the
+     route at full height too. */
+  min-height: 100%;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--ams-page-bg, #fff);
+  font-family: 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  color: var(--ams-text-strong, #1f1f1f);
+  /* AMS silhouette body / base, mirroring the wx {four,single}_slot_ams_item assets. */
+  --cs-ams-shell: #eeeeee;
+  --cs-ams-base: #cecece;
+}
+
+.cs-page__content {
+  width: 484px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cs-page[data-theme='dark'],
+[data-theme='dark'] .cs-page {
+  --cs-ams-shell: #bfbfbf;
+  --cs-ams-base: #767676;
+}
+
+.cs-page__error {
+  width: 484px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  line-height: 20px;
+  color: #d0021b;
+}
+
+.cs-page__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cs-copy-report {
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--ams-border, #c2c2c2);
+  border-radius: 12px;
+  background: var(--ams-card-text-bg, #fff);
+  color: var(--ams-text-secondary, #5c5c5c);
+  font: inherit;
+  font-size: 12px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.cs-copy-report:hover {
+  background: var(--ams-soft-border, #ebebeb);
+}
+
+/* Default layout: follow content adaptively. */
+.cs-schematic-bar {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 24px;
+  align-items: center;
+  width: 484px;
+}
+
+.cs-schematic-bar > * {
+  justify-self: center;
+}
+
+.cs-hotend-slot-schematic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 104px;
+}
+
+.cs-hotend-slot-schematic__body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 40px;
+  padding: 4px;
+  border-radius: 5px;
+  background: var(--ams-soft-border, #ebebeb);
+  box-sizing: border-box;
+}
+
+.cs-hotend-slot-schematic__grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 4px;
+  background: var(--ams-card-text-bg, #fff);
+}
+
+.cs-hotend-slot-schematic__row {
+  display: flex;
+  gap: 2px;
+}
+
+.cs-hotend-slot-schematic__chip {
+  width: 6px;
+  height: 8px;
+  border-radius: 1px;
+  background: var(--ams-text-disabled, #c2c2c2);
+}
+
+/* The rack position this dialog was opened for. */
+.cs-hotend-slot-schematic__chip--current {
+  background: var(--ams-brand, #00ae42);
+}
+
+.cs-connected-source-schematic {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+  padding: 4px;
+  border-radius: 5px;
+  background: var(--ams-soft-border, #ebebeb);
+  box-sizing: border-box;
+}
+
+.cs-ext-source-item,
+.cs-ams-source-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 60px;
+  height: 32px;
+  padding: 3px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--ams-card-text-bg, #fff);
+  box-sizing: border-box;
+  font: inherit;
+  cursor: pointer;
+}
+
+.cs-ext-source-item--selected,
+.cs-ams-source-item--selected {
+  border: 1px solid var(--ams-brand, #50a90b);
+  border-radius: 5px;
+}
+
+.cs-ext-source-item--empty {
+  opacity: 0.7;
+}
+
+.cs-ext-source-item__bar {
+  width: 5px;
+  height: 10px;
+  border-radius: 30px;
+}
+
+.cs-ext-source-item__label {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ams-text-strong, #1f1f1f);
+}
+
+.cs-ams-source-item__mini {
+  display: block;
+}
+
+.cs-body {
+  position: relative;
+  width: 484px;
+  min-height: 244px;
+}
+
+.cs-boards {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.cs-boards__left,
+.cs-boards__right {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+}
+
+.cs-ams-unit-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--ams-soft-border, #ebebeb);
+  box-sizing: border-box;
+}
+
+.cs-ams-unit-board__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+/* Four-slot-right layout: lock dimensions to the CDP baseline the user gave. */
+.cs-slot-view--fixed-four-slot {
+  --cs-board-gap: 24px;
+  --cs-left-board-width: 104px;
+  --cs-right-board-width: 356px;
+}
+
+.cs-slot-view--fixed-four-slot .cs-schematic-bar {
+  grid-template-columns: var(--cs-left-board-width) var(--cs-right-board-width);
+  column-gap: var(--cs-board-gap);
+  width: calc(var(--cs-left-board-width) + var(--cs-right-board-width) + var(--cs-board-gap));
+}
+
+.cs-slot-view--fixed-four-slot .cs-hotend-slot-schematic {
+  width: var(--cs-left-board-width);
+}
+
+.cs-slot-view--fixed-four-slot .cs-connected-source-schematic {
+  justify-content: flex-start;
+  width: var(--cs-right-board-width);
+}
+
+.cs-slot-view--fixed-four-slot .cs-schematic-bar > .cs-connected-source-schematic {
+  justify-self: start;
+}
+
+.cs-slot-view--fixed-four-slot .cs-body {
+  width: calc(var(--cs-left-board-width) + var(--cs-right-board-width) + var(--cs-board-gap));
+}
+
+.cs-slot-view--fixed-four-slot .cs-boards {
+  display: grid;
+  grid-template-columns: var(--cs-left-board-width) var(--cs-right-board-width);
+  column-gap: var(--cs-board-gap);
+}
+
+.cs-slot-view--fixed-four-slot .cs-boards__left,
+.cs-slot-view--fixed-four-slot .cs-boards__right {
+  flex: 0 0 auto;
+}
+
+.cs-slot-view--fixed-four-slot .cs-ams-unit-board--left {
+  width: var(--cs-left-board-width);
+}
+
+.cs-slot-view--fixed-four-slot .cs-ams-unit-board--right {
+  width: var(--cs-right-board-width);
+}
+
+.cs-slot-view--fixed-four-slot .cs-ams-unit-board__head {
+  min-height: 24px;
+}
+
+.cs-ams-unit-board__name {
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--ams-text-strong, #1f1f1f);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cs-ams-climate-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--ams-border, #c2c2c2);
+  border-radius: 20px;
+  color: var(--ams-text-muted, #a3a3a3);
+  font-size: 12px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.cs-ams-climate-status--interactive {
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.cs-ams-climate-status--interactive:hover,
+.cs-ams-climate-status--interactive:focus-visible {
+  border-color: var(--ams-brand, #00ae42);
+  color: var(--ams-brand, #00ae42);
+}
+
+.cs-ams-climate-status--interactive:focus-visible {
+  outline: 2px solid rgba(0, 174, 66, 0.35);
+  outline: 2px solid color-mix(in srgb, var(--ams-brand, #00ae42) 35%, transparent);
+  outline-offset: 1px;
+}
+
+.cs-ams-climate-status__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.cs-ams-climate-status__icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+}
+
+/* Numbered classic-AMS droplet: needs more room than the 14px plain droplet. */
+.cs-ams-climate-status__icon--level {
+  width: 20px;
+  height: 20px;
+}
+
+.cs-ams-climate-status__icon--drying {
+  background-color: currentColor;
+  -webkit-mask: url('../ams-filament-hotend/assets/ams_drying.svg') center / contain no-repeat;
+  mask: url('../ams-filament-hotend/assets/ams_drying.svg') center / contain no-repeat;
+}
+
+/* Figma 8113:48393: only the sun turns red while drying; the text stays muted. */
+.cs-ams-climate-status__item--drying .cs-ams-climate-status__icon--drying {
+  color: var(--ams-danger, #d95047);
+}
+
+.cs-ams-climate-status__text {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cs-ams-climate-status__split {
+  width: 1px;
+  height: 12px;
+  background: var(--ams-border, #c2c2c2);
+}
+
+.cs-ams-unit-board__trays {
+  display: flex;
+  gap: 4px;
+}
+
+.cs-ams-tray-card {
+  position: relative;
+  width: 80px;
+  height: 105px;
+  padding-top: 4px;
+  border-radius: 4px;
+  background: var(--ams-card-text-bg, #fff);
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Figma 1867:98422 hover cursor: an interactive tray shows the pointing hand,
+   and the ring is drawn as a box-shadow to avoid shifting the 80x105 card box. */
+.cs-ams-tray-card--has-menu {
+  cursor: pointer;
+}
+
+.cs-ams-tray-card--has-menu:hover {
+  box-shadow: 0 0 0 1px var(--ams-brand, #00ae42);
+}
+
+.cs-ams-tray-card .spool {
+  display: block;
+  width: 52px;
+  height: 52px;
+  margin: 14px auto 4px;
+}
+
+.cs-tray-index-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--ams-index-bg, #dbdbdb);
+  font-size: 12px;
+  line-height: 14px;
+}
+
+/* Transport indicator, mirroring the card-head right slot of the filament page.
+   Opposite corner from the index badge so the two never collide. */
+.cs-tray-loading-arc {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+/* This page does not import ams-filament-hotend.css, so the rotation the shared
+   SpoolDisc / LoadingArcIcon rely on has to be declared here as well. */
+.cs-page .spool-loading-rotor {
+  animation: cs-spool-loading-spin 0.8s linear infinite;
+  transform-box: view-box;
+}
+
+@keyframes cs-spool-loading-spin {
+  from {
+    transform: rotate(-90deg);
+  }
+
+  to {
+    transform: rotate(270deg);
+  }
+}
+
+/* Portalled to <body>, so it cannot rely on .cs-page for the theme variables;
+   <html data-theme> feeds the shared --ams-popover-* tokens instead. */
+.cs-tray-context-menu {
+  z-index: 1100;
+  min-width: 101px;
+  width: max-content;
+  padding: 6px 0;
+  border: 1px solid var(--ams-popover-border, #dedede);
+  border-radius: 4px;
+  background: var(--ams-popover-bg, #fff);
+  box-shadow: var(--ams-popover-shadow, 0 2px 8px rgba(0, 0, 0, 0.16));
+  font-family: 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+}
+
+.cs-tray-context-menu button {
+  display: block;
+  width: 100%;
+  height: 24px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--ams-text-strong, #1f1f1f);
+  font-size: 12px;
+  line-height: 24px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cs-tray-context-menu button:hover {
+  background: var(--ams-popover-hover-bg, #f5f5f5);
+}
+
+.cs-tray-filament-label {
+  display: block;
+  padding: 0 4px;
+  overflow: hidden;
+  color: var(--ams-text-secondary, #5c5c5c);
+  font-size: 12px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cs-tray-filament-label--unknown {
+  color: var(--ams-text-strong, #1f1f1f);
+  font-weight: 500;
+}
+
+.cs-hotend-filament-path {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.cs-hotend-filament-path__routes {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Figma 2440:143981 puts the hotend at y 181..229 inside the 244px stage. */
+.cs-hotend-filament-path__nozzle {
+  position: absolute;
+  left: 50%;
+  bottom: 15px;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 48px;
+}
+
+.cs-hotend-filament-path__nozzle .nozzle {
+  display: block;
+  width: 24px;
+  height: 48px;
+}

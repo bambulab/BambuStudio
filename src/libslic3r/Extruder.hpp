@@ -20,7 +20,7 @@ public:
         // BBS
         if (m_share_extruder) {
             m_share_E = { 0.,0.};
-            m_share_retracted = { 0.,0. };
+            m_share_retracted.assign(m_share_retracted.size(), 0.);
         } else {
             m_E             = 0;
             m_retracted     = 0;
@@ -30,9 +30,6 @@ public:
     }
 
     unsigned int id() const { return m_id; }
-
-    NozzleVolumeType volume_type() const;
-    ExtruderType  extruder_type() const;
 
     unsigned int extruder_id() const;
     unsigned int nozzle_id() const;
@@ -55,7 +52,6 @@ public:
     double filament_flow_ratio() const;
     double retract_before_wipe() const;
     double retraction_length() const;
-    double retract_lift() const;
     int    retract_speed() const;
     int    deretract_speed() const;
     double retract_restart_extra() const;
@@ -63,12 +59,19 @@ public:
     double retract_restart_extra_toolchange() const;
 
     bool is_share_extruder() const { return m_share_extruder; }
+    // True when no other filament of the print is mapped to the same hotend.
+    void set_exclusive_nozzle(bool exclusive) { m_exclusive_nozzle = exclusive; }
     double get_single_retracted_length() const { return m_retracted; }
-    double get_share_retracted_length() const { return m_share_retracted[extruder_id()]; }
+    double get_share_retracted_length() const;
 
 private:
     // Private constructor to create a key for a search in std::set.
     Extruder(unsigned int id) : m_id(id) {}
+    const ConfigOptionFloatsNullable *filament_toolchange_override(const ConfigOptionFloatsNullable &opt) const;
+
+    // Slot of m_share_retracted holding the park state of the filament path this filament belongs to.
+    unsigned int retracted_slot_id() const;
+    static double& share_retracted(unsigned int slot);
 
     // Reference to GCodeWriter instance owned by GCodeWriter.
     GCodeConfig *m_config;
@@ -87,6 +90,7 @@ private:
     // BBS.
     // Create shared E and retraction data for single extruder multi-material machine
     bool          m_share_extruder;
+    bool          m_exclusive_nozzle { false };
     static std::vector<double> m_share_E;
     static std::vector<double> m_share_retracted;
 };

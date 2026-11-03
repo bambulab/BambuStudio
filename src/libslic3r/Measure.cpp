@@ -6,6 +6,7 @@
 #include "Measure.hpp"
 #include "MeasureUtils.hpp"
 
+#include "libslic3r/Geometry.hpp"
 #include "libslic3r/Geometry/Circle.hpp"
 #include "libslic3r/SurfaceMesh.hpp"
 
@@ -1397,10 +1398,8 @@ void SurfaceFeature::translate(const Transform3d &tran)
     }
     case Measure::SurfaceFeatureType::Plane: {
         // m_pt1 is normal;
-        Vec3d temp_pt1 = m_pt2 + m_pt1;
-        temp_pt1       = tran * temp_pt1;
-        m_pt2          = tran * m_pt2;
-        m_pt1          = (temp_pt1 - m_pt2).normalized();
+        m_pt2 = tran * m_pt2;
+        m_pt1 = Geometry::transform_normal(tran, m_pt1);
         break;
     }
     case Measure::SurfaceFeatureType::Circle: {
@@ -1408,11 +1407,9 @@ void SurfaceFeature::translate(const Transform3d &tran)
         // m_pt2 is normal;
         auto  local_normal = m_pt2;
         auto  local_center = m_pt1;
-        Vec3d temp_pt2     = local_normal + local_center;
-        temp_pt2       = tran * temp_pt2;
         m_pt1          = tran * m_pt1;
         auto world_center   = m_pt1;
-        m_pt2          = (temp_pt2 - m_pt1).normalized();
+        m_pt2          = Geometry::transform_normal(tran, local_normal);
 
         auto calc_world_radius = [&local_center, &local_normal, &tran, &world_center](const Vec3d &pt, double &value) {
             Vec3d intersection_pt;

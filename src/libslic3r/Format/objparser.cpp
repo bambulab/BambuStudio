@@ -1,12 +1,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 
 #include "objparser.hpp"
 
 #include "libslic3r/LocalesUtils.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace ObjParser {
 #define EATWS()  while (*line == ' ' || *line == '\t') ++line

@@ -106,7 +106,7 @@ struct PrinterCaliInfo
 {
     std::string                 dev_id;
     bool                        cali_finished = true;
-    float                       cache_flow_ratio;
+    float                       cache_flow_ratio{0.f};
     std::vector<CaliPresetInfo> selected_presets;
     FlowRatioCalibrationType    cache_flow_rate_calibration_type = FlowRatioCalibrationType::COMPLETE_CALIBRATION;
 };

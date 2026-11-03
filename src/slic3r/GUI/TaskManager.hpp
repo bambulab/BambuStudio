@@ -5,7 +5,7 @@
 #include "slic3r/Utils/NetworkAgent.hpp"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 
 namespace Slic3r { 

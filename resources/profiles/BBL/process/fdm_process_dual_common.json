@@ -253,5 +253,16 @@
         "80%"
     ],
     "monotonic_travel_into_wall": "45.0",
-    "z_direction_outwall_speed_continuous": "1"
+    "z_direction_outwall_speed_continuous": "1",
+    "prime_tower_flat_ironing": "1",
+    "prime_tower_line_ironing": "1",
+    "prime_tower_ironing_speed": "10",
+    "prime_tower_side_scrape": "0",
+    "prime_tower_side_scrape_face": "front_back",
+    "prime_tower_side_scrape_length": "2",
+    "prime_tower_side_scrape_height": "1.5",
+    "prime_tower_side_scrape_speed": "1400",
+    "prime_tower_side_scrape_wall_gap": "0.2",
+    "prime_tower_side_scrape_point_spacing": "1",
+    "prime_tower_side_scrape_along_length": "2"
 }

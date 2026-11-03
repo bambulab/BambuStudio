@@ -36,14 +36,24 @@ public:
 
     bool SupportPrintWithoutSD() const { return m_support_print_without_sd; }
     bool SupportPrintAllPlates() const { return m_support_print_all; }
+    bool SupportFdmCutModeCompat() const { return m_support_fdm_cut_mode_compat; }
+
+    // filament
+    bool SupportFilamentRemainEdit() const { return m_support_filament_remain_edit; }
+    bool SupportFilamentRemainEditRfid() const { return m_support_filament_remain_edit_rfid; }
 
     // calibration options
     bool SupportCalibrationLidar() const { return m_support_calibration_lidar; }
     bool SupportCalibrationNozzleOffset() const { return m_support_calibration_nozzle_offset; }
     bool SupportCalibrationHighTempBed() const { return m_support_calibration_high_temp_bed; }
+    bool SupportCalibrationHighTempBedUnloadTips() const { return m_support_calibration_high_temp_bed_unload_tips; }
     bool SupportCaliClumpPos() const { return m_support_calibration_clump_pos; }
 
     bool SupportCalibrationPA_FlowAuto() const { return m_support_calibration_pa_flow_auto; }
+
+    bool SupportNozzlePosToNozzleAddr() const { return m_support_nozzle_pos_to_nozzle_addr; }
+
+    bool SupportMultiDiameterCalibration() const { return m_support_multi_diameter_calibration; }
 
 public:
     /*Setters*/
@@ -72,14 +82,20 @@ private:
 
     bool m_support_print_without_sd = false;
     bool m_support_print_all = false;
+    bool m_support_fdm_cut_mode_compat = false;
+    bool m_support_filament_remain_edit = false;
+    bool m_support_filament_remain_edit_rfid = false;
 
     // calibration options
     bool m_support_calibration_lidar = false;
     bool m_support_calibration_nozzle_offset = false;
     bool m_support_calibration_high_temp_bed = false; // High-temperature Heatbed Calibration
+    bool m_support_calibration_high_temp_bed_unload_tips = false; // Prompt to unload filament before high-temperature heatbed calibration
     bool m_support_calibration_clump_pos     = false; // clump position calibration
 
     bool m_support_calibration_pa_flow_auto = false;// PA flow calibration. used in SendPrint
+    bool m_support_nozzle_pos_to_nozzle_addr = false;// map firmware nozzle_pos (0/1) to rack address on rack machines
+    bool m_support_multi_diameter_calibration = false;// mixed nozzle diameters allowed within one flow calibration run
 };
 
 };

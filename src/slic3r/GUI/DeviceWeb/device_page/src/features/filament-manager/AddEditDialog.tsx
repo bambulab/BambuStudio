@@ -72,10 +72,22 @@ function hasCloudRfid(tagUid: string): boolean {
   return tagUid.length > 0 && /[^0]/.test(tagUid);
 }
 
-// STUDIO-18344: resolve a `${ams_id}:${slot_id}` key against the latest AMS
-// snapshot. Returns null when either the unit or the slot has disappeared
-// since the user clicked (filament physically pulled, etc.) so callers can
-// drop stale keys without crashing on a missing `.tray` access.
+const EXT_UNIT_ID = '__ext__';
+
+function getSourceUnits(amsData: AmsData | null): AmsUnit[] {
+  if (!amsData) return [];
+  if (amsData.is_rack && amsData.ext_slots.length > 0) {
+    return [
+      ...amsData.ams_units,
+      { ams_id: EXT_UNIT_ID, ams_type: 0, trays: amsData.ext_slots },
+    ];
+  }
+  return amsData.ams_units;
+}
+
+const slotKeyOf = (unit: AmsUnit, tray: AmsTray): string =>
+  `${tray.ams_id ?? unit.ams_id}:${tray.slot_id}`;
+
 function lookupSelectedSlot(
   amsData: AmsData | null,
   key: string,
@@ -83,11 +95,13 @@ function lookupSelectedSlot(
   if (!amsData || !key) return null;
   const [amsId, slotId] = key.split(':');
   if (!amsId || !slotId) return null;
-  const unit = amsData.ams_units.find((u) => u.ams_id === amsId);
-  if (!unit) return null;
-  const tray = unit.trays.find((t) => t.slot_id === slotId);
-  if (!tray) return null;
-  return { ams_id: amsId, slot_id: slotId, tray };
+  for (const unit of getSourceUnits(amsData)) {
+    const tray = unit.trays.find(
+      (t) => (t.ams_id ?? unit.ams_id) === amsId && t.slot_id === slotId,
+    );
+    if (tray) return { ams_id: amsId, slot_id: slotId, tray };
+  }
+  return null;
 }
 
 // STUDIO-17958: `<input type="number">` controlled by a numeric React state
@@ -1125,10 +1139,10 @@ export function AddEditDialog({
       // batch result is stable and matches the visual order of the grid;
       // skip any selected key whose tray has since disappeared so a stale
       // selection cannot poison the wire payload.
-      for (const unit of amsData?.ams_units || []) {
+      for (const unit of getSourceUnits(amsData)) {
         for (const tray of unit.trays) {
           if (!tray.is_exists) continue;
-          const key = `${unit.ams_id}:${tray.slot_id}`;
+          const key = slotKeyOf(unit, tray);
           if (!selectedSlotKeys.has(key)) continue;
           built.push(buildSpoolFromTray({ tray, unit, devId, presets, spools }));
         }
@@ -1612,10 +1626,8 @@ export function AddEditDialog({
         if (cur.size > 0) {
           const next = new Set<string>();
           for (const key of cur) {
-            const [amsId, slotId] = key.split(':');
-            const unit = data.ams_units.find((u) => u.ams_id === amsId);
-            const tray = unit?.trays.find((tr) => tr.slot_id === slotId);
-            if (tray && tray.is_exists) next.add(key);
+            const found = lookupSelectedSlot(data, key);
+            if (found && found.tray.is_exists) next.add(key);
           }
           if (next.size !== cur.size) {
             setSelectedSlotKeys(next);
@@ -1676,7 +1688,7 @@ export function AddEditDialog({
   // path can all reuse the same setBrand / setMaterialType / setColor /
   // setWeights logic without going through the Set toggle helper.
   const seedFormFromTray = (unit: AmsUnit, tray: AmsTray) => {
-    lastSeededSlotKeyRef.current = `${unit.ams_id}:${tray.slot_id}`;
+    lastSeededSlotKeyRef.current = slotKeyOf(unit, tray);
     // Tell the fila_id reconcile effect: the next fila_id transition is
     // driven by us (we're about to setBrand/setMaterialType/setSeries based
     // on the tray's setting_id), not by a user-initiated brand switch.
@@ -1842,11 +1854,13 @@ export function AddEditDialog({
   const resolveSlotByKey = (key: string): { unit: AmsUnit; tray: AmsTray } | null => {
     if (!amsData || !key) return null;
     const [amsId, slotId] = key.split(':');
-    const unit = amsData.ams_units.find((u) => u.ams_id === amsId);
-    if (!unit) return null;
-    const tray = unit.trays.find((t) => t.slot_id === slotId);
-    if (!tray) return null;
-    return { unit, tray };
+    for (const unit of getSourceUnits(amsData)) {
+      const tray = unit.trays.find(
+        (t) => (t.ams_id ?? unit.ams_id) === amsId && t.slot_id === slotId,
+      );
+      if (tray) return { unit, tray };
+    }
+    return null;
   };
 
   // STUDIO-18344: per-slot toggle handler for the multi-select grid.
@@ -1858,7 +1872,7 @@ export function AddEditDialog({
   //               pre-multi-select behaviour.
   //   - size N  -> form is hidden, no seeding required.
   const toggleSlotSelection = (unit: AmsUnit, tray: AmsTray) => {
-    const key = `${unit.ams_id}:${tray.slot_id}`;
+    const key = slotKeyOf(unit, tray);
     const next = new Set(selectedSlotKeys);
     if (next.has(key)) {
       next.delete(key);
@@ -1891,7 +1905,8 @@ export function AddEditDialog({
   const selectAllDetected = (unit: AmsUnit) => {
     const next = new Set(selectedSlotKeys);
     for (const tray of unit.trays) {
-      if (tray.is_exists) next.add(`${unit.ams_id}:${tray.slot_id}`);
+      // Unrecognized slots are not selectable (like empty slots), so skip them.
+      if (tray.is_exists && !tray.is_unknown) next.add(slotKeyOf(unit, tray));
     }
     setSelectedSlotKeys(next);
     // Reseed the form if the resulting set collapses back to a single
@@ -1944,7 +1959,8 @@ export function AddEditDialog({
 
   if (!open) return null;
 
-  const currentUnit = amsData?.ams_units.find((u) => u.ams_id === selectedUnit);
+  const sourceUnits = getSourceUnits(amsData);
+  const currentUnit = sourceUnits.find((u) => u.ams_id === selectedUnit);
   // STUDIO-18344: form lock + form visibility derive from the new selection
   // model. Multi-select (>=2) hides the form entirely, so the lock flags
   // only matter in single-select mode.
@@ -2088,22 +2104,29 @@ export function AddEditDialog({
               <div data-testid="ams-grid" className="flex flex-col gap-[4px]">
                 <div className="flex items-center gap-[12px]">
                   <div className="flex flex-1 gap-[12px] items-center justify-end min-w-0">
-                    {amsData?.ams_units.map((u) => (
+                    {sourceUnits.map((u) => {
+                      const isExtUnit = u.ams_id === EXT_UNIT_ID;
+                      return (
                       <button
                         key={u.ams_id}
                         type="button"
-                        data-testid={`ams-unit-${u.ams_id}`}
+                        data-testid={isExtUnit ? 'ams-unit-ext' : `ams-unit-${u.ams_id}`}
                         data-active={u.ams_id === selectedUnit ? 'true' : 'false'}
                         className={`rounded-[4px] border bg-transparent cursor-pointer flex items-center p-[4px] transition-colors duration-150 hover:border-fm-text-secondary ${u.ams_id === selectedUnit ? 'border-fm-brand' : 'border-fm-border-focus'}`}
-                        title={`AMS ${parseInt(u.ams_id, 10) + 1}`}
+                        title={isExtUnit ? t('Virtual Slot') : (u.display_name || `AMS ${parseInt(u.ams_id, 10) + 1}`)}
                         // STUDIO-18344: switching AMS unit keeps the
                         // selected slots across units (per the ticket UX
                         // confirmation). Only handleDeviceChange clears.
                         onClick={() => setSelectedUnit(u.ams_id)}
                       >
-                        <AmsUnitIcon unit={u} isActive={u.ams_id === selectedUnit} />
+                        {isExtUnit
+                          ? <VirtualSlotIcon />
+                          : (u.ams_type === 6 || u.ams_type === 7)   // ZMULTI_A/B = rack built-in AMS
+                            ? <BuiltinAmsIcon />
+                            : <AmsUnitIcon unit={u} isActive={u.ams_id === selectedUnit} />}
                       </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
                 {currentUnit && (
@@ -2127,7 +2150,7 @@ export function AddEditDialog({
                         type="button"
                         data-testid="ams-select-all"
                         className="bg-transparent border-none p-0 text-[11px] leading-[16px] text-fm-text-secondary hover:text-fm-text-strong cursor-pointer disabled:opacity-40 disabled:cursor-default"
-                        disabled={!currentUnit.trays.some((tr) => tr.is_exists)}
+                        disabled={!currentUnit.trays.some((tr) => tr.is_exists && !tr.is_unknown)}
                         onClick={() => selectAllDetected(currentUnit)}
                       >
                         {t('Select all detected')}
@@ -2143,14 +2166,18 @@ export function AddEditDialog({
                       </button>
                     </div>
                   </div>
-                  <div className="flex gap-[8px] py-[8px]">
+                  <div className="grid grid-cols-4 gap-[8px] py-[8px]">
                     {currentUnit.trays.map((tray, i) => {
-                      const label = tray.tray_label || `${String.fromCharCode(65 + Math.floor(i / 4))}${(i % 4) + 1}`;
-                      const slotKey = `${currentUnit.ams_id}:${tray.slot_id}`;
+                      const baseLabel = tray.display_index != null
+                        ? String(tray.display_index)
+                        : tray.tray_label || `${String.fromCharCode(65 + Math.floor(i / 4))}${(i % 4) + 1}`;
+                      const label = tray.is_external_spool ? `${baseLabel}(${t('Ext')})` : baseLabel;
+                      const slotKey = slotKeyOf(currentUnit, tray);
+                      const slotTestId = `ams-slot-${tray.ams_id ?? currentUnit.ams_id}-${tray.slot_id}`;
                       const isSelected = selectedSlotKeys.has(slotKey);
                       if (!tray.is_exists) {
                         return (
-                          <div key={label} data-testid={`ams-slot-${currentUnit.ams_id}-${tray.slot_id}`} data-empty="true" className="flex-1 flex flex-col rounded-[6px] border border-fm-border-focus cursor-default opacity-30 transition-all duration-150 overflow-hidden">
+                          <div key={slotKey} data-testid={slotTestId} data-empty="true" className="flex flex-col rounded-[6px] border border-fm-border-focus cursor-default opacity-30 transition-all duration-150 overflow-hidden">
                             <div className="fm-slot-header-bg text-center py-[2px] text-[11px] leading-[16px] bg-[var(--color-fm-slot-header)] text-[var(--color-fm-slot-header-text)] rounded-t-[6px]">{label}</div>
                             <div className="flex gap-[4px] items-center p-[4px]">
                             <div className="size-[40px] shrink-0 flex items-center justify-center">
@@ -2165,21 +2192,23 @@ export function AddEditDialog({
                       }
                       return (
                         <div
-                          key={label}
-                          data-testid={`ams-slot-${currentUnit.ams_id}-${tray.slot_id}`}
+                          key={slotKey}
+                          data-testid={slotTestId}
                           data-empty="false"
                           data-selected={isSelected ? 'true' : 'false'}
                           data-color={tray.color}
                           data-color-type={tray.color_type}
                           data-colors={(tray.colors || []).join(',')}
-                          className={`relative flex-1 flex flex-col rounded-[6px] border cursor-pointer transition-all duration-150 overflow-hidden hover:border-fm-text-secondary ${isSelected ? 'border-fm-brand' : 'border-fm-border-focus'}`}
-                          onClick={() => toggleSlotSelection(currentUnit, tray)}
+                          className={`relative flex flex-col rounded-[6px] border transition-all duration-150 overflow-hidden ${tray.is_unknown ? 'cursor-default opacity-30 border-fm-border-focus' : `cursor-pointer hover:border-fm-text-secondary ${isSelected ? 'border-fm-brand' : 'border-fm-border-focus'}`}`}
+                          onClick={tray.is_unknown ? undefined : () => toggleSlotSelection(currentUnit, tray)}
                         >
                           {/* STUDIO-18344: corner checkbox surfaces the
                               multi-select affordance. Always rendered
                               (also on size 1) so users discover the
                               capability without needing to click a
-                              second slot first. */}
+                              second slot first. Unrecognized slots are not
+                              selectable (like empty slots), so no checkbox. */}
+                          {!tray.is_unknown && (
                           <span
                             data-testid="ams-slot-checkbox"
                             data-checked={isSelected ? 'true' : 'false'}
@@ -2188,32 +2217,36 @@ export function AddEditDialog({
                           >
                             <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5.2 4.2 7.4 8.5 2.8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                           </span>
+                          )}
                           <div className={`fm-slot-header-bg text-center py-[2px] text-[11px] leading-[16px] bg-[var(--color-fm-slot-header)] text-[var(--color-fm-slot-header-text)] rounded-t-[6px] ${isSelected ? '!bg-fm-brand !text-white' : ''}`}>{label}</div>
                           <div className="flex gap-[4px] items-center p-[4px]">
                             <div className="size-[40px] shrink-0 flex items-center justify-center">
-                              <SpoolColorChip colorCode={tray.color} colors={tray.colors} colorType={tray.color_type} size={32} />
+                              <SpoolColorChip unknown={tray.is_unknown} colorCode={tray.color} colors={tray.colors} colorType={tray.color_type} size={32} />
                             </div>
                             <div className="flex-1 flex flex-col gap-[4px] min-w-0">
-                              <div className="text-[12px] leading-[19px] text-fm-text-primary flex items-center gap-[4px] truncate">
-                                <SpoolColorChip
-                                  colorCode={tray.color}
-                                  colors={tray.colors}
-                                  colorType={tray.color_type}
-                                  size={14}
-                                  radius={3}
-                                />
-                                {tray.fila_type || '—'}
-                              </div>
-                              {/* Show the *remaining* net weight in each
-                                  slot card (initial_net * remain%) so the
-                                  user sees the live AMS reading, not the
-                                  spool's brand-new / factory value. */}
-                              <div className="text-[12px] leading-[19px] text-fm-text-secondary">
-                                {(() => {
-                                  const cur = getTrayCurrentNetWeight(tray);
-                                  return cur > 0 ? `${cur}g` : '—';
-                                })()}
-                              </div>
+                              {tray.is_unknown ? (
+                                // Unrecognized (问号料): show only the "Unrecognized"
+                                // label (no type / weight line), matching the spec.
+                                <div className="text-[12px] leading-[19px] text-fm-text-primary truncate">
+                                  {t('Unrecognized')}
+                                </div>
+                              ) : (
+                                <>
+                                  <div className="text-[12px] leading-[19px] text-fm-text-primary flex items-center gap-[4px] truncate">
+                                    {tray.fila_type || '—'}
+                                  </div>
+                                  {/* Show the *remaining* net weight in each
+                                      slot card (initial_net * remain%) so the
+                                      user sees the live AMS reading, not the
+                                      spool's brand-new / factory value. */}
+                                  <div className="text-[12px] leading-[19px] text-fm-text-secondary">
+                                    {(() => {
+                                      const cur = getTrayCurrentNetWeight(tray);
+                                      return cur > 0 ? `${cur}g` : '—';
+                                    })()}
+                                  </div>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -2739,6 +2772,35 @@ function AmsUnitIcon({ unit, isActive }: { unit: AmsUnit; isActive: boolean }) {
       <rect x="11" y="3" width="6" height="6" rx="1" fill={colors[1]} />
       <rect x="3" y="11" width="6" height="6" rx="1" fill={colors[2]} />
       <rect x="11" y="11" width="6" height="6" rx="1" fill={colors[3]} />
+    </svg>
+  );
+}
+
+function BuiltinAmsIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0.5" y="0.5" width="31" height="31" rx="3.5" stroke="currentColor" strokeOpacity="0.16" />
+      <g clipPath="url(#clip_builtin_ams)">
+        <path d="M13.346 25.1037C13.6593 25.1037 13.9599 25.2298 14.1796 25.4532L15.6815 26.9818C15.885 27.1887 16.2184 27.1911 16.4257 26.988L18.0078 25.4378C18.2262 25.2238 18.5202 25.1037 18.826 25.1037H27.0117C27.3022 25.1037 27.5378 25.3395 27.538 25.63C27.538 25.9207 27.3023 26.1563 27.0117 26.1563H18.826C18.7956 26.1563 18.7665 26.169 18.7448 26.1903L17.1617 27.7404C16.5395 28.3498 15.5416 28.34 14.9311 27.7188L13.4292 26.1913C13.4074 26.1691 13.3771 26.1563 13.346 26.1563H4.98042C4.68974 26.1563 4.4541 25.9207 4.4541 25.63C4.45426 25.3395 4.68984 25.1037 4.98042 25.1037H13.346ZM8.6708 21.327C8.80424 21.0689 9.12189 20.9675 9.38009 21.1008L11.583 22.2388C11.8413 22.3722 11.9425 22.6898 11.8092 22.9481C11.6758 23.2063 11.3581 23.3076 11.0999 23.1742L8.89695 22.0363C8.63868 21.9029 8.53741 21.5852 8.6708 21.327ZM22.9523 21.0227C23.2104 20.8896 23.5271 20.9908 23.6605 21.2488C23.7939 21.5071 23.6926 21.8248 23.4344 21.9581L21.2314 23.0961C20.9732 23.2292 20.6555 23.1281 20.5222 22.8699C20.3888 22.6118 20.4903 22.2941 20.7483 22.1607L22.9523 21.0227ZM10.4749 17.8432C10.7074 17.6688 11.0375 17.7155 11.2119 17.9481L12.8638 20.151C13.0382 20.3835 12.9914 20.7136 12.759 20.888C12.5265 21.0624 12.1964 21.0156 12.0219 20.7832L10.37 18.5792C10.1957 18.3468 10.2425 18.0176 10.4749 17.8432ZM21.1194 17.8699C21.2937 17.6375 21.6239 17.59 21.8564 17.7641C22.0889 17.9384 22.1365 18.2686 21.9623 18.5011L20.3094 20.704C20.135 20.9366 19.8049 20.9843 19.5723 20.8099C19.34 20.6355 19.2931 20.3053 19.4675 20.0729L21.1194 17.8699Z" fill="currentColor" fillOpacity="0.6" />
+        <path d="M23.3252 3.80957C24.4879 3.8096 25.4307 4.75235 25.4307 5.91504V7.94336C25.4306 9.10602 24.4879 10.0488 23.3252 10.0488H18.4834C18.4397 10.0489 18.4025 10.0817 18.3965 10.125L17.9756 13.1504C17.4474 12.7527 16.7922 12.5147 16.0801 12.5146C15.2559 12.5146 14.5076 12.8325 13.9453 13.3496L13.3848 10.1221C13.3775 10.0801 13.3405 10.0489 13.2979 10.0488H8.6377C7.47501 10.0488 6.53225 9.10604 6.53223 7.94336V5.91504C6.53223 4.75233 7.47499 3.80957 8.6377 3.80957H23.3252Z" fill="currentColor" fillOpacity="0.2" />
+        <path d="M23.333 3.78906C24.4968 3.78748 25.4414 4.73074 25.4414 5.89453V7.92676C25.4413 9.08635 24.5033 10.0279 23.3438 10.0322L18.4873 10.0498C18.4435 10.0501 18.4071 10.0825 18.4014 10.126L18 13.1689C17.7048 12.9422 17.3703 12.764 17.0059 12.6523L17.3574 9.98828C17.4319 9.42263 17.9129 8.9993 18.4834 8.99707L23.3398 8.97949C23.9196 8.97736 24.3886 8.50651 24.3887 7.92676V5.89453C24.3886 5.3128 23.9166 4.84124 23.335 4.8418L8.63574 4.86231C8.05512 4.86329 7.58496 5.33437 7.58496 5.91504V7.94629C7.58517 8.52747 8.05647 8.99903 8.6377 8.99903H13.3008C13.8531 8.99905 14.3266 9.39475 14.4238 9.93848L14.9229 12.7334C14.565 12.8744 14.241 13.0809 13.9609 13.335L13.3877 10.124C13.3802 10.0822 13.3432 10.0518 13.3008 10.0518H8.6377C7.47512 10.0518 6.53243 9.10882 6.53223 7.94629V5.91504C6.53223 4.75348 7.4732 3.81118 8.63477 3.80957L23.333 3.78906Z" fill="currentColor" fillOpacity="0.4" />
+        <rect x="13.9775" y="13.5674" width="4.21053" height="10.5263" rx="2.10526" fill="#999999" />
+      </g>
+      <defs>
+        <clipPath id="clip_builtin_ams">
+          <rect width="25.2632" height="25.2632" fill="white" transform="translate(3.36816 3.36816)" />
+        </clipPath>
+      </defs>
+    </svg>
+  );
+}
+
+function VirtualSlotIcon() {
+  return (
+    <svg width="13.75" height="20" viewBox="0 0 22 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0.526316" y="0.526316" width="20.4211" height="30.9474" rx="2.84211" stroke="currentColor" strokeOpacity="0.16" strokeWidth="1.05263" />
+      <path d="M5.47266 3.63086C5.90853 3.63086 6.2615 3.9841 6.26172 4.41992V15.209H7.57812V16.7881H6.26172V27.5781C6.26155 28.014 5.90857 28.3672 5.47266 28.3672C5.03693 28.367 4.68376 28.0139 4.68359 27.5781V4.41992C4.68382 3.98423 5.03697 3.63108 5.47266 3.63086ZM15.999 3.63086C16.4349 3.63089 16.7879 3.98411 16.7881 4.41992V27.5781C16.7879 28.014 16.4349 28.3672 15.999 28.3672C15.5633 28.367 15.2101 28.0139 15.21 27.5781V16.7881H13.8945V15.209H15.21V4.41992C15.2102 3.98423 15.5633 3.63108 15.999 3.63086Z" fill="currentColor" fillOpacity="0.4" />
+      <path d="M8.63086 11.7889C8.63086 10.6261 9.57342 9.68359 10.7361 9.68359C11.8988 9.68359 12.8414 10.6262 12.8414 11.7889V20.2099C12.8414 21.3726 11.8988 22.3152 10.7361 22.3152C9.57342 22.3152 8.63086 21.3726 8.63086 20.2099V11.7889Z" fill="#E5B815" />
     </svg>
   );
 }

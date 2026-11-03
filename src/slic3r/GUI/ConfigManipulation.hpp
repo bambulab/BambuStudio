@@ -78,6 +78,7 @@ public:
     void    check_nozzle_recommended_temperature_range(DynamicPrintConfig *config);
     void    check_nozzle_temperature_range(DynamicPrintConfig* config);
     void    check_nozzle_temperature_initial_layer_range(DynamicPrintConfig* config);
+    void    check_tower_interface_print_temp(DynamicPrintConfig* config, int variant_idx);
     void    check_filament_max_volumetric_speed(DynamicPrintConfig *config);
     void    check_filament_scarf_setting(DynamicPrintConfig *config);
     //BBS: keep the painted top/bottom color inside the solid shell, out of the sparse infill
@@ -92,10 +93,6 @@ public:
 private:
     bool get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high);
 };
-
-// 根据支撑材料和主体材料，构建推荐配置到 DynamicPrintConfig
-// 返回是否有推荐参数
-bool build_support_recommended_config(const std::string& support_material, const std::string& model_material, DynamicPrintConfig& out_config);
 
 // 根据用户已选择的支撑料和模型主体料，查询是否有推荐参数
 // support_filament_index: 用户选择的支撑料索引 (0-based)

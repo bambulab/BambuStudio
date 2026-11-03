@@ -21,7 +21,6 @@
 #include <wx/arrstr.h>
 #include <wx/tglbtn.h>
 
-#include <boost/log/trivial.hpp>
 #include <boost/system/error_code.hpp>
 
 #include <wx/base64.h>
@@ -40,6 +39,7 @@
 #include <stdexcept>
 #include <set>
 #include <cwctype>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -65,7 +65,7 @@ ProjectPanel::ProjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 
     m_browser = WebView::CreateWebView(this, m_project_home_url, "Project");
     if (m_browser == nullptr) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("load web view of project page failed");
+        BOOST_LOG_TRIVIAL(info) << boost::format("load web view of project page failed");
         return;
     }
     //m_browser->Hide();
@@ -94,7 +94,7 @@ std::string trim(const std::string &str, const std::string &charsToTrim)
  */
 void ProjectPanel::OnNewWindow(wxWebViewEvent &evt)
 {
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
+    BOOST_LOG_TRIVIAL(trace) << evt.GetURL().ToUTF8().data();
     wxString flag = " (other)";
 
     if (evt.GetNavigationAction() == wxWEBVIEW_NAV_ACTION_USER) { flag = " (user)"; }
@@ -182,6 +182,7 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
             }
         }
         catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
 
@@ -274,6 +275,7 @@ std::string ProjectPanel::get_model_id(std::string desgin_id)
             }
         }
         catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
             })
@@ -566,6 +568,7 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
                     try {
                         return wxGetApp().url_decode(out);
                     } catch (...) {
+                        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                         return out;
                     }
                 };
@@ -834,6 +837,7 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
 
     }
     catch (std::exception& /*e*/) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         // wxMessageBox(e.what(), "json Exception", MB_OK);
     }
 }
