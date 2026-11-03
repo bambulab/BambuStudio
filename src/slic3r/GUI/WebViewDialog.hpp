@@ -28,10 +28,13 @@
 
 #include <chrono>
 #include <cstdint>
+#include <memory>
+#include <vector>
 
 namespace Slic3r {
 
 class NetworkAgent;
+class Http;
 
 namespace GUI {
 
@@ -179,6 +182,11 @@ public:
 
     void update_mode();
 private:
+    // These requests queue callbacks on this panel. Join them while the panel
+    // is still alive; wxEvtHandler then discards its pending callbacks on teardown.
+    std::vector<std::shared_ptr<Http>> m_http_requests;
+    void perform_http_request(Http &request);
+
     std::string m_Region;
 
     wxBoxSizer *topsizer { nullptr };

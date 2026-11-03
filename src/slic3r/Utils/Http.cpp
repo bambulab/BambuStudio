@@ -1,6 +1,7 @@
 #include "Http.hpp"
 
 #include <cstdlib>
+#include <atomic>
 #include <functional>
 #include <thread>
 #include <deque>
@@ -109,7 +110,8 @@ struct Http::priv
 	std::string error_buffer;    // Used for CURLOPT_ERRORBUFFER
     std::string headers;
 	size_t limit;
-	bool cancel;
+	std::atomic<bool> cancel;
+	std::atomic<bool> finished{false};
 
 	std::thread io_thread;
 	Http::CompleteFn completefn;
@@ -682,6 +684,7 @@ Http::Ptr Http::perform()
 	if (self->p) {
 		auto io_thread = std::thread([self](){
 				self->p->http_perform();
+				self->p->finished = true;
 			});
 		self->p->io_thread = std::move(io_thread);
 	}
@@ -697,6 +700,17 @@ void Http::perform_sync()
 void Http::cancel()
 {
 	if (p) { p->cancel = true; }
+}
+
+void Http::wait()
+{
+	if (p && p->io_thread.joinable())
+		p->io_thread.join();
+}
+
+bool Http::is_finished() const
+{
+	return p && p->finished.load();
 }
 
 Http Http::get(std::string url)

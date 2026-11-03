@@ -804,6 +804,11 @@ endif ()
 target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi
     ${HPDF_LIBRARY}
     ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
+
+# Public GUI headers (including HelioDragon.hpp) expose wxWidgets types. The
+# directory-scoped wxWidgets_USE_FILE settings do not reach sibling consumers.
+target_include_directories(libslic3r_gui SYSTEM PUBLIC ${wxWidgets_INCLUDE_DIRS})
+target_compile_definitions(libslic3r_gui PUBLIC ${wxWidgets_DEFINITIONS})
 #target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
 
 if (MSVC)
