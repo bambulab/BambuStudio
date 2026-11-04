@@ -1,3 +1,4 @@
+#include <cstring>
 #include <stdlib.h>
 #include <string.h>
 
