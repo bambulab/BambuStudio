@@ -57,7 +57,7 @@ $(document).ready(function() {
     // Populate Vendor Dropdown
     function renderVendors() {
         let html = '';
-        const allVendors = FilamentVendorNames.unique(VENDOR_LIST.concat(customVendors));
+        const allVendors = VENDOR_LIST.concat(customVendors);
         
         // System vendors
         html += '<div class="dropdown-category">System</div>';
@@ -68,7 +68,7 @@ $(document).ready(function() {
         // Custom vendors
         html += '<div class="dropdown-category">Customized</div>';
         if (customVendors.length > 0) {
-            allVendors.filter(v => !VENDOR_LIST.some(known => FilamentVendorNames.same(known, v))).forEach(v => {
+            customVendors.forEach(v => {
                 html += `<div class="dropdown-item" data-val="${v}">${v}</div>`;
             });
         } else {
@@ -145,7 +145,8 @@ $(document).ready(function() {
         }
         
         // Case-insensitive check for duplicates
-        const isDuplicate = VENDOR_LIST.concat(customVendors).some(v => FilamentVendorNames.same(v, val));
+        const valLower = val.toLowerCase();
+        const isDuplicate = VENDOR_LIST.concat(customVendors).some(v => v.toLowerCase() === valLower);
         
         if (isDuplicate) {
             errorEl.text('不支持重复的命名').removeClass('hidden');
