@@ -55,6 +55,7 @@ static const char *ViewNameForMode(DeviceWebHostMode mode)
     case DeviceWebHostMode::DevicePageAutoRefillRefillInfo: return "AutoRefillRefillInfo";
     case DeviceWebHostMode::DevicePageConnectedSlots: return "ConnectedSlots";
     case DeviceWebHostMode::DevicePageControlPanel: return "ControlPanel";
+    case DeviceWebHostMode::DevicePageFilamentLoad: return "FilamentLoad";
     case DeviceWebHostMode::DevicePageHotendRack: return "HotendRack";
     case DeviceWebHostMode::PrintQueue: return "PrintQueue";
     case DeviceWebHostMode::AllForDebug: return "DeviceWebDebug";
@@ -192,6 +193,9 @@ void DeviceWebHost::EnsureBuilt()
         }
         if (m_mode == DeviceWebHostMode::DevicePageControlPanel || m_mode == DeviceWebHostMode::AllForDebug) {
             m_device_web_mgr->Register(std::make_unique<DevicePageControlPanelVM>());
+        }
+        if (m_mode == DeviceWebHostMode::DevicePageFilamentLoad || m_mode == DeviceWebHostMode::AllForDebug) {
+            m_device_web_mgr->Register(std::make_unique<DevicePageFilamentLoadVM>());
         }
         if (m_mode == DeviceWebHostMode::DevicePageHotendRack || m_mode == DeviceWebHostMode::AllForDebug) {
             m_device_web_mgr->Register(std::make_unique<DevicePageHotendRackVM>());
@@ -655,6 +659,14 @@ void DeviceWebHost::NotifyControlPanelChanged()
         return;
 
     m_device_web_mgr->NotifyState("device_page_control_panel", "state", "changed");
+}
+
+void DeviceWebHost::NotifyFilamentLoadChanged()
+{
+    if (!m_device_web_mgr || !CanBuildDeviceState())
+        return;
+
+    m_device_web_mgr->NotifyState("device_page_filament_load", "state", "changed");
 }
 
 void DeviceWebHost::NotifyHotendRackChanged()

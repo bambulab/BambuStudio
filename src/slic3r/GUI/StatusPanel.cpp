@@ -76,6 +76,8 @@
 #include "DeviceTab/FilamentHotend/wgtHotendRackControl.h"
 #include "DeviceTab/wgtDeviceAutoRefillWebDialog.h"
 #include "DeviceTab/wgtRackExtruder.h"
+#include "DeviceTab/FilamentLoad/FilamentLoadWebEnable.hpp"
+#include "DeviceTab/FilamentLoad/wgtDeviceFilamentLoadWebPanel.h"
 #include "DeviceTab/ControlPanel/ControlPanelWebEnable.hpp"
 #if BBL_ENABLE_CONTROL_PANEL_WEB
 #include "DeviceTab/ControlPanel/wgtDeviceControlPanelWebPanel.h"
@@ -3372,6 +3374,10 @@ wxBoxSizer *StatusBasePanel::create_filament_group(wxWindow *parent)
     m_filament_load_box->Hide();
     sizer->Add(m_scale_panel, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(5));
     sizer->Add(m_filament_load_box, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 0);
+
+    m_filament_load_web_panel = new wgtDeviceFilamentLoadWebPanel(parent);
+    m_filament_load_web_panel->Hide();
+    sizer->Add(m_filament_load_web_panel, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(5));
     return sizer;
 }
 
@@ -3509,6 +3515,42 @@ void StatusBasePanel::show_ams_group(bool show)
 void StatusBasePanel::show_filament_load_group(bool show)
 {
     MachineObject *obj = get_current_dev();
+    if (filament_load_use_web()) {
+        bool refresh_layout = false;
+        if (m_scale_panel && m_scale_panel->IsShown()) {
+            m_scale_panel->Show(false);
+            refresh_layout = true;
+        }
+        if (m_filament_load_box && m_filament_load_box->IsShown()) {
+            m_filament_load_box->Show(false);
+            refresh_layout = true;
+        }
+        if (m_filament_load_web_panel) {
+            const bool web_shown = m_filament_load_web_panel->IsShown();
+            if (show) {
+                if (!web_shown) {
+                    m_filament_load_web_panel->ShowAndLoad();
+                    refresh_layout = true;
+                }
+                m_filament_load_web_panel->UpdateByMachine(obj);
+            } else if (web_shown) {
+                m_filament_load_web_panel->HideAndSuspend();
+                refresh_layout = true;
+            }
+        }
+
+        if (refresh_layout) {
+            Layout();
+            Fit();
+            wxGetApp().mainframe->m_monitor->get_status_panel()->Layout();
+            wxGetApp().mainframe->m_monitor->Layout();
+        }
+        return;
+    }
+
+    if (m_filament_load_web_panel && m_filament_load_web_panel->IsShown()) {
+        m_filament_load_web_panel->HideAndSuspend();
+    }
     if (m_scale_panel->IsShown() != show) {
         m_scale_panel->Show(show);
         if (!show) {
@@ -7401,6 +7443,11 @@ void StatusPanel::update_filament_loading_panel(MachineObject *obj)
         ams_loading_state = obj->GetExtderSystem()->IsBusyLoading();
     } else if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
         ams_loading_state = true;
+    }
+
+    if (filament_load_use_web()) {
+        show_filament_load_group(ams_loading_state);
+        return;
     }
 
     if (ams_loading_state) {

@@ -28,6 +28,9 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceTab/ControlPanel/ControlPanelWebEnable.hpp
     GUI/DeviceTab/ControlPanel/wgtDeviceControlPanelWebPanel.h
     GUI/DeviceTab/ControlPanel/wgtDeviceControlPanelWebPanel.cpp
+    GUI/DeviceTab/FilamentLoad/FilamentLoadWebEnable.hpp
+    GUI/DeviceTab/FilamentLoad/wgtDeviceFilamentLoadWebPanel.h
+    GUI/DeviceTab/FilamentLoad/wgtDeviceFilamentLoadWebPanel.cpp
     GUI/DeviceTab/HotendRack/wgtDeviceHotendRackWebPanel.h
     GUI/DeviceTab/HotendRack/wgtDeviceHotendRackWebPanel.cpp
     GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWebPanel.h

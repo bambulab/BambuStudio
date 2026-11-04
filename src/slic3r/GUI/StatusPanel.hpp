@@ -63,6 +63,7 @@ class wgtDeviceFilamentHotendWebDialog;
 class wgtDeviceFilamentHotendHtmlDialog;
 class wgtDeviceNozzleRack;
 class wgtDeviceHotendRackWebPanel;
+class wgtDeviceFilamentLoadWebPanel;
 #if BBL_ENABLE_CONTROL_PANEL_WEB
 class wgtDeviceControlPanelWebPanel;
 #endif
@@ -636,6 +637,7 @@ protected:
     Button *m_button_retry {nullptr};
     Button *m_fila_change_abort {nullptr};
     StaticBox* m_filament_load_box;
+    wgtDeviceFilamentLoadWebPanel* m_filament_load_web_panel{ nullptr };
     std::string m_devid;
 
 private:

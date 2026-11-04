@@ -1,0 +1,229 @@
+.filament-load-page {
+  position: relative;
+  width: 100%;
+  max-width: 586px;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: #262e30;
+  font-family: var(--device-page-font-family, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+  font-size: 13px;
+  line-height: 18px;
+  background: #fff;
+}
+
+.filament-load-page.hidden {
+  display: none;
+}
+
+.fl-header {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 32px;
+  padding: 0 0 0 20px;
+  border: 0;
+  background: #fff;
+  color: #1b8844;
+  font-size: 15px;
+  line-height: 32px;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.fl-title {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.fl-fold-icon {
+  width: 16px;
+  height: 16px;
+  margin-left: 2px;
+  vertical-align: middle;
+}
+
+.fl-body {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  min-height: 268px;
+  padding: 14px 24px 15px 28px;
+  border: 1px solid #f0f0f0;
+  border-radius: 5px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.fl-steps-panel {
+  display: block;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.fl-step-heading {
+  margin-bottom: 5px;
+  color: #00ae42;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.fl-slot-text {
+  height: 16px;
+  color: #6b6f72;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.fl-step-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fl-step {
+  display: flex;
+  align-items: center;
+  min-height: 21px;
+  color: #8a8f93;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.fl-step-rail {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 14px;
+}
+
+.fl-step-dot {
+  display: block;
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #c7cacc;
+  border-radius: 7px;
+  background: #fff;
+  color: #8a8f93;
+  font-size: 9px;
+  line-height: 12px;
+  text-align: center;
+}
+
+.fl-step-ok-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.fl-step-line {
+  display: none;
+}
+
+.fl-step-text {
+  display: block;
+  padding-left: 8px;
+  padding-right: 4px;
+}
+
+.fl-step-done .fl-step-dot,
+.fl-step-done .fl-step-line {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+}
+
+.fl-step-current {
+  color: #262e30;
+  font-weight: 600;
+}
+
+.fl-step-current .fl-step-dot {
+  border-color: #1b8844;
+  background: #1b8844;
+  color: #fff;
+}
+
+.fl-actions {
+  position: absolute;
+  left: 28px;
+  bottom: 15px;
+  margin-top: 0;
+}
+
+.fl-action-btn {
+  box-sizing: border-box;
+  min-width: 72px;
+  height: 26px;
+  margin-right: 10px;
+  padding: 0 14px;
+  border: 1px solid #262e30;
+  border-radius: 5px;
+  background: #fff;
+  color: #262e30;
+  font-size: 13px;
+  line-height: 24px;
+  cursor: pointer;
+}
+
+.fl-action-btn:disabled {
+  border-color: #d9dcde;
+  background: #f4f5f6;
+  color: #a7aaad;
+  cursor: default;
+}
+
+.fl-image-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 260px;
+  width: 260px;
+  min-height: 238px;
+  margin-left: 0;
+  margin-top: 0;
+}
+
+.fl-load-image {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+}
+
+.fl-error {
+  padding: 4px 20px;
+  color: #6b6f72;
+  font-size: 12px;
+}
+
+.fl-debug-btn {
+  position: absolute;
+  left: 236px;
+  top: 0;
+  width: 100px;
+  margin-right: 0;
+}
+
+:root[data-theme='dark'] .filament-load-page,
+:root[data-theme='dark'] .fl-header,
+:root[data-theme='dark'] .fl-body {
+  background: #2b2f31;
+  color: #f5f5f5;
+}
+
+:root[data-theme='dark'] .fl-step-current {
+  color: #f5f5f5;
+}
+
+:root[data-theme='dark'] .fl-action-btn {
+  border-color: #d6d8da;
+  background: #2b2f31;
+  color: #f5f5f5;
+}

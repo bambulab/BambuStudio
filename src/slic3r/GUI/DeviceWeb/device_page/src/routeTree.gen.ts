@@ -19,6 +19,7 @@ import { Route as DevicepagePrintqueueImport } from './routes/device_page/print_
 import { Route as DevicepageHotendrackImport } from './routes/device_page/hotend_rack'
 import { Route as DevicepageHotenddetailImport } from './routes/device_page/hotend_detail'
 import { Route as DevicepageFilamentmanualpullImport } from './routes/device_page/filament_manual_pull'
+import { Route as DevicepageFilamentloadImport } from './routes/device_page/filament_load'
 import { Route as DevicepageControlpaneldebugImport } from './routes/device_page/control_panel_debug'
 import { Route as DevicepageControlpanelImport } from './routes/device_page/control_panel'
 import { Route as DevicepageConnectedslotsImport } from './routes/device_page/connected_slots'
@@ -81,6 +82,12 @@ const DevicepageFilamentmanualpullRoute =
     path: '/device_page/filament_manual_pull',
     getParentRoute: () => rootRoute,
   } as any)
+
+const DevicepageFilamentloadRoute = DevicepageFilamentloadImport.update({
+  id: '/device_page/filament_load',
+  path: '/device_page/filament_load',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const DevicepageControlpaneldebugRoute =
   DevicepageControlpaneldebugImport.update({
@@ -264,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevicepageControlpaneldebugImport
       parentRoute: typeof rootRoute
     }
+    '/device_page/filament_load': {
+      id: '/device_page/filament_load'
+      path: '/device_page/filament_load'
+      fullPath: '/device_page/filament_load'
+      preLoaderRoute: typeof DevicepageFilamentloadImport
+      parentRoute: typeof rootRoute
+    }
     '/device_page/filament_manual_pull': {
       id: '/device_page/filament_manual_pull'
       path: '/device_page/filament_manual_pull'
@@ -313,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/device_page/connected_slots': typeof DevicepageConnectedslotsRoute
   '/device_page/control_panel': typeof DevicepageControlpanelRoute
   '/device_page/control_panel_debug': typeof DevicepageControlpaneldebugRoute
+  '/device_page/filament_load': typeof DevicepageFilamentloadRoute
   '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
   '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
   '/device_page/hotend_rack': typeof DevicepageHotendrackRoute
@@ -335,6 +350,7 @@ export interface FileRoutesByTo {
   '/device_page/connected_slots': typeof DevicepageConnectedslotsRoute
   '/device_page/control_panel': typeof DevicepageControlpanelRoute
   '/device_page/control_panel_debug': typeof DevicepageControlpaneldebugRoute
+  '/device_page/filament_load': typeof DevicepageFilamentloadRoute
   '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
   '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
   '/device_page/hotend_rack': typeof DevicepageHotendrackRoute
@@ -358,6 +374,7 @@ export interface FileRoutesById {
   '/device_page/connected_slots': typeof DevicepageConnectedslotsRoute
   '/device_page/control_panel': typeof DevicepageControlpanelRoute
   '/device_page/control_panel_debug': typeof DevicepageControlpaneldebugRoute
+  '/device_page/filament_load': typeof DevicepageFilamentloadRoute
   '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
   '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
   '/device_page/hotend_rack': typeof DevicepageHotendrackRoute
@@ -382,6 +399,7 @@ export interface FileRouteTypes {
     | '/device_page/connected_slots'
     | '/device_page/control_panel'
     | '/device_page/control_panel_debug'
+    | '/device_page/filament_load'
     | '/device_page/filament_manual_pull'
     | '/device_page/hotend_detail'
     | '/device_page/hotend_rack'
@@ -403,6 +421,7 @@ export interface FileRouteTypes {
     | '/device_page/connected_slots'
     | '/device_page/control_panel'
     | '/device_page/control_panel_debug'
+    | '/device_page/filament_load'
     | '/device_page/filament_manual_pull'
     | '/device_page/hotend_detail'
     | '/device_page/hotend_rack'
@@ -424,6 +443,7 @@ export interface FileRouteTypes {
     | '/device_page/connected_slots'
     | '/device_page/control_panel'
     | '/device_page/control_panel_debug'
+    | '/device_page/filament_load'
     | '/device_page/filament_manual_pull'
     | '/device_page/hotend_detail'
     | '/device_page/hotend_rack'
@@ -447,6 +467,7 @@ export interface RootRouteChildren {
   DevicepageConnectedslotsRoute: typeof DevicepageConnectedslotsRoute
   DevicepageControlpanelRoute: typeof DevicepageControlpanelRoute
   DevicepageControlpaneldebugRoute: typeof DevicepageControlpaneldebugRoute
+  DevicepageFilamentloadRoute: typeof DevicepageFilamentloadRoute
   DevicepageFilamentmanualpullRoute: typeof DevicepageFilamentmanualpullRoute
   DevicepageHotenddetailRoute: typeof DevicepageHotenddetailRoute
   DevicepageHotendrackRoute: typeof DevicepageHotendrackRoute
@@ -469,6 +490,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevicepageConnectedslotsRoute: DevicepageConnectedslotsRoute,
   DevicepageControlpanelRoute: DevicepageControlpanelRoute,
   DevicepageControlpaneldebugRoute: DevicepageControlpaneldebugRoute,
+  DevicepageFilamentloadRoute: DevicepageFilamentloadRoute,
   DevicepageFilamentmanualpullRoute: DevicepageFilamentmanualpullRoute,
   DevicepageHotenddetailRoute: DevicepageHotenddetailRoute,
   DevicepageHotendrackRoute: DevicepageHotendrackRoute,
@@ -500,6 +522,7 @@ export const routeTree = rootRoute
         "/device_page/connected_slots",
         "/device_page/control_panel",
         "/device_page/control_panel_debug",
+        "/device_page/filament_load",
         "/device_page/filament_manual_pull",
         "/device_page/hotend_detail",
         "/device_page/hotend_rack",
@@ -550,6 +573,9 @@ export const routeTree = rootRoute
     },
     "/device_page/control_panel_debug": {
       "filePath": "device_page/control_panel_debug.tsx"
+    },
+    "/device_page/filament_load": {
+      "filePath": "device_page/filament_load.tsx"
     },
     "/device_page/filament_manual_pull": {
       "filePath": "device_page/filament_manual_pull.tsx"
