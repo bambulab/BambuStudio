@@ -4,6 +4,8 @@
 # status -- Building
 
 list(APPEND SLIC3R_GUI_SOURCES
+    GUI/DeviceCore/DevAirPurifier.hpp
+    GUI/DeviceCore/DevAirPurifier.cpp
     GUI/DeviceCore/DevAxis.h
     GUI/DeviceCore/DevAxis.cpp
     GUI/DeviceCore/DevAxisCtrl.cpp
@@ -20,6 +22,10 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevConfigUtil.cpp
     GUI/DeviceCore/DevCtrl.h
     GUI/DeviceCore/DevCtrl.cpp
+    GUI/DeviceCore/DevCtrlToken.h
+    GUI/DeviceCore/DevCtrlToken.cpp
+    GUI/DeviceCore/DevCtrlTokenMgr.h
+    GUI/DeviceCore/DevCtrlTokenMgr.cpp
     GUI/DeviceCore/DevDefs.h
     GUI/DeviceCore/DevExtensionTool.h
     GUI/DeviceCore/DevExtensionTool.cpp
@@ -28,6 +34,12 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevExtruderSystemCtrl.cpp
     GUI/DeviceCore/DevFan.cpp
     GUI/DeviceCore/DevFan.h
+    GUI/DeviceCore/DevAmsRfidRefreshCtrl.h
+    GUI/DeviceCore/DevAmsRfidRefreshCtrl.cpp
+    GUI/DeviceCore/DevFilaAutoRefillEdit.h
+    GUI/DeviceCore/DevFilaAutoRefillMgr.h
+    GUI/DeviceCore/DevFilaAutoRefillMgr.cpp
+    GUI/DeviceCore/DevFilaAutoRefillMgrCtrl.cpp
     GUI/DeviceCore/DevFilaAmsSetting.h
     GUI/DeviceCore/DevFilaAmsSetting.cpp
     GUI/DeviceCore/DevFilaAmsSettingCtrl.cpp
@@ -55,10 +67,14 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevLampCtrl.cpp
     GUI/DeviceCore/DevManager.h
     GUI/DeviceCore/DevManager.cpp
+    GUI/DeviceCore/DevMcTask.hpp
+    GUI/DeviceCore/DevMcTask.cpp
     GUI/DeviceCore/DevMapping.h
     GUI/DeviceCore/DevMapping.cpp
     GUI/DeviceCore/DevMappingNozzle.h
     GUI/DeviceCore/DevMappingNozzle.cpp
+    GUI/DeviceCore/DevSliceContext.hpp
+    GUI/DeviceCore/DevSliceContext.cpp
     GUI/DeviceCore/DevNozzleRack.h
     GUI/DeviceCore/DevNozzleRack.cpp
     GUI/DeviceCore/DevNozzleRackCtrl.cpp

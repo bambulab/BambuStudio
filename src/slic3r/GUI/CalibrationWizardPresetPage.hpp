@@ -4,6 +4,11 @@
 #include "CalibrationWizardPage.hpp"
 #include "DeviceCore/DevNozzleSystem.h"
 
+#ifdef __WXOSX__
+#include <chrono>
+#include <unordered_map>
+#endif
+
 namespace Slic3r { namespace GUI {
 
 enum CaliPresetStage {
@@ -18,6 +23,53 @@ enum FlowRatioCaliSource {
 };
 
 class CalibrationPresetPage;
+class FilamentExtendComboBox;
+
+/* Carries a subams radio click up to the page so it can enforce page-wide
+   single-selection in CALI_MODEL_SINGLE mode. */
+wxDECLARE_EVENT(EVT_SUBAMS_RADIO_SELECTED, wxCommandEvent);
+
+class SubAmsPopup : public PopupWindow
+{
+public:
+    SubAmsPopup(wxWindow* parent);
+
+    void SetData(MachineObject* obj,
+                 const std::map<int, DynamicPrintConfig>& fila_ams_list,
+                 CalibrationFilamentMode mode,
+                 FilamentExtendComboBox* owner,
+                 const std::set<DevAmsSlotId>& slots = {});
+    void PopupAt(wxWindow* anchor);
+    void msw_rescale();
+
+    FilamentExtendComboBox* GetOwner() const { return m_owner; }
+    /* Page-driven visual sync used when another fcb claims the radio under SINGLE mode. */
+    void ClearAllRadioVisuals();
+
+protected:
+    void Dismiss() override;
+
+private:
+#ifdef __WXOSX__
+    /* PopupWindow's forwarding never wakes a native toggle's Cocoa layer, so wxEVT_TOGGLEBUTTON
+       never fires in a popup (STUDIO-17396); re-emit it from raw mouse events instead. */
+    bool TryToggleOSX(wxBitmapToggleButton* btn);
+    void OnLeftUpOSX(wxMouseEvent& evt);
+    std::unordered_map<wxBitmapToggleButton*, std::chrono::steady_clock::time_point> m_osx_last_click;
+    void OnActivateAppOSX(wxActivateEvent& evt);
+    bool m_activate_app_bound{false};
+#endif
+
+    // Size the popup to the anchor's width / content height and place it right below the anchor.
+    void FitToAnchor(wxWindow* anchor);
+
+    wxScrolledWindow*           m_scroll{nullptr};
+    wxBoxSizer*                 m_list_sizer{nullptr};
+    FilamentComboBoxList        m_fcb_list;
+
+    FilamentExtendComboBox*     m_owner{nullptr};
+    bool                        m_combo_dropdown_open{false};
+};
 
 class CaliPresetCaliStagePanel : public wxPanel
 {
@@ -147,6 +199,7 @@ enum CaliPresetPageStatus
     CaliPresetStatusConnectingServer,
     CaliPresetStatusInUpgrading,
     CaliPresetStatusInSystemPrinting,
+    CaliPresetStatusInColdPull,
     CaliPresetStatusInPrinting,
     CaliPresetStatusLanModeNoSdcard,
     CaliPresetStatusNoSdcard,
@@ -216,7 +269,10 @@ public:
 
     int get_index_by_extruder_tray_id(int extruder_id, int tray_id);
 
-    std::vector<FilamentComboBox*> get_selected_filament_combobox();
+    // Assign continuous model indices to rack direct slots / sub-AMS rows, stored on the fcbs.
+    void assign_rack_model_indices();
+
+    std::vector<SelectedFilamentInfo> get_selected_filament_combobox();
 
     // key is tray_id
     std::vector<CaliFilamentInfo> get_selected_filaments();
@@ -234,8 +290,8 @@ public:
     }
 
     Preset* get_printer_preset(MachineObject* obj, float nozzle_value);
-    Preset* get_print_preset();
-    std::string get_print_preset_name();
+    Preset* get_print_preset(float nozzle_value);
+    std::string get_print_preset_name(float nozzle_value);
 
     wxArrayString get_custom_range_values();
     CalibMode     get_pa_cali_method();
@@ -245,15 +301,24 @@ public:
     void msw_rescale() override;
     void on_sys_color_changed() override;
 
-    float get_nozzle_diameter(int extruder_id) const;
+    // For extruder ids 0/1 returns the UI combo value; for rack nozzle codes (>=0x10) returns the
+    // actual nozzle diameter. (extruder_id == nozzle_pos_id for non-rack machines.)
+    float get_nozzle_diameter(int nozzle_pos_id) const;
     NozzleVolumeType get_nozzle_volume_type(int extruder_id) const;
     ExtruderType get_extruder_type(int extruder_id) const;
+
+    // Cached per printer preset name for the page's lifetime: set_calibrate_printer rescans all
+    // filament presets on every call.
+    const std::set<std::string>& get_calibrate_filament_names(const std::string& printer_preset_name);
 
 protected:
     void create_selection_panel(wxWindow* parent);
     void create_filament_list_panel(wxWindow* parent);
+    void create_rack_nozzle_panel(wxWindow* parent);
     wxSizer* create_ams_items_sizer(wxPanel* ams_preview_panel, std::vector<AMSPreview*> &ams_preview_list, std::vector<AMSinfo> &ams_info, ExtruderRole role);
     wxSizer* create_slot_items_sizer(wxPanel* slot_items_panel, FilamentComboBoxList& filament_comboBox_list, ExtruderRole extuder_role);
+    wxSizer* create_rack_items_sizer(wxPanel* rack_items_panel, FilamentComboBoxList& rack_filament_comboBox_list);
+    void update_rack_filament_combobox(MachineObject* obj);
 
     void manage_filament_radio_btn(FilamentComboBox* selected_fcb);
 
@@ -269,6 +334,9 @@ protected:
 
     void on_select_tray(wxCommandEvent& event);
 
+    void on_subams_click(wxCommandEvent& event);
+    void on_subams_radio_selected(wxCommandEvent& event);
+
     void on_switch_ams(std::string ams_id = "");
 
     void on_recommend_input_value();
@@ -276,7 +344,7 @@ protected:
     void check_nozzle_diameter_for_auto_cali();
     void check_filament_compatible();
     bool is_filaments_compatiable(const std::vector<CaliFilamentInfo>& prests);
-    bool is_filament_in_blacklist(int tray_id, Preset* preset, std::string& error_tips);
+    bool is_filament_in_blacklist(const CaliFilamentInfo& fila_info, std::string& error_tips);
     bool is_filaments_compatiable(const std::vector<CaliFilamentInfo> &prests,
         int& bed_temp,
         std::string& incompatiable_filament_name,
@@ -311,8 +379,9 @@ protected:
     CaliPresetCaliStagePanel* m_cali_stage_panel { nullptr };
     wxPanel*                  m_selection_panel { nullptr };
     wxPanel*                  m_filament_from_panel { nullptr };
-    Label*             m_filament_list_tips{ nullptr };
+    Label*                    m_filament_list_tips{ nullptr };
     wxPanel*                  m_filament_list_panel { nullptr };
+    wxPanel*                  m_rack_nozzle_panel { nullptr };
     CaliPresetWarningPanel*   m_warning_panel{nullptr};
     CaliPresetWarningPanel*   m_error_panel { nullptr };
     CaliPresetCustomRangePanel* m_custom_range_panel { nullptr };
@@ -362,8 +431,9 @@ protected:
     FilamentComboBoxList      m_deputy_filament_comboBox_list;
 
     std::unordered_map<int, int> m_ams_id_to_extruder_id_map;
-    std::vector<ExtruderType>     m_extrder_types;
     std::vector<NozzleVolumeType> m_extruder_nozzle_types;
+    // printer preset name -> compatible filament preset names (see get_calibrate_filament_names)
+    std::map<std::string, std::set<std::string>> m_calibrate_filament_names;
     bool                          m_main_extruder_on_left{true};
 
     wxBoxSizer* m_multi_extruder_ams_panel_sizer;
@@ -379,6 +449,12 @@ protected:
 
     ScalableButton*      m_ams_sync_button;
     FilamentComboBoxList m_filament_comboBox_list;
+    FilamentComboBoxList m_rack_filament_comboBox_list;
+
+    /* One SubAmsPopup shared by all rack slots (only one popup is ever visible). Lazily created on
+       first on_subams_click; each click re-targets it via SetData(owner=clicked slot). Lifetime is
+       owned by its wx parent (the page). Replaces the old per-slot popups to cut popup/HWND count. */
+    SubAmsPopup*         m_shared_subams_popup{nullptr};
 
     // for update filament combobox, key : tray_id
     std::map<int, DynamicPrintConfig> m_filament_ams_list;
@@ -389,6 +465,7 @@ protected:
     bool m_show_custom_range { false };
     bool m_has_filament_incompatible { false };
     MachineObject* curr_obj { nullptr };
+
 };
 
 class MaxVolumetricSpeedPresetPage : public CalibrationPresetPage

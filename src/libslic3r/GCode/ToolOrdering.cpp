@@ -40,9 +40,9 @@
 #include <sstream>
 
 #include <libslic3r.h>
-#include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/dll/runtime_symbol_info.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -55,6 +55,22 @@ namespace Slic3r {
 
 const static bool g_wipe_into_objects = false;
 constexpr double similar_color_threshold_de2000 = 20.0;
+
+// Same test as GCode::path_touches_bed(): the extrusion height reaches down to the bed.
+static bool extrusion_touches_bed(const ExtrusionEntity &entity, coordf_t print_z)
+{
+    auto path_touches_bed = [print_z](const ExtrusionPath &path) { return print_z - path.height <= EPSILON; };
+    if (const auto *path = dynamic_cast<const ExtrusionPath *>(&entity))
+        return path_touches_bed(*path);
+    if (const auto *multipath = dynamic_cast<const ExtrusionMultiPath *>(&entity))
+        return std::any_of(multipath->paths.begin(), multipath->paths.end(), path_touches_bed);
+    if (const auto *loop = dynamic_cast<const ExtrusionLoop *>(&entity))
+        return std::any_of(loop->paths.begin(), loop->paths.end(), path_touches_bed);
+    if (const auto *collection = dynamic_cast<const ExtrusionEntityCollection *>(&entity))
+        return std::any_of(collection->entities.begin(), collection->entities.end(),
+                           [print_z](const ExtrusionEntity *child) { return child != nullptr && extrusion_touches_bed(*child, print_z); });
+    return false;
+}
 
 static std::set<int>get_filament_by_type(const std::vector<unsigned int>& used_filaments, const PrintConfig* print_config, const std::string& type)
 {
@@ -143,53 +159,71 @@ unsigned int LayerTools::solid_infill_filament(const PrintRegion &region) const
 // Returns a zero based extruder this eec should be printed with, according to PrintRegion config or extruder_override if overriden.
 unsigned int LayerTools::extruder(const ExtrusionEntityCollection &extrusions, const PrintRegion &region) const
 {
+	unsigned int result = this->filament_slot(extrusions, region);
+	result = (result == 0) ? 0 : result - 1;
+	return resolve_mixed(result);
+}
+
+unsigned int LayerTools::filament_slot(const ExtrusionEntityCollection &extrusions, const PrintRegion &region) const
+{
 	assert(region.config().wall_filament.value >= 0);
 	assert(region.config().sparse_infill_filament.value >= 0);
 	assert(region.config().solid_infill_filament.value >= 0);
+    // use separate filament for different features only if the potion was open
+    return this->extruder_override == 0 ? filament_slot_by_role(extrusions, region.config()) : this->extruder_override;
+}
+
+unsigned int LayerTools::filament_slot_by_role(const ExtrusionEntityCollection &extrusions, const PrintRegionConfig &config)
+{
 	// 1 based extruder ID.
     unsigned int extruder = 0;
-    // use separate filament for different features only if the potion was open
-    if (this->extruder_override == 0) {
-        ExtrusionRole extrusions_role = extrusions.role();
-        if (is_perimeter(extrusions_role)) {
-            extruder = region.config().wall_filament.value;
-        } else if (is_solid_infill(extrusions_role)) {
-            extruder = region.config().solid_infill_filament.value;
-        } else if (is_infill(extrusions_role)) {
-            extruder = region.config().sparse_infill_filament.value;
-        } else if (extrusions_role == ExtrusionRole::erMixed) {
-            //this set of extrusions contain multi roles, follow a Priority to decide which to use
-            int curr_priority = 0;
-            for (const ExtrusionEntity *ee : extrusions.entities)
-                if (ee->role() == ExtrusionRole::erTopSolidInfill) {
-                    if (curr_priority < 100) { // top surface 1st priority
-                        extruder      = region.config().solid_infill_filament.value;
-                        curr_priority = 100;
-                    }
-                } else if (is_perimeter(ee->role())) {
-                    if (curr_priority < 90) { // perimeter 2st priority
-                        extruder      = region.config().wall_filament.value;
-                        curr_priority = 90;
-                    }
-                } else if (is_solid_infill(extrusions_role)) {
-                    if (curr_priority < 70) { // solid infill 4st priority
-                        extruder      = region.config().solid_infill_filament.value;
-                        curr_priority = 70;
-                    }
-                } else if (is_infill(extrusions_role)) {
-                    if (curr_priority < 60) { // infill 5st priority
-                        extruder      = region.config().sparse_infill_filament.value;
-                        curr_priority = 60;
-                    }
+    ExtrusionRole extrusions_role = extrusions.role();
+    if (is_perimeter(extrusions_role)) {
+        extruder = config.wall_filament.value;
+    } else if (is_solid_infill(extrusions_role)) {
+        extruder = config.solid_infill_filament.value;
+    } else if (is_infill(extrusions_role)) {
+        extruder = config.sparse_infill_filament.value;
+    } else if (extrusions_role == ExtrusionRole::erMixed) {
+        //this set of extrusions contain multi roles, follow a Priority to decide which to use
+        int curr_priority = 0;
+        for (const ExtrusionEntity *ee : extrusions.entities)
+            if (ee->role() == ExtrusionRole::erTopSolidInfill) {
+                if (curr_priority < 100) { // top surface 1st priority
+                    extruder      = config.solid_infill_filament.value;
+                    curr_priority = 100;
                 }
-            if (curr_priority == 0) // default
-                extruder = region.config().wall_filament.value;
-        }else
-            extruder = region.config().wall_filament.value;
+            } else if (is_perimeter(ee->role())) {
+                if (curr_priority < 90) { // perimeter 2st priority
+                    extruder      = config.wall_filament.value;
+                    curr_priority = 90;
+                }
+            } else if (is_solid_infill(ee->role())) {
+                if (curr_priority < 70) { // solid infill 4st priority
+                    extruder      = config.solid_infill_filament.value;
+                    curr_priority = 70;
+                }
+            } else if (is_infill(ee->role())) {
+                if (curr_priority < 60) { // infill 5st priority
+                    extruder      = config.sparse_infill_filament.value;
+                    curr_priority = 60;
+                }
+            }
+        if (curr_priority == 0) // default
+            extruder = config.wall_filament.value;
     }else
-        extruder = this->extruder_override;
-	unsigned int result = (extruder == 0) ? 0 : extruder - 1;
-	return resolve_mixed(result);
+        extruder = config.wall_filament.value;
+	return extruder;
+}
+
+// Layer height the tower gaps are measured against. A multi-diameter plate printing with a single diameter is
+// sliced at that nozzle's layer heights, which may be above or below the authored ones. Its variable layer height
+// profile and height ranges reach up to the nozzle's maximum, which bounds every layer it slices. Any other plate
+// keeps the authored height.
+static double object_max_layer_height(const PrintObject &object)
+{
+    return object.print()->single_diameter_layering_nozzle() > EPSILON ?
+        object.slicing_parameters().max_layer_height : object.config().layer_height.value;
 }
 
 static double calc_max_layer_height(const PrintConfig &config, double max_object_layer_height)
@@ -259,7 +293,7 @@ static FilamentChangeStats calc_filament_change_info_by_toolorder(const PrintCon
 
 void ToolOrdering::handle_dontcare_extruder(const std::vector<unsigned int>& tool_order_layer0)
 {
-    if(m_layer_tools.empty() || tool_order_layer0.empty())
+    if(m_layer_tools.empty())
         return;
 
     // Reorder the extruders of first layer
@@ -275,21 +309,45 @@ void ToolOrdering::handle_dontcare_extruder(const std::vector<unsigned int>& too
             }
         }
 
+        bool had_dontcare = false;
         for (unsigned int extruder_id : layer0_extruders) {
-            if (extruder_id == 0)
+            if (extruder_id == 0) {
+                // Something is printed here, but its filament was left unspecified.
+                had_dontcare = true;
                 continue;
+            }
 
             if (extruder_id != (unsigned int)-1)
                 lt.extruders.push_back(extruder_id);
         }
 
-        // all extruders are zero
-        if (lt.extruders.empty()) {
+        // A printed first layer whose filaments were all "don't care" still needs one concrete tool.
+        // A layer with no extrusion at all must stay empty: its slices can still name a wall filament
+        // (adaptive merging emits that band later, and the largest nozzle wins the slice test), and
+        // writing that filament in here makes first_extruder() a tool the object never loaded.
+        if (lt.extruders.empty() && had_dontcare && !tool_order_layer0.empty())
             lt.extruders.push_back(tool_order_layer0[0]);
-        }
     }
 
-    int last_extruder_id = m_layer_tools[0].extruders.back();
+    int last_extruder_id = 0;
+    // BBS: fist layer may be empty or only has defult extrude id
+    if (m_layer_tools[0].extruders.empty()) {
+        // search for first extrude filament id
+        for (size_t layer_id = 1; layer_id < m_layer_tools.size(); layer_id++) {
+            for (auto const &extrude : m_layer_tools[layer_id].extruders) {
+                if (extrude != 0) {
+                    last_extruder_id = extrude;
+                    break;
+                }
+            }
+
+            if (last_extruder_id != 0)
+                break;
+        }
+    } else {
+        //use first layer last extruder
+        last_extruder_id = m_layer_tools[0].extruders.back();
+    }
     for (int i = 1; i < m_layer_tools.size(); i++) {
         LayerTools& lt = m_layer_tools[i];
 
@@ -405,7 +463,7 @@ void ToolOrdering::sort_and_build_data(const Print& print, unsigned int first_ex
                 break;
             }
         }
-        max_layer_height = std::max(max_layer_height, object->config().layer_height.value);
+        max_layer_height = std::max(max_layer_height, object_max_layer_height(*object));
     }
 
     max_layer_height = calc_max_layer_height(print.config(), max_layer_height);
@@ -428,7 +486,7 @@ void ToolOrdering::sort_and_build_data(const PrintObject& object , unsigned int 
     this->enforce_mixed_component_order();
     m_sorted = true;
 
-    double max_layer_height = calc_max_layer_height(object.print()->config(), object.config().layer_height);
+    double max_layer_height = calc_max_layer_height(object.print()->config(), object_max_layer_height(object));
 
     this->collect_extruder_statistics(prime_multi_material);
 
@@ -465,14 +523,31 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
     // BBS
     // Reorder the extruders to minimize tool switches.
     const ConfigOptionInts *first_layer_print_sequence_op = object.print()->full_print_config().option<ConfigOptionInts>("first_layer_print_sequence");
-    if (first_extruder == (unsigned int) -1 || (first_layer_print_sequence_op && first_layer_print_sequence_op->size()>1))
-        this->handle_dontcare_extruder(generate_first_layer_tool_order(object));
-    else
+    // BBS multi-diameter: never force a filament into the first grid layer just for the skirt,
+    // a coarse nozzle has nothing to print there and would lay the skirt below its printable height.
+    const bool multi_diameter = object.print()->uses_multiple_nozzle_diameters();
+    auto can_add_skirt_filament_to_first_layer = [this, multi_diameter](unsigned int filament) {
+        return ! multi_diameter || m_layer_tools.front().has_extruder(filament);
+    };
+    if (first_extruder == (unsigned int) -1 || (first_layer_print_sequence_op && first_layer_print_sequence_op->size()>1)) {
+        const std::vector<unsigned int> first_layer_tool_order = generate_first_layer_tool_order(object);
+        if (object.print()->has_skirt() && ! first_layer_tool_order.empty() &&
+            can_add_skirt_filament_to_first_layer(first_layer_tool_order.front())) {
+            m_layer_tools.front().extruders.emplace_back(first_layer_tool_order.front());
+            sort_remove_duplicates(m_layer_tools.front().extruders);
+        }
+        this->handle_dontcare_extruder(first_layer_tool_order);
+    } else {
+        if (object.print()->has_skirt() && can_add_skirt_filament_to_first_layer(first_extruder)) {
+            m_layer_tools.front().extruders.emplace_back(first_extruder);
+            sort_remove_duplicates(m_layer_tools.front().extruders);
+        }
         this->handle_dontcare_extruder(first_extruder);
+    }
 
     this->collect_extruder_statistics(prime_multi_material);
 
-    double max_layer_height = calc_max_layer_height(object.print()->config(), object.config().layer_height);
+    double max_layer_height = calc_max_layer_height(object.print()->config(), object_max_layer_height(object));
 
     this->mark_skirt_layers(object.print()->config(), max_layer_height);
 }
@@ -495,7 +570,7 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
             for (auto layer : object->support_layers())
                 zs.emplace_back(layer->print_z);
 
-            max_layer_height = std::max(max_layer_height, object->config().layer_height.value);
+            max_layer_height = std::max(max_layer_height, object_max_layer_height(*object));
         }
         this->initialize_layers(zs);
     }
@@ -525,6 +600,34 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
         first_layer_tool_order = generate_first_layer_tool_order(print);
     }
 
+    if (print.has_skirt()) {
+        std::vector<unsigned int> skirt_extruders;
+        if (! first_layer_tool_order.empty()) {
+            if (Print::min_skirt_length > EPSILON)
+                skirt_extruders = first_layer_tool_order;
+            else
+                skirt_extruders.emplace_back(first_layer_tool_order.front());
+        } else if (first_extruder != (unsigned int)-1) {
+            skirt_extruders.emplace_back(first_extruder);
+        }
+        // BBS multi-diameter: a coarse filament whose first band is extruded above the first grid layer has
+        // nothing to print there, so forcing it in for the skirt costs a tool change and lays the skirt below
+        // that nozzle's printable height. Keep the skirt on a filament the first layer already prints.
+        if (print.uses_multiple_nozzle_diameters() && ! skirt_extruders.empty()) {
+            const LayerTools                &first_layer = m_layer_tools.front();
+            const std::vector<unsigned int> &candidates  = first_layer_tool_order.empty() ? skirt_extruders : first_layer_tool_order;
+            auto it = std::find_if(candidates.begin(), candidates.end(),
+                                   [&first_layer](unsigned int filament) { return first_layer.has_extruder(filament); });
+            std::vector<unsigned int> kept;
+            if (it != candidates.end())
+                kept.emplace_back(*it);
+            skirt_extruders = std::move(kept);
+        }
+        m_layer_tools.front().extruders.insert(
+            m_layer_tools.front().extruders.end(), skirt_extruders.begin(), skirt_extruders.end());
+        sort_remove_duplicates(m_layer_tools.front().extruders);
+    }
+
     if(!first_layer_tool_order.empty())
         this->handle_dontcare_extruder(first_layer_tool_order);
     else
@@ -542,12 +645,23 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
     int initial_extruder_id = -1;
     std::map<int, double> min_areas_per_extruder;
 
+    // This global heuristic spans all objects, so use the largest configured nozzle conservatively.
+    if (print.config().nozzle_diameter.values.empty())
+        return tool_order;
+    const double reference_nozzle = *std::max_element(print.config().nozzle_diameter.values.begin(),
+                                                      print.config().nozzle_diameter.values.end());
+    const double first_layer_line_width = Flow::extrusion_width_for_nozzle(
+        print.config().initial_layer_line_width,
+        float(primary_nozzle_diameter(print.full_print_config())),
+        float(reference_nozzle),
+        multi_nozzle_diameter_mode_enabled(print.full_print_config()));
+
     for (auto object : print.objects()) {
         const Layer* target_layer = nullptr;
         for(auto layer : object->layers()){
             for(auto layerm : layer->regions()){
                 for(auto& expoly : layerm->raw_slices){
-                    if (!offset_ex(expoly, -0.2 * scale_(print.config().initial_layer_line_width)).empty()) {
+                    if (!offset_ex(expoly, -0.2 * scale_(first_layer_line_width)).empty()) {
                         target_layer = layer;
                         break;
                     }
@@ -566,7 +680,7 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
             int extruder_id = layerm->region().config().option("wall_filament")->getInt();
 
             for (auto expoly : layerm->raw_slices) {
-                if (offset_ex(expoly, -0.2 * scale_(print.config().initial_layer_line_width)).empty())
+                if (offset_ex(expoly, -0.2 * scale_(first_layer_line_width)).empty())
                     continue;
 
                 double contour_area = expoly.contour.area();
@@ -621,8 +735,14 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
     const Layer* target_layer = nullptr;
     for(auto layer : object.layers()){
         for(auto layerm : layer->regions()){
+            const unsigned int wall_filament = layerm->region().config().wall_filament.value;
+            const double object_line_width = Flow::extrusion_width_for_nozzle(
+                object.config().line_width,
+                float(primary_nozzle_diameter(object.print()->full_print_config())),
+                nozzle_diameter_for_filament(object.print()->config(), wall_filament),
+                multi_nozzle_diameter_mode_enabled(object.print()->full_print_config()));
             for(auto& expoly : layerm->raw_slices){
-                if (!offset_ex(expoly, -0.2 * scale_(object.config().line_width)).empty()) {
+                if (!offset_ex(expoly, -0.2 * scale_(object_line_width)).empty()) {
                     target_layer = layer;
                     break;
                 }
@@ -639,8 +759,13 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
 
     for (auto layerm : target_layer->regions()) {
         int extruder_id = layerm->region().config().option("wall_filament")->getInt();
+        const double object_line_width = Flow::extrusion_width_for_nozzle(
+            object.config().line_width,
+            float(primary_nozzle_diameter(object.print()->full_print_config())),
+            nozzle_diameter_for_filament(object.print()->config(), (unsigned int) extruder_id),
+            multi_nozzle_diameter_mode_enabled(object.print()->full_print_config()));
         for (auto expoly : layerm->raw_slices) {
-            if (offset_ex(expoly, -0.2 * scale_(object.config().line_width)).empty())
+            if (offset_ex(expoly, -0.2 * scale_(object_line_width)).empty())
                 continue;
 
             double contour_area = expoly.contour.area();
@@ -745,13 +870,52 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     int layerCount = 0;
     std::vector<int> firstLayerExtruders;
     firstLayerExtruders.clear();
+    // The lowest of them, the one whose print_z the brim is printed at.
+    int    brim_filament = 0;
+    double brim_print_z  = 0.;
+    // A merged first band may reach the bed while being emitted above the physical first print layer.
+    // Only filaments actually emitted on the first print layer may schedule a brim-layer tower visit.
+    std::vector<unsigned int> bed_contact_extruders;
+
+    // Only adaptive merging moves bed contact above the physical first layer; without it the first layer stays
+    // the only bed contact. Above max_contact_z no path can reach the bed: a first band is at most 1.0 x nozzle
+    // tall, thick bridges sqrt(bridge_flow) x nozzle and support bottom interfaces bridge_flow x nozzle.
+    coordf_t max_contact_z = -1.;
+    if (object.print()->uses_multiple_nozzle_diameters()) {
+        const PrintConfig &print_config = object.print()->config();
+        double max_nozzle = 0.;
+        for (size_t filament = 0; filament < print_config.filament_diameter.values.size(); ++filament)
+            max_nozzle = std::max(max_nozzle, double(nozzle_diameter_for_filament(print_config, unsigned(filament + 1))));
+        double max_bridge_flow = 1.;
+        for (size_t region_id = 0; region_id < object.num_printing_regions(); ++region_id)
+            max_bridge_flow = std::max(max_bridge_flow, object.printing_region(region_id).config().bridge_flow.value);
+        max_contact_z = max_nozzle * max_bridge_flow + EPSILON;
+    }
 
     // Collect the object extruders.
     for (auto layer : object.layers()) {
         LayerTools &layer_tools = this->tools_for_layer(layer->print_z);
+        const size_t layer_idx = static_cast<size_t>(&layer_tools - m_layer_tools.data());
+        const bool may_touch_bed = layer->print_z <= max_contact_z;
+        auto record_mixed_height = [&](unsigned int filament_1based, const LayerRegion &region) {
+            if (!mixed_slots_1based.count(filament_1based))
+                return;
+            double height = layer->height;
+            for (const AdaptiveMergePatch &patch : region.adaptive_merge_patches)
+                if (patch.group_top && !patch.area().empty())
+                    height = std::max(height, patch.merged_height);
+            if (height <= 0.)
+                return;
+            double &stored = m_mixed_layer_heights[filament_1based - 1][layer_idx];
+            stored = std::max(stored, height);
+        };
 
-        m_object_all_layer_indices[&object].push_back(
-            static_cast<size_t>(&layer_tools - m_layer_tools.data()));
+        // Adaptive merging leaves the swallowed grid layers in object.layers(), but moves all
+        // of their extrusion to the group top. Treating those empty layers as real gaps resets
+        // gradient runs and makes the mixed sublayer height fall back to one grid step.
+        if (layer->has_extrusions())
+            m_object_all_layer_indices[&object].push_back(
+                static_cast<size_t>(&layer_tools - m_layer_tools.data()));
 
         // Override extruder with the next
     	for (; it_per_layer_extruder_override != per_layer_extruder_switches.end() && it_per_layer_extruder_override->first < layer->print_z + EPSILON; ++ it_per_layer_extruder_override)
@@ -766,6 +930,11 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         // What extruders are required to print this object layer?
         for (const LayerRegion *layerm : layer->regions()) {
             const PrintRegion &region = layerm->region();
+            const bool starts_at_object_base = std::any_of(
+                layerm->adaptive_merge_patches.begin(), layerm->adaptive_merge_patches.end(),
+                [](const AdaptiveMergePatch &patch) {
+                    return patch.group_top && patch.bottom_idx == 0;
+                });
 
             if (! layerm->perimeters.entities.empty()) {
                 bool something_nonoverriddable = true;
@@ -783,26 +952,52 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                 }
 
                 if (something_nonoverriddable){
-               		layer_tools.extruders.emplace_back((extruder_override == 0) ? region.config().wall_filament.value : extruder_override);
-                    if (layerCount == 0) {
-                        firstLayerExtruders.emplace_back((extruder_override == 0) ? region.config().wall_filament.value : extruder_override);
+                    const unsigned int wall_filament =
+                        (extruder_override == 0) ? region.config().wall_filament.value : extruder_override;
+                    layer_tools.extruders.emplace_back(wall_filament);
+                    record_mixed_height(wall_filament, *layerm);
+                    if (may_touch_bed && wall_filament > 0 && extrusion_touches_bed(layerm->perimeters, layer->print_z))
+                        m_bed_contact_filaments.emplace_back(layer->print_z, wall_filament);
+                    if (layerCount == 0 || starts_at_object_base) {
+                        firstLayerExtruders.emplace_back(wall_filament);
+                        // Only a band starting on the bed is as tall as its print_z, e.g. not the first layer above a raft.
+                        if (std::abs(object.layers().front()->bottom_z()) <= EPSILON &&
+                            (brim_filament == 0 || layer->print_z < brim_print_z - EPSILON ||
+                             (layer->print_z < brim_print_z + EPSILON && int(wall_filament) < brim_filament))) {
+                            brim_filament = int(wall_filament);
+                            brim_print_z  = layer->print_z;
+                        }
                     }
+                    if ((layerCount == 0 || starts_at_object_base) &&
+                        ! object.layers().empty() &&
+                        std::abs(object.layers().front()->bottom_z()) <= EPSILON &&
+                        ! m_layer_tools.empty() &&
+                        std::abs(layer->print_z - m_layer_tools.front().print_z) <= EPSILON)
+                        bed_contact_extruders.emplace_back(wall_filament);
                 }
 
                 layer_tools.has_object = true;
             }
 
-            bool has_infill       = false;
-            bool has_solid_infill = false;
             bool something_nonoverriddable = false;
+            // The filament every fill collection will actually be printed with, read back through the
+            // very decision GCode::process_layer() makes. Classifying a collection by the role of its
+            // first entity alone misses one that leads with a gap fill - neither solid nor sparse - and
+            // leaves this region's filament unregistered for the whole layer. process_layer() finds no
+            // registration either and falls back to the last tool of the layer, so the region comes out
+            // in a filament it was never assigned, at the line width of the one it was. The walls of the
+            // same region register that filament anyway on an ordinary layer, which is why this only
+            // surfaces once adaptive merging has decimated them away and the fill stands there alone.
+            std::vector<unsigned int> fill_slots;
+            std::vector<unsigned int> bed_fill_slots;
             for (const ExtrusionEntity *ee : layerm->fills.entities) {
                 // fill represents infill extrusions of a single island.
                 const auto *fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
-                ExtrusionRole role = fill->entities.empty() ? erNone : fill->entities.front()->role();
-                if (is_solid_infill(role))
-                    has_solid_infill = true;
-                else if (is_infill(role))
-                    has_infill = true;
+                if (! fill->entities.empty()) {
+                    fill_slots.emplace_back(layer_tools.filament_slot(*fill, region));
+                    if (may_touch_bed && fill_slots.back() > 0 && extrusion_touches_bed(*fill, layer->print_z))
+                        bed_fill_slots.emplace_back(fill_slots.back());
+                }
 
                 if (m_print_config_ptr) {
                     if (! layer_tools.wiping_extrusions().is_overriddable_and_mark(*fill, *m_print_config_ptr, object, region))
@@ -814,15 +1009,14 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             }
 
             if (something_nonoverriddable) {
-            	if (extruder_override == 0) {
-	                if (has_solid_infill)
-	                    layer_tools.extruders.emplace_back(region.config().solid_infill_filament);
-	                if (has_infill)
-	                    layer_tools.extruders.emplace_back(region.config().sparse_infill_filament);
-            	} else if (has_solid_infill || has_infill)
-            		layer_tools.extruders.emplace_back(extruder_override);
+                for (unsigned int slot : fill_slots) {
+                    layer_tools.extruders.emplace_back(slot);
+                    record_mixed_height(slot, *layerm);
+                }
+                for (unsigned int slot : bed_fill_slots)
+                    m_bed_contact_filaments.emplace_back(layer->print_z, slot);
             }
-            if (has_solid_infill || has_infill)
+            if (! fill_slots.empty())
                 layer_tools.has_object = true;
         }
 
@@ -830,12 +1024,41 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         // All mixed slots are tracked (not just gradient) so that calc_slot_lh
         // can compute accurate layer heights even when a slot skips layers.
         if (!mixed_slots_1based.empty()) {
-            size_t layer_idx = static_cast<size_t>(&layer_tools - m_layer_tools.data());
             std::set<unsigned int> seen;
             for (size_t ei = ext_snapshot; ei < layer_tools.extruders.size(); ++ei) {
                 unsigned int ext_1based = layer_tools.extruders[ei];
                 if (mixed_slots_1based.count(ext_1based) && seen.insert(ext_1based).second)
                     m_mixed_object_layers[ext_1based - 1][&object].push_back(layer_idx);
+            }
+
+            // A region swallowed by its own adaptive band emits nothing here, but its slot is still
+            // printed through this step by the group top above. Record it so that a group top of another
+            // nozzle landing on this layer is not mistaken for the slot being absent.
+            // Marker copies also reach below a floor raised by an obstruction; the slab does not stand there.
+            const size_t object_layer_idx = layer->id() - object.slicing_parameters().raft_layers();
+            for (const LayerRegion *layerm : layer->regions()) {
+                const bool swallowed = std::any_of(
+                    layerm->adaptive_merge_patches.begin(), layerm->adaptive_merge_patches.end(),
+                    [object_layer_idx](const AdaptiveMergePatch &patch) {
+                        return !patch.group_top && !patch.area().empty() && object_layer_idx >= patch.bottom_idx;
+                    });
+                if (!swallowed)
+                    continue;
+                const PrintRegion       &region = layerm->region();
+                const PrintRegionConfig &rcfg   = region.config();
+                const unsigned int role_slots[3] = {
+                    extruder_override != 0 ? extruder_override : (unsigned int)rcfg.wall_filament.value,
+                    extruder_override != 0 ? extruder_override : (unsigned int)rcfg.sparse_infill_filament.value,
+                    extruder_override != 0 ? extruder_override : (unsigned int)rcfg.solid_infill_filament.value,
+                };
+                const ObjectID vol_id = region.gradient_volume_id();
+                for (unsigned int ext_1based : role_slots) {
+                    if (!mixed_slots_1based.count(ext_1based))
+                        continue;
+                    m_mixed_swallowed_layers[ext_1based - 1][&object].insert(layer_idx);
+                    if (vol_id.valid() && per_part_slots_1based.count(ext_1based))
+                        m_gradient_volume_swallowed_layers[ext_1based - 1][{&object, vol_id}].insert(layer_idx);
+                }
             }
         }
 
@@ -874,7 +1097,17 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     }
 
     sort_remove_duplicates(firstLayerExtruders);
+    sort_remove_duplicates(bed_contact_extruders);
+    if (! bed_contact_extruders.empty() && object.has_brim()) {
+        const std::vector<unsigned int> adhesion_extruders{ bed_contact_extruders.front() };
+        LayerTools &adhesion_layer = m_layer_tools.front();
+        adhesion_layer.extruders.insert(
+            adhesion_layer.extruders.end(), adhesion_extruders.begin(), adhesion_extruders.end());
+        sort_remove_duplicates(adhesion_layer.extruders);
+    }
     const_cast<PrintObject&>(object).object_first_layer_wall_extruders = firstLayerExtruders;
+    const_cast<PrintObject&>(object).object_brim_filament = brim_filament;
+    const_cast<PrintObject&>(object).object_brim_print_z  = brim_print_z;
 
     // Collect the support extruders.
     for (auto support_layer : object.support_layers()) {
@@ -882,15 +1115,36 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         ExtrusionRole role          = support_layer->support_fills.role();
         bool          has_support   = false;
         bool          has_interface = false;
+        bool          support_touches_bed   = false;
+        bool          interface_touches_bed = false;
+        const bool    may_touch_bed         = support_layer->print_z <= max_contact_z;
         for (const ExtrusionEntity *ee : support_layer->support_fills.entities) {
             ExtrusionRole er = ee->role();
-            if (er == erSupportMaterial || er == erSupportTransition) has_support = true;
-            if (er == erSupportMaterialInterface) has_interface = true;
-            if (has_support && has_interface) break;
+            if (er == erSupportMaterial || er == erSupportTransition) {
+                has_support = true;
+                support_touches_bed |= may_touch_bed && extrusion_touches_bed(*ee, support_layer->print_z);
+            }
+            if (er == erSupportMaterialInterface) {
+                has_interface = true;
+                interface_touches_bed |= may_touch_bed && extrusion_touches_bed(*ee, support_layer->print_z);
+            }
+            if (has_support && has_interface && ! may_touch_bed) break;
         }
         unsigned int extruder_support   = object.config().support_filament.value;
         unsigned int extruder_interface = object.config().support_interface_filament.value;
-        bool         interface_not_for_body = object.config().support_interface_not_for_body;
+        // support_interface_not_for_body keeps the base off a filament the user dedicated to the interface.
+        // BBS multi-diameter: the merge plan pins the interface to a filament the object prints in this slab,
+        // which is not that. Keeping the base off it can leave the layer without another usable filament and
+        // send the base to the min-flush pick below, which may choose any filament of the plate.
+        bool         interface_not_for_body = object.config().support_interface_not_for_body &&
+                                              object.config().support_interface_filament.value > 0;
+        // BBS multi-diameter: this support layer is thicker than the object layers, so only the filament it was
+        // planned for can extrude it. Report it as a fixed filament instead of the "don't care" placeholder,
+        // otherwise the tool change and the wipe tower would not be planned for it.
+        if (extruder_support == 0 && support_layer->planned_filament_id > 0)
+            extruder_support = (unsigned int) support_layer->planned_filament_id;
+        if (extruder_interface == 0 && support_layer->planned_interface_filament_id > 0)
+            extruder_interface = (unsigned int) support_layer->planned_interface_filament_id;
         if (has_support) {
             auto has_reusable_layer_extruder = [&]() -> bool {
                 for (unsigned int extruder_id : layer_tools.extruders) {
@@ -926,8 +1180,14 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                 };
                 layer_tools.extruders.push_back(get_next_extruder(interface_not_for_body ? extruder_interface - 1 : -1, all_extruders) + 1);
             }
+            if (support_touches_bed && layer_tools.extruders.back() > 0)
+                m_bed_contact_filaments.emplace_back(support_layer->print_z, layer_tools.extruders.back());
         }
-        if (has_interface) layer_tools.extruders.push_back(extruder_interface);
+        if (has_interface) {
+            layer_tools.extruders.push_back(extruder_interface);
+            if (interface_touches_bed && extruder_interface > 0)
+                m_bed_contact_filaments.emplace_back(support_layer->print_z, extruder_interface);
+        }
         if (has_support || has_interface) {
             layer_tools.has_support = true;
             layer_tools.wiping_extrusions().is_support_overriddable_and_mark(role, object);
@@ -975,10 +1235,13 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
         lt.has_wipe_tower = config.enable_wrapping_detection;
     }
 
-    //FIXME this is a hack to get the ball rolling.
-    for (LayerTools &lt : m_layer_tools)
-        lt.has_wipe_tower |= ((lt.has_object || lt.has_support) && (config.timelapse_type == TimelapseType::tlSmooth || lt.wipe_tower_partitions > 0))
-            || lt.print_z < object_bottom_z + EPSILON;
+    for (LayerTools &lt : m_layer_tools) {
+        const bool tower_needed = config.timelapse_type == TimelapseType::tlSmooth || lt.wipe_tower_partitions > 0;
+        // Below the object bottom sit raft layers and, with multi-diameter adaptive merging, empty grid layers
+        // swallowed by the first band. They only carry the tower down to the bed when a tower is needed at all;
+        // wipe_tower_partitions was propagated downwards above, so any tool change higher up reaches them.
+        lt.has_wipe_tower |= (lt.has_object || lt.has_support || lt.print_z < object_bottom_z + EPSILON) && tower_needed;
+    }
 
     // Test for a raft, insert additional wipe tower layer to fill in the raft separation gap.
     for (size_t i = 0; i + 1 < m_layer_tools.size(); ++ i) {
@@ -1128,6 +1391,14 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
         }
 }
 
+void ToolOrdering::seed_first_tower_layer(unsigned int filament)
+{
+    auto first = std::find_if(m_layer_tools.begin(), m_layer_tools.end(), [](const LayerTools &lt) { return lt.has_wipe_tower; });
+    if (first == m_layer_tools.end() || ! first->extruders.empty())
+        return;
+    first->extruders.push_back(filament);
+}
+
 void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
 {
     m_first_printing_extruder = (unsigned int)-1;
@@ -1206,9 +1477,10 @@ float ToolOrdering::cal_max_additional_fan(const PrintConfig &config)
         std::vector<unsigned int> filaments = layer_tools.extruders;
         std::set<int>             layer_extruder_count;
         // count once only
-        for (unsigned int &filament : filaments)
-            if (max_fan < config.additional_cooling_fan_speed.get_at(filament))
-                max_fan = config.additional_cooling_fan_speed.get_at(filament);
+        for (unsigned int &filament : filaments) {
+            max_fan = std::max(max_fan, float(config.additional_cooling_fan_speed.get_at(filament)));
+            max_fan = std::max(max_fan, float(config.optional_cooling_fan_speed.get_at(filament)));
+        }
     }
     return max_fan;
 }
@@ -1320,6 +1592,7 @@ std::vector<MultiNozzleUtils::NozzleGroupInfo> build_nozzle_groups(
     std::vector<MultiNozzleUtils::NozzleGroupInfo> nozzle_groups;
     auto extruder_nozzle_counts = get_extruder_nozzle_stats(print_config.extruder_nozzle_stats.values);
     auto nozzle_volume_types = print_config.nozzle_volume_type.values;
+
     for(size_t idx = 0; idx < extruder_nums; ++idx){
         if (idx >= extruder_nozzle_counts.size() || extruder_nozzle_counts[idx].empty()) {
             nozzle_groups.emplace_back(format_diameter_to_str(print_config.nozzle_diameter.values[idx]), NozzleVolumeType(print_config.nozzle_volume_type.values[idx]), idx,
@@ -1337,6 +1610,85 @@ std::vector<MultiNozzleUtils::NozzleGroupInfo> build_nozzle_groups(
         }
     }
     return nozzle_groups;
+}
+
+// N1X manual modes: AMS-group filaments use AMS; fixed-group filaments use compatible fixed nozzles
+// or appended virtual nozzles.
+std::vector<int> build_manual_nozzle_map(const PrintConfig &print_config,
+                                             std::vector<MultiNozzleUtils::NozzleInfo> &nozzle_list,
+                                             const std::vector<unsigned int> &used_filaments,
+                                             FilamentMapMode mode, int ams_nozzle_idx, int ams_capacity,
+                                             size_t filament_nums)
+{
+    std::vector<int> fnmap(filament_nums, ams_nozzle_idx >= 0 ? ams_nozzle_idx : 0);
+    const auto& ufnm          = print_config.filament_nozzle_map.values;
+    const auto& fvmap         = print_config.filament_volume_map.values;
+    const auto& selected_diameters = print_config.filament_diameter_map.values;
+
+    auto compatible = [](int nozzle_vt, int filament_vt) {
+        return nozzle_vt == nvtHybrid || filament_vt == nvtHybrid || nozzle_vt == filament_vt;
+    };
+
+    auto in_ams_group = [&](unsigned int f) {
+        if (ams_nozzle_idx < 0) return false;
+        if (mode == FilamentMapMode::fmmManual)
+            return f < ufnm.size() && ufnm[f] == ams_nozzle_idx;
+        return f < ufnm.size() && ufnm[f] == ams_nozzle_idx;
+    };
+
+    std::set<int> used_fixed;   // fixed nozzle group_ids already taken
+    int ams_group_count = 0;
+    const std::string virtual_diameter = print_config.nozzle_diameter.values.empty()
+        ? std::string() : format_diameter_to_str(print_config.nozzle_diameter.values.front());
+
+    for (auto f : used_filaments) {
+        if (in_ams_group(f)) {
+            if (f < selected_diameters.size() && !selected_diameters[f].empty() &&
+                (ams_nozzle_idx < 0 || ams_nozzle_idx >= static_cast<int>(nozzle_list.size()) ||
+                 nozzle_list[ams_nozzle_idx].diameter != selected_diameters[f]))
+                return {};
+            fnmap[f] = ams_nozzle_idx;
+            ++ams_group_count;
+            continue;
+        }
+
+        int req_vol = (f < fvmap.size()) ? fvmap[f] : (int) nvtStandard;
+        if (req_vol < 0 || req_vol >= static_cast<int>(NozzleVolumeType::nvtCount))
+            req_vol = static_cast<int>(NozzleVolumeType::nvtStandard);
+        int chosen   = -1;
+        for (const auto& n : nozzle_list) {
+            if (!n.installed || n.group_id == ams_nozzle_idx || used_fixed.count(n.group_id))
+                continue;
+            if (f < selected_diameters.size() && !selected_diameters[f].empty() &&
+                n.diameter != selected_diameters[f])
+                continue;
+            if (compatible((int) n.volume_type, req_vol)) {
+                chosen = n.group_id;
+                break;
+            }
+        }
+        if (chosen >= 0) {
+            used_fixed.insert(chosen);
+            fnmap[f] = chosen;
+        } else {
+            MultiNozzleUtils::NozzleInfo virtual_nozzle;
+            virtual_nozzle.diameter    = f < selected_diameters.size() && !selected_diameters[f].empty()
+                ? selected_diameters[f] : virtual_diameter;
+            virtual_nozzle.volume_type = NozzleVolumeType(req_vol);
+            virtual_nozzle.extruder_id = 0;
+            virtual_nozzle.group_id    = static_cast<int>(nozzle_list.size());
+            virtual_nozzle.installed   = true;
+            chosen = virtual_nozzle.group_id;
+            nozzle_list.emplace_back(std::move(virtual_nozzle));
+            used_fixed.insert(chosen);
+            fnmap[f] = chosen;
+        }
+    }
+
+    if (ams_nozzle_idx >= 0 && ams_capacity > 0 && ams_group_count > ams_capacity)
+        return {}; // AMS group exceeds AMS slot count
+
+    return fnmap;
 }
 
 std::vector<MultiNozzleUtils::NozzleInfo> build_default_nozzle_list(const PrintConfig &print_config, size_t extruder_nums)
@@ -1377,8 +1729,11 @@ FilamentGroupContext build_filament_group_context(
 
     auto nozzle_flush_mtx = prepare_flush_matrices(print_config);
 
-    // 构造可用喷嘴列表
-    auto nozzle_groups = build_nozzle_groups(print_config, extruder_nums);
+    int ams_nozzle_idx_ctx = get_effective_ams_nozzle_idx(print_config);
+    // Single-extruder multi-nozzle (N1X): one physical extruder driving several nozzles. AMS presence
+    // is a separate runtime fact: ams_nozzle_idx_ctx >= 0 means the AMS-fed nozzle exists at that slot;
+    // when no AMS is connected every nozzle is a dedicated fixed nozzle (one filament each, no flush).
+    bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(print_config);
 
     // 收集不可打印限制
     std::vector<std::set<int>> ext_unprintable_filaments(2);
@@ -1409,6 +1764,18 @@ FilamentGroupContext build_filament_group_context(
     auto extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
     std::vector<int> group_size = calc_max_group_size(extruder_ams_counts, ignore_ext_filament);
 
+    // Single real extruder model: AMS-head capacity = external AMS slots + the native Ext slot
+    // (1 when no AMS). Captured here before group_size is collapsed to a single group.
+    int ams_nozzle_capacity = 1;
+    if (single_ext_multi_nozzle) {
+        if (ams_nozzle_idx_ctx >= 0) {
+            const int ams_slots = group_size.empty() ? 0 : group_size[0];
+            ams_nozzle_capacity = std::max(1, ams_slots + 1);
+        }
+        // One real extruder holding all filaments; the per-nozzle capacity limits each physical nozzle.
+        group_size = { (int) filament_nums };
+    }
+
     // When filament switcher is connected, disable AMS capacity limit for grouping
     if (print_config.has_filament_switcher) {
         int total_filaments = (int)filament_nums;
@@ -1416,9 +1783,13 @@ FilamentGroupContext build_filament_group_context(
             s = std::max(s, total_filaments);
     }
 
-    std::vector<bool> prefer_non_model_filament(extruder_nums);
-    for (size_t idx = 0; idx < extruder_nums; ++idx)
-        prefer_non_model_filament[idx] = (print_config.extruder_type.values[idx] == ExtruderType::etBowden);
+    // Single real extruder for N1X: size by the real extruder count and skip the per-extruder Bowden
+    // preference (it does not apply to the single-extruder multi-nozzle model).
+    std::vector<bool> prefer_non_model_filament(extruder_nums, false);
+    if (!single_ext_multi_nozzle) {
+        for (size_t idx = 0; idx < extruder_nums; ++idx)
+            prefer_non_model_filament[idx] = (print_config.extruder_type.values[idx] == ExtruderType::etBowden);
+    }
 
     auto machine_filament_info = build_machine_filaments(print->get_extruder_filament_info(), extruder_ams_counts, ignore_ext_filament);
 
@@ -1429,10 +1800,15 @@ FilamentGroupContext build_filament_group_context(
     std::vector<FilamentUsageType> filament_usage_types = print->get_filament_usage_type();
 
     FGMode fg_mode = mode == FilamentMapMode::fmmAutoForMatch ? FGMode::MatchMode: FGMode::FlushMode;
+    // N1X uses a single real extruder with one real flush matrix: the AMS nozzle (capacity > 1) gets
+    // real flush between its filaments; fixed nozzles (capacity 1) hold a single filament so no
+    // intra-nozzle flush applies. No virtual-extruder flush duplication/zeroing is needed.
     context.model_info.flush_matrix = std::move(nozzle_flush_mtx);
     context.model_info.unprintable_filaments = ext_unprintable_filaments;
     context.model_info.layer_filaments = layer_filaments;
     context.model_info.filament_ids = filament_ids;
+    context.model_info.selected_nozzle_diameters = print_config.filament_diameter_map.values;
+    context.model_info.selected_nozzle_diameters.resize(filament_nums);
     context.model_info.unprintable_volumes = unprintable_volumes;
 
     for (size_t idx = 0; idx < filament_types.size(); ++idx) {
@@ -1441,6 +1817,8 @@ FilamentGroupContext build_filament_group_context(
         info.type = filament_types[idx];
         info.is_support = filament_is_support[idx];
         info.usage_type = filament_usage_types[idx];
+        if (idx < print_config.filament_diameter.size())
+            info.diameter = float(print_config.filament_diameter.get_at(idx));
         context.model_info.filament_info.emplace_back(std::move(info));
     }
 
@@ -1458,6 +1836,7 @@ FilamentGroupContext build_filament_group_context(
     }
 
     context.machine_info.machine_filament_info = machine_filament_info;
+    context.machine_info.nozzle_loaded_filaments = print->get_nozzle_loaded_filament_info();
     context.machine_info.max_group_size = std::move(group_size);
     context.machine_info.master_extruder_id = print_config.master_extruder_id.value - 1;
     context.machine_info.prefer_non_model_filament = prefer_non_model_filament;
@@ -1468,13 +1847,215 @@ FilamentGroupContext build_filament_group_context(
     context.group_info.mode = fg_mode;
     context.group_info.ignore_ext_filament = ignore_ext_filament;
     context.group_info.has_filament_switcher = print_config.has_filament_switcher.value;
+    auto used_filaments = collect_sorted_used_filaments(layer_filaments);
 
-    if(mode == FilamentMapMode::fmmManual)
+    // On single-extruder multi-nozzle machines with multi-diameter mode enabled, the filament list
+    // exposes a per-filament nozzle selector in every map mode, so filament_volume_map is the flow
+    // the user picked (as in fmmManual) and acts as a hard constraint. Otherwise auto modes must
+    // stay on Hybrid: there filament_volume_map is the grouping *result* written back after a slice,
+    // and feeding it back in would pin every later run to the old assignment.
+    const bool user_selected_nozzle_flow = mode == FilamentMapMode::fmmManual ||
+        (single_ext_multi_nozzle && multi_nozzle_diameter_mode_enabled(print->full_print_config()));
+    if (user_selected_nozzle_flow) {
         context.group_info.filament_volume_map = print_config.filament_volume_map.values;
-    else    // hrybid flow means no special request
+        // Consumers index this by filament id without bounds checks. Hybrid is the right padding: it
+        // means "no request", which is what a slot the user never selected should contribute.
+        context.group_info.filament_volume_map.resize(filament_nums, (int)(NozzleVolumeType::nvtHybrid));
+    }
+    else    // Hybrid means no requested nozzle volume type in auto modes.
         context.group_info.filament_volume_map = std::vector<int>(filament_nums,(int)(NozzleVolumeType::nvtHybrid));
 
-    context.nozzle_info.nozzle_list = build_nozzle_list(nozzle_groups);
+    // Build the global nozzle list. For ALL machine types, prefer the per-slot nozzle params.
+    // Real nozzle group_id stays aligned with the physical slot; virtual nozzles append later.
+    {
+        auto ordered = build_nozzle_list_from_extruder_nozzles(print_config);
+        // For N1X, the AMS slot must actually carry a nozzle; otherwise the per-slot data is invalid.
+        const bool ams_slot_ok = !single_ext_multi_nozzle || ams_nozzle_idx_ctx < 0 ||
+            (ams_nozzle_idx_ctx < static_cast<int>(ordered.size()) && ordered[ams_nozzle_idx_ctx].installed);
+
+        if (!ordered.empty() && ams_slot_ok) {
+            context.nozzle_info.nozzle_list = std::move(ordered);
+        }
+        else if (single_ext_multi_nozzle) {
+            // N1X must always have valid per-slot params (and, when AMS is connected, a nozzle on the
+            // AMS slot) by the time slicing runs. The aggregate-count offline fallback was removed; if
+            // this path is ever reached the per-slot data is genuinely broken, so fail loudly instead of
+            // silently building a semantically wrong multi-extruder list.
+            // There are four distinct ways to land here: empty extruder_nozzle_count, a volume-type
+            // list whose length differs from the summed nozzle count, an out-of-range slot id (all
+            // three make build_nozzle_list_from_extruder_nozzles() return an empty list), or an AMS
+            // slot carrying no nozzle. They share one message, so dump the raw inputs to tell them
+            // apart from a field log.
+            {
+                auto join = [](const auto &values) {
+                    std::ostringstream oss;
+                    for (size_t i = 0; i < values.size(); ++i)
+                        oss << (i ? "," : "") << values[i];
+                    return oss.str();
+                };
+                const auto &counts = print_config.extruder_nozzle_count.values;
+                int         count_sum = 0;
+                for (int c : counts)
+                    count_sum += c;
+                BOOST_LOG_TRIVIAL(error)
+                    << "no valid nozzle."
+                    << " ordered_size=" << ordered.size()
+                    << " ams_slot_ok=" << ams_slot_ok
+                    << " ams_nozzle_idx=" << ams_nozzle_idx_ctx
+                    << " nozzle_count=[" << join(counts) << "]"
+                    << " nozzle_count_sum=" << count_sum
+                    << " volume_type=[" << join(print_config.extruder_nozzle_volume_type.values) << "]"
+                    << " slot=[" << join(print_config.extruder_nozzle_slot.values) << "]"
+                    << " slot_diameter=[" << join(print_config.extruder_nozzle_diameter.values) << "]"
+                    << " extruder_diameter=[" << join(print_config.nozzle_diameter.values) << "]";
+            }
+            throw Slic3r::RuntimeError(_L("No valid nozzle found. Please check nozzle count."));
+        }
+        else {
+            // Multi-extruder fallback: real per-extruder nozzle groups, no remap.
+            context.nozzle_info.nozzle_list = build_nozzle_list(build_nozzle_groups(print_config, extruder_nums));
+        }
+    }
+
+    // Keep every authoritative per-slot nozzle available in multi-diameter mode and apply the per-filament
+    // restriction in the nozzle-level grouping solver. With the project gate off, only slots matching the
+    // active printer preset diameter remain available. Legacy multi-extruder configurations still expose one
+    // working diameter per extruder and disable slots that disagree with that representative diameter.
+    {
+        std::vector<MultiNozzleUtils::NozzleInfo>& nozzle_list        = context.nozzle_info.nozzle_list;
+        const std::vector<double>&                 extruder_diameters = print_config.nozzle_diameter.values;
+        const bool use_per_slot_diameters = has_authoritative_per_slot_nozzle_diameters(
+            print_config.handle_hotend_as_extruder, print_config.extruder_nozzle_count.values,
+            print_config.extruder_nozzle_diameter.values);
+        if (!multi_nozzle_diameter_mode_enabled(print->full_print_config())) {
+            double active_diameter = primary_nozzle_diameter(print->full_print_config());
+            if (active_diameter <= EPSILON && !extruder_diameters.empty())
+                active_diameter = extruder_diameters.front();
+            const std::string active_diameter_str = format_diameter_to_str(active_diameter);
+            for (MultiNozzleUtils::NozzleInfo& nozzle : nozzle_list)
+                if (nozzle.diameter != active_diameter_str)
+                    nozzle.installed = false;
+        } else if (!use_per_slot_diameters) {
+            for (MultiNozzleUtils::NozzleInfo& nozzle : nozzle_list)
+                if (nozzle.extruder_id < 0 || nozzle.extruder_id >= static_cast<int>(extruder_diameters.size()) ||
+                    nozzle.diameter != format_diameter_to_str(extruder_diameters[nozzle.extruder_id]))
+                    nozzle.installed = false;//wrong-diameter nozzle: not usable for this print
+        }
+
+        int ams_logical_group_id = -1;
+        if (single_ext_multi_nozzle && ams_nozzle_idx_ctx >= 0 &&
+            ams_nozzle_idx_ctx < static_cast<int>(nozzle_list.size()) && nozzle_list[ams_nozzle_idx_ctx].installed)
+            ams_logical_group_id = ams_nozzle_idx_ctx;
+
+        // N1X 非 match 自动模式需要在 ctx 阶段补足基础容量；match 模式的虚拟喷嘴由
+        // calc_filament_group_for_nozzle_match() 按真实已装料匹配结果追加。
+        // fmmNozzleManual under multi-diameter mode joins the auto modes here: its per-filament
+        // (diameter, flow) selection still needs one capacity unit per filament, otherwise same-spec
+        // filaments get over-packed onto a single physical nozzle and are charged real flush against
+        // each other. Non-multi-diameter fmmNozzleManual (CLI / calibration) uses explicit nozzle maps.
+        const bool needs_virtual_nozzle_padding = single_ext_multi_nozzle &&
+            ((is_auto_filament_map_mode(mode) && mode != FilamentMapMode::fmmAutoForMatch) ||
+             (mode == FilamentMapMode::fmmNozzleManual && multi_nozzle_diameter_mode_enabled(print->full_print_config())));
+        if (needs_virtual_nozzle_padding) {
+            const std::string virtual_diameter = extruder_diameters.empty()
+                ? std::string() : format_diameter_to_str(extruder_diameters.front());
+
+            const int  ams_capacity = std::max(1, ams_nozzle_capacity);
+
+            auto nozzle_capacity = [ams_logical_group_id, ams_capacity](const MultiNozzleUtils::NozzleInfo& nozzle) {
+                if (!nozzle.installed)
+                    return 0;
+
+                const bool is_ams_nozzle = ams_logical_group_id >= 0 && nozzle.group_id == ams_logical_group_id;
+                return is_ams_nozzle ? ams_capacity : 1;
+            };
+
+            // 统计当前真实/有效入口数。
+            auto usable_slot_count = [&nozzle_list, &nozzle_capacity]() {
+                int count = 0;
+                for (const auto& nozzle : nozzle_list)
+                    count += nozzle_capacity(nozzle);
+                return count;
+            };
+
+            // Clone a real nozzle so the virtual slot inherits its diameter / flow / extruder_id and only
+            // takes a new group_id -- same shape as FilamentGroup.cpp's append_virtual_nozzle(). Takes the
+            // source by value: emplace_back below can reallocate nozzle_list out from under a reference
+            // into it.
+            auto append_virtual_nozzle = [&nozzle_list](MultiNozzleUtils::NozzleInfo virtual_nozzle) {
+                virtual_nozzle.group_id  = static_cast<int>(nozzle_list.size());
+                virtual_nozzle.installed = true;
+                nozzle_list.emplace_back(std::move(virtual_nozzle));
+            };
+
+            // Per-spec padding. A filament that requested a concrete (diameter, flow) needs a capacity
+            // unit of exactly that spec, so pad each spec's shortfall from one of its real nozzles.
+            // These are virtual filaments that get mapped onto physical trays when the print starts, so
+            // one filament per capacity-1 slot is what makes their mutual flush correctly zero.
+            // Auto modes leave every flow on Hybrid unless multi-diameter mode is on; otherwise nothing
+            // lands here and the total-count fallback below keeps its existing behavior.
+            {
+                using NozzleSpec = std::pair<std::string, int>;
+                std::map<NozzleSpec, int> spec_demand;
+                for (unsigned int fil : used_filaments) {
+                    if (fil >= filament_nums)
+                        continue;
+                    const std::string &diameter = context.model_info.selected_nozzle_diameters[fil];
+                    const int          volume   = context.group_info.filament_volume_map[fil];
+                    if (diameter.empty() || volume == (int)(NozzleVolumeType::nvtHybrid))
+                        continue;
+                    ++spec_demand[{diameter, volume}];
+                }
+
+                std::map<NozzleSpec, int>                          spec_supply;
+                std::map<NozzleSpec, MultiNozzleUtils::NozzleInfo> spec_source;
+                for (const auto &nozzle : nozzle_list) {
+                    const int capacity = nozzle_capacity(nozzle);
+                    if (capacity <= 0)
+                        continue;
+                    const NozzleSpec spec{nozzle.diameter, (int)(nozzle.volume_type)};
+                    spec_supply[spec] += capacity;
+                    spec_source.emplace(spec, nozzle);
+                }
+
+                for (const auto &[spec, demand] : spec_demand) {
+                    // No installed nozzle of that spec: there is nothing to inherit from, and inventing
+                    // one would hide the real problem. Leave it to the nozzle assignment to report.
+                    const auto source = spec_source.find(spec);
+                    if (source == spec_source.end())
+                        continue;
+                    for (int supplied = spec_supply[spec]; supplied < demand; ++supplied)
+                        append_virtual_nozzle(source->second);
+                }
+            }
+
+            // 简化兜底：非 match 自动模式沿用 Standard 虚拟喷嘴补齐。
+            while (usable_slot_count() < static_cast<int>(used_filaments.size())) {
+                MultiNozzleUtils::NozzleInfo virtual_nozzle;
+                virtual_nozzle.diameter    = virtual_diameter;
+                virtual_nozzle.volume_type = NozzleVolumeType::nvtStandard;
+                virtual_nozzle.extruder_id = 0;
+                virtual_nozzle.group_id    = static_cast<int>(nozzle_list.size());
+                virtual_nozzle.installed   = true;
+                nozzle_list.emplace_back(std::move(virtual_nozzle));
+            }
+        }
+
+        // Per-nozzle filament capacity (indexed by nozzle group_id) for every machine, so both the enum and
+        // clustering solvers consume one nozzle-level capacity instead of the per-extruder max_group_size:
+        std::vector<int> caps(nozzle_list.size(), 1);
+        for (size_t i = 0; i < nozzle_list.size(); ++i) {
+            const auto& nz = nozzle_list[i];
+            if (!nz.installed)
+                caps[i] = 0;
+            else if (single_ext_multi_nozzle)
+                caps[i] = (ams_logical_group_id >= 0 && nz.group_id == ams_logical_group_id) ? std::max(1, ams_nozzle_capacity) : 1;
+            else
+                caps[i] = (nz.extruder_id >= 0 && nz.extruder_id < (int) group_size.size()) ? std::max(1, group_size[nz.extruder_id]) : 1;
+        }
+        context.nozzle_info.per_nozzle_capacity = std::move(caps);
+    }
+
     context.nozzle_info.extruder_nozzle_list = build_extruder_nozzle_list(context.nozzle_info.nozzle_list);
 
     if(context.nozzle_info.nozzle_list.empty())
@@ -1482,8 +2063,6 @@ FilamentGroupContext build_filament_group_context(
 
     if (!nozzle_status.empty())
         context.nozzle_info.nozzle_status = nozzle_status;
-
-    auto used_filaments = collect_sorted_used_filaments(layer_filaments);
 
         // add_volume_type_limits, only for o1d
     if (!has_multiple_nozzle) {
@@ -1556,6 +2135,40 @@ FilamentGroupContext build_filament_group_context(
         }
     }
 
+    // Multi-diameter restriction: keep each filament on the diameter explicitly selected before slicing.
+    // This only tightens the auto solver's unprintable set and leaves flush/time scoring untouched.
+    // Authoritative per-slot configurations are constrained later against the physical nozzle list.
+    {
+        const std::vector<double> &extruder_diameters = print_config.nozzle_diameter.values;
+        std::set<std::string> distinct_diameters;
+        for (double d : extruder_diameters)
+            distinct_diameters.insert(format_diameter_to_str(d));
+
+        const auto &selected = print_config.filament_diameter_map.values;
+        auto &unprintable_filaments = context.model_info.unprintable_filaments;
+        const bool has_selected = std::any_of(selected.begin(), selected.end(),
+                                              [](const std::string &value) { return !value.empty(); });
+        const bool use_per_slot_diameters = has_authoritative_per_slot_nozzle_diameters(
+            print_config.handle_hotend_as_extruder, print_config.extruder_nozzle_count.values,
+            print_config.extruder_nozzle_diameter.values);
+        if (!use_per_slot_diameters &&
+            (distinct_diameters.size() > 1 || has_selected) && extruder_nums >= 2) {
+            for (auto fil_id : used_filaments) {
+                if (fil_id >= selected.size() || selected[fil_id].empty())
+                    continue;
+                const std::string allowed = format_diameter_to_str(string_to_double_decimal_point(selected[fil_id].c_str()));
+
+                std::vector<int> incompatible_extruders;
+                for (size_t e = 0; e < extruder_nums && e < unprintable_filaments.size(); ++e) {
+                    if (allowed != format_diameter_to_str(extruder_diameters[e]))
+                        incompatible_extruders.emplace_back((int) e);
+                }
+                for (int e : incompatible_extruders)
+                    unprintable_filaments[e].insert(fil_id);
+            }
+        }
+    }
+
     return context;
 }
 
@@ -1611,8 +2224,12 @@ MultiNozzleUtils::LayeredNozzleGroupResult refine_groups_by_Nozzle_State(const F
             auto noz_info             = ctx.nozzle_info.nozzle_list[noz];
             int  ext_id               = noz_info.extruder_id;
             auto ext_unprintable_fils = ctx.model_info.unprintable_filaments[ext_id];
+            const bool diameter_mismatch = fil < ctx.model_info.selected_nozzle_diameters.size() &&
+                !ctx.model_info.selected_nozzle_diameters[fil].empty() &&
+                ctx.model_info.selected_nozzle_diameters[fil] != noz_info.diameter;
             if (ext_unprintable_fils.count(fil) > 0 ||
-                (expected_volume != nvtHybrid && expected_volume != noz_info.volume_type) || (unprintable_volumes.count(noz_info.volume_type) != 0))
+                diameter_mismatch || (expected_volume != nvtHybrid && expected_volume != noz_info.volume_type) ||
+                (unprintable_volumes.count(noz_info.volume_type) != 0))
                 fil_unplaceable_nozs[fil].insert(noz);
         }
     }
@@ -1709,7 +2326,8 @@ MultiNozzleUtils::LayeredNozzleGroupResult refine_groups_by_Nozzle_State(const F
             new_default_filament_nozzle_maps[fil] = global_uv_match[ori_noz];
     }
 
-    auto new_group = MultiNozzleUtils::LayeredNozzleGroupResult::create(new_default_filament_nozzle_maps, ctx.nozzle_info.nozzle_list, fils);
+    auto new_group = MultiNozzleUtils::LayeredNozzleGroupResult::create(
+        new_default_filament_nozzle_maps, ctx.nozzle_info.nozzle_list, fils, group.is_handle_nozzle_as_extruder());
     if (!new_group.has_value()) new_group = group;
 
     return *new_group;
@@ -1846,6 +2464,50 @@ std::vector<FilamentPlanRes> plan_filament_mapping_and_order_by_combo_ranges(
 
 
 
+// Multi-diameter manual safety net: reject a manual filament -> extruder assignment that disagrees
+// with the filament's completed selected diameter. This guards CLI/scripted paths that set filament_map
+// directly and bypass the UI drag-drop restriction.
+static void validate_manual_diameter_or_throw(const PrintConfig                &print_config,
+                                              const std::vector<unsigned int> &used_filaments,
+                                              const std::vector<int>          &extruder_map_0based,
+                                              bool                             multi_nozzle_diameter_mode)
+{
+    if (!multi_nozzle_diameter_mode)
+        return;
+
+    // Per-slot configurations are validated against the selected physical nozzle by the nozzle-level
+    // manual grouping path. Their per-extruder diameter is only a representative fallback.
+    if (has_authoritative_per_slot_nozzle_diameters(
+        print_config.handle_hotend_as_extruder, print_config.extruder_nozzle_count.values,
+        print_config.extruder_nozzle_diameter.values))
+        return;
+
+    const std::vector<double> &extruder_diameters = print_config.nozzle_diameter.values;
+    std::set<std::string>      distinct_diameters;
+    for (double d : extruder_diameters)
+        distinct_diameters.insert(format_diameter_to_str(d));
+
+    const auto &selected = print_config.filament_diameter_map.values;
+    const bool has_selected = std::any_of(selected.begin(), selected.end(),
+                                          [](const std::string &value) { return !value.empty(); });
+    if (distinct_diameters.size() <= 1 && !has_selected)
+        return;
+
+    for (auto fid : used_filaments) {
+        if (fid >= selected.size() || selected[fid].empty())
+            continue;
+        const std::string allowed = format_diameter_to_str(string_to_double_decimal_point(selected[fid].c_str()));
+        if (fid >= extruder_map_0based.size())
+            continue;
+        const int e = extruder_map_0based[fid];
+        if (e < 0 || e >= (int) extruder_diameters.size())
+            continue;
+        if (allowed != format_diameter_to_str(extruder_diameters[e]))
+            throw Slic3r::RuntimeError(_L("Filament assigned to a nozzle of incompatible diameter. Please regroup so each "
+                                          "filament stays on a nozzle whose diameter it supports."));
+    }
+}
+
 MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filament_maps(Print                                           *print,
                                                                                      const std::vector<std::vector<unsigned int>> &layer_filaments,
                                                                                      const FilamentMapMode                         mode,
@@ -1862,6 +2524,7 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
         return LayeredNozzleGroupResult();
 
     const auto& print_config = print->config();
+    const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(print->full_print_config());
     size_t filament_nums = print_config.filament_colour.values.size();
     size_t extruder_nums = print_config.nozzle_diameter.values.size();
     auto used_filaments = collect_sorted_used_filaments(layer_filaments);
@@ -1870,6 +2533,22 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
         print_config.extruder_max_nozzle_count.values.end(),
         [](int v) { return v>1;});
     bool has_multiple_extruder = extruder_nums > 1;
+    bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(print_config);
+
+    // N1X fmmManual stores only AMS/fixed grouping; the backend assigns concrete compatible nozzles.
+    // fmmNozzleManual remains an explicit filament -> logical nozzle map.
+    auto build_manual_map_or_throw = [&](FilamentGroupContext& context) -> std::vector<int> {
+        int ams_idx = get_effective_ams_nozzle_idx(print_config);
+        if (ams_idx < 0 || ams_idx >= static_cast<int>(context.nozzle_info.nozzle_list.size()) ||
+            !context.nozzle_info.nozzle_list[ams_idx].installed)
+            ams_idx = -1;
+        int ams_cap = ams_idx >= 0 ? static_cast<int>(used_filaments.size()) : 0;
+        auto map = build_manual_nozzle_map(print_config, context.nozzle_info.nozzle_list, used_filaments,
+                                           mode, ams_idx, ams_cap, filament_nums);
+        if (map.empty())
+            throw Slic3r::RuntimeError(_L("Nozzle assignment error: no compatible fixed nozzle is available for the fixed filament group. Please check the nozzle setup or regroup."));
+        return map;
+    };
 
     auto nozzle_list = build_default_nozzle_list(print_config, extruder_nums);
 
@@ -1877,21 +2556,79 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
     if (mode == FilamentMapMode::fmmManual && !has_multiple_nozzle){
         auto manual_filament_map = print_config.filament_map.values;
         std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
-        auto result = LayeredNozzleGroupResult::create(manual_filament_map, nozzle_list, used_filaments);
+        validate_manual_diameter_or_throw(print_config, used_filaments, manual_filament_map, multi_diameter_mode);
+        auto result = LayeredNozzleGroupResult::create(manual_filament_map, nozzle_list, used_filaments, print_config.handle_hotend_as_extruder);
         return result ? *result : LayeredNozzleGroupResult();
     }
 
-    // 处理H2C的全手动模式，从传入参数直接构造结果
-    if (mode == FilamentMapMode::fmmNozzleManual) {
-        // directly build group result based on filament nozzle map
-        auto manual_filament_map = print_config.filament_map.values;
-        std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
-        auto nozzle_result = LayeredNozzleGroupResult::create(used_filaments, manual_filament_map, print_config.filament_volume_map.values, print_config.filament_nozzle_map.values, get_extruder_nozzle_stats(print_config.extruder_nozzle_stats.values), print_config.nozzle_diameter.values.front());
-        if (!nozzle_result) {
-            BOOST_LOG_TRIVIAL(error) << "Failed to build nozzle group result from filament nozzle map!";
-            return LayeredNozzleGroupResult();
+
+    if (mode == FilamentMapMode::fmmNozzleManual && has_multiple_nozzle) {
+        auto context = build_filament_group_context(
+            print, layer_filaments, physical_unprintables, geometric_unprintables, unprintable_volumes, mode, nozzle_status);
+
+        std::vector<int> ret;
+        // Auto flow calibration pins each filament to the nozzle it calibrates through filament_nozzle_map.
+        if (single_ext_multi_nozzle && multi_diameter_mode &&
+            print->calib_params().mode != CalibMode::Calib_Auto_PA_Line) {
+            // Assign from the user's per-filament (diameter, flow) rather than copying
+            // filament_nozzle_map: that map is built in the filament panel against physical slots only,
+            // so several same-spec filaments all point at one nozzle and end up charged flush against
+            // each other. build_filament_group_context() has already padded a capacity-1 virtual slot
+            // for each such filament, and same-spec slots are interchangeable because a virtual slot
+            // inherits its source's diameter and flow -- so a plain queue assignment is optimal here and
+            // leaves one filament per slot, i.e. zero intra-nozzle flush.
+            const auto      &nozzles   = context.nozzle_info.nozzle_list;
+            std::vector<int> remaining = context.nozzle_info.per_nozzle_capacity;
+            remaining.resize(nozzles.size(), 0);
+            const int ams_idx = get_effective_ams_nozzle_idx(print_config);
+
+            ret.assign(filament_nums, 0);
+            for (auto fil : used_filaments) {
+                const std::string diameter = fil < context.model_info.selected_nozzle_diameters.size()
+                    ? context.model_info.selected_nozzle_diameters[fil] : std::string();
+                const int         volume   = fil < context.group_info.filament_volume_map.size()
+                    ? context.group_info.filament_volume_map[fil] : (int)(NozzleVolumeType::nvtHybrid);
+
+                auto fits = [&](int noz) {
+                    const auto &nozzle = nozzles[noz];
+                    if (!nozzle.installed || remaining[noz] <= 0)
+                        return false;
+                    if (multi_diameter_mode && !diameter.empty() && nozzle.diameter != diameter)
+                        return false;
+                    return volume == (int)(NozzleVolumeType::nvtHybrid) || (int)(nozzle.volume_type) == volume;
+                };
+
+                // Two passes so the AMS nozzle is only taken once the single-filament slots of that spec
+                // are used up: filaments sharing the AMS nozzle really do flush against each other.
+                int chosen = -1;
+                for (int noz = 0; noz < static_cast<int>(nozzles.size()) && chosen < 0; ++noz)
+                    if (noz != ams_idx && fits(noz))
+                        chosen = noz;
+                if (chosen < 0 && ams_idx >= 0 && ams_idx < static_cast<int>(nozzles.size()) && fits(ams_idx))
+                    chosen = ams_idx;
+                if (chosen < 0)
+                    throw Slic3r::RuntimeError(_L("Nozzle assignment error: no nozzle matches the diameter and flow selected for one of the filaments. Please check the nozzle setup."));
+
+                ret[fil] = chosen;
+                remaining[chosen] -= 1;
+            }
+        } else {
+            const auto& user_nozzle_map = print_config.filament_nozzle_map.values;
+            const int   nozzle_cnt      = static_cast<int>(context.nozzle_info.nozzle_list.size());
+            ret.assign(filament_nums, 0);
+            for (auto fil : used_filaments) {
+                if (fil >= user_nozzle_map.size() || user_nozzle_map[fil] < 0 || user_nozzle_map[fil] >= nozzle_cnt)
+                    throw Slic3r::RuntimeError(_L("Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."));
+                const int nozzle_id = user_nozzle_map[fil];
+                if (!context.nozzle_info.nozzle_list[nozzle_id].installed)
+                    throw Slic3r::RuntimeError(_L("Nozzle assignment error: per-filament nozzle map points to an empty or unavailable nozzle."));
+                ret[fil] = nozzle_id;
+            }
         }
-        return *nozzle_result;
+        auto result_opt = LayeredNozzleGroupResult::create(ret, context.nozzle_info.nozzle_list, used_filaments, print_config.handle_hotend_as_extruder);
+        if (result_opt)
+            return *result_opt;
+        return LayeredNozzleGroupResult();
     }
 
     int master_extruder_id = print_config.master_extruder_id.value - 1;
@@ -1901,36 +2638,54 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
         auto context = build_filament_group_context(
             print,layer_filaments,physical_unprintables,geometric_unprintables, unprintable_volumes, mode, nozzle_status);
 
-        if (has_multiple_nozzle && mode == FilamentMapMode::fmmManual) {
-            auto manual_filament_map = print_config.filament_map.values;
-            std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
-            ret = calc_filament_group_for_manual_multi_nozzle(manual_filament_map, context);
-        } else if (has_multiple_nozzle && mode == FilamentMapMode::fmmAutoForMatch) {
-            ret = calc_filament_group_for_match_multi_nozzle(context);
-        } else {
-            FilamentGroup fg(context);
-            if (!has_multiple_nozzle)
-                fg.get_custom_seq = create_custom_seq_function(print_config, false);
-            ret = fg.calc_filament_group();
-        }
-
         if (has_multiple_nozzle) {
-            auto result_opt = LayeredNozzleGroupResult::create(ret, context.nozzle_info.nozzle_list, used_filaments);
+            if (single_ext_multi_nozzle) {
+                if (mode == FilamentMapMode::fmmManual) {
+                    ret = build_manual_map_or_throw(context);
+                } else if (mode == FilamentMapMode::fmmAutoForMatch) {
+                    ret = calc_filament_group_for_nozzle_match(context);
+                } else {
+                    // Single-extruder multi-nozzle auto: unified FilamentGroup with per-nozzle capacity.
+                    FilamentGroup fg(context);
+                    ret = fg.calc_filament_group();
+                }
+            }
+            else if(mode == FilamentMapMode::fmmManual){
+                auto manual_filament_map = print_config.filament_map.values;
+                std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
+                ret = calc_filament_group_for_manual_multi_nozzle(manual_filament_map,context);
+            }
+            else if(mode == FilamentMapMode::fmmAutoForMatch){
+                ret = calc_filament_group_for_match_multi_nozzle(context);
+            }
+            else{
+                FilamentGroup fg(context);
+                ret = fg.calc_filament_group();
+            }
+            auto result_opt = LayeredNozzleGroupResult::create(ret, context.nozzle_info.nozzle_list, used_filaments, print_config.handle_hotend_as_extruder);
             if (!result_opt) return LayeredNozzleGroupResult();
             auto result = *result_opt;
-            if (mode == FilamentMapMode::fmmManual) {
+            // Manual-mode extruder validation only applies to the virtual-extruder model; the
+            // single-extruder multi-nozzle model uses one real extruder (filament_map stays all-1,
+            // AMS/fixed is a nozzle-level constraint).
+            if (mode == FilamentMapMode::fmmManual && !single_ext_multi_nozzle) {
                 auto result_map = result.get_extruder_map();
                 for (auto fid : used_filaments) {
                     if (result_map[fid] != print_config.filament_map.values[fid] - 1) {
                         throw Slic3r::RuntimeError(_L("Group error in manual mode. Please check nozzle count or regroup."));
                     }
                 }
+                validate_manual_diameter_or_throw(print_config, used_filaments, result_map, multi_diameter_mode);
             }
             return result;
+        } else {
+            FilamentGroup fg(context);
+            fg.get_custom_seq = create_custom_seq_function(print_config, false);
+            ret = fg.calc_filament_group();
         }
     }
 
-    auto result_opt = LayeredNozzleGroupResult::create(ret, nozzle_list, used_filaments);
+    auto result_opt = LayeredNozzleGroupResult::create(ret, nozzle_list, used_filaments, print_config.handle_hotend_as_extruder);
     return result_opt ? *result_opt : LayeredNozzleGroupResult();
 }
 
@@ -1981,7 +2736,7 @@ void ToolOrdering::calculate_and_store_statistics(const PrintConfig             
             tmp.extruder_id = 0;
             tmp.volume_type = NozzleVolumeType::nvtStandard;
 
-            auto result_opt = MultiNozzleUtils::LayeredNozzleGroupResult::create(maps_without_group, {tmp}, layer_data.used_filaments);
+            auto result_opt = MultiNozzleUtils::LayeredNozzleGroupResult::create(maps_without_group, {tmp}, layer_data.used_filaments, false);
             if (!result_opt) return;
             auto result = *result_opt;
 
@@ -2010,7 +2765,9 @@ void ToolOrdering::calculate_and_store_statistics(const PrintConfig             
                     nozzle_map_per_layer.emplace_back(res.fil_nozzle_match);
                 }
 
-                auto result = MultiNozzleUtils::LayeredNozzleGroupResult::create(nozzle_map_per_layer, grouping_context.nozzle_info.nozzle_list, layer_data.used_filaments, filament_sequences);
+                auto result = MultiNozzleUtils::LayeredNozzleGroupResult::create(nozzle_map_per_layer, grouping_context.nozzle_info.nozzle_list,
+                                                                                 layer_data.used_filaments, filament_sequences,
+                                                                                 print_config.handle_hotend_as_extruder);
 
                 if (result)
                     m_stats_by_multi_extruder_best = calc_filament_change_info_by_toolorder(print_config, *result, nozzle_flush_mtx, best_seq);
@@ -2069,10 +2826,14 @@ ToolOrdering::OrderingContext ToolOrdering::prepare_ordering_context(const Print
 
     context.get_custom_seq = create_custom_seq_function(print_config, !reorder_first_layer, first_layer_filaments);
 
-    context.support_multi_nozzle = std::any_of(
-        print_config.extruder_max_nozzle_count.values.begin(),
-        print_config.extruder_max_nozzle_count.values.end(),
-        [](auto v){ return v>1;});
+    {
+        bool has_multi_nozzle = std::any_of(
+            print_config.extruder_max_nozzle_count.values.begin(),
+            print_config.extruder_max_nozzle_count.values.end(),
+            [](auto v){ return v>1;});
+        context.support_multi_nozzle = has_multi_nozzle &&
+            (print_config.handle_hotend_as_extruder || print_config.nozzle_diameter.values.size() > 1);
+    }
 
     context.support_dynamic_map = print_config.enable_filament_dynamic_map.value;
 
@@ -2138,6 +2899,7 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
     // Capture mixed slots that actually appear on layers before they are expanded to
     // physical components. Assigned-but-unused mixed slots never enter layer_tools.
     m_used_mixed_filaments.clear();
+    m_directly_used_filaments.clear();
     if (has_any_mixed_filament(is_mixed)) {
         std::set<unsigned int> used;
         for (const LayerTools &lt : m_layer_tools)
@@ -2145,6 +2907,14 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                 if (ext < is_mixed.size() && is_mixed[ext])
                     used.insert(ext);
         m_used_mixed_filaments.assign(used.begin(), used.end());
+    }
+    {
+        std::set<unsigned int> direct;
+        for (const LayerTools &lt : m_layer_tools)
+            for (unsigned int ext : lt.extruders)
+                if (ext >= is_mixed.size() || !is_mixed[ext])
+                    direct.insert(ext);
+        m_directly_used_filaments.assign(direct.begin(), direct.end());
     }
 
     if (!has_any_mixed_filament(is_mixed))
@@ -2231,16 +3001,35 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
     for (size_t i = 0; i < is_mixed.size(); ++i)
         if (is_gradient[i]) gradient_runs[static_cast<unsigned int>(i)] = {};
 
-    // Build per-slot sets of all layer indices where any slot-owning object has a
-    // layer.  Used by gradient run detection (a gap is real only if the slot is
-    // absent at a layer belonging to one of its own objects) and by calc_slot_lh
-    // to keep prev_relevant_z_for_slot current even when a slot skips many layers.
+    // Build per-slot sets of all layer indices where any slot-owning object has
+    // actual extrusion. Used by gradient run detection (a gap is real only if the
+    // slot is absent while one of its objects prints something) and by calc_slot_lh
+    // to keep prev_relevant_z_for_slot current across genuine material gaps.
+    // Layers where the slot is swallowed by its own adaptive band are excluded: the
+    // slot is still being printed there, whatever other nozzles emit on that layer.
+    auto find_swallowed = [](const auto &swallowed_map, unsigned int slot, const auto &key) -> const std::set<size_t> * {
+        auto slot_it = swallowed_map.find(slot);
+        if (slot_it == swallowed_map.end())
+            return nullptr;
+        auto key_it = slot_it->second.find(key);
+        return key_it == slot_it->second.end() ? nullptr : &key_it->second;
+    };
+    auto relevant_layers = [](const std::vector<size_t> &layers, const std::set<size_t> *swallowed) {
+        std::set<size_t> out;
+        for (size_t li : layers)
+            if (swallowed == nullptr || !swallowed->count(li))
+                out.insert(li);
+        return out;
+    };
     std::map<unsigned int, std::set<size_t>> slot_relevant_layers;
     for (auto &[slot_idx, obj_map] : m_mixed_object_layers) {
         for (auto &[obj, _] : obj_map) {
             auto it = m_object_all_layer_indices.find(obj);
-            if (it != m_object_all_layer_indices.end())
-                slot_relevant_layers[slot_idx].insert(it->second.begin(), it->second.end());
+            if (it != m_object_all_layer_indices.end()) {
+                const std::set<size_t> relevant =
+                    relevant_layers(it->second, find_swallowed(m_mixed_swallowed_layers, slot_idx, obj));
+                slot_relevant_layers[slot_idx].insert(relevant.begin(), relevant.end());
+            }
         }
     }
 
@@ -2284,8 +3073,8 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
     };
 
     // Detect whether a gap between two consecutive gradient-slot appearances is a
-    // real run break.  A gap is real only if the object has its own layer inside the
-    // gap that does NOT use the gradient slot (i.e. the slot was genuinely absent).
+    // real run break. A gap is real only if the object has extrusion inside the gap
+    // that does NOT use the gradient slot (i.e. the slot was genuinely absent).
     // Uses lower_bound to skip global indices that don't belong to the object.
     auto has_real_gap = [](size_t prev_idx, size_t cur_idx,
                            const std::set<size_t>& obj_set,
@@ -2326,8 +3115,8 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
             if (!layer_indices.empty() && layer_indices.front() == 0)
                 layer_indices.erase(layer_indices.begin());
 
-            const auto &all_obj_layers = m_object_all_layer_indices[obj];
-            std::set<size_t> all_obj_set(all_obj_layers.begin(), all_obj_layers.end());
+            const std::set<size_t> all_obj_set = relevant_layers(
+                m_object_all_layer_indices[obj], find_swallowed(m_mixed_swallowed_layers, slot, obj));
             std::set<size_t> grad_set(layer_indices.begin(), layer_indices.end());
 
             per_obj_runs[slot][obj] = segment_runs(layer_indices, all_obj_set, grad_set);
@@ -2349,8 +3138,8 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
             if (!layer_indices.empty() && layer_indices.front() == 0)
                 layer_indices.erase(layer_indices.begin());
 
-            const auto &all_obj_layers = m_object_all_layer_indices[vkey.obj];
-            std::set<size_t> all_obj_set(all_obj_layers.begin(), all_obj_layers.end());
+            const std::set<size_t> all_obj_set = relevant_layers(
+                m_object_all_layer_indices[vkey.obj], find_swallowed(m_gradient_volume_swallowed_layers, slot, vkey));
             std::set<size_t> vol_grad_set(layer_indices.begin(), layer_indices.end());
 
             per_vol_runs[slot][vkey] = segment_runs(layer_indices, all_obj_set, vol_grad_set);
@@ -2362,17 +3151,24 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
     // slot's own previous appearance, not from a global Z that may include layers
     // belonging only to other objects with different layer heights.
     std::map<unsigned int, coordf_t> prev_print_z_for_slot;
-    // Track the last Z where a slot-owning object had ANY layer (regardless of
+    // Track the last Z where a slot-owning object had any extrusion (regardless of
     // whether the slot was present). Used to detect genuine gaps: if the slot was
-    // absent but its owner objects had layers, prev_relevant_z advances while
+    // absent but its owner objects printed, prev_relevant_z advances while
     // prev_print_z_for_slot stays stale. Taking the max of both gives correct lh.
     std::map<unsigned int, coordf_t> prev_relevant_z_for_slot;
 
-    // Compute the effective layer height for a mixed slot by choosing the best
-    // reference Z among: (1) the slot's own last Z, (2) the last Z where the
-    // slot's owning object had any layer, (3) the global previous Z as fallback
-    // when the slot appears for the first time.
-    auto calc_slot_lh = [&](unsigned int ext, coordf_t print_z) -> double {
+    // Prefer the logical layer or adaptive-band height recorded for the mixed slot.
+    // ExtrusionPath::height is deliberately not used: bridge flow may use the nozzle
+    // diameter as its path height even though it still belongs to a thinner layer.
+    // Fall back to the historical Z-based calculation when no band height is available.
+    auto calc_slot_lh = [&](unsigned int ext, coordf_t print_z, size_t layer_idx) -> double {
+        auto height_slot_it = m_mixed_layer_heights.find(ext);
+        if (height_slot_it != m_mixed_layer_heights.end()) {
+            auto height_it = height_slot_it->second.find(layer_idx);
+            if (height_it != height_slot_it->second.end() && height_it->second > 0.)
+                return height_it->second;
+        }
+
         auto slot_pz_it = prev_print_z_for_slot.find(ext);
         auto rel_pz_it  = prev_relevant_z_for_slot.find(ext);
         coordf_t base_z = prev_print_z;
@@ -2419,7 +3215,7 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
 
             // Skip sublayer splitting for the first layer to preserve bed adhesion.
             if (sublayer_enabled && layer_idx > 0) {
-                double lh = calc_slot_lh(ext, lt.print_z);
+                double lh = calc_slot_lh(ext, lt.print_z, layer_idx);
                 size_t n = s.components.size();
 
                 std::vector<double> sub_heights;
@@ -2583,7 +3379,7 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                 // Deficit Round-Robin: pick one component per layer.
                 // Weight by layer height so volume ratios stay accurate
                 // even with adaptive layer heights.
-                double lh = calc_slot_lh(ext, lt.print_z);
+                double lh = calc_slot_lh(ext, lt.print_z, layer_idx);
                 long long lh_i = std::llround(lh * 1e6);
 
                 // For 2-component gradient on the first layer, use the gradient's
@@ -2737,6 +3533,9 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
     if(!m_print->is_dynamic_group_reorder()){
         // 逐层打印时，在生成toolodering时分组，统计相关信息并写回
         if(!m_print->is_sequential_print()){
+            // fmmNozzleManual(H2C)：在整盘全集上把旧分组 key 的 filament_nozzle_map 解析成下标，
+            // 供后续按层分组读取（其他模式/机型为空操作）。
+            m_print->resolve_manual_nozzle_map(layer_data.used_filaments);
             // Stage 4: 计算分组
             grouping_result = ToolOrdering::get_recommended_filament_maps(
                 m_print,
@@ -2794,18 +3593,24 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             nozzle_map_per_layer.emplace_back(res.fil_nozzle_match);
         }
 
-        auto result = MultiNozzleUtils::LayeredNozzleGroupResult::create(nozzle_map_per_layer, grouping_context.nozzle_info.nozzle_list, layer_data.used_filaments, filament_sequences);
+        auto result = MultiNozzleUtils::LayeredNozzleGroupResult::create(nozzle_map_per_layer, grouping_context.nozzle_info.nozzle_list,
+                                                                         layer_data.used_filaments, filament_sequences,
+                                                                         print_config->handle_hotend_as_extruder);
         grouping_result = result ? *result : MultiNozzleUtils::LayeredNozzleGroupResult();
     }
 
     if (!m_print->is_sequential_print()) {
         m_print->set_nozzle_group_result(std::make_shared<MultiNozzleUtils::LayeredNozzleGroupResult>(grouping_result));
         if (!grouping_result.is_support_dynamic_nozzle_map()) {
+            // fmmNozzleManual keeps explicit user nozzle-map semantics. fmmManual may write back
+            // the computed concrete nozzle map because its custom grouping can be resolved by backend.
+            bool keep_user_nozzle_map = print_config->handle_hotend_as_extruder
+                && print_config->filament_map_mode.value == FilamentMapMode::fmmNozzleManual;
             m_print->update_filament_maps_to_config(FilamentGroupUtils::update_used_filament_values(print_config->filament_map.values, grouping_result.get_extruder_map(false),
                                                                                                     layer_data.used_filaments),
                                                     FilamentGroupUtils::update_used_filament_values(print_config->filament_volume_map.values, grouping_result.get_volume_map(),
                                                                                                     layer_data.used_filaments),
-                                                    grouping_result.get_nozzle_map());
+                                                    keep_user_nozzle_map ? print_config->filament_nozzle_map.values : grouping_result.get_nozzle_map());
         } else {
             m_print->update_to_config_by_nozzle_group_result(grouping_result);
         }
@@ -2833,13 +3638,21 @@ void ToolOrdering::mark_skirt_layers(const PrintConfig &config, coordf_t max_lay
     if (m_layer_tools.empty())
         return;
 
+    size_t i = 0;
     if (m_layer_tools.front().extruders.empty()) {
-        // Empty first layer, no skirt will be printed.
-        //FIXME throw an exception?
-        return;
+        // BBS multi-diameter: when every bed band is merged, the first grid layers print nothing and the skirt
+        // starts with the first band top instead.
+        if (m_print != nullptr && m_print->uses_multiple_nozzle_diameters()) {
+            while (i < m_layer_tools.size() && m_layer_tools[i].extruders.empty())
+                ++ i;
+        }
+        if (i == 0 || i == m_layer_tools.size()) {
+            // Empty first layer, no skirt will be printed.
+            //FIXME throw an exception?
+            return;
+        }
     }
 
-    size_t i = 0;
     for (;;) {
         m_layer_tools[i].has_skirt = true;
         size_t j = i + 1;
@@ -2976,6 +3789,24 @@ const LayerTools& ToolOrdering::tools_for_layer(coordf_t print_z) const
     return *it_layer_tools;
 }
 
+std::vector<unsigned int> ToolOrdering::first_layer_extruders() const
+{
+    std::vector<unsigned int> extruders;
+    if (m_layer_tools.empty())
+        return extruders;
+    extruders = m_layer_tools.front().extruders;
+    for (const auto &[print_z, filament_1based] : m_bed_contact_filaments) {
+        const LayerTools  &layer_tools = this->tools_for_layer(print_z);
+        const unsigned int filament    = filament_1based - 1;
+        if (const LayerTools::MixedSubLayerGroup *group = layer_tools.mixed_group_by_slot(filament))
+            append(extruders, group->components_0based);
+        else
+            extruders.emplace_back(layer_tools.resolve_mixed(filament));
+    }
+    sort_remove_duplicates(extruders);
+    return extruders;
+}
+
 // This function is called from Print::mark_wiping_extrusions and sets extruder this entity should be printed with (-1 .. as usual)
 void WipingExtrusions::set_extruder_override(const ExtrusionEntity* entity, const PrintObject* object, size_t copy_id, int extruder, size_t num_of_copies)
 {
@@ -2986,7 +3817,7 @@ void WipingExtrusions::set_extruder_override(const ExtrusionEntity* entity, cons
     copies_vector.resize(num_of_copies, -1);
 
     if (copies_vector[copy_id] != -1)
-        std::cout << "ERROR: Entity extruder overriden multiple times!!!\n";    // A debugging message - this must never happen.
+        BOOST_LOG_TRIVIAL(error) << "Entity extruder overriden multiple times!!!";    // A debugging message - this must never happen.
 
     copies_vector[copy_id] = extruder;
 }
@@ -3175,8 +4006,12 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
                     if (this_support_layer == nullptr)
                         break;
 
-                    bool support_overriddable = object_config.support_filament == 0;
-                    bool support_intf_overriddable = object_config.support_interface_filament == 0;
+                    // BBS multi-diameter: a support slab thicker than the object layers is pinned to the filament
+                    // it was planned for, so it must not be flushed into by an arbitrary other filament.
+                    bool support_overriddable = object_config.support_filament == 0 && this_support_layer->planned_filament_id == 0;
+                    bool support_intf_overriddable =
+                        object_config.support_interface_filament == 0 &&
+                        this_support_layer->planned_interface_filament_id == 0;
                     if (!support_overriddable && !support_intf_overriddable)
                         break;
 

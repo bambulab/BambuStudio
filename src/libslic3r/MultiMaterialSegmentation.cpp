@@ -1,4 +1,5 @@
 #include "BoundingBox.hpp"
+#include "AdaptiveLayerMerge.hpp"
 #include "ClipperUtils.hpp"
 #include "EdgeGrid.hpp"
 #include "Layer.hpp"
@@ -12,10 +13,10 @@
 #include <utility>
 #include <unordered_set>
 
-#include <boost/log/trivial.hpp>
 #include <tbb/parallel_for.h>
 #include <mutex>
 #include <boost/thread/lock_guard.hpp>
+#include "libslic3r/Log.hpp"
 
 //#define MM_SEGMENTATION_DEBUG_PAINT_LINE
 //#define MM_SEGMENTATION_DEBUG_GRAPH
@@ -1317,6 +1318,40 @@ static bool is_volume_sinking(const indexed_triangle_set &its, const Transform3d
 
 //#define MMU_SEGMENTATION_DEBUG_TOP_BOTTOM
 
+struct EffectiveColorPenetrationLayers
+{
+    int top;
+    int bottom;
+    int band_size;
+};
+
+static EffectiveColorPenetrationLayers effective_color_penetration_layers(
+    const PrintObject &object, const PrintRegionConfig &config)
+{
+    EffectiveColorPenetrationLayers out {
+        config.top_color_penetration_layers.value,
+        config.bottom_color_penetration_layers.value,
+        1
+    };
+    if (! multi_nozzle_diameter_mode_enabled(object.print()->full_print_config()))
+        return out;
+
+    const double nozzle_diameter = nozzle_diameter_for_filament(
+        object.print()->config(), (unsigned int) config.wall_filament.value);
+    out.top = multi_nozzle_top_color_penetration_layers(nozzle_diameter, out.top);
+    out.bottom = multi_nozzle_bottom_color_penetration_layers(nozzle_diameter, out.bottom);
+    // A plate sliced for a single diameter is already on that nozzle's band height, one layer per extrusion.
+    out.band_size = object.print()->single_diameter_layering_nozzle() > EPSILON ? 1 : int(adaptive_layer_band_size(
+        nozzle_diameter, layer_grid_nozzle_diameter(object.print()->full_print_config()),
+        object.slicing_parameters().layer_height));
+    auto scale_layers = [band_size = out.band_size](int layers) {
+        return layers > 0 ? 1 + (layers - 1) * band_size : 0;
+    };
+    out.top = scale_layers(out.top);
+    out.bottom = scale_layers(out.bottom);
+    return out;
+}
+
 // Returns MMU segmentation of top and bottom layers based on painting in MMU segmentation gizmo
 static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bottom_layers(const PrintObject             &print_object,
                                                                                           const std::vector<ExPolygons> &input_expolygons,
@@ -1326,6 +1361,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
     const size_t num_extruders = print_object.print()->config().filament_colour.size() + 1;
     const size_t num_layers    = input_expolygons.size();
     const ConstLayerPtrsAdaptor layers = print_object.layers();
+    const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(print_object.print()->full_print_config());
 
     // Maximum number of top / bottom layers accounts for maximum overlap of one thread group into a neighbor thread group.
     int max_top_layers = 0;
@@ -1333,9 +1369,10 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
     int granularity = 1;
     for (size_t i = 0; i < print_object.num_printing_regions(); ++ i) {
         const PrintRegionConfig &config = print_object.printing_region(i).config();
-        max_top_layers    = std::max(max_top_layers, config.top_color_penetration_layers.value);
-        max_bottom_layers = std::max(max_bottom_layers, config.bottom_color_penetration_layers.value);
-        granularity                     = std::max(granularity, std::max(config.top_color_penetration_layers.value, config.bottom_color_penetration_layers.value) - 1);
+        const EffectiveColorPenetrationLayers penetration = effective_color_penetration_layers(print_object, config);
+        max_top_layers    = std::max(max_top_layers, penetration.top);
+        max_bottom_layers = std::max(max_bottom_layers, penetration.bottom);
+        granularity       = std::max(granularity, std::max(penetration.top, penetration.bottom) - 1);
     }
 
     // Project upwards pointing painted triangles over top surfaces,
@@ -1477,12 +1514,14 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
         int     top_color_penetration_layers        { 0 };
         // Maximum number of bottom layers for a queried color.
         int     bottom_color_penetration_layers     { 0 };
-        //BBS: spacing according to width and layer height
-        float   extrusion_spacing{ 0.f };
+        float   extrusion_spacing                   { 0.f };
+        float   top_color_penetration_inset_step    { 0.f };
+        float   bottom_color_penetration_inset_step { 0.f };
     };
     PrintConfig print_config = print_object.print()->config();
-    float default_line_width = float(print_object.config().line_width.value);
-    auto layer_color_stat = [&layers = std::as_const(layers), print_config, default_line_width, &print_object](const size_t layer_idx, const size_t color_idx) -> LayerColorStat {
+    const ConfigOptionFloat default_line_width_opt = print_object.config().line_width;
+    const float preset_nozzle_diameter = float(primary_nozzle_diameter(print_object.print()->full_print_config()));
+    auto layer_color_stat = [&layers = std::as_const(layers), print_config, default_line_width_opt, preset_nozzle_diameter, multi_diameter_mode, &print_object](const size_t layer_idx, const size_t color_idx) -> LayerColorStat {
         LayerColorStat out;
         const Layer &layer = *layers[layer_idx];
         for (const LayerRegion *region : layer.regions())
@@ -1491,29 +1530,57 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                 // As this region may split existing regions, we collect statistics over all regions for color_idx == 0.
                 color_idx == 0 || config.wall_filament == int(color_idx)) {
                 //BBS: the extrusion line width is outer wall rather than inner wall
-                float nozzle_diamter = float(print_config.nozzle_diameter.get_at(config.wall_filament - 1));
-                float outer_wall_line_width = float(config.outer_wall_line_width) == 0.0 ? (default_line_width == 0.0 ? nozzle_diamter : default_line_width) : float(config.outer_wall_line_width.value);
+                float nozzle_diamter = nozzle_diameter_for_filament(print_config, config.wall_filament);
+                float default_line_width = float(Flow::extrusion_width_for_nozzle(
+                    default_line_width_opt, preset_nozzle_diameter, nozzle_diamter, multi_diameter_mode));
+                float outer_wall_line_width_cfg = float(Flow::extrusion_width_for_nozzle(
+                    config.outer_wall_line_width, preset_nozzle_diameter, nozzle_diamter, multi_diameter_mode));
+                float outer_wall_line_width = outer_wall_line_width_cfg == 0.0 ? (default_line_width == 0.0 ? nozzle_diamter : default_line_width) : outer_wall_line_width_cfg;
                 out.extrusion_width     = std::max<float>(out.extrusion_width, outer_wall_line_width);
-                out.top_color_penetration_layers    = std::max<int>(out.top_color_penetration_layers, config.top_color_penetration_layers);
-                out.bottom_color_penetration_layers = std::max<int>(out.bottom_color_penetration_layers, config.bottom_color_penetration_layers);
+                const EffectiveColorPenetrationLayers penetration = effective_color_penetration_layers(print_object, config);
+                const float extrusion_spacing = Flow::rounded_rectangle_extrusion_spacing(outer_wall_line_width, float(layer.height));
+                const float penetration_inset_step =
+                    (outer_wall_line_width + extrusion_spacing) / float(penetration.band_size);
+                if (multi_diameter_mode) {
+                    auto select_penetration = [](int candidate_layers, float candidate_inset_step,
+                                                 int &selected_layers, float &selected_inset_step) {
+                        if (candidate_layers > selected_layers ||
+                            (candidate_layers == selected_layers && candidate_inset_step > selected_inset_step)) {
+                            selected_layers = candidate_layers;
+                            selected_inset_step = candidate_inset_step;
+                        }
+                    };
+                    select_penetration(penetration.top, penetration_inset_step,
+                                       out.top_color_penetration_layers, out.top_color_penetration_inset_step);
+                    select_penetration(penetration.bottom, penetration_inset_step,
+                                       out.bottom_color_penetration_layers, out.bottom_color_penetration_inset_step);
+                } else {
+                    out.top_color_penetration_layers = std::max(
+                        out.top_color_penetration_layers, config.top_color_penetration_layers.value);
+                    out.bottom_color_penetration_layers = std::max(
+                        out.bottom_color_penetration_layers, config.bottom_color_penetration_layers.value);
+                    out.extrusion_spacing = extrusion_spacing;
+                }
                 out.small_region_threshold = config.gap_infill_speed.get_at(print_object.print()->get_process_config_idx(config.wall_filament - 1)) > 0 ?
                                              // Gap fill enabled. Enable a single line of 1/2 extrusion width.
                                              0.5f * outer_wall_line_width :
                                              // Gap fill disabled. Enable two lines slightly overlapping.
-                                             outer_wall_line_width + 0.7f * Flow::rounded_rectangle_extrusion_spacing(outer_wall_line_width, float(layer.height));
+                                             outer_wall_line_width + 0.7f * extrusion_spacing;
                 out.small_region_threshold = scaled<float>(out.small_region_threshold * 0.5f);
-                out.extrusion_spacing = Flow::rounded_rectangle_extrusion_spacing(outer_wall_line_width, float(layer.height));
                 ++ out.num_regions;
             }
         assert(out.num_regions > 0);
         out.extrusion_width = scaled<float>(out.extrusion_width);
         out.extrusion_spacing = scaled<float>(out.extrusion_spacing);
+        out.top_color_penetration_inset_step = scaled<float>(out.top_color_penetration_inset_step);
+        out.bottom_color_penetration_inset_step = scaled<float>(out.bottom_color_penetration_inset_step);
         return out;
     };
 
     tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers, granularity), [&granularity, &num_layers, &num_extruders, &layer_color_stat, &top_raw, &triangles_by_color_top,
                                                                                &throw_on_cancel_callback, &input_expolygons, &bottom_raw, &triangles_by_color_bottom,
-                                                                               &shell_triangles_by_color_top, &shell_triangles_by_color_bottom](const tbb::blocked_range<size_t> &range) {
+                                                                               &shell_triangles_by_color_top, &shell_triangles_by_color_bottom,
+                                                                               multi_diameter_mode](const tbb::blocked_range<size_t> &range) {
         size_t group_idx   = range.begin() / granularity;
         size_t layer_idx_offset = (group_idx & 1) * num_layers;
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
@@ -1531,7 +1598,9 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                             for (int last_idx = int(layer_idx) - 1; last_idx > std::max(int(layer_idx - stat.top_color_penetration_layers), int(0)); --last_idx) {
                                 //BBS: offset width should be 2*spacing to avoid too narrow area which has overlap of wall line
                                 //offset -= stat.extrusion_width ;
-                                offset -= (stat.extrusion_spacing + stat.extrusion_width);
+                                offset -= multi_diameter_mode ?
+                                    stat.top_color_penetration_inset_step :
+                                    stat.extrusion_spacing + stat.extrusion_width;
                                 layer_slices_trimmed = intersection_ex(layer_slices_trimmed, input_expolygons[last_idx]);
                                 ExPolygons last = opening_ex(intersection_ex(top_ex, offset_ex(layer_slices_trimmed, offset)), stat.small_region_threshold);
                                 if (last.empty())
@@ -1551,7 +1620,9 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                             for (size_t last_idx = layer_idx + 1; last_idx < std::min(layer_idx + stat.bottom_color_penetration_layers, num_layers); ++last_idx) {
                                 //BBS: offset width should be 2*spacing to avoid too narrow area which has overlap of wall line
                                 //offset -= stat.extrusion_width;
-                                offset -= (stat.extrusion_spacing + stat.extrusion_width);
+                                offset -= multi_diameter_mode ?
+                                    stat.bottom_color_penetration_inset_step :
+                                    stat.extrusion_spacing + stat.extrusion_width;
                                 layer_slices_trimmed = intersection_ex(layer_slices_trimmed, input_expolygons[last_idx]);
                                 ExPolygons last = opening_ex(intersection_ex(bottom_ex, offset_ex(layer_slices_trimmed, offset)), stat.small_region_threshold);
                                 if (last.empty())
@@ -2382,7 +2453,7 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
         throw_on_cancel_callback();
     }
 
-    auto interlocking_beam = print_object.config().interlocking_beam;
+    const bool interlocking_beam = print_object.has_interlocking_beam();
     if (auto max_width = print_object.config().mmu_segmented_region_max_width, interlocking_depth = print_object.config().mmu_segmented_region_interlocking_depth;
         !interlocking_beam && (max_width > 0.f || interlocking_depth > 0.f)) {
         cut_segmented_layers(input_expolygons, segmented_regions, float(scale_(max_width)), float(scale_(interlocking_depth)), throw_on_cancel_callback);

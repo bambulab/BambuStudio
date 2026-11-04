@@ -1,3 +1,5 @@
+import type { Spool } from './types';
+
 // Bambu preset color palette
 export const BAMBU_COLORS = [
   '#000000','#333333','#555555','#808080','#BBBBBB','#FFFFFF',
@@ -83,18 +85,36 @@ export function formatSlotLocation(
   amsType: number | undefined,
   slotId: string | undefined,
   t: (key: string, opts?: Record<string, unknown>) => string,
-  trayLabel?: string
+  trayLabel?: string,
+  multiExternal = false,
 ): string | null {
   if (!deviceName) return null;
-  const amsTypeName = (amsType != null && amsType >= 0 && slotId !== '255')
-    ? (AMS_TYPE_NAMES[amsType] ?? `AMS(${amsType})`)
-    : null;
-  const slotLabel = trayLabel
-    ? trayLabel
-    : slotId === '255'
-      ? t('External Spool')
+  const isExternal = amsType === 0;
+  let amsTypeName: string | null = null;
+  let slotLabel: string | null = null;
+  if (isExternal) {
+    slotLabel = (multiExternal && slotId != null && slotId !== '')
+      ? t('External Spool {{n}}', { n: 256 - Number(slotId) })
+      : t('External Spool');
+  } else {
+    amsTypeName = (amsType != null && amsType >= 0)
+      ? (AMS_TYPE_NAMES[amsType] ?? `AMS(${amsType})`)
+      : null;
+    slotLabel = trayLabel
+      ? trayLabel
       : (slotId != null && slotId !== ''
         ? t('Slot {{n}}', { n: Number(slotId) + 1 })
         : null);
+  }
   return [deviceName, amsTypeName, slotLabel].filter(Boolean).join(' · ');
+}
+
+export function multiExternalDevIds(spools: Spool[]): Set<string> {
+  const ids = new Set<string>();
+  for (const s of spools) {
+    if (s.in_printer === true && s.ams_type === 0 && s.dev_id && s.slot_id !== '255') {
+      ids.add(s.dev_id);
+    }
+  }
+  return ids;
 }

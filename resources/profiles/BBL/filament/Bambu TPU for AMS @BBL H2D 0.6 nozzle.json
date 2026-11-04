@@ -44,6 +44,16 @@
         "12",
         "12"
     ],
+    "filament_overhang_2_4_speed": [
+        "50",
+        "50",
+        "30"
+    ],
+    "filament_overhang_3_4_speed": [
+        "30",
+        "30",
+        "15"
+    ],
     "filament_pre_cooling_temperature": [
         "200",
         "200",

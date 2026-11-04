@@ -8,6 +8,7 @@
 #include "SelectMachinePop.hpp"
 
 #include "DeviceCore/DevManager.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

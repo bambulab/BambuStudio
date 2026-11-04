@@ -14,6 +14,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 #include <GL/glew.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -691,6 +692,7 @@ bool GLModel::init_from_file(const std::string& filename)
     }
     catch (std::exception&)
     {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return false;
     }
 

@@ -2,7 +2,7 @@
 
 #include <libslic3r/SLA/SpatIndex.hpp>
 #include <libslic3r/Optimize/NLoptOptimizer.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace sla {

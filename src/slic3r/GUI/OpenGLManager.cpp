@@ -12,10 +12,10 @@
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <wx/glcanvas.h>
 #include <wx/msgdlg.h>
+#include "libslic3r/Log.hpp"
 
 #ifdef __APPLE__
 // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
@@ -203,7 +203,11 @@ void OpenGLManager::GLInfo::detect() const
     *const_cast<std::string*>(&m_vendor) = gl_get_string_safe(GL_VENDOR, "N/A");
     *const_cast<std::string*>(&m_renderer) = gl_get_string_safe(GL_RENDERER, "N/A");
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("got opengl version %1%, glsl version %2%, vendor %3% , graphics card model %4%") % m_version % m_glsl_version % m_vendor % m_renderer << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "opengl detected "
+                            << KV(log_key::gl_version, m_version)
+                            << KV(log_key::glsl_version, m_glsl_version)
+                            << KV(log_key::gpu_vendor, m_vendor)
+                            << KV(log_key::gpu, m_renderer);
 
     int* max_tex_size = const_cast<int*>(&m_max_tex_size);
     glsafe(::glGetIntegerv(GL_MAX_TEXTURE_SIZE, max_tex_size));
@@ -452,7 +456,7 @@ bool OpenGLManager::init_gl(bool popup_error)
                 BOOST_LOG_TRIVIAL(error) << "Not recognized format of version.";
             }
         } else {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "not AMD driver.";
+            BOOST_LOG_TRIVIAL(info) << "not AMD driver.";
         }
 #endif
     }

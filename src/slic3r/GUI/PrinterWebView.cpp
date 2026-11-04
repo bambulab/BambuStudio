@@ -13,6 +13,7 @@
 #include <slic3r/GUI/Widgets/WebView.hpp>
 #include "DeviceWeb/DeviceWebHealth.hpp"
 #include "Widgets/WebViewTraceLogger.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace pt = boost::property_tree;
 
@@ -66,10 +67,10 @@ PrinterWebView::PrinterWebView(wxWindow *parent, const wxString &view_name, WebV
 
 PrinterWebView::~PrinterWebView()
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Start";
+    BOOST_LOG_TRIVIAL(info) << "Start";
     SetEvtHandlerEnabled(false);
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " End";
+    BOOST_LOG_TRIVIAL(info) << "End";
 }
 
 
@@ -79,7 +80,8 @@ void PrinterWebView::load_url(const wxString& url)
 //    this->Raise();
     if (m_browser == nullptr)
         return;
-    m_browser->LoadURL(url);
+
+    WebView::LoadUrl(m_browser, url);
     //m_browser->SetFocus();
     UpdateState();
 }

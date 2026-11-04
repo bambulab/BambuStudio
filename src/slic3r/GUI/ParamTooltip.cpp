@@ -170,7 +170,7 @@ ParamTipStore::ParamTipStore()
                                                       "thinner sub-layers for a more even color blend."),
                                                    _L("When off, colors change per full layer, so the blend is coarser and less even.\n"
                                                       "When on, the sub-layers interleave more densely for a more even blend, but printing takes longer."),
-                                                   _L("Recommended only when using mixed-color filament, to get a better layered-color effect."))},
+                                                   _L("Recommended only when using mixed-color filament, to get a better layered-color effect. This feature is disabled by default when variable layer height is enabled."))},
         {"seam_position", make_entry("seam_position", _L("Controls where each layer's outer wall starts and ends."),
                                      _L("That point can leave a small blob or seam line, so choosing a suitable position reduces the seam's impact on the model's appearance."))},
         {"top_one_wall_type",
@@ -552,7 +552,7 @@ ParamTooltip &ParamTooltip::instance()
     return *s_self;
 }
 
-ParamTooltip::ParamTooltip() : wxPopupWindow(wxGetApp().mainframe, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
+ParamTooltip::ParamTooltip() : wxPopupWindow(wxGetApp().mainframe, wxBORDER_NONE)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     SetBackgroundColour(light_palette().card_bg);

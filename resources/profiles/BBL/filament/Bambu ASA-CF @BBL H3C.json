@@ -1,0 +1,80 @@
+{
+    "type": "filament",
+    "name": "Bambu ASA-CF @BBL H3C",
+    "inherits": "Bambu ASA-CF @base",
+    "from": "system",
+    "setting_id": "GFSB51_17",
+    "instantiation": "true",
+    "chamber_temperatures": [
+        "60"
+    ],
+    "close_optional_fan_first_x_layers": [
+        "1"
+    ],
+    "filament_change_length": [
+        "0"
+    ],
+    "filament_change_length_nc": [
+        "0"
+    ],
+    "filament_cooling_before_tower": [
+        "0",
+        "0"
+    ],
+    "filament_flow_ratio": [
+        "0.9",
+        "0.9"
+    ],
+    "filament_idle_travel_cooling_enabled": "0",
+    "filament_max_volumetric_speed": [
+        "18",
+        "18"
+    ],
+    "filament_prime_tower_speed_factor_curve": [
+        "0.5,1"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "first_x_layer_optional_fan_speed": [
+        "0"
+    ],
+    "include": [
+        "fdm_filament_template_direct_dual",
+        "fdm_filament_template_h3c"
+    ],
+    "long_retractions_when_ec": [
+        "0",
+        "0"
+    ],
+    "nozzle_temperature": [
+        "275",
+        "275"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "275",
+        "275"
+    ],
+    "optional_cooling_fan_speed": [
+        "0"
+    ],
+    "optional_fan_full_speed_layer": [
+        "0"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H3C 0.4 nozzle",
+        "Bambu Lab H3C 0.6 nozzle",
+        "Bambu Lab H3C 0.8 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
+    ],
+    "filament_end_gcode": [
+        "; filament end gcode \n"
+    ]
+}

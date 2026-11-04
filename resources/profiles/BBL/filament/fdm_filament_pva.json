@@ -43,6 +43,9 @@
     "filament_max_volumetric_speed": [
         "15"
     ],
+    "filament_pre_heating_enabled": [
+        "0"
+    ],
     "filament_soluble": [
         "1"
     ],
@@ -59,6 +62,9 @@
         "18"
     ],
     "filament_dev_ams_drying_heat_distortion_temperature": [
+        "75",
+        "75",
+        "75",
         "75"
     ],
     "filament_dev_drying_cooling_temperature": [
@@ -68,9 +74,26 @@
         "65",
         "85",
         "65",
-        "70"
+        "70",
+        "85",
+        "70",
+        "65",
+        "65"
+    ],
+    "filament_dev_ams_drying_time": [
+        "12",
+        "18",
+        "12",
+        "18",
+        "18",
+        "18",
+        "12",
+        "12"
     ],
     "filament_dev_drying_softening_temperature": [
+        "75",
+        "75",
+        "75",
         "75"
     ],
     "hot_plate_temp": [

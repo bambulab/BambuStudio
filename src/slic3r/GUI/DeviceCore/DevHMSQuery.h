@@ -84,6 +84,7 @@ public:
     HMSSubscription subscribe_device(const std::string& dev_type, std::function<void()> on_changed);
 
     wxImage query_image_from_local(const wxString& image_name);
+    void start_bundle_sync();
 
 private:
     // Cached dictionary for one (dev_type + lang). shared_ptr lets a reader copy the pointer
@@ -120,6 +121,7 @@ private:
     HMSResult subscribe_query(const std::string& dev_id, OnResult on_changed, std::function<HMSResult()> requery, HMSSubscription& sub);
 
     void ensure_loaded(const std::string& dev_type);
+    void seed_from_local(HMSEntry& e, const std::string& dev_type, const std::string& lang); // caller holds m_mutex
     void start_download(const std::string& dev_type, const std::string& lang);
     void fetch_leg(const std::shared_ptr<DownloadCtx>& ctx, bool is_info, const std::string& url, const std::string& local_ver);
     void finish_leg(const std::shared_ptr<DownloadCtx>& ctx);

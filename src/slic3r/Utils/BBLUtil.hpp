@@ -19,9 +19,6 @@ public:
 
     static std::string Encode_DevIp(const std::string& str, const std::string& rand);
     static std::string Decode_DevIp(const std::string& str, const std::string& rand);
-
-private:
-    static std::string Crosstalk_ChannelName(const std::string& str);
 };
 
 class BBL_Encrypt

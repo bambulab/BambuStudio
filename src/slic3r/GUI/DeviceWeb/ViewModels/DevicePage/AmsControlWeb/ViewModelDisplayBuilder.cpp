@@ -22,6 +22,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI { namespace AmsControlWebDisplay {
 
@@ -38,7 +39,8 @@ std::set<std::pair<std::string, std::string>>& filament_mgr_hint_slots()
 
 SchemaFormat::MenuActions build_menu_actions(const SchemaFormat::Tray& tray,
                                              const std::string& slot_state,
-                                             bool view_only)
+                                             bool view_only,
+                                             MachineObject* machine_obj)
 {
     SchemaFormat::MenuActions actions;
 
@@ -51,7 +53,9 @@ SchemaFormat::MenuActions build_menu_actions(const SchemaFormat::Tray& tray,
 
     actions.show_read = view_only || slot_state == SchemaValues::slot_state::brand;
     actions.show_edit = !actions.show_read;
+    // LAN mode does not support cloud auto-record, so the badge never shows there.
     actions.show_filament_mgr_hint =
+        machine_obj && !machine_obj->is_lan_mode_printer() &&
         filament_mgr_hint_slots().count({tray.ams_id, tray.slot_id}) > 0;
     return actions;
 }
@@ -122,6 +126,7 @@ SchemaFormat::SlotView build_slot_view(const SchemaFormat::Tray& tray,
             const int tray_id = std::stoi(tray.ams_id) * 4 + std::stoi(tray.slot_id);
             view.label = wxGetApp().transition_tridid(tray_id).ToStdString();
         } catch (const std::exception&) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             view.label = tray.tray_label;
         }
     }
@@ -159,9 +164,9 @@ SchemaFormat::SlotView build_slot_view(const SchemaFormat::Tray& tray,
     // The capsule remains the default visualization; height fill is controlled
     // independently and stays disabled unless a future caller opts in.
     view.slot_remain_line.show_line      = view.show_remain && has_spool;
-    view.slot_remain_line.remain_percent = view.remain >= 5 ? view.remain : 5;// the visual min val is 5
+    view.slot_remain_line.remain_percent = view.remain >= 10 ? view.remain : 10;// the visual min val is 10
 
-    view.menu_actions = build_menu_actions(tray, view.slot_state, view_only);
+    view.menu_actions = build_menu_actions(tray, view.slot_state, view_only, machine_obj);
     fill_slot_k(view, tray, machine_obj, show_kn);
     return view;
 }

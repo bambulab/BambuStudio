@@ -23,7 +23,7 @@ public:
 
     void OnPaint(wxPaintEvent&);
     void SetSelection(int sel);
-    void showNewTag(int sel, bool show = false);
+    void showNewTag(int sel, int count = 0);
     void Rescale();
     bool InsertPage(size_t n, const wxString& text, bool bSelect = false, const std::string& bmp_name = "");
     void RemovePage(size_t n);

@@ -21,6 +21,7 @@
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/SLAPrint.hpp"
+#include "libslic3r/Log.hpp"
 
 
 namespace Slic3r {
@@ -512,7 +513,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 void GLGizmoSlaSupports::delete_selected_points(bool force)
 {
     if (! m_editing_mode) {
-        std::cout << "DEBUGGING: delete_selected_points called out of editing mode!" << std::endl;
+        BOOST_LOG_TRIVIAL(warning) << "called out of editing mode!";
         std::abort();
     }
 
@@ -990,7 +991,7 @@ void GLGizmoSlaSupports::on_save(cereal::BinaryOutputArchive& ar) const
 void GLGizmoSlaSupports::select_point(int i)
 {
     if (! m_editing_mode) {
-        std::cout << "DEBUGGING: select_point called when out of editing mode!" << std::endl;
+        BOOST_LOG_TRIVIAL(warning) << "called when out of editing mode!";
         std::abort();
     }
 
@@ -1013,7 +1014,7 @@ void GLGizmoSlaSupports::select_point(int i)
 void GLGizmoSlaSupports::unselect_point(int i)
 {
     if (! m_editing_mode) {
-        std::cout << "DEBUGGING: unselect_point called when out of editing mode!" << std::endl;
+        BOOST_LOG_TRIVIAL(warning) << "called when out of editing mode!";
         std::abort();
     }
 
@@ -1033,7 +1034,7 @@ void GLGizmoSlaSupports::unselect_point(int i)
 void GLGizmoSlaSupports::editing_mode_discard_changes()
 {
     if (! m_editing_mode) {
-        std::cout << "DEBUGGING: editing_mode_discard_changes called when out of editing mode!" << std::endl;
+        BOOST_LOG_TRIVIAL(warning) << "called when out of editing mode!";
         std::abort();
     }
     select_point(NoPoints);

@@ -78,9 +78,9 @@ bool Button::SetFont(const wxFont& font)
 
 void Button::SetIcon(const wxString& icon)
 {
-    auto tmpBitmap = ScalableBitmap(this, icon.ToStdString(), this->active_icon.px_cnt());
     if (!icon.IsEmpty()) {
         //BBS set button icon default size to 20
+        auto tmpBitmap = ScalableBitmap(this, icon.ToStdString(), this->active_icon.px_cnt());
         if (!tmpBitmap.bmp().IsSameAs(this->active_icon.bmp())) {
             this->active_icon = tmpBitmap;
             Refresh();
@@ -396,10 +396,9 @@ void Button::messureSize()
         return;
     }
 
-    if (minSize.GetWidth() > size.GetWidth())
-        wxWindow::SetMinSize(minSize);
-    else
-        wxWindow::SetMinSize(size);
+    // A min width wider than the content must not drop the content height: minSize may
+    // leave its height unspecified (-1), and wx would then fall back to a 1px best height.
+    wxWindow::SetMinSize(wxSize(std::max(minSize.GetWidth(), size.GetWidth()), size.GetHeight()));
 }
 
 void Button::mouseDown(wxMouseEvent& event)

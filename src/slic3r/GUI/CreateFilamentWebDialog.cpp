@@ -3,7 +3,6 @@
 #include <wx/webview.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
 #include <unordered_set>
 #include <openssl/md5.h>
 #include <openssl/evp.h>
@@ -16,6 +15,7 @@
 #include "libslic3r/Utils.hpp"
 #include "Widgets/WebView.hpp"
 #include "CreatePresetsDialog.hpp"  // for CreatePresetSuccessfulDialog
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 
@@ -100,7 +100,7 @@ static std::string make_filament_id(const std::string &vendor_type_serial)
         candidate = "P" + calc_md5(vendor_type_serial + ts).substr(0, 7);
     }
 
-    BOOST_LOG_TRIVIAL(info) << "make_filament_id: " << vendor_type_serial << " -> " << candidate;
+    BOOST_LOG_TRIVIAL(info) << vendor_type_serial << " -> " << candidate;
     return candidate;
 }
 
@@ -215,7 +215,7 @@ CreateFilamentWebDialog::CreateFilamentWebDialog(wxWindow *parent,
     Centre(wxBOTH);
     wxGetApp().UpdateDlgDarkUI(this);
 
-    BOOST_LOG_TRIVIAL(info) << "CreateFilamentWebDialog created";
+    BOOST_LOG_TRIVIAL(info) << "created";
 }
 
 CreateFilamentWebDialog::~CreateFilamentWebDialog()
@@ -240,7 +240,7 @@ void CreateFilamentWebDialog::run_script(const wxString &js)
         WebView::RunScript(m_browser, js);
 }
 
-void CreateFilamentWebDialog::send_init_data(const std::string &filament_type)
+void CreateFilamentWebDialog::send_init_data(const std::string &filament_type, bool allow_prefill)
 {
     PresetBundle *pb = wxGetApp().preset_bundle;
 
@@ -326,7 +326,7 @@ void CreateFilamentWebDialog::send_init_data(const std::string &filament_type)
             auto *ft = dynamic_cast<ConfigOptionStrings *>(
                 const_cast<Preset &>(p).config.option("filament_type", false));
             if (!ft || ft->values.empty() || ft->values[0] != filament_type) continue;
-            BOOST_LOG_TRIVIAL(info) << "send_init_data candidate: " << p.name
+            BOOST_LOG_TRIVIAL(info) << "candidate: " << p.name
                 << " is_system=" << p.is_system << " is_visible=" << p.is_visible;
             choice_map[p.filament_id].push_back(&p);
         }
@@ -359,15 +359,25 @@ void CreateFilamentWebDialog::send_init_data(const std::string &filament_type)
     msg["printers"]       = printers;
     msg["system_presets"] = system_presets;
     msg["vendor_readonly"] = m_lock_prefilled_vendor;
-    if (!m_prefill_vendor.empty()) msg["selected_vendor"] = m_prefill_vendor;
-    if (!m_prefill_type.empty())   msg["selected_type"]   = m_prefill_type;
-    if (!m_prefill_serial.empty()) msg["selected_serial"] = m_prefill_serial;
+    // Only tell the page to apply (and session-storage-clear) the prefill on step1's own
+    // first explicit request_init_data call — never on the passive OnDocumentLoaded hook,
+    // which can also fire for an intermediate blank page before step1.js is running, and
+    // never again after the prefill has been consumed once (e.g. reload from clicking
+    // "Back"), or it would reapply the stale prefill over whatever the user just typed.
+    bool fresh_open = allow_prefill && !m_prefill_consumed;
+    msg["fresh_open"] = fresh_open;
+    if (fresh_open) {
+        if (!m_prefill_vendor.empty()) msg["selected_vendor"] = m_prefill_vendor;
+        if (!m_prefill_type.empty())   msg["selected_type"]   = m_prefill_type;
+        if (!m_prefill_serial.empty()) msg["selected_serial"] = m_prefill_serial;
+        m_prefill_consumed = true;
+    }
 
     wxString js = wxString::Format("HandleStudio(%s)",
         wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
     run_script(js);
 
-    BOOST_LOG_TRIVIAL(info) << "CreateFilamentWebDialog::send_init_data sent";
+    BOOST_LOG_TRIVIAL(info) << "sent";
 }
 
 void CreateFilamentWebDialog::send_compatible_printers(const std::string &public_name)
@@ -448,7 +458,7 @@ void CreateFilamentWebDialog::send_compatible_printers(const std::string &public
         wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
     run_script(js);
 
-    BOOST_LOG_TRIVIAL(info) << "send_compatible_printers for public_name: " << public_name
+    BOOST_LOG_TRIVIAL(info) << "for public_name: " << public_name
                             << ", models=" << printers.size();
 }
 
@@ -658,7 +668,7 @@ void CreateFilamentWebDialog::send_device_info(const std::string &filament_type)
     wxString js = wxString::Format("HandleStudio(%s)",
         wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
     run_script(js);
-    BOOST_LOG_TRIVIAL(info) << "send_device_info: model_id=" << model_id
+    BOOST_LOG_TRIVIAL(info) << "model_id=" << model_id
                             << " model_name=" << model_name
                             << " nozzles=" << nozzle_to_printer_all.size()
                             << " supported_nozzles=" << supported_nozzle_set.size()
@@ -758,7 +768,7 @@ void CreateFilamentWebDialog::send_supported_types()
     wxString js = wxString::Format("HandleStudio(%s)",
         wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
     run_script(js);
-    BOOST_LOG_TRIVIAL(info) << "send_supported_types: model_id=" << model_id
+    BOOST_LOG_TRIVIAL(info) << "model_id=" << model_id
                             << " model_name=" << model_name
                             << " types=" << type_set.size();
 }
@@ -844,7 +854,7 @@ void CreateFilamentWebDialog::send_filament_params(const std::string &preset_nam
     wxString js = wxString::Format("HandleStudio(%s)",
         wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
     run_script(js);
-    BOOST_LOG_TRIVIAL(info) << "send_filament_params: " << preset_name;
+    BOOST_LOG_TRIVIAL(info) << preset_name;
 }
 
 void CreateFilamentWebDialog::send_all_printers(const std::string &filament_type)
@@ -1000,8 +1010,12 @@ void CreateFilamentWebDialog::send_presets_by_machine(const std::vector<std::str
         wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
     run_script(js);
 
-    BOOST_LOG_TRIVIAL(info) << "send_presets_by_machine: " << printer_names.size() << " printers";
+    BOOST_LOG_TRIVIAL(info) << printer_names.size() << " printers";
 }
+
+// Forward declaration: defined near build_and_validate_filament_name below, but also
+// used by OnScriptMessage's "check_reserved_vendor" handler above that point.
+static void show_reserved_vendor_dialog(wxWindow *parent);
 
 // ── Event handlers ─────────────────────────────────────────────────────────
 
@@ -1025,7 +1039,7 @@ void CreateFilamentWebDialog::OnScriptMessage(wxWebViewEvent &evt)
 
         BOOST_LOG_TRIVIAL(info) << "CreateFilamentWebDialog command: " << cmd;
         if (cmd == "create_filament_confirm")
-            BOOST_LOG_TRIVIAL(info) << "CreateFilamentWebDialog payload: " << j.dump();
+            BOOST_LOG_TRIVIAL(info) << "CreateFilamentWebDialog payload: " << j;
 
         if (cmd == "close_page") {
             EndModal(wxID_CANCEL);
@@ -1042,9 +1056,23 @@ void CreateFilamentWebDialog::OnScriptMessage(wxWebViewEvent &evt)
         } else if (cmd == "create_filament_confirm") {
             handle_create_filament(j);
 
+        } else if (cmd == "check_reserved_vendor") {
+            // step1's "Create Vendor Brand" dialog asks up front whether a name is
+            // reserved, so the user sees this warning immediately instead of only
+            // after filling out the rest of the wizard and hitting the final confirm.
+            std::string vendor = j.value("vendor", "");
+            bool reserved = boost::iequals(vendor, "Bambu") || boost::iequals(vendor, "Generic");
+            if (reserved) show_reserved_vendor_dialog(this);
+            json resp;
+            resp["command"]  = "reserved_vendor_result";
+            resp["reserved"] = reserved;
+            wxString js = wxString::Format("HandleStudio(%s)",
+                wxString::FromUTF8(resp.dump(-1, ' ', false, json::error_handler_t::ignore)));
+            run_script(js);
+
         } else if (cmd == "request_init_data") {
             std::string filament_type = j.value("type", "");
-            send_init_data(filament_type);
+            send_init_data(filament_type, /*allow_prefill=*/true);
 
         } else if (cmd == "get_compatible_printers") {
             std::string preset_name = j.value("preset", "");
@@ -1083,7 +1111,7 @@ void CreateFilamentWebDialog::OnScriptMessage(wxWebViewEvent &evt)
             send_presets_by_machine(printers, filament_type);
         }
     } catch (const std::exception &e) {
-        BOOST_LOG_TRIVIAL(error) << "CreateFilamentWebDialog::OnScriptMessage exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
     }
 }
 
@@ -1100,6 +1128,16 @@ static std::string remove_special_key(const std::string &str)
         if (s_filament_name_special_key.find(c) == s_filament_name_special_key.end())
             res.push_back(c);
     return res;
+}
+
+// Shared with OnScriptMessage's "check_reserved_vendor" handler so the step1
+// "Create Vendor Brand" dialog can surface this same warning immediately, instead of
+// only at the final step3 confirm.
+static void show_reserved_vendor_dialog(wxWindow *parent)
+{
+    MessageDialog(parent,
+        _L("\"Bambu\" or \"Generic\" can not be used as a Vendor for custom filaments."),
+        wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE).ShowModal();
 }
 
 // Build filament_preset_name and user_filament_id from vendor/type/serial fields in j,
@@ -1128,10 +1166,8 @@ static bool build_and_validate_filament_name(wxWindow *parent, const json &j,
             wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE).ShowModal();
         return false;
     }
-    if (vendor == "Bambu" || vendor == "Generic") {
-        MessageDialog(parent,
-            _L("\"Bambu\" or \"Generic\" can not be used as a Vendor for custom filaments."),
-            wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE).ShowModal();
+    if (boost::iequals(vendor, "Bambu") || boost::iequals(vendor, "Generic")) {
+        show_reserved_vendor_dialog(parent);
         return false;
     }
 

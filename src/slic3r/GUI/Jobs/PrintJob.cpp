@@ -12,12 +12,15 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/GUI/PrintQueueManager.hpp"
+#include "slic3r/GUI/QueuePrintContext.hpp"
 #include "bambu_networking.hpp"
 
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevUtil.h"
 
 #include "slic3r/Utils/FileTransferUtils.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -40,6 +43,8 @@ namespace GUI {
 
 #define SENDING_OVER_LAN_STR    _L("Sending print job over LAN")
 #define SENDING_OVER_CLOUD_STR  _L("Sending print job through cloud service")
+#define ADDED_TO_PRINT_QUEUE_STR _L("Successfully added to print queue. Will automatically jump to the print queue page in %ss")
+#define SENT_JUMP_TO_DEVICE_STR _L("Successfully sent. Will automatically jump to the device page in %ss")
 
 #define wait_sending_finish     _L("Print task sending times out.")
 //static wxString desc_wait_sending_finish    = _L("The printer timed out while receiving a print job. Please check if the network is functioning properly and send the print again.");
@@ -72,6 +77,7 @@ void PrintJob::on_exception(const std::exception_ptr &eptr)
         if (eptr)
             std::rethrow_exception(eptr);
     } catch (std::exception &/*e*/) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         PlaterJob::on_exception(eptr);
     }
 }
@@ -129,6 +135,7 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
             //}
         }
         catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
         else if (status == 503) {
@@ -146,6 +153,7 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
         result = wxString::Format("code=%u, error=%s", code, from_u8(error));
         return result;
     } catch(...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         ;
     }
     return wxEmptyString;
@@ -153,6 +161,11 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
 
 void PrintJob::process()
 {
+    if (m_print_type == "from_print_queue") {
+        process_queue_print();
+        return;
+    }
+
     /* display info */
     wxString error_str;
     int curr_percent = 10;
@@ -251,6 +264,7 @@ void PrintJob::process()
     }
 
     params.dev_id               = m_dev_id;
+    params.task_name             = m_project_name;
     params.ftp_folder           = m_ftp_folder;
     if (is_imported_3mf) {
         params.filename        = m_imported_3mf_path;
@@ -303,14 +317,18 @@ void PrintJob::process()
             try {
                 params.origin_profile_id    = stoi(origin_profile_id->second.c_str());
             }
-            catch(...) {}
+            catch(...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
         }
         auto origin_model_id = model_info->metadata_items.find(BBL_DESIGNER_MODEL_ID_TAG);
         if (origin_model_id != model_info->metadata_items.end()) {
             try {
                 params.origin_model_id = origin_model_id->second;
             }
-            catch(...) {}
+            catch(...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
         }
 
         auto profile_name = model_info->metadata_items.find(BBL_DESIGNER_PROFILE_TITLE_TAG);
@@ -318,10 +336,12 @@ void PrintJob::process()
             try {
                 params.preset_name = profile_name->second;
             }
-            catch (...) {}
+            catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+            }
         }
 
-         if (m_print_type != "from_sdcard_view") {
+         if (m_print_type == "from_normal") {
             auto model_name = model_info->metadata_items.find(BBL_DESIGNER_MODEL_TITLE_TAG);
             if (model_name != model_info->metadata_items.end()) {
                 try {
@@ -333,7 +353,9 @@ void PrintJob::process()
                     std::regex pattern("_+");
                     params.project_name = std::regex_replace(mall_model_name, pattern, "_");
                     params.project_name = truncate_string(params.project_name, 100);
-                } catch (...) {}
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                }
             }
         }
 
@@ -376,6 +398,7 @@ void PrintJob::process()
                 stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
             }
             catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 stl_design_id = 0;
             }
             params.stl_design_id = stl_design_id;
@@ -390,6 +413,7 @@ void PrintJob::process()
             try {
                 params.stl_design_id = std::stoi(model_design_id);
             } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 params.stl_design_id = 0;
             }
         }
@@ -527,7 +551,7 @@ void PrintJob::process()
                             msg = get_route_status_msg();
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageFinished) {
-                            msg = wxString::Format(_L("Successfully sent. Will automatically jump to the device page in %ss"), info);
+                            msg = wxString::Format(SENT_JUMP_TO_DEVICE_STR, info);
                             if (m_print_job_completed_id == wxGetApp().plater()->get_send_calibration_finished_event()) {
                                 msg = wxString::Format(_L("Successfully sent. Will automatically jump to the next page in %ss"), info);
                             }
@@ -590,15 +614,16 @@ void PrintJob::process()
                 BOOST_LOG_TRIVIAL(trace) << "print_job: curr_obj_id=" << curr_job_id;
 
             } catch(...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 ;
             }
 
             if (obj) {
                 int time_out = 0;
                 while (time_out < PRINT_JOB_SENDING_TIMEOUT) {
-                    BOOST_LOG_TRIVIAL(trace) << "print_job: obj job_id = " << obj->job_id_;
+                    BOOST_LOG_TRIVIAL(trace) << "print_job: obj " << KV(log_key::job_id, obj->job_id_);
                     if (!obj->job_id_.empty() && obj->job_id_.compare(curr_job_id) == 0) {
-                        BOOST_LOG_TRIVIAL(info) << "print_job: got job_id = " << obj->job_id_ << ", time_out=" << time_out;
+                        BOOST_LOG_TRIVIAL(info) << "print_job: got " << KV(log_key::job_id, obj->job_id_) << "time_out=" << time_out;
                         return true;
                     }
                     if (obj->is_in_printing_status(obj->print_status)) {
@@ -644,14 +669,16 @@ void PrintJob::process()
         curr_percent = 80;
         this->update_status(curr_percent, _L("Refreshing printer access code"));
 
-        wxGetApp().CallAfter([state, obj]() {
+        MachineObject* machine_obj = obj;
+        std::weak_ptr<int> machine_token = machine_obj ? machine_obj->get_token() : std::weak_ptr<int>();
+        wxGetApp().CallAfter([state, machine_obj, machine_token]() {
             {
                 std::lock_guard<std::mutex> lock(state->mutex);
                 if (state->done)
                     return;
             }
 
-            if (!obj) {
+            if (machine_token.expired()) {
                 std::lock_guard<std::mutex> lock(state->mutex);
                 state->done = true;
                 state->success = false;
@@ -660,7 +687,7 @@ void PrintJob::process()
                 return;
             }
 
-            const std::string sequence_id = obj->request_access_code(
+            const std::string sequence_id = machine_obj->request_access_code(
                 [state](bool success, std::string access_code, std::string print_status) {
                     std::lock_guard<std::mutex> lock(state->mutex);
                     if (state->done)
@@ -689,7 +716,7 @@ void PrintJob::process()
                 }
             }
             if (cancel_request)
-                obj->cancel_access_code_request(sequence_id);
+                machine_obj->cancel_access_code_request(sequence_id);
         });
 
         const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(ACCESS_CODE_REFRESH_TIMEOUT_MS);
@@ -702,7 +729,10 @@ void PrintJob::process()
                 const std::string sequence_id = state->sequence_id;
                 lock.unlock();
                 if (!sequence_id.empty())
-                    wxGetApp().CallAfter([obj, sequence_id]() { obj->cancel_access_code_request(sequence_id); });
+                    wxGetApp().CallAfter([machine_obj, machine_token, sequence_id]() {
+                        if (!machine_token.expired())
+                            machine_obj->cancel_access_code_request(sequence_id);
+                    });
                 return state;
             }
             if (state->cv.wait_until(lock, deadline) == std::cv_status::timeout && !state->done) {
@@ -712,7 +742,10 @@ void PrintJob::process()
                 const std::string sequence_id = state->sequence_id;
                 lock.unlock();
                 if (!sequence_id.empty())
-                    wxGetApp().CallAfter([obj, sequence_id]() { obj->cancel_access_code_request(sequence_id); });
+                    wxGetApp().CallAfter([machine_obj, machine_token, sequence_id]() {
+                        if (!machine_token.expired())
+                            machine_obj->cancel_access_code_request(sequence_id);
+                    });
                 return state;
             }
         }
@@ -736,7 +769,11 @@ void PrintJob::process()
         return normalized_status == "IDLE" || normalized_status == "FINISH" || normalized_status == "FAILED";
     };
 
-    if (m_print_type == "from_sdcard_view") {
+    if (m_add_to_print_queue) {
+        this->update_status(curr_percent, _L("Adding print job to queue"));
+        std::string queue_response;
+        result = PrintQueueManager::Get().add_current_plate(params, update_fn, cancel_fn, queue_response);
+    } else if (m_print_type == "from_sdcard_view") {
         BOOST_LOG_TRIVIAL(info) << "print_job: try to send with cloud, model is sdcard view";
         attempt_route = SendAttemptRoute::Default;
         this->update_status(curr_percent, _L("Sending print job through cloud service"));
@@ -887,9 +924,24 @@ void PrintJob::process()
 
         BOOST_LOG_TRIVIAL(error) << "print_job: failed, result = " << result;
     } else {
+        if (m_add_to_print_queue) {
+            this->countdown_before_jump(ADDED_TO_PRINT_QUEUE_STR);
+            m_job_finished = true;
+            if (this->was_canceled())
+                return;
+
+            wxCommandEvent* queue_evt = new wxCommandEvent(m_plater->get_add_to_print_queue_finished_event());
+            queue_evt->SetString(m_dev_id);
+            wxQueueEvent(m_plater, queue_evt);
+            return;
+        }
         // wait for printer mqtt ready the same job id
 
-        wxGetApp().plater()->record_slice_preset("print");
+        // process() runs on the worker thread; the record reads UI-owned state.
+        wxGetApp().CallAfter([] {
+            if (Plater *plater = wxGetApp().plater())
+                plater->record_slice_preset("print");
+        });
 
         BOOST_LOG_TRIVIAL(error) << "print_job: send ok.";
         wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
@@ -905,6 +957,85 @@ void PrintJob::process()
         }
         wxQueueEvent(m_plater, evt);
         m_job_finished = true;
+    }
+}
+
+void PrintJob::process_queue_print()
+{
+    NetworkAgent* agent = wxGetApp().getAgent();
+    if (!m_queue_print_context || !agent || m_queue_print_context->queue_plate_id.empty() ||
+        m_queue_print_context->model_id.empty() || m_queue_print_context->profile_id.empty() || m_dev_id.empty()) {
+        show_error_info(SEND_PRINT_FAILED_STR, 0, "", "");
+        return;
+    }
+
+    BBL::PrintParams params{};
+    const std::string title = m_project_name.empty() ? "Queue print" : truncate_string(m_project_name, 100);
+    params.dev_id = m_dev_id;
+    params.task_name = title;
+    params.project_name = title;
+    params.plate_index = m_queue_print_context->cloud_plate_index;
+    params.queue_plate_id = m_queue_print_context->queue_plate_id;
+    params.task_bed_leveling = task_bed_leveling;
+    params.task_flow_cali = task_flow_cali;
+    params.task_vibration_cali = task_vibration_cali;
+    params.task_layer_inspect = task_layer_inspect;
+    params.task_record_timelapse = task_record_timelapse;
+    params.task_timelapse_use_internal = task_timelapse_use_internal;
+    params.task_use_ams = task_use_ams;
+    params.task_bed_type = task_bed_type;
+    params.task_ext_change_assist = task_ext_change_assist;
+    params.auto_bed_leveling = auto_bed_leveling;
+    params.auto_flow_cali = auto_flow_cali;
+    params.auto_offset_cali = auto_offset_cali;
+    params.extruder_cali_manual_mode = extruder_cali_manual_mode;
+    params.nozzle_mapping = task_nozzle_mapping;
+    params.ams_mapping = task_ams_mapping;
+    params.ams_mapping2 = task_ams_mapping2;
+    params.ams_mapping_info = task_ams_mapping_info;
+    params.nozzles_info = task_nozzles_info;
+    params.print_type = m_print_type;
+
+    auto update_fn = [this](int stage, int code, std::string info) {
+        m_print_stage = stage;
+        if (code < 0 || code > 100 || stage == BBL::SendingPrintJobStage::PrintingStageERROR) {
+            wxGetApp().plater()->update_print_error_info(code, DESC_NETWORK_ERROR.ToStdString(), info);
+            return;
+        }
+        update_status(stage >= BBL::SendingPrintJobStage::PrintingStageSending ? 97 : 20,
+                      _L("Sending print job through cloud service"));
+    };
+    const auto cancel_fn = [this]() { return was_canceled(); };
+    const int result = agent->start_print_queue_task(
+        {m_queue_print_context->model_id, m_queue_print_context->profile_id, params}, update_fn, cancel_fn, nullptr);
+
+    if (result < 0) {
+        const wxString message = result == BAMBU_NETOWRK_ERR_PRINT_SP_ENC_FLAG_NOT_READY
+            ? _L("Retrieving printer information, please try again later.")
+            : result == BAMBU_NETWORK_SIGNED_ERROR ? PRINT_SIGNED_STR : SEND_PRINT_FAILED_STR;
+        if (result != BAMBU_NETWORK_ERR_CANCELED)
+            show_error_info(message, 0, "", "");
+        return;
+    }
+
+    this->countdown_before_jump(SENT_JUMP_TO_DEVICE_STR);
+    m_job_finished = true;
+    if (this->was_canceled())
+        return;
+
+    wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
+    evt->SetString(m_dev_id);
+    wxQueueEvent(m_plater, evt);
+}
+
+// Poll cancelling in short slices: the cancel callback joins this thread from the UI thread.
+void PrintJob::countdown_before_jump(const wxString& message_format)
+{
+    m_print_stage = BBL::SendingPrintJobStage::PrintingStageFinished;
+    for (int remaining = PRINT_JOB_JUMP_DELAY_SEC; remaining > 0 && !was_canceled(); remaining--) {
+        update_status(100, wxString::Format(message_format, std::to_string(remaining)));
+        for (int waited_ms = 0; waited_ms < 1000 && !was_canceled(); waited_ms += 200)
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(200));
     }
 }
 

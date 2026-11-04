@@ -20,6 +20,9 @@ if (import.meta.env.DEV) {
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
 import WindowResizeListener from './utils/WindowResizeListener'
+import { installFlexGapShim } from './legacy-webkit/flexGap'
+
+installFlexGapShim()
 
 // Create a new router instance
 const router = createRouter({ routeTree, history: createHashHistory() })

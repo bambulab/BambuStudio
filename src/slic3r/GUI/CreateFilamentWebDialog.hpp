@@ -29,6 +29,10 @@ private:
     std::string m_prefill_type;
     std::string m_prefill_serial;
     bool m_lock_prefilled_vendor { false };
+    // Set once the first send_init_data() round-trip completes. step1 reloads after
+    // that (e.g. Back from step2) must not reapply the prefill or they'd stomp the
+    // user's edits — see the fresh_open flag in send_init_data().
+    bool m_prefill_consumed { false };
     nlohmann::json m_created_filament;
 
     void OnScriptMessage(wxWebViewEvent &evt);
@@ -37,7 +41,12 @@ private:
 
     // Inject initial data (vendor list, type list, printer list, filament presets)
     // into the page after it has loaded.
-    void send_init_data(const std::string &filament_type = "");
+    // allow_prefill must only be true for the explicit "request_init_data" call that
+    // step1.js itself sends once its own script is actually running — never for the
+    // passive OnDocumentLoaded hook, which can also fire for an intermediate blank
+    // page before step1.js has loaded and would otherwise burn the one-time prefill
+    // on a page that can't use it.
+    void send_init_data(const std::string &filament_type = "", bool allow_prefill = false);
     void send_compatible_printers(const std::string &preset_name);
     void send_presets_by_machine(const std::vector<std::string> &printer_names, const std::string &filament_type);
     void send_all_printers(const std::string &filament_type);

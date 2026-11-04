@@ -9,10 +9,25 @@
   </head>
   <body>
     <script>
-      // Sync theme from C++ UserAgent BEFORE first paint — eliminates flash
+      // Sync theme from C++ UserAgent BEFORE first paint — eliminates flash.
+      // We set BOTH dark and light explicitly so any selector that only
+      // covers one direction (e.g. AMS device-page CSS, defaults to light)
+      // still resolves correctly when the other direction is not the
+      // global Tailwind default.
       if (/\(\s*light\s*\)/i.test(navigator.userAgent)) {
         document.documentElement.dataset.theme = 'light';
+      } else if (/\(\s*dark\s*\)/i.test(navigator.userAgent)) {
+        document.documentElement.dataset.theme = 'dark';
       }
+      // Disable Ctrl+wheel / Ctrl+plus / Ctrl+minus zoom in WebView2
+      document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '=' || e.key === '0')) {
+          e.preventDefault();
+        }
+      });
+      document.addEventListener('wheel', function(e) {
+        if (e.ctrlKey || e.metaKey) { e.preventDefault(); }
+      }, { passive: false });
     </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

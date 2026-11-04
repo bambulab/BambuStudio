@@ -154,5 +154,33 @@ bool ClusterAndSmooth(const TriMesh& mesh,
                       AlgoCancelCallback cancel_callback = nullptr,
                       const std::vector<std::array<float, 4>>& vertex_colors = {});
 
+/**
+ * @brief Split a mesh along per-vertex cluster boundaries, one level, in place.
+ *
+ * An edge is split at its midpoint exactly when its two endpoints belong to different
+ * clusters, so adjacent faces always agree and no T-junctions appear. Each resulting
+ * face is assigned the center color of its cluster.
+ *
+ * @param[in,out]  mesh                 Mesh to split in place.
+ * @param[in]      vertex_cluster_ids   Cluster id per vertex; must match mesh.vertices in size.
+ * @param[in]      cluster_centers      Cluster center colors.
+ * @param[out]     out_face_colors      Per-face color of the split mesh.
+ * @return true on success, false on failure.
+ */
+bool adaptive_split_by_vertex_clusters(
+    TriMesh& mesh,
+    const std::vector<std::size_t>& vertex_cluster_ids,
+    const std::vector<std::array<std::size_t, 3>>& cluster_centers,
+    std::vector<std::array<std::size_t, 3>>& out_face_colors);
+
+// Cluster RGB [0..255] colors (adaptive when target_colors_num is 0, otherwise k-means) and
+// return each input color's nearest center index in out_cluster_ids.
+bool quantize_colors(
+    const std::vector<std::array<std::size_t, 3>>& colors,
+    const TextureToColorSettings& settings,
+    AlgoCancelCallback cancel_callback,
+    std::vector<std::array<std::size_t, 3>>& out_centers,
+    std::vector<std::size_t>& out_cluster_ids);
+
 }  // namespace tex2color
 }  // namespace Slic3r

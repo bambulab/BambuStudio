@@ -4,21 +4,24 @@
 */
 
 #pragma once
+#include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 #include <nlohmann/json.hpp>
+
+#include "libslic3r/MultiNozzleUtils.hpp"
+#include "DevDefs.h"
+#include "DevSliceContext.hpp"
 
 #include <wx/string.h>
 
 namespace Slic3r
 {
 
-namespace GUI
-{
-class Plater;
-}
-
+struct FilamentInfo;
 class MachineObject;
+
 class DevNozzleMappingCtrl
 {
     friend class MachineObject;
@@ -45,7 +48,7 @@ public:
     DevNozzleMappingCtrl(MachineObject* obj) : m_obj(obj) {};
 
 public:
-    void SetPlater(Slic3r::GUI::Plater* plater) { m_plater = plater; }
+    void SetSliceContext(std::shared_ptr<DevSliceContext> ctx);
     void Clear();
 
     bool HasResult() const { return !m_result.empty(); }
@@ -71,17 +74,27 @@ public:
     float  GetFlushWeightBase() const { return m_flush_weight_base; }
     float  GetFlushWeightCurrent() const { return m_flush_weight_current; }
 
+    // slicing context accessors (from shared DevSliceContext snapshot)
+    bool HasSliceContext() const { return m_slice_ctx && m_slice_ctx->Valid(); }
+    bool IsSupportDynamicNozzleMap() const { return m_slice_ctx && m_slice_ctx->support_dynamic_nozzle_map; }
+    std::vector<MultiNozzleUtils::NozzleInfo> GetUsedNozzlesInExtruder(int extruder_id = -1) const;
+    std::vector<MultiNozzleUtils::NozzleInfo> GetNozzlesForFilament(int fila_id) const;
+    const std::vector<unsigned int>& GetUsedFilaments() const;
+    const std::vector<unsigned int>& GetFilamentChangeSequence() const;
+    const std::vector<unsigned int>& GetNozzleChangeSequence() const;
+
 public:
     void ParseAutoNozzleMapping(const nlohmann::json& print_jj);
-    int CtrlGetAutoNozzleMappingV0(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int flow_cali_opt, int pa_value);
-    int CtrlGetAutoNozzleMappingV1(Slic3r::GUI::Plater* plater);
+    int CtrlGetAutoNozzleMappingV0(const std::vector<FilamentInfo>& ams_mapping, int flow_cali_opt, int pa_value);
+    int CtrlGetAutoNozzleMappingV1();
+    int CtrlGetAutoNozzleMappingV1(const std::vector<MultiNozzleUtils::NozzleInfo>& nozzles);
 
 private:
     float  GetFlushWeight(Slic3r::MachineObject* obj) const;
 
 private:
     MachineObject* m_obj;
-    Slic3r::GUI::Plater* m_plater = nullptr;
+    std::shared_ptr<DevSliceContext> m_slice_ctx;
 
     std::string m_sequence_id;
 

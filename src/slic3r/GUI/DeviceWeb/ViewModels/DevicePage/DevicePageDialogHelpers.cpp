@@ -2,15 +2,21 @@
 
 #include "slic3r/GUI/AMSDryControl.hpp"
 #include "slic3r/GUI/AMSMaterialsSetting.hpp"
-#include "slic3r/GUI/AMSRFIDMaterialView.hpp"
 #include "slic3r/GUI/EncodedFilament.hpp"
 #include "slic3r/GUI/AmsMappingPopup.hpp"
+#include "slic3r/GUI/DeviceWeb/DeviceWebHost.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/GUI/MsgDialog.hpp"
+#include "slic3r/GUI/Monitor.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
+
+#include <wx/sizer.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -18,6 +24,29 @@ namespace {
 
 // Same cadence as the monitor page refresh (Monitor.cpp REFRESH_INTERVAL).
 constexpr int AMS_DRY_CTR_REFRESH_INTERVAL_MS = 1000;
+constexpr int kAutoRefillPickerWidthDip        = 756;
+constexpr int kAutoRefillPickerHeightDip       = 623;
+
+wxDialog*& active_auto_refill_filaments_dialog()
+{
+    static wxDialog* dialog = nullptr;
+    return dialog;
+}
+
+class AutoRefillFilamentsDialog : public DPIDialog
+{
+public:
+    AutoRefillFilamentsDialog(wxWindow* parent, const wxString& title)
+        : DPIDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize,
+                    wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
+    {
+        SetClientSize(wxSize(FromDIP(kAutoRefillPickerWidthDip), FromDIP(kAutoRefillPickerHeightDip)));
+        SetMinClientSize(wxSize(FromDIP(kAutoRefillPickerWidthDip), FromDIP(kAutoRefillPickerHeightDip)));
+    }
+
+protected:
+    void on_dpi_changed(const wxRect& suggested_rect) override { SetSize(suggested_rect.GetSize()); }
+};
 
 // Feeds the ownerless drying dialog with the state of the selected machine,
 // which is what AMSControl::UpdateAmsDryControl does for the AMSControl-owned
@@ -48,6 +77,20 @@ private:
 
 } // namespace
 
+wxWindow* ResolveAutoRefillDialogParent()
+{
+    if (auto* active = wxDynamicCast(wxGetActiveWindow(), wxDialog); active && active->IsModal()) {
+        return active;
+    }
+    for (auto node = wxTopLevelWindows.GetLast(); node; node = node->GetPrevious()) {
+        if (auto* dialog = wxDynamicCast(node->GetData(), wxDialog);
+            dialog && dialog->IsShown() && dialog->IsModal()) {
+            return dialog;
+        }
+    }
+    return wxGetApp().mainframe;
+}
+
 std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams_id, const std::string& slot_id, bool view_only)
 {
     auto* dev_mgr = wxGetApp().getDeviceManager();
@@ -63,41 +106,11 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
         ams_id_int = std::stoi(ams_id);
         slot_id_int = std::stoi(slot_id);
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return std::nullopt;
     }
 
     wxWindow* parent = wxGetApp().mainframe;
-
-    if (DevFilaSystem::IsBBL_Filament(tray.tag_uid)) {
-        wxColor color = DevAmsTray::decode_color(tray.color);
-        std::vector<wxColour> cols;
-        for (const auto& col : tray.cols) cols.push_back(DevAmsTray::decode_color(col));
-
-        wxString k_val = wxString::Format("%.3f", tray.k);
-
-        std::string sn_number;
-        if (tray.tag_uid.size() == 16 && tray.tag_uid.substr(12, 2) == "01")
-            sn_number = tray.tag_uid;
-
-        wxString color_name;
-        if (!tray.setting_id.empty()) {
-            if (auto* clr_query = wxGetApp().get_filament_color_code_query()) {
-                FilamentColor fila_color;
-                if (!cols.empty()) { for (const auto& c : cols) fila_color.AddColor(c); }
-                else                 fila_color.AddColor(color);
-                fila_color.EndSet(static_cast<int>(tray.ctype));
-                color_name = clr_query->GetFilaColorName(wxString::FromUTF8(tray.setting_id), fila_color);
-            }
-        }
-
-        AMSRFIDMaterialView dlg(parent, wxID_ANY);
-        dlg.Popup(machine_obj, ams_id_int, slot_id_int,
-                  tray.sub_brands, color_name, color, cols,
-                  static_cast<int>(tray.ctype),
-                  tray.nozzle_temp_min, tray.nozzle_temp_max,
-                  sn_number, k_val);
-        return std::nullopt;
-    }
 
     AMSMaterialsSetting dlg(parent, wxID_ANY);
     dlg.obj = machine_obj;
@@ -109,6 +122,8 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
     std::string sn_number;
     std::string temp_max;
     std::string temp_min;
+    wxString total_weight;
+    wxString remain_weight;
     wxString k_val;
     wxString n_val;
 
@@ -140,9 +155,13 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
         temp_max = tray.nozzle_temp_max;
         temp_min = tray.nozzle_temp_min;
     }
-    // AMSMaterialsSetting has no filament-weight editing on this branch, so the
-    // total / remain weights the dialog would otherwise prefill are not passed.
-    dlg.Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
+    if (tray.weight != "-1" && tray.weight != "0") {
+        total_weight = wxString::FromUTF8(tray.weight.c_str());
+    }
+    if (auto weight = tray.get_filament_remain_weight()) {
+        remain_weight = wxString::Format("%d", *weight);
+    }
+    dlg.Popup(filament, sn_number, temp_min, temp_max, k_val, n_val, total_weight, remain_weight);
 
     if (!dlg.m_confirmed) return std::nullopt;
 
@@ -158,6 +177,26 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
         info.ctype  = dlg.m_clr_picker->ctype;
     }
     return info;
+}
+
+bool BlockLoadForUnknownFilament(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id)
+{
+    if (!machine_obj || ams_id.empty() || slot_id.empty()) return true;
+
+    const auto target_tray = machine_obj->get_tray(ams_id, slot_id);
+    const bool is_unknown = !target_tray.has_value() ||
+                            target_tray->setting_id.empty() ||
+                            target_tray->m_fila_type.empty();
+    if (!is_unknown) return false;
+
+    // Queue the modal so bridge/request handlers can return immediately.
+    wxGetApp().CallAfter([]() {
+        MessageDialog msg_dlg(nullptr,
+                              _L("Filament type is unknown which is required to perform this action. Please set target filament's information."),
+                              wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+    });
+    return true;
 }
 
 void OpenAmsAutoRefillDialog()
@@ -188,6 +227,67 @@ void OpenAmsDryControlDialog(MachineObject* machine_obj, const std::string& ams_
     refresh_timer.Start(AMS_DRY_CTR_REFRESH_INTERVAL_MS);
     dlg.ShowModal();
     refresh_timer.Stop();
+}
+
+void OpenAutoRefillFilamentsDialog(MachineObject*                     machine_obj,
+                                   AutoRefillFilamentsDialogMode      mode,
+                                   const std::optional<DevAmsSlotId>& group_head)
+{
+    if (!machine_obj || (mode == AutoRefillFilamentsDialogMode::AddToGroup && !group_head.has_value()))
+        return;
+    if (active_auto_refill_filaments_dialog())
+        return;
+
+    wxWindow* parent = ResolveAutoRefillDialogParent();
+    std::string route = "/device_page/auto_refill_refill_info?picker=1&mode=";
+    route += mode == AutoRefillFilamentsDialogMode::AddToGroup ? "add_to_group" : "create_group";
+    if (group_head.has_value()) {
+        route += "&ams_id=" + std::to_string(group_head->first);
+        route += "&slot_id=" + std::to_string(group_head->second);
+    }
+
+    const wxString title = mode == AutoRefillFilamentsDialogMode::AddToGroup
+                               ? _L("Add refill filament")
+                               : _L("Add material group");
+    AutoRefillFilamentsDialog dialog(parent, title);
+    active_auto_refill_filaments_dialog() = &dialog;
+
+    auto* host = new DeviceWebHost(&dialog, DeviceWebHostMode::DevicePageAutoRefillRefillInfo, route);
+    host->SetMinSize(wxSize(dialog.FromDIP(kAutoRefillPickerWidthDip),
+                            dialog.FromDIP(kAutoRefillPickerHeightDip)));
+    if (auto* vm = host->GetAutoRefillRefillInfoVM())
+        vm->Refresh(machine_obj);
+
+    auto* sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(host, 1, wxEXPAND);
+    dialog.SetSizer(sizer);
+    dialog.Layout();
+    dialog.CentreOnParent();
+    dialog.ShowModal();
+
+    if (active_auto_refill_filaments_dialog() == &dialog)
+        active_auto_refill_filaments_dialog() = nullptr;
+}
+
+void CloseAutoRefillFilamentsDialog(int result)
+{
+    wxDialog* dialog = active_auto_refill_filaments_dialog();
+    if (!dialog)
+        return;
+    if (dialog->IsModal())
+        dialog->EndModal(result);
+    else
+        dialog->Close();
+}
+
+void OpenHmsPanel()
+{
+    auto* main_frame = wxGetApp().mainframe;
+    if (!main_frame)
+        return;
+    main_frame->jump_to_monitor();
+    if (main_frame->m_monitor)
+        main_frame->m_monitor->jump_to_HMS();
 }
 
 }} // namespace Slic3r::GUI

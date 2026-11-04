@@ -1,4 +1,5 @@
 #include "QuadricEdgeCollapse.hpp"
+#include <array>
 #include <tuple>
 #include <optional>
 #include "MutablePriorityQueue.hpp"
@@ -126,6 +127,10 @@ namespace QuadricEdgeCollapse {
         const EdgeInfos &e_infos, const Indices &indices);
     bool create_no_volume(uint32_t vi0, uint32_t vi1, uint32_t ti0, uint32_t ti1,
         const VertexInfo &v_info0, const VertexInfo &v_info1, const EdgeInfos &e_infos, const Indices &indices);
+    // Link condition: collapsing edge (vi0, vi1) keeps the mesh manifold only when the two
+    // vertices share exactly the two opposite vertices of the edge's triangles.
+    bool breaks_link_condition(uint32_t vi0, uint32_t vi1, const VertexInfo &v_info0, const VertexInfo &v_info1,
+        const EdgeInfos &e_infos, const Indices &indices, std::vector<uint32_t> &ring0);
     // find edge with smallest error in triangle
     Vec3d calculate_3errors(const Triangle &t, const Vertices &vertices, const VertexInfos &v_infos);
     Error calculate_error(uint32_t ti, const Triangle& t,const Vertices &vertices, const VertexInfos& v_infos, unsigned char& min_index);
@@ -202,6 +207,8 @@ void Slic3r::its_quadric_edge_collapse(
     e_infos_swap.reserve(max_triangle_count_for_one_vertex);
     std::vector<uint32_t> changed_triangle_indices;
     changed_triangle_indices.reserve(2 * max_triangle_count_for_one_vertex);
+    std::vector<uint32_t> link_ring;
+    link_ring.reserve(2 * max_triangle_count_for_one_vertex);
 
     uint32_t actual_triangle_count = its.indices.size();
     uint32_t count_triangle_to_reduce = actual_triangle_count - triangle_count;
@@ -259,6 +266,7 @@ void Slic3r::its_quadric_edge_collapse(
             degenerate(vi0, ti0, ti1, v_info1, e_infos, its.indices) ||
             degenerate(vi1, ti0, ti1, v_info0, e_infos, its.indices) ||
             create_no_volume(vi0, vi1, ti0, ti1, v_info0, v_info1, e_infos, its.indices) ||
+            breaks_link_condition(vi0, vi1, v_info0, v_info1, e_infos, its.indices, link_ring) ||
             is_flipped(new_vertex0, ti0, ti1, v_info0, t_infos, e_infos, its) ||
             is_flipped(new_vertex0, ti0, ti1, v_info1, t_infos, e_infos, its)) {
             // try other triangle's edge
@@ -640,6 +648,78 @@ bool QuadricEdgeCollapse::degenerate(uint32_t          vi,
         const Triangle &t = indices[e_info.t_index];
         for (size_t i = 0; i < 3; ++i)
             if (static_cast<uint32_t>(t[i]) == vi) return true;
+    }
+    return false;
+}
+
+bool QuadricEdgeCollapse::breaks_link_condition(uint32_t vi0, uint32_t vi1,
+                                                const VertexInfo &v_info0, const VertexInfo &v_info1,
+                                                const EdgeInfos &e_infos, const Indices &indices,
+                                                std::vector<uint32_t> &ring0)
+{
+    // One-ring of vi0 (without vi1), then count how many of them are neighbors of vi1 as well.
+    // The two vertices opposite the collapsed edge are always shared; any further shared
+    // vertex w means edge (vi0, w) would end up in more than two triangles after collapse.
+    ring0.clear();
+    const uint32_t end0 = v_info0.start + v_info0.count;
+    for (uint32_t ei = v_info0.start; ei < end0; ++ei) {
+        const EdgeInfo &e_info = e_infos[ei];
+        const Triangle &t      = indices[e_info.t_index];
+        for (int k = 1; k <= 2; ++k) {
+            const uint32_t v = static_cast<uint32_t>(t[(e_info.edge + k) % 3]);
+            if (v != vi1) ring0.emplace_back(v);
+        }
+    }
+    std::sort(ring0.begin(), ring0.end());
+
+    // A neighbor reached through a single triangle marks a boundary edge, so the vertex lies on
+    // the boundary. Collapsing an interior edge between two boundary vertices pinches the
+    // boundary into a non-manifold vertex (and can wipe out a whole open patch), so reject it.
+    auto on_boundary = [](const std::vector<uint32_t> &sorted_ring) {
+        for (size_t i = 0; i < sorted_ring.size();) {
+            size_t j = i + 1;
+            while (j < sorted_ring.size() && sorted_ring[j] == sorted_ring[i]) ++j;
+            if (j - i == 1) return true;
+            i = j;
+        }
+        return false;
+    };
+    if (on_boundary(ring0)) {
+        std::vector<uint32_t> ring1;
+        ring1.reserve(2 * v_info1.count);
+        const uint32_t end1 = v_info1.start + v_info1.count;
+        for (uint32_t ei = v_info1.start; ei < end1; ++ei) {
+            const EdgeInfo &e_info = e_infos[ei];
+            const Triangle &t      = indices[e_info.t_index];
+            for (int k = 1; k <= 2; ++k) {
+                const uint32_t v = static_cast<uint32_t>(t[(e_info.edge + k) % 3]);
+                if (v != vi0) ring1.emplace_back(v);
+            }
+        }
+        std::sort(ring1.begin(), ring1.end());
+        if (on_boundary(ring1))
+            return true;
+    }
+    ring0.erase(std::unique(ring0.begin(), ring0.end()), ring0.end());
+
+    // vi1's neighbors are visited with repeats; collect the shared ones and count distinct values.
+    // Stops at three, which already proves the condition broken.
+    std::array<uint32_t, 3> shared;
+    size_t                  shared_count = 0;
+    const uint32_t          end1         = v_info1.start + v_info1.count;
+    for (uint32_t ei = v_info1.start; ei < end1; ++ei) {
+        const EdgeInfo &e_info = e_infos[ei];
+        const Triangle &t      = indices[e_info.t_index];
+        for (int k = 1; k <= 2; ++k) {
+            const uint32_t v = static_cast<uint32_t>(t[(e_info.edge + k) % 3]);
+            if (v == vi0 || ! std::binary_search(ring0.begin(), ring0.end(), v))
+                continue;
+            if (std::find(shared.begin(), shared.begin() + shared_count, v) != shared.begin() + shared_count)
+                continue;
+            shared[shared_count++] = v;
+            if (shared_count > 2)
+                return true;
+        }
     }
     return false;
 }

@@ -21,6 +21,8 @@
 #include <wx/regex.h>
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
+#include <wx/dcbuffer.h>
+#include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 #include <miniz.h>
 #include <wx/valnum.h>
@@ -30,6 +32,7 @@
 
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevStorage.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -42,6 +45,157 @@ namespace {
     const wxColour HELIO_MUTED(168, 176, 192);    // #A8B0C0
 }
 
+class DialogWikiWarningLabel : public wxPanel
+{
+public:
+    DialogWikiWarningLabel(
+        wxWindow* parent,
+        const wxString& prefix,
+        const wxString& link,
+        const wxString& suffix,
+        const wxString& url,
+        const wxColour& text_colour,
+        const wxColour& link_colour,
+        int width)
+        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(width, 1), wxBORDER_NONE)
+        , m_prefix(prefix)
+        , m_link(link)
+        , m_suffix(suffix)
+        , m_url(url)
+        , m_text_colour(text_colour)
+        , m_link_colour(link_colour)
+        , m_width(width)
+    {
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        SetBackgroundColour(parent->GetBackgroundColour());
+        SetCursor(wxCURSOR_ARROW);
+        layout_text();
+
+        Bind(wxEVT_PAINT, &DialogWikiWarningLabel::on_paint, this);
+        Bind(wxEVT_MOTION, &DialogWikiWarningLabel::on_motion, this);
+        Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent&) {
+            m_link_hovered = false;
+            SetCursor(wxCURSOR_ARROW);
+        });
+        Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& event) {
+            if (hit_link(event.GetPosition()))
+                wxLaunchDefaultBrowser(m_url);
+        });
+    }
+
+private:
+    struct TextRun {
+        wxString text;
+        wxPoint position;
+        wxSize size;
+        bool is_link;
+    };
+
+    void layout_text()
+    {
+        wxClientDC dc(this);
+        dc.SetFont(Label::Body_14);
+        const int line_height = dc.GetCharHeight();
+        int x = 0;
+        int y = 0;
+
+        auto place_token = [&](const wxString& token, bool is_link) {
+            if (token.empty()) return;
+            dc.SetFont(is_link ? Label::Body_14.Underlined() : Label::Body_14);
+            const wxSize size = dc.GetTextExtent(token);
+            const bool is_space = token == " " || token == "\t";
+            if (!is_space && x > 0 && x + size.x > m_width) {
+                x = 0;
+                y += line_height;
+            }
+            if (is_space && x == 0) return;
+            m_runs.push_back({token, wxPoint(x, y), wxSize(size.x, line_height), is_link});
+            if (is_link)
+                m_link_rects.emplace_back(x, y, size.x, line_height);
+            x += size.x;
+        };
+
+        auto append_text = [&](const wxString& text, bool is_link) {
+            wxString token;
+            auto flush_token = [&]() {
+                if (!token.empty()) {
+                    place_token(token, is_link);
+                    token.clear();
+                }
+            };
+
+            for (const wxUniChar ch : text) {
+                if (ch == '\n') {
+                    flush_token();
+                    x = 0;
+                    y += line_height;
+                } else if (ch == ' ' || ch == '\t') {
+                    flush_token();
+                    wxString whitespace;
+                    whitespace += ch;
+                    place_token(whitespace, is_link);
+                } else if (ch.GetValue() >= 0x2E80) {
+                    flush_token();
+                    wxString character;
+                    character += ch;
+                    place_token(character, is_link);
+                } else {
+                    token += ch;
+                }
+            }
+            flush_token();
+        };
+
+        append_text(m_prefix, false);
+        append_text(m_link, true);
+        append_text(m_suffix, false);
+
+        const int height = std::max(line_height, y + line_height);
+        SetMinSize(wxSize(m_width, height));
+        SetMaxSize(wxSize(m_width, height));
+    }
+
+    void on_paint(wxPaintEvent&)
+    {
+        wxAutoBufferedPaintDC dc(this);
+        dc.SetBackground(wxBrush(GetBackgroundColour()));
+        dc.Clear();
+        for (const auto& run : m_runs) {
+            dc.SetFont(run.is_link ? Label::Body_14.Underlined() : Label::Body_14);
+            dc.SetTextForeground(run.is_link ? m_link_colour : m_text_colour);
+            dc.DrawText(run.text, run.position);
+        }
+    }
+
+    void on_motion(wxMouseEvent& event)
+    {
+        const bool is_link = hit_link(event.GetPosition());
+        if (is_link != m_link_hovered) {
+            m_link_hovered = is_link;
+            SetCursor(is_link ? wxCursor(wxCURSOR_HAND) : wxCursor(wxCURSOR_ARROW));
+        }
+    }
+
+    bool hit_link(const wxPoint& point) const
+    {
+        return std::any_of(m_link_rects.begin(), m_link_rects.end(), [&point](const wxRect& rect) {
+            return rect.Contains(point);
+        });
+    }
+
+private:
+    wxString m_prefix;
+    wxString m_link;
+    wxString m_suffix;
+    wxString m_url;
+    wxColour m_text_colour;
+    wxColour m_link_colour;
+    int m_width;
+    bool m_link_hovered{false};
+    std::vector<TextRun> m_runs;
+    std::vector<wxRect> m_link_rects;
+};
+
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CANCEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_DONE, wxCommandEvent);
@@ -53,6 +207,27 @@ wxDEFINE_EVENT(EVT_CHECK_IP_ADDRESS_FAILED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_RETRY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_NOZZLE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ERROR_DIALOG_BTN_CLICKED, wxCommandEvent);
+
+static std::string url_encode(const std::string& value) {
+	std::ostringstream escaped;
+	escaped.fill('0');
+	escaped << std::hex;
+	for (std::string::const_iterator i = value.begin(), n = value.end(); i != n; ++i) {
+		std::string::value_type c = (*i);
+
+		// Keep alphanumeric and other accepted characters intact
+		if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+			escaped << c;
+			continue;
+		}
+
+		// Any other characters are percent-encoded
+		escaped << std::uppercase;
+		escaped << '%' << std::setw(2) << int((unsigned char)c);
+		escaped << std::nouppercase;
+	}
+	return escaped.str();
+}
 
 ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Release Note"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
@@ -86,10 +261,33 @@ ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
 
     m_sizer_right->Add(0, 0, 1, wxTOP, FromDIP(15));
 
-    m_vebview_release_note = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(560), FromDIP(430)), wxVSCROLL);
-    m_vebview_release_note->SetScrollRate(5, 5);
-    m_vebview_release_note->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
+    // firmware release notes from cloud are markdown, render them in webview like UpdateVersionDialog
+    m_vebview_release_note = WebView::CreateWebView(this, "");
+    m_vebview_release_note->SetBackgroundColour(wxGetApp().dark_mode() ? wxColour(0x36, 0x36, 0x3C) : wxColour(0xF8, 0xF8, 0xF8));
+    m_vebview_release_note->SetSize(wxSize(FromDIP(560), FromDIP(430)));
+    m_vebview_release_note->SetMinSize(wxSize(FromDIP(560), FromDIP(430)));
     m_vebview_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
+
+#ifndef __WINDOWS__
+    m_vebview_release_note->Bind(wxEVT_WEBVIEW_LOADED, [this](auto &e) {
+#else
+    m_vebview_release_note->Bind(wxEVT_WEBVIEW_NAVIGATED, [this](auto &e) {
+#endif
+        m_page_loaded = true;
+        show_release_note();
+        e.Skip();
+    });
+
+    fs::path ph(data_dir());
+    ph /= "resources/tooltip/releasenote.html";
+    if (!fs::exists(ph)) {
+        ph = resources_dir();
+        ph /= "tooltip/releasenote.html";
+    }
+    auto url = ph.string();
+    std::replace(url.begin(), url.end(), '\\', '/');
+    url = "file:///" + url;
+    m_vebview_release_note->LoadURL(from_u8(url));
 
     m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT, FromDIP(20));
     m_sizer_body->Add(m_sizer_right, 1, wxBOTTOM | wxEXPAND, FromDIP(30));
@@ -113,15 +311,25 @@ void ReleaseNoteDialog::on_dpi_changed(const wxRect &suggested_rect)
 void ReleaseNoteDialog::update_release_note(wxString release_note, std::string version)
 {
     m_text_up_info->SetLabel(wxString::Format(_L("version %s update information :"), version));
-    wxBoxSizer * sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
-    auto        m_staticText_release_note = new ::Label(m_vebview_release_note, release_note, LB_AUTO_WRAP);
-    m_staticText_release_note->SetMinSize(wxSize(FromDIP(530), -1));
-    m_staticText_release_note->SetMaxSize(wxSize(FromDIP(530), -1));
-    sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
-    m_vebview_release_note->SetSizer(sizer_text_release_note);
-    m_vebview_release_note->Layout();
-    m_vebview_release_note->Fit();
+    m_mkdown_text = release_note.ToUTF8().data();
+    // page may not be loaded yet, the loaded handler will render it then
+    show_release_note();
     wxGetApp().UpdateDlgDarkUI(this);
+}
+
+void ReleaseNoteDialog::show_release_note()
+{
+    if (!m_page_loaded || m_mkdown_text.empty()) return;
+
+    WebView::RunScript(m_vebview_release_note, "window.showMarkdown('" + url_encode(m_mkdown_text) + "', true);");
+    // tooltip/main.css defaults body text to white, set colors explicitly to follow app theme.
+    // It also sets html font-size to 10px and body font to -apple-system-body, which Chromium ignores,
+    // so body text falls back to 10px; set it explicitly.
+    bool is_dark = wxGetApp().dark_mode();
+    std::string theme_script = std::string("document.body.style.backgroundColor='") + (is_dark ? "#36363C" : "#F8F8F8") + "';"
+                             + "document.body.style.color='" + (is_dark ? "#FFFFFF" : "#000000") + "';"
+                             + "document.body.style.fontSize='14px';";
+    WebView::RunScript(m_vebview_release_note, theme_script);
 }
 
 UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
@@ -242,6 +450,7 @@ void UpdatePluginDialog::update_info(std::string json_path)
         description_str = j["description"];
     }
     catch (nlohmann::detail::parse_error& err) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         //BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << json_path << " got a nlohmann::detail::parse_error, reason = " << err.what();
         return;
     }
@@ -422,6 +631,15 @@ wxWebView* UpdateVersionDialog::CreateTipView(wxWindow* parent)
 
 void UpdateVersionDialog::OnLoaded(wxWebViewEvent& event)
 {
+    // GitHub prefixes user-written ids with "user-content-" but keeps the hrefs as-is,
+    // so in-page anchors in release notes (e.g. "English | 中文") never resolve.
+    WebView::RunScript(m_vebview_release_note,
+        "if(!window.__bblAnchorFix){window.__bblAnchorFix=1;document.addEventListener('click',function(e){"
+        "var a=e.target.closest&&e.target.closest('a[href^=\"#\"]');if(!a)return;"
+        "var id=decodeURIComponent(a.getAttribute('href').slice(1));"
+        "if(!id||document.getElementById(id))return;"
+        "var t=document.getElementById('user-content-'+id);"
+        "if(t){e.preventDefault();t.scrollIntoView();}},true);}");
     event.Skip();
 }
 
@@ -433,27 +651,6 @@ void UpdateVersionDialog::OnTitleChanged(wxWebViewEvent& event)
 void UpdateVersionDialog::OnError(wxWebViewEvent& event)
 {
     event.Skip();
-}
-
-static std::string url_encode(const std::string& value) {
-	std::ostringstream escaped;
-	escaped.fill('0');
-	escaped << std::hex;
-	for (std::string::const_iterator i = value.begin(), n = value.end(); i != n; ++i) {
-		std::string::value_type c = (*i);
-
-		// Keep alphanumeric and other accepted characters intact
-		if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
-			escaped << c;
-			continue;
-		}
-
-		// Any other characters are percent-encoded
-		escaped << std::uppercase;
-		escaped << '%' << std::setw(2) << int((unsigned char)c);
-		escaped << std::nouppercase;
-	}
-	return escaped.str();
 }
 
 bool UpdateVersionDialog::ShowReleaseNote(std::string content)
@@ -1195,7 +1392,7 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
     m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(15));
 
 
-    auto bottom_sizer = new wxBoxSizer(wxVERTICAL);
+    auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
@@ -1208,12 +1405,10 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
         auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
         m_show_again_checkbox = new wxCheckBox(this, wxID_ANY, _L("Don't show again"), wxDefaultPosition, wxDefaultSize, 0);
         m_show_again_checkbox->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, [this](wxCommandEvent& e) {
-            not_show_again = !not_show_again;
-            m_show_again_checkbox->SetValue(not_show_again);
+            not_show_again = e.IsChecked();
         });
-        checkbox_sizer->Add(FromDIP(15), 0, 0, 0);
-        checkbox_sizer->Add(m_show_again_checkbox, 0, wxALL, FromDIP(5));
-        bottom_sizer->Add(checkbox_sizer, 0, wxBOTTOM | wxEXPAND, 0);
+        checkbox_sizer->Add(m_show_again_checkbox, 0, wxALIGN_CENTER_VERTICAL);
+        bottom_sizer->Add(checkbox_sizer, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(15));
     }
     m_button_ok = new Button(this, _L("Confirm"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
@@ -1268,12 +1463,12 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
 
     m_button_update_nozzle->Hide();
 
-    sizer_button->AddStretchSpacer();
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_update_nozzle, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
     sizer_button->Add(FromDIP(5),0, 0, 0);
-    bottom_sizer->Add(sizer_button, 0, wxEXPAND | wxRIGHT | wxLEFT, 0);
+    bottom_sizer->AddStretchSpacer();
+    bottom_sizer->Add(sizer_button, 0, wxALIGN_CENTER_VERTICAL);
 
 
     m_sizer_right->Add(bottom_sizer, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(20));
@@ -1329,38 +1524,45 @@ void ConfirmBeforeSendDialog::update_text(std::vector<ConfirmBeforeSendInfo> tex
 
 
     auto height = 0;
-    for (auto text : texts) {
+    for (const auto& text : texts) {
+        wxWindow* text_item = nullptr;
+        int item_height = 0;
+        if (text.wiki_url.empty()) {
+            auto label_item = new Label(m_vebview_release_note, text.text, LB_AUTO_WRAP);
+            if (enable_warning_clr && text.level == ConfirmBeforeSendInfo::InfoLevel::Warning)
+                label_item->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
 
-        Label* label_item = nullptr;
-        if (text.wiki_url.empty())
-        {
-            label_item = new Label(m_vebview_release_note, text.text, LB_AUTO_WRAP);
+            label_item->SetMaxSize(wxSize(FromDIP(494), -1));
+            label_item->SetMinSize(wxSize(FromDIP(494), -1));
+            label_item->Wrap(FromDIP(494));
+            label_item->Layout();
+            text_item = label_item;
+            item_height = label_item->GetSize().y;
+        } else {
+            const wxColour text_colour =
+                enable_warning_clr && text.level == ConfirmBeforeSendInfo::InfoLevel::Warning
+                    ? wxColour(0xFF, 0x6F, 0x00)
+                    : wxColour(0x26, 0x2E, 0x30);
+            auto wiki_label = new DialogWikiWarningLabel(
+                m_vebview_release_note,
+                text.text + _L(" Please "),
+                _L("refer to the Wiki User Guide"),
+                _L(" before continuing."),
+                text.wiki_url,
+                text_colour,
+                AMS_CONTROL_BRAND_COLOUR,
+                FromDIP(494));
+            text_item = wiki_label;
+            item_height = wiki_label->GetMinSize().y;
         }
-        else
-        {
-            label_item = new Label(m_vebview_release_note, text.text + " " + _L("Please refer to Wiki before use->"), LB_AUTO_WRAP);
-            label_item->Bind(wxEVT_LEFT_DOWN, [this, text](wxMouseEvent& e) { wxLaunchDefaultBrowser(text.wiki_url);});
-            label_item->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-            label_item->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-        }
 
-        if (enable_warning_clr && text.level == ConfirmBeforeSendInfo::InfoLevel::Warning)
-        {
-            label_item->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
-        }
-
-        label_item->SetMaxSize(wxSize(FromDIP(494), -1));
-        label_item->SetMinSize(wxSize(FromDIP(494), -1));
-        label_item->Wrap(FromDIP(494));
-        label_item->Layout();
-
-        sizer_text_release_note->Add(label_item, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
-        height += label_item->GetSize().y;
+        sizer_text_release_note->Add(text_item, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
+        height += item_height;
     }
 
     m_vebview_release_note->Layout();
     if (height < FromDIP(500))
-        m_vebview_release_note->SetMinSize(wxSize(-1, height + FromDIP(25)));
+        m_vebview_release_note->SetMinSize(wxSize(-1, height + FromDIP(35)));
     else {
         m_vebview_release_note->SetMinSize(wxSize(-1, FromDIP(500)));
     }
@@ -1384,7 +1586,7 @@ void ConfirmBeforeSendDialog::on_show()
 void ConfirmBeforeSendDialog::on_hide()
 {
     if (m_show_again_checkbox != nullptr && not_show_again && show_again_config_text != "")
-        wxGetApp().app_config->set(show_again_config_text, "1");
+        wxGetApp().app_config->set(show_again_config_text, show_again_config_value);
     EndModal(wxID_OK);
 }
 
@@ -1433,6 +1635,24 @@ void ConfirmBeforeSendDialog::show_update_nozzle_button(bool show)
 void ConfirmBeforeSendDialog::hide_button_ok()
 {
     m_button_ok->Hide();
+}
+
+void ConfirmBeforeSendDialog::edit_ok_button_txt(const wxString& txt, bool switch_white)
+{
+    m_button_ok->SetLabel(txt);
+
+    if (switch_white)
+    {
+        StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+                                std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                                std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+        StateColor btn_text_white(std::pair<wxColour, int>(*wxLIGHT_GREY, StateColor::Disabled),
+                                  std::pair<wxColour, int>(*wxBLACK, StateColor::Normal));
+        m_button_ok->SetBackgroundColor(btn_bg_white);
+        m_button_ok->SetBorderColor(wxColour(38, 46, 48));
+        m_button_ok->SetTextColor(btn_text_white);
+    }
+    rescale();
 }
 
 void ConfirmBeforeSendDialog::edit_cancel_button_txt(const wxString& txt, bool switch_green)
@@ -2513,7 +2733,7 @@ void ExpandCenterDialog::report_consent_unstall()
     std::string post_body_str = consent.dump();
 
     NetworkAgent* agent = GUI::wxGetApp().getAgent();
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "  client_id:" << wxGetApp().app_config->get("slicer_uuid") << "\nreport_consent:" << post_body_str;
+    BOOST_LOG_TRIVIAL(info) << "client_id:" << wxGetApp().app_config->get("slicer_uuid") << "\nreport_consent:" << post_body_str;
 
     if (agent && agent->is_user_login())
         agent->report_consent(post_body_str);

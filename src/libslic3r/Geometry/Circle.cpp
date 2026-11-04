@@ -4,7 +4,7 @@
 
 #include <numeric>
 #include <random>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace Geometry {
 

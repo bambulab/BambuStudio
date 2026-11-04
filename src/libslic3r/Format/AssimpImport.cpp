@@ -11,7 +11,6 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
 
 #include <array>
@@ -20,6 +19,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace {
@@ -46,6 +46,19 @@ void set_error_message(std::string* error_message, const std::string& message)
 bool is_fbx_path(const std::string& path)
 {
     return boost::algorithm::iends_with(path, ".fbx");
+}
+
+bool is_gltf_path(const std::string& path)
+{
+    return boost::algorithm::iends_with(path, ".glb") ||
+           boost::algorithm::iends_with(path, ".gltf");
+}
+
+// Assimp's glTF and FBX importers both emit a right-handed Y-up scene.
+// Textured OBJ is converted in Model::read_from_file. Other formats stay as stored.
+bool needs_y_up_to_z_up(const std::string& path)
+{
+    return is_gltf_path(path) || is_fbx_path(path);
 }
 
 bool should_flip_uvs(const std::string& path)
@@ -176,7 +189,8 @@ std::array<float, 4> get_material_color(const aiMaterial& material)
     return {1.f, 1.f, 1.f, 1.f};
 }
 
-bool collect_mesh(const aiMesh& mesh, size_t& vertex_offset, TexturedMesh& out, std::string& error)
+bool collect_mesh(const aiMesh& mesh, size_t& vertex_offset, TexturedMesh& out, std::string& error,
+                  bool convert_y_up_to_z_up)
 {
     if (mesh.mNumVertices > static_cast<size_t>(std::numeric_limits<int>::max()) - vertex_offset) {
         error = "Assimp mesh has too many vertices for TexturedMesh indices";
@@ -185,7 +199,12 @@ bool collect_mesh(const aiMesh& mesh, size_t& vertex_offset, TexturedMesh& out, 
 
     for (unsigned int i = 0; i < mesh.mNumVertices; ++i) {
         const aiVector3D& v = mesh.mVertices[i];
-        out.vertices.push_back({v.x, v.y, v.z});
+        if (convert_y_up_to_z_up) {
+            // (x, y, z) -> (x, -z, y): +Y up goes to +Z up, and +Z forward goes to
+            // scene front (-Y). (x, z, -y) would face the model backward.
+            out.vertices.push_back({v.x, -v.z, v.y});
+        } else
+            out.vertices.push_back({v.x, v.y, v.z});
 
         if (mesh.HasTextureCoords(0)) {
             const aiVector3D& uv = mesh.mTextureCoords[0][i];
@@ -293,12 +312,13 @@ bool load_assimp_textured_model(const std::string& path, TexturedMesh& out, std:
     }
 
     size_t vertex_offset = 0;
+    const bool convert_y_up_to_z_up = needs_y_up_to_z_up(path);
     for (unsigned int mesh_index = 0; mesh_index < scene->mNumMeshes; ++mesh_index) {
         const aiMesh* mesh = scene->mMeshes[mesh_index];
         if (!mesh || !mesh->HasPositions())
             continue;
         std::string mesh_error;
-        if (!collect_mesh(*mesh, vertex_offset, out, mesh_error)) {
+        if (!collect_mesh(*mesh, vertex_offset, out, mesh_error, convert_y_up_to_z_up)) {
             const std::string message = mesh_error + ": " + path;
             BOOST_LOG_TRIVIAL(error) << "AssimpImport: " << message;
             set_error_message(error_message, message);

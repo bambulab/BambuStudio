@@ -6,6 +6,7 @@
 #include "slic3r/GUI/GUI_Utils.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/FilamentGroupPopup.hpp"
+#include "slic3r/GUI/FilamentMapPanel.hpp"
 #include "slic3r/GUI/GLToolbar.hpp"
 #include "slic3r/GUI/DeviceCore/DevUtilBackend.h"
 #include "../DeviceCore/DevConfigUtil.h"
@@ -18,6 +19,7 @@
 #include <imgui/imgui_internal.h>
 #include <GL/glew.h>
 #include <chrono>
+#include "libslic3r/Log.hpp"
 namespace
 {
     std::string get_view_type_string(Slic3r::GUI::gcode::EViewType view_type)
@@ -388,13 +390,13 @@ namespace Slic3r
 
             void BaseRenderer::load_shells(const Print& print, bool initialized, bool force_previewing)
             {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": initialized=%1%, force_previewing=%2%") % initialized % force_previewing;
+                BOOST_LOG_TRIVIAL(info) << boost::format("initialized=%1%, force_previewing=%2%") % initialized % force_previewing;
                 if ((print.id().id == m_shells.print_id) && (print.get_modified_count() == m_shells.print_modify_count)) {
                     //BBS: update force previewing logic
                     if (force_previewing)
                         m_shells.previewing = force_previewing;
                     //already loaded
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": already loaded, print=%1% print_id=%2%, print_modify_count=%3%, force_previewing %4%") % (&print) % m_shells.print_id % m_shells.print_modify_count % force_previewing;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("already loaded, print=%1% print_id=%2%, print_modify_count=%3%, force_previewing %4%") % (&print) % m_shells.print_id % m_shells.print_modify_count % force_previewing;
                     return;
                 }
                 //reset shell firstly
@@ -485,7 +487,7 @@ namespace Slic3r
                 m_shells.print_id = print.id().id;
                 m_shells.print_modify_count = print.get_modified_count();
                 m_shells.previewing = true;
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": shell loaded, id change to %1%, modify_count %2%, object count %3%, glvolume count %4%")
+                BOOST_LOG_TRIVIAL(debug) << boost::format("shell loaded, id change to %1%, modify_count %2%, object count %3%, glvolume count %4%")
                     % m_shells.print_id % m_shells.print_modify_count % object_count % m_shells.volumes.volumes.size();
             }
 
@@ -561,11 +563,11 @@ namespace Slic3r
                 // avoid processing if called with the same gcode_result
                 if (m_last_result_id == gcode_result.id) {
                     //BBS: add logs
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": the same id %1%, return directly, result %2% ") % m_last_result_id % (&gcode_result);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("the same id %1%, return directly, result %2% ") % m_last_result_id % (&gcode_result);
                     return;
                 }
                 //BBS: add logs
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": gcode result %1%, new id %2%, gcode file %3% ") % (&gcode_result) % m_last_result_id % PathSanitizer::sanitize(gcode_result.filename);
+                BOOST_LOG_TRIVIAL(info) << boost::format("gcode result %1%, new id %2%, gcode file %3% ") % (&gcode_result) % m_last_result_id % PathSanitizer::sanitize(gcode_result.filename);
                 // release gpu memory, if used
                 reset();
                 //BBS: add mutex for protection of gcode result
@@ -574,7 +576,7 @@ namespace Slic3r
                 //BBS: add safe check
                 if (gcode_result.moves.size() == 0) {
                     //result cleaned before slicing ,should return here
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": gcode result reset before, return directly!");
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("gcode result reset before, return directly!");
                     gcode_result.unlock();
                     wxGetApp().plater()->schedule_background_process();
                     return;
@@ -592,6 +594,10 @@ namespace Slic3r
                 if (m_only_gcode_in_preview)
                     m_custom_gcode_per_print_z = gcode_result.custom_gcode_per_print_z;
                 m_max_print_height = gcode_result.printable_height;
+                if (m_max_print_height <= 0.0f) {
+                    // Fallback to build volume printable height if not provided by gcode result (e.g. unknown third-party G-code).
+                    m_max_print_height = static_cast<float>(build_volume.printable_height());
+                }
                 bool rt = load_toolpaths(gcode_result, build_volume, exclude_bounding_box);
                 //BBS: add mutex for protection of gcode result
                 if (!rt) {
@@ -605,22 +611,50 @@ namespace Slic3r
                 std::vector<std::string> color_opt = print.config().option<ConfigOptionStrings>("filament_colour")->values;
                 std::vector<std::string> type_opt = print.config().option<ConfigOptionStrings>("filament_type")->values;
                 std::vector<unsigned char> support_filament_opt = print.config().option<ConfigOptionBools>("filament_is_support")->values;
+                // N1X single-extruder multi-nozzle: the grouping legend splits filaments by AMS vs fixed
+                // nozzle (group_id == ams_nozzle_idx) instead of by extruder. The per-filament nozzle is
+                // taken from the slice nozzle-group result (same source used to write group_id to 3MF).
+                {
+                    auto emnc = print.config().option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+                    bool has_multi_nozzle = emnc && std::any_of(emnc->values.begin(), emnc->values.end(), [](int v) { return v > 1; });
+                    auto hh = print.config().option<ConfigOptionBool>("handle_hotend_as_extruder");
+                    m_single_ext_multi_nozzle = hh && hh->value && m_nozzle_nums == 1 && has_multi_nozzle;
+                    // 使用切片构建各耗材 group_id 时所用的同一 AMS 喷嘴索引（对切片后的 print.config() 调用 get_effective_ams_nozzle_idx）。带口径门控、基于实时
+                    // full_config 的变体可能与切片分组不一致
+                    m_ams_nozzle_idx = m_single_ext_multi_nozzle
+                        ? get_effective_ams_nozzle_idx(print.config())
+                        : -1;
+                    m_total_nozzle_count = (emnc && !emnc->values.empty()) ? emnc->values.front() : 1;
+                }
+                auto nozzle_group_result = print.get_nozzle_group_result();
                 for (auto extruder_id : m_extruder_ids) {
                     // 防御：某些异常工程文件中 project_settings.config 的
                     // filament_* 数组长度不一致 — filament_colour/type 可能为 N，但 filament_is_support
                     // 等可能缺失或更短，按 extruder_id 索引会越界。任一数组覆盖不到当前 extruder_id 时跳过。
-                    if (extruder_id >= filament_maps.size()
-                        || extruder_id >= type_opt.size()
-                        || extruder_id >= color_opt.size()
-                        || extruder_id >= support_filament_opt.size()) {
-                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament_* config arrays too short for extruder_id=" << int(extruder_id)
-                            << ", sizes=[map " << filament_maps.size()
-                            << ", type " << type_opt.size()
-                            << ", color " << color_opt.size()
-                            << ", is_support " << support_filament_opt.size() << "], skip";
+                    // filament_map is only required by the extruder-based (non-N1X) split.
+                    bool arrays_ok = extruder_id < type_opt.size()
+                        && extruder_id < color_opt.size()
+                        && extruder_id < support_filament_opt.size()
+                        && (m_single_ext_multi_nozzle || extruder_id < filament_maps.size());
+                    if (!arrays_ok) {
+                        BOOST_LOG_TRIVIAL(warning) << "filament_* config arrays too short for " << KV(log_key::extruder_id, int(extruder_id))
+                                                   << "sizes=[map " << filament_maps.size() << ", type " << type_opt.size() << ", color "
+                                                   << color_opt.size() << ", is_support " << support_filament_opt.size() << "], skip";
                         continue;
                     }
-                    if (filament_maps[extruder_id] == 1) {
+                    bool to_left;
+                    if (m_single_ext_multi_nozzle) {
+                        // AMS group (nozzle group_id == ams_nozzle_idx) goes left, fixed nozzles right.
+                        int gid = -1;
+                        if (nozzle_group_result) {
+                            auto nz = nozzle_group_result->get_first_nozzle_for_filament(static_cast<int>(extruder_id));
+                            if (nz) gid = nz->group_id;
+                        }
+                        to_left = (m_ams_nozzle_idx >= 0 && gid == m_ams_nozzle_idx);
+                    } else {
+                        to_left = (filament_maps[extruder_id] == 1);
+                    }
+                    if (to_left) {
                         m_left_extruder_filament.push_back({ type_opt[extruder_id], color_opt[extruder_id], extruder_id, (bool)(support_filament_opt[extruder_id]) });
                     }
                     else {
@@ -1199,7 +1233,7 @@ namespace Slic3r
             void BaseRenderer::reset()
             {
                 //BBS: should also reset the result id
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": current result id %1% ") % m_last_result_id;
+                BOOST_LOG_TRIVIAL(info) << boost::format("current result id %1% ") % m_last_result_id;
                 m_last_result_id = -1;
                 m_conflict_result.reset();
                 m_gcode_check_result.reset();
@@ -1221,6 +1255,9 @@ namespace Slic3r
                 m_left_extruder_filament.clear();
                 m_right_extruder_filament.clear();
                 m_nozzle_nums = 0;
+                m_single_ext_multi_nozzle = false;
+                m_ams_nozzle_idx = -1;
+                m_total_nozzle_count = 1;
                 m_extruder_ids.clear();
                 m_filament_diameters.clear();
                 m_filament_densities.clear();
@@ -1247,14 +1284,14 @@ namespace Slic3r
                 //BBS: add safe check
                 if (gcode_result.moves.size() == 0) {
                     //result cleaned before slicing ,should return here
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": gcode result reset before, return directly!");
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("gcode result reset before, return directly!");
                     gcode_result.unlock();
                     return;
                 }
                 const auto t_move_count = gcode_result.moves.size();
                 //BBS: add mutex for protection of gcode result
                 if (t_move_count == 0) {
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": gcode result m_moves_count is 0, return directly!");
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("gcode result m_moves_count is 0, return directly!");
                     gcode_result.unlock();
                     return;
                 }
@@ -1385,7 +1422,7 @@ namespace Slic3r
                 }
             }
 
-            void BaseRenderer::render_shells()
+            void BaseRenderer::render_shells(bool skip_wipe_tower)
             {
                 //BBS: add shell previewing logic
                 if ((!m_shells.previewing && !m_shells.visible) || m_shells.volumes.empty())
@@ -1406,7 +1443,8 @@ namespace Slic3r
                 //BBS: reopen cul faces
                 auto& camera = wxGetApp().plater()->get_camera();
                 std::vector<std::array<float, 4>> colors = wxGetApp().plater()->get_extruders_colors();
-                m_shells.volumes.render(GUI::ERenderPipelineStage::Normal, GLVolumeCollection::ERenderType::Transparent, false, camera, colors, wxGetApp().plater()->model());
+                m_shells.volumes.render(GUI::ERenderPipelineStage::Normal, GLVolumeCollection::ERenderType::Transparent, false, camera, colors, wxGetApp().plater()->model(),
+                    [skip_wipe_tower](const GLVolume& volume) { return !skip_wipe_tower || !volume.is_wipe_tower; });
                 wxGetApp().unbind_shader();
                 glsafe(::glDepthMask(GL_TRUE));
             }
@@ -1480,8 +1518,14 @@ namespace Slic3r
                     bool visible = true,
                     std::function<void()> callback = nullptr)
                     {
-                        // render icon
-                        ImVec2 pos = ImVec2(ImGui::GetCursorScreenPos().x + window_padding * 3, ImGui::GetCursorScreenPos().y);
+                        // Tallest cell of the row (e.g. "x m\ny g" spans two lines); single-line cells are centered against it.
+                        float row_max_h = 0.f;
+                        for (const auto& col : columns_offsets)
+                            row_max_h = std::max(row_max_h, ImGui::CalcTextSize(col.first.c_str()).y);
+                        const float cell0_h = ImGui::CalcTextSize(columns_offsets[0].first.c_str()).y;
+                        const float offset_y = std::max(0.0f, (row_max_h - cell0_h) * 0.5f);
+                        // render icon, shifted with the first cell so it stays level with the filament index
+                        ImVec2 pos = ImVec2(ImGui::GetCursorScreenPos().x + window_padding * 3, ImGui::GetCursorScreenPos().y + offset_y);
                         switch (type) {
                         default:
                         case EItemType::Rect: {
@@ -1541,11 +1585,19 @@ namespace Slic3r
                                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(172 / 255.0f, 172 / 255.0f, 172 / 255.0f, 1.00f));
                             float dummy_size = type == EItemType::None ? window_padding * 3 : ImGui::GetStyle().ItemSpacing.x + icon_size;
                             ImGui::SameLine(dummy_size);
+                            const float row_top_y = ImGui::GetCursorPosY();
+                            ImGui::SetCursorPosY(row_top_y + offset_y);
                             imgui.text(columns_offsets[0].first);
                             for (auto i = 1; i < columns_offsets.size(); i++) {
                                 ImGui::SameLine(columns_offsets[i].second);
+                                const float cell_h = ImGui::CalcTextSize(columns_offsets[i].first.c_str()).y;
+                                ImGui::SetCursorPosY(row_top_y + std::max(0.0f, (row_max_h - cell_h) * 0.5f));
                                 imgui.text(columns_offsets[i].first);
                             }
+                            // 窗口 AlwaysAutoResize 且 WindowPadding 为 0，末列文本后需显式占位，
+                            // 否则右边界紧贴最后一列（如喷嘴列）；边距与左侧图标缩进（window_padding*3）对齐
+                            ImGui::SameLine(0.0f, 0.0f);
+                            ImGui::Dummy({ window_padding * 3.0f, 0.0f });
                             if (callback && !checkbox && !visible)
                                 ImGui::PopStyleColor(1);
                         }
@@ -1711,6 +1763,29 @@ namespace Slic3r
                     return result;
 
                     };
+                // 单挤出机多喷嘴：把耗材所分到的喷嘴描述为 "<口径> <流量缩写>"（如"0.4 Std"）。缩写：标准 Std、 高流量 HF、TPU TPU285。
+                auto get_n1x_nozzle_label = [this](const std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> &group_result, int filament_id) -> std::string {
+                    if (!group_result)
+                        return "";
+                    auto nz = group_result->get_first_nozzle_for_filament(filament_id);
+                    if (!nz)
+                        return "";
+                    auto vol_abbr = [](NozzleVolumeType vt) -> std::string {
+                        switch (vt) {
+                        case nvtHighFlow:
+                        case nvtE3DHighFlow:  return "HF";
+                        case nvtTPUHighFlow:
+                        case nvtTPU285:       return "TPU285";
+                        case nvtStandard:
+                        default:              return "Std";
+                        }
+                    };
+                    std::string label = nz->diameter + " " + vol_abbr(nz->volume_type);
+                    // 喷嘴编号只是内部喷嘴数组下标，机身无对应标识，用户无法据此操作，暂时屏蔽
+                    // if (m_ams_nozzle_idx >= 0 && nz->group_id == m_ams_nozzle_idx)
+                    //     label += " (" + (boost::format(_u8L("No.%1%")) % (nz->group_id + 1)).str() + ")";
+                    return label;
+                    };
                 //BBS Slicing Result title
                 ImGui::Dummy({ window_padding, window_padding });
                 ImGui::Dummy({ window_padding, window_padding });
@@ -1818,6 +1893,9 @@ namespace Slic3r
                 ImGui::Dummy({ window_padding, window_padding });
                 // data used to properly align items in columns when showing time
                 std::vector<float> offsets;
+                // 耗材丝（ColorPrint）图例增加一列 "Nozzle"，内容来自分组结果；
+                // 多挤出机机型保持原布局。
+                const bool show_nozzle_col = m_single_ext_multi_nozzle && group_result;
                 std::vector<std::string> labels;
                 std::vector<std::string> times;
                 std::string travel_time;
@@ -2004,6 +2082,12 @@ namespace Slic3r
                     }
                     if (is_show_left_right_result) {
                         title_columns.push_back({ _u8L("Nozzles"), {""} });
+                    } else if (show_nozzle_col) {
+                        //来自分组结果的每根耗材喷嘴分配。提供样本使该列有足够宽度。
+                        std::vector<std::string> nozzle_samples;
+                        for (unsigned char extruder_id : m_extruder_ids)
+                            nozzle_samples.push_back(get_n1x_nozzle_label(group_result, static_cast<int>(extruder_id)));
+                        title_columns.push_back({ _u8L("Nozzle"), nozzle_samples });
                     }
                     auto offsets_ = calculate_offsets(title_columns, icon_size);
                     std::vector<std::pair<std::string, float>> title_offsets;
@@ -2118,7 +2202,10 @@ namespace Slic3r
                     size_t i = 0;
                     for (unsigned char extruder_id : m_extruder_ids) {
                         ::sprintf(buf, imperial_units ? "%.2f in    %.2f g" : "%.2f m    %.2f g", model_used_filaments_m[i], model_used_filaments_g[i]);
-                        append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_id], { { _u8L("Extruder") + " " + std::to_string(extruder_id + 1), offsets[0]}, {buf, offsets[1]} });
+                        std::vector<std::pair<std::string, float>> columns_offsets;
+                        columns_offsets.push_back({ _u8L("Extruder") + " " + std::to_string(extruder_id + 1), offsets[0] });
+                        columns_offsets.push_back({ buf, offsets[1] });
+                        append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_id], columns_offsets);
                         i++;
                     }
                     break;
@@ -2201,6 +2288,8 @@ namespace Slic3r
                                 std::string nozzle_str   = get_nozzle_label(group_result, static_cast<int>(extruder_idx));
                                 ::sprintf(buf, "%s", nozzle_str.c_str());
                                 columns_offsets.push_back({buf, color_print_offsets[_u8L("Nozzles")]});
+                            } else if (show_nozzle_col) {
+                                columns_offsets.push_back({ get_n1x_nozzle_label(group_result, static_cast<int>(extruder_idx)), color_print_offsets[_u8L("Nozzle")] });
                             }
                             append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], columns_offsets, false, filament_visible, [this, extruder_idx]() {
                                 m_tools.m_tool_visibles[extruder_idx] = !m_tools.m_tool_visibles[extruder_idx];
@@ -2734,7 +2823,9 @@ namespace Slic3r
                         append_option_item(item, offsets);
                 }
                 ImGui::Dummy({ window_padding, window_padding });
-                if (m_nozzle_nums > 1)
+                // 单挤出机多喷嘴只在外接 AMS 与固定喷嘴间划分耗材，分组图例仅在接入
+                // AMS（m_ams_nozzle_idx >= 0）时有意义；无外接 AMS 时无可分组，隐藏。
+                if (m_nozzle_nums > 1 || (m_single_ext_multi_nozzle && m_ams_nozzle_idx >= 0))
                     render_legend_color_arr_recommen(window_padding, is_show_left_right_result);
                 legend_height = ImGui::GetCurrentWindow()->Size.y;
                 imgui.end();
@@ -2914,8 +3005,12 @@ namespace Slic3r
                         std::string br_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
                         ImGui::BeginChild("#LeftAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
                         {
-                            std::string br_dep_nz = DevPrinterConfigUtil::get_toolhead_display_name(br_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase);
-                            imgui.text(_u8L(br_dep_nz.c_str()));
+                            std::string br_dep_nz;
+                            if (m_single_ext_multi_nozzle)
+                                br_dep_nz = m_ams_nozzle_idx >= 0 ? std::string(get_ams_nozzle_label(m_ams_nozzle_idx).ToUTF8().data()) : _u8L("AMS nozzle");
+                            else
+                                br_dep_nz = _u8L(DevPrinterConfigUtil::get_toolhead_display_name(br_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase).c_str());
+                            imgui.text(br_dep_nz);
                             ImGui::Dummy({window_padding, window_padding});
                             int index = 1;
                             for (const auto &extruder_filament : m_left_extruder_filament) {
@@ -2931,8 +3026,12 @@ namespace Slic3r
                         child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 20));
                         ImGui::BeginChild("#RightAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
                         {
-                            std::string br_main_nz = DevPrinterConfigUtil::get_toolhead_display_name(br_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase);
-                            imgui.text(_u8L(br_main_nz.c_str()));
+                            std::string br_main_nz;
+                            if (m_single_ext_multi_nozzle)
+                                br_main_nz = std::string(get_fixed_nozzle_label(m_total_nozzle_count, m_ams_nozzle_idx).ToUTF8().data());
+                            else
+                                br_main_nz = _u8L(DevPrinterConfigUtil::get_toolhead_display_name(br_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase).c_str());
+                            imgui.text(br_main_nz);
                             ImGui::Dummy({window_padding, window_padding});
                             int index = 1;
                             for (const auto &extruder_filament : m_right_extruder_filament) {
@@ -3309,7 +3408,7 @@ namespace Slic3r
                 try
                 {
                     m_file.open(boost::filesystem::path(m_filename));
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": mapping file " << PathSanitizer::sanitize(m_filename);
+                    BOOST_LOG_TRIVIAL(info) << "mapping file " << PathSanitizer::sanitize(m_filename);
                 }
                 catch (...)
                 {
@@ -3620,7 +3719,7 @@ namespace Slic3r
                 //BBS: add log to trace the gcode file issue
                 if (m_file.is_open()) {
                     m_file.close();
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": finished mapping file " << PathSanitizer::sanitize(m_filename);
+                    BOOST_LOG_TRIVIAL(info) << "finished mapping file " << PathSanitizer::sanitize(m_filename);
                 }
             }
 

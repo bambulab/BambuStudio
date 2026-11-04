@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <vector>
-#include <boost/log/trivial.hpp>
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
@@ -13,6 +12,8 @@
 #include "slic3r/GUI/DeviceCore/DevConfigUtil.h"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
+#include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/EncodedFilament.hpp"
 #include "slic3r/GUI/fila_manager/wgtFilaManagerColorType.h"
@@ -28,17 +29,21 @@
 #include <wx/string.h>
 #include <iomanip>
 #include <sstream>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
 namespace {
 
+std::string wx_to_utf8(const wxString& value)
+{
+    return std::string(value.ToUTF8().data());
+}
+
 bool is_spool_cloud_write_action(const std::string& action)
 {
     return action == "add"
         || action == "batch_add"
-        // STUDIO-18344: AMS multi-select batch path. Same cloud-sync
-        // gating as the single add — must be logged in + server reachable.
         || action == "batch_create"
         || action == "update"
         || action == "remove"
@@ -64,6 +69,62 @@ std::string normalize_ams_rfid_for_web(const std::string& tray_uuid, const std::
     return tag_uid.size() == 16 && tag_uid.substr(12, 2) == "01" ? tray_uuid : std::string();
 }
 
+nlohmann::json build_tray_json(const DevAmsTray* tray,
+                               const std::string& slot_id,
+                               const std::string& label,
+                               bool exists)
+{
+    nlohmann::json t;
+    t["slot_id"]    = slot_id;
+    t["tray_label"] = label;
+    t["is_exists"]  = exists;
+    if (tray && exists) {
+        t["is_unknown"]   = !tray->is_tray_info_ready();
+        t["tag_uid"]      = normalize_ams_rfid_for_web(tray->uuid, tray->tag_uid);
+        t["tray_id_name"] = tray->tray_id_name;
+        t["setting_id"]   = tray->setting_id;
+        t["fila_type"]    = tray->m_fila_type;
+        t["sub_brands"]   = tray->sub_brands;
+        t["color"]        = normalize_ams_hex_for_web(tray->color);
+        t["weight"]       = tray->weight;
+        t["remain"]       = tray->remain;
+        t["remain_g"]     = tray->remain_g;
+        if (auto rw = tray->get_filament_remain_weight())
+            t["remain_weight"] = *rw;
+        else
+            t["remain_weight"] = nullptr;
+        t["diameter"]     = tray->diameter;
+        t["is_bbl"]       = tray->is_bbl;
+
+        nlohmann::json colors = nlohmann::json::array();
+        std::vector<std::string> src_colors = tray->cols;
+        if (src_colors.empty()) src_colors.push_back(tray->color);
+        for (const auto& c : src_colors) {
+            std::string hex = normalize_ams_hex_for_web(c);
+            if (!hex.empty()) colors.push_back(hex);
+        }
+        t["colors"]     = colors;
+        const int color_type = from_ams_color_type(tray->ctype, colors.size());
+        t["color_type"] = color_type;
+
+        if (!tray->setting_id.empty() && !colors.empty()) {
+            if (auto* clr_query = wxGetApp().get_filament_color_code_query()) {
+                std::vector<wxString> hex_colors;
+                for (const auto& c : colors) {
+                    if (c.is_string())
+                        hex_colors.emplace_back(wxString::FromUTF8(c.get<std::string>()));
+                }
+                if (auto* color_info = clr_query->GetFilaInfo(
+                        wxString::FromUTF8(tray->setting_id), hex_colors, color_type)) {
+                    t["color_name"]      = color_info->GetFilaColorName().utf8_string();
+                    t["fila_color_code"] = color_info->GetFilaColorCode().utf8_string();
+                }
+            }
+        }
+    }
+    return t;
+}
+
 } // namespace
 
 FilamentManagerVM::FilamentManagerVM()
@@ -87,19 +148,12 @@ FilamentManagerVM::FilamentManagerVM()
                                         const std::string& msg) {
             publish_push_failed(id, op, code, msg);
         });
-        // Cloud is the source of truth: whenever a local push succeeds we
-        // immediately enqueue a pull so the next spool list the web sees is
-        // whatever the cloud just acknowledged. The dispatcher is single-slot
-        // so the pull runs right after this push op returns to idle.
         disp->set_on_push_done([this](const std::string& id,
                                       const std::string& op) {
             if (m_bridge) {
                 m_bridge->ReportMsg(MakeResp("spool", "list", 0, "", build_spool_list()));
             }
             publish_push_done(id, op);
-            // If create returned an id, the dispatcher has already inserted
-            // the accepted cloud row locally. The follow-up pull will see no
-            // size delta, so carry the create count into publish_pull_done.
             if (op == "create" && !id.empty()) {
                 m_pending_pull_added_hint += 1;
             }
@@ -108,9 +162,6 @@ FilamentManagerVM::FilamentManagerVM()
             }
         });
     }
-    // STUDIO-18155: AMS 自动同步 / 手动 push_all_now 完成后 cloud_sync 会回调
-    // 该 observer，由 VM 转发到 Web 前端 `submod=sync, action=auto_push_summary`。
-    // 全 skipped 时 cloud_sync 自己已经决定不发，VM 这里收不到。
     if (auto* sync = wxGetApp().fila_manager_cloud_sync()) {
         sync->set_on_auto_push_summary([this](const nlohmann::json& summary) {
             if (m_bridge) {
@@ -125,8 +176,6 @@ FilamentManagerVM::~FilamentManagerVM()
 #if !BBL_RELEASE_TO_PUBLIC
     wxGetApp().set_fila_debug_sink(nullptr);
 #endif
-    // Detach observer callbacks — we don't want the dispatcher to hold a
-    // dangling this-pointer when VM dies before GUI_App shuts down.
     if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
         disp->set_on_state_changed(nullptr);
         disp->set_on_pull_done(nullptr);
@@ -143,7 +192,7 @@ nlohmann::json FilamentManagerVM::OnCommand(
     const std::string& action,
     const nlohmann::json& payload)
 {
-    BOOST_LOG_TRIVIAL(info) << "FilamentManagerVM::OnCommand submod=" << submod
+    BOOST_LOG_TRIVIAL(info) << "submod=" << submod
                             << " action=" << action;
 
     if (submod == "init")          return HandleInit(action, payload);
@@ -168,16 +217,11 @@ void FilamentManagerVM::ReportState(const std::string& submod, const std::string
         return;
     }
 
-    // Push login / cloud-sync state on login/logout (NotifyFilamentSessionState).
     if (submod == "sync") {
         publish_sync_state();
         return;
     }
 
-    // F4.7: broadcast the Studio-wide machine selection change so the
-    // "Read from AMS" dialog can stay in sync with whatever printer the
-    // rest of Studio is pointing at (triggered by
-    // DeviceManager::OnSelectedMachineChanged).
     if (submod == "machine" && action == "selected_changed") {
         nlohmann::json payload;
         payload["machines"] = build_machine_list();
@@ -191,10 +235,6 @@ void FilamentManagerVM::ReportState(const std::string& submod, const std::string
     }
 }
 
-/* ================================================================
- *  Resource handlers
- * ================================================================ */
-
 nlohmann::json FilamentManagerVM::HandleInit(const std::string& action, const nlohmann::json& /*payload*/)
 {
     bool dark = wxGetApp().app_config->get("dark_color_mode") == "1";
@@ -202,8 +242,6 @@ nlohmann::json FilamentManagerVM::HandleInit(const std::string& action, const nl
     data["theme"]   = dark ? "dark" : "light";
     data["spools"]  = build_spool_list();
     data["presets"] = build_preset_options();
-    // Include current login/sync state so the frontend can render the correct
-    // UI immediately without waiting for a separate fetchCloudSyncStatus() call.
     data["cloud_sync"] = build_sync_state();
 #if !BBL_RELEASE_TO_PUBLIC
     data["debug_enabled"] = true;
@@ -226,11 +264,6 @@ nlohmann::json FilamentManagerVM::HandleSpool(const std::string& action, const n
         return MakeResp("spool", action, -2, "cloud sync requires sign-in and network");
     }
     if (action == "add") {
-        // Breadcrumbs: when the UI reports "add didn't take effect / no HTTP
-        // fired", the debug log lets us see which of (parse / insert / save /
-        // enqueue) silently threw. Each step is wrapped in its own try/catch
-        // so a failure in save() still lets us return a response to the web
-        // layer instead of stalling the UI for 5s.
         publish_debug_log("data", "info", "HandleSpool add: enter",
                           "Begin processing spool/add on C++ side",
                           {{"has_store", store != nullptr}});
@@ -270,22 +303,6 @@ nlohmann::json FilamentManagerVM::HandleSpool(const std::string& action, const n
         return MakeResp("spool", action, 0, "", build_spool_list());
     }
     if (action == "batch_create") {
-        // STUDIO-18344: AMS multi-select batch path.
-        //
-        // Unlike `batch_add` (which expects a single `spool` + `quantity`),
-        // this action carries two distinct buckets:
-        //   - `creates[]`: each entry is a full FilamentSpool payload, runs
-        //                  through the dispatcher's create path.
-        //   - `updates[]`: each entry carries an existing `spool_id` plus
-        //                  the AMS-derived patch; routed through the update
-        //                  path so the existing cloud record is overwritten
-        //                  in place rather than duplicated.
-        //
-        // The front-end has already partitioned the buckets by reverse-
-        // looking up tray.tag_uid against the local spool list, so we do
-        // not redo that decision here. Per-entry failures (malformed JSON,
-        // missing spool_id for an update) are logged and skipped so a
-        // single bad row cannot abort the rest of the batch.
         const nlohmann::json creates = payload.contains("creates") && payload["creates"].is_array()
                                            ? payload["creates"]
                                            : nlohmann::json::array();
@@ -339,9 +356,6 @@ nlohmann::json FilamentManagerVM::HandleSpool(const std::string& action, const n
         return MakeResp("spool", action, 0, "", build_spool_list());
     }
     if (action == "update") {
-        // 前端应当只传 {spool_id, 本次变更的字段...}。做 selective merge，
-        // 不再整体覆盖 —— 这样 entry_method / tag_uid / created_at / bound_* /
-        // cloud_synced 等系统字段不会被清空（STUDIO-17964 Problem A）。
         const std::string updated_id = payload.value("spool_id", "");
         bool can_update = false;
         if (store && !updated_id.empty()) {
@@ -405,8 +419,6 @@ nlohmann::json FilamentManagerVM::HandleSpool(const std::string& action, const n
                                   {{"action", "mark_empty"}, {"spool_id", sid}});
             }
         }
-        // status / remain_percent 都是本地专有字段，不在云端 Update 白名单内：
-        // 传空 patch，dispatcher 会直接把本条标记为 cloud_synced，不发空 PUT。
         if (disp && !sid.empty()) disp->enqueue_push_update(sid, nlohmann::json::object());
         publish_sync_state();
         return MakeResp("spool", action, 0, "", build_spool_list());
@@ -426,7 +438,6 @@ nlohmann::json FilamentManagerVM::HandleSpool(const std::string& action, const n
                                   {{"action", "toggle_favorite"}, {"spool_id", sid}, {"favorite", u.favorite}});
             }
         }
-        // favorite 仅本地字段，传空 patch；dispatcher 会跳过 PUT。
         if (disp && !sid.empty()) disp->enqueue_push_update(sid, nlohmann::json::object());
         publish_sync_state();
         return MakeResp("spool", action, 0, "", build_spool_list());
@@ -446,7 +457,6 @@ nlohmann::json FilamentManagerVM::HandleSpool(const std::string& action, const n
                                   {{"action", "archive"}, {"spool_id", sid}});
             }
         }
-        // status 仅本地字段（"archived"），传空 patch；dispatcher 会跳过 PUT。
         if (disp && !sid.empty()) disp->enqueue_push_update(sid, nlohmann::json::object());
         publish_sync_state();
         return MakeResp("spool", action, 0, "", build_spool_list());
@@ -470,11 +480,6 @@ nlohmann::json FilamentManagerVM::HandleSync(const std::string& action, const nl
         disp->enqueue_pull();
         return MakeResp("sync", action, 0, "", build_sync_state());
     }
-
-    // STUDIO-18155：用户在 StatsView 顶部点"推送本地到云端"时走这条入口。
-    // 绕过 throttle，把所有"有 RFID + 有整卷净重"的 spool 全部入 push 队列。
-    // 立即返回 enqueued_count，前端 toast 用；真正的 push 完成 / 失败仍走
-    // dispatcher 现有 push_done / push_failed 链路。
     if (action == "push_all_now") {
         auto* cloud = wxGetApp().fila_manager_cloud_sync();
         if (!cloud) return MakeResp("sync", action, -1, "cloud disabled");
@@ -502,10 +507,6 @@ nlohmann::json FilamentManagerVM::HandleConfig(const std::string& action, const 
         }
 
         if (!sync) return MakeResp("config", action, -1, "cloud disabled");
-
-        // fetch_filament_config is async; we synthesize an immediate "pending"
-        // response, then report the actual config via a 'config/fetched'
-        // report when the HTTP call returns.
         sync->fetch_filament_config([this](const nlohmann::json& cfg) {
             m_cached_cloud_config = cfg;
             publish_debug_log("http", "info", "Cloud config fetched",
@@ -563,18 +564,6 @@ nlohmann::json FilamentManagerVM::HandleMachine(const std::string& action, const
         return MakeResp("machine", action, 0, "", build_machine_list());
     }
     if (action == "request_pushall") {
-        // User pressed the refresh button next to the Printer dropdown in the
-        // "Read from AMS" dialog. Mirror what SelectMachineDialog does when a
-        // printer is picked: ask the device to resend its full state package
-        // (get_version + pushall) so the dialog's AMS tray snapshot converges
-        // on the current tray RFID / weight / remain without having to wait
-        // for the next spontaneous push.
-        //
-        // This is read-only with respect to Studio's globally selected
-        // machine: we do NOT call set_selected_machine here. A separate
-        // ams/list { switch_selected:true } call is responsible for that and
-        // it is only sent when the user actually picks a different printer in
-        // the dropdown.
         std::string dev_id = payload.value("dev_id", "");
         auto* mgr = wxGetApp().getDeviceManager();
         if (!mgr) {
@@ -600,19 +589,6 @@ nlohmann::json FilamentManagerVM::HandleMachine(const std::string& action, const
 nlohmann::json FilamentManagerVM::HandleAms(const std::string& action, const nlohmann::json& payload)
 {
     if (action == "list") {
-        // ams/list has two callers:
-        //   1) User picks a different printer in the "Read from AMS"
-        //      dropdown -> frontend sends { dev_id, switch_selected:true }
-        //      and we actually call DeviceManager::set_selected_machine,
-        //      which changes Studio's globally selected machine.
-        //   2) The 1.5s poll while the dialog is open / the mirror of an
-        //      external machine switch / any pure tray-snapshot refresh ->
-        //      frontend omits switch_selected, and we only return the AMS
-        //      snapshot of whatever machine is currently selected without
-        //      touching global state.
-        // Before this split, every poll tick carrying dev_id fell through
-        // to set_selected_machine and flooded the log with "set current
-        // printer" requests.
         std::string dev_id         = payload.value("dev_id", "");
         bool        switch_selected = payload.value("switch_selected", false);
         if (switch_selected && !dev_id.empty()) {
@@ -628,10 +604,6 @@ nlohmann::json FilamentManagerVM::HandleAms(const std::string& action, const nlo
     }
     return MakeResp("ams", action, -1, "unknown action");
 }
-
-/* ================================================================
- *  Colors
- * ================================================================ */
 
 nlohmann::json FilamentManagerVM::HandleColors(const std::string& action, const nlohmann::json& payload)
 {
@@ -682,10 +654,6 @@ nlohmann::json FilamentManagerVM::HandleColors(const std::string& action, const 
     return MakeResp("colors", action, 0, "", out);
 }
 
-/* ================================================================
- *  Theme
- * ================================================================ */
-
 void FilamentManagerVM::OnSysColorChanged()
 {
     if (!m_bridge) return;
@@ -695,20 +663,12 @@ void FilamentManagerVM::OnSysColorChanged()
     m_bridge->ReportMsg(MakeResp("init", "theme_changed", 0, "", data));
 }
 
-/* ================================================================
- *  Helper
- * ================================================================ */
-
 nlohmann::json FilamentManagerVM::MakeResp(
     const std::string& submod, const std::string& action,
     int code, const std::string& msg, const nlohmann::json& payload)
 {
     return MakeResponse("filament", submod, action, code, msg, payload);
 }
-
-/* ================================================================
- *  Cloud sync state
- * ================================================================ */
 
 nlohmann::json FilamentManagerVM::build_sync_state() const
 {
@@ -736,10 +696,6 @@ void FilamentManagerVM::publish_sync_state()
 void FilamentManagerVM::publish_pull_done(int added, int updated)
 {
     if (!m_bridge) return;
-
-    // STUDIO-17956: when create success already inserted the cloud row locally,
-    // the reconciliation pull observes before_sz == after_sz. Consume the
-    // pending create hint so the toast reports "+N added" instead of "+0".
     if (m_pending_pull_added_hint > 0) {
         const int hint = m_pending_pull_added_hint;
         m_pending_pull_added_hint = 0;
@@ -792,10 +748,6 @@ void FilamentManagerVM::publish_debug_log(const std::string& category,
     wxGetApp().emit_fila_debug_log(category, level, title, summary, detail);
 }
 
-/* ================================================================
- *  Data builders (migrated from wgtFilaManagerPanel)
- * ================================================================ */
-
 nlohmann::json FilamentManagerVM::build_spool_list()
 {
     auto* store = wxGetApp().fila_manager_store();
@@ -842,22 +794,11 @@ nlohmann::json FilamentManagerVM::build_preset_options()
     auto* bundle = wxGetApp().preset_bundle;
     if (!bundle)
         return {{"vendors", nlohmann::json::array()}};
-
-    // STUDIO-18134: 添加/编辑耗材的品牌/类型下拉应当呈现完整的本地预设清单，
-    // 不能再按当前选中打印机的型号 + 喷嘴口径 + compatible_printers 过滤。
-    // 旧逻辑会让 Mac 上选中某台机器后大量第三方 vendor（HATCHBOX / INLAND /
-    // OVERTURE / Anycubic 等）的 preset 被剔，导致品牌下拉与 Win 表现不一致。
-    // 这里收集的是"用户能选什么品牌/类型"的元数据，不参与切片兼容性判断。
-
     auto& filaments = bundle->filaments;
     std::map<std::string, std::map<std::string, std::vector<nlohmann::json>>> vendor_type_items;
     std::set<std::string> filament_id_set;
     for (auto it = filaments.begin(); it != filaments.end(); ++it) {
         Preset& preset = *it;
-        // STUDIO-18110: 系统 preset 仍按 base 去重（避免 0.4 / 0.6 / 0.8 nozzle variant
-        // 分别成行），但用户自建耗材（!is_system && !is_default）通常 derived from
-        // 某个 system base，会被原 filter 排除，导致添加耗材弹窗的下拉中看不到。
-        // 此处放行 user-defined preset，让自建耗材按其继承的 vendor / type 落入桶中。
         const bool is_user_defined = !preset.is_system && !preset.is_default;
         if (!is_user_defined && filaments.get_preset_base(*it) != &preset)
             continue;
@@ -866,10 +807,6 @@ nlohmann::json FilamentManagerVM::build_preset_options()
         std::string type   = it->config.get_filament_type();
         if (vendor.empty()) continue;
         if (type.empty()) type = "Other";
-
-        // STUDIO-18110: 用户自建耗材可能复用父 system preset 的 filament_id，
-        // 用 filament_id 去重会让自建项被父 base 吞掉。改用 name 作为 dedupe key
-        // 才能稳定保留每个用户自建项。
         const std::string dedupe_key = is_user_defined
             ? (vendor + "\n" + type + "\n" + it->name)
             : (it->filament_id.empty() ? (vendor + "\n" + type + "\n" + it->name) : it->filament_id);
@@ -881,14 +818,6 @@ nlohmann::json FilamentManagerVM::build_preset_options()
             shown_name = it->display_name();
         if (shown_name.empty())
             continue;
-
-        // STUDIO-18110 / STUDIO-18117: user-defined preset 通常派生自 system base，
-        // 共享同一个 filament_id。"添加耗材 -> 从 AMS 读取"路径上，前端用
-        // tray.setting_id 反查 presets 时如果命中了这条 user-defined entry，
-        // setSeries 会被填上不规范的 user alias，再由 cloud sync 兜底成 PUT
-        // filamentName 上传，覆盖云端 spool 的 Material Type，复现 18117。
-        // 加上 is_user 标识，让前端 setting_id 反查路径跳过 user-defined item，
-        // 但下拉选项仍然包含它们（满足 18110 自建耗材可见的目标）。
         nlohmann::json entry = {
             {"name", shown_name},
             {"series", shown_name},
@@ -920,9 +849,6 @@ nlohmann::json FilamentManagerVM::build_preset_options()
 
 nlohmann::json FilamentManagerVM::build_machine_list()
 {
-    // F4.7: include the Studio-wide selected machine so the web "Read from
-    // AMS" tab can default to the same printer the rest of Studio is using,
-    // instead of picking the first online device in the list.
     nlohmann::json result = {{"machines", nlohmann::json::array()},
                              {"selected_dev_id", ""}};
     try {
@@ -939,9 +865,6 @@ nlohmann::json FilamentManagerVM::build_machine_list()
             if (!obj) continue;
             std::string name = obj->get_dev_name();
             if (name.empty()) name = id;
-            // is_lan mirrors SelectMachineDialog's "<name>(LAN)" convention so
-            // the web Printer dropdown can label LAN-mode printers the same
-            // way the native Send-to-printer dialog does.
             arr.push_back({{"dev_id", id},
                            {"dev_name", name},
                            {"is_online", obj->is_online()},
@@ -959,81 +882,76 @@ nlohmann::json FilamentManagerVM::build_machine_list()
 
 nlohmann::json FilamentManagerVM::build_ams_data()
 {
-    nlohmann::json empty = {{"selected_dev_id", ""}, {"ams_units", nlohmann::json::array()}};
+    nlohmann::json empty = {{"selected_dev_id", ""},
+                            {"ams_units", nlohmann::json::array()},
+                            {"ext_slots", nlohmann::json::array()},
+                            {"is_rack", false}};
     try {
         auto* dev_mgr = wxGetApp().getDeviceManager();
         if (!dev_mgr) return empty;
 
         MachineObject* sel = dev_mgr->get_selected_machine();
         std::string sel_id = sel ? sel->get_dev_id() : "";
+        bool is_rack = false;
+        if (auto rack = sel ? sel->GetNozzleRack() : nullptr)
+            is_rack = rack->IsDirectConnectedRack();
 
         nlohmann::json ams_arr = nlohmann::json::array();
+        nlohmann::json ext_arr = nlohmann::json::array();
         if (sel) {
             auto fila_sys = sel->GetFilaSystem();
             if (fila_sys) {
                 for (auto& [ams_id, ams] : fila_sys->GetAmsList()) {
                     if (!ams) continue;
                     nlohmann::json trays = nlohmann::json::array();
-                    for (auto& [slot_id, tray] : ams->GetTrays()) {
-                        nlohmann::json t;
-                        t["slot_id"]   = slot_id;
-                        {
-                            int tray_id = ams->GetTrayId(std::stoi(slot_id));
-                            t["tray_label"] = wxGetApp().transition_tridid(tray_id).ToStdString();
-                        }
-                        t["is_exists"] = tray && tray->is_exists;
-                        if (tray && tray->is_exists) {
-                            t["tag_uid"]    = normalize_ams_rfid_for_web(tray->uuid, tray->tag_uid);
-                            t["tray_id_name"] = tray->tray_id_name;
-                            t["setting_id"] = tray->setting_id;
-                            t["fila_type"]  = tray->m_fila_type;
-                            t["sub_brands"] = tray->sub_brands;
-                            std::string color = normalize_ams_hex_for_web(tray->color);
-                            t["color"]    = color;
-                            t["weight"]   = tray->weight;
-                            t["remain"]   = tray->remain;
-                            t["remain_g"] = tray->remain_g;
-                            if (auto rw = tray->get_filament_remain_weight()) {
-                                t["remain_weight"] = *rw;
-                            } else {
-                                t["remain_weight"] = nullptr;
-                            }
-                            t["diameter"] = tray->diameter;
-                            t["is_bbl"]   = tray->is_bbl;
-                            nlohmann::json colors = nlohmann::json::array();
-                            std::vector<std::string> src_colors = tray->cols;
-                            if (src_colors.empty()) src_colors.push_back(tray->color);
-                            for (const auto& c : src_colors) {
-                                std::string hex = normalize_ams_hex_for_web(c);
-                                if (!hex.empty()) colors.push_back(hex);
-                            }
-                            t["colors"]     = colors;
-                            int color_type  = from_ams_color_type(tray->ctype, colors.size());
-                            t["color_type"] = color_type;
+                    const int slot_count = ams->GetSlotCount();
 
-                            if (!tray->setting_id.empty() && !colors.empty()) {
-                                if (auto* clr_query = wxGetApp().get_filament_color_code_query()) {
-                                    std::vector<wxString> hex_colors;
-                                    for (const auto& c : colors) {
-                                        if (c.is_string()) {
-                                            hex_colors.emplace_back(wxString::FromUTF8(c.get<std::string>()));
-                                        }
-                                    }
-                                    if (auto* color_info = clr_query->GetFilaInfo(
-                                            wxString::FromUTF8(tray->setting_id), hex_colors, color_type)) {
-                                        t["color_name"]      = color_info->GetFilaColorName().utf8_string();
-                                        t["fila_color_code"] = color_info->GetFilaColorCode().utf8_string();
-                                    }
-                                }
-                            }
+                    const DevAmsType raw_type = ams->IsAmsLiteMixed()
+                        ? DevAmsType::AMS_LITE_MIXED
+                        : ams->GetAmsType();
+
+                    for (int i = 0; i < slot_count; ++i) {
+                        const std::string slot_id = std::to_string(i);
+                        DevAmsTray* tray = ams->GetTray(slot_id);
+                        if (!tray) continue;
+                        std::string name;
+                        try {
+                            name = DevFilaSystem::GetTrayNameByAmsSlotId(sel_id, std::stoi(ams_id), i, raw_type);
+                        } catch (...) {
+                            name = wxGetApp().transition_tridid(ams->GetTrayId(i), std::nullopt, sel).ToStdString();
                         }
-                        trays.push_back(t);
+                        trays.push_back(build_tray_json(
+                            tray, slot_id, name, tray->is_exists));
                     }
-                    ams_arr.push_back({{"ams_id", ams_id}, {"ams_type", static_cast<int>(ams->GetAmsType())}, {"trays", trays}});
+                    ams_arr.push_back({{"ams_id", ams_id},
+                                       {"ams_type", static_cast<int>(ams->GetAmsType())},
+                                       {"display_name", wx_to_utf8(ams->GetDisplayName())},
+                                       {"trays", trays}});
+                }
+
+                const auto& vt_slots = fila_sys->GetVirtualTrays();
+                for (auto it = vt_slots.crbegin(); it != vt_slots.crend(); ++it) {
+                    const DevAmsTray& vt_tray = it->second;
+                    const std::string ams_id = vt_tray.id.empty() ? it->first : vt_tray.id;
+                    std::string label;
+                    try {
+                        const int vt_id_int = std::stoi(ams_id);
+                        label = DevFilaSystem::GetTrayNameByAmsSlotId(sel_id, vt_id_int, vt_id_int, DevAmsType::EXT_SPOOL);
+                    } catch (...) {
+                        label = vt_tray.get_slot_name(sel);
+                    }
+                    if (label == "Ext-L" || label == "Ext-R") label = "Ext";
+                    const bool exists = vt_tray.is_exists || vt_tray.is_tray_info_ready();
+                    nlohmann::json t = build_tray_json(&vt_tray, "0", label, exists);
+                    t["ams_id"] = ams_id;
+                    ext_arr.push_back(t);
                 }
             }
         }
-        return {{"selected_dev_id", sel_id}, {"ams_units", ams_arr}};
+        return {{"selected_dev_id", sel_id},
+                {"ams_units", ams_arr},
+                {"ext_slots", ext_arr},
+                {"is_rack", is_rack}};
     } catch (const std::exception& e) {
         BOOST_LOG_TRIVIAL(error) << "[FilamentVM] build_ams_data: " << e.what();
         return empty;

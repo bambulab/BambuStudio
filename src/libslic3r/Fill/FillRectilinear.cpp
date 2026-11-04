@@ -8,7 +8,6 @@
 #include <stack>
 
 #include <boost/container/small_vector.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/static_assert.hpp>
 
 #include "../ClipperUtils.hpp"
@@ -38,6 +37,7 @@
 
 // We want our version of assert.
 #include "../libslic3r.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -3084,12 +3084,12 @@ Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams
     if (params.full_infill() || params.multiline == 1 || params.pattern == ipCrossZag || params.pattern == ipZigZag || params.pattern == ipLockedZag)
     {
         if (!fill_surface_by_lines(surface, params, 0.f, 0.f, polylines_out))
-        BOOST_LOG_TRIVIAL(error) << "FillRectilinear::fill_surface() fill_surface_by_lines() failed to fill a region.";
+        BOOST_LOG_TRIVIAL(error) << "fill_surface_by_lines() failed to fill a region.";
     }
     else
     {
         if (!fill_surface_by_multilines(surface, params, {{0.f, 0.f}}, polylines_out))
-            BOOST_LOG_TRIVIAL(error) << "FillRectilinear::fill_surface() fill_surface_by_multilines() failed to fill a region.";
+            BOOST_LOG_TRIVIAL(error) << "fill_surface_by_multilines() failed to fill a region.";
     }
     return polylines_out;
 }
@@ -3100,7 +3100,7 @@ Polylines FillMonotonic::fill_surface(const Surface *surface, const FillParams &
     params2.monotonic = true;
     Polylines polylines_out;
     if (! fill_surface_by_lines(surface, params2, 0.f, 0.f, polylines_out))
-        BOOST_LOG_TRIVIAL(error) << "FillMonotonous::fill_surface() failed to fill a region.";
+        BOOST_LOG_TRIVIAL(error) << "failed to fill a region.";
     return polylines_out;
 }
 
@@ -3122,7 +3122,7 @@ Polylines FillGrid::fill_surface(const Surface *surface, const FillParams &param
             surface, params,
             { { 0.f, 0.f }, { float(M_PI / 2.), 0.f } },
             polylines_out))
-        BOOST_LOG_TRIVIAL(error) << "FillGrid::fill_surface() failed to fill a region.";
+        BOOST_LOG_TRIVIAL(error) << "failed to fill a region.";
 
     if (this->layer_id % 2 == 1)
         for (int i = 0; i < polylines_out.size(); i++)
@@ -3137,7 +3137,7 @@ Polylines FillTriangles::fill_surface(const Surface *surface, const FillParams &
             surface, params,
             { { 0.f, 0.f }, { float(M_PI / 3.), 0.f }, { float(2. * M_PI / 3.), 0. } },
             polylines_out))
-        BOOST_LOG_TRIVIAL(error) << "FillTriangles::fill_surface() failed to fill a region.";
+        BOOST_LOG_TRIVIAL(error) << "failed to fill a region.";
     return polylines_out;
 }
 
@@ -3148,7 +3148,7 @@ Polylines FillStars::fill_surface(const Surface *surface, const FillParams &para
             surface, params,
             { { 0.f, 0.f }, { float(M_PI / 3.), 0.f }, { float(2. * M_PI / 3.), float((3./2.) * this->spacing * params.multiline / params.density) } },
             polylines_out))
-        BOOST_LOG_TRIVIAL(error) << "FillStars::fill_surface() failed to fill a region.";
+        BOOST_LOG_TRIVIAL(error) << "failed to fill a region.";
     return polylines_out;
 }
 
@@ -3160,7 +3160,7 @@ Polylines FillCubic::fill_surface(const Surface *surface, const FillParams &para
             surface, params,
             { { 0.f, float(dx) }, { float(M_PI / 3.), - float(dx) }, { float(M_PI * 2. / 3.), float(dx) } },
             polylines_out))
-        BOOST_LOG_TRIVIAL(error) << "FillCubic::fill_surface() failed to fill a region.";
+        BOOST_LOG_TRIVIAL(error) << "failed to fill a region.";
     return polylines_out;
 }
 
@@ -3172,7 +3172,7 @@ Polylines Fill2DLattice::fill_surface(const Surface *surface, const FillParams &
     coordf_t  dx1             = tan(Geometry::deg2rad(lattice_angle_1)) * z; // tan(angel_1)*z get the x direction delta
     coordf_t  dx2             = tan(Geometry::deg2rad(params.lattice_angle_2)) * z;
     if (!this->fill_surface_by_multilines(surface, params, {{float(M_PI / 2.), float(dx1)}, {float(M_PI / 2.), float(dx2)}}, polylines_out))
-        BOOST_LOG_TRIVIAL(error) << "Fill2DLattice::fill_surface() failed to fill a region.";
+        BOOST_LOG_TRIVIAL(error) << "failed to fill a region.";
 
     if (this->layer_id % 2 == 1)
         for (int i = 0; i < polylines_out.size(); i++) std::reverse(polylines_out[i].begin(), polylines_out[i].end());

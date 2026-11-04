@@ -5,11 +5,13 @@
 #include <wx/colour.h>
 #include <wx/dc.h>
 #include <wx/gdicmn.h>
+#include <string>
 #include <vector>
 
-#include "libslic3r/PrintConfig.hpp"
-
 namespace Slic3r { namespace GUI {
+
+// "RRGGBB" / "#RRGGBB" -> wxColour. Falls back to grey (0x636363) on empty / invalid.
+wxColour parse_hex_color(const std::string& hex);
 
 // Fills a rect with a west->east linear gradient by drawing solid 1px columns.
 // Use instead of wxDC::GradientFillLinear, whose CoreGraphics (CGShading) backend

@@ -1,6 +1,8 @@
 #include "TabButton.hpp"
 #include "Widgets/Label.hpp"
 
+#include <algorithm>
+
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 
@@ -43,7 +45,6 @@ TabButton::TabButton(wxWindow *parent, wxString text, ScalableBitmap &bmp, long 
 bool TabButton::Create(wxWindow *parent, wxString text, ScalableBitmap &bmp, long style, int iconSize)
 {
     StaticBox::Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
-    newtag_img = ScalableBitmap(this, "monitor_hms_new",7);
     state_handler.attach({&text_color, &border_color});
     state_handler.update_binds();
     //BBS set default font
@@ -73,7 +74,7 @@ void TabButton::SetPaddingSize(const wxSize &size)
     messureSize();
 }
 
-const wxSize& TabButton::GetPaddingSize() 
+const wxSize& TabButton::GetPaddingSize()
 {
     return paddingSize;
 }
@@ -123,7 +124,8 @@ void TabButton::Rescale()
 void TabButton::paintEvent(wxPaintEvent &evt)
 {
     // depending on your system you may need to look at double-buffered dcs
-    wxPaintDC dc(this);
+    wxPaintDC pdc(this);
+    wxGCDC    dc(pdc);
     render(dc);
 }
 
@@ -171,14 +173,27 @@ void TabButton::render(wxDC &dc)
     }
 
     wxBitmap showimg = icon.bmp();
-    int offset_left = 0;
-    if (show_new_tag) {
-        showimg = newtag_img.bmp();
-        offset_left = FromDIP(4);
-    }
+    if (new_tag_count > 0) {
+        // HMS alert badge: a red pill carrying the number of HMS messages.
+        const wxColour badge_color(0xFC, 0x37, 0x22);
+        wxString  badge_text = wxString::Format("%d", new_tag_count);
+        dc.SetFont(Label::Body_10);
 
-    if (showimg.IsOk()) {
-        pt.x = size.x - showimg.GetWidth() - paddingSize.y - offset_left;
+        wxFontMetrics fm  = dc.GetFontMetrics();
+        const int text_h  = fm.ascent + fm.descent;
+        const int text_w  = dc.GetTextExtent(badge_text).x;
+        const int padding = FromDIP(2);
+        const int badge_size = FromDIP(17);
+        const int badge_h    = std::max(badge_size, text_h + padding * 2);
+        const int badge_w    = std::max(badge_size, text_w + padding * 2);
+        const wxPoint badge_topleft(size.x - badge_w - paddingSize.y, size.y / 2 - badge_h / 2);
+        dc.SetPen(wxPen(badge_color));
+        dc.SetBrush(wxBrush(badge_color));
+        dc.DrawRoundedRectangle(badge_topleft.x, badge_topleft.y, badge_w, badge_h, badge_h / 2);
+        dc.SetTextForeground(*wxWHITE);
+        dc.DrawText(badge_text, badge_topleft.x + (badge_w - text_w) / 2, badge_topleft.y + (badge_h - text_h) / 2);
+    } else if (showimg.IsOk()) {
+        pt.x = size.x - showimg.GetWidth() - paddingSize.y;
         pt.y = (size.y - showimg.GetHeight()) / 2;
         dc.DrawBitmap(showimg, pt);
     }

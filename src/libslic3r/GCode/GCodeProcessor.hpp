@@ -17,6 +17,7 @@
 #include <string>
 #include <string_view>
 #include <optional>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -72,8 +73,9 @@ namespace Slic3r {
             std::vector<std::pair<EMoveType, float>> moves_times;
             std::vector<std::pair<ExtrusionRole, float>> roles_times;
             std::vector<float> layers_times;
-            // Like layers_times but sliced by unique extrusion Z, for the preview slider only.
-            // Filled only for mixed-color sublayers (empty otherwise, slider falls back to layers_times).
+            // Like layers_times but one entry per slider tick (consecutive extrusion-Z run, in print
+            // order, aligned with IMSlider::m_values), for the preview slider only. Filled only for
+            // mixed-color sublayers (empty otherwise, slider falls back to layers_times).
             std::vector<float> preview_layers_times;
 
             void reset() {
@@ -321,6 +323,8 @@ namespace Slic3r {
         // 0-based mixed (virtual) filament slots actually used on this plate.
         // Recorded before resolve_mixed_filaments expands them to physical components.
         std::vector<unsigned int> used_mixed_filaments;
+        // 0-based physical filament slots used directly on this plate (not only as mixed components).
+        std::vector<unsigned int> directly_used_filaments;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         int64_t time{ 0 };
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -367,9 +371,10 @@ namespace Slic3r {
             optimal_assignment = other.optimal_assignment;
             pause_printing = other.pause_printing;
             skippable_part_time = other.skippable_part_time;
-            initial_layer_time = other.initial_layer_time;
             used_filaments = other.used_filaments;
             used_mixed_filaments = other.used_mixed_filaments;
+            directly_used_filaments        = other.directly_used_filaments;
+            initial_layer_time = other.initial_layer_time;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
 #endif
@@ -502,7 +507,9 @@ namespace Slic3r {
             VFLUSH_END,
             SKIPPABLE_START,
             SKIPPABLE_END,
-            SKIPPABLE_TYPE
+            SKIPPABLE_TYPE,
+            FilamentChangeGCodeStart,
+            FilamentChangeGCodeEnd
         };
 
         static const std::string& reserved_tag(ETags tag) { return ReservedTags[static_cast<unsigned char>(tag)]; }
@@ -768,22 +775,40 @@ namespace Slic3r {
             friend class GCodeProcessor;
         };
 
+        // Variant-expanded filament rows with their labels. A filament split across nozzles owns one row per
+        // nozzle variant, so these are resolved per (filament, nozzle) instead of per filament.
+        struct FilamentVariantRows
+        {
+            std::vector<int> nozzle_temp;
+            std::vector<int> pre_cooling_temp;
+            std::vector<double> preheat_temperature_delta;
+            std::vector<std::string> extruder_variant;
+            std::vector<int> self_index;
+            // Indexed by filament id: row of the filament's statically assigned variant, used when the nozzle is unknown.
+            std::vector<int> default_row;
+
+            // Same fallback as ConfigOptionVector::get_at() for arrays shorter than the row count.
+            template<class T> static T value_at(const std::vector<T>& values, int row)
+            {
+                return values.empty() ? T() : values[size_t(row) < values.size() ? size_t(row) : 0];
+            }
+        };
+
         struct TimeProcessContext
         {
             UsedFilaments used_filaments; // stores the accurate filament usage info
             std::vector<Extruder> filament_lists;
             std::vector<std::string> filament_types;
-            std::vector<int> filament_nozzle_temp;
+            std::vector<unsigned char> filament_pre_heating_enabled;
             std::vector<int> physical_extruder_map;
 
             MultiNozzleUtils::LayeredNozzleGroupResult nozzle_group_result;
 
             size_t total_layer_num;
-            std::vector<double> cooling_rate{ 2.f }; // Celsius degree per second
+            std::vector<double> cooling_rate{ 2.f }; // Celsius degree per second, right after extruding
+            std::vector<double> cooling_rate_on_rack{ 2.f }; // Celsius degree per second, once the hotend is completely free
             std::vector<double> heating_rate{ 2.f }; // Celsius degree per second
-            std::vector<double> filament_preheat_temperature_delta{0.f}; // temperature delta applied during pre-heating
-            std::vector<double> filament_max_temperature_drop_when_ec {0.f}; // max temperature drop when extruder change
-            std::vector<int> pre_cooling_temp{ 0 };
+            std::vector<double> filament_min_temperature_when_ec {-1.f}; // idle floor in C; negative means no extra floor
             float inject_time_threshold{ 30.f }; // only active pre cooling & heating if time gap is bigger than threshold
             bool enable_pre_heating{ false };
             bool handle_hotend_as_extruder { false };
@@ -791,45 +816,48 @@ namespace Slic3r {
             std::vector<int> extruder_max_nozzle_count { 1 };
             std::vector<ExtruderType> extruder_types;
             std::vector<double> nozzle_diameter;
+            FilamentVariantRows filament_variant_rows;
 
             TimeProcessContext(
                 const UsedFilaments& used_filaments_,
                 const std::vector<Extruder>& filament_lists_,
                 MultiNozzleUtils::LayeredNozzleGroupResult& nozzle_group_result_,
                 const std::vector<std::string>& filament_types_,
-                const std::vector<int>& filament_nozzle_temp_,
+                const std::vector<unsigned char>& filament_pre_heating_enabled_,
                 const std::vector<int>& physical_extruder_map_,
                 const size_t total_layer_num_,
                 const std::vector<double>& cooling_rate_,
+                const std::vector<double>& cooling_rate_on_rack_,
                 const std::vector<double>& heating_rate_,
-                const std::vector<int>& pre_cooling_temp_,
+                const std::vector<double>& filament_min_temperature_when_ec_,
                 const float inject_time_threshold_,
                 const bool enable_pre_heating_,
                 const bool handle_hotend_as_extruder_,
                 const bool has_filament_switcher_,
                 const std::vector<int>& extruder_max_nozzle_count_,
-                const std::vector<double>& filament_preheat_temperature_delta_,
                 const std::vector<ExtruderType>& extruder_types_,
-                const std::vector<double>& nozzle_diameter_
+                const std::vector<double>& nozzle_diameter_,
+                const FilamentVariantRows& filament_variant_rows_
             ) :
                 used_filaments(used_filaments_),
                 filament_lists(filament_lists_),
                 nozzle_group_result(nozzle_group_result_),
                 filament_types(filament_types_),
-                filament_nozzle_temp(filament_nozzle_temp_),
+                filament_pre_heating_enabled(filament_pre_heating_enabled_),
                 physical_extruder_map(physical_extruder_map_),
                 total_layer_num(total_layer_num_),
                 cooling_rate(cooling_rate_),
+                cooling_rate_on_rack(cooling_rate_on_rack_),
                 heating_rate(heating_rate_),
-                pre_cooling_temp(pre_cooling_temp_),
+                filament_min_temperature_when_ec(filament_min_temperature_when_ec_),
                 enable_pre_heating(enable_pre_heating_),
                 handle_hotend_as_extruder(handle_hotend_as_extruder_),
                 has_filament_switcher(has_filament_switcher_),
                 inject_time_threshold(inject_time_threshold_),
                 extruder_max_nozzle_count(extruder_max_nozzle_count_),
-                filament_preheat_temperature_delta(filament_preheat_temperature_delta_),
                 extruder_types(extruder_types_),
-                nozzle_diameter(nozzle_diameter_)
+                nozzle_diameter(nozzle_diameter_),
+                filament_variant_rows(filament_variant_rows_)
             {
             }
 
@@ -909,7 +937,8 @@ namespace Slic3r {
                 int next_filament_id;
                 int last_nozzle_id;
                 int next_nozzle_id;
-                int extruder_id; // 并不一定是真实的extruder_id，只是用来划分需要提前升降温的区块，可能是挤出机、热端
+                int extruder_id; // real logical extruder, used for heating/cooling rates
+                int idle_chain_key; // H3C: filament_id for M104 I; other machines: same as extruder_id
                 bool ignore_cooling_before_tower = false;
             };
 
@@ -919,47 +948,45 @@ namespace Slic3r {
             PreCoolingInjector(
                 const std::vector<GCodeProcessorResult::MoveVertex>& moves_,
                 const std::vector<std::string>& filament_types_,
+                const std::vector<unsigned char>& filament_pre_heating_enabled_,
                 const MultiNozzleUtils::LayeredNozzleGroupResult& nozzle_group_result_,
-                const std::vector<int>& filament_nozzle_temps_,
-                const std::vector<int>& filament_nozzle_temps_initial_layer_,
                 const std::vector<int>& physical_extruder_map_,
                 int valid_machine_id_,
                 float inject_time_threshold_,
                 bool handle_hotend_as_extruder_,
                 bool has_filament_switcher_,
-                const std::vector<int> & pre_cooling_temp_,
                 const std::vector<double>& cooling_rate_,
+                const std::vector<double>& cooling_rate_on_rack_,
                 const std::vector<double>& heating_rate_,
                 const std::vector<std::pair<unsigned int,unsigned int>>& skippable_blocks_,
                 const std::vector<int>& extruder_max_nozzle_count_,
-                const std::vector<double>& filament_preheat_temperature_delta_,
-                const std::vector<double>& filament_max_temperature_drop_when_ec_,
+                const std::vector<double>& filament_min_temperature_when_ec_,
                 unsigned int machine_start_gcode_end_id_,
                 unsigned int machine_end_gcode_start_id_,
                 const std::vector<ExtruderType>& extruder_types_,
-                const std::vector<double>& nozzle_diameter_
+                const std::vector<double>& nozzle_diameter_,
+                const FilamentVariantRows& filament_variant_rows_
             ) :
                 moves(moves_),
                 filament_types(filament_types_),
+                filament_pre_heating_enabled(filament_pre_heating_enabled_),
                 nozzle_group_result(nozzle_group_result_),
-                filament_nozzle_temps(filament_nozzle_temps_),
-                filament_nozzle_temps_initial_layer(filament_nozzle_temps_initial_layer_),
                 physical_extruder_map(physical_extruder_map_),
                 valid_machine_id(valid_machine_id_),
                 inject_time_threshold(inject_time_threshold_),
                 handle_hotend_as_extruder(handle_hotend_as_extruder_),
                 has_filament_switcher(has_filament_switcher_),
-                filament_pre_cooling_temps(pre_cooling_temp_),
                 cooling_rate(cooling_rate_),
+                cooling_rate_on_rack(cooling_rate_on_rack_),
                 heating_rate(heating_rate_),
                 skippable_blocks(skippable_blocks_),
                 extruder_max_nozzle_count(extruder_max_nozzle_count_),
-                filament_preheat_temperature_delta(filament_preheat_temperature_delta_),
-                filament_max_temperature_drop_when_ec(filament_max_temperature_drop_when_ec_),
+                filament_min_temperature_when_ec(filament_min_temperature_when_ec_),
                 machine_start_gcode_end_id(machine_start_gcode_end_id_),
                 machine_end_gcode_start_id(machine_end_gcode_start_id_),
                 extruder_types(extruder_types_),
-                nozzle_diameter(nozzle_diameter_)
+                nozzle_diameter(nozzle_diameter_),
+                filament_variant_rows(filament_variant_rows_)
             {
             }
 
@@ -967,25 +994,30 @@ namespace Slic3r {
             std::vector<ExtruderFreeBlock> m_extruder_free_blocks;
             const std::vector<GCodeProcessorResult::MoveVertex>& moves;
             const std::vector<std::string>& filament_types;
+            // Per-filament opt-out of pre-heating. Shorter than the filament count means "enabled",
+            // so gcode produced before this option existed keeps pre-heating.
+            const std::vector<unsigned char>& filament_pre_heating_enabled;
             const MultiNozzleUtils::LayeredNozzleGroupResult& nozzle_group_result;
-            const std::vector<int>& filament_nozzle_temps;
-            const std::vector<int>& filament_nozzle_temps_initial_layer;
             const std::vector<int>& physical_extruder_map;
             const int valid_machine_id;
             const float inject_time_threshold;
             const bool handle_hotend_as_extruder;
             const bool has_filament_switcher;
             const std::vector<double>& cooling_rate;
+            const std::vector<double>& cooling_rate_on_rack;
             const std::vector<double>& heating_rate;
-            const std::vector<int>& filament_pre_cooling_temps; // target cooling temp during post extrusion
             const std::vector<std::pair<unsigned int, unsigned int>>& skippable_blocks;
             const std::vector<int>& extruder_max_nozzle_count;
-            const std::vector<double>& filament_preheat_temperature_delta;
-            const std::vector<double>& filament_max_temperature_drop_when_ec;
+            const std::vector<double>& filament_min_temperature_when_ec; // per-filament idle floor; negative means no extra floor
             const unsigned int machine_start_gcode_end_id;
             const unsigned int machine_end_gcode_start_id;
             const std::vector<ExtruderType>& extruder_types;
             const std::vector<double>& nozzle_diameter;
+            const FilamentVariantRows& filament_variant_rows;
+
+            // Row of filament_variant_rows used by the filament on the nozzle; falls back to the filament's default row
+            // when the nozzle is unknown. Returns -1 for an unknown filament.
+            int filament_variant_row(int filament_id, int nozzle_id) const;
 
             void inject_cooling_heating_command(
                 TimeProcessor::InsertedLinesMap& inserted_operation_lines,
@@ -997,7 +1029,14 @@ namespace Slic3r {
             );
 
             void build_by_filament_blocks(const std::vector<ExtruderPreHeating::FilamentUsageBlock>& filament_usage_blocks);
-            void build_by_extruder_blocks(const std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& extruder_usage_blocks);
+            void build_by_extruder_blocks(
+                const std::vector<ExtruderPreHeating::FilamentUsageBlock>& filament_usage_blocks,
+                const std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& extruder_usage_blocks);
+            void attach_nc_bounds_if_gap_crosses_nozzle_change(
+                ExtruderFreeBlock& idle,
+                const ExtruderPreHeating::FilamentUsageBlock& prev,
+                const ExtruderPreHeating::FilamentUsageBlock& next,
+                const std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& nc_blocks);
         };
 
 
@@ -1153,13 +1192,14 @@ namespace Slic3r {
         float m_print_z{0.0f};
         std::vector<float> m_remaining_volume;
         std::vector<Extruder> m_filament_lists;
-        std::vector<int> m_filament_nozzle_temp;
         std::vector<std::string> m_filament_types;
+        std::vector<unsigned char> m_filament_pre_heating_enabled;
         std::vector<double> m_nozzle_diameter;
         std::vector<double> m_hotend_cooling_rate{ 2.f };
+        std::vector<double> m_hotend_cooling_rate_on_rack{ 2.f };
         std::vector<double> m_hotend_heating_rate{ 2.f };
-        std::vector<int> m_filament_pre_cooling_temp{ 0 };
-        std::vector<double> m_filament_preheat_temperature_delta;
+        std::vector<double> m_min_temperature_when_ec {-1.f};
+        FilamentVariantRows m_filament_variant_rows;
         bool m_enable_pre_heating{ false };
         bool m_handle_hotend_as_extruder { false };
         bool m_has_filament_switcher{ false };
@@ -1312,7 +1352,7 @@ namespace Slic3r {
                     is_helio      = true;
                     return ThermalIndex(minVal, maxVal, meanVal);
                 } else {
-                    std::cerr << "Error: Unable to parse thermal index values from comment." << std::endl;
+                    BOOST_LOG_TRIVIAL(error) << "Unable to parse thermal index values from comment.";
                     return ThermalIndex();
                 }
 
@@ -1503,9 +1543,7 @@ namespace Slic3r {
         void simulate_st_synchronize(float additional_time = 0.0f, ExtrusionRole target_role =ExtrusionRole::erNone);
 
         void update_estimated_times_stats();
-        // Fill PrintEstimatedStatistics::Mode::preview_layers_times, sliced by extrusion Z so the
-        // preview slider (one tick per extrusion Z) keeps showing an increasing time even when
-        // mixed-color sublayers make it finer than the logical layers layers_times is built from.
+        // update mixed color sublayers' preview times
         void update_preview_layers_times_stats();
         //BBS:
         void update_slice_warnings();

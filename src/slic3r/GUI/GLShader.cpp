@@ -9,8 +9,7 @@
 #include <boost/nowide/fstream.hpp>
 #include <GL/glew.h>
 #include <cassert>
-
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

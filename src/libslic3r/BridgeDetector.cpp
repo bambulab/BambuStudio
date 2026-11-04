@@ -272,8 +272,47 @@ static void get_trapezoids2(const ExPolygon &expoly, Polygons* polygons, double 
         polygon.rotate(-(PI/2 - angle), Point(0,0));
 }
 
+// Slice the expolygon into vertical strips one spacing apart. Unlike get_trapezoids2() the strips
+// are cut at a fixed pitch instead of at every vertex, so a curved contour does not explode into
+// a huge number of slivers.
+static void get_trapezoids3_half(const ExPolygon &expoly, Polygons *polygons, float spacing)
+{
+    Points pp = to_points(expoly);
+    if (pp.empty())
+        return;
+
+    BoundingBox bb(pp);
+
+    coord_t min_x = pp.front().x(), max_x = pp.front().x();
+    for (const Point &p : pp) {
+        min_x = std::min(min_x, p.x());
+        max_x = std::max(max_x, p.x());
+    }
+
+    std::vector<coord_t> xx;
+    for (coord_t x = min_x; x < max_x - coord_t(spacing / 2); x += coord_t(spacing))
+        xx.push_back(x);
+    xx.push_back(max_x);
+
+    const Polygons src_polygons = to_polygons(expoly);
+    for (auto x = xx.begin(); x != xx.end() - 1; ++x) {
+        const coord_t next_x = *(x + 1);
+        if (*x == next_x)
+            continue;
+        // Inset the strip by a quarter spacing on both sides so neighbouring strips do not touch.
+        Polygon poly;
+        poly.points = {
+            { *x + coord_t(spacing) / 4, bb.min.y() },
+            { next_x - coord_t(spacing) / 4, bb.min.y() },
+            { next_x - coord_t(spacing) / 4, bb.max.y() },
+            { *x + coord_t(spacing) / 4, bb.max.y() }
+        };
+        polygons_append(*polygons, intersection(Polygons{ poly }, src_polygons));
+    }
+}
+
 // Coverage is currently only used by the unit tests. It is extremely slow and unreliable!
-Polygons BridgeDetector::coverage(double angle) const
+Polygons BridgeDetector::coverage(double angle, bool precise) const
 {
     if (angle == -1)
         angle = this->angle;
@@ -294,14 +333,50 @@ Polygons BridgeDetector::coverage(double angle) const
             for (ExPolygon &expoly : offset_ex(expolygon, 0.5f * float(this->spacing))) {
                 // Compute trapezoids according to a vertical orientation
                 Polygons trapezoids;
-                get_trapezoids2(expoly, &trapezoids, PI/2.0);
-                for (const Polygon &trapezoid : trapezoids) {
-                    // not nice, we need a more robust non-numeric check
+                if (precise)
+                    get_trapezoids3_half(expoly, &trapezoids, float(this->spacing));
+                else
+                    get_trapezoids2(expoly, &trapezoids, PI/2.0);
+                for (Polygon &trapezoid : trapezoids) {
                     size_t n_supported = 0;
-                    for (const Line &supported_line : intersection_ln(trapezoid.lines(), anchors))
-                        if (supported_line.length() >= this->spacing)
-                            ++ n_supported;
-                    if (n_supported >= 2) 
+                    if (precise) {
+                        // Count the anchor patches the strip lands on. A ring-shaped overhang has
+                        // its two anchors on opposite ends of the strip, which this detects while
+                        // the edge-length test below does not.
+                        Polygons intersects = intersection(Polygons{ trapezoid }, anchors);
+                        n_supported = intersects.size();
+                        if (n_supported >= 2) {
+                            // Clamp the strip to the span actually covered by the anchors, so the
+                            // bridge does not reach past the material it is anchored on.
+                            BoundingBox center_bound = intersects.front().bounding_box();
+                            coord_t min_y = center_bound.center().y(), max_y = center_bound.center().y();
+                            for (const Polygon &poly_bound : intersects) {
+                                const Point c = poly_bound.bounding_box().center();
+                                min_y = std::min(min_y, c.y());
+                                max_y = std::max(max_y, c.y());
+                            }
+                            coord_t min_x = trapezoid.points.front().x(), max_x = trapezoid.points.front().x();
+                            for (const Point &p : trapezoid.points) {
+                                min_x = std::min(min_x, p.x());
+                                max_x = std::max(max_x, p.x());
+                            }
+                            // Restore the quarter spacing that get_trapezoids3_half() trimmed off.
+                            min_x -= (this->spacing / 4 + 1);
+                            max_x += (this->spacing / 4 + 1);
+                            const coord_t mid_x = (min_x + max_x) / 2;
+                            for (Point &p : trapezoid.points) {
+                                p.y() = std::clamp(p.y(), min_y, max_y);
+                                if (p.x() > min_x && p.x() < mid_x) p.x() = min_x;
+                                if (p.x() < max_x && p.x() > mid_x) p.x() = max_x;
+                            }
+                        }
+                    } else {
+                        // not nice, we need a more robust non-numeric check
+                        for (const Line &supported_line : intersection_ln(trapezoid.lines(), anchors))
+                            if (supported_line.length() >= this->spacing)
+                                ++ n_supported;
+                    }
+                    if (n_supported >= 2)
                         covered.push_back(std::move(trapezoid));
                 }
             }

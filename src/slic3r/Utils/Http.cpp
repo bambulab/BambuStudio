@@ -11,9 +11,9 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <curl/curl.h>
+#include "libslic3r/Log.hpp"
 
 #ifdef OPENSSL_CERT_OVERRIDE
 #include <openssl/x509.h>
@@ -260,6 +260,7 @@ size_t Http::priv::form_file_read_cb(char *buffer, size_t size, size_t nitems, v
 		fstream->read(buffer, size * nitems);
 		return fstream->gcount();
 	} catch (const std::exception &) {
+		BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 		return CURL_READFUNC_ABORT;
 	}
 

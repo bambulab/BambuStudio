@@ -21,11 +21,11 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include "libslic3r/Log.hpp"
 namespace pt = boost::property_tree;
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
 #include "miniz_extension.hpp"
 

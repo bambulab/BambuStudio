@@ -1,6 +1,6 @@
 #include "DevStatus.h"
 #include "slic3r/GUI/DeviceManager.hpp"
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -13,7 +13,7 @@ void DevStatus::ParseStatus(const nlohmann::json& print_jj)
                 auto new_state = (DevJobState)job_jj.at("job_state").get<int>();
                 if (m_job_state != new_state) {
                     m_job_state = new_state;
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": job_state-> " << (int)new_state;
+                    BOOST_LOG_TRIVIAL(info) << "job_state-> " << (int)new_state;
                 }
 
                 if (m_job_state == DevJobState::JobStateFinishing) {
@@ -23,9 +23,9 @@ void DevStatus::ParseStatus(const nlohmann::json& print_jj)
         }
     } catch (const std::exception& e) {
 #if BBL_RELEASE_TO_PUBLIC
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": get exception";
+        BOOST_LOG_TRIVIAL(error) << "get exception";
 #else
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": get exception=" << e.what();
+        BOOST_LOG_TRIVIAL(error) << "get exception=" << e.what();
 #endif
     }
 }

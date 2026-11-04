@@ -1,5 +1,6 @@
 #include "DevUtil.h"
 #include "fast_float/fast_float.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r
 {
@@ -15,11 +16,11 @@ int DevUtil::get_flag_bits(std::string str, int start, int count)
     }
     catch (const std::exception& e)
     {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
+        BOOST_LOG_TRIVIAL(error) << e.what();
     }
     catch (...)
     {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed";
+        BOOST_LOG_TRIVIAL(error) << "failed";
     }
 
     return 0;
@@ -89,44 +90,37 @@ uint32_t DevUtil::get_flag_bits_no_border(std::string str, int start_idx, int co
         const uint32_t val = static_cast<uint32_t>(shifted & mask);
         return val;
     } catch (const std::invalid_argument &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0;
     } catch (const std::out_of_range &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0;
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0;
     }
 }
 
 
-int DevUtil::get_flag_bits(int num, int start, int count, int base)
+int DevUtil::get_flag_bits(long long num, int start, int count, int base)
 {
-    try
-    {
+    try {
         unsigned long long mask = (1ULL << count) - 1;
         unsigned long long value;
-        if (base == 10)
-        {
-            value = static_cast<unsigned long long>(num);
-        }
-        else if (base == 16)
-        {
-            value = static_cast<unsigned long long>(std::stoul(std::to_string(num), nullptr, 16));
-        }
-        else
-        {
+        if (base == 10) {
+            value = num;
+        } else if (base == 16) {
+            value = static_cast<unsigned long long>(std::stoull(std::to_string(num), nullptr, 16));
+        } else {
             throw std::invalid_argument("Unsupported base");
         }
 
         int flag = (value >> start) & mask;
         return flag;
-    }
-    catch (const std::exception& e)
-    {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
-    }
-    catch (...)
-    {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed";
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << e.what();
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(error) << "failed";
     }
 
     return 0;
@@ -142,11 +136,11 @@ float DevUtil::string_to_float(const std::string& str_value)
     }
     catch (const std::exception& e)
     {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
+        BOOST_LOG_TRIVIAL(error) << e.what();
     }
     catch (...)
     {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed";
+        BOOST_LOG_TRIVIAL(error) << "failed";
     }
 
     return value;
@@ -174,14 +168,44 @@ std::string DevJsonValParser::get_longlong_val(const nlohmann::json& j)
     }
     catch (const nlohmann::json::exception& e)
     {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
+        BOOST_LOG_TRIVIAL(error) << e.what();
     }
     catch (const std::exception& e)
     {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
+        BOOST_LOG_TRIVIAL(error) << e.what();
     }
 
     return std::string();
+}
+
+void DevJsonValParser::ParseLongLongVal(const nlohmann::json& j, long long& val, int base)
+{
+    try {
+        if (j.is_number()) {
+            val = j.get<long long>();
+            return;
+        } else if (j.is_string()) {
+            auto str_val = j.get<std::string>();
+            val = std::stoll(str_val, nullptr, base);
+            return;
+        }
+    } catch (const nlohmann::json::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << e.what();
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << e.what();
+    }
+
+    try {
+        if (j.is_string()) {
+            auto str_val = j.get<std::string>();
+            val = std::stol(str_val, nullptr, base);
+            return;
+        }
+    } catch (const nlohmann::json::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << e.what();
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << e.what();
+    }
 }
 
 };// namespace Slic3r

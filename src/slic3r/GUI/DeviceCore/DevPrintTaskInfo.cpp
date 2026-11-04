@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <utility>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r
 {
@@ -17,6 +18,7 @@ std::optional<int> readInteger(const nlohmann::json &object, const char *key)
     try {
         return value->get<int>();
     } catch (const nlohmann::json::exception &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return std::nullopt;
     }
 }

@@ -12,12 +12,12 @@
 #include "libslic3r/Config.hpp"
 
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
 #include <wx/filename.h>
 #include <wx/stattext.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

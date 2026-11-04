@@ -30,6 +30,8 @@ endif()
 set(lisbslic3r_sources
     ArcFitter.cpp
     ArcFitter.hpp
+    PerfTrace.cpp
+    PerfTrace.hpp
     pchheader.cpp
     pchheader.hpp
     AABBTreeIndirect.hpp
@@ -40,6 +42,11 @@ set(lisbslic3r_sources
     Algorithm/LineSegmentation/LineSegmentation.hpp
     AnyPtr.hpp
     AStar.hpp
+    Desensitize.cpp
+    Desensitize.hpp
+    Log.cpp
+    Log.hpp
+    LogKeys.hpp
     LogSink.hpp
     LogSink.cpp
     BoundingBox.cpp
@@ -302,6 +309,8 @@ set(lisbslic3r_sources
     PolygonTrimmer.hpp
     Polyline.cpp
     Polyline.hpp
+    NozzleInventory.cpp
+    NozzleInventory.hpp
     Preset.cpp
     Preset.hpp
     PresetBundle.cpp
@@ -312,6 +321,10 @@ set(lisbslic3r_sources
     PrincipalComponents2D.cpp
     AppConfig.cpp
     AppConfig.hpp
+    AdaptiveLayerMerge.cpp
+    AdaptiveLayerMerge.hpp
+    SupportMergePlan.cpp
+    SupportMergePlan.hpp
     Print.cpp
     Print.hpp
     PrintApply.cpp
@@ -337,6 +350,8 @@ set(lisbslic3r_sources
     SLAPrint.hpp
     Slicing.cpp
     Slicing.hpp
+    SupportRecommendedParams.cpp
+    SupportRecommendedParams.hpp
     SlicesToTriangleMesh.hpp
     SlicesToTriangleMesh.cpp
     SlicingAdaptive.cpp
@@ -618,6 +633,12 @@ if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14.1)
     set_property(TARGET libslic3r PROPERTY CXX_EXTENSIONS OFF)
     set_property(TARGET libslic3r_cgal PROPERTY CXX_STANDARD 17)
     set_property(TARGET libslic3r_cgal PROPERTY CXX_EXTENSIONS OFF)
+endif()
+
+# Apple clang 21 segfaults in the loop vectorizer (VPlanTransforms::narrowInterleaveGroups) on
+# the per-nozzle volume type code. The loops here are not hot, so skip vectorizing these files.
+if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    set_source_files_properties(PrintConfig.cpp PresetBundle.cpp PROPERTIES COMPILE_OPTIONS -fno-vectorize)
 endif()
 
 target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl mcut)

@@ -34,6 +34,7 @@ namespace Slic3r
             std::string type;
             bool is_support;
             FilamentUsageType usage_type;
+            float diameter{0.f};
         };
 
         struct MachineFilamentInfo: public FilamentInfo {
@@ -41,6 +42,25 @@ namespace Slic3r
             bool is_extended;
             std::string filament_id;            // 材料类 ID（tray_info_idx），可区分同 filament_type 下的耗材小类，如 GFA17（PLA Translucent）与 GFL99（Generic PLA）。
             bool operator<(const MachineFilamentInfo& other) const;            // 不比较 filament_id，使同类型、同色但小类不同的耗材进入同一候选集合。
+        };
+
+        struct NozzleLoadedFilamentInfo : public FilamentInfo
+        {
+            int         nozzle_id = -1;
+            std::string filament_id;
+            bool        valid = false;
+
+            bool operator==(const NozzleLoadedFilamentInfo& other) const
+            {
+                return nozzle_id == other.nozzle_id &&
+                    filament_id == other.filament_id &&
+                    valid == other.valid &&
+                    color == other.color &&
+                    type == other.type &&
+                    is_support == other.is_support &&
+                    usage_type == other.usage_type &&
+                    diameter == other.diameter;
+            }
         };
 
         class FilamentGroupException: public std::exception {
