@@ -2496,8 +2496,14 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     if (n > (unsigned int)(EnforcerBlockerType::ExtruderMax))
         n = (unsigned int)(EnforcerBlockerType::ExtruderMax);
     unsigned old_filament_count = this->filament_presets.size();
+    // New slots copy the last physical slot. Mixed slots sit after the physical ones, so back()
+    // would copy a mixed slot instead of the filament the user sees last in the list.
+    // Read before the resizes below: they grow filament_is_mixed.
+    size_t source_slot = old_filament_count > 0 ? old_filament_count - 1 : 0;
+    while (source_slot > 0 && is_mixed_filament(source_slot))
+        --source_slot;
     if (n > old_filament_count && old_filament_count != 0)
-        filament_presets.resize(n, filament_presets.back());
+        filament_presets.resize(n, filament_presets[source_slot]);
     else {
         filament_presets.resize(n);
     }
@@ -2509,7 +2515,7 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     ConfigOptionInts* filament_volume_map = project_config.option<ConfigOptionInts>("filament_volume_map");
     ConfigOptionStrings* selected_nozzle_diameters =
         project_config.option<ConfigOptionStrings>("filament_diameter_map");
-    // A new slot copies its filament preset from the previous one (filament_presets.resize above), so
+    // A new slot copies its filament preset from source_slot (filament_presets.resize above), so
     // inherit that slot's nozzle diameter / flow too instead of snapping to the first installed
     // Standard nozzle. Read before the resizes below, which is where the padding value is consumed.
     // validate_filament_nozzle_diameter_selections() at the end repairs the inherited pair when the
@@ -2519,11 +2525,11 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     const bool inherit_nozzle_selection = old_filament_count > 0 &&
         multi_nozzle_diameter_mode_enabled(project_config) &&
         is_single_ext_multi_nozzle(printers.get_edited_preset().config);
-    const int inherited_volume = (inherit_nozzle_selection && old_filament_count <= filament_volume_map->values.size())
-        ? filament_volume_map->values[old_filament_count - 1]
+    const int inherited_volume = (inherit_nozzle_selection && source_slot < filament_volume_map->values.size())
+        ? filament_volume_map->values[source_slot]
         : static_cast<int>(NozzleVolumeType::nvtStandard);
-    const std::string inherited_diameter = (inherit_nozzle_selection && old_filament_count <= selected_nozzle_diameters->values.size())
-        ? selected_nozzle_diameters->values[old_filament_count - 1]
+    const std::string inherited_diameter = (inherit_nozzle_selection && source_slot < selected_nozzle_diameters->values.size())
+        ? selected_nozzle_diameters->values[source_slot]
         : std::string();
 
     filament_color->resize(n);

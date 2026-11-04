@@ -6854,8 +6854,8 @@ size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::
     }
 
     // Color-decompose (and similar) must copy the source slot's diameter/flow.
-    // set_num_filaments() otherwise inherits from the last existing slot, which
-    // is often a mixed row or a different physical diameter.
+    // set_num_filaments() otherwise inherits from the last physical slot, which
+    // can have a different diameter.
     if (inherit_nozzle_from >= 0 && filament_nozzle_chip_supported()) {
         PresetBundle *preset_bundle = wxGetApp().preset_bundle;
         auto *diameter_opt = project_config.option<ConfigOptionStrings>("filament_diameter_map");
