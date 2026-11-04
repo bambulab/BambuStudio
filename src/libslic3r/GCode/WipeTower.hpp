@@ -327,6 +327,18 @@ public:
         return line_width - layer_height * (1.f - float(M_PI) / 4.f);
     }
 
+    // Wipe lines bridging a floating band extrude with the flow of half the nozzle diameter, capped at 0.2 mm.
+    // A sagging bridge stops on the last dense surface below pos_y, so the flow never exceeds the gap down to it.
+    // Never below the slab height itself, so the bridge does not get less material than a supported line.
+    // filament_id is the filament actually extruding the line, which may differ from m_current_tool.
+    float bridge_flow_height(size_t filament_id, float slab_height, float pos_y) const
+    {
+        const float diameter = filament_id < m_filpar.size() ? m_filpar[filament_id].nozzle_diameter : 0.f;
+        const float height   = diameter > 0.f ? std::min(0.5f * diameter, 0.2f) : 0.2f;
+        return std::max(slab_height, std::min(height, m_z_pos - dense_support_z(pos_y)));
+    }
+    // Top of the last layer that laid the current band down dense at pos_y, or 0 (the bed) if none did.
+    float dense_support_z(float pos_y) const;
 	bool get_floating_area(float& start_pos_y, float& end_pos_y) const;
 	bool need_thick_bridge_flow(float pos_y, float slab_height) const;
     float get_extrusion_flow() const { return m_extrusion_flow; }
@@ -822,6 +834,17 @@ private:
             return false;
         const float bed = m_plan[first].z - m_plan[first].height;
         return m_z_pos - slab_height <= bed + WT_EPSILON;
+    }
+    // Plan-time counterpart of is_first_layer_for_slab() for the layer at layer_idx.
+    bool  slab_touches_bed(int layer_idx, float slab_height) const
+    {
+        if (layer_idx < 0 || size_t(layer_idx) >= m_plan.size())
+            return false;
+        const size_t first = m_first_layer_idx == size_t(-1) ? 0 : m_first_layer_idx;
+        if (first >= m_plan.size())
+            return false;
+        const float bed = m_plan[first].z - m_plan[first].height;
+        return m_plan[layer_idx].z - slab_height <= bed + WT_EPSILON;
     }
     float calc_tower_feedrate(int filament_id, float extrusion_flow) const {
         return calc_tower_feedrate(filament_id, extrusion_flow, is_first_layer());
