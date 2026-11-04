@@ -15,6 +15,7 @@
 
 #ifdef __APPLE__
 #include "MacUtils.hpp"
+#include <CoreFoundation/CoreFoundation.h>
 #endif
 
 #ifdef WIN32
@@ -1097,6 +1098,38 @@ std::string normalize_utf8_nfc(const char *src)
 {
     static std::locale locale_utf8(boost::locale::generator().generate(""));
     return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
+}
+
+std::string normalize_utf8_nfd(const std::string &src)
+{
+#ifdef __APPLE__
+    if (src.empty())
+        return src;
+
+    CFStringRef cf_src = ::CFStringCreateWithBytes(kCFAllocatorDefault, reinterpret_cast<const UInt8 *>(src.data()),
+                                                   static_cast<CFIndex>(src.size()), kCFStringEncodingUTF8, false);
+    if (cf_src == nullptr)
+        // Not valid UTF-8. Hand the bytes back untouched, the caller still has its original path to work with.
+        return src;
+
+    CFMutableStringRef cf_nfd = ::CFStringCreateMutableCopy(kCFAllocatorDefault, 0, cf_src);
+    ::CFRelease(cf_src);
+    if (cf_nfd == nullptr)
+        return src;
+    ::CFStringNormalize(cf_nfd, kCFStringNormalizationFormD);
+
+    const CFRange range = ::CFRangeMake(0, ::CFStringGetLength(cf_nfd));
+    CFIndex       size  = 0;
+    ::CFStringGetBytes(cf_nfd, range, kCFStringEncodingUTF8, 0, false, nullptr, 0, &size);
+    std::string dst(static_cast<size_t>(size), '\0');
+    if (size > 0)
+        ::CFStringGetBytes(cf_nfd, range, kCFStringEncodingUTF8, 0, false, reinterpret_cast<UInt8 *>(dst.data()), size, &size);
+    ::CFRelease(cf_nfd);
+    dst.resize(static_cast<size_t>(size));
+    return dst;
+#else  /* __APPLE__ */
+    return src;
+#endif /* __APPLE__ */
 }
 
 std::vector<std::string> split_string(const std::string &str, char delimiter)

@@ -228,6 +228,10 @@ typedef std::string local_encoded_string;
 extern local_encoded_string encode_path(const char *src);
 extern std::string decode_path(const char *src);
 extern std::string normalize_utf8_nfc(const char *src);
+// Convert an UTF-8 string to the decomposed (NFD) normalization form.
+// macOS hands out precomposed (NFC) paths, while SMB/NFS volumes match names byte by byte and many
+// servers store them decomposed, so a path may only be openable in this form. A no-op off macOS.
+extern std::string normalize_utf8_nfd(const std::string &src);
 extern std::vector<std::string> split_string(const std::string &str, char delimiter);
 
 // Safely rename a file even if the target exists.
