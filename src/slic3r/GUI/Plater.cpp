@@ -11397,6 +11397,8 @@ void Plater::priv::collapse_sidebar(bool collapse)
 
     int id = collapse_toolbar.get_item_id("collapse_sidebar");
     collapse_toolbar.set_tooltip(id, new_tooltip);
+    // The icon depends on the collapsed state, so the sprite must be regenerated.
+    collapse_toolbar.set_icon_dirty();
 
     update_sidebar();
 }
@@ -21582,8 +21584,8 @@ bool Plater::priv::init_collapse_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "collapse_sidebar";
-    item.icon_filename_callback = [](bool is_dark_mode)->std::string {
-        return "collapse.svg";
+    item.icon_filename_callback = [this](bool is_dark_mode)->std::string {
+        return sidebar_layout.is_collapsed ? "sidebar_expand.svg" : "sidebar_collapse.svg";
     };
     item.sprite_id = 0;
     item.left.action_callback = []() {
