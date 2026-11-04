@@ -233,6 +233,7 @@ protected:
 
 #ifdef __WIN32__
     WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
+    void log_display_message(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 #endif
 
 public:

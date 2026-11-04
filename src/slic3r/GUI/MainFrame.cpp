@@ -81,6 +81,8 @@
 #include <shlobj.h>
 #include <shellapi.h>
 #include <dwmapi.h>
+#include <wtsapi32.h>
+#pragma comment(lib, "wtsapi32.lib")
 #endif // _WIN32
 #include <slic3r/GUI/CreatePresetsDialog.hpp>
 #include "libslic3r/Log.hpp"
@@ -244,6 +246,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // DWM can't efficiently composite a frameless window during drag.
     MARGINS margins = {0, 0, 0, 1};
     DwmExtendFrameIntoClientArea((HWND)GetHandle(), &margins);
+
+    // Lock / unlock notices, logged in MSWWindowProc to place display changes on a timeline.
+    if (!::WTSRegisterSessionNotification((HWND)GetHandle(), NOTIFY_FOR_THIS_SESSION))
+        BOOST_LOG_TRIVIAL(warning) << KV(log_key::ret, ::GetLastError()) << "session notification register failed";
+
+    // Starting point for the DPI changes logged later.
+    BOOST_LOG_TRIVIAL(info) << "display at start window_dpi=" << GetDPI().y << " system_dpi=" << ::GetDpiForSystem()
+                            << " scale=" << scale_factor() << " em=" << em_unit() << " monitors=" << ::GetSystemMetrics(SM_CMONITORS);
 #endif
 
     if (!wxGetApp().app_config->has("user_mode")) {
@@ -945,6 +955,51 @@ static void ClampMaxToWorkArea(const HWND hWnd, MINMAXINFO *mmi)
     mmi->ptMaxSize.y     = (work.bottom - work.top) + (frame.bottom - frame.top);
 }
 
+/**
+ * \brief Log the system messages that can change the window DPI or layout
+ *
+ * These come rarely (lock, sleep, monitor plug, scale change), so each one is logged.
+ * They give the timeline for layout that breaks after the screen is locked.
+ */
+void MainFrame::log_display_message(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+{
+    switch (nMsg) {
+    case WM_DPICHANGED: {
+        const RECT *rc = reinterpret_cast<const RECT *>(lParam);
+        // Windows already reports the new DPI for the window here; the old one is in the "DPI changed" log.
+        BOOST_LOG_TRIVIAL(info) << "WM_DPICHANGED window_dpi=" << GetDPI().y << " new_dpi=" << HIWORD(wParam)
+                                << " suggested=" << rc->left << "," << rc->top << " " << rc->right - rc->left << "x" << rc->bottom - rc->top
+                                << " client=" << GetClientSize().x << "x" << GetClientSize().y;
+        break;
+    }
+    case WM_DISPLAYCHANGE:
+        BOOST_LOG_TRIVIAL(info) << "WM_DISPLAYCHANGE " << LOWORD(lParam) << "x" << HIWORD(lParam) << " bpp=" << wParam
+                                << " window_dpi=" << GetDPI().y << " monitors=" << ::GetSystemMetrics(SM_CMONITORS);
+        break;
+    case WM_SETTINGCHANGE:
+        BOOST_LOG_TRIVIAL(info) << "WM_SETTINGCHANGE action=" << wParam;
+        break;
+    case WM_WTSSESSION_CHANGE: {
+        const char *name = "other";
+        switch (wParam) {
+        case WTS_SESSION_LOCK: name = "lock"; break;
+        case WTS_SESSION_UNLOCK: name = "unlock"; break;
+        case WTS_CONSOLE_CONNECT: name = "console_connect"; break;
+        case WTS_CONSOLE_DISCONNECT: name = "console_disconnect"; break;
+        case WTS_REMOTE_CONNECT: name = "remote_connect"; break;
+        case WTS_REMOTE_DISCONNECT: name = "remote_disconnect"; break;
+        }
+        BOOST_LOG_TRIVIAL(info) << "WM_WTSSESSION_CHANGE " << name << " code=" << wParam << " window_dpi=" << GetDPI().y;
+        break;
+    }
+    case WM_POWERBROADCAST:
+        // PBT_POWERSETTINGCHANGE repeats often and is not useful here.
+        if (wParam != PBT_POWERSETTINGCHANGE)
+            BOOST_LOG_TRIVIAL(info) << "WM_POWERBROADCAST event=" << wParam << " (4=suspend 7=resume 18=auto resume)";
+        break;
+    }
+}
+
 WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
     /* When we have a custom titlebar in the window, we don't need the non-client area of a normal window
@@ -952,6 +1007,8 @@ WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
      * size of non-client area of a window and set the return value to 0. Also we have to tell the
      * application to not paint this area on activate and deactivation events so we also handle
      * "WM_NCACTIVATE" message. */
+    log_display_message(nMsg, wParam, lParam);
+
     switch (nMsg) {
     case WM_NCACTIVATE: {
         /* Returning 0 from this message disable the window from receiving activate events which is not
@@ -1183,6 +1240,7 @@ void MainFrame::shutdown()
 		::UnregisterDeviceNotification(HDEVNOTIFY(m_hDeviceNotify));
 		m_hDeviceNotify = nullptr;
 	}
+    ::WTSUnRegisterSessionNotification((HWND)GetHandle());
  	if (m_ulSHChangeNotifyRegister) {
         SHChangeNotifyDeregister(m_ulSHChangeNotifyRegister);
         m_ulSHChangeNotifyRegister = 0;

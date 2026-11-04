@@ -161,7 +161,13 @@ public:
         this->Bind(wxEVT_DPI_CHANGED, [this](wxDPIChangedEvent& evt) {
 	            m_scale_factor = (float)evt.GetNewDPI().x / (float)DPI_DEFAULT;
 	            m_new_font_point_size = get_default_font_for_dpi(this, evt.GetNewDPI().x).GetPointSize();
-	            if (m_can_rescale && (m_force_rescale || is_new_scale_factor()))
+	            const bool do_rescale = m_can_rescale && (m_force_rescale || is_new_scale_factor());
+	            // wx has already scaled min sizes, borders and spacers by new/old DPI before this event.
+	            BOOST_LOG_TRIVIAL(info) << "DPI changed window=\"" << this->GetName() << "\" old_dpi=" << evt.GetOldDPI().y
+	                                    << " new_dpi=" << evt.GetNewDPI().y << " prev_scale=" << m_prev_scale_factor
+	                                    << " new_scale=" << m_scale_factor << " can_rescale=" << m_can_rescale
+	                                    << " force=" << m_force_rescale << " rescale=" << do_rescale;
+	            if (do_rescale)
 	                rescale(wxRect());
             });
 #else
@@ -194,6 +200,10 @@ public:
             m_can_rescale = is_new_scale_factor();
 
             // If scale factor is different after moving of MainFrame ...
+            if (m_can_rescale) {
+                BOOST_LOG_TRIVIAL(info) << "rescale after move window=\"" << this->GetName() << "\" prev_scale=" << m_prev_scale_factor
+                                        << " new_scale=" << m_scale_factor;
+            }
             if (m_can_rescale)
                 // ... rescale application
                 rescale(event.GetRect());
