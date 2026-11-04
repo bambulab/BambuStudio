@@ -239,7 +239,7 @@ namespace instance_check_internal
 			std::string		interface_name = "com.bambulab.BambuStudio.InstanceCheck.Object" + version;
 			std::string   	method_name = "AnotherInstance";
 			//std::string		object_name = "/com/prusa3d/prusaslicer/InstanceCheck";
-			std::string		object_name = "/com.bambulab/BambuStudio/InstanceCheck/Object" + version;
+			std::string		object_name = "/com/bambulab/BambuStudio/InstanceCheck/Object" + version;
 
 
 			// initialise the error value
@@ -598,7 +598,7 @@ void OtherInstanceMessageHandler::listen()
     DBusObjectPathVTable vtable;
     std::string 		 instance_hash  = wxGetApp().get_instance_hash_string();
     std::string			 interface_name = "com.bambulab.BambuStudio.InstanceCheck.Object" + instance_hash;
-    std::string			 object_name 	= "/com.bambulab/BambuStudio/InstanceCheck/Object" + instance_hash;
+    std::string			 object_name 	= "/com/bambulab/BambuStudio/InstanceCheck/Object" + instance_hash;
 
     //BOOST_LOG_TRIVIAL(debug) << "init dbus listen " << interface_name << " " << object_name;
     dbus_error_init(&err);
