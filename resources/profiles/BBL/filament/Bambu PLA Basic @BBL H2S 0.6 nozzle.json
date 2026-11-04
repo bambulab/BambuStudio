@@ -14,11 +14,11 @@
     "counter_coef_3": [
         "0.014"
     ],
-    "counter_limit_min": [
-        "0.014"
-    ],
     "counter_limit_max": [
         "0.076"
+    ],
+    "counter_limit_min": [
+        "0.014"
     ],
     "eng_plate_temp": [
         "55"
@@ -45,7 +45,12 @@
     "filament_max_volumetric_speed": [
         "30",
         "40",
-        "30"
+        "40"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0",
+        "0"
     ],
     "filament_retraction_length": [
         "0.4",
@@ -67,22 +72,17 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0",
-        "0"
-    ],
     "hole_coef_2": [
         "-0.0028"
     ],
     "hole_coef_3": [
         "0.12"
     ],
-    "hole_limit_min": [
-        "0.05"
-    ],
     "hole_limit_max": [
         "0.12"
+    ],
+    "hole_limit_min": [
+        "0.05"
     ],
     "include": [
         "fdm_filament_template_direct_dual_e3d"
@@ -110,12 +110,6 @@
         "0",
         "0"
     ],
-    "supertack_plate_temp": [
-        "40"
-    ],
-    "supertack_plate_temp_initial_layer": [
-        "40"
-    ],
     "slow_down_layer_time": [
         "6"
     ],
@@ -123,6 +117,12 @@
         "20",
         "20",
         "20"
+    ],
+    "supertack_plate_temp": [
+        "40"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "40"
     ],
     "compatible_printers": [
         "Bambu Lab H2S 0.6 nozzle"
