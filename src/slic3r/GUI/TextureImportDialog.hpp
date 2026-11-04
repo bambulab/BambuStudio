@@ -74,12 +74,20 @@ struct TextureFilamentEntry {
     std::string         preset_name;
     std::vector<unsigned int> mixed_components;
     std::vector<int>          mixed_ratios;
+    // Full colour set of a physical filament ("#RRGGBB", primary first). Only used
+    // for swatches and project import; matching and 3D preview use color_hex.
+    std::vector<std::string>  multi_colors;
+    bool                      is_gradient{false};
 };
 
 // Coarse family type (PLA / PETG / ABS / ...). Empty if unknown or mixed
 // components disagree, so callers can skip cross-material pairing.
 std::string texture_entry_family_type(const TextureFilamentEntry& entry,
                                       const std::vector<TextureFilamentEntry>& entries);
+
+// Fill multi_colors / is_gradient from the project filament at project_index.
+// Left empty for single-colour filaments.
+void texture_entry_fill_multi_colors(TextureFilamentEntry& entry, size_t project_index);
 
 struct TextureNewMixedFilament {
     int                       dialog_index{-1};
@@ -370,7 +378,9 @@ private:
     void reset_auto_mix();
     int  add_virtual_filament(const std::array<float, 4>& rgba, const std::string& hex,
                               const std::string& preset_name = std::string(),
-                              const std::string& display_name = std::string());
+                              const std::string& display_name = std::string(),
+                              const std::vector<std::string>& multi_colors = {},
+                              bool is_gradient = false);
     int  add_virtual_mixed_filament(const std::string& color_hex,
                                     const std::vector<int>& component_dialog_indices,
                                     const std::vector<int>& ratios);
@@ -572,6 +582,7 @@ private:
     wxPanel*              m_mapping_panel  = nullptr;
     wxPanel*              m_preview_container = nullptr;
     wxPanel*              m_stepper_panel  = nullptr;
+    wxPanel*              m_wiki_link      = nullptr;
 
     CheckBox*             m_mix_cb = nullptr;
     wxStaticText*         m_lbl_mix_help = nullptr;

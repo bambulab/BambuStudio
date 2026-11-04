@@ -6756,7 +6756,8 @@ void Sidebar::add_custom_filament(wxColour new_col, const std::string& preset_na
     add_custom_filaments({ { new_col, preset_name } }, inherit_nozzle_from);
 }
 
-size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::string>>& items, int inherit_nozzle_from)
+size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::string>>& items, int inherit_nozzle_from,
+                                     const std::vector<std::pair<std::vector<std::string>, bool>>& multi_colours)
 {
     if (items.empty() || is_new_project_in_gcode3mf())
         return size_t(-1);
@@ -6827,12 +6828,23 @@ size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::
     for (size_t i = 0; i < k; ++i) {
         const size_t idx = insert_pos + i;
         const std::string new_color = items[i].first.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+        // Same storage as PlaterPresetComboBox::sync_colour_config: primary colour first,
+        // space separated; colour type "0" = gradient, "1" = single / multi-colour.
+        std::string multi_color = new_color;
+        std::string colour_type = "1";
+        if (i < multi_colours.size() && multi_colours[i].first.size() >= 2) {
+            const auto& colours = multi_colours[i].first;
+            for (size_t ci = 1; ci < colours.size(); ++ci)
+                multi_color += " " + colours[ci];
+            if (multi_colours[i].second)
+                colour_type = "0";
+        }
         if (colour_opt && idx < colour_opt->values.size())
             colour_opt->values[idx] = new_color;
         if (multi_opt && idx < multi_opt->values.size())
-            multi_opt->values[idx] = new_color;
+            multi_opt->values[idx] = multi_color;
         if (type_opt && idx < type_opt->values.size())
-            type_opt->values[idx] = "1";
+            type_opt->values[idx] = colour_type;
         const std::string& preset_name = items[i].second;
         if (!preset_name.empty() &&
             wxGetApp().preset_bundle->filaments.find_preset(preset_name, false) &&
@@ -13382,6 +13394,7 @@ bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, 
                 }
             } else {
                 entry.type = family_type_of(i);
+                texture_entry_fill_multi_colors(entry, i);
             }
             filament_entries.push_back(std::move(entry));
         }
@@ -13630,18 +13643,21 @@ void Plater::priv::apply_textured_mesh_import_result(Slic3r::Model& loaded_model
     }
 
     std::vector<std::pair<wxColour, std::string>> new_physicals;
+    std::vector<std::pair<std::vector<std::string>, bool>> new_physical_multi_colours;
     std::vector<int> new_physical_dialog_indices;
     new_physicals.reserve(new_physical_count);
+    new_physical_multi_colours.reserve(new_physical_count);
     new_physical_dialog_indices.reserve(new_physical_count);
     for (const auto& entry : entries) {
         if (entry.kind != TextureFilamentKind::NewPhysical)
             continue;
         new_physicals.emplace_back(wxColour(entry.color_hex), entry.preset_name);
+        new_physical_multi_colours.emplace_back(entry.multi_colors, entry.is_gradient);
         new_physical_dialog_indices.push_back(entry.dialog_index);
     }
     size_t added_physical = 0;
     if (!new_physicals.empty()) {
-        const size_t insert_pos = sidebar->add_custom_filaments(new_physicals);
+        const size_t insert_pos = sidebar->add_custom_filaments(new_physicals, -1, new_physical_multi_colours);
         added_physical = (insert_pos == size_t(-1)) ? 0 :
             std::min(new_physicals.size(), sidebar->combos_filament().size() - insert_pos);
         for (size_t i = 0; i < added_physical; ++i) {

@@ -244,7 +244,10 @@ public:
     // index, or size_t(-1) if nothing was added. Truncates to MAX_PHYSICAL_FILAMENT_COUNT physicals.
     // inherit_nozzle_from: when >= 0 in multi-diameter mode, copy that slot's
     // diameter/flow onto the new physicals (color-decompose of a 0.4 source).
-    size_t add_custom_filaments(const std::vector<std::pair<wxColour, std::string>>& items, int inherit_nozzle_from = -1);
+    // multi_colours: optional, aligned with items. {colour list, is_gradient} for
+    // gradient / multi-colour filaments; lists shorter than 2 keep the single colour.
+    size_t add_custom_filaments(const std::vector<std::pair<wxColour, std::string>>& items, int inherit_nozzle_from = -1,
+                                const std::vector<std::pair<std::vector<std::string>, bool>>& multi_colours = {});
     void scroll_filament_area_to_bottom();
     void scroll_mixed_filament_area_to_bottom();
     bool is_new_project_in_gcode3mf();
