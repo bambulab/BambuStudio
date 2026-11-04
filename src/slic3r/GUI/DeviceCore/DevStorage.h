@@ -46,6 +46,7 @@ public:
         StorageState state{StorageState::NotExist};
         long long    total_kb{-1};
         long long    used_kb{-1};
+        bool         has_attr{false}; // type/state pushed; name/total/used do not depend on it
 
         long long free_kb() const { return (total_kb >= 0 && used_kb >= 0) ? total_kb - used_kb : -1; }
     };
@@ -97,6 +98,7 @@ private:
     SdcardState    m_sdcard_state  { NO_SDCARD };
 
     bool                      m_has_storage_info{false};
+    bool                      m_has_storage_attr{false}; // every entry carries type/state
     std::vector<StorageEntry> m_storages;
 
     // timelapse storage space info (from device push cam data)
