@@ -2230,7 +2230,9 @@ int CLI::run(int argc, char **argv)
                         old_printable_width = (int)(old_printable_area[2].x() - old_printable_area[0].x());
                         old_printable_depth = (int)(old_printable_area[2].y() - old_printable_area[0].y());
                     }
-                    old_printable_height = (int)(config.opt_float("printable_height"));
+                    // Exports from other programs can name a Bambu printer and leave this out.
+                    if (const auto *printable_height_opt = config.option<ConfigOptionFloat>("printable_height"))
+                        old_printable_height = (int) printable_height_opt->value;
                     // Intersection of every extruder printable area. Its center is the region both
                     // nozzles can reach; printable_area's own center includes single-nozzle strips.
                     if (config.option<ConfigOptionPointsGroups>("extruder_printable_area") && old_printable_width > 0 && old_printable_depth > 0) {
