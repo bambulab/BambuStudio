@@ -3,6 +3,7 @@
 #include "DevExtruderSystem.h"
 
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/I18N.hpp"
 
@@ -12,7 +13,12 @@
 namespace Slic3r
 {
 
-void DevNozzleRack::CtrlRackPosMove(RackPos new_pos) const
+void DevNozzleRack::SetNozzleTargetTemp(int nozzle_pos_id, int temp)
+{
+    m_nozzle_system->GetOwner()->command_set_nozzle_new(nozzle_pos_id, temp);
+}
+
+void DevNozzleRack::CtrlRackPosMove(RackABPos new_pos) const
 {
     if (!CheckRackMoveWarningDlg())
     {
@@ -39,6 +45,27 @@ void DevNozzleRack::CtrlRackPosMove(RackPos new_pos) const
     }
 }
 
+void DevNozzleRack::CtrlRackPosMove(DirectRackPos new_pos) const
+{
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::NozzleRack)) return;
+
+    if (CheckRackMoveWarningDlg()) {
+        int action_id = -1;
+        if (new_pos == DirectRackPos::RACK_POS_UP) {
+            action_id = 1;
+        } else if (new_pos == DirectRackPos::RACK_POS_DOWN) {
+            action_id = 2;
+        } else if (new_pos == DirectRackPos::RACK_POS_CENTRE) {
+            action_id = 0;
+        }
+
+        json j;
+        j["print"]["command"] = "nozzle_holder_ctrl";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        j["print"]["action"] = action_id;
+        m_nozzle_system->GetOwner()->publish_json(j);
+    }
+}
 
 void DevNozzleRack::CtrlRackPosGoHome() const
 {
@@ -97,6 +124,12 @@ void DevNozzleRack::CtrlRackConfirmAll() const
 
 void DevNozzleRack::CrtlRackReadNozzle(int rack_nozzle_id) const
 {
+    const auto nozzle_opt = m_nozzle_system->GetNozzleOptByAddrId(rack_nozzle_id);
+    if (!nozzle_opt.has_value() || !nozzle_opt->IsExist() ||
+        nozzle_opt->GetToolDefs().tool_type != DevNozzleToolType::Nozzle) {
+        return;
+    }
+
     json j;
     j["print"]["command"] = "holder_nozzle_refresh";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -119,18 +152,16 @@ bool DevNozzleRack::CtrlCanReadAll() const
 
     //if have nozzle
     bool has_nozzle_on_rack = false;
-    for (const auto &nozzle_pair : m_rack_nozzles)
-    {
-        if (!nozzle_pair.second.IsEmpty())
-        {
+    for (const auto &nozzle_pair : m_rack_nozzles) {
+        if (!nozzle_pair.second.IsEmpty()) {
             has_nozzle_on_rack = true;
-            break;
         }
     }
 
     bool has_nozzle_on_ext = false;
     if (m_nozzle_system->ContainsExtNozzle(MAIN_EXTRUDER_ID)) {
-        has_nozzle_on_ext = true;
+        const auto ext_nozzle = m_nozzle_system->GetExtNozzle(MAIN_EXTRUDER_ID);
+        has_nozzle_on_ext = !ext_nozzle.IsEmpty();
     }
 
     if (!has_nozzle_on_rack && !has_nozzle_on_ext) {
@@ -156,6 +187,10 @@ bool DevNozzleRack::CtrlCanReadAll() const
 
 void DevNozzleRack::CtrlRackReadAll(bool gui_check) const
 {
+    if (!CtrlCanReadAll()) {
+        return;
+    }
+
     if (gui_check && wxThread::IsMain())
     {
 #if 0
@@ -190,10 +225,47 @@ void DevNozzleRack::CtrlRackReadAll(bool gui_check) const
     j["print"]["command"] = "holder_nozzle_refresh";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["id"] = 0xff;
+    j["print"]["mode"] = 1;
     m_nozzle_system->GetOwner()->publish_json(j);
 }
 
+void DevNozzleRack::CtrlNozzleExchange(int from, int to) const
+{
+    if (!CheckRackMoveWarningDlg())
+    {
+        return;
+    }
 
+    json j;
+    j["print"]["command"] = "nozzle_exchange";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["from"] = from;
+    j["print"]["to"] = to;
+    m_nozzle_system->GetOwner()->publish_json(j);
+}
+
+namespace {
+void ctrl_hotend_rack_ams_control(const DevNozzleRack* rack, const std::string& action)
+{
+    if (!rack || !rack->GetNozzleSystem() || !rack->GetNozzleSystem()->GetOwner()) {
+        return;
+    }
+    rack->GetNozzleSystem()->GetOwner()->command_ams_control(action);
+}
+}
+
+void DevNozzleRack::CtrlStopHotendRackJob() const
+{
+    ctrl_hotend_rack_ams_control(this, "abort");
+}
+
+void DevNozzleRack::CtrlRetryHotendRackJob() const
+{
+    ctrl_hotend_rack_ams_control(this, "resume");
+}
+
+
+#if 0
 bool DevNozzleRack::CtrlCanUpdateAll() const
 {
     if (m_nozzle_system->GetOwner()->is_in_printing())
@@ -279,5 +351,6 @@ int DevNozzleRack::CtrlRackUpgrade(const std::string& module_str) const
     j["upgrade"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     return m_nozzle_system->GetOwner()->publish_json(j);
 }
+#endif
 
 };

@@ -7,11 +7,17 @@
  * \date   February 2026
  *********************************************************************/
 #include "AmsMappingPopup.hpp"
+#include "DevMappingHelpers.h"
 #include "I18N.hpp"
 #include "DeviceCore/DevConfigUtil.h"
+#include "DeviceWeb/DeviceWebHost.hpp"
+#include "DeviceWeb/ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendVM.hpp"
 
 #include "libslic3r/Utils.hpp"
 #include "slic3r/Utils/WxFontUtils.hpp"
+#if defined(__WXOSX__)
+#include "slic3r/Utils/MacDarkMode.hpp"
+#endif
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Preview.hpp"
@@ -34,9 +40,13 @@
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevFilaSwitch.h"
 #include "DeviceCore/DevMappingNozzle.h"
+#include "DeviceCore/DevNozzleRack.h"
+#include "DeviceCore/DevNozzleSystem.h"
+#include "DeviceCore/DevExtruderSystem.h"
 
 #include "DeviceTab/wgtDeviceNozzleSelect.h"
 #include "DeviceTab/wgtMsgPanel.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r::GUI {
 
@@ -61,6 +71,19 @@ static void _add_containers(const AmsMapingPopup* win,
     }
 }
 
+#if defined(__WXOSX__)
+static void SetHotendMappingWebCompositorSuppressed(DeviceWebHost* host, bool suppress)
+{
+    if (!host)
+        return;
+    wxWebView* web = host->GetWebView();
+    if (!web)
+        return;
+    if (void* native = web->GetNativeBackend())
+        Slic3r::GUI::WKWebView_setCompositorSuppressed(native, suppress);
+}
+#endif
+
 void AmsMapingPopup::update(MachineObject* obj,
                             const std::vector<FilamentInfo>& ams_mapping_result,
                             bool use_dynamic_switch,
@@ -70,6 +93,10 @@ void AmsMapingPopup::update(MachineObject* obj,
 
     if (!obj) { return; }
 
+    // Default to an immediate show; the hotend-web reopen path re-arms the
+    // deferred (anti-flicker) show below. Legacy wx machines always show now.
+    m_defer_next_show = false;
+
     for (auto& ams_container : m_amsmapping_container_list) {
         ams_container->Destroy();
     }
@@ -77,6 +104,25 @@ void AmsMapingPopup::update(MachineObject* obj,
     m_amsmapping_container_list.clear();
     m_amsmapping_container_sizer_list.clear();
     m_mapping_item_list.clear();
+
+    // Clear basket sizers (child windows already destroyed above, sizer items auto-detached)
+    m_sizer_ams_basket_left->Clear(false);
+    m_sizer_ams_basket_right->Clear(false);
+
+    // Hotend rack renders the body via Web/DeviceWebHost. Hand off
+    // early so the legacy wx layout below stays untouched for that machine.
+    if (obj->GetNozzleRack()->IsDirectConnectedRack()) {
+        m_title_text->SetLabelText(_L("Please select the filament to match."));
+        update_hotend_web(obj, ams_mapping_result, print_type);
+        return;
+    }
+
+    // Restore legacy layout in case a previous hotend-rack call hid the scrolled body.
+    m_scrolled_window->Show(true);
+    if (m_hotend_web_host) m_hotend_web_host->Show(false);
+#if defined(__WXOSX__)
+    SetHotendMappingWebCompositorSuppressed(m_hotend_web_host, true);
+#endif
 
     /*title*/
     update_title(obj);
@@ -104,9 +150,11 @@ void AmsMapingPopup::update(MachineObject* obj,
         m_split_line_panel->Hide();
         m_right_marea_panel->Show();
         m_right_marea_panel->Enable(true);
-        m_right_extra_slot->Show();
-        m_right_extra_slot->Enable(true);
-        m_right_split_ext_sizer->Show(true);
+
+        bool show_right_ext = (obj->GetFilaSystem()->GetVirtualTrays().size() <= extruder_num);
+        m_right_extra_slot->Show(show_right_ext);
+        m_right_extra_slot->Enable(show_right_ext);
+        m_right_split_ext_sizer->Show(show_right_ext);
         set_sizer_title(m_right_split_ams_sizer, _L("AMS"));
     } else if (extruder_num > 1) {
         if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
@@ -179,60 +227,22 @@ void AmsMapingPopup::update(MachineObject* obj,
     Refresh();
 }
 
-static std::optional<TrayData> sGetTrayData(DevAmsTray* tray,
+// Thin shim over the shared MakeTrayData helper. Kept under the original
+// name so the legacy (non-hotend-rack) call sites below stay unchanged.
+static std::optional<TrayData> sGetTrayData(MachineObject* obj,
+                                            DevAms*        ams /*= nullptr*/,
+                                            DevAmsTray*    tray,
                                             const std::string& ams_id_str)
 {
-    int ams_id = 0;
-    int tray_id = 0;
-    try {
-        ams_id = std::stoi(ams_id_str);
-        tray_id = atoi(tray->id.c_str());
-    } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":[error] invalid ams_id or tray_id: " << e.what();
-        return std::nullopt;
-    }
-
-    TrayData td;
-    td.ams_id = ams_id;
-    if (tray->ams_type != DevAmsType::EXT_SPOOL) {
-        td.slot_id = tray_id;
-    } else {
-        td.slot_id = 0;
-    }
-
-    if (tray->ams_type == DevAmsType::AMS ||
-        tray->ams_type == DevAmsType::AMS_LITE ||
-        tray->ams_type == DevAmsType::N3F) {
-        td.id = ams_id * 4 + tray_id;
-    } else if (tray->ams_type == DevAmsType::N3S) {
-        td.id = ams_id + tray_id;
-    } else if(tray->ams_type == DevAmsType::EXT_SPOOL){
-        td.id = tray_id;
-    }
-
-    if (tray->ams_type != EXT_SPOOL && !tray->is_exists) {
-        td.type = EMPTY;
-    } else {
-        if (!tray->is_tray_info_ready()) {
-            td.type = THIRD;
-        } else {
-            td.type = NORMAL;
-            td.remain = tray->remain;
-            td.colour = DevAmsTray::decode_color(tray->color);
-            td.name = tray->get_display_filament_type();
-            td.filament_type = tray->get_filament_type();
-            td.ctype = tray->ctype;
-            for (const auto& col : tray->cols) {
-                td.material_cols.push_back(DevAmsTray::decode_color(col));
-            }
-        }
-    }
-
-    return td;
+    return MakeTrayData(obj, ams, tray, ams_id_str);
 }
 
 void AmsMapingPopup::update_mapping_items(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result, bool use_dynamic_switch)
 {
+    // Hotend rack (RackType_A/B) is handled earlier by AmsMapingPopup::update()
+    // via update_hotend_web(), which short-circuits before reaching this function.
+    // The legacy wx grid below is for non-hotend-rack machines only.
+
     std::list<MappingContainer*>   left_one_slot_containers;
     std::list<MappingContainer*>   right_one_slot_containers;
     std::vector<MappingContainer*> left_four_slots_containers;
@@ -274,7 +284,7 @@ void AmsMapingPopup::update_mapping_items(MachineObject* obj, const std::vector<
         std::vector<TrayData>                      tray_datas;
         std::map<std::string, DevAmsTray*>::const_iterator tray_iter;
         for (tray_iter = ams_group->GetTrays().cbegin(); tray_iter != ams_group->GetTrays().cend(); tray_iter++) {
-            const auto& td_opt = sGetTrayData(tray_iter->second, ams_group->GetAmsId());
+            const auto& td_opt = sGetTrayData(obj, ams_group, tray_iter->second, ams_group->GetAmsId());
             if (td_opt.has_value()) {
                 tray_datas.push_back(td_opt.value());
             }
@@ -300,36 +310,61 @@ void AmsMapingPopup::update_mapping_items(MachineObject* obj, const std::vector<
         }
     }
 
-    for (int i = obj->vt_slot.size() - 1; i >= 0; i--) {
-        DevAmsTray* tray_data = &obj->vt_slot[i];
-        const auto& td_opt = sGetTrayData(tray_data, tray_data->id);
-        if (!td_opt.has_value()) {
-            continue;
-        }
+    const auto& vir_list = obj->GetFilaSystem()->GetVirtualTrays();
+    if (vir_list.size() <= 2) {
+        for (auto iter = vir_list.rbegin(); iter != vir_list.rend(); iter++) {
+            DevAmsTray tray_data = iter->second;
+            const auto& td_opt = sGetTrayData(obj, nullptr, &tray_data, tray_data.id);
+            if (!td_opt.has_value()) {
+                continue;
+            }
 
-        if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
-            auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
-            const auto& shown_name = td_opt->ams_id == VIRTUAL_TRAY_MAIN_ID ? "Ext-R" : "Ext-L";
-            auto ams_mapping_item_container = new MappingContainer(m_right_marea_panel, shown_name, 1);
-            ams_mapping_item_container->SetName(m_right_marea_panel->GetName());
-            ams_mapping_item_container->SetSizer(sizer_mapping_list);
-            ams_mapping_item_container->Layout();
+            if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
+                auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
+                const auto& shown_name = td_opt->ams_id == VIRTUAL_TRAY_MAIN_ID ? "Ext-R" : "Ext-L";
+                auto ams_mapping_item_container = new MappingContainer(m_right_marea_panel, shown_name, 1);
+                ams_mapping_item_container->SetName(m_right_marea_panel->GetName());
+                ams_mapping_item_container->SetSizer(sizer_mapping_list);
+                ams_mapping_item_container->Layout();
 
-            std::vector<TrayData>  tray_datas;
-            tray_datas.push_back(td_opt.value());
-            add_ams_mapping(tray_datas, false, ams_mapping_item_container, sizer_mapping_list);
-            m_amsmapping_container_sizer_list.push_back(sizer_mapping_list);
-            m_amsmapping_container_list.push_back(ams_mapping_item_container);
-            right_one_slot_containers.push_back(ams_mapping_item_container);
-        } else {
-            if (td_opt->ams_id == VIRTUAL_TRAY_MAIN_ID) {
-                m_right_extra_slot->send_win = send_win;
-                add_ext_ams_mapping(td_opt.value(), m_right_extra_slot);
-            } else if (td_opt->ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
-                m_left_extra_slot->send_win = send_win;
-                add_ext_ams_mapping(td_opt.value(), m_left_extra_slot);
+                std::vector<TrayData>  tray_datas;
+                tray_datas.push_back(td_opt.value());
+                add_ams_mapping(tray_datas, false, ams_mapping_item_container, sizer_mapping_list);
+                m_amsmapping_container_sizer_list.push_back(sizer_mapping_list);
+                m_amsmapping_container_list.push_back(ams_mapping_item_container);
+                right_one_slot_containers.push_back(ams_mapping_item_container);
+            } else {
+                if (td_opt->ams_id == VIRTUAL_TRAY_MAIN_ID) {
+                    m_right_extra_slot->send_win = send_win;
+                    add_ext_ams_mapping(td_opt.value(), m_right_extra_slot);
+                } else if (td_opt->ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
+                    m_left_extra_slot->send_win = send_win;
+                    add_ext_ams_mapping(td_opt.value(), m_left_extra_slot);
+                }
             }
         }
+    } else if (m_amsmapping_container_list.empty() /*no ams use external spools*/) {
+        wxPanel* target_panel = m_right_marea_panel;
+        auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
+        auto ams_mapping_item_container = new MappingContainer(target_panel, "External Spools", vir_list.size());
+        ams_mapping_item_container->SetName(target_panel->GetName());
+        ams_mapping_item_container->SetSizer(sizer_mapping_list);
+        ams_mapping_item_container->Layout();
+
+        std::vector<TrayData> tray_datas;
+        for (auto iter = vir_list.rbegin(); iter != vir_list.rend(); iter++) {
+            DevAmsTray tray_data = iter->second;
+            const auto& td_opt = sGetTrayData(obj, nullptr, &tray_data, tray_data.id);
+            if (!td_opt.has_value()) {
+                continue;
+            }
+            tray_datas.push_back(td_opt.value());
+        }
+
+        add_ams_mapping(tray_datas, false, ams_mapping_item_container, sizer_mapping_list);
+        m_amsmapping_container_sizer_list.push_back(sizer_mapping_list);
+        m_amsmapping_container_list.push_back(ams_mapping_item_container);
+        right_four_slot_containers.push_back(ams_mapping_item_container);
     }
 
     _add_containers(this, left_one_slot_containers, left_four_slots_containers, m_sizer_ams_basket_left);
@@ -502,8 +537,8 @@ void AmsMapingPopup::update_rack_select(MachineObject* obj, bool use_dynamic_swi
 
     bool show_rack_select_area = false;
     if (!m_mapping_from_multi_machines && !m_use_in_sync_dialog &&
-        obj && obj->GetNozzleRack()->IsSupported() &&
-        print_from_type.has_value() && print_from_type.value() == PrintFromType::FROM_NORMAL) {
+        obj && obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_AB &&
+        print_from_type.has_value() && (print_from_type.value() != PrintFromType::FROM_SDCARD_VIEW)) {
         const auto& nozzle_pos_vec = obj->get_nozzle_mapping_result()->GetMappedNozzlePosVecByFilaId(m_current_filament_id);
         m_rack_nozzle_select->UpdatSelectedNozzles(obj->GetNozzleRack(), nozzle_pos_vec, use_dynamic_switch, print_from_type);
         show_rack_select_area = true;
@@ -521,7 +556,7 @@ void AmsMapingPopup::update_rack_select(MachineObject* obj, bool use_dynamic_swi
 void AmsMapingPopup::update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result)
 {
     /*update check states*/
-    if (m_parent_item) {
+    if (m_anchor) {
         auto update_item_check_state = [&ams_mapping_result, this](MappingItem* item) {
             if (item) {
                 for (const auto& mapping_res : ams_mapping_result) {
@@ -546,6 +581,9 @@ void AmsMapingPopup::update_items_check_state(const std::vector<FilamentInfo>& a
         for (auto mapping_item : m_mapping_item_list) {
             update_item_check_state(mapping_item);
         }
+        // Hotend-rack check state is owned by DevicePageAmsMappingHotendVM,
+        // which re-emits a fresh state report whenever ams_mapping_result
+        // is refreshed.
     }
 }
 
@@ -563,10 +601,14 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data,
         m_mapping_item->send_win = send_win;
         m_mapping_item->m_ams_id = tray_data[i].ams_id;
         m_mapping_item->m_slot_id = tray_data[i].slot_id;
-        if (m_show_type == ShowType::LEFT_AND_RIGHT || m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
-            m_mapping_item->set_tray_index(wxGetApp().transition_tridid(tray_data[i].id, 2));
+        if (tray_data[i].ams_slot_name.empty()) {
+            if (m_show_type == ShowType::LEFT_AND_RIGHT || m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
+                m_mapping_item->set_tray_index(wxGetApp().transition_tridid(tray_data[i].id, 2));
+            } else {
+                m_mapping_item->set_tray_index(wxGetApp().transition_tridid(tray_data[i].id));
+            }
         } else {
-            m_mapping_item->set_tray_index(wxGetApp().transition_tridid(tray_data[i].id));
+            m_mapping_item->set_tray_index(tray_data[i].ams_slot_name);
         }
 
         m_mapping_item->SetSize(wxSize(FromDIP(48), FromDIP(60)));
@@ -609,7 +651,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data,
 
         // check filament type
         if (can_pick_the_item) {
-            if (tray_data[i].type == NORMAL && !is_match_material(tray_data[i].filament_type)){
+            if (tray_data[i].type == NORMAL && !m_match_all && !is_match_material(tray_data[i].filament_type)){
                 can_pick_the_item = false;
             } else if(tray_data[i].type == EMPTY){
                 can_pick_the_item = false;
@@ -644,6 +686,8 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data,
         sizer->Add(m_mapping_item, 0, wxTOP, FromDIP(1));
         m_mapping_item_list.push_back(m_mapping_item);
     }
+
+    container->Layout();
 }
 
 void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
@@ -653,7 +697,7 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
 #endif
     // set button
     if (tray_data.type == NORMAL) {
-        if (is_match_material(tray_data.filament_type)) {
+        if (m_match_all || is_match_material(tray_data.filament_type)) {
             item->set_data(m_tag_material, tray_data.colour, tray_data.name, false, tray_data);
         } else {
             item->set_data(m_tag_material, m_ext_mapping_filatype_check ? wxColour(0xEE, 0xEE, 0xEE) : tray_data.colour, tray_data.name, false, tray_data, true);
@@ -662,7 +706,7 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
 
         item->Bind(wxEVT_LEFT_UP, [this, tray_data, item](wxMouseEvent &e) {
             if (!item->GetParent() || !item->GetParent()->IsEnabled()) return;
-            if (m_ext_mapping_filatype_check && !is_match_material(tray_data.filament_type)) return;
+            if (!m_match_all && m_ext_mapping_filatype_check && !is_match_material(tray_data.filament_type)) return;
             item->send_event(m_current_filament_id);
             Dismiss();
         });
@@ -690,7 +734,83 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
         });
     }
 
-    item->set_tray_index("Ext");
+    item->set_tray_index(_L("Ext"));
+}
+
+
+// Hotend mapping is rendered by the Web view (DevicePageAmsMappingHotendVM);
+// the legacy wxWidgets sub-AMS expand panel helpers were removed.
+
+void AmsMapingPopup::update_hotend_web(MachineObject* obj,
+                                       const std::vector<FilamentInfo>& ams_mapping_result,
+                                       std::optional<PrintFromType> /*print_type*/)
+{
+    if (!obj) return;
+
+    // Hide the scrolled window that hosts the legacy wx controls; the WebView
+    // replaces it entirely for hotend-rack machines.
+    m_scrolled_window->Show(false);
+
+    // First open builds the host and the React page loads fresh while hidden,
+    // so the immediate show is already flicker-free. Only a reopen (host alive,
+    // page mounted, stale DOM from the previous machine) needs the deferred,
+    // ack-gated show.
+    const bool first_build = (m_hotend_web_host == nullptr);
+
+    // Lazily create the WebView host. Parent is the popup itself (this) so the
+    // control lives outside m_scrolled_window. We insert it into m_sizer_main
+    // right after the title panel (index 1).
+    if (!m_hotend_web_host) {
+        m_hotend_web_host  = new DeviceWebHost(this,
+                                               DeviceWebHostMode::DevicePageAmsMappingHotend,
+                                               "/device_page/ams_mapping_hotend");
+        // Initial size is a small fallback; the React page reports its real
+        // content size via device_host/layout/content_size and the host will
+        // re-SetMinSize as soon as the first ResizeObserver tick fires.
+        m_hotend_web_host->SetMinSize(wxSize(FromDIP(660), FromDIP(400)));
+        m_hotend_web_sizer = new wxBoxSizer(wxVERTICAL);
+        m_hotend_web_sizer->Add(m_hotend_web_host, 1, wxEXPAND | wxALL, FromDIP(2));
+        m_sizer_main->Insert(1, m_hotend_web_sizer, 1, wxEXPAND);
+
+        // PopupWindow does not Fit() itself when the host SetMinSize() shrinks,
+        // so we drive the popup re-layout from the host's content-size signal.
+        m_hotend_web_host->SetContentSizeChangedHandler([this](const wxSize& /*size*/) {
+            if (!m_hotend_web_host) return;
+            this->Layout();
+            this->Fit();
+        });
+    }
+    m_hotend_web_host->Show(true);
+#if defined(__WXOSX__)
+    SetHotendMappingWebCompositorSuppressed(m_hotend_web_host, false);
+#endif
+
+    // Push the latest snapshot into the registered VM. Refresh() force-pushes
+    // (bypassing the visibility gate) so the still-hidden but alive WebView can
+    // pre-render the new machine's data before the popup is shown.
+    if (auto* vm = m_hotend_web_host->GetAmsMappingHotendVM()) {
+        vm->SetSliceContext(m_slice_context);
+        vm->Refresh(obj,
+                    ams_mapping_result,
+                    m_current_filament_id,
+                    m_show_type,
+                    m_ext_mapping_filatype_check,
+                    m_match_all,
+                    m_tag_material,
+                    m_reset_callback,
+                    send_win,
+                    this,
+                    std::nullopt);
+
+        // Record the session we just pushed and defer the show (reopen only)
+        // until the web acks it has rendered this session.
+        m_last_pushed_seq = vm->SessionSeq();
+        m_defer_next_show = !first_build;
+    }
+
+    Layout();
+    Fit();
+    Refresh();
 }
 
 } // namespace Slic3r::GUI

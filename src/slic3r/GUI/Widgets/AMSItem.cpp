@@ -16,9 +16,8 @@
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
 
-#include <boost/log/trivial.hpp>
-
 #include "CalibUtils.hpp"
+#include "libslic3r/Log.hpp"
 
 
 
@@ -80,12 +79,15 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
     for (int i = 0; i < ams->GetTrays().size(); i++) {
         auto    it = ams->GetTrays().find(std::to_string(i));
         Caninfo info;
+        info.can_pannel_name = it->second->get_slot_name(obj);
         // tray is exists
         if (it != ams->GetTrays().end() && it->second->is_exists) {
+            info.is_exist = true;
             if (it->second->is_tray_info_ready()) {
                 info.can_id        = it->second->id;
                 info.ctype         = it->second->ctype;
                 info.material_name = it->second->get_display_filament_type();
+                info.sub_brands    = wxString::FromUTF8(it->second->sub_brands);
                 info.cali_idx      = it->second->cali_idx;
                 info.filament_id   = it->second->setting_id;
                 if (!it->second->color.empty()) {
@@ -114,8 +116,6 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
                         info.material_remain = it->second->remain;
                     }
                 }
-
-
             } else {
                 info.can_id = it->second->id;
                 info.material_name = "";
@@ -141,6 +141,11 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
         }
         cans.push_back(info);
     }
+
+    dryable_slots.clear();
+    for (int i = 0; i < static_cast<int>(ams->GetTrays().size()); i++) {
+        if (ams->IsDryableSlot(i)) { dryable_slots.insert(i); }
+    }
     return true;
 }
 
@@ -153,11 +158,16 @@ void AMSinfo::parse_ext_info(MachineObject* obj, DevAmsTray tray) {
     this->binded_switcher_pos = tray.binded_switcher_pos;
     Caninfo info;
     info.can_id = std::to_string(0);
+    info.can_pannel_name = tray.get_slot_name(obj);
+    if (info.can_pannel_name == "Ext-L" || info.can_pannel_name == "Ext-R") {
+        info.can_pannel_name = "Ext";// here, use Ext is ok.
+    }
     this->cans.clear();
 
     if (tray.is_tray_info_ready()) {
         info.ctype = tray.ctype;
         info.material_name = tray.get_display_filament_type();
+        info.sub_brands    = wxString::FromUTF8(tray.sub_brands);
         info.cali_idx    = tray.cali_idx;
         info.filament_id = tray.setting_id;
         if (!tray.color.empty()) {
@@ -283,8 +293,10 @@ AMSPanelPos AMSinfo::GetDefaultPanelPos(int total_extruder_count) const
 Description:AMSExtText
 **************************************************/
 
-AMSExtText::AMSExtText(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+AMSExtText::AMSExtText(wxWindow* parent, const Caninfo& can_info, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
+    m_can_info = can_info;
+
     wxWindow::Create(parent, id, pos, AMS_REFRESH_SIZE);
     SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
 
@@ -336,11 +348,12 @@ void AMSExtText::doRender(wxDC& dc)
     dc.SetPen(wxPen(StateColor::darkModeColorFor(AMS_CONTROL_GRAY800), 2, wxPENSTYLE_SOLID));
     dc.SetTextForeground(StateColor::darkModeColorFor(AMS_CONTROL_GRAY800));
     dc.SetFont(Label::Body_10);
-    WxFontUtils::get_suitable_font_size(0.7 * size.GetHeight(), dc);
 
-    auto    tsize = dc.GetMultiLineTextExtent("Ext");
-    wxPoint pot(FromDIP((size.x - tsize.x) / 2), FromDIP((size.y - tsize.y) / 2));
-    dc.DrawText("Ext", pot);
+    WxFontUtils::get_suitable_font_size(size.GetHeight() - FromDIP(2), size.x - FromDIP(2), m_can_info.can_pannel_name, dc);
+
+    auto    tsize = dc.GetMultiLineTextExtent(m_can_info.can_pannel_name);
+    wxPoint pot((size.x - tsize.x) / 2, (size.y - tsize.y) / 2);
+    dc.DrawText(m_can_info.can_pannel_name, pot);
 }
 
 
@@ -2444,7 +2457,9 @@ void AMSRoadUpPart::msw_rescale() {
 void AMSRoadUpPart::UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system)
 {
     m_fila_system = fila_system;
-    Refresh();
+    if (IsShown()) {
+        Refresh();
+    }
 }
 
 bool AMSRoadUpPart::shouldHideExtRoad() const
@@ -2827,14 +2842,17 @@ bool AMSRoadDownPart::shouldHideExtRoad() const
 /*************************************************
 Description:AMSPreview
 **************************************************/
-AMSPreview::AMSPreview() {}
+// Rows top to bottom, values are 0-based slot ids.
+static const std::map<DevAmsType, std::vector<std::vector<int>>> AMS_PREVIEW_SLOT_GRID = {
+    { DevAmsType::ZMULTI_A, { { 1, 3, 5, 7 }, { 0, 2, 4, 6, 8 } } },
+};
 
-AMSPreview::AMSPreview(wxWindow* parent, wxWindowID id, AMSinfo amsinfo, const wxPoint& pos, const wxSize& size) : AMSPreview()
+AMSPreview::AMSPreview(wxWindow* parent, wxWindowID id, AMSinfo amsinfo, const wxPoint& pos, const wxSize& size)
 {
     wxWindow::Create(parent, id, pos);
 
     const auto& itemType = amsinfo.ams_type;
-    if (itemType == DevAmsType::AMS || itemType == DevAmsType::AMS_LITE || itemType == DevAmsType::N3F) {
+    if (itemType == DevAmsType::AMS || itemType == DevAmsType::AMS_LITE || itemType == DevAmsType::N3F || itemType == DevAmsType::ZMULTI_A) {
         create(parent, id, pos, AMS_PREV_FOUR_SIZE);
     }
     else {
@@ -2870,7 +2888,7 @@ void AMSPreview::Update(AMSinfo amsinfo)
     m_amsinfo = amsinfo;
     m_ams_item_type = amsinfo.ams_type;
 
-    if (m_ams_item_type == DevAmsType::AMS || m_ams_item_type == DevAmsType::AMS_LITE || m_ams_item_type == DevAmsType::N3F) {
+    if (m_ams_item_type == DevAmsType::AMS || m_ams_item_type == DevAmsType::AMS_LITE || m_ams_item_type == DevAmsType::N3F || m_ams_item_type == DevAmsType::ZMULTI_A) {
         SetMinSize(AMS_PREV_FOUR_SIZE);
         SetMaxSize(AMS_PREV_FOUR_SIZE);
     } else {
@@ -2883,14 +2901,7 @@ void AMSPreview::Update(AMSinfo amsinfo)
 
 void AMSPreview::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
-    m_ts_bitmap_cube = ScalableBitmap(this, "ts_bitmap_cube", 12);
-    m_ts_bitmap_cube_dark = ScalableBitmap(this, "ts_bitmap_cube_dark", 12);
-
-    m_four_slot_bitmap = ScalableBitmap(this, "four_slot_ams_item", 32);
-    m_four_slot_bitmap_dark = ScalableBitmap(this, "four_slot_ams_item_dark", 32);
-
-    m_single_slot_bitmap = ScalableBitmap(this, "single_slot_ams_item", 32);
-    m_single_slot_bitmap_dark = ScalableBitmap(this, "single_slot_ams_item_dark", 32);
+    load_bitmaps();
 
     SetMinSize(size);
     SetMaxSize(size);
@@ -2956,13 +2967,30 @@ void AMSPreview::render(wxDC &dc)
 #endif
 }
 
+// SVG icons are recoloured for the theme active when they load, so a theme switch needs a reload.
+void AMSPreview::load_bitmaps()
+{
+    m_ts_bitmap_cube = ScalableBitmap(this, "ts_bitmap_cube", 12);
+    m_ts_bitmap_cube_dark = ScalableBitmap(this, "ts_bitmap_cube_dark", 12);
+
+    m_four_slot_bitmap = ScalableBitmap(this, "four_slot_ams_item", 32);
+    m_four_slot_bitmap_dark = ScalableBitmap(this, "four_slot_ams_item_dark", 32);
+
+    m_single_slot_bitmap = ScalableBitmap(this, "single_slot_ams_item", 32);
+    m_single_slot_bitmap_dark = ScalableBitmap(this, "single_slot_ams_item_dark", 32);
+
+    m_bitmaps_dark = wxGetApp().dark_mode();
+}
+
 void AMSPreview::doRender(wxDC &dc)
 {
+    if (m_bitmaps_dark != wxGetApp().dark_mode()) load_bitmaps();
+
     wxSize size = GetSize();
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
 
-    BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - AMS Info: "
-                            << "ams_id = " << m_amsinfo.ams_id << ", ams_type = " << static_cast<int>(m_amsinfo.ams_type) << ", cans_count = " << m_amsinfo.cans.size();
+    BOOST_LOG_TRIVIAL(info) << "AMS Info: " << KV(log_key::ams_id, m_amsinfo.ams_id) << "ams_type = " << static_cast<int>(m_amsinfo.ams_type)
+                            << ", cans_count = " << m_amsinfo.cans.size();
 
     // draw background
     if (wxGetApp().dark_mode())
@@ -2981,12 +3009,15 @@ void AMSPreview::doRender(wxDC &dc)
     dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(3));
 
     auto left = 0;
+    if (AMS_PREVIEW_SLOT_GRID.find(m_ams_item_type) != AMS_PREVIEW_SLOT_GRID.end()) {
+        renderMultiRowGrid(dc, size);
+    }
     //four slot
-    if (m_ams_item_type != DevAmsType::EXT_SPOOL && m_ams_item_type != DevAmsType::N3S){
+    else if (m_ams_item_type != DevAmsType::EXT_SPOOL && m_ams_item_type != DevAmsType::N3S){
         left =  FromDIP(8);
         int can_idx = 0;
         for (std::vector<Caninfo>::iterator iter = m_amsinfo.cans.begin(); iter != m_amsinfo.cans.end(); iter++) {
-            BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - Can[" << can_idx << "]: "
+            BOOST_LOG_TRIVIAL(info) << "Can[" << can_idx << "]: "
                                     << "can_id = \"" << iter->can_id << "\""
                                     << ", material_name = \"" << iter->material_name.ToStdString() << "\""
                                     << ", material_colour = " << iter->material_colour.GetAsString(2).ToStdString()
@@ -2995,14 +3026,9 @@ void AMSPreview::doRender(wxDC &dc)
 
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
 
-            if (wxWindow::IsThisEnabled()) {
-                wxColour color = iter->material_colour;
-                change_the_opacity(color);
-                dc.SetBrush(wxBrush(color));
-            }
-            else {
-                dc.SetBrush(AMS_CONTROL_DISABLE_COLOUR);
-            }
+            wxColour color = iter->material_colour;
+            change_the_opacity(color);
+            dc.SetBrush(wxBrush(color));
             if (iter->material_cols.size() > 1) {
                 int fleft = left;
 
@@ -3074,7 +3100,7 @@ void AMSPreview::doRender(wxDC &dc)
     //single slot
     else if (m_amsinfo.cans.size() == 1) {
         auto iter = m_amsinfo.cans[0];
-        BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - Single Can: "
+        BOOST_LOG_TRIVIAL(info) << "Single Can: "
                                 << "can_id = \"" << iter.can_id << "\""
                                 << ", material_name = \"" << iter.material_name.ToStdString() << "\""
                                 << ", material_colour = " << iter.material_colour.GetAsString(2).ToStdString()
@@ -3155,7 +3181,7 @@ void AMSPreview::doRender(wxDC &dc)
     }
 
     if (m_amsinfo.cans.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - No cans data available for AMS: " << m_amsinfo.ams_id;
+        BOOST_LOG_TRIVIAL(info) << "No cans data available for AMS: " << m_amsinfo.ams_id;
     }
 
     auto border_colour = AMS_CONTROL_BRAND_COLOUR;
@@ -3175,14 +3201,63 @@ void AMSPreview::doRender(wxDC &dc)
     }
 }
 
+void AMSPreview::renderMultiRowGrid(wxDC &dc, const wxSize &size)
+{
+    auto grid_it = AMS_PREVIEW_SLOT_GRID.find(m_ams_item_type);
+    if (grid_it == AMS_PREVIEW_SLOT_GRID.end()) return;
+
+    std::map<std::string, const Caninfo *> can_by_id;
+    for (const auto &can : m_amsinfo.cans) { can_by_id.emplace(can.can_id, &can); }
+
+    const int          pad       = FromDIP(2);
+    const int          gap       = FromDIP(2);
+    const auto        &rows      = grid_it->second;
+    const int          row_count = static_cast<int>(rows.size());
+    const int          row_h     = (size.y - 2 * pad - (row_count - 1) * gap) / row_count;
+
+    int y = pad;
+    for (const auto &row : rows) {
+        const int col_count = static_cast<int>(row.size());
+        const int col_w     = (size.x - 2 * pad - (col_count - 1) * gap) / col_count;
+        const int row_w = col_count * col_w + (col_count - 1) * gap;
+        int x = pad + (size.x - 2 * pad - row_w) / 2;
+
+        for (int slot_id : row) {
+            wxRect cell(x, y, col_w, row_h);
+            dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+            const bool dryable = m_amsinfo.dryable_slots.count(slot_id) > 0;
+            auto       can_it  = can_by_id.find(std::to_string(slot_id));
+            const Caninfo *can = (can_it != can_by_id.end()) ? can_it->second : nullptr;
+
+            if (dryable) {
+                if (can && can->material_colour.Alpha() != 0 && can->material_state != AMSCanType::AMS_CAN_TYPE_EMPTY) {
+                    wxColour colour = can->material_colour;
+                    if (colour.Alpha() != 0 && colour.Alpha() != 255 && colour.Alpha() != 254) {
+                        dc.DrawBitmap(create_translucent_round_rect_bitmap(colour, cell.GetSize(), FromDIP(2)), cell.x, cell.y);
+                    } else {
+                        dc.SetBrush(wxBrush(colour));
+                        dc.DrawRoundedRectangle(cell, FromDIP(2));
+                    }
+                } else {
+                    dc.SetBrush(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
+                    dc.DrawRoundedRectangle(cell, FromDIP(2));
+                }
+                dc.SetPen(wxPen(AMS_CONTROL_BRAND_COLOUR, 1));
+                dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+                dc.DrawRoundedRectangle(cell, FromDIP(2));
+            } else {
+                dc.SetBrush(StateColor::darkModeColorFor(AMS_CONTROL_DISABLE_COLOUR));
+                dc.DrawRoundedRectangle(cell, FromDIP(2));
+            }
+            x += col_w + gap;
+        }
+        y += row_h + gap;
+    }
+}
+
 void AMSPreview::msw_rescale()
 {
-    m_ts_bitmap_cube.msw_rescale();
-    m_ts_bitmap_cube_dark.msw_rescale();
-    m_four_slot_bitmap.msw_rescale();
-    m_four_slot_bitmap_dark.msw_rescale();
-    m_single_slot_bitmap.msw_rescale();
-    m_single_slot_bitmap_dark.msw_rescale();
+    load_bitmaps();
 
     Refresh();
 }
@@ -3523,7 +3598,7 @@ void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
         m_can_refresh_list[caninfo.can_id] = m_panel_refresh;
     }
     else if (m_ams_model == DevAmsType::EXT_SPOOL){
-        m_ext_text = new AMSExtText(amscan, wxID_ANY);
+        m_ext_text = new AMSExtText(amscan, caninfo, wxID_ANY);
     }
 
     AMSLib* m_panel_lib = nullptr;
@@ -3562,6 +3637,7 @@ void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
     }
     catch (...)
     {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         ;
     }
 
@@ -4045,7 +4121,9 @@ void AmsItem::RenderLiteRoad(wxDC& dc, wxSize size) {
             }
         }
     }
-    catch (...) {}
+    catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 }
 
 void AmsItem::StopRridLoading(wxString canid)

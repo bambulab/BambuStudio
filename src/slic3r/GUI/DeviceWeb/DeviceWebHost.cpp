@@ -6,6 +6,7 @@
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "libslic3r/Utils.hpp"
 
+#include <algorithm>
 #if defined(__WXOSX__)
 #include "slic3r/Utils/MacDarkMode.hpp"
 #endif
@@ -15,15 +16,16 @@
 #include <wx/clipbrd.h>
 #include <wx/stattext.h>
 #include <wx/timer.h>
-#include <boost/log/trivial.hpp>
 #include <algorithm>
 #include <chrono>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
-#if !BBL_RELEASE_TO_PUBLIC
-#define DEVICE_USE_HTTP_SERVER
-#endif
+// NOTE: Disable the comment to use HTTP server for web
+//#if !BBL_RELEASE_TO_PUBLIC
+//#define DEVICE_USE_HTTP_SERVER
+//#endif
 
 static std::uint64_t TimeNowMs() {
     return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -47,6 +49,11 @@ static const char *ViewNameForMode(DeviceWebHostMode mode)
 {
     switch (mode) {
     case DeviceWebHostMode::FilamentManager: return "FilamentManager";
+    case DeviceWebHostMode::DevicePageAmsControlWeb: return "AmsControlWeb";
+    case DeviceWebHostMode::DevicePageAmsFilamentHotend: return "AmsFilamentHotend";
+    case DeviceWebHostMode::DevicePageAmsMappingHotend: return "AmsMappingHotend";
+    case DeviceWebHostMode::DevicePageAutoRefillRefillInfo: return "AutoRefillRefillInfo";
+    case DeviceWebHostMode::DevicePageConnectedSlots: return "ConnectedSlots";
     case DeviceWebHostMode::AllForDebug: return "DeviceWebDebug";
     default: return "DeviceWeb";
     }
@@ -67,10 +74,12 @@ static void LogRecovery(wxWebView *webview, WebViewWatcher::Fault fault, const c
 }
 
 DeviceWebHost::DeviceWebHost(wxWindow* parent, DeviceWebHostMode mode,
-                             std::string initial_path, bool allow_lazy)
+                             std::string initial_path, bool allow_lazy,
+                             std::string entry_file)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
     , m_mode(mode)
     , m_initial_path(std::move(initial_path))
+    , m_entry_file(std::move(entry_file))
     , m_allow_lazy(allow_lazy)
 {
     auto *host_sizer = new wxBoxSizer(wxVERTICAL);
@@ -137,8 +146,14 @@ void DeviceWebHost::EnsureBuilt()
     m_device_http_server = std::make_unique<DeviceHttpServer>();
 #endif
 
+    // Both front-ends share one mode, so the trace view name alone cannot tell them
+    // apart. Tag the native-HTML entry so log lines stay attributable when the two
+    // implementations run side by side.
+    wxString view_name = ViewNameForMode(m_mode);
+    if (!m_entry_file.empty())
+        view_name += "#html";
     m_device_webview = new PrinterWebView(
-        this, ViewNameForMode(m_mode), WebViewProtectionMode::DeviceHost);
+        this, view_name, WebViewProtectionMode::DeviceHost);
     m_device_webview->SetMinSize(wxSize(FromDIP(320), FromDIP(260)));
     if (auto *webview = m_device_webview->GetWebView())
         webview->Bind(EVT_WEBVIEW_RECOVERY, &DeviceWebHost::OnWebViewRecovery, this);
@@ -160,6 +175,23 @@ void DeviceWebHost::EnsureBuilt()
     }
     if (m_mode == DeviceWebHostMode::DevicePageAmsControlWeb || m_mode == DeviceWebHostMode::AllForDebug) {
         m_device_web_mgr->Register(std::make_unique<DevicePageAmsControlWebVM>());
+    }
+    if (m_mode == DeviceWebHostMode::DevicePageAmsFilamentHotend || m_mode == DeviceWebHostMode::AllForDebug) {
+        m_device_web_mgr->Register(std::make_unique<DevicePageAmsFilamentHotendVM>());
+    }
+    if (m_mode == DeviceWebHostMode::DevicePageAmsMappingHotend || m_mode == DeviceWebHostMode::AllForDebug) {
+        m_device_web_mgr->Register(std::make_unique<DevicePageAmsMappingHotendVM>());
+    }
+    if (m_mode == DeviceWebHostMode::DevicePageAutoRefillRefillInfo || m_mode == DeviceWebHostMode::AllForDebug) {
+        m_device_web_mgr->Register(std::make_unique<AutoRefillRefillInfoVM>());
+    }
+    if (m_mode == DeviceWebHostMode::DevicePageConnectedSlots || m_mode == DeviceWebHostMode::AllForDebug) {
+        m_device_web_mgr->Register(std::make_unique<ConnectedSlotsVM>());
+    }
+    if (m_mode == DeviceWebHostMode::PrintQueue || m_mode == DeviceWebHostMode::AllForDebug) {
+        auto print_queue_vm = std::make_unique<PrintQueueVM>();
+        m_print_queue_vm = print_queue_vm.get();
+        m_device_web_mgr->Register(std::move(print_queue_vm));
     }
     m_device_web_mgr->SetBridge(m_device_web_bridge.get());
     m_device_web_bridge->SetManager(m_device_web_mgr.get());
@@ -245,7 +277,9 @@ wxString DeviceWebHost::BuildUrl(const std::string& path) const
     }
     wxString url = wxString::Format("http://localhost:13628/index.html?lang=%s", lang);
 #else
-    wxString url = wxString::Format("file://%s/web/device_page/dist/index.html?lang=%s", from_u8(resources_dir()), lang);
+    const wxString entry = m_entry_file.empty() ? wxString("web/device_page/dist/index.html")
+                                                : wxString::FromUTF8(m_entry_file);
+    wxString url = wxString::Format("file://%s/%s?lang=%s", from_u8(resources_dir()), entry, lang);
 #endif
 
     if (!path.empty()) {
@@ -582,6 +616,20 @@ void DeviceWebHost::NotifyFilamentMachineChanged()
         return;
 
     m_device_web_mgr->NotifyState("filament", "machine", "selected_changed");
+    NotifyDeviceFilamentChanged();
+}
+
+void DeviceWebHost::NotifyDeviceFilamentChanged()
+{
+    if (!m_device_web_mgr)
+        return;
+
+    if (m_device_web_mgr->Find("device_page_ams_filament_hotend")) {
+        m_device_web_mgr->NotifyState("device_page_ams_filament_hotend", "state", "changed");
+    }
+    if (m_device_web_mgr->Find("device_page_connected_slots")) {
+        m_device_web_mgr->NotifyState("device_page_connected_slots", "state", "changed");
+    }
 }
 
 void DeviceWebHost::NotifyAmsControlWebChanged()
@@ -633,6 +681,40 @@ void DeviceWebHost::ApplyAmsControlWebHostSize(int height_dip)
     }
 }
 
+void DeviceWebHost::NotifyAmsMappingChanged()
+{
+    if (!m_device_web_mgr)
+        return;
+
+    m_device_web_mgr->NotifyState("device_page_ams_mapping_hotend", "state", "changed");
+}
+
+DevicePageAmsMappingHotendVM* DeviceWebHost::GetAmsMappingHotendVM() const
+{
+    if (!m_device_web_mgr) return nullptr;
+    return dynamic_cast<DevicePageAmsMappingHotendVM*>(
+        m_device_web_mgr->Find("device_page_ams_mapping_hotend"));
+}
+
+AutoRefillRefillInfoVM* DeviceWebHost::GetAutoRefillRefillInfoVM() const
+{
+    if (!m_device_web_mgr) return nullptr;
+    return dynamic_cast<AutoRefillRefillInfoVM*>(
+        m_device_web_mgr->Find("device_page_auto_refill_refill_info"));
+}
+
+ConnectedSlotsVM* DeviceWebHost::GetConnectedSlotsVM() const
+{
+    if (!m_device_web_mgr) return nullptr;
+    return dynamic_cast<ConnectedSlotsVM*>(
+        m_device_web_mgr->Find("device_page_connected_slots"));
+}
+
+// Design width (in DIP/logical px) of the AMS mapping hotend popup. The page is
+// laid out width:100%, so its reported width only echoes the container; we drive
+// the width from this fixed design value at the current DPI instead.
+static constexpr int kAmsMappingHotendDesignWidthDip = 660;
+
 void DeviceWebHost::OnWebContentSizeChanged(int width, int height)
 {
     // StatusPanel-embedded AmsControlWeb: width is locked because the page is
@@ -653,12 +735,49 @@ void DeviceWebHost::OnWebContentSizeChanged(int width, int height)
     height = std::clamp(height, min_height, max_height);
 
     // Cache the DPI-independent (CSS px) size so the min size can be rebuilt at
-    // the current DPI on show.
+    // the current DPI on show (see ReapplyContentSizeForDpi).
     m_last_logical_content_size = wxSize(width, height);
 
     // The web page reports its size in DIP/CSS pixels, so FromDIP() is the
     // correct conversion to the physical pixels wxWindow::SetMinSize() expects.
+    // But the AMS mapping hotend page is laid out width:100%, so its reported
+    // *width* merely echoes back whatever container width the host last gave it.
+    // Feeding that width back through the popup's Fit() forms a non-converging
+    // loop on fractional-DPI displays: the width ping-pongs by the DPI factor
+    // and saturates the UI thread until the app freezes. The *height* is the
+    // only content-driven dimension we actually need from the web, so for this
+    // popup mode we keep the host's fixed design width and take only the height
+    // from the web signal. Other hosts keep the historical behaviour.
     wxSize content_size(FromDIP(width), FromDIP(height));
+    if (m_mode == DeviceWebHostMode::DevicePageAmsMappingHotend) {
+        // Latch to the design width at the *current* DPI (not GetMinSize(), which
+        // can be a stale physical value cached from a previous DPI).
+        content_size.SetWidth(FromDIP(kAmsMappingHotendDesignWidthDip));
+    }
+
+    // Hysteresis dead-band against size ping-pong, scoped to the AMS mapping
+    // popup. That popup re-Fit()s itself on every content-size signal, and its
+    // React page measures its own root (width:100%/height:100%), so it echoes
+    // back the size the host just gave it; on fractional-DPI displays the
+    // FromDIP()/CSS-px round-trip can differ by a couple of pixels (or a
+    // transient scrollbar gutter), which would bounce the popup between two
+    // near-equal sizes forever (the popup keeps flickering/resizing). Ignore
+    // changes that stay within a small band on *both* axes; every real layout
+    // change here (machine switch, entering/leaving the sub-AMS page) moves at
+    // least one axis far more than this, so nothing user-visible is suppressed
+    // and content is never clipped. Other hosts (e.g. the resizable Hotend &
+    // Filament dialog, which already has its own IsCloseEnough() tolerance) keep
+    // the original behaviour untouched.
+    if (m_mode == DeviceWebHostMode::DevicePageAmsMappingHotend &&
+        m_last_reported_content_size != wxDefaultSize) {
+        const int jitter = FromDIP(20);
+        const int dw = content_size.GetWidth()  - m_last_reported_content_size.GetWidth();
+        const int dh = content_size.GetHeight() - m_last_reported_content_size.GetHeight();
+        if (dw > -jitter && dw < jitter && dh > -jitter && dh < jitter) {
+            return;
+        }
+    }
+
     if (content_size == m_last_reported_content_size) {
         return;
     }
@@ -678,6 +797,26 @@ void DeviceWebHost::OnWebContentSizeChanged(int width, int height)
         parent->Layout();
         parent->SendSizeEvent();
     }
+}
+
+void DeviceWebHost::ReapplyContentSizeForDpi()
+{
+    if (m_last_logical_content_size == wxDefaultSize)
+        return; // web has not reported yet; keep the construction-time min size
+
+    wxSize content_size(FromDIP(m_last_logical_content_size.GetWidth()),
+                        FromDIP(m_last_logical_content_size.GetHeight()));
+    if (m_mode == DeviceWebHostMode::DevicePageAmsMappingHotend)
+        content_size.SetWidth(FromDIP(kAmsMappingHotendDesignWidthDip));
+
+    if (content_size == m_last_reported_content_size && content_size == GetMinSize())
+        return; // already correct for this DPI
+
+    m_last_reported_content_size = content_size;
+    SetMinSize(content_size);
+    if (m_device_webview)
+        m_device_webview->SetMinSize(content_size);
+    // The caller (popup show path) drives the enclosing Layout()/Fit().
 }
 
 void DeviceWebHost::on_sys_color_changed()

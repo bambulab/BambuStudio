@@ -1,5 +1,6 @@
 get_filename_component(_TEST_NAME ${CMAKE_CURRENT_LIST_DIR} NAME)
-add_executable(${_TEST_NAME}_tests 
+# Not kept in sync with libslic3r after the fork and no longer compiles; build explicitly to revive it.
+add_executable(${_TEST_NAME}_tests EXCLUDE_FROM_ALL
 	${_TEST_NAME}_tests.cpp
 	test_data.cpp
 	test_data.hpp

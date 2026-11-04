@@ -10,7 +10,6 @@
 #include <string>
 
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <wx/html/htmlwin.h>
 #include <wx/sizer.h>
@@ -20,6 +19,7 @@
 #include "Widgets/StateColor.hpp"
 #include "libslic3r/Utils.hpp"
 #include "wxExtensions.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

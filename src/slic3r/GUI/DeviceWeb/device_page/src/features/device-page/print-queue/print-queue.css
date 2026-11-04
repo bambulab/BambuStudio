@@ -1,0 +1,790 @@
+/* Dark is the default, mirroring styles.css: the host only writes
+   <html data-theme="light"> for a light skin, no attribute means dark. */
+.print-queue-preview {
+  --queue-page-bg: #1a1a1a;
+  --queue-panel-bg: #242424;
+  --queue-card-bg: rgba(255, 255, 255, 0.06);
+  --queue-border: rgba(255, 255, 255, 0.12);
+  --queue-text-strong: rgba(255, 255, 255, 0.9);
+  --queue-text-secondary: rgba(255, 255, 255, 0.6);
+  --queue-text-disabled: rgba(255, 255, 255, 0.25);
+  --queue-row-hover: rgba(255, 255, 255, 0.06);
+  --queue-filter-border: rgba(255, 255, 255, 0.24);
+  --queue-brand: #00ae42;
+  --queue-brand-hover: #34c400;
+  --queue-printing: #1f8eea;
+  --queue-failed: #e14747;
+  --queue-title-color: #ffffff;
+  --queue-profile-text: rgba(255, 255, 255, 0.5);
+  --queue-badge-bg: rgba(255, 255, 255, 0.24);
+  --queue-row-dragging: rgba(0, 174, 66, 0.16);
+  --queue-action-hover: rgba(255, 255, 255, 0.1);
+  --queue-action-active: rgba(255, 255, 255, 0.16);
+  --queue-tip-bg: #3f3f3f;
+  --queue-tip-text: rgba(255, 255, 255, 0.9);
+  --queue-busy-track: rgba(255, 255, 255, 0.2);
+  --queue-overlay: rgba(0, 0, 0, 0.6);
+  --queue-dialog-bg: #242424;
+  --queue-dialog-shadow: 0 8px 20px -2px rgba(0, 0, 0, 0.6);
+  --queue-error-border: rgba(241, 57, 57, 0.4);
+  --queue-error-text: #ff9a9a;
+  --queue-error-bg: #3a2323;
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--queue-text-strong);
+  background: var(--queue-page-bg);
+  font-family: "HarmonyOS Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.print-queue-preview,
+.print-queue-preview *,
+.print-queue-preview *::before,
+.print-queue-preview *::after {
+  box-sizing: border-box;
+}
+
+/* min-height:0 down to .print-queue-scroll: the card has no definite height,
+   so a percentage chain would collapse and clip the overflow. */
+.print-queue-panel {
+  position: relative;
+  width: 760px;
+  max-width: 100%;
+  max-height: 100%;
+  min-height: 0;
+  flex: 0 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--queue-panel-bg);
+}
+
+.print-queue-header {
+  min-height: 33px;
+  padding: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.print-queue-header__title {
+  width: 100%;
+  color: var(--queue-title-color);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 21px;
+  text-align: left;
+}
+
+/* A native select, as in the filament manager, but the closed control is drawn
+   by the wrapper so the border and the caret follow the panel theme instead of
+   the OS one. Box, caret offset and label offset are the Figma ones so the header
+   does not shift as the label changes. */
+.print-queue-filter {
+  position: relative;
+  width: 115px;
+  height: 24px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--queue-filter-border);
+  border-radius: 6px;
+  color: var(--queue-text-strong);
+}
+
+.print-queue-filter:focus-within {
+  border-color: var(--queue-brand);
+}
+
+.print-queue-filter__select {
+  width: 100%;
+  height: 100%;
+  /* Figma puts the caret at 6px and the label at 22px (node 6183:12025). */
+  padding: 0 8px 0 22px;
+  appearance: none;
+  border: 0;
+  border-radius: inherit;
+  outline: none;
+  color: inherit;
+  /* Chromium paints the dropdown list from these two, so a transparent control
+     would leave the open list unreadable on a dark panel. */
+  background: var(--queue-panel-bg);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+/* Rotated to point right, matching the arrow the design places ahead of the
+   label; same rotation the collapsed project chevron uses. */
+.print-queue-filter__caret {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+
+.print-queue-body {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.print-queue-scroll {
+  width: 100%;
+  min-height: 0;
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.print-queue-list {
+  padding-bottom: 8px;
+}
+
+/* Anchors the between-projects drop indicator. */
+.queue-project {
+  position: relative;
+}
+
+.queue-project__header,
+.queue-plate-row {
+  position: relative;
+  width: 100%;
+  min-height: 96px;
+  align-items: center;
+  transition: background-color 120ms ease;
+}
+
+.queue-project__header {
+  padding: 12px 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.queue-plate-row {
+  padding: 12px 16px 12px 54px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: 16px;
+}
+
+.queue-project__header:hover,
+.queue-project__header:focus-within,
+.queue-plate-row:hover,
+.queue-plate-row:focus-within {
+  background: var(--queue-row-hover);
+}
+
+.queue-plate-row.is-draggable,
+.queue-project__header.is-draggable {
+  cursor: grab;
+}
+
+.queue-plate-row.is-dragging,
+.queue-project__header.is-dragging {
+  cursor: grabbing;
+  background: var(--queue-row-dragging);
+}
+
+/* Offsets the missing chevron so single-plate thumbnails line up with
+   multi-plate rows (Figma 30px gap after the badge). */
+.queue-project__header--single .queue-row-main--project {
+  margin-left: 22px;
+}
+
+.queue-index-badge {
+  min-width: 25px;
+  height: 21px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: #ffffff;
+  background: var(--queue-badge-bg);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 21px;
+  white-space: nowrap;
+}
+
+.queue-project__chevron {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  flex: 0 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  color: var(--queue-text-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.queue-project__chevron svg {
+  transition: transform 140ms ease;
+}
+
+.queue-project__chevron.is-expanded svg {
+  transform: rotate(0deg);
+}
+
+.queue-project__chevron:not(.is-expanded) svg {
+  transform: rotate(-90deg);
+}
+
+.queue-row-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.queue-row-main--project {
+  flex: 1;
+}
+
+.queue-thumbnail {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--queue-border);
+  border-radius: 8px;
+  background: var(--queue-card-bg);
+}
+
+.queue-thumbnail__art {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: 7px;
+}
+
+.queue-thumbnail__art--empty {
+  background: var(--queue-card-bg);
+  box-shadow: inset 0 0 0 1px var(--queue-border);
+}
+
+.queue-thumbnail__status {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 72px;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 0 8px 8px;
+  color: #ffffff;
+  background: var(--queue-printing);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 12px;
+  text-align: center;
+}
+
+.queue-thumbnail__status--completed {
+  background: var(--queue-brand);
+}
+
+.queue-thumbnail__status--failed {
+  background: var(--queue-failed);
+}
+
+.queue-row-copy {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.queue-row-copy__name {
+  display: block;
+  min-width: 0;
+  max-width: 20em;
+  overflow: hidden;
+  color: var(--queue-text-strong);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Base truncates, suffix stays: the plate number must survive a long name. */
+.queue-plate-name {
+  display: flex;
+  align-items: center;
+  max-width: none;
+}
+
+.queue-plate-name__base {
+  min-width: 0;
+  max-width: 20em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.queue-plate-name__suffix {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.queue-row-copy__profile,
+.queue-row-copy__summary {
+  overflow: hidden;
+  color: var(--queue-text-secondary);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 19px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.queue-row-copy__profile {
+  color: var(--queue-profile-text);
+}
+
+.queue-row-copy__meta {
+  height: 19px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--queue-text-secondary);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 19px;
+}
+
+.queue-row-copy__meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.queue-row-copy__meta svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+}
+
+.queue-actions {
+  width: 94px;
+  flex: 0 0 94px;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.queue-project__header--single .queue-actions {
+  margin-left: 0;
+}
+
+/* Carries the hover hint; sizing stays on the button. The spacing between the
+   icons is padding here rather than a gap on the row, so the hoverable areas
+   touch and a sweep across the group never drops out of one. */
+.queue-action-slot {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  padding: 0 4px;
+}
+
+.queue-action-slot:first-child {
+  padding-left: 0;
+}
+
+.queue-action-slot:last-child {
+  padding-right: 0;
+}
+
+/* Drawn in the page rather than through the title attribute: a native tooltip is
+   only requested off a mouse move, so a cursor that comes to rest inside an icon
+   without moving again never gets one, while :hover is always up to date. The
+   icons sit 36px below the top of a 96px row, so the bubble stays inside the row
+   and the scrolling list cannot clip it. */
+.queue-action-slot::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  z-index: 5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--queue-tip-text);
+  background: var(--queue-tip-bg);
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity 80ms ease;
+  pointer-events: none;
+}
+
+/* The print icon is the closest one to the panel edge, so its bubble grows
+   inwards instead of being centred, which a long translation would push out of
+   view. */
+.queue-action-slot:last-child::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+/* Delayed on the way in so a sweep across the group does not flash three
+   bubbles, immediate on the way out. */
+.queue-action-slot:hover::after {
+  opacity: 1;
+  transition-delay: 150ms;
+}
+
+.queue-action {
+  height: 24px;
+  padding: 0;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  color: var(--queue-text-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.queue-action--delete {
+  width: 25px;
+}
+
+.queue-action--pin {
+  width: 29px;
+}
+
+.queue-action--print {
+  width: 25px;
+}
+
+.queue-action:not(:disabled):hover {
+  color: var(--queue-text-strong);
+  background: var(--queue-action-hover);
+}
+
+.queue-action:not(:disabled):active {
+  background: var(--queue-action-active);
+}
+
+.queue-action:disabled {
+  color: var(--queue-text-disabled);
+  cursor: default;
+}
+
+/* Any plate that is no longer waiting its turn is dimmed. The row itself is
+   deliberately not listed: dimming it would take the actions down with it, and
+   those must keep signalling what is clickable through their own states. */
+.queue-plate-row--printing > .queue-index-badge,
+.queue-plate-row--printing > .queue-row-main,
+.queue-plate-row--completed > .queue-index-badge,
+.queue-plate-row--completed > .queue-row-main,
+.queue-plate-row--failed > .queue-index-badge,
+.queue-plate-row--failed > .queue-row-main,
+.queue-project__header--single[data-status="printing"] > .queue-index-badge,
+.queue-project__header--single[data-status="printing"] > .queue-row-main,
+.queue-project__header--single[data-status="completed"] > .queue-index-badge,
+.queue-project__header--single[data-status="completed"] > .queue-row-main,
+.queue-project__header--single[data-status="failed"] > .queue-index-badge,
+.queue-project__header--single[data-status="failed"] > .queue-row-main {
+  opacity: 0.35;
+}
+
+/* Figma insets the rule by 9px on each side of the 728px content column. */
+.queue-project__divider {
+  width: calc(100% - 18px);
+  height: 1px;
+  margin: 0 auto;
+  background: var(--queue-border);
+}
+
+.queue-project:last-child .queue-project__divider {
+  display: none;
+}
+
+.queue-project__drop-end {
+  height: 12px;
+  margin: -6px 16px -6px 54px;
+  border-top: 2px solid transparent;
+}
+
+.queue-project__drop-end.is-active {
+  border-top-color: var(--queue-brand);
+}
+
+.queue-drop-indicator {
+  position: absolute;
+  z-index: 4;
+  left: 54px;
+  right: 16px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--queue-brand);
+}
+
+.queue-drop-indicator::before {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--queue-brand);
+  content: "";
+}
+
+.queue-drop-indicator--before {
+  top: -1px;
+}
+
+.queue-drop-indicator--after {
+  bottom: -1px;
+}
+
+/* Reordering whole projects spans the full row, so the line is not indented to
+   the plate column the way an in-project drop is. */
+.queue-drop-indicator--project {
+  left: 16px;
+}
+
+/* A plate joining a collapsed or single-plate project has no slot to point at,
+   so the project itself is outlined as the target. */
+.queue-project.is-drop-into {
+  outline: 2px solid var(--queue-brand);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+.print-queue-state {
+  min-height: 180px;
+  padding: 48px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--queue-text-secondary);
+  font-size: 12px;
+  line-height: 19px;
+  text-align: center;
+}
+
+.print-queue-busy {
+  position: absolute;
+  top: 13px;
+  right: 20px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.print-queue-busy span {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--queue-busy-track);
+  border-top-color: var(--queue-brand);
+  border-radius: 50%;
+  animation: queue-spin 600ms linear infinite;
+}
+
+@keyframes queue-spin {
+  to { transform: rotate(360deg); }
+}
+
+.print-queue-error {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 1300;
+  max-width: 360px;
+  padding: 8px 12px;
+  border: 1px solid var(--queue-error-border);
+  border-radius: 8px;
+  color: var(--queue-error-text);
+  background: var(--queue-error-bg);
+  box-shadow: 0 8px 24px rgba(38, 46, 48, 0.18);
+  font: inherit;
+  font-size: 12px;
+  transform: translateX(-50%);
+}
+
+.queue-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--queue-overlay);
+}
+
+.queue-confirm {
+  width: 340px;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--queue-border);
+  border-radius: 12px;
+  color: var(--queue-text-strong);
+  background: var(--queue-dialog-bg);
+  box-shadow: var(--queue-dialog-shadow);
+}
+
+.queue-confirm__title-row {
+  min-height: 24px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--queue-text-strong);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+}
+
+.queue-confirm__title-row > svg {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  color: var(--queue-text-strong);
+}
+
+.queue-confirm__title-row > span {
+  flex: 1;
+}
+
+.queue-confirm__close {
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  color: var(--queue-text-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.queue-confirm__close:not(:disabled):hover {
+  background: var(--queue-row-hover);
+}
+
+.queue-confirm__message {
+  min-height: 19px;
+  padding: 0 14px;
+  overflow: hidden;
+  color: var(--queue-text-secondary);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 19px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.queue-confirm__footer {
+  min-height: 24px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.queue-confirm__button {
+  height: 24px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 19px;
+  cursor: pointer;
+}
+
+.queue-confirm__button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.queue-confirm__button--cancel {
+  color: var(--queue-text-secondary);
+  background: var(--queue-action-hover);
+  font-weight: 400;
+}
+
+.queue-confirm__button--cancel:not(:disabled):hover {
+  background: var(--queue-action-active);
+}
+
+.queue-confirm__button--confirm {
+  color: #ffffff;
+  background: var(--queue-brand);
+  font-weight: 500;
+}
+
+.queue-confirm__button--confirm:not(:disabled):hover {
+  background: var(--queue-brand-hover);
+}
+
+/* Light skin, taken from the Figma panel (node 5051:25123). */
+[data-theme="light"] .print-queue-preview {
+  --queue-page-bg: #eeeeee;
+  --queue-panel-bg: #ffffff;
+  --queue-card-bg: #f8f8f8;
+  --queue-border: #eeeeee;
+  --queue-text-strong: #262e30;
+  --queue-text-secondary: #6b6b6b;
+  --queue-text-disabled: #c5c8c9;
+  --queue-row-hover: #f8f8f8;
+  --queue-filter-border: #cecece;
+  --queue-brand-hover: #07933c;
+  --queue-title-color: #000000;
+  --queue-profile-text: #707070;
+  --queue-badge-bg: #6b6b6b;
+  --queue-row-dragging: #f2f7f4;
+  --queue-action-hover: #eeeeee;
+  --queue-action-active: #e4e4e4;
+  --queue-tip-bg: #262e30;
+  --queue-tip-text: #ffffff;
+  --queue-busy-track: #d8d8d8;
+  --queue-overlay: rgba(38, 46, 48, 0.35);
+  --queue-dialog-bg: #ffffff;
+  --queue-dialog-shadow: 0 8px 20px -2px rgba(38, 46, 48, 0.28);
+  --queue-error-border: #efc5c5;
+  --queue-error-text: #922f2f;
+  --queue-error-bg: #fff4f4;
+}

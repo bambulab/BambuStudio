@@ -7,11 +7,13 @@
 #include "GUI_App.hpp"
 #include "GUI_Preview.hpp"
 #include "MainFrame.hpp"
+#include "ReleaseNote.hpp"
 #include "format.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 
 #include "DeviceCore/DevConfig.h"
+#include "libslic3r/Log.hpp"
 
 static wxColour FG_COLOR = wxColour(0x32, 0x3A, 0x3D);
 static wxColour BG_COLOR = wxColour(0xF8, 0xF8, 0xF8);
@@ -345,7 +347,48 @@ void CalibrationDialog::on_start_calibration(wxMouseEvent &event)
             EndModal(wxID_CANCEL);
             Close();
         } else {
-            BOOST_LOG_TRIVIAL(info) << "on_start_calibration";
+            if (m_obj->GetConfig() && m_obj->GetConfig()->SupportCalibrationHighTempBedUnloadTips() &&
+                m_checkbox_list["bed_cali"]->GetValue()) {
+                if (m_obj->is_filament_installed()) {
+                    bool start_anyway = false;
+                    bool unload_filament = false;
+
+                    ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Tips"));
+                    confirm_dlg.edit_ok_button_txt(_L("Start Anyway"), true);
+                    confirm_dlg.edit_cancel_button_txt(_L("Unload"), true);
+                    confirm_dlg.update_text(_L("You have selected High-temperature Bed Leveling. To prevent filament from softening in the extruder, please unload the filament before calibration."));
+                    confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [&start_anyway](wxCommandEvent&) {
+                        start_anyway = true;
+                    });
+                    confirm_dlg.Bind(EVT_SECONDARY_CHECK_CANCEL, [&unload_filament](wxCommandEvent&) {
+                        unload_filament = true;
+                    });
+                    confirm_dlg.on_show();
+
+                    if (unload_filament) {
+                        if (m_obj->is_enable_np) {
+                            if (m_obj->GetExtderSystem()) {
+                                for (const auto& ext : m_obj->GetExtderSystem()->GetExtruders()) {
+                                    if (ext.HasFilamentInExt()) {
+                                        m_obj->command_ams_change_filament(false, ext.GetSlotNow().ams_id, "255");
+                                    }
+                                }
+                            }
+                        } else {
+                            std::string curr_ams_id = m_obj->GetExtderSystem() ? m_obj->GetExtderSystem()->GetCurrentAmsId() : "255";
+                            m_obj->command_ams_change_filament(false, curr_ams_id, "255");
+                        }
+                        EndModal(wxID_CANCEL);
+                        Close();
+                        return;
+                    }
+                    if (!start_anyway) {
+                        return;
+                    }
+                }
+            }
+
+            BOOST_LOG_TRIVIAL(info);
             m_obj->command_start_calibration(
                 m_checkbox_list["vibration"]->GetValue(),
                 m_checkbox_list["bed_leveling"]->GetValue(),

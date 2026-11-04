@@ -13,14 +13,22 @@ class WXDLLIMPEXP_FWD_CORE wxEventLoop;
 class WXDLLIMPEXP_FWD_CORE wxGauge;
 class WXDLLIMPEXP_FWD_CORE wxStaticText;
 class WXDLLIMPEXP_FWD_CORE wxWindowDisabler;
+class ProgressBar;
 
 #define PROGRESSDIALOG_SIMPLEBOOK_SIZE wxSize(FromDIP(320),FromDIP(38))
 #define PROGRESSDIALOG_GAUGE_SIZE wxSize(FromDIP(320), FromDIP(6))
 #define PROGRESSDIALOG_CANCEL_BUTTON_SIZE wxSize(FromDIP(60), FromDIP(24))
 #define PROGRESSDIALOG_DEF_BK wxColour(255,255,255)
 #define PROGRESSDIALOG_GREY_700 wxColour(107,107,107)
+#define PROGRESSDIALOG_GREY_900 wxColour(38,46,48)
+#define PROGRESSDIALOG_PERCENT_CONTENT_WIDTH FromDIP(432)
+#define PROGRESSDIALOG_PERCENT_MARGIN FromDIP(24)
+#define PROGRESSDIALOG_PERCENT_CANCEL_BUTTON_SIZE wxSize(FromDIP(48), FromDIP(24))
 
 #define wxPD_NO_PROGRESS 0x0100
+// Fixed layout: single-line subject and message, gauge title with percentage above the gauge,
+// cancel button next to the gauge. Labels never resize the dialog while it is running.
+#define wxPD_SHOW_PERCENT 0x0200
 
 namespace Slic3r { namespace GUI {
 
@@ -60,6 +68,11 @@ public:
     virtual bool Show(bool show = true) wxOVERRIDE;
 
     void EnableYield(bool need_yield) { m_need_yield = need_yield; }
+
+    // Only meaningful with wxPD_SHOW_PERCENT.
+    bool ShowsPercent() const { return HasPDFlag(wxPD_SHOW_PERCENT); }
+    void SetSubject(const wxString &subject);
+    void SetGaugeTitle(const wxString &title);
 
     // This enum is an implementation detail and should not be used
     // by user code.
@@ -172,6 +185,13 @@ private:
     // updates the label message
     void UpdateMessage(const wxString &newmsg);
 
+    // wxPD_SHOW_PERCENT counterparts of Create() / UpdateMessage()
+    bool CreatePercentLayout(wxSizer *sizer_main, int maximum, const wxString &message);
+    void UpdatePercentMessage(const wxString &newmsg);
+    void UpdatePercentValue(int value);
+
+    Button *CreateCancelButton();
+
     // common part of Update() and Pulse(), returns true if not cancelled
     bool DoBeforeUpdate(bool *skip);
 
@@ -192,6 +212,14 @@ private:
     // the message displayed
     wxStaticText *m_msg;
     wxStaticText *m_msg_2line;
+    // wxPD_SHOW_PERCENT only
+    wxStaticText *m_subject       = {nullptr};
+    wxStaticText *m_gauge_title   = {nullptr};
+    wxStaticText *m_percent_value = {nullptr};
+    wxStaticText *m_percent_sign  = {nullptr};
+    // Custom-drawn: the native gauge animates towards new values and lags behind the percentage.
+    ::ProgressBar *m_percent_bar  = {nullptr};
+    wxString      m_last_msg;
     // displayed elapsed, estimated, remaining time
     wxStaticText *m_elapsed, *m_estimated, *m_remaining;
 
@@ -235,7 +263,11 @@ private:
     // if we are doing a heavy job, we should yield for some time to let others use the main thread
     // Note: this many cause a great delay on operations such as Update()
     // disable this if not needed.
+#if defined(__WXMSW__)
+    bool m_need_yield{false};
+#else
     bool m_need_yield{true};
+#endif
 
     wxDECLARE_NO_COPY_CLASS(ProgressDialog);
 };

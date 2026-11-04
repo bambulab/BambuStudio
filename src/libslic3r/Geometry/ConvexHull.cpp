@@ -37,6 +37,22 @@ Polygon convex_hull(Points pts)
     return hull;
 }
 
+Pointfs convex_hull(const Pointfs &points)
+{
+    Points scaled;
+    scaled.reserve(points.size());
+    for (const Vec2d &p : points)
+        scaled.emplace_back(Point::new_scale(p.x(), p.y()));
+
+    const Polygon hull = convex_hull(std::move(scaled));
+
+    Pointfs out;
+    out.reserve(hull.points.size());
+    for (const Point &p : hull.points)
+        out.emplace_back(unscale(p));
+    return out;
+}
+
 Pointf3s convex_hull(Pointf3s points)
 {
     assert(points.size() >= 3);

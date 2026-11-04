@@ -47,6 +47,22 @@
         "22",
         "22"
     ],
+    "filament_overhang_2_4_speed": [
+        "50",
+        "50",
+        "30",
+        "50",
+        "50",
+        "50"
+    ],
+    "filament_overhang_3_4_speed": [
+        "30",
+        "30",
+        "15",
+        "30",
+        "30",
+        "30"
+    ],
     "filament_ramming_travel_time": [
         "0",
         "0",

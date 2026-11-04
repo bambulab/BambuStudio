@@ -7,9 +7,8 @@
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
 
-#include <boost/log/trivial.hpp>
-
 #include "CalibUtils.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
     namespace GUI {
@@ -42,8 +41,7 @@ FilamentLoad::FilamentLoad(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PUSH_SWITCHER_FILA]  = _L("Switch current filament at Filament Track Switch");
     FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PULL_SWITCHER_FILA]  = _L("Pull back current filament at Filament Track Switch");
     FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_SWITCHER_SWITCH]     = _L("Switch track at Filament Track Switch");
-    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_CONFIRM_EXTRUDED]    = _L("Confirm extruded");
-    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_CHECK_POSITION]      = _L("Check filament location");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_CHECK_POSITION]      = _L("Confirm extruded");
 }
 
 void FilamentLoad::SetFilamentStep(MachineObject* obj_, DevFilamentStep item_idx, FilamentStepType f_type)
@@ -94,7 +92,7 @@ void FilamentLoad::SetFilamentStep(MachineObject* obj_, DevFilamentStep item_idx
         SetSelection(2);
         Layout();
         if (item_idx > 0 && item_idx < DevFilamentStep::STEP_COUNT) {
-            if (item_idx == STEP_CONFIRM_EXTRUDED) {
+            if (item_idx == STEP_CHECK_POSITION) {
                 m_filament_vt_load_steps->SelectItem(2);
             }
             else {
@@ -129,8 +127,8 @@ void FilamentLoad::SetupSteps(MachineObject* obj_, bool has_fila_to_switch) {
     // in latest protocol
     // filament change steps are sent by AMS, so we can directly use them without hardcoding for each model.
     // If steps are provided by AMS, we will ignore the hardcoded steps below.
-    if (obj_ && obj_->GetFilaSystem() && !obj_->GetFilaSystem()->GetFilamentChangeSteps().empty()) {
-        const auto& steps = obj_->GetFilaSystem()->GetFilamentChangeSteps();
+    if (obj_ && obj_->GetFilaSystem() && !obj_->GetFilaSystem()->GetCurrentFilamentChangeSteps().empty()) {
+        const auto& steps = obj_->GetFilaSystem()->GetCurrentFilamentChangeSteps();
         if(steps.size() > 5){
             set_min_size(wxSize(wxSize(FromDIP(300), FromDIP(215) + (steps.size() - 5) * 30)));
             set_max_size(wxSize(wxSize(FromDIP(300), FromDIP(215) + (steps.size() - 5) * 30)));

@@ -3,7 +3,7 @@
 #include <libslic3r/libslic3r.h>
 
 #include <boost/nowide/convert.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 #if _WIN32
 #include <windows.h>

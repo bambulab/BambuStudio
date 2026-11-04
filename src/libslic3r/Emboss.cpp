@@ -4,9 +4,10 @@
 #include <numeric>
 #include <cstdlib>
 #include <boost/nowide/convert.hpp>
-#include <boost/log/trivial.hpp>
 #include <ClipperUtils.hpp> // union_ex + for boldness(polygon extend(offset))
 #include "IntersectionPoints.hpp"
+// before imstb_truetype.h: its implementation logs with BOOST_LOG_TRIVIAL
+#include "libslic3r/Log.hpp"
 
 #define STB_TRUETYPE_IMPLEMENTATION // force following include to generate implementation
 #include "imgui/imstb_truetype.h" // stbtt_fontinfo

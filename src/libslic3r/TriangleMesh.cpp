@@ -24,7 +24,6 @@
 #include <algorithm>
 #include <type_traits>
 
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/predef/other/endian.h>
 
@@ -32,6 +31,7 @@
 #include <Eigen/Dense>
 
 #include <assert.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -1758,7 +1758,7 @@ indexed_triangle_set its_convex_hull(const std::vector<Vec3f> &pts)
             qhull.runQhull("", 3, (int)src_vertices.size() / 3, src_vertices.data(), "Qt");
     #endif
         } catch (...) {
-            BOOST_LOG_TRIVIAL(error) << "its_convex_hull: Unable to create convex hull";
+            BOOST_LOG_TRIVIAL(error) << "Unable to create convex hull";
             return {};
         }
 
@@ -2002,7 +2002,7 @@ bool its_write_stl_ascii(const char *file, const char *label, const std::vector<
 {
     FILE *fp = boost::nowide::fopen(file, "w");
     if (fp == nullptr) {
-        BOOST_LOG_TRIVIAL(error) << "its_write_stl_ascii: Couldn't open " << file << " for writing";
+        BOOST_LOG_TRIVIAL(error) << "Couldn't open " << file << " for writing";
         return false;
     }
 
@@ -2029,7 +2029,7 @@ bool its_write_stl_binary(const char *file, const char *label, const std::vector
 {
     FILE *fp = boost::nowide::fopen(file, "wb");
     if (fp == nullptr) {
-        BOOST_LOG_TRIVIAL(error) << "its_write_stl_binary: Couldn't open " << file << " for writing";
+        BOOST_LOG_TRIVIAL(error) << "Couldn't open " << file << " for writing";
         return false;
     }
 

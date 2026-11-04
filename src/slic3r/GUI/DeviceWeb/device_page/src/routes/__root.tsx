@@ -4,6 +4,16 @@ const embeddedRoutes = new Set([
   '/filament_manager',
   '/device_page/ams_control_web',
   '/device_page/ams_control_web_debug',
+  '/device_page/ams_filament_hotend',
+  '/device_page/ams_ext_operation',
+  '/device_page/ams_ext_filament_edit',
+  '/device_page/ams_bridge_debug',
+  '/device_page/hotend_detail',
+  '/device_page/filament_manual_pull',
+  '/device_page/ams_mapping_hotend',
+  '/device_page/auto_refill_refill_info',
+  '/device_page/connected_slots',
+  '/device_page/print_queue',
 ])
 
 function RootComponent() {

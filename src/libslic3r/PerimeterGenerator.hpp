@@ -37,6 +37,7 @@ public:
     const ExPolygons            *lower_slices;
     double                       layer_height;
     int                          layer_id;
+    bool                         starts_at_object_base;
     coordf_t                     slice_z;
     Flow                         perimeter_flow;
     Flow                         ext_perimeter_flow;
@@ -45,6 +46,8 @@ public:
     const PrintRegionConfig     *config;
     const PrintObjectConfig     *object_config;
     const PrintConfig           *print_config;
+    float                        preset_nozzle_diameter;
+    bool                         multi_nozzle_diameter_mode;
     const PerimeterRegions      *perimeter_regions;
     // Outputs:
     ExtrusionEntityCollection   *loops;
@@ -71,6 +74,8 @@ public:
         const PrintRegionConfig*    config,
         const PrintObjectConfig*    object_config,
         const PrintConfig*          print_config,
+        const float                 preset_nozzle_diameter,
+        const bool                  multi_nozzle_diameter_mode,
         const bool                  spiral_mode,
         // Output:
         // Loops with the external thin walls
@@ -83,9 +88,11 @@ public:
         ExPolygons*                 fill_no_overlap,
         std::vector<LoopNode>       *loop_nodes)
         : slices(slices), upper_slices(nullptr), lower_slices(nullptr), layer_height(layer_height),
-            layer_id(-1), slice_z(0), perimeter_flow(flow), ext_perimeter_flow(flow),
+            layer_id(-1), starts_at_object_base(false), slice_z(0), perimeter_flow(flow), ext_perimeter_flow(flow),
             overhang_flow(flow), solid_infill_flow(flow),
             config(config), object_config(object_config), print_config(print_config),
+            preset_nozzle_diameter(preset_nozzle_diameter),
+            multi_nozzle_diameter_mode(multi_nozzle_diameter_mode),
             m_spiral_vase(spiral_mode),
             m_scaled_resolution(scaled<double>(print_config->resolution.value > EPSILON ? print_config->resolution.value : EPSILON)), loops(loops),
         gap_fill(gap_fill),
@@ -113,6 +120,7 @@ public:
     Polygons    lower_slices_polygons() const { return m_lower_slices_polygons; }
 
 private:
+    int         effective_wall_loops() const;
     std::vector<Polygons>     generate_lower_polygons_series(float width);
     std::pair<double, double> dist_boundary(double width);
 

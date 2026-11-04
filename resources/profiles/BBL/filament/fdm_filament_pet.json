@@ -16,11 +16,58 @@
     "fan_min_speed": [
         "20"
     ],
+    "filament_adhesiveness_category": [
+        "300"
+    ],
     "filament_cost": [
         "30"
     ],
     "filament_density": [
         "1.27"
+    ],
+    "filament_dev_ams_drying_ams_limitations": [
+        "1",
+        "0",
+        "2",
+        "3"
+    ],
+    "filament_dev_ams_drying_heat_distortion_temperature": [
+        "75",
+        "75",
+        "70",
+        "75"
+    ],
+    "filament_dev_ams_drying_temperature": [
+        "65",
+        "65",
+        "55",
+        "55",
+        "65",
+        "65",
+        "65",
+        "55"
+    ],
+    "filament_dev_ams_drying_time": [
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12"
+    ],
+    "filament_dev_chamber_drying_bed_temperature": [
+        "80"
+    ],
+    "filament_dev_drying_cooling_temperature": [
+        "55"
+    ],
+    "filament_dev_drying_softening_temperature": [
+        "60",
+        "60",
+        "75",
+        "60"
     ],
     "filament_max_volumetric_speed": [
         "25"
@@ -31,54 +78,23 @@
     "filament_type": [
         "PETG"
     ],
-    "filament_adhesiveness_category": [
-        "300"
-    ],
-    "filament_dev_chamber_drying_bed_temperature": [
-        "80"
-    ],
-    "filament_dev_ams_drying_time": [
-        "12",
-        "12",
-        "12",
-        "12"
-    ],
-    "filament_dev_ams_drying_ams_limitations": [
-        "1",
-        "0"
-    ],
-    "filament_dev_ams_drying_heat_distortion_temperature": [
-        "75"
-    ],
-    "filament_dev_drying_cooling_temperature": [
-        "55"
-    ],
-    "filament_dev_ams_drying_temperature": [
-        "65",
-        "65",
-        "55",
-        "55"
-    ],
-    "filament_dev_drying_softening_temperature": [
-        "60"
-    ],
     "hot_plate_temp": [
         "80"
     ],
     "hot_plate_temp_initial_layer": [
         "80"
     ],
-    "nozzle_temperature_range_low": [
-        "220"
-    ],
-    "nozzle_temperature_range_high": [
-        "260"
-    ],
     "nozzle_temperature": [
         "255"
     ],
     "nozzle_temperature_initial_layer": [
         "255"
+    ],
+    "nozzle_temperature_range_high": [
+        "260"
+    ],
+    "nozzle_temperature_range_low": [
+        "220"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
@@ -90,7 +106,7 @@
         "70"
     ],
     "temperature_vitrification": [
-        "70"
+        "60"
     ],
     "textured_plate_temp": [
         "80"

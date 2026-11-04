@@ -50,6 +50,8 @@ public:
     void                 apply_print_config(const PrintConfig &print_config);
     // Extruders are expected to be sorted in an increasing order.
     void                 set_extruders(std::vector<unsigned int> extruder_ids);
+    // Recompute which filaments have a hotend to themselves, based on config.filament_nozzle_map.
+    void                 update_exclusive_nozzles();
     const std::vector<Extruder>& extruders() const { return m_filament_extruders; }
     std::vector<unsigned int> extruder_ids() const {
         std::vector<unsigned int> out;
@@ -116,8 +118,8 @@ public:
     // To be called by the main thread. It always emits the G-code, it does not remember the previous state.
     // Keeping the state is left to the CoolingBuffer, which runs asynchronously on another thread.
     std::string set_fan(unsigned int speed) const;
-    //BBS: set additional fan speed for BBS machine only
-    static std::string set_additional_fan(unsigned int speed);
+    //BBS: set the speed of one auxiliary part cooling fan, addressed by its M106 P index
+    static std::string set_additional_fan(int gcode_index, unsigned int speed);
     static std::string set_exhaust_fan(int speed,bool add_eol);
     //BBS
     void set_object_start_str(std::string start_string) { m_gcode_label_objects_start = start_string; }

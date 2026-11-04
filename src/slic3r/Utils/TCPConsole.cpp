@@ -6,13 +6,13 @@
 #include <boost/asio/write.hpp>
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <iostream>
 #include <string>
 
 #include "TCPConsole.hpp"
+#include "libslic3r/Log.hpp"
 
 using boost::asio::steady_timer;
 using boost::asio::ip::tcp;
@@ -160,6 +160,7 @@ bool TCPConsole::run_queue()
     }
     catch (std::exception& e)
     {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return false;
     }
 

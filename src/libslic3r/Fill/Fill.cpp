@@ -224,10 +224,17 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 	        else {
                 SurfaceFillParams        params;
                 const PrintRegionConfig &region_config  = layerm.region().config();
+                const double surface_height = (surface.thickness == -1) ? layer.height : surface.thickness;
+                const double object_base_z = layer.object()->layers().empty() ?
+                    0. : layer.object()->layers().front()->bottom_z();
+                const bool starts_at_object_base =
+                    std::abs(layer.print_z - surface_height - object_base_z) <= EPSILON;
+                const bool touches_bed =
+                    starts_at_object_base && std::abs(object_base_z) <= EPSILON;
 		        FlowRole extrusion_role = surface.is_top() ? frTopSolidInfill : (surface.is_solid() ? frSolidInfill : frInfill);
 		        bool     is_bridge 	    = layer.id() > 0 && surface.is_bridge();
 		        params.extruder 	 = layerm.region().extruder(extrusion_role);
-		        if (layer.id() == 0)
+		        if (touches_bed)
 		            params.initial_layer_flow_ratio = region_config.initial_layer_flow_ratio.value;
 		        params.pattern 		 = region_config.sparse_infill_pattern.value;
 		        params.conformal_infill = region_config.conformal_infill && !surface.is_solid();
@@ -293,10 +300,33 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 
 		        // Calculate the actual flow we'll be using for this infill.
 		        params.bridge = is_bridge || Fill::use_bridge_flow(params.pattern);
-				params.flow   = params.bridge ?
-					//BBS: always enable thick bridge for internal bridge
-					layerm.bridging_flow(extrusion_role, (surface.is_bridge() && !surface.is_external()) || object_config.thick_bridges) :
-					layerm.flow(extrusion_role, (surface.thickness == -1) ? layer.height : surface.thickness);
+		        if (! params.bridge) {
+		            params.flow = layerm.region().flow(
+                        *layer.object(), extrusion_role, surface_height,
+                        layer.id() == 0 || starts_at_object_base);
+		        } else {
+		            //BBS: always enable thick bridge for internal bridge
+		            const bool thick       = (surface.is_bridge() && ! surface.is_external()) || object_config.thick_bridges;
+		            const bool merged_span = is_bridge && surface_height > layer.height + EPSILON;
+		            // A thick bridge is a rounded extrusion as tall as the nozzle is wide, laid at the layer's
+		            // own Z. That extra height is what anchors an internal bridge down into the sparse fill,
+		            // so decimating the span must not cost it: the merged height is at most 0.7 nozzle
+		            // diameters, which the thick extrusion covers on its own.
+		            Flow thick_flow;
+		            if (thick)
+		                thick_flow = layerm.bridging_flow(extrusion_role, true);
+		            if (thick && (! merged_span || double(thick_flow.height()) + EPSILON >= surface_height))
+		                params.flow = thick_flow;
+		            else if (merged_span)
+		                // BBS multi-diameter: this bridge is the only extrusion filling the merged span, so it
+		                // has to be extruded at the merged height. A thin bridging flow derives its height from
+		                // the physical layer and would leave the rest of the span empty.
+		                params.flow = layerm.region().flow(
+                            *layer.object(), extrusion_role, surface_height,
+                            layer.id() == 0 || starts_at_object_base).with_flow_ratio(region_config.bridge_flow);
+		            else
+		                params.flow = layerm.bridging_flow(extrusion_role, false);
+		        }
 				//BBS: record speed params
                 if (!params.bridge) {
                     if (params.extrusion_role == erInternalInfill)
@@ -341,12 +371,20 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 				//get locked region param
 				if (params.pattern == ipLockedZag){
 					const PrintObject *object = layerm.layer()->object();
-					auto nozzle_diameter = float(object->print()->config().nozzle_diameter.get_at(layerm.region().extruder(extrusion_role) - 1));
-					Flow skin_flow = params.bridge ? params.flow : Flow::new_from_config_width(extrusion_role, region_config.skin_infill_line_width, nozzle_diameter, float((surface.thickness == -1) ? layer.height : surface.thickness));
+					auto nozzle_diameter = nozzle_diameter_for_filament(
+                        object->print()->config(), layerm.region().extruder(extrusion_role));
+                    auto preset_nozzle_diameter = float(primary_nozzle_diameter(object->print()->full_print_config()));
+					Flow skin_flow = params.bridge ? params.flow : Flow::new_from_config_width(
+                        extrusion_role, region_config.skin_infill_line_width, preset_nozzle_diameter, nozzle_diameter,
+                        float((surface.thickness == -1) ? layer.height : surface.thickness),
+                        multi_nozzle_diameter_mode_enabled(object->print()->full_print_config()));
 					//add skin flow
 					append_flow_param(lock_param.skin_flow_params, skin_flow, surface.expolygon);
 
-					Flow skeleton_flow = params.bridge ? params.flow : Flow::new_from_config_width(extrusion_role, region_config.skeleton_infill_line_width, nozzle_diameter, float((surface.thickness == -1) ? layer.height : surface.thickness)) ;
+					Flow skeleton_flow = params.bridge ? params.flow : Flow::new_from_config_width(
+                        extrusion_role, region_config.skeleton_infill_line_width, preset_nozzle_diameter, nozzle_diameter,
+                        float((surface.thickness == -1) ? layer.height : surface.thickness),
+                        multi_nozzle_diameter_mode_enabled(object->print()->full_print_config())) ;
 					// add skeleton flow
 					append_flow_param(lock_param.skeleton_flow_params, skeleton_flow, surface.expolygon);
 
@@ -1040,6 +1078,11 @@ void Layer::make_ironing()
 				ironing_params.just_infill 	= false;
 				ironing_params.line_spacing = config.ironing_spacing;
 				ironing_params.inset 		= config.ironing_inset;
+                if (multi_nozzle_diameter_mode_enabled(this->object()->print()->full_print_config())) {
+                    const double nozzle_diameter = nozzle_diameter_for_filament(
+                        this->object()->print()->config(), (unsigned int) config.solid_infill_filament.value);
+                    ironing_params.inset = multi_nozzle_ironing_inset(nozzle_diameter, ironing_params.inset);
+                }
 				ironing_params.height 		= default_layer_height * 0.01 * config.ironing_flow;
 				ironing_params.speed 		= config.ironing_speed;
 				ironing_params.angle 		= (int(config.ironing_direction.value+layerm->region().config().infill_direction.value)%180) * M_PI / 180.;
@@ -1088,9 +1131,15 @@ void Layer::make_ironing()
 			// Merge top surfaces with the same ironing parameters.
 			Polygons polys;
 			Polygons infills;
+			Polygons void_fill_areas;
 			for (size_t k = i; k < j; ++ k) {
 				const IroningParams		 &ironing_params  = by_extruder[k];
 				const PrintRegionConfig  &region_config   = ironing_params.layerm->region().config();
+				// Layer combination marks swallowed fill as void while keeping the original top slices.
+				// Exclude those areas so ironing is emitted only where this physical layer has fill.
+				for (const Surface &surface : ironing_params.layerm->fill_surfaces.surfaces)
+					if (surface.surface_type == stInternalVoid)
+						polygons_append(void_fill_areas, to_polygons(surface.expolygon));
 				bool					  iron_everything = region_config.ironing_type == IroningType::AllSolid;
 				bool					  iron_completely = iron_everything;
 				if (iron_everything) {
@@ -1134,6 +1183,8 @@ void Layer::make_ironing()
 			//BBS: ironing inset
             double ironing_areas_offset = ironing_params.inset == 0 ? float(scale_(0.5 * nozzle_dmr)) : scale_(ironing_params.inset);
 			ironing_areas = intersection_ex(polys, offset(this->lslices, - ironing_areas_offset));
+			if (! void_fill_areas.empty())
+				ironing_areas = diff_ex(ironing_areas, union_ex(void_fill_areas));
 		}
 
         // Create the filler object.

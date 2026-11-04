@@ -27,7 +27,7 @@
     "filament_max_volumetric_speed": [
         "21",
         "28",
-        "21"
+        "30"
     ],
     "filament_pre_cooling_temperature_nc": [
         "210",
@@ -63,7 +63,7 @@
     "filament_retraction_length": [
         "0.4",
         "0.4",
-        "0.4"
+        "0.8"
     ],
     "filament_tower_ironing_area": [
         "8"

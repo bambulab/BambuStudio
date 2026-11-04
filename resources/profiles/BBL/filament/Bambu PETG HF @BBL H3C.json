@@ -1,0 +1,107 @@
+{
+    "type": "filament",
+    "name": "Bambu PETG HF @BBL H3C",
+    "inherits": "Bambu PETG HF @base",
+    "from": "system",
+    "setting_id": "GFSG02_41",
+    "instantiation": "true",
+    "close_optional_fan_first_x_layers": [
+        "1"
+    ],
+    "fan_cooling_layer_time": [
+        "20"
+    ],
+    "fan_max_speed": [
+        "50"
+    ],
+    "fan_min_speed": [
+        "20"
+    ],
+    "filament_change_length": [
+        "0"
+    ],
+    "filament_change_length_nc": [
+        "0"
+    ],
+    "filament_idle_travel_cooling_enabled": "0",
+    "filament_max_volumetric_speed": [
+        "25",
+        "40"
+    ],
+    "filament_prime_tower_speed_factor_curve": [
+        "0.5,1"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4"
+    ],
+    "filament_wipe": [
+        "1",
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1",
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "Spiral Lift"
+    ],
+    "first_x_layer_optional_fan_speed": [
+        "0"
+    ],
+    "include": [
+        "fdm_filament_template_direct_dual",
+        "fdm_filament_template_h3c"
+    ],
+    "long_retractions_when_ec": [
+        "0",
+        "0"
+    ],
+    "nozzle_temperature": [
+        "245",
+        "245"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "245",
+        "245"
+    ],
+    "optional_cooling_fan_speed": [
+        "0"
+    ],
+    "optional_fan_full_speed_layer": [
+        "0"
+    ],
+    "overhang_fan_speed": [
+        "100"
+    ],
+    "pre_start_fan_time": [
+        "2"
+    ],
+    "slow_down_layer_time": [
+        "10"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
+    ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H3C 0.4 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
+    ],
+    "filament_end_gcode": [
+        "; filament end gcode \n"
+    ]
+}

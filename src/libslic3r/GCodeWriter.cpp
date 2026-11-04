@@ -81,6 +81,20 @@ void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
         (even if prints only uses that one) since we need to output Tx commands
         first extruder has index 0 */
     this->multiple_extruders = (*std::max_element(extruder_ids.begin(), extruder_ids.end())) > 0;
+
+    update_exclusive_nozzles();
+}
+
+void GCodeWriter::update_exclusive_nozzles()
+{
+    const std::vector<int> &nozzle_map = config.filament_nozzle_map.values;
+    std::map<int, int> filaments_per_nozzle;
+    for (const Extruder &e : m_filament_extruders)
+        if (e.id() < nozzle_map.size())
+            ++filaments_per_nozzle[nozzle_map[e.id()]];
+
+    for (Extruder &e : m_filament_extruders)
+        e.set_exclusive_nozzle(e.id() < nozzle_map.size() && filaments_per_nozzle[nozzle_map[e.id()]] == 1);
 }
 
 std::string GCodeWriter::preamble()
@@ -1005,12 +1019,13 @@ std::string GCodeWriter::set_fan(unsigned int speed) const
     return GCodeWriter::set_fan(this->config.gcode_flavor, speed);
 }
 
-//BBS: set additional fan speed for BBS machine only
-std::string GCodeWriter::set_additional_fan(unsigned int speed)
+//BBS: set the speed of one auxiliary part cooling fan, addressed by its M106 P index
+std::string GCodeWriter::set_additional_fan(int gcode_index, unsigned int speed)
 {
     std::ostringstream gcode;
 
-    gcode << "M106 " << "P2 " << "S" << (int)(255.0 * speed / 100.0);
+    const int fan_speed = (int)(255.0 * speed / 100.0);
+    gcode << "M106 " << "P" << gcode_index << " " << "S" << fan_speed;
     if (GCodeWriter::full_gcode_comment) {
         if (speed == 0)
             gcode << " ; disable additional fan ";
@@ -1018,6 +1033,7 @@ std::string GCodeWriter::set_additional_fan(unsigned int speed)
             gcode << " ; enable additional fan ";
     }
     gcode << "\n";
+
     return gcode.str();
 }
 

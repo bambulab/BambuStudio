@@ -11,7 +11,6 @@
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
@@ -41,6 +40,7 @@
 #include "BRep_Tool.hxx"
 #include "BRepTools.hxx"
 #include <IMeshTools_Parameters.hxx>
+#include "libslic3r/Log.hpp"
 
 
 namespace Slic3r {
@@ -924,6 +924,7 @@ unsigned int Step::get_triangle_num(double linear_defletion, double angle_deflet
             }
         }
     } catch(Exception e) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0;
     }
     return tri_num;

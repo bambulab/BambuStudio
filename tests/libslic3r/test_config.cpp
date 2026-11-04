@@ -2,6 +2,9 @@
 
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/LocalesUtils.hpp"
+#include "libslic3r/Slicing.hpp"
+#include "libslic3r/AdaptiveLayerMerge.hpp"
+#include "libslic3r/CustomGCode.hpp"
 
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/types/string.hpp> 
@@ -9,6 +12,124 @@
 #include <cereal/archives/binary.hpp>
 
 using namespace Slic3r;
+
+TEST_CASE("Single-diameter direct layering keeps physical nozzle height limits", "[Config][MultiDiameter]")
+{
+    SlicingParameters params;
+    params.layer_grid_subdivision = 4;
+    params.layer_grid_multiplier = 4;
+    params.single_diameter_layering = true;
+
+    CHECK(params.to_base_layer_height(0.4) == Approx(0.4));
+
+    params.single_diameter_layering = false;
+    params.layer_grid_multiplier = 1;
+    CHECK(params.to_base_layer_height(0.4) == Approx(0.1));
+    CHECK(params.to_layer_height_limit(0.16) == Approx(0.04));
+}
+
+TEST_CASE("Single-diameter support uses the actual nozzle instead of the first slot", "[Config][MultiDiameter]")
+{
+    PrintConfig print_config;
+    print_config.nozzle_diameter.values = { 0.4 };
+    print_config.min_layer_height.values = { 0.08 };
+    print_config.max_layer_height.values = { 0.28 };
+    print_config.initial_layer_print_height.value = 0.2;
+
+    PrintObjectConfig object_config;
+    object_config.layer_height.value = 0.2;
+    object_config.enable_support.value = true;
+    object_config.raft_layers.value = 3;
+    object_config.support_filament.value = 0;
+    object_config.support_interface_filament.value = 0;
+
+    const SlicingParameters params = SlicingParameters::create_from_config(
+        print_config, object_config, 10., { 0 }, 4, 4, 0.8);
+
+    CHECK(params.min_layer_height == Approx(0.16));
+    CHECK(params.max_layer_height == Approx(0.56));
+    CHECK(params.max_suport_layer_height == Approx(0.56));
+    CHECK(params.base_raft_layer_height == Approx(0.6));
+    CHECK(params.interface_raft_layer_height == Approx(0.6));
+}
+
+TEST_CASE("Single-diameter direct layering slices at the merged band of the nozzle", "[Config][MultiDiameter]")
+{
+    // A 0.4 process preset on the 0.2 grid: 0.2 mm authored layers are cut into 2 x 0.1 mm grid steps.
+    PrintConfig print_config;
+    print_config.nozzle_diameter.values = { 0.4 };
+    print_config.min_layer_height.values = { 0.08 };
+    print_config.max_layer_height.values = { 0.28 };
+    print_config.initial_layer_print_height.value = 0.2;
+
+    PrintObjectConfig object_config;
+    object_config.layer_height.value = 0.2;
+
+    const int    subdivision = 2;
+    const double grid_step   = object_config.layer_height.value / subdivision;
+    for (const double nozzle : { 0.2, 0.4, 0.6, 0.8 }) {
+        // The band a merge would have laid every step into, which direct layering stacks up front.
+        const size_t band_size = adaptive_layer_band_size(nozzle, 0.2, grid_step);
+        const SlicingParameters params = SlicingParameters::create_from_config(
+            print_config, object_config, 10., { 0 }, subdivision, int(band_size), nozzle);
+        CHECK(params.layer_height == Approx(double(band_size) * grid_step));
+        // The first layer is the first band: the configured first layer keeps its ratio to the regular layer.
+        CHECK(params.first_print_layer_height == Approx(double(band_size) * grid_step));
+        CHECK(adaptive_layer_height_range(nozzle).contains(params.layer_height));
+    }
+    CHECK(adaptive_layer_band_size(0.6, 0.2, grid_step) == 3);
+    CHECK(adaptive_layer_band_size(0.8, 0.2, grid_step) == 4);
+}
+
+TEST_CASE("Single-diameter direct layering scales the first layer with the band", "[Config][MultiDiameter]")
+{
+    PrintConfig print_config;
+    print_config.nozzle_diameter.values = { 0.4 };
+    print_config.min_layer_height.values = { 0.08 };
+    print_config.max_layer_height.values = { 0.28 };
+
+    PrintObjectConfig object_config;
+
+    // A layer height inside the printer limits keeps the band at the diameter ratio, so the first layer keeps
+    // the configured proportion: 0.3 mm on 0.4 mm layers of a 0.8 nozzle stays inside its window.
+    object_config.layer_height.value = 0.2;
+    print_config.initial_layer_print_height.value = 0.15;
+    const SlicingParameters in_limits = SlicingParameters::create_from_config(
+        print_config, object_config, 10., { 0 }, 2, int(adaptive_layer_band_size(0.8, 0.2, 0.1)), 0.8);
+    CHECK(in_limits.first_print_layer_height == Approx(0.3));
+    CHECK(adaptive_layer_height_range(0.8).contains(in_limits.first_print_layer_height));
+
+    // A layer height below the printer limits makes the band grow past the diameter ratio to reach the nozzle's
+    // minimum, and the first layer grows with it. Two objects on one plate then lay their first layer at
+    // different heights, which is why Print keeps such a plate on the merge path.
+    object_config.layer_height.value = 0.06;
+    print_config.initial_layer_print_height.value = 0.2;
+    const size_t grown_band = adaptive_layer_band_size(0.8, 0.2, 0.03);
+    CHECK(grown_band == 6);
+    const SlicingParameters grown = SlicingParameters::create_from_config(
+        print_config, object_config, 10., { 0 }, 2, int(grown_band), 0.8);
+    CHECK(grown.first_print_layer_height == Approx(0.6));
+    CHECK(std::abs(grown.first_print_layer_height - in_limits.first_print_layer_height) > EPSILON);
+}
+
+TEST_CASE("Custom tool changes count only within the printed height", "[Config][MultiDiameter]")
+{
+    CustomGCode::Info info;
+    info.mode = CustomGCode::MultiAsSingle;
+    info.gcodes.push_back({ 2.0, CustomGCode::ToolChange, 2, "", "" });
+    info.gcodes.push_back({ 10.0, CustomGCode::ToolChange, 3, "", "" });
+    info.gcodes.push_back({ 12.0, CustomGCode::ToolChange, 4, "", "" });
+    info.gcodes.push_back({ 5.0, CustomGCode::ColorChange, 4, "", "" });
+
+    // A stack topping out at 10 mm reaches the change at its top layer, not the one above it.
+    const std::vector<std::pair<double, unsigned int>> reached = CustomGCode::custom_tool_changes_up_to(info, 4, 10.);
+    REQUIRE(reached.size() == 2);
+    CHECK(reached[0].second == 2);
+    CHECK(reached[1].second == 3);
+
+    CHECK(CustomGCode::custom_tool_changes_up_to(info, 4, 1.).empty());
+    CHECK(CustomGCode::custom_tool_changes_up_to(info, 4, 20.).size() == 3);
+}
 
 SCENARIO("Generic config validation performs as expected.", "[Config]") {
     GIVEN("A config generated from default options") {

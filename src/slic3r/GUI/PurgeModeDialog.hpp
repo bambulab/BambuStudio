@@ -59,6 +59,12 @@ protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
 
 private:
+    /**
+     * \brief Fix the dialog width and let its height follow the content
+     *
+     * Long translations need more lines in the option cards, so the height has no upper limit.
+     */
+    void     update_size_hints();
     void     select_option(PrimeVolumeMode mode);
     void     update_panel_selection();
 

@@ -25,6 +25,7 @@
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevStorage.h"
 #include "slic3r/Utils/FileTransferUtils.hpp"
+#include "libslic3r/Log.hpp"
 
 
 namespace Slic3r {
@@ -853,7 +854,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     }
     assert(obj_->get_dev_id() == m_printer_last_select);
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", print_job: for send task, current printer id =  " <<  BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "print_job: for send task, current " << KV(log_key::dev_id, m_printer_last_select) << std::endl;
     show_status(PrintDialogStatus::PrintStatusSending);
 
     m_status_bar->reset();
@@ -908,14 +909,14 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
      }
 
     if (m_is_canceled || m_export_3mf_cancel) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": send progress 10";
+        BOOST_LOG_TRIVIAL(info) << "send progress 10";
         BOOST_LOG_TRIVIAL(info) << "send_job: m_export_3mf_cancel or m_is_canceled";
         //m_status_bar->set_status_text(task_canceled_text);
         return;
     }
 
     if (result < 0) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Abnormal print file data. Please slice again";
+        BOOST_LOG_TRIVIAL(info) << "Abnormal print file data. Please slice again";
         wxString msg = _L("Abnormal print file data. Please slice again");
         m_status_bar->set_status_text(msg);
         return;
@@ -1177,7 +1178,7 @@ void SendToPrinterDialog::update_user_printer()
         m_comboBox_printer->SetTextLabel("");
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "for send task, current " << KV(log_key::dev_id, m_printer_last_select) << std::endl;
 }
 
 void SendToPrinterDialog::update_printer_combobox(wxCommandEvent &event)
@@ -1208,7 +1209,7 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
         if (i == selection) {
             m_printer_last_select = m_list[i]->get_dev_id();
             obj = m_list[i];
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
+            BOOST_LOG_TRIVIAL(info) << "for send task, current " << KV(log_key::dev_id, m_printer_last_select) << std::endl;
             break;
         }
     }
@@ -1225,7 +1226,7 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
         }
     }
     else {
-        BOOST_LOG_TRIVIAL(error) << "on_selection_changed dev_id not found";
+        BOOST_LOG_TRIVIAL(error) << "dev_id not found";
         return;
     }
 
@@ -1606,7 +1607,7 @@ void SendToPrinterDialog::set_default()
         image  = image.Rescale(FromDIP(256), FromDIP(256));
         m_thumbnailPanel->set_thumbnail(image);
     } else {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " : thumbnail_data invalid." << "current plater: " << m_plater->get_partplate_list().get_curr_plate_index();
+        BOOST_LOG_TRIVIAL(info) << "thumbnail_data invalid." << "current plater: " << m_plater->get_partplate_list().get_curr_plate_index();
         wxImage placeholder = create_scaled_bitmap("send_to_printer_placeholder", this, 256).ConvertToImage();
         if (placeholder.IsOk() && placeholder.GetWidth() > 0 && placeholder.GetHeight() > 0) {
             const int box = FromDIP(256);
@@ -1700,18 +1701,18 @@ void SendToPrinterDialog::GetConnection()
 
     MachineObject *obj = dm->get_selected_machine();
     if (obj == nullptr) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " : obj is empty";
+        BOOST_LOG_TRIVIAL(error) << "obj is empty";
         m_connection_status = ConnectionStatus::NOT_START;
     }
 
     int remote_proto = obj->get_file_remote();
     if (!remote_proto) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " : remote_proto is not support";
+        BOOST_LOG_TRIVIAL(error) << "remote_proto is not support";
         m_connection_status = ConnectionStatus::NOT_START;
     }
 
     if (obj->is_camera_busy_off()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " : camera is busy";
+        BOOST_LOG_TRIVIAL(error) << "camera is busy";
         m_connection_status = ConnectionStatus::NOT_START;
     }
 
@@ -1748,7 +1749,7 @@ void SendToPrinterDialog::GetConnection()
             std::string devIP      = obj->get_dev_ip();
             std::string accessCode = obj->get_access_code();
             std::string url        = "bambu:///local/" + devIP + "?port=6000&user=" + "bblp" + "&passwd=" + accessCode;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Connect method tcp";
+            BOOST_LOG_TRIVIAL(info) << "Connect method tcp";
             m_filetransfer_tunnel  = std::make_unique<FileTransferTunnel>(module(), url);
             m_filetransfer_tunnel->on_connection([this](bool is_success, int err_code, std::string error_msg) {
                 CallAfter([this, is_success, err_code, error_msg]() {
@@ -1782,7 +1783,7 @@ void SendToPrinterDialog::GetConnection()
 
                 if (boost::algorithm::starts_with(url, "bambu:///"))
                 {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Connect method tutk";
+                    BOOST_LOG_TRIVIAL(info) << "Connect method tutk";
                     m_filetransfer_tunnel = std::make_unique<FileTransferTunnel>(module(), url);
                     m_filetransfer_tunnel->on_connection([this](bool is_success, int err_code, std::string error_msg) {
                         CallAfter([this, is_success, err_code, error_msg]() { OnConnection(is_success, err_code, error_msg); });
@@ -1798,7 +1799,7 @@ void SendToPrinterDialog::GetConnection()
                         if (n != std::string::npos)
                             res = url.substr(n + 1, url.length() - n - 2);
                     }
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " : Tutk url error: ress = " << res;
+                    BOOST_LOG_TRIVIAL(error) << "Tutk url error: ress = " << res;
                 }
             });
         }
@@ -1809,13 +1810,13 @@ void SendToPrinterDialog::OnConnection(bool is_success, int error_code, std::str
     if (is_success)
     {
         if (m_url_timer && m_url_timer->IsRunning()) { m_url_timer->Stop(); }
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Connect success";
+        BOOST_LOG_TRIVIAL(info) << "Connect success";
         m_connection_status = ConnectionStatus::CONNECTED;
         CreateMediaAbilityJob();
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Connect failed, error_code is:" << error_code << "error_msg is :" << error_msg;
+        BOOST_LOG_TRIVIAL(error) << "Connect failed, error_code is:" << error_code << "error_msg is :" << error_msg;
         m_connection_status = ConnectionStatus::CONNECTION_FAILED;
         ChangeConnectMethod();
         if (!m_tcp_try_connect && !m_tutk_try_connect) {
@@ -1931,7 +1932,7 @@ void SendToPrinterDialog::CreateMediaAbilityJob()
      if (m_filetransfer_tunnel) {
         m_filetransfer_mediability_job->start_on(*m_filetransfer_tunnel);
      } else {
-        BOOST_LOG_TRIVIAL(info) << "CreateMediaAbilityJob:: file transfer tunnel is null";
+        BOOST_LOG_TRIVIAL(info) << "file transfer tunnel is null";
      }
 }
 
@@ -1965,7 +1966,7 @@ void SendToPrinterDialog::CreateUploadFileJob(const std::string &path, const std
     upload_params["dest_name"]    = name; // filenme no path
     upload_params["file_path"]    = path;
 
-      BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Begin CreateUploadFileJob";
+      BOOST_LOG_TRIVIAL(info) << "Begin CreateUploadFileJob";
     m_filetransfer_uploadfile_job = std::make_unique<FileTransferJob>(module(), std::string(upload_params.dump()));
     m_filetransfer_uploadfile_job->on_result([this](int res, int resp_ec, std::string json_res, std::vector<std::byte> bin_res) { //
         CallAfter([this, res, resp_ec, json_res, bin_res] {
@@ -1984,11 +1985,11 @@ void SendToPrinterDialog::CreateUploadFileJob(const std::string &path, const std
                 }
                 catch (const nlohmann::json::exception& e)
                 {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
+                    BOOST_LOG_TRIVIAL(error) << e.what();
                 }
                 catch (...)
                 {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << "parse_json failed! ";
+                    BOOST_LOG_TRIVIAL(error) << "parse_json failed! ";
                 }
             }
         });
@@ -1996,7 +1997,7 @@ void SendToPrinterDialog::CreateUploadFileJob(const std::string &path, const std
     if (m_filetransfer_tunnel) {
         m_filetransfer_uploadfile_job->start_on(*m_filetransfer_tunnel);
     } else {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": file transfer tunnel is null";
+        BOOST_LOG_TRIVIAL(info) << "file transfer tunnel is null";
     }
 }
 
@@ -2030,14 +2031,14 @@ void SendToPrinterDialog::UploadFileRessultCallback(int res, int resp_ec, std::s
 
         if (res == 0)
         {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":upload success to:" << m_selected_storage ;
+            BOOST_LOG_TRIVIAL(error) << "upload success to:" << m_selected_storage ;
             show_status(PrintDialogStatus::PrintStatusReadingFinished);
             wxCommandEvent *evt = new wxCommandEvent(m_plater->get_send_finished_event());
             evt->SetString(from_u8(m_current_project_name.utf8_string()));
             wxQueueEvent(m_plater, evt);
         }
         else {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":upload failed to:"<< m_selected_storage << "res:" << res << "resp_ec is:" << resp_ec;
+            BOOST_LOG_TRIVIAL(error) << "upload failed to:"<< m_selected_storage << "res:" << res << "resp_ec is:" << resp_ec;
             show_status(PrintDialogStatus::PrintStatusPublicUploadFiled)    ;
            // if (err_msg.IsEmpty()) err_msg = _L("Sending failed, please try again!"); // TODO error code
             if (ParseErrorCode(resp_ec) != "")

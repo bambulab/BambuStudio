@@ -5,13 +5,18 @@
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "libslic3r/Flow.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 #include <wx/utils.h>
+#include <set>
 #include <boost/algorithm/string/split.hpp>
 #include "libslic3r/Utils.hpp"
 #include "I18N.hpp"
 #include "format.hpp"
 #include <slic3r/GUI/Widgets/Label.hpp>
+#include "Widgets/TextInput.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -62,11 +67,41 @@ OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
     m_bmp_blinking_sz   = get_bitmap_size(create_scaled_bitmap("blank_16", this));
 
     init_ctrl_lines();// from og.lines()
+    refresh_nozzle_mirror_context();
 
     this->Bind(wxEVT_PAINT,     &OG_CustomCtrl::OnPaint, this);
     this->Bind(wxEVT_MOTION,    &OG_CustomCtrl::OnMotion, this);
     this->Bind(wxEVT_LEFT_DOWN, &OG_CustomCtrl::OnLeftDown, this);
     this->Bind(wxEVT_LEAVE_WINDOW, &OG_CustomCtrl::OnLeaveWin, this);
+}
+
+void OG_CustomCtrl::refresh_nozzle_mirror_context()
+{
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    m_multi_nozzle_mode_enabled = preset_bundle != nullptr &&
+        multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
+    m_nozzle_mirror_enabled = false;
+    m_primary_nozzle_diameter = 0.0;
+    m_nozzle_diameters.clear();
+
+    const bool has_mirror_lines = std::any_of(ctrl_lines.begin(), ctrl_lines.end(), [](const CtrlLine& line) {
+        return line.og_line.nozzle_diameter_mirror;
+    });
+    if (!has_mirror_lines)
+        return;
+
+    if (m_multi_nozzle_mode_enabled) {
+        // Always list every supported diameter, independent of the nozzles currently installed or used.
+        m_nozzle_diameters = { 0.2, 0.4, 0.6, 0.8 };
+        m_primary_nozzle_diameter =
+            primary_nozzle_diameter(preset_bundle->printers.get_edited_preset().config);
+        m_nozzle_mirror_enabled = m_primary_nozzle_diameter > EPSILON;
+        if (!m_nozzle_mirror_enabled)
+            m_nozzle_diameters.clear();
+    }
+
+    for (CtrlLine& line : ctrl_lines)
+        line.update_nozzle_mirror_height();
 }
 
 void OG_CustomCtrl::init_ctrl_lines()
@@ -123,6 +158,15 @@ int OG_CustomCtrl::get_height(const Line& line)
             return ctrl_line.height;
 
     return 0;
+}
+
+int OG_CustomCtrl::get_content_height(const Line& line)
+{
+    for (const CtrlLine& ctrl_line : ctrl_lines)
+        if (&ctrl_line.og_line == &line)
+            return ctrl_line.content_height();
+
+    return get_height(line);
 }
 
 wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
@@ -350,6 +394,23 @@ void OG_CustomCtrl::OnPaint(wxPaintEvent&)
     if(!this->opt_group->custom_ctrl)
         return;
 
+    const bool had_multi_nozzle_mode = m_multi_nozzle_mode_enabled;
+    const bool had_mirror_enabled = m_nozzle_mirror_enabled;
+    const double old_primary_diameter = m_primary_nozzle_diameter;
+    const std::vector<double> old_diameters = m_nozzle_diameters;
+    refresh_nozzle_mirror_context();
+    if (!m_nozzle_mirror_refresh_pending &&
+        (had_multi_nozzle_mode != m_multi_nozzle_mode_enabled ||
+         had_mirror_enabled != m_nozzle_mirror_enabled ||
+         std::abs(old_primary_diameter - m_primary_nozzle_diameter) > EPSILON ||
+         old_diameters != m_nozzle_diameters)) {
+        m_nozzle_mirror_refresh_pending = true;
+        CallAfter([this]() {
+            m_nozzle_mirror_refresh_pending = false;
+            recalculate_and_refresh();
+        });
+    }
+
     wxPaintDC dc(this);
 
     wxCoord h_pos = get_title_width() * m_em_unit;
@@ -422,6 +483,20 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
                     tooltip = *field->undo_to_sys_tooltip();
                 break;
             }
+        // Mirrored per-nozzle value boxes are read-only and derived from the base value.
+        if (tooltip.IsEmpty() && line.og_line.nozzle_diameter_mirror && !option_set.empty()) {
+            for (const wxRect& rect : line.rects_nozzle_mirror_values)
+                if (is_point_in_rect(pos, rect)) {
+                    const std::string& mirror_key = option_set.front().opt.opt_key;
+                    if (mirror_key == "initial_layer_print_height")
+                        tooltip = _L("Read-only, automatically calculated from the base initial layer height");
+                    else if (mirror_key == "layer_height")
+                        tooltip = _L("Read-only, automatically calculated from the base layer height");
+                    else
+                        tooltip = _L("Read-only, automatically calculated from the base value");
+                    break;
+                }
+        }
         if (!tooltip.IsEmpty())
             break;
     }
@@ -456,8 +531,26 @@ void OG_CustomCtrl::OnLeftDown(wxMouseEvent& event)
 {
     const wxPoint pos = event.GetLogicalPosition(wxClientDC(this));
 
-    for (const CtrlLine& line : ctrl_lines) {
+    refresh_nozzle_mirror_context();
+    for (CtrlLine& line : ctrl_lines) {
         if (!line.is_visible) continue;
+        if (line.og_line.nozzle_diameter_mirror && m_nozzle_mirror_enabled &&
+            !line.rect_nozzle_mirror.IsEmpty() && is_point_in_rect(pos, line.rect_nozzle_mirror)) {
+            line.nozzle_mirror_expanded = !line.nozzle_mirror_expanded;
+            line.update_nozzle_mirror_height();
+            recalculate_and_refresh();
+            return;
+        }
+        if (!line.rect_nozzle_group.IsEmpty() && is_point_in_rect(pos, line.rect_nozzle_group) &&
+            line.nozzle_group_active()) {
+            line.nozzle_group_expanded = !line.nozzle_group_expanded;
+            const std::string& opt_key = line.og_line.get_options().front().opt_id;
+            for (CtrlLine& child : ctrl_lines)
+                if (child.og_line.nozzle_group_parent == opt_key)
+                    child.update_visibility(m_mode);
+            recalculate_and_refresh();
+            return;
+        }
         if (line.launch_browser())
             return;
 
@@ -510,8 +603,19 @@ void OG_CustomCtrl::OnLeaveWin(wxMouseEvent& event)
     event.Skip();
 }
 
+const OG_CustomCtrl::CtrlLine* OG_CustomCtrl::find_nozzle_group_header(const std::string& opt_key) const
+{
+    const auto it = std::find_if(ctrl_lines.begin(), ctrl_lines.end(), [&opt_key](const CtrlLine& line) {
+        return line.og_line.nozzle_group_header && line.og_line.get_options().front().opt_id == opt_key;
+    });
+    return it == ctrl_lines.end() ? nullptr : &*it;
+}
+
 bool OG_CustomCtrl::update_visibility(ConfigOptionMode mode)
 {
+    m_mode = mode;
+    refresh_nozzle_mirror_context();
+
     // BBS: new layout
     wxCoord    h_pos = (ctrlWidth + get_title_width() - titleWidth) * m_em_unit;
     wxCoord    h_pos2 = get_title_width() * m_em_unit;
@@ -554,7 +658,7 @@ void OG_CustomCtrl::fixup_items_positions()
 void OG_CustomCtrl::correct_window_position(wxWindow* win, const Line& line, Field* field/* = nullptr*/)
 {
     wxPoint pos = get_pos(line, field);
-    int line_height = get_height(line);
+    int line_height = get_content_height(line);
     if (opt_group->split_multi_line) { // BBS
         if (line.get_options().size() > 1)
             line_height = (line_height - m_v_gap + m_v_gap2) / line.get_options().size();
@@ -566,7 +670,7 @@ void OG_CustomCtrl::correct_window_position(wxWindow* win, const Line& line, Fie
 void OG_CustomCtrl::correct_widgets_position(wxSizer* widget, const Line& line, Field* field/* = nullptr*/) {
     auto children = widget->GetChildren();
     wxPoint line_pos = get_pos(line, field);
-    int line_height = get_height(line);
+    int line_height = get_content_height(line);
     for (auto child : children)
         if (child->IsWindow()) {
             wxPoint pos = line_pos;
@@ -671,7 +775,10 @@ void OG_CustomCtrl::update_line_height_for_field(const t_config_option_key &opt_
 
 void OG_CustomCtrl::recalculate_and_refresh()
 {
+    refresh_nozzle_mirror_context();
+
     for (CtrlLine& line : ctrl_lines) {
+        line.update_field_visibility();
         if (line.is_visible) {
             line.correct_items_positions();
         }
@@ -712,6 +819,37 @@ void OG_CustomCtrl::recalculate_and_refresh()
     }
 }
 
+void OG_CustomCtrl::refresh_nozzle_mirror_values(const t_config_option_key& opt_id)
+{
+    const bool has_mirror_lines = std::any_of(ctrl_lines.begin(), ctrl_lines.end(), [](const CtrlLine& line) {
+        return line.og_line.nozzle_diameter_mirror;
+    });
+    if (!has_mirror_lines)
+        return;
+
+    if (!opt_id.empty()) {
+        const auto it = std::find_if(ctrl_lines.begin(), ctrl_lines.end(), [&opt_id](const CtrlLine& line) {
+            const auto& options = line.og_line.get_options();
+            return line.og_line.nozzle_diameter_mirror && !options.empty() && options.front().opt_id == opt_id;
+        });
+        if (it == ctrl_lines.end())
+            return;
+    }
+
+    wxCoord old_height = 0;
+    for (const CtrlLine& line : ctrl_lines)
+        old_height += line.height;
+    refresh_nozzle_mirror_context();
+
+    wxCoord new_height = 0;
+    for (const CtrlLine& line : ctrl_lines)
+        new_height += line.height;
+    if (old_height != new_height)
+        recalculate_and_refresh();
+    else
+        Refresh();
+}
+
 void OG_CustomCtrl::sys_color_changed()
 {
 }
@@ -722,6 +860,7 @@ OG_CustomCtrl::CtrlLine::CtrlLine(  wxCoord         height,
                                     bool            draw_just_act_buttons /* = false*/,
                                     bool            draw_mode_bitmap/* = true*/):
     height(height),
+    base_height(height),
     ctrl(ctrl),
     og_line(og_line),
     draw_just_act_buttons(draw_just_act_buttons),
@@ -750,6 +889,23 @@ int OG_CustomCtrl::CtrlLine::get_max_win_width()
     }
 
     return max_win_width;
+}
+
+wxCoord OG_CustomCtrl::CtrlLine::content_height() const
+{
+    return og_line.nozzle_diameter_mirror ? base_height : height;
+}
+
+void OG_CustomCtrl::CtrlLine::update_nozzle_mirror_height()
+{
+    const bool available = og_line.nozzle_diameter_mirror && ctrl->m_nozzle_mirror_enabled;
+    if (!available)
+        nozzle_mirror_expanded = false;
+    height = base_height;
+    if (available && nozzle_mirror_expanded)
+        height += base_height * wxCoord(ctrl->m_nozzle_diameters.size());
+    if (!available)
+        rect_nozzle_mirror = wxRect();
 }
 
 void OG_CustomCtrl::CtrlLine::correct_items_positions()
@@ -812,6 +968,8 @@ void OG_CustomCtrl::CtrlLine::correct_items_positions()
 
 void OG_CustomCtrl::CtrlLine::msw_rescale()
 {
+    height = base_height;
+
     // if we have a single option with no label, no sidetext
     if (draw_just_act_buttons)
         height = get_bitmap_size(create_scaled_bitmap("empty")).GetHeight();
@@ -842,6 +1000,8 @@ void OG_CustomCtrl::CtrlLine::msw_rescale()
         }
     }
 
+    base_height = height;
+    update_nozzle_mirror_height();
     correct_items_positions();
 }
 
@@ -853,6 +1013,10 @@ void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
 
     const ConfigOptionMode& line_mode = option_set.front().opt.mode;
     is_visible = og_line.toggle_visible && line_mode <= mode;
+    if (is_visible && !og_line.nozzle_group_parent.empty()) {
+        const CtrlLine* header = ctrl->find_nozzle_group_header(og_line.nozzle_group_parent);
+        is_visible = header == nullptr || header->nozzle_group_expanded;
+    }
 
     if (draw_just_act_buttons)
         return;
@@ -864,6 +1028,68 @@ void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
     if (og_line.extra_widget_sizer)
         og_line.extra_widget_sizer->ShowItems(is_visible);
 
+    update_field_visibility();
+    correct_items_positions();
+}
+
+bool OG_CustomCtrl::CtrlLine::multi_nozzle_auto_active() const
+{
+    return og_line.multi_nozzle_auto && ctrl->m_multi_nozzle_mode_enabled;
+}
+
+bool OG_CustomCtrl::CtrlLine::nozzle_group_active() const
+{
+    if (!og_line.nozzle_group_header)
+        return false;
+    const std::string& opt_key = og_line.get_options().front().opt_id;
+    return std::any_of(ctrl->ctrl_lines.begin(), ctrl->ctrl_lines.end(), [&opt_key](const CtrlLine& line) {
+        return line.og_line.nozzle_group_parent == opt_key && line.og_line.toggle_visible;
+    });
+}
+
+void OG_CustomCtrl::CtrlLine::render_nozzle_group_arrow(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
+{
+    if (!nozzle_group_active()) {
+        rect_nozzle_group = wxRect();
+        return;
+    }
+
+    const int arrow_size = std::max(4, ctrl->m_em_unit / 3);
+    const int arrow_x = h_pos - lround(1.2 * ctrl->m_em_unit);
+    const int arrow_y = v_pos + (height - arrow_size) / 2;
+    rect_nozzle_group = wxRect(arrow_x - 4, arrow_y - 4, arrow_size + 8, arrow_size + 8);
+
+    wxPoint arrow[3];
+    if (nozzle_group_expanded) {
+        arrow[0] = wxPoint(arrow_x, arrow_y);
+        arrow[1] = wxPoint(arrow_x + arrow_size, arrow_y);
+        arrow[2] = wxPoint(arrow_x + arrow_size / 2, arrow_y + arrow_size);
+    } else {
+        arrow[0] = wxPoint(arrow_x, arrow_y);
+        arrow[1] = wxPoint(arrow_x, arrow_y + arrow_size);
+        arrow[2] = wxPoint(arrow_x + arrow_size, arrow_y + arrow_size / 2);
+    }
+    const wxBrush old_brush = dc.GetBrush();
+    const wxPen old_pen = dc.GetPen();
+    const wxColour arrow_color = StateColor::darkModeColorFor(ThemeColor::TextMuted);
+    dc.SetBrush(wxBrush(arrow_color));
+    dc.SetPen(wxPen(arrow_color));
+    dc.DrawPolygon(3, arrow);
+    dc.SetBrush(old_brush);
+    dc.SetPen(old_pen);
+}
+
+void OG_CustomCtrl::CtrlLine::update_field_visibility()
+{
+    if (og_line.is_separator() || draw_just_act_buttons)
+        return;
+
+    const bool show_field = is_visible && !multi_nozzle_auto_active() && !nozzle_group_active();
+    if (!show_field) {
+        std::fill(rects_undo_icon.begin(), rects_undo_icon.end(), wxRect());
+        std::fill(rects_undo_to_sys_icon.begin(), rects_undo_to_sys_icon.end(), wxRect());
+    }
+    const std::vector<Option>& option_set = og_line.get_options();
     for (auto opt : option_set) {
         Field* field = ctrl->opt_group->get_field(opt.opt_id);
         if (!field)
@@ -873,22 +1099,20 @@ void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
             auto children = field->getSizer()->GetChildren();
             for (auto child : children) {
                 if (child->IsWindow()) {
-                    child->GetWindow()->Show(is_visible);
+                    child->GetWindow()->Show(show_field);
                 } else if (child->IsSizer()) {
                     auto sub_children = child->GetSizer()->GetChildren();
                     for (auto sub_child : sub_children) {
                         if (sub_child->IsWindow()) {
-                            sub_child->GetWindow()->Show(is_visible);
+                            sub_child->GetWindow()->Show(show_field);
                         }
                     }
                 }
             }
         }
         else if (field->getWindow())
-            field->getWindow()->Show(is_visible);
+            field->getWindow()->Show(show_field);
     }
-
-    correct_items_positions();
 }
 
 void OG_CustomCtrl::CtrlLine::render_separator(wxDC& dc, wxCoord v_pos)
@@ -903,6 +1127,177 @@ void OG_CustomCtrl::CtrlLine::render_separator(wxDC& dc, wxCoord v_pos)
     dc.SetPen(old_pen);
 }
 
+void OG_CustomCtrl::CtrlLine::render_multi_nozzle_auto(wxDC& dc, Field* field)
+{
+    if (!multi_nozzle_auto_active() || field == nullptr)
+        return;
+
+    std::fill(rects_undo_icon.begin(), rects_undo_icon.end(), wxRect());
+    std::fill(rects_undo_to_sys_icon.begin(), rects_undo_to_sys_icon.end(), wxRect());
+
+    wxPoint box_pos;
+    wxSize box_size;
+    if (field->getWindow() != nullptr) {
+        box_pos = field->getWindow()->GetPosition();
+        box_size = field->getWindow()->GetSize();
+    } else if (field->getSizer() != nullptr) {
+        box_pos = field->getSizer()->GetPosition();
+        box_size = field->getSizer()->GetSize();
+    } else {
+        return;
+    }
+
+    const wxBrush old_brush = dc.GetBrush();
+    const wxPen old_pen = dc.GetPen();
+    const wxColour old_text_color = dc.GetTextForeground();
+    const wxColour box_color = StateColor::darkModeColorFor(ThemeColor::Grey250);
+    const wxColour border_color = StateColor::darkModeColorFor(ThemeColor::Grey350);
+    const wxColour text_color = StateColor::darkModeColorFor(ThemeColor::TextMuted);
+    const wxString text = _L("Auto");
+    dc.SetFont(ctrl->m_font);
+    const wxSize text_size = dc.GetTextExtent(text);
+
+    dc.SetBrush(wxBrush(box_color));
+    dc.SetPen(wxPen(border_color));
+    dc.DrawRoundedRectangle(box_pos.x, box_pos.y, box_size.x, box_size.y, 3);
+    dc.SetTextForeground(text_color);
+    dc.DrawText(text, box_pos.x + ctrl->m_em_unit / 2,
+                box_pos.y + (box_size.y - text_size.y) / 2);
+
+    dc.SetBrush(old_brush);
+    dc.SetPen(old_pen);
+    dc.SetTextForeground(old_text_color);
+}
+
+void OG_CustomCtrl::CtrlLine::render_nozzle_mirrors(wxDC& dc, wxCoord h_pos, wxCoord v_pos, Field* field)
+{
+    rects_nozzle_mirror_values.clear();
+    if (!og_line.nozzle_diameter_mirror || !ctrl->m_nozzle_mirror_enabled) {
+        rect_nozzle_mirror = wxRect();
+        return;
+    }
+
+    const int arrow_size = std::max(4, ctrl->m_em_unit / 3);
+    const int arrow_x = h_pos - lround(1.2 * ctrl->m_em_unit);
+    const int arrow_y = v_pos + (base_height - arrow_size) / 2;
+    rect_nozzle_mirror = wxRect(arrow_x - 4, arrow_y - 4, arrow_size + 8, arrow_size + 8);
+
+    wxPoint arrow[3];
+    if (nozzle_mirror_expanded) {
+        arrow[0] = wxPoint(arrow_x, arrow_y);
+        arrow[1] = wxPoint(arrow_x + arrow_size, arrow_y);
+        arrow[2] = wxPoint(arrow_x + arrow_size / 2, arrow_y + arrow_size);
+    } else {
+        arrow[0] = wxPoint(arrow_x, arrow_y);
+        arrow[1] = wxPoint(arrow_x, arrow_y + arrow_size);
+        arrow[2] = wxPoint(arrow_x + arrow_size, arrow_y + arrow_size / 2);
+    }
+    const wxBrush old_brush = dc.GetBrush();
+    const wxPen old_pen = dc.GetPen();
+    const wxColour old_text_color = dc.GetTextForeground();
+    const wxColour arrow_color = StateColor::darkModeColorFor(ThemeColor::TextMuted);
+    dc.SetBrush(wxBrush(arrow_color));
+    dc.SetPen(wxPen(arrow_color));
+    dc.DrawPolygon(3, arrow);
+
+    if (!nozzle_mirror_expanded || field == nullptr || field->getWindow() == nullptr) {
+        dc.SetBrush(old_brush);
+        dc.SetPen(old_pen);
+        return;
+    }
+
+    const std::string& opt_key = og_line.get_options().front().opt.opt_key;
+    auto* config_group = dynamic_cast<ConfigOptionsGroup*>(ctrl->opt_group);
+    const DynamicPrintConfig* config = config_group == nullptr ? nullptr : config_group->get_config();
+    if (config == nullptr) {
+        dc.SetBrush(old_brush);
+        dc.SetPen(old_pen);
+        return;
+    }
+
+    double authored = 0.0;
+    try {
+        const wxString authored_text = boost::any_cast<wxString>(config_group->config_value(opt_key, -1, false));
+        if (!authored_text.ToDouble(&authored)) {
+            dc.SetBrush(old_brush);
+            dc.SetPen(old_pen);
+            return;
+        }
+    } catch (const boost::bad_any_cast&) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        dc.SetBrush(old_brush);
+        dc.SetPen(old_pen);
+        return;
+    }
+
+    const bool is_line_width = opt_key == "line_width" ||
+        opt_key.size() > 11 && opt_key.compare(opt_key.size() - 11, 11, "_line_width") == 0;
+    const wxWindow* parent_window = field->getWindow();
+    const wxSize box_size = parent_window->GetSize();
+    const int box_x = parent_window->GetPosition().x;
+    const wxColour box_color = StateColor::darkModeColorFor(ThemeColor::Grey250);
+    const wxColour border_color = StateColor::darkModeColorFor(ThemeColor::Grey350);
+    const wxColour text_color = StateColor::darkModeColorFor(ThemeColor::TextMuted);
+
+    // Reuse the parent TextInput's inner geometry so value/mm columns line up.
+    const ::TextInput* text_input = dynamic_cast<const ::TextInput*>(parent_window);
+    const wxTextCtrl* text_ctrl = text_input ? text_input->GetTextCtrl() : nullptr;
+    const wxPoint text_pos = text_ctrl ? text_ctrl->GetPosition() : wxPoint(ctrl->m_em_unit / 2, 0);
+    const wxSize text_size = text_ctrl ? text_ctrl->GetSize() : box_size;
+    int text_margin_x = 0;
+    if (text_ctrl) {
+        const wxPoint margins = text_ctrl->GetMargins();
+        if (margins.x > 0)
+            text_margin_x = margins.x;
+    }
+
+    const wxFont old_font = dc.GetFont();
+    // TextInput paints sidetext with its own font (Body_12), not the value font (Body_14).
+    const wxFont unit_font = parent_window->GetFont();
+    const wxString unit_text = _(og_line.get_options().front().opt.sidetext);
+    for (size_t i = 0; i < ctrl->m_nozzle_diameters.size(); ++i) {
+        dc.SetFont(ctrl->m_font);
+        const double diameter = ctrl->m_nozzle_diameters[i];
+        const int row_y = v_pos + base_height * wxCoord(i + 1);
+        const wxString diameter_label = from_u8(format_diameter_to_str(diameter)) + "mm " + _L("nozzle");
+        const wxSize label_size = dc.GetTextExtent(diameter_label);
+        const int label_x = h_pos + lround(1.5 * ctrl->m_em_unit);
+        const int label_y = row_y + (base_height - label_size.y) / 2;
+
+        dc.SetTextForeground(text_color);
+        dc.DrawText(diameter_label, label_x, label_y);
+
+        const int box_y = row_y + (base_height - box_size.y) / 2;
+        dc.SetBrush(wxBrush(box_color));
+        dc.SetPen(wxPen(border_color));
+        dc.DrawRoundedRectangle(box_x, box_y, box_size.x, box_size.y, 3);
+        rects_nozzle_mirror_values.emplace_back(box_x, box_y, box_size.x, box_size.y);
+
+        const double value = is_line_width ?
+            Flow::resolve_extrusion_width_for_nozzle(
+                opt_key, *config, float(ctrl->m_primary_nozzle_diameter), float(diameter),
+                ctrl->m_multi_nozzle_mode_enabled) :
+            authored * diameter / ctrl->m_primary_nozzle_diameter;
+        const wxString value_text = double_to_string(value);
+        const wxSize value_size = dc.GetTextExtent(value_text);
+        dc.DrawText(value_text, box_x + text_pos.x + text_margin_x,
+                    box_y + text_pos.y + (text_size.y - value_size.y) / 2);
+
+        dc.SetFont(unit_font);
+        const wxSize unit_size = dc.GetTextExtent(unit_text);
+        const int unit_x = text_ctrl ? box_x + text_pos.x + text_size.x
+                                      : box_x + box_size.x - unit_size.x - ctrl->m_em_unit / 2;
+        const int unit_y = text_ctrl ? box_y + (box_size.y + text_size.y) / 2 - unit_size.y
+                                      : box_y + (box_size.y - unit_size.y) / 2;
+        dc.DrawText(unit_text, unit_x, unit_y);
+    }
+
+    dc.SetBrush(old_brush);
+    dc.SetPen(old_pen);
+    dc.SetFont(old_font);
+    dc.SetTextForeground(old_text_color);
+}
+
 void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
 {
     if (is_separator()) {
@@ -911,6 +1306,9 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
     }
 
     Field* field = ctrl->opt_group->get_field(og_line.get_options().front().opt_id);
+    render_nozzle_mirrors(dc, h_pos, v_pos, field);
+    render_nozzle_group_arrow(dc, h_pos, v_pos);
+    render_multi_nozzle_auto(dc, field);
 
     auto *multi_variant_field = dynamic_cast<MultiVariantTextCtrl *>(field);
     bool  is_multi_variant    = (multi_variant_field != nullptr);
@@ -1038,6 +1436,8 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
         h_pos = draw_text(dc, wxPoint(h_pos + indent, v_pos), label /* + ":" */, text_clr, icon_pos + ctrl->opt_group->label_width * ctrl->m_em_unit - h_pos, is_url_string, true);
         h_pos -= indent;
     }
+    if (nozzle_group_active())
+        return;
 
     // If there's a widget, build it and set result to the correct position.
 #ifndef DISABLE_BLINKING
@@ -1066,6 +1466,8 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
     };
 
     auto draw_buttons = [&h_pos, &dc, &v_pos, this](Field* field, size_t bmp_rect_id = 0) {
+        if (multi_nozzle_auto_active())
+            return;
         if (field && field->undo_to_sys_bitmap()) {
             h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink(), bmp_rect_id);
         }
@@ -1162,7 +1564,7 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_text(wxDC &dc, wxPoint pos, const wxString
             const std::vector<Option> &option_set = og_line.get_options();
             pos.y = pos.y + lround(((height - ctrl->m_v_gap + ctrl->m_v_gap2) / option_set.size() - size.y) / 2);
         } else {
-            pos.y = pos.y + lround((height - size.y) / 2);
+            pos.y = pos.y + lround((content_height() - size.y) / 2);
         }
         if (width > 0)
             rect_label = wxRect(pos, wxSize(size.x, size.y));
@@ -1200,7 +1602,7 @@ wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool i
 {
     wxBitmap bmp_blinking = create_scaled_bitmap(is_blinking ? "blank_16" : "empty", ctrl);
     wxCoord h_pos = pos.x;
-    wxCoord v_pos = pos.y + lround((height - get_bitmap_size(bmp_blinking).GetHeight()) / 2);
+    wxCoord v_pos = pos.y + lround((content_height() - get_bitmap_size(bmp_blinking).GetHeight()) / 2);
 
     dc.DrawBitmap(bmp_blinking, h_pos, v_pos);
 
@@ -1221,9 +1623,9 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBi
             if (option_set.size() > 1)
                 pos.y += lround(((height - ctrl->m_v_gap + ctrl->m_v_gap2) / option_set.size() - get_bitmap_size(bmp_undo).GetHeight()) / 2);
             else
-                pos.y += lround((height - get_bitmap_size(bmp_undo).GetHeight()) / 2);
+                pos.y += lround((content_height() - get_bitmap_size(bmp_undo).GetHeight()) / 2);
         } else {
-            pos.y += lround((height - get_bitmap_size(bmp_undo).GetHeight()) / 2);
+            pos.y += lround((content_height() - get_bitmap_size(bmp_undo).GetHeight()) / 2);
         }
     }
 #endif

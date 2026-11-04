@@ -17,6 +17,7 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "I18N.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -634,7 +635,7 @@ void OptionsGroup::on_change_OG(const t_config_option_key& opt_id, const boost::
 Option ConfigOptionsGroup::get_option(const std::string& opt_key, int opt_index /*= -1*/)
 {
 	if (!m_config->has(opt_key)) {
-		std::cerr << "No " << opt_key << " in ConfigOptionsGroup config.\n";
+		BOOST_LOG_TRIVIAL(error) << "No " << opt_key << " in ConfigOptionsGroup config.";
 	}
 
 	std::string opt_id = opt_index == -1 ? opt_key : opt_key + "#" + std::to_string(opt_index);
@@ -684,6 +685,8 @@ void ConfigOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const b
 	}
 
 	OptionsGroup::on_change_OG(opt_id, value);
+    if (custom_ctrl)
+        custom_ctrl->refresh_nozzle_mirror_values(opt_id);
 }
 
 void ConfigOptionsGroup::back_to_initial_value(const std::string& opt_key)
@@ -823,6 +826,8 @@ void ConfigOptionsGroup::reload_config()
             this->set_value(opt_id, config_value(opt_key, opt_index, option.gui_flags == "serialized"));
         }
 	}
+    if (custom_ctrl)
+        custom_ctrl->refresh_nozzle_mirror_values();
 }
 
 void ConfigOptionsGroup::Hide()

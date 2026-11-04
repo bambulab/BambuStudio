@@ -11,6 +11,8 @@
 #include "Widgets/Label.hpp"
 #include "Widgets/CheckBox.hpp"
 
+#include <wx/timer.h>
+
 #include "slic3r/GUI/DeviceCore/DevFilaAmsSetting.h"
 
 #define AMS_SETTING_DEF_COLOUR wxColour(255, 255, 255)
@@ -35,6 +37,7 @@ public:
 
 public:
     void UpdateByObj(MachineObject* obj);
+    bool Show(bool show = true) override;
 
 protected:
     void create();
@@ -46,8 +49,10 @@ protected:
     void update_insert_material_read_mode(MachineObject* obj);
     void update_insert_material_read_mode(bool selected, std::string version);
     void update_air_printing_detection(MachineObject* obj);
+    void update_filament_tab_auto_read_rfid(MachineObject* obj);
 
     void update_firmware_switching_status();
+    bool should_hide_insert_power_settings(MachineObject *obj) const;
 
     // event handlers
     void on_insert_material_read(wxCommandEvent& event);
@@ -55,10 +60,16 @@ protected:
     void on_remain(wxCommandEvent& event);
     void on_switch_filament(wxCommandEvent& event);
     void on_air_print_detect(wxCommandEvent& event);
+    void on_filament_tab_auto_read_rfid(wxCommandEvent& event);
     void on_dpi_changed(const wxRect &suggested_rect) override;
+
+    // Keeps the dialog's checkboxes in sync while it is open and the setting is
+    // changed on the printer (or another client) rather than in this dialog.
+    void OnRefreshTimer(wxTimerEvent& event);
 
 protected:
     MachineObject *m_obj{nullptr};
+    wxTimer*       m_refresh_timer{nullptr};
 
     wxStaticText* m_static_ams_settings = nullptr;
 
@@ -75,13 +86,13 @@ protected:
     CheckBox *    m_checkbox_Insert_material_auto_read;
     wxStaticText *m_title_Insert_material_auto_read;
     Label* m_tip_Insert_material_line1;
-    Label* m_tip_Insert_material_line2;
-    Label* m_tip_Insert_material_line3;
+    Label* m_tip_Insert_material_external_ams;
 
+    wxPanel*      m_panel_starting = nullptr;
     CheckBox *    m_checkbox_starting_auto_read;
     wxStaticText *m_title_starting_auto_read;
     Label* m_tip_starting_line1;
-    Label* m_tip_starting_line2;
+    Label* m_tip_starting_external_ams;
 
     CheckBox *    m_checkbox_remain;
     wxStaticText *m_title_remain;
@@ -95,6 +106,10 @@ protected:
     wxStaticText* m_title_air_print;
     Label* m_tip_air_print_line;
 
+    CheckBox* m_checkbox_filament_tab_auto_read_rfid;
+    wxStaticText* m_title_filament_tab_auto_read_rfid;
+    Label* m_tip_filament_tab_auto_read_rfid;
+
     wxStaticText *m_tip_ams_img;
     Button *     m_button_auto_demarcate;
 
@@ -103,6 +118,7 @@ protected:
     wxBoxSizer *m_sizer_remain_inline;
     wxBoxSizer *m_sizer_switch_filament_inline;
     wxBoxSizer *m_sizer_remain_block;
+    wxBoxSizer *m_sizer_filament_tab_auto_read_rfid_block;
 };
 
 class AMSSettingTypePanel : public wxPanel

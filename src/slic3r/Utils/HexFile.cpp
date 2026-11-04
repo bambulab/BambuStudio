@@ -4,6 +4,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace fs = boost::filesystem;
 namespace pt = boost::property_tree;
@@ -79,6 +80,7 @@ HexFile::HexFile(fs::path path) :
 	try {
 		pt::read_ini(header_ini, ptree);
 	} catch (std::exception & /* e */) {
+		BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 		return;
 	}
 

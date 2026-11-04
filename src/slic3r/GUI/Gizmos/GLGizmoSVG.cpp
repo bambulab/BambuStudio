@@ -33,7 +33,6 @@
 #include "nanosvg/nanosvg.h" // load SVG file
 
 #include <wx/display.h> // detection of change DPI
-#include <boost/log/trivial.hpp>
 
 
 #include <GL/glew.h>
@@ -50,6 +49,7 @@
 #include <libslic3r/SLA/ReprojectPointsOnMesh.hpp>
 #include <libslic3r/CutSurface.hpp> // use surface cuts
 #include "slic3r/GUI/Jobs/Worker.hpp"
+#include "libslic3r/Log.hpp"
 using namespace Slic3r;
 using namespace Slic3r::Emboss;
 using namespace Slic3r::GUI;

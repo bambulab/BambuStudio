@@ -3,6 +3,7 @@
 #include "FileTransferUtils.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -52,7 +53,9 @@ FileTransferTunnel::FileTransferTunnel(FileTransferModule &m, const std::string 
         if (!self->status_cb_) return;
         try {
             self->status_cb_(old_status, new_status, err_code, std::string(msg ? msg : ""));
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
     };
     if (m_->ft_tunnel_set_status_cb(h_, tramp, this) == ft_err::FT_EXCEPTION) { throw std::runtime_error("ft_tunnel_set_status_cb failed"); }
 }
@@ -65,7 +68,9 @@ void FileTransferTunnel::start_connect()
         if (!pcb) return;
         try {
             (*pcb)(ok == 0, ec, std::string(msg ? msg : ""));
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
     };
     if (m_->ft_tunnel_start_connect(h_, tramp, &conn_cb_) == ft_err::FT_EXCEPTION) { throw std::runtime_error("ft_tunnel_start_connect failed"); }
 }
@@ -103,6 +108,7 @@ FileTransferJob::FileTransferJob(FileTransferModule &m, const std::string &param
             if (self->result_cb_) self->result_cb_(self->res_, self->resp_ec_, self->res_json_, self->res_bin_);
             self->m_->ft_job_result_destroy(&r);
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             // swallow
         }
 
@@ -115,7 +121,9 @@ FileTransferJob::FileTransferJob(FileTransferModule &m, const std::string &param
                     if (r.bin) mod->ft_free((void *) r.bin);
                 }
             }
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
     };
 
     if (m_->ft_job_set_result_cb(h_, tramp, this) == ft_err::FT_EXCEPTION) { throw std::runtime_error("ft_job_set_result_cb failed"); }
@@ -155,7 +163,9 @@ void FileTransferJob::on_msg(MsgCb cb)
         if (!self) return;
         try {
             if (self->msg_cb_) { self->msg_cb_(m.kind, std::string(m.json ? m.json : "")); }
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
 
         try {
             if (auto *mod = self->m_) {
@@ -164,7 +174,9 @@ void FileTransferJob::on_msg(MsgCb cb)
                 else if (mod->ft_free && m.json)
                     mod->ft_free((void *) m.json);
             }
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
     };
 
     if (m_->ft_job_set_msg_cb(h_, tramp, this) == ft_err::FT_EXCEPTION) { throw std::runtime_error("ft_job_set_msg_cb failed"); }

@@ -50,6 +50,7 @@ public:
     void                set_export_possible(bool b) { m_export_possible = b; }
     void                on_change_color_mode(bool is_dark) override;
 protected:
+    bool        use_card_layout() const override { return false; }
     void        init() override;
     void        render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width, float right_margin) override;
     /* PARAMS: pos is relative to screen */

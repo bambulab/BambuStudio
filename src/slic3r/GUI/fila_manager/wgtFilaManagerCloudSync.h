@@ -20,7 +20,8 @@ public:
     struct AmsChangedSpool {
         std::string spool_id;
         std::string tag_uid;
-        int64_t     net_weight {0};
+        int64_t     net_weight         {0};
+        bool        net_weight_changed {false}; // net_weight 相对上轮是否发生变化
     };
 
     using AutoPushSummaryFn = std::function<void(const nlohmann::json&)>;

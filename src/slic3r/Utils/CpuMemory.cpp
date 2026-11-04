@@ -1,6 +1,6 @@
 #include "CpuMemory.hpp"
+#include "libslic3r/Log.hpp"
 
-#include <boost/log/trivial.hpp>
 namespace Slic3r {
 #ifdef _WIN32
 #include <windows.h>
@@ -66,12 +66,12 @@ bool CpuMemory::cur_free_memory_less_than_specify_size_gb(int size)
     static bool first_meet_size_gb      = true;
     if (first_debug_free_memory) {
         first_debug_free_memory = false;
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " cur_size = " << cur_size << "GB";
+        BOOST_LOG_TRIVIAL(info) << "cur_size = " << cur_size << "GB";
     }
     if (cur_size < size) {
         if (first_meet_size_gb) {
             first_meet_size_gb = false;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " cur_size = " << cur_size << "GB" << "first_meet_size_gb ";
+            BOOST_LOG_TRIVIAL(info) << "cur_size = " << cur_size << "GB" << "first_meet_size_gb ";
         }
         return true;
     }

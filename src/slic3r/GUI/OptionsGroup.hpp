@@ -62,6 +62,12 @@ public:
 	wxColour*	full_Label_color {nullptr};
 	bool		blink	{false};
     bool        subline {false};
+    bool        nozzle_diameter_mirror {false};
+    bool        multi_nozzle_auto {false};
+    // A header collapses the lines naming its option in nozzle_group_parent. While any of them is
+    // toggled visible, the header shows no field of its own and those lines only show when expanded.
+    bool        nozzle_group_header {false};
+    std::string nozzle_group_parent;
     widget_t	widget {nullptr};
     std::function<wxWindow*(wxWindow*)>	near_label_widget{ nullptr };
 	wxWindow*	near_label_widget_win {nullptr};
@@ -310,6 +316,7 @@ public:
 	void 		set_config_category_and_type(const wxString &category, int type) { m_config_category = category; m_config_type = type; }
     void        set_config(DynamicPrintConfig* config) {
 		m_config = config; m_modelconfig = nullptr; }
+	const DynamicPrintConfig* get_config() const { return m_config; }
 	Option		get_option(const std::string& opt_key, int opt_index = -1);
 	Line		create_single_option_line(const std::string& title, const std::string& path = std::string(), int idx = -1) /*const*/{
 		Option option = get_option(title, idx);

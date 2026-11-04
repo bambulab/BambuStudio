@@ -232,7 +232,7 @@ static void lowpass_filter_by_paths_overhang_degree(ExtrusionPaths& paths) {
 std::pair<double, double> PerimeterGenerator::dist_boundary(double width)
 {
     std::pair<double, double> out;
-    float nozzle_diameter = print_config->nozzle_diameter.get_at(config->wall_filament - 1);
+    float nozzle_diameter = nozzle_diameter_for_filament(*print_config, config->wall_filament);
     float start_offset = -0.5 * width;
     float end_offset = 0.5 * nozzle_diameter;
     double degree_0 = scale_(start_offset + 0.5 * (end_offset - start_offset) / (overhang_sampling_number - 1));
@@ -348,7 +348,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
         const Polygon polygon = apply_fuzzy_skin(loop.polygon, *(perimeter_generator.config), *(perimeter_generator.perimeter_regions),
                                 perimeter_generator.layer_id, loop.depth, loop.is_contour, perimeter_generator.slice_z);
 
-        if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
+        if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers &&
+            ! perimeter_generator.starts_at_object_base) {
             // get non 100% overhang paths by intersecting this loop with the grown lower slices
             // prepare grown lower layer slices for overhang detection
             BoundingBox bbox(polygon.points);
@@ -646,7 +647,13 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             node.node_id      = perimeter_generator.loop_nodes->size();
             node.loop_id      = extrusion_coll.entities.size();
             node.bbox         = get_extents(node.node_contour.pts);
-            node.bbox.offset(perimeter_generator.config->outer_wall_line_width/2);
+            const float nozzle_diameter = nozzle_diameter_for_filament(
+                *perimeter_generator.print_config, perimeter_generator.config->wall_filament);
+            node.bbox.offset(Flow::extrusion_width_for_nozzle(
+                perimeter_generator.config->outer_wall_line_width,
+                perimeter_generator.preset_nozzle_diameter,
+                nozzle_diameter,
+                perimeter_generator.multi_nozzle_diameter_mode) / 2);
             perimeter_generator.loop_nodes->push_back(std::move(node));
         }
 
@@ -656,11 +663,13 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
         ExtrusionPaths paths;
         // detect overhanging/bridging perimeters
-        if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
+      
+        if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers &&
+            ! perimeter_generator.starts_at_object_base) {
                         ClipperLib_Z::Path extrusion_path;
             extrusion_path.reserve(extrusion->size());
 
-            double nozzle_diameter = perimeter_generator.print_config->nozzle_diameter.get_at(perimeter_generator.config->wall_filament - 1);
+            double nozzle_diameter = nozzle_diameter_for_filament(*perimeter_generator.print_config, perimeter_generator.config->wall_filament);
             Polygons lower_layer_polys = perimeter_generator.lower_slices_polygons();
 
             coord_t max_extrusion_width = 0;
@@ -837,6 +846,15 @@ static Polygons to_polygons_with_flag(const ExPolygon& src, const bool contour_f
     return polygons;
 }
 
+int PerimeterGenerator::effective_wall_loops() const
+{
+    const int preset_value = this->config->wall_loops.value;
+    if (!this->multi_nozzle_diameter_mode)
+        return preset_value;
+    const double nozzle_diameter = nozzle_diameter_for_filament(
+        *this->print_config, (unsigned int) this->config->wall_filament.value);
+    return multi_nozzle_wall_loops(nozzle_diameter, preset_value);
+}
 
 void PerimeterGenerator::process_classic()
 {
@@ -912,11 +930,12 @@ void PerimeterGenerator::process_classic()
     for (size_t order_idx = 0; order_idx < surface_order.size(); order_idx++) {
         const Surface &surface = all_surfaces[surface_order[order_idx]];
         // detect how many perimeters must be generated for this island
-        int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
+        const int  wall_loops = this->effective_wall_loops();
+        int        loop_number = wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
         if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase)
             loop_number++;
         //BBS: set the topmost and bottom most layer to be one wall
-        if (loop_number > 0 && ((this->object_config->top_one_wall_type != TopOneWallType::None && this->upper_slices == nullptr) || (this->object_config->only_one_wall_first_layer && layer_id == 0)))
+        if (loop_number > 0 && ((this->object_config->top_one_wall_type != TopOneWallType::None && this->upper_slices == nullptr) || (this->object_config->only_one_wall_first_layer && starts_at_object_base)))
             loop_number = 0;
 
         bool counter_circle_compensation = surface.counter_circle_compensation;
@@ -1112,10 +1131,10 @@ void PerimeterGenerator::process_classic()
                 if (i == 0 && i != loop_number && this->object_config->top_one_wall_type == TopOneWallType::Alltop && this->upper_slices != NULL) {
                     //split the polygons with top/not_top
                     //get the offset from solid surface anchor
-                    coord_t offset_top_surface = scale_(1.5 * (config->wall_loops.value == 0 ? 0. : unscaled(double(ext_perimeter_width + perimeter_spacing * int(int(config->wall_loops.value) - int(1))))));
+                    coord_t offset_top_surface = scale_(1.5 * (wall_loops == 0 ? 0. : unscaled(double(ext_perimeter_width + perimeter_spacing * (wall_loops - 1)))));
                     // if possible, try to not push the extra perimeters inside the sparse infill
-                    if (offset_top_surface > 0.9 * (config->wall_loops.value <= 1 ? 0. : (perimeter_spacing * (config->wall_loops.value - 1))))
-                        offset_top_surface -= coord_t(0.9 * (config->wall_loops.value <= 1 ? 0. : (perimeter_spacing * (config->wall_loops.value - 1))));
+                    if (offset_top_surface > 0.9 * (wall_loops <= 1 ? 0. : (perimeter_spacing * (wall_loops - 1))))
+                        offset_top_surface -= coord_t(0.9 * (wall_loops <= 1 ? 0. : (perimeter_spacing * (wall_loops - 1))));
                     else
                         offset_top_surface = 0;
                     //don't takes into account too thin areas
@@ -1158,7 +1177,13 @@ void PerimeterGenerator::process_classic()
                     // increase by half peri the inner space to fill the frontier between last and stored.
                     top_fills = union_ex(top_fills, top_polygons);
                     //set the clip to the external wall but go back inside by infill_extrusion_width/2 to be sure the extrusion won't go outside even with a 100% overlap.
-                    double infill_spacing_unscaled = this->config->sparse_infill_line_width.value;
+                    const float infill_nozzle_diameter = nozzle_diameter_for_filament(
+                        *this->print_config, this->config->sparse_infill_filament);
+                    double infill_spacing_unscaled = Flow::extrusion_width_for_nozzle(
+                        this->config->sparse_infill_line_width,
+                        this->preset_nozzle_diameter,
+                        infill_nozzle_diameter,
+                        this->multi_nozzle_diameter_mode);
                     fill_clip = offset_ex(last, double(ext_perimeter_spacing / 2) - scale_(infill_spacing_unscaled / 2));
                     last = intersection_ex(inner_polygons, last);
                     if (has_gap_fill)
@@ -1246,7 +1271,7 @@ void PerimeterGenerator::process_classic()
                 this->config->wall_sequence == WallSequence::OuterInner;
             if (is_outer_wall_first ||
                 //BBS: always print outer wall first when there indeed has brim.
-                (this->layer_id == 0 &&
+                (this->starts_at_object_base &&
                  this->object_config->brim_type == BrimType::btOuterOnly &&
                  this->object_config->brim_width.value > 0))
                 entities.reverse();
@@ -1485,7 +1510,7 @@ void PerimeterGenerator::process_arachne()
         // We consider overhang any part where the entire nozzle diameter is not supported by the
         // lower layer, so we take lower slices and offset them by half the nozzle diameter used
         // in the current layer
-        double nozzle_diameter = this->print_config->nozzle_diameter.get_at(this->config->wall_filament - 1);
+        double nozzle_diameter = nozzle_diameter_for_filament(*this->print_config, this->config->wall_filament);
         m_lower_slices_polygons = offset(*this->lower_slices, float(scale_(+nozzle_diameter / 2)));
     }
 
@@ -1500,17 +1525,31 @@ void PerimeterGenerator::process_arachne()
 	bool apply_precise_outer_wall = config->precise_outer_wall && config->wall_sequence == WallSequence::InnerOuter;
     for (const Surface& surface : all_surfaces) {
         // detect how many perimeters must be generated for this island
-        int loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
+        int loop_number = this->effective_wall_loops() + surface.extra_perimeters - 1; // 0-indexed loops
         if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase)
             loop_number++;
 
         bool apply_circle_compensation = true;
-        // Orca: properly adjust offset for the outer wall if precise_outer_wall is enabled.
-        ExPolygons last  = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution),
-                           apply_precise_outer_wall ? -float(ext_perimeter_width - ext_perimeter_spacing) : - float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
-        int new_size = std::accumulate(last.begin(), last.end(), 0, [](int prev, const ExPolygon& expoly) { return prev + expoly.num_contours(); });
-        if (last.size() != 1 || new_size != surface.expolygon.num_contours())
+        ExPolygons last;
+        const float perimeter_offset = apply_precise_outer_wall ?
+            -float(ext_perimeter_width - ext_perimeter_spacing) :
+            -float(ext_perimeter_width / 2 - ext_perimeter_spacing / 2);
+        if (this->multi_nozzle_diameter_mode) {
+            const ExPolygons simplify_islands = surface.expolygon.simplify(surface_simplify_resolution);
+            if (!simplify_islands.empty())
+                last = offset_ex(simplify_islands, perimeter_offset);
+        } else {
+            last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution), perimeter_offset);
+        }
+
+        if (!last.empty()) {
+            const int new_size = std::accumulate(last.begin(), last.end(), 0,
+                [](int previous, const ExPolygon& expoly) {return previous + expoly.num_contours();});
+            if (last.size() != 1 || new_size != surface.expolygon.num_contours())
+                apply_circle_compensation = false;
+        } else {
             apply_circle_compensation = false;
+        }
 
         std::vector<int> circle_poly_indices;
         Polygons   last_p;
@@ -1523,7 +1562,7 @@ void PerimeterGenerator::process_arachne()
         ExPolygons infill_contour;
 
         if (loop_number >= 0) {
-            bool generate_one_wall_by_first_layer = this->object_config->only_one_wall_first_layer && layer_id == 0;
+            bool generate_one_wall_by_first_layer = this->object_config->only_one_wall_first_layer && starts_at_object_base;
             bool generate_one_wall_by_top_most = this->object_config->top_one_wall_type != TopOneWallType::None && this->upper_slices == nullptr;
             bool generate_one_wall_by_top = this->object_config->top_one_wall_type == TopOneWallType::Alltop && this->upper_slices != nullptr;
 
@@ -1532,6 +1571,14 @@ void PerimeterGenerator::process_arachne()
             bool seperate_wall_generation = !is_one_wall && generate_one_wall_by_top;
 
             double min_nozzle_diameter = *std::min_element(print_config->nozzle_diameter.values.begin(), print_config->nozzle_diameter.values.end());
+            // Multi-diameter: nozzle_diameter only carries the grid nozzle, so the percentages below must be
+            // resolved against the nozzle that prints these walls. Otherwise a coarse nozzle walls hairline
+            // fringes at a fraction of its own minimum bead width.
+            if (this->multi_nozzle_diameter_mode) {
+                const double wall_nozzle = nozzle_diameter_for_filament(*print_config, config->wall_filament);
+                if (wall_nozzle > EPSILON)
+                    min_nozzle_diameter = wall_nozzle;
+            }
             Arachne::WallToolPathsParams input_params;
             {
                 if (const auto& min_feature_size_opt = object_config->min_feature_size)
@@ -1655,7 +1702,7 @@ void PerimeterGenerator::process_arachne()
 
         bool is_outer_wall_first =
             this->config->wall_sequence == WallSequence::OuterInner || this->config->wall_sequence == WallSequence::InnerOuterInner;
-        if (layer_id == 0) {
+        if (starts_at_object_base) {
             is_outer_wall_first = this->config->wall_sequence == WallSequence::OuterInner;
         }
         if (is_outer_wall_first) {
@@ -1838,7 +1885,7 @@ bool PerimeterGeneratorLoop::is_internal_contour() const
 
 std::vector<Polygons> PerimeterGenerator::generate_lower_polygons_series(float width)
 {
-    float nozzle_diameter = print_config->nozzle_diameter.get_at(config->wall_filament - 1);
+    float nozzle_diameter = nozzle_diameter_for_filament(*print_config, config->wall_filament);
     float start_offset = -0.5 * width;
     float end_offset = 0.5 * nozzle_diameter;
 
@@ -1933,7 +1980,7 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
                                                     lower_island.expolygons,
                                                     perimeter_spacing };
                             if (detector.detect_angle(Geometry::deg2rad(this->config->bridge_angle.value)))
-                                expolygons_append(bridgeable, union_ex(detector.coverage(-1)));
+                                expolygons_append(bridgeable, union_ex(detector.coverage(-1, true)));
                         }
                         if (!bridgeable.empty()) {
                             //check if we get everything or just the bridgeable area

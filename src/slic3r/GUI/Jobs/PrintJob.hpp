@@ -11,7 +11,11 @@ namespace fs = boost::filesystem;
 namespace Slic3r {
 namespace GUI {
 
+struct QueuePrintContext;
+
 #define PRINT_JOB_SENDING_TIMEOUT   25
+
+#define PRINT_JOB_JUMP_DELAY_SEC    3
 
 class PrintPrepareData
 {
@@ -53,6 +57,8 @@ public:
 protected:
     void prepare() override;
     void on_exception(const std::exception_ptr &) override;
+    void process_queue_print();
+    void countdown_before_jump(const wxString& message_format);
 public:
     PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id = "");
     virtual bool is_print_job() const override { return true; }
@@ -71,6 +77,7 @@ public:
     std::string m_print_type;
     std::string m_dst_path;
     std::string m_imported_3mf_path;
+    std::shared_ptr<QueuePrintContext> m_queue_print_context;
 
     bool m_is_calibration_task = false;
 
@@ -89,6 +96,7 @@ public:
     bool        task_use_ams { true };
     bool        task_ext_change_assist { false };
     bool        task_timelapse_use_internal { false };
+    bool        m_add_to_print_queue { false };
 
     int         auto_bed_leveling{0};
     int         auto_flow_cali{0};
@@ -134,12 +142,14 @@ public:
     void set_project_name(std::string name);
     void set_dst_name(std::string path);
     void set_imported_3mf_path(std::string path) { m_imported_3mf_path = std::move(path); }
+    void set_queue_print_context(std::shared_ptr<QueuePrintContext> context) { m_queue_print_context = std::move(context); job_data.is_from_plater = false; }
     void on_check_ip_address_fail(std::function<void()> func);
     void on_check_ip_address_success(std::function<void()> func);
     void connect_to_local_mqtt();
     wxString get_http_error_msg(unsigned int status, std::string body);
     std::string truncate_string(const std::string& str, size_t maxLength);
     void set_calibration_task(bool is_calibration);
+    void set_add_to_print_queue(bool add_to_queue) { m_add_to_print_queue = add_to_queue; }
 
 };
 

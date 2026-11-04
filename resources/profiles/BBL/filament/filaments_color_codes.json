@@ -7367,6 +7367,30 @@
             ]
         },
         {
+            "fila_color_code": "56100",
+            "fila_id": "GFU06",
+            "fila_color_type": "单色",
+            "fila_type": "TPU 75A (2.85mm)",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Black",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "黑色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "K00",
+            "fila_color": [
+                "#000000FF"
+            ]
+        },
+        {
             "fila_color_code": "30701",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
@@ -7607,6 +7631,30 @@
             ]
         },
         {
+            "fila_color_code": "35701",
+            "fila_id": "GFG03",
+            "fila_color_type": "单色",
+            "fila_type": "PETG Matte",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Rose Beige",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "米玫瑰",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "P01",
+            "fila_color": [
+                "#F0BDA5FF"
+            ]
+        },
+        {
             "fila_color_code": "35702",
             "fila_id": "GFG03",
             "fila_color_type": "单色",
@@ -7653,7 +7701,535 @@
             "fila_color": [
                 "#bce194FF"
             ]
+        },
+        {
+            "fila_color_code": "35400",
+            "fila_id": "GFG03",
+            "fila_color_type": "单色",
+            "fila_type": "PETG Matte",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Yellow",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "黄色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "Y00",
+            "fila_color": [
+                "#FFD100FF"
+            ]
+        },
+        {
+            "fila_color_code": "35602",
+            "fila_id": "GFG03",
+            "fila_color_type": "单色",
+            "fila_type": "PETG Matte",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Dark Blue",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "深蓝色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "B02",
+            "fila_color": [
+                "#003087FF"
+            ]
+        },
+        {
+            "fila_color_code": "35601",
+            "fila_id": "GFG03",
+            "fila_color_type": "单色",
+            "fila_type": "PETG Matte",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Cyan",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "蓝色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "B01",
+            "fila_color": [
+                "#00a9e0FF"
+            ]
+        },
+        {
+            "fila_color_code": "35200",
+            "fila_id": "GFG03",
+            "fila_color_type": "单色",
+            "fila_type": "PETG Matte",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Red",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "红色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "R00",
+            "fila_color": [
+                "#D6001CFF"
+            ]
+        },
+        {
+            "fila_color_code": "35300",
+            "fila_id": "GFG03",
+            "fila_color_type": "单色",
+            "fila_type": "PETG Matte",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Orange",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "橙色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "A00",
+            "fila_color": [
+                "#FF671FFF"
+            ]
+        },
+        {
+            "fila_color_code": "35603",
+            "fila_id": "GFG03",
+            "fila_color_type": "单色",
+            "fila_type": "PETG Matte",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Turquoise",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "翠绿",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "B03",
+            "fila_color": [
+                "#00c7b1FF"
+            ]
+        },
+        {
+            "fila_color_code": "35703",
+            "fila_id": "GFG03",
+            "fila_color_type": "单色",
+            "fila_type": "PETG Matte",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Hot Pink",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "玫粉色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "P03",
+            "fila_color": [
+                "#EF4A81FF"
+            ]
+        },
+        {
+            "fila_color_code": "35801",
+            "fila_id": "GFG03",
+            "fila_color_type": "单色",
+            "fila_type": "PETG Matte",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Caramel",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "奶茶色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "N01",
+            "fila_color": [
+                "#bf9474FF"
+            ]
+        },
+        {
+            "fila_color_code": "56400",
+            "fila_id": "GFU06",
+            "fila_color_type": "单色",
+            "fila_type": "TPU 75A (2.85mm)",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Lemon Yellow",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "柠檬黄",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "Y00",
+            "fila_color": [
+                "#fbdb65FF"
+            ]
+        },
+        {
+            "fila_color_code": "56401",
+            "fila_id": "GFU06",
+            "fila_color_type": "单色",
+            "fila_type": "TPU 75A (2.85mm)",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Dark Ivory",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "奶油黄",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "Y01",
+            "fila_color": [
+                "#f1e6b2FF"
+            ]
+        },
+        {
+            "fila_color_code": "56500",
+            "fila_id": "GFU06",
+            "fila_color_type": "单色",
+            "fila_type": "TPU 75A (2.85mm)",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Dark Green",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "橄榄绿",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "G00",
+            "fila_color": [
+                "#617354FF"
+            ]
+        },
+        {
+            "fila_color_code": "56501",
+            "fila_id": "GFU06",
+            "fila_color_type": "单色",
+            "fila_type": "TPU 75A (2.85mm)",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Grass Green",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "草绿色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "G01",
+            "fila_color": [
+                "#7ccc6cFF"
+            ]
+        },
+        {
+            "fila_color_code": "56300",
+            "fila_id": "GFU06",
+            "fila_color_type": "单色",
+            "fila_type": "TPU 75A (2.85mm)",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Mandarin Orange",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "橙色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "A00",
+            "fila_color": [
+                "#ffa06aFF"
+            ]
+        },
+        {
+            "fila_color_code": "56700",
+            "fila_id": "GFU06",
+            "fila_color_type": "单色",
+            "fila_type": "TPU 75A (2.85mm)",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Purple",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "紫色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "P00",
+            "fila_color": [
+                "#ad96dcFF"
+            ]
+        },
+        {
+            "fila_color_code": "56701",
+            "fila_id": "GFU06",
+            "fila_color_type": "单色",
+            "fila_type": "TPU 75A (2.85mm)",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Pink",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "粉色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "P01",
+            "fila_color": [
+                "#fabbcbFF"
+            ]
+        },
+        {
+            "fila_color_code": "56200",
+            "fila_id": "GFU06",
+            "fila_color_type": "单色",
+            "fila_type": "TPU 75A (2.85mm)",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Red",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "红色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "R00",
+            "fila_color": [
+                "#e4002bFF"
+            ]
+        },
+        {
+            "fila_color_code": "56600",
+            "fila_id": "GFU06",
+            "fila_color_type": "单色",
+            "fila_type": "TPU 75A (2.85mm)",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Cyan",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "晴空蓝",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "B00",
+            "fila_color": [
+                "#00a3e1FF"
+            ]
+        },
+        {
+            "fila_color_code": "18600",
+            "fila_id": "GFA20",
+            "fila_color_type": "单色",
+            "fila_type": "PLA Palette",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Cyan",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "青色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "B00",
+            "fila_color": [
+                "#0090daFF"
+            ]
+        },
+        {
+            "fila_color_code": "18200",
+            "fila_id": "GFA20",
+            "fila_color_type": "单色",
+            "fila_type": "PLA Palette",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Magenta",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "品红",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "R00",
+            "fila_color": [
+                "#E24585FF"
+            ]
+        },
+        {
+            "fila_color_code": "18400",
+            "fila_id": "GFA20",
+            "fila_color_type": "单色",
+            "fila_type": "PLA Palette",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Yellow",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "黄色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "Y00",
+            "fila_color": [
+                "#fce300FF"
+            ]
+        },
+        {
+            "fila_color_code": "18100",
+            "fila_id": "GFA20",
+            "fila_color_type": "单色",
+            "fila_type": "PLA Palette",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "White",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "白色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "W00",
+            "fila_color": [
+                "#ffffffFF"
+            ]
+        },
+        {
+            "fila_color_code": "18101",
+            "fila_id": "GFA20",
+            "fila_color_type": "单色",
+            "fila_type": "PLA Palette",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Key",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "黑色",
+                "nl": "",
+                "es": ""
+            },
+            "color_code": "K00",
+            "fila_color": [
+                "#000000FF"
+            ]
         }
     ],
-    "total": 318
+    "total": 342
 }

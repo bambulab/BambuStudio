@@ -34,18 +34,14 @@ void RadioBox::Rescale()
 {
     m_on.msw_rescale();
     m_off.msw_rescale();
+    m_ban.msw_rescale();
     SetSize(m_on.GetBmpSize());
     update();
 }
 
 void RadioBox::update() {
-    if (IsEnabled())
-    {
         SetBitmap((GetValue() ? m_on : m_off).bmp());
-    } else
-    {
-        SetBitmap(m_ban.bmp());
-    }
+        SetBitmapDisabled(m_ban.bmp());
 
 }
 

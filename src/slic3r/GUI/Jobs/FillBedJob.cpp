@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -41,7 +42,7 @@ void FillBedJob::prepare()
     sel_id = std::max(sel_id, 0);
 
     int sel_ret = plate_list.select_plate_by_obj(m_object_idx, sel_id);
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":select plate obj_id %1%, ins_id %2%, ret %3%}") % m_object_idx % sel_id % sel_ret;
+    BOOST_LOG_TRIVIAL(debug) << boost::format("select plate obj_id %1%, ins_id %2%, ret %3%}") % m_object_idx % sel_id % sel_ret;
 
     PartPlate* plate = plate_list.get_curr_plate();
     Model& model = m_plater->model();
@@ -233,7 +234,7 @@ void FillBedJob::process()
     params.do_final_align = false;
 
     if (m_bedpts.empty()) {
-        BOOST_LOG_TRIVIAL(warning) << "FillBedJob::process: empty m_bedpts, abort";
+        BOOST_LOG_TRIVIAL(warning) << "empty m_bedpts, abort";
         update_status(m_status_range, _L("Bed filling aborted: invalid bed shape."));
         return;
     }
@@ -405,7 +406,7 @@ void FillBedJob::finalize()
     if (added_cnt > 0) {
         for (ArrangePolygon& ap : m_selected) {
             if (ap.bed_idx != 0) {
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":skipped: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
+                BOOST_LOG_TRIVIAL(debug) << boost::format("skipped: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
                 continue;
             }
             else
@@ -419,7 +420,7 @@ void FillBedJob::finalize()
 
             ap.apply();
 
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":selected: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
+            BOOST_LOG_TRIVIAL(debug) << boost::format("selected: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
         }
 
         int   newSize = m_plater->model().objects.size();
@@ -429,7 +430,7 @@ void FillBedJob::finalize()
             obj_list->update_printable_state(i, 0);
         }
 
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": paste_objects_into_list";
+        BOOST_LOG_TRIVIAL(debug) << "paste_objects_into_list";
 
         m_plater->update();
     }

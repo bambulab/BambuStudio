@@ -16,7 +16,6 @@
 #include "format.hpp"
 
 #include <boost/algorithm/string.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/nowide/convert.hpp>
 
@@ -26,11 +25,13 @@
 
 #include "GUI_App.hpp"
 #include "FilamentMapDialog.hpp"
+#include "FilamentMapPanel.hpp"
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include <imgui/imgui_internal.h>
+#include "libslic3r/Log.hpp"
 
 static constexpr float GAP_WIDTH = 10.0f;
 static constexpr float SPACE_RIGHT_PANEL = 10.0f;
@@ -107,6 +108,42 @@ namespace {
         }
         return build(low);
     }
+
+    // Card notification geometry, in pixels at 100 % UI scaling (see PopNotification::design_px()).
+    // Text, hypertext and buttons keep CARD_PADDING to the card edges, the color bar and each other.
+    constexpr float CARD_PADDING      = 16.f;
+    constexpr float CARD_WIDTH        = 375.f;
+    constexpr float CARD_LINE_STEP    = 15.f;
+    constexpr float CARD_RADIUS       = 5.f;
+    constexpr float CARD_BAR_WIDTH    = 12.f;
+    constexpr float CARD_CLOSE_SIZE   = 24.f;
+    constexpr float CARD_BUTTON_GAP   = 8.f;    // between the close and the fold button
+    constexpr float CARD_BG_ALPHA     = 0.95f;
+    constexpr float CARD_BAR_ALPHA    = 0.9f;
+
+    // Draws a white icon of the font atlas stretched to size x size and tinted with color,
+    // independent of its rasterized size. flip_v mirrors it vertically.
+    void render_icon(ImDrawList* draw_list, wchar_t icon, const ImVec2& pos, float size, ImU32 color, bool flip_v = false)
+    {
+        const ImFontGlyph* glyph = ImGui::GetFont()->FindGlyphNoFallback((ImWchar)icon);
+        if (glyph == nullptr)
+            return;
+        draw_list->AddImage(ImGui::GetIO().Fonts->TexID, pos, pos + ImVec2(size, size), ImVec2(glyph->U0, flip_v ? glyph->V1 : glyph->V0),
+                            ImVec2(glyph->U1, flip_v ? glyph->V0 : glyph->V1), color);
+    }
+
+    // Pushes the bold font for the lifetime of the object when enabled.
+    struct BoldFontScope
+    {
+        BoldFontScope(ImGuiWrapper& imgui, bool enable) : m_imgui(imgui), m_pushed(enable && imgui.push_bold_font()) {}
+        ~BoldFontScope()
+        {
+            if (m_pushed)
+                m_imgui.pop_bold_font();
+        }
+        ImGuiWrapper& m_imgui;
+        bool          m_pushed;
+    };
 }
 
 #if 1
@@ -145,15 +182,15 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
     if (!n.second_hypertext.empty()) {
         m_second_hypertext = n.second_hypertext;
     }
-    m_ErrorColor  = ImVec4(0.9, 0.36, 0.36, 1);
-    m_WarnColor   = ImVec4(0.99, 0.69, 0.455, 1);
-    m_NormalColor = ImVec4(0.03, 0.6, 0.18, 1);
+    m_ErrorColor  = ImVec4(208 / 255.f, 27 / 255.f, 27 / 255.f, 1);
+    m_WarnColor   = ImVec4(255 / 255.f, 111 / 255.f, 0 / 255.f, 1);
+    m_NormalColor = ImVec4(0 / 255.f, 174 / 255.f, 66 / 255.f, 1);
 
 	m_CurrentColor = m_NormalColor;   //Default
 
 	m_WindowBkgColor = ImVec4(1, 1, 1, 1);
-    m_TextColor      = ImVec4(.2f, .2f, .2f, 1.0f);
-    m_HyperTextColor = ImVec4(0.03, 0.6, 0.18, 1);
+    m_TextColor      = ImVec4(50 / 255.f, 58 / 255.f, 61 / 255.f, 1.0f);
+    m_HyperTextColor = m_NormalColor;
 }
 
 // We cannot call plater()->get_current_canvas3D() from constructor, so we do it here
@@ -200,11 +237,13 @@ void NotificationManager::PopNotification::use_bbl_theme()
     m_DefaultTheme.mWindowRound   = OldStyle.WindowRounding;
 
     OldStyle.WindowPadding             = ImVec2(0, 0);
-    OldStyle.WindowRounding            = m_WindowRadius;
+    OldStyle.WindowRounding            = use_card_layout() ? design_px(CARD_RADIUS) : m_WindowRadius;
 
-	if (m_data.level == NotificationLevel::ErrorNotificationLevel)
+	if (m_data.use_error_color)
         m_CurrentColor = m_ErrorColor;
-    else if (m_data.level == NotificationLevel::WarningNotificationLevel)
+    else if (m_data.level == NotificationLevel::ErrorNotificationLevel)
+        m_CurrentColor = m_ErrorColor;
+    else if (m_data.level == NotificationLevel::WarningNotificationLevel || m_data.level == NotificationLevel::SeriousWarningNotificationLevel)
         m_CurrentColor = m_WarnColor;
     else {
         if (m_data.use_warn_color)
@@ -218,10 +257,10 @@ void NotificationManager::PopNotification::use_bbl_theme()
  //   OldStyle.Colors[ImGuiCol_WindowBg] = m_WindowBkgColor;
  //   OldStyle.Colors[ImGuiCol_Text]     = m_TextColor;
 
-	m_WindowBkgColor = m_is_dark ? ImVec4(45 / 255.f, 45 / 255.f, 49 / 255.f, 1.f) : ImVec4(1, 1, 1, 1);
-	m_TextColor = m_is_dark ? ImVec4(224 / 255.f, 224 / 255.f, 224 / 255.f, 1.f) : ImVec4(.2f, .2f, .2f, 1.0f);
-	m_HyperTextColor = m_is_dark ? ImVec4(0.03, 0.6, 0.18, 1) : ImVec4(0.03, 0.6, 0.18, 1);
-	m_is_dark ? push_style_color(ImGuiCol_Border, {62 / 255.f, 62 / 255.f, 69 / 255.f, 1.f}, true, m_current_fade_opacity) : push_style_color(ImGuiCol_Border, m_CurrentColor, true, m_current_fade_opacity);
+	m_WindowBkgColor = m_is_dark ? ImVec4(45 / 255.f, 45 / 255.f, 49 / 255.f, 1.f) : ImVec4(1, 1, 1, use_card_layout() ? CARD_BG_ALPHA : 1.f);
+	m_TextColor = m_is_dark ? ImVec4(224 / 255.f, 224 / 255.f, 224 / 255.f, 1.f) : ImVec4(50 / 255.f, 58 / 255.f, 61 / 255.f, 1.0f);
+	m_HyperTextColor = m_NormalColor;
+	push_style_color(ImGuiCol_Border, m_CurrentColor, true, m_current_fade_opacity);
     push_style_color(ImGuiCol_WindowBg, m_WindowBkgColor, true, m_current_fade_opacity);
     push_style_color(ImGuiCol_Text, m_TextColor, true, m_current_fade_opacity);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_WindowRadius / 4);
@@ -320,10 +359,16 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 		bbl_render_left_sign(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
 		render_left_sign(imgui);
 		render_text(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
-		m_minimize_b_visible = (m_multiline && m_lines_count > 3);
-		render_close_button(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
-		if (m_minimize_b_visible)
-			render_minimize_button(imgui, win_pos.x, win_pos.y);
+		if (use_card_layout()) {
+			m_minimize_b_visible = false;
+			render_card_close_button(imgui);
+			render_card_fold_button(imgui);
+		} else {
+			m_minimize_b_visible = (m_multiline && m_lines_count > 3);
+			render_close_button(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
+			if (m_minimize_b_visible)
+				render_minimize_button(imgui, win_pos.x, win_pos.y);
+		}
 	}
 	imgui.end();
 
@@ -394,12 +439,12 @@ void NotificationManager::PopNotification::bbl_render_block_notification(GLCanva
 	use_bbl_theme();
     if (m_data.level == NotificationLevel::SeriousWarningNotificationLevel)
 	{
-        push_style_color(ImGuiCol_Border, {245.f / 255.f, 155 / 255.f, 22 / 255.f, 1}, true, m_current_fade_opacity);
-        push_style_color(ImGuiCol_WindowBg, {245.f / 255.f, 155 / 255.f, 22 / 255.f, 1}, true, m_current_fade_opacity);
+        push_style_color(ImGuiCol_Border, m_WarnColor, true, m_current_fade_opacity);
+        push_style_color(ImGuiCol_WindowBg, ImVec4(m_WarnColor.x, m_WarnColor.y, m_WarnColor.z, CARD_BG_ALPHA), true, m_current_fade_opacity);
 	}
     if (m_data.level == NotificationLevel::ErrorNotificationLevel) {
-        push_style_color(ImGuiCol_Border, {225.f / 255.f, 71 / 255.f, 71 / 255.f, 1}, true, m_current_fade_opacity);
-        push_style_color(ImGuiCol_WindowBg, {225.f / 255.f, 71 / 255.f, 71 / 255.f, 1}, true, m_current_fade_opacity);
+        push_style_color(ImGuiCol_Border, m_ErrorColor, true, m_current_fade_opacity);
+        push_style_color(ImGuiCol_WindowBg, ImVec4(m_ErrorColor.x, m_ErrorColor.y, m_ErrorColor.z, CARD_BG_ALPHA), true, m_current_fade_opacity);
     }
 	push_style_color(ImGuiCol_Text, { 1,1,1,1 }, true, m_current_fade_opacity);
 
@@ -410,10 +455,9 @@ void NotificationManager::PopNotification::bbl_render_block_notification(GLCanva
 			set_hovered();
 		}
 
-		//render left icon
-		bbl_render_block_notif_left_sign(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
-		bbl_render_block_notif_text(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
-		bbl_render_block_notif_buttons(imgui, win_size, win_pos);
+		render_text(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
+		render_card_close_button(imgui);
+		render_card_fold_button(imgui);
 		//render_close_button(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
 		//m_minimize_b_visible = false;
 		//if (m_multiline && m_lines_count > 3)
@@ -465,6 +509,13 @@ void NotificationManager::PopNotification::count_spaces()
 {
 	//determine line width
 	m_line_height = ImGui::CalcTextSize("A").y;
+
+	if (use_card_layout()) {
+		m_left_indentation    = design_px(CARD_BAR_WIDTH + CARD_PADDING);
+		m_window_width_offset = m_left_indentation + design_px(2 * CARD_PADDING + CARD_CLOSE_SIZE);
+		m_window_width        = design_px(CARD_WIDTH);
+		return;
+	}
 
 	m_left_indentation = m_line_height;
 	//if (m_data.level == NotificationLevel::ErrorNotificationLevel
@@ -569,8 +620,8 @@ void NotificationManager::PopNotification::count_lines()
 		}
 		m_lines_count++;
 	}
-	// hypertext calculation
-    if (!m_hypertext.empty()) {
+	// hypertext calculation, the card layout puts the hypertexts on their own lines
+    if (!use_card_layout() && !m_hypertext.empty()) {
         const float available_width = m_window_width - m_window_width_offset;
         const float x_offset = m_left_indentation;
         const float link_spacing = ImGui::CalcTextSize("   ").x;
@@ -624,6 +675,17 @@ void NotificationManager::PopNotification::init()
 }
 void NotificationManager::PopNotification::set_next_window_size(ImGuiWrapper& imgui)
 {
+	if (use_card_layout()) {
+		const size_t text_lines = m_multiline ? m_lines_count : std::min(m_lines_count, (size_t)2);
+		const size_t link_lines = count_card_hypertext_lines(imgui);
+		m_window_height = design_px(2 * CARD_PADDING) + text_lines * design_px(CARD_LINE_STEP);
+		if (link_lines > 0)
+			m_window_height += design_px(CARD_PADDING) + link_lines * design_px(CARD_LINE_STEP);
+		m_window_height = std::max(m_window_height, design_px(2 * CARD_PADDING + CARD_CLOSE_SIZE));
+		if (is_card_foldable())
+			m_window_height = std::max(m_window_height, design_px(2 * CARD_PADDING + 2 * CARD_CLOSE_SIZE + CARD_BUTTON_GAP));
+		return;
+	}
 	m_window_height = m_multiline ?
 		std::max(m_lines_count, (size_t)2) * m_line_height :
 		2 * m_line_height;
@@ -685,7 +747,20 @@ void NotificationManager::PopNotification::bbl_render_block_notif_text(ImGuiWrap
         //if (imgui.button(_L("Jump"), button_size.x, button_size.y)) { if (on_text_click()) { close(); } }
 		ImGui::PopStyleColor(2);
 		ImGui::PopStyleVar(2);
-		render_hypertext(imgui, x_offset + ImGui::CalcTextSize((line + (line.empty() ? "" : " ")).c_str()).x, starting_y + (m_endlines.size() - 1) * shift_y, m_hypertext);
+		float first_hypertext_x = x_offset + ImGui::CalcTextSize((line + (line.empty() ? "" : " ")).c_str()).x;
+		float hypertext_y       = starting_y + (m_endlines.size() - 1) * shift_y;
+		render_hypertext(imgui, first_hypertext_x, hypertext_y, m_hypertext);
+
+		if (!m_second_hypertext.empty()) {
+			float second_hypertext_x = first_hypertext_x + ImGui::CalcTextSize(m_hypertext.c_str()).x + ImGui::CalcTextSize("   ").x;
+			float second_hypertext_y = hypertext_y;
+			// count_lines() reserved an extra line when the second link does not fit behind the first one.
+			if (second_hypertext_x + ImGui::CalcTextSize(m_second_hypertext.c_str()).x > m_window_width - m_window_width_offset) {
+				second_hypertext_x = x_offset;
+				second_hypertext_y += shift_y;
+			}
+			render_hypertext(imgui, second_hypertext_x, second_hypertext_y, m_second_hypertext, false, true);
+		}
 	}
 
 	// text2 (text after hypertext) is not rendered for regular notifications
@@ -694,10 +769,13 @@ void NotificationManager::PopNotification::bbl_render_block_notif_text(ImGuiWrap
 
 void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
+	const bool card = use_card_layout();
 	float	x_offset = m_left_indentation;
 	int		last_end = 0;
-	float	starting_y = (m_lines_count == 2 ? win_size_y / 2 - m_line_height : (m_lines_count == 1 ? win_size_y / 2 - m_line_height / 2 : m_line_height / 2));
-	float	shift_y = m_line_height;
+	float	shift_y = card ? design_px(CARD_LINE_STEP) : m_line_height;
+	// The card layout centers each text line vertically in its line step.
+	float	starting_y = card ? design_px(CARD_PADDING) + (shift_y - m_line_height) / 2 :
+		(m_lines_count == 2 ? win_size_y / 2 - m_line_height : (m_lines_count == 1 ? win_size_y / 2 - m_line_height / 2 : m_line_height / 2));
 	std::string line;
 
 	for (size_t i = 0; i < (m_multiline ? m_endlines.size() : std::min(m_endlines.size(), (size_t)2)); i++) {
@@ -735,6 +813,26 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 	//hyperlink text
 	if (!m_multiline && m_lines_count > 2) {
 		render_hypertext(imgui, x_offset + ImGui::CalcTextSize((line + " ").c_str()).x, starting_y + shift_y, _u8L("More"), true);
+	}
+	else if (card && !m_hypertext.empty()) {
+		const float text_width  = m_window_width - m_window_width_offset;
+		float       hypertext_y = starting_y + m_endlines.size() * shift_y + design_px(CARD_PADDING);
+		// An overlong link (long object name) is shortened to stay inside the notification.
+		std::string hypertext;
+		{
+			BoldFontScope bold(imgui, is_solid_card());
+			hypertext = ellipsize_middle(m_hypertext, text_width);
+		}
+		render_hypertext(imgui, x_offset, hypertext_y, hypertext);
+
+		if (!m_second_hypertext.empty()) {
+			float second_hypertext_x = x_offset + hypertext_width(imgui, hypertext) + ImGui::CalcTextSize("   ").x;
+			if (count_card_hypertext_lines(imgui) > 1) {
+				second_hypertext_x = x_offset;
+				hypertext_y += shift_y;
+			}
+			render_hypertext(imgui, second_hypertext_x, hypertext_y, m_second_hypertext, false, true);
+		}
 	}
 	else if (!m_hypertext.empty()) {
         float available_width = m_window_width - m_window_width_offset;
@@ -774,6 +872,7 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 void NotificationManager::PopNotification::render_hypertext(
     ImGuiWrapper &imgui, const float text_x, const float text_y, const std::string text, bool more, bool use_second_callback)
 {
+	BoldFontScope bold(imgui, is_solid_card());
 	//invisible button
 	ImVec2 part_size = ImGui::CalcTextSize(text.c_str());
 	ImGui::SetCursorPosX(text_x -4);
@@ -805,15 +904,14 @@ void NotificationManager::PopNotification::render_hypertext(
 
 	//hover color
     ImVec4 HyperColor = m_HyperTextColor;//ImVec4(150.f / 255.f, 100.f / 255.f, 0.f / 255.f, 1)
-    if (m_data.level == NotificationLevel::SeriousWarningNotificationLevel)
-		HyperColor = ImVec4(0.f, 0.f, 0.f, 0.4f);
-	if (m_data.level == NotificationLevel::ErrorNotificationLevel)
-		HyperColor = ImVec4(135.f / 255.f, 43 / 255.f, 43 / 255.f, 1);
+    if (is_solid_card())
+		HyperColor = ImVec4(1.f, 1.f, 1.f, 1.f);
 	if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly))
 	{
-		HyperColor.y += 0.1f;
-		if (m_data.level == NotificationLevel::SeriousWarningNotificationLevel || m_data.level == NotificationLevel::SeriousWarningNotificationLevel)
-			HyperColor.x += 0.2f;
+		if (is_solid_card())
+			HyperColor.w = 0.8f;
+		else
+			HyperColor.y += 0.1f;
 	}
 
 
@@ -832,7 +930,86 @@ void NotificationManager::PopNotification::render_hypertext(
     ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd,
                                         IM_COL32((int) (HyperColor.x * 255), (int) (HyperColor.y * 255), (int) (HyperColor.z * 255),
                                                  (int) (HyperColor.w * 255.f * (m_state == EState::FadingOut ? m_current_fade_opacity : 1.f))));
+}
 
+bool NotificationManager::PopNotification::is_solid_card() const
+{
+	return m_data.level == NotificationLevel::ErrorNotificationLevel || m_data.level == NotificationLevel::SeriousWarningNotificationLevel;
+}
+
+float NotificationManager::PopNotification::hypertext_width(ImGuiWrapper& imgui, const std::string& text)
+{
+	BoldFontScope bold(imgui, is_solid_card());
+	return ImGui::CalcTextSize(text.c_str()).x;
+}
+
+size_t NotificationManager::PopNotification::count_card_hypertext_lines(ImGuiWrapper& imgui)
+{
+	// Collapsed notifications show the "More" link behind the text instead.
+	if (m_hypertext.empty() || (!m_multiline && m_lines_count > 2))
+		return 0;
+	if (m_second_hypertext.empty())
+		return 1;
+	const float text_width = m_window_width - m_window_width_offset;
+	const float first_w    = std::min(hypertext_width(imgui, m_hypertext), text_width);
+	return first_w + ImGui::CalcTextSize("   ").x + hypertext_width(imgui, m_second_hypertext) > text_width ? 2 : 1;
+}
+
+bool NotificationManager::PopNotification::render_card_button(const char* id, const ImVec2& pos, wchar_t icon, bool flip_v, bool always_emphasized)
+{
+	const float size = design_px(CARD_CLOSE_SIZE);
+	ImGui::SetCursorPos(pos);
+	const ImVec2 min     = ImGui::GetCursorScreenPos();
+	const bool   clicked = ImGui::InvisibleButton(id, ImVec2(size, size));
+	const bool   hovered = ImGui::IsItemHovered();
+	const bool   strong  = hovered || always_emphasized;
+
+	auto rgb = [](int r, int g, int b, float a = 1.f) { return ImVec4(r / 255.f, g / 255.f, b / 255.f, a); };
+	ImVec4 background, glyph;
+	if (is_solid_card()) {
+		background = rgb(238, 238, 238, hovered ? 0.4f : 0.25f);
+		glyph      = rgb(255, 255, 255);
+	} else if (m_is_dark) {
+		background = hovered ? rgb(76, 76, 84) : rgb(62, 62, 69);
+		glyph      = strong ? rgb(176, 176, 179) : rgb(129, 129, 131);
+	} else {
+		background = hovered ? rgb(224, 224, 224) : rgb(238, 238, 238);
+		glyph      = strong ? rgb(107, 107, 107) : rgb(144, 144, 144);
+	}
+	background.w *= m_current_fade_opacity;
+	glyph.w      *= m_current_fade_opacity;
+
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+	draw_list->AddCircleFilled(min + ImVec2(size, size) * 0.5f, size * 0.5f, ImGui::GetColorU32(background), 32);
+	render_icon(draw_list, icon, min, size, ImGui::GetColorU32(glyph), flip_v);
+	return clicked;
+}
+
+void NotificationManager::PopNotification::render_card_close_button(ImGuiWrapper& imgui)
+{
+	const float size = design_px(CARD_CLOSE_SIZE);
+	if (render_card_button("##card_close", ImVec2(ImGui::GetWindowWidth() - design_px(CARD_PADDING) - size, design_px(CARD_PADDING)),
+	                       ImGui::CloseNotifCardButton, false, false))
+		close();
+}
+
+bool NotificationManager::PopNotification::is_card_foldable() const
+{
+	// Same threshold as PopNotification::init(): notifications with more lines start folded.
+	return m_lines_count > 6;
+}
+
+void NotificationManager::PopNotification::render_card_fold_button(ImGuiWrapper& imgui)
+{
+	if (!is_card_foldable())
+		return;
+	const float size = design_px(CARD_CLOSE_SIZE);
+	// The expand icon is the collapse icon mirrored vertically.
+	if (render_card_button("##card_fold", ImVec2(ImGui::GetWindowWidth() - design_px(CARD_PADDING) - size, ImGui::GetWindowHeight() - design_px(CARD_PADDING) - size),
+	                       ImGui::CollapseNotifCardButton, !m_multiline, true)) {
+		m_multiline = !m_multiline;
+		set_next_window_size(imgui);
+	}
 }
 
 void NotificationManager::PopNotification::render_close_button(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
@@ -964,6 +1141,14 @@ void NotificationManager::PopNotification::bbl_render_left_sign(ImGuiWrapper &im
 {
     ensure_ui_inited();
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
+	if (use_card_layout()) {
+		const float  border = ImGui::GetStyle().WindowBorderSize;
+		const ImVec2 bar_min(win_pos_x - win_size_x + border, win_pos_y + border);
+		const ImVec2 bar_max(win_pos_x - win_size_x + design_px(CARD_BAR_WIDTH), win_pos_y + win_size_y - border);
+		const ImU32  bar_clr = ImGui::GetColorU32(ImVec4(m_CurrentColor.x, m_CurrentColor.y, m_CurrentColor.z, CARD_BAR_ALPHA * m_current_fade_opacity));
+		draw_list->AddRectFilled(bar_min, bar_max, bar_clr, std::max(design_px(CARD_RADIUS) - border, 0.f), ImDrawFlags_RoundCornersLeft);
+		return;
+	}
 	ImVec2 round_rect_pos = ImVec2(win_pos_x - win_size_x + ImGui::GetStyle().WindowBorderSize, win_pos_y + ImGui::GetStyle().WindowBorderSize);
     ImVec2 round_rect_size = ImVec2(m_WindowRadius * 2, win_size_y - 2 * ImGui::GetStyle().WindowBorderSize);
 
@@ -1047,8 +1232,9 @@ void NotificationManager::PopNotification::update(const NotificationData &n, boo
     const_cast<NotificationData&>(m_data).callback	 = n.callback;
     const_cast<NotificationData &>(m_data).second_callback = n.second_callback;
     if (change_level) {
-        const_cast<NotificationData &>(m_data).level          = n.level;
-        const_cast<NotificationData &>(m_data).use_warn_color = n.use_warn_color;
+        const_cast<NotificationData &>(m_data).level           = n.level;
+        const_cast<NotificationData &>(m_data).use_warn_color  = n.use_warn_color;
+        const_cast<NotificationData &>(m_data).use_error_color = n.use_error_color;
     }
 	init();
 }
@@ -1352,20 +1538,6 @@ void NotificationManager::ProgressBarNotification::render_bar(ImGuiWrapper& imgu
 	}
 }
 //------UpdatedItemsInfoNotification-------
-void NotificationManager::UpdatedItemsInfoNotification::count_spaces()
-{
-	//determine line width
-	m_line_height = ImGui::CalcTextSize("A").y;
-
-	//std::string text;
-	//text =  ImGui::WarningMarker;
-	//float picture_width = ImGui::CalcTextSize(text.c_str()).x;
-	//m_left_indentation = picture_width + m_line_height / 2;
-    m_left_indentation = m_line_height;
-
-	m_window_width_offset = m_left_indentation + m_line_height * 3.f;
-	m_window_width = m_line_height * 25;
-}
 void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType type)
 {
 	std::vector<std::pair<InfoItemType, size_t>>::iterator it = m_types_and_counts.begin();
@@ -1698,6 +1870,19 @@ void NotificationManager::push_notification(NotificationType type,
     push_notification_data({ type, level, duration, text, hypertext, callback }, timestamp);
 }
 
+void NotificationManager::push_error_border_notification(NotificationType type,
+                                                         const std::string &text,
+                                                         const std::string &hypertext,
+                                                         std::function<bool(wxEvtHandler *)> callback)
+{
+    // Warning level for the layout and the render path (render_notifications() sends every
+    // error-level notification to bbl_render_block_notification() instead); use_error_color only
+    // swaps the colour the left bar and border are painted in.
+    NotificationData data{type, NotificationLevel::WarningNotificationLevel, 0, text, hypertext, callback};
+    data.use_error_color = true;
+    push_notification_data(data, 0);
+}
+
 void NotificationManager::push_delayed_notification(const NotificationType type, std::function<bool(void)> condition_callback, int64_t initial_delay, int64_t delay_interval)
 {
 	auto it = std::find_if(std::begin(basic_notifications), std::end(basic_notifications),
@@ -1733,7 +1918,7 @@ void NotificationManager::push_validate_error_notification(StringObjectException
     auto link = (mo || !error.opt_key.empty()) ? _u8L("Jump to") : "";
     if (mo) link += std::string(" [") + mo->name + "]";
     if (!error.opt_key.empty()) link += std::string(" (") + error.opt_key + ")";
-    push_notification_data({NotificationType::ValidateError, NotificationLevel::ErrorNotificationLevel, 0, _u8L("Error:") + "\n" + error.string, link, callback}, 0);
+    push_notification_data({NotificationType::ValidateError, NotificationLevel::ErrorNotificationLevel, 0, error.string, link, callback}, 0);
 	set_slicing_progress_hidden();
 }
 
@@ -1774,7 +1959,7 @@ void NotificationManager::push_slicing_error_notification(const std::string &tex
         link += "] ";
     }
     set_all_slicing_errors_gray(false);
-	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text, link, callback }, 0);
+	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0,  text, link, callback }, 0);
 	set_slicing_progress_hidden();
 }
 
@@ -1873,7 +2058,7 @@ void NotificationManager::push_helio_error_notification(const std::string &text)
         };
     }
 
-    push_notification_data({NotificationType::HelioSlicingError, NotificationLevel::ErrorNotificationLevel, 0, _u8L("Error:") + "\n" + display_text, hypertext, callback}, 0);
+    push_notification_data({NotificationType::HelioSlicingError, NotificationLevel::ErrorNotificationLevel, 0, display_text, hypertext, callback}, 0);
     set_slicing_progress_hidden();
 }
 
@@ -1918,7 +2103,7 @@ void NotificationManager::push_slicing_warning_notification(const std::string& t
 		if (obj)
 			link += std::string(" [") + obj->name + "]";
 	}
-	NotificationData data { NotificationType::SlicingWarning, level, 0,  _u8L("Warning:") + "\n" + text, link, callback };
+	NotificationData data { NotificationType::SlicingWarning, level, 0,  text, link, callback };
 
 	data.sub_msg_id = warning_msg_id;
 	data.ori_text = text;
@@ -1932,7 +2117,7 @@ void NotificationManager::push_slicing_warning_notification(const std::string& t
 }
 void NotificationManager::push_plater_error_notification(const std::string& text)
 {
-	push_notification_data({ NotificationType::PlaterError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text }, 0);
+	push_notification_data({ NotificationType::PlaterError, NotificationLevel::ErrorNotificationLevel, 0,  text }, 0);
 }
 
 void NotificationManager::close_plater_error_notification(const std::string& text)
@@ -1946,13 +2131,13 @@ void NotificationManager::close_plater_error_notification(const std::string& tex
 
 void NotificationManager::push_general_error_notification(const std::string& text)
 {
-	push_notification_data({ NotificationType::BBLGeneralError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text }, 0);
+	push_notification_data({ NotificationType::BBLGeneralError, NotificationLevel::ErrorNotificationLevel, 0,  text }, 0);
 }
 
 void NotificationManager::close_general_error_notification(const std::string& text)
 {
 	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::BBLGeneralError && notification->compare_text(_u8L("Error:") + "\n" + text)) {
+		if (notification->get_type() == NotificationType::BBLGeneralError && notification->compare_text(text)) {
 			notification->close();
 		}
 	}
@@ -1961,8 +2146,7 @@ void NotificationManager::close_general_error_notification(const std::string& te
 void NotificationManager::push_slicing_customize_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext, std::function<bool(wxEvtHandler *)> callback)
 {
     set_all_slicing_errors_gray(false);
-    std::string prefix_msg = level == NotificationLevel::WarningNotificationLevel ? _u8L("Warning:") : _u8L("Error:");
-    push_notification_data({type, level, 0, prefix_msg + "\n" + text, hypertext, callback}, 0);
+    push_notification_data({type, level, 0, text, hypertext, callback}, 0);
 }
 
 void NotificationManager::close_slicing_customize_error_notification(NotificationType type, NotificationLevel level)
@@ -1985,7 +2169,7 @@ void NotificationManager::show_brittle_filament_notification(const std::string &
             return;
     }
 
-    NotificationData data{NotificationType::BBLBrittleFilament, NotificationLevel::WarningNotificationLevel, 0, _u8L("Warning:") + "\n" + text, hypertext, callback};
+    NotificationData data{NotificationType::BBLBrittleFilament, NotificationLevel::WarningNotificationLevel, 0, text, hypertext, callback};
     auto             notification = std::make_unique<PlaterWarningNotification>(data, m_id_provider, m_evt_handler);
     notification->set_delete_callback([this](PopNotification *n) {
         s_user_dismissed                = true;
@@ -2005,7 +2189,7 @@ void NotificationManager::close_brittle_filament_notification()
 
 void NotificationManager::push_assembly_warning_notification(const std::string& text)
 {
-    NotificationData data{ NotificationType::AssemblyWarning, NotificationLevel::WarningNotificationLevel, 0,  _u8L("Warning:") + "\n" + text };
+    NotificationData data{ NotificationType::AssemblyWarning, NotificationLevel::WarningNotificationLevel, 0,  text };
 
     auto notification = std::make_unique<NotificationManager::AssemblyWarningNotification>(data, m_id_provider, m_evt_handler);
     push_notification_data(std::move(notification), 0);
@@ -2014,7 +2198,7 @@ void NotificationManager::push_assembly_warning_notification(const std::string& 
 void NotificationManager::close_assembly_warning_notification(const std::string& text)
 {
     for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
-        if (notification->get_type() == NotificationType::AssemblyWarning && notification->compare_text(_u8L("Warning:") + "\n" + text)) {
+        if (notification->get_type() == NotificationType::AssemblyWarning && notification->compare_text(text)) {
             dynamic_cast<AssemblyWarningNotification*>(notification.get())->real_close();
         }
     }
@@ -2049,7 +2233,7 @@ void NotificationManager::push_plater_warning_notification(const std::string& te
 {
 	// Find if was not hidden
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::PlaterWarning && notification->compare_text(_u8L("Warning:") + "\n" + text)) {
+		if (notification->get_type() == NotificationType::PlaterWarning && notification->compare_text(text)) {
 			if (notification->get_state() == PopNotification::EState::Hidden) {
 				//dynamic_cast<PlaterWarningNotification*>(notification.get())->show();
 				return;
@@ -2057,7 +2241,7 @@ void NotificationManager::push_plater_warning_notification(const std::string& te
 		}
 	}
 
-	NotificationData data{ NotificationType::PlaterWarning, NotificationLevel::WarningNotificationLevel, 0,  _u8L("Warning:") + "\n" + text };
+	NotificationData data{ NotificationType::PlaterWarning, NotificationLevel::WarningNotificationLevel, 0,  text };
 
 	auto notification = std::make_unique<NotificationManager::PlaterWarningNotification>(data, m_id_provider, m_evt_handler);
 	push_notification_data(std::move(notification), 0);
@@ -2067,7 +2251,7 @@ void NotificationManager::push_plater_warning_notification(const std::string& te
 void NotificationManager::close_plater_warning_notification(const std::string& text)
 {
 	for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::PlaterWarning && notification->compare_text(_u8L("Warning:") + "\n" + text)) {
+		if (notification->get_type() == NotificationType::PlaterWarning && notification->compare_text(text)) {
 			dynamic_cast<PlaterWarningNotification*>(notification.get())->real_close();
 		}
 	}
@@ -2087,7 +2271,7 @@ void NotificationManager::push_bed_heat_soak_notification(const std::string& tex
 		wxGetApp().open_browser_with_warning_dialog(url);
 		return false;
 	};
-	NotificationData data{NotificationType::BBLBedHeatSoakInfo, NotificationLevel::WarningNotificationLevel, 0, text, _u8L("Wiki for details."), callback};
+	NotificationData data{NotificationType::BBLBedHeatSoakInfo, NotificationLevel::WarningNotificationLevel, 0, text, _u8L("Wiki for details"), callback};
 	auto notification = std::make_unique<NotificationManager::PopNotification>(data, m_id_provider, m_evt_handler);
 	notification->set_Multiline(true);
 	push_notification_data(std::move(notification), 0);
@@ -2101,8 +2285,7 @@ void NotificationManager::close_bed_heat_soak_notification()
 void NotificationManager::push_flushing_volume_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext, std::function<bool(wxEvtHandler *)> callback)
 {
     set_all_slicing_errors_gray(false);
-    std::string prefix_msg = level == NotificationLevel::WarningNotificationLevel ? _u8L("Warning:") : _u8L("Error:");
-    push_notification_data({type, level, 0, prefix_msg + "\n" + text, hypertext, callback}, 0);
+    push_notification_data({type, level, 0, text, hypertext, callback}, 0);
 }
 
 void NotificationManager::close_flushing_volume_error_notification(NotificationType type, NotificationLevel level)
@@ -2149,7 +2332,7 @@ void NotificationManager::close_slicing_errors_and_warnings()
 void NotificationManager::close_slicing_error_notification(const std::string& text)
 {
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
-		if (notification->get_type() == NotificationType::SlicingError && notification->compare_text(_u8L("Error:") + "\n" + text)) {
+		if (notification->get_type() == NotificationType::SlicingError && notification->compare_text(text)) {
 			notification->close();
 		}
 	}
@@ -2168,6 +2351,17 @@ void NotificationManager::close_notification_of_type(const NotificationType type
 			notification->close();
 		}
 	}
+}
+
+void NotificationManager::close_notifications_of_type_except(const NotificationType type, const std::vector<std::string> &keep_texts)
+{
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
+        if (notification->get_type() != type || notification->is_finished())
+            continue;
+        bool keep = std::any_of(keep_texts.begin(), keep_texts.end(), [&notification](const std::string &text) { return notification->compare_text(text); });
+        if (!keep)
+            notification->close();
+    }
 }
 
 void NotificationManager::close_and_delete_self(PopNotification * self)
@@ -2351,7 +2545,7 @@ void NotificationManager::push_slicing_serious_warning_notification(const std::s
         link += "] ";
     }
     set_all_slicing_warnings_gray(false);
-    push_notification_data({NotificationType::SlicingSeriousWarning, NotificationLevel::SeriousWarningNotificationLevel, 0, _u8L("Serious warning:") + "\n" + text, link,
+    push_notification_data({NotificationType::SlicingSeriousWarning, NotificationLevel::SeriousWarningNotificationLevel, 0, text, link,
                             callback},
                            0);
     set_slicing_progress_hidden();
@@ -2360,7 +2554,7 @@ void NotificationManager::push_slicing_serious_warning_notification(const std::s
 void NotificationManager::close_slicing_serious_warning_notification(const std::string &text)
 {
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
-        if (notification->get_type() == NotificationType::SlicingSeriousWarning && notification->compare_text(_u8L("Serious warning:") + "\n" + text)) { notification->close(); }
+        if (notification->get_type() == NotificationType::SlicingSeriousWarning && notification->compare_text(text)) { notification->close(); }
     }
 }
 
@@ -2604,8 +2798,9 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
 		if (ui_ready) { // ignore update action until both notification manager and GUI/ImGui are ready
 			// SlicingWarning duplicates are suppressed in activate_existing(): one notification
 			// per warning category; the jump-to hyperlink can only target one object.
+			// ValidateWarning entries are matched by text, the level is refreshed together with it.
 			if (notification->get_type() != NotificationType::SlicingWarning)
-                m_pop_notifications.back()->update(notification->get_data());
+                m_pop_notifications.back()->update(notification->get_data(), notification->get_type() == NotificationType::ValidateWarning);
 		}
 	} else {
 		m_pop_notifications.emplace_back(std::move(notification));
@@ -2660,7 +2855,6 @@ void NotificationManager::render_notifications(GLCanvas3D &canvas, float overlay
                 && notification->get_type() != NotificationType::AssemblyWarning
                 && notification->get_type() != NotificationType::BBLIsolatedVolumeInfo
                 && notification->get_type() != NotificationType::BBLAssemblyFarFromOrigin
-                && notification->get_type() != NotificationType::BBLIntersectsVolumeInfo
                 && notification->get_type() != NotificationType::ExportFinished) {
                 continue;
             }
@@ -3047,7 +3241,7 @@ void NotificationManager::bbl_close_plugin_install_notification()
 
 void NotificationManager::bbl_show_slice_emptylayer_notification(const std::string &text, bool bOverride)
 {
-    NotificationData data{NotificationType::BBLSliceEmptyLayer, NotificationLevel::WarningNotificationLevel, 0, _u8L("WARNING:") + "\n" + text};
+    NotificationData data{NotificationType::BBLSliceEmptyLayer, NotificationLevel::WarningNotificationLevel, 0, text};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLSliceEmptyLayer) {
@@ -3074,7 +3268,7 @@ void NotificationManager::bbl_show_app_newversion_notification()
 
 void NotificationManager::bbl_show_need_support_on_notification()
 {
-    NotificationData data{NotificationType::BBLNeedSupportON, NotificationLevel::WarningNotificationLevel, 0,_u8L("Warning:") + "\n" + _u8L("Your model needs support ! Please make support material enable.")};
+    NotificationData data{NotificationType::BBLNeedSupportON, NotificationLevel::WarningNotificationLevel, 0,_u8L("Your model needs support ! Please make support material enable.")};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLNeedSupportON) {
@@ -3099,7 +3293,7 @@ void NotificationManager::bbl_close_need_support_on_notification()
 void NotificationManager::bbl_show_gcode_overlap_notification()
 {
     NotificationData data{NotificationType::BBLGcodeOverlap, NotificationLevel::WarningNotificationLevel, 0,
-                          _u8L("Warning:") + "\n" + _u8L("Gcode path overlap")};
+                          _u8L("Gcode path overlap")};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLGcodeOverlap) {
@@ -3131,7 +3325,7 @@ void NotificationManager::bbl_show_bed_filament_incompatible_notification(const 
 		wxGetApp().open_browser_with_warning_dialog(bed_filament_compatibility_wiki);
 		return false;
 	};
-	push_notification_data({ NotificationType::BBLBedFilamentIncompatible,NotificationLevel::ErrorNotificationLevel,0,_u8L("Error:") + "\n" + text,_u8L("Click Wiki for help."),callback }, 0);
+	push_notification_data({ NotificationType::BBLBedFilamentIncompatible,NotificationLevel::ErrorNotificationLevel,0,text,_u8L("Wiki for details"),callback }, 0);
 }
 
 void NotificationManager::bbl_close_bed_filament_incompatible_notification()
@@ -3141,6 +3335,19 @@ void NotificationManager::bbl_close_bed_filament_incompatible_notification()
 
 void NotificationManager::bbl_show_filament_map_invalid_notification_before_slice(const NotificationType type,const std::string& text)
 {
+    const auto full_config = wxGetApp().preset_bundle->full_config();
+    if (is_multi_diameter_without_ams(full_config)) {
+        push_notification_data({ type, NotificationLevel::ErrorNotificationLevel, 0,
+            text + "\n" +
+            _u8L("Please adjust the nozzle diameter/flow of the affected filament in the filament panel.") }, 0);
+        return;
+    }
+    if (should_skip_filament_grouping(full_config)) {
+        push_notification_data({ type, NotificationLevel::ErrorNotificationLevel, 0,
+            text }, 0);
+        return;
+    }
+
     auto callback = [](wxEvtHandler*) {
         auto plater = wxGetApp().plater();
         auto partplate = plater->get_partplate_list().get_curr_plate();
@@ -3148,7 +3355,7 @@ void NotificationManager::bbl_show_filament_map_invalid_notification_before_slic
         return false;
     };
 
-    push_notification_data({ type,NotificationLevel::ErrorNotificationLevel,0,_u8L("Error:") + "\n" + text,_u8L("Click here to regroup"),callback }, 0);
+    push_notification_data({ type,NotificationLevel::ErrorNotificationLevel,0,text,_u8L("Click here to regroup"),callback }, 0);
 }
 
 void NotificationManager::bbl_close_filament_map_invalid_notification_before_slice(const NotificationType type)
@@ -3171,7 +3378,7 @@ void NotificationManager::bbl_show_filament_map_invalid_notification_after_slice
         return false;
     };
 
-    push_notification_data({ type,NotificationLevel::ErrorNotificationLevel,0,_u8L("Error:") + "\n" + text,_u8L("Click here to regroup"),callback }, 0);
+    push_notification_data({ type,NotificationLevel::ErrorNotificationLevel,0,text,_u8L("Click here to regroup"),callback }, 0);
 }
 
 void NotificationManager::bbl_close_filament_map_invalid_notification_after_slice(const NotificationType type)

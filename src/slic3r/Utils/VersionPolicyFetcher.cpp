@@ -6,12 +6,12 @@
 #include "VersionPolicyFetcher.hpp"
 
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 
 #include "libslic3r/AppConfig.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/VersionPolicyParser.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

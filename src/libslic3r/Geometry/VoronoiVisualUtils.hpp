@@ -6,6 +6,7 @@
 #include <libslic3r/SVG.hpp>
 
 #include "VoronoiOffset.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace boost { namespace polygon {
 
@@ -250,7 +251,7 @@ namespace Voronoi { namespace Internal {
         // Infinite edges could not be created by two segment sites.
         assert(cell1.contains_point() || cell2.contains_point());
         if (! cell1.contains_point() && ! cell2.contains_point()) {
-            printf("Error! clip_infinite_edge - infinite edge separates two segment cells\n");
+            BOOST_LOG_TRIVIAL(error) << "infinite edge separates two segment cells";
             return;
         }
         point_type direction;

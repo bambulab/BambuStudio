@@ -1,9 +1,9 @@
 #include <cmath>
 #include <assert.h>
-#include <boost/log/trivial.hpp>
 #include "slic3r/Utils/ColorSpaceConvert.hpp"
 #include "Utils.hpp"
 #include "FlushVolCalc.hpp"
+#include "libslic3r/Log.hpp"
 
 
 namespace Slic3r {

@@ -1,0 +1,109 @@
+{
+    "type": "filament",
+    "name": "Bambu PLA Matte @BBL H3C 0.8 nozzle",
+    "inherits": "Bambu PLA Matte @base",
+    "from": "system",
+    "setting_id": "GFSA01_38",
+    "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "60"
+    ],
+    "close_optional_fan_first_x_layers": [
+        "1"
+    ],
+    "eng_plate_temp": [
+        "55"
+    ],
+    "eng_plate_temp_initial_layer": [
+        "55"
+    ],
+    "filament_change_length": [
+        "0"
+    ],
+    "filament_change_length_nc": [
+        "0"
+    ],
+    "filament_cooling_before_tower": [
+        "0",
+        "0"
+    ],
+    "filament_flow_ratio": [
+        "0.98",
+        "0.98"
+    ],
+    "filament_idle_travel_cooling_enabled": "0",
+    "filament_max_volumetric_speed": [
+        "30",
+        "40"
+    ],
+    "filament_prime_tower_speed_factor_curve": [
+        "0.5,1"
+    ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4"
+    ],
+    "filament_wipe": [
+        "1",
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1",
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "Spiral Lift"
+    ],
+    "first_x_layer_optional_fan_speed": [
+        "0"
+    ],
+    "include": [
+        "fdm_filament_template_direct_dual",
+        "fdm_filament_template_h3c"
+    ],
+    "long_retractions_when_ec": [
+        "0",
+        "0"
+    ],
+    "nozzle_temperature": [
+        "220",
+        "220"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "220",
+        "220"
+    ],
+    "optional_cooling_fan_speed": [
+        "80"
+    ],
+    "optional_fan_full_speed_layer": [
+        "0"
+    ],
+    "pre_start_fan_time": [
+        "2"
+    ],
+    "slow_down_layer_time": [
+        "6"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H3C 0.8 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
+    ],
+    "filament_end_gcode": [
+        "; filament end gcode \n"
+    ]
+}

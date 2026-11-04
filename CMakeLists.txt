@@ -176,6 +176,9 @@ if (MSVC)
         # limit (LNK1248), and plain Release omits debug info in standard
         # CMake semantics anyway.
         add_compile_options(-bigobj -Zm520 "$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Debug>>:/Z7>")
+        # The merged Debug PDB outgrows the 4 GB cap of the default 4 KB page
+        # size (LNK1140); 8 KB pages raise the cap to 8 GB.
+        add_link_options("$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Debug>>:/PDBPAGESIZE:8192>")
     else ()
         add_compile_options(-bigobj -Zm520 /Zi)
     endif ()
@@ -240,8 +243,6 @@ endif()
 # Once we get rid of Perl and libslic3r is linked statically, we can get rid of -fPIC
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# WIN10SDK_PATH is used to point CMake to the WIN10 SDK installation directory.
-# We pick it from environment if it is not defined in another way
 if(WIN32)
     if(EXISTS "${CMAKE_SOURCE_DIR}/scripts/hooks/pre-commit"  AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
        if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/.git")
@@ -262,37 +263,6 @@ if(WIN32)
         find_program(PKG_CONFIG_EXECUTABLE NAMES pkg-config)
     endif()
     find_package(PkgConfig REQUIRED)
-    if(NOT DEFINED WIN10SDK_PATH)
-        if(DEFINED ENV{WIN10SDK_PATH})
-                set(WIN10SDK_PATH "$ENV{WIN10SDK_PATH}")
-        endif()
-    endif()
-    if(DEFINED WIN10SDK_PATH)
-        #BBS: modify win10sdk_path
-        if (EXISTS "${WIN10SDK_PATH}/winrt/windows.graphics.printing3d.h")
-            set(WIN10SDK_INCLUDE_PATH "${WIN10SDK_PATH}")
-        else()
-            message("WIN10SDK_PATH is invalid: ${WIN10SDK_PATH}")
-            message("${WIN10SDK_PATH}/winrt/windows.graphics.printing3d.h was not found")
-            message("STL fixing by the Netfabb service will not be compiled")
-            unset(WIN10SDK_PATH)
-        endif()
-    else()
-        # Try to use the default Windows 10 SDK path.
-        set(WIN10SDK_INCLUDE_PATH "$ENV{WindowsSdkDir}/Include/$ENV{WindowsSDKVersion}")
-        if (NOT EXISTS "${WIN10SDK_INCLUDE_PATH}/winrt/windows.graphics.printing3d.h")
-            message("${WIN10SDK_INCLUDE_PATH}/winrt/windows.graphics.printing3d.h was not found")
-            message("STL fixing by the Netfabb service will not be compiled")
-            unset(WIN10SDK_INCLUDE_PATH)
-        endif()
-    endif()
-    if(WIN10SDK_INCLUDE_PATH)
-        message("Building with Win10 Netfabb STL fixing service support")
-        add_definitions(-DHAS_WIN10SDK)
-        include_directories("${WIN10SDK_INCLUDE_PATH}")
-    else()
-        message("Building without Win10 Netfabb STL fixing service support")
-    endif()
 endif()
 
 if (APPLE)
