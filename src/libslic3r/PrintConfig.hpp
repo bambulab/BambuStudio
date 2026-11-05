@@ -541,7 +541,8 @@ extern bool is_filament_extruder_override_key(const std::string &opt_key);
 // for parse extruder_ams_count
 extern std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::string> &strs);
 // Effective AMS nozzle slot: the configured ams_nozzle_idx when an AMS is actually present
-// (extruder_ams_count has a non-zero slot), otherwise -1 (treat the machine as all fixed nozzles).
+// (extruder_ams_count has a non-zero slot) and a nozzle sits on that slot (extruder_nozzle_slot),
+// otherwise -1 (treat the machine as all fixed nozzles).
 extern int get_effective_ams_nozzle_idx(const ConfigBase &config);
 extern bool is_single_ext_multi_nozzle(const ConfigBase &config);
 extern std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std::map<int, int>> &extruder_ams_count);

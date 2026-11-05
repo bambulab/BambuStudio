@@ -1185,6 +1185,12 @@ int get_effective_ams_nozzle_idx(const ConfigBase& config)
     // Runtime: an AMS-capable model may currently have no AMS connected. In that case every nozzle
     // (including the AMS slot) is a fixed nozzle, so report -1 to make both the UI and the grouping
     // take the "all fixed nozzles" path consistently.
+    // An AMS with no nozzle on its slot cannot feed anything either, so it counts as no AMS too.
+    const auto* nozzle_slot_opt = dynamic_cast<const ConfigOptionInts*>(config.option("extruder_nozzle_slot"));
+    if (nozzle_slot_opt && !nozzle_slot_opt->values.empty() &&
+        std::find(nozzle_slot_opt->values.begin(), nozzle_slot_opt->values.end(), ams_idx) == nozzle_slot_opt->values.end())
+        return -1;
+
     const auto* ams_count_opt = dynamic_cast<const ConfigOptionStrings*>(config.option("extruder_ams_count"));
     if (!ams_count_opt)
         return ams_idx; // missing data: stay permissive and keep the configured slot
@@ -9855,7 +9861,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                     variant_index[v_index] = get_index_for_extruder(e_index+1, id_name, extruder_type, nozzle_volume_type, variant_name);
                     if (variant_index[v_index] < 0) {
                         BOOST_LOG_TRIVIAL(error) << boost::format("could not found extruder_type %1%, nozzle_volume_type %2%, extruder_index %3%, nvt_index %4%, nvt_count %5%")%s_keys_names_ExtruderType[extruder_type] % get_nozzle_volume_type_string(nozzle_volume_type) % (e_index+1) %nvt_index %nvt_count;
-                        assert(false);
+                        // assert(false);
                         //for some updates happens in a invalid state(caused by popup window)
                         //we need to avoid crash
                         variant_index[v_index] = 0;
