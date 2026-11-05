@@ -1,0 +1,29 @@
+{
+  "fill": {
+    "automatic-gradient": "srgb:0.00000,0.68235,0.25882,1.00000"
+  },
+  "groups": [
+    {
+      "layers": [
+        {
+          "image-name": "BambuStudio.svg",
+          "name": "BambuStudio"
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.5
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.5
+      }
+    }
+  ],
+  "supported-platforms": {
+    "circles": [
+      "watchOS"
+    ],
+    "squares": "shared"
+  }
+}
