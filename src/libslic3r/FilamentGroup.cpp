@@ -345,8 +345,8 @@ namespace Slic3r
             const auto& nozzle = ctx.nozzle_info.nozzle_list[nozzle_idx];
             auto it = ctx.nozzle_info.nozzle_status.find(nozzle.group_id);
             int loaded_filament = (it != ctx.nozzle_info.nozzle_status.end()) ? it->second : -1;
-            int nozzle_capacity = nozzle_idx < static_cast<int>(ctx.nozzle_info.per_nozzle_capacity.size()) ?
-                ctx.nozzle_info.per_nozzle_capacity[nozzle_idx] : -1;
+            int nozzle_capacity = nozzle_idx < static_cast<int>(nozzle_caps.size()) ?
+                nozzle_caps[nozzle_idx] : -1;
             nozzles_hash[nozzle_idx] = fnv_hash_nozzle(nozzle.diameter, nozzle.volume_type, nozzle.extruder_id > 0, loaded_filament, nozzle_capacity);
         }
 
