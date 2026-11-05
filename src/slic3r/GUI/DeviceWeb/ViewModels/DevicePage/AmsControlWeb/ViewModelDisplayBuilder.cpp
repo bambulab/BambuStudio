@@ -53,9 +53,16 @@ SchemaFormat::MenuActions build_menu_actions(const SchemaFormat::Tray& tray,
 
     actions.show_read = view_only || slot_state == SchemaValues::slot_state::brand;
     actions.show_edit = !actions.show_read;
-    // LAN mode does not support cloud auto-record, so the badge never shows there.
+
+    bool is_ams_lite = false;
+    if (machine_obj) {
+        if (auto fila_sys = machine_obj->GetFilaSystem()) {
+            if (auto* ams = fila_sys->GetAmsById(tray.ams_id))
+                is_ams_lite = ams->GetAmsType() == DevAmsType::AMS_LITE;
+        }
+    }
     actions.show_filament_mgr_hint =
-        machine_obj && !machine_obj->is_lan_mode_printer() &&
+        machine_obj && !machine_obj->is_lan_mode_printer() && !is_ams_lite &&
         filament_mgr_hint_slots().count({tray.ams_id, tray.slot_id}) > 0;
     return actions;
 }
