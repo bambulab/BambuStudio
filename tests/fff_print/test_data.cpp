@@ -1,6 +1,7 @@
 #include "test_data.hpp"
 
 #include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/GCodeReader.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r/Print.hpp"
@@ -8,7 +9,9 @@
 #include "libslic3r/Format/STL.hpp"
 
 #include <cstdlib>
+#include <stdexcept>
 #include <string>
+#include <vector>
 
 #include <boost/nowide/cstdio.hpp>
 #include <boost/filesystem.hpp>
@@ -337,6 +340,92 @@ std::string slice(std::initializer_list<TriangleMesh> meshes, std::initializer_l
 } } // namespace Slic3r::Test
 
 #include <catch2/catch.hpp>
+
+TEST_CASE("Legacy model arrangement initializes candidates on the active bed", "[ModelArrange]")
+{
+    using namespace Slic3r;
+    Model model = Test::model("cube", make_cube(20., 20., 20.));
+
+    SECTION("New candidates are not marked as already unfit") {
+        ModelInstancePtrs instances;
+        const auto polygons = get_arrange_polys(model, instances);
+        REQUIRE(polygons.size() == 1);
+        REQUIRE(instances.size() == 1);
+        REQUIRE(polygons.front().bed_idx == 0);
+    }
+    SECTION("A fitting cube is placed on the physical bed") {
+        const BoundingBox bed{{0, 0}, {scaled(100.), scaled(100.)}};
+        REQUIRE(arrange_objects(model, bed, ArrangeParams{scaled(6.)}));
+        const auto bounds = model.bounding_box();
+        REQUIRE(bounds.min.x() >= 0.);
+        REQUIRE(bounds.min.y() >= 0.);
+        REQUIRE(bounds.max.x() <= 100.);
+        REQUIRE(bounds.max.y() <= 100.);
+    }
+    SECTION("An oversized cube still fails placement") {
+        const BoundingBox bed{{0, 0}, {scaled(10.), scaled(10.)}};
+        REQUIRE_THROWS_AS(arrange_objects(model, bed, ArrangeParams{scaled(6.)}), RuntimeError);
+    }
+    SECTION("An empty silhouette is not treated as placed") {
+        Model empty_model;
+        empty_model.add_object()->add_instance();
+        ModelInstancePtrs instances;
+        const auto polygons = get_arrange_polys(empty_model, instances);
+        REQUIRE(polygons.size() == 1);
+        REQUIRE(polygons.front().bed_idx == arrangement::UNARRANGED);
+        const BoundingBox bed{{0, 0}, {scaled(100.), scaled(100.)}};
+        REQUIRE_THROWS_AS(arrange_objects(empty_model, bed, ArrangeParams{scaled(6.)}), RuntimeError);
+    }
+}
+
+TEST_CASE("Legacy arrangement rejects mixed invalid batches before instance transforms", "[ModelArrange]")
+{
+    using namespace Slic3r;
+    const BoundingBox bed{{0, 0}, {scaled(200.), scaled(200.)}};
+    for (unsigned empty_index = 0; empty_index < 3; ++empty_index) {
+        for (unsigned mode = 0; mode < 4; ++mode) {
+            DYNAMIC_SECTION("empty position " << empty_index << " callback mode " << mode) {
+                Model model;
+                ModelInstancePtrs instances;
+                std::vector<Transform3d> before;
+                for (unsigned index = 0; index < 3; ++index) {
+                    ModelObject *object = model.add_object();
+                    if (index != empty_index)
+                        object->add_volume(make_cube(20., 20. + index, 20.));
+                    ModelInstance *instance = object->add_instance();
+                    instance->set_offset(Vec3d(45. + index * 37., 60. + index * 19., index));
+                    instance->set_rotation(Vec3d(0., 0., .1 + index * .17));
+                    instances.push_back(instance);
+                    before.push_back(instance->get_transformation().get_matrix());
+                }
+                unsigned callbacks = 0;
+                VirtualBedFn callback = [&](ArrangePolygon &poly) {
+                    ++callbacks;
+                    REQUIRE(poly.poly.contour.size() < 3);
+                    REQUIRE(poly.bed_idx == arrangement::UNARRANGED);
+                    if (mode == 3)
+                        throw std::logic_error("invalid candidate callback");
+                };
+                ArrangeParams params{scaled(6.)};
+                params.parallel = false;
+                if (mode == 0)
+                    REQUIRE_THROWS_AS(arrange_objects(model, bed, params), RuntimeError);
+                else if (mode == 1)
+                    REQUIRE_FALSE(arrange_objects(model, bed, params, {}));
+                else if (mode == 2)
+                    REQUIRE_FALSE(arrange_objects(model, bed, params, callback));
+                else
+                    REQUIRE_THROWS_AS(arrange_objects(model, bed, params, callback), std::logic_error);
+                REQUIRE(callbacks == (mode >= 2 ? 1u : 0u));
+                for (size_t index = 0; index < instances.size(); ++index) {
+                    REQUIRE(model.objects[index]->instances.front() == instances[index]);
+                    const Transform3d after = instances[index]->get_transformation().get_matrix();
+                    REQUIRE((before[index].matrix().array() == after.matrix().array()).all());
+                }
+            }
+        }
+    }
+}
 
 SCENARIO("init_print functionality", "[test_data]") {
 	GIVEN("A default config") {
