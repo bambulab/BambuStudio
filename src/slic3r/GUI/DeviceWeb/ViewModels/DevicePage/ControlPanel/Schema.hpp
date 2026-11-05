@@ -26,7 +26,16 @@ inline constexpr const char* switching = "switching";
 } // namespace extruder_status
 
 namespace rack_toolhead_visual_state {
-inline constexpr const char* empty = "empty";
+inline constexpr const char* empty               = "empty";
+inline constexpr const char* clamped             = "clamped";
+inline constexpr const char* clamped_retracting  = "clamped_retracting";
+inline constexpr const char* clamped_extruding   = "clamped_extruding";
+inline constexpr const char* picking             = "picking";
+inline constexpr const char* placing             = "placing";
+inline constexpr const char* clamped_no_filament = "clamped_no_filament";
+inline constexpr const char* cutter              = "cutter";
+inline constexpr const char* pen                 = "pen";
+inline constexpr const char* default_toolhead    = "default";
 } // namespace rack_toolhead_visual_state
 
 namespace extruder_area_type {
@@ -47,6 +56,8 @@ struct TempInputControl
 {
     bool        enabled = false;
     std::string disabled_reason;
+    std::string max_warning;
+    std::string min_warning;
 };
 
 struct SpeedOption
@@ -58,6 +69,8 @@ struct SpeedOption
 struct SpeedControl
 {
     bool                     selectable = false;
+    bool                     editable = false;
+    std::string              hint;
     std::string              disabled_reason;
     std::vector<SpeedOption> levels;
 };
@@ -88,6 +101,8 @@ struct RackControl
     bool        movable = false;
     std::string disabled_reason;
     std::string target_pos;
+    std::string label;
+    std::string tooltip;
 };
 
 struct ExtruderSwitchControl
@@ -112,6 +127,7 @@ struct ExtruderTempItem
     bool               show_nozzle = false;
     bool               badge = false;
     int                badge_nozzle_index = 0;
+    std::string        side_badge;
     TempInputControl   temp_input;
 };
 
@@ -204,6 +220,11 @@ struct DualExtruderView
     std::string               right_label;
     std::vector<ExtruderView> extruders;
     std::string               switching_status_text;
+    bool                      switching_failed = false;
+    bool                      can_quit_switching = false;
+    bool                      can_retry_switching = false;
+    std::string               quit_label;
+    std::string               retry_label;
     ExtruderSwitchControl     switch_control;
 };
 
@@ -212,6 +233,9 @@ struct SingleRackExtruderView
     std::optional<int> current_nozzle_id;
     bool               has_filament = false;
     std::string        filament_clr;
+    std::string        upper_filament_clr;
+    std::string        lower_filament_clr;
+    bool               show_filament_path = false;
     std::string        nozzle_diameter;
     std::string        nozzle_flow_type;
     std::string        extruder_status = values::extruder_status::idle;
@@ -221,6 +245,7 @@ struct SingleRackExtruderView
 struct ExtruderArea
 {
     std::string            type = values::extruder_area_type::single;
+    std::string            label;
     SingleExtruderView     single_extruder;
     DualExtruderView       dual_extruder;
     SingleRackExtruderView single_rack_extruder;
@@ -228,7 +253,8 @@ struct ExtruderArea
 
 struct HotendRackArea
 {
-    bool visible = false;
+    bool        visible = false;
+    std::string title;
     RackControl lift;
     RackControl center;
     RackControl lower;

@@ -10,15 +10,22 @@ export type RackToolheadVisualState =
   | 'clamped_extruding'
   | 'picking'
   | 'placing'
-  | 'clamped_no_filament';
+  | 'clamped_no_filament'
+  | 'cutter'
+  | 'pen'
+  | 'default';
 
 export interface TempInputControl {
   enabled: boolean;
   disabled_reason: string;
+  max_warning: string;
+  min_warning: string;
 }
 
 export interface SpeedControl {
   selectable: boolean;
+  editable: boolean;
+  hint: string;
   disabled_reason: string;
   levels: Array<{ level: 1 | 2 | 3 | 4; label: string }>;
 }
@@ -45,6 +52,8 @@ export interface RackControl {
   movable: boolean;
   disabled_reason: string;
   target_pos: 'lift' | 'center' | 'lower';
+  label: string;
+  tooltip: string;
 }
 
 export interface ExtruderSwitchControl {
@@ -67,6 +76,7 @@ export interface ExtruderTempItem {
   show_nozzle: boolean;
   badge: boolean;
   badge_nozzle_index: number;
+  side_badge: string;
   temp_input: TempInputControl;
 }
 
@@ -148,6 +158,11 @@ export interface DualExtruderView {
   labels: { left: string; right: string };
   extruders: ExtruderView[];
   switching_status_text: string;
+  switching_failed: boolean;
+  can_quit_switching: boolean;
+  can_retry_switching: boolean;
+  quit_label: string;
+  retry_label: string;
   switch_control: ExtruderSwitchControl;
 }
 
@@ -155,6 +170,9 @@ export interface SingleRackExtruderView {
   current_nozzle_id: number | null;
   has_filament: boolean;
   filament_clr: string;
+  upper_filament_clr: string;
+  lower_filament_clr: string;
+  show_filament_path: boolean;
   nozzle_diameter: string;
   nozzle_flow_type: string;
   extruder_status: ExtruderStatus;
@@ -163,6 +181,7 @@ export interface SingleRackExtruderView {
 
 export interface ExtruderArea {
   type: ExtruderAreaType;
+  label: string;
   single_extruder: SingleExtruderView;
   dual_extruder: DualExtruderView;
   single_rack_extruder: SingleRackExtruderView;
@@ -170,6 +189,7 @@ export interface ExtruderArea {
 
 export interface HotendRackArea {
   visible: boolean;
+  title: string;
   lift: RackControl;
   center: RackControl;
   lower: RackControl;

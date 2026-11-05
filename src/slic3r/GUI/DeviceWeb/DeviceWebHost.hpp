@@ -82,6 +82,7 @@ public:
     // body must contain: module, submod, action, payload.
     void DispatchCommand(const nlohmann::json& body);
     void SetContentSizeChangedHandler(ContentSizeChangedHandler handler) { m_content_size_changed_handler = std::move(handler); }
+    void SetLockContentSize(bool lock) { m_lock_content_size = lock; }
 
     // Access the registered AMS mapping VM so the popup can push a fresh
     // snapshot of (machine, mapping_result, current_filament_id, ...) before
@@ -150,6 +151,7 @@ private:
     bool                              m_host_hidden{false};
     bool                              m_app_inactive{false};
     bool                              m_power_suspended{false};
+    bool                              m_lock_content_size{false};
     PrinterWebView*                   m_device_webview{ nullptr }; // owned by wx parent
     std::unique_ptr<DeviceHttpServer> m_device_http_server;
     std::unique_ptr<DeviceWebBridge>  m_device_web_bridge;

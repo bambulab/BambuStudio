@@ -2804,12 +2804,18 @@ void StatusBasePanel::ensure_ctrl_area_mask_pool(size_t n)
 
 void StatusBasePanel::show_ctrl_area_mask_hint(CtrlAreaMaskOverlay* from)
 {
-    if (!from || !m_temp_axis_ctrl_box) return;
+    wxWindow *ctrl_target = m_temp_axis_ctrl_box;
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+    if (control_panel_use_web() && m_control_panel_web_panel) {
+        ctrl_target = m_control_panel_web_panel;
+    }
+#endif
+    if (!from || !ctrl_target) return;
     wxWindow *tlw = wxGetTopLevelParent(this);
     if (!tlw) return;
     if (!m_ctrl_area_mask_hint)
         m_ctrl_area_mask_hint = new CtrlAreaMaskHint(tlw, this);
-    m_ctrl_area_mask_hint->ShowNear(m_temp_axis_ctrl_box->GetScreenRect());
+    m_ctrl_area_mask_hint->ShowNear(ctrl_target->GetScreenRect());
 }
 
 void StatusBasePanel::schedule_hide_ctrl_area_mask_hint()
@@ -2837,20 +2843,38 @@ void StatusBasePanel::update_ctrl_area_masks()
 {
     if (wxGetApp().is_closing() || !GetParent() || IsBeingDeleted())
         return;
-    if (!m_temp_axis_ctrl_box || m_temp_axis_ctrl_box->IsBeingDeleted())
+    wxWindow *ctrl_target = m_temp_axis_ctrl_box;
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+    if (control_panel_use_web() && m_control_panel_web_panel) {
+        ctrl_target = m_control_panel_web_panel;
+    }
+#endif
+    if (!ctrl_target || ctrl_target->IsBeingDeleted())
         return;
 
     const bool disabled = wxGetApp().is_monitor_ctrl_force_disabled();
-    const bool on_screen = m_temp_axis_ctrl_box->IsShownOnScreen();
+    const bool on_screen = ctrl_target->IsShownOnScreen();
     const wxRect viewport = GetScreenRect();
-    const wxRect base     = m_temp_axis_ctrl_box->GetScreenRect().Intersect(viewport);
+    const wxRect base     = ctrl_target->GetScreenRect().Intersect(viewport);
 
     std::vector<wxRect> targets;
     if (disabled && on_screen && !base.IsEmpty()) {
         wxRegion reg(base);
-        for (wxWindow *w : m_ctrl_area_mask_excludes)
-            if (w && w->IsShownOnScreen())
-                reg.Subtract(w->GetScreenRect().Inflate(FromDIP(2)));
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+        if (control_panel_use_web() && ctrl_target == m_control_panel_web_panel) {
+            const wxRect full_rect = ctrl_target->GetScreenRect();
+            const int lamp_x = full_rect.x + FromDIP(79);
+            const int lamp_w = FromDIP(79);
+            const int lamp_h = FromDIP(54);
+            const int lamp_y = full_rect.GetBottom() - lamp_h;
+            reg.Subtract(wxRect(lamp_x, lamp_y, lamp_w, lamp_h));
+        } else
+#endif
+        {
+            for (wxWindow *w : m_ctrl_area_mask_excludes)
+                if (w && w->IsShownOnScreen())
+                    reg.Subtract(w->GetScreenRect().Inflate(FromDIP(2)));
+        }
         for (wxRegionIterator it(reg); it; ++it) {
             const wxRect piece = it.GetRect();
             if (!piece.IsEmpty()) targets.push_back(piece);
@@ -4246,6 +4270,11 @@ void StatusPanel::update(MachineObject *obj)
 
     if (!obj || !obj->is_info_ready()) {
         m_nozzle_btn_panel->Disable();
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+        if (m_control_panel_web_panel && control_panel_use_web()) {
+            m_control_panel_web_panel->UpdateByMachine(obj);
+        }
+#endif
         return;
     }
 
@@ -7122,6 +7151,11 @@ void StatusPanel::set_default()
     }
 
     reset_temp_misc_control();
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+    if (m_control_panel_web_panel && control_panel_use_web()) {
+        m_control_panel_web_panel->UpdateByMachine(nullptr);
+    }
+#endif
     m_extruder_switching_status->Hide();
     m_ams_control->Hide();
     m_ams_control_box->Hide();
@@ -7154,6 +7188,11 @@ void StatusPanel::show_status(int status)
     if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0) ||
         ((status & (int) MonitorStatus::MONITOR_CONNECTING) != 0) || ((status & (int) MonitorStatus::MONITOR_NO_PRINTER) != 0)) {
         show_printing_status(false, false);
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+        if (m_control_panel_web_panel && control_panel_use_web()) {
+            m_control_panel_web_panel->UpdateByMachine(get_current_dev());
+        }
+#endif
         m_calibration_btn->Disable();
         m_options_btn->Disable();
         m_safety_btn->Disable();
@@ -7163,6 +7202,11 @@ void StatusPanel::show_status(int status)
         m_panel_monitoring_title->Disable();
     } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
         show_printing_status(true, true);
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+        if (m_control_panel_web_panel && control_panel_use_web()) {
+            m_control_panel_web_panel->UpdateByMachine(get_current_dev());
+        }
+#endif
         m_calibration_btn->Disable();
         m_options_btn->Enable();
         m_safety_btn->Enable();
@@ -7223,6 +7267,11 @@ void StatusPanel::on_sys_color_changed()
     m_bitmap_speed_active.msw_rescale();
     m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
     m_ams_control->msw_rescale();
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+    if (m_control_panel_web_panel) {
+        m_control_panel_web_panel->on_sys_color_changed();
+    }
+#endif
     update_camera_title_bar_theme();
 }
 

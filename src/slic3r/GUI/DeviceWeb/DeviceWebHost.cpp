@@ -845,8 +845,16 @@ void DeviceWebHost::OnWebContentSizeChanged(int width, int height)
     m_last_reported_content_size = content_size;
 
     SetMinSize(content_size);
+    if (m_lock_content_size) {
+        SetMaxSize(content_size);
+        SetSize(content_size);
+    }
     if (m_device_webview) {
         m_device_webview->SetMinSize(content_size);
+        if (m_lock_content_size) {
+            m_device_webview->SetMaxSize(content_size);
+            m_device_webview->SetSize(content_size);
+        }
     }
     if (m_content_size_changed_handler) {
         m_content_size_changed_handler(content_size);

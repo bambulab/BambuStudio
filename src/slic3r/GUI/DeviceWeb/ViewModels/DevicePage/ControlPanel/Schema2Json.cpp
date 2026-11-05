@@ -13,7 +13,12 @@ nlohmann::json optional_int_json(const std::optional<int>& value)
 
 void to_json(nlohmann::json& j, const TempInputControl& v)
 {
-    j = {{"enabled", v.enabled}, {"disabled_reason", v.disabled_reason}};
+    j = {
+        {"enabled", v.enabled},
+        {"disabled_reason", v.disabled_reason},
+        {"max_warning", v.max_warning},
+        {"min_warning", v.min_warning},
+    };
 }
 
 void to_json(nlohmann::json& j, const SpeedOption& v)
@@ -23,7 +28,13 @@ void to_json(nlohmann::json& j, const SpeedOption& v)
 
 void to_json(nlohmann::json& j, const SpeedControl& v)
 {
-    j = {{"selectable", v.selectable}, {"disabled_reason", v.disabled_reason}, {"levels", v.levels}};
+    j = {
+        {"selectable", v.selectable},
+        {"editable", v.editable},
+        {"hint", v.hint},
+        {"disabled_reason", v.disabled_reason},
+        {"levels", v.levels},
+    };
 }
 
 void to_json(nlohmann::json& j, const LampControl& v)
@@ -43,7 +54,13 @@ void to_json(nlohmann::json& j, const AxisMoveControl& v)
 
 void to_json(nlohmann::json& j, const RackControl& v)
 {
-    j = {{"movable", v.movable}, {"disabled_reason", v.disabled_reason}, {"target_pos", v.target_pos}};
+    j = {
+        {"movable", v.movable},
+        {"disabled_reason", v.disabled_reason},
+        {"target_pos", v.target_pos},
+        {"label", v.label},
+        {"tooltip", v.tooltip},
+    };
 }
 
 void to_json(nlohmann::json& j, const ExtruderSwitchControl& v)
@@ -67,6 +84,7 @@ void to_json(nlohmann::json& j, const ExtruderTempItem& v)
         {"show_nozzle", v.show_nozzle},
         {"badge", v.badge},
         {"badge_nozzle_index", v.badge_nozzle_index},
+        {"side_badge", v.side_badge},
         {"temp_input", v.temp_input},
     };
 }
@@ -148,6 +166,11 @@ void to_json(nlohmann::json& j, const DualExtruderView& v)
         {"labels", {{"left", v.left_label}, {"right", v.right_label}}},
         {"extruders", v.extruders},
         {"switching_status_text", v.switching_status_text},
+        {"switching_failed", v.switching_failed},
+        {"can_quit_switching", v.can_quit_switching},
+        {"can_retry_switching", v.can_retry_switching},
+        {"quit_label", v.quit_label},
+        {"retry_label", v.retry_label},
         {"switch_control", v.switch_control},
     };
 }
@@ -158,6 +181,9 @@ void to_json(nlohmann::json& j, const SingleRackExtruderView& v)
         {"current_nozzle_id", optional_int_json(v.current_nozzle_id)},
         {"has_filament", v.has_filament},
         {"filament_clr", v.filament_clr},
+        {"upper_filament_clr", v.upper_filament_clr},
+        {"lower_filament_clr", v.lower_filament_clr},
+        {"show_filament_path", v.show_filament_path},
         {"nozzle_diameter", v.nozzle_diameter},
         {"nozzle_flow_type", v.nozzle_flow_type},
         {"extruder_status", v.extruder_status},
@@ -172,6 +198,7 @@ void to_json(nlohmann::json& j, const ExtruderArea& v)
     const bool is_single_rack = v.type == values::extruder_area_type::single_rack;
     j = {
         {"type", v.type},
+        {"label", v.label},
         {"single_extruder", is_single ? nlohmann::json(v.single_extruder) : nlohmann::json("")},
         {"dual_extruder", is_dual ? nlohmann::json(v.dual_extruder) : nlohmann::json("")},
         {"single_rack_extruder", is_single_rack ? nlohmann::json(v.single_rack_extruder) : nlohmann::json("")},
@@ -180,7 +207,13 @@ void to_json(nlohmann::json& j, const ExtruderArea& v)
 
 void to_json(nlohmann::json& j, const HotendRackArea& v)
 {
-    j = {{"visible", v.visible}, {"lift", v.lift}, {"center", v.center}, {"lower", v.lower}};
+    j = {
+        {"visible", v.visible},
+        {"title", v.title},
+        {"lift", v.lift},
+        {"center", v.center},
+        {"lower", v.lower},
+    };
 }
 
 void to_json(nlohmann::json& j, const Display& v)

@@ -27,6 +27,20 @@ assertEqual(
       extruder: {
         type: 'single_rack',
         single_rack_extruder: {
+          rack_toolhead_visual_state: 'cutter',
+        },
+      },
+    },
+  } as unknown as Partial<ControlPanelState>).display.extruder.single_rack_extruder.rack_toolhead_visual_state,
+  'cutter',
+);
+
+assertEqual(
+  normalizeState({
+    display: {
+      extruder: {
+        type: 'single_rack',
+        single_rack_extruder: {
           rack_toolhead_visual_state: 'unknown',
         },
       },

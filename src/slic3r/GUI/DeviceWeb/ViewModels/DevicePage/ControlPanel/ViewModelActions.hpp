@@ -17,10 +17,13 @@ inline constexpr const char* set_extruder_temp = "set_extruder_temp";
 inline constexpr const char* set_bed_temp      = "set_bed_temp";
 inline constexpr const char* set_chamber_temp  = "set_chamber_temp";
 inline constexpr const char* set_speed         = "set_speed";
+inline constexpr const char* open_speed        = "open_speed";
 inline constexpr const char* toggle_lamp       = "toggle_lamp";
 inline constexpr const char* open_fan          = "open_fan";
 inline constexpr const char* axis_move         = "axis_move";
 inline constexpr const char* switch_extruder   = "switch_extruder";
+inline constexpr const char* quit_switching    = "quit_switching";
+inline constexpr const char* retry_switching   = "retry_switching";
 } // namespace ControlPanelActionNames
 
 namespace ControlPanelActionOps {
@@ -50,6 +53,26 @@ std::optional<nlohmann::json> TryHandle(DevicePageControlPanelVM& vm,
                                         const std::string& action,
                                         const nlohmann::json& payload,
                                         MachineObject* machine_obj);
+
+void UpdateActiveFanPopup(MachineObject* machine_obj);
+
+void SetHeldNozzleTemp(const std::string& dev_id, int extruder_id, int value);
+std::optional<int> ResolveHeldNozzleTemp(const std::string& dev_id, int extruder_id, std::optional<int> reported);
+
+void SetHeldBedTemp(const std::string& dev_id, int value);
+std::optional<int> ResolveHeldBedTemp(const std::string& dev_id, std::optional<int> reported);
+
+void SetHeldChamberTemp(const std::string& dev_id, int value);
+std::optional<int> ResolveHeldChamberTemp(const std::string& dev_id, std::optional<int> reported);
+
+void SetHeldSpeedLevel(const std::string& dev_id, int level);
+int ResolveHeldSpeedLevel(const std::string& dev_id, int reported);
+
+void SetHeldLampOn(const std::string& dev_id, bool on);
+bool ResolveHeldLampOn(const std::string& dev_id, bool reported);
+
+void SetSwitchingActionHold(const std::string& dev_id);
+bool IsSwitchingActionHeld(const std::string& dev_id);
 
 } // namespace ControlPanelActionHandler
 

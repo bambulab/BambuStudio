@@ -61,7 +61,10 @@ nlohmann::json DevicePageControlPanelVM::OnCommand(const std::string& submod,
 {
     try {
         if (submod == "state" && (action == "get" || action == "init")) {
-            return MakeResponse(GetModule(), submod, action, 0, "", BuildState());
+            nlohmann::json state = BuildState();
+            const bool dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+            state["theme"] = dark ? "dark" : "light";
+            return MakeResponse(GetModule(), submod, action, 0, "", state);
         }
         if (submod == "action") {
             return HandleAction(action, payload);
@@ -155,9 +158,16 @@ void DevicePageControlPanelVM::ReportState(const std::string& submod, const std:
 void DevicePageControlPanelVM::OnResponseSent(const nlohmann::json& response)
 {
     const auto payload_it = response.find("payload");
-    if (payload_it == response.end()) return;
+    if (payload_it == response.end() || !payload_it->is_object()) return;
+    if (!payload_it->contains("display")) return;
     try {
-        m_last_report_state = payload_it->dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
+        if (payload_it->contains("theme")) {
+            nlohmann::json state = *payload_it;
+            state.erase("theme");
+            m_last_report_state = state.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
+        } else {
+            m_last_report_state = payload_it->dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
+        }
     } catch (...) {
         m_last_report_state.clear();
     }

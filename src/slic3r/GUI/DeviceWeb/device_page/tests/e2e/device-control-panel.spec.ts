@@ -34,7 +34,7 @@ test.describe('device control panel page', () => {
       }).__deviceWebTrace ?? []
     );
     const requests = trace.filter((entry) => entry.direction === 'web_request' && entry.body.module === 'device_page_control_panel');
-    expect(requests.some((entry) => entry.body.action === 'set_speed' && entry.body.payload.level === 3)).toBeTruthy();
+    expect(requests.some((entry) => entry.body.action === 'open_speed')).toBeTruthy();
     expect(requests.some((entry) => entry.body.action === 'toggle_lamp' && entry.body.payload.on === false)).toBeTruthy();
     expect(requests.some((entry) => entry.body.action === 'axis_move' && entry.body.payload.op === 'xy_home')).toBeTruthy();
   });

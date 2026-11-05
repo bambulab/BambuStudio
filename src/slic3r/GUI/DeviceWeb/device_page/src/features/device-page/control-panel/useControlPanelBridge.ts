@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDeviceBridge } from '../../../hooks/Bridge';
+import useStore from '../../../store/AppStore';
 import { mockControlPanelState } from './mockData';
 import { emptyControlPanelState, normalizeState } from './normalize';
 import type { BridgeResponseBody, ControlPanelState, ExtruderId } from './types';
 
 const MODULE = 'device_page_control_panel';
+
+function isTheme(value: unknown): value is 'dark' | 'light' {
+  return value === 'dark' || value === 'light';
+}
 
 function hasNativeHost() {
   const w = window as Window & {
@@ -27,6 +32,7 @@ function isControlPanelBody(body: unknown): body is BridgeResponseBody<ControlPa
 
 export function useControlPanelBridge() {
   const request = useDeviceBridge();
+  const setTheme = useStore((s) => s.filament.setTheme);
   const [state, setState] = useState<ControlPanelState>(
     hasNativeHost() ? emptyControlPanelState : mockControlPanelState,
   );
@@ -34,12 +40,16 @@ export function useControlPanelBridge() {
   const stateKeyRef = useRef('');
 
   const applyState = useCallback((payload: Partial<ControlPanelState> | undefined) => {
+    const rawTheme = (payload as { theme?: unknown } | undefined)?.theme;
+    if (isTheme(rawTheme)) {
+      setTheme(rawTheme);
+    }
     const next = normalizeState(payload);
     const key = JSON.stringify(next);
     if (key === stateKeyRef.current) return;
     stateKeyRef.current = key;
     setState(next);
-  }, []);
+  }, [setTheme]);
 
   const refresh = useCallback(async () => {
     const resp = await request<ReturnType<typeof makeBody>, BridgeResponseBody<ControlPanelState>>(
@@ -122,10 +132,13 @@ export function useControlPanelBridge() {
     setChamberTemp: (value: number) => sendAction('set_chamber_temp', { value }),
     setBedTemp: (value: number) => sendAction('set_bed_temp', { value }),
     setSpeed: (level: 1 | 2 | 3 | 4) => sendAction('set_speed', { level }),
+    openSpeed: (anchor?: { x: number; y: number; height: number }) => sendAction('open_speed', anchor ? { ...anchor } : undefined),
     toggleLamp: (on: boolean) => sendAction('toggle_lamp', { on }),
-    openFan: () => sendAction('open_fan'),
+    openFan: (anchor?: { x: number; y: number; height: number }) => sendAction('open_fan', anchor ? { ...anchor } : undefined),
     axisMove: (op: string) => sendAction('axis_move', { op }),
     switchExtruder: (extruderId: number) => sendAction('switch_extruder', { extruder_id: extruderId }),
+    quitSwitching: () => sendAction('quit_switching'),
+    retrySwitching: () => sendAction('retry_switching'),
     openBridgeDebugDialog,
   };
 }

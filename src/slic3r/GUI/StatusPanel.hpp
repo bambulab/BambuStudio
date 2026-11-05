@@ -711,6 +711,14 @@ public:
     void show_filament_load_group(bool show = true);
     MediaPlayCtrl* get_media_play_ctrl() {return m_media_play_ctrl;};
 
+    wgtDeviceControlPanelWebPanel* get_control_panel_web_panel() const {
+#if BBL_ENABLE_CONTROL_PANEL_WEB
+        return m_control_panel_web_panel;
+#else
+        return nullptr;
+#endif
+    }
+
     void jump_to_Rack();
 
     bool can_show_camera_fullscreen() const;

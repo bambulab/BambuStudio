@@ -11,6 +11,10 @@
   --cp-disabled-text: #acacac;
   --cp-dial-outer: #eeeeee;
   --cp-dial-inner: #cecece;
+  --cp-badge-bg: #dbdbdb;
+  --cp-badge-text: #323a3d;
+  --cp-side-badge-bg: #262e30;
+  --cp-side-badge-text: #ffffff;
   width: 586px;
   box-sizing: border-box;
   display: flex;
@@ -25,17 +29,21 @@
 }
 
 [data-theme='dark'] .control-panel-page {
-  --cp-surface: #1c1f21;
-  --cp-bg: #2d3234;
+  --cp-surface: #2d2d31;
+  --cp-bg: #36363c;
   --cp-btn-light: #363b3e;
-  --cp-btn-dark: #4a4f51;
-  --cp-border: #3a3f41;
+  --cp-btn-dark: #4a4a51;
+  --cp-border: #3e3e45;
   --cp-text: #e5e5e5;
   --cp-subtle: #a6a9aa;
   --cp-muted: #8a8e90;
   --cp-disabled-text: #6e7375;
-  --cp-dial-outer: #2d3234;
-  --cp-dial-inner: #3e4447;
+  --cp-dial-outer: #36363c;
+  --cp-dial-inner: #4a4f51;
+  --cp-badge-bg: #4a4a51;
+  --cp-badge-text: #e5e5e4;
+  --cp-side-badge-bg: #efeff0;
+  --cp-side-badge-text: #1c1f21;
 }
 
 .control-panel-page.hidden {
@@ -73,7 +81,6 @@
   min-height: 44px;
   display: flex;
   align-items: center;
-  gap: 6px;
   padding: 0 4px;
   border-bottom: 1px solid var(--cp-border);
 }
@@ -81,8 +88,12 @@
 .cp-row-label {
   display: flex;
   align-items: center;
-  gap: 6px;
+  margin-right: 9px;
   flex-shrink: 0;
+}
+
+.cp-row-label > * + * {
+  margin-left: 6px;
 }
 
 .cp-row-label img {
@@ -96,8 +107,8 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #d9d9d9;
-  color: #323a3d;
+  background: var(--cp-badge-bg);
+  color: var(--cp-badge-text);
   font-size: 11px;
   font-weight: 600;
   line-height: 16px;
@@ -105,7 +116,22 @@
   flex-shrink: 0;
 }
 
+.cp-side-badge {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--cp-side-badge-bg);
+  color: var(--cp-side-badge-text);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
 .cp-temp-input {
+  position: relative;
   flex: 1;
   min-width: 0;
   display: flex;
@@ -116,9 +142,8 @@
   width: 100%;
   height: 28px;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: flex-start;
-  gap: 3px;
   border: 1.5px solid transparent;
   border-radius: 4px;
   padding: 0 2px;
@@ -130,46 +155,89 @@
   border-color: var(--cp-brand);
 }
 
+.cp-temp-input.warning .cp-temp-values,
+.cp-temp-input.warning:not(.disabled) .cp-temp-values:hover,
+.cp-temp-input.warning:not(.disabled) .cp-temp-values:focus-within {
+  border-color: #ff6f00;
+}
+
 .cp-temp-current {
-  min-width: 26px;
-  text-align: right;
+  text-align: left;
   font-weight: 700;
   font-size: 14px;
   line-height: 20px;
+  color: #323a3c;
+}
+
+[data-theme='dark'] .cp-temp-current {
   color: var(--cp-text);
 }
 
 .cp-temp-sep {
   color: var(--cp-subtle);
   font-size: 12px;
-  margin: 0 1px;
+  line-height: 20px;
+  margin-left: 10px;
+  margin-right: 2px;
 }
 
-.cp-temp-input input {
-  width: 30px;
+.cp-temp-input input,
+.cp-temp-target-readonly {
+  width: 32px;
   border: 0;
   outline: 0;
   padding: 0;
   background: transparent;
   color: var(--cp-text);
-  text-align: right;
+  text-align: left;
   font-family: inherit;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 20px;
 }
 
-.cp-temp-unit {
+.cp-temp-target-readonly {
+  display: inline-block;
   color: var(--cp-subtle);
-  font-size: 14px;
-  margin-left: 2px;
+  cursor: default;
+}
+
+.cp-temp-degree {
+  width: 15px;
+  height: 14px;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+  margin-left: 1px;
 }
 
 .cp-temp-input.disabled .cp-temp-current,
 .cp-temp-input.disabled .cp-temp-sep,
-.cp-temp-input.disabled .cp-temp-unit,
+.cp-temp-input.disabled .cp-temp-target-readonly,
 .cp-temp-input input:disabled {
   color: var(--cp-disabled-text);
+}
+
+.cp-temp-input.disabled .cp-temp-degree {
+  opacity: 0.55;
+}
+
+.cp-temp-warning-popup {
+  position: absolute;
+  left: 0;
+  top: 30px;
+  z-index: 20;
+  min-width: 190px;
+  max-width: 260px;
+  padding: 4px 8px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+  color: #ff6f00;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: normal;
+  pointer-events: none;
 }
 
 .cp-unclamped {
@@ -197,18 +265,23 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 8px;
-  padding: 0 8px;
+  padding: 0 4px;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
 }
 
 .cp-fan-button img {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
+  margin-right: 9px;
+  flex-shrink: 0;
+}
+
+.cp-fan-label-compact {
+  font-size: 12px;
 }
 
 .cp-fan-button:hover:not(:disabled) {
@@ -224,26 +297,30 @@
   display: flex;
   align-items: stretch;
   flex: 1 1 0;
-  min-height: 48px;
+  min-height: 51px;
 }
 
 .cp-speed-button,
 .cp-lamp-button {
   flex: 1 1 0;
-  min-height: 48px;
+  min-height: 51px;
   border: 0;
   background: transparent;
-  color: var(--cp-text);
+  color: #303a3c;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
   padding: 2px 0;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+}
+
+[data-theme='dark'] .cp-speed-button,
+[data-theme='dark'] .cp-lamp-button {
+  color: var(--cp-text);
 }
 
 .cp-speed-button {
@@ -252,13 +329,14 @@
 
 .cp-speed-button img,
 .cp-lamp-button img {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
+  margin-bottom: 3px;
 }
 
 .cp-speed-button strong {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -284,7 +362,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+}
+
+.cp-motion > * + * {
+  margin-top: 14px;
 }
 
 .cp-debug-btn {
@@ -302,6 +383,7 @@
   font-size: 11px;
   line-height: 20px;
   cursor: pointer;
+  margin-top: 0;
 }
 
 .cp-debug-btn:hover:not(:disabled) {
@@ -342,21 +424,15 @@
   cursor: default;
 }
 
-.cp-dial-sector.hovered {
-  stroke: var(--cp-brand);
-  stroke-width: 2px;
-}
-
 .cp-dial-sector:active:not(.disabled) {
   fill: #acacac;
 }
 
-.cp-dial-gaps rect {
-  fill: var(--cp-surface);
-}
-
-.cp-dial-center-gap {
-  fill: var(--cp-surface);
+.cp-dial-sector-hover-outline {
+  fill: none;
+  stroke: var(--cp-brand);
+  stroke-width: 2px;
+  stroke-linejoin: round;
 }
 
 .cp-dial-home-circle {
@@ -370,8 +446,13 @@
 }
 
 .cp-dial-axis-labels text {
-  fill: var(--cp-subtle);
+  fill: var(--cp-text);
   font-size: 13px;
+  font-weight: 600;
+}
+
+.cp-dial-axis-labels.disabled text {
+  fill: var(--cp-disabled-text);
   font-weight: 500;
 }
 
@@ -412,14 +493,20 @@
   width: 236px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+}
+
+.cp-z-stack > * + * {
+  margin-top: 6px;
 }
 
 .cp-z-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+}
+
+.cp-z-row > * + * {
+  margin-left: 2px;
 }
 
 .cp-step-btn {
@@ -431,7 +518,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
   font-family: inherit;
   font-size: 12px;
   color: var(--cp-subtle);
@@ -450,6 +536,10 @@
   border-color: var(--cp-brand);
 }
 
+.cp-step-btn:active:not(:disabled) {
+  background: #acacac;
+}
+
 .cp-step-btn:disabled {
   color: var(--cp-disabled-text);
   cursor: default;
@@ -460,32 +550,44 @@
   height: 15px;
   object-fit: contain;
   flex-shrink: 0;
+  margin-right: 4px;
 }
 
 .cp-z-label {
   padding: 0 4px;
   font-size: 12px;
-  color: var(--cp-muted);
+  color: var(--cp-subtle);
   white-space: nowrap;
+}
+
+.cp-z-label.disabled {
+  color: var(--cp-disabled-text);
 }
 
 .cp-rack-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
 }
 
 .cp-rack-title {
   font-size: 12px;
-  color: var(--cp-muted);
+  color: var(--cp-subtle);
   white-space: nowrap;
+  margin-right: 8px;
+}
+
+.cp-rack-title.disabled {
+  color: var(--cp-disabled-text);
 }
 
 .cp-rack-buttons {
   display: flex;
   align-items: center;
-  gap: 8px;
+}
+
+.cp-rack-buttons > * + * {
+  margin-left: 8px;
 }
 
 .cp-rack-btn {
@@ -493,10 +595,13 @@
   height: 28px;
   border: 1px solid transparent;
   border-radius: 0;
-  padding: 0;
+  padding: 0 2px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--cp-text);
   cursor: pointer;
 }
 
@@ -512,9 +617,17 @@
   border-color: var(--cp-brand);
 }
 
+.cp-rack-btn:active:not(:disabled) {
+  background: #acacac;
+}
+
 .cp-rack-btn:disabled {
-  opacity: 0.65;
+  color: var(--cp-disabled-text);
   cursor: default;
+}
+
+.cp-rack-btn:disabled img {
+  opacity: 0.65;
 }
 
 .cp-rack-btn img {
@@ -528,7 +641,17 @@
 .cp-extruder {
   width: 132px;
   flex-shrink: 0;
-  padding: 14px 8px 12px;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.cp-legacy-extruder {
+  width: 100%;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -537,24 +660,43 @@
 
 .cp-extruder-switch {
   display: flex;
-  border: 1px solid var(--cp-brand);
-  border-radius: 13px;
+  width: 116px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--cp-dial-outer);
   overflow: hidden;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.cp-extruder-switch.disabled {
+  background: var(--cp-dial-inner);
 }
 
 .cp-extruder-switch button {
-  min-width: 52px;
-  height: 24px;
+  flex: 1 1 0;
+  height: 26px;
   border: 0;
+  border-radius: 8px;
   background: transparent;
   color: var(--cp-text);
+  font-family: inherit;
   font-size: 12px;
   cursor: pointer;
+  padding: 0 4px;
+}
+
+.cp-extruder-switch button:disabled {
+  cursor: default;
 }
 
 .cp-extruder-switch button.active {
   background: var(--cp-brand);
+  color: #ffffff;
+}
+
+.cp-extruder-switch.disabled button.active {
+  background: var(--cp-dial-inner);
   color: #ffffff;
 }
 
@@ -565,7 +707,146 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+}
+
+.cp-extruder-body > * + * {
+  margin-top: 8px;
+}
+
+.cp-legacy-extruder-btn {
+  width: 40px;
+  height: 40px;
+  border: 2px solid transparent;
+  padding: 0;
+  background: var(--cp-dial-outer);
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.cp-legacy-extruder-btn:hover:not(:disabled) {
+  border-color: var(--cp-brand);
+}
+
+.cp-legacy-extruder-btn:active:not(:disabled) {
+  background: #acacac;
+}
+
+.cp-legacy-extruder-btn:disabled {
+  cursor: default;
+}
+
+.cp-legacy-extruder-btn img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  display: block;
+}
+
+.cp-single-extruder-book {
+  width: 45px;
+  height: 112px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cp-single-extruder-img {
+  height: 106px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.cp-dual-extruder-book {
+  width: 52px;
+  height: 112px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cp-dual-extruder-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.cp-dual-pipe {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.cp-dual-nozzle {
+  width: 24px;
+  height: 62px;
+  object-fit: contain;
+  display: block;
+}
+
+.cp-extruder-footer-label {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--cp-subtle);
+  text-align: center;
+}
+
+.cp-extruder-footer-label.disabled {
+  color: var(--cp-disabled-text);
+}
+
+.cp-switching-status {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cp-switching-text {
+  font-size: 12px;
+  color: var(--cp-text);
+  text-align: center;
+}
+
+.cp-switching-text.failed {
+  color: #f44336;
+}
+
+.cp-switching-actions {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+}
+
+.cp-switching-actions > * + * {
+  margin-left: 8px;
+}
+
+.cp-switching-btn {
+  min-width: 42px;
+  height: 26px;
+  padding: 0 8px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  background: var(--cp-dial-outer);
+  color: var(--cp-text);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.cp-switching-btn:hover {
+  border-color: var(--cp-brand);
+}
+
+.cp-switching-btn:active {
+  background: #acacac;
 }
 
 .cp-extruder-arrow {
@@ -597,11 +878,19 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
   color: var(--cp-text);
   font-size: 12px;
   line-height: 16px;
   white-space: nowrap;
+}
+
+.cp-nozzle-info > * + * {
+  margin-top: 2px;
+}
+
+.cp-nozzle-flow-standalone {
+  font-size: 14px;
+  line-height: 20px;
 }
 
 .cp-nozzle-index-circle {
@@ -616,11 +905,23 @@
   text-align: center;
 }
 
-.cp-extruder-icon {
-  width: 62px;
-  height: 62px;
-  object-fit: contain;
-  display: block;
+[data-theme='dark'] .cp-row-label img.cp-temp-icon:not(.active),
+[data-theme='dark'] .cp-temp-degree,
+[data-theme='dark'] .cp-fan-button img,
+[data-theme='dark'] .cp-speed-button img.cp-speed-icon-active,
+[data-theme='dark'] .cp-step-btn img.cp-step-icon-enabled,
+[data-theme='dark'] .cp-rack-btn img,
+[data-theme='dark'] .cp-legacy-extruder-btn img.cp-legacy-extruder-icon-enabled {
+  filter: brightness(0) invert(0.85);
+}
+
+[data-theme='dark'] .cp-extruder-arrow:not(:disabled) img {
+  filter: invert(0.82) hue-rotate(180deg);
+}
+
+[data-theme='dark'] .cp-extruder-arrow:disabled img {
+  filter: invert(0.75) hue-rotate(180deg);
+  opacity: 0.65;
 }
 
 .cp-toolhead-art {
@@ -641,17 +942,11 @@
 
 .cp-toolhead-overlay {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   width: 72px;
   height: 110px;
   pointer-events: none;
-}
-
-.cp-error {
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  bottom: 4px;
-  color: #d9534f;
-  font-size: 11px;
 }

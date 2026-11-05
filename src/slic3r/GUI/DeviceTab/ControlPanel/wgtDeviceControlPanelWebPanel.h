@@ -19,6 +19,7 @@ public:
     void ShowAndLoad();
     void HideAndSuspend();
     void UpdateByMachine(Slic3r::MachineObject* obj);
+    void on_sys_color_changed();
 
 private:
     DeviceWebHost* m_device_web{ nullptr };
