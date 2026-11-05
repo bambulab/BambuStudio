@@ -6739,6 +6739,20 @@ void GUI_App::check_privacy_version(int online_login)
 void GUI_App::report_consent(std::string expand)
 {
     if(expand.empty()) return;
+
+    if (m_agent && app_config->is_engineering_region()) {
+        const std::string host = m_agent->get_bambulab_host();
+        if (boost::algorithm::ends_with(host, "bambulab.com") || boost::algorithm::ends_with(host, "bambulab.cn")) {
+            BOOST_LOG_TRIVIAL(warning) << "skip report consent, test environment but network plugin connects to production " << KV(log_key::url, host);
+            return;
+        }
+    }
+
+    if (m_agent && m_agent->is_user_login()) {
+        m_agent->report_consent(expand);
+        return;
+    }
+
     update_http_extra_header();
     std::string query_params = "v1/user-service/user/consent";
     std::string url = get_http_url(app_config->get_country_code(), query_params);
@@ -6756,6 +6770,7 @@ void GUI_App::report_consent(std::string expand)
         )
         .on_error(
             [this](std::string body, std::string error, unsigned status) {
+                BOOST_LOG_TRIVIAL(warning) << "report consent failed " << KV(log_key::http_code, status) << " error=" << error;
             }
         )
         .perform();
@@ -9079,14 +9094,9 @@ void GUI_App::report_consent_common(bool agree, std::string scene, std::string f
     consent["consentBody"] = consentBody.dump();
     std::string post_body_str = consent.dump();
 
-    NetworkAgent* agent = GUI::wxGetApp().getAgent();
     BOOST_LOG_TRIVIAL(info) << "client_id:" << wxGetApp().app_config->get("slicer_uuid") << "\nreport_consent:" << post_body_str;
 
-    if (agent && agent->is_user_login())
-        agent->report_consent(post_body_str);
-    else {
-        wxGetApp().report_consent(post_body_str);
-    }
+    wxGetApp().report_consent(post_body_str);
 }
 
 // static method accepting a wxWindow object as first parameter

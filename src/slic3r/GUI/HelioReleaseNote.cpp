@@ -216,15 +216,9 @@ void HelioStatementDialog::report_consent_install()
     consent["consentBody"] = consentBody.dump();
     std::string post_body_str = consent.dump();
 
-    NetworkAgent* agent = GUI::wxGetApp().getAgent();
     BOOST_LOG_TRIVIAL(info) << "client_id:" << wxGetApp().app_config->get("slicer_uuid") << "\nreport_consent:" << post_body_str;
 
-    if (agent && agent->is_user_login()) {
-        agent->report_consent(post_body_str);
-    }
-    else {
-        wxGetApp().report_consent(post_body_str);
-    }
+    wxGetApp().report_consent(post_body_str);
 }
 
 void HelioStatementDialog::open_url(std::string type)
