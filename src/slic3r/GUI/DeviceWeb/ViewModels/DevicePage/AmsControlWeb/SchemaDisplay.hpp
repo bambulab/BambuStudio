@@ -228,8 +228,8 @@ namespace values {
     namespace link_state {
         inline constexpr const char* idle      = "idle";
         inline constexpr const char* loaded    = "loaded";
-        inline constexpr const char* loading   = "loading";
-        inline constexpr const char* unloading = "unloading";
+        inline constexpr const char* loading   = "loading";// TO BE SUPPORTED
+        inline constexpr const char* unloading = "unloading";// TO BE SUPPORTED
     } // namespace link_state
 
     // Slot to hub only. Kept apart from link_state on purpose: that one answers a

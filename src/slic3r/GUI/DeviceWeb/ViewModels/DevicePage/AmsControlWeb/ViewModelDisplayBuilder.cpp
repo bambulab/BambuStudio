@@ -317,12 +317,14 @@ SchemaFormat::SlotLink build_slot_link(const SchemaFormat::Tray& tray,
     if (is_ext && state.data.fila_switch.installed)
         link.extruder_ids.clear();
 
-    if (is_load_target(machine_obj, tray)) {
-        // Loading is a run in progress, so it does not wait for an arrival.
-        link.state = SchemaValues::link_state::loading;
-    } else if (AmsControlWebData::IsSlotRoutedToHub(machine_obj, tray.ams_id, tray.slot_id) &&
-               filament_left_ams(tray, state.data.fila_switch, link.switcher_port, machine_obj)) {
-        link.state = SchemaValues::link_state::loaded;
+    if (!is_ext) {
+        if (AmsControlWebData::IsSlotRoutedToHub(machine_obj, tray.ams_id, tray.slot_id) && filament_left_ams(tray, state.data.fila_switch, link.switcher_port, machine_obj)) {
+            link.state = SchemaValues::link_state::loaded;
+        }
+    } else {
+        if (AmsControlWebData::IsSlotLoaded(machine_obj, tray.ams_id, tray.slot_id)) {
+            link.state = SchemaValues::link_state::loaded;
+        }
     }
 
     if (link.state != SchemaValues::link_state::idle)
