@@ -7,10 +7,10 @@
     "additional_cooling_fan_speed": [
         "70"
     ],
-    "close_fan_the_first_x_layers": [
+    "close_additional_fan_first_x_layers": [
         "1"
     ],
-    "close_additional_fan_first_x_layers": [
+    "close_fan_the_first_x_layers": [
         "1"
     ],
     "cool_plate_temp": [
@@ -20,10 +20,10 @@
         "40"
     ],
     "eng_plate_temp": [
-        "0"
+        "55"
     ],
     "eng_plate_temp_initial_layer": [
-        "0"
+        "55"
     ],
     "fan_cooling_layer_time": [
         "100"
@@ -37,28 +37,6 @@
     "filament_density": [
         "1.13"
     ],
-    "filament_is_support": [
-        "1"
-    ],
-    "filament_max_volumetric_speed": [
-        "8"
-    ],
-    "filament_type": [
-        "BVOH"
-    ],
-    "filament_dev_chamber_drying_bed_temperature": [
-        "80"
-    ],
-    "filament_dev_ams_drying_time": [
-        "12",
-        "12",
-        "12",
-        "12",
-        "12",
-        "12",
-        "12",
-        "12"
-    ],
     "filament_dev_ams_drying_ams_limitations": [
         "1",
         "0",
@@ -71,9 +49,6 @@
         "65",
         "65"
     ],
-    "filament_dev_drying_cooling_temperature": [
-        "40"
-    ],
     "filament_dev_ams_drying_temperature": [
         "60",
         "60",
@@ -84,11 +59,36 @@
         "60",
         "45"
     ],
+    "filament_dev_ams_drying_time": [
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12"
+    ],
+    "filament_dev_chamber_drying_bed_temperature": [
+        "80"
+    ],
+    "filament_dev_drying_cooling_temperature": [
+        "40"
+    ],
     "filament_dev_drying_softening_temperature": [
         "50",
         "50",
         "50",
         "50"
+    ],
+    "filament_is_support": [
+        "1"
+    ],
+    "filament_max_volumetric_speed": [
+        "8"
+    ],
+    "filament_type": [
+        "BVOH"
     ],
     "hot_plate_temp": [
         "55"
@@ -108,14 +108,14 @@
     "reduce_fan_stop_start_freq": [
         "1"
     ],
+    "slow_down_min_speed": [
+        "20"
+    ],
     "supertack_plate_temp": [
         "0"
     ],
     "supertack_plate_temp_initial_layer": [
         "0"
-    ],
-    "slow_down_min_speed": [
-        "20"
     ],
     "temperature_vitrification": [
         "40"
