@@ -1791,6 +1791,12 @@ bool SelectMachineDialog::build_nozzles_info(std::string& nozzles_info)
     if (opt_nozzle_diameters->size() != 2) {
         return false;
     }
+    // In multi-diameter mode the printer preset is the canonical variant, so its nozzle_diameter is not what the
+    // extruders carry. The project's full config is: PresetBundle::full_fff_config() gives each extruder the smallest
+    // nozzle installed on it, which slicing reads as well. It needs no slice result, so every print source has it.
+    std::vector<double> extruder_diameters = opt_nozzle_diameters->values;
+    if (!queue_config && multi_nozzle_diameter_mode_enabled(preset_bundle->project_config))
+        extruder_diameters = preset_bundle->full_config().option<ConfigOptionFloatsNullable>("nozzle_diameter")->values;
     for (size_t i = 0; i < opt_nozzle_diameters->size(); i++) {
         if (i == (size_t)ConfigNozzleIdx::NOZZLE_LEFT) {
             nozzle_item["id"] = CloudTaskNozzleId::NOZZLE_LEFT;
@@ -1808,8 +1814,8 @@ bool SelectMachineDialog::build_nozzles_info(std::string& nozzles_info)
         if (opt_nozzle_volume_type && i < opt_nozzle_volume_type->size()) {
             nozzle_item["flowSize"] = get_nozzle_volume_type_cloud_string((NozzleVolumeType)opt_nozzle_volume_type->get_at(i));
         }
-        if (i >= 0 && i < opt_nozzle_diameters->size()) {
-            nozzle_item["diameter"] = opt_nozzle_diameters->get_at(i);
+        if (i >= 0 && i < extruder_diameters.size()) {
+            nozzle_item["diameter"] = extruder_diameters[i];
         }
         nozzle_info_json.push_back(nozzle_item);
     }
@@ -6599,7 +6605,8 @@ static bool s_get_queue_slicing_extruder_nozzles(const QueuePrintContext& contex
 // for example:
 // {0, {0.4, S_FLOW}}, {1, {0.8, H_FLOW}}
 // {0, {0.4, S_FLOW}}, {0, {0.4, H_FLOW}} // hybrid
-static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles(MachineObject* obj)
+// Nothing when the nozzles the plate was sliced with cannot be told: a multi-diameter plate without a nozzle group result.
+static std::optional<std::unordered_multimap<int, NozzleDef>> s_get_slicing_extuder_nozzles(MachineObject* obj)
 {
     std::unordered_multimap<int, NozzleDef> used_extuder_nozzles;
 
@@ -6629,19 +6636,34 @@ static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles(Mac
                              (is_hotend_rack ||
                               (mapping->IsSupportDynamicNozzleMap() && nozzle_volume_type_opt->values.size() == 2));
 
+    // Every nozzle a slice used, keyed by the physical extruder that carries it.
+    auto collect_used_nozzles = [&used_extuder_nozzles, preset_bundle](const std::vector<MultiNozzleUtils::NozzleInfo> &used_nozzles) {
+        for (const auto &used_nozzle : used_nozzles) {
+            NozzleDef nozzle_data;
+            nozzle_data.nozzle_diameter  = s_get_diameter(used_nozzle.diameter);
+            nozzle_data.nozzle_flow_type = DevNozzle::ToNozzleFlowType(used_nozzle.volume_type);
+            const int physical_extruder  = s_get_physical_extruder(preset_bundle->full_config(), used_nozzle.extruder_id);
+            if (physical_extruder != INVALID_EXTRUDER_ID)
+                used_extuder_nozzles.insert({ physical_extruder, nozzle_data });
+        }
+    };
+
+    // In multi-diameter mode the printer preset is the canonical variant and its nozzle_diameter says nothing about the
+    // extruders, and one extruder with a rack can print several diameters. The nozzles the plate was sliced with are the
+    // ones the printer has to carry. Without them the result says so, since an empty set would pass the check.
+    if (!use_mapping && multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
+        const GCodeProcessorResult *slice_result = cur_plate->get_slice_result();
+        if (slice_result == nullptr || slice_result->nozzle_group_result == nullptr) {
+            BOOST_LOG_TRIVIAL(error) << "multi-diameter mode without a sliced nozzle group result";
+            return std::nullopt;
+        }
+        collect_used_nozzles(slice_result->nozzle_group_result->get_used_nozzles_in_extruder());
+        return used_extuder_nozzles;
+    }
+
     try {
         if (use_mapping) {
-            const auto& used_nozzles = mapping->GetUsedNozzlesInExtruder();
-            for (const auto& used_nozzle : used_nozzles) {
-                NozzleDef nozzle_data;
-                nozzle_data.nozzle_diameter = s_get_diameter(used_nozzle.diameter);
-                nozzle_data.nozzle_flow_type = DevNozzle::ToNozzleFlowType(used_nozzle.volume_type);
-                const int physical_extruder = s_get_physical_extruder(
-                    preset_bundle->full_config(), used_nozzle.extruder_id);
-                if (physical_extruder != INVALID_EXTRUDER_ID)
-                    used_extuder_nozzles.insert({ physical_extruder, nozzle_data });
-            };
-
+            collect_used_nozzles(mapping->GetUsedNozzlesInExtruder());
             return used_extuder_nozzles;
         }
 
@@ -6711,7 +6733,12 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
                 return false;
             }
         } else {
-            slicing_ext_nozzles = s_get_slicing_extuder_nozzles(obj_);
+            const auto plate_ext_nozzles = s_get_slicing_extuder_nozzles(obj_);
+            if (!plate_ext_nozzles) {
+                show_status(PrintDialogStatus::PrintStatusNozzleDataInvalid);
+                return false;
+            }
+            slicing_ext_nozzles = *plate_ext_nozzles;
         }
         for (auto slicing_ext_nozzle : slicing_ext_nozzles)  {
             int slicing_ext_idx = slicing_ext_nozzle.first;
@@ -7960,6 +7987,18 @@ bool SelectMachineDialog::CheckWarningSmartNozzleBlobAuto(MachineObject* obj_)
     const auto* opt_nozzle_diameters =
         preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
     if (!opt_nozzle_diameters || opt_nozzle_diameters->size() == 0) return true;
+
+    // In multi-diameter mode the printer preset is the canonical variant, and the installed nozzles can include
+    // diameters the plate does not use. Each filament is checked at the diameter of the nozzle it was sliced on,
+    // which fill_slicing_nozzle_info() stored in FilamentInfo::nozzle_diameter.
+    if (multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
+        for (const auto& fila : m_filaments) {
+            if (fila.filament_id.empty()) continue;
+            if (Slic3r::is_stringing_prone_filament(fila.filament_id, static_cast<float>(fila.nozzle_diameter)))
+                return false;
+        }
+        return true;
+    }
 
     for (const auto& fila : m_filaments) {
         if (fila.filament_id.empty()) continue;
@@ -9904,9 +9943,12 @@ void NozzleStatePanel::UpdateInfoBy(Plater* plater, MachineObject* obj)
             }
         } else {
             // Keyed by physical extruder id like GetExtruderNozzleInfo(), CollectNozzleInfo() uses logic ids
+            // Unknown slicing nozzles leave the panel hidden.
             ExtruderNozzleInfos slicing_nozzle_infos;
-            for (const auto& slicing_ext_nozzle : s_get_slicing_extuder_nozzles(obj)) {
-                slicing_nozzle_infos[slicing_ext_nozzle.first][slicing_ext_nozzle.second]++;
+            if (const auto slicing_ext_nozzles = s_get_slicing_extuder_nozzles(obj)) {
+                for (const auto& slicing_ext_nozzle : *slicing_ext_nozzles) {
+                    slicing_nozzle_infos[slicing_ext_nozzle.first][slicing_ext_nozzle.second]++;
+                }
             }
 
             if (!slicing_nozzle_infos.empty()) {

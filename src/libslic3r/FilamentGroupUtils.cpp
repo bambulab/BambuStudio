@@ -337,6 +337,14 @@ namespace FilamentGroupUtils
     {
         std::vector<int> res = old_values;
         for (size_t i = 0; i < used_filaments.size(); ++i) {
+            // A grouping result the solver could not fill carries empty or short maps, which would index
+            // past the end of either vector. Say so here, with the sizes that tell the two apart, instead
+            // of reading whatever is at that address.
+            if (used_filaments[i] >= res.size() || used_filaments[i] >= new_values.size())
+                throw Slic3r::RuntimeError("grouping result does not cover filament " + std::to_string(used_filaments[i]) +
+                                           " (old=" + std::to_string(old_values.size()) +
+                                           " new=" + std::to_string(new_values.size()) +
+                                           " used=" + std::to_string(used_filaments.size()) + ")");
             res[used_filaments[i]] = new_values[used_filaments[i]];
         }
         return res;

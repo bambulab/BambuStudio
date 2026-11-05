@@ -52,6 +52,29 @@ wxString format_nozzle_spec(const NozzleConfig &cfg)
     return cfg.diameter + "mm " + flow_label;
 }
 
+bool project_filaments_use_nozzle(const NozzleConfig &nozzle)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle == nullptr || !multi_nozzle_diameter_mode_enabled(preset_bundle->project_config))
+        return false;
+    const auto *diameters = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
+    const auto *volumes   = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
+    if (diameters == nullptr)
+        return false;
+    const std::string wanted = into_u8(nozzle.diameter);
+    for (size_t i = 0; i < diameters->values.size(); ++i) {
+        if (preset_bundle->is_mixed_filament(i))
+            continue;
+        if (diameters->values[i] != wanted)
+            continue;
+        const NozzleVolumeType volume = (volumes != nullptr && i < volumes->values.size())
+            ? static_cast<NozzleVolumeType>(volumes->values[i]) : nvtStandard;
+        if (volume == nozzle.volume)
+            return true;
+    }
+    return false;
+}
+
 NozzleLayout nozzle_layout_of(const ConfigBase &printer_config)
 {
     const auto *variants   = printer_config.option<ConfigOptionStrings>("extruder_variant_list");

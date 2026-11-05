@@ -3340,9 +3340,25 @@ int CLI::run(int argc, char **argv)
     // Handle multi nozzle diameters.
     bool is_multi_nozzle_diameter_mode = false;
     {
-        const auto *file_multi_mode = m_print_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode");
-        is_multi_nozzle_diameter_mode = file_multi_mode != nullptr && file_multi_mode->value;
-        if (file_multi_mode != nullptr && !file_multi_mode->value) {
+        auto *multi_mode = m_print_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode");
+        // m_extra_config is applied over m_print_config further down, so a --multi_nozzle_diameter_mode passed on the
+        // command line is the value slicing ends up with. Decide on that value here already.
+        auto *cli_multi_mode = m_extra_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode");
+        if (cli_multi_mode != nullptr) {
+            multi_mode        = m_print_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode", true);
+            multi_mode->value = cli_multi_mode->value;
+        }
+        // The flag outlives a printer switch. A printer model without a multi-diameter rule set slices the project in
+        // single-diameter mode, as the GUI does when it opens the file on that printer.
+        if (multi_mode != nullptr && multi_mode->value && !supports_multi_nozzle_diameter_mode(machine_config)) {
+            BOOST_LOG_TRIVIAL(warning) << "multi_nozzle_diameter_mode=1, but machine preset " << machine_preset_name
+                                       << " does not offer multi-diameter mode, slicing in single-diameter mode";
+            multi_mode->value = false;
+            if (cli_multi_mode != nullptr)
+                cli_multi_mode->value = false;
+        }
+        is_multi_nozzle_diameter_mode = multi_mode != nullptr && multi_mode->value;
+        if (multi_mode != nullptr && !multi_mode->value) {
             BOOST_LOG_TRIVIAL(info) << "multi_nozzle_diameter_mode=0, skip filament_diameter_map preset and diameter checks";
             if (machine_nozzle_diameter.empty()) {
                 BOOST_LOG_TRIVIAL(warning) << boost::format(

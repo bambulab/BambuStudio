@@ -1522,10 +1522,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 old_opt->set(new_opt);
                 m_config.filament_map = *new_opt;
             }
-            // With multi-diameter mode on a single-extruder multi-nozzle machine the flow is the user's
-            // per-filament selection rather than a grouping result, so a change must regroup.
+            // With multi-diameter mode on the flow is the user's per-filament selection rather than a
+            // grouping result, so a change must regroup.
             if (print_diff_set.find("filament_volume_map") != print_diff_set.end() &&
-                !(is_single_ext_multi_nozzle(new_full_config) && multi_nozzle_diameter_mode_enabled(new_full_config))) {
+                !multi_nozzle_diameter_mode_enabled(new_full_config)) {
                 print_diff_set.erase("filament_volume_map");
                 //full_config_diff.erase("filament_volume_map");
                 ConfigOptionInts* old_opt = m_full_print_config.option<ConfigOptionInts>("filament_volume_map", true);
@@ -1694,10 +1694,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             default_support_nozzle :
             nozzle_diameter_for_filament(m_config, support_filament);
         const MultiNozzleSupportCombo combo = multi_nozzle_support_combo(m_full_print_config, config, model_object);
-        config.support_top_z_distance.value = combo.zero_top ? 0. : multi_nozzle_support_z_distance(
-            nozzle_diameter, config.support_top_z_distance.value);
-        config.support_bottom_z_distance.value = combo.zero_bottom ? 0. : multi_nozzle_support_z_distance(
-            nozzle_diameter, config.support_bottom_z_distance.value);
+        config.support_top_z_distance.value = combo.zero_top ? 0. : multi_nozzle_support_top_z_distance(
+            m_full_print_config, nozzle_diameter, config.support_top_z_distance.value);
+        config.support_bottom_z_distance.value = combo.zero_bottom ? 0. : multi_nozzle_support_bottom_z_distance(
+            m_full_print_config, nozzle_diameter, config.support_bottom_z_distance.value);
     };
     // The support combination also depends on the filament properties, the volume filaments and the printer model,
     // so the tuning is redone on every apply in multi-diameter mode. An unchanged result diffs empty and

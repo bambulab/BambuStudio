@@ -141,6 +141,10 @@ public:
               std::function<void()>           on_changed,
               std::function<void()>           on_error_click);
 
+    // Consulted after a combo pick with the nozzle the row held before it. Returning false puts the
+    // row back on that nozzle.
+    void SetConfirmChange(std::function<bool(const NozzleConfig &)> cb) { m_confirm_change = std::move(cb); }
+
     wxSizer     *GetSizer() const { return m_sizer; }
     NozzleConfig GetConfig() const;
     wxString     GetDiameter() const; // parsed value ("" when Empty)
@@ -165,13 +169,17 @@ private:
     void         build_filament_views(wxWindow *parent);
     FilamentView build_filament_view(wxWindow *parent, const FilamentDisplay &fd);
     bool         apply_error_state(); // renders Error/Unknown state; true if that state applies
+    void         confirm_pick();      // asks m_confirm_change about the pick just made, reverting it on a no
+    void         show_config(const NozzleConfig &cfg);
 
     wxWindow                *m_parent{nullptr};
     int                      m_extruder_index{0};
     std::vector<std::string> m_diameters;
     NozzleConfig             m_seed;
+    NozzleConfig             m_confirmed; // the nozzle the row held after the last accepted pick
     std::function<void()>    m_on_changed;
     std::function<void()>    m_on_error_click;
+    std::function<bool(const NozzleConfig &)> m_confirm_change;
 
     wxBoxSizer *m_sizer{nullptr};
 
@@ -213,6 +221,7 @@ NozzleRow::NozzleRow(wxWindow                       *parent,
     build_combos(parent);
     build_status_label(parent);
     build_filament_views(parent);
+    m_confirmed = GetConfig();
 }
 
 void NozzleRow::build_combos(wxWindow *parent)
@@ -231,6 +240,7 @@ void NozzleRow::build_combos(wxWindow *parent)
         const int sel      = m_diameter_combo->GetSelection();
         wxString  diameter = (sel == m_diameter_combo->GetCount() - 1) ? _L("Empty") : parse_diameter_value(m_diameter_combo->GetValue());
         rebuild_flow_combo(diameter);
+        confirm_pick();
         if (m_on_changed) m_on_changed();
         e.Skip();
     });
@@ -240,9 +250,40 @@ void NozzleRow::build_combos(wxWindow *parent)
         if (sel != wxNOT_FOUND) {
             if (void *data = m_flow_combo->GetClientData(sel)) rebuild_diameter_combo(static_cast<NozzleVolumeType>(decode_volume(data)));
         }
+        confirm_pick();
         if (m_on_changed) m_on_changed();
         e.Skip();
     });
+}
+
+void NozzleRow::confirm_pick()
+{
+    const NozzleConfig picked = GetConfig();
+    if (picked.diameter == m_confirmed.diameter && (picked.is_empty() || picked.volume == m_confirmed.volume))
+        return;
+    if (m_confirm_change && !m_confirm_change(m_confirmed)) {
+        show_config(m_confirmed);
+        return;
+    }
+    m_confirmed = picked;
+}
+
+// Puts both combos on cfg, rebuilding each list the way a pick of that nozzle would.
+void NozzleRow::show_config(const NozzleConfig &cfg)
+{
+    rebuild_diameter_combo(cfg.volume);
+    const wxString wanted = cfg.is_empty() ? _L("Empty") : cfg.diameter + " mm";
+    for (unsigned int i = 0; i < m_diameter_combo->GetCount(); ++i)
+        if (m_diameter_combo->GetString(i) == wanted) {
+            m_diameter_combo->SetSelection(int(i));
+            break;
+        }
+    rebuild_flow_combo(cfg.is_empty() ? _L("Empty") : cfg.diameter);
+    for (unsigned int i = 0; i < m_flow_combo->GetCount(); ++i)
+        if (void *data = m_flow_combo->GetClientData(i); data && decode_volume(data) == static_cast<int>(cfg.volume)) {
+            m_flow_combo->SetSelection(int(i));
+            break;
+        }
 }
 
 void NozzleRow::build_status_label(wxWindow *parent)
@@ -557,12 +598,13 @@ private:
 class NozzleColumn : public wxPanel
 {
 public:
-    NozzleColumn(wxWindow                        *parent,
-                 int                              extruder_index,
-                 const std::vector<NozzleConfig> &seeds,
-                 std::function<void()>            on_changed,
-                 std::function<void()>            on_error_click,
-                 std::function<void()>            on_ams_count_changed);
+    NozzleColumn(wxWindow                                 *parent,
+                 int                                       extruder_index,
+                 const std::vector<NozzleConfig>          &seeds,
+                 std::function<void()>                     on_changed,
+                 std::function<void()>                     on_error_click,
+                 std::function<void()>                     on_ams_count_changed,
+                 std::function<bool(const NozzleConfig &)> confirm_change);
 
     std::vector<NozzleConfig> GetConfigs() const;
     void                      RefreshState();
@@ -576,12 +618,13 @@ private:
     NozzleAmsRow                           *m_ams_row{nullptr}; // external-AMS attach row, below the nozzle rows
 };
 
-NozzleColumn::NozzleColumn(wxWindow                        *parent,
-                           int                              extruder_index,
-                           const std::vector<NozzleConfig> &seeds,
-                           std::function<void()>            on_changed,
-                           std::function<void()>            on_error_click,
-                           std::function<void()>            on_ams_count_changed)
+NozzleColumn::NozzleColumn(wxWindow                                 *parent,
+                           int                                       extruder_index,
+                           const std::vector<NozzleConfig>          &seeds,
+                           std::function<void()>                     on_changed,
+                           std::function<void()>                     on_error_click,
+                           std::function<void()>                     on_ams_count_changed,
+                           std::function<bool(const NozzleConfig &)> confirm_change)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), m_extruder_index(extruder_index), m_on_ams_count_changed(std::move(on_ams_count_changed))
 {
     SetBackgroundColour(ThemeColor::Grey200);
@@ -601,6 +644,7 @@ NozzleColumn::NozzleColumn(wxWindow                        *parent,
 
     for (int i = 0; i < nozzle_count; ++i) {
         auto row = std::make_unique<NozzleRow>(this, i, nozzle_count, extruder_index, seeds[i], diameters, on_changed, on_error_click);
+        row->SetConfirmChange(confirm_change);
         sizer->Add(row->GetSizer(), 0, wxALIGN_LEFT | wxBOTTOM, FromDIP(8));
         m_rows.push_back(std::move(row));
     }
@@ -696,12 +740,13 @@ void NozzleSettingsListDialog::build_columns(wxBoxSizer *main_sizer, const std::
         }
     };
     auto on_ams_changed = [this]() { on_ams_count_changed(); };
+    auto confirm_change = [this](const NozzleConfig &from) { return confirm_nozzle_change(from); };
 
-    m_left_column = new NozzleColumn(m_columns_container, 0, left_seeds, on_changed, on_error_click, on_ams_changed);
+    m_left_column = new NozzleColumn(m_columns_container, 0, left_seeds, on_changed, on_error_click, on_ams_changed, confirm_change);
     container_sizer->Add(m_left_column, 1, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, FromDIP(20));
     m_separator = new CustomSeparator(m_columns_container, false);
     container_sizer->Add(m_separator, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(20));
-    m_right_column = new NozzleColumn(m_columns_container, 1, right_seeds, on_changed, on_error_click, on_ams_changed);
+    m_right_column = new NozzleColumn(m_columns_container, 1, right_seeds, on_changed, on_error_click, on_ams_changed, confirm_change);
     container_sizer->Add(m_right_column, 1, wxEXPAND | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(20));
 
     m_columns_container->SetSizer(container_sizer);
@@ -833,6 +878,35 @@ void NozzleSettingsListDialog::align_separator_icon()
     wxPoint sep_pos = m_separator->GetScreenPosition();
     int     offset  = (col_pos.y + FromDIP(12)) - sep_pos.y;
     m_separator->SetIconYOffset(offset);
+}
+
+// Same question as NozzleSettingsCardDialog::confirm_nozzle_change(), over the nozzles of both extruders.
+// The row already shows the pick, so `from` is counted once among the nozzles still left.
+bool NozzleSettingsListDialog::confirm_nozzle_change(const NozzleConfig &from)
+{
+    if (from.is_empty())
+        return true;
+
+    int same_kind = 0;
+    for (NozzleColumn *column : {m_left_column, m_right_column}) {
+        if (column == nullptr) continue;
+        for (const NozzleConfig &cfg : column->GetConfigs())
+            if (cfg.diameter == from.diameter && cfg.volume == from.volume)
+                ++same_kind;
+    }
+    if (same_kind > 0)
+        return true;
+
+    if (!project_filaments_use_nozzle(from))
+        return true;
+
+    const wxString nozzle_name = format_nozzle_spec(from);
+    MessageDialog confirm(this,
+        wxString::Format(_L("The %s nozzle is in use by project filaments. Changing it will move them to 0.4 Standard. Change it anyway?"), nozzle_name),
+        _L("Nozzle Settings"), wxYES | wxNO);
+    confirm.SetButtonLabel(wxID_YES, _L("Confirm"));
+    confirm.SetButtonLabel(wxID_NO, _L("Cancel"));
+    return confirm.ShowModal() == wxID_YES;
 }
 
 // A column's AMS preview count changed — grow the dialog to fit the new previews.

@@ -2051,16 +2051,16 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config, size_t confi
     if (nozzle_diameter <= 0.f)
         nozzle_diameter = float(config.nozzle_diameter.get_at(idx));
     m_filpar[idx].nozzle_diameter = nozzle_diameter;
-    // Multi-diameter mode uses the hardcoded per-diameter defaults. The process values stay
-    // editable only while that mode is off.
+    // Multi-diameter mode uses the per-diameter values of the printer model's rule set. The process
+    // values stay editable only while that mode is off.
     const float line_width = m_per_nozzle_tower_params ?
-        float(multi_nozzle_prime_tower_line_width(nozzle_diameter, config.prime_tower_line_width.value)) :
+        float(multi_nozzle_prime_tower_line_width(config, nozzle_diameter, config.prime_tower_line_width.value)) :
         float(config.prime_tower_line_width.value);
     const float ramming_line_width = m_per_nozzle_tower_params ?
-        float(multi_nozzle_prime_tower_ramming_line_width(nozzle_diameter, config.prime_tower_ramming_line_width.value)) :
+        float(multi_nozzle_prime_tower_ramming_line_width(config, nozzle_diameter, config.prime_tower_ramming_line_width.value)) :
         float(config.prime_tower_ramming_line_width.value);
     const float feedrate_factor = m_per_nozzle_tower_params ?
-        float(multi_nozzle_prime_tower_feedrate_factor(nozzle_diameter, config.prime_tower_feedrate_factor.value)) :
+        float(multi_nozzle_prime_tower_feedrate_factor(config, nozzle_diameter, config.prime_tower_feedrate_factor.value)) :
         float(config.prime_tower_feedrate_factor.value);
     m_filpar[idx].perimeter_width = line_width > 0 ? line_width : nozzle_diameter * Width_To_Nozzle_Ratio;
     m_filpar[idx].nozzle_change_perimeter_width = ramming_line_width > 0 ?

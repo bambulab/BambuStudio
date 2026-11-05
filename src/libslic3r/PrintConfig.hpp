@@ -623,6 +623,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(TopOneWallType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ReduceInfillRetractionMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FilamentMetalStickiness)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(CounterboreHoleBridgingOption)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ExtruderType)
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
 // Defines each and every confiuration option of Slic3r, including the properties of the GUI dialogs.
@@ -2275,33 +2276,38 @@ inline constexpr const char *printer_nozzle_diameter_mode_multi() { return "mult
 // The printer_nozzle_diameter_mode value of a printer config, empty when missing.
 std::string printer_nozzle_diameter_mode_tag(const ConfigBase &config);
 
-// MVP multi-diameter tuning. These values intentionally live in code instead of presets: all nozzle
-// diameters share one machine/process preset while slicing resolves the effective value per filament.
-// Unknown diameters keep the preset value so non-standard/custom nozzles are not silently mistuned.
-double multi_nozzle_retraction_length(double nozzle_diameter, double preset_value);
-double multi_nozzle_ironing_inset(double nozzle_diameter, double preset_value);
-int    multi_nozzle_wall_loops(double nozzle_diameter, int preset_value);
-int    multi_nozzle_top_shell_layers(double nozzle_diameter, int preset_value);
-double multi_nozzle_top_shell_thickness(double nozzle_diameter, double preset_value);
-int    multi_nozzle_bottom_shell_layers(double nozzle_diameter, int preset_value);
-double multi_nozzle_bottom_shell_thickness(double nozzle_diameter, double preset_value);
-int    multi_nozzle_top_color_penetration_layers(double nozzle_diameter, int preset_value);
-int    multi_nozzle_bottom_color_penetration_layers(double nozzle_diameter, int preset_value);
-double multi_nozzle_support_z_distance(double nozzle_diameter, double preset_value);
+// Whether the printer model has a rule set in resources/info/multi_nozzle_rules.json. The table is the list
+// of models that offer multi-diameter mode: a model without one never enters it.
+bool supports_multi_nozzle_diameter_mode(const ConfigBase &config);
+
+// Multi-diameter tuning. All nozzle diameters share one machine/process preset, so these values do not come
+// from the presets: they come from the printer model's rule set in resources/info/multi_nozzle_rules.json, and
+// slicing resolves the effective value per filament. A diameter the rule set has no entry for keeps the preset
+// value, so non-standard/custom nozzles are not silently mistuned. Each lookup throws when the model has no
+// rule set: only a model that offers multi-diameter mode reaches these.
+double multi_nozzle_retraction_length(const ConfigBase &config, double nozzle_diameter, ExtruderType extruder_type, double preset_value);
+double multi_nozzle_ironing_inset(const ConfigBase &config, double nozzle_diameter, double preset_value);
+int    multi_nozzle_wall_loops(const ConfigBase &config, double nozzle_diameter, int preset_value);
+int    multi_nozzle_top_shell_layers(const ConfigBase &config, double nozzle_diameter, int preset_value);
+double multi_nozzle_top_shell_thickness(const ConfigBase &config, double nozzle_diameter, double preset_value);
+int    multi_nozzle_bottom_shell_layers(const ConfigBase &config, double nozzle_diameter, int preset_value);
+double multi_nozzle_bottom_shell_thickness(const ConfigBase &config, double nozzle_diameter, double preset_value);
+int    multi_nozzle_top_color_penetration_layers(const ConfigBase &config, double nozzle_diameter, int preset_value);
+int    multi_nozzle_bottom_color_penetration_layers(const ConfigBase &config, double nozzle_diameter, int preset_value);
+double multi_nozzle_support_top_z_distance(const ConfigBase &config, double nozzle_diameter, double preset_value);
+double multi_nozzle_support_bottom_z_distance(const ConfigBase &config, double nozzle_diameter, double preset_value);
 
 // Options shown as "Auto" while multi_nozzle_diameter_mode is on: their preset value is not editable there
 // and slicing resolves them per nozzle diameter. Accepts both "key" and "key#idx".
 bool is_multi_nozzle_auto_option(const std::string &opt_key);
 
-// Multi-diameter prime tower defaults. These live in code, like the other multi_nozzle_* tables:
-// the process preset is not editable per nozzle, and slicing applies the value for the filament's
-// nozzle. Unknown diameters keep preset_value.
-// 0.2 mm nozzle: line width 0.4, feedrate factor 1, ramming line width 0.
-// 0.4 / 0.6 / 0.8 mm nozzles: line width 0.8, feedrate factor 1, ramming line width 0.
-// Ramming line width 0 keeps the built-in diameter table.
-double multi_nozzle_prime_tower_line_width(double nozzle_diameter, double preset_value);
-double multi_nozzle_prime_tower_ramming_line_width(double nozzle_diameter, double preset_value);
-double multi_nozzle_prime_tower_feedrate_factor(double nozzle_diameter, double preset_value);
+// Multi-diameter prime tower values, from the same rule set as the other multi_nozzle_* lookups: the
+// process preset is not editable per nozzle, and slicing applies the value for the filament's nozzle.
+// Unknown diameters keep preset_value. A line width of 0 keeps the width derived from the diameter, and a
+// ramming line width of 0 keeps the built-in diameter table.
+double multi_nozzle_prime_tower_line_width(const ConfigBase &config, double nozzle_diameter, double preset_value);
+double multi_nozzle_prime_tower_ramming_line_width(const ConfigBase &config, double nozzle_diameter, double preset_value);
+double multi_nozzle_prime_tower_feedrate_factor(const ConfigBase &config, double nozzle_diameter, double preset_value);
 
 // Whether the printer offers more than one nozzle diameter to pick from. This is the machine capability,
 // not what a print uses: with a single diameter available nothing downstream may behave as multi-diameter.

@@ -1339,6 +1339,26 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
         for (size_t i = 0; i < sorted_calib_infos.size(); ++i)
             diameter_map[i] = format_diameter_to_str(sorted_calib_infos[i].nozzle_diameter);
     }
+    // The printer preset carries one diameter for every extruder, so on a machine whose extruders hold
+    // nozzles of different diameters it describes neither of them. Give each extruder the diameter of the
+    // nozzle it calibrates with, the way PresetBundle::full_config() does for the project: the nozzle list
+    // the grouping backend builds, and with it the nozzles reported in the 3mf, come from this option, and
+    // the printer refuses a file whose nozzles disagree with the ones it carries. An extruder mixing
+    // diameters keeps the smallest, which is the conservative baseline for line width and layer height.
+    if (auto *extruder_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")) {
+        std::set<int> calibrated_extruders;
+        for (size_t i = 0; i < sorted_calib_infos.size() && i < filament_map.size(); ++i) {
+            const int extruder_idx = filament_map[i] - 1;
+            if (extruder_idx < 0 || size_t(extruder_idx) >= extruder_diameters->values.size())
+                continue;
+            double &diameter = extruder_diameters->values[extruder_idx];
+            if (!calibrated_extruders.insert(extruder_idx).second)
+                diameter = std::min(diameter, double(sorted_calib_infos[i].nozzle_diameter));
+            else
+                diameter = sorted_calib_infos[i].nozzle_diameter;
+        }
+        BOOST_LOG_TRIVIAL(info) << "auto PA calibration nozzle_diameter=" << extruder_diameters->serialize();
+    }
     BOOST_LOG_TRIVIAL(info) << "auto PA calibration multi_nozzle_diameter_mode=" << multi_diameter;
 
     set_for_auto_pa_model_and_config(sorted_calib_infos, full_config, model);

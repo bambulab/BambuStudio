@@ -801,31 +801,6 @@ void NozzleSettingsCardDialog::build_button_bar(wxBoxSizer *main_sizer)
     main_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, FromDIP(20));
 }
 
-// The nozzle a project filament slot is pointing at, in multi-diameter mode. Outside that mode the
-// per-slot map is not what drives printing, so editing the rack cannot strand an individual slot.
-static bool project_filament_uses_nozzle(const NozzleConfig &nozzle)
-{
-    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    if (preset_bundle == nullptr || !multi_nozzle_diameter_mode_enabled(preset_bundle->project_config))
-        return false;
-    const auto *diameters = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
-    const auto *volumes   = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
-    if (diameters == nullptr)
-        return false;
-    const std::string wanted = into_u8(nozzle.diameter);
-    for (size_t i = 0; i < diameters->values.size(); ++i) {
-        if (preset_bundle->is_mixed_filament(i))
-            continue;
-        if (diameters->values[i] != wanted)
-            continue;
-        const NozzleVolumeType volume = (volumes != nullptr && i < volumes->values.size())
-            ? static_cast<NozzleVolumeType>(volumes->values[i]) : nvtStandard;
-        if (volume == nozzle.volume)
-            return true;
-    }
-    return false;
-}
-
 bool NozzleSettingsCardDialog::confirm_nozzle_change(const NozzleConfig &from)
 {
     // An empty slot carries nothing for a filament to be pointing at.
@@ -843,7 +818,7 @@ bool NozzleSettingsCardDialog::confirm_nozzle_change(const NozzleConfig &from)
     if (same_kind > 1)
         return true;
 
-    if (!project_filament_uses_nozzle(from))
+    if (!project_filaments_use_nozzle(from))
         return true;
 
     // flow_label() is what the cards and the picker already show, so the question names the nozzle

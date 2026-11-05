@@ -224,7 +224,7 @@ static std::vector<std::set<std::string>> get_filament_allowed_diameters(size_t 
     const auto joined = preset_bundle->compute_filament_supported_nozzle_diameters(filament_count);
     for (size_t i = 0; i < filament_count && i < joined.size(); ++i)
         result[i] = split_diameter_set(joined[i]);
-    const bool supports_multi_diameter = is_single_ext_multi_nozzle(
+    const bool supports_multi_diameter = supports_multi_nozzle_diameter_mode(
         preset_bundle->printers.get_edited_preset().config);
     if (supports_multi_diameter && multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
         const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
@@ -553,6 +553,11 @@ std::vector<int> FilamentMapManualPanel::GetFilamentMaps() const
 
 std::vector<int> FilamentMapManualPanel::GetFilamentVolumeMaps() const
 {
+    // In multi-diameter mode the per-filament flow is selected outside this dialog, and the right panel is
+    // not split by flow; dragging only moves a filament between extruders.
+    if (multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config))
+        return m_filament_volume_map;
+
     std::vector<int> volume_map(m_filament_map.size(), 0);
 
     std::vector<int> left_filaments = this->GetLeftFilaments();
@@ -767,6 +772,9 @@ void FilamentMapManualPanel::UpdateNozzleVolumeType()
 {
     auto check_separation = []() {
         auto preset_bundle = wxGetApp().preset_bundle;
+        // The flow sub-panels would let a drag pick the flow, which multi-diameter mode selects per filament.
+        if (multi_nozzle_diameter_mode_enabled(preset_bundle->project_config))
+            return false;
         auto nozzle_volume_values = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
         if (nozzle_volume_values.size() <= 1)
             return false;

@@ -9124,11 +9124,27 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 std::string nozzle_diameters_str;
                 if (nozzle_diameter_option)
                     nozzle_diameters_str = nozzle_diameter_option->serialize();
-                // slice_filaments_info is ascending by slot and already carries each used filament's nozzle diameter.
-                if (multi_nozzle_diameter_mode_enabled(config) && nozzle_diameter_option != nullptr && !plate_data->slice_filaments_info.empty()) {
-                    const double diameter = plate_data->slice_filaments_info.front().nozzle_diameter;
-                    if (diameter > 0.)
-                        nozzle_diameters_str = ConfigOptionFloatsNullable(nozzle_diameter_option->values.size(), diameter).serialize();
+                // In multi-diameter mode the config's nozzle_diameter is only the conservative slicing baseline: the
+                // smallest nozzle installed on each extruder (PresetBundle::full_fff_config()).
+                // Several extruders: each one the slice used reports the diameter of its used nozzle. An extruder the
+                // slice did not use keeps the baseline, and so does every extruder of a plate without a layered
+                // grouping result (G-code taken over from a loaded 3mf): one diameter for all of them would misreport
+                // extruders that carry different nozzles. The list holds one diameter per extruder, so an extruder
+                // that used several diameters reports the last one listed; no printer offering the mode has such an
+                // extruder yet.
+                // One extruder: it reports the diameter of its first filament, which slice_filaments_info lists
+                // ascending by slot.
+                if (multi_nozzle_diameter_mode_enabled(config) && nozzle_diameter_option != nullptr) {
+                    std::vector<double> diameters = nozzle_diameter_option->values;
+                    if (diameters.size() > 1) {
+                        if (plate_data->nozzle_group_result)
+                            for (const MultiNozzleUtils::NozzleInfo &nozzle : plate_data->nozzle_group_result->get_used_nozzles_in_extruder())
+                                if (nozzle.extruder_id >= 0 && size_t(nozzle.extruder_id) < diameters.size())
+                                    diameters[nozzle.extruder_id] = string_to_double_decimal_point(nozzle.diameter);
+                    } else if (!plate_data->slice_filaments_info.empty() && plate_data->slice_filaments_info.front().nozzle_diameter > 0.) {
+                        std::fill(diameters.begin(), diameters.end(), plate_data->slice_filaments_info.front().nozzle_diameter);
+                    }
+                    nozzle_diameters_str = ConfigOptionFloatsNullable(diameters).serialize();
                 }
 
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PRINTER_MODEL_ID_ATTR       << "\" " << VALUE_ATTR << "=\"" << plate_data->printer_model_id << "\"/>\n";

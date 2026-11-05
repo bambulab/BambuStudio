@@ -198,6 +198,18 @@ public:
     void user_set_volume_type(int extruder_id, NozzleVolumeType type);
 
     /**
+     * \brief The user picked the diameter of an extruder with one nozzle slot in the multi-diameter mode
+     *
+     * The nozzle keeps its volume type. Outside the multi-diameter mode every extruder takes the selected
+     * variant's diameter, and an extruder with a rack derives its diameters from its slots; there this logs
+     * a warning and does nothing.
+     *
+     * \param extruder_id  0-based extruder
+     * \param diameter     the picked diameter, such as "0.4"
+     */
+    void user_set_diameter(int extruder_id, const std::string &diameter);
+
+    /**
      * \brief The user picked one diameter for all extruders
      *
      * Every installed nozzle of the newest layer takes \p diameter and keeps its volume type, so a

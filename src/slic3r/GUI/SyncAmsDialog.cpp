@@ -262,7 +262,8 @@ std::vector<FilamentInfo> collect_scope_filaments(int plate_idx)
 }
 
 /**
- * \brief Whether the selected printer profile is a single-extruder printer carrying several nozzles.
+ * \brief Whether the selected printer profile is a single-extruder printer carrying several nozzles, or the
+ *        project is in multi-diameter mode.
  *
  * Only these printers match by nozzle as well and let the user pick the matching strategy; every other
  * printer keeps the classic matching.

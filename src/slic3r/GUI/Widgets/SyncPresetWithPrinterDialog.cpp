@@ -372,13 +372,13 @@ std::optional<PrinterMigrationInfo> collect_printer_migration_info(MachineObject
     const Preset *target_preset = get_printer_preset(obj);
 
     // See PrinterMigrationInfo::compare_flow_type.
-    // The project flag outlives a printer switch, so an H2D (or any non-rack) 3mf can still
-    // carry multi_nozzle_diameter_mode=1 and a leftover filament_diameter_map. Per-slot
-    // diameters are only real on a rack; otherwise the project's diameter is printer_variant.
+    // The project flag outlives a printer switch, so a 3mf of a printer without the mode can still
+    // carry multi_nozzle_diameter_mode=1 and a leftover filament_diameter_map. Per-slot diameters are
+    // only real on a printer that offers the mode; otherwise the project's diameter is printer_variant.
     const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) &&
-                                     is_single_ext_multi_nozzle(preset.config);
-    const bool target_has_rack = target_preset != nullptr && is_single_ext_multi_nozzle(target_preset->config);
-    info.compare_flow_type = multi_diameter_mode && target_has_rack;
+                                     supports_multi_nozzle_diameter_mode(preset.config);
+    const bool target_supports_multi_diameter = target_preset != nullptr && supports_multi_nozzle_diameter_mode(target_preset->config);
+    info.compare_flow_type = multi_diameter_mode && target_supports_multi_diameter;
 
     const size_t slot_count = preset_bundle->filament_presets.size();
     const std::vector<SlotSpec> slot_specs = collect_project_slot_specs(*preset_bundle, multi_diameter_mode, info.compare_flow_type);
@@ -398,14 +398,14 @@ std::optional<PrinterMigrationInfo> collect_printer_migration_info(MachineObject
     info.printer_nozzles = collect_printer_nozzles(obj, info.compare_flow_type);
     info.project_nozzles = dedupe_project_rows(slot_specs, info.printer_nozzles, info.compare_flow_type, info.row_slots, info.row_labels);
 
-    // Without a rack the machine prints one diameter per plate, so a project asking for several can
-    // never be served as it stands - no matter that the extruders happen to carry each one. Counting
-    // them separately would call it covered, hide the section, and hand several diameters to a
+    // A machine without the multi-diameter mode prints one diameter per plate, so a project asking for
+    // several can never be served as it stands - no matter that the extruders happen to carry each one.
+    // Counting them separately would call it covered, hide the section, and hand several diameters to a
     // printer preset that can only express one.
     std::set<std::string> project_diameters;
     for (const SlotSpec &entry : slot_specs)
         project_diameters.insert(format_diameter_to_str(entry.spec.diameter));
-    const bool needs_more_diameters_than_target_can_hold = !target_has_rack && project_diameters.size() > 1;
+    const bool needs_more_diameters_than_target_can_hold = !target_supports_multi_diameter && project_diameters.size() > 1;
 
     info.nozzles_fully_covered = !needs_more_diameters_than_target_can_hold &&
                                  printer_covers_project(info.slot_nozzles, info.printer_nozzles, info.compare_flow_type);

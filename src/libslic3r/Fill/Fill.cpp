@@ -1081,7 +1081,7 @@ void Layer::make_ironing()
                 if (multi_nozzle_diameter_mode_enabled(this->object()->print()->full_print_config())) {
                     const double nozzle_diameter = nozzle_diameter_for_filament(
                         this->object()->print()->config(), (unsigned int) config.solid_infill_filament.value);
-                    ironing_params.inset = multi_nozzle_ironing_inset(nozzle_diameter, ironing_params.inset);
+                    ironing_params.inset = multi_nozzle_ironing_inset(this->object()->print()->full_print_config(), nozzle_diameter, ironing_params.inset);
                 }
 				ironing_params.height 		= default_layer_height * 0.01 * config.ironing_flow;
 				ironing_params.speed 		= config.ironing_speed;

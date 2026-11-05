@@ -791,7 +791,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
     if (multi_nozzle_diameter_mode_enabled(print_object->print()->full_print_config())) {
         const double nozzle_diameter = nozzle_diameter_for_filament(
             print_object->print()->config(), (unsigned int) region_config.wall_filament.value);
-        num_perimeters = multi_nozzle_wall_loops(nozzle_diameter, num_perimeters);
+        num_perimeters = multi_nozzle_wall_loops(print_object->print()->full_print_config(), nozzle_diameter, num_perimeters);
     }
     if (num_perimeters > 0) {
         Flow external_perimeter_flow = this->flow(frExternalPerimeter);

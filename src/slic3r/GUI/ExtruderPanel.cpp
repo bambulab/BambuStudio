@@ -953,8 +953,7 @@ void NozzleRackPanel::rebuild_tiles()
     const int count  = std::min(static_cast<int>(m_extruders.size()), MAX_EXTRUDERS);
     m_extruder_count = std::max(count, 1);
 
-    // Multi-diameter mode exists for single-extruder printers only.
-    const bool multi_diameter = m_extruder_count == 1 && multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
+    const bool multi_diameter = multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
     m_ams_enabled.fill(true);
     const DynamicPrintConfig &printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
     if (m_extruder_count == 1 && is_single_ext_multi_nozzle(printer_config)) {

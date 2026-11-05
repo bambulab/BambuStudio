@@ -357,15 +357,23 @@ void apply_nozzle_manual_maps_to_plates()
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle == nullptr) return;
-    // Gated on is_single_ext_multi_nozzle: the all-1s filament_map / nozzle_map derivation below is
-    // only correct there. Dual-extruder machines have their own filament_map semantics handled by
-    // FilamentMapDialog, so this must NOT run for them.
-    // Also gated on multi_nozzle_diameter_mode: with the toggle off the per-slot selector is hidden
+    // Gated on multi_nozzle_diameter_mode: with the toggle off the per-slot selector is hidden
     // and fmmNozzleManual isn't the authoritative mode, so forcing it here would clobber whatever
     // filament_map_mode the user set via FilamentMapDialog for that (non-multi-diameter) state.
-    if (!is_single_ext_multi_nozzle(preset_bundle->full_config())) return;
     if (!multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) return;
-    
+    // The per-slot flow picked in the selector is pushed to every plate on any machine.
+    // Dual-extruder machines keep their own filament_map semantics handled by FilamentMapDialog,
+    // so the all-1s filament_map / nozzle_map derivation below is only for single-extruder racks.
+    if (!is_single_ext_multi_nozzle(preset_bundle->full_config())) {
+        const auto *g_vol_map = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
+        if (g_vol_map == nullptr)
+            return;
+        for (PartPlate *plate : wxGetApp().plater()->get_partplate_list().get_plate_list())
+            if (plate != nullptr && !plate->get_filament_volume_maps().empty())
+                plate->set_filament_volume_maps(g_vol_map->values);
+        return;
+    }
+
     //auto *mode_opt = preset_bundle->project_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode");
     //if (mode_opt && mode_opt->value != fmmNozzleManual) mode_opt->value = fmmNozzleManual;
     const auto     full_config = preset_bundle->full_config();

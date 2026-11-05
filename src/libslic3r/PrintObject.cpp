@@ -2369,9 +2369,9 @@ static EffectiveShellParameters effective_top_shell_parameters(
 
     const double nozzle_diameter = nozzle_diameter_for_filament(
         object.print()->config(), (unsigned int) config.solid_infill_filament.value);
-    out.layers = multi_nozzle_top_shell_layers(nozzle_diameter, out.layers);
+    out.layers = multi_nozzle_top_shell_layers(object.print()->full_print_config(), nozzle_diameter, out.layers);
     out.layers *= shell_band_size(object, nozzle_diameter, base_layer_height);
-    out.thickness = multi_nozzle_top_shell_thickness(nozzle_diameter, out.thickness);
+    out.thickness = multi_nozzle_top_shell_thickness(object.print()->full_print_config(), nozzle_diameter, out.thickness);
     return out;
 }
 
@@ -2384,9 +2384,9 @@ static EffectiveShellParameters effective_bottom_shell_parameters(
 
     const double nozzle_diameter = nozzle_diameter_for_filament(
         object.print()->config(), (unsigned int) config.solid_infill_filament.value);
-    out.layers = multi_nozzle_bottom_shell_layers(nozzle_diameter, out.layers);
+    out.layers = multi_nozzle_bottom_shell_layers(object.print()->full_print_config(), nozzle_diameter, out.layers);
     out.layers *= shell_band_size(object, nozzle_diameter, base_layer_height);
-    out.thickness = multi_nozzle_bottom_shell_thickness(nozzle_diameter, out.thickness);
+    out.thickness = multi_nozzle_bottom_shell_thickness(object.print()->full_print_config(), nozzle_diameter, out.thickness);
     return out;
 }
 
@@ -2456,7 +2456,7 @@ void PrintObject::discover_vertical_shells()
                         if (multi_nozzle_diameter_mode_enabled(this->print()->full_print_config())) {
                             const double nozzle_diameter = nozzle_diameter_for_filament(
                                 this->print()->config(), (unsigned int) region_config.wall_filament.value);
-                            wall_loops = multi_nozzle_wall_loops(nozzle_diameter, wall_loops);
+                            wall_loops = multi_nozzle_wall_loops(this->print()->full_print_config(), nozzle_diameter, wall_loops);
                         }
                         perimeters += wall_loops;
                         // Then calculate the infill offset.

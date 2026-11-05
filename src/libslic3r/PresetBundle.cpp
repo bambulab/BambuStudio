@@ -2539,7 +2539,7 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     // filament_volume_map is a grouping input/result rather than a user choice worth propagating.
     const bool inherit_nozzle_selection = old_filament_count > 0 &&
         multi_nozzle_diameter_mode_enabled(project_config) &&
-        is_single_ext_multi_nozzle(printers.get_edited_preset().config);
+        supports_multi_nozzle_diameter_mode(printers.get_edited_preset().config);
     const int inherited_volume = (inherit_nozzle_selection && source_slot < filament_volume_map->values.size())
         ? filament_volume_map->values[source_slot]
         : static_cast<int>(NozzleVolumeType::nvtStandard);
@@ -4149,7 +4149,7 @@ void PresetBundle::stamp_printer_nozzle_diameter_mode()
 {
     std::string tag;
     const Preset *printer_base = printers.get_preset_base(printers.get_edited_preset());
-    if (printer_base != nullptr && printer_base->is_system && is_single_ext_multi_nozzle(printer_base->config))
+    if (printer_base != nullptr && printer_base->is_system && supports_multi_nozzle_diameter_mode(printer_base->config))
         tag = multi_nozzle_diameter_mode_enabled(project_config) ? printer_nozzle_diameter_mode_multi() :
                                                                    printer_nozzle_diameter_mode_single();
     printers.get_edited_preset().config.option<ConfigOptionString>("printer_nozzle_diameter_mode", true)->value = tag;
@@ -4160,7 +4160,7 @@ bool PresetBundle::is_multi_nozzle_user_printer_preset(const Preset &preset) con
     if (preset.is_system || preset.is_default)
         return false;
     const Preset *base = printers.get_preset_base(preset);
-    if (base == nullptr || !base->is_system || !is_single_ext_multi_nozzle(base->config) ||
+    if (base == nullptr || !base->is_system || !supports_multi_nozzle_diameter_mode(base->config) ||
         base->config.opt_string("printer_variant") != canonical_multi_nozzle_printer_variant())
         return false;
     const std::string tag = printer_nozzle_diameter_mode_tag(preset.config);
@@ -4267,33 +4267,16 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
     auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map");
     selected->values.resize(filament_presets.size());
     const bool supports_multi_diameter =
-        is_single_ext_multi_nozzle(printers.get_edited_preset().config);
+        supports_multi_nozzle_diameter_mode(printers.get_edited_preset().config);
     if (!supports_multi_diameter) {
         if (auto *mode = project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode"))
             mode->value = false;
         std::fill(selected->values.begin(), selected->values.end(), std::string());
     }
-    // multi_nozzle_diameter_mode is a project-level toggle that outlives a printer switch: a
-    // project last edited against a per-slot-diameter machine keeps it set to true even after the
-    // active printer preset is switched to a plain single-diameter machine, whose
-    // filament_diameter_map values are equally stale leftovers from that earlier machine. Without
-    // this gate every slot below is compared against the wrong "still in multi-diameter mode"
-    // semantics on a machine that never supported per-slot diameters at all, and any mismatching
-    // leftover value gets flagged instead of silently normalized -- matching
-    // collect_configured_nozzle_diameters()'s own gate keeps the two in agreement.
-    //
-    // Gated on is_single_ext_multi_nozzle(), not the broader uses_per_slot_nozzle_diameters(): the
-    // flag/notification behavior below is the Nozzle Settings dialog's companion feature (you swap
-    // a physical nozzle for a different diameter on the same extruder, so a filament slot that was
-    // relying on the removed diameter needs to be called out). Every other consumer of that same
-    // swap-nozzle UX (Plater's Nozzle Settings dialog, FilamentMapDialog, FilamentGroupPopup,
-    // NotificationManager, PresetComboBoxes, PartPlate) already restricts itself to
-    // is_single_ext_multi_nozzle(), which excludes a multi-extruder machine whose nozzles live one
-    // per extruder rather than several on the same extruder. This function was the odd one out
-    // still using the broader check, so a multi-extruder machine's filament_diameter_map leftovers
-    // (stale values from an earlier machine, or never normalized because it never routes through
-    // the dialog that would clear them) were being flagged/red instead of silently normalized like
-    // a plain machine.
+    // multi_nozzle_diameter_mode is a project-level toggle that outlives a printer switch, and the
+    // filament_diameter_map values are leftovers of the machine it was set on. Only a printer model
+    // that offers the mode (supports_multi_nozzle_diameter_mode()) reads them as multi-diameter; on
+    // any other machine they are normalized silently instead of being flagged.
     const bool multi_diameter_mode =
         multi_nozzle_diameter_mode_enabled(project_config) && supports_multi_diameter;
     const std::vector<std::string> retained_selections =
@@ -4323,12 +4306,11 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                previously_incompatible.end();
     };
 
-    // Per-filament flow is only user-owned where the filament panel's nozzle selector is shown
-    // (single-extruder multi-nozzle + multi-diameter mode). On every other machine
-    // filament_volume_map is still a grouping result, so repairing it here would clobber the
-    // slicer's own assignment. Null pointer means "leave the flow alone".
+    // Per-filament flow is only user-owned where the filament panel's nozzle selector is shown, i.e. in
+    // multi-diameter mode. Otherwise filament_volume_map is still a grouping result, so repairing it
+    // here would clobber the slicer's own assignment. Null pointer means "leave the flow alone".
     ConfigOptionInts *volume_map = nullptr;
-    if (multi_diameter_mode && is_single_ext_multi_nozzle(printers.get_edited_preset().config)) {
+    if (multi_diameter_mode) {
         volume_map = project_config.option<ConfigOptionInts>("filament_volume_map");
         if (volume_map != nullptr)
             volume_map->values.resize(filament_presets.size(), static_cast<int>(nvtStandard));

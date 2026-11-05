@@ -72,6 +72,16 @@ struct NozzleConfig
 wxString format_nozzle_spec(const NozzleConfig &cfg);
 
 /**
+ * \brief Whether a project filament slot points at a nozzle of this diameter and flow, in multi-diameter mode
+ *
+ * Outside that mode the per-slot map is not what drives printing, so editing the nozzles cannot strand an
+ * individual slot and this returns false.
+ *
+ * \param nozzle  the nozzle about to change
+ */
+bool project_filaments_use_nozzle(const NozzleConfig &nozzle);
+
+/**
  * \brief How a printer's nozzles are arranged, which decides the sidebar nozzle controls and the nozzle settings dialog
  */
 enum class NozzleLayout

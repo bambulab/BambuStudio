@@ -1338,8 +1338,8 @@ static EffectiveColorPenetrationLayers effective_color_penetration_layers(
 
     const double nozzle_diameter = nozzle_diameter_for_filament(
         object.print()->config(), (unsigned int) config.wall_filament.value);
-    out.top = multi_nozzle_top_color_penetration_layers(nozzle_diameter, out.top);
-    out.bottom = multi_nozzle_bottom_color_penetration_layers(nozzle_diameter, out.bottom);
+    out.top = multi_nozzle_top_color_penetration_layers(object.print()->full_print_config(), nozzle_diameter, out.top);
+    out.bottom = multi_nozzle_bottom_color_penetration_layers(object.print()->full_print_config(), nozzle_diameter, out.bottom);
     // A plate sliced for a single diameter is already on that nozzle's band height, one layer per extrusion.
     out.band_size = object.print()->single_diameter_layering_nozzle() > EPSILON ? 1 : int(adaptive_layer_band_size(
         nozzle_diameter, layer_grid_nozzle_diameter(object.print()->full_print_config()),

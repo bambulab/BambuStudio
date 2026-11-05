@@ -90,14 +90,14 @@ wxBitmap *tray_color_icon(const DynamicPrintConfig &tray, const std::string &nam
 static bool supports_multi_nozzle_diameter_mode(const PresetCollection& printers, const Preset& preset)
 {
     const Preset* base = printers.get_preset_base(preset);
-    return base != nullptr && base->is_system && is_single_ext_multi_nozzle(base->config);
+    return base != nullptr && base->is_system && Slic3r::supports_multi_nozzle_diameter_mode(base->config);
 }
 
 static bool is_canonical_multi_nozzle_diameter_printer_preset(const PresetCollection& printers, const Preset& preset)
 {
     const Preset* base = printers.get_preset_base(preset);
     return base != nullptr && base->is_system &&
-        is_single_ext_multi_nozzle(base->config) &&
+        Slic3r::supports_multi_nozzle_diameter_mode(base->config) &&
         base->config.opt_string("printer_variant") == canonical_multi_nozzle_printer_variant();
 }
 
@@ -201,13 +201,13 @@ static bool hidden_by_multi_nozzle_diameter_mode(const PresetBundle*     preset_
            !is_canonical_multi_nozzle_diameter_printer_preset(collection, preset);
 }
 
-// Whether `preset` is an installed system printer of a single-extruder multi-nozzle model, so the printer
+// Whether `preset` is an installed system printer of a model that offers multi-diameter mode, so the printer
 // settings combo offers it across multi-diameter modes whatever printer model is currently selected.
 // In multi-diameter mode only the edited printer's model qualifies: leaving the mode restores within the
 // same model, so a ">single" target on another model would land on the wrong printer.
 static bool installed_multi_nozzle_system_printer(const PresetCollection& printers, const Preset& preset, bool multi_nozzle_mode)
 {
-    if (!preset.is_system || !is_single_ext_multi_nozzle(preset.config))
+    if (!preset.is_system || !Slic3r::supports_multi_nozzle_diameter_mode(preset.config))
         return false;
     else if (preset.is_visible)
         return !multi_nozzle_mode ||

@@ -16,11 +16,16 @@
 #include <cstdlib>
 #include <sstream>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/nowide/fstream.hpp>
 #include <boost/thread.hpp>
+
+#include "nlohmann/json.hpp"
 
 #include <float.h>
 #include "libslic3r/Log.hpp"
@@ -151,65 +156,198 @@ std::string printer_nozzle_diameter_mode_tag(const ConfigBase &config)
 }
 
 namespace {
+
+// One diameter of a rule set in resources/info/multi_nozzle_rules.json.
+struct MultiNozzleDiameterRule
+{
+    double                         diameter = 0.;
+    std::map<ExtruderType, double> retraction_length; // per extruder type: a Bowden extruder retracts further
+    double                         ironing_inset = 0.;
+    int                            wall_loops = 0;
+    int                            top_shell_layers = 0;
+    double                         top_shell_thickness = 0.;
+    int                            bottom_shell_layers = 0;
+    double                         bottom_shell_thickness = 0.;
+    int                            top_color_penetration_layers = 0;
+    int                            bottom_color_penetration_layers = 0;
+    double                         support_top_z_distance = 0.;
+    double                         support_bottom_z_distance = 0.;
+    double                         prime_tower_line_width = 0.;
+    double                         prime_tower_ramming_line_width = 0.;
+    double                         prime_tower_feedrate_factor = 0.;
+};
+
+using MultiNozzleRuleSet = std::vector<MultiNozzleDiameterRule>;
+
+// Keyed by printer_model.
+using MultiNozzleRules = std::map<std::string, MultiNozzleRuleSet>;
+
+ExtruderType extruder_type_from_name(const std::string &name)
+{
+    const t_config_enum_values &names = ConfigOptionEnum<ExtruderType>::get_enum_values();
+    const auto                  it    = names.find(name);
+    if (it == names.end())
+        throw ConfigurationError("multi_nozzle_rules.json: unknown extruder type " + name);
+    return ExtruderType(it->second);
+}
+
+MultiNozzleDiameterRule parse_diameter_rule(const std::string &diameter, const nlohmann::json &j)
+{
+    MultiNozzleDiameterRule rule;
+    rule.diameter = string_to_double_decimal_point(diameter);
+    if (rule.diameter <= 0.)
+        throw ConfigurationError("multi_nozzle_rules.json: invalid diameter " + diameter);
+    for (const auto &[extruder_type, length] : j.at("retraction_length").items())
+        rule.retraction_length[extruder_type_from_name(extruder_type)] = length.get<double>();
+    rule.ironing_inset                   = j.at("ironing_inset").get<double>();
+    rule.wall_loops                      = j.at("wall_loops").get<int>();
+    rule.top_shell_layers                = j.at("top_shell_layers").get<int>();
+    rule.top_shell_thickness             = j.at("top_shell_thickness").get<double>();
+    rule.bottom_shell_layers             = j.at("bottom_shell_layers").get<int>();
+    rule.bottom_shell_thickness          = j.at("bottom_shell_thickness").get<double>();
+    rule.top_color_penetration_layers    = j.at("top_color_penetration_layers").get<int>();
+    rule.bottom_color_penetration_layers = j.at("bottom_color_penetration_layers").get<int>();
+    rule.support_top_z_distance          = j.at("support_top_z_distance").get<double>();
+    rule.support_bottom_z_distance       = j.at("support_bottom_z_distance").get<double>();
+    rule.prime_tower_line_width          = j.at("prime_tower_line_width").get<double>();
+    rule.prime_tower_ramming_line_width  = j.at("prime_tower_ramming_line_width").get<double>();
+    rule.prime_tower_feedrate_factor     = j.at("prime_tower_feedrate_factor").get<double>();
+    return rule;
+}
+
+MultiNozzleRules load_multi_nozzle_rules()
+{
+    const boost::filesystem::path path = boost::filesystem::path(resources_dir()) / "info" / "multi_nozzle_rules.json";
+    boost::nowide::ifstream       in(path.string());
+    if (!in.is_open())
+        throw ConfigurationError("cannot open " + path.string());
+    const nlohmann::json j = nlohmann::json::parse(in);
+
+    MultiNozzleRules rules;
+    for (const auto &[printer_model, diameters] : j.at("printer_models").items()) {
+        MultiNozzleRuleSet &set = rules[printer_model];
+        for (const auto &[diameter, values] : diameters.items())
+            set.push_back(parse_diameter_rule(diameter, values));
+    }
+    BOOST_LOG_TRIVIAL(info) << "multi-nozzle rules loaded for " << rules.size() << " printer models";
+    return rules;
+}
+
+const MultiNozzleRules &multi_nozzle_rules()
+{
+    static const MultiNozzleRules rules = load_multi_nozzle_rules();
+    return rules;
+}
+
+std::string printer_model_of(const ConfigBase &config)
+{
+    const auto *printer_model = config.option<ConfigOptionString>("printer_model");
+    return printer_model == nullptr ? std::string() : printer_model->value;
+}
+
+const MultiNozzleRuleSet *find_multi_nozzle_rule_set(const ConfigBase &config)
+{
+    const MultiNozzleRules &rules = multi_nozzle_rules();
+    const auto              it    = rules.find(printer_model_of(config));
+    return it == rules.end() ? nullptr : &it->second;
+}
+
+// The rule of the config's printer model for nozzle_diameter, or null when the rule set has no entry for that diameter.
+const MultiNozzleDiameterRule *find_multi_nozzle_diameter_rule(const ConfigBase &config, double nozzle_diameter)
+{
+    const MultiNozzleRuleSet *set = find_multi_nozzle_rule_set(config);
+    if (set == nullptr)
+        throw ConfigurationError("printer model " + printer_model_of(config) + " has no multi-diameter rule set");
+    for (const MultiNozzleDiameterRule &rule : *set)
+        if (std::abs(nozzle_diameter - rule.diameter) < 1e-3)
+            return &rule;
+    return nullptr;
+}
+
 template<typename T>
-T multi_nozzle_value(double nozzle_diameter, T preset_value, const std::array<T, 4> &values)
+T multi_nozzle_value(const ConfigBase &config, double nozzle_diameter, T preset_value, T MultiNozzleDiameterRule::*member)
 {
-    constexpr std::array<double, 4> diameters { 0.2, 0.4, 0.6, 0.8 };
-    for (size_t i = 0; i < diameters.size(); ++i)
-        if (std::abs(nozzle_diameter - diameters[i]) < 1e-3)
-            return values[i];
-    return preset_value;
-}
+    const MultiNozzleDiameterRule *rule = find_multi_nozzle_diameter_rule(config, nozzle_diameter);
+    return rule == nullptr ? preset_value : rule->*member;
 }
 
-double multi_nozzle_retraction_length(double nozzle_diameter, double preset_value)
+// Extruder type of a filament row's extruder variant, e.g. "Bowden High Flow" -> etBowden.
+ExtruderType extruder_type_of_variant(const std::string &variant)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.4, 0.8, 1.4, 3.0 });
+    for (const auto &[name, type] : ConfigOptionEnum<ExtruderType>::get_enum_values())
+        if (boost::algorithm::starts_with(variant, name + " "))
+            return ExtruderType(type);
+    throw ConfigurationError("filament_extruder_variant " + variant + " names no extruder type");
 }
 
-double multi_nozzle_ironing_inset(double nozzle_diameter, double preset_value)
+} // namespace
+
+bool supports_multi_nozzle_diameter_mode(const ConfigBase &config)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.11, 0.21, 0.31, 0.41 });
+    return find_multi_nozzle_rule_set(config) != nullptr;
 }
 
-int multi_nozzle_wall_loops(double nozzle_diameter, int preset_value)
+double multi_nozzle_retraction_length(const ConfigBase &config, double nozzle_diameter, ExtruderType extruder_type, double preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 4, 2, 2, 2 });
+    const MultiNozzleDiameterRule *rule = find_multi_nozzle_diameter_rule(config, nozzle_diameter);
+    if (rule == nullptr)
+        return preset_value;
+    const auto it = rule->retraction_length.find(extruder_type);
+    if (it == rule->retraction_length.end())
+        throw ConfigurationError("multi_nozzle_rules.json: no retraction length for extruder type " +
+                                 ConfigOptionEnum<ExtruderType>::get_enum_names()[extruder_type] + " of printer model " +
+                                 printer_model_of(config));
+    return it->second;
 }
 
-int multi_nozzle_top_shell_layers(double nozzle_diameter, int preset_value)
+double multi_nozzle_ironing_inset(const ConfigBase &config, double nozzle_diameter, double preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 7, 5, 3, 3 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::ironing_inset);
 }
 
-double multi_nozzle_top_shell_thickness(double nozzle_diameter, double preset_value)
+int multi_nozzle_wall_loops(const ConfigBase &config, double nozzle_diameter, int preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.8, 1.0, 0.8, 0.8 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::wall_loops);
 }
 
-int multi_nozzle_bottom_shell_layers(double nozzle_diameter, int preset_value)
+int multi_nozzle_top_shell_layers(const ConfigBase &config, double nozzle_diameter, int preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 5, 3, 3, 3 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::top_shell_layers);
 }
 
-double multi_nozzle_bottom_shell_thickness(double nozzle_diameter, double preset_value)
+double multi_nozzle_top_shell_thickness(const ConfigBase &config, double nozzle_diameter, double preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.0, 0.0, 0.0, 0.0 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::top_shell_thickness);
 }
 
-int multi_nozzle_top_color_penetration_layers(double nozzle_diameter, int preset_value)
+int multi_nozzle_bottom_shell_layers(const ConfigBase &config, double nozzle_diameter, int preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 7, 5, 3, 3 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::bottom_shell_layers);
 }
 
-int multi_nozzle_bottom_color_penetration_layers(double nozzle_diameter, int preset_value)
+double multi_nozzle_bottom_shell_thickness(const ConfigBase &config, double nozzle_diameter, double preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 5, 3, 3, 3 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::bottom_shell_thickness);
 }
 
-double multi_nozzle_support_z_distance(double nozzle_diameter, double preset_value)
+int multi_nozzle_top_color_penetration_layers(const ConfigBase &config, double nozzle_diameter, int preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.1, 0.2, 0.2, 0.2 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::top_color_penetration_layers);
+}
+
+int multi_nozzle_bottom_color_penetration_layers(const ConfigBase &config, double nozzle_diameter, int preset_value)
+{
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::bottom_color_penetration_layers);
+}
+
+double multi_nozzle_support_top_z_distance(const ConfigBase &config, double nozzle_diameter, double preset_value)
+{
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::support_top_z_distance);
+}
+
+double multi_nozzle_support_bottom_z_distance(const ConfigBase &config, double nozzle_diameter, double preset_value)
+{
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::support_bottom_z_distance);
 }
 
 bool is_multi_nozzle_auto_option(const std::string &opt_key)
@@ -235,23 +373,19 @@ bool is_multi_nozzle_auto_option(const std::string &opt_key)
     return auto_options.count(opt_key.substr(0, opt_key.find('#'))) > 0;
 }
 
-// 0.2 mm nozzle uses 0.4 mm; 0.4 / 0.6 / 0.8 mm nozzles keep the historical 0.8 mm tower line.
-double multi_nozzle_prime_tower_line_width(double nozzle_diameter, double preset_value)
+double multi_nozzle_prime_tower_line_width(const ConfigBase &config, double nozzle_diameter, double preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.4, 0.8, 0.8, 0.8 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::prime_tower_line_width);
 }
 
-// 0 keeps the built-in ramming-width table (nozzle_change_width_for_diameter). Presets stored 0
-// for every diameter; do not replace that with an explicit width.
-double multi_nozzle_prime_tower_ramming_line_width(double nozzle_diameter, double preset_value)
+double multi_nozzle_prime_tower_ramming_line_width(const ConfigBase &config, double nozzle_diameter, double preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.0, 0.0, 0.0, 0.0 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::prime_tower_ramming_line_width);
 }
 
-// Feedrate factor is 1 on every standard nozzle. It is not scaled from the process value.
-double multi_nozzle_prime_tower_feedrate_factor(double nozzle_diameter, double preset_value)
+double multi_nozzle_prime_tower_feedrate_factor(const ConfigBase &config, double nozzle_diameter, double preset_value)
 {
-    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 1.0, 1.0, 1.0, 1.0 });
+    return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::prime_tower_feedrate_factor);
 }
 
 // The diameters that describe what the machine offers: per-slot where that data is authoritative,
@@ -10670,14 +10804,18 @@ void align_filament_variant_overrides(DynamicPrintConfig &config)
 
 // Multi-diameter: the machine retraction_length is stored per machine variant, and one variant can carry
 // nozzles of different diameters. Filament rows without their own filament_retraction_length take the
-// length for the diameter of the nozzle the filament is assigned to.
+// length the rule set gives for the diameter of the nozzle the filament is assigned to and for the
+// extruder type of the row's variant.
 static void apply_multi_nozzle_retraction_length(const DynamicPrintConfig &config, const ConfigOptionFloatsNullable &filament_retraction,
                                                  ConfigOptionFloatsNullable &retraction)
 {
     const auto *self_index = config.option<ConfigOptionInts>("filament_self_index");
+    const auto *variants   = config.option<ConfigOptionStrings>("filament_extruder_variant");
     const auto *selected   = config.option<ConfigOptionStrings>("filament_diameter_map");
     if (self_index == nullptr || selected == nullptr || self_index->values.size() != retraction.values.size())
         throw ConfigurationError("filament_self_index does not match the filament retraction rows");
+    if (variants == nullptr || variants->values.size() != retraction.values.size())
+        throw ConfigurationError("filament_extruder_variant does not match the filament retraction rows");
 
     for (size_t row = 0; row < retraction.values.size(); ++row) {
         if (!filament_retraction.is_nil(row))
@@ -10689,7 +10827,8 @@ static void apply_multi_nozzle_retraction_length(const DynamicPrintConfig &confi
         if (diameter_str.empty() || diameter_str.find(';') != std::string::npos)
             continue;
         const double diameter = string_to_double_decimal_point(diameter_str.c_str());
-        retraction.values[row] = multi_nozzle_retraction_length(diameter, retraction.values[row]);
+        retraction.values[row] = multi_nozzle_retraction_length(config, diameter, extruder_type_of_variant(variants->values[row]),
+                                                                retraction.values[row]);
     }
 }
 

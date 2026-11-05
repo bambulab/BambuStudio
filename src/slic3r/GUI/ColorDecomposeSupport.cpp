@@ -375,7 +375,7 @@ ProjectPhysicalFilaments collect_project_physical_filaments()
 
 bool official_kit_diameter_mode_enabled(const PresetBundle& pb)
 {
-    return is_single_ext_multi_nozzle(pb.printers.get_edited_preset().config) && multi_nozzle_diameter_mode_enabled(pb.project_config);
+    return supports_multi_nozzle_diameter_mode(pb.printers.get_edited_preset().config) && multi_nozzle_diameter_mode_enabled(pb.project_config);
 }
 
 std::string official_kit_effective_diameter(const PresetBundle& pb, size_t config_idx)
