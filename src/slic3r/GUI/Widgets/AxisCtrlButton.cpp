@@ -297,8 +297,14 @@ void AxisCtrlButton::mouseReleased(wxMouseEvent& event)
     event.Skip();
     if (pressedDown) {
         pressedDown = false;
-        ReleaseMouse();
-        if (wxRect({ 0, 0 }, GetSize()).Contains(event.GetPosition()))
+        if (HasCapture())
+            ReleaseMouse();
+        // Touch input drift slop — see Button::mouseReleased. The active
+        // wedge is tracked in current_pos by mouseMove, so the correct
+        // axis still fires; the slop just keeps the click alive when a
+        // touch lands a few pixels outside the wedge ring on release.
+        constexpr int kReleaseSlop = 15;
+        if (wxRect({ 0, 0 }, GetSize()).Inflate(kReleaseSlop).Contains(event.GetPosition()))
             sendButtonEvent();
     }
 }
