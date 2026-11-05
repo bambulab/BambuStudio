@@ -58,3 +58,13 @@ TEST_CASE("Building a tree over a box, ray caster and closest query", "[AABBIndi
     REQUIRE(closest_point.y() == Approx(0.5));
     REQUIRE(closest_point.z() == Approx(1.));
 }
+
+TEST_CASE("Squared exterior distance does not overflow for integral bounding boxes", "[AABBIndirect]")
+{
+    using Tree = AABBTreeIndirect::Tree<2, coord_t>;
+
+    const Tree::BoundingBox bbox(Vec2crd(0, 0), Vec2crd(1'000, 1'000));
+    const Vec2d             point(100'000., 100'000.);
+
+    REQUIRE(AABBTreeIndirect::detail::squared_exterior_distance(bbox, point) == Approx(19'602'000'000.));
+}

@@ -45,6 +45,13 @@ void texture_import_paint(wxWindow* win, PaintFn&& paint)
 void texture_import_style_primary_button(Button* btn);
 void texture_import_style_secondary_button(Button* btn);
 
+// Near-white swatches (near-black in dark mode) get a thin outline so they do
+// not blend into the background.
+bool texture_import_needs_swatch_border(const wxColour& colour);
+wxColour texture_import_swatch_border_colour();
+void texture_import_draw_swatch_border(wxDC& dc, const wxColour& colour,
+                                       int x, int y, int w, int h, int radius = 0);
+
 class PreviewTagPanel : public wxPanel
 {
 public:

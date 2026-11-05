@@ -10,12 +10,11 @@ class TabButton : public StaticBox
     wxSize   minSize;
     wxSize   paddingSize;
     ScalableBitmap icon;
-    ScalableBitmap newtag_img;
 
     StateColor   text_color;
     StateColor   border_color;
     bool pressedDown = false;
-    bool show_new_tag = false;
+    int  new_tag_count = 0;
 
 public:
     TabButton();
@@ -44,8 +43,8 @@ public:
 
     void Rescale();
 
-    void ShowNewTag(bool tag = false) {show_new_tag = tag; Refresh();};
-    bool GetShowNewTag() const { return show_new_tag; };
+    void ShowNewTag(int count) {new_tag_count = count; Refresh();};
+    int GetNewTagCount() const { return new_tag_count; };
 
 private:
     void paintEvent(wxPaintEvent& evt);

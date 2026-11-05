@@ -62,6 +62,7 @@ public:
 
     void SetConstrainByAspectRatio(bool constrain) { m_constrain_by_aspect_ratio = constrain; }
     bool GetConstrainByAspectRatio() const { return m_constrain_by_aspect_ratio; }
+    void SuppressPauseIcon(bool suppress);
 
     void SetTrackChannel(const BambuLiveViewTrack::ChannelInfo& info);
     void UpdateSessionStat() {}  // data filled by session-end callback, nothing to do here
@@ -77,8 +78,14 @@ protected:
 
 private:
     void create_player();
+    void mouseWheelEvent(wxMouseEvent &evt);
+    void resetZoom();
+    void applyVideoTransform();
+    void clampZoomOffset();
     void updateIdleLayer();
-    void updateWatermarkLayer();
+    void updateStatusBadge();
+    void updateZoomBadge();
+    void updatePauseIconLayer();
     void removeIdleLayer();
 
     void * m_player = nullptr;
@@ -86,11 +93,21 @@ private:
     int          m_error  = 0;
     wxSize       m_video_size{16, 9};
     bool         m_constrain_by_aspect_ratio{true};
+    double       m_zoom = 1.0;
+    double       m_zoom_offset_x = 0.0;
+    double       m_zoom_offset_y = 0.0;
+    void *       m_video_layer = nullptr;
 
     wxString m_idle_image;
     wxString m_watermark_text;
     void *   m_idle_layer = nullptr;      // CALayer* for idle image
-    void *   m_watermark_layer = nullptr;  // CATextLayer* for watermark
+    void *   m_watermark_layer = nullptr;  // CenteredCATextLayer* for status badge text
+    void *   m_badge_bg_layer = nullptr;
+    void *   m_badge_dot_layer = nullptr;
+    void *   m_zoom_badge_bg_layer = nullptr;
+    void *   m_zoom_badge_text_layer = nullptr;
+    void *   m_pause_icon_layer = nullptr;
+    bool     m_suppress_pause_icon = false; // hide the pause placeholder from INITIALIZING onward
 
 public:
     std::chrono::system_clock::time_point m_play_start_time;

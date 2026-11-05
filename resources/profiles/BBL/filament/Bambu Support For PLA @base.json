@@ -22,15 +22,25 @@
         "1.30"
     ],
     "filament_dev_ams_drying_heat_distortion_temperature": [
+        "50",
+        "50",
+        "60",
         "50"
     ],
     "filament_dev_ams_drying_temperature": [
         "60",
         "60",
         "50",
+        "50",
+        "60",
+        "50",
+        "60",
         "50"
     ],
     "filament_dev_drying_softening_temperature": [
+        "55",
+        "55",
+        "65",
         "55"
     ],
     "filament_is_support": [
@@ -38,6 +48,9 @@
     ],
     "filament_vendor": [
         "Bambu Lab"
+    ],
+    "fins_extrude_safe_temp": [
+        "57"
     ],
     "slow_down_layer_time": [
         "8"

@@ -18,7 +18,7 @@ html, body {
 }
 .hidden { display: none !important; }
 .window-frame {
-    display: flex; flex-direction: column; width: 800px; height: 680px;
+    display: flex; flex-direction: column; width: 100%; max-width: 800px; height: 100%; max-height: 680px;
     background: #FFFFFF; border: 1px solid #CECECE; border-radius: 4px; overflow: hidden; position: relative;
 }
 .window-titlebar {
@@ -30,12 +30,12 @@ html, body {
 .window-title-text { font-size: 14px; font-weight: 600; color: var(--color-text-main); }
 .window-close { cursor: pointer; width: 24px; height: 24px; opacity: 0.6; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s; }
 .window-close:hover { opacity: 1; }
-.page-wrapper { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+.page-wrapper { display: flex; flex-direction: column; flex: 1; overflow: hidden; padding: 0 16px; box-sizing: border-box; }
 
 /* Steps Header */
 .steps-container {
     display: flex; align-items: center; justify-content: space-between;
-    width: 659px; margin: 0 auto; padding: 24px 0 16px;
+    width: 100%; max-width: 659px; margin: 0 auto; padding: 24px 0 16px;
 }
 .step-item { display: flex; align-items: center; gap: 8px; opacity: 1; }
 .step-circle {
@@ -52,14 +52,14 @@ html, body {
     flex: 1; display: flex; flex-direction: column; align-items: center;
     padding: 0; gap: 24px; overflow: hidden;
 }
-.form-section { width: 649px; display: flex; flex-direction: column; }
+.form-section { width: 100%; max-width: 649px; display: flex; flex-direction: column; }
 .section-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
 .required::before { content: '* '; color: #FF4D4F; }
 
 /* Form Group */
 .form-group {
     display: flex; flex-direction: column; align-items: flex-start;
-    gap: 23px; width: 423px; padding-left: 0;
+    gap: 23px; width: 100%; max-width: 423px; padding-left: 0;
 }
 .form-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 .form-row label { width: 60px; font-size: 13px; color: var(--color-text-main); }
@@ -97,7 +97,7 @@ html, body {
 .add-btn:hover { text-decoration: underline; }
 
 /* Radio Cards */
-.radio-group { display: flex; flex-direction: column; align-items: flex-start; gap: 17px; width: 649px; }
+.radio-group { display: flex; flex-direction: column; align-items: flex-start; gap: 17px; width: 100%; max-width: 649px; }
 .radio-card {
     display: flex; align-items: flex-start; padding: 12px 16px; border-radius: 6px;
     background: #F8F8F8; border: 1px solid #EEEEEE; cursor: pointer; transition: all 0.2s; width: 100%; box-sizing: border-box;

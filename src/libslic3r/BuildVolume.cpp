@@ -4,8 +4,7 @@
 #include "Geometry/ConvexHull.hpp"
 #include "GCode/GCodeProcessor.hpp"
 #include "Point.hpp"
-
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -172,7 +171,7 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
         //m_shared_volume.zs[1] = printable_height;
     }
 
-    BOOST_LOG_TRIVIAL(debug) << "BuildVolume printable_area clasified as: " << this->type_name();
+    BOOST_LOG_TRIVIAL(debug) << "printable_area clasified as: " << this->type_name();
 }
 
 #if 0

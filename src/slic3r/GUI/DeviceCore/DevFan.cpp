@@ -4,6 +4,7 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "libslic3r/Log.hpp"
 using namespace nlohmann;
 
 void Slic3r::DevFan::converse_to_duct(bool is_suppt_part_fun, bool is_suppt_aux_fun, bool is_suppt_cham_fun)
@@ -60,6 +61,8 @@ static std::string _get_string_from_fantype(int type)
 // Old protocol
 int Slic3r::DevFan::command_control_fan(int fan_type, int val)
 {
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::Fan)) return -1;
+
     std::string gcode = (boost::format("M106 P%1% S%2% \n") % (int) fan_type % (val)).str();
     try {
         json j;
@@ -68,13 +71,17 @@ int Slic3r::DevFan::command_control_fan(int fan_type, int val)
 
         NetworkAgent *agent = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("printer_control", j.dump());
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return m_owner->publish_gcode(gcode);
 }
 
 // New protocol
 int Slic3r::DevFan::command_control_fan_new(int fan_id, int val)
 {
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::Fan)) return -1;
+
     BOOST_LOG_TRIVIAL(info) << "New protocol of fan setting(set speed), fan_id = " << fan_id;
     json j;
     j["print"]["command"]     = "set_fan";
@@ -90,7 +97,7 @@ int Slic3r::DevFan::command_control_fan_new(int fan_id, int val)
 int Slic3r::DevFan::command_handle_response(const json &response)
 {
     if (!response.contains("sequence_id")) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ", error reponse.";
+        BOOST_LOG_TRIVIAL(warning) << "error reponse.";
         return -1;
     }
 
@@ -105,7 +112,9 @@ int Slic3r::DevFan::command_handle_response(const json &response)
 
 int Slic3r::DevFan::command_control_air_duct(int mode_id, int submode, const CommandCallBack& cb)
 {
-    BOOST_LOG_TRIVIAL(info) << "MachineObject::command_control_air_duct, set air duct, d = " << mode_id;
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::Fan)) return -1;
+
+    BOOST_LOG_TRIVIAL(info) << "set air duct, d = " << mode_id;
     m_callback_list[std::to_string(m_owner->m_sequence_id)] = cb;
     json j;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);

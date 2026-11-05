@@ -77,6 +77,9 @@ export interface SpoolColorChipProps {
    * from AMS". Defaults to false so existing inline call sites keep
    * their single-element DOM. */
   amsBadge?: boolean;
+  /** "Unrecognized" filament (问号料): render a checkerboard tile with an
+   * orange "?" badge instead of a colour, ignoring colorCode/colors. */
+  unknown?: boolean;
 }
 
 export function SpoolColorChip({
@@ -87,6 +90,7 @@ export function SpoolColorChip({
   border = true,
   radius,
   amsBadge = false,
+  unknown = false,
 }: SpoolColorChipProps) {
   const hexList = canonicalizeHexList(colors);
   const fallback = canonicalizeHex(colorCode) || '#888';
@@ -108,6 +112,48 @@ export function SpoolColorChip({
     boxShadow: ring,
     boxSizing: 'border-box',
   };
+
+  // Unrecognized filament (问号料): a checkerboard tile with an orange "?"
+  // badge in the top-left corner. Colour props are ignored. The badge lives in
+  // an outer relative wrapper (like `amsBadge`) so the chip's `overflow: hidden`
+  // does not clip it.
+  if (unknown) {
+    const badge = Math.max(12, Math.round(size * 0.6));
+    return (
+      <span
+        style={{ position: 'relative', display: 'inline-flex', verticalAlign: 'middle' }}
+      >
+        <span
+          className="inline-block shrink-0"
+          style={{ ...chipStyle, background: TRANSPARENT_CHECKERED_BG }}
+        />
+        <span
+          data-testid="spool-chip-unknown-badge"
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: badge,
+            height: badge,
+            borderRadius: '50%',
+            background: '#FF7A00',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: Math.round(badge * 0.7),
+            fontWeight: 700,
+            lineHeight: 1,
+            pointerEvents: 'none',
+          }}
+        >
+          ?
+        </span>
+      </span>
+    );
+  }
 
   // Multi-hex with explicit multicolor intent: paint the colour strips
   // edge-to-edge inside the rounded chip frame and let `overflow: hidden`

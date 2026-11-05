@@ -104,7 +104,23 @@ extern ConfigFileType guess_config_file_type(const boost::property_tree::ptree &
 
 extern void extend_default_config_length(DynamicPrintConfig &config, const DynamicPrintConfig &inherit_config, const bool set_nil_to_default, const DynamicPrintConfig &defaults);
 
-const std::vector<std::string> &get_filament_orders();
+/**
+ * \brief Identity of a filament preset as far as its position in selection lists is concerned
+ */
+struct FilamentListKey
+{
+    std::string alias;  ///< display name, e.g. "Bambu PLA Basic"
+    std::string vendor; ///< filament_vendor; empty for user presets
+    std::string type;   ///< filament_type
+};
+
+/**
+ * \brief Strict weak "listed before" order for filament presets in selection lists
+ *
+ * Vendors are grouped, curated vendors first, then the rest by name. Within a curated vendor the
+ * curated aliases lead and everything else follows by name.
+ */
+bool filament_list_less(const FilamentListKey &l, const FilamentListKey &r);
 
 class VendorProfile
 {
@@ -399,6 +415,10 @@ protected:
 bool is_compatible_with_print  (const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print, const PresetWithVendorProfile &active_printer);
 bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer, const DynamicPrintConfig *extra_config);
 bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer);
+// BBS multi-diameter: a filament/print preset is treated as compatible when its compatible_printers list
+// references any of the given printer preset names. Used to keep presets bound to sibling nozzle-diameter
+// variants visible while mixed-diameter printing is active (diameters chosen via "set nozzle diameter").
+bool is_compatible_with_printer_names(const PresetWithVendorProfile &preset, const std::vector<std::string> &printer_names);
 
 enum class PresetSelectCompatibleType {
 	// Never select a compatible preset if the newly selected profile is not compatible.
@@ -694,6 +714,12 @@ public:
     void            update_compatible(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, PresetSelectCompatibleType select_other_if_incompatible)
         { this->update_compatible(active_printer, active_print, select_other_if_incompatible, [](const Preset&) -> int { return 0; }); }
 
+    // BBS multi-diameter: extra printer preset names (sibling nozzle-diameter variants selected via
+    // "set nozzle diameter") that are additionally accepted as compatible during the next
+    // update_compatible() pass. Empty (the default) preserves the original single-printer behavior.
+    void            set_extra_compatible_printers(const std::vector<std::string> &printer_names) { m_extra_compatible_printers = printer_names; }
+    void            clear_extra_compatible_printers() { m_extra_compatible_printers.clear(); }
+
     size_t          num_visible() const { return std::count_if(m_presets.begin(), m_presets.end(), [](const Preset &preset){return preset.is_visible;}); }
 
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return true if they differ.
@@ -819,6 +845,14 @@ private:
 
     // Selected preset.
     size_t                  m_idx_selected;
+    // BBS multi-diameter: extra printer preset names accepted as compatible in update_compatible_internal().
+    std::vector<std::string> m_extra_compatible_printers;
+    // BBS multi-diameter: name of the printer preset used in the last update_compatible_internal() pass.
+    // Used to prefer the active-diameter variant when resolving an alias to a concrete preset.
+    std::string              m_active_printer_name;
+    // Persist whether the last compatibility pass was broadened. The temporary extra-printer list is
+    // cleared after that pass, but later alias lookups must retain the same disambiguation policy.
+    bool                     m_prefer_active_printer_alias = false;
     // Is the "- default -" preset suppressed?
     bool                    m_default_suppressed  = true;
     size_t                  m_num_default_presets = 0;

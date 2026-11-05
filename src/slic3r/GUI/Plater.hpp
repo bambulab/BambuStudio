@@ -28,7 +28,7 @@
 #include "libslic3r/PrintBase.hpp"
 #include "libslic3r/Calib.hpp"
 #include "libslic3r/FlushVolCalc.hpp"
-
+#include "ExtruderHelpers.hpp"
 
 #define FILAMENT_SYSTEM_COLORS_NUM      16
 
@@ -72,7 +72,9 @@ namespace UndoRedo {
 }
 
 namespace GUI {
-class SyncAmsInfoDialog;
+struct PendingNozzleMigration;
+struct QueuePrintContext;
+struct SyncResult; // SyncAmsDialog.hpp; returned by the sync-dialog helper, defined for Plater.cpp
 class MainFrame;
 class ConfigOptionsGroup;
 class ObjectSettings;
@@ -90,7 +92,6 @@ class PlaterPresetComboBox;
 class PartPlateList;
 class SyncNozzleAndAmsDialog;
 class FinishSyncAmsDialog;
-class ExtruderWarningDialog;
 class Bed3D;
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
@@ -145,14 +146,36 @@ class Sidebar : public wxPanel
     bool                                    m_last_slice_state = false;
     SyncNozzleAndAmsDialog*                 m_sna_dialog{nullptr};
     FinishSyncAmsDialog*                    m_fna_dialog{nullptr};
-    ExtruderWarningDialog*                  m_extruder_warning_dialog{nullptr};
     std::vector<BedType>                    m_cur_combox_bed_types;
     std::string                             m_cur_image_bed_type;
     int                                     m_last_combo_bedtype_count{0};
     bool                                    m_begin_sync_printer_status{false};
-    SyncAmsInfoDialog*                      m_sync_dlg{nullptr};
 
     void update_sync_ams_btn_enable(wxUpdateUIEvent &e);
+
+    /**
+     * \brief Run the Sync-AMS dialog modally and return its result.
+     *
+     * Unsaved filament preset edits are discarded only after the user confirms. Without objects on any plate
+     * there is nothing to map, so no dialog opens and the result asks for a direct sync.
+     *
+     * \param deferrable  true when the app suggested the sync; the dialog then offers "Later" instead of "Cancel"
+     * \return the result; \c dlg_res is \c wxID_CANCEL when the user cancels
+     */
+    SyncResult run_sync_dialog(bool deferrable);
+
+    /**
+     * \brief Switch multi-diameter mode, running every follow-up step the mode selector needs.
+     *
+     * Moves the printer preset and writes the mode, keeps or restores the per-slot nozzle selections and
+     * refreshes everything that reads the mode. The mode selector is rolled back when the switch fails.
+     *
+     * \param enabled         the mode to switch to
+     * \param target_printer  printer preset to land on, or nothing for the default/remembered target
+     * \return whether the project ended up in the requested mode
+     */
+    bool switch_multi_nozzle_diameter_mode(bool enabled,
+                                           const std::optional<std::string> &target_printer = std::nullopt);
 
 public:
     enum DockingState { None, Left, Right };
@@ -169,6 +192,18 @@ public:
     void create_printer_preset();
     void init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx);
     void remove_unused_filament_combos(const size_t current_extruder_count);
+    void refresh_filament_diameter_buttons(bool validate_selections = false);
+    void sync_multi_nozzle_mode_from_project();
+    /**
+     * \brief Pick a printer preset that belongs to the other multi-diameter mode.
+     *
+     * Switches the mode the way the mode selector does, landing on the canonical printer in multi-diameter
+     * mode or on \p printer_name in single-diameter mode.
+     *
+     * \param printer_name  the printer preset to land on
+     * \param to_multi      the mode the preset belongs to, i.e. the mode to switch to
+     */
+    void select_printer_across_multi_nozzle_mode(const std::string &printer_name, bool to_multi);
     void set_bed_by_curr_bed_type(AppConfig *config);
     void update_all_preset_comboboxes();
     //void update_partplate(PartPlateList& list);
@@ -184,6 +219,10 @@ public:
     bool reset_bed_type_combox_choices(bool is_sidebar_init = false);
     bool use_default_bed_type(bool is_bbl_preset = true);
     void change_top_border_for_mode_sizer(bool increase_border);
+    /**
+     * \brief The narrowest the docked sidebar may be dragged without clipping its controls.
+     */
+    int  min_width() const;
     void msw_rescale();
     void sys_color_changed();
     void search();
@@ -195,13 +234,18 @@ public:
 
     void add_filament();
     void delete_filament(size_t filament_id = size_t(-1), int replace_filament_id = -1);  // 0 base, -1 means default
+    // Whether a model or mixed filament references this physical filament (0 base).
+    bool is_filament_referenced(size_t filament_id) const;
     void change_filament(size_t from_id, size_t to_id);  // 0 base
     void edit_filament();
-    void add_custom_filament(wxColour new_col, const std::string& preset_name = std::string(), bool skip_preset_validation = false);
+    void add_custom_filament(wxColour new_col, const std::string& preset_name = std::string(), bool skip_preset_validation = false, int inherit_nozzle_from = -1);
     // Batch-add physical filaments (physical-first). Returns the starting physical
-    // index, or size_t(-1) if nothing was added. Truncates to ExtruderMax.
-    size_t add_custom_filaments(const std::vector<std::pair<wxColour, std::string>>& items);
+    // index, or size_t(-1) if nothing was added. Truncates to MAX_PHYSICAL_FILAMENT_COUNT physicals.
+    // inherit_nozzle_from: when >= 0 in multi-diameter mode, copy that slot's
+    // diameter/flow onto the new physicals (color-decompose of a 0.4 source).
+    size_t add_custom_filaments(const std::vector<std::pair<wxColour, std::string>>& items, int inherit_nozzle_from = -1);
     void scroll_filament_area_to_bottom();
+    void scroll_mixed_filament_area_to_bottom();
     bool is_new_project_in_gcode3mf();
     // BBS
     void on_bed_type_change(BedType bed_type);
@@ -209,7 +253,9 @@ public:
     std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
     void sync_ams_list(bool is_from_big_sync_btn = false);
     bool sync_extruder_list();
-    bool need_auto_sync_extruder_list_after_connect_priner(const MachineObject* obj);
+    // Arms the next sync_extruder_list() with the nozzle migration the user confirmed in
+    // SyncPresetWithPrinterDialog. Consumed once; a sync that runs without it migrates nothing.
+    void arm_nozzle_migration(const PendingNozzleMigration &migration);
     void update_sync_status(const MachineObject* obj);
     int get_sidebar_pos_right_x();
     void on_size(SimpleEvent &e);
@@ -220,6 +266,7 @@ public:
     void reset_fila_switch();
     void enable_nozzle_count_edit(bool enable);
     void enable_purge_mode_btn(bool enable);
+    void open_extruder_settings_dialog();
 
     PlaterPresetComboBox *  printer_combox();
     ObjectList*             obj_list();
@@ -278,11 +325,21 @@ public:
     void add_mixed_filament();
     void edit_mixed_filament(size_t idx);
     void delete_mixed_filament_at(size_t idx);
-    void decompose_filament_color(int filament_idx);
     void recalc_filament_scroll_sizes();
-    void update_mixed_filament_list();
+    void update_mixed_filament_list(bool reload_3d = true);
     bool has_broken_mixed_filament() const;
     bool has_broken_mixed_filament(const PartPlate* plate) const;
+    // True when the plate prints with a slot the filament list marks red (nozzle diameter not
+    // installed, or AMS sync found no preset for its tray), which must block slicing that plate.
+    bool has_incompatible_filament() const;
+    bool has_incompatible_filament(const PartPlate* plate) const;
+    // Pushes/closes the corner notifications describing the flagged slots the current plate prints
+    // with. Plate-scoped like has_incompatible_filament(), so it also has to run whenever the
+    // current plate or its contents change, not only on a sidebar refresh.
+    void update_incompatible_nozzle_notifications();
+    // Pushes/closes the corner card for broken mixed filaments the current plate actually prints
+    // with. The row marker stays either way; only the corner card and the slice gate are plate-scoped.
+    void update_broken_mixed_filament_notification();
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
     void                            set_is_gcode_file(bool flag);
@@ -291,15 +348,15 @@ public:
     bool                            get_update_3d_state() { return m_update_3d_state; }
     void                            update_printer_thumbnail();
 
-    bool need_auto_sync_after_connect_printer() const { return m_need_auto_sync_after_connect_printer; }
-    void set_need_auto_sync_after_connect_printer(bool need_auto_sync) { m_need_auto_sync_after_connect_printer = need_auto_sync; }
-
 private:
     // Clears and rebuilds the output vectors with physical filament slots only.
     void  collect_physical_filament_info(std::vector<std::string>& colors,
                                          std::vector<std::string>& names,
                                          std::vector<std::string>& types,
-                                         std::vector<size_t>* config_indices = nullptr);
+                                         std::vector<size_t>* config_indices = nullptr,
+                                         std::vector<std::string>* diameters = nullptr,
+                                         std::vector<std::string>* volume_shorts = nullptr);
+    void  sync_filament_area_height();
     void  auto_calc_flushing_volumes_internal(const int filament_id, const int extruder_id);
     void  finalize_auto_calc_flushing_volumes();
     void  update_bed_thumbnail(std::string path);
@@ -312,7 +369,6 @@ private:
     bool            m_soft_first_start {true };
     bool            m_is_gcode_file{ false };
     bool            m_update_3d_state{false};
-    bool            m_need_auto_sync_after_connect_printer{false};
 };
 
 class Plater: public wxPanel
@@ -412,6 +468,7 @@ public:
         m_exported_file = exported_file;
     }
     bool is_loading_project() const { return m_loading_project; }
+    bool is_syncing_printer_after_load() const { return m_syncing_printer_after_load; }
     bool is_empty_project();
     bool is_multi_extruder_ams_empty();
     // BBS
@@ -561,6 +618,7 @@ public:
     //BBS jump to nonitor after print job finished
     void send_calibration_job_finished(wxCommandEvent &evt);
     void print_job_finished(wxCommandEvent &evt);
+    void add_to_print_queue_finished(wxCommandEvent &evt);
     void send_job_finished(wxCommandEvent& evt);
     void publish_job_finished(wxCommandEvent& evt);
     void open_platesettings_dialog(wxCommandEvent& evt);
@@ -582,6 +640,9 @@ public:
     void undo_redo_topmost_string_getter(const bool is_undo, std::string& out_text);
     int update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     bool search_string_getter(int idx, const char** label, const char** tooltip);
+    // Asks for confirmation when a slot is switched to a filament that is not recommended for the
+    // nozzle diameter that slot is actually going to print at. Returns false if the user backs out.
+    bool on_filament_change(size_t filament_idx);
     // For the memory statistics.
     const Slic3r::UndoRedo::Stack& undo_redo_stack_main() const;
     void clear_undo_redo_stack_main();
@@ -590,9 +651,11 @@ public:
     // BBS: return false if not changed
     bool leave_gizmos_stack();
 
-    bool on_filament_change(size_t filament_idx);
     void on_filament_count_change(size_t extruders_count);
     void on_filaments_delete(size_t extruders_count, size_t filament_id, int replace_filament_id = -1, const std::vector<unsigned char>& is_mixed_before_delete = {});
+    // Repaint model usage (objects, parts, height ranges, color painting, tool changes) of from_id with to_id, both 0-based.
+    void replace_filament_on_model(size_t from_id, size_t to_id);
+    void remap_mixed_filament_ids(size_t old_physical_count, size_t new_physical_count);
     std::vector<std::array<float, 4>> get_extruders_colors();
     // BBS
     void on_bed_type_change(BedType bed_type,bool is_gcode_file = false);
@@ -632,7 +695,8 @@ public:
         NOT_CONNECTED,
         INCONSISTENT,
         UNINSTALL_FILAMENT,
-        EMPTY_FILAMENT
+        EMPTY_FILAMENT,
+        NotAvailable
     };
     void pop_warning_and_go_to_device_page(wxString printer_name, PrinterWarningType type, const wxString &title);
     bool check_printer_initialized(MachineObject *obj, bool only_warning = false,bool popup_warning = true);
@@ -661,6 +725,7 @@ public:
     GLCanvas3D* get_preview_canvas3D();
     GLCanvas3D* get_assmeble_canvas3D();
     wxWindow* get_select_machine_dialog();
+    bool show_print_queue_dialog(std::shared_ptr<QueuePrintContext> context, std::function<void()> on_opened = {});
 
     void arrange();
     void orient();
@@ -674,6 +739,7 @@ public:
 
     int get_send_calibration_finished_event();
     int get_print_finished_event();
+    int get_add_to_print_queue_finished_event();
     int get_send_finished_event();
     int get_publish_finished_event();
 
@@ -848,8 +914,6 @@ public:
     bool check_ams_status(bool is_slice_all);
     // only check sync status and printer model id
     bool get_machine_sync_status();
-    // check whether nozzle staus is synced with printer, extruder = -1 means check both extruder
-    bool is_extruder_stat_synced(int extruder_id = -1);
     void update_machine_sync_status();
     void update_filament_volume_map(int extruder_id, int volume_type);
 
@@ -1068,6 +1132,9 @@ private:
     bool m_exported_file { false };
     bool skip_thumbnail_invalid { false };
     bool m_loading_project {false };
+    // Set from the start of a 3mf load until the post-load printer sync is done, unless the printer
+    // check on load is turned off: until then the nozzles may not be the connected printer's yet.
+    bool m_syncing_printer_after_load {false};
     bool m_new_project_and_check_state{false};
     std::string m_preview_only_filename;
     int m_valid_plates_count { 0 };

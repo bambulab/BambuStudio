@@ -4,6 +4,8 @@
 // TODO: remove this include
 #include "DevUtil.h"
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "libslic3r/Log.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 
 using namespace nlohmann;
 
@@ -50,6 +52,7 @@ bool DevCtrlInfo::CheckCanUpdateData(const nlohmann::json& jj)
             }
         }
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         ;
     }
 
@@ -58,6 +61,8 @@ bool DevCtrlInfo::CheckCanUpdateData(const nlohmann::json& jj)
 
     int DevCtrl::command_select_extruder(int id)
     {
+        if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::SelectExtruder)) return -1;
+
         json j;
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
         j["print"]["command"] = "select_extruder";

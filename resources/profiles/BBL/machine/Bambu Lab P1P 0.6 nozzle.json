@@ -10,10 +10,10 @@
     ],
     "printer_model": "Bambu Lab P1P",
     "printer_variant": "0.6",
-    "default_print_profile": "0.30mm Standard @BBL P1P 0.6 nozzle",
     "default_filament_profile": [
         "Bambu PLA Basic @BBL P1P 0.6 nozzle"
     ],
+    "default_print_profile": "0.30mm Standard @BBL P1P 0.6 nozzle",
     "include": [
         "Bambu Lab P1P 0.6 nozzle template machine_start_gcode"
     ],
@@ -43,6 +43,7 @@
         "Bambu Lab P2S 0.6 nozzle",
         "Bambu Lab H2C 0.6 nozzle",
         "Bambu Lab X2D 0.6 nozzle",
-        "Bambu Lab A2L 0.6 nozzle"
+        "Bambu Lab A2L 0.6 nozzle",
+        "Bambu Lab H3C 0.6 nozzle"
     ]
 }

@@ -166,6 +166,14 @@ enum class NotificationType
     BBLMixUsePLAAndPETG,
     BBLBrittleFilament,
     BBLMixedFilamentBroken,
+    // A flagged filament slot is reported as one of these two, never both for the same slot: the
+    // machine carries a nozzle of the kind the slot asks for but this filament has no preset for
+    // it, versus the machine carrying no such nozzle at all. They are resolved in different
+    // places, so they are separate types and can be on screen at the same time.
+    BBLFilamentNozzleDiameterMismatch,
+    BBLFilamentNozzleNotInstalled,
+    BBLFilamentNozzleNoPreset,
+    BBLAmsSyncFilamentUnmatched,
     BBLMultiFilaNoWipeTower,
 	BBLNozzleFilamentIncompatible,
 	BBLTpuNozzleHasMultiFilament,
@@ -173,11 +181,11 @@ enum class NotificationType
     BBLPrintedWeightOverLimitWarn,
     BBLBedHeatSoakInfo,
     BBLSingleExtruderMixedFilamentRisk,
+    BBLMixedSublayerVariableLayerHeight,
     AssemblyWarning,
     AssemblyInfo,
     BBLIsolatedVolumeInfo,
     BBLAssemblyFarFromOrigin,
-    BBLIntersectsVolumeInfo,
 	BBLArcFittingInfo,
     BBLCalibExtruderMismatch,
     NotificationTypeCount
@@ -225,6 +233,13 @@ public:
 	// ErrorNotificationLevel are never faded out.
     void push_notification(NotificationType type, NotificationLevel level, const std::string& text, const std::string& hypertext = "",
                            std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>(), int timestamp = 0);
+    // A corner notification in the ordinary layout -- white background, coloured left bar and
+    // border -- but painted in the error colour instead of the warning one, and never fading out.
+    // NotificationLevel picks the colour and the render path together, and ErrorNotificationLevel
+    // routes into the solid-red blocking notification (bbl_render_block_notification), which is not
+    // what these need: they stay in the corner next to the list the user is fixing.
+    void push_error_border_notification(NotificationType type, const std::string &text, const std::string &hypertext = "",
+                                        std::function<bool(wxEvtHandler *)> callback = std::function<bool(wxEvtHandler *)>());
 	// Pushes basic_notification with delay. See push_delayed_notification_data.
 	void push_delayed_notification(const NotificationType type, std::function<bool(void)> condition_callback, int64_t initial_delay, int64_t delay_interval);
 	// Removes all notifications of type from m_waiting_notifications
@@ -334,6 +349,8 @@ public:
     void render_notifications(GLCanvas3D &canvas, float overlay_width, float bottom_margin, float right_margin);
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
+    // Closes the notifications of type whose text matches none of keep_texts (compared like compare_text()).
+    void close_notifications_of_type_except(const NotificationType type, const std::vector<std::string> &keep_texts);
     void remove_notification_of_type(const NotificationType type, bool remove_all = false);
     bool has_notification_of_type(const NotificationType type);
     void clear_all();
@@ -422,6 +439,9 @@ private:
 		int                      sub_msg_id {-1};
 		std::string        ori_text;
         bool                use_warn_color { false };
+        // Paints the left bar and border in the error color while keeping the ordinary corner
+        // layout. See push_error_border_notification().
+        bool                use_error_color { false };
         //second_hypertext and second_callback
         std::string second_hypertext;
         std::function<bool(wxEvtHandler *)> second_callback;
@@ -546,6 +566,22 @@ private:
 		virtual void count_lines();
 		// returns true if PopStyleColor should be called later to pop this push
 		virtual bool push_background_color();
+		// Card layout: fixed width, colored left bar, close button in the top right corner and
+		// hypertexts on their own line. Notifications positioning their own content return false.
+		virtual bool use_card_layout() const { return true; }
+		// Error and serious warning cards are filled with their color instead of a white background.
+		bool         is_solid_card() const;
+		// Converts a size at 100 % UI scaling, where the canvas font is 15 px high, to pixels.
+		float        design_px(float size) const { return size * m_line_height / 15.f; }
+		// Round icon button at the window relative position pos, returns true when clicked.
+		// The fold button always uses the emphasized glyph color.
+		bool         render_card_button(const char* id, const ImVec2& pos, wchar_t icon, bool flip_v, bool always_emphasized);
+		void         render_card_close_button(ImGuiWrapper& imgui);
+		// Expand / collapse button of cards with more lines than fit unfolded.
+		void         render_card_fold_button(ImGuiWrapper& imgui);
+		bool         is_card_foldable() const;
+		float        hypertext_width(ImGuiWrapper& imgui, const std::string& text);
+		size_t       count_card_hypertext_lines(ImGuiWrapper& imgui);
 		// used this function instead of reading directly m_data.duration. Some notifications might need to return changing value.
 		virtual int  get_duration() { return m_data.duration; }
         void        ensure_ui_inited();
@@ -680,6 +716,7 @@ private:
 		ProgressBarNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) { }
 		virtual void set_percentage(float percent) { m_percentage = percent; }
 	protected:
+		bool use_card_layout() const override { return false; }
 		virtual void init() override;
 		virtual void	render_text(ImGuiWrapper& imgui,
 									const float win_size_x, const float win_size_y,
@@ -799,6 +836,7 @@ private:
 		std::string m_export_path;
 		std::string m_export_dir_path;
 	protected:
+		bool use_card_layout() const override { return false; }
 		// Reserves space on right for more buttons
 		void count_spaces() override;
 		void render_text(ImGuiWrapper& imgui,
@@ -828,7 +866,6 @@ private:
 		{
 			//m_types_and_counts.emplace_back(info_item_type, 1);
 		}
-		void count_spaces() override;
 		void add_type(InfoItemType type);
 		void close() override{
 			for (auto& tac : m_types_and_counts)
@@ -928,7 +965,8 @@ private:
 		NotificationType::PlaterWarning,
 		NotificationType::ProgressBar,
 		NotificationType::PrintHostUpload,
-        NotificationType::SimplifySuggestion
+        NotificationType::SimplifySuggestion,
+        NotificationType::ValidateWarning
 	};
 	//prepared (basic) notifications
 	// non-static so its not loaded too early. If static, the translations wont load correctly.
@@ -974,7 +1012,7 @@ private:
 
         NotificationData{NotificationType::BBLUserPresetExceedLimit, NotificationLevel::WarningNotificationLevel, BBL_NOTICE_MAX_INTERVAL,
 			_u8L("The number of user presets cached in the cloud has exceeded the upper limit, newly created user presets can only be used locally."),
-			_u8L("Wiki"),
+			_u8L("Wiki for details"),
                          [](wxEvtHandler* evnthndlr) {
 				wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/software/bambu-studio/3rd-party-printer-profile#cloud-user-presets-limit");
 				return false;

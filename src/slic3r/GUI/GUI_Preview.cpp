@@ -32,6 +32,7 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "NotificationManager.hpp"
+#include "libslic3r/Log.hpp"
 
 #ifdef _WIN32
 #include "BitmapComboBox.hpp"
@@ -365,7 +366,7 @@ void Preview::load_print(bool keep_z_range, bool only_gcode)
 //BBS: add only gcode mode
 void Preview::reload_print(bool keep_volumes, bool only_gcode)
 {
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: enter, keep_volumes %2%")%__LINE__ %keep_volumes;
+    BOOST_LOG_TRIVIAL(debug) << boost::format("enter, keep_volumes %1%")%keep_volumes;
 #ifdef __linux__
     // We are getting mysterious crashes on Linux in gtk due to OpenGL context activation GH #1874 #1955.
     // So we are applying a workaround here: a delayed release of OpenGL vertex buffers.
@@ -397,7 +398,7 @@ void Preview::reload_print(bool keep_volumes, bool only_gcode)
 //BBS: add only gcode mode
 void Preview::refresh_print()
 {
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: enter, current m_loaded_print %2%")%__LINE__ %m_loaded_print;
+    BOOST_LOG_TRIVIAL(debug) << boost::format("enter, current m_loaded_print %1%")%m_loaded_print;
     //BBS: add m_loaded_print logic
     //m_loaded = false;
     m_loaded_print = nullptr;
@@ -406,7 +407,7 @@ void Preview::refresh_print()
         return;
 
     load_print(true, m_only_gcode);
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: exit")%__LINE__;
+    BOOST_LOG_TRIVIAL(debug) << boost::format("exit");
 }
 
 //BBS: always load shell at preview
@@ -676,9 +677,9 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
 
     //BBS: add m_loaded_print logic
     const Print *print = m_process->fff_print();
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: previous print %2%, new print %3%")%__LINE__ %m_loaded_print %print;
+    BOOST_LOG_TRIVIAL(debug) << boost::format("previous print %1%, new print %2%")%m_loaded_print %print;
     if ((m_loaded_print&&(m_loaded_print == print)) || m_process->current_printer_technology() != ptFFF) {
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: already loaded before, return directly")%__LINE__;
+        BOOST_LOG_TRIVIAL(debug) << boost::format("already loaded before, return directly");
         return;
     }
 
@@ -688,8 +689,8 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
     bool has_layers = false;
     //BBS: always load shell at preview
     load_shells(*print, true);
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: print: %2%, gcode_result %3%, check started")%__LINE__ %print %m_gcode_result;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: print is step done, posSlice %2%, posSupportMaterial %3%, psGCodeExport %4%") % __LINE__ % print->is_step_done(posSlice) %print->is_step_done(posSupportMaterial) % print->is_step_done(psGCodeExport);
+    BOOST_LOG_TRIVIAL(debug) << boost::format("print: %1%, gcode_result %2%, check started")%print %m_gcode_result;
+    BOOST_LOG_TRIVIAL(info) << boost::format("print is step done, posSlice %1%, posSupportMaterial %2%, psGCodeExport %3%")% print->is_step_done(posSlice) %print->is_step_done(posSupportMaterial) % print->is_step_done(psGCodeExport);
     if (print->is_step_done(posSlice)) {
         for (const PrintObject* print_object : print->objects())
             if (! print_object->layers().empty()) {
@@ -707,7 +708,7 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
 
     //BBS: support preview gcode directly even if no slicing
     bool directly_preview = (only_gcode || print->is_step_done(psGCodeExport)) && !m_gcode_result->moves.empty();
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": directly_preview: %1%, gcode_result moves %2%, has_layers %3%") % directly_preview % m_gcode_result->moves.size() %has_layers;
+    BOOST_LOG_TRIVIAL(debug) << boost::format("directly_preview: %1%, gcode_result moves %2%, has_layers %3%") % directly_preview % m_gcode_result->moves.size() %has_layers;
     if (wxGetApp().is_editor() && !has_layers && !directly_preview) {
         show_sliders(false);
         m_canvas_widget->Refresh();
@@ -750,7 +751,7 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
         if (gcode_preview_data_valid && (is_slice_result_valid || only_gcode)) {
             // Load the real G-code preview.
             //BBS: add more log
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": will load gcode_preview from result, moves count %1%") % m_gcode_result->moves.size();
+            BOOST_LOG_TRIVIAL(debug) << boost::format("will load gcode_preview from result, moves count %1%") % m_gcode_result->moves.size();
             //BBS: add only gcode mode
             m_canvas->load_gcode_preview(*m_gcode_result, colors, only_gcode);
             //BBS show sliders

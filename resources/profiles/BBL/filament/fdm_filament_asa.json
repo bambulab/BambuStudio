@@ -28,41 +28,55 @@
     "fan_min_speed": [
         "10"
     ],
+    "filament_adhesiveness_category": [
+        "200"
+    ],
     "filament_cost": [
         "20"
     ],
     "filament_density": [
         "1.04"
     ],
-    "filament_max_volumetric_speed": [
-        "28.6"
-    ],
-    "filament_type": [
-        "ASA"
-    ],
-    "filament_adhesiveness_category": [
-        "200"
-    ],
-    "filament_dev_ams_drying_time": [
-        "12",
-        "8.0",
-        "12",
-        "8.0"
-    ],
     "filament_dev_ams_drying_heat_distortion_temperature": [
+        "100",
+        "100",
+        "100",
         "100"
-    ],
-    "filament_dev_drying_cooling_temperature": [
-        "85"
     ],
     "filament_dev_ams_drying_temperature": [
         "65",
         "80",
         "65",
-        "80"
+        "80",
+        "80",
+        "80",
+        "65",
+        "65"
+    ],
+    "filament_dev_ams_drying_time": [
+        "12",
+        "8.0",
+        "12",
+        "8.0",
+        "8.0",
+        "8.0",
+        "12",
+        "12"
+    ],
+    "filament_dev_drying_cooling_temperature": [
+        "85"
     ],
     "filament_dev_drying_softening_temperature": [
+        "85",
+        "85",
+        "95",
         "85"
+    ],
+    "filament_max_volumetric_speed": [
+        "28.6"
+    ],
+    "filament_type": [
+        "ASA"
     ],
     "hot_plate_temp": [
         "90"

@@ -1,4 +1,5 @@
 #include "DeviceWebHealth.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI { namespace DeviceWebHealth {
 
@@ -24,6 +25,7 @@ int int_member(const nlohmann::json &value, const char *key)
     try {
         return it->get<int>();
     } catch (const nlohmann::json::exception &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return 0;
     }
 }

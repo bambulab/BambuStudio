@@ -1,5 +1,6 @@
 #include "DevStorage.h"
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "libslic3r/Log.hpp"
 
 
 namespace Slic3r {
@@ -44,7 +45,9 @@ DevStorage::SdcardState Slic3r::DevStorage::set_sdcard_state(int state)
                         system->tl_external_total_kb = cam_data["tl_external_total_kb"].get<int>();
                 }
             }
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
      }
 }
 

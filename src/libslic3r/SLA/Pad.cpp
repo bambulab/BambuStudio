@@ -6,7 +6,6 @@
 
 #include "ConcaveHull.hpp"
 
-#include "boost/log/trivial.hpp"
 #include "ClipperUtils.hpp"
 #include "Tesselate.hpp"
 #include "MTUtils.hpp"
@@ -19,7 +18,7 @@
 #include "SVG.hpp"
 
 #include "I18N.hpp"
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 //! macro used to mark string used at localization,
 //! return same string

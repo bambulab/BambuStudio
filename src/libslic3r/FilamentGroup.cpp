@@ -2,11 +2,12 @@
 #include "GCode/ToolOrderUtils.hpp"
 #include "FlushVolPredictor.hpp"
 #include <cmath>
+#include <functional>
 #include <queue>
 #include <random>
 #include <cassert>
 #include <sstream>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r
 {
@@ -36,6 +37,16 @@ namespace Slic3r
         return weighted_color_cost + filament_id_mismatch_cost;
     }
 
+    static bool filament_diameter_matches_nozzle_volume(const FilamentGroupUtils::FilamentInfo &filament,
+                                                        NozzleVolumeType volume_type)
+    {
+        if (filament.diameter <= 0.f)
+            return true;
+        const bool uses_285_filament = filament.diameter > 2.5f;
+        const bool uses_285_path     = volume_type == NozzleVolumeType::nvtTPU285;
+        return uses_285_filament == uses_285_path;
+    }
+
     // clear the array and heap,save the groups in heap to the array
     static void change_memoryed_heaps_to_arrays(MemoryedGroupHeap& heap,const int total_filament_num,const std::vector<unsigned int>& used_filaments, std::vector<std::vector<int>>& arrs)
     {
@@ -63,21 +74,31 @@ namespace Slic3r
         return filament_merge_map;
     }
 
-    static uint64_t fnv_hash_nozzle(int volume_type, int is_right_extruder, int loaded_filament = -1)
+    // 喷嘴枚举去重使用的语义 hash：直径、流量类型、所属挤出机、已装料和容量都会影响可交换性。
+    static uint64_t fnv_hash_nozzle(const std::string& diameter, int volume_type, int is_right_extruder, int loaded_filament = -1, int capacity = -1)
     {
         constexpr uint64_t FNV_OFFSET_BASIS = 14695981039346656037ULL;
         constexpr uint64_t FNV_PRIME        = 1099511628211ULL;
         constexpr uint64_t SALT_A           = 0xA5A5A5A5A5A5A5A5ULL;
         constexpr uint64_t SALT_B           = 0x5A5A5A5A5A5A5A5AULL;
         constexpr uint64_t SALT_C           = 0x3C3C3C3C3C3C3C3CULL;
+        constexpr uint64_t SALT_D           = 0x9696969696969696ULL;
 
         uint64_t h = FNV_OFFSET_BASIS;
+        for (unsigned char c : diameter) {
+            h ^= static_cast<uint64_t>(c);
+            h *= FNV_PRIME;
+        }
         h ^= static_cast<uint64_t>(volume_type) + SALT_A;
         h *= FNV_PRIME;
         h ^= static_cast<uint64_t>(is_right_extruder) + SALT_B;
         h *= FNV_PRIME;
         if (loaded_filament >= 0) {
             h ^= static_cast<uint64_t>(loaded_filament) + SALT_C;
+            h *= FNV_PRIME;
+        }
+        if (capacity >= 0) {
+            h ^= static_cast<uint64_t>(capacity) + SALT_D;
             h *= FNV_PRIME;
         }
 
@@ -213,7 +234,9 @@ namespace Slic3r
         for (const auto& nozzle : ctx.nozzle_info.nozzle_list) {
             auto it = ctx.nozzle_info.nozzle_status.find(nozzle.group_id);
             int loaded_filament = (it != ctx.nozzle_info.nozzle_status.end()) ? it->second : -1;
-            uint64_t hash = fnv_hash_nozzle(nozzle.volume_type, nozzle.group_id > 0, loaded_filament);
+            int nozzle_capacity = nozzle.group_id < static_cast<int>(ctx.nozzle_info.per_nozzle_capacity.size()) ?
+                ctx.nozzle_info.per_nozzle_capacity[nozzle.group_id] : -1;
+            uint64_t hash = fnv_hash_nozzle(nozzle.diameter, nozzle.volume_type, nozzle.extruder_id > 0, loaded_filament, nozzle_capacity);
             nozzle_type_count[hash]++;
         }
 
@@ -295,12 +318,13 @@ namespace Slic3r
         std::vector<uint64_t> group_hashs;
 
         std::vector<size_t> nozzles_hash(k);
-        for (const auto& nozzle : ctx.nozzle_info.nozzle_list) {
-            if (nozzle.group_id < k) {
-                auto it = ctx.nozzle_info.nozzle_status.find(nozzle.group_id);
-                int loaded_filament = (it != ctx.nozzle_info.nozzle_status.end()) ? it->second : -1;
-                nozzles_hash[nozzle.group_id] = fnv_hash_nozzle(nozzle.volume_type, nozzle.group_id > 0, loaded_filament);
-            }
+        for (int nozzle_idx = 0; nozzle_idx < k; ++nozzle_idx) {
+            const auto& nozzle = ctx.nozzle_info.nozzle_list[nozzle_idx];
+            auto it = ctx.nozzle_info.nozzle_status.find(nozzle.group_id);
+            int loaded_filament = (it != ctx.nozzle_info.nozzle_status.end()) ? it->second : -1;
+            int nozzle_capacity = nozzle_idx < static_cast<int>(ctx.nozzle_info.per_nozzle_capacity.size()) ?
+                ctx.nozzle_info.per_nozzle_capacity[nozzle_idx] : -1;
+            nozzles_hash[nozzle_idx] = fnv_hash_nozzle(nozzle.diameter, nozzle.volume_type, nozzle.extruder_id > 0, loaded_filament, nozzle_capacity);
         }
 
         std::vector<int> best_full_map(ctx.group_info.total_filament_num, ctx.machine_info.master_extruder_id);
@@ -345,9 +369,11 @@ namespace Slic3r
             }
             prefer_level += placeable_count * UNPLACEABLE_LIMIT_REWARD;
 
+            // Per-nozzle capacity (indexed by nozzle group_id), provided by ctx for every machine.
+            const std::vector<int>& nozzle_caps = ctx.nozzle_info.per_nozzle_capacity;
             bool size_ok = true;
             for (int g = 0; g < k; g++) {
-                if (g < (int)ctx.machine_info.max_group_size.size() && groups_count[g] > ctx.machine_info.max_group_size[g])
+                if (g < (int)nozzle_caps.size() && groups_count[g] > nozzle_caps[g])
                     size_ok = false;
             }
             if (size_ok)
@@ -356,7 +382,7 @@ namespace Slic3r
             if (ctx.group_info.strategy == FGStrategy::BestFit) {
                 bool all_full = true;
                 for (int g = 0; g < k; g++) {
-                    if (g < (int)ctx.machine_info.max_group_size.size() && groups_count[g] < ctx.machine_info.max_group_size[g])
+                    if (g < (int)nozzle_caps.size() && groups_count[g] < nozzle_caps[g])
                         all_full = false;
                 }
                 if (all_full)
@@ -420,6 +446,15 @@ namespace Slic3r
             cluster_size_limit.emplace_back(clusters);
         }
         PAM.set_cluster_group_size(cluster_size_limit);
+
+
+        if (!ctx.nozzle_info.per_nozzle_capacity.empty()) {
+            const auto& cap = ctx.nozzle_info.per_nozzle_capacity;
+            std::vector<int> per_nozzle_max(k, DEFAULT_CLUSTER_SIZE);
+            for (int nz = 0; nz < k; ++nz)
+                per_nozzle_max[nz] = (nz < (int)cap.size()) ? cap[nz] : DEFAULT_CLUSTER_SIZE;
+            PAM.set_max_cluster_size(per_nozzle_max);
+        }
 
         PAM.do_clustering(ctx, timeout_ms, 30);
 
@@ -931,26 +966,101 @@ namespace Slic3r
         m_cluster_labels = best_cluster_labels;
     }
 
+    FilamentGroupContext FilamentGroupContext::available_only(std::vector<int>& full_nozzle_ids) const
+    {
+        full_nozzle_ids.clear();
+
+        FilamentGroupContext compact = *this;
+
+        // 只保留已安装喷嘴，把 group_id 重编号成紧凑 [0,k)；full_nozzle_ids 记录 紧凑id -> 原始id。
+        NozzleInfo compact_nozzle_info;
+        for (const auto& nozzle : nozzle_info.nozzle_list) {
+            const int full_id = nozzle.group_id;
+            if (!nozzle.installed)
+                continue;
+
+            const int compact_id = (int)full_nozzle_ids.size();
+            full_nozzle_ids.emplace_back(full_id);
+
+            MultiNozzleUtils::NozzleInfo compact_nozzle = nozzle;
+            compact_nozzle.group_id = compact_id;
+            compact_nozzle_info.nozzle_list.emplace_back(std::move(compact_nozzle));
+            compact_nozzle_info.per_nozzle_capacity.emplace_back(full_id >= 0 && full_id < (int)nozzle_info.per_nozzle_capacity.size() ? nozzle_info.per_nozzle_capacity[full_id] : 1);
+            compact_nozzle_info.extruder_nozzle_list[nozzle.extruder_id].emplace_back(compact_id);
+
+            if (auto it = nozzle_info.nozzle_status.find(full_id); it != nozzle_info.nozzle_status.end())
+                compact_nozzle_info.nozzle_status[compact_id] = it->second;
+        }
+        compact.nozzle_info = std::move(compact_nozzle_info);
+
+        // master_extruder_id / prefer_non_model_filament 在 flush 算法里按喷嘴id 使用，需与 nozzle_info
+        // 一并转到紧凑空间（master_extruder_id 兼作默认喷嘴槽位）。
+        auto& machine = compact.machine_info;
+        machine.master_extruder_id = 0;
+        for (int i = 0; i < (int)full_nozzle_ids.size(); ++i)
+            if (full_nozzle_ids[i] == this->machine_info.master_extruder_id) { machine.master_extruder_id = i; break; }
+
+        const auto& full_prefer = this->machine_info.prefer_non_model_filament;
+        machine.prefer_non_model_filament.clear();
+        for (int full_id : full_nozzle_ids)
+            machine.prefer_non_model_filament.push_back(full_id >= 0 && full_id < (int)full_prefer.size() && full_prefer[full_id]);
+
+        return compact;
+    }
+
+    // 把耗材映射里的紧凑喷嘴id 还原回原始喷嘴id
+    static void map_to_full_nozzle_ids(std::vector<int>& filament_to_nozzle, const std::vector<int>& full_nozzle_ids)
+    {
+        for (int& nozzle_id : filament_to_nozzle)
+            if (nozzle_id >= 0 && nozzle_id < static_cast<int>(full_nozzle_ids.size()))
+                nozzle_id = full_nozzle_ids[nozzle_id];
+    }
+
     std::vector<int> FilamentGroup::calc_min_flush_group(int* cost)
     {
         auto used_filaments = collect_sorted_used_filaments(ctx.model_info.layer_filaments);
-        int n = (int)used_filaments.size();
-        int k = (int)ctx.nozzle_info.nozzle_list.size();
+        int  n              = (int)used_filaments.size();
+
+        // 分组只在可用喷嘴上进行：enum/kmedoids 把容量当软奖励，空槽位必须从候选里剔除（也缩小 k^n）。
+        // available_only 会把 nozzle_info 与按喷嘴id 使用的 machine 字段一并转到紧凑空间。
+        std::vector<int>     full_nozzle_ids; // 紧凑id -> 原始id
+        FilamentGroupContext available_ctx = ctx.available_only(full_nozzle_ids);
+        if (full_nozzle_ids.empty())
+            throw Slic3r::RuntimeError("No valid nozzle found. Please check nozzle count.");
+
+        FilamentGroup available_group(available_ctx);
+        available_group.get_custom_seq = get_custom_seq;
+        int k = (int)available_ctx.nozzle_info.nozzle_list.size();
 
         std::unordered_map<int, std::vector<int>> unplaceable_limits;
-        extract_unprintable_limit_indices(ctx.model_info.unprintable_filaments, used_filaments, unplaceable_limits);
-        unplaceable_limits = rebuild_nozzle_unprintables(used_filaments, unplaceable_limits, ctx.group_info.filament_volume_map);
+        extract_unprintable_limit_indices(available_ctx.model_info.unprintable_filaments, used_filaments, unplaceable_limits);
+        unplaceable_limits = available_group.rebuild_nozzle_unprintables(used_filaments, unplaceable_limits, available_ctx.group_info.filament_volume_map);
+
+        // 多口径模式下，显式指定了喷嘴口径的耗材若在所有可用喷嘴上均不可放置（如喷嘴架上无对应口径），直接报错，避免被软约束兜底分配到错误口径的喷嘴。
+        for (int fidx = 0; fidx < n; ++fidx) {
+            const unsigned int filament_id = used_filaments[fidx];
+            if (filament_id >= available_ctx.model_info.selected_nozzle_diameters.size() ||
+                available_ctx.model_info.selected_nozzle_diameters[filament_id].empty())
+                continue;
+            const auto it = unplaceable_limits.find(fidx);
+            if (it != unplaceable_limits.end() && static_cast<int>(it->second.size()) >= k)
+                throw Slic3r::RuntimeError("Nozzle assignment error: no nozzle matches the diameter and flow selected for one of the filaments. Please check the nozzle setup.");
+        }
 
         m_memoryed_heap = MemoryedGroupHeap();
         std::vector<int> result;
 
-        long long estimated = estimate_dedup_enum_count(k, n, ctx);
+        long long estimated = estimate_dedup_enum_count(k, n, available_ctx);
         if (estimated < ENUM_THRESHOLD)
-            result = calc_group_by_enum(k, used_filaments, unplaceable_limits, cost);
+            result = available_group.calc_group_by_enum(k, used_filaments, unplaceable_limits, cost);
         else
-            result = calc_group_by_kmedoids(k, used_filaments, unplaceable_limits, cost, 3000);
+            result = available_group.calc_group_by_kmedoids(k, used_filaments, unplaceable_limits, cost, 3000);
 
-        change_memoryed_heaps_to_arrays(m_memoryed_heap, ctx.group_info.total_filament_num, used_filaments, m_memoryed_groups);
+        map_to_full_nozzle_ids(result, full_nozzle_ids);
+
+        change_memoryed_heaps_to_arrays(available_group.m_memoryed_heap, ctx.group_info.total_filament_num, used_filaments, m_memoryed_groups);
+        for (auto& memoryed_group : m_memoryed_groups)
+            map_to_full_nozzle_ids(memoryed_group, full_nozzle_ids);
 
         return result;
     }
@@ -1077,7 +1187,8 @@ namespace Slic3r
             if (FGMode::MatchMode == ctx.group_info.mode)
                 return calc_filament_group_for_match(cost);
         }
-        catch (const FilamentGroupException& e) {
+        catch (const FilamentGroupException&) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         }
 
         return calc_filament_group_for_flush(cost);
@@ -1249,7 +1360,7 @@ namespace Slic3r
             return ungrouped_filaments;
             };
 
-        std::vector<int> group(ctx.group_info.total_filament_num, ctx.machine_info.master_extruder_id);
+        std::vector<int> group(ctx.group_info.total_filament_num, 0);
         std::vector<int> ungrouped_filaments;
 
         auto unlink_limits_full = build_unlink_limits(l_nodes, r_nodes, [&used_filament_list, &machine_filament_list, is_extruder_filament_compatible](int used_filament_idx, int machine_filament_idx) {
@@ -1375,9 +1486,14 @@ namespace Slic3r
             std::vector<int> unprintable_nozzles;
             for(size_t nozzle_idx =0 ;nozzle_idx < ctx.nozzle_info.nozzle_list.size(); ++nozzle_idx){
                 auto nozzle_info = ctx.nozzle_info.nozzle_list[nozzle_idx];
+                const unsigned int filament_id = used_filaments[fidx];
+                const bool diameter_mismatch = filament_id < ctx.model_info.selected_nozzle_diameters.size() &&
+                    !ctx.model_info.selected_nozzle_diameters[filament_id].empty() &&
+                    ctx.model_info.selected_nozzle_diameters[filament_id] != nozzle_info.diameter;
 
                 if(std::find(unexpected_extruders.begin(), unexpected_extruders.end(), nozzle_info.extruder_id)!= unexpected_extruders.end() || (expected_volume!=nvtHybrid && expected_volume != nozzle_info.volume_type) ||
-                  (unprintable_volumes.count(nozzle_info.volume_type) != 0))
+                  !filament_diameter_matches_nozzle_volume(ctx.model_info.filament_info[filament_id], nozzle_info.volume_type) ||
+                  (unprintable_volumes.count(nozzle_info.volume_type) != 0) || diameter_mismatch)
                     unprintable_nozzles.push_back(nozzle_idx);
             }
             if(unprintable_nozzles.empty())
@@ -1400,9 +1516,263 @@ namespace Slic3r
         auto used_filaments = collect_sorted_used_filaments(ctx.model_info.layer_filaments);
         for(size_t idx = 0; idx < used_filaments.size(); ++idx)
             new_ctx.model_info.unprintable_filaments[1 - filament_extruder_map[used_filaments[idx]]].insert(used_filaments[idx]);
-        new_ctx.machine_info.max_group_size.assign(new_ctx.machine_info.max_group_size.size(), std::numeric_limits<int>::max());
+        // Finite "no extra limit" value, see calc_filament_group_for_manual_multi_nozzle: INT_MAX
+        // overflows have_enough_size() and disables the per-nozzle capacity that spreads fixed nozzles.
+        int group_cap = std::max(1, new_ctx.group_info.total_filament_num);
+        new_ctx.machine_info.max_group_size.assign(new_ctx.machine_info.max_group_size.size(), group_cap);
         FilamentGroup fg(new_ctx);
         return fg.calc_filament_group_for_flush();
+    }
+
+    std::vector<int> calc_filament_group_for_nozzle_match(FilamentGroupContext &ctx)
+    {
+        using namespace FlushPredict;
+
+        auto             used_filaments = collect_sorted_used_filaments(ctx.model_info.layer_filaments);
+
+        struct LoadedNozzle {
+            const NozzleLoadedFilamentInfo*     filament;
+            MultiNozzleUtils::NozzleInfo        nozzle;
+        };
+
+        // 1、收集当前设备侧已经确认“喷嘴内有料”的入口。
+        //    同一个真实喷嘴可能绑定多个可进退料槽，这里先按 nozzle_id 聚合，后面仍然作为多个候选材料参与匹配。
+        std::unordered_map<int, std::vector<const NozzleLoadedFilamentInfo *>> loaded_filament_map;
+        for (const auto &loaded : ctx.machine_info.nozzle_loaded_filaments) {
+            if (loaded.valid)
+                loaded_filament_map[loaded.nozzle_id].emplace_back(&loaded);
+        }
+
+        std::vector<LoadedNozzle> loaded_nozzles;
+        for (const auto &nozzle : ctx.nozzle_info.nozzle_list) {
+            auto loaded = loaded_filament_map.find(nozzle.group_id);
+            if (!nozzle.installed || loaded == loaded_filament_map.end())
+                continue;
+            for (const auto* filament : loaded->second)
+                loaded_nozzles.push_back({ filament, nozzle });
+        }
+
+        // 没有工程耗材或没有设备已装料信息时，match 模式没有可参考目标，退回省冲刷分组。
+        if (used_filaments.empty() || loaded_nozzles.empty()) {
+            FilamentGroup fg(ctx);
+            return fg.calc_filament_group_for_flush();
+        }
+
+        // 2、构建匹配图节点：左侧是工程实际使用的耗材，右侧是设备侧已装料入口。
+        //    右侧仍然只来自真实 nozzle_list；虚拟喷嘴不会在这里提前加入。
+        std::vector<int> l_nodes(used_filaments.size());
+        std::iota(l_nodes.begin(), l_nodes.end(), 0);
+        std::vector<int> r_nodes(loaded_nozzles.size());
+        std::iota(r_nodes.begin(), r_nodes.end(), 0);
+
+        // Multi-diameter hard constraint, shared by the loaded-nozzle matching and the unmatched
+        // fallback: a filament may only sit on a nozzle whose diameter its preset works at. Type and
+        // color alone carry no diameter information, so without this a 0.4-only filament can be
+        // matched onto a loaded 0.2 nozzle just because both hold the same material.
+        auto diameter_matches = [&ctx](int filament_id, const MultiNozzleUtils::NozzleInfo &nozzle) {
+            if (filament_id < 0 || filament_id >= static_cast<int>(ctx.model_info.selected_nozzle_diameters.size()))
+                return true;
+            const std::string &selected = ctx.model_info.selected_nozzle_diameters[filament_id];
+            return selected.empty() || selected == nozzle.diameter;
+        };
+
+        // 3、定义硬约束：材料类型、支撑属性、不可打印限制、喷嘴口径和喷嘴流量类型都兼容时，才允许连边。
+        auto can_match = [&ctx, &used_filaments, &loaded_nozzles, &diameter_matches](int used_filament_idx, int loaded_idx) {
+            int         filament_id = used_filaments[used_filament_idx];
+            const auto &model       = ctx.model_info.filament_info[filament_id];
+            const auto &loaded      = *loaded_nozzles[loaded_idx].filament;
+            const auto &nozzle      = loaded_nozzles[loaded_idx].nozzle;
+
+            if (model.type != loaded.type || model.is_support != loaded.is_support)
+                return false;
+
+            if (!diameter_matches(filament_id, nozzle))
+                return false;
+
+            if (!filament_diameter_matches_nozzle_volume(model, nozzle.volume_type))
+                return false;
+
+            if (nozzle.extruder_id >= 0 && nozzle.extruder_id < static_cast<int>(ctx.model_info.unprintable_filaments.size()) &&
+                ctx.model_info.unprintable_filaments[nozzle.extruder_id].count(filament_id) != 0)
+                return false;
+
+            if (filament_id >= 0 && filament_id < static_cast<int>(ctx.group_info.filament_volume_map.size())) {
+                NozzleVolumeType expected_volume = static_cast<NozzleVolumeType>(ctx.group_info.filament_volume_map[filament_id]);
+                if (expected_volume != nvtHybrid && expected_volume != nozzle.volume_type) return false;
+            }
+
+            auto volume_iter = ctx.model_info.unprintable_volumes.find(filament_id);
+            if (volume_iter != ctx.model_info.unprintable_volumes.end() && volume_iter->second.count(nozzle.volume_type) != 0) return false;
+
+            return true;
+        };
+
+        // 4、构造费用矩阵和禁连表：不兼容的边加入 unlink_limits，兼容边按颜色和耗材小类计算匹配成本。
+        //    若同一固定喷嘴存在多个候选耗材（如喷嘴内耗材 + 预装槽位/外挂耗材），后续候选增加微小代价偏置，优先保留喷嘴内当前耗材。
+        std::vector<float> nozzle_secondary_tray_penalty(loaded_nozzles.size(), 0.0f);
+        {
+            std::unordered_set<int> seen_fixed_nozzle_groups;
+            for (size_t j = 0; j < loaded_nozzles.size(); ++j) {
+                const int group_id = loaded_nozzles[j].nozzle.group_id;
+                const int cap = (group_id >= 0 && group_id < static_cast<int>(ctx.nozzle_info.per_nozzle_capacity.size()))
+                                    ? ctx.nozzle_info.per_nozzle_capacity[group_id]
+                                    : 1;
+                if (cap <= 1 && !seen_fixed_nozzle_groups.insert(group_id).second)
+                    nozzle_secondary_tray_penalty[j] = 1.0f;
+            }
+        }
+        std::vector<std::vector<float>> cost_matrix(used_filaments.size(), std::vector<float>(loaded_nozzles.size(), 0.0f));
+        std::unordered_map<int, std::vector<int>> unlink_limits;
+        for (size_t i = 0; i < used_filaments.size(); ++i) {
+            const int   filament_id = used_filaments[i];
+            const auto &model       = ctx.model_info.filament_info[filament_id];
+            // 读取工程耗材小类，缺失时仅按颜色匹配。
+            const std::string model_filament_id = filament_id < ctx.model_info.filament_ids.size()
+                                                      ? ctx.model_info.filament_ids[filament_id]
+                                                      : std::string();
+            for (size_t j = 0; j < loaded_nozzles.size(); ++j) {
+                if (!can_match(static_cast<int>(i), static_cast<int>(j))) {
+                    unlink_limits[static_cast<int>(i)].emplace_back(static_cast<int>(j));
+                    continue;
+                }
+                const auto &loaded = *loaded_nozzles[j].filament;
+                float       cost   = calc_color_distance(RGBColor(model.color.r, model.color.g, model.color.b), RGBColor(loaded.color.r, loaded.color.g, loaded.color.b));
+                cost_matrix[i][j] = calc_match_mode_cost(cost, model_filament_id, loaded.filament_id,
+                                                         static_cast<int>(used_filaments.size())) +
+                                    nozzle_secondary_tray_penalty[j];
+            }
+        }
+
+        // 5、把匹配结果转换成“工程耗材 -> nozzle group_id”。
+        //    真实喷嘴先消耗自身容量；如果同一个真实喷嘴匹配到多个工程耗材，超出容量的部分再按未匹配耗材策略分配。
+        auto build_match_result = [&ctx, &used_filaments, &loaded_nozzles, &diameter_matches, &cost_matrix, &nozzle_secondary_tray_penalty](const std::vector<int> &match) {
+            std::vector<int> group(ctx.group_info.total_filament_num, ctx.machine_info.master_extruder_id);
+            std::unordered_map<int, int> remaining_capacity;
+
+            // 5.1 初始化每个真实喷嘴的剩余容量。
+            //     这里不预留虚拟喷嘴容量，虚拟喷嘴只由真实匹配溢出触发。
+            for (const auto& nozzle : ctx.nozzle_info.nozzle_list) {
+                int cap = 1;
+                if (nozzle.group_id >= 0 && nozzle.group_id < static_cast<int>(ctx.nozzle_info.per_nozzle_capacity.size()))
+                    cap = ctx.nozzle_info.per_nozzle_capacity[nozzle.group_id];
+                remaining_capacity[nozzle.group_id] = cap;
+            }
+
+            // 5.2 追加虚拟喷嘴：直接继承被溢出的真实喷嘴属性，只改成新的 group_id。
+            //     这样虚拟喷嘴和真实喷嘴保持相同的直径、流量类型和 extruder_id。
+            auto append_virtual_nozzle = [&ctx](const MultiNozzleUtils::NozzleInfo& source_nozzle) {
+                const int group_id = static_cast<int>(ctx.nozzle_info.nozzle_list.size());
+                MultiNozzleUtils::NozzleInfo virtual_nozzle = source_nozzle;
+                virtual_nozzle.group_id  = group_id;
+                virtual_nozzle.installed = true;
+                ctx.nozzle_info.nozzle_list.emplace_back(std::move(virtual_nozzle));
+                ctx.nozzle_info.per_nozzle_capacity.emplace_back(1);
+                return group_id;
+            };
+
+            // 5.3 兜底分配只处理“没有匹配到已装料入口”的工程耗材。
+            //     这类耗材没有颜色最优目标，但仍然要满足不可打印、喷嘴口径和流量类型约束。
+            auto can_place_unloaded = [&ctx, &diameter_matches](int filament_id, const MultiNozzleUtils::NozzleInfo& nozzle) {
+                if (!nozzle.installed)
+                    return false;
+                if (!diameter_matches(filament_id, nozzle))
+                    return false;
+                if (!filament_diameter_matches_nozzle_volume(ctx.model_info.filament_info[filament_id], nozzle.volume_type))
+                    return false;
+                if (nozzle.extruder_id >= 0 && nozzle.extruder_id < static_cast<int>(ctx.model_info.unprintable_filaments.size()) &&
+                    ctx.model_info.unprintable_filaments[nozzle.extruder_id].count(filament_id) != 0)
+                    return false;
+                if (filament_id >= 0 && filament_id < static_cast<int>(ctx.group_info.filament_volume_map.size())) {
+                    NozzleVolumeType expected_volume = static_cast<NozzleVolumeType>(ctx.group_info.filament_volume_map[filament_id]);
+                    if (expected_volume != nvtHybrid && expected_volume != nozzle.volume_type) return false;
+                }
+                auto volume_iter = ctx.model_info.unprintable_volumes.find(filament_id);
+                if (volume_iter != ctx.model_info.unprintable_volumes.end() && volume_iter->second.count(nozzle.volume_type) != 0) return false;
+                return true;
+            };
+
+            auto is_fixed_nozzle = [&ctx](const MultiNozzleUtils::NozzleInfo& nozzle) {
+                if (nozzle.group_id >= 0 && nozzle.group_id < static_cast<int>(ctx.nozzle_info.per_nozzle_capacity.size()))
+                    return ctx.nozzle_info.per_nozzle_capacity[nozzle.group_id] <= 1;
+                return true;
+            };
+
+            // 5.4 未匹配耗材没有可参考的已装料入口，按普通容量兜底：
+            //     优先分配有剩余容量的固定喷嘴（2-9号），固定喷嘴无空余时再分配 AMS 喷嘴（1号头）；
+            //     如果兼容喷嘴容量均已满，则追加同类型虚拟喷嘴；没有兼容喷嘴则报错。
+            auto assign_unmatched = [&](int filament_id) {
+                std::optional<MultiNozzleUtils::NozzleInfo> virtual_nozzle_source;
+                for (bool prefer_fixed : { true, false }) {
+                    for (const auto& nozzle : ctx.nozzle_info.nozzle_list) {
+                        if (is_fixed_nozzle(nozzle) != prefer_fixed)
+                            continue;
+                        if (!can_place_unloaded(filament_id, nozzle))
+                            continue;
+
+                        if (!virtual_nozzle_source)
+                            virtual_nozzle_source = nozzle;
+
+                        int& cap = remaining_capacity[nozzle.group_id];
+                        if (cap <= 0)
+                            continue;
+                        --cap;
+                        return nozzle.group_id;
+                    }
+                }
+
+                // 有兼容喷嘴但真实容量已满时，追加同类型虚拟喷嘴，保持“一喷嘴一料”的分组语义。
+                if (virtual_nozzle_source)
+                    return append_virtual_nozzle(*virtual_nozzle_source);
+
+                throw Slic3r::RuntimeError("Nozzle assignment error: no compatible nozzle is available for the unmatched filament. Please check the nozzle setup or regroup.");
+            };
+
+            // 5.5 应用匹配结果：同一固定喷嘴优先保留喷嘴上当前已进料的耗材，
+            //     多出的预装槽位耗材或未匹配耗材统一按固定喷嘴优先策略分配。
+            std::vector<size_t> matched_indices;
+            std::vector<size_t> unmatched_indices;
+            for (size_t idx = 0; idx < match.size(); ++idx) {
+                if (match[idx] == MaxFlowGraph::INVALID_ID)
+                    unmatched_indices.push_back(idx);
+                else
+                    matched_indices.push_back(idx);
+            }
+
+            std::stable_sort(matched_indices.begin(), matched_indices.end(), [&](size_t a, size_t b) {
+                const float pen_a = nozzle_secondary_tray_penalty[match[a]];
+                const float pen_b = nozzle_secondary_tray_penalty[match[b]];
+                if (pen_a != pen_b)
+                    return pen_a < pen_b;
+                const float cost_a = cost_matrix[a][match[a]];
+                const float cost_b = cost_matrix[b][match[b]];
+                if (cost_a != cost_b)
+                    return cost_a < cost_b;
+                return match[a] < match[b];
+            });
+
+            for (size_t idx : matched_indices) {
+                const int filament_id = used_filaments[idx];
+                const auto& matched_nozzle = loaded_nozzles[match[idx]].nozzle;
+                int& cap = remaining_capacity[matched_nozzle.group_id];
+                if (cap > 0) {
+                    --cap;
+                    group[filament_id] = matched_nozzle.group_id;
+                } else {
+                    unmatched_indices.push_back(idx);
+                }
+            }
+
+            for (size_t idx : unmatched_indices) {
+                const int filament_id = used_filaments[idx];
+                group[filament_id] = assign_unmatched(static_cast<int>(filament_id));
+            }
+            return group;
+        };
+
+        // 6、执行匹配：每个已装料槽位节点自身容量为 1（一对一匹配），同一固定喷嘴的容量约束在应用匹配结果时完成二选一收敛。
+        std::vector<int> v_capacity(loaded_nozzles.size(), 1);
+        MatchModeGroupSolver solver(cost_matrix, l_nodes, r_nodes, v_capacity, unlink_limits);
+        return build_match_result(solver.solve());
     }
 
     std::vector<FilamentPlanRes> plan_filament_nozzle_mapping_and_order(const FilamentGroupContext &ctx)
@@ -1543,7 +1913,8 @@ namespace Slic3r
         for(size_t idx = 0; idx < used_filaments.size(); ++idx)
             new_ctx.model_info.unprintable_filaments[1 - filament_map_manual[used_filaments[idx]]].insert(used_filaments[idx]);
 
-        new_ctx.machine_info.max_group_size.assign(new_ctx.machine_info.max_group_size.size(), std::numeric_limits<int>::max());
+        int group_cap = std::max(1, new_ctx.group_info.total_filament_num);
+        new_ctx.machine_info.max_group_size.assign(new_ctx.machine_info.max_group_size.size(), group_cap);
         FilamentGroup fg(new_ctx);
         return fg.calc_filament_group_for_flush();
     }

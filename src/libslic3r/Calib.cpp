@@ -562,7 +562,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
 
             double number_e_per_mm = e_per_mm(line_width(), height_layer(), m_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0),
                                               m_config.option<ConfigOptionFloats>("filament_diameter")->get_at(0),
-                                              m_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0));
+                                              m_config.option<ConfigOptionFloatsNullable>("filament_flow_ratio")->get_at(0));
 
             // glyph on every other line
             for (int j = 0; j < num_patterns; j += 2) {

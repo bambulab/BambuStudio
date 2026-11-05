@@ -2,7 +2,7 @@
 //#define STB_TRUETYPE_IMPLEMENTATION
 #include "imgui/imstb_truetype.h"
 #include "libslic3r/Utils.hpp"
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 #if defined(__APPLE__)
 #include <CoreText/CTFont.h>

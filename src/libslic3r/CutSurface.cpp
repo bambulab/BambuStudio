@@ -1,4 +1,5 @@
 #include "CutSurface.hpp"
+#include "libslic3r/Log.hpp"
 
 /// models_input.obj - Check transormation of model to each others
 /// projection_center.obj - circle representing center of projection with correct distance
@@ -518,7 +519,6 @@ void store(const Emboss::IProjection &projection, const Point &point_to_project,
 
 #ifdef DEBUG_OUTPUT_DIR
 #include "libslic3r/SVG.hpp"
-#include <boost/log/trivial.hpp>
 #include <filesystem>
 #endif // DEBUG_OUTPUT_DIR
 
@@ -2584,7 +2584,16 @@ bool priv::clip_cut(SurfacePatch &cut, CutMesh clipper)
     // .throw_on_self_intersection(false); is set automaticaly by param 'do_not_modify'
     // .clip_volume(false); is set automaticaly by param 'do_not_modify'
 
-    bool suc = CGAL::Polygon_mesh_processing::clip(tm, clipper, np_tm, np_c);
+    bool suc = false;
+    try {
+        suc = CGAL::Polygon_mesh_processing::clip(tm, clipper, np_tm, np_c);
+    } catch (const std::exception &e) {
+        // Degenerated input (e.g. intersecting constraints inside CDT) makes CGAL throw.
+        // Keep the patch unclipped instead of crashing the whole job.
+        BOOST_LOG_TRIVIAL(warning) << "CGAL clip failed: " << e.what();
+        cut.mesh = backup_copy;
+        return false;
+    }
 
     // true if the output surface mesh is manifold.
     // If false is returned tm and clipper are only corefined.

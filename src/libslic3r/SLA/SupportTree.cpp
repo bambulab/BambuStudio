@@ -16,7 +16,6 @@
 
 #include <libnest2d/optimizers/nlopt/genetic.hpp>
 #include <libnest2d/optimizers/nlopt/subplex.hpp>
-#include <boost/log/trivial.hpp>
 #include <libslic3r/I18N.hpp>
 
 //! macro used to mark string used at localization,

@@ -30,6 +30,9 @@
     "filament_adhesiveness_category": [
         "700"
     ],
+    "fins_extrude_safe_temp": [
+        "57"
+    ],
     "slow_down_layer_time": [
         "8"
     ],

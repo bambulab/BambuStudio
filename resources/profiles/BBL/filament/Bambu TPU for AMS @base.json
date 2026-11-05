@@ -42,6 +42,9 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
+    "fins_extrude_safe_temp": [
+        "60"
+    ],
     "impact_strength_z": [
         "9.6"
     ],
@@ -62,5 +65,8 @@
     ],
     "slow_down_layer_time": [
         "10"
+    ],
+    "temperature_vitrification": [
+        "40"
     ]
 }

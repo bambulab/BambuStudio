@@ -6,6 +6,10 @@
 #include <wx/gdicmn.h>
 #include <wx/clrpicker.h>
 
+#include <map>
+#include <set>
+#include <string>
+
 #include "libslic3r/Preset.hpp"
 #include "wxExtensions.hpp"
 #include "BitmapComboBox.hpp"
@@ -81,6 +85,8 @@ public:
 
     // BBS: ams
     bool add_ams_filaments(std::string selected, bool alias_name = false);
+    // N1X (handle_hotend_as_extruder): group AMS items by nozzle compatibility.
+    bool add_ams_filaments_grouped_by_nozzle(std::string selected, bool alias_name = false);
     int  selected_ams_filament() const;
 
     void set_filament_idx(const int extr_idx) { m_filament_idx = extr_idx; }
@@ -97,6 +103,10 @@ public:
     static wxColor different_color(wxColor const & color);
 
     virtual wxString get_preset_name(const Preset& preset);
+    // Real Preset::name behind a list item. The displayed label is not always the name (multi-diameter
+    // mode rewrites the printer and process labels), so every selection -> preset lookup must go through here
+    // instead of GetString(). Falls back to the item text for items this combo did not fill in itself.
+    std::string      preset_name_for_selection(int selection) const;
     Preset::Type     get_type() { return m_type; }
     void             show_all(bool show_all);
     virtual void update();
@@ -113,6 +123,9 @@ protected:
 
     PresetBundle*       m_preset_bundle {nullptr};
     PresetCollection*   m_collection {nullptr};
+
+    // Item index -> Preset::name, filled while the list is populated. See preset_name_for_selection().
+    std::map<int, std::string> m_item_preset_names;
 
     // Caching bitmaps for the all bitmaps, used in preset comboboxes
     static BitmapCache& bitmap_cache();
@@ -178,6 +191,10 @@ private:
     void fill_width_height();
 };
 
+// Whether a filament combo's "synced with AMS" badge should still be shown: the selection must have
+// come from AMS AND the filament's current nozzle diameter/flow must still match the connected
+// printer's physical nozzle. Shared by every call site that previously only checked FROM_AMS.
+bool should_show_filament_synced_badge(PresetComboBox *combo, int selection, int filament_idx);
 
 // ---------------------------------
 // ***  PlaterPresetComboBox  ***
@@ -216,12 +233,29 @@ public:
 private:
     // BBS
     wxColor m_color;
+
+public:
+    // Cached authoritative "this slot has a matching AMS tray" result from the most recent
+    // add_ams_filaments call inside update(). Set inside PlaterPresetComboBox::update() and read
+    // by update_badge_according_flag() so the outer badge decision doesn't depend on runtime state
+    // (FROM_AMS flag on selected item, current filament_ams_list contents, gate result) that can
+    // transiently disagree with what add_ams_filaments actually computed a moment ago.
+    bool m_last_selected_in_ams = false;
 };
 
 
 // ---------------------------------
 // ***  TabPresetComboBox  ***
 // ---------------------------------
+
+// A printer combo item that belongs to the other multi-diameter mode: picking it switches the mode
+// and lands on printer_name (the canonical printer in multi-diameter mode, or the picked printer in
+// single-diameter mode).
+struct MultiNozzleModeTarget
+{
+    std::string printer_name;
+    bool        to_multi { false };
+};
 
 class TabPresetComboBox : public PresetComboBox
 {
@@ -249,11 +283,15 @@ public:
 private:
     std::vector<wxString> m_last_presets;
     wxString m_last_select_name;
+    // Item index -> mode switch target, for the items listing the other multi-diameter mode's presets.
+    std::map<int, MultiNozzleModeTarget> m_item_mode_targets;
 };
 
 // ---------------------------------
 // ***  CalibrateFilamentComboBox  ***
 // ---------------------------------
+
+#define CALIBRATION_FILAMENT_CHIP_SIZE wxSize(FromDIP(40), FromDIP(20))
 
 class CalibrateFilamentComboBox : public PlaterPresetComboBox
 {
@@ -262,17 +300,24 @@ public:
     ~CalibrateFilamentComboBox();
 
     void load_tray(const DynamicPrintConfig & config);
+    void set_calibrate_filaments(std::set<std::string> names) { m_calibrate_filaments = std::move(names); }
+    const std::set<std::string>& get_calibrate_filaments() const { return m_calibrate_filaments; }
 
     void update() override;
     void msw_rescale() override;
     void OnSelect(wxCommandEvent &evt) override;
+    void SetChipSize(const wxSize &size);
     const Preset* get_selected_preset() { return m_selected_preset; }
-    std::string get_tray_name() { return m_tray_name; }
+    std::string get_tray_name() const { return m_tray_name; }
+    // Colour actually painted on clr_picker (an empty tray is drawn grey).
+    std::string get_chip_color() const { return m_filament_exist ? m_filament_color : std::string("#F0F0F0FF"); }
     std::string get_tag_uid() { return m_tag_uid; }
     bool is_tray_exist() { return m_filament_exist; }
     bool is_compatible_with_printer() { return m_is_compatible; }
 
 private:
+    std::set<std::string> m_calibrate_filaments;
+    wxSize      m_chip_size{0, 0};
     std::string m_tray_name;
     std::string m_filament_id;
     std::string m_tag_uid;
@@ -283,6 +328,46 @@ private:
     const Preset* m_selected_preset = nullptr;
     std::map<wxString, std::pair<std::string, wxBitmap*>> m_nonsys_presets;
     std::map<wxString, std::pair<std::string, wxBitmap*>> m_system_presets;
+};
+
+// ---------------------------------
+// ***  VirtualFilamentComboBox  ***
+// ---------------------------------
+
+// Filament preset list + color chip that is not bound to a project filament slot.
+// Dialogs use it to stage filaments before they are really added to the project,
+// so it never reads or writes filament_presets / project_config.
+class VirtualFilamentComboBox : public PlaterPresetComboBox
+{
+public:
+    VirtualFilamentComboBox(wxWindow *parent, const std::string &preset_name, const std::string &color_hex);
+
+    const std::string &get_selected_preset_name() const { return m_preset_name; }
+    const std::string &get_color_hex() const { return m_color_hex; }
+    void set_color(const std::string &color_hex);
+    // Fired after the user picks another preset or color.
+    void set_changed_callback(std::function<void()> cb) { m_on_changed = std::move(cb); }
+
+    void update() override;
+    void msw_rescale() override;
+    void sys_color_changed() override;
+    void OnSelect(wxCommandEvent &evt) override;
+
+private:
+    void update_color_chip();
+    void pick_color();
+
+    struct ItemPreset
+    {
+        bool        is_system = false;
+        std::string name;
+    };
+
+    std::string             m_preset_name;
+    std::string             m_color_hex;
+    // Indexed by list item; user and system presets may share a display name.
+    std::vector<ItemPreset> m_item_presets;
+    std::function<void()>   m_on_changed;
 };
 
 } // namespace GUI

@@ -19,12 +19,12 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/fstream.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/vector.hpp>
+#include "libslic3r/Log.hpp"
 
 #define HINTS_CEREAL_VERSION 1
 // structure for writing used hints into binary file with version
@@ -536,6 +536,7 @@ HintData* HintDatabase::get_hint(HintDataNavigation nav, bool is_helio)
 	}
 	catch (const std::exception&)
 	{
+		BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 		return nullptr;
 	}
 

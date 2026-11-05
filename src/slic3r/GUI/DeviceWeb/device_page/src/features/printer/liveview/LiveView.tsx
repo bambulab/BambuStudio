@@ -231,6 +231,10 @@ const ensureDecoder = React.useCallback(async () => {
         return;
     }
     // @ts-ignore
+    // WebCodecs sits above the support floor, which is exactly why the
+    // `"VideoDecoder" in window` guard above bails out with a user-visible
+    // message; reaching this line means the host does have it.
+    // eslint-disable-next-line compat/compat -- guarded by the check above
     decoderRef.current = new VideoDecoder({
         output: (frame: VideoFrame) => {
             if (
@@ -415,6 +419,9 @@ const onMessage = React.useCallback(
         try {
             inflightRef.current++;
             // @ts-ignore
+            // Only reachable once ensureDecoder() built a VideoDecoder, so
+            // WebCodecs is present by construction.
+            // eslint-disable-next-line compat/compat -- guarded by ensureDecoder
             const chunk = new EncodedVideoChunk({
                 type: isKey ? "key" : "delta",
                 timestamp: tsUs,

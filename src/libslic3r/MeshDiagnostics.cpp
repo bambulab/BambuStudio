@@ -10,8 +10,8 @@
 #include <numeric>
 #include <vector>
 
-#include <boost/log/trivial.hpp>
 #include <tbb/parallel_sort.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

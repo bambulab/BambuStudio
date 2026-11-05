@@ -1,7 +1,7 @@
 #include "WxFontUtils.hpp"
 #include <boost/assign.hpp>
-#include <boost/log/trivial.hpp>
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Log.hpp"
 
 #if defined(__APPLE__)
 #include <CoreText/CTFont.h>

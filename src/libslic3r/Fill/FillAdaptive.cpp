@@ -301,7 +301,13 @@ std::pair<double, double> adaptive_fill_line_spacing(const PrintObject &print_ob
         bool                     nonempty               = config.sparse_infill_density > 0;
         bool                     has_adaptive_infill    = nonempty && config.sparse_infill_pattern == ipAdaptiveCubic;
         bool                     has_support_infill     = nonempty && config.sparse_infill_pattern == ipSupportCubic;
-        double                   sparse_infill_line_width = config.sparse_infill_line_width;
+        const double             infill_nozzle_diameter = nozzle_diameter_for_filament(
+            print_object.print()->config(), config.sparse_infill_filament.value);
+        double                   sparse_infill_line_width = Flow::extrusion_width_for_nozzle(
+            config.sparse_infill_line_width,
+            float(primary_nozzle_diameter(print_object.print()->full_print_config())),
+            float(infill_nozzle_diameter),
+            multi_nozzle_diameter_mode_enabled(print_object.print()->full_print_config()));
         region_fill_data.push_back(RegionFillData({
             has_adaptive_infill ? Tristate::Maybe : Tristate::No,
             has_support_infill ? Tristate::Maybe : Tristate::No,

@@ -10,12 +10,12 @@
 #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
 #include <CGAL/Polygon_mesh_processing/stitch_borders.h>
 #include <CGAL/Polygon_mesh_processing/triangulate_hole.h>
-#include <boost/log/trivial.hpp>
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
 #include <memory>
 #include <utility>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace tex2color {
 

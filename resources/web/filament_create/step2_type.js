@@ -152,19 +152,27 @@ function buildPrinterData(models) {
 
     // Restore from step3 Back: replay each saved (printer, nozzle) pick into
     // `selected`, skipping any printer preset that no longer exists in `models`
-    // (e.g. the type/preset changed and no longer covers it).
+    // (e.g. the type/preset changed and no longer covers it). Also point
+    // activePrinter at the first model that actually got a pick restored, so the
+    // right-hand nozzle panel shows what the user had selected instead of
+    // defaulting back to the first row in the list.
     if (pendingRestore && pendingRestore.printer_nozzles) {
         var validPrinters = new Set();
         models.forEach(function (m) {
             m.presets.forEach(function (p) { validPrinters.add(p.printer); });
         });
+        var restoredActive = null;
         pendingRestore.printer_nozzles.forEach(function (pn) {
             if (!validPrinters.has(pn.printer)) return;
             var owning = models.find(function (m) {
                 return m.presets.some(function (p) { return p.printer === pn.printer; });
             });
-            if (owning) selected[owning.name].add(pn.printer);
+            if (owning) {
+                selected[owning.name].add(pn.printer);
+                if (!restoredActive) restoredActive = owning.name;
+            }
         });
+        if (restoredActive) activePrinter = restoredActive;
         pendingRestore = null;
     }
 

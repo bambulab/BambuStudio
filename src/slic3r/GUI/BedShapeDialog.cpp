@@ -16,6 +16,7 @@
 #include "FileHelp.hpp"
 #include <wx/dcgraph.h>
 #include <algorithm>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -479,6 +480,7 @@ void BedShapePanel::update_shape()
         try {
             rect_size = boost::any_cast<Vec2d>(opt_group->get_value("rect_size"));
         } catch (const std::exception & /* e */) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             return;
         }
 
@@ -486,6 +488,7 @@ void BedShapePanel::update_shape()
         try {
             rect_origin = boost::any_cast<Vec2d>(opt_group->get_value("rect_origin"));
         } catch (const std::exception & /* e */) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             return;
         }
 
@@ -521,7 +524,8 @@ void BedShapePanel::update_shape()
     {
         double diameter;
 		try { diameter = boost::any_cast<double>(opt_group->get_value("diameter")); }
-		catch (const std::exception & /* e */) { return; }
+		catch (const std::exception & /* e */) {
+			BOOST_LOG_TRIVIAL(warning) << current_exception_message(); return; }
 
  		if (diameter == 0.0) return ;
 		auto r = diameter / 2;

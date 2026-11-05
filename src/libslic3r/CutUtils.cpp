@@ -6,11 +6,11 @@
 #include "TriangleMeshSlicer.hpp"
 #include "TriangleSelector.hpp"
 #include "ObjectID.hpp"
-#include <boost/log/trivial.hpp>
 #include <algorithm>
 #include <cmath>
 #include <limits>
 #include <utility>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

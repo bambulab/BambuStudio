@@ -5,7 +5,6 @@
 #include <exception>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -18,6 +17,7 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/format.hpp"
 #include "Http.hpp"
+#include "libslic3r/Log.hpp"
 
 
 namespace fs = boost::filesystem;
@@ -70,6 +70,7 @@ bool Repetier::test(wxString &msg) const
                 }
             }
             catch (const std::exception &) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 res = false;
                 msg = "Could not parse server response";
             }
@@ -214,6 +215,7 @@ bool Repetier::get_groups(wxArrayString& groups) const
                 }
             }
             catch (const std::exception &) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 //msg = "Could not parse server response";
                 res = false;
             }

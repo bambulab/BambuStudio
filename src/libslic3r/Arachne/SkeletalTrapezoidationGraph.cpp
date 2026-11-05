@@ -4,10 +4,9 @@
 #include "SkeletalTrapezoidationGraph.hpp"
 #include <unordered_map>
 
-#include <boost/log/trivial.hpp>
-
 #include "utils/linearAlg2D.hpp"
 #include "../Line.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r::Arachne
 {
@@ -240,7 +239,7 @@ void SkeletalTrapezoidationGraph::collapseSmallEdges(coord_t snap_dist)
                 edge_from_3->twin->to = quad_mid->from;
                 if (count > 50)
                 {
-                    std::cerr << edge_from_3->from->p << " - " << edge_from_3->to->p << '\n';
+                    BOOST_LOG_TRIVIAL(warning) << edge_from_3->from->p << " - " << edge_from_3->to->p;
                 }
                 if (++count > 1000) 
                 {

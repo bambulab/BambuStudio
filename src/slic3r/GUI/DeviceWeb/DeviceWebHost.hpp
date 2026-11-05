@@ -5,7 +5,9 @@
 #include <deque>
 #include <functional>
 #include <memory>
+#include <functional>
 #include <string>
+#include <utility>
 
 #include <wx/panel.h>
 #include <wx/power.h>
@@ -14,6 +16,11 @@
 #include "DeviceWebBridge.hpp"
 #include "DeviceWebManager.hpp"
 #include "ViewModels/FilamentManager/FilamentManagerVM.hpp"
+#include "ViewModels/DevicePage/AmsFilamentHotend/ViewModel.hpp"
+#include "ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendVM.hpp"
+#include "ViewModels/DevicePage/AutoRefill_RefillInfo/ViewModel.hpp"
+#include "ViewModels/DevicePage/ConnectedSlots/ViewModel.hpp"
+#include "ViewModels/PrintQueue/PrintQueueVM.hpp"
 #include "slic3r/GUI/PrinterWebView.hpp"
 #include "slic3r/GUI/Widgets/WebViewWatcher.hpp"
 
@@ -23,6 +30,11 @@ namespace GUI {
 enum class DeviceWebHostMode {
     FilamentManager,
     DevicePageAmsControlWeb,
+    DevicePageAmsFilamentHotend,
+    DevicePageAmsMappingHotend,
+    DevicePageAutoRefillRefillInfo,
+    DevicePageConnectedSlots,
+    PrintQueue,
     AllForDebug
 };
 
@@ -31,8 +43,13 @@ public:
     using ContentSizeChangedHandler = std::function<void(const wxSize&)>;
     // allow_lazy: if true, webview/bridge/manager construction is deferred until
     // the panel is first shown, avoiding startup cost for hidden tabs.
+    // entry_file: resources-relative HTML entry (e.g. "web/device_page_html/ams_hotend.html").
+    // Empty selects the default React bundle. The mode - and therefore the set of
+    // registered ViewModels - stays the same, so an alternative front-end
+    // implementation reuses the exact same C++ state machine.
     explicit DeviceWebHost(wxWindow* parent, DeviceWebHostMode mode,
-                           std::string initial_path = {}, bool allow_lazy = false);
+                           std::string initial_path = {}, bool allow_lazy = false,
+                           std::string entry_file = {});
     ~DeviceWebHost() override;
 
     void LoadUrl();
@@ -57,9 +74,32 @@ public:
     void DispatchCommand(const nlohmann::json& body);
     void SetContentSizeChangedHandler(ContentSizeChangedHandler handler) { m_content_size_changed_handler = std::move(handler); }
 
+    // Access the registered AMS mapping VM so the popup can push a fresh
+    // snapshot of (machine, mapping_result, current_filament_id, ...) before
+    // the Web side requests state/get.
+    DevicePageAmsMappingHotendVM* GetAmsMappingHotendVM() const;
+
+    // Access the registered RefillInfo auto-refill VM so the host dialog can
+    // push a fresh snapshot before the Web side requests state/get.
+    AutoRefillRefillInfoVM* GetAutoRefillRefillInfoVM() const;
+
+    // Access the registered Connected Slots VM so the host dialog can push a
+    // fresh snapshot before the Web side requests state/get.
+    ConnectedSlotsVM* GetConnectedSlotsVM() const;
+    // Non-owning; null unless this host was built in PrintQueue mode.
+    PrintQueueVM* GetPrintQueueVM() const { return m_print_queue_vm; }
+
 
     void on_sys_color_changed();
     void msw_rescale();
+
+    // Recompute the physical min size from the last web-reported *logical* (CSS
+    // px) content size at the current DPI. The reused AMS-mapping popup caches a
+    // FromDIP()-scaled physical size; after a DPI change while it was hidden that
+    // cache is stale, so the first shown frame is wrong until the async
+    // ResizeObserver re-measures. Callers invoke this right before showing so the
+    // first frame is already correct-for-DPI. No-op until the web has reported once.
+    void ReapplyContentSizeForDpi();
 
     wxWebView* GetWebView() const {
         if (m_device_webview) return m_device_webview->GetWebView();
@@ -92,6 +132,7 @@ private:
 private:
     DeviceWebHostMode                 m_mode{ DeviceWebHostMode::AllForDebug };
     std::string                       m_initial_path;
+    std::string                       m_entry_file;          // empty = default React dist
     bool                              m_allow_lazy{false};   // deferred construction enabled
     bool                              m_built{false};        // has EnsureBuilt() run?
     bool                              m_just_built{false};   // skip next NavigateTo after lazy init
@@ -104,6 +145,7 @@ private:
     std::unique_ptr<DeviceHttpServer> m_device_http_server;
     std::unique_ptr<DeviceWebBridge>  m_device_web_bridge;
     std::unique_ptr<DeviceWebManager> m_device_web_mgr;
+    PrintQueueVM*                     m_print_queue_vm{ nullptr }; // owned by m_device_web_mgr
     ContentSizeChangedHandler         m_content_size_changed_handler;
     wxSize                            m_last_reported_content_size{ wxDefaultSize };
     // Last web-reported size in DPI-independent CSS pixels (before FromDIP()).

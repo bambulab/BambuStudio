@@ -7,8 +7,8 @@
 #include "../format.hpp"
 #include "../EdgeGrid.hpp"
 #include "FillFloatingConcentric.hpp"
-#include <boost/log/trivial.hpp>
 #include <libslic3r/ShortestPath.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -888,13 +888,17 @@ void FillFloatingConcentric::_fill_surface_single(const FillParams& params,
     coord_t                loops_count = std::max(bbox_size.x(), bbox_size.y()) / min_spacing + 1;
     Polygons               polygons = to_polygons(expolygon);
 
-    double min_nozzle_diameter = *std::min_element(print_config->nozzle_diameter.values.begin(), print_config->nozzle_diameter.values.end());
+    // Multi-diameter: Arachne thresholds must follow the nozzle that prints this fill, not the smallest one,
+    // otherwise the bead split threshold collapses and narrow strips get two overlapping full-width beads.
+    double nozzle_diameter = params.flow.nozzle_diameter();
+    if (nozzle_diameter <= EPSILON)
+        nozzle_diameter = *std::min_element(print_config->nozzle_diameter.values.begin(), print_config->nozzle_diameter.values.end());
     Arachne::WallToolPathsParams input_params;
-    input_params.min_bead_width = 0.85 * min_nozzle_diameter;
-    input_params.min_feature_size = 0.25 * min_nozzle_diameter;
-    input_params.wall_transition_length = 0.4;
+    input_params.min_bead_width = 0.85 * nozzle_diameter;
+    input_params.min_feature_size = 0.25 * nozzle_diameter;
+    input_params.wall_transition_length = 1.0 * nozzle_diameter;
     input_params.wall_transition_angle = 10;
-    input_params.wall_transition_filter_deviation = 0.25 * min_nozzle_diameter;
+    input_params.wall_transition_filter_deviation = 0.25 * nozzle_diameter;
     input_params.wall_distribution_count = 1;
 
     Arachne::WallToolPaths wallToolPaths(polygons, min_spacing, min_spacing, loops_count, 0, params.layer_height, input_params);

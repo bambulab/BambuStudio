@@ -2,7 +2,6 @@
 #include "GCode/ThumbnailData.hpp"
 #include "libslic3r/Time.hpp"
 
-#include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 
 #include "libslic3r/Zipper.hpp"
@@ -24,6 +23,7 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/algorithm/string.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace marchsq {
 

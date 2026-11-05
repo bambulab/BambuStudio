@@ -5,6 +5,7 @@
 #include "MainFrame.hpp"
 #include "GUI_App.hpp"
 #include "BBLUtil.hpp"
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 
@@ -99,7 +100,7 @@ TaskStateInfo::TaskStateInfo(BBL::PrintParams param)
                 95,    // PrintingStageFinished
                 100    // PrintingStageFinished
         };
-        BOOST_LOG_TRIVIAL(trace) << "task_manager: update task, " << BBLCrossTalk::Crosstalk_DevId(m_params.dev_id) << ", stage = " << stage << "code = " << code;
+        BOOST_LOG_TRIVIAL(trace) << "task_manager: update task, " << KV(log_key::dev_id, m_params.dev_id) << "stage = " << stage << "code = " << code;
         // update current percnet
         int curr_percent = 0;
         if (stage >= 0 && stage <= (int)PrintingStageFinished) {
@@ -211,7 +212,7 @@ int TaskManager::schedule(TaskStateInfo* task)
     assert(task->state() == TaskState::TS_PENDING);
     task->set_state(TaskState::TS_SENDING);
 
-    BOOST_LOG_TRIVIAL(trace) << "task_manager: schedule a task to dev_id = " << BBLCrossTalk::Crosstalk_DevId(task->params().dev_id);
+    BOOST_LOG_TRIVIAL(trace) << "task_manager: schedule a task to " << KV(log_key::dev_id, task->params().dev_id);
     boost::thread* new_sending_thread = new boost::thread();
     *new_sending_thread = Slic3r::create_thread(
         [this, task] {
@@ -375,6 +376,7 @@ std::map<std::string, TaskStateInfo> TaskManager::get_task_list(int curr_page, i
                 }
             }
             catch(...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             }
         }
     }

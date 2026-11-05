@@ -15,6 +15,14 @@
             document.title = height.toFixed()
         })
         resizeOberver.observe(document.querySelector('#contents'))
+        const rawShowMarkdown = window.showMarkdown
+        window.showMarkdown = function (text, allowImage) {
+            if (!text) return
+            // markdown-it linkify swallows full-width punctuation / CJK text that directly follows a URL,
+            // insert a space so the link ends at the URL.
+            const fixed = decodeURIComponent(text).replace(/(https?:\/\/[^\s<>)\]"'\u0080-\uFFFF]*)(?=[\u0080-\uFFFF])/g, '$1 ')
+            rawShowMarkdown(encodeURIComponent(fixed), allowImage)
+        }
         window.showMarkdownFile = function (file) {
             $.get(file, function( data ) {
                 window.showMarkdown(encodeURIComponent(data));

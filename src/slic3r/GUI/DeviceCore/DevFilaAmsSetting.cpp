@@ -1,7 +1,23 @@
 #include "DevFilaAmsSetting.h"
+#include "DevFilaSystem.h"
 #include "DevUtil.h"
 
 namespace Slic3r {
+
+bool DevAmsSystemSetting::SupportsFilamentTabAutoReadRfid() const
+{
+    if (!m_owner)
+        return false;
+
+    const auto& ams_list = m_owner->GetAmsList();
+    for (const auto& [_, ams] : ams_list) {
+        if (ams && ams->SupportsFilamentTabAutoReadRfid()) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 void DevAmsSystemSetting::Reset()
 {
@@ -9,6 +25,7 @@ void DevAmsSystemSetting::Reset()
     SetDetectOnPowerupEnabled(false);
     SetDetectRemainEnabled(false);
     SetAutoRefillEnabled(false);
+    m_enable_filament_tab_auto_read_rfid.reset();
 }
 
 void DevAmsSystemFirmwareSwitch::Reset()

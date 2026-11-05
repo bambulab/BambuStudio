@@ -63,6 +63,8 @@ typedef std::string (*func_get_bambulab_host)(void *agent);
 typedef std::string (*func_get_user_selected_machine)(void *agent);
 typedef int (*func_set_user_selected_machine)(void *agent, std::string dev_id);
 typedef int (*func_start_print)(void *agent, PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn);
+typedef int (*func_start_print_queue_task)(void *agent, PrintQueueTaskParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn);
+typedef int (*func_upload_print_queue_content)(void *agent, PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* response_body);
 typedef int (*func_start_local_print_with_record)(void *agent, PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn);
 typedef int (*func_start_send_gcode_to_sdcard)(void *agent, PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn);
 typedef int (*func_start_local_print)(void *agent, PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
@@ -79,6 +81,18 @@ typedef int (*func_get_my_message)(void *agent, int type, int after, int limit, 
 typedef int (*func_check_user_task_report)(void *agent, int* task_id, bool* printable);
 typedef int (*func_get_user_print_info)(void *agent, unsigned int* http_code, std::string* http_body);
 typedef int (*func_get_user_tasks)(void *agent, TaskQueryParams params, std::string* http_body);
+typedef int (*func_create_print_queue_project)(void *agent, PrintQueueProjectCreateParams params, std::string* http_body);
+typedef int (*func_get_print_queue_projects)(void *agent, PrintQueueProjectsQueryParams params, std::string* http_body);
+typedef int (*func_update_print_queue_project)(void *agent, PrintQueueProjectUpdateParams params, std::string* http_body);
+typedef int (*func_sort_print_queue_project)(void *agent, PrintQueueProjectSortParams params, std::string* http_body);
+typedef int (*func_delete_print_queue_project)(void *agent, PrintQueueProjectDeleteParams params, std::string* http_body);
+typedef int (*func_update_print_queue_plate)(void *agent, PrintQueuePlateUpdateParams params, std::string* http_body);
+typedef int (*func_sort_print_queue_plate)(void *agent, PrintQueuePlateSortParams params, std::string* http_body);
+typedef int (*func_delete_print_queue_plate)(void *agent, PrintQueuePlateDeleteParams params, std::string* http_body);
+typedef int (*func_extract_print_queue_plate)(void *agent, PrintQueuePlateExtractParams params, std::string* http_body);
+typedef int (*func_delete_unavailable_print_queue_plates)(void *agent, PrintQueueUnavailablePlatesDeleteParams params, std::string* http_body);
+typedef int (*func_get_print_queue_model_profile)(void *agent, PrintQueueModelProfileQueryParams params, std::string* http_body);
+typedef int (*func_download_print_queue_config)(void *agent, PrintQueueConfigDownloadParams params, std::string* http_body);
 typedef int (*func_get_filament_spools)(void *agent, FilamentQueryParams params, std::string* http_body);
 typedef int (*func_create_filament_spool)(void *agent, std::string request_body, std::string* http_body);
 typedef int (*func_update_filament_spool)(void *agent, std::string spool_id, std::string request_body, std::string* http_body);
@@ -123,6 +137,8 @@ typedef int (*func_sync_slot_mappings)(void *agent, SlotMappingsSyncParams param
 typedef int (*func_get_soft_match_pending)(void *agent, SoftMatchPendingParams params, std::string* http_body);
 typedef int (*func_post_soft_match_pending)(void *agent, SoftMatchPendingActionParams params, std::string* http_body);
 typedef int (*func_post_device_region)(void *agent, DeviceRegionParams params, std::string* http_body);
+typedef int (*func_get_minors_decisions)(void *agent, const std::vector<std::string>& scene_codes, std::vector<MinorsDecisionResult>* decisions);
+typedef int (*func_get_child_registration_key)(void *agent, std::string* http_body);
 
 //the NetworkAgent class
 class NetworkAgent
@@ -194,6 +210,8 @@ public:
     std::string get_user_selected_machine();
     int set_user_selected_machine(std::string dev_id);
     int start_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn);
+    int start_print_queue_task(PrintQueueTaskParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn);
+    int upload_print_queue_content(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* response_body);
     int start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn);
     int start_send_gcode_to_sdcard(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn);
     int start_local_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
@@ -210,6 +228,18 @@ public:
     int check_user_task_report(int* task_id, bool* printable);
     int get_user_print_info(unsigned int* http_code, std::string* http_body);
     int get_user_tasks(TaskQueryParams params, std::string* http_body);
+    int create_print_queue_project(PrintQueueProjectCreateParams params, std::string* http_body);
+    int get_print_queue_projects(PrintQueueProjectsQueryParams params, std::string* http_body);
+    int update_print_queue_project(PrintQueueProjectUpdateParams params, std::string* http_body);
+    int sort_print_queue_project(PrintQueueProjectSortParams params, std::string* http_body);
+    int delete_print_queue_project(PrintQueueProjectDeleteParams params, std::string* http_body);
+    int update_print_queue_plate(PrintQueuePlateUpdateParams params, std::string* http_body);
+    int sort_print_queue_plate(PrintQueuePlateSortParams params, std::string* http_body);
+    int delete_print_queue_plate(PrintQueuePlateDeleteParams params, std::string* http_body);
+    int extract_print_queue_plate(PrintQueuePlateExtractParams params, std::string* http_body);
+    int delete_unavailable_print_queue_plates(PrintQueueUnavailablePlatesDeleteParams params, std::string* http_body);
+    int get_print_queue_model_profile(PrintQueueModelProfileQueryParams params, std::string* http_body);
+    int download_print_queue_config(PrintQueueConfigDownloadParams params, std::string* http_body);
     int get_filament_spools(FilamentQueryParams params, std::string* http_body);
     int create_filament_spool(std::string request_body, std::string* http_body);
     int update_filament_spool(std::string spool_id, std::string request_body, std::string* http_body);
@@ -253,6 +283,8 @@ public:
     int get_soft_match_pending(SoftMatchPendingParams params, std::string* http_body);
     int post_soft_match_pending(SoftMatchPendingActionParams params, std::string* http_body);
     int post_device_region(DeviceRegionParams params, std::string* http_body);
+    int get_minors_decisions(const std::vector<std::string>& scene_codes, std::vector<MinorsDecisionResult>* decisions);
+    int get_child_registration_key(std::string* http_body);
     void *get_network_agent() { return network_agent; }
 
 private:
@@ -315,6 +347,8 @@ private:
     static func_get_user_selected_machine      get_user_selected_machine_ptr;
     static func_set_user_selected_machine      set_user_selected_machine_ptr;
     static func_start_print                    start_print_ptr;
+    static func_start_print_queue_task         start_print_queue_task_ptr;
+    static func_upload_print_queue_content     upload_print_queue_content_ptr;
     static func_start_local_print_with_record  start_local_print_with_record_ptr;
     static func_start_send_gcode_to_sdcard     start_send_gcode_to_sdcard_ptr;
     static func_start_local_print              start_local_print_ptr;
@@ -331,6 +365,18 @@ private:
     static func_check_user_task_report         check_user_task_report_ptr;
     static func_get_user_print_info            get_user_print_info_ptr;
     static func_get_user_tasks                 get_user_tasks_ptr;
+    static func_create_print_queue_project     create_print_queue_project_ptr;
+    static func_get_print_queue_projects       get_print_queue_projects_ptr;
+    static func_update_print_queue_project     update_print_queue_project_ptr;
+    static func_sort_print_queue_project       sort_print_queue_project_ptr;
+    static func_delete_print_queue_project     delete_print_queue_project_ptr;
+    static func_update_print_queue_plate       update_print_queue_plate_ptr;
+    static func_sort_print_queue_plate         sort_print_queue_plate_ptr;
+    static func_delete_print_queue_plate       delete_print_queue_plate_ptr;
+    static func_extract_print_queue_plate      extract_print_queue_plate_ptr;
+    static func_delete_unavailable_print_queue_plates delete_unavailable_print_queue_plates_ptr;
+    static func_get_print_queue_model_profile  get_print_queue_model_profile_ptr;
+    static func_download_print_queue_config    download_print_queue_config_ptr;
     static func_get_filament_spools            get_filament_spools_ptr;
     static func_create_filament_spool          create_filament_spool_ptr;
     static func_update_filament_spool          update_filament_spool_ptr;
@@ -373,6 +419,8 @@ private:
     static func_get_soft_match_pending  get_soft_match_pending_ptr;
     static func_post_soft_match_pending post_soft_match_pending_ptr;
     static func_post_device_region      post_device_region_ptr;
+    static func_get_minors_decisions    get_minors_decisions_ptr;
+    static func_get_child_registration_key get_child_registration_key_ptr;
 };
 
 }

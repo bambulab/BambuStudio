@@ -5,6 +5,8 @@
 #include "BBLUtil.hpp"
 
 #include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevNozzleRack.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -117,6 +119,8 @@ void CalibrationCaliPage::set_cali_img()
                     } else {
                         image_name += "_left";
                     }
+                } else if (image_name.empty()) {
+                    image_name = "fd_calibration_auto";
                 }
                 m_picture_panel->set_bmp(ScalableBitmap(this, image_name, 400));
             }
@@ -165,19 +169,14 @@ void CalibrationCaliPage::update(MachineObject* obj)
     if (this->IsShown()) {
         if (obj) {
             if (obj->print_status != "RUNNING") {
-                BOOST_LOG_TRIVIAL(info) << "on_show_cali_page - machine object status:"
-                                        << " dev_id = " << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
-                                        << ", print_type = " << obj->printer_type
-                                        << ", printer_status = " << obj->print_status
-                                        << ", is_connected = " << obj->is_connected()
-                                        << ", m_is_between_start_and_running = " << m_is_between_start_and_running
-                                        << ", cali_finished = " << obj->GetCalib()->GetStashCalibFinished()
-                                        << ", cali_version = " << obj->GetCalib()->GetCalibVersion()
-                                        << ", cache_flow_ratio = " << obj->GetCalib()->GetStashFlowRatio()
-                                        << ", sub_task_name = " << obj->subtask_name
-                                        << ", gcode_file_name = " << obj->m_gcode_file
-                                        << ", get_pa_calib_result" << obj->GetCalib()->IsPAResultReady()
-                                        << ", get_flow_calib_result" << obj->GetCalib()->IsFlowRateReady();
+                BOOST_LOG_TRIVIAL(info) << "on_show_cali_page - machine object status: " << KV(log_key::dev_id, obj->get_dev_id()) << "print_type = "
+                                        << obj->printer_type << ", printer_status = " << obj->print_status << ", is_connected = "
+                                        << obj->is_connected() << ", m_is_between_start_and_running = " << m_is_between_start_and_running
+                                        << ", cali_finished = " << obj->GetCalib()->GetStashCalibFinished() << ", cali_version = "
+                                        << obj->GetCalib()->GetCalibVersion() << ", cache_flow_ratio = " << obj->GetCalib()->GetStashFlowRatio()
+                                        << ", sub_task_name = " << obj->subtask_name << ", gcode_file_name = " << obj->m_gcode_file
+                                        << ", get_pa_calib_result" << obj->GetCalib()->IsPAResultReady() << ", get_flow_calib_result"
+                                        << obj->GetCalib()->IsFlowRateReady();
             }
         }
         else {
@@ -195,7 +194,7 @@ void CalibrationCaliPage::update(MachineObject* obj)
         }
 
         StatusPanel* status_panel = Slic3r::GUI::wxGetApp().mainframe->m_monitor->get_status_panel();
-        status_panel->obj = obj;
+        status_panel->sync_current_dev(obj);
         status_panel->update_error_message();
 
         if (obj->print_status == "RUNNING")
@@ -215,8 +214,11 @@ void CalibrationCaliPage::update(MachineObject* obj)
                                 enable_cali = true;
                             }
                             else {
+                                /* Rack slots can hold mixed diameters, so ask for every diameter (-1); the single recorded diameter would drop the other slots' results. */
+                                auto rack = obj->GetNozzleRack();
+                                const bool has_rack = rack && rack->IsSupported() && rack->IsDirectConnectedRack();
                                 // use selected diameter, add a counter to timeout, add a warning tips when get result failed
-                                CalibUtils::emit_get_PA_calib_results(get_selected_calibration_nozzle_dia(obj));
+                                CalibUtils::emit_get_PA_calib_results(has_rack ? -1.0f : get_selected_calibration_nozzle_dia(obj));
                                 BOOST_LOG_TRIVIAL(trace) << "CalibUtils::emit_get_PA_calib_results, auto count = " << get_result_count++;
                                 enable_cali = false;
                             }

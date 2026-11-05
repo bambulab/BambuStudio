@@ -21,13 +21,12 @@
 #include <wx/arrstr.h>
 #include <wx/tglbtn.h>
 
-#include <boost/log/trivial.hpp>
-
 #include "wxExtensions.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "MainFrame.hpp"
 #include "Widgets/Label.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
