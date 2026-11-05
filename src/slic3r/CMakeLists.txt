@@ -435,6 +435,9 @@ set(SLIC3R_GUI_SOURCES
     GUI/TextureImportUi.cpp
     GUI/TextureImportPopupDismiss.hpp
     GUI/TextureImportPopupDismiss.cpp
+    GUI/FilamentCatalogDialog.cpp
+    GUI/FilamentCatalogDialog.hpp
+    GUI/FilamentCatalog.hpp
     GUI/FilamentPickerDialog.cpp
     GUI/FilamentPickerDialog.hpp
     GUI/FilamentBitmapUtils.cpp
