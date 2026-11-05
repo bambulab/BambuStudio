@@ -8106,6 +8106,9 @@ void TabPrinter::on_nozzles_changed(std::optional<int> extruder_id)
         on_value_change((boost::format("nozzle_volume_type#%1%") % eid).str(), type);
     }
     update_dirty();
+    // The filament tab's variant graying and nozzle chips follow the nozzles.
+    if (Tab *filament_tab = wxGetApp().get_tab(Preset::TYPE_FILAMENT))
+        filament_tab->update_extruder_variants(-1, false);
 }
 
 // Return a callback to create a TabPrinter widget to edit bed shape
@@ -8296,9 +8299,9 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
         m_variant_combo->SetOptions(options);
         for (int i = 0; i < m_variant_combo->GetCount(); ++i) {
             auto flow_type = get_actual_nozzle_flow_type(i);
-            auto             r_nozzles = collect_configured_nozzles(MAIN_EXTRUDER_ID, flow_type);
-            std::vector<int> l_nozzles;
-            if (m_preset_bundle->get_printer_extruder_count() > 1) l_nozzles = collect_configured_nozzles(DEPUTY_EXTRUDER_ID, flow_type);
+            auto             l_nozzles = collect_configured_nozzles(LOGIC_L_EXTRUDER_ID, flow_type);
+            std::vector<int> r_nozzles;
+            if (m_preset_bundle->get_printer_extruder_count() > 1) r_nozzles = collect_configured_nozzles(LOGIC_R_EXTRUDER_ID, flow_type);
             if (r_nozzles.empty() && l_nozzles.empty()) {
                 Button *btn = m_variant_combo->GetButton(i);
                 if (btn) {
@@ -8786,9 +8789,10 @@ void Tab::update_nozzle_status_display()
     int selection = m_variant_combo ? m_variant_combo->GetSelection() : -1;
     NozzleFlowType flow_type = get_actual_nozzle_flow_type(selection);
 
-    auto             r_nozzles = collect_configured_nozzles(MAIN_EXTRUDER_ID, flow_type);
-    std::vector<int> l_nozzles;
-    if (m_preset_bundle->get_printer_extruder_count() > 1) l_nozzles = collect_configured_nozzles(DEPUTY_EXTRUDER_ID, flow_type);
+    // The inventory uses config extruder ids (0 = left), not device ids (0 = right).
+    auto             l_nozzles = collect_configured_nozzles(LOGIC_L_EXTRUDER_ID, flow_type);
+    std::vector<int> r_nozzles;
+    if (m_preset_bundle->get_printer_extruder_count() > 1) r_nozzles = collect_configured_nozzles(LOGIC_R_EXTRUDER_ID, flow_type);
     if (r_nozzles.empty() && l_nozzles.empty()) {
         auto bmp = ScalableBitmap(this, "warning", 16);
         auto warning_icon = new wxStaticBitmap(this, wxID_ANY, bmp.bmp(), wxDefaultPosition, wxDefaultSize, 0);
