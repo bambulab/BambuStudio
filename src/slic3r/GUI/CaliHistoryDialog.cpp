@@ -7,6 +7,7 @@
 #include "format.hpp"
 #include "MsgDialog.hpp"
 #include "slic3r/Utils/CalibUtils.hpp"
+#include "DeviceCore/DevCalib.h"
 #include "DeviceCore/DevConfigUtil.h"
 
 #include "DeviceCore/DevExtruderSystem.h"
@@ -49,7 +50,7 @@ bool support_nozzle_volume(const MachineObject* obj)
 {
     if (!obj) return false;
 
-    if(DevPrinterConfigUtil::support_disable_cali_flow_type(obj->printer_type))
+    if (DevPrinterConfigUtil::support_disable_cali_flow_type(obj->printer_type) && !(obj->GetCalib() && obj->GetCalib()->IsSupportKNByNozzleId()))
         return false;
 
     if (obj->is_nozzle_flow_type_supported())
@@ -553,6 +554,7 @@ void HistoryWindow::sync_history_data() {
             PACalibIndexInfo cali_info;
             cali_info.tray_id         = result.tray_id;
             cali_info.cali_idx        = result.cali_idx;
+            cali_info.nozzle_volume_type = result.nozzle_volume_type;
             cali_info.nozzle_diameter = result.nozzle_diameter;
             cali_info.filament_id     = result.filament_id;
             cali_info.nozzle_pos_id   = result.nozzle_pos_id;

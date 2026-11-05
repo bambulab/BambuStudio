@@ -80,6 +80,7 @@ class DevCalib
 {
 protected:
     bool                    m_support_new_auto_cali{false};
+    bool                    m_support_kn_by_nozzle_id{false};
     int                     m_calib_version {-1};
     std::optional<int>      m_last_calib_version;
 
@@ -116,6 +117,10 @@ public:
     bool IsVersionInited() const { return m_calib_version > -1;}
 
     bool IsSupportNewAutoCali() const {return m_support_new_auto_cali;}
+
+    /* flag3 bit21: firmware keys K/N by nozzle_id (e.g. "HS00-0.4", flow type + diameter), not nozzle_pos_id.
+     * Old X1/P1 firmware has no nozzle_id and keys K/N by diameter only. */
+    bool IsSupportKNByNozzleId() const { return m_support_kn_by_nozzle_id; }
 
 public:
     void                        SetStashCalibFinished(bool finished) {m_calib_finished = finished;}
@@ -180,6 +185,8 @@ public:
     static void ParseCalibVersion(const json& j, DevCalib* system);
 
     static void ParseSupportNewAutoCalib(int flag, DevCalib* system);
+
+    static void ParseSupportKNByNozzleId(int flag, DevCalib* system);
 
     static void ParseV1_0(const json& print_json, DevCalib* system, bool key_field_only);
 };

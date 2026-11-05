@@ -3318,6 +3318,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             is_support_ext_change_assist_old = get_flag_bits(flag3, 16);
                             is_support_filament_32_colors = get_flag_bits(flag3, 17);
                             is_support_timelapse_memory = get_flag_bits(flag3, 20);
+                            DevCalib::ParseSupportKNByNozzleId(get_flag_bits(flag3, 21), m_calib);
                         }
                     }
                     if (!key_field_only) {
