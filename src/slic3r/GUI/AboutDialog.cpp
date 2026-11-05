@@ -129,6 +129,7 @@ void CopyrightsDialog::fill_entries()
         { "libcurl",                                        "",      "https://curl.se/libcurl" },
         { "Libigl",                                         "",      "https://libigl.github.io" },
         { "libnest2d",                                      "",      "https://github.com/tamasmeszaros/libnest2d" },
+        { "MCUT",                                           "",      "https://cutdigital.github.io/mcut.site/" },
         { "Mesa 3D",                                        "",      "https://mesa3d.org" },
         { "Miniz",                                          "",      "https://github.com/richgel999/miniz" },
         { "Nanosvg",                                        "",      "https://github.com/memononen/nanosvg" },
