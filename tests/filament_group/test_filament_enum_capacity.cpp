@@ -173,3 +173,27 @@ TEST_CASE("Enum compatibility leaves MatchMode unchanged", "[filament_group][enu
     check_same_result(context, reference);
     CHECK(run_and_evaluate(context).filament_map == std::vector<int>{1, 1, 1, 1});
 }
+
+TEST_CASE("Legacy enum deduplication retains distinct effective capacities", "[filament_group][enum_capacity_fallback][enum_capacity_dedup]")
+{
+    auto context = legacy_case().context;
+    context.nozzle_info.nozzle_list.push_back({"0.4", NozzleVolumeType::nvtStandard, 2, 2, true});
+    context.nozzle_info.extruder_nozzle_list[2] = {2};
+    context.machine_info.max_group_size = {3, 1, 3};
+    context.machine_info.prefer_non_model_filament = {false, false, false};
+    context.machine_info.machine_filament_info.resize(3);
+    context.model_info.unprintable_filaments = {{3, 4, 5, 6}, {0, 1, 2, 4, 5, 6}, {0, 1, 2, 3}};
+    context.group_info.ignore_ext_filament = true;
+    REQUIRE(context.nozzle_info.per_nozzle_capacity.empty());
+
+    auto reference = context;
+    reference.nozzle_info.per_nozzle_capacity = {3, 1, 3};
+    const auto expected = run_and_evaluate(reference);
+    REQUIRE(expected.constraints_ok);
+    CHECK(expected.filament_map == std::vector<int>{0, 0, 0, 1, 2, 2, 2});
+    const auto result = run_and_evaluate(context);
+    CHECK(result.constraints_ok);
+    CHECK(result.filament_map == expected.filament_map);
+    CHECK(context.nozzle_info.per_nozzle_capacity.empty());
+    CHECK(reference.nozzle_info.per_nozzle_capacity == std::vector<int>{3, 1, 3});
+}
