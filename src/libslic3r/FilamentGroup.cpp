@@ -219,6 +219,26 @@ namespace Slic3r
         return evaluate_score(flush, change_time + print_time, true);
     }
 
+    static const std::vector<int>& enum_capacity_limits(const FilamentGroupContext& context)
+    {
+        const auto& explicit_limits = context.nozzle_info.per_nozzle_capacity;
+        const auto& nozzles = context.nozzle_info.nozzle_list;
+        const auto& legacy_limits = context.machine_info.max_group_size;
+        if (!explicit_limits.empty() || nozzles.empty() || nozzles.size() != legacy_limits.size())
+            return explicit_limits;
+
+        // This context is compacted by available_only. Only an identity mapping
+        // can use per-extruder limits as per-nozzle limits without guessing.
+        for (std::size_t index = 0; index < nozzles.size(); ++index) {
+            const auto& nozzle = nozzles[index];
+            if (!nozzle.installed || nozzle.group_id < 0 || nozzle.extruder_id < 0 ||
+                static_cast<std::size_t>(nozzle.group_id) != index ||
+                static_cast<std::size_t>(nozzle.extruder_id) != index)
+                return explicit_limits;
+        }
+        return legacy_limits;
+    }
+
     static long long estimate_dedup_enum_count(int k, int n, const FilamentGroupContext& ctx)
     {
         if (n <= 0 || k <= 0) return 0;
@@ -231,13 +251,14 @@ namespace Slic3r
 
         if (k <= 1) return total;
 
+        const auto& nozzle_caps = enum_capacity_limits(ctx);
         int dedup_factor = 1;
         std::map<uint64_t, int> nozzle_type_count;
         for (const auto& nozzle : ctx.nozzle_info.nozzle_list) {
             auto it = ctx.nozzle_info.nozzle_status.find(nozzle.group_id);
             int loaded_filament = (it != ctx.nozzle_info.nozzle_status.end()) ? it->second : -1;
-            int nozzle_capacity = nozzle.group_id < static_cast<int>(ctx.nozzle_info.per_nozzle_capacity.size()) ?
-                ctx.nozzle_info.per_nozzle_capacity[nozzle.group_id] : -1;
+            int nozzle_capacity = nozzle.group_id < static_cast<int>(nozzle_caps.size()) ?
+                nozzle_caps[nozzle.group_id] : -1;
             uint64_t hash = fnv_hash_nozzle(nozzle.diameter, nozzle.volume_type, nozzle.extruder_id > 0, loaded_filament, nozzle_capacity);
             nozzle_type_count[hash]++;
         }
@@ -276,26 +297,6 @@ namespace Slic3r
 
         constexpr double kOneChangeMargin = 1.2; // 留余量，保证完整一次换料仍在容忍度内
         return typical_flush * FLUSH_VOLUME_TO_SCORE * kOneChangeMargin;
-    }
-
-    static const std::vector<int>& enum_capacity_limits(const FilamentGroupContext& context)
-    {
-        const auto& explicit_limits = context.nozzle_info.per_nozzle_capacity;
-        const auto& nozzles = context.nozzle_info.nozzle_list;
-        const auto& legacy_limits = context.machine_info.max_group_size;
-        if (!explicit_limits.empty() || nozzles.empty() || nozzles.size() != legacy_limits.size())
-            return explicit_limits;
-
-        // This context is compacted by available_only. Only an identity mapping
-        // can use per-extruder limits as per-nozzle limits without guessing.
-        for (std::size_t index = 0; index < nozzles.size(); ++index) {
-            const auto& nozzle = nozzles[index];
-            if (!nozzle.installed || nozzle.group_id < 0 || nozzle.extruder_id < 0 ||
-                static_cast<std::size_t>(nozzle.group_id) != index ||
-                static_cast<std::size_t>(nozzle.extruder_id) != index)
-                return explicit_limits;
-        }
-        return legacy_limits;
     }
 
     std::vector<int> FilamentGroup::calc_group_by_enum(
