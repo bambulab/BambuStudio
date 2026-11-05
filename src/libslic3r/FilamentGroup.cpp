@@ -7,6 +7,8 @@
 #include <random>
 #include <cassert>
 #include <sstream>
+#include <cstddef>
+#include <vector>
 #include "libslic3r/Log.hpp"
 
 namespace Slic3r
@@ -276,6 +278,26 @@ namespace Slic3r
         return typical_flush * FLUSH_VOLUME_TO_SCORE * kOneChangeMargin;
     }
 
+    static const std::vector<int>& enum_capacity_limits(const FilamentGroupContext& context)
+    {
+        const auto& explicit_limits = context.nozzle_info.per_nozzle_capacity;
+        const auto& nozzles = context.nozzle_info.nozzle_list;
+        const auto& legacy_limits = context.machine_info.max_group_size;
+        if (!explicit_limits.empty() || nozzles.empty() || nozzles.size() != legacy_limits.size())
+            return explicit_limits;
+
+        // This context is compacted by available_only. Only an identity mapping
+        // can use per-extruder limits as per-nozzle limits without guessing.
+        for (std::size_t index = 0; index < nozzles.size(); ++index) {
+            const auto& nozzle = nozzles[index];
+            if (!nozzle.installed || nozzle.group_id < 0 || nozzle.extruder_id < 0 ||
+                static_cast<std::size_t>(nozzle.group_id) != index ||
+                static_cast<std::size_t>(nozzle.extruder_id) != index)
+                return explicit_limits;
+        }
+        return legacy_limits;
+    }
+
     std::vector<int> FilamentGroup::calc_group_by_enum(
         int k,
         const std::vector<unsigned int>& used_filaments,
@@ -289,6 +311,7 @@ namespace Slic3r
 
         int n = (int)used_filaments.size();
         const double one_change_budget = calc_one_change_budget(used_filaments);
+        const auto& nozzle_caps = enum_capacity_limits(ctx);
 
         std::vector<std::vector<int>> candidates(n);
         for (int i = 0; i < n; i++) {
@@ -369,8 +392,7 @@ namespace Slic3r
             }
             prefer_level += placeable_count * UNPLACEABLE_LIMIT_REWARD;
 
-            // Per-nozzle capacity (indexed by nozzle group_id), provided by ctx for every machine.
-            const std::vector<int>& nozzle_caps = ctx.nozzle_info.per_nozzle_capacity;
+            // Explicit nozzle limits or the unambiguous legacy extruder limits.
             bool size_ok = true;
             for (int g = 0; g < k; g++) {
                 if (g < (int)nozzle_caps.size() && groups_count[g] > nozzle_caps[g])
