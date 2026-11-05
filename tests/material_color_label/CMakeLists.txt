@@ -1,0 +1,7 @@
+add_executable(material_color_label_tests material_color_label_tests.cpp)
+target_link_libraries(material_color_label_tests PRIVATE test_gui)
+add_test(NAME material_color_label_tests COMMAND material_color_label_tests)
+
+# Optional synthetic preview for review; requires a graphical display.
+add_executable(material_color_label_preview EXCLUDE_FROM_ALL material_color_label_preview.cpp)
+target_link_libraries(material_color_label_preview PRIVATE test_gui)

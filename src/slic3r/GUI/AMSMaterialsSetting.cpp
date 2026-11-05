@@ -14,6 +14,7 @@
 #include "../Utils/ColorSpaceConvert.hpp"
 #include "../Utils/BBLUtil.hpp"
 #include "EncodedFilament.hpp"
+#include "MaterialColorLabel.hpp"
 #include "FilamentBitmapUtils.hpp"
 #include "FilamentSelectDialog.hpp"
 
@@ -465,11 +466,11 @@ void AMSMaterialsSetting::create_panel_rfid_display(wxWindow* parent)
     m_rfid_lbl_brand->SetForegroundColour(AMS_MATERIALS_SETTING_GREY900);
 
     m_rfid_lbl_color_name = new wxStaticText(panel_top, wxID_ANY, wxEmptyString);
-    m_rfid_lbl_color_name->SetFont(Label::Body_13);
+    m_rfid_lbl_color_name->SetFont(Label::Head_14);
     m_rfid_lbl_color_name->SetForegroundColour(AMS_MATERIALS_SETTING_GREY700);
 
-    sizer_names->Add(m_rfid_lbl_brand,      0, wxBOTTOM, FromDIP(2));
-    sizer_names->Add(m_rfid_lbl_color_name, 0, 0, 0);
+    sizer_names->Add(m_rfid_lbl_color_name, 0, wxBOTTOM, FromDIP(2));
+    sizer_names->Add(m_rfid_lbl_brand, 0, 0, 0);
     sizer_top->Add(sizer_names, 1, wxALIGN_CENTER_VERTICAL, 0);
     panel_top->SetSizer(sizer_top);
 
@@ -1545,6 +1546,15 @@ void AMSMaterialsSetting::on_select_close(wxCommandEvent &event)
     Close();
 }
 
+static wxString material_color_label(const wxString& filament_id, const FilamentColor& filament_color)
+{
+    wxString name;
+    if (auto* query = wxGetApp().get_filament_color_code_query())
+        name = query->GetFilaColorName(filament_id, filament_color);
+
+    return format_material_color_label(name, filament_color, _L("Unknown"));
+}
+
 void AMSMaterialsSetting::on_select_reread(wxCommandEvent& event)
 {
     if (!obj || !can_show_reread_btn()) return;
@@ -1618,8 +1628,7 @@ void AMSMaterialsSetting::set_color(wxColour color)
     FilamentColor fila_color;
     fila_color.AddColor(color);
     fila_color.EndSet(m_clr_picker->ctype);
-    auto clr_query = GUI::wxGetApp().get_filament_color_code_query();
-    m_clr_name->SetLabelText(clr_query->GetFilaColorName(ams_filament_id, fila_color));
+    m_clr_name->SetLabelText(material_color_label(ams_filament_id, fila_color));
     if (m_clr_picker->GetParent()) m_clr_picker->GetParent()->Layout();
 }
 
@@ -1645,8 +1654,7 @@ void AMSMaterialsSetting::set_colors(std::vector<wxColour> colors)
         FilamentColor fila_color;
         for (const auto& clr : colors) { fila_color.AddColor(clr); }
         fila_color.EndSet(m_clr_picker->ctype);
-        auto clr_query = GUI::wxGetApp().get_filament_color_code_query();
-        m_clr_name->SetLabelText(clr_query->GetFilaColorName(ams_filament_id, fila_color));
+        m_clr_name->SetLabelText(material_color_label(ams_filament_id, fila_color));
         if (m_clr_picker->GetParent()) m_clr_picker->GetParent()->Layout();
     }
 }
@@ -2237,7 +2245,12 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                 fila_color.AddColor(m_clr_picker->m_colour);
             }
             fila_color.EndSet(m_clr_picker->ctype);
-            color_name = clr_query->GetFilaColorName(wxString::FromUTF8(ams_filament_id), fila_color);
+            color_name = material_color_label(wxString::FromUTF8(ams_filament_id), fila_color);
+            if (auto* info = clr_query->GetFilaInfo(wxString::FromUTF8(ams_filament_id), fila_color)) {
+                const wxString code = info->GetFilaColorCode();
+                if (!code.IsEmpty())
+                    m_rfid_lbl_brand->SetLabel(filament + " (" + code + ")");
+            }
         }
         m_rfid_lbl_color_name->SetLabel(color_name);
 
