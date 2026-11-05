@@ -17,6 +17,7 @@ var g_grouped = false;
 var g_collapsed_groups = {};
 var g_page = 1;
 var g_page_size = 50;
+var FM_SAVED_VIEWS_KEY = "bambu_fila_manager_saved_views_v1";
 
 var BAMBU_COLORS = [
     "#000000","#333333","#555555","#808080","#BBBBBB","#FFFFFF",
@@ -261,6 +262,137 @@ function refresh() {
     renderTable(spools);
     updateBatchUI();
     if (g_view === "stats") renderStats();
+}
+
+function cloneSavedViewObject(obj) {
+    var out = {};
+    obj = obj || {};
+    for (var k in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, k)) out[k] = obj[k];
+    }
+    return out;
+}
+
+function loadSavedViews() {
+    try {
+        var raw = localStorage.getItem(FM_SAVED_VIEWS_KEY);
+        var views = raw ? JSON.parse(raw) : [];
+        return Array.isArray(views) ? views : [];
+    } catch (e) {
+        console.warn("[FM] failed to load saved views", e);
+        return [];
+    }
+}
+
+function saveSavedViews(views) {
+    try {
+        localStorage.setItem(FM_SAVED_VIEWS_KEY, JSON.stringify(views || []));
+        return true;
+    } catch (e) {
+        console.warn("[FM] failed to save views", e);
+        alert("保存视图失败");
+        return false;
+    }
+}
+
+function captureSavedViewState() {
+    var searchInput = document.getElementById("search-input");
+    return {
+        view: g_view,
+        tab: g_tab,
+        search: searchInput ? (searchInput.value || "") : "",
+        filters: cloneSavedViewObject(g_filters),
+        sort_key: g_sort_key,
+        sort_asc: g_sort_asc,
+        grouped: g_grouped,
+        page_size: g_page_size
+    };
+}
+
+function syncSavedViewControls() {
+    document.querySelectorAll(".nav-item").forEach(function(el) {
+        el.classList.toggle("active", el.getAttribute("data-view") === g_view);
+    });
+
+    document.getElementById("stats-view").style.display = (g_view === "stats") ? "" : "none";
+    document.getElementById("list-view").style.display = (g_view === "stats") ? "none" : "";
+    document.querySelectorAll(".tab-pill").forEach(function(el) {
+        el.classList.toggle("active", el.getAttribute("data-tab") === g_tab);
+    });
+    document.querySelectorAll(".filter-btn").forEach(function(el) {
+        var key = el.getAttribute("data-filter");
+        el.classList.toggle("active", !!g_filters[key]);
+    });
+    document.querySelectorAll("th.sortable").forEach(function(el) {
+        var active = el.getAttribute("data-sort") === g_sort_key;
+        el.classList.toggle("sort-asc", active && g_sort_asc);
+        el.classList.toggle("sort-desc", active && !g_sort_asc);
+    });
+    var groupBtn = document.getElementById("btn-group");
+    if (groupBtn) groupBtn.classList.toggle("btn-group-active", g_grouped);
+}
+
+function renderSavedViewsDropdown() {
+    var dd = document.getElementById("saved-views-dropdown");
+    if (!dd) return;
+
+    var views = loadSavedViews();
+    if (!views.length) {
+        dd.innerHTML = '<div class="saved-view-empty">暂无保存的视图</div>';
+        return;
+    }
+
+    dd.innerHTML = views.map(function(item, index) {
+        return '<div class="saved-view-row" data-index="'+index+'">' +
+            '<button class="saved-view-apply" title="'+esc(item.name || "")+'">'+esc(item.name || "—")+'</button>' +
+            '<button class="saved-view-delete" title="删除">×</button>' +
+        '</div>';
+    }).join("");
+}
+
+function applySavedView(item) {
+    var state = (item && item.state) || {};
+    var searchInput = document.getElementById("search-input");
+
+    g_view = state.view || "my";
+    g_tab = state.tab || "all";
+    g_filters = cloneSavedViewObject(state.filters);
+    g_sort_key = state.sort_key || "";
+    g_sort_asc = state.sort_asc !== false;
+    g_grouped = !!state.grouped;
+    g_collapsed_groups = {};
+    g_selected_ids = {};
+    g_page = 1;
+    if (state.page_size) g_page_size = state.page_size;
+    if (searchInput) searchInput.value = state.search || "";
+
+    syncSavedViewControls();
+
+    var dd = document.getElementById("saved-views-dropdown");
+    if (dd) dd.style.display = "none";
+
+    refresh();
+}
+
+function saveCurrentView() {
+    var name = prompt("保存当前视图为", "");
+    if (name === null) return;
+    name = name.replace(/^\s+|\s+$/g, "");
+    if (!name) return;
+
+    var views = loadSavedViews();
+    views = views.filter(function(item) { return item.name !== name; });
+    views.unshift({
+        name: name,
+        state: captureSavedViewState()
+    });
+    if (views.length > 20) views = views.slice(0, 20);
+
+    if (saveSavedViews(views)) {
+        renderSavedViewsDropdown();
+        var dd = document.getElementById("saved-views-dropdown");
+        if (dd) dd.style.display = "block";
+    }
 }
 
 /* ===== Status tags ===== */
@@ -1034,6 +1166,42 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    // Saved views
+    renderSavedViewsDropdown();
+
+    document.getElementById("btn-save-view").addEventListener("click", function(e) {
+        e.stopPropagation();
+        saveCurrentView();
+    });
+
+    document.getElementById("btn-saved-views").addEventListener("click", function(e) {
+        e.stopPropagation();
+        renderSavedViewsDropdown();
+        var dd = document.getElementById("saved-views-dropdown");
+        dd.style.display = dd.style.display === "block" ? "none" : "block";
+    });
+
+    document.getElementById("saved-views-dropdown").addEventListener("click", function(e) {
+        e.stopPropagation();
+        var row = e.target.closest(".saved-view-row");
+        if (!row) return;
+
+        var views = loadSavedViews();
+        var index = parseInt(row.getAttribute("data-index"), 10);
+        if (isNaN(index) || !views[index]) return;
+
+        if (e.target.closest(".saved-view-delete")) {
+            if (confirm("删除保存的视图？")) {
+                views.splice(index, 1);
+                saveSavedViews(views);
+                renderSavedViewsDropdown();
+            }
+            return;
+        }
+
+        applySavedView(views[index]);
+    });
+
     // Search
     document.getElementById("search-input").addEventListener("input", function() { refresh(); });
 
@@ -1062,9 +1230,11 @@ document.addEventListener("DOMContentLoaded", function() {
         refresh();
     });
 
-    // Close dropdown on outside click
+    // Close dropdowns on outside click
     document.addEventListener("click", function() {
         document.getElementById("filter-dropdown").style.display = "none";
+        var savedViewsDropdown = document.getElementById("saved-views-dropdown");
+        if (savedViewsDropdown) savedViewsDropdown.style.display = "none";
     });
 
     // Group toggle
