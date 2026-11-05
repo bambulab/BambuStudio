@@ -40,12 +40,6 @@
     "filament_dev_drying_cooling_temperature": [
         "75"
     ],
-    "filament_dev_chamber_drying_time": [
-        "16"
-    ],
-    "filament_dev_drying_cooling_temperature": [
-        "75"
-    ],
     "filament_dev_drying_softening_temperature": [
         "85",
         "85",
