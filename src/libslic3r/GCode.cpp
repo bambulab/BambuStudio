@@ -2028,7 +2028,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     fs::path file_path(path);
     fs::path folder = file_path.parent_path();
-    if (!fs::exists(folder)) {
+    if (!folder.empty() && !fs::exists(folder)) {
         fs::create_directory(folder);
         BOOST_LOG_TRIVIAL(error) << "[WARNING]: the parent path " + PathSanitizer::sanitize(folder) + " is not there, create it!" << std::endl;
     }

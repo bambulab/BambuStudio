@@ -9,6 +9,8 @@
 #include "libslic3r/Format/STL.hpp"
 
 #include <cstdlib>
+#include <fstream>
+#include <iterator>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -425,6 +427,53 @@ TEST_CASE("Legacy arrangement rejects mixed invalid batches before instance tran
             }
         }
     }
+}
+
+TEST_CASE("G-code export accepts relative files and creates nonempty direct parents", "[test_data][gcode_output_path]")
+{
+    namespace fs = boost::filesystem;
+    const fs::path root = fs::temp_directory_path() / fs::unique_path("bambu-gcode-path-%%%%-%%%%");
+    REQUIRE(fs::create_directory(root));
+    fs::path output;
+    SECTION("A bare relative filename uses the current directory") {
+        output = fs::unique_path("bambu-relative-export-%%%%-%%%%.gcode");
+        REQUIRE(output.parent_path().empty());
+    }
+    SECTION("An absolute filename uses its existing parent") {
+        output = root / "absolute.gcode";
+        REQUIRE(output.is_absolute());
+    }
+    SECTION("A missing direct parent is created") {
+        output = root / "created-parent" / "child.gcode";
+        REQUIRE_FALSE(fs::exists(output.parent_path()));
+    }
+
+    struct Cleanup {
+        fs::path output;
+        fs::path root;
+        ~Cleanup() {
+            boost::system::error_code ec;
+            fs::remove(output.string() + ".tmp", ec);
+            fs::remove(output, ec);
+            fs::remove(root / "created-parent", ec);
+            fs::remove(root, ec);
+        }
+    } cleanup{output, root};
+
+    Slic3r::Model model;
+    Slic3r::Print print;
+    Slic3r::Test::init_print({Slic3r::Test::TestMesh::cube_20x20x20}, print, model,
+        Slic3r::DynamicPrintConfig::full_print_config(), true);
+    print.set_status_silent();
+    print.process();
+    REQUIRE_NOTHROW(print.export_gcode(output.string(), nullptr, nullptr));
+    REQUIRE(fs::is_regular_file(output));
+    std::ifstream stream(output.string(), std::ios::binary);
+    REQUIRE(stream.is_open());
+    const std::string text((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+    REQUIRE_FALSE(text.empty());
+    REQUIRE(text.find("G1") != std::string::npos);
+    REQUIRE_FALSE(fs::exists(output.string() + ".tmp"));
 }
 
 SCENARIO("init_print functionality", "[test_data]") {
