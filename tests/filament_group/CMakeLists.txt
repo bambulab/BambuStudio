@@ -23,6 +23,7 @@ set_property(TARGET fg_test_data_generator PROPERTY FOLDER "tests")
 add_executable(${_TEST_NAME}_tests
     filament_group_regression_main.cpp
     test_filament_group_context.cpp
+    test_filament_enum_capacity.cpp
 )
 target_include_directories(${_TEST_NAME}_tests PRIVATE
     ${PROJECT_SOURCE_DIR}/src
