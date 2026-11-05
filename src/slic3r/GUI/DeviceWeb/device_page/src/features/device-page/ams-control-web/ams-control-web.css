@@ -12,7 +12,7 @@
   /* Remain capsule: a gray frame plus a track darker than the spool fill, so a
      white filament still reads as "almost full" instead of blending into it. */
   --ams-web-remain-track: #cecece;
-  --ams-web-remain-frame: #828280;
+  --ams-web-remain-frame: #c8c8c6;
   /* Lite AMSLib uses darkModeColorFor(#F8F8F8) = Grey200. Generic remain canvas does not. */
   --ams-web-lite-lib-bg: #f8f8f8;
   --ams-web-chip-bg: #f7f7f7;
@@ -138,21 +138,6 @@
 .ams-control-web-page .ams-slot-card:hover::after,
 .ams-control-web-page .ams-slot-card.is-selected::after {
   border: 3px solid var(--ams-web-brand);
-}
-
-/* wx SetToolTip: pin at the cursor's top-right on enter, do not track moves. */
-.ams-control-web-page .ams-slot-cursor-tip {
-  position: fixed;
-  z-index: 30;
-  padding: 2px 8px;
-  border-radius: 2px;
-  background: var(--ams-web-tip-bg);
-  color: var(--ams-web-tip-text);
-  font-size: 12px;
-  line-height: 18px;
-  white-space: pre;
-  box-shadow: var(--ams-web-tip-shadow);
-  pointer-events: none;
 }
 
 .ams-control-web-page .ams-img-dark {

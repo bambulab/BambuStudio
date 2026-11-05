@@ -25,7 +25,9 @@
 
 #include <wx/listimpl.cpp>
 #include <map>
+#include <memory>
 #include <wx/sizer.h>
+#include <wx/slider.h>
 #include "Gizmos/GLGizmoBase.hpp"
 #include "OpenGLManager.hpp"
 #ifdef __WINDOWS__
@@ -33,6 +35,7 @@
 #include "dark_mode.hpp"
 #endif // _MSW_DARK_MODE
 #endif //__WINDOWS__
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -66,6 +69,12 @@ static ::Label *make_row_title(wxWindow *parent, const wxString &text, int wrap_
     if (!tooltip.empty()) title->SetToolTip(tooltip);
     title->Wrap(wrap_width);
     return title;
+}
+
+static wxString minor_restricted_tip()
+{
+    return _L("For users under the age of majority, some services will be restricted. "
+              "This is managed by your parent or guardian in Family Hub.");
 }
 
 // One option row wrapped in a real window so it can paint a hover background.
@@ -255,6 +264,7 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString                    
             return std::distance(values.begin(), it);
 
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             return 0;
         }
     };
@@ -283,7 +293,7 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString                    
     for (int i = 0; i < static_cast<int>(tooltip_list.size()); ++i) { combobox->SetItemTooltip(i, tooltip_list[i]); }
 
     // Let the dropdown grow to fit the widest item (never narrower than the combobox),
-    // clamped at min(comboWidth * 1.5, 400dip) so long labels aren't ellipsized.
+    // clamped at a fixed max width so long labels aren't ellipsized.
     combobox->GetDropDown().SetUseContentWidth(true, true);
 
     auto old_value = app_config->get(param);
@@ -693,6 +703,75 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
     return sizer_input;
 }
 
+wxBoxSizer *PreferencesDialog::create_item_int_slider(
+    wxString title, wxWindow *parent, wxString tooltip, std::string param, int range_min, int range_max, int default_value)
+{
+    wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
+    sizer_input->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
+    auto input_title = make_row_title(parent, title, FromDIP(TITLE_WIDTH), tooltip);
+
+    int value = default_value;
+    const std::string stored = app_config->get(param);
+    long parsed = 0;
+    if (!stored.empty() && wxString::FromUTF8(stored).ToLong(&parsed))
+        value = static_cast<int>(parsed);
+    value = std::clamp(value, range_min, range_max);
+    if (stored != std::to_string(value)) {
+        app_config->set(param, std::to_string(value));
+        app_config->save();
+    }
+
+    // 80 + 8 + 56 matches COMBOBOX_WIDTH so the row lines up with other controls.
+    auto *slider = new wxSlider(parent, wxID_ANY, value, range_min, range_max, wxDefaultPosition,
+                                wxSize(FromDIP(80), FromDIP(ITEM_MIN_HEIGHT)));
+    auto *input = new ::TextInput(parent, wxString::Format("%d", value), wxEmptyString, wxEmptyString, wxDefaultPosition,
+                                  wxSize(FromDIP(56), FromDIP(ITEM_MIN_HEIGHT)), wxTE_PROCESS_ENTER);
+    StateColor input_bg(std::pair<wxColour, int>(ThemeColor::Grey250, StateColor::Disabled), std::pair<wxColour, int>(ThemeColor::White, StateColor::Enabled));
+    input->SetBackgroundColor(input_bg);
+    wxTextValidator validator(wxFILTER_DIGITS);
+    input->GetTextCtrl()->SetValidator(validator);
+
+    sizer_input->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
+    sizer_input->Add(input_title, wxSizerFlags().CenterVertical().Proportion(1).Border(wxRIGHT, FromDIP(TITLE_CONTROL_GAP)));
+    sizer_input->Add(slider, wxSizerFlags().CenterVertical());
+    sizer_input->AddSpacer(FromDIP(8));
+    sizer_input->Add(input, wxSizerFlags().CenterVertical().Border(wxRIGHT, FromDIP(ITEM_RIGHT_PADDING)));
+
+    auto updating = std::make_shared<bool>(false);
+    auto commit = [this, param, slider, input, range_min, range_max, updating](int next) {
+        if (*updating)
+            return;
+        next = std::clamp(next, range_min, range_max);
+        *updating = true;
+        if (slider->GetValue() != next)
+            slider->SetValue(next);
+        input->GetTextCtrl()->ChangeValue(wxString::Format("%d", next));
+        *updating = false;
+        app_config->set(param, std::to_string(next));
+        app_config->save();
+    };
+
+    slider->Bind(wxEVT_SLIDER, [commit, slider](wxCommandEvent &) { commit(slider->GetValue()); });
+    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [commit, input, slider](wxCommandEvent &e) {
+        long entered = 0;
+        if (!input->GetTextCtrl()->GetValue().ToLong(&entered))
+            commit(slider->GetValue());
+        else
+            commit(static_cast<int>(entered));
+        e.Skip();
+    });
+    input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [commit, input, slider](wxFocusEvent &e) {
+        long entered = 0;
+        if (!input->GetTextCtrl()->GetValue().ToLong(&entered))
+            commit(slider->GetValue());
+        else
+            commit(static_cast<int>(entered));
+        e.Skip();
+    });
+
+    return sizer_input;
+}
+
 wxBoxSizer *PreferencesDialog::create_item_range_input(
     wxString title, wxWindow *parent, wxString tooltip, std::string param, float range_min, float range_max, int keep_digital, std::function<void(wxString)> onchange)
 {
@@ -977,7 +1056,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             } else {
                 wxGetApp().stop_sync_user_preset();
             }
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: " << (sync ? "true" : "false");
+            BOOST_LOG_TRIVIAL(info) << "sync_user_preset: " << (sync ? "true" : "false");
         }
 
         #ifdef __WXMSW__
@@ -1067,51 +1146,21 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             wxPostEvent(wxGetApp().plater(), evt);
         }
 
-        if (param == "enable_high_low_temp_mixed_printing") {
-            if (checkbox->GetValue()) {
-                const wxString warning_title = _L("Bed Temperature Difference Warning");
-                const wxString warning_message =
-                    _L("Using filaments with significantly different temperatures may cause:\n"
-                        "• Extruder clogging\n"
-                        "• Nozzle damage\n"
-                        "• Layer adhesion issues\n\n"
-                        "Continue with enabling this feature?");
-                std::function<void(const wxString&)> link_callback = [](const wxString&) {
-                            const std::string lang_code = wxGetApp().app_config->get("language");
-                            const wxString region = (lang_code.find("zh") != std::string::npos) ? L"zh" : L"en";
-                            const wxString wiki_url = wxString::Format(
-                                L"https://wiki.bambulab.com/%s/filament-acc/filament/h2d-filament-config-limit",
-                                region
-                            );
-                            wxGetApp().open_browser_with_warning_dialog(wiki_url);
-                            };
-
-                MessageDialog msg_dialog(
-                    nullptr,
-                    warning_message,
-                    warning_title,
-                    wxICON_WARNING | wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE,
-                    wxEmptyString,
-                    _L("Click Wiki for help."),
-                    link_callback
-                );
-
-                if (msg_dialog.ShowModal() != wxID_YES) {
-                    checkbox->SetValue(false);
-                    app_config->set_bool(param, false);
-                    app_config->save();
-                }
-            }
-        }
         e.Skip();
     });
 
     //// for debug mode
     if (param == "developer_mode") { m_developer_mode_ckeckbox = checkbox; }
     if (param == "internal_developer_mode") { m_internal_developer_mode_ckeckbox = checkbox; }
+    if (param == "privacyuse") { m_privacy_checkbox = checkbox; }
 
 
     checkbox->SetToolTip(tooltip);
+    if (param == "privacyuse" && wxGetApp().is_uep_force_disabled()) {
+        checkbox->SetValue(wxGetApp().is_uep_force_checked());
+        checkbox->Enable(false);
+        checkbox_title->SetToolTip(minor_restricted_tip());
+    }
     return m_sizer_checkbox;
 }
 
@@ -1220,7 +1269,9 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
                 j["auto_flushing"] = value;
                 agent->track_event("preferences_changed", j.dump());
             }
-        } catch(...) {}
+        } catch(...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
 
         // Check if time format changed
         std::string current_use_12h_time_format = wxGetApp().app_config->get("use_12h_time_format");
@@ -1228,6 +1279,11 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
 
         event.Skip();
         });
+
+    // Register so an async UEP decision update can refresh the checkbox live, and
+    // re-fetch the UEP decision on open to keep telemetry enable/disable in sync.
+    wxGetApp().set_preferences_dialog(this);
+    wxGetApp().fetch_uep_decision();
 }
 
 void PreferencesDialog::create()
@@ -1300,8 +1356,21 @@ void PreferencesDialog::create()
 
 PreferencesDialog::~PreferencesDialog()
 {
+    wxGetApp().set_preferences_dialog(nullptr);
     m_radio_group.DeleteContents(true);
     m_hash_selector.clear();
+}
+
+void PreferencesDialog::refresh_privacy_checkbox()
+{
+    if (!m_privacy_checkbox) return;
+    if (wxGetApp().is_uep_force_disabled()) {
+        m_privacy_checkbox->SetValue(wxGetApp().is_uep_force_checked());
+        m_privacy_checkbox->Enable(false);
+    } else {
+        m_privacy_checkbox->Enable(true);
+        m_privacy_checkbox->SetValue(app_config->get("firstguide", "privacyuse") == "true");
+    }
 }
 
 void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect) {
@@ -1332,7 +1401,7 @@ void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect) {
             // Keep the fixed Figma-matched size (capped to the screen) on a
             // DPI/monitor switch instead of stretching to a fraction of the screen.
             this->SetSize(FromDIP(640), std::min(FromDIP(640), int(m_screen_height * 0.7)));
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " The display screen has switched";
+            BOOST_LOG_TRIVIAL(info) << "The display screen has switched";
         }
     }
 }
@@ -1458,7 +1527,10 @@ wxWindow *PreferencesDialog::create_general_tab()
     sizer->Add(wrap_option_row(scrolled, item_fila_manager), flags);
     sizer->Add(wrap_option_row(scrolled, item_multi_machine), flags);
     sizer->Add(wrap_option_row(scrolled, item_beta_version_update), flags);
-    sizer->Add(wrap_option_row(scrolled, item_priv_policy), flags);
+    auto *priv_row = wrap_option_row(scrolled, item_priv_policy);
+    if (wxGetApp().is_uep_force_disabled())
+        priv_row->SetToolTip(minor_restricted_tip());
+    sizer->Add(priv_row, flags);
     sizer->Add(wrap_option_row(scrolled, item_downloads), flags);
     scrolled->SetSizer(sizer);
     scrolled->FitInside();
@@ -1490,10 +1562,6 @@ wxWindow *PreferencesDialog::create_user_tab()
     auto item_auto_transfer = create_item_checkbox(_L("Automatically transfer modified value when switching process and filament presets"), scrolled,
                                                    _L("After closing, a popup will appear to ask each time"), 50, "auto_transfer_when_switch_preset");
 
-    auto item_mix_print_high_low_temp = create_item_checkbox(_L("Remove the restriction on mixed printing of high and low temperature filaments."), scrolled,
-                                                             _L("With this option enabled, you can print materials with a large temperature difference together."), 50,
-                                                             "enable_high_low_temp_mixed_printing");
-
     auto item_auto_arrange_wipe_tower_on_switch_printer = create_item_checkbox(_L("Automatically optimize wipe tower placement"), scrolled,
                                                              _L("With this option enabled, the wipe tower will be placed at its optimal position."), 50,
                                                              "auto_optimize_wipe_tower_placement");
@@ -1516,7 +1584,6 @@ wxWindow *PreferencesDialog::create_user_tab()
     sizer->Add(wrap_option_row(scrolled, item_bed_type_follow_preset), flags);
     sizer->Add(wrap_option_row(scrolled, item_auto_stop_liveview), flags);
     sizer->Add(wrap_option_row(scrolled, item_auto_transfer), flags);
-    sizer->Add(wrap_option_row(scrolled, item_mix_print_high_low_temp), flags);
     sizer->Add(wrap_option_row(scrolled, item_auto_arrange_wipe_tower_on_switch_printer), flags);
     sizer->Add(wrap_option_row(scrolled, item_user_sync), flags);
     sizer->Add(wrap_option_row(scrolled, item_system_sync), flags);
@@ -1665,6 +1732,9 @@ wxWindow *PreferencesDialog::create_other_tab()
     });
     auto item_gcodes_warning = create_item_checkbox(_L("No warnings when loading 3MF with modified G-codes"), scrolled, _L("No warnings when loading 3MF with modified G-codes"),
                                                     50, "no_warn_when_modified_gcodes");
+    auto item_skip_printer_check = create_item_checkbox(_L("Don't check printer information when loading 3MF"), scrolled,
+                                                        _L("No prompt to migrate the preset when the loaded 3MF does not match the connected printer"), 50,
+                                                        "skip_printer_check_on_3mf_load");
     std::vector<wxString>    backup_labels = {_L("10 seconds"), _L("20 seconds"), _L("30 seconds"), _L("1 minute"), _L("2 minutes"),
                                               _L("5 minutes"),  _L("10 minutes"), _L("30 minutes"), _L("never")};
     std::vector<std::string> backup_values = {"10", "20", "30", "60", "120", "300", "600", "1800", "0"};
@@ -1683,6 +1753,7 @@ wxWindow *PreferencesDialog::create_other_tab()
     sizer->Add(wrap_option_row(scrolled, item_max_recent_count), flags);
     sizer->Add(wrap_option_row(scrolled, item_auto_backup), flags);
     sizer->Add(wrap_option_row(scrolled, item_gcodes_warning), flags);
+    sizer->Add(wrap_option_row(scrolled, item_skip_printer_check), flags);
 
     // ---- Online Models (visible only when has_model_mall()) ----
     auto title_modelmall   = create_item_title(_L("Online Models"), scrolled, _L("Online Models"));
@@ -1761,6 +1832,12 @@ wxWindow *PreferencesDialog::create_developer_tab()
     auto item_internal_dev = create_item_checkbox(_L("Internal developer mode"), scrolled, _L("Internal developer mode"), 50, "internal_developer_mode");
     auto item_ssl_mqtt     = create_item_checkbox(_L("Enable SSL(MQTT)"), scrolled, _L("Enable SSL(MQTT)"), 50, "enable_ssl_for_mqtt");
     auto item_ssl_ftp      = create_item_checkbox(_L("Enable SSL(FTP)"), scrolled, _L("Enable SSL(FTP)"), 50, "enable_ssl_for_ftp");
+
+    auto title_texture = create_item_title(_L("Import Texture Model"), scrolled, _L("Import Texture Model"));
+    auto item_color_tolerance = create_item_int_slider(
+        _L("Color Tolerance of Filament Matching"), scrolled,
+        _L("CIEDE2000 difference used when matching imported texture colors to filaments. Filaments within this band are treated as equally close. This does not merge colors and does not change the match threshold in the texture import dialog."),
+        "texture_import_color_tolerance", 1, 100, 5);
 
     auto title_host = create_item_title(_L("Host Setting"), scrolled, _L("Host Setting"));
     auto radio1     = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), scrolled, wxEmptyString, 50, 1, "dev_host");
@@ -1873,6 +1950,10 @@ wxWindow *PreferencesDialog::create_developer_tab()
     sizer->Add(item_ssl_mqtt, flags);
     sizer->Add(item_ssl_ftp, flags);
 
+    sizer->Add(title_texture, wxSizerFlags().Expand().Border(wxTOP, FromDIP(24)));
+    sizer->AddSpacer(FromDIP(8));
+    sizer->Add(item_color_tolerance, flags);
+
     sizer->Add(title_host, wxSizerFlags().Expand().Border(wxTOP, FromDIP(24)));
     sizer->Add(radio1, flags);
     sizer->Add(radio2, flags);
@@ -1957,7 +2038,6 @@ ResetWarningsDialog::ResetWarningsDialog(wxWindow *parent) : DPIDialog(parent, w
                                           "- Executing post-processing scripts\n"
                                           "- Support structure recommendation prompt\n"
                                           "- Unsaved projects.\n"
-                                          "- Mixed color sublayer with variable layer height warning\n"
                                           "- Delete a filament used by a model"));
     det_text->SetForegroundColour(ThemeColor::TextSecondary);
     det_text->SetFont(::Label::Body_13);
@@ -1984,7 +2064,7 @@ ResetWarningsDialog::ResetWarningsDialog(wxWindow *parent) : DPIDialog(parent, w
     auto      *confirm_btn = new Button(this, _L("Confirm"));
     confirm_btn->SetBackgroundColor(btn_bg_green);
     confirm_btn->SetBorderColor(ThemeColor::BrandGreen);
-    confirm_btn->SetTextColor(*wxWHITE);
+    confirm_btn->SetTextColor(ThemeColor::WhiteFixed);
     confirm_btn->SetFont(::Label::Body_12);
     confirm_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
     confirm_btn->SetCornerRadius(FromDIP(6));
@@ -2019,10 +2099,12 @@ void PreferencesDialog::on_reset_all_warnings()
     // Keys that the various "Don't show again"-style dialogs persist their
     // dismissal choice under. Erasing them re-enables the corresponding dialog.
     app_config->erase("app", "sync_after_load_file_show_flag");
+    app_config->erase("app", "skip_printer_check_on_3mf_load");
     app_config->erase("app", "skip_non_bambu_3mf_warning");
     app_config->erase("app", "post_process_script_choice");
-    app_config->erase("app", "no_warn_mixed_sublayer_variable_layer");
     app_config->erase("app", "no_warn_delete_used_filament");
+    app_config->erase("app", "no_show_tpu_tips");
+    app_config->erase("app", "skip_pre_print_warning_dialog");
     app_config->set("show_support_recommend_dialog", "true");
     app_config->set("save_project_choise", "");
     if (wxGetApp().plater()) wxGetApp().plater()->reset_post_process_script_choice();
@@ -2056,10 +2138,8 @@ void PreferencesDialog::on_reset_preferences()
         "use_12h_time_format",
         "auto_stop_liveview",
         "auto_transfer_when_switch_preset",
-        "enable_high_low_temp_mixed_printing",
         "sync_user_preset",
         "sync_system_preset",
-        "disable_fins_extrude_safe_temp",
         "zoom_to_mouse",
         "reverse_mouse_wheel_zoom",
         "canvas_drag_to_move",
@@ -2077,6 +2157,7 @@ void PreferencesDialog::on_reset_preferences()
         "camera_fullscreen_active_monitor_only",
         "max_recent_count",
         "no_warn_when_modified_gcodes",
+        "skip_printer_check_on_3mf_load",
         "backup_switch",
         "backup_interval",
         "staff_pick_switch",
@@ -2085,6 +2166,7 @@ void PreferencesDialog::on_reset_preferences()
         "skip_ams_blacklist_check",
         "enable_webview_devtools",
         "severity_level",
+        "texture_import_color_tolerance",
     };
     for (const char *k : kPrefKeys) app_config->erase("app", k);
     app_config->set_defaults();

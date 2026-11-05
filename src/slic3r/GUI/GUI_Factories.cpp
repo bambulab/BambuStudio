@@ -16,7 +16,6 @@
 #include "format.hpp"
 //BBS: add partplate related logic
 #include "PartPlate.hpp"
-#include "ColorDecomposeSupport.hpp"
 
 #include "Gizmos/GLGizmoSVG.hpp"
 #include "Gizmos/GLGizmoAlignment.hpp"
@@ -24,6 +23,7 @@
 #include <boost/algorithm/string.hpp>
 #include "slic3r/Utils/FixModelByWin10.hpp"
 #include "ParamsPanel.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r
 {
@@ -108,7 +108,8 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
                     {"sparse_infill_pattern", "",1},{"conformal_infill", "",1},{"conformal_stagger", "",1},{"conformal_link_keep_layers", "",1},{"conformal_link_flip_layers", "",1},{"conformal_pole", "",1},{"conformal_ray_count", "",1},{"conformal_hub_radius", "",1},{"sparse_infill_anchor", "",1},{"sparse_infill_anchor_max", "",1}, {"sparse_infill_lattice_angle_1", "",1},{"sparse_infill_lattice_angle_2", "",1},
                     {"top_surface_pattern", "",1},{"top_surface_density", "",1},{"monotonic_travel_into_wall", "",1},
                     {"bottom_surface_pattern", "",1}, {"bottom_surface_density", "",1}, {"internal_solid_infill_pattern", "",1}, {"sub_top_surface_pattern", "",1},
-                    {"infill_combination", "",1}, {"infill_wall_overlap", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1},{"minimum_sparse_infill_area", "",1}
+                    {"infill_combination", "",1}, {"infill_wall_overlap", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1},{"minimum_sparse_infill_area", "",1},
+                    {"interlocking_beam", "",1}
                     }},
     { L("Speed"), {{"outer_wall_speed", "",1},{"inner_wall_speed", "",2},{"sparse_infill_speed", "",3},{"top_surface_speed", "",4}, {"internal_solid_infill_speed", "",5},
                     {"enable_overhang_speed", "",6}, {"overhang_1_4_speed", "",7}, {"overhang_2_4_speed", "",8}, {"overhang_3_4_speed", "",9}, {"overhang_4_4_speed", "",10}, {"overhang_totally_speed", "",11},
@@ -1510,14 +1511,6 @@ void MenuFactory::create_filament_action_menu(wxMenu* menu, int active_filament_
 {
     m_filament_menu_active_id = active_filament_menu_id;
 
-    auto can_decompose = [this]() {
-        if (!plater())
-            return false;
-        if (plater()->sidebar().combos_filament().size() < 2)
-            return false;
-        return decompose_color_block_reason(m_filament_menu_active_id) == DecomposeColorBlockReason::None;
-    };
-
     append_menu_item(
         menu, wxID_ANY, _L("Edit"), "", [](wxCommandEvent&) {
             if (plater())
@@ -1530,14 +1523,6 @@ void MenuFactory::create_filament_action_menu(wxMenu* menu, int active_filament_
                 plater()->sidebar().delete_filament(kSidebarContextMenuFilamentId);
         }, "", nullptr, []() { return true; }, nullptr);
     delete_item->Enable(plater() && plater()->sidebar().combos_filament().size() > 1);
-
-    const auto reason = decompose_color_block_reason(active_filament_menu_id);
-    auto* decompose_item = append_menu_item(
-        menu, wxID_ANY, decompose_color_menu_label(reason), "", [](wxCommandEvent&) {
-            if (plater())
-                plater()->sidebar().decompose_filament_color(kSidebarContextMenuFilamentId);
-        }, "", nullptr, []() { return true; }, nullptr);
-    decompose_item->Enable(can_decompose());
 
     wxMenu* sub_menu = new wxMenu();
     std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
@@ -1908,8 +1893,8 @@ wxMenu* MenuFactory::assemble_multi_selection_menu()
 
 wxMenu *MenuFactory::filament_action_menu(int active_filament_menu_id) {
     // Recreate the whole popup each time so Windows does not keep the previous HMENU width
-    // after a long disabled "Decompose Color (...)" label. Keep the unique_ptr until the next
-    // popup so the menu is not destroyed while PopupMenu is running.
+    // (the "Merge with" submenu depends on the active filament). Keep the unique_ptr until the
+    // next popup so the menu is not destroyed while PopupMenu is running.
     m_filament_popup_menu = std::make_unique<wxMenu>();
     create_filament_action_menu(m_filament_popup_menu.get(), active_filament_menu_id);
     return m_filament_popup_menu.get();

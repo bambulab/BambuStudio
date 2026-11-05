@@ -84,6 +84,14 @@ void set_filament_is_support(DynamicPrintConfig &config, unsigned filament_idx, 
     opt->get_at(filament_idx) = is_support;
 }
 
+void set_mixed_filament(DynamicPrintConfig &config, unsigned filament_idx, const std::string &components, const std::string &ratios)
+{
+    config.option<ConfigOptionBools>("filament_is_mixed", true)->get_at(filament_idx) = true;
+    config.option<ConfigOptionStrings>("filament_mixed_components", true)->get_at(filament_idx) = components;
+    config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios", true)->get_at(filament_idx) = ratios;
+    config.set_key_value("enable_mixed_color_sublayer", new ConfigOptionBool(true));
+}
+
 } // namespace
 
 TEST_CASE("support_material_on_wipe_tower: PLA model with Supp.PLA interface", "[SupportMaterialOnWipeTower]")
@@ -165,4 +173,39 @@ TEST_CASE("support_material_on_wipe_tower: support same as model body", "[Suppor
     });
 
     REQUIRE_FALSE(print.support_material_on_wipe_tower());
+}
+
+TEST_CASE("unused filament slot does not generate a wipe tower", "[SupportMaterialOnWipeTower]")
+{
+    DynamicPrintConfig config = make_wipe_tower_support_config(2);
+    config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlTraditional));
+
+    Print print;
+    Model model;
+    init_support_on_wipe_tower_print(print, model, config, 1);
+
+    REQUIRE(print.config().filament_diameter.size() == 2);
+    REQUIRE(print.extruders(true).size() == 1);
+    REQUIRE_FALSE(print.has_wipe_tower());
+}
+
+TEST_CASE("used mixed filament components generate a wipe tower", "[SupportMaterialOnWipeTower]")
+{
+    DynamicPrintConfig config = make_wipe_tower_support_config(3);
+    config.set_key_value("enable_support", new ConfigOptionBool(false));
+    config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlTraditional));
+    set_mixed_filament(config, 2, "1,2", "0.5,0.5");
+
+    Print print;
+    Model model;
+    init_support_on_wipe_tower_print(print, model, config, 1, [](Model &m) {
+        m.objects.front()->config.set_key_value("extruder", new ConfigOptionInt(3));
+        m.objects.front()->config.set_key_value("enable_support", new ConfigOptionBool(false));
+    });
+
+    REQUIRE(print.extruders().size() == 1);
+    REQUIRE(print.has_wipe_tower());
+
+    print.process();
+    REQUIRE(print.wipe_tower_data().number_of_toolchanges > 0);
 }

@@ -21,10 +21,9 @@
 
 #include <string_view>
 
-#include <boost/log/trivial.hpp>
-
 #include <tbb/parallel_for.h>
 #include <tbb/task_group.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r::TreeSupport3D
 {
@@ -191,6 +190,10 @@ void TreeModelVolumes::precalculate(const PrintObject& print_object, const coord
         for (size_t distance_to_top = 0; distance_to_top <= config.tip_layers; ++ distance_to_top) {
             possible_tip_radiis.emplace_back(ceilRadius(config.getRadius(distance_to_top)));
             possible_tip_radiis.emplace_back(ceilRadius(config.getRadius(distance_to_top) + m_current_min_xy_dist_delta));
+            for (coord_t xy_min_distance : config.xy_min_distance_per_region)
+                possible_tip_radiis.emplace_back(ceilRadius(
+                    config.getRadius(distance_to_top) +
+                    std::max(coord_t(0), xy_min_distance - config.xy_min_distance)));
         }
         sort_remove_duplicates(possible_tip_radiis);
         // It theoretically may happen in the tip, that the radius can change so much in-between 2 layers, 
@@ -221,6 +224,10 @@ void TreeModelVolumes::precalculate(const PrintObject& print_object, const coord
         update_radius_until_layer(ceilRadius(config.getRadius(distance_to_top, 0) + m_current_min_xy_dist_delta));
         // the maximum radius that the radius with the min_xy_dist can achieve
         update_radius_until_layer(ceilRadius(config.getRadius(distance_to_top, 0)));
+        for (coord_t xy_min_distance : config.xy_min_distance_per_region)
+            update_radius_until_layer(ceilRadius(
+                config.getRadius(distance_to_top, 0) +
+                std::max(coord_t(0), xy_min_distance - config.xy_min_distance)));
         update_radius_until_layer(ceilRadius(config.recommendedMinRadius(current_layer) + m_current_min_xy_dist_delta));
     }
 
@@ -237,6 +244,8 @@ void TreeModelVolumes::precalculate(const PrintObject& print_object, const coord
     radius_until_layer[0] = max_layer;
     if (m_current_min_xy_dist_delta != 0)
         radius_until_layer[m_current_min_xy_dist_delta] = max_layer;
+    for (coord_t xy_min_distance : config.xy_min_distance_per_region)
+        radius_until_layer[std::max(coord_t(0), xy_min_distance - config.xy_min_distance)] = max_layer;
 
     // Now that required_avoidance_limit contains the maximum of ild and regular required radius just copy.
     std::vector<RadiusLayerPair> relevant_collision_radiis{ radius_until_layer.begin(), radius_until_layer.end() };

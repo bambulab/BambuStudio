@@ -244,6 +244,8 @@ bool ObjectSettings::update_settings_list()
             // skips them. Translate it back to the real index inside ModelObject::volumes
             const int vol_idx = objects_model->get_real_volume_index_in_3d(obj_idx, objects_model->GetVolumeIdByItem(item));
             assert(vol_idx >= 0);
+            if (vol_idx < 0 || vol_idx >= int(object->volumes.size()))
+                continue;
             auto volume = object->volumes[vol_idx];
             object_configs.emplace(volume, &volume->config);
         }

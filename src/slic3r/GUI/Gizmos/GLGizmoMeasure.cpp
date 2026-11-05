@@ -654,104 +654,19 @@ std::optional<double> GLGizmoMeasure::get_assembly_rotate_gizmo_angle_from_face_
         return std::nullopt;
     normal.normalize();
 
-    std::vector<Vec3d> pts;
-    pts.reserve(feature.plane_indices->size() * 3);
-    for (int tri_idx : *feature.plane_indices) {
-        if (tri_idx < 0 || tri_idx >= (int) mesh->its.indices.size())
-            continue;
-        const auto &tri = mesh->its.indices[tri_idx];
-        for (int i = 0; i < 3; ++i) {
-            const int vi = tri[i];
-            if (vi >= 0 && vi < (int) mesh->its.vertices.size())
-                pts.emplace_back(feature.world_tran * mesh->its.vertices[vi].cast<double>());
-        }
-    }
-    if (pts.size() < 2)
+    // Scanning the patch is too heavy for on_render() / on_render_for_picking(), which both
+    // reach this every frame, so the result goes through a memo keyed on the patch identity.
+    // Note it describes the patch in mesh coordinates and so survives every pose of the object.
+    const std::optional<Utils::PlanarOBB> obb = m_face_obb_cache.get(mesh->its, *feature.plane_indices);
+    if (!obb)
         return std::nullopt;
 
-    auto orient_axis = [](Vec3d axis) {
-        if (axis.z() < -EPSILON ||
-            (std::abs(axis.z()) <= EPSILON && (axis.y() < -EPSILON ||
-             (std::abs(axis.y()) <= EPSILON && axis.x() < 0.0))))
-            axis = -axis;
-        return axis;
-    };
-
-    std::vector<Vec3d> candidates;
-    candidates.reserve(feature.plane_indices->size() * 3);
-    for (int tri_idx : *feature.plane_indices) {
-        if (tri_idx < 0 || tri_idx >= (int) mesh->its.indices.size())
-            continue;
-        const auto &tri = mesh->its.indices[tri_idx];
-        Vec3d tri_pts[3];
-        bool valid = true;
-        for (int i = 0; i < 3; ++i) {
-            const int vi = tri[i];
-            if (vi < 0 || vi >= (int) mesh->its.vertices.size()) {
-                valid = false;
-                break;
-            }
-            tri_pts[i] = feature.world_tran * mesh->its.vertices[vi].cast<double>();
-        }
-        if (!valid)
-            continue;
-        for (int i = 0; i < 3; ++i) {
-            Vec3d axis = tri_pts[(i + 1) % 3] - tri_pts[i];
-            axis -= normal * axis.dot(normal);
-            const double len = axis.norm();
-            if (len > EPSILON)
-                candidates.emplace_back(orient_axis(axis / len));
-        }
-    }
-    if (candidates.empty())
-        return std::nullopt;
-
-    double best_area = std::numeric_limits<double>::max();
-    Vec3d  best_u = candidates.front();
-    Vec3d  best_v = normal.cross(best_u).normalized();
-    double best_u_len = 0.0;
-    double best_v_len = 0.0;
-
-    for (const Vec3d &u_raw : candidates) {
-        Vec3d u = u_raw;
-        Vec3d v = normal.cross(u);
-        if (v.norm() < EPSILON)
-            continue;
-        v.normalize();
-
-        double min_u = std::numeric_limits<double>::max();
-        double max_u = -std::numeric_limits<double>::max();
-        double min_v = std::numeric_limits<double>::max();
-        double max_v = -std::numeric_limits<double>::max();
-        for (const Vec3d &p : pts) {
-            const double pu = p.dot(u);
-            const double pv = p.dot(v);
-            min_u = std::min(min_u, pu);
-            max_u = std::max(max_u, pu);
-            min_v = std::min(min_v, pv);
-            max_v = std::max(max_v, pv);
-        }
-
-        const double u_len = max_u - min_u;
-        const double v_len = max_v - min_v;
-        const double area = u_len * v_len;
-        if (area + EPSILON < best_area) {
-            best_area = area;
-            best_u = u;
-            best_v = v;
-            best_u_len = u_len;
-            best_v_len = v_len;
-        }
-    }
-
-    Vec3d axis;
-    if (std::abs(best_u_len - best_v_len) <= EPSILON) {
-        const Vec3d u = orient_axis(best_u);
-        const Vec3d v = orient_axis(best_v);
-        axis = u.z() >= v.z() ? u : v;
-    } else {
-        axis = orient_axis(best_u_len > best_v_len ? best_u : best_v);
-    }
+    // Rest the grabber on the longer side of the patch. Rotating the stored axis is what keeps
+    // the handle continuous while the object turns: deriving it from the posed patch instead let
+    // the sign convention inside min_area_obb() land on the opposite direction once the world
+    // components crossed zero, which showed up as the grabber flipping when a rotation was
+    // committed.
+    const Vec3d axis = feature.world_tran.linear() * obb->major_axis;
 
     double phi = 0.0;
     Vec3d rotation_axis;
@@ -2466,8 +2381,13 @@ void GLGizmoMeasure::show_face_face_assembly_senior()
             m_imgui->text(_u8L("Parallel_distance:"));
             ImGui::SameLine(parallel_distance_size + m_space_size);
             ImGui::PushItemWidth(m_input_size_max);
-            ImGui::BBLInputDouble("##parallel_distance_z", &m_buffered_parallel_distance, 0.0f, 0.0f, "%.2f");
-            if (m_last_active_item_imgui != m_current_active_imgui_id && std::abs(m_buffered_parallel_distance - action.parallel_distance) > EPSILON) {
+            // EnterReturnsTrue makes BBLInputScalar write the typed text into the buffer only on
+            // Enter, and its return value already tells whether that changed the value. Keeping
+            // the decision inside the widget avoids the cross frame ActiveId bookkeeping the
+            // previous m_last_active_item_imgui comparison relied on, which lagged one frame
+            // behind the key press and needed a further redraw to fire.
+            if (ImGui::BBLInputDouble("##parallel_distance_z", &m_buffered_parallel_distance, 0.0, 0.0, "%.2f",
+                                      ImGuiInputTextFlags_EnterReturnsTrue)) {
                 set_parallel_distance(m_same_model_object, m_buffered_parallel_distance);
             }
         }
@@ -2696,6 +2616,8 @@ void GLGizmoMeasure::update_single_mesh_pick(GLVolume *v)
      m_hit_different_volumes.clear();
      m_hit_order_volumes.clear();
      m_last_hit_volume = nullptr;
+     // Drop the pointers the OBB memo keys on, they are about to dangle.
+     m_face_obb_cache.invalidate();
  }
 
 void GLGizmoMeasure::reset_feature1_render()

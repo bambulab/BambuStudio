@@ -12,6 +12,10 @@
 html, body {
     background-color: #2B2E31 !important;
     color: #E6E6E8 !important;
+    /* accent-color below only recolors a *checked* box's fill; the
+       unchecked box border/background still follows the browser's native
+       light/dark theme, so this is needed to keep it from rendering white. */
+    color-scheme: dark;
 }
 
 /* Tabs (系统材料 / 自定义材料). 23.css uses #Title div.TitleSelected /
@@ -104,6 +108,11 @@ html, body {
 /* Filament list container */
 #CFilament_List {
     background: #2B2E31 !important;
+    border-color: #3F4347 !important;
+}
+
+/* System-material list container — 23.css line 356 hardcodes #EEEEEE */
+#ItemBlockArea {
     border-color: #3F4347 !important;
 }
 

@@ -5,6 +5,7 @@
 #include <locale>
 #include <ctime>
 #include <cstdarg>
+#include <cctype>
 #include <stdio.h>
 #include <filesystem>
 
@@ -42,16 +43,7 @@
 	#endif
 #endif
 
-#include "LogSink.hpp"
-
-#include <boost/log/core.hpp>
-#include <boost/log/trivial.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/utility/setup/file.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
-#include <boost/log/sources/severity_logger.hpp>
-#include <boost/log/sources/record_ostream.hpp>
-#include <boost/log/support/date_time.hpp>
+#include "libslic3r/Log.hpp"
 
 #include <boost/locale.hpp>
 
@@ -89,93 +81,6 @@
 #endif
 
 namespace Slic3r {
-
-static boost::log::trivial::severity_level logSeverity = boost::log::trivial::error;
-
-static boost::log::trivial::severity_level level_to_boost(unsigned level)
-{
-    switch (level) {
-    // Report fatal errors only.
-    case 0: return boost::log::trivial::fatal;
-    // Report fatal errors and errors.
-    case 1: return boost::log::trivial::error;
-    // Report fatal errors, errors and warnings.
-    case 2: return boost::log::trivial::warning;
-    // Report all errors, warnings and infos.
-    case 3: return boost::log::trivial::info;
-    // Report all errors, warnings, infos and debugging.
-    case 4: return boost::log::trivial::debug;
-    // Report everyting including fine level tracing information.
-    default: return boost::log::trivial::trace;
-    }
-}
-
-void set_logging_level(unsigned int level)
-{
-    logSeverity = level_to_boost(level);
-
-    boost::log::core::get()->set_filter
-    (
-        boost::log::trivial::severity >= logSeverity
-    );
-}
-
-unsigned int level_string_to_boost(std::string level)
-{
-    std::map<std::string, int> Control_Param;
-    Control_Param["fatal"] = 0;
-    Control_Param["error"] = 1;
-    Control_Param["warning"] = 2;
-    Control_Param["info"] = 3;
-    Control_Param["debug"] = 4;
-    Control_Param["trace"] = 5;
-
-    return Control_Param[level];
-}
-
-std::string get_string_logging_level(unsigned level)
-{
-    switch (level) {
-    case 0: return "fatal";
-    case 1: return "error";
-    case 2: return "warning";
-    case 3: return "info";
-    case 4: return "debug";
-    case 5: return "trace";
-    default: return "error";
-    }
-}
-
-unsigned get_logging_level()
-{
-    switch (logSeverity) {
-    case boost::log::trivial::fatal : return 0;
-    case boost::log::trivial::error : return 1;
-    case boost::log::trivial::warning : return 2;
-    case boost::log::trivial::info : return 3;
-    case boost::log::trivial::debug : return 4;
-    case boost::log::trivial::trace : return 5;
-    default: return 1;
-    }
-}
-
-// Force set_logging_level(<=error) after loading of the DLL.
-// This is currently only needed if libslic3r is loaded as a shared library into Perl interpreter
-// to perform unit and integration tests.
-static struct RunOnInit {
-    RunOnInit() {
-        set_logging_level(1);
-
-    }
-} g_RunOnInit;
-
-void trace(unsigned int level, const char *message)
-{
-    boost::log::trivial::severity_level severity = level_to_boost(level);
-
-    BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(),\
-        (::boost::log::keywords::severity = severity)) << message;
-}
 
 void disable_multi_threading()
 {
@@ -289,7 +194,7 @@ std::string debug_out_path(const char *name, ...)
 			boost::filesystem::create_directory(svg_folder);
 		}
 		std::string path = boost::filesystem::system_complete(svg_folder).string();
-        printf("Debugging output files will be written to %s\n", path.c_str());
+        BOOST_LOG_TRIVIAL(info) << "Debugging output files will be written to " << path;
     }
 	char buffer[2048];
 	va_list args;
@@ -303,59 +208,6 @@ std::string debug_out_path(const char *name, ...)
 		std::filesystem::create_directory(svg_folder.string() + sub_dir);
 	}
 	return svg_folder.string() + std::string(buffer);
-}
-
-boost::shared_ptr<LogSink> g_log_sink;
-boost::shared_ptr<LogSinkBackend> g_log_sink_backend;
-bool is_log_trivival_valid()
-{
-    return g_log_sink != nullptr;
-}
-
-namespace logging = boost::log;
-namespace src = boost::log::sources;
-namespace expr = boost::log::expressions;
-namespace keywords = boost::log::keywords;
-namespace attrs = boost::log::attributes;
-void set_log_path_and_level(const std::string& file, unsigned int level, const LogEncOptions& enc_options)
-{
-#ifdef __APPLE__
-	//currently on old macos, the boost::log::add_file_log will crash
-	//TODO: need to be fixed
-	if (!is_macos_support_boost_add_file_log()) {
-		return;
-	}
-#endif
-
-	g_log_sink_backend = boost::make_shared<LogSinkBackend>(file, enc_options);
-    g_log_sink = boost::make_shared<LogSink>(g_log_sink_backend);
-	g_log_sink->set_formatter(
-		expr::stream
-		<< expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
-		<< "[Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
-		<< ":" << expr::smessage
-	);
-	boost::log::core::get()->add_sink(g_log_sink);
-
-	logging::add_common_attributes();
-
-	set_logging_level(level);
-	return;
-}
-
-void update_log_sink(const std::string& file, const LogEncOptions& enc_options)
-{
-    if (g_log_sink_backend) {
-        g_log_sink_backend->update_enc_option(file, enc_options);
-    }
-}
-
-void flush_logs()
-{
-	if (g_log_sink)
-		g_log_sink->flush();
-
-	return;
 }
 
 #ifdef _WIN32
@@ -510,7 +362,7 @@ namespace WindowsSupport
 		if (! from_handle)
 		{
 			auto err_code = map_windows_error(GetLastError());
-			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("can not open file %1%, error: %2%") % from.c_str() % err_code.message();
+			BOOST_LOG_TRIVIAL(error) << boost::format("can not open file %1%, error: %2%") % from.c_str() % err_code.message();
 			return err_code;
 		}
 
@@ -534,7 +386,7 @@ namespace WindowsSupport
 		  		return errcode;
 
 			//BBS: add some log for error tracing
-			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(",first rename file from %1% to %2% failed, reason: %3%") % from.c_str() % to.c_str() % errcode.message();
+			BOOST_LOG_TRIVIAL(error) << boost::format("first rename file from %1% to %2% failed, reason: %3%") % from.c_str() % to.c_str() % errcode.message();
 			// The destination file probably exists and is currently open in another
 			// process, either because the file was opened without FILE_SHARE_DELETE or
 			// it is mapped into memory (e.g. using MemoryBuffer). Rename it in order to
@@ -551,7 +403,7 @@ namespace WindowsSupport
 					continue;
 
 				//BBS: add some log for error tracing
-				BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(",open dest file %1% failed, reason: %2%") % to.c_str() % errcode.message();
+				BOOST_LOG_TRIVIAL(error) << boost::format("open dest file %1% failed, reason: %2%") % to.c_str() % errcode.message();
 				return errcode;
 			}
 
@@ -575,7 +427,7 @@ namespace WindowsSupport
 							if (errcode == std::errc::no_such_file_or_directory)
 						  		break;
 							//BBS: add some log for error tracing
-							BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", line %1%, error: %2%") % __LINE__ % errcode.message();
+							BOOST_LOG_TRIVIAL(error) << boost::format("error: %1%")% errcode.message();
 							return errcode;
 						}
 						BY_HANDLE_FILE_INFORMATION FI2;
@@ -586,7 +438,7 @@ namespace WindowsSupport
 						continue;
 					}
 					//BBS: add some log for error tracing
-					BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", line %1%, error: %2%") % __LINE__ % errcode.message();
+					BOOST_LOG_TRIVIAL(error) << boost::format("error: %1%")% errcode.message();
 					return errcode;
 				}
 				break;
@@ -600,7 +452,7 @@ namespace WindowsSupport
 
 		// The most likely root cause.
 		//BBS: add some log for error tracing
-		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", line %1%, error in the end, permission_denied") % __LINE__;
+		BOOST_LOG_TRIVIAL(error) << boost::format("error in the end, permission_denied");
 		return std::make_error_code(std::errc::permission_denied);
 	}
 } // namespace WindowsSupport
@@ -789,11 +641,11 @@ bool copy_file_linux(const boost::filesystem::path &from, const boost::filesyste
 	if (to_mode != from_mode && ::fchmod(outfile.fd, from_mode) != 0) {
 		if (platform_flavor() == PlatformFlavor::LinuxOnChromium) {
 			// Ignore that. 9p filesystem does not allow fmod().
-			BOOST_LOG_TRIVIAL(info) << "copy_file_linux() failed to fchmod() the output file \"" << to.string() << "\" to " << from_mode << ": " << ec.message() <<
+			BOOST_LOG_TRIVIAL(info) << "failed to fchmod() the output file \"" << to.string() << "\" to " << from_mode << ": " << ec.message() <<
 				" This may be expected when writing to a 9p filesystem.";
 		} else {
 			// Generic linux. Write out an error to console. At least we may get some feedback.
-			BOOST_LOG_TRIVIAL(error) << "copy_file_linux() failed to fchmod() the output file \"" << to.string() << "\" to " << from_mode << ": " << ec.message();
+			BOOST_LOG_TRIVIAL(error) << "failed to fchmod() the output file \"" << to.string() << "\" to " << from_mode << ": " << ec.message();
 		}
 	}
 
@@ -951,7 +803,7 @@ bool copy_framework(const std::string &from, const std::string &to)
     boost::filesystem::path src(from), dst(to);
     try {
         if (!boost::filesystem::is_directory(src)) {
-            std::cerr << "Error: Source is not a directory: " << src << std::endl;
+            BOOST_LOG_TRIVIAL(error) << "Source is not a directory: " << src;
             return false;
         }
         boost::filesystem::create_directories(dst);
@@ -969,7 +821,7 @@ bool copy_framework(const std::string &from, const std::string &to)
         }
         return true;
     } catch (const boost::filesystem::filesystem_error &e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Filesystem error: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "Filesystem error: " << e.what();
     }
     return false;
 }
@@ -1064,6 +916,133 @@ bool is_gallery_file(const std::string &path, char const* type)
 bool is_shapes_dir(const std::string& dir)
 {
 	return dir == sys_shapes_dir() || dir == custom_shapes_dir();
+}
+
+namespace {
+
+constexpr const char *path_separators = "\\/";
+
+bool is_separator(char c) { return c == '\\' || c == '/'; }
+
+// Where the user name and user id sit in a path under the user profile, e.g.
+// C:\Users\<name>\AppData\Roaming\BambuStudio\user\<id>\...
+struct UserPathLayout
+{
+    std::string profile;                      // user profile directory
+    size_t      name_pos  = std::string::npos; // first byte of the user name in the profile path
+    size_t      name_size = 0;
+    size_t      id_pos    = std::string::npos; // first byte of the user id folder
+
+    bool valid() const { return name_pos != std::string::npos && name_size > 0; }
+};
+
+const UserPathLayout &user_path_layout()
+{
+    static const UserPathLayout layout = [] {
+        UserPathLayout l;
+#ifdef _WIN32
+        const char *env = std::getenv("USERPROFILE");
+    #if BBL_RELEASE_TO_PUBLIC
+        const size_t suffix_len = strlen("\\AppData\\Roaming\\BambuStudio\\user");
+    #else
+        const size_t suffix_len = BBL_INTERNAL_TESTING == 1 ? strlen("\\AppData\\Roaming\\BambuStudioInternal\\user") :
+                                                              strlen("\\AppData\\Roaming\\BambuStudioBeta\\user");
+    #endif
+#elif __APPLE__
+        const char *env = std::getenv("HOME");
+    #if BBL_RELEASE_TO_PUBLIC
+        const size_t suffix_len = strlen("/Library/Application Support/BambuStudio/user");
+    #else
+        const size_t suffix_len = BBL_INTERNAL_TESTING == 1 ? strlen("/Library/Application Support/BambuStudioInternal/user") :
+                                                              strlen("/Library/Application Support/BambuStudioBeta/user");
+    #endif
+#else
+        const char *env = std::getenv("HOME");
+    #if BBL_RELEASE_TO_PUBLIC
+        const size_t suffix_len = strlen("/.config/BambuStudio/user");
+    #else
+        const size_t suffix_len = BBL_INTERNAL_TESTING == 1 ? strlen("/.config/BambuStudioInternal/user") :
+                                                              strlen("/.config/BambuStudioBeta/user");
+    #endif
+#endif
+        if (env == nullptr)
+            return l;
+        l.profile        = env;
+        const size_t sep = l.profile.find_last_of(path_separators);
+        if (sep == std::string::npos)
+            return l;
+        l.name_pos  = sep + 1;
+        l.name_size = l.profile.size() - l.name_pos;
+        l.id_pos    = l.profile.size() + suffix_len + 1;
+        return l;
+    }();
+    return layout;
+}
+
+bool is_utf8_continuation(char c) { return (static_cast<unsigned char>(c) & 0xC0) == 0x80; }
+
+// Replace bytes [pos, pos + count) with '*', widened so that no UTF-8 character is cut in half.
+void mask_bytes(std::string &s, size_t pos, size_t count)
+{
+    if (pos >= s.size())
+        return;
+    size_t end = std::min(s.size(), pos + count);
+    while (pos > 0 && is_utf8_continuation(s[pos]))
+        --pos;
+    while (end < s.size() && is_utf8_continuation(s[end]))
+        ++end;
+    s.replace(pos, end - pos, end - pos, '*');
+}
+
+std::string file_name_part(const std::string &path)
+{
+    const size_t sep = path.find_last_of(path_separators);
+    return sep == std::string::npos ? path : path.substr(sep + 1);
+}
+
+bool is_upper_of(char upper, char lower)
+{
+    const auto u = static_cast<unsigned char>(upper);
+    return std::isupper(u) && std::tolower(u) == static_cast<unsigned char>(lower);
+}
+
+} // namespace
+
+std::string PathSanitizer::sanitize_impl(std::string raw)
+{
+    // Bytes masked when the user name shows up in a path that is not under the user profile.
+    constexpr size_t guessed_name_size = 12;
+
+    const UserPathLayout &layout = user_path_layout();
+    if (!layout.valid() || raw.empty() || raw.size() < layout.profile.size())
+        return file_name_part(raw);
+
+    const std::string &full = layout.profile;
+    if (raw[0] != full[0] || raw[full.size() - 1] != full[full.size() - 1]) {
+        if (is_upper_of(raw[layout.name_pos], full[layout.name_pos])) {
+            mask_bytes(raw, layout.name_pos, guessed_name_size);
+            return raw;
+        }
+        return file_name_part(raw);
+    }
+
+    const size_t name_end = layout.name_pos + layout.name_size;
+    if (name_end == raw.size() || is_separator(raw[name_end]))
+        mask_bytes(raw, layout.name_pos, layout.name_size);
+    else if (is_upper_of(raw[layout.name_pos], full[layout.name_pos]))
+        mask_bytes(raw, layout.name_pos, guessed_name_size);
+    else
+        return file_name_part(raw);
+
+    const size_t id_pos = layout.id_pos;
+    if (id_pos < raw.size() && is_separator(raw[id_pos - 1]) && std::isdigit(static_cast<unsigned char>(raw[id_pos]))) {
+        size_t id_end = raw.find_first_of(path_separators, id_pos);
+        if (id_end == std::string::npos)
+            id_end = raw.size();
+        mask_bytes(raw, id_pos, id_end - id_pos);
+    }
+
+    return file_name_part(raw);
 }
 
 } // namespace Slic3r
@@ -1348,6 +1327,8 @@ std::string format_diameter_to_str(double diameter, int precision)
     double candidates[] = {0.2, 0.4, 0.6, 0.8};
     double best = *std::min_element(std::begin(candidates), std::end(candidates), [diameter](double a, double b) { return std::abs(a - diameter) < std::abs(b - diameter); });
     std::ostringstream oss;
+    // Diameters are used as keys ("0.4"), never as UI text, so they must not follow the UI locale.
+    oss.imbue(std::locale::classic());
     oss << std::fixed << std::setprecision(precision) << best;
     return oss.str();
 }
@@ -1358,7 +1339,7 @@ std::string format_diameter_to_str(double diameter, int precision)
 std::string log_memory_info(bool ignore_loglevel)
 {
     std::string out;
-    if (ignore_loglevel || logSeverity <= boost::log::trivial::info) {
+    if (ignore_loglevel || get_logging_level() >= 3) {
 #ifdef WIN32
     #ifndef PROCESS_MEMORY_COUNTERS_EX
         // MingW32 doesn't have this struct in psapi.h
@@ -1564,6 +1545,12 @@ void load_string_file(const boost::filesystem::path& p, std::string& str)
     std::size_t sz = static_cast<std::size_t>(boost::filesystem::file_size(p));
     str.resize(sz, '\0');
     file.read(&str[0], sz);
+}
+
+ScopeTimer::~ScopeTimer()
+{
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(clock_t::now() - start_);
+    BOOST_LOG_TRIVIAL(info) << name_ << " cost " << elapsed.count() << "ms";
 }
 
 }; // namespace Slic3r

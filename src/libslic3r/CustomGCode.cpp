@@ -71,6 +71,17 @@ std::vector<std::pair<double, unsigned int>> custom_tool_changes(const Info& cus
     return custom_tool_changes;
 }
 
+std::vector<std::pair<double, unsigned int>> custom_tool_changes_up_to(const Info& custom_gcode_per_print_z, size_t num_extruders, double max_print_z)
+{
+    std::vector<std::pair<double, unsigned int>> tool_changes = custom_tool_changes(custom_gcode_per_print_z, num_extruders);
+    tool_changes.erase(std::remove_if(tool_changes.begin(), tool_changes.end(),
+                                      [max_print_z](const std::pair<double, unsigned int> &tool_change) {
+                                          return tool_change.first > max_print_z + EPSILON;
+                                      }),
+                       tool_changes.end());
+    return tool_changes;
+}
+
 } // namespace CustomGCode
 
 } // namespace Slic3r

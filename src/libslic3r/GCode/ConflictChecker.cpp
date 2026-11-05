@@ -6,6 +6,7 @@
 #include <map>
 #include <functional>
 #include <atomic>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

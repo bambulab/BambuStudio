@@ -6,6 +6,7 @@
       "type": "TPU",
       "action": "prohibition",
       "slot": "ams",
+      "ams_type_id": [1, 2, 3, 4, 6],
       "description": "TPU is not supported by AMS."
     },
     {
@@ -13,7 +14,30 @@
       "type": "PET-CF",
       "action": "prohibition",
       "slot": "ams",
-      "description": "AMS does not support 'Bambu Lab PET-CF'."
+      "ams_type_id": [1, 2, 3, 4, 5],
+      "group": "cf_gf_ams",
+      "priority": 2,
+      "description": "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
+    },
+    {
+      "vendor": "Bambu Lab",
+      "type": "PA6-CF",
+      "action": "prohibition",
+      "slot": "ams",
+      "ams_type_id": [1, 2, 3, 4, 5],
+      "group": "cf_gf_ams",
+      "priority": 2,
+      "description": "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
+    },
+    {
+      "vendor": "Bambu Lab",
+      "type": "PPS-CF",
+      "action": "prohibition",
+      "slot": "ams",
+      "ams_type_id": [1, 2, 3, 4, 5],
+      "group": "cf_gf_ams",
+      "priority": 2,
+      "description": "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
     },
     {
       "name_suffix": "PA6-GF",
@@ -65,10 +89,23 @@
       "description": "The current filament doesn't support the TPU high-flow nozzle and can't be used."
     },
     {
+      "white_names": ["2.85mm"],
+      "nozzle_flows": ["TPU285"],
+      "action": "prohibition",
+      "hide_in": ["pre_check", "double_check"],
+      "description": "%s is not supported by the current 2.85 mm TPU hotend. Please confirm the filament type and try again."
+    },
+    {
+      "filament_id_vec": ["GFU06", "GFU97"],
+      "nozzle_flows": ["Standard", "High Flow", "TPU High Flow", "E3D High Flow"],
+      "action": "prohibition",
+      "description": "%s is not supported by the current %s hotend. Please confirm the filament type and try again."
+    },
+    {
       "type": "TPU",
       "action": "prohibition",
       "calib_mode": "auto_pa",
-      "model_id": ["O1D", "O1E"],
+      "model_id": ["O1D", "O1E", "N10"],
       "description": "Auto dynamic flow calibration is not supported for TPU filament."
     },
     {
@@ -83,6 +120,7 @@
       "types": ["TPU"],
       "action": "warning",
       "model_id":["N6"],
+      "hide_in": ["double_check"],
       "description": "How to feed TPU filament on X2D.",
       "wiki": "https://e.bambulab.com/t?c=PAxXqQu2zBgvN3ea"
     },
@@ -90,39 +128,53 @@
       "types": ["TPU", "TPU-AMS"],
       "action": "warning",
       "model_id":["N7"],
-      "description": "How to feed TPU filament.",
+      "hide_in": ["double_check"],
+      "description": "Special attention should be paid to the feeding method of TPU.",
       "wiki": "https://e.bambulab.com/t?c=blx2TDu3uoRdfyIx"
     },
     {
       "types": ["TPU"],
       "action": "warning",
       "model_id":["O1D"],
-      "description": "How to feed TPU filament.",
+      "hide_in": ["double_check"],
+      "description": "Special attention should be paid to the feeding method of TPU.",
       "wiki": "https://e.bambulab.com/t?c=fwWqpBg37Liel92N"
     },
     {
       "types": ["TPU"],
       "action": "warning",
       "model_id":["O1E"],
-      "description": "How to feed TPU filament.",
+      "hide_in": ["double_check"],
+      "description": "Special attention should be paid to the feeding method of TPU.",
       "wiki": "https://e.bambulab.com/t?c=fwWqpBg37Liel92N"
     },
     {
       "types": ["TPU"],
       "action": "warning",
       "model_id":["O1C2"],
-      "description": "How to feed TPU filament.",
+      "hide_in": ["double_check"],
+      "description": "Special attention should be paid to the feeding method of TPU.",
       "wiki": "https://e.bambulab.com/t?c=Db9YyP5qg3MHbSHD"
     },
     {
       "types": ["TPU"],
       "action": "warning",
       "model_id":["O1S"],
-      "description": "How to feed TPU filament.",
+      "hide_in": ["double_check"],
+      "description": "Special attention should be paid to the feeding method of TPU.",
       "wiki": "https://e.bambulab.com/t?c=L45sIEpzy1Wz0tsV"
     },
     {
+      "types": ["TPU"],
+      "action": "warning",
+      "model_id":["N10"],
+      "hide_in": ["double_check"],
+      "description": "Special attention should be paid to the feeding method of TPU.",
+      "wiki": "https://wiki.bambulab.com/zh/h3c/tpu-printing-guide"
+    },
+    {
       "types": ["TPU", "TPU-AMS"],
+      "nozzle_flows": ["Standard", "High Flow", "TPU High Flow", "E3D High Flow"],
       "action": "warning",
       "description": "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
     },
@@ -153,20 +205,38 @@
       "wiki": "https://e.bambulab.com/t?c=UC64kdlpHxN3Mb15"
     },
     {
+      "type": "PPS-CF",
+      "model_id":["N10"],
+      "action": "warning",
+      "slot": "ext",
+      "description": "PPS-CF is brittle and could break in bended PTFE tube above Toolhead.",
+      "wiki": "https://e.bambulab.com/t?c=UC64kdlpHxN3Mb15"
+    },
+    {
+      "type": "PPA-CF",
+      "model_id":["N10"],
+      "action": "warning",
+      "slot": "ext",
+      "description": "PPA-CF is brittle and could break in bended PTFE tube above Toolhead.",
+      "wiki": "https://e.bambulab.com/t?c=UC64kdlpHxN3Mb15"
+    },
+    {
       "type_suffix": "CF",
       "action": "warning",
       "slot": "ams",
+      "ams_type_id": [1, 2, 3, 4, 5],
       "group": "cf_gf_ams",
       "priority": 0,
-      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+      "description": "Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead."
     },
     {
       "type_suffix": "GF",
       "action": "warning",
       "slot": "ams",
+      "ams_type_id": [1, 2, 3, 4, 5],
       "group": "cf_gf_ams",
       "priority": 0,
-      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+      "description": "Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead."
     },
     {
       "vendor": "Bambu Lab",
@@ -174,7 +244,73 @@
       "name": "Bambu PLA Glow",
       "action": "warning",
       "slot": "ams",
-      "description": "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+      "group": "pla_glow_ams_feeder",
+      "priority": 0,
+      "description": "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
+    },
+    {
+      "vendor": "Bambu Lab",
+      "type": "PLA",
+      "name": "Bambu PLA Glow",
+      "model_id": ["N10"],
+      "action": "warning",
+      "slot": "ams",
+      "ams_type_id": [6],
+      "group": "pla_glow_ams_feeder",
+      "priority": 1,
+      "description": "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool.",
+      "wiki_by_model": {
+        "N10": "https://e.bambulab.com/t?c=ArsDpYcoaTkZgnn1"
+      }
+    },
+    {
+      "vendor": "Bambu Lab",
+      "type": "PPA-CF",
+      "action": "prohibition",
+      "slot": "ams",
+      "ams_type_id": [1, 2, 3, 4, 5],
+      "group": "cf_gf_ams",
+      "priority": 2,
+      "description": "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
+    },
+    {
+      "types": ["PET-CF", "PA6-CF", "PA6-GF", "ASA-CF", "PAHT-CF", "PPS-CF", "PPA-CF"],
+      "model_id": ["N10"],
+      "action": "warning",
+      "slot": "ams",
+      "ams_type_id": [6],
+      "group": "ams_6_7_cf_gf_feeding",
+      "priority": 0,
+      "description": "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s."
+    },
+    {
+      "vendor": "Bambu Lab",
+      "type": "PPA-CF",
+      "model_id": ["N10"],
+      "action": "prohibition",
+      "slot": "ams",
+      "ams_type_id": [6],
+      "group": "ams_6_7_cf_gf_feeding",
+      "priority": 2,
+      "description": "PPA-CF filament does not support %s feeding. Use an external spool instead."
+    },
+    {
+      "type": "PC",
+      "model_id": ["N10"],
+      "action": "warning",
+      "slot": "ams",
+      "ams_type_id": [1, 2, 3, 4, 5, 6],
+      "description": "%s filament is brittle. Use %s feeding with caution."
+    },
+    {
+      "vendor": "Bambu Lab",
+      "type": "PLA",
+      "name": "Bambu PLA Translucent",
+      "model_id": ["N10"],
+      "action": "warning",
+      "slot": "ams",
+      "ams_type_id": [6],
+      "description": "%s filament is brittle. Use %s feeding with caution."
     },
     {
       "type": "PLA",
@@ -182,7 +318,9 @@
       "action": "warning",
       "slot": "ams",
       "has_filament_switch": true,
-      "description": "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue.",
+      "group": "fila_switcher",
+      "priority": 5,
+      "description": "%s may fail to load or unload due to the Filament Track Switch.",
       "wiki": "https://e.bambulab.com/t?c=s0CgMOrctZiPablB"
     },
     {
@@ -245,7 +383,7 @@
       "type_suffix": "CF",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N10"],
       "action": "warning",
       "slot": "ext",
       "description": "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
@@ -254,7 +392,7 @@
       "name_suffix": "PA6-GF",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
       "action": "warning",
       "slot": "ext",
       "description": "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
@@ -263,7 +401,16 @@
       "type_suffix": "CF",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
+      "action": "warning",
+      "slot": "ams",
+      "description": "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+    },
+    {
+      "type_suffix": "GF",
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [ 0.4 ],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
       "action": "warning",
       "slot": "ams",
       "group": "cf_gf_ams",
@@ -274,7 +421,7 @@
       "name_suffix": "PA6-GF",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
       "action": "warning",
       "slot": "ams",
       "group": "cf_gf_ams",
@@ -285,7 +432,7 @@
       "name_suffix": "TPU 85A",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4, 0.6, 0.8 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
       "action": "warning",
       "slot": "ext",
       "description": "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
@@ -294,10 +441,275 @@
       "name_suffix": "TPU 90A",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4, 0.6, 0.8 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
       "action": "warning",
       "slot": "ext",
       "description": "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
+    },
+    {
+      "vendor": "Bambu Lab",
+      "type": "PLA",
+      "name": "Bambu PLA Galaxy",
+      "nozzle_flows": ["Standard"],
+      "nozzle_diameters": [ 0.2 ],
+      "model_id": ["N10"],
+      "action": "warning",
+      "description": "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing."
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [0],
+      "filament_id_vec": ["GFB00", "GFB01", "GFB02", "GFT01", "GFG00", "GFG02"],
+      "action": "warning",
+      "description": "%s is used with the auxiliary extruder and may impact print quality.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [1],
+      "filament_id_vec": ["GFB02", "GFA11"],
+      "nozzle_flows": ["Standard"],
+      "nozzle_diameters": [0.6, 0.8],
+      "action": "warning",
+      "description": "%s used with a standard %s nozzle may cause oozing.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [1],
+      "filament_id_vec": ["GFB02", "GFA11"],
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [0.6, 0.8],
+      "action": "warning",
+      "description": "%s used with a high-flow %s nozzle may cause oozing.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [1],
+      "filament_id_vec": ["GFB51", "GFN05", "GFN08", "GFN04", "GFT01"],
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [0.4],
+      "action": "warning",
+      "description": "%s used with a high-flow %s nozzle may cause a clog.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [0],
+      "filament_id_vec": ["GFB51", "GFN05", "GFG50", "GFS03", "GFU02", "GFA05"],
+      "action": "critical_warning",
+      "description": "%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [1],
+      "filament_id_vec": ["GFG01"],
+      "nozzle_flows": ["Standard"],
+      "nozzle_diameters": [0.2],
+      "action": "warning",
+      "description": "%s used with a standard %s nozzle may affect print quality.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [1],
+      "filament_id_vec": ["GFA05", "GFA06"],
+      "nozzle_flows": ["Standard"],
+      "nozzle_diameters": [0.6, 0.8],
+      "action": "warning",
+      "description": "%s used with a standard %s nozzle may affect print quality.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [0],
+      "filament_id_vec": ["GFG01", "GFA00", "GFA13", "GFA15", "GFA18", "GFA01", "GFA02", "GFA09", "GFA10", "GFA17", "GFS02", "GFS05"],
+      "nozzle_flows": ["Standard"],
+      "nozzle_diameters": [0.2],
+      "action": "warning",
+      "description": "When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [0],
+      "filament_id_vec": ["GFA06"],
+      "nozzle_flows": ["Standard"],
+      "nozzle_diameters": [0.2, 0.6, 0.8],
+      "action": "warning",
+      "description": "When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [1],
+      "filament_id_vec": ["GFG50"],
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [0.4],
+      "action": "warning",
+      "description": "%s used with a high-flow %s nozzle may result in poor quality in overhang and bridge areas of the model.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [0],
+      "filament_id_vec": ["GFA11", "GFN06", "GFU04", "GFU03", "GFU01", "GFU00"],
+      "action": "prohibition",
+      "description": "%s is only supported for printing with the main extruder.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [1],
+      "filament_id_vec": ["GFA15", "GFA17"],
+      "nozzle_flows": ["Standard"],
+      "nozzle_diameters": [0.2],
+      "action": "warning",
+      "description": "%s used with a standard %s nozzle may lead to difficult extrusion.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [1],
+      "filament_id_vec": ["GFA05", "GFA06"],
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [0.6, 0.8],
+      "action": "warning",
+      "description": "%s used with a high-flow %s nozzle may affect print quality.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [0],
+      "filament_id_vec": ["GFA06"],
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [0.6, 0.8],
+      "action": "warning",
+      "description": "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [1],
+      "filament_id_vec": ["GFA50", "GFN06"],
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [0.4],
+      "action": "warning",
+      "description": "%s used with a high-flow %s nozzle may lead to difficult extrusion.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [1],
+      "filament_id_vec": ["GFU04"],
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [0.6, 0.8],
+      "action": "warning",
+      "description": "%s used with a high-flow %s nozzle may lead to difficult extrusion.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [1],
+      "filament_id_vec": ["GFU03"],
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [0.4, 0.6, 0.8],
+      "action": "warning",
+      "description": "%s used with a high-flow %s nozzle may lead to difficult extrusion.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "extruder_id": [0],
+      "filament_id_vec": ["GFA50"],
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [0.4],
+      "action": "warning",
+      "description": "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may cause a clog.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "has_filament_switch": true,
+      "slot": "ams",
+      "filament_id_vec": ["GFA06", "GFA05"],
+      "action": "warning",
+      "group": "fila_switcher",
+      "priority": 10,
+      "description": "Affected by the Filament Track Switch, %s may fail to load or unload.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "has_filament_switch": true,
+      "slot": "ams",
+      "filament_id_vec": ["GFA12", "GFA50", "GFS06"],
+      "nozzle_diameters": [0.4, 0.6, 0.8],
+      "action": "warning",
+      "group": "fila_switcher",
+      "priority": 10,
+      "description": "Affected by the Filament Track Switch, %s may fail to load or unload.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "has_filament_switch": true,
+      "slot": "ams",
+      "extruder_id": [1],
+      "filament_id_vec": ["GFA11"],
+      "nozzle_diameters": [0.4, 0.6, 0.8],
+      "action": "critical_warning",
+      "group": "fila_switcher",
+      "priority": 30,
+      "description": "Affected by the Filament Track Switch, %s may break inside the filament tube.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "has_filament_switch": true,
+      "slot": "ams",
+      "filament_id_vec": ["GFB50", "GFB02", "GFB51", "GFC00", "GFU02"],
+      "nozzle_diameters": [0.4, 0.6, 0.8],
+      "action": "critical_warning",
+      "group": "fila_switcher",
+      "priority": 30,
+      "description": "Affected by the Filament Track Switch, %s may break inside the filament tube.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "has_filament_switch": true,
+      "slot": "ams",
+      "filament_id_vec": ["GFN05", "GFN06"],
+      "action": "prohibition",
+      "group": "cf_gf_ams",
+      "priority": 10,
+      "description": "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "has_filament_switch": true,
+      "slot": "ams",
+      "filament_id_vec": ["GFA15"],
+      "nozzle_flows": ["Standard"],
+      "nozzle_diameters": [0.2],
+      "action": "prohibition",
+      "group": "fila_switcher",
+      "priority": 50,
+      "description": "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "filament_id_vec": ["GFA12"],
+      "nozzle_flows": ["Standard"],
+      "nozzle_diameters": [0.2],
+      "action": "prohibition",
+      "description": "%s is not supported with a standard %s nozzle.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
     }
   ]
 }

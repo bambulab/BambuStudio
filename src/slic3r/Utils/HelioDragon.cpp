@@ -15,7 +15,6 @@
 #include "libslic3r/PrintBase.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/LocalesUtils.hpp"
-#include <boost/log/trivial.hpp>
 #include "../GUI/PartPlate.hpp"
 #include "../GUI/GUI_App.hpp"
 #include "../GUI/Event.hpp"
@@ -31,6 +30,7 @@
 #include <ctime>
 #include <sstream>
 #include <thread>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -85,12 +85,14 @@ public:
                 try {
                     task(m_stopping);
                 } catch (...) {
+                    BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                     // SupportDataCatalogStore::run normally contains failures.
                     // Keep the owner safe if one escapes unexpectedly.
                 }
                 finished->store(true, std::memory_order_release);
             });
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             if (!m_workers.empty() && m_workers.back().finished == finished &&
                 !m_workers.back().thread.joinable()) {
                 m_workers.pop_back();
@@ -283,7 +285,7 @@ bool helio_adopt_recent_optimization_by_name(const std::string& helio_api_url,
 std::string extract_trace_id(const std::string& headers) {
     // Validate input to prevent crashes
     if (headers.empty()) {
-        BOOST_LOG_TRIVIAL(warning) << "extract_trace_id: empty headers";
+        BOOST_LOG_TRIVIAL(warning) << "empty headers";
         return "";
     }
 
@@ -308,7 +310,7 @@ std::string extract_trace_id(const std::string& headers) {
 
         return trace_id;
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "extract_trace_id error: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "error: " << e.what();
         return "";
     }
 }
@@ -3345,7 +3347,7 @@ HelioQuery::GetRecentRunsResult HelioQuery::get_recent_runs(const std::string& h
         result.optimizations = std::move(temp_optimizations);
         result.simulations = std::move(temp_simulations);
 
-        BOOST_LOG_TRIVIAL(info) << "get_recent_runs completed: " << result.optimizations.size()
+        BOOST_LOG_TRIVIAL(info) << "completed: " << result.optimizations.size()
                                 << " optimizations, " << result.simulations.size() << " simulations";
     }
 

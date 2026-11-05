@@ -11,8 +11,7 @@
 #include "WebViewDialog.hpp"
 #include "PartPlate.hpp"
 #include "ReleaseNote.hpp"
-
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 #define TOPBAR_ICON_SIZE  18
 #define TOPBAR_TITLE_WIDTH  300

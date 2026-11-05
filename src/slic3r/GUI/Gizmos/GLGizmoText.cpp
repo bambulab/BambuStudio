@@ -31,7 +31,6 @@
 #include <wx/utils.h>
 
 #include <numeric>
-#include <boost/log/trivial.hpp>
 
 #include <GL/glew.h>
 
@@ -43,6 +42,7 @@
 #include "libslic3r/SVG.hpp"
 
 #include "../ParamsPanel.hpp"
+#include "libslic3r/Log.hpp"
 using namespace Slic3r;
 using namespace Slic3r::GUI;
 using namespace Slic3r::GUI::Emboss;
@@ -375,7 +375,8 @@ void GLGizmoText::calculate_scale()
         return true;
     };
 
-    bool exist_change = calc(Vec3d::UnitY(), m_scale_height);
+    bool exist_change = calc(Vec3d::UnitX(), m_scale_width);
+    exist_change |= calc(Vec3d::UnitY(), m_scale_height);
     exist_change |= calc(Vec3d::UnitZ(), m_scale_depth);
 
     // Change of scale has to change font imgui font size
@@ -1501,12 +1502,12 @@ static Vec3d flip_normal_toward(const Vec3d &n, const Vec3d &from_hit)
 void GLGizmoText::generate_text_tran_in_world(const Vec3d &text_normal_in_world, const Vec3d &text_position_in_world,float rotate_degree, Geometry::Transformation &cur_tran)
 {
     Vec3d  temp_normal        = text_normal_in_world.normalized();
-    Vec3d  cut_plane_in_world = Slic3r::Emboss::suggest_up(text_normal_in_world, UP_LIMIT);
+    Vec3d  cut_plane_in_world = Slic3r::Emboss::suggest_up(temp_normal, UP_LIMIT);
 
-    Vec3d z_dir       = text_normal_in_world;
+    Vec3d z_dir       = temp_normal;
     Vec3d y_dir       = cut_plane_in_world;
     Vec3d x_dir_world = y_dir.cross(z_dir);
-    if (m_surface_type == TextInfo::TextType::SURFACE_HORIZONAL && text_normal_in_world != Vec3d::UnitZ()) {
+    if (m_surface_type == TextInfo::TextType::SURFACE_HORIZONAL && temp_normal != Vec3d::UnitZ()) {
         y_dir                       = Vec3d::UnitZ();
         x_dir_world                 = y_dir.cross(z_dir);
         z_dir                       = x_dir_world.cross(y_dir);
@@ -1599,7 +1600,7 @@ bool GLGizmoText::on_shortcut_key() {
             queue_job(worker, std::move(job));
         }
     } else {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "check error";
+        BOOST_LOG_TRIVIAL(info) << "check error";
     }
     return true;
 }
@@ -1767,6 +1768,8 @@ void GLGizmoText::load_init_text(bool first_open_text)
                     m_style_manager.get_font_prop().line_gap = text_info.text_configuration.style.prop.line_gap;
                     m_line_gap = get_style_line_gap_mm(m_style_manager);
                     m_style_manager.get_font_prop().align = text_info.text_configuration.style.prop.align;
+                    // Show the scaled gap, line gap, thickness and depth immediately, before the text is dragged.
+                    m_text_scale_absorbed = absorb_text_scale_into_parameters();
                 }
                 if (m_is_serializing) { // undo redo
                     m_style_manager.get_style().angle = calc_angle(selection);
@@ -1781,7 +1784,7 @@ void GLGizmoText::load_init_text(bool first_open_text)
                     try {
                         old_text_height = get_text_height(text_info.m_text); // old text
                     } catch (const std::exception &) {
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " error:get_text_height";
+                        BOOST_LOG_TRIVIAL(info) << "error:get_text_height";
                     }
                     if (is_only_text_case()) {
                         m_really_use_surface_calc = false;
@@ -1869,6 +1872,8 @@ void GLGizmoText::load_init_text(bool first_open_text)
                 if (!m_font_name.empty()) {//font version 1.10 and before
                     m_need_update_text = false;
                 }
+                if (m_text_scale_absorbed)
+                    m_need_update_text = true;
                 return;
             }
         }
@@ -3484,6 +3489,51 @@ void GLGizmoText::update_text_normal_in_world()
     }
 }
 
+bool GLGizmoText::absorb_text_scale_into_parameters()
+{
+    Geometry::Transformation world(m_model_object_in_world_tran.get_matrix() * m_text_tran_in_object.get_matrix());
+    const Vec3d scale = world.get_scaling_factor();
+    const float scale_y = static_cast<float>(scale.y());
+    const float scale_z = static_cast<float>(scale.z());
+    if (is_approx(scale_y, 1.f) && is_approx(scale_z, 1.f))
+        return false;
+
+    m_style_manager.get_font_prop().size_in_mm *= scale_y;
+    m_font_size = m_style_manager.get_font_prop().size_in_mm;
+    m_text_gap *= scale_y;
+    m_line_gap *= scale_y;
+    m_thickness *= scale_z;
+    m_embeded_depth *= scale_z;
+    m_style_manager.get_style().projection.depth = m_thickness;
+    m_style_manager.get_style().projection.embeded_depth = m_embeded_depth;
+    m_style_manager.get_font_prop().char_gap = static_cast<int>(m_text_gap);
+    set_style_line_gap(m_style_manager, m_line_gap);
+    m_style_manager.clear_imgui_font();
+    // The size field displays size_in_mm multiplied by the world scale. The value now includes that scale.
+    m_scale_width.reset();
+    m_scale_height.reset();
+    m_scale_depth.reset();
+    return true;
+}
+
+void GLGizmoText::normalize_absorbed_text_scale()
+{
+    const Vec3d scale = m_text_tran_in_world.get_scaling_factor();
+    const Vec3d mirror = m_text_tran_in_world.get_mirror();
+    Vec3d residual = Vec3d::Ones();
+    if (std::abs(scale.y()) > 1e-8)
+        residual.x() = scale.x() / scale.y();
+    m_text_tran_in_world.set_scaling_factor(residual);
+    m_text_tran_in_world.set_mirror(mirror);
+    m_text_tran_in_object.set_matrix(m_model_object_in_world_tran.get_matrix().inverse() * m_text_tran_in_world.get_matrix());
+    m_cut_plane_dir_in_world = m_text_tran_in_world.get_matrix().linear().col(1);
+    m_text_normal_in_world = m_text_tran_in_world.get_matrix().linear().col(2).cast<float>();
+    m_scale_width = is_approx(residual.x(), 1.) ? std::optional<float>{} : std::optional<float>{static_cast<float>(residual.x())};
+    m_scale_height.reset();
+    m_scale_depth.reset();
+    m_text_scale_absorbed = false;
+}
+
 bool GLGizmoText::update_text_tran_in_model_object(bool rewrite_text_tran)
 {
     if (m_object_idx < 0 && !is_only_text_case()) {
@@ -3502,6 +3552,9 @@ bool GLGizmoText::update_text_tran_in_model_object(bool rewrite_text_tran)
     m_show_text_normal_error = false;
     if (!rewrite_text_tran) {
         if (!m_need_update_tran) {
+            // Entering the gizmo absorbs the scale before a drag. Normalize it when the mesh is rebuilt.
+            if (m_text_scale_absorbed)
+                normalize_absorbed_text_scale();
             return true;
         }
         m_need_update_tran = false;
@@ -3513,9 +3566,35 @@ bool GLGizmoText::update_text_tran_in_model_object(bool rewrite_text_tran)
     const ModelInstance *mi      = mo->instances[selection.get_instance_idx()];
     m_model_object_in_world_tran = mi->get_transformation();
 
+    Vec3d scale_after_baking = Vec3d::Ones();
+    Vec3d mirror_in_world    = Vec3d::Ones();
+    if (rewrite_text_tran && m_last_text_mv != nullptr) {
+        Geometry::Transformation current_text_tran_in_world(
+            m_model_object_in_world_tran.get_matrix() * m_text_tran_in_object.get_matrix());
+        const Vec3d scale_in_world = current_text_tran_in_world.get_scaling_factor();
+        mirror_in_world            = current_text_tran_in_world.get_mirror();
+
+        if (!m_text_scale_absorbed)
+            absorb_text_scale_into_parameters();
+        m_text_scale_absorbed = false;
+
+        // Font size represents the Y scale and scales glyphs in both planar axes.
+        // Keep only the X/Y ratio for a non-uniform planar scale.
+        scale_after_baking.x() = scale_in_world.x() / scale_in_world.y();
+        m_scale_width = is_approx(scale_after_baking.x(), 1.) ?
+                            std::optional<float>{} :
+                            std::optional<float>{static_cast<float>(scale_after_baking.x())};
+        m_scale_height.reset();
+        m_scale_depth.reset();
+    }
+
     generate_text_tran_in_world(m_text_normal_in_world.cast<double>(), m_text_position_in_world, m_rotate_angle, m_text_tran_in_world);
     if (m_fix_text_tran.has_value()) {
         m_text_tran_in_world = m_text_tran_in_world * (m_fix_text_tran.value());
+    }
+    if (rewrite_text_tran && m_last_text_mv != nullptr) {
+        m_text_tran_in_world.set_scaling_factor(scale_after_baking);
+        m_text_tran_in_world.set_mirror(mirror_in_world);
     }
     m_cut_plane_dir_in_world = m_text_tran_in_world.get_matrix().linear().col(1);
     m_text_normal_in_world   = m_text_tran_in_world.get_matrix().linear().col(2).cast<float>();
@@ -3653,7 +3732,7 @@ bool GLGizmoText::generate_text_volume()
         return false;
     m_show_calc_meshtod = 0;
     if (m_object_idx < 0) {//m_object_idx < 0 && !is_only_text_case()
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "error:m_object_idx < 0";
+        BOOST_LOG_TRIVIAL(info) << "error:m_object_idx < 0";
         return false;
     }
     if (auto text_mv = get_text_is_dragging()) { // moving or dragging;
@@ -3668,7 +3747,7 @@ bool GLGizmoText::generate_text_volume()
     }
     bool rewrite_text_tran = m_need_update_tran ? true : m_last_text_mv == nullptr;
     if (!update_text_tran_in_model_object(rewrite_text_tran)) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " fail:update_text_tran_in_model_object";
+        BOOST_LOG_TRIVIAL(info) << "fail:update_text_tran_in_model_object";
         return false;
     }
 

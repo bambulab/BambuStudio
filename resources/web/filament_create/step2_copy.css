@@ -1,7 +1,8 @@
 /* Step 2 Copy specific styles */
 
 .copy-section {
-    width: 663px;
+    width: 100%;
+    max-width: 663px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -123,7 +124,8 @@
 
 /* Preset table */
 .preset-table {
-    width: 651px;
+    width: 100%;
+    max-width: 651px;
     flex: 1;
     min-height: 0;
     overflow-y: auto;

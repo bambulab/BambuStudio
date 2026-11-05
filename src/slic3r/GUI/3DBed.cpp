@@ -21,7 +21,7 @@
 #include <cmath>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 static const float GROUND_Z = -0.04f;
 static const std::array<float, 4> DEFAULT_MODEL_COLOR = { 0.3255f, 0.337f, 0.337f, 1.0f };
@@ -238,7 +238,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
         return false;
 
     //BBS: add part plate logic, apply position to bed shape
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":current position {%1%,%2%}, new position {%3%, %4%}") % m_position.x() % m_position.y() % position.x() % position.y();
+    BOOST_LOG_TRIVIAL(info) << boost::format("current position {%1%,%2%}, new position {%3%, %4%}") % m_position.x() % m_position.y() % position.x() % position.y();
     m_position = position;
     m_bed_shape = printable_area;
     m_extruder_shapes = extruder_areas;

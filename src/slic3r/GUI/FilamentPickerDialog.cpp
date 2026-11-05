@@ -12,6 +12,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/button.h>
+#include "libslic3r/Log.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -34,11 +35,50 @@ wxColour FilamentPickerDialog::GetSelectedColour() const
 
 void FilamentPickerDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
-    // Handle DPI change
-    CreateShapedBitmap();
-    SetWindowShape();
-    Refresh();
-    Layout();
+    // The swatches, the preview and the buttons are painted at a fixed pixel size when they are
+    // built, so none of them can follow a scale change -- only building them again at the new DPI
+    // puts them right. Deferred to let the rescale pass finish with the children it is holding
+    // before they are destroyed under it.
+    CallAfter([this]() {
+        // The flashing timer paints a specific button; it has to stop before that button is gone.
+        const bool was_flashing = m_flash_timer != nullptr && m_flash_timer->IsRunning();
+        if (was_flashing)
+            m_flash_timer->Stop();
+
+        // The selection survives on its own: BuildContent() marks whichever new button carries
+        // m_cur_color_name, which is a data member and is not touched here.
+        //
+        // Every pointer below is about to dangle. Clearing them is what stops a stray paint or
+        // timer callback from reaching freed memory in the window between the two calls.
+        m_cur_selected_btn    = nullptr;
+        m_color_demo          = nullptr;
+        m_label_preview_color = nullptr;
+        m_label_preview_idx   = nullptr;
+        m_label_preview_type  = nullptr;
+        m_more_btn            = nullptr;
+        m_ok_btn              = nullptr;
+        m_cancel_btn          = nullptr;
+
+        // Fit() inside BuildContent() resizes around the top-left corner, so a dialog that grew
+        // would spread down and to the right from where it stands. Keep it centred on the same spot
+        // instead, which is where the user is looking.
+        const wxRect before = GetRect();
+
+        SetSizer(nullptr, true);
+        DestroyChildren();
+
+        BuildContent();
+
+        const wxSize after = GetSize();
+        SetPosition(wxPoint(before.x + (before.width  - after.GetWidth())  / 2,
+                            before.y + (before.height - after.GetHeight()) / 2));
+        // The three buttons are new objects; without this they would be inert.
+        BindButtonEvents();
+
+        if (was_flashing)
+            StartFlashing();
+        Refresh();
+    });
 }
 
 // Flash effect implementation
@@ -71,6 +111,22 @@ FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fil
     m_cur_filament_color = fila_color;
     wxString color_name = m_color_query->GetFilaColorName(fila_id, fila_color);
     m_cur_color_name = new wxString(color_name);
+    m_fila_id   = fila_id;
+    m_fila_type = fila_type;
+
+    BuildContent();
+
+    // Bound to the dialog itself rather than to any child, so a rebuild leaves these in place.
+    BindEvents();
+
+    // Start click detection timer for outside click detection
+    StartClickDetection();
+}
+
+void FilamentPickerDialog::BuildContent()
+{
+    const FilamentColor &fila_color = m_cur_filament_color;
+    const std::string   &fila_type  = m_fila_type;
 
     wxBoxSizer *container_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -105,8 +161,9 @@ FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fil
     Layout();
     container_sizer->Fit(this);
 
-    // Position the dialog relative to the parent window
-    if (GetParent()) {
+    // Only when first built. On a rebuild the dialog is already on screen where the user put it --
+    // possibly dragged away from here -- and moving it back would make it jump for no reason.
+    if (!IsShown() && GetParent()) {
         // Align the dialog with the sidebar
         auto& sidebar = wxGetApp().sidebar();
         wxPoint sidebar_pos = sidebar.GetScreenPosition();
@@ -117,7 +174,7 @@ FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fil
             sidebar_pos.y + FromDIP(80)
         );
         SetPosition(new_pos);
-    } else {
+    } else if (!IsShown()) {
         Centre(wxBOTH); // If no parent window, center the dialog
     }
 
@@ -128,7 +185,9 @@ FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fil
     SetWindowShape();
 #endif
 #ifdef __WXGTK__
-    // GTK platform needs to wait for window creation
+    // GTK platform needs to wait for window creation. Unbind first: a rebuild would otherwise stack
+    // a second handler on the same event, and every rebuild after that one more.
+    Unbind(wxEVT_CREATE, &FilamentPickerDialog::OnWindowCreate, this);
     Bind(wxEVT_CREATE, &FilamentPickerDialog::OnWindowCreate, this);
 #endif
 
@@ -136,10 +195,6 @@ FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fil
     Layout();
     // Set window transparency
     SetTransparent(255);
-    BindEvents();
-
-    // Start click detection timer for outside click detection
-    StartClickDetection();
 }
 
 FilamentPickerDialog::~FilamentPickerDialog()
@@ -200,17 +255,17 @@ bool FilamentPickerDialog::LoadFilamentData(const wxString& fila_id)
     m_cur_color_codes = m_color_query->GetFilaInfoMap(fila_id);
 
     if (!m_cur_color_codes) {
-        BOOST_LOG_TRIVIAL(warning) << "No color codes found for filament ID: " << fila_id.ToStdString();
+        BOOST_LOG_TRIVIAL(warning) << "No color codes found for filament ID: " << fila_id;
         return false;
     }
 
     FilamentColor2CodeMap* color_map = m_cur_color_codes->GetFilamentColor2CodeMap();
     if (!color_map) {
-        BOOST_LOG_TRIVIAL(warning) << "No color map found for filament ID: " << fila_id.ToStdString();
+        BOOST_LOG_TRIVIAL(warning) << "No color map found for filament ID: " << fila_id;
         return false;
     }
 
-    BOOST_LOG_TRIVIAL(info) << "Successfully loaded " << color_map->size() << " color variants for filament " << fila_id.ToStdString();
+    BOOST_LOG_TRIVIAL(info) << "Successfully loaded " << color_map->size() << " color variants for filament " << fila_id;
     return !color_map->empty();
 }
 
@@ -270,17 +325,22 @@ wxBoxSizer* FilamentPickerDialog::CreateInfoSection()
                                           wxDefaultPosition, wxSize(FromDIP(220), FromDIP(16)),
                                           wxST_ELLIPSIZE_END);
 
-    // Set maximum width for color label to enable proper ellipsis behavior
-    m_label_preview_color->SetMaxSize(wxSize(FromDIP(160), -1));
-
     // Setup fonts
     wxFont bold_font = m_label_preview_color->GetFont();
     bold_font.SetWeight(wxFONTWEIGHT_BOLD);
 #ifdef __WXMSW__
-    bold_font.SetPointSize(FromDIP(8));
+    // One step larger than the type line below it, which carries the application font. Taken from
+    // that font rather than written as a number so the two keep their relative sizes at any DPI:
+    // a fixed point size would have left this line smaller than the type line on a scaled display.
+    bold_font.SetPointSize(bold_font.GetPointSize() + 2);
 #endif
     m_label_preview_color->SetFont(bold_font);
     m_label_preview_idx->SetFont(bold_font);
+
+    // Measured in characters of the font that draws it, not in pixels: a limit in DIP does not follow
+    // the font, so on a scaled display the text outgrew it and a name was ellipsized that had room to
+    // be shown in full. Set after the font, so the measurement is taken from the font actually used.
+    m_label_preview_color->SetMaxSize(wxSize(m_label_preview_color->GetTextExtent("W").GetWidth() * 20, -1));
 
     m_label_preview_type->SetForegroundColour(wxColour(128, 128, 128));
 
@@ -381,7 +441,7 @@ wxScrolledWindow* FilamentPickerDialog::CreateColorGrid()
             );
 
             if (!btn_bmp.IsOk()) {
-                BOOST_LOG_TRIVIAL(error) << "Failed to create bitmap for filament " << color_code->GetFilaColorCode().ToStdString();
+                BOOST_LOG_TRIVIAL(error) << "Failed to create bitmap for filament " << color_code->GetFilaColorCode();
                 continue;
             }
 
@@ -622,6 +682,14 @@ void FilamentPickerDialog::BindEvents()
         event.Skip();
     });
 
+    BindButtonEvents();
+}
+
+// Separate from BindEvents() because these attach to children, which are destroyed and built again
+// on a scale change -- the handlers have to be attached again with them. The window-level bindings
+// above outlive a rebuild and must not be repeated, or each one would fire twice.
+void FilamentPickerDialog::BindButtonEvents()
+{
     // Bind more colors button event
     if (m_more_btn) {
         m_more_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {

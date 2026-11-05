@@ -64,6 +64,9 @@ class BitmapComboBox;
 // and the delete warning (models_using_filament), so detection and remap never drift apart.
 const std::vector<std::string>& filament_index_object_keys();
 
+// True when any part, color painting, height range or feature filament override of the object prints with a mixed filament.
+bool model_object_uses_mixed_filament(const ModelObject &object);
+
 struct ItemForDelete
 {
     ItemType    type;
@@ -269,6 +272,10 @@ public:
     void                sync_filament_from_model();
     void                update_filament_values_for_items(const size_t filaments_count);
     void                update_filament_values_for_items_when_delete_filament(const size_t filament_id, const int replace_id = -1);
+    // Point objects, parts and height ranges that print with from_id at to_id (0-based). Support filaments are kept.
+    void                update_filament_values_for_items_when_replace_filament(const size_t from_id, const size_t to_id);
+    // Show each height range row's current "extruder" value from its layer config.
+    void                update_layer_range_filament_values();
 
     //BBS: update plate
     void                update_plate_values_for_items();
@@ -385,6 +392,8 @@ public:
     void delete_instance_from_list(const size_t obj_idx, const size_t inst_idx);
     void delete_from_model_and_list(const ItemType type, const int obj_idx, const int sub_obj_idx);
     void delete_from_model_and_list(const std::vector<ItemForDelete>& items_for_delete);
+    // Rebuild the UI -> 3D volume index map of the object from its current ModelObject::volumes
+    void update_ui_and_3d_volume_map(const int obj_idx);
     void update_lock_icons_for_model();
     // Delete all objects from the list
     void delete_all_objects_from_list();

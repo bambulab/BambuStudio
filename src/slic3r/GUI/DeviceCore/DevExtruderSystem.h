@@ -1,5 +1,6 @@
 #pragma once
 #include <optional>
+#include <string_view>
 #include "libslic3r/CommonDefs.hpp"
 
 #include "slic3r/Utils/json_diff.hpp"
@@ -12,6 +13,7 @@ namespace Slic3r
 
 //Previous definitions
 class MachineObject;
+class DevExtder;
 class DevExtderSystem;
 
 struct DevAmsSlotInfo
@@ -31,6 +33,28 @@ enum DevExtderSwitchState
     ES_SWITCHING,
     ES_SWITCHING_FAILED
 };
+
+enum class DevExtrusionDirection : int
+{
+    Unknown = -1,
+    Idle = 0,
+    Extruding = 1,
+    Retracting = 2
+};
+
+enum class DevRackExtruderVisualState : int
+{
+    Empty,
+    Clamped,
+    ClampedRetracting,
+    ClampedExtruding,
+    Picking,
+    Placing,
+    ClampedNoFilament
+};
+DevExtrusionDirection decode_extrusion_direction(unsigned int info);
+DevRackExtruderVisualState resolve_rack_extruder_visual_state(MachineObject* obj, const DevExtder& extruder);
+std::string_view rack_extruder_visual_state_key(DevRackExtruderVisualState state);// Stable key used to look the images in the machine's "rack_extruder_images" config.
 
 class DevExtder
 {
@@ -57,15 +81,19 @@ public:
     float          GetNozzleDiameter() const;
     NozzleDiameterType GetNozzleDiameterType() const;
 
+    std::optional<int> GetPickedNozzleAddrId() const;
+
     // temperature
     int  GetCurrentTemp() const { return m_cur_temp; }
     int  GetTargetTemp() const { return m_target_temp; }
 
     // filament
     bool             HasFilamentInExt() const { return m_ext_has_filament; }
+    DevExtrusionDirection GetExtrusionDirection() const { return m_extrusion_direction; }
     bool             HasFilamentInBuffer() const = delete; //{ return m_buffer_has_filament; }
     bool             HasFilamBackup() const { return !m_filam_bak.empty(); }
     std::vector<int> GetFilamBackup() const { return m_filam_bak; }
+    std::vector<std::vector<DevAmsSlotId>> GetBackupSlots() const;
     std::optional<DevFilamentStep> GetCurrentFilamentChangeStep() const { return m_current_filament_change_step; }
 
     // ams binding on current extruder
@@ -101,6 +129,7 @@ private:
 
     // filament
     bool             m_ext_has_filament = false;
+    DevExtrusionDirection m_extrusion_direction = DevExtrusionDirection::Unknown;
     bool             m_buffer_has_filament = false;
     std::vector<int> m_filam_bak;// the refill filam
 

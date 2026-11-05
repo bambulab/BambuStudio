@@ -1,9 +1,8 @@
 #include "LiveViewTrackContext.h"
 
-#include <boost/log/trivial.hpp>
-
 #include "../GUI_App.hpp"
 #include "../../Utils/NetworkAgent.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace BambuLiveViewTrack {
 

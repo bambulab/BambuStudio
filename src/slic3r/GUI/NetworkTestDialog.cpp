@@ -12,7 +12,7 @@
 #include "slic3r/Utils/Http.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include <boost/asio/ip/address.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -590,6 +590,7 @@ void NetworkTestDialog::start_test_bing()
 				}
 			}
 			catch (...) {
+				BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 				;
 			}
 		})
@@ -643,6 +644,7 @@ void NetworkTestDialog::start_test_bambulab()
 				}
 			}
 			catch (...) {
+				BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 				;
 			}
 		})
@@ -712,6 +714,7 @@ void NetworkTestDialog::start_test_oss()
 			}
 		}
 		catch (...) {
+			BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 			;
 		}
 			})
@@ -759,6 +762,7 @@ void NetworkTestDialog::start_test_oss_upgrade()
 			}
 		}
 		catch (...) {
+			BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 			;
 		}
 			})

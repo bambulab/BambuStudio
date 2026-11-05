@@ -1,0 +1,33 @@
+/* Dark theme for guide/32 (用户体验改进计划条款页).
+   guide/css/dark.css only restyles body / .TextArea1 / .ZScrol, and every
+   #PolicyTxt rule in 31.css and in 32.html's own <style> block is an id
+   selector, so a plain class-level override can never win. These rules use
+   the same id specificity and are appended after guide/css/dark.css by
+   SwitchDarkMode('dark.css') in 32.html, so they take the cascade. */
+
+#Content { color: #BEBEC0; }
+
+/* Policy text box. 31.css:2 sets #EBEBEB and 32.html's <style> sets #fff —
+   both id-level, both have to be matched here. */
+#PolicyTxt {
+    background-color: #4A4A51;
+    border-color: #5A5A62;
+    color: #BEBEC0;
+}
+
+/* 32.html hardcodes light scrollbar colors on the same id. */
+#PolicyTxt::-webkit-scrollbar-thumb {
+    background-color: #939594;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+#PolicyTxt::-webkit-scrollbar-track {
+    background: #161817;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+/* #0078D4 is too dim against #4A4A51. Same (1,1,0) specificity as 32.html. */
+#PolicyTxt .HyperLink,
+#PolicyTxt .HyperLink:visited,
+#PolicyTxt .HyperLink:hover { color: #4DA3FF; }

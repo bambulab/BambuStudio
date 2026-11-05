@@ -713,13 +713,20 @@ private:
     unsigned int update_instances_print_volume_state(const BuildVolume &build_volume);
 };
 
+// Physical filaments come first in the project filament list, mixed (virtual) filaments are appended after them,
+// so a 1-based filament id can reach MAX_FILAMENT_COUNT while physical ids never exceed MAX_PHYSICAL_FILAMENT_COUNT.
+constexpr size_t MAX_PHYSICAL_FILAMENT_COUNT = 32;
+constexpr size_t MAX_MIXED_FILAMENT_COUNT    = 64;
+constexpr size_t MAX_FILAMENT_COUNT          = MAX_PHYSICAL_FILAMENT_COUNT + MAX_MIXED_FILAMENT_COUNT;
+
 enum class EnforcerBlockerType : int8_t {
     // Maximum is 3. The value is serialized in TriangleSelector into 2 bits.
     NONE      = 0,
     ENFORCER  = 1,
     BLOCKER   = 2,
     FUZZY_SKIN = ENFORCER,
-    // Maximum is 15. The value is serialized in TriangleSelector into 6 bits using a 2 bit prefix code.
+    // Filament states are 1-based filament ids. TriangleSelector serializes states >= 3 as a prefix nibble followed by
+    // variable-length nibbles, so the limit is set by ExtruderMax and the int8_t storage, not by the bitstream.
     Extruder1 = ENFORCER,
     Extruder2 = BLOCKER,
     Extruder3,
@@ -752,8 +759,11 @@ enum class EnforcerBlockerType : int8_t {
     Extruder30,
     Extruder31,
     Extruder32,
-    ExtruderMax = Extruder32
+    // Mixed filament ids extend past Extruder32 without dedicated enumerators.
+    ExtruderMax = int8_t(MAX_FILAMENT_COUNT)
 };
+static_assert(size_t(EnforcerBlockerType::ExtruderMax) == MAX_FILAMENT_COUNT, "ExtruderMax must cover every filament id");
+static_assert(MAX_FILAMENT_COUNT <= 127, "Filament ids are stored in the int8_t EnforcerBlockerType");
 
 enum class ConversionType : int {
     CONV_TO_INCH,
@@ -779,6 +789,8 @@ public:
     // BBS
     void get_facets(const ModelVolume& mv, std::vector<indexed_triangle_set>& facets_per_type) const;
     void                 shift_states_above(const ModelVolume &mv, EnforcerBlockerType threshold, int delta);
+    // Returns true when any facet changed.
+    bool                 replace_state(const ModelVolume &mv, EnforcerBlockerType from, EnforcerBlockerType to);
     void                 set_enforcer_block_type_limit(const ModelVolume  &mv,
                                                        EnforcerBlockerType max_type,
                                                        EnforcerBlockerType to_delete_filament = EnforcerBlockerType::NONE,
@@ -891,6 +903,19 @@ class OriginRenderInfo
     public:
        std::vector<std::pair<TriangleMesh,RGBA>> mesh_with_colors;
        std::pair<TriangleMesh, std::vector<RGBA>> vertices_with_colors;
+};
+
+// 1-based feature filaments of the global print config, 0 = Default.
+struct GlobalFeatureFilaments
+{
+    int wall_filament          = 0;
+    int sparse_infill_filament = 0;
+    int solid_infill_filament  = 0;
+
+    // Ids above filament_count are treated as Default, matching the clamp applied when slicing.
+    static GlobalFeatureFilaments from_config(const ConfigBase &config, size_t filament_count);
+    // Same, taking the filament count from filament_diameter of a full config.
+    static GlobalFeatureFilaments from_full_config(const ConfigBase &full_config);
 };
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
@@ -1046,7 +1071,9 @@ public:
     void apply_tolerance();
 
     // BBS
-    std::vector<int>    get_extruders() const;
+    // A global feature filament is used when neither the volume nor the object stores that feature key.
+    // Pass {} only when the global print config is not relevant or not available yet.
+    std::vector<int>    get_extruders(const GlobalFeatureFilaments &global_features) const;
     void                update_extruder_count(size_t extruder_count);
     void                update_extruder_count_when_delete_filament(size_t extruder_count, size_t filament_id, int replace_filament_id = -1,
                                                                    const std::vector<unsigned char> &filament_is_mixed = {});
@@ -1506,6 +1533,9 @@ public:
     // Transform an external bounding box.
     BoundingBoxf3 transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate = false) const;
     BoundingBoxf3 transform_bounding_box_in_assembly_view(const BoundingBoxf3 &bbox, bool dont_translate = false) const;
+    // World AABB of one part in assemble space. Same as GLVolume::transformed_bounding_box()
+    // at explosion_ratio 1: instance assemble matrix * volume assemble matrix * raw mesh box.
+    BoundingBoxf3 transform_bounding_box_in_assembly_view(const ModelVolume &volume) const;
     // Transform an external vector.
     Vec3d transform_vector(const Vec3d& v, bool dont_translate = false) const;
     // To be called on an external polygon. It does not translate the polygon, only rotates and scales.
@@ -1745,6 +1775,10 @@ public:
     std::string&       get_assembly_model_json_str()       { return m_assembly_model_json_str; }
     void               set_assembly_model_json_str(std::string json_str) { m_assembly_model_json_str = std::move(json_str); }
 
+    // Captured from assembly_step.json before qualified_assembly is stripped on load.
+    void note_loaded_assembly_steps_meta(AssemblyStepsFileMeta meta) { m_loaded_assembly_steps_meta = meta; }
+    const AssemblyStepsFileMeta &loaded_assembly_steps_meta() const { return m_loaded_assembly_steps_meta; }
+
     // Drop assembly tree / steps / a_model JSON. clear_objects() does not touch these; call on project
     // reset so the next STEP/3mf open does not re-derive leftover empty steps from the prepare model.
     void clear_assembly_artifacts();
@@ -1796,8 +1830,7 @@ public:
         std::vector<Preset*>* project_presets = nullptr, bool* is_xxx = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
                                 ImportstlProgressFn        stlFn                = nullptr,
                                 BBLProject *               project              = nullptr,
-                                int                        plate_id             = 0,
-                                ObjImportColorFn           objFn                = nullptr);
+                                int                        plate_id             = 0);
     // BBS
     static bool obj_import_color_deal(const std::vector<unsigned char>& filament_ids, std::optional<unsigned char> first_extruder_id, Model* model, std::function<bool(int)> deal_vertex_callback, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
     static bool obj_import_vertex_color_deal(const std::vector<unsigned char>& vertex_filament_ids, std::optional<unsigned char> first_extruder_id, ModelVolume* volumePtr, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
@@ -1814,7 +1847,7 @@ public:
     static Model read_from_archive(
         const std::string& input_file,
         DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, En3mfType& out_file_type,
-        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, std::vector<Preset*>* project_presets = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr, std::map<int, std::vector<std::string>>* color_group_map = nullptr, VolumeColorInfoMap* volume_color_data = nullptr);
+        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, std::vector<Preset*>* project_presets = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr, std::map<int, std::vector<std::string>>* color_group_map = nullptr, VolumeColorInfoMap* volume_color_data = nullptr, bool* has_textures = nullptr, bool* has_unit = nullptr);
 
     // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();
@@ -1925,6 +1958,7 @@ private:
     AssemblyStepsTreeData m_assembly_steps_tree_data;
     std::string           m_assembly_steps_json_str;
     std::string           m_assembly_model_json_str;
+    AssemblyStepsFileMeta m_loaded_assembly_steps_meta;
 };
 
 #undef OBJECTBASE_DERIVED_COPY_MOVE_CLONE

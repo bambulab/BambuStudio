@@ -27,7 +27,7 @@
 #include <CGAL/boost/graph/Face_filtered_graph.h>
 // BBS: for boolean using mcut
 #include "mcut/include/mcut/mcut.h"
-#include "boost/log/trivial.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace MeshBoolean {
@@ -282,6 +282,7 @@ template<class Op> void _cgal_do(Op &&op, CGALMesh &A, CGALMesh &B)
         }, [&] { hw_fail = true; });
         A = std::move(result);      // In-place operation does not work
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         success = false;
     }
 
@@ -988,6 +989,16 @@ void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, st
 
 } // namespace mcut
 
+// Backend-neutral dispatcher. OpenMeshCraft is the default backend; MCUT is retained only
+// as the compile-time fallback for builds that cannot package OpenMeshCraft.
+void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts, const std::function<bool()> &cancel_cb, const std::function<void(float)> &progress_cb, const std::function<void()> &failed_cb)
+{
+#if SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN
+    openmeshcraft::make_boolean(src_mesh, cut_mesh, dst_mesh, boolean_opts, cancel_cb, progress_cb, failed_cb);
+#else
+    mcut::make_boolean(src_mesh, cut_mesh, dst_mesh, boolean_opts, cancel_cb, progress_cb, failed_cb);
+#endif
+}
 
 } // namespace MeshBoolean
 } // namespace Slic3r

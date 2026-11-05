@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <boost/log/trivial.hpp>
 #include <cmath>
 #include <iterator>
 #include <set>
@@ -15,10 +14,11 @@
 #include "DevCalib.h"
 #include "DevDefs.h"
 #include "DevFilaSystem.h"
+#include "DevNozzleSystem.h"
 #include "DevConfig.h"
 #include "DevExtruderSystem.h"
-#include "DevNozzleSystem.h"
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -192,6 +192,8 @@ static NozzleVolumeType convert_to_nozzle_type(const std::string &str)
         return NozzleVolumeType::nvtHighFlow;
     else if (str[1] == 'U')
         return NozzleVolumeType::nvtTPUHighFlow;
+    else if (str[1] == 'T')
+        return NozzleVolumeType::nvtTPU285;
     else if (str[1] == 'B')
         return NozzleVolumeType::nvtE3DHighFlow;
     else
@@ -227,6 +229,17 @@ void from_json(const json& j, PACalibResult& cali) {
     cali.k_value            = get_number_flexible(j, "k_value", 0.0f);
     cali.n_coef             = get_number_flexible(j, "n_coef", 0.0f);
     cali.confidence         = j.value("confidence", 0);
+}
+static void normalize_nozzle_pos_to_addr(std::vector<PACalibResult>& items, DevNozzleSystem* nsys)
+{
+    if (!nsys) return;
+    for (auto& r : items) {
+        if (r.nozzle_pos_id != MAIN_EXTRUDER_ID && r.nozzle_pos_id != DEPUTY_EXTRUDER_ID)
+            continue;
+        auto nozzle = nsys->GetNozzleOptByPosId(r.nozzle_pos_id);
+        if (nozzle && nozzle->GetAddrId())
+            r.nozzle_pos_id = 0x10 | *nozzle->GetAddrId();
+    }
 }
 
 void from_json(const json& j, FlowRatioCalibResult& cali)
@@ -277,8 +290,8 @@ void DevCalib::ResetPAResult()
 int DevCalib::RequestPAHistory(const PACalibExtruderInfo &calib_info)
 {
     m_fetch_queue.push_back(calib_info);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__
-                           << " enqueue dia=" << calib_info.nozzle_diameter
+    BOOST_LOG_TRIVIAL(info)
+                           << "enqueue dia=" << calib_info.nozzle_diameter
                            << " use_dia=" << calib_info.use_nozzle_diameter
                            << " ext=" << calib_info.extruder_id
                            << " use_ext=" << calib_info.use_extruder_id
@@ -290,13 +303,13 @@ int DevCalib::RequestPAHistory(const PACalibExtruderInfo &calib_info)
 bool DevCalib::PrepareFetchQueue()
 {
     if (!m_fetch_queue.empty()) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " skip, queue already size=" << m_fetch_queue.size();
+        BOOST_LOG_TRIVIAL(info) << "skip, queue already size=" << m_fetch_queue.size();
         return true;
     }
 
     MachineObject *obj = GetOwner();
     if (!obj || !obj->is_info_ready()) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " machine info not ready, keep expired";
+        BOOST_LOG_TRIVIAL(info) << "machine info not ready, keep expired";
         return false; // keep version expired so the next tick retries
     }
 
@@ -306,7 +319,7 @@ bool DevCalib::PrepareFetchQueue()
         full.use_extruder_id        = false;
         full.use_nozzle_volume_type = false;
         m_fetch_queue.push_back(full);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " enqueue full table fetch";
+        BOOST_LOG_TRIVIAL(info) << "enqueue full table fetch";
         return true;
     }
 
@@ -321,7 +334,7 @@ bool DevCalib::PrepareFetchQueue()
 
     if (diameter_types.empty()) {
         diameter_types.insert(NozzleDiameterType::NOZZLE_DIAMETER_0_4);
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " no model supported nozzle, fallback to 0.4";
+        BOOST_LOG_TRIVIAL(warning) << "no model supported nozzle, fallback to 0.4";
     }
 
     for (NozzleDiameterType dia_type : diameter_types) {
@@ -332,7 +345,7 @@ bool DevCalib::PrepareFetchQueue()
         item.use_nozzle_volume_type = false;
         m_fetch_queue.push_back(item);
     }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " prepared diameter slices=" << m_fetch_queue.size();
+    BOOST_LOG_TRIVIAL(info) << "prepared diameter slices=" << m_fetch_queue.size();
     return !m_fetch_queue.empty();
 }
 
@@ -343,15 +356,15 @@ void DevCalib::SendNextFetch()
 
     const PACalibExtruderInfo next = m_fetch_queue.front();
     m_pa_table_status = CalibStatus::REQUEST;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__
-                           << " send dia=" << next.nozzle_diameter
+    BOOST_LOG_TRIVIAL(info)
+                           << "send dia=" << next.nozzle_diameter
                            << " use_dia=" << next.use_nozzle_diameter
                            << " ext=" << next.extruder_id
                            << " use_ext=" << next.use_extruder_id
                            << " remain=" << m_fetch_queue.size();
 
     if (0 != GetOwner()->command_get_pa_calibration_tab(next)) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " publish failed, skip item remain=" << m_fetch_queue.size() - 1;
+        BOOST_LOG_TRIVIAL(error) << "publish failed, skip item remain=" << m_fetch_queue.size() - 1;
         m_fetch_queue.erase(m_fetch_queue.begin());
         m_pa_table_status = CalibStatus::IDLE;
     }
@@ -359,7 +372,7 @@ void DevCalib::SendNextFetch()
 
 void DevCalib::ResetPAHistory()
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " clear tab=" << m_pa_calib_tab.size() << " queue=" << m_fetch_queue.size();
+    BOOST_LOG_TRIVIAL(info) << "clear tab=" << m_pa_calib_tab.size() << " queue=" << m_fetch_queue.size();
     m_pa_calib_tab.clear();
     m_fetch_queue.clear();
     m_pa_table_status = CalibStatus::IDLE;
@@ -401,11 +414,14 @@ void DevCalib::ExtrusionCalibSetParse(const json & jj){
     int ams_id  = tray_ams_slot_map.find(tray_id) != tray_ams_slot_map.end() ? tray_ams_slot_map[tray_id].first : -1;
     int slot_id = tray_ams_slot_map.find(tray_id) != tray_ams_slot_map.end() ? tray_ams_slot_map[tray_id].second : -1;
 
-    if(tray_id == VIRTUAL_TRAY_MAIN_ID) {
-        GetOwner()->vt_slot[MAIN_EXTRUDER_ID].k = jj.value("k_value", GetOwner()->vt_slot[MAIN_EXTRUDER_ID].k);
-        GetOwner()->vt_slot[MAIN_EXTRUDER_ID].n = jj.value("n_value", GetOwner()->vt_slot[MAIN_EXTRUDER_ID].n);
+    auto *fila_system = GetOwner()->GetFilaSystem().get();
+    if (auto vt_opt = fila_system->GetVirtualTray(std::to_string(tray_id))) {
+        DevAmsTray vt_tray = vt_opt.value();
+        vt_tray.k = jj.value("k_value", vt_tray.k);
+        vt_tray.n = jj.value("n_value", vt_tray.n);
+        fila_system->UpdateVirtualTray(std::to_string(tray_id), vt_tray);
     }else{
-        auto tray_item = GetOwner()->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
+        auto tray_item = fila_system->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
         if (tray_item) {
             tray_item->k = jj.value("k_value", tray_item->k);
             tray_item->n = jj.value("n_coef", tray_item->n);
@@ -428,31 +444,28 @@ void DevCalib::ExtrusionCalibSelectParse(const json &jj){
         int ams_id = jj.value("ams_id", default_ams_id);
         int slot_id = jj.value("slot_id", default_slot_id);
 
-        BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_sel: illegal ams_id = " << ams_id << "slot_id = " << slot_id;
-
-        std::vector<DevAmsTray> &vt_slot = GetOwner()->vt_slot;
-        if (ams_id == VIRTUAL_TRAY_MAIN_ID && vt_slot.size() > 0) {
-            vt_slot[MAIN_EXTRUDER_ID].cali_idx = jj.value("cali_idx", vt_slot[MAIN_EXTRUDER_ID].cali_idx);
-            vt_slot[MAIN_EXTRUDER_ID].set_hold_count();
-        } else if (ams_id == VIRTUAL_TRAY_DEPUTY_ID && vt_slot.size() > 1) {
-            vt_slot[DEPUTY_EXTRUDER_ID].cali_idx = jj.value("cali_idx", vt_slot[DEPUTY_EXTRUDER_ID].cali_idx);
-            vt_slot[DEPUTY_EXTRUDER_ID].set_hold_count();
+        auto *fila_system = GetOwner()->GetFilaSystem().get();
+        if (auto vt_opt = fila_system->GetVirtualTray(std::to_string(ams_id))) {
+            DevAmsTray vt_tray = vt_opt.value();
+            vt_tray.cali_idx   = jj.value("cali_idx", vt_tray.cali_idx);
+            vt_tray.set_hold_count();
+            fila_system->UpdateVirtualTray(std::to_string(ams_id), vt_tray);
         } else {
-            auto tray_item = GetOwner()->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
+            auto tray_item = fila_system->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
             if (tray_item) {
                 tray_item->cali_idx = jj.value("cali_idx", tray_item->cali_idx);
                 tray_item->set_hold_count();
             }
         }
     } catch(...){
-
+        BOOST_LOG_TRIVIAL(trace) << " extrusion_cali_sel: illegal ack = " << jj;
     }
 }
 
 void DevCalib::ExtrusionCalibGetTableParse(const json &jj){
     if (GetPAHistoryStatus() == CalibStatus::REQUEST ) {
         if (m_fetch_queue.empty()) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " drop stale reply, queue empty";
+            BOOST_LOG_TRIVIAL(info) << "drop stale reply, queue empty";
             m_pa_table_status = CalibStatus::IDLE;
             return;
         }
@@ -482,6 +495,10 @@ void DevCalib::ExtrusionCalibGetTableParse(const json &jj){
 
             std::vector<PACalibResult> new_rows = filaments_json.get<std::vector<PACalibResult>>();
 
+            if (m_owner && m_owner->GetConfig() && m_owner->GetConfig()->SupportNozzlePosToNozzleAddr()) {
+                normalize_nozzle_pos_to_addr(new_rows, m_owner->GetNozzleSystem());
+            }
+
             /* filter invalid pa_calib_tab */
             new_rows.erase(std::remove_if(new_rows.begin(), new_rows.end(), [](auto &res) { return res.k_value < 0.0f || res.k_value > 10.0f; }), new_rows.end());
 
@@ -491,19 +508,19 @@ void DevCalib::ExtrusionCalibGetTableParse(const json &jj){
                                 m_pa_calib_tab.end());
             m_pa_calib_tab.insert(m_pa_calib_tab.end(), new_rows.begin(), new_rows.end());
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__
-                                   << " cover dia=" << active.nozzle_diameter
+            BOOST_LOG_TRIVIAL(info)
+                                   << "cover dia=" << active.nozzle_diameter
                                    << " use_dia=" << active.use_nozzle_diameter
                                    << " ext=" << active.extruder_id
                                    << " use_ext=" << active.use_extruder_id
                                    << " tab " << before << "->" << m_pa_calib_tab.size()
                                    << " new_rows=" << new_rows.size();
         } catch(...) {
-            BOOST_LOG_TRIVIAL(error) << "pa calib history missing fields, current json:\n "<< jj.dump();
+            BOOST_LOG_TRIVIAL(error) << "pa calib history missing fields, current json:\n "<< jj;
         }
 
         m_fetch_queue.erase(m_fetch_queue.begin());
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " pop queue remain=" << m_fetch_queue.size() << " status=" << static_cast<int>(GetPAHistoryStatus());
+        BOOST_LOG_TRIVIAL(info) << "pop queue remain=" << m_fetch_queue.size() << " status=" << static_cast<int>(GetPAHistoryStatus());
         if (GetPAHistoryStatus() == CalibStatus::WAITING)
             m_pa_table_status = CalibStatus::IDLE;
         // notify cali history to update
@@ -541,12 +558,16 @@ void DevCalib::ExtrusionCalibGetResultParse(const json &jj)
 
         m_pa_calib_results = filaments_json.get<std::vector<PACalibResult>>();
 
+        if (m_owner && m_owner->GetConfig() && m_owner->GetConfig()->SupportNozzlePosToNozzleAddr()) {
+            normalize_nozzle_pos_to_addr(m_pa_calib_results, m_owner->GetNozzleSystem());
+        }
+
         m_pa_calib_results.erase(std::remove_if(m_pa_calib_results.begin(), m_pa_calib_results.end(), [](auto &res) { return res.k_value < 0.0f || res.k_value > 10.0f; }), m_pa_calib_results.end());
 
         if (m_pa_calib_results.empty()) { BOOST_LOG_TRIVIAL(info) << "empty pa calib result"; }
     } catch (...) {
         m_pa_calib_results.clear();
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "pa calibration results missing fileds, current json: \n"<<jj.dump();
+        BOOST_LOG_TRIVIAL(error) << "pa calibration results missing fileds, current json: \n"<<jj;
     }
 }
 
@@ -559,7 +580,7 @@ void DevCalib::FlowrateGetResultParse(const json &jj){
     try {
         m_flow_ratio_results = jj["filaments"].get<std::vector<FlowRatioCalibResult>>();
     } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "flow ratio calibration results missing fileds, current json:\n"<<jj.dump();
+        BOOST_LOG_TRIVIAL(error) << "flow ratio calibration results missing fileds, current json:\n"<<jj;
     }
 }
 

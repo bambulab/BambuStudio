@@ -49,7 +49,10 @@ public:
 public:
     void         ShowNumber(bool shown);
     void         Disable(wxString text);
+
     void         SetValue(int  step);
+    int          GetValue() const { return m_step; }
+
     void         Reset();
     void         SetProgress(int step);
     void         SetRadius(double radius);

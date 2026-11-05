@@ -15,6 +15,10 @@
 
 #include <string>
 #include <map>
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <vector>
 
 #include "GUI_Utils.hpp"
 #include "Event.hpp"
@@ -161,19 +165,43 @@ class MainFrame : public DPIFrame
 
     struct FileHistory : wxFileHistory
     {
-        FileHistory(int max) : wxFileHistory(max) {}
+        FileHistory(int max) : wxFileHistory(max), m_state(std::make_shared<AsyncState>()) {}
+        ~FileHistory() { m_state->cancel(); }
+
         std::wstring GetThumbnailUrl(int index) const;
 
         virtual void AddFileToHistory(const wxString &file);
         virtual void RemoveFileFromHistory(size_t i);
         size_t FindFileInHistory(const wxString &file);
 
-        void LoadThumbnails();
+        // Reading the thumbnails means opening every recent 3mf, which is too slow to do while
+        // the menu bar is being built. Scan on a worker thread and merge back on the main thread.
+        void LoadThumbnailsAsync();
 
         void SetMaxFiles(int max);
     private:
+        // Main thread only: merge a worker's result back, matching by path rather than by index.
+        void ApplyThumbnails(const std::vector<wxString> &files, const std::vector<std::string> &data);
+
+        // Shared with the thumbnail worker, and outliving this object. The worker takes the lock
+        // only to check the flag and post its result back, never while reading files, so cancelling
+        // waits for at most one CallAfter. That handshake is what keeps the worker from calling
+        // wxGetApp() after wxEntryCleanup() has dropped the app instance.
+        struct AsyncState
+        {
+            std::mutex       mutex;
+            std::atomic_bool cancelled{false};
+
+            void cancel()
+            {
+                std::lock_guard<std::mutex> lock(mutex);
+                cancelled = true;
+            }
+        };
+
         std::deque<std::string> m_thumbnails;
         bool m_load_called = false;
+        std::shared_ptr<AsyncState> m_state;
     };
 
     FileHistory m_recent_projects;
@@ -444,6 +472,8 @@ public:
 
 #ifdef __APPLE__
     std::unique_ptr<wxTaskBarIcon> m_taskbar_icon;
+    bool        m_sync_dialog_pending_activate { false };
+    void        on_activate_app_show_sync_dialog(wxActivateEvent& evt);
 #endif // __APPLE__
 
 #ifdef _WIN32

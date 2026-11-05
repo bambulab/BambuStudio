@@ -30,12 +30,17 @@
     "filament_max_volumetric_speed": [
         "18",
         "21",
-        "18"
+        "35"
     ],
     "filament_pre_cooling_temperature_nc": [
         "210",
         "210",
         "210"
+    ],
+    "filament_preheat_temperature_delta": [
+        "20",
+        "20",
+        "20"
     ],
     "filament_prime_volume": [
         "30"
@@ -80,11 +85,6 @@
         "Spiral Lift",
         "Spiral Lift",
         "Spiral Lift"
-    ],
-    "filament_preheat_temperature_delta": [
-        "20",
-        "20",
-        "20"
     ],
     "include": [
         "fdm_filament_template_direct_dual_e3d"

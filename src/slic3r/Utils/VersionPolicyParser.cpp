@@ -12,10 +12,10 @@
 #include <utility>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/optional.hpp>
 
 #include "nlohmann/json.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

@@ -7,6 +7,7 @@
 #include <boost/filesystem.hpp>
 #include <Message_ProgressIndicator.hxx>
 #include <atomic>
+#include "libslic3r/Log.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -98,7 +99,7 @@ public:
     Standard_Boolean UserBreak() override { return should_stop.load(); }
 
     void Show(const Message_ProgressScope&, const Standard_Boolean) override {
-        std::cout << "Progress: " << GetPosition() << "%" << std::endl;
+        BOOST_LOG_TRIVIAL(trace) << "Progress: " << GetPosition() << "%";
     }
 private:
     std::atomic<bool>& should_stop;

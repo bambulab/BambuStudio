@@ -19,16 +19,9 @@
   --color-fm-brand-hover: #34c400;
   --color-fm-danger: #e04040;
   --color-fm-warning: #ed7417;
-  /* SpoolColorChip 1px inset ring; sits between the chip fill and the
-     surrounding surface. Dark theme keeps the historical low-alpha white
-     so existing chip silhouettes are unchanged. Light theme uses a low
-     alpha black so a white / near-white chip fill still has a visible
-     outline against the light surface. */
+  /* Inset ring for light spool colours. */
   --color-fm-chip-ring: rgba(255,255,255,0.10);
-  /* AMS slot card header in AddEditDialog. Dark theme matches the prior
-     hardcoded #424242 + white text; light theme pulls the header tint
-     down to --color-fm-hover so the slot card no longer shows an
-     isolated dark bar on a light surface. */
+  /* Slot-card header palette. */
   --color-fm-slot-header: #424242;
   --color-fm-slot-header-text: #fff;
 }
@@ -56,6 +49,206 @@
   --color-fm-chip-ring: rgba(0,0,0,0.18);
   --color-fm-slot-header: rgba(0,0,0,0.06);
   --color-fm-slot-header-text: #1a1a1a;
+}
+
+/* Shared AMS page tokens. */
+:root {
+  /* Surfaces */
+  --ams-page-bg: #ffffff;
+  --ams-toolbar-bg: #f7f7f7;
+  --ams-pill-bg: #f1f1f1;
+  --ams-card-wrap-bg: #f2f2f2;
+  --ams-card-wrap-border: #ebebeb;
+  --ams-card-text-bg: #ffffff;
+  /* Opaque spool hole punch-out; must cover material drawn under the hole. */
+  --ams-spool-hole-bg: #ffffff;
+  --ams-card-text-border: #ebebeb;
+  --ams-card-tray-tag-bg: #ebebeb;
+  --ams-popover-bg: #ffffff;
+  --ams-popover-border: #dedede;
+  --ams-popover-hover-bg: #f5f5f5;
+  --ams-popover-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+  --ams-dryer-chamber-bg: #dbdbdb;
+  --ams-overlay-bg: #e6e6e6;
+  --ams-hotend-card-bg: #f2f2f2;
+  --ams-hotend-card-bg-taken: #e6e6e6;
+  --ams-spinner-track: #e0e0e0;
+  --ams-hover-bg: rgba(0, 0, 0, 0.04);
+  --ams-temp-edit-bg: #ffffff;
+  --ams-temp-target-hover-bg: #f2f2f2;
+  --ams-tab-bar-empty: #dcdcdc;
+  --ams-tab-bar-empty-alt: #f2f2f2;
+  --ams-manual-card-bg: #eeeeee;
+  /* Inner panel surfaces stacked on --ams-page-bg (auto-refill slot rows,
+     picker cards, empty state). */
+  --ams-surface-subtle: #f7f7f7;
+  --ams-surface-muted: #f2f2f2;
+  --ams-batch-state-running-bg: rgba(0, 174, 66, 0.08);
+  --ams-batch-state-running-border: rgba(0, 174, 66, 0.28);
+  --ams-batch-state-failed-bg: rgba(217, 80, 71, 0.08);
+  --ams-batch-state-failed-border: rgba(217, 80, 71, 0.28);
+
+  /* Borders / Dividers */
+  --ams-border: #dbdbdb;
+  --ams-soft-border: #ebebeb;
+  --ams-dashed-border: #dfe6ee;
+  --ams-divider: #dbdbdb;
+  --ams-status-bar-border: #c9cdd3;
+  --ams-batch-border: #dfe6ee;
+  /* Inset ring over a filament swatch; keeps colours close to the page
+     background from bleeding into it. Must contrast with the page, not with
+     the swatch, so it inverts between themes. */
+  --ams-chip-ring: rgba(0, 0, 0, 0.18);
+
+  /* Text */
+  --ams-text-strong: #1f1f1f;
+  --ams-text-primary: #333333;
+  --ams-text-secondary: #5c5c5c;
+  --ams-text-detail: #8c8c8c;
+  --ams-text-muted: #a3a3a3;
+  --ams-text-weak: #999999;
+  --ams-text-meta: #8a8f99;
+  --ams-text-step: #4f5661;
+  --ams-text-button: #2f343a;
+  --ams-text-disabled: #c2c2c2;
+  --ams-text-disabled-strong: #bcbcbc;
+  --ams-text-task-mark-pending: #c4c7cc;
+  --ams-text-tray-tag: #5c5c5c;
+  --ams-text-ams-bind: #6c6c6c;
+  --ams-text-card-menu-dot: #5f5f5f;
+  --ams-text-batch-idle: #6b7280;
+  --ams-index-bg: #dbdbdb;
+
+  /* Brand / Status (kept as raw hues; dark mode lifts brightness) */
+  --ams-brand: #00ae42;
+  --ams-text-on-brand: #ffffff;
+  --ams-route-active: #7a75ff;
+  --ams-route-inactive: #c2c2c2;
+  --ams-temp-heating: #f09a17;
+  --ams-temp-cooling: #0e65e9;
+  --ams-danger: #d95047;
+  --ams-danger-bg: #fdecea;
+  --ams-danger-border: #f0c0bd;
+  --ams-error: #d01b1b;
+  --ams-success: #50a90b;
+  --ams-success-bg: #f5ffe6;
+  /* Brand wash behind small badges (auto-refill "manual" tag). */
+  --ams-brand-tint: rgba(0, 174, 66, 0.1);
+  /* Lighter brand wash filling a hovered / selected card. */
+  --ams-brand-wash: rgba(0, 174, 66, 0.06);
+  /* Warning wash behind informational banners. */
+  --ams-notice-bg: rgba(237, 116, 23, 0.08);
+  --ams-debug-btn-text: #9a5a00;
+  --ams-debug-btn-bg: #fff7e6;
+  --ams-debug-btn-border: #ff9f1a;
+  --ams-debug-btn-hover-bg: #ffe8bf;
+  --ams-debug-btn-shadow: 0 1px 2px rgba(255, 159, 26, 0.16);
+
+  /* Window-chrome accents (ams-ext-operation titlebar dots) */
+  --ams-window-dot: #d9d9d9;
+  --ams-window-dot-close: #d01b1b;
+
+  /* Footer button */
+  --ams-footer-btn-bg: linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
+  --ams-footer-btn-border: #d8dce2;
+  --ams-footer-btn-hover-border: #c8ced6;
+  --ams-footer-btn-hover-bg: #ffffff;
+  --ams-footer-btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] {
+  /* Surfaces */
+  --ams-page-bg: #2D2D31;
+  --ams-toolbar-bg: #222;
+  --ams-pill-bg: rgba(255, 255, 255, 0.06);
+  --ams-card-wrap-bg: rgba(255, 255, 255, 0.04);
+  --ams-card-wrap-border: rgba(255, 255, 255, 0.08);
+  --ams-card-text-bg: rgba(255, 255, 255, 0.04);
+  /* Match page bg so the hole fully occludes filament color in dark mode. */
+  --ams-spool-hole-bg: #2D2D31;
+  --ams-card-text-border: rgba(255, 255, 255, 0.08);
+  --ams-card-tray-tag-bg: rgba(255, 255, 255, 0.10);
+  --ams-popover-bg: #2a2a2a;
+  --ams-popover-border: rgba(255, 255, 255, 0.16);
+  --ams-popover-hover-bg: rgba(255, 255, 255, 0.08);
+  --ams-popover-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  --ams-dryer-chamber-bg: rgba(255, 255, 255, 0.08);
+  --ams-overlay-bg: rgba(255, 255, 255, 0.06);
+  --ams-hotend-card-bg: rgba(255, 255, 255, 0.04);
+  --ams-hotend-card-bg-taken: rgba(255, 255, 255, 0.02);
+  --ams-spinner-track: rgba(255, 255, 255, 0.16);
+  --ams-hover-bg: rgba(255, 255, 255, 0.08);
+  --ams-temp-edit-bg: rgba(255, 255, 255, 0.06);
+  --ams-temp-target-hover-bg: rgba(255, 255, 255, 0.06);
+  --ams-tab-bar-empty: rgba(255, 255, 255, 0.18);
+  --ams-tab-bar-empty-alt: rgba(255, 255, 255, 0.06);
+  --ams-manual-card-bg: rgba(255, 255, 255, 0.06);
+  --ams-surface-subtle: rgba(255, 255, 255, 0.04);
+  --ams-surface-muted: rgba(255, 255, 255, 0.06);
+  --ams-batch-state-running-bg: rgba(52, 196, 0, 0.16);
+  --ams-batch-state-running-border: rgba(52, 196, 0, 0.4);
+  --ams-batch-state-failed-bg: rgba(255, 107, 94, 0.16);
+  --ams-batch-state-failed-border: rgba(255, 107, 94, 0.4);
+
+  /* Borders */
+  --ams-border: rgba(255, 255, 255, 0.16);
+  --ams-soft-border: rgba(255, 255, 255, 0.08);
+  --ams-dashed-border: rgba(255, 255, 255, 0.16);
+  --ams-divider: rgba(255, 255, 255, 0.12);
+  --ams-status-bar-border: rgba(255, 255, 255, 0.18);
+  --ams-batch-border: rgba(255, 255, 255, 0.16);
+  --ams-chip-ring: rgba(255, 255, 255, 0.1);
+
+  /* Text */
+  --ams-text-strong: #ffffff;
+  --ams-text-primary: rgba(255, 255, 255, 0.85);
+  --ams-text-secondary: rgba(255, 255, 255, 0.65);
+  --ams-text-detail: rgba(255, 255, 255, 0.5);
+  --ams-text-muted: rgba(255, 255, 255, 0.4);
+  --ams-text-weak: rgba(255, 255, 255, 0.45);
+  --ams-text-meta: rgba(255, 255, 255, 0.55);
+  --ams-text-step: rgba(255, 255, 255, 0.7);
+  --ams-text-button: rgba(255, 255, 255, 0.85);
+  --ams-text-disabled: rgba(255, 255, 255, 0.3);
+  --ams-text-disabled-strong: rgba(255, 255, 255, 0.35);
+  --ams-text-task-mark-pending: rgba(255, 255, 255, 0.28);
+  --ams-text-tray-tag: rgba(255, 255, 255, 0.7);
+  --ams-text-ams-bind: rgba(255, 255, 255, 0.6);
+  --ams-text-card-menu-dot: rgba(255, 255, 255, 0.6);
+  --ams-text-batch-idle: rgba(255, 255, 255, 0.55);
+  --ams-index-bg: rgba(255, 255, 255, 0.18);
+
+  /* Brand / Status (lift brightness for legibility on dark) */
+  --ams-brand: #34c400;
+  --ams-route-active: #8e89ff;
+  --ams-route-inactive: rgba(255, 255, 255, 0.3);
+  --ams-temp-heating: #ff9c3d;
+  --ams-temp-cooling: #4d9bff;
+  --ams-danger: #ff6b5e;
+  --ams-danger-bg: rgba(255, 107, 94, 0.12);
+  --ams-danger-border: rgba(255, 107, 94, 0.36);
+  --ams-error: #ff6b5e;
+  --ams-success: #34c400;
+  --ams-success-bg: rgba(52, 196, 0, 0.16);
+  --ams-brand-tint: rgba(52, 196, 0, 0.16);
+  --ams-brand-wash: rgba(52, 196, 0, 0.12);
+  --ams-notice-bg: rgba(255, 156, 61, 0.16);
+  --ams-debug-btn-text: #ffb763;
+  --ams-debug-btn-bg: rgba(255, 159, 26, 0.16);
+  --ams-debug-btn-border: rgba(255, 159, 26, 0.5);
+  --ams-debug-btn-hover-bg: rgba(255, 159, 26, 0.28);
+  --ams-debug-btn-shadow: 0 1px 2px rgba(255, 159, 26, 0.2);
+
+  /* Window-chrome accents */
+  --ams-window-dot: rgba(255, 255, 255, 0.2);
+  --ams-window-dot-close: #ff6b5e;
+
+  /* Footer button */
+  --ams-footer-btn-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+  --ams-footer-btn-border: rgba(255, 255, 255, 0.18);
+  --ams-footer-btn-hover-border: rgba(255, 255, 255, 0.32);
+  --ams-footer-btn-hover-bg: rgba(255, 255, 255, 0.08);
+  --ams-footer-btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 html, body, #root {

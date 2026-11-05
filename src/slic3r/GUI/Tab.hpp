@@ -28,6 +28,7 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <optional>
 
 //#include "BedShapeDialog.hpp"
 #include "Event.hpp"
@@ -41,9 +42,11 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/TextInput.hpp"
 #include "Widgets/SwitchButton.hpp"
+#include "Widgets/NozzleVariantSwitcher.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "DeviceCore/DevDefs.h"
 #include "DeviceCore/DevNozzleSystem.h"
+#include "SupportComboAdvisor.hpp"
 
 class TabCtrl;
 class ComboBox;
@@ -51,6 +54,7 @@ class ComboBox;
 namespace Slic3r {
 
 class ModelConfig;
+class ModelObject;
 class ObjectBase;
 
 namespace GUI {
@@ -288,6 +292,12 @@ protected:
 
     bool				m_is_timelapse_wipe_tower_already_prompted = false;
 
+    // Previous combo state for the "undo support material setup" detection. Re-seeded after every
+    // check and by refresh_support_interface_combo_baseline(). See SupportComboAdvisor.hpp.
+    SupportComboBaseline m_support_combo_baseline;
+    // The dialog runs a nested event loop; without this, queued rechecks stack up more dialogs.
+    bool				m_support_interface_revert_dialog_running = false;
+
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_show_btn_incompatible_presets = false;
@@ -308,7 +318,7 @@ public:
 
     SwitchButton *m_mode_view = nullptr;
     wxSizer *       m_variant_sizer   = nullptr;
-    MultiSwitchButton *  m_extruder_switch = nullptr;
+    NozzleVariantSwitcher *m_variant_switch = nullptr;
     MultiSwitchButton *  m_variant_combo   = nullptr;
     wxSizer *       m_nozzle_status_sizer = nullptr;
     wxStaticBitmap * m_wiki_bmp  = nullptr;
@@ -385,6 +395,8 @@ public:
 	virtual void	build() = 0;
 	virtual void	update() = 0;
 	virtual void	toggle_options() = 0;
+	// For lines whose visibility depends on state outside this tab's config, such as the nozzle setup.
+	void			update_toggled_lines();
 	virtual void	init_options_list();
     virtual void    update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options) {}
 	void			load_initial_data();
@@ -425,7 +437,51 @@ private:
     // when transfer modified options to a new printer, we may need do some work here
     void remap_variant_cache();
 
+    // If the baseline says we *were* a support-material combination and found_recommendation says
+    // we no longer are, ask whether the user is exiting support material usage and, on Yes,
+    // restore the still-applied support-specific parameters. Returns true if such a revert was
+    // detected, whatever the answer. Never re-seeds the baseline -- callers do that afterwards.
+    // Single-scope only: a filament delete releases many scopes at once and goes through
+    // TabPrintModel::prompt_support_revert_after_filament_delete() instead.
+    bool maybe_prompt_support_interface_revert(bool found_recommendation, int current_plate_idx);
+
 public:
+    // Silently recompute the combo baseline from the current m_config and plate, e.g. after a
+    // preset/project load or a plate switch. only_if_plate_changed is for the plate-selection
+    // event, which also fires for re-selections: re-seeding then would discard a baseline that a
+    // queued recheck is about to need.
+    void refresh_support_interface_combo_baseline(bool only_if_plate_changed = false);
+
+    // Re-run the combo detection against the current config and model. Returns the keys this
+    // tab's scope still holds at the values the recommendation set, now that the combination
+    // stopped holding; empty when there is nothing to offer. Always re-seeds the baseline, so one
+    // filament delete is evaluated exactly once. Never prompts: the delete path merges this with
+    // the per-object leftovers into a single dialog.
+    DynamicPrintConfig take_support_combo_leftovers();
+
+    // Queue the post-delete recheck. The filament-delete path is mid-update (under a wxBusyCursor)
+    // and must not raise a modal dialog inline. Repeated calls within one event-loop turn collapse
+    // into a single recheck.
+    static void schedule_support_interface_combo_recheck();
+
+    // Restore the parameters listed in keys_conf to their "default", which depends on the scope
+    // the tab edits: the selected preset's system value on the global Print tab, or an object
+    // override pinned to that value / no override at all on an object tab. Only the key set of
+    // keys_conf matters to the overrides.
+    // extra_objects are unselected objects the user chose to restore along with the panel's own.
+    virtual void restore_support_specific_params_to_default(const DynamicPrintConfig         &keys_conf,
+                                                            const std::vector<ModelObject *> &extra_objects = {});
+
+    // The value a support parameter falls back to with nothing overriding it: the selected
+    // preset's system parent, else the definition default. Caller owns the clone; null when the
+    // key has neither. Only meaningful on the global Print tab, which owns the presets.
+    ConfigOption *clone_default_support_value(const std::string &key);
+
+    // Whether this tab's scope can restore key on its own. The object scope cannot restore a key
+    // with no object-level copy (today only independent_support_layer_height): it lives in the
+    // global preset, which an object edit must not rewrite.
+    virtual bool owns_support_revert_key(const std::string &) { return true; }
+
     void            show_timelapse_warning_dialog();
 
 	const std::map<wxString, std::string>& get_category_icon_map() { return m_category_icon; }
@@ -446,13 +502,18 @@ public:
     void        sync_excluder();
 	void        update_nozzle_status_display();
 	void        parse_extruder_selection(int selection, int &extruder_id, NozzleVolumeType &nozzle_type);
-    int         calculate_selection_index_for_extruder(int extruder_id, NozzleVolumeType nozzle_type);
+    int         calculate_selection_index_for_variant(int extruder_id, NozzleVolumeType nozzle_type);
 	bool        get_extruder_sync_enable_state(int extruder_id);
 	int         get_current_active_extruder();
     void        show_wiki();
 
 	std::vector<wxString>  generate_extruder_options();
-    std::vector<DevNozzle> collect_nozzles(int extruder_id, ExtruderType ext_type, NozzleFlowType flow_type, bool& connected);
+	std::vector<NozzleVariantSwitcher::Option> generate_nozzle_variant_options();
+    // 1-based slot indices in the nozzle inventory of extruder_id whose volume_type
+    // matches `flow_type` and whose diameter matches the printer preset's
+    // nozzle_diameter[extruder_id]. Reflects the user's saved nozzle inventory
+    // (Extruder Settings dialog), independent of any connected machine.
+    std::vector<int>       collect_configured_nozzles(int extruder_id, NozzleFlowType flow_type);
     NozzleVolumeType       get_actual_nozzle_volume_type(int extruder_id);
     NozzleFlowType         get_actual_nozzle_flow_type(int selection);
     ExtruderType           get_actual_extruder_type(int selection);
@@ -520,6 +581,31 @@ public:
 
 	bool has_key(std::string const &key);
 
+	bool owns_support_revert_key(const std::string &key) override { return has_key(key); }
+
+	// The one dialog a filament delete raises. lost_objects / object_keys come from the pre-delete
+	// snapshot (so this works with nothing selected), global_keys from the global Print tab. A
+	// setup made in both scopes is undone by a single answer:
+	//   affected objects selected -- selection wording, keeps the selected / all objects choice;
+	//   nothing selected          -- the objects are named instead, one Yes takes back every scope.
+	// The leading wording always names a scope that really is restored; the others get a line of
+	// their own, so the dialog never promises a change it will not make.
+	// Returns true when the dialog was shown, whatever the answer.
+	bool prompt_support_revert_after_filament_delete(const std::vector<ModelObject *> &lost_objects,
+	                                                 const DynamicPrintConfig         &object_keys,
+	                                                 const DynamicPrintConfig         &global_keys);
+
+	// Object/plate scope: "restore to default" keeps the change inside the object. Keys the global
+	// preset still holds at the recommended value get an object override pinned to the default,
+	// since dropping the override would inherit the recommendation straight back; the rest just
+	// lose their override. Global-only keys are skipped. Applies to the current selection.
+	void restore_support_specific_params_to_default(const DynamicPrintConfig         &keys_conf,
+	                                                const std::vector<ModelObject *> &extra_objects = {}) override;
+
+	// The same restore on an explicit set of objects, ignoring the selection.
+	void restore_support_params_on_objects(const DynamicPrintConfig         &keys_conf,
+	                                       const std::vector<ModelObject *> &objects);
+
 protected:
 	virtual void    activate_selected_page(std::function<void()> throw_if_canceled);
 
@@ -530,6 +616,13 @@ protected:
 	virtual void	reload_config();
 
 	virtual void	update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options) override;
+
+private:
+	// Shared body of the two restores above, working on an explicit (owner, config) list so it can
+	// serve both the selection -- which may hold volumes or layer ranges, not just objects -- and a
+	// plain object list.
+	void restore_support_params_on(const DynamicPrintConfig                                  &keys_conf,
+	                               const std::vector<std::pair<ObjectBase *, ModelConfig *>> &targets);
 
 protected:
 	std::vector<std::string> m_keys;
@@ -598,6 +691,10 @@ class TabFilament : public Tab
 private:
 	ogStaticText*	m_volumetric_speed_description_line {nullptr};
 	ogStaticText*	m_cooling_description_line {nullptr};
+	// Auxiliary part cooling fan groups. Whether the optional one is shown, and how both
+	// are titled, depends on the machine. See TabFilament::toggle_options().
+	ConfigOptionsGroupShp m_aux_fan_standard_optgroup;
+	ConfigOptionsGroupShp m_aux_fan_optional_optgroup;
 	MultiSwitchButton* m_flush_mode_switch {nullptr};
 	wxWindow*          m_flush_mode_panel {nullptr};
 	int                m_flush_mode_selection {0};
@@ -651,6 +748,14 @@ private:
     std::vector<int> 	 m_extruder_type;
     std::string          m_base_preset_name;
     std::string          m_base_preset_model;
+    bool                 m_is_single_ext_multi_nozzle = false;
+
+    /**
+     * \brief Show the nozzle count and volume type of one extruder from the nozzle inventory
+     *
+     * \param extruder_id  0-based extruder
+     */
+    void refresh_nozzle_display(int extruder_id);
 
 public:
 	ScalableButton*	m_reset_to_filament_color = nullptr;
@@ -683,12 +788,34 @@ public:
 	void		extruders_count_changed(size_t extruders_count);
 	PageShp		build_kinematics_page();
 	void		build_unregular_pages(bool from_initial_build = false);
+	/**
+	 * \brief The selected printer changed; let the nozzles follow it
+	 *
+	 * Call it before update_compatible(), which reads the nozzles.
+	 */
+	void		refresh_nozzles_for_printer();
 	void		on_preset_loaded() override;
 	void		init_options_list() override;
 	void		msw_rescale() override;
 	bool 		supports_printer_technology(const PrinterTechnology /* tech */) const override { return true; }
 
+	/**
+	 * \brief The user picked the volume type of an extruder with one nozzle slot
+	 *
+	 * An extruder with a nozzle rack takes its type from its slots; there this does nothing.
+	 *
+	 * \param extruder_id  0-based extruder id, -1 for a single extruder printer
+	 * \param type         new volume type of the extruder
+	 */
 	void		set_extruder_volume_type(int extruder_id, NozzleVolumeType type);
+
+	/**
+	 * \brief Refresh everything that follows the nozzles, after any change of preset_bundle->nozzle_inventory
+	 *
+	 * \param extruder_id  0-based extruder the change touched; null refreshes every extruder. An edit of one
+	 *                     extruder must pass it, so the per-filament flow choices on the other extruders stay.
+	 */
+	void		on_nozzles_changed(std::optional<int> extruder_id = std::nullopt);
 
 	wxSizer*	create_bed_shape_widget(wxWindow* parent);
 	void		cache_extruder_cnt();

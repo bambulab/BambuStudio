@@ -6,7 +6,7 @@
 #include <mutex>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 #include <boost/format.hpp>
 #define slic3r_Semver_hpp_
 #define _libslic3r_h_

@@ -1,8 +1,10 @@
 #include "DeviceWebBridge.hpp"
 #include "DeviceWebHealth.hpp"
+#include "IViewModel.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Widgets/WebViewTraceLogger.hpp"
 #include <wx/uri.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -27,6 +29,11 @@ DeviceWebBridge::~DeviceWebBridge()
         m_web->Unbind(wxEVT_WEBVIEW_NAVIGATING, &DeviceWebBridge::OnWebNav, this);
         m_web->Unbind(wxEVT_WEBVIEW_LOADED, &DeviceWebBridge::OnWebLoaded, this);
     }
+}
+
+bool DeviceWebBridge::IsReportEnabled() const
+{
+    return !m_report_enabled_handler || m_report_enabled_handler();
 }
 
 void DeviceWebBridge::OnWebLoaded(wxWebViewEvent& e)
@@ -189,10 +196,23 @@ void DeviceWebBridge::DispatchWebCommand(const nlohmann::json& header, const nlo
     }
     if (head.type != MsgType::Request) return;
     if (!ValidateHeader(head)) return;
+    AppendTrace("web_request", head, body);
 
     const std::string module = WebMessageStringField(body, "module");
     const std::string submod = WebMessageStringField(body, "submod");
     const std::string action = WebMessageStringField(body, "action");
+    if (module == "device_host" && submod == "layout" && action == "content_size") {
+        if (m_host_content_size_handler && body.contains("payload") && body["payload"].is_object()) {
+            const auto& payload = body["payload"];
+            const int width = payload.value("width", 0);
+            const int height = payload.value("height", 0);
+            if (width > 0 && height > 0) {
+                m_host_content_size_handler(width, height);
+            }
+        }
+        return;
+    }
+
     if (module == "device_host" && submod == "health") {
         const wxString view = m_web ? m_web->GetName() : wxString();
         const auto emit = [&view](WebViewTraceLogger::Stage stage, const char *event,
@@ -303,6 +323,9 @@ void DeviceWebBridge::DispatchWebCommand(const nlohmann::json& header, const nlo
             auto result = m_vm_mgr->Dispatch(body);
             if (result.has_value()) {
                 ResponseMsg(head, result.value());
+                if (IViewModel* vm = m_vm_mgr->Find(module)) {
+                    vm->OnResponseSent(result.value());
+                }
                 return;
             }
         } catch (const std::exception& e) {

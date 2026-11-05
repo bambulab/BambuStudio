@@ -1,11 +1,11 @@
 #include "Mp4Recorder.hpp"
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <cstring>
 #include <cstdlib>
 
 #include "minimp4/minimp4.h"
 #include "minimp4/minih264e.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -249,12 +249,12 @@ void Mp4Recorder::push_frame(const uint8_t* rgba_data, size_t size)
         std::lock_guard<std::mutex> lk(m_queue_mutex);
         if (m_frame_queue.size() < 30) {
             m_frame_queue.push(std::move(copy));
-            BOOST_LOG_TRIVIAL(debug) << "Mp4Recorder::push_frame: queued, queue_size=" << m_frame_queue.size();
+            BOOST_LOG_TRIVIAL(debug) << "queued, queue_size=" << m_frame_queue.size();
         } else {
             // Encoder thread is falling behind; drop this frame. Throttle the warning so a sustained backlog does not flood the log.
             ++m_dropped_frames;
             if (m_dropped_frames == 1 || m_dropped_frames % 30 == 0)
-                BOOST_LOG_TRIVIAL(warning) << "Mp4Recorder::push_frame: queue full (30), dropping frame; total dropped="
+                BOOST_LOG_TRIVIAL(warning) << "queue full (30), dropping frame; total dropped="
                                            << m_dropped_frames;
         }
     }

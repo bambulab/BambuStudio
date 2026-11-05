@@ -11,7 +11,6 @@
 #include <fstream>
 #include <map>
 
-#include <boost/log/trivial.hpp>
 #include <boost/locale.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -24,6 +23,7 @@
 
 //Translation
 #include "I18N.hpp"
+#include "libslic3r/Log.hpp"
 #define _L(s) Slic3r::I18N::translate(s)
 
 namespace Slic3r {
@@ -36,7 +36,7 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
     ObjParser::ObjData data;
     ObjParser::MtlData mtl_data;
     if (! ObjParser::objparse(path, data)) {
-        BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path;
+        BOOST_LOG_TRIVIAL(error) << "failed to parse " << path;
         message = _L("load_obj: failed to parse");
         return false;
     }
@@ -65,13 +65,13 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
             if (!mtl_path.empty()) {
                 const std::string mtl_path_string = mtl_path.string();
                 if (!ObjParser::mtlparse(mtl_path_string.c_str(), mtl_data)) {
-                    BOOST_LOG_TRIVIAL(error) << "load_obj:load_mtl: failed to parse " << mtl_path_string;
+                    BOOST_LOG_TRIVIAL(error) << "load_mtl: failed to parse " << mtl_path_string;
                     message = _L("load mtl in obj: failed to parse");
                     return false;
                 }
             }
             else {
-                BOOST_LOG_TRIVIAL(error) << "load_obj: failed to load mtl_path:" << requested_mtl_path;
+                BOOST_LOG_TRIVIAL(error) << "failed to load mtl_path:" << requested_mtl_path;
             }
         }
     }
@@ -83,7 +83,7 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
         for (; j < data.vertices.size() && data.vertices[j].coordIdx != -1; ++ j) ;
         if (size_t num_face_vertices = j - i; num_face_vertices > 0) {
             if (num_face_vertices < 3) {
-                BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path << ". The file contains polygons with less than 3 vertices.";
+                BOOST_LOG_TRIVIAL(error) << "failed to parse " << path << ". The file contains polygons with less than 3 vertices.";
                 message = _L("The file contains polygons with less than 3 vertices.");
                 return false;
             }
@@ -127,7 +127,7 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
                     break;
                 } else {
                     if (vertex.coordIdx < 0 || vertex.coordIdx >= int(its.vertices.size())) {
-                        BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path << ". The file contains invalid vertex index.";
+                        BOOST_LOG_TRIVIAL(error) << "failed to parse " << path << ". The file contains invalid vertex index.";
                         message = _L("The file contains invalid vertex index.");
                         return false;
                     }
@@ -138,7 +138,7 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
                     // is skipped), so both keep loading as they did before.
                     if (data.textureCoordinates.size() > 0 && vertex.textureCoordIdx != -1 &&
                         (vertex.textureCoordIdx < 0 || size_t(vertex.textureCoordIdx) * 2 + 1 >= data.textureCoordinates.size())) {
-                        BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path << ". The file contains invalid texture coordinate index.";
+                        BOOST_LOG_TRIVIAL(error) << "failed to parse " << path << ". The file contains invalid texture coordinate index.";
                         message = _L("The file contains invalid texture coordinate index.");
                         return false;
                     }
@@ -235,7 +235,7 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
 
     *meshptr = TriangleMesh(std::move(its));
     if (meshptr->empty()) {
-        BOOST_LOG_TRIVIAL(error) << "load_obj: This OBJ file couldn't be read because it's empty. " << path;
+        BOOST_LOG_TRIVIAL(error) << "This OBJ file couldn't be read because it's empty. " << path;
         message = _L("This OBJ file couldn't be read because it's empty.");
         return false;
     }
@@ -368,7 +368,7 @@ bool obj_to_textured_mesh(
                 boost::filesystem::path(obj_directory), requested_tex_path, "obj_to_textured_mesh: map_Kd");
 
         if (tex_path.empty()) {
-            BOOST_LOG_TRIVIAL(warning) << "obj_to_textured_mesh: texture not found: " << requested_tex_path;
+            BOOST_LOG_TRIVIAL(warning) << "texture not found: " << requested_tex_path;
             continue;
         }
 
@@ -412,11 +412,11 @@ bool obj_to_textured_mesh(
     }
 
     if (out.textures.empty()) {
-        BOOST_LOG_TRIVIAL(warning) << "obj_to_textured_mesh: no textures loaded";
+        BOOST_LOG_TRIVIAL(warning) << "no textures loaded";
         return false;
     }
 
-    BOOST_LOG_TRIVIAL(info) << "obj_to_textured_mesh: " << nf << " faces, "
+    BOOST_LOG_TRIVIAL(info) << nf << " faces, "
                             << out.textures.size() << " textures, "
                             << num_materials << " materials";
     return true;

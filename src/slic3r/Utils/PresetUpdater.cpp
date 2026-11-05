@@ -14,7 +14,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/log/trivial.hpp>
 #include <tbb/parallel_for.h>
 
 #include <wx/app.h>
@@ -40,6 +39,7 @@
 #include "slic3r/GUI/MarkdownTip.hpp"
 #include "libslic3r/miniz_extension.hpp"
 #include "slic3r/GUI/GUI_Utils.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace fs = boost::filesystem;
 using Slic3r::GUI::Config::Index;
@@ -94,7 +94,7 @@ int copy_directory_fix(const fs::path &source, const fs::path &target, std::stri
     fs::create_directories(target, ec);
     if (ec) {
         error_message = ec.message();
-        BOOST_LOG_TRIVIAL(error) << "copy_directory_fix: Failed to create target directory: " + error_message;
+        BOOST_LOG_TRIVIAL(error) << "Failed to create target directory: " + error_message;
         return -2;
     }
     for (auto &dir_entry : fs::directory_iterator(source))
@@ -738,7 +738,7 @@ bool PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
                 has_new_update = true;
             }
             catch(std::exception &err) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": save to "<<changelog_file<<" got a generic exception, reason = " << err.what();
+                BOOST_LOG_TRIVIAL(error) << "save to "<<changelog_file<<" got a generic exception, reason = " << err.what();
             }
 
             resource_it.second = resource_update->second;
@@ -799,11 +799,11 @@ void PresetUpdater::priv::parse_ota_files(std::string ota_json, std::string& ver
             if (j.contains("description"))
                 description = j["description"];
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__
-                                    << boost::format(": ota_json %1%, version %2%, force %3%, description %4%") % PathSanitizer::sanitize(ota_json) % version % force_upgrade % description;
+            BOOST_LOG_TRIVIAL(info)
+                                    << boost::format("ota_json %1%, version %2%, force %3%, description %4%") % PathSanitizer::sanitize(ota_json) % version % force_upgrade % description;
         }
         catch(nlohmann::detail::parse_error &err) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << PathSanitizer::sanitize(ota_json) << " got a nlohmann::detail::parse_error, reason = " << err.what();
+            BOOST_LOG_TRIVIAL(error) << "parse " << PathSanitizer::sanitize(ota_json) << " got a nlohmann::detail::parse_error, reason = " << err.what();
         }
     }
     return;
@@ -999,17 +999,17 @@ bool PresetUpdater::priv::sync_config(std::string http_url, const VendorMap vend
                             if (boost::iequals(iter.key(), "version")) {
                                 cloud_version = *(Semver::parse(iter.value()));
                                 GUI::wxGetApp().app_config->set("app", "cloud_version",cloud_version.to_string());
-                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Bambu Studio has newer version and the version is: " << cloud_version.to_string();
+                                BOOST_LOG_TRIVIAL(info) << "Bambu Studio has newer version and the version is: " << cloud_version.to_string();
                             } else if (boost::iequals(iter.key(), "url")) {
                                 std::string url = iter.value();
                                 GUI::wxGetApp().app_config->set("app", "cloud_software_url", url);
-                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Bambu Studio has newer version and download url is: " << url;
+                                BOOST_LOG_TRIVIAL(info) << "Bambu Studio has newer version and download url is: " << url;
                             }
                         }
                     } else {
                         GUI::wxGetApp().app_config->erase("app", "cloud_version");
                         GUI::wxGetApp().app_config->erase("app", "cloud_software_url");
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Bambu Studio is newest version.";
+                        BOOST_LOG_TRIVIAL(info) << "Bambu Studio is newest version.";
                     }
                     GUI::wxGetApp().CallAfter([]() { GUI::wxGetApp().app_config->save(); });
                 }
@@ -1122,7 +1122,9 @@ void PresetUpdater::priv::sync_tooltip(std::string http_url, std::string languag
             if (fs::exists(vf)) Slic3r::load_string_file(vf, common_version);
             vf = cache_root / language / "version";
             if (fs::exists(vf)) Slic3r::load_string_file(vf, language_version);
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
         std::map<std::string, Resource> resources
         {
             {"slicer/tooltip/common", { common_version, "", "", "", false, (cache_root / "common").string() }},
@@ -1288,13 +1290,17 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
             Slic3r::load_string_file(config_folder / "version.txt", curr_version);
             boost::algorithm::trim(curr_version);
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     try {
         if (fs::exists(cache_folder / "version.txt")) {
             Slic3r::load_string_file(cache_folder / "version.txt", cached_version);
             boost::algorithm::trim(cached_version);
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     if (!cached_version.empty()) {
         bool   need_delete_cache = false;
         Semver current_semver = curr_version;
@@ -1335,7 +1341,9 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
             boost::algorithm::trim(cached_version);
             result = true;
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     // The notification below touches the GUI, which is unsafe once shutdown has
     // begun; bail out if cancellation was requested.
     if (cancel) return;
@@ -1370,7 +1378,7 @@ bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles,
         if (fs::exists(path_in_vendors)) {
             fs::remove(path_in_vendors, ec);
             if (ec) {
-                BOOST_LOG_TRIVIAL(error) << boost::format("install_bundles_rsrc: Failed to remove file %1%, error %2% ") % path_in_vendors.string() % ec.message();
+                BOOST_LOG_TRIVIAL(error) << boost::format("Failed to remove file %1%, error %2% ") % path_in_vendors.string() % ec.message();
                 return false;
             }
         }
@@ -1379,7 +1387,7 @@ bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles,
             auto print_rename_folder = this->vendor_path / (bundle + std::to_string(getTimestamp()));
             fs::rename(print_folder, print_rename_folder, ec);
             if (ec) {
-                BOOST_LOG_TRIVIAL(error) << boost::format("install_bundles_rsrc: Failed to remove directory %1%, error %2% ") % print_folder.string() % ec.message();
+                BOOST_LOG_TRIVIAL(error) << boost::format("Failed to remove directory %1%, error %2% ") % print_folder.string() % ec.message();
                 return false;
             }
             std::thread thread([print_rename_folder]() {
@@ -1466,13 +1474,17 @@ Updates PresetUpdater::priv::get_printer_config_updates(bool update) const
             Slic3r::load_string_file(resc_folder / "version.txt", resc_version);
             boost::algorithm::trim(resc_version);
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     try {
         if (fs::exists(config_folder / "version.txt")) {
             Slic3r::load_string_file(config_folder / "version.txt", curr_version);
             boost::algorithm::trim(curr_version);
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     if (!curr_version.empty()) {
         Semver curr_ver = curr_version;
@@ -1497,7 +1509,9 @@ Updates PresetUpdater::priv::get_printer_config_updates(bool update) const
             json                    j;
             ifs >> j;
             version.comment = j["description"];
-        } catch (...) {}
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
     }
     updates.updates.emplace_back(std::move(resc_folder), std::move(config_folder), version, "bbl", change_log, version.comment, false, true);
     return updates;
@@ -1603,7 +1617,7 @@ bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 
             ret = update.install();
             if (ret) {
-                BOOST_LOG_TRIVIAL(error) << boost::format("[BBL Updater]:perform_updates to %1% failed, ret=%2%")% update.target.string() % ret;
+                BOOST_LOG_TRIVIAL(error) << "[BBL Updater]:perform_updates to " << update.target.string() << " failed " << KV(log_key::ret, ret);
                 break;
             }
             //if (!update.is_directory) {

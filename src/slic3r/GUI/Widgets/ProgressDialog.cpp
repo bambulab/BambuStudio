@@ -15,6 +15,13 @@
 #include "ProgressDialog.hpp"
 #include "wx/evtloop.h"
 #include "Label.hpp"
+#include "ProgressBar.hpp"
+#include "StateColor.hpp"
+#include "libslic3r/Utils.hpp"
+
+#include <algorithm>
+
+#include <boost/format.hpp>
 
 // ----------------------------------------------------------------------------
 // constants
@@ -156,6 +163,9 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
     m_sizer_main->Add(m_top_line, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(24));
 
+    if (HasPDFlag(wxPD_SHOW_PERCENT))
+        return CreatePercentLayout(m_sizer_main, maximum, message);
+
     if (!m_adaptive) {
         m_simplebook = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, PROGRESSDIALOG_SIMPLEBOOK_SIZE, 0);
 
@@ -236,22 +246,7 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
     m_sizer_bottom->Add(0, 0, 1, wxEXPAND, 0);
 
     if (HasPDFlag(wxPD_CAN_ABORT)) {
-        m_button_cancel = new Button(this, _L("Cancel"));
-        m_button_cancel->SetTextColor(PROGRESSDIALOG_GREY_700);
-        m_button_cancel->SetMinSize(PROGRESSDIALOG_CANCEL_BUTTON_SIZE);
-        m_button_cancel->SetCornerRadius(PROGRESSDIALOG_CANCEL_BUTTON_SIZE.y / 2);
-        m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
-            if (m_state == Finished) {
-                event.Skip();
-            } else {
-                m_state = Canceled;
-                DisableAbort();
-                m_button_cancel->Enable(false);
-                DisableSkip();
-                OnCancel();
-                m_timeStop = wxGetCurrentTime();
-            }
-        });
+        m_button_cancel = CreateCancelButton();
         m_sizer_bottom->Add(m_button_cancel, 0, wxALL, 0);
     }
 
@@ -421,6 +416,153 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
     //    return true;
 }
 
+Button *ProgressDialog::CreateCancelButton()
+{
+    Button *button = new Button(this, _L("Cancel"));
+    button->SetTextColor(PROGRESSDIALOG_GREY_700);
+    button->SetMinSize(PROGRESSDIALOG_CANCEL_BUTTON_SIZE);
+    button->SetCornerRadius(PROGRESSDIALOG_CANCEL_BUTTON_SIZE.y / 2);
+    button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
+        if (m_state == Finished) {
+            event.Skip();
+        } else {
+            m_state = Canceled;
+            DisableAbort();
+            m_button_cancel->Enable(false);
+            DisableSkip();
+            OnCancel();
+            m_timeStop = wxGetCurrentTime();
+        }
+    });
+    return button;
+}
+
+bool ProgressDialog::CreatePercentLayout(wxSizer *sizer_main, int maximum, const wxString &message)
+{
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    const int content_width = PROGRESSDIALOG_PERCENT_CONTENT_WIDTH;
+
+    // Every label has a fixed size so that updating its text never triggers a relayout.
+    auto create_label = [this](long style, const wxFont &font, const wxColour &colour) {
+        wxStaticText *label = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, style | wxST_NO_AUTORESIZE);
+        label->SetFont(font);
+        label->SetForegroundColour(colour);
+        label->SetBackgroundColour(PROGRESSDIALOG_DEF_BK);
+        return label;
+    };
+    auto fix_size = [](wxStaticText *label, const wxSize &size) {
+        label->SetMinSize(size);
+        label->SetMaxSize(size);
+        label->SetSize(size);
+    };
+
+    m_subject = create_label(wxST_ELLIPSIZE_MIDDLE, ::Label::Body_13, PROGRESSDIALOG_GREY_700);
+    m_msg     = create_label(wxST_ELLIPSIZE_END, ::Label::Body_13, PROGRESSDIALOG_GREY_700);
+    const int msg_line_height = std::max(FromDIP(21), m_msg->GetTextExtent("Wg").y);
+    fix_size(m_subject, wxSize(content_width, msg_line_height));
+    fix_size(m_msg, wxSize(content_width, msg_line_height));
+    sizer_main->Add(m_subject, 0, wxLEFT | wxRIGHT, PROGRESSDIALOG_PERCENT_MARGIN);
+    sizer_main->Add(m_msg, 0, wxLEFT | wxRIGHT, PROGRESSDIALOG_PERCENT_MARGIN);
+    sizer_main->Add(0, 0, 0, wxTOP, FromDIP(16));
+
+    m_gauge_title   = create_label(wxST_ELLIPSIZE_END, ::Label::Body_13, PROGRESSDIALOG_GREY_900);
+    m_percent_value = create_label(wxALIGN_RIGHT, ::Label::Body_13, PROGRESSDIALOG_GREY_900);
+    m_percent_sign  = create_label(0, ::Label::Body_10, PROGRESSDIALOG_GREY_900);
+    const int title_height = m_gauge_title->GetTextExtent("Wg").y;
+    m_gauge_title->SetMinSize(wxSize(-1, title_height));
+    // Reserve the width of "100" so the number grows to the left and nothing else moves.
+    fix_size(m_percent_value, wxSize(m_percent_value->GetTextExtent("100").x, title_height));
+    m_percent_sign->SetLabel("%");
+    fix_size(m_percent_sign, m_percent_sign->GetTextExtent("%"));
+    m_percent_value->SetLabel("0");
+
+    wxBoxSizer *title_sizer = new wxBoxSizer(wxHORIZONTAL);
+    title_sizer->Add(m_gauge_title, 1, wxALIGN_BOTTOM, 0);
+    title_sizer->Add(m_percent_value, 0, wxALIGN_BOTTOM, 0);
+    title_sizer->Add(m_percent_sign, 0, wxALIGN_BOTTOM | wxLEFT, FromDIP(1));
+
+    wxBoxSizer *gauge_sizer = new wxBoxSizer(wxVERTICAL);
+    gauge_sizer->Add(title_sizer, 0, wxEXPAND, 0);
+    gauge_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
+
+#ifdef __WXMSW__
+    maximum /= m_factor;
+#endif
+    m_percent_bar = new ::ProgressBar(this, wxID_ANY, maximum);
+    m_percent_bar->SetBackgroundColour(PROGRESSDIALOG_DEF_BK);
+    m_percent_bar->m_progress_background_colour = StateColor::darkModeColorFor(ThemeColor::Grey300);
+    m_percent_bar->m_progress_colour            = StateColor::darkModeColorFor(ThemeColor::BrandGreen);
+    m_percent_bar->SetHeight(PROGRESSDIALOG_GAUGE_SIZE.y);
+    m_percent_bar->SetValue(0);
+    gauge_sizer->Add(m_percent_bar, 0, wxEXPAND, 0);
+
+    wxBoxSizer *bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
+    bottom_sizer->Add(gauge_sizer, 1, wxALIGN_BOTTOM, 0);
+    if (HasPDFlag(wxPD_CAN_ABORT)) {
+        m_button_cancel = CreateCancelButton();
+        m_button_cancel->SetFont(::Label::Body_12);
+        m_button_cancel->SetPaddingSize(wxSize(FromDIP(12), FromDIP(6)));
+        m_button_cancel->SetBorderColorNormal(PROGRESSDIALOG_GREY_700);
+        m_button_cancel->SetMinSize(PROGRESSDIALOG_PERCENT_CANCEL_BUTTON_SIZE);
+        m_button_cancel->SetCornerRadius(PROGRESSDIALOG_PERCENT_CANCEL_BUTTON_SIZE.y / 2);
+        bottom_sizer->Add(m_button_cancel, 0, wxALIGN_BOTTOM | wxLEFT, FromDIP(20));
+    }
+    sizer_main->Add(bottom_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, PROGRESSDIALOG_PERCENT_MARGIN);
+    sizer_main->Add(0, 0, 0, wxTOP, FromDIP(28));
+
+    wxGetApp().UpdateDlgDarkUI(this);
+
+    SetSizer(sizer_main);
+    Layout();
+    Fit();
+    Centre(wxCENTER_FRAME | wxBOTH);
+    DisableOtherWindows();
+    UpdatePercentMessage(message);
+
+    Show();
+    Enable();
+
+    Update();
+    return true;
+}
+
+void ProgressDialog::SetSubject(const wxString &subject)
+{
+    if (m_subject && subject != m_subject->GetLabelText())
+        m_subject->SetLabelText(subject);
+}
+
+void ProgressDialog::SetGaugeTitle(const wxString &title)
+{
+    if (m_gauge_title && title != m_gauge_title->GetLabelText())
+        m_gauge_title->SetLabelText(title);
+}
+
+void ProgressDialog::UpdatePercentMessage(const wxString &newmsg)
+{
+    if (newmsg.empty() || newmsg == m_last_msg)
+        return;
+    m_last_msg = newmsg;
+    m_msg->SetLabelText(newmsg);
+    Yield();
+}
+
+void ProgressDialog::UpdatePercentValue(int value)
+{
+    if (!m_percent_value || !m_percent_bar || m_maximum <= 0)
+        return;
+    const wxString text = wxString::Format("%d", std::clamp(value * 100 / m_maximum, 0, 100));
+    if (text == m_percent_value->GetLabel() && value == m_percent_bar->GetValue())
+        return;
+    m_percent_value->SetLabel(text);
+    m_percent_bar->SetValue(value);
+    // Paint both right away so the bar and the number never show different values.
+    m_percent_value->Update();
+    m_percent_bar->Update();
+}
+
 void ProgressDialog::UpdateTimeEstimates(int value, unsigned long &elapsedTime, unsigned long &estimatedTime, unsigned long &remainingTime)
 {
     unsigned long elapsed = wxGetCurrentTime() - m_timeStart;
@@ -518,7 +660,11 @@ bool ProgressDialog::Update(int value, const wxString &newmsg, bool *skip)
     if (m_gauge)
         m_gauge->SetValue(value);
 
-    UpdateMessage(newmsg);
+    if (ShowsPercent()) {
+        UpdatePercentValue(value);
+        UpdatePercentMessage(newmsg);
+    } else
+        UpdateMessage(newmsg);
 
     if ((m_elapsed || m_remaining || m_estimated) && (value != 0)) {
         unsigned long elapsed;
@@ -593,7 +739,10 @@ bool ProgressDialog::Pulse(const wxString &newmsg, bool *skip)
     // show a bit of progress
     if (m_gauge) m_gauge->Pulse();
 
-    UpdateMessage(newmsg);
+    if (ShowsPercent())
+        UpdatePercentMessage(newmsg);
+    else
+        UpdateMessage(newmsg);
 
     if (m_elapsed || m_remaining || m_estimated) {
         unsigned long elapsed = wxGetCurrentTime() - m_timeStart;
@@ -668,6 +817,8 @@ bool ProgressDialog::Show(bool show)
 
 int ProgressDialog::GetValue() const
 {
+    if (m_percent_bar)
+        return m_percent_bar->GetValue();
     wxCHECK_MSG(m_gauge, -1, "dialog should be fully created");
 
     return m_gauge->GetValue();
@@ -809,7 +960,7 @@ ProgressDialog::~ProgressDialog()
 
 void ProgressDialog::DoSetSize(int x, int y, int width, int height, int sizeFlags /*= wxSIZE_AUTO*/)
 {
-    if (m_button_cancel != nullptr) { m_button_cancel->SetMinSize(PROGRESSDIALOG_CANCEL_BUTTON_SIZE); }
+    if (m_button_cancel != nullptr) { m_button_cancel->SetMinSize(ShowsPercent() ? PROGRESSDIALOG_PERCENT_CANCEL_BUTTON_SIZE : PROGRESSDIALOG_CANCEL_BUTTON_SIZE); }
 
 #ifdef __WXMSW__
     //if (m_block_left != nullptr && m_block_right != nullptr) {

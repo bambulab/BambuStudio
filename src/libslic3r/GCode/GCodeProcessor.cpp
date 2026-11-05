@@ -5,7 +5,6 @@
 #include "libslic3r/format.hpp"
 #include "GCodeProcessor.hpp"
 
-#include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -24,6 +23,7 @@
 #endif
 
 #include <chrono>
+#include "libslic3r/Log.hpp"
 
 static const float DEFAULT_TOOLPATH_WIDTH = 0.4f;
 static const float DEFAULT_TOOLPATH_HEIGHT = 0.2f;
@@ -79,7 +79,9 @@ const std::vector<std::string> GCodeProcessor::CustomTags = {
     " VFLUSH_END",
     " SKIPPABLE_START",
     " SKIPPABLE_END",
-    " SKIPTYPE: "
+    " SKIPTYPE: ",
+    " FilamentChangeGCodeStart",
+    " FilamentChangeGCodeEnd"
 };
 
 
@@ -156,7 +158,9 @@ static int get_object_label_id(const std::string_view comment_1)
     try {
         id = stoi(num_str);
     }
-    catch (const std::exception &) {}
+    catch (const std::exception &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return id;
 }
 
@@ -168,7 +172,9 @@ static float get_z_height(const std::string_view comment_1)
     float print_z = 0.0f;
     try {
         print_z = stof(num_str);
-    } catch (const std::exception &) {}
+    } catch (const std::exception &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return print_z;
 }
 
@@ -570,7 +576,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nCannot open file for reading.\n"));
 
     std::string filename_safe = PathSanitizer::sanitize(filename);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  before process %1%") % filename_safe;
+    BOOST_LOG_TRIVIAL(info) << boost::format("before process %1%") % filename_safe;
     // temporary file to contain modified gcode
     std::string filename_in = filename;
     std::string filename_out = filename + ".postprocess";
@@ -772,6 +778,13 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             else if (line == custom_tags(CustomETags::SKIPPABLE_END)){
                 skippable_blocks.back().second = line_id;
             }
+            else if (context.handle_hotend_as_extruder && line == custom_tags(CustomETags::FilamentChangeGCodeStart)) {
+                skippable_blocks.emplace_back(0, 0);
+                skippable_blocks.back().first = line_id;
+            }
+            else if (context.handle_hotend_as_extruder && line == custom_tags(CustomETags::FilamentChangeGCodeEnd) && !skippable_blocks.empty()) {
+                skippable_blocks.back().second = line_id;
+            }
         }
 
         if (!ret.empty())
@@ -947,16 +960,23 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         std::regex re(R"(OF(\d+)\s+NF(\d+)\s+ON(\d+)\s+NN(\d+))");
         std::smatch match;
 
-        if (!std::regex_search(line, match, re))
-            return false;
+        if (!std::regex_search(line, match, re)) return false;
 
-        old_filament = std::stoi(match[1]);
+        old_filament  = std::stoi(match[1]);
         next_filament = std::stoi(match[2]);
         old_nozzle_id = std::stoi(match[3]);
         new_nozzle_id = std::stoi(match[4]);
 
         auto nozzle_info = context.nozzle_group_result.get_nozzle_from_id(new_nozzle_id);
-        extruder_id = nozzle_info ? nozzle_info->extruder_id : -1;
+
+        // 如果将hotend作为extruder，那么对提前升降温来说，extruder_id就是nozzle_id(group_id)
+        if(context.handle_hotend_as_extruder){
+            extruder_id = nozzle_info ? nozzle_info->group_id : -1;
+        }
+        else{
+            extruder_id = nozzle_info ? nozzle_info->extruder_id : -1;
+        }
+
         return true;
     };
     auto handle_toolchange_wipe_line = [&](const std::string &line, bool& is_contact, bool& is_first_layer) -> bool {
@@ -1156,17 +1176,21 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     // After traversing the G-code, the first and last extruder blocks still have uncompleted initialization steps
     if (!extruder_blocks.empty()) {
         int first_filament = 0;
-        int last_filament = 0;
+        int last_filament  = 0;
 
         if (!filament_blocks.empty()) {
             first_filament = filament_blocks.front().filament_id;
-            last_filament = filament_blocks.back().filament_id;
+            last_filament  = filament_blocks.back().filament_id;
         }
-        unsigned int first_layer_id = 0;
+
         {
             int extruder_id = -1;
             auto nozzle_info = context.nozzle_group_result.get_first_nozzle_for_filament(first_filament);
-            if (nozzle_info) extruder_id = nozzle_info->extruder_id;
+
+            if (context.handle_hotend_as_extruder)
+                extruder_id = nozzle_info ? nozzle_info->group_id : -1;
+            else
+                extruder_id = nozzle_info ? nozzle_info->extruder_id : -1;
             int start_nozzle_id = nozzle_info ? nozzle_info->group_id : -1;
             extruder_blocks.front().initialize_step_1(extruder_id, machine_start_gcode_end_line_id, first_filament, start_nozzle_id);
         }
@@ -1192,25 +1216,24 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         auto pre_cooling_injector = std::make_unique<PreCoolingInjector>(
             moves,
             context.filament_types,
+            context.filament_pre_heating_enabled,
             context.nozzle_group_result,
-            context.filament_nozzle_temp,
-            context.filament_nozzle_temp,
             context.physical_extruder_map,
             valid_machine_id,
             context.inject_time_threshold,
             context.handle_hotend_as_extruder,
             context.has_filament_switcher,
-            context.pre_cooling_temp,
             context.cooling_rate,
+            context.cooling_rate_on_rack,
             context.heating_rate,
             skippable_blocks,
             context.extruder_max_nozzle_count,
-            context.filament_preheat_temperature_delta,
-            context.filament_max_temperature_drop_when_ec,
+            context.filament_min_temperature_when_ec,
             machine_start_gcode_end_line_id,
             machine_end_gcode_start_line_id,
             context.extruder_types,
-            context.nozzle_diameter
+            context.nozzle_diameter,
+            context.filament_variant_rows
         );
 
         pre_cooling_injector->build_extruder_free_blocks(filament_blocks, extruder_blocks);
@@ -1267,15 +1290,15 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     in.close();
     out.close();
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  after process %1%") % filename_safe;
+    BOOST_LOG_TRIVIAL(info) << boost::format("after process %1%") % filename_safe;
 
     if (boost::nowide::remove(filename_in.c_str()) != 0) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  Failed to remove the temporary G-code file %1%") % filename_in_safe;
+        BOOST_LOG_TRIVIAL(info) << boost::format("Failed to remove the temporary G-code file %1%") % filename_in_safe;
         throw Slic3r::RuntimeError(std::string("Failed to remove the temporary G-code file ") + filename_in_safe + '\n' +
             "Is " + filename_in_safe + " locked?" + '\n');
     }
     if (rename_file(filename_out, filename)) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  Failed to rename the output G-code file from %1% to %2%") % filename_out_safe % filename_safe;
+        BOOST_LOG_TRIVIAL(info) << boost::format("Failed to rename the output G-code file from %1% to %2%") % filename_out_safe % filename_safe;
         throw Slic3r::RuntimeError(std::string("Failed to rename the output G-code file from ") + filename_out_safe + " to " + filename_safe + '\n' +
             "Is " + filename_out_safe + " locked?" + '\n');
     }
@@ -1539,6 +1562,7 @@ void GCodeProcessorResult::reset() {
     optimal_assignment.clear();
     pause_printing.clear();
     used_mixed_filaments.clear();
+    directly_used_filaments.clear();
 
     //BBS: add mutex for protection of gcode result
     unlock();
@@ -1582,11 +1606,12 @@ void GCodeProcessorResult::reset() {
     skippable_part_time.clear();
     warnings.clear();
     used_mixed_filaments.clear();
+    directly_used_filaments.clear();
 
     //BBS: add mutex for protection of gcode result
     unlock();
     //BBS: add logs
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: this=%2% reset finished")%__LINE__%this;
+    BOOST_LOG_TRIVIAL(info) << boost::format("this=%1% reset finished")%this;
 }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
@@ -1951,20 +1976,30 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     for (size_t idx = 0; idx < config.nozzle_volume.size(); ++idx)
         m_nozzle_volume[idx] = config.nozzle_volume.values[idx];
 
-    m_filament_nozzle_temp.resize(filament_count);
+    m_filament_variant_rows.nozzle_temp               = config.nozzle_temperature.values;
+    m_filament_variant_rows.pre_cooling_temp          = config.filament_pre_cooling_temperature.values;
+    m_filament_variant_rows.preheat_temperature_delta = config.filament_preheat_temperature_delta.values;
+    m_filament_variant_rows.extruder_variant          = config.filament_extruder_variant.values;
+    m_filament_variant_rows.self_index                = config.filament_self_index.values;
+    m_filament_variant_rows.default_row.resize(filament_count);
     for (size_t idx = 0; idx < filament_count; ++idx)
-        m_filament_nozzle_temp[idx] = config.nozzle_temperature.get_at(idx);
+        m_filament_variant_rows.default_row[idx] = int(get_filament_config_idx(config, unsigned(idx)));
 
     m_filament_types.resize(filament_count);
     for (size_t idx = 0; idx < filament_count; ++idx)
         m_filament_types[idx] = config.filament_type.get_at(idx);
 
+    m_filament_pre_heating_enabled.resize(filament_count);
+    for (size_t idx = 0; idx < filament_count; ++idx)
+        m_filament_pre_heating_enabled[idx] = config.filament_pre_heating_enabled.get_at(idx) ? 1 : 0;
+
     m_nozzle_diameter = config.nozzle_diameter.values;
     m_hotend_cooling_rate = config.hotend_cooling_rate.values;
+    m_hotend_cooling_rate_on_rack = config.hotend_cooling_rate_on_rack.values;
     m_hotend_heating_rate = config.hotend_heating_rate.values;
-    m_filament_pre_cooling_temp = config.filament_pre_cooling_temperature.values;
-    m_filament_preheat_temperature_delta = config.filament_preheat_temperature_delta.values;
+    m_min_temperature_when_ec = config.min_temperature_when_ec.values;
     m_enable_pre_heating = config.enable_pre_heating;
+    m_handle_hotend_as_extruder = config.handle_hotend_as_extruder;
     m_has_filament_switcher = config.has_filament_switcher;
     m_physical_extruder_map = config.physical_extruder_map.values;
     m_extruder_max_nozzle_count = config.extruder_max_nozzle_count.values;
@@ -2081,17 +2116,19 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     }
 
     const ConfigOptionIntsNullable* nozzle_temperature = config.option<ConfigOptionIntsNullable>("nozzle_temperature");
-    if (nozzle_temperature != nullptr) {
-        m_filament_nozzle_temp.resize(nozzle_temperature->size(), 0);
-        for (size_t idx = 0; idx < nozzle_temperature->size(); ++idx)
-            m_filament_nozzle_temp[idx] = nozzle_temperature->get_at(idx);
-    }
 
     const ConfigOptionStrings* filament_type = config.option<ConfigOptionStrings>("filament_type");
     if (filament_type != nullptr) {
         m_filament_types.resize(filament_type->size());
         for (size_t idx = 0; idx < filament_type->size(); ++idx)
             m_filament_types[idx] = filament_type->get_at(idx);
+    }
+
+    const ConfigOptionBools* filament_pre_heating_enabled = config.option<ConfigOptionBools>("filament_pre_heating_enabled");
+    if (filament_pre_heating_enabled != nullptr) {
+        m_filament_pre_heating_enabled.resize(filament_pre_heating_enabled->size());
+        for (size_t idx = 0; idx < filament_pre_heating_enabled->size(); ++idx)
+            m_filament_pre_heating_enabled[idx] = filament_pre_heating_enabled->get_at(idx) ? 1 : 0;
     }
 
     const ConfigOptionFloatsNullable* nozzle_diameter = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
@@ -2104,19 +2141,49 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         m_hotend_cooling_rate = hotend_cooling_rate->values;
     }
 
+    const ConfigOptionFloatsNullable* hotend_cooling_rate_on_rack = config.option<ConfigOptionFloatsNullable>("hotend_cooling_rate_on_rack");
+    if (hotend_cooling_rate_on_rack != nullptr) {
+        m_hotend_cooling_rate_on_rack = hotend_cooling_rate_on_rack->values;
+    }
+
     const ConfigOptionFloatsNullable* hotend_heating_rate = config.option<ConfigOptionFloatsNullable>("hotend_heating_rate");
     if (hotend_heating_rate != nullptr) {
         m_hotend_heating_rate = hotend_heating_rate->values;
     }
 
-    const ConfigOptionIntsNullable* filament_pre_cooling_temp = config.option<ConfigOptionIntsNullable>("filament_pre_cooling_temperature");
-    if (filament_pre_cooling_temp != nullptr) {
-        m_filament_pre_cooling_temp = filament_pre_cooling_temp->values;
+    const ConfigOptionFloatsNullable* min_temperature_when_ec = config.option<ConfigOptionFloatsNullable>("min_temperature_when_ec");
+    if (min_temperature_when_ec != nullptr) {
+        m_min_temperature_when_ec = min_temperature_when_ec->values;
     }
 
+    const ConfigOptionIntsNullable* filament_pre_cooling_temp = config.option<ConfigOptionIntsNullable>("filament_pre_cooling_temperature");
     const ConfigOptionFloatsNullable* filament_preheat_temperature_delta = config.option<ConfigOptionFloatsNullable>("filament_preheat_temperature_delta");
-    if (filament_preheat_temperature_delta != nullptr) {
-        m_filament_preheat_temperature_delta = filament_preheat_temperature_delta->values;
+
+    m_filament_variant_rows = FilamentVariantRows();
+    if (nozzle_temperature != nullptr)
+        m_filament_variant_rows.nozzle_temp = nozzle_temperature->values;
+    if (filament_pre_cooling_temp != nullptr)
+        m_filament_variant_rows.pre_cooling_temp = filament_pre_cooling_temp->values;
+    if (filament_preheat_temperature_delta != nullptr)
+        m_filament_variant_rows.preheat_temperature_delta = filament_preheat_temperature_delta->values;
+    if (const ConfigOptionStrings* filament_extruder_variant = config.option<ConfigOptionStrings>("filament_extruder_variant"))
+        m_filament_variant_rows.extruder_variant = filament_extruder_variant->values;
+    if (const ConfigOptionInts* filament_self_index = config.option<ConfigOptionInts>("filament_self_index"))
+        m_filament_variant_rows.self_index = filament_self_index->values;
+    // Without the static filament map only the filament's first row is known; unlabeled arrays are one row per filament.
+    if (!m_filament_variant_rows.self_index.empty()) {
+        for (size_t row = 0; row < m_filament_variant_rows.self_index.size(); ++row) {
+            const int filament_id = m_filament_variant_rows.self_index[row] - 1;
+            if (filament_id < 0)
+                continue;
+            if (filament_id >= int(m_filament_variant_rows.default_row.size()))
+                m_filament_variant_rows.default_row.resize(filament_id + 1, -1);
+            if (m_filament_variant_rows.default_row[filament_id] < 0)
+                m_filament_variant_rows.default_row[filament_id] = int(row);
+        }
+    } else {
+        for (size_t row = 0; row < m_filament_variant_rows.nozzle_temp.size(); ++row)
+            m_filament_variant_rows.default_row.push_back(int(row));
     }
 
     const ConfigOptionBool* enable_pre_heating = config.option<ConfigOptionBool>("enable_pre_heating");
@@ -2534,11 +2601,13 @@ void GCodeProcessor::reset()
     }
 
     m_physical_extruder_map.clear();
-    m_filament_nozzle_temp.clear();
+    m_filament_variant_rows = FilamentVariantRows();
     m_nozzle_diameter.clear();
     m_enable_pre_heating = false;
     m_has_filament_switcher = false;
     m_hotend_cooling_rate = m_hotend_heating_rate = { 2.f };
+    m_hotend_cooling_rate_on_rack = { 2.f };
+    m_min_temperature_when_ec = { -1.f };
 
     m_thermal_index    = ThermalIndex(0.0, 0.0, 0.0);
     m_highest_bed_temp = 0;
@@ -2610,7 +2679,10 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
     // pre-processing
     // parse the gcode file to detect its producer
     {
-        m_parser.parse_file_raw(filename, [this](GCodeReader& reader, const char *begin, const char *end) {
+        const std::string &raw_layer_change_tag = reserved_tag(ETags::Layer_Change);
+        const std::string  layer_change_tag     = raw_layer_change_tag.substr(std::min(raw_layer_change_tag.find_first_not_of(' '), raw_layer_change_tag.size()));
+        bool has_layer_change_tag = false;
+        m_parser.parse_file_raw(filename, [this, &layer_change_tag, &has_layer_change_tag](GCodeReader& reader, const char *begin, const char *end) {
             begin = skip_whitespaces(begin, end);
             if (begin != end && *begin == ';') {
                 // Comment.
@@ -2618,7 +2690,10 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
                 end   = remove_eols(begin, end);
                 if (begin != end) {
                     if (m_producer == EProducer::Unknown) {
-                        if (detect_producer(std::string_view(begin, end - begin))) {
+                        const std::string_view comment(begin, end - begin);
+                        if (comment == layer_change_tag)
+                            has_layer_change_tag = true;
+                        if (detect_producer(comment)) {
                             m_parser.quit_parsing();
                         }
                     } else if (std::string(begin, end).find("CONFIG_BLOCK_END") != std::string::npos) {
@@ -2651,6 +2726,17 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
             apply_config_simplify3d(filename);
         else if (m_producer == EProducer::SuperSlicer)
             apply_config_superslicer(filename);
+
+        // G-codes from unknown producers never reach apply_config(), so the default nozzle group must be built here.
+        ensure_nozzle_group_result(static_cast<int>(m_result.filaments_count));
+        // The default group is a parsing fallback only; it must not be exposed to consumers such as send-to-printer nozzle mapping.
+        if (m_producer == EProducer::Unknown)
+            m_result.nozzle_group_result.reset();
+
+        // Non-planar G-codes change Z inside a layer; splitting layers on every Z change would create one layer per move.
+        // Trust the explicit layer change tags instead when the producer is unknown.
+        if (m_producer == EProducer::Unknown && has_layer_change_tag)
+            m_detect_layer_based_on_tag = true;
     }
 
     // process gcode
@@ -2750,20 +2836,21 @@ void GCodeProcessor::finalize(bool post_process)
             m_filament_lists,
             result,
             m_filament_types,
-            m_filament_nozzle_temp,
+            m_filament_pre_heating_enabled,
             m_physical_extruder_map,
             m_layer_id,
             m_hotend_cooling_rate,
+            m_hotend_cooling_rate_on_rack,
             m_hotend_heating_rate,
-            m_filament_pre_cooling_temp,
+            m_min_temperature_when_ec,
             inject_time_threshold,
             m_enable_pre_heating,
             m_handle_hotend_as_extruder,
             m_has_filament_switcher,
             m_extruder_max_nozzle_count,
-            m_filament_preheat_temperature_delta,
             m_result.extruder_types,
-            m_nozzle_diameter
+            m_nozzle_diameter,
+            m_filament_variant_rows
         );
         m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, context);
     }
@@ -3078,6 +3165,7 @@ template<typename T>
                 out = string_to_double_decimal_point(str, &read);
             return str.size() == read;
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             return false;
         }
     }
@@ -3330,7 +3418,20 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
 
     // ; Z_HEIGHT:
     if (boost::starts_with(comment, " Z_HEIGHT:")) {
-        m_print_z = get_z_height(comment);
+        const float print_z = get_z_height(comment);
+        if (m_layer_id == 1 && print_z > 0.f && std::abs(print_z - m_first_layer_height) > EPSILON) {
+            // Multi-diameter merging may make the actual first print Z lower than the configured initial
+            // layer height. Startup paths were provisionally flattened to the configured value, so move
+            // them onto the first Z tag before the first model path is processed.
+            m_first_layer_height = print_z;
+            for (GCodeProcessorResult::MoveVertex &move : m_result.moves) {
+                move.position.z()            = print_z;
+                move.arc_center_position.z() = print_z;
+                for (Vec3f &point : move.interpolation_points)
+                    point.z() = print_z;
+            }
+        }
+        m_print_z = print_z;
         return;
     }
 
@@ -3404,7 +3505,9 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
         return;
     }
 
-    if (!producers_enabled || m_producer == EProducer::BambuStudio) {
+    // Unknown producers may still emit BambuStudio-style height/width tags (e.g. non-planar generators); without them
+    // the height falls back to the Z delta between consecutive extrusions, which is near zero on non-planar paths.
+    if (!producers_enabled || m_producer == EProducer::BambuStudio || m_producer == EProducer::Unknown) {
         // height tag
         if (boost::starts_with(comment, reserved_tag(ETags::Height))) {
             if (!parse_number(comment.substr(reserved_tag(ETags::Height).size()), m_forced_height))
@@ -5350,6 +5453,14 @@ void GCodeProcessor::process_M104(const GCodeReader::GCodeLine& line)
     if (!line.has_value('S', new_temp))
         return;
 
+    float filament_id_temp;
+    if (line.has_value('I', filament_id_temp)) {
+        int target_filament = std::round(filament_id_temp);
+        if (target_filament >= 0 && static_cast<size_t>(target_filament) < m_extruder_temps.size())
+            m_extruder_temps[target_filament] = new_temp;
+        return;
+    }
+
     float phy_extruder_id_temp;
     if (line.has_value('T', phy_extruder_id_temp)) {
         // Map physical extruder id to logical extruder index
@@ -5384,8 +5495,10 @@ void GCodeProcessor::process_M106(const GCodeReader::GCodeLine& line)
             m_fan_speed = (100.0f / 255.0f) * new_fan_speed;
         else
             m_fan_speed = 100.0f;
-    } else if (line.has('P') && line.p() == 2.0f) {
-        // M106 P2: additional/auxiliary cooling fan (side fan)
+    } else if (line.has('P') && (line.p() == float(AUX_FAN_STANDARD_GCODE_INDEX) ||
+                                 line.p() == float(AUX_FAN_OPTIONAL_GCODE_INDEX))) {
+        // Auxiliary/side cooling fan. The preview only has a single channel for them,
+        // so with two independently driven fans the last one written wins.
         float new_fan_speed;
         if (line.has_value('S', new_fan_speed))
             m_additional_fan_speed = (100.0f / 255.0f) * new_fan_speed;
@@ -5396,10 +5509,11 @@ void GCodeProcessor::process_M106(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_M107(const GCodeReader::GCodeLine& line)
 {
-    // M107: disable fan; without P or P1 = part fan, P2 = additional/side fan
+    // M107: disable fan; without P or P1 = part fan, P2 / P10 = auxiliary side fans
     if (!line.has('P') || (line.has('P') && line.p() == 1.0f))
         m_fan_speed = 0.0f;
-    else if (line.has('P') && line.p() == 2.0f)
+    else if (line.has('P') && (line.p() == float(AUX_FAN_STANDARD_GCODE_INDEX) ||
+                               line.p() == float(AUX_FAN_OPTIONAL_GCODE_INDEX)))
         m_additional_fan_speed = 0.0f;
 }
 
@@ -5604,7 +5718,9 @@ void GCodeProcessor::process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& li
         {
             _jerk = std::stof(matches[1]);
         }
-        catch (...) {}
+        catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
         for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
             set_option_value(m_time_processor.machine_limits.machine_max_jerk_x, i, _jerk);
             set_option_value(m_time_processor.machine_limits.machine_max_jerk_y, i, _jerk);
@@ -5618,7 +5734,9 @@ void GCodeProcessor::process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& li
         {
             _accl = std::stof(matches[1]);
         }
-        catch (...) {}
+        catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
         for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
             set_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), _accl);
             set_travel_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), _accl);
@@ -5632,7 +5750,9 @@ void GCodeProcessor::process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& li
         {
             _speed = std::stof(matches[1]);
         }
-        catch (...) {}
+        catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
         for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
             set_option_value(m_time_processor.machine_limits.machine_max_speed_x, i, _speed);
             set_option_value(m_time_processor.machine_limits.machine_max_speed_y, i, _speed);
@@ -5810,7 +5930,9 @@ void GCodeProcessor::process_M1020(const GCodeReader::GCodeLine &line)
         if (!filament_id_str.empty()) {
              try {
                 eid = std::stoi(filament_id_str);
-             } catch(...) {}
+             } catch(...) {
+                 BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+             }
         }
     }
 
@@ -5822,8 +5944,10 @@ void GCodeProcessor::process_M1020(const GCodeReader::GCodeLine &line)
             BOOST_LOG_TRIVIAL(error) << "Invalid M1020 command (" << line.raw() << ").";
     }
     else {
-        if (eid >= m_result.filaments_count)
+        if (eid >= m_result.filaments_count) {
             BOOST_LOG_TRIVIAL(error) << "Invalid M1020 command (" << line.raw() << ").";
+            return;
+        }
 
         int nozzle_id = -1;
         if (line.has_value('H', val)) {
@@ -5849,8 +5973,10 @@ void GCodeProcessor::process_T(const std::string_view command, int nozzle_id)
                 BOOST_LOG_TRIVIAL(error) << "Invalid T command (" << command << ").";
         }
         else {
-            if (eid >= m_result.filaments_count)
+            if (eid >= m_result.filaments_count) {
                 BOOST_LOG_TRIVIAL(error) << "Invalid T command (" << command << ").";
+                return;
+            }
             process_filament_change(eid, nozzle_id);
         }
     }
@@ -5949,7 +6075,6 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
                 return;
             target_nozzle_info   = used_nozzles.front();
         }
-
         if(!target_nozzle_info)
             return;
 
@@ -5963,9 +6088,11 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
         int old_filament_in_nozzle = m_nozzle_status_recorder.get_filament_in_nozzle(new_nozzle_id_in_extruder);
         int old_filament_in_extruder = m_nozzle_status_recorder.get_filament_in_nozzle(old_nozzle_id_in_extruder);
 
-        bool extruder_change = new_extruder_id != old_extruder_id;
-        bool nozzle_in_extruder_change = new_nozzle_id_in_extruder != old_nozzle_id_in_extruder;
+        const bool nozzle_switch_on_target_extruder = new_nozzle_id_in_extruder != old_nozzle_id_in_extruder;
+        bool nozzle_in_extruder_change = !m_handle_hotend_as_extruder && nozzle_switch_on_target_extruder;
         bool filament_in_nozzle_change = new_filament_id != old_filament_in_nozzle;
+        bool extruder_change =
+            (new_extruder_id != old_extruder_id) || (m_handle_hotend_as_extruder && nozzle_switch_on_target_extruder);
 
         m_result.lock();
         if (extruder_change && old_extruder_id != -1) {
@@ -6328,47 +6455,53 @@ void GCodeProcessor::update_estimated_times_stats()
 
 void GCodeProcessor::update_preview_layers_times_stats()
 {
-    // Tag-based layers (spiral vase / scarf) use a different partition; leave them to layers_times.
+    // Tag-based layers (spiral vase / scarf) replace the renderer's layer list, so the per-run
+    // partition below would not line up with the slider ticks; leave those to layers_times.
     if (m_detect_layer_based_on_tag)
         return;
 
-    // Build a per-slider-layer time table keyed by unique extrusion Z (matching IMSlider::m_layers_values),
-    // keeping the largest cumulative time at each Z so a Z revisited by a sublayer maps to its finish.
     for (size_t mode_idx = 0; mode_idx < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++mode_idx) {
         PrintEstimatedStatistics::Mode& data = m_result.print_statistics.modes[mode_idx];
         if (data.layers_times.empty())
             continue;
 
-        std::map<float, float> end_time_by_z; // unique extrusion Z -> cumulative time when that Z is done
-        // Z only changes at layer/sublayer boundaries, so cache the slot and re-query the map only on change.
-        // std::map nodes are stable across insertions, so the cached pointer stays valid.
-        float last_z = std::numeric_limits<float>::quiet_NaN();
-        float* slot = nullptr;
+        // Slice time by the same consecutive extrusion-Z runs the renderer builds the slider ticks from
+        // (a new run starts whenever the extrusion Z changes by more than EPSILON). Summing each move's
+        // own duration into the current run keeps everything in print order, so a height that is printed
+        // again later - mixed-color sublayers, or the same Z reprinted by another object in ByObject -
+        // gets its own run/time instead of being merged with the earlier visit. The result is one time
+        // per slider tick (aligned with IMSlider::m_values), always non-negative and summing to the total.
+        std::vector<float> run_times;
+        float prev_time = 0.0f;   // previous move's cumulative time (move.time is a prefix sum)
+        float last_z    = std::numeric_limits<float>::quiet_NaN();
+        float pending   = 0.0f;   // pre-print time before the first extrusion run
         for (const GCodeProcessorResult::MoveVertex& move : m_result.moves) {
-            if (move.type != EMoveType::Extrude)
-                continue;
-            if (move.position.z() != last_z) {
+            const float current_time = std::max(prev_time, move.time[mode_idx]);
+            const float dt = current_time - prev_time;
+            prev_time = current_time;
+            if (move.type == EMoveType::Extrude && (run_times.empty() || std::abs(move.position.z() - last_z) > EPSILON)) {
+                run_times.emplace_back(0.0f);
                 last_z = move.position.z();
-                slot = &end_time_by_z[last_z];
             }
-            *slot = std::max(*slot, move.time[mode_idx]);
+            if (run_times.empty())
+                pending += dt; // before the first extrusion; folded into the first run below
+            else
+                run_times.back() += dt;
         }
 
-        // Only mixed-color sublayers make the unique-Z partition finer than the logical layers.
-        // When the counts match, layers_times already fits the slider, so leave preview empty.
-        if (end_time_by_z.size() <= data.layers_times.size())
+        // Only mixed-color sublayers make the runs finer than the logical layers; otherwise layers_times
+        // already lines up with the slider, so leave preview empty and let the slider reuse it.
+        if (run_times.size() <= data.layers_times.size())
             continue;
 
-        std::vector<float> layer_times;
-        layer_times.reserve(end_time_by_z.size());
-        for (const auto& z_time : end_time_by_z)
-            layer_times.emplace_back(z_time.second); // cumulative end-times, already sorted by Z ascending
-
-        // Convert cumulative end-times into per-layer durations (iterate backwards for in-place diff).
-        layer_times.back() = std::max(layer_times.back(), data.time);
-        for (size_t i = layer_times.size(); i-- > 1; )
-            layer_times[i] = std::max(0.0f, layer_times[i] - layer_times[i - 1]);
-        data.preview_layers_times = std::move(layer_times);
+        // Fold the pre-print time (and any rounding) into the first run so the prefix sum the slider
+        // builds from these durations ends exactly at the estimated total time.
+        run_times.front() += pending;
+        float sum = 0.0f;
+        for (float t : run_times)
+            sum += t;
+        run_times.front() += std::max(0.0f, data.time - sum);
+        data.preview_layers_times = std::move(run_times);
     }
 }
 
@@ -6475,15 +6608,33 @@ int GCodeProcessor::get_machine_config_idx(int filament_idx) const
         m_result.printer_extruder_variant, m_result.printer_extruder_id);
 }
 
+int GCodeProcessor::PreCoolingInjector::filament_variant_row(int filament_id, int nozzle_id) const
+{
+    const auto &rows = filament_variant_rows;
+    if (filament_id < 0 || filament_id >= int(rows.default_row.size()))
+        return -1;
+    if (nozzle_id >= 0 && !rows.extruder_variant.empty() && rows.extruder_variant.size() == rows.self_index.size()) {
+        auto nozzle = nozzle_group_result.get_nozzle_from_id(nozzle_id);
+        if (nozzle && nozzle->extruder_id >= 0 && nozzle->extruder_id < int(extruder_types.size())) {
+            const int row = get_config_index_base(nozzle->volume_type, extruder_types[nozzle->extruder_id], filament_id + 1, rows.extruder_variant, rows.self_index);
+            // get_config_index_base() returns 0 when the filament owns no row at all.
+            if (row >= 0 && row < int(rows.self_index.size()) && rows.self_index[row] == filament_id + 1)
+                return row;
+        }
+    }
+    return rows.default_row[filament_id];
+}
+
 void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimeProcessor::InsertedLinesMap& inserted_operation_lines)
 {
     bool is_multiple_nozzle = std::any_of(extruder_max_nozzle_count.begin(), extruder_max_nozzle_count.end(), [](auto& elem) {return elem > 1; });
-    auto get_nozzle_temp = [this, is_multiple_nozzle](int filament_id, bool is_first_layer, bool from_or_to, bool consider_preheat_temperature_delta) {
-        if (filament_id == -1)
-            return from_or_to ? 140 : 0; // default temp
-        double temp = (is_first_layer ? filament_nozzle_temps_initial_layer[filament_id] : filament_nozzle_temps[filament_id]);
+    auto get_nozzle_temp = [this, is_multiple_nozzle](int filament_id, int nozzle_id, bool from_or_to, bool consider_preheat_temperature_delta) {
+        const int row = filament_variant_row(filament_id, nozzle_id);
+        if (row < 0)
+            return from_or_to ? 140 : 0; // default temp for unknown filament
+        double temp = FilamentVariantRows::value_at(filament_variant_rows.nozzle_temp, row);
         if (consider_preheat_temperature_delta)
-            return (int) (temp - filament_preheat_temperature_delta[filament_id]);
+            return (int) (temp - FilamentVariantRows::value_at(filament_variant_rows.preheat_temperature_delta, row));
         else
             return (int)(temp);
         };
@@ -6496,23 +6647,40 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
     float first_nozzle_dia = nozzle_diameter.empty() ? 0.4 : nozzle_diameter.front();
     float switcher_temp_offset = (first_nozzle_dia >= 0.6 - EPSILON) ? 40.f : 20.f;
 
+    // Pre-heating targets the incoming filament, so this is keyed on next_filament_id.
+    // Scoped to single-extruder multi-nozzle machines, matching the other PVA toolchange
+    // tweaks in Extruder::retract_length_toolchange() and ToolChangeStructure.
+    auto wants_pre_heating = [&](int filament_id) -> bool {
+        if (!handle_hotend_as_extruder)
+            return true;
+        if (filament_id < 0 || filament_id >= (int)filament_pre_heating_enabled.size())
+            return true;
+        return filament_pre_heating_enabled[filament_id] != 0;
+        };
+
     std::map<int, std::vector<ExtruderFreeBlock>> per_extruder_free_blocks;
 
     for (auto& block : m_extruder_free_blocks)
-        per_extruder_free_blocks[block.extruder_id].emplace_back(block);
+        per_extruder_free_blocks[block.idle_chain_key].emplace_back(block);
 
     for (auto& elem : per_extruder_free_blocks) {
         int extruder_id = elem.first;
         auto& extruder_free_blcoks = elem.second;
         for (auto iter = extruder_free_blcoks.begin(); iter != extruder_free_blcoks.end(); ++iter) {
             bool is_end = std::next(iter) == extruder_free_blcoks.end();
-            bool apply_pre_cooling = true;
-            bool apply_pre_heating = is_end ? false : true;
-            float curr_temp = get_nozzle_temp(iter->last_filament_id,false,true,false);
-            float target_temp       = get_nozzle_temp(iter->next_filament_id, false, false, !iter->ignore_cooling_before_tower);
+            bool is_begin = iter == extruder_free_blcoks.begin();
+            bool  apply_pre_cooling = !is_begin || !handle_hotend_as_extruder; // TODO(小炒肉): 暂时先通过单挤出机多喷嘴来判断
+            // 单挤出机多喷嘴机型，start gcode后不降温
+            bool apply_pre_heating = is_end ? false : wants_pre_heating(iter->next_filament_id);
+            // Start the first preheat calculation at 0°C when hotends are handled as extruders.
+            // Other machines retain the 140°C fallback for an unknown previous filament.
+            float curr_temp = (iter->last_filament_id == -1 && handle_hotend_as_extruder) ?
+                0.f :
+                get_nozzle_temp(iter->last_filament_id, iter->last_nozzle_id, true, false);
+            float target_temp       = get_nozzle_temp(iter->next_filament_id, iter->next_nozzle_id, false, !iter->ignore_cooling_before_tower);
             // X2D temporary workaround: only apply temp offset when extruder types are mixed
             if (has_filament_switcher && has_mixed_extruder_types && apply_pre_heating) {
-                float print_temp = get_nozzle_temp(iter->next_filament_id, false, false, false);
+                float print_temp = get_nozzle_temp(iter->next_filament_id, iter->next_nozzle_id, false, false);
                 target_temp = std::min(target_temp, print_temp - switcher_temp_offset);
             }
             inject_cooling_heating_command(inserted_operation_lines, *iter, curr_temp, target_temp, apply_pre_cooling, apply_pre_heating);
@@ -6525,7 +6693,7 @@ void GCodeProcessor::PreCoolingInjector::build_extruder_free_blocks(const std::v
     if (extruder_usage_blocks.size() <= 1)
         build_by_filament_blocks(filament_usage_blocks);
     else
-        build_by_extruder_blocks(extruder_usage_blocks);
+        build_by_extruder_blocks(filament_usage_blocks, extruder_usage_blocks);
 }
 
 void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProcessor::InsertedLinesMap& inserted_operation_lines, const ExtruderFreeBlock& block, float curr_temp, float target_temp, bool pre_cooling, bool pre_heating)
@@ -6537,26 +6705,39 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         return nozzle_opt? nozzle_opt->extruder_id:0;
         };
 
-    auto is_pre_cooling_valid = [&nozzle_temps = this->filament_nozzle_temps, &pre_cooling_temps = this->filament_pre_cooling_temps](int idx) ->bool {
-        if(idx < 0)
-            return false;
-        return pre_cooling_temps[idx] > 0 && pre_cooling_temps[idx] < nozzle_temps[idx];
+    auto get_filament_nozzle_temp = [&](int idx, int nozzle_id) -> int {
+        const int row = filament_variant_row(idx, nozzle_id);
+        return row >= 0 ? FilamentVariantRows::value_at(filament_variant_rows.nozzle_temp, row) : 0;
+        };
+    auto get_filament_pre_cooling_temp = [&](int idx, int nozzle_id) -> int {
+        const int row = filament_variant_row(idx, nozzle_id);
+        return row >= 0 ? FilamentVariantRows::value_at(filament_variant_rows.pre_cooling_temp, row) : 0;
         };
 
-    bool is_multiple_nozzle = std::any_of(extruder_max_nozzle_count.begin(), extruder_max_nozzle_count.end(), [](auto& elem) {return elem > 1; });
+    auto is_pre_cooling_valid = [&](int idx, int nozzle_id) ->bool {
+        if(idx < 0)
+            return false;
+        const int pre_cooling_temp = get_filament_pre_cooling_temp(idx, nozzle_id);
+        return pre_cooling_temp > 0 && pre_cooling_temp < get_filament_nozzle_temp(idx, nozzle_id);
+        };
 
-    auto get_partial_free_cooling_thres = [&](int idx) -> float{
+    auto get_partial_free_cooling_thres = [&](int idx, int nozzle_id) -> float{
         if(idx < 0)
             return 30.f;
-        float temp_in_tower = filament_nozzle_temps[idx];
-        return temp_in_tower - (float)(filament_pre_cooling_temps[idx]);
+        float temp_in_tower = get_filament_nozzle_temp(idx, nozzle_id);
+        return temp_in_tower - (float)(get_filament_pre_cooling_temp(idx, nozzle_id));
+        };
+    auto get_min_temperature_when_ec = [&](int idx) -> float {
+        if (idx < 0 || idx >= (int)filament_min_temperature_when_ec.size())
+            return -1.f;
+        return (float)filament_min_temperature_when_ec[idx];
         };
 
     auto gcode_move_comp = [](const GCodeProcessorResult::MoveVertex& a, unsigned int gcode_id) {
         return a.gcode_id < gcode_id;
         };
 
-    auto find_skip_block_end = [&skippable_blocks = this->skippable_blocks](unsigned int gcode_id) -> unsigned int{
+    auto find_skip_block = [&skippable_blocks = this->skippable_blocks](unsigned int gcode_id) -> const std::pair<unsigned int, unsigned int>* {
         auto it = std::upper_bound(
             skippable_blocks.begin(), skippable_blocks.end(), gcode_id,
             [](unsigned int id, const std::pair<unsigned int, unsigned int>&block) { return id < block.first; }
@@ -6564,57 +6745,59 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         if (it != skippable_blocks.begin()) {
             auto candidate = std::prev(it);
             if (gcode_id >= candidate->first && gcode_id <= candidate->second)
-                return candidate->second;
+                return &*candidate;
+        }
+        return nullptr;
+    };
+
+    auto adjust_insert_gcode_id_backward = [&find_skip_block](unsigned int gcode_id) -> unsigned int {
+        while (gcode_id > 0) {
+            const auto* skip_block = find_skip_block(gcode_id);
+            if (skip_block == nullptr)
+                return gcode_id;
+            if (skip_block->first == 0)
+                return 0;
+            gcode_id = skip_block->first - 1;
+        }
+        return 0;
+    };
+    auto adjust_insert_gcode_id_forward = [&find_skip_block](unsigned int gcode_id) -> unsigned int {
+        while (gcode_id < std::numeric_limits<unsigned int>::max()) {
+            const auto* skip_block = find_skip_block(gcode_id);
+            if (skip_block == nullptr)
+                return gcode_id;
+            if (skip_block->second == std::numeric_limits<unsigned int>::max())
+                return 0;
+            gcode_id = skip_block->second + 1;
         }
         return 0;
     };
 
-    auto find_skip_block_start = [&skippable_blocks = this->skippable_blocks](unsigned int gcode_id) -> unsigned int {
-        auto it = std::upper_bound(
-            skippable_blocks.begin(), skippable_blocks.end(), gcode_id,
-            [](unsigned int id, const std::pair<unsigned int, unsigned int>&block) { return id < block.first; }
-        );
-        if (it != skippable_blocks.begin()) {
-            auto candidate = std::prev(it);
-            if (gcode_id >= candidate->first && gcode_id <= candidate->second)
-                return candidate->first;
-        }
-        return 0;
-    };
-
-    auto adjust_iter = [&](std::vector<GCodeProcessorResult::MoveVertex>::const_iterator iter,
-                       const std::vector<GCodeProcessorResult::MoveVertex>::const_iterator& begin,
-                       const std::vector<GCodeProcessorResult::MoveVertex>::const_iterator& end,
-                       bool forward) -> std::vector<GCodeProcessorResult::MoveVertex>::const_iterator
-    {
-        if (forward) {
-            while (iter != end) {
-                unsigned current_id = iter->gcode_id;
-                unsigned skip_block_end = find_skip_block_end(current_id);
-                if(skip_block_end == 0)
-                    break;
-                iter = std::lower_bound(iter, end, skip_block_end + 1, gcode_move_comp);
-            }
-        }
-        else {
-            while (iter != begin) {
-                unsigned current_id = iter->gcode_id;
-                unsigned skip_block_start = find_skip_block_start(current_id);
-                if(skip_block_start == 0)
-                    break;
-                auto new_iter = std::lower_bound(begin, iter, skip_block_start, gcode_move_comp);
-                if(new_iter == begin)
-                    break;
-                iter = std::prev(new_iter);
-            }
-        }
-        return iter;
-    };
-
-    if (!pre_cooling && !pre_heating && block.free_upper_gcode_id <= block.free_lower_gcode_id)
+    if ((!pre_cooling && !pre_heating) || block.free_upper_gcode_id <= block.free_lower_gcode_id)
         return;
 
-    auto move_iter_lower = std::lower_bound(moves.begin(), moves.end(), block.free_lower_gcode_id, gcode_move_comp);
+    // Both heating and the cooling emission are moved before skippable blocks.
+    const bool apply_cooling_when_partial_free =
+        is_pre_cooling_valid(block.last_filament_id, block.last_nozzle_id) && pre_cooling &&
+        block.partial_free_upper_id > block.partial_free_lower_id;
+    const unsigned int free_lower_gcode_id = pre_cooling ?
+        adjust_insert_gcode_id_forward(block.free_lower_gcode_id) : block.free_lower_gcode_id;
+    if (pre_cooling &&
+        (free_lower_gcode_id == 0 || free_lower_gcode_id >= block.free_upper_gcode_id))
+        return;
+
+    // The cooling has to reach the firmware before the change-filament macro, which rebinds the
+    // current/next hotend pair that "M104 I<filament>" is resolved against. Only the emission point
+    // moves; the thresholds below keep measuring the idle window from free_lower_gcode_id. Gated on
+    // handle_hotend_as_extruder because only those printers register the macro as a skippable block.
+    unsigned int cooling_insert_gcode_id = free_lower_gcode_id;
+    if (pre_cooling && handle_hotend_as_extruder) {
+        const unsigned int before_skip_blocks = adjust_insert_gcode_id_backward(block.free_lower_gcode_id);
+        if (before_skip_blocks != 0)
+            cooling_insert_gcode_id = before_skip_blocks;
+    }
+
+    auto move_iter_lower = std::lower_bound(moves.begin(), moves.end(), free_lower_gcode_id, gcode_move_comp);
     auto move_iter_upper = std::lower_bound(moves.begin(), moves.end(), block.free_upper_gcode_id, gcode_move_comp); // closed iter
 
     if (move_iter_lower == moves.end() || move_iter_upper == moves.begin())
@@ -6641,9 +6824,6 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
     if (move_iter_lower >= move_iter_upper)
         return;
 
-    bool apply_cooling_when_partial_free = is_pre_cooling_valid(block.last_filament_id) && pre_cooling;
-
-
     if (apply_cooling_when_partial_free && partial_free_time_gap + complete_free_time_gap < inject_time_threshold)
         return;
 
@@ -6652,9 +6832,11 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
 
     int extruder_id = get_valid_extruder_id(block.last_nozzle_id);
     float ext_heating_rate = heating_rate[extruder_id];
-    float ext_cooling_rate = cooling_rate[extruder_id];
+    // Cooling right after extruding differs from cooling once the hotend is completely free: printers that
+    // park it away from the toolhead cool down slower there. The two rates are equal on the other printers.
+    float ext_cooling_rate_post_extrusion = cooling_rate[extruder_id];
+    float ext_cooling_rate_when_free = cooling_rate_on_rack[extruder_id];
 
-    std::vector<std::string> line_buf;
     auto add_M104_lines = [&](int gcode_id, int target_extruder, int target_temp, int target_filament, bool skippable, int next_filament_idx, int next_nozzle_id, bool is_heating, TimeProcessor::InsertLineType type,const std::string& comment = std::string()){
 
         auto format_line_M104 = [&](int target_extruder,int target_temp, int target_filament, bool skippable, int next_filament_idx, int next_nozzle_id, bool is_heating, const std::string& comment = std::string())->std::vector<std::string> {
@@ -6683,6 +6865,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
 
             M104_line += " S" + std::to_string(target_temp);
             M104_line += " N0"; // N0 means the gcode is generated by slicer
+            M104_line += is_heating ? " W" : " C";  // 标记是升温还是降温
 
             if (!comment.empty())
                 M104_line += " ;" + comment;
@@ -6696,26 +6879,68 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
             return buffer;
         };
 
-        std::vector<std::string> line_buf = format_line_M104(target_extruder,target_temp, target_filament, skippable, next_filament_idx, next_nozzle_id, is_heating, comment);
+        std::vector<std::string> line_buf = format_line_M104(target_extruder, target_temp, target_filament, skippable, next_filament_idx, next_nozzle_id, is_heating, comment);
         for(auto& line : line_buf)
             inserted_operation_lines[gcode_id].emplace_back(line, type);
     };
 
+    // handle_hotend_as_extruder printers never reach the wipe-tower NC preamble that emits M106 S255
+    // with the cooldown. Turn the part fan full for the ramming so the nozzle actually cools at the
+    // on-toolhead rate. The change-filament macro turns it back off.
+    auto add_M106_full_part_fan = [&](unsigned int gcode_id, TimeProcessor::InsertLineType type, const std::string &comment) {
+        std::string line = "M106 S255";
+        if (!comment.empty())
+            line += " ;" + comment;
+        line += '\n';
+        inserted_operation_lines[gcode_id].emplace_back(std::move(line), type);
+    };
+
     constexpr float room_temperature = 25.f;
+    auto get_filament_min_temperature_when_ec = [&](int filament_id, int nozzle_id) -> float {
+        float min_temperature = handle_hotend_as_extruder ? 0.f : room_temperature;
+        if (filament_variant_row(filament_id, nozzle_id) < 0)
+            return min_temperature;
+        const float idle_floor = get_min_temperature_when_ec(filament_id);
+        if (idle_floor >= 0.f)
+            return std::max(min_temperature, idle_floor);
+        return min_temperature;
+        };
 
     if (apply_cooling_when_partial_free) {
-        float max_cooling_temp = std::min(curr_temp, std::min(get_partial_free_cooling_thres(block.last_filament_id), partial_free_time_gap * ext_cooling_rate));
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": partial cooling for %1% %2%") % max_cooling_temp % curr_temp;
-        curr_temp = std::max(room_temperature, curr_temp - max_cooling_temp); // set the temperature after doing cooling when post-extruding
-        add_M104_lines(block.partial_free_lower_id, extruder_id, curr_temp, block.last_filament_id, false, block.next_filament_id, block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling, "Multi extruder pre cooling in post extrusion");
+        float min_temperature = get_filament_min_temperature_when_ec(block.last_filament_id, block.last_nozzle_id);
+        float cooling_budget = get_partial_free_cooling_thres(block.last_filament_id, block.last_nozzle_id);
+        // PVA-only: unload uses a one-shot long cut retract. Start cooling during ram
+        // (configured M104 S + full part fan) so the break forms lower in the heatbreak as a
+        // tip, which reduces sticking. Do not cap S to ram duration — PVA does not wait for
+        // the nozzle to actually reach the target. Other filaments still cap S so the command
+        // matches what ram time can achieve.
+        const bool command_only_active = handle_hotend_as_extruder &&
+            block.last_filament_id >= 0 &&
+            block.last_filament_id < (int)filament_types.size() &&
+            filament_types[block.last_filament_id] == "PVA";
+        if (!command_only_active)
+            cooling_budget = std::min(cooling_budget, partial_free_time_gap * ext_cooling_rate_post_extrusion);
+        float max_cooling_temp = std::min(curr_temp, cooling_budget);
+        BOOST_LOG_TRIVIAL(info) << boost::format("partial cooling for %1% %2%") % max_cooling_temp % curr_temp;
+        curr_temp = std::max(min_temperature, curr_temp - max_cooling_temp); // set the temperature after doing cooling when post-extruding
+        add_M104_lines(block.partial_free_lower_id, extruder_id, curr_temp, block.last_filament_id, false, block.next_filament_id, block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling in post extrusion");
+        if (command_only_active)
+            add_M106_full_part_fan(block.partial_free_lower_id, TimeProcessor::InsertLineType::PreCooling, "Multi extruder pre cooling fan on");
     }
 
     if (pre_cooling && !pre_heating) {
-        // only perform cooling
-        if (target_temp >= curr_temp)
+        // Without pre-heating there is no timed re-heat, so the idle window can be spent entirely
+        // on cooling. Size the drop by what that window can achieve, rather than by the incoming
+        // filament's pre-heat target which is only meaningful while pre-heating runs.
+        const int temp_floor = (int)get_filament_min_temperature_when_ec(block.last_filament_id, block.last_nozzle_id);
+        int cooling_temp = temp_floor; // no next use: the hotend is never needed again
+        if (filament_variant_row(block.next_filament_id, block.next_nozzle_id) >= 0) {
+            int delta_temp = (int)(complete_free_time_gap * ext_cooling_rate_when_free);
+            cooling_temp = std::max(temp_floor, (int)curr_temp - delta_temp);
+        }
+        if (cooling_temp >= (int)curr_temp)
             return;
-        int clamped_target = std::max((int)room_temperature, (int)target_temp);
-        add_M104_lines(block.free_lower_gcode_id,extruder_id,clamped_target, block.last_filament_id, false, block.next_filament_id, block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling");
+        add_M104_lines(cooling_insert_gcode_id,extruder_id,cooling_temp, block.last_filament_id, false, block.next_filament_id, block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling");
         return;
     }
     if (!pre_cooling && pre_heating) {
@@ -6725,54 +6950,74 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         float heating_start_time = move_iter_upper->time[valid_machine_id] - (target_temp - curr_temp) / ext_heating_rate;
         auto heating_move_iter = std::upper_bound(move_iter_lower, move_iter_upper + 1, heating_start_time, [valid_machine_id = this->valid_machine_id](float time, const GCodeProcessorResult::MoveVertex& a) {return time < a.time[valid_machine_id]; });
         if (heating_move_iter == move_iter_lower) {
-            add_M104_lines(block.free_lower_gcode_id,extruder_id,target_temp, block.next_filament_id, true, block.next_filament_id,block.next_nozzle_id, true, TimeProcessor::InsertLineType::PreHeating,"Multi extruder pre heating");
+            unsigned int heating_gcode_id = adjust_insert_gcode_id_backward(block.free_lower_gcode_id);
+            if (heating_gcode_id == 0 || heating_gcode_id < block.free_lower_gcode_id)
+                return;
+            add_M104_lines(heating_gcode_id,extruder_id,target_temp, block.next_filament_id, true, block.next_filament_id,block.next_nozzle_id, true, TimeProcessor::InsertLineType::PreHeating,"Multi extruder pre heating");
         }
         else {
             --heating_move_iter;
-            heating_move_iter = adjust_iter(heating_move_iter, move_iter_lower, move_iter_upper, false);
-            add_M104_lines(heating_move_iter->gcode_id, extruder_id, target_temp, block.next_filament_id, true, block.next_filament_id,block.next_nozzle_id, true, TimeProcessor::InsertLineType::PreHeating, "Multi extruder pre heating");
+            unsigned int heating_gcode_id = adjust_insert_gcode_id_backward(heating_move_iter->gcode_id);
+            if (heating_gcode_id == 0 || heating_gcode_id < block.free_lower_gcode_id)
+                return;
+            add_M104_lines(heating_gcode_id, extruder_id, target_temp, block.next_filament_id, true, block.next_filament_id, block.next_nozzle_id, true, TimeProcessor::InsertLineType::PreHeating, "Multi extruder pre heating");
         }
         return;
         }
     // perform cooling first and then perform heating
-    float mid_temp = std::max(room_temperature, (curr_temp * ext_heating_rate + target_temp * ext_cooling_rate - complete_free_time_gap * ext_cooling_rate * ext_heating_rate) / (ext_cooling_rate + ext_heating_rate));
+    float cooling_thres = get_filament_min_temperature_when_ec(block.last_filament_id, block.last_nozzle_id); // 计算最低降温温度
+    // 计算中间温度，保证不低于最低降温温度
+    float mid_temp = std::max(cooling_thres, (curr_temp * ext_heating_rate + target_temp * ext_cooling_rate_when_free - complete_free_time_gap * ext_cooling_rate_when_free * ext_heating_rate) / (ext_cooling_rate_when_free + ext_heating_rate));
     float heating_temp = target_temp - mid_temp;
     float heating_start_time = move_iter_upper->time[valid_machine_id] - heating_temp / ext_heating_rate;
     auto heating_move_iter = std::upper_bound(move_iter_lower, move_iter_upper + 1, heating_start_time, [valid_machine_id = this->valid_machine_id](float time, const GCodeProcessorResult::MoveVertex& a) {return time < a.time[valid_machine_id]; });
     if (heating_move_iter == move_iter_lower)
         return;
     --heating_move_iter;
-    heating_move_iter = adjust_iter(heating_move_iter, move_iter_lower, move_iter_upper, false);
+    unsigned int heating_gcode_id = adjust_insert_gcode_id_backward(heating_move_iter->gcode_id);
+    if (heating_gcode_id <= free_lower_gcode_id)
+        return;
+
+    auto adjusted_heating_move_iter = std::upper_bound(
+        move_iter_lower, move_iter_upper + 1, heating_gcode_id,
+        [](unsigned int gcode_id, const GCodeProcessorResult::MoveVertex& move) {
+            return gcode_id < move.gcode_id;
+        });
+    if (adjusted_heating_move_iter == move_iter_lower)
+        return;
+    heating_move_iter = std::prev(adjusted_heating_move_iter);
 
     // get the insert pos of heat cmd and recalculate time gap and delta temp
-    float real_cooling_time = heating_move_iter->time[valid_machine_id] - move_iter_lower->time[valid_machine_id];
-    int real_delta_temp = std::min((int)(real_cooling_time * ext_cooling_rate), (int)curr_temp);
-    if (real_delta_temp == 0)
-        return;
-    int cooling_temp = std::max((int)room_temperature, (int)curr_temp - real_delta_temp);
-    add_M104_lines(block.free_lower_gcode_id, extruder_id, cooling_temp, block.last_filament_id, false, block.next_filament_id,block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling");
-    add_M104_lines(heating_move_iter->gcode_id, extruder_id, target_temp, block.next_filament_id, true, block.next_filament_id, block.next_nozzle_id, true, TimeProcessor::InsertLineType::PreHeating,"Multi extruder pre heating");
+    float real_cooling_time = heating_move_iter->time[valid_machine_id] - move_iter_lower->time[valid_machine_id]; // 计算实际降温时间
+    int real_delta_temp = real_cooling_time * ext_cooling_rate_when_free;
+    int cooling_temp = std::max((int)cooling_thres, (int)curr_temp - real_delta_temp);
+    add_M104_lines(cooling_insert_gcode_id, extruder_id, cooling_temp, block.last_filament_id, false, block.next_filament_id,block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling");
+    add_M104_lines(heating_gcode_id, extruder_id, target_temp, block.next_filament_id, true, block.next_filament_id, block.next_nozzle_id, true, TimeProcessor::InsertLineType::PreHeating,"Multi extruder pre heating");
 }
 
 void GCodeProcessor::PreCoolingInjector::build_by_filament_blocks(const std::vector<ExtruderPreHeating::FilamentUsageBlock>& filament_usage_blocks_)
 {
     m_extruder_free_blocks.clear();
 
-    std::map<int,std::vector<ExtruderPreHeating::FilamentUsageBlock>> per_extruder_usage_blocks;
+    // N1X (extruder_id == nozzle_id): group by filament so each filament becomes an independent
+    // "virtual head" with real idle windows between its own consecutive uses (pre-heat /
+    // cool-on-idle / cool-to-room at end). Non-N1X single extruder keeps per-extruder grouping.
+    std::map<int,std::vector<ExtruderPreHeating::FilamentUsageBlock>> per_group_usage_blocks;
     for (auto& block : filament_usage_blocks_){
-        per_extruder_usage_blocks[block.extruder_id].emplace_back(block);
+        int group_key = handle_hotend_as_extruder ? block.filament_id : block.extruder_id;
+        per_group_usage_blocks[group_key].emplace_back(block);
     }
     ExtruderPreHeating::FilamentUsageBlock start_filament_block(-1,-1,-1, 0, machine_start_gcode_end_id);
     ExtruderPreHeating::FilamentUsageBlock end_filament_block(-1,-1,-1, machine_end_gcode_start_id, std::numeric_limits<unsigned int>::max());
 
-    for (auto& elem : per_extruder_usage_blocks) {
+    for (auto& elem : per_group_usage_blocks) {
         auto &blocks = elem.second;
         blocks.insert(blocks.begin(), start_filament_block);
         blocks.emplace_back(end_filament_block);
     }
 
-    for (auto& elem : per_extruder_usage_blocks){
-        size_t extruder_id = elem.first;
+    for (auto& elem : per_group_usage_blocks){
+        int group_key = elem.first;
         const auto& filament_blocks = elem.second;
 
         for (auto iter = filament_blocks.begin(); iter < filament_blocks.end(); ++iter) {
@@ -6788,21 +7033,80 @@ void GCodeProcessor::PreCoolingInjector::build_by_filament_blocks(const std::vec
             block.next_nozzle_id = niter->nozzle_id;
             if (block.last_nozzle_id == -1)
                 block.last_nozzle_id = block.next_nozzle_id;
-            block.extruder_id = extruder_id;
+            block.extruder_id = group_key;
+            block.idle_chain_key = group_key;
             block.partial_free_lower_id = block.free_lower_gcode_id;
             block.partial_free_upper_id = block.free_lower_gcode_id;
             m_extruder_free_blocks.emplace_back(block);
         }
     }
     std::for_each(m_extruder_free_blocks.begin(), m_extruder_free_blocks.end(), [](ExtruderFreeBlock &block) { block.ignore_cooling_before_tower = true;});
+
     sort(m_extruder_free_blocks.begin(), m_extruder_free_blocks.end(), [](const auto& a, const auto& b) {
         return a.free_lower_gcode_id < b.free_lower_gcode_id || (a.free_lower_gcode_id == b.free_lower_gcode_id && a.free_upper_gcode_id < b.free_upper_gcode_id);
         });
 }
 
-void GCodeProcessor::PreCoolingInjector::build_by_extruder_blocks(const std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& extruder_usage_blocks_)
+void GCodeProcessor::PreCoolingInjector::build_by_extruder_blocks(
+    const std::vector<ExtruderPreHeating::FilamentUsageBlock>& filament_usage_blocks_,
+    const std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& extruder_usage_blocks_)
 {
     m_extruder_free_blocks.clear();
+
+    // With hotends exposed as extruders several hotends sit on one extruder, so filaments may share a
+    // hotend. Slicing the idle windows between hotend occupancies would skip every same-hotend colour
+    // change, because such a change happens inside one occupancy. Build the chain per filament instead,
+    // then borrow the nozzle change bounds so an extruder change still gets its cool-down and lowered
+    // pre-heat.
+    if (handle_hotend_as_extruder) {
+        std::map<int, std::vector<ExtruderPreHeating::FilamentUsageBlock>> per_filament_usage_blocks;
+        for (const auto& filament_span : filament_usage_blocks_)
+            per_filament_usage_blocks[filament_span.filament_id].emplace_back(filament_span);
+
+        ExtruderPreHeating::FilamentUsageBlock start_filament_block(-1, -1, -1, 0, machine_start_gcode_end_id);
+        ExtruderPreHeating::FilamentUsageBlock end_filament_block(-1, -1, -1, machine_end_gcode_start_id, std::numeric_limits<unsigned int>::max());
+        for (auto& kv : per_filament_usage_blocks) {
+            auto& filament_spans = kv.second;
+            filament_spans.insert(filament_spans.begin(), start_filament_block);
+            filament_spans.emplace_back(end_filament_block);
+        }
+
+        auto real_extruder_id = [this](int nozzle_id) {
+            auto nozzle_opt = nozzle_group_result.get_nozzle_from_id(nozzle_id);
+            return nozzle_opt ? nozzle_opt->extruder_id : 0;
+        };
+
+        for (auto& [filament_id, filament_spans] : per_filament_usage_blocks) {
+            for (auto prev = filament_spans.begin(); prev != filament_spans.end(); ++prev) {
+                auto next = std::next(prev);
+                if (next == filament_spans.end())
+                    break;
+                ExtruderFreeBlock block;
+                block.free_lower_gcode_id = prev->upper_gcode_id;
+                block.last_filament_id = prev->filament_id;
+                block.last_nozzle_id = prev->nozzle_id;
+                block.free_upper_gcode_id = next->lower_gcode_id;
+                block.next_filament_id = next->filament_id;
+                block.next_nozzle_id = next->nozzle_id;
+                if (block.last_nozzle_id == -1)
+                    block.last_nozzle_id = block.next_nozzle_id;
+                block.idle_chain_key = filament_id;
+                block.extruder_id = real_extruder_id(block.last_nozzle_id);
+                block.partial_free_lower_id = block.free_lower_gcode_id;
+                block.partial_free_upper_id = block.free_lower_gcode_id;
+                // Default to the full print temperature; only a nozzle change may lower the pre-heat target.
+                block.ignore_cooling_before_tower = true;
+                attach_nc_bounds_if_gap_crosses_nozzle_change(block, *prev, *next, extruder_usage_blocks_);
+                m_extruder_free_blocks.emplace_back(block);
+            }
+        }
+
+        sort(m_extruder_free_blocks.begin(), m_extruder_free_blocks.end(), [](const auto& a, const auto& b) {
+            return a.free_lower_gcode_id < b.free_lower_gcode_id || (a.free_lower_gcode_id == b.free_lower_gcode_id && a.free_upper_gcode_id < b.free_upper_gcode_id);
+            });
+        return;
+    }
+
     std::map<int, std::vector<ExtruderPreHeating::ExtruderUsageBlcok>> per_extruder_usage_blocks;
     for (auto& block : extruder_usage_blocks_)
         per_extruder_usage_blocks[block.extruder_id].emplace_back(block);
@@ -6842,6 +7146,7 @@ void GCodeProcessor::PreCoolingInjector::build_by_extruder_blocks(const std::vec
             if (block.last_nozzle_id == -1)
                 block.last_nozzle_id = block.next_nozzle_id;
             block.extruder_id = extruder_id;
+            block.idle_chain_key = static_cast<int>(extruder_id);
             block.partial_free_lower_id = iter->post_extrusion_start_id;
             block.partial_free_upper_id = iter->post_extrusion_end_id;
             block.ignore_cooling_before_tower = niter->ignore_cooling_before_tower;
@@ -6854,5 +7159,46 @@ void GCodeProcessor::PreCoolingInjector::build_by_extruder_blocks(const std::vec
         });
 }
 
-} /* namespace Slic3r */
+void GCodeProcessor::PreCoolingInjector::attach_nc_bounds_if_gap_crosses_nozzle_change(
+    ExtruderFreeBlock& idle,
+    const ExtruderPreHeating::FilamentUsageBlock& prev,
+    const ExtruderPreHeating::FilamentUsageBlock& next,
+    const std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& nc_blocks)
+{
+    auto overlaps = [](const ExtruderPreHeating::ExtruderUsageBlcok& nc, const ExtruderPreHeating::FilamentUsageBlock& fil) {
+        return fil.filament_id >= 0 && nc.start_id < fil.upper_gcode_id && nc.end_id > fil.lower_gcode_id;
+    };
 
+    // This filament left a nozzle via NC: insert cooldown at NC, not at T.
+    for (const auto& nc : nc_blocks) {
+        if (nc.end_filament != prev.filament_id || nc.end_id >= machine_end_gcode_start_id || !overlaps(nc, prev))
+            continue;
+        if (nc.post_extrusion_start_id < nc.post_extrusion_end_id) {
+            idle.partial_free_lower_id = nc.post_extrusion_start_id;
+            idle.partial_free_upper_id = nc.post_extrusion_end_id;
+        }
+        if (nc.end_id < idle.free_upper_gcode_id)
+            idle.free_lower_gcode_id = nc.end_id;
+        if (nc.end_nozzle_id >= 0)
+            idle.last_nozzle_id = nc.end_nozzle_id;
+        break;
+    }
+
+    // Only a nozzle change hands a cold nozzle over to this filament, and that is the sole case where the
+    // pre-heat may stop short of the print temperature. The nozzle change has to open the occupancy the
+    // filament resumes in, and it has to happen inside this very idle gap: a same-nozzle color change runs
+    // inside an occupancy that is already printing, so its pre-heat must reach the full print temperature or
+    // it would drag the still-extruding nozzle down.
+    for (const auto& nc : nc_blocks) {
+        if (nc.start_filament != next.filament_id || nc.start_id <= machine_start_gcode_end_id)
+            continue;
+        if (nc.start_id < prev.upper_gcode_id || nc.start_id >= next.lower_gcode_id || nc.end_id < next.lower_gcode_id)
+            continue;
+        idle.ignore_cooling_before_tower = nc.ignore_cooling_before_tower;
+        if (nc.start_nozzle_id >= 0)
+            idle.next_nozzle_id = nc.start_nozzle_id;
+        break;
+    }
+}
+
+} /* namespace Slic3r */

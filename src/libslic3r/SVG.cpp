@@ -4,6 +4,7 @@
 // #include "pugixml/pugixml.hpp"
 #include <boost/nowide/cstdio.hpp>
 #include "nlohmann/json.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -620,13 +621,13 @@ void dumpExPolygonToJson(const ExPolygon &exPolygon, const std::string &filePath
     // Write JSON to a file
     std::ofstream file(filePath);
     if (!file) {
-        std::cerr << "Error: Cannot open file for writing: " << filePath << "\n";
+        BOOST_LOG_TRIVIAL(error) << "Cannot open file for writing: " << filePath;
         return;
     }
     file << j.dump(4); // Pretty print with 4 spaces of indentation
     file.close();
 
-    std::cout << "ExPolygons dumped to " << filePath << "\n";
+    BOOST_LOG_TRIVIAL(info) << "ExPolygons dumped to " << filePath;
 }
 
 // Function to dump ExPolygons to JSON
@@ -637,13 +638,13 @@ void dumpExPolygonsToJson(const std::vector<ExPolygon> &exPolygons, const std::s
     // Write JSON to a file
     std::ofstream file(filePath);
     if (!file) {
-        std::cerr << "Error: Cannot open file for writing: " << filePath << "\n";
+        BOOST_LOG_TRIVIAL(error) << "Cannot open file for writing: " << filePath;
         return;
     }
     file << j.dump(4); // Pretty print with 4 spaces of indentation
     file.close();
 
-    std::cout << "ExPolygons dumped to " << filePath << "\n";
+    BOOST_LOG_TRIVIAL(info) << "ExPolygons dumped to " << filePath;
 }
 
 // Function to load ExPolygons from JSON
@@ -653,7 +654,7 @@ std::vector<ExPolygon> loadExPolygonsFromJson(const std::string &filePath)
 
     std::ifstream file(filePath);
     if (!file) {
-        std::cerr << "Error: Cannot open file for reading: " << filePath << "\n";
+        BOOST_LOG_TRIVIAL(error) << "Cannot open file for reading: " << filePath;
         return exPolygons;
     }
 
@@ -666,11 +667,11 @@ std::vector<ExPolygon> loadExPolygonsFromJson(const std::string &filePath)
         j = nlohmann::json::parse(content);
         //file >> j; // Parse JSON from file
     } catch (const nlohmann::json::parse_error &e) {
-        std::cerr << "JSON parsing error: " << e.what() << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "JSON parsing error: " << e.what();
         return exPolygons; // Return empty vector on failure
     }
     catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << "\n";
+        BOOST_LOG_TRIVIAL(error) << e.what();
         file.close();
         return exPolygons;
     }
@@ -697,7 +698,7 @@ void dumpExPolygonsToTxt(const std::vector<ExPolygon> &exPolygons, const std::st
 {
     std::ofstream file(filePath);
     if (!file) {
-        std::cerr << "Error: Cannot open file for writing: " << filePath << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "Cannot open file for writing: " << filePath;
         return;
     }
 
@@ -719,7 +720,7 @@ void dumpExPolygonsToTxt(const std::vector<ExPolygon> &exPolygons, const std::st
     }
 
     file.close();
-    std::cout << "ExPolygons saved to " << filePath << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "ExPolygons saved to " << filePath;
 }
 
 // Load ExPolygons from a file
@@ -729,7 +730,7 @@ std::vector<ExPolygon> loadExPolygonsFromTxt(const std::string &filePath)
 
     std::ifstream file(filePath);
     if (!file) {
-        std::cerr << "Error: Cannot open file for reading: " << filePath << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "Cannot open file for reading: " << filePath;
         return exPolygons;
     }
 
@@ -765,7 +766,7 @@ std::vector<ExPolygon> loadExPolygonsFromTxt(const std::string &filePath)
     if (!currentPolygon.contour.empty() || !currentPolygon.holes.empty()) { exPolygons.push_back(currentPolygon); }
 
     file.close();
-    std::cout << "Loaded " << exPolygons.size() << " ExPolygons from " << filePath << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Loaded " << exPolygons.size() << " ExPolygons from " << filePath;
     return exPolygons;
 }
 

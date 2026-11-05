@@ -1,6 +1,7 @@
 #ifndef slic3r_GUI_TextInput_hpp_
 #define slic3r_GUI_TextInput_hpp_
 
+#include <wx/dc.h>
 #include <wx/textctrl.h>
 #include "StaticBox.hpp"
 
@@ -20,6 +21,11 @@ class TextInput : public wxNavigationEnabled<StaticBox>
     wxString  static_tips;
     wxSize    static_tips_size;
     wxBitmap  static_tips_icon;
+
+    // Extra width reserved at the right edge of the control that the label text must
+    // never be drawn under (e.g. an overlay button/divider positioned on top of this
+    // control by an owning widget). Only affects the ellipsis boundary in render().
+    int m_reserved_right_width = 0;
 
     std::vector<std::shared_ptr<TextInputValChecker>> m_checkers;
 
@@ -69,6 +75,9 @@ public:
 
     void SetTextColor(StateColor const &color);
 
+    // See m_reserved_right_width.
+    void SetReservedRightWidth(int width);
+
     virtual void Rescale();
 
     virtual bool Enable(bool enable = true) override;
@@ -90,10 +99,10 @@ protected:
 
     void DoSetToolTipText(wxString const &tip) override;
 
+    virtual void render(wxDC& dc);
+
 private:
     void paintEvent(wxPaintEvent& evt);
-
-    void render(wxDC& dc);
 
     void messureSize();
 

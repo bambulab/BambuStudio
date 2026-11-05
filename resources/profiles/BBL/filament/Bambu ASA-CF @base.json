@@ -35,6 +35,9 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
+    "fins_extrude_safe_temp": [
+        "110"
+    ],
     "hot_plate_temp": [
         "100"
     ],
@@ -53,11 +56,14 @@
     "nozzle_temperature_range_low": [
         "250"
     ],
+    "pre_start_fan_time": [
+        "2"
+    ],
     "slow_down_layer_time": [
         "12"
     ],
     "temperature_vitrification": [
-        "108"
+        "95"
     ],
     "textured_plate_temp": [
         "100"

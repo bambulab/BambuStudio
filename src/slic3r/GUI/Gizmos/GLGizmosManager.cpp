@@ -36,6 +36,7 @@
 
 #include <wx/glcanvas.h>
 #include <algorithm>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -1619,7 +1620,9 @@ bool GLGizmosManager::activate_gizmo(EType type)
                 if (agent) { agent->track_update_property(name, std::to_string(count)); }
             }
         }
-        catch (...) {}
+        catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
     } else {
         // Gizmo closed (type -> Undefined): restore assembly display mode when X-Ray is allowed.
         m_parent.do_something_after_gizmo_exit();

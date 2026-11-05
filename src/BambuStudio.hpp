@@ -71,6 +71,7 @@ typedef struct _assemble_plate_info {
     std::string         plate_name;
     bool                need_arrange {false};
     int                 filaments_count {0};
+    std::set<int>       used_filaments;
 
     std::map<std::string, std::string> plate_params;
     std::vector<assemble_object_info_t> assemble_obj_list;
@@ -102,6 +103,9 @@ typedef struct _printer_plate_info {
     float               height_to_rod{0.f};
     float               cleareance_radius{0.f};
     float               distance_to_rod{0.f};
+
+    // How many nozzles this machine can mount at once (sum of extruder_max_nozzle_count).
+    int                 max_nozzle_count{1};
 }printer_plate_info_t;
 
 typedef struct _plate_obj_size_info {

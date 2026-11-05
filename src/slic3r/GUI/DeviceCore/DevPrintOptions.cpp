@@ -2,6 +2,7 @@
 #include "DevUtil.h"
 
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -175,7 +176,9 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
         if (time(nullptr) - opts->m_auto_recovery_detection.detect_hold_start > HOLD_TIME_3SEC) {
             if (print_json.contains("auto_recovery")) { opts->m_auto_recovery_detection.current_detect_value = print_json["auto_recovery"].get<bool>(); }
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     // cfg part
     if (print_json.contains("cfg")) {
@@ -223,6 +226,10 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
         // Smart nozzle blob detection mode: cfg bit 43-44 (2 bits), 0=off, 1=on, 2=auto
         if (time(nullptr) - opts->m_smart_nozzle_blob_detection.detect_hold_start > HOLD_TIME_3SEC)
             opts->m_smart_nozzle_blob_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 43, 2);
+
+        // Non-visual air printing detection: cfg bit 41, 0=off, 1=on
+        if (time(nullptr) - opts->m_non_visual_airprinting_detection.detect_hold_start > HOLD_TIME_3SEC)
+            opts->m_non_visual_airprinting_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 41);
 
         if (time(nullptr) - opts->m_snapshot_detection.detect_hold_start > HOLD_TIME_3SEC) {
             opts->m_snapshot_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 38, 2);
@@ -280,11 +287,12 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
         fun2 = print_json["fun2"].get<std::string>();
         BOOST_LOG_TRIVIAL(info) << "new print data fun2 = " << fun2;
 
-        opts->m_buildplate_align_detection.is_support_detect   = DevUtil::get_flag_bits_no_border(fun2, 2) == 1;
-        opts->m_purify_air_at_print_end.is_support_detect      = DevUtil::get_flag_bits_no_border(fun2, 4);
-        opts->m_fod_check_detection.is_support_detect          = DevUtil::get_flag_bits_no_border(fun2, 13);
-        opts->m_displacement_detection.is_support_detect       = DevUtil::get_flag_bits_no_border(fun2, 14);
-        opts->m_smart_nozzle_blob_detection.is_support_detect  = DevUtil::get_flag_bits_no_border(fun2, 15);
+        opts->m_buildplate_align_detection.is_support_detect       = DevUtil::get_flag_bits_no_border(fun2, 2) == 1;
+        opts->m_purify_air_at_print_end.is_support_detect          = DevUtil::get_flag_bits_no_border(fun2, 4);
+        opts->m_fod_check_detection.is_support_detect              = DevUtil::get_flag_bits_no_border(fun2, 13);
+        opts->m_displacement_detection.is_support_detect           = DevUtil::get_flag_bits_no_border(fun2, 14);
+        opts->m_smart_nozzle_blob_detection.is_support_detect      = DevUtil::get_flag_bits_no_border(fun2, 15);
+        opts->m_non_visual_airprinting_detection.is_support_detect = DevUtil::get_flag_bits_no_border(fun2, 32);
     }
 }
 
@@ -310,7 +318,8 @@ DevPrintOptions::DevPrintOptions(MachineObject *obj) : m_obj(obj)
                         {PrintOptionEnum::Snapshot_Detection, &m_snapshot_detection},
                         {PrintOptionEnum::FOD_Check_Detection, &m_fod_check_detection},
                         {PrintOptionEnum::Displacement_Detection, &m_displacement_detection},
-                        {PrintOptionEnum::Smart_Nozzle_Blob_Detection, &m_smart_nozzle_blob_detection}
+                        {PrintOptionEnum::Smart_Nozzle_Blob_Detection, &m_smart_nozzle_blob_detection},
+                        {PrintOptionEnum::NonVisual_AirPrinting_Detection, &m_non_visual_airprinting_detection}
     };
 };
 
@@ -569,6 +578,17 @@ int DevPrintOptions::command_xcam_control_displacement_detection(bool on_off)
     m_displacement_detection.current_detect_value = on_off;
     m_displacement_detection.detect_hold_start    = time(nullptr);
     return command_xcam_control("model_movement_check", on_off, m_obj);
+}
+
+int DevPrintOptions::command_non_visual_airprinting_detection(bool on_off)
+{
+    json j;
+    j["print"]["command"]                = "print_option";
+    j["print"]["sequence_id"]            = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["air_printing_detection"] = on_off;
+    m_non_visual_airprinting_detection.current_detect_value = on_off;
+    m_non_visual_airprinting_detection.detect_hold_start    = time(nullptr);
+    return m_obj->publish_json(j);
 }
 
 } // namespace Slic3r
