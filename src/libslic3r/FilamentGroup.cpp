@@ -985,7 +985,9 @@ namespace Slic3r
             MultiNozzleUtils::NozzleInfo compact_nozzle = nozzle;
             compact_nozzle.group_id = compact_id;
             compact_nozzle_info.nozzle_list.emplace_back(std::move(compact_nozzle));
-            compact_nozzle_info.per_nozzle_capacity.emplace_back(full_id >= 0 && full_id < (int)nozzle_info.per_nozzle_capacity.size() ? nozzle_info.per_nozzle_capacity[full_id] : 1);
+            // Empty capacities select the legacy heuristic; retain that distinction.
+            if (!nozzle_info.per_nozzle_capacity.empty())
+                compact_nozzle_info.per_nozzle_capacity.emplace_back(full_id >= 0 && full_id < (int)nozzle_info.per_nozzle_capacity.size() ? nozzle_info.per_nozzle_capacity[full_id] : 1);
             compact_nozzle_info.extruder_nozzle_list[nozzle.extruder_id].emplace_back(compact_id);
 
             if (auto it = nozzle_info.nozzle_status.find(full_id); it != nozzle_info.nozzle_status.end())
