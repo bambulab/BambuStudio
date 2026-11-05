@@ -11128,7 +11128,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             input_files.push_back(from_u8(evt.data[i].string()));
         }
         wxGetApp().mainframe->Raise();
-        this->q->load_files(input_files);
+        // Same as a double-click: this is the other instance's command line, not a drop.
+        this->q->open_files_from_desktop(input_files);
     });
     this->q->Bind(EVT_INSTANCE_GO_TO_FRONT, [this](InstanceGoToFrontEvent &) {
         bring_instance_forward();
@@ -26046,6 +26047,32 @@ bool Plater::load_same_type_files(const wxArrayString &filenames) {
         return true;
     }
 }
+// Files handed to us by the OS: double-click, "Open with", or a file association. A 3mf always
+// becomes the project here, Bambu project or not. load_files() cannot be used for that: it routes
+// a non-Bambu 3mf through open_3mf_file() to LoadType::LoadGeometry, which imports the meshes into
+// the current scene and never names the project, so the title bar kept the "Untitled" that
+// post_init() sets. A Bambu 3mf already reached load_project() this way, so this only changes
+// where a standard 3mf ends up; load_project()'s import_as_model branch then starts an empty
+// project, imports the file as a model and sets the project name without taking its path, so
+// saving cannot overwrite the source file.
+void Plater::open_files_from_desktop(const wxArrayString& filenames)
+{
+    const bool open_as_project = filenames.GetCount() == 1
+                              && boost::iends_with(into_u8(filenames.front()), ".3mf");
+    BOOST_LOG_TRIVIAL(info) << "open files from desktop, " << KV(log_key::file_count, filenames.GetCount())
+                            << ", as project " << open_as_project;
+
+    // Dropping files onto the window or importing them from the toolbar keeps meaning "add to the
+    // current scene", so neither goes through here.
+    if (open_as_project) {
+        if (wxGetApp().can_load_project())
+            load_project(filenames.front());
+        return;
+    }
+
+    load_files(filenames);
+}
+
     //BBS: remove GCodeViewer as seperate APP logic
 bool Plater::load_files(const wxArrayString& filenames)
 {

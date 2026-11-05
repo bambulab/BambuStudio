@@ -502,6 +502,9 @@ public:
     bool load_svg(const wxArrayString &filenames, bool from_toolbar_or_file_menu = false);
     bool load_same_type_files(const wxArrayString &filenames);
     bool load_files(const wxArrayString& filenames);
+    // Open files handed to us by the OS (double-click / file association): a 3mf always becomes
+    // the project, unlike load_files(), which imports a non-Bambu 3mf into the current scene.
+    void open_files_from_desktop(const wxArrayString& filenames);
     void statistics_burial_data_once(std::string json_str);//Upload to the cloud immediately
     void statistics_burial_data(std::string file_path);
     void statistics_burial_data_form_mw();

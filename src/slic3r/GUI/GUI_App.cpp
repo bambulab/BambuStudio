@@ -1258,8 +1258,9 @@ void GUI_App::post_init()
                 for (auto & file : this->init_params->input_files) {
                     input_files.push_back(wxString::FromUTF8(file));
                 }
+                // Untitled still covers stl/step/obj; a 3mf gets its real name from load_project().
                 this->plater()->set_project_filename(_L("Untitled"));
-                this->plater()->load_files(input_files);
+                this->plater()->open_files_from_desktop(input_files);
                 try {
                     if (!input_files.empty()) {
                         std::string file_path = input_files.front().ToStdString();
@@ -8399,7 +8400,7 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
                 for (size_t i = 0; i < non_gcode_files.size(); ++i) {
                     input_files.push_back(non_gcode_files[i]);
                 }
-                this->plater()->load_files(input_files);
+                this->plater()->open_files_from_desktop(input_files);
             }
             else {
                 for (size_t i = 0; i < files.size(); ++i) {
