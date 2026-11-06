@@ -10489,6 +10489,7 @@ public:
     void on_action_send_to_printer(bool isall = false);
     void on_action_send_to_multi_machine(SimpleEvent&);
     void on_action_send_to_multi_app(SimpleEvent&);
+    void on_action_send_to_multi_app_all(SimpleEvent&);
     int update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
 private:
     friend class Plater;
@@ -10501,6 +10502,7 @@ private:
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool temp_snapshot_was_taken = false);
     void on_action_export_to_sdcard(SimpleEvent&);
     void on_action_export_to_sdcard_all(SimpleEvent&);
+    void do_send_to_multi_app(bool isall);
     void update_plugin_when_launch(wxCommandEvent& event);
     // path to project folder stored with no extension
     boost::filesystem::path     m_project_folder;
@@ -10979,6 +10981,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL, &priv::on_action_export_to_sdcard_all, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_MULTI_MACHINE, &priv::on_action_send_to_multi_machine, this);
         q->Bind(EVT_GLTOOLBAR_SEND_MULTI_APP, &priv::on_action_send_to_multi_app, this);
+        q->Bind(EVT_GLTOOLBAR_SEND_MULTI_APP_ALL, &priv::on_action_send_to_multi_app_all, this);
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         q->Bind(EVT_IMPORT_MODEL_ID, &priv::on_action_request_model_id, this);
@@ -19709,7 +19712,17 @@ void Plater::priv::on_action_send_to_multi_machine(SimpleEvent&)
     m_send_multi_dlg->ShowModal();
 }
 
-void Plater::priv::on_action_send_to_multi_app(SimpleEvent &)
+void Plater::priv::on_action_send_to_multi_app(SimpleEvent&)
+{
+    do_send_to_multi_app(false);
+}
+
+void Plater::priv::on_action_send_to_multi_app_all(SimpleEvent&)
+{
+    do_send_to_multi_app(true);
+}
+
+void Plater::priv::do_send_to_multi_app(bool isall)
 {
 #ifdef WIN32
     HKEY hKey;
@@ -19719,7 +19732,8 @@ void Plater::priv::on_action_send_to_multi_app(SimpleEvent &)
     if (result == ERROR_SUCCESS) {
         RegCloseKey(hKey);
 
-        auto gcodeResult = q->send_gcode(partplate_list.get_curr_plate_index(), [this](int export_stage, int current, int total, bool &cancel) {});
+        int plate_idx = isall ? PLATE_ALL_IDX : partplate_list.get_curr_plate_index();
+        auto gcodeResult = q->send_gcode(plate_idx, [this](int export_stage, int current, int total, bool &cancel) {});
 
         if (gcodeResult != 0) {
             BOOST_LOG_TRIVIAL(debug) << "send_gcode failed\n";
@@ -19734,7 +19748,7 @@ void Plater::priv::on_action_send_to_multi_app(SimpleEvent &)
             return;
         }
 
-        wxString filename = q->get_export_gcode_filename("", true, partplate_list.get_curr_plate_index() == PLATE_ALL_IDX);
+        wxString filename = q->get_export_gcode_filename("", true, isall);
         wxString filepath = from_path(data._3mf_path);
         filepath.Replace("\\", "/");
 

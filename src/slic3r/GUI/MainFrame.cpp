@@ -2388,6 +2388,8 @@ wxBoxSizer* MainFrame::create_side_tools()
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL));
             else if (m_print_select == eSendMultiApp)
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_MULTI_APP));
+            else if (m_print_select == eSendMultiAppAll)
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_MULTI_APP_ALL));
             /* else if (m_print_select == ePrintMultiMachine)
                  wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_MULTI_MACHINE));*/
         });
@@ -2568,6 +2570,19 @@ wxBoxSizer* MainFrame::create_side_tools()
                     send_to_multi_app_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent &) {
                         m_print_btn->SetLabel(_L("Send to BFMC"));
                         m_print_select = eSendMultiApp;
+                        m_print_enable = get_enable_print_status();
+                        m_print_btn->Enable(m_print_enable);
+                        this->Layout();
+                        p->Dismiss();
+                    });
+
+                    SideButton *send_all_to_multi_app_btn = new SideButton(p, _L("Send all to Bambu Farm Manager Client"), "");
+                    send_all_to_multi_app_btn->SetCornerRadius(0);
+                    p->append_button(send_all_to_multi_app_btn);
+
+                    send_all_to_multi_app_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent &) {
+                        m_print_btn->SetLabel(_L("Send all to BFMC"));
+                        m_print_select = eSendMultiAppAll;
                         m_print_enable = get_enable_print_status();
                         m_print_btn->Enable(m_print_enable);
                         this->Layout();
@@ -2759,6 +2774,11 @@ bool MainFrame::get_enable_print_status()
             enable = false;
         }
         enable = enable && !is_all_plates;
+    }
+    else if (m_print_select == eSendMultiAppAll) {
+        if (!part_plate_list.is_all_slice_results_ready_for_print()) {
+            enable = false;
+        }
     }
 
     BOOST_LOG_TRIVIAL(info) << boost::format("m_print_select %1%, enable= %2% ")%m_print_select %enable;
