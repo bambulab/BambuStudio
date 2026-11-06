@@ -24,10 +24,10 @@
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/Utils.hpp"
 #include "DeviceErrorDialog.hpp"
-#include <wx/html/htmlwin.h>
 #include <boost/algorithm/string/replace.hpp>
 #include "WindowShadow.hpp"
 #include "Widgets/StateColor.hpp"
+#include "Widgets/RichTextLabel.hpp"
 #ifdef __WIN32__
 #include <wx/msw/wrapwin.h>
 #endif
@@ -2146,16 +2146,11 @@ public:
         m_sep = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(1)));
         root->Add(m_sep, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(12));
 
-        m_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_NEVER);
-        m_html->SetBorders(0);
-        m_html->Bind(wxEVT_HTML_LINK_CLICKED, [](wxHtmlLinkEvent &event) {
-            wxLaunchDefaultBrowser(event.GetLinkInfo().GetHref());
-        });
-        root->Add(m_html, 1, wxEXPAND | wxALL, FromDIP(12));
+        m_body = new RichTextLabel(this, {}, FromDIP(CARD_WIDTH_DIP - 2 * CARD_PADDING_DIP), true);
+        root->Add(m_body, 0, wxALL, FromDIP(CARD_PADDING_DIP));
 
         SetSizer(root);
-        SetSize(FromDIP(CARD_WIDTH_DIP), FromDIP(CARD_HEIGHT_DIP));
-        Layout();
+        fit_card();
         ApplyShape();
     }
 
@@ -2257,48 +2252,47 @@ private:
         m_title->SetBackgroundColour(m_card_bg);
         m_title->SetForegroundColour(fg);
         m_sep->SetBackgroundColour(m_border);
-        rebuild_html(m_card_bg, fg);
+        rebuild_body(m_card_bg, fg);
         Refresh();
     }
 
-    void rebuild_html(const wxColour &bg, const wxColour &fg)
+    void rebuild_body(const wxColour &bg, const wxColour &fg)
     {
-        std::string msg = xml_escape(into_u8(_L(
+        const wxString msg = _L(
             "For users under the age of majority, some services will be restricted. "
-            "See our {0} for Bambu Lab Account. To understand our privacy practices, see {1}.")));
-        const std::string link_style = std::string("style=\"color:") + MONITOR_CTRL_LINK_COLOR + "; text-decoration:underline;\"";
-        const std::string age_link = "<a href=\"" + std::string(MONITOR_CTRL_AGE_REQUIREMENTS_URL) + "\" " + link_style + ">"
-            + xml_escape(into_u8(_L("Age Requirements"))) + "</a>";
-        const std::string privacy_link = "<a href=\"" + std::string(MONITOR_CTRL_PRIVACY_NOTICE_URL) + "\" " + link_style + ">"
-            + xml_escape(into_u8(_L("Privacy Notice"))) + "</a>";
-        boost::replace_all(msg, "{0}", age_link);
-        boost::replace_all(msg, "{1}", privacy_link);
+            "See our {0} for Bambu Lab Account. To understand our privacy practices, see {1}.");
 
-        const wxFont body_font = Label::Body_13;
-        const int    body_size = body_font.GetPointSize();
-        int          sizes[7]  = {body_size, body_size, body_size, body_size, body_size, body_size, body_size};
-        m_html->SetFonts(body_font.GetFaceName(), body_font.GetFaceName(), sizes);
+        m_body->SetBackgroundColour(bg);
+        m_body->SetColours(fg, wxColour(MONITOR_CTRL_LINK_COLOR));
+        m_body->SetFonts(Label::Body_13, Label::Body_13.Bold());
+        m_body->SetSegments(RichTextLabel::segments_from_template(msg, {
+            {_L("Age Requirements"), false, MONITOR_CTRL_AGE_REQUIREMENTS_URL},
+            {_L("Privacy Notice"), false, MONITOR_CTRL_PRIVACY_NOTICE_URL},
+        }));
+        fit_card();
+    }
 
-        auto clr_str = [](const wxColour &c) {
-            return wxString::Format(wxT("#%02X%02X%02X"), c.Red(), c.Green(), c.Blue());
-        };
-        m_html->SetPage("<html><body bgcolor=\"" + clr_str(bg) + "\"><font color=\"" + clr_str(fg) + "\">"
-            + wxString::FromUTF8(msg.data()) + "</font></body></html>");
+    void fit_card()
+    {
+        const int height = std::max(FromDIP(CARD_MIN_HEIGHT_DIP), GetSizer()->CalcMin().GetHeight());
+        SetSize(FromDIP(CARD_WIDTH_DIP), height);
+        Layout();
     }
 
     StatusBasePanel *m_owner{nullptr};
     wxStaticBitmap  *m_icon{nullptr};
     Label           *m_title{nullptr};
     wxPanel         *m_sep{nullptr};
-    wxHtmlWindow    *m_html{nullptr};
+    RichTextLabel   *m_body{nullptr};
     wxTimer          m_hide_timer;
     WindowShadow     m_shadow;
     wxColour         m_border{ThemeColor::Grey350};
     wxColour         m_card_bg{ThemeColor::White};
-    static constexpr int HIDE_DELAY_MS   = 200;
-    static constexpr int CARD_RADIUS     = 4;
-    static constexpr int CARD_WIDTH_DIP  = 365;
-    static constexpr int CARD_HEIGHT_DIP = 148;
+    static constexpr int HIDE_DELAY_MS       = 200;
+    static constexpr int CARD_RADIUS         = 4;
+    static constexpr int CARD_PADDING_DIP    = 12;
+    static constexpr int CARD_WIDTH_DIP      = 365;
+    static constexpr int CARD_MIN_HEIGHT_DIP = 148;
 };
 
 StatusBasePanel::~StatusBasePanel()

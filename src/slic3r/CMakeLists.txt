@@ -42,6 +42,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/Label.hpp
     GUI/Widgets/LinkLabel.cpp
     GUI/Widgets/LinkLabel.hpp
+    GUI/Widgets/RichTextLabel.cpp
+    GUI/Widgets/RichTextLabel.hpp
     GUI/Widgets/Scrollbar.cpp
     GUI/Widgets/Scrollbar.hpp
     GUI/Widgets/ScrolledWindow.cpp
