@@ -6,13 +6,7 @@
     "setting_id": "GFSA00_49",
     "instantiation": "true",
     "additional_cooling_fan_speed": [
-        "55"
-    ],
-    "eng_plate_temp": [
-        "55"
-    ],
-    "eng_plate_temp_initial_layer": [
-        "55"
+        "75"
     ],
     "fan_min_speed": [
         "80"

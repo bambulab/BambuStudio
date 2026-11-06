@@ -50,6 +50,10 @@
         "270",
         "270"
     ],
+    "override_process_overhang_speed": [
+        "1",
+        "0"
+    ],
     "slow_down_layer_time": [
         "12"
     ],

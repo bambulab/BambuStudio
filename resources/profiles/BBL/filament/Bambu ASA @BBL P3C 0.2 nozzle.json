@@ -8,6 +8,9 @@
     "chamber_temperatures": [
         "60"
     ],
+    "fan_max_speed": [
+        "45"
+    ],
     "filament_change_length": [
         "0"
     ],
