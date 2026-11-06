@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <exception>
+#include <utility>
 
 #include "Job.hpp"
 #include <libslic3r/Thread.hpp>
@@ -37,7 +38,12 @@ void GUI::Job::update_percent_finish()
 
 void GUI::Job::show_error_info(wxString msg, int code, wxString description, wxString extra)
 {
-    m_progress->show_error_info(msg, code, description, extra);
+    // process() runs on the worker. Showing the error resizes the send dialog,
+    // which AppKit only allows on the main thread. CallAfter queues onto this
+    // handler and drops the call if the job is destroyed first.
+    CallAfter([this, msg = std::move(msg), code, description = std::move(description), extra = std::move(extra)] {
+        m_progress->show_error_info(msg, code, description, extra);
+    });
 }
 
 GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
