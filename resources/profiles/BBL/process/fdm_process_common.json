@@ -134,6 +134,7 @@
     "reduce_infill_retraction_mode": "Auto",
     "resolution": "0.012",
     "scarf_angle_threshold": "155",
+    "seam_embedded_headroom": "10",
     "seam_placement_away_from_overhangs": "0",
     "seam_position": "aligned",
     "seam_slope_gap": "0",

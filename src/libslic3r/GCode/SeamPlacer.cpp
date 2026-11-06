@@ -415,12 +415,84 @@ Polygons extract_perimeter_polygons(const Layer *layer, const SeamPosition confi
     return polygons;
 }
 
+class PerimeterDistancer
+{
+    std::vector<Linef>                lines;
+    AABBTreeIndirect::Tree<2, double> tree;
+
+public:
+    PerimeterDistancer(const Layer *layer)
+    {
+        ExPolygons layer_outline = layer->lslices;
+        for (const ExPolygon &island : layer_outline) {
+            assert(island.contour.is_counter_clockwise());
+            for (const auto &line : island.contour.lines()) { lines.emplace_back(unscale(line.a), unscale(line.b)); }
+            for (const Polygon &hole : island.holes) {
+                assert(hole.is_clockwise());
+                for (const auto &line : hole.lines()) { lines.emplace_back(unscale(line.a), unscale(line.b)); }
+            }
+        }
+        tree = AABBTreeLines::build_aabb_tree_over_indexed_lines(lines);
+    }
+
+    float distance_from_perimeter(const Vec2f &point) const
+    {
+        Vec2d  p = point.cast<double>();
+        size_t hit_idx_out{};
+        Vec2d  hit_point_out = Vec2d::Zero();
+        auto   distance      = AABBTreeLines::squared_distance_to_indexed_lines(lines, tree, p, hit_idx_out, hit_point_out);
+        if (distance < 0) { return std::numeric_limits<float>::max(); }
+
+        distance          = sqrt(distance);
+        const Linef &line = lines[hit_idx_out];
+        Vec2d        v1   = line.b - line.a;
+        Vec2d        v2   = p - line.a;
+        if ((v1.x() * v2.y()) - (v1.y() * v2.x()) > 0.0) { distance *= -1; }
+        return distance;
+    }
+};
+
+// Turning angle of the polygon at a point lying on the edge starting at vertex edge_idx, dist_on_edge from that vertex.
+// Measured the same way as calculate_polygon_angles_at_vertices(): the arms reach the first vertices at least
+// min_arm_length away, so samples on a straight edge far from any corner get zero, samples close to a corner
+// pick up its angle.
+float calculate_polygon_angle_on_edge(const Polygon &polygon, const std::vector<float> &lengths, size_t edge_idx, float dist_on_edge, float min_arm_length)
+{
+    const size_t n = polygon.size();
+    if (n < 3) { return 0.f; }
+
+    size_t idx_prev         = edge_idx;
+    float  distance_to_prev = dist_on_edge;
+    for (size_t i = 0; distance_to_prev < min_arm_length && i < n; ++i) {
+        idx_prev = Slic3r::prev_idx_modulo(idx_prev, n);
+        distance_to_prev += lengths[idx_prev];
+    }
+    size_t idx_next         = Slic3r::next_idx_modulo(edge_idx, n);
+    float  distance_to_next = lengths[edge_idx] - dist_on_edge;
+    for (size_t i = 0; distance_to_next < min_arm_length && i < n; ++i) {
+        distance_to_next += lengths[idx_next];
+        idx_next = Slic3r::next_idx_modulo(idx_next, n);
+    }
+
+    const Vec2d edge_start = unscale(polygon[edge_idx]);
+    const Vec2d edge_end   = unscale(polygon[Slic3r::next_idx_modulo(edge_idx, n)]);
+    const Vec2d p1         = edge_start + (edge_end - edge_start).normalized() * double(dist_on_edge);
+    return float(angle(p1 - unscale(polygon[idx_prev]), unscale(polygon[idx_next]) - p1));
+}
+
 // Insert SeamCandidates created from perimeter polygons in to the result vector.
 // Compute its type (Enfrocer,Blocker), angle, and position
 // each SeamCandidate also contains pointer to shared Perimeter structure representing the polygon
 // if Custom Seam modifiers are present, oversamples the polygon if necessary to better fit user intentions
-void process_perimeter_polygon(
-    const Polygon &orig_polygon, float z_coord, const LayerRegion *region, const GlobalModelInfo &global_model_info, PrintObjectSeamData::LayerSeams &result)
+// if embedding_distancer is given, hidden (embedded) parts of the edges are oversampled evenly, so that hidden seam
+// positions are not limited to the polygon vertices and the hidden length along the loop can be measured precisely.
+// Exposed parts of the wall keep the default sampling.
+void process_perimeter_polygon(const Polygon &                  orig_polygon,
+                               float                            z_coord,
+                               const LayerRegion *              region,
+                               const GlobalModelInfo &          global_model_info,
+                               const PerimeterDistancer *       embedding_distancer,
+                               PrintObjectSeamData::LayerSeams &result)
 {
     if (orig_polygon.size() == 0) { return; }
     Polygon polygon       = orig_polygon;
@@ -442,8 +514,13 @@ void process_perimeter_polygon(
         orig_polygon_points.emplace(unscaled_p.x(), unscaled_p.y(), z_coord);
     }
     Vec3f             first = orig_polygon_points.front();
-    std::queue<Vec3f> oversampled_points{};
-    size_t            orig_angle_index = 0;
+    struct OversampledPoint
+    {
+        Vec3f position;
+        float local_ccw_angle;
+    };
+    std::queue<OversampledPoint> oversampled_points{};
+    size_t                       orig_angle_index = 0;
     perimeter.start_index              = result.points.size();
     perimeter.flow_width               = region != nullptr ? region->flow(FlowRole::frExternalPerimeter).width() : 0.0f;
     perimeter.region_id                = region != nullptr ? region->region().print_object_region_id() : -1;
@@ -454,7 +531,8 @@ void process_perimeter_polygon(
         float                    local_ccw_angle = 0;
         bool                     orig_point      = false;
         if (!oversampled_points.empty()) {
-            position = oversampled_points.front();
+            position        = oversampled_points.front().position;
+            local_ccw_angle = oversampled_points.front().local_ccw_angle;
             oversampled_points.pop();
         } else {
             position = orig_polygon_points.front();
@@ -472,14 +550,43 @@ void process_perimeter_polygon(
         if (orig_point) {
             Vec3f pos_of_next      = orig_polygon_points.empty() ? first : orig_polygon_points.front();
             float distance_to_next = (position - pos_of_next).norm();
-            if (distance_to_next > perimeter.flow_width * perimeter.flow_width * 4)
-                oversampled_points.push((position + pos_of_next) / 2);
-            if (global_model_info.is_enforced(position, distance_to_next)) {
+            const bool is_enforced_edge  = global_model_info.is_enforced(position, distance_to_next);
+            bool       embedding_sampled = false;
+            if (embedding_distancer != nullptr && !is_enforced_edge) {
+                // Enforced edges get even denser samples below.
+                const auto is_embedded_at = [&](const Vec3f &p) {
+                    return embedding_distancer->distance_from_perimeter(p.head<2>()) + 0.6f * perimeter.flow_width <
+                           SeamPlacer::embedded_distance_threshold;
+                };
+                const Vec3f        vec_to_next = (pos_of_next - position).normalized();
+                const float        step_size   = SeamPlacer::embedded_oversampling_distance;
+                std::vector<float> steps;
+                for (float step = step_size; step < distance_to_next - 0.5f * step_size; step += step_size) steps.push_back(step);
+                // Keep the hidden samples and their direct neighbours, which bound the hidden stretch for the headroom
+                // interpolation. Samples on the exposed part of the wall would only add cost.
+                std::vector<char> embedded(steps.size() + 2);
+                embedded.front() = is_embedded_at(position);
+                embedded.back()  = is_embedded_at(pos_of_next);
+                for (size_t i = 0; i < steps.size(); ++i) embedded[i + 1] = is_embedded_at(position + vec_to_next * steps[i]);
+                for (size_t i = 0; i < steps.size(); ++i) {
+                    if (!embedded[i] && !embedded[i + 1] && !embedded[i + 2]) continue;
+                    // Samples close to a corner must report its angle, otherwise the scarf seam and the inner wall
+                    // corner snapping would treat a seam next to a corner as lying on a straight wall.
+                    const float sample_angle = calculate_polygon_angle_on_edge(polygon, lengths, orig_angle_index - 1, steps[i], angle_arm_len);
+                    oversampled_points.push({position + vec_to_next * steps[i], was_clockwise ? -sample_angle : sample_angle});
+                    embedding_sampled = true;
+                }
+            }
+            // The embedded headroom computation walks the points in loop order, so a midpoint must not be inserted
+            // ahead of the evenly spaced samples.
+            if (!embedding_sampled && distance_to_next > perimeter.flow_width * perimeter.flow_width * 4)
+                oversampled_points.push({(position + pos_of_next) / 2, 0.f});
+            if (is_enforced_edge) {
                 Vec3f vec_to_next = (pos_of_next - position).normalized();
                 float step_size   = SeamPlacer::enforcer_oversampling_distance;
                 float step        = step_size;
                 while (step < distance_to_next) {
-                    oversampled_points.push(position + vec_to_next * step);
+                    oversampled_points.push({position + vec_to_next * step, 0.f});
                     step += step_size;
                 }
             }
@@ -690,8 +797,11 @@ struct SeamComparator
         if (a.overhang > 0.0f || b.overhang > 0.0f) { return a.overhang < b.overhang; }
 
         // prefer hidden points (more than 0.5 mm inside)
-        if (a.embedded_distance < -0.5f && b.embedded_distance > -0.5f) { return true; }
-        if (b.embedded_distance < -0.5f && a.embedded_distance > -0.5f) { return false; }
+        if (is_embedded(a) && !is_embedded(b)) { return true; }
+        if (is_embedded(b) && !is_embedded(a)) { return false; }
+
+        // among hidden points, prefer the ones followed by more hidden wall in the printing direction
+        if (const int qa = quantized_headroom(a), qb = quantized_headroom(b); qa != qb) { return qa > qb; }
 
         if (setup == SeamPosition::spRear && a.position.y() != b.position.y()) { return a.position.y() > b.position.y(); }
 
@@ -733,8 +843,11 @@ struct SeamComparator
         if ((a.overhang > 0.0f || b.overhang > 0.0f) && abs(a.overhang - b.overhang) > (0.1f * a.perimeter.flow_width)) { return a.overhang < b.overhang; }
 
         // prefer hidden points (more than 0.5 mm inside)
-        if (a.embedded_distance < -0.5f && b.embedded_distance > -0.5f) { return true; }
-        if (b.embedded_distance < -0.5f && a.embedded_distance > -0.5f) { return false; }
+        if (is_embedded(a) && !is_embedded(b)) { return true; }
+        if (is_embedded(b) && !is_embedded(a)) { return false; }
+
+        // do not trade away hidden wall after the seam
+        if (b.embedded_headroom - a.embedded_headroom > SeamPlacer::embedded_headroom_tolerance) { return false; }
 
         if (setup == SeamPosition::spRandom) { return true; }
 
@@ -749,6 +862,9 @@ struct SeamComparator
     }
 
     bool are_similar(const SeamCandidate &a, const SeamCandidate &b) const { return is_first_not_much_worse(a, b) && is_first_not_much_worse(b, a); }
+
+    static bool is_embedded(const SeamCandidate &p) { return p.embedded_distance < SeamPlacer::embedded_distance_threshold; }
+    static int  quantized_headroom(const SeamCandidate &p) { return int(p.embedded_headroom / SeamPlacer::embedded_headroom_quantum); }
 };
 
 #ifdef DEBUG_FILES
@@ -780,6 +896,10 @@ void debug_export_points(const std::vector<PrintObjectSeamData::LayerSeams> &lay
         SVG         weight_svg{weights_file_name, bounding_box};
         std::string overhangs_file_name = debug_out_path(("overhang_" + std::to_string(layer_idx) + ".svg").c_str());
         SVG         overhangs_svg{overhangs_file_name, bounding_box};
+        std::string headroom_file_name = debug_out_path(("headroom_" + std::to_string(layer_idx) + ".svg").c_str());
+        SVG         headroom_svg{headroom_file_name, bounding_box};
+        float       max_headroom = 0.f;
+        for (const SeamCandidate &point : layers[layer_idx].points) max_headroom = std::max(max_headroom, point.embedded_headroom);
 
         for (const SeamCandidate &point : layers[layer_idx].points) {
             Vec3i       color           = value_to_rgbi(min_vis, max_vis, point.visibility);
@@ -793,6 +913,10 @@ void debug_export_points(const std::vector<PrintObjectSeamData::LayerSeams> &lay
             Vec3i       overhang_color = value_to_rgbi(-0.5, 0.5, std::clamp(point.overhang, -0.5f, 0.5f));
             std::string overhang_fill  = "rgb(" + std::to_string(overhang_color.x()) + "," + std::to_string(overhang_color.y()) + "," + std::to_string(overhang_color.z()) + ")";
             overhangs_svg.draw(scaled(Vec2f(point.position.head<2>())), overhang_fill);
+
+            Vec3i       headroom_color = value_to_rgbi(0.f, std::max(max_headroom, 1.f), point.embedded_headroom);
+            std::string headroom_fill  = "rgb(" + std::to_string(headroom_color.x()) + "," + std::to_string(headroom_color.y()) + "," + std::to_string(headroom_color.z()) + ")";
+            headroom_svg.draw(scaled(Vec2f(point.position.head<2>())), headroom_fill);
         }
     }
 }
@@ -883,42 +1007,6 @@ void pick_random_seam_point(const std::vector<SeamCandidate> &perimeter_points, 
     perimeter.finalized           = true;
 }
 
-class PerimeterDistancer
-{
-    std::vector<Linef>                lines;
-    AABBTreeIndirect::Tree<2, double> tree;
-
-public:
-    PerimeterDistancer(const Layer *layer)
-    {
-        ExPolygons layer_outline = layer->lslices;
-        for (const ExPolygon &island : layer_outline) {
-            assert(island.contour.is_counter_clockwise());
-            for (const auto &line : island.contour.lines()) { lines.emplace_back(unscale(line.a), unscale(line.b)); }
-            for (const Polygon &hole : island.holes) {
-                assert(hole.is_clockwise());
-                for (const auto &line : hole.lines()) { lines.emplace_back(unscale(line.a), unscale(line.b)); }
-            }
-        }
-        tree = AABBTreeLines::build_aabb_tree_over_indexed_lines(lines);
-    }
-
-    float distance_from_perimeter(const Vec2f &point) const
-    {
-        Vec2d  p = point.cast<double>();
-        size_t hit_idx_out{};
-        Vec2d  hit_point_out = Vec2d::Zero();
-        auto   distance      = AABBTreeLines::squared_distance_to_indexed_lines(lines, tree, p, hit_idx_out, hit_point_out);
-        if (distance < 0) { return std::numeric_limits<float>::max(); }
-
-        distance          = sqrt(distance);
-        const Linef &line = lines[hit_idx_out];
-        Vec2d        v1   = line.b - line.a;
-        Vec2d        v2   = p - line.a;
-        if ((v1.x() * v2.y()) - (v1.y() * v2.x()) > 0.0) { distance *= -1; }
-        return distance;
-    }
-};
 
 // BBS multi-diameter adaptive layer height: a group-top layer extrudes its whole merge span in one pass,
 // so the geometry supporting its walls is the layer below the group bottom. The physical layer right below
@@ -942,6 +1030,81 @@ bool adaptive_merge_walls_merged_out(const LayerRegion *layerm)
 {
     return std::any_of(layerm->adaptive_merge_patches.begin(), layerm->adaptive_merge_patches.end(),
                        [](const AdaptiveMergePatch &patch) { return ! patch.group_top; });
+}
+
+// Embedded (hidden) seam points only exist where more than one region shares the layer, e.g. at multimaterial joins.
+bool layer_needs_embedding(const Layer *layer)
+{
+    // BBS multi-diameter adaptive layer height: a region whose walls are merged out still occupies
+    // its area here, so counting perimeter entities alone would enable the embedding search only on
+    // the group-top layers of the neighbouring region. The join of the two materials is deeply
+    // embedded and wins the seam on those layers, while the layers in between fall back to the most
+    // attractive convex corner, which alternates the seam of the finer nozzle across layers.
+    size_t regions_with_material = 0;
+    for (const LayerRegion *region : layer->regions()) {
+        if (region->perimeters.entities.size() > 0 || adaptive_merge_walls_merged_out(region)) { regions_with_material++; }
+    }
+    return regions_with_material > 1;
+}
+
+// For each point of the perimeter starting at start_index, computes the length of hidden wall extruded after
+// the point before the wall becomes exposed, capped at max_headroom. Requires embedded_distance to be computed.
+// Candidates are stored counter-clockwise (see process_perimeter_polygon()); GCode::extrude_loop() prints loops
+// counter-clockwise unless print_in_clockwise is set, in which case the printing direction is reversed.
+void compute_embedded_headroom(std::vector<SeamCandidate> &points, size_t start_index, float max_headroom, bool print_in_clockwise)
+{
+    const size_t end_index = points[start_index].perimeter.end_index;
+    const size_t count     = end_index - start_index;
+    if (count < 2)
+        return;
+
+    const auto embedded = [](const SeamCandidate &p) { return p.embedded_distance < SeamPlacer::embedded_distance_threshold; };
+    // The point printed right after / right before the given one.
+    const auto next = [&](size_t idx) {
+        return print_in_clockwise ? (idx == start_index ? end_index - 1 : idx - 1) : (idx + 1 == end_index ? start_index : idx + 1);
+    };
+    const auto prev = [&](size_t idx) {
+        return print_in_clockwise ? (idx + 1 == end_index ? start_index : idx + 1) : (idx == start_index ? end_index - 1 : idx - 1);
+    };
+
+    // Start the backward propagation at an exposed point, which terminates every hidden stretch.
+    std::optional<size_t> exposed;
+    for (size_t idx = start_index; idx < end_index; ++idx)
+        if (!embedded(points[idx])) {
+            exposed = idx;
+            break;
+        }
+
+    if (!exposed.has_value()) {
+        // The whole loop is hidden, every seam position is equally good.
+        float loop_length = 0.f;
+        for (size_t idx = start_index; idx < end_index; ++idx)
+            loop_length += (points[next(idx)].position - points[idx].position).head<2>().norm();
+        for (size_t idx = start_index; idx < end_index; ++idx)
+            points[idx].embedded_headroom = std::min(loop_length, max_headroom);
+        return;
+    }
+
+    points[*exposed].embedded_headroom = 0.f;
+    for (size_t idx = prev(*exposed), i = 1; i < count; idx = prev(idx), ++i) {
+        SeamCandidate &      current = points[idx];
+        const SeamCandidate &after   = points[next(idx)];
+        if (!embedded(current)) {
+            current.embedded_headroom = 0.f;
+            continue;
+        }
+        const float edge_length = (after.position - current.position).head<2>().norm();
+        float       headroom;
+        if (embedded(after)) {
+            headroom = after.embedded_headroom + edge_length;
+        } else {
+            // The wall becomes exposed somewhere on this edge, estimate where by linear interpolation of the embedding depth.
+            const float depth_change = after.embedded_distance - current.embedded_distance;
+            const float t = depth_change > EPSILON ? (SeamPlacer::embedded_distance_threshold - current.embedded_distance) / depth_change : 0.f;
+            headroom      = std::clamp(t, 0.f, 1.f) * edge_length;
+        }
+        current.embedded_headroom = std::min(headroom, max_headroom);
+    }
 }
 
 } // namespace SeamPlacerImpl
@@ -970,9 +1133,12 @@ void SeamPlacer::gather_seam_candidates(const PrintObject *po, const SeamPlacerI
             }
             std::vector<const LayerRegion *> regions;
             // NOTE corresponding region ptr may be null, if the layer has zero perimeters
-            Polygons polygons = extract_perimeter_polygons(layer, configured_seam_preference, regions);
+            Polygons   polygons                 = extract_perimeter_polygons(layer, configured_seam_preference, regions);
+            std::unique_ptr<PerimeterDistancer> embedding_distancer;
+            if (po->config().seam_embedded_headroom.value > 0. && layer_needs_embedding(layer))
+                embedding_distancer = std::make_unique<PerimeterDistancer>(layer);
             for (size_t poly_index = 0; poly_index < polygons.size(); ++poly_index) {
-                process_perimeter_polygon(polygons[poly_index], unscaled_z, regions[poly_index], global_model_info, layer_seams);
+                process_perimeter_polygon(polygons[poly_index], unscaled_z, regions[poly_index], global_model_info, embedding_distancer.get(), layer_seams);
             }
             auto functor                            = SeamCandidateCoordinateFunctor{layer_seams.points};
             seam_data.layers[layer_idx].points_tree = std::make_unique<PrintObjectSeamData::SeamCandidatesTree>(functor, layer_seams.points.size());
@@ -996,23 +1162,16 @@ void SeamPlacer::calculate_overhangs_and_layer_embedding(const PrintObject *po)
 {
     using namespace SeamPlacerImpl;
     std::vector<PrintObjectSeamData::LayerSeams> &layers = m_seam_per_object[po].layers;
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, layers.size()), [po, &layers](tbb::blocked_range<size_t> r) {
+    const float headroom_target    = float(po->config().seam_embedded_headroom.value);
+    const bool  print_in_clockwise = po->print()->config().print_in_clockwise.value;
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, layers.size()), [po, &layers, headroom_target, print_in_clockwise](tbb::blocked_range<size_t> r) {
         std::unique_ptr<PerimeterDistancer> prev_layer_distancer;
         if (r.begin() > 0) { // previous layer exists
             prev_layer_distancer = std::make_unique<PerimeterDistancer>(po->layers()[r.begin() - 1]);
         }
 
         for (size_t layer_idx = r.begin(); layer_idx < r.end(); ++layer_idx) {
-            // BBS multi-diameter adaptive layer height: a region whose walls are merged out still occupies
-            // its area here, so counting perimeter entities alone would enable the embedding search only on
-            // the group-top layers of the neighbouring region. The join of the two materials is deeply
-            // embedded and wins the seam on those layers, while the layers in between fall back to the most
-            // attractive convex corner, which alternates the seam of the finer nozzle across layers.
-            size_t regions_with_material = 0;
-            for (const LayerRegion *region : po->layers()[layer_idx]->regions()) {
-                if (region->perimeters.entities.size() > 0 || adaptive_merge_walls_merged_out(region)) { regions_with_material++; }
-            };
-            bool                                should_compute_layer_embedding = regions_with_material > 1;
+            bool                                should_compute_layer_embedding = layer_needs_embedding(po->layers()[layer_idx]);
             std::unique_ptr<PerimeterDistancer> current_layer_distancer        = std::make_unique<PerimeterDistancer>(po->layers()[layer_idx]);
 
             // BBS multi-diameter adaptive layer height: a group-top layer extrudes its whole merge span in
@@ -1100,6 +1259,13 @@ void SeamPlacer::calculate_overhangs_and_layer_embedding(const PrintObject *po)
                         layers[layer_idx].points[idx].extra_overhang_point = perimeter_point.overhang_degree * gauss_value_dist;
                     }
                 }
+            }
+
+            // Needs the embedded_distance of the complete loop, hence a separate pass.
+            if (should_compute_layer_embedding && headroom_target > 0.f) {
+                std::vector<SeamCandidate> &points = layers[layer_idx].points;
+                for (size_t current = 0; current < points.size(); current = points[current].perimeter.end_index)
+                    compute_embedded_headroom(points, current, headroom_target, print_in_clockwise);
             }
 
             prev_layer_distancer.swap(current_layer_distancer);
@@ -1346,6 +1512,9 @@ void SeamPlacer::align_seam_points(const PrintObject *po, const SeamPlacerImpl::
                 const auto &pair = seam_string[index];
                 float       t    = std::min(1.0f, std::pow(std::abs(layers[pair.first].points[pair.second].local_ccw_angle) / SeamPlacer::sharp_angle_snapping_threshold, 3.0f));
                 if (layers[pair.first].points[pair.second].type == EnforcedBlockedSeamPoint::Enforced) { t = std::max(0.4f, t); }
+                // A hidden seam gains nothing from visual alignment, while moving it along the wall towards the fitted curve
+                // may spend the hidden wall left after the seam (or even move the seam onto the exposed part of the wall).
+                if (layers[pair.first].points[pair.second].embedded_headroom > 0.f) { t = 1.0f; }
 
                 Vec3f current_pos = layers[pair.first].points[pair.second].position;
                 Vec2f fitted_pos  = curve.get_fitted_value(current_pos.z());
@@ -1558,6 +1727,7 @@ void SeamPlacer::init(const Print &print, std::function<void(void)> throw_if_can
         debug_export_points(m_seam_per_object[po].layers, po->bounding_box(), comparator);
 #endif
     }
+
 }
 
 void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop, bool external_first, const Point &last_pos, bool &satisfy_angle_threshold) const

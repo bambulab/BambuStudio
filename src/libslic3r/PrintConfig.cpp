@@ -5935,6 +5935,19 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def           = this->add("seam_embedded_headroom", coFloat);
+    def->label    = L("Embedded seam headroom");
+    def->category = L("Quality");
+    def->tooltip  = L("When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that "
+                      "leaves at least this much hidden wall in the printing direction before the wall becomes visible. "
+                      "This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable.");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 100;
+    def->mode     = comAdvanced;
+    // Disabled unless the process profile enables it, so that projects saved without this option keep their seams.
+    def->set_default_value(new ConfigOptionFloat(0.));
+
     def = this->add("seam_gap", coPercent);
     def->label = L("Seam gap");
     def->category = L("Quality");

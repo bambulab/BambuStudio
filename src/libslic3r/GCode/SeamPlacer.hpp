@@ -77,6 +77,7 @@ struct SeamCandidate
         , visibility(0.0f)
         , overhang(0.0f)
         , embedded_distance(0.0f)
+        , embedded_headroom(0.0f)
         , local_ccw_angle(local_ccw_angle)
         , type(type)
         , central_enforcer(false)
@@ -93,6 +94,11 @@ struct SeamCandidate
     // distance inside the merged layer regions, for detecting perimeter points which are hidden indside the print (e.g. multimaterial join)
     // Negative sign means inside the print, comes from EdgeGrid structure
     float                    embedded_distance;
+    // Length of hidden (embedded) wall printed after this point, measured along the printing direction of the loop,
+    // before the wall first becomes exposed. Capped to the seam_embedded_headroom target, zero for exposed points
+    // and when the feature is disabled. A seam with more headroom hides the unstable extrusion right after a
+    // filament change better.
+    float                    embedded_headroom;
     float                    local_ccw_angle;
     EnforcedBlockedSeamPoint type;
     bool                     central_enforcer; // marks this candidate as central point of enforced segment on the perimeter - important for alignment
@@ -168,6 +174,17 @@ public:
     static constexpr float enforcer_oversampling_distance = 0.2f;
     static constexpr float end_point_oversampling_threshold = 4.0f;
     static constexpr float end_point_oversampling_distance = 1.5f;
+
+    // Points more than this distance inside the layer outline are considered hidden (embedded), e.g. multimaterial joins
+    static constexpr float embedded_distance_threshold = -0.5f;
+    // On layers where embedding is evaluated, long perimeter edges are oversampled with this step, so that the seam can be
+    // placed anywhere along a hidden edge, not only at its endpoints, and the hidden length can be measured precisely.
+    static constexpr float embedded_oversampling_distance = 0.5f;
+    // Embedded headroom differences below this quantum are ignored when ordering seam candidates,
+    // so that tiny length differences do not override visibility and angle preferences.
+    static constexpr float embedded_headroom_quantum = 0.5f;
+    // During alignment, a candidate may have up to this much less embedded headroom than the original seam
+    static constexpr float embedded_headroom_tolerance = 1.0f;
 
     // When searching for seam clusters for alignment:
     // following value describes, how much worse score can point have and still be picked into seam cluster instead of original seam point on the same layer
