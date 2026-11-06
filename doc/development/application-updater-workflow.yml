@@ -1,0 +1,60 @@
+name: Application updater tests
+on:
+  push:
+    branches: [feature/linux-in-app-updates]
+    paths:
+      - 'src/slic3r/Utils/*Updater.*'
+      - 'src/slic3r/GUI/AppUpdate.cpp'
+      - 'tests/application_updater/**'
+      - 'tests/appimage_updater/**'
+      - 'packaging/updates/**'
+      - '.github/workflows/application-updater.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  portable:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-latest, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Linux dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libssl-dev nsis
+      - name: macOS dependencies
+        if: runner.os == 'macOS'
+        run: brew install curl openssl@3
+      - name: Windows dependencies
+        if: runner.os == 'Windows'
+        run: vcpkg install curl:x64-windows openssl:x64-windows
+      - name: Configure portable tests (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          if [ '${{ runner.os }}' = macOS ]; then
+            export CMAKE_PREFIX_PATH="$(brew --prefix curl):$(brew --prefix openssl@3)"
+          fi
+          cmake -S tests/application_updater -B build/portable -DCMAKE_BUILD_TYPE=Debug
+      - name: Configure portable tests (Windows)
+        if: runner.os == 'Windows'
+        run: cmake -S tests/application_updater -B build/portable -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows
+      - name: Build and test
+        run: |
+          cmake --build build/portable --config Debug --parallel 2
+          ctest --test-dir build/portable -C Debug --output-on-failure
+      - name: Windows helper process flow
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tests/application_updater/windows_helper_tests.ps1
+      - name: Linux transactions and installer packaging
+        if: runner.os == 'Linux'
+        run: |
+          cmake -S tests/appimage_updater -B build/linux -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build/linux --parallel 2
+          ctest --test-dir build/linux --output-on-failure
+          mkdir -p /tmp/installer-fixture
+          echo fixture > /tmp/installer-fixture/bambu-studio.exe
+          makensis -DAPPDIR=/tmp/installer-fixture -DOUTFILE=/tmp/installer-fixture.exe tests/application_updater/fixtures/windows.nsi

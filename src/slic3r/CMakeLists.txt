@@ -829,6 +829,12 @@ if (UNIX AND NOT APPLE)
     )
 endif ()
 
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    list(APPEND SLIC3R_GUI_SOURCES Utils/AppImageUpdater.cpp Utils/AppImageUpdater.hpp)
+endif()
+
+list(APPEND SLIC3R_GUI_SOURCES GUI/AppUpdate.cpp Utils/ReleaseUpdater.cpp Utils/ReleaseUpdater.hpp
+    Utils/DesktopUpdater.cpp Utils/DesktopUpdater.hpp)
 # MSVC+Ninja embeds debug info in every object (/Z7, see top-level CMakeLists),
 # which pushes a static libslic3r_gui.lib past the 4 GB .lib format limit
 # (LNK1248). An OBJECT library hands the objects straight to the linker and
@@ -838,6 +844,44 @@ if (MSVC AND CMAKE_GENERATOR MATCHES "Ninja")
 else ()
     add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
 endif ()
+
+# Release maintainers opt in after configuring compatible packages and digests.
+# An empty repository preserves the existing update check and download flow.
+set(_update_repository "")
+if (WIN32)
+    if (NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(_update_repository "")
+    endif()
+    set(_update_platform "${CMAKE_GENERATOR_PLATFORM}")
+    if (NOT _update_platform)
+        set(_update_platform "${CMAKE_SYSTEM_PROCESSOR}")
+    endif()
+    string(TOUPPER "${_update_platform}" _update_platform)
+    if (_update_platform MATCHES "^(ARM64|ARM64EC|AARCH64)$")
+        set(_update_asset "BambuStudio_windows-arm64.exe")
+    else()
+        set(_update_asset "BambuStudio_windows-x86_64.exe")
+    endif()
+elseif (APPLE)
+    set(_update_asset "BambuStudio_macos-universal.dmg")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(_update_asset "BambuStudio_linux-x86_64.AppImage")
+    if (NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64|AMD64)$")
+        set(_update_repository "")
+    endif()
+else()
+    set(_update_repository "")
+    set(_update_asset "disabled.AppImage")
+endif()
+set(BAMBUSTUDIO_UPDATE_REPOSITORY "${_update_repository}" CACHE STRING "GitHub repository for application updates; empty disables")
+set(BAMBUSTUDIO_UPDATE_ASSET "${_update_asset}" CACHE STRING "Exact release asset for this build")
+if (NOT BAMBUSTUDIO_UPDATE_REPOSITORY MATCHES "^([A-Za-z0-9_-]+/[A-Za-z0-9_.-]+)?$" OR
+    NOT BAMBUSTUDIO_UPDATE_ASSET MATCHES "^[A-Za-z0-9_.-]+\\.(AppImage|exe|dmg)$")
+    message(FATAL_ERROR "Invalid application update repository or asset")
+endif()
+target_compile_definitions(libslic3r_gui PRIVATE
+    BAMBUSTUDIO_UPDATE_REPOSITORY="${BAMBUSTUDIO_UPDATE_REPOSITORY}"
+    BAMBUSTUDIO_UPDATE_ASSET="${BAMBUSTUDIO_UPDATE_ASSET}")
 
 if (TARGET device_page_build)
     add_dependencies(libslic3r_gui device_page_build)

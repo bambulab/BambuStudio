@@ -612,6 +612,13 @@ public:
 
     void            check_update(bool show_tips, int by_user);
     void            check_new_version(bool show_tips = false, int by_user = 0);
+    bool            check_application_update(bool show_tips);
+    void            finish_application_update();
+    std::atomic<bool> m_update_check_in_progress{false};
+    std::string     m_update_restart_path;
+    std::string     m_update_installed_path;
+    std::string     m_update_package_path;
+    void            cancel_update_restart() { m_update_restart_path.clear(); }
     void            check_cert();
     void            post_device_region();
     bool            process_network_msg(std::string dev_id, std::string msg);

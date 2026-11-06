@@ -691,14 +691,14 @@ std::vector<std::string> UpdateVersionDialog::splitWithStl(std::string str,std::
     return result;
 }
 
-void UpdateVersionDialog::update_version_info(wxString release_note, wxString version)
+void UpdateVersionDialog::update_version_info(wxString release_note, wxString version, bool in_app_update)
 {
     //bbs check whether the web display is used
     bool use_web_link       = false;
     url_line                = "";
     auto split_array        =  splitWithStl(release_note.ToStdString(), "###");
 
-    if (split_array.size() >= 3) {
+    if (!in_app_update && split_array.size() >= 3) {
         for (auto i = 0; i < split_array.size(); i++) {
             std::string url = split_array[i];
             if (std::strstr(url.c_str(), "http://") != NULL || std::strstr(url.c_str(), "https://") != NULL) {
@@ -720,7 +720,9 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
     else {
         m_simplebook_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
         m_simplebook_release_note->SetSelection(0);
-        m_text_up_info->SetLabel(wxString::Format(_L("Click to download new version in default browser: %s"), version));
+        m_text_up_info->SetLabel(wxString::Format(in_app_update
+            ? _L("Install version %s without leaving Bambu Studio.")
+            : _L("Click to download new version in default browser: %s"), version));
         wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
         auto        m_staticText_release_note = new ::Label(m_scrollwindows_release_note, release_note, LB_AUTO_WRAP);
         m_staticText_release_note->SetMinSize(wxSize(FromDIP(560), -1));
@@ -733,6 +735,10 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
         SetMaxSize(GetSize());
     }
 
+    if (in_app_update) {
+        m_button_download->SetLabel(_L("Install update"));
+        m_button_download->SetMinSize(FromDIP(wxSize(120, 24)));
+    }
     wxGetApp().UpdateDlgDarkUI(this);
     Layout();
     Fit();
