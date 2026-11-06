@@ -75,10 +75,10 @@ using ExtruderSlots = std::vector<NozzleSlot>;
  * | sync_machine   | Machine | machine nozzles win, saved as history  | a sync with a connected machine            |
  * | user_*         | User    | user nozzles win, saved as history     | a user action in a nozzle dialog or combo  |
  *
- * The newest layer wins until a newer write, but only for its own printer model, and only if it
- * holds the selected diameter; else the history wins, else the preset defaults. On a printer with a
- * nozzle rack any installed nozzle holds the selected diameter, so a diameter selection never changes
- * the slots.
+ * The newest layer for the selected printer wins for every extruder until a newer write, even an
+ * extruder without a nozzle; else the history wins, else the preset defaults. A layer is for its own
+ * printer model and, without a rack, for the diameters its nozzles have. On a printer with a nozzle
+ * rack a diameter selection never changes the nozzles.
  *
  * A call from the wrong event puts its data in the wrong layer, and shadowing then gives wrong
  * nozzles; for example user_set_slots() in a sync handler hides the next project open.

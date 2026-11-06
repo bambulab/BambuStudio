@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <set>
 #include <sstream>
 
 #include <boost/algorithm/string.hpp>
@@ -22,19 +23,6 @@ namespace {
  * \brief The layer that gives the effective nozzles of an extruder
  */
 enum class NozzleSource { Preset, History, Project, Machine, User };
-
-/**
- * \brief One write of Project, Machine or User
- *
- * Stamp 0 means the layer is empty.
- */
-struct NozzleLayer
-{
-    NozzleSource               source = NozzleSource::Project;
-    std::string                model;
-    std::vector<ExtruderSlots> extruders;
-    uint64_t                   stamp = 0;
-};
 
 /**
  * \brief What resolve needs from the selected printer, copied when it is selected
@@ -50,6 +38,34 @@ struct SelectedPrinter
     std::vector<std::vector<NozzleVolumeType>> default_types; ///< per extruder, per slot
 
     int extruder_count() const { return int(slot_counts.size()); }
+};
+
+/**
+ * \brief One write of Project, Machine or User
+ *
+ * Stamp 0 means the layer is empty.
+ */
+struct NozzleLayer
+{
+    NozzleSource               source = NozzleSource::Project;
+    std::string                model;
+    /// Variants such as "0.4" the layer is for; empty for every variant of the model. More than one
+    /// only when the extruders hold different diameters: no variant matches that, so the layer is for
+    /// each variant it holds and shows the real nozzles under all of them.
+    std::set<std::string>      variants;
+    std::vector<ExtruderSlots> extruders;
+    uint64_t                   stamp = 0;
+
+    /**
+     * \brief Check if this layer holds the nozzles of \p printer
+     *
+     * \note Any one of the variants matches, not all of them: the selected printer has one diameter.
+     */
+    bool is_for(const SelectedPrinter &printer) const
+    {
+        return stamp != 0 && model == printer.model && int(extruders.size()) == printer.extruder_count() &&
+               (variants.empty() || variants.count(printer.diameter) > 0);
+    }
 };
 
 const char *source_name(NozzleSource source)
@@ -73,6 +89,27 @@ bool holds_selected_diameter(const ExtruderSlots &slots, const SelectedPrinter &
     if (printer.has_rack)
         return installed_count(slots) > 0;
     return std::any_of(slots.begin(), slots.end(), [&printer](const NozzleSlot &slot) { return slot.diameter == printer.diameter; });
+}
+
+/**
+ * \brief The variants nozzles are for
+ *
+ * Without a rack each variant keeps its own nozzles, so they are for the diameters they have; this
+ * holds even when a sync comes before the switch to its variant.
+ *
+ * \return empty for every variant: a rack serves them all, and no nozzle is the same under each
+ */
+std::set<std::string> variants_of(const std::vector<ExtruderSlots> &extruders)
+{
+    std::set<std::string> variants;
+    for (const ExtruderSlots &nozzles : extruders) {
+        if (nozzles.size() > 1)
+            return {};
+        // Without a rack an extruder has at most one nozzle, so front() is all of it.
+        if (!nozzles.empty() && !nozzles.front().empty())
+            variants.insert(nozzles.front().diameter);
+    }
+    return variants;
 }
 
 /**
@@ -456,17 +493,14 @@ struct NozzleInventory::Impl
     explicit Impl(DynamicPrintConfig &mirror) : mirror(mirror) {}
 
     /**
-     * \brief The newest layer of the selected model with its extruder count, or null if none
+     * \brief The newest layer for the selected printer, or null if none
      */
     const NozzleLayer *top_layer() const
     {
         const NozzleLayer *top = nullptr;
-        for (const NozzleLayer *layer : {&project, &machine, &user}) {
-            if (layer->stamp == 0 || layer->model != printer.model || int(layer->extruders.size()) != printer.extruder_count())
-                continue;
-            if (!top || layer->stamp > top->stamp)
+        for (const NozzleLayer *layer : {&project, &machine, &user})
+            if (layer->is_for(printer) && (!top || layer->stamp > top->stamp))
                 top = layer;
-        }
         return top;
     }
 
@@ -526,7 +560,8 @@ struct NozzleInventory::Impl
         result.assign(size_t(printer.extruder_count()), {});
         sources.assign(size_t(printer.extruder_count()), NozzleSource::Preset);
         for (int eid = 0; eid < printer.extruder_count(); ++eid) {
-            if (top && holds_selected_diameter(top->extruders[eid], printer)) {
+            // The layer for the selected printer is the truth for every extruder, an empty one included.
+            if (top) {
                 result[eid]  = fit_slot_count(top->extruders[eid], printer.slot_counts[eid]);
                 sources[eid] = top->source;
             } else if (!saved.empty() && holds_selected_diameter(saved[eid], printer)) {
@@ -574,6 +609,7 @@ struct NozzleInventory::Impl
             for (NozzleSlot &slot : slots)
                 if (!slot.diameter.empty())
                     slot.diameter = format_diameter_to_str(string_to_double_decimal_point(slot.diameter));
+        layer.variants  = variants_of(extruders);
         layer.source    = source;
         layer.model     = model;
         layer.extruders = std::move(extruders);
