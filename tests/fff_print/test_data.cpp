@@ -3,6 +3,7 @@
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/GCodeReader.hpp"
+#include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Format/OBJ.hpp"
@@ -474,6 +475,43 @@ TEST_CASE("G-code export accepts relative files and creates nonempty direct pare
     REQUIRE_FALSE(text.empty());
     REQUIRE(text.find("G1") != std::string::npos);
     REQUIRE_FALSE(fs::exists(output.string() + ".tmp"));
+}
+
+
+TEST_CASE("G-code export populates optional result flags", "[test_data][gcode_output_result]")
+{
+    namespace fs = boost::filesystem;
+    const fs::path root = fs::temp_directory_path() / fs::unique_path("bambu-gcode-result-%%%%-%%%%");
+    REQUIRE(fs::create_directory(root));
+    const fs::path output = root / "result.gcode";
+    struct Cleanup {
+        fs::path output;
+        fs::path root;
+        ~Cleanup() {
+            boost::system::error_code ec;
+            fs::remove(output.string() + ".tmp", ec);
+            fs::remove(output, ec);
+            fs::remove(root, ec);
+        }
+    } cleanup{output, root};
+
+    Slic3r::Model model;
+    Slic3r::Print print;
+    Slic3r::Test::init_print({Slic3r::Test::TestMesh::cube_20x20x20,
+        Slic3r::Test::TestMesh::cube_20x20x20}, print, model,
+        Slic3r::DynamicPrintConfig::full_print_config(), true);
+    REQUIRE(print.num_object_instances() == 2);
+    REQUIRE_FALSE(print.support_material_on_wipe_tower());
+    print.set_status_silent();
+    print.process();
+    Slic3r::GCodeProcessorResult result;
+    result.label_object_enabled = false;
+    result.support_material_on_wipe_tower = true;
+    REQUIRE_NOTHROW(print.export_gcode(output.string(), &result, nullptr));
+    REQUIRE(fs::is_regular_file(output));
+    REQUIRE(result.filename == output.string());
+    REQUIRE(result.label_object_enabled);
+    REQUIRE_FALSE(result.support_material_on_wipe_tower);
 }
 
 SCENARIO("init_print functionality", "[test_data]") {
