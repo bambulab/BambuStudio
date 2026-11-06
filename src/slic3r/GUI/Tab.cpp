@@ -4566,7 +4566,7 @@ bool TabFilament::restore_filament_override_value(Field *field, const std::strin
         return false;
 
     field->set_value(it->second, false);
-    field->set_last_meaningful_value();
+    field->field_changed();
     return true;
 }
 
@@ -4590,12 +4590,16 @@ bool TabFilament::seed_filament_override_from_printer(ConfigOptionsGroupShp optg
     if (printer_idx < 0)
         return false;
 
+    const auto *printer_option = dynamic_cast<const ConfigOptionVectorBase *>(printer_config.option(printer_key));
+    if (!printer_option || printer_idx >= static_cast<int>(printer_option->size()) || printer_option->is_nil(printer_idx))
+        return false;
+
     boost::any printer_value = optgroup->get_config_value(printer_config, printer_key, printer_idx);
     if (printer_value.empty())
         return false;
 
     field->set_value(printer_value, false);
-    field->set_last_meaningful_value();
+    field->field_changed();
     return true;
 }
 
