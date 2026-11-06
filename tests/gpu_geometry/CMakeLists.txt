@@ -14,6 +14,7 @@ if(SLIC3R_ENABLE_CUDA_SLICER OR SLIC3R_ENABLE_VULKAN_SLICER)
     add_executable(gpu_geometry_tests
         ../libslic3r/test_gpu_geometry_main.cpp
         ../libslic3r/test_gpu_exact_geometry.cpp
+        ../libslic3r/test_cuda_dispatch_buffers.cpp
         ../libslic3r/test_gpu_batch_preflight.cpp
         ../libslic3r/test_gpu_rectilinear_equivalence.cpp)
     target_compile_features(gpu_geometry_tests PRIVATE cxx_std_17)
