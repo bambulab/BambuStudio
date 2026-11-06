@@ -11,6 +11,7 @@
 #include "MultiNozzleUtils.hpp"
 #include "FilamentMixer.hpp"
 #include "LocalesUtils.hpp"
+#include "SupportRecommendedParams.hpp"
 #include "Utils.hpp"
 
 #include <set>
@@ -55,6 +56,34 @@ namespace Slic3r {
 
 const static bool g_wipe_into_objects = false;
 constexpr double similar_color_threshold_de2000 = 20.0;
+
+SupportFilamentRanks make_support_filament_ranks(const Print &print, const PrintObject &object)
+{
+    SupportFilamentRanks ranks;
+    const std::vector<std::string> &types = print.config().filament_type.values;
+    ranks.own_filaments = object.object_extruders();
+    // A pure TPU object keeps printing its support with TPU.
+    const bool avoid_tpu = std::any_of(ranks.own_filaments.begin(), ranks.own_filaments.end(),
+        [&types](unsigned int filament_id) { return filament_id < types.size() && ! is_tpu_filament_type(types[filament_id]); });
+    ranks.base_penalty.assign(types.size(), 0);
+    for (size_t filament_id = 0; filament_id < types.size(); ++ filament_id) {
+        // Scope: only a filament the object does not print is penalized here; a multi-material object keeps
+        // picking among its own filaments (and SupportMergePlan only drops TPU) as before.
+        const bool own = std::find(ranks.own_filaments.begin(), ranks.own_filaments.end(), filament_id) != ranks.own_filaments.end();
+        const bool unsuitable = ! own && std::any_of(ranks.own_filaments.begin(), ranks.own_filaments.end(), [&](unsigned int model) {
+            return model < types.size() && unsuitable_as_support_base(types[filament_id], types[model]);
+        });
+        ranks.base_penalty[filament_id] = unsuitable ? 2 : int(avoid_tpu && is_tpu_filament_type(types[filament_id]));
+    }
+    return ranks;
+}
+
+// The nozzle of a 0-based filament can extrude a support layer or slab of this height.
+static bool filament_can_print_height(const PrintConfig &config, unsigned int filament_id, coordf_t height)
+{
+    const double nozzle = nozzle_diameter_for_filament(config, filament_id + 1);
+    return nozzle <= EPSILON || adaptive_layer_height_range(nozzle).contains(height);
+}
 
 // Same test as GCode::path_touches_bed(): the extrusion height reaches down to the bed.
 static bool extrusion_touches_bed(const ExtrusionEntity &entity, coordf_t print_z)
@@ -519,6 +548,7 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
 
     // Collect extruders reuqired to print the layers. Add dontcare extruders
     this->collect_extruders(object, std::vector<std::pair<double, unsigned int>>());
+    this->add_support_fallback_filaments();
 
     // BBS
     // Reorder the extruders to minimize tool switches.
@@ -576,6 +606,7 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     // Collect extruders reuqired to print the layers.
     for (auto object : print.objects())
         this->collect_extruders(*object, per_layer_extruder_switches);
+    this->add_support_fallback_filaments();
 
     // Reorder the extruders to minimize tool switches.
     std::vector<unsigned int> first_layer_tool_order;
@@ -779,6 +810,47 @@ void ToolOrdering::initialize_layers(std::vector<coordf_t> &zs)
         m_layer_tools.emplace_back(LayerTools(0.5 * (zs[i] + zs[j-1])));
         i = j;
     }
+}
+
+// Resolves the requests of collect_extruders() once every object has added its filaments, so that a usable
+// filament of another object on the layer is seen regardless of object order and no idle filament is added.
+void ToolOrdering::add_support_fallback_filaments()
+{
+    for (const SupportFallbackRequest &request : m_support_fallback_requests) {
+        LayerTools                 &layer_tools = m_layer_tools[request.layer_idx];
+        const PrintObject          &object      = *request.object;
+        const PrintConfig          &config      = object.print()->config();
+        const SupportFilamentRanks &ranks       = object.support_filament_ranks;
+        // Same restrictions as support_layer_filaments() applies when it re-ranks a "don't care" pick.
+        const bool has_usable = std::any_of(layer_tools.extruders.begin(), layer_tools.extruders.end(),
+            [&](unsigned int filament_1based) {
+                if (filament_1based == 0)
+                    return false;
+                const unsigned int filament_id = filament_1based - 1;
+                return ! config.filament_soluble.get_at(filament_id) && ! config.filament_is_support.get_at(filament_id) &&
+                       filament_1based != request.fixed_interface && ! ranks.should_avoid(filament_id, request.is_interface) &&
+                       filament_can_print_height(config, filament_id, request.height);
+            });
+        if (has_usable)
+            continue;
+
+        // 取能打此层高、分数最低的本对象耗材；主体可退而用 TPU，接触面只接受非 TPU。
+        unsigned int best         = (unsigned int) -1;
+        int          best_penalty = request.is_interface ? 1 : 2;
+        for (unsigned int filament_id : ranks.own_filaments) {
+            const int penalty = ranks.penalty(filament_id, request.is_interface);
+            if (penalty < best_penalty && filament_can_print_height(config, filament_id, request.height)) {
+                best         = filament_id;
+                best_penalty = penalty;
+            }
+        }
+        // collect_extruders() 已对各层排序去重，这里补入后需再做一次。
+        if (best != (unsigned int) -1) {
+            layer_tools.extruders.push_back(best + 1);
+            sort_remove_duplicates(layer_tools.extruders);
+        }
+    }
+    m_support_fallback_requests.clear();
 }
 
 // Collect extruders reuqired to print layers.
@@ -1065,6 +1137,16 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     const_cast<PrintObject&>(object).object_brim_print_z  = brim_print_z;
 
     // Collect the support extruders.
+    const_cast<PrintObject&>(object).support_filament_ranks = make_support_filament_ranks(*object.print(), object);
+    const SupportFilamentRanks &ranks = object.support_filament_ranks;
+    // 盘上有本对象该避开的耗材时，自动支撑才可能落到它上面，才需要登记补料。
+    const std::vector<unsigned int> plate_filaments = object.print()->extruders();
+    auto plate_has_worse = [&](bool interface_role) {
+        return std::any_of(plate_filaments.begin(), plate_filaments.end(),
+                           [&](unsigned int filament_id) { return ranks.should_avoid(filament_id, interface_role); });
+    };
+    const bool base_may_go_worse      = object.config().support_filament.value == 0 && plate_has_worse(false);
+    const bool interface_may_go_worse = object.config().support_interface_filament.value == 0 && plate_has_worse(true);
     for (auto support_layer : object.support_layers()) {
         LayerTools   &layer_tools   = this->tools_for_layer(support_layer->print_z);
         ExtrusionRole role          = support_layer->support_fills.role();
@@ -1124,10 +1206,14 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                         wipe_volumes.push_back(std::vector<float>(flush_matrix.begin() + i * number_of_extruders, flush_matrix.begin() + (i + 1) * number_of_extruders));
                     int   next_extruder = current_extruder;
                     float min_flush     = std::numeric_limits<float>::max();
+                    int   min_penalty   = std::numeric_limits<int>::max();
                     for (auto extruder_id : extruders) {
                         if (object.print()->config().filament_soluble.get_at(extruder_id) || extruder_id == current_extruder) continue;
-                        if (wipe_volumes[extruder_interface - 1][extruder_id] < min_flush) {
+                        // Prefer the best support base rank (suitable, then not TPU), then the least flush.
+                        const int penalty = ranks.penalty(extruder_id, false);
+                        if (penalty < min_penalty || (penalty == min_penalty && wipe_volumes[extruder_interface - 1][extruder_id] < min_flush)) {
                             next_extruder = extruder_id;
+                            min_penalty   = penalty;
                             min_flush     = wipe_volumes[extruder_interface - 1][extruder_id];
                         }
                     }
@@ -1137,11 +1223,20 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             }
             if (support_touches_bed && layer_tools.extruders.back() > 0)
                 m_bed_contact_filaments.emplace_back(support_layer->print_z, layer_tools.extruders.back());
+            // 本对象在此层可能无出料，先登记；所有对象收集完后，若该层仍无可用耗材再补本对象耗材。
+            if (layer_tools.extruders.back() == 0 && base_may_go_worse)
+                m_support_fallback_requests.push_back({ size_t(&layer_tools - m_layer_tools.data()), &object,
+                    support_layer->base_slab_height > EPSILON ? support_layer->base_slab_height : support_layer->height, false,
+                    extruder_interface });
         }
         if (has_interface) {
             layer_tools.extruders.push_back(extruder_interface);
             if (interface_touches_bed && extruder_interface > 0)
                 m_bed_contact_filaments.emplace_back(support_layer->print_z, extruder_interface);
+            // 自动接触面同理：盘上有本对象应避开的 TPU 时，延后确认该层有可用的非 TPU 耗材。
+            if (extruder_interface == 0 && interface_may_go_worse)
+                m_support_fallback_requests.push_back({ size_t(&layer_tools - m_layer_tools.data()), &object,
+                    support_layer->interface_slab_height > EPSILON ? support_layer->interface_slab_height : support_layer->height, true, 0 });
         }
         if (has_support || has_interface) {
             layer_tools.has_support = true;
@@ -3971,7 +4066,8 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
                         break;
 
                     auto &entities = this_support_layer->support_fills.entities;
-                    if (support_overriddable && !is_support_overridden(object) && !(object_config.support_interface_not_for_body.value && !support_intf_overriddable &&(new_extruder==object_config.support_interface_filament-1||old_extruder==object_config.support_interface_filament-1))) {
+                    if (support_overriddable && !is_support_overridden(object) && !(object_config.support_interface_not_for_body.value && !support_intf_overriddable &&(new_extruder==object_config.support_interface_filament-1||old_extruder==object_config.support_interface_filament-1))
+                        && ! object->support_filament_ranks.should_avoid(new_extruder, false)) {
                         set_support_extruder_override(object, copy, new_extruder, num_of_copies);
                         for (const ExtrusionEntity* ee : entities) {
                             if (ee->role() == erSupportMaterial || ee->role() == erSupportTransition)
@@ -3982,7 +4078,8 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
                         }
                     }
 
-                    if (support_intf_overriddable && !is_support_interface_overridden(object)) {
+                    if (support_intf_overriddable && !is_support_interface_overridden(object) &&
+                        ! object->support_filament_ranks.should_avoid(new_extruder, true)) {
                         set_support_interface_extruder_override(object, copy, new_extruder, num_of_copies);
                         for (const ExtrusionEntity* ee : entities) {
                             if (ee->role() == erSupportMaterialInterface)
@@ -4104,5 +4201,170 @@ int WipingExtrusions::get_support_interface_extruder_overrides(const PrintObject
     return -1;
 }
 
+
+SupportLayerFilaments support_layer_filaments(const Print &print, const PrintObject &object, LayerTools &layer_tools,
+                                              const SupportLayer *support_layer, coordf_t fallback_height)
+{
+    // Extruder ID of the support base. -1 if "don't care".
+    unsigned int    support_extruder   = object.config().support_filament.value - 1;
+    // Shall the support be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
+    bool            support_dontcare   = object.config().support_filament.value == 0;
+    // Extruder ID of the support interface. -1 if "don't care".
+    unsigned int    interface_extruder = object.config().support_interface_filament.value - 1;
+    // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
+    bool            interface_dontcare = object.config().support_interface_filament.value == 0;
+
+    // BBS multi-diameter: this support layer was merged into a slab thicker than the object layers,
+    // which is below the minimum layer height of every other filament of this Z range. Honour the
+    // filament the support merge plan reserved for it instead of picking the active one.
+    if (support_layer != nullptr && support_dontcare && support_layer->planned_filament_id > 0) {
+        support_extruder = (unsigned int) (support_layer->planned_filament_id - 1);
+        support_dontcare = false;
+    }
+    if (support_layer != nullptr && interface_dontcare && support_layer->planned_interface_filament_id > 0) {
+        interface_extruder =
+            (unsigned int) (support_layer->planned_interface_filament_id - 1);
+        interface_dontcare = false;
+    }
+
+    // BBS: apply wiping overridden extruders
+    WipingExtrusions& wiping_extrusions = layer_tools.wiping_extrusions();
+    if (support_dontcare) {
+        int extruder_override = wiping_extrusions.get_support_extruder_overrides(&object);
+        if (extruder_override >= 0) {
+            support_extruder = extruder_override;
+            support_dontcare = false;
+        }
+    }
+
+    if (interface_dontcare) {
+        int extruder_override = wiping_extrusions.get_support_interface_extruder_overrides(&object);
+        if (extruder_override >= 0) {
+            interface_extruder = extruder_override;
+            interface_dontcare = false;
+        }
+    }
+    if (layer_tools.extruders.empty())
+        return { support_extruder, interface_extruder };
+    const unsigned int first_extruder_id = layer_tools.extruders.front();
+
+    // BBS multi-diameter: the printable layer height window of a filament's nozzle. Only used to
+    // correct a "don't care" choice that cannot extrude this support layer height at all, and only
+    // when a filament of this layer can, so the pick never gets worse than it was.
+    // The classic support generator folds a merged slab back into the layer height, but the tree
+    // generators keep base and roof on one SupportLayer and record the merged thickness in
+    // base_slab_height / interface_slab_height. Checking the layer height alone would let a slab
+    // that was never pinned to a filament end up on a nozzle that cannot extrude it.
+    const coordf_t layer_height = support_layer != nullptr ? support_layer->height : fallback_height;
+    const coordf_t support_slab_height = support_layer != nullptr && support_layer->base_slab_height > EPSILON ?
+        support_layer->base_slab_height : layer_height;
+    const coordf_t interface_slab_height = support_layer != nullptr && support_layer->interface_slab_height > EPSILON ?
+        support_layer->interface_slab_height : layer_height;
+    auto nozzle_can_print_height = [&print](unsigned int extruder_id, coordf_t height) {
+        return filament_can_print_height(print.config(), extruder_id, height);
+    };
+    // Only the roles still resolved here constrain the choice: a filament already pinned by the
+    // merge plan or by a wiping override is not picked by the code below.
+    auto nozzle_can_print_layer = [&nozzle_can_print_height, support_dontcare, interface_dontcare,
+                                   support_slab_height, interface_slab_height](unsigned int extruder_id) {
+        return (! support_dontcare   || nozzle_can_print_height(extruder_id, support_slab_height)) &&
+               (! interface_dontcare || nozzle_can_print_height(extruder_id, interface_slab_height));
+    };
+    // The active filament may be TPU or, for the base, unsuitable on this object (e.g. another object's PLA
+    // interface on a PETG model). Move the role to the best ranked filament of the layer that can extrude it;
+    // the nozzle choice made above only decides within the same rank.
+    const SupportFilamentRanks &ranks = object.support_filament_ranks;
+    auto rank_support_role = [&](unsigned int extruder_id, bool interface_role, coordf_t height) {
+        unsigned int best         = extruder_id;
+        int          best_penalty = ranks.penalty(extruder_id, interface_role);
+        for (unsigned int candidate : layer_tools.extruders) {
+            if (best_penalty == 0)
+                break;
+            // A fixed interface filament stays off the base, as in the pick above.
+            if (print.config().filament_soluble.get_at(candidate) || print.config().filament_is_support.get_at(candidate) ||
+                (! interface_role && ! interface_dontcare && candidate == interface_extruder) ||
+                ! nozzle_can_print_height(candidate, height))
+                continue;
+            if (const int penalty = ranks.penalty(candidate, interface_role); penalty < best_penalty) {
+                best         = candidate;
+                best_penalty = penalty;
+            }
+        }
+        return best;
+    };
+
+    // BBS: try to print support base with a filament other than interface filament
+    if (support_dontcare && !interface_dontcare) {
+        unsigned int dontcare_extruder = first_extruder_id;
+        for (unsigned int extruder_id : layer_tools.extruders) {
+            if (print.config().filament_soluble.get_at(extruder_id))
+                continue;
+
+            //BBS: now we don't consider interface filament used in other object
+            if (extruder_id == interface_extruder)
+                continue;
+
+            dontcare_extruder = extruder_id;
+            break;
+        }
+        if (! nozzle_can_print_layer(dontcare_extruder)) {
+            for (unsigned int extruder_id : layer_tools.extruders) {
+                if (print.config().filament_soluble.get_at(extruder_id) || extruder_id == interface_extruder)
+                    continue;
+                if (nozzle_can_print_layer(extruder_id)) {
+                    dontcare_extruder = extruder_id;
+                    break;
+                }
+            }
+        }
+    #if 0
+        //BBS: not found a suitable extruder in current layer ,dontcare_extruider==first_extruder_id==interface_extruder
+        if (dontcare_extruder == interface_extruder && (object.config().support_interface_not_for_body && object.config().support_interface_filament.value!=0)) {
+            // BBS : get a suitable extruder from other layer
+            auto all_extruders = print.extruders();
+            dontcare_extruder = get_next_extruder(dontcare_extruder, all_extruders);
+        }
+    #endif
+
+        if (support_dontcare)
+            support_extruder = rank_support_role(dontcare_extruder, false, support_slab_height);
+    }
+    else if (support_dontcare || interface_dontcare) {
+        // Some support will be printed with "don't care" material, preferably non-soluble.
+        // Is the current extruder assigned a soluble filament?
+        unsigned int dontcare_extruder = first_extruder_id;
+        if (print.config().filament_soluble.get_at(dontcare_extruder)) {
+            // The last extruder printed on the previous layer extrudes soluble filament.
+            // Try to find a non-soluble extruder on the same layer.
+            for (unsigned int extruder_id : layer_tools.extruders)
+                if (! print.config().filament_soluble.get_at(extruder_id)) {
+                    dontcare_extruder = extruder_id;
+                    break;
+                }
+        }
+        if (print.config().filament_is_support.get_at(dontcare_extruder)) {
+            // The last extruder printed on the previous layer extrudes support filament.
+            // Try to find a non-support extruder on the same layer.
+            for (unsigned int extruder_id : layer_tools.extruders)
+                if (!print.config().filament_is_support.get_at(extruder_id)) {
+                    dontcare_extruder = extruder_id;
+                    break;
+                }
+        }
+        if (! nozzle_can_print_layer(dontcare_extruder)) {
+            // The active filament's nozzle cannot extrude this support layer height.
+            for (unsigned int extruder_id : layer_tools.extruders)
+                if (nozzle_can_print_layer(extruder_id) && ! print.config().filament_soluble.get_at(extruder_id)) {
+                    dontcare_extruder = extruder_id;
+                    break;
+                }
+        }
+        if (support_dontcare)
+            support_extruder = rank_support_role(dontcare_extruder, false, support_slab_height);
+        if (interface_dontcare)
+            interface_extruder = rank_support_role(dontcare_extruder, true, interface_slab_height);
+    }
+    return { support_extruder, interface_extruder };
+}
 
 } // namespace Slic3r

@@ -5,6 +5,7 @@
 #include "Model.hpp"
 #include "Print.hpp"
 #include "PrintConfig.hpp"
+#include "SupportRecommendedParams.hpp"
 #include "libslic3r.h"
 
 #include <algorithm>
@@ -355,6 +356,19 @@ SupportMergePlan make_support_merge_plan(const PrintObject &object)
         if (candidates.empty() && ! layers[layer_idx]->empty())
             candidates = object_filaments;
     }
+
+    // TPU is too soft to carry support. Drop it from the automatic base and interface choice wherever a rigid
+    // filament of the object is available at that height, so a coarser TPU nozzle does not win the slab.
+    // Like ToolOrdering, material pairs among the object's own filaments are not filtered here.
+    auto is_tpu = [&print_config](const SupportMergePlan::Candidate &candidate) {
+        const size_t idx = size_t(candidate.filament_id - 1);
+        return idx < print_config.filament_type.values.size() &&
+               is_tpu_filament_type(print_config.filament_type.values[idx]);
+    };
+    for (std::vector<SupportMergePlan::Candidate> &candidates : object_candidates)
+        if (std::any_of(candidates.begin(), candidates.end(),
+                        [&is_tpu](const SupportMergePlan::Candidate &candidate) { return ! is_tpu(candidate); }))
+            candidates.erase(std::remove_if(candidates.begin(), candidates.end(), is_tpu), candidates.end());
 
     const int support_filament = object_config.support_filament.value;
     if (support_filament > 0) {

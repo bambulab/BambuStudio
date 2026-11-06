@@ -25,6 +25,23 @@ class LayerTools;
 namespace CustomGCode { struct Item; }
 class PrintRegion;
 
+// Automatic support base penalty per 0-based filament of one object, lower is better: 1 TPU while the object
+// prints a rigid filament, 2 a foreign filament unsuitable_as_support_base(). The object's best always ranks 0.
+struct SupportFilamentRanks
+{
+    std::vector<unsigned int> own_filaments;
+    std::vector<int>          base_penalty;
+
+    // The interface only avoids TPU; a penalty 2 filament is never TPU.
+    int penalty(unsigned int filament_id, bool interface_role) const
+    {
+        const int base = filament_id < base_penalty.size() ? base_penalty[filament_id] : 0;
+        return interface_role ? int(base == 1) : base;
+    }
+    bool should_avoid(unsigned int filament_id, bool interface_role) const { return penalty(filament_id, interface_role) > 0; }
+};
+SupportFilamentRanks make_support_filament_ranks(const Print &print, const PrintObject &object);
+
 // Object of this class holds information about whether an extrusion is printed immediately
 // after a toolchange (as part of infill/perimeter wiping) or not. One extrusion can be a part
 // of several copies - this has to be taken into account.
@@ -308,6 +325,7 @@ public:
         m_stats_by_multi_extruder_best.clear();
         m_stats_by_multi_extruder_curr.clear();
         m_bed_contact_filaments.clear();
+        m_support_fallback_requests.clear();
     }
 
     // Only valid for non-sequential print:
@@ -423,6 +441,7 @@ private:
     void                calc_most_used_extruder(const PrintConfig &config);
     void				initialize_layers(std::vector<coordf_t> &zs);
     void 				collect_extruders(const PrintObject &object, const std::vector<std::pair<double, unsigned int>> &per_layer_extruder_switches);
+    void                add_support_fallback_filaments();
     void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height);
     void                mark_skirt_layers(const PrintConfig &config, coordf_t max_layer_height);
     void 				collect_extruder_statistics(bool prime_multi_material);
@@ -458,6 +477,17 @@ private:
     // (print_z, 1-based slot) of extrusions whose height reaches down to the bed. Keyed by print_z
     // because wipe tower partitioning inserts layers and shifts indices. Mixed slots stay unresolved here.
     std::vector<std::pair<coordf_t, unsigned int>> m_bed_contact_filaments;
+    // Automatic support layers that may need a filament of their object, resolved once all objects are collected.
+    struct SupportFallbackRequest
+    {
+        size_t             layer_idx;
+        const PrintObject *object;
+        coordf_t           height;
+        bool               is_interface;
+        // 1-based fixed interface filament the base stays off, 0 if the interface is automatic.
+        unsigned int       fixed_interface;
+    };
+    std::vector<SupportFallbackRequest> m_support_fallback_requests;
 
     // All layer indices (in m_layer_tools) where each object has actual extrusion.
     // Used by gradient run detection to distinguish real gaps from layers belonging
@@ -490,6 +520,18 @@ private:
 
     int               m_most_used_extruder;
 };
+
+class SupportLayer;
+
+struct SupportLayerFilaments
+{
+    unsigned int support;
+    unsigned int support_interface;
+};
+// Filaments GCode::process_layer prints the base and the interface of one support layer with. support_layer is
+// null for a Z the object has no support layer at; fallback_height then stands in for its height.
+SupportLayerFilaments support_layer_filaments(const Print &print, const PrintObject &object, LayerTools &layer_tools,
+                                              const SupportLayer *support_layer, coordf_t fallback_height);
 
 } // namespace SLic3r
 

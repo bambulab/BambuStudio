@@ -71,6 +71,12 @@ struct SupportMaterialCombination
 
 std::string support_recommended_material_name(std::string preset_name);
 void        load_support_recommended_params();
+// Exactly "TPU" or "TPU-AMS", matching the built-in PLA-for-TPU rule. Automatic support selection ranks TPU
+// below any rigid filament because it is too soft to carry a support structure.
+bool        is_tpu_filament_type(const std::string &filament_type);
+// Support material types that bond too poorly to the model material type to carry a support base on it
+// (PLA <-> PETG, PLA on TPU). Independent of the interface distances evaluated below.
+bool        unsuitable_as_support_base(const std::string &support_type, const std::string &model_type);
 
 // Resolves the JSON recommendation and built-in material-pair rules in one place. An explicit JSON
 // top/bottom distance overrides the corresponding built-in decision; a missing field inherits it.

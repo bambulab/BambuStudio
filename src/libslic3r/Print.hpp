@@ -576,6 +576,8 @@ public:
     // extruded at. A coarse nozzle prints its bed band only at the band top, so its brim belongs to that layer.
     int                         object_brim_filament = 0;
     double                      object_brim_print_z  = 0.;
+    // Automatic support filament ranks, refreshed by ToolOrdering::collect_extruders().
+    SupportFilamentRanks        support_filament_ranks;
     bool             has_variable_layer_heights = false;
 
     // OrcaSlicer

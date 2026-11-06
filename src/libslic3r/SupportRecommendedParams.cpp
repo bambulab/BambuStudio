@@ -21,6 +21,17 @@ std::string support_recommended_material_name(std::string preset_name)
     return preset_name;
 }
 
+bool is_tpu_filament_type(const std::string &filament_type)
+{
+    return filament_type == "TPU" || filament_type == "TPU-AMS";
+}
+
+bool unsuitable_as_support_base(const std::string &support_type, const std::string &model_type)
+{
+    return (support_type == "PLA" && (model_type == "PETG" || is_tpu_filament_type(model_type))) ||
+           (support_type == "PETG" && model_type == "PLA");
+}
+
 namespace {
 
 // Keyed by "support_material|model_material|printer_model". Multiple typed entries may share the
@@ -241,8 +252,7 @@ SupportMaterialCombination evaluate_support_material_combination(
             model_material.name, model_material.type, printer_model);
     }
 
-    if (support_material.type == "PLA" &&
-        (model_material.type == "TPU" || model_material.type == "TPU-AMS"))
+    if (support_material.type == "PLA" && is_tpu_filament_type(model_material.type))
         result.built_in_rule = BuiltInSupportMaterialRule::PlaForTpu;
     else if (support_material.soluble)
         result.built_in_rule = BuiltInSupportMaterialRule::Soluble;
