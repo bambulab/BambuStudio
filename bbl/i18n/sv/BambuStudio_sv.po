@@ -11041,16 +11041,16 @@ msgstr "Uppgift avbruten"
 msgid "Bambu Cool Plate"
 msgstr "Bambu Cool Plate"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "Bambu Engineering Plate"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr "Bambu Lab Slät PEI-platta"
 
 msgid "High temperature Plate"
 msgstr "Högtemperatur platta"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr "Bambu Lab texturerad PEI-platta"
 
 msgid "Bambu Cool Plate SuperTack"

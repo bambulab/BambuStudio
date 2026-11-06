@@ -11049,16 +11049,16 @@ msgstr "Taak geannuleerd"
 msgid "Bambu Cool Plate"
 msgstr "Bambu Cool (koude) Plate"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "Bambu Engineering (technische) plate"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr "Bambu Gladde PEI Plaat"
 
 msgid "High temperature Plate"
 msgstr "Plaat op hoge temperatuur"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr "Bambu getextureerde PEI-plaat"
 
 msgid "Bambu Cool Plate SuperTack"

@@ -11047,16 +11047,16 @@ msgstr "Úloha zrušena"
 msgid "Bambu Cool Plate"
 msgstr "Bambu Chladicí podložka"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "Bambu Inženýrská podložka"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr "Bambu hladká PEI podložka"
 
 msgid "High temperature Plate"
 msgstr "Podložka pro vysoké teploty"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr "Bambu strukturovaná PEI podložka"
 
 msgid "Bambu Cool Plate SuperTack"

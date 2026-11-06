@@ -11016,16 +11016,16 @@ msgstr "任務已取消"
 msgid "Bambu Cool Plate"
 msgstr "低溫列印板"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "工程材料列印板"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr "光面PEI列印板"
 
 msgid "High temperature Plate"
 msgstr "高溫列印板"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr "紋理PEI列印板"
 
 msgid "Bambu Cool Plate SuperTack"

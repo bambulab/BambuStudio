@@ -11204,16 +11204,16 @@ msgstr "Задача отменена"
 msgid "Bambu Cool Plate"
 msgstr "Холодная пластина Bambu"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "Инженерная пластина Bambu"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr "Гладкая PEI пластина Bambu"
 
 msgid "High temperature Plate"
 msgstr "Высокотемпературная пластина"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr "Текстурированная PEI пластина Bambu"
 
 msgid "Bambu Cool Plate SuperTack"

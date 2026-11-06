@@ -11010,20 +11010,23 @@ msgstr "任务已取消"
 msgid "Bambu Cool Plate"
 msgstr "低温打印板"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "工程材料打印板"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr "光面PEI打印板"
 
 msgid "High temperature Plate"
 msgstr "高温打印板"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr "纹理PEI打印板"
 
 msgid "Bambu Cool Plate SuperTack"
 msgstr "增稳低温打印板"
+
+msgid "Bambu 3D Effect Plate"
+msgstr "转印板"
 
 msgid "Send print job"
 msgstr "发送打印任务"

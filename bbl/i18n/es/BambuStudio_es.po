@@ -11061,16 +11061,16 @@ msgstr "Tarea cancelada"
 msgid "Bambu Cool Plate"
 msgstr "Placa frío Bambu"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "Placa de Ingenieria Bambu"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr "Placa PEI lisa Bambu"
 
 msgid "High temperature Plate"
 msgstr "Placa de alta temperatura"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr "Placa PEI texturizada Bambu"
 
 msgid "Bambu Cool Plate SuperTack"

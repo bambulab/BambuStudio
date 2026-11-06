@@ -11055,16 +11055,16 @@ msgstr "Feladat törölve"
 msgid "Bambu Cool Plate"
 msgstr "Bambu Cool Plate"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "Bambu Engineering Plate"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr "Bambu Smooth PEI Plate"
 
 msgid "High temperature Plate"
 msgstr "High Temperature Plate"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr "Bambu Textured PEI Plate"
 
 msgid "Bambu Cool Plate SuperTack"

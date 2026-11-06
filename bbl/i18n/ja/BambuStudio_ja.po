@@ -11008,16 +11008,16 @@ msgstr "タスクを取消しました"
 msgid "Bambu Cool Plate"
 msgstr "常温プレート"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "Bambu エンジニアリングプレート"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr "Bambu スムース PEI プレート"
 
 msgid "High temperature Plate"
 msgstr "高温プレート"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr "Bambu テクスチャ PEI プレート"
 
 msgid "Bambu Cool Plate SuperTack"
