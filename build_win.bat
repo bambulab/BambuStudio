@@ -67,7 +67,9 @@ SET PS_VERSION_SUPPORTED=16
 SET PS_VERSION_EXCEEDED=19
 SET VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe
 IF NOT EXIST "%VSWHERE%" SET VSWHERE=%ProgramFiles%\Microsoft Visual Studio\Installer\vswhere.exe
-FOR /F "tokens=4 USEBACKQ delims=." %%I IN (`"%VSWHERE%" -nologo -property productId`) DO SET PS_PRODUCT_DEFAULT=%%I
+REM Fully-open build: probe all product instances including "Visual Studio Build
+REM Tools", which recent vswhere versions omit from the default product filter.
+FOR /F "tokens=4 USEBACKQ delims=." %%I IN (`"%VSWHERE%" -products * -nologo -property productId`) DO SET PS_PRODUCT_DEFAULT=%%I
 IF "%PS_PRODUCT_DEFAULT%" EQU "" (
     SET EXIT_STATUS=-1
     @ECHO ERROR: No Visual Studio installation found. 1>&2
@@ -75,7 +77,7 @@ IF "%PS_PRODUCT_DEFAULT%" EQU "" (
 )
 REM Default to the latest supported version if multiple are available
 FOR /F "tokens=1 USEBACKQ delims=." %%I IN (
-    `^""%VSWHERE%" -version "[%PS_VERSION_SUPPORTED%,%PS_VERSION_EXCEEDED%)" -latest -nologo -property catalog_buildVersion^"`
+    `^""%VSWHERE%" -products * -version "[%PS_VERSION_SUPPORTED%,%PS_VERSION_EXCEEDED%)" -latest -nologo -property catalog_buildVersion^"`
 ) DO SET PS_VERSION_SUPPORTED=%%I
 
 REM Probe build directories and system state for reasonable default arguments

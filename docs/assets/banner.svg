@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="380" viewBox="0 0 1280 380" role="img" aria-labelledby="title desc">
+<title id="title">Bambu Open Studio</title><desc id="desc">Familiar slicing. Open networking. An independent community fork.</desc>
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0b1725"/><stop offset="1" stop-color="#102e38"/></linearGradient><linearGradient id="mint" x2="0" y2="1"><stop stop-color="#7affc5"/><stop offset="1" stop-color="#23c88b"/></linearGradient><pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse"><path d="M 36 0 L 0 0 0 36" fill="none" stroke="#5beeb1" stroke-opacity=".055"/></pattern></defs>
+<rect width="1280" height="380" rx="22" fill="url(#bg)"/><rect width="1280" height="380" rx="22" fill="url(#grid)"/>
+<g font-family="Segoe UI,Arial,sans-serif"><rect x="64" y="54" width="266" height="30" rx="15" fill="#23c88b" fill-opacity=".13"/><text x="80" y="74" fill="#7affc5" font-size="12" font-weight="700" letter-spacing="1.6">COMMUNITY / OPEN SOURCE</text>
+<text x="64" y="166" fill="#f3faf7" font-size="60" font-weight="700" letter-spacing="-2">Bambu Open Studio</text>
+<text x="67" y="219" fill="#a9c4c6" font-size="25">Familiar slicing. Open networking.</text>
+<path d="M67 259 H125" stroke="#23c88b" stroke-width="4" stroke-linecap="round"/><text x="67" y="307" fill="#87a6ad" font-size="16">Built on Bambu Studio + Open Bamboo Networking</text></g>
+<g transform="translate(941 67)" fill="none" stroke-linejoin="round"><path d="M0 76 L120 8 L240 76 L120 145 Z" fill="#1c4c49" stroke="#7affc5" stroke-width="2"/>
+<path d="M0 76 V202 L120 272 V145 M120 272 L240 202 V76" stroke="#49ca9a" stroke-width="2"/>
+<g stroke="#7affc5" opacity=".46"><path d="M0 95 L120 164 L240 95 M0 116 L120 185 L240 116 M0 137 L120 206 L240 137 M0 158 L120 227 L240 158 M0 179 L120 248 L240 179"/></g>
+<path d="M51 78 L120 38 L189 78 L120 118 Z" stroke="url(#mint)" stroke-width="5"/><circle cx="120" cy="78" r="8" fill="#7affc5" stroke="none"/><path d="M120 145 V272" stroke="#7affc5" stroke-width="2"/></g></svg>
