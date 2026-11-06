@@ -27,7 +27,15 @@ static wxString hms_row_text(const std::string& dev_id, DevHMSItem& item)
         return wxString::Format("[%s] %s", code, _L("Network error"));
     if (r.status == HMSStatus::Loading)
         return wxString::Format("[%s] %s", code, _L("Loading ..."));
-    return wxString::Format("[%s] %s", code, _L("Unknown error"));
+    if (r.status == HMSStatus::Ready) // dictionary loaded but has no entry for this code
+        return wxString::Format("[%s] %s", code, _L("No details available"));
+    return wxString::Format("[%s] %s", code, _L("Failed to load more details"));
+}
+
+static bool is_hms_hidden(const std::string& dev_id, const DevHMSItem& item)
+{
+    HMSResult r = wxGetApp().get_hms_query_mgr()->query_hms(dev_id, item.get_long_error_code());
+    return r.status == HMSStatus::Ready && r.is_internal;
 }
 
 // Wrap text to width; shrink the font (not below min_point_size) when it would exceed two lines
@@ -225,9 +233,6 @@ HMSPanel::~HMSPanel() {
 }
 
 void HMSPanel::append_hms_panel(const std::string& dev_id, DevHMSItem& item) {
-    HMSResult r = wxGetApp().get_hms_query_mgr()->query_hms(dev_id, item.get_long_error_code());
-    if (r.status == HMSStatus::Ready && r.text.IsEmpty()) { return; }
-
     HMSNotifyItem* notify_item = new HMSNotifyItem(dev_id, m_scrolledWindow, item);
     m_top_sizer->Add(notify_item, 0, wxALIGN_CENTER_HORIZONTAL);
 }
@@ -241,13 +246,25 @@ void HMSPanel::clear_hms_tag()
     temp_hms_list.clear();
 }
 
+int HMSPanel::count_shown(MachineObject *obj)
+{
+    if (!obj || !wxGetApp().get_hms_query_mgr())
+        return 0;
+
+    int count = 0;
+    for (const auto& item : obj->GetHMS()->GetHMSItems()) {
+        if (!is_hms_hidden(obj->get_dev_id(), item))
+            ++count;
+    }
+    return count;
+}
+
 void HMSPanel::update(MachineObject *obj)
 {
     if (obj) {
         this->obj = obj;
         this->Freeze();
         delete_hms_panels();
-        wxString hms_text;
         for (auto item : obj->GetHMS()->GetHMSItems()) {
             if (wxGetApp().get_hms_query_mgr()) {
 
@@ -257,6 +274,8 @@ void HMSPanel::update(MachineObject *obj)
                     temp_hms_list[key] = item;
                 }
 
+                if (is_hms_hidden(obj->get_dev_id(), item))
+                    continue;
                 append_hms_panel(obj->get_dev_id(), item);
             }
         }
@@ -287,16 +306,20 @@ void HMSPanel::update(MachineObject *obj)
     }
 }
 
+bool HMSPanel::clears_rows(int status)
+{
+    return ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0);
+}
+
 void HMSPanel::show_status(int status)
 {
     if (last_status == status) return;
     last_status = status;
 
-    if (((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
-        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
-        || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)
-        || ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0)
-        ) {
+    if (clears_rows(status)) {
         delete_hms_panels();
         Layout();
     }

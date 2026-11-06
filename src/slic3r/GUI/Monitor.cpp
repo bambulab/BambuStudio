@@ -437,7 +437,7 @@ void MonitorPanel::on_activate()
     if (!rfid_refresh_ctrl) {
         return;
     }
-    
+
     return;// reset story-7043553223
     rfid_refresh_ctrl->TriggerRefresh();
 }
@@ -623,7 +623,7 @@ void MonitorPanel::update_hms_tag()
 {
     if (!m_hms_panel || !m_tabpanel || !m_tabpanel->GetBtnsListCtrl())
         return;
-    m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, (int)m_hms_panel->temp_hms_list.size());
+    m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, HMSPanel::count_shown(obj));
 }
 
 bool MonitorPanel::Show(bool show)
@@ -697,8 +697,11 @@ void MonitorPanel::show_status(int status)
     if (m_side_tools) { m_side_tools->show_status(status); };
     if (m_status_info_panel)
         m_status_info_panel->show_status(status);
-    if (m_hms_panel)
+    if (m_hms_panel) {
         m_hms_panel->show_status(status);
+        if (HMSPanel::clears_rows(status) && m_tabpanel && m_tabpanel->GetBtnsListCtrl())
+            m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, 0);
+    }
     if (m_upgrade_panel)
         m_upgrade_panel->show_status(status);
 

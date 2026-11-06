@@ -34,6 +34,9 @@ namespace fs = boost::filesystem;
 static const char* HMS_QUERY_INFO   = "query_hms_info";
 static const char* HMS_QUERY_ACTION = "query_hms_action";
 
+// Retries 1 minute apart after a failed download; beyond this, wait for the 24h window.
+static constexpr int HMS_MAX_FAST_RETRIES = 5;
+
 static std::string hms_file_name(const std::string& hms_type, const std::string& lang, const std::string& dev_type)
 {
     if (hms_type == HMS_QUERY_ACTION)
@@ -260,7 +263,7 @@ static wxString find_error_intro(const json& block, const std::string& ecode, co
     return wxEmptyString;
 }
 
-// Mirrors the old _is_internal_error: an entry whose ecode exists in device_error but
+// Mirrors the old _is_internal_error: an entry whose ecode exists in the block but
 // whose intro is EMPTY is an internal (suppressed) error. A missing ecode is NOT internal.
 static bool is_internal_error(const json& block, const std::string& ecode, const std::string& lang_code)
 {
@@ -302,6 +305,7 @@ HMSResult HMSQueryMgr::query_error(const std::string& dev_id, int error_code)
     std::shared_ptr<const json> snap;
     HMSStatus                   st;
     bool                        in_flight = false;
+    bool                        stale     = false;
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         auto it = m_entries.find(key);
@@ -309,6 +313,7 @@ HMSResult HMSQueryMgr::query_error(const std::string& dev_id, int error_code)
         if (it != m_entries.end()) {
             snap      = it->second.info;
             in_flight = it->second.inflight;
+            stale     = !in_flight && need_update(it->second);
         }
     }
 
@@ -316,6 +321,8 @@ HMSResult HMSQueryMgr::query_error(const std::string& dev_id, int error_code)
         ensure_loaded(dev_type);
         return { HMSStatus::Loading };
     }
+    if (stale)
+        ensure_loaded(dev_type); // refresh in background, keep serving the current snapshot
     if (st == HMSStatus::Failed && !snap)
         return { HMSStatus::Failed };
     if (st == HMSStatus::Ready && !snap)
@@ -345,6 +352,7 @@ HMSResult HMSQueryMgr::query_hms(const std::string& dev_id, const std::string& l
     std::shared_ptr<const json> snap;
     HMSStatus                   st;
     bool                        in_flight = false;
+    bool                        stale     = false;
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         auto it = m_entries.find(key);
@@ -352,6 +360,7 @@ HMSResult HMSQueryMgr::query_hms(const std::string& dev_id, const std::string& l
         if (it != m_entries.end()) {
             snap      = it->second.info;
             in_flight = it->second.inflight;
+            stale     = !in_flight && need_update(it->second);
         }
     }
 
@@ -359,6 +368,8 @@ HMSResult HMSQueryMgr::query_hms(const std::string& dev_id, const std::string& l
         ensure_loaded(dev_type);
         return { HMSStatus::Loading };
     }
+    if (stale)
+        ensure_loaded(dev_type); // refresh in background, keep serving the current snapshot
     if (st == HMSStatus::Failed && !snap)
         return { HMSStatus::Failed };
     if (st == HMSStatus::Ready && !snap)
@@ -368,8 +379,11 @@ HMSResult HMSQueryMgr::query_hms(const std::string& dev_id, const std::string& l
 
     HMSResult r;
     r.status = HMSStatus::Ready;
-    if (snap->contains("device_hms"))
-        r.text = find_error_intro((*snap)["device_hms"], boost::to_upper_copy(long_error_code), lang);
+    if (snap->contains("device_hms")) {
+        const std::string ecode = boost::to_upper_copy(long_error_code);
+        r.text = find_error_intro((*snap)["device_hms"], ecode, lang);
+        r.is_internal = is_internal_error((*snap)["device_hms"], ecode, lang);
+    }
     return r;
 }
 
@@ -385,6 +399,7 @@ HMSResult HMSQueryMgr::query_action(const std::string& dev_id, int error_code)
     std::shared_ptr<const json> snap;
     HMSStatus                   st;
     bool                        in_flight = false;
+    bool                        stale     = false;
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         auto it = m_entries.find(key);
@@ -392,6 +407,7 @@ HMSResult HMSQueryMgr::query_action(const std::string& dev_id, int error_code)
         if (it != m_entries.end()) {
             snap      = it->second.action;
             in_flight = it->second.inflight;
+            stale     = !in_flight && need_update(it->second);
         }
     }
 
@@ -399,6 +415,8 @@ HMSResult HMSQueryMgr::query_action(const std::string& dev_id, int error_code)
         ensure_loaded(dev_type);
         return { HMSStatus::Loading };
     }
+    if (stale)
+        ensure_loaded(dev_type); // refresh in background, keep serving the current snapshot
     if (st == HMSStatus::Failed && !snap)
         return { HMSStatus::Failed };
     if (st == HMSStatus::Ready && !snap)
@@ -509,7 +527,7 @@ void HMSQueryMgr::fetch_leg(const std::shared_ptr<DownloadCtx>& ctx, bool is_inf
     const std::string hms_type = is_info ? HMS_QUERY_INFO : HMS_QUERY_ACTION;
 
     Slic3r::Http::get(url)
-        .timeout_max(20)
+        .timeout_max(60) // dictionaries are ~1 MB, 20s timed out on slow networks
         .on_complete([this, ctx, is_info, hms_type, local_ver](std::string body, unsigned /*status*/) {
             try {
                 json j = json::parse(body);
@@ -555,13 +573,19 @@ void HMSQueryMgr::apply_download(const std::shared_ptr<DownloadCtx>& ctx)
         std::lock_guard<std::mutex> lock(m_mutex);
         HMSEntry& e     = m_entries[key];
         e.last_update   = time(nullptr);
+        e.fail_count    = ok ? 0 : e.fail_count + 1;
         e.inflight      = false;
+        if (e.fail_count == HMS_MAX_FAST_RETRIES + 1)
+            BOOST_LOG_TRIVIAL(warning) << "HMS: download failed " << e.fail_count << " times for " << key << ", fall back to daily refresh";
+
+        // A leg that succeeded is kept even if the other one failed.
+        if (ctx->info)   { e.info   = ctx->info;   e.info_ver   = ctx->info_ver; }
+        if (ctx->action) { e.action = ctx->action; e.action_ver = ctx->action_ver; }
 
         if (ok) {
-            if (ctx->info)   { e.info   = ctx->info;   e.info_ver   = ctx->info_ver; }
-            if (ctx->action) { e.action = ctx->action; e.action_ver = ctx->action_ver; }
             e.status = HMSStatus::Ready;
         } else if (e.info || e.action) {
+            BOOST_LOG_TRIVIAL(warning) << "HMS: download failed for " << key << ", keep current snapshot and retry later";
             e.status = HMSStatus::Ready; // a prior snapshot is still usable
         } else {
             e.status = HMSStatus::Failed;
@@ -634,12 +658,13 @@ std::string HMSQueryMgr::cache_key(const std::string& dev_type, const std::strin
     return dev_type + "_" + lang;
 }
 
-// Caller must hold m_mutex. Re-download at most once per staleness window (24h).
 bool HMSQueryMgr::need_update(const HMSEntry& entry)
 {
     if (entry.last_update == 0)
         return true;
-    return time(nullptr) - entry.last_update > (60 * 60 * 24);
+    const bool   fast_retry = entry.fail_count > 0 && entry.fail_count <= HMS_MAX_FAST_RETRIES;
+    const time_t window     = fast_retry ? 60 : (60 * 60 * 24);
+    return time(nullptr) - entry.last_update > window;
 }
 
 HMSSubscription::HMSSubscription(HMSSubscription&& o) noexcept
