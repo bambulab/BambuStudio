@@ -7455,30 +7455,54 @@ int CLI::run(int argc, char **argv)
                                 map_mode = new_print_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value;
 
                             const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(new_print_config);
-                            const auto *ams_idx_opt = new_print_config.option<ConfigOptionInts>("ams_nozzle_idx");
-                            const int   ams_idx     = (ams_idx_opt && !ams_idx_opt->values.empty()) ? ams_idx_opt->get_at(0) : -1;
-                            const std::string estimate_ams_str = estimate_mode ? "1#0|4#2" : "1#0|4#1";
-
-                            // 后端 get_effective_ams_nozzle_idx() 依赖 extruder_ams_count > 0 判定是否存在有效 AMS 喷嘴；
-                            // 按 ams_nozzle_idx（-1 无 AMS，>=0 有 AMS）同步 extruder_ams_count，确保手动/自动模式下 AMS 喷嘴下标与容量一致。
+                            // 先决定 AMS 容量，再统一写入。override 为空表示保留 3MF 里的 extruder_ams_count。
+                            // 单挤出机多喷嘴：estimate_mode 或命令行下标 < 0 时不接 AMS（"1#0|4#0"）；
+                            // 命令行下标 >= 0 时为 1 台 4 槽；未传命令行参数时沿用文件，"1#0|4#0" 不改写。
+                            // 双挤出机只在自动分组时写入：estimate_mode 为 2 台 4 槽，否则 1 台 4 槽。
+                            const std::string no_ams_count = "1#0|4#0";
+                            std::string ams_count_override;
+                            int estimate_slots = 0;
                             if (single_ext_multi_nozzle) {
+                                const bool cli_has_ams_nozzle_idx = m_extra_config.has("ams_nozzle_idx");
+                                const auto *ams_idx_opt = new_print_config.option<ConfigOptionInts>("ams_nozzle_idx");
+                                const int ams_nozzle_idx_value = (ams_idx_opt && !ams_idx_opt->values.empty()) ? ams_idx_opt->get_at(0) : -1;
+                                if (estimate_mode || (cli_has_ams_nozzle_idx && ams_nozzle_idx_value < 0)) {
+                                    // estimate_mode，或命令行下标无效：不接 AMS，槽位数保持 0
+                                    ams_count_override = no_ams_count;
+                                } else if (cli_has_ams_nozzle_idx) {
+                                    // 命令行传入有效下标：1 台 4 槽 AMS
+                                    ams_count_override = "1#0|4#1";
+                                    estimate_slots = 4;
+                                } else {
+                                    // 未传 ams_nozzle_idx：不改写 3MF，槽位数按文件计算
+                                    const auto *file_ams = new_print_config.option<ConfigOptionStrings>("extruder_ams_count");
+                                    const std::string file_count = (file_ams && !file_ams->values.empty()) ? file_ams->values.front() : no_ams_count;
+                                    const auto file_counts = get_extruder_ams_count({file_count});
+                                    if (!file_counts.empty()) {
+                                        for (const auto &slot : file_counts.front())
+                                            estimate_slots += slot.first * slot.second;
+                                    }
+                                }
+                            } else if (is_auto_filament_map_mode(map_mode)) {
+                                // 双挤出机自动分组：estimate_mode 为 2 台 4 槽，否则 1 台 4 槽
+                                ams_count_override = estimate_mode ? "1#0|4#2" : "1#0|4#1";
+                                estimate_slots = estimate_mode ? 8 : 4;
+                            }
+                            // 双挤出机手动分组不会进上面两个分支，override 为空，不改 3MF
+                            if (!ams_count_override.empty()) {
                                 new_print_config.option<ConfigOptionStrings>("extruder_ams_count", true)->values.assign(
-                                    new_extruder_count, ams_idx >= 0 ? estimate_ams_str : "0#0");
+                                    new_extruder_count, ams_count_override);
                             }
 
                             if (is_auto_filament_map_mode(map_mode)) {
-                                //set default params for auto map
-                                std::vector<std::string> extruder_ams_count(new_extruder_count, "");
+                                // 只按上面算出的槽位数构造虚拟料盘，不再改 extruder_ams_count。
                                 std::vector<std::vector<DynamicPrintConfig>> extruder_filament_info(new_extruder_count, std::vector<DynamicPrintConfig>());
                                 int color_count = 0;
 
                                 const ConfigOptionStrings* filament_type  = dynamic_cast<const ConfigOptionStrings *>(m_print_config.option("filament_type"));
                                 std::vector<std::string> types = filament_type ? filament_type->vserialize() : std::vector<std::string>{"PLA"};
-
-                                int estimate_slots = estimate_mode ? 8 : 4;
                                 for (int e_index = 0; e_index < new_extruder_count; e_index++)
                                 {
-                                    extruder_ams_count[e_index] = (single_ext_multi_nozzle && ams_idx < 0) ? "0#0" : estimate_ams_str;
                                     for (int color_index = 0; color_index < estimate_slots; color_index++)
                                     {
                                         DynamicPrintConfig temp_config;
@@ -7499,7 +7523,6 @@ int CLI::run(int argc, char **argv)
                                         color_count++;
                                     }
                                 }
-                                new_print_config.option<ConfigOptionStrings>("extruder_ams_count", true)->values = extruder_ams_count;
                                 print_fff->set_extruder_filament_info(extruder_filament_info);
                             }
                         }
