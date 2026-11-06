@@ -13,6 +13,11 @@ CheckBox::CheckBox(wxWindow *parent, int id)
     , m_on_focused(this, "check_on_focused", 18)
     , m_half_focused(this, "check_half_focused", 18)
     , m_off_focused(this, "check_off_focused", 18)
+#ifdef __WXGTK__
+    , m_on_kbfocus(this, "check_on_kbfocus", 18)
+    , m_half_kbfocus(this, "check_half_kbfocus", 18)
+    , m_off_kbfocus(this, "check_off_kbfocus", 18)
+#endif
 {
 	//SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
 	if (parent)
@@ -23,6 +28,10 @@ CheckBox::CheckBox(wxWindow *parent, int id)
     Bind(wxEVT_KILL_FOCUS, &CheckBox::updateBitmap, this);
     Bind(wxEVT_ENTER_WINDOW, &CheckBox::updateBitmap, this);
     Bind(wxEVT_LEAVE_WINDOW, &CheckBox::updateBitmap, this);
+#endif
+#ifdef __WXGTK__
+    Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent &e) { m_has_focus = true; update(); e.Skip(); });
+    Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent &e) { m_has_focus = false; update(); e.Skip(); });
 #endif
 	SetSize(m_on.GetBmpSize());
 	SetMinSize(m_on.GetBmpSize());
@@ -54,6 +63,11 @@ void CheckBox::Rescale()
     m_on_focused.msw_rescale();
     m_half_focused.msw_rescale();
     m_off_focused.msw_rescale();
+#ifdef __WXGTK__
+    m_on_kbfocus.msw_rescale();
+    m_half_kbfocus.msw_rescale();
+    m_off_kbfocus.msw_rescale();
+#endif
     SetSize(m_on.GetBmpSize());
 	update();
 }
@@ -66,6 +80,14 @@ void CheckBox::update()
     SetBitmapFocus((m_half_checked ? m_half_focused : GetValue() ? m_on_focused : m_off_focused).bmp());
 #endif
     SetBitmapCurrent((m_half_checked ? m_half_focused : GetValue() ? m_on_focused : m_off_focused).bmp());
+#ifdef __WXGTK__
+    // a disabled checkbox keeps no focus ring, it cannot be reached by Tab
+    if (m_has_focus && IsEnabled()) {
+        const wxBitmap &focused = (m_half_checked ? m_half_kbfocus : GetValue() ? m_on_kbfocus : m_off_kbfocus).bmp();
+        SetBitmapLabel(focused);
+        SetBitmapCurrent(focused);
+    }
+#endif
 #ifdef __WXOSX__
     wxCommandEvent e(wxEVT_UPDATE_UI);
     updateBitmap(e);
@@ -78,6 +100,18 @@ CheckBox::State CheckBox::GetNormalState() const { return State_Normal; }
 
 #endif
 
+
+#ifdef __WXGTK__
+
+bool CheckBox::Enable(bool enable)
+{
+    bool result = wxBitmapToggleButton::Enable(enable);
+    if (result)
+        update();
+    return result;
+}
+
+#endif
 
 #ifdef __WXOSX__
 
