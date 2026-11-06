@@ -5284,6 +5284,10 @@
             "sub_path": "filament/Bambu PLA Metal @BBL P3C 0.2 nozzle.json"
         },
         {
+            "name": "Bambu PLA Metal @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Metal @BBL P3C 0.8 nozzle.json"
+        },
+        {
             "name": "Bambu PLA Metal @BBL X1",
             "sub_path": "filament/Bambu PLA Metal @BBL X1.json"
         },
@@ -6098,6 +6102,10 @@
         {
             "name": "Bambu PLA Sparkle @BBL P3C",
             "sub_path": "filament/Bambu PLA Sparkle @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Sparkle @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Sparkle @BBL P3C 0.8 nozzle.json"
         },
         {
             "name": "Bambu PLA Sparkle @BBL X1",
