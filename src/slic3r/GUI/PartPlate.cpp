@@ -2385,15 +2385,21 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     bool use_rib_wall = use_rib_wall_opt ? use_rib_wall_opt->value: true;
     double rib_width = config.option("prime_tower_rib_width")->getFloat();
 
+    // CLI (legacy_behavior) arranges before Print::apply(); it must keep reading the plate's
+    // Print config so headless output stays unchanged.
+    const ConfigBase &tower_cfg = legacy_behavior ? static_cast<const ConfigBase &>(m_print->config())
+                                                  : static_cast<const ConfigBase &>(config);
+    assert(legacy_behavior || config.option("filament_change_length") != nullptr);
+
     double filament_change_volume=0.;
     {
         std::vector<double>             filament_change_lengths;
-        auto                filament_change_lengths_opt = m_print->config().option<ConfigOptionFloats>("filament_change_length");
+        auto                filament_change_lengths_opt = tower_cfg.option<ConfigOptionFloats>("filament_change_length");
         if (filament_change_lengths_opt) filament_change_lengths = filament_change_lengths_opt->values;
         double length = filament_change_lengths.empty() ? 0 : *std::max_element(filament_change_lengths.begin(), filament_change_lengths.end());
         double diameter = 1.75;
         std::vector<double> diameters;
-        auto                filament_diameter_opt = m_print->config().option<ConfigOptionFloats>("filament_diameter");
+        auto                filament_diameter_opt = tower_cfg.option<ConfigOptionFloats>("filament_diameter");
         if (filament_diameter_opt) diameters = filament_diameter_opt->values;
         diameter = diameters.empty() ? diameter : *std::max_element(diameters.begin(), diameters.end());
         filament_change_volume = length * PI * diameter * diameter / 4.;
@@ -2427,7 +2433,9 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
             if (enable_wrapping_detection)
                 depth = std::max(depth, WipeTower::wrapping_wipe_tower_depth);
             rib_width = std::min(rib_width, depth / 2);
-            depth = rib_width / std::sqrt(2) + std::max(depth + m_print->config().prime_tower_extra_rib_length.value, volume_depth);
+            const ConfigOptionFloat *extra_rib_opt    = tower_cfg.option<ConfigOptionFloat>("prime_tower_extra_rib_length");
+            const double             extra_rib_length = extra_rib_opt ? extra_rib_opt->value : 0.;
+            depth = rib_width / std::sqrt(2) + std::max(depth + extra_rib_length, volume_depth);
             wipe_tower_size(0) = wipe_tower_size(1) = depth;
         }
     }
@@ -5143,7 +5151,7 @@ Vec2d PartPlateList::get_machine_default_wipe_tower_pos() const
     return Vec2d((double) x, (double) y);
 }
 
-void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos, bool keep_existing)
+void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos)
 {
     DynamicConfig &     proj_cfg     = wxGetApp().preset_bundle->project_config;
     ConfigOptionFloats *wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
@@ -5152,18 +5160,9 @@ void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool ini
     wipe_tower_x->values.resize(m_plate_list.size(), wipe_tower_x->values.empty() ? 0.0 : wipe_tower_x->values.front());
     wipe_tower_y->values.resize(m_plate_list.size(), wipe_tower_y->values.empty() ? 0.0 : wipe_tower_y->values.front());
 
-    // Resolve initial wipe tower position in one shot so x/y are never read uninitialised.
-    // Each branch in the IIFE must return, guaranteeing both coordinates have a value.
-    bool kept_existing_pos = false;
-    auto [x, y] = [&]() -> std::pair<float, float> {
-        if (keep_existing && plate_idx >= 0 && plate_idx < (int)wipe_tower_x->values.size() && plate_idx < (int)wipe_tower_y->values.size()) {
-            kept_existing_pos = true;
-            return { (float)wipe_tower_x->values[plate_idx], (float)wipe_tower_y->values[plate_idx] };
-        }
-
-        const Vec2d def = get_machine_default_wipe_tower_pos();
-        return { (float) def.x(), (float) def.y() };
-    }();
+    const Vec2d def = get_machine_default_wipe_tower_pos();
+    float       x   = (float) def.x();
+    float       y   = (float) def.y();
 
     PartPlate* part_plate = get_plate(plate_idx);
     Vec3d plate_origin = part_plate->get_origin();
@@ -5191,22 +5190,17 @@ void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool ini
         wipe_tower_size = part_plate->estimate_wipe_tower_size(full_config, w, wipe_vol, nozzle_nums, 2, false, enable_wrapping);
     }
 
-    // Pull back into the same legal range dragging allows, then avoid forbidden regions --
-    // but only for a freshly resolved default position (kept-existing positions leave
-    // `forbidden` empty so a saved user position is never relocated). GLCanvas3D::reload_scene
-    // runs a second, idempotent avoidance pass for cases that never reach this function.
+    // Pull back into the same legal range dragging allows, then avoid forbidden regions.
     if (!is_approx(wipe_tower_size(0), 0.0) && !is_approx(wipe_tower_size(1), 0.0)) {
         std::vector<ForbiddenRect2d> forbidden;
-        if (!kept_existing_pos) {
-            for (const BoundingBoxf3 &b : part_plate->get_exclude_areas())
-                forbidden.push_back({b.min.x(), b.min.y(), b.max.x(), b.max.y()});
-            if (enable_wrapping) {
-                const Pointfs wrap_pts = get_wrapping_exclude_area();
-                if (!wrap_pts.empty()) {
-                    BoundingBoxf wrap_bb(wrap_pts);
-                    forbidden.push_back({wrap_bb.min.x() + plate_origin(0), wrap_bb.min.y() + plate_origin(1),
-                                         wrap_bb.max.x() + plate_origin(0), wrap_bb.max.y() + plate_origin(1)});
-                }
+        for (const BoundingBoxf3 &b : part_plate->get_exclude_areas())
+            forbidden.push_back({b.min.x(), b.min.y(), b.max.x(), b.max.y()});
+        if (enable_wrapping) {
+            const Pointfs wrap_pts = get_wrapping_exclude_area();
+            if (!wrap_pts.empty()) {
+                BoundingBoxf wrap_bb(wrap_pts);
+                forbidden.push_back({wrap_bb.min.x() + plate_origin(0), wrap_bb.min.y() + plate_origin(1),
+                                     wrap_bb.max.x() + plate_origin(0), wrap_bb.max.y() + plate_origin(1)});
             }
         }
         float world_x = x + (float) plate_origin(0);

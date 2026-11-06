@@ -4223,73 +4223,43 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(full_cfg, w, wipe_vol, nozzle_nums, 0, false, dynamic_cast<const ConfigOptionBool*>(dconfig.option("enable_wrapping_detection"))->value);
 
                 {
-                    const float                 margin     = WIPE_TOWER_MARGIN;
-                    BoundingBoxf3               plate_bbox = part_plate->get_bounding_box();
-                    BoundingBoxf                plate_bbox_2d(Vec2d(plate_bbox.min(0), plate_bbox.min(1)), Vec2d(plate_bbox.max(0), plate_bbox.max(1)));
-                    const std::vector<Pointfs> &extruder_areas = part_plate->get_extruder_areas();
-                    for (Pointfs points : extruder_areas) {
-                        BoundingBoxf bboxf(points);
-                        plate_bbox_2d.min = plate_bbox_2d.min(0) >= bboxf.min(0) ? plate_bbox_2d.min : bboxf.min;
-                        plate_bbox_2d.max = plate_bbox_2d.max(0) <= bboxf.max(0) ? plate_bbox_2d.max : bboxf.max;
-                    }
-
-                    coordf_t plate_bbox_x_min_local_coord = plate_bbox_2d.min(0) - plate_origin(0);
-                    coordf_t plate_bbox_x_max_local_coord = plate_bbox_2d.max(0) - plate_origin(0);
-                    coordf_t plate_bbox_y_max_local_coord = plate_bbox_2d.max(1) - plate_origin(1);
-
-                    // Clamp wipe tower position to plate boundaries
-                    {
-                        bool pos_adjusted = false;
-                        if (x + margin + wipe_tower_size(0) > plate_bbox_x_max_local_coord) {
-                            x = plate_bbox_x_max_local_coord - wipe_tower_size(0) - margin;
-                            pos_adjusted = true;
-                        } else if (x < margin + plate_bbox_x_min_local_coord) {
-                            x = margin + plate_bbox_x_min_local_coord;
-                            pos_adjusted = true;
-                        }
-                        if (y + margin + wipe_tower_size(1) > plate_bbox_y_max_local_coord) {
-                            y = plate_bbox_y_max_local_coord - wipe_tower_size(1) - margin;
-                            pos_adjusted = true;
-                        } else if (y < margin) {
-                            y = margin;
-                            pos_adjusted = true;
-                        }
-                        if (pos_adjusted) {
-                            ConfigOptionFloat wt_x_opt(x);
-                            ConfigOptionFloat wt_y_opt(y);
-                            dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, plate_id, 0);
-                            dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, plate_id, 0);
-                        }
-                    }
-
-                    // Re-run the forbidden-region safety net when its inputs (estimated tower
-                    // size, wrapping detection) change since the last reload, so a user-dragged
-                    // tower keeps its position. Wrapping is compared too because a preset switch
-                    // may reload once before the user's cached process edits are re-applied.
-                    // Skipped while loading a project: the 3mf restore keeps the saved position.
-                    const Vec3d last_size     = part_plate->get_wipe_tower_last_est_size();
-                    const bool  wrapping_now  = full_cfg.opt_bool("enable_wrapping_detection");
-                    const bool  inputs_changed = !last_size.isZero()
-                        && ((wipe_tower_size - last_size).norm() > 1e-3
-                            || wrapping_now != part_plate->get_wipe_tower_last_wrapping());
-                    // Zero size must not clear the baselines; it would delay the next change
+                    // Re-run the forbidden-region safety net when its inputs (estimated tower size,
+                    // wrapping detection, usable bed area) change since the last reload, so a
+                    // user-dragged tower keeps its position. Wrapping is compared too because a
+                    // preset switch may reload once before the user's cached process edits are
+                    // re-applied. Skipped while loading a project; the baseline stays unset so the
+                    // first post-load reload only records it and the 3mf position is kept.
+                    const bool  tower_sliced = current_print->is_step_done(psWipeTower)
+                                            && current_print->wipe_tower_data().wipe_tower_mesh_data.has_value();
+                    const WipeTowerReloadBaseline &last = part_plate->get_wipe_tower_baseline();
+                    const bool  wrapping_now = full_cfg.opt_bool("enable_wrapping_detection");
+                    // Height matters only through the footprint; a height-only change must not pull the tower back.
+                    const double size_change = (wipe_tower_size - last.est_size).head<2>().norm();
+                    // Plate-local, so re-laying out plates (e.g. adding one) does not count as a bed change.
+                    BoundingBoxf3 build_volume = part_plate->get_build_volume(true);
+                    build_volume.translate(-plate_origin);
+                    const double bv_change = (build_volume.min - last.build_volume.min).head<2>().norm()
+                                           + (build_volume.max - last.build_volume.max).head<2>().norm();
+                    const bool  inputs_changed = !last.est_size.isZero()
+                        && (size_change > 1e-3
+                            || bv_change > 1e-3
+                            || wrapping_now != last.wrapping);
+                    // Zero size must not clear the baseline; it would delay the next change
                     // detection by one reload cycle.
-                    if (!wipe_tower_size.isZero(EPSILON)) {
-                        part_plate->set_wipe_tower_last_est_size(wipe_tower_size);
-                        part_plate->set_wipe_tower_last_wrapping(wrapping_now);
-                    }
+                    if (!is_loading_project && !wipe_tower_size.isZero(EPSILON))
+                        part_plate->set_wipe_tower_baseline({wipe_tower_size, wrapping_now, build_volume});
                     if (inputs_changed && !is_loading_project) {
                         ConfigOptionFloats *wtx = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
                         ConfigOptionFloats *wty = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
                         if (wtx && wty) {
-                            ensure_wipe_tower_clears_forbidden_regions(*part_plate, plate_id, wxGetApp().plater()->model(), ppl, *wtx, *wty, full_cfg);
+                            ensure_wipe_tower_clears_forbidden_regions(*part_plate, plate_id, wxGetApp().plater()->model(), ppl, *wtx, *wty, full_cfg, &wipe_tower_size);
                             // ensure may have rewritten the config; refresh the locals used for rendering below.
                             x = wtx->get_at(plate_id);
                             y = wty->get_at(plate_id);
                         }
                     }
 
-                    if (!current_print->is_step_done(psWipeTower) || !current_print->wipe_tower_data().wipe_tower_mesh_data) {
+                    if (!tower_sliced) {
                         // update for wipe tower position
                         {
                             int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(1000 + plate_id, x + plate_origin(0), y + plate_origin(1),
@@ -4300,13 +4270,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                             if (volume_idx_wipe_tower_old != -1) map_glvolume_old_to_new[volume_idx_wipe_tower_old] = volume_idx_wipe_tower_new;
                         }
                     } else {
-                        auto        tower_bottom = current_print->wipe_tower_data().wipe_tower_mesh_data->bottom;
-                        tower_bottom.translate(scaled(Vec2d{x, y}));
-                        tower_bottom.translate(scaled(Vec2d{plate_origin[0], plate_origin[1]}));
-                        auto tower_bottom_bbox = get_extents(tower_bottom);
-                        BoundingBoxf3 plate_bbox        = wxGetApp().plater()->get_partplate_list().get_plate(plate_id)->get_build_volume(true);
-                        BoundingBox   plate_bbox2d      = BoundingBox(scaled(Vec2f(plate_bbox.min[0], plate_bbox.min[1])), scaled(Vec2f(plate_bbox.max[0], plate_bbox.max[1])));
-                        Vec2f         offset            = WipeTower::move_box_inside_box(tower_bottom_bbox, plate_bbox2d, scaled(margin));
                         int volume_idx_wipe_tower_new = m_volumes.load_real_wipe_tower_preview(1000 + plate_id, x + plate_origin(0), y + plate_origin(1),
                                                                                                current_print->wipe_tower_data().wipe_tower_mesh_data->real_wipe_tower_mesh,
                                                                                                current_print->wipe_tower_data().wipe_tower_mesh_data->real_brim_mesh,

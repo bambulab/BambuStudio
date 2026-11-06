@@ -446,7 +446,7 @@ void try_optimal_wipe_tower_position_for_plate(PartPlate &plate, int plate_idx, 
     std::vector<double> prime_volumes = full_config.option<ConfigOptionFloats>("filament_prime_volume")->values;
     if (full_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value == pvmSaving)
         for (auto &pv : prime_volumes) pv = 15.f;
-    const Vec3d wt_size_3d = plate.estimate_wipe_tower_size(print_cfg, prime_tower_width,
+    const Vec3d wt_size_3d = plate.estimate_wipe_tower_size(full_config, prime_tower_width,
                                                              get_max_element(prime_volumes),
                                                              nozzle_nums, 0, false, enable_wrapping);
     const Vec2d tower_size(wt_size_3d.x(), wt_size_3d.y());
@@ -605,7 +605,8 @@ bool ensure_wipe_tower_clears_forbidden_regions(PartPlate &plate, int plate_idx,
                                                 PartPlateList &plate_list,
                                                 ConfigOptionFloats &wipe_tower_x,
                                                 ConfigOptionFloats &wipe_tower_y,
-                                                const DynamicPrintConfig &full_config)
+                                                const DynamicPrintConfig &full_config,
+                                                const Vec3d *est_size)
 {
     if (plate_idx >= static_cast<int>(wipe_tower_x.values.size()) ||
         plate_idx >= static_cast<int>(wipe_tower_y.values.size()))
@@ -621,9 +622,10 @@ bool ensure_wipe_tower_clears_forbidden_regions(PartPlate &plate, int plate_idx,
     std::vector<double> prime_volumes = full_config.option<ConfigOptionFloats>("filament_prime_volume")->values;
     if (full_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value == pvmSaving)
         for (auto &pv : prime_volumes) pv = 15.f;
-    const Vec3d wt_size_3d = plate.estimate_wipe_tower_size(print_cfg, prime_tower_width,
-                                                             get_max_element(prime_volumes),
-                                                             nozzle_nums, 0, false, enable_wrapping);
+    const Vec3d wt_size_3d = est_size ? *est_size
+                                      : plate.estimate_wipe_tower_size(full_config, prime_tower_width,
+                                                                       get_max_element(prime_volumes),
+                                                                       nozzle_nums, 0, false, enable_wrapping);
     const Vec2d tower_size(wt_size_3d.x(), wt_size_3d.y());
     if (tower_size.x() <= EPSILON || tower_size.y() <= EPSILON)
         return false; // no tower on this plate -- nothing to guard

@@ -316,7 +316,7 @@ static arrangement::ArrangePolygon estimate_wipe_tower_info(int plate_index, std
     if (full_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value == pvmSaving)
         for (auto &pv : prime_volumes) pv = 15.f;
     const bool enable_wrapping = full_config.opt_bool("enable_wrapping_detection");
-    const Vec3d wt_size_3d = plate->estimate_wipe_tower_size(print_cfg, prime_tower_width,
+    const Vec3d wt_size_3d = plate->estimate_wipe_tower_size(full_config, prime_tower_width,
                                                               get_max_element(prime_volumes),
                                                               nozzle_nums, extruder_size, false, enable_wrapping);
     const Vec2d tower_size(wt_size_3d.x(), wt_size_3d.y());

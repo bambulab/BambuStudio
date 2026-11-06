@@ -12693,12 +12693,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 if (file_wipe_tower_y)
                                     *wipe_tower_y = *file_wipe_tower_y;
 
-                                // Re-clamp restored 3mf tower positions to the current plate; the placed-flag
-                                // decision is deferred until filament/nozzle sync finishes below.
+                                // Saved tower positions must stay untouched here (even off-plate or over an
+                                // exclude area); only pad the per-plate arrays. The placed-flag decision is
+                                // deferred until filament/nozzle sync finishes below.
                                 {
-                                    PartPlateList& plate_list = this->partplate_list;
-                                    for (size_t plate_id = 0; plate_id < plate_list.get_plate_list().size(); ++plate_id)
-                                        plate_list.set_default_wipe_tower_pos_for_plate((int)plate_id, /*init_pos=*/false, /*keep_existing=*/true);
+                                    const size_t plate_count = this->partplate_list.get_plate_list().size();
+                                    const Vec2d def = this->partplate_list.get_machine_default_wipe_tower_pos();
+                                    wipe_tower_x->values.resize(plate_count, wipe_tower_x->values.empty() ? def.x() : wipe_tower_x->values.front());
+                                    wipe_tower_y->values.resize(plate_count, wipe_tower_y->values.empty() ? def.y() : wipe_tower_y->values.front());
                                 }
 
                                 ConfigOptionStrings* filament_color = proj_cfg.opt<ConfigOptionStrings>("filament_colour");
@@ -21432,7 +21434,7 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
                                 extruder_ids.insert(kv.first);
                         const int plate_extruder_size = extruder_ids.empty() ? 2 : (int) extruder_ids.size();
                         const Vec3d wt_size_3d = tpl_plate->estimate_wipe_tower_size(
-                            print_cfg, prime_tower_width, get_max_element(prime_volumes),
+                            new_full_config, prime_tower_width, get_max_element(prime_volumes),
                             nozzle_nums, plate_extruder_size, /*use_global_objects=*/false, enable_wrapping_wt);
                         const Vec2d tower_size(wt_size_3d.x(), wt_size_3d.y());
 
