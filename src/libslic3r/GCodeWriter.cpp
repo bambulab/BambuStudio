@@ -601,6 +601,9 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
 
 std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &comment, bool use_short_travel_acceleration)
 {
+    // Capture the command before nested Z moves update the acceleration cache.
+    // Otherwise a split XY/Z move may emit its M204 only after the XY motion.
+    const std::string travel_acceleration = set_travel_acceleration(use_short_travel_acceleration);
     // FIXME: This function was not being used when travel_speed_z was separated (bd6badf).
     // Calculation of feedrate was not updated accordingly. If you want to use
     // this function, fix it first.
@@ -680,6 +683,9 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             }
         }
 
+        // Lift moves use regular travel acceleration; restore a requested
+        // short-travel acceleration before the following XY move.
+        const std::string xy_acceleration = set_travel_acceleration(use_short_travel_acceleration);
         std::string xy_z_move;
         {
             GCodeG1Formatter w0;
@@ -698,7 +704,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         }
         m_pos = dest_point;
         this->set_current_position_clear(true);
-        return set_travel_acceleration(use_short_travel_acceleration) + slop_move + xy_z_move;
+        return travel_acceleration + slop_move + xy_acceleration + xy_z_move;
     }
     else if (!this->will_move_z(point(2))) {
         double nominal_z = m_pos(2) - m_lifted;
@@ -709,7 +715,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             m_lifted = 0.;
         //BBS
         this->set_current_position_clear(true);
-        return this->travel_to_xy(to_2d(point), std::string(), use_short_travel_acceleration);
+        return travel_acceleration + this->travel_to_xy(to_2d(point), std::string(), use_short_travel_acceleration);
     }
     else {
         /*  In all the other cases, we perform an actual XYZ move and cancel
@@ -740,7 +746,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
 
     m_pos = dest_point;
     this->set_current_position_clear(true);
-    return set_travel_acceleration(use_short_travel_acceleration) + out_string;
+    return travel_acceleration + out_string;
 }
 
 std::string GCodeWriter::travel_to_z(double z, const std::string &comment)

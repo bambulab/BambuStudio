@@ -1118,7 +1118,16 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     for (auto el : { "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed"})
         toggle_line(el, has_overhang_speed, variant_index);
 
-    bool has_height_slowdown = config->opt_bool("enable_height_slowdown", variant_index);
+    const auto *automatic_option = config->option<ConfigOptionBoolsNullable>("enable_height_slowdown_auto");
+    const auto *automatic_nonnullable_option = config->option<ConfigOptionBools>("enable_height_slowdown_auto");
+    const auto *automatic_values = automatic_option ? &automatic_option->values :
+        (automatic_nonnullable_option ? &automatic_nonnullable_option->values : nullptr);
+    // Only an explicit true value enables automatic mode; a nullable override may be unset.
+    bool automatic_height_slowdown = automatic_values && !automatic_values->empty() &&
+        (*automatic_values)[variant_index >= 0 && size_t(variant_index) < automatic_values->size() ? size_t(variant_index) : 0] == 1;
+    toggle_line("height_slowdown_initial_speed_boost", automatic_height_slowdown, variant_index);
+    toggle_line("enable_height_slowdown", !automatic_height_slowdown, variant_index);
+    bool has_height_slowdown = !automatic_height_slowdown && config->opt_bool("enable_height_slowdown", variant_index);
     for (auto el : { "slowdown_start_height", "slowdown_start_speed", "slowdown_start_acc", "slowdown_end_height", "slowdown_end_speed", "slowdown_end_acc" })
         toggle_line(el, has_height_slowdown, variant_index);
 

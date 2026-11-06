@@ -1,6 +1,7 @@
 #include "libslic3r.h"
 #include "I18N.hpp"
 #include "GCode.hpp"
+#include "GCode/HeightSlowdown.hpp"
 #include "Exception.hpp"
 #include "ExtrusionEntity.hpp"
 #include "EdgeGrid.hpp"
@@ -7510,16 +7511,44 @@ void GCode::smooth_speed_discontinuity_area(ExtrusionPaths &paths) {
     inter_paths = set_speed_transition(prepare_paths);
     paths = std::move(inter_paths);
 }
-bool GCode::slowDownByHeight(double& maxSpeed, double& maxAcc, const ExtrusionPath& path)
+bool GCode::slowDownByHeight(double& maxSpeed, double& maxAcc, double& motion_factor, double& print_speed_factor, const ExtrusionPath& path)
 {
     double height1, height2, speed1, speed2, acc1, acc2, desiredMaxSpeed = 1000., desiredMaxAcc = 100000;
     double currentHeight = this->m_layer->print_z;
-    bool do_slowdown_by_height = NOZZLE_CONFIG(enable_height_slowdown);
+    const size_t nozzle_index = get_nozzle_config_index(m_writer.filament()->id());
+    // An unset nullable override must not opt a profile into automatic mode.
+    const auto explicitly_enabled = [nozzle_index](const ConfigOptionBoolsNullable &option) {
+        return !option.values.empty() && option.values[nozzle_index < option.values.size() ? nozzle_index : 0] == 1;
+    };
+    const bool automatic = explicitly_enabled(m_config.enable_height_slowdown_auto);
+    bool do_slowdown_by_height = automatic || NOZZLE_CONFIG(enable_height_slowdown);
+    motion_factor = print_speed_factor = 1.;
 
     if (path.role() > erNone && path.role() <= erGapFill) {}
     else do_slowdown_by_height = false;
 
-    if (do_slowdown_by_height) {
+    if (do_slowdown_by_height && automatic) {
+        const auto &layers = m_layer->object()->layers();
+        if (layers.empty()) {
+            do_slowdown_by_height = false;
+        } else {
+            motion_factor = automatic_height_slowdown_factor(currentHeight, layers.front()->print_z, layers.back()->print_z);
+            print_speed_factor = motion_factor;
+            if (explicitly_enabled(m_config.height_slowdown_initial_speed_boost)) {
+                // Preserve the first three model layers' ordinary printing
+                // speeds. Short objects that finish there receive no boost.
+                print_speed_factor = 1.;
+                if (layers.size() > 3 && currentHeight >= layers[3]->print_z) {
+                    print_speed_factor = layers.back()->print_z <= layers[3]->print_z ? 0.5 :
+                        automatic_height_slowdown_factor(currentHeight, layers[3]->print_z, layers.back()->print_z, 1.2);
+                }
+            }
+            // Automatic mode scales each operation's normal values instead of
+            // imposing the manual mode's absolute speed/acceleration ceilings.
+            desiredMaxSpeed = std::numeric_limits<double>::max();
+            desiredMaxAcc = std::numeric_limits<unsigned int>::max();
+        }
+    } else if (do_slowdown_by_height) {
         height1 = NOZZLE_CONFIG(slowdown_start_height);
         height2 = NOZZLE_CONFIG(slowdown_end_height);
         speed1 = NOZZLE_CONFIG(slowdown_start_speed);
@@ -7538,24 +7567,37 @@ bool GCode::slowDownByHeight(double& maxSpeed, double& maxAcc, const ExtrusionPa
                 // acceleration should be decreased linearly
                 desiredMaxAcc = acc1 - (acc1 - acc2) / (height2 - height1) * (currentHeight - height1);
             }
-
-            // modify travel speed and acceleration
-            for (auto& av : m_writer.config.travel_speed.values) {
-                if (!std::isnan(av)) {
-                    av = std::min(av, desiredMaxSpeed);
-                }
-            }
-            for (auto& bv : m_writer.config.travel_speed_z.values) {
-                if (!std::isnan(bv)) {
-                    bv = std::min(bv, desiredMaxSpeed);
-                }
-            }
-            for (auto& ta : m_writer.get_travel_acceleration()) {
-                ta = std::min(ta, (unsigned int)desiredMaxAcc);
-            }
-            if (!is_BBL_Printer())
-                m_config.travel_jerk.value = std::min(m_config.travel_jerk.value, desiredMaxSpeed);
         }
+    }
+
+    if (do_slowdown_by_height) {
+        // Limit travel using its own normal speed, independently of the
+        // extrusion path's width and filament volumetric limit.
+        for (auto& av : m_writer.config.travel_speed.values) {
+            if (!std::isnan(av)) {
+                av = std::min(av, desiredMaxSpeed) * motion_factor;
+            }
+        }
+        for (auto& bv : m_writer.config.travel_speed_z.values) {
+            if (!std::isnan(bv)) {
+                bv = std::min(bv, desiredMaxSpeed) * motion_factor;
+            }
+        }
+        for (auto& ta : m_writer.get_travel_acceleration()) {
+            ta = std::min(ta, (unsigned int)desiredMaxAcc);
+            if (automatic && m_writer.get_max_acceleration() > 0)
+                ta = std::min(ta, m_writer.get_max_acceleration());
+            ta = static_cast<unsigned int>(floor(ta * motion_factor + 0.5));
+        }
+        if (automatic) {
+            for (auto& ta : m_writer.get_travel_short_acceleration()) {
+                if (m_writer.get_max_acceleration() > 0)
+                    ta = std::min(ta, m_writer.get_max_acceleration());
+                ta = static_cast<unsigned int>(floor(ta * motion_factor + 0.5));
+            }
+        }
+        if (!is_BBL_Printer())
+            m_config.travel_jerk.value = std::min(m_config.travel_jerk.value, desiredMaxSpeed);
     }
     maxSpeed = desiredMaxSpeed;
     maxAcc = desiredMaxAcc;
@@ -7601,9 +7643,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     auto temp_travel_speed_z = m_writer.config.travel_speed_z;
     auto temp_travel_jerk = m_config.travel_jerk;
     auto temp_travel_acc = m_writer.get_travel_acceleration();
-    double desiredMaxSpeed, desiredMaxAcc;
+    auto temp_travel_short_acc = m_writer.get_travel_short_acceleration();
+    double desiredMaxSpeed, desiredMaxAcc, height_motion_factor, height_print_speed_factor;
 
-    bool do_slowdown_by_height = slowDownByHeight(desiredMaxSpeed, desiredMaxAcc, path);
+    bool do_slowdown_by_height = slowDownByHeight(desiredMaxSpeed, desiredMaxAcc, height_motion_factor, height_print_speed_factor, path);
 
     // go to first point of extrusion path
     //BBS: path.first_point is 2D point. But in lazy raise case, lift z is done in travel_to function.
@@ -7618,14 +7661,18 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         m_need_change_layer_lift_z = false;
     }
 
-    // restore travel speed and acceleration
-    if (do_slowdown_by_height) {
+    const auto restore_travel_settings = [&]() {
         m_writer.config.travel_speed = temp_travel_speed;
         m_writer.config.travel_speed_z = temp_travel_speed_z;
         m_writer.set_travel_acceleration(temp_travel_acc);
+        m_writer.set_travel_short_acceleration(temp_travel_short_acc);
         if (!is_BBL_Printer())
             m_config.travel_jerk = temp_travel_jerk;
-    }
+    };
+    // Preserve manual-mode behavior, but retain automatic travel scaling until
+    // unretract() has lowered any Z hop back to the model layer.
+    if (do_slowdown_by_height && height_motion_factor == 1.)
+        restore_travel_settings();
 
     // if needed, write the gcode_label_objects_end then gcode_label_objects_start
     // should be already done by travel_to, but just in case
@@ -7633,6 +7680,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     // compensate retraction
     gcode += this->unretract();
+    if (do_slowdown_by_height && height_motion_factor < 1.)
+        restore_travel_settings();
     m_config.apply(m_calib_config);
 
     // adjust acceleration
@@ -7660,8 +7709,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         } else {
             acceleration = NOZZLE_CONFIG(default_acceleration);
         }
-        if (do_slowdown_by_height)
-            acceleration = std::min(acceleration, desiredMaxAcc);
+        if (do_slowdown_by_height) {
+            if (height_motion_factor < 1. && m_writer.get_max_acceleration() > 0)
+                acceleration = std::min(acceleration, double(m_writer.get_max_acceleration()));
+            acceleration = std::min(acceleration, desiredMaxAcc) * height_motion_factor;
+        }
         m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
     }
 
@@ -7844,8 +7896,31 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         speed = std::min(speed, extrude_speed);
     }
 
-    if (do_slowdown_by_height)
-        speed = std::min(speed, desiredMaxSpeed);
+    if (do_slowdown_by_height) {
+        if (height_print_speed_factor > 1.) {
+            // A boost must not undo the filament cap calculated above. Use
+            // conservative XY limits so every segment respects both axes, and
+            // the active physical extruder's standard (not Silent) envelope.
+            const size_t machine_limit_index = m_writer.filament()->extruder_id() * 2;
+            const auto machine_limit = [machine_limit_index](const ConfigOptionFloatsNullable &option) {
+                return machine_limit_index < option.values.size() ? option.values[machine_limit_index] : 0.;
+            };
+            const double max_x = machine_limit(m_config.machine_max_speed_x);
+            const double max_y = machine_limit(m_config.machine_max_speed_y);
+            if (!is_flow_calib && !m_config.spiral_mode.value && (sloped == nullptr || sloped->is_flat()) &&
+                filament_max_volumetric_speed > 0. && std::isfinite(filament_max_volumetric_speed) &&
+                _mm3_per_mm_for_speed > 0. && std::isfinite(_mm3_per_mm_for_speed) &&
+                max_x > 0. && std::isfinite(max_x) && max_y > 0. && std::isfinite(max_y)) {
+                speed = std::min({speed * height_print_speed_factor,
+                                  filament_max_volumetric_speed / _mm3_per_mm_for_speed, max_x, max_y});
+                const double max_e = machine_limit(m_config.machine_max_speed_e);
+                if (max_e > 0. && std::isfinite(max_e) && e_per_mm > 0.)
+                    speed = std::min(speed, max_e / e_per_mm);
+            }
+        } else {
+            speed = std::min(speed, desiredMaxSpeed) * height_print_speed_factor;
+        }
+    }
     double F = speed * 60;  // convert mm/sec to mm/min
 
     // extrude arc or line
