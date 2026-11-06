@@ -11413,6 +11413,9 @@ msgstr "打印机正在执行指令，请在其结束后重新发起打印"
 msgid "Cold pull in progress. Unable to start a task."
 msgstr "冷拔进行中。无法启动任务。"
 
+msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
+msgstr "当前打印机固件暂不支持较大冲刷量，切片设置的冲刷量可能会被限制。"
+
 msgid "AMS is setting up. Please try again later."
 msgstr "AMS正在初始化。请稍后再试。"
 

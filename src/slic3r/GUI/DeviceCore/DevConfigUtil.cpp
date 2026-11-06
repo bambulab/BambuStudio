@@ -638,4 +638,19 @@ bool DevPrinterConfigUtil::support_nozzle_count_check(const std::string& type_st
     return true;
 }
 
+bool DevPrinterConfigUtil::support_big_flush_check(const std::string& type_str)
+{
+    const auto& print_value = get_value_from_config<json>(type_str, "print", "support_big_flush_check");
+    if (print_value.is_boolean()) {
+        return print_value.get<bool>();
+    }
+
+    const auto& value = get_value_from_config<json>(type_str, "support_big_flush_check");
+    if (value.is_boolean()) {
+        return value.get<bool>();
+    }
+
+    return true;
+}
+
 };

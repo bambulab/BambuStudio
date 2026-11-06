@@ -4812,6 +4812,7 @@ void MachineObject::parse_new_info(json print)
         m_fila_system->GetAutoRefillMgr().SetSupportManualEdit(get_flag_bits_no_border(fun2, 26) == 1);
         is_support_door_open_check_slow_down = (get_flag_bits_no_border(fun2, 27) == 1);
         is_support_timelapse_memory = (get_flag_bits_no_border(fun2, 36) == 1);
+        support_big_flush = (get_flag_bits_no_border(fun2, 41) == 1);
 
         if (DevPrinterConfigUtil::support_print_check_firmware_for_tpu_left(printer_type)) {
             m_firmware_support_print_tpu_left = DevUtil::get_flag_bits_no_border(fun2, 7) == 1;

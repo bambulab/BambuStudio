@@ -2319,6 +2319,9 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintStatusFilamentWarningHotendLowTempResidue) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
+    } else if (status == PrintStatusBigFlushWarning) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
     }
 
     /*enter perpare mode*/
@@ -5005,6 +5008,8 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     // check rack nozzle warning
     CheckWarningRackStatus(obj_);
 
+    CheckWarningBigFlush(obj_);
+
     /** normal check **/
     show_status(PrintDialogStatus::PrintStatusReadyToGo);
 }
@@ -6548,6 +6553,22 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
             show_status(PrintStatusHasUnreliableNozzleWarning, {}, wxEmptyString,
                         prePrintInfoStyle::BtnNozzleRefresh | prePrintInfoStyle::BtnConfirmNotShowAgain);
         }
+    }
+}
+
+void SelectMachineDialog::CheckWarningBigFlush(MachineObject* obj_)
+{
+    if (!obj_ || !m_slice_context) {
+        return;
+    }
+
+    if (!DevPrinterConfigUtil::support_big_flush_check(obj_->printer_type)) {
+        return;
+    }
+
+    if (!obj_->support_big_flush && m_slice_context->ExceedsFlushVolumeLimit()) {
+        show_status(PrintDialogStatus::PrintStatusBigFlushWarning,
+                    { _L("Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited.") });
     }
 }
 

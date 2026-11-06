@@ -230,6 +230,7 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusHasUnreliableNozzleWarning: return "PrintStatusRackHasUnreliableNozzleWarning";
     case PrintStatusRackNozzleNumUnmeetWarning: return "PrintStatusRackNozzleNumUnmeetWarning";
     case PrintStatusRackNozzleMappingWarning: return "PrintStatusRackNozzleMappingWarning";
+    case PrintStatusBigFlushWarning: return "PrintStatusBigFlushWarning";
     case PrintStatusWarningKvalueNotUsed: return "PrintStatusWarningKvalueNotUsed";
     case PrintStatusHasFilamentInBlackListWarning: return "PrintStatusHasFilamentInBlackListWarning";
     case PrintStatusHasFilamentInBlackListCriticalWarning: return "PrintStatusHasFilamentInBlackListCriticalWarning";
@@ -296,6 +297,7 @@ wxString PrePrintChecker::get_pre_state_msg(PrintDialogStatus status)
         return _L("Printing a project that uses multiple nozzle diameters directly from storage is not supported yet. "
                   "You can download the file and import it into Studio to print.");
     case PrintStatusHasUnreliableNozzleWarning: return _L("Please check if the required nozzle diameter and flow rate match the current display.");
+    case PrintStatusBigFlushWarning: return _L("Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited.");
     case PrintStatusColorQuantityExceed: return _L("The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support.");
     }
     return wxEmptyString;

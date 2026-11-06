@@ -11158,6 +11158,9 @@ msgstr ""
 msgid "Cold pull in progress. Unable to start a task."
 msgstr ""
 
+msgid "Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited."
+msgstr ""
+
 msgid "AMS is setting up. Please try again later."
 msgstr ""
 

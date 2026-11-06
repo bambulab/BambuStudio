@@ -519,6 +519,7 @@ public:
 
     void UpdateStatusCheckWarning_ExtensionTool(MachineObject* obj_);
     void CheckWarningRackStatus(MachineObject* obj_);
+    void CheckWarningBigFlush(MachineObject* obj_);
 
     bool CheckErrorWarningFilamentMapping(MachineObject* obj_);//return true if no errors
     bool IsRelevantAmsSupportAccurateRemain(MachineObject* obj_) const; // mapped/refill-related AMS report accurate remain version

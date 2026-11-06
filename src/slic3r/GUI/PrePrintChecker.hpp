@@ -159,6 +159,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusRackNozzleMappingWarning,
     PrintStatusFilaSwitcherSlicingNotMatch,
     PrintStatusNozzleHRCMismatch,
+    PrintStatusBigFlushWarning,
     PrintStatusPrinterWarningEnd,
 
     // Warnings for filament

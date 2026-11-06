@@ -607,6 +607,7 @@ public:
     bool is_support_check_track_switch_match_slice_printer{ false };
     bool is_support_model_internal_storage{false};
     bool is_support_timelapse_memory{false};
+    bool support_big_flush{false};
     int  ams_preload_version{0};
 
     bool installed_upgrade_kit{false};
