@@ -7743,12 +7743,14 @@ int CLI::run(int argc, char **argv)
                                         ThumbnailsList thumbnails;
                                         p_opengl_mgr->bind_vao();
                                         p_opengl_mgr->bind_shader(shader);
+                                        ThumbnailsParams cli_params = params;
+                                        cli_params.disable_msaa = true;
                                         for (const Vec2d& size : params.sizes) {
                                             thumbnails.push_back(ThumbnailData());
                                             Point isize(size); // round to ints
                                             ThumbnailData& thumbnail_data = thumbnails.back();
                                             Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(p_opengl_mgr, thumbnail_data,
-                                                isize.x(), isize.y(), params,
+                                                isize.x(), isize.y(), cli_params,
                                                 partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
                                             if (!thumbnails.back().is_valid())
                                                 thumbnails.pop_back();
@@ -8382,7 +8384,8 @@ int CLI::run(int argc, char **argv)
                                 }
                                 else {
                                     unsigned int thumbnail_width = 512, thumbnail_height = 512;
-                                    const ThumbnailsParams thumbnail_params = {{}, false, true, true, true, i};
+                                    ThumbnailsParams thumbnail_params = {{}, false, true, true, true, i};
+                                    thumbnail_params.disable_msaa = true;
 
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s thumbnail, need to regenerate")%(i+1);
                                     Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(p_opengl_mgr, *thumbnail_data,
@@ -8416,7 +8419,8 @@ int CLI::run(int argc, char **argv)
                                 }
                                 else {
                                     unsigned int thumbnail_width = 512, thumbnail_height = 512;
-                                    const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
+                                    ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
+                                    thumbnail_params.disable_msaa = true;
 
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s no_light_thumbnail_file missed, need to regenerate")%(i+1);
                                     Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(p_opengl_mgr, *no_light_thumbnail,
@@ -8473,7 +8477,8 @@ int CLI::run(int argc, char **argv)
                                 }
                                 else {
                                     unsigned int thumbnail_width = 512, thumbnail_height = 512;
-                                    const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
+                                    ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
+                                    thumbnail_params.disable_msaa = true;
 
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s top/pick thumbnail missed, need to regenerate, objects count %2%, skip_useless_pick %3%")%(i+1) %plate_object_count[i] %skip_useless_pick;
                                     if (skip_useless_pick && ((plate_object_count[i] <= 1) || (plate_object_count[i] > 64)))
@@ -8805,7 +8810,8 @@ int CLI::run(int argc, char **argv)
                 }
                 else {
                     unsigned int thumbnail_width = 512, thumbnail_height = 512;
-                    const ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i };
+                    ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i };
+                    thumbnail_params.disable_msaa = true;
 
                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s png, need to generate") % (i + 1);
                     Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(p_opengl_mgr, *thumbnail_data,

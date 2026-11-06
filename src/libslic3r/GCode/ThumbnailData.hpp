@@ -41,6 +41,7 @@ struct ThumbnailsParams
     bool            use_plate_box{true};
     bool            post_processing_enabled{ false };
     Vec4f           background_color{ 0.0f, 0.0f, 0.0f, 0.0f };
+    bool            disable_msaa{false};
 };
 
 typedef std::function<ThumbnailsList(const ThumbnailsParams&)> ThumbnailsGeneratorCallback;

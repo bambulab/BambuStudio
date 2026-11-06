@@ -7994,7 +7994,7 @@ void GLCanvas3D::render_thumbnail_framebuffer(const std::shared_ptr<OpenGLManage
     const auto fb_type = Slic3r::GUI::OpenGLManager::get_framebuffers_type();
     BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: %1%") % Slic3r::GUI::OpenGLManager::framebuffer_type_to_string(fb_type).c_str();
     EMSAAType msaa_type = EMSAAType::Disabled;
-    const bool b_need_msaa = !for_picking;
+    const bool b_need_msaa = !for_picking && !thumbnail_params.disable_msaa;
     uint32_t samples = 0;
     if (fb_type != OpenGLManager::EFramebufferType::Unknown) {
         thumbnail_fb_name = "thumbnail_fb";
