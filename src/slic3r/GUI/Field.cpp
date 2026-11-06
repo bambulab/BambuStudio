@@ -133,6 +133,16 @@ void Field::PostInitialize()
         this->enable();
 }
 
+wxString Field::undo_tooltip() const
+{
+    return m_undo_tooltip ? *m_undo_tooltip : wxString();
+}
+
+wxString Field::undo_to_sys_tooltip() const
+{
+    return m_undo_to_sys_tooltip ? *m_undo_to_sys_tooltip : wxString();
+}
+
 // Values of width to alignments of fields
 int Field::def_width()			{ return 8; }
 int Field::def_width_wider()	{ return 12; }

@@ -468,7 +468,7 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
                     field = opt_group->get_field(option_set[opt_idx].opt_id);
                 }
                 if (field)
-                    tooltip = *field->undo_tooltip();
+                    tooltip = field->undo_tooltip();
                 break;
             }
         for (size_t opt_idx = 0; opt_idx < line.rects_undo_to_sys_icon.size(); opt_idx++)
@@ -480,7 +480,7 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
                     field = opt_group->get_field(option_set[opt_idx].opt_id);
                 }
                 if (field)
-                    tooltip = *field->undo_to_sys_tooltip();
+                    tooltip = field->undo_to_sys_tooltip();
                 break;
             }
         // Mirrored per-nozzle value boxes are read-only and derived from the base value.

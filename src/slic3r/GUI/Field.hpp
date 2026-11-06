@@ -195,9 +195,19 @@ public:
 	static int def_width_thinner()	;
 
 	const ScalableBitmap*	undo_bitmap()			{ return m_undo_bitmap; }
-	const wxString*			undo_tooltip()			{ return m_undo_tooltip; }
+	/**
+	 * \brief Tooltip of the "revert to last saved value" icon
+	 *
+	 * \return empty string if the field has not been decorated yet
+	 */
+	wxString				undo_tooltip() const;
 	const ScalableBitmap*	undo_to_sys_bitmap()	{ return m_undo_to_sys_bitmap; }
-	const wxString*			undo_to_sys_tooltip()	{ return m_undo_to_sys_tooltip; }
+	/**
+	 * \brief Tooltip of the "revert to system value" icon
+	 *
+	 * \return empty string if the field has not been decorated yet
+	 */
+	wxString				undo_to_sys_tooltip() const;
 	const wxColour*			label_color()			{ return m_label_color; }
 	const bool				blink()					{ return m_blink; }
 	const bool				combine_side_text()		{ return m_combine_side_text; } // BBS: new param style
