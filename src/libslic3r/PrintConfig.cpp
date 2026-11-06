@@ -7,8 +7,10 @@
 #include "Utils.hpp"
 #include "LocalesUtils.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
+#include <functional>
 #include <set>
 #include <cmath>
 #include <cstdlib>
@@ -9531,7 +9533,7 @@ int DynamicPrintConfig::update_values_from_multi_to_multi(DynamicPrintConfig& ne
     return 0;
 }
 
-int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<std::string>& src_extruder_variants, const std::vector<std::string>& dst_extruder_variants, const DynamicPrintConfig& dst_config, const std::set<std::string>& key_sets)
+int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<std::string>& src_extruder_variants, const std::vector<std::string>& dst_extruder_variants, const DynamicPrintConfig& dst_config, const std::set<std::string>& key_sets, const std::vector<int>& variant_index)
 {
     const ConfigDef  *config_def     = this->def();
     if (!config_def) {
@@ -9547,11 +9549,19 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
         return indices;
     };
 
+    //for each dst variant, the src variants to take the value from
     std::vector<std::vector<int>> same_variant_indices;
-    for(size_t dst_idx =0 ;dst_idx < dst_extruder_variants.size(); ++dst_idx){
-        auto& dst_variant = dst_extruder_variants[dst_idx];
-        auto indices =get_same_variant_indices(src_extruder_variants, dst_variant);
-        same_variant_indices.emplace_back(indices);
+    if (!variant_index.empty()) {
+        //only one src variant, so the min / first non-nil value below is just its value
+        for (int src_idx : variant_index)
+            same_variant_indices.push_back(src_idx >= 0 ? std::vector<int>{src_idx} : std::vector<int>());
+    }
+    else {
+        for(size_t dst_idx =0 ;dst_idx < dst_extruder_variants.size(); ++dst_idx){
+            auto& dst_variant = dst_extruder_variants[dst_idx];
+            auto indices =get_same_variant_indices(src_extruder_variants, dst_variant);
+            same_variant_indices.emplace_back(indices);
+        }
     }
 
     t_config_option_keys keys = this->keys();
@@ -9563,6 +9573,16 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
             BOOST_LOG_TRIVIAL(warning) << boost::format("can not find opt define for %1%")%key;
             continue;
         }
+        //the values are taken from dst_config first, so it must have a value for each dst variant
+        //otherwise remove the key so that the dst_config value is used, instead of keeping the values in the src variant layout
+        const ConfigOption* dst_opt = dst_config.option(key);
+        if (!dst_opt || dst_opt->type() != optdef->type || !dst_opt->is_vector()
+            || static_cast<const ConfigOptionVectorBase*>(dst_opt)->size() < same_variant_indices.size()) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("can not map the variants of %1%, dst config has less than %2% values, remove it: %3%")%key %same_variant_indices.size() %this->option(key)->serialize();
+            this->erase(key);
+            continue;
+        }
+        std::string old_value = this->option(key)->serialize();
 
         switch (optdef->type){
             case coFloats:
@@ -9601,7 +9621,7 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
                     bool has_value = false;
                     FloatOrPercent target_value(9999.f, true);
                     for(auto idx : indices){
-                        if(opt && !opt->is_nil(idx)){
+                        if(opt && idx < opt->values.size() && !opt->is_nil(idx)){
                             has_value = true;
                             target_value = src_values[idx].value < target_value.value ? src_values[idx] : target_value;
                         }
@@ -9625,7 +9645,7 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
                     bool has_value = false;
                     bool target_value;
                     for(auto idx : indices){
-                        if(opt && !opt->is_nil(idx)){
+                        if(opt && idx < opt->values.size() && !opt->is_nil(idx)){
                             has_value = true;
                             target_value = src_values[idx];
                             break;
@@ -9641,13 +9661,54 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
             }
             default:
                 BOOST_LOG_TRIVIAL(warning) << boost::format("unsupported option type for %1%")%key;
-                break;
+                continue;
         }
-
+        BOOST_LOG_TRIVIAL(debug) << boost::format("key %1%, %2% -> %3%")%key %old_value %this->option(key)->serialize();
     }
 
     return 0;
 
+}
+
+bool has_multiple_extruder_ids(const std::vector<int> &ids)
+{
+    return std::adjacent_find(ids.begin(), ids.end(), std::not_equal_to<int>()) != ids.end();
+}
+
+std::vector<int> compute_variant_index_by_name(const std::vector<std::string> &src_variants,
+                                               const std::vector<int>         &src_ids,
+                                               const std::vector<std::string> &dst_variants,
+                                               const std::vector<int>         &dst_ids,
+                                               bool                            match_id,
+                                               int                             preferred_src_id)
+{
+    std::vector<int> variant_index(dst_variants.size(), -1);
+    for (size_t i = 0; i < dst_variants.size(); i++) {
+        int dst_id = (i < dst_ids.size()) ? dst_ids[i] : 1;
+        for (size_t j = 0; j < src_variants.size(); j++) {
+            if (src_variants[j] != dst_variants[i])
+                continue;
+            int src_id = (j < src_ids.size()) ? src_ids[j] : 1;
+            if (match_id) {
+                // both are multi-extruder: only the variant with the same name on the same extruder
+                if (src_id == dst_id) {
+                    variant_index[i] = (int) j;
+                    break;
+                }
+            }
+            else {
+                // the ids are not compared, so a wrong id (e.g. 2 on a single extruder) still matches
+                // prefer the variant on extruder preferred_src_id, otherwise the first one with the name
+                if (variant_index[i] == -1)
+                    variant_index[i] = (int) j;
+                if (src_id == preferred_src_id) {
+                    variant_index[i] = (int) j;
+                    break;
+                }
+            }
+        }
+    }
+    return variant_index;
 }
 
 
@@ -11407,6 +11468,14 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def = this->add("skip_modified_gcodes", coBool);
     def->label = "Skip modified gcodes in 3mf";
     def->tooltip = "Skip the modified gcodes in 3mf from Printer or filament Presets";
+    def->cli_params = "option";
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("switch_process", coBool);
+    def->label = "Switch process by layer height";
+    def->tooltip = "When switching machine, load the new machine's system process with the same layer height, "
+                   "and keep the values of keys listed in different_settings_to_system. "
+                   "Only when no process is specified; if no process matches, the original process is used";
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(false));
 

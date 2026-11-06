@@ -766,7 +766,11 @@ public:
     //int update_values_from_single_to_multi_2(DynamicPrintConfig& multi_config, std::set<std::string>& key_set);
     //int update_values_from_multi_to_single_2(std::set<std::string>& key_set);
 
-    int update_values_from_multi_to_multi_2(const std::vector<std::string>& src_extruder_variants, const std::vector<std::string>& dst_extruder_variants, const DynamicPrintConfig& dst_config, const std::set<std::string>& key_sets);
+    // Map the variant values (e.g. of an object config) from src_extruder_variants to dst_extruder_variants, in place.
+    // Each value is the dst_config value, or the non-nil src value of the same variant name; with several such src values, the min (bools: the first).
+    // A key is removed if dst_config does not have a value for each dst variant.
+    // variant_index: if not empty, for each dst variant the only src index to take the value from, or -1 for none; the variant names are then not used.
+    int update_values_from_multi_to_multi_2(const std::vector<std::string>& src_extruder_variants, const std::vector<std::string>& dst_extruder_variants, const DynamicPrintConfig& dst_config, const std::set<std::string>& key_sets, const std::vector<int>& variant_index = {});
 
 public:
     // query filament
@@ -790,6 +794,19 @@ extern std::set<std::string> empty_options;
 extern std::set<std::string> filament_dev_options;
 
 extern void update_static_print_config_from_dynamic(ConfigBase& config, const DynamicPrintConfig& dest_config, std::vector<int> variant_index, std::set<std::string>& key_set1, int stride = 1);
+// Whether the extruder ids have different values, i.e. multi-extruder; only then the variants need to be matched by id.
+// It only looks at the ids, so a single extruder config with wrong ids (e.g. all 2) is still regarded as single extruder.
+extern bool has_multiple_extruder_ids(const std::vector<int> &ids);
+// For each dst variant, the index of the src variant with the same name, or -1 if none.
+// A missing id (the ids shorter than the variants) is regarded as 1.
+// With match_id, the extruder id must also be the same.
+// Without match_id, the src variant of extruder preferred_src_id is preferred, otherwise the first one with the name.
+extern std::vector<int> compute_variant_index_by_name(const std::vector<std::string> &src_variants,
+                                                      const std::vector<int>         &src_ids,
+                                                      const std::vector<std::string> &dst_variants,
+                                                      const std::vector<int>         &dst_ids,
+                                                      bool                            match_id,
+                                                      int                             preferred_src_id = 1);
 // Return the default machine row for each value of this override, preserving the input indices.
 extern std::vector<int> filament_override_default_indices(const std::string &opt_key, size_t row_count,
                                                          const DynamicPrintConfig &config, const std::vector<int> &filament_map_indices);

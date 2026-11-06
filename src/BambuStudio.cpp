@@ -73,6 +73,7 @@ using namespace nlohmann;
 #include "libslic3r/ObjColorUtils.hpp"
 
 #include "BambuStudio.hpp"
+#include "CLIUtils.hpp"
 //BBS: add exception handler for win32
 #include <wx/stdpaths.h>
 #ifdef WIN32
@@ -244,6 +245,7 @@ typedef struct _sliced_info {
     std::vector<std::string> upward_machines;
     std::vector<std::string> downward_machines;
     std::vector<std::string> upward_compatibility_taint;
+    ProcessSwitchInfo        process_switch;
 }sliced_info_t;
 std::vector<PrintBase::SlicingStatus> g_slicing_warnings;
 
@@ -520,6 +522,16 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
         j["layer_height"] = sliced_info.layer_height;
         j["wall_loops"] = sliced_info.wall_loops;
         j["sparse_infill_density"] = sliced_info.sparse_infill_density;
+        if (sliced_info.process_switch.enabled) {
+            json process_switch_json;
+            process_switch_json["enabled"]   = sliced_info.process_switch.enabled;
+            process_switch_json["switched"]  = sliced_info.process_switch.switched;
+            process_switch_json["from"]      = sliced_info.process_switch.from;
+            process_switch_json["to"]        = sliced_info.process_switch.to;
+            process_switch_json["reason"]    = sliced_info.process_switch.reason;
+            process_switch_json["kept_keys"] = sliced_info.process_switch.kept_keys;
+            j["process_switch"] = std::move(process_switch_json);
+        }
 
         if (code != 0)
         {
@@ -1861,6 +1873,8 @@ int CLI::run(int argc, char **argv)
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0, current_extruder_count = 1, new_extruder_count = 1, current_printer_variant_count = 1, current_print_variant_count = 1, new_printer_variant_count = 1;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false, has_support = false, estimate_mode = false, check_preset = false;
     bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false, current_is_multi_extruder = false, new_is_multi_extruder = false, allow_mix_temp = false, enable_wrapping_detect = false;
+    bool switch_process = false, process_switched = false;
+    double current_layer_height = 0.;
     Semver file_version;
     Slic3r::GUI::Camera::ViewAngleType camera_view = Slic3r::GUI::Camera::ViewAngleType::Iso;
     std::map<size_t, bool> orients_requirement;
@@ -1915,6 +1929,11 @@ int CLI::run(int argc, char **argv)
     ConfigOptionBool* skip_modified_gcodes_option = m_config.option<ConfigOptionBool>("skip_modified_gcodes");
     if (skip_modified_gcodes_option)
         skip_modified_gcodes = skip_modified_gcodes_option->value;
+
+    ConfigOptionBool* switch_process_option = m_config.option<ConfigOptionBool>("switch_process");
+    if (switch_process_option)
+        switch_process = switch_process_option->value;
+    sliced_info.process_switch.enabled = switch_process;
 
     ConfigOptionBool* skip_useless_picks_option = m_config.option<ConfigOptionBool>("skip_useless_pick");
     if (skip_useless_picks_option)
@@ -1993,6 +2012,7 @@ int CLI::run(int argc, char **argv)
     std::set<int> used_filament_set;
     BOOST_LOG_TRIVIAL(info) << boost::format("allow_multicolor_oneplate %1%, allow_rotations %2% skip_modified_gcodes %3% avoid_extrusion_cali_region %4% loaded_filament_ids size %5%, clone_objects size %6%, skip_useless_pick %7%, allow_newer_file %8%, allow_mix_temp %9%")
         %allow_multicolor_oneplate %allow_rotations %skip_modified_gcodes %avoid_extrusion_cali_region %loaded_filament_ids.size() %clone_objects.size() %skip_useless_pick %allow_newer_file %allow_mix_temp;
+    BOOST_LOG_TRIVIAL(info) << boost::format("switch_process %1%")%switch_process;
     if (clone_objects.size() > 0)
     {
         if (clone_objects.size() != m_input_files.size())
@@ -2232,6 +2252,9 @@ int CLI::run(int argc, char **argv)
                     upward_compatible_printers = config.option<ConfigOptionStrings>("upward_compatible_machine", true)->values;
                     current_print_compatible_printers  = config.option<ConfigOptionStrings>("print_compatible_printers", true)->values;
                     current_different_settings = config.option<ConfigOptionStrings>("different_settings_to_system", true)->values;
+                    //switch_process: the layer height of the 3mf, only used when the old system process can not give one
+                    if (const ConfigOptionFloat* layer_height_opt = config.option<ConfigOptionFloat>("layer_height"))
+                        current_layer_height = layer_height_opt->value;
 
                     //use Pointfs insteadof Points
                     old_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
@@ -3443,9 +3466,100 @@ int CLI::run(int argc, char **argv)
 
     sliced_info.upward_machines = upward_compatible_printers;
 
+    //switch_process: switch to the system process of the new printer with the same layer height, and keep the user's modifications.
+    //Only for a bbl 3mf with machine switch, when no process is given and the old system process is found.
+    //If anything fails, the original process goes on with the default machine switch logic.
+    //When switched, m_print_config is the merged process, and load_process_config is the new system process.
+    //The default machine switch logic for the process is then skipped, see "!process_switched" below.
+    //See CLIUtils.hpp for the rules, including how a wrong print_extruder_id in old 3mfs is handled.
+    std::string matched_process_name;
+    //print_extruder_variant of the 3mf before switching, to check later whether the object/volume/layer range configs need mapping
+    std::vector<std::string> orig_print_extruder_variants;
+    //for each variant of the new process, the index of the 3mf variant, to map the object/volume/layer range configs by the same rules as the process
+    std::vector<int> process_variant_index;
+    if (switch_process) {
+        //why the process is switched or not, written to result.json, see ProcessSwitchInfo::reason
+        std::string switch_reason;
+        //load_process_config here is the system process of the 3mf, its print_extruder_id may differ from the 3mf's
+        //process_specified is checked first: with a process compatible with the new printer, machine_switch is false
+        if (!is_bbl_3mf)
+            switch_reason = "not_bbl_3mf";
+        else if (!new_process_name.empty())
+            switch_reason = "process_specified";
+        else if (!machine_switch)
+            switch_reason = "no_machine_switch";
+        else if (load_process_config.empty())
+            switch_reason = "no_system_process";
+
+        sliced_info.process_switch.from = current_process_system_name;
+        if (!switch_reason.empty()) {
+            BOOST_LOG_TRIVIAL(info) << boost::format("switch_process: not switch process, reason %1%")%switch_reason;
+        }
+        else {
+            //use the layer height of the old system process, the 3mf one may be modified by user
+            double target_layer_height = current_layer_height;
+            if (const ConfigOptionFloat* layer_height_opt = load_process_config.option<ConfigOptionFloat>("layer_height"))
+                target_layer_height = layer_height_opt->value;
+
+            std::string process_full_dir = resources_dir() + "/profiles/BBL/process_full/";
+            ProcessMatchResult match_result = match_process_by_layer_height(process_full_dir, new_printer_system_name, target_layer_height, current_process_system_name, new_default_process_name);
+            switch_reason = match_result.reason;
+            if (!match_result.name.empty()) {
+                std::string file_path = process_full_dir + match_result.name + ".json";
+                DynamicPrintConfig config;
+                std::string config_type, config_name, filament_id, config_from;
+                int ret = load_config_file(file_path, config, config_type, config_name, filament_id, config_from);
+                if (ret || (config_type != "process") || (config_from != "system")) {
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("switch_process: load %1% failed, ret %2%, type %3%, from %4%, not switch process")%file_path %ret %config_type %config_from;
+                    switch_reason = "load_failed";
+                }
+                else {
+                    //same as the other process configs loaded from process_full
+                    load_default_gcodes_to_config(config, Preset::TYPE_PRINT);
+
+                    //the variants of the 3mf, saved before merging; an old 3mf without variants is for the default variant
+                    std::vector<std::string> print_extruder_variants;
+                    if (const ConfigOptionStrings* variant_opt = m_print_config.option<ConfigOptionStrings>("print_extruder_variant"))
+                        print_extruder_variants = variant_opt->values;
+                    if (print_extruder_variants.empty())
+                        print_extruder_variants.push_back("Direct Drive Standard");
+
+                    //different_settings_to_system[0] is for the process; empty: the 3mf uses the system process, nothing to keep
+                    std::string process_different_settings = current_different_settings.empty() ? std::string() : current_different_settings[0];
+                    std::set<std::string> keep_keys = compute_process_switch_keep_keys(process_different_settings, skip_modified_gcodes, gcodes_key_set);
+                    std::vector<std::string> kept_keys;
+                    std::vector<int> variant_index;
+                    //The variants are mapped inside by name, and also by extruder id only when both sides are multi-extruder.
+                    //So any extruder count is supported, and the wrong ids of old 3mfs (e.g. H3C/P3C [2, 2, 2]) do no harm.
+                    //m_print_config still has the printer settings of the 3mf here, its master_extruder_id is used for multi -> single
+                    //m_print_config is not changed if failed
+                    if (merge_process_to_new_preset(m_print_config, &load_process_config, config, keep_keys, kept_keys, variant_index)) {
+                        BOOST_LOG_TRIVIAL(warning) << boost::format("switch_process: merge process %1% failed, not switch process")%config_name;
+                        switch_reason = "merge_failed";
+                    }
+                    else {
+                        process_switched = true;
+                        matched_process_name = config_name;
+                        //load_process_config: the old system process -> the matched system process of the new printer
+                        load_process_config = std::move(config);
+                        orig_print_extruder_variants = std::move(print_extruder_variants);
+                        process_variant_index = std::move(variant_index);
+                        sliced_info.process_switch.switched  = true;
+                        sliced_info.process_switch.to        = matched_process_name;
+                        sliced_info.process_switch.kept_keys = std::move(kept_keys);
+                    }
+                }
+            }
+            BOOST_LOG_TRIVIAL(info) << boost::format("switch_process: from %1% (layer height %2%) to %3%, reason %4%, process_switched %5%")
+                %current_process_system_name %target_layer_height %matched_process_name %switch_reason %process_switched;
+        }
+        sliced_info.process_switch.reason = switch_reason;
+    }
+
     //create project embedded preset if needed
+    //when process switched, the embedded preset is created after the process merged
     Preset *new_preset = NULL;
-    if (is_bbl_3mf && machine_switch) {
+    if (is_bbl_3mf && machine_switch && !process_switched) {
         //we need to update the compatible printer and create a new process here, or if we load the 3mf in studio, the process preset can not be loaded as not compatible
         Preset *current_preset = NULL;
         size_t project_presets_count = project_presets.size();
@@ -3490,49 +3604,6 @@ int CLI::run(int argc, char **argv)
         m_print_config.set("print_settings_id", new_preset->name, true);
         project_presets.push_back(new_preset);
     }
-
-    //compute extruder variant index
-    auto compute_variant_index = [](DynamicPrintConfig& full_config, const DynamicPrintConfig& new_config, std::string id_name, std::string variant_name, std::vector<int>& new_index, bool& count_changed) {
-        auto curr_variant_opt = dynamic_cast<const ConfigOptionStrings*>(full_config.option(variant_name));
-        auto new_variant_opt = dynamic_cast<const ConfigOptionStrings*>(new_config.option(variant_name));
-        auto curr_id_opt = dynamic_cast<const ConfigOptionInts*>(full_config.option(id_name));
-        auto new_id_opt = dynamic_cast<const ConfigOptionInts*>(new_config.option(id_name));
-        if (!new_variant_opt || !new_id_opt) {
-            BOOST_LOG_TRIVIAL(error) << boost::format("can not get %1% or %2% from new config")% variant_name %id_name;
-            count_changed = false;
-            return;
-        }
-        int new_variant_count = new_variant_opt->size(), curr_variant_count = 0;
-        new_index.clear();
-        new_index.resize(new_variant_count, -1);
-        if (curr_variant_opt && curr_id_opt) {
-            if (curr_variant_opt->size() != curr_id_opt->size()) {
-                BOOST_LOG_TRIVIAL(error) << boost::format("%1%'s size %2% not equal to %3%'s size %4%")% variant_name %curr_variant_opt->size() %id_name %curr_id_opt->size();
-                count_changed = false;
-                return;
-            }
-            curr_variant_count = curr_variant_opt->size();
-            count_changed = (curr_variant_count != new_variant_count);
-        }
-        else
-            count_changed = (new_variant_count != 1);
-
-
-        for (int i = 0; i < new_variant_count; i++)
-        {
-            if (curr_variant_count > 0) {
-                for (int j = 0; j < curr_variant_count; j++)
-                {
-                    if ((curr_variant_opt->values[j] == new_variant_opt->values[i]) && (curr_id_opt->values[j] == new_id_opt->values[i])) {
-                        new_index[i] = j;
-                        break;
-                    }
-                }
-            }
-            else if ((new_variant_opt->values[i] == "Direct Drive Standard") && (new_id_opt->values[i] == 1))
-                new_index[i] = 0;
-        }
-    };
 
     //update seperate configs into full config
     auto update_full_config = [](DynamicPrintConfig& full_config, const DynamicPrintConfig& config, std::set<std::string>& diff_key_sets, bool variant_count_changed, std::set<std::string>& key_set_1, std::set<std::string>& key_set_2, std::vector<int> variant_index, bool update_all = false, bool skip_gcodes = false) {
@@ -3736,7 +3807,43 @@ int CLI::run(int argc, char **argv)
 
     //set the process settings into print config
     std::vector<std::string>& print_compatible_printers = m_print_config.option<ConfigOptionStrings>("print_compatible_printers", true)->values;
-    if (!new_process_name.empty() || up_config_to_date) {
+    if (process_switched) {
+        //the matched process is already merged into m_print_config, only the preset bookkeeping is left
+        const std::vector<std::string>& kept_keys = sliced_info.process_switch.kept_keys;
+        //the variant count of the new process, for the later checks of variant count change
+        current_print_variant_count = m_print_config.option<ConfigOptionStrings>("print_extruder_variant", true)->values.size();
+        //the new system process is compatible with the new printer by itself
+        print_compatible_printers = load_process_config.option<ConfigOptionStrings>("compatible_printers", true)->values;
+
+        //the kept keys which still differ from the new system process are the different settings
+        if (kept_keys.empty()) {
+            //same as the new system process, use it directly
+            different_settings[0] = "";
+            inherits_group[0] = "";
+            m_print_config.set("print_settings_id", matched_process_name, true);
+        }
+        else {
+            //a user process inheriting from the new system process
+            //the name is the 3mf's user process (or the new system process if none) plus "(auto)", as the default logic does
+            std::string preset_name = ((current_process_name == current_process_system_name) ? matched_process_name : current_process_name) + "(auto)";
+            different_settings[0] = Slic3r::escape_strings_cstyle(kept_keys);
+            inherits_group[0] = matched_process_name;
+            m_print_config.set("print_settings_id", preset_name, true);
+
+            //store a project-embedded preset, so that the process can be loaded when the 3mf is opened in studio
+            //its print_extruder_id comes from the new system process, so a wrong id of the old 3mf is not saved again
+            Preset *switched_preset = new Preset(Preset::TYPE_PRINT, preset_name);
+            switched_preset->config.apply_only(m_print_config, Preset::print_options());
+            switched_preset->config.option<ConfigOptionStrings>("compatible_printers", true)->values = print_compatible_printers;
+            switched_preset->config.option<ConfigOptionString>("inherits", true)->value = matched_process_name;
+            switched_preset->config.set("print_settings_id", preset_name, true);
+            switched_preset->is_project_embedded = true;
+            project_presets.push_back(switched_preset);
+        }
+        BOOST_LOG_TRIVIAL(info) << boost::format("switch_process: process switched to %1%, print_settings_id %2%, different_settings %3%, print variant count %4%")
+            %matched_process_name %m_print_config.opt_string("print_settings_id") %different_settings[0] %current_print_variant_count;
+    }
+    else if (!new_process_name.empty() || up_config_to_date) {
         std::vector<std::string> different_keys;
 
         if (new_process_name.empty()) {
@@ -3777,6 +3884,8 @@ int CLI::run(int argc, char **argv)
         load_default_gcodes_to_config(load_process_config, Preset::TYPE_PRINT);
         if (new_process_name.empty()) {
             int diff_keys_size = different_keys_set.size();
+            //matched by name and id, a wrong print_extruder_id in the 3mf (e.g. old H3C/P3C) gives -1 for every variant
+            //this does no harm while the variant count is unchanged, see compute_variant_index in CLIUtils.hpp
             compute_variant_index(m_print_config, load_process_config, "print_extruder_id", "print_extruder_variant", new_variant_index, variant_count_changed);
             ret = update_full_config(m_print_config, load_process_config, different_keys_set, variant_count_changed, print_options_with_variant, empty_options, new_variant_index, false, skip_modified_gcodes);
             if (diff_keys_size != different_keys_set.size()) {
@@ -3852,9 +3961,16 @@ int CLI::run(int argc, char **argv)
     {
         current_nozzle_volume_type.resize(current_extruder_count, nvtStandard);
     }
-    current_print_extruder_variants = m_print_config.option<ConfigOptionStrings>("print_extruder_variant", true)->values;
+    //the variants of the 3mf, to map the object/volume/layer range configs to the new printer
+    //when process switched, m_print_config already has the new process's, so use the ones saved before switching
+    if (process_switched)
+        current_print_extruder_variants = orig_print_extruder_variants;
+    else
+        current_print_extruder_variants = m_print_config.option<ConfigOptionStrings>("print_extruder_variant", true)->values;
 
-    if (machine_switch) {
+    //default machine switch logic for the process: add the new printer to compatible_printers, and map the variant values
+    //skipped when process switched, as the new system process is already for the new printer
+    if (machine_switch && !process_switched) {
         print_compatible_printers.push_back(new_printer_system_name);
 
         std::string old_setting = different_settings[0];
@@ -4362,8 +4478,19 @@ int CLI::run(int argc, char **argv)
 
 
     //update the object config due to extruder count change
-    if ((machine_switch) && ((current_extruder_count != new_extruder_count) || (current_print_variant_count != new_printer_variant_count)))
+    //when process switched, the object configs are mapped by process_variant_index as the process, so only needed when it is not the identity
+    bool object_variants_changed = false;
+    if (process_switched) {
+        object_variants_changed = (process_variant_index.size() != orig_print_extruder_variants.size());
+        for (size_t i = 0; !object_variants_changed && i < process_variant_index.size(); ++i)
+            object_variants_changed = (process_variant_index[i] != (int) i);
+    }
+    else
+        object_variants_changed = (current_extruder_count != new_extruder_count) || (current_print_variant_count != new_printer_variant_count);
+    if (machine_switch && object_variants_changed)
     {
+        //when process switched, process_variant_index maps by the same rules as the process (e.g. multi -> single uses the master extruder), see CLIUtils.hpp
+        //otherwise it is empty, and the values are mapped by variant name only, so a wrong print_extruder_id does not matter here
         //process the object params here
         size_t num_objects = m_models[0].objects.size();
         for (int i = 0; i < num_objects; ++i) {
@@ -4374,7 +4501,7 @@ int CLI::run(int argc, char **argv)
                     object_config.update_values_from_single_to_multi_2(m_print_config, print_options_with_variant);
                 else
                     object_config.update_values_from_multi_to_single_2(print_options_with_variant);*/
-                object_config.update_values_from_multi_to_multi_2(current_print_extruder_variants, new_printer_extruder_variants, m_print_config, print_options_with_variant);
+                object_config.update_values_from_multi_to_multi_2(current_print_extruder_variants, new_printer_extruder_variants, m_print_config, print_options_with_variant, process_variant_index);
                 object->config.assign_config(std::move(object_config));
             }
             for (ModelVolume* v : object->volumes) {
@@ -4385,7 +4512,7 @@ int CLI::run(int argc, char **argv)
                            volume_config.update_values_from_single_to_multi_2(m_print_config, print_options_with_variant);
                         else
                            volume_config.update_values_from_multi_to_single_2(print_options_with_variant);*/
-                        volume_config.update_values_from_multi_to_multi_2(current_print_extruder_variants, new_printer_extruder_variants, m_print_config, print_options_with_variant);
+                        volume_config.update_values_from_multi_to_multi_2(current_print_extruder_variants, new_printer_extruder_variants, m_print_config, print_options_with_variant, process_variant_index);
                         v->config.assign_config(std::move(volume_config));
                     }
                 }
@@ -4399,7 +4526,7 @@ int CLI::run(int argc, char **argv)
                        layer_config.update_values_from_single_to_multi_2(m_print_config, print_options_with_variant);
                    else
                        layer_config.update_values_from_multi_to_single_2(print_options_with_variant);*/
-                    layer_config.update_values_from_multi_to_multi_2(current_print_extruder_variants, new_printer_extruder_variants, m_print_config, print_options_with_variant);
+                    layer_config.update_values_from_multi_to_multi_2(current_print_extruder_variants, new_printer_extruder_variants, m_print_config, print_options_with_variant, process_variant_index);
                    layer_model_config.assign_config(std::move(layer_config));
                }
             }
