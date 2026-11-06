@@ -161,6 +161,26 @@ template<class F> typename F::FN winapi_get_function(const wchar_t *dll, const c
 }
 #endif
 
+#ifdef _WIN32
+void get_window_frame_for_dpi(WXHWND hwnd, unsigned long style, RECT &frame)
+{
+    // Both exist since Windows 10 1607; older systems only have the system DPI anyway.
+    struct GetDpiForWindow_t { typedef UINT (WINAPI *FN)(HWND hwnd); };
+    struct AdjustWindowRectExForDpi_t { typedef BOOL (WINAPI *FN)(LPRECT rect, DWORD style, BOOL menu, DWORD ex_style, UINT dpi); };
+    static auto GetDpiForWindow_fn          = winapi_get_function<GetDpiForWindow_t>(L"User32.dll", "GetDpiForWindow");
+    static auto AdjustWindowRectExForDpi_fn = winapi_get_function<AdjustWindowRectExForDpi_t>(L"User32.dll", "AdjustWindowRectExForDpi");
+
+    SetRectEmpty(&frame);
+    if (GetDpiForWindow_fn != nullptr && AdjustWindowRectExForDpi_fn != nullptr) {
+        const UINT dpi = GetDpiForWindow_fn((HWND) hwnd);
+        if (dpi != 0 && AdjustWindowRectExForDpi_fn(&frame, style, FALSE, 0, dpi))
+            return;
+        SetRectEmpty(&frame);
+    }
+    AdjustWindowRectEx(&frame, style, FALSE, 0);
+}
+#endif
+
 // If called with nullptr, a DPI for the primary monitor is returned.
 int get_dpi_for_window(const wxWindow *window)
 {

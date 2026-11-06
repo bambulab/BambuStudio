@@ -30,6 +30,9 @@
 class wxCheckBox;
 class wxTopLevelWindow;
 class wxRect;
+#ifdef _WIN32
+struct tagRECT;
+#endif
 
 #define wxVERSION_EQUAL_OR_GREATER_THAN(major, minor, release) ((wxMAJOR_VERSION > major) || ((wxMAJOR_VERSION == major) && (wxMINOR_VERSION > minor)) || ((wxMAJOR_VERSION == major) && (wxMINOR_VERSION == minor) && (wxRELEASE_NUMBER >= release)))
 #define ICON_SINGLE_SIZE FromDIP(16)//don't change,if need new value,self create in cpp
@@ -90,6 +93,20 @@ void on_window_geometry(wxTopLevelWindow *tlw, std::function<void()> callback);
 enum { DPI_DEFAULT = 96 };
 
 int get_dpi_for_window(const wxWindow *window);
+
+#ifdef _WIN32
+/**
+ * \brief Get the non-client frame of a window with \p style, at the DPI of the monitor \p hwnd is on
+ *
+ * Same result as AdjustWindowRectEx() on an empty rect, but that one always uses the primary
+ * monitor's DPI, which is wrong for a window on a monitor with another scale.
+ *
+ * \param hwnd   window whose DPI is used
+ * \param style  window style to measure the frame for
+ * \param frame  receives the frame; left/top are negative, right/bottom positive
+ */
+void get_window_frame_for_dpi(WXHWND hwnd, unsigned long style, ::tagRECT &frame);
+#endif
 wxFont get_default_font_for_dpi(const wxWindow* window, int dpi);
 inline wxFont get_default_font(const wxWindow* window) { return get_default_font_for_dpi(window, get_dpi_for_window(window)); }
 

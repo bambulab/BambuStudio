@@ -492,8 +492,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         auto pos = display.GetClientArea().GetPosition();
         HWND      hWnd = GetHandle();
         RECT      borderThickness;
-        SetRectEmpty(&borderThickness);
-        AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
+        get_window_frame_for_dpi(hWnd, GetWindowLongPtr(hWnd, GWL_STYLE), borderThickness);
         Move(pos + wxPoint{borderThickness.left, borderThickness.top});
         e.Skip();
     });
@@ -894,8 +893,7 @@ static void AdjustWorkingAreaForAutoHide(const HWND hWnd, MINMAXINFO *mmi)
     if ((uState & ABS_AUTOHIDE) != ABS_AUTOHIDE) { return; }
 
     RECT borderThickness;
-    SetRectEmpty(&borderThickness);
-    AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE) & ~WS_CAPTION, FALSE, 0);
+    get_window_frame_for_dpi(hWnd, GetWindowLongPtr(hWnd, GWL_STYLE) & ~WS_CAPTION, borderThickness);
 
     // Determine taskbar position
     SHAppBarMessage(ABM_GETTASKBARPOS, &abd);
@@ -946,8 +944,7 @@ static void ClampMaxToWorkArea(const HWND hWnd, MINMAXINFO *mmi)
     // client fills the work area, and shift ptMaxPosition by the same amount to keep it aligned - the
     // off-screen overhang is clipped to the monitor by Windows, matching BBLTopbar::OnFullScreen.
     RECT frame;
-    SetRectEmpty(&frame);
-    AdjustWindowRectEx(&frame, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
+    get_window_frame_for_dpi(hWnd, GetWindowLongPtr(hWnd, GWL_STYLE), frame);
 
     mmi->ptMaxPosition.x = (work.left - monitorRc.left) + frame.left;
     mmi->ptMaxPosition.y = (work.top - monitorRc.top) + frame.top;
@@ -1031,8 +1028,7 @@ WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
             GetWindowPlacement(hWnd, &wPos);
             if (wPos.showCmd != SW_SHOWMAXIMIZED) {
                 RECT borderThickness;
-                SetRectEmpty(&borderThickness);
-                AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE) & ~WS_CAPTION, FALSE, NULL);
+                get_window_frame_for_dpi(hWnd, GetWindowLongPtr(hWnd, GWL_STYLE) & ~WS_CAPTION, borderThickness);
                 borderThickness.left *= -1;
                 borderThickness.top *= -1;
                 NCCALCSIZE_PARAMS *sz = reinterpret_cast<NCCALCSIZE_PARAMS *>(lParam);

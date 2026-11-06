@@ -57,6 +57,18 @@ SideButton::SideButton(wxWindow* parent, wxString text, wxString icon, long stly
     wxWindow::SetLabel(text);
 
     messureSize();
+
+    // wx has already rescaled the font and the min size for the new monitor; adopt that min size
+    // and re-measure, otherwise the cached text size stays at the old scale.
+    Bind(wxEVT_DPI_CHANGED, [this](wxDPIChangedEvent &event) {
+        event.Skip();
+        const wxSize scaled = GetMinSize();
+        if (minSize.GetWidth() > 0)
+            minSize.SetWidth(scaled.GetWidth());
+        if (minSize.GetHeight() > 0)
+            minSize.SetHeight(scaled.GetHeight());
+        Rescale();
+    });
 }
 
 void SideButton::SetCornerRadius(double radius)
