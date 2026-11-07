@@ -174,6 +174,7 @@ namespace Slic3r {
                     float layer_time{ 0.0f };
                     unsigned char extruder_id{ 0 };
                     unsigned char cp_color_id{ 0 };
+                    int object_label_id{ -1 };
                     bool m_b_has_effect_layer{ false };
                     std::vector<Sub_Path> sub_paths;
                     bool matches(const GCodeProcessorResult::MoveVertex& move) const;
