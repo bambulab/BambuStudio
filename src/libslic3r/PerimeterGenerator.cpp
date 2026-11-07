@@ -282,7 +282,7 @@ static bool is_enable_overhang_speed(const PerimeterGenerator& perimeter_generat
 static bool fuzzy_skin_allows_overhang_slowdown(const PerimeterGenerator &pg)
 {
     const FuzzySkinType fs = pg.config->fuzzy_skin.value;
-    return fs == FuzzySkinType::Disabled_fuzzy || (fs == FuzzySkinType::None && pg.perimeter_regions->empty());
+    return fs == FuzzySkinType::Disabled_fuzzy || fs == FuzzySkinType::None;
 }
 
 static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perimeter_generator, const PerimeterGeneratorLoops &loops, ThickPolylines &thin_walls)
