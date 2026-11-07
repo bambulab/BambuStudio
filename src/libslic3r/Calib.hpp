@@ -121,6 +121,8 @@ public:
     };
     int         extruder_id = 0;
     NozzleVolumeType nozzle_volume_type;
+    // false when the printer sent no nozzle_id (P1/X1 firmware): the record applies to any flow type
+    bool        has_nozzle_volume_type = true;
     int         tray_id = 0;
     int         ams_id = 0;
     int         slot_id = 0;
