@@ -329,6 +329,7 @@ namespace Slic3r {
             {
                 const auto& p_renderer = get_renderer();
                 if (p_renderer) {
+                    p_renderer->update_view_type_preferences();
                     p_renderer->render(canvas_width, canvas_height, right_margin);
                 }
             }
