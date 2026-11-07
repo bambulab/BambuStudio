@@ -2,10 +2,16 @@
 #include "Config.hpp"
 #include "Model.hpp"
 #include "GCode.hpp"
+#include <algorithm>
 #include <cmath>
 
 
 namespace Slic3r {
+double max_volumetric_speed_calibration_layer_height(double nozzle_diameter)
+{
+    return std::min(nozzle_diameter * 0.8, 0.6);
+}
+
 float CalibPressureAdvance::find_optimal_PA_speed(const DynamicPrintConfig &config, double line_width, double layer_height, int extruder_id, int filament_idx)
 {
     const double general_suggested_min_speed   = 100.0;
@@ -805,4 +811,3 @@ double CalibPressureAdvancePattern::max_numbering_height() const
 
 double CalibPressureAdvancePattern::pattern_shift() const { return (wall_count() - 1) * line_spacing_first_layer() + line_width_first_layer() + m_glyph_padding_horizontal; }
 } // namespace Slic3r
-
