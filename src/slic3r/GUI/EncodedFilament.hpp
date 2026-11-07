@@ -249,6 +249,8 @@ public:
     wxString         GetColorCode() const { return m_color_code; } // eg. A0
     FilamentColor    GetFilaColor() const { return m_fila_color; }
     wxString         GetFilaColorName() const;
+    // Keep all translations available to search, regardless of the UI locale.
+    const std::unordered_map<wxString, wxString>& GetFilaColorNames() const { return m_fila_color_names; }
 
     void Debug(const char* prefix);
 
