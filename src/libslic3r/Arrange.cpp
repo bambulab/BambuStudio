@@ -1,4 +1,5 @@
 ﻿#include "Arrange.hpp"
+#include "RasterArrange.hpp"
 #include "Print.hpp"
 #include "BoundingBox.hpp"
 
@@ -124,6 +125,7 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
     // do not inflate brim_width. Objects are allowed to have overlapped brim.
     Points      bedpts = get_shrink_bedpts(print_cfg, params);
     BoundingBox bedbb = Polygon(bedpts).bounding_box();
+    const bool  raster_mode = params.use_raster_nester && !params.is_seq_print;
     params.brim_max = 0;
     params.plate_has_tree_support = false;
     std::for_each(selected.begin(), selected.end(), [&](ArrangePolygon& ap) {
@@ -135,13 +137,21 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
         // 2. if there is an object with tree support, all objects use the max tree branch radius (brim_max=branch diameter)
         // 3. otherwise, use each object's own brim width
         ap.inflation = params.min_obj_distance != 0 ? params.min_obj_distance / 2 : params.plate_has_tree_support ? scaled(params.brim_max / 2) : scaled(ap.brim_width);
+        // Raster nester: every object only reserves the room its own supports need. An object without
+        // supports next to one with tree supports keeps the tree's margin (brim_width/2) plus its own,
+        // instead of every object on the plate inheriting the widest tree support margin.
+        if (raster_mode && params.min_obj_distance == 0)
+            ap.inflation = ap.has_tree_support ? scaled(ap.brim_width / 2) : scaled(ap.brim_width);
         // STUDIO: 调用方可通过 params.min_inflation_floor 显式要求"最小可见间隙"。
         // 仅在自动档位（用户没显式设 min_obj_distance）下生效，避免污染显式间距语义。
         // 默认 0 = 关闭，保持各 arrange 路径的旧行为；FillBedJob 会在调用前主动设置。
         if (params.min_obj_distance == 0 && params.min_inflation_floor > 0)
             ap.inflation = std::max(ap.inflation, params.min_inflation_floor);
         });
-    params.brim_skirt_distance = std::max(params.brim_skirt_distance, float(params.brim_max));
+    // In raster mode the per-object inflation already keeps supports on the bed, so the whole bed
+    // does not have to shrink by the widest support margin.
+    if (!raster_mode)
+        params.brim_skirt_distance = std::max(params.brim_skirt_distance, float(params.brim_max));
 }
 
 void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig & print_cfg, const ArrangeParams& params)
@@ -1199,6 +1209,12 @@ void arrange(ArrangePolygons &      items,
              const Points &         bed,
              const ArrangeParams &  params)
 {
+    // Layer-by-layer printing on a bounded bed: use the raster nester which understands
+    // concave silhouettes and holes and searches several packing strategies per plate.
+    if (params.use_raster_nester && !params.is_seq_print && bed.size() >= 3) {
+        raster_arrange(items, excludes, Polygon(bed), params);
+        return;
+    }
     call_with_bed(bed, [&](const auto &bin) {
         arrange(items, excludes, bin, params);
     });
