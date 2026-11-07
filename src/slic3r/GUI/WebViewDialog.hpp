@@ -29,6 +29,8 @@
 #include <chrono>
 #include <cstdint>
 
+#include "RecentProjectsRefresh.hpp"
+
 namespace Slic3r {
 
 class NetworkAgent;
@@ -181,6 +183,9 @@ public:
 
     void update_mode();
 private:
+    void FlushRecentList();
+    RecentProjectsRefresh m_recent_list_refresh;
+
     std::string m_Region;
 
     wxBoxSizer *topsizer { nullptr };
