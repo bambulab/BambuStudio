@@ -147,11 +147,9 @@ $(document).ready(function () {
 
     function renderVendors() {
         let html = '';
-        VENDOR_LIST.forEach(v => { html += `<div class="dropdown-item" data-val="${escapeHtml(v)}">${escapeHtml(v)}</div>`; });
-        // Append any user-added custom vendors flat at the tail — no separate section header,
-        // no placeholder row when empty. "+ 添加供应商品牌" below the list already conveys
-        // where to add more, so the extra "Customized" divider was just visual noise.
-        customVendors.forEach(v => { html += `<div class="dropdown-item" data-val="${escapeHtml(v)}">${escapeHtml(v)}</div>`; });
+        FilamentVendorNames.unique(VENDOR_LIST.concat(customVendors)).forEach(v => {
+            html += `<div class="dropdown-item" data-val="${escapeHtml(v)}">${escapeHtml(v)}</div>`;
+        });
         $('#vendor-options').html(html);
     }
     renderVendors();
@@ -180,7 +178,7 @@ $(document).ready(function () {
                 if (data.fresh_open && (selectedVendor || selectedType || selectedSerial)) {
                     if (selectedVendor) {
                         var knownVendors = VENDOR_LIST.concat(customVendors);
-                        if (knownVendors.indexOf(selectedVendor) < 0) {
+                        if (!knownVendors.some(v => FilamentVendorNames.same(v, selectedVendor))) {
                             customVendors.push(selectedVendor);
                             renderVendors();
                         }
@@ -317,7 +315,7 @@ $(document).ready(function () {
             inputEl.addClass('error');
             return;
         }
-        const isDuplicate = VENDOR_LIST.concat(customVendors).some(v => v.toLowerCase() === val.toLowerCase());
+        const isDuplicate = VENDOR_LIST.concat(customVendors).some(v => FilamentVendorNames.same(v, val));
         if (isDuplicate) {
             errorEl.text(_t('t276')).removeClass('hidden');
             inputEl.addClass('error');
