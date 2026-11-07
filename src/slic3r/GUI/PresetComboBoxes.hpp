@@ -29,6 +29,8 @@ namespace Slic3r {
 
 namespace GUI {
 
+wxDECLARE_EVENT(EVT_SELECT_CATALOG_FILAMENT, wxCommandEvent);
+
 class BitmapCache;
 
 // ---------------------------------
@@ -53,6 +55,7 @@ public:
         LABEL_ITEM_WIZARD_FILAMENTS,
         LABEL_ITEM_WIZARD_MATERIALS,
         LABEL_ITEM_WIZARD_ADD_PRINTERS,
+        LABEL_ITEM_FIND_FILAMENT,
 
         LABEL_ITEM_MAX,
 	};
@@ -227,6 +230,7 @@ public:
 
     FilamentColor get_cur_color_info();
     void show_default_color_picker();
+    void find_bambu_filament();
     void sync_colour_config(const std::vector<std::string> &clrs, bool is_gradient);
     void sys_color_changed() override;
 

@@ -49,6 +49,8 @@
 #include "MsgDialog.hpp"
 #include "ParamsDialog.hpp"
 #include "FilamentPickerDialog.hpp"
+#include "FilamentCatalogDialog.hpp"
+#include "FilamentCatalog.hpp"
 #include "wxExtensions.hpp"
 
 #include "DeviceCore/DevManager.h"
@@ -1418,6 +1420,10 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
             return;
         }
         evt.StopPropagation();
+        if (marker == LABEL_ITEM_FIND_FILAMENT) {
+            CallAfter([this]() { find_bambu_filament(); });
+            return;
+        }
         if (marker == LABEL_ITEM_MARKER || marker == LABEL_ITEM_DISABLED)
             return;
         //if (marker == LABEL_ITEM_WIZARD_PRINTERS)
@@ -1556,6 +1562,35 @@ void PlaterPresetComboBox::show_add_menu()
         }, "menu_edit_preset", menu, []() { return true; }, wxGetApp().plater());
 
     wxGetApp().plater()->PopupMenu(menu);
+}
+
+wxDEFINE_EVENT(EVT_SELECT_CATALOG_FILAMENT, wxCommandEvent);
+
+void PlaterPresetComboBox::find_bambu_filament()
+{
+    if (m_filament_idx < 0 || static_cast<size_t>(m_filament_idx) >= m_preset_bundle->filament_presets.size() ||
+        m_preset_bundle->is_mixed_filament(m_filament_idx))
+        return;
+    FilamentCatalogDialog dialog(this, *m_preset_bundle, m_filament_idx);
+    if (dialog.ShowModal() != wxID_OK) return;
+    const auto choice = dialog.selection();
+    if (choice.preset_name.empty() || choice.color.GetColors().empty()) return;
+
+    // The sidebar handles the exact profile through its normal selection flow.
+    // An explicit acknowledgement prevents a cancelled preset change from applying
+    // a color to the old material. Do not fire OnSelect: it imports AMS colors.
+    wxCommandEvent event(EVT_SELECT_CATALOG_FILAMENT, GetId());
+    event.SetEventObject(this);
+    event.SetInt(GetSelection());
+    event.SetString(wxString::FromUTF8(choice.preset_name));
+    event.SetExtraLong(0);
+    GetParent()->GetEventHandler()->ProcessEvent(event);
+    if (event.GetExtraLong() != 1) return;
+    sync_colour_config(filament_catalog_colors(choice.color),
+                       choice.color.m_color_type == FilamentColor::ColorType::GRADIENT_CLR);
+    auto* changed = new wxCommandEvent(EVT_FILAMENT_COLOR_CHANGED);
+    changed->SetInt(m_filament_idx);
+    wxQueueEvent(wxGetApp().plater(), changed);
 }
 
 void PlaterPresetComboBox::show_edit_menu()
@@ -1878,8 +1913,12 @@ void PlaterPresetComboBox::update()
         wxBitmap* bmp = get_bmp("edit_preset_list", wide_icons, "edit_uni");
         assert(bmp);
 
-        if (m_type == Preset::TYPE_FILAMENT)
+        if (m_type == Preset::TYPE_FILAMENT) {
+            if (m_filament_idx >= 0 && static_cast<size_t>(m_filament_idx) < m_preset_bundle->filament_presets.size() &&
+                !m_preset_bundle->is_mixed_filament(m_filament_idx))
+                set_label_marker(Append(separator(L("Find Filament...")), *bmp), LABEL_ITEM_FIND_FILAMENT);
             set_label_marker(Append(separator(L("Add/Remove filaments")), *bmp), LABEL_ITEM_WIZARD_FILAMENTS);
+        }
         else if (m_type == Preset::TYPE_SLA_MATERIAL)
             set_label_marker(Append(separator(L("Add/Remove materials")), *bmp), LABEL_ITEM_WIZARD_MATERIALS);
         else {

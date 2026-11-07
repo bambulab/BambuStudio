@@ -174,6 +174,8 @@ public:
     virtual ~FilamentColorCodeQuery();
 
 public:
+    const auto& GetFilamentFamilies() const { return *m_fila_id2colors_map; }
+
     FilamentColorCodes* GetFilaInfoMap(const wxString& fila_id) const;
 
     wxString GetFilaColorName(const wxString& fila_id, const FilamentColor& colors) const;
@@ -249,6 +251,7 @@ public:
     wxString         GetColorCode() const { return m_color_code; } // eg. A0
     FilamentColor    GetFilaColor() const { return m_fila_color; }
     wxString         GetFilaColorName() const;
+    const auto& GetColorNames() const { return m_fila_color_names; }
 
     void Debug(const char* prefix);
 

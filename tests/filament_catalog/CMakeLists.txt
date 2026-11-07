@@ -1,0 +1,3 @@
+add_executable(filament_catalog_tests filament_catalog_tests.cpp)
+target_link_libraries(filament_catalog_tests PRIVATE test_gui)
+add_test(NAME filament_catalog_tests COMMAND filament_catalog_tests)

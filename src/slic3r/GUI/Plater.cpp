@@ -10738,6 +10738,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     if (wxGetApp().is_editor()) {
         // Preset change event
         sidebar->Bind(wxEVT_COMBOBOX, &priv::on_combobox_select, this);
+        sidebar->Bind(EVT_SELECT_CATALOG_FILAMENT, &priv::on_combobox_select, this);
         sidebar->Bind(EVT_OBJ_LIST_OBJECT_SELECT, [this](wxEvent&) { priv::selection_changed(); });
         // BBS: should bind BACKGROUND_PROCESS event to plater
         q->Bind(EVT_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
@@ -16269,9 +16270,10 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender"),
     // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
     // So, use GetSelection() from event parameter
+    const bool catalog_selection = evt.GetEventType() == EVT_SELECT_CATALOG_FILAMENT;
     int selection = evt.GetSelection();
 
-    auto marker = reinterpret_cast<size_t>(combo->GetClientData(selection));
+    auto marker = catalog_selection ? size_t(0) : reinterpret_cast<size_t>(combo->GetClientData(selection));
     if (PresetComboBox::LabelItemType::LABEL_ITEM_WIZARD_ADD_PRINTERS == marker) {
         sidebar->create_printer_preset();
         return;
@@ -16286,7 +16288,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     //! instead of
     //!     combo->GetStringSelection().ToUTF8().data());
 
-    wxString wx_name = combo->GetString(selection);
+    wxString wx_name = catalog_selection ? evt.GetString() : combo->GetString(selection);
     // if (preset_type == Preset::TYPE_PRINTER) {
     //     wx_name = combo->get_preset_item_name(selection); }
 
@@ -16300,7 +16302,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     // to the slot, not just the color.
     int selected_tray_key = -1;
     const DynamicPrintConfig *selected_tray = nullptr;
-    if (preset_type == Preset::TYPE_FILAMENT) {
+    if (preset_type == Preset::TYPE_FILAMENT && !catalog_selection) {
         selected_tray_key = combo->selected_ams_filament();
         if (selected_tray_key >= 0) {
             auto &ams_list = wxGetApp().preset_bundle->filament_ams_list;
@@ -16331,15 +16333,37 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         }
     }
 
+    // Catalog choices carry an exact profile, independent of alias resolution
+    // and AMS assignments. Revalidate after the modal dialog before changing state.
+    if (catalog_selection) {
+        preset_name = evt.GetString().ToStdString();
+        const Preset* target = wxGetApp().preset_bundle->filaments.find_preset(preset_name, false);
+        if (!target || target->is_default || !target->is_compatible || idx < 0 ||
+            static_cast<size_t>(idx) >= wxGetApp().preset_bundle->filament_presets.size()) return;
+    }
+    const std::string catalog_old_name = catalog_selection ? wxGetApp().preset_bundle->filament_presets[idx] : std::string();
     bool show_tpu_tips = false;
     if (preset_type == Preset::TYPE_FILAMENT) {
         std::string old_name = wxGetApp().preset_bundle->filaments.get_edited_preset().name;
         const auto &slot_presets = wxGetApp().preset_bundle->filament_presets;
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
-        if (!q->on_filament_change(idx))
-            wxGetApp().preset_bundle->set_filament_preset(idx, old_name);
+        if (!q->on_filament_change(idx)) {
+            wxGetApp().preset_bundle->set_filament_preset(idx, catalog_selection ? catalog_old_name : old_name);
+            if (catalog_selection) { combo->update(); return; }
+        }
         else if (idx >= 0 && idx < (int) slot_presets.size())
             show_tpu_tips = MultiNozzleTpuTipsDialog::should_show(slot_presets[idx]);
+
+        // Resolve a dirty single-filament preset before exporting selections or
+        // invalidating slicing. Cancelling must not apply half of a catalog choice.
+        if (catalog_selection && !sidebar->is_multifilament()) {
+            wxGetApp().preset_bundle->set_filament_preset(idx, catalog_old_name);
+            if (!wxGetApp().get_tab(preset_type)->select_preset(preset_name)) {
+                combo->update();
+                return;
+            }
+            wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
+        }
 
         // Multi-diameter mode: also carry over the tray's nozzle diameter + flow type to this slot,
         // so the "synced" state actually matches on all four fields (filament_id, color, diameter,
@@ -16463,7 +16487,8 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
             // BBS
             // wxWindowUpdateLocker noUpdates1(sidebar->print_panel());
             wxWindowUpdateLocker noUpdates2(sidebar->filament_panel());
-            wxGetApp().get_tab(preset_type)->select_preset(preset_name);
+            if (!catalog_selection)
+                wxGetApp().get_tab(preset_type)->select_preset(preset_name);
             // update plater with new config
             q->on_config_change(wxGetApp().preset_bundle->full_config());
         }
@@ -16478,6 +16503,8 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     if (preset_type == Preset::TYPE_FILAMENT && wxGetApp().app_config->get("auto_calculate_flush") == "all") {
         wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
     }
+
+    if (catalog_selection) evt.SetExtraLong(1);
 
     // BBS: log modify of filament selection
     Slic3r::put_other_changes();
