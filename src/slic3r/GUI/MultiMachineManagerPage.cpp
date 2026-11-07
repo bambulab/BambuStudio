@@ -271,7 +271,7 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
-    SetBackgroundColour(wxColour(0xEEEEEE));
+    SetBackgroundColour(wxColour("#EEEEEE"));
     m_main_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_main_panel->SetBackgroundColour(*wxWHITE);
     m_main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -399,7 +399,7 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
     m_tip_text = new wxStaticText(m_main_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     m_tip_text->SetMinSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), -1));
     m_tip_text->SetMaxSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), -1));
-    m_tip_text->SetLabel(_L("Please select the devices you would like to manage here (up to 6 devices)"));
+    m_tip_text->SetLabel(wxString::Format(_L("Please select the devices you would like to manage here (up to %d devices)"), PICK_DEVICE_MAX));
     m_tip_text->SetForegroundColour(wxColour(50, 58, 61));
     m_tip_text->SetFont(::Label::Head_20);
     m_tip_text->Wrap(-1);
