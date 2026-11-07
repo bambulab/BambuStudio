@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 
 #include <cstdlib>
+#include <memory>
 
 #include "libslic3r/ExtrusionEntityCollection.hpp"
 #include "libslic3r/ExtrusionEntity.hpp"
@@ -32,6 +33,106 @@ static Slic3r::ExtrusionPaths random_paths(size_t count = 10, size_t length = 20
     for (size_t i = 0; i < count; ++ i)
         p.push_back(random_path(length, LO, HI));
     return p;
+}
+
+// ExtrusionEntity and ExtrusionPath both spell out every member in their copy and
+// move constructors and in both assignment operators, so a field added to either
+// class is silently dropped on copy unless all of them are updated. That failure is
+// invisible at compile time and shows up much later as wrong geometry, so pin it here.
+static Slic3r::ExtrusionPath tagged_path()
+{
+    ExtrusionPath p {erPerimeter, 1.0, 1.0, 1.0};
+    p.polyline.append(Point(0, 0));
+    p.polyline.append(Point::new_scale(10., 0.));
+    p.inset_idx                     = 3;
+    p.wave_overhang                 = true;
+    p.wave_overhang_floor           = true;
+    p.wave_overhang_perimeter       = true;
+    p.wave_overhang_floor_perimeter = true;
+    p.wave_overhang_floor_distance  = 7;
+    return p;
+}
+
+static void check_tags_survived(const Slic3r::ExtrusionPath &p)
+{
+    CHECK(p.inset_idx                     == 3);
+    CHECK(p.wave_overhang                 == true);
+    CHECK(p.wave_overhang_floor           == true);
+    CHECK(p.wave_overhang_perimeter       == true);
+    CHECK(p.wave_overhang_floor_perimeter == true);
+    CHECK(int(p.wave_overhang_floor_distance) == 7);
+}
+
+TEST_CASE("ExtrusionPath: wall index and wave-overhang tags survive copying", "[ExtrusionEntity]")
+{
+    const ExtrusionPath src = tagged_path();
+
+    SECTION("copy constructor") {
+        ExtrusionPath copy(src);
+        check_tags_survived(copy);
+    }
+
+    SECTION("move constructor") {
+        ExtrusionPath moved(tagged_path());
+        check_tags_survived(moved);
+    }
+
+    SECTION("constructor taking a replacement polyline") {
+        Polyline pl;
+        pl.append(Point(0, 0));
+        pl.append(Point::new_scale(5., 0.));
+        ExtrusionPath copy(pl, src);
+        check_tags_survived(copy);
+    }
+
+    SECTION("constructor taking a moved replacement polyline") {
+        Polyline pl;
+        pl.append(Point(0, 0));
+        pl.append(Point::new_scale(5., 0.));
+        ExtrusionPath copy(std::move(pl), src);
+        check_tags_survived(copy);
+    }
+
+    SECTION("copy assignment") {
+        ExtrusionPath assigned;
+        assigned = src;
+        check_tags_survived(assigned);
+    }
+
+    SECTION("move assignment") {
+        ExtrusionPath assigned;
+        assigned = tagged_path();
+        check_tags_survived(assigned);
+    }
+
+    SECTION("clone() preserves them as well") {
+        std::unique_ptr<ExtrusionEntity> cloned(src.clone());
+        const ExtrusionPath *as_path = dynamic_cast<const ExtrusionPath *>(cloned.get());
+        REQUIRE(as_path != nullptr);
+        check_tags_survived(*as_path);
+    }
+}
+
+TEST_CASE("ExtrusionLoop and ExtrusionMultiPath carry the wall index", "[ExtrusionEntity]")
+{
+    // inset_idx lives on ExtrusionEntity, so the loop and multipath wrappers inherit
+    // it through the base copy. Downstream code reads the wrapper, not the paths.
+    ExtrusionPaths paths;
+    paths.push_back(tagged_path());
+
+    SECTION("loop") {
+        ExtrusionLoop loop(paths);
+        loop.inset_idx = 2;
+        ExtrusionLoop copy(loop);
+        CHECK(copy.inset_idx == 2);
+    }
+
+    SECTION("multipath") {
+        ExtrusionMultiPath mp(paths);
+        mp.inset_idx = 2;
+        ExtrusionMultiPath copy(mp);
+        CHECK(copy.inset_idx == 2);
+    }
 }
 
 SCENARIO("ExtrusionEntityCollection: Polygon flattening", "[ExtrusionEntity]") {
