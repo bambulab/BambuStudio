@@ -2034,6 +2034,7 @@ ResetWarningsDialog::ResetWarningsDialog(wxWindow *parent) : DPIDialog(parent, w
     auto *det_sizer = new wxBoxSizer(wxVERTICAL);
     auto *det_text  = new wxStaticText(m_details_panel, wxID_ANY,
                                        _L("- Sync printer presets after loading a file\n"
+                                          "- Daily Tips in the slicing progress panel\n"
                                           "- \"Load 3MF\" dialog settings\n"
                                           "- Executing post-processing scripts\n"
                                           "- Support structure recommendation prompt\n"
@@ -2106,6 +2107,7 @@ void PreferencesDialog::on_reset_all_warnings()
     app_config->erase("app", "no_show_tpu_tips");
     app_config->erase("app", "skip_pre_print_warning_dialog");
     app_config->set("show_support_recommend_dialog", "true");
+    app_config->set_bool("show_daily_tips", true);
     app_config->set("save_project_choise", "");
     if (wxGetApp().plater()) wxGetApp().plater()->reset_post_process_script_choice();
     app_config->save();
