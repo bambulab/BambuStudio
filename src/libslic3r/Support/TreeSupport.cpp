@@ -4195,6 +4195,13 @@ void TreeSupport::draw_circles()
                 append(swallowed_gap_by_carrier[int(carrier)], swallowed->roof_gap_areas);
         }
 
+    // A roof smaller than 1 mm² is moved onto the transition layer, which prints with the
+    // base filament. When the interface filament is pinned to a different slot, that move
+    // drops the contact off the filament the user selected, so keep the polygon as a roof.
+    const bool keep_small_interface_roofs =
+        m_object_config->support_interface_filament.value > 0 &&
+        m_object_config->support_interface_filament.value != m_object_config->support_filament.value;
+
     tbb::parallel_for(tbb::blocked_range<size_t>(0, m_ts_data->layer_heights.size()),
         [&](const tbb::blocked_range<size_t>& range)
         {
@@ -4299,9 +4306,9 @@ void TreeSupport::draw_circles()
                 }
                 ExPolygons new_roofs;
                 for (auto &expoly : ts_layer->roof_areas) {
-                    if (area(expoly) < SQ(scale_(1))) {
-                        if (max_layers_above_roof > EPSILON) { 
-                            ts_layer->roof_1st_layer.push_back(expoly); 
+                    if (!keep_small_interface_roofs && area(expoly) < SQ(scale_(1))) {
+                        if (max_layers_above_roof > EPSILON) {
+                            ts_layer->roof_1st_layer.push_back(expoly);
                         }
                         continue;
                     }
