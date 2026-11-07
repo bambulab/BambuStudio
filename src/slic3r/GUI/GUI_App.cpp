@@ -86,6 +86,9 @@
 #include "slic3r/GUI/Widgets/WebView.hpp"
 #include "Plater.hpp"
 #include "GLCanvas3D.hpp"
+#if defined(__WXGTK3__)
+#include "GtkFrameSync.hpp"
+#endif
 #include "EncodedFilament.hpp"
 
 #include "DeviceCore/DevManager.h"
@@ -2920,6 +2923,9 @@ bool GUI_App::OnInit()
 {
 #ifdef __APPLE__
     RegisterMacPowerCallBack();
+#endif
+#if defined(__WXGTK3__)
+    disable_x11_frame_sync();
 #endif
 
     try {
