@@ -17,6 +17,7 @@ class ComboBox : public wxWindowWithItems<TextInput, wxItemContainer>
     bool     text_off = false;
     bool     is_replace_text_to_image = false;
     bool     m_keep_drop_arrow = false;  // When true, item icon goes to icon_1, keeping drop_down arrow
+    int      m_last_width = -1;
     wxString replace_text;
     wxString image_for_text;
     wxString m_closed_suffix;
@@ -117,6 +118,7 @@ private:
     void mouseWheelMoved(wxMouseEvent &event);
     void keyDown(wxKeyEvent &event);
     void onMove(wxMoveEvent &event);
+    void onSize(wxSizeEvent &event);
 
     DECLARE_EVENT_TABLE()
 };

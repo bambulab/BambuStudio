@@ -2323,8 +2323,9 @@ void PresetSelectorPanel::rebuild_combo(PresetComboBox *&cb, wxBoxSizer *column,
         cb = nullptr;
     }
 
-    const int em = em_unit(this);
-    cb           = new PresetComboBox(this, m_type, wxSize(em * 35, -1), bundle);
+    // Both columns share the available width. A 35em minimum per combo exceeds the
+    // dialog's default width at larger font sizes and squeezes the right column.
+    cb = new PresetComboBox(this, m_type, wxSize(FromDIP(160), -1), bundle);
 
     // Snapshot the raw pointer into a plain local for the lambda to capture by value: cb is a
     // reference to the member pointer, which is repointed at a fresh combo on the next rebuild
@@ -2356,6 +2357,7 @@ void PresetSelectorPanel::set_type(Preset::Type type, PrinterTechnology /*tech*/
     m_type = type;
     rebuild_combo(m_combox_left, m_col_left, m_bundle_left, m_last_sel_left);
     rebuild_combo(m_combox_right, m_col_right, m_bundle_right, m_last_sel_right);
+    InvalidateBestSize();
     Layout();
 }
 

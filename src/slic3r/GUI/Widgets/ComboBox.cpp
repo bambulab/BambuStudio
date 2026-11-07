@@ -11,6 +11,7 @@ EVT_LEFT_DOWN(ComboBox::mouseDown)
 EVT_LEFT_DCLICK(ComboBox::mouseDown)
 //EVT_MOUSEWHEEL(ComboBox::mouseWheelMoved)
 EVT_KEY_DOWN(ComboBox::keyDown)
+EVT_SIZE(ComboBox::onSize)
 
 // catch paint events
 END_EVENT_TABLE()
@@ -75,6 +76,15 @@ ComboBox::ComboBox(wxWindow *parent,
         wxCommandEvent e(wxEVT_COMBOBOX_CLOSEUP);
         GetEventHandler()->ProcessEvent(e);
     });
+    // CHAR_HOOK reaches the focused combo before DPIDialog's handler, which
+    // closes the whole dialog on ESC. Close only the open dropdown instead.
+    Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent &e) {
+        if (e.GetKeyCode() == WXK_ESCAPE && drop_down)
+            drop.DismissAll();
+        else
+            e.Skip();
+    });
+    m_last_width = GetSize().x;
     for (int i = 0; i < n; ++i) Append(choices[i]);
 }
 
@@ -348,7 +358,7 @@ void ComboBox::mouseDown(wxMouseEvent &event)
 
     SetFocus();
     if (drop_down) {
-        drop.Hide();
+        drop.DismissAll();
     } else if (drop.HasDismissLongTime()) {
         drop.autoPosition();
         drop_down = true;
@@ -376,7 +386,7 @@ void ComboBox::keyDown(wxKeyEvent& event)
         case WXK_RETURN:
         case WXK_SPACE:
             if (drop_down) {
-                drop.DismissAndNotify();
+                drop.DismissAll();
             } else if (drop.HasDismissLongTime()) {
                 drop.autoPosition();
                 drop_down = true;
@@ -410,7 +420,22 @@ void ComboBox::keyDown(wxKeyEvent& event)
 void ComboBox::onMove(wxMoveEvent &event)
 {
     event.Skip();
-    drop.Hide();
+    drop.DismissAll();
+}
+
+void ComboBox::onSize(wxSizeEvent &event)
+{
+    event.Skip();
+    // TextInput::Create() can send size events before the popup is created.
+    if (!drop.GetParent())
+        return;
+    if (event.GetSize().x == m_last_width)
+        return;
+    m_last_width = event.GetSize().x;
+    // The dropdown caches its row width, including the combo's width. Recompute
+    // it after a width change and close any popup still anchored at the old size.
+    drop.Invalidate();
+    drop.DismissAll();
 }
 
 void ComboBox::OnEdit()
