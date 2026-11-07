@@ -26,6 +26,22 @@ ArrangePolygons get_arrange_polys(const Model &model, ModelInstancePtrs &instanc
 ArrangePolygon  get_arrange_poly(const Model &model);
 bool apply_arrange_polys(ArrangePolygons &polys, ModelInstancePtrs &instances, VirtualBedFn);
 
+// arrange() omits invalid contours when building its compact Item vector.
+// Reject the whole legacy batch first, preserving polygon/instance correspondence
+// and all instance transforms, including when the callback throws.
+inline bool preflight_arrange_polys(ArrangePolygons &polys, const VirtualBedFn &vfn)
+{
+    bool valid = true;
+    for (const auto &poly : polys)
+        if (poly.poly.contour.size() < 3)
+            valid = false;
+    if (!valid && vfn)
+        for (auto &poly : polys)
+            if (poly.poly.contour.size() < 3)
+                vfn(poly);
+    return valid;
+}
+
 void duplicate(Model &model, ArrangePolygons &copies, VirtualBedFn);
 void duplicate_objects(Model &model, size_t copies_num);
 
@@ -37,6 +53,8 @@ bool arrange_objects(Model &              model,
 {
     ModelInstancePtrs instances;
     auto&& input = get_arrange_polys(model, instances);
+    if (!preflight_arrange_polys(input, vfn))
+        return false;
     arrangement::arrange(input, bed, params);
     
     return apply_arrange_polys(input, instances, vfn);

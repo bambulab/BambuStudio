@@ -1,8 +1,13 @@
 #include <catch2/catch.hpp>
 
+#include "libslic3r/FilamentMixer.hpp"
 #include "libslic3r/Print.hpp"
 
 #include "test_data.hpp"
+
+#include <cstddef>
+#include <string>
+#include <vector>
 
 using namespace Slic3r;
 using namespace Slic3r::Test;
@@ -86,13 +91,39 @@ void set_filament_is_support(DynamicPrintConfig &config, unsigned filament_idx, 
 
 void set_mixed_filament(DynamicPrintConfig &config, unsigned filament_idx, const std::string &components, const std::string &ratios)
 {
-    config.option<ConfigOptionBools>("filament_is_mixed", true)->get_at(filament_idx) = true;
-    config.option<ConfigOptionStrings>("filament_mixed_components", true)->get_at(filament_idx) = components;
-    config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios", true)->get_at(filament_idx) = ratios;
+    const std::size_t count = config.option<ConfigOptionFloats>("filament_diameter")->size();
+    auto &is_mixed = config.option<ConfigOptionBools>("filament_is_mixed", true)->values;
+    auto &mixed_components = config.option<ConfigOptionStrings>("filament_mixed_components", true)->values;
+    auto &mixed_ratios = config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios", true)->values;
+    is_mixed.resize(count, 0);
+    mixed_components.resize(count);
+    mixed_ratios.resize(count);
+    is_mixed.at(filament_idx) = true;
+    mixed_components.at(filament_idx) = components;
+    mixed_ratios.at(filament_idx) = ratios;
     config.set_key_value("enable_mixed_color_sublayer", new ConfigOptionBool(true));
 }
 
 } // namespace
+
+TEST_CASE("Mixed wipe fixture maps the third slot to two physical filaments", "[SupportMaterialOnWipeTower][MixedFixtureConfig]")
+{
+    DynamicPrintConfig config = make_wipe_tower_support_config(3);
+    set_mixed_filament(config, 2, "1,2", "0.5,0.5");
+    const auto &is_mixed = config.option<ConfigOptionBools>("filament_is_mixed")->values;
+    const auto &components = config.option<ConfigOptionStrings>("filament_mixed_components")->values;
+    const auto &ratios = config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios")->values;
+    REQUIRE(is_mixed == std::vector<unsigned char>{0, 0, 1});
+    REQUIRE(components == std::vector<std::string>{"", "", "1,2"});
+    REQUIRE(ratios == std::vector<std::string>{"", "", "0.5,0.5"});
+    REQUIRE(config.option<ConfigOptionBool>("enable_mixed_color_sublayer")->value);
+    REQUIRE(expand_mixed_filaments({2}, is_mixed, components) == std::vector<unsigned int>{0, 1});
+    const auto errors = validate_mixed_filament_params(is_mixed, components, ratios,
+        config.option<ConfigOptionBools>("filament_mixed_gradient")->values,
+        config.option<ConfigOptionStrings>("filament_mixed_gradient_range")->values,
+        config.option<ConfigOptionStrings>("filament_mixed_gradient_curve")->values);
+    REQUIRE(errors.empty());
+}
 
 TEST_CASE("support_material_on_wipe_tower: PLA model with Supp.PLA interface", "[SupportMaterialOnWipeTower]")
 {
@@ -200,10 +231,27 @@ TEST_CASE("used mixed filament components generate a wipe tower", "[SupportMater
     Model model;
     init_support_on_wipe_tower_print(print, model, config, 1, [](Model &m) {
         m.objects.front()->config.set_key_value("extruder", new ConfigOptionInt(3));
+        // Default feature slots follow the part's mixed filament, not global slot1.
+        m.objects.front()->config.set_key_value("wall_filament", new ConfigOptionInt(0));
+        m.objects.front()->config.set_key_value("sparse_infill_filament", new ConfigOptionInt(0));
+        m.objects.front()->config.set_key_value("solid_infill_filament", new ConfigOptionInt(0));
         m.objects.front()->config.set_key_value("enable_support", new ConfigOptionBool(false));
     });
 
     REQUIRE(print.extruders().size() == 1);
+    REQUIRE(print.extruders().front() == 2);
+    REQUIRE(print.extruders(true) == std::vector<unsigned int>{2});
+    const auto &applied = print.config();
+    REQUIRE(applied.filament_is_mixed.values == std::vector<unsigned char>{0, 0, 1});
+    REQUIRE(applied.filament_mixed_components.values == std::vector<std::string>{"", "", "1,2"});
+    REQUIRE(applied.filament_mixed_sublayer_ratios.values == std::vector<std::string>{"", "", "0.5,0.5"});
+    REQUIRE(applied.enable_mixed_color_sublayer.value);
+    REQUIRE(expand_mixed_filaments(print.extruders(true), applied.filament_is_mixed.values,
+        applied.filament_mixed_components.values) == std::vector<unsigned int>{0, 1});
+    REQUIRE(validate_mixed_filament_params(applied.filament_is_mixed.values,
+        applied.filament_mixed_components.values, applied.filament_mixed_sublayer_ratios.values,
+        applied.filament_mixed_gradient.values, applied.filament_mixed_gradient_range.values,
+        applied.filament_mixed_gradient_curve.values).empty());
     REQUIRE(print.has_wipe_tower());
 
     print.process();
