@@ -329,6 +329,20 @@ ConfigOption* ConfigOptionDef::create_default_option() const
     return this->create_empty_option();
 }
 
+void ConfigOptionDef::apply_default_value(ConfigOption &option) const
+{
+    assert(this->default_value);
+    option.set(this->default_value.get());
+    // Generic enum-vector set() copies values only. Its map belongs to the
+    // definition, not to the possibly unbound default-value object.
+    if (this->type == coEnums) {
+        if (option.nullable())
+            dynamic_cast<ConfigOptionEnumsGenericNullable &>(option).keys_map = this->enum_keys_map;
+        else
+            dynamic_cast<ConfigOptionEnumsGeneric &>(option).keys_map = this->enum_keys_map;
+    }
+}
+
 // Assignment of the serialization IDs is not thread safe. The Defs shall be initialized from the main thread!
 ConfigOptionDef* ConfigDef::add(const t_config_option_key &opt_key, ConfigOptionType type)
 {
@@ -1861,7 +1875,7 @@ void StaticConfig::set_defaults()
             const ConfigOptionDef   *def = defs->get(key);
             ConfigOption            *opt = this->option(key);
             if (def != nullptr && opt != nullptr && def->default_value)
-                opt->set(def->default_value.get());
+                def->apply_default_value(*opt);
         }
     }
 }
