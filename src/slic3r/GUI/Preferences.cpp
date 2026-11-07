@@ -2119,6 +2119,7 @@ void PreferencesDialog::on_reset_preferences()
     // Reset to factory defaults. Touch only UI preference keys — keep vendor /
     // printer / preset state intact, which AppConfig::reset() would also clear.
     static const char *kPrefKeys[] = {
+        "custom_filament_sort_order",
         "language",
         // "region", keep this intensinaly to avoid re-login
         "use_inches",

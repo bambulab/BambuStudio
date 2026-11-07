@@ -222,7 +222,7 @@ function HandleStudio(pVal) {
             ChooseDefaultFilament();
         }
     } else if (strCmd == 'update_custom_filaments') {
-        UpdateCustomFilaments(pVal['data']);
+        UpdateCustomFilaments(pVal['data'], pVal['sort_order']);
     }
 }
 
@@ -893,15 +893,23 @@ function RequestCustomFilaments() {
 }
 
 var g_customFilaments = [];
-var g_customSortOrder = 'desc'; // 'desc' or 'asc'
+var g_customSortOrder = 'desc'; // 'name', 'name_desc', 'desc', 'asc', or 'type'
 
-function UpdateCustomFilaments(CFList) {
+function UpdateCustomFilaments(CFList, sortOrder) {
+    var validOrders = ['desc', 'asc', 'type', 'name', 'name_desc'];
+    g_customSortOrder = validOrders.indexOf(sortOrder) >= 0 ? sortOrder : 'desc';
+    $('#CFilament_Sort').val(g_customSortOrder);
     g_customFilaments = CFList || [];
     renderCustomFilaments();
 }
 
 function onCustomSortChange() {
     g_customSortOrder = $('#CFilament_Sort').val();
+    SendWXMessage(JSON.stringify({
+        sequence_id: Math.round(new Date() / 1000),
+        command: 'set_custom_filament_sort_order',
+        sort_order: g_customSortOrder
+    }));
     renderCustomFilaments();
 }
 
@@ -926,7 +934,12 @@ function renderCustomFilaments() {
     $('#CFilament_Count').text((_t('t242') || 'Custom filaments: 0').replace('0', list.length));
 
         // Sort logic
-        if (g_customSortOrder === 'type') {
+        if (g_customSortOrder === 'name' || g_customSortOrder === 'name_desc') {
+            list.sort(function(a, b) {
+                var order = (a['name'] || '').localeCompare(b['name'] || '', undefined, { sensitivity: 'base', numeric: true });
+                return g_customSortOrder === 'name_desc' ? -order : order;
+            });
+        } else if (g_customSortOrder === 'type') {
             list.sort(function(a, b) {
                 var ta = (a['type'] || '').toLowerCase();
                 var tb = (b['type'] || '').toLowerCase();
@@ -990,7 +1003,7 @@ function renderCustomFilaments() {
                 strHtml += renderCustomGroup(typeOrder[i], typeGroups[typeOrder[i]], true);
             }
     } else {
-            // Ascending order: just flat list
+            // Name or oldest-first order: just flat list
             strHtml = renderCustomGroup('', list, false);
     }
     
