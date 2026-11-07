@@ -174,22 +174,10 @@ if (MSVC)
     endif ()
 elseif (APPLE)
     message("OS X SDK Path: ${CMAKE_OSX_SYSROOT}")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
-    if (CMAKE_OSX_DEPLOYMENT_TARGET)
-        set(DEP_OSX_TARGET "${CMAKE_OSX_DEPLOYMENT_TARGET}")
-        message("OS X Deployment Target: ${DEP_OSX_TARGET}")
-    else ()
-        # Attempt to infer the SDK version from the CMAKE_OSX_SYSROOT,
-        # this is done because wxWidgets need the min version explicitly set
-        string(REGEX MATCH "[0-9]+[.][0-9]+[.]sdk$" DEP_OSX_TARGET "${CMAKE_OSX_SYSROOT}")
-        string(REGEX MATCH "^[0-9]+[.][0-9]+" DEP_OSX_TARGET "${DEP_OSX_TARGET}")
-
-        if (NOT DEP_OSX_TARGET)
-            message(FATAL_ERROR "Could not determine OS X SDK version. Please use -DCMAKE_OSX_DEPLOYMENT_TARGET=<version>")
-        endif ()
-
-        message("OS X Deployment Target (inferred from SDK): ${DEP_OSX_TARGET}")
-    endif ()
+    include("${CMAKE_CURRENT_LIST_DIR}/../cmake/BambuMacDeploymentTarget.cmake")
+    bambu_ensure_osx_deployment_target()
+    set(DEP_OSX_TARGET "${CMAKE_OSX_DEPLOYMENT_TARGET}")
+    message("OS X Deployment Target: ${DEP_OSX_TARGET}")
 
     include("deps-macos.cmake")
 elseif (MINGW)
