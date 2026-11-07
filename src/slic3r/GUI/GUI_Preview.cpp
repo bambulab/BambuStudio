@@ -306,6 +306,15 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Model* model)
 
     // sizer, m_canvas_widget
     m_canvas_widget->Bind(wxEVT_KEY_DOWN, &Preview::update_layers_slider_from_canvas, this);
+    m_canvas_widget->Bind(EVT_GLCANVAS_INITIALIZED, [this](SimpleEvent&) {
+        if (!m_load_pending)
+            return;
+        // Load from the current state: the plater's preview-only mode, not
+        // the arguments of the call that was deferred. Loads that ran in
+        // between with other arguments did not load the viewer, otherwise
+        // the request would have been satisfied already.
+        load_print(false, wxGetApp().plater()->only_gcode_mode());
+    });
 
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
@@ -683,6 +692,14 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
         return;
     }
 
+    if (!m_canvas->is_initialized()) {
+        // Nothing can be loaded into the canvas before it is initialized, and
+        // the sliders are derived from what it loaded. Keep m_loaded_print
+        // unset and repeat the load once the canvas reports initialization.
+        m_load_pending = true;
+        return;
+    }
+
     // we require that there's at least one object and the posSlice step
     // is performed on all of them(this ensures that _shifted_copies was
     // populated and we know the number of layers)
@@ -764,6 +781,7 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
             //BBS: add m_loaded_print logic
             //m_loaded = true;
             m_loaded_print = print;
+            m_load_pending = false;
         }
         else if (wxGetApp().is_editor()) {
             // Load the initial preview based on slices, not the final G-code.
