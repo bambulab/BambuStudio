@@ -30,6 +30,9 @@
 #include "Widgets/TextCtrl.h"
 
 #include "../Utils/ColorSpaceConvert.hpp"
+#ifdef __WXGTK3__
+#include <gtk/gtk.h>
+#endif
 #ifdef __WXOSX__
 #define wxOSX true
 #else
@@ -475,6 +478,54 @@ void release_window_pools()
     spools2.clear();
 }
 
+#ifdef __WXGTK3__
+// GtkTextLayout caches the display of one text line and clears that cache only when
+// the line is deleted while the layout is attached to the line's buffer. wxGTK's
+// Freeze() swaps a multiline control's buffer for a temporary one, so a SetValue()
+// while frozen (Tab pages freeze around rebuilds) can free the cached line without
+// telling the layout. The next cursor redraw then reads the freed line. Disabling
+// the main window for a modal ProgressDialog does such a redraw, which crashed
+// MakerWorld "Download and open" in _gtk_text_btree_find_line_top whenever the
+// process Others page, with the multiline post_process field, was selected.
+//
+// Asking GTK for the location of a valid iterator makes the layout rebuild its cache
+// for that line. It replaces a stale entry by comparing pointers only, without
+// dereferencing the freed line. Do this whenever the view changes buffers.
+class MultilineTextCtrl : public wxTextCtrl
+{
+public:
+    using wxTextCtrl::wxTextCtrl;
+
+protected:
+    void DoFreeze() override
+    {
+        wxTextCtrl::DoFreeze();
+        drop_stale_line_display();
+    }
+
+    void DoThaw() override
+    {
+        wxTextCtrl::DoThaw();
+        drop_stale_line_display();
+    }
+
+private:
+    void drop_stale_line_display()
+    {
+        GtkWidget *widget = GetConnectWidget();
+        if (widget == nullptr || !GTK_IS_TEXT_VIEW(widget))
+            return;
+        GtkTextView *view = GTK_TEXT_VIEW(widget);
+        GtkTextIter  start;
+        gtk_text_buffer_get_start_iter(gtk_text_view_get_buffer(view), &start);
+        GdkRectangle location;
+        gtk_text_view_get_iter_location(view, &start, &location);
+    }
+};
+#else
+using MultilineTextCtrl = wxTextCtrl;
+#endif
+
 template<typename T>
 struct Builder
 {
@@ -619,7 +670,7 @@ void TextCtrl::BUILD() {
 
 	// BBS: new param ui style
     // const long style = m_opt.multiline ? wxTE_MULTILINE : wxTE_PROCESS_ENTER/*0*/;
-    static Builder<wxTextCtrl> builder1;
+    static Builder<MultilineTextCtrl> builder1;
     static Builder<::TextInput> builder2;
     auto temp = m_opt.multiline
         ? (wxWindow*)builder1.build(m_parent, wxID_ANY, "", wxDefaultPosition, size, wxTE_MULTILINE)
