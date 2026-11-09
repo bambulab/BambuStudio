@@ -168,8 +168,9 @@ namespace Slic3r
     private:
         std::vector<int> calc_min_flush_group(int* cost = nullptr);
 
+        // enum_groups 是已经按硬约束筛过并去除等价项的分配方案，每项长度与 used_filaments 相同
         std::vector<int> calc_group_by_enum(int k, const std::vector<unsigned int>& used_filaments,
-            const std::unordered_map<int, std::vector<int>>& unplaceable_limits, int* cost = nullptr);
+            const std::vector<std::vector<int>>& enum_groups, int* cost = nullptr);
         std::vector<int> calc_group_by_kmedoids(int k, const std::vector<unsigned int>& used_filaments,
             const std::unordered_map<int, std::vector<int>>& unplaceable_limits, int* cost = nullptr, int timeout_ms = 500);
 
