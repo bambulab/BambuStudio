@@ -1102,8 +1102,23 @@ bool DevFilaSystem::IsDryAreaInPrintUse(const std::string& ams_id, std::optional
             BOOST_LOG_TRIVIAL(warning) << "invalid " << KV(log_key::ams_id, ams_id) << " " << KV(log_key::tray_id, tray_id);
         }
     }
-    // old firmware without tray print_status: any printing counts as in use
-    return !has_print_status;
+    if (has_print_status) {
+        return false;
+    }
+
+    // old firmware: print.mapping, (ams_id << 8) | slot_id per filament, 0xFFFF unused
+    const auto& mapping = m_owner->print_job_filament_mapping;
+    if (!mapping.empty()) {
+        const int ams_id_int = ams->GetAmdIdInt();
+        for (uint16_t v : mapping) {
+            if (v != 0xFFFF && ((v >> 8) & 0xFF) == ams_id_int && is_in_dry_area(v & 0xFF)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    return true;
 }
 
 bool DevFilaSystem::HasSubAms() const

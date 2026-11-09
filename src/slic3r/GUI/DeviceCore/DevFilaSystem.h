@@ -416,7 +416,7 @@ public:
     // filament backup
     bool CanShowFilamentBackup() const;
 
-    // tray print_status granularity; old firmware without it falls back to is_in_printing()
+    // tray print_status first, then print.mapping, then is_in_printing()
     bool IsDryAreaInPrintUse(const std::string& ams_id, std::optional<int> zone_id) const;
 
     // filament change steps
