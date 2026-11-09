@@ -4782,12 +4782,8 @@ void TabFilament::update_filament_overrides_page()
     }
 }
 
-void TabFilament::build()
+void TabFilament::build_filament_page(const PageShp& page)
 {
-    m_presets = &m_preset_bundle->filaments;
-    load_initial_data();
-
-    auto page = add_options_page(L("Filament"), "spool");
         //BBS
         auto optgroup = page->new_optgroup(L("Basic information"), L"param_information");
         // Set size as all another fields for a better alignment
@@ -4827,23 +4823,27 @@ void TabFilament::build()
         //BBS
         Line line = {L("Filament prime volume"), L("The volume of material to prime extruder on tower.")};
         line.append_option(optgroup->get_option("filament_prime_volume"));
-        line.append_option(optgroup->get_option("filament_prime_volume_nc"));
+        if (!m_single_hotend_change)
+            line.append_option(optgroup->get_option("filament_prime_volume_nc"));
         optgroup->append_line(line);
 
 
         line = {L("Filament ramming length"), L("Filament length used in ramming.")};
         line.append_option(optgroup->get_option("filament_change_length"));
-        line.append_option(optgroup->get_option("filament_change_length_nc"));
+        if (!m_single_hotend_change)
+            line.append_option(optgroup->get_option("filament_change_length_nc"));
         optgroup->append_line(line);
 
         line = {L("Travel time after ramming"), L("A reverse travel movement after ramming.")};
         line.append_option(optgroup->get_option("filament_ramming_travel_time",0));
-        line.append_option(optgroup->get_option("filament_ramming_travel_time_nc",0));
+        if (!m_single_hotend_change)
+            line.append_option(optgroup->get_option("filament_ramming_travel_time_nc",0));
         optgroup->append_line(line);
 
         line = { L("Precooling target temperature"), L("Precooling target temperature during ramming.") };
         line.append_option(optgroup->get_option("filament_pre_cooling_temperature",0));
-        line.append_option(optgroup->get_option("filament_pre_cooling_temperature_nc",0));
+        if (!m_single_hotend_change)
+            line.append_option(optgroup->get_option("filament_pre_cooling_temperature_nc",0));
         optgroup->append_line(line);
 
         optgroup->append_single_option_line("filament_idle_travel_cooling_enabled");
@@ -4942,7 +4942,8 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_max_volumetric_speed", "", 0);
         line = {L("Ramming volumetric speed"), L("The maximum volumetric speed for ramming, where -1 means using the maximum volumetric speed.")};
         line.append_option(optgroup->get_option("filament_ramming_volumetric_speed", 0));
-        line.append_option(optgroup->get_option("filament_ramming_volumetric_speed_nc", 0));
+        if (!m_single_hotend_change)
+            line.append_option(optgroup->get_option("filament_ramming_volumetric_speed_nc", 0));
         optgroup->append_line(line);
         optgroup->append_single_option_line("filament_prime_tower_speed_factor_curve", "", 0);
 
@@ -4973,10 +4974,19 @@ void TabFilament::build()
         //};
         //optgroup->append_line(line);
 
-    page = add_options_page(L("Cooling"), "empty");
+}
 
-        optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_fan");
-        line = {L("Initial layer fan"),
+void TabFilament::build()
+{
+    m_presets = &m_preset_bundle->filaments;
+    load_initial_data();
+    m_single_hotend_change = m_preset_bundle->printers.get_edited_preset().config.opt_bool("handle_hotend_as_extruder");
+    build_filament_page(add_options_page(L("Filament"), "spool"));
+
+    auto page = add_options_page(L("Cooling"), "empty");
+
+        auto optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_fan");
+        Line line = {L("Initial layer fan"),
                 L("Set the part cooling fan speed for the first few layers. "
                   "Set to 0 to keep the fan off for better bed adhesion")};
         line.label_path = "auto-cooling";
@@ -5092,7 +5102,7 @@ void TabFilament::build()
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-        option = optgroup->get_option("filament_start_gcode");
+        Option option = optgroup->get_option("filament_start_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;// 150;
@@ -5155,9 +5165,49 @@ void TabFilament::build()
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
 void TabFilament::reload_config()
 {
+    update_filament_page();
     this->compatible_widget_reload(m_compatible_printers);
     this->compatible_widget_reload(m_compatible_prints);
     Tab::reload_config();
+}
+
+void TabFilament::update_filament_page()
+{
+    const bool single_hotend_change = m_preset_bundle->printers.get_edited_preset().config.opt_bool("handle_hotend_as_extruder");
+    if (m_pages.empty() || single_hotend_change == m_single_hotend_change)
+        return;
+
+    // Change the layout only when the printer switches between one and two parameter columns.
+    // Keep the Page and its edited configuration; the other filament pages are unaffected.
+    m_single_hotend_change = single_hotend_change;
+    const auto& page = m_pages.front();
+    const bool had_controls = std::any_of(page->m_optgroups.begin(), page->m_optgroups.end(),
+                                         [](const auto& group) { return group->sizer != nullptr; });
+    wxWindowUpdateLocker locker(m_page_view);
+    if (had_controls) {
+        m_highlighter.invalidate();
+        page->clear();
+        m_parent->clear_page();
+    }
+    // Some page callbacks capture their own group. Release them before replacing the groups.
+    for (auto& group : page->m_optgroups)
+        group->m_on_change = nullptr;
+    page->m_optgroups.clear();
+    page->m_opt_id_map.clear();
+    build_filament_page(page);
+    switch_excluder(-1, false);
+    if (had_controls) {
+        page->activate(m_mode, [](){});
+        toggle_options();
+        update_changed_ui();
+        m_parent->Layout();
+    }
+}
+
+void TabFilament::activate_selected_page(std::function<void()> throw_if_canceled)
+{
+    update_filament_page();
+    Tab::activate_selected_page(throw_if_canceled);
 }
 
 //void TabFilament::update_volumetric_flow_preset_hints()

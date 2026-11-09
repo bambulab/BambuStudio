@@ -699,6 +699,10 @@ private:
 	wxWindow*          m_flush_mode_panel {nullptr};
 	int                m_flush_mode_selection {0};
 
+    bool            m_single_hotend_change {false};
+    void            build_filament_page(const PageShp& page);
+    void            update_filament_page();
+
     void            add_filament_overrides_page();
     void            update_filament_overrides_page();
     int             get_override_variant_index(const std::string &opt_key);
@@ -727,6 +731,7 @@ public:
 	void		update() override;
     void        init_options_list() override;
     void        clear_pages() override;
+    void        activate_selected_page(std::function<void()> throw_if_canceled) override;
 	bool 		supports_printer_technology(const PrinterTechnology tech) const override { return tech == ptFFF; }
 };
 
