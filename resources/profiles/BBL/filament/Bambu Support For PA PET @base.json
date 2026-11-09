@@ -9,11 +9,42 @@
     "fan_cooling_layer_time": [
         "10"
     ],
+    "filament_adhesiveness_category": [
+        "703"
+    ],
     "filament_cost": [
         "34.99"
     ],
     "filament_density": [
         "1.22"
+    ],
+    "filament_dev_ams_drying_heat_distortion_temperature": [
+        "90",
+        "90",
+        "90",
+        "90"
+    ],
+    "filament_dev_ams_drying_temperature": [
+        "65",
+        "80",
+        "65",
+        "80",
+        "80",
+        "80",
+        "65",
+        "65"
+    ],
+    "filament_dev_chamber_drying_time": [
+        "16"
+    ],
+    "filament_dev_drying_cooling_temperature": [
+        "75"
+    ],
+    "filament_dev_drying_softening_temperature": [
+        "85",
+        "85",
+        "85",
+        "85"
     ],
     "filament_is_support": [
         "1"
@@ -21,26 +52,8 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
-    "filament_adhesiveness_category": [
-        "703"
-    ],
-    "filament_dev_chamber_drying_time": [
-        "16"
-    ],
-    "filament_dev_ams_drying_heat_distortion_temperature": [
-        "90"
-    ],
-    "filament_dev_drying_cooling_temperature": [
-        "75"
-    ],
-    "filament_dev_ams_drying_temperature": [
-        "65",
-        "80",
-        "65",
-        "80"
-    ],
-    "filament_dev_drying_softening_temperature": [
-        "85"
+    "fins_extrude_safe_temp": [
+        "100"
     ],
     "nozzle_temperature": [
         "280"
@@ -53,5 +66,8 @@
     ],
     "slow_down_layer_time": [
         "6"
+    ],
+    "temperature_vitrification": [
+        "75"
     ]
 }

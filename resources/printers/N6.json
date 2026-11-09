@@ -14,6 +14,8 @@
 					"model_download": "enabled"
 				}
 			},
+			"default_extruder_count": 2,
+			"default_nozzle_count": 2,
 			"nozzle_temp_range": [ 0, 300 ],
 			"nozzle_replace_wiki": {
 				"zh": "https://wiki.bambulab.com/zh/h2/maintenance/replace-hotend",

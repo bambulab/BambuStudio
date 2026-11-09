@@ -4,7 +4,6 @@
 
 #include "libslic3r/Utils.hpp"
 #include "slic3r/Utils/Http.hpp"
-#include <boost/log/trivial.hpp>
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
@@ -29,6 +28,7 @@
 #include <sstream>
 #include <regex>
 #include <thread>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -91,6 +91,7 @@ HelioHistoryDialog::HelioHistoryDialog(wxWindow* parent)
             SetIcon(icon);
         }
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         // Icon loading failed, continue anyway
     }
 
@@ -392,6 +393,7 @@ void HelioHistoryDialog::show_content()
         }
         Layout();
     } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         // If anything goes wrong, just show empty state
         show_empty_state();
     }

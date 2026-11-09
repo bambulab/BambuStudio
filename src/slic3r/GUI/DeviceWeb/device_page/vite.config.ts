@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from 'vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import legacyWebkit from './legacy-webkit.postcss'
 
 /**
  * Make Vite build output compatible with file:// protocol:
@@ -61,10 +62,23 @@ export default defineConfig({
     },
   },
 
+  css: {
+    postcss: {
+      plugins: [legacyWebkit()],
+    },
+  },
+
   build: {
     // Keep in step with package.json browserslist; unset lets Vite's default drift.
-    target: ['chrome111', 'edge111', 'safari16.4'],
-    cssTarget: ['chrome111', 'edge111', 'safari16.4'],
+    // The floor is the oldest engine the installer can reach, not the newest:
+    // WKWebView is tied to the macOS version and CMAKE_OSX_DEPLOYMENT_TARGET is
+    // 10.15, whose shipping Safari is 13.1. Chromium 109 is the last WebView2 /
+    // Chrome line for Windows 8.1 and earlier.
+    target: ['chrome109', 'edge109', 'safari13.1'],
+    cssTarget: ['chrome109', 'edge109', 'safari13.1'],
+    // esbuild's CSS minifier passes oklch() through untouched; lightningcss
+    // lowers it for cssTarget (hex fallback + @supports lab/p3).
+    cssMinify: 'lightningcss',
     // Debug: emit `assets/index.js.map` so Chrome DevTools can
     // attach to the live WebView2 over CDP and let the developer set
     // source-level breakpoints inside .ts source. This adds ~1MB to dist/
@@ -84,15 +98,25 @@ export default defineConfig({
         assetFileNames: 'assets/[name].[ext]'
       }
     },
-    // Use terser instead of esbuild so we can reserve the name "wx".
-    // WKWebView's AddScriptMessageHandler("wx") injects `window.wx` as a
-    // UserMessageHandler instance. If the minifier generates a top-level
-    // variable called "wx", it shadows the global and causes:
-    // "wx is not a function (it is an instance of UserMessageHandler)".
+    // Use terser instead of esbuild so we can reserve names that would
+    // otherwise collide with WebView host globals or with browser builtins.
+    //
+    //   wx : WKWebView's AddScriptMessageHandler("wx") injects `window.wx`.
+    //        If terser mangles a top-level variable to "wx", it shadows the
+    //        global and we get
+    //          "wx is not a function (it is an instance of UserMessageHandler)".
+    //
+    //   gc : Some Chromium / WebView2 builds expose `window.gc()` as a
+    //        debug-only garbage-collect hook. When terser mangles two
+    //        different module-level identifiers to `gc` they collide as a
+    //        single `var gc` declaration in the IIFE bundle and cause
+    //          "SyntaxError: Identifier 'gc' has already been declared"
+    //        at script-load time, leaving the React tree blank. Reserving
+    //        the name keeps terser away from it.
     minify: 'terser',
     terserOptions: {
       mangle: {
-        reserved: ['wx'],
+        reserved: ['wx', 'gc'],
       },
     },
   }

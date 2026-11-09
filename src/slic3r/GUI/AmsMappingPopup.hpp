@@ -23,6 +23,10 @@
 #include <wx/artprov.h>
 #include <wx/wrapsizer.h>
 
+#include <wx/timer.h>
+#include <cstdint>
+#include <memory>
+
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "DeviceManager.hpp"
@@ -46,10 +50,12 @@
 namespace Slic3r
 {
 class DevNozzleRack;
+struct DevSliceContext;
 namespace GUI
 {
 class wgtDeviceNozzleRackSelect;
 class wgtMsgPanel;
+class DeviceWebHost;
 };
 };
 
@@ -75,9 +81,10 @@ enum ShowType {
 struct TrayData
 {
     TrayType        type;
-    int             id;
+    int             id;// same as tray_id
     int             ctype = 0;
     int             remain = MAPPING_ITEM_INVALID_REMAIN;
+    int             remain_g = -1;      // remaining weight in grams; -1 = not provided by firmware
     std::string     name;
     std::string     filament_type;
     wxColour        colour;
@@ -85,6 +92,8 @@ struct TrayData
 
     int             ams_id = 0;
     int             slot_id = 0;
+    DevAmsType      ams_type = DevAmsType::EXT_SPOOL;
+    std::string     ams_slot_name; // cloud be empty
 };
 
 class MaterialItem: public wxPanel
@@ -96,7 +105,7 @@ protected:
 
 public:
     MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname, std::string filament_id);
-    ~MaterialItem();
+    virtual ~MaterialItem();
 
     void allow_paint_dropdown(bool flag);
 
@@ -111,6 +120,7 @@ public:
     virtual void reset_valid_info();
 
     void set_nozzle_info(const wxString& mapped_nozzle_str);
+    virtual void set_nozzle_dia_and_type(const wxString & dia_type_info){};
 
     void disable();
     void enable();
@@ -121,10 +131,10 @@ public:
     bool is_selected() const { return m_selected;}
     bool is_warning() const { return m_warning;}
 
-    void msw_rescale();
+    virtual void msw_rescale();
 
 protected:
-    void messure_size();
+    virtual void messure_size();
 
 public:
     std::string m_filament_id;
@@ -133,7 +143,7 @@ public:
     int         m_material_ctype = 0;
     std::vector<wxColour> m_material_cols;
     wxString    m_material_name;
-    wxString    m_mapped_nozzle_str;
+    wxString    m_mapped_nozzle_str;//nozzle pos id (0,1,2)
 
     //info
     wxColour m_ams_coloul;
@@ -166,19 +176,12 @@ public:
     virtual void doRender(wxDC &dc);
 };
 
-class MaterialSyncItem : public MaterialItem
-{
-public:
-    MaterialSyncItem(wxWindow *parent, wxColour mcolour, wxString mname, std::string filament_id);
-    ~MaterialSyncItem();
-    int  get_real_offset();
-    void render(wxDC &dc) override;
-    void doRender(wxDC &dc) override;
-    void set_material_index_str(std::string str);
-    const std::string &get_material_index_str() { return m_material_index; }
-private:
-    std::string m_material_index;
-};
+
+
+
+
+
+
 
 class MappingItem : public wxPanel
 {
@@ -269,6 +272,7 @@ class AmsMapingPopup : public PopupWindow
 {
     bool m_use_in_sync_dialog = false;
     bool m_ext_mapping_filatype_check = true;
+    bool m_match_all = false; ///< when set, every normal AMS slot is pickable regardless of filament type
     wxStaticText* m_title_text{ nullptr };
 
     wgtDeviceNozzleRackSelect *m_rack_nozzle_select{nullptr};
@@ -278,7 +282,19 @@ public:
     AmsMapingPopup(wxWindow *parent,bool use_in_sync_dialog = false);
     ~AmsMapingPopup() {};
 
-    MaterialItem* m_parent_item{ nullptr };
+    // Defer the show until the hotend-rack WebView acks it has rendered the
+    // freshly pushed state (anti-flicker on machine switch). Falls back to an
+    // immediate show on first open / legacy wx machines / ack timeout.
+    void Popup(wxWindow* focus = nullptr) wxOVERRIDE;
+
+    // Called (via the hotend mapping VM) when the web side reports it has
+    // committed the DOM for `seq`. Shows the deferred popup once seq catches up.
+    void OnHotendWebRendered(std::uint32_t seq);
+
+    // Web side painted a frame for `seq`: reveals the masked window (macOS only).
+    void OnHotendWebPresented(std::uint32_t seq);
+
+    wxWindow* m_anchor{ nullptr }; ///< the cell the popup opens from; sizes, places and pre-checks against it
 
     wxWindow* send_win{ nullptr };
     std::vector<std::string> m_materials_list;
@@ -346,11 +362,29 @@ public:
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
     void         paintEvent(wxPaintEvent &evt);
-    void         set_parent_item(MaterialItem* item) {m_parent_item = item;};
+    void         set_parent_item(MaterialItem* item) { set_anchor(item); };
+
+    /**
+     * \brief Open from a cell: on show the popup fits its content, then sits below the cell, or above when
+     *        there is no room. The current filament's slot is pre-checked.
+     *
+     * Set it before \c update() on every opening; closing the popup clears it. Without an anchor the popup
+     * keeps its last size and position.
+     *
+     * \param anchor  the cell to open from; nullptr clears it
+     */
+    void         set_anchor(wxWindow* anchor) { m_anchor = anchor; }
     void         set_show_type(ShowType type) { m_show_type = type; };
+
+    // Slice snapshot of the job about to be sent. Forwarded to the hotend mapping VM
+    // on every refresh so the per-filament nozzle requirement follows the job instead
+    // of the Plater's last local slice. Call it before update() when opening the popup.
+    void         set_slice_context(std::shared_ptr<DevSliceContext> slice_context) { m_slice_context = std::move(slice_context); }
 
 #ifdef __APPLE__
     void on_mouse_move(wxMouseEvent &evt);
+    // Keeps the hotend-rack WebView clickable, see the implementation comment.
+    void on_idle_mouse_capture(wxIdleEvent &evt);
     wxPopupWindow * m_tip_popup{nullptr};
     Label* m_tip_label{nullptr};
 #endif
@@ -366,12 +400,30 @@ public:
     void msw_rescale();
 
     void EnableExtMappingFilaTypeCheck(bool to_check = true) { m_ext_mapping_filatype_check = to_check;} ;
+    /// Allow every normal AMS slot to be picked, ignoring the source filament type. Off by default.
+    void set_match_all(bool match_all) { m_match_all = match_all; }
+
+    // Web path: VM stages the last selected slot's ctype/material_cols
+    // here so SelectMachine.cpp can recover them when handling
+    // EVT_SET_FINISH_MAPPING (legacy wxWidgets path used to read from
+    // m_mapping_item_hotend_list directly).
+    void                          set_last_hotend_select(int                          ctype,
+                                                         const std::vector<wxColour>& cols);
+    int                           get_last_hotend_select_ctype() const { return m_last_hotend_select_ctype; }
+    const std::vector<wxColour>&  get_last_hotend_select_material_cols() const { return m_last_hotend_select_material_cols; }
 
 private:
     // update
     void update_title(MachineObject* obj);
     void update_ams_tips(MachineObject* obj);
     void update_mapping_items(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result, bool use_dynamic_switch);
+
+    // Hotend rack routes the popup body through a DeviceWebHost
+    // instead of the legacy wxWidgets layout. Lazily created the first time
+    // the popup is opened on a hotend-rack machine.
+    void update_hotend_web(MachineObject* obj,
+                           const std::vector<FilamentInfo>& ams_mapping_result,
+                           std::optional<PrintFromType> print_type);
 
     // events
     void OnNozzleMappingSelected(wxCommandEvent& evt);
@@ -382,6 +434,47 @@ private:
 
     ResetCallback m_reset_callback{nullptr};
     std::string m_material_index;
+
+    // Hotend rack Web host. Owned by wx parent (the popup) once
+    // created. nullptr until the popup is first opened on a hotend-rack machine.
+    DeviceWebHost*         m_hotend_web_host{nullptr};
+    wxBoxSizer*            m_hotend_web_sizer{nullptr};
+
+    // Set by the send-to-print dialog, see set_slice_context().
+    std::shared_ptr<DevSliceContext> m_slice_context;
+
+    // Anti-flicker deferred-show state for the hotend-rack WebView. Set by
+    // update_hotend_web() on reopen so Popup() waits for the web "rendered"
+    // ack (or a fallback timeout) before showing the window.
+    bool                   m_defer_next_show{false};
+    bool                   m_show_pending{false};
+    std::uint32_t          m_last_pushed_seq{0};
+    std::uint32_t          m_pending_show_seq{0};
+    wxTimer                m_show_fallback_timer;
+    void                   OnShowFallbackTimer(wxTimerEvent& evt);
+
+#ifdef __APPLE__
+    // Second anti-flicker stage: window stays masked until the web side paints.
+    bool                   m_reveal_pending{false};
+    bool                   m_web_presented{false};
+    bool                   m_mask_window_elapsed{false};
+    std::uint32_t          m_pending_reveal_seq{0};
+    wxTimer                m_reveal_fallback_timer;
+    void                   OnRevealFallbackTimer(wxTimerEvent& evt);
+    void                   reveal_hotend_popup();
+#endif
+
+    // Poll while the hotend-rack popup is shown so device echoes (incl. after a
+    // filament edit) re-publish fresh state without reopening the popup, the
+    // same way the device page stays in sync via its Monitor poll.
+    wxTimer                m_hotend_poll_timer;
+    void                   OnHotendPollTimer(wxTimerEvent& evt);
+
+    // Last selection metadata staged by the hotend Web VM right before posting
+    // EVT_SET_FINISH_MAPPING (so SelectMachine.cpp can recover ctype and
+    // multi-color preview without iterating wxWidgets hotend items).
+    int                    m_last_hotend_select_ctype{0};
+    std::vector<wxColour>  m_last_hotend_select_material_cols;
 };
 
 class AmsMapingTipPopup : public PopupWindow
@@ -561,6 +654,10 @@ private:
 
 
 wxDECLARE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
+// Posted to the send-to-print window after a slot's filament is edited via the
+// shared AMSMaterialsSetting dialog, so the page can resync only that slot's
+// MaterialItem (sync color when still matching, mark unmatched otherwise).
+wxDECLARE_EVENT(EVT_HOTEND_SLOT_EDITED, wxCommandEvent);
 
 }} // namespace Slic3r::GUI
 

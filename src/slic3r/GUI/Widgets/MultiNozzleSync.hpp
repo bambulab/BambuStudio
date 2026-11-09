@@ -6,6 +6,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/MultiNozzleUtils.hpp"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
+#include "slic3r/GUI/ExtruderHelpers.hpp"
 #include "slic3r/GUI/DeviceTab/wgtDeviceNozzleRack.h"
 #include "slic3r/GUI/Widgets/RadioBox.hpp"
 #include <wx/webview.h>
@@ -19,25 +20,11 @@ namespace Slic3r {
 
 namespace Slic3r::GUI {
 
-#if ENABLE_MIX_FLOW_PRINT
-    struct NozzleOption
-    {
-        std::string diameter;
-        std::unordered_map<int, std::unordered_map<NozzleVolumeType, int>> extruder_nozzle_stats;
-    };
-#else
-    struct NozzleOption
-    {
-        std::string diameter;
-        std::unordered_map<int, std::pair<NozzleVolumeType, int>> extruder_nozzle_stats;
-    };
-#endif
-
 class ManualNozzleCountDialog : public DPIDialog
 {
 public:
     // supported_types lists the volume types the extruder physically provides; an empty set means "unknown", in which case no filtering is applied.
-    ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeType volume_type, int standard_count, int highflow_count, int e3d_count, int max_nozzle_count, bool force_no_zero,
+    ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeType volume_type, int standard_count, int highflow_count, int tpu_count, int e3d_count, int max_nozzle_count, bool force_no_zero,
                             const std::set<NozzleVolumeType> &supported_types);
     ~ManualNozzleCountDialog() {};
     virtual void on_dpi_changed(const wxRect& suggested_rect) {};
@@ -45,6 +32,7 @@ public:
 private:
     wxChoice* m_standard_choice { nullptr };
     wxChoice* m_highflow_choice { nullptr };
+    wxChoice* m_tpu_choice { nullptr };
     wxChoice* m_e3d_choice { nullptr };
     Button* m_confirm_btn{ nullptr };
     Label* m_error_label{ nullptr };
@@ -112,6 +100,7 @@ class NozzleListTable : public wxPanel
 {
 public:
     NozzleListTable(wxWindow* parent);
+    ~NozzleListTable() override;
     int GetSelectIdx();
     void SetOptions(const std::vector<NozzleOption>& options,int default_select);
 private:
@@ -129,7 +118,7 @@ private:
 class MultiNozzleStatusTable : public wxPanel
 {
 public:
-    MultiNozzleStatusTable(wxWindow* parent);
+    MultiNozzleStatusTable(wxWindow* parent, const wxString& title);
     void UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack);
     void MarkRelatedItems(const NozzleOption& option);
     void UnMarkRelatedItems(const NozzleOption& option);
@@ -146,11 +135,8 @@ public:
     virtual void on_dpi_changed(const wxRect& suggested_rect) {};
     std::vector<NozzleOption> GetNozzleOptions(const std::vector<MultiNozzleUtils::NozzleGroupInfo>& group_infos);
 
-    std::optional<NozzleOption> GetSelectedOption() {
-        if (m_nozzle_option_idx < 0 || m_nozzle_option_idx >= m_nozzle_option_values.size())
-            return std::nullopt;
-        return m_nozzle_option_values[m_nozzle_option_idx];
-    }
+    // Only settle unknown / unreliable nozzles, then close instead of showing the nozzle status.
+    void SetResolveOnly(bool resolve_only) { m_resolve_only = resolve_only; }
 
     int ShowModal() override;
     ~MultiNozzleSyncDialog() override;
@@ -174,6 +160,7 @@ private:
     std::vector<NozzleOption> m_nozzle_option_values;
     int m_nozzle_option_idx{ -1 };
     bool m_refreshing{ false };
+    bool m_resolve_only{ false };
 
     std::weak_ptr<DevNozzleRack> m_nozzle_rack;
     Label* m_tips;
@@ -186,9 +173,9 @@ private:
 };
 
 
-std::optional<NozzleOption> tryPopUpMultiNozzleDialog(MachineObject* obj);
-
-void setExtruderNozzleCount(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType type, int nozzle_count, bool clear_before_set);
+// Shows only the refresh / confirm / ignore step when the rack has unknown or unreliable nozzles.
+// Closing it just skips the refresh; unknown nozzles then stay out of the sync.
+void tryResolveRackNozzleStatus(MachineObject* obj);
 
 void updateNozzleCountDisplay(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType volume_type);
 

@@ -183,6 +183,16 @@ void TextInput::SetTextColor(StateColor const& color)
     state_handler.update_binds();
 }
 
+void TextInput::SetReservedRightWidth(int width)
+{
+    if (width < 0)
+        width = 0;
+    if (m_reserved_right_width == width)
+        return;
+    m_reserved_right_width = width;
+    Refresh();
+}
+
 void TextInput::Rescale()
 {
     if (!this->icon.name().empty())
@@ -318,8 +328,8 @@ void TextInput::render(wxDC& dc)
             }
             if (align_right || align_center)
             {
-                if (pt.x + labelSize.x + 5 > size.x)
-                    text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x - 5);
+                if (pt.x + labelSize.x + 5 + m_reserved_right_width > size.x)
+                    text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x - 5 - m_reserved_right_width);
                 pt.y = (size.y - labelSize.y) / 2;
             }
             else
@@ -333,8 +343,8 @@ void TextInput::render(wxDC& dc)
         } else {
             wxSize textSize = text_ctrl->GetSize();
             if (align_right || align_center) {
-                if (pt.x + labelSize.x + 5 > size.x)
-                    text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x - 5);
+                if (pt.x + labelSize.x + 5 + m_reserved_right_width > size.x)
+                    text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x - 5 - m_reserved_right_width);
                 pt.y = (size.y - labelSize.y - static_tips_size.y - 8) / 2;
             } else {
                 pt.x += textSize.x;

@@ -1,9 +1,8 @@
 #include "WebViewTraceLogger.hpp"
 
-#include <boost/log/trivial.hpp>
-
 #include <regex>
 #include <string>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI { namespace WebViewTraceLogger {
 

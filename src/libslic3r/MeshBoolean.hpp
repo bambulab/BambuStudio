@@ -22,6 +22,16 @@ void self_union(EigenMesh &A);
 void minus(TriangleMesh& A, const TriangleMesh& B);
 void self_union(TriangleMesh& mesh);
 
+// Backend-neutral boolean entry point. Prefers the OpenMeshCraft backend when it is
+// compiled in (the default, SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN) and falls back to MCUT
+// only for builds that do not package OpenMeshCraft (e.g. the Linux CLI). New code should
+// call this instead of mcut::make_boolean, which is now considered the fallback backend.
+void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh,
+                  std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts,
+                  const std::function<bool()> &cancel_cb   = nullptr,
+                  const std::function<void(float)> &progress_cb = nullptr,
+                  const std::function<void()> &failed_cb   = nullptr);
+
 namespace cgal {
 
 struct CGALMesh;

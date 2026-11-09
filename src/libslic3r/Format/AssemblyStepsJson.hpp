@@ -393,6 +393,54 @@ private:
     int   m_camera_ref_viewport_h{0};
 };
 
+// Root key written into Metadata/assembly_step.json when the project is a qualified assembly.
+inline constexpr const char *kAssemblyStepsQualifiedKey = "qualified_assembly";
+
+// Keys in the CLI sidecar result.json. Values are the strings "true" or "false".
+inline constexpr const char *kQualifiedAssemblyResultKey = "qualified_assembly";
+inline constexpr const char *kNeedRewrite3mfResultKey = "need_rewrite_3mf";
+
+// True only when the last persisted non-preview step is final assembly.
+// Items stay in root order, so an earlier final-assembly step does not count.
+bool assembly_steps_json_last_step_is_final_assembly(const std::string &json_str);
+
+// Early files can put every model object on the last step without setting the
+// final-assembly flag. True when that last persisted step covers every model part.
+// object_idx matches `model`. When `assembly_model_json` is set, object_id is also
+// matched against the id stored on each assembly-model node. Restore assigns new ids.
+bool assembly_steps_json_last_step_covers_model(const std::string &json_str, const Model &model,
+                                                const std::string &assembly_model_json = {});
+
+// Set the last persisted step's is_final_assembly to FinalAssembly.
+// Returns json_str unchanged when it is empty, already final, or not valid JSON.
+std::string assembly_steps_json_mark_last_step_final_assembly(const std::string &json_str);
+
+// Copy of json_str with the root qualified-assembly flag set or removed.
+// Returns json_str unchanged when it is empty, already in the requested state, or not valid JSON.
+std::string assembly_steps_json_with_qualified_assembly(const std::string &json_str, bool qualified);
+
+// {"qualified_assembly":"true"|"false","need_rewrite_3mf":"true"|"false"}.
+std::string qualified_assembly_result_json(bool qualified, bool need_rewrite_3mf);
+
+// assembly_step.json versions below this are recomputed by --update-qualified-assembly.
+inline constexpr double kAssemblyStepsRecomputeBelowVersion = 1.2;
+
+struct AssemblyStepsFileMeta {
+    double version{0};
+    bool   has_qualified{false};
+    bool   qualified{false};
+};
+
+// version / qualified_assembly read from a raw assembly_step.json string.
+AssemblyStepsFileMeta assembly_steps_json_file_meta(const std::string &json_str);
+// True when the file should be recomputed. 1.2 itself is not recomputed.
+inline bool assembly_steps_version_needs_recompute(double version)
+{
+    return version < kAssemblyStepsRecomputeBelowVersion - 1e-3;
+}
+// Set the root version. Returns json_str unchanged when it already matches or is not valid JSON.
+std::string assembly_steps_json_with_version(const std::string &json_str, double version);
+
 // ---- Independent assembly model (object graph) JSON ----
 // Serialize / restore the assembly-view independent Model. Only the object/volume/instance structure +
 // per-volume part_guid / assembly_src_guid + frozen transforms + assemble transforms are stored; geometry

@@ -14,6 +14,7 @@
 #include <openvdb/tools/VolumeToMesh.h>
 #include <openvdb/tools/Composite.h>
 #include <openvdb/tools/LevelSetRebuild.h>
+#include "libslic3r/Log.hpp"
 
 //#include "MTUtils.hpp"
 
@@ -103,7 +104,9 @@ indexed_triangle_set grid_to_mesh(const openvdb::FloatGrid &grid,
     float scale = 1.;
     try {
         scale = grid.template metaValue<float>("voxel_scale");
-    }  catch (...) { }
+    }  catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     indexed_triangle_set ret;
     ret.vertices.reserve(points.size());

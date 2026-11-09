@@ -120,8 +120,8 @@ wxColor StaticBox::GetParentBackgroundColor(wxWindow* parent)
 
 void StaticBox::ShowBadge(bool show)
 {
-    if (show && badge.name() != "badge") {
-        badge = ScalableBitmap(this, "badge", 18);
+    if (show && badge.name() != badge_icon_name) {
+        badge = ScalableBitmap(this, badge_icon_name, 18);
         Refresh();
     } else if (!show && !badge.name().empty()) {
         badge = ScalableBitmap {};

@@ -7,6 +7,7 @@
 #include "../LocalesUtils.hpp"
 
 #include "PressureEqualizer.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -115,12 +116,11 @@ const char* PressureEqualizer::process(const char *szGCode, bool flush)
         circular_buffer_pos = 0;
 
 #if 1 
-        printf("Statistics: \n"); 
-        printf("Minimum volumetric extrusion rate: %f\n", m_stat.volumetric_extrusion_rate_min);
-        printf("Maximum volumetric extrusion rate: %f\n", m_stat.volumetric_extrusion_rate_max);
         if (m_stat.extrusion_length > 0)
             m_stat.volumetric_extrusion_rate_avg /= m_stat.extrusion_length;
-        printf("Average volumetric extrusion rate: %f\n", m_stat.volumetric_extrusion_rate_avg);
+        BOOST_LOG_TRIVIAL(debug) << "volumetric extrusion rate: min " << m_stat.volumetric_extrusion_rate_min
+                                 << ", max " << m_stat.volumetric_extrusion_rate_max
+                                 << ", average " << m_stat.volumetric_extrusion_rate_avg;
         m_stat.reset();
 #endif
     } 
@@ -265,12 +265,10 @@ bool PressureEqualizer::process_line(const char *line, const size_t len, GCodeLi
                     buf.volumetric_extrusion_rate_end   = rate;
                     m_stat.update(rate, sqrt(len2));
                     if (rate < 40.f) {
-                    	printf("Extremely low flow rate: %f. Line %d, Length: %f, extrusion: %f Old position: (%f, %f, %f), new position: (%f, %f, %f)\n", 
-                            rate, 
-                            int(line_idx),
-                            sqrt(len2), sqrt((diff[3]*diff[3])/len2),
-                            m_current_pos[0], m_current_pos[1], m_current_pos[2],
-                            new_pos[0], new_pos[1], new_pos[2]);
+                    	BOOST_LOG_TRIVIAL(debug) << "Extremely low flow rate: " << rate << ". Line " << int(line_idx)
+                                             << ", Length: " << sqrt(len2) << ", extrusion: " << sqrt((diff[3]*diff[3])/len2)
+                                             << " Old position: (" << m_current_pos[0] << ", " << m_current_pos[1] << ", " << m_current_pos[2]
+                                             << "), new position: (" << new_pos[0] << ", " << new_pos[1] << ", " << new_pos[2] << ")";
                     }
                 }
             } else if (changed[0] || changed[1] || changed[2]) {

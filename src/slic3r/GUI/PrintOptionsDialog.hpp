@@ -22,6 +22,24 @@ class MultiSwitchButton;
 
 namespace Slic3r { namespace GUI {
 
+// Open door detection behaviour, shared by PrintOptionsDialog and SafetyOptionsDialog.
+// The three-state switch is only shown when the device reports fun2[27]; otherwise the
+// legacy two-state board (notification / pause printing) stays in use.
+namespace OpenDoorCheck
+{
+    // Labels of the three-state switch, in UI order.
+    std::vector<wxString> ModeSwitchOptions();
+
+    // UI index <-> protocol state. An index or state outside the three-state set maps
+    // back to "notification", which is the behaviour used when the detection is enabled.
+    int                               IndexFromState(MachineObject::DoorOpenCheckState state);
+    MachineObject::DoorOpenCheckState StateFromIndex(int index);
+
+    // Slowing the toolhead down costs print time and may degrade quality, so ask first.
+    // Returns true when the user confirms.
+    bool ConfirmSlowDown(wxWindow *parent);
+}
+
 class PrinterPartsDialog : public DPIDialog
 {
 protected:
@@ -97,6 +115,11 @@ protected:
     CheckBox* m_cb_open_door;
     CheckBox* m_cb_purify_air_at_print_end;
     CheckBox *m_cb_non_visual_airprinting_detection;
+    // Non-visual air printing detection: fun2[32] / cfg[41] / air_printing_detection.
+    // Do not confuse with m_cb_airprinting_detection, the xcam vision-based one.
+    CheckBox* m_cb_air_printing_detection{nullptr};
+    Label*    text_air_printing_detection{nullptr};
+    Label*    text_air_printing_detection_caption{nullptr};
     CheckBox* m_cb_fod_check;
     CheckBox* m_cb_displacement_detection;
     Label* text_first_layer;
@@ -158,6 +181,10 @@ protected:
     StaticLine* line6;
     StaticLine* line7;
     SwitchBoard* open_door_switch_board;
+    // Three-state variant of open_door_switch_board, used when the device reports fun2[27].
+    MultiSwitchButton* m_open_door_mode_switch{nullptr};
+    // Guards the selection event while the switch is being synced from a device push.
+    bool               m_open_door_mode_syncing{false};
     SwitchBoard *purify_air_switch_board;
     wxBoxSizer* create_settings_group(wxWindow* parent);
     wxPanel     *m_line;
@@ -229,6 +256,8 @@ public:
 private:
     void UpdateOptionSavePrintFileToStorage(MachineObject *obj);
     void UpdateOptionOpenDoorCheck(MachineObject *obj);
+    // Sync the three-state switch with the device state without emitting a command.
+    void SyncOpenDoorModeSwitch(MachineObject *obj);
     void UpdateOptionSnapshot(MachineObject *obj);
 };
 

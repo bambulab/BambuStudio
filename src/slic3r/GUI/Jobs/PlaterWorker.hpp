@@ -9,6 +9,7 @@
 
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

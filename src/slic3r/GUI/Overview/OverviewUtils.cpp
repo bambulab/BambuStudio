@@ -10,11 +10,12 @@
 
 #include <wx/event.h>
 
-#include <boost/log/trivial.hpp>
 #include <boost/format.hpp>
 
 #include <algorithm>
 #include <cmath>
+#include <unordered_set>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -300,11 +301,13 @@ bool OverviewUtils::move_isolated_volumes_closer(wxEvtHandler *)
     plater->take_snapshot("Move isolated volumes", UndoRedo::SnapshotType::GizmoAction);
 
     std::vector<int> moved_object_idxs;
+    // Several isolated parts can share one instance. An instance-level fallback must run only once.
+    std::unordered_set<const ModelInstance *> moved_instances;
 
     for (const auto &iv : GLCanvas3D::s_isolated_volumes) {
         const AssembleTargetRef ref = resolve_assemble_target(primary_model, iv);
         if (ref.object == nullptr || ref.instance == nullptr) {
-            BOOST_LOG_TRIVIAL(warning) << boost::format("move_isolated_volumes_closer: unresolved target name=%1% glvol_obj_idx=%2% target_obj_id=%3% guid=%4%")
+            BOOST_LOG_TRIVIAL(warning) << boost::format("unresolved target name=%1% glvol_obj_idx=%2% target_obj_id=%3% guid=%4%")
                                               % iv.name % iv.obj_idx % iv.target.object_id % iv.target.part_guid;
             continue;
         }
@@ -329,7 +332,7 @@ bool OverviewUtils::move_isolated_volumes_closer(wxEvtHandler *)
             }
         }
 
-        BOOST_LOG_TRIVIAL(info) << boost::format("move_isolated_volumes_closer: name=%1% resolved_by=%2% obj_idx=%3%(glvol %4%) inst_idx=%5% parts=%6% "
+        BOOST_LOG_TRIVIAL(info) << boost::format("name=%1% resolved_by=%2% obj_idx=%3%(glvol %4%) inst_idx=%5% parts=%6% "
                                                  "box=[%7%,%8%,%9%]..[%10%,%11%,%12%] primary=[%13%,%14%,%15%]..[%16%,%17%,%18%] delta=(%19%,%20%,%21%)")
                                        % iv.name % ref.how % ref.object_idx % iv.obj_idx % inst_idx % count_model_parts(obj)
                                        % iv.world_box_assembly.min.x() % iv.world_box_assembly.min.y() % iv.world_box_assembly.min.z()
@@ -357,15 +360,17 @@ bool OverviewUtils::move_isolated_volumes_closer(wxEvtHandler *)
                 vol_trafo.set_offset(vol_trafo.get_offset() + local_delta);
                 ref.volume->set_assemble_transformation(vol_trafo);
                 moved = true;
-                BOOST_LOG_TRIVIAL(info) << boost::format("move_isolated_volumes_closer: moved volume '%1%' by local delta (%2%,%3%,%4%)")
+                BOOST_LOG_TRIVIAL(info) << boost::format("moved volume '%1%' by local delta (%2%,%3%,%4%)")
                                                % ref.volume->name % local_delta.x() % local_delta.y() % local_delta.z();
                 if (&primary_model == &assemble_model)
                     sync_assemble_volume_offset_to_prepare(ref.volume, prepare_model);
             } else {
-                BOOST_LOG_TRIVIAL(warning) << "move_isolated_volumes_closer: singular instance matrix, falling back to instance move";
+                BOOST_LOG_TRIVIAL(warning) << "singular instance matrix, falling back to instance move";
             }
         }
         if (!moved) {
+            if (!moved_instances.insert(inst).second)
+                continue;
             Geometry::Transformation new_trafo = inst->get_assemble_transformation();
             new_trafo.set_offset(new_trafo.get_offset() + delta);
             inst->set_assemble_transformation(new_trafo);
@@ -387,11 +392,15 @@ bool OverviewUtils::move_isolated_volumes_closer(wxEvtHandler *)
             if (oi >= 0 && oi < (int) primary_model.objects.size())
                 sel.add_object((unsigned int) oi, false);
         }
+        // do_move is not on this path, so the allow_sync callback never runs. Rebuild after the
+        // GLVolumes carry the new assemble offsets, or the red box and isolated list stay stale.
+        canvas->_rebuild_assembly_bvh_from_canvas();
+    } else {
+        GLCanvas3D::s_isolated_volumes.clear();
+        if (canvas)
+            canvas->refresh_isolated_volumes_notification();
     }
 
-    GLCanvas3D::s_isolated_volumes.clear();
-    GLCanvas3D::s_isolated_notification_shown   = false;
-    GLCanvas3D::s_intersects_notification_shown = false;
     plater->get_partplate_list().reset_thumbnail_assembly_view_data();
     plater->update();
     return false;

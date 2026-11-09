@@ -9,11 +9,28 @@
 */
 
 #pragma once
+#include <cassert>
+#include <atomic>
 #include <string>
 #include <nlohmann/json.hpp>
+#include "libslic3r/Log.hpp"
 
 // Reserved for future usage
 #define DEV_RESERVED_FOR_FUTURE(...) /* stripped */
+
+// Gates every print queue entry: the "Add to queue" button in the send-print dialog
+// and the "Print queue" tab on the device page. Set to 1 at build time to bring them back.
+#ifndef STUDIO_ENABLE_PRINT_QUENE
+#define STUDIO_ENABLE_PRINT_QUENE 0
+#endif
+
+#define DEV_ASSERT_ONCE(level, message_expr) do { \
+    static std::atomic_bool dev_assert_once_fired{ false }; \
+    if (!dev_assert_once_fired.exchange(true)) { \
+        BOOST_LOG_TRIVIAL(level) << message_expr; \
+        assert(false); \
+    } \
+} while (false)
 
 // Previous definitions
 namespace Slic3r
@@ -46,9 +63,17 @@ enum AmsStatusMain
     AMS_STATUS_MAIN_ASSIST = 0x03,
     AMS_STATUS_MAIN_CALIBRATION = 0x04,
     AMS_STATUS_MAIN_COLD_PULL = 0x07,
+    AMS_STATUS_MAIN_SWITCH_HOTEND = 0x08,
     AMS_STATUS_MAIN_SELF_CHECK = 0x10,
     AMS_STATUS_MAIN_DEBUG = 0x20,
     AMS_STATUS_MAIN_UNKNOWN = 0xFF,
+};
+
+// ams.stat bits[0:3]: current AMS task running status
+enum DevAmsTaskRunStatus
+{
+    AMS_TASK_RUN_NORMAL = 0,
+    AMS_TASK_RUN_ABNORMAL = 1,
 };
 
 enum DevAmsType : int
@@ -59,9 +84,44 @@ enum DevAmsType : int
     N3F = 3,            // N3F, AMS 2PRO
     N3S = 4,            // N3S, AMS HT
     AMS_LITE_MIXED = 5, // AMS-Lite for N9
+    ZMULTI_A = 6,
+    ZMULTI_B = 7,
 };
 
-enum DevFilamentStep
+// What a filament source of a given type can do without the user touching the machine.
+class devAmsTypeUtil
+{
+public:
+    devAmsTypeUtil() = delete;
+    ~devAmsTypeUtil() = delete;
+
+public:
+    // A source without a feeder motor of its own only reaches the hotend by hand.
+    static bool CanAutoFeed(DevAmsType type)
+    {
+        return type != DevAmsType::EXT_SPOOL && type != DevAmsType::ZMULTI_B;
+    }
+
+    // Only a sub AMS pulls its own filament back out; ext spool and rack AMS cannot.
+    static bool CanAutoRetract(DevAmsType type)
+    {
+        return type != DevAmsType::EXT_SPOOL && !IsRackAms(type);
+    }
+
+    static bool IsRackAms(DevAmsType type)
+    {
+        return type == DevAmsType::ZMULTI_A || type == DevAmsType::ZMULTI_B;
+    }
+};
+
+enum DevFilaColorType : int
+{
+    CTYPE_GRADIANT = 0,
+    CTYPE_MULTI = 1,
+    CTYPE_SINGLE = 2,
+};
+
+enum DevFilamentStep : int
 {
     STEP_IDLE = 0x00,
     STEP_PAUSE = 0x01,
@@ -71,15 +131,17 @@ enum DevFilamentStep
     STEP_PUSH_NEW_FILAMENT = 0x05,
     STEP_GRAB_NEW_FILAMENT = 0x06,
     STEP_PURGE_OLD_FILAMENT = 0x07,
-    STEP_CHECK_POSITION = 0x08,
+    STEP_CHECK_POSITION = 0x08, // STEP_CONFIRM_EXTRUDED
     STEP_SWITCH_EXTRUDER = 0x09,
     STEP_SWITCH_HOTEND = 0x0A,
     STEP_AMS_FILA_COOLING = 0x0B,
     STEP_PUSH_SWITCHER_FILA = 0x0C,
     STEP_PULL_SWITCHER_FILA = 0x0D,
     STEP_SWITCHER_SWITCH = 0x0E,
-    STEP_CONFIRM_EXTRUDED = 0x08,
-    STEP_COUNT,
+    STEP_BATCH_PULL_FILA = 0x0F,
+    STEP_NESTING_PRINT_TOOL = 0x10,
+    STEP_PURGE_FILAMENT = 0x11,
+    STEP_COUNT
 };
 
 // Slots and Tray
@@ -115,6 +177,7 @@ enum NozzleFlowType : int
     S_FLOW,
     H_FLOW,
     U_FLOW, // TPU 1.75 High Flow
+    T_FLOW, // TPU 2.85
     E_FLOW, // E3D High Flow
 };
 /* 0.2mm  0.4mm  0.6mm 0.8mm */
@@ -165,6 +228,7 @@ enum PrintFromType
 {
     FROM_NORMAL,
     FROM_SDCARD_VIEW,
+    FROM_PRINT_QUEUE,
 };
 }
 

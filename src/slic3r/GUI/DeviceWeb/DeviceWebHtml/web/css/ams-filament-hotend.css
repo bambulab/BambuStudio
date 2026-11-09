@@ -1,0 +1,2175 @@
+/* AMS Filament/Hotend layout; colors come from --ams-* tokens. */
+.ams-filament-hotend-page {
+  position: relative;
+  width: 100%;
+  height: auto;
+  min-height: 440px;
+  display: flex;
+  flex-direction: column;
+  background: var(--ams-page-bg);
+  color: var(--ams-text-strong);
+  font-family: 'PingFang SC', 'HarmonyOS Sans SC', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.bridge-debug-button {
+  height: 24px;
+  padding: 0 9px;
+  border: 1px solid var(--ams-debug-btn-border);
+  border-radius: 12px;
+  background: var(--ams-debug-btn-bg);
+  color: var(--ams-debug-btn-text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: var(--ams-debug-btn-shadow);
+}
+
+.bridge-debug-button:hover {
+  background: var(--ams-debug-btn-hover-bg);
+}
+
+.page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 12px;
+  background: var(--ams-toolbar-bg);
+  flex: 0 0 40px;
+}
+
+.tab-group {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  height: 40px;
+}
+
+.tab-group .tab {
+  position: relative;
+  height: 40px;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: var(--ams-text-strong);
+  font: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.tab-group .tab.active {
+  color: var(--ams-brand);
+  font-weight: 600;
+}
+
+.tab-group .tab.active::after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  content: '';
+  background: var(--ams-brand);
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-group button {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--ams-border);
+  border-radius: 4px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-primary);
+  font: inherit;
+  font-size: 13px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.action-group button:disabled {
+  color: var(--ams-text-muted);
+  background: var(--ams-popover-hover-bg);
+  cursor: not-allowed;
+}
+
+/* Toolbar: icon buttons (Read All / AMS Settings / More) + dropdown.
+   Scoped under .action-group-icons so they win over the base `.action-group
+   button` bordered style. */
+.action-group-icons {
+  gap: 8px;
+}
+
+.action-group-icons .toolbar-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ams-text-primary);
+  cursor: pointer;
+}
+
+.action-group-icons .toolbar-icon-btn img {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+.action-group-icons .toolbar-icon-btn:hover:not(:disabled) {
+  background: var(--ams-popover-hover-bg);
+}
+
+.action-group-icons .toolbar-icon-btn:disabled {
+  color: var(--ams-text-muted);
+  background: transparent;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.toolbar-more {
+  position: relative;
+  display: inline-flex;
+}
+
+.toolbar-more-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 1100;
+  min-width: 120px;
+  width: max-content;
+  padding: 6px 0;
+  border: 1px solid var(--ams-popover-border);
+  border-radius: 4px;
+  background: var(--ams-popover-bg);
+  box-shadow: var(--ams-popover-shadow);
+}
+
+.action-group-icons .toolbar-more-menu button {
+  display: block;
+  width: 100%;
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ams-text-strong);
+  font: inherit;
+  font-size: 13px;
+  line-height: 28px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.action-group-icons .toolbar-more-menu button:hover:not(:disabled) {
+  background: var(--ams-popover-hover-bg);
+}
+
+.action-group-icons .toolbar-more-menu button:disabled {
+  color: var(--ams-text-disabled);
+  background: transparent;
+  cursor: default;
+}
+
+.page-error {
+  margin: 4px 12px 0;
+  padding: 4px 8px;
+  border: 1px solid var(--ams-danger-border);
+  border-radius: 4px;
+  background: var(--ams-danger-bg);
+  color: var(--ams-danger);
+  font-size: 12px;
+}
+
+.ams-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: fit-content;
+  height: 22px;
+  margin: 4px auto 0;
+  padding: 0 10px;
+  background: var(--ams-pill-bg);
+  border-radius: 11px;
+}
+
+.ams-label {
+  margin-right: 4px;
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--ams-text-secondary);
+}
+
+.ams-dot {
+  width: 5px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--dot-color);
+}
+
+.ams-dot.empty {
+  background: var(--ams-tab-bar-empty);
+}
+
+.ams-more {
+  margin-left: 4px;
+  color: var(--ams-text-detail);
+}
+
+.stage {
+  position: relative;
+  flex: 0 0 365px;
+  min-height: 365px;
+  padding: 8px 12px 4px;
+  overflow: hidden;
+  /* `--slot-pitch` is expressed in cqw so the top tier padding and the column
+     margins resolve against the same width. Plain percentages would not: the
+     top tier's own padding shrinks the basis its children see. */
+  container-type: inline-size;
+}
+
+/* Both tiers advance by two pitches per column; the top tier starts one pitch
+   in so its columns land exactly between the bottom ones. `--slot-pitch` is
+   set on `.stage` from the total slot count (see Stage.tsx). */
+.top-tier-row {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding-left: var(--slot-pitch);
+  z-index: 1;
+}
+
+.bottom-tier-row {
+  position: absolute;
+  top: calc(8px + 141px);
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  z-index: 2;
+}
+
+.top-tier-row .slot-column + .slot-column,
+.bottom-tier-row .slot-column + .slot-column {
+  margin-left: calc(2 * var(--slot-pitch) - 80px);
+}
+
+.slot-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80px;
+}
+
+.dryer-chamber-bg {
+  position: absolute;
+  top: -4px;
+  height: 138px;
+  left: var(--chamber-left);
+  width: calc(var(--chamber-right) - var(--chamber-left) + 56px);
+  background: var(--ams-dryer-chamber-bg);
+  border-radius: 8px;
+  z-index: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6px;
+  box-sizing: border-box;
+}
+
+.dryer-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  pointer-events: auto;
+  color: var(--ams-text-secondary);
+}
+
+.dryer-info-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.dryer-info-row svg {
+  display: block;
+}
+
+.dryer-value {
+  display: inline-flex;
+  align-items: baseline;
+  font-weight: 500;
+}
+
+.dryer-value small {
+  font-size: 9px;
+  margin-left: 1px;
+}
+
+.dryer-text {
+  font-size: 12px;
+}
+
+.top-tier-row .slot-column {
+  position: relative;
+  z-index: 1;
+}
+
+.slot-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.filament-card {
+  display: flex;
+  flex-direction: column;
+  width: 80px;
+  border-radius: 4px;
+  overflow: visible;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.filament-card.selected {
+  box-shadow: 0 0 0 1px var(--ams-brand);
+}
+
+.filament-card-hint-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  display: block;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: default;
+}
+
+.card-spool-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 8px;
+  background: var(--ams-card-wrap-bg);
+  border: 1px solid var(--ams-card-wrap-border);
+  border-radius: 4px 4px 0 0;
+  box-sizing: border-box;
+}
+
+.filament-card.selected .card-spool-wrap {
+  border-color: transparent;
+}
+
+/* Hover frames the whole card (spool + text below) by mirroring the
+ * `.selected` box-shadow trick on the outer container, and dropping the
+ * inner per-segment borders so the outline doesn't double up at the seam
+ * between .card-spool-wrap and .card-text. Disabled cards stay un-hovered. */
+.filament-card:hover:not(.disabled) {
+  box-shadow: 0 0 0 1px var(--ams-brand);
+}
+
+.filament-card:hover:not(.disabled) .card-spool-wrap,
+.filament-card:hover:not(.disabled) .card-text {
+  border-color: transparent;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 16px;
+}
+
+.card-head-right {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.prefeed-indicator {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--ams-card-text-bg);
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px var(--ams-border);
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+
+/* Figma 1761:76285 unknown prefeed marker: 16 viewBox scaled to 14px. */
+.prefeed-indicator--unknown {
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  background: transparent;
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.card-index-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.card-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  max-width: 50px;
+  height: 14px;
+  padding: 0 4px;
+  border-radius: 7px;
+  background: var(--ams-index-bg);
+  color: var(--ams-text-strong);
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 400;
+  box-sizing: border-box;
+}
+
+.card-index.selected {
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+}
+
+.card-index-ext-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 14px;
+  padding: 0 4px;
+  border-radius: 7px;
+  background: var(--ams-card-tray-tag-bg);
+  color: var(--ams-text-tray-tag);
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  flex: 0 0 auto;
+  user-select: none;
+}
+
+.ams-bind-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  color: var(--ams-text-ams-bind);
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.ams-bind-badge svg {
+  flex: 0 0 auto;
+}
+
+/* Batch-mode primary action button used by the page toolbar's `Exit` and the
+ * footer's commit button when something is selected. Mirrors the brand-green
+ * filled style from Figma 1498:83131. */
+.action-group button.primary {
+  background: var(--ams-brand);
+  border-color: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+}
+
+.action-group button.primary:disabled {
+  background: var(--ams-popover-hover-bg);
+  border-color: var(--ams-border);
+  color: var(--ams-text-muted);
+}
+
+/* Card-head batch checkbox. Sits in the top-right corner where the (now
+ * legacy) three-dot menu used to live. The card body itself gets an extra
+ * `batch-mode` class so we can scope hover/cursor changes to batch mode. */
+.batch-slot-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 1px solid var(--ams-border);
+  border-radius: 3px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-on-brand);
+  cursor: pointer;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+
+.batch-slot-checkbox:hover:not(:disabled) {
+  border-color: var(--ams-brand);
+}
+
+.batch-slot-checkbox.checked {
+  background: var(--ams-brand);
+  border-color: var(--ams-brand);
+}
+
+.batch-slot-checkbox.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Card-head loading icon. Fills the same 16×16 slot the BatchSlotCheckbox
+ * occupies in batch mode; FilamentCard mutually-excludes the two so the
+ * filament-change visual takes priority over batch selection on a busy
+ * slot. The inner spinning arc reuses the shared `spool-loading-rotor`
+ * keyframes so we only have one rotation source on the page. */
+.card-loading-arc {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  pointer-events: none;
+}
+
+/* Card states scoped to batch mode. Cursor + hover hint differ depending on
+ * whether the slot is eligible. The .selected class (added when the slot is
+ * in `selectedKeys`) overrides the default border with the brand colour. */
+.filament-card.batch-mode {
+  cursor: pointer;
+}
+
+.filament-card.batch-mode.not-allowed {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.filament-card.batch-mode.not-allowed:hover {
+  box-shadow: none;
+}
+
+/* The `🚫` overlay drawn at the bottom-right of the spool when the slot is
+ * not selectable. SpoolDisc emits this group; no extra positioning needed. */
+.spool.not-allowed .spool-not-allowed {
+  pointer-events: none;
+}
+
+/* Bottom panel that replaces the legacy PageFooter while in batch_* modes.
+ * Layout: [select-all checkbox + label] ........ [count] [commit button].
+ * Sized to match `.page-footer` (≈34px) so switching between normal and
+ * batch modes does not push total page height past the WebView allocation
+ * — otherwise a vertical scrollbar appears in batch mode only. */
+.batch-mode-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 34px;
+  margin: 0 12px;
+  padding: 0 12px;
+  border: 1px solid var(--ams-border);
+  border-radius: 4px;
+  background: var(--ams-card-text-bg);
+  font-size: 13px;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+
+.batch-select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ams-text-strong);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.batch-select-all:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.batch-select-all-box {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--ams-border);
+  border-radius: 3px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-on-brand);
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+
+.batch-select-all.checked .batch-select-all-box,
+.batch-select-all.indeterminate .batch-select-all-box {
+  background: var(--ams-brand);
+  border-color: var(--ams-brand);
+}
+
+.batch-select-all-dash {
+  width: 8px;
+  height: 2px;
+  background: var(--ams-text-on-brand);
+  border-radius: 1px;
+}
+
+/* Left group holds select-all + count + commit + edit; Exit is pushed to the
+   far right by the footer's space-between (Figma 1871:15750). */
+.batch-mode-footer-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.batch-select-count {
+  flex: 0 0 auto;
+  color: var(--ams-text-muted);
+  font-size: 12px;
+}
+
+/* 进料 / 退料 commit: solid brand-green filled button. */
+.batch-commit {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--ams-brand);
+  border-radius: 4px;
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.batch-commit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 编辑耗材 / 退出: outlined (white bg, grey border, dark text). */
+.batch-edit,
+.batch-exit {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--ams-border);
+  border-radius: 4px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-strong);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.batch-edit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.batch-ext-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.batch-ext-dialog {
+  width: min(620px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  border: 1px solid var(--ams-border);
+  border-radius: 8px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-strong);
+  box-shadow: var(--ams-popover-shadow);
+  overflow: hidden;
+}
+
+.batch-ext-edit-page {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: var(--ams-page-bg);
+  color: var(--ams-text-strong);
+}
+
+.batch-ext-dialog.embedded {
+  width: min(620px, 100%);
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.filament-manual-pull-banner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: calc(100% - 24px);
+  height: 32px;
+  margin: 0 12px 8px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 4px;
+  background: rgba(240, 154, 23, 0.2);
+  color: var(--ams-text-strong);
+  font: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+
+.filament-manual-pull-warning {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ff9d00;
+  border-radius: 50%;
+  color: #ff9d00;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 14px;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+
+.filament-manual-pull-banner-text {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filament-manual-pull-chevron {
+  color: var(--ams-text-muted);
+  font-size: 24px;
+  line-height: 20px;
+  flex: 0 0 auto;
+}
+
+.filament-manual-pull-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.filament-manual-pull-page {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-strong);
+}
+
+.filament-manual-pull-dialog {
+  width: min(636px, calc(100vw - 32px));
+  height: min(358px, calc(100vh - 32px));
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ams-border);
+  border-radius: 8px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-strong);
+  box-shadow: var(--ams-popover-shadow);
+  overflow: hidden;
+}
+
+.filament-manual-pull-dialog.embedded {
+  width: 100%;
+  height: 100vh;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.filament-manual-pull-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--ams-border);
+  background: linear-gradient(180deg, #fff 0%, #e9e9e9 100%);
+  box-sizing: border-box;
+}
+
+.filament-manual-pull-header h3 {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  color: #000;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.filament-manual-pull-window-dots,
+.filament-manual-pull-window-spacer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 44px;
+  height: 12px;
+  flex: 0 0 44px;
+}
+
+.filament-manual-pull-window-dots span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #d9d9d9;
+}
+
+.filament-manual-pull-window-dots .red {
+  background: #d01b1b;
+}
+
+.filament-manual-pull-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 16px 0;
+  flex: 1 1 auto;
+  box-sizing: border-box;
+}
+
+.filament-manual-pull-message,
+.filament-manual-pull-progress {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: #000;
+}
+
+.filament-manual-pull-progress {
+  color: var(--ams-text-muted);
+}
+
+.filament-manual-pull-status-card {
+  min-height: 155px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #f2f2f2;
+  box-sizing: border-box;
+}
+
+.filament-manual-pull-status-list {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 12px;
+}
+
+.filament-manual-pull-status-item {
+  width: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.filament-manual-pull-slot-index {
+  min-width: 36px;
+  color: var(--ams-text-strong);
+  font-size: 18px;
+  line-height: 24px;
+  text-align: center;
+}
+
+.filament-manual-pull-nozzle-img {
+  width: 36px;
+  height: 76px;
+  display: block;
+}
+
+.filament-manual-pull-result-img {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.filament-manual-pull-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px;
+  border-top: 0;
+}
+
+.filament-manual-pull-actions button {
+  height: 36px;
+  min-width: 92px;
+  padding: 0 16px;
+  border: 1px solid var(--ams-footer-btn-border);
+  border-radius: 4px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-button);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.filament-manual-pull-confirm {
+  border-color: var(--ams-brand) !important;
+  background: var(--ams-brand) !important;
+  color: var(--ams-text-on-brand) !important;
+}
+
+.batch-ext-dialog-titlebar {
+  display: none;
+}
+
+.batch-ext-dialog-titlebar h3 {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.batch-ext-dialog-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--ams-border);
+  flex: 0 0 auto;
+}
+
+.batch-ext-dialog-dot.red {
+  background: var(--ams-danger);
+}
+
+.batch-ext-dialog-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 16px 12px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: var(--ams-danger-bg);
+  color: var(--ams-text-strong);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.batch-ext-dialog-warning-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--ams-danger);
+  border-radius: 50%;
+  color: var(--ams-danger);
+  font-size: 12px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.batch-ext-dialog-warning button {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: var(--ams-text-muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.batch-ext-dialog-table {
+  display: grid;
+  margin: 0 16px;
+  overflow-x: hidden;
+}
+
+.batch-ext-dialog-row {
+  display: grid;
+  grid-template-columns: 52px 240px 64px 88px;
+  align-items: center;
+  column-gap: 8px;
+  min-height: 54px;
+  border-bottom: 1px solid var(--ams-border);
+  font-size: 13px;
+}
+
+.batch-ext-dialog-row.header {
+  min-height: 40px;
+  color: var(--ams-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.batch-ext-select,
+.batch-ext-weight {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--ams-border);
+  border-radius: 4px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-strong);
+  font: inherit;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.batch-ext-select.placeholder,
+.batch-ext-select .placeholder,
+.batch-ext-weight .placeholder {
+  color: var(--ams-text-muted);
+}
+
+.batch-ext-select-arrow {
+  color: var(--ams-text-muted);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.batch-ext-color {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--ams-border);
+  border-radius: 50%;
+  background: var(--ext-color, var(--ams-brand));
+  color: var(--ams-text-muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.batch-ext-color.unknown {
+  background: var(--ams-overlay-bg);
+}
+
+.batch-ext-weight {
+  gap: 6px;
+  justify-content: flex-start;
+}
+
+.batch-ext-weight-refresh {
+  color: var(--ams-text-muted);
+  font-size: 16px;
+}
+
+.batch-ext-row-edit {
+  height: 28px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--ams-brand);
+  font: inherit;
+  cursor: pointer;
+}
+
+.batch-ext-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 16px 16px;
+}
+
+.batch-ext-cancel,
+.batch-ext-confirm {
+  min-width: 86px;
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 16px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.batch-ext-cancel {
+  border: 1px solid var(--ams-border);
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-strong);
+}
+
+.batch-ext-confirm {
+  border: 0;
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+}
+
+.batch-ext-confirm:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* The legacy three-dot card menu (`.card-menu` / `.slot-menu-popover`) has
+ * been replaced by a right-click / long-press context menu rendered by
+ * <CardContextMenu> at fixed viewport coordinates. The styles below describe
+ * the floating popover; positioning is set inline by the component so the
+ * menu can clamp itself inside the viewport. */
+.card-context-menu {
+  position: fixed;
+  z-index: 1100;
+  min-width: 101px;
+  width: max-content;
+  padding: 6px 0;
+  border: 1px solid var(--ams-popover-border);
+  border-radius: 4px;
+  background: var(--ams-popover-bg);
+  box-shadow: var(--ams-popover-shadow);
+}
+
+.card-context-menu button {
+  display: block;
+  width: 100%;
+  height: 24px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--ams-text-strong);
+  font-size: 12px;
+  line-height: 24px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.card-context-menu button:hover:not(:disabled) {
+  background: var(--ams-popover-hover-bg);
+}
+
+.card-context-menu button:disabled {
+  color: var(--ams-text-disabled);
+  cursor: default;
+}
+
+.spool {
+  width: 52px;
+  height: 52px;
+  display: block;
+}
+
+.spool-loading-rotor {
+  animation: spool-loading-spin 0.8s linear infinite;
+  transform-box: view-box;
+}
+
+.card-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4px;
+  background: var(--ams-card-text-bg);
+  border: 1px solid var(--ams-card-text-border);
+  border-top: 0;
+  border-radius: 0 0 4px 4px;
+  line-height: 16px;
+  box-sizing: border-box;
+}
+
+.filament-card.selected .card-text {
+  border-color: transparent;
+}
+
+.card-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ams-text-primary);
+  display: block;
+  width: 100%;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-name.placeholder {
+  color: var(--ams-text-disabled);
+  font-weight: 400;
+}
+
+.card-name.card-name-unknown {
+  color: var(--ams-text-strong);
+  font-weight: 500;
+}
+
+.feed-line {
+  display: block;
+}
+
+.feed-line-empty {
+  width: 24px;
+}
+
+.hotend-row > * {
+  width: 80px;
+  display: flex;
+  justify-content: center;
+}
+
+.nozzle {
+  display: block;
+}
+
+.dryer-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 4px 4px 2px;
+  margin-left: 4px;
+  color: var(--ams-text-secondary);
+}
+
+.dryer-info-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 16px;
+}
+
+.dryer-info-row svg {
+  display: block;
+}
+
+.dryer-value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.dryer-value small {
+  font-size: 9px;
+}
+
+.dryer-text {
+  font-size: 12px;
+}
+
+.page-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 6px;
+  flex: 0 0 auto;
+  height: 34px;
+  box-sizing: border-box;
+}
+
+.page-footer button {
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--ams-footer-btn-border);
+  border-radius: 6px;
+  background: var(--ams-footer-btn-bg);
+  color: var(--ams-text-button);
+  font: inherit;
+  font-size: 12px;
+  line-height: 18px;
+  cursor: pointer;
+  box-shadow: var(--ams-footer-btn-shadow);
+}
+
+.page-footer button:hover:not(:disabled) {
+  border-color: var(--ams-footer-btn-hover-border);
+  background: var(--ams-footer-btn-hover-bg);
+}
+
+.footer-tip {
+  color: var(--ams-brand);
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.filament-change-panel {
+  position: relative;
+  margin: 0 12px 0;
+  padding: 0 0 44px;
+  background: var(--ams-page-bg);
+  flex: 0 0 auto;
+}
+
+.filament-change-panel-reserved {
+  padding: 8px 10px;
+  border: 1px solid var(--ams-dashed-border);
+  border-radius: 4px;
+  border-style: dashed;
+}
+
+/* Horizontal step strip that prefixes the per-step panel during a batch
+ * filament-change run. Mirrors Figma 1670:80943 — 20×20 numbered pips
+ * connected by a thin neutral-grey line. Per-state colour lives on the
+ * pip fill (`pending` light grey, `running` / `success` brand, `failed`
+ * danger); the connector stays grey regardless of progress so the strip
+ * mirrors the design-system stepper component.
+ *
+ * Pips and connectors are direct children of the strip container — no
+ * per-cell wrapper — so connectors can flex-grow / shrink to keep a
+ * 5–20px run between adjacent pips while the whole group stays centred. */
+.batch-progress-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  margin: 0 0 12px;
+  padding: 0 8px;
+}
+
+.batch-progress-pip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ams-pip-pending-bg, var(--ams-popover-hover-bg));
+  color: var(--ams-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.batch-progress-pip.state-running,
+.batch-progress-pip.state-success {
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+}
+
+.batch-progress-pip.state-failed {
+  background: var(--ams-danger);
+  color: var(--ams-text-on-brand);
+}
+
+/* Connector fills the gap between two adjacent pips. `flex: 1 1 0` lets it
+ * grow up to 20px when the panel is wide (then justify-content: center
+ * leaves the surplus space outside the group as left/right padding) and
+ * shrink to 5px when many slots are queued. Always neutral grey per
+ * Figma — completion progress is communicated by the pip fill, not the
+ * connector. */
+.batch-progress-connector {
+  flex: 1 1 0;
+  height: 2px;
+  min-width: 5px;
+  max-width: 20px;
+  background: var(--ams-border);
+  border-radius: 1px;
+}
+
+.filament-change-status-bar {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid var(--ams-status-bar-border);
+  border-radius: 4px;
+  background: var(--ams-toolbar-bg);
+  box-sizing: border-box;
+}
+
+.filament-change-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.filament-change-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ams-text-strong);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 22px;
+}
+
+.filament-change-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--ams-spinner-track);
+  border-top-color: var(--ams-brand);
+  border-radius: 50%;
+  animation: hotend-reading-spin 0.8s linear infinite;
+}
+
+.filament-change-meta,
+.filament-change-tips {
+  color: var(--ams-text-meta);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.filament-change-step {
+  margin-top: 4px;
+  color: var(--ams-text-step);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.filament-change-detail {
+  display: flex;
+  justify-content: space-between;
+  min-height: 156px;
+  padding-top: 28px;
+}
+
+.filament-change-task-list {
+  width: 386px;
+}
+
+.filament-change-task-row {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  column-gap: 6px;
+  align-items: start;
+  min-height: 30px;
+  color: var(--ams-text-strong);
+  font-size: 12px;
+  line-height: 22px;
+}
+
+.filament-change-task-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+  border-radius: 50%;
+  color: var(--ams-text-on-brand);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  background: var(--ams-text-task-mark-pending);
+}
+
+.filament-change-task-row.done .filament-change-task-mark,
+.filament-change-task-row.active .filament-change-task-mark {
+  background: var(--ams-brand);
+}
+
+.filament-change-task-label {
+  min-width: 0;
+}
+
+.filament-change-manual-card {
+  grid-column: 2;
+  width: 364px;
+  margin: 6px 0 0;
+  padding: 12px;
+  border-radius: 6px;
+  background: var(--ams-manual-card-bg);
+  box-sizing: border-box;
+}
+
+.filament-change-manual-title {
+  margin-bottom: 8px;
+  color: var(--ams-brand);
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.filament-change-manual-text {
+  color: var(--ams-text-strong);
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.filament-change-hotend-visual {
+  width: 160px;
+  min-height: 156px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 14px;
+  box-sizing: border-box;
+}
+
+.filament-change-hotend-visual .nozzle {
+  width: 64px;
+  height: 128px;
+}
+
+.filament-change-actions {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.filament-change-actions button {
+  height: 32px;
+  min-width: 76px;
+  padding: 0 16px;
+  border: 1px solid var(--ams-footer-btn-border);
+  border-radius: 4px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-button);
+  font: inherit;
+  font-size: 13px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.filament-change-actions button.primary {
+  border-color: var(--ams-brand);
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+}
+
+.filament-change-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.filament-change-batch-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.filament-change-batch-item {
+  padding: 2px 8px;
+  border: 1px solid var(--ams-batch-border);
+  border-radius: 999px;
+  color: var(--ams-text-batch-idle);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.filament-change-batch-item.state-running,
+.filament-change-batch-item.state-success {
+  border-color: var(--ams-batch-state-running-border);
+  color: var(--ams-brand);
+  background: var(--ams-batch-state-running-bg);
+}
+
+.filament-change-batch-item.state-failed {
+  border-color: var(--ams-batch-state-failed-border);
+  color: var(--ams-danger);
+  background: var(--ams-batch-state-failed-bg);
+}
+
+.action-group.hotend-actions .primary {
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+  font: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.action-group.hotend-actions .primary:disabled {
+  background: var(--ams-text-disabled-strong);
+  cursor: not-allowed;
+}
+
+.action-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--ams-border);
+}
+
+.hotend-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 12px;
+  /* allow card menus to overflow */
+  overflow: visible;
+}
+
+.hotend-panel-reading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hotend-read-all-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--ams-text-strong);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.hotend-read-all-tips {
+  color: var(--ams-text-weak);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.hotend-read-all-spinner,
+.hotend-rack-status-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--ams-spinner-track);
+  border-top-color: var(--ams-brand);
+  border-radius: 50%;
+  animation: hotend-reading-spin 0.8s linear infinite;
+}
+
+.hotend-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+}
+
+.hotend-rack-status-bar {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 28px;
+  color: var(--ams-text-strong);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.hotend-rack-progress {
+  margin-top: 12px;
+  padding: 0;
+  color: var(--ams-text-strong);
+}
+
+.hotend-rack-progress-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--ams-status-bar-border);
+  border-radius: 4px;
+  background: var(--ams-toolbar-bg);
+  box-sizing: border-box;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+}
+
+.hotend-rack-progress-detail {
+  display: flex;
+  justify-content: space-between;
+  min-height: 220px;
+  padding: 24px 0 0;
+}
+
+.hotend-rack-progress-steps {
+  width: 386px;
+}
+
+.hotend-rack-progress-step {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  column-gap: 8px;
+  align-items: start;
+  min-height: 28px;
+  color: var(--ams-text-strong);
+  font-size: 12px;
+  line-height: 22px;
+}
+
+.hotend-rack-progress-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: var(--ams-index-bg);
+  color: var(--ams-text-strong);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.hotend-rack-progress-step.done .hotend-rack-progress-mark,
+.hotend-rack-progress-step.active .hotend-rack-progress-mark {
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+}
+
+.hotend-rack-progress-step.failed .hotend-rack-progress-mark {
+  background: var(--ams-danger);
+  color: var(--ams-text-on-brand);
+}
+
+.hotend-rack-progress-label {
+  overflow-wrap: anywhere;
+}
+
+.hotend-rack-progress-visual {
+  width: 160px;
+  min-height: 156px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 14px;
+  box-sizing: border-box;
+}
+
+.hotend-rack-progress-visual-card {
+  position: relative;
+  width: 130px;
+  height: 156px;
+}
+
+.rack-visual-hotend-job-preview {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.hotend-rack-progress-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.hotend-rack-progress-actions button {
+  height: 32px;
+  min-width: 76px;
+  padding: 0 16px;
+  border: 1px solid var(--ams-border);
+  border-radius: 6px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-strong);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hotend-rack-progress-actions button.primary {
+  border-color: var(--ams-brand);
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+}
+
+.hotend-rack-progress-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@keyframes hotend-reading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spool-loading-spin {
+  from {
+    transform: rotate(-90deg);
+  }
+
+  to {
+    transform: rotate(270deg);
+  }
+}
+
+.hotend-card {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px;
+  background: var(--ams-hotend-card-bg);
+  border-radius: 4px;
+  box-sizing: border-box;
+  cursor: pointer;
+  user-select: none;
+  /* allow card menus to overflow */
+  overflow: visible;
+}
+
+.hotend-card.disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* Taken: nozzle currently mounted on the extruder (muted rack placeholder). */
+.hotend-card.taken {
+  background: var(--ams-hotend-card-bg-taken);
+}
+
+.hotend-card.taken .hotend-readout.status-taken .hotend-readout-text {
+  color: var(--ams-text-disabled);
+  font-weight: 400;
+}
+
+.hotend-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  height: 16px;
+}
+
+.hotend-card-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ams-index-bg);
+  color: var(--ams-text-strong);
+  font-size: 12px;
+  line-height: 14px;
+  flex: 0 0 auto;
+}
+
+.hotend-card-index.selected {
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+}
+
+.hotend-card-menu-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.hotend-card-menu {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hotend-card-menu:hover,
+.hotend-card-menu.open {
+  background: var(--ams-hover-bg);
+  border-radius: 4px;
+}
+
+.hotend-menu-popover {
+  position: absolute;
+  top: 18px;
+  right: -4px;
+  z-index: 30;
+  min-width: 86px;
+  width: max-content;
+  padding: 6px 0;
+  border: 1px solid var(--ams-popover-border);
+  border-radius: 4px;
+  background: var(--ams-popover-bg);
+  box-shadow: var(--ams-popover-shadow);
+}
+
+/* Keep the first card menu inside the panel. */
+.hotend-strip > .hotend-card:first-child .hotend-menu-popover {
+  right: auto;
+  left: -4px;
+}
+
+.hotend-menu-popover button {
+  display: block;
+  width: 100%;
+  height: 24px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--ams-text-strong);
+  font-size: 12px;
+  line-height: 24px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.hotend-menu-popover button:hover:not(:disabled) {
+  background: var(--ams-popover-hover-bg);
+}
+
+.hotend-menu-popover button:disabled {
+  color: var(--ams-text-disabled);
+  cursor: default;
+}
+
+.hotend-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.hotend-readout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  width: 100%;
+}
+
+.hotend-readout-line {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.hotend-temp-current {
+  font-size: 14px;
+  line-height: 16px;
+  color: var(--ams-text-strong);
+  font-weight: 400;
+}
+
+.hotend-readout.heating .hotend-temp-current,
+.hotend-readout.heating .hotend-temp-arrow {
+  color: var(--ams-temp-heating);
+}
+
+.hotend-readout.cooling .hotend-temp-current,
+.hotend-readout.cooling .hotend-temp-arrow {
+  color: var(--ams-temp-cooling);
+}
+
+.hotend-temp-arrow {
+  display: block;
+  width: 12px;
+  height: 16px;
+  transform-origin: center;
+}
+
+.hotend-temp-arrow-up {
+  transform: rotate(-90deg);
+}
+
+.hotend-temp-arrow-down {
+  transform: rotate(90deg);
+}
+
+.hotend-temp-target,
+.hotend-temp-target-button,
+.hotend-temp-target-edit {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ams-text-disabled);
+}
+
+.hotend-temp-target-button {
+  height: 16px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  font: inherit;
+  cursor: text;
+}
+
+.hotend-temp-target-button:hover:not(:disabled),
+.hotend-temp-target-button:focus-visible {
+  background: var(--ams-temp-target-hover-bg);
+  color: var(--ams-text-detail);
+  outline: none;
+}
+
+.hotend-temp-target-button.disabled {
+  cursor: default;
+}
+
+.hotend-temp-target-edit {
+  display: inline-flex;
+  align-items: center;
+}
+
+.hotend-temp-target-edit input {
+  width: 30px;
+  height: 18px;
+  margin: 0 1px;
+  padding: 0 2px;
+  border: 1px solid var(--ams-brand);
+  border-radius: 3px;
+  background: var(--ams-temp-edit-bg);
+  color: var(--ams-text-strong);
+  font: inherit;
+  text-align: center;
+  outline: none;
+}
+
+.hotend-readout.status {
+  justify-content: center;
+}
+
+.hotend-readout.status .hotend-readout-text {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ams-text-disabled);
+}
+
+.hotend-readout.status-error .hotend-readout-text {
+  color: var(--ams-danger);
+}
+
+.hotend-tool-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 42px;
+}
+
+.hotend-icon-nozzle {
+  display: block;
+  width: 36px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.hotend-tool-icon-empty {
+  width: 12px;
+  height: 36px;
+  background: repeating-linear-gradient(
+    135deg,
+    var(--ams-tab-bar-empty) 0,
+    var(--ams-tab-bar-empty) 3px,
+    var(--ams-card-wrap-bg) 3px,
+    var(--ams-card-wrap-bg) 6px
+  );
+  border-radius: 2px;
+}
+
+.hotend-tool-icon-generic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--ams-tab-bar-empty);
+  color: var(--ams-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.hotend-placing-arrow {
+  position: absolute;
+  left: 0;
+  top: 5px;
+}
+
+/* Status badge overlaid near the top of the hotend body: red "!" for the
+   abnormal/error state (Figma 1882:27871), grey "!" for lost/unknown. */
+.hotend-icon-error-badge,
+.hotend-icon-lost-badge,
+.hotend-icon-unknown-badge {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.hotend-tool-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ams-text-strong);
+  width: 100%;
+}
+
+.hotend-tool-label.muted {
+  color: var(--ams-text-disabled);
+}
+
+.hotend-tool-name,
+.hotend-tool-sub {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}

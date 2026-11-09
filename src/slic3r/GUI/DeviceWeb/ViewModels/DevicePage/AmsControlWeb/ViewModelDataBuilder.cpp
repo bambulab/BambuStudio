@@ -10,6 +10,7 @@
 
 #include <optional>
 #include <utility>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI { namespace AmsControlWebData {
 
@@ -54,6 +55,7 @@ std::string slot_name_for_tray(MachineObject* machine_obj, const DevAmsTray& tra
     try {
         tray_index = std::stoi(tray.id);
     } catch (const std::exception&) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return "";
     }
 
@@ -94,7 +96,7 @@ SchemaFormat::Tray build_tray(MachineObject* machine_obj,
     out.slot_id    = slot_id;
     out.tray_label = tray_label;
     out.is_exists  = is_exists;
-    out.reading    = machine_obj && tray && tray->is_reading(machine_obj->tray_reading_bits);
+    out.reading    = machine_obj && tray && tray->is_reading(machine_obj);
     out.info_ready = tray && tray->is_tray_info_ready();
     if (!tray) return out;
 

@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <boost/algorithm/string.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -18,6 +17,8 @@
 #include "GUI_App.hpp"
 #include "format.hpp"
 #include "Tab.hpp"
+#include "PresetComboBoxes.hpp"
+#include "libslic3r/Log.hpp"
 
 using Slic3r::GUI::format_wxstr;
 
@@ -36,7 +37,10 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string &suffix, wxBox
     m_presets = tab->get_presets();
 
     const Preset &sel_preset  = m_presets->get_selected_preset();
-    std::string   preset_name = sel_preset.is_default ? "Untitled" : sel_preset.is_system ? (boost::format(("%1% - %2%")) % sel_preset.name % suffix).str() : sel_preset.name;
+    const std::string base_name = (m_type == Preset::TYPE_PRINTER && sel_preset.is_system && tab->get_combo_box()) ?
+        Preset::remove_suffix_modified(into_u8(tab->get_combo_box()->get_preset_name(sel_preset))) :
+        sel_preset.name;
+    std::string   preset_name = sel_preset.is_default ? "Untitled" : sel_preset.is_system ? (boost::format(("%1% - %2%")) % base_name % suffix).str() : sel_preset.name;
 
     // if name contains extension
     if (boost::iends_with(preset_name, ".ini")) {
@@ -174,7 +178,7 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string &suffix, wxBox
     else
         m_radio_user->SetValue(true);
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", create item: type" << Preset::get_type_string(m_type) << ", preset " << m_preset_name
+    BOOST_LOG_TRIVIAL(info) << "create item: type" << Preset::get_type_string(m_type) << ", preset " << m_preset_name
                             << ", is_project_embedded = " << is_project_embedded;
     update();
 }
@@ -290,7 +294,7 @@ void SavePresetDialog::Item::accept()
         Preset &current_preset   = *it;
         current_preset.sync_info = "delete";
         if (!current_preset.setting_id.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
+            BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << " " << KV(log_key::setting_id, current_preset.setting_id);
             wxGetApp().delete_preset_from_cloud(current_preset.setting_id);
         }
         m_presets->delete_preset(m_preset_name);

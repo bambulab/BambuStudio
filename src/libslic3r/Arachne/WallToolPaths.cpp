@@ -15,8 +15,7 @@
 #include "utils/PolylineStitcher.hpp"
 #include "SVG.hpp"
 #include "Utils.hpp"
-
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 //#define ARACHNE_STITCH_PATCH_DEBUG
 

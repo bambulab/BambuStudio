@@ -47,6 +47,9 @@
         "8.0"
     ],
     "filament_dev_ams_drying_heat_distortion_temperature": [
+        "105",
+        "105",
+        "105",
         "105"
     ],
     "filament_dev_drying_cooling_temperature": [
@@ -56,9 +59,26 @@
         "65",
         "80",
         "65",
-        "80"
+        "80",
+        "80",
+        "80",
+        "65",
+        "65"
+    ],
+    "filament_dev_ams_drying_time": [
+        "12",
+        "8.0",
+        "12",
+        "8.0",
+        "8.0",
+        "8.0",
+        "12",
+        "12"
     ],
     "filament_dev_drying_softening_temperature": [
+        "90",
+        "90",
+        "90",
         "90"
     ],
     "hot_plate_temp": [

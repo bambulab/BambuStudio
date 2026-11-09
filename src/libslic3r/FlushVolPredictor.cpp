@@ -5,7 +5,7 @@
 #include <sstream>
 #include <cmath>
 #include <optional>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace FlushPredict
 {
@@ -364,7 +364,7 @@ MaterialPurgeTable::MaterialPurgeTable(const std::string& json_file)
 {
     std::ifstream in(json_file);
     if (!in.is_open()) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": measured purge table not found: " << json_file;
+        BOOST_LOG_TRIVIAL(warning) << "measured purge table not found: " << json_file;
         return;
     }
 
@@ -381,10 +381,10 @@ MaterialPurgeTable::MaterialPurgeTable(const std::string& json_file)
             }
         }
         m_valid = true;
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": loaded " << m_map.size() << " measured purge pair(s) from " << json_file;
+        BOOST_LOG_TRIVIAL(info) << "loaded " << m_map.size() << " measured purge pair(s) from " << json_file;
     }
     catch (const std::exception& err) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to parse " << json_file << ", reason = " << err.what();
+        BOOST_LOG_TRIVIAL(error) << "failed to parse " << json_file << ", reason = " << err.what();
         m_map.clear();
         m_valid = false;
     }

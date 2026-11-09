@@ -31,12 +31,12 @@
 
 #include <boost/format/format_fwd.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include "I18N.hpp"
 //#include "RemovableDriveManager.hpp"
 
 #include "slic3r/GUI/Plater.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -45,11 +45,15 @@ bool SlicingProcessCompletedEvent::critical_error() const
 	try {
 		this->rethrow_exception();
 	} catch (const Slic3r::SlicingError &) {
+		BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 		// Exception derived from SlicingError is non-critical.
 		return false;
     } catch (const Slic3r::SlicingErrors &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return false;
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return true;
 }
 
@@ -61,10 +65,12 @@ bool SlicingProcessCompletedEvent::invalidate_plater() const
 			this->rethrow_exception();
 		}
 		catch (const Slic3r::ExportError&) {
+			BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 			// Exception thrown by copying file does not ivalidate plater
 			return false;
 		}
 		catch (...) {
+			BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 		}
 		return true;
 	}
@@ -153,7 +159,7 @@ bool BackgroundSlicingProcess::can_switch_print()
 		//if (m_current_plate->is_slice_result_valid())
 		{
 			result = false;
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": slicing plate's plate_id %1%, on slicing, can not switch print") % m_current_plate->get_index();
+			BOOST_LOG_TRIVIAL(info) << boost::format("slicing plate's plate_id %1%, on slicing, can not switch print") % m_current_plate->get_index();
 		}
 	}
 
@@ -165,7 +171,7 @@ bool BackgroundSlicingProcess::select_technology(PrinterTechnology tech)
 {
 	bool changed = false;
 	if (m_printer_tech != tech) {
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": change the printer technology from %1% to %2%") % m_printer_tech % tech;
+		BOOST_LOG_TRIVIAL(info) << boost::format("change the printer technology from %1% to %2%") % int(m_printer_tech) % int(tech);
 		m_printer_tech = tech;
 		if (m_print != nullptr)
 			this->reset();
@@ -205,7 +211,7 @@ void BackgroundSlicingProcess::process_fff()
     m_fff_print->set_BBL_Printer(preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle));
 	//BBS: add the logic to process from an existed gcode file
 	if (m_print->finished()) {
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: skip slicing, to process previous gcode file")%__LINE__;
+		BOOST_LOG_TRIVIAL(info) << boost::format("skip slicing, to process previous gcode file");
 		m_fff_print->set_status(80, _utf8(L("Processing G-Code from Previous file...")));
 		wxCommandEvent evt(m_event_slicing_completed_id);
 		// Post the Slicing Finished message for the G-code viewer to update.
@@ -215,29 +221,41 @@ void BackgroundSlicingProcess::process_fff()
 
 		m_temp_output_path = this->get_current_plate()->get_tmp_gcode_path();
 		if (! m_export_path.empty()) {
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: export gcode from %2% directly to %3%")%__LINE__%m_temp_output_path %m_export_path;
+			BOOST_LOG_TRIVIAL(info) << boost::format("export gcode from %1% directly to %2%")%m_temp_output_path %m_export_path;
 		}
 		else {
 			m_fff_print->export_gcode_from_previous_file(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: export_gcode_from_previous_file from %2% finished")%__LINE__ % m_temp_output_path;
+			BOOST_LOG_TRIVIAL(info) << boost::format("export_gcode_from_previous_file from %1% finished")% m_temp_output_path;
 		}
 	}
 	else {
 		//BBS: reset the gcode before reload_print in slicing_completed event processing
 		//FIX the gcode rename failed issue
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: will start slicing, reset gcode_result %2% firstly")%__LINE__%m_gcode_result;
+		BOOST_LOG_TRIVIAL(info) << boost::format("will start slicing, reset gcode_result %1% firstly")%m_gcode_result;
 		m_gcode_result->reset();
 
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: gcode_result reseted, will start print::process")%__LINE__;
+		BOOST_LOG_TRIVIAL(info) << boost::format("gcode_result reseted, will start print::process");
 		m_print->process();
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: after print::process, send slicing complete event to gui...")%__LINE__;
-		if (is_auto_filament_map_mode(m_current_plate->get_real_filament_map_mode(preset_bundle.project_config))) {
+		BOOST_LOG_TRIVIAL(info) << boost::format("after print::process, send slicing complete event to gui...");
+		FilamentMapMode real_map_mode = m_current_plate->get_real_filament_map_mode(preset_bundle.project_config);
+		// Single-extruder multi-nozzle (N1X) only: the slicer derives filament_volume_map even in
+		// manual modes, so it must be synced back to avoid resetting the just-finished slice. Other
+		// machines (e.g. multi-extruder H2D) keep their original write-back path untouched.
+		bool single_ext_multi_nozzle = m_fff_print->config().handle_hotend_as_extruder.value;
+		if (is_auto_filament_map_mode(real_map_mode)) {
 			m_current_plate->set_filament_maps(m_fff_print->get_filament_maps());
 			m_current_plate->set_filament_volume_maps(m_fff_print->get_filament_volume_maps());
 		}
-		if(m_current_plate->get_real_filament_map_mode(preset_bundle.project_config) != FilamentMapMode::fmmNozzleManual){
-            std::vector<int> f_nozzle_maps = m_fff_print->get_filament_nozzle_maps();
-            m_current_plate->set_filament_nozzle_maps(f_nozzle_maps);
+		// ...except under fmmNozzleManual with multi-diameter mode on, where filament_volume_map is the
+		// flow the user picked per filament rather than something the slicer derived. Caching the slice's
+		// view of it on the plate would make that stale copy outrank the user's choice on the next apply.
+		else if (single_ext_multi_nozzle && !(real_map_mode == FilamentMapMode::fmmNozzleManual &&
+		                                      multi_nozzle_diameter_mode_enabled(preset_bundle.project_config))) {
+			m_current_plate->set_filament_volume_maps(m_fff_print->get_filament_volume_maps());
+		}
+		if (real_map_mode != FilamentMapMode::fmmNozzleManual) {
+			std::vector<int> f_nozzle_maps = m_fff_print->get_filament_nozzle_maps();
+			m_current_plate->set_filament_nozzle_maps(f_nozzle_maps);
 		}
 		wxCommandEvent evt(m_event_slicing_completed_id);
 		// Post the Slicing Finished message for the G-code viewer to update.
@@ -249,7 +267,7 @@ void BackgroundSlicingProcess::process_fff()
 		m_temp_output_path = this->get_current_plate()->get_tmp_gcode_path();
 		m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
 		finalize_gcode();
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": export gcode finished");
+		BOOST_LOG_TRIVIAL(info) << boost::format("export gcode finished");
 	}
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
@@ -346,21 +364,21 @@ void BackgroundSlicingProcess::thread_proc()
 		if (task_gen != m_task_generation) {
 			// This task was force-canceled by stop() timeout. The thread has been
 			// orphaned and a new thread will be (or has been) created. Exit silently.
-			BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": task (gen " << task_gen
+			BOOST_LOG_TRIVIAL(warning) << "task (gen " << task_gen
 			                           << ") was force-canceled (current gen " << m_task_generation
 			                           << "), orphaned thread exiting";
 			lck.unlock();
 			return;
 		}
 		m_state = m_print->canceled() ? STATE_CANCELED : STATE_FINISHED;
-		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": process finished, state %1%, print cancel_status %2%")%m_state %m_print->cancel_status();
+		BOOST_LOG_TRIVIAL(debug) << boost::format("process finished, state %1%, print cancel_status %2%")%m_state %m_print->cancel_status();
 		if (m_print->cancel_status() != Print::CANCELED_INTERNAL) {
 			// Only post the canceled event, if canceled by user.
 			// Don't post the canceled event, if canceled from Print::apply().
 			SlicingProcessCompletedEvent evt(m_event_finished_id, 0,
 				(m_state == STATE_CANCELED) ? SlicingProcessCompletedEvent::Cancelled :
 				exception ? SlicingProcessCompletedEvent::Error : SlicingProcessCompletedEvent::Finished, exception);
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": send SlicingProcessCompletedEvent to main, status %1%")%evt.status();
+			BOOST_LOG_TRIVIAL(info) << boost::format("send SlicingProcessCompletedEvent to main, status %1%")%evt.status();
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
 		}
 		else {
@@ -459,10 +477,10 @@ void BackgroundSlicingProcess::call_process(std::exception_ptr &ex) throw()
 		// Canceled, this is all right.
 		assert(m_print->canceled());
 		ex = std::current_exception();
-		BOOST_LOG_TRIVIAL(error) <<__FUNCTION__ << ":got cancelled exception" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "got cancelled exception" << std::endl;
 	} catch (...) {
 		ex = std::current_exception();
-		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":got other exception" << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "got other exception" << std::endl;
 	}
 }
 
@@ -485,7 +503,8 @@ void BackgroundSlicingProcess::thread_proc_safe_seh_throw() throw()
 		try {
 			rethrow_seh_exception(win32_seh_catched);
 		} catch (...) {
-			//wxTheApp->OnUnhandledException();
+			BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+			// wxTheApp->OnUnhandledException();
 		}
 	}
 }
@@ -496,7 +515,8 @@ void BackgroundSlicingProcess::thread_proc_safe() throw()
 	try {
 		this->thread_proc();
 	} catch (...) {
-		//wxTheApp->OnUnhandledException();
+		BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+		// wxTheApp->OnUnhandledException();
    	}
 }
 
@@ -556,7 +576,7 @@ bool BackgroundSlicingProcess::start()
 // To be called on the UI thread.
 bool BackgroundSlicingProcess::stop()
 {
-	BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ", enter"<<std::endl;
+	BOOST_LOG_TRIVIAL(info) << "enter"<<std::endl;
 	// m_print->state_mutex() shall NOT be held. Unfortunately there is no interface to test for it.
 	std::unique_lock<std::mutex> lck(m_mutex);
 	// Always clear the one-shot post-process skip flag regardless of the return path.
@@ -574,7 +594,7 @@ bool BackgroundSlicingProcess::stop()
 		// Use timed wait to prevent permanent UI freeze when background thread
 		// is stuck in a long/non-interruptible computation (e.g. boost::polygon::construct_voronoi).
 		if (!m_condition.wait_for(lck, std::chrono::seconds(1), [this](){ return m_state == STATE_CANCELED; })) {
-			BOOST_LOG_TRIVIAL(error) << "BackgroundSlicingProcess::stop() timed out. "
+			BOOST_LOG_TRIVIAL(error) << "timed out. "
 			                         << "Force-canceling (generation " << m_task_generation << " -> " << m_task_generation + 1 << "). "
 			                         << "Background thread will be orphaned until its computation completes.";
 			++m_task_generation;
@@ -587,7 +607,7 @@ bool BackgroundSlicingProcess::stop()
 			SlicingProcessCompletedEvent evt(m_event_finished_id, 0,
 				SlicingProcessCompletedEvent::Cancelled, std::exception_ptr());
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", exit (force-canceled, thread orphaned)" << std::endl;
+			BOOST_LOG_TRIVIAL(info) << "exit (force-canceled, thread orphaned)" << std::endl;
 			return true;
 		}
 		// In the "Canceled" state. Reset the state to "Idle".
@@ -598,7 +618,7 @@ bool BackgroundSlicingProcess::stop()
 		m_state = STATE_IDLE;
 		m_print->set_cancel_callback([](){});
 	}
-	BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ", exit"<<std::endl;
+	BOOST_LOG_TRIVIAL(info) << "exit"<<std::endl;
 //	m_export_path.clear();
 	return true;
 }
@@ -619,7 +639,7 @@ bool BackgroundSlicingProcess::reset()
 // This function shall not trigger any UI update through the wxWidgets event.
 void BackgroundSlicingProcess::stop_internal()
 {
-	BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ", enter"<<std::endl;
+	BOOST_LOG_TRIVIAL(info) << "enter"<<std::endl;
 	// m_print->state_mutex() shall be held. Unfortunately there is no interface to test for it.
 	if (m_state == STATE_IDLE)
 		// The worker thread is waiting on m_mutex/m_condition for wake up. The following lock of the mutex would block.
@@ -638,7 +658,7 @@ void BackgroundSlicingProcess::stop_internal()
 		// Wait until the background processing stops by being canceled.
 		// Use timed wait to prevent permanent freeze when background thread is stuck.
 		if (!m_condition.wait_for(lck, std::chrono::seconds(5), [this](){ return m_state == STATE_CANCELED; })) {
-			BOOST_LOG_TRIVIAL(error) << "BackgroundSlicingProcess::stop_internal() timed out. "
+			BOOST_LOG_TRIVIAL(error) << "timed out. "
 			                         << "Force-canceling (generation " << m_task_generation << " -> " << m_task_generation + 1 << ").";
 			++m_task_generation;
 			m_orphaned_threads.push_back(std::move(m_thread));
@@ -646,7 +666,7 @@ void BackgroundSlicingProcess::stop_internal()
 			m_state = STATE_INITIAL;
 			m_print->restart();
 			m_print->set_cancel_callback([](){});
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", exit (force-canceled, thread orphaned)" << std::endl;
+			BOOST_LOG_TRIVIAL(info) << "exit (force-canceled, thread orphaned)" << std::endl;
 			return;
 		}
 		// Lock it back to be in a consistent state.
@@ -655,7 +675,7 @@ void BackgroundSlicingProcess::stop_internal()
 	// In the "Canceled" state. Reset the state to "Idle".
 	m_state = STATE_IDLE;
 	m_print->set_cancel_callback([](){});
-	BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ", exit"<<std::endl;
+	BOOST_LOG_TRIVIAL(info) << "exit"<<std::endl;
 }
 
 // Execute task from background thread on the UI thread. Returns true if processed, false if cancelled.
@@ -718,10 +738,10 @@ bool BackgroundSlicingProcess::empty() const
 	return m_print->empty();
 }
 
-StringObjectException BackgroundSlicingProcess::validate(StringObjectException *warning, Polygons* collison_polygons, std::vector<std::pair<Polygon, float>>* height_polygons)
+StringObjectException BackgroundSlicingProcess::validate(std::vector<StringObjectException> *warnings, Polygons* collison_polygons, std::vector<std::pair<Polygon, float>>* height_polygons)
 {
 	assert(m_print != nullptr);
-    return m_print->validate(warning, collison_polygons, height_polygons);
+    return m_print->validate(warnings, collison_polygons, height_polygons);
 }
 
 // Apply config over the print. Returns false, if the new config values caused any of the already
@@ -739,7 +759,7 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 		// Some FFF status was invalidated, and the G-code was not exported yet.
 		// Let the G-code preview UI know that the final G-code preview is not valid.
 		// In addition, this early memory deallocation reduces memory footprint.
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": invalide gcode result %1%, will reset soon")%m_gcode_result;
+		BOOST_LOG_TRIVIAL(info) << boost::format("invalide gcode result %1%, will reset soon")%m_gcode_result;
 		if (m_gcode_result != nullptr)
 			m_gcode_result->reset();
 	}

@@ -6,8 +6,6 @@
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/Utils/MacDarkMode.hpp"
 
-#include <boost/log/trivial.hpp>
-
 #include <chrono>
 #include <deque>
 #include <memory>
@@ -26,6 +24,7 @@
 #include <wx/osx/webview_webkit.h>
 #endif
 #include <wx/uri.h>
+#include "libslic3r/Log.hpp"
 #if defined(__WIN32__) || defined(__WXMAC__)
 #include "wx/private/jsscriptwrapper.h"
 #endif
@@ -1051,10 +1050,20 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
     if (has_backend_attempt) {
         auto addScriptMessageHandler = [] (wxWebView *webView) {
             Slic3r::GUI::wxGetApp().set_adding_script_handler(true);
+
+#ifdef __WXOSX__
+            // On some macOS systems, calling AddScriptMessageHandler triggers an internal synchronous operation that freezes the GUI and prevents the application from returning to the main event loop.
+            if (!webView->AddScriptMessageHandler("wx", false))
+                log_webview(Slic3r::GUI::WebViewTraceLogger::Stage::L0_BACKEND, webView->GetName(),
+                            "script_message_handler_failed", {},
+                            Slic3r::GUI::WebViewTraceLogger::Severity::Warning);
+#else
             if (!webView->AddScriptMessageHandler("wx"))
                 log_webview(Slic3r::GUI::WebViewTraceLogger::Stage::L0_BACKEND, webView->GetName(),
                             "script_message_handler_failed", {},
                             Slic3r::GUI::WebViewTraceLogger::Severity::Warning);
+#endif
+
             Slic3r::GUI::wxGetApp().set_adding_script_handler(false);
         };
 #ifndef __WIN32__
@@ -1223,6 +1232,7 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript, bool for
         return true;
 #endif
     } catch (std::exception &/*e*/) {
+        BOOST_LOG_TRIVIAL(warning) << Slic3r::current_exception_message();
         return false;
     }
 }

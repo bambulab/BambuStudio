@@ -103,11 +103,19 @@ static double delta_e76(const LabColor& a, const LabColor& b)
     return std::sqrt(std::pow(a.l - b.l, 2.0) + std::pow(a.a - b.a, 2.0) + std::pow(a.b - b.b, 2.0));
 }
 
+// Series-level match, used to pick standard recipe entries. Keeps distinct
+// official series ("PLA Basic" vs "PLA Palette") from sharing measured data.
 static bool material_matches(const std::string& a, const std::string& b)
 {
     if (a.empty() || b.empty())
         return false;
     return a == b || a == b + " Basic" || b == a + " Basic";
+}
+
+static std::string material_family(const std::string& type)
+{
+    const size_t sp = type.find(' ');
+    return sp == std::string::npos ? type : type.substr(0, sp);
 }
 
 static std::vector<std::vector<int>> ratio_grid(size_t n)
@@ -131,6 +139,8 @@ static ColorDecomposeRecipeMode parse_mode(const std::string& s)
 {
     if (s == "RYBW" || s == "RGBY")
         return ColorDecomposeRecipeMode::RYBW;
+    if (s == "CMYKW")
+        return ColorDecomposeRecipeMode::CMYKW;
     return ColorDecomposeRecipeMode::CMYW;
 }
 
@@ -248,8 +258,8 @@ static const std::unordered_map<std::string, std::vector<MeasuredBlendAnchor>>& 
         for (const StandardRecipeEntry& entry : standard_entries()) {
             if (entry.source != "measured" && entry.source != "interpolated")
                 continue;
-            std::string         key;
-            MeasuredBlendAnchor anchor;
+            std::string          key;
+            MeasuredBlendAnchor  anchor;
             if (!canonicalize_blend_components(entry.component_hexes, entry.ratios, key, anchor.ratios))
                 continue;
             anchor.lab = entry.measured_lab;
@@ -294,6 +304,13 @@ static void evaluate_candidate(const ColorDecomposeRgb& target,
 
 } // namespace
 
+bool color_decompose_material_family_matches(const std::string& a, const std::string& b)
+{
+    if (a.empty() || b.empty())
+        return false;
+    return material_family(a) == material_family(b);
+}
+
 std::string color_decompose_rgb_to_hex(const ColorDecomposeRgb& rgb)
 {
     char buf[8];
@@ -324,7 +341,7 @@ ColorDecomposeRecipeResult recommend_from_physical_filaments(
         ColorDecomposeRgb ignored;
         if (!color_decompose_hex_to_rgb(filament.color_hex, ignored))
             continue;
-        if (preferred_material_type.empty() || material_matches(filament.type, preferred_material_type))
+        if (preferred_material_type.empty() || color_decompose_material_family_matches(filament.type, preferred_material_type))
             candidates.push_back(filament);
     }
 
@@ -357,6 +374,18 @@ ColorDecomposeRecipeResult recommend_from_physical_filaments(
             return true;
         ColorDecomposeRgb ignored;
         return !color_decompose_hex_to_rgb(filament.color_hex, ignored);
+    }), candidates.end());
+
+    // Identical colors are one pigment: keep the first slot so recipes never repeat a color.
+    std::vector<std::string> seen_hexes;
+    candidates.erase(std::remove_if(candidates.begin(), candidates.end(), [&seen_hexes](const auto& filament) {
+        ColorDecomposeRgb rgb;
+        color_decompose_hex_to_rgb(filament.color_hex, rgb);
+        const std::string hex = color_decompose_rgb_to_hex(rgb);
+        if (std::find(seen_hexes.begin(), seen_hexes.end(), hex) != seen_hexes.end())
+            return true;
+        seen_hexes.push_back(hex);
+        return false;
     }), candidates.end());
 
     constexpr size_t kMaxCandidates = 8;
@@ -472,20 +501,6 @@ std::string lookup_measured_blend_color(const std::vector<std::string>& componen
         }
     }
 
-    // Fall back to polynomial model for ratios outside the measured range.
-    {
-        bool out_of_range = false;
-        if (n == 2) {
-            for (int r : in_ratios)
-                if (r < 20 || r > 80) { out_of_range = true; break; }
-        } else {
-            for (int r : in_ratios)
-                if (r < 20) { out_of_range = true; break; }
-        }
-        if (out_of_range)
-            return {};
-    }
-
     // Stage 2: anchors sharing the component set; try exact ratio match.
     const auto& index = measured_blend_index();
     const auto  it    = index.find(in_key);
@@ -502,7 +517,10 @@ std::string lookup_measured_blend_color(const std::vector<std::string>& componen
 
     // Stage 3: interpolation in Lab space.
     if (n == 2) {
-        // 1D linear interpolation along ratio[0].
+        // 1D linear interpolation along ratio[0]. t may fall outside [0, 1]:
+        // 14/86 uses the 15–20 segment with t = -0.2, i.e. the 20→15 Lab
+        // delta applied once more beyond 15, instead of dropping to the
+        // polynomial model (which caused a preview jump at the hull edge).
         std::vector<const MeasuredBlendAnchor*> by_ratio;
         by_ratio.reserve(anchors.size());
         for (const MeasuredBlendAnchor& a : anchors)
@@ -523,6 +541,8 @@ std::string lookup_measured_blend_color(const std::vector<std::string>& componen
     }
 
     // 3+ color: IDW (p=2) with 3 nearest anchors in the (ratio[0], ratio[1]) plane.
+    // Queries slightly outside the measured hull (e.g. a 10% component) still
+    // use nearby measured anchors instead of falling back to the polynomial.
     const double ra = static_cast<double>(in_ratios[0]);
     const double rb = static_cast<double>(in_ratios[1]);
     std::vector<std::pair<double, const MeasuredBlendAnchor*>> dists;

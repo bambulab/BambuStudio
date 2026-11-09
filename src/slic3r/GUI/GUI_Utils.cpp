@@ -20,6 +20,7 @@
 #include <wx/fontutil.h>
 
 #include "libslic3r/Config.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -353,6 +354,7 @@ boost::optional<WindowMetrics> WindowMetrics::deserialize(const std::string &str
             metrics[i] = boost::lexical_cast<int>(metrics_str[i]);
         }
     } catch(const boost::bad_lexical_cast &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return boost::none;
     }
 
@@ -413,7 +415,7 @@ TaskTimer::~TaskTimer()
         std::chrono::system_clock::now().time_since_epoch());
     auto process_duration = std::chrono::milliseconds(stop_timer - start_timer).count();
     std::string out = (boost::format("\n!!! %1% duration = %2% ms \n\n") % task_name % process_duration).str();
-    printf("%s", out.c_str());
+    BOOST_LOG_TRIVIAL(info) << task_name << " duration = " << process_duration << " ms";
 #ifdef __WXMSW__
     std::wstring stemp = std::wstring(out.begin(), out.end());
     OutputDebugString(stemp.c_str());

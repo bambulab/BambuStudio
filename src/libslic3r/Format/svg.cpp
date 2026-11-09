@@ -8,8 +8,6 @@
 
 #include <string>
 
-#include <boost/log/trivial.hpp>
-
 #include "BRepBuilderAPI_MakeWire.hxx"
 #include "BRepBuilderAPI_MakeEdge.hxx"
 #include "BRepBuilderAPI_MakeFace.hxx"
@@ -22,6 +20,7 @@
 #include "BRepExtrema_SelfIntersection.hxx"
 #include "libslic3r/clipper.hpp"
 #include "libslic3r/Polygon.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 const double STEP_TRANS_CHORD_ERROR = 0.005;

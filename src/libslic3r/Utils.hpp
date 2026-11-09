@@ -1,6 +1,7 @@
 #ifndef slic3r_Utils_hpp_
 #define slic3r_Utils_hpp_
 
+#include <ctime>
 #include <iomanip>
 #include <locale>
 #include <utility>
@@ -73,17 +74,13 @@
 #define CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER -103
 #define CLI_GCODE_PATH_OUTSIDE             -104
 #define CLI_GCODE_IN_WRAPPING_DETECT_AREA  -105
+#define CLI_MULTI_NOZZLE_DIAMETER_INVALID  -108
 
 
 namespace boost { namespace filesystem { class directory_entry; }}
 
 namespace Slic3r {
 
-extern void set_logging_level(unsigned int level);
-extern unsigned int level_string_to_boost(std::string level);
-extern std::string  get_string_logging_level(unsigned level);
-extern unsigned get_logging_level();
-extern void trace(unsigned int level, const char *message);
 // Format memory allocated, separate thousands by comma.
 extern std::string format_memsize_MB(size_t n);
 // Return string to be added to the boost::log output to inform about the current process memory allocation.
@@ -132,164 +129,22 @@ inline std::string convert_to_full_version(std::string short_version)
     return result;
 }
 
+/**
+ * \brief Makes file paths safe to write into logs by masking the user name and user id
+ *
+ * Usually only the file name is returned; a path that only looks like it holds the user name is returned whole, masked.
+ * Never throws whatever bytes the input holds, and never splits a UTF-8 character.
+ */
 class PathSanitizer
 {
 public:
-    static std::string sanitize(const std::string &path) {
-        return sanitize_impl(path);
-    }
-
-    static std::string sanitize(std::string &&path) {
-        return sanitize_impl(path);
-    }
-
-    static std::string sanitize(const char *path) {
-        return path ? sanitize_impl(std::string(path)) : "";
-    }
-
-    static std::string sanitize(const boost::filesystem::path &path) {
-        return sanitize_impl(path.string());
-    }
+    static std::string sanitize(const std::string &path) { return sanitize_impl(path); }
+    static std::string sanitize(std::string &&path) { return sanitize_impl(std::move(path)); }
+    static std::string sanitize(const char *path) { return path ? sanitize_impl(path) : std::string(); }
+    static std::string sanitize(const boost::filesystem::path &path) { return sanitize_impl(path.string()); }
 
 private:
-    inline static size_t start_pos = std::string::npos;
-    inline static size_t id_start_pos = std::string::npos;
-    inline static size_t name_size = 0;
-    inline static std::string full;
-
-    static bool init_usrname_range()
-    {
-        if (start_pos != std::string::npos) {
-            return true;
-        }
-#ifdef _WIN32
-        const char *env = std::getenv("USERPROFILE");
-    #if BBL_RELEASE_TO_PUBLIC
-        const size_t len = strlen("\\AppData\\Roaming\\BambuStudio\\user");
-    #else
-        const size_t len = BBL_INTERNAL_TESTING == 1 ? strlen("\\AppData\\Roaming\\BambuStudioInternal\\user") : strlen("\\AppData\\Roaming\\BambuStudioBeta\\user");
-    #endif
-#elif __APPLE__
-        const char *env = std::getenv("HOME");
-    #if BBL_RELEASE_TO_PUBLIC
-        const size_t len = strlen("/Library/Application Support/BambuStudio/user");
-    #else
-        const size_t len = BBL_INTERNAL_TESTING == 1 ? strlen("/Library/Application Support/BambuStudioInternal/user") : strlen("/Library/Application Support/BambuStudioBeta/user");
-    #endif
-#elif __linux__
-        const char *env = std::getenv("HOME");
-    #if BBL_RELEASE_TO_PUBLIC
-        const size_t len = strlen("/.config/BambuStudio/user");
-    #else
-        const size_t len = BBL_INTERNAL_TESTING == 1 ? strlen("/.config/BambuStudioInternal/user") : strlen("/.config/BambuStudioBeta/user");
-    #endif
-#else
-        // Unsupported platform, return raw input
-        return false;
-#endif
-        if (!env) {
-            return false;
-        }
-        full = std::string(env);
-        size_t sep_pos = full.find_last_of("\\/");
-        if (sep_pos == std::string::npos) {
-            return false;
-        }
-        start_pos = sep_pos + 1;
-        name_size = full.length() - start_pos;
-        id_start_pos = full.length() + len + 1;
-
-        if (name_size == 0) {
-            return false;
-        }
-        if (start_pos + name_size > full.length()) {
-            return false;
-        }
-        return true;
-    }
-
-    static inline std::string file_name(const std::string &name) {
-        return boost::filesystem::path(name).filename().string();
-    }
-
-    static std::string sanitize_impl(const std::string &raw)
-    {
-        if (!init_usrname_range()) {
-            return file_name(raw);
-        }
-
-        if (raw.length() < full.length() || raw.empty()) {
-            return file_name(raw);
-        }
-
-        std::string sanitized = raw;
-        if (raw[0] != full[0] || raw[full.length() - 1] != full[full.length() - 1]) {
-            if (std::isupper(raw[start_pos]) && std::tolower(raw[start_pos]) == full[start_pos]) {
-                sanitized.replace(start_pos, 12, std::string(12, '*'));
-                return sanitized;
-            }
-            return file_name(raw);
-        }
-
-        if (raw[start_pos + name_size] == '\\' || raw[start_pos + name_size] == '/') {
-            sanitized.replace(start_pos, name_size, std::string(name_size, '*'));
-        } else if (std::isupper(raw[start_pos]) && std::tolower(raw[start_pos]) == full[start_pos]) {
-            sanitized.replace(start_pos, 12, std::string(12, '*'));
-        } else {
-            return file_name(raw);
-        }
-
-        if (id_start_pos != std::string::npos && id_start_pos < sanitized.length() && (sanitized[id_start_pos - 1] == '\\' || sanitized[id_start_pos - 1] == '/') &&
-            std::isdigit(sanitized[id_start_pos])) {
-            // If the ID part is present, sanitize it as well
-            size_t id_end_pos = sanitized.find_first_of("\\/", id_start_pos);
-            if (id_end_pos == std::string::npos) {
-                id_end_pos = sanitized.length();
-            }
-            sanitized.replace(id_start_pos, id_end_pos - id_start_pos, std::string(id_end_pos - id_start_pos, '*'));
-        }
-
-        return file_name(sanitized);
-    }
-
-    static std::string sanitize_impl(std::string &&raw)
-    {
-        if (!init_usrname_range()) {
-            return file_name(raw);
-        }
-
-        if (raw.length() < full.length() || raw.empty()) {
-            return std::move(file_name(raw));
-        }
-
-        if (raw[0] != full[0] || raw[full.length() - 1] != full[full.length() - 1]) {
-            if (std::isupper(raw[start_pos]) && std::tolower(raw[start_pos]) == full[start_pos]) {
-                raw.replace(start_pos, 12, std::string(12, '*'));
-                return std::move(file_name(raw));
-            }
-            return std::move(file_name(raw));
-        }
-
-        if (raw[start_pos + name_size] == '\\' || raw[start_pos + name_size] == '/') {
-            raw.replace(start_pos, name_size, std::string(name_size, '*'));
-        } else if (std::isupper(raw[start_pos]) && std::tolower(raw[start_pos]) == full[start_pos]) {
-            raw.replace(start_pos, 12, std::string(12, '*'));
-        } else {
-            return std::move(file_name(raw));
-        }
-
-        if (id_start_pos != std::string::npos && id_start_pos < raw.length() && (raw[id_start_pos - 1] == '\\' || raw[id_start_pos - 1] == '/') &&
-            std::isdigit(raw[id_start_pos])) {
-            // If the ID part is present, sanitize it as well
-            size_t id_end_pos = raw.find_first_of("\\/", id_start_pos);
-            if (id_end_pos == std::string::npos) {
-                id_end_pos = raw.length();
-            }
-            raw.replace(id_start_pos, id_end_pos - id_start_pos, std::string(id_end_pos - id_start_pos, '*'));
-        }
-
-        return std::move(file_name(raw));
-    }
+    static std::string sanitize_impl(std::string raw);
 };
 
 template<typename DataType>
@@ -362,25 +217,6 @@ bool makedir(const std::string path);
 // Writes out the output path prefix to the console for the first time the function is called,
 // so the user knows where to search for the debugging output.
 std::string debug_out_path(const char *name, ...);
-
-// smaller level means less log. level=5 means saving all logs.
-struct LogEncOptions
-{
-    enum LogEncType : unsigned char
-    {
-        LOG_ENC_NONE = 0,
-        LOG_ENC_AES_256_CBC = 1,
-        //ENC_RSA_2048 = 2, maybe supported in future
-    };
-
-    LogEncType enc_type = LOG_ENC_AES_256_CBC;
-    std::string enc_key_url;
-    std::string enc_key_host_env;
-};
-bool is_log_trivival_valid();
-void set_log_path_and_level(const std::string& file, unsigned int level, const LogEncOptions& enc_options);
-void update_log_sink(const std::string& file, const LogEncOptions& enc_options);
-void flush_logs();
 
 // A special type for strings encoded in the local Windows 8-bit code page.
 // This type is only needed for Perl bindings to relay to Perl that the string is raw, not UTF-8 encoded.
@@ -729,6 +565,37 @@ inline std::string get_bbl_time_dhms(float time_in_secs)
     return buffer;
 }
 
+// Current UTC offset of the system time zone, in seconds east of UTC, daylight saving included.
+// wxDateTime::TimeZone(wxDateTime::Local).GetOffset() only reports the *standard* offset -- wxWidgets
+// states this itself in MakeTimezone(): "local time zone does not include the DST offset (as it varies
+// depending on the date)" -- so it is an hour short all summer. Diffing the UTC and local breakdowns of
+// the same instant instead lets the C runtime apply the OS time zone rules, DST transitions included.
+inline long get_local_utc_offset_seconds(std::time_t instant)
+{
+    std::tm utc_tm{};
+    std::tm local_tm{};
+#ifdef _WIN32
+    if (::gmtime_s(&utc_tm, &instant) != 0 || ::localtime_s(&local_tm, &instant) != 0)
+        return 0;
+#else
+    if (::gmtime_r(&instant, &utc_tm) == nullptr || ::localtime_r(&instant, &local_tm) == nullptr)
+        return 0;
+#endif
+
+    // mktime() reads both breakdowns as local wall clock; pinning the same tm_isdst on each makes their
+    // difference the offset at `instant` rather than a mix of a standard and a daylight reading.
+    utc_tm.tm_isdst   = 0;
+    local_tm.tm_isdst = 0;
+    const std::time_t utc_as_local   = std::mktime(&utc_tm);
+    const std::time_t local_as_local = std::mktime(&local_tm);
+    if (utc_as_local == (std::time_t) -1 || local_as_local == (std::time_t) -1)
+        return 0;
+
+    return (long) std::difftime(local_as_local, utc_as_local);
+}
+
+inline long get_local_utc_offset_seconds() { return get_local_utc_offset_seconds(std::time(nullptr)); }
+
 inline std::string get_timezone_utc_hm(long second)
 {
     bool pos = true;
@@ -918,6 +785,19 @@ inline std::string filter_characters(const std::string& str, const std::string& 
 void save_string_file(const boost::filesystem::path& p, const std::string& str);
 void load_string_file(const boost::filesystem::path& p, std::string& str);
 
+class ScopeTimer
+{
+    using clock_t = std::chrono::steady_clock;
+
+public:
+    ScopeTimer(std::string name) : start_{clock_t::now()}, name_(name) {}
+    ~ScopeTimer();
+
+private:
+    std::chrono::time_point<clock_t> start_;
+    std::string                      name_;
+};
+
 } // namespace Slic3r
 
 #if WIN32
@@ -929,5 +809,7 @@ void load_string_file(const boost::filesystem::path& p, std::string& str);
     //FIXME this is an inprecise hack. Add the hash table size and possibly some estimate of the linked list at each of the used bin.
     #define SLIC3R_STDUNORDEREDSET_MEMSIZE(NAME, TYPE) NAME.size() * ((sizeof(TYPE) + alignof(TYPE) - 1) / alignof(TYPE)) * alignof(TYPE)
 #endif
+
+#define SCOPE_TIMER ScopeTimer _st(__FUNCTION__)
 
 #endif // slic3r_Utils_hpp_

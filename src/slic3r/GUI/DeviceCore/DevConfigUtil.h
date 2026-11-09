@@ -14,16 +14,18 @@
 #include <algorithm>
 #include <cctype>
 
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <nlohmann/json.hpp>
 
 #include <wx/string.h>
 
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r
 {
+
+enum class DevRackExtruderVisualState : int;
 
 /// Toolhead component type (extruder / nozzle / hotend)
 enum class ToolHeadComponent {
@@ -77,6 +79,9 @@ public:
     static std::string get_printer_thumbnail_img(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "printer_thumbnail_image"); }
     static std::string get_printer_connect_help_img(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "printer_connect_help_image"); }
     static std::string get_printer_auto_pa_cali_image(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "auto_pa_cali_thumbnail_image"); }
+    static std::string get_hotend_rack_img(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "hotend_rack_image"); }
+    static std::string get_hotend_ams_img(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "hotend_ams_image"); }
+    static std::string get_rack_extruder_img(const std::string& type_str, DevRackExtruderVisualState state);
 
     /*media*/
     static std::string get_ftp_folder(std::string type_str) { return get_value_from_config<std::string>(type_str, "ftp_folder"); }
@@ -91,6 +96,10 @@ public:
     static std::string get_printer_ext_img(const std::string& type_str, int pos);//printer_ext_image
     static bool        support_ams_fila_change_abort(std::string type_str) { return get_value_from_config<bool>(type_str, "print", "support_ams_filament_change_abort"); }
     static std::string get_filament_load_img(const std::string &type_str, int ext_id, bool has_nozzle_rack = false);
+    static std::string get_hotend_ams_type_string(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "hotend_ams_type_string"); }
+    // Built-in AMS handles insertion / power-on detection automatically, so the two AMS-setting
+    // switches are hidden by default and only revealed once an external sub-AMS is connected.
+    static bool        support_ams_settings_hide_insert_power(const std::string& type_str) { return get_value_from_config<bool>(type_str, "support_ams_settings_hide_insert_power"); }
 
     /*fan*/
     static std::string              get_fan_text(const std::string& type_str, const std::string& key);
@@ -111,8 +120,14 @@ public:
 
     /*print job*/
     static bool support_print_check_firmware_for_tpu_left(std::string type_str){ return get_value_from_config<bool>(type_str, "print", "support_print_check_firmware_for_tpu_left"); }
+    // 1-based PrintTool shown in the UI. TPU on this tool may slip out when the
+    // print changes tools. 0 means this printer has no such tool.
+    static int get_tpu_slip_on_toolchange_nozzle(const std::string& type_str) { return get_value_from_config<int>(type_str, "print", "tpu_slip_on_toolchange_nozzle"); }
     static bool support_user_first_setup_tpu_check(std::string type_str){ return get_value_from_config<bool>(type_str, "print", "support_user_first_setup_tpu_check"); }
     static std::string support_user_first_setup_tpu_check_url(std::string type_str){ return get_value_from_config<std::string>(type_str, "print", "support_user_first_setup_tpu_check_url"); }
+    // Hotend-rack hint dialogs. Empty means the dialog keeps a plain OK and does not open a page.
+    static std::string get_nozzle_comm_error_wiki(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "print", "nozzle_comm_error_wiki"); }
+    static std::string get_nozzle_feed_suspect_wiki(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "print", "nozzle_feed_suspect_wiki"); }
     static bool support_ams_ext_mix_print(std::string type_str) { return get_value_from_config<bool>(type_str, "print", "support_ams_ext_mix_print"); }
     static bool support_print_time_estimate_warning(std::string type_str) { return get_value_from_config<bool>(type_str, "print", "support_print_time_estimate_warning"); }
 
@@ -132,6 +147,16 @@ public:
 
     /*bed*/
     static int get_bed_temperature_limit(const std::string &type_str) { return get_value_from_config<int>(type_str, "print", "bed_temperature_limit"); }
+
+    /*extruder*/
+    static int get_default_extruder_count(const std::string& type_str);//Defaults to 1 when the printer config omits it.
+
+    /*nozzle*/
+    static int get_default_nozzle_count(const std::string& type_str);
+    // Auto tool-changing racks reuse a single hotend across many slots, so the per-slot
+    // count from slicing carries no physical meaning and must not be compared or shown.
+    // Defaults to true when the printer config does not declare it.
+    static bool support_nozzle_count_check(const std::string& type_str);
 
 public:
     template<typename T>
@@ -155,7 +180,7 @@ public:
                 }
             }
         }
-        catch (...) { assert(0 && "get_value_from_config failed"); BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed"; }// there are file errors
+        catch (...) { assert(0 && "get_value_from_config failed"); BOOST_LOG_TRIVIAL(error) << "failed"; }// there are file errors
         return T();
     };
 
@@ -172,7 +197,7 @@ public:
         }
         catch (...)
         {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed to get " << item1 << ", " << item2;
+            BOOST_LOG_TRIVIAL(error) << "failed to get " << item1 << ", " << item2;
         }
 
         return T();
@@ -207,7 +232,7 @@ public:
                 }
             }
         }
-        catch (...) { assert(0 && "get_json_from_config failed"); BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed"; }// there are file errors
+        catch (...) { assert(0 && "get_json_from_config failed"); BOOST_LOG_TRIVIAL(error) << "failed"; }// there are file errors
         return nlohmann::json();
     }
 
@@ -233,7 +258,7 @@ static std::string _parse_printer_type(const std::string &type_str)
         s_printer_type_lazy_cache[type_str] = result;
         return result;
     }
-    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Unsupported printer type: " << type_str;
+    BOOST_LOG_TRIVIAL(error) << "Unsupported printer type: " << type_str;
     return type_str;
 }
 

@@ -3,6 +3,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
+#include "slic3r/GUI/Widgets/ProgressDialog.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/format.hpp"
@@ -14,6 +15,10 @@
 #include <GL/glew.h>
 
 #include <thread>
+#include <atomic>
+#include <chrono>
+#include <string>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r::GUI {
 
@@ -56,6 +61,11 @@ static ModelVolume* get_model_volume(const Selection& selection, Model& model)
     return obj->volumes[cid.volume_id];
 }
 
+static bool has_any_painting(const ModelVolume& mv)
+{
+    return mv.is_mm_painted() || mv.is_fdm_support_painted() || mv.is_seam_painted() || mv.is_fuzzy_skin_facets_painted();
+}
+
 GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D & parent, unsigned int sprite_id)
     : GLGizmoBase(parent, sprite_id)
     , m_volume(nullptr)
@@ -84,55 +94,54 @@ bool GLGizmoSimplify::on_esc_key_down() {
     return true;*/
 }
 
+static bool needs_simplify_suggestion(const ModelObject &object)
+{
+    const size_t triangles_to_suggest_simplify = 1000000;
+    return object.volumes.size() == 1 && object.volumes.front()->mesh().its.indices.size() >= triangles_to_suggest_simplify;
+}
+
+// The hyperlink looks the object up by ID when clicked, so it stays valid after objects
+// before it are deleted or reordered.
+void GLGizmoSimplify::push_simplify_suggestion(const ModelObject &object, NotificationManager &manager)
+{
+    std::string t = GUI::format(_L(
+        "Processing model '%1%' with more than 1M triangles "
+        "could be slow. It is highly recommended to simplify the model."), object.name);
+    std::string hypertext = _u8L("Simplify model");
+
+    const ObjectID oid = object.id();
+    std::function<bool(wxEvtHandler *)> open_simplify =
+        [oid](wxEvtHandler *) {
+            auto plater = wxGetApp().plater();
+            const ModelObjectPtrs &objects = plater->model().objects;
+            const auto it = std::find_if(objects.begin(), objects.end(), [oid](const ModelObject *o) { return o->id() == oid; });
+            if (it == objects.end()) return true;
+
+            Selection &selection = plater->canvas3D()->get_selection();
+            selection.clear();
+            selection.add_object((unsigned int) (it - objects.begin()));
+
+            auto &manager = plater->get_view3D_canvas3D()->get_gizmos_manager();
+            bool  close_notification = true;
+            if(!manager.open_gizmo(GLGizmosManager::Simplify))
+                return close_notification;
+            GLGizmoSimplify* simplify = dynamic_cast<GLGizmoSimplify*>(manager.get_current());
+            if (simplify == nullptr) return close_notification;
+            simplify->set_center_position();
+            return close_notification;
+        };
+    manager.push_simplify_suggestion_notification(t, oid, hypertext, open_simplify);
+}
+
 // while opening needs GLGizmoSimplify to set window position
 void GLGizmoSimplify::add_simplify_suggestion_notification(
     const std::vector<size_t> &object_ids,
     const std::vector<ModelObject*>&    objects,
     NotificationManager &      manager)
 {
-    std::vector<size_t> big_ids;
-    big_ids.reserve(object_ids.size());
-    auto is_big_object = [&objects](size_t object_id) {
-        const uint32_t triangles_to_suggest_simplify = 1000000;
-        if (object_id >= objects.size()) return false; // out of object index
-        ModelVolumePtrs &volumes = objects[object_id]->volumes;
-        if (volumes.size() != 1) return false; // not only one volume
-        size_t triangle_count = volumes.front()->mesh().its.indices.size();
-        if (triangle_count < triangles_to_suggest_simplify)
-            return false; // small volume
-        return true;
-    };
-    std::copy_if(object_ids.begin(), object_ids.end(),
-                 std::back_inserter(big_ids), is_big_object);
-    if (big_ids.empty()) return;
-
-    for (size_t object_id : big_ids) {
-        std::string t = GUI::format(_L(
-            "Processing model '%1%' with more than 1M triangles "
-            "could be slow. It is highly recommended to simplify the model."), objects[object_id]->name);
-        std::string hypertext = _u8L("Simplify model");
-
-        std::function<bool(wxEvtHandler *)> open_simplify =
-            [object_id](wxEvtHandler *) {
-                auto plater = wxGetApp().plater();
-                if (object_id >= plater->model().objects.size()) return true;
-
-                Selection &selection = plater->canvas3D()->get_selection();
-                selection.clear();
-                selection.add_object((unsigned int) object_id);
-
-                auto &manager = plater->get_view3D_canvas3D()->get_gizmos_manager();
-                bool  close_notification = true;
-                if(!manager.open_gizmo(GLGizmosManager::Simplify))
-                    return close_notification;
-                GLGizmoSimplify* simplify = dynamic_cast<GLGizmoSimplify*>(manager.get_current());
-                if (simplify == nullptr) return close_notification;
-                simplify->set_center_position();
-                return close_notification;
-            };
-        manager.push_simplify_suggestion_notification(
-            t, objects[object_id]->id(), hypertext, open_simplify);
-    }
+    for (size_t object_id : object_ids)
+        if (object_id < objects.size() && needs_simplify_suggestion(*objects[object_id]))
+            push_simplify_suggestion(*objects[object_id], manager);
 }
 
 std::string GLGizmoSimplify::get_icon_filename(bool is_dark_mode) const
@@ -191,10 +200,18 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
         // close suggestion notification
         auto notification_manager = wxGetApp().plater()->get_notification_manager();
-        notification_manager->remove_simplify_suggestion_with_id(act_volume->get_object()->id());
+        const ObjectID oid = act_volume->get_object()->id();
+        notification_manager->remove_simplify_suggestion_with_id(oid);
+        if (std::find(m_hidden_suggestions.begin(), m_hidden_suggestions.end(), oid) == m_hidden_suggestions.end())
+            m_hidden_suggestions.push_back(oid);
 
         m_volume = act_volume;
-        m_configuration.decimate_ratio = 50.; // default value
+        m_preserve_color = false; // default off for each newly selected model
+        // Both methods start from their defaults for each newly selected model; the chosen
+        // method itself is kept so switching models does not flip it.
+        m_detail_level                  = 2;
+        m_configuration.max_error       = 0.1f;
+        m_configuration.decimate_ratio  = 50.;
         m_configuration.fix_count_by_ratio(m_volume->mesh().its.indices.size());
         init_model(m_volume->mesh().its);
 
@@ -260,96 +277,118 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     ImGui::Separator();
 
-    if (m_imgui->bbl_radio_button("##use_error", !m_configuration.use_count)) {
-        m_configuration.use_count = !m_configuration.use_count;
+    // Simplification method. The two methods are independent: each keeps its own setting and
+    // only the selected one is shown and used for the preview.
+    // render_combo places the box with SameLine(label_width), measured from the window edge, so the
+    // label column includes the window padding (current cursor x). Combo width follows GLGizmoAssembly:
+    // BBLBeginCombo draws the box two arrow widths narrower than the item width.
+    const float method_label_width = ImGui::GetCursorPosX() + m_imgui->calc_text_size(_L("Simplification method")).x +
+                                     m_imgui->calc_text_size("xx").x;
+    std::vector<std::string> methods = { tr_detail_level, tr_decimate_ratio };
+    size_t method_idx = m_configuration.use_count ? 1 : 0;
+    const float method_text_width  = std::max(m_imgui->calc_text_size(_L("Detail level")).x,
+                                              m_imgui->calc_text_size(_L("Decimate ratio")).x);
+    const float method_combo_width = method_text_width * 1.2f + m_imgui->calc_text_size("xxx").x + m_imgui->scaled(3.0f);
+    ImGuiWrapper::push_combo_style(m_parent.get_scale());
+    if (render_combo(_u8L("Simplification method"), methods, method_idx, method_label_width, method_combo_width)) {
+        m_configuration.use_count = method_idx == 1;
         start_process = true;
     }
+    ImGuiWrapper::pop_combo_style();
+    ImGui::Dummy(ImVec2(0.f, space_size * 0.5f));
 
-    ImGui::SameLine();
-    m_imgui->disabled_begin(m_configuration.use_count);
-    ImGui::Text("%s", tr_detail_level.c_str());
-    std::vector<std::string> reduce_captions = {
-        static_cast<std::string>(_u8L("Extra high")),
-        static_cast<std::string>(_u8L("High")),
-        static_cast<std::string>(_u8L("Medium")),
-        static_cast<std::string>(_u8L("Low")),
-        static_cast<std::string>(_u8L("Extra low"))
-    };
-    ImGui::SameLine(bottom_left_width);
-    ImGui::PushItemWidth(bottom_left_width - space_size);
-    static int reduction = 2;
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
-
-    if (m_imgui->bbl_sliderin("##ReductionLevel", &reduction, 0, 4, reduce_captions[reduction].c_str())) {
-        if (reduction < 0) reduction = 0;
-        if (reduction > 4) reduction = 4;
-        switch (reduction) {
-        case 0: m_configuration.max_error = 1e-3f; break;
-        case 1: m_configuration.max_error = 1e-2f; break;
-        case 2: m_configuration.max_error = 0.1f; break;
-        case 3: m_configuration.max_error = 0.5f; break;
-        case 4: m_configuration.max_error = 1.f; break;
+    if (! m_configuration.use_count) {
+        std::vector<std::string> reduce_captions = {
+            static_cast<std::string>(_u8L("Extra high")),
+            static_cast<std::string>(_u8L("High")),
+            static_cast<std::string>(_u8L("Medium")),
+            static_cast<std::string>(_u8L("Low")),
+            static_cast<std::string>(_u8L("Extra low"))
+        };
+        ImGui::PushItemWidth(bottom_left_width + slider_width);
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        if (m_imgui->bbl_sliderin("##ReductionLevel", &m_detail_level, 0, 4, reduce_captions[std::clamp(m_detail_level, 0, 4)].c_str())) {
+            m_detail_level = std::clamp(m_detail_level, 0, 4);
+            switch (m_detail_level) {
+            case 0: m_configuration.max_error = 1e-3f; break;
+            case 1: m_configuration.max_error = 1e-2f; break;
+            case 2: m_configuration.max_error = 0.1f; break;
+            case 3: m_configuration.max_error = 0.5f; break;
+            case 4: m_configuration.max_error = 1.f; break;
+            }
+            start_process = true;
         }
-        start_process = true;
+        ImGui::PopStyleColor(5);
+        ImGui::PopItemWidth();
+    } else {
+        const char * format = (m_configuration.decimate_ratio > 10)? "%.0f %%":
+            ((m_configuration.decimate_ratio > 1)? "%.1f %%":"%.2f %%");
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
+        ImGui::PushItemWidth(bottom_left_width + slider_width - space_size);
+        if (m_imgui->bbl_slider_float_style("##decimate_ratio", &m_configuration.decimate_ratio, 0.f, 100.f, format)) {
+            m_configuration.decimate_ratio = std::clamp(m_configuration.decimate_ratio, 0.f, 100.f);
+            m_configuration.fix_count_by_ratio(orig_triangle_count);
+            start_process = true;
+        }
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
+        ImGui::PopStyleVar(1);
+
+        ImGui::PushItemWidth(ImGui::CalcTextSize("100.00%").x + space_size);
+        if (ImGui::BBLDragFloat("##decimate_ratio_input", &m_configuration.decimate_ratio, 0.05f, 0.0f, 0.0f, "%.2f%%")) {
+            m_configuration.decimate_ratio = std::clamp(m_configuration.decimate_ratio, 0.f, 100.f);
+            m_configuration.fix_count_by_ratio(orig_triangle_count);
+            start_process = true;
+        }
+        ImGui::PopItemWidth();
     }
-    ImGui::PopStyleColor(5);
-    m_imgui->disabled_end(); // !use_count
 
-    if (m_imgui->bbl_radio_button("##use_count", m_configuration.use_count)) {
-        m_configuration.use_count = !m_configuration.use_count;
-        start_process = true;
+    // Triangle count of the computed preview, the same for both methods. Shown only once the
+    // preview matches the current settings, so it never shows a stale count.
+    bool preview_current = false;
+    {
+        std::lock_guard lk(m_state_mutex);
+        preview_current = m_state.result && m_state.mv == m_volume && m_state.config == m_configuration;
     }
+    const std::string result_count = preview_current ? std::to_string(m_triangle_count) : std::string("-");
+    m_imgui->text_colored(ImVec4(0.42f, 0.42f, 0.42f, 1.00f),
+                          GUI::format(_L("Triangles after simplification: %1%"), result_count));
 
-    ImGui::SameLine();
+    // Same checkbox look as the Mesh Boolean panel: wider gap between box and label.
+    const ImVec2 original_inner_spacing = ImGui::GetStyle().ItemInnerSpacing;
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(original_inner_spacing.x + 4.0f, original_inner_spacing.y));
+    m_imgui->bbl_checkbox(_L("Show wireframe"), m_show_wireframe);
 
-    // show preview result triangle count (percent)
-    if (!m_configuration.use_count) {
-        m_configuration.wanted_count = static_cast<uint32_t>(m_triangle_count);
-        m_configuration.decimate_ratio =
-            (1.0f - (m_configuration.wanted_count / (float) orig_triangle_count)) * 100.f;
-    }
-
-    m_imgui->disabled_begin(!m_configuration.use_count);
-    ImGui::Text("%s", tr_decimate_ratio.c_str());
-    ImGui::SameLine(bottom_left_width);
-
-    const char * format = (m_configuration.decimate_ratio > 10)? "%.0f %%":
-        ((m_configuration.decimate_ratio > 1)? "%.1f %%":"%.2f %%");
-
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
-    ImGui::PushItemWidth(slider_width + space_size);
-    if (m_imgui->bbl_slider_float_style("##decimate_ratio", &m_configuration.decimate_ratio, 0.f, 100.f, format)) {
-        if (m_configuration.decimate_ratio < 0.f)
-            m_configuration.decimate_ratio = 0.f;
-        if (m_configuration.decimate_ratio > 100.f)
-            m_configuration.decimate_ratio = 100.f;
-        m_configuration.fix_count_by_ratio(orig_triangle_count);
-        start_process = true;
-    }
-    ImGui::SameLine();
+    // Only offer paint preservation when the model actually has painting. When it has
+    // none, keep the old fast behavior (no checkbox, nothing to keep).
+    const bool painted = m_volume != nullptr && has_any_painting(*m_volume);
+    if (painted) {
+        m_imgui->bbl_checkbox(_L("Keep all painting"), m_preserve_color);
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_u8L("Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."),
+                             ImGui::GetFontSize() * 20.0f);
+    } else
+        m_preserve_color = false;
     ImGui::PopStyleVar(1);
+    // Say it before Apply, not only in the hover tooltip: applying without the box drops all painting.
+    if (painted && ! m_preserve_color)
+        m_imgui->warning_text_wrapped(_L("Warning") + ": " +
+                                          _L("All painting (color, seam, support and fuzzy skin) will be removed from the simplified model. "
+                                             "Check \"Keep all painting\" to keep it."),
+                                      ImGui::GetFontSize() * 20.0f);
 
-    ImGui::PushItemWidth(ImGui::CalcTextSize("100.00%").x + space_size);
-
-    if (ImGui::BBLDragFloat("##decimate_ratio_input", &m_configuration.decimate_ratio, 0.05f, 0.0f, 0.0f, "%.2f%%")) {
-        if (m_configuration.decimate_ratio < 0.f)
-            m_configuration.decimate_ratio = 0.f;
-        if (m_configuration.decimate_ratio > 100.f)
-            m_configuration.decimate_ratio = 100.f;
-        m_configuration.fix_count_by_ratio(orig_triangle_count);
-        start_process = true;
-    }
-
-    ImGui::NewLine();
-    ImGui::SameLine(bottom_left_width + space_size);
-    ImGui::Text(_u8L("%d triangles").c_str(), m_configuration.wanted_count);
-    m_imgui->disabled_end(); // use_count
-
-    m_imgui->bbl_checkbox(_L("Show wireframe").c_str(), m_show_wireframe);
+    // The preview starts computing as soon as the window opens; label the bar so it is clear what runs.
+    // Drawn above the bar (its row is shared with the Apply/Cancel buttons), and the line is kept
+    // while idle so the auto-sized window does not jump each time a slider move restarts the preview.
+    if (is_worker_running)
+        ImGui::TextColored(ImVec4(0.42f, 0.42f, 0.42f, 1.00f), "%s", _u8L("Calculating simplified preview...").c_str());
+    else
+        ImGui::Dummy(ImVec2(0.f, ImGui::GetTextLineHeight()));
 
      // draw progress bar
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,12);
@@ -375,10 +414,17 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(10,0));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.15f, 0.18f, 0.19f, 1.00f));
 
-    m_imgui->disabled_begin(is_worker_running || ! is_result_ready);
+    m_imgui->disabled_begin(is_worker_running || ! is_result_ready || m_apply_pending);
     m_imgui->push_confirm_button_style();
     if (m_imgui->bbl_button(_L("Apply"))) {
-        apply_simplify();
+        // Defer the actual apply out of the GL/imgui render frame. apply_simplify() may pop a
+        // modal progress dialog, and running a nested modal event loop inside the render
+        // callback swallows the mouse-up event, leaving toolbar/other buttons unresponsive
+        // afterwards. CallAfter runs it once the current event finishes.
+        if (!m_apply_pending) {
+            m_apply_pending = true;
+            call_after_if_active([this]() { apply_simplify(); });
+        }
     }
     else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_worker_running) {
         ImGui::SetTooltip("%s", _u8L("Can't apply when process preview.").c_str());
@@ -526,6 +572,7 @@ void GLGizmoSimplify::process()
         try {
             its_quadric_edge_collapse(*its, triangle_count, &max_error, throw_on_cancel, statusfn);
         } catch (SimplifyCanceledException &) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             std::lock_guard lk(m_state_mutex);
             m_state.status = State::idle;
         }
@@ -543,19 +590,109 @@ void GLGizmoSimplify::process()
 }
 
 void GLGizmoSimplify::apply_simplify() {
+    // Deferred entry point (see the Apply button): clear the guard up-front so a canceled
+    // apply re-enables the button for a retry, while a successful apply closes the gizmo.
+    m_apply_pending = false;
 
     const Selection& selection = m_parent.get_selection();
     int object_idx = selection.get_object_idx();
 
     auto plater = wxGetApp().plater();
-    plater->take_snapshot(GUI::format("Simplify %1%", m_volume->name));
-    plater->clear_before_change_mesh(object_idx);
 
     ModelVolume* mv = get_model_volume(selection, wxGetApp().model());
+    if (mv == nullptr || !m_state.result)
+        return;
     assert(mv == m_volume);
 
-    mv->set_mesh(std::move(*m_state.result));
+    // Preserve painting only when the user opted in AND the model actually has painting
+    // (the checkbox is hidden otherwise). Everything else keeps the old fast path.
+    const bool keep_paint = m_preserve_color && has_any_painting(*mv);
+
+    if (keep_paint) {
+        // Re-projecting the painted color/MMU/supports/seam/fuzzy-skin onto the decimated
+        // mesh can be slow on dense/heavily-painted meshes. reproject_paint_keep() is
+        // read-only - it computes into 'prepared' without touching the model - so cancelling
+        // leaves everything untouched and no undo snapshot is taken. We copy the preview mesh
+        // (not move) so a cancel can retry Apply immediately without recomputing.
+        //
+        // Run the reprojection on a worker thread and keep the UI thread free to pump the
+        // (cancelable) progress dialog on a fixed cadence. Previously the reprojection ran
+        // synchronously on the UI thread and the dialog was only pumped from its progress
+        // callback (fired on each 1% step), so on dense meshes a single 1% batch could take
+        // hundreds of ms and the Cancel click was not even seen until it finished. Pumping
+        // every ~30 ms makes Cancel respond immediately regardless of reprojection cost.
+        TriangleMesh new_mesh(*m_state.result);
+
+        ProgressDialog progress_dlg(_L("Simplify"),
+                                    _L("Transferring painting to the simplified mesh..."), 100,
+                                    (wxWindow *) wxGetApp().mainframe,
+                                    wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
+
+        std::atomic<bool> canceled{false};
+        std::atomic<bool> worker_done{false};
+        std::atomic<int>  percent{1};
+        std::mutex        stage_mutex;
+        std::string       stage_text;
+        PaintKeepPrepared prepared;
+        bool              ok = false;
+
+        std::thread worker([&]() {
+            auto progress_cb = [&](int p, const char *stage) {
+                percent.store(p < 1 ? 1 : (p > 99 ? 99 : p), std::memory_order_relaxed);
+                if (stage != nullptr && stage[0] != '\0') {
+                    std::lock_guard<std::mutex> lk(stage_mutex);
+                    stage_text = stage;
+                }
+            };
+            auto cancel_cb = [&]() { return canceled.load(std::memory_order_relaxed); };
+            try {
+                ok = mv->reproject_paint_keep(new_mesh, prepared, progress_cb, cancel_cb);
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                ok = false;
+            }
+            worker_done.store(true, std::memory_order_release);
+        });
+
+        // UI pump loop: refresh + process the Cancel button on a fixed cadence.
+        while (!worker_done.load(std::memory_order_acquire)) {
+            wxString msg;
+            {
+                std::lock_guard<std::mutex> lk(stage_mutex);
+                msg = stage_text.empty() ? wxString(_L("Transferring painting to the simplified mesh..."))
+                                         : wxString::FromUTF8(stage_text);
+            }
+            if (!progress_dlg.Update(percent.load(std::memory_order_relaxed), msg))
+                canceled.store(true, std::memory_order_relaxed);
+            std::this_thread::sleep_for(std::chrono::milliseconds(30));
+        }
+        worker.join();
+
+        if (!ok) {
+            // Canceled by the user (or failed): model is unchanged and the preview is still
+            // valid, so just keep the gizmo open and let the user tweak / retry.
+            return;
+        }
+        // Slow part done - commit under a snapshot now.
+        plater->take_snapshot(GUI::format("Simplify %1%", m_volume->name));
+        prepared.mesh = std::move(new_mesh);
+        mv->commit_mesh_keep_paint(std::move(prepared));
+    } else {
+        // No painting to keep (or user opted out): plain, fast mesh replacement.
+        // set_mesh() swaps the geometry but leaves the annotation layers untouched, so the
+        // old per-triangle ids would otherwise stay on the decimated mesh (the removed
+        // clear_before_change_mesh() used to drop them). Reset only THIS volume's four
+        // paint layers - not every volume of the object - so this part's stale paint is
+        // cleared while the other parts keep theirs.
+        plater->take_snapshot(GUI::format("Simplify %1%", m_volume->name));
+        mv->supported_facets.reset();
+        mv->seam_facets.reset();
+        mv->mmu_segmentation_facets.reset();
+        mv->fuzzy_skin_facets.reset();
+        mv->set_mesh(std::move(*m_state.result));
+    }
     m_state.result.reset();
+
     mv->calculate_convex_hull();
     mv->invalidate_convex_hull_2d();
     mv->set_new_unique_id();
@@ -584,7 +721,21 @@ void GLGizmoSimplify::on_set_state()
         stop_worker_thread_request();
         m_volume = nullptr; // invalidate selected model
         m_glmodel.reset();
+
+        // Closed without simplifying (Cancel, Esc, another gizmo): bring the suggestion back for
+        // objects that still need it. Simplified or deleted objects no longer qualify.
+        if (! m_hidden_suggestions.empty()) {
+            Plater *plater = wxGetApp().plater();
+            if (plater != nullptr && plater->get_notification_manager() != nullptr) {
+                for (const ObjectID &oid : m_hidden_suggestions)
+                    for (const ModelObject *object : plater->model().objects)
+                        if (object->id() == oid && needs_simplify_suggestion(*object))
+                            push_simplify_suggestion(*object, *plater->get_notification_manager());
+            }
+            m_hidden_suggestions.clear();
+        }
     } else if (GLGizmoBase::m_state == GLGizmoBase::On) {
+        m_apply_pending = false; // fresh session: never start with a stale pending-apply guard
         // when open by hyperlink it needs to show up
         request_rerender();
     }

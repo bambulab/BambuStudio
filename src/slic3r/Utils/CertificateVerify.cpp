@@ -6,7 +6,8 @@
 #include <vector>
 #include <cstring>
 #include <iostream>
-#include <boost/log/trivial.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -122,11 +123,11 @@ namespace Slic3r {
 
         sha256_win(spki.data(), cbSpki, s.spki_sha256);
 
-        // 3) subject/issuer
+        // 3) subject CN/issuer
         {
             wchar_t buf[1024];
-            DWORD n1 = CertGetNameStringW(pCert, CERT_NAME_SIMPLE_DISPLAY_TYPE, 0, nullptr, buf, 1024);
-            if (n1 > 0) s.subject_dn = wide_to_utf8(std::wstring(buf, buf + (n1 ? n1 - 1 : 0)));
+            DWORD n1 = CertGetNameStringW(pCert, CERT_NAME_ATTR_TYPE, 0, const_cast<char*>(szOID_COMMON_NAME), buf, 1024);
+            if (n1 > 1) s.subject_cn = wide_to_utf8(std::wstring(buf, buf + n1 - 1));
             DWORD n2 = CertGetNameStringW(pCert, CERT_NAME_SIMPLE_DISPLAY_TYPE, CERT_NAME_ISSUER_FLAG,
                 nullptr, buf, 1024);
             if (n2 > 0) s.issuer_dn = wide_to_utf8(std::wstring(buf, buf + (n2 ? n2 - 1 : 0)));
@@ -142,7 +143,7 @@ namespace Slic3r {
         try {
             return summarize_file_win(wself_path());
         } catch (const std::exception &e) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << e.what();
+            BOOST_LOG_TRIVIAL(info) << e.what();
             return std::nullopt;
         }
     }
@@ -151,7 +152,7 @@ namespace Slic3r {
         try {
             return summarize_file_win(utf8_to_w(path_utf8));
         } catch (const std::exception &e) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << e.what();
+            BOOST_LOG_TRIVIAL(info) << e.what();
             return std::nullopt;
         }
     }
@@ -162,6 +163,7 @@ namespace Slic3r {
 #include <TargetConditionals.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <Security/Security.h>
+#include <Security/SecCertificateOIDs.h>
 #include <CommonCrypto/CommonCrypto.h>
 
     static bool sha256_mac(const void* data, size_t len, std::array<uint8_t, 32>& out) {
@@ -187,6 +189,22 @@ namespace Slic3r {
         CFStringRef s = SecCertificateCopySubjectSummary(cert);
         std::string out = cfstr(s);
         if (s) CFRelease(s);
+        return out;
+    }
+
+    static std::string cn_from_cert(SecCertificateRef cert) {
+        const void *keys[] = { kSecOIDCommonName };
+        CFArrayRef key_array = CFArrayCreate(nullptr, keys, 1, &kCFTypeArrayCallBacks);
+        if (!key_array) return {};
+
+        CFDictionaryRef values = SecCertificateCopyValues(cert, key_array, nullptr);
+        CFRelease(key_array);
+        if (!values) return {};
+
+        CFDictionaryRef cn_info = static_cast<CFDictionaryRef>(CFDictionaryGetValue(values, kSecOIDCommonName));
+        CFTypeRef       cn_value = cn_info ? CFDictionaryGetValue(cn_info, kSecPropertyKeyValue) : nullptr;
+        std::string     out      = cn_value && CFGetTypeID(cn_value) == CFStringGetTypeID() ? cfstr(static_cast<CFStringRef>(cn_value)) : std::string();
+        CFRelease(values);
         return out;
     }
 
@@ -230,6 +248,7 @@ namespace Slic3r {
 
         // 3) subject / issuer
         s.subject_dn = dn_from_cert(leaf);
+        s.subject_cn = cn_from_cert(leaf);
         if (CFArrayGetCount(certs) >= 2) {
             SecCertificateRef iss = (SecCertificateRef)CFArrayGetValueAtIndex(certs, 1);
             s.issuer_dn = dn_from_cert(iss);
@@ -261,7 +280,7 @@ namespace Slic3r {
             CFRelease(st);
             return ok ? std::optional<SignerSummary>(s) : std::nullopt;
         } catch (const std::exception &e) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << e.what();
+            BOOST_LOG_TRIVIAL(info) << e.what();
             return std::nullopt;
         }
     }
@@ -281,7 +300,7 @@ namespace Slic3r {
             CFRelease(code);
             return ok ? std::optional<SignerSummary>(s) : std::nullopt;
         } catch (const std::exception &e) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << e.what();
+            BOOST_LOG_TRIVIAL(info) << e.what();
             return std::nullopt;
         }
     }
@@ -294,8 +313,6 @@ namespace Slic3r {
     bool IsSamePublisher(const SignerSummary& a, const SignerSummary& b)
     {
         if (!a.team_id.empty() && a.team_id == b.team_id) return true;
-        if (a.spki_sha256 == b.spki_sha256) return true;
-        if (a.cert_sha256 == b.cert_sha256) return true;
-        return false;
+        return !a.subject_cn.empty() && !b.subject_cn.empty() && boost::iequals(a.subject_cn, b.subject_cn);
     }
 }

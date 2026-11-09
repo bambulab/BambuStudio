@@ -12,9 +12,9 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <curl/curl.h>
+#include "libslic3r/Log.hpp"
 
 #ifdef OPENSSL_CERT_OVERRIDE
 #include <openssl/x509.h>
@@ -262,6 +262,7 @@ size_t Http::priv::form_file_read_cb(char *buffer, size_t size, size_t nitems, v
 		fstream->read(buffer, size * nitems);
 		return fstream->gcount();
 	} catch (const std::exception &) {
+		BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 		return CURL_READFUNC_ABORT;
 	}
 
@@ -783,13 +784,14 @@ std::string Http::tls_global_init()
 
 std::string Http::tls_system_cert_store()
 {
-    std::string ret;
-
 #ifdef OPENSSL_CERT_OVERRIDE
-    ret = ::getenv(X509_get_default_cert_file_env());
+    // getenv() returns nullptr when SSL_CERT_FILE is unset; constructing a
+    // std::string from nullptr is undefined behaviour (segfault in strlen).
+    if (const char *cert_file = ::getenv(X509_get_default_cert_file_env()))
+        return cert_file;
 #endif
 
-    return ret;
+    return {};
 }
 
 std::string Http::url_encode(const std::string &str)

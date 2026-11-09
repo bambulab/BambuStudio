@@ -31,6 +31,7 @@ enum class PrintOptionEnum{
     FOD_Check_Detection,
     Displacement_Detection,
     Smart_Nozzle_Blob_Detection,
+    NonVisual_AirPrinting_Detection,
 };
 
 struct PrintOptionData
@@ -87,6 +88,7 @@ public:
     int command_snapshot_control(int on_off);
     int command_xcam_control_fod_check(bool on_off);
     int command_xcam_control_displacement_detection(bool on_off);
+    int command_non_visual_airprinting_detection(bool on_off);
 
 private:
     int command_set_purify_air_at_print_end(PurifyAirAtPrintEndState state, MachineObject *obj);
@@ -120,6 +122,7 @@ private:
     PrintOptionData m_fod_check_detection;
     PrintOptionData m_displacement_detection;
     PrintOptionData m_smart_nozzle_blob_detection;
+    PrintOptionData m_non_visual_airprinting_detection;
 
     std::map<PrintOptionEnum, PrintOptionData*> m_detection_list;
     DevPrintingSpeedLevel m_speed_level = SPEED_LEVEL_INVALID;

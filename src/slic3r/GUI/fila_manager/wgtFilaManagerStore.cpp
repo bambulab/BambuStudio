@@ -2,8 +2,12 @@
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 
+#include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/DeviceCore/DevManager.h"
+#include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
+
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -13,6 +17,7 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -79,9 +84,13 @@ nlohmann::json FilamentSpool::to_json() const
         {"tray_label",      [this]() -> std::string {
             if (ams_id < 0 || slot_id.empty()) return {};
             try {
-                int tray_id = ams_id * 4 + std::stoi(slot_id);
-                return wxGetApp().transition_tridid(tray_id).ToStdString();
-            } catch (...) { return {}; }
+                return DevFilaSystem::GetTrayNameByAmsSlotId(dev_id, ams_id, std::stoi(slot_id), (DevAmsType)ams_type);
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                return {};
+            }
+
+            return {};
         }()}
     };
 }
@@ -299,7 +308,9 @@ bool wgtFilaManagerStore::apply_patch(const std::string& spool_id, const nlohman
         if (!patch.contains(key)) return;
         const auto& v = patch.at(key);
         if (v.is_null()) return;
-        try { v.get_to(dst); } catch (...) {}
+        try { v.get_to(dst); } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        }
     };
     get_if("setting_id",      s.filament_id);
     get_if("brand",           s.brand);
@@ -437,7 +448,7 @@ bool wgtFilaManagerStore::force_mount_spool(const std::string& spool_id,
 {
     auto it = m_spools.find(spool_id);
     if (it == m_spools.end()) {
-        BOOST_LOG_TRIVIAL(warning) << "force_mount_spool: spool_id not found: " << spool_id;
+        BOOST_LOG_TRIVIAL(warning) << "spool_id not found: " << spool_id;
         return false;
     }
     FilamentSpool& s = it->second;

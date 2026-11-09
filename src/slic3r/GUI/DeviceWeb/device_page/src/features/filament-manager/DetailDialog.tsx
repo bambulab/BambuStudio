@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Spool } from './types';
 import { SpoolColorChip } from './SpoolColorChip';
-import { formatSpoolDisplayName, formatSlotLocation } from './constants';
+import { formatSpoolDisplayName, formatSlotLocation, multiExternalDevIds } from './constants';
 import { cssBackgroundFor, colorNameWithHexLabel } from './colors';
+import useStore from '../../store/AppStore';
 
 interface Props {
   open: boolean;
@@ -16,6 +17,9 @@ interface Props {
 
 export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onNavigate }: Props) {
   const { t } = useTranslation();
+
+  const allSpools = useStore((s) => s.filament.spools);
+  const multiExtDevIds = useMemo(() => multiExternalDevIds(allSpools), [allSpools]);
 
   // F4.10 parity: drag support for this dialog as well.
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -146,7 +150,8 @@ export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onN
             <div className="text-xs text-fm-text-secondary opacity-70 leading-[19px]">
               {spool.diameter || 1.75} mm｜{spool.color_name || '—'}
               {spool.in_printer === true && (() => {
-                const loc = formatSlotLocation(spool.device_name, spool.ams_type, spool.slot_id, t, spool.tray_label);
+                const multiExt = spool.dev_id ? multiExtDevIds.has(spool.dev_id) : false;
+                const loc = formatSlotLocation(spool.device_name, spool.ams_type, spool.slot_id, t, spool.tray_label, multiExt);
                 return loc ? <>｜{loc}</> : null;
               })()}
             </div>

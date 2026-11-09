@@ -23,5 +23,17 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceTab/AmsControl/AmsControlWebEnable.hpp
     GUI/DeviceTab/AmsControl/wgtAmsControlWebPanel.h
     GUI/DeviceTab/AmsControl/wgtAmsControlWebPanel.cpp
+    GUI/DeviceTab/wgtDeviceAutoRefillWebDialog.h
+    GUI/DeviceTab/wgtDeviceAutoRefillWebDialog.cpp
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWebPanel.h
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWebPanel.cpp
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWebDialog.h
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWebDialog.cpp
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendHtmlDialog.h
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendHtmlDialog.cpp
+    GUI/DeviceTab/FilamentHotend/wgtHotendRackControl.h
+    GUI/DeviceTab/FilamentHotend/wgtHotendRackControl.cpp
+    GUI/DeviceTab/wgtRackExtruder.h
+    GUI/DeviceTab/wgtRackExtruder.cpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)

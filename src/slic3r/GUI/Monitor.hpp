@@ -46,6 +46,7 @@
 #include "slic3r/GUI/StatusPanel.hpp"
 #include "slic3r/GUI/UpgradePanel.hpp"
 #include "slic3r/GUI/HMSPanel.hpp"
+#include "slic3r/GUI/DeviceWeb/DeviceWebHost.hpp"
 #include "slic3r/GUI/AmsWidgets.hpp"
 #include "Widgets/SideTools.hpp"
 #include "SelectMachinePop.hpp"
@@ -54,6 +55,7 @@ namespace Slic3r {
 namespace GUI {
 
 class MediaFilePanel;
+class DeviceWebHost;
 
 class AddMachinePanel : public wxPanel
 {
@@ -75,8 +77,6 @@ public:
 class MonitorPanel : public wxPanel
 {
 private:
-    static bool is_hms_list_equal(const std::map<std::string, DevHMSItem> &map1, const std::map<std::string, DevHMSItem> &map2);
-
     Tabbook*		m_tabpanel{ nullptr };
     wxSizer*        m_main_sizer{ nullptr };
 
@@ -85,6 +85,7 @@ private:
     MediaFilePanel*     m_media_file_panel;
     UpgradePanel*       m_upgrade_panel;
     HMSPanel*           m_hms_panel;
+    DeviceWebHost*      m_print_queue_panel { nullptr };
 
 	/* side tools */
     SideTools*      m_side_tools{nullptr};
@@ -109,19 +110,21 @@ private:
     bool update_flag{false};
     wxTimer* m_refresh_timer = nullptr;
 
-    std::map<std::string, DevHMSItem> m_last_hms_list;
-
 public:
     MonitorPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~MonitorPanel();
 
     enum PrinterTab {
-        PT_STATUS  = 0,
-        PT_MEDIA   = 1,
-        PT_UPDATE  = 2,
-        PT_HMS     = 3,
-        PT_DEBUG   = 4,
-        PT_MAX_NUM = 5
+        // Must stay in the order the pages are added in init_tabpanel().
+        PT_STATUS      = 0,
+#if STUDIO_ENABLE_PRINT_QUENE
+        PT_PRINT_QUEUE,
+#endif
+        PT_MEDIA,
+        PT_UPDATE,
+        PT_HMS,
+        PT_DEBUG,
+        PT_MAX_NUM
     };
 
 	void init_bitmap();
@@ -133,6 +136,7 @@ public:
 
     void on_sys_color_changed();
     void msw_rescale();
+    void on_activate();
 
     StatusPanel* get_status_panel() {return m_status_info_panel;};
 	void select_machine(std::string machine_sn);
@@ -144,6 +148,8 @@ public:
     /* update apis */
     //void update_ams(MachineObject* obj);
     void update_all();
+
+    void update_print_queue_device(MachineObject* obj);
 
     void update_hms_tag();
     bool Show(bool show);
@@ -163,6 +169,7 @@ public:
     void jump_to_Upgrade();
     void jump_to_LiveView();
     void jump_to_Rack();
+    void jump_to_print_queue();
 };
 
 

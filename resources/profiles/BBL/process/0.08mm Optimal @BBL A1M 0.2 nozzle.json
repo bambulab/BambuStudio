@@ -9,6 +9,7 @@
     "default_acceleration": [
         "6000"
     ],
+    "enable_arc_fitting": "1",
     "initial_layer_speed": [
         "16"
     ],

@@ -44,6 +44,11 @@
         "2",
         "2"
     ],
+    "hotend_cooling_rate_on_rack": [
+        "2",
+        "2",
+        "2"
+    ],
     "hotend_heating_rate": [
         "2",
         "2",
@@ -302,7 +307,8 @@
         "Bambu Lab H2D Pro 0.4 nozzle",
         "Bambu Lab H2C 0.4 nozzle",
         "Bambu Lab X2D 0.4 nozzle",
-        "Bambu Lab A2L 0.4 nozzle"
+        "Bambu Lab A2L 0.4 nozzle",
+        "Bambu Lab H3C 0.4 nozzle"
     ],
     "print_in_clockwise": "1"
 }

@@ -445,6 +445,9 @@ public:
 
     void force_left_action(int item_id, GLCanvas3D& parent) { do_action(GLToolbarItem::Left, item_id, parent, false); }
     void force_right_action(int item_id, GLCanvas3D& parent) { do_action(GLToolbarItem::Right, item_id, parent, false); }
+    // Drop the pressed state without running the item action. Used when variable layer height
+    // must be left immediately; the left action only posts a toggle and would turn the mode back on.
+    void release_toggled_item(const std::string& name);
 
     void render_arrow(const std::weak_ptr<GLToolbarItem>& highlighted_item);
 

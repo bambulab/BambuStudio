@@ -49,6 +49,7 @@ public:
     MachineObject* get_local_selected_machine() const { return get_local_machine(local_selected_machine); }
 
     // local machine list
+    void remove_local_machine_for_cloud_mode(const std::string& dev_id, const char* source);
     void erase_local_machine(std::string dev_id) { localMachineList.erase(dev_id); }
     std::map<std::string, MachineObject*> get_local_machinelist() const { return localMachineList; }
     MachineObject* get_local_machine(std::string dev_id) const

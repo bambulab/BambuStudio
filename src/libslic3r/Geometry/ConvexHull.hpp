@@ -14,6 +14,11 @@ namespace Geometry {
 
 Pointf3s convex_hull(Pointf3s points);
 Polygon convex_hull(Points points);
+// Unscaled 2d flavour, Pointfs being an alias of std::vector<Vec2d>. Coordinates make a round trip
+// through coord_t, so they come back quantized to SCALING_FACTOR and have to stay inside the range
+// an int32 spans at that scale.
+// same as std::vector<Vec2d> convex_hull_2d(std::vector<Vec2d> pts);
+Pointfs convex_hull(const Pointfs &points);
 Polygon convex_hull(const Polygons &polygons);
 Polygon convex_hull(const ExPolygons &expolygons);
 Polygon convex_hulll(const Polylines &polylines);

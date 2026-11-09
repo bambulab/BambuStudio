@@ -5,15 +5,18 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node tools/check-legacy-css.mjs",
+    "check:legacy-css": "node tools/check-legacy-css.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
+    "e2e": "playwright test",
+    "e2e:device-ams-hotend": "playwright test tests/e2e/device-ams-filament-hotend.spec.ts",
     "i18n": "npx i18next-parser --config i18next-parser.config.js"
   },
   "browserslist": [
-    "chrome >= 111",
-    "edge >= 111",
-    "safari >= 16.4"
+    "chrome >= 109",
+    "edge >= 109",
+    "safari >= 13.1"
   ],
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",
@@ -33,6 +36,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@playwright/test": "^1.60.0",
     "@tanstack/router-plugin": "^1.120.15",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
@@ -43,6 +47,8 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
     "i18next-parser": "^9.4.0",
+    "lightningcss": "1.30.1",
+    "postcss": "8.5.4",
     "terser": "^5.46.2",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
@@ -51,6 +57,10 @@
   "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac",
   "optionalDependencies": {
     "lightningcss-win32-x64-msvc": "^1.32.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@tailwindcss/oxide", "esbuild"],
+    "allowedBuiltDependencies": ["@tailwindcss/oxide", "esbuild"]
   },
   "pnpm": {
     "overrides": {

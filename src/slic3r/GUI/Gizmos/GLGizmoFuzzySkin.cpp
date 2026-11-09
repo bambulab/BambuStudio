@@ -17,8 +17,7 @@
 
 
 #include <GL/glew.h>
-
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r::GUI {
 
@@ -40,13 +39,13 @@ void GLGizmoFuzzySkin::on_shutdown()
     if (m_thread.joinable()) {
         Print *print = m_print_instance.print_object->print();
         if (print) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "cancel the print";
+            BOOST_LOG_TRIVIAL(info) << "cancel the print";
             print->cancel();
         }
         //join the thread
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "try to join thread for 2000 ms";
+        BOOST_LOG_TRIVIAL(info) << "try to join thread for 2000 ms";
         auto ret = m_thread.try_join_for(boost::chrono::milliseconds(2000));
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "join thread returns "<<ret;
+        BOOST_LOG_TRIVIAL(info) << "join thread returns "<<ret;
     }
 
     m_print_instance.print_object = NULL;

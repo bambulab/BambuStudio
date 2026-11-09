@@ -37,16 +37,25 @@
         "1.29"
     ],
     "filament_dev_ams_drying_ams_limitations": [
-        "1"
+        "1",
+        "2",
+        "3"
     ],
     "filament_dev_ams_drying_heat_distortion_temperature": [
+        "165",
+        "165",
+        "165",
         "165"
     ],
     "filament_dev_ams_drying_temperature": [
         "65",
         "80",
         "65",
-        "80"
+        "80",
+        "80",
+        "80",
+        "65",
+        "65"
     ],
     "filament_dev_chamber_drying_bed_temperature": [
         "90"
@@ -55,6 +64,9 @@
         "150"
     ],
     "filament_dev_drying_softening_temperature": [
+        "150",
+        "150",
+        "150",
         "150"
     ],
     "filament_max_volumetric_speed": [
@@ -65,6 +77,9 @@
     ],
     "filament_vendor": [
         "Bambu Lab"
+    ],
+    "fins_extrude_safe_temp": [
+        "205"
     ],
     "hot_plate_temp": [
         "100"
@@ -109,7 +124,7 @@
         "80"
     ],
     "temperature_vitrification": [
-        "185"
+        "150"
     ],
     "textured_plate_temp": [
         "100"

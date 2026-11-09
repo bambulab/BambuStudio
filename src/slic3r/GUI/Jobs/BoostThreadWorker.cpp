@@ -1,6 +1,7 @@
 #include <exception>
 
 #include "BoostThreadWorker.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -100,7 +101,9 @@ BoostThreadWorker::~BoostThreadWorker()
         wait_for_idle(ABORT_WAIT_MAX_MS);
         m_input_queue.push(JobEntry{nullptr});
         joined = join(ABORT_WAIT_MAX_MS);
-    } catch(...) {}
+    } catch(...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
 
     if (!joined)
         BOOST_LOG_TRIVIAL(error)

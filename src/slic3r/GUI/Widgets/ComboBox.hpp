@@ -17,8 +17,10 @@ class ComboBox : public wxWindowWithItems<TextInput, wxItemContainer>
     bool     text_off = false;
     bool     is_replace_text_to_image = false;
     bool     m_keep_drop_arrow = false;  // When true, item icon goes to icon_1, keeping drop_down arrow
+    int      m_last_width = -1;
     wxString replace_text;
     wxString image_for_text;
+    wxString m_closed_suffix;
 
 public:
     ComboBox(wxWindow *      parent,
@@ -75,6 +77,10 @@ public:
     wxString GetItemTooltip(unsigned int n) const;
     void     SetItemTooltip(unsigned int n, wxString const &value);
 
+    wxString GetItemSuffix(unsigned int n) const;
+    void     SetItemSuffix(unsigned int n, wxString const &value);
+    void     SetRightSuffix(const wxString &suffix);
+
     wxString GetItemAlias(unsigned int n) const;
     void     SetItemAlias(unsigned int n, wxString const &value);
 
@@ -95,8 +101,11 @@ protected:
     void  DoSetItemClientData(unsigned int n, void *data) override;
 
     void OnEdit() override;
+    void render(wxDC &dc) override;
 
     void sendComboBoxEvent();
+    void sync_closed_suffix();
+    void update_closed_suffix_reserve();
 
 #ifdef __WIN32__
     WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
@@ -109,6 +118,7 @@ private:
     void mouseWheelMoved(wxMouseEvent &event);
     void keyDown(wxKeyEvent &event);
     void onMove(wxMoveEvent &event);
+    void onSize(wxSizeEvent &event);
 
     DECLARE_EVENT_TABLE()
 };

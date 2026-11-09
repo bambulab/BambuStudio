@@ -8,9 +8,12 @@
 #include <wx/scrolwin.h>
 #include <wx/clipbrd.h>
 #include <wx/checkbox.h>
+#include <wx/dcbuffer.h>
+#include <wx/dcclient.h>
 #include <wx/html/htmlwin.h>
 #include <wx/textctrl.h>
 
+#include <algorithm>
 #include <boost/algorithm/string/replace.hpp>
 
 #include "Widgets/Label.hpp"
@@ -22,9 +25,161 @@
 #include "wxExtensions.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "GUI_App.hpp"
+#include "libslic3r/Log.hpp"
 #define MSG_DLG_MAX_SIZE wxSize(-1, FromDIP(464))//notice:ban setting the maximum width value
 namespace Slic3r {
 namespace GUI {
+
+class FilamentWikiWarningLabel : public wxPanel
+{
+public:
+    FilamentWikiWarningLabel(
+        wxWindow* parent,
+        const wxString& prefix,
+        const wxString& link,
+        const wxString& suffix,
+        const wxString& url,
+        const wxColour& text_colour,
+        const wxColour& link_colour,
+        int width)
+        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(width, 1), wxBORDER_NONE)
+        , m_prefix(prefix)
+        , m_link(link)
+        , m_suffix(suffix)
+        , m_url(url)
+        , m_text_colour(text_colour)
+        , m_link_colour(link_colour)
+        , m_width(width)
+    {
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        SetBackgroundColour(parent->GetBackgroundColour());
+        SetCursor(wxCURSOR_ARROW);
+        layout_text();
+
+        Bind(wxEVT_PAINT, &FilamentWikiWarningLabel::on_paint, this);
+        Bind(wxEVT_MOTION, &FilamentWikiWarningLabel::on_motion, this);
+        Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent&) {
+            m_link_hovered = false;
+            SetCursor(wxCURSOR_ARROW);
+        });
+        Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& event) {
+            if (hit_link(event.GetPosition()))
+                wxLaunchDefaultBrowser(m_url);
+        });
+    }
+
+private:
+    struct TextRun {
+        wxString text;
+        wxPoint position;
+        wxSize size;
+        bool is_link;
+    };
+
+    void layout_text()
+    {
+        wxClientDC dc(this);
+        dc.SetFont(Label::Body_12);
+        const int line_height = dc.GetCharHeight();
+        int x = 0;
+        int y = 0;
+
+        auto place_token = [&](const wxString& token, bool is_link) {
+            if (token.empty()) return;
+            dc.SetFont(is_link ? Label::Body_12.Underlined() : Label::Body_12);
+            const wxSize size = dc.GetTextExtent(token);
+            const bool is_space = token == " " || token == "\t";
+            if (!is_space && x > 0 && x + size.x > m_width) {
+                x = 0;
+                y += line_height;
+            }
+            if (is_space && x == 0) return;
+            m_runs.push_back({token, wxPoint(x, y), wxSize(size.x, line_height), is_link});
+            if (is_link)
+                m_link_rects.emplace_back(x, y, size.x, line_height);
+            x += size.x;
+        };
+
+        auto append_text = [&](const wxString& text, bool is_link) {
+            wxString token;
+            auto flush_token = [&]() {
+                if (!token.empty()) {
+                    place_token(token, is_link);
+                    token.clear();
+                }
+            };
+
+            for (const wxUniChar ch : text) {
+                if (ch == '\n') {
+                    flush_token();
+                    x = 0;
+                    y += line_height;
+                } else if (ch == ' ' || ch == '\t') {
+                    flush_token();
+                    wxString whitespace;
+                    whitespace += ch;
+                    place_token(whitespace, is_link);
+                } else if (ch.GetValue() >= 0x2E80) {
+                    flush_token();
+                    wxString character;
+                    character += ch;
+                    place_token(character, is_link);
+                } else {
+                    token += ch;
+                }
+            }
+            flush_token();
+        };
+
+        append_text(m_prefix, false);
+        append_text(m_link, true);
+        append_text(m_suffix, false);
+
+        const int height = std::max(line_height, y + line_height);
+        SetMinSize(wxSize(m_width, height));
+        SetMaxSize(wxSize(m_width, height));
+    }
+
+    void on_paint(wxPaintEvent&)
+    {
+        wxAutoBufferedPaintDC dc(this);
+        dc.SetBackground(wxBrush(GetBackgroundColour()));
+        dc.Clear();
+        for (const auto& run : m_runs) {
+            dc.SetFont(run.is_link ? Label::Body_12.Underlined() : Label::Body_12);
+            dc.SetTextForeground(run.is_link ? m_link_colour : m_text_colour);
+            dc.DrawText(run.text, run.position);
+        }
+    }
+
+    void on_motion(wxMouseEvent& event)
+    {
+        const bool is_link = hit_link(event.GetPosition());
+        if (is_link != m_link_hovered) {
+            m_link_hovered = is_link;
+            SetCursor(is_link ? wxCursor(wxCURSOR_HAND) : wxCursor(wxCURSOR_ARROW));
+        }
+    }
+
+    bool hit_link(const wxPoint& point) const
+    {
+        return std::any_of(m_link_rects.begin(), m_link_rects.end(), [&point](const wxRect& rect) {
+            return rect.Contains(point);
+        });
+    }
+
+private:
+    wxString m_prefix;
+    wxString m_link;
+    wxString m_suffix;
+    wxString m_url;
+    wxColour m_text_colour;
+    wxColour m_link_colour;
+    int m_width;
+    bool m_link_hovered{false};
+    std::vector<TextRun> m_runs;
+    std::vector<wxRect> m_link_rects;
+};
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, long style, wxBitmap bitmap, const wxString &forward_str)
     : DPIDialog(parent ? parent : dynamic_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxSize(360, -1),wxDEFAULT_DIALOG_STYLE)
@@ -694,28 +849,27 @@ wxBoxSizer *Newer3mfVersionDialog::get_msg_sizer()
     wxStaticText *text1;
     wxBoxSizer *     horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxString    msg_str;
-    if (file_version_newer) {
-        text1 = new wxStaticText(this, wxID_ANY, _L("The 3mf file version is in Beta and it is newer than the current Bambu Studio version."));
-        wxStaticText *   text2       = new wxStaticText(this, wxID_ANY, _L("If you would like to try Bambu Studio Beta, you may click to"));
-        wxHyperlinkCtrl *github_link = new wxHyperlinkCtrl(this, wxID_ANY, _L("Download Beta Version"), "https://github.com/bambulab/BambuStudio/releases");
-        horizontal_sizer->Add(text2, 0, wxEXPAND, 0);
-        horizontal_sizer->Add(github_link, 0, wxEXPAND | wxLEFT, 5);
+    Semver app_version = *(Semver::parse(SLIC3R_VERSION));
+    // Release and Beta share the same hint; only the first line differs.
+    wxString version_str = file_version_newer ?
+        wxString::Format(_L("The 3mf file is Beta version %s, current version: %s"), m_file_version->to_string(), app_version.to_string()) :
+        wxString::Format(_L("The 3mf file is version %s, current version: %s"), m_file_version->to_string(), app_version.to_string());
+    text1 = new wxStaticText(this, wxID_ANY, version_str);
 
-    } else {
-        text1 = new wxStaticText(this, wxID_ANY, _L("The 3mf file version is newer than the current Bambu Studio version."));
-        wxStaticText *text2 = new wxStaticText(this, wxID_ANY, _L("Update your Bambu Studio could enable all functionality in the 3mf file."));
-        horizontal_sizer->Add(text2, 0, wxEXPAND, 0);
+    std::string download_url = "https://github.com/bambulab/BambuStudio/releases";
+    if (!file_version_newer && wxGetApp().app_config->has("app", "cloud_software_url")) {
+        std::string cloud_url = wxGetApp().app_config->get("app", "cloud_software_url");
+        if (!cloud_url.empty())
+            download_url = cloud_url;
     }
-    Semver        app_version = *(Semver::parse(SLIC3R_VERSION));
-    wxStaticText *cur_version = new wxStaticText(this, wxID_ANY, _L("Current Version: ") + app_version.to_string());
+    wxStaticText *   text2         = new wxStaticText(this, wxID_ANY,
+        _L("Importing a newer 3mf file may cause compatibility issues. We recommend downloading the latest version before use. Please click"));
+    wxHyperlinkCtrl *download_link = new wxHyperlinkCtrl(this, wxID_ANY, _L("Download Latest Version"), download_url);
+    horizontal_sizer->Add(text2, 0, wxEXPAND, 0);
+    horizontal_sizer->Add(download_link, 0, wxEXPAND | wxLEFT, 5);
 
     vertical_sizer->Add(text1, 0, wxEXPAND | wxTOP, FromDIP(5));
     vertical_sizer->Add(horizontal_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
-    vertical_sizer->Add(cur_version, 0, wxEXPAND | wxTOP, FromDIP(5));
-    if (!file_version_newer) {
-        wxStaticText *latest_version = new wxStaticText(this, wxID_ANY, _L("Latest Version: ") + m_cloud_version->to_string());
-        vertical_sizer->Add(latest_version, 0, wxEXPAND | wxTOP, FromDIP(5));
-    }
 
     wxStaticText *unrecognized_keys = new wxStaticText(this, wxID_ANY, m_new_keys);
     vertical_sizer->Add(unrecognized_keys, 0, wxEXPAND | wxTOP, FromDIP(10));
@@ -749,7 +903,7 @@ wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
                 std::string download_url = wxGetApp().app_config->get("app", "cloud_software_url");
                 wxLaunchDefaultBrowser(download_url);
             } else {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Bambu Studio conf has no cloud_software_url and file_version: " << m_file_version->to_string()
+                BOOST_LOG_TRIVIAL(info) << "Bambu Studio conf has no cloud_software_url and file_version: " << m_file_version->to_string()
                                         << " and cloud_version: " << m_cloud_version->to_string();
             }
         });
@@ -907,14 +1061,16 @@ void FilamentWarningDialog::BuildContent()
             text->Wrap(FromDIP(400));
             messages_sizer->Add(text, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(5));
         } else {
-            Label *link = new Label(this, message + " " + _L("Please refer to Wiki before use->"));
-            link->SetForegroundColour(wxColour(8, 153, 46));
-            link->SetFont(::Label::Body_12);
-            link->Wrap(FromDIP(400));
-            link->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
-            link->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
-            link->Bind(wxEVT_LEFT_DOWN, [wiki_url](auto &event) { wxLaunchDefaultBrowser(wiki_url); });
-            messages_sizer->Add(link, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(5));
+            auto *wiki_label = new FilamentWikiWarningLabel(
+                this,
+                message + _L(" Please "),
+                _L("refer to the Wiki User Guide"),
+                _L(" before continuing."),
+                wiki_url,
+                StateColor::darkModeColorFor(wxColour("#323A3C")),
+                wxColour(8, 153, 46),
+                FromDIP(400));
+            messages_sizer->Add(wiki_label, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(5));
         }
         message_count++;
     }
