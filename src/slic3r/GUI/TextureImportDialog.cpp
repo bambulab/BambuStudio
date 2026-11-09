@@ -5457,7 +5457,7 @@ void TextureImportDialog::build_params_panel(wxWindow* parent, wxSizer* sizer)
     size_color_preset(m_btn_color_8, false);
     size_color_preset(m_btn_color_16, false);
 
-    m_color_slider = new GreenSlider(m_params_panel, m_param_color_count, 1, (int)max_physical_filament_count());
+    m_color_slider = new GreenSlider(m_params_panel, m_param_color_count, 1, (int)Slic3r::texture_max_color_count());
     m_color_spin = new TextInput(m_params_panel, wxString::Format("%d", m_param_color_count),
                                  "", "", wxDefaultPosition,
                                  wxSize(FromDIP(64), FromDIP(28)), wxTE_PROCESS_ENTER);
@@ -6698,7 +6698,7 @@ void TextureImportDialog::on_computation_complete(wxCommandEvent& evt)
         const wxString text = m_color_spin->GetTextCtrl()->GetValue();
         color_spin_dirty = !text.ToLong(&parsed) || (int)parsed != m_param_color_count;
     }
-    if (!color_spin_dirty && actual_colors >= 1 && actual_colors <= (int)max_physical_filament_count()) {
+    if (!color_spin_dirty && actual_colors >= 1 && actual_colors <= (int)Slic3r::texture_max_color_count()) {
         m_updating_params = true;
         set_color_count_value(actual_colors, true);
         m_updating_params = false;
@@ -6857,10 +6857,10 @@ size_t TextureImportDialog::mixed_filament_entry_count() const
 
 int TextureImportDialog::max_color_count() const
 {
-    const int filament_max = (int)max_physical_filament_count();
+    const int color_max = (int)Slic3r::texture_max_color_count();
     if (m_original_color_count <= 0)
-        return filament_max;
-    return std::min(filament_max, m_original_color_count);
+        return color_max;
+    return std::min(color_max, m_original_color_count);
 }
 
 void TextureImportDialog::update_color_count_controls()
@@ -6925,7 +6925,7 @@ void TextureImportDialog::update_color_count_warning()
         else
             warning->set_message(wxString::Format(
                 _L("Up to %d colors supported."),
-                (int)max_physical_filament_count()));
+                (int)Slic3r::texture_max_color_count()));
         warning->InvalidateBestSize();
         warning->SetMinSize(warning->GetBestSize());
     } else {

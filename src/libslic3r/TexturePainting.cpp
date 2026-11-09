@@ -31,6 +31,11 @@ MeshRepairCachePtr make_mesh_repair_cache()
     return MeshRepairCachePtr(new tex2color::MeshRepairCache());
 }
 
+std::size_t texture_max_color_count()
+{
+    return MAX_FILAMENT_COUNT;
+}
+
 static cv::Mat decode_texture_image(const TextureImage& img) {
     if (img.data.empty())
         return {};
@@ -141,6 +146,7 @@ static tex2color::TextureToColorSettings make_tex2color_settings(const TexturePa
     algo_settings.target_colors_num  = settings.target_colors_num;
     algo_settings.smooth_weight      = settings.smooth_weight;
     algo_settings.oversampling_iters = settings.oversampling_iters;
+    algo_settings.max_cluster_k      = texture_max_color_count();
     switch (settings.mesh_repair_decision) {
     case TexturePaintingSettings::MeshRepairDecision::RepairAndImport:
         algo_settings.mesh_repair_decision = tex2color::MeshRepairDecision::RepairAndImport;
@@ -542,7 +548,7 @@ bool standard_3mf_colors_to_painting(
         vertex_source_ids[i] = inserted.first->second;
     }
 
-    const std::size_t max_cluster = MAX_PHYSICAL_FILAMENT_COUNT;
+    const std::size_t max_cluster = texture_max_color_count();
     const std::size_t target = settings.target_colors_num == 0
         ? std::min(unique_colors.size(), max_cluster)
         : std::min(settings.target_colors_num, max_cluster);
@@ -562,7 +568,6 @@ bool standard_3mf_colors_to_painting(
     } else {
         tex2color::TextureToColorSettings algo_settings = make_tex2color_settings(settings);
         algo_settings.target_colors_num = settings.target_colors_num == 0 ? 0 : target;
-        algo_settings.max_cluster_k     = std::min(algo_settings.max_cluster_k, max_cluster);
         tex2color::AlgoProgressCallback algo_progress = nullptr;
         tex2color::AlgoCancelCallback algo_cancel = nullptr;
         bind_paint_callbacks(nullptr, cancel, algo_progress, algo_cancel);

@@ -1017,6 +1017,7 @@ static std::vector<ColorDouble> kmeans_core(const std::vector<ColorDouble>& work
 
         for (std::size_t i = 0; i < k; ++i) {
             if (counts[i] == 0) {
+                if (cancel_cb && cancel_cb()) return centers;
                 double max_min_dist = -1.0;
                 std::size_t best_idx = 0;
                 for (std::size_t p = 0; p < working_colors.size(); ++p) {
