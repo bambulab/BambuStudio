@@ -3,6 +3,7 @@
 
 #include "GUI_Utils.hpp"
 #include "DeviceManager.hpp"
+#include "FilamentSelectTypes.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/StaticBox.hpp"
@@ -24,17 +25,8 @@ namespace Slic3r { namespace GUI {
 class FilamentSelectDialog : public DPIDialog
 {
 public:
-    struct SelectionResult {
-        std::string spool_id;       // non-empty = Filament Manager spool selected
-        wxString    preset_alias;   // non-empty = system preset selected (spool_id empty)
-
-        // colour info (FM spool path only — read directly from the spool)
-        int                      color_type{2};
-        std::vector<std::string> colors;
-        std::string              color_code;
-
-        bool is_valid() const { return !spool_id.empty() || !preset_alias.IsEmpty(); }
-    };
+    // Shared with the Web dialog (DeviceWeb/ViewModels/DevicePage/FilamentSelect).
+    using SelectionResult = FilamentSelectResult;
 
     explicit FilamentSelectDialog(wxWindow* parent);
     ~FilamentSelectDialog() {}
@@ -73,7 +65,7 @@ private:
     std::unordered_map<wxString, wxString>    m_vendors;
     std::unordered_map<wxString, wxString>    m_types;
     std::set<std::string>                     m_printer_names;
-    std::map<wxString, std::vector<wxString>> m_brand_to_aliases;
+    std::map<wxString, std::vector<wxString>> m_brand_to_aliases; // keyed by display label ("Other" translated)
     std::vector<wxString>                     m_ordered_brands;
     wxString                                  m_checked_alias;
     wxString                                  m_selected_brand;

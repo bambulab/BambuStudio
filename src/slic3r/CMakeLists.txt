@@ -272,6 +272,9 @@ set(SLIC3R_GUI_SOURCES
     GUI/AMSNewFilamentDialogs.hpp
     GUI/FilamentSelectDialog.cpp
     GUI/FilamentSelectDialog.hpp
+    GUI/FilamentSelectCommon.cpp
+    GUI/FilamentSelectCommon.hpp
+    GUI/FilamentSelectTypes.hpp
     GUI/ExtrusionCalibration.cpp
     GUI/ExtrusionCalibration.hpp
     GUI/PresetHints.cpp

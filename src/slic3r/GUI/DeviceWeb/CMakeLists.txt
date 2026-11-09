@@ -391,6 +391,19 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/PageConnectedSlots.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/PageConnectedSlots.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/Schema.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/FilamentSelect/FilamentSelectEntry.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/FilamentSelect/FilamentSelectEntry.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/FilamentSelect/FilamentSelectWebEnable.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/FilamentSelect/PageFilamentSelect.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/FilamentSelect/PageFilamentSelect.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/FilamentSelect/Schema.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/FilamentSelect/Schema2Json.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/FilamentSelect/ViewModel.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/FilamentSelect/ViewModel.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/FilamentSelect/ViewModelActions.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/FilamentSelect/ViewModelActions.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/FilamentSelect/ViewModelBuilder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/FilamentSelect/ViewModelBuilder.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/ViewModel.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/ViewModel.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/ControlPanel/ViewModelActions.cpp

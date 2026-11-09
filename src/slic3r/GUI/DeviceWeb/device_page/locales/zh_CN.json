@@ -478,5 +478,13 @@
   "E3D High Flow": "E3D高流量",
   "Pen": "画笔",
   "Cutter": "刀切头",
-  "Laser": "激光"
+  "Laser": "激光",
+  "Filament Manager": "耗材管理",
+  "System presets": "系统配置",
+  "Search filament": "搜索耗材",
+  "Other": "其他",
+  "Unsupported Filaments": "不支持的耗材",
+  "No filaments": "暂无耗材",
+  "Recently used": "最近使用",
+  "{{slot}} slot": "{{slot}} 槽位"
 }

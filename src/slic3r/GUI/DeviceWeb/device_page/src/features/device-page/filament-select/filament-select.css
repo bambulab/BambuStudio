@@ -1,0 +1,564 @@
+/* Select Filament dialog — 1:1 with the native FilamentSelectDialog.
+ * Sizes are the native FromDIP() values; colours are the native dlg_*()
+ * helpers plus the StateColor dark mapping for Button-drawn parts.
+ * Every control has its own class: no tag selectors. */
+
+.fs-page {
+  --fs-bg: #ffffff;
+  --fs-separator: #e6e6e6;
+  --fs-divider: #dcdcdc;
+  --fs-chip-border: #dcdcdc;
+  --fs-chip-sel-bg: #dbfde7;
+  --fs-chip-text: #323a3d;
+  --fs-row-hl: #eef8f2;
+  --fs-badge-bg: #dbf4e4;
+  --fs-search-border: #eeeeee;
+  --fs-text-primary: #262e30;
+  --fs-text-secondary: #323a3d;
+  --fs-text-meta: #6b6b6b;
+  --fs-text-dimmed: #aeaeae;
+  --fs-text-empty: #aeaeae;
+  --fs-tab-active: #262e30;
+  --fs-tab-inactive: #6b6b6b;
+  --fs-underline: #00ae42;
+  --fs-accent: #00ae42;
+  --fs-icon: #323a3d;
+  --fs-icon-disabled: #cecece;
+  --fs-logo: #262e30;
+  --fs-confirm-bg: #00ae42;
+  --fs-confirm-bg-hover: #3dcb73;
+  --fs-confirm-bg-pressed: #1b8844;
+  --fs-confirm-border: #00ae42;
+  --fs-confirm-text: #fffffe;
+  --fs-close-bg: #ffffff;
+  --fs-close-bg-hover: #eeeeee;
+  --fs-close-bg-pressed: #cecece;
+  --fs-close-border: #262e30;
+  --fs-close-text: #262e30;
+
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: var(--fs-bg);
+  color: var(--fs-text-primary);
+  font-family: 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 14px;
+  color-scheme: light;
+  user-select: none;
+}
+
+.fs-page[data-theme='dark'] {
+  --fs-bg: #2d2d31;
+  --fs-separator: #505254;
+  --fs-divider: #505254;
+  --fs-chip-border: #505254;
+  --fs-chip-sel-bg: #1f3529;
+  --fs-chip-text: #e5e5e4;
+  --fs-row-hl: #245c3a;
+  --fs-badge-bg: #1a2e22;
+  --fs-search-border: #505254;
+  --fs-text-primary: #f0f0f0;
+  --fs-text-secondary: #c8cacc;
+  --fs-text-meta: #c8cacc;
+  --fs-text-dimmed: #8a8a8e;
+  --fs-tab-active: #efeff0;
+  --fs-tab-inactive: #818183;
+  --fs-accent: #21a452;
+  --fs-icon: #b3b3b5;
+  --fs-icon-disabled: #54545b;
+  --fs-logo: #efeff0;
+  --fs-confirm-bg: #21a452;
+  --fs-confirm-bg-hover: #37b865;
+  --fs-confirm-bg-pressed: #1c8a46;
+  --fs-confirm-border: #21a452;
+  --fs-close-bg: #2d2d31;
+  --fs-close-bg-hover: #36363c;
+  --fs-close-bg-pressed: #54545b;
+  --fs-close-border: #efeff0;
+  --fs-close-text: #efeff0;
+  color-scheme: dark;
+}
+
+.fs-mask-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* ---- tabs ---- */
+
+.fs-tabs {
+  display: flex;
+  flex-shrink: 0;
+  padding-left: 20px;
+}
+
+.fs-tab-unit {
+  display: flex;
+  flex-direction: column;
+}
+
+.fs-tab {
+  margin: 0;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 0;
+  background: var(--fs-bg);
+  color: var(--fs-tab-inactive);
+  font: inherit;
+  font-size: 14px;
+  line-height: 19px;
+  cursor: pointer;
+}
+
+.fs-tab--active {
+  color: var(--fs-tab-active);
+  font-weight: 700;
+}
+
+.fs-tab-underline {
+  display: block;
+  height: 3px;
+  background: var(--fs-bg);
+}
+
+.fs-tab-underline--active {
+  background: var(--fs-underline);
+}
+
+.fs-separator {
+  flex-shrink: 0;
+  height: 1px;
+  background: var(--fs-separator);
+}
+
+/* ---- body ---- */
+
+.fs-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0 20px;
+}
+
+.fs-manager {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.fs-search {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  margin: 8px 8px 0;
+  padding: 4px 6px;
+  border: 1px solid var(--fs-search-border);
+  border-radius: 6px;
+  background: var(--fs-bg);
+}
+
+.fs-search__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 21px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--fs-text-primary);
+  font: inherit;
+  font-size: 14px;
+  user-select: text;
+}
+
+.fs-search__input::placeholder {
+  color: var(--fs-text-dimmed);
+}
+
+/* ---- chips ---- */
+
+.fs-chip-row {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: 34px;
+  margin: 6px 6px 0;
+}
+
+.fs-chip-strip {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 0;
+  height: 100%;
+  margin-right: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.fs-chip {
+  flex-shrink: 0;
+  margin: 0 6px 0 0;
+  padding: 4px 10px;
+  border: 1px solid var(--fs-chip-border);
+  border-radius: 4px;
+  background: var(--fs-bg);
+  color: var(--fs-chip-text);
+  font: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.fs-chip--active {
+  border-color: var(--fs-accent);
+  background: var(--fs-chip-sel-bg);
+  color: var(--fs-accent);
+}
+
+/* Brand chips slide on one track inside a clipping window; the window is
+ * sized to the whole chips it shows (ChipBar / chipWindowGeometry). */
+.fs-chip-viewport {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: 100%;
+  overflow: hidden;
+}
+
+.fs-chip-track {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+/* Only an arrow click animates; other re-layouts jump. */
+.fs-chip-row--sliding .fs-chip-viewport {
+  transition: width 220ms ease-out;
+}
+
+.fs-chip-row--sliding .fs-chip-track {
+  transition: transform 220ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fs-chip-row--sliding .fs-chip-viewport,
+  .fs-chip-row--sliding .fs-chip-track {
+    transition: none;
+  }
+}
+
+.fs-chip-measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.fs-chip-arrow {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.fs-chip-arrow--left {
+  margin-right: 4px;
+}
+
+.fs-chip-arrow__icon {
+  background-color: var(--fs-icon);
+}
+
+.fs-chip-arrow:disabled {
+  cursor: default;
+}
+
+.fs-chip-arrow:disabled .fs-chip-arrow__icon {
+  background-color: var(--fs-icon-disabled);
+}
+
+/* ---- spool list ---- */
+
+.fs-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 6px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.fs-row {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  margin-bottom: 1px;
+  background: var(--fs-bg);
+  cursor: pointer;
+}
+
+.fs-row--selected {
+  background: var(--fs-row-hl);
+}
+
+.fs-row--dimmed {
+  cursor: default;
+}
+
+.fs-row__swatch {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin: 0 8px;
+}
+
+.fs-row__logo {
+  margin-right: 6px;
+  background-color: var(--fs-logo);
+}
+
+.fs-row__name {
+  flex: 1 1 auto;
+  min-width: 120px;
+  overflow: hidden;
+  color: var(--fs-text-primary);
+  font-size: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fs-row__weight {
+  flex-shrink: 0;
+  min-width: 52px;
+  margin: 0 8px;
+  color: var(--fs-text-meta);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.fs-row--dimmed .fs-row__name,
+.fs-row--dimmed .fs-row__weight,
+.fs-row--dimmed .fs-row__slot {
+  color: var(--fs-text-dimmed);
+}
+
+.fs-row__tail {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  width: 88px;
+  margin-right: 8px;
+}
+
+.fs-row__slot {
+  overflow: hidden;
+  color: var(--fs-text-meta);
+  font-size: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fs-row__badge {
+  box-sizing: border-box;
+  width: 88px;
+  padding: 2px 6px;
+  overflow: hidden;
+  border: 1px solid var(--fs-accent);
+  border-radius: 6px;
+  background: var(--fs-badge-bg);
+  color: var(--fs-accent);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fs-empty {
+  margin: 16px;
+  color: var(--fs-text-empty);
+  font-size: 13px;
+}
+
+/* ---- system presets ---- */
+
+.fs-presets {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.fs-brand-list {
+  flex: 2 1 0;
+  min-width: 0;
+  margin: 4px 0 4px 4px;
+  overflow-y: auto;
+}
+
+.fs-divider {
+  flex-shrink: 0;
+  width: 1px;
+  margin: 4px 0;
+  background: var(--fs-divider);
+}
+
+.fs-alias-list {
+  flex: 3 1 0;
+  min-width: 0;
+  margin: 4px 4px 4px 0;
+  overflow-y: auto;
+}
+
+.fs-brand-row {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 10px 0 12px;
+  background: var(--fs-bg);
+  color: var(--fs-text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.fs-brand-row--selected {
+  background: var(--fs-row-hl);
+  color: var(--fs-text-primary);
+}
+
+.fs-brand-row__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fs-brand-row__arrow {
+  background-color: var(--fs-icon);
+}
+
+.fs-alias-row {
+  padding: 8px;
+  background: var(--fs-bg);
+  color: var(--fs-text-primary);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.fs-alias-row--checked {
+  background: var(--fs-row-hl);
+}
+
+/* ---- footer ---- */
+
+.fs-footer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 12px;
+}
+
+.fs-btn {
+  box-sizing: border-box;
+  min-width: 90px;
+  height: 24px;
+  margin: 0;
+  padding: 0 12px;
+  border: 1px solid;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.fs-btn--confirm {
+  margin-right: 20px;
+  border-color: var(--fs-confirm-border);
+  background: var(--fs-confirm-bg);
+  color: var(--fs-confirm-text);
+}
+
+.fs-btn--confirm:hover {
+  background: var(--fs-confirm-bg-hover);
+}
+
+.fs-btn--confirm:active {
+  background: var(--fs-confirm-bg-pressed);
+}
+
+.fs-btn--close {
+  border-color: var(--fs-close-border);
+  background: var(--fs-close-bg);
+  color: var(--fs-close-text);
+}
+
+.fs-btn--close:hover {
+  background: var(--fs-close-bg-hover);
+}
+
+.fs-btn--close:active {
+  background: var(--fs-close-bg-pressed);
+}
+
+/* ---- debug (Debug builds / dev server only) ---- */
+
+.fs-debug-toggle {
+  position: absolute;
+  bottom: 14px;
+  left: 12px;
+  height: 20px;
+  padding: 0 8px;
+  border: 1px dashed var(--fs-divider);
+  border-radius: 10px;
+  background: var(--fs-bg);
+  color: var(--fs-text-meta);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.fs-debug-panel {
+  position: absolute;
+  top: 44px;
+  right: 8px;
+  bottom: 48px;
+  left: 8px;
+  margin: 0;
+  padding: 8px;
+  overflow: auto;
+  border: 1px solid var(--fs-divider);
+  background: var(--fs-bg);
+  color: var(--fs-text-primary);
+  font-family: Consolas, Menlo, monospace;
+  font-size: 11px;
+  user-select: text;
+  white-space: pre;
+}
