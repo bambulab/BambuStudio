@@ -3715,8 +3715,7 @@ void SelectMachineDialog::on_send_print()
     m_print_job->task_ams_mapping      = ams_mapping_array;
     m_print_job->task_ams_mapping2     = ams_mapping_array2;
     m_print_job->task_ams_mapping_info = ams_mapping_info;
-    if ((use_dynamic_nozzle_map() || queue_needs_nozzle_mapping) &&
-        !obj_->get_nozzle_mapping_result()->GetNozzleMappingJson().empty()) {
+    if (obj_->GetNozzleRack()->IsSupported() && !obj_->get_nozzle_mapping_result()->GetNozzleMappingJson().empty()) {
         nlohmann::json nozzle_mapping = obj_->get_nozzle_mapping_result()->GetNozzleMappingJson();
         // Same physical-length cap as the ams mapping arrays.
         if (nozzle_mapping.is_array() && nozzle_mapping.size() > MAX_PHYSICAL_FILAMENT_COUNT)
