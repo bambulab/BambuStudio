@@ -30347,3 +30347,6 @@ msgstr ""
 
 #~ msgid "Start the application"
 #~ msgstr "启动应用程序"
+
+msgid "Before using Bambu Studio, please agree to the Terms of Use and acknowledge reading the Privacy Policy."
+msgstr "使用Bambu Studio之前请同意使用条款和阅读隐私政策。"

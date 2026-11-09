@@ -361,6 +361,19 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
     return btn;
 };
 
+void MsgDialog::HideLogo()
+{
+    wxSizer *sizer = logo ? logo->GetContainingSizer() : nullptr;
+    if (!sizer) return;
+    // topsizer layout: [LOGO_SPACING][logo][LOGO_GAP][rightsizer]; hide the logo and the gap after it,
+    // keep LOGO_SPACING as the left margin of the text
+    sizer->Hide(logo);
+    sizer->Hide(size_t(2));
+    Layout();
+    Fit();
+    CenterOnParent();
+}
+
 Button* MsgDialog::get_button(wxWindowID btn_id){
     return static_cast<Button*>(FindWindowById(btn_id, this));
 }

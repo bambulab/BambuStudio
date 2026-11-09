@@ -62,7 +62,7 @@ function GotoPolicyPage()
 	
 	SendWXMessage( JSON.stringify(tSend) );
 	
-	window.location.href="../3/index.html?region="+RegionFinal;
+	window.location.href="../12/index.html?region="+encodeURIComponent(RegionFinal);
 }
 
 

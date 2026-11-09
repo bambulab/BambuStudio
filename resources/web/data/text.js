@@ -260,7 +260,14 @@ var LangText={
 		"t291": "Filament",
 		"t292": "Temperature",
 		"t293": "No printer connected",
-		"t294": "No presets available, please add a filament first"
+		"t294": "No presets available, please add a filament first",
+		"t401": "Bambu Lab Terms of Use &amp; Privacy Policy",
+		"t402": "Thank you for choosing Bambu Lab. Please read these Terms before using Bambu Studio. By clicking “Agree”, you agree to the ",
+		"t403": "Bambu Lab Terms of Use",
+		"t404": " and acknowledge reading ",
+		"t405": "Privacy Policy",
+		"t406": ". If you do not agree to the Terms or read the Policy, you may not use Bambu Studio.",
+		"t407": "Decline"
 	},
 	"zh_CN": {
 		"t1": "欢迎使用Bambu Studio",
@@ -540,7 +547,14 @@ var LangText={
 		"t291": "材料",
 		"t292": "温度",
 		"t293": "打印机未连接",
-		"t294": "无可用预设，请先添加可用耗材"
+		"t294": "无可用预设，请先添加可用耗材",
+		"t401": "Bambu Lab使用条款 &amp; 隐私政策",
+		"t402": "感谢您选择 Bambu Lab。使用Bambu Studio前，请阅读以下条款。点击“同意”即表示您同意",
+		"t403": "Bambu Lab使用条款",
+		"t404": "，并确认已阅读",
+		"t405": "Bambu Lab隐私政策",
+		"t406": "。如您不同意使用条款或未阅读隐私政策，将无法使用Bambu Studio相关服务。",
+		"t407": "拒绝"
 	},
 	"ja_JP": {
 		"t1": "Bambu Studioへようこそ",

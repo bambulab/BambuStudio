@@ -74,6 +74,8 @@ struct MsgDialog : DPIDialog
 
 	void AddButton(wxWindowID btn_id, const wxString& label, bool set_focus = false) { add_button(btn_id, set_focus, label); };
 	void SetButtonLabel(wxWindowID btn_id, const wxString& label, bool set_focus = false);
+	// Hide the icon on the left side; call after all buttons are added
+	void HideLogo();
 
 protected:
 	enum {
