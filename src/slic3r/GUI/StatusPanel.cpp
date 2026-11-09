@@ -6655,8 +6655,12 @@ void StatusPanel::on_switch_vcamera(wxCommandEvent &event)
     // if (!obj) return;
     // bool value = m_recording_button->get_switch_status();
     // obj->command_ipcam_record(!value);
+    bool streaming_before = m_media_play_ctrl->IsStreaming();
+    auto start = std::chrono::steady_clock::now();
     m_media_play_ctrl->ToggleStream();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
     show_vcamera = m_media_play_ctrl->IsStreaming();
+    BOOST_LOG_TRIVIAL(info) << "toggle vcamera stream " << streaming_before << " -> " << show_vcamera << " in " << ms << " ms";
     if (m_camera_popup) m_camera_popup->sync_vcamera_state(show_vcamera);
 }
 
@@ -6666,10 +6670,10 @@ void StatusPanel::on_camera_enter(wxMouseEvent &event)
     if (obj) {
         if (m_camera_popup == nullptr) {
             m_camera_popup = std::make_shared<CameraPopup>(this);
+            m_camera_popup->Bind(EVT_VCAMERA_SWITCH, &StatusPanel::on_switch_vcamera, this);
         }
         m_camera_popup->check_func_supported(obj);
         m_camera_popup->sync_vcamera_state(show_vcamera);
-        m_camera_popup->Bind(EVT_VCAMERA_SWITCH, &StatusPanel::on_switch_vcamera, this);
         wxWindow *ctrl = (wxWindow *) event.GetEventObject();
         wxPoint   pos  = ctrl->ClientToScreen(wxPoint(0, 0));
         wxSize    sz   = ctrl->GetSize();

@@ -113,6 +113,7 @@ private:
     std::chrono::steady_clock::time_point m_last_live_cam_click{};
     std::chrono::steady_clock::time_point m_last_visual_cam_click{};
     std::chrono::steady_clock::time_point m_last_vcamera_click{};
+    bool m_vcamera_left_down_seen = false;
 
     std::function<void()> m_on_dismiss;
 

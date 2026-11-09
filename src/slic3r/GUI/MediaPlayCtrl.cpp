@@ -846,7 +846,10 @@ void MediaPlayCtrl::ToggleStream()
         // create stream pipeline
         bool need_install = false;
         if (!start_stream_service(&need_install)) {
-            if (!need_install) return;
+            if (!need_install) {
+                BOOST_LOG_TRIVIAL(warning) << "start vcamera stream service failed";
+                return;
+            }
             auto res = MessageDialog(this->GetParent(), _L("Virtual Camera Tools is required for this task!\nDo you want to install them?"), _L("Info"),
                                     wxOK | wxCANCEL).ShowModal();
             if (res == wxID_OK) {
@@ -929,6 +932,8 @@ void MediaPlayCtrl::ToggleStream()
 #endif
 
         CallAfter([this, m, url] {
+            BOOST_LOG_TRIVIAL(info) << KV(log_key::dev_id, m) << "vcamera url callback, machine changed " << (m != m_machine)
+                                    << ", url valid " << (!url.empty() && boost::algorithm::starts_with(url, "bambu:///"));
             if (m != m_machine) return;
             if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
                 MessageDialog(this->GetParent(), wxString::Format(_L("Virtual camera initialize failed (%s)!"), url.empty() ? _L("Network unreachable") : from_u8(url)), _L("Information"),

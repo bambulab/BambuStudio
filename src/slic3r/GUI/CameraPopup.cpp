@@ -4,6 +4,7 @@
 #include "MediaPlayCtrl.h"
 #include "Widgets/Label.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Log.hpp"
 #include "BitmapCache.hpp"
 #include "wxExtensions.hpp"
 #include <wx/progdlg.h>
@@ -227,6 +228,7 @@ CameraPopup::CameraPopup(wxWindow *parent)
         on_switch_visual_cam_rec(e);
     });
     m_switch_vcamera->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        m_vcamera_left_down_seen = true;
         auto now = std::chrono::steady_clock::now();
         if (now - m_last_vcamera_click < std::chrono::milliseconds(300)) return;
         m_last_vcamera_click = now;
@@ -383,6 +385,8 @@ void CameraPopup::reset_resolution_setting()
 
 void CameraPopup::sync_vcamera_state(bool show_vcamera)
 {
+    if (m_switch_vcamera->GetValue() != show_vcamera)
+        BOOST_LOG_TRIVIAL(info) << "vcamera switch synced " << m_switch_vcamera->GetValue() << " -> " << show_vcamera;
     is_vcamera_show = show_vcamera;
     if (is_vcamera_show) {
         m_switch_vcamera->SetValue(true);
@@ -590,6 +594,9 @@ void CameraPopup::rescale()
 
 void CameraPopup::OnLeftUp(wxMouseEvent &event)
 {
+    const bool vcamera_left_down_seen = m_vcamera_left_down_seen;
+    m_vcamera_left_down_seen = false;
+
     auto mouse_pos = ClientToScreen(event.GetPosition());
     auto wxscroll_win_pos = m_panel->ClientToScreen(wxPoint(0, 0));
 
@@ -622,8 +629,12 @@ void CameraPopup::OnLeftUp(wxMouseEvent &event)
         //vcamera
         auto vcamera_rect = m_switch_vcamera->ClientToScreen(wxPoint(0, 0));
         if (mouse_pos.x > vcamera_rect.x && mouse_pos.y > vcamera_rect.y && mouse_pos.x < (vcamera_rect.x + m_switch_vcamera->GetSize().x) && mouse_pos.y < (vcamera_rect.y + m_switch_vcamera->GetSize().y)) {
-            wxMouseEvent vcamera_evt(wxEVT_LEFT_DOWN);
-            m_switch_vcamera->GetEventHandler()->ProcessEvent(vcamera_evt);
+            BOOST_LOG_TRIVIAL(info) << "vcamera switch left up, left down seen " << vcamera_left_down_seen;
+            if (!vcamera_left_down_seen) {
+                wxMouseEvent vcamera_evt(wxEVT_LEFT_DOWN);
+                m_switch_vcamera->GetEventHandler()->ProcessEvent(vcamera_evt);
+                m_vcamera_left_down_seen = false;
+            }
             return;
         }
         //resolution
