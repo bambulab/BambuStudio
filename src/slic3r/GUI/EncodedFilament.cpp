@@ -337,7 +337,8 @@ std::unique_ptr<FilamentColorCodes> owned_spool_color_codes(const Preset& preset
 
     const std::string type     = preset.display_name();
     const auto        swatches = GUI::spool_swatches_for(spools, type,
-                                                         GUI::SpoolColorRules::load(data_dir() + "/" + GUI::kSpoolColorRulesFile));
+                                                         GUI::SpoolColorRules::load(data_dir() + "/" + GUI::kSpoolColorRulesFile),
+                                                         preset.filament_id);
     if (swatches.empty()) return nullptr;
 
     auto* clr_query = GUI::wxGetApp().get_filament_color_code_query();

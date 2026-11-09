@@ -74,6 +74,24 @@ TEST_CASE("Spool swatches: a rule lists the filament types a spool type is offer
     REQUIRE(spool_swatches_for(spools, "PLA+", rules).empty());
 }
 
+TEST_CASE("Spool swatches: a 'Prints With' link offers a spool whose type doesn't match",
+          "[fila_manager][spool_colors]")
+{
+    // Elegoo PLA+ pointed at the Bambu PLA Basic preset through the Filament
+    // Manager "Prints With" field: its type is "PLA+", which no rule maps to
+    // "PLA Basic", but its filament_id is that preset's, so it belongs there.
+    FilamentSpool s = spool("Elegoo", "PLA+", "#6E8451", "Army Green");
+    s.filament_id   = "GFL99";
+
+    // No link target, no rule: the "PLA+" spool is not offered under "PLA Basic".
+    REQUIRE(spool_swatches_for({s}, "PLA Basic", SpoolColorRules{}).empty());
+    // With the preset's filament_id as the link target, it is offered.
+    REQUIRE(labels(spool_swatches_for({s}, "PLA Basic", SpoolColorRules{}, "GFL99")) ==
+            std::vector<std::string>{"Elegoo Army Green"});
+    // A different preset's filament_id must not pull it in.
+    REQUIRE(spool_swatches_for({s}, "PLA Basic", SpoolColorRules{}, "GFL00").empty());
+}
+
 TEST_CASE("Spool swatches: the note names a custom colour, minus the '(N bought)' cruft",
           "[fila_manager][spool_colors]")
 {
