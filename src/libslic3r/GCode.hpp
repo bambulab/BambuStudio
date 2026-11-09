@@ -630,11 +630,13 @@ private:
     unsigned int                        m_skirt_last_filament = (unsigned int)-1;
     // Has the brim been extruded already? Brim is being extruded only for the first object of a multi-object print.
     bool                                m_brim_done;
-    // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
+    // Whether the second layer setup has been performed.
     bool                                m_second_layer_things_done;
     // Whether the bed has switched from its first layer temperature. Multi-diameter first bands rest on the
     // bed above the second physical layer, so this can happen later than m_second_layer_things_done.
     bool                                m_bed_temp_transition_done = false;
+    // Filaments that have completed their first-layer nozzle temperature transition.
+    std::set<unsigned int>              m_nozzle_temp_transition_done;
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
     //BBS

@@ -3488,10 +3488,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 if (m_pressure_equalizer) file.write(m_pressure_equalizer->process("", true));
 #endif /* HAS_PRESSURE_EQUALIZER */
                 ++finished_objects;
-                // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
-                // Reset it when starting another object from 1st layer.
+                // Reset second layer setup and temperature transitions for the next object instance.
                 m_second_layer_things_done = false;
                 m_bed_temp_transition_done = false;
+                m_nozzle_temp_transition_done.clear();
                 prev_object                = object;
             }
         } else {
@@ -5182,7 +5182,7 @@ GCode::LayerResult GCode::process_layer(
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0 && !this->is_BBL_Printer())
             gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
 
-        // Mark the temperature transition from 1st to 2nd layer to be finished.
+        // Mark the second layer setup as finished.
         m_second_layer_things_done = true;
     }
 
@@ -5205,14 +5205,16 @@ GCode::LayerResult GCode::process_layer(
     }
 
     // A merged bed-contact band may end above the second physical layer. Transition each filament
-    // independently after its own contact paths are complete; the writer suppresses unchanged commands.
+    // once, independently after its own contact paths are complete.
     if (! first_layer && m_second_layer_things_done) {
         for (const Extruder &extruder : m_writer.extruders()) {
             if (print.config().single_extruder_multi_material.value &&
                 extruder.id() != m_writer.filament()->id())
                 continue;
-            if (this->filament_in_first_layer_phase(extruder.id()))
+            if (m_nozzle_temp_transition_done.count(extruder.id()) != 0 ||
+                this->filament_in_first_layer_phase(extruder.id()))
                 continue;
+            m_nozzle_temp_transition_done.insert(extruder.id());
             const size_t config_idx  = get_filament_config_index(extruder.id());
             const int    temperature = print.config().nozzle_temperature.get_at(config_idx);
             if (temperature > 0 &&
