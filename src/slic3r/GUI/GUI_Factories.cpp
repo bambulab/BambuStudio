@@ -1,3 +1,4 @@
+#include "PresetComboBoxes.hpp"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
@@ -1543,6 +1544,15 @@ void MenuFactory::create_filament_action_menu(wxMenu* menu, int active_filament_
     auto* merge_item = append_submenu(menu, sub_menu, wxID_ANY, _L("Merge with"), "", "",
         []() { return true; }, nullptr);
     merge_item->Enable(filaments_cnt > 1);
+
+    append_menu_item(menu, wxID_ANY, _L("Find Filament..."),
+        _L("Find filament by color name, product code or inventory"),
+        [active_filament_menu_id](wxCommandEvent&) {
+            if (!plater()) return;
+            const auto& combos = plater()->sidebar().combos_filament();
+            if (active_filament_menu_id >= 0 && static_cast<size_t>(active_filament_menu_id) < combos.size())
+                combos[active_filament_menu_id]->find_bambu_filament();
+        }, "", nullptr, []() { return true; }, nullptr);
 }
 
 //BBS: add part plate related logic
