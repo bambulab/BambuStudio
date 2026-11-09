@@ -1,36 +1,41 @@
 #include "RoundedRectangle.hpp"
 #include "../wxExtensions.hpp"
-#include <wx/dcclient.h>
+#include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
 
-BEGIN_EVENT_TABLE(RoundedRectangle, wxPanel)
+BEGIN_EVENT_TABLE(RoundedRectangle, wxWindow)
 EVT_PAINT(RoundedRectangle::OnPaint)
 END_EVENT_TABLE()
 
- RoundedRectangle::RoundedRectangle(wxWindow *parent, wxColour col, wxPoint pos, wxSize size, double radius, int type)
-     : wxWindow(parent, wxID_ANY, pos, size, wxBORDER_NONE)
+RoundedRectangle::RoundedRectangle(wxWindow *parent, const wxColour &fill, const wxColour &border, double radius, wxPoint pos, wxSize size)
+    : wxWindow(parent, wxID_ANY, pos, size, wxBORDER_NONE | wxFULL_REPAINT_ON_RESIZE), m_radius(radius), m_fill(fill), m_border(border)
 {
-    SetBackgroundColour(wxColour(255,255,255));
-    m_type   = type;
-    m_color  = col;
-    m_radius = radius;
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
+    SetBackgroundColour(parent->GetBackgroundColour()); // the corners blend into the parent
 }
 
-void RoundedRectangle::OnPaint(wxPaintEvent &evt)
+void RoundedRectangle::OnPaint(wxPaintEvent &)
 {
-    //draw RoundedRectangle
-    if (m_type == 0) {
-        wxPaintDC dc(this);
-        dc.SetPen(*wxTRANSPARENT_PEN);
-        dc.SetBrush(wxBrush(m_color));
-        dc.DrawRoundedRectangle(0, 0, GetSize().GetWidth(), GetSize().GetHeight(), m_radius);
+    wxAutoBufferedPaintDC dc(this);
+    dc.SetBackground(wxBrush(GetParent()->GetBackgroundColour()));
+    dc.Clear();
+    wxGCDC       gdc(dc);
+    const wxSize sz = GetClientSize();
+    wxRect       r(0, 0, sz.x, sz.y);
+    if (m_border.IsOk()) {
+        r.Deflate(FromDIP(1)); // keep the stroke inside the widget
+        gdc.SetPen(wxPen(m_border, FromDIP(1)));
+    } else {
+        gdc.SetPen(*wxTRANSPARENT_PEN);
     }
+    gdc.SetBrush(m_fill.IsOk() ? wxBrush(m_fill) : *wxTRANSPARENT_BRUSH);
+    gdc.DrawRoundedRectangle(r, m_radius);
+}
 
-    //draw RoundedRectangle only board
-    if (m_type == 1) {
-        wxPaintDC dc(this);
-        dc.SetPen(m_color);
-        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-        dc.DrawRoundedRectangle(0, 0, GetSize().GetWidth(), GetSize().GetHeight(), m_radius);
-    }
+void RoundedRectangle::SetFillColour(const wxColour &fill)
+{
+    if (m_fill == fill)
+        return;
+    m_fill = fill;
+    Refresh();
 }

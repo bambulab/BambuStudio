@@ -1,6 +1,7 @@
 #include "WebUserLoginDialog.hpp"
 
 #include <string.h>
+#include <algorithm>
 #include "I18N.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
@@ -26,6 +27,7 @@
 
 #include <sstream>
 #include <slic3r/GUI/Widgets/WebView.hpp>
+#include "libslic3r/Log.hpp"
 using namespace std;
 
 using namespace nlohmann;
@@ -87,7 +89,7 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
             TargetUrl = host_url + "/" + strlang + "/sign-in";
         }
 
-        BOOST_LOG_TRIVIAL(info) << "login url = " << TargetUrl.ToStdString();
+        BOOST_LOG_TRIVIAL(info) << "login url = " << TargetUrl;
 
         m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
 
@@ -126,10 +128,23 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
         SetTitle(_L("Login"));
         // Set a more sensible size for web browsing
         wxSize pSize = FromDIP(wxSize(650, 840));
-        SetSize(pSize);
 
         int screenheight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y, NULL);
         int screenwidth = wxSystemSettings::GetMetric(wxSYS_SCREEN_X, NULL);
+
+        // The remote sign-in page's layout can run taller than the screen
+        // (reported overflowing short/laptop displays), so tie the dialog
+        // height to 60% of the screen height instead of the fixed 840
+        // above, scaling width to match so the original 650:840 aspect
+        // ratio is preserved.
+        // Below min_height the sign-in page's own content no longer fits
+        // and starts showing its own internal scrollbar.
+        int min_height = FromDIP(620);
+        int target_height = std::max(int(screenheight * 0.6), min_height);
+        pSize.x = int(pSize.x * (double(target_height) / pSize.y));
+        pSize.y = target_height;
+        SetSize(pSize);
+
         int MaxY = (screenheight - pSize.y) > 0 ? (screenheight - pSize.y) / 2 : 0;
         wxPoint tmpPT((screenwidth - pSize.x) / 2, MaxY);
         Move(tmpPT);

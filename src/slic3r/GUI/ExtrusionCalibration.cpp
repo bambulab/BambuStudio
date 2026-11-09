@@ -3,10 +3,10 @@
 #include "MsgDialog.hpp"
 #include "libslic3r/Preset.hpp"
 #include "I18N.hpp"
-#include <boost/log/trivial.hpp>
 #include <wx/dcgraph.h>
 #include "CalibUtils.hpp"
 #include "DeviceCore/DevFilaSystem.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -477,6 +477,7 @@ void ExtrusionCalibration::on_click_cali(wxCommandEvent& event)
                             BOOST_LOG_TRIVIAL(error) << "cali parameters is invalid";
                         }
                     } catch(...) {
+                        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                         ;
                     }
                 }
@@ -506,6 +507,7 @@ bool ExtrusionCalibration::check_k_validation(wxString k_text)
         k_text.ToDouble(&k);
     }
     catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         ;
     }
 
@@ -525,7 +527,7 @@ bool ExtrusionCalibration::check_k_n_validation(wxString k_text, wxString n_text
         k_text.ToDouble(&k);
         n_text.ToDouble(&n);
     } catch (...) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Convert k/n value failed, k_text: " << k_text << ", n_text: " << n_text;
+        BOOST_LOG_TRIVIAL(warning) << "Convert k/n value failed, k_text: " << k_text << ", n_text: " << n_text;
     }
 
     if (k <= MIN_PA_K_VALUE || k >= MAX_PA_K_VALUE)
@@ -553,7 +555,7 @@ void ExtrusionCalibration::on_click_save(wxCommandEvent &event)
         k_text.ToDouble(&k);
         n_text.ToDouble(&n);
     } catch (...) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Convert k/n value failed, k_text: " << k_text << ", n_text: " << n_text;
+        BOOST_LOG_TRIVIAL(warning) << "Convert k/n value failed, k_text: " << k_text << ", n_text: " << n_text;
     }
 
     // set values

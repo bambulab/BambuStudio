@@ -58,11 +58,15 @@ wgtDeviceNozzleRackUpgradeDlg::wgtDeviceNozzleRackUpgradeDlg(wxWindow* parent, c
 void wgtDeviceNozzleRackUpgradeDlg::UpdateRackInfo(const std::shared_ptr<DevNozzleRack> rack)
 {
     m_rack_upgrade_panel->UpdateRackInfo(rack);
+    Layout();
+    Fit();
 }
 
 void wgtDeviceNozzleRackUpgradeDlg::on_dpi_changed(const wxRect& suggested_rect)
 {
     m_rack_upgrade_panel->Rescale();
+    Layout();
+    Fit();
 }
 
 wgtDeviceNozzleRackUprade::wgtDeviceNozzleRackUprade(wxWindow* parent,
@@ -79,49 +83,95 @@ void wgtDeviceNozzleRackUprade::CreateGui()
 {
     SetBackgroundColour(*wxWHITE);
 
-    // Main vertical sizer
     auto* main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    // Header: title + buttons
     auto* header_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    // Title label
     auto* title_label = new Label(this, _L("Hotends Info"));
     title_label->SetFont(Label::Head_14);
     header_sizer->Add(title_label, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
 
-    // Spacer
     header_sizer->AddStretchSpacer();
     main_sizer->Add(header_sizer, 0, wxEXPAND | wxTOP | wxRIGHT, FromDIP(10));
 
-    // "Nozzles"
-    m_extruder_nozzle_item = new wgtDeviceNozzleRackHotendUpdate(this, "R");
-    m_extruder_nozzle_item->UpdateColourStyle(wxColour("#F8F8F8"));
-    m_extruder_nozzle_item->SetExtruderNozzleId(MAIN_EXTRUDER_ID);
-
-    main_sizer->Add(m_extruder_nozzle_item, 0, wxEXPAND | wxALL, FromDIP(12));
-    for (int id = 0; id < 6; id ++)
-    {
-        auto item = new wgtDeviceNozzleRackHotendUpdate(this, wxString::Format("%d", id + 1));
-        item->SetRackNozzleId(id);
-        m_nozzle_items[id] = item;
-
-        main_sizer->Add(item, 0, wxEXPAND | wxALL, FromDIP(12));
-        if (id < 5)
-        {
-            wxPanel* separator = new wxPanel(this);
-            separator->SetMaxSize(wxSize(-1, FromDIP(1)));
-            separator->SetMinSize(wxSize(-1, FromDIP(1)));
-            separator->SetBackgroundColour(WXCOLOUR_GREY300);
-            main_sizer->Add(separator, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(12));
-        }
-    }
-
+    m_content_sizer = new wxBoxSizer(wxVERTICAL);
+    main_sizer->Add(m_content_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(12));
     main_sizer->AddSpacer(FromDIP(20));
 
-    // Set sizer
-    this->SetSizer(main_sizer);
-    this->Layout();
+    SetSizer(main_sizer);
+    Layout();
+}
+
+void wgtDeviceNozzleRackUprade::ClearHotendRows()
+{
+    if (m_content_sizer)
+        m_content_sizer->Clear(true);
+    m_extruder_nozzle_item = nullptr;
+    m_rack_nozzle_items.clear();
+}
+
+void wgtDeviceNozzleRackUprade::AddRowSeparator()
+{
+    if (!m_content_sizer)
+        return;
+
+    auto* separator = new wxPanel(this);
+    separator->SetMaxSize(wxSize(-1, FromDIP(1)));
+    separator->SetMinSize(wxSize(-1, FromDIP(1)));
+    separator->SetBackgroundColour(WXCOLOUR_GREY300);
+    m_content_sizer->Add(separator, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(12));
+}
+
+namespace {
+
+int fallback_rack_nozzle_count(DevNozzleRack::RackType rack_type)
+{
+    switch (rack_type) {
+    case DevNozzleRack::RackType_A: return 9;
+    case DevNozzleRack::RackType_B: return 7;
+    case DevNozzleRack::RackType_AB: return 6;
+    default: return 0;
+    }
+}
+
+} // namespace
+
+void wgtDeviceNozzleRackUprade::RebuildHotendRows(const std::shared_ptr<DevNozzleRack>& rack)
+{
+    if (!m_content_sizer || !rack)
+        return;
+
+    const auto rack_type  = rack->GetRackType();
+    int        rack_count = rack->GetTotalRackNozzleCount();
+    if (rack_count <= 0)
+        rack_count = fallback_rack_nozzle_count(rack_type);
+    const bool show_extruder_row = rack_type == DevNozzleRack::RackType_AB;
+
+    if (rack_type == m_built_rack_type && rack_count == m_built_rack_count)
+        return;
+
+    ClearHotendRows();
+
+    if (show_extruder_row) {
+        m_extruder_nozzle_item = new wgtDeviceNozzleRackHotendUpdate(this, "R");
+        m_extruder_nozzle_item->UpdateColourStyle(wxColour("#F8F8F8"));
+        m_extruder_nozzle_item->SetExtruderNozzleId(MAIN_EXTRUDER_ID);
+        m_content_sizer->Add(m_extruder_nozzle_item, 0, wxEXPAND | wxALL, FromDIP(12));
+    }
+
+    for (int addr_id = 0; addr_id < rack_count; ++addr_id) {
+        if (addr_id > 0)
+            AddRowSeparator();
+
+        auto* item = new wgtDeviceNozzleRackHotendUpdate(this, wxString::Format("%d", addr_id + 1));
+        item->SetRackNozzleId(addr_id);
+        m_rack_nozzle_items.push_back(item);
+        m_content_sizer->Add(item, 0, wxEXPAND | wxALL, FromDIP(12));
+    }
+
+    m_built_rack_type  = rack_type;
+    m_built_rack_count = rack_count;
+    m_content_sizer->Layout();
 }
 
 namespace {
@@ -185,16 +235,16 @@ wxColour pick_contrast_border_color(const wxColour& bg)
 void wgtDeviceNozzleRackUprade::UpdateRackInfo(const std::shared_ptr<DevNozzleRack> rack)
 {
     m_nozzle_rack = rack;
-    if (!rack) { return;}
+    if (!rack)
+        return;
 
-    // update the nozzles
-    m_extruder_nozzle_item->UpdateExtruderNozzleInfo(rack);
-    for (auto iter : m_nozzle_items)
-    {
-        iter.second->UpdateRackNozzleInfo(rack);
-    }
+    RebuildHotendRows(rack);
 
-    // update layout
+    if (m_extruder_nozzle_item)
+        m_extruder_nozzle_item->UpdateExtruderNozzleInfo(rack);
+    for (auto* item : m_rack_nozzle_items)
+        item->UpdateRackNozzleInfo(rack);
+
     Layout();
 }
 
@@ -208,11 +258,11 @@ void wgtDeviceNozzleRackUprade::OnBtnReadAll(wxCommandEvent& e)
 
 void wgtDeviceNozzleRackUprade::Rescale()
 {
-    m_extruder_nozzle_item->Rescale();
-    for (auto& iter : m_nozzle_items)
-    {
-        iter.second->Rescale();
-    }
+    if (m_extruder_nozzle_item)
+        m_extruder_nozzle_item->Rescale();
+    for (auto* item : m_rack_nozzle_items)
+        item->Rescale();
+    Layout();
 }
 
 #define WGT_DEVICE_NOZZLE_RACK_HOTEND_UPDATE_DEFAULT_BG *wxWHITE
@@ -545,10 +595,22 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateExtruderNozzleInfo(const std::shared
 void wgtDeviceNozzleRackHotendUpdate::UpdateRackNozzleInfo(const std::shared_ptr<DevNozzleRack> rack)
 {
     m_nozzle_rack = rack;
-    if (rack)
-    {
-        UpdateInfo(rack->GetNozzle(m_rack_nozzle_id));
+    if (!rack)
+        return;
+
+    if (rack->IsDirectConnectedRack()) {
+        DevNozzleSystem* nozzle_system = rack->GetNozzleSystem();
+        if (!nozzle_system)
+            return;
+
+        //  resolve by stable addr_id across rack and extruder (picked nozzle).
+        const auto nozzle_opt = nozzle_system->GetNozzleOptByAddrId(m_rack_nozzle_id);
+        UpdateInfo(nozzle_opt.value_or(DevNozzle()));
+        return;
     }
+
+    // H2D (RackType_AB): rack map slot index only; toolhead nozzle uses the R row.
+    UpdateInfo(rack->GetNozzle(m_rack_nozzle_id));
 }
 
 bool wgtDeviceNozzleRackHotendUpdate::UpdateFilamentColourSwatch(const std::string& display_color)

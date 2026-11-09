@@ -15,8 +15,18 @@ import { Route as FilamentmanagerImport } from './routes/filament_manager'
 import { Route as AppImport } from './routes/app'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
+import { Route as DevicepagePrintqueueImport } from './routes/device_page/print_queue'
+import { Route as DevicepageHotenddetailImport } from './routes/device_page/hotend_detail'
+import { Route as DevicepageFilamentmanualpullImport } from './routes/device_page/filament_manual_pull'
+import { Route as DevicepageConnectedslotsImport } from './routes/device_page/connected_slots'
+import { Route as DevicepageAutorefillrefillinfoImport } from './routes/device_page/auto_refill_refill_info'
+import { Route as DevicepageAmsmappinghotendImport } from './routes/device_page/ams_mapping_hotend'
+import { Route as DevicepageAmsfilamenthotendImport } from './routes/device_page/ams_filament_hotend'
+import { Route as DevicepageAmsextoperationImport } from './routes/device_page/ams_ext_operation'
+import { Route as DevicepageAmsextfilamenteditImport } from './routes/device_page/ams_ext_filament_edit'
 import { Route as DevicepageAmscontrolwebdebugImport } from './routes/device_page/ams_control_web_debug'
 import { Route as DevicepageAmscontrolwebImport } from './routes/device_page/ams_control_web'
+import { Route as DevicepageAmsbridgedebugImport } from './routes/device_page/ams_bridge_debug'
 
 // Create/Update Routes
 
@@ -44,6 +54,66 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const DevicepagePrintqueueRoute = DevicepagePrintqueueImport.update({
+  id: '/device_page/print_queue',
+  path: '/device_page/print_queue',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DevicepageHotenddetailRoute = DevicepageHotenddetailImport.update({
+  id: '/device_page/hotend_detail',
+  path: '/device_page/hotend_detail',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DevicepageFilamentmanualpullRoute =
+  DevicepageFilamentmanualpullImport.update({
+    id: '/device_page/filament_manual_pull',
+    path: '/device_page/filament_manual_pull',
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const DevicepageConnectedslotsRoute = DevicepageConnectedslotsImport.update({
+  id: '/device_page/connected_slots',
+  path: '/device_page/connected_slots',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DevicepageAutorefillrefillinfoRoute =
+  DevicepageAutorefillrefillinfoImport.update({
+    id: '/device_page/auto_refill_refill_info',
+    path: '/device_page/auto_refill_refill_info',
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const DevicepageAmsmappinghotendRoute = DevicepageAmsmappinghotendImport.update(
+  {
+    id: '/device_page/ams_mapping_hotend',
+    path: '/device_page/ams_mapping_hotend',
+    getParentRoute: () => rootRoute,
+  } as any,
+)
+
+const DevicepageAmsfilamenthotendRoute =
+  DevicepageAmsfilamenthotendImport.update({
+    id: '/device_page/ams_filament_hotend',
+    path: '/device_page/ams_filament_hotend',
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const DevicepageAmsextoperationRoute = DevicepageAmsextoperationImport.update({
+  id: '/device_page/ams_ext_operation',
+  path: '/device_page/ams_ext_operation',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DevicepageAmsextfilamenteditRoute =
+  DevicepageAmsextfilamenteditImport.update({
+    id: '/device_page/ams_ext_filament_edit',
+    path: '/device_page/ams_ext_filament_edit',
+    getParentRoute: () => rootRoute,
+  } as any)
+
 const DevicepageAmscontrolwebdebugRoute =
   DevicepageAmscontrolwebdebugImport.update({
     id: '/device_page/ams_control_web_debug',
@@ -54,6 +124,12 @@ const DevicepageAmscontrolwebdebugRoute =
 const DevicepageAmscontrolwebRoute = DevicepageAmscontrolwebImport.update({
   id: '/device_page/ams_control_web',
   path: '/device_page/ams_control_web',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DevicepageAmsbridgedebugRoute = DevicepageAmsbridgedebugImport.update({
+  id: '/device_page/ams_bridge_debug',
+  path: '/device_page/ams_bridge_debug',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -89,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FilamentmanagerImport
       parentRoute: typeof rootRoute
     }
+    '/device_page/ams_bridge_debug': {
+      id: '/device_page/ams_bridge_debug'
+      path: '/device_page/ams_bridge_debug'
+      fullPath: '/device_page/ams_bridge_debug'
+      preLoaderRoute: typeof DevicepageAmsbridgedebugImport
+      parentRoute: typeof rootRoute
+    }
     '/device_page/ams_control_web': {
       id: '/device_page/ams_control_web'
       path: '/device_page/ams_control_web'
@@ -103,6 +186,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevicepageAmscontrolwebdebugImport
       parentRoute: typeof rootRoute
     }
+    '/device_page/ams_ext_filament_edit': {
+      id: '/device_page/ams_ext_filament_edit'
+      path: '/device_page/ams_ext_filament_edit'
+      fullPath: '/device_page/ams_ext_filament_edit'
+      preLoaderRoute: typeof DevicepageAmsextfilamenteditImport
+      parentRoute: typeof rootRoute
+    }
+    '/device_page/ams_ext_operation': {
+      id: '/device_page/ams_ext_operation'
+      path: '/device_page/ams_ext_operation'
+      fullPath: '/device_page/ams_ext_operation'
+      preLoaderRoute: typeof DevicepageAmsextoperationImport
+      parentRoute: typeof rootRoute
+    }
+    '/device_page/ams_filament_hotend': {
+      id: '/device_page/ams_filament_hotend'
+      path: '/device_page/ams_filament_hotend'
+      fullPath: '/device_page/ams_filament_hotend'
+      preLoaderRoute: typeof DevicepageAmsfilamenthotendImport
+      parentRoute: typeof rootRoute
+    }
+    '/device_page/ams_mapping_hotend': {
+      id: '/device_page/ams_mapping_hotend'
+      path: '/device_page/ams_mapping_hotend'
+      fullPath: '/device_page/ams_mapping_hotend'
+      preLoaderRoute: typeof DevicepageAmsmappinghotendImport
+      parentRoute: typeof rootRoute
+    }
+    '/device_page/auto_refill_refill_info': {
+      id: '/device_page/auto_refill_refill_info'
+      path: '/device_page/auto_refill_refill_info'
+      fullPath: '/device_page/auto_refill_refill_info'
+      preLoaderRoute: typeof DevicepageAutorefillrefillinfoImport
+      parentRoute: typeof rootRoute
+    }
+    '/device_page/connected_slots': {
+      id: '/device_page/connected_slots'
+      path: '/device_page/connected_slots'
+      fullPath: '/device_page/connected_slots'
+      preLoaderRoute: typeof DevicepageConnectedslotsImport
+      parentRoute: typeof rootRoute
+    }
+    '/device_page/filament_manual_pull': {
+      id: '/device_page/filament_manual_pull'
+      path: '/device_page/filament_manual_pull'
+      fullPath: '/device_page/filament_manual_pull'
+      preLoaderRoute: typeof DevicepageFilamentmanualpullImport
+      parentRoute: typeof rootRoute
+    }
+    '/device_page/hotend_detail': {
+      id: '/device_page/hotend_detail'
+      path: '/device_page/hotend_detail'
+      fullPath: '/device_page/hotend_detail'
+      preLoaderRoute: typeof DevicepageHotenddetailImport
+      parentRoute: typeof rootRoute
+    }
+    '/device_page/print_queue': {
+      id: '/device_page/print_queue'
+      path: '/device_page/print_queue'
+      fullPath: '/device_page/print_queue'
+      preLoaderRoute: typeof DevicepagePrintqueueImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -113,8 +259,18 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
   '/filament_manager': typeof FilamentmanagerRoute
+  '/device_page/ams_bridge_debug': typeof DevicepageAmsbridgedebugRoute
   '/device_page/ams_control_web': typeof DevicepageAmscontrolwebRoute
   '/device_page/ams_control_web_debug': typeof DevicepageAmscontrolwebdebugRoute
+  '/device_page/ams_ext_filament_edit': typeof DevicepageAmsextfilamenteditRoute
+  '/device_page/ams_ext_operation': typeof DevicepageAmsextoperationRoute
+  '/device_page/ams_filament_hotend': typeof DevicepageAmsfilamenthotendRoute
+  '/device_page/ams_mapping_hotend': typeof DevicepageAmsmappinghotendRoute
+  '/device_page/auto_refill_refill_info': typeof DevicepageAutorefillrefillinfoRoute
+  '/device_page/connected_slots': typeof DevicepageConnectedslotsRoute
+  '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
+  '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
+  '/device_page/print_queue': typeof DevicepagePrintqueueRoute
 }
 
 export interface FileRoutesByTo {
@@ -122,8 +278,18 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
   '/filament_manager': typeof FilamentmanagerRoute
+  '/device_page/ams_bridge_debug': typeof DevicepageAmsbridgedebugRoute
   '/device_page/ams_control_web': typeof DevicepageAmscontrolwebRoute
   '/device_page/ams_control_web_debug': typeof DevicepageAmscontrolwebdebugRoute
+  '/device_page/ams_ext_filament_edit': typeof DevicepageAmsextfilamenteditRoute
+  '/device_page/ams_ext_operation': typeof DevicepageAmsextoperationRoute
+  '/device_page/ams_filament_hotend': typeof DevicepageAmsfilamenthotendRoute
+  '/device_page/ams_mapping_hotend': typeof DevicepageAmsmappinghotendRoute
+  '/device_page/auto_refill_refill_info': typeof DevicepageAutorefillrefillinfoRoute
+  '/device_page/connected_slots': typeof DevicepageConnectedslotsRoute
+  '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
+  '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
+  '/device_page/print_queue': typeof DevicepagePrintqueueRoute
 }
 
 export interface FileRoutesById {
@@ -132,8 +298,18 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
   '/filament_manager': typeof FilamentmanagerRoute
+  '/device_page/ams_bridge_debug': typeof DevicepageAmsbridgedebugRoute
   '/device_page/ams_control_web': typeof DevicepageAmscontrolwebRoute
   '/device_page/ams_control_web_debug': typeof DevicepageAmscontrolwebdebugRoute
+  '/device_page/ams_ext_filament_edit': typeof DevicepageAmsextfilamenteditRoute
+  '/device_page/ams_ext_operation': typeof DevicepageAmsextoperationRoute
+  '/device_page/ams_filament_hotend': typeof DevicepageAmsfilamenthotendRoute
+  '/device_page/ams_mapping_hotend': typeof DevicepageAmsmappinghotendRoute
+  '/device_page/auto_refill_refill_info': typeof DevicepageAutorefillrefillinfoRoute
+  '/device_page/connected_slots': typeof DevicepageConnectedslotsRoute
+  '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
+  '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
+  '/device_page/print_queue': typeof DevicepagePrintqueueRoute
 }
 
 export interface FileRouteTypes {
@@ -143,24 +319,54 @@ export interface FileRouteTypes {
     | '/about'
     | '/app'
     | '/filament_manager'
+    | '/device_page/ams_bridge_debug'
     | '/device_page/ams_control_web'
     | '/device_page/ams_control_web_debug'
+    | '/device_page/ams_ext_filament_edit'
+    | '/device_page/ams_ext_operation'
+    | '/device_page/ams_filament_hotend'
+    | '/device_page/ams_mapping_hotend'
+    | '/device_page/auto_refill_refill_info'
+    | '/device_page/connected_slots'
+    | '/device_page/filament_manual_pull'
+    | '/device_page/hotend_detail'
+    | '/device_page/print_queue'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/app'
     | '/filament_manager'
+    | '/device_page/ams_bridge_debug'
     | '/device_page/ams_control_web'
     | '/device_page/ams_control_web_debug'
+    | '/device_page/ams_ext_filament_edit'
+    | '/device_page/ams_ext_operation'
+    | '/device_page/ams_filament_hotend'
+    | '/device_page/ams_mapping_hotend'
+    | '/device_page/auto_refill_refill_info'
+    | '/device_page/connected_slots'
+    | '/device_page/filament_manual_pull'
+    | '/device_page/hotend_detail'
+    | '/device_page/print_queue'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/app'
     | '/filament_manager'
+    | '/device_page/ams_bridge_debug'
     | '/device_page/ams_control_web'
     | '/device_page/ams_control_web_debug'
+    | '/device_page/ams_ext_filament_edit'
+    | '/device_page/ams_ext_operation'
+    | '/device_page/ams_filament_hotend'
+    | '/device_page/ams_mapping_hotend'
+    | '/device_page/auto_refill_refill_info'
+    | '/device_page/connected_slots'
+    | '/device_page/filament_manual_pull'
+    | '/device_page/hotend_detail'
+    | '/device_page/print_queue'
   fileRoutesById: FileRoutesById
 }
 
@@ -169,8 +375,18 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AppRoute: typeof AppRoute
   FilamentmanagerRoute: typeof FilamentmanagerRoute
+  DevicepageAmsbridgedebugRoute: typeof DevicepageAmsbridgedebugRoute
   DevicepageAmscontrolwebRoute: typeof DevicepageAmscontrolwebRoute
   DevicepageAmscontrolwebdebugRoute: typeof DevicepageAmscontrolwebdebugRoute
+  DevicepageAmsextfilamenteditRoute: typeof DevicepageAmsextfilamenteditRoute
+  DevicepageAmsextoperationRoute: typeof DevicepageAmsextoperationRoute
+  DevicepageAmsfilamenthotendRoute: typeof DevicepageAmsfilamenthotendRoute
+  DevicepageAmsmappinghotendRoute: typeof DevicepageAmsmappinghotendRoute
+  DevicepageAutorefillrefillinfoRoute: typeof DevicepageAutorefillrefillinfoRoute
+  DevicepageConnectedslotsRoute: typeof DevicepageConnectedslotsRoute
+  DevicepageFilamentmanualpullRoute: typeof DevicepageFilamentmanualpullRoute
+  DevicepageHotenddetailRoute: typeof DevicepageHotenddetailRoute
+  DevicepagePrintqueueRoute: typeof DevicepagePrintqueueRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -178,8 +394,18 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AppRoute: AppRoute,
   FilamentmanagerRoute: FilamentmanagerRoute,
+  DevicepageAmsbridgedebugRoute: DevicepageAmsbridgedebugRoute,
   DevicepageAmscontrolwebRoute: DevicepageAmscontrolwebRoute,
   DevicepageAmscontrolwebdebugRoute: DevicepageAmscontrolwebdebugRoute,
+  DevicepageAmsextfilamenteditRoute: DevicepageAmsextfilamenteditRoute,
+  DevicepageAmsextoperationRoute: DevicepageAmsextoperationRoute,
+  DevicepageAmsfilamenthotendRoute: DevicepageAmsfilamenthotendRoute,
+  DevicepageAmsmappinghotendRoute: DevicepageAmsmappinghotendRoute,
+  DevicepageAutorefillrefillinfoRoute: DevicepageAutorefillrefillinfoRoute,
+  DevicepageConnectedslotsRoute: DevicepageConnectedslotsRoute,
+  DevicepageFilamentmanualpullRoute: DevicepageFilamentmanualpullRoute,
+  DevicepageHotenddetailRoute: DevicepageHotenddetailRoute,
+  DevicepagePrintqueueRoute: DevicepagePrintqueueRoute,
 }
 
 export const routeTree = rootRoute
@@ -196,8 +422,18 @@ export const routeTree = rootRoute
         "/about",
         "/app",
         "/filament_manager",
+        "/device_page/ams_bridge_debug",
         "/device_page/ams_control_web",
-        "/device_page/ams_control_web_debug"
+        "/device_page/ams_control_web_debug",
+        "/device_page/ams_ext_filament_edit",
+        "/device_page/ams_ext_operation",
+        "/device_page/ams_filament_hotend",
+        "/device_page/ams_mapping_hotend",
+        "/device_page/auto_refill_refill_info",
+        "/device_page/connected_slots",
+        "/device_page/filament_manual_pull",
+        "/device_page/hotend_detail",
+        "/device_page/print_queue"
       ]
     },
     "/": {
@@ -212,11 +448,41 @@ export const routeTree = rootRoute
     "/filament_manager": {
       "filePath": "filament_manager.tsx"
     },
+    "/device_page/ams_bridge_debug": {
+      "filePath": "device_page/ams_bridge_debug.tsx"
+    },
     "/device_page/ams_control_web": {
       "filePath": "device_page/ams_control_web.tsx"
     },
     "/device_page/ams_control_web_debug": {
       "filePath": "device_page/ams_control_web_debug.tsx"
+    },
+    "/device_page/ams_ext_filament_edit": {
+      "filePath": "device_page/ams_ext_filament_edit.tsx"
+    },
+    "/device_page/ams_ext_operation": {
+      "filePath": "device_page/ams_ext_operation.tsx"
+    },
+    "/device_page/ams_filament_hotend": {
+      "filePath": "device_page/ams_filament_hotend.tsx"
+    },
+    "/device_page/ams_mapping_hotend": {
+      "filePath": "device_page/ams_mapping_hotend.tsx"
+    },
+    "/device_page/auto_refill_refill_info": {
+      "filePath": "device_page/auto_refill_refill_info.tsx"
+    },
+    "/device_page/connected_slots": {
+      "filePath": "device_page/connected_slots.tsx"
+    },
+    "/device_page/filament_manual_pull": {
+      "filePath": "device_page/filament_manual_pull.tsx"
+    },
+    "/device_page/hotend_detail": {
+      "filePath": "device_page/hotend_detail.tsx"
+    },
+    "/device_page/print_queue": {
+      "filePath": "device_page/print_queue.tsx"
     }
   }
 }

@@ -1,7 +1,6 @@
 #include "IconManager.hpp"
 #include <cmath>
 #include <numeric>
-#include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include "nanosvg/nanosvg.h"
@@ -13,6 +12,7 @@
 
 #define STB_RECT_PACK_IMPLEMENTATION
 #include "imgui/imstb_rectpack.h" // distribute rectangles
+#include "libslic3r/Log.hpp"
 
 using namespace Slic3r::GUI;
 

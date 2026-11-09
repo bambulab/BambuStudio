@@ -3,6 +3,7 @@
 #include "GUI_App.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Preset.hpp"
+#include "libslic3r/Log.hpp"
 #include "fila_manager/wgtFilaManagerSpoolColors.h"
 
 namespace Slic3r
@@ -120,7 +121,7 @@ Slic3r::FilamentColorCode* FilamentColorCodeQuery::GetFilaInfo(const wxString& f
             clr_strs += _ColourToString(clr);
         }
 
-        BOOST_LOG_TRIVIAL(warning) << "FilamentColorCodeQuery::GetFilaInfo: No color code found for " << fila_id << " with color type " << (int)colors.m_color_type << "colors" << clr_strs;
+        BOOST_LOG_TRIVIAL(warning) << "No color code found for " << fila_id << " with color type " << (int)colors.m_color_type << "colors" << clr_strs;
         color_info_map->Debug(" ");
     }
 #endif
@@ -185,7 +186,7 @@ void FilamentColorCodeQuery::LoadFromLocal()
                 }
 
                 if (fila_color.GetColors().empty()) {
-                    BOOST_LOG_TRIVIAL(warning) << "FilamentColorCodeQuery::LoadFromLocal: No colors found for fila_color_code: " << fila_color_code;
+                    BOOST_LOG_TRIVIAL(warning) << "No colors found for fila_color_code: " << fila_color_code;
                     continue; // Skip if no colors are defined
                 };
 
@@ -218,7 +219,7 @@ void FilamentColorCodeQuery::LoadFromLocal()
     catch (...)
     {
         assert(0 && "FilamentColorCodeQuery::LoadFromLocal failed");
-        BOOST_LOG_TRIVIAL(error) << "FilamentColorCodeQuery::LoadFromLocal failed";
+        BOOST_LOG_TRIVIAL(error) << "failed";
     }
 }
 

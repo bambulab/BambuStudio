@@ -5,8 +5,8 @@
 
 #include <array>
 
-#include <boost/log/trivial.hpp>
 #include <cstdio>
+#include "libslic3r/Log.hpp"
 
 
 static Slic3r::GUI::Mouse3DController* mouse_3d_controller = nullptr;

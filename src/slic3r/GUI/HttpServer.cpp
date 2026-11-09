@@ -1,9 +1,9 @@
 #include "HttpServer.hpp"
-#include <boost/log/trivial.hpp>
 #include "GUI_App.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include <algorithm>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -521,7 +521,7 @@ std::optional<std::string> TicketLoginTask::do_request_login_info(const std::str
         unsigned int  http_code;
         std::string   http_body;
         if (agent->get_my_token(ticket, &http_code, &http_body) < 0) {
-            BOOST_LOG_TRIVIAL(info) << "third_party_login: get_my_token failed, http_code = " << http_code;
+            BOOST_LOG_TRIVIAL(info) << "third_party_login: get_my_token failed " << KV(log_key::http_code, http_code);
             return std::nullopt;
         }
 
@@ -533,7 +533,7 @@ std::optional<std::string> TicketLoginTask::do_request_login_info(const std::str
         auto token_resp = nlohmann::json::parse(http_body);
         auto token_data = token_resp.get<TokenResp>();
         if (agent->get_my_profile(token_data.accessToken, &http_code, &http_body) < 0) {
-            BOOST_LOG_TRIVIAL(info) << "third_party_login: get_my_profile failed, http_code = " << http_code;
+            BOOST_LOG_TRIVIAL(info) << "third_party_login: get_my_profile failed " << KV(log_key::http_code, http_code);
             return std::nullopt;
         }
 

@@ -35,12 +35,21 @@
 class Button;
 class Label;
 
+wxDECLARE_EVENT(EVT_MEDIA_FULLSCREEN, wxCommandEvent);
+
 namespace Slic3r {
 
 class MachineObject;
 class FileTransferObject;
 
 namespace GUI {
+
+// Camera types for liveview
+enum class LiveviewCameraType {
+    CAMERA_OLD_VERSION = -1, // For old version which does not have camera info, treat it as valid
+    CAMERA_MAIN = 4,     // Main camera
+    CAMERA_DEPUTY = 5    // Deputy camera
+};
 
 class MediaPlayCtrl : public wxPanel
 {
@@ -58,6 +67,10 @@ public:
     void msw_rescale();
 
     void jump_to_play();
+
+    static bool is_valid_camera(int camera_id);
+
+    static bool is_support_switch_cam(const std::vector<int>& support_liveview_cams);
 
     void RequestFileSystemUrl(std::function<void(std::string url)> cb, bool lan_mode=true);
 
@@ -77,6 +90,8 @@ protected:
 
 private:
     void load();
+
+    void update_camera_switch_tooltip();
 
     void start_device_image_flow();
 
@@ -147,10 +162,14 @@ private:
     std::string m_image_last_machine;
 
     ::Button *m_button_play;
+    ::Button *m_button_camera_switch;
+    ::Button *m_button_fullscreen;
     ::Label * m_label_stat;
     ::Label * m_label_status;
 
     std::shared_ptr<FileTransferObject> m_image_transfer;
+
+    int m_last_camera = -2;  // Track last camera value to avoid redundant tooltip updates
 };
 
 }}

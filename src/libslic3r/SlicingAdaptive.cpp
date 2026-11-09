@@ -3,8 +3,8 @@
 #include "TriangleMesh.hpp"
 #include "SlicingAdaptive.hpp"
 
-#include <boost/log/trivial.hpp>
 #include <cfloat>
+#include "libslic3r/Log.hpp"
 
 // Based on the work of Florens Waserfall (@platch on github)
 // and his paper

@@ -35,10 +35,18 @@ dep_win_new
 compile_commands.json
 .jira/
 .claude/settings.local.json
+.cursor/mcp.json
 **/node_modules/
 .worktrees/
 **/dist/
 # Legacy device_page bundle copies (runtime lives in resources/web/device_page/dist/)
 resources/web/device_page/assets/
 resources/web/device_page/index.html
+# Copied by the device_page_html_build target from DeviceWeb/DeviceWebHtml/web/
+resources/web/device_page_html/
+.claude
+.feishu
 
+
+# compare-pages.mjs screenshot / report output
+src/slic3r/GUI/DeviceWeb/DeviceWebHtml/tools/out/

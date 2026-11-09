@@ -10,7 +10,6 @@
 #include "libslic3r/Config.hpp"
 
 #include "boost/nowide/convert.hpp"
-#include <boost/log/trivial.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <iostream>
 #include <unordered_map>
@@ -18,6 +17,7 @@
 #include <errno.h>
 #include <optional>
 #include <cstdint>
+#include "libslic3r/Log.hpp"
 
 #ifdef _WIN32
 #include <strsafe.h>
@@ -164,9 +164,9 @@ namespace instance_check_internal
 		fl.l_len = 1;
 
         if (! boost::filesystem::is_directory(path)) {
-            BOOST_LOG_TRIVIAL(debug) << "get_lock(): datadir does not exist yet, creating...";
+            BOOST_LOG_TRIVIAL(debug) << "datadir does not exist yet, creating...";
             if (! boost::filesystem::create_directories(path))
-                BOOST_LOG_TRIVIAL(debug) << "get_lock(): unable to create datadir !!!";
+                BOOST_LOG_TRIVIAL(debug) << "unable to create datadir !!!";
         }
 
 		if ((fdlock = open(dest_dir.c_str(), O_WRONLY | O_CREAT, 0666)) == -1) {
@@ -320,6 +320,7 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 				appimage_env_valid = true;
 			}
 		} catch (std::exception &) {
+			BOOST_LOG_TRIVIAL(warning) << current_exception_message();
 		}
 		if (! appimage_env_valid)
 			BOOST_LOG_TRIVIAL(error) << "APPIMAGE environment variable was set, but it does not point to a valid file: " << appimage_env;

@@ -12,11 +12,11 @@
 
 #include <libslic3r/Utils.hpp>
 
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
 
 #include "slic3r/Utils/BBLUtil.hpp"
+#include "libslic3r/Log.hpp"
 
 using namespace std;
 using json = nlohmann::json;
@@ -41,8 +41,8 @@ int json_diff::diff_objects(json const &in, json &out, json const &base)
         if (el.value().type() != base[el.key()].type()) {
             out[el.key()] = el.value();
             BOOST_LOG_TRIVIAL(trace) << "json_c diff type changed"
-                 << " key: " << el.key() << " value: " << el.value().dump()
-                 << " last value: " << base[el.key()].dump();
+                 << " key: " << el.key() << " value: " << el.value()
+                 << " last value: " << base[el.key()];
             continue;
         }
 
@@ -60,8 +60,8 @@ int json_diff::diff_objects(json const &in, json &out, json const &base)
         if (el.value() != base[el.key()]) {
             out[el.key()] = el.value();
                 BOOST_LOG_TRIVIAL(trace) << "json_c diff value changed"
-                 << " key: " << el.key() << " value: " << el.value().dump()
-                 << " last value: " << base[el.key()].dump();
+                 << " key: " << el.key() << " value: " << el.value()
+                 << " last value: " << base[el.key()];
             continue;
         }
     }
@@ -74,7 +74,7 @@ int json_diff::diff_objects(json const &in, json &out, json const &base)
 
 int json_diff::all2diff_base_reset(json const &base)
 {
-    BOOST_LOG_TRIVIAL(trace) << "all2diff_base_reset";
+    BOOST_LOG_TRIVIAL(trace);
     all2diff_base = base;
     return 0;
 }
@@ -108,13 +108,13 @@ bool json_diff::load_compatible_settings(std::string const &type, std::string co
                 diff2all_base_reset(full_message);
             }
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": "<< type << " " << version << ", merged " << Slic3r::BBLCrossTalk::Crosstalk_JsonLog(versions);
+            BOOST_LOG_TRIVIAL(info) << type << " " << version << ", merged " << versions;
             return true;
         } else {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << type << " " << version << ", failed open file";
+            BOOST_LOG_TRIVIAL(error) << type << " " << version << ", failed open file";
         }
     } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << type << " " << version << ", unknown exception";
+        BOOST_LOG_TRIVIAL(error) << type << " " << version << ", unknown exception";
     }
 
 
@@ -162,8 +162,8 @@ int json_diff::restore_objects(json const &in, json &out, json const &base)
             out[el.key()] = in[el.key()];
             BOOST_LOG_TRIVIAL(trace) << "json_c restore type changed"
                   << " key: " << el.key() << " value: "
-                  << in[el.key()].dump()
-                  << " last value: " << el.value().dump();
+                  << in[el.key()]
+                  << " last value: " << el.value();
             continue;
         }
 
@@ -287,7 +287,7 @@ bool json_diff::is_need_request()
 
 int json_diff::diff2all_base_reset(json &base)
 {
-    BOOST_LOG_TRIVIAL(trace) << "diff2all_base_reset";
+    BOOST_LOG_TRIVIAL(trace);
     full_message = base;
     if (!settings_base.empty()) {
         merge_objects(settings_base, base);

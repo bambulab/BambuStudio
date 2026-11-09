@@ -77,7 +77,13 @@ Generator::Generator(const PrintObject &print_object, const std::function<void()
 
     //m_infill_extrusion_width = scaled<float>(region_config.infill_extrusion_width.percent ? default_infill_extrusion_width * 0.01 * region_config.infill_extrusion_width : region_config.infill_extrusion_width);
     //m_supporting_radius      = coord_t(m_infill_extrusion_width) * 100 / coord_t(region_config.fill_density.value);
-    m_infill_extrusion_width = scaled<float>(region_config.sparse_infill_line_width.value);
+    m_infill_extrusion_width = scaled<float>(Flow::extrusion_width_for_nozzle(
+        region_config.sparse_infill_line_width,
+        float(primary_nozzle_diameter(print_object.print()->full_print_config())),
+        nozzle_diameter_for_filament(print_config, region_config.sparse_infill_filament.value),
+        multi_nozzle_diameter_mode_enabled(print_object.print()->full_print_config())));
+    if (m_infill_extrusion_width < float(SCALED_EPSILON))
+        m_infill_extrusion_width = scaled<float>(default_infill_extrusion_width);
     m_supporting_radius = coord_t(m_infill_extrusion_width) * 100 / region_config.sparse_infill_density;
 
     const double lightning_infill_overhang_angle      = M_PI / 4; // 45 degrees
@@ -103,7 +109,11 @@ Generator::Generator(PrintObject* m_object, std::vector<Polygons>& contours, std
     // Note: There's not going to be a layer below the first one, so the 'initial layer height' doesn't have to be taken into account.
     const double               layer_thickness      = scaled<double>(object_config.layer_height.value);
 
-    m_infill_extrusion_width = scaled<float>(region_config.sparse_infill_line_width.value);
+    m_infill_extrusion_width = scaled<float>(Flow::extrusion_width_for_nozzle(
+        region_config.sparse_infill_line_width,
+        float(primary_nozzle_diameter(m_object->print()->full_print_config())),
+        nozzle_diameter_for_filament(print_config, region_config.sparse_infill_filament.value),
+        multi_nozzle_diameter_mode_enabled(m_object->print()->full_print_config())));
     // sparse_infill_line_width may be 0 (auto) in a support-only context; fall back to the
     // nozzle-derived default so the supporting radius (and thus the DistanceField cell size)
     // never collapses to 0, which would make sample_grid_pattern loop forever.

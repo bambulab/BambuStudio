@@ -9,7 +9,7 @@
     "bottom_texture_rect_longer_ignore_list": "High Temp Plate;Textured PEI Plate",
     "default_bed_type": "Textured PEI Plate",
     "family": "BBL-3DP",
-    "image_bed_type": "o",
+    "image_bed_type": "330",
     "machine_tech": "FFF",
     "model_id": "N9",
     "not_support_bed_type": "Cool Plate",

@@ -25,8 +25,105 @@ var g_selectedTypes = [];     // selected type names
 // UI state
 var g_searchKeywords = []; // active search keyword tags
 
-var FilamentPriority = ["PLA", "ABS", "PETG", "PET", "TPU", "PC", "PA", "ASA"];
+var FilamentPriority = ["PLA", "PETG", "TPU", "ABS", "ASA", "PA", "PC", "PET", "PPS", "Support"];
 var VendorPriority = ["Bambu Lab", "BambuLab", "BBL", "Generic", "Kexcelled", "Polymaker", "eSUN"];
+
+// filament_type config values for CF/GF/AERO/AMS-reinforced variants (and the "PA6-CF"
+// product-naming quirk, whose config type has no "6") fold into their base print type's
+// group instead of fragmenting into their own one/two-item groups. Deliberately NOT listed:
+// PCTG, PPA-CF/PPA-GF, PE/PP/EVA/PHA/PE-CF/PP-CF/PP-GF — none has an unambiguous base among
+// the 9 curated types, so they're left to group under their own raw type name.
+var FilamentTypeAliasMap = {
+    "ASA-CF": "ASA", "ASA-AERO": "ASA",
+    "PA-CF": "PA", "PA-GF": "PA", "PA6-CF": "PA",
+    "PLA-CF": "PLA", "PLA-AERO": "PLA",
+    "PETG-CF": "PETG",
+    "PET-CF": "PET",
+    "ABS-GF": "ABS",
+    "PPS-CF": "PPS",
+    "TPU-AMS": "TPU"
+};
+
+function canonicalizeFilamentType(rawType) {
+    return FilamentTypeAliasMap.hasOwnProperty(rawType) ? FilamentTypeAliasMap[rawType] : rawType;
+}
+
+// Mirrors libslic3r/Preset.cpp's curated_filament_orders()/filament_list_less, so that within
+// an already type-grouped bucket, items sort by vendor then by curated sub-type order the same
+// way the native preset combobox does. A trailing '*' is a prefix match (keeps a whole product
+// line in one slot). Vendors/aliases not listed here fall back to alphabetical order.
+var CuratedFilamentOrders = [
+    { vendor: "", aliases: [] },
+    { vendor: "Bambu", aliases: [
+        "Bambu PLA Basic",           "Bambu PLA Matte",       "Bambu PLA Pure",        "Bambu PLA Lite",
+        "Bambu PLA Tough+",          "Bambu PLA Palette",     "Bambu PETG Basic",      "Bambu PETG Matte",
+        "Bambu PETG HF",             "Bambu ABS",              "Bambu ASA",             "Bambu PLA Silk+",
+        "Bambu PLA Silk",            "Bambu PLA-CF",           "Bambu PLA Marble",      "Bambu PLA Metal",
+        "Bambu PLA Sparkle",         "Bambu PLA Galaxy",       "Bambu PLA Glow",        "Bambu PLA Wood",
+        "Bambu PLA Translucent",     "Bambu PETG Translucent", "Bambu PC",              "Bambu PC FR",
+        "Bambu PETG-CF",             "Bambu ABS-GF",           "Bambu ASA-CF",          "Bambu PA6-CF",
+        "Bambu PA6-GF",              "Bambu PAHT-CF",          "Bambu PET-CF",          "Bambu PPA-CF",
+        "Bambu PPS-CF",              "Bambu PLA Aero",         "Bambu ASA-Aero",        "Bambu TPU for AMS",
+        "Bambu TPU 95A HF",          "Bambu TPU 90A",          "Bambu TPU 85A",         "Bambu TPU 75A(2.85mm)",
+        "Bambu Support For PLA",     "Bambu Support For PLA/PETG", "Bambu Support for ABS", "Bambu PVA",
+        "Bambu Support For PA/PET",  "Bambu TPU 95A",          "Bambu PA-CF",           "Bambu PLA Tough",
+        "Bambu PLA Dynamic",         "Bambu Support W",        "Bambu Support G"
+    ] },
+    { vendor: "Generic", aliases: ["Generic PLA", "Generic PETG", "Generic ABS", "Generic TPU"] },
+    { vendor: "Polymaker", aliases: ["PolyLite PLA", "PolyTerra PLA", "PolyLite PETG", "Fiberon *"] },
+    { vendor: "Overture", aliases: ["Overture Matte PLA", "Overture PLA"] },
+    { vendor: "eSUN", aliases: ["eSUN PLA+"] },
+];
+var CuratedFirstTypes = ["PLA", "PETG", "ABS", "TPU"];
+
+function normalizeVendorForOrder(vendor) {
+    return vendor === "Bambu Lab" ? "Bambu" : vendor;
+}
+
+function findVendorOrderIndex(vendor) {
+    for (var i = 0; i < CuratedFilamentOrders.length; i++) {
+        if (CuratedFilamentOrders[i].vendor === vendor) return i;
+    }
+    return -1;
+}
+
+function aliasRank(aliases, alias) {
+    for (var i = 0; i < aliases.length; i++) {
+        var entry = aliases[i];
+        if (entry.charAt(entry.length - 1) === '*') {
+            if (alias.indexOf(entry.slice(0, -1)) === 0) return i;
+        } else if (alias === entry) {
+            return i;
+        }
+    }
+    return aliases.length;
+}
+
+function typeRank(type) {
+    var i = CuratedFirstTypes.indexOf(type);
+    return i === -1 ? CuratedFirstTypes.length : i;
+}
+
+// Comparator for items already grouped by type: vendor group first, then curated sub-type
+// order within that vendor (or alphabetical type fallback for uncurated vendors), then name.
+function filamentListLess(l, r) {
+    var lv = normalizeVendorForOrder(l.vendor), rv = normalizeVendorForOrder(r.vendor);
+    var lo = findVendorOrderIndex(lv), ro = findVendorOrderIndex(rv);
+    var loPos = lo === -1 ? CuratedFilamentOrders.length : lo;
+    var roPos = ro === -1 ? CuratedFilamentOrders.length : ro;
+    if (loPos !== roPos) return loPos - roPos;
+    if (lv !== rv) return lv < rv ? -1 : 1;
+
+    if (lo !== -1 && CuratedFilamentOrders[lo].aliases.length > 0) {
+        var la = aliasRank(CuratedFilamentOrders[lo].aliases, l.alias);
+        var ra = aliasRank(CuratedFilamentOrders[lo].aliases, r.alias);
+        if (la !== ra) return la - ra;
+    } else {
+        var lt = typeRank(l.type), rt = typeRank(r.type);
+        if (lt !== rt) return lt - rt;
+    }
+    return l.alias < r.alias ? -1 : (l.alias > r.alias ? 1 : 0);
+}
 
 // IME composing state
 var g_isComposing = false;
@@ -168,7 +265,10 @@ function parseProfileData() {
         var fWholeName = OneFila['name'].trim();
         var fShortName = GetFilamentShortname(OneFila['name']);
         var fVendor = OneFila['vendor'];
-        var fType = OneFila['type'];
+        // Support filaments (e.g. "Bambu Support for ABS") keep their base
+        // filament_type ("ABS") in the backend data, which would otherwise bucket
+        // them under their base material instead of a dedicated Support group.
+        var fType = (OneFila['is_support'] == '1') ? 'Support' : canonicalizeFilamentType(OneFila['type']);
         var fSelect = OneFila['selected'];
         var fModel = OneFila['models'];
 
@@ -195,6 +295,11 @@ function parseProfileData() {
             var idx = shortNameMap[mapKey];
             g_filaments[idx].models += fModel;
             g_filaments[idx].filalist += fWholeName + ';';
+            // Multiple per-machine preset variants share this one display row; if any
+            // variant is visible (e.g. the one matching the user's connected printer,
+            // just forced visible by an AMS sync), the row must show as checked —
+            // otherwise whichever variant happened to be enumerated first silently wins.
+            if (fSelect * 1 == 1) g_filaments[idx].selected = true;
         } else {
             shortNameMap[mapKey] = g_filaments.length;
             g_filaments.push({
@@ -526,6 +631,15 @@ function renderFilamentList() {
             groupOrder.push(f.type);
         }
         groups[f.type].push(f);
+    }
+
+    // Within each type group: vendor, then curated sub-type order, then name
+    for (var gt in groups) {
+        groups[gt].sort(function(a, b) {
+            return filamentListLess(
+                { alias: a.shortName, vendor: a.vendor, type: a.type },
+                { alias: b.shortName, vendor: b.vendor, type: b.type });
+        });
     }
 
     // Sort group order by FilamentPriority

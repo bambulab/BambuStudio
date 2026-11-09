@@ -95,6 +95,8 @@ private:
 
     bool m_need_update_text = false;
     bool m_need_update_tran = false;
+    // Parameters already include the text volume scale. The matrix is normalized on the next rebuild.
+    bool m_text_scale_absorbed = false;
     bool m_reedit_text      = false;
     bool m_show_warning_text_create_fail = false;
     bool m_show_text_normal_error = false;
@@ -277,6 +279,8 @@ private:
     bool get_is_dragging();
     bool get_selection_is_text();
     bool update_text_tran_in_model_object(bool rewrite_text_tran = false);
+    bool absorb_text_scale_into_parameters();
+    void normalize_absorbed_text_scale();
     void update_trafo_matrices();
     void update_cut_plane_dir();
     void switch_text_type(TextInfo::TextType type);

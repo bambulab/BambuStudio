@@ -3,14 +3,13 @@
 #include "DeviceManager.hpp"
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevUtil.h"
-
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 static const char* HMS_PATH = "hms";
 static const char* HMS_LOCAL_IMG_PATH = "hms/local_image";
 
 // the local HMS info
-static unordered_set<string> package_dev_id_types {"094", "239", "093", "20P", "22E", "31B", "26A"};
+static unordered_set<string> package_dev_id_types { "093", "094", "239", "20P", "22E", "31B", "32X"};
 
 namespace Slic3r {
 namespace GUI {
@@ -39,6 +38,7 @@ int get_hms_info_version(std::string& version)
                     version = DevJsonValParser::get_longlong_val(j["ver"]);
                 }
             } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 ;
             }
         })
@@ -114,6 +114,7 @@ int HMSQuery::download_hms_related(const std::string& hms_type, const std::strin
                 }
             }
         } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             ;
         }
         })
@@ -167,7 +168,7 @@ _copy_dir(const fs::path& from_dir, const fs::path& to_dir) /* copy and override
     }
     catch (...)
     {
-
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
     }
 }
 
@@ -695,6 +696,7 @@ std::string get_error_message(int error_code)
                     }
                 }
             } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
              ;
         }
         })

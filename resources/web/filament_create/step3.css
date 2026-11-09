@@ -20,7 +20,8 @@
 }
 
 .step3-section {
-    width: 663px;
+    width: 100%;
+    max-width: 663px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -58,7 +59,8 @@
     flex-wrap: wrap;
     align-items: flex-start;
     gap: 10px;
-    width: 610px;
+    width: 100%;
+    max-width: 610px;
     margin-top: 12px;
 }
 

@@ -14,6 +14,7 @@
 #include <libslic3r/Model.hpp>
 #include <libslic3r/Format/bbs_3mf.hpp>
 #include "DeviceCore/DevStorage.h"
+#include "libslic3r/Log.hpp"
 
 #ifdef __WXMSW__
 #include <shellapi.h>
@@ -131,6 +132,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_storage_tab->SetBackgroundColor(wxColour("#EEEEEE"));
     m_storage_tab->SetBorderColor(wxColour("#EEEEEE"));
     m_storage_tab->SetFont(Label::Body_14);
+    m_storage_tab->SetFitAllItems(true);
     m_storage_tab->SetMinSize({-1, 36 * em_unit(this) / 10});
     m_storage_tab->AppendItem(_L("External"));
     m_storage_tab->AppendItem(_L("Internal"));
@@ -511,6 +513,7 @@ void MediaFilePanel::Rescale()
     m_button_management->Rescale();
 
     m_image_grid->Rescale();
+    Layout();
 }
 
 void MediaFilePanel::SetSelecting(bool selecting, bool selectall)
@@ -572,7 +575,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         fs->SetUrl("0");
         return;
     }
-    BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: " << m_local_proto << m_remote_proto;
+    BOOST_LOG_TRIVIAL(info) << m_local_proto << m_remote_proto;
     m_waiting_support = false;
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";

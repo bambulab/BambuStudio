@@ -20,6 +20,32 @@ wxColour texture_import_dark_or(const wxColour& light, const wxColour& dark)
     return texture_import_is_dark() ? dark : light;
 }
 
+bool texture_import_needs_swatch_border(const wxColour& colour)
+{
+    if (texture_import_is_dark())
+        return colour.Red() < 45 && colour.Green() < 45 && colour.Blue() < 45;
+    return colour.Red() > 224 && colour.Green() > 224 && colour.Blue() > 224;
+}
+
+wxColour texture_import_swatch_border_colour()
+{
+    return texture_import_is_dark() ? wxColour(207, 207, 207) : wxColour(130, 130, 128);
+}
+
+void texture_import_draw_swatch_border(wxDC& dc, const wxColour& colour,
+                                       int x, int y, int w, int h, int radius)
+{
+    if (!texture_import_needs_swatch_border(colour))
+        return;
+
+    dc.SetPen(wxPen(texture_import_swatch_border_colour(), 1));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    if (radius > 0)
+        dc.DrawRoundedRectangle(x, y, w, h, radius);
+    else
+        dc.DrawRectangle(x, y, w, h);
+}
+
 std::array<std::size_t, 3> texture_import_rgb_from_rgba(const std::array<float, 4>& rgba)
 {
     auto to_u8 = [](float v) -> std::size_t {

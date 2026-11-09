@@ -941,7 +941,7 @@ int MultiSwitchButton::AppendOption(const wxString &option, void *clientData)
     btns.push_back(btn);
 
     if (btns.size() > 1) { sizer->AddSpacer(0); }
-    sizer->Add(btn, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL);
+    sizer->Add(btn, m_fit_options_to_text ? 0 : 1, wxEXPAND | wxALIGN_CENTER_VERTICAL);
     wxSize textSize = btn->GetTextExtent(option);
     wxSize minSize  = wxSize(textSize.x + m_button_padding.x * 2 + 6, -1);
     btn->SetMinSize(minSize);
@@ -1000,6 +1000,32 @@ void MultiSwitchButton::SetSelection(int index)
     update_button_styles();
     send_selection_event();
     Refresh();
+}
+
+void MultiSwitchButton::SetFitOptionsToText(bool fit)
+{
+    if (m_fit_options_to_text == fit) return;
+    m_fit_options_to_text = fit;
+
+    for (auto btn : btns) {
+        if (auto *item = sizer->GetItem(btn)) item->SetProportion(fit ? 0 : 1);
+    }
+    InvalidateBestSize();
+    Layout();
+    Refresh();
+}
+
+bool MultiSwitchButton::Enable(bool enable)
+{
+    if (!StaticBox::Enable(enable)) return false;
+
+    for (auto btn : btns) {
+        if (!btn) continue;
+        btn->Enable(enable);
+        btn->SetGrayed(!enable);
+    }
+    update_button_styles();
+    return true;
 }
 
 wxString MultiSwitchButton::GetSelectedText() const

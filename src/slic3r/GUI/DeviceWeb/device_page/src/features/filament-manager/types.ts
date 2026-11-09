@@ -97,6 +97,7 @@ export interface MachineItem {
 // tolerant to both wire formats. Consumers must coerce via parseInt/parseFloat.
 export interface AmsTray {
   slot_id: string;
+  ams_id?: string;
   is_exists: boolean;
   tag_uid?: string;
   setting_id?: string;
@@ -127,17 +128,23 @@ export interface AmsTray {
   is_bbl?: boolean;
   tray_id_name?: string;
   tray_label?: string;
+  display_index?: number;
+  is_external_spool?: boolean;
+  is_unknown?: boolean;
 }
 
 export interface AmsUnit {
   ams_id: string;
   ams_type: number;
+  display_name?: string;
   trays: AmsTray[];
 }
 
 export interface AmsData {
   selected_dev_id: string;
   ams_units: AmsUnit[];
+  ext_slots: AmsTray[];
+  is_rack?: boolean;
 }
 
 // Init response

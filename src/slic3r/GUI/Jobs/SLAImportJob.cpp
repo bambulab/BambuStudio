@@ -16,6 +16,7 @@
 #include <wx/combobox.h>
 #include <wx/filename.h>
 #include <wx/filepicker.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -155,6 +156,7 @@ void SLAImportJob::process()
             break;
         }
     } catch (MissingProfileError &) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         p->err = _L("The SLA archive doesn't contain any presets. "
                     "Please activate some SLA printer preset first before importing that SLA archive.").ToStdString();
     } catch (std::exception &ex) {

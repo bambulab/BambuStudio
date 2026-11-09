@@ -1,6 +1,8 @@
 #include "ComboBox.hpp"
 #include "Label.hpp"
 
+#include <algorithm>
+#include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 
 BEGIN_EVENT_TABLE(ComboBox, TextInput)
@@ -9,6 +11,7 @@ EVT_LEFT_DOWN(ComboBox::mouseDown)
 EVT_LEFT_DCLICK(ComboBox::mouseDown)
 //EVT_MOUSEWHEEL(ComboBox::mouseWheelMoved)
 EVT_KEY_DOWN(ComboBox::keyDown)
+EVT_SIZE(ComboBox::onSize)
 
 // catch paint events
 END_EVENT_TABLE()
@@ -73,6 +76,15 @@ ComboBox::ComboBox(wxWindow *parent,
         wxCommandEvent e(wxEVT_COMBOBOX_CLOSEUP);
         GetEventHandler()->ProcessEvent(e);
     });
+    // CHAR_HOOK reaches the focused combo before DPIDialog's handler, which
+    // closes the whole dialog on ESC. Close only the open dropdown instead.
+    Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent &e) {
+        if (e.GetKeyCode() == WXK_ESCAPE && drop_down)
+            drop.DismissAll();
+        else
+            e.Skip();
+    });
+    m_last_width = GetSize().x;
     for (int i = 0; i < n; ++i) Append(choices[i]);
 }
 
@@ -82,8 +94,10 @@ int ComboBox::GetSelection() const {
 
 void ComboBox::SetSelection(int n)
 {
-    if (n == drop.selection)
+    if (n == drop.selection) {
+        sync_closed_suffix();
         return;
+    }
     drop.SetSelection(n);
     SetLabel(drop.GetValue());
     if (drop.selection >= 0 && drop.iconSize.y > 0 && items[drop.selection].icon_textctrl.IsOk()) {
@@ -104,6 +118,7 @@ void ComboBox::SetSelection(int n)
     } else {
         SetStaticTips(wxEmptyString, wxNullBitmap);
     }
+    sync_closed_suffix();
 
 }
 void ComboBox::SelectAndNotify(int n) {
@@ -115,6 +130,7 @@ void ComboBox::Rescale()
 {
     TextInput::Rescale();
     drop.Rescale();
+    update_closed_suffix_reserve();
 }
 
 wxString ComboBox::GetValue() const
@@ -144,6 +160,7 @@ void ComboBox::SetValue(const wxString &value)
     } else {
         SetStaticTips(wxEmptyString, wxNullBitmap);
     }
+    sync_closed_suffix();
 }
 
 void ComboBox::SetLabel(const wxString &value)
@@ -246,6 +263,7 @@ void ComboBox::DoClear()
     SetIcon("drop_down");
     items.clear();
     drop.Invalidate(true);
+    SetRightSuffix(wxEmptyString);
 }
 
 void ComboBox::DoDeleteOneItem(unsigned int pos)
@@ -287,6 +305,21 @@ void ComboBox::SetItemTooltip(unsigned int n, wxString const &value) {
     if (n == drop.GetSelection()) drop.SetToolTip(value);
 }
 
+wxString ComboBox::GetItemSuffix(unsigned int n) const
+{
+    if (n >= items.size()) return wxString();
+    return items[n].suffix;
+}
+
+void ComboBox::SetItemSuffix(unsigned int n, wxString const &value)
+{
+    if (n >= items.size()) return;
+    items[n].suffix = value;
+    drop.Invalidate();
+    if ((int)n == drop.GetSelection())
+        sync_closed_suffix();
+}
+
 wxBitmap ComboBox::GetItemBitmap(unsigned int n) { return items[n].icon; }
 
 void ComboBox::SetItemBitmap(unsigned int n, wxBitmap const &bitmap)
@@ -325,7 +358,7 @@ void ComboBox::mouseDown(wxMouseEvent &event)
 
     SetFocus();
     if (drop_down) {
-        drop.Hide();
+        drop.DismissAll();
     } else if (drop.HasDismissLongTime()) {
         drop.autoPosition();
         drop_down = true;
@@ -353,7 +386,7 @@ void ComboBox::keyDown(wxKeyEvent& event)
         case WXK_RETURN:
         case WXK_SPACE:
             if (drop_down) {
-                drop.DismissAndNotify();
+                drop.DismissAll();
             } else if (drop.HasDismissLongTime()) {
                 drop.autoPosition();
                 drop_down = true;
@@ -387,7 +420,22 @@ void ComboBox::keyDown(wxKeyEvent& event)
 void ComboBox::onMove(wxMoveEvent &event)
 {
     event.Skip();
-    drop.Hide();
+    drop.DismissAll();
+}
+
+void ComboBox::onSize(wxSizeEvent &event)
+{
+    event.Skip();
+    // TextInput::Create() can send size events before the popup is created.
+    if (!drop.GetParent())
+        return;
+    if (event.GetSize().x == m_last_width)
+        return;
+    m_last_width = event.GetSize().x;
+    // The dropdown caches its row width, including the combo's width. Recompute
+    // it after a width change and close any popup still anchored at the old size.
+    drop.Invalidate();
+    drop.DismissAll();
 }
 
 void ComboBox::OnEdit()
@@ -407,6 +455,55 @@ WXLRESULT ComboBox::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 }
 
 #endif
+
+void ComboBox::SetRightSuffix(const wxString &suffix)
+{
+    if (m_closed_suffix == suffix)
+        return;
+    m_closed_suffix = suffix;
+    update_closed_suffix_reserve();
+    Refresh();
+}
+
+void ComboBox::update_closed_suffix_reserve()
+{
+    if (m_closed_suffix.IsEmpty()) {
+        SetReservedRightWidth(0);
+        return;
+    }
+    wxClientDC dc(this);
+    dc.SetFont(::Label::Body_13);
+    const wxSize sSize = dc.GetTextExtent(m_closed_suffix);
+    SetReservedRightWidth(sSize.x + FromDIP(8) + FromDIP(12));
+}
+
+void ComboBox::sync_closed_suffix()
+{
+    if (drop.selection >= 0 && drop.selection < (int)items.size())
+        SetRightSuffix(items[drop.selection].suffix);
+    else
+        SetRightSuffix(wxEmptyString);
+}
+
+void ComboBox::render(wxDC &dc)
+{
+    TextInput::render(dc);
+    if (m_closed_suffix.IsEmpty())
+        return;
+
+    dc.SetFont(::Label::Body_13);
+    const wxSize sSize = dc.GetTextExtent(m_closed_suffix);
+    const wxSize size  = GetSize();
+    const int    pad   = FromDIP(8);
+    int          sx    = size.x - pad - sSize.x;
+    int          left  = FromDIP(5) + FromDIP(20);
+    if (m_keep_drop_arrow)
+        left += FromDIP(4) + FromDIP(28) + FromDIP(7);
+    sx = (std::max)(sx, left + FromDIP(12));
+    const int sy = (size.y - sSize.y) / 2;
+    dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#ACACAC")));
+    dc.DrawText(m_closed_suffix, wxPoint(sx, sy));
+}
 
 void ComboBox::sendComboBoxEvent()
 {

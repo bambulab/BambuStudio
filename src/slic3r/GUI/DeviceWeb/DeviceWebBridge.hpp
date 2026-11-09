@@ -9,7 +9,6 @@
 
 #include <wx/panel.h>
 #include <nlohmann/json.hpp>
-#include <boost/log/trivial.hpp>
 #include <atomic>
 #include <chrono>
 #include <deque>
@@ -21,6 +20,7 @@
 #include "DeviceWebHealth.hpp"
 #include "DeviceWebModel.hpp"
 #include "DeviceWebManager.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -91,13 +91,14 @@ public:
     void SetManager(DeviceWebManager* mgr) { m_vm_mgr = mgr; }
     void SetHostContentSizeHandler(std::function<void(int width, int height)> handler) { m_host_content_size_handler = std::move(handler); }
     void SetReportEnabledHandler(std::function<bool()> handler) { m_report_enabled_handler = std::move(handler); }
+    bool IsReportEnabled() const;
 
     /* C++ → Web: report state change (suppressed when the page is hidden).
      * Returns true if the visibility gate passed and RunScript was invoked.
      * Does not guarantee the JS listener is already registered. */
     template<typename T>
     bool ReportMsg(T&& params) {
-        if (m_report_enabled_handler && !m_report_enabled_handler()) return false;
+        if (!IsReportEnabled()) return false;
         ReportMsgImpl(std::forward<T>(params));
         return true;
     }

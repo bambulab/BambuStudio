@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
+#include <numeric>
 #include <set>
 #include <utility>
 
@@ -10,14 +11,13 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include <boost/log/trivial.hpp>
-
 #include "TextureToColor/TextureToColor.hpp"
 #include "TextureToColor/ColorUtils.hpp"
 
 #include "Model.hpp"
 #include "TriangleMesh.hpp"
 #include "TriangleSelector.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -500,6 +500,118 @@ bool face_colors_to_painting(
     return true;
 }
 
+// Source colors are already a small exact palette (standard 3MF color groups), so the
+// texture pipeline's repair / oversample / smooth stages have nothing to contribute and
+// would only rebuild the geometry. Cluster in color space instead and leave the mesh
+// alone, except for the vertex-color preview split below.
+bool standard_3mf_colors_to_painting(
+    const TexturedMesh& mesh,
+    PaintedMesh& painted,
+    const TexturePaintingSettings& settings,
+    PaintProgressCallback progress,
+    PaintCancelCallback cancel)
+{
+    painted = PaintedMesh();
+    if (mesh.indices.empty() || mesh.vertices.empty() ||
+        mesh.precomputed_vertex_colors.size() != mesh.vertices.size())
+        return false;
+
+    auto report = [&progress](int percent, const char* message) {
+        if (progress)
+            progress(percent, message);
+    };
+    auto cancelled = [&cancel]() { return cancel && cancel(); };
+
+    report(0, "Collecting colors");
+    if (cancelled())
+        return false;
+
+    // Per-face colors are averages of the corner colors, so clustering them would invent
+    // colors the file never had. Cluster the source palette instead.
+    using RGB = std::array<std::size_t,3>;
+    std::vector<RGB> unique_colors;
+    std::map<RGB, std::size_t> unique_index;
+    std::vector<std::size_t> vertex_source_ids(mesh.vertices.size());
+    for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+        RGB rgb;
+        for (int c = 0; c < 3; ++c)
+            rgb[c] = static_cast<std::size_t>(std::lround(std::clamp(mesh.precomputed_vertex_colors[i][c], 0.0f, 1.0f) * 255.0f));
+        auto inserted = unique_index.emplace(rgb, unique_colors.size());
+        if (inserted.second)
+            unique_colors.push_back(rgb);
+        vertex_source_ids[i] = inserted.first->second;
+    }
+
+    const std::size_t max_cluster = MAX_PHYSICAL_FILAMENT_COUNT;
+    const std::size_t target = settings.target_colors_num == 0
+        ? std::min(unique_colors.size(), max_cluster)
+        : std::min(settings.target_colors_num, max_cluster);
+
+    report(20, "Clustering colors");
+    if (cancelled())
+        return false;
+
+    // The file already fits within the requested count, so keep its exact colors rather
+    // than clustering them and drifting off the authored values.
+    std::vector<RGB> centers;
+    std::vector<std::size_t> cluster_labels;
+    if (unique_colors.size() <= target) {
+        centers = unique_colors;
+        cluster_labels.resize(unique_colors.size());
+        std::iota(cluster_labels.begin(), cluster_labels.end(), 0);
+    } else {
+        tex2color::TextureToColorSettings algo_settings = make_tex2color_settings(settings);
+        algo_settings.target_colors_num = settings.target_colors_num == 0 ? 0 : target;
+        algo_settings.max_cluster_k     = std::min(algo_settings.max_cluster_k, max_cluster);
+        tex2color::AlgoProgressCallback algo_progress = nullptr;
+        tex2color::AlgoCancelCallback algo_cancel = nullptr;
+        bind_paint_callbacks(nullptr, cancel, algo_progress, algo_cancel);
+        if (!tex2color::quantize_colors(unique_colors, algo_settings, algo_cancel, centers, cluster_labels))
+            return false;
+    }
+    if (centers.empty() || cluster_labels.size() != unique_colors.size())
+        return false;
+
+    report(60, "Building preview");
+    if (cancelled())
+        return false;
+
+    tex2color::TriMesh preview_mesh;
+    preview_mesh.vertices.resize(mesh.vertices.size());
+    for (size_t i = 0; i < mesh.vertices.size(); ++i)
+        preview_mesh.vertices[i] = Vec3f(mesh.vertices[i][0], mesh.vertices[i][1], mesh.vertices[i][2]);
+    preview_mesh.indices.resize(mesh.indices.size());
+    for (size_t i = 0; i < mesh.indices.size(); ++i)
+        preview_mesh.indices[i] = Vec3i(mesh.indices[i][0], mesh.indices[i][1], mesh.indices[i][2]);
+
+    // Split across color borders so the preview shows the same sharp boundaries the
+    // painting will produce inside a triangle. This mesh never reaches the model.
+    std::vector<std::size_t> vertex_cluster_ids(vertex_source_ids.size());
+    for (size_t i = 0; i < vertex_source_ids.size(); ++i)
+        vertex_cluster_ids[i] = cluster_labels[vertex_source_ids[i]];
+    std::vector<std::array<std::size_t,3>> face_colors;
+    if (!tex2color::adaptive_split_by_vertex_clusters(preview_mesh, vertex_cluster_ids, centers, face_colors))
+        return false;
+
+    if (cancelled())
+        return false;
+
+    // Cluster colors are derived from the faces that actually use them, so a cluster that
+    // ended up empty never takes a color slot in the dialog. They come out sorted.
+    extract_painted_mesh(preview_mesh, face_colors, painted);
+    for (size_t i = 0; i < unique_colors.size(); ++i) {
+        const RGB& center = centers[cluster_labels[i]];
+        auto it = std::lower_bound(painted.cluster_colors.begin(), painted.cluster_colors.end(), center);
+        painted.original_color_to_cluster[unique_colors[i]] =
+            it != painted.cluster_colors.end() && *it == center ? int(it - painted.cluster_colors.begin()) : -1;
+    }
+    report(100, "Completed");
+
+    BOOST_LOG_TRIVIAL(info) << "clustered " << unique_colors.size()
+                            << " source colors into " << painted.cluster_colors.size();
+    return true;
+}
+
 double compute_delta_e(
     const std::array<std::size_t,3>& rgb1,
     const std::array<float,4>& rgba2)
@@ -511,6 +623,13 @@ double compute_delta_e(
             static_cast<std::size_t>(rgba2[1] * 255.0f),
             static_cast<std::size_t>(rgba2[2] * 255.0f)
         });
+}
+
+double compute_delta_e(
+    const std::array<std::size_t,3>& rgb1,
+    const std::array<std::size_t,3>& rgb2)
+{
+    return tex2color::color_utils::calc_rgb_color_difference_by_ciede2000(rgb1, rgb2);
 }
 
 std::vector<FilamentMatch> match_clusters_to_filaments(
@@ -615,14 +734,14 @@ bool apply_painted_mesh_to_volume(
         const double drift     = (new_center - cur_center).norm();
         if (drift > 0.05 * std::max(1.0, diag))
             BOOST_LOG_TRIVIAL(warning)
-                << "apply_painted_mesh_to_volume: painted bbox center drifted by "
+                << "painted bbox center drifted by "
                 << drift << " (bbox diag=" << diag
                 << ", unit_scale=" << unit_scale
                 << ", from_meters=" << volume.source.is_converted_from_meters
                 << ", from_inches=" << volume.source.is_converted_from_inches << ")";
         else if (drift > 1e-3 * std::max(1.0, diag))
             BOOST_LOG_TRIVIAL(info)
-                << "apply_painted_mesh_to_volume: minor bbox drift "
+                << "minor bbox drift "
                 << drift << " (bbox diag=" << diag
                 << ", unit_scale=" << unit_scale << ")";
     }

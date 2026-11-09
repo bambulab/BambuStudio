@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+    <!-- Design tokens and preflight first: the feature stylesheets resolve every
+         colour through --ams-* / --color-fm-* and assume border-box sizing. -->
+    <link rel="stylesheet" href="./css/tokens.css" />
+    <link rel="stylesheet" href="./css/ams-filament-hotend.css" />
+    <link rel="stylesheet" href="./css/ams-ext-operation.css" />
+    <link rel="stylesheet" href="./css/hotend-detail.css" />
+    <style>
+      html, body, #root {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: var(--ams-page-bg, #ffffff);
+        color: var(--ams-text-strong, #1a1a1a);
+        overflow-x: hidden;
+      }
+      [data-theme="dark"],
+      [data-theme="dark"] body,
+      [data-theme="dark"] #root {
+        background-color: #2d2d31 !important;
+      }
+      [data-theme="light"],
+      [data-theme="light"] body,
+      [data-theme="light"] #root {
+        background-color: #ffffff !important;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      // Sync theme from the C++ UserAgent BEFORE first paint - eliminates the
+      // white flash. theme.js repeats this once it loads; doing it inline here
+      // is what makes it happen before the stylesheets paint.
+      if (/\(\s*light\s*\)/i.test(navigator.userAgent)) {
+        document.documentElement.dataset.theme = 'light';
+        document.documentElement.style.backgroundColor = '#ffffff';
+      } else if (/\(\s*dark\s*\)/i.test(navigator.userAgent)) {
+        document.documentElement.dataset.theme = 'dark';
+        document.documentElement.style.backgroundColor = '#2d2d31';
+      }
+      // Disable Ctrl+wheel / Ctrl+plus / Ctrl+minus zoom inside the host WebView.
+      document.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '=' || e.key === '0')) {
+          e.preventDefault();
+        }
+      });
+      document.addEventListener('wheel', function (e) {
+        if (e.ctrlKey || e.metaKey) { e.preventDefault(); }
+      }, { passive: false });
+    </script>
+
+    <div id="root"></div>
+
+    <!--
+      Classic scripts, loaded in dependency order. ES modules are blocked by CORS
+      under file:// in WKWebView, which is exactly the class of failure this
+      front-end exists to avoid, so every unit attaches to the global BBL object
+      instead of importing.
+    -->
+    <script src="./js/dom.js"></script>
+    <script src="./js/bridge.js"></script>
+    <script src="./js/health.js"></script>
+    <script src="./js/layout.js"></script>
+    <script src="./js/theme.js"></script>
+    <script src="./js/i18n.js"></script>
+    <script src="./js/defaults.js"></script>
+    <script src="./js/store.js"></script>
+    <script src="./js/router.js"></script>
+    <script src="./js/inline-assets.js"></script>
+    <script src="./js/components/spool.js"></script>
+    <script src="./js/components/nozzle.js"></script>
+    <script src="./js/components/hotend.js"></script>
+    <script src="./js/pages/main.js"></script>
+    <script src="./js/pages/extOperation.js"></script>
+    <script src="./js/pages/extFilamentEdit.js"></script>
+    <script src="./js/pages/manualPull.js"></script>
+    <script src="./js/pages/hotendDetail.js"></script>
+    <script src="./js/app.js"></script>
+  </body>
+</html>

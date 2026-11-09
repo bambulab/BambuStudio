@@ -4,7 +4,6 @@
 #include <thread>
 #include <exception>
 #include <boost/optional.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 
 #include <wx/string.h>
@@ -20,6 +19,7 @@
 #include "Repetier.hpp"
 #include "MKS.hpp"
 #include "../GUI/PrintHostDialogs.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace fs = boost::filesystem;
 using boost::optional;

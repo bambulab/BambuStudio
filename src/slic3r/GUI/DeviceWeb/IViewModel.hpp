@@ -26,6 +26,11 @@ public:
     // Report current state for the given submod to the frontend.
     virtual void ReportState(const std::string& submod, const std::string& action) = 0;
 
+    // Called after a response for this module was handed to the frontend.
+    // Responses carry the same state snapshot a report would, so ViewModels
+    // that de-dupe reports must record it here to stay in sync.
+    virtual void OnResponseSent(const nlohmann::json& /*response*/) {}
+
     void SetBridge(DeviceWebBridge* bridge) { m_bridge = bridge; }
 
     // Called when the system colour mode (dark/light) changes.

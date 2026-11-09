@@ -9,6 +9,7 @@
 #include "ReleaseNote.hpp"
 
 #include <wx/modalhook.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI
@@ -232,11 +233,10 @@ void DeviceErrorDialog::init_button(ActionButton style, wxString buton_text)
     print_error_button->SetCornerRadius(FromDIP(5));
     print_error_button->Hide();
     m_button_list[style] = print_error_button;
-    m_button_list[style]->Bind(wxEVT_LEFT_DOWN, [this, style](wxMouseEvent& e)
-        {
-            this->on_button_click(style);
-            e.Skip();
-        });
+    m_button_list[style]->Bind(wxEVT_LEFT_UP, [this, style](wxMouseEvent &e) {
+        this->on_button_click(style);
+        e.Skip();
+    });
 }
 
 void DeviceErrorDialog::init_button_list()

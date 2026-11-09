@@ -1599,14 +1599,17 @@ namespace Slic3r
 
             if(filament_in_nozzle.empty())
                 continue;
+            if (extruder_id < 0 || extruder_id >= static_cast<int>(flush_matrix.size()))
+                continue;
 
             std::vector<unsigned int> filament_vec_in_nozzle(filament_in_nozzle.begin(), filament_in_nozzle.end());
 
+            const auto& extruder_flush = flush_matrix[extruder_id];
             int initial_fil = initial_status.get_filament_in_nozzle(nozzle_id);
-            std::optional<unsigned int> initial_fil_id = (initial_fil >= 0 && initial_fil < flush_matrix[extruder_id].size())? std::optional<unsigned int>(initial_fil) : std::nullopt;
+            std::optional<unsigned int> initial_fil_id = (initial_fil >= 0 && initial_fil < static_cast<int>(extruder_flush.size()))? std::optional<unsigned int>(initial_fil) : std::nullopt;
 
             std::vector<std::vector<unsigned int>> filament_seq;
-            cost += reorder_filaments_for_minimum_flush_volume_base(filament_vec_in_nozzle, layer_filaments, flush_matrix[extruder_id], get_custom_seq,
+            cost += reorder_filaments_for_minimum_flush_volume_base(filament_vec_in_nozzle, layer_filaments, extruder_flush, get_custom_seq,
                                                                     store_sequence ? &filament_seq : nullptr, initial_fil_id);
             if(store_sequence)
                 nozzle_filament_sequences.emplace(nozzle_id, std::move(filament_seq));
@@ -1627,6 +1630,10 @@ namespace Slic3r
 
         filament_sequences->clear();
         filament_sequences->resize(layer_filaments.size());
+        // No filament mapped to a nozzle: keep the empty per-layer sequences.
+        // max_element on an empty extruder list is undefined and used to corrupt the heap.
+        if (extruders.empty())
+            return cost;
 
         auto get_extruder_for_filament = [nozzle_group_result](unsigned int filament_idx) {
             auto nozzle = nozzle_group_result.get_nozzle_for_filament(filament_idx, -1);
@@ -1635,61 +1642,99 @@ namespace Slic3r
             return nozzle->extruder_id;
             };
 
-        auto get_nozzle_idx_for_filament = [nozzles_per_extruder, nozzle_group_result](unsigned int filament_idx)->int {
+        auto get_nozzle_idx_for_filament = [&nozzles_per_extruder, nozzle_group_result](unsigned int filament_idx)->int {
             auto nozzle = nozzle_group_result.get_nozzle_for_filament(filament_idx, -1);
             if (!nozzle)
                 return -1;
-            return std::find(nozzles_per_extruder.at(nozzle->extruder_id).begin(), nozzles_per_extruder.at(nozzle->extruder_id).end(), nozzle->group_id) - nozzles_per_extruder.at(nozzle->extruder_id).begin();
+            auto ext_it = nozzles_per_extruder.find(nozzle->extruder_id);
+            if (ext_it == nozzles_per_extruder.end())
+                return -1;
+            const auto& nozzles = ext_it->second;
+            auto it = std::find(nozzles.begin(), nozzles.end(), nozzle->group_id);
+            if (it == nozzles.end())
+                return -1;
+            return static_cast<int>(std::distance(nozzles.begin(), it));
             };
 
         int initial_extruder = initial_status.get_current_extruder_id();
-        int last_extruder_idx = (initial_extruder >= 0 && initial_extruder < extruders.size())? initial_extruder : 0;
+        int last_extruder_idx = (initial_extruder >= 0 && initial_extruder < static_cast<int>(extruders.size()))? initial_extruder : 0;
         // set size to max extruder_id in case extruder_id is not continuous
-        std::vector<int> last_nozzle_idx(*std::max_element(extruders.begin(),extruders.end()) + 1,0);
+        int max_extruder_id = *std::max_element(extruders.begin(), extruders.end());
+        std::vector<int> last_nozzle_idx(max_extruder_id >= 0 ? static_cast<size_t>(max_extruder_id) + 1 : 0, 0);
+        auto nozzle_idx_in_range = [&last_nozzle_idx](int extruder_id) {
+            return extruder_id >= 0 && extruder_id < static_cast<int>(last_nozzle_idx.size());
+        };
         for (int ext_id = 0; ext_id < static_cast<int>(last_nozzle_idx.size()); ext_id++) {
+            auto ext_it = nozzles_per_extruder.find(ext_id);
+            if (ext_it == nozzles_per_extruder.end())
+                continue;
             int initial_nozzle = initial_status.get_nozzle_in_extruder(ext_id);
-            auto ext_nozzles = nozzles_per_extruder[ext_id];
+            const auto& ext_nozzles = ext_it->second;
             auto it = std::find(ext_nozzles.begin(), ext_nozzles.end(), initial_nozzle);
             if (it != ext_nozzles.end())
                 last_nozzle_idx[ext_id] = static_cast<int>(std::distance(ext_nozzles.begin(), it));
         }
 
+        const int extruder_count = static_cast<int>(extruders.size());
         for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {
             auto& out_seq = (*filament_sequences)[layer];
 
             if (custom_layer_sequence_map.find(layer) != custom_layer_sequence_map.end()) {
                 out_seq = custom_layer_sequence_map[layer];
                 if (!out_seq.empty()) {
-                    last_extruder_idx = get_extruder_for_filament(out_seq.back());
+                    int back_ext = get_extruder_for_filament(out_seq.back());
+                    if (back_ext >= 0)
+                        last_extruder_idx = back_ext;
                     for (auto filament : out_seq) {
                         int cur_ext_id = get_extruder_for_filament(filament);
-                        last_nozzle_idx[cur_ext_id] = get_nozzle_idx_for_filament(filament);
+                        int nozzle_idx = get_nozzle_idx_for_filament(filament);
+                        // Filaments absent from this grouping have extruder -1. Writing that
+                        // index used to overwrite the vector heap header (free(): invalid pointer).
+                        if (nozzle_idx >= 0 && nozzle_idx_in_range(cur_ext_id))
+                            last_nozzle_idx[cur_ext_id] = nozzle_idx;
                     }
                 }
                 continue;
             }
 
-            if (last_extruder_idx == -1)
+            if (last_extruder_idx < 0)
                 last_extruder_idx = 0;
 
             int curr_last_extruder_idx = last_extruder_idx;
             auto curr_last_nozzle_idx = last_nozzle_idx;
-            for (int i = 0; i < extruders.size(); ++i) {
-                int extruder_id = extruders[(last_extruder_idx + i) % extruders.size()];
-                auto& base_nozzles = nozzles_per_extruder[extruder_id];
+            int start = last_extruder_idx % extruder_count;
+            if (start < 0)
+                start += extruder_count;
+            for (int i = 0; i < extruder_count; ++i) {
+                int extruder_id = extruders[(start + i) % extruder_count];
+                auto ext_it = nozzles_per_extruder.find(extruder_id);
+                if (ext_it == nozzles_per_extruder.end() || ext_it->second.empty())
+                    continue;
+                auto& base_nozzles = ext_it->second;
 
                 bool has_seq = false;
-                if (last_nozzle_idx[extruder_id] == -1)
-                    last_nozzle_idx[extruder_id] = 0;
+                int start_nozzle_idx = 0;
+                if (nozzle_idx_in_range(extruder_id)) {
+                    if (last_nozzle_idx[extruder_id] < 0)
+                        last_nozzle_idx[extruder_id] = 0;
+                    start_nozzle_idx = last_nozzle_idx[extruder_id];
+                }
 
-                for (int j = 0; j < base_nozzles.size(); ++j) {
-                    int nozzle_idx = (last_nozzle_idx[extruder_id] + j) % base_nozzles.size();
+                const int nozzle_count = static_cast<int>(base_nozzles.size());
+                for (int j = 0; j < nozzle_count; ++j) {
+                    int nozzle_idx = (start_nozzle_idx + j) % nozzle_count;
+                    if (nozzle_idx < 0)
+                        nozzle_idx += nozzle_count;
                     int nozzle_id = base_nozzles[nozzle_idx];
-                    const auto& frag = nozzle_filament_sequences[nozzle_id][layer];
+                    auto seq_it = nozzle_filament_sequences.find(nozzle_id);
+                    if (seq_it == nozzle_filament_sequences.end() || layer >= seq_it->second.size())
+                        continue;
+                    const auto& frag = seq_it->second[layer];
                     if (frag.empty())
                         continue;
                     has_seq = true;
-                    curr_last_nozzle_idx[extruder_id] = nozzle_idx;
+                    if (nozzle_idx_in_range(extruder_id))
+                        curr_last_nozzle_idx[extruder_id] = nozzle_idx;
                     out_seq.insert(out_seq.end(), frag.begin(), frag.end());
                 }
 

@@ -8,6 +8,7 @@
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Geometry/Circle.hpp"
 #include "libslic3r/Geometry/ConvexHull.hpp"
+#include "libslic3r/Measure.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/ShortestPath.hpp"
 
@@ -707,4 +708,27 @@ TEST_CASE("Convex polygon intersection test prusa polygons", "[Geometry][Rotcali
 
         REQUIRE(res == ref);
     }
+}
+
+TEST_CASE("Plane feature normal stays perpendicular under non-uniform scaling", "[Measure]")
+{
+    // Mesh-space plane through the origin, spanned by u and v.
+    const Vec3d u = Vec3d(1.0, 0.0, 1.0).normalized();
+    const Vec3d v = Vec3d(0.0, 1.0, 0.0);
+    const Vec3d n = u.cross(v).normalized();
+
+    // Scaling factors taken from the project that exposed the bug: X/Y shrunk, Z stretched.
+    Transform3d tran = Transform3d::Identity();
+    tran.scale(Vec3d(0.508799459, 0.508799459, 1.03249032));
+
+    Measure::SurfaceFeature plane(Measure::SurfaceFeatureType::Plane, n, Vec3d::Zero());
+    plane.translate(tran);
+    const Vec3d tn = std::get<1>(plane.get_plane());
+
+    // Tangents transform with the linear part, so a correctly transformed normal stays
+    // orthogonal to both of them. Transforming the normal with the linear part instead of
+    // its inverse transpose breaks this as soon as the scaling is not uniform.
+    REQUIRE(std::abs(tn.dot(tran.linear() * u)) < 1e-9);
+    REQUIRE(std::abs(tn.dot(tran.linear() * v)) < 1e-9);
+    REQUIRE(std::abs(tn.norm() - 1.0) < 1e-9);
 }

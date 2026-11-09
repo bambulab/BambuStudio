@@ -46,6 +46,9 @@ private:
     double m_last_linear = 0.003;
     double m_last_angle = 0.5;
     unsigned int m_mesh_number = 0;
+    // Bumped on the UI thread before each triangle-count run. A completion
+    // event carries the id from the run that posted it.
+    int m_mesh_generation = 0;
     boost::thread* m_task {nullptr};
     bool validate_number_range(const wxString& value, double min, double max);
     void log_step_tree_structure();
