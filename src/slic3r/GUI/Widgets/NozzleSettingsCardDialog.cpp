@@ -851,7 +851,7 @@ bool NozzleSettingsCardDialog::confirm_nozzle_change(const NozzleConfig &from)
     // else in this dialog.
     const wxString nozzle_name = from.diameter + " " + flow_label(from.volume);
     MessageDialog confirm(this,
-        wxString::Format(_L("The %s nozzle is in use by project filaments. Changing it will move them to 0.4 Standard. Change it anyway?"), nozzle_name),
+        wxString::Format(_L("Some project filaments are using the %s nozzle. Changing it will move them to 0.4 Standard. Change it anyway?"), nozzle_name),
         _L("Nozzle Settings"), wxYES | wxNO);
     confirm.SetButtonLabel(wxID_YES, _L("Confirm"));
     confirm.SetButtonLabel(wxID_NO, _L("Cancel"));
