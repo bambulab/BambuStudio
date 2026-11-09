@@ -5007,8 +5007,8 @@ msgstr ""
 msgid "AMS Settings"
 msgstr "AMS 设置"
 
-msgid "Insertion update"
-msgstr "插入料时更新"
+msgid "Read Filament on Insertion"
+msgstr "插入耗材时读取"
 
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "当插入新的Bambu Lab耗材丝的时候，AMS会自动读取耗材丝信息。这个过程大约需要20秒。"
@@ -5016,8 +5016,8 @@ msgstr "当插入新的Bambu Lab耗材丝的时候，AMS会自动读取耗材丝
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr "仅适用于 AMS/AMS 2pro/AMS HT。"
 
-msgid "Power on update"
-msgstr "开机时检测"
+msgid "Read Filament on Startup"
+msgstr "开机时读取"
 
 msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
 msgstr "每次开机时，AMS将会自动读取其所插入的耗材信息(读取过程会转料卷)。需要花时大约1分钟。"

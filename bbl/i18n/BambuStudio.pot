@@ -4978,7 +4978,7 @@ msgstr ""
 msgid "AMS Settings"
 msgstr ""
 
-msgid "Insertion update"
+msgid "Read Filament on Insertion"
 msgstr ""
 
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
@@ -4987,7 +4987,7 @@ msgstr ""
 msgid "Only for AMS/AMS 2pro/AMS HT."
 msgstr ""
 
-msgid "Power on update"
+msgid "Read Filament on Startup"
 msgstr ""
 
 msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
