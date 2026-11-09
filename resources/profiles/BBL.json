@@ -1,14 +1,10 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "02.09.00.81",
+    "version": "02.09.00.82",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
-        {
-            "name": "Bambu Lab P3C",
-            "sub_path": "machine/Bambu Lab P3C.json"
-        },
         {
             "name": "Bambu Lab X1 Carbon",
             "sub_path": "machine/Bambu Lab X1 Carbon.json"
@@ -68,6 +64,10 @@
         {
             "name": "Bambu Lab H3C",
             "sub_path": "machine/Bambu Lab H3C.json"
+        },
+        {
+            "name": "Bambu Lab P3C",
+            "sub_path": "machine/Bambu Lab P3C.json"
         }
     ],
     "filament_list": [
