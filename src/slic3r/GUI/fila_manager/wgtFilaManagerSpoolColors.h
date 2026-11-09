@@ -51,11 +51,16 @@ struct SpoolSwatch
 // Bambu preset for spools that the Filament Manager left without one.
 std::vector<std::string> spool_preset_types(const FilamentSpool& spool, const SpoolColorRules& rules);
 
-// Swatches of the usable spools offered under `filament_type`, the display
-// name of the filament preset being coloured (Preset::display_name(), e.g.
-// "PLA Matte"). Sorted by label; identical swatches appear once.
+// Swatches of the usable spools offered under the filament preset being
+// coloured. A spool is offered when it is linked to that preset by its
+// `filament_id` (the Filament Manager "Prints With" field), or else when its
+// type matches `filament_type`, the preset's display name (e.g. "PLA Matte"),
+// directly or through a rule. `filament_id` is the preset's filament_id; the
+// link is the primary path so a spool needs no type rule once it is set.
+// Sorted by label; identical swatches appear once.
 std::vector<SpoolSwatch> spool_swatches_for(const std::vector<FilamentSpool>& spools,
                                             const std::string&                filament_type,
-                                            const SpoolColorRules&            rules);
+                                            const SpoolColorRules&            rules,
+                                            const std::string&                filament_id = "");
 
 }} // namespace Slic3r::GUI

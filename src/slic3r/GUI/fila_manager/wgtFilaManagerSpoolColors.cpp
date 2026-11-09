@@ -82,7 +82,8 @@ std::vector<std::string> spool_preset_types(const FilamentSpool& s, const SpoolC
 
 std::vector<SpoolSwatch> spool_swatches_for(const std::vector<FilamentSpool>& spools,
                                             const std::string&                filament_type,
-                                            const SpoolColorRules&            rules)
+                                            const SpoolColorRules&            rules,
+                                            const std::string&                filament_id)
 {
     const std::string wanted = type_key(filament_type);
 
@@ -90,8 +91,13 @@ std::vector<SpoolSwatch> spool_swatches_for(const std::vector<FilamentSpool>& sp
     std::set<std::pair<std::string, std::vector<std::string>>> seen;
     for (const FilamentSpool& s : spools) {
         if (!usable(s)) continue;
-        const auto types = offered_under(s, rules);
-        if (std::find(types.begin(), types.end(), wanted) == types.end()) continue;
+        // A spool linked to this preset by "Prints With" is offered whatever
+        // its type; otherwise fall back to matching the type (and its rules).
+        const bool linked = !filament_id.empty() && s.filament_id == filament_id;
+        if (!linked) {
+            const auto types = offered_under(s, rules);
+            if (std::find(types.begin(), types.end(), wanted) == types.end()) continue;
+        }
 
         SpoolSwatch sw;
         sw.colors = s.colors.empty() ? std::vector<std::string>{s.color_code} : s.colors;
