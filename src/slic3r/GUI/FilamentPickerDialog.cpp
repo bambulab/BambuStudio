@@ -343,7 +343,10 @@ wxBoxSizer* FilamentPickerDialog::CreateSeparatorLine()
     wxBoxSizer *line_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxPanel* separator_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(1)));
     separator_line->SetBackgroundColour(wxColour(238,238,238));
-    wxStaticText* line_text = new wxStaticText(this, wxID_ANY, _L("Official Filament"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
+    // When the grid shows the user's own Filament Manager spools instead of
+    // Bambu's library, the heading must say so.
+    const wxString section_label = m_owned_codes ? _L("Your Filaments") : _L("Official Filament");
+    wxStaticText* line_text = new wxStaticText(this, wxID_ANY, section_label, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     line_text->SetForegroundColour(wxColour(128, 128, 128));
     line_sizer->Add(line_text, 0, wxEXPAND, 0);
     line_sizer->AddSpacer(FromDIP(8));
