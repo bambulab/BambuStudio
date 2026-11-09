@@ -6,6 +6,7 @@
 #include <dlfcn.h>
 #endif
 
+#include <boost/nowide/convert.hpp>
 #include "libslic3r/Utils.hpp"
 #include "slic3r/Utils/BBLUtil.hpp"
 #include "NetworkAgent.hpp"
@@ -23,6 +24,17 @@ namespace Slic3r {
 #if defined(_MSC_VER) || defined(_WIN32)
 static HMODULE networking_module = NULL;
 static HMODULE source_module = NULL;
+
+static HMODULE load_library_utf8(const std::string &path)
+{
+    const std::wstring wide_path = boost::nowide::widen(path);
+    HMODULE module = ::LoadLibraryW(wide_path.c_str());
+    if (!module) {
+        const DWORD error = ::GetLastError();
+        BOOST_LOG_TRIVIAL(warning) << "LoadLibraryW failed for " << PathSanitizer::sanitize(path) << ", error = " << error;
+    }
+    return module;
+}
 #else
 static void* networking_module = NULL;
 static void* source_module = NULL;
@@ -187,9 +199,7 @@ std::string NetworkAgent::get_libpath_in_current_directory(std::string library_n
         BOOST_LOG_TRIVIAL(info) << boost::format("GetModuleFileNameW return error, can not Load Library for %1%") %library_name;
         return lib_path;
     }
-    int size_needed = ::WideCharToMultiByte(0, 0, file_name, wcslen(file_name), nullptr, 0, nullptr, nullptr);
-    std::string file_name_string(size_needed, 0);
-    ::WideCharToMultiByte(0, 0, file_name, wcslen(file_name), file_name_string.data(), size_needed, nullptr, nullptr);
+    std::string file_name_string = boost::nowide::narrow(file_name);
 
     std::size_t found = file_name_string.find("bambu-studio.exe");
     if (found == (file_name_string.size() - 16)) {
@@ -224,21 +234,18 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
     //first load the library
 #if defined(_MSC_VER) || defined(_WIN32)
     library = plugin_folder.string() + "\\" + std::string(BAMBU_NETWORK_LIBRARY) + ".dll";
-    wchar_t lib_wstr[128];
-    memset(lib_wstr, 0, sizeof(lib_wstr));
-    ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
     if (self_cert_summary) {
         module_cert_summary = SummarizeModule(library);
         if (module_cert_summary) {
             if (IsSamePublisher(*self_cert_summary, *module_cert_summary))
-                networking_module = LoadLibrary(lib_wstr);
+                networking_module = load_library_utf8(library);
             else
                 BOOST_LOG_TRIVIAL(info) << "module is from another publisher:" << module_cert_summary->as_print();
         }
         else
             BOOST_LOG_TRIVIAL(info) << "module_cert is null";
     } else
-        networking_module = LoadLibrary(lib_wstr);
+        networking_module = load_library_utf8(library);
     if (!networking_module) {
         BOOST_LOG_TRIVIAL(info) << boost::format("try load library directly from current directory");
 
@@ -247,13 +254,11 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
             BOOST_LOG_TRIVIAL(info) << boost::format("can not get path in current directory for %1%") % BAMBU_NETWORK_LIBRARY;
             return -1;
         }
-        memset(lib_wstr, 0, sizeof(lib_wstr));
-        ::MultiByteToWideChar(CP_UTF8, NULL, library_path.c_str(), strlen(library_path.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
         if (self_cert_summary) {
             module_cert_summary = SummarizeModule(library_path);
             if (module_cert_summary) {
                 if (IsSamePublisher(*self_cert_summary, *module_cert_summary))
-                    networking_module = LoadLibrary(lib_wstr);
+                    networking_module = load_library_utf8(library_path);
                 else
                     BOOST_LOG_TRIVIAL(info) << "module is from another publisher:" << module_cert_summary->as_print();
             }
@@ -261,7 +266,7 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
                 BOOST_LOG_TRIVIAL(info) << "module_cert is null";
         }
         else
-            networking_module = LoadLibrary(lib_wstr);
+            networking_module = load_library_utf8(library_path);
     }
 #else
     #if defined(__WXMAC__)
@@ -600,13 +605,9 @@ void* NetworkAgent::get_bambu_source_entry()
     boost::filesystem::path data_dir_path(data_dir_str);
     auto plugin_folder = data_dir_path / "plugins";
 #if defined(_MSC_VER) || defined(_WIN32)
-    wchar_t lib_wstr[128];
-
     //goto load bambu source
     library = plugin_folder.string() + "/" + std::string(BAMBU_SOURCE_LIBRARY) + ".dll";
-    memset(lib_wstr, 0, sizeof(lib_wstr));
-    ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
-    source_module = LoadLibrary(lib_wstr);
+    source_module = load_library_utf8(library);
     if (!source_module) {
         BOOST_LOG_TRIVIAL(info) << boost::format("try load BambuSource directly from current directory");
         std::string library_path = get_libpath_in_current_directory(std::string(BAMBU_SOURCE_LIBRARY));
@@ -615,9 +616,7 @@ void* NetworkAgent::get_bambu_source_entry()
             return source_module;
         }
         BOOST_LOG_TRIVIAL(info);
-        memset(lib_wstr, 0, sizeof(lib_wstr));
-        ::MultiByteToWideChar(CP_UTF8, NULL, library_path.c_str(), strlen(library_path.c_str()) + 1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
-        source_module = LoadLibrary(lib_wstr);
+        source_module = load_library_utf8(library_path);
     }
 #else
 #if defined(__WXMAC__)
