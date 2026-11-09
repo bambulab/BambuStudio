@@ -3709,10 +3709,13 @@ void SelectMachineDialog::on_send_print()
 
     const bool queue_needs_nozzle_mapping = m_print_type == FROM_PRINT_QUEUE && m_queue_print_context &&
         !m_queue_print_context->plate_data->nozzles_info.empty() && obj_->GetNozzleRack()->IsSupported();
+    // A normal print on a hotend rack uses the V0 mapping shown and edited on this page
+    // (CheckErrorSyncNozzleMappingResultV0). Without it the printer picks the rack nozzles itself.
+    const bool rack_needs_nozzle_mapping = m_print_type == FROM_NORMAL && obj_->GetNozzleRack()->IsSupported();
     m_print_job->task_ams_mapping      = ams_mapping_array;
     m_print_job->task_ams_mapping2     = ams_mapping_array2;
     m_print_job->task_ams_mapping_info = ams_mapping_info;
-    if ((use_dynamic_nozzle_map() || queue_needs_nozzle_mapping) &&
+    if ((use_dynamic_nozzle_map() || queue_needs_nozzle_mapping || rack_needs_nozzle_mapping) &&
         !obj_->get_nozzle_mapping_result()->GetNozzleMappingJson().empty()) {
         nlohmann::json nozzle_mapping = obj_->get_nozzle_mapping_result()->GetNozzleMappingJson();
         // Same physical-length cap as the ams mapping arrays.
