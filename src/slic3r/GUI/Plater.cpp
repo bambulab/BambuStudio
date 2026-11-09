@@ -12922,7 +12922,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     auto is_split_compound = wxGetApp().app_config->get_bool("is_split_compound");
                     need_show_sole_text_notice = is_split_compound;
                     if (!is_split_compound && loaded_idxs.size() > 1) // Make it more convenient for users
-                        wxGetApp().obj_list()->merge_objects(loaded_idxs);
+                        loaded_idxs = wxGetApp().obj_list()->merge_objects(loaded_idxs);
                 }
                 if (step_position_compensated) {
                     update();

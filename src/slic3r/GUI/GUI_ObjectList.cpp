@@ -3629,11 +3629,11 @@ void ObjectList::merge(bool to_multipart_object)
     }
 }
 
-void ObjectList::merge_objects(const std::vector<size_t>& obj_idxs)
+std::vector<size_t> ObjectList::merge_objects(const std::vector<size_t>& obj_idxs)
 {
     // Merge the given whole objects into one multipart object, reusing merge(true) so the assemble-pose
     if (obj_idxs.size() <= 1)
-        return;
+        return obj_idxs;
 
     wxDataViewItemArray sels;
     for (const size_t idx : obj_idxs) {
@@ -3644,10 +3644,12 @@ void ObjectList::merge_objects(const std::vector<size_t>& obj_idxs)
             sels.Add(item);
     }
     if (sels.GetCount() < 2)
-        return;
+        return obj_idxs;
 
     select_items(sels);
     merge(true);
+    // merge(true) appends the merged object to the end of the model, then removes the sources.
+    return { m_objects->size() - 1 };
 }
 
 void ObjectList::merge_volumes()
