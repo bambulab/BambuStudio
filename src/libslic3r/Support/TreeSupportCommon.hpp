@@ -359,7 +359,7 @@ struct TreeSupportSettings
         if (slicing_params.raft_layers() > 0) {
             // Fill in raft_layers with the heights of the layers below the first object layer.
             // First layer
-            double z = slicing_params.first_print_layer_height;
+            double z = slicing_params.raft_first_layer_height;
             this->raft_layers.emplace_back(z);
             // Raft base layers
             for (size_t i = 1; i < slicing_params.base_raft_layers; ++ i) {

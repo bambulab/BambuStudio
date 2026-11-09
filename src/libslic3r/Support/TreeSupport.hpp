@@ -467,6 +467,8 @@ private:
     SupportParameters   m_support_params;
     SupportMergePlan    m_support_merge_plan;
     size_t          m_raft_layers = 0;  // number of raft layers, including raft base, raft interface, raft gap
+    // Overhangs too close to the first object layer to grow a branch. With a raft they are merged into it instead.
+    ExPolygons      m_raft_only_overhangs;
     size_t          m_highest_overhang_layer = 0;
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;
     std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;

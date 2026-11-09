@@ -397,8 +397,8 @@ SupportGeneratorLayersPtr generate_raft_base(
         {
             SupportGeneratorLayer &new_layer = layer_storage.allocate((slicing_params.base_raft_layers > 0) ? sltRaftBase : sltRaftInterface);
             raft_layers.push_back(&new_layer);
-            new_layer.print_z = slicing_params.first_print_layer_height;
-            new_layer.height  = slicing_params.first_print_layer_height;
+            new_layer.print_z = slicing_params.raft_first_layer_height;
+            new_layer.height  = slicing_params.raft_first_layer_height;
             new_layer.bottom_z = 0.;
             first_layer = union_(std::move(first_layer), base);
             if (inflate_factor_1st_layer < 0) { //means auto
@@ -2326,12 +2326,12 @@ void generate_support_toolpaths(
                     //FIXME misusing contact_polygons for support columns.
                     ((raft_layer.contact_polygons == nullptr) ? Polygons() : *raft_layer.contact_polygons);
                 // Trees may cut through the raft layers down to a print bed.
-                Flow flow(float(support_params.support_material_flow.width()), float(raft_layer.height), support_params.support_material_flow.nozzle_diameter());
+                Flow flow(float(support_params.raft_base_flow.width()), float(raft_layer.height), support_params.raft_base_flow.nozzle_diameter());
                 assert(!raft_layer.bridging);
                 if (! to_infill_polygons.empty()) {
                     Fill *filler = filler_support.get();
                     filler->angle = support_params.raft_angle_base;
-                    filler->spacing = support_params.support_material_flow.spacing();
+                    filler->spacing = support_params.raft_base_flow.spacing();
                     filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / support_params.support_density));
                     fill_expolygons_with_sheath_generate_paths(
                         // Destination
@@ -2360,7 +2360,9 @@ void generate_support_toolpaths(
                 filler->angle = support_params.raft_interface_angle(support_layer.interface_id());
                 // We don't use $base_flow->spacing because we need a constant spacing
                 // value that guarantees that all layers are correctly aligned.
-                filler->spacing = support_params.support_material_flow.spacing();
+                // A raft interface pinned to its own nozzle follows its own lines instead.
+                filler->spacing = std::abs(slicing_params.raft_interface_nozzle_diameter - slicing_params.raft_nozzle_diameter) > EPSILON ?
+                    support_params.raft_interface_flow.spacing() : support_params.raft_base_flow.spacing();
                 assert(! raft_layer.bridging);
                 flow          = Flow(float(support_params.raft_interface_flow.width()), float(raft_layer.height), support_params.raft_interface_flow.nozzle_diameter());
                 density       = float(support_params.raft_interface_density);

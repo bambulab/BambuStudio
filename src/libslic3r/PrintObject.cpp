@@ -12,6 +12,7 @@
 #include "Support/TreeSupport.hpp"
 #include "Surface.hpp"
 #include "Slicing.hpp"
+#include "SupportRecommendedParams.hpp"
 #include "Tesselate.hpp"
 #include "Time.hpp"
 #include "TriangleMeshSlicer.hpp"
@@ -3936,6 +3937,54 @@ void PrintObject::update_slicing_parameters()
     m_slicing_params = this->compute_slicing_parameters(this->print()->single_diameter_layering_nozzle());
 }
 
+// 多口径自动 raft 耗材：从贴床零件耗材中选，非 TPU 优先，其次口径更大。
+// 候选都是本对象耗材，无需检查支撑料组合；返回 0 表示不启用（支撑主体手动指定等）。
+static int automatic_raft_filament(const PrintObject &object)
+{
+    const PrintObjectConfig &config       = object.config();
+    const PrintConfig       &print_config = object.print()->config();
+    if (config.raft_layers.value <= 0 || config.support_filament.value != 0 ||
+        ! multi_nozzle_diameter_mode_enabled(object.print()->full_print_config()))
+        return 0;
+
+    const ModelObject *model_object = object.model_object();
+    if (model_object == nullptr || model_object->instances.empty())
+        return 0;
+    // Parts reaching down to the object's bottom, within the first grid step.
+    const Transform3d   &inst_matrix  = model_object->instances.front()->get_transformation().get_matrix(true);
+    const double         bottom_z     = model_object->raw_bounding_box().min.z();
+    const double         first_step   = print_config.initial_layer_print_height.value /
+                                        double(std::max(1, layer_grid_subdivision(object.print()->full_print_config())));
+    const GlobalFeatureFilaments global_features =
+        GlobalFeatureFilaments::from_config(object.print()->default_region_config(), print_config.filament_diameter.size());
+    std::vector<int> filaments;
+    for (const ModelVolume *volume : model_object->volumes) {
+        if (! volume->is_model_part())
+            continue;
+        if (volume->mesh().transformed_bounding_box(inst_matrix * volume->get_matrix()).min.z() > bottom_z + first_step + EPSILON)
+            continue;
+        append(filaments, volume->get_extruders(global_features));
+    }
+    sort_remove_duplicates(filaments);
+
+    int    best        = 0;
+    bool   best_is_tpu = true;
+    double best_nozzle = 0.;
+    for (int filament_id : filaments) {
+        if (filament_id <= 0 || size_t(filament_id) > print_config.filament_type.values.size() ||
+            print_config.filament_soluble.get_at(filament_id - 1) || print_config.filament_is_support.get_at(filament_id - 1))
+            continue;
+        const bool   tpu    = is_tpu_filament_type(print_config.filament_type.values[filament_id - 1]);
+        const double nozzle = nozzle_diameter_for_filament(print_config, (unsigned int) filament_id);
+        if (best == 0 || (best_is_tpu && ! tpu) || (best_is_tpu == tpu && nozzle > best_nozzle + EPSILON)) {
+            best        = filament_id;
+            best_is_tpu = tpu;
+            best_nozzle = nozzle;
+        }
+    }
+    return best;
+}
+
 SlicingParameters PrintObject::compute_slicing_parameters(double single_diameter_layering_nozzle) const
 {
     const DynamicPrintConfig &full_config = this->print()->full_print_config();
@@ -3948,7 +3997,8 @@ SlicingParameters PrintObject::compute_slicing_parameters(double single_diameter
                                                   m_config.layer_height.value / double(std::max(1, subdivision))));
     return SlicingParameters::create_from_config(
         this->print()->config(), m_config, this->model_object()->bounding_box().max.z(), this->object_extruders(),
-        subdivision, multiplier, single_diameter_layering_nozzle);
+        subdivision, multiplier, single_diameter_layering_nozzle,
+        automatic_raft_filament(*this), primary_nozzle_diameter(full_config));
 }
 
 SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full_config, const ModelObject& model_object, float object_max_z, std::vector<int> variant_index)
@@ -6023,6 +6073,28 @@ void PrintObject::_generate_support_material()
     else {
         PrintObjectSupportMaterial support_material(this, m_slicing_params);
         support_material.generate(*this);
+    }
+
+    // BBS multi-diameter: pin the raft layers to the filament the raft was sized for, so ToolOrdering and the
+    // G-code export print them with it instead of whatever "don't care" filament is active.
+    if (m_slicing_params.raft_filament_id > 0) {
+        const PrintConfig &print_config = this->print()->config();
+        const bool tree = is_tree(m_config.support_type.value) &&
+            resolve_support_style(m_config.support_style.value, m_config.support_type.value,
+                                  this->has_variable_layer_heights, m_slicing_params.soluble_interface,
+                                  config_flag_or_false(print_config, "heat_preserve_mode"),
+                                  config_flag_or_false(print_config, "enable_support_ring"),
+                                  this->print()->uses_multiple_nozzle_diameters()) != smsTreeOrganic;
+        for (size_t layer_id = 0; layer_id < this->support_layer_count(); ++layer_id) {
+            SupportLayer *layer = this->get_support_layer(int(layer_id));
+            if (layer_id >= m_slicing_params.raft_layers() &&
+                (! tree || layer->print_z > m_slicing_params.object_print_z_min + EPSILON))
+                break;
+            layer->planned_filament_id               = m_slicing_params.raft_filament_id;
+            layer->planned_nozzle_diameter           = m_slicing_params.raft_nozzle_diameter;
+            layer->planned_interface_filament_id     = m_slicing_params.raft_interface_filament_id;
+            layer->planned_interface_nozzle_diameter = m_slicing_params.raft_interface_nozzle_diameter;
+        }
     }
 
     const long long support_elapsed =

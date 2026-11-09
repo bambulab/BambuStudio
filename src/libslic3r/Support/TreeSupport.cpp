@@ -1613,8 +1613,8 @@ void TreeSupport::create_tree_support_layers()
         coordf_t raft_slice_z = 0.f;
         if (m_slicing_params.base_raft_layers > 0)
         {
-            // Do not add the raft contact layer, 1st layer should use first_print_layer_height
-            coordf_t height = m_slicing_params.first_print_layer_height;
+            // Do not add the raft contact layer, 1st layer should use raft_first_layer_height
+            coordf_t height = m_slicing_params.raft_first_layer_height;
             raft_print_z += height;
             raft_slice_z = raft_print_z - height / 2;
             m_object->add_tree_support_layer(layer_id++, height, raft_print_z, raft_slice_z);
@@ -3198,17 +3198,44 @@ void TreeSupport::generate_toolpaths()
     }
     }
 
-    if (m_object->support_layer_count() > m_raft_layers) {
-        const SupportLayer *ts_layer = m_object->get_support_layer(m_raft_layers);
-        for (const ExPolygon expoly : ts_layer->floor_areas)
-            raft_areas.push_back(expoly);
-        for (const ExPolygon expoly : ts_layer->roof_areas)
-            raft_areas.push_back(expoly);
-        for (const ExPolygon expoly : ts_layer->base_areas)
-            raft_areas.push_back(expoly);
+    // Overhangs no branch could grow under rest on the raft, see generate_contact_points().
+    append(raft_areas, m_raft_only_overhangs);
+    ExPolygons first_non_raft_base;
+    if (m_raft_layers > 0 && m_object->support_layer_count() > size_t(m_raft_layers)) {
+        // 多口径折叠后，落在 raft 上的厚层可能不是 raft 上第一层，需按段底高度收集；
+        // 层底比 raft 顶高出最大段高后不可能再落在 raft 上，提前退出。单口径只取第一层。
+        coordf_t max_slab_height = 0.;
+        if (m_support_merge_plan.enabled && !m_fold_slab_of_layer.empty())
+            for (const SupportMergePlan::Slab &slab : m_support_merge_plan.slabs)
+                max_slab_height = std::max(max_slab_height, coordf_t(slab.height));
+        const coordf_t raft_top_z = m_object->get_support_layer(m_raft_layers - 1)->print_z;
+        for (size_t layer_id = m_raft_layers; layer_id < m_object->support_layer_count(); ++layer_id) {
+            const SupportLayer *ts_layer    = m_object->get_support_layer(layer_id);
+            const bool          first_layer = layer_id == size_t(m_raft_layers);
+            if (!first_layer && ts_layer->print_z - max_slab_height > raft_top_z + EPSILON)
+                break;
+            const coordf_t base_height      = ts_layer->base_slab_height > EPSILON ? ts_layer->base_slab_height : ts_layer->height;
+            const coordf_t interface_height = ts_layer->interface_slab_height > EPSILON ? ts_layer->interface_slab_height : ts_layer->height;
+            if (first_layer || ts_layer->print_z - interface_height <= raft_top_z + EPSILON) {
+                append(raft_areas, ts_layer->floor_areas);
+                append(raft_areas, ts_layer->roof_areas);
+            }
+            if (first_layer || ts_layer->print_z - base_height <= raft_top_z + EPSILON) {
+                append(raft_areas, ts_layer->base_areas);
+                for (const auto &area_group : ts_layer->area_groups)
+                    if (area_group.type == SupportLayer::BaseType)
+                        first_non_raft_base.emplace_back(*area_group.area);
+            }
+        }
     }
 
     raft_areas = std::move(offset_ex(raft_areas, scale_(3.)));
+
+    // BBS multi-diameter: an automatic raft is sized for its own nozzles, see SupportParameters.
+    const bool auto_raft = m_slicing_params.raft_filament_id > 0;
+    auto raft_flow = [&](const Flow &auto_raft_flow, coordf_t height) {
+        return auto_raft ? auto_raft_flow.with_height(float(height)) : Flow(support_extrusion_width, height, nozzle_diameter);
+    };
 
     size_t layer_nr = 0;
     for (; layer_nr < m_slicing_params.base_raft_layers; layer_nr++) {
@@ -3216,7 +3243,7 @@ void TreeSupport::generate_toolpaths()
         coordf_t expand_offset = (layer_nr == 0 ? m_object_config->raft_first_layer_expansion.value : 0.);
         auto raft_areas1 = offset_ex(raft_areas, scale_(expand_offset));
 
-        Flow support_flow = Flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
+        Flow support_flow = raft_flow(m_support_params.raft_base_flow, ts_layer->height);
         Fill* filler_raft = Fill::new_from_type(ipRectilinear);
         filler_raft->angle = layer_nr == 0 ? PI/2 : 0;
         filler_raft->spacing = support_flow.spacing();
@@ -3228,24 +3255,15 @@ void TreeSupport::generate_toolpaths()
 
         // wall of first layer raft
         if (layer_nr == 0) {
-            Flow flow = Flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
             extrusion_entities_append_loops(ts_layer->support_fills.entities, to_polygons(raft_areas1), erSupportMaterial,
-                        float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
-            raft_areas1 = offset_ex(raft_areas1, -flow.scaled_spacing() / 2.);
+                        float(support_flow.mm3_per_mm()), float(support_flow.width()), float(support_flow.height()));
+            raft_areas1 = offset_ex(raft_areas1, -support_flow.scaled_spacing() / 2.);
         }
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_areas1,
             filler_raft, fill_params, erSupportMaterial, support_flow);
     }
 
     // subtract the non-raft support bases, otherwise we'll get support base on top of raft interfaces which is not stable
-    ExPolygons first_non_raft_base;
-    SupportLayer* first_non_raft_layer = m_object->get_support_layer(m_raft_layers);
-    if (first_non_raft_layer) {
-        for (auto& area_group : first_non_raft_layer->area_groups) {
-            if (area_group.type == SupportLayer::BaseType)
-                first_non_raft_base.emplace_back(*area_group.area);
-        }
-    }
     first_non_raft_base = offset_ex(first_non_raft_base, support_extrusion_width);
     ExPolygons raft_base_areas = intersection_ex(raft_areas, first_non_raft_base);
     ExPolygons raft_interface_areas = diff_ex(raft_areas, raft_base_areas);
@@ -3258,39 +3276,43 @@ void TreeSupport::generate_toolpaths()
     {
         SupportLayer *ts_layer = m_object->get_support_layer(layer_nr);
 
-        Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
+        // 接触面耗材手动指定时，接触面区域按它的口径打印。
+        Flow support_flow   = raft_flow(m_support_params.raft_base_flow, ts_layer->height);
+        Flow interface_flow = raft_flow(m_support_params.raft_interface_flow, ts_layer->height);
         Fill* filler_interface = Fill::new_from_type(ipRectilinear);
         filler_interface->angle = PI / 2;  // interface should be perpendicular to base
-        filler_interface->spacing = support_flow.spacing();
+        filler_interface->spacing = interface_flow.spacing();
 
         FillParams fill_params;
         fill_params.density = interface_density;
         fill_params.dont_adjust = true;
 
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_interface_areas,
-            filler_interface, fill_params, erSupportMaterialInterface, support_flow);
+            filler_interface, fill_params, erSupportMaterialInterface, interface_flow);
 
         if (m_support_params.enable_support_ironing && !raft_interface_areas.empty()
             && layer_nr == m_slicing_params.base_raft_layers + m_slicing_params.interface_raft_layers-1) {
             BoundingBox                bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
             generate_support_ironing_entity(
-                raft_interface_areas, bbox_object, ts_layer, &(ts_layer->support_fills), support_flow);
+                raft_interface_areas, bbox_object, ts_layer, &(ts_layer->support_fills), interface_flow);
         }
 
         fill_params.density = object_config.raft_first_layer_density * 0.01;
+        filler_interface->spacing = support_flow.spacing();
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_base_areas,
             filler_interface, fill_params, erSupportMaterial, support_flow);
     }
 
     // layers between raft and object
+    const size_t raft_gap_wall_count = wall_count == 0 ? 0 : 1;
     for (; layer_nr < m_raft_layers; layer_nr++) {
         SupportLayer *ts_layer = m_object->get_support_layer(layer_nr);
-        Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
+        Flow support_flow = raft_flow(m_support_params.raft_base_flow, ts_layer->height);
         Fill* filler_raft = Fill::new_from_type(ipRectilinear);
         filler_raft->angle = PI / 2;
         filler_raft->spacing = support_flow.spacing();
         for (auto& poly : first_non_raft_base)
-            make_perimeter_and_infill(ts_layer->support_fills.entities, poly, std::min(1, wall_count), support_flow, erSupportMaterial, filler_raft, interface_density, false);
+            make_perimeter_and_infill(ts_layer->support_fills.entities, poly, raft_gap_wall_count, support_flow, erSupportMaterial, filler_raft, interface_density, false);
     }
 
     if (m_object->support_layer_count() <= m_raft_layers)
@@ -6667,6 +6689,8 @@ void TreeSupport::generate_contact_points()
         }
     }
 
+    m_raft_only_overhangs.clear();
+
     const coordf_t layer_height = config.layer_height.value;
     coordf_t       z_distance_top = this->top_z_distance;
   //  if (!m_support_params.independent_layer_height) {
@@ -6763,7 +6787,7 @@ void TreeSupport::generate_contact_points()
                     // print_z=object_layer->bottom_z: it directly contacts the bottom
                     // height=z_distance_top: it's height is exactly the gap distance (the layer height once pre-split)
                     // dist_mm_to_top=0: it directly contacts the bottom
-                    if (bottom_z - overhang_top_z < m_object->get_layer(0)->print_z) return contact_node; // dont add it if overlapping with the initial layer
+                    if (bottom_z - overhang_top_z < m_object->get_layer(0)->print_z - EPSILON) return contact_node; // dont add it if overlapping with the initial layer
                     contact_node = m_ts_data->create_node(pt, -overhang_gap_layers, layer_nr - 1, roof_layers + overhang_gap_layers, to_buildplate, SupportNode::NO_PARENT, bottom_z,
                                                           overhang_gap_height, 0, radius);
                     contact_node->overhang = overhang;
@@ -6788,6 +6812,15 @@ void TreeSupport::generate_contact_points()
                 const auto &overhang_type = overhang_with_type.second;
                 is_sharp_tail = overhang_type & OverhangType::SharpTail;
                 set_overhang_top_z(top_z_for_overhang(layer_nr, overhang_part));
+                // 节点底部低于模型首层时 insert_point() 不会加任何点，整片悬空长不出树枝。
+                // 开 raft 时把它的面积并进 raft，raft 与模型的空隙不变；无 raft 时维持不生成。
+                if (bottom_z - overhang_top_z < m_object->get_layer(0)->print_z - EPSILON) {
+                    if (m_raft_layers > 0) {
+                        tbb::spin_mutex::scoped_lock lock(mtx);
+                        m_raft_only_overhangs.emplace_back(overhang_part);
+                    }
+                    continue;
+                }
                 bool       add_interface  = (force_tip_to_roof || area(overhang_part) > minimum_roof_area);
                 const auto &relevant_forbidden = get_collision(0, layer_nr - 1);
                 ExPolygons overhangs{overhang_part};
