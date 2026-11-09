@@ -5527,6 +5527,8 @@ void TabPrinter::build_fff()
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloatsNullable*>(m_config->option("nozzle_diameter"));
     m_initial_extruders_count = m_extruders_count = nozzle_diameter->values.size();
     m_extruder_variant_list = m_config->option<ConfigOptionStrings>("printer_extruder_variant")->values;
+    m_extruder_id_list = m_config->option<ConfigOptionInts>("printer_extruder_id")->values;
+    m_master_extruder_id = m_config->opt_int("master_extruder_id");
     // BBS
     //wxGetApp().obj_list()->update_objects_list_filament_column(m_initial_extruders_count);
 
@@ -6234,6 +6236,8 @@ void TabPrinter::on_preset_loaded()
         extruders_count_changed(extruders_count);
 
     m_extruder_variant_list = m_config->option<ConfigOptionStrings>("printer_extruder_variant")->values;
+    m_extruder_id_list = m_config->option<ConfigOptionInts>("printer_extruder_id")->values;
+    m_master_extruder_id = m_config->opt_int("master_extruder_id");
 
     if (base_name != m_base_preset_name) {
         const bool model_changed = base_model != m_base_preset_model;
@@ -6718,7 +6722,9 @@ void Tab::load_current_preset()
     BOOST_LOG_TRIVIAL(info) <<boost::format("enter, m_type %1%")%Preset::get_type_string(m_type);
     const Preset& preset = m_presets->get_edited_preset();
     std::vector<std::string> prev_variant_list;
+    std::vector<int> prev_extruder_ids;
     int prev_extruder_count = 0;
+    int prev_master_extruder_id = 1;
 
     update_btns_enabling();
 
@@ -6726,7 +6732,9 @@ void Tab::load_current_preset()
         // For the printer profile, generate the extruder pages.
         if (preset.printer_technology() == ptFFF) {
             prev_variant_list = static_cast<TabPrinter*>(this)->m_extruder_variant_list;
+            prev_extruder_ids = static_cast<TabPrinter*>(this)->m_extruder_id_list;
             prev_extruder_count = static_cast<TabPrinter*>(this)->m_extruders_count;
+            prev_master_extruder_id = static_cast<TabPrinter*>(this)->m_master_extruder_id;
             on_preset_loaded();
         }
         else
@@ -6825,10 +6833,20 @@ void Tab::load_current_preset()
             }
             //update the object config due to extruder count change
             DynamicPrintConfig& new_print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-            std::vector<std::string> new_variant_list = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("printer_extruder_variant")->values;
+            const DynamicPrintConfig& new_printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+            std::vector<std::string> new_variant_list = new_printer_config.option<ConfigOptionStrings>("printer_extruder_variant")->values;
             int new_extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
             if (prev_extruder_count != new_extruder_count || prev_variant_list.size() != new_variant_list.size())
             {
+                //multi -> single: use the values of the master extruder of the previous printer, the same as the process values (remap_variant_cache) and the CLI
+                //otherwise variant_index is empty, and the min of the values with the same variant name is used
+                std::vector<int> variant_index;
+                if (prev_extruder_count > 1 && new_extruder_count == 1) {
+                    variant_index = compute_variant_index_by_name(prev_variant_list, prev_extruder_ids, new_variant_list,
+                        new_printer_config.option<ConfigOptionInts>("printer_extruder_id")->values, false, prev_master_extruder_id);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("multi -> single extruder, map the object configs by the master extruder %1%, variant index %2%")
+                        % prev_master_extruder_id % ConfigOptionInts(variant_index).serialize();
+                }
                 //process the object params here
                 Model& model = wxGetApp().plater()->model();
                 size_t num_objects = model.objects.size();
@@ -6836,14 +6854,14 @@ void Tab::load_current_preset()
                     ModelObject* object = model.objects[i];
                     DynamicPrintConfig object_config = object->config.get();
                     if (!object_config.empty()) {
-                        object_config.update_values_from_multi_to_multi_2(prev_variant_list, new_variant_list, new_print_config, print_options_with_variant);
+                        object_config.update_values_from_multi_to_multi_2(prev_variant_list, new_variant_list, new_print_config, print_options_with_variant, variant_index);
                         object->config.assign_config(std::move(object_config));
                     }
                     for (ModelVolume* v : object->volumes) {
                         if (v->is_model_part() || v->is_modifier()) {
                             DynamicPrintConfig volume_config = v->config.get();
                             if (!volume_config.empty()) {
-                                volume_config.update_values_from_multi_to_multi_2(prev_variant_list,new_variant_list,new_print_config, print_options_with_variant);
+                                volume_config.update_values_from_multi_to_multi_2(prev_variant_list,new_variant_list,new_print_config, print_options_with_variant, variant_index);
                                 v->config.assign_config(std::move(volume_config));
                             }
                         }
@@ -6853,7 +6871,7 @@ void Tab::load_current_preset()
                         ModelConfig& layer_model_config = layer_config_it.second;
                         DynamicPrintConfig layer_config = layer_model_config.get();
                         if (!layer_config.empty()) {
-                            layer_config.update_values_from_multi_to_multi_2(prev_variant_list,new_variant_list,new_print_config, print_options_with_variant);
+                            layer_config.update_values_from_multi_to_multi_2(prev_variant_list,new_variant_list,new_print_config, print_options_with_variant, variant_index);
                             layer_model_config.assign_config(std::move(layer_config));
                        }
                     }

@@ -771,6 +771,8 @@ public:
 	size_t		m_sys_extruders_count;
 	size_t		m_cache_extruder_count = 0;
 	std::vector<std::string> m_extruder_variant_list;
+	std::vector<int> m_extruder_id_list;
+	int m_master_extruder_id = 1;
 
     PrinterTechnology               m_printer_technology = ptFFF;
 
