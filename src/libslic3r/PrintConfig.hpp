@@ -737,6 +737,13 @@ public:
     // handle_legacy() is called internally by set_deserialize().
     void                handle_legacy(t_config_option_key &opt_key, std::string &value) const override
         { PrintConfigDef::handle_legacy(opt_key, value); }
+    void                handle_legacy_composite(const std::map<std::string, std::string> &key_values) override
+        { this->normalize_legacy_print_extruder_id(key_values); }
+
+    // Some H3C / P3C single-extruder process presets were shipped with print_extruder_id = 2 (valid ids start from 1).
+    // Shift the ids so the smallest one becomes 1, only for presets older than 02.09.00.76
+    // or project_settings saved by Studio older than 02.09.01.73. Returns true if modified.
+    bool                normalize_legacy_print_extruder_id(const std::map<std::string, std::string> &key_values);
 
     //BBS special case Support G/ Support W
     std::string get_filament_type(std::string &displayed_filament_type, int id = 0);

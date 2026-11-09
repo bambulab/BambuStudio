@@ -1,4 +1,5 @@
 #include "PrintConfig.hpp"
+#include "Preset.hpp"
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
 #include "Flow.hpp"
@@ -10755,6 +10756,65 @@ void DynamicPrintConfig::update_diff_values_to_child_config(DynamicPrintConfig& 
         }
     }
     return;
+}
+
+// Match "@BBL H3C" / "Bambu Lab H3C" as a whole model name, so that e.g. "H3CP" is not matched.
+static bool refers_to_legacy_print_extruder_id_printer(const std::string &name)
+{
+    static const std::vector<std::string> prefixes = {"@BBL ", "Bambu Lab "};
+    static const std::vector<std::string> models   = {"H3C", "P3C"};
+    for (const std::string &prefix : prefixes)
+        for (const std::string &model : models) {
+            const std::string token = prefix + model;
+            for (size_t pos = name.find(token); pos != std::string::npos; pos = name.find(token, pos + 1)) {
+                const size_t end = pos + token.size();
+                if (end == name.size() || name[end] == ' ' || name[end] == '(')
+                    return true;
+            }
+        }
+    return false;
+}
+
+bool DynamicPrintConfig::normalize_legacy_print_extruder_id(const std::map<std::string, std::string> &key_values)
+{
+    auto *opt = this->option<ConfigOptionInts>("print_extruder_id");
+    if (opt == nullptr || opt->values.empty())
+        return false;
+    const int min_id = *std::min_element(opt->values.begin(), opt->values.end());
+    if (min_id <= 1)
+        return false;
+
+    auto version_iter = key_values.find(BBL_JSON_KEY_VERSION);
+    if (version_iter == key_values.end())
+        return false;
+    boost::optional<Semver> version = Semver::parse(version_iter->second);
+    if (!version)
+        return false;
+    auto name_iter = key_values.find(BBL_JSON_KEY_NAME);
+    const bool is_project_settings = name_iter != key_values.end() && name_iter->second == "project_settings";
+    if (*version >= Semver(is_project_settings ? "02.09.01.73" : "02.09.00.76"))
+        return false;
+
+    std::vector<std::string> names;
+    for (const char *key : {BBL_JSON_KEY_NAME, BBL_JSON_KEY_INHERITS}) {
+        auto iter = key_values.find(key);
+        if (iter != key_values.end())
+            names.push_back(iter->second);
+    }
+    for (const char *key : {"inherits", "print_settings_id", "printer_settings_id", "printer_model"}) {
+        if (auto *str_opt = this->option<ConfigOptionString>(key))
+            names.push_back(str_opt->value);
+    }
+    if (auto *printers = this->option<ConfigOptionStrings>("compatible_printers"))
+        names.insert(names.end(), printers->values.begin(), printers->values.end());
+    if (std::none_of(names.begin(), names.end(), refers_to_legacy_print_extruder_id_printer))
+        return false;
+
+    const std::string old_value = opt->serialize();
+    for (int &id : opt->values)
+        id -= min_id - 1;
+    BOOST_LOG_TRIVIAL(warning) << boost::format("normalize legacy print_extruder_id from %1% to %2%, version %3%") % old_value % opt->serialize() % version_iter->second;
+    return true;
 }
 
 void update_static_print_config_from_dynamic(ConfigBase& config, const DynamicPrintConfig& dest_config, std::vector<int> variant_index, std::set<std::string>& key_set1, int stride)

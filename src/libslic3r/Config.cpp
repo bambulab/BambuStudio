@@ -852,6 +852,7 @@ ConfigSubstitutions ConfigBase::load_string_map(std::map<std::string, std::strin
         if (dst)
             dst->set(src);
     }
+    this->handle_legacy_composite(key_values);
     return std::move(substitutions_ctxt.substitutions);
 }
 
@@ -1223,6 +1224,7 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 }
             }
         }
+        this->handle_legacy_composite(key_values);
         return 0;
     }
     catch (const std::ifstream::failure &err)  {
