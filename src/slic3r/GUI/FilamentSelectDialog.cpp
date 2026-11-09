@@ -1,5 +1,6 @@
 #include "FilamentSelectDialog.hpp"
 #include "AMSMaterialsSetting.hpp"  // AMS_MATERIALS_SETTING_GREY* colour constants
+#include "EncodedFilament.hpp"
 #include "FilamentBitmapUtils.hpp"
 #include "DeviceCore/DevDefs.h"  // DevAmsType
 #include "GUI_App.hpp"
@@ -579,11 +580,17 @@ void FilamentSelectDialog::fill_manager_tab()
     if (store) {
         for (const auto& id : store->all_spool_ids()) {
             const FilamentSpool* sp = store->get_spool(id);
-            if (!sp) {
-                continue;
+            if (!sp) continue;
+            bool has_preset = false;
+            const std::string filament_id = spool_filament_id(*sp);
+            if (bundle && !filament_id.empty()) {
+                for (const auto& printer_name : m_printer_names) {
+                    if (bundle->get_filament_by_filament_id(filament_id, printer_name).has_value()) {
+                        has_preset = true;
+                        break;
+                    }
+                }
             }
-
-            bool has_preset = bundle && bundle->get_filament_by_filament_id(sp->filament_id).has_value();
             if (has_preset) {
                 const wxString b = sp->brand.empty() ? other : wxString::FromUTF8(sp->brand);
                 brand_to_spools[b].push_back(*sp);
