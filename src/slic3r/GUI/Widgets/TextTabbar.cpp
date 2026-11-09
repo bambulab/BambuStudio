@@ -44,6 +44,10 @@ void TextTabbar::AddTab(const wxString &label)
     auto *col  = new wxBoxSizer(wxVERTICAL);
     auto *text = new wxStaticText(this, wxID_ANY, label);
     text->SetFont(::Label::Body_14);
+    // Set the text colour explicitly: an inherited system colour (white under a dark GTK theme) is
+    // mapped by the dark-mode pass onto the dark background colour, which hides the label. Resolve
+    // through darkModeColorFor so tabs added after that one-shot pass are still correct.
+    text->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::TextPrimary));
 
     auto *underline = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(2)));
     underline->SetBackgroundColour(this->GetBackgroundColour());

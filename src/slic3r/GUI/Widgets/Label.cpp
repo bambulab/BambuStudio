@@ -9,6 +9,33 @@
 #include <wx/settings.h>
 #include "libslic3r/Log.hpp"
 
+#ifdef __WXGTK__
+#include <pango/pangocairo.h>
+#include <pango/pangofc-fontmap.h>
+#endif
+
+namespace {
+
+#ifdef __WXGTK__
+/**
+ * \brief Make Pango see every font added by wxFont::AddPrivateFont()
+ *
+ * Only the first AddPrivateFont() call refreshes Pango. Fonts added later have no Pango family,
+ * and a glyph fallback to one of them crashes inside Pango. Call once after the last font is added.
+ */
+void refresh_pango_font_families()
+{
+    PangoFontMap* font_map = pango_cairo_font_map_get_default();
+    if (!PANGO_IS_FC_FONT_MAP(font_map)) {
+        BOOST_LOG_TRIVIAL(warning) << "default font map is not fontconfig based, skip private font refresh";
+        return;
+    }
+    pango_fc_font_map_config_changed(PANGO_FC_FONT_MAP(font_map));
+}
+#endif
+
+} // namespace
+
 wxFont Label::sysFont(int size, bool bold, std::string lang_code)
 {
 //#ifdef __linux__
@@ -84,6 +111,7 @@ void Label::initSysFont(std::string lang_code, bool load_font_resource)
         font_path = wxString::FromUTF8(resource_path + "/fonts/NanumGothic-Bold.ttf");
         result    = wxFont::AddPrivateFont(font_path);
         BOOST_LOG_TRIVIAL(info) << boost::format("add font of NanumGothic-Bold returns %1%")%result;
+        refresh_pango_font_families();
     }
 #endif
     Head_48 = Label::sysFont(48, true, lang_code);
