@@ -2,6 +2,8 @@
 
 #include "GUI_App.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Preset.hpp"
+#include "fila_manager/wgtFilaManagerSpoolColors.h"
 
 namespace Slic3r
 {
@@ -323,5 +325,68 @@ void FilamentColorCodes::Debug(const char* prefix)
 }
 
 
+
+std::unique_ptr<FilamentColorCodes> owned_spool_color_codes(const Preset& preset)
+{
+    auto* store = GUI::wxGetApp().fila_manager_store();
+    if (!store) return nullptr;
+
+    std::vector<GUI::FilamentSpool> spools;
+    for (const std::string& id : store->all_spool_ids())
+        if (const GUI::FilamentSpool* sp = store->get_spool(id)) spools.push_back(*sp);
+
+    const std::string type     = preset.display_name();
+    const auto        swatches = GUI::spool_swatches_for(spools, type,
+                                                         GUI::SpoolColorRules::load(data_dir() + "/" + GUI::kSpoolColorRulesFile));
+    if (swatches.empty()) return nullptr;
+
+    auto* clr_query = GUI::wxGetApp().get_filament_color_code_query();
+    auto codes = std::make_unique<FilamentColorCodes>(wxString::FromUTF8(preset.filament_id), wxString::FromUTF8(type));
+    for (const GUI::SpoolSwatch& swatch : swatches) {
+        FilamentColor colour;
+        for (const std::string& hex : swatch.colors) {
+            wxColour c(wxString::FromUTF8(hex));
+            if (c.IsOk()) colour.AddColor(c);
+        }
+        colour.EndSet(swatch.color_type);
+        // Spools of one colour from different brands share a swatch; the first label wins.
+        if (colour.ColorCount() == 0 || codes->GetColorCode(colour)) continue;
+
+        // The pure layer yields brand-only (label == brand) when the spool has
+        // neither a colour name nor a note. Recover the colour word from the
+        // colour query (the same source the Filament Manager list uses).
+        wxString label = wxString::FromUTF8(swatch.label);
+        if (swatch.label == swatch.brand && clr_query) {
+            const wxString colour_word = clr_query->GetFilaColorName(wxString::FromUTF8(preset.filament_id), colour);
+            if (!colour_word.IsEmpty()) {
+                label = wxString::FromUTF8(swatch.brand) + " " + colour_word;
+                label.Trim(true).Trim(false);
+            }
+        }
+
+        std::unordered_map<wxString, wxString> names{{"en", label}};
+        codes->AddColorCode(new FilamentColorCode(wxEmptyString, wxEmptyString, codes.get(), std::move(colour), std::move(names)));
+    }
+    return codes;
+}
+
+std::string spool_filament_id(const GUI::FilamentSpool& spool)
+{
+    if (!spool.filament_id.empty()) return spool.filament_id;
+    const PresetBundle* bundle = GUI::wxGetApp().preset_bundle;
+    if (!bundle) return {};
+
+    const auto types = GUI::spool_preset_types(spool, GUI::SpoolColorRules::load(data_dir() + "/" + GUI::kSpoolColorRulesFile));
+    auto rank = [](const Preset& p) { return p.is_system ? (boost::starts_with(p.name, "Bambu ") ? 0 : 1) : 2; };
+
+    const Preset* best = nullptr;
+    for (const Preset& p : bundle->filaments) {
+        if (p.filament_id.empty() || p.is_default) continue;
+        const bool named = std::any_of(types.begin(), types.end(),
+                                       [&](const std::string& t) { return boost::iequals(p.display_name(), t); });
+        if (named && (!best || rank(p) < rank(*best))) best = &p;
+    }
+    return best ? best->filament_id : std::string();
+}
 
 } // namespace Slic3r

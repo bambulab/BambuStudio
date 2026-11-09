@@ -38,3 +38,14 @@ if (WIN32)
 endif()
 
 add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests "${CATCH_EXTRA_ARGS} exclude:[NotWorking]")
+
+# Owned-spool colour swatches. Its own target because wgtFilaManagerStore.cpp
+# now pulls in GUI_App.hpp (wxWidgets), which the target above cannot build.
+add_executable(spool_colors_tests test_spool_colors.cpp
+    ${PROJECT_SOURCE_DIR}/src/slic3r/GUI/fila_manager/wgtFilaManagerSpoolColors.cpp
+)
+# No libslic3r: the matcher needs only nlohmann::json and boost.
+target_include_directories(spool_colors_tests PRIVATE ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/tests ${CMAKE_CURRENT_LIST_DIR}/..)
+target_link_libraries(spool_colors_tests boost_libs)
+set_property(TARGET spool_colors_tests PROPERTY FOLDER "tests")
+add_test(spool_colors_tests spool_colors_tests "${CATCH_EXTRA_ARGS} exclude:[NotWorking]")

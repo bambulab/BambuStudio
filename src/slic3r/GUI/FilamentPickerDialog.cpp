@@ -56,7 +56,8 @@ void FilamentPickerDialog::StartFlashing()
     m_flash_timer->Start(50);
 }
 
-FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fila_id, const FilamentColor& fila_color, const std::string& fila_type)
+FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fila_id, const FilamentColor& fila_color, const std::string& fila_type,
+                                           std::unique_ptr<FilamentColorCodes> owned_codes)
     : DPIDialog(parent ? parent : wxGetApp().mainframe,
         wxID_ANY,
         _L("Select Filament"),
@@ -67,9 +68,15 @@ FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fil
     SetBackgroundColour(wxColour(255, 255, 255));
 
     m_color_query = new FilamentColorCodeQuery();
+    m_owned_codes = std::move(owned_codes);
     m_is_data_loaded = LoadFilamentData(fila_id);
     m_cur_filament_color = fila_color;
-    wxString color_name = m_color_query->GetFilaColorName(fila_id, fila_color);
+    wxString color_name;
+    if (m_owned_codes) {
+        if (FilamentColorCode* code = m_owned_codes->GetColorCode(fila_color)) color_name = code->GetFilaColorName();
+    } else {
+        color_name = m_color_query->GetFilaColorName(fila_id, fila_color);
+    }
     m_cur_color_name = new wxString(color_name);
 
     wxBoxSizer *container_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -197,7 +204,7 @@ void FilamentPickerDialog::SetWindowShape()
 
 bool FilamentPickerDialog::LoadFilamentData(const wxString& fila_id)
 {
-    m_cur_color_codes = m_color_query->GetFilaInfoMap(fila_id);
+    m_cur_color_codes = m_owned_codes ? m_owned_codes.get() : m_color_query->GetFilaInfoMap(fila_id);
 
     if (!m_cur_color_codes) {
         BOOST_LOG_TRIVIAL(warning) << "No color codes found for filament ID: " << fila_id.ToStdString();
@@ -313,7 +320,7 @@ void FilamentPickerDialog::SetupLabelsContent(const FilamentColor &fila_color, c
         // Try to get additional color code information
         if (m_cur_color_codes) {
             FilamentColorCode *color_code = m_cur_color_codes->GetColorCode(fila_color);
-            if (color_code) {
+            if (color_code && !color_code->GetFilaColorCode().IsEmpty()) {
                 m_label_preview_idx->SetLabel(wxString::Format("(%s)", color_code->GetFilaColorCode()));
             }
         }
@@ -482,7 +489,7 @@ void FilamentPickerDialog::UpdatePreview(const FilamentColorCode& color_code)
 
     // Update preview labels
     m_label_preview_color->SetLabel(color_code.GetFilaColorName());
-    m_label_preview_idx->SetLabel(wxString::Format("(%s)", color_code.GetFilaColorCode()));
+    m_label_preview_idx->SetLabel(color_code.GetFilaColorCode().IsEmpty() ? wxString() : wxString::Format("(%s)", color_code.GetFilaColorCode()));
     Layout();
 }
 

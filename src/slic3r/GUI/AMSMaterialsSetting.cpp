@@ -511,10 +511,24 @@ std::vector<ColorPickerPopup::ColorItem> AMSMaterialsSetting::get_preset_color_i
     std::vector<ColorPickerPopup::ColorItem> items;
     if (filament_id.empty()) return items;
 
-    auto* clr_query = GUI::wxGetApp().get_filament_color_code_query();
-    if (!clr_query) return items;
+    // The user's own spools of this filament type take the place of the official colours.
+    std::unique_ptr<FilamentColorCodes> owned_codes;
+    if (PresetBundle* bundle = GUI::wxGetApp().preset_bundle) {
+        const Preset* preset = nullptr;
+        for (const Preset& p : bundle->filaments) {
+            if (p.filament_id != filament_id) continue;
+            preset = &p;
+            if (p.alias == into_u8(m_current_filament_alias)) break;
+        }
+        if (preset) owned_codes = owned_spool_color_codes(*preset);
+    }
 
-    FilamentColorCodes* color_codes = clr_query->GetFilaInfoMap(wxString::FromUTF8(filament_id));
+    FilamentColorCodes* color_codes = owned_codes.get();
+    if (!color_codes) {
+        auto* clr_query = GUI::wxGetApp().get_filament_color_code_query();
+        if (!clr_query) return items;
+        color_codes = clr_query->GetFilaInfoMap(wxString::FromUTF8(filament_id));
+    }
     if (!color_codes || !color_codes->GetFilamentColor2CodeMap()) return items;
 
     std::set<std::string> seen;
@@ -573,7 +587,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
         if (!m_selected_spool_id.empty()) {
             auto* store = wxGetApp().fila_manager_store();
             const FilamentSpool* sp = store ? store->get_spool(m_selected_spool_id) : nullptr;
-            if (sp) filament_id = sp->filament_id;
+            if (sp) filament_id = spool_filament_id(*sp);
         }
         if (filament_id.empty()) {
             auto it = map_filament_items.find(into_u8(m_current_filament_alias));
@@ -847,8 +861,8 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
         auto* store = wxGetApp().fila_manager_store();
         const FilamentSpool* sp = store ? store->get_spool(m_selected_spool_id) : nullptr;
         if (sp) {
-            filament_item.filament_id = sp->filament_id;
-            filament_item.setting_id  = sp->filament_id;
+            filament_item.filament_id = spool_filament_id(*sp);
+            filament_item.setting_id  = filament_item.filament_id;
             filament_item.spool_id    = sp->spool_id;
         }
     }
