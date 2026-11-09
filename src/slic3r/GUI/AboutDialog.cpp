@@ -2,6 +2,7 @@
 #include "I18N.hpp"
 
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/BuildInfo.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
@@ -308,7 +309,7 @@ AboutDialog::AboutDialog()
         plugin_version_text->SetBackgroundColour(wxColour("#00AF42"));
         vesizer->Add(plugin_version_text, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
 
-        wxString build_time = wxString::Format("Build Time: %s", std::string(SLIC3R_BUILD_TIME));
+        wxString build_time = wxString::Format("Build Time: %s", std::string(Slic3r::build_time()));
         wxStaticText* build_time_text = new wxStaticText(this, wxID_ANY, build_time, wxDefaultPosition, wxDefaultSize);
         build_time_text->SetForegroundColour(wxColour("#FFFFFE"));
         build_time_text->SetBackgroundColour(wxColour("#00AF42"));

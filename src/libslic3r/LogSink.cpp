@@ -1,6 +1,7 @@
 #include "LogSink.hpp"
 
 #include "libslic3r_version.h"
+#include "BuildInfo.hpp"
 
 #include "slic3r/Utils/BBLUtil.hpp"
 #include "slic3r/Utils/Http.hpp"
@@ -217,7 +218,7 @@ void LogSinkBackend::try_record_new_log_file(const boost::log::record_view& rec)
         // app info
         header_json["app_name"] = SLIC3R_APP_NAME;
         header_json["app_version"] = SLIC3R_VERSION;
-        header_json["app_build_time"] = SLIC3R_BUILD_TIME;
+        header_json["app_build_time"] = Slic3r::build_time();
 
         // encryption info
         header_json["enc_env_name"] = m_log_enc_options.enc_key_host_env;

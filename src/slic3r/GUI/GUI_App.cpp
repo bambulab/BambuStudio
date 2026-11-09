@@ -10,6 +10,7 @@
 #include "slic3r/GUI/TaskManager.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include "libslic3r/PerfTrace.hpp"
+#include "libslic3r/BuildInfo.hpp"
 #include "format.hpp"
 #include <wx/language.h>
 #include <wx/string.h>
@@ -3280,10 +3281,10 @@ bool GUI_App::on_init_inner()
     }
 #endif
 
-    BOOST_LOG_TRIVIAL(info) << "gui mode " << KV(log_key::app_version, SLIC3R_VERSION) << KV(log_key::build_time, SLIC3R_BUILD_TIME);
+    BOOST_LOG_TRIVIAL(info) << "gui mode " << KV(log_key::app_version, SLIC3R_VERSION) << KV(log_key::build_time, Slic3r::build_time());
 
 #if !BBL_RELEASE_TO_PUBLIC
-    BOOST_LOG_TRIVIAL(info) << KV(log_key::build_commit, SLIC3R_COMPILE_VERSION);
+    BOOST_LOG_TRIVIAL(info) << KV(log_key::build_commit, Slic3r::build_commit());
 #endif
 
     BOOST_LOG_TRIVIAL(info) << get_system_info();
