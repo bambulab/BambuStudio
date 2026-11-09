@@ -79,7 +79,6 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/locale.hpp>
 #include <boost/locale/encoding_utf.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>

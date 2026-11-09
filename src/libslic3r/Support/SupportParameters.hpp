@@ -1,5 +1,4 @@
 #pragma once
-#include <boost/log/trivial.hpp>
 #include "../libslic3r.h"
 #include "../Flow.hpp"
 #include "../PrintConfig.hpp"
@@ -8,6 +7,7 @@
 #include "../Print.hpp"
 #include "../Layer.hpp"
 #include "SupportLayer.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -18,16 +18,26 @@ inline bool config_flag_or_false(const ConfigBase &cfg, const t_config_option_ke
     return opt != nullptr && opt->value;
 }
 
+inline coordf_t resolved_support_object_xy_distance(const PrintConfig &print_config,
+                                                    const PrintObjectConfig &object_config)
+{
+    return !print_config.top_z_overrides_xy_distance ?
+        object_config.support_object_xy_distance.value :
+        std::min(object_config.support_object_xy_distance.value,
+                 std::max(0.2, object_config.support_top_z_distance.value));
+}
+
 // Keep Default / Grid / Snug / mismatched-style rewrite in one place so the uncovered-overhang
 // warning names the same classic-vs-organic path as SupportParameters. Organic is refused for
-// variable layer heights (#4313), a zero Top Z gap, or a requested ring / heat preserve.
+// variable layer heights (#4313), a zero Top Z gap, a requested ring / heat preserve, or multi-diameter mode.
 inline SupportMaterialStyle resolve_support_style(
     SupportMaterialStyle support_style,
     SupportType          support_type,
     bool                 has_variable_layer_heights,
     bool                 soluble_interface,
     bool                 heat_preserve_mode,
-    bool                 enable_support_ring)
+    bool                 enable_support_ring,
+    bool                 multi_diameter_mode)
 {
     if (support_style != smsDefault) {
         if ((support_style == smsSnug || support_style == smsGrid) && is_tree(support_type))
@@ -40,7 +50,7 @@ inline SupportMaterialStyle resolve_support_style(
     if (support_style == smsDefault) {
         if (is_tree(support_type)) {
             if (!has_variable_layer_heights && !soluble_interface &&
-                !heat_preserve_mode && !enable_support_ring)
+                !heat_preserve_mode && !enable_support_ring && !multi_diameter_mode)
                 support_style = smsTreeOrganic;
             else
                 support_style = smsTreeHybrid;
@@ -108,6 +118,13 @@ struct SupportParameters {
         this->support_material_flow = Slic3r::support_material_flow(&object, float(slicing_params.layer_height));
         this->support_material_interface_flow = Slic3r::support_material_interface_flow(&object, float(slicing_params.layer_height));
     	this->raft_interface_flow                = support_material_interface_flow;
+        // BBS multi-diameter: kept so the support base flow can be rebuilt for a nozzle the support merge plan
+        // picked. support_material_flow() derives the nozzle from support_filament, which is 0 in that case.
+        this->support_base_width = (object_config.support_line_width.value > 0) ? object_config.support_line_width : object_config.line_width;
+        this->support_first_layer_width = (print_config.initial_layer_line_width.value > 0) ?
+            print_config.initial_layer_line_width : this->support_base_width;
+        this->preset_nozzle_diameter = float(primary_nozzle_diameter(object.print()->full_print_config()));
+        this->multi_nozzle_diameter_mode = multi_nozzle_diameter_mode_enabled(object.print()->full_print_config());
 
         // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
         this->support_layer_height_min = scaled<coord_t>(0.01);
@@ -130,9 +147,7 @@ struct SupportParameters {
             external_perimeter_width = std::max(external_perimeter_width, coordf_t(region.flow(object, frExternalPerimeter, slicing_params.layer_height).width()));
             bridge_flow_ratio += region.config().bridge_flow;
         }
-        this->gap_xy             = !print_config.top_z_overrides_xy_distance ?
-                                       object_config.support_object_xy_distance.value :
-                                       std::min(object_config.support_object_xy_distance.value, std::max(0.2, object_config.support_top_z_distance.value));
+        this->gap_xy             = resolved_support_object_xy_distance(print_config, object_config);
         this->gap_xy_first_layer = object_config.support_object_first_layer_gap.value;
         bridge_flow_ratio /= object.num_printing_regions();
 
@@ -184,11 +199,12 @@ struct SupportParameters {
         if (support_style == smsDefault) {
             if (is_tree(object_config.support_type)) {
                 // organic support doesn't work with variable layer heights (including adaptive layer height and height range modifier, see #4313)
-                if (!object.has_variable_layer_heights && !slicing_params.soluble_interface) {
+                // BBS multi-diameter: default to hybrid tree as well.
+                if (!object.has_variable_layer_heights && !slicing_params.soluble_interface && !object.print()->uses_multiple_nozzle_diameters()) {
                     BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
                     support_style = smsTreeOrganic;
                 } else {
-                    BOOST_LOG_TRIVIAL(warning) << "tree support default to hybrid tree due to adaptive layer height";
+                    BOOST_LOG_TRIVIAL(warning) << "tree support default to hybrid tree due to adaptive layer height or multi-diameter mode";
                     support_style = smsTreeHybrid;
                 }
             } else {
@@ -252,10 +268,16 @@ struct SupportParameters {
 	        assert(slicing_params.raft_layers() == 0);
 	    }
 
-        support_extrusion_width = object_config.support_line_width.value > 0 ? object_config.support_line_width : object_config.line_width;
+        {
+            const auto support_nozzle = Slic3r::support_nozzle_diameter(&object, object_config.support_filament);
+            const ConfigOptionFloat &support_width_opt = object_config.support_line_width.value > 0 ? object_config.support_line_width : object_config.line_width;
+            support_extrusion_width = Flow::extrusion_width_for_nozzle(
+                support_width_opt, preset_nozzle_diameter, support_nozzle,
+                multi_nozzle_diameter_mode);
+        }
         // Check if set to zero, use default if so.
         if (support_extrusion_width <= 0.0) {
-            const auto nozzle_diameter               = print_config.nozzle_diameter.get_at(object_config.support_interface_filament - 1);
+            const auto nozzle_diameter = Slic3r::support_nozzle_diameter(&object, object_config.support_interface_filament);
             support_extrusion_width = Flow::auto_extrusion_width(FlowRole::frSupportMaterial, (float) nozzle_diameter);
         }
 
@@ -311,6 +333,27 @@ struct SupportParameters {
     Flow 		support_material_bottom_interface_flow;
 	// Flow at raft inteface & contact layers.
 	Flow    				raft_interface_flow;
+    // BBS multi-diameter: the line width option behind the support flows, so base and interface slabs can be
+    // rebuilt for the nozzle selected by the support merge plan.
+    ConfigOptionFloat support_base_width;
+    ConfigOptionFloat support_first_layer_width;
+    float preset_nozzle_diameter { 0.f };
+    bool multi_nozzle_diameter_mode { false };
+    Flow support_material_flow_for_nozzle(double nozzle_diameter, float layer_height) const {
+        return Flow::new_from_config_width(
+            frSupportMaterial, support_base_width, preset_nozzle_diameter, float(nozzle_diameter), layer_height,
+            multi_nozzle_diameter_mode);
+    }
+    Flow support_material_interface_flow_for_nozzle(double nozzle_diameter, float layer_height) const {
+        return Flow::new_from_config_width(
+            frSupportMaterialInterface, support_base_width, preset_nozzle_diameter, float(nozzle_diameter), layer_height,
+            multi_nozzle_diameter_mode);
+    }
+    Flow support_material_first_layer_flow_for_nozzle(double nozzle_diameter, float layer_height) const {
+        return Flow::new_from_config_width(
+            frSupportMaterial, support_first_layer_width, preset_nozzle_diameter, float(nozzle_diameter), layer_height,
+            multi_nozzle_diameter_mode);
+    }
     coordf_t support_extrusion_width;
     // Is merging of regions allowed? Could the interface & base support regions be printed with the same extruder?
     bool 		can_merge_support_regions;

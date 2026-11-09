@@ -508,7 +508,8 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 648px;
+  width: 100%;
+  max-width: 648px;
   padding: 0 0 12px;
 }
 
@@ -529,7 +530,8 @@ html, body {
 }
 
 #CFilament_List {
-  width: 648px;
+  width: 100%;
+  max-width: 648px;
   flex: 1;
   overflow-y: auto;
   border: 1px solid #EEEEEE;
@@ -654,7 +656,8 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 648px;
+  width: 100%;
+  max-width: 648px;
   padding: 12px 0 0;
 }
 

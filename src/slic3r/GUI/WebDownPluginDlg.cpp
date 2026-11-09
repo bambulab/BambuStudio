@@ -26,6 +26,7 @@
 #include <slic3r/Utils/Http.hpp>
 #include <libslic3r/miniz_extension.hpp>
 #include <libslic3r/Utils.hpp>
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 
@@ -90,7 +91,7 @@ DownPluginFrame::~DownPluginFrame()
 
 void DownPluginFrame::load_url(wxString &url)
 {
-    BOOST_LOG_TRIVIAL(trace) << "app_start: DownPluginFrame url=" << url.ToStdString();
+    BOOST_LOG_TRIVIAL(trace) << "app_start: DownPluginFrame url=" << url;
     this->Show();
     m_browser->LoadURL(url);
     m_browser->SetFocus();
@@ -228,6 +229,7 @@ void DownPluginFrame::OnScriptMessage(wxWebViewEvent &evt)
             desktop_open_any_folder(plugin_folder);
         }
     } catch (std::exception &/*e*/) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         // wxMessageBox(e.what(), "json Exception", MB_OK);
     }
 }
@@ -297,7 +299,7 @@ void DownPluginFrame::OnError(wxWebViewEvent &evt)
     // Show the info bar with an error
     // m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() +
     // "\n" + "'" + category + "'", wxICON_ERROR);
-    BOOST_LOG_TRIVIAL(info) << "DownPluginFrame::OnError: An error occurred loading " << evt.GetURL() << category;
+    BOOST_LOG_TRIVIAL(info) << "An error occurred loading " << evt.GetURL() << category;
 
     UpdateState();
 }

@@ -1,8 +1,10 @@
+#include <algorithm>
 #include <limits>
 
 #include "libslic3r.h"
 #include "Slicing.hpp"
 #include "SlicingAdaptive.hpp"
+#include "AdaptiveLayerMerge.hpp"
 #include "PrintConfig.hpp"
 #include "Model.hpp"
 
@@ -63,21 +65,43 @@ SlicingParameters SlicingParameters::create_from_config(
 	const PrintConfig 		&print_config, 
 	const PrintObjectConfig &object_config,
 	coordf_t				 object_height,
-	const std::vector<unsigned int> &object_extruders)
+	const std::vector<unsigned int> &object_extruders,
+	int                      layer_grid_subdivision,
+	int                      layer_grid_multiplier,
+	double                   single_diameter_layering_nozzle)
 {
-    coordf_t initial_layer_print_height                      = (print_config.initial_layer_print_height.value <= 0) ? 
+    SlicingParameters params;
+    params.layer_grid_subdivision = std::max(1, layer_grid_subdivision);
+    params.layer_grid_multiplier  = std::max(1, layer_grid_multiplier);
+    params.single_diameter_layering = single_diameter_layering_nozzle > EPSILON;
+    const coordf_t authored_initial_layer_height = (print_config.initial_layer_print_height.value <= 0) ?
         object_config.layer_height.value : print_config.initial_layer_print_height.value;
+    // The initial layer is scaled exactly like the regular layers. Mixed diameters put it on the subdivided grid
+    // and merge its steps later. Direct single-diameter layering scales the preset's first layer by the ratio of
+    // the actual nozzle's layer height to the authored one, so the preset keeps its first-to-regular proportion
+    // on every nozzle: a 0.4 preset (0.2 / 0.2) gives 0.3 / 0.3 on a 0.6 nozzle, and a nozzle matching the preset
+    // keeps the configured first layer.
+    coordf_t initial_layer_print_height = params.to_base_layer_height(authored_initial_layer_height);
     // If object_config.support_filament == 0 resp. object_config.support_interface_filament == 0,
-    // print_config.nozzle_diameter.get_at(size_t(-1)) returns the 0th nozzle diameter,
+    // nozzle_diameter_for_filament returns the 0th nozzle diameter,
     // which is consistent with the requirement that if support_filament == 0 resp. support_interface_filament == 0,
     // support will not trigger tool change, but it will use the current nozzle instead.
     // In that case all the nozzles have to be of the same diameter.
-    coordf_t support_material_extruder_dmr           = print_config.nozzle_diameter.get_at(object_config.support_filament.value - 1);
-    coordf_t support_material_interface_extruder_dmr = print_config.nozzle_diameter.get_at(object_config.support_interface_filament.value - 1);
+    coordf_t support_material_extruder_dmr = params.single_diameter_layering ?
+        single_diameter_layering_nozzle :
+        nozzle_diameter_for_filament(print_config, object_config.support_filament.value);
+    coordf_t support_material_interface_extruder_dmr = params.single_diameter_layering ?
+        single_diameter_layering_nozzle :
+        nozzle_diameter_for_filament(print_config, object_config.support_interface_filament.value);
     bool     soluble_interface                       = object_config.support_top_z_distance.value == 0.;
 
-    SlicingParameters params;
-    params.layer_height = object_config.layer_height.value;
+    // BBS multi-diameter: the preset's layer height states what the preset's own nozzle lays down, not the
+    // resolution of the grid. Dividing it out here is what lets the plate be sliced with a coarse preset
+    // (keeping its speeds and line widths) while the layer stack stays fine enough for the finest nozzle on
+    // the machine, which then merges layer_grid_subdivision steps back into one extrusion. A plate printing
+    // with a single diameter has nothing to merge against, so layer_grid_multiplier stacks the steps of that
+    // nozzle's band back up front and the plate is sliced straight at the band height.
+    params.layer_height = params.to_base_layer_height(object_config.layer_height.value);
     params.first_print_layer_height = initial_layer_print_height;
     params.first_object_layer_height = initial_layer_print_height;
     params.object_print_z_min = 0.;
@@ -90,21 +114,37 @@ SlicingParameters SlicingParameters::create_from_config(
     params.max_layer_height = std::numeric_limits<double>::max();
     if (object_config.enable_support.value || params.base_raft_layers > 0 || object_config.enforce_support_layers > 0) {
         // Has some form of support. Add the support layers to the minimum / maximum layer height limits.
-        params.min_layer_height = std::max(
-            min_layer_height_from_nozzle(print_config, object_config.support_filament), 
-            min_layer_height_from_nozzle(print_config, object_config.support_interface_filament));
-        params.max_layer_height = std::min(
-            max_layer_height_from_nozzle(print_config, object_config.support_filament), 
-            max_layer_height_from_nozzle(print_config, object_config.support_interface_filament));
+        if (params.single_diameter_layering) {
+            const AdaptiveLayerHeightRange range = adaptive_layer_height_range(single_diameter_layering_nozzle);
+            params.min_layer_height = range.min_height;
+            params.max_layer_height = range.max_height;
+        } else {
+            params.min_layer_height = std::max(
+                params.to_layer_height_limit(min_layer_height_from_nozzle(print_config, object_config.support_filament)),
+                params.to_layer_height_limit(min_layer_height_from_nozzle(print_config, object_config.support_interface_filament)));
+            params.max_layer_height = std::min(
+                params.to_layer_height_limit(max_layer_height_from_nozzle(print_config, object_config.support_filament)),
+                params.to_layer_height_limit(max_layer_height_from_nozzle(print_config, object_config.support_interface_filament)));
+        }
         params.max_suport_layer_height = params.max_layer_height;
     }
-    if (object_extruders.empty()) {
-        params.min_layer_height = std::max(params.min_layer_height, min_layer_height_from_nozzle(print_config, 0));
-        params.max_layer_height = std::min(params.max_layer_height, max_layer_height_from_nozzle(print_config, 0));
+    if (params.single_diameter_layering) {
+        const AdaptiveLayerHeightRange range = adaptive_layer_height_range(single_diameter_layering_nozzle);
+        params.min_layer_height = std::max(params.min_layer_height, range.min_height);
+        params.max_layer_height = std::min(params.max_layer_height, range.max_height);
+    } else if (object_extruders.empty()) {
+        params.min_layer_height = std::max(
+            params.min_layer_height, params.to_layer_height_limit(min_layer_height_from_nozzle(print_config, 0)));
+        params.max_layer_height = std::min(
+            params.max_layer_height, params.to_layer_height_limit(max_layer_height_from_nozzle(print_config, 0)));
     } else {
         for (unsigned int extruder_id : object_extruders) {
-            params.min_layer_height = std::max(params.min_layer_height, min_layer_height_from_nozzle(print_config, extruder_id));
-            params.max_layer_height = std::min(params.max_layer_height, max_layer_height_from_nozzle(print_config, extruder_id));
+            params.min_layer_height = std::max(
+                params.min_layer_height,
+                params.to_layer_height_limit(min_layer_height_from_nozzle(print_config, extruder_id)));
+            params.max_layer_height = std::min(
+                params.max_layer_height,
+                params.to_layer_height_limit(max_layer_height_from_nozzle(print_config, extruder_id)));
         }
     }
     params.min_layer_height = std::min(params.min_layer_height, params.layer_height);
@@ -118,9 +158,11 @@ SlicingParameters SlicingParameters::create_from_config(
         params.gap_object_support = params.gap_support_object;
 
     if (!print_config.independent_support_layer_height) {
-        params.gap_raft_object = std::round(params.gap_raft_object / object_config.layer_height + EPSILON) * object_config.layer_height;
-        params.gap_object_support = std::round(params.gap_object_support / object_config.layer_height + EPSILON) * object_config.layer_height;
-        params.gap_support_object = std::round(params.gap_support_object / object_config.layer_height + EPSILON) * object_config.layer_height;
+        // Snap to the grid the layers are actually on, which is params.layer_height once the preset height has
+        // been subdivided. Identical to the authored height whenever layer_grid_subdivision is 1.
+        params.gap_raft_object = std::round(params.gap_raft_object / params.layer_height + EPSILON) * params.layer_height;
+        params.gap_object_support = std::round(params.gap_object_support / params.layer_height + EPSILON) * params.layer_height;
+        params.gap_support_object = std::round(params.gap_support_object / params.layer_height + EPSILON) * params.layer_height;
     }
 
     if (params.base_raft_layers > 0) {
@@ -167,6 +209,27 @@ SlicingParameters SlicingParameters::create_from_config(
     return params;
 }
 
+bool custom_layer_heights_within_limits(
+    const SlicingParameters     &slicing_params,
+    const std::vector<coordf_t> &layer_height_profile,
+    const t_layer_config_ranges &layer_config_ranges)
+{
+    auto within_limits = [&slicing_params](coordf_t authored_height) {
+        const coordf_t height = slicing_params.to_base_layer_height(authored_height);
+        return height >= slicing_params.min_layer_height - EPSILON && height <= slicing_params.max_layer_height + EPSILON;
+    };
+    // A profile overrides the heights of the ranges, which are laid only without one.
+    if (! layer_height_profile.empty()) {
+        for (size_t i = 1; i < layer_height_profile.size(); i += 2)
+            if (! within_limits(layer_height_profile[i]))
+                return false;
+        return true;
+    }
+    return std::all_of(layer_config_ranges.begin(), layer_config_ranges.end(), [&within_limits](const auto &range) {
+        return within_limits(range.second.option("layer_height")->getFloat());
+    });
+}
+
 // Convert layer_config_ranges to layer_height_profile. Both are referenced to z=0, meaning the raft layers are not accounted for
 // in the height profile and the printed object may be lifted by the raft thickness at the time of the G-code generation.
 std::vector<coordf_t> layer_height_profile_from_ranges(
@@ -184,7 +247,8 @@ std::vector<coordf_t> layer_height_profile_from_ranges(
     for (t_layer_config_ranges::const_iterator it_range = layer_config_ranges.begin(); it_range != layer_config_ranges.end(); ++it_range) {
         coordf_t lo = it_range->first.first;
         coordf_t hi = std::min(it_range->first.second, slicing_params.object_print_z_height());
-        coordf_t height = it_range->second.option("layer_height")->getFloat();
+        coordf_t height = slicing_params.to_base_layer_height(
+            it_range->second.option("layer_height")->getFloat());
         if (!ranges_non_overlapping.empty())
             // Trim current low with the last high.
             lo = std::max(lo, ranges_non_overlapping.back().first.second);

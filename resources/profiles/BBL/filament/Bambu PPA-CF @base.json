@@ -9,7 +9,13 @@
     "filament_cost": [
         "195.99"
     ],
+    "fins_extrude_safe_temp": [
+        "227"
+    ],
     "impact_strength_z": [
         "4.3"
+    ],
+    "temperature_vitrification": [
+        "150"
     ]
 }

@@ -19,7 +19,8 @@ body {
 
 .ef-header {
     flex-shrink: 0;
-    width: 700px;
+    width: 100%;
+    max-width: 700px;
     padding-bottom: 12px;
     box-sizing: border-box;
 }
@@ -63,7 +64,8 @@ body {
 
 /* List container — matches #CFilament_List style */
 .ef-list-container {
-    width: 700px;
+    width: 100%;
+    max-width: 700px;
     overflow-y: auto;
     border: 1px solid #EEEEEE;
     border-radius: 8px;
@@ -160,7 +162,8 @@ body {
 .ef-footer {
     display: flex;
     height: 54px;
-    width: 700px;
+    width: 100%;
+    max-width: 700px;
     padding: 0;
     justify-content: flex-end;
     align-items: center;

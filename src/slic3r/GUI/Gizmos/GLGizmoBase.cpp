@@ -9,6 +9,7 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_Colors.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
+#include "libslic3r/Log.hpp"
 
 // TODO: Display tooltips quicker on Linux
 
@@ -386,9 +387,11 @@ void GLGizmoBase::set_state(EState state)
                         existing_time = std::stoi(value);
                     }
                 }
-                catch (...) {}
+                catch (...) {
+                    BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+                }
 
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " tool name:" << full_name << " duration: " << times + existing_time;
+                BOOST_LOG_TRIVIAL(info) << "tool name:" << full_name << " duration: " << times + existing_time;
                 agent->track_update_property(full_name, std::to_string(times + existing_time));
             }
         }

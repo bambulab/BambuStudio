@@ -1,4 +1,4 @@
-﻿// STUDIO-17977 dev-only mock bridge.
+// Dev-only mock bridge.
 //
 // Only loaded when `import.meta.env.DEV` is truthy AND no webview host is
 // detected. Production builds (`pnpm build`) drop this file via tree-shaking
@@ -25,6 +25,10 @@ import type {
 } from '../features/filament-manager/types';
 import { applySlotSelection, mockAmsControlWebState } from '../features/device-page/ams-control-web/mockData';
 import type { AmsControlWebViewModel } from '../features/device-page/ams-control-web/types';
+import type { AmsFilamentHotendViewModel } from '../features/device-page/ams-filament-hotend/types';
+import { mockAmsFilamentHotendState } from '../features/device-page/ams-filament-hotend/mockData';
+import { mockAmsMappingHotendState } from '../features/device-page/ams-mapping-hotend/mockData';
+import { mockAutoRefillRefillInfoState } from '../features/device-page/auto-refill-refill-info/mockData';
 
 interface RequestPacket {
   head: { version: string; type: string; seq: number; ts: number };
@@ -32,7 +36,6 @@ interface RequestPacket {
 }
 
 const SDK_VERSION = '1.0';
-const mockAmsFilamentHotendState: Record<string, unknown> = {};
 
 let amsControlWebMockState: AmsControlWebViewModel = mockAmsControlWebState;
 
@@ -190,9 +193,11 @@ let SPOOLS: Spool[] = [
 
 const AMS: AmsData = {
   selected_dev_id: 'mock-dev-1',
+  // Mock a direct-connected rack machine so the "virtual slots" tab shows in dev.
+  is_rack: true,
   ams_units: [
     {
-      ams_id: 'ams-1', ams_type: 0,
+      ams_id: 'ams-1', ams_type: 0, display_name: 'AMS(1)',
       trays: [
         // slot 0: firmware reports remain_g -> UI shows 842g, not the 850g
         //         the weight * remain% formula would produce. `remain_weight`
@@ -218,9 +223,24 @@ const AMS: AmsData = {
           weight: 1000, remain: 60, remain_g: 587, remain_weight: 587,
           diameter: 1.75, is_bbl: true,
           sub_brands: 'Bambu Lab' },
-        { slot_id: '3', is_exists: false },
+        // Unrecognized (问号料): present but no color/type — renders the
+        // checkerboard + orange "?" badge + "Unrecognized" placeholder.
+        { slot_id: '3', is_exists: true, is_unknown: true, weight: 1000, remain: 50 },
       ],
     },
+  ],
+  ext_slots: [
+    { slot_id: '0', ams_id: '253', is_exists: true, tray_label: 'V1',
+      setting_id: 'BBL_PLA_BASIC', fila_type: 'PLA',
+      color: '#22C55E', colors: ['#22C55E'], color_type: 2,
+      weight: 1000, remain: 90, remain_g: 900, remain_weight: 900,
+      diameter: 1.75, is_bbl: true, sub_brands: 'Bambu Lab' },
+    { slot_id: '0', ams_id: '254', is_exists: true, tray_label: 'V2',
+      setting_id: 'BBL_PLA_BASIC', fila_type: 'PLA',
+      color: '#9B5CFF', colors: ['#9B5CFF'], color_type: 2,
+      weight: 1000, remain: 45, remain_g: 450, remain_weight: 450,
+      diameter: 1.75, is_bbl: true, sub_brands: 'Bambu Lab' },
+    { slot_id: '0', ams_id: '255', is_exists: false, tray_label: 'V3' },
   ],
 };
 
@@ -274,18 +294,208 @@ function makeModuleOk(module: string, submod: string, action: string, payload: u
   };
 }
 
+function cloneHotendState(): AmsFilamentHotendViewModel {
+  return JSON.parse(JSON.stringify(mockAmsFilamentHotendState)) as AmsFilamentHotendViewModel;
+}
+
+let AMS_FILAMENT_HOTEND_STATE: AmsFilamentHotendViewModel = cloneHotendState();
+
+function setMockHotendReading(displayIndex: number, total: number) {
+  const steps = [
+    { id: 1, label: 'Homing PrintTool Rack', state: 'done' as const },
+    { id: 2, label: 'Homing Toolhead', state: 'active' as const },
+    { id: 3, label: 'Calibrating Hotend Rack', state: 'pending' as const },
+    { id: 10, label: 'Locking Tool', state: 'pending' as const },
+  ];
+  AMS_FILAMENT_HOTEND_STATE = {
+    ...AMS_FILAMENT_HOTEND_STATE,
+    hotend_page: {
+      ...AMS_FILAMENT_HOTEND_STATE.hotend_page,
+      actions: {
+        ...AMS_FILAMENT_HOTEND_STATE.hotend_page.actions,
+        can_read_all_hotends: false,
+        read_all_disabled_reason: 'Hotend rack is reading',
+      },
+      hotend_rack_status: {
+        active: true,
+        mode: total > 1 ? 'all' : 'single',
+        display_index: displayIndex,
+        target_display_index: displayIndex,
+        current: total > 1 ? 1 : 1,
+        total,
+        message: total > 1 ? `读取中（1 / ${total}）` : `${displayIndex}号热端读取中`,
+        tips: '请稍后...',
+        job: total > 1 ? 4 : 6,
+        operation: total > 1 ? 'read_all' : 'read_single',
+        state: 'running',
+        current_step: 2,
+        steps,
+        can_stop: true,
+        can_retry: false,
+      },
+      hotend_slots: AMS_FILAMENT_HOTEND_STATE.hotend_page.hotend_slots.map((slot) => ({
+        ...slot,
+        hotend: {
+          ...slot.hotend,
+          op_state: slot.display_index === displayIndex ? 'Reading' : (
+            slot.hotend?.op_state === 'Reading' || slot.hotend?.op_state === 'Taking' ? 'Normal' : slot.hotend?.op_state
+          ),
+        },
+      })),
+    },
+  };
+}
+
+function setMockHotendTaking(displayIndex: number) {
+  const steps = [
+    { id: 1, label: 'Homing PrintTool Rack', state: 'done' as const },
+    { id: 2, label: 'Homing Toolhead', state: 'done' as const },
+    { id: 3, label: 'Calibrating Hotend Rack', state: 'done' as const },
+    { id: 5, label: 'Cutting Filament', state: 'done' as const },
+    { id: 9, label: 'Fetching Tool', state: 'active' as const },
+    { id: 10, label: 'Locking Tool', state: 'pending' as const },
+  ];
+  AMS_FILAMENT_HOTEND_STATE = {
+    ...AMS_FILAMENT_HOTEND_STATE,
+    hotend_page: {
+      ...AMS_FILAMENT_HOTEND_STATE.hotend_page,
+      actions: {
+        ...AMS_FILAMENT_HOTEND_STATE.hotend_page.actions,
+        can_read_all_hotends: false,
+        read_all_disabled_reason: 'Hotend rack is busy',
+      },
+      hotend_rack_status: {
+        active: true,
+        mode: 'single',
+        display_index: displayIndex,
+        target_display_index: displayIndex,
+        current: 0,
+        total: steps.length,
+        message: '',
+        tips: '请稍后...',
+        job: 1,
+        operation: 'take',
+        state: 'running',
+        current_step: 9,
+        steps,
+        can_stop: false,
+        can_retry: false,
+      },
+      hotend_slots: AMS_FILAMENT_HOTEND_STATE.hotend_page.hotend_slots.map((slot) => ({
+        ...slot,
+        hotend: {
+          ...slot.hotend,
+          op_state: slot.display_index === displayIndex ? 'Taking' : (
+            slot.hotend?.op_state === 'Taking' || slot.hotend?.op_state === 'Reading' ? 'Normal' : slot.hotend?.op_state
+          ),
+        },
+      })),
+    },
+  };
+}
+
+function setMockHotendTemperature(payload: Record<string, unknown>) {
+  const displayIndex = Number(payload.display_index ?? 0);
+  const requestedTemp = Number(payload.target_temp ?? -1);
+  if (!displayIndex || !Number.isInteger(requestedTemp) || requestedTemp < 0) return;
+
+  AMS_FILAMENT_HOTEND_STATE = {
+    ...AMS_FILAMENT_HOTEND_STATE,
+    hotend_page: {
+      ...AMS_FILAMENT_HOTEND_STATE.hotend_page,
+      hotend_slots: AMS_FILAMENT_HOTEND_STATE.hotend_page.hotend_slots.map((slot) => {
+        if (slot.display_index !== displayIndex) return slot;
+        const hotend = slot.hotend ?? {};
+        if (hotend.tool_kind === 'empty' || hotend.op_state === 'Error') return slot;
+        const targetTemp = Math.min(requestedTemp, hotend.max_temp ?? 350);
+
+        const currentTemp = typeof hotend.current_temp === 'number' ? hotend.current_temp : null;
+        const tempTrend = currentTemp === null || currentTemp === targetTemp
+          ? 'Steady'
+          : (currentTemp < targetTemp ? 'Heating' : 'Cooling');
+        return {
+          ...slot,
+          hotend: {
+            ...hotend,
+            target_temp: targetTemp,
+            temp_trend: tempTrend,
+          },
+        };
+      }),
+    },
+  };
+}
+
+function stopMockFilamentChange() {
+  AMS_FILAMENT_HOTEND_STATE = {
+    ...AMS_FILAMENT_HOTEND_STATE,
+    filament_page: {
+      ...AMS_FILAMENT_HOTEND_STATE.filament_page,
+      actions: {
+        ...AMS_FILAMENT_HOTEND_STATE.filament_page.actions,
+        can_load: true,
+        can_load_external: true,
+        can_show_load_auto: true,
+        can_unload: true,
+        tips: '',
+      },
+      filament_change_status: {
+        active: false,
+        mode: 'idle',
+        operation: 'change',
+        message: '',
+        tips: '',
+      },
+      hotend_slots: AMS_FILAMENT_HOTEND_STATE.filament_page.hotend_slots.map((slot) => {
+        const cardState = slot.filament_card.state;
+        if (cardState !== 'Loading' && cardState !== 'Unloading') return slot;
+        return {
+          ...slot,
+          filament_card: { ...slot.filament_card, state: 'ReadyToUse', status_text: '已进料' },
+          filament_line: { ...slot.filament_line, state: 'loaded', has_filament: true },
+        };
+      }),
+    },
+  };
+}
+
 function handleRequest(pkt: RequestPacket) {
   const { module, submod, action, payload = {} } = pkt.body;
   // Per-call audit log so we can replay request order in the console.
   console.debug('[mockBridge] req', module, submod, action, payload);
   if (module === 'device_page_ams_filament_hotend') {
     if (submod === 'state' && (action === 'get' || action === 'init')) {
-      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAmsFilamentHotendState));
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, AMS_FILAMENT_HOTEND_STATE));
       return;
     }
     if (submod === 'action') {
-      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAmsFilamentHotendState));
-      dispatchReport(makeModuleOk(module, 'state', 'changed', mockAmsFilamentHotendState));
+      if (action === 'read_all_hotends') {
+        setMockHotendReading(1, AMS_FILAMENT_HOTEND_STATE.hotend_page.hotend_slots.length);
+      } else if (action === 'read_hotend') {
+        const displayIndex = Number((payload as Record<string, unknown>).display_index ?? 1);
+        setMockHotendReading(displayIndex, 1);
+      } else if (action === 'take_hotend' || action === 'place_hotend') {
+        const displayIndex = Number((payload as Record<string, unknown>).display_index ?? 1);
+        setMockHotendTaking(displayIndex);
+      } else if (action === 'set_hotend_temperature') {
+        setMockHotendTemperature(payload as Record<string, unknown>);
+      } else if (action === 'stop_filament_change') {
+        stopMockFilamentChange();
+      } else if (action === 'retry_filament_change') {
+        // Keep the mock panel active; resume is a no-op in browser dev mode.
+      }
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, AMS_FILAMENT_HOTEND_STATE));
+      dispatchReport(makeModuleOk(module, 'state', 'changed', AMS_FILAMENT_HOTEND_STATE));
+      return;
+    }
+    if (submod === 'debug') {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, {
+        created_ts: Date.now(),
+        cpp_state: mockAmsFilamentHotendState,
+        web_state: (payload as Record<string, unknown>).web_state ?? {},
+        web_trace: (payload as Record<string, unknown>).web_trace ?? [],
+        cpp_trace: [],
+      }));
       return;
     }
   }
@@ -314,6 +524,34 @@ function handleRequest(pkt: RequestPacket) {
         cpp_trace: [],
         dialog_cpp_state: amsControlWebMockState,
       }));
+      return;
+    }
+  }
+  if (module === 'device_page_ams_mapping_hotend') {
+    if (submod === 'state' && (action === 'get' || action === 'init')) {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAmsMappingHotendState));
+      return;
+    }
+    if (submod === 'action') {
+      // Echo back the same state; the React side maps a select into a checked
+      // toggle locally. The C++ VM will emit EVT_SET_FINISH_MAPPING and a
+      // follow-up state report when the popup is real.
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAmsMappingHotendState));
+      dispatchReport(makeModuleOk(module, 'state', 'changed', mockAmsMappingHotendState));
+      return;
+    }
+  }
+  if (module === 'device_page_auto_refill_refill_info') {
+    if (submod === 'state' && (action === 'get' || action === 'init')) {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAutoRefillRefillInfoState));
+      return;
+    }
+    if (submod === 'add_refill_filaments' && action === 'check_warning_suppressed') {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, { suppressed: false }));
+      return;
+    }
+    if (submod === 'action' && (action === 'rendered' || action === 'enable_auto_refill')) {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAutoRefillRefillInfoState));
       return;
     }
   }

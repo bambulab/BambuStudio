@@ -21,6 +21,16 @@ function makeBody(submod: string, action: string, payload?: Record<string, unkno
   return { module: MODULE, submod, action, payload: payload ?? {} };
 }
 
+/**
+ * Result of one bridge action. `delivered` is false when the request never made
+ * it to a reply (host missing, transport error, timeout), which is distinct from
+ * a reply that carries a non-zero `errorCode`.
+ */
+interface ActionOutcome {
+  delivered: boolean;
+  errorCode: number;
+}
+
 function isAmsControlWebBody(body: unknown): body is BridgeResponseBody<AmsControlWebViewModel> {
   return !!body
     && typeof body === 'object'
@@ -62,19 +72,20 @@ export function useAmsControlWebBridge() {
     }
   }, [applyState, request]);
 
-  const sendAction = useCallback(async (action: string, payload?: Record<string, unknown>) => {
+  const sendAction = useCallback(async (action: string, payload?: Record<string, unknown>): Promise<ActionOutcome> => {
     const resp = await request<ReturnType<typeof makeBody>, BridgeResponseBody<AmsControlWebViewModel>>(
       makeBody('action', action, payload),
       5000,
     );
     if (!resp.ok) {
       setError(resp.error);
-      return;
+      return { delivered: false, errorCode: 0 };
     }
     if (resp.value.payload) {
       applyState(resp.value.payload);
     }
     setError(resp.value.error_code === 0 ? '' : (resp.value.message ?? `${action} failed`));
+    return { delivered: true, errorCode: resp.value.error_code };
   }, [applyState, request]);
 
   const selectSlot = useCallback(
@@ -108,8 +119,14 @@ export function useAmsControlWebBridge() {
     [openFilamentDialog],
   );
 
+  // Resolves false only when C++ answered and refused the read (e.g. filament
+  // still sitting at the toolhead). A transport failure resolves true so the
+  // caller keeps its own timeout fallback rather than cutting the spinner short.
   const readSlot = useCallback(
-    (amsId: string, slotId: string) => sendAction('read_slot', { ams_id: amsId, slot_id: slotId }),
+    async (amsId: string, slotId: string) => {
+      const outcome = await sendAction('read_slot', { ams_id: amsId, slot_id: slotId });
+      return !(outcome.delivered && outcome.errorCode !== 0);
+    },
     [sendAction],
   );
 

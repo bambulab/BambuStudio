@@ -155,6 +155,8 @@ protected:
 
     void on_cali_save();
 
+    bool check_cached_cali_info();
+
     void update(MachineObject* obj) override;
 
     void on_device_connected(MachineObject* obj) override;

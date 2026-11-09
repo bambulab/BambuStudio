@@ -9,6 +9,8 @@
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevPrintOptions.h"
+#include "PrintOptionsDialog.hpp" // OpenDoorCheck helpers, shared with the print options dialog
+#include "libslic3r/Log.hpp"
 
 static const wxColour STATIC_BOX_LINE_COL = wxColour(238, 238, 238);
 static const wxColour STATIC_TEXT_CAPTION_COL = wxColour(100, 100, 100);
@@ -72,6 +74,21 @@ SafetyOptionsDialog::SafetyOptionsDialog(wxWindow* parent)
         evt.Skip();
     });
 
+    m_open_door_mode_switch->Bind(wxCUSTOMEVT_MULTISWITCH_SELECTION, [this](wxCommandEvent &evt)
+    {
+        if (m_open_door_mode_syncing || !obj) { evt.Skip(); return; }
+
+        const MachineObject::DoorOpenCheckState state = OpenDoorCheck::StateFromIndex(evt.GetInt());
+        if (state == MachineObject::DOOR_OPEN_CHECK_ENABLE_SLOW_DOWN && !OpenDoorCheck::ConfirmSlowDown(this)) {
+            syncOpenDoorModeSwitch(obj); // roll back to the state reported by the device
+            evt.Skip();
+            return;
+        }
+
+        obj->command_set_door_open_check(state);
+        evt.Skip();
+    });
+
     m_cb_idel_heating_protection->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &evt) {
         if (obj)
         {
@@ -79,7 +96,7 @@ SafetyOptionsDialog::SafetyOptionsDialog(wxWindow* parent)
         }
         else
         {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "obj is empty";
+            BOOST_LOG_TRIVIAL(warning) << "obj is empty";
         }
             evt.Skip();
     });
@@ -122,6 +139,9 @@ void SafetyOptionsDialog::update_options(MachineObject* obj_)
 
     this->Freeze();
     this->Thaw();
+    // The options above show/hide rows; that alone does not re-run the sizer of the
+    // scrolled window, so lay it out explicitly before the dialog itself.
+    m_scrollwindow->Layout();
     Layout();
 }
 
@@ -129,12 +149,21 @@ void SafetyOptionsDialog::updateOpenDoorCheck(MachineObject *obj) {
     if (!obj || !obj->support_door_open_check()) {
         m_cb_open_door->Hide();
         m_text_open_door->Hide();
+        m_text_open_door_caption->Hide();
         m_open_door_switch_board->Hide();
+        m_open_door_mode_switch->Hide();
         return;
     }
 
-    if (obj->get_door_open_check_state() != MachineObject::DOOR_OPEN_CHECK_DISABLE) {
-        m_cb_open_door->SetValue(true);
+    // Devices reporting fun2[27] get the extra "slow down toolhead" behaviour.
+    const bool support_slow_down = obj->support_door_open_check_slow_down();
+    const bool enabled           = obj->get_door_open_check_state() != MachineObject::DOOR_OPEN_CHECK_DISABLE;
+
+    m_cb_open_door->SetValue(enabled);
+    if (support_slow_down) {
+        syncOpenDoorModeSwitch(obj);
+        m_open_door_mode_switch->Enable(enabled);
+    } else if (enabled) {
         m_open_door_switch_board->Enable();
 
         if (obj->get_door_open_check_state() == MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING) {
@@ -144,15 +173,29 @@ void SafetyOptionsDialog::updateOpenDoorCheck(MachineObject *obj) {
             m_open_door_switch_board->updateState("right");
             m_open_door_switch_board->Refresh();
         }
-
     } else {
-        m_cb_open_door->SetValue(false);
         m_open_door_switch_board->Disable();
     }
 
     m_cb_open_door->Show();
     m_text_open_door->Show();
-    m_open_door_switch_board->Show();
+    m_text_open_door_caption->Show(support_slow_down);
+    m_open_door_switch_board->Show(!support_slow_down);
+    m_open_door_mode_switch->Show(support_slow_down);
+}
+
+void SafetyOptionsDialog::syncOpenDoorModeSwitch(MachineObject *obj)
+{
+    if (!obj) return;
+
+    // Keep the last selected behaviour visible while the detection is off, so the user
+    // can see what turning it back on will do.
+    const MachineObject::DoorOpenCheckState state = obj->get_door_open_check_state();
+    if (state == MachineObject::DOOR_OPEN_CHECK_DISABLE) return;
+
+    m_open_door_mode_syncing = true;
+    m_open_door_mode_switch->SetSelection(OpenDoorCheck::IndexFromState(state));
+    m_open_door_mode_syncing = false;
 }
 
 void SafetyOptionsDialog::updateIdelHeatingProtect(MachineObject *obj)
@@ -194,14 +237,37 @@ wxBoxSizer* SafetyOptionsDialog::create_settings_group(wxWindow* parent)
     m_text_open_door->SetFont(Label::Body_14);
     m_open_door_switch_board = new SwitchBoard(parent, _L("Notification"), _L("Pause printing"), wxSize(FromDIP(200), FromDIP(26)));
     m_open_door_switch_board->Disable();
+    m_text_open_door_caption = new Label(parent, _L("Choose the behavior when the door is opened during tasks."));
+    m_text_open_door_caption->SetFont(Label::Body_12);
+    m_text_open_door_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    m_open_door_mode_switch = new MultiSwitchButton(parent);
+    m_open_door_mode_switch->SetFitOptionsToText();
+    m_open_door_mode_switch->SetOptions(OpenDoorCheck::ModeSwitchOptions());
+    m_open_door_mode_switch->SetSelection(0);
+    // Match the height of the two-state board; the width follows the option labels.
+    m_open_door_mode_switch->SetMinSize(wxSize(-1, FromDIP(26)));
     line_sizer->AddSpacer(FromDIP(5));
     line_sizer->Add(m_cb_open_door, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(m_text_open_door, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    sizer->Add(m_text_open_door_caption, 0, wxLEFT, FromDIP(65));
     sizer->Add(m_open_door_switch_board, 0, wxLEFT, FromDIP(65));
+
+    // A vertical sizer stretches its children to the full width, which would blow the
+    // switch up to the dialog width, so keep it at its own size with a trailing spacer.
+    wxBoxSizer *open_door_mode_sizer = new wxBoxSizer(wxHORIZONTAL);
+    open_door_mode_sizer->AddSpacer(FromDIP(65));
+    open_door_mode_sizer->Add(m_open_door_mode_switch, 0, wxALIGN_CENTER_VERTICAL | wxTOP, FromDIP(5));
+    open_door_mode_sizer->AddStretchSpacer();
+    sizer->Add(open_door_mode_sizer, 0, wxEXPAND | wxRIGHT, FromDIP(18));
     line_sizer->Add(FromDIP(10), 0, 0, 0);
     sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
+    // The caption and the three-state switch only apply to firmwares reporting fun2[27];
+    // updateOpenDoorCheck() picks between them and the legacy two-state board.
+    m_text_open_door_caption->Hide();
+    m_open_door_mode_switch->Hide();
 
     //Idel Heating Protect
     m_idel_heating_container = new wxPanel(parent, wxID_ANY);

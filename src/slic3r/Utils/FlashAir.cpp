@@ -4,7 +4,6 @@
 #include <ctime>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 #include <wx/frame.h>
@@ -20,6 +19,7 @@
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "Http.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace fs = boost::filesystem;
 namespace pt = boost::property_tree;

@@ -1,0 +1,292 @@
+/* External AMS operation dialog. */
+.ext-ams-page {
+  width: 520px;
+  height: 420px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--ams-page-bg);
+  color: var(--ams-text-strong);
+  font-family: "HarmonyOS Sans SC", "PingFang SC", system-ui, sans-serif;
+  box-sizing: border-box;
+}
+
+.ext-ams-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--ams-border);
+  background: linear-gradient(180deg, var(--ams-page-bg) 16%, var(--ams-card-wrap-bg) 102%);
+  font-size: 14px;
+}
+
+.window-dots {
+  display: flex;
+  gap: 6px;
+  width: 44px;
+}
+
+.window-dots i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--ams-window-dot);
+}
+
+.window-dots i:first-child {
+  background: var(--ams-window-dot-close);
+}
+
+.window-spacer {
+  width: 44px;
+}
+
+.ext-ams-body {
+  padding: 12px;
+  height: calc(100% - 36px);
+  overflow: hidden;
+  background: var(--ams-page-bg);
+  box-sizing: border-box;
+}
+
+.ext-ams-body h1 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.ext-ams-tabs {
+  display: flex;
+  gap: 4px;
+  height: 40px;
+  margin-bottom: 8px;
+  padding: 4px;
+  border-radius: 5px;
+  background: var(--ams-soft-border);
+}
+
+.ext-ams-tabs button {
+  width: 60px;
+  height: 32px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--ams-card-text-bg);
+}
+
+.ext-ams-tabs button.active {
+  border: 1px solid var(--ams-brand);
+  border-radius: 5px;
+}
+
+.mini-ams {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 36px;
+  height: 23px;
+  border-bottom: 11px solid var(--ams-text-disabled);
+  border-radius: 5px 5px 0 0;
+  background: var(--ams-soft-border);
+  box-sizing: border-box;
+}
+
+.mini-ams i {
+  width: 5px;
+  height: 10px;
+  border-radius: 30px;
+}
+
+.ext-ams-card {
+  width: 496px;
+  height: 280px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--ams-card-tray-tag-bg);
+  box-sizing: border-box;
+}
+
+.ext-ams-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.humidity-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border: 1px solid var(--ams-border);
+  border-radius: 20px;
+  color: var(--ams-text-muted);
+  font-size: 12px;
+}
+
+.humidity-pill b {
+  width: 1px;
+  height: 12px;
+  background: var(--ams-border);
+}
+
+.ext-ams-flow {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  padding-bottom: 108px;
+  width: 100%;
+}
+
+.ext-ams-slots {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.ext-ams-slot {
+  position: relative;
+  width: 80px;
+  height: 105px;
+  padding-top: 4px;
+  border-radius: 4px;
+  background: var(--ams-card-text-bg);
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.ext-ams-slot .spool {
+  width: 52px;
+  height: 52px;
+  margin: 14px auto 4px;
+}
+
+.slot-index {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--ams-index-bg);
+  font-size: 12px;
+  line-height: 14px;
+}
+
+.ext-tray-menu-wrap {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: inline-flex;
+  z-index: 1;
+}
+
+.ext-tray-menu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.ext-tray-menu span {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--ams-text-card-menu-dot);
+}
+
+.ext-tray-menu:hover,
+.ext-tray-menu.open {
+  background: var(--ams-hover-bg);
+  border-radius: 4px;
+}
+
+.ext-tray-menu-popover {
+  position: absolute;
+  top: 18px;
+  right: -4px;
+  z-index: 20;
+  min-width: 86px;
+  width: max-content;
+  padding: 6px 0;
+  border: 1px solid var(--ams-popover-border);
+  border-radius: 4px;
+  background: var(--ams-popover-bg);
+  box-shadow: var(--ams-popover-shadow);
+  text-align: left;
+}
+
+.ext-tray-menu-popover button {
+  display: block;
+  width: 100%;
+  height: 24px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--ams-text-strong);
+  font-size: 12px;
+  line-height: 24px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ext-tray-menu-popover button:hover:not(:disabled) {
+  background: var(--ams-popover-hover-bg);
+}
+
+.slot-label {
+  display: block;
+  padding: 0 4px;
+  overflow: hidden;
+  color: var(--ams-text-secondary);
+  font-size: 12px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ext-ams-route {
+  position: absolute;
+  top: 105px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  height: 108px;
+  pointer-events: none;
+}
+
+.route-svg {
+  display: block;
+  overflow: visible;
+}
+
+.route-nozzle {
+  position: absolute;
+  top: 62px;
+  left: var(--center-x);
+  transform: translateX(-50%);
+  width: 24px;
+  height: 48px;
+}
+
+.route-nozzle .nozzle {
+  width: 24px;
+  height: 48px;
+}
+
+.ext-ams-source {
+  margin: 6px 0 0;
+  color: var(--ams-text-muted);
+  font-size: 12px;
+  line-height: 16px;
+}

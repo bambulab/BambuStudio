@@ -3,6 +3,7 @@
 
 #include <wx/popupwin.h>
 #include <wx/event.h>
+#include <wx/weakref.h>
 
 class PopupWindow : public wxPopupTransientWindow
 {
@@ -20,14 +21,39 @@ public:
 #ifdef __WIN32__
     WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
 #endif
+protected:
+    virtual void DismissOnOwnerChange();
+
+#ifdef __WXOSX__
+    /**
+     * \brief Make \p win the window this popup reports as hovered, with the leave/enter pair.
+     *
+     * While a popup holds the mouse capture, cocoa routes every mouse event in the application to
+     * it (see nonownedwnd.mm, WX_filterSendEvent), native enter/leave included -- so the controls
+     * inside it never see one and the popup has to synthesize them from the motion events it does
+     * get. Exposed because a cascade of popups has to hand the hover between its levels.
+     */
+    void SetHovered(wxWindow *win);
+
+    /** \brief Drop the hover: the pointer is no longer over anything this popup owns. */
+    void ClearHovered();
+#endif
+
 private:
 #ifdef __WXOSX__
     void OnMouseEvent2(wxMouseEvent &evt);
-    wxEvtHandler * hovered { this };
+    // Weak: a popup that is refilled in place destroys the row this points at (DestroyChildren()),
+    // and the next motion event would otherwise send a leave event to freed memory.
+    wxWeakRef<wxWindow> hovered { this };
 #endif
 
 #ifdef __WXGTK__
-    void topWindowActivate(wxActivateEvent &event);
+    wxWeakRef<wxWindow> m_owner;
+    void appActivate(wxActivateEvent &event);
+    void topWindowIconize(wxIconizeEvent &event);
+    void topWindowShow(wxShowEvent &event);
+    void topWindowMove(wxMoveEvent &event);
+    void topWindowSize(wxSizeEvent &event);
 #endif
 
 #ifdef __WXMSW__

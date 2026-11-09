@@ -3,6 +3,7 @@
 
 // TODO: remove this include
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 
 using namespace nlohmann;
 
@@ -28,6 +29,8 @@ static std::string _light_effect_str(DevLamp::LIGHT_EFFECT effect)
 
 void DevLamp::CtrlSetChamberLight(LIGHT_EFFECT effect)
 {
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::Lamp)) return;
+
     // copied from others, TODO CHECK
     command_set_chamber_light(effect);
     command_set_chamber_light2(effect);

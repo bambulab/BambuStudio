@@ -536,6 +536,7 @@ class AssemblyStepsUtils
     // When the export button would overlap the gizmo toolbar at its default spot
     bool                  m_export_btn_corner_mode{false};
     float                 m_export_btn_canvas_w{0.f};
+    float                 m_right_overlay_left_x{0.f};
 
     bool m_select_good_camera_layout_laber_after_auto_explode{true};
     // On-demand large-glyph atlas so the title overlay / part-number labels render
@@ -1015,6 +1016,10 @@ public://logic
     // Right edge X (canvas coords) of the most-recently rendered
     // "Assembly Structure" panel, or 0 when it hasn't been drawn yet.
     float get_assembly_structure_right_x() const { return m_assembly_structure_right_x; }
+    // Return toolbar right edge in canvas X, or 0 when it was not drawn.
+    float get_return_toolbar_right_x() const { return m_overlay_rect_return_toolbar_max.x; }
+    // Right overlay left edge in canvas X: export button if shown, otherwise the list; 0 when hidden.
+    float get_right_overlay_left_x() const { return m_right_overlay_left_x; }
     void  set_gizmo_toolbar_rect(float x0, float y0, float x1, float y1);
     // Overlay regions (rendered by GLCanvas3D) that part-number labels
     enum class AssemblyOverlayRect { Navigator, FitCamera, AssembleControl, ReturnToolbar };
@@ -1226,6 +1231,11 @@ public://imgui
     void render_assembly_label_settings_popup(const char *popup_id, float sc, const ImVec2 &anchor);
 
 private://logic
+    // Checking every listed object marks this step as final assembly.
+    // Clearing that check turns this step back into a normal step. Other final-assembly steps stay.
+    bool mark_step_final_assembly_if_all_objects_checked(int folder_idx,
+                                                         const AssemblyTreeData &tree,
+                                                         const std::unordered_map<std::string, bool> &checked);
     bool          is_part_number_label_layout_overlapped(const ImVec2 &rect_min, const ImVec2 &rect_max) const;
     static ImVec2 nearest_rect_anchor(const ImVec2 &rect_min, const ImVec2 &rect_max, const ImVec2 &from, bool include_corners = false);
     // Assign each `from` point a distinct edge/corner on the rect (min total distance).

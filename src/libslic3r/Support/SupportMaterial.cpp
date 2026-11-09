@@ -11,8 +11,8 @@
 #include "MutablePolygon.hpp"
 
 #include <cmath>
+#include <map>
 #include <memory>
-#include <boost/log/trivial.hpp>
 #include <boost/container/static_vector.hpp>
 
 #include <tbb/parallel_for.h>
@@ -49,6 +49,7 @@
 
 // #undef NDEBUG
 #include <cassert>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -443,8 +444,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     // The layers may or may not be synchronized with the object layers, depending on the configuration.
     // For example, a single nozzle multi material printing will need to generate a waste tower, which in turn
     // wastes less material, if there are as little tool changes as possible.
-    SupportGeneratorLayersPtr intermediate_layers = this->raft_and_intermediate_support_layers(
-        object, bottom_contacts, top_contacts, layer_storage);
+    SupportGeneratorLayersPtr intermediate_layers = this->raft_and_intermediate_support_layers(object, bottom_contacts, top_contacts, layer_storage);
 
     this->trim_support_layers_by_object(object, top_contacts, m_slicing_params.gap_support_object, m_slicing_params.gap_object_support, m_support_params.gap_xy);
 
@@ -515,6 +515,17 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     }
 */
 
+    // BBS multi-diameter: merge the support areas into slabs a coarse nozzle can extrude. This has to run
+    // before generate_support_layers() installs them, because that is where the Z ladder is frozen.
+    // print_z -> filament the merged slab at that height was planned for.
+    std::map<coordf_t, SupportMergePlan::Candidate> planned_filaments;
+    std::map<coordf_t, SupportMergePlan::Candidate> planned_interface_filaments;
+    std::map<coordf_t, coordf_t> planned_base_heights;
+    std::map<coordf_t, coordf_t> planned_interface_heights;
+    merge_support_layers_multi_diameter(object, m_support_params, m_slicing_params, raft_layers,
+        bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers,
+        planned_filaments, planned_interface_filaments, planned_base_heights, planned_interface_heights);
+
     BOOST_LOG_TRIVIAL(info) << "Support generator - Creating layers";
 
 // For debugging purposes, one may want to show only some of the support extrusions.
@@ -528,6 +539,32 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     SupportGeneratorLayersPtr layers_sorted =
 #endif // SLIC3R_DEBUG
     generate_support_layers(object, raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
+
+    // BBS multi-diameter: hand the planned filament over to the support layers the object owns now. Matching by
+    // print_z is safe because generate_support_layers() gives every support layer a unique print_z.
+    for (SupportLayer *support_layer : object.support_layers()) {
+        auto it = planned_filaments.lower_bound(support_layer->print_z - EPSILON);
+        if (it != planned_filaments.end() && it->first <= support_layer->print_z + EPSILON) {
+            support_layer->planned_filament_id      = it->second.filament_id;
+            support_layer->planned_nozzle_diameter  = it->second.nozzle_diameter;
+        }
+        auto interface_it = planned_interface_filaments.lower_bound(support_layer->print_z - EPSILON);
+        if (interface_it != planned_interface_filaments.end() &&
+            interface_it->first <= support_layer->print_z + EPSILON) {
+            support_layer->planned_interface_filament_id =
+                interface_it->second.filament_id;
+            support_layer->planned_interface_nozzle_diameter =
+                interface_it->second.nozzle_diameter;
+        }
+        auto base_height_it = planned_base_heights.lower_bound(support_layer->print_z - EPSILON);
+        if (base_height_it != planned_base_heights.end() &&
+            base_height_it->first <= support_layer->print_z + EPSILON)
+            support_layer->base_slab_height = base_height_it->second;
+        auto height_it = planned_interface_heights.lower_bound(support_layer->print_z - EPSILON);
+        if (height_it != planned_interface_heights.end() &&
+            height_it->first <= support_layer->print_z + EPSILON)
+            support_layer->interface_slab_height = height_it->second;
+    }
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Generating tool paths";
 
@@ -1234,7 +1271,7 @@ namespace SupportMaterialInternal {
             // Surface supporting this layer, expanded by 0.5 * nozzle_diameter, as we consider this kind of overhang to be sufficiently supported.
             Polygons lower_grown_slices = expand(lower_layer_polygons,
                 //FIXME to mimic the decision in the perimeter generator, we should use half the external perimeter width.
-                0.5f * float(scale_(print_config.nozzle_diameter.get_at(layerm.region().config().wall_filament-1))),
+                0.5f * float(scale_(nozzle_diameter_for_filament(print_config, layerm.region().config().wall_filament))),
                 SUPPORT_SURFACES_OFFSET_PARAMETERS);
             // Collect perimeters of this layer.
             //FIXME split_at_first_point() could split a bridge mid-way
@@ -1311,7 +1348,7 @@ std::vector<Polygons> PrintObjectSupportMaterial::buildplate_covered(const Print
     const bool            buildplate_only = this->build_plate_only();
     std::vector<Polygons> buildplate_covered;
     if (buildplate_only) {
-        BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::buildplate_covered() - start";
+        BOOST_LOG_TRIVIAL(debug) << "start";
         buildplate_covered.assign(object.layers().size(), Polygons());
         //FIXME prefix sum algorithm, parallelize it! Parallelization will also likely be more numerically stable.
         for (size_t layer_id = 1; layer_id < object.layers().size(); ++ layer_id) {
@@ -1326,7 +1363,7 @@ std::vector<Polygons> PrintObjectSupportMaterial::buildplate_covered(const Print
             polygons_append(covered, offset(lower_layer.lslices, scale_(0.01)));
             covered = union_(covered);
         }
-        BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::buildplate_covered() - end";
+        BOOST_LOG_TRIVIAL(debug) << "end";
     }
     return buildplate_covered;
 }
@@ -1622,6 +1659,13 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
 
         float lower_layer_offset = 0;
         const coordf_t xy_expansion       = scale_(object_config.support_expansion.value);
+        const auto expand_and_trim = [xy_expansion](const Polygons &src, const Polygons &trimming) {
+            if (xy_expansion > 0)
+                return safe_offset_inc(src, xy_expansion, trimming, scale_(0.5), 0, 1);
+            if (xy_expansion < 0)
+                return diff(offset(src, xy_expansion), trimming);
+            return diff(src, trimming);
+        };
         for (LayerRegion* layerm : layer.regions()) {
             Polygons layerm_polygons = to_polygons(layerm->slices.surfaces);
 
@@ -1653,14 +1697,8 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
                         slices_margin.polygons);
                 }
 #else
-                if (xy_expansion > 0) {
-                    // Step-wise expand against slices_margin (lower layer outline + gap_xy) so that the
-                    // expansion cannot bridge over thin model walls into regions that don't need support.
-                    diff_polygons = safe_offset_inc(diff_polygons, xy_expansion, slices_margin.polygons,
-                                                    scale_(0.5), 0, 1);
-                } else {
-                    diff_polygons = diff(offset(diff_polygons, xy_expansion), slices_margin.polygons);
-                }
+                // Step-wise expansion prevents crossing thin model walls into regions that do not need support.
+                diff_polygons = expand_and_trim(diff_polygons, slices_margin.polygons);
 #endif
             }
             polygons_append(contact_polygons, diff_polygons);
@@ -1683,9 +1721,12 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
                       { { union_safety_offset_ex(enforcer_polygons) }, { "new_contacts",               "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
 #endif /* SLIC3R_DEBUG */
                 if (!enforcer_polygons.empty()) {
-                    polygons_append(overhang_polygons, enforcer_polygons);
                     slices_margin_update(std::min(lower_layer_offset, float(scale_(gap_xy))), no_interface_offset);
-                    polygons_append(contact_polygons, diff(enforcer_polygons, slices_margin.all_polygons.empty() ? slices_margin.polygons : slices_margin.all_polygons));
+                    const Polygons &enforcer_slices_margin =
+                        slices_margin.all_polygons.empty() ? slices_margin.polygons : slices_margin.all_polygons;
+                    enforcer_polygons = expand_and_trim(enforcer_polygons, enforcer_slices_margin);
+                    polygons_append(overhang_polygons, enforcer_polygons);
+                    polygons_append(contact_polygons, enforcer_polygons);
                 }
             }
     }
@@ -2132,7 +2173,7 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
     // Output layers, sorted by top Z.
     SupportGeneratorLayersPtr contact_out;
 
-    BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::top_contact_layers() in parallel - start";
+    BOOST_LOG_TRIVIAL(debug) << "in parallel - start";
     // Determine top contact areas.
     // If generating raft only (no support), only calculate top contact areas for the 0th layer.
     // If having a raft, start with 0th layer, otherwise with 1st layer.
@@ -2169,7 +2210,11 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
 
     // check if the sharp tails should be extended higher
     bool detect_first_sharp_tail_only = false;
-    const coordf_t extrusion_width = m_object_config->line_width.value;
+    const coordf_t extrusion_width = Flow::extrusion_width_for_nozzle(
+        m_object_config->line_width,
+        float(primary_nozzle_diameter(object.print()->full_print_config())),
+        support_nozzle_diameter(&object, m_object_config->support_filament),
+        multi_nozzle_diameter_mode_enabled(object.print()->full_print_config()));
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     if (is_auto(m_object_config->support_type.value) && g_config_support_sharp_tails && !detect_first_sharp_tail_only) {
         for (size_t layer_nr = layer_id_start; layer_nr < num_layers; layer_nr++) {
@@ -2256,7 +2301,11 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
     const bool config_remove_small_overhangs = m_object_config->support_remove_small_overhang.value;
     if (config_remove_small_overhangs) {
         std::vector<OverhangCluster> clusters;
-        double fw_scaled = scale_(m_object_config->line_width);
+        double fw_scaled = scale_(Flow::extrusion_width_for_nozzle(
+            m_object_config->line_width,
+            float(primary_nozzle_diameter(object.print()->full_print_config())),
+            support_nozzle_diameter(&object, m_object_config->support_filament),
+            multi_nozzle_diameter_mode_enabled(object.print()->full_print_config())));
         std::set<ExPolygon*> removed_overhang;
 
         for (size_t layer_id = layer_id_start; layer_id < num_layers; layer_id++) {
@@ -2375,7 +2424,7 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
     // the top contact layer is merged into the bottom contact layer.
     merge_contact_layers(m_slicing_params, m_support_params.support_layer_height_min, contact_out);
 
-    BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::top_contact_layers() in parallel - end";
+    BOOST_LOG_TRIVIAL(debug) << "in parallel - end";
 
     return contact_out;
 }
@@ -2974,7 +3023,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
         // No top contacts -> no intermediate layers will be produced.
         return;
 
-    BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::generate_base_layers() in parallel - start";
+    BOOST_LOG_TRIVIAL(debug) << "in parallel - start";
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, intermediate_layers.size()),
         [&object, &bottom_contacts, &top_contacts, &intermediate_layers, &layer_support_areas](const tbb::blocked_range<size_t>& range) {
@@ -3133,7 +3182,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
     }
 
     // For all intermediate support layers:
-    BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::trim_support_layers_by_object() in parallel - start";
+    BOOST_LOG_TRIVIAL(debug) << "in parallel - start";
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, nonempty_layers.size()),
         [this, &object, &nonempty_layers, gap_extra_above, gap_extra_below, gap_xy_scaled](const tbb::blocked_range<size_t>& range) {
@@ -3210,7 +3259,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                 support_layer.polygons = diff(support_layer.polygons, polygons_trimming);
             }
         });
-    BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::trim_support_layers_by_object() in parallel - end";
+    BOOST_LOG_TRIVIAL(debug) << "in parallel - end";
 }
 
 /*

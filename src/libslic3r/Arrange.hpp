@@ -3,6 +3,7 @@
 
 #include "ExPolygon.hpp"
 #include "PrintConfig.hpp"
+#include "libslic3r/Log.hpp"
 
 #define BED_SHRINK_SEQ_PRINT 0
 
@@ -153,7 +154,7 @@ struct ArrangeParams {
     /// Progress indicator callback called when an object gets packed.
     /// The unsigned argument is the number of items remaining to pack.
     std::function<void(unsigned, std::string)> progressind = [](unsigned st, std::string str = "") {
-        std::cout << "st=" << st << ", " << str << std::endl;
+        BOOST_LOG_TRIVIAL(debug) << "st=" << st << ", " << str;
     };
 
     std::function<void(const ArrangePolygon &)> on_packed;

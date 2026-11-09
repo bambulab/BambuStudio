@@ -5,15 +5,20 @@
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
 int DevUpgrade::GetUpgradeProgressInt() const
 {
+    if (m_upgrade_progress.empty()) {
+        return 0;
+    }
+
     try {
         return std::stoi(m_upgrade_progress);
     } catch (const std::exception &e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
+        BOOST_LOG_TRIVIAL(error) << e.what();
     }
 
     return 0;
@@ -72,8 +77,10 @@ void DevUpgrade::ParseUpgradeDisplayState(const json &upgrade_state_jj)
 
             // update the version after upgrade finished
             if (m_upgrade_display_state == DevFirmwareUpgradeState::UpgradingFinished) {
-                Slic3r::GUI::wxGetApp().CallAfter([this] {
-                    m_owner->command_get_version();
+                MachineObject* owner = m_owner;
+                Slic3r::GUI::wxGetApp().CallAfter([owner, token = owner ? owner->get_token() : std::weak_ptr<int>()] {
+                    if (token.expired()) return;
+                    owner->command_get_version();
                 });
             }
 

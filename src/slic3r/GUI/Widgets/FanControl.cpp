@@ -1,5 +1,6 @@
 #include "FanControl.hpp"
 #include "Label.hpp"
+#include "ComboBox.hpp"
 #include "../BitmapCache.hpp"
 #include "../I18N.hpp"
 #include "../GUI_App.hpp"
@@ -7,6 +8,8 @@
 
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
+#include <wx/translation.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -623,6 +626,121 @@ void FanControlNew::post_event()
 }
 
 /*************************************************
+Description:AirPurifierControl
+**************************************************/
+// Dropdown order aligns with UI: Auto / Max / Standard / Silent / Off.
+static const int s_air_purifier_gears[] = {
+    AIR_PURIFIER_GEAR_AUTO,
+    AIR_PURIFIER_GEAR_MAX,
+    AIR_PURIFIER_GEAR_STANDARD,
+    AIR_PURIFIER_GEAR_SILENT,
+    AIR_PURIFIER_GEAR_OFF,
+};
+
+AirPurifierControl::AirPurifierControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
+    : wxWindow(parent, id, pos, size)
+{
+    SetMaxSize(wxSize(FromDIP(180), FromDIP(80)));
+    SetMinSize(wxSize(FromDIP(180), FromDIP(80)));
+    SetBackgroundColour(wxColour(248, 248, 248));
+
+    m_bitmap_fan = new ScalableBitmap(this, "fan_icon", 20);
+
+    wxBoxSizer *sizer_main = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *sizer_top  = new wxBoxSizer(wxHORIZONTAL);
+
+    wxStaticBitmap *bitmap_fan = new wxStaticBitmap(this, wxID_ANY, m_bitmap_fan->bmp(), wxDefaultPosition, wxDefaultSize);
+
+    m_static_name = new wxStaticText(this, wxID_ANY, _L("Air Purifier"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    m_static_name->SetBackgroundColour(wxColour(248, 248, 248));
+    m_static_name->SetFont(Label::Head_16);
+
+    m_static_pm = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+    m_static_pm->SetBackgroundColour(wxColour(248, 248, 248));
+    m_static_pm->SetForegroundColour(DRAW_TEXT_COLOUR);
+    m_static_pm->SetFont(Label::Body_12);
+
+    sizer_top->Add(bitmap_fan, 0, wxLEFT | wxTOP, FromDIP(8));
+    sizer_top->Add(m_static_name, 0, wxLEFT | wxTOP, FromDIP(5));
+    sizer_top->Add(0, 0, 1, wxEXPAND, 0);
+    sizer_top->Add(m_static_pm, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxTOP, FromDIP(8));
+
+    m_combo_gear = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+    m_combo_gear->Append(_L("Auto"),     wxNullBitmap, (void *)(intptr_t)AIR_PURIFIER_GEAR_AUTO);
+    m_combo_gear->Append(_CTX(L_CONTEXT("Max", "AirPurifier"), "AirPurifier"), wxNullBitmap, (void *)(intptr_t)AIR_PURIFIER_GEAR_MAX);
+    m_combo_gear->Append(_L("Standard"), wxNullBitmap, (void *)(intptr_t)AIR_PURIFIER_GEAR_STANDARD);
+    m_combo_gear->Append(_L("Silent"),   wxNullBitmap, (void *)(intptr_t)AIR_PURIFIER_GEAR_SILENT);
+    m_combo_gear->Append(_L("Off"),      wxNullBitmap, (void *)(intptr_t)AIR_PURIFIER_GEAR_OFF);
+    m_combo_gear->Bind(wxEVT_COMBOBOX, &AirPurifierControl::on_gear_changed, this);
+
+    sizer_main->Add(sizer_top, 0, wxEXPAND, 0);
+    sizer_main->Add(m_combo_gear, 0, wxALL | wxEXPAND, FromDIP(5));
+
+    SetSizer(sizer_main);
+    Layout();
+    sizer_main->Fit(this);
+    wxGetApp().UpdateDarkUIWin(this);
+}
+
+int AirPurifierControl::gear_to_index(int gear) const
+{
+    for (int i = 0; i < (int)(sizeof(s_air_purifier_gears) / sizeof(int)); ++i) {
+        if (s_air_purifier_gears[i] == gear) { return i; }
+    }
+    return -1;
+}
+
+void AirPurifierControl::on_gear_changed(wxCommandEvent &evt)
+{
+    int index = evt.GetInt();
+    if (index < 0) { return; }
+
+    int gear = (int)(intptr_t)m_combo_gear->GetClientData(index);
+    m_cur_gear = gear;
+    m_set_time_out = time_out;
+
+    if (m_obj && m_obj->GetAirPurifier()) { m_obj->GetAirPurifier()->CtrlSetGear(gear); }
+    evt.Skip();
+}
+
+void AirPurifierControl::set_air_purifier_data(int pm, int gear)
+{
+    // pm value is read-only, always refresh
+    m_static_pm->SetLabelText(wxString::Format("%d %s", pm, wxString::FromUTF8("\xc2\xb5g/m\xc2\xb3")));
+
+    // Color the PM value by air-quality level: >100 red, >50 orange, otherwise default.
+    wxColour pm_colour = DRAW_TEXT_COLOUR;
+    if (pm > 100) {
+        pm_colour = wxColour("#F44336"); // red
+    } else if (pm > 50) {
+        pm_colour = wxColour("#FF8C00"); // orange
+    }
+    if (m_static_pm->GetForegroundColour() != pm_colour) {
+        m_static_pm->SetForegroundColour(pm_colour);
+        m_static_pm->Refresh();
+    }
+
+    // suppress gear jitter for a few polls right after issuing a command
+    if (m_set_time_out > 0) {
+        m_set_time_out--;
+    } else if (m_cur_gear != gear) {
+        m_cur_gear = gear;
+        int index = gear_to_index(gear);
+        if (index >= 0) { m_combo_gear->SetSelection(index); }
+    }
+
+    Layout();
+}
+
+void AirPurifierControl::msw_rescale()
+{
+    if (m_bitmap_fan) { m_bitmap_fan->msw_rescale(); }
+    if (m_combo_gear) { m_combo_gear->Rescale(); }
+    Layout();
+    Refresh();
+}
+
+/*************************************************
 Description:FanControlPopupNew
 **************************************************/
 static void nop_deleter_fan_control_popup(FanControlPopupNew *) {}
@@ -694,7 +812,7 @@ void FanControlPopupNew::CreateDuct()
 
         int mode_id = iter->second.id;
         const wxString& text = get_fan_mode_name(mode_id);
-        if (text.empty()) { BOOST_LOG_TRIVIAL(error) << "FanControlPopupNew::CreateDuct: radio_btn_name is empty";}
+        if (text.empty()) { BOOST_LOG_TRIVIAL(error) << "radio_btn_name is empty";}
 
         SendModeSwitchButton *radio_btn = new SendModeSwitchButton(this, text, m_data.curren_mode == mode_id);
         radio_btn->Bind(wxEVT_LEFT_DOWN, &FanControlPopupNew::on_mode_changed, this);
@@ -774,8 +892,37 @@ void FanControlPopupNew::UpdateParts()
         }
     }
 
+    UpdateAirPurifier(m_obj);
+
     Layout();
     Fit();
+}
+
+// Air purifier(APS) card: shown whenever APS is in place, regardless of fan mode.
+// Data comes from the decoupled DevAirPurifier module, refreshed every poll.
+void FanControlPopupNew::UpdateAirPurifier(MachineObject* obj)
+{
+    auto purifier = obj ? obj->GetAirPurifier() : nullptr;
+    bool layout_changed = false;
+
+    if (purifier && purifier->IsExist()) {
+        if (!m_air_purifier_ctrl) {
+            m_air_purifier_ctrl = new AirPurifierControl(this);
+            m_sizer_fanControl->Add(m_air_purifier_ctrl, 0, wxALL, FromDIP(5));
+            layout_changed = true;
+        }
+        if (!m_air_purifier_ctrl->IsShown()) { m_air_purifier_ctrl->Show(); layout_changed = true; }
+        m_air_purifier_ctrl->set_machine_obj(obj);
+        m_air_purifier_ctrl->set_air_purifier_data(purifier->GetPm(), purifier->GetGear());
+    } else if (m_air_purifier_ctrl && m_air_purifier_ctrl->IsShown()) {
+        m_air_purifier_ctrl->Hide();
+        layout_changed = true;
+    }
+
+    if (layout_changed) {
+        Layout();
+        Fit();
+    }
 }
 
 void FanControlPopupNew::UpdatePartSubMode()
@@ -815,6 +962,9 @@ void FanControlPopupNew::update_fan_data(MachineObject *obj)
         m_obj = obj;
         init_names(m_obj);
     }
+
+    // APS card refreshes every poll, independent of AirDuctData dedup and fan timeouts
+    UpdateAirPurifier(obj);
 
     if (m_air_duct_time_out > 0) {
         m_air_duct_time_out--;
@@ -925,7 +1075,7 @@ void FanControlPopupNew::on_show(wxShowEvent& evt)
 
 void FanControlPopupNew::command_control_air_duct(int mode_id, int submode)
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", control air duct, id = " << mode_id;
+    BOOST_LOG_TRIVIAL(info) << "control air duct, id = " << mode_id;
     if (m_obj) {
         m_obj->GetFan()->command_control_air_duct(mode_id, submode, [](const json& reply) {});
 
@@ -940,6 +1090,7 @@ void FanControlPopupNew::msw_rescale()
 {
     for (const auto& btn_iter : m_mode_switch_btns) { btn_iter.second->msw_rescale(); }
     for (const auto& fan_iter : m_fan_control_list) { fan_iter.second->msw_rescale(); }
+    if (m_air_purifier_ctrl) { m_air_purifier_ctrl->msw_rescale(); }
 }
 
 void FanControlPopupNew::paintEvent(wxPaintEvent& evt)
@@ -1068,6 +1219,19 @@ wxString FanControlPopupNew::get_fan_mode_name(int mode_id) const
     return iter != radio_btn_name.end() ? iter->second : wxString::Format(_L("Fan"));;
 }
 
+static wxString translate_air_duct_chamber_text(const std::string& printer_type, const std::string& text)
+{
+    const std::string& text_context = DevPrinterConfigUtil::get_fan_text(printer_type, "text_context");
+    if (!text_context.empty()) {
+        if (wxTranslations* translations = wxTranslations::Get()) {
+            if (const wxString* translated = translations->GetTranslatedString(wxString::FromUTF8(text), wxEmptyString,
+                                                                              wxString::FromUTF8(text_context)))
+                return *translated;
+        }
+    }
+    return _CTX(text, "air_duct");
+}
+
 wxString FanControlPopupNew::get_fan_func_name(int mode, int submode, AIR_FUN func) const
 {
     if (m_obj)
@@ -1077,10 +1241,12 @@ wxString FanControlPopupNew::get_fan_func_name(int mode, int submode, AIR_FUN fu
         {
             L_CONTEXT("Right(Aux)", "air_duct");
             L_CONTEXT("Right(Filter)", "air_duct");
+            L_CONTEXT("Right(Heating)", "air_duct");
             L_CONTEXT("Left(Aux)", "air_duct");
             L_CONTEXT("Left(Heating)", "air_duct");
             L_CONTEXT("Chamber", "air_duct");
-            return _CTX(func_text, "air_duct");
+            L_CONTEXT("Chamber", "air_duct_chamber");
+            return translate_air_duct_chamber_text(m_obj->printer_type, func_text);
         }
     }
 

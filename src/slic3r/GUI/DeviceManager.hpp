@@ -21,10 +21,12 @@
 
 #include "DeviceCore/DevDefs.h"
 #include "DeviceCore/DevConfigUtil.h"
+#include "DeviceCore/DevCtrlTokenMgr.h"
 #include "DeviceCore/DevFirmware.h"
 #include "DeviceCore/DevPrintTaskInfo.h"
 #include "DeviceCore/DevUtil.h"
 #include "DeviceCore/DevCalib.h"
+#include "DeviceCore/DevMcTask.hpp"
 
 #include "DeviceErrorDialog.hpp"
 
@@ -74,6 +76,7 @@ enum class CalibSendStatus {
 
 // Previous definitions
 class DevAms;
+class DevAirPurifier;
 class DevAmsTray;
 class DevAxis;
 class DevBed;
@@ -96,6 +99,7 @@ class DeviceManager;
 class DevStatus;
 class DevStorage;
 class DevUpgrade;
+class DevMcTask;
 struct DevPrintTaskRatingInfo;
 struct DevNozzle;
 
@@ -147,6 +151,7 @@ private:
     DevFan*           m_fan;
     DevBed *          m_bed;
     DevStorage*       m_storage;
+    std::shared_ptr<DevAirPurifier> m_air_purifier;
     DevCalib*         m_calib;
 
     /*Ctrl*/
@@ -161,6 +166,9 @@ private:
     /* Print task information */
     DevPrintTaskInfo m_printTaskInfo;
 
+    /* Machine controller task */
+    DevMcTask m_mc_task;
+
     /*Status*/
     DevStatus* m_status;
 
@@ -169,6 +177,9 @@ private:
 
     /*Config*/
     DevConfig* m_config;
+
+    /* tokens keyed by sequence_id */
+    DevCtrlTokenMgr m_ctrl_token_mgr;
 
 public:
     MachineObject(DeviceManager* manager, NetworkAgent* agent, std::string name, std::string id, std::string ip);
@@ -200,6 +211,7 @@ public:
 
     std::string get_dev_id() const;
     void set_dev_id(std::string val);
+    std::weak_ptr<int> get_token() const { return m_token; }
 
     std::string connection_type() const;
     bool        is_lan_mode_printer() const;
@@ -283,10 +295,10 @@ public:
 
     //AmsTray vt_tray;                        // virtual tray
     long  ams_exist_bits = 0;
-    long  tray_exist_bits = 0;
-    long  tray_is_bbl_bits = 0;
-    long  tray_read_done_bits = 0;
-    long  tray_reading_bits = 0;
+    long long tray_exist_bits = 0;
+    long long tray_is_bbl_bits = 0;
+    long long tray_read_done_bits = 0;
+    long long tray_reading_bits = 0;
     bool  ams_air_print_status { false };
     bool  ams_support_virtual_tray { true };
     time_t ams_user_setting_start = 0;
@@ -380,6 +392,7 @@ public:
     DevFan*         GetFan()    const { return m_fan; }
     DevBed *        GetBed()    const { return m_bed; };
     DevStorage*     GetStorage()const { return m_storage; }
+    std::shared_ptr<DevAirPurifier> GetAirPurifier() const { return m_air_purifier; }
     DevCalib*       GetCalib()  const { return m_calib; }
 
     bool            supports_full_pa_calib_table() const;
@@ -393,6 +406,7 @@ public:
     DevPrintingSpeedLevel GetPrintingSpeedLevel() const; /* print speed */
 
     std::weak_ptr<DevUpgrade> GetUpgrade() const { return m_upgrade;}
+    const DevMcTask GetMcTask() const { return m_mc_task; }
 
     /* upgrade */
     std::string ams_new_version_number;
@@ -407,6 +421,8 @@ public:
     DevFirmwareVersionInfo exhaustfan_version_info;
     DevFirmwareVersionInfo amshub_version_info;
     DevFirmwareVersionInfo filatrack_version_info;
+    DevFirmwareVersionInfo air_purifier_version_info;
+    DevFirmwareVersionInfo hotend_ams_version_info;
     std::map<std::string, DevFirmwareVersionInfo> module_vers;
     std::vector<FirmwareInfo> firmware_list;
 
@@ -486,9 +502,15 @@ public:
     bool camera_recording { false };
     bool camera_recording_when_printing { false };
     bool camera_timelapse { false };
+    bool timelapse_last_enabled { false };
     time_t  camera_recording_ctl_start = 0;
     int  camera_timelapse_hold_count = 0;
     int  camera_resolution_hold_count = 0;
+    int liveview_current_camera = -1;
+    std::vector<int> support_liveview_cams;
+    std::vector<int> support_record_cams;
+    std::vector<int> enable_record_cams;
+    time_t camera_record_cam_ctl_start = 0;
     std::string camera_resolution            = "";
     std::vector<std::string> camera_resolution_supported;
     std::string local_rtsp_url;
@@ -517,12 +539,12 @@ public:
         FR_TutkAgora
     } file_remote{ FR_None };
 
-
     enum DoorOpenCheckState : int
     {
         DOOR_OPEN_CHECK_DISABLE            = 0,/*do nothing*/
         DOOR_OPEN_CHECK_ENABLE_WARNING     = 1,/*warning*/
         DOOR_OPEN_CHECK_ENABLE_PAUSE_PRINT = 2,/*pause print*/
+        DOOR_OPEN_CHECK_ENABLE_SLOW_DOWN   = 3,/*keep printing but slow down the toolhead, only when fun2[27] is set*/
     };
 
     bool        file_model_download{false};
@@ -584,6 +606,7 @@ public:
     bool is_support_liveview_preview{false};
     bool is_support_check_track_switch_match_slice_printer{ false };
     bool is_support_model_internal_storage{false};
+    bool is_support_timelapse_memory{false};
     int  ams_preload_version{0};
 
     bool installed_upgrade_kit{false};
@@ -660,9 +683,11 @@ public:
     int command_set_printer_nozzle(std::string nozzle_type, float diameter);
     int command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter);
     int command_get_access_code();
+    int command_set_sntp();
     std::string request_access_code(AccessCodeRefreshCallback callback);
     void cancel_access_code_request(const std::string& sequence_id);
     int command_ack_proceed(json& proceed);
+    int command_switch_camera(int camera_id);
 
     /* control apis */
 
@@ -692,15 +717,23 @@ public:
     // ams controls
     //int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
     int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210, std::optional<int> extruder_id = std::nullopt);
-    int command_ams_user_settings(bool start_read_opt, bool tray_read_opt, bool remain_flag = false);
+
+    int command_multi_slot_ams_change_filament(bool is_load, const std::vector<std::pair<int, int>>& slots);
+    int command_ams_user_settings(bool start_read_opt, bool tray_read_opt, bool remain_flag = false,
+                                  std::optional<bool> filament_tab_auto_read_rfid = std::nullopt);
     int command_ams_switch_filament(bool switch_filament);
     int command_ams_air_print_detect(bool air_print_detect);
     int command_ams_calibrate(int ams_id);
-    int command_ams_filament_settings(int ams_id, int slot_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type,
-                                      int nozzle_temp_min, int nozzle_temp_max, const std::vector<std::string>& tray_colors = {}, int tray_ctype = 2);
+    std::shared_ptr<DevCtrlToken> command_ams_filament_settings(int ams_id, int slot_id, std::string filament_id, std::string setting_id, std::string tray_color,
+                                      std::string tray_type, int nozzle_temp_min, int nozzle_temp_max,
+                                      const std::vector<std::string>& tray_colors = {}, int tray_ctype = 2);
     int command_ams_select_tray(std::string tray_id);
     int command_ams_refresh_rfid(std::string tray_id);
-    int command_ams_refresh_rfid2(int ams_id, int slot_id);
+    std::shared_ptr<DevCtrlToken> command_ams_refresh_rfid2(int ams_id, int slot_id, int mode = 0);
+    // Read all slots' RFID for one AMS (N1x Rack-B "read all"). mode: 0 =
+    // indirect (only un-fed slots), 1 = active (all slots). slot_bits is
+    // omitted so mode drives the selection.
+    int command_ams_read_all(int ams_id, int mode);
     int command_ams_control(std::string action);
     int command_ams_drying_stop();
     int command_start_extrusion_cali(int tray_index, int nozzle_temp, int bed_temp, float max_volumetric_speed, std::string setting_id = "");
@@ -732,6 +765,7 @@ public:
 
     // camera control
     int command_ipcam_record(bool on_off);
+    int command_ipcam_record_cam(int camera_id, bool on_off);
     int command_ipcam_timelapse(bool on_off);
     int command_ipcam_resolution_set(std::string resolution);
     int command_ipcam_check_timelapse_storage(const std::string& storage, int total_layer);
@@ -770,6 +804,12 @@ public:
     typedef std::function<void(std::string topic, std::string payload)> MsgFn;
     int publish_json(const json& json_item, int qos = 0, int flag = 0) ;
     int publish_json(const std::string& json_str, int qos = 0, int flag = 0) = delete;
+
+    // Command reply tokens: build one keyed by the command's sequence_id before
+    // publishing. The manager matches incoming replies (in parse_json) and drops a
+    // token once no other owner keeps a reference.
+    DevCtrlTokenMgr& GetCtrlTokenMgr() { return m_ctrl_token_mgr; }
+
     int cloud_publish_json(std::string json_str, int qos = 0, int flag = 0);
     int local_publish_json(std::string json_str, int qos = 0, int flag = 0);
     int parse_json(std::string tunnel, std::string payload, bool key_filed_only = false);
@@ -801,13 +841,15 @@ public:
     // Returns 0 when there is no explicit upper bound (legacy behavior for is_enable_np).
     int get_max_filament_color_count() const;
 
-    /*vi slot data*/
+    /*vi slot data*/ 
+    // to be removed, use DevFilaSystem::GetVirtualTrays() instead
     std::vector<DevAmsTray> vt_slot;
-    DevAmsTray parse_vt_tray(json vtray);
+    static DevAmsTray parse_vt_tray(MachineObject* obj_, const json& vtray);
     DevAmsTray* get_vt_tray(const std::string &ams_id);
 
     /*get ams slot info*/
     bool    contains_tray(const std::string &ams_id, const std::string &tray_id) const;
+    std::optional<DevAmsTray> get_tray(int ams_id, int tray_id) const;
     std::optional<DevAmsTray> get_tray(const std::string &ams_id, const std::string &tray_id) const;/*use contains_tray() check first*/
 
     /*for parse new info*/
@@ -833,8 +875,13 @@ public:
 
     /* xcam door open check*/
     bool               support_door_open_check() const { return is_support_door_open_check;};
+    /* whether the "slow down the toolhead" behaviour can be selected in addition to warning/pause */
+    bool               support_door_open_check_slow_down() const { return is_support_door_open_check_slow_down;};
     DoorOpenCheckState get_door_open_check_state() const { return xcam_door_open_check;};
     void               command_set_door_open_check(DoorOpenCheckState state);
+
+    /* door hall sensor state, parsed from print.stat[23-26] */
+    bool               is_front_door_open() const { return m_front_door_open; };
 
     /* xcam save remove print file to local*/
     bool get_save_remote_print_file_to_storage() const { return xcam__save_remote_print_file_to_storage; };
@@ -844,8 +891,12 @@ private:
 
     /* xcam door open check*/
     bool is_support_door_open_check = false;
+    bool is_support_door_open_check_slow_down = false;
     DoorOpenCheckState xcam_door_open_check  = DoorOpenCheckState::DOOR_OPEN_CHECK_DISABLE;
     time_t xcam_door_open_check_start_time   = 0;
+
+    /* door hall sensor state */
+    bool m_front_door_open = false;
 
     /* xcam save remove print file to local*/
     bool xcam__save_remote_print_file_to_storage      = false;

@@ -5,6 +5,7 @@
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Selection.hpp"
+#include "libslic3r/Geometry.hpp"
 #include "libslic3r/Model.hpp"
 
 #include <GL/glew.h>
@@ -13,13 +14,6 @@
 
 namespace Slic3r {
 namespace GUI {
-
-Vec3d FacetPicker::world_normal(const Transform3d &trafo, const Vec3f &mesh_normal)
-{
-    const Vec3d  n   = trafo.linear().inverse().transpose() * mesh_normal.cast<double>();
-    const double len = n.norm();
-    return (len < EPSILON) ? Vec3d::Zero() : Vec3d(n / len);
-}
 
 void FacetPicker::set_active(bool active)
 {
@@ -99,7 +93,7 @@ bool FacetPicker::update(const Vec2d &mouse_position, const CommonGizmosDataPool
     if (closest_facet >= mv->mesh().its.indices.size())
         return false;
 
-    const Vec3d n = world_normal(trafo_matrices[closest_id], closest_normal);
+    const Vec3d n = Geometry::transform_normal(trafo_matrices[closest_id], closest_normal);
     if (n.isZero())
         return false; // degenerate facet
 

@@ -1,6 +1,8 @@
 #ifndef DEVICEPAGEDIALOGHELPERS_H
 #define DEVICEPAGEDIALOGHELPERS_H
 
+#include "slic3r/GUI/DeviceCore/DevDefs.h"
+
 #include <optional>
 #include <string>
 #include <vector>
@@ -39,12 +41,39 @@ struct EditedFilamentInfo {
 // `view_only` locks the dialog (2D laser/cut mode).
 std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams_id, const std::string& slot_id, bool view_only = false);
 
+// Load actions require a known filament profile. Returns true when the target
+// tray is unknown and a warning popup was queued, so the caller must stop.
+bool BlockLoadForUnknownFilament(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id);
+
 // AmsReplaceMaterialDialog ("Auto Refill"). Same popup AMSControl posts via
 // EVT_AMS_FILAMENT_BACKUP. Must run on the UI thread.
 void OpenAmsAutoRefillDialog();
 
 // AMSDryCtrWin ("Drying") for the N3F / N3S unit `ams_id`. Runs modal
 void OpenAmsDryControlDialog(MachineObject* machine_obj, const std::string& ams_id);
+
+enum class AutoRefillFilamentsDialogMode
+{
+    CreateGroup,
+    AddToGroup,
+};
+
+// Opens the auto-refill filament picker in its own native dialog. `group_head`
+// is required for AddToGroup and identifies the chain receiving new slots.
+// Must run on the UI thread.
+void OpenAutoRefillFilamentsDialog(MachineObject*                    machine_obj,
+                                   AutoRefillFilamentsDialogMode     mode,
+                                   const std::optional<DevAmsSlotId>& group_head = std::nullopt);
+
+// Closes the currently active auto-refill filament picker, if any.
+void CloseAutoRefillFilamentsDialog(int result);
+
+wxWindow* ResolveAutoRefillDialogParent();
+
+// Leaves the device page for the Monitor's HMS tab. The tab lists every
+// active entry of the selected machine; there is no way to open one entry.
+// Must run on the UI thread.
+void OpenHmsPanel();
 
 }} // namespace Slic3r::GUI
 

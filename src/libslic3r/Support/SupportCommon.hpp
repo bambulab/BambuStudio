@@ -8,13 +8,55 @@
 #include "../Layer.hpp"
 #include "../Polygon.hpp"
 #include "../Print.hpp"
+#include "../SupportMergePlan.hpp"
 #include "SupportLayer.hpp"
 #include "SupportParameters.hpp"
+
+#include <functional>
+#include <map>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
 class PrintObject;
 class SupportLayer;
+
+// BBS multi-diameter: the XY the merged bands occupy on object layer layer_idx. A band is extruded with its
+// retained footprint from the band bottom up, so on its lower layers it occupies XY their lslices do not
+// hold. Only patches spanning the layer count: marker copies reach down to the band's planned floor, below a
+// locally clipped patch's own bottom_idx. Not unioned.
+Polygons merged_band_footprint(const Layer &layer, size_t layer_idx);
+
+// BBS multi-diameter: merge the generated support areas into slabs a coarse nozzle can actually extrude, and
+// report the filament every merged slab was planned for, keyed by its print_z.
+//
+// Runs after the support areas exist but before generate_support_layers() installs them, which is the only
+// place where the support Z ladder can still be changed. Both the classic generator and the organic tree
+// generator hand the same layer arrays to generate_support_layers(), so one pass covers both.
+//
+// cooldown_areas / lightning_infill_areas are rebuilt to use the support layer id generate_support_layers()
+// will assign. per_layer_area_print_z carries the source grid's real Z coordinates when its indices do not
+// already match the generated layer arrays. Pass nullptr when the generator has no per-grid areas.
+// top_gap is the support to object gap the top contacts were placed with; negative means
+// slicing_params.gap_support_object.
+void merge_support_layers_multi_diameter(
+    const PrintObject                               &object,
+    const SupportParameters                         &support_params,
+    const SlicingParameters                         &slicing_params,
+    const SupportGeneratorLayersPtr                 &raft_layers,
+    SupportGeneratorLayersPtr                       &bottom_contacts,
+    SupportGeneratorLayersPtr                       &top_contacts,
+    SupportGeneratorLayersPtr                       &intermediate_layers,
+    SupportGeneratorLayersPtr                       &interface_layers,
+    SupportGeneratorLayersPtr                       &base_interface_layers,
+    std::map<coordf_t, SupportMergePlan::Candidate> &planned_filaments,
+    std::map<coordf_t, SupportMergePlan::Candidate> &planned_interface_filaments,
+    std::map<coordf_t, coordf_t>                     &planned_base_heights,
+    std::map<coordf_t, coordf_t>                     &planned_interface_heights,
+    const std::vector<coordf_t>                     *per_layer_area_print_z = nullptr,
+    std::vector<ExPolygons>                         *cooldown_areas = nullptr,
+    std::vector<ExPolygons>                         *lightning_infill_areas = nullptr,
+    coordf_t                                         top_gap = -1.);
 
 // Turn some of the base layers into base interface layers.
 // For soluble interfaces with non-soluble bases, print maximum two first interface layers with the base
@@ -79,10 +121,8 @@ void generate_support_toolpaths(
     // are removed. Look up by idx_layer_intermediate (print_z), not by support_layer_id (raft / contacts).
     // Non-owning; entries are moved from when extruded. Null when the caller has no organic lightning.
     std::vector<Polylines>              *lightning_infill_lines = nullptr,
-    // Organic tree only: sparse rectilinear columns under floating faces left by model intrusion into a
-    // trunk. Compacted in lockstep with intermediate_layers, so look up by idx_layer_intermediate
-    // (print_z), not by support_layer_id. Filled at support_density (columns are peelable, not solid caps).
-    const std::vector<ExPolygons>       &floating_column_areas = {});
+    // Organic tree only: checks cancellation while tagging paths that overlap cooldown areas.
+    std::function<void()>                throw_on_cancel = {});
 
 // FN_HIGHER_EQUAL: the provided object pointer has a Z value >= of an internal threshold.
 // Find the first item with Z value >= of an internal threshold of fn_higher_equal.

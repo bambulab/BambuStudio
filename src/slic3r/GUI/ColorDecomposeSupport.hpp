@@ -1,11 +1,11 @@
 #ifndef slic3r_GUI_ColorDecomposeSupport_hpp_
 #define slic3r_GUI_ColorDecomposeSupport_hpp_
 
+#include <set>
 #include <string>
 #include <vector>
 #include <wx/string.h>
 #include <wx/colour.h>
-#include "ColorDecomposeDialog.hpp"
 
 class wxWindow;
 
@@ -16,14 +16,28 @@ namespace GUI {
 // ---- Constants ----
 
 inline constexpr const char* kDecomposePlaBasicType     = "PLA Basic";
+inline constexpr const char* kDecomposePlaPaletteType   = "PLA Palette";
 inline constexpr const char* kDecomposePetgBasicType    = "PETG Basic";
 inline constexpr const char* kDecomposePlaShortType     = "PLA";
 inline constexpr const char* kDecomposePetgShortType    = "PETG";
 inline constexpr const char* kDecomposePlaFilamentId    = "GFA00";
+inline constexpr const char* kDecomposePlaPaletteFilamentId = "GFA20";
 inline constexpr const char* kDecomposePetgFilamentId   = "GFG00";
 inline constexpr const char* kDecomposeBambuPresetPrefix = "Bambu ";
 
 // ---- Types ----
+
+enum class DecomposeBaseColor {
+    None,
+    Cyan,
+    Magenta,
+    Yellow,
+    White,
+    Red,
+    Green,
+    Blue,
+    Black
+};
 
 struct DecomposeOfficialComponent {
     DecomposeBaseColor base_color{DecomposeBaseColor::None};
@@ -31,14 +45,26 @@ struct DecomposeOfficialComponent {
     std::string        filament_id;
 };
 
-struct DecomposeMissingComponent {
-    size_t                     component_idx{0};
-    DecomposeOfficialComponent official_component;
-    std::string                preset_name;
-    wxString                   display_name;
+struct OfficialMixingKitGroup {
+    std::string        diameter;
+    // 0-based project config indices, ordered like pla_palette_cmykw_official_components().
+    std::vector<int>   config_indices;
+
+    bool complete() const;
+    size_t present_count() const;
 };
 
-struct MixedFilamentResult;
+struct OfficialMixingKitAddPlan {
+    size_t              missing_count{0};
+    size_t              required_delete_count{0};
+    // Unused physical filaments removed before adding the kit, 0-based config indices in descending order.
+    std::vector<size_t> delete_indices;
+    std::vector<std::string> delete_colors;
+    bool                kit_already_present{false};
+    bool                can_add{true};
+
+    bool needs_delete() const { return required_delete_count > 0; }
+};
 
 enum class DecomposeColorBlockReason {
     None,
@@ -48,19 +74,12 @@ enum class DecomposeColorBlockReason {
 };
 
 DecomposeColorBlockReason decompose_color_block_reason(int filament_idx);
-wxString decompose_color_menu_label(DecomposeColorBlockReason reason);
 
 // ---- Functions ----
 
 std::string decompose_normalize_color_hex(std::string color);
 
 const char* decompose_base_color_en(DecomposeBaseColor color);
-
-wxString decompose_base_color_display(DecomposeBaseColor color);
-
-std::string decompose_basic_type_from_source(size_t source_config_idx,
-                                             size_t source_physical_idx,
-                                             const std::vector<std::string>& physical_types);
 
 std::string decompose_basic_filament_id(const std::string& basic_type);
 
@@ -78,12 +97,15 @@ std::string find_decompose_standard_preset_name(size_t source_config_idx, const 
 // by shortName). Returns whether the active printer has a compatible series preset.
 bool ensure_official_series_installed(const std::string& basic_type);
 
-// Returns "PLA Basic" / "PETG Basic" when preset_name names an official Bambu
-// basic filament, else an empty string.
+// Returns "PLA Basic" / "PLA Palette" / "PETG Basic" when preset_name names an
+// official Bambu standard-mode filament series, else an empty string.
 std::string official_basic_type_from_preset_name(const std::string& preset_name);
 
-// Resolve display type for color-decompose: official Bambu Basic overrides
-// get_filament_type when preset name matches; empty/missing -> "PLA".
+// Resolve display type for color-decompose: an official Bambu series overrides
+// get_filament_type when the preset name matches; empty/missing -> "PLA".
+// This override matters for PLA Palette, whose filament_type is plain "PLA"
+// (inherited from fdm_filament_common) and would otherwise be indistinguishable
+// from PLA Basic.
 std::string filament_type_for_color_decompose(Preset* preset);
 
 // The source slot is eligible: a 100% official base (or a mix that uses that
@@ -93,40 +115,25 @@ int find_existing_decompose_component(
     const std::vector<std::string>& physical_colors,
     const std::vector<size_t>& physical_config_indices);
 
-bool prepare_decompose_mixed_result(
-    const ColorDecomposeResult& result,
-    size_t source_config_idx,
-    size_t source_physical_idx,
-    const std::vector<std::string>& physical_colors,
-    const std::vector<std::string>& physical_types,
-    const std::vector<size_t>& physical_config_indices,
-    MixedFilamentResult& out_result,
-    std::vector<DecomposeMissingComponent>& missing);
+// Official PLA Palette CMYKW mixing kit, one entry per base (white / cyan / magenta / yellow / black).
+std::vector<DecomposeOfficialComponent> pla_palette_cmykw_official_components();
 
-// For standard modes: how many base colors are not reusable from physical list.
-// MaterialList returns 0. When physical_config_indices is null, indices are 0..n-1.
-size_t count_decompose_new_physical_filaments(
-    const ColorDecomposeResult& result,
-    const std::vector<std::string>& physical_colors,
-    const std::vector<std::string>& physical_types,
-    size_t source_physical_idx,
-    const std::vector<size_t>* physical_config_indices);
+// Groups project PLA Palette CMYKW filaments by effective nozzle diameter.
+std::vector<OfficialMixingKitGroup> collect_official_mixing_kit_groups(const std::set<size_t>& excluded_indices = {});
 
-// Preview sidebar IDs that would be assigned if the current result were
-// confirmed. Matches prepare_decompose_mixed_result + add_custom_filament
-// (missing bases appended first) then create_mixed_filament_from_result
-// (mixed slot always last). Single-base 100% results do not create a mixed
-// filament; mixed_id then reuses that base's project-filament ID.
-DecomposePreviewIds preview_decompose_filament_ids(
-    const ColorDecomposeResult& result,
-    int source_physical_idx,
-    size_t current_filament_count,
-    const std::vector<std::string>& physical_colors,
-    const std::vector<std::string>& physical_types,
-    const std::vector<size_t>& physical_config_indices);
+// Returns the preferred complete group, or nullptr when no same-diameter kit is complete.
+const OfficialMixingKitGroup* find_complete_official_mixing_kit(const std::vector<OfficialMixingKitGroup>& groups);
 
-bool confirm_create_decompose_missing_components(wxWindow* parent,
-    const std::vector<DecomposeMissingComponent>& missing);
+// Computes the space needed for the missing kit filaments. Unused filaments are selected for
+// deletion when the project is full; protected_indices are 0-based config indices to keep.
+OfficialMixingKitAddPlan plan_official_mixing_kit_addition(size_t reserve_slots = 0,
+                                                           const std::set<size_t>& protected_indices = {});
+
+// Deletes the unused filaments selected by plan, then appends every missing kit filament.
+// Returns false, after telling the user, when the active printer has no compatible PLA Palette
+// preset or the plan cannot fit the kit.
+bool add_official_mixing_kit_to_project(wxWindow* parent, const OfficialMixingKitAddPlan& plan,
+                                        size_t reserve_slots = 0);
 
 }} // namespace Slic3r::GUI
 

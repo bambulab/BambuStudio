@@ -33,6 +33,8 @@ inline const wxColour TextDisabled{"#909090"};  // disabled / inactive text (== 
 
 // Pure white (card / dialog / hub fill)
 inline const wxColour White{"#FFFFFF"};
+// White that stays white in dark mode, for text on BrandGreen or other accent fills
+inline const wxColour WhiteFixed{"#FFFFFE"};
 
 // Neutral grey scale — lightest (200) → darkest (700). Suffixes follow the
 // legacy WXCOLOUR_GREY* macro numbering (which skips 600); 250 and 350 are

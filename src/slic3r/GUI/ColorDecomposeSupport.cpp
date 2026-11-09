@@ -1,10 +1,12 @@
 #include "ColorDecomposeSupport.hpp"
-#include "MixedFilamentDialog.hpp"
 #include "FilamentBitmapUtils.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
+#include "Plater.hpp"
 #include "I18N.hpp"
+#include "format.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Utils.hpp"
@@ -14,6 +16,8 @@
 #include <fstream>
 #include <algorithm>
 #include <cctype>
+#include <limits>
+#include <utility>
 
 using json = nlohmann::json;
 
@@ -39,6 +43,7 @@ const char* decompose_base_color_en(DecomposeBaseColor color)
     case DecomposeBaseColor::Red:     return "Red";
     case DecomposeBaseColor::Green:   return "Green";
     case DecomposeBaseColor::Blue:    return "Blue";
+    case DecomposeBaseColor::Black:   return "Black";
     default:                          return "";
     }
 }
@@ -59,63 +64,12 @@ DecomposeColorBlockReason decompose_color_block_reason(int filament_idx)
     return DecomposeColorBlockReason::None;
 }
 
-wxString decompose_color_menu_label(DecomposeColorBlockReason reason)
-{
-    switch (reason) {
-    case DecomposeColorBlockReason::Gradient:
-        return _L("Decompose Color (gradient not supported)");
-    case DecomposeColorBlockReason::Transparent:
-        return _L("Decompose Color (transparent not supported)");
-    case DecomposeColorBlockReason::MultiColor:
-        return _L("Decompose Color (multi-color not supported)");
-    default:
-        return _L("Decompose Color");
-    }
-}
-
-wxString decompose_base_color_display(DecomposeBaseColor color)
-{
-    switch (color) {
-    case DecomposeBaseColor::Cyan:    return _L("Cyan");
-    case DecomposeBaseColor::Magenta: return _L("Magenta");
-    case DecomposeBaseColor::Yellow:  return _L("Yellow");
-    case DecomposeBaseColor::White:   return _L("White");
-    case DecomposeBaseColor::Red:     return _L("Red");
-    case DecomposeBaseColor::Green:   return _L("Green");
-    case DecomposeBaseColor::Blue:    return _L("Blue");
-    default:                          return wxString();
-    }
-}
-
-std::string decompose_basic_type_from_source(size_t source_config_idx,
-                                             size_t source_physical_idx,
-                                             const std::vector<std::string>& physical_types)
-{
-    auto& project_config = wxGetApp().preset_bundle->project_config;
-    if (auto* filament_id_opt = project_config.option<ConfigOptionStrings>("filament_id")) {
-        if (source_config_idx < filament_id_opt->values.size()) {
-            const std::string& filament_id = filament_id_opt->values[source_config_idx];
-            if (filament_id == kDecomposePetgFilamentId)
-                return kDecomposePetgBasicType;
-            if (filament_id == kDecomposePlaFilamentId)
-                return kDecomposePlaBasicType;
-        }
-    }
-
-    if (source_physical_idx < physical_types.size()) {
-        const std::string& type = physical_types[source_physical_idx];
-        if (type == kDecomposePetgShortType || type == kDecomposePetgBasicType)
-            return kDecomposePetgBasicType;
-        if (type == kDecomposePlaShortType || type == kDecomposePlaBasicType)
-            return kDecomposePlaBasicType;
-    }
-    return kDecomposePlaBasicType;
-}
-
 std::string decompose_basic_filament_id(const std::string& basic_type)
 {
     if (basic_type == kDecomposePetgBasicType)
         return kDecomposePetgFilamentId;
+    if (basic_type == kDecomposePlaPaletteType)
+        return kDecomposePlaPaletteFilamentId;
     return kDecomposePlaFilamentId;
 }
 
@@ -130,8 +84,10 @@ void set_created_standard_component_metadata(size_t config_idx, const DecomposeO
         }
     }
 
+    // PLA Palette is a PLA series, so it shares the plain "PLA" filament_type.
     const std::string type = component.filament_id == kDecomposePetgFilamentId ? kDecomposePetgShortType :
-                             component.filament_id == kDecomposePlaFilamentId ? kDecomposePlaShortType : "";
+                             (component.filament_id == kDecomposePlaFilamentId ||
+                              component.filament_id == kDecomposePlaPaletteFilamentId) ? kDecomposePlaShortType : "";
     if (!type.empty()) {
         if (auto* type_opt = project_config.option<ConfigOptionStrings>("filament_type")) {
             while (type_opt->values.size() <= config_idx)
@@ -210,8 +166,10 @@ std::string find_decompose_standard_preset_name(size_t source_config_idx, const 
             return preset_name;
     }
 
-    // The series may be absent from the project entirely. Fall back to the
-    // preset library, restricted to what is compatible with the active printer.
+    // The series may be absent from the project entirely -- picking "Bambu PLA
+    // Palette" under the standard-mode recommendations does not require a
+    // palette slot to exist. Fall back to the preset library, restricted to what
+    // is compatible with the active printer.
     for (const Preset& preset : preset_bundle.filaments.get_presets()) {
         if (preset.is_system && preset.is_visible && preset.is_compatible && preset.name.find(prefix) == 0)
             return preset.name;
@@ -260,8 +218,11 @@ bool ensure_official_series_installed(const std::string& basic_type)
     return true;
 }
 
+
 std::string official_basic_type_from_preset_name(const std::string& preset_name)
 {
+    if (preset_name.find(std::string(kDecomposeBambuPresetPrefix) + kDecomposePlaPaletteType) != std::string::npos)
+        return kDecomposePlaPaletteType;
     if (preset_name.find(std::string(kDecomposeBambuPresetPrefix) + kDecomposePlaBasicType) != std::string::npos)
         return kDecomposePlaBasicType;
     if (preset_name.find(std::string(kDecomposeBambuPresetPrefix) + kDecomposePetgBasicType) != std::string::npos)
@@ -284,30 +245,50 @@ std::string filament_type_for_color_decompose(Preset* preset)
     return ft;
 }
 
-// The source slot is eligible: a 100% official base (or a mix that uses that
-// base) should reuse the existing filament instead of duplicating it.
+static bool is_official_decompose_filament_id(const std::string& id)
+{
+    return id == kDecomposePlaFilamentId
+        || id == kDecomposePlaPaletteFilamentId
+        || id == kDecomposePetgFilamentId;
+}
+
 int find_existing_decompose_component(
     const DecomposeOfficialComponent& component,
     const std::vector<std::string>& physical_colors,
     const std::vector<size_t>& physical_config_indices)
 {
-    auto& project_config = wxGetApp().preset_bundle->project_config;
-    auto* filament_id_opt = project_config.option<ConfigOptionStrings>("filament_id");
-    auto* type_opt = project_config.option<ConfigOptionStrings>("filament_type");
-    const PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
+    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
     const size_t num_physical = physical_colors.size();
     const std::string expected_basic_type = component.filament_id == kDecomposePetgFilamentId ? kDecomposePetgBasicType :
+                                            component.filament_id == kDecomposePlaPaletteFilamentId ? kDecomposePlaPaletteType :
                                             component.filament_id == kDecomposePlaFilamentId ? kDecomposePlaBasicType : "";
+    // PLA Palette shares filament_type "PLA" with PLA Basic, so it has no short
+    // type here: matching on "PLA" would let the two series reuse each other's
+    // slots. Identify Palette by filament_id, official series name, and preset
+    // name. expected_short_type is empty for Palette on purpose; the type check
+    // below must not treat empty == empty as a match, or any same-color slot
+    // (e.g. PETG after the user switched 1-5) would be reused.
     const std::string expected_short_type = expected_basic_type == kDecomposePetgBasicType ? kDecomposePetgShortType :
                                             expected_basic_type == kDecomposePlaBasicType ? kDecomposePlaShortType : "";
     const std::string expected_preset_part = expected_basic_type.empty() ? "" : std::string(kDecomposeBambuPresetPrefix) + expected_basic_type;
     for (size_t i = 0; i < num_physical && i < physical_config_indices.size(); ++i) {
         const size_t config_idx = physical_config_indices[i];
         const std::string slot_color = decompose_normalize_color_hex(physical_colors[i]);
-        const std::string slot_filament_id = (filament_id_opt && config_idx < filament_id_opt->values.size()) ? filament_id_opt->values[config_idx] : "";
-        const std::string slot_type = (type_opt && config_idx < type_opt->values.size()) ? type_opt->values[config_idx] : "";
         const std::string preset_name = config_idx < preset_bundle.filament_presets.size() ? preset_bundle.filament_presets[config_idx] : "";
+        // filament_id / filament_type are preset fields, not project_config keys.
+        // Read the live preset so a later type switch (PLA Palette -> PETG) is visible.
+        Preset* preset = preset_name.empty() ? nullptr : preset_bundle.filaments.find_preset(preset_name);
+        const std::string slot_filament_id = (preset && !preset->filament_id.empty()) ? preset->filament_id : "";
+        const std::string slot_type = filament_type_for_color_decompose(preset);
         if (slot_color != component.color_hex) {
+            continue;
+        }
+
+        // Two official series must never reuse each other's slots, even when the
+        // colors happen to be identical.
+        if (!component.filament_id.empty() && !slot_filament_id.empty()
+            && slot_filament_id != component.filament_id
+            && is_official_decompose_filament_id(slot_filament_id)) {
             continue;
         }
 
@@ -315,7 +296,10 @@ int find_existing_decompose_component(
             return static_cast<int>(config_idx + 1);
         }
 
-        if (!expected_basic_type.empty() && (slot_type == expected_basic_type || slot_type == expected_short_type)) {
+        const bool type_matches =
+            (!expected_basic_type.empty() && slot_type == expected_basic_type) ||
+            (!expected_short_type.empty() && slot_type == expected_short_type);
+        if (type_matches) {
             return static_cast<int>(config_idx + 1);
         }
 
@@ -332,207 +316,337 @@ int find_existing_decompose_component(
     return -1;
 }
 
-bool prepare_decompose_mixed_result(
-    const ColorDecomposeResult& result,
-    size_t source_config_idx,
-    size_t source_physical_idx,
-    const std::vector<std::string>& physical_colors,
-    const std::vector<std::string>& physical_types,
-    const std::vector<size_t>& physical_config_indices,
-    MixedFilamentResult& out_result,
-    std::vector<DecomposeMissingComponent>& missing)
+std::vector<DecomposeOfficialComponent> pla_palette_cmykw_official_components()
 {
-    (void)source_physical_idx;
-    (void)physical_types;
-    out_result = {};
-    missing.clear();
-    if (result.components.size() < 2) {
-        return false;
-    }
+    static const DecomposeBaseColor kBases[] = {
+        DecomposeBaseColor::White,
+        DecomposeBaseColor::Cyan,
+        DecomposeBaseColor::Magenta,
+        DecomposeBaseColor::Yellow,
+        DecomposeBaseColor::Black
+    };
+    static const wxColour kFallbacks[] = {
+        wxColour(255, 255, 255),
+        wxColour(0, 144, 218),
+        wxColour(226, 69, 133),
+        wxColour(252, 227, 0),
+        wxColour(0, 0, 0)
+    };
 
-    const bool standard_mode = result.mode == DecomposeMode::CMYW || result.mode == DecomposeMode::RYBW;
-    std::string basic_type;
-    std::string preset_name;
-    if (standard_mode) {
-        basic_type = kDecomposePlaBasicType;
-        preset_name = find_decompose_standard_preset_name(source_config_idx, basic_type);
-    }
-
-    for (size_t i = 0; i < result.components.size(); ++i) {
-        const DecomposeComponent& comp = result.components[i];
-        out_result.ratios.push_back(comp.ratio);
-        if (!standard_mode) {
-            if (comp.filament_index <= 0) {
-                return false;
-            }
-            const size_t physical_idx = static_cast<size_t>(comp.filament_index - 1);
-            if (physical_idx >= physical_config_indices.size()) {
-                return false;
-            }
-            out_result.components.push_back(static_cast<unsigned int>(physical_config_indices[physical_idx] + 1));
-            continue;
-        }
-
-        if (comp.base_color == DecomposeBaseColor::None) {
-            return false;
-        }
-        DecomposeOfficialComponent official_component =
-            lookup_decompose_official_component(basic_type, comp.base_color, comp.colour);
-        int existing_idx = find_existing_decompose_component(official_component, physical_colors,
-                                                             physical_config_indices);
-        if (existing_idx > 0) {
-            out_result.components.push_back(static_cast<unsigned int>(existing_idx));
-            continue;
-        }
-
-        DecomposeMissingComponent missing_comp;
-        missing_comp.component_idx = out_result.components.size();
-        missing_comp.official_component = official_component;
-        missing_comp.preset_name = preset_name;
-        missing_comp.display_name = decompose_base_color_display(comp.base_color) +
-            wxString::FromUTF8(" ") + wxString::FromUTF8(basic_type);
-        missing.push_back(std::move(missing_comp));
-        out_result.components.push_back(0);
-    }
-
-    const bool ok = out_result.components.size() == out_result.ratios.size() && out_result.components.size() >= 2;
-    return ok;
-}
-
-size_t count_decompose_new_physical_filaments(
-    const ColorDecomposeResult& result,
-    const std::vector<std::string>& physical_colors,
-    const std::vector<std::string>& physical_types,
-    size_t source_physical_idx,
-    const std::vector<size_t>* physical_config_indices)
-{
-    (void)physical_types;
-    (void)source_physical_idx;
-    if (result.mode != DecomposeMode::CMYW && result.mode != DecomposeMode::RYBW)
-        return 0;
-
-    std::vector<size_t> fallback_indices;
-    const std::vector<size_t>* indices = physical_config_indices;
-    if (!indices) {
-        fallback_indices.resize(physical_colors.size());
-        for (size_t i = 0; i < fallback_indices.size(); ++i)
-            fallback_indices[i] = i;
-        indices = &fallback_indices;
-    }
-
-    const std::string basic_type = kDecomposePlaBasicType;
-
-    size_t missing_count = 0;
-    for (const DecomposeComponent& comp : result.components) {
-        if (comp.base_color == DecomposeBaseColor::None)
-            continue;
-        DecomposeOfficialComponent official_component =
-            lookup_decompose_official_component(basic_type, comp.base_color, comp.colour);
-        int existing_idx = find_existing_decompose_component(official_component, physical_colors,
-                                                             *indices);
-        if (existing_idx <= 0)
-            ++missing_count;
-    }
-    return missing_count;
-}
-
-static int physical_to_sidebar_id(int filament_index_1based, const std::vector<size_t>& indices)
-{
-    if (filament_index_1based <= 0)
-        return 0;
-    const size_t physical_idx = static_cast<size_t>(filament_index_1based - 1);
-    if (physical_idx < indices.size())
-        return static_cast<int>(indices[physical_idx] + 1);
-    return filament_index_1based;
-}
-
-DecomposePreviewIds preview_decompose_filament_ids(
-    const ColorDecomposeResult& result,
-    int source_physical_idx,
-    size_t current_filament_count,
-    const std::vector<std::string>& physical_colors,
-    const std::vector<std::string>& physical_types,
-    const std::vector<size_t>& physical_config_indices)
-{
-    DecomposePreviewIds out;
-
-    std::vector<size_t> fallback_indices;
-    const std::vector<size_t>* indices = &physical_config_indices;
-    if (indices->empty()) {
-        fallback_indices.resize(physical_colors.size());
-        for (size_t i = 0; i < fallback_indices.size(); ++i)
-            fallback_indices[i] = i;
-        indices = &fallback_indices;
-    }
-
-    if (source_physical_idx >= 0)
-        out.source_id = physical_to_sidebar_id(source_physical_idx + 1, *indices);
-
-    const bool standard_mode = result.mode == DecomposeMode::CMYW || result.mode == DecomposeMode::RYBW;
-    (void)physical_types;
-
-    size_t missing_count = 0;
-    out.component_ids.reserve(result.components.size());
-
-    if (!standard_mode) {
-        for (const DecomposeComponent& comp : result.components)
-            out.component_ids.push_back(physical_to_sidebar_id(comp.filament_index, *indices));
-    } else {
-        const std::string basic_type = kDecomposePlaBasicType;
-        int next_new_id = static_cast<int>(physical_colors.size()) + 1;
-        for (const DecomposeComponent& comp : result.components) {
-            if (comp.base_color == DecomposeBaseColor::None) {
-                out.component_ids.push_back(physical_to_sidebar_id(comp.filament_index, *indices));
-                continue;
-            }
-            DecomposeOfficialComponent official_component =
-                lookup_decompose_official_component(basic_type, comp.base_color, comp.colour);
-            int existing_idx = find_existing_decompose_component(official_component, physical_colors,
-                                                                 *indices);
-            if (existing_idx > 0) {
-                out.component_ids.push_back(existing_idx);
-            } else {
-                out.component_ids.push_back(next_new_id);
-                ++next_new_id;
-                ++missing_count;
-            }
-        }
-    }
-
-    if (result.components.size() >= 2)
-        out.mixed_id = static_cast<int>(current_filament_count + missing_count + 1);
-    else if (!out.component_ids.empty())
-        out.mixed_id = out.component_ids.front();
-
+    std::vector<DecomposeOfficialComponent> out;
+    out.reserve(5);
+    for (size_t i = 0; i < 5; ++i)
+        out.push_back(lookup_decompose_official_component(kDecomposePlaPaletteType, kBases[i], kFallbacks[i]));
     return out;
 }
 
-bool confirm_create_decompose_missing_components(wxWindow* parent, const std::vector<DecomposeMissingComponent>& missing)
+bool OfficialMixingKitGroup::complete() const
 {
+    return !config_indices.empty()
+        && std::find(config_indices.begin(), config_indices.end(), -1) == config_indices.end();
+}
+
+size_t OfficialMixingKitGroup::present_count() const
+{
+    return size_t(std::count_if(config_indices.begin(), config_indices.end(), [](int idx) { return idx >= 0; }));
+}
+
+namespace {
+
+struct ProjectPhysicalFilaments {
+    std::vector<std::string> colors;
+    std::vector<size_t>      indices;
+};
+
+ProjectPhysicalFilaments collect_project_physical_filaments()
+{
+    ProjectPhysicalFilaments out;
+    PresetBundle& pb = *wxGetApp().preset_bundle;
+    auto* colours_opt = pb.project_config.option<ConfigOptionStrings>("filament_colour");
+    auto* is_mixed_opt = pb.project_config.option<ConfigOptionBools>("filament_is_mixed");
+    for (size_t i = 0; i < pb.filament_presets.size(); ++i) {
+        if (is_mixed_opt && i < is_mixed_opt->values.size() && is_mixed_opt->values[i])
+            continue;
+        out.colors.push_back(colours_opt && i < colours_opt->values.size() ? colours_opt->values[i] : "#808080");
+        out.indices.push_back(i);
+    }
+    return out;
+}
+
+bool official_kit_diameter_mode_enabled(const PresetBundle& pb)
+{
+    return is_single_ext_multi_nozzle(pb.printers.get_edited_preset().config) && multi_nozzle_diameter_mode_enabled(pb.project_config);
+}
+
+std::string official_kit_effective_diameter(const PresetBundle& pb, size_t config_idx)
+{
+    if (!official_kit_diameter_mode_enabled(pb))
+        return {};
+    const auto* selected = pb.project_config.option<ConfigOptionStrings>("filament_diameter_map");
+    std::string diameter = (selected && config_idx < selected->values.size()) ? selected->values[config_idx] : std::string();
+    if (diameter.empty()) {
+        const std::vector<std::string> options = pb.get_filament_nozzle_diameter_options(config_idx);
+        if (!options.empty())
+            diameter = options.front();
+    }
+    if (diameter.empty())
+        return {};
+    return format_diameter_to_str(string_to_double_decimal_point(diameter));
+}
+
+std::pair<int, double> official_kit_diameter_rank(const std::string& diameter)
+{
+    if (diameter.empty())
+        return {5, 0.0};
+    const double value = string_to_double_decimal_point(diameter);
+    const std::string normalized = format_diameter_to_str(value);
+    if (normalized == "0.4")
+        return {0, value};
+    if (normalized == "0.2")
+        return {1, value};
+    if (normalized == "0.6")
+        return {2, value};
+    if (normalized == "0.8")
+        return {3, value};
+    return {4, value > 0.0 ? value : std::numeric_limits<double>::max()};
+}
+
+bool official_kit_group_better(const OfficialMixingKitGroup& lhs, const OfficialMixingKitGroup& rhs)
+{
+    const size_t lhs_count = lhs.present_count();
+    const size_t rhs_count = rhs.present_count();
+    if (lhs_count != rhs_count)
+        return lhs_count > rhs_count;
+    return official_kit_diameter_rank(lhs.diameter) < official_kit_diameter_rank(rhs.diameter);
+}
+
+const OfficialMixingKitGroup* find_best_partial_official_mixing_kit(const std::vector<OfficialMixingKitGroup>& groups)
+{
+    const OfficialMixingKitGroup* best = nullptr;
+    for (const OfficialMixingKitGroup& group : groups) {
+        if (!best || official_kit_group_better(group, *best))
+            best = &group;
+    }
+    return best;
+}
+
+std::string choose_new_official_kit_diameter(const PresetBundle& pb, const std::vector<OfficialMixingKitGroup>& groups)
+{
+    if (!official_kit_diameter_mode_enabled(pb))
+        return {};
+    if (const OfficialMixingKitGroup* best = find_best_partial_official_mixing_kit(groups))
+        return best->diameter;
+
+    std::string best_diameter;
+    for (const auto& variant : pb.get_installed_nozzle_variants()) {
+        if (best_diameter.empty() || official_kit_diameter_rank(variant.first) < official_kit_diameter_rank(best_diameter))
+            best_diameter = variant.first;
+    }
+    return best_diameter.empty() ? std::string("0.4") : best_diameter;
+}
+
+std::vector<DecomposeOfficialComponent> missing_official_mixing_kit_components(
+    const std::vector<OfficialMixingKitGroup>& groups,
+    std::set<size_t>* existing_indices = nullptr,
+    std::string* target_diameter = nullptr)
+{
+    std::vector<DecomposeOfficialComponent> components = pla_palette_cmykw_official_components();
+    PresetBundle& pb = *wxGetApp().preset_bundle;
+    if (const OfficialMixingKitGroup* complete = find_complete_official_mixing_kit(groups)) {
+        if (existing_indices) {
+            for (int idx : complete->config_indices)
+                existing_indices->insert(size_t(idx));
+        }
+        if (target_diameter)
+            *target_diameter = complete->diameter;
+        return {};
+    }
+
+    const OfficialMixingKitGroup* base = find_best_partial_official_mixing_kit(groups);
+    if (target_diameter)
+        *target_diameter = choose_new_official_kit_diameter(pb, groups);
+
+    std::vector<DecomposeOfficialComponent> missing;
+    for (size_t i = 0; i < components.size(); ++i) {
+        const int existing = (base && i < base->config_indices.size()) ? base->config_indices[i] : -1;
+        if (existing >= 0) {
+            if (existing_indices)
+                existing_indices->insert(size_t(existing));
+            continue;
+        }
+        missing.push_back(components[i]);
+    }
+    return missing;
+}
+
+} // namespace
+
+std::vector<OfficialMixingKitGroup> collect_official_mixing_kit_groups(const std::set<size_t>& excluded_indices)
+{
+    std::vector<OfficialMixingKitGroup> groups;
+    if (!wxGetApp().preset_bundle)
+        return groups;
+
+    PresetBundle& pb = *wxGetApp().preset_bundle;
+    const ProjectPhysicalFilaments physical = collect_project_physical_filaments();
+    const std::vector<DecomposeOfficialComponent> components = pla_palette_cmykw_official_components();
+    for (size_t i = 0; i < physical.indices.size(); ++i) {
+        const size_t cfg_idx = physical.indices[i];
+        if (excluded_indices.count(cfg_idx) > 0)
+            continue;
+        if (decompose_color_block_reason(int(cfg_idx)) != DecomposeColorBlockReason::None)
+            continue;
+
+        const std::string& preset_name = cfg_idx < pb.filament_presets.size() ? pb.filament_presets[cfg_idx] : std::string();
+        Preset* preset = preset_name.empty() ? nullptr : pb.filaments.find_preset(preset_name);
+        const bool is_palette = (preset && preset->filament_id == kDecomposePlaPaletteFilamentId)
+            || official_basic_type_from_preset_name(preset_name) == kDecomposePlaPaletteType;
+        if (!is_palette)
+            continue;
+
+        const std::string color_hex = decompose_normalize_color_hex(physical.colors[i]);
+        const auto component = std::find_if(components.begin(), components.end(),
+            [&](const DecomposeOfficialComponent& official) { return official.color_hex == color_hex; });
+        if (component == components.end())
+            continue;
+
+        const std::string diameter = official_kit_effective_diameter(pb, cfg_idx);
+        auto group = std::find_if(groups.begin(), groups.end(),
+            [&](const OfficialMixingKitGroup& g) { return g.diameter == diameter; });
+        if (group == groups.end()) {
+            groups.push_back({diameter, std::vector<int>(components.size(), -1)});
+            group = std::prev(groups.end());
+        }
+        int& existing = group->config_indices[size_t(component - components.begin())];
+        if (existing < 0)
+            existing = int(cfg_idx);
+    }
+    return groups;
+}
+
+const OfficialMixingKitGroup* find_complete_official_mixing_kit(const std::vector<OfficialMixingKitGroup>& groups)
+{
+    const OfficialMixingKitGroup* best = nullptr;
+    for (const OfficialMixingKitGroup& group : groups) {
+        if (!group.complete())
+            continue;
+        if (!best || official_kit_diameter_rank(group.diameter) < official_kit_diameter_rank(best->diameter))
+            best = &group;
+    }
+    return best;
+}
+
+OfficialMixingKitAddPlan plan_official_mixing_kit_addition(size_t reserve_slots,
+                                                           const std::set<size_t>& protected_indices)
+{
+    OfficialMixingKitAddPlan plan;
+    if (!wxGetApp().plater() || !wxGetApp().preset_bundle) {
+        plan.can_add = false;
+        return plan;
+    }
+
+    PresetBundle& pb = *wxGetApp().preset_bundle;
+    const ProjectPhysicalFilaments physical = collect_project_physical_filaments();
+    std::set<size_t> keep = protected_indices;
+    plan.missing_count = missing_official_mixing_kit_components(collect_official_mixing_kit_groups(), &keep).size();
+    if (plan.missing_count == 0) {
+        plan.kit_already_present = true;
+        return plan;
+    }
+
+    const size_t physical_after = physical.indices.size() + plan.missing_count;
+    const size_t total_after = pb.filament_presets.size() + plan.missing_count + reserve_slots;
+    const size_t physical_over = physical_after > MAX_PHYSICAL_FILAMENT_COUNT ? physical_after - MAX_PHYSICAL_FILAMENT_COUNT : 0;
+    const size_t total_over = total_after > MAX_FILAMENT_COUNT ? total_after - MAX_FILAMENT_COUNT : 0;
+    plan.required_delete_count = std::max(physical_over, total_over);
+    if (plan.required_delete_count == 0)
+        return plan;
+
+    Sidebar& sidebar = wxGetApp().plater()->sidebar();
+    // Delete from the end so earlier indices in this plan remain valid while deleting.
+    for (size_t i = physical.indices.size(); i-- > 0 && plan.delete_indices.size() < plan.required_delete_count;) {
+        const size_t cfg_idx = physical.indices[i];
+        if (keep.count(cfg_idx) > 0 || sidebar.is_filament_referenced(cfg_idx))
+            continue;
+        plan.delete_indices.push_back(cfg_idx);
+        plan.delete_colors.push_back(physical.colors[i]);
+    }
+    plan.can_add = plan.delete_indices.size() == plan.required_delete_count;
+    if (!plan.can_add) {
+        plan.delete_indices.clear();
+        plan.delete_colors.clear();
+    }
+    return plan;
+}
+
+bool add_official_mixing_kit_to_project(wxWindow* parent, const OfficialMixingKitAddPlan& plan, size_t reserve_slots)
+{
+    if (!wxGetApp().plater() || !wxGetApp().preset_bundle || !plan.can_add)
+        return false;
+
+    ensure_official_series_installed(kDecomposePlaPaletteType);
+    const std::string preset_name = find_decompose_standard_preset_name(0, kDecomposePlaPaletteType);
+    if (preset_name.empty()) {
+        MessageDialog dlg(parent,
+            _L("The current printer has no compatible PLA Palette filament."),
+            _L("Error"), wxOK | wxICON_WARNING);
+        dlg.ShowModal();
+        return false;
+    }
+
+    Sidebar& sidebar = wxGetApp().plater()->sidebar();
+    {
+        wxBusyCursor wait;
+        for (size_t cfg_idx : plan.delete_indices)
+            sidebar.delete_filament(cfg_idx, -1);
+    }
+
+    PresetBundle& pb = *wxGetApp().preset_bundle;
+    const ProjectPhysicalFilaments physical = collect_project_physical_filaments();
+    const std::vector<OfficialMixingKitGroup> groups = collect_official_mixing_kit_groups();
+    std::string target_diameter;
+    const std::vector<DecomposeOfficialComponent> missing =
+        missing_official_mixing_kit_components(groups, nullptr, &target_diameter);
     if (missing.empty())
         return true;
+    if (physical.indices.size() + missing.size() > MAX_PHYSICAL_FILAMENT_COUNT ||
+        pb.filament_presets.size() + missing.size() + reserve_slots > MAX_FILAMENT_COUNT)
+        return false;
 
-    static const char* config_key = "not_show_color_decompose_missing_component_tip";
-    if (wxGetApp().app_config->get(config_key) == "1") {
-        return true;
+    std::vector<std::pair<wxColour, std::string>> to_add;
+    to_add.reserve(missing.size());
+    for (const DecomposeOfficialComponent& official : missing) {
+        wxColour col(official.color_hex);
+        if (!col.IsOk())
+            col = *wxWHITE;
+        to_add.emplace_back(col, preset_name);
     }
 
-    wxString missing_text;
-    for (size_t i = 0; i < missing.size(); ++i) {
-        if (i > 0)
-            missing_text += _L(", ");
-        missing_text += missing[i].display_name;
+    int inherit_nozzle_from = -1;
+    if (const OfficialMixingKitGroup* base = find_best_partial_official_mixing_kit(groups)) {
+        if (base->diameter == target_diameter) {
+            const auto existing = std::find_if(base->config_indices.begin(), base->config_indices.end(),
+                [](int idx) { return idx >= 0; });
+            if (existing != base->config_indices.end())
+                inherit_nozzle_from = *existing;
+        }
     }
 
-    wxString message = _L("The current filament list does not contain ") + missing_text +
-        _L(". A project filament required by the mixed filament will be created automatically after decomposition.");
+    wxBusyCursor wait;
+    const size_t insert_pos = sidebar.add_custom_filaments(to_add, inherit_nozzle_from);
+    const size_t added = (insert_pos == size_t(-1)) ? 0 :
+        std::min(to_add.size(), sidebar.combos_filament().size() - insert_pos);
+    for (size_t i = 0; i < added; ++i)
+        set_created_standard_component_metadata(insert_pos + i, missing[i]);
 
-    MessageDialog dlg(parent, message, _L("Tip"), wxOK | wxCANCEL | wxICON_INFORMATION);
-    dlg.show_dsa_button();
-    int res = dlg.ShowModal();
-    if (res == wxID_OK && dlg.get_checkbox_state())
-        wxGetApp().app_config->set(config_key, "1");
-    return res == wxID_OK;
+    // A new kit has no existing slot to inherit nozzle settings from.
+    if (inherit_nozzle_from < 0 && !target_diameter.empty() && official_kit_diameter_mode_enabled(pb)) {
+        for (size_t i = 0; i < added; ++i)
+            pb.set_filament_nozzle_diameter(insert_pos + i, target_diameter);
+        pb.validate_filament_nozzle_diameter_selections();
+        sidebar.refresh_filament_diameter_buttons();
+    }
+    return added == missing.size();
 }
 
 }} // namespace Slic3r::GUI

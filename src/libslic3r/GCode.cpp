@@ -16,6 +16,7 @@
 #include "libslic3r/format.hpp"
 #include "MultiNozzleUtils.hpp"
 #include "GCodeReader.hpp"
+#include "FilamentMixer.hpp"
 
 #include <algorithm>
 #include <cstdlib>
@@ -30,7 +31,6 @@
 #include <boost/algorithm/string/find.hpp>
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/beast/core/detail/base64.hpp>
 
 #include <boost/nowide/iostream.hpp>
@@ -40,6 +40,7 @@
 #include "SVG.hpp"
 
 #include <tbb/parallel_for.h>
+#include "libslic3r/Log.hpp"
 
 // Intel redesigned some TBB interface considerably when merging TBB with their oneAPI set of libraries, see GH #7332.
 // We are using quite an old TBB 2017 U7. Before we update our build servers, let's use the old API, which is deprecated in up to date TBB.
@@ -368,9 +369,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     int
         OozePrevention::_get_temp(GCode& gcodegen)
     {
+        const size_t config_idx = get_filament_config_idx(gcodegen.config(), gcodegen.writer().filament()->id());
         return (gcodegen.layer() != NULL && gcodegen.layer()->id() == 0)
-            ? gcodegen.config().nozzle_temperature_initial_layer.get_at(gcodegen.writer().filament()->id())
-            : gcodegen.config().nozzle_temperature.get_at(gcodegen.writer().filament()->id());
+            ? gcodegen.config().nozzle_temperature_initial_layer.get_at(config_idx)
+            : gcodegen.config().nozzle_temperature.get_at(config_idx);
     }
 
     std::string transform_gcode(const std::string &gcode, Vec2f pos, const Vec2f &translation, float angle)
@@ -446,7 +448,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         double wipe_speed = gcodegen.config().role_base_wipe_speed && cur_speed > EPSILON ? cur_speed / 60 :
             gcodegen.writer().config.travel_speed.get_at(get_process_config_idx(gcodegen.writer().config, gcodegen.writer().filament()->id())) * gcodegen.config().wipe_speed.value / 100;
 
-        if (toolchange) { wipe_speed = gcodegen.m_print->config().prime_tower_max_speed.value; }
+        if (toolchange) {
+            double tc_wipe_speed = gcodegen.m_print->config().prime_tower_wipe_speed.value;
+            wipe_speed = (tc_wipe_speed > 0) ? tc_wipe_speed : gcodegen.m_print->config().prime_tower_max_speed.value;
+        }
 
         // get the retraction length
         double length = toolchange
@@ -461,6 +466,11 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 for the time needed to consume retraction_length at retraction_speed?  */
             // BBS
             double wipe_dist = scale_(gcodegen.config().wipe_distance.get_at(gcodegen.writer().filament()->id()));
+            if (toolchange) {
+                double tc_wipe_dist = gcodegen.m_print->config().prime_tower_wipe_distance.value;
+                if (tc_wipe_dist > 0)
+                    wipe_dist = scale_(tc_wipe_dist);
+            }
 
             /*  Take the stored wipe path and replace first point with the current actual position
                 (they might be different, for example, in case of loop clipping).  */
@@ -519,15 +529,21 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     }
 
     // set volumetric speed of outer wall ,ignore per obejct & region ,just use default setting
-    static float get_outer_wall_volumetric_speed(const FullPrintConfig& config, const Print& print, int filament_id, int extruder_id) {
+    static float get_outer_wall_volumetric_speed(const FullPrintConfig& config, const Print& print, int filament_id, int extruder_id, size_t filament_config_idx) {
         float outer_wall_volumetric_speed = 0;
-        float filament_max_volumetric_speed = config.filament_max_volumetric_speed.get_at(filament_id);
-        float outer_wall_line_width = print.default_region_config().outer_wall_line_width.value;
+        float filament_max_volumetric_speed = config.filament_max_volumetric_speed.get_at(filament_config_idx);
+        const float preset_nozzle_diameter = float(primary_nozzle_diameter(config));
+        const float nozzle_diameter = nozzle_diameter_for_filament(print.config(), unsigned(filament_id + 1));
+        float outer_wall_line_width = float(Flow::extrusion_width_for_nozzle(
+            print.default_region_config().outer_wall_line_width, preset_nozzle_diameter, nozzle_diameter,
+            multi_nozzle_diameter_mode_enabled(config)));
         if (outer_wall_line_width == 0.0) {
-            float default_line_width = print.default_object_config().line_width.value;
+            float default_line_width = float(Flow::extrusion_width_for_nozzle(
+                print.default_object_config().line_width, preset_nozzle_diameter, nozzle_diameter,
+                multi_nozzle_diameter_mode_enabled(config)));
             outer_wall_line_width = default_line_width == 0.0 ? config.filament_diameter.get_at(filament_id) : default_line_width;
         }
-        Flow outer_wall_flow = Flow(outer_wall_line_width, config.layer_height, config.nozzle_diameter.get_at(extruder_id));
+        Flow outer_wall_flow = Flow(outer_wall_line_width, config.layer_height, nozzle_diameter);
         float outer_wall_speed = print.default_region_config().outer_wall_speed.get_at(extruder_id);
         outer_wall_volumetric_speed = outer_wall_speed * outer_wall_flow.mm3_per_mm();
         if (outer_wall_volumetric_speed > filament_max_volumetric_speed)
@@ -736,7 +752,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         int old_filament_id_before_toolchange = gcodegen.writer().filament() ? (int)gcodegen.writer().filament()->id() : -1;
         int old_extruder_id_before_toolchange = old_filament_id_before_toolchange >= 0 ? (int)gcodegen.get_extruder_id(old_filament_id_before_toolchange) : -1;
 
-        bool is_nozzle_change = !tcr.nozzle_change_result.gcode.empty() && (gcodegen.config().nozzle_diameter.size() > 1);
+        bool is_nozzle_change = !tcr.nozzle_change_result.gcode.empty();
         std::string gcode;
 
         // Toolchangeresult.gcode assumes the wipe tower corner is at the origin (except for priming lines)
@@ -841,8 +857,24 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (z_hope_type == ZHopType::zhtAuto || z_hope_type == ZHopType::zhtSpiral || z_hope_type == ZHopType::zhtSlope)
             auto_lift_type = LiftType::SpiralLift;
 
-        // BBS: should be placed before toolchange parsing
-        std::string toolchange_retract_str = gcodegen.retract(tcr.is_tool_change && !is_nozzle_change, false, auto_lift_type, true);
+        // Retract & spiral lift when leaving the model, heading to the wipe tower.
+        //
+        // Retract distance and lift speed are independent concerns controlled by
+        // separate parameters (toolchange vs slow_lift):
+        //   - Same-nozzle color change:  long retract (no nozzle-change phase to do it later)
+        //   - zero_flush / heater_off:   long retract (filament stays retracted during cooling)
+        //   - Normal nozzle change:      short retract (long retract happens after ramming in phase ②)
+        //
+        // All scenarios use fast lift (slow_lift=false) when leaving the model;
+        // the slow lift is only used after ramming (phase ②).
+        bool need_tc_retract_at_model = tcr.is_tool_change &&
+            (!is_nozzle_change || tcr.nozzle_change_result.zero_flush_idle_cooling || tcr.nozzle_change_result.heater_off_only);
+        std::string toolchange_retract_str;
+        if (need_tc_retract_at_model) {
+            toolchange_retract_str += gcodegen.retract(true, false, auto_lift_type, true, false);
+        } else {
+            toolchange_retract_str += gcodegen.retract(false, false, auto_lift_type, true);
+        }
         check_add_eol(toolchange_retract_str);
 
         //BBS: if needed, write the gcode_label_objects_end then priming tower, if the retract, didn't did it.
@@ -858,49 +890,57 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // add nozzle change gcode into change filament gcode
         std::string nozzle_change_gcode_trans;
         if (is_nozzle_change) {
-            // move to start_pos before nozzle change
-            auto nc_start_pos = wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.start_pos) + plate_origin_2d);
+            if (tcr.nozzle_change_result.zero_flush_idle_cooling || tcr.nozzle_change_result.heater_off_only)
+                nozzle_change_gcode_trans += "M106 S255\n";
+            if (!tcr.nozzle_change_result.heater_off_only) {
+                // move to start_pos before nozzle change
+                auto nc_start_pos = wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.start_pos) + plate_origin_2d);
 
-            // BBS: wipe_tower_no_sparse_layers compaction optimization (gated on m_sparse_layers_skipped).
-            // With sparse layers skipped the wipe tower is compacted far below the object.
-            // travel_to() normally lifts the nozzle up to the object layer height (max_layer_z)
-            // to clear the object during travel. That lift is required when we arrive from the
-            // model (nozzle still parked up at object height, e.g. the right/non-finish-first
-            // nozzle), but it is pure waste when we are already parked down on the compacted
-            // tower (e.g. right after the tower wall printed before this toolchange): it forces
-            // a full-height Z bounce (compacted z -> max_layer_z -> compacted z) just to reach a
-            // ramming start that already sits on the tower.
-            // Detect that case (tower compacted AND nozzle already down on it) and travel at the
-            // compacted z directly, which also makes the re-descend below unnecessary.
-            double cur_z = gcodegen.writer().get_position().z();
-            bool compact_intower_nc_travel = m_sparse_layers_skipped
-                && z >= 0. && (tcr.print_z - z) > EPSILON   // tower compacted below the object
-                && (tcr.print_z - cur_z) > EPSILON;         // nozzle already down on the tower, not up on the model
+                // BBS: wipe_tower_no_sparse_layers compaction optimization (gated on m_sparse_layers_skipped).
+                // With sparse layers skipped the wipe tower is compacted far below the object.
+                // travel_to() normally lifts the nozzle up to the object layer height (max_layer_z)
+                // to clear the object during travel. That lift is required when we arrive from the
+                // model (nozzle still parked up at object height, e.g. the right/non-finish-first
+                // nozzle), but it is pure waste when we are already parked down on the compacted
+                // tower (e.g. right after the tower wall printed before this toolchange): it forces
+                // a full-height Z bounce (compacted z -> max_layer_z -> compacted z) just to reach a
+                // ramming start that already sits on the tower.
+                // Detect that case (tower compacted AND nozzle already down on it) and travel at the
+                // compacted z directly, which also makes the re-descend below unnecessary.
+                double cur_z = gcodegen.writer().get_position().z();
+                bool compact_intower_nc_travel = m_sparse_layers_skipped
+                    && z >= 0. && (tcr.print_z - z) > EPSILON   // tower compacted below the object
+                    && (tcr.print_z - cur_z) > EPSILON;         // nozzle already down on the tower, not up on the model
 
-            std::string start_pos_str;
-            start_pos_str = gcodegen.travel_to(nc_start_pos, erMixed, "Move to nozzle change start pos",
-                compact_intower_nc_travel ? z : DBL_MAX);
-            check_add_eol(start_pos_str);
-            nozzle_change_gcode_trans += start_pos_str;
-            // travel_to above may lift the nozzle up to max_layer_z to clear the object.
-            // The nozzle-change wipe that follows (transform_gcode below) carries no explicit
-            // Z, so it would extrude at the object-layer height and float above the compacted
-            // wipe tower. Re-descend to the compacted wipe tower z before those extrusions run.
-            // Skipped when the travel above already stayed at the compacted z.
-            if (!compact_intower_nc_travel
-                && m_sparse_layers_skipped
-                && z >= 0. && (tcr.print_z - z) > EPSILON) {
-                std::string nc_z_descend = gcodegen.writer().travel_to_z(z, "Descend to compacted wipe tower z (no sparse layers)");
-                check_add_eol(nc_z_descend);
-                nozzle_change_gcode_trans += nc_z_descend;
+                std::string start_pos_str;
+                start_pos_str = gcodegen.travel_to(nc_start_pos, erMixed, "Move to nozzle change start pos",
+                    compact_intower_nc_travel ? z : DBL_MAX);
+                check_add_eol(start_pos_str);
+                nozzle_change_gcode_trans += start_pos_str;
+                // travel_to above may lift the nozzle up to max_layer_z to clear the object.
+                // The nozzle-change wipe that follows (transform_gcode below) carries no explicit
+                // Z, so it would extrude at the object-layer height and float above the compacted
+                // wipe tower. Re-descend to the compacted wipe tower z before those extrusions run.
+                // Skipped when the travel above already stayed at the compacted z.
+                if (!compact_intower_nc_travel
+                    && m_sparse_layers_skipped
+                    && z >= 0. && (tcr.print_z - z) > EPSILON) {
+                    std::string nc_z_descend = gcodegen.writer().travel_to_z(z, "Descend to compacted wipe tower z (no sparse layers)");
+                    check_add_eol(nc_z_descend);
+                    nozzle_change_gcode_trans += nc_z_descend;
+                }
+                if (!tcr.nozzle_change_result.zero_flush_idle_cooling)
+                    nozzle_change_gcode_trans += gcodegen.unretract();
             }
-            nozzle_change_gcode_trans += gcodegen.unretract();
             nozzle_change_gcode_trans += transform_gcode(tcr.nozzle_change_result.gcode, tcr.nozzle_change_result.start_pos, wipe_tower_offset, wipe_tower_rotation);
-            gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.end_pos) + plate_origin_2d));
-            gcodegen.m_wipe.reset_path();
-            for (const Vec2f& wipe_pt : tcr.nozzle_change_result.wipe_path)
-                gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
-            nozzle_change_gcode_trans += gcodegen.retract(tcr.is_tool_change, false, auto_lift_type, true);
+            if (!tcr.nozzle_change_result.heater_off_only) {
+                gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.end_pos) + plate_origin_2d));
+                gcodegen.m_wipe.reset_path();
+                for (const Vec2f& wipe_pt : tcr.nozzle_change_result.wipe_path)
+                    gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
+                if (!tcr.nozzle_change_result.zero_flush_idle_cooling)
+                    nozzle_change_gcode_trans += gcodegen.retract(tcr.is_tool_change, false, auto_lift_type, true, tcr.is_tool_change);
+            }
             end_filament_gcode_str = nozzle_change_gcode_trans + end_filament_gcode_str;
         }
 
@@ -928,26 +968,28 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 FullPrintConfig& full_config = gcodegen.m_config;
 
                 // set volumetric speed of outer wall ,ignore per obejct,just use default setting
-                float outer_wall_volumetric_speed = get_outer_wall_volumetric_speed(full_config, *gcodegen.m_print, new_filament_id, gcodegen.get_extruder_id(new_filament_id));
+                const size_t old_filament_config_idx = (old_filament_id != -1) ? gcodegen.get_filament_config_index(old_filament_id) : 0;
+                const size_t new_filament_config_idx = gcodegen.get_filament_config_index(new_filament_id);
+                float outer_wall_volumetric_speed = get_outer_wall_volumetric_speed(full_config, *gcodegen.m_print, new_filament_id, gcodegen.get_extruder_id(new_filament_id), new_filament_config_idx);
                 config.set_key_value("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
-
-                float old_retract_length = (old_filament_id != -1) ? full_config.retraction_length.get_at(old_filament_id) : 0;
-                float new_retract_length = full_config.retraction_length.get_at(new_filament_id);
+                float old_retract_length = (old_filament_id != -1) ? full_config.retraction_length.get_at(old_filament_config_idx) : 0;
+                float new_retract_length = full_config.retraction_length.get_at(new_filament_config_idx);
                 float old_retract_length_toolchange = (old_filament_id != -1) ? full_config.retract_length_toolchange.get_at(old_filament_id) : 0;
                 float new_retract_length_toolchange = full_config.retract_length_toolchange.get_at(new_filament_id);
-                float old_filament_retract_length_nc = full_config.filament_retract_length_nc.get_at(old_filament_id);
-                int old_filament_temp = (old_filament_id != -1) ? (gcodegen.on_first_layer()? full_config.nozzle_temperature_initial_layer.get_at(old_filament_id) : full_config.nozzle_temperature.get_at(old_filament_id)) : 210;
-                int new_filament_temp = gcodegen.on_first_layer() ? full_config.nozzle_temperature_initial_layer.get_at(new_filament_id) : full_config.nozzle_temperature.get_at(new_filament_id);
+                float old_filament_retract_length_nc = full_config.filament_retract_length_nc.get_at(old_filament_config_idx);
+                int old_filament_temp = (old_filament_id != -1) ? (gcodegen.filament_in_first_layer_phase(old_filament_id)? full_config.nozzle_temperature_initial_layer.get_at(old_filament_config_idx) : full_config.nozzle_temperature.get_at(old_filament_config_idx)) : 210;
+                int new_filament_temp = gcodegen.filament_in_first_layer_phase(new_filament_id) ? full_config.nozzle_temperature_initial_layer.get_at(new_filament_config_idx) : full_config.nozzle_temperature.get_at(new_filament_config_idx);
                 float new_extruder_retracted_length = gcodegen.m_writer.get_extruder_retracted_length(new_filament_id);
                 Vec3d nozzle_pos = gcode_writer.get_position();
 
                 float purge_volume = tcr.purge_volume < EPSILON ? 0 : std::max(tcr.purge_volume, g_min_purge_volume);
-                float filament_area = float((M_PI / 4.f) * pow(full_config.filament_diameter.get_at(new_filament_id), 2));
-                float purge_length = purge_volume / filament_area;
+                float new_filament_area = float((M_PI / 4.f) * pow(full_config.filament_diameter.get_at(new_filament_id), 2));
+                float purge_length = purge_volume / new_filament_area;
 
-                int old_filament_e_feedrate = (old_filament_id != -1) ? (int)(60.0 * full_config.filament_max_volumetric_speed.get_at(old_filament_id) / filament_area) : 200;
+                float old_filament_area = (old_filament_id != -1) ? float((M_PI / 4.f) * pow(full_config.filament_diameter.get_at(old_filament_id), 2)) : new_filament_area;
+                int old_filament_e_feedrate = (old_filament_id != -1) ? (int)(60.0 * full_config.filament_max_volumetric_speed.get_at(old_filament_config_idx) / old_filament_area) : 200;
                 old_filament_e_feedrate = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;
-                int new_filament_e_feedrate = (int)(60.0 * full_config.filament_max_volumetric_speed.get_at(new_filament_id) / filament_area);
+                int new_filament_e_feedrate = (int)(60.0 * full_config.filament_max_volumetric_speed.get_at(new_filament_config_idx) / new_filament_area);
                 new_filament_e_feedrate = new_filament_e_feedrate == 0 ? 100 : new_filament_e_feedrate;
                 float wipe_avoid_pos_x      = 0.f;
                 {
@@ -958,8 +1000,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 }
 
                 auto extruder_variants = m_print_config->printer_extruder_variant.values;
-                std::string old_extruder_variant = extruder_variants[old_extruder_id];
-                std::string new_extruder_variant = extruder_variants[new_extruder_id];
+                std::string old_extruder_variant = (old_extruder_id >= 0 && old_extruder_id < (int)extruder_variants.size()) ? extruder_variants[old_extruder_id] : "";
+                std::string new_extruder_variant = (new_extruder_id >= 0 && new_extruder_id < (int)extruder_variants.size()) ? extruder_variants[new_extruder_id] : "";
 
                 config.set_key_value("current_extruder_id", new ConfigOptionInt(old_extruder_id));
                 config.set_key_value("next_extruder_id", new ConfigOptionInt(new_extruder_id));
@@ -1080,6 +1122,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             toolchange_gcode_str = gcodegen.placeholder_parser_process("change_filament_gcode", change_filament_gcode, new_filament_id, &config);
 
             check_add_eol(toolchange_gcode_str);
+            toolchange_gcode_str =
+                ";" + GCodeProcessor::custom_tags(GCodeProcessor::CustomETags::FilamentChangeGCodeStart) + "\n" +
+                toolchange_gcode_str +
+                ";" + GCodeProcessor::custom_tags(GCodeProcessor::CustomETags::FilamentChangeGCodeEnd) + "\n";
 
             //BBS
             {
@@ -1196,7 +1242,16 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             extra_unretract = filament_tower_interface_pre_extrusion_length;
         else if (is_petg_pre_extrusion)
             extra_unretract = 2.f;
-        std::string toolchange_unretract_str = (extra_unretract > 0.f) ? gcodegen.unretract(extra_unretract) : gcodegen.unretract();
+        // When the diagonal side scrape is active, the E deretract must happen *after* the scrape,
+        // while the Z unlift must still happen *before* it. Split the two so the scrape starts at the
+        // current layer Z but the nozzle only deretracts once it is over the tower side wall.
+        std::string toolchange_unretract_str, side_scrape_unlift_str, side_scrape_deretract_str;
+        if (tcr.side_scrape) {
+            side_scrape_unlift_str    = gcodegen.writer().unlift();
+            side_scrape_deretract_str = gcodegen.unretract(extra_unretract, /*include_unlift=*/false);
+        } else {
+            toolchange_unretract_str = (extra_unretract > 0.f) ? gcodegen.unretract(extra_unretract) : gcodegen.unretract();
+        }
         int current_nozzle_id = group_result->get_nozzle_id(new_filament_id,m_layer_idx);
         // std::string toolchange_unretract_str = gcodegen.unretract(); check_add_eol(toolchange_unretract_str);
         gcodegen.placeholder_parser().set("current_extruder", new_filament_id);
@@ -1228,13 +1283,16 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             start_filament_gcode_str = gcodegen.placeholder_parser_process("filament_start_gcode", filament_start_gcode, new_filament_id, &config);
             check_add_eol(start_filament_gcode_str);
         }
-        
+
         if (add_change_filament_624) {
             start_filament_gcode_str += "M625\n";
             add_change_filament_624 = false;
         }
 
-        start_filament_gcode_str = start_filament_gcode_str + wipe_next_start_point_str + toolchange_unretract_str;
+        // With the side scrape active, filament_start only carries the Z unlift; the E deretract is
+        // emitted later through the [wipe_tower_deretract_gcode] placeholder (after the scrape).
+        start_filament_gcode_str = start_filament_gcode_str + wipe_next_start_point_str +
+                                   (tcr.side_scrape ? side_scrape_unlift_str : toolchange_unretract_str);
 
         // BBS: wipe_tower_no_sparse_layers compaction fix.
         // When sparse layers are skipped, the whole wipe tower layer is compacted down to `z`.
@@ -1256,6 +1314,28 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         config.set_key_value("filament_end_gcode", new ConfigOptionString(end_filament_gcode_str));
         config.set_key_value("change_filament_gcode", new ConfigOptionString(toolchange_gcode_str));
         config.set_key_value("filament_start_gcode", new ConfigOptionString(start_filament_gcode_str));
+        config.set_key_value("wipe_tower_deretract_gcode", new ConfigOptionString(tcr.side_scrape ? side_scrape_deretract_str : std::string()));
+
+        // Resolve the two side scrape Z placeholders. The wipe tower computed the scrape against the Z it
+        // planned this layer at, which wipe_tower_no_sparse_layers replaces by a compacted, much lower Z.
+        // Using the planned Z there would send the nozzle up to the object height and leave the rest of the
+        // tower gcode (which carries no Z of its own) printing in mid air.
+        double scrape_z_top = tcr.print_z;
+        double scrape_z_low = tcr.side_scrape_z_low;
+        if (tcr.side_scrape) {
+            // Deliberately not `z`: for an uncompacted tower `z` is just the current position, which still
+            // carries the retract lift at this point, while the scrape starts after the matching unlift.
+            if (m_sparse_layers_skipped && m_layer_idx >= 0 && size_t(m_layer_idx) < m_compacted_tower_z.size()) {
+                // Compacted tower: descend the requested depth below the printed tower top, but stay above
+                // the brim chamfer flare at the tower base, which is where the tower reaches out furthest.
+                scrape_z_top = m_compacted_tower_z[m_layer_idx];
+                scrape_z_low = std::max(scrape_z_top - double(tcr.side_scrape_depth),
+                                        compacted_tower_base_z() + double(tcr.side_scrape_min_height_above_base));
+            }
+            scrape_z_low = std::min(scrape_z_low, scrape_z_top);
+        }
+        config.set_key_value("wipe_tower_scrape_z_top", new ConfigOptionString(float_to_string_decimal_point(scrape_z_top, 3)));
+        config.set_key_value("wipe_tower_scrape_z_low", new ConfigOptionString(float_to_string_decimal_point(scrape_z_low, 3)));
         std::string tcr_gcode, tcr_escaped_gcode = gcodegen.placeholder_parser_process("tcr_rotated_gcode", tcr_rotated_gcode, new_filament_id, &config);
         unescape_string_cstyle(tcr_escaped_gcode, tcr_gcode);
         gcode += tcr_gcode;
@@ -1286,7 +1366,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             gcodegen.m_wipe.reset_path();
             for (const Vec2f& wipe_pt : tcr.wipe_path)
                 gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
-            gcode += gcodegen.retract(false, false, auto_lift_type, true);
+            // Retract & spiral lift when leaving the wipe tower, heading back to the model.
+            // Use normal retract distance (short), but always slow spiral lift (prime_tower_lift_speed)
+            // to avoid stringing from the tower surface.
+            gcode += gcodegen.retract(false, false, auto_lift_type, true, true);
         }
 
         // Let the planner know we are traveling between objects.
@@ -1381,6 +1464,16 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     }
 
 
+    double WipeTowerIntegration::compacted_tower_base_z() const
+    {
+        // The accumulation in compute_compacted_wipe_tower_z() stays at zero until the first layer that
+        // really prints a tower, so the first non-zero entry is that layer's print z.
+        for (float z : m_compacted_tower_z)
+            if (z > 0.f)
+                return z;
+        return 0.;
+    }
+
     std::string WipeTowerIntegration::prime(GCode& gcodegen)
     {
         std::string gcode;
@@ -1399,6 +1492,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         assert(m_layer_idx >= 0);
         if (m_layer_idx >= (int) m_tool_changes.size()) return gcode;
+        // The tower drops layers whose filler nozzle cannot lay down the base layer height, see
+        // WipeTower::plan_tower_ladder(). Such a layer carries no result at all.
+        if (m_tool_changes[m_layer_idx].empty()) return gcode;
 
         // Calculate where the wipe tower layer will be printed. -1 means that print z will not change,
         // resulting in a wipe tower with sparse layers.
@@ -1429,6 +1525,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     {
         assert(m_layer_idx >= 0);
         if (m_layer_idx >= (int) m_tool_changes.size())
+            return true;
+        if (m_tool_changes[m_layer_idx].empty())
             return true;
 
         bool   ignore_sparse = false;
@@ -1498,10 +1596,32 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
 
     std::vector<std::pair<double, double>> warning_ranges;
 
+    // Layer height the support gaps are rounded to. A multi-diameter plate printing with a single diameter is
+    // sliced at that nozzle's layer height, not the preset's, and its gaps were rounded to that height.
+    const double gap_layer_height = object.print()->single_diameter_layering_nozzle() > EPSILON ?
+        object.slicing_parameters().layer_height : object.config().layer_height.value;
+
     // Pair the object layers with the support layers by z.
     size_t idx_object_layer = 0;
     size_t idx_support_layer = 0;
     const LayerToPrint* last_extrusion_layer = nullptr;
+    size_t last_extrusion_layer_idx = 0;
+    const bool has_adaptive_first_band = std::any_of(
+        object.layers().begin(), object.layers().end(),
+        [](const Layer *layer) {
+            return std::any_of(layer->regions().begin(), layer->regions().end(),
+                               [](const LayerRegion *region) {
+                                   return std::any_of(
+                                       region->adaptive_merge_patches.begin(),
+                                       region->adaptive_merge_patches.end(),
+                                       [](const AdaptiveMergePatch &patch) {
+                                           return patch.group_top && patch.bottom_idx == 0 &&
+                                                  ! patch.area().empty();
+                                       });
+                               });
+        });
+    // A planned first band intentionally leaves its physical layers empty until group_top.
+    bool initial_extrusion_validated = has_adaptive_first_band;
     while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size()) {
         LayerToPrint layer_to_print;
         double print_z_min = std::numeric_limits<double>::max();
@@ -1531,11 +1651,33 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
             || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
 
-        // Check that there are extrusions on the very first layer. The case with empty
-        // first layer may result in skirt/brim in the air and maybe other issues.
-        if (layers_to_print.size() == 1u) {
-            if (!has_extrusions)
+        // A multi-diameter first band may move the object's first extrusion to its group top. Validate the
+        // first actual extrusion instead of requiring the first physical object layer to emit on its own.
+        if (! initial_extrusion_validated && has_extrusions) {
+            bool reaches_initial_substrate = layer_to_print.support_layer != nullptr &&
+                                              layer_to_print.support_layer->has_extrusions();
+            if (layer_to_print.object_layer != nullptr) {
+                const double object_base_z = object.layers().empty() ? 0. : object.layers().front()->bottom_z();
+                const bool first_band_top = std::any_of(
+                    layer_to_print.object_layer->regions().begin(),
+                    layer_to_print.object_layer->regions().end(),
+                    [](const LayerRegion *region) {
+                        return std::any_of(
+                            region->adaptive_merge_patches.begin(),
+                            region->adaptive_merge_patches.end(),
+                            [](const AdaptiveMergePatch &patch) {
+                                return patch.group_top && patch.bottom_idx == 0 &&
+                                       ! patch.area().empty();
+                            });
+                    });
+                reaches_initial_substrate |=
+                    first_band_top ||
+                    layer_to_print.object_layer->print_z -
+                    layer_to_print.object_layer->effective_print_height() <= object_base_z + EPSILON;
+            }
+            if (! reaches_initial_substrate)
                 throw Slic3r::SlicingError(_(L("The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports.")), object.id().id);
+            initial_extrusion_validated = true;
         }
 
         // In case there are extrusions on this layer, check there is a layer to lay it on.
@@ -1546,8 +1688,8 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             double bottom_cd = object.config().support_bottom_z_distance == 0. ? top_cd : object.config().support_bottom_z_distance;
             //if (!object.print()->config().independent_support_layer_height)
             { // the actual support gap may be larger than the configured one due to rounding to layer height for organic support, regardless of independent support layer height
-                top_cd    = std::ceil(top_cd / object.config().layer_height) * object.config().layer_height;
-                bottom_cd = std::ceil(bottom_cd / object.config().layer_height) * object.config().layer_height;
+                top_cd    = std::ceil(top_cd / gap_layer_height) * gap_layer_height;
+                bottom_cd = std::ceil(bottom_cd / gap_layer_height) * gap_layer_height;
             }
             double extra_gap = (layer_to_print.support_layer ? bottom_cd : top_cd);
 
@@ -1556,22 +1698,47 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
                 double raft_gap = top_cd == 0 ? 0 : object.config().raft_contact_distance.value;
                 //if (!object.print()->config().independent_support_layer_height)
                 {
-                    raft_gap = std::ceil(raft_gap / object.config().layer_height) * object.config().layer_height;
+                    raft_gap = std::ceil(raft_gap / gap_layer_height) * gap_layer_height;
                 }
                 extra_gap = std::max(extra_gap, top_cd == 0 ? 0 :object.config().raft_contact_distance.value);
             }
+            // BBS multi-diameter adaptive layer height: use the Z span this printed layer actually covers.
+            // On a merge group-top layer the shared core is extruded at N x base height, so the merged-out
+            // layers below carry no extrusions on purpose; effective_print_height() returns the merged span
+            // (== height for ordinary layers) so those merged-out layers are not flagged as a printability gap.
             double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
-                + layer_to_print.layer()->height
+                + layer_to_print.layer()->effective_print_height()
                 + std::max(0., extra_gap);
             // Negative support_contact_z is not taken into account, it can result in false positives in cases
 
-            if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON)
+            // The Z span above may still be too short when the group-top layer prints something else than the
+            // merged core (a bridge keeps its own layer height, for instance). The layers in between are
+            // nevertheless covered by the merged extrusion of a group-top layer above them, so a gap made up
+            // exclusively of merged-out layers is not a real gap.
+            bool merged_out_in_between = false;
+            if (last_extrusion_layer != nullptr && last_extrusion_layer_idx + 2 <= layers_to_print.size() - 1) {
+                merged_out_in_between = true;
+                for (size_t idx = last_extrusion_layer_idx + 1; idx + 1 < layers_to_print.size(); ++idx) {
+                    const Layer *in_between = layers_to_print[idx].object_layer;
+                    if (in_between == nullptr || ! in_between->is_adaptive_merged_out()) {
+                        merged_out_in_between = false;
+                        break;
+                    }
+                }
+            }
+
+            if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON && ! merged_out_in_between)
                 warning_ranges.emplace_back(std::make_pair((last_extrusion_layer ? last_extrusion_layer->print_z() : 0.), layers_to_print.back().print_z()));
         }
         // Remember last layer with extrusions.
-        if (has_extrusions)
+        if (has_extrusions) {
             last_extrusion_layer = &layers_to_print.back();
+            last_extrusion_layer_idx = layers_to_print.size() - 1;
+        }
     }
+
+    if (! initial_extrusion_validated)
+        throw Slic3r::SlicingError(_(L("The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports.")), object.id().id);
 
     if (! warning_ranges.empty()) {
         std::string warning;
@@ -1789,6 +1956,11 @@ bool GCode::is_BBL_Printer()
     return false;
 }
 
+std::string GCode::unretract(float extra_retract, bool include_unlift)
+{
+    return (include_unlift ? m_writer.unlift() : std::string()) + m_writer.unretract(extra_retract);
+}
+
 //BBS : get the plate model's projection on first layer, contain plate offset,unscaled data
 BoundingBoxf GCode::first_layer_projection(const Print& print) const
 {
@@ -1817,6 +1989,9 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     // BBS
     m_curr_print = print;
+    // export_layer_filaments() runs after do_export() and reads m_print. Set it here so the
+    // early-return path below (cached G-code) does not leave m_print as nullptr.
+    m_print = print;
 
     CNumericLocalesSetter locales_setter;
 
@@ -2183,7 +2358,7 @@ namespace DoExport {
 	        //std::pair<std::string, unsigned int> out_filament_cost    ("; filament cost = ", 0);
 	        for (const Extruder &extruder : extruders) {
 	            double used_filament   = extruder.used_filament() + (has_wipe_tower ? wipe_tower_data.used_filament[extruder.id()] : 0.f);
-	            double extruded_volume = extruder.extruded_volume() + (has_wipe_tower ? wipe_tower_data.used_filament[extruder.id()] * 2.4052f : 0.f); // assumes 1.75mm filament diameter
+	            double extruded_volume = extruder.extruded_volume() + (has_wipe_tower ? wipe_tower_data.used_filament[extruder.id()] * extruder.filament_crossection() : 0.);
 	            double filament_weight = extruded_volume * extruder.filament_density() * 0.001;
 	            double filament_cost   = filament_weight * extruder.filament_cost()    * 0.001;
                 auto append = [&extruder](std::pair<std::string, unsigned int> &dst, const char *tmpl, double value) {
@@ -2448,6 +2623,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_enable_label_object = false;
         m_label_objects_ids.clear();
     }
+    _init_remaining_objects_bitmap();
 
     {
         std::string filament_density_list = "; filament_density: ";
@@ -2480,8 +2656,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
 
     {
-        const bool support_material_on_wipe_tower = print.support_material_on_wipe_tower();
-        file.write_format("; support_material_on_wipe_tower: %d\n", int(support_material_on_wipe_tower));
+        file.write_format("; support_material_on_wipe_tower: %d\n", 0);
     }
 
     // BBS: legal and compliance notice (last lines of HEADER_BLOCK)
@@ -2591,6 +2766,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser.update_timestamp();
     m_placeholder_parser_context.rng = std::mt19937(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     print.update_object_placeholders(m_placeholder_parser.config_writable(), ".gcode");
+    // A multi-diameter plate printing with a single diameter lays its first layer at that nozzle's height, the same on
+    // every object. Custom G-code tells the first layer apart by comparing layer_z against initial_layer_print_height.
+    if (print.single_diameter_layering_nozzle() > EPSILON)
+        m_placeholder_parser.set("initial_layer_print_height", new ConfigOptionFloat(print.skirt_first_layer_height()));
 
     // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
     // For a print by objects, find the 1st printing object.
@@ -2698,7 +2877,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         int part_fan_init = print.config().first_x_layer_part_fan_speed.get_at(initial_extruder_id);
         file.write(m_writer.set_fan(part_fan_init));
         if (m_config.auxiliary_fan.value)
-            file.write(m_writer.set_additional_fan(0));
+            for (const AuxFanSlot &slot : collect_aux_fan_slots(m_config))
+                file.write(m_writer.set_additional_fan(slot.gcode_index, 0));
     }
 
     // Let the start-up script prime the 1st printing tool.
@@ -2889,7 +3069,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("bed_temperature_initial_layer_vector", new ConfigOptionString(""));
         m_placeholder_parser.set("chamber_temperature", new ConfigOptionInts({ max_chamber_temp }));
         m_placeholder_parser.set("overall_chamber_temperature", new ConfigOptionInt(max_chamber_temp));
-        m_placeholder_parser.set("enable_high_low_temp_mix", new ConfigOptionBool(!print.need_check_multi_filaments_compatibility()));
+        m_placeholder_parser.set("enable_high_low_temp_mix", new ConfigOptionBool(true));
         m_placeholder_parser.set("min_vitrification_temperature", new ConfigOptionInt(min_temperature_vitrification));
 
         //support variables `first_layer_temperature` and `first_layer_bed_temperature`
@@ -2935,7 +3115,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("during_print_exhaust_fan_speed_num", new ConfigOptionInts(during_print_exhaust_fan_speed_num));
 
         //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
-        float outer_wall_volumetric_speed = get_outer_wall_volumetric_speed(m_config, print, initial_non_support_extruder_id, get_extruder_id(initial_non_support_extruder_id));
+        float outer_wall_volumetric_speed = get_outer_wall_volumetric_speed(m_config, print, initial_non_support_extruder_id, get_extruder_id(initial_non_support_extruder_id), get_filament_config_index(initial_non_support_extruder_id));
         m_placeholder_parser.set("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
 
         auto first_layer_filaments = print.get_slice_used_filaments(true);
@@ -2947,7 +3127,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         }
     }
     {                                                                         // hold chamber temp for flat print: Flag
-        double print_area_sum_threshold = 40000.0, pring_hight_threshold = initial_layer_print_height + EPSILON;
+        // A multi-diameter plate printing with a single diameter lays its first layer at that nozzle's height, the same
+        // on every object, not at the configured one.
+        const double first_layer_height = print.single_diameter_layering_nozzle() > EPSILON ?
+            print.skirt_first_layer_height() : initial_layer_print_height;
+        double print_area_sum_threshold = 40000.0, pring_hight_threshold = first_layer_height + EPSILON;
         // thresholds in mm^2 and mm as units
         BoundingBoxf printable_area_bbox;
         printable_area_bbox.merge(m_config.printable_area.values);
@@ -2963,13 +3147,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             // object hight
             if (!print_object->layers().empty() && print_object->layers().back()->print_z > max_hight_temp) max_hight_temp = print_object->layers().back()->print_z;
             // object area
-            if (!print_object->layers().empty() && print_object->layers().front()->print_z < initial_layer_print_height + EPSILON &&
+            if (!print_object->layers().empty() && print_object->layers().front()->print_z < first_layer_height + EPSILON &&
                 !print_object->layers().front()->lslices.empty()) {
                 ExPolygons temp_Expolys = print_object->layers().front()->lslices;
                 for (ExPolygon &temp_Expoly : temp_Expolys) { area_sum_temp += temp_Expoly.area(); }
             }
             // suport area
-            if (!print_object->support_layers().empty() && print_object->support_layers().front()->print_z < initial_layer_print_height + EPSILON &&
+            if (!print_object->support_layers().empty() && print_object->support_layers().front()->print_z < first_layer_height + EPSILON &&
                 !print_object->support_layers().front()->support_islands.empty()) {
                 ExPolygons temp_Expolys = print_object->support_layers().front()->support_islands;
                 for (ExPolygon &temp_Expoly : temp_Expolys) { area_sum_temp += temp_Expoly.area(); }
@@ -3019,6 +3203,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.writeln(machine_start_gcode);
     //BBS: mark machine start gcode
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::MachineStartGCodeEnd).c_str());
+
+    //BBS: tell the firmware which objects this print starts with, so it can compare against
+    //the user's skip list later on. No M624 has been written yet, so this is outside any object block.
+    if (_is_object_skip_early_end_enabled())
+        file.write(_remaining_objects_gcode());
+
     //BBS: gcode writer doesn't know where the real position of extruder is after inserting custom gcode
     m_writer.set_current_position_clear(false);
     m_start_gcode_filament = GCodeProcessor::get_gcode_last_filament(machine_start_gcode);
@@ -3204,7 +3394,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     // BBS. change tool before moving to origin point.
                     if (m_writer.need_toolchange(initial_extruder_id)) {
                         const PrintObjectConfig &object_config              = object->config();
-                        coordf_t                 initial_layer_print_height = print.config().initial_layer_print_height.value;
+                        // A multi-diameter plate printing with a single diameter lays its first layer at that nozzle's height.
+                        coordf_t                 initial_layer_print_height = print.single_diameter_layering_nozzle() > EPSILON ?
+                            object->slicing_parameters().first_print_layer_height : print.config().initial_layer_print_height.value;
 
                         if (m_enable_label_object && print.config().support_object_skip_flush.value) {
                             m_filament_instances_code = _encode_label_ids_to_base64({instance->model_instance->get_labeled_id()});
@@ -3244,6 +3436,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 std::string ignored_empty_layer_warning;
                 this->process_layers(print, tool_ordering, collect_layers_to_print(*object, &ignored_empty_layer_warning), instance - object->instances().data(), file,
                                      prime_extruder);
+
+                //BBS: this instance is done. Unlike the by-layer path there is no following
+                //change_layer() to flush the pending M625 for us, so flush it here before broadcasting.
+                if (_is_object_skip_early_end_enabled()) {
+                    std::string skip_gcode;
+                    m_writer.add_object_change_labels(skip_gcode);
+                    _clear_remaining_object(instance->model_instance->get_labeled_id());
+                    skip_gcode += _remaining_objects_gcode();
+                    file.write(skip_gcode);
+                }
                 {
                     // save the flush statitics stored in tool ordering by object
                     print.m_statistics_by_extruder_count.stats_by_single_extruder += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::SingleExt);
@@ -3269,6 +3471,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
                 // Reset it when starting another object from 1st layer.
                 m_second_layer_things_done = false;
+                m_bed_temp_transition_done = false;
                 prev_object                = object;
             }
         } else {
@@ -3369,10 +3572,19 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         file.write(gcode);
     }
 
+    //BBS: an all zero list tells the firmware no object can be skipped anymore, which keeps it
+    //from ending the print early once the end gcode is already running. Must stay after the
+    //label flush above so that it never lands inside an M624/M625 block.
+    if (_is_object_skip_early_end_enabled()) {
+        m_remaining_objects_bitmap = 0;
+        file.write(_remaining_objects_gcode());
+    }
+
     file.write(m_writer.set_fan(0));
-    //BBS: make sure the additional fan is closed when end
+    //BBS: make sure every additional fan is closed when end
     if (m_config.auxiliary_fan.value)
-        file.write(m_writer.set_additional_fan(0));
+        for (const AuxFanSlot &slot : collect_aux_fan_slots(m_config))
+            file.write(m_writer.set_additional_fan(slot.gcode_index, 0));
     //BBS: close spaghetti detector
     //Note: M981 is also used to tell xcam the last layer is finished, so we need always send it even if spaghetti option is disabled.
     //if (print.config().spaghetti_detector.value)
@@ -3457,7 +3669,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 // export info requested for filament change
 void GCode::export_layer_filaments(GCodeProcessorResult* result)
 {
-    if (result == nullptr)
+    if (result == nullptr || m_print == nullptr)
         return;
 
     const std::vector<int>filament_map = m_config.filament_map.values; // 1 based
@@ -3508,6 +3720,7 @@ void GCode::export_layer_filaments(GCodeProcessorResult* result)
                 result->nozzle_change_sequence.emplace_back(group_result->get_nozzle_id(fidx, 0));
         }
         result->used_mixed_filaments = m_print->get_slice_used_mixed_filaments();
+        result->directly_used_filaments = m_print->get_slice_directly_used_filaments();
 
         std::vector<int> optimal_assignment;
         if (group_result) {
@@ -3628,6 +3841,9 @@ void GCode::process_layers(
     for (const PrintInstance *instance : print_object_instances_ordering)
         object_label.push_back(instance->model_instance->get_labeled_id());
 
+    if (_is_object_skip_early_end_enabled())
+        _precompute_object_last_layers(layers_to_print);
+
     std::vector<GCode::LayerResult> layers_results;
     layers_results.resize(layers_to_print.size());
 
@@ -3648,6 +3864,10 @@ void GCode::process_layers(
                 print.throw_if_canceled();
                 GCode::LayerResult res = this->process_layer(print, layer.second, layer_tools, &layer == &layers_to_print.back(), &print_object_instances_ordering, tool_ordering.get_most_used_extruder(), size_t(-1));
                 res.gcode_store_pos = layer_to_print_idx - 1;
+                //BBS: this filter is serial_in_order, so the objects finishing on this layer are
+                //cleared before the next layer is generated and broadcasts the updated list.
+                if (_is_object_skip_early_end_enabled())
+                    _mark_objects_finished(layer_to_print_idx - 1);
                 return std::move(res);
             }
         });
@@ -4012,7 +4232,7 @@ void GCode::_print_first_layer_extruder_temperatures(GCodeOutputStream &file, Pr
     bool include_g10   = print.config().gcode_flavor == gcfRepRapFirmware;
     if (custom_gcode_sets_temperature(gcode, 104, 109, include_g10, temp_by_gcode)) {
         // Set the extruder temperature at m_writer, but throw away the generated G-code as it will be written with the custom G-code.
-        int temp = print.config().nozzle_temperature_initial_layer.get_at(first_printing_extruder_id);
+        int temp = print.config().nozzle_temperature_initial_layer.get_at(get_filament_config_index(first_printing_extruder_id));
         if (temp_by_gcode >= 0 && temp_by_gcode < 1000)
             temp = temp_by_gcode;
         m_writer.set_temperature(temp, wait, first_printing_extruder_id);
@@ -4020,13 +4240,13 @@ void GCode::_print_first_layer_extruder_temperatures(GCodeOutputStream &file, Pr
         // Custom G-code does not set the extruder temperature. Do it now.
         if (print.config().single_extruder_multi_material.value) {
             // Set temperature of the first printing extruder only.
-            int temp = print.config().nozzle_temperature_initial_layer.get_at(first_printing_extruder_id);
+            int temp = print.config().nozzle_temperature_initial_layer.get_at(get_filament_config_index(first_printing_extruder_id));
             if (temp > 0)
                 file.write(m_writer.set_temperature(temp, wait, first_printing_extruder_id));
         } else {
             // Set temperatures of all the printing extruders.
             for (unsigned int tool_id : print.extruders()) {
-                int temp = print.config().nozzle_temperature_initial_layer.get_at(tool_id);
+                int temp = print.config().nozzle_temperature_initial_layer.get_at(get_filament_config_index(tool_id));
                 if (print.config().ooze_prevention.value)
                     temp += print.config().standby_temperature_delta.value;
                 if (temp > 0)
@@ -4225,6 +4445,63 @@ namespace Skirt {
             for (size_t i = 0; i < n_loops; i += lines_per_extruder)
                 skirt_loops_per_extruder_out[layer_tools.extruders[i / lines_per_extruder]] = std::pair<size_t, size_t>(i, std::min(i + lines_per_extruder, n_loops));
         }
+    }
+
+    // BBS multi-diameter: the skirt layer height is the Z step since the previous skirt layer, so only a filament
+    // whose nozzle can extrude that step may print it. The filament of the previous skirt layer is kept when it
+    // qualifies, otherwise every layer would switch to whatever filament happens to open it.
+    // All loops go to that one filament: splitting them per filament for Print::min_skirt_length > 0 is not
+    // supported here, because each nozzle would need its own printable step height.
+    static std::map<unsigned int, std::pair<size_t, size_t>> make_skirt_loops_multi_diameter(
+        const Print             				&print,
+        const LayerTools                		&layer_tools,
+        std::vector<coordf_t>  			    	&skirt_done,
+        unsigned int                            &last_filament)
+    {
+        std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder_out;
+        if (! print.has_skirt() || print.skirt().entities.empty() || ! layer_tools.has_skirt || layer_tools.extruders.empty())
+            return skirt_loops_per_extruder_out;
+        if (skirt_done.size() >= (size_t)print.config().skirt_height.value && ! print.has_infinite_skirt())
+            return skirt_loops_per_extruder_out;
+        const coordf_t last_z = skirt_done.empty() ? 0. : skirt_done.back();
+        if (layer_tools.print_z < last_z + EPSILON)
+            return skirt_loops_per_extruder_out;
+
+        const double height         = layer_tools.print_z - last_z;
+        unsigned int chosen         = (unsigned int)-1;
+        // Tallest among the nozzles the step is too tall for.
+        unsigned int tallest        = (unsigned int)-1;
+        double       tallest_height = 0.;
+        for (unsigned int filament : layer_tools.extruders) {
+            const double nozzle = nozzle_diameter_for_filament(print.config(), filament + 1);
+            if (nozzle < EPSILON)
+                continue;
+            const AdaptiveLayerHeightRange range = adaptive_layer_height_range(nozzle);
+            if (height < range.min_height - EPSILON)
+                continue;
+            if (height > range.max_height + EPSILON) {
+                if (range.max_height > tallest_height) {
+                    tallest_height = range.max_height;
+                    tallest        = filament;
+                }
+                continue;
+            }
+            if (chosen == (unsigned int)-1 || filament == last_filament)
+                chosen = filament;
+        }
+        if (chosen == (unsigned int)-1) {
+            // The step is too thin for every nozzle here: wait for a later layer, the step only grows.
+            // Otherwise it is too tall for some of them, and waiting would only widen that gap, so the tallest
+            // of those prints it now, clamped to its max height at extrusion time.
+            if (tallest == (unsigned int)-1)
+                return skirt_loops_per_extruder_out;
+            chosen = tallest;
+        }
+
+        skirt_loops_per_extruder_out[chosen] = std::pair<size_t, size_t>(0, print.skirt().entities.size());
+        skirt_done.emplace_back(layer_tools.print_z);
+        last_filament = chosen;
+        return skirt_loops_per_extruder_out;
     }
 
     static std::map<unsigned int, std::pair<size_t, size_t>> make_skirt_loops_per_extruder_1st_layer(
@@ -4448,9 +4725,9 @@ void GCode::compute_farthest_point(const std::vector<LayerToPrint> &layers, int 
 
     if (max_dist_sq > 0) {
         m_farthest_point_timelapse.farthest_gcode_pos = unscale(m_farthest_point_timelapse.farthest_point);
-        // Single nozzle with AMS: all virtual extruders share one physical nozzle,
-        // so the nozzle is always the photo head regardless of which filament is used.
-        bool single_nozzle = (m_config.nozzle_diameter.size() <= 1);
+        // Single nozzle and hotend-as-extruder machines always use the photo head
+        // regardless of which filament is used.
+        bool single_nozzle = (m_config.nozzle_diameter.size() <= 1) || m_config.handle_hotend_as_extruder;
         m_farthest_point_timelapse.farthest_is_photo_head = single_nozzle || (m_farthest_point_timelapse.farthest_extruder_id == most_used_extruder);
     }
 }
@@ -4562,6 +4839,76 @@ GCode::TimelapseGCodeResult GCode::generate_timelapse_gcode(const Print &print, 
 
     result.gcode = std::move(timelapse_gcode);
     return result;
+}
+
+bool GCode::filament_in_first_layer_phase(unsigned int filament_id) const
+{
+    if (m_layer == nullptr || m_print == nullptr)
+        return false;
+
+    // Regions and supports are configured with mixed slots, while filament_id is a physical component.
+    const PrintConfig &print_config = m_print->config();
+    std::vector<unsigned char> mixed_slot_prints_filament(print_config.filament_is_mixed.values.size(), 0);
+    for (size_t slot = 0; slot < mixed_slot_prints_filament.size(); ++slot) {
+        if (! print_config.filament_is_mixed.values[slot] || slot >= print_config.filament_mixed_components.values.size())
+            continue;
+        const std::vector<unsigned int> components = parse_mixed_components(print_config.filament_mixed_components.values[slot]);
+        mixed_slot_prints_filament[slot] = std::find(components.begin(), components.end(), filament_id + 1) != components.end();
+    }
+    auto slot_prints_filament = [filament_id, &mixed_slot_prints_filament](unsigned int slot) {
+        return slot == filament_id || (slot < mixed_slot_prints_filament.size() && mixed_slot_prints_filament[slot]);
+    };
+
+    double last_contact_z = 0.;
+    for (const PrintObject *object : m_print->objects()) {
+        if (object->layers().empty() ||
+            std::abs(object->layers().front()->bottom_z()) > EPSILON)
+            continue;
+        for (const Layer *layer : object->layers()) {
+            for (const LayerRegion *region : layer->regions()) {
+                const unsigned int configured_wall = region->region().config().wall_filament.value;
+                const unsigned int wall_filament = configured_wall > 0 ? configured_wall - 1 : 0;
+                if (slot_prints_filament(wall_filament) &&
+                    std::any_of(region->adaptive_merge_patches.begin(), region->adaptive_merge_patches.end(),
+                                [](const AdaptiveMergePatch &patch) {
+                                    return patch.group_top && patch.bottom_idx == 0;
+                                }))
+                    last_contact_z = std::max(last_contact_z, layer->print_z);
+
+                for (const Surface &surface : region->fill_surfaces.surfaces) {
+                    const double height = surface.thickness == -1 ? layer->height : surface.thickness;
+                    if (layer->print_z - height > EPSILON)
+                        continue;
+                    const FlowRole role = surface.is_top() ? frTopSolidInfill :
+                                          (surface.is_solid() ? frSolidInfill : frInfill);
+                    const unsigned int configured_filament = region->region().extruder(role);
+                    const unsigned int surface_filament =
+                        configured_filament > 0 ? configured_filament - 1 : 0;
+                    if (slot_prints_filament(surface_filament))
+                        last_contact_z = std::max(last_contact_z, layer->print_z);
+                }
+            }
+        }
+    }
+    // A support may be the only material reaching the bed even when its object starts above it, so inspect
+    // support independently of the object-layer contact test above.
+    for (const PrintObject *object : m_print->objects()) {
+        for (const SupportLayer *support_layer : object->support_layers()) {
+            if (support_layer->print_z - support_layer->effective_print_height() > EPSILON)
+                continue;
+            auto consider = [&](int filament_1based) {
+                if (filament_1based > 0 && slot_prints_filament(unsigned(filament_1based - 1)))
+                    last_contact_z = std::max(last_contact_z, support_layer->print_z);
+            };
+            consider(object->config().support_filament.value);
+            consider(support_layer->planned_filament_id);
+            consider(object->config().support_interface_filament.value);
+            consider(support_layer->planned_interface_filament_id);
+        }
+    }
+    if (last_contact_z <= EPSILON)
+        return on_first_layer();
+    return m_layer->print_z <= last_contact_z + EPSILON;
 }
 
 // In sequential mode, process_layer is called once per each object and its copy,
@@ -4719,6 +5066,15 @@ GCode::LayerResult GCode::process_layer(
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
     update_layer_related_config(m_layer_index);
     update_placeholder_parser_with_variant_params();
+
+    //BBS: broadcast the objects still to be printed after one of them finished on the previous
+    //layer. change_layer() has already flushed the pending M625 and no M624 has been written for
+    //this layer yet, so this lands outside any object block without reordering existing gcode.
+    if (m_pending_remaining_objects_gcode && _is_object_skip_early_end_enabled()) {
+        gcode += _remaining_objects_gcode();
+        m_pending_remaining_objects_gcode = false;
+    }
+
     m_layer = &layer;
     m_object_layer_over_raft = false;
     if (! print.config().layer_change_gcode.value.empty()) {
@@ -4806,31 +5162,62 @@ GCode::LayerResult GCode::process_layer(
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0 && !this->is_BBL_Printer())
             gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
 
-        // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
-        // nozzle_temperature_initial_layer vs. temperature settings.
-        for (const Extruder& extruder : m_writer.extruders()) {
-            if (print.config().single_extruder_multi_material.value && extruder.id() != m_writer.filament()->id())
-                // In single extruder multi material mode, set the temperature for the current extruder only.
-                continue;
-            int temperature = print.config().nozzle_temperature.get_at(extruder.id());
-            if (temperature > 0 && temperature != print.config().nozzle_temperature_initial_layer.get_at(extruder.id()))
-                gcode += m_writer.set_temperature(
-                    temperature, false, extruder.id(), TemperatureCommandType::LayerChange);
-        }
-
-        // BBS
-        int bed_temp = 0;
-        if (m_config.bed_temperature_formula == BedTempFormula::btfHighestTemp)
-            bed_temp = get_highest_bed_temperature(false,print);
-        else
-            bed_temp = get_bed_temperature(first_extruder_id, false, m_config.curr_bed_type);
-        gcode += m_writer.set_bed_temperature(bed_temp);
         // Mark the temperature transition from 1st to 2nd layer to be finished.
         m_second_layer_things_done = true;
     }
 
+    // Keep the first layer bed temperature until every bed-contact filament has finished its first band.
+    // Without adaptive merging the first layer is the only bed contact, so switch on the second layer.
+    if (! first_layer && ! m_bed_temp_transition_done) {
+        const std::vector<unsigned int> bed_filaments = print.get_slice_used_filaments(true);
+        if (! print.uses_multiple_nozzle_diameters() ||
+            std::none_of(bed_filaments.begin(), bed_filaments.end(),
+                         [this](unsigned int filament) { return this->filament_in_first_layer_phase(filament); })) {
+            // BBS
+            int bed_temp = 0;
+            if (m_config.bed_temperature_formula == BedTempFormula::btfHighestTemp)
+                bed_temp = get_highest_bed_temperature(false,print);
+            else
+                bed_temp = get_bed_temperature(first_extruder_id, false, m_config.curr_bed_type);
+            gcode += m_writer.set_bed_temperature(bed_temp);
+            m_bed_temp_transition_done = true;
+        }
+    }
+
+    // A merged bed-contact band may end above the second physical layer. Transition each filament
+    // independently after its own contact paths are complete; the writer suppresses unchanged commands.
+    if (! first_layer && m_second_layer_things_done) {
+        for (const Extruder &extruder : m_writer.extruders()) {
+            if (print.config().single_extruder_multi_material.value &&
+                extruder.id() != m_writer.filament()->id())
+                continue;
+            if (this->filament_in_first_layer_phase(extruder.id()))
+                continue;
+            const size_t config_idx  = get_filament_config_index(extruder.id());
+            const int    temperature = print.config().nozzle_temperature.get_at(config_idx);
+            if (temperature > 0 &&
+                temperature != print.config().nozzle_temperature_initial_layer.get_at(config_idx))
+                gcode += m_writer.set_temperature(
+                    temperature, false, extruder.id(), TemperatureCommandType::LayerChange);
+        }
+    }
+
     // Map from extruder ID to <begin, end> index of skirt loops to be extruded with that extruder.
     std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder;
+
+    // BBS multi-diameter: a coarse brim filament extrudes the object's bed band only at the band top, so the brim is
+    // laid on that layer by that filament, whose nozzle and merged height the brim flow was generated for.
+    const bool multi_diameter = print.uses_multiple_nozzle_diameters();
+    auto is_object_brim_layer = [multi_diameter, &layer_tools, first_layer, print_z](const PrintObject &object, unsigned int extruder_id) {
+        if (! multi_diameter || object.object_brim_filament <= 0 || object.object_brim_print_z < EPSILON)
+            return first_layer;
+        if (std::abs(print_z - object.object_brim_print_z) > EPSILON)
+            return false;
+        unsigned int brim_filament = (unsigned int)object.object_brim_filament - 1;
+        if (auto it = layer_tools.mixed_filament_resolution.find(brim_filament); it != layer_tools.mixed_filament_resolution.end())
+            brim_filament = it->second;
+        return extruder_id == brim_filament;
+    };
 
     if (single_object_instance_idx == size_t(-1)) {
         // Normal (non-sequential) print.
@@ -4839,9 +5226,12 @@ GCode::LayerResult GCode::process_layer(
     }
     // Extrude skirt at the print_z of the raft layers and normal object layers
     // not at the print_z of the interlaced support material layers.
-    skirt_loops_per_extruder = first_layer ?
-        Skirt::make_skirt_loops_per_extruder_1st_layer(print, layer_tools, m_skirt_done) :
-        Skirt::make_skirt_loops_per_extruder_other_layers(print, layer_tools, m_skirt_done);
+    if (multi_diameter && ! (print.is_sequential_print() && print.config().skirt_per_object.value))
+        skirt_loops_per_extruder = Skirt::make_skirt_loops_multi_diameter(print, layer_tools, m_skirt_done, m_skirt_last_filament);
+    else
+        skirt_loops_per_extruder = first_layer ?
+            Skirt::make_skirt_loops_per_extruder_1st_layer(print, layer_tools, m_skirt_done) :
+            Skirt::make_skirt_loops_per_extruder_other_layers(print, layer_tools, m_skirt_done);
 
     // BBS: get next extruder according to flush and soluble
     auto get_next_extruder = [&](int current_extruder,const std::vector<unsigned int>&extruders) {
@@ -4885,6 +5275,19 @@ GCode::LayerResult GCode::process_layer(
                 // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
                 bool            interface_dontcare = object.config().support_interface_filament.value == 0;
 
+                // BBS multi-diameter: this support layer was merged into a slab thicker than the object layers,
+                // which is below the minimum layer height of every other filament of this Z range. Honour the
+                // filament the support merge plan reserved for it instead of picking the active one.
+                if (support_dontcare && support_layer.planned_filament_id > 0) {
+                    support_extruder = (unsigned int) (support_layer.planned_filament_id - 1);
+                    support_dontcare = false;
+                }
+                if (interface_dontcare && support_layer.planned_interface_filament_id > 0) {
+                    interface_extruder =
+                        (unsigned int) (support_layer.planned_interface_filament_id - 1);
+                    interface_dontcare = false;
+                }
+
                 // BBS: apply wiping overridden extruders
                 WipingExtrusions& wiping_extrusions = const_cast<LayerTools&>(layer_tools).wiping_extrusions();
                 if (support_dontcare) {
@@ -4903,6 +5306,29 @@ GCode::LayerResult GCode::process_layer(
                     }
                 }
 
+                // BBS multi-diameter: the printable layer height window of a filament's nozzle. Only used to
+                // correct a "don't care" choice that cannot extrude this support layer height at all, and only
+                // when a filament of this layer can, so the pick never gets worse than it was.
+                // The classic support generator folds a merged slab back into the layer height, but the tree
+                // generators keep base and roof on one SupportLayer and record the merged thickness in
+                // base_slab_height / interface_slab_height. Checking the layer height alone would let a slab
+                // that was never pinned to a filament end up on a nozzle that cannot extrude it.
+                const coordf_t support_slab_height = support_layer.base_slab_height > EPSILON ?
+                    support_layer.base_slab_height : support_layer.height;
+                const coordf_t interface_slab_height = support_layer.interface_slab_height > EPSILON ?
+                    support_layer.interface_slab_height : support_layer.height;
+                auto nozzle_can_print_height = [&print](unsigned int extruder_id, coordf_t height) {
+                    const double nozzle = nozzle_diameter_for_filament(print.config(), extruder_id + 1);
+                    return nozzle <= EPSILON || adaptive_layer_height_range(nozzle).contains(height);
+                };
+                // Only the roles still resolved here constrain the choice: a filament already pinned by the
+                // merge plan or by a wiping override is not picked by the code below.
+                auto nozzle_can_print_layer = [&nozzle_can_print_height, support_dontcare, interface_dontcare,
+                                               support_slab_height, interface_slab_height](unsigned int extruder_id) {
+                    return (! support_dontcare   || nozzle_can_print_height(extruder_id, support_slab_height)) &&
+                           (! interface_dontcare || nozzle_can_print_height(extruder_id, interface_slab_height));
+                };
+
                 // BBS: try to print support base with a filament other than interface filament
                 if (support_dontcare && !interface_dontcare) {
                     unsigned int dontcare_extruder = first_extruder_id;
@@ -4916,6 +5342,16 @@ GCode::LayerResult GCode::process_layer(
 
                         dontcare_extruder = extruder_id;
                         break;
+                    }
+                    if (! nozzle_can_print_layer(dontcare_extruder)) {
+                        for (unsigned int extruder_id : layer_tools.extruders) {
+                            if (print.config().filament_soluble.get_at(extruder_id) || extruder_id == interface_extruder)
+                                continue;
+                            if (nozzle_can_print_layer(extruder_id)) {
+                                dontcare_extruder = extruder_id;
+                                break;
+                            }
+                        }
                     }
                 #if 0
                     //BBS: not found a suitable extruder in current layer ,dontcare_extruider==first_extruder_id==interface_extruder
@@ -4947,6 +5383,14 @@ GCode::LayerResult GCode::process_layer(
                         // Try to find a non-support extruder on the same layer.
                         for (unsigned int extruder_id : layer_tools.extruders)
                             if (!print.config().filament_is_support.get_at(extruder_id)) {
+                                dontcare_extruder = extruder_id;
+                                break;
+                            }
+                    }
+                    if (! nozzle_can_print_layer(dontcare_extruder)) {
+                        // The active filament's nozzle cannot extrude this support layer height.
+                        for (unsigned int extruder_id : layer_tools.extruders)
+                            if (nozzle_can_print_layer(extruder_id) && ! print.config().filament_soluble.get_at(extruder_id)) {
                                 dontcare_extruder = extruder_id;
                                 break;
                             }
@@ -5211,11 +5655,13 @@ GCode::LayerResult GCode::process_layer(
     // BBS: In sequential (ByObject + multi-object) mode, per-object skirt is drawn by the object's first extruder on this layer.
     // Only when skirt_per_object is enabled; otherwise global skirt is used.
     std::map<const PrintObject*, unsigned int> object_first_extruder;
-    if (print.has_skirt() && print.is_sequential_print() && first_layer && print.config().skirt_per_object.value) {
+    // Multi-diameter: drawn with the brim, on the object's bed band top by the brim filament.
+    if (print.has_skirt() && print.is_sequential_print() && (first_layer || multi_diameter) && print.config().skirt_per_object.value) {
         for (unsigned int eid : layer_tools.extruders) {
             for (const InstanceToPrint& inst : filament_to_print_instances[eid]) {
                 const PrintObject* obj = &inst.print_object;
-                object_first_extruder.emplace(obj, eid);
+                if (is_object_brim_layer(*obj, eid))
+                    object_first_extruder.emplace(obj, eid);
             }
         }
     }
@@ -5315,13 +5761,19 @@ GCode::LayerResult GCode::process_layer(
             const std::pair<size_t, size_t> loops = loops_it->second;
             this->set_origin(0., 0.);
             m_avoid_crossing_perimeters.use_external_mp();
-            Flow layer_skirt_flow = print.skirt_flow().with_height(float(m_skirt_done.back() - (m_skirt_done.size() == 1 ? 0. : m_skirt_done[m_skirt_done.size() - 2])));
+            float skirt_height = float(m_skirt_done.back() - (m_skirt_done.size() == 1 ? 0. : m_skirt_done[m_skirt_done.size() - 2]));
+            // A step taller than every nozzle on this layer is printed at the nozzle's max height, leaving a gap below.
+            if (multi_diameter)
+                if (const double nozzle = nozzle_diameter_for_filament(print.config(), extruder_id + 1); nozzle > EPSILON)
+                    skirt_height = std::min(skirt_height, float(adaptive_layer_height_range(nozzle).max_height));
+            Flow layer_skirt_flow = print.skirt_flow(extruder_id + 1).with_height(skirt_height);
             double mm3_per_mm = layer_skirt_flow.mm3_per_mm();
             for (size_t i = loops.first; i < loops.second; ++i) {
                 // Adjust flow according to this layer's layer height.
                 ExtrusionLoop loop = *dynamic_cast<const ExtrusionLoop*>(print.skirt().entities[i]);
                 for (ExtrusionPath &path : loop.paths) {
                     path.height = layer_skirt_flow.height();
+                    path.width = layer_skirt_flow.width();
                     path.mm3_per_mm = mm3_per_mm;
                 }
                 //FIXME using the support_speed of the 1st object printed.
@@ -5339,7 +5791,7 @@ GCode::LayerResult GCode::process_layer(
         // Do not require prime_extruder: the first object has prime_extruder==false but still needs skirt.
         // If object has brim (object brim or support brim), skip skirt and keep brim.
         // Only when skirt_per_object is enabled; otherwise global skirt is used.
-        if (print.has_skirt() && print.is_sequential_print() && first_layer && print.config().skirt_per_object.value) {
+        if (! object_first_extruder.empty()) {
             for (InstanceToPrint& instance_to_print : instances_to_print) {
                 const PrintObject* obj = &instance_to_print.print_object;
                 auto it = object_first_extruder.find(obj);
@@ -5355,9 +5807,17 @@ GCode::LayerResult GCode::process_layer(
 
                 const Point& offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
                 set_origin(unscaled(offset));
-                for (ExtrusionEntity* ee : instance_to_print.print_object.object_skirt().entities)
+                const Flow object_skirt_flow = print.multi_diameter_skirt_flow_on_brim_layer(*obj, extruder_id + 1);
+                for (ExtrusionEntity* ee : instance_to_print.print_object.object_skirt().entities) {
+                    ExtrusionLoop loop = *dynamic_cast<const ExtrusionLoop*>(ee);
+                    for (ExtrusionPath &path : loop.paths) {
+                        path.height = object_skirt_flow.height();
+                        path.width = object_skirt_flow.width();
+                        path.mm3_per_mm = object_skirt_flow.mm3_per_mm();
+                    }
                     //FIXME using the support_speed of the 1st object printed.
-                    gcode += this->extrude_entity(*ee, "skirt", NOZZLE_CONFIG(support_speed));
+                    gcode += this->extrude_loop(loop, "skirt", NOZZLE_CONFIG(support_speed));
+                }
             }
         }
 
@@ -5462,7 +5922,7 @@ GCode::LayerResult GCode::process_layer(
                 for (ObjectByExtruder::Island &island : instance_to_print.object_by_extruder.islands) {
                     const auto& by_region_specific = is_anything_overridden ? island.by_region_per_copy(by_region_per_copy_cache, static_cast<unsigned int>(instance_to_print.instance_id), extruder_id, print_wipe_extrusions != 0) : island.by_region;
                     //BBS: add brim by obj by extruder
-                    if (first_layer) {
+                    if (is_object_brim_layer(instance_to_print.print_object, extruder_id)) {
                         if (this->m_objsWithBrim.find(instance_to_print.print_object.id()) != this->m_objsWithBrim.end() && !print_wipe_extrusions) {
                             this->set_origin(0., 0.);
                             m_avoid_crossing_perimeters.use_external_mp();
@@ -6073,7 +6533,7 @@ void GCode::mass_load_limited_machine_acceleration(
             y_acceleration_limit_res = std::min(curr_acceleration_temp, curr_acceleration_y_config);
         } else {
             y_acceleration_limit_res = curr_acceleration_y_config;
-            BOOST_LOG_TRIVIAL(info) << "mass_load_limited_machine_acceleration: Printed mass not detected";
+            BOOST_LOG_TRIVIAL(info) << "Printed mass not detected";
         }
     }else{
         y_acceleration_limit_res = curr_acceleration_y_config;
@@ -6185,7 +6645,7 @@ double GCode::get_path_speed(const ExtrusionPath &path)
         if (path.mm3_per_mm > 0)
             speed = filament_max_volumetric_speed / path.mm3_per_mm;
     }
-    if (this->on_first_layer()) {
+    if (this->path_touches_bed(path)) {
         // BBS: for solid infill of initial layer, speed can be higher as long as
         // wall lines have be attached
         if (path.role() != erBottomSurface) speed = NOZZLE_CONFIG(initial_layer_speed);
@@ -6231,7 +6691,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
                                     !m_config.spiral_mode &&
                                     (loop.role() == erExternalPerimeter ||
                                     (loop.role() == erPerimeter && m_config.seam_slope_inner_walls)) &&
-                                    !on_first_layer();
+                                    !(on_first_layer() ||
+                                      (! loop.paths.empty() && path_touches_bed(loop.paths.front())));
 
     if (enable_seam_slope && m_config.seam_slope_conditional.value) {
         //BBS: the seam has been decide, only check the seam position angle
@@ -6356,7 +6817,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     }
 
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer()) {
+    if (paths.empty() || !this->path_touches_bed(paths.front())) {
         // reset acceleration
         m_writer.set_acceleration((unsigned int) (NOZZLE_CONFIG(default_acceleration) + 0.5));
         if (!this->is_BBL_Printer())
@@ -6441,7 +6902,7 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
         m_wipe.path.reverse();
     }
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer()) {
+    if (multipath.paths.empty() || !this->path_touches_bed(multipath.paths.front())) {
         // reset acceleration
         m_writer.set_acceleration((unsigned int) floor(NOZZLE_CONFIG(default_acceleration) + 0.5));
         if (!this->is_BBL_Printer())
@@ -6485,7 +6946,7 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
             m_wipe.path.reverse();
     }
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer()) {
+    if (!this->path_touches_bed(path)) {
         // reset acceleration
         m_writer.set_acceleration((unsigned int) floor(NOZZLE_CONFIG(default_acceleration) + 0.5));
         if (!this->is_BBL_Printer())
@@ -7111,7 +7572,7 @@ double GCode::calc_max_volumetric_speed(const double layer_height, const double 
         try {
             cs.push_back(std::stod(token));
         } catch (...) {
-            std::cerr << "Transformation failed: " << token << std::endl;
+            BOOST_LOG_TRIVIAL(warning) << "Transformation failed: " << token;
         }
     }
     if (cs.size() != 6 || std::all_of(cs.begin(), cs.end(), [](double v) { return v == 0; })) return std::numeric_limits<double>::max();
@@ -7177,7 +7638,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // adjust acceleration
     if (NOZZLE_CONFIG(default_acceleration) > 0) {
         double acceleration;
-        if (this->on_first_layer() && NOZZLE_CONFIG(initial_layer_acceleration) > 0) {
+        if (this->path_touches_bed(path) && NOZZLE_CONFIG(initial_layer_acceleration) > 0) {
             acceleration = NOZZLE_CONFIG(initial_layer_acceleration);
 #if 0
         } else if (this->object_layer_over_raft() && m_config.first_layer_acceleration_over_raft.value > 0) {
@@ -7206,7 +7667,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     if (m_config.default_jerk.value > 0 && !this->is_BBL_Printer()) {
         double jerk = m_config.default_jerk.value;
-        if (this->on_first_layer() && m_config.initial_layer_jerk.value > 0)
+        if (this->path_touches_bed(path) && m_config.initial_layer_jerk.value > 0)
             jerk = m_config.initial_layer_jerk.value;
         else if (m_config.outer_wall_jerk.value > 0 && path.role() == erExternalPerimeter)
             jerk = m_config.outer_wall_jerk.value;
@@ -7225,7 +7686,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     auto _mm3_per_mm = path.mm3_per_mm * double(this->config().print_flow_ratio.value);
     if( path.role() == erTopSolidInfill )
         _mm3_per_mm *= NOZZLE_CONFIG(top_solid_infill_flow_ratio);
-    else if (this->on_first_layer())
+    else if (this->path_touches_bed(path))
         _mm3_per_mm *= m_config.initial_layer_flow_ratio.value;
 
     float effective_height = path.height;
@@ -7308,9 +7769,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             //      (github #11540). These should print at regular solid-infill speed.
             // Stacked bottom-shell layers above the contact layer are stInternalSolid
             // (erSolidInfill), not erBottomSurface, so they are unaffected by this branch.
-            if (on_first_layer()) {
+            if (path_touches_bed(path)) {
                 speed = NOZZLE_CONFIG(initial_layer_infill_speed);
-            } else if (object_layer_over_raft() && m_layer != nullptr &&
+            } else if (path_starts_at_object_base(path) && m_layer != nullptr &&
                        m_layer->object()->slicing_parameters().gap_raft_object > 0) {
                 bool use_filament_bridge_speed = FILAMENT_CONFIG(override_process_overhang_speed);
                 speed = use_filament_bridge_speed ? FILAMENT_CONFIG(filament_bridge_speed) : NOZZLE_CONFIG(bridge_speed);
@@ -7360,7 +7821,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         else
             speed = filament_max_volumetric_speed / path.mm3_per_mm;
     }
-    if (this->on_first_layer()) {
+    if (this->path_touches_bed(path)) {
         //BBS: for solid infill of initial layer, speed can be higher as long as
         //wall lines have be attached
         if (path.role() != erBottomSurface)
@@ -7656,6 +8117,81 @@ std::string GCode::_encode_label_ids_to_base64(std::vector<size_t> ids)
         throw Slic3r::LogicError("Label object id error!");
 
     return encodeBase64(bitset);
+}
+
+// Deliberately mirrors the M624/M625 gate: whenever a print labels its objects, the firmware
+// also gets the remaining object list. Every machine reaching this point already receives
+// M624/M625, so broadcasting M639 alongside them exposes nothing new.
+bool GCode::_is_object_skip_early_end_enabled() const
+{
+    return m_enable_label_object;
+}
+
+void GCode::_init_remaining_objects_bitmap()
+{
+    const size_t count = m_label_objects_ids.size();
+    // g_max_label_object is 64 and the gate above uses <=, so a full 64 objects can reach
+    // here. Shifting by 64 would be undefined, hence the explicit branch.
+    m_remaining_objects_bitmap = (count >= 64) ? ~0ull : ((1ull << count) - 1);
+    m_pending_remaining_objects_gcode = false;
+}
+
+// Deliberately bypasses _encode_label_ids_to_base64: it throws on an empty bitset, while the
+// final broadcast has to carry all zeros to tell the firmware nothing is left to skip.
+std::string GCode::_remaining_objects_gcode() const
+{
+    std::string ids;
+    for (size_t i = 0; i < m_label_objects_ids.size(); ++i) {
+        if (m_remaining_objects_bitmap & (1ull << i)) {
+            if (!ids.empty())
+                ids += ",";
+            ids += std::to_string(m_label_objects_ids[i]);
+        }
+    }
+
+    return "; remaining object ids: " + ids + "\n" + "M639 " + encodeBase64(m_remaining_objects_bitmap) + "\n";
+}
+
+// An object counts as present on a layer when it owns either an object layer or a support
+// layer there. Checking for actual extrusions instead would miss objects whose top layer is
+// handed to another extruder, and supports belong to the object anyway: skipping the object
+// skips its supports too.
+void GCode::_precompute_object_last_layers(const std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> &layers_to_print)
+{
+    m_objects_finished_at_layer.clear();
+
+    std::map<const PrintObject *, size_t> last_layer_of_object;
+    for (size_t layer_idx = 0; layer_idx < layers_to_print.size(); ++layer_idx) {
+        for (const LayerToPrint &layer_to_print : layers_to_print[layer_idx].second) {
+            // original_object is filled in for every object on every layer, so it cannot tell
+            // on its own whether this object has anything to print here. It is still the right
+            // handle to use, because object() resolves to the shared source object.
+            if (layer_to_print.original_object != nullptr && (layer_to_print.object_layer != nullptr || layer_to_print.support_layer != nullptr))
+                last_layer_of_object[layer_to_print.original_object] = layer_idx;
+        }
+    }
+
+    for (const auto &object_and_layer : last_layer_of_object)
+        for (const PrintInstance &instance : object_and_layer.first->instances())
+            m_objects_finished_at_layer[object_and_layer.second].push_back(instance.model_instance->get_labeled_id());
+}
+
+void GCode::_clear_remaining_object(size_t label_id)
+{
+    auto pos = std::lower_bound(m_label_objects_ids.begin(), m_label_objects_ids.end(), label_id);
+    if (pos != m_label_objects_ids.end() && *pos == label_id)
+        m_remaining_objects_bitmap &= ~(1ull << (pos - m_label_objects_ids.begin()));
+}
+
+void GCode::_mark_objects_finished(size_t layer_idx)
+{
+    auto it = m_objects_finished_at_layer.find(layer_idx);
+    if (it == m_objects_finished_at_layer.end())
+        return;
+
+    for (size_t label_id : it->second)
+        _clear_remaining_object(label_id);
+    m_pending_remaining_objects_gcode = true;
 }
 
 // This method accepts &point in print coordinates.
@@ -7959,7 +8495,7 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
     return true;
 }
 
-std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType lift_type,bool apply_instantly)
+std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType lift_type,bool apply_instantly, bool slow_lift)
 {
     std::string gcode;
 
@@ -7983,9 +8519,9 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
     if (m_writer.filament()->retraction_length() > 0 || m_config.use_firmware_retraction) {
         // BBS: force to use normal lift for spiral vase mode
         if (apply_instantly)
-            gcode += m_writer.eager_lift(lift_type,toolchange);
+            gcode += m_writer.eager_lift(lift_type, slow_lift);
         else
-            gcode += m_writer.lazy_lift(lift_type, m_spiral_vase != nullptr, toolchange);
+            gcode += m_writer.lazy_lift(lift_type, m_spiral_vase != nullptr, slow_lift);
 
     }
 
@@ -8008,6 +8544,7 @@ void GCode::update_layer_related_config(int layer_id){
     m_writer.config.filament_map.values = extruder_map;
     m_writer.config.filament_volume_map.values = volume_map;
     m_writer.config.filament_nozzle_map.values = nozzle_map;
+    m_writer.update_exclusive_nozzles();
 
 }
 
@@ -8176,19 +8713,20 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
         gcode += m_ooze_prevention.pre_toolchange(*this);
 
     // BBS
-    float new_retract_length = m_config.retraction_length.get_at(new_filament_id);
+    const size_t new_filament_config_idx = get_filament_config_index(new_filament_id);
+    float new_retract_length = m_config.retraction_length.get_at(new_filament_config_idx);
     float new_retract_length_toolchange = m_config.retract_length_toolchange.get_at(new_filament_id);
     float new_extruder_retracted_length = m_writer.get_extruder_retracted_length(new_filament_id);
-    int new_filament_temp = this->on_first_layer() ? m_config.nozzle_temperature_initial_layer.get_at(new_filament_id) : m_config.nozzle_temperature.get_at(new_filament_id);
+    int new_filament_temp = this->filament_in_first_layer_phase(new_filament_id) ? m_config.nozzle_temperature_initial_layer.get_at(new_filament_config_idx) : m_config.nozzle_temperature.get_at(new_filament_config_idx);
     // BBS: if print_z == 0 use first layer temperature
     if (abs(print_z) < EPSILON)
-        new_filament_temp = m_config.nozzle_temperature_initial_layer.get_at(new_filament_id);
+        new_filament_temp = m_config.nozzle_temperature_initial_layer.get_at(new_filament_config_idx);
 
     Vec3d nozzle_pos = m_writer.get_position();
     float old_retract_length, old_retract_length_toolchange, old_filament_retract_length_nc, wipe_volume;
     int old_filament_temp, old_filament_e_feedrate;
 
-    float filament_area = float((M_PI / 4.f) * pow(m_config.filament_diameter.get_at(new_filament_id), 2));
+    float new_filament_area = float((M_PI / 4.f) * pow(m_config.filament_diameter.get_at(new_filament_id), 2));
     //BBS: add handling for filament change in start gcode
     int old_filament_id = -1;
     int old_nozzle_id = -1;
@@ -8204,13 +8742,14 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
         old_filament_id = m_writer.filament() != nullptr ? m_writer.filament()->id() : m_start_gcode_filament;
         old_nozzle_id = m_writer.filament() != nullptr ? group_result->get_nozzle_id(old_filament_id, m_layer_index) : -1;
         old_extruder_id = m_writer.get_curr_extruder_id();
-        old_retract_length = m_config.retraction_length.get_at(old_filament_id);
+        const size_t old_filament_config_idx = get_filament_config_index(old_filament_id);
+        old_retract_length = m_config.retraction_length.get_at(old_filament_config_idx);
         old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(old_filament_id);
-        old_filament_retract_length_nc = m_config.filament_retract_length_nc.get_at(old_filament_id);
-        old_filament_temp = this->on_first_layer()? m_config.nozzle_temperature_initial_layer.get_at(old_filament_id) : m_config.nozzle_temperature.get_at(old_filament_id);
+        old_filament_retract_length_nc = m_config.filament_retract_length_nc.get_at(old_filament_config_idx);
+        old_filament_temp = this->filament_in_first_layer_phase(old_filament_id)? m_config.nozzle_temperature_initial_layer.get_at(old_filament_config_idx) : m_config.nozzle_temperature.get_at(old_filament_config_idx);
 
         //During the filament change, the extruder will extrude an extra length of grab_length for the corresponding detection, so the purge can reduce this length.
-        float grab_purge_volume = m_config.grab_length.get_at(new_extruder_id) * 2.4;
+        float grab_purge_volume = m_config.grab_length.get_at(new_extruder_id) * new_filament_area;
 
         auto switch_to_nozzle = [&](int filament_id, int nozzle_id){
             float wipe_volume = 0;
@@ -8237,7 +8776,8 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
         }
         wipe_volume = std::max(0.f, wipe_volume-grab_purge_volume);
 
-        old_filament_e_feedrate = (int) (60.0 * m_config.filament_max_volumetric_speed.get_at(old_filament_id) / filament_area);
+        float old_filament_area = float((M_PI / 4.f) * pow(m_config.filament_diameter.get_at(old_filament_id), 2));
+        old_filament_e_feedrate = (int) (60.0 * m_config.filament_max_volumetric_speed.get_at(old_filament_config_idx) / old_filament_area);
         old_filament_e_feedrate = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;
         //BBS: must clean m_start_gcode_filament
         m_start_gcode_filament = -1;
@@ -8249,16 +8789,16 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
         wipe_volume = 0.f;
         old_filament_e_feedrate = 200;
     }
-    float wipe_length = wipe_volume / filament_area;
-    int new_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(new_filament_id) / filament_area);
+    float wipe_length = wipe_volume / new_filament_area;
+    int new_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(new_filament_config_idx) / new_filament_area);
     new_filament_e_feedrate = new_filament_e_feedrate == 0 ? 100 : new_filament_e_feedrate;
 
     auto extruder_variants = m_print->config().option<ConfigOptionStrings>("printer_extruder_variant")->values;
-    std::string old_extruder_variant = old_extruder_id >= 0 ? extruder_variants[old_extruder_id] : "";
-    std::string new_extruder_variant = extruder_variants[new_extruder_id];
+    std::string old_extruder_variant = (old_extruder_id >= 0 && old_extruder_id < (int)extruder_variants.size()) ? extruder_variants[old_extruder_id] : "";
+    std::string new_extruder_variant = (new_extruder_id >= 0 && new_extruder_id < (int)extruder_variants.size()) ? extruder_variants[new_extruder_id] : "";
 
     // set volumetric speed of outer wall ,ignore per obejct,just use default setting
-    float outer_wall_volumetric_speed = get_outer_wall_volumetric_speed(m_config, *m_print, new_filament_id, get_extruder_id(new_filament_id));
+    float outer_wall_volumetric_speed = get_outer_wall_volumetric_speed(m_config, *m_print, new_filament_id, get_extruder_id(new_filament_id), new_filament_config_idx);
     float         wipe_avoid_pos_x            = 110.f;
     DynamicConfig dyn_config;
     dyn_config.set_key_value("current_extruder_id", new ConfigOptionInt(old_extruder_id));
@@ -8399,8 +8939,8 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
 
     // Set the temperature if the wipe tower didn't (not needed for non-single extruder MM)
     if (m_config.single_extruder_multi_material && !m_config.enable_prime_tower) {
-        int temp = (m_layer_index <= 0 ? m_config.nozzle_temperature_initial_layer.get_at(new_filament_id) :
-                                         m_config.nozzle_temperature.get_at(new_filament_id));
+        int temp = (this->filament_in_first_layer_phase(new_filament_id) ? m_config.nozzle_temperature_initial_layer.get_at(new_filament_config_idx) :
+                                                                          m_config.nozzle_temperature.get_at(new_filament_config_idx));
         gcode += m_writer.set_temperature(temp, false);
     }
 

@@ -8,7 +8,7 @@
 #include <utility>
 #include <cstring>
 #include <memory>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 #ifdef _WIN32
 #include <windows.h>

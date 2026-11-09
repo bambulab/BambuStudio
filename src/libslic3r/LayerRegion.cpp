@@ -11,8 +11,9 @@
 
 #include <string>
 #include <map>
+#include <cmath>
+#include "libslic3r/Log.hpp"
 
-#include <boost/log/trivial.hpp>
 static const double max_deviation = scale_(0.5);
 static const double max_variance  = 5 * scale_(0.01) * scale_(0.01);
 
@@ -35,9 +36,8 @@ Flow LayerRegion::bridging_flow(FlowRole role, bool thick_bridge) const
     const PrintObject       &print_object   = *this->layer()->object();
     if (thick_bridge) {
         // The old Slic3r way (different from all other slicers): Use rounded extrusions.
-        // Get the configured nozzle_diameter for the extruder associated to the flow role requested.
-        // Here this->extruder(role) - 1 may underflow to MAX_INT, but then the get_at() will follback to zero'th element, so everything is all right.
-        auto nozzle_diameter = float(print_object.print()->config().nozzle_diameter.get_at(region.extruder(role) - 1));
+        // Get the configured nozzle_diameter for the extruder that this role's filament is grouped to.
+        auto nozzle_diameter = nozzle_diameter_for_filament(print_object.print()->config(), region.extruder(role));
         // Applies default bridge spacing.
         return Flow::bridging_flow(float(sqrt(region_config.bridge_flow)) * nozzle_diameter, nozzle_diameter);
     } else {
@@ -128,14 +128,27 @@ void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const Auto
     }
 }
 
-void LayerRegion::make_perimeters(const SurfaceCollection &slices, const PerimeterRegions &perimeter_regions, SurfaceCollection *fill_surfaces, ExPolygons *fill_no_overlap, std::vector<LoopNode> &loop_nodes)
+void LayerRegion::make_perimeters(const SurfaceCollection &slices, const PerimeterRegions &perimeter_regions, SurfaceCollection *fill_surfaces, ExPolygons *fill_no_overlap, std::vector<LoopNode> &loop_nodes, double perimeter_layer_height, bool clear_outputs, const ExPolygons *lower_slices_override, const ExPolygons *upper_slices_override, bool fill_only, bool starts_at_object_base)
 {
-    this->perimeters.clear();
-    this->thin_fills.clear();
+    if (clear_outputs && ! fill_only) {
+        this->perimeters.clear();
+        this->thin_fills.clear();
+    }
+
+    ExtrusionEntityCollection discarded_perimeters;
+    ExtrusionEntityCollection discarded_thin_fills;
+    std::vector<LoopNode>     discarded_loop_nodes;
 
     const PrintConfig &      print_config  = this->layer()->object()->print()->config();
     const PrintRegionConfig &region_config = this->region().config();
     const PrintObjectConfig& object_config = this->layer()->object()->config();
+    // BBS multi-diameter: the merged core is printed with a larger effective height; walls and their flow
+    // must use that height so the extrusion volume matches. 0 means "use the physical layer height".
+    const double             wall_layer_height = perimeter_layer_height > 0. ? perimeter_layer_height : this->layer()->height;
+    const bool               first_object_layer = this->layer()->id() == 0 || starts_at_object_base;
+    auto wall_flow = [&](FlowRole role) {
+        return this->region().flow(*this->layer()->object(), role, wall_layer_height, first_object_layer);
+    };
     // This needs to be in sync with PrintObject::_slice() slicing_mode_normal_below_layer!
     bool spiral_mode = print_config.spiral_mode &&
         //FIXME account for raft layers.
@@ -145,32 +158,45 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const Perimet
     PerimeterGenerator g(
         // input:
         &slices,
-        this->layer()->height,
-        this->flow(frPerimeter),
+        wall_layer_height,
+        wall_flow(frPerimeter),
         &region_config,
         &this->layer()->object()->config(),
         &print_config,
+        float(primary_nozzle_diameter(this->layer()->object()->print()->full_print_config())),
+        multi_nozzle_diameter_mode_enabled(this->layer()->object()->print()->full_print_config()),
         spiral_mode,
         // output:
-        &this->perimeters,
-        &this->thin_fills,
+        fill_only ? &discarded_perimeters : &this->perimeters,
+        fill_only ? &discarded_thin_fills : &this->thin_fills,
         fill_surfaces,
         //BBS
         fill_no_overlap,
-        &loop_nodes
+        fill_only ? &discarded_loop_nodes : &loop_nodes
     );
 
-    if (this->layer()->lower_layer != nullptr)
+    // A merged band anchored at the object base stands on the bed, like layer 0. The physical layer below
+    // its group top lies inside the band itself, so it is no support for the walls.
+    if (lower_slices_override != nullptr)
+        g.lower_slices = lower_slices_override;
+    else if (this->layer()->lower_layer != nullptr && ! first_object_layer)
         // Cummulative sum of polygons over all the regions.
         g.lower_slices = &this->layer()->lower_layer->lslices;
-    if (this->layer()->upper_layer != NULL)
+    if (upper_slices_override != nullptr)
+        g.upper_slices = upper_slices_override;
+    else if (this->layer()->upper_layer != NULL)
         g.upper_slices = &this->layer()->upper_layer->lslices;
 
     g.layer_id              = (int)this->layer()->id();
+    g.starts_at_object_base = first_object_layer;
     g.slice_z               = this->layer()->slice_z;
-    g.ext_perimeter_flow    = this->flow(frExternalPerimeter);
-    g.overhang_flow         = this->bridging_flow(frPerimeter, object_config.thick_bridges);
-    g.solid_infill_flow     = this->flow(frSolidInfill);
+    g.ext_perimeter_flow    = wall_flow(frExternalPerimeter);
+    // A merged overhang wall is the only extrusion filling its Z span, so it needs the merged height just
+    // like the regular walls. Keep the original bridge flow for unmerged perimeters.
+    g.overhang_flow         = wall_layer_height > this->layer()->height + EPSILON ?
+        wall_flow(frPerimeter).with_flow_ratio(region_config.bridge_flow) :
+        this->bridging_flow(frPerimeter, object_config.thick_bridges);
+    g.solid_infill_flow     = wall_flow(frSolidInfill);
     g.perimeter_regions     = &perimeter_regions;
 
     if (this->layer()->object()->config().wall_generator.value == PerimeterGeneratorType::Arachne && !spiral_mode)
@@ -208,6 +234,8 @@ struct Bridge {
     uint32_t group_id;
     std::vector<Algorithm::RegionExpansionEx>::const_iterator bridge_expansion_begin;
     std::optional<double> angle{std::nullopt};
+    // Group of the overlapping anchors before splitting by direction, the bridge itself if it overlaps no other bridge.
+    uint32_t overlap_group_id;
 };
 
 // Group the bridge surfaces by overlaps.
@@ -232,8 +260,10 @@ std::vector<Bridge> get_grouped_bridges(
         result.reserve(bridge_expansions.size());
         uint32_t group_id = 0;
         using std::move_iterator;
-        for (ExPolygon& expolygon : bridge_expolygons)
-            result.push_back({ std::move(expolygon), group_id ++, bridge_expansions.end() });
+        for (ExPolygon& expolygon : bridge_expolygons) {
+            result.push_back({ std::move(expolygon), group_id, bridge_expansions.end(), std::nullopt, group_id });
+            ++ group_id;
+        }
     }
 
 
@@ -339,10 +369,212 @@ void detect_bridge_directions(
     }
 }
 
+// Returns per overlap group, indexed by the id of its head, whether the group was split by direction.
+static std::vector<bool> separate_bridge_directions(std::vector<Bridge>& bridges)
+{
+    std::vector<uint32_t> overlap_groups;
+    overlap_groups.reserve(bridges.size());
+    for (uint32_t bridge_id = 0; bridge_id < uint32_t(bridges.size()); ++bridge_id)
+        overlap_groups.push_back(group_id(bridges, bridge_id));
+
+    // get_grouped_bridges() always makes the lower id the head, so the head is the lowest id of its group:
+    // when bridge_id is reached, all candidates below it are already regrouped by direction.
+    std::vector<bool> split(bridges.size(), false);
+    for (uint32_t bridge_id = 0; bridge_id < uint32_t(bridges.size()); ++bridge_id) {
+        assert(overlap_groups[bridge_id] <= bridge_id);
+        Bridge &bridge = bridges[bridge_id];
+        bridge.overlap_group_id = overlap_groups[bridge_id];
+        bridge.group_id = bridge_id;
+        for (uint32_t candidate_id = overlap_groups[bridge_id]; candidate_id < bridge_id; ++candidate_id) {
+            const Bridge &candidate = bridges[candidate_id];
+            if (overlap_groups[candidate_id] == overlap_groups[bridge_id] && candidate.group_id == candidate_id &&
+                bridge.angle && candidate.angle &&
+                // Directions are detected per bridge, neighbours with curved or fully anchored edges differ by a few degrees.
+                // Only split bridges running in clearly different directions, 10 degrees apart or more.
+                Geometry::directions_parallel(std::fmod(*bridge.angle, M_PI), std::fmod(*candidate.angle, M_PI), Geometry::deg2rad(10.))) {
+                bridge.group_id = candidate_id;
+                break;
+            }
+        }
+        if (bridge.group_id != overlap_groups[bridge_id])
+            split[overlap_groups[bridge_id]] = true;
+    }
+    return split;
+}
+
+// Bridges of one direction group, merged with their anchors.
+struct BridgeGroupArea {
+    uint32_t   overlap_group_id;
+    double     angle;
+    // Bridge bodies without anchors, only collected when anchors have to be partitioned.
+    ExPolygons bodies;
+    ExPolygons area;
+};
+
+// Partition the anchors shared by bridge groups, which overlap but run in different directions.
+// Each contested point goes to the group with the nearest bridge body: all bodies grow in lock step,
+// so the dividing line is off by at most one step, ties within a step go to the lower group.
+// overlap_area: the whole overlap group closed at once, as it was merged before splitting by direction.
+static void partition_bridge_anchors(std::vector<BridgeGroupArea*> &groups, const ExPolygons &overlap_area, const float solid_spacing)
+{
+    // A bridge body always belongs to its own group.
+    for (BridgeGroupArea *group : groups) {
+        Polygons other_bodies;
+        for (const BridgeGroupArea *other : groups)
+            if (other != group)
+                append(other_bodies, to_polygons(other->bodies));
+        group->area = diff_ex(group->area, other_bodies);
+    }
+
+    // Closing each group alone leaves the narrow gaps between the groups open, closing the whole overlap group fills them.
+    // Offer the gaps to every group, the growth below hands them to the nearest body.
+    {
+        Polygons covered;
+        for (const BridgeGroupArea *group : groups)
+            append(covered, to_polygons(group->area));
+        const Polygons gaps = diff(to_polygons(overlap_area), covered);
+        if (! gaps.empty())
+            for (BridgeGroupArea *group : groups) {
+                Polygons area = to_polygons(group->area);
+                append(area, gaps);
+                group->area = union_ex(area);
+            }
+    }
+
+    Polygons contested;
+    {
+        Polygons covered;
+        for (const BridgeGroupArea *group : groups) {
+            Polygons area = to_polygons(group->area);
+            if (! covered.empty())
+                append(contested, intersection(area, covered));
+            append(covered, std::move(area));
+        }
+        contested = union_(contested);
+    }
+    if (contested.empty())
+        return;
+
+    // Anchors scale with the extrusion width, so does the step: the error stays within a quarter of a line
+    // and the number of steps does not depend on the nozzle diameter.
+    const float  step    = 0.25f * solid_spacing;
+    const double arc_tol = scaled<double>(0.01);
+    // Slivers of numeric noise left by the boolean operations may never be covered by the growth and would keep it
+    // running to the last step. They are only dropped from the candidates and from the area still unreached,
+    // the contested area left unclaimed is handed out after the growth.
+    const double min_area   = 0.01 * double(step) * double(step);
+    auto         drop_noise = [min_area](ExPolygons &&expolygons) {
+        expolygons.erase(std::remove_if(expolygons.begin(), expolygons.end(),
+                             [min_area](const ExPolygon &expolygon) { return expolygon.area() < min_area; }),
+                         expolygons.end());
+        return to_polygons(std::move(expolygons));
+    };
+
+    // Contested area each group may claim, the part of the contested area inside the group.
+    std::vector<Polygons> candidates(groups.size());
+    std::vector<Polygons> claimed(groups.size());
+    std::vector<Polygons> bodies(groups.size());
+    const BoundingBox     contested_bbox = get_extents(contested);
+    BoundingBox           bbox           = contested_bbox;
+    for (size_t i = 0; i < groups.size(); ++ i) {
+        candidates[i] = drop_noise(intersection_ex(to_polygons(groups[i]->area), contested));
+        bodies[i]     = to_polygons(groups[i]->bodies);
+        bbox.merge(get_extents(bodies[i]));
+    }
+
+    // Each contested point is reached at the latest when the growth spans the whole extent,
+    // in practice once the farthest anchor point is covered.
+    const size_t max_steps   = size_t(std::ceil(bbox.size().cast<double>().norm() / step)) + 1;
+    bool         all_reached = false;
+    // Every step works on the fixed inputs above and on the reach of the previous step only. Feeding the result of
+    // one boolean operation into the next one step after step piles up their degenerate edges, the vertex count
+    // then multiplies with every operation and the growth never finishes.
+    // A point is claimed by the group reaching it first, ties within a step go to the lower group:
+    // the claim of group i is its reach minus the reach of all groups in the previous step
+    // and minus the reach of the lower groups in this step.
+    Polygons reached_before;
+    for (size_t istep = 1; istep <= max_steps; ++ istep) {
+        const float dist = step * istep;
+        // Body parts farther than dist from the contested area cannot reach anything in this step,
+        // an exact clip keeps the offset small without changing the distances that matter.
+        const Polygons clip_box{ contested_bbox.inflated(dist + step).polygon() };
+        // Reached before this step or by a lower group in this step.
+        Polygons taken = reached_before;
+        // Reached by any group up to this step.
+        Polygons reached_now;
+        for (size_t i = 0; i < groups.size(); ++ i) {
+            if (candidates[i].empty())
+                continue;
+            Polygons body = intersection(bodies[i], clip_box);
+            if (body.empty())
+                continue;
+            Polygons reach = intersection(candidates[i], expand(body, dist, ClipperLib::jtRound, arc_tol));
+            if (reach.empty())
+                continue;
+            append(claimed[i], taken.empty() ? reach : diff(reach, taken));
+            append(taken, reach);
+            append(reached_now, std::move(reach));
+        }
+        // The reach of a group only grows from step to step, so this step alone covers all the earlier ones.
+        reached_before = union_(reached_now);
+        if (drop_noise(diff_ex(contested, reached_before)).empty()) {
+            all_reached = true;
+            break;
+        }
+    }
+    if (! all_reached)
+        BOOST_LOG_TRIVIAL(warning) << "Bridge anchor partition left an unreached area, the lower group takes it";
+    // Dropped noise and unreached leftovers still have to be covered, the lower group takes them.
+    // A leftover touching only another group moves over there with the orphans below.
+    {
+        Polygons all_claimed;
+        for (const Polygons &area : claimed)
+            append(all_claimed, area);
+        append(claimed.front(), diff(contested, all_claimed));
+    }
+
+    for (size_t i = 0; i < groups.size(); ++ i) {
+        Polygons area = diff(to_polygons(groups[i]->area), contested);
+        append(area, std::move(claimed[i]));
+        groups[i]->area = union_ex(area);
+    }
+
+    // Pieces cut off from their own body follow a touching group instead of becoming a separate bridge.
+    const float touch = scaled<float>(0.01);
+    std::vector<ExPolygons> orphans(groups.size());
+    for (size_t i = 0; i < groups.size(); ++ i) {
+        const Polygons body_touch = expand(to_polygons(groups[i]->bodies), touch);
+        ExPolygons     kept;
+        for (ExPolygon &piece : groups[i]->area)
+            (intersection_ex(piece, body_touch).empty() ? orphans[i] : kept).emplace_back(std::move(piece));
+        groups[i]->area = std::move(kept);
+    }
+    // Touch areas are taken before any orphan moves, so the result does not depend on the visiting order.
+    // An orphan touching no other group stays where it is.
+    std::vector<Polygons> area_touch(groups.size());
+    for (size_t i = 0; i < groups.size(); ++ i)
+        area_touch[i] = expand(to_polygons(groups[i]->area), touch);
+    for (size_t i = 0; i < groups.size(); ++ i)
+        for (ExPolygon &orphan : orphans[i]) {
+            size_t owner = i;
+            for (size_t j = 0; j < groups.size(); ++ j)
+                if (j != i && ! intersection_ex(orphan, area_touch[j]).empty()) {
+                    owner = j;
+                    break;
+                }
+            groups[owner]->area.emplace_back(std::move(orphan));
+        }
+    for (size_t i = 0; i < groups.size(); ++ i)
+        if (! orphans[i].empty() || groups[i]->area.size() > 1)
+            groups[i]->area = union_ex(groups[i]->area);
+}
+
 Surfaces merge_bridges(
     std::vector<Bridge>& bridges,
     const std::vector<Algorithm::RegionExpansionEx>& bridge_expansions,
-    const float closing_radius
+    const float closing_radius,
+    const float solid_spacing,
+    const std::vector<bool>& split_overlap_groups
 ) {
     for (auto it = bridge_expansions.begin(); it != bridge_expansions.end(); ) {
         bridges[it->src_id].bridge_expansion_begin = it;
@@ -350,34 +582,56 @@ Surfaces merge_bridges(
         for (++ it; it != bridge_expansions.end() && it->src_id == src_id; ++ it) ;
     }
 
-    Surfaces result;
+    std::vector<BridgeGroupArea> groups;
+    // Unclosed area of each overlap group split by direction.
+    std::map<uint32_t, Polygons> overlap_areas;
     for (uint32_t bridge_id = 0; bridge_id < uint32_t(bridges.size()); ++ bridge_id) {
         if (group_id(bridges, bridge_id) == bridge_id) {
             // Head of the group.
-            Polygons acc;
+            const uint32_t overlap_group_id = bridges[bridge_id].overlap_group_id;
+            const bool     split            = split_overlap_groups[overlap_group_id];
+            Polygons   acc;
+            ExPolygons bodies;
             for (uint32_t bridge_id2 = bridge_id; bridge_id2 < uint32_t(bridges.size()); ++ bridge_id2)
                 if (group_id(bridges, bridge_id2) == bridge_id) {
+                    if (split)
+                        bodies.emplace_back(bridges[bridge_id2].expolygon);
                     append(acc, to_polygons(std::move(bridges[bridge_id2].expolygon)));
                     auto it_bridge_expansion = bridges[bridge_id2].bridge_expansion_begin;
                     assert(it_bridge_expansion == bridge_expansions.end() || it_bridge_expansion->src_id == bridge_id2);
                     for (; it_bridge_expansion != bridge_expansions.end() && it_bridge_expansion->src_id == bridge_id2; ++ it_bridge_expansion)
                         append(acc, to_polygons(it_bridge_expansion->expolygon));
                 }
-            //FIXME try to be smart and pick the best bridging angle for all?
             if (!bridges[bridge_id].angle) {
                 assert(false && "Bridge angle must be pre-calculated!");
             }
-            Surface templ{ stBottomBridge, {} };
-            templ.bridge_angle = bridges[bridge_id].angle ? *bridges[bridge_id].angle : -1;
             //NOTE: The current regularization of the shells can create small unasigned regions in the object (E.G. benchy)
             // without the following closing operation, those regions will stay unfilled and cause small holes in the expanded surface.
             // look for narrow_ensure_vertical_wall_thickness_region_radius filter.
-            ExPolygons final = closing_ex(acc, closing_radius);
             // without safety offset, artifacts are generated (GH #2494)
             // union_safety_offset_ex(acc)
-            for (ExPolygon &ex : final)
-                result.emplace_back(templ, std::move(ex));
+            if (split)
+                append(overlap_areas[overlap_group_id], acc);
+            groups.push_back({ overlap_group_id, bridges[bridge_id].angle ? *bridges[bridge_id].angle : -1,
+                               std::move(bodies), closing_ex(acc, closing_radius) });
         }
+    }
+
+    std::map<uint32_t, std::vector<BridgeGroupArea*>> overlapping;
+    for (BridgeGroupArea &group : groups)
+        if (split_overlap_groups[group.overlap_group_id])
+            overlapping[group.overlap_group_id].push_back(&group);
+    for (auto &[overlap_group_id, members] : overlapping) {
+        assert(members.size() > 1);
+        partition_bridge_anchors(members, closing_ex(overlap_areas[overlap_group_id], closing_radius), solid_spacing);
+    }
+
+    Surfaces result;
+    for (BridgeGroupArea &group : groups) {
+        Surface templ{ stBottomBridge, {} };
+        templ.bridge_angle = group.angle;
+        for (ExPolygon &ex : group.area)
+            result.emplace_back(templ, std::move(ex));
     }
     return result;
 }
@@ -430,10 +684,14 @@ ExpansionResult expand_expolygons(
 Surfaces expand_bridges_detect_orientations(
     Surfaces &surfaces,
     std::vector<ExpansionZone>& expansion_zones,
-    const float closing_radius
+    const float closing_radius,
+    const float solid_spacing
 )
 {
     using namespace Slic3r::Algorithm;
+
+    if (! (solid_spacing > 0.f))
+        throw std::runtime_error("Detecting bridges needs a positive solid infill spacing");
 
     double thickness;
     ExPolygons bridge_expolygons = fill_surfaces_extract_expolygons(surfaces, {stBottomBridge}, thickness);
@@ -454,12 +712,13 @@ Surfaces expand_bridges_detect_orientations(
 
     std::sort(expansion_result.anchors.begin(), expansion_result.anchors.end(), Algorithm::lower_by_src_and_boundary);
     detect_bridge_directions(expansion_result.anchors, bridges, expansion_zones);
+    const std::vector<bool> split_overlap_groups = separate_bridge_directions(bridges);
 
     // Merge the groups with the same group id, produce surfaces by merging source overhangs with their newly expanded anchors.
     std::sort(expansion_result.expansions.begin(), expansion_result.expansions.end(), [](auto &l, auto &r) {
         return l.src_id < r.src_id || (l.src_id == r.src_id && l.boundary_id < r.boundary_id);
     });
-    Surfaces out{merge_bridges(bridges, expansion_result.expansions, closing_radius)};
+    Surfaces out{merge_bridges(bridges, expansion_result.expansions, closing_radius, solid_spacing, split_overlap_groups)};
 
     // Clip by the expanded bridges.
     for (ExpansionZone& expansion_zone : expansion_zones)
@@ -526,7 +785,15 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
     // Width of the perimeters.
     float shell_width = 0;
     float expansion_min = 0;
-    if (int num_perimeters = this->region().config().wall_loops; num_perimeters > 0) {
+    const PrintRegionConfig &region_config = this->region().config();
+    int num_perimeters = region_config.wall_loops.value;
+    const PrintObject *print_object = this->layer()->object();
+    if (multi_nozzle_diameter_mode_enabled(print_object->print()->full_print_config())) {
+        const double nozzle_diameter = nozzle_diameter_for_filament(
+            print_object->print()->config(), (unsigned int) region_config.wall_filament.value);
+        num_perimeters = multi_nozzle_wall_loops(nozzle_diameter, num_perimeters);
+    }
+    if (num_perimeters > 0) {
         Flow external_perimeter_flow = this->flow(frExternalPerimeter);
         Flow perimeter_flow          = this->flow(frPerimeter);
         shell_width  = 0.5f * external_perimeter_flow.scaled_width() + external_perimeter_flow.scaled_spacing();
@@ -569,7 +836,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
         const double custom_angle = this->region().config().bridge_angle.value;
         bridges.surfaces = custom_angle > 0 ?
             expand_merge_surfaces(fill_surfaces.surfaces, stBottomBridge, expansion_zones, closing_radius, Geometry::deg2rad(custom_angle)) :
-            expand_bridges_detect_orientations(fill_surfaces.surfaces, expansion_zones, closing_radius);
+            expand_bridges_detect_orientations(fill_surfaces.surfaces, expansion_zones, closing_radius, this->flow(frSolidInfill).scaled_spacing());
         BOOST_LOG_TRIVIAL(trace) << "Processing external surface, detecting bridges - done";
 #if 0
         {

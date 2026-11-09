@@ -1,5 +1,5 @@
 #include "Timer.hpp"
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 using namespace std::chrono;
 

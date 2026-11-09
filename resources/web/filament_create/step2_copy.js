@@ -177,6 +177,7 @@ function buildPrinterData(models) {
             });
         });
         var names = [];
+        var restoredActive = null;
         pendingRestore.printer_nozzles.forEach(function (pn) {
             if (!validPrinters.has(pn.printer)) return;
             var owning = models.find(function (m) {
@@ -188,8 +189,10 @@ function buildPrinterData(models) {
             if (owning) {
                 selected[owning.name].add(pn.printer);
                 names.push(pn.printer);
+                if (!restoredActive) restoredActive = owning.name;
             }
         });
+        if (restoredActive) activePrinter = restoredActive;
         if (names.length > 0) {
             $('#input-printer').val(
                 models

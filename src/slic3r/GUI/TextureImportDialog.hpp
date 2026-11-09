@@ -23,10 +23,12 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <functional>
 #include <map>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <vector>
 #include <string>
 
@@ -35,6 +37,8 @@ class GreenDoubleSlider;
 class StaticBox;
 
 namespace Slic3r { namespace GUI {
+
+struct OfficialMixingKitAddPlan;
 
 wxDECLARE_EVENT(EVT_TEXTURE_COMPUTE_DONE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TEXTURE_COMPUTE_PROGRESS, wxCommandEvent);
@@ -94,6 +98,7 @@ struct FilamentMappingRow {
 };
 
 struct GapPreviewState;
+struct TextureMixPool;
 
 class FilamentSelectPopup;
 class MatchThresholdGear;
@@ -117,6 +122,8 @@ public:
         const std::vector<std::array<int, 3>>&   indices);
     void set_face_colors(const std::vector<std::array<std::size_t, 3>>& face_colors);
     void set_original_face_colors(const std::vector<std::array<std::size_t, 3>>& face_colors);
+    // Per-vertex RGB in 0..1. Original mode interpolates these across each triangle.
+    void set_original_vertex_colors(const std::vector<std::array<float, 3>>& vertex_colors);
     void set_filament_color_map(const std::map<std::array<std::size_t, 3>, std::array<float, 3>>& color_map);
 
     void set_render_mode(RenderMode mode);
@@ -138,7 +145,7 @@ public:
 
     struct ViewState {
         float zoom  = 1.0f;
-        float rot_x = -30.0f;
+        float rot_x = 30.0f;
         float rot_y = 30.0f;
         float pan_x = 0.0f;
         float pan_y = 0.0f;
@@ -170,7 +177,7 @@ private:
     RenderMode    m_mode           = RenderMode::Original;
 
     float   m_zoom     = 1.0f;
-    float   m_rot_x    = -30.0f;
+    float   m_rot_x    = 30.0f;
     float   m_rot_y    = 30.0f;
     float   m_pan_x    = 0.0f;
     float   m_pan_y    = 0.0f;
@@ -184,6 +191,7 @@ private:
     std::vector<std::array<int, 3>>   m_painted_indices;
     std::vector<std::array<float, 3>> m_face_colors_rgb;
     std::vector<std::array<float, 3>> m_original_face_colors_rgb;
+    std::vector<std::array<float, 3>> m_original_vertex_colors_rgb;
     std::vector<std::array<float, 3>> m_filament_colors_rgb;
     std::map<std::array<std::size_t, 3>, std::array<float, 3>> m_color_map;
 
@@ -220,7 +228,8 @@ public:
                         const std::vector<TextureFilamentEntry>& filament_entries,
                         std::function<bool()>            initial_cancel_callback = {},
                         std::function<bool(int)>         initial_progress_callback = {},
-                        std::function<void(bool)>        initial_progress_visibility_callback = {});
+                        std::function<void(bool)>        initial_progress_visibility_callback = {},
+                        const wxString&                  hint = {});
     ~TextureImportDialog();
 
     int ShowModal() override;
@@ -279,6 +288,10 @@ private:
     void capture_compute_snapshot();
     void restore_compute_snapshot();
     void schedule_recompute(bool auto_color, int delay_ms);
+    void invalidate_inflight_computation();
+    void show_last_result_after_cancel();
+    bool params_match_last_result() const;
+    void update_gap_param_lock();
     void on_recompute_timer(wxTimerEvent& evt);
     void on_computation_complete(wxCommandEvent& evt);
     void on_computation_progress(wxCommandEvent& evt);
@@ -288,23 +301,35 @@ private:
     void rebuild_mapping_rows();
     void layout_mapping_rows();
     void do_auto_match();
+    // Among candidates that pass m_match_delta_threshold, filaments inside the
+    // Color Tolerance band are treated as equal and chosen by slot kind:
+    // ExistingPhysical, NewPhysical, ExistingMixed, NewMixed. Outside that band
+    // the smallest CIEDE2000 ΔE wins. Same rank keeps the smaller ΔE, then the
+    // smaller dialog index. Returns -1 when none pass the threshold.
+    int select_filament_for_color(const std::array<std::size_t, 3>& color,
+                                  const std::vector<int>& candidates) const;
     // Bind every cluster to a project physical filament of the voted family.
-    // Mixed slots are skipped. ΔE > m_match_delta_threshold stays unmatched.
+    // Mixed slots are skipped. Candidates outside m_match_delta_threshold stay
+    // unmatched. This pool is physical-only, so Color Tolerance does not change
+    // which slot wins.
     void match_clusters_to_physical_filaments();
-    // Rebind each color to the closest same-family filament within the current
-    // threshold. Mixed slots are compared by their display color. Auto merge
-    // on: project filaments and ones created in this dialog. Auto merge off:
-    // only filaments created in this dialog. drop_unused removes created
+    // Rebind each color with select_filament_for_color(). Mixed slots are
+    // compared by their display color only while Color Mixing is on; otherwise
+    // they stay out of the pool at every threshold. Candidates are project
+    // filaments and ones created in this dialog. drop_unused removes created
     // filaments that no color references; live edits pass false. Keeps row order.
     void reapply_match_threshold(bool drop_unused);
     void show_match_threshold_popup();
     void hide_match_threshold_popup();
     void update_match_threshold_gear_hover();
+    // Unchecks Color mixing and rebinds rows on mixed slots to physical ones.
+    // No-op while Color mixing is off.
+    void disable_mix_for_threshold_change();
     void on_match_threshold_changed(int value);
     void on_match_threshold_committed(int value);
     // Drop NewPhysical / NewMixed slots created in this dialog, then rebuild
     // the baseline mapping with do_auto_match(). Used by a fresh compute when
-    // Color Mixing is off (still respects Auto merge).
+    // Color Mixing is off.
     void drop_virtual_filaments_keep_project();
     void reset_to_project_filaments_and_auto_match();
     // Reorder m_current_matches into a canonical, predictable order (ascending
@@ -320,20 +345,39 @@ private:
     void show_mixing_kits_help();
     void on_mix_toggled(wxCommandEvent& evt);
     void apply_mix_from_existing_filaments();
-    void add_pla_basic_cmyw_to_project();
-    void reload_existing_filaments_from_project();
+    void add_pla_palette_cmykw_to_project(const OfficialMixingKitAddPlan& plan);
+    // NewPhysical slots a row still uses. reload_existing_filaments_from_project()
+    // keeps exactly these, so filaments added to the project must leave room for them.
+    size_t pending_physical_filament_count() const;
+    // True when the mixing family has fewer than two distinct physical colors,
+    // no complete CMYKW kit exists, and the project still has free filament slots.
+    bool mix_needs_supplement_filaments() const;
+    // Let the user stage the filaments mixing needs (red / yellow / blue of the mixing
+    // family by default) and add them to the project on OK. Returns false when cancelled.
+    bool prompt_supplement_filaments_for_mix();
+    void reload_existing_filaments_from_project(const std::set<size_t>& deleted_project_indices = {});
     void rematch_after_project_filament_change();
-    bool has_complete_pla_basic_cmyw() const;
+    bool has_complete_pla_palette_cmykw() const;
     std::string preferred_mix_family() const;
+    // Physical filaments and family that apply_mix_from_existing_filaments() mixes from.
+    void build_mix_pool(TextureMixPool& pool) const;
+    // Mixed recipe for one color from the pool. Returns the reused or created mixed
+    // slot, or the single physical component, or -1 when there is no usable recipe.
+    // When the recipe needs a new mixed slot and allow_create is false, returns -1
+    // with needs_slot set.
+    int  resolve_mix_color(const TextureMixPool& pool, const std::array<std::size_t, 3>& color,
+                           bool allow_create, bool& created, bool& needs_slot);
     void reset_auto_mix();
-    bool add_decomposed_mixed_filament(size_t row_index);
     int  add_virtual_filament(const std::array<float, 4>& rgba, const std::string& hex,
-                              const std::string& preset_name = std::string());
+                              const std::string& preset_name = std::string(),
+                              const std::string& display_name = std::string());
     int  add_virtual_mixed_filament(const std::string& color_hex,
                                     const std::vector<int>& component_dialog_indices,
                                     const std::vector<int>& ratios);
     bool remove_virtual_filament(int dialog_index);
-    size_t max_filament_count() const;
+    size_t max_physical_filament_count() const;
+    size_t physical_filament_entry_count() const;
+    size_t mixed_filament_entry_count() const;
     int    max_color_count() const;
     void   update_color_count_controls();
     void   set_color_count_exceeded(bool exceeded);
@@ -346,19 +390,27 @@ private:
     bool filament_count_exceeded() const;
     // True when at least one mapping row / match has no filament assigned.
     bool has_unmatched_mapping() const;
-    // Create NewPhysical filaments for every unmatched cluster color, using the
-    // same family type / preset vote as auto-match. Same color shares one slot.
-    void add_virtual_filaments_for_unmatched();
+    // Bind every unmatched color without changing matched rows or exceeding
+    // the physical / mixed filament limits. Larger colors get the free slots first: a NewPhysical
+    // slot of the auto-match family, or with Color Mixing on a mixed recipe before
+    // that. Colors left without a slot take closest_filament_ignoring_threshold().
+    void complete_unmatched_filaments();
     void update_unmatched_warning_visibility();
     void wrap_unmatched_warning_label();
-    void update_overlimit_warning_visibility();
-    void wrap_overlimit_warning_label();
     // Screen Y of the matching-page hint bar bottom; used to dock the filament popup.
     int  filament_popup_align_bottom() const;
-    // Shows the over-limit plan dialog. Closing it requires OK; the chosen
-    // plan is applied and the function returns true.
-    bool open_overlimit_dialog();
-    void apply_overlimit_matches(const std::vector<Slic3r::FilamentMatch>& matches);
+    // Total triangle area of each simplified color in m_painted.
+    std::map<std::array<std::size_t, 3>, double> cluster_color_areas() const;
+    // Indices into m_current_matches with no filament, larger color area first.
+    std::vector<size_t> unmatched_match_indices_by_area() const;
+    // Drops created filaments no color references, then returns the free slots.
+    size_t remaining_physical_filament_capacity();
+    size_t remaining_mixed_filament_capacity();
+    // Closest filament of family_type by CIEDE2000, ignoring m_match_delta_threshold.
+    // Mixed slots are candidates only while Color Mixing is on. Falls back to any
+    // family when none matches.
+    int  closest_filament_ignoring_threshold(const std::array<std::size_t, 3>& color,
+                                             const std::string& family_type) const;
     void compact_used_virtual_filaments();
     // Drop NewPhysical / NewMixed slots that no mapping row references, then
     // refresh target cards in place (no rebuild_mapping_rows).
@@ -387,19 +439,12 @@ private:
     void on_gap_slider_changed(wxCommandEvent& evt);
     void on_gap_spin_commit();
     void toggle_advanced_design();
-    void on_auto_merge_toggled(wxCommandEvent& evt);
-    // True when two slots are the same kind (physical vs mixed) and can share
-    // one mapping target: physicals need the same hex + family type; mixeds
-    // need the same component dialog indices and ratios.
-    bool filament_slots_mergeable(int lhs, int rhs) const;
     void retarget_filament_slot(int from_index, int to_index);
-    int  clone_project_filament_as_new(int dialog_index);
-    // Merge NewPhysical / NewMixed into matching existing slots, then fold
-    // matching new slots into each other. Does not rematch color clusters.
-    void merge_new_filaments_with_project_and_each_other();
-    // Replace every mapping that still points at an ExistingPhysical /
-    // ExistingMixed slot with a cloned NewPhysical / NewMixed slot.
-    void replace_project_mapped_filaments_with_new();
+    // Fold duplicate components of a NewMixed slot (ratios are summed, first
+    // occurrence order kept) and mirror the result into m_new_mixed_filaments.
+    // Returns the remaining physical dialog index when only one component is
+    // left, otherwise -1.
+    int  fold_new_mixed_components(int mixed_idx);
     void on_skip_clicked(wxCommandEvent& evt);
     void on_next_clicked(wxCommandEvent& evt);
     void on_prev_clicked(wxCommandEvent& evt);
@@ -417,17 +462,21 @@ private:
     // Rebuild same-color connected patches from the last simplified mesh.
     void update_color_patches();
     void schedule_color_patches_rebuild();
-    // Preview only: recolor smallest patches until their combined area reaches the gap percent.
+    // Preview only: replay or undo region merges so every region smaller than the
+    // gap percent of the mesh is absorbed by its neighbor.
     void apply_gap_area();
     // Write gap preview colors into m_painted for filament matching. Does not
     // overwrite the last simplified face colors or reset the gap slider.
     void commit_gap_area_to_painted();
     void clear_color_patches();
-    int  resolve_visible_patch_id(int patch_id) const;
     void refresh_gap_preview();
-    int  gap_split_index_for_threshold(double threshold) const;
+    // Number of merge events whose absorbed region area is below area_threshold.
+    int  gap_event_count_for_threshold(double area_threshold) const;
 
     bool has_valid_result() const;
+    // Confirm stays disabled while the filament count exceeds the limit; only
+    // removing filaments re-enables it.
+    bool can_confirm() const;
     void update_confirm_button_state();
 
     Slic3r::TexturedMesh               m_textured_mesh;
@@ -439,7 +488,12 @@ private:
     std::vector<std::array<float, 4>>  m_new_filament_colors;   // only virtual (to be created)
     std::vector<std::string>           m_new_filament_preset_names; // only virtual, aligned with m_new_filament_colors
     std::vector<TextureNewMixedFilament> m_new_mixed_filaments;
+    // Old dialog index -> new dialog index from the last reload_existing_filaments_from_project(), -1 if dropped.
+    std::vector<int>                   m_reload_index_remap;
     std::string                        m_default_virtual_filament_preset_name;
+    // Empty when the active printer has no PLA Palette preset; CMYKW auto-mix is
+    // skipped in that case rather than silently falling back to PLA Basic.
+    std::string                        m_palette_virtual_filament_preset_name;
 
     TextureImportState                 m_state = TextureImportState::Idle;
     TextureImportWizardStep            m_wizard_step = TextureImportWizardStep::SimplifyColors;
@@ -448,7 +502,6 @@ private:
     bool                               m_geometry_centered = false;
     bool                               m_skipped = false;
     bool                               m_fallback_to_geometry_only = false;
-    bool                               m_auto_merge_enabled = true;
     bool                               m_mix_enabled = false;
     // CIEDE2000 ΔE accepted by automatic filament matching. Slider range 0..50.
     // The right end (50) is unlimited: every color binds to the closest candidate.
@@ -462,10 +515,16 @@ private:
     Slic3r::PaintedMesh               m_painted;
     Slic3r::PaintedMesh               m_original_preview;
     bool                              m_original_preview_ready = false;
+    // Vertex-colored imports keep the source mesh on the left. The repair cache
+    // only has flat face colors and would wipe the gradient.
+    bool                              m_lock_original_vertex_preview = false;
     std::vector<Slic3r::FilamentMatch> m_current_matches;
 
     boost::thread                      m_worker;
     std::atomic<bool>                  m_cancel_flag{false};
+    // In-dialog recompute was dropped because parameters changed. Its completion
+    // must not be applied. Cleared when a new run starts or the last result is shown.
+    bool                               m_compute_superseded = false;
     std::atomic<int>                   m_compute_generation{0};
     std::atomic<int>                   m_patch_generation{0};
     std::mutex                         m_result_mutex;
@@ -480,6 +539,8 @@ private:
     std::function<bool()>              m_initial_cancel_callback;
     std::function<bool(int)>           m_initial_progress_callback;
     std::function<void(bool)>          m_initial_progress_visibility_callback;
+    // Shown above the color settings in the first step; empty for no hint.
+    wxString                           m_hint;
     bool                               m_current_computation_initial = false;
     bool                               m_initial_computation_pending = false;
     bool                               m_initial_computation_cancelled = false;
@@ -487,14 +548,6 @@ private:
     bool                               m_initial_tooltips_set = false;
     bool                               m_current_computation_auto_color = false;
     Slic3r::MeshRepairCachePtr         m_mesh_repair_cache;
-    // Windows repairs automatically; other platforms import the mesh as-is.
-#ifdef HAS_WIN10SDK
-    Slic3r::TexturePaintingSettings::MeshRepairDecision m_mesh_repair_decision =
-        Slic3r::TexturePaintingSettings::MeshRepairDecision::RepairAndImport;
-#else
-    Slic3r::TexturePaintingSettings::MeshRepairDecision m_mesh_repair_decision =
-        Slic3r::TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair;
-#endif
 
     Button*      m_btn_color_4    = nullptr;
     Button*      m_btn_color_8    = nullptr;
@@ -508,6 +561,8 @@ private:
     TextInput*         m_gap_spin   = nullptr;
     Label*                m_lbl_smooth_hint = nullptr;
     Label*                m_lbl_gap_hint    = nullptr;
+    Label*                m_lbl_hint        = nullptr;
+    wxStaticBitmap*       m_hint_icon       = nullptr;
     wxPanel*              m_advanced_header = nullptr;
     StaticBox*            m_advanced_body   = nullptr;
     bool                  m_advanced_expanded = false;
@@ -518,8 +573,6 @@ private:
     wxPanel*              m_preview_container = nullptr;
     wxPanel*              m_stepper_panel  = nullptr;
 
-    CheckBox*             m_auto_merge_cb = nullptr;
-    wxWindow*             m_auto_merge_row = nullptr;
     CheckBox*             m_mix_cb = nullptr;
     wxStaticText*         m_lbl_mix_help = nullptr;
     wxScrolledWindow*     m_mapping_scroll = nullptr;
@@ -529,7 +582,8 @@ private:
     int                   m_filament_popup_row = -1;
     MatchThresholdGear*   m_match_threshold_gear = nullptr;
     MatchThresholdPopup*  m_match_threshold_popup = nullptr;
-    int                   m_skip_next_filament_popup_row = -1;
+    int                   m_last_filament_popup_dismiss_row = -1;
+    std::chrono::steady_clock::time_point m_filament_popup_dismiss_time;
 
     TexturePreviewCanvas* m_preview_canvas       = nullptr;
     TexturePreviewCanvas* m_preview_canvas_right = nullptr;
@@ -552,18 +606,14 @@ private:
     wxPanel*      m_unmatched_warning  = nullptr;
     wxStaticBitmap* m_unmatched_warning_icon = nullptr;
     Label*        m_unmatched_warning_label = nullptr;
-    wxStaticText* m_unmatched_add_link = nullptr;
-    wxPanel*      m_overlimit_warning  = nullptr;
-    wxStaticBitmap* m_overlimit_warning_icon = nullptr;
-    Label*        m_overlimit_warning_label = nullptr;
-    wxStaticText* m_overlimit_fix_link = nullptr;
+    Label*        m_unmatched_add_link = nullptr;
     ScalableBitmap m_bmp_unmatched;
     ScalableBitmap m_bmp_brand;
     wxBoxSizer*   m_footer_btn_sizer   = nullptr;
 
     int    m_param_color_count = 4;
     int    m_param_smooth      = 5;
-    double m_param_gap_area    = 0.0; // percent of total mesh area, 0..10
+    double m_param_gap_area    = 0.0; // percent of total mesh area, 0..5
 
     std::unique_ptr<GapPreviewState> m_gap_preview;
 

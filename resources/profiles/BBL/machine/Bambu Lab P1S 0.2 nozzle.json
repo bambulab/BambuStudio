@@ -14,6 +14,7 @@
         "Bambu PLA Basic @BBL X1C 0.2 nozzle"
     ],
     "default_print_profile": "0.10mm Standard @BBL X1C 0.2 nozzle",
+    "farthest_point_timelapse": "0",
     "include": [
         "Bambu Lab P1S 0.2 nozzle template machine_start_gcode"
     ],
@@ -39,6 +40,7 @@
         "Bambu Lab P2S 0.2 nozzle",
         "Bambu Lab H2C 0.2 nozzle",
         "Bambu Lab X2D 0.2 nozzle",
-        "Bambu Lab A2L 0.2 nozzle"
+        "Bambu Lab A2L 0.2 nozzle",
+        "Bambu Lab H3C 0.2 nozzle"
     ]
 }

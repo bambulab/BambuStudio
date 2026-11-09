@@ -15,7 +15,6 @@
 #include <wx/debug.h>
 #include <wx/msgdlg.h>
 
-#include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
 
@@ -27,6 +26,7 @@
 #include "libslic3r/AppConfig.hpp"
 #include "NotificationManager.hpp"
 #include "ExtraRenderers.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace fs = boost::filesystem;
 

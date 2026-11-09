@@ -4,9 +4,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/log/trivial.hpp>
 
 #include "I18N.hpp"
+#include "libslic3r/Log.hpp"
 
 //! macro used to mark string used at localization,
 //! return same string
@@ -120,7 +120,7 @@ void PrintBase::status_update_warnings(int step, PrintStateBase::WarningLevel  w
         m_status_callback(status);
     }
     else if (! message.empty())
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Print warning: %1%\n")% message.c_str();
+        BOOST_LOG_TRIVIAL(info) << boost::format("Print warning: %1%\n")% message.c_str();
 }
 
 //BBS: add PrintObject id into slicing status
@@ -132,7 +132,7 @@ void PrintBase::status_update_warnings(int step, PrintStateBase::WarningLevel wa
         m_status_callback(SlicingStatus(object, step, message, message_id, warning_level));
     }
     else if (!message.empty())
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", PrintObject warning: %1%\n")% message.c_str();
+        BOOST_LOG_TRIVIAL(info) << boost::format("PrintObject warning: %1%\n")% message.c_str();
 }
 
 

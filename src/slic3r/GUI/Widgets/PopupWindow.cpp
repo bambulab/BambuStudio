@@ -1,8 +1,11 @@
 #include "PopupWindow.hpp"
+#include <wx/app.h>
 
 static wxWindow *GetTopParent(wxWindow *pWindow)
 {
     wxWindow *pWin = pWindow;
+    if (!pWin)
+        return nullptr;
     while (pWin->GetParent()) {
         pWin = pWin->GetParent();
         if (auto top = dynamic_cast<wxNonOwnedWindow*>(pWin))
@@ -16,7 +19,16 @@ bool PopupWindow::Create(wxWindow *parent, int style)
     if (!wxPopupTransientWindow::Create(parent, style))
         return false;
 #ifdef __WXGTK__
-    GetTopParent(parent)->Bind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
+    // GTK popups are separate native windows and can outlive their visible
+    // anchor when the app loses focus or a modeless helper is hidden/resized.
+    m_owner = GetTopParent(parent);
+    if (m_owner) {
+        m_owner->Bind(wxEVT_ICONIZE, &PopupWindow::topWindowIconize, this);
+        m_owner->Bind(wxEVT_SHOW, &PopupWindow::topWindowShow, this);
+        m_owner->Bind(wxEVT_MOVE, &PopupWindow::topWindowMove, this);
+        m_owner->Bind(wxEVT_SIZE, &PopupWindow::topWindowSize, this);
+    }
+    wxTheApp->Bind(wxEVT_ACTIVATE_APP, &PopupWindow::appActivate, this);
 #endif
 #ifdef __WXOSX__
     if (style & wxPU_CONTAINS_CONTROLS)
@@ -29,7 +41,14 @@ bool PopupWindow::Create(wxWindow *parent, int style)
 PopupWindow::~PopupWindow()
 {
 #ifdef __WXGTK__
-    GetTopParent(this)->Unbind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
+    if (wxTheApp)
+        wxTheApp->Unbind(wxEVT_ACTIVATE_APP, &PopupWindow::appActivate, this);
+    if (m_owner) {
+        m_owner->Unbind(wxEVT_ICONIZE, &PopupWindow::topWindowIconize, this);
+        m_owner->Unbind(wxEVT_SHOW, &PopupWindow::topWindowShow, this);
+        m_owner->Unbind(wxEVT_MOVE, &PopupWindow::topWindowMove, this);
+        m_owner->Unbind(wxEVT_SIZE, &PopupWindow::topWindowSize, this);
+    }
 #endif
 #ifdef __WXMSW__
     GetTopParent(this)->Unbind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
@@ -38,9 +57,23 @@ PopupWindow::~PopupWindow()
 #endif
 }
 
+void PopupWindow::DismissOnOwnerChange()
+{
+    if (IsShown())
+        DismissAndNotify();
+}
+
 #ifdef __WXOSX__
 
-static wxEvtHandler * HitTest(wxWindow * parent, wxMouseEvent &evt)
+// wxWindow re-declares wxEvtHandler::ProcessEventLocally as protected, and the static type is what
+// the access check looks at. Local dispatch is what we want: a synthesized enter/leave must reach
+// the row and stop there, not carry on up to the popup's parent.
+static void SendLocally(wxWindow *win, wxEvent &evt)
+{
+    static_cast<wxEvtHandler *>(win)->ProcessEventLocally(evt);
+}
+
+static wxWindow * HitTest(wxWindow * parent, wxMouseEvent &evt)
 {
     auto pt = evt.GetPosition();
     const wxWindowList &children = parent->GetChildren();
@@ -57,25 +90,35 @@ static wxEvtHandler * HitTest(wxWindow * parent, wxMouseEvent &evt)
     return nullptr;
 }
 
+void PopupWindow::SetHovered(wxWindow *win)
+{
+    // A reference that went null means the row was destroyed under us -- a refilled popup does
+    // that -- so there is nothing left to send a leave event to; carry on from the popup itself.
+    wxWindow *const previous = hovered ? hovered.get() : this;
+    if (previous == win) return;
+
+    wxMouseEvent leave(wxEVT_LEAVE_WINDOW);
+    leave.SetEventObject(previous);
+    leave.SetId(previous->GetId());
+    SendLocally(previous, leave);
+
+    hovered = win;
+
+    wxMouseEvent enter(wxEVT_ENTER_WINDOW);
+    enter.SetEventObject(win);
+    enter.SetId(win->GetId());
+    SendLocally(win, enter);
+}
+
+void PopupWindow::ClearHovered() { SetHovered(this); }
+
 void PopupWindow::OnMouseEvent2(wxMouseEvent &evt)
 {
-    auto child = ::HitTest(this, evt);
-    if (evt.GetEventType() == wxEVT_MOTION) {
-        auto h = child ? child : this;
-        if (hovered != h) {
-            wxMouseEvent leave(wxEVT_LEAVE_WINDOW);
-            leave.SetEventObject(hovered);
-            leave.SetId(static_cast<wxWindow*>(hovered)->GetId());
-            hovered->ProcessEventLocally(leave);
-            hovered = h;
-            wxMouseEvent enter(wxEVT_ENTER_WINDOW);
-            enter.SetEventObject(hovered);
-            enter.SetId(static_cast<wxWindow*>(hovered)->GetId());
-            hovered->ProcessEventLocally(enter);
-        }
-    }
+    auto *child = ::HitTest(this, evt);
+    if (evt.GetEventType() == wxEVT_MOTION)
+        SetHovered(child ? child : this);
     if (child) {
-        child->ProcessEventLocally(evt);
+        SendLocally(child, evt);
     } else {
         evt.Skip();
     }
@@ -84,9 +127,37 @@ void PopupWindow::OnMouseEvent2(wxMouseEvent &evt)
 #endif
 
 #ifdef __WXGTK__
-void PopupWindow::topWindowActivate(wxActivateEvent &event)
+void PopupWindow::appActivate(wxActivateEvent &event)
 {
     event.Skip();
+    if (!event.GetActive())
+        DismissOnOwnerChange();
+}
+
+void PopupWindow::topWindowIconize(wxIconizeEvent &event)
+{
+    event.Skip();
+    if (event.IsIconized())
+        DismissOnOwnerChange();
+}
+
+void PopupWindow::topWindowShow(wxShowEvent &event)
+{
+    event.Skip();
+    if (!event.IsShown())
+        DismissOnOwnerChange();
+}
+
+void PopupWindow::topWindowMove(wxMoveEvent &event)
+{
+    event.Skip();
+    DismissOnOwnerChange();
+}
+
+void PopupWindow::topWindowSize(wxSizeEvent &event)
+{
+    event.Skip();
+    DismissOnOwnerChange();
 }
 #endif
 
@@ -100,22 +171,23 @@ void PopupWindow::BindUnfocusEvent()
 
 void PopupWindow::topWindowActivate(wxActivateEvent &event)
 {
+    event.Skip();
     if (!event.GetActive())
-        Dismiss();
+        DismissOnOwnerChange();
 }
 
 void PopupWindow::topWindowIconize(wxIconizeEvent &event)
 {
     event.Skip();
     if (event.IsIconized())
-        Dismiss();
+        DismissOnOwnerChange();
 }
 
 void PopupWindow::topWindowShow(wxShowEvent &event)
 {
     event.Skip();
     if (!event.IsShown())
-        Dismiss();
+        DismissOnOwnerChange();
 }
 #endif
 
@@ -127,7 +199,7 @@ void PopupWindow::topWindowShow(wxShowEvent &event)
 WXLRESULT PopupWindow::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
     if (nMsg == WM_ACTIVATEAPP && wParam == FALSE && IsShown())
-        DismissAndNotify();
+        DismissOnOwnerChange();
     return wxPopupTransientWindow::MSWWindowProc(nMsg, wParam, lParam);
 }
 #endif

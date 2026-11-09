@@ -25,41 +25,55 @@
     "fan_min_speed": [
         "0"
     ],
+    "filament_adhesiveness_category": [
+        "798"
+    ],
     "filament_cost": [
         "22.99"
     ],
     "filament_density": [
         "1.06"
     ],
-    "filament_max_volumetric_speed": [
-        "8"
-    ],
-    "filament_type": [
-        "HIPS"
-    ],
-    "filament_adhesiveness_category": [
-        "798"
-    ],
-    "filament_dev_ams_drying_time": [
-        "12",
-        "12",
-        "12",
-        "12"
-    ],
     "filament_dev_ams_drying_heat_distortion_temperature": [
+        "90",
+        "90",
+        "90",
         "90"
-    ],
-    "filament_dev_drying_cooling_temperature": [
-        "75"
     ],
     "filament_dev_ams_drying_temperature": [
         "65",
         "80",
         "65",
+        "75",
+        "80",
+        "75",
+        "65",
+        "65"
+    ],
+    "filament_dev_ams_drying_time": [
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12"
+    ],
+    "filament_dev_drying_cooling_temperature": [
         "75"
     ],
     "filament_dev_drying_softening_temperature": [
+        "80",
+        "80",
+        "95",
         "80"
+    ],
+    "filament_max_volumetric_speed": [
+        "8"
+    ],
+    "filament_type": [
+        "HIPS"
     ],
     "hot_plate_temp": [
         "90"
@@ -105,5 +119,8 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n\n"
+    ],
+    "temperature_vitrification": [
+        "75"
     ]
 }

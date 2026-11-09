@@ -2,13 +2,14 @@
 
 #include <string>
 #include <ctime>
+#include <mutex>
 #include <unordered_set>
 
 #include <boost/log/sinks/basic_sink_backend.hpp>
 #include <boost/log/sinks/sync_frontend.hpp>
 #include <boost/log/utility/setup.hpp>
 
-#include "Utils.hpp"
+#include "Log.hpp"
 
 namespace Slic3r
 {
@@ -39,6 +40,13 @@ public:
     bool update_enc_option(const std::string& base_path, const LogEncOptions& options);
     void consume(const boost::log::record_view& rec, const std::string& formatted_message);
 
+    /**
+     * \brief Whether this thread is writing a record to the log file right now
+     *
+     * Anything this thread logs meanwhile is dropped, since logging from inside the sink would deadlock.
+     */
+    static bool is_consuming_on_this_thread();
+
     // Debug function, decode AES-256 encrypted log file
     static bool DecodeAES256LogFile(const std::string& file_path,
                                     const std::string& output_path,
@@ -65,7 +73,7 @@ class LogSinkUtil
 {
 public:
     LogSinkUtil() = delete;
-    static std::string get_log_filaname_format(const LogEncOptions& enc_opts);
+    static std::string get_log_filename_format(const std::string& log_dir, const LogEncOptions& enc_opts);
 };
 
 typedef boost::log::sinks::synchronous_sink<LogSinkBackend> LogSink;

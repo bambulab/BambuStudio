@@ -22,7 +22,11 @@
         "12",
         "4",
         "12",
-        "4"
+        "4",
+        "4",
+        "4",
+        "12",
+        "12"
     ],
     "filament_flow_ratio": [
         "0.95"
@@ -36,6 +40,9 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
+    "fins_extrude_safe_temp": [
+        "100"
+    ],
     "nozzle_temperature_range_high": [
         "270"
     ],
@@ -43,6 +50,6 @@
         "12"
     ],
     "temperature_vitrification": [
-        "90"
+        "75"
     ]
 }

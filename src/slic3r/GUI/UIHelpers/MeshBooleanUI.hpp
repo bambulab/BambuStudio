@@ -55,6 +55,7 @@ public:
     BooleanTargetMode get_target_mode() const { return m_target_mode; }
     bool get_keep_original_models() const { return m_keep_original_models; }
     bool get_entity_only() const { return m_entity_only; }
+    bool get_preserve_color() const { return m_preserve_color; }
 
     // Set UI state
     void set_operation_mode(MeshBooleanOperation mode) { m_operation_mode = mode; }
@@ -62,6 +63,7 @@ public:
     void set_target_mode(BooleanTargetMode mode) { m_target_mode = mode; }
     void set_keep_original_models(bool keep) { m_keep_original_models = keep; }
     void set_entity_only(bool entity_only) { m_entity_only = entity_only; }
+    void set_preserve_color(bool preserve_color) { m_preserve_color = preserve_color; }
 
     // External components access (injected dependencies)
     void set_volume_manager(VolumeListManager* manager) { m_volume_manager = manager; }
@@ -77,6 +79,7 @@ public:
     std::function<bool()> is_async_enabled;
     std::function<bool()> is_async_busy;
     std::function<float()> get_async_progress;
+    std::function<std::string()> get_async_status; // current phase; empty = derive it from the progress
     std::function<void()> on_cancel_async_operation;
 
     // UI state queries
@@ -96,6 +99,7 @@ private:
     BooleanTargetMode m_target_mode;
     bool m_keep_original_models;
     bool m_entity_only;
+    bool m_preserve_color;
     bool m_is_dark_mode;
 
     // External dependencies (injected)

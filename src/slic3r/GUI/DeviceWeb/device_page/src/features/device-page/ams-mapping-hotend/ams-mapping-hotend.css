@@ -1,0 +1,822 @@
+/* "Send to print" filament mapping popup — Web implementation.
+ *
+ * Figma reference: node-id=5605-2876 / 8936:31276 in
+ *   Bambu Studio 开源2025 (https://www.figma.com/design/3agospssuBDKZagQ1lDoz6).
+ *
+ * Card size: 104x140 per Figma "耗材匹配卡片".
+ */
+
+.ams-map-hotend-page {
+  --slot-width: 104px;
+  --slot-height: 140px;
+  --slot-gap: 16px;
+  --color-card-bg: #f8f8f8;
+  --color-card-border: #e0e0e0;
+  --color-card-border-active: #00ae42;
+  --color-card-border-unmatch: #ea1f30;
+  --color-disabled-overlay: rgba(255, 255, 255, 0.7);
+  --color-text-primary: #262e30;
+  --color-text-secondary: #acacac;
+  --color-brand: #00ae42;
+  --color-pill-bg: #eeeeee;
+  /* Spool ring structural (non-filament) colors; themed via the dark override
+     below. The filament color content itself is never themed. */
+  --spool-surface: #ffffff; /* base / gaps / center hole */
+  --spool-frame: #909090; /* grey-600 outer + inner frame */
+  --spool-track: #eeeeee; /* grey-300 consumed amount */
+  /* Extra chrome colors that were previously hard-coded; declared here so the
+     dark override can retint them in one place. */
+  --color-page-bg: #ffffff;
+  --color-radio-bg: #ffffff;
+  --color-divider: #e0e0e0;
+  --color-hover-bg: #f0f0f0;
+  --color-edit-hover-bg: rgba(0, 0, 0, 0.06);
+  --color-group-bg: #ebebeb;
+  --color-group-border: #dbdbdb;
+  --color-group-inner-bg: #ffffff;
+  --color-group-name: #858585;
+  --color-warning-bg: #fff7e6;
+  --color-warning-border: #ffd591;
+  --color-warning-text: #ea6e00;
+  --color-tip-text: #ea6e00;
+  --color-wiki-text: #ff6f00;
+  --color-tips-bg: #fff7e6;
+  --color-count-text: #a3a3a3;
+
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  /* Bottom is 0: the popup height is reported as (Wiki tip bottom +
+     CONTENT_BOTTOM_GAP), so that gap is the actual space below the Wiki tip. */
+  padding: 12px 16px 0;
+  background: var(--color-page-bg);
+  overflow-x: hidden;
+  /* When the popup content exceeds the host-imposed cap (MAPPING_PAGE_MAX_HEIGHT
+     in hostContentSize.ts, e.g. many sub-AMS groups), let the whole page scroll
+     vertically rather than silently clipping at the bottom. */
+  overflow-y: auto;
+  color: var(--color-text-primary);
+  font-family: "HarmonyOS Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+
+.ams-map-hotend-page__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ams-map-hotend-page__row-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.ams-map-hotend-page__row {
+  display: flex;
+  flex-direction: row;
+  gap: var(--slot-gap);
+  justify-content: flex-start;
+}
+
+.ams-map-hotend-page__row--centered {
+  justify-content: center;
+}
+
+/* ---------- Slot card (104x140) ---------- */
+
+.ams-map-hotend__slot-card {
+  position: relative;
+  width: var(--slot-width);
+  height: var(--slot-height);
+  background: var(--color-card-bg);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px;
+  gap: 4px;
+  box-sizing: border-box;
+  transition: border-color 120ms ease;
+}
+
+/* Normal is the only pickable state (see ComputePickable on the C++ side), so
+   key the hover affordance off it rather than enumerating every fault state. */
+.ams-map-hotend__slot-card[data-state="Normal"]:hover {
+  border-color: var(--color-card-border);
+}
+
+.ams-map-hotend__slot-card:focus-visible {
+  outline: 2px solid #1e88e5;
+  outline-offset: 2px;
+}
+
+/* Frontend collapses every "non-pickable" backend state into a single muted
+   variant so users only have to read two visual modes (pickable vs not).
+   Backend keeps the granular states (NozzleUnmatch / NozzleEmpty / etc.) for
+   business logic; we just don't surface them in opacity here. */
+.ams-map-hotend__slot-card:not([data-state="Normal"]) {
+  cursor: default;
+}
+
+/* A hotend that cannot reach the mainboard is the one fault the user can act
+   on from here: clicking opens the HMS prompt. */
+.ams-map-hotend__slot-card[data-nozzle-error="true"] {
+  cursor: pointer;
+}
+
+/* Dim per content block, not the card root: the edit button, the swap icon and
+   the hotend fault badge stay at full strength, and a descendant cannot raise
+   its opacity above its parent. */
+.ams-map-hotend__slot-card:not([data-state="Normal"]) :is(
+  .ams-map-hotend__slot-card__head,
+  .spool-ring,
+  .ams-map-hotend__slot-card__material-name,
+  .ams-map-hotend__slot-card__divider,
+  .ams-map-hotend__nozzle-info__icon,
+  .ams-map-hotend__nozzle-info__text
+) {
+  opacity: 0.4;
+}
+
+/* CardHead: index pill + radio */
+
+.ams-map-hotend__slot-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 16px;
+}
+
+.ams-map-hotend__slot-card__pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  max-width: 50px;
+  height: 14px;
+  padding: 0 2px;
+  background: var(--color-pill-bg);
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 16px;
+}
+
+.ams-map-hotend__slot-card__pill-ext {
+  margin-left: 2px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+.ams-map-hotend__slot-card__pill:is(
+  [data-state="NozzleLost"],
+  [data-state="NozzleUncalibrated"],
+  [data-state="NozzleError"],
+  [data-state="NozzleUnknown"]
+) {
+  color: var(--color-text-secondary);
+}
+
+.ams-map-hotend__slot-card__radio {
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--color-card-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-radio-bg);
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.ams-map-hotend__slot-card__radio[data-checked="true"] {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+}
+
+/* Spool area: ring + name */
+
+.ams-map-hotend__slot-card__spool-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 72px;
+}
+
+.ams-map-hotend__slot-card__spool-area .spool-ring {
+  display: block;
+}
+
+.ams-map-hotend__slot-card__material-name {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-primary);
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Material name + inline edit pencil sit on one centered row (see image 2). */
+.ams-map-hotend__slot-card__material-row,
+.ams-map-hotend__sub-card__name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+}
+
+.ams-map-hotend__slot-card__material-row .ams-map-hotend__slot-card__material-name,
+.ams-map-hotend__sub-card__name-row .ams-map-hotend__sub-card__name {
+  width: auto;
+  max-width: calc(100% - 18px);
+}
+
+/* Inline edit (pencil) entry for third-party filament. Always actionable —
+   even on a disabled card it keeps full opacity and pointer events so the
+   user can re-edit an already-set but mismatched third-party spool. */
+.ams-map-hotend__slot-card__edit-btn,
+.ams-map-hotend__sub-card__edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 19px;
+  height: 19px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  pointer-events: auto;
+  border-radius: 3px;
+  opacity: 1;
+}
+
+.ams-map-hotend__slot-card__edit-btn:hover,
+.ams-map-hotend__sub-card__edit-btn:hover {
+  color: var(--color-text-primary);
+  background: var(--color-edit-hover-bg);
+}
+
+/* Divider */
+
+.ams-map-hotend__slot-card__divider {
+  width: 100%;
+  height: 0;
+  border-top: 0.5px solid var(--color-divider);
+}
+
+/* Nozzle info (inside card, flow layout) */
+
+.ams-map-hotend__nozzle-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 96px;
+}
+
+/* Anchors the fault badge over the glyph. Fixed at the Figma 18x24 nozzle cell
+   so the text column keeps the same left edge whether or not a badge shows. */
+.ams-map-hotend__nozzle-info__glyph {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.ams-map-hotend__nozzle-info__icon {
+  width: 12px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+/* Deliberately outside the opacity:0.4 dim applied to the rest of the card:
+   the fault is the one thing that must stay legible on a disabled card. */
+.ams-map-hotend__nozzle-info__badge {
+  position: absolute;
+  left: 50%;
+  bottom: 1px;
+  width: 14px;
+  height: 14px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* Cutter / pen glyphs use an 18x24 viewBox (vs the nozzle's 12x24), so widen
+   the box to keep their aspect ratio instead of squishing them into 12px. */
+.ams-map-hotend__nozzle-info__icon--tool {
+  width: 18px;
+}
+
+.ams-map-hotend__nozzle-info__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 16px;
+  min-width: 0;
+  max-width: 80px;
+}
+
+.ams-map-hotend__nozzle-info__dia {
+  font-size: 12px;
+  /* Match the material-name color on the same card: the entire pickable card
+     reads in one tone, while the unified opacity:0.4 on non-pickable cards
+     drops it into a single muted variant — that gives us the strongest
+     pickable-vs-non-pickable contrast without per-state special casing. */
+  color: var(--color-text-primary);
+  text-align: center;
+}
+
+.ams-map-hotend__nozzle-info__flow {
+  font-size: 12px;
+  /* Same intent as __dia above. */
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+/* Single-line placeholder when no rack nozzle is bound (NozzleEmpty).
+   Line-height matches the combined height of __dia + __flow (16 + 16) so the
+   card footer stays the same height as Normal / Unmatch siblings. */
+.ams-map-hotend__nozzle-info__empty {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 32px;
+}
+
+/* Single-line label for cutter / pen tools. Same vertical rhythm as __empty so
+   the card footer height matches Normal / Unmatch siblings. */
+.ams-map-hotend__nozzle-info__tool {
+  font-size: 12px;
+  color: var(--color-text-primary);
+  text-align: center;
+  line-height: 32px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Single-line label for a hotend the device cannot describe (NozzleError /
+   NozzleUnknown). Same vertical rhythm as __empty so the card footer height
+   matches Normal / Unmatch siblings. */
+.ams-map-hotend__nozzle-info__fault {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 32px;
+  white-space: nowrap;
+}
+
+/* Spool wrapper (relative container for swap icon overlay) */
+
+.ams-map-hotend__slot-card__spool-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.ams-map-hotend__slot-card__swap-icon {
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  opacity: 1;
+  line-height: 0;
+}
+
+/* ---------- Sub-AMS badge on SlotCard ---------- */
+
+.ams-map-hotend__slot-card__head-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ams-map-hotend__sub-ams-badge {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ams-map-hotend__sub-ams-badge__count {
+  font-size: 12px;
+  color: var(--color-count-text);
+}
+
+/* ---------- Sub-AMS full-page selection ---------- */
+
+.ams-map-hotend__sub-ams-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: var(--color-page-bg);
+}
+
+.ams-map-hotend__sub-ams-page__back {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  padding: 0 8px 6px 4px;
+  margin: 0 0 0 12px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.ams-map-hotend__sub-ams-page__back:hover {
+  background: var(--color-hover-bg);
+}
+
+.ams-map-hotend__sub-ams-page__body {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 8px 16px 0;
+  /* Allow inner overflow-y child (__groups) to shrink and scroll. */
+  min-height: 0;
+}
+
+/* Top warning banner: shown when the checked source is a non-Ext (AMS) slot,
+   reminding the user to manually pull the external filament for a change-over. */
+.ams-map-hotend__sub-ams-page__warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--color-warning-text);
+}
+
+.ams-map-hotend__sub-ams-page__warning svg {
+  flex-shrink: 0;
+}
+
+/* Divider between the AMS (top) and the external-spool (bottom) sections. */
+.ams-map-hotend__sub-ams-page__section-divider {
+  height: 0;
+  border-top: 0.5px solid var(--color-divider);
+  margin: 12px 16px;
+}
+
+/* Bottom section that hosts the external-spool (Ext) source card. */
+.ams-map-hotend__sub-ams-page__ext-section {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  padding: 0 16px;
+}
+
+.ams-map-hotend__sub-ams-page__parent {
+  flex-shrink: 0;
+}
+
+.ams-map-hotend__sub-ams-page__groups {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* A multi-slot unit (e.g. the 4-slot AMS 2 Pro) always takes a row of its own. */
+.ams-map-hotend__sub-ams-page__group {
+  flex: 0 0 100%;
+  box-sizing: border-box;
+  background: var(--color-group-bg);
+  border: 1px solid var(--color-group-border);
+  border-radius: 7.5px;
+  overflow: hidden;
+}
+
+/* Single-slot units (AMS HT) share a row, three at most, each keeping its own
+   border and name label. */
+.ams-map-hotend__sub-ams-page__group[data-single-slot="true"] {
+  flex: 0 0 calc((100% - 24px) / 3);
+}
+
+.ams-map-hotend__sub-ams-page__group-inner {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  background: var(--color-group-inner-bg);
+  padding: 10px 16px;
+  flex-wrap: nowrap;
+}
+
+.ams-map-hotend__sub-ams-page__group-inner > .ams-map-hotend__sub-card {
+  flex-shrink: 0;
+}
+
+.ams-map-hotend__sub-ams-page__group-name {
+  font-size: 12px;
+  color: var(--color-group-name);
+  padding: 6px 16px 8px;
+}
+
+.ams-map-hotend__sub-ams-page__tip {
+  font-size: 12px;
+  color: var(--color-tip-text);
+  padding: 12px 16px 8px;
+  flex-shrink: 0;
+}
+
+.ams-map-hotend__sub-ams-page__tip-label {
+  color: var(--color-tip-text);
+  font-weight: 600;
+}
+
+/* ---------- Sub-AMS card (104x112, no nozzle row) ---------- */
+
+.ams-map-hotend__sub-card {
+  position: relative;
+  width: 104px;
+  height: 112px;
+  background: var(--color-card-bg);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px;
+  gap: 4px;
+  box-sizing: border-box;
+  transition: border-color 120ms ease;
+}
+
+.ams-map-hotend__sub-card:hover:not(.ams-map-hotend__sub-card--parent) {
+  border-color: var(--color-card-border);
+}
+
+.ams-map-hotend__sub-card--parent {
+  cursor: default;
+  background: var(--color-group-inner-bg);
+}
+
+/* Parent card becomes clickable in the preload-differs scenario. */
+.ams-map-hotend__sub-card--parent[data-clickable="true"] {
+  cursor: pointer;
+}
+
+.ams-map-hotend__sub-card--parent[data-clickable="true"]:hover {
+  border-color: var(--color-card-border);
+}
+
+/* Ext tag inside the sub-card pill (parent variant) mirrors SlotCard. */
+.ams-map-hotend__sub-card__pill-ext {
+  margin-left: 2px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+.ams-map-hotend__sub-card:focus-visible {
+  outline: 2px solid #1e88e5;
+  outline-offset: 2px;
+}
+
+.ams-map-hotend__sub-card:not([data-state="Normal"]) {
+  cursor: default;
+}
+
+/* Same content-only dim as the main card so the sub-card edit pencil stays
+   fully legible and clickable on a non-pickable third-party sub slot. */
+.ams-map-hotend__sub-card:not([data-state="Normal"]) :is(
+  .ams-map-hotend__sub-card__head,
+  .ams-map-hotend__sub-card__name,
+  .spool-ring
+) {
+  opacity: 0.5;
+}
+
+/* Locked preload card (scenario 3): a valid-material AMS slot that is only
+   display-only because the hotend still feeds from the external spool. State
+   stays Normal, so key the dim off data-pickable and keep the edit pencil
+   legible like the state-based dim above. */
+.ams-map-hotend__sub-card[data-pickable="false"] {
+  cursor: default;
+}
+
+.ams-map-hotend__sub-card[data-pickable="false"]:hover:not(.ams-map-hotend__sub-card--parent) {
+  border-color: transparent;
+}
+
+.ams-map-hotend__sub-card[data-pickable="false"] :is(
+  .ams-map-hotend__sub-card__head,
+  .ams-map-hotend__sub-card__name,
+  .spool-ring
+) {
+  opacity: 0.5;
+}
+
+.ams-map-hotend__sub-card[data-checked="true"] {
+  border-color: var(--color-card-border-active);
+}
+
+.ams-map-hotend__sub-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 16px;
+}
+
+.ams-map-hotend__sub-card__pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 2px;
+  background: var(--color-pill-bg);
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.ams-map-hotend__sub-card__radio {
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--color-card-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-radio-bg);
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.ams-map-hotend__sub-card__radio[data-checked="true"] {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+}
+
+.ams-map-hotend__sub-card__spool-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 72px;
+}
+
+.ams-map-hotend__sub-card__name {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-primary);
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Reset button ---------- */
+
+.ams-map-hotend__reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--color-card-border);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.ams-map-hotend__reset-btn:hover {
+  background: var(--color-hover-bg);
+}
+
+.ams-map-hotend__reset-btn__icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---------- Tips ---------- */
+
+.ams-map-hotend__tips {
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: var(--color-tips-bg);
+  color: var(--color-wiki-text);
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+/* Clickable bottom Wiki hint, shared by the main page and the sub-AMS page. */
+.ams-map-hotend__wiki-tip {
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 400;
+  color: var(--color-wiki-text);
+  /* Top padding is the gap above the Wiki tip (to the material cards): 12 + 4. */
+  padding: 16px 16px 8px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.ams-map-hotend__wiki-tip__label {
+  color: var(--color-wiki-text);
+  font-weight: 600;
+}
+
+/* Link portion follows the design: 14px / weight 400 / #FF6F00 / underline. */
+.ams-map-hotend__wiki-tip__link {
+  color: var(--color-wiki-text);
+  font-weight: 400;
+  text-decoration: underline;
+}
+
+/* Custom hover tip. Colours match the wx mapping popup tip
+   (AmsMapingPopup::on_mouse_move: white background, black text). 288px is the
+   wrap cap; shorter copy stays on one line. */
+.ams-map-hotend__hover-tip {
+  position: fixed;
+  z-index: 20;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 288px;
+  padding: 4px;
+  border: 1px solid #d0d0d0;
+  background: #ffffff;
+  color: #000000;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  pointer-events: none;
+}
+
+/* ---------- Dark mode ----------
+ * Mirrors the wx popup: only the popup chrome (surfaces / borders / text /
+ * spool frame) is retinted; the filament color content is kept as-is. The
+ * host reports its theme in the mapping state (`theme`), which the bridge
+ * mirrors onto <html data-theme>. Values follow the shared device_page dark
+ * palette (see styles.css [data-theme="dark"]). */
+[data-theme="dark"] .ams-map-hotend-page {
+  --color-card-bg: #3a3a3e;
+  --color-card-border: #55555a;
+  --color-disabled-overlay: rgba(0, 0, 0, 0.5);
+  --color-text-primary: #e5e5e5;
+  --color-text-secondary: #8a8a8a;
+  --color-pill-bg: rgba(255, 255, 255, 0.10);
+
+  /* Spool ring: hole/gaps blend into the card, frame + track stay visible. */
+  --spool-surface: #3a3a3e;
+  --spool-frame: #7a7a7f;
+  --spool-track: #55555a;
+
+  /* Chrome */
+  --color-page-bg: #2d2d31;
+  --color-radio-bg: rgba(255, 255, 255, 0.06);
+  --color-divider: rgba(255, 255, 255, 0.12);
+  --color-hover-bg: rgba(255, 255, 255, 0.08);
+  --color-edit-hover-bg: rgba(255, 255, 255, 0.10);
+  --color-group-bg: rgba(255, 255, 255, 0.06);
+  --color-group-border: rgba(255, 255, 255, 0.12);
+  --color-group-inner-bg: #35353a;
+  --color-group-name: #9a9a9a;
+  --color-warning-bg: rgba(255, 159, 26, 0.12);
+  --color-warning-border: rgba(255, 159, 26, 0.32);
+  --color-warning-text: #ffb454;
+  --color-tip-text: #ff9f4d;
+  --color-wiki-text: #ff8f2e;
+  --color-tips-bg: rgba(255, 159, 26, 0.12);
+  --color-count-text: #9a9a9a;
+}

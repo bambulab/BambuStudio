@@ -12,6 +12,7 @@
 
 #include <wx/bmpcbox.h>
 #include <wx/dc.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -370,7 +371,7 @@ bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)
         m_action_icon << variant;
         return true;
     default:
-        printf("MyObjectTreeModel::SetValue: wrong column");
+        BOOST_LOG_TRIVIAL(error) << "wrong column";
     }
     return false;
 }
@@ -1296,30 +1297,15 @@ void ObjectDataViewModel::DeleteSettings(const wxDataViewItem& parent)
 {
     ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(parent.GetID());
     if (!node) return;
-#if NEW_OBJECT_SETTING
     node->set_action_icon(false);
     ItemChanged(parent);
-#else
-    // if volume has a "settings"item, than delete it before volume deleting
-    if (node->GetChildCount() > 0 && node->GetNthChild(0)->GetType() == itSettings) {
-        auto settings_node = node->GetNthChild(0);
-        auto settings_item = wxDataViewItem(settings_node);
-        node->GetChildren().RemoveAt(0);
-        delete settings_node;
-        // BBS
-        if (node->GetChildCount() == 0) {
-            node->m_container = false;
-        }
-        ItemDeleted(parent, settings_item);
-    }
-#endif
 }
 
 wxDataViewItem ObjectDataViewModel::GetItemById(int obj_idx)
 {
     if (size_t(obj_idx) >= m_objects.size())
 	{
-		printf("Error! Out of objects range.\n");
+		BOOST_LOG_TRIVIAL(error) << "Out of objects range.";
 		return wxDataViewItem(0);
 	}
 	return wxDataViewItem(m_objects[obj_idx]);
@@ -1350,7 +1336,7 @@ void ObjectDataViewModel::SetCurSelectedPlateFullName(int plate_idx, const std::
 wxDataViewItem ObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volume_idx)
 {
     if (size_t(obj_idx) >= m_objects.size()) {
-		printf("Error! Out of objects range.\n");
+		BOOST_LOG_TRIVIAL(error) << "Out of objects range.";
 		return wxDataViewItem(0);
 	}
 
@@ -1360,7 +1346,7 @@ wxDataViewItem ObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volume_id
         if (volume_idx == 0)
             return GetItemById(obj_idx);
 
-        printf("Error! Object has no one volume.\n");
+        BOOST_LOG_TRIVIAL(error) << "Object has no one volume.";
         return wxDataViewItem(0);
     }
 
@@ -1376,7 +1362,7 @@ wxDataViewItem ObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volume_id
 wxDataViewItem ObjectDataViewModel::GetItemById(const int obj_idx, const int sub_obj_idx, const ItemType parent_type)
 {
     if (size_t(obj_idx) >= m_objects.size()) {
-        printf("Error! Out of objects range.\n");
+        BOOST_LOG_TRIVIAL(error) << "Out of objects range.";
         return wxDataViewItem(0);
     }
 
@@ -1405,7 +1391,7 @@ wxDataViewItem ObjectDataViewModel::GetItemByLayerId(int obj_idx, int layer_idx)
 wxDataViewItem ObjectDataViewModel::GetItemByLayerRange(const int obj_idx, const t_layer_height_range& layer_range)
 {
     if (size_t(obj_idx) >= m_objects.size()) {
-        printf("Error! Out of objects range.\n");
+        BOOST_LOG_TRIVIAL(error) << "Out of objects range.";
         return wxDataViewItem(0);
     }
 
@@ -1517,7 +1503,7 @@ bool ObjectDataViewModel::UpdateColumValues(unsigned col)
         return true;
     }
     default:
-        printf("MyObjectTreeModel::SetValue: wrong column");
+        BOOST_LOG_TRIVIAL(error) << "wrong column";
     }
     return false;
 }

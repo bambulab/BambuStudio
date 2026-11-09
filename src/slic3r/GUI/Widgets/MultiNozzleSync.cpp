@@ -1,11 +1,14 @@
 #include "MultiNozzleSync.hpp"
 #include "../GUI_App.hpp"
 #include "../Plater.hpp"
+#include "../Tab.hpp"
 #include "../DeviceCore/DevConfigUtil.h"
 #include "../DeviceCore/DevManager.h"
+#include "StateColor.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/LocalesUtils.hpp"
 #include <wx/sizer.h>
+#include "libslic3r/Log.hpp"
 
 
 namespace Slic3r::GUI{
@@ -15,7 +18,7 @@ wxDEFINE_EVENT(EVT_NOZZLE_SELECTED, wxCommandEvent);
 static const int LeftExtruderIdx = 0;
 static const int RightExtruderIdx = 1;
 
-ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeType volume_type, int standard_count, int highflow_count, int e3d_count, int max_nozzle_count, bool force_no_zero,
+ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeType volume_type, int standard_count, int highflow_count, int tpu_count, int e3d_count, int max_nozzle_count, bool force_no_zero,
                                                  const std::set<NozzleVolumeType> &supported_types)
     : GUI::DPIDialog(parent, wxID_ANY, _L("Set nozzle count"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX), m_volume_type(volume_type)
 {
@@ -48,6 +51,7 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeT
 
     bool show_standard = (volume_type == nvtStandard) || (volume_type == nvtHybrid && supported(nvtStandard));
     bool show_highflow = (volume_type == nvtHighFlow) || (volume_type == nvtHybrid && supported(nvtHighFlow));
+    bool show_tpu      = (volume_type == nvtTPUHighFlow || volume_type == nvtTPU285) || (volume_type == nvtHybrid && (supported(nvtTPUHighFlow) || supported(nvtTPU285)));
     bool show_e3d      = (volume_type == nvtE3DHighFlow) || (volume_type == nvtHybrid && supported(nvtE3DHighFlow));
 
     if (show_standard) {
@@ -72,6 +76,16 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeT
         choice_sizer->Add(m_highflow_choice, 0, wxLEFT | wxBOTTOM | wxRIGHT, FromDIP(10));
     }
 
+    if (show_tpu) {
+        auto *tpu_label = new wxStaticText(content, wxID_ANY, _L("TPU"));
+        choice_sizer->Add(tpu_label, 0, wxALL | wxALIGN_LEFT, FromDIP(5));
+
+        m_tpu_choice = new wxChoice(content, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(100), -1), nozzle_choices);
+        m_tpu_choice->SetSelection(tpu_count);
+        m_tpu_choice->SetBackgroundColour(*wxWHITE);
+        choice_sizer->Add(m_tpu_choice, 0, wxLEFT | wxBOTTOM | wxRIGHT, FromDIP(10));
+    }
+
     if (show_e3d) {
         // E3D High Flow nozzle choice
         auto *e3d_label = new wxStaticText(content, wxID_ANY, _L(get_nozzle_volume_type_string(nvtE3DHighFlow)));
@@ -92,6 +106,7 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeT
         int total = 0;
         if (m_standard_choice) total += m_standard_choice->GetSelection();
         if (m_highflow_choice) total += m_highflow_choice->GetSelection();
+        if (m_tpu_choice)      total += m_tpu_choice->GetSelection();
         if (m_e3d_choice)      total += m_e3d_choice->GetSelection();
         return total;
     };
@@ -105,7 +120,7 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeT
             this->Layout();
             this->Fit();
             content->Thaw();
-        } else if (total_count == 0 && force_no_zero || total_count > max_nozzle_count) {
+        } else if ((total_count == 0 && force_no_zero) || total_count > max_nozzle_count) {
             wxString error_tip;
             if (total_count == 0)
                 error_tip = _L("Error: Can not set both nozzle count to zero.");
@@ -127,6 +142,8 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeT
         m_standard_choice->Bind(wxEVT_CHOICE, update_nozzle_error);
     if (m_highflow_choice)
         m_highflow_choice->Bind(wxEVT_CHOICE, update_nozzle_error);
+    if (m_tpu_choice)
+        m_tpu_choice->Bind(wxEVT_CHOICE, update_nozzle_error);
     if (m_e3d_choice)
         m_e3d_choice->Bind(wxEVT_CHOICE, update_nozzle_error);
 
@@ -156,15 +173,18 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeT
 
 int ManualNozzleCountDialog::GetNozzleCount(NozzleVolumeType volume_type) const
 {
-    if(volume_type == nvtStandard)
+    if (volume_type == nvtStandard)
         return m_standard_choice ? m_standard_choice->GetSelection() : 0;
-    else if(volume_type == nvtHighFlow)
+    else if (volume_type == nvtHighFlow)
         return m_highflow_choice ? m_highflow_choice->GetSelection() : 0;
+    else if (volume_type == nvtTPUHighFlow || volume_type == nvtTPU285)
+        return m_tpu_choice ? m_tpu_choice->GetSelection() : 0;
     else if (volume_type == nvtE3DHighFlow)
         return m_e3d_choice ? m_e3d_choice->GetSelection() : 0;
     else if (volume_type == nvtHybrid)
         return (m_standard_choice ? m_standard_choice->GetSelection() : 0)
              + (m_highflow_choice ? m_highflow_choice->GetSelection() : 0)
+             + (m_tpu_choice ? m_tpu_choice->GetSelection() : 0)
              + (m_e3d_choice ? m_e3d_choice->GetSelection() : 0);
     return 0;
 }
@@ -183,13 +203,15 @@ void manuallySetNozzleCount(int extruder_id)
     ConfigOptionEnumsGeneric* nozzle_volume_type_opt = full_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     NozzleVolumeType volume_type = NozzleVolumeType(nozzle_volume_type_opt->values[extruder_id]);
     double nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[extruder_id];
-    int standard_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, nvtStandard);
-    int highflow_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, nvtHighFlow);
-    int e3d_count      = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, nvtE3DHighFlow);
+    const NozzleInventory &nozzles = preset_bundle->nozzle_inventory;
+    int standard_count = nozzles.count(extruder_id, nvtStandard);
+    int highflow_count = nozzles.count(extruder_id, nvtHighFlow);
+    int tpu_count      = nozzles.count(extruder_id, nvtTPUHighFlow) + nozzles.count(extruder_id, nvtTPU285);
+    int e3d_count      = nozzles.count(extruder_id, nvtE3DHighFlow);
 
     bool force_no_zero = volume_type == nvtHybrid;
     if(nozzle_volume_type_opt->values.size() > 1){
-        int other_nozzle_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1 - extruder_id);
+        int other_nozzle_count = nozzles.count(1 - extruder_id);
         force_no_zero |= (other_nozzle_count == 0);
     }
 
@@ -199,20 +221,20 @@ void manuallySetNozzleCount(int extruder_id)
     const std::set<NozzleVolumeType> supported_types =
         get_extruder_supported_nozzle_volume_types(preset_bundle->printers.get_edited_preset().config, extruder_id);
 
-    ManualNozzleCountDialog dialog(GUI::wxGetApp().plater(), volume_type, standard_count, highflow_count, e3d_count, extruder_max_nozzle_count->values[extruder_id], force_no_zero,
+    ManualNozzleCountDialog dialog(GUI::wxGetApp().plater(), volume_type, standard_count, highflow_count, tpu_count, e3d_count, extruder_max_nozzle_count->values[extruder_id], force_no_zero,
                                    supported_types);
 
     if (dialog.ShowModal() == wxID_OK) {
-        int nozzle_count = dialog.GetNozzleCount(volume_type);
+        std::map<NozzleVolumeType, int> counts;
         if (volume_type == nvtHybrid) {
-            setExtruderNozzleCount(preset_bundle, extruder_id, nvtStandard, dialog.GetNozzleCount(nvtStandard), true);
-            setExtruderNozzleCount(preset_bundle, extruder_id, nvtHighFlow, dialog.GetNozzleCount(nvtHighFlow), false);
-            setExtruderNozzleCount(preset_bundle, extruder_id, nvtE3DHighFlow, dialog.GetNozzleCount(nvtE3DHighFlow), false);
+            for (NozzleVolumeType type : {nvtStandard, nvtHighFlow, nvtTPUHighFlow, nvtE3DHighFlow})
+                counts[type] = dialog.GetNozzleCount(type);
+        } else {
+            counts[volume_type] = dialog.GetNozzleCount(volume_type);
         }
-        else {
-            setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, true);
-        }
-        updateNozzleCountDisplay(preset_bundle, extruder_id, volume_type);
+        preset_bundle->nozzle_inventory.user_set_counts(extruder_id, counts);
+        if (auto *printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER)))
+            printer_tab->on_nozzles_changed(extruder_id);
         wxGetApp().plater()->update();
     }
 }
@@ -367,7 +389,7 @@ HotEndTable::HotEndTable(wxWindow* parent) :  wxPanel(parent, wxID_ANY, wxDefaul
     m_brow_nozzle_box = CreateNozzleBox({ 1,3,5 });
     main_sizer->Add(label, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxBOTTOM, FromDIP(5));
     main_sizer->Add(m_arow_nozzle_box, 0, wxLEFT | wxRIGHT, FromDIP(5));
-    main_sizer->Add(m_brow_nozzle_box, 0, wxLEFT | wxRIGHT, FromDIP(5));
+    main_sizer->Add(m_brow_nozzle_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
     SetBackgroundColour("#F8F8F8");
 
     SetSizer(main_sizer);
@@ -448,8 +470,8 @@ void HotEndTable::MarkRelatedItems(const NozzleOption& option)
 
 void HotEndTable::UnMarkRelatedItems(const NozzleOption& option)
 {
-    static const wxColour bg_color("#EEEEEE");
-    static const wxColour bd_color("#CECECE");
+    static const wxColour bg_color(ThemeColor::White);
+    static const wxColour bd_color(ThemeColor::Grey400);
     const static StateColor bg_green(
         std::pair<wxColour, int>(bg_color, StateColor::Normal)
     );
@@ -484,9 +506,9 @@ StaticBox* HotEndTable::CreateNozzleBox(const std::vector<int>& nozzle_indices)
     wxSizer* h_sizer = new wxBoxSizer(wxHORIZONTAL);
     for (auto idx : nozzle_indices) {
         wgtDeviceNozzleRackNozzleItem* nozzle_item = new wgtDeviceNozzleRackNozzleItem(nozzle_box, idx);
-        nozzle_item->SetBackgroundColorNormal("#EEEEEE");
+        nozzle_item->SetBackgroundColorNormal(ThemeColor::White);
         for (auto& child : nozzle_item->GetChildren())
-            child->SetBackgroundColour("#EEEEEE");
+            child->SetBackgroundColour(ThemeColor::White);
         m_nozzle_items[idx] = nozzle_item;
         h_sizer->Add(nozzle_item, 0, wxALL, FromDIP(8));
     }
@@ -507,9 +529,12 @@ void HotEndTable::OnPaint(wxPaintEvent& evt)
     wxPaintDC dc(this);
     wxSize size = GetClientSize();
 
-    dc.SetPen(wxPen(wxColour("#EEEEEE"), 2));
+    // A pen is centred on the path, so inset by half its width to keep the whole stroke inside the window.
+    const int pen_width = FromDIP(2);
+    const int inset     = pen_width / 2;
+    dc.SetPen(wxPen(StateColor::darkModeColorFor(ThemeColor::Grey300), pen_width));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRoundedRectangle(0, 0, size.GetWidth()-2, size.GetHeight()-2, 5);
+    dc.DrawRoundedRectangle(inset, inset, size.GetWidth() - pen_width, size.GetHeight() - pen_width, FromDIP(4));
 }
 
 NozzleListTable::NozzleListTable(wxWindow* parent) : wxPanel(parent,wxID_ANY,wxDefaultPosition,wxDefaultSize ,wxNO_BORDER)
@@ -531,7 +556,7 @@ NozzleListTable::NozzleListTable(wxWindow* parent) : wxPanel(parent,wxID_ANY,wxD
 
     m_web_view->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, [this,sizer](wxWebViewEvent& evt) {
         std::string message = evt.GetString().ToStdString();
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << "Received message: " << message;
+        BOOST_LOG_TRIVIAL(debug) << "Received message: " << message;
         try {
             json j = json::parse(message);
             if (j["msg"].get<std::string>() == "init") {
@@ -571,11 +596,22 @@ NozzleListTable::NozzleListTable(wxWindow* parent) : wxPanel(parent,wxID_ANY,wxD
             }
         }
         catch (...) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Failed to parse json message: " << message;
+            BOOST_LOG_TRIVIAL(error) << "Failed to parse json message: " << message;
         }
         });
 
     wxGetApp().UpdateDarkUIWin(this);
+}
+
+NozzleListTable::~NozzleListTable()
+{
+    // The WKScriptMessageHandler holds a non-retained pointer back to the wxWebViewWebKit and
+    // outlives it: ~wxWebViewWebKit() never unregisters it. A message still in flight when this
+    // panel goes away is then delivered to freed memory. Dropping the handler here closes that
+    // window -- the dialog is built, its page starts loading and, on the resolve-only path, the
+    // dialog is destroyed before the page's first postMessage() is ever dispatched.
+    if (m_web_view)
+        m_web_view->RemoveScriptMessageHandler("nozzleListTable");
 }
 
 wxString NozzleListTable::BuildTableObjStr()
@@ -639,7 +675,7 @@ void NozzleListTable::SetOptions(const std::vector<NozzleOption>& options,int de
     m_selected_idx = default_select;
     auto table_obj_str = BuildTableObjStr();
     wxString script1 = wxString::Format("updateTable(%s)", table_obj_str);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "update table " << script1;
+    BOOST_LOG_TRIVIAL(info) << "update table " << script1;
 
 #if 1
     m_web_view->RunScript(script1);
@@ -650,7 +686,7 @@ void NozzleListTable::SetOptions(const std::vector<NozzleOption>& options,int de
 #endif
 }
 
-MultiNozzleStatusTable::MultiNozzleStatusTable(wxWindow* parent): wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+MultiNozzleStatusTable::MultiNozzleStatusTable(wxWindow* parent, const wxString& title): wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
 {
     m_badge = new ExtruderBadge(this);
 
@@ -663,7 +699,7 @@ MultiNozzleStatusTable::MultiNozzleStatusTable(wxWindow* parent): wxPanel(parent
     auto title_sizer = new wxBoxSizer(wxHORIZONTAL);
     title_panel->SetSizer(title_sizer);
 
-    Label* static_text = new Label(this, _L("Nozzle Info"));
+    Label* static_text = new Label(this, title);
     static_text->SetFont(Label::Head_13);
     static_text->SetBackgroundColour(0xEEEEEE);
 
@@ -679,7 +715,7 @@ MultiNozzleStatusTable::MultiNozzleStatusTable(wxWindow* parent): wxPanel(parent
     nozzle_area_sizer->Add(m_badge, 0, wxLEFT | wxRIGHT, FromDIP(20));
     nozzle_area_sizer->Add(m_table, 0, wxRIGHT, FromDIP(10));
 
-    main_sizer->Add(nozzle_area_sizer);
+    main_sizer->Add(nozzle_area_sizer, 0, wxALIGN_CENTER_HORIZONTAL);
     main_sizer->AddSpacer(FromDIP(5));
 
     SetSizer(main_sizer);
@@ -747,7 +783,7 @@ Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::
 
     main_sizer->Add(m_list_table, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
 
-    m_nozzle_table = new MultiNozzleStatusTable(this);
+    m_nozzle_table = new MultiNozzleStatusTable(this, _L("Nozzle Info"));
     wxBoxSizer* table_sizer = new wxBoxSizer(wxHORIZONTAL);
     table_sizer->Add(m_nozzle_table, 0, wxLEFT | wxRIGHT, FromDIP(25));
     main_sizer->Add(table_sizer, 0, wxTOP | wxBOTTOM, FromDIP(15));
@@ -757,7 +793,7 @@ Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::
     m_cancel_btn = new Button(this, _L("Cancel"), "", 0, 0, wxID_OK);
     m_confirm_btn = new Button(this, _L("Confirm"), "", 0, 0, wxID_CANCEL);
 
-    m_caution = new Label(this, _L("Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."));
+    m_caution = new Label(this, _L("Caution: Printing with mixed nozzle diameters is experimental. Please verify your print settings (extrusion widths, layer height, etc.) are compatible with all selected nozzle sizes."));
     m_caution->SetForegroundColour("#909090");
     main_sizer->Add(m_caution, 0, wxLEFT | wxRIGHT, FromDIP(25));
 
@@ -817,7 +853,7 @@ void MultiNozzleSyncDialog::OnRackStatusReadingFinished(wxEvent& evt) {
     if (m_refresh_timer)
         m_refresh_timer->Stop();
 #if 1
-    if (!UpdateUi(m_nozzle_rack))
+    if (!UpdateUi(m_nozzle_rack) && m_resolve_only)
         EndModal(wxID_OK);
 #else
     if(!UpdateUoi(m_nozzle_rack)){
@@ -946,11 +982,19 @@ bool MultiNozzleSyncDialog::UpdateOptionList(std::weak_ptr<DevNozzleRack> rack, 
         return true;
     }
 
-    m_list_table->Show();
-
+    // Drop the old selection first: the new list may be shorter, so the old index can be out of range.
+    if (m_nozzle_option_idx >= 0 && m_nozzle_option_idx < (int) m_nozzle_option_values.size())
+        m_nozzle_table->UnMarkRelatedItems(m_nozzle_option_values[m_nozzle_option_idx]);
+    m_nozzle_option_idx = -1;
     m_nozzle_option_values.clear();
 
     auto options = GetNozzleOptions(nozzle_rack->GetNozzleSystem()->GetNozzleGroups());
+    // No valid nozzle (all absent or abnormal) leaves nothing to list.
+    if (options.empty()) {
+        m_list_table->Hide();
+        return false;
+    }
+    m_list_table->Show();
 
     int recommend_idx = std::max_element(options.begin(), options.end(), [](const NozzleOption& opt1, const NozzleOption& opt2) {
         int count1 = 0, count2 = 0;
@@ -997,15 +1041,22 @@ void MultiNozzleSyncDialog::UpdateTip(std::weak_ptr<DevNozzleRack> rack, bool ig
         m_caution->Hide();
     }
     else {
-        m_tips->SetLabel(_L("Your printer has different nozzles installed. Please select a nozzle for this print."));
-        m_caution->Show();
+        // Nothing is picked here, so only describe what is installed.
+        const bool mixed = m_nozzle_option_values.size() > 1;
+        if (m_nozzle_option_values.empty())
+            m_tips->SetLabel(_L("No usable nozzle is detected on your printer."));
+        else if (mixed)
+            m_tips->SetLabel(_L("Your printer has nozzles of different diameters installed."));
+        else
+            m_tips->SetLabel(_L("All nozzles installed on your printer have the same diameter."));
+        m_caution->Show(mixed);
     }
 }
 
 int MultiNozzleSyncDialog::ShowModal()
 {
     bool res = UpdateUi(m_nozzle_rack);
-    if (!res)
+    if (!res && m_resolve_only)
         return wxID_OK;
 
     return DPIDialog::ShowModal();
@@ -1049,11 +1100,12 @@ void MultiNozzleSyncDialog::UpdateButton(std::weak_ptr<DevNozzleRack> rack, bool
         if (!nozzle_rack)
             return;
         nozzle_rack->CtrlRackConfirmAll();
-        UpdateUi(rack, true, true);
+        if (!UpdateUi(rack, true, true) && m_resolve_only)
+            EndModal(wxID_OK);
     };
 
     auto ignore_opt = [rack,this]() {
-        if (!UpdateUi(rack, true, true))
+        if (!UpdateUi(rack, true, true) && m_resolve_only)
             EndModal(wxID_OK);
     };
 
@@ -1103,9 +1155,14 @@ void MultiNozzleSyncDialog::UpdateButton(std::weak_ptr<DevNozzleRack> rack, bool
 bool MultiNozzleSyncDialog::UpdateUi(std::weak_ptr<DevNozzleRack> rack, bool ignore_unknown, bool ignore_unreliable)
 {
     m_nozzle_table->UpdateRackInfo(rack);
-    bool res = UpdateOptionList(rack, ignore_unknown, ignore_unreliable);
-    if (!res)
-        return false;
+    if (m_resolve_only) {
+        const auto nozzle_rack = rack.lock();
+        if (!nozzle_rack || !((nozzle_rack->HasUnknownNozzles() && !ignore_unknown) ||
+                              (nozzle_rack->HasUnreliableNozzles() && !ignore_unreliable)))
+            return false;
+    }
+    // false: nothing left to pick or settle. Draw anyway, so a caller that keeps the dialog open shows the real state.
+    const bool res = UpdateOptionList(rack, ignore_unknown, ignore_unreliable);
 
     UpdateTip(rack, ignore_unknown, ignore_unreliable);
     UpdateButton(rack, ignore_unknown, ignore_unreliable);
@@ -1118,75 +1175,25 @@ bool MultiNozzleSyncDialog::UpdateUi(std::weak_ptr<DevNozzleRack> rack, bool ign
     m_caution->Wrap(table_width);
     m_caution->SetMaxSize(wxSize(table_width, -1));
     Fit();
-    return true;
+    return res;
 }
 
 
-std::optional<NozzleOption> tryPopUpMultiNozzleDialog(MachineObject* obj)
+void tryResolveRackNozzleStatus(MachineObject* obj)
 {
     if (!obj)
-        return std::nullopt;
+        return;
     auto rack = obj->GetNozzleSystem()->GetNozzleRack();
     if (!rack || !rack->IsSupported())
-        return std::nullopt;
-    MultiNozzleSyncDialog dialog(wxGetApp().plater_,rack);
-
-    bool has_unreliable = rack->HasUnreliableNozzles();
-    bool has_unknown = rack->HasUnknownNozzles();
-
-    auto config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-
-    if (dialog.ShowModal() == wxID_OK) {
-        auto selected_option = dialog.GetSelectedOption();
-        if (!selected_option)
-            return std::nullopt;
-        auto& preset_bundle = GUI::wxGetApp().preset_bundle;
-        auto& project_config = preset_bundle->project_config;
-
-        ConfigOptionEnumsGeneric* nozzle_volume_type_opt = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-
-        // write to preset bundle config
-        for (int extruder_id = 0; extruder_id < 2; ++extruder_id) {
-            NozzleVolumeType volume_type;
-            int nozzle_count;
-            bool clear_all = true;
-            if (!selected_option->extruder_nozzle_stats.count(extruder_id)) {
-                nozzle_count = 0;
-                for(size_t idx = 0 ; idx < nvtHybrid; ++idx){
-                    volume_type = static_cast<NozzleVolumeType>(idx);
-                    setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, clear_all);
-                    clear_all = false;
-                }
-            }
-            else {
-                for (auto& stat : selected_option->extruder_nozzle_stats[extruder_id]) {
-                    volume_type = stat.first;
-                    nozzle_count = stat.second;
-                    setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, clear_all);
-                    clear_all = false;
-                }
-            }
-        }
-        preset_bundle->extruder_nozzle_stat.set_nozzle_data_flag(ExtruderNozzleStat::ndfMachine);
-        return selected_option;
-    }
-
-    return std::nullopt;
-}
-
-void setExtruderNozzleCount(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType volume_type, int nozzle_count, bool clear_all)
-{
-    if (!preset_bundle)
         return;
-    if (volume_type == NozzleVolumeType::nvtHybrid)
-        return;
-
-    preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, volume_type, nozzle_count, clear_all);
+    MultiNozzleSyncDialog dialog(wxGetApp().plater_, rack);
+    dialog.SetResolveOnly(true);
+    dialog.ShowModal();
 }
 
 void updateNozzleCountDisplay(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType volume_type)
 {
-    int nozzle_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, volume_type);
+    int nozzle_count = preset_bundle->nozzle_inventory.count(extruder_id, volume_type);
 
     auto nozzle_count_opt = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
     bool support_multi_nozzle = std::any_of(nozzle_count_opt->values.begin(), nozzle_count_opt->values.end(), [](int val) {return val > 1; });

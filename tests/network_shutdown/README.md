@@ -37,3 +37,22 @@ strings are not vendor debug symbols; `ft_job_get_msg` is merely the nearest
 export and is not the identity of the worker.
 
 No proprietary plugin binary or user crash report is included.
+
+## SDK-free shutdown ordering check
+
+```sh
+python3 tests/network_shutdown/test_shutdown_order.py
+```
+
+This source-contract check requires Python 3 and a C++ preprocessor (`c++`, or
+`CXX`). It preprocesses the actual `GUI_App::OnExit` body for Linux, macOS and
+Windows, with public and internal build flags. It checks closing notification,
+joinable guards and ordering for both startup workers, a single null-guarded
+discovery stop before callback consumers and the agent are deleted, and the
+final configuration flush. In particular, the minors-decisions worker must be
+joined before discovery shutdown and agent destruction.
+
+This is not an application build or a threaded lifecycle test. It does not
+validate proprietary SDK behavior, worker completion, or GUI shutdown on any
+platform; the opt-in macOS regression above and application smoke tests are
+still required for those behaviors.

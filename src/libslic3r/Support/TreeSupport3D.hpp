@@ -138,6 +138,7 @@ struct SupportElementState : public SupportElementStateBits
     int type = 0;
     coordf_t radius = 0;
     float print_z = 0;
+    coord_t xy_min_distance = 0;
 
     /*!
      * \brief The layer this support elements wants reach
@@ -245,6 +246,15 @@ struct SupportElementState : public SupportElementStateBits
 [[nodiscard]] inline coord_t support_element_collision_radius(const TreeSupportSettings &settings, const SupportElementState &elem)
 {
     return settings.getRadius(elem.effective_radius_height, elem.elephant_foot_increases);
+}
+
+[[nodiscard]] inline coord_t support_element_model_collision_radius(
+    const TreeSupportSettings &settings, const SupportElementState &elem)
+{
+    const coord_t radius = support_element_collision_radius(settings, elem);
+    return elem.use_min_xy_dist ?
+        radius + std::max(coord_t(0), elem.xy_min_distance - settings.xy_min_distance) :
+        radius;
 }
 
 struct SupportElement

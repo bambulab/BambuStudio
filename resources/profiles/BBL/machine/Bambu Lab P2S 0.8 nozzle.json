@@ -35,13 +35,18 @@
         "Bambu Lab H2D Pro 0.8 nozzle",
         "Bambu Lab H2C 0.8 nozzle",
         "Bambu Lab X2D 0.8 nozzle",
-        "Bambu Lab A2L 0.8 nozzle"
+        "Bambu Lab A2L 0.8 nozzle",
+        "Bambu Lab H3C 0.8 nozzle"
     ],
     "deretraction_speed": [
         "30",
         "30"
     ],
     "hotend_cooling_rate": [
+        "2",
+        "2"
+    ],
+    "hotend_cooling_rate_on_rack": [
         "2",
         "2"
     ],

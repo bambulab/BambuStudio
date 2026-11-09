@@ -493,6 +493,8 @@ public:
     int get_col_count() { return m_col_data.size(); }
     ObjectGridCol* get_grid_col(int col) { return m_col_data[col]; }
     ObjectGridRow* get_grid_row(int row) { return m_grid_data[row]; }
+    // A value column shown as "Auto" while multi_nozzle_diameter_mode is on: read-only, no reset icon.
+    bool           is_multi_nozzle_auto_col(int col) const;
     void           construct_object_configs(ObjectGrid* object_grid);
     void update_value_to_config(ModelConfig* config, std::string& key, ConfigOption& new_value,  ConfigOption& ori_value);
     void update_filament_to_config(ModelConfig* config, std::string& key, ConfigOption& new_value,  ConfigOption& ori_value, bool is_object);

@@ -10,6 +10,7 @@
 #include "../MinimumSpanningTree.hpp"
 #include "../Flow.hpp"
 #include "../PrintConfig.hpp"
+#include "../SupportMergePlan.hpp"
 #include "../Fill/Lightning/Generator.hpp"
 #include "TreeModelVolumes.hpp"
 #include "TreeSupport3D.hpp"
@@ -82,6 +83,7 @@ struct SupportNode
             type = parent->type;
             overhang = parent->overhang;
             orig_pos = parent->orig_pos;
+            carried_mass = parent->carried_mass;
             if (dist_mm_to_top == 0)
                 dist_mm_to_top = parent->dist_mm_to_top + parent->height;
             if (radius == 0 && parent->radius>0)
@@ -90,6 +92,7 @@ struct SupportNode
             for (auto& neighbor : parent->merged_neighbours) {
                 neighbor->child = this;
                 parents.push_back(neighbor);
+                carried_mass += neighbor->carried_mass;
             }
             is_sharp_tail = parent->is_sharp_tail;
             skin_direction = parent->skin_direction;
@@ -128,6 +131,29 @@ struct SupportNode
     bool           need_extra_wall = false;
     bool           is_sharp_tail   = false;
     bool           valid = true;
+    float          carried_mass = 0.0;  // Virtual carried mass (supported overhang area) used to prioritize light-to-heavy branch merging
+
+    float total_carried_mass() const
+    {
+        float mass = carried_mass;
+        for (const SupportNode *neighbor : merged_neighbours)
+            mass += neighbor->carried_mass;
+        return mass;
+    }
+
+    // BBS multi-diameter: set by fold_nodes_multi_diameter(). A coarse nozzle prints several node layers as
+    // one slab, so the chain is folded onto that grid before any area exists. slab_height > 0 marks a node
+    // that carries a whole slab: its disk is one extrusion spanning [print_z - slab_height, print_z] and has
+    // to clear the object over that entire span, not only at its own layer.
+    coordf_t       slab_height { 0. };
+    // Lowest object layer the slab covers, for the span collision lookup.
+    size_t         slab_bottom_obj_layer { 0 };
+    // Position of this node on the folded grid, counted from the bed. Drives the interface pattern
+    // alternation that used to be derived from the object layer number.
+    int            slab_index { -1 };
+    // BBS multi-diameter: wall line width of this base node when it sits next to a nozzle change, set by
+    // smooth_line_width_multi_diameter(). 0 keeps the layer's default support line width.
+    coordf_t       line_width { 0. };
     bool           fading          = false;
     double         overhang_degree = 0.0;  // overhang degree for cooling just like perimeter
     ExPolygon      overhang; // when type==ePolygon, set this value to get original overhang area
@@ -424,6 +450,7 @@ public:
     std::vector<std::pair<Vec3f, Vec3f>>      m_vertical_enforcer_points;
 
 private:
+    coordf_t support_flare_step_width(coordf_t print_z, coordf_t layer_height) const;
     /*!
      * \brief Generator for model collision, avoidance and internal guide volumes
      *
@@ -438,13 +465,19 @@ private:
     SlicingParameters        m_slicing_params;
     // Various precomputed support parameters to be shared with external functions.
     SupportParameters   m_support_params;
+    SupportMergePlan    m_support_merge_plan;
     size_t          m_raft_layers = 0;  // number of raft layers, including raft base, raft interface, raft gap
     size_t          m_highest_overhang_layer = 0;
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;
     std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;
     float    DO_NOT_MOVER_UNDER_MM = 2.0;
     coordf_t base_radius                        = 0.0;
+    // Radius a branch starts with at the overhang, driven by tree_support_tip_diameter. Floored at
+    // the support extrusion width so a thin tip cannot degenerate into a circle too small to extrude,
+    // and capped by the branch radius, matching what the organic path does in TreeSupportCommon.
+    coordf_t tip_radius                         = 0.4;
     const coordf_t MAX_BRANCH_RADIUS = 10.0;
+    // Stepping granularity for the safe_offset_inc() collision walks, not a branch radius.
     const coordf_t MIN_BRANCH_RADIUS = 0.4;
     const coordf_t MAX_BRANCH_RADIUS_FIRST_LAYER = 12.0;
     const coordf_t MIN_BRANCH_RADIUS_FIRST_LAYER = 2.0;
@@ -462,6 +495,21 @@ private:
     // has to clear MIN_CARRIED_RATIO, the same bar as a base standing on that ledge.
     const double MIN_CARRIED_RATIO_INTERFACE = 0.02;
     float        top_z_distance = 0.0;
+    // BBS multi-diameter: the top gap follows the nozzle printing the overhang instead of support_top_z_distance.
+    // Per object layer, the model outlines grouped by that gap, ascending. Empty when the gap is global: single
+    // nozzle diameter, soluble interface (gap 0) or independent support layer heights.
+    std::vector<std::vector<std::pair<float, ExPolygons>>> m_top_z_outlines;
+    // The largest gap in m_top_z_outlines, top_z_distance when the gap is global.
+    float m_top_z_max = 0.0;
+    void  init_top_z_by_nozzle();
+    // Largest gap of the material on an object layer.
+    float top_z_at(size_t obj_layer_nr) const;
+    // Gap under an overhang: the largest gap of the material it overlaps.
+    float top_z_for_overhang(size_t obj_layer_nr, const ExPolygon &overhang) const;
+    // Union into collision the outlines that lie within their own gap above obj_layer_nr.
+    // clamp_to_first_layer_gap limits that XY expansion to support_object_first_layer_gap.
+    // Sharp tails pass false and keep the top-z clearance.
+    void  union_outlines_within_top_z(ExPolygons &collision, size_t obj_layer_nr, bool clamp_to_first_layer_gap = false) const;
 
     bool  is_strong = false;
     bool  is_slim                            = false;
@@ -481,6 +529,10 @@ private:
      */
     void draw_circles();
 
+    // Remove fine-grid interface and ordinary base material already occupied by a folded interface slab.
+    // Runs after all typed areas are finalized and before later support passes read them back.
+    void resolve_material_covered_by_folded_interfaces();
+
     /*!
      * \brief Removes support areas that nothing below them can carry.
      *
@@ -493,8 +545,8 @@ private:
      * is held to MIN_CARRIED_RATIO, while an interface region bridges across the branch tips and only has to
      * be anchored at all, hence MIN_CARRIED_RATIO_INTERFACE.
      *
-     * Called from draw_circles() once the areas are final and before anything reads them back, so that the
-     * lightning generator and the hole moving pass do not plan against regions that are about to disappear.
+     * Not called. The draw_circles() call was removed because the carrier test
+     * deletes bed-landing supports that still reach the plate and leaves them floating.
      */
     void prune_floating_supports();
 
@@ -544,6 +596,29 @@ private:
      */
     void insert_dropped_node(std::vector<SupportNode*>& nodes_layer, SupportNode* node);
     void create_tree_support_layers();
+    // BBS multi-diameter: ramp the wall line width of the thin side of every nozzle change towards the
+    // coarse side, so the two extrusions overlap. Only rendered base nodes within a short Z distance of a
+    // change are touched, each capped at twice its own nozzle's default width. Runs right after folding.
+    void smooth_line_width_multi_diameter();
+    // BBS multi-diameter: fold the node chains onto the slab grid a coarse nozzle can extrude, and renumber
+    // the per node layer counters into printed layers so draw_circles() classifies roof / roof_1st_layer /
+    // base from them unchanged. Runs between smooth_nodes() and generate_support_ring_struts().
+    void fold_nodes_multi_diameter();
+    struct FoldCarrier
+    {
+        size_t   layer;
+        coordf_t bottom_z;
+    };
+    // Carrier support layers of every slab that folded, ascending: one per node column, at the column's own
+    // top inside the slab. A split carrier starts above its lower carrier rather than at the slab bottom.
+    std::vector<std::vector<FoldCarrier>> m_fold_carriers;
+    // Per support layer, the index into m_fold_carriers of the folded slab covering it, -1 for none.
+    // Both are filled by fold_nodes_multi_diameter() and empty when nothing folded.
+    std::vector<int>                 m_fold_slab_of_layer;
+    // 第二轮仅合并主体的段顶支撑层（升序），其段内接触面保持细层，需在裁剪时让开。
+    std::vector<size_t>              m_base_only_fold_layers;
+    // Carriers of the same slab whose actual Z span covers layer_nr from above.
+    std::vector<size_t> fold_carriers_above(size_t layer_nr) const;
     void generate_toolpaths();
     // get unscaled radius of node
     coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, size_t tip_layers, double diameter_angle_scale_factor);
