@@ -9,7 +9,8 @@ namespace Slic3r {
 enum class ColorDecomposeRecipeMode {
     MaterialList,
     CMYW,
-    RYBW
+    RYBW,
+    CMYKW
 };
 
 struct ColorDecomposeRgb {
@@ -53,11 +54,21 @@ ColorDecomposeRecipeResult lookup_standard_recipe(
     ColorDecomposeRecipeMode mode,
     const std::string& preferred_material_type);
 
-// Look up the measured blend color for an exact (component_hexes, ratios) match
-// in the standard color recipe table. Returns the measured hex color if found
-// with reliable source data ("measured" or "interpolated"), empty string otherwise.
+// Look up the measured blend color for (component_hexes, ratios) in the
+// standard color recipe table. Exact grid hits return measured_rgb; off-grid
+// ratios interpolate in Lab (2-color may extrapolate a short way past the
+// measured hull, e.g. 14/86 from the 15/85 and 20/80 anchors). Returns empty
+// when the component set is not in the table.
 std::string lookup_measured_blend_color(const std::vector<std::string>& component_hexes,
                                        const std::vector<int>& ratios);
+
+// Whether two physical filaments are mixable, i.e. belong to the same material
+// family. Official series names ("PLA Basic", "PLA Palette", "PETG Basic")
+// normalize to their family ("PLA", "PETG"); plain filament_type values contain
+// no space and pass through unchanged.
+// Note this is deliberately looser than the series matching used to select
+// standard recipe entries, where PLA Basic and PLA Palette must stay apart.
+bool color_decompose_material_family_matches(const std::string& a, const std::string& b);
 
 } // namespace Slic3r
 

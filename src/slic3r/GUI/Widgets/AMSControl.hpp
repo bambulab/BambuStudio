@@ -144,7 +144,6 @@ protected:
 
     AmsHumidityTipPopup m_Humidity_tip_popup;
     uiAmsPercentHumidityDryPopup* m_percent_humidity_dry_popup;
-    AMSDryCtrWin* m_ams_dry_ctr_win;
 
 public:
     std::string GetCurentAms();
@@ -178,7 +177,6 @@ public:
     void CreateAmsDoubleNozzle(const std::string &series_name, const std::string& printer_type);
     void CreateAmsSingleNozzle(const std::string &series_name, const std::string &printer_type);
     void ClearAms();
-    void UpdateAmsDryControl(MachineObject* obj);
     void UpdateAms(const std::string   &series_name,
                    const std::string   &printer_type,
                    std::vector<AMSinfo> ams_info,

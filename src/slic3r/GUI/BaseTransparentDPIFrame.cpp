@@ -30,12 +30,12 @@ BaseTransparentDPIFrame::BaseTransparentDPIFrame(
     // SetBackgroundStyle(wxBackgroundStyle::wxBG_STYLE_TRANSPARENT);
     SetTransparent(m_init_transparent);
     SetBackgroundColour(wxColour(23, 25, 22, 128));
-    //Adaptive Frame Width
+    // Widen the frame for a long OK label. win_width is in DIP, so measure the label in DIP with the button font.
     wxClientDC dc(parent);
-    wxSize msg_sz = dc.GetMultiLineTextExtent(ok_text);
-    auto   ratio = msg_sz.GetX() / (float) win_width;
-    if (ratio > 0.75f) {
-        win_width += msg_sz.GetX() / 2.0f;
+    dc.SetFont(Label::Body_12);
+    const int msg_width = ToDIP(dc.GetMultiLineTextExtent(ok_text).GetX());
+    if (msg_width > win_width * 0.75f) {
+        win_width += msg_width / 2;
     }
 
     SetMinSize(wxSize(FromDIP(win_width), -1));

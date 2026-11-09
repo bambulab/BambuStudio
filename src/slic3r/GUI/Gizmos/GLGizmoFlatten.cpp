@@ -5,6 +5,7 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
+#include "libslic3r/Geometry.hpp"
 #include "libslic3r/Geometry/ConvexHull.hpp"
 #include "libslic3r/Model.hpp"
 
@@ -152,7 +153,7 @@ bool GLGizmoFlatten::update_raycast_cache(const Vec2d &mouse_position, const Cam
                 if (m_faltten_type == FlattenType::Triangle) {
                     auto mo                   = m_c->selection_info()->model_object();
                     auto mv                   = mo->volumes[mesh_id];
-                    m_hit_object_normal       = mv->get_matrix().cast<float>() * closest_nromal;
+                    m_hit_object_normal       = Geometry::transform_normal(mv->get_matrix(), closest_nromal).cast<float>();
                 }
             }
         }

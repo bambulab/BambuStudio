@@ -9,7 +9,6 @@
         "0.4"
     ],
     "printer_model": "Bambu Lab X1",
-    "farthest_point_timelapse": "1",
     "printer_variant": "0.4",
     "auxiliary_fan": "0",
     "bed_exclude_area": [
@@ -36,7 +35,12 @@
         "Direct Drive Standard,Direct Drive High Flow"
     ],
     "fan_direction": "left",
+    "farthest_point_timelapse": "0",
     "hotend_cooling_rate": [
+        "2",
+        "2"
+    ],
+    "hotend_cooling_rate_on_rack": [
         "2",
         "2"
     ],
@@ -54,7 +58,6 @@
         "0",
         "0"
     ],
-    "machine_unload_filament_time": "28",
     "machine_max_acceleration_e": [
         "5000",
         "5000",
@@ -151,14 +154,15 @@
     "machine_min_travel_rate": [
         "0"
     ],
+    "machine_unload_filament_time": "28",
+    "nozzle_flush_dataset": [
+        "0",
+        "0"
+    ],
     "nozzle_height": "4.2",
     "nozzle_volume": [
         "107",
         "107"
-    ],
-    "nozzle_flush_dataset": [
-        "0",
-        "0"
     ],
     "printer_extruder_id": [
         "1",
@@ -184,18 +188,6 @@
         "249",
         "249"
     ],
-    "retraction_length": [
-        "0.8",
-        "0.8"
-    ],
-    "retraction_minimum_travel": [
-        "1",
-        "1"
-    ],
-    "retraction_speed": [
-        "30",
-        "30"
-    ],
     "retract_restart_extra": [
         "0",
         "0"
@@ -212,14 +204,26 @@
         "18",
         "18"
     ],
-    "scan_first_layer": "1",
-    "wipe_distance": [
-        "2",
-        "2"
+    "retraction_length": [
+        "0.8",
+        "0.8"
     ],
+    "retraction_minimum_travel": [
+        "1",
+        "1"
+    ],
+    "retraction_speed": [
+        "30",
+        "30"
+    ],
+    "scan_first_layer": "1",
     "wipe": [
         "1",
         "1"
+    ],
+    "wipe_distance": [
+        "2",
+        "2"
     ],
     "z_hop": [
         "0.4",
@@ -241,6 +245,7 @@
         "Bambu Lab P2S 0.4 nozzle",
         "Bambu Lab H2C 0.4 nozzle",
         "Bambu Lab X2D 0.4 nozzle",
-        "Bambu Lab A2L 0.4 nozzle"
+        "Bambu Lab A2L 0.4 nozzle",
+        "Bambu Lab H3C 0.4 nozzle"
     ]
 }

@@ -73,6 +73,8 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_DOWNLOAD_PRINT_QUEUE_CONFIG_FAILED      -58
 #define BAMBU_NETWORK_ERR_START_PRINT_QUEUE_TASK_FAILED           -59
 #define BAMBU_NETWORK_ERR_POST_DEVICE_REGION_FAILED               -60
+#define BAMBU_NETWORK_ERR_GET_MINORS_DECISIONS_FAILED             -61
+#define BAMBU_NETWORK_ERR_GET_CHILD_REGISTRATION_KEY_FAILED       -62
 
 
 //bind error
@@ -134,7 +136,7 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "02.08.04.57"
+#define BAMBU_NETWORK_AGENT_VERSION         "02.09.01.54"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -456,6 +458,36 @@ struct DeviceRegionParams {
     std::string ClientType;
     std::string country;
     std::string XClientCountry;
+};
+
+enum class MinorDecision : int
+{
+    Allow   = 0,
+    Deny    = 1,
+    NeedIdv = 2,
+};
+
+// Scene codes accepted by bambu_network_get_minors_decisions.
+inline constexpr const char* MINORS_SCENE_STUDIO_LOGIN_VIA_EMAIL = "STUDIO_LOGIN_VIA_EMAIL"; // Studio email login
+inline constexpr const char* MINORS_SCENE_STUDIO_LOGIN_VIA_3P = "STUDIO_LOGIN_VIA_3P"; // Studio third-party login
+inline constexpr const char* MINORS_SCENE_JOIN_USER_EXPERIENCE_PROGRAM = "JOIN_USER_EXPERIENCE_PROGRAM"; // Join user experience program
+inline constexpr const char* MINORS_SCENE_REMOTE_CONTROL_PRINTER = "REMOTE_CONTROL_PRINTER"; // Remote printer control
+inline constexpr const char* MINORS_SCENE_ACCESS_MAKER_WORLD = "ACCESS_MAKER_WORLD"; // Access MakerWorld
+inline constexpr const char* MINORS_SCENE_ACCESS_MAKER_LAB = "ACCESS_MAKER_LAB"; // Access MakerLab
+inline constexpr const char* MINORS_SCENE_ACCESS_MAKER_SUPPLY = "ACCESS_MAKER_SUPPLY"; // Access MakerSupply
+inline constexpr const char* MINORS_SCENE_FORUM_LOGIN_VIA_EMAIL = "FORUM_LOGIN_VIA_EMAIL"; // Forum email login
+inline constexpr const char* MINORS_SCENE_FORUM_LOGIN_VIA_3P = "FORUM_LOGIN_VIA_3P"; // Forum third-party login
+
+// Possible values of MinorsDecisionResult::family_link_decision.
+inline constexpr const char* FAMILY_LINK_DECISION_NO_CONFIG = "no_config";
+inline constexpr const char* FAMILY_LINK_DECISION_ALLOW = "allow";
+inline constexpr const char* FAMILY_LINK_DECISION_DENY = "deny";
+
+struct MinorsDecisionResult {
+    std::string   scene_code;
+    bool          family_link_enable = false;
+    std::string   family_link_decision;
+    MinorDecision decision = MinorDecision::NeedIdv;
 };
 
 struct PublishParams {

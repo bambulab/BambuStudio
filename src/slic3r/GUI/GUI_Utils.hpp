@@ -7,7 +7,6 @@
 #include <functional>
 
 #include <boost/optional.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <wx/frame.h>
 #include <wx/dialog.h>
@@ -25,6 +24,7 @@
 #include "../libslic3r/libslic3r_version.h"
 #include "../libslic3r/Utils.hpp"
 #include "wxExtensions.hpp"
+#include "libslic3r/Log.hpp"
 
 
 class wxCheckBox;

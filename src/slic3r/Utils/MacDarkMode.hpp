@@ -12,6 +12,7 @@ extern double mac_max_scaling_factor();
 extern void set_miniaturizable(void * window);
 void WKWebView_evaluateJavaScript(void * web, wxString const & script, void (*callback)(wxString const &));
 void WKWebView_setTransparentBackground(void * web);
+void WKWebView_setCompositorSuppressed(void * web, bool suppress);
 // 允许通过 Safari「开发」菜单远程审查该 WKWebView。macOS 13.3 / Safari 16.4 起
 // WKWebView 默认不可审查，必须显式 setInspectable:YES，否则 EnableAccessToDevTools 无效。
 void WKWebView_setInspectable(void * web, bool enable);

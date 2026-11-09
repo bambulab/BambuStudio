@@ -21,7 +21,8 @@
 }
 
 .step2-section {
-    width: 663px;
+    width: 100%;
+    max-width: 663px;
     align-items: flex-start;
     flex: 1;
     display: flex;

@@ -9,6 +9,7 @@
 
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevStorage.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -647,13 +648,15 @@ bool SendMultiMachinePage::get_ams_mapping_result(std::string &mapping_array_str
             if (curr_plate) {
                 filament_maps = curr_plate->get_filament_maps();
             } else {
-                BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result, curr_plate is nullptr";
+                BOOST_LOG_TRIVIAL(error) << "curr_plate is nullptr";
             }
         } else {
-            BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result, plater is nullptr";
+            BOOST_LOG_TRIVIAL(error) << "plater is nullptr";
         }
 
-        for (int i = 0; i < wxGetApp().preset_bundle->filament_presets.size(); i++) {
+        // Same physical-length cap as SelectMachineDialog::get_ams_mapping_result: mixed slots never carry a mapping.
+        const int mapping_count = std::min((int) wxGetApp().preset_bundle->filament_presets.size(), (int) MAX_PHYSICAL_FILAMENT_COUNT);
+        for (int i = 0; i < mapping_count; i++) {
             int  tray_id = -1;
             json mapping_item_v1;
             mapping_item_v1["ams_id"]  = 0xff;
@@ -795,7 +798,9 @@ void SendMultiMachinePage::on_send(wxCommandEvent& event)
            wxGetApp().getTaskManager()->start_print(print_params, &settings);
        }
        catch (...)
-       {}
+       {
+           BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+       }
     }
     //jump to info
     EndModal(wxCLOSE);

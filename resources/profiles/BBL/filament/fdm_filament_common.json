@@ -103,18 +103,31 @@
         "nil"
     ],
     "filament_dev_ams_drying_ams_limitations": [
-        "1"
+        "1",
+        "2",
+        "3"
     ],
     "filament_dev_ams_drying_heat_distortion_temperature": [
+        "45.0",
+        "45.0",
+        "45.0",
         "45.0"
     ],
     "filament_dev_ams_drying_temperature": [
         "40.0",
         "40.0",
         "40.0",
+        "40.0",
+        "40.0",
+        "40.0",
+        "40.0",
         "40.0"
     ],
     "filament_dev_ams_drying_time": [
+        "8.0",
+        "8.0",
+        "8.0",
+        "8.0",
         "8.0",
         "8.0",
         "8.0",
@@ -130,6 +143,9 @@
         "35.0"
     ],
     "filament_dev_drying_softening_temperature": [
+        "40.0",
+        "40.0",
+        "40.0",
         "40.0"
     ],
     "filament_diameter": [
@@ -173,6 +189,9 @@
     ],
     "filament_pre_cooling_temperature_nc": [
         "0"
+    ],
+    "filament_pre_heating_enabled": [
+        "1"
     ],
     "filament_prime_volume": [
         "45"

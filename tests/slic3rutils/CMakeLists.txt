@@ -6,10 +6,7 @@ add_executable(${_TEST_NAME}_tests
     helio_recent_runs_tests.cpp
     )
 
-target_link_libraries(${_TEST_NAME}_tests test_common libslic3r_gui libslic3r)
-if (MSVC)
-    target_link_libraries(${_TEST_NAME}_tests Setupapi.lib)
-endif ()
+target_link_libraries(${_TEST_NAME}_tests test_gui)
 set_property(TARGET ${_TEST_NAME}_tests PROPERTY FOLDER "tests")
 
 if (WIN32)

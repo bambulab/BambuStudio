@@ -268,6 +268,26 @@ function HandleStudio( pVal )
 			}
 		}		
 	}
+	else if(strCmd=='homepage_access_restrict')
+	{
+		// Nothing to undo when access comes back: the host pushes the lists again,
+		// and ShowStaffPick / ShowMakerlabList show these areas again.
+		if(pVal['online_disabled']*1==1)
+		{
+			m_HotModelList=null;
+			m_ForUModelList=null;
+			$('#HotModelList').html('');
+			$('#HotModelArea').hide();
+			$('#HotModel_Search_Bar').hide();
+		}
+
+		if(pVal['makerlab_disabled']*1==1)
+		{
+			m_MakerlabList=null;
+			$('#LabList').html('');
+			$('#MakerlabArea').hide();
+		}
+	}
 }
 
 function OnBoardChange( strMenu )
@@ -338,6 +358,22 @@ function EscapeHtmlValue( sValue )
 function IsSafeThumbnailUrl( sUrl )
 {
 	return typeof sUrl==='string' && /^data:image\//i.test(sUrl);
+}
+
+// Model and task ids are pasted into an inline handler. Digits cannot break that handler.
+function IsSafeInlineId( sId )
+{
+	return /^[0-9]+$/.test(String(sId==null?'':sId));
+}
+
+// Remote images may only be http(s). Anything else, including a value that could
+// close the src attribute, falls back to the local placeholder.
+function SafeRemoteImageSrc( sUrl, sSuffix )
+{
+	if( typeof sUrl!=='string' || !/^https?:\/\//i.test(sUrl) || /[\u0000-\u0020"'<>\\\u007F]/.test(sUrl) )
+		return 'img/d.png';
+
+	return EscapeHtmlValue(sSuffix ? (sUrl+sSuffix) : sUrl);
 }
 
 function ShowRecentFileList( pList )
@@ -747,16 +783,16 @@ function ShowStaffPick( ModelList )
 		let OnePickModel=ModelList[a];
 		
 		let ModelID=OnePickModel['design']['id'];
-		let ModelName=OnePickModel['design']['title'];
-		let ModelCover=OnePickModel['design']['cover']+'?image_process=resize,w_360/format,webp';
+		if( !IsSafeInlineId(ModelID) )
+			continue;
+		let ModelName=EscapeHtmlValue(OnePickModel['design']['title']);
+		let ModelCover=SafeRemoteImageSrc(OnePickModel['design']['cover'], '?image_process=resize,w_360/format,webp');
 		
-		let DesignerName=OnePickModel['design']['designCreator']['name'];
-		let DesignerAvatar=OnePickModel['design']['designCreator']['avatar']+'?image_process=resize,w_32/format,webp';
+		let DesignerName=EscapeHtmlValue(OnePickModel['design']['designCreator']['name']);
+		let DesignerAvatar=SafeRemoteImageSrc(OnePickModel['design']['designCreator']['avatar'], '?image_process=resize,w_32/format,webp');
 		
-		let NumZan=OnePickModel['design']['likeCount'];
-		let NumDownload=OnePickModel['design']['downloadCount'];
-		NumZan=ExNumber(NumZan);
-		NumDownload=ExNumber(NumDownload);
+		let NumZan=EscapeHtmlValue(ExNumber(OnePickModel['design']['likeCount']));
+		let NumDownload=EscapeHtmlValue(ExNumber(OnePickModel['design']['downloadCount']));
 			
 		strPickHtml+='			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel('+ModelID+')">'+
 				'<div class="HotModel_PrevBlock">'+
@@ -806,16 +842,16 @@ function Show4UPick( ModelList )
 		let OnePickModel=ModelList[a];
 		
 		let ModelID=OnePickModel['id'];
-		let ModelName=OnePickModel['title'];
-		let ModelCover=OnePickModel['cover']+'?image_process=resize,w_360/format,webp';
+		if( !IsSafeInlineId(ModelID) )
+			continue;
+		let ModelName=EscapeHtmlValue(OnePickModel['title']);
+		let ModelCover=SafeRemoteImageSrc(OnePickModel['cover'], '?image_process=resize,w_360/format,webp');
 		
-		let DesignerName=OnePickModel['designCreator']['name'];
-		let DesignerAvatar=OnePickModel['designCreator']['avatar']+'?image_process=resize,w_32/format,webp';
+		let DesignerName=EscapeHtmlValue(OnePickModel['designCreator']['name']);
+		let DesignerAvatar=SafeRemoteImageSrc(OnePickModel['designCreator']['avatar'], '?image_process=resize,w_32/format,webp');
 		
-		let NumZan=OnePickModel['likeCount'];
-		let NumDownload=OnePickModel['downloadCount'];
-		NumZan=ExNumber(NumZan);
-		NumDownload=ExNumber(NumDownload);
+		let NumZan=EscapeHtmlValue(ExNumber(OnePickModel['likeCount']));
+		let NumDownload=EscapeHtmlValue(ExNumber(OnePickModel['downloadCount']));
 		
 		strPickHtml+='			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel('+ModelID+')">'+
 				'<div class="HotModel_PrevBlock">'+
@@ -909,29 +945,29 @@ function ShowMakerlabList( LabList )
 		let OneLabItem=LabList[a];
 		let InfoItem=OneLabItem['info'];
 		
-		let LabImg=OneLabItem['thumbnail']+'?image_process=resize,w_360/format,webp';
-		let LabUrl=OneLabItem['jumpTo'];
+		let LabImg=SafeRemoteImageSrc(OneLabItem['thumbnail'], '?image_process=resize,w_360/format,webp');
+		let LabUrl=EscapeHtmlValue(OneLabItem['jumpTo']);
 
 		let LabName='';
 		let LabDesc='';
 		let LabAuthor='';
 		if(bCN && InfoItem.hasOwnProperty('zh_CN'))
 		{
-			LabName=InfoItem['zh_CN']['name'];
-			LabDesc=InfoItem['zh_CN']['description'];
-			LabAuthor=InfoItem['zh_CN']['author'];
+			LabName=EscapeHtmlValue(InfoItem['zh_CN']['name']);
+			LabDesc=EscapeHtmlValue(InfoItem['zh_CN']['description']);
+			LabAuthor=EscapeHtmlValue(InfoItem['zh_CN']['author']);
 		}
 		else if( InfoItem.hasOwnProperty('en') )
 		{
-			LabName=InfoItem['en']['name'];
-			LabDesc=InfoItem['en']['description'];
-			LabAuthor=InfoItem['en']['author'];			
+			LabName=EscapeHtmlValue(InfoItem['en']['name']);
+			LabDesc=EscapeHtmlValue(InfoItem['en']['description']);
+			LabAuthor=EscapeHtmlValue(InfoItem['en']['author']);
 		}
 		else
 			continue;
 		
 		
-		strLabHtml+='<div class="MakerlabItem GuideBlock" onClick="OnOpenOneMakerlab(\''+LabUrl+'\')" >'+
+		strLabHtml+='<div class="MakerlabItem GuideBlock" data-lab-url="'+LabUrl+'" >'+
 				'<div class="MakerlabImg"><img src="'+LabImg+'"/></div>'+
 				'<div class="MakerlabTextBlock">'+
 				'<div class="MakerlabName">'+LabName+'</div>'+
@@ -941,7 +977,15 @@ function ShowMakerlabList( LabList )
 	}
 
 	$('#LabList').html(strLabHtml);
+	Set_Makerlab_Click_Event();
 	$('#MakerlabArea').show();			
+}
+
+function Set_Makerlab_Click_Event()
+{
+	$('#LabList .MakerlabItem').off('click').on('click', function(){
+		OnOpenOneMakerlab($(this).attr('data-lab-url') || '');
+	});
 }
 
 function OnOpenOneMakerlab( ChildUrl )
@@ -987,12 +1031,14 @@ function ShowPrintHistory( TaskList )
 		let OneTask=TaskList[a];
 		
 		let TaskID=OneTask['id'];
+		if( !IsSafeInlineId(TaskID) )
+			continue;
 		let Status=OneTask['status'];
 				
-		let TaskName=OneTask['designTitle']!=''?OneTask['designTitle']:OneTask['title'];
-		let CoverImg=OneTask['cover'];
+		let TaskName=EscapeHtmlValue(OneTask['designTitle']!=''?OneTask['designTitle']:OneTask['title']);
+		let CoverImg=SafeRemoteImageSrc(OneTask['cover'], '');
 		
-		let DeviceName=OneTask['deviceName'];
+		let DeviceName=EscapeHtmlValue(OneTask['deviceName']);
 		let CostTime=OneTask['costTime'];
 		if( Status==2 || Status==3 )
 		{
@@ -1012,12 +1058,13 @@ function ShowPrintHistory( TaskList )
 		}
 		else 
 			strCostTime=CostTime+'s';
+		strCostTime=EscapeHtmlValue(strCostTime);
 		
-		let PlateName='<span tid="t123" class="trans"></span>&nbsp;'+OneTask['plateIndex']+'<span tid="t124" class="trans"></span>';
+		let PlateName='<span tid="t123" class="trans"></span>&nbsp;'+EscapeHtmlValue(OneTask['plateIndex'])+'<span tid="t124" class="trans"></span>';
 		if( OneTask['plateName'].trim()!='' )
-			PlateName+=' - '+OneTask['plateName'].trim();
+			PlateName+=' - '+EscapeHtmlValue(OneTask['plateName'].trim());
 		
-		let StartTime=convertTimeFormat( OneTask['startTime'] );
+		let StartTime=EscapeHtmlValue(convertTimeFormat( OneTask['startTime'] ));
 		
 		let isPublicProfile =OneTask['isPublicProfile'];
 		let sMode=OneTask['mode'];

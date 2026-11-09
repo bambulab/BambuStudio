@@ -23,11 +23,11 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/spirit/include/karma.hpp>
 #include <boost/spirit/include/qi_int.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
+#include "libslic3r/Log.hpp"
 namespace pt = boost::property_tree;
 
 #include <expat.h>
@@ -307,6 +307,9 @@ bool PrusaFileParser::check_3mf_from_prusa(const std::string filename)
             mz_zip_archive_file_stat stat;
             if (!mz_zip_reader_file_stat(&archive, model_file_index, &stat)) goto EXIT;
 
+            // XML_GetBuffer() takes an int; reject sizes that would be truncated.
+            if (stat.m_uncomp_size == 0 || stat.m_uncomp_size > (mz_uint64) std::numeric_limits<int>::max()) goto EXIT;
+
             void *parser_buffer = XML_GetBuffer(m_parser, (int) stat.m_uncomp_size);
             if (parser_buffer == nullptr) goto EXIT;
 
@@ -336,7 +339,8 @@ void PrusaFileParser::_start_element_handler(const char *name, const char **attr
         unsigned int num_attributes = (unsigned int) XML_GetSpecifiedAttributeCount(m_parser);
 
         std::string str_name = get_attribute_value_string(attributes, num_attributes, "name");
-        if (!str_name.empty() && str_name.find("Application") != std::string::npos) { m_is_application_key = true; }
+        // Only the current metadata node is eligible. Description and later nodes must not stay enabled.
+        m_is_application_key = !str_name.empty() && str_name.find("Application") != std::string::npos;
     }
 }
 
@@ -1327,7 +1331,9 @@ ModelVolumeType type_from_string(const std::string &s)
 
     bool _3MF_Importer::_extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model)
     {
-        if (stat.m_uncomp_size == 0) {
+        // XML_GetBuffer() takes an int; reject sizes that would be truncated, otherwise the buffer
+        // is allocated from the truncated size while the extraction writes the full 64-bit size.
+        if (stat.m_uncomp_size == 0 || stat.m_uncomp_size > (mz_uint64)std::numeric_limits<int>::max()) {
             add_error("Found invalid size");
             return false;
         }

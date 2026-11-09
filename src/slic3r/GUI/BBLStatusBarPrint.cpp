@@ -12,9 +12,9 @@
 #include "I18N.hpp"
 
 #include <algorithm>
-#include <boost/log/trivial.hpp>
 #include <iostream>
 #include <regex>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -325,7 +325,7 @@ void BBLStatusBarPrint::set_status_text(const wxString& txt)
     //    m_status_text->SetMinSize(wxSize(m_self->FromDIP(400), m_self->FromDIP(32)));
     //}
     if (m_status_text_raw != txt) {
-        BOOST_LOG_TRIVIAL(debug) << "BBLStatusBarPrint::set_status_text: " << txt.ToUTF8().data();
+        BOOST_LOG_TRIVIAL(debug) << txt.ToUTF8().data();
     }
     m_status_text_raw = txt;
     m_status_text->SetLabelText(txt);

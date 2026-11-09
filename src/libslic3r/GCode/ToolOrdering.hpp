@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <map>
+#include <set>
 #include <utility>
 
 #include <boost/container/small_vector.hpp>
@@ -179,6 +180,12 @@ public:
     unsigned int solid_infill_filament(const PrintRegion &region) const;
 	// Returns a zero based extruder this eec should be printed with, according to PrintRegion config or extruder_override if overriden.
 	unsigned int extruder(const ExtrusionEntityCollection &extrusions, const PrintRegion &region) const;
+	// The same decision as extruder(), but as the 1-based filament slot the region config names, where
+	// 0 still means "don't care". extruder() folds that 0 onto filament 1 on its way to a zero based
+	// index, so anything registering slots into LayerTools::extruders has to read them from here.
+	unsigned int filament_slot(const ExtrusionEntityCollection &extrusions, const PrintRegion &region) const;
+	// filament_slot() without extruder_override: the slot the region config assigns to these extrusions by role.
+	static unsigned int filament_slot_by_role(const ExtrusionEntityCollection &extrusions, const PrintRegionConfig &config);
 
     coordf_t 					print_z	= 0.;
     bool 						has_object = false;
@@ -300,6 +307,7 @@ public:
         m_stats_by_single_extruder.clear();
         m_stats_by_multi_extruder_best.clear();
         m_stats_by_multi_extruder_curr.clear();
+        m_bed_contact_filaments.clear();
     }
 
     // Only valid for non-sequential print:
@@ -321,6 +329,15 @@ public:
     // resolve_mixed_filaments() expanded them to physical components. Empty when unused.
     const std::vector<unsigned int>& used_mixed_filaments() const { return m_used_mixed_filaments; }
 
+    // 0-based physical filament slots used directly (not via mixed virtual slots) before
+    // resolve_mixed_filaments() expanded mixed slots to their components.
+    const std::vector<unsigned int> &directly_used_filaments() const { return m_directly_used_filaments; }
+
+    // 0-based filaments that extrude onto the bed: the first print layer plus every multi-diameter first band,
+    // which is extruded on its group top above the first print layer yet rests on the bed. Mixed slots are
+    // resolved to their components, so this is only valid after sort_and_build_data().
+    std::vector<unsigned int> first_layer_extruders() const;
+
     // Find LayerTools with the closest print_z.
     const LayerTools&	tools_for_layer(coordf_t print_z) const;
     LayerTools&			tools_for_layer(coordf_t print_z) { return const_cast<LayerTools&>(std::as_const(*this).tools_for_layer(print_z)); }
@@ -333,6 +350,10 @@ public:
     std::vector<LayerTools>& layer_tools() { return m_layer_tools; }
     const std::vector<LayerTools>          &layer_tools() const { return m_layer_tools; }
     bool 				has_wipe_tower() const { return ! m_layer_tools.empty() && m_first_printing_extruder != (unsigned int)-1 && m_layer_tools.front().has_wipe_tower; }
+    // Give the first tower layer a filament when nothing else prints on it, so that GCode::process_layer
+    // emits the foundation planned there. Only call it once that foundation is known to be emitted, and pass
+    // the filament the tower planned it with: G-code export replays that result with the layer's filament.
+    void                seed_first_tower_layer(unsigned int filament);
 
     int                 get_most_used_extruder() const { return m_most_used_extruder; }
     const MultiNozzleUtils::LayeredNozzleGroupResult &get_layered_nozzle_group_result() const { return m_nozzle_group_result; }
@@ -426,13 +447,28 @@ private:
     // where that object uses the slot. Populated by collect_extruders, consumed by resolve_mixed_filaments.
     std::map<unsigned int, std::map<const PrintObject*, std::vector<size_t>>> m_mixed_object_layers;
 
+    // Logical layer or adaptive-band height for each mixed slot and LayerTools index.
+    // This is intentionally independent of role-specific extrusion flow heights.
+    std::map<unsigned int, std::map<size_t, double>> m_mixed_layer_heights;
+
     // 0-based mixed slots actually present in any LayerTools::extruders before resolution.
     std::vector<unsigned int> m_used_mixed_filaments;
+    // 0-based physical slots used directly before mixed slots are expanded to components.
+    std::vector<unsigned int> m_directly_used_filaments;
+    // (print_z, 1-based slot) of extrusions whose height reaches down to the bed. Keyed by print_z
+    // because wipe tower partitioning inserts layers and shifts indices. Mixed slots stay unresolved here.
+    std::vector<std::pair<coordf_t, unsigned int>> m_bed_contact_filaments;
 
-    // All layer indices (in m_layer_tools) where each object has any layer.
-    // Used by gradient run detection to distinguish real gaps (object has a layer
-    // that doesn't use the slot) from spurious gaps (another object's layer).
+    // All layer indices (in m_layer_tools) where each object has actual extrusion.
+    // Used by gradient run detection to distinguish real gaps from layers belonging
+    // only to another object or empty grid layers swallowed by adaptive merging.
     std::map<const PrintObject*, std::vector<size_t>> m_object_all_layer_indices;
+
+    // Layer indices where a mixed slot's region is swallowed by its own adaptive band: the slot is
+    // still printed there, by the group top above. Another nozzle may emit its own group top on such a
+    // layer, so these must not count as gradient gaps. slot(0-based) -> PrintObject* / volume -> layers.
+    std::map<unsigned int, std::map<const PrintObject*, std::set<size_t>>> m_mixed_swallowed_layers;
+    std::map<unsigned int, std::map<LayerTools::MixedSubLayerGroup::VolumeKey, std::set<size_t>>> m_gradient_volume_swallowed_layers;
 
     // Per-volume gradient tracking: slot(0-based) -> (PrintObject*, ModelVolume id) -> list of
     // layer indices where the given volume contributes to the slot. Populated by collect_extruders

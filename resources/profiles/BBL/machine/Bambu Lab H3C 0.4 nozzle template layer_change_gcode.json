@@ -1,0 +1,5 @@
+{
+    "name": "Bambu Lab H3C 0.4 nozzle template layer_change_gcode",
+    "instantiation": "false",
+    "layer_change_gcode": ";======== H3C layer_change gcode ==========\n;===== 2025/10/16 =====\n\n; update layer progress\nM73 L{layer_num+1}\nM991 S0 P{layer_num} ;notify layer change\n"
+}

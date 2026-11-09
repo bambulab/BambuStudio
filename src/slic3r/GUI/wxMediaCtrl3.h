@@ -14,6 +14,7 @@
 #include "wx/timer.h"
 #include "../Utils/FrameBuffer.hpp"
 #include <atomic>
+#include <limits>
 
 wxDECLARE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MEDIA_CTRL_FIRST_FRAME, wxCommandEvent);
@@ -43,9 +44,7 @@ void wxMediaCtrl_OnSize(wxWindow * ctrl, wxSize const & videoSize, int width, in
 #define BAMBU_DYNAMIC
 #include <condition_variable>
 #include <thread>
-#ifndef _WIN32
-#include <wx/image.h>
-#endif
+#include <wx/image.h> // full type needed for the m_idle_image_raw member
 #include "Printer/BambuTunnel.h"
 #include "Printer/LiveViewTrackContext.h"
 
@@ -82,8 +81,11 @@ public:
 
     wxSize GetVideoSize();
 
+    wxSize GetIdleImageSize() const { return m_idle_image_size; }
+
     void SetConstrainByAspectRatio(bool constrain) { m_constrain_by_aspect_ratio = constrain; }
     bool GetConstrainByAspectRatio() const { return m_constrain_by_aspect_ratio; }
+    void SuppressPauseIcon(bool suppress);
     void SetTrackChannel(const BambuLiveViewTrack::ChannelInfo& info);
 
     void UpdateSessionStat();
@@ -93,7 +95,7 @@ protected:
 
     void paintEvent(wxPaintEvent &evt);
 
-    void DrawLiveviewLogo(wxGraphicsContext *gc, double bg_x, double bg_y, double bg_w, double bg_h);
+    void DrawLiveviewPause(wxGraphicsContext *gc, double bg_x, double bg_y, double bg_w, double bg_h);
 
     void mouseWheelEvent(wxMouseEvent &evt);
 
@@ -117,9 +119,13 @@ protected:
 
 private:
     wxString m_idle_image;
+    wxImage  m_idle_image_raw; // last idle image applied via the wxImage overload (UI thread only)
+    wxSize   m_idle_image_size = wxDefaultSize;
     wxString m_watermark_text;
-    wxBitmap m_logo_bitmap;      // cached rasterized logo (UI thread only)
-    wxSize   m_logo_bitmap_size;
+    wxString m_live_badge_text;
+    wxBitmap m_pause_bitmap;     // cached rasterized pause icon (UI thread only)
+    wxSize   m_pause_bitmap_size;
+    bool     m_suppress_pause_icon = false; // hide the pause placeholder from INITIALIZING onward
     wxMediaState m_state  = wxMEDIASTATE_STOPPED;
     int m_error  = 0;
     wxSize m_video_size = wxDefaultSize;
@@ -127,6 +133,8 @@ private:
     PlayFrame m_frame;
     bool m_frame_is_default_bg = false; // whether m_frame currently holds the default background (guarded by m_ui_mutex)
     double m_zoom = 1.0;   // digital zoom factor for the live view (mouse wheel)
+    double m_view_cx = std::numeric_limits<double>::quiet_NaN();
+    double m_view_cy = std::numeric_limits<double>::quiet_NaN();
     std::shared_ptr<wxURI> m_url;
     std::atomic<Bambu_Tunnel> m_tunnel{nullptr};
     std::mutex m_mutex;

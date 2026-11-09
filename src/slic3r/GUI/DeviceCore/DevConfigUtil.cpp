@@ -1,4 +1,5 @@
 #include "DevConfigUtil.h"
+#include "DevExtruderSystem.h"
 
 #include <mutex>
 #include <unordered_map>
@@ -7,6 +8,7 @@
 #include <boost/filesystem/operations.hpp>
 #include "../I18N.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 
@@ -123,7 +125,7 @@ bool find_printer_by_sn_prefix(const std::string& resource_file_path, const std:
         const auto& from_dir = resource_file_path + "/printers/";
         try {
             if (!boost::filesystem::exists(from_dir)) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": printers dir does not exist: " << from_dir;
+                BOOST_LOG_TRIVIAL(error) << "printers dir does not exist: " << from_dir;
                 return false;
             }
 
@@ -154,19 +156,19 @@ bool find_printer_by_sn_prefix(const std::string& resource_file_path, const std:
 
                     auto inserted = s_sn_prefix_index.emplace(prefix, SnPrefixInfo{model_id, printer_type});
                     if (!inserted.second && inserted.first->second.printer_type != printer_type) {
-                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__
-                            << ": duplicate sn_prefix=" << prefix
+                        BOOST_LOG_TRIVIAL(warning)
+                            << "duplicate sn_prefix=" << prefix
                             << " for printer_type=" << printer_type
                             << " (kept " << inserted.first->second.printer_type << ")";
                     }
                 } catch (...) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to load " << file_path.filename().string();
+                    BOOST_LOG_TRIVIAL(error) << "failed to load " << file_path.filename().string();
                 }
             }
         } catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": std::exception: " << e.what();
+            BOOST_LOG_TRIVIAL(error) << "std::exception: " << e.what();
         } catch (...) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unknown exception";
+            BOOST_LOG_TRIVIAL(error) << "unknown exception";
         }
     }
 
@@ -277,6 +279,37 @@ std::string DevPrinterConfigUtil::get_printer_ext_img(const std::string& type_st
     return (vec.size() > pos) ? vec[pos] : std::string();
 };
 
+std::string DevPrinterConfigUtil::get_rack_extruder_img(const std::string& type_str, DevRackExtruderVisualState state)
+{
+    static std::mutex s_mutex;
+    static std::string s_cached_resource_path;
+    static std::map<std::pair<std::string, int>, std::string> s_cache;
+
+    std::lock_guard<std::mutex> lock(s_mutex);
+    if (s_cached_resource_path != m_resource_file_path) {
+        s_cached_resource_path = m_resource_file_path;
+        s_cache.clear();
+    }
+
+    const auto cache_key = std::make_pair(type_str, static_cast<int>(state));
+    const auto cached = s_cache.find(cache_key);
+    if (cached != s_cache.end()) {
+        return cached->second;
+    }
+
+    const auto images = get_value_from_config<json>(type_str, "rack_extruder_images");
+    const std::string key(rack_extruder_visual_state_key(state));
+    std::string image = "dev_rack_toolhead.png";
+    if (images.is_object()) {
+        const auto item = images.find(key);
+        if (item != images.end() && item->is_string()) {
+            image = item->get<std::string>();
+        }
+    }
+    s_cache.emplace(cache_key, image);
+    return image;
+}
+
 std::string DevPrinterConfigUtil::get_filament_load_img(const std::string &type_str, int ext_id, bool has_nozzle_rack)
 {
     if (has_nozzle_rack)
@@ -319,7 +352,9 @@ std::string DevPrinterConfigUtil::get_fan_text(const std::string& type_str, cons
             }
         }
     }
-    catch (...) {}
+    catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return std::string();
 }
 
@@ -338,7 +373,9 @@ std::vector<std::string> DevPrinterConfigUtil::get_fan_text_params(const std::st
                 }
             }
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return std::vector<std::string>();
 }
 
@@ -385,7 +422,9 @@ std::string DevPrinterConfigUtil::get_fan_text(const std::string& type_str, int 
             }
         }
     }
-    catch (...) {}
+    catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return std::string();
 }
 
@@ -415,7 +454,9 @@ std::string DevPrinterConfigUtil::get_fan_mode_text(const std::string& type_str,
                 }
             }
         }
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return std::string();
 }
 
@@ -424,7 +465,7 @@ std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_su
     std::map<std::string, std::vector<std::string>> subseries;
 
 #if !BBL_RELEASE_TO_PUBLIC
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": path= " << m_resource_file_path + "/printers/";
+    BOOST_LOG_TRIVIAL(info) << "path= " << m_resource_file_path + "/printers/";
 #endif
 
     try
@@ -432,7 +473,7 @@ std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_su
         const auto& from_dir = m_resource_file_path + "/printers/";
         if (!boost::filesystem::exists(from_dir))
         {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": direction does not exist ";
+            BOOST_LOG_TRIVIAL(error) << "direction does not exist ";
             return subseries;
         }
 
@@ -471,18 +512,18 @@ std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_su
                 }
                 catch (...)
                 {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to load " << file_path.filename().string();
+                    BOOST_LOG_TRIVIAL(error) << "failed to load " << file_path.filename().string();
                 }
             }
         }
     }
     catch (const std::exception& e)
     {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": std::exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "std::exception: " << e.what();
     }
     catch (...)
     {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unknown exception";
+        BOOST_LOG_TRIVIAL(error) << "unknown exception";
     }
 
 #if !BBL_RELEASE_TO_PUBLIC
@@ -500,12 +541,12 @@ std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_su
         result_str += item_str + ", ";
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": result= " << result_str;
+    BOOST_LOG_TRIVIAL(info) << "result= " << result_str;
 #endif
 
     if (subseries.empty())
     {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": result= " << "empty";
+        BOOST_LOG_TRIVIAL(error) << "result= " << "empty";
     }
 
     return subseries;
@@ -563,6 +604,38 @@ std::string DevPrinterConfigUtil::get_toolhead_display_name(
     }
 
     return result;
+}
+
+int DevPrinterConfigUtil::get_default_extruder_count(const std::string& type_str)
+{
+    int val = get_value_from_config<int>(type_str, "print", "default_extruder_count");
+    if (val > 0) {
+        return val;
+    }
+
+    return 1;
+}
+
+int DevPrinterConfigUtil::get_default_nozzle_count(const std::string& type_str)
+{
+    int val = get_value_from_config<int>(type_str, "print", "default_nozzle_count");
+    if (val > 0) {
+        return val;
+    }
+
+    return 1;
+}
+
+bool DevPrinterConfigUtil::support_nozzle_count_check(const std::string& type_str)
+{
+    // get_value_from_config<bool> cannot tell "declared as false" from "not declared",
+    // so the raw value is fetched to keep the default at true.
+    const auto& value = get_value_from_config<json>(type_str, "support_nozzle_count_check");
+    if (value.is_boolean()) {
+        return value.get<bool>();
+    }
+
+    return true;
 }
 
 };

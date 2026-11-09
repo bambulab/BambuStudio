@@ -43,6 +43,18 @@ public:
 
     void ShowBadge(bool show);
 
+    // The badge is a corner ribbon cut to sit flush in this control's top-right corner, so its own
+    // top-right has to be cut the same way the control is: the default asset is rounded, and a square
+    // host leaves that rounding as an unfilled notch. Hosts that are not rounded name a square-cut
+    // asset here instead of rounding themselves to match a shape shared with unrelated controls.
+    // Takes effect on the next ShowBadge(true).
+    void SetBadgeIcon(const std::string &icon_name) { badge_icon_name = icon_name; }
+
+    // Lets an owning widget avoid positioning other content over the badge, which is always
+    // drawn flush at this control's own top-right corner and must not be moved from there.
+    bool HasBadge() const { return badge.bmp().IsOk(); }
+    int GetBadgeWidth() const { return badge.bmp().IsOk() ? badge.bmp().GetScaledSize().x : 0; }
+
 protected:
     void eraseEvent(wxEraseEvent& evt);
 
@@ -61,6 +73,7 @@ protected:
     StateColor   background_color;
     StateColor   background_color2;
     ScalableBitmap badge;
+    std::string    badge_icon_name = "badge";
 
     DECLARE_EVENT_TABLE()
 };

@@ -46,6 +46,26 @@
         "0",
         "0"
     ],
+    "filament_retraction_length": [
+        "nil",
+        "nil",
+        "1.5"
+    ],
+    "filament_wipe": [
+        "nil",
+        "nil",
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "nil",
+        "nil",
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "nil",
+        "nil",
+        "Spiral Lift"
+    ],
     "hole_coef_2": [
         "0.0009"
     ],

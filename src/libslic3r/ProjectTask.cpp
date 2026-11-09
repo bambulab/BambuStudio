@@ -10,13 +10,13 @@
 
 #include <boost/random.hpp>
 #include <boost/generator_iterator.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include "nlohmann/json.hpp"
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 
@@ -86,10 +86,10 @@ namespace Slic3r {
             }
         }
         catch (...) {
-            BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json_str;
+            BOOST_LOG_TRIVIAL(trace) << "failed! json=" << json_str;
             return -1;
         }
-        BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json_str;
+        BOOST_LOG_TRIVIAL(trace) << "failed! json=" << json_str;
         return -1;
     }
 
@@ -167,7 +167,7 @@ namespace Slic3r {
             }
         }
         catch (...) {
-            BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json;
+            BOOST_LOG_TRIVIAL(trace) << "failed! json=" << json;
         }
         return 0;
     }

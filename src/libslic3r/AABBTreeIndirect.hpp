@@ -548,6 +548,25 @@ namespace detail {
 		}
 	};
 
+    template<typename BBox, typename Vector>
+    static inline auto squared_exterior_distance(const BBox &bbox, const Vector &point)
+    {
+        using BBoxScalar = typename BBox::Scalar;
+        if constexpr (std::is_integral<BBoxScalar>::value) {
+            double squared_distance = 0.;
+            for (int axis = 0; axis < int(BBox::AmbientDimAtCompileTime); ++ axis) {
+                const double min = double(bbox.min()[axis]);
+                const double max = double(bbox.max()[axis]);
+                const double pos = double(point[axis]);
+                const double delta = pos < min ? min - pos : (pos > max ? pos - max : 0.);
+                squared_distance += delta * delta;
+            }
+            return squared_distance;
+        } else {
+            return bbox.squaredExteriorDistance(point);
+        }
+    }
+
 	template<typename IndexedPrimitivesDistancerType, typename Scalar>
     static inline Scalar squared_distance_to_indexed_primitives_recursive(
         IndexedPrimitivesDistancerType	&distancer,
@@ -614,8 +633,8 @@ namespace detail {
             if (node_right.bbox.contains(distancer.origin.template cast<BBoxScalar>()))
 			  	look_right();
 			// if haven't looked left and could be less than current min, then look
-			Scalar left_up_sqr_d  = node_left.bbox.squaredExteriorDistance(distancer.origin);
-			Scalar right_up_sqr_d = node_right.bbox.squaredExteriorDistance(distancer.origin);
+			const auto left_up_sqr_d  = squared_exterior_distance(node_left.bbox, distancer.origin);
+			const auto right_up_sqr_d = squared_exterior_distance(node_right.bbox, distancer.origin);
 			if (left_up_sqr_d < right_up_sqr_d) {
 			  	if (! looked_left && left_up_sqr_d < up_sqr_d)
 			    	look_left();
@@ -651,11 +670,11 @@ namespace detail {
             assert(node_left.is_valid());
             assert(node_right.is_valid());
 
-            if (node_left.bbox.squaredExteriorDistance(distancer.origin) < squared_distance_limit) {
+            if (squared_exterior_distance(node_left.bbox, distancer.origin) < squared_distance_limit) {
                 indexed_primitives_within_distance_squared_recurisve(distancer, left_node_idx, squared_distance_limit,
                                                                      found_primitives_indices);
             }
-            if (node_right.bbox.squaredExteriorDistance(distancer.origin) < squared_distance_limit) {
+            if (squared_exterior_distance(node_right.bbox, distancer.origin) < squared_distance_limit) {
                 indexed_primitives_within_distance_squared_recurisve(distancer, right_node_idx, squared_distance_limit,
                                                                      found_primitives_indices);
             }

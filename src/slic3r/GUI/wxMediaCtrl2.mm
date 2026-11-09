@@ -7,7 +7,6 @@
 
 #import "wxMediaCtrl2.h"
 #import "wx/mediactrl.h"
-#include <boost/log/trivial.hpp>
 
 #import <Foundation/Foundation.h>
 #import <QuartzCore/QuartzCore.h>
@@ -16,7 +15,12 @@
 
 #include <stdlib.h>
 #include <dlfcn.h>
+#include <algorithm>
+#include <cmath>
 #include "Printer/LiveViewTrackContext.h"
+#include "BitmapCache.hpp"
+#include "I18N.hpp"
+#include "libslic3r/Log.hpp"
 
 wxDEFINE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
 
@@ -220,7 +224,9 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
     CGColorRef color = CGColorCreateGenericRGB(0, 0, 0, 1.0f);
     imageView.layer.backgroundColor = color;
     CGColorRelease(color);
+    imageView.layer.masksToBounds = YES;
     imageView.wantsLayer = YES;
+    Bind(wxEVT_MOUSEWHEEL, &wxMediaCtrl2::mouseWheelEvent, this);
     create_player();
 }
 
@@ -232,6 +238,36 @@ wxMediaCtrl2::~wxMediaCtrl2()
         [wmLayer release];
         m_watermark_layer = nullptr;
     }
+    CALayer *badgeBgLayer = (CALayer *)m_badge_bg_layer;
+    if (badgeBgLayer) {
+        [badgeBgLayer removeFromSuperlayer];
+        [badgeBgLayer release];
+        m_badge_bg_layer = nullptr;
+    }
+    CALayer *badgeDotLayer = (CALayer *)m_badge_dot_layer;
+    if (badgeDotLayer) {
+        [badgeDotLayer removeFromSuperlayer];
+        [badgeDotLayer release];
+        m_badge_dot_layer = nullptr;
+    }
+    CALayer *zoomBadgeBgLayer = (CALayer *)m_zoom_badge_bg_layer;
+    if (zoomBadgeBgLayer) {
+        [zoomBadgeBgLayer removeFromSuperlayer];
+        [zoomBadgeBgLayer release];
+        m_zoom_badge_bg_layer = nullptr;
+    }
+    CATextLayer *zoomBadgeTextLayer = (CATextLayer *)m_zoom_badge_text_layer;
+    if (zoomBadgeTextLayer) {
+        [zoomBadgeTextLayer removeFromSuperlayer];
+        [zoomBadgeTextLayer release];
+        m_zoom_badge_text_layer = nullptr;
+    }
+    CALayer *pauseIconLayer = (CALayer *)m_pause_icon_layer;
+    if (pauseIconLayer) {
+        [pauseIconLayer removeFromSuperlayer];
+        [pauseIconLayer release];
+        m_pause_icon_layer = nullptr;
+    }
     CALayer *idleLayer = (CALayer *)m_idle_layer;
     if (idleLayer) {
         [idleLayer removeFromSuperlayer];
@@ -240,6 +276,12 @@ wxMediaCtrl2::~wxMediaCtrl2()
     }
     BambuPlayer * player = (BambuPlayer *) m_player;
     [player dealloc];
+    AVSampleBufferDisplayLayer *videoLayer = (AVSampleBufferDisplayLayer *)m_video_layer;
+    if (videoLayer) {
+        [videoLayer removeFromSuperlayer];
+        [videoLayer release];
+        m_video_layer = nullptr;
+    }
 }
 
 void wxMediaCtrl2::create_player()
@@ -247,7 +289,7 @@ void wxMediaCtrl2::create_player()
 	auto module = Slic3r::NetworkAgent::get_bambu_source_entry();
 	if (!module) {
 		//not ready yet
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Network plugin not ready currently!";
+		BOOST_LOG_TRIVIAL(info) << "Network plugin not ready currently!";
 		return;
 	}
     Class cls = (__bridge Class) dlsym(module, "OBJC_CLASS_$_BambuPlayer");
@@ -256,8 +298,16 @@ void wxMediaCtrl2::create_player()
         return;
     }
     NSView * imageView = (NSView *) GetHandle();
+    AVSampleBufferDisplayLayer *videoLayer = (AVSampleBufferDisplayLayer *)m_video_layer;
+    if (!videoLayer) {
+        videoLayer = [[AVSampleBufferDisplayLayer alloc] init];
+        videoLayer.frame = imageView.layer.bounds;
+        videoLayer.videoGravity = AVLayerVideoGravityResizeAspect;
+        [imageView.layer insertSublayer:videoLayer atIndex:0];
+        m_video_layer = videoLayer;
+    }
     BambuPlayer * player = [cls alloc];
-    [player initWithImageView: imageView];
+    [player initWithDisplayLayer: videoLayer];
     [player setLogger: bambu_log withContext: this];
     if ([player respondsToSelector:@selector(setTrackReporter:withContext:)])
         [player setTrackReporter: on_player_track_event withContext: &m_track_channel];
@@ -273,11 +323,12 @@ void wxMediaCtrl2::Load(wxURI url, std::chrono::system_clock::time_point play_st
 	if (!m_player) {
 		create_player();
 		if (!m_player) {
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": create_player failed currently!";
+			BOOST_LOG_TRIVIAL(info) << "create_player failed currently!";
 			return;
 		}
 	}
 
+    resetZoom();
     m_play_start_time  = play_start_time;
     m_first_frame_info = FirstFrameInfo{};
     m_session_stat     = Bambu_SessionStat{};
@@ -310,14 +361,17 @@ void wxMediaCtrl2::Play()
 	if (!m_player) {
 		create_player();
 		if (!m_player) {
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": create_player failed currently!";
+			BOOST_LOG_TRIVIAL(info) << "create_player failed currently!";
 			return;
 		}
 	}
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 play];
     // Hide idle image during playback (must run on main thread for CALayer)
-    dispatch_async(dispatch_get_main_queue(), ^{ removeIdleLayer(); });
+    dispatch_async(dispatch_get_main_queue(), ^{
+        removeIdleLayer();
+        updateStatusBadge();
+    });
     if (m_state != wxMEDIASTATE_PLAYING) {
         m_state = wxMEDIASTATE_PLAYING;
         wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
@@ -332,15 +386,107 @@ void wxMediaCtrl2::Stop()
 	if (!m_player) {
 		create_player();
 		if (!m_player) {
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": create_player failed currently!";
+			BOOST_LOG_TRIVIAL(info) << "create_player failed currently!";
 			return;
 		}
 	}
+    resetZoom();
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 close];
-    // Restore idle image after stopping (must run on main thread for CALayer)
-    dispatch_async(dispatch_get_main_queue(), ^{ updateIdleLayer(); });
+    m_suppress_pause_icon = false;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        AVSampleBufferDisplayLayer *videoLayer = (AVSampleBufferDisplayLayer *)m_video_layer;
+        [videoLayer flushAndRemoveImage];
+        updateIdleLayer();
+    });
     NotifyStopped();
+}
+
+void wxMediaCtrl2::mouseWheelEvent(wxMouseEvent &evt)
+{
+    const int rotation = evt.GetWheelRotation();
+    if (rotation == 0 || m_state != wxMEDIASTATE_PLAYING) {
+        evt.Skip();
+        return;
+    }
+
+    const int wheel_delta = evt.GetWheelDelta();
+    const double steps = wheel_delta == 0
+        ? (rotation > 0 ? 1.0 : -1.0)
+        : static_cast<double>(rotation) / wheel_delta;
+    const double old_zoom = m_zoom;
+    const double new_zoom = std::clamp(old_zoom * std::pow(1.1, steps), 1.0, 5.0);
+    if (new_zoom == old_zoom)
+        return;
+
+    const wxSize size = GetClientSize();
+    const wxPoint cursor = evt.GetPosition();
+    const double cursor_x = cursor.x - size.x / 2.0;
+    const double cursor_y = cursor.y - size.y / 2.0;
+    const double ratio = new_zoom / old_zoom;
+
+    m_zoom_offset_x = cursor_x - ratio * (cursor_x - m_zoom_offset_x);
+    m_zoom_offset_y = cursor_y - ratio * (cursor_y - m_zoom_offset_y);
+    m_zoom = new_zoom;
+    clampZoomOffset();
+    applyVideoTransform();
+}
+
+void wxMediaCtrl2::resetZoom()
+{
+    m_zoom = 1.0;
+    m_zoom_offset_x = 0.0;
+    m_zoom_offset_y = 0.0;
+    applyVideoTransform();
+}
+
+void wxMediaCtrl2::clampZoomOffset()
+{
+    const wxSize view_size = GetClientSize();
+    wxSize video_size = GetVideoSize();
+    if (video_size.x <= 0 || video_size.y <= 0)
+        video_size = m_video_size;
+    if (view_size.x <= 0 || view_size.y <= 0 || video_size.x <= 0 || video_size.y <= 0) {
+        m_zoom_offset_x = 0.0;
+        m_zoom_offset_y = 0.0;
+        return;
+    }
+
+    double fitted_width;
+    double fitted_height;
+    if (static_cast<double>(video_size.x) * view_size.y <
+        static_cast<double>(video_size.y) * view_size.x) {
+        fitted_height = view_size.y;
+        fitted_width = static_cast<double>(video_size.x) * view_size.y / video_size.y;
+    } else {
+        fitted_width = view_size.x;
+        fitted_height = static_cast<double>(video_size.y) * view_size.x / video_size.x;
+    }
+
+    const double max_x = std::max(0.0, (fitted_width * m_zoom - view_size.x) / 2.0);
+    const double max_y = std::max(0.0, (fitted_height * m_zoom - view_size.y) / 2.0);
+    m_zoom_offset_x = std::clamp(m_zoom_offset_x, -max_x, max_x);
+    m_zoom_offset_y = std::clamp(m_zoom_offset_y, -max_y, max_y);
+}
+
+void wxMediaCtrl2::applyVideoTransform()
+{
+    AVSampleBufferDisplayLayer *videoLayer = (AVSampleBufferDisplayLayer *)m_video_layer;
+    if (!videoLayer)
+        return;
+
+    const double layer_offset_y = [videoLayer.superlayer isGeometryFlipped]
+        ? m_zoom_offset_y
+        : -m_zoom_offset_y;
+    const CGRect bounds = videoLayer.superlayer.bounds;
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    videoLayer.transform = CATransform3DMakeScale(m_zoom, m_zoom, 1.0);
+    videoLayer.position = CGPointMake(
+        CGRectGetMidX(bounds) + m_zoom_offset_x,
+        CGRectGetMidY(bounds) + layer_offset_y);
+    [CATransaction commit];
+    updateZoomBadge();
 }
 
 void wxMediaCtrl2::SetIdleImage(wxString const &image, wxString const &watermark_text)
@@ -394,7 +540,8 @@ void wxMediaCtrl2::SetIdleImage(const wxImage &image, wxString const &watermark_
         if (idleLayer.superlayer != rootLayer)
             [rootLayer addSublayer:idleLayer];
 
-        updateWatermarkLayer();
+        updatePauseIconLayer();
+        updateStatusBadge();
     }
 }
 
@@ -423,7 +570,7 @@ void wxMediaCtrl2::updateIdleLayer()
             idleLayer.contents = (__bridge id)cgImage;
             [nsImage release];
         } else {
-            BOOST_LOG_TRIVIAL(warning) << "wxMediaCtrl2::updateIdleLayer: failed to load image: " << m_idle_image.ToUTF8().data();
+            BOOST_LOG_TRIVIAL(warning) << "failed to load image: " << m_idle_image.ToUTF8().data();
             idleLayer.contents = nil;
         }
     } else {
@@ -438,66 +585,215 @@ void wxMediaCtrl2::updateIdleLayer()
     if (idleLayer.superlayer != rootLayer)
         [rootLayer addSublayer:idleLayer];
 
-    updateWatermarkLayer();
+    updatePauseIconLayer();
+    updateStatusBadge();
 }
 
-void wxMediaCtrl2::updateWatermarkLayer()
+void wxMediaCtrl2::updateStatusBadge()
 {
-    CALayer *idleLayer = (CALayer *)m_idle_layer;
-    if (!idleLayer || idleLayer.hidden)
+    NSView *view = (NSView *)GetHandle();
+    CALayer *rootLayer = view.layer;
+    if (!rootLayer)
         return;
 
-    if (!m_watermark_text.empty()) {
-        CenteredCATextLayer *wmLayer = (CenteredCATextLayer *)m_watermark_layer;
-        if (!wmLayer) {
-            wmLayer = [[CenteredCATextLayer alloc] init];
-            wmLayer.alignmentMode = kCAAlignmentCenter;
-            wmLayer.contentsScale = [[NSScreen mainScreen] backingScaleFactor];
-            m_watermark_layer = wmLayer;
-        }
+    bool playing = (m_state == wxMEDIASTATE_PLAYING);
+    wxString text = playing ? _L("Live") : m_watermark_text;
+    bool visible = playing || !m_watermark_text.empty();
 
-        NSString *wmText = [NSString stringWithUTF8String:m_watermark_text.ToUTF8().data()];
-        NSFont *font = [NSFont boldSystemFontOfSize:10.0];
-        NSDictionary *attrs = @{NSFontAttributeName: font};
-        NSSize textSize = [wmText sizeWithAttributes:attrs];
+    CALayer *bgLayer = (CALayer *)m_badge_bg_layer;
+    CALayer *dotLayer = (CALayer *)m_badge_dot_layer;
+    CenteredCATextLayer *textLayer = (CenteredCATextLayer *)m_watermark_layer;
 
-        CGFloat padH = 12.0;
-        CGFloat padV = 8.0;
-        CGFloat wmW = textSize.width + 2 * padH;
-        CGFloat wmH = textSize.height + 2 * padV;
-
-        NSView *view = (NSView *)GetHandle();
-        CALayer *rootLayer = view.layer;
-        CGFloat parentH = idleLayer.bounds.size.height;
-        CGFloat wmX = rootLayer ? (rootLayer.bounds.size.width - wmW) / 2.0 : 0;
-        // wxWidgets NSView is flipped (y=0 at top), so place near bottom edge
-        CGFloat wmY = parentH - wmH - 10.0;
-        CGFloat radius = 8.0;
-
-        wmLayer.frame = CGRectMake(wmX, wmY, wmW, wmH);
-        wmLayer.cornerRadius = radius;
-
-        CGColorRef bgColor = CGColorCreateGenericRGB(0.2, 0.2, 0.2, 0.63);
-        wmLayer.backgroundColor = bgColor;
-        CGColorRelease(bgColor);
-
-        wmLayer.string = wmText;
-        wmLayer.font = (__bridge CFTypeRef)font;
-        wmLayer.fontSize = 10.0;
-
-        CGColorRef fgColor = CGColorCreateGenericRGB(0.86, 0.86, 0.86, 1.0);
-        wmLayer.foregroundColor = fgColor;
-        CGColorRelease(fgColor);
-
-        wmLayer.hidden = NO;
-
-        if (wmLayer.superlayer != idleLayer)
-            [idleLayer addSublayer:wmLayer];
-    } else {
-        CATextLayer *wmLayer = (CATextLayer *)m_watermark_layer;
-        if (wmLayer)
-            wmLayer.hidden = YES;
+    if (!visible) {
+        if (bgLayer) bgLayer.hidden = YES;
+        if (dotLayer) dotLayer.hidden = YES;
+        if (textLayer) textLayer.hidden = YES;
+        return;
     }
+
+    if (!bgLayer) {
+        bgLayer = [[CALayer alloc] init];
+        m_badge_bg_layer = bgLayer;
+    }
+    if (!dotLayer) {
+        dotLayer = [[CALayer alloc] init];
+        m_badge_dot_layer = dotLayer;
+    }
+    if (!textLayer) {
+        textLayer = [[CenteredCATextLayer alloc] init];
+        textLayer.alignmentMode = kCAAlignmentLeft;
+        textLayer.contentsScale = [[NSScreen mainScreen] backingScaleFactor];
+        m_watermark_layer = textLayer;
+    }
+
+    NSString *nsText = [NSString stringWithUTF8String:text.ToUTF8().data()];
+    NSFont *font = [NSFont systemFontOfSize:14.0];
+    NSDictionary *attrs = @{NSFontAttributeName: font};
+    NSSize textSize = [nsText sizeWithAttributes:attrs];
+
+    CGFloat padH   = 12.0;
+    CGFloat dotD   = 8.0;
+    CGFloat dotGap = 6.0;
+    CGFloat pillH  = 39.0;
+    CGFloat margin = 10.0;
+    CGFloat pillW  = padH + dotD + dotGap + textSize.width + padH;
+    CGFloat radius = pillH / 2.0;
+
+    CGFloat pillX = margin;
+    CGFloat pillY = margin;
+
+    bgLayer.frame = CGRectMake(pillX, pillY, pillW, pillH);
+    bgLayer.cornerRadius = radius;
+    CGColorRef bgColor = CGColorCreateGenericRGB(51 / 255.0, 51 / 255.0, 51 / 255.0, 160 / 255.0);
+    bgLayer.backgroundColor = bgColor;
+    CGColorRelease(bgColor);
+    bgLayer.hidden = NO;
+    if (bgLayer.superlayer != rootLayer)
+        [rootLayer addSublayer:bgLayer];
+
+    CGFloat dotX = pillX + padH;
+    CGFloat dotY = pillY + (pillH - dotD) / 2.0;
+    dotLayer.frame = CGRectMake(dotX, dotY, dotD, dotD);
+    dotLayer.cornerRadius = dotD / 2.0;
+    wxColour dotColour = playing ? wxColour(76, 217, 100) : wxColour(0xCE, 0xCE, 0xCE);
+    CGColorRef dotColor = CGColorCreateGenericRGB(dotColour.Red() / 255.0, dotColour.Green() / 255.0, dotColour.Blue() / 255.0, 1.0);
+    dotLayer.backgroundColor = dotColor;
+    CGColorRelease(dotColor);
+    dotLayer.hidden = NO;
+    if (dotLayer.superlayer != rootLayer)
+        [rootLayer addSublayer:dotLayer];
+
+    CGFloat textX = dotX + dotD + dotGap;
+    textLayer.frame = CGRectMake(textX, pillY, textSize.width, pillH);
+    textLayer.string = nsText;
+    textLayer.font = (__bridge CFTypeRef)font;
+    textLayer.fontSize = 14.0;
+    textLayer.backgroundColor = nil;
+    CGColorRef fgColor = CGColorCreateGenericRGB(0xCE / 255.0, 0xCE / 255.0, 0xCE / 255.0, 1.0);
+    textLayer.foregroundColor = fgColor;
+    CGColorRelease(fgColor);
+    textLayer.hidden = NO;
+    if (textLayer.superlayer != rootLayer)
+        [rootLayer addSublayer:textLayer];
+}
+
+void wxMediaCtrl2::updateZoomBadge()
+{
+    NSView *view = (NSView *)GetHandle();
+    CALayer *rootLayer = view.layer;
+    if (!rootLayer)
+        return;
+
+    CALayer *bgLayer = (CALayer *)m_zoom_badge_bg_layer;
+    CenteredCATextLayer *textLayer = (CenteredCATextLayer *)m_zoom_badge_text_layer;
+    if (m_zoom <= 1.0) {
+        if (bgLayer) bgLayer.hidden = YES;
+        if (textLayer) textLayer.hidden = YES;
+        return;
+    }
+
+    if (!bgLayer) {
+        bgLayer = [[CALayer alloc] init];
+        m_zoom_badge_bg_layer = bgLayer;
+    }
+    if (!textLayer) {
+        textLayer = [[CenteredCATextLayer alloc] init];
+        textLayer.alignmentMode = kCAAlignmentLeft;
+        textLayer.contentsScale = [[NSScreen mainScreen] backingScaleFactor];
+        m_zoom_badge_text_layer = textLayer;
+    }
+
+    wxString text = _L("Zoom") + wxString::Format(" %.1fx", m_zoom);
+    NSString *nsText = [NSString stringWithUTF8String:text.ToUTF8().data()];
+    NSFont *font = [NSFont systemFontOfSize:14.0];
+    NSDictionary *attrs = @{NSFontAttributeName: font};
+    NSSize textSize = [nsText sizeWithAttributes:attrs];
+
+    CGFloat padH = 12.0;
+    CGFloat pillH = 39.0;
+    CGFloat margin = 10.0;
+    CGFloat pillW = padH + textSize.width + padH;
+    CGFloat pillX = rootLayer.bounds.size.width - margin - pillW;
+    CGFloat pillY = margin;
+
+    bgLayer.frame = CGRectMake(pillX, pillY, pillW, pillH);
+    bgLayer.cornerRadius = pillH / 2.0;
+    CGColorRef bgColor = CGColorCreateGenericRGB(51 / 255.0, 51 / 255.0, 51 / 255.0, 160 / 255.0);
+    bgLayer.backgroundColor = bgColor;
+    CGColorRelease(bgColor);
+    bgLayer.hidden = NO;
+    if (bgLayer.superlayer != rootLayer)
+        [rootLayer addSublayer:bgLayer];
+
+    textLayer.frame = CGRectMake(pillX + padH, pillY, textSize.width, pillH);
+    textLayer.string = nsText;
+    textLayer.font = (__bridge CFTypeRef)font;
+    textLayer.fontSize = 14.0;
+    textLayer.backgroundColor = nil;
+    CGColorRef fgColor = CGColorCreateGenericRGB(0xCE / 255.0, 0xCE / 255.0, 0xCE / 255.0, 1.0);
+    textLayer.foregroundColor = fgColor;
+    CGColorRelease(fgColor);
+    textLayer.hidden = NO;
+    if (textLayer.superlayer != rootLayer)
+        [rootLayer addSublayer:textLayer];
+}
+
+void wxMediaCtrl2::updatePauseIconLayer()
+{
+    if (m_suppress_pause_icon) {
+        CALayer *pauseIconLayer = (CALayer *)m_pause_icon_layer;
+        if (pauseIconLayer)
+            pauseIconLayer.hidden = YES;
+        return;
+    }
+
+    CALayer *idleLayer = (CALayer *)m_idle_layer;
+    if (!idleLayer)
+        return;
+
+    CGFloat iconSz = idleLayer.bounds.size.height * 0.12;
+    if (iconSz <= 0)
+        return;
+
+    static Slic3r::GUI::BitmapCache cache;
+    wxBitmap *bmp = cache.load_svg("liveview_pause", (unsigned) std::lround(iconSz), (unsigned) std::lround(iconSz));
+    if (!bmp || !bmp->IsOk())
+        return;
+
+    wxImage image = bmp->ConvertToImage();
+    CGImageRef cgImage = createCGImageFromWxImage(image);
+    if (!cgImage)
+        return;
+
+    CALayer *iconLayer = (CALayer *)m_pause_icon_layer;
+    if (!iconLayer) {
+        iconLayer = [[CALayer alloc] init];
+        iconLayer.contentsGravity = kCAGravityResizeAspect;
+        m_pause_icon_layer = iconLayer;
+    }
+
+    CGFloat iconX = (idleLayer.bounds.size.width - iconSz) / 2.0;
+    CGFloat iconY = (idleLayer.bounds.size.height - iconSz) / 2.0;
+    iconLayer.frame = CGRectMake(iconX, iconY, iconSz, iconSz);
+    iconLayer.contentsScale = cache.scale();
+    iconLayer.contents = (__bridge id)cgImage;
+    iconLayer.hidden = NO;
+    CGImageRelease(cgImage);
+
+    if (iconLayer.superlayer != idleLayer)
+        [idleLayer addSublayer:iconLayer];
+}
+
+void wxMediaCtrl2::SuppressPauseIcon(bool suppress)
+{
+    if (m_suppress_pause_icon == suppress)
+        return;
+    m_suppress_pause_icon = suppress;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        CALayer *pauseIconLayer = (CALayer *)m_pause_icon_layer;
+        if (pauseIconLayer)
+            pauseIconLayer.hidden = m_suppress_pause_icon ? YES : NO;
+    });
 }
 
 void wxMediaCtrl2::removeIdleLayer()
@@ -505,6 +801,15 @@ void wxMediaCtrl2::removeIdleLayer()
     CALayer *idleLayer = (CALayer *)m_idle_layer;
     if (idleLayer)
         idleLayer.hidden = YES;
+    CALayer *pauseIconLayer = (CALayer *)m_pause_icon_layer;
+    if (pauseIconLayer)
+        pauseIconLayer.hidden = YES;
+    CALayer *badgeBgLayer = (CALayer *)m_badge_bg_layer;
+    if (badgeBgLayer)
+        badgeBgLayer.hidden = YES;
+    CALayer *badgeDotLayer = (CALayer *)m_badge_dot_layer;
+    if (badgeDotLayer)
+        badgeDotLayer.hidden = YES;
     CATextLayer *wmLayer = (CATextLayer *)m_watermark_layer;
     if (wmLayer)
         wmLayer.hidden = YES;
@@ -518,6 +823,7 @@ void wxMediaCtrl2::NotifyStopped()
         event.SetId(GetId());
         event.SetEventObject(this);
         wxPostEvent(this, event);
+        dispatch_async(dispatch_get_main_queue(), ^{ updateStatusBadge(); });
     }
 }
 
@@ -546,27 +852,33 @@ wxSize wxMediaCtrl2::GetVideoSize() const
 
 void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
+    NSView *view = (NSView *)GetHandle();
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
-    if (sizeFlags & wxSIZE_USE_EXISTING) return;
+
+    CALayer *rootLayer = view.layer;
+    AVSampleBufferDisplayLayer *videoLayer = (AVSampleBufferDisplayLayer *)m_video_layer;
+    if (rootLayer && videoLayer) {
+        [CATransaction begin];
+        [CATransaction setDisableActions:YES];
+        videoLayer.transform = CATransform3DIdentity;
+        videoLayer.frame = rootLayer.bounds;
+        [CATransaction commit];
+    }
+
+    if (sizeFlags & wxSIZE_USE_EXISTING) {
+        clampZoomOffset();
+        applyVideoTransform();
+        return;
+    }
     wxMediaCtrl_OnSize(this, m_video_size, width, height);
 
-    // Sync idle layer and watermark positions on resize
-    NSView *view = (NSView *)GetHandle();
-    CALayer *rootLayer = view.layer;
     if (!rootLayer) return;
 
     CALayer *idleLayer = (CALayer *)m_idle_layer;
     if (idleLayer && !idleLayer.hidden) {
         idleLayer.frame = rootLayer.bounds;
-
-        // Reposition watermark centered at bottom (flipped coords: y=0 at top)
-        CATextLayer *wmLayer = (CATextLayer *)m_watermark_layer;
-        if (wmLayer && !wmLayer.hidden) {
-            CGFloat wmW = wmLayer.frame.size.width;
-            CGFloat wmH = wmLayer.frame.size.height;
-            CGFloat wmX = (rootLayer.bounds.size.width - wmW) / 2.0;
-            CGFloat wmY = idleLayer.bounds.size.height - wmH - 10.0;
-            wmLayer.frame = CGRectMake(wmX, wmY, wmW, wmH);
-        }
+        updatePauseIconLayer();
     }
+    clampZoomOffset();
+    applyVideoTransform();
 }

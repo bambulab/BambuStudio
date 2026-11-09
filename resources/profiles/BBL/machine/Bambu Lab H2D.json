@@ -7,7 +7,7 @@
     "bed_texture": "bbl-3dp-logo.svg",
     "use_rect_grid": "true",
     "default_bed_type": "Textured PEI Plate",
-    "image_bed_type": "o",
+    "image_bed_type": "350",
     "not_support_bed_type": "Cool Plate",
     "family": "BBL-3DP",
     "machine_tech": "FFF",

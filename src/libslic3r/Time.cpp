@@ -24,11 +24,15 @@ static const constexpr char *const SLICER_UTC_TIME_FMT = "%Y-%m-%d at %T";
 // ISO8601Z representation of time, without time zone info
 static const constexpr char *const ISO8601Z_TIME_FMT = "%Y%m%dT%H%M%SZ";
 
+// "YYYY-MM-DD HH:MM:SS" for human-readable display
+static const constexpr char *const DATETIME_TIME_FMT = "%Y-%m-%d %H:%M:%S";
+
 static const char * get_fmtstr(TimeFormat fmt)
 {
     switch (fmt) {
     case TimeFormat::gcode: return SLICER_UTC_TIME_FMT;
     case TimeFormat::iso8601Z: return ISO8601Z_TIME_FMT;
+    case TimeFormat::datetime: return DATETIME_TIME_FMT;
     }
 
     return "";

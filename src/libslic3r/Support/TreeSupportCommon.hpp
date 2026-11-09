@@ -38,14 +38,24 @@ struct TreeSupportMeshGroupSettings {
         //assert(config.support_material);
         //assert(config.support_material_style == smsTree || config.support_material_style == smsOrganic);
 
-        // Calculate maximum external perimeter width over all printing regions, taking into account the default layer height.
+        // Keep the per-region widths so overhang tips in multi-diameter prints use the clearance of
+        // the region they support instead of inheriting the widest nozzle in the object.
+        // 仅多口径使用，否则会多预计算无用半径的碰撞/避让区
+        const bool per_region_xy_distance = print_object.print()->uses_multiple_nozzle_diameters();
         coordf_t external_perimeter_width = 0.;
         for (size_t region_id = 0; region_id < print_object.num_printing_regions(); ++ region_id) {
             const PrintRegion &region = print_object.printing_region(region_id);
-            external_perimeter_width = std::max<coordf_t>(external_perimeter_width, region.flow(print_object, frExternalPerimeter, config.layer_height).width());
+            const coordf_t width = region.flow(print_object, frExternalPerimeter, config.layer_height).width();
+            external_perimeter_width = std::max<coordf_t>(external_perimeter_width, width);
+            if (per_region_xy_distance)
+                this->support_xy_distance_overhang_per_region.emplace_back(
+                    scaled<coord_t>(std::min(config.support_object_xy_distance.value, 0.5 * width)));
         }
 
-        this->layer_height              = scaled<coord_t>(config.layer_height.value);
+        // The tree grows one object layer per step, and multi-diameter slicing cuts the preset's layer height
+        // into layer_grid_subdivision object layers. Every per-layer increment below is derived from this, so
+        // it has to be the grid step, or the radius growth and branch movement per mm scale with the subdivision.
+        this->layer_height              = scaled<coord_t>(slicing_params.layer_height);
         this->resolution                = scaled<coord_t>(print_config.resolution.value);
         // Arache feature
         this->min_feature_size          = scaled<coord_t>(config.min_feature_size.value);
@@ -62,13 +72,39 @@ struct TreeSupportMeshGroupSettings {
             0;
         this->support_material_buildplate_only = config.support_on_build_plate_only;
         this->support_top_distance      = scaled<coord_t>(slicing_params.gap_support_object);
+        // Multi-diameter: the gap follows the nozzle printing the overhang, as in TreeSupport::init_top_z_by_nozzle().
+        // One gap serves the whole object here, so take the largest region gap. It also applies to the fine
+        // regions of the object, so it is capped at 0.2 mm instead of the classic tree's 0.4 mm for 0.8 nozzles.
+        // A zero gap is the soluble interface contract and is never replaced.
+        if (slicing_params.gap_support_object > EPSILON && print_object.print()->uses_multiple_nozzle_diameters()) {
+            static constexpr double max_organic_top_gap = 0.2;
+            double top_gap = 0.;
+            for (size_t region_id = 0; region_id < print_object.num_printing_regions(); ++ region_id) {
+                const PrintRegionConfig &region_config = print_object.printing_region(region_id).config();
+                const double nozzle = std::max(nozzle_diameter_for_filament(print_config, region_config.wall_filament.value),
+                                               nozzle_diameter_for_filament(print_config, region_config.solid_infill_filament.value));
+                top_gap = std::max(top_gap, std::min(double(support_top_z_for_nozzle(nozzle)), max_organic_top_gap));
+            }
+            if (top_gap > EPSILON) {
+                // The collision is built from whole object layers, see TreeModelVolumes.
+                top_gap = std::ceil(top_gap / slicing_params.layer_height - EPSILON) * slicing_params.layer_height;
+                this->support_top_distance = scaled<coord_t>(top_gap);
+            }
+        }
         this->support_bottom_distance   = scaled<coord_t>(slicing_params.gap_object_support);
         this->support_xy_distance           = scaled<coord_t>(std::max(0.01, config.support_object_xy_distance.value));
         if (print_config.top_z_overrides_xy_distance)
             this->support_xy_distance = std::min(this->support_xy_distance, std::max(this->support_top_distance, coord_t(scale_(0.2))));
+        for (coord_t &distance : this->support_xy_distance_overhang_per_region)
+            distance = std::min(distance, this->support_xy_distance);
         this->support_xy_distance_1st_layer = scaled<coord_t>(config.support_object_first_layer_gap.value);
         // Separation of interfaces, it is likely smaller than support_xy_distance.
         this->support_xy_distance_overhang = std::min(this->support_xy_distance, scaled<coord_t>(0.5 * external_perimeter_width));
+        if (print_object.print()->uses_multiple_nozzle_diameters() &&
+            ! this->support_xy_distance_overhang_per_region.empty())
+            this->support_xy_distance_overhang = *std::min_element(
+                this->support_xy_distance_overhang_per_region.begin(),
+                this->support_xy_distance_overhang_per_region.end());
         this->support_roof_enable       = config.support_interface_top_layers.value > 0;
         this->support_roof_layers       = config.support_interface_top_layers.value;
         this->support_floor_enable      = config.support_interface_bottom_layers.value > 0;
@@ -78,7 +114,6 @@ struct TreeSupportMeshGroupSettings {
         this->support_wall_count        = std::max(1, config.tree_support_wall_count.value);  // at least 1 wall for organic tree support
         this->support_roof_line_distance = scaled<coord_t>(config.support_interface_spacing.value) + this->support_roof_line_width;
         double support_tree_angle_slow = 25;// TODO add a setting?
-        double tree_support_tip_diameter = 0.8;
     	this->support_tree_branch_distance = scaled<coord_t>(config.tree_support_branch_distance.value);
         this->support_tree_angle          = std::clamp<double>(config.tree_support_branch_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
         this->support_tree_angle_slow     = std::clamp<double>(support_tree_angle_slow * M_PI / 180., 0., this->support_tree_angle - EPSILON);
@@ -86,7 +121,12 @@ struct TreeSupportMeshGroupSettings {
         this->support_tree_branch_diameter_angle  = std::clamp<double>(config.tree_support_branch_diameter_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
         this->support_tree_top_rate = 30; // percent
     //    this->support_tree_tip_diameter = this->support_line_width;
-        this->support_tree_tip_diameter = std::clamp(scaled<coord_t>(tree_support_tip_diameter), 0, this->support_tree_branch_diameter);
+        // A branch may not start thinner than a single extrusion, or the tip layers degenerate into a
+        // circle too small to be walled, and it may not start thicker than the branch it grows into.
+        // max() on the upper bound keeps std::clamp well defined when the branch is thinner than a line.
+        this->support_tree_tip_diameter = std::clamp(scaled<coord_t>(config.tree_support_tip_diameter.value),
+                                                     this->support_line_width,
+                                                     std::max(this->support_line_width, this->support_tree_branch_diameter));
     }
 
 /*********************************************************************/
@@ -131,6 +171,7 @@ struct TreeSupportMeshGroupSettings {
     // Distance of the support structure from the overhang in the X/Y directions.
     // minimum_value: 0,  minimum warning": support_xy_distance - support_line_width * 2, maximum warning: support_xy_distance
     coord_t                         support_xy_distance_overhang            { scaled<coord_t>(0.2) };
+    std::vector<coord_t>            support_xy_distance_overhang_per_region;
     // Support Top Distance
     // Distance from the top of the support to the print.
     coord_t                         support_top_distance                    { scaled<coord_t>(0.1) };
@@ -277,6 +318,7 @@ struct TreeSupportSettings
           support_rests_on_model(! mesh_group_settings.support_material_buildplate_only),
           xy_distance(mesh_group_settings.support_xy_distance),
           xy_min_distance(std::min(mesh_group_settings.support_xy_distance, mesh_group_settings.support_xy_distance_overhang)),
+          xy_min_distance_per_region(mesh_group_settings.support_xy_distance_overhang_per_region),
           // Plate-foot cap radius = support_tree_bp_diameter / 2. That field is not read from
           // config here, so this is a fixed 3.75mm (7.5mm diameter), not a user setting.
           bp_radius(mesh_group_settings.support_tree_bp_diameter / 2),
@@ -431,6 +473,7 @@ public:
      * \brief minimum xy_distance. Only relevant when Z overrides XY, otherwise equal to xy_distance-
      */
     coord_t xy_min_distance;
+    std::vector<coord_t> xy_min_distance_per_region;
     /*!
      * \brief Amount of layers distance required the top of the support to the model
      */
@@ -506,6 +549,7 @@ public:
     {
         return branch_radius == other.branch_radius && tip_layers == other.tip_layers && branch_radius_increase_per_layer == other.branch_radius_increase_per_layer && layer_start_bp_radius == other.layer_start_bp_radius && bp_radius == other.bp_radius &&
                bp_radius_increase_per_layer == other.bp_radius_increase_per_layer && min_radius == other.min_radius && xy_min_distance == other.xy_min_distance &&
+               xy_min_distance_per_region == other.xy_min_distance_per_region &&
                xy_distance - xy_min_distance == other.xy_distance - other.xy_min_distance && // if the delta of xy_min_distance and xy_distance is different the collision areas have to be recalculated.
                support_rests_on_model == other.support_rests_on_model && increase_radius_until_layer == other.increase_radius_until_layer && min_dtt_to_model == other.min_dtt_to_model && max_to_model_radius_increase == other.max_to_model_radius_increase && maximum_move_distance == other.maximum_move_distance && maximum_move_distance_slow == other.maximum_move_distance_slow && z_distance_bottom_layers == other.z_distance_bottom_layers && support_line_width == other.support_line_width &&
                support_line_spacing == other.support_line_spacing && support_roof_line_width == other.support_roof_line_width && // can not be set on a per-mesh basis currently, so code to enable processing different roof line width in the same iteration seems useless.

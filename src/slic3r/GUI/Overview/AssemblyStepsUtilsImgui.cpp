@@ -23,7 +23,6 @@
 #include "../MP4/Mp4Recorder.hpp"
 
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -34,6 +33,7 @@
 #include <imgui/imgui_internal.h>
 #include <cfloat>
 #include <vector>
+#include "libslic3r/Log.hpp"
 
 #define _steps_nodes m_model->get_assembly_steps_tree_data().nodes
 #define _steps_roots m_model->get_assembly_steps_tree_data().roots
@@ -431,6 +431,7 @@ void AssemblyStepsUtils::render_main(float canvas_w, float canvas_h) {
     update_part_number_label_forbidden_layout_areas(canvas_w, canvas_h);
     //imgui
     render_assembly_notes_on_canvas(m_selected_screen_center_);
+    m_right_overlay_left_x = 0.f;
     if (should_show_panels()) {    // Top-left "Assembly Structure" panel (Figma 732:10276).
         render_assembly_structure_panel(canvas_w, canvas_h);
         //Right-side "Assembly Guide" panel.
@@ -3493,6 +3494,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         const bool  list_show_assembly  = true;  // matches render_assembly_tree_ui
         const float list_w = calc_assembly_tree_window_w(list_base_w, sc, list_show_label, list_show_explosion, list_show_assembly);
         const float list_x = canvas_w - list_w - 12.0f * sc;
+        m_right_overlay_left_x = list_x;
         // The Export button is drawn to the left of the list and top-aligned with it,
         // where it can land on the gizmo toolbar. Drop both below the toolbar.
         const float list_y = panel_y + calc_export_button_toolbar_offset(list_x, panel_y, sc);
@@ -3607,6 +3609,19 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         cdl->AddText(font, fs_small,
                     ImVec2(tag_min.x + tag_h_pad, tag_min.y + (tag_h - fs_small) * 0.5f),
                     tag_txt, c.tag_text.c_str());
+
+#if !BBL_RELEASE_TO_PUBLIC
+        // Debug-only: hover the step tag text itself to see the final-assembly flag.
+        if (c.is_final_assembly == AssemblyStepKind::FinalAssembly) {
+            ImGui::SetCursorScreenPos(tag_min);
+            ImGui::InvisibleButton((std::string("##asp_final_asm_tip_") + std::to_string(ci)).c_str(),
+                                   ImVec2(tag_w, tag_h));
+            if (ImGui::IsItemHovered()) {
+                suppress_card_click = true;
+                render_panel_tooltip("Final assembly");
+            }
+        }
+#endif
 
         // Inheritance marker: drawn to the right of the tag pill on the inheriting
         // (child) step; hovering shows the parent step it inherited from (resolved
@@ -6441,6 +6456,7 @@ void AssemblyStepsUtils::render_assembly_guide_export_button(float panel_x, floa
         btn_x = panel_x - btn_w - gap;
         btn_y = panel_y;
     }
+    m_right_overlay_left_x = btn_x;
 
     ImGui::SetNextWindowPos(ImVec2(btn_x, btn_y), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(btn_w, btn_h), ImGuiCond_Always);
@@ -7591,6 +7607,8 @@ void AssemblyStepsUtils::apply_assembly_tree_checked_to_step(
     }
     m_assembly_tree_ui_original_checked = checked_snapshot;
     invalidate_play_frame_refs();
+    // Checking every object in the list and confirming marks this step as final assembly.
+    mark_step_final_assembly_if_all_objects_checked(active_step_node, tree, checked_snapshot);
     save_assembly_steps_json_to_model();
     apply_keyframe_display_mode();
 }
@@ -8180,6 +8198,8 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
         } else {
             // Membership unchanged, but OK still clears the preview selection when
             // m_select_all_when_click_in_step_card is false (default).
+            if (active_step_node >= 0)
+                mark_step_final_assembly_if_all_objects_checked(active_step_node, *tree, checked);
             if (m_selection && !m_select_all_when_click_in_step_card) {
                 clear_selection_and_lock_volume_mode();
             }

@@ -67,7 +67,7 @@ export const SLOT_LIB_LITE = { width: 49, height: 72 } as const;
 // card, floating in the widened SLOT_REFRESH gap.
 export const SLOT_REMAIN_LINE = {
   height: 6,
-  marginX: 4,
+  marginX: 0,
   gapToCard: 2,
   border: 1,
   // Capsule outline and consumed-side track. Both are darker than the spool

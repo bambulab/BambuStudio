@@ -10,12 +10,12 @@
 #include <mutex>
 
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r_version.h"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/Utils/VersionPolicyFetcher.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

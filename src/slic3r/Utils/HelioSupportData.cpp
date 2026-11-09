@@ -6,6 +6,7 @@
 #include <iterator>
 #include <sstream>
 #include <utility>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -95,6 +96,7 @@ void log_attempt(const SupportDataCatalogStore::Logger& logger, const SupportDat
     try {
         logger(attempt);
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         // Diagnostics must not affect catalog publication or retry behavior.
     }
 }
@@ -119,6 +121,7 @@ SupportDataPageResult parse_support_data_page(SupportDataCatalogKind        kind
                            response_retry_kind,
                            std::string("Malformed Helio support-data response: ") + e.what());
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return failed_page(response, response_retry_kind, "Malformed Helio support-data response");
     }
 
@@ -148,6 +151,7 @@ SupportDataPageResult parse_support_data_page(SupportDataCatalogKind        kind
     } catch (const std::exception& e) {
         return incomplete_page(response, std::string("Helio ") + payload_name + " pagination metadata is invalid: " + e.what());
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return incomplete_page(response, "Helio " + payload_name + " pagination metadata is invalid");
     }
     const json& objects = payload["objects"];
@@ -213,6 +217,7 @@ SupportDataPageResult parse_support_data_page(SupportDataCatalogKind        kind
     } catch (const std::exception& e) {
         return incomplete_page(response, std::string("Failed to parse Helio ") + payload_name + " page: " + e.what());
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         return incomplete_page(response, "Failed to parse Helio " + payload_name + " page");
     }
 
@@ -291,6 +296,7 @@ bool SupportDataCatalogStore::run(const PageFetcher&   fetcher,
     } catch (const std::exception& e) {
         fail(std::string("Helio support-data load failed: ") + e.what());
     } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
         fail("Helio support-data load failed");
     }
     return false;

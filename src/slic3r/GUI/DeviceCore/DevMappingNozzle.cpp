@@ -5,23 +5,69 @@
 #include "DevNozzleSystem.h"
 
 #include "DevUtil.h"
-#include "DevUtilBackend.h"
 
 #include "libslic3r/MultiNozzleUtils.hpp"
-#include "libslic3r/Print.hpp"
 #include "libslic3r/LocalesUtils.hpp"
+#include "libslic3r/Model.hpp"
 
 #include "slic3r/GUI/DeviceManager.hpp"
-#include "slic3r/GUI/Plater.hpp"
-#include "slic3r/GUI/BackgroundSlicingProcess.hpp"
-
-#include "slic3r/GUI/GUI_App.hpp"
 
 #include <boost/lexical_cast.hpp>
 #include <nlohmann/json.hpp>
+#include "libslic3r/Log.hpp"
 using namespace nlohmann;
 
 namespace Slic3r {
+
+void DevNozzleMappingCtrl::SetSliceContext(std::shared_ptr<DevSliceContext> ctx)
+{
+    m_slice_ctx = std::move(ctx);
+}
+
+std::vector<MultiNozzleUtils::NozzleInfo> DevNozzleMappingCtrl::GetUsedNozzlesInExtruder(int extruder_id) const
+{
+    if (!m_slice_ctx)
+        return {};
+
+    if (extruder_id < 0)
+        return m_slice_ctx->used_logic_nozzles;
+
+    std::vector<MultiNozzleUtils::NozzleInfo> nozzles;
+    for (const auto& nozzle : m_slice_ctx->used_logic_nozzles) {
+        if (nozzle.extruder_id == extruder_id)
+            nozzles.push_back(nozzle);
+    }
+    return nozzles;
+}
+
+std::vector<MultiNozzleUtils::NozzleInfo> DevNozzleMappingCtrl::GetNozzlesForFilament(int fila_id) const
+{
+    if (!m_slice_ctx)
+        return {};
+
+    auto iter = m_slice_ctx->nozzles_by_filament.find(fila_id);
+    if (iter == m_slice_ctx->nozzles_by_filament.end())
+        return {};
+    return iter->second;
+}
+
+const std::vector<unsigned int>& DevNozzleMappingCtrl::GetUsedFilaments() const
+{
+    static const std::vector<unsigned int> s_empty;
+    return m_slice_ctx ? m_slice_ctx->used_filaments : s_empty;
+}
+
+const std::vector<unsigned int>& DevNozzleMappingCtrl::GetFilamentChangeSequence() const
+{
+    static const std::vector<unsigned int> s_empty;
+    return m_slice_ctx ? m_slice_ctx->filament_change_sequence : s_empty;
+}
+
+const std::vector<unsigned int>& DevNozzleMappingCtrl::GetNozzleChangeSequence() const
+{
+    static const std::vector<unsigned int> s_empty;
+    return m_slice_ctx ? m_slice_ctx->nozzle_change_sequence : s_empty;
+}
 
 void MachineObject::clear_auto_nozzle_mapping()
 {
@@ -35,33 +81,18 @@ void MachineObject::clear_auto_nozzle_mapping()
 // warnings:
 // (1) the fila_id here is 1 based index
 // (2) the AP wants the diameter string with 2 decimal places
-int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(Slic3r::GUI::Plater* plater,
-                                                     const std::vector<FilamentInfo>& ams_mapping,
+int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(const std::vector<FilamentInfo>& ams_mapping,
                                                      int flow_cali_opt, int pa_value)
 {
     Clear();
 
-    m_plater = plater;
-    if (!plater) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": plater is nullptr";
-        return -1;
-    }
-
-    GCodeProcessorResult* gcode_result = plater->background_process().get_current_gcode_result();
-    if (!gcode_result) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": gcode_result is nullptr";
-        return -1;
-    }
-
-    const auto& result = gcode_result->nozzle_group_result;
-    if (!result) {
-        assert(false && "gcode_result->nozzle_group_result");
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": gcode_result->nozzle_group_result is NULL";
+    if (!HasSliceContext()) {
+        BOOST_LOG_TRIVIAL(error) << "slice context is invalid";
         return -1;
     }
 
     if (ams_mapping.empty()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the ams mapping is empty";
+        BOOST_LOG_TRIVIAL(error) << "the ams mapping is empty";
         return -1;// the ams mapping is empty
     }
 
@@ -72,12 +103,22 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(Slic3r::GUI::Plater* plater
     command_jj["print"]["calibration"] = flow_cali_opt;
     command_jj["print"]["extrude_cali_manual_mode"] = pa_value;
 
+    // The printer protocol only addresses physical filaments; keep filament_seq, ams_mapping and
+    // fila_info on the same range so the request stays consistent.
+    auto is_physical_filament_id = [](int fila_id) {
+        return fila_id >= 0 && fila_id < (int)MAX_PHYSICAL_FILAMENT_COUNT;
+    };
+
     // filament seq
     json filament_seq_jj;
     int max_fila_id = 0;
     std::unordered_set<int> filaid_set;
-    for (int idx = 0; idx < gcode_result->filament_change_sequence.size(); idx++) {
-        int fila_id = gcode_result->filament_change_sequence[idx];
+    for (int idx = 0; idx < m_slice_ctx->filament_change_sequence.size(); idx++) {
+        int fila_id = m_slice_ctx->filament_change_sequence[idx];
+        if (!is_physical_filament_id(fila_id)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " filament id out of filament_seq range: " << fila_id;
+            continue;
+        }
         if (filaid_set.count(fila_id) == 0) {
             filaid_set.insert(fila_id);
             filament_seq_jj[fila_id + 1] = idx;
@@ -94,15 +135,19 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(Slic3r::GUI::Plater* plater
     command_jj["print"]["filament_seq"] = filament_seq_jj;
 
     // ams mapping
-    std::vector<int> ams_mapping_vec(33, 0xFFFF);/* AP ask to fill them*/
+    std::vector<int> ams_mapping_vec(MAX_PHYSICAL_FILAMENT_COUNT + 1, 0xFFFF);/* AP ask to fill them*/
     for (auto item :  ams_mapping) {
+        if (!is_physical_filament_id(item.id)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " filament id out of ams_mapping range: " << item.id;
+            continue;
+        }
         try {
             int ams_id = stoi(item.ams_id);
             int slot_id = !item.slot_id.empty() ? stoi(item.slot_id) : 0;
             ams_mapping_vec[item.id + 1] = (ams_id << 8) | slot_id;/*using ams_id << 8 | slot_id*/
         } catch (std::exception& e) {
             assert(false && "invalid ams_id or slot_id");
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " exception: " << e.what();
+            BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
             ams_mapping_vec[item.id + 1] = item.tray_id;
         }
     }
@@ -112,20 +157,24 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(Slic3r::GUI::Plater* plater
     json filament_info_jj;
     for (int fila_id = 0; fila_id < ams_mapping.size(); fila_id++) {
         const auto& fila = ams_mapping[fila_id];
-        const auto& nozzle_list = result->get_nozzles_for_filament(fila.id);
-        if (nozzle_list.empty()) {
+        if (!is_physical_filament_id(fila.id)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " filament id out of fila_info range: " << fila.id;
+            continue;
+        }
+        auto nozzle_iter = m_slice_ctx->nozzles_by_filament.find(fila.id);
+        if (nozzle_iter == m_slice_ctx->nozzles_by_filament.end() || nozzle_iter->second.empty()) {
             assert(false && "nozzle_list should not be empty");
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "nozzle_list should not be nullptr";
+            BOOST_LOG_TRIVIAL(error) << "nozzle_list should not be nullptr";
             continue;
         }
 
-        for (const auto& nozzle_info : nozzle_list) {
+        for (const auto& nozzle_info : nozzle_iter->second) {
             json fila_item_jj;
             fila_item_jj["id"] = (fila.id + 1);
             fila_item_jj["direction"] = (nozzle_info.extruder_id == LOGIC_L_EXTRUDER_ID ? 1 : 2);
             fila_item_jj["group"] = nozzle_info.group_id;
             fila_item_jj["nozzle_d"] = s_get_diameter_str(nozzle_info.diameter);
-            fila_item_jj["nozzle_v"] = (nozzle_info.volume_type == NozzleVolumeType::nvtHighFlow) ? "High Flow" : "Standard";
+            fila_item_jj["nozzle_v"] = DevNozzle::ToNozzleVolumeString(nozzle_info.volume_type);
             fila_item_jj["cate"] = fila.filament_id;
             fila_item_jj["color"] = fila.color;
             filament_info_jj.push_back(fila_item_jj);
@@ -178,19 +227,21 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(Slic3r::GUI::Plater* plater
     return m_obj->publish_json(command_jj);
 }
 
-int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1(Slic3r::GUI::Plater* plater)
+int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1()
 {
-    Clear();
-    m_plater = plater;
-    if (!m_plater) {
+    if (!HasSliceContext()) {
+        BOOST_LOG_TRIVIAL(error) << "slice context is invalid";
         return -1;
     }
 
-    auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
-    if (!nozzle_group_res) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": gcode_result->nozzle_group_result is NULL";
+    return CtrlGetAutoNozzleMappingV1(m_slice_ctx->used_logic_nozzles);
+}
+
+int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1(const std::vector<MultiNozzleUtils::NozzleInfo>& nozzles)
+{
+    Clear();
+    if (nozzles.empty())
         return -1;
-    }
 
     json command_jj;
     command_jj["print"]["command"] = "get_auto_nozzle_mapping";
@@ -199,8 +250,7 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1(Slic3r::GUI::Plater* plater
 
     json nozzle_group_info_jj;
     std::unordered_set<int> used_logic_groups;
-    const auto& used_logic_nozzles = nozzle_group_res->get_used_nozzles_in_extruder();
-    for (const auto& used_logic_nozzle : used_logic_nozzles) {
+    for (const auto& used_logic_nozzle : nozzles) {
         if (used_logic_groups.count(used_logic_nozzle.group_id) != 0) {
             continue;
         }
@@ -214,7 +264,7 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1(Slic3r::GUI::Plater* plater
         // (format_diameter_to_str), so std::stof would misread it as 0 under comma-decimal
         // locales (de/it). Keep skipping entries whose diameter string is empty.
         if (used_logic_nozzle.diameter.empty()) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": empty nozzle diameter, skip";
+            BOOST_LOG_TRIVIAL(error) << "empty nozzle diameter, skip";
             continue;
         }
         nozzle_info["dia"] = string_to_double_decimal_point(used_logic_nozzle.diameter);
@@ -225,6 +275,8 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1(Slic3r::GUI::Plater* plater
             nozzle_info["vol"] = "Standard";
         } else if(used_logic_nozzle.volume_type == NozzleVolumeType::nvtTPUHighFlow){
             nozzle_info["vol"] = "TPU Flow";
+        } else if(used_logic_nozzle.volume_type == NozzleVolumeType::nvtE3DHighFlow){
+            nozzle_info["vol"] = DevNozzle::ToNozzleVolumeString(used_logic_nozzle.volume_type);
         } else {
             assert(0);
             continue;
@@ -262,7 +314,7 @@ void DevNozzleMappingCtrl::ParseAutoNozzleMapping(const json& print_jj)
             }
 
             m_flush_weight_base = GetFlushWeight(m_obj);
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": get_auto_nozzle_mapping: " << m_result;
+            BOOST_LOG_TRIVIAL(error) << "get_auto_nozzle_mapping: " << m_result;
         }
     }
 }
@@ -294,7 +346,7 @@ void DevNozzleMappingCtrl::SetManualNozzleMappingByFila(int fila_id, int nozzle_
     if (m_nozzle_mapping[fila_id] != nozzle_pos_id) {
         m_nozzle_mapping[fila_id] = nozzle_pos_id;
         m_flush_weight_current = GetFlushWeight(m_obj);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": fila_id=" << fila_id << ", nozzle_pos_id=" << nozzle_pos_id;
+        BOOST_LOG_TRIVIAL(info) << "fila_id=" << fila_id << ", nozzle_pos_id=" << nozzle_pos_id;
     }
 
     try {
@@ -302,10 +354,10 @@ void DevNozzleMappingCtrl::SetManualNozzleMappingByFila(int fila_id, int nozzle_
         if (mapping.at(fila_id) != nozzle_pos_id) {
             mapping[fila_id] = nozzle_pos_id;
             m_nozzle_mapping_json = mapping;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": updated to " << m_nozzle_mapping_json.dump();
+            BOOST_LOG_TRIVIAL(info) << "updated to " << m_nozzle_mapping_json;
         }
     } catch (std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
     };
 }
 
@@ -325,12 +377,16 @@ static std::unordered_set<int> sGetLogicExtruders(const std::vector<MultiNozzleU
 std::vector<int> DevNozzleMappingCtrl::GetMappedNozzlePosVecByFilaId(int fila_id) const
 {
     std::vector<int> physic_nozzle_pos_vec;
-    auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
-    if (!nozzle_group_res) {
+    if (!HasSliceContext()) {
         return physic_nozzle_pos_vec;
     }
 
-    const auto& used_logic_nozzles = nozzle_group_res->get_nozzles_for_filament(fila_id);
+    static const std::vector<MultiNozzleUtils::NozzleInfo> s_empty_nozzles;
+    auto nozzle_iter = m_slice_ctx->nozzles_by_filament.find(fila_id);
+    const auto& used_logic_nozzles = (nozzle_iter != m_slice_ctx->nozzles_by_filament.end())
+        ? nozzle_iter->second
+        : s_empty_nozzles;
+
     if (m_ack_version == NozzleMappingVersion::Version_V0) {
         if (auto iter = m_nozzle_mapping.find(fila_id); iter != m_nozzle_mapping.end()) {
             if (m_obj->GetNozzleSystem()->GetReplaceNozzleTar().has_value() &&
@@ -389,33 +445,26 @@ wxString DevNozzleMappingCtrl::GetMappedNozzlePosStrByFilaId(int fila_id, const 
 // 小炒肉，支持多喷头打印机的换料清洗体积计算
 float DevNozzleMappingCtrl::GetFlushWeight(Slic3r::MachineObject* obj) const
 {
-    auto plater = Slic3r::GUI::wxGetApp().plater();
-    if (!plater) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": plater is nullptr";
+    if (!HasSliceContext()) {
+        BOOST_LOG_TRIVIAL(error) << "slice context is invalid";
         return -1;
     }
 
-    GCodeProcessorResult* gcode_result = plater->background_process().get_current_gcode_result();
-    if (!gcode_result) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": gcode_result is nullptr";
+    if (m_slice_ctx->filament_change_sequence.empty()) {
+        BOOST_LOG_TRIVIAL(error) << "filament_change_sequence is empty";
         return -1;
     }
 
-    if (gcode_result->filament_change_sequence.empty()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": filament_change_sequence is empty";
+    if (m_slice_ctx->flush_matrix.empty()) {
+        BOOST_LOG_TRIVIAL(error) << "flush_matrix is empty";
         return -1;
     }
 
-    if (!Slic3r::GUI::wxGetApp().preset_bundle) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": preset_bundle is nullptr";
-        return -1;
-    };
-
-    const std::vector<std::vector<std::vector<float>>>& flush_matrix = Slic3r::GUI::wxGetApp().preset_bundle->get_full_flush_matrix();
+    const auto& flush_matrix = m_slice_ctx->flush_matrix;
 
     float total_flush_volume = 0;
     MultiNozzleUtils::NozzleStatusRecorder recorder;
-    for (auto filament : gcode_result->filament_change_sequence) {
+    for (auto filament : m_slice_ctx->filament_change_sequence) {
         const auto& nozzle_pos_vec = GetMappedNozzlePosVecByFilaId(filament);
         if (nozzle_pos_vec.empty()) {
             continue;
@@ -423,13 +472,13 @@ float DevNozzleMappingCtrl::GetFlushWeight(Slic3r::MachineObject* obj) const
 
         auto nozzle_pos = nozzle_pos_vec.at(0);
         if (nozzle_pos == -1){
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": nozzle_pos is -1 for fila_id=" << filament;
+            BOOST_LOG_TRIVIAL(error) << "nozzle_pos is -1 for fila_id=" << filament;
             continue;
         }
 
         auto nozzle_info = obj->GetNozzleSystem()->GetNozzleByPosId(nozzle_pos);
         if (nozzle_info.IsEmpty()) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": nozzle_info IsEmpty for fila_id=" << filament << ", nozzle_pos=" << nozzle_pos;
+            BOOST_LOG_TRIVIAL(error) << "nozzle_info IsEmpty for fila_id=" << filament << ", nozzle_pos=" << nozzle_pos;
             continue;
         }
 
@@ -445,8 +494,8 @@ float DevNozzleMappingCtrl::GetFlushWeight(Slic3r::MachineObject* obj) const
             }
             else{
                 assert(false && "missing flush volume");
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": missing flush volume for extruder_id=" << extruder_id
-                                           << ", last_filament=" << last_filament << ", filament=" << filament;
+                BOOST_LOG_TRIVIAL(error) << "missing flush volume for " << KV(log_key::extruder_id, extruder_id) << "last_filament=" << last_filament
+                                         << ", filament=" << filament;
             }
         }
 

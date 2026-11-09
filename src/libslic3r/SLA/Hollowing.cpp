@@ -10,10 +10,9 @@
 #include <libslic3r/QuadricEdgeCollapse.hpp>
 #include <libslic3r/SLA/SupportTreeMesher.hpp>
 
-#include <boost/log/trivial.hpp>
-
 #include <libslic3r/MTUtils.hpp>
 #include <libslic3r/I18N.hpp>
+#include "libslic3r/Log.hpp"
 
 //! macro used to mark string used at localization,
 //! return same string

@@ -142,6 +142,11 @@ else ()
     add_executable(BambuStudio BambuStudio.cpp BambuStudio.hpp)
 endif ()
 
+# Apple clang 21 segfaults in the loop vectorizer (VPlanTransforms::narrowInterleaveGroups); see libslic3r/CMakeLists.txt.
+if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    set_source_files_properties(BambuStudio.cpp PROPERTIES COMPILE_OPTIONS -fno-vectorize)
+endif ()
+
 if (MINGW)
     target_link_options(BambuStudio PUBLIC "-Wl,-allow-multiple-definition")
     set_target_properties(BambuStudio PROPERTIES PREFIX "")

@@ -9,8 +9,13 @@
 
 namespace Slic3r {
     class Model;
-    struct ObjDialogInOut;
+    struct TriangleColor;
     struct VolumeColorInfo;
+    struct TexturedMesh;
+
+    // RGB [0..255] under which standard_3mf_to_textured_meshes() previews triangles without
+    // usable colors. The painting resolves those triangles through the same key.
+    inline constexpr std::array<std::size_t, 3> STANDARD_3MF_UNCOLORED_RGB = {128, 128, 128};
 }
 
 class QuantKMeans
@@ -339,12 +344,21 @@ bool obj_color_deal_algo(std::vector<Slic3r::RGBA> &input_colors,
                          char &                     cluster_number,
                          int                        max_cluster);
 
-// Extract color information from the Model imported from 3MF and convert it to ObjDialogInOut format.
-// color_group_map: Mapping color group IDs to color arrays (e.g., ["#FF0000FF", "#00FF00FF"])
-// volume_color_data: Optional volume color data for multi - volume scenarios.
-// Returns whether color information was successfully extracted.
-bool extract_colors_to_obj_dialog(
-    Slic3r::Model* model,
+// Color of one corner of a standard 3MF triangle, or nullptr when it has none. A triangle whose
+// own property carries no color (e.g. a texture) takes the default property of its object.
+// The preview and the painting must both resolve corners through this.
+const std::string* standard_3mf_corner_color(
+    const std::map<int, std::vector<std::string>>& color_group_map,
+    const Slic3r::VolumeColorInfo& color_info,
+    const Slic3r::TriangleColor& binding,
+    int corner);
+
+// Preview mesh for the standard 3MF import dialog. Uncolored triangles use
+// STANDARD_3MF_UNCOLORED_RGB and set has_uncolored. Returns false when no
+// triangle has a color (e.g. the file has no colors or only textures) or nothing was produced.
+bool standard_3mf_to_textured_meshes(
+    const Slic3r::Model& model,
     const std::map<int, std::vector<std::string>>& color_group_map,
     const std::unordered_map<int, Slic3r::VolumeColorInfo>& volume_color_data,
-    Slic3r::ObjDialogInOut& out);
+    Slic3r::TexturedMesh& out,
+    bool& has_uncolored);

@@ -1,19 +1,19 @@
-﻿# GUI/DeviceWeb
+# GUI/DeviceWeb
 # usage -- GUI about device web for BambuStudio
 # date -- 2025.01.01
 # status -- Building
 
-# ==================== Node.js/pnpm 环境准备（仅用于 deviceweb 构建）====================
+# ==================== Node.js/pnpm ???????? deviceweb ????===================
 
 function(prepare_node_env)
-    # 定义版本号
+    # ??????
     set(NODE_VERSION "22.22.2")
     set(PNPM_VERSION "10.12.1")
 
-    # 定义本地缓存目录（放在项目同级目录，clean build 后不会丢失）
+    # ??????????????????clean build ??????
     set(NODE_CACHE_DIR "${CMAKE_SOURCE_DIR}/../node-cache")
 
-    # 根据平台确定下载 URL、文件名和 hash 值
+    # ???????? URL??????hash ??
     if(WIN32)
         set(NODE_URL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-win-x64.zip")
         set(NODE_ARCHIVE_NAME "node-v${NODE_VERSION}-win-x64.zip")
@@ -67,9 +67,9 @@ function(prepare_node_env)
         endif()
     endif()
 
-    # 定义最终的可执行文件路径
+    # ?????????????
     set(NODE_EXECUTABLE "${NODE_CACHE_DIR}/${NODE_BIN_DIR}/${NODE_EXEC}")
-    # pnpm 放到 node 同目录，这样执行 pnpm 时 PATH 中天然能找到 node
+    # pnpm ?? node ???????? pnpm ??PATH ?????? node
     set(PNPM_EXECUTABLE "${NODE_CACHE_DIR}/${NODE_BIN_DIR}/${PNPM_EXEC_NAME}")
 
     message(STATUS "Checking for node binary at ${NODE_EXECUTABLE}")
@@ -119,7 +119,7 @@ function(prepare_node_env)
             message(FATAL_ERROR "Failed to extract Node.js archive: ${extract_error}")
         endif()
 
-        # 清理压缩包（节省空间）
+        # ????????????
         file(REMOVE "${NODE_CACHE_DIR}/${NODE_ARCHIVE_NAME}")
 
         if(NOT EXISTS "${NODE_EXECUTABLE}")
@@ -131,7 +131,7 @@ function(prepare_node_env)
         message(STATUS "Found cached Node.js: ${NODE_EXECUTABLE}")
     endif()
 
-    # ============ pnpm 独立二进制下载 ============
+    # ============ pnpm ????????============
     if(NOT EXISTS "${PNPM_EXECUTABLE}")
         message(STATUS "Downloading pnpm v${PNPM_VERSION} from ${PNPM_URL}")
 
@@ -166,15 +166,15 @@ function(prepare_node_env)
         message(STATUS "Found cached pnpm: ${PNPM_EXECUTABLE}")
     endif()
 
-    # 设置输出变量（使用绝对路径）
+    # ??????????????
     set(NODE_EXECUTABLE "${NODE_EXECUTABLE}" PARENT_SCOPE)
     set(PNPM_EXECUTABLE "${PNPM_EXECUTABLE}" PARENT_SCOPE)
 endfunction()
 
-# 执行环境准备（在 config 阶段执行）
+# ???????? config ??????
 prepare_node_env()
 
-# ==================== 前端工程构建 ====================
+# ==================== ?????? ====================
 
 set(DEVICE_PAGE_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/device_page")
 set(DEVICE_PAGE_DIST_DIR "${DEVICE_PAGE_SRC_DIR}/dist")
@@ -183,11 +183,11 @@ set(DEVICE_PAGE_TARGET_DIR "${CMAKE_SOURCE_DIR}/resources/web/device_page/dist")
 get_filename_component(NODE_BIN_PATH "${NODE_EXECUTABLE}" DIRECTORY)
 
 if(WIN32)
-    # 原本PATH末尾的\会影响后续的分隔符，需要处理
+    # ??PATH???\???????????????
     set(DEVICE_PAGE_PATH_UNESCAPED "${NODE_BIN_PATH};$ENV{PATH}")
     string(REPLACE "\;" ";" DEVICE_PAGE_PATH "${DEVICE_PAGE_PATH_UNESCAPED}")
 else()
-    # Unix PATH 分隔符是 :
+    # Unix PATH ???? :
     set(DEVICE_PAGE_PATH "${NODE_BIN_PATH}:$ENV{PATH}")
 endif()
 
@@ -214,6 +214,8 @@ set(DEVICE_PAGE_BUILD_INPUTS
     "${DEVICE_PAGE_SRC_DIR}/package.json"
     "${DEVICE_PAGE_SRC_DIR}/pnpm-lock.yaml"
     "${DEVICE_PAGE_SRC_DIR}/vite.config.ts"
+    "${DEVICE_PAGE_SRC_DIR}/legacy-webkit.postcss.ts"
+    "${DEVICE_PAGE_SRC_DIR}/tools/check-legacy-css.mjs"
     "${DEVICE_PAGE_SRC_DIR}/tsconfig.json"
     "${DEVICE_PAGE_SRC_DIR}/tsconfig.app.json"
     "${DEVICE_PAGE_SRC_DIR}/tsconfig.node.json"
@@ -224,7 +226,7 @@ set(DEVICE_PAGE_BUILD_INPUTS
 add_custom_command(
     OUTPUT "${DEVICE_PAGE_BUILD_STAMP}"
     COMMAND echo "Running PNPM install"
-    COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" ${PNPM_EXECUTABLE} install --store-dir ${PNPM_STORE_DIR}
+    COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" ${PNPM_EXECUTABLE} install --store-dir ${PNPM_STORE_DIR} --config.confirm-modules-purge=false
     COMMAND echo "Running PNPM run build"
     COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" ${PNPM_EXECUTABLE} run build
     COMMAND echo "Removing page target directory"
@@ -242,7 +244,55 @@ add_custom_command(
 )
 
 # Not ALL: rebuilt only when a dependent target (libslic3r_gui / BambuStudio) is built.
-add_custom_target(device_page_build DEPENDS "${DEVICE_PAGE_BUILD_STAMP}")
+if (CMAKE_GENERATOR MATCHES "Visual Studio")
+    # Visual Studio keeps prompting that this utility project is out of date unless
+    # the generated per-target marker also exists alongside the real stamp file.
+    set(DEVICE_PAGE_BUILD_TARGET_MARKER "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/device_page_build")
+    add_custom_target(device_page_build
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles"
+        COMMAND ${CMAKE_COMMAND} -E touch "${DEVICE_PAGE_BUILD_TARGET_MARKER}"
+        DEPENDS "${DEVICE_PAGE_BUILD_STAMP}"
+        VERBATIM
+    )
+else()
+    add_custom_target(device_page_build DEPENDS "${DEVICE_PAGE_BUILD_STAMP}")
+endif()
+
+# ==================== DeviceWebHtml: native HTML front-end ====================
+# Plain static assets - no Node/pnpm/Vite involved, so this deliberately bypasses
+# prepare_node_env() entirely and is just a directory copy.
+
+set(DEVICE_PAGE_HTML_SRC_DIR    "${CMAKE_CURRENT_SOURCE_DIR}/DeviceWebHtml/web")
+set(DEVICE_PAGE_HTML_TARGET_DIR "${CMAKE_SOURCE_DIR}/resources/web/device_page_html")
+set(DEVICE_PAGE_HTML_STAMP      "${CMAKE_CURRENT_BINARY_DIR}/device_page_html.stamp")
+
+file(GLOB_RECURSE DEVICE_PAGE_HTML_FILES CONFIGURE_DEPENDS
+    "${DEVICE_PAGE_HTML_SRC_DIR}/*"
+)
+
+add_custom_command(
+    OUTPUT "${DEVICE_PAGE_HTML_STAMP}"
+    COMMAND ${CMAKE_COMMAND} -E remove_directory "${DEVICE_PAGE_HTML_TARGET_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${DEVICE_PAGE_HTML_TARGET_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${DEVICE_PAGE_HTML_SRC_DIR}" "${DEVICE_PAGE_HTML_TARGET_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E touch "${DEVICE_PAGE_HTML_STAMP}"
+    DEPENDS ${DEVICE_PAGE_HTML_FILES}
+    COMMENT "Copying device_page_html static assets..."
+    VERBATIM
+)
+
+if (CMAKE_GENERATOR MATCHES "Visual Studio")
+    # Match the workaround above so VS can satisfy its utility-project up-to-date check.
+    set(DEVICE_PAGE_HTML_TARGET_MARKER "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/device_page_html_build")
+    add_custom_target(device_page_html_build
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles"
+        COMMAND ${CMAKE_COMMAND} -E touch "${DEVICE_PAGE_HTML_TARGET_MARKER}"
+        DEPENDS "${DEVICE_PAGE_HTML_STAMP}"
+        VERBATIM
+    )
+else()
+    add_custom_target(device_page_html_build DEPENDS "${DEVICE_PAGE_HTML_STAMP}")
+endif()
 
 list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/DeviceHttpServer.cpp
@@ -274,5 +324,74 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/Schema.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/SchemaData.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/SchemaDisplay.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ViewModel.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/PageFilament.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/PageHotend.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ViewModel.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ActionHandlerExtAms.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ActionHandlerExtAms.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ExtFilamentEditDialog.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ExtFilamentEditDialog.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BridgeDebugDialog.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ActionHandlerFilament.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderHotendRackProgressStatus.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderHotendRackProgressStatus.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderFilamentChangeStatus.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderFilamentChangeStatus.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderFilamentManualPullStatus.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderFilamentManualPullStatus.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/FilamentManualPullDialog.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/FilamentManualPullDialog.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverDeviceState.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverDeviceState.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ActionHandlerHotend.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaExtOperationPage.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaFilamentSlot.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaFilamentPage.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaFilamentChangeStatus.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaFilamentManualPull.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaHotendRackProgress.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaHotendSlot.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaHotendPage.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Schema.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/IFilamentPageModeBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchModeCommon.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchModeCommon.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/NormalModeBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/NormalModeBuilder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchAmsLoadModeBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchAmsLoadModeBuilder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchExtLoadModeBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchExtLoadModeBuilder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchUnloadModeBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchUnloadModeBuilder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendVM.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendVM.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/ViewModel.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/ViewModel.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/refill_info/Schema.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/refill_info/Builder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/refill_info/Builder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/refill_info/Actions.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/refill_info/Actions.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/add_refill_filaments/Schema.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/add_refill_filaments/Builder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/add_refill_filaments/Builder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/add_refill_filaments/Actions.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/add_refill_filaments/Actions.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/add_refill_filaments/BlockCodeUtil.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/add_refill_filaments/BlockCodeUtil.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/ViewModel.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/ViewModel.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/ViewModelState.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/ViewModelActions.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/ViewModelActions.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/PageConnectedSlots.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/PageConnectedSlots.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/Schema.hpp
+    GUI/DeviceWeb/ViewModels/PrintQueue/PrintQueueVM.cpp
+    GUI/DeviceWeb/ViewModels/PrintQueue/PrintQueueVM.hpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)

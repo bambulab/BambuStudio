@@ -93,11 +93,18 @@ bool GLGizmoBrimEars::is_use_point(const BrimPoint &point) const
     const Selection &selection = m_parent.get_selection();
     Transform3d      trsf;
     if (point.volume_idx >= 0) {
-        const GLVolume* volume = selection.get_volume_by_object_volumn_id(point.volume_idx);
+        // volume_idx can be stale after a volume is removed or the selection no longer contains it.
+        const GLVolume* volume = selection.get_volume_by_object_volumn_id(static_cast<unsigned int>(point.volume_idx));
+        if (volume == nullptr)
+            return false;
         trsf = volume->world_matrix();
-    }else {
-        const Selection& selection = m_parent.get_selection();
-        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+    } else {
+        const Selection::IndicesList &idxs = selection.get_volume_idxs();
+        if (idxs.empty())
+            return false;
+        const GLVolume* volume = selection.get_volume(*idxs.begin());
+        if (volume == nullptr)
+            return false;
         trsf = volume->get_instance_transformation().get_matrix();
     }
 
@@ -117,13 +124,18 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
 
     if (!has_points) return;
 
+    const Selection::IndicesList &idxs = selection.get_volume_idxs();
+    if (idxs.empty())
+        return;
+    const GLVolume *vol = selection.get_volume(*idxs.begin());
+    if (vol == nullptr)
+        return;
+
     const auto& shader = wxGetApp().get_shader(picking ? "flat" : "gouraud_light");
     if (shader == nullptr)
         return;
 
     wxGetApp().bind_shader(shader);
-
-    const GLVolume    *vol                             = selection.get_volume(*selection.get_volume_idxs().begin());
 
     const Camera& camera = picking ? wxGetApp().plater()->get_picking_camera() : wxGetApp().plater()->get_camera();
     const Transform3d& view_matrix = camera.get_view_matrix();
@@ -141,9 +153,11 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
         if (!is_use_point(brim_point) && !hover)
             continue;
         if (brim_point.volume_idx >= 0) {
-            const GLVolume* v = selection.get_volume_by_object_volumn_id(brim_point.volume_idx);
+            const GLVolume* v = selection.get_volume_by_object_volumn_id(static_cast<unsigned int>(brim_point.volume_idx));
+            if (v == nullptr)
+                continue;
             volume_matrix = v->world_matrix();
-        }else {
+        } else {
             volume_matrix = vol->get_instance_transformation().get_matrix();
         }
 
@@ -256,7 +270,12 @@ bool GLGizmoBrimEars::unproject_on_mesh(const Vec2d &mouse_pos, std::pair<Vec3f,
 
     const Camera            &camera    = wxGetApp().plater()->get_camera();
     const Selection         &selection = m_parent.get_selection();
-    const GLVolume          *volume    = selection.get_volume(*selection.get_volume_idxs().begin());
+    const Selection::IndicesList &idxs = selection.get_volume_idxs();
+    if (idxs.empty())
+        return false;
+    const GLVolume *volume = selection.get_volume(*idxs.begin());
+    if (volume == nullptr)
+        return false;
     const auto& trafo     = volume->world_matrix();
     // trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., m_c->selection_info()->get_sla_shift()));//sla shift看起来可以删掉
 
@@ -319,12 +338,22 @@ bool GLGizmoBrimEars::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_p
         Plater              *plater    = wxGetApp().plater();
         if (!plater) return false;
         const Camera           &camera       = wxGetApp().plater()->get_camera();
-        const GLVolume         *volume       = selection.get_volume(*selection.get_volume_idxs().begin());
+        const Selection::IndicesList &move_idxs = selection.get_volume_idxs();
+        if (move_idxs.empty())
+            return false;
+        const GLVolume *volume = selection.get_volume(*move_idxs.begin());
+        if (volume == nullptr)
+            return false;
         Transform3d             inverse_trsf = volume->get_instance_transformation().get_matrix(true).inverse();
         std::pair<Vec3f, Vec3f> pos_and_normal;
         if (unproject_on_mesh2(mouse_position, pos_and_normal)) {
             int volume_idx = m_last_hit_volume->volume_idx();
-            Transform3d v_trsf = selection.get_volume_by_object_volumn_id(volume_idx)->world_matrix();
+            if (volume_idx < 0)
+                return false;
+            const GLVolume *hit_volume = selection.get_volume_by_object_volumn_id(static_cast<unsigned int>(volume_idx));
+            if (hit_volume == nullptr)
+                return false;
+            Transform3d v_trsf = hit_volume->world_matrix();
             Vec3d set_volume_trsf_pos = pos_and_normal.first.cast<double>();
             render_hover_point = CacheEntry(BrimPoint(set_volume_trsf_pos.cast<float>(), m_new_point_head_diameter / 2.f, volume_idx), false, (inverse_trsf * m_world_normal).cast<float>(), true);
         } else {
@@ -356,8 +385,12 @@ bool GLGizmoBrimEars::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_p
             if (unproject_on_mesh2(mouse_position, pos_and_normal)) {
                 // we got an intersection
                 int volume_idx = m_last_hit_volume->volume_idx();
+                if (volume_idx < 0)
+                    return false;
                 const Selection &selection    = m_parent.get_selection();
-                const GLVolume  *volume       = selection.get_volume_by_object_volumn_id(volume_idx);
+                const GLVolume  *volume       = selection.get_volume_by_object_volumn_id(static_cast<unsigned int>(volume_idx));
+                if (volume == nullptr)
+                    return false;
                 Transform3d      trsf         = volume->world_matrix();
                 Transform3d      inverse_trsf = trsf.inverse();
                 // BBS brim ear postion is placed on the bottom side
@@ -912,6 +945,8 @@ void GLGizmoBrimEars::first_layer_slicer()
     ExPolygons negative_ex;
     for (auto idx : idxs) {
         const GLVolume    *volume       = selection.get_volume(idx);
+        if (volume == nullptr)
+            continue;
         const ModelVolume *model_volume = get_model_volume(*volume, wxGetApp().model());
         if (model_volume == nullptr) continue;
         if (model_volume->type() == ModelVolumeType::MODEL_PART || model_volume->type() == ModelVolumeType::NEGATIVE_VOLUME) {
@@ -936,7 +971,12 @@ void GLGizmoBrimEars::first_layer_slicer()
 void GLGizmoBrimEars::auto_generate()
 {
     const Selection &selection = m_parent.get_selection();
-    const GLVolume  *volume    = selection.get_volume(*selection.get_volume_idxs().begin());
+    const Selection::IndicesList &gen_idxs = selection.get_volume_idxs();
+    if (gen_idxs.empty())
+        return;
+    const GLVolume *volume = selection.get_volume(*gen_idxs.begin());
+    if (volume == nullptr)
+        return;
     Transform3d      trsf      = volume->get_instance_transformation().get_matrix();
     Vec3f            normal    = (volume->get_instance_transformation().get_matrix(true).inverse() * m_world_normal).cast<float>();
     auto             add_point = [this, &trsf, &normal](const Point &p) {
@@ -1028,8 +1068,10 @@ void GLGizmoBrimEars::register_single_mesh_pick()
     if (idxs.size() > 0) {
         for (unsigned int idx : idxs) {
             GLVolume *v          = const_cast<GLVolume *>(selection.get_volume(idx));
+            if (v == nullptr)
+                continue;
             const ModelVolume* mv = get_model_volume(*v, wxGetApp().model());
-            if (!mv->is_model_part()) continue;
+            if (mv == nullptr || !mv->is_model_part()) continue;
             auto      world_tran = v->world_matrix();
             auto      mesh       = const_cast<TriangleMesh *>(v->ori_mesh);
             if (m_mesh_raycaster_map.find(v) != m_mesh_raycaster_map.end()) {
@@ -1082,7 +1124,12 @@ void GLGizmoBrimEars::find_single()
         return;
     }
     const Selection         &selection = m_parent.get_selection();
-    const GLVolume          *volume    = selection.get_volume(*selection.get_volume_idxs().begin());
+    const Selection::IndicesList &find_idxs = selection.get_volume_idxs();
+    if (find_idxs.empty())
+        return;
+    const GLVolume *volume = selection.get_volume(*find_idxs.begin());
+    if (volume == nullptr)
+        return;
     ExPolygons               model_pl  = m_first_layer;
 
     m_single_brim.clear();

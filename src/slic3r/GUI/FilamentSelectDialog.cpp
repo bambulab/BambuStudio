@@ -1,6 +1,7 @@
 #include "FilamentSelectDialog.hpp"
 #include "AMSMaterialsSetting.hpp"  // AMS_MATERIALS_SETTING_GREY* colour constants
 #include "FilamentBitmapUtils.hpp"
+#include "DeviceCore/DevFilaSystem.h"  // DevFilaSystem::GetTrayNameByAmsSlotId
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "wxExtensions.hpp"
@@ -13,19 +14,11 @@
 #include <cctype>
 #include <cmath>
 #include <sstream>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
 namespace {
-
-wxColour parse_hex_color(const std::string& hex)
-{
-    if (hex.empty()) return wxColour(0x63, 0x63, 0x63);
-    wxString s = wxString::FromUTF8(hex);
-    if (!s.StartsWith("#")) s = "#" + s;
-    wxColour c(s);
-    return c.IsOk() ? c : wxColour(0x63, 0x63, 0x63);
-}
 
 std::vector<wxColour> spool_colors(const FilamentSpool& sp)
 {
@@ -171,9 +164,12 @@ wxString slot_label(const FilamentSpool& sp)
 {
     if (!sp.in_printer || sp.slot_id.empty() || sp.ams_id < 0) return wxString();
     try {
-        const wxString s = wxGetApp().transition_tridid(sp.ams_id * 4 + std::stoi(sp.slot_id));
-        if (!s.empty()) return s;
-    } catch (...) {}
+        const std::string s = DevFilaSystem::GetTrayNameByAmsSlotId(
+            sp.dev_id, sp.ams_id, std::stoi(sp.slot_id), (DevAmsType)sp.ams_type);
+        if (!s.empty()) return wxString::FromUTF8(s);
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    }
     return wxString::FromUTF8(sp.slot_id);
 }
 
@@ -943,23 +939,31 @@ void FilamentSelectDialog::fill_default_tab()
         m_brand_to_aliases[vendor].push_back(alias);
     }
 
-    static const std::vector<wxString> type_order{ "PLA", "PETG", "ABS", "TPU" };
-    for (auto& kv : m_brand_to_aliases) {
-        std::sort(kv.second.begin(), kv.second.end(), [this](const wxString& l, const wxString& r) {
-            wxString lt, rt;
-            auto il = m_types.find(l), ir = m_types.find(r);
-            if (il != m_types.end()) lt = il->second;
-            if (ir != m_types.end()) rt = ir->second;
-            auto i1 = std::find(type_order.begin(), type_order.end(), lt);
-            auto i2 = std::find(type_order.begin(), type_order.end(), rt);
-            if (i1 != i2) return i1 < i2;
-            return l < r;
-        });
-    }
+    // Reuse the shared filament ordering (same curated order as the main-window combo boxes).
+    auto fkey = [this](const wxString& a) -> FilamentListKey {
+        auto iv = m_vendors.find(a);
+        auto it = m_types.find(a);
+        return FilamentListKey{ std::string(a.ToUTF8().data()),
+                                iv != m_vendors.end() ? std::string(iv->second.ToUTF8().data()) : std::string(),
+                                it != m_types.end()  ? std::string(it->second.ToUTF8().data())  : std::string() };
+    };
 
-    std::vector<wxString> keys;
-    for (auto& kv : m_brand_to_aliases) keys.push_back(kv.first);
-    m_ordered_brands = order_brands(keys, other);
+    for (auto& kv : m_brand_to_aliases)
+        std::sort(kv.second.begin(), kv.second.end(),
+                  [&](const wxString& l, const wxString& r) { return filament_list_less(fkey(l), fkey(r)); });
+
+    // Brand order: rank by each brand's leading alias, then keep "Other" pinned last.
+    m_ordered_brands.clear();
+    for (auto& kv : m_brand_to_aliases) m_ordered_brands.push_back(kv.first);
+    std::sort(m_ordered_brands.begin(), m_ordered_brands.end(),
+              [&](const wxString& lb, const wxString& rb) {
+                  return filament_list_less(fkey(m_brand_to_aliases[lb].front()),
+                                            fkey(m_brand_to_aliases[rb].front()));
+              });
+    if (auto p = std::find(m_ordered_brands.begin(), m_ordered_brands.end(), other); p != m_ordered_brands.end()) {
+        m_ordered_brands.erase(p);
+        m_ordered_brands.push_back(other);
+    }
 
     for (const wxString& b : m_ordered_brands) {
         auto* row = new wxPanel(m_brand_list, wxID_ANY);

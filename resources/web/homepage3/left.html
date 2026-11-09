@@ -38,21 +38,24 @@
 			<img id="UserAvatarIcon" src="img/left_home_account.svg" onerror="this.onerror=null;this.src='img/left_home_account.svg';" />
 		</div>
 		<div id="UserName" class="TextS1 auto-hide"></div>
-		<div class="PullBtn auto-hide">
-				<div id="DropdownWrapper" class="DropdownBG">
-					<div class="dropdown-header DropdownHeaderBG">
-						<div class="avatar" id="DropdownAvatar"></div>
-						<div class="user-details">
-							<div class="UserName TextS1" id="DropdownUserName"></div>
-							<div class="UserEmail TextS2" id="DropdownUserEmail"></div>
-						</div>
-					</div>
-					<div class="DropdownFooter">
-						<div class="LogoutIcon"></div>
-						<div class="LogoutBtn TextS2 trans" tid="t50" onClick="OnLogOut()">log out</div>
-					</div>
-					<!-- <textarea id="consoleinfo"></textarea> -->
+		<div class="PullBtn auto-hide"></div>
+		<!-- Keep the dropdown OUT of .PullBtn: in the collapsed left bar .PullBtn gets
+		     display:none from left_mini.css, which would take this panel down with it
+		     and leave the avatar click doing nothing. It is positioned against
+		     #LoginArea either way, so moving it out does not change its placement. -->
+		<div id="DropdownWrapper" class="DropdownBG">
+			<div class="dropdown-header DropdownHeaderBG">
+				<div class="avatar" id="DropdownAvatar"></div>
+				<div class="user-details">
+					<div class="UserName TextS1" id="DropdownUserName"></div>
+					<div class="UserEmail TextS2" id="DropdownUserEmail"></div>
 				</div>
+			</div>
+			<div class="DropdownFooter">
+				<div class="LogoutIcon"></div>
+				<div class="LogoutBtn TextS2 trans" tid="t50" onClick="OnLogOut()">log out</div>
+			</div>
+			<!-- <textarea id="consoleinfo"></textarea> -->
 		</div>
 		<!-- <div id="LogoutBtn" class="Btn trans" tid="t50" onClick="OnLogOut()">log out</div> -->
 	</div>	

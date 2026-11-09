@@ -25,6 +25,7 @@
 #include "FillConcentricInternal.hpp"
 #include "FillCrossHatch.hpp"
 #include "FillFloatingConcentric.hpp"
+#include "libslic3r/Log.hpp"
 
 // #define INFILL_DEBUG_OUTPUT
 
@@ -207,7 +208,7 @@ std::pair<float, Point> Fill::_infill_direction(const Surface *surface) const
 
 	if (out_angle == FLT_MAX) {
 		//FIXME Vojtech: Add a warning?
-        printf("Using undefined infill angle\n");
+        BOOST_LOG_TRIVIAL(warning) << "Using undefined infill angle";
         out_angle = 0.f;
     }
 
