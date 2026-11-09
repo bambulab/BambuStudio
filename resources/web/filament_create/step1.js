@@ -1,5 +1,5 @@
 
-const VENDOR_LIST = ['Polymaker', 'OVERTURE', 'Kexcelled', 'HATCHBOX', 'eSUN', 'SUNLU', 'Prusament', 'Creality', 'Protopasta', 'Anycubic', 'Basf', 'ELEGOO', 'INLAND', 'FLASHFORGE', 'FusRock', 'AMOLEN', 'MIKA3D', '3DXTECH', 'Duramic', 'Priline', 'Eryone', '3Dgenius', 'Novamaker', 'Justmaker', 'Giantarm', 'iProspect', 'LDO'];
+var VENDOR_LIST = []; // filled dynamically from C++ init_data (see s_filament_vendors in CreateFilamentWebDialog.cpp)
 var TYPE_LIST = []; // filled dynamically from C++ init_data
 // Types the connected printer actually has compatible presets for — filled from C++
 // get_supported_types (see send_supported_types in CreateFilamentWebDialog.cpp).
@@ -162,6 +162,8 @@ $(document).ready(function () {
         try {
             var data = (typeof msg === 'string') ? JSON.parse(msg) : msg;
             if (data.command === 'init_data') {
+                VENDOR_LIST = data.vendors || [];
+                renderVendors();
                 TYPE_LIST = data.types || [];
                 refreshTypeDropdown();
                 var selectedVendor = (data.selected_vendor || '').trim();
