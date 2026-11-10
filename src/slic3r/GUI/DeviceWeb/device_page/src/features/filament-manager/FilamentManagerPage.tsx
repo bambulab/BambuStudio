@@ -1,3 +1,4 @@
+import { sameVendor, uniqueVendorNames } from './vendorOptions';
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import useStore from '../../store/AppStore';
@@ -176,7 +177,7 @@ export function FilamentManagerPage() {
 
     // Filters
     for (const [k, v] of Object.entries(filters)) {
-      if (v) list = list.filter((s) => (s as any)[k] === v);
+      if (v) list = list.filter((s) => k === 'brand' ? sameVendor(s.brand, v) : (s as any)[k] === v);
     }
 
     return list;
@@ -195,7 +196,7 @@ export function FilamentManagerPage() {
   const getFilterOptions = (key: FilterKey): string[] => {
     const vals = new Set<string>();
     spools.forEach((s) => { const v = (s as any)[key]; if (v) vals.add(v); });
-    return [...vals].sort();
+    return (key === 'brand' ? uniqueVendorNames([...vals]) : [...vals]).sort();
   };
 
   // Selection
