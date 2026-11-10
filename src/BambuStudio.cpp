@@ -2127,6 +2127,17 @@ int CLI::run(int argc, char **argv)
                         BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to set skirt_per_object to false")%file_version.to_string();
                     }
 
+                    // Before 2.4 these were saved as 1 by default, and a part's own filament still won. A value here
+                    // now overrides the part's filament, so those projects would print everything in filament 1.
+                    Semver old_version6(2, 4, 0);
+                    if (file_version < old_version6) {
+                        for (const char *key : {"wall_filament", "sparse_infill_filament", "solid_infill_filament"}) {
+                            ConfigOptionInt *feature_filament = config.option<ConfigOptionInt>(key);
+                            if (feature_filament && feature_filament->value == 1)
+                                feature_filament->value = 0;
+                        }
+                    }
+
                     if (normative_check) {
                         ConfigOptionStrings* postprocess_scripts = config.option<ConfigOptionStrings>("post_process");
                         if (postprocess_scripts) {
