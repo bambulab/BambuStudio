@@ -6,6 +6,8 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/fila_manager/wgtFilaManagerFeature.cpp
     GUI/fila_manager/wgtFilaManagerStore.h
     GUI/fila_manager/wgtFilaManagerStore.cpp
+    GUI/fila_manager/wgtFilaManagerCsv.h
+    GUI/fila_manager/wgtFilaManagerCsv.cpp
     GUI/fila_manager/wgtFilaManagerPanel.h
     GUI/fila_manager/wgtFilaManagerPanel.cpp
     GUI/fila_manager/wgtFilaManagerSync.h
