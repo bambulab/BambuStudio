@@ -11641,6 +11641,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     const auto loading = _L("Loading") + dots;
     ProgressDialog dlg(loading, "", 100, find_toplevel_parent(q), wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
+    // Loading blocks the main thread; yield so the Cancel click gets processed.
+    dlg.EnableYield(true);
     wxBusyCursor busy;
 
     auto *new_model = (!load_model || one_by_one) ? nullptr : new Slic3r::Model();
@@ -24394,6 +24396,8 @@ void Plater::import_model_id(wxString download_info)
         wxPD_APP_MODAL |
         wxPD_AUTO_HIDE |
         wxPD_SMOOTH);
+    // The wait loop below blocks the main thread; yield so the Cancel click gets processed.
+    dlg.EnableYield(true);
 
     boost::filesystem::path target_path;
 
@@ -24646,6 +24650,11 @@ void Plater::import_model_id(wxString download_info)
 #ifdef _WIN32
     dlg.Close();
 #endif
+
+    if (cancel && !download_ok) {
+        BOOST_LOG_TRIVIAL(info) << "download canceled by user";
+        return;
+    }
 
     if (download_ok) {
         BOOST_LOG_TRIVIAL(trace) << "target_path = " << PathSanitizer::sanitize(target_path);
