@@ -833,7 +833,17 @@ static const FileWildcards file_wildcards_by_type[FT_SIZE] = {
     /* FT_OBJ */     { "OBJ files"sv,       { ".obj"sv } },
     /* FT_AMF */     { "AMF files"sv,       { ".amf"sv, ".zip.amf"sv, ".xml"sv } },
     /* FT_3MF */     { "3MF files"sv,       { ".3mf"sv } },
+#ifdef __APPLE__
+    // NSSavePanel cannot handle a two-segment extension: ".gcode.3mf" is not a valid
+    // filename extension, so AppKit fails to map it to a UTType. Depending on the macOS
+    // version it either keeps the raw string and compares it against [name pathExtension]
+    // (which is only "3mf"), rejecting every name with "The required extension is
+    // .gcode.3mf", or silently drops the filter altogether. Advertise the single-segment
+    // ".3mf" here instead; the caller appends ".gcode.3mf" to the returned path.
+    /* FT_GCODE_3MF */ {"Gcode 3MF files"sv, {".3mf"sv}},
+#else
     /* FT_GCODE_3MF */ {"Gcode 3MF files"sv, {".gcode.3mf"sv}},
+#endif
     /* FT_GCODE */   { "G-code files"sv,    { ".gcode"sv } },
 #ifdef __APPLE__
     /* FT_MODEL */
