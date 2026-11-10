@@ -37,6 +37,10 @@
     "filament_density": [
         "1.04"
     ],
+    "filament_dev_ams_drying_ams_limitations": [
+        "1",
+        "2"
+    ],
     "filament_dev_ams_drying_heat_distortion_temperature": [
         "165",
         "165",
