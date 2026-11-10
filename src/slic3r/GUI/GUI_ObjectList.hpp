@@ -392,6 +392,8 @@ public:
     // Add object's volumes to the list
     // Return selected items, if add_to_selection is defined
     wxDataViewItemArray add_volumes_to_object_in_list(size_t obj_idx, std::function<bool(const ModelVolume *)> add_to_selection = nullptr);
+    // End an in-progress cell edit. Must be called before any path that destroys the nodes behind it.
+    void cancel_item_editing();
     // Delete object from the list
     void delete_object_from_list();
     void delete_object_from_list(const size_t obj_idx);

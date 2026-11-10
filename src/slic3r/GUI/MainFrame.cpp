@@ -655,6 +655,13 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
         MarkdownTip::ExitTip();
 
+        // Plater::reset() tears down every ObjectList node. An open cell editor (e.g. the plate name
+        // being renamed) still refers to one of them through the renderer's own item, and shutdown()'s
+        // Show(false) kill-focuses that editor, which reads the item back. Close the editor here, while
+        // the node it points at is still alive.
+        if (ObjectList* obj_list = wxGetApp().obj_list())
+            obj_list->cancel_item_editing();
+
         m_plater->reset();
         this->shutdown();
         // propagate event

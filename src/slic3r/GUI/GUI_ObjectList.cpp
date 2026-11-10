@@ -4707,8 +4707,30 @@ wxDataViewItemArray ObjectList::add_volumes_to_object_in_list(size_t obj_idx, st
     return items;
 }
 
+// wxDataViewRendererBase keeps the item it is editing in its own m_item and nothing clears it when the
+// node behind that item is destroyed. Deleting nodes while a cell editor is open therefore leaves m_item
+// dangling, and the next kill-focus runs FinishEditing() -> GetValueFromEditorCtrl() / ChangeValue() over
+// freed memory -- which is how quitting with the plate name editor open crashed in
+// ObjectDataViewModel::GetValue(). Call this before anything that deletes nodes.
+// It has to run while the node is still alive: CancelEditing() fires wxEVT_DATAVIEW_ITEM_EDITING_DONE and
+// OnEditingDone() reads the item being edited.
+void ObjectList::cancel_item_editing()
+{
+    for (unsigned int col = 0; col < GetColumnCount(); ++col) {
+        wxDataViewColumn* column = GetColumn(col);
+        if (!column)
+            continue;
+        wxDataViewRenderer* renderer = column->GetRenderer();
+        // No open editor means no stale item to clear, and CancelEditing() would still fire EDITING_DONE.
+        if (renderer && renderer->GetEditorCtrl())
+            renderer->CancelEditing();
+    }
+}
+
 void ObjectList::delete_object_from_list()
 {
+    cancel_item_editing();
+
     auto item = GetSelection();
     if (!item)
         return;
@@ -4720,16 +4742,19 @@ void ObjectList::delete_object_from_list()
 
 void ObjectList::delete_object_from_list(const size_t obj_idx)
 {
+    cancel_item_editing();
     select_item([this, obj_idx]() { return m_objects_model->Delete(m_objects_model->GetItemById(obj_idx)); });
 }
 
 void ObjectList::delete_volume_from_list(const size_t obj_idx, const size_t vol_idx)
 {
+    cancel_item_editing();
     select_item([this, obj_idx, vol_idx]() { return m_objects_model->Delete(m_objects_model->GetItemByVolumeId(obj_idx, vol_idx)); });
 }
 
 void ObjectList::delete_instance_from_list(const size_t obj_idx, const size_t inst_idx)
 {
+    cancel_item_editing();
     select_item([this, obj_idx, inst_idx]() { return m_objects_model->Delete(m_objects_model->GetItemByInstanceId(obj_idx, inst_idx)); });
 }
 
@@ -4770,6 +4795,8 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
 {
     if (items_for_delete.empty())
         return;
+
+    cancel_item_editing();
 
     m_prevent_list_events = true;
     //BBS
@@ -7210,6 +7237,8 @@ void ObjectList::on_plate_added(PartPlate* part_plate)
 
 void ObjectList::on_plate_deleted(int plate_idx)
 {
+    cancel_item_editing();
+
     m_objects_model->DeletePlate(plate_idx);
 
     wxDataViewItemArray top_list;
@@ -7221,6 +7250,8 @@ void ObjectList::on_plate_deleted(int plate_idx)
 
 void ObjectList::reload_all_plates(bool notify_partplate)
 {
+    cancel_item_editing();
+
     m_prevent_canvas_selection_update = true;
 #ifdef __WXOSX__
     AssociateModel(nullptr);
