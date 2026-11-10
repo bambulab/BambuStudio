@@ -1481,7 +1481,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
     std::vector<bool> map_opt;  //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
     if (nozzle_nums > 1){
         //get nozzle property, the extders are same?
-        if (true/*!can_hybrid_mapping(obj_get_extder_data())*/){
+        if (!can_hybrid_mapping(obj_)){
             std::vector<FilamentInfo>           m_ams_mapping_result_left, m_ams_mapping_result_right;
             std::vector<FilamentInfo>           m_filament_left, m_filament_right;
 
@@ -1544,11 +1544,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
         }
         //can hybrid mapping
         else {
-            map_opt = { true, true, true, true };   //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
-            if (!use_ams) {
-                map_opt[0] = false;
-                map_opt[1] = false;
-            }
+            map_opt = { use_ams, use_ams, false, false };   //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
             filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(), false, /*color_over_subtype*/ false, check_nozzle_type ? NozzleMatchWeight::Require : NozzleMatchWeight::Ignore);
         }
         //When filaments cannot be matched automatically, whether to use ext for automatic supply
