@@ -18,6 +18,7 @@
 #include "PartPlate.hpp"
 
 #include "Gizmos/GLGizmoSVG.hpp"
+#include "Gizmos/GLGizmoSimplify.hpp"
 #include "Gizmos/GLGizmoAlignment.hpp"
 
 #include <boost/algorithm/string.hpp>
@@ -1969,8 +1970,14 @@ void MenuFactory::append_menu_item_clone(wxMenu* menu)
 void MenuFactory::append_menu_item_simplify(wxMenu* menu)
 {
     wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Simplify Model"), "",
-        [](wxCommandEvent&) { obj_list()->simplify(); }, "", menu,
-        []() {return plater()->can_simplify(); }, m_parent);
+        [](wxCommandEvent&) { obj_list()->simplify(); }, "", menu);
+    m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt)
+        {
+            const Selection& selection = plater()->canvas3D()->get_selection();
+            evt.SetText(GLGizmoSimplify::selection_is_simplify_parts(selection) ?
+                _L("Simplify parts") : _L("Simplify Model"));
+            evt.Enable(plater()->can_simplify());
+        }, menu_item->GetId());
 }
 
 void MenuFactory::append_menu_item_smooth_mesh(wxMenu *menu)
