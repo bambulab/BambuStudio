@@ -47,9 +47,17 @@ vec4 extrusion_color(vec3 type_rangeData_deltaExtruder)
     if (u_isRangeView_isRangeVaild_topLayerOnly_viewType.x > 0.5)
     {
         float view_type = u_isRangeView_isRangeVaild_topLayerOnly_viewType.w;
-        if (view_type < 0.5 || (view_type > 8.5 && view_type < 9.5)) // Summer or ColorPrint
+        if (view_type < 0.5 || (view_type > 8.5 && view_type < 9.5)) // Summary or ColorPrint
         {
             if (int(path_data + 0.5) > int(u_pathDataRange.y + 0.5))
+            {
+                final_color = vec4(0.5, 0.5, 0.5, 1.0);
+                return final_color;
+            }
+        }
+        else if (view_type > 15.5 && view_type < 16.5) // Objects
+        {
+            if (path_data < u_pathDataRange.x - 0.5 || path_data > u_pathDataRange.y + 0.5)
             {
                 final_color = vec4(0.5, 0.5, 0.5, 1.0);
                 return final_color;

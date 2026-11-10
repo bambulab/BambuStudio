@@ -175,7 +175,8 @@ namespace Slic3r {
                 case EMoveType::Seam:
                 case EMoveType::Extrude: {
                     // use rounding to reduce the number of generated paths
-                    return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id && role == move.extrusion_role &&
+                    return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id &&
+                        object_label_id == move.object_label_id && role == move.extrusion_role &&
                         move.position.z() <= sub_paths.front().first.position.z() && feedrate == move.feedrate && fan_speed == move.fan_speed &&
                         additional_fan_speed == move.additional_fan_speed &&
                         height == round_to_bin(move.height) && width == round_to_bin(move.width) &&
@@ -183,7 +184,8 @@ namespace Slic3r {
                         thermal_index_mean == move.thermal_index_mean && thermal_index_min == move.thermal_index_min && thermal_index_max == move.thermal_index_max;
                 }
                 case EMoveType::Travel: {
-                    return type == move.type && feedrate == move.feedrate && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
+                    return type == move.type && feedrate == move.feedrate && extruder_id == move.extruder_id &&
+                        cp_color_id == move.cp_color_id && object_label_id == move.object_label_id;
                 }
                 default: { return false; }
                 }
@@ -223,6 +225,7 @@ namespace Slic3r {
                      move.layer_duration,
                      move.extruder_id,
                      move.cp_color_id,
+                     move.object_label_id,
                      false,
                      {{endpoint, endpoint}} });
             }
@@ -342,6 +345,7 @@ namespace Slic3r {
                 if (m_roles.empty())
                     return;
                 render_toolpaths();
+                render_center_of_gravity_marker();
                 //render_shells();
                 render_legend(m_legend_height, canvas_width, canvas_height, right_margin);
                 if (m_user_mode != wxGetApp().get_mode()) {
@@ -1767,6 +1771,17 @@ namespace Slic3r {
                     case EViewType::ColorPrint: {
                         color = m_tools.m_tool_colors[path.cp_color_id];
                         color = adjust_color_for_rendering(color.get_data());
+                        break;
+                    }
+                    case EViewType::Objects: {
+                        if (path.object_label_id < 0) {
+                            color = ColorRGBA::GRAY();
+                        } else {
+                            const Range object_range(static_cast<float>(m_center_of_gravity.object_label_min),
+                                                     static_cast<float>(m_center_of_gravity.object_label_max));
+                            color = object_range.get_color_at(static_cast<float>(path.object_label_id));
+                            color = adjust_color_for_rendering(color.get_data());
+                        }
                         break;
                     }
                     case EViewType::FilamentId: {
