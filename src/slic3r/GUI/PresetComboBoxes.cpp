@@ -1323,15 +1323,15 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
             // Check if it's an official filament
             auto fila_type = Preset::remove_suffix_modified(GetValue().ToUTF8().data());
             bool is_official = boost::algorithm::starts_with(fila_type, "Bambu");
-            if (is_official) {
-                // Get filament_id from filament_presets
-                const std::string& preset_name = m_preset_bundle->filament_presets[m_filament_idx];
-                const Preset* selected_preset = m_collection->find_preset(preset_name);
+            // Offer the user's own spools of this filament type in place of the official colours.
+            const Preset* selected_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_filament_idx]);
+            std::unique_ptr<FilamentColorCodes> owned_codes = selected_preset ? owned_spool_color_codes(*selected_preset) : nullptr;
+            if (is_official || owned_codes) {
                 wxString fila_id = selected_preset ? wxString::FromUTF8(selected_preset->filament_id) : "GFA00";
                 FilamentColor fila_color = get_cur_color_info();
 
                 // Show filament picker dialog
-                FilamentPickerDialog dialog(this, fila_id, fila_color, fila_type);
+                FilamentPickerDialog dialog(this, fila_id, fila_color, fila_type, std::move(owned_codes));
 
                 if (!dialog.IsDataLoaded()) {
                     // If FilamentPicker fails, fallback to default color picker

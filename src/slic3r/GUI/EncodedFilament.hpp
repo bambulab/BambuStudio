@@ -12,6 +12,7 @@
 #include <wx/string.h>
 
 #include <chrono>
+#include <memory>
 
 namespace Slic3r
 {
@@ -261,6 +262,20 @@ private:
     FilamentColor                          m_fila_color;
     std::unordered_map<wxString, wxString> m_fila_color_names; // eg. en -> Red
 };
+
+class Preset;
+
+// Colour codes for the user's Filament Manager spools offered under `preset`'s
+// filament type (see fila_manager/wgtFilaManagerSpoolColors.h), named
+// "<brand> <colour>". Null when no owned spool matches.
+std::unique_ptr<FilamentColorCodes> owned_spool_color_codes(const Preset& preset);
+
+namespace GUI { struct FilamentSpool; }
+// The spool's own filament_id, or else the filament_id of the preset named by
+// the spool's type or its rule, preferring Bambu system presets. Spools the
+// Filament Manager left unlinked (third-party, imported) need this to be
+// selectable for an AMS slot. Empty when no preset matches.
+std::string spool_filament_id(const GUI::FilamentSpool& spool);
 
 }
 #endif
