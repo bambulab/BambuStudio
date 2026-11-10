@@ -16,6 +16,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/nowide/convert.hpp>
 
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Polygon.hpp"
@@ -2579,18 +2580,20 @@ wxBoxSizer* MainFrame::create_side_tools()
                         p->Dismiss();
                     });
 
-                    SideButton *send_all_to_multi_app_btn = new SideButton(p, _L("Send all to Bambu Farm Manager Client"), "");
-                    send_all_to_multi_app_btn->SetCornerRadius(0);
-                    p->append_button(send_all_to_multi_app_btn);
+                    if (check_bbl_farm_client_support_send_all()) {
+                        SideButton *send_all_to_multi_app_btn = new SideButton(p, _L("Send all to Bambu Farm Manager Client"), "");
+                        send_all_to_multi_app_btn->SetCornerRadius(0);
+                        p->append_button(send_all_to_multi_app_btn);
 
-                    send_all_to_multi_app_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent &) {
-                        m_print_btn->SetLabel(_L("Send all to BFMC"));
-                        m_print_select = eSendMultiAppAll;
-                        m_print_enable = get_enable_print_status();
-                        m_print_btn->Enable(m_print_enable);
-                        this->Layout();
-                        p->Dismiss();
-                    });
+                        send_all_to_multi_app_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent &) {
+                            m_print_btn->SetLabel(_L("Send all to BFMC"));
+                            m_print_select = eSendMultiAppAll;
+                            m_print_enable = get_enable_print_status();
+                            m_print_btn->Enable(m_print_enable);
+                            this->Layout();
+                            p->Dismiss();
+                        });
+                    }
                 }
 
 
@@ -5024,6 +5027,41 @@ bool MainFrame::check_bbl_farm_client_installed()
         return false;
     }
 
+#else
+    return false;
+#endif
+}
+
+bool MainFrame::check_bbl_farm_client_support_send_all()
+{
+#ifdef WIN32
+    static const Semver min_version_for_send_all(3, 1, 0);
+
+    wchar_t szVersion[64];
+    DWORD   dwType = 0;
+    DWORD   dwSize = sizeof(szVersion);
+    LONG    result = RegGetValueW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Bambulab\\Bambu Farm Manager Client", L"Version",
+                                  RRF_RT_REG_SZ, &dwType, szVersion, &dwSize);
+    if (result != ERROR_SUCCESS) {
+        BOOST_LOG_TRIVIAL(warning) << "Failed to read Bambu Farm Manager Client version from registry";
+        return false;
+    }
+
+    boost::optional<Semver> version;
+    try {
+        version = Semver::parse(boost::nowide::narrow(szVersion));
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        return false;
+    }
+    if (!version) {
+        BOOST_LOG_TRIVIAL(warning) << "Failed to parse Bambu Farm Manager Client version";
+        return false;
+    }
+
+    bool supported = !(*version < min_version_for_send_all);
+    BOOST_LOG_TRIVIAL(info) << "Bambu Farm Manager Client send all supported=" << (supported ? "true" : "false");
+    return supported;
 #else
     return false;
 #endif

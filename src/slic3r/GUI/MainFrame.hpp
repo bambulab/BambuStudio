@@ -316,6 +316,7 @@ public:
     void        register_win32_callbacks();
     void        init_menubar_as_editor();
     bool        check_bbl_farm_client_installed();
+    bool        check_bbl_farm_client_support_send_all();
     void        init_menubar_as_gcodeviewer();
     void        update_menubar();
     void        update_calibration_button_status();
