@@ -28,9 +28,6 @@
     "deretraction_speed": [
         "30"
     ],
-    "deretract_speed_extruder_change": [
-        "30"
-    ],
     "enable_long_retraction_when_cut": [
         "0"
     ],

@@ -102,6 +102,5 @@
     ],
     "vertical_shell_speed": [
         "80%"
-    ],
-    "z_direction_outwall_speed_continuous": "1"
+    ]
 }
