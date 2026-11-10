@@ -635,15 +635,15 @@ void Layer::simplify_support_entity_collection(ExtrusionEntityCollection* entity
     }
 }
 //BBS: method to simplify support path
+// 支撑始终做圆弧拟合，不受 enable_arc_fitting 控制，避免低分辨率支撑圆共振和倒塌；
+// 保持 SUPPORT_RESOLUTION 阈值，过大会导致支撑圆上下错层易断裂
 void Layer::simplify_support_path(ExtrusionPath * path)
 {
     const auto print_config = this->object()->print()->config();
     const bool spiral_mode = print_config.spiral_mode;
-    const bool enable_arc_fitting = print_config.enable_arc_fitting;
     const auto scaled_resolution = scaled<double>(print_config.resolution.value);
 
-    if (enable_arc_fitting &&
-        !spiral_mode) {
+    if (!spiral_mode) {
         path->simplify_by_fitting_arc(SCALED_SUPPORT_RESOLUTION);
     } else {
         path->simplify(scaled_resolution);
@@ -654,12 +654,10 @@ void Layer::simplify_support_multi_path(ExtrusionMultiPath* multipath)
 {
     const auto print_config = this->object()->print()->config();
     const bool spiral_mode = print_config.spiral_mode;
-    const bool enable_arc_fitting = print_config.enable_arc_fitting;
     const auto scaled_resolution = scaled<double>(print_config.resolution.value);
 
     for (size_t i = 0; i < multipath->paths.size(); ++i) {
-        if (enable_arc_fitting &&
-            !spiral_mode) {
+        if (!spiral_mode) {
             multipath->paths[i].simplify_by_fitting_arc(SCALED_SUPPORT_RESOLUTION);
         } else {
             multipath->paths[i].simplify(scaled_resolution);
@@ -671,12 +669,10 @@ void Layer::simplify_support_loop(ExtrusionLoop* loop)
 {
     const auto print_config = this->object()->print()->config();
     const bool spiral_mode = print_config.spiral_mode;
-    const bool enable_arc_fitting = print_config.enable_arc_fitting;
     const auto scaled_resolution = scaled<double>(print_config.resolution.value);
 
     for (size_t i = 0; i < loop->paths.size(); ++i) {
-        if (enable_arc_fitting &&
-            !spiral_mode) {
+        if (!spiral_mode) {
             loop->paths[i].simplify_by_fitting_arc(SCALED_SUPPORT_RESOLUTION);
         } else {
             loop->paths[i].simplify(scaled_resolution);

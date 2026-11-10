@@ -7980,7 +7980,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         std::string comment = GCodeWriter::full_gcode_comment ? description : "";
         //BBS: use G1 if not enable arc fitting or has no arc fitting result or in spiral_mode mode
         //Attention: G2 and G3 is not supported in spiral_mode mode
-        if (!m_config.enable_arc_fitting ||
+        // 支撑路径始终输出圆弧，不受 enable_arc_fitting 控制
+        if ((!m_config.enable_arc_fitting && !is_support(path.role())) ||
             path.polyline.fitting_result.empty() ||
             m_config.spiral_mode ||
             sloped != nullptr) {
