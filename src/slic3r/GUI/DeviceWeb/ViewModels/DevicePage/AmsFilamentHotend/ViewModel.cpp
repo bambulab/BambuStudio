@@ -339,7 +339,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
 
     const bool is_rack_b = machine_obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B;
     fp[SK::filament_page::actions][SK::filament_actions::show_read_all] = is_rack_b && !filament_changing;
-    fp[SK::filament_page::actions][SK::filament_actions::can_read_all_slots] = is_rack_b && !filament_changing && !machine_obj->is_in_printing() && !machine_obj->is_in_upgrading();
+    fp[SK::filament_page::actions][SK::filament_actions::can_read_all_slots] = is_rack_b && !filament_changing && !machine_obj->is_in_upgrading();
 
     if (auto fila_system = machine_obj->GetFilaSystem()) {
         const bool has_connected_ams = !fila_system->GetAmsList().empty() && machine_obj->ams_exist_bits != 0;

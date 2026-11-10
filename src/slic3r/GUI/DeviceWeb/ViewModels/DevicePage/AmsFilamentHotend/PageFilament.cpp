@@ -349,9 +349,8 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
     } else if (action == "read_all_slots_rfid") {
         // Rack-B "read all": refresh every slot's RFID on each connected
         // ZMULTI_B AMS. mode=1 (active, all slots); no slot_bits.
-        if (machine_obj->is_in_printing() || machine_obj->is_in_upgrading()) {
-            return vm.MakeResponse(vm.GetModule(), "action", action, 3,
-                _u8L("Cannot read all while printing or upgrading"), vm.BuildState());
+        if (machine_obj->is_in_upgrading()) {
+            return vm.MakeResponse(vm.GetModule(), "action", action, 3, _u8L("Cannot read all while upgrading"), vm.BuildState());
         }
         if (fila_system) {
             for (const auto& [_, ams_unit] : fila_system->GetAmsList()) {
