@@ -42,7 +42,7 @@
         "Direct Drive TPU285"
     ],
     "filament_flow_ratio": [
-        "1.08"
+        "1.15"
     ],
     "filament_flush_temp": [
         "0"
@@ -81,7 +81,7 @@
         "0.28,0.35,0.7"
     ],
     "filament_prime_volume": [
-        "60"
+        "70"
     ],
     "filament_ramming_travel_time": [
         "20"
@@ -111,7 +111,7 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "2"
+        "0.6"
     ],
     "filament_retraction_minimum_travel": [
         "nil"
@@ -129,7 +129,7 @@
         "nil"
     ],
     "filament_z_hop_types": [
-        "Normal Lift"
+        "Spiral Lift"
     ],
     "fins_extrude_safe_temp": [
         "0"
