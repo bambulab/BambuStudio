@@ -335,10 +335,25 @@ public:
     {
         const float diameter = filament_id < m_filpar.size() ? m_filpar[filament_id].nozzle_diameter : 0.f;
         const float height   = diameter > 0.f ? std::min(0.5f * diameter, 0.2f) : 0.2f;
-        return std::max(slab_height, std::min(height, m_z_pos - dense_support_z(pos_y)));
+        const float z = m_printed_layer_z.empty() ? m_z_pos : printed_layer_z(int(m_cur_layer_id));
+        return std::max(slab_height, std::min(height, z - dense_support_z(pos_y)));
     }
     // Top of the last layer that laid the current band down dense at pos_y, or 0 (the bed) if none did.
     float dense_support_z(float pos_y) const;
+    // Z a planned layer really ends up at. A compacted tower (wipe_tower_no_sparse_layers) drops every layer
+    // without a tool change and stacks the rest from the bed, so planned Z gaps say nothing about the gap
+    // a bridge has to span there.
+    float printed_layer_z(int layer_id) const
+    {
+        if (layer_id >= 0 && size_t(layer_id) < m_printed_layer_z.size())
+            return m_printed_layer_z[layer_id];
+        return layer_id >= 0 && size_t(layer_id) < m_plan.size() ? m_plan[layer_id].z : m_z_pos;
+    }
+    bool layer_dropped_by_compaction(int layer_id) const
+    {
+        return layer_id >= 0 && size_t(layer_id) < m_layer_dropped_by_compaction.size() &&
+               m_layer_dropped_by_compaction[layer_id] != 0;
+    }
 	bool get_floating_area(float& start_pos_y, float& end_pos_y) const;
 	bool need_thick_bridge_flow(float pos_y, float slab_height) const;
     float get_extrusion_flow() const { return m_extrusion_flow; }
@@ -492,6 +507,9 @@ public:
     // Set by the ladder planner when the tower deviates from one slab per base layer. While false the tower
     // behaves exactly as before.
     bool m_merged_slabs_active{false};
+    // Filled only for a compacted tower, see printed_layer_z().
+    std::vector<float> m_printed_layer_z;
+    std::vector<char>  m_layer_dropped_by_compaction;
     // Keep the raw first tower layer only when that Z also carries real object or support extrusion.
     bool m_foundation_required{true};
     bool has_multiple_nozzle_diameters() const;

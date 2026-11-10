@@ -795,7 +795,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d),
                 erMixed,
                 "Travel to a Wipe Tower");
-            gcode += gcodegen.unretract();
+            // Only restore the layer Z here; the deretract waits until the nozzle reaches the tower Z below.
+            gcode += gcodegen.writer().unlift();
         }
 
 
@@ -816,8 +817,13 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (! is_approx(z, current_z) && ! defer_compacted_descend) {
             gcode += gcodegen.writer().retract();
             gcode += gcodegen.writer().travel_to_z(z, "Travel down to the last wipe tower layer.");
-            gcode += gcodegen.writer().unretract();
         }
+        // Deretract once the nozzle is down at the tower Z. Doing it right after the travel and retracting
+        // again for the descent pushed filament out and pulled it straight back above the tower.
+        if (! tcr.priming && tcr.is_finish_first)
+            gcode += gcodegen.unretract();
+        else if (! is_approx(z, current_z) && ! defer_compacted_descend)
+            gcode += gcodegen.writer().unretract();
 
 
         // Process the end filament gcode.
@@ -1245,10 +1251,16 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // When the diagonal side scrape is active, the E deretract must happen *after* the scrape,
         // while the Z unlift must still happen *before* it. Split the two so the scrape starts at the
         // current layer Z but the nozzle only deretracts once it is over the tower side wall.
-        std::string toolchange_unretract_str, side_scrape_unlift_str, side_scrape_deretract_str;
+        std::string toolchange_unretract_str, side_scrape_unlift_str, side_scrape_deretract_str, compacted_deretract_str;
+        // A compacted tower sits far below the layer the toolchange returns to. The deretract then has to wait
+        // until the nozzle is down on the tower; pushing filament out at the object height and descending
+        // afterwards drags the blob all the way down.
+        const bool compacted_descend_after_change = m_sparse_layers_skipped && z >= 0. && (tcr.print_z - z) > EPSILON;
         if (tcr.side_scrape) {
             side_scrape_unlift_str    = gcodegen.writer().unlift();
             side_scrape_deretract_str = gcodegen.unretract(extra_unretract, /*include_unlift=*/false);
+        } else if (compacted_descend_after_change) {
+            toolchange_unretract_str = gcodegen.writer().unlift();
         } else {
             toolchange_unretract_str = (extra_unretract > 0.f) ? gcodegen.unretract(extra_unretract) : gcodegen.unretract();
         }
@@ -1302,11 +1314,15 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // (the wipe/purge moves, and the wall when it is printed after the toolchange)
         // carry no explicit Z, so they would float at object height regardless of is_finish_first.
         // Re-descend to the compacted wipe tower z before those extrusions run.
-        if (m_sparse_layers_skipped
-            && z >= 0. && (tcr.print_z - z) > EPSILON) {
+        if (compacted_descend_after_change) {
             std::string z_descend = gcodegen.writer().travel_to_z(z, "Descend to compacted wipe tower z (no sparse layers)");
             check_add_eol(z_descend);
             start_filament_gcode_str += z_descend;
+            if (!tcr.side_scrape) {
+                compacted_deretract_str = gcodegen.unretract(extra_unretract, /*include_unlift=*/false);
+                check_add_eol(compacted_deretract_str);
+                start_filament_gcode_str += compacted_deretract_str;
+            }
         }
 
         // Insert the end filament, toolchange, and start filament gcode into the generated gcode.
@@ -1355,17 +1371,18 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // A phony move to the end position at the wipe tower.
         gcodegen.writer().travel_to_xy((end_pos + plate_origin_2d).cast<double>());
         gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos + plate_origin_2d));
+        // Prepare a future wipe. Leaving a compacted tower has to wipe the same way as leaving a full one.
+        gcodegen.m_wipe.reset_path();
+        for (const Vec2f& wipe_pt : tcr.wipe_path)
+            gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
         if (!is_approx(z, current_z)) {
-            gcode += gcodegen.writer().retract();
+            // Retract while wiping along the tower, then climb back. The nozzle stays retracted on the way to
+            // the model; the travel there unretracts right before the next extrusion.
+            gcode += gcodegen.retract(false, false, auto_lift_type, false, true);
             gcode += gcodegen.writer().travel_to_z(current_z, "Travel back up to the topmost object layer.");
-            gcode += gcodegen.writer().unretract();
         }
 
         else {
-            // Prepare a future wipe.
-            gcodegen.m_wipe.reset_path();
-            for (const Vec2f& wipe_pt : tcr.wipe_path)
-                gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
             // Retract & spiral lift when leaving the wipe tower, heading back to the model.
             // Use normal retract distance (short), but always slow spiral lift (prime_tower_lift_speed)
             // to avoid stringing from the tower surface.

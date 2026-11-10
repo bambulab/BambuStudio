@@ -4542,8 +4542,19 @@ WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &
     float       extrusion_height = slab_height;
     float       e_flow = slab_height * (fill_width - slab_height * (1.f - float(M_PI) / 4.f)) / filament_area_val;
     const float e_flow_02 = 0.2f * (fill_width - 0.2f * (1.f - float(M_PI) / 4.f)) / filament_area_val;
-    if (!m_merged_slabs_active && m_cur_layer_id > 1 &&
-        block.layers_type[m_cur_layer_id - 1] == WipeTowerLayerType::Normal && e_flow < e_flow_02) {
+    bool over_sparse_layer = m_cur_layer_id > 1 && block.layers_type[m_cur_layer_id - 1] == WipeTowerLayerType::Normal;
+    if (! m_layer_dropped_by_compaction.empty()) {
+        // A compacted tower lays this block on the last layer it printed. That layer's wipe lines may well
+        // cover the whole band, so only the dense front it reached tells whether anything is bridged.
+        int below_layer = int(m_cur_layer_id) - 1;
+        while (below_layer >= 0 && layer_dropped_by_compaction(below_layer))
+            --below_layer;
+        const float band_end = block.start_depth + band_fill_depth(block, m_cur_layer_id) - fill_width;
+        over_sparse_layer = below_layer > first_printed_layer_idx() &&
+                            block.layers_type[below_layer] == WipeTowerLayerType::Normal &&
+                            block.finish_depth[below_layer] + EPSILON < band_end;
+    }
+    if (!m_merged_slabs_active && over_sparse_layer && e_flow < e_flow_02) {
         extrusion_height = 0.2f;
         e_flow = e_flow_02;
     }
@@ -5708,7 +5719,24 @@ void WipeTower::generate_wipe_tower_blocks(bool add_solid_flag)
             };
             for (int layer_id = 0; layer_id < all_layer_category_to_depth.size(); ++layer_id) {
                 std::unordered_map<int, float> &category_to_depth = all_layer_category_to_depth[layer_id];
-                if (category_to_depth[block.block_key] < block.layer_depths[layer_id] - m_perimeter_width) {
+                if (m_sparse_layers_skipped) {
+                    // A compacted tower drops every layer without a tool change, so the dense floor has to go on
+                    // a layer that prints, and the bands above it are the next printed layers, not planned ones.
+                    if (!m_plan[layer_id].tool_changes.empty() &&
+                        category_to_depth[block.block_key] < block.layer_depths[layer_id] - m_perimeter_width) {
+                        const bool cur_has_category = solid_has_band(layer_id);
+                        int        printed_above    = 0;
+                        for (int up = layer_id + 1; up < int(all_layer_category_to_depth.size()) && printed_above < solid_infill_layer_low; ++up) {
+                            if (m_plan[up].tool_changes.empty())
+                                continue;
+                            ++printed_above;
+                            if (cur_has_category != solid_has_band(up)) {
+                                block.layers_type[layer_id] = WipeTowerLayerType::Solid;
+                                break;
+                            }
+                        }
+                    }
+                } else if (category_to_depth[block.block_key] < block.layer_depths[layer_id] - m_perimeter_width) {
                     const bool cur_has_category = solid_has_band(layer_id);
                     for (int layer_count = solid_infill_layer_low; layer_count > 0; --layer_count) {
                         if (layer_id + layer_count >= int(all_layer_category_to_depth.size()))
@@ -5720,14 +5748,23 @@ void WipeTower::generate_wipe_tower_blocks(bool add_solid_flag)
                         }
                     }
                 }
-                if (layer_id > 0) {
+                // A compacted tower only prints the layers carrying a tool change, so a band lands on the last
+                // of those, or on the bed when there is none, never on the planned layer right below.
+                int prev_layer = layer_id - 1;
+                if (m_sparse_layers_skipped) {
+                    if (m_plan[layer_id].tool_changes.empty())
+                        continue;
+                    while (prev_layer >= 0 && m_plan[prev_layer].tool_changes.empty())
+                        --prev_layer;
+                }
+                if (prev_layer >= 0) {
                     bool cur_has_block_category = layers_used_categories[layer_id].count(block_category);
-                    bool pre_has_block_category = layers_used_categories[layer_id - 1].count(block_category);
+                    bool pre_has_block_category = layers_used_categories[prev_layer].count(block_category);
                     // A merged slab reaching down to the bed lands on nothing, whatever the layers it spans held.
                     if (cur_has_block_category != pre_has_block_category && !(merged_fill && block_slab_on_bed(block, layer_id))) {
                         block.layers_type[layer_id] = WipeTowerLayerType::Contact;
                     }
-                    if (block.layers_type[layer_id - 1] == WipeTowerLayerType::Contact && block.layers_type[layer_id] != WipeTowerLayerType::Contact) {
+                    if (block.layers_type[prev_layer] == WipeTowerLayerType::Contact && block.layers_type[layer_id] != WipeTowerLayerType::Contact) {
                         block.layers_type[layer_id] = WipeTowerLayerType::Contact_UP;
                     }
                 }
@@ -7825,10 +7862,25 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
 
     std::vector<WipeTower::ToolChangeResult> layer_result;
     int index = 0;
+    m_printed_layer_z.clear();
+    m_layer_dropped_by_compaction.clear();
+    if (m_sparse_layers_skipped) {
+        m_printed_layer_z.assign(m_plan.size(), 0.f);
+        m_layer_dropped_by_compaction.assign(m_plan.size(), 0);
+    }
     for (auto layer : m_plan) {
         reset_block_status();
         m_cur_layer_id = index++;
         set_layer(layer.z, layer_slab_height(m_cur_layer_id, layer.height), 0, false, layer.z == m_plan.back().z);
+        if (m_sparse_layers_skipped) {
+            // A layer without a tool change only carries a sparse grid, which G-code export drops from a
+            // compacted tower; the layers that do print stack up from the bed (compute_compacted_wipe_tower_z).
+            const bool dropped  = layer.tool_changes.empty();
+            const bool prints   = ! dropped && ! layer_is_skipped(m_cur_layer_id) && m_layer_info->depth >= m_perimeter_width;
+            const float below_z = m_cur_layer_id > 0 ? m_printed_layer_z[m_cur_layer_id - 1] : 0.f;
+            m_layer_dropped_by_compaction[m_cur_layer_id] = dropped ? 1 : 0;
+            m_printed_layer_z[m_cur_layer_id] = below_z + (prints ? layer_slab_height(m_cur_layer_id, layer.height) : 0.f);
+        }
         if (layer_is_skipped(m_cur_layer_id)) {
             // The nozzle that would fill this layer cannot lay down what is left of it, so the tower waits:
             // no tool change happens here, and the height rolls into the next layer the tower does print.
@@ -8524,10 +8576,15 @@ bool WipeTower::get_floating_area(float &start_pos_y, float &end_pos_y) const {
     // layer may contain only a sparse grid, and its actual finish depth is what makes the overhanging part
     // of the current wipe lines require 0.2 mm equivalent bridge flow.
     if (!m_merged_slabs_active) {
-        if (m_layer_info == m_plan.begin() || (m_layer_info - 1) == m_plan.begin())
+        // A compacted tower never prints its sparse layers, so the support is the last layer it did print.
+        int below = int(m_cur_layer_id) - 1;
+        while (below >= 0 && layer_dropped_by_compaction(below))
+            --below;
+        const int first_printed = m_layer_dropped_by_compaction.empty() ? 0 : first_printed_layer_idx();
+        if (below < 0 || below <= first_printed)
             return false;
         end_pos_y   = m_cur_block->start_depth + m_cur_block->depth - m_perimeter_width;
-        start_pos_y = m_cur_block->finish_depth[m_cur_layer_id - 1];
+        start_pos_y = m_cur_block->finish_depth[below];
         return true;
     }
 
@@ -8535,7 +8592,7 @@ bool WipeTower::get_floating_area(float &start_pos_y, float &end_pos_y) const {
     // the band reserved as a trench, or that the whole tower skipped, do not move its supporting surface.
     int below = -1;
     for (int layer_id = int(m_cur_layer_id) - 1; layer_id >= 0; --layer_id) {
-        if (layer_is_skipped(layer_id))
+        if (layer_is_skipped(layer_id) || layer_dropped_by_compaction(layer_id))
             continue;
         const bool purge = layer_id < int(m_block_slab_height.size()) &&
                            m_block_slab_height[layer_id].count(m_cur_block->block_key) != 0;
@@ -8573,10 +8630,11 @@ float WipeTower::dense_support_z(float pos_y) const
     // finish_depth is the dense front a layer reached in this band; past it that layer was only a sparse grid
     // or nothing. A skipped layer only carries the front of the layer below and laid nothing itself.
     for (int layer_id = int(m_cur_layer_id) - 1; layer_id >= 0; --layer_id) {
-        if (layer_is_skipped(layer_id) || layer_id >= int(m_cur_block->finish_depth.size()))
+        if (layer_is_skipped(layer_id) || layer_dropped_by_compaction(layer_id) ||
+            layer_id >= int(m_cur_block->finish_depth.size()))
             continue;
         if (pos_y <= m_cur_block->finish_depth[layer_id] + EPSILON)
-            return m_plan[layer_id].z;
+            return printed_layer_z(layer_id);
     }
     return 0.f;
 }
