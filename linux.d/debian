@@ -21,7 +21,10 @@ REQUIRED_DEV_PACKAGES=(
     libudev-dev
     libmspack-dev
     libgl1-mesa-dev
+    libegl-dev
     libgtk-3-dev
+    libwayland-dev
+    wayland-protocols
     libxkbcommon-dev
     libtool
     libunwind-dev
