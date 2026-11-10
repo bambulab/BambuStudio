@@ -178,6 +178,12 @@ public:
 	void perform_sync();
 	// Cancels a request in progress
 	void cancel();
+	// Wait for a request started by perform(). Owners of callback targets must
+	// cancel and wait before destroying those targets. Do not call concurrently
+	// from multiple threads, or from the request's own callbacks.
+	void wait();
+	// True after the asynchronous transfer and its callbacks have returned.
+	bool is_finished() const;
 
 	// Tells whether current backend supports seting up a CA file using ca_file()
 	static bool ca_file_supported();

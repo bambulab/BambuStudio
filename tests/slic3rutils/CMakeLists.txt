@@ -4,6 +4,7 @@ add_executable(${_TEST_NAME}_tests
     helio_retry_policy_tests.cpp
     helio_support_data_tests.cpp
     helio_recent_runs_tests.cpp
+    http_lifetime_tests.cpp
     )
 
 target_link_libraries(${_TEST_NAME}_tests test_gui)
@@ -16,4 +17,13 @@ if (WIN32)
 endif()
 
 # catch_discover_tests(${_TEST_NAME}_tests TEST_PREFIX "${_TEST_NAME}: ")
-add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests "${CATCH_EXTRA_ARGS} exclude:[NotWorking]")
+# The lifetime cases require the loopback server supplied by the separate runner.
+add_test(NAME ${_TEST_NAME}_tests
+    COMMAND $<TARGET_FILE:${_TEST_NAME}_tests> "${CATCH_EXTRA_ARGS} exclude:[NotWorking]~[HttpLifetime]")
+
+find_package(Python3 QUIET COMPONENTS Interpreter)
+if (Python3_Interpreter_FOUND)
+    add_test(NAME http_lifetime_tests
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/run_http_lifetime_tests.py
+                $<TARGET_FILE:${_TEST_NAME}_tests>)
+endif ()

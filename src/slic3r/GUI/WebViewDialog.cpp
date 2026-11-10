@@ -425,6 +425,12 @@ WebViewPanel::~WebViewPanel()
     BOOST_LOG_TRIVIAL(trace) << "Start";
     SetEvtHandlerEnabled(false);
 
+    // Cancel all before waiting, so shutdown does not leave another request
+    // running while we join the first one. Their callbacks only queue UI work;
+    // they never wait for the UI thread and cannot deadlock this join.
+    for (const auto &request : m_http_requests) request->cancel();
+    for (const auto &request : m_http_requests) request->wait();
+
     delete m_tools_menu;
 
     if (m_LoginUpdateTimer != nullptr) {
@@ -960,6 +966,20 @@ void WebViewPanel::SendDesignStaffpick(bool on)
     m_has_pending_staff_pick = false;
 }
 
+void WebViewPanel::perform_http_request(Http &request)
+{
+    // Reap finished workers without waiting for an active request on each search.
+    // is_finished() includes completion/error callbacks, not just the transfer.
+    auto completed = std::remove_if(m_http_requests.begin(), m_http_requests.end(),
+        [](const std::shared_ptr<Http> &pending) {
+            if (!pending->is_finished()) return false;
+            pending->wait();
+            return true;
+        });
+    m_http_requests.erase(completed, m_http_requests.end());
+    m_http_requests.push_back(request.perform());
+}
+
 void WebViewPanel::get_wiki_search_result(std::string keyword)
 {
     if (keyword.empty()) {
@@ -988,9 +1008,10 @@ void WebViewPanel::get_wiki_search_result(std::string keyword)
     R"JSON({"operationName":null,"variables":{"query":"%1%"},"extensions":{},"query":"query ($query: String!) { pages { search(query: $query) { results { id title description path locale } totalHits } } }"})JSON"
 ) % esc(keyword)).str();
 
+    http.timeout_connect(5).timeout_max(10);
     http.header("Content-Type", "application/json");
     http.set_post_body(json_body);
-    http.on_complete([this](std::string body, unsigned status) {
+    perform_http_request(http.on_complete([this](std::string body, unsigned status) {
         CallAfter([this, body]() {
             json j = json::parse(body);
             if (j.contains("data")) {
@@ -1000,9 +1021,9 @@ void WebViewPanel::get_wiki_search_result(std::string keyword)
                 return;
             }
         });
-    }).on_error([this](std::string body, std::string error, unsigned int status) {
+    }).on_error([](std::string body, std::string error, unsigned int status) {
             BOOST_LOG_TRIVIAL(error) << "get wiki search result error" << body;
-    }).perform();
+    }));
 }
 
 void WebViewPanel::get_academy_list()
@@ -1010,7 +1031,8 @@ void WebViewPanel::get_academy_list()
     std::string query_params = "v1/hub-service/academy/client/course/categories/tree";
     std::string url = wxGetApp().get_http_url(wxGetApp().app_config->get_country_code(), query_params);
     Http http = Http::get(url);
-    http.header("accept", "application/json")
+    perform_http_request(http.timeout_connect(5).timeout_max(10)
+        .header("accept", "application/json")
         .on_complete([this](std::string body, unsigned status) {
             if (status != 200) {
                 BOOST_LOG_TRIVIAL(error) << "get academy list failed, status: " << status;
@@ -1037,7 +1059,7 @@ void WebViewPanel::get_academy_list()
             BOOST_LOG_TRIVIAL(error) << "get academy list error, status: " << status
                                      << ", err: " << error << ", body: " << body;
         })
-        .perform();
+        );
 }
 
 void WebViewPanel::SendMakerlabList(  )
@@ -1142,16 +1164,17 @@ void WebViewPanel::get_design_staffpick(int offset, int limit, std::function<voi
     std::string url = (boost::format("%1%/?offset=%2%&limit=%3%") % host % offset % limit).str();
 
     Http http = Http::get(url);
-    http.header("accept", "application/json")
+    perform_http_request(http.timeout_connect(5).timeout_max(10)
+        .header("accept", "application/json")
         .header("Content-Type", "application/json")
-        .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
-        .on_error([this, callback](std::string body, std::string error, unsigned status) {
+        .on_complete([callback](std::string body, unsigned status) { callback(body); })
+        .on_error([callback](std::string body, std::string error, unsigned status) {
             // A 4xx/5xx often carries a JSON error body. Prefix it so the caller's
             // '{' check rejects it instead of posting it as the model list and
             // ending the staff pick retry.
             callback("HTTP " + std::to_string(status) + " " + error + " " + body);
         })
-        .perform();
+        );
 }
 
 void WebViewPanel::get_makerlab_list(std::function<void(std::string)> callback)
@@ -1159,15 +1182,16 @@ void WebViewPanel::get_makerlab_list(std::function<void(std::string)> callback)
     std::string url = wxGetApp().get_http_url(wxGetApp().app_config->get_country_code(), "v1/operation-service/makerlabhomepage");
 
     Http http = Http::get(url);
-    http.header("accept", "application/json")
+    perform_http_request(http.timeout_connect(5).timeout_max(10)
+        .header("accept", "application/json")
         .header("Content-Type", "application/json")
-        .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
-        .on_error([this, callback](std::string body, std::string error, unsigned status) {
+        .on_complete([callback](std::string body, unsigned status) { callback(body); })
+        .on_error([callback](std::string body, std::string error, unsigned status) {
             // Same as get_design_staffpick: a JSON error body, or a truncated one
             // from a timed-out transfer, must not pass the caller's '{' check.
             callback("HTTP " + std::to_string(status) + " " + error + " " + body);
         })
-        .perform();
+        );
 }
 
 void WebViewPanel::SetMakerlabUrl(std::string url) {
