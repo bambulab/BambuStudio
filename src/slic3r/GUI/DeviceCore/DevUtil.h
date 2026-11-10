@@ -43,6 +43,7 @@ public:
     static float string_to_float(const std::string& str_value);
 
     static std::string convertToIp(long long ip);
+    static bool is_valid_ipv4(const std::string& ip);
 
     // sequence id check
     static bool is_studio_cmd(int seq) { return seq >= STUDIO_START_SEQ_ID && seq < STUDIO_END_SEQ_ID;};
