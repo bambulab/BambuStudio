@@ -93,6 +93,9 @@ private:
     bool m_move_to_center; // opening gizmo
 
     std::vector<ModelVolume *> m_volumes;
+    // Per-volume include flags for multi-part Simplify (checked = simplify). Single-part
+    // sessions keep a single true entry. Reset to all-true when the volume set changes.
+    std::vector<char> m_include;
 
     bool m_show_wireframe;
     // Preserve painted color/MMU through the decimation. Only offered (checkbox shown) when
@@ -126,7 +129,9 @@ private:
         int progress = 0; // percent of done work
         Configuration config; // Configuration we started with.
         std::vector<ModelVolume *> volumes;
-        // One result per volume; null entries are still computing or were cancelled.
+        // Include mask the worker started with (same length as volumes).
+        std::vector<char> include;
+        // One result per volume; null for excluded / still computing / cancelled slots.
         std::vector<std::unique_ptr<indexed_triangle_set>> results;
     };
 
