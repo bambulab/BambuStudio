@@ -498,10 +498,17 @@ void AMSMaterialsSetting::create_panel_rfid_display(wxWindow* parent)
     sizer_sn->Add(m_rfid_lbl_sn,     0, wxALIGN_CENTER_VERTICAL, 0);
     m_rfid_panel_sn->SetSizer(sizer_sn);
 
+    m_rfid_lbl_remaining = new wxStaticText(m_rfid_panel_info, wxID_ANY, wxEmptyString);
+    m_rfid_lbl_remaining->SetFont(Label::Body_13);
+    m_rfid_lbl_remaining->SetForegroundColour(AMS_MATERIALS_SETTING_GREY700);
+    m_rfid_lbl_remaining->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(248, 248, 248)));
+
     sizer_info->Add(0, 0, 0, wxTOP, FromDIP(14));
     sizer_info->Add(m_rfid_lbl_temp, 0, wxLEFT | wxRIGHT, FromDIP(16));
     sizer_info->Add(0, 0, 0, wxTOP, FromDIP(8));
     sizer_info->Add(m_rfid_panel_sn, 0, wxLEFT | wxRIGHT, FromDIP(16));
+    sizer_info->Add(0, 0, 0, wxTOP, FromDIP(8));
+    sizer_info->Add(m_rfid_lbl_remaining, 0, wxLEFT | wxRIGHT, FromDIP(16));
     sizer_info->Add(0, 0, 0, wxTOP, FromDIP(14));
     m_rfid_panel_info->SetSizer(sizer_info);
 
@@ -2276,6 +2283,30 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         } else {
             m_rfid_panel_sn->Hide();
         }
+
+        // Displaying an estimate does not require firmware support for editing it.
+        wxString remaining_text = _L("Unknown");
+        if (auto tray = obj->get_tray(ams_id, slot_id); tray && tray->is_tray_info_ready()) {
+            long total_weight = 0;
+            wxString::FromUTF8(tray->weight.c_str()).ToLong(&total_weight);
+            std::optional<int> remaining_weight;
+            if (tray->remain_g >= 0) {
+                // Zero is a valid empty spool, even when the shared getter treats it as missing.
+                remaining_weight = tray->remain_g;
+            } else if (obj->GetFilaSystem()->IsDetectRemainEnabled() &&
+                       tray->ams_type != DevAmsType::AMS_LITE &&
+                       tray->ams_type != DevAmsType::AMS_LITE_MIXED &&
+                       tray->ams_type != DevAmsType::EXT_SPOOL &&
+                       tray->remain >= 0 && tray->remain <= 100 && total_weight > 0) {
+                remaining_weight = tray->get_filament_remain_weight();
+            }
+            if (remaining_weight.has_value()) {
+                remaining_text = wxString::FromUTF8("\xe2\x89\x88 ") + wxString::Format("%d g", *remaining_weight);
+                if (total_weight > 0)
+                    remaining_text += wxString::Format(" / %ld g", total_weight);
+            }
+        }
+        m_rfid_lbl_remaining->SetLabel(_L("Estimated remaining") + ": " + remaining_text);
     }
 
 
