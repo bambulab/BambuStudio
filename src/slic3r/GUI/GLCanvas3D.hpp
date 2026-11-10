@@ -571,6 +571,8 @@ public:
         //BBS: add more arrangeSettings
         bool is_seq_print        = false;
         bool  align_to_y_axis    = false;
+        bool  use_raster_nester  = true;  // real silhouettes, holes, multi-strategy search
+        bool  nest_in_holes      = true;  // allow placing objects inside holes of others
         bool        save_svg            = false; // for debug
         std::string postfix;
         void        reset()
@@ -582,6 +584,8 @@ public:
             avoid_extrusion_cali_region         = true;
             is_seq_print                        = false;
             align_to_y_axis                     = false;
+            use_raster_nester                   = true;
+            nest_in_holes                       = true;
         }
     };
 
