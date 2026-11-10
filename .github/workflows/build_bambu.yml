@@ -74,17 +74,23 @@ jobs:
         shell: pwsh
 
   #   Mac
+      # CMake 3.31.0 for the mac builds, from Kitware's release (checksum checked). It used to come from
+      # `brew extract`, which needs a git clone of homebrew/core that current runners no longer have.
+      - name: Install CMake 3.31.0 on mac
+        if: startsWith(inputs.os, 'macos')
+        run: |
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/cmake.tar.gz" https://github.com/Kitware/CMake/releases/download/v3.31.0/cmake-3.31.0-macos-universal.tar.gz
+          echo "50d5b9f370e71c8eee87c123b7fb9272caf2bf2b372ea7c9423f10f1cd52813b  $RUNNER_TEMP/cmake.tar.gz" | shasum -a 256 -c -
+          tar -xzf "$RUNNER_TEMP/cmake.tar.gz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/cmake-3.31.0-macos-universal/CMake.app/Contents/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/cmake-3.31.0-macos-universal/CMake.app/Contents/bin/cmake" --version
+
       - name: Build slicer mac
         if: inputs.os == 'macos-15-intel'
         working-directory: ${{ github.workspace }}
         run: |
           brew install automake texinfo
           brew unlink cmake || true
-          brew tap-new $USER/old-cmake
-          brew extract --version=3.31.0 cmake $USER/old-cmake
-          brew install $USER/old-cmake/cmake@3.31.0
-          brew link --overwrite cmake@3.31.0
-          brew pin cmake@3.31.0
           ./BuildMac.sh -s -x -a x86_64 -t 10.15 -1
 
       - name: Build slicer mac
@@ -93,11 +99,6 @@ jobs:
         run: |
           brew install automake texinfo
           brew unlink cmake || true
-          brew tap-new $USER/old-cmake
-          brew extract --version=3.31.0 cmake $USER/old-cmake
-          brew install $USER/old-cmake/cmake@3.31.0
-          brew link --overwrite cmake@3.31.0
-          brew pin cmake@3.31.0
           ./BuildMac.sh -s -x -a universal -t 10.15 -1
 
       - name: pack mac app
@@ -133,11 +134,11 @@ jobs:
           cmake .. -G "Visual Studio 18 2026" -A X64 -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0 -DCMAKE_PREFIX_PATH="${{ github.workspace }}\deps\build\BambuStudio_dep\usr\local" -DCMAKE_INSTALL_PREFIX="../install-dir" -DCMAKE_BUILD_TYPE=Release -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/10.0.22000.0"
           cmake --build . --target install --config Release -- -m
 
-      # Windows on ARM64/ARM64EC: VS 2022 generator (the arm runner has no VS
-      # 2026), and the newest installed 10.* SDK is resolved at runtime rather
-      # than pinned, since the arm image may not ship the exact SDK the x64 job
-      # hard-codes. arm64ec produces the variant that can load the x64-only
-      # Bambu network plugin in-process at native speed.
+      # Windows on ARM64/ARM64EC: VS 2026 generator, as on x64 (the arm runner
+      # image is windows-11-vs2026-arm64), and the newest installed 10.* SDK is
+      # resolved at runtime rather than pinned, since the arm image may not ship
+      # the exact SDK the x64 job hard-codes. arm64ec produces the variant that
+      # can load the x64-only Bambu network plugin in-process at native speed.
       - name: Build slicer Win ARM64/ARM64EC
         if: inputs.os == 'windows-11-arm'
         working-directory: ${{ github.workspace }}
@@ -149,7 +150,7 @@ jobs:
           $platform = "${{ inputs.arch }}" -eq "arm64ec" ? "ARM64EC" : "ARM64"
           mkdir build
           cd build
-          cmake .. -G "Visual Studio 17 2022" -A $platform -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0 -DCMAKE_PREFIX_PATH="${{ github.workspace }}\deps\build\BambuStudio_dep\usr\local" -DCMAKE_INSTALL_PREFIX="../install-dir" -DCMAKE_BUILD_TYPE=Release -DWIN10SDK_PATH="$sdk"
+          cmake .. -G "Visual Studio 18 2026" -A $platform -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0 -DCMAKE_PREFIX_PATH="${{ github.workspace }}\deps\build\BambuStudio_dep\usr\local" -DCMAKE_INSTALL_PREFIX="../install-dir" -DCMAKE_BUILD_TYPE=Release -DWIN10SDK_PATH="$sdk"
           cmake --build . --target install --config Release -- -m
 
       # - name: Create installer Win
