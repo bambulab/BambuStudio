@@ -36,11 +36,13 @@ bool require_ab_rack(DevicePageHotendRackVM& vm,
     return false;
 }
 
-void open_hotends_info_dialog(std::shared_ptr<DevNozzleRack> rack)
+void open_hotends_info_dialog(DevicePageHotendRackVM& vm, std::shared_ptr<DevNozzleRack> rack)
 {
     if (!rack || !wxGetApp().mainframe) return;
     wgtDeviceNozzleRackUpgradeDlg dlg(wxGetApp().mainframe, rack);
+    vm.SetHotendsInfoDialog(&dlg);
     dlg.ShowModal();
+    vm.SetHotendsInfoDialog(nullptr);
 }
 
 } // namespace
@@ -81,7 +83,7 @@ std::optional<nlohmann::json> TryHandle(DevicePageHotendRackVM& vm,
     }
 
     if (action == "open_hotends_info") {
-        wxGetApp().CallAfter([rack]() { open_hotends_info_dialog(rack); });
+        wxGetApp().CallAfter([&vm, rack]() { open_hotends_info_dialog(vm, rack); });
         return respond(vm, action, 0);
     }
 

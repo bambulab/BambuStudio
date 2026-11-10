@@ -18,6 +18,7 @@ const embeddedRoutes = new Set([
   '/device_page/control_panel_debug',
   '/device_page/filament_load',
   '/device_page/hotend_rack',
+  '/device_page/hotend_rack_debug',
 ])
 
 function RootComponent() {

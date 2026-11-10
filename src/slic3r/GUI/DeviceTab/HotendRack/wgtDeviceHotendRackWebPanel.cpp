@@ -7,7 +7,7 @@
 namespace Slic3r::GUI {
 
 namespace {
-constexpr int kMinWidthDip  = 563;
+constexpr int kMinWidthDip  = 586;
 constexpr int kMinHeightDip = 308;
 constexpr const char* kRoute = "/device_page/hotend_rack";
 } // namespace

@@ -6,6 +6,8 @@
 
 namespace Slic3r { namespace GUI {
 
+class wgtDeviceNozzleRackUpgradeDlg;
+
 class DevicePageHotendRackVM : public IViewModel
 {
 public:
@@ -24,6 +26,8 @@ public:
     nlohmann::json HandleDebug(const std::string& action, const nlohmann::json& payload);
     nlohmann::json BuildDebugSnapshot(const nlohmann::json& payload) const;
     void InvalidateReportCache() { m_last_report_state.clear(); }
+    // Set while the modal "Hotends Info" dialog is open so state notifications keep it refreshed.
+    void SetHotendsInfoDialog(wgtDeviceNozzleRackUpgradeDlg* dlg) { m_hotends_info_dlg = dlg; }
     nlohmann::json MakeActionResponse(const std::string& action,
                                       int code,
                                       const std::string& message = {},
@@ -33,7 +37,11 @@ public:
     }
 
 private:
+    void RefreshHotendsInfoDialog();
+
     std::string m_last_report_state;
+    mutable bool m_b_row_first{ false };
+    wgtDeviceNozzleRackUpgradeDlg* m_hotends_info_dlg{ nullptr };
 };
 
 }} // namespace Slic3r::GUI

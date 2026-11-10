@@ -8,7 +8,6 @@
 #include "slic3r/GUI/I18N.hpp"
 
 #include <array>
-#include <cstdio>
 #include <cctype>
 #include <memory>
 
@@ -105,6 +104,7 @@ Format::Toolhead build_toolhead(MachineObject* obj)
     toolhead.filament_color = normalize_hex_color(nozzle.GetFilamentColor());
     if (nozzle.IsEmpty()) {
         toolhead.status = Schema::values::slot_status::empty;
+        toolhead.diameter = _u8L("Empty");
     } else if (nozzle.IsNormal()) {
         toolhead.status = Schema::values::slot_status::normal;
         toolhead.diameter = wx_to_utf8(nozzle.GetNozzleDiameterStr());
@@ -135,7 +135,7 @@ Format::HotendRackRow build_row(const std::shared_ptr<DevNozzleRack>& rack,
     return row;
 }
 
-void fill_rack(MachineObject* obj, Format::State& state)
+void fill_rack(MachineObject* obj, Format::State& state, bool& b_row_first)
 {
     auto rack = obj ? obj->GetNozzleRack() : nullptr;
     if (!rack) return;
@@ -150,18 +150,12 @@ void fill_rack(MachineObject* obj, Format::State& state)
     const bool running = rack->GetStatus() != DevNozzleRack::RACK_STATUS_IDLE &&
                          rack->GetStatus() != DevNozzleRack::RACK_STATUS_UNKNOWN;
     state.display.rack.busy = reading || running;
-    state.display.rack.busy_text = reading ? _u8L("Reading") : (running ? _u8L("Running...") : std::string());
     state.display.reading.active = reading;
     state.display.reading.index = rack->GetReadingIdx();
     state.display.reading.count = rack->GetReadingCount();
-    if (reading) {
-        char buf[64];
-        std::snprintf(buf, sizeof(buf), "Reading (%d/%d) ...", state.display.reading.index, state.display.reading.count);
-        state.display.reading.text = buf;
-    }
 
     const bool force_disabled = wxGetApp().is_monitor_ctrl_force_disabled();
-    const std::string reason = visible ? disabled_reason() : _u8L("Please select a printer.");
+    const std::string reason = visible ? disabled_reason() : _u8L("Please select a printer");
     const bool can_move = visible && !reading && !running && !force_disabled;
     const bool a_raised = rack->GetPosition() == DevNozzleRack::RACK_POS_A_TOP;
     const bool b_raised = rack->GetPosition() == DevNozzleRack::RACK_POS_B_TOP;
@@ -171,7 +165,11 @@ void fill_rack(MachineObject* obj, Format::State& state)
     auto row_a = build_row(rack, Schema::values::row_id::a, row_a_slots, a_raised, can_move, reason);
     auto row_b = build_row(rack, Schema::values::row_id::b, row_b_slots, b_raised, can_move, reason);
 
-    if (!reading && !running && b_raised) {
+    // Native rack only reorders rows while idle, so rows don't jump during a move.
+    if (!reading && rack->GetStatus() == DevNozzleRack::RACK_STATUS_IDLE)
+        b_row_first = b_raised;
+
+    if (b_row_first) {
         state.display.rack.rows = {row_b, row_a};
     } else {
         state.display.rack.rows = {row_a, row_b};
@@ -184,10 +182,10 @@ void fill_rack(MachineObject* obj, Format::State& state)
 
 } // namespace
 
-Format::State BuildState(MachineObject* machine_obj)
+Format::State BuildState(MachineObject* machine_obj, bool& b_row_first)
 {
     Format::State state;
-    fill_rack(machine_obj, state);
+    fill_rack(machine_obj, state, b_row_first);
     return state;
 }
 

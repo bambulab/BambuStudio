@@ -90,14 +90,12 @@ function normalizeDisplay(value: unknown): HotendRackDisplay {
     rack: {
       position: asPosition(rack.position),
       busy: asBool(rack.busy),
-      busy_text: asString(rack.busy_text),
       rows: Array.isArray(rack.rows) ? rack.rows.map(normalizeRow) : [],
     },
     reading: {
       active: asBool(reading.active),
       index: asNumber(reading.index, 0),
       count: asNumber(reading.count, 0),
-      text: asString(reading.text),
     },
     actions: {
       home: normalizeControl(actions.home),

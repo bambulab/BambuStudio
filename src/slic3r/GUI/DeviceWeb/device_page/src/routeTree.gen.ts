@@ -16,6 +16,7 @@ import { Route as AppImport } from './routes/app'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 import { Route as DevicepagePrintqueueImport } from './routes/device_page/print_queue'
+import { Route as DevicepageHotendrackdebugImport } from './routes/device_page/hotend_rack_debug'
 import { Route as DevicepageHotendrackImport } from './routes/device_page/hotend_rack'
 import { Route as DevicepageHotenddetailImport } from './routes/device_page/hotend_detail'
 import { Route as DevicepageFilamentmanualpullImport } from './routes/device_page/filament_manual_pull'
@@ -61,6 +62,12 @@ const IndexRoute = IndexImport.update({
 const DevicepagePrintqueueRoute = DevicepagePrintqueueImport.update({
   id: '/device_page/print_queue',
   path: '/device_page/print_queue',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DevicepageHotendrackdebugRoute = DevicepageHotendrackdebugImport.update({
+  id: '/device_page/hotend_rack_debug',
+  path: '/device_page/hotend_rack_debug',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -299,6 +306,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevicepageHotendrackImport
       parentRoute: typeof rootRoute
     }
+    '/device_page/hotend_rack_debug': {
+      id: '/device_page/hotend_rack_debug'
+      path: '/device_page/hotend_rack_debug'
+      fullPath: '/device_page/hotend_rack_debug'
+      preLoaderRoute: typeof DevicepageHotendrackdebugImport
+      parentRoute: typeof rootRoute
+    }
     '/device_page/print_queue': {
       id: '/device_page/print_queue'
       path: '/device_page/print_queue'
@@ -331,6 +345,7 @@ export interface FileRoutesByFullPath {
   '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
   '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
   '/device_page/hotend_rack': typeof DevicepageHotendrackRoute
+  '/device_page/hotend_rack_debug': typeof DevicepageHotendrackdebugRoute
   '/device_page/print_queue': typeof DevicepagePrintqueueRoute
 }
 
@@ -354,6 +369,7 @@ export interface FileRoutesByTo {
   '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
   '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
   '/device_page/hotend_rack': typeof DevicepageHotendrackRoute
+  '/device_page/hotend_rack_debug': typeof DevicepageHotendrackdebugRoute
   '/device_page/print_queue': typeof DevicepagePrintqueueRoute
 }
 
@@ -378,6 +394,7 @@ export interface FileRoutesById {
   '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
   '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
   '/device_page/hotend_rack': typeof DevicepageHotendrackRoute
+  '/device_page/hotend_rack_debug': typeof DevicepageHotendrackdebugRoute
   '/device_page/print_queue': typeof DevicepagePrintqueueRoute
 }
 
@@ -403,6 +420,7 @@ export interface FileRouteTypes {
     | '/device_page/filament_manual_pull'
     | '/device_page/hotend_detail'
     | '/device_page/hotend_rack'
+    | '/device_page/hotend_rack_debug'
     | '/device_page/print_queue'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -425,6 +443,7 @@ export interface FileRouteTypes {
     | '/device_page/filament_manual_pull'
     | '/device_page/hotend_detail'
     | '/device_page/hotend_rack'
+    | '/device_page/hotend_rack_debug'
     | '/device_page/print_queue'
   id:
     | '__root__'
@@ -447,6 +466,7 @@ export interface FileRouteTypes {
     | '/device_page/filament_manual_pull'
     | '/device_page/hotend_detail'
     | '/device_page/hotend_rack'
+    | '/device_page/hotend_rack_debug'
     | '/device_page/print_queue'
   fileRoutesById: FileRoutesById
 }
@@ -471,6 +491,7 @@ export interface RootRouteChildren {
   DevicepageFilamentmanualpullRoute: typeof DevicepageFilamentmanualpullRoute
   DevicepageHotenddetailRoute: typeof DevicepageHotenddetailRoute
   DevicepageHotendrackRoute: typeof DevicepageHotendrackRoute
+  DevicepageHotendrackdebugRoute: typeof DevicepageHotendrackdebugRoute
   DevicepagePrintqueueRoute: typeof DevicepagePrintqueueRoute
 }
 
@@ -494,6 +515,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevicepageFilamentmanualpullRoute: DevicepageFilamentmanualpullRoute,
   DevicepageHotenddetailRoute: DevicepageHotenddetailRoute,
   DevicepageHotendrackRoute: DevicepageHotendrackRoute,
+  DevicepageHotendrackdebugRoute: DevicepageHotendrackdebugRoute,
   DevicepagePrintqueueRoute: DevicepagePrintqueueRoute,
 }
 
@@ -526,6 +548,7 @@ export const routeTree = rootRoute
         "/device_page/filament_manual_pull",
         "/device_page/hotend_detail",
         "/device_page/hotend_rack",
+        "/device_page/hotend_rack_debug",
         "/device_page/print_queue"
       ]
     },
@@ -585,6 +608,9 @@ export const routeTree = rootRoute
     },
     "/device_page/hotend_rack": {
       "filePath": "device_page/hotend_rack.tsx"
+    },
+    "/device_page/hotend_rack_debug": {
+      "filePath": "device_page/hotend_rack_debug.tsx"
     },
     "/device_page/print_queue": {
       "filePath": "device_page/print_queue.tsx"

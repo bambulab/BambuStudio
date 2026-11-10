@@ -67,7 +67,6 @@ struct RackArea
 {
     std::string                 position = values::rack_position::unknown;
     bool                        busy = false;
-    std::string                 busy_text;
     std::vector<HotendRackRow>  rows;
 };
 
@@ -76,7 +75,6 @@ struct Reading
     bool        active = false;
     int         index = 0;
     int         count = 0;
-    std::string text;
 };
 
 struct Actions

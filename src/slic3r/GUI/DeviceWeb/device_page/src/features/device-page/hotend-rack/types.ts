@@ -36,13 +36,11 @@ export interface HotendRackReading {
   active: boolean;
   index: number;
   count: number;
-  text: string;
 }
 
 export interface HotendRackArea {
   position: HotendRackPosition;
   busy: boolean;
-  busy_text: string;
   rows: HotendRackRow[];
 }
 

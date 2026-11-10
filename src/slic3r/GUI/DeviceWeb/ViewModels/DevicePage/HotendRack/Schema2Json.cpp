@@ -32,12 +32,12 @@ void to_json(nlohmann::json& j, const Toolhead& v)
 
 void to_json(nlohmann::json& j, const RackArea& v)
 {
-    j = {{"position", v.position}, {"busy", v.busy}, {"busy_text", v.busy_text}, {"rows", v.rows}};
+    j = {{"position", v.position}, {"busy", v.busy}, {"rows", v.rows}};
 }
 
 void to_json(nlohmann::json& j, const Reading& v)
 {
-    j = {{"active", v.active}, {"index", v.index}, {"count", v.count}, {"text", v.text}};
+    j = {{"active", v.active}, {"index", v.index}, {"count", v.count}};
 }
 
 void to_json(nlohmann::json& j, const Actions& v)

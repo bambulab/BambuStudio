@@ -640,6 +640,9 @@ msgstr "热端状态异常，当前不可用。请前往“设备 -> 升级”�
 msgid "Abnormal Hotend"
 msgstr "热端异常"
 
+msgid "This control is currently unavailable."
+msgstr "当前不可操作"
+
 msgid "Cancel"
 msgstr "取消"
 

@@ -26,7 +26,6 @@ export const mockHotendRackState: HotendRackState = {
     rack: {
       position: 'a_top',
       busy: false,
-      busy_text: '',
       rows: [
         { id: 'A', raised: true, slots: [slot(0), slot(2), slot(4)], move_control: disabled },
         { id: 'B', raised: false, slots: [slot(1), slot(3), slot(5)], move_control: enabled },
@@ -36,7 +35,6 @@ export const mockHotendRackState: HotendRackState = {
       active: false,
       index: 0,
       count: 0,
-      text: '',
     },
     actions: {
       home: enabled,
