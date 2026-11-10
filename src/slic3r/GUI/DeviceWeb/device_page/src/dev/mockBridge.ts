@@ -31,6 +31,8 @@ import { mockAmsMappingHotendState } from '../features/device-page/ams-mapping-h
 import { mockAutoRefillRefillInfoState } from '../features/device-page/auto-refill-refill-info/mockData';
 import { mockControlPanelState } from '../features/device-page/control-panel/mockData';
 import type { ControlPanelState } from '../features/device-page/control-panel/types';
+import { mockFilamentLoadState } from '../features/device-page/filament-load/mockData';
+import type { FilamentLoadState } from '../features/device-page/filament-load/types';
 import { mockHotendRackState } from '../features/device-page/hotend-rack/mockData';
 import type { HotendRackState } from '../features/device-page/hotend-rack/types';
 
@@ -44,6 +46,7 @@ const SDK_VERSION = '1.0';
 let amsControlWebMockState: AmsControlWebViewModel = mockAmsControlWebState;
 let controlPanelMockState: ControlPanelState = mockControlPanelState;
 let hotendRackMockState: HotendRackState = mockHotendRackState;
+let filamentLoadMockState: FilamentLoadState = mockFilamentLoadState;
 
 // --- Mock catalogue ---------------------------------------------------------
 
@@ -634,6 +637,22 @@ function handleRequest(pkt: RequestPacket) {
         cpp_trace: [],
         dialog_cpp_state: controlPanelMockState,
       }));
+      return;
+    }
+  }
+  if (module === 'device_page_filament_load') {
+    if (submod === 'state' && (action === 'get' || action === 'init')) {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, filamentLoadMockState));
+      return;
+    }
+    if (submod === 'action') {
+      if (action === 'toggle_expand') {
+        filamentLoadMockState = {
+          ...filamentLoadMockState,
+          display: { ...filamentLoadMockState.display, expanded: !filamentLoadMockState.display.expanded },
+        };
+      }
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, filamentLoadMockState));
       return;
     }
   }

@@ -88,6 +88,11 @@ export function useFilamentLoadBridge() {
     void refresh();
   }, [refresh]);
 
+  // The wx panel has no error area, so bridge failures stay out of the UI.
+  useEffect(() => {
+    if (error) console.warn(`[filament_load] ${error}`);
+  }, [error]);
+
   useEffect(() => {
     const handler = (e: Event) => {
       const body = (e as CustomEvent).detail?.body;

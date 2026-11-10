@@ -209,6 +209,9 @@ void fill_steps(MachineObject* obj, Format::StepArea& area, const StepSnapshot& 
         snapshot.current == DevFilamentStep::STEP_CHECK_POSITION && step_ids.size() > 2) {
         current_index = 2;
     }
+    // Match wx StepCtrlBase::GetItemUseText(): an unmatched step highlights the first row.
+    if (current_index < 0 && !step_ids.empty())
+        current_index = 0;
 
     for (size_t i = 0; i < step_ids.size(); ++i) {
         const auto it = labels.find(step_ids[i]);

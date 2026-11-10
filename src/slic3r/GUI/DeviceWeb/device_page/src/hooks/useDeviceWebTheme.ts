@@ -10,6 +10,7 @@ const THEME_SOURCE_MODULES = new Set<string>([
   'device_page_ams_control_web',
   'device_page_auto_refill_refill_info',
   'device_page_hotend_rack',
+  'device_page_filament_load',
 ]);
 
 function isThemeName(value: unknown): value is ThemeName {

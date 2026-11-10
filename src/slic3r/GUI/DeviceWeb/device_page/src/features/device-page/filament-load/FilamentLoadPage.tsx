@@ -68,7 +68,7 @@ function useReportHostSize(ref: React.RefObject<HTMLDivElement | null>) {
 
 function StepRow({ step, index, last }: { step: FilamentLoadStepItem; index: number; last: boolean }) {
   return (
-    <li className={`fl-step fl-step-${step.status}`}>
+    <li className={`fl-step fl-step-${step.status}`} data-testid="filament-load-step">
       <span className="fl-step-rail">
         <span className="fl-step-dot">
           {step.status === 'done' ? <img className="fl-step-ok-icon" src={stepIsOkIconUrl} alt="" /> : index + 1}
@@ -138,7 +138,7 @@ function DebugButton({
 export function FilamentLoadPage() {
   const rootRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
-  const { state, error, toggleExpand, retry, stop, openBridgeDebugDialog } = useFilamentLoadBridge();
+  const { state, toggleExpand, retry, stop, openBridgeDebugDialog } = useFilamentLoadBridge();
   const [debugOpening, setDebugOpening] = useState(false);
   useDeviceWebTheme();
   useFitHostWidth(HOST_WIDTH_DIP);
@@ -163,36 +163,37 @@ export function FilamentLoadPage() {
         <img className="fl-fold-icon" src={expanded ? expandIconUrl : foldIconUrl} alt="" />
       </button>
       {expanded ? (
-        <section className="fl-body">
-          <div className="fl-steps-panel">
-            <div className="fl-step-heading">{t(display.steps.kind === 'unload' ? 'Unloading' : 'Loading')}</div>
-            <ol className="fl-step-list">
-              {display.steps.items.map((step, index) => (
-                <StepRow
-                  key={`${step.text}-${index}`}
-                  step={step}
-                  index={index}
-                  last={index === display.steps.items.length - 1}
-                />
-              ))}
-            </ol>
-            <div className="fl-actions">
-              <ActionButton action={display.actions.retry} fallbackText={t('Retry')} onClick={() => { void retry(); }} />
-              <ActionButton action={display.actions.stop} fallbackText={t('Stop')} onClick={() => { void stop(); }} />
-              <DebugButton
-                opening={debugOpening}
-                state={state}
-                openBridgeDebugDialog={openBridgeDebugDialog}
-                setOpening={setDebugOpening}
-              />
+        <section className="fl-body" data-testid="filament-load-body">
+          <div className="fl-main">
+            <div className="fl-steps-panel">
+              <div className="fl-step-heading">{t(display.steps.kind === 'unload' ? 'Unloading' : 'Loading')}</div>
+              <ol className="fl-step-list">
+                {display.steps.items.map((step, index) => (
+                  <StepRow
+                    key={`${step.text}-${index}`}
+                    step={step}
+                    index={index}
+                    last={index === display.steps.items.length - 1}
+                  />
+                ))}
+              </ol>
+            </div>
+            <div className="fl-image-panel">
+              {imageUrl ? <img className="fl-load-image" src={imageUrl} alt="" /> : null}
             </div>
           </div>
-          <div className="fl-image-panel">
-            {imageUrl ? <img className="fl-load-image" src={imageUrl} alt="" /> : null}
+          <div className="fl-actions">
+            <ActionButton action={display.actions.retry} fallbackText={t('Retry')} onClick={() => { void retry(); }} />
+            <ActionButton action={display.actions.stop} fallbackText={t('Stop')} onClick={() => { void stop(); }} />
+            <DebugButton
+              opening={debugOpening}
+              state={state}
+              openBridgeDebugDialog={openBridgeDebugDialog}
+              setOpening={setDebugOpening}
+            />
           </div>
         </section>
       ) : null}
-      {error ? <div className="fl-error" role="status">{error}</div> : null}
     </div>
   );
 }
