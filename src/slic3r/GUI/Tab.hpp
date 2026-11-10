@@ -711,6 +711,10 @@ private:
     bool            restore_filament_override_value(Field *field, const std::string &opt_key);
     bool            seed_filament_override_from_printer(ConfigOptionsGroupShp optgroup, Field *field, const std::string &opt_key);
 	void 			update_volumetric_flow_preset_hints();
+    /**
+     * \brief Flag the shown nozzle print temperatures that lie outside the recommended range
+     */
+    void            update_nozzle_temperature_warnings();
 
     std::map<std::string, wxCheckBox*> m_overrides_options;
     // Value each override held before it was unchecked, kept per extruder variant so that

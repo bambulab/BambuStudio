@@ -75,9 +75,15 @@ public:
     void    apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase*, ModelConfig*> const & configs);
 
     //BBS: FFF filament nozzle temperature range
-    void    check_nozzle_recommended_temperature_range(DynamicPrintConfig *config);
-    void    check_nozzle_temperature_range(DynamicPrintConfig* config);
-    void    check_nozzle_temperature_initial_layer_range(DynamicPrintConfig* config);
+    /**
+     * \brief Tell the user a typed nozzle temperature is outside the allowed range and gets reset
+     *
+     * \param entered     typed temperature
+     * \param min_allowed lower bound of the allowed range
+     * \param max_allowed upper bound of the allowed range
+     * \note Call before the value is clamped; the change caused by the clamp shows no further warning
+     */
+    void    report_nozzle_temperature_out_of_range(long entered, int min_allowed, int max_allowed);
     void    check_tower_interface_print_temp(DynamicPrintConfig* config, int variant_idx);
     void    check_filament_max_volumetric_speed(DynamicPrintConfig *config);
     void    check_filament_scarf_setting(DynamicPrintConfig *config);
@@ -90,8 +96,6 @@ public:
 
     int    show_spiral_mode_settings_dialog(bool is_object_config = false);
 
-private:
-    bool get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high);
 };
 
 // 根据用户已选择的支撑料和模型主体料，查询是否有推荐参数

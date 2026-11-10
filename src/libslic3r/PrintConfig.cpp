@@ -1717,6 +1717,14 @@ void PrintConfigDef::init_fff_params()
     // the upper limit supported by machine currently is 350
     // limit to the max with some margin
     const int max_temp = 360;
+    // Lowest nozzle print temperature accepted. Not a material property, a product decision:
+    // below ~190°C most filaments are soft but flow too poorly to print reliably, and the lowest
+    // recommended range of any official filament starts at 175°C (PE / PE-CF), so 165 keeps a
+    // margin under it. Values typed below it are reset in the GUI.
+    // Known limitation: a value already stored below it (older user presets or projects) is kept and
+    // used for slicing, but the settings field shows it clamped to 165 and writes 165 back once the
+    // field loses focus. No bundled profile goes below it.
+    const int min_print_temp = 165;
 
     def = this->add("reduce_crossing_wall", coBool);
     def->label = L("Avoid crossing wall");
@@ -4073,7 +4081,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer nozzle temperature");
     def->tooltip = L("Nozzle temperature to print initial layer when using this filament");
     def->sidetext = "°C";
-    def->min = 0;
+    def->min = min_print_temp;
     def->max = max_temp;
     def->nullable = true;
     def->set_default_value(new ConfigOptionIntsNullable { 200 });
@@ -6784,7 +6792,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Nozzle temperature for layers after the initial one");
     def->sidetext = "°C";
     def->full_label = L("Nozzle temperature");
-    def->min = 0;
+    def->min = min_print_temp;
     def->max = max_temp;
     def->nullable = true;
     def->set_default_value(new ConfigOptionIntsNullable { 200 });
@@ -6795,6 +6803,8 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = "°C";
     def->min = 0;
     def->max = max_temp;
+    // Comes from the filament preset; the print temperature warnings are judged against it
+    def->readonly = true;
     def->set_default_value(new ConfigOptionInts { 190 });
 
     def = this->add("nozzle_temperature_range_high", coInts);
@@ -6803,6 +6813,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = "°C";
     def->min = 0;
     def->max = max_temp;
+    def->readonly = true;
     def->set_default_value(new ConfigOptionInts { 240 });
 
     def = this->add("head_wrap_detect_zone", coPoints);

@@ -6,6 +6,7 @@
 #include <wx/timer.h>
 #include <wx/textctrl.h>
 #include <wx/valtext.h>
+#include <functional>
 #include "StaticBox.hpp"
 
 wxDECLARE_EVENT(EVT_SPINCTRL_TEXT, wxCommandEvent);
@@ -27,6 +28,10 @@ class SpinInput : public wxNavigationEnabled<StaticBox>
     int max;
     int delta;
     bool text_updating;
+    std::function<void(long)> m_out_of_range_handler;
+    bool m_warning{false};
+    StateColor m_normal_border_color;
+    StateColor m_normal_text_color;
 
     static const int SpinInputWidth = 200;
     static const int SpinInputHeight = 50;
@@ -75,6 +80,21 @@ public:
     int GetValue () const;
 
     void SetRange(int min, int max);
+
+    /**
+     * \brief Set a handler called on commit with the typed value when it is outside the range
+     *
+     * \param handler receives the typed value; the value is clamped after the handler returns
+     * \note The handler may show a modal dialog
+     */
+    void SetOutOfRangeHandler(std::function<void(long)> handler) { m_out_of_range_handler = std::move(handler); }
+
+    /**
+     * \brief Highlight the value as needing attention
+     *
+     * \param warning true draws border and text in the warning colour, false restores the normal look
+     */
+    void SetWarning(bool warning);
 
 protected:
     void DoSetToolTipText(wxString const &tip) override;

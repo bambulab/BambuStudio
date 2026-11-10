@@ -4858,10 +4858,7 @@ void TabFilament::build_filament_page(const PageShp& page)
             DynamicPrintConfig &filament_config = m_preset_bundle->filaments.get_edited_preset().config;
 
             update_dirty();
-            if (!m_postpone_update_ui && (opt_key == "nozzle_temperature_range_low" || opt_key == "nozzle_temperature_range_high")) {
-                m_config_manipulation.check_nozzle_recommended_temperature_range(&filament_config);
-            }
-            else if (!m_postpone_update_ui && opt_key == "filament_tower_interface_print_temp") {
+            if (!m_postpone_update_ui && opt_key == "filament_tower_interface_print_temp") {
                 m_config_manipulation.check_tower_interface_print_temp(&filament_config, m_variant_combo ? m_variant_combo->GetSelection() : 0);
             }
             on_value_change(opt_key, value);
@@ -4919,17 +4916,25 @@ void TabFilament::build_filament_page(const PageShp& page)
             else if (opt_key == "textured_plate_temp" || opt_key == "textured_plate_temp_initial_layer") {
                 m_config_manipulation.check_bed_temperature_difference(BedType::btPTE, &filament_config);
             }
-            else */if (opt_key == "nozzle_temperature") {
-                m_config_manipulation.check_nozzle_temperature_range(&filament_config);
-            }
-            else if (opt_key == "nozzle_temperature_initial_layer") {
-                m_config_manipulation.check_nozzle_temperature_initial_layer_range(&filament_config);
-            }
+            */
+            // Nozzle temperatures outside the recommended range are flagged on the field, see update_nozzle_temperature_warnings()
             // Variant fields keep their registration suffix, e.g. "nozzle_temperature#0".
             if (!m_postpone_update_ui && opt_key.substr(0, opt_key.find('#')) == "nozzle_temperature")
                 m_config_manipulation.check_tower_interface_print_temp(&filament_config, m_variant_combo ? m_variant_combo->GetSelection() : 0);
 
             on_value_change(opt_key, value);
+        };
+
+        // Nozzle temperatures outside the recommended range get a warning icon; every row keeps
+        // the room so the columns stay aligned
+        optgroup->reserve_warning_icons = true;
+        // Other fields of this group are clamped silently on commit
+        optgroup->m_on_out_of_range = [this](const t_config_option_key &opt_id, long entered) {
+            const std::string opt_key = opt_id.substr(0, opt_id.find('#'));
+            if (opt_key != "nozzle_temperature" && opt_key != "nozzle_temperature_initial_layer")
+                return;
+            if (const ConfigOptionDef *def = print_config_def.get(opt_key))
+                m_config_manipulation.report_nozzle_temperature_out_of_range(entered, int(def->min), int(def->max));
         };
 
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
@@ -5236,10 +5241,39 @@ void TabFilament::update_description_lines()
     //    this->update_volumetric_flow_preset_hints();
 }
 
+void TabFilament::update_nozzle_temperature_warnings()
+{
+    const auto *range_low  = m_config->option<ConfigOptionInts>("nozzle_temperature_range_low");
+    const auto *range_high = m_config->option<ConfigOptionInts>("nozzle_temperature_range_high");
+    // The single field shows whichever variant is picked in the variant combo
+    int field_index = 0; // not a constant: a literal 0 would also match the Page** overload
+    for (const std::string opt_key : {"nozzle_temperature_initial_layer", "nozzle_temperature"}) {
+        Field *field = get_field(opt_key, field_index);
+        if (!field)
+            continue;
+        const auto *temps = m_config->option<ConfigOptionIntsNullable>(opt_key);
+        const int   idx   = get_override_variant_index(opt_key);
+        wxString    warning;
+        if (temps && range_low && range_high && !temps->is_nil(idx)) {
+            const int temp = temps->get_at(idx);
+            const int low  = range_low->get_at(idx);
+            const int high = range_high->get_at(idx);
+            // 0 means the preset gives no recommendation for that bound
+            if (high > 0 && temp > high)
+                warning = _L("Print temperature exceeds the recommended range. Use with caution.");
+            else if (low > 0 && temp < low)
+                warning = _L("Print temperature is below the recommended range. Use with caution.");
+        }
+        field->set_warning(warning);
+    }
+}
+
 void TabFilament::toggle_options()
 {
     if (!m_active_page)
         return;
+
+    update_nozzle_temperature_warnings();
 
     bool is_BBL_printer = false;
     if (m_preset_bundle) {

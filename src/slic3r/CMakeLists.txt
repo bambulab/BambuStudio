@@ -486,6 +486,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ConfigWizard_private.hpp
     GUI/MsgDialog.cpp
     GUI/MsgDialog.hpp
+    GUI/AlertDialog.cpp
+    GUI/AlertDialog.hpp
     GUI/DownloadProgressDialog.hpp
     GUI/DownloadProgressDialog.cpp
     GUI/UpdateDialogs.cpp

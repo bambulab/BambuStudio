@@ -121,6 +121,12 @@ public:
 	int				ctrl_horiz_alignment{ wxALIGN_LEFT};
     column_t		extra_column {nullptr};
     t_change		m_on_change { nullptr };
+	/// Forwarded to the fields when they are built, so set it before the group is activated;
+	/// see Field::m_on_out_of_range
+	t_out_of_range	m_on_out_of_range { nullptr };
+	/// Keep room for a warning icon after every field of the group, so its columns stay aligned.
+	/// Set before the group is activated, see Field::set_warning
+	bool			reserve_warning_icons { false };
 	// To be called when the field loses focus, to assign a new initial value to the field.
 	// Used by the relative position / rotation / scale manipulation fields of the Object Manipulation UI.
     t_kill_focus    m_fill_empty_value { nullptr };

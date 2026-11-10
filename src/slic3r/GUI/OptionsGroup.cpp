@@ -109,6 +109,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 				this->on_kill_focus(opt_id);
 	};
     field->m_parent = parent();
+    field->m_reserve_warning_icon = reserve_warning_icons;
 
 	field->m_back_to_initial_value = [this](std::string opt_id) {
 		if (!m_disabled)
@@ -118,6 +119,11 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 		if (!this->m_disabled)
 			this->back_to_sys_value(opt_id);
 	};
+    if (m_on_out_of_range)
+        field->m_on_out_of_range = [this](const t_config_option_key &opt_id, long entered) {
+            if (!m_disabled)
+                m_on_out_of_range(opt_id, entered);
+        };
 
 	// assign function objects for callbacks, etc.
     return field;

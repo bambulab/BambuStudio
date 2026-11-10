@@ -1,3 +1,10 @@
+/**
+ * \file MsgDialog.hpp
+ * \brief Legacy message dialogs
+ *
+ * \deprecated Use AlertDialog (AlertDialog.hpp) for new message dialogs.
+ *             Keep the dialogs here only for existing call sites.
+ */
 #ifndef slic3r_MsgDialog_hpp_
 #define slic3r_MsgDialog_hpp_
 
@@ -179,7 +186,11 @@ public:
 //	~StaticLine() {}
 //};
 
-// Generic message dialog, used intead of wxMessageDialog
+/**
+ * \brief Generic message dialog, used instead of wxMessageDialog
+ *
+ * \deprecated Use AlertDialog (AlertDialog.hpp) for new dialogs.
+ */
 class MessageDialog : public MsgDialog
 {
 public:
@@ -207,7 +218,11 @@ public:
 	virtual ~MessageDialog() = default;
 };
 
-// Generic rich message dialog, used intead of wxRichMessageDialog
+/**
+ * \brief Generic rich message dialog, used instead of wxRichMessageDialog
+ *
+ * \deprecated Use AlertDialog (AlertDialog.hpp) for new dialogs.
+ */
 class RichMessageDialog : public MsgDialog
 {
 	wxCheckBox* m_checkBox{ nullptr };
