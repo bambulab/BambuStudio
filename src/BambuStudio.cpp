@@ -6622,7 +6622,8 @@ int CLI::run(int argc, char **argv)
 
     // loop through action options
     bool export_to_3mf = false, load_slicedata = false, export_slicedata = false, export_slicedata_error = false;
-    bool no_check = false;
+    // read up front: actions run in command line order, so --no-check after --slice would come too late
+    bool no_check = m_config.option<ConfigOptionBool>("no_check", true)->value;
     std::string export_3mf_file, load_slice_data_dir, export_slice_data_dir, export_stls_dir;
     std::vector<ThumbnailData*> calibration_thumbnails;
     std::vector<int> plate_object_count(partplate_list.get_plate_count(), 0);
@@ -6849,7 +6850,7 @@ int CLI::run(int argc, char **argv)
             }
         }
         else if(opt_key=="no_check"){
-            no_check = m_config.opt_bool(opt_key);
+            //already processed before
         //} else if (opt_key == "export_gcode" || opt_key == "export_sla" || opt_key == "slice") {
         } else if (opt_key == "normative_check") {
             //already processed before
