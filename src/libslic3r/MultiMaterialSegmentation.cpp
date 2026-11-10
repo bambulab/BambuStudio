@@ -1352,6 +1352,24 @@ static EffectiveColorPenetrationLayers effective_color_penetration_layers(
     return out;
 }
 
+struct PartLimitedPaintProjection
+{
+    size_t                                  color_idx;
+    // Layer slices of the source part, owned by PrintObject::firstLayerObjSliceByVolume,
+    // which outlives this function.
+    const std::vector<ExPolygons>          *part_slices;
+    std::vector<Polygons>                   top;
+    std::vector<Polygons>                   bottom;
+};
+
+static const std::vector<ExPolygons> *find_part_slices(const PrintObject &print_object, ObjectID volume_id)
+{
+    for (const VolumeSlices &volume_slices : print_object.firstLayerObjSlice())
+        if (volume_slices.volume_id == volume_id)
+            return &volume_slices.slices;
+    return nullptr;
+}
+
 // Returns MMU segmentation of top and bottom layers based on painting in MMU segmentation gizmo
 static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bottom_layers(const PrintObject             &print_object,
                                                                                           const std::vector<ExPolygons> &input_expolygons,
@@ -1378,6 +1396,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
     // Project upwards pointing painted triangles over top surfaces,
     // project downards pointing painted triangles over bottom surfaces.
     std::vector<std::vector<Polygons>> top_raw(num_extruders), bottom_raw(num_extruders);
+    std::vector<PartLimitedPaintProjection> part_limited_projections;
     std::vector<float> zs = zs_from_layers(layers);
     Transform3d        object_trafo = print_object.trafo_centered();
 
@@ -1389,6 +1408,13 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
         for (const ModelVolume *mv : print_object.model_object()->volumes)
             if (mv->is_model_part()) {
                 const Transform3d volume_trafo = object_trafo * mv->get_matrix();
+                const bool limit_to_part = print_object.limits_color_penetration(*mv);
+                const std::vector<ExPolygons> *part_slices = nullptr;
+                if (limit_to_part) {
+                    part_slices = find_part_slices(print_object, mv->id());
+                    if (part_slices == nullptr || part_slices->empty())
+                        BOOST_LOG_TRIVIAL(warning) << "Unable to find sliced volume for part-limited color penetration; skipping this part's top/bottom penetration";
+                }
                 for (size_t extruder_idx = 0; extruder_idx < num_extruders; ++ extruder_idx) {
                     const indexed_triangle_set painted = mv->mmu_segmentation_facets.get_facets_strict(*mv, EnforcerBlockerType(extruder_idx));
 #ifdef MM_SEGMENTATION_DEBUG_TOP_BOTTOM
@@ -1435,24 +1461,34 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                                 }
                             }
                         };
-                        merge(std::move(top),    top_raw[extruder_idx]);
-                        merge(std::move(bottom), bottom_raw[extruder_idx]);
+                        if (limit_to_part) {
+                            // Fail closed: without this part's slices the projection must not fall
+                            // back to object-wide penetration.
+                            if (part_slices != nullptr && ! part_slices->empty())
+                                part_limited_projections.push_back(
+                                    { extruder_idx, part_slices, std::move(top), std::move(bottom) });
+                        }
+                        else {
+                            merge(std::move(top),    top_raw[extruder_idx]);
+                            merge(std::move(bottom), bottom_raw[extruder_idx]);
+                        }
                     }
                 }
             }
     }
 
-    auto filter_out_small_polygons = [&num_extruders, &num_layers](std::vector<std::vector<Polygons>> &raw_surfaces, double min_area) -> void {
-        for (size_t extruder_idx = 0; extruder_idx < num_extruders; ++extruder_idx)
-            if (!raw_surfaces[extruder_idx].empty())
-                for (size_t layer_idx = 0; layer_idx < num_layers; ++layer_idx)
-                    if (!raw_surfaces[extruder_idx][layer_idx].empty())
-                        remove_small(raw_surfaces[extruder_idx][layer_idx], min_area);
-    };
-
     // Filter out polygons less than 0.1mm^2, because they are unprintable and causing dimples on outer primers (#7104)
-    filter_out_small_polygons(top_raw, Slic3r::sqr(scale_(0.1f)));
-    filter_out_small_polygons(bottom_raw, Slic3r::sqr(scale_(0.1f)));
+    const double min_small_area = Slic3r::sqr(scale_(0.1f));
+    auto filter_out_small_polygons = [min_small_area](std::vector<Polygons> &surfaces) {
+        for (Polygons &layer_polygons : surfaces)
+            remove_small(layer_polygons, min_small_area);
+    };
+    for (auto &raw : top_raw)    filter_out_small_polygons(raw);
+    for (auto &raw : bottom_raw) filter_out_small_polygons(raw);
+    for (PartLimitedPaintProjection &projection : part_limited_projections) {
+        filter_out_small_polygons(projection.top);
+        filter_out_small_polygons(projection.bottom);
+    }
 
 #ifdef MM_SEGMENTATION_DEBUG_TOP_BOTTOM
     {
@@ -1480,16 +1516,20 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
 
     // When the upper surface of an object is occluded, it should no longer be considered the upper surface
     {
-        for (size_t extruder_idx = 0; extruder_idx < num_extruders; ++extruder_idx) {
+        auto apply_occlusion = [&layers, &input_expolygons](std::vector<Polygons> &top, std::vector<Polygons> &bottom) {
             for (size_t layer_idx = 0; layer_idx < layers.size(); ++layer_idx) {
-                if (!top_raw[extruder_idx].empty() && !top_raw[extruder_idx][layer_idx].empty() && layer_idx + 1 < layers.size()) {
-                    top_raw[extruder_idx][layer_idx] = diff(top_raw[extruder_idx][layer_idx], input_expolygons[layer_idx + 1]);
-                }
-                if (!bottom_raw[extruder_idx].empty() && !bottom_raw[extruder_idx][layer_idx].empty() && layer_idx > 0) {
-                    bottom_raw[extruder_idx][layer_idx] = diff(bottom_raw[extruder_idx][layer_idx], input_expolygons[layer_idx - 1]);
-                }
+                if (layer_idx < top.size() && !top[layer_idx].empty() && layer_idx + 1 < layers.size())
+                    top[layer_idx] = diff(top[layer_idx], input_expolygons[layer_idx + 1]);
+                if (layer_idx < bottom.size() && !bottom[layer_idx].empty() && layer_idx > 0)
+                    bottom[layer_idx] = diff(bottom[layer_idx], input_expolygons[layer_idx - 1]);
             }
-        }
+        };
+        for (size_t extruder_idx = 0; extruder_idx < num_extruders; ++extruder_idx)
+            if (!top_raw[extruder_idx].empty() || !bottom_raw[extruder_idx].empty())
+                apply_occlusion(top_raw[extruder_idx], bottom_raw[extruder_idx]);
+        // Part-limited sources get the same object-wide occlusion treatment as the merged ones.
+        for (PartLimitedPaintProjection &projection : part_limited_projections)
+            apply_occlusion(projection.top, projection.bottom);
     }
 
     std::vector<std::vector<ExPolygons>> triangles_by_color_bottom(num_extruders);
@@ -1634,6 +1674,79 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
             }
         }
     });
+
+    // Keep projections from an opted-in part inside that part's own slices. Process these sparse
+    // sources after the object-wide parallel pass so they can append to the shared color buffers safely.
+    for (const PartLimitedPaintProjection &projection : part_limited_projections) {
+        const std::vector<ExPolygons> &part_slices = *projection.part_slices;
+        for (size_t layer_idx = 0; layer_idx < num_layers; ++layer_idx) {
+            const bool has_top    = layer_idx < projection.top.size() && !projection.top[layer_idx].empty();
+            const bool has_bottom = layer_idx < projection.bottom.size() && !projection.bottom[layer_idx].empty();
+            if ((!has_top && !has_bottom) || layer_idx >= part_slices.size())
+                continue;
+            throw_on_cancel_callback();
+            const LayerColorStat stat = layer_color_stat(layer_idx, projection.color_idx);
+            if (has_top) {
+                // Clip the painted surface layer itself to this part's slice, so a slanted or
+                // thin feature crossing the layer slab cannot paint a neighbouring part.
+                ExPolygons top_ex = opening_ex(
+                    intersection_ex(union_ex(projection.top[layer_idx]), part_slices[layer_idx]),
+                    stat.small_region_threshold);
+                if (!top_ex.empty()) {
+                    append(triangles_by_color_top[projection.color_idx][layer_idx], top_ex);
+                    float offset = 0.f;
+                    ExPolygons layer_slices_trimmed =
+                        intersection_ex(input_expolygons[layer_idx], part_slices[layer_idx]);
+                    for (int last_idx = int(layer_idx) - 1;
+                         last_idx > std::max(int(layer_idx) - stat.top_color_penetration_layers, 0);
+                         --last_idx) {
+                        if (size_t(last_idx) >= part_slices.size())
+                            break;
+                        offset -= multi_diameter_mode ?
+                            stat.top_color_penetration_inset_step :
+                            stat.extrusion_spacing + stat.extrusion_width;
+                        layer_slices_trimmed = intersection_ex(layer_slices_trimmed, input_expolygons[last_idx]);
+                        layer_slices_trimmed = intersection_ex(layer_slices_trimmed, part_slices[last_idx]);
+                        ExPolygons last = opening_ex(
+                            intersection_ex(top_ex, offset_ex(layer_slices_trimmed, offset)),
+                            stat.small_region_threshold);
+                        if (last.empty())
+                            break;
+                        append(shell_triangles_by_color_top[projection.color_idx][last_idx], std::move(last));
+                    }
+                }
+            }
+            if (has_bottom) {
+                // Mirror of the top-surface pass above, propagating upwards.
+                ExPolygons bottom_ex = opening_ex(
+                    intersection_ex(union_ex(projection.bottom[layer_idx]), part_slices[layer_idx]),
+                    stat.small_region_threshold);
+                if (!bottom_ex.empty()) {
+                    append(triangles_by_color_bottom[projection.color_idx][layer_idx], bottom_ex);
+                    float offset = 0.f;
+                    ExPolygons layer_slices_trimmed =
+                        intersection_ex(input_expolygons[layer_idx], part_slices[layer_idx]);
+                    for (size_t last_idx = layer_idx + 1;
+                         last_idx < std::min(layer_idx + stat.bottom_color_penetration_layers, num_layers);
+                         ++last_idx) {
+                        if (last_idx >= part_slices.size())
+                            break;
+                        offset -= multi_diameter_mode ?
+                            stat.bottom_color_penetration_inset_step :
+                            stat.extrusion_spacing + stat.extrusion_width;
+                        layer_slices_trimmed = intersection_ex(layer_slices_trimmed, input_expolygons[last_idx]);
+                        layer_slices_trimmed = intersection_ex(layer_slices_trimmed, part_slices[last_idx]);
+                        ExPolygons last = opening_ex(
+                            intersection_ex(bottom_ex, offset_ex(layer_slices_trimmed, offset)),
+                            stat.small_region_threshold);
+                        if (last.empty())
+                            break;
+                        append(shell_triangles_by_color_bottom[projection.color_idx][last_idx], std::move(last));
+                    }
+                }
+            }
+        }
+    }
 
     std::vector<std::vector<ExPolygons>> triangles_by_color_merged(num_extruders);
     triangles_by_color_merged.assign(num_extruders, std::vector<ExPolygons>(num_layers));

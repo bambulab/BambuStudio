@@ -229,6 +229,16 @@ void Layer::make_perimeters()
         return ! a.group_top;
     };
 
+    // Parts that limit color penetration to themselves cast no shadow on the other parts
+    // below them, but still cover their own material: use the shadow-free upper coverage
+    // so top-only walls are not drawn around their footprint on the layer underneath.
+    ExPolygons        no_shadow_upper_slices;
+    const ExPolygons *no_shadow_upper_ptr = nullptr;
+    if (this->upper_layer != nullptr && ! this->part_limited_transparent.empty()) {
+        no_shadow_upper_slices = diff_ex(this->upper_layer->lslices, this->part_limited_transparent);
+        no_shadow_upper_ptr = &no_shadow_upper_slices;
+    }
+
     for (LayerRegionPtrs::iterator layerm = m_regions.begin(); layerm != m_regions.end(); ++ layerm) {
         const bool has_first_band_source = std::any_of(
             (*layerm)->adaptive_merge_patches.begin(), (*layerm)->adaptive_merge_patches.end(),
@@ -284,7 +294,8 @@ void Layer::make_perimeters()
             auto generate_region_perimeters = [&](LayerRegion *lm, const SurfaceCollection &src,
                                                   SurfaceCollection *out_fill, ExPolygons *out_no_overlap) {
                 if (lm->adaptive_merge_patches.empty()) {
-                    lm->make_perimeters(src, perimeter_regions, out_fill, out_no_overlap, this->loop_nodes);
+                    lm->make_perimeters(src, perimeter_regions, out_fill, out_no_overlap, this->loop_nodes,
+                                        0., true, nullptr, no_shadow_upper_ptr);
                     return;
                 }
 
@@ -296,7 +307,7 @@ void Layer::make_perimeters()
                     // to pass through shell discovery, otherwise a solid layer inside the band disappears
                     // before combine_adaptive_infill() can promote it.
                     lm->make_perimeters(src, perimeter_regions, out_fill, out_no_overlap,
-                                        this->loop_nodes, 0., true, nullptr, nullptr, true);
+                                        this->loop_nodes, 0., true, nullptr, no_shadow_upper_ptr, true);
                     return;
                 }
 
@@ -318,6 +329,10 @@ void Layer::make_perimeters()
                         }
                     }
                     upper_slices_storage = union_ex(upper_footprint);
+                    // Same shadow-free coverage as the regular path above.
+                    if (const ExPolygons &transparent_above_top = this->object()->get_layer(int(top_idx))->part_limited_transparent;
+                        ! transparent_above_top.empty())
+                        upper_slices_storage = diff_ex(upper_slices_storage, transparent_above_top);
                     upper_slices = &upper_slices_storage;
                 }
 

@@ -2267,6 +2267,7 @@ void PrintObject::slice_volumes(long long *region_split_ms_out, long long *mm_se
                         poly.scale(shrink_scale);
         }
     }
+    this->build_part_limited_transparent();
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";
     {

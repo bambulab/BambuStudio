@@ -1697,6 +1697,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "top_shell_layers"
             || opt_key == "top_color_penetration_layers"
             || opt_key == "bottom_color_penetration_layers"
+            || opt_key == "limit_color_penetration"
             || opt_key == "infill_instead_top_bottom_surfaces") {
 
             steps.emplace_back(posSlice);
@@ -1940,6 +1941,85 @@ void PrintObject::reset_slice_surfaces(const std::vector<std::vector<SurfaceColl
     }
 }
 
+static const VolumeSlices *find_volume_slices(const PrintObject &print_object, ObjectID volume_id)
+{
+    for (const VolumeSlices &volume_slices : print_object.firstLayerObjSlice())
+        if (volume_slices.volume_id == volume_id)
+            return &volume_slices;
+    return nullptr;
+}
+
+bool PrintObject::limits_color_penetration(const ModelVolume &volume) const
+{
+    if (! volume.is_model_part())
+        return false;
+    if (const auto *opt = volume.config.get().option<ConfigOptionBool>("limit_color_penetration"))
+        return opt->value;
+    if (const auto *opt = this->model_object()->config.get().option<ConfigOptionBool>("limit_color_penetration"))
+        return opt->value;
+    return this->print()->default_region_config().limit_color_penetration.value;
+}
+
+void PrintObject::build_part_limited_transparent()
+{
+    for (Layer *layer : m_layers)
+        layer->part_limited_transparent.clear();
+    if (this->print()->config().filament_diameter.size() <= 1 || ! this->is_mm_painted())
+        return;
+    // Fast path: with no part opted in, stay empty after this one config scan and
+    // never touch any slice geometry.
+    const bool has_limited_part = std::any_of(
+        this->model_object()->volumes.begin(), this->model_object()->volumes.end(),
+        [this](const ModelVolume *mv) { return mv->is_model_part() && this->limits_color_penetration(*mv); });
+    if (! has_limited_part)
+        return;
+    const size_t num_layers = m_layers.size();
+    if (num_layers == 0)
+        return;
+    // Build-local aggregates, discarded once the transparency is derived: union of
+    // part-limited parts / of all other model parts per layer, and the area a limited
+    // part covers with its own material continuing one layer up. The self coverage is
+    // paired per volume, so one limited part never "self-covers" another below it.
+    std::vector<ExPolygons> limited_slices(num_layers), non_limited_slices(num_layers), self_coverage_slices(num_layers);
+    for (const ModelVolume *mv : this->model_object()->volumes) {
+        if (! mv->is_model_part())
+            continue;
+        const VolumeSlices *volume_slices = find_volume_slices(*this, mv->id());
+        if (volume_slices == nullptr)
+            continue;
+        const std::vector<ExPolygons> &slices = volume_slices->slices;
+        const size_t layer_limit = std::min(num_layers, slices.size());
+        if (this->limits_color_penetration(*mv)) {
+            for (size_t i = 0; i < layer_limit; ++ i) {
+                append(limited_slices[i], slices[i]);
+                if (i + 1 < layer_limit && ! slices[i].empty() && ! slices[i + 1].empty())
+                    append(self_coverage_slices[i], intersection_ex(slices[i + 1], slices[i]));
+            }
+        } else {
+            for (size_t i = 0; i < layer_limit; ++ i)
+                append(non_limited_slices[i], slices[i]);
+        }
+    }
+    auto union_layers = [](std::vector<ExPolygons> &layers) {
+        for (ExPolygons &layer_slices : layers)
+            if (layer_slices.size() > 1)
+                layer_slices = union_ex(layer_slices);
+    };
+    union_layers(limited_slices);
+    union_layers(non_limited_slices);
+    union_layers(self_coverage_slices);
+    // Transparent above layer i: covered by limited parts only -- not by other parts,
+    // and not by a limited part's own material continuing into layer i.
+    for (size_t i = 0; i + 1 < num_layers; ++ i) {
+        if (limited_slices[i + 1].empty())
+            continue;
+        ExPolygons transparent = diff_ex(limited_slices[i + 1], non_limited_slices[i + 1]);
+        if (! self_coverage_slices[i].empty())
+            transparent = diff_ex(transparent, self_coverage_slices[i]);
+        m_layers[i]->part_limited_transparent = std::move(transparent);
+    }
+}
+
 // This function analyzes slices of a region (SurfaceCollection slices).
 // Each region slice (instance of Surface) is analyzed, whether it is supported or whether it is the top surface.
 // Initially all slices are of type stInternal.
@@ -2022,9 +2102,20 @@ void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection
                     Surfaces top;
                     if (detect_top) {
                         if (upper_layer) {
-                            ExPolygons upper_slices = interface_shells ?
-                                diff_ex(layerm_slices_surfaces, upper_layer->m_regions[region_id]->slices.surfaces, ApplySafetyOffset::Yes) :
-                                diff_ex(layerm_slices_surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
+                            // Parts that limit color penetration to themselves cast no shadow on
+                            // the other parts below them, but still cover their own material.
+                            const ExPolygons &transparent_upper = layer->part_limited_transparent;
+                            ExPolygons upper_slices;
+                            if (! transparent_upper.empty()) {
+                                const ExPolygons coverage = diff_ex(
+                                    interface_shells ? to_expolygons(upper_layer->m_regions[region_id]->slices.surfaces) :
+                                                       upper_layer->lslices,
+                                    transparent_upper);
+                                upper_slices = diff_ex(layerm_slices_surfaces, coverage, ApplySafetyOffset::Yes);
+                            } else
+                                upper_slices = interface_shells ?
+                                    diff_ex(layerm_slices_surfaces, upper_layer->m_regions[region_id]->slices.surfaces, ApplySafetyOffset::Yes) :
+                                    diff_ex(layerm_slices_surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
                             surfaces_append(top, opening_ex(upper_slices, offset), stTop);
                         }
                         else {

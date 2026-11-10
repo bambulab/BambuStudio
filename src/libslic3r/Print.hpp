@@ -454,6 +454,10 @@ public:
     const std::vector<groupedVolumeSlices>& firstLayerObjGroups() const { return firstLayerObjSliceByGroups; }
     std::vector<groupedVolumeSlices>& firstLayerObjGroupsMod() { return firstLayerObjSliceByGroups; }
 
+    // Whether color penetration is limited for this volume, resolved from
+    // global preset -> object override -> volume override.
+    bool                        limits_color_penetration(const ModelVolume &volume) const;
+
     bool                         has_brim() const       {
         return ((this->config().brim_type != btNoBrim && this->config().brim_width.value > 0.) ||
                 this->config().brim_type == btAutoBrim ||
@@ -698,6 +702,8 @@ private:
 
     std::vector < VolumeSlices >            firstLayerObjSliceByVolume;
     std::vector<groupedVolumeSlices>        firstLayerObjSliceByGroups;
+
+    void build_part_limited_transparent();
 
     // BBS: per object skirt
     ExtrusionEntityCollection               m_skirt;

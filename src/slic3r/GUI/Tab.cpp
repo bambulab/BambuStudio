@@ -3213,6 +3213,7 @@ void TabPrint::build()
         append_multi_nozzle_auto_line(optgroup, "bottom_shell_layers");
         append_multi_nozzle_auto_line(optgroup, "bottom_shell_thickness");
         append_multi_nozzle_auto_line(optgroup, "bottom_color_penetration_layers");
+        optgroup->append_single_option_line("limit_color_penetration");
         optgroup->append_single_option_line("infill_instead_top_bottom_surfaces");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
 
@@ -4442,6 +4443,13 @@ void TabPrintPart::toggle_options()
     toggle_line("periodic_modifier_skip_layers", show_nm);
     toggle_line("periodic_modifier_apply_layers", show_nm);
     toggle_line("modifier_ignore_infill", is_modifier);
+    // Color penetration limiting only applies to model parts, not to modifiers.
+    const bool all_model_parts = ! m_object_configs.empty() && std::all_of(
+        m_object_configs.begin(), m_object_configs.end(), [](const auto &item) {
+            const auto *vol = dynamic_cast<const ModelVolume *>(item.first);
+            return vol != nullptr && vol->is_model_part();
+        });
+    toggle_line("limit_color_penetration", all_model_parts);
 }
 
 void TabPrintPart::notify_changed(ObjectBase * object)
@@ -4452,7 +4460,7 @@ void TabPrintPart::notify_changed(ObjectBase * object)
 
 static std::string layer_height = "layer_height";
 TabPrintLayer::TabPrintLayer(ParamsPanel* parent) :
-    TabPrintModel(parent, concat({ layer_height }, PrintRegionConfig().keys()))
+    TabPrintModel(parent, substruct(concat({ layer_height }, PrintRegionConfig().keys()), { "limit_color_penetration" }))
 {
     m_parent_tab = wxGetApp().get_model_tab();
 }
