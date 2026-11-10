@@ -204,6 +204,9 @@ wxDECLARE_EVENT(EVT_GLCANVAS_RENDER_TIMER, wxTimerEvent/*RenderTimerEvent*/);
 wxDECLARE_EVENT(EVT_GLCANVAS_TOOLBAR_HIGHLIGHTER_TIMER, wxTimerEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_GIZMO_HIGHLIGHTER_TIMER, wxTimerEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE, SimpleEvent);
+// Posted once by render() after init() succeeded, i.e. when the canvas and
+// its OpenGL context are ready to be loaded.
+wxDECLARE_EVENT(EVT_GLCANVAS_INITIALIZED, SimpleEvent);
 wxDECLARE_EVENT(EVT_CUSTOMEVT_TICKSCHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
@@ -675,6 +678,11 @@ private:
     // Screen is only refreshed from the OnIdle handler if it is dirty.
     bool m_dirty;
     bool m_initialized;
+    // A reload_scene() was requested before this canvas was initialized.
+    // The canvas becomes usable only once it is shown on screen, which under
+    // Wayland is at least one event-loop turn after it was shown; render()
+    // performs the reload right after init().
+    bool m_reload_scene_pending{ false };
     //BBS: add flag to controll rendering
     bool m_render_preview{ true };
     bool m_enable_render { true };
