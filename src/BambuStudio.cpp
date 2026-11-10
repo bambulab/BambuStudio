@@ -2145,6 +2145,14 @@ int CLI::run(int argc, char **argv)
                             const Vec3d &instance_offset = model_instance->get_offset();
                             BOOST_LOG_TRIVIAL(info) << boost::format("instance %1% transform {%2%,%3%,%4%} at %5%:%6%")% model_object->name % instance_offset.x() % instance_offset.y() %instance_offset.z() % __FUNCTION__ % __LINE__<< std::endl;
                         }*/
+                    // a 3MF can be tagged as ours and still come without project settings, for example from another tool
+                    for (const char *key : {"printer_settings_id", "print_settings_id", "filament_settings_id", "nozzle_diameter"}) {
+                        if (!config.has(key)) {
+                            BOOST_LOG_TRIVIAL(error) << boost::format("%1% has no project setting %2%") % file % key;
+                            record_exit_reson(outfile_dir, CLI_DATA_FILE_ERROR, 0, cli_errors[CLI_DATA_FILE_ERROR], sliced_info);
+                            flush_and_exit(CLI_DATA_FILE_ERROR);
+                        }
+                    }
                     current_printer_name = config.option<ConfigOptionString>("printer_settings_id")->value;
                     current_process_name = config.option<ConfigOptionString>("print_settings_id")->value;
                     current_printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
