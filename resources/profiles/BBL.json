@@ -4536,6 +4536,10 @@
             "sub_path": "filament/Bambu PLA Galaxy @BBL P3C 0.2 nozzle.json"
         },
         {
+            "name": "Bambu PLA Galaxy @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Galaxy @BBL P3C 0.8 nozzle.json"
+        },
+        {
             "name": "Bambu PLA Galaxy @BBL X1C",
             "sub_path": "filament/Bambu PLA Galaxy @BBL X1C.json"
         },
@@ -4942,6 +4946,10 @@
         {
             "name": "Bambu PLA Marble @BBL P3C",
             "sub_path": "filament/Bambu PLA Marble @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Marble @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Marble @BBL P3C 0.8 nozzle.json"
         },
         {
             "name": "Bambu PLA Marble @BBL X1",
