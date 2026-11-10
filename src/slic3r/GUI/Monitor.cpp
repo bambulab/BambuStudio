@@ -27,6 +27,7 @@
 #include "MediaPlayCtrl.h"
 #include "MediaFilePanel.h"
 #include "DeviceWeb/DeviceWebHost.hpp"
+#include "ExtraCameraPanel.hpp"
 #include "Plater.hpp"
 #include "BindDialog.hpp"
 
@@ -164,6 +165,7 @@ void MonitorPanel::init_tabpanel()
     m_tabpanel->SetBackgroundColour(wxColour("#FEFFFF"));
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
         auto page = m_tabpanel->GetCurrentPage();
+        update_extra_camera_active();
         if (page == m_media_file_panel) {
             auto title = m_tabpanel->GetPageText(m_tabpanel->GetSelection());
             m_media_file_panel->SwitchStorage(title == _L("Storage"));
@@ -216,6 +218,9 @@ void MonitorPanel::init_tabpanel()
 
     m_hms_panel = new HMSPanel(m_tabpanel);
     m_tabpanel->AddPage(m_hms_panel, _L("Assistant(HMS)"),    "", false);
+
+    m_extra_camera_panel = new ExtraCameraPanel(m_tabpanel);
+    m_tabpanel->AddPage(m_extra_camera_panel, _L("Cameras"), "", false);
 
     m_initialized = true;
     show_status((int)MonitorStatus::MONITOR_NO_PRINTER);
@@ -484,7 +489,16 @@ bool MonitorPanel::Show(bool show)
         if (StatusPanel* sp = get_status_panel())
             sp->hide_ctrl_area_overlays();
     }
-    return wxPanel::Show(show);
+    const bool changed = wxPanel::Show(show);
+    update_extra_camera_active();
+    return changed;
+}
+
+void MonitorPanel::update_extra_camera_active()
+{
+    if (!m_extra_camera_panel || !m_tabpanel)
+        return;
+    m_extra_camera_panel->set_active(IsShown() && m_tabpanel->GetCurrentPage() == m_extra_camera_panel);
 }
 
 void MonitorPanel::show_status(int status)

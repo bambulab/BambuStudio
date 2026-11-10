@@ -56,6 +56,7 @@ namespace GUI {
 
 class MediaFilePanel;
 class DeviceWebHost;
+class ExtraCameraPanel;
 
 class AddMachinePanel : public wxPanel
 {
@@ -86,6 +87,7 @@ private:
     UpgradePanel*       m_upgrade_panel;
     HMSPanel*           m_hms_panel;
     DeviceWebHost*      m_print_queue_panel { nullptr };
+    ExtraCameraPanel*   m_extra_camera_panel { nullptr };
 
 	/* side tools */
     SideTools*      m_side_tools{nullptr};
@@ -110,6 +112,9 @@ private:
     bool update_flag{false};
     wxTimer* m_refresh_timer = nullptr;
 
+    // Streams only while the Device tab is shown and the Cameras page is selected.
+    void update_extra_camera_active();
+
 public:
     MonitorPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~MonitorPanel();
@@ -123,6 +128,7 @@ public:
         PT_MEDIA,
         PT_UPDATE,
         PT_HMS,
+        PT_EXTRA_CAMERA, // fork-only; deliberately has no tracking name in get_string_from_tab()
         PT_DEBUG,
         PT_MAX_NUM
     };

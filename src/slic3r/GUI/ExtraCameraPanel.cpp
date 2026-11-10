@@ -11,6 +11,8 @@
 #include <wx/webview.h>
 
 #include "GUI_App.hpp"
+#include "I18N.hpp"
+#include "Widgets/WebView.hpp"
 #include "libslic3r/AppConfig.hpp"
 
 namespace Slic3r {
@@ -50,7 +52,11 @@ ExtraCameraPanel::ExtraCameraPanel(wxWindow *parent)
     top->Add(m_reload, 0, wxTOP | wxBOTTOM | wxALIGN_CENTER_VERTICAL, 6);
     top->Add(m_manage, 0, wxALL | wxALIGN_CENTER_VERTICAL, 6);
 
-    m_web = wxWebView::New(this, wxID_ANY, "about:blank");
+    // Go through Bambu's helper rather than wxWebView::New: on Windows every
+    // WebView2 in the process must share one runtime + user-data folder, and the
+    // helper also provides the no-backend placeholder, dark-mode background and
+    // devtools gating. Its navigation logs redact credentials, queries and IPs.
+    m_web = WebView::CreateWebView(this, "about:blank", "ExtraCamera");
 
     auto *main = new wxBoxSizer(wxVERTICAL);
     main->Add(top, 0, wxEXPAND);
@@ -70,12 +76,8 @@ ExtraCameraPanel::ExtraCameraPanel(wxWindow *parent)
     });
     m_manage->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { on_manage(); });
 
-    // Fallback for platforms/containers that hide pages via Show(false)
-    // without the owner calling set_active().
-    Bind(wxEVT_SHOW, [this](wxShowEvent &e) {
-        set_active(e.IsShown());
-        e.Skip();
-    });
+    // Visibility is driven by MonitorPanel::update_extra_camera_active(), not
+    // wxEVT_SHOW: children get no show event when the Device tab itself is hidden.
 
     load_entries();
     refresh_choice();
@@ -160,13 +162,13 @@ void ExtraCameraPanel::load_selected()
     if (url == m_loaded_url)
         return;
     m_loaded_url = url;
-    m_web->LoadURL(to_wx(url));
+    WebView::LoadUrl(m_web, to_wx(url));
 }
 
 void ExtraCameraPanel::unload()
 {
     m_loaded_url.clear();
-    m_web->LoadURL("about:blank");
+    WebView::LoadUrl(m_web, "about:blank");
 }
 
 void ExtraCameraPanel::on_manage()

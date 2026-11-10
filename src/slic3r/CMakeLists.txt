@@ -371,6 +371,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/DeviceOperationsTooltip.hpp
     GUI/Monitor.cpp
     GUI/Monitor.hpp
+    GUI/ExtraCameraPanel.cpp
+    GUI/ExtraCameraPanel.hpp
     GUI/WebViewDialog.cpp
     GUI/WebViewDialog.hpp
     GUI/PrinterWebView.cpp
