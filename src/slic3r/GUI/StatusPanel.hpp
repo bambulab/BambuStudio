@@ -68,6 +68,7 @@ class wgtDeviceFilamentHotendWebPanel;
 class wgtHotendRackControl;
 class wgtRackExtruder;
 class CameraFullscreenFrame;
+class ExtraCameraPanel;
 class wgtDeviceFilamentHotendTab;
 
 enum CameraRecordingStatus {
@@ -472,6 +473,12 @@ protected:
     CameraItem        *m_setting_button_light{nullptr};
     DeviceOperationsTooltip *m_device_operations_tooltip{nullptr};
 
+    /* external (web) camera shown in place of the printer live view */
+    Button            *m_extra_camera_toggle{nullptr};
+    ExtraCameraPanel  *m_extra_camera_view{nullptr};
+    bool               m_use_extra_camera{false};
+    bool               m_status_page_visible{false};
+
     /* title panel */
     wxPanel *       media_ctrl_panel;
     wxPanel *       m_panel_monitoring_title;
@@ -703,7 +710,12 @@ public:
     void toggle_camera_fullscreen();
     void close_camera_fullscreen();
 
+    // Called by MonitorPanel: true while the Device tab is shown with Status selected.
+    void set_status_page_visible(bool visible);
+    void set_use_extra_camera(bool use);
+
 private:
+    void apply_extra_camera_state();
     void on_ams_rack_switch(wxCommandEvent& event);
 #if BBL_ENABLE_AMS_CONTROL_WEB
     void on_ams_control_web_switch(wxCommandEvent& event);

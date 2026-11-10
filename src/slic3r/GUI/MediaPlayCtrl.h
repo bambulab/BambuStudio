@@ -68,6 +68,11 @@ public:
 
     void jump_to_play();
 
+    // Re-evaluate play/stop after this control was shown or hidden directly
+    // (show events only reach it via its parents), e.g. when the live view is
+    // swapped out for an external camera.
+    void RefreshVisibility();
+
     static bool is_valid_camera(int camera_id);
 
     static bool is_support_switch_cam(const std::vector<int>& support_liveview_cams);

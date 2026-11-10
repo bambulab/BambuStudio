@@ -88,10 +88,15 @@ void ExtraCameraPanel::set_active(bool active)
     if (m_active == active)
         return;
     m_active = active;
-    if (m_active)
+    if (m_active) {
+        // Several instances (Cameras page, Status live view) share the list in
+        // AppConfig; pick up edits made through another one.
+        load_entries();
+        refresh_choice();
         load_selected();
-    else
+    } else {
         unload();
+    }
 }
 
 void ExtraCameraPanel::load_entries()

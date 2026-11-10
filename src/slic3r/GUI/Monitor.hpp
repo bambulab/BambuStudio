@@ -112,7 +112,8 @@ private:
     bool update_flag{false};
     wxTimer* m_refresh_timer = nullptr;
 
-    // Streams only while the Device tab is shown and the Cameras page is selected.
+    // External cameras stream only while the Device tab is shown and the page
+    // holding them (Cameras, or Status when its live view is swapped) is selected.
     void update_extra_camera_active();
 
 public:

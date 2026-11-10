@@ -81,6 +81,7 @@
 #endif
 #include "PrintOptionsDialog.hpp"
 #include "SafetyOptionsDialog.hpp"
+#include "ExtraCameraPanel.hpp"
 
 #include "ThermalPreconditioningDialog.hpp"
 
@@ -2318,7 +2319,50 @@ MachineObject *StatusBasePanel::get_current_dev() const
     return dev_manager && !m_devid.empty() ? dev_manager->get_my_machine(m_devid) : nullptr;
 }
 
-bool StatusBasePanel::can_show_camera_fullscreen() const { return m_media_ctrl != nullptr && IsShownOnScreen(); }
+bool StatusBasePanel::can_show_camera_fullscreen() const { return m_media_ctrl != nullptr && !m_use_extra_camera && IsShownOnScreen(); }
+
+void StatusBasePanel::set_status_page_visible(bool visible)
+{
+    if (m_status_page_visible == visible)
+        return;
+    m_status_page_visible = visible;
+    if (m_extra_camera_view)
+        m_extra_camera_view->set_active(m_use_extra_camera && m_status_page_visible);
+}
+
+void StatusBasePanel::set_use_extra_camera(bool use)
+{
+    if (m_use_extra_camera == use)
+        return;
+    m_use_extra_camera = use;
+    wxGetApp().app_config->set_bool("extra_camera_on_status", use);
+    apply_extra_camera_state();
+}
+
+void StatusBasePanel::apply_extra_camera_state()
+{
+    if (!m_extra_camera_view || !m_media_ctrl || !m_media_play_ctrl)
+        return;
+
+    if (m_use_extra_camera && is_camera_fullscreen())
+        close_camera_fullscreen();
+
+    m_media_ctrl->Show(!m_use_extra_camera);
+    m_media_play_ctrl->Show(!m_use_extra_camera);
+    m_extra_camera_view->Show(m_use_extra_camera);
+
+    // Stops the printer stream when it is swapped out, and lets it resume
+    // (same path as switching tabs) when swapped back in.
+    m_media_play_ctrl->RefreshVisibility();
+    m_extra_camera_view->set_active(m_use_extra_camera && m_status_page_visible);
+
+    if (m_extra_camera_toggle) {
+        m_extra_camera_toggle->SetLabel(m_use_extra_camera ? _L("Printer camera") : _L("External camera"));
+        m_panel_monitoring_title->Layout();
+    }
+    Layout();
+    Refresh();
+}
 
 bool StatusBasePanel::is_camera_fullscreen() const { return m_camera_fullscreen_frame != nullptr; }
 
@@ -2523,6 +2567,22 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_camera_title_separator->Hide();
     bSizer_monitoring_title->Add(m_camera_title_separator, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
+    {
+        StateColor bd(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+        StateColor fg(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+        StateColor bg(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Pressed),
+                      std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
+        m_extra_camera_toggle = new Button(m_panel_monitoring_title, _L("External camera"));
+        m_extra_camera_toggle->SetFont(Label::Body_12);
+        m_extra_camera_toggle->SetBorderColor(bd);
+        m_extra_camera_toggle->SetTextColor(fg);
+        m_extra_camera_toggle->SetBackgroundColor(bg);
+        m_extra_camera_toggle->SetMinSize(wxSize(-1, FromDIP(24)));
+        m_extra_camera_toggle->SetToolTip(_L("Swap the live view between the printer camera and your external web cameras"));
+        m_extra_camera_toggle->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { set_use_extra_camera(!m_use_extra_camera); });
+        bSizer_monitoring_title->Add(m_extra_camera_toggle, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    }
+
     const char *settings_icon = wxGetApp().dark_mode() ? "liveview_settings_dark" : "liveview_settings_light";
     m_setting_button_light = new CameraItem(m_panel_monitoring_title, settings_icon, settings_icon, 16);
     m_setting_button_light->SetBackgroundColour(m_panel_monitoring_title->GetBackgroundColour());
@@ -2548,7 +2608,16 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
 
     sizer->Add(m_media_ctrl, 1, wxEXPAND | wxALL, 0);
     sizer->Add(m_media_play_ctrl, 0, wxEXPAND | wxALL, 0);
+
+    m_extra_camera_view = new ExtraCameraPanel(this);
+    m_extra_camera_view->SetMinSize(wxSize(PAGE_MIN_WIDTH, FromDIP(288)));
+    m_extra_camera_view->Hide();
+    sizer->Add(m_extra_camera_view, 1, wxEXPAND | wxALL, 0);
     m_camera_media_sizer = sizer;
+
+    // Restore the last choice; streaming waits for set_status_page_visible().
+    m_use_extra_camera = wxGetApp().app_config->get_bool("extra_camera_on_status");
+    apply_extra_camera_state();
     //    media_ctrl_panel->SetSizer(bSizer_monitoring);
     //    media_ctrl_panel->Layout();
     //

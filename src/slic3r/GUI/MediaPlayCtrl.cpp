@@ -1360,6 +1360,11 @@ void MediaPlayCtrl::load()
 void MediaPlayCtrl::on_show_hide(wxShowEvent &evt)
 {
     evt.Skip();
+    RefreshVisibility();
+}
+
+void MediaPlayCtrl::RefreshVisibility()
+{
     if (m_isBeingDeleted) return;
     m_failed_retry = 0;
     if (m_next_retry.IsValid()) // Try open 2 seconds later, to avoid quick play/stop

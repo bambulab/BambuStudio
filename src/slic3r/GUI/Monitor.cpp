@@ -498,7 +498,12 @@ void MonitorPanel::update_extra_camera_active()
 {
     if (!m_extra_camera_panel || !m_tabpanel)
         return;
-    m_extra_camera_panel->set_active(IsShown() && m_tabpanel->GetCurrentPage() == m_extra_camera_panel);
+    // Deactivate before activating so two views never pull the same stream at once.
+    const bool cameras_page = IsShown() && m_tabpanel->GetCurrentPage() == m_extra_camera_panel;
+    const bool status_page  = IsShown() && m_tabpanel->GetCurrentPage() == m_status_info_panel;
+    if (!cameras_page) m_extra_camera_panel->set_active(false);
+    if (m_status_info_panel) m_status_info_panel->set_status_page_visible(status_page);
+    if (cameras_page) m_extra_camera_panel->set_active(true);
 }
 
 void MonitorPanel::show_status(int status)
@@ -607,6 +612,8 @@ void MonitorPanel::jump_to_LiveView()
         m_tabpanel->SetSelection(PT_STATUS);
     }
 
+    // Asked for the printer's own live view (e.g. from an error dialog).
+    m_status_info_panel->set_use_extra_camera(false);
     m_status_info_panel->get_media_play_ctrl()->jump_to_play();
 }
 
