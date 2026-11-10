@@ -231,7 +231,8 @@ Model Model::read_from_step(const std::string&                                  
                             double                                                  linear_defletion,
                             double                                                  angle_defletion,
                             bool                                                   is_split_compound,
-                            std::function<void(const std::vector<std::string>&)>    open_shell_warn_fn)
+                            std::function<void(const std::vector<std::string>&)>    open_shell_warn_fn,
+                            bool*                                                   has_unit)
 {
     Model model;
     bool result = false;
@@ -242,6 +243,8 @@ Model Model::read_from_step(const std::string&                                  
     if(status != Step::Step_Status::LOAD_SUCCESS) {
         goto _finished;
     }
+    if (has_unit != nullptr)
+        *has_unit = step_file.has_unit();
     if (open_shell_warn_fn && !step_file.get_unclosed_shells().empty()) {
         open_shell_warn_fn(step_file.get_unclosed_shells());
     }
@@ -314,7 +317,8 @@ Model Model::read_from_file(const std::string&                                  
                             Import3mfProgressFn                                 proFn,
                             ImportstlProgressFn                                 stlFn,
                             BBLProject *                                        project,
-                            int                                                 plate_id)
+                            int                                                 plate_id,
+                            bool*                                               has_unit)
 {
     Model model;
 
@@ -441,7 +445,7 @@ Model Model::read_from_file(const std::string&                                  
         // BBS: backup & restore
         //FIXME options & LoadStrategy::CheckVersion ?
         //BBS: is_xxx is used for is_bbs_3mf when load 3mf
-        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_xxx, file_version, proFn, options, project, plate_id);
+        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_xxx, file_version, proFn, options, project, plate_id, nullptr, nullptr, nullptr, has_unit);
 #ifdef __APPLE__
     else if (boost::algorithm::iends_with(input_file, ".usd") || boost::algorithm::iends_with(input_file, ".usda") ||
              boost::algorithm::iends_with(input_file, ".usdc") || boost::algorithm::iends_with(input_file, ".usdz") ||
@@ -1006,13 +1010,17 @@ bool Model::looks_like_imperial_units() const
 void Model::convert_from_imperial_units(bool only_small_volumes)
 {
     static constexpr const float in_to_mm = 25.4f;
+    std::set<const TriangleMesh*> scaled_meshes;
     for (ModelObject* obj : this->objects)
         if (! only_small_volumes || obj->get_object_stl_stats().volume < volume_threshold_inches) {
-            obj->scale_mesh_after_creation(in_to_mm);
             for (ModelVolume* v : obj->volumes) {
+                if (scaled_meshes.insert(v->mesh_ptr()).second)
+                    v->scale_geometry_after_creation(in_to_mm);
+                v->set_offset(Vec3d(in_to_mm, in_to_mm, in_to_mm).cwiseProduct(v->get_offset()));
                 assert(! v->source.is_converted_from_meters);
                 v->source.is_converted_from_inches = true;
             }
+            obj->invalidate_bounding_box();
         }
     if (texture_mesh) {
         for (auto& v : texture_mesh->vertices) {
@@ -1040,13 +1048,17 @@ bool Model::looks_like_saved_in_meters() const
 void Model::convert_from_meters(bool only_small_volumes)
 {
     static constexpr const double m_to_mm = 1000;
+    std::set<const TriangleMesh*> scaled_meshes;
     for (ModelObject* obj : this->objects)
         if (! only_small_volumes || obj->get_object_stl_stats().volume < volume_threshold_meters) {
-            obj->scale_mesh_after_creation(m_to_mm);
             for (ModelVolume* v : obj->volumes) {
+                if (scaled_meshes.insert(v->mesh_ptr()).second)
+                    v->scale_geometry_after_creation(m_to_mm);
+                v->set_offset(Vec3d(m_to_mm, m_to_mm, m_to_mm).cwiseProduct(v->get_offset()));
                 assert(! v->source.is_converted_from_inches);
                 v->source.is_converted_from_meters = true;
             }
+            obj->invalidate_bounding_box();
         }
     if (texture_mesh) {
         const float scale = static_cast<float>(m_to_mm);
@@ -1972,8 +1984,10 @@ void ModelObject::mirror(Axis axis)
 // This method could only be called before the meshes of this ModelVolumes are not shared!
 void ModelObject::scale_mesh_after_creation(const float scale)
 {
+    std::set<const TriangleMesh*> scaled_meshes;
     for (ModelVolume *v : this->volumes) {
-        v->scale_geometry_after_creation(scale);
+        if (scaled_meshes.insert(v->mesh_ptr()).second)
+            v->scale_geometry_after_creation(scale);
         v->set_offset(Vec3d(scale, scale, scale).cwiseProduct(v->get_offset()));
     }
     this->invalidate_bounding_box();

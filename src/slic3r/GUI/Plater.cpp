@@ -11729,7 +11729,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         std::map<int, std::vector<std::string>> color_group_map;
         VolumeColorInfoMap volume_color_data;
         bool has_3mf_textures = false;
-        bool has_3mf_unit = false;
+        bool has_file_unit = false;
         En3mfType en_3mf_file_type = En3mfType::From_BBS;
         auto add_missing_filaments = [this, &model]() {
             std::set<int> extruderIds;
@@ -11794,7 +11794,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                                                  cancel        = !cont;
                                                                  if (cancel)
                                                                      is_user_cancel = cancel;
-                                                             }, nullptr, &color_group_map, &volume_color_data, &has_3mf_textures, &has_3mf_unit);
+                                                             }, nullptr, &color_group_map, &volume_color_data, &has_3mf_textures, &has_file_unit);
                     if (const auto *mode = config_loaded.option<ConfigOptionBool>("multi_nozzle_diameter_mode"))
                         loaded_multi_nozzle_diameter_mode = mode->value;
                     const ConfigOption *selected_diameters =
@@ -12434,7 +12434,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 msg += wxString::FromUTF8(name) + "\n";
                             }
                             Slic3r::GUI::show_info(nullptr, msg, _L("Unclosed Shell Warning"));
-                        });
+                        }, &has_file_unit);
                 }else {
                     if (boost::algorithm::iends_with(path.string(), ".obj")) {
                         is_xxx = GUI::wxGetApp().app_config->get_bool("gamma_correct_in_import_obj");
@@ -12458,7 +12458,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             cont          = dlg.Update(progress_percent, msg);
                             cancel        = !cont;
                     },
-                    nullptr, 0);
+                    nullptr, 0, &has_file_unit);
                 }
 
                 if (designer_model_id.empty() && boost::algorithm::iends_with(path.string(), ".stl")) {
@@ -12527,35 +12527,33 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 if (imperial_units)
                     // Convert even if the object is big.
                     convert_from_imperial_units(model, false);
-                // A 3MF with a unit was already converted by the reader. Without one, guess from the
-                // total volume and scale all objects together, so thin parts keep their size and place.
-                else if (type_3mf) {
-                    if (!has_3mf_unit) {
-                        double total_volume = 0.;
-                        for (const ModelObject *object : model.objects)
-                            total_volume += object->get_object_stl_stats().volume;
-                        // Same thresholds as Model::looks_like_saved_in_meters() / looks_like_imperial_units().
-                        double scale = 1.;
-                        if (total_volume < 0.008) {
-                            BOOST_LOG_TRIVIAL(warning) << "3mf without unit seems in meter units, convert to millimeters:" << filename;
-                            model.convert_from_meters(false);
-                            scale = 1000.;
-                        } else if (total_volume < 8.) {
-                            BOOST_LOG_TRIVIAL(warning) << "3mf without unit seems in imperial units, convert to millimeters:" << filename;
-                            convert_from_imperial_units(model, false);
-                            scale = 25.4;
-                        }
-                        if (scale != 1.)
+                // A file with a unit was already converted by the reader. Without one, guess from the
+                // total volume, ask the user once, and scale all objects together so parts keep their size and place.
+                else if (!has_file_unit && !model.objects.empty()) {
+                    double total_volume = 0.;
+                    for (const ModelObject *object : model.objects)
+                        total_volume += object->get_object_stl_stats().volume;
+                    // Same thresholds as Model::looks_like_saved_in_meters() / looks_like_imperial_units().
+                    if (total_volume < 8.) {
+                        MessageDialog dlg(q,
+                                          _L("The object size in the file is very small. Would you like to import it using millimeters as the default unit?"),
+                                          _L("Object too small"), wxICON_QUESTION | wxYES_NO);
+                        if (dlg.ShowModal() == wxID_YES) {
+                            double scale = 1.;
+                            if (total_volume < 0.008) {
+                                BOOST_LOG_TRIVIAL(warning) << "file without unit seems in meter units, convert to millimeters:" << filename;
+                                model.convert_from_meters(false);
+                                scale = 1000.;
+                            } else {
+                                BOOST_LOG_TRIVIAL(warning) << "file without unit seems in imperial units, convert to millimeters:" << filename;
+                                convert_from_imperial_units(model, false);
+                                scale = 25.4;
+                            }
                             for (ModelObject *object : model.objects)
                                 for (ModelInstance *instance : object->instances)
                                     instance->set_offset(instance->get_offset() * scale);
+                        }
                     }
-                } else if (model.looks_like_saved_in_meters()) {
-                    BOOST_LOG_TRIVIAL(warning) << "object loaded seems in meter units, convert to millimeters:" << filename;
-                    model.convert_from_meters(true);
-                } else if (model.looks_like_imperial_units()) {
-                    BOOST_LOG_TRIVIAL(warning) << "object loaded seems in imperial units, convert to millimeters:" << filename;
-                    convert_from_imperial_units(model, true);
                 }
                 // else if (model.looks_like_imperial_units()) {
                 // BBS do not handle look like in imperial

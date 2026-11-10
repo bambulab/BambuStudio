@@ -1818,7 +1818,8 @@ public:
                                 double                                                  linear_defletion,
                                 double                                                  angle_defletion,
                                 bool                                                    is_split_compound,
-                                std::function<void(const std::vector<std::string>&)>    open_shell_warn_fn = nullptr);
+                                std::function<void(const std::vector<std::string>&)>    open_shell_warn_fn = nullptr,
+                                bool*                                                   has_unit           = nullptr);
 
     //BBS: add part plate related logic
     // BBS: backup
@@ -1830,7 +1831,8 @@ public:
         std::vector<Preset*>* project_presets = nullptr, bool* is_xxx = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
                                 ImportstlProgressFn        stlFn                = nullptr,
                                 BBLProject *               project              = nullptr,
-                                int                        plate_id             = 0);
+                                int                        plate_id             = 0,
+                                bool*                      has_unit             = nullptr);
     // BBS
     static bool obj_import_color_deal(const std::vector<unsigned char>& filament_ids, std::optional<unsigned char> first_extruder_id, Model* model, std::function<bool(int)> deal_vertex_callback, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
     static bool obj_import_vertex_color_deal(const std::vector<unsigned char>& vertex_filament_ids, std::optional<unsigned char> first_extruder_id, ModelVolume* volumePtr, std::function<int(int, int, int)> get_filament_id_callback = nullptr);

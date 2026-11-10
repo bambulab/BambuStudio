@@ -610,6 +610,9 @@ Step::Step_Status Step::load()
     bool load_result = false;
     auto task = new boost::thread(Slic3r::create_thread([&]() -> void {
 
+        // Transferred geometry is in cascade units. Force millimeters so a
+        // successful load is already in mm and the volume heuristic must not run.
+        Interface_Static::SetCVal("xstep.cascade.unit", "MM");
         STEPCAFControl_Reader reader;
         reader.SetNameMode(true);
         IFSelect_ReturnStatus stat = reader.ReadFile(m_path.c_str());
@@ -620,6 +623,7 @@ Step::Step_Status Step::load()
             task_result = true;
             return;
         }
+        m_has_unit = true;
         if (cb_cancel) return;
         progress = 6;
         m_shape_tool = XCAFDoc_DocumentTool::ShapeTool(m_doc->Main());

@@ -134,6 +134,7 @@ public:
     std::atomic<bool> m_stop_mesh{false};
     void update_process(int load_stage, int current, int total, bool& cancel);
     const std::vector<std::string>& get_unclosed_shells() const { return m_unclosed_shells; }
+    bool has_unit() const { return m_has_unit; }
 private:
     std::string m_path;
     ImportStepProgressFn m_stepFn;
@@ -143,6 +144,7 @@ private:
     Handle(XCAFDoc_ShapeTool) m_shape_tool;
     std::vector<NamedSolid> m_name_solids;
     std::vector<std::string> m_unclosed_shells;
+    bool m_has_unit{false};
 };
 
 }; // namespace Slic3r
