@@ -2442,7 +2442,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     static float last_y = 0.0f;
     static float last_h = 0.0f;
 
-    const float currt_scale = m_parent.get_scale();
+    const float currt_scale = m_parent.get_imgui_layout_scale();
     ImGuiWrapper::push_toolbar_style(currt_scale);
     double screen_scale = wxDisplay(wxGetApp().plater()).GetScaleFactor();
     // Configuration creation

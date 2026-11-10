@@ -1859,6 +1859,20 @@ const float GLCanvas3D::get_scale() const
 #endif
 }
 
+const float GLCanvas3D::get_imgui_layout_scale() const
+{
+#if ENABLE_RETINA_GL
+    // Windows draws these design pixels in window pixels (get_scale()==1) and does
+    // not multiply by the desktop scale. At 150% the 365px text panel and 36px
+    // move-tool icons are therefore 1/1.5 of a 96dpi point. Mac ImGui space is
+    // framebuffer pixels, so the backing scale alone restores the full point size
+    // and both widgets come out larger than that Windows view. 96/144 matches it.
+    return get_scale() * (96.f / 144.f);
+#else
+    return 1.0f;
+#endif
+}
+
 gcode::GCodeViewer& GLCanvas3D::get_gcode_viewer() const
 {
     if (!m_p_gcode_viewer) {

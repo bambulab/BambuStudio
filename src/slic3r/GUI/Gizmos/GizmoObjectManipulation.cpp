@@ -855,7 +855,7 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
 #endif
 
     // BBS
-    const float ui_scale = m_glcanvas.get_scale();
+    const float ui_scale = m_glcanvas.get_imgui_layout_scale();
     auto px = [ui_scale](float v) { return v * ui_scale; };
     ImGuiWrapper::push_toolbar_style(ui_scale);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(px(16.f), px(16.f)));
