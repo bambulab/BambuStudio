@@ -1952,7 +1952,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Bed temperature");
     def->min        = 0;
     def->max        = 120;
-    def->set_default_value(new ConfigOptionInts{0});
+    def->set_default_value(new ConfigOptionInts{45});
 
     def = this->add("supertack_plate_temp_initial_layer", coInts);
     def->label = L("Initial layer");
@@ -2012,7 +2012,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext   = "°C";
     def->min        = 0;
     def->max        = 120;
-    def->set_default_value(new ConfigOptionInts{0});
+    def->set_default_value(new ConfigOptionInts{45});
 
     def = this->add("curr_bed_type", coEnum);
     def->label = L("Bed type");
