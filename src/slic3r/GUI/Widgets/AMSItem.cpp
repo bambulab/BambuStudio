@@ -2845,6 +2845,7 @@ Description:AMSPreview
 // Rows top to bottom, values are 0-based slot ids.
 static const std::map<DevAmsType, std::vector<std::vector<int>>> AMS_PREVIEW_SLOT_GRID = {
     { DevAmsType::ZMULTI_A, { { 1, 3, 5, 7 }, { 0, 2, 4, 6, 8 } } },
+    { DevAmsType::ZMULTI_B, { { 1, 3, 5 }, { 0, 2, 4, 6 } } },
 };
 
 AMSPreview::AMSPreview(wxWindow* parent, wxWindowID id, AMSinfo amsinfo, const wxPoint& pos, const wxSize& size)
@@ -2852,7 +2853,7 @@ AMSPreview::AMSPreview(wxWindow* parent, wxWindowID id, AMSinfo amsinfo, const w
     wxWindow::Create(parent, id, pos);
 
     const auto& itemType = amsinfo.ams_type;
-    if (itemType == DevAmsType::AMS || itemType == DevAmsType::AMS_LITE || itemType == DevAmsType::N3F || itemType == DevAmsType::ZMULTI_A) {
+    if (itemType == DevAmsType::AMS || itemType == DevAmsType::AMS_LITE || itemType == DevAmsType::N3F || devAmsTypeUtil::IsRackAms(itemType)) {
         create(parent, id, pos, AMS_PREV_FOUR_SIZE);
     }
     else {
@@ -2888,7 +2889,7 @@ void AMSPreview::Update(AMSinfo amsinfo)
     m_amsinfo = amsinfo;
     m_ams_item_type = amsinfo.ams_type;
 
-    if (m_ams_item_type == DevAmsType::AMS || m_ams_item_type == DevAmsType::AMS_LITE || m_ams_item_type == DevAmsType::N3F || m_ams_item_type == DevAmsType::ZMULTI_A) {
+    if (m_ams_item_type == DevAmsType::AMS || m_ams_item_type == DevAmsType::AMS_LITE || m_ams_item_type == DevAmsType::N3F || devAmsTypeUtil::IsRackAms(m_ams_item_type)) {
         SetMinSize(AMS_PREV_FOUR_SIZE);
         SetMaxSize(AMS_PREV_FOUR_SIZE);
     } else {
@@ -3215,10 +3216,13 @@ void AMSPreview::renderMultiRowGrid(wxDC &dc, const wxSize &size)
     const int          row_count = static_cast<int>(rows.size());
     const int          row_h     = (size.y - 2 * pad - (row_count - 1) * gap) / row_count;
 
+    size_t max_cols = 1;
+    for (const auto &row : rows) max_cols = std::max(max_cols, row.size());
+    const int col_w = (size.x - 2 * pad - (static_cast<int>(max_cols) - 1) * gap) / static_cast<int>(max_cols);
+
     int y = pad;
     for (const auto &row : rows) {
         const int col_count = static_cast<int>(row.size());
-        const int col_w     = (size.x - 2 * pad - (col_count - 1) * gap) / col_count;
         const int row_w = col_count * col_w + (col_count - 1) * gap;
         int x = pad + (size.x - 2 * pad - row_w) / 2;
 

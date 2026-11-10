@@ -1,4 +1,5 @@
 import humidityIconUrl from '../assets/ams_humidity.svg';
+import dryingActiveIconUrl from '../assets/dev_ams_dry_ctr_heating_icon.svg';
 
 // Icons exported from the interaction design for the AMS environment readouts.
 //
@@ -17,4 +18,8 @@ export function TemperatureIcon() {
 
 export function DryingIcon() {
   return <span className="ams-env-icon ams-env-icon-drying" aria-hidden="true" />;
+}
+
+export function DryingActiveIcon() {
+  return <img className="ams-env-icon" src={dryingActiveIconUrl} alt="" aria-hidden="true" />;
 }

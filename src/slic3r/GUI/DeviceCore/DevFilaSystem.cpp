@@ -1,6 +1,7 @@
 #include <nlohmann/json.hpp>
 #include "DevExtruderSystem.h"
 #include "DevFilaSystem.h"
+#include "DevDryer.h"
 #include "DevFilaSwitch.h"
 #include "DevMcTask.hpp"
 
@@ -692,9 +693,32 @@ bool DevAms::IsAmsSlotPreLoadFilament(int slot_id) const
     return DevUtil::get_flag_bits(obj_->tray_exist_bits, bit) != 0;
 }
 
+// Prefer a non-drying zone, it reflects the AMS environment
+const DevAms::DevAmsZone* DevAms::FindEnvZone() const
+{
+    for (const auto& [_, zone] : m_zones) {
+        if (!zone.SupportDrying()) return &zone;
+    }
+    return m_zones.empty() ? nullptr : &m_zones.begin()->second;
+}
+
+float DevAms::GetCurrentTemperature() const
+{
+    if (m_current_temperature != INVALID_AMS_TEMPERATURE) return m_current_temperature;
+    const DevAmsZone* zone = FindEnvZone();
+    return zone ? zone->current_temperature : m_current_temperature;
+}
+
+int DevAms::GetHumidityPercent() const
+{
+    if (m_humidity_percent >= 0) return m_humidity_percent;
+    const DevAmsZone* zone = FindEnvZone();
+    return zone ? zone->humidity_percent : m_humidity_percent;
+}
+
 bool DevAms::SupportHumidityPercent() const
 {
-    return (m_ams_type == DevAmsType::N3F) || (m_ams_type == DevAmsType::N3S) || (m_ams_type == DevAmsType::ZMULTI_A);
+    return (m_ams_type == DevAmsType::N3F) || (m_ams_type == DevAmsType::N3S) || devAmsTypeUtil::IsRackAms(m_ams_type);
 }
 
 bool DevAms::SupportDrying() const
@@ -751,6 +775,8 @@ bool DevAms::AmsIsDrying()
         || GetDryStatus().value() == DevAms::DryStatus::Error
         || GetDryStatus().value() == DevAms::DryStatus::CannotStopHeatOutofControl;
 }
+
+DevFilaSystem::DevFilaSystem(MachineObject* owner) : m_owner(owner), m_dryer_mgr(std::make_unique<DevDryerMgr>(this)) {}
 
 DevFilaSystem::~DevFilaSystem()
 {
@@ -1063,62 +1089,6 @@ bool DevFilaSystem::IsBBL_Filament(std::string tag_uid)
 bool DevFilaSystem::CanShowFilamentBackup() const
 {
     return m_auto_refill_mgr.CanShow();
-}
-
-bool DevFilaSystem::IsDryAreaInPrintUse(const std::string& ams_id, std::optional<int> zone_id) const
-{
-    if (!m_owner || !m_owner->is_in_printing()) {
-        return false;
-    }
-
-    const DevAms* ams = GetAmsById(ams_id);
-    if (!ams) {
-        return false;
-    }
-
-    auto is_in_dry_area = [ams, zone_id](int slot_id) {
-        if (!ams->IsDryableSlot(slot_id)) {
-            return false;
-        }
-        if (!zone_id) {
-            return true;
-        }
-        const auto zone = ams->GetZoneBySlotId(slot_id);
-        return zone && zone->zone_id == *zone_id;
-    };
-
-    // new firmware reports tray print_status directly
-    bool has_print_status = false;
-    for (const auto& [tray_id, tray] : ams->GetTrays()) {
-        if (!tray || !tray->print_status.has_value()) {
-            continue;
-        }
-        has_print_status = true;
-        try {
-            if (*tray->print_status != DevAmsTray::PrintStatus::Idle && is_in_dry_area(std::stoi(tray_id))) {
-                return true;
-            }
-        } catch (...) {
-            BOOST_LOG_TRIVIAL(warning) << "invalid " << KV(log_key::ams_id, ams_id) << " " << KV(log_key::tray_id, tray_id);
-        }
-    }
-    if (has_print_status) {
-        return false;
-    }
-
-    // old firmware: print.mapping, (ams_id << 8) | slot_id per filament, 0xFFFF unused
-    const auto& mapping = m_owner->print_job_filament_mapping;
-    if (!mapping.empty()) {
-        const int ams_id_int = ams->GetAmdIdInt();
-        for (uint16_t v : mapping) {
-            if (v != 0xFFFF && ((v >> 8) & 0xFF) == ams_id_int && is_in_dry_area(v & 0xFF)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    return true;
 }
 
 bool DevFilaSystem::HasSubAms() const

@@ -29,6 +29,8 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevCtrlTokenMgr.h
     GUI/DeviceCore/DevCtrlTokenMgr.cpp
     GUI/DeviceCore/DevDefs.h
+    GUI/DeviceCore/DevDryer.h
+    GUI/DeviceCore/DevDryer.cpp
     GUI/DeviceCore/DevExtensionTool.h
     GUI/DeviceCore/DevExtensionTool.cpp
     GUI/DeviceCore/DevExtruderSystem.h

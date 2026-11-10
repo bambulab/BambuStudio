@@ -1,4 +1,5 @@
 #include "ViewModel.hpp"
+#include "slic3r/GUI/DeviceCore/DevDryer.h"
 #include "ActionHandlerFilament.hpp"
 #include "BuilderFilamentChangeStatus.hpp"
 #include "FilamentManualPullDialog.hpp"
@@ -440,12 +441,8 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
     } else if (action == "dry") {
         std::string dry_ams_id = ams_id;
         if (dry_ams_id.empty() && fila_system) {
-            for (const auto& [_, ams_unit] : fila_system->GetAmsList()) {
-                if (ams_unit && ams_unit->SupportDrying()) {
-                    dry_ams_id = ams_unit->GetAmsId();
-                    break;
-                }
-            }
+            const auto dryers = fila_system->GetDryerMgr().All();
+            if (!dryers.empty()) dry_ams_id = dryers.front().GetId();
         }
         if (dry_ams_id.empty()) {
             return vm.MakeResponse(vm.GetModule(), "action", action, 2, "No dryable AMS unit found", vm.BuildState());

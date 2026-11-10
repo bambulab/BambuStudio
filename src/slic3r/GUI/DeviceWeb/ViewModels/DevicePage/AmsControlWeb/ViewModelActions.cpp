@@ -15,6 +15,7 @@
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSwitch.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevDryer.h"
 #include "slic3r/GUI/DeviceCore/DevInfo.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/Widgets/AMSItem.hpp"
@@ -95,15 +96,14 @@ void open_humidity(const std::string& ams_id)
 
     const DevAmsType type = ams->GetAmsType();
     // Mirrors AMSControl::EVT_AMS_SHOW_HUMIDITY_TIPS: classic AMS uses the
-    // A/B/C/D/E droplet tip; N3 with remote dry uses the dryer window;
+    // A/B/C/D/E droplet tip; an AMS that can dry remotely uses the dryer window;
     // everything else uses the percent / remaining-time dialog.
     if (type == DevAmsType::AMS) {
         show_ams_level_humidity_tip(humidity_display_idx_of(ams));
         return;
     }
 
-    if (machine_obj->is_support_remote_dry &&
-        (type == DevAmsType::N3F || type == DevAmsType::N3S)) {
+    if (const auto dryer = fila_system->GetDryerMgr().Find(ams_id); dryer && dryer->IsSupportRemoteDry(machine_obj)) {
         OpenAmsDryControlDialog(machine_obj, ams_id);
         return;
     }

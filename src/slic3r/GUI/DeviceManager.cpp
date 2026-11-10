@@ -38,6 +38,7 @@
 #include "DeviceCore/DevAxis.h"
 #include "DeviceCore/DevCamera.h"
 #include "DeviceCore/DevChamber.h"
+#include "DeviceCore/DevDryer.h"
 #include "DeviceCore/DevHMSQuery.h"
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevFilaSwitch.h"
@@ -3755,6 +3756,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     if (jj.contains("ams")) {
                         DevFilaSystemParser::ParseV1_0(jj, this, m_fila_system.get(), key_field_only);
                     }
+                    m_fila_system->GetDryerMgr().ParseV1_0(jj);
 
                     /* vitrual tray*/
                     if (!key_field_only) {
