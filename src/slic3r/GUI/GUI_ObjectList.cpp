@@ -1184,9 +1184,8 @@ void ObjectList::update_filament_colors()
 
 void ObjectList::update_name_column_width() const
 {
+#ifndef __APPLE__
     wxSize client_size = this->GetClientSize();
-    bool p_vbar = this->GetParent()->HasScrollbar(wxVERTICAL);
-    bool p_hbar = this->GetParent()->HasScrollbar(wxHORIZONTAL);
 
     auto em = em_unit(const_cast<ObjectList*>(this));
     // BBS: walkaround for wxDataViewCtrl::HasScrollbar() does not return correct status
@@ -1199,6 +1198,7 @@ void ObjectList::update_name_column_width() const
     }
 
     GetColumn(colName)->SetWidth(client_size.x - (others_width)*em);
+#endif
 }
 
 void ObjectList::set_filament_column_hidden(const bool hide) const
