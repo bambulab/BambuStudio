@@ -760,6 +760,11 @@ std::string Preset::label(bool no_alias) const
         + ((no_alias || this->alias.empty()) ? this->name : this->alias);
 }
 
+const std::string& Preset::name_for_3mf() const
+{
+    return this->name_from_3mf.empty() ? this->name : this->name_from_3mf;
+}
+
 std::string Preset::display_name() const
 {
     std::string result;
@@ -2506,6 +2511,7 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     BOOST_LOG_TRIVIAL(info) << preset.name << " " << KV(log_key::filament_id, preset.filament_id) << KV(log_key::base_id, preset.base_id);
     if (from_project) {
         preset.is_project_embedded = true;
+        preset.name_from_3mf = original_name;
     }
     else {
         //external config
@@ -2517,6 +2523,7 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     if (&this->get_selected_preset() == &preset) {
         this->get_edited_preset().is_external = true;
         this->get_edited_preset().is_project_embedded = preset.is_project_embedded;
+        this->get_edited_preset().name_from_3mf = preset.name_from_3mf;
     }
 
     //BBS: add config related logs
@@ -2722,6 +2729,8 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         std::string  &inherits = preset.inherits();
         std::string   old_name = preset.name;
         preset.name = new_name;
+        // The user chose this name, so the 3mf file keeps it without change.
+        preset.name_from_3mf.clear();
         preset.vendor = nullptr;
 		preset.alias.clear();
         preset.renamed_from.clear();

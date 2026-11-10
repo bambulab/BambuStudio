@@ -27669,7 +27669,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     // modify model
     publish(p->model, strategy);
 
-    DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
+    DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_for_3mf();
     // project_config keeps the per-slot diameters after multi-diameter mode is turned off, so turning it
     // back on restores them. In single-diameter mode those values are inactive, and every slot prints on
     // the printer's own diameter, which is what the file stores.

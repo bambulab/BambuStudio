@@ -266,6 +266,24 @@ public:
 
     // Name of the preset, usually derived form the file name.
     std::string         name;
+
+    /**
+     * \brief Name that the 3mf file stores for this preset
+     *
+     * A project preset loaded from a 3mf file may get a suffix in 
+     * name: "x" in a.3mf loads as "x(a.3mf)".
+     * This keeps "x". Empty for a preset otherwise
+     * \note Read name_for_3mf() instead of this field.
+     */
+    std::string         name_from_3mf;
+
+    /**
+     * \brief Name to write into a 3mf file
+     *
+     * \note Use this name only for the 3mf file. Use name for all other purposes, such as the UI and preset lookup.
+     * \note Never write name into a 3mf file. Each save and reopen then adds one more suffix.
+     */
+    const std::string&  name_for_3mf() const;
     // File name of the preset. This could be a Print / Filament / Printer preset,
     // or a Configuration file bundling the Print + Filament + Printer presets (in that case is_external and possibly is_system will be true),
     // or it could be a G-code (again, is_external will be true).

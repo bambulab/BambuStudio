@@ -442,6 +442,12 @@ public:
     DynamicPrintConfig          full_config(bool apply_extruder = true, std::optional<std::vector<int>>filament_maps = std::nullopt, std::optional<std::vector<int>> filament_volume_maps = std::nullopt) const;
     // full_config() with the some "useless" config removed.
     DynamicPrintConfig          full_config_secure(std::optional<std::vector<int>>filament_maps = std::nullopt) const;
+    /**
+     * \brief full_config_secure() with the preset names to write into a 3mf file
+     *
+     * \note Use this config only for a 3mf file. Its preset names can differ from the names in this session.
+     */
+    DynamicPrintConfig          full_config_for_3mf() const;
 
     //BBS: add some functions for multiple extruders
     int get_printer_extruder_count() const;

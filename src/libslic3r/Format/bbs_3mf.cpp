@@ -8496,6 +8496,22 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return _add_file_to_archive(archive, BBS_PROJECT_CONFIG_FILE, temp_file);
     }
 
+    /**
+     * \brief Set the name of an embedded preset in its config
+     *
+     * \note A 3mf file names an embedded preset by its settings id key, not by the name field of the json file.
+     *       The config can still hold the name with the load suffix, so always set this key before a save.
+     */
+    static void set_settings_id(DynamicPrintConfig &config, Preset::Type type, const std::string &name)
+    {
+        if (type == Preset::TYPE_PRINT)
+            config.option<ConfigOptionString>("print_settings_id", true)->value = name;
+        else if (type == Preset::TYPE_FILAMENT)
+            config.option<ConfigOptionStrings>("filament_settings_id", true)->values = {name};
+        else if (type == Preset::TYPE_PRINTER)
+            config.option<ConfigOptionString>("printer_settings_id", true)->value = name;
+    }
+
     //BBS: add project embedded preset files
     bool _BBS_3MF_Exporter::_add_project_embedded_presets_to_archive(mz_zip_archive& archive, Model& model, std::vector<Preset*> project_presets)
     {
@@ -8511,9 +8527,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             if (preset) {
                 preset->file = temp_path + std::string("/") + "_temp_1.config";
-                DynamicPrintConfig& config = preset->config;
-                //config.save(preset->file);
-                config.save_to_json(preset->file, preset->name, std::string("project"), preset->version.to_string());
+                // Write the name without the suffix that the 3mf load added. A copy keeps the caller's preset unchanged.
+                const std::string &name   = preset->name_for_3mf();
+                DynamicPrintConfig config = preset->config;
+                set_settings_id(config, preset->type, name);
+                config.save_to_json(preset->file, name, std::string("project"), preset->version.to_string());
 
                 std::string dest_file;
                 if (preset->type == Preset::TYPE_PRINT) {

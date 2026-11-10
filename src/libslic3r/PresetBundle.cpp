@@ -4776,6 +4776,18 @@ DynamicPrintConfig PresetBundle::full_config_secure(std::optional<std::vector<in
     return config;
 }
 
+DynamicPrintConfig PresetBundle::full_config_for_3mf() const
+{
+    DynamicPrintConfig config = this->full_config_secure();
+    config.option<ConfigOptionString>("print_settings_id", true)->value   = this->prints.get_selected_preset().name_for_3mf();
+    config.option<ConfigOptionString>("printer_settings_id", true)->value = this->printers.get_selected_preset().name_for_3mf();
+    for (std::string &filament_name : config.option<ConfigOptionStrings>("filament_settings_id", true)->values) {
+        if (const Preset *filament = this->filaments.find_preset(filament_name, false))
+            filament_name = filament->name_for_3mf();
+    }
+    return config;
+}
+
 const std::set<std::string> ignore_settings_list ={
     "inherits",
     "print_settings_id", "filament_settings_id", "printer_settings_id"
