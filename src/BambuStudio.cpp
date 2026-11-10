@@ -2565,6 +2565,11 @@ int CLI::run(int argc, char **argv)
         }
         return 0;
     };
+    auto load_filament_preset = [&load_config_file](const std::string &file, DynamicPrintConfig &config) {
+        std::string config_type, config_name, filament_id, config_from;
+        int ret = load_config_file(file, config, config_type, config_name, filament_id, config_from);
+        return !ret && (config_type == "filament");
+    };
     BOOST_LOG_TRIVIAL(info) << "before load settings, file count="<< load_configs.size() << std::endl;
     //std::vector<std::string> filament_compatible_printers;
     // load config files supplied via --load
@@ -2747,6 +2752,7 @@ int CLI::run(int argc, char **argv)
 
                 if ((config_from == "User")||(config_from == "user")) {
                     default_filament_inherit = config.option<ConfigOptionString>("inherits", true)->value;
+                    resolve_user_filament_config(config, default_filament_inherit, load_filament_preset);
                 }
 
                 default_filament_file = file;
@@ -2808,27 +2814,7 @@ int CLI::run(int argc, char **argv)
             std::string inherits;
             if ((config_from == "User")||(config_from == "user")) {
                 inherits = config.option<ConfigOptionString>("inherits", true)->value;
-                if (!inherits.empty()) {
-                    //process the default values for old configs
-                    std::string parent_filament_path = resources_dir() + "/profiles/BBL/filament_full/"+inherits+".json";
-                    if (boost::filesystem::exists(parent_filament_path)) {
-                        DynamicPrintConfig  parent_config;
-                        std::string config_type, config_name, filament_id, config_from;
-                        int ret = load_config_file(parent_filament_path, parent_config, config_type, config_name, filament_id, config_from);
-                        if (!ret && (config_type == "filament")) {
-                            for (auto& opt_key: filament_options_with_variant)
-                            {
-                                ConfigOption *opt = config.option(opt_key);
-                                ConfigOption *parent_opt = parent_config.option(opt_key);
-                                ConfigOptionVectorBase* opt_vec = static_cast<ConfigOptionVectorBase*>(opt);
-                                const ConfigOptionVectorBase* opt_vec_parent = static_cast<const ConfigOptionVectorBase*>(parent_opt);
-                                //set with default
-                                if (opt && parent_opt)
-                                    opt_vec->set_with_default(opt_vec_parent);
-                            }
-                        }
-                    }
-                }
+                resolve_user_filament_config(config, inherits, load_filament_preset);
             }
 
             // If the CLI does not pass the argument, use the machine preset's diameter.

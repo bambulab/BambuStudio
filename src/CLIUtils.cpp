@@ -17,6 +17,7 @@
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Log.hpp"
+#include "libslic3r/Utils.hpp"
 
 namespace Slic3r {
 
@@ -425,6 +426,66 @@ int merge_process_to_new_preset(DynamicPrintConfig          &full_config,
     std::sort(kept_keys.begin(), kept_keys.end());
     BOOST_LOG_TRIVIAL(info) << boost::format("process switch: kept keys [%1%]") % join_values(kept_keys);
     return 0;
+}
+
+void fill_nil_filament_values(DynamicPrintConfig &config, const DynamicPrintConfig *parent_config)
+{
+    for (const std::string &opt_key : config.keys()) {
+        if (is_filament_extruder_override_key(opt_key))
+            continue;
+        ConfigOption *opt = config.option(opt_key);
+        if (opt == nullptr || opt->is_scalar() || !opt->nullable())
+            continue;
+
+        auto *opt_vec = static_cast<ConfigOptionVectorBase *>(opt);
+        const ConfigOption *parent_opt = parent_config ? parent_config->option(opt_key) : nullptr;
+        const auto *parent_vec = (parent_opt && parent_opt->type() == opt->type()) ? static_cast<const ConfigOptionVectorBase *>(parent_opt) : nullptr;
+        const ConfigOptionDef *opt_def = print_config_def.get(opt_key);
+        const ConfigOption *default_opt = opt_def ? opt_def->default_value.get() : nullptr;
+        if (default_opt && default_opt->type() != opt->type())
+            default_opt = nullptr;
+
+        for (size_t i = 0; i < opt_vec->size(); ++i) {
+            if (!opt_vec->is_nil(i))
+                continue;
+            if (parent_vec && i < parent_vec->size() && !parent_vec->is_nil(i)) {
+                opt_vec->set_at(parent_vec, i, i);
+                BOOST_LOG_TRIVIAL(info) << boost::format("fill nil filament option %1%[%2%] from parent") % opt_key % i;
+            }
+            else if (default_opt) {
+                opt_vec->set_at(default_opt, i, 0);
+                BOOST_LOG_TRIVIAL(info) << boost::format("fill nil filament option %1%[%2%] from default") % opt_key % i;
+            }
+        }
+    }
+}
+
+void resolve_user_filament_config(DynamicPrintConfig &config, const std::string &inherits,
+                                  const std::function<bool(const std::string &file, DynamicPrintConfig &config)> &load_filament_preset)
+{
+    DynamicPrintConfig parent_config;
+    bool has_parent = false;
+    if (!inherits.empty()) {
+        //process the default values for old configs
+        std::string parent_filament_path = resources_dir() + "/profiles/BBL/filament_full/"+inherits+".json";
+        if (boost::filesystem::exists(parent_filament_path))
+            has_parent = load_filament_preset(parent_filament_path, parent_config);
+        if (has_parent) {
+            for (auto& opt_key: filament_options_with_variant)
+            {
+                ConfigOption *opt = config.option(opt_key);
+                ConfigOption *parent_opt = parent_config.option(opt_key);
+                ConfigOptionVectorBase* opt_vec = static_cast<ConfigOptionVectorBase*>(opt);
+                const ConfigOptionVectorBase* opt_vec_parent = static_cast<const ConfigOptionVectorBase*>(parent_opt);
+                //set with default
+                if (opt && parent_opt)
+                    opt_vec->set_with_default(opt_vec_parent);
+            }
+        }
+        else
+            BOOST_LOG_TRIVIAL(warning) << boost::format("can not load parent filament %1%, fill nil values with defaults") % inherits;
+    }
+    fill_nil_filament_values(config, has_parent ? &parent_config : nullptr);
 }
 
 } // namespace Slic3r

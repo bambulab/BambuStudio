@@ -4,6 +4,7 @@
 // Helpers only used by the command line slicer (CLI::run in BambuStudio.cpp).
 // They do not use the statics of BambuStudio.cpp, everything is passed in as parameters.
 
+#include <functional>
 #include <set>
 #include <string>
 #include <vector>
@@ -141,6 +142,21 @@ int merge_process_to_new_preset(DynamicPrintConfig          &full_config,
                                 const std::set<std::string> &keep_keys,
                                 std::vector<std::string>    &kept_keys,
                                 std::vector<int>            &variant_index);
+
+// User filament presets can hold "nil" in nullable options: a preset with a parent stores nil for
+// variants equal to the parent, and root presets saved by older versions hold nil for every nullable
+// option. Fill those slots from the parent, or from the option default when the parent has no value.
+// Extruder override keys keep nil, which means "use the printer value".
+// parent_config: the system parent preset, or null if the preset has no parent or the parent can not be loaded.
+void fill_nil_filament_values(DynamicPrintConfig &config, const DynamicPrintConfig *parent_config);
+
+// Bring a user filament preset up to date with its system parent before its values are used, in place.
+// inherits: the system parent of the preset, read from profiles/BBL/filament_full; empty for a root preset.
+// load_filament_preset: loads a preset file into the config, returns false if it is not a valid filament preset.
+//   1. The variant options are extended to the parent's length with the parent values (set_with_default).
+//   2. The nil values are filled by fill_nil_filament_values(), with the parent if it can be loaded.
+void resolve_user_filament_config(DynamicPrintConfig &config, const std::string &inherits,
+                                  const std::function<bool(const std::string &file, DynamicPrintConfig &config)> &load_filament_preset);
 
 } // namespace Slic3r
 
