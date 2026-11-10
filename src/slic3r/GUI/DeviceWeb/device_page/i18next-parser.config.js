@@ -6,7 +6,7 @@ export default {
   output: `${LOCALES_DIR}/$LOCALE.json`,
   locales: [
     'en', 'zh_CN', 'ja_JP', 'it_IT', 'fr_FR', 'de_DE',
-    'hu_HU', 'es_ES', 'sv_SE', 'cs_CZ', 'nl_NL', 'uk_UA',
+    'hu_HU', 'es_ES', 'sv_SE', 'fi_FI', 'cs_CZ', 'nl_NL', 'uk_UA',
     'ru_RU', 'tr_TR', 'pt_BR', 'ko_KR', 'pl_PL',
     'ro_RO', 'th_TH', 'el_GR', 'id_ID', 'vi_VN', 'zh_TW',
   ],
