@@ -44,11 +44,18 @@ namespace Slic3r { namespace GUI {
 
 json m_ProfileJson;
 
+static bool is_custom_filament_sort_order(const std::string& order)
+{
+    return order == "desc" || order == "asc" || order == "type" || order == "name" || order == "name_desc";
+}
+
 static wxString update_custom_filaments()
 {
     json m_Res                                                                     = json::object();
     m_Res["command"]                                                               = "update_custom_filaments";
     m_Res["sequence_id"]                                                           = "2000";
+    const std::string sort_order = wxGetApp().app_config->get("custom_filament_sort_order");
+    m_Res["sort_order"] = is_custom_filament_sort_order(sort_order) ? sort_order : "desc";
     json                                               m_CustomFilaments           = json::array();
     PresetBundle                                      *preset_bundle               = wxGetApp().preset_bundle;
     std::map<std::string, std::vector<Preset const *>> temp_filament_id_to_presets;
@@ -548,6 +555,13 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
         else if (strCmd == "request_custom_filaments") {
             wxString strJS = update_custom_filaments();
             wxGetApp().CallAfter([this, strJS] { RunScript(strJS); });
+        }
+        else if (strCmd == "set_custom_filament_sort_order") {
+            const std::string sort_order = j.value("sort_order", "");
+            if (is_custom_filament_sort_order(sort_order)) {
+                wxGetApp().app_config->set("custom_filament_sort_order", sort_order);
+                wxGetApp().app_config->save();
+            }
         }
         else if (strCmd == "create_custom_filament") {
             this->EndModal(wxID_OK);
