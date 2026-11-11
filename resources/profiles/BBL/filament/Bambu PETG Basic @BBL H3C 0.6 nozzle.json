@@ -25,10 +25,6 @@
         "21",
         "28"
     ],
-    "filament_pre_cooling_temperature": [
-        "230",
-        "230"
-    ],
     "filament_prime_tower_speed_factor_curve": [
         "0.5,1"
     ],
