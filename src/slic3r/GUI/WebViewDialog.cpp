@@ -541,6 +541,10 @@ void WebViewPanel::UpdateState()
 
 void WebViewPanel::OnIdle(wxIdleEvent& WXUNUSED(evt))
 {
+    // The home browser may become visible after its parent's show event, or
+    // when returning from another web page without showing the parent again.
+    FlushRecentList();
+
 #if !BBL_RELEASE_TO_PUBLIC
     if (m_browser == nullptr) return;
 
@@ -816,9 +820,21 @@ void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
 
 void WebViewPanel::SendRecentList(int images)
 {
+    m_recent_list_refresh.request(images);
+    FlushRecentList();
+}
+
+void WebViewPanel::FlushRecentList()
+{
+    // get_recent_projects queries every file's timestamp, which can be slow on
+    // SMB. Saving from the editor must not refresh an invisible home page.
+    const auto images = m_recent_list_refresh.take(m_browser && m_browser->IsShownOnScreen());
+    if (!images)
+        return;
+
     boost::property_tree::wptree req;
     boost::property_tree::wptree data;
-    wxGetApp().mainframe->get_recent_projects(data, images);
+    wxGetApp().mainframe->get_recent_projects(data, *images);
     req.put(L"sequence_id", "");
     req.put(L"command", L"get_recent_projects");
     req.put_child(L"response", data);
