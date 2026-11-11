@@ -2066,7 +2066,15 @@ int CLI::run(int argc, char **argv)
                 // BBS: adjust whebackup
                 //LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig|LoadStrategy::AddDefaultInstances;
                 //if (load_aux) strategy = strategy | LoadStrategy::LoadAuxiliary;
+                const bool is_amf = boost::algorithm::iends_with(file, ".amf");
+                const bool was_bbl_3mf = is_bbl_3mf;
                 model = Model::read_from_file(file, &config, &config_substitutions, strategy, &plate_data_src, &project_presets, &is_bbl_3mf, &file_version, nullptr, nullptr, nullptr, plate_to_slice);
+                if (is_amf) {
+                    // For an AMF this flag means "the file is in inches". Convert it as the Prepare page does.
+                    if (is_bbl_3mf)
+                        model.convert_from_imperial_units(false);
+                    is_bbl_3mf = was_bbl_3mf;
+                }
                 sliced_info.import_time += (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - import_begin_time);
                 import_time_recorded = true;
                 if (is_bbl_3mf)
