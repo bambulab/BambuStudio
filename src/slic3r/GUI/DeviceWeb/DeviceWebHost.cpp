@@ -677,31 +677,6 @@ void DeviceWebHost::NotifyHotendRackChanged()
     m_device_web_mgr->NotifyState("device_page_hotend_rack", "state", "changed");
 }
 
-DevicePageAmsMappingHotendVM* DeviceWebHost::GetAmsMappingHotendVM() const
-{
-    if (!m_device_web_mgr) return nullptr;
-    return dynamic_cast<DevicePageAmsMappingHotendVM*>(
-        m_device_web_mgr->Find("device_page_ams_mapping_hotend"));
-}
-
-AutoRefillRefillInfoVM* DeviceWebHost::GetAutoRefillRefillInfoVM() const
-{
-    if (!m_device_web_mgr) return nullptr;
-    return dynamic_cast<AutoRefillRefillInfoVM*>(
-        m_device_web_mgr->Find("device_page_auto_refill_refill_info"));
-}
-
-ConnectedSlotsVM* DeviceWebHost::GetConnectedSlotsVM() const
-{
-    if (!m_device_web_mgr) return nullptr;
-    return dynamic_cast<ConnectedSlotsVM*>(
-        m_device_web_mgr->Find("device_page_connected_slots"));
-}
-
-// Design width (in DIP/logical px) of the AMS mapping hotend popup. The page is
-// laid out width:100%, so its reported width only echoes the container; we drive
-// the width from this fixed design value at the current DPI instead.
-static constexpr int kAmsMappingHotendDesignWidthDip = 660;
 static constexpr int kAmsControlWebWidthDip = 586;
 
 void DeviceWebHost::ApplyAmsControlWebHostSize(int height_dip)
