@@ -97,10 +97,14 @@ function Set_RecentFile_MouseRightBtn_Event()
 			}
 		});
 
-	$(document).bind("contextmenu",function(e){
-		//在这里书写代码，构建个性右键化菜单
-		return false;
-	});	
+	// Namespaced + off() so rebuilding the recent list doesn't stack handlers.
+	$(document).off("contextmenu.recent").on("contextmenu.recent",function(e){
+		// Recent-file items show our own menu (ShowRecnetFileContextMenu), so keep the
+		// native one off there. Elsewhere it follows the native setting, i.e. the
+		// "Enable DevTools For Webview" preference.
+		if( $(e.target).closest(".FileItem").length > 0 )
+			return false;
+	});
 	
     $(document).mousemove( function(e){
 		MousePosX=e.pageX;
