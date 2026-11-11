@@ -21,11 +21,15 @@ add_library(test_common INTERFACE)
 target_compile_definitions(test_common INTERFACE TEST_DATA_DIR=R"\(${TEST_DATA_DIR}\)" CATCH_CONFIG_FAST_COMPILE)
 target_link_libraries(test_common INTERFACE Catch2::Catch2)
 
-# libslic3r references OpenSSL, libcurl and a few GUI-layer symbols (Http, encryption, nanosvg)
-# that are never reached by the tests; let the linker leave those unresolved.
-target_link_libraries(test_common INTERFACE libcurl OpenSSL::SSL OpenSSL::Crypto)
-if (MSVC)
-    target_link_options(test_common INTERFACE /FORCE:UNRESOLVED)
+# Resolve the same Http, encryption and NanoSVG providers as the application.
+# Interface links carry usage requirements but not OBJECT library contents.
+target_link_libraries(test_common INTERFACE libcurl OpenSSL::SSL OpenSSL::Crypto libslic3r_gui)
+get_target_property(_test_gui_library_type libslic3r_gui TYPE)
+if(_test_gui_library_type STREQUAL "OBJECT_LIBRARY")
+    target_sources(test_common INTERFACE $<TARGET_OBJECTS:libslic3r_gui>)
+endif()
+if(WIN32)
+    target_link_libraries(test_common INTERFACE bcrypt)
 endif()
 
 if (APPLE)
@@ -52,6 +56,7 @@ add_subdirectory(fila_manager)
 add_subdirectory(filament_group)
 add_subdirectory(nozzle_inventory)
 add_subdirectory(libslic3r_utils)
+add_subdirectory(gpu_geometry)
 
 # These suites were not kept in sync with libslic3r after the fork and no longer compile.
 # They are left out of the default build; build a target explicitly to work on reviving it.
