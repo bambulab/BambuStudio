@@ -73,7 +73,7 @@ namespace FilamentGroupUtils
     std::vector<int> calc_max_group_size(const std::vector<std::map<int, int>>& ams_counts, bool ignore_ext_filament) {
         // add default value to 2
         std::vector<int>group_size(2, 0);
-        for (size_t idx = 0; idx < ams_counts.size(); ++idx) {
+        for (size_t idx = 0; idx < std::min(ams_counts.size(), group_size.size()); ++idx) {
             const auto& ams_count = ams_counts[idx];
             for (auto iter = ams_count.begin(); iter != ams_count.end(); ++iter) {
                 group_size[idx] += iter->first * iter->second;
@@ -105,7 +105,7 @@ namespace FilamentGroupUtils
         // change filament type to type format in preset
         // defualt size set to 2
         std::vector<std::vector<MachineFilamentInfo>> machine_filaments(2);
-        for (size_t idx = 0; idx < filament_configs.size(); ++idx) {
+        for (size_t idx = 0; idx < std::min(filament_configs.size(), machine_filaments.size()); ++idx) {
             auto& arr = filament_configs[idx];
             for (auto& item : arr) {
                 MachineFilamentInfo temp;
