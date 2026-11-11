@@ -46,7 +46,7 @@
 			"support_build_plate_marker_detect_type": 2,
 			"support_lidar_calibration": false,
 			"support_nozzle_offset_calibration": true,
-			"support_high_tempbed_calibration": true,
+			"support_high_tempbed_calibration": false,
 			"support_clump_position_calibration": false,
 			"support_nozzle_pos_to_nozzle_addr": true,
 			"support_multi_diameter_calibration": true,
