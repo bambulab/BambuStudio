@@ -1297,9 +1297,11 @@ void generate_initial_areas(
             const bool         min_xy_dist = config.xy_distance > xy_min_distance;
             const coord_t      collision_radius = config.getRadius(0) +
                 (min_xy_dist ? std::max(coord_t(0), xy_min_distance - config.xy_min_distance) : 0);
+            // min_xy_dist=false（xy <= 0.5*外墙线宽）时下层补插兜底已关闭（见下方 #if 0），
+            // 外扩量须与 true 时一致，否则陡斜面的窄悬垂找不到落点、整体丢支撑。
             const coord_t      extra_outset =
                 std::max(coord_t(0), config.min_radius - config.support_line_width / 2) +
-                (min_xy_dist ? config.support_line_width / 2 : 0);
+                config.support_line_width / 2;
 
             // take the least restrictive avoidance possible
             Polygons relevant_forbidden;
