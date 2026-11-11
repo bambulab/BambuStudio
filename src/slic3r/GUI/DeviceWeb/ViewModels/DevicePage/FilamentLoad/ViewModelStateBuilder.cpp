@@ -146,12 +146,6 @@ StepSnapshot current_step(MachineObject* obj)
                     obj->is_target_slot_unload() ? Schema::values::step_kind::unload :
                     Schema::values::step_kind::load;
 
-    if (obj->GetFilaSystem() && obj->GetFilaSystem()->GetCurrentFilamentChangeStep().has_value()) {
-        snapshot.current = obj->GetFilaSystem()->GetCurrentFilamentChangeStep().value();
-        snapshot.visible = snapshot.current != DevFilamentStep::STEP_IDLE && snapshot.current != DevFilamentStep::STEP_PAUSE;
-        return snapshot;
-    }
-
     const auto sub = obj->ams_status_sub;
     if (busy_for_vt_loading) {
         if (sub == 0x02) snapshot.current = DevFilamentStep::STEP_HEAT_NOZZLE;
