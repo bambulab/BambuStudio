@@ -70,7 +70,6 @@
     "ironing_flow": "24%",
     "ironing_spacing": "0.19",
     "ironing_speed": "40",
-    "line_width": "0.8",
     "monotonic_travel_into_wall": "45.0",
     "outer_wall_acceleration": [
         "4000",
@@ -111,6 +110,7 @@
     "prime_tower_brim_width": "-1",
     "prime_tower_feedrate_factor": "0.3",
     "prime_tower_line_ironing": "0",
+    "prime_tower_line_width": "0.8",
     "prime_tower_side_scrape": "1",
     "prime_tower_tail_slowdown_volume": "3",
     "prime_tower_tail_speed_factor": "50%",
