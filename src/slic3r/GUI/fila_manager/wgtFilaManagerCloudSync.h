@@ -46,7 +46,8 @@ public:
 
     void sync_slot_bindings_to_cloud(const std::string& dev_id,
                                      const std::vector<std::string>& spool_ids,
-                                     bool is_bind);
+                                     bool is_bind,
+                                     std::function<void()> on_done = nullptr);
 
     void push_all_now();
 

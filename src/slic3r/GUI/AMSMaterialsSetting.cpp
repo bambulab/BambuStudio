@@ -1231,6 +1231,9 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
         return;
     }
 
+    bool                         save_only_unbind = false;
+    std::optional<FilamentSpool> pending_create;
+
     if (!m_open_spool_id.empty()) {
         const bool rebinding_to_different_spool =
             !m_selected_spool_id.empty() && (m_selected_spool_id != m_open_spool_id);
@@ -1312,22 +1315,14 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
                         ? std::clamp<int>(static_cast<int>(std::lround(add_remain * 100.0 / add_total)), 0, 100)
                         : 100;
 
-                    const std::string new_id = store->add_spool(new_spool);
                     BOOST_LOG_TRIVIAL(info) << "add filament to library, initial_weight=" << add_total
                                             << " net_weight=" << add_remain;
 
-                    // Async cloud push — fires after this function returns
-                    if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
-                        FilamentSpool spool_for_push = new_spool;
-                        spool_for_push.spool_id = new_id;
-                        disp->enqueue_push_create(spool_for_push);
-                    }
-
-                    // Redirect existing force_mount_spool block to bind the new spool
-                    m_selected_spool_id = new_id;
+                    pending_create   = new_spool;
+                    save_only_unbind = true;
                 }
             } else if (result == FilaManagerPromptDialog::RESULT_SAVE_ONLY) {
-                //do nothing, filament in library will be unbinded automatically.
+                save_only_unbind = true;
             }
             }
         }
@@ -1502,33 +1497,100 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
         }
     }
 
+    // Resolve type, slot and AMS SN from the device-layer tray (external spools map to slot 0).
+    struct ResolvedSlot {
+        int         ams_type = -1;
+        std::string slot_id;
+        std::string ams_sn;
+    };
+    const auto resolve_slot = [this]() {
+        ResolvedSlot r;
+        r.slot_id = std::to_string(slot_id);
+        if (const auto tray_opt = obj->get_tray(ams_id, slot_id)) {
+            r.ams_type = static_cast<int>(tray_opt->ams_type);
+            r.slot_id  = std::to_string(tray_opt->get_ams_slot_id().second);
+        }
+        const auto ver_map = obj->get_ams_version();
+        if (auto vit = ver_map.find(ams_id); vit != ver_map.end())
+            r.ams_sn = vit->second.sn;
+        return r;
+    };
+
+    if (save_only_unbind) {
+        auto*                store = wxGetApp().fila_manager_store();
+        const FilamentSpool* sp    = store ? store->get_spool(m_open_spool_id) : nullptr;
+        if (sp && sp->in_printer && sp->dev_id == obj->get_dev_id()) {
+            if (auto* cloud = wxGetApp().fila_manager_cloud_sync())
+                cloud->sync_slot_bindings_to_cloud(obj->get_dev_id(), {m_open_spool_id}, /*is_bind=*/false);
+
+            FilamentSpool off    = *sp;
+            off.in_printer       = false;
+            off.dev_id.clear();
+            off.device_name.clear();
+            off.ams_sn.clear();
+            off.slot_id.clear();
+            off.ams_id           = -1;
+            off.ams_type         = -1;
+            off.mount_hold_count = 0;
+            store->update_spool(off);
+
+            BOOST_LOG_TRIVIAL(info) << "save only: unbind open_spool=" << m_open_spool_id;
+        }
+
+        // Add to Filament Library: create the new spool and bind it to this slot once the
+        // cloud list shows it (the create response carries no id).
+        if (pending_create) {
+            if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
+                const ResolvedSlot resolved = resolve_slot();
+                wgtFilaManagerCloudDispatcher::SlotBindTarget target;
+                target.dev_id   = obj->get_dev_id();
+                target.dev_name = obj->get_dev_name();
+                target.ams_id   = ams_id;
+                target.ams_type = resolved.ams_type;
+                target.slot_id  = resolved.slot_id;
+                target.ams_sn   = resolved.ams_sn;
+                disp->enqueue_create_and_bind(*pending_create, target);
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << "add to library: cloud dispatcher unavailable, new spool not created";
+            }
+        }
+    }
     // When the user picked a Filament Manager spool, immediately update its
     // in-printer snapshot without waiting for the next MQTT push_status.
-    if (!m_selected_spool_id.empty()) {
+    else if (!m_selected_spool_id.empty()) {
         auto* store = wxGetApp().fila_manager_store();
         if (store) {
-            int resolved_ams_type = -1;
-            if (auto* ams_obj = obj->GetFilaSystem()->GetAmsById(std::to_string(ams_id)))
-                resolved_ams_type = static_cast<int>(ams_obj->GetAmsType());
+            const ResolvedSlot resolved          = resolve_slot();
+            const int          resolved_ams_type = resolved.ams_type;
+            const std::string& resolved_slot_id  = resolved.slot_id;
+            const std::string& resolved_ams_sn   = resolved.ams_sn;
 
-            std::string resolved_ams_sn;
-            const auto ver_map = obj->get_ams_version();
-            auto vit = ver_map.find(ams_id);
-            if (vit != ver_map.end())
-                resolved_ams_sn = vit->second.sn;
+            const std::string dev_id    = obj->get_dev_id();
+            const std::string new_id    = m_selected_spool_id;
+            const std::string old_id    = m_open_spool_id;
+            const bool        replacing = !old_id.empty() && old_id != new_id;
 
-            if (store->force_mount_spool(m_selected_spool_id,
-                                         obj->get_dev_id(),
+            auto* cloud    = wxGetApp().fila_manager_cloud_sync();
+            auto  bind_new = [dev_id, new_id]() {
+                if (auto* c = wxGetApp().fila_manager_cloud_sync())
+                    c->sync_slot_bindings_to_cloud(dev_id, {new_id}, /*is_bind=*/true);
+            };
+
+            if (replacing && cloud && store->get_spool(new_id)) {
+                BOOST_LOG_TRIVIAL(info) << "rebind spool: unbind old_spool=" << old_id
+                                        << " then bind new_spool=" << new_id;
+                cloud->sync_slot_bindings_to_cloud(dev_id, {old_id}, /*is_bind=*/false, bind_new);
+            }
+
+            if (store->force_mount_spool(new_id,
+                                         dev_id,
                                          obj->get_dev_name(),
                                          ams_id,
                                          resolved_ams_type,
-                                         std::to_string(slot_id),
+                                         resolved_slot_id,
                                          resolved_ams_sn)) {
-                if (auto* cloud = wxGetApp().fila_manager_cloud_sync()) {
-                    cloud->sync_slot_bindings_to_cloud(obj->get_dev_id(),
-                                                       {m_selected_spool_id},
-                                                       /*is_bind=*/true);
-                }
+                if (!replacing && cloud)
+                    bind_new();
                 FilamentSelectDialog::remember_recent_spool(
                     wxString::FromUTF8(m_selected_spool_id));
             }
@@ -2303,12 +2365,10 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         if (store) {
             sp = store->find_by_slot(obj->get_dev_id(),
                                      std::to_string(ams_id),
-                                     std::to_string(slot_id));
+                                     std::to_string(tray_opt->get_ams_slot_id().second));
         }
         if (!sp && store && !tray_opt->uuid.empty())
             sp = store->find_by_tag_uid(tray_opt->uuid);
-        if (!sp && store && !tray_opt->setting_id.empty())
-            sp = store->find_by_setting_and_color(tray_opt->setting_id, tray_opt->color);
         if (sp) {
             init_spool_id    = sp->spool_id;
             init_display_text = spool_display_name(*sp);

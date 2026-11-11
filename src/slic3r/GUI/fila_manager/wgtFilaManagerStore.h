@@ -114,6 +114,8 @@ struct FilamentSpool {
     nlohmann::json to_json_with_runtime() const;
     static FilamentSpool from_json(const nlohmann::json& j);
 
+    void normalize_ext_spool_mount();
+
     static bool is_valid_tag_uid(const std::string& tag_uid);
 
     double effective_total_net_weight() const
@@ -142,8 +144,6 @@ public:
     bool mark_synced(const std::string& spool_id, bool synced);
 
     const FilamentSpool* find_by_tag_uid(const std::string& tag_uid) const;
-    const FilamentSpool* find_by_setting_and_color(
-        const std::string& setting_id, const std::string& color) const;
 
     const FilamentSpool* find_by_slot(const std::string& dev_id,
                                       const std::string& ams_id,

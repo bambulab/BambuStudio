@@ -271,6 +271,7 @@ FilamentSpool wgtFilaManagerCloudSync::cloud_json_to_spool(const nlohmann::json&
     s.ams_type    = num_i_any({"amsType",  "ams_type"}, -1);
     s.slot_id     = str_any({"slotId",     "slot_id"});
     s.device_name = str_any({"deviceName", "device_name"});
+    s.normalize_ext_spool_mount();
 
     return s;
 }
@@ -775,6 +776,30 @@ const char* device_state_label(AmsAutoPushThrottle::DeviceState s)
     return s == AmsAutoPushThrottle::DeviceState::Busy ? "busy" : "idle";
 }
 
+// External spools have no AMS module, so their amsSn is always empty; slot-mappings accepts that.
+bool is_ext_spool_type(int ams_type)
+{
+    return ams_type == static_cast<int>(DevAmsType::EXT_SPOOL);
+}
+
+void fill_ext_spool_slot(BBL::SlotMappingItem& item, int ams_id, const std::string& slot_id)
+{
+    item.amsSn   = "";
+    item.amsId   = -1;
+    item.amsType = -1;
+    item.slotId  = ams_id >= 0 ? std::to_string(ams_id) : slot_id;
+}
+
+// Network plugin omits spoolId when it is -1 (0 is still sent as null).
+constexpr int kSlotMappingSpoolIdOmit = -1;
+
+// External spool unbind: the mapping carries only amsSn="" and slotId=<virtual tray id>.
+void mark_ext_spool_unbind(BBL::SlotMappingItem& item)
+{
+    item.spoolId = kSlotMappingSpoolIdOmit;
+    item.rfid.clear();
+}
+
 } // namespace
 
 void wgtFilaManagerCloudSync::notify_ams_synced(
@@ -1070,19 +1095,23 @@ void wgtFilaManagerCloudSync::sync_slot_mappings_to_cloud(
         item.amsId   = snap.ams_id   >= 0 ? snap.ams_id   : 0;
         item.amsType = snap.ams_type >= 0 ? snap.ams_type : 0;
 
-        if (item.amsSn.empty()) {
+        const bool is_ext = is_ext_spool_type(snap.ams_type);
+        if (is_ext) {
+            fill_ext_spool_slot(item, snap.ams_id, snap.slot_id);
+            mark_ext_spool_unbind(item);
+        } else if (item.amsSn.empty()) {
             BOOST_LOG_TRIVIAL(info)
                 << "[FilaCloudSync] sync_slot_mappings_to_cloud: skip spool=" << snap.spool_id
                 << " reason=amsSn_empty";
             continue;
         }
 
-        params.mappings.push_back(std::move(item));
-
         BOOST_LOG_TRIVIAL(info)
             << "[FilaCloudSync] sync_slot_mappings_to_cloud: unplug spool="
-            << snap.spool_id << " amsSn=" << snap.ams_sn
-            << " slotId=" << snap.slot_id;
+            << snap.spool_id << " amsSn=" << item.amsSn
+            << " slotId=" << item.slotId << " ext=" << (is_ext ? 1 : 0);
+
+        params.mappings.push_back(std::move(item));
     }
 
     if (params.mappings.empty()) {
@@ -1103,9 +1132,17 @@ void wgtFilaManagerCloudSync::sync_slot_mappings_to_cloud(
 void wgtFilaManagerCloudSync::sync_slot_bindings_to_cloud(
     const std::string&              dev_id,
     const std::vector<std::string>& spool_ids,
-    bool                            is_bind)
+    bool                            is_bind,
+    std::function<void()>           on_done)
 {
-    if (spool_ids.empty() || !m_client) return;
+    auto finish = [on_done]() {
+        if (on_done) wxGetApp().CallAfter(on_done);
+    };
+
+    if (spool_ids.empty() || !m_client) {
+        finish();
+        return;
+    }
 
     BBL::SlotMappingsSyncParams params;
     params.devId = dev_id;
@@ -1126,7 +1163,10 @@ void wgtFilaManagerCloudSync::sync_slot_bindings_to_cloud(
         item.amsId   = s->ams_id   >= 0 ? s->ams_id   : 0;
         item.amsType = s->ams_type >= 0 ? s->ams_type : 0;
 
-        if (item.amsSn.empty()) {
+        const bool is_ext = is_ext_spool_type(s->ams_type);
+        if (is_ext) {
+            fill_ext_spool_slot(item, s->ams_id, s->slot_id);
+        } else if (item.amsSn.empty()) {
             BOOST_LOG_TRIVIAL(info)
                 << "[FilaCloudSync] sync_slot_bindings_to_cloud: skip sid=" << sid
                 << " reason=amsSn_empty";
@@ -1152,33 +1192,44 @@ void wgtFilaManagerCloudSync::sync_slot_bindings_to_cloud(
                 continue;
             }
             // rfid 只在 spool 有有效 tag_uid 时填（官方 RFID 录入后 tag_uid 非空非零）。
-            if (FilamentSpool::is_valid_tag_uid(s->tag_uid))
+            if (FilamentSpool::is_valid_tag_uid(s->tag_uid)) {
                 item.rfid = s->tag_uid;
+                if (is_ext)
+                    item.spoolId = kSlotMappingSpoolIdOmit;
+            }
 
             BOOST_LOG_TRIVIAL(info)
                 << "[FilaCloudSync] sync_slot_bindings_to_cloud: bind spool_id=" << sid
                 << " spoolId=" << item.spoolId
                 << " amsSn=" << item.amsSn
-                << " slotId=" << item.slotId;
+                << " slotId=" << item.slotId << " ext=" << (is_ext ? 1 : 0);
         } else {
             // is_bind=false：spoolId=0, rfid="" → 云端解读为解绑
+            // 外挂料解绑只带 amsSn="" + slotId，spoolId 置 -1 由插件省略
+            if (is_ext)
+                mark_ext_spool_unbind(item);
             BOOST_LOG_TRIVIAL(info)
                 << "[FilaCloudSync] sync_slot_bindings_to_cloud: unbind spool_id=" << sid
                 << " amsSn=" << item.amsSn
-                << " slotId=" << item.slotId;
+                << " slotId=" << item.slotId << " ext=" << (is_ext ? 1 : 0);
         }
 
         params.mappings.push_back(std::move(item));
     }
 
-    if (params.mappings.empty()) return;
+    if (params.mappings.empty()) {
+        finish();
+        return;
+    }
 
     m_client->sync_slot_mappings(std::move(params),
-        [](const nlohmann::json&) {},
-        [dev_id](int code, const std::string& msg) {
+        [finish](const nlohmann::json&) { finish(); },
+        [dev_id, finish](int code, const std::string& msg) {
             BOOST_LOG_TRIVIAL(warning)
                 << "[FilaCloudSync] sync_slot_bindings_to_cloud failed: dev=" << dev_id
                 << " code=" << code << " msg=" << msg;
+            // Still continue the chain so a failed unbind does not drop the follow-up bind.
+            finish();
         });
 }
 
