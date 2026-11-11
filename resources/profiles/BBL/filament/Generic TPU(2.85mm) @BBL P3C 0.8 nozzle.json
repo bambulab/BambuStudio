@@ -18,11 +18,9 @@
         "35"
     ],
     "filament_adaptive_volumetric_speed": [
-        "0",
         "0"
     ],
     "filament_bridge_speed": [
-        "70",
         "70"
     ],
     "filament_change_length": [
@@ -32,54 +30,33 @@
         "0"
     ],
     "filament_deretraction_speed": [
-        "30",
         "30"
-    ],
-    "filament_dev_ams_drying_temperature": [
-        "65",
-        "75",
-        "45",
-        "45"
-    ],
-    "filament_dev_ams_drying_time": [
-        "12",
-        "18",
-        "12",
-        "18"
     ],
     "filament_diameter": [
         "2.85"
     ],
     "filament_extruder_variant": [
-        "Direct Drive TPU285",
         "Direct Drive TPU285"
     ],
     "filament_flow_ratio": [
-        "1",
         "1"
     ],
     "filament_max_volumetric_speed": [
-        "10",
         "10"
     ],
     "filament_overhang_3_4_speed": [
-        "50",
         "50"
     ],
     "filament_overhang_4_4_speed": [
-        "50",
         "50"
     ],
     "filament_overhang_totally_speed": [
-        "70",
         "70"
     ],
     "filament_pre_cooling_temperature": [
-        "195",
         "195"
     ],
     "filament_pre_cooling_temperature_nc": [
-        "195",
         "195"
     ],
     "filament_prime_tower_speed_factor_curve": [
@@ -89,31 +66,24 @@
         "70"
     ],
     "filament_ramming_travel_time": [
-        "20",
         "20"
     ],
     "filament_ramming_travel_time_nc": [
-        "20",
         "20"
     ],
     "filament_ramming_volumetric_speed": [
-        "0.7",
         "0.7"
     ],
     "filament_retraction_length": [
-        "0.4",
         "0.4"
     ],
     "filament_retraction_speed": [
-        "5",
         "5"
     ],
     "filament_wipe": [
-        "1",
         "1"
     ],
     "filament_z_hop_types": [
-        "Spiral Lift",
         "Spiral Lift"
     ],
     "fins_extrude_safe_temp": [
@@ -127,15 +97,12 @@
         "fdm_filament_template_h3c"
     ],
     "long_retractions_when_ec": [
-        "0",
         "0"
     ],
     "nozzle_temperature": [
-        "230",
         "230"
     ],
     "nozzle_temperature_initial_layer": [
-        "230",
         "230"
     ],
     "optional_cooling_fan_speed": [
@@ -145,7 +112,6 @@
         "0"
     ],
     "override_process_overhang_speed": [
-        "1",
         "1"
     ],
     "pre_start_fan_time": [
@@ -155,11 +121,9 @@
         "14"
     ],
     "slow_down_min_speed": [
-        "30",
         "30"
     ],
     "volumetric_speed_coefficients": [
-        "-72.1736 -8.8086 10.6201 29.6592 9.9286 -3.3920",
         "-72.1736 -8.8086 10.6201 29.6592 9.9286 -3.3920"
     ],
     "compatible_printers": [
