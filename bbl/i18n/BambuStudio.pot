@@ -11112,6 +11112,9 @@ msgstr ""
 msgid "TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."
 msgstr ""
 
+msgid "Filament not loaded. Loading will start automatically before printing."
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""

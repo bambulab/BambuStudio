@@ -247,6 +247,7 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusRackAmsMixExtAmsWarning: return "PrintStatusRackAmsMixExtAmsWarning";
     case PrintStatusFilamentWarningHotendLowTempResidue: return "PrintStatusFilamentWarningHotendLowTempResidue";
     case PrintStatusTpuSlipOnToolChangeWarning: return "PrintStatusTpuSlipOnToolChangeWarning";
+    case PrintStatusN11AmsSlotNotLoadedWarning: return "PrintStatusN11AmsSlotNotLoadedWarning";
     case PrintStatusReadingFinished: return "PrintStatusReadingFinished";
     case PrintStatusSendingCanceled: return "PrintStatusSendingCanceled";
     case PrintStatusAmsMappingSuccess: return "PrintStatusAmsMappingSuccess";
@@ -298,6 +299,7 @@ wxString PrePrintChecker::get_pre_state_msg(PrintDialogStatus status)
                   "You can download the file and import it into Studio to print.");
     case PrintStatusHasUnreliableNozzleWarning: return _L("Please check if the required nozzle diameter and flow rate match the current display.");
     case PrintStatusBigFlushWarning: return _L("Current printer firmware does not yet support large flushing volumes. The flushing volume set in the slicer may be limited.");
+    case PrintStatusN11AmsSlotNotLoadedWarning: return _L("Filament not loaded. Loading will start automatically before printing.");
     case PrintStatusColorQuantityExceed: return _L("The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support.");
     }
     return wxEmptyString;

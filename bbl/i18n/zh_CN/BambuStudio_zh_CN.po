@@ -11370,6 +11370,9 @@ msgstr "同时选择了%2$d号打印头上的外接AMS和%1$s的耗材。因%3$s
 msgid "TPU in slot %d may slip out during PrintTool change. Move it to another slot and retry."
 msgstr "本次打印涉及换头，%d号槽的TPU可能从打印头脱出，建议放到其他槽位后重新发起。"
 
+msgid "Filament not loaded. Loading will start automatically before printing."
+msgstr "耗材尚未进料，发起打印后会先进行进料流程。"
+
 #, c-format, boost-format
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "在热端 %s 中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"

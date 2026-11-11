@@ -555,6 +555,10 @@ public:
     // tools. The tool index comes from the printer config. Returns true if no warning.
     bool CheckWarningTpuSlipOnToolChange(MachineObject* obj_, wxString& warning_msg);
 
+    // N11 with built-in AMS (ZMULTI_A / ZMULTI_B): a mapped filament in the N11 AMS
+    // is not yet loaded to the hotend. Returns true if no warning; otherwise fills warning_msg.
+    bool CheckWarningN11AmsSlotNotLoaded(MachineObject* obj_, wxString& warning_msg);
+
     // High-temp print with low-temp residue in used hotends (except the first
     // mapped physical nozzle). Returns true if no warning; otherwise fills warning_msg.
     bool CheckWarningHotendLowTempResidue(MachineObject* obj_, wxString& warning_msg);
