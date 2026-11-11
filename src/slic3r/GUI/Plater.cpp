@@ -28,6 +28,9 @@
 #include <functional>
 #include <fstream>
 #include <chrono>
+#include <atomic>
+#include <mutex>
+#include <condition_variable>
 #include <iomanip>
 #include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
@@ -11641,9 +11644,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     const auto loading = _L("Loading") + dots;
     ProgressDialog dlg(loading, "", 100, find_toplevel_parent(q), wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
-    // Loading blocks the main thread; yield so the Cancel click gets processed.
+    // ProgressDialog::Yield() no-ops by default on Windows (see m_need_yield in
+    // ProgressDialog.hpp); without this, every dlg.Update() call below is a pure no-op as far
+    // as the event loop is concerned, and the window stays frozen for the whole parse no matter
+    // how often the worker thread reports progress.
     dlg.EnableYield(true);
-    wxBusyCursor busy;
+    // No wxBusyCursor here, deliberately (don't restore it on a future rebase): with
+    // EnableYield(true) the window stays responsive, so a busy cursor would actually render now
+    // -- next to a draggable window with a working Cancel, that reads as frozen, not as working.
 
     auto *new_model = (!load_model || one_by_one) ? nullptr : new Slic3r::Model();
     std::vector<size_t> obj_idxs;
@@ -11783,20 +11791,63 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     std::vector<Preset *>     project_presets;
                     // BBS: backup & restore
                     q->skip_thumbnail_invalid = true;
-                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets,
-                                                             &file_version,
-                                                             [this, &dlg, real_filename, &progress_percent, &file_percent, stage_percent, input_files_ratio, total_files, i,
-                                                              &is_user_cancel](int import_stage, int current, int total, bool &cancel) {
-                                                                 bool     cont = true;
-                                                                 float percent_float = (100.0f * (float)i / (float)total_files) + input_files_ratio * ((float)stage_percent[import_stage] + (float)current * (float)(stage_percent[import_stage + 1] - stage_percent[import_stage]) /(float) total) / (float)total_files;
-                                                                 BOOST_LOG_TRIVIAL(trace) << "load_3mf_file: percent(float)=" << percent_float << ", stage = " << import_stage << ", curr = " << current << ", total = " << total;
-                                                                 progress_percent = (int)percent_float;
-                                                                 wxString msg  = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
-                                                                 cont          = dlg.Update(progress_percent, msg);
-                                                                 cancel        = !cont;
-                                                                 if (cancel)
-                                                                     is_user_cancel = cancel;
-                                                             }, nullptr, &color_group_map, &volume_color_data, &has_3mf_textures, &has_file_unit);
+                    // Model::read_from_archive() (zip extraction + XML SAX parsing) is pure CPU
+                    // work with no UI/wx dependency, so it runs on a worker thread while this
+                    // thread waits and keeps calling dlg.Update(), which is what actually yields
+                    // to the event loop; without that, the whole window freezes until parsing
+                    // finishes (same pattern as Step::mesh() in STEP.cpp).
+                    //
+                    // The wait uses a condition variable (with a 100ms timeout, so it still comes
+                    // up for air to pump the event loop on a long parse) rather than a fixed
+                    // sleep_for(100ms)-then-check poll: with a plain poll, a file whose parse
+                    // finishes anywhere in that 100ms window still isn't noticed until the sleep
+                    // elapses, so a batch of many small files (a common drag-and-drop case) pays
+                    // that ~100ms tax per file, serialized -- real, additive latency on top of
+                    // parses that may only take a few ms each.
+                    std::mutex read_archive_mutex;
+                    std::condition_variable read_archive_cv;
+                    bool read_archive_done = false; // guarded by read_archive_mutex
+                    std::atomic<bool> read_archive_cancel{false};
+                    std::atomic<float> read_archive_percent{(float) progress_percent};
+                    std::exception_ptr read_archive_exception;
+                    auto read_archive_task = Slic3r::create_thread([&]() {
+                        try {
+                            model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets,
+                                                                     &file_version,
+                                                                     [&read_archive_cancel, &read_archive_percent, i, total_files, stage_percent, input_files_ratio]
+                                                                     (int import_stage, int current, int total, bool &cancel) {
+                                                                         float percent_float = (100.0f * (float) i / (float) total_files) +
+                                                                             input_files_ratio * ((float) stage_percent[import_stage] + (float) current * (float) (stage_percent[import_stage + 1] - stage_percent[import_stage]) / (float) total) / (float) total_files;
+                                                                         read_archive_percent.store(percent_float);
+                                                                         cancel = read_archive_cancel.load();
+                                                                     }, nullptr, &color_group_map, &volume_color_data, &has_3mf_textures, &has_file_unit);
+                        } catch (...) {
+                            read_archive_exception = std::current_exception();
+                        }
+                        {
+                            std::lock_guard<std::mutex> lock(read_archive_mutex);
+                            read_archive_done = true;
+                        }
+                        read_archive_cv.notify_one();
+                    });
+                    {
+                        std::unique_lock<std::mutex> lock(read_archive_mutex);
+                        while (!read_archive_cv.wait_for(lock, std::chrono::milliseconds(100), [&] { return read_archive_done; })) {
+                            lock.unlock();
+                            progress_percent = (int) read_archive_percent.load();
+                            wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
+                            bool cont = dlg.Update(progress_percent, msg);
+                            if (!cont) {
+                                read_archive_cancel.store(true);
+                                is_user_cancel = true;
+                            }
+                            lock.lock();
+                        }
+                    }
+                    if (read_archive_task.joinable())
+                        read_archive_task.join();
+                    if (read_archive_exception)
+                        std::rethrow_exception(read_archive_exception);
                     if (const auto *mode = config_loaded.option<ConfigOptionBool>("multi_nozzle_diameter_mode"))
                         loaded_multi_nozzle_diameter_mode = mode->value;
                     const ConfigOption *selected_diameters =
@@ -12441,26 +12492,70 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (boost::algorithm::iends_with(path.string(), ".obj")) {
                         is_xxx = GUI::wxGetApp().app_config->get_bool("gamma_correct_in_import_obj");
                     }
-                    model = Slic3r::Model:: read_from_file(
-                    path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets, &is_xxx, &file_version, nullptr,
-                    [this, &dlg, real_filename, &progress_percent, &file_percent, input_files_ratio, total_files, i, &designer_model_id, &designer_country_code, &makerlab_region, &makerlab_name, &makerlab_id](int current, int total, bool &cancel,
-                        std::string &mode_id, std::string &code, std::string &ml_region,  std::string &ml_name, std::string &ml_id)
-                    {
-                            designer_model_id       = mode_id;
-                            designer_country_code   = code;
-                            makerlab_region         = ml_region;
-                            makerlab_name           = ml_name;
-                            makerlab_id             = ml_id;
 
-                            bool     cont = true;
-                            float percent_float = (100.0f * (float)i / (float)total_files) + input_files_ratio * 100.0f * ((float)current / (float)total) / (float)total_files;
-                            BOOST_LOG_TRIVIAL(trace) << "load_stl_file: percent(float)=" << percent_float << ", curr = " << current << ", total = " << total;
-                            progress_percent = (int)percent_float;
-                            wxString msg  = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
-                            cont          = dlg.Update(progress_percent, msg);
-                            cancel        = !cont;
-                    },
-                    nullptr, 0, &has_file_unit);
+                    // Model::read_from_file() covers STL/OBJ/AMF/GLB/GLTF/FBX. Only the STL
+                    // path reports progress (and only at 5 coarse checkpoints); OBJ/AMF/Assimp
+                    // never call back at all. Run the parse on a worker thread and wait from
+                    // here so dlg.Update()/Yield() keeps firing regardless of format, instead
+                    // of relying on each parser's own (missing or coarse) progress callback.
+                    //
+                    // See read_archive_task's comment above for why this waits on a condition
+                    // variable (with a 100ms timeout) instead of a fixed sleep_for(100ms)-then-
+                    // check poll: the fixed poll pays a ~100ms tax per file regardless of how
+                    // fast the parse actually is, which adds up fast over a batch of many files.
+                    std::mutex read_file_mutex;
+                    std::condition_variable read_file_cv;
+                    bool read_file_done = false; // guarded by read_file_mutex
+                    std::atomic<bool> read_file_cancel{false};
+                    std::atomic<float> read_file_percent{(float) progress_percent};
+                    std::exception_ptr read_file_exception;
+                    auto read_file_task = Slic3r::create_thread([&]() {
+                        try {
+                            model = Slic3r::Model::read_from_file(
+                                path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets, &is_xxx, &file_version, nullptr,
+                                [&read_file_cancel, &read_file_percent, &designer_model_id, &designer_country_code, &makerlab_region,
+                                 &makerlab_name, &makerlab_id, input_files_ratio, total_files, i]
+                                (int current, int total, bool &cancel, std::string &mode_id, std::string &code,
+                                 std::string &ml_region, std::string &ml_name, std::string &ml_id) {
+                                    designer_model_id     = mode_id;
+                                    designer_country_code = code;
+                                    makerlab_region        = ml_region;
+                                    makerlab_name          = ml_name;
+                                    makerlab_id            = ml_id;
+
+                                    float percent_float = (100.0f * (float) i / (float) total_files) +
+                                        input_files_ratio * 100.0f * ((float) current / (float) total) / (float) total_files;
+                                    read_file_percent.store(percent_float);
+                                    cancel = read_file_cancel.load();
+                                },
+                                nullptr, 0, &has_file_unit);
+                        } catch (...) {
+                            read_file_exception = std::current_exception();
+                        }
+                        {
+                            std::lock_guard<std::mutex> lock(read_file_mutex);
+                            read_file_done = true;
+                        }
+                        read_file_cv.notify_one();
+                    });
+                    {
+                        std::unique_lock<std::mutex> lock(read_file_mutex);
+                        while (!read_file_cv.wait_for(lock, std::chrono::milliseconds(100), [&] { return read_file_done; })) {
+                            lock.unlock();
+                            progress_percent = (int) read_file_percent.load();
+                            wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
+                            bool cont = dlg.Update(progress_percent, msg);
+                            if (!cont) {
+                                read_file_cancel.store(true);
+                                is_user_cancel = true;
+                            }
+                            lock.lock();
+                        }
+                    }
+                    if (read_file_task.joinable())
+                        read_file_task.join();
+                    if (read_file_exception)
+                        std::rethrow_exception(read_file_exception);
                 }
 
                 if (designer_model_id.empty() && boost::algorithm::iends_with(path.string(), ".stl")) {

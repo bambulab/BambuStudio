@@ -8,6 +8,7 @@
 #include <string>
 #include <algorithm>
 #include <map>
+#include <exception>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -598,17 +599,32 @@ void Step::update_process(int load_stage, int current, int total, bool& cancel)
 
 Step::Step_Status Step::load()
 {
-    if (!StepPreProcessor::isUtf8File(m_path.c_str()) && m_utf8Fn) {
-        m_utf8Fn(false);
-        return Step_Status::LOAD_ERROR;
-    }
     std::atomic<bool> stop_load_flag = false;
     Handle(StepProgressIncdicator) incdicator = new StepProgressIncdicator(stop_load_flag);
     bool task_result = false;
     bool cb_cancel = false;
     int progress = 0;
     bool load_result = false;
+    bool is_utf8 = true;
+    std::exception_ptr load_exception;
     auto task = new boost::thread(Slic3r::create_thread([&]() -> void {
+        // isUtf8File() streams the whole file line by line; on a large STEP file this alone
+        // can take seconds. It used to run on the calling (UI) thread before this background
+        // thread was even started, so the UI never got a chance to yield during the scan.
+        try {
+            is_utf8 = StepPreProcessor::isUtf8File(m_path.c_str());
+        } catch (...) {
+            load_exception = std::current_exception();
+            task_result = true;
+            return;
+        }
+        // Preserve the original behavior: only bail out early when there is actually a
+        // callback to report the encoding to; otherwise keep loading regardless of is_utf8
+        // (m_utf8Fn is often null, in which case a non-UTF8 file must still be attempted).
+        if (!is_utf8 && m_utf8Fn) {
+            task_result = true;
+            return;
+        }
 
         // Transferred geometry is in cascade units. Force millimeters so a
         // successful load is already in mm and the volume heuristic must not run.
@@ -659,6 +675,12 @@ Step::Step_Status Step::load()
             task->join();
             delete task;
         }
+    }
+    if (load_exception)
+        std::rethrow_exception(load_exception);
+    if (!is_utf8 && m_utf8Fn) {
+        m_utf8Fn(false);
+        return Step_Status::LOAD_ERROR;
     }
     if (load_result) {
         return Step_Status::LOAD_SUCCESS;
@@ -866,10 +888,11 @@ Step::Step_Status Step::mesh(Model* model,
                 int meshed_solid = meshed_solid_num.load();
                 update_process(LOAD_STEP_STAGE_GET_SOLID, static_cast<int>((float)meshed_solid / namedSolids.size() * 10) + 10, 20, cb_cancel);
             } else {
-                if (progress > 0) {
-                    // first progress
-                    update_process(LOAD_STEP_STAGE_GET_SOLID, static_cast<int>(progress * 10), 20, cb_cancel);
-                }
+                // first progress; also fires at progress == 0 so a single-top-level-shape
+                // file (or one with a deeply nested assembly) still yields to the UI while
+                // getNamedSolids() recurses, instead of leaving this branch silent until the
+                // first shape finishes.
+                update_process(LOAD_STEP_STAGE_GET_SOLID, static_cast<int>(progress * 10), 20, cb_cancel);
             }
         }
 
