@@ -1702,10 +1702,17 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             default_support_nozzle :
             nozzle_diameter_for_filament(m_config, support_filament);
         const MultiNozzleSupportCombo combo = multi_nozzle_support_combo(m_full_print_config, config, model_object);
-        config.support_top_z_distance.value = combo.zero_top ? 0. : multi_nozzle_support_top_z_distance(
-            m_full_print_config, nozzle_diameter, config.support_top_z_distance.value);
-        config.support_bottom_z_distance.value = combo.zero_bottom ? 0. : multi_nozzle_support_bottom_z_distance(
-            m_full_print_config, nozzle_diameter, config.support_bottom_z_distance.value);
+        // Like the other multi-diameter options, an object override does not apply: the project value is the
+        // user's gap, and only auto follows the combination and nozzle.
+        auto tune_gap = [&](ConfigOptionFloat &gap, const char *opt_key, bool zero,
+                            double (*auto_gap)(const ConfigBase &, double, double)) {
+            if (const double user_gap = project_support_z_distance(m_full_print_config, opt_key); user_gap >= 0.)
+                gap.value = user_gap;
+            else
+                gap.value = zero ? 0. : auto_gap(m_full_print_config, nozzle_diameter, gap.value);
+        };
+        tune_gap(config.support_top_z_distance, "support_top_z_distance", combo.zero_top, multi_nozzle_support_top_z_distance);
+        tune_gap(config.support_bottom_z_distance, "support_bottom_z_distance", combo.zero_bottom, multi_nozzle_support_bottom_z_distance);
     };
     // The support combination also depends on the filament properties, the volume filaments and the printer model,
     // so the tuning is redone on every apply in multi-diameter mode. An unchanged result diffs empty and
@@ -2331,6 +2338,17 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 update_apply_status(object->invalidate_state_by_config_options(object->config(), tuned_config, diff));
                 object->config_apply_only(tuned_config, diff, true);
             }
+        }
+    }
+    // Whether the support generators keep the top gap instead of following the overhang nozzle. Switching between
+    // a user gap and auto can keep the same value (0.2 both ways) yet change how the tree support splits the gap
+    // per overhang nozzle, so a flip regenerates the support on its own.
+    const bool support_top_z_fixed = multi_diameter_mode &&
+        project_support_z_distance(m_full_print_config, "support_top_z_distance") >= 0.;
+    for (PrintObject *object : m_objects) {
+        if (support_top_z_fixed != object->m_support_top_z_fixed) {
+            update_apply_status(object->invalidate_step(posSupportMaterial));
+            object->m_support_top_z_fixed = support_top_z_fixed;
         }
     }
 

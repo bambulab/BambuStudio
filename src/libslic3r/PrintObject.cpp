@@ -6238,7 +6238,8 @@ void PrintObject::warn_uncovered_overhangs()
                 double(nozzle_diameter_for_filament(print_config, config.solid_infill_filament.value))});
         }
         if (max_nozzle > EPSILON) {
-            if (search_top_z > EPSILON)
+            // A gap the user set is the one the support keeps, see TreeSupport::init_top_z_by_nozzle().
+            if (search_top_z > EPSILON && ! this->support_top_z_fixed())
                 search_top_z = support_top_z_for_nozzle(max_nozzle);
             const AdaptiveLayerHeightRange height_range = adaptive_layer_height_range(max_nozzle);
             search_max_layer_height = height_range.max_height;

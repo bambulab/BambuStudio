@@ -164,7 +164,7 @@ static bool is_dissimilar_or_support_interface_filament(int interface_filament_i
 }
 
 // Zero-gap support interface that uses a dissimilar / support / soluble material as the contact surface.
-static bool is_zero_gap_dissimilar_support_interface(const DynamicPrintConfig &config)
+static bool is_zero_gap_dissimilar_support_interface(const DynamicPrintConfig &config, std::optional<double> top_z_distance)
 {
     if (!config.has("enable_support") || !config.has("support_top_z_distance") ||
         !config.has("support_interface_filament") || !config.has("enforce_support_layers"))
@@ -174,7 +174,7 @@ static bool is_zero_gap_dissimilar_support_interface(const DynamicPrintConfig &c
         config.opt_bool("enable_support") || config.opt_int("enforce_support_layers") > 0;
     if (!support_enabled)
         return false;
-    if (!is_zero_gap_distance(config.opt_float("support_top_z_distance")))
+    if (!is_zero_gap_distance(top_z_distance ? *top_z_distance : config.opt_float("support_top_z_distance")))
         return false;
 
     const int interface_filament_id = config.opt_int("support_interface_filament") - 1;
@@ -189,16 +189,17 @@ void append_disable_thick_bridges_if_needed(DynamicPrintConfig &conf, const Dyna
         conf.set_key_value("thick_bridges", new ConfigOptionBool(false));
 }
 
-static bool should_suggest_disable_thick_bridges(const DynamicPrintConfig &config)
+static bool should_suggest_disable_thick_bridges(const DynamicPrintConfig &config, std::optional<double> top_z_distance)
 {
     return config.has("thick_bridges") && config.opt_bool("thick_bridges") &&
-           is_zero_gap_dissimilar_support_interface(config);
+           is_zero_gap_dissimilar_support_interface(config, top_z_distance);
 }
 
 // Show Suggestion dialog recommending thick_bridges = Off. Returns true if the dialog was shown.
-bool suggest_disable_thick_bridges_if_needed(DynamicPrintConfig *config, ConfigManipulation &config_manipulation)
+bool suggest_disable_thick_bridges_if_needed(DynamicPrintConfig *config, ConfigManipulation &config_manipulation,
+                                             std::optional<double> top_z_distance)
 {
-    if (!config || !should_suggest_disable_thick_bridges(*config))
+    if (!config || !should_suggest_disable_thick_bridges(*config, top_z_distance))
         return false;
 
     DynamicPrintConfig recommended_conf;

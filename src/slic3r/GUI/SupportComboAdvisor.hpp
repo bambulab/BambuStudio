@@ -14,6 +14,7 @@
 // need a config plus the global preset bundle / plater. The parts that actually write the
 // parameters back stay on Tab, where the per-scope state (presets, object overrides) lives.
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -124,7 +125,9 @@ wxString build_support_revert_dialog_text(SupportRevertLead lead, const DynamicP
 void append_disable_thick_bridges_if_needed(DynamicPrintConfig &conf, const DynamicPrintConfig &current);
 
 // Show Suggestion dialog recommending thick_bridges = Off. Returns true if the dialog was shown.
-bool suggest_disable_thick_bridges_if_needed(DynamicPrintConfig *config, ConfigManipulation &config_manipulation);
+// top_z_distance replaces the config's support_top_z_distance when the gap in force lives elsewhere.
+bool suggest_disable_thick_bridges_if_needed(DynamicPrintConfig *config, ConfigManipulation &config_manipulation,
+                                             std::optional<double> top_z_distance = std::nullopt);
 
 } // namespace GUI
 } // namespace Slic3r

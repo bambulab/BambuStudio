@@ -133,6 +133,7 @@ protected:
 
 
 using PageShp = std::shared_ptr<Page>;
+
 class Tab: public wxPanel
 {
 	//BBS: GUI refactor
@@ -474,6 +475,18 @@ public:
     // into a single recheck.
     static void schedule_support_interface_combo_recheck();
 
+protected:
+    // Applies a process-scope support recommendation to the preset, support z gaps included. On the global Print
+    // tab in multi-diameter mode those gaps are also copied to the project config, as project_gap when set.
+    void apply_support_recommendation(DynamicPrintConfig &conf, std::optional<double> project_gap = std::nullopt);
+    void on_project_config_changed();
+    // Support z gap this tab's scope slices with, -1 while multi-diameter auto still decides it.
+    double effective_support_z_distance(const std::string &opt_key) const;
+    // m_config with the support z gaps replaced by effective_support_z_distance(), for the combo baseline.
+    DynamicPrintConfig support_combo_current_values() const;
+
+public:
+
     // Restore the parameters listed in keys_conf to their "default", which depends on the scope
     // the tab edits: the selected preset's system value on the global Print tab, or an object
     // override pinned to that value / no override at all on an object tab. Only the key set of
@@ -563,6 +576,15 @@ public:
 	void		update() override;
 	void		clear_pages() override;
 	bool 		supports_printer_technology(const PrinterTechnology tech) const override { return tech == ptFFF; }
+
+	void		init_options_list() override;
+
+protected:
+	// Multi-diameter support z gaps live on the project config; their field already wrote the new value there.
+	void		on_value_change(const std::string &opt_key, const boost::any &value) override;
+	void		update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options) override;
+	// The project gaps stand in for the preset gaps while multi-diameter mode is on.
+	void		toggle_project_support_z_distance_lines();
 
 private:
 	ogStaticText*	m_recommended_thin_wall_thickness_description_line = nullptr;

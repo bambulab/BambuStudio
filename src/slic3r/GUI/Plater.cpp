@@ -2142,6 +2142,17 @@ void Sidebar::priv::restore_multi_nozzle_auto_process_edits()
     reload_print_tab_from_edited_preset();
 }
 
+void Sidebar::forget_stashed_process_edits(const std::vector<std::string> &keys)
+{
+    if (!p->m_process_auto_cache)
+        return;
+    std::vector<std::string> &stashed = p->m_process_auto_cache->keys;
+    for (const std::string &key : keys) {
+        stashed.erase(std::remove(stashed.begin(), stashed.end(), key), stashed.end());
+        p->m_process_auto_cache->values.erase(key);
+    }
+}
+
 
 // Hand a changed nozzle setup to the printer tab, which refreshes everything that follows the nozzles.
 static void notify_nozzles_changed()
@@ -24425,6 +24436,13 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_
     reset(transfer_preset_changes);
     replace_default_presets_for_new_project();
     wxGetApp().preset_bundle->nozzle_inventory.close_project();
+    // The support z gaps belong to the project like the process edits it drops: a new project starts on auto.
+    for (const char *opt_key : {"support_top_z_distance", "support_bottom_z_distance"})
+        wxGetApp().preset_bundle->project_config.set_key_value(project_support_z_distance_key(opt_key), new ConfigOptionFloat(-1));
+    if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) {
+        print_tab->reload_config();
+        print_tab->update_dirty();
+    }
     reset_project_dirty_after_save();
     reset_project_dirty_initial_presets();
     get_partplate_list().reset_thumbnail_assembly_view_data();

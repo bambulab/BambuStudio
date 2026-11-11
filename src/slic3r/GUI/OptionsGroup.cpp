@@ -1017,7 +1017,8 @@ boost::any ConfigOptionsGroup::config_value(const std::string& opt_key, int opt_
 	}
 	else {
 //		return opt_index == -1 ? m_config->get(opt_key) : m_config->get_at(opt_key, opt_index);
-		return get_config_value(*m_config, opt_key, opt_index);
+		const DynamicPrintConfig *redirect = m_redirect_config ? m_redirect_config(opt_key) : nullptr;
+		return get_config_value(redirect ? *redirect : *m_config, opt_key, opt_index);
 	}
 }
 
@@ -1378,6 +1379,10 @@ std::pair<OG_CustomCtrl*, bool*> ConfigOptionsGroup::get_custom_ctrl_with_blinki
 void ConfigOptionsGroup::change_opt_value(const t_config_option_key& opt_key, const boost::any& value, int opt_index /*= 0*/)
 
 {
+	if (DynamicPrintConfig *redirect = m_redirect_config ? m_redirect_config(opt_key) : nullptr) {
+		Slic3r::GUI::change_opt_value(*redirect, opt_key, value, opt_index);
+		return;
+	}
 	Slic3r::GUI::change_opt_value(const_cast<DynamicPrintConfig&>(*m_config), opt_key, value, opt_index);
 	if (m_modelconfig)
 		m_modelconfig->touch();

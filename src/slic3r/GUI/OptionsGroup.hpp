@@ -362,6 +362,10 @@ public:
 	Field*		get_fieldc(const t_config_option_key& opt_key, int opt_index);
 	std::pair<OG_CustomCtrl*, bool*>	get_custom_ctrl_with_blinking_ptr(const t_config_option_key& opt_key, int opt_index/* = -1*/);
 
+	// Optional per-option redirect: when it returns a config, that option is read from and written to it
+	// instead of m_config. nullptr keeps m_config.
+	std::function<DynamicPrintConfig*(const std::string &opt_key)> m_redirect_config { nullptr };
+
 	// BBS. Change private to protected to make change_opt_value() method available to
 	// its child class.
 protected:

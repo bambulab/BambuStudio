@@ -75,8 +75,9 @@ struct TreeSupportMeshGroupSettings {
         // Multi-diameter: the gap follows the nozzle printing the overhang, as in TreeSupport::init_top_z_by_nozzle().
         // One gap serves the whole object here, so take the largest region gap. It also applies to the fine
         // regions of the object, so it is capped at 0.2 mm instead of the classic tree's 0.4 mm for 0.8 nozzles.
-        // A zero gap is the soluble interface contract and is never replaced.
-        if (slicing_params.gap_support_object > EPSILON && print_object.print()->uses_multiple_nozzle_diameters()) {
+        // A zero gap is the soluble interface contract and is never replaced, and neither is a gap the user set.
+        if (slicing_params.gap_support_object > EPSILON && print_object.print()->uses_multiple_nozzle_diameters() &&
+            ! print_object.support_top_z_fixed()) {
             static constexpr double max_organic_top_gap = 0.2;
             double top_gap = 0.;
             for (size_t region_id = 0; region_id < print_object.num_printing_regions(); ++ region_id) {

@@ -263,6 +263,9 @@ public:
     // Arms the next sync_extruder_list() with the nozzle migration the user confirmed in
     // SyncPresetWithPrinterDialog. Consumed once; a sync that runs without it migrates nothing.
     void arm_nozzle_migration(const PendingNozzleMigration &migration);
+    // Drops keys from the single-diameter process edits stashed while multi-diameter mode is on, so leaving the
+    // mode does not restore them over a value written since.
+    void forget_stashed_process_edits(const std::vector<std::string> &keys);
     void update_sync_status(const MachineObject* obj);
     int get_sidebar_pos_right_x();
     void on_size(SimpleEvent &e);

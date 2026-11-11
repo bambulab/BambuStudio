@@ -351,6 +351,22 @@ double multi_nozzle_support_bottom_z_distance(const ConfigBase &config, double n
     return multi_nozzle_value(config, nozzle_diameter, preset_value, &MultiNozzleDiameterRule::support_bottom_z_distance);
 }
 
+const char *project_support_z_distance_key(const std::string &opt_key)
+{
+    if (opt_key == "support_top_z_distance")
+        return project_support_top_z_distance_key;
+    if (opt_key == "support_bottom_z_distance")
+        return project_support_bottom_z_distance_key;
+    return nullptr;
+}
+
+double project_support_z_distance(const ConfigOptionResolver &config, const std::string &opt_key)
+{
+    const char *project_key = project_support_z_distance_key(opt_key);
+    const auto *opt         = project_key != nullptr ? config.option<ConfigOptionFloat>(project_key) : nullptr;
+    return opt != nullptr && opt->value >= 0. ? opt->value : -1.;
+}
+
 bool is_multi_nozzle_auto_option(const std::string &opt_key)
 {
     static const std::set<std::string> auto_options {
@@ -6019,6 +6035,27 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = "Per extruder: whether the user lets it print. A disabled extruder never prints. An enabled "
                    "one still needs a nozzle that fits the print. Empty means every extruder is enabled.";
     def->set_default_value(new ConfigOptionBools {});
+
+    // Project-only, like multi_nozzle_diameter_mode: kept out of the static PrintConfig layout.
+    def = this->add("project_support_top_z_distance", coFloat);
+    def->label = L("Top Z distance");
+    def->category = L("Support");
+    def->tooltip = L("The z gap between the top support interface and object. -1 means auto: the gap follows "
+                     "the support nozzle, and is 0 for a support material combination.");
+    def->sidetext = L("mm");
+    def->min = -1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(-1));
+
+    def = this->add("project_support_bottom_z_distance", coFloat);
+    def->label = L("Bottom Z distance");
+    def->category = L("Support");
+    def->tooltip = L("The z gap between the bottom support interface and object. -1 means auto: the gap follows "
+                     "the support nozzle, and is 0 for a support material combination.");
+    def->sidetext = L("mm");
+    def->min = -1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(-1));
 
     def = this->add("filament_retract_length_nc", coFloats);
     def->label = L("length when change hotend");

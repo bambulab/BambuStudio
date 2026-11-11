@@ -528,6 +528,9 @@ public:
     bool                        has_support()           const { return m_config.enable_support || m_config.enforce_support_layers > 0; }
     bool                        has_raft()              const { return m_config.raft_layers > 0; }
     bool                        has_support_material()  const { return this->has_support() || this->has_raft(); }
+    // BBS multi-diameter: the top gap is the user's project value, so the support generators keep
+    // support_top_z_distance instead of following the nozzle printing the overhang. Always false otherwise.
+    bool                        support_top_z_fixed()   const { return m_support_top_z_fixed; }
     SupportStageTimes&          support_stage_times() { return m_support_stage_times; }
     const SupportStageTimes&    support_stage_times() const { return m_support_stage_times; }
     // Checks if the model object is painted using the multi-material painting gizmo.
@@ -716,6 +719,9 @@ private:
     //
     // object id for klipper firmware only
     size_t               m_klipper_object_id;
+
+    // See support_top_z_fixed(). Set by Print::apply() only.
+    bool                 m_support_top_z_fixed { false };
 
  public:
     //BBS: When printing multi-material objects, this settings will make slicer to clip the overlapping object parts one by the other.

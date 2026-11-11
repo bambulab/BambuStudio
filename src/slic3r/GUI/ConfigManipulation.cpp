@@ -957,7 +957,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     // BBS
     SupportType support_type = config->opt_enum<SupportType>("support_type");
     bool have_support_interface = config->opt_int("support_interface_top_layers") > 0 || config->opt_int("support_interface_bottom_layers") > 0;
-    bool have_support_soluble = have_support_material && config->opt_float("support_top_z_distance") == 0;
+    // Multi-diameter: a set project gap replaces the preset one; auto keeps reading the preset.
+    double top_z_distance = config->opt_float("support_top_z_distance");
+    if (is_global_config && multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config)) {
+        if (const double project_gap = project_support_z_distance(wxGetApp().preset_bundle->project_config, "support_top_z_distance");
+            project_gap >= 0.)
+            top_z_distance = project_gap;
+    }
+    bool have_support_soluble = have_support_material && top_z_distance == 0;
     auto support_style = config->opt_enum<SupportMaterialStyle>("support_style");
     for (auto el : { "support_style", "support_base_pattern",
                     "support_base_pattern_spacing", "support_expansion", "support_angle",

@@ -93,6 +93,17 @@ static void append_multi_nozzle_auto_line(const ConfigOptionsGroupShp& group, co
     group->append_line(line);
 }
 
+// The global support z gaps live on the project config while multi-diameter mode is on, not in the preset.
+static bool project_holds_support_z_distance(Preset::Type type)
+{
+    return type == Preset::TYPE_PRINT && multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
+}
+
+static bool is_project_support_z_distance_key(const std::string &opt_key)
+{
+    return opt_key == project_support_top_z_distance_key || opt_key == project_support_bottom_z_distance_key;
+}
+
 static std::pair<std::string, std::string> extruder_variant_keys[]{
     {},                                                  // invalid
     {"print_extruder_id", "print_extruder_variant"},     // Preset::TYPE_PRINT
@@ -1879,7 +1890,7 @@ bool Tab::maybe_prompt_support_interface_revert(bool found_recommendation, int c
     if (current_plate_idx != m_support_combo_baseline.plate_idx)
         return false;
 
-    DynamicPrintConfig still_applied_conf = m_support_combo_baseline.still_applied(*m_config);
+    DynamicPrintConfig still_applied_conf = m_support_combo_baseline.still_applied(support_combo_current_values());
     // Drop what this scope cannot restore by itself, so the dialog never lists a parameter it
     // will not change.
     for (const auto &key : still_applied_conf.keys())
@@ -1932,8 +1943,18 @@ void Tab::restore_support_specific_params_to_default(const DynamicPrintConfig &k
     if (reset_conf.empty())
         return;
 
-    m_config_manipulation.apply(m_config, &reset_conf);
+    // The preset gets the system gaps back; the multi-diameter project gaps go back to auto (-1).
+    apply_support_recommendation(reset_conf, -1.);
     wxGetApp().plater()->update();
+}
+
+DynamicPrintConfig Tab::support_combo_current_values() const
+{
+    DynamicPrintConfig current = *m_config;
+    if (project_holds_support_z_distance(m_type))
+        for (const char *opt_key : {"support_top_z_distance", "support_bottom_z_distance"})
+            current.set_key_value(opt_key, new ConfigOptionFloat(effective_support_z_distance(opt_key)));
+    return current;
 }
 
 // Model-side entry point, used only by the filament-delete path: deleting a filament remaps
@@ -1961,7 +1982,7 @@ DynamicPrintConfig Tab::take_support_combo_leftovers()
     // combination" refers to that plate's model, not this one.
     if (m_support_combo_baseline.was_combo && !found_recommendation &&
         plate_idx == m_support_combo_baseline.plate_idx)
-        leftovers = m_support_combo_baseline.still_applied(*m_config);
+        leftovers = m_support_combo_baseline.still_applied(support_combo_current_values());
 
     // Re-seed unconditionally: slots shift on delete, so the cached id (and the support_filament
     // value inside the snapshot) would otherwise point at a different filament.
@@ -2018,6 +2039,44 @@ void Tab::schedule_support_interface_combo_recheck()
         if (print_tab)
             print_tab->refresh_support_interface_combo_baseline();
     });
+}
+
+double Tab::effective_support_z_distance(const std::string &opt_key) const
+{
+    if (project_holds_support_z_distance(m_type))
+        return project_support_z_distance(wxGetApp().preset_bundle->project_config, opt_key);
+    return m_config->opt_float(opt_key);
+}
+
+void Tab::apply_support_recommendation(DynamicPrintConfig &conf, std::optional<double> project_gap)
+{
+    bool moved = false;
+    if (project_holds_support_z_distance(m_type)) {
+        for (const char *opt_key : {"support_top_z_distance", "support_bottom_z_distance"}) {
+            const auto *gap = conf.option<ConfigOptionFloat>(opt_key);
+            if (gap == nullptr)
+                continue;
+            // The real gap stays in conf and goes into the preset with the rest of the recommendation, so the preset
+            // holds a whole set for single-diameter mode; the project gap mirrors it, or goes back to auto (-1).
+            const double value = project_gap.value_or(std::max(gap->value, -1.));
+            wxGetApp().preset_bundle->project_config.set_key_value(project_support_z_distance_key(opt_key), new ConfigOptionFloat(value));
+            // The stashed single-diameter edit of this gap is superseded by the value written into the preset now.
+            wxGetApp().sidebar().forget_stashed_process_edits({opt_key});
+            moved = true;
+        }
+    }
+    m_config_manipulation.apply(m_config, &conf);
+    if (moved)
+        on_project_config_changed();
+}
+
+// Refresh after the project support gaps changed outside m_config, which the config manipulation does not see.
+void Tab::on_project_config_changed()
+{
+    reload_config();
+    // Also refreshes the project dirty state, via on_presets_changed().
+    update_dirty();
+    update();
 }
 
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
@@ -2315,9 +2374,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         if ((is_soluble_filament(filament_id) || support_TPU) &&
             !((!support_PVA || m_config->opt_enum<SupportType>("support_type") == stNormalAuto) &&
               (!support_PVA || m_config->opt_int("tree_support_wall_count") == 1) &&
-              m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
+              effective_support_z_distance("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
               m_config->opt_float("support_object_xy_distance") == 0 /*&& m_config->opt_bool("top_z_overrides_xy_distance")*/ &&
-              (!support_PVA_for_PLA || m_config->opt_float("support_bottom_z_distance") == 0) &&
+              (!support_PVA_for_PLA || effective_support_z_distance("support_bottom_z_distance") == 0) &&
               m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced &&
               filament_id == interface_filament_id)) {
             wxString msg_text;
@@ -2331,8 +2390,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                                     "Yes - Change these settings automatically\n"
                                     "No  - Do not change these settings for me");
             MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
-            DynamicPrintConfig new_conf = *m_config;
             if (dialog.ShowModal() == wxID_YES) {
+                // Only the recommended keys: a gap left out here must not reach the multi-diameter project gaps.
+                DynamicPrintConfig new_conf;
                 if (support_PVA) {
                     new_conf.set_key_value("support_type", new ConfigOptionEnum<SupportType>(stNormalAuto));
                     new_conf.set_key_value("tree_support_wall_count", new ConfigOptionInt(1));
@@ -2349,7 +2409,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 new_conf.set_key_value("support_interface_filament", new ConfigOptionInt(filament_id + 1));
                 // Paragraph dialog cannot list thick_bridges; apply together to avoid a second popup.
                 append_disable_thick_bridges_if_needed(new_conf, *m_config);
-                m_config_manipulation.apply(m_config, &new_conf);
+                apply_support_recommendation(new_conf);
             }
             wxGetApp().plater()->update();
         }
@@ -2383,8 +2443,10 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         if (found_recommendation && !recommended_conf.empty()) {
             // 过滤掉当前配置已经是推荐值的参数
             DynamicPrintConfig filtered_conf;
+            // Multi-diameter support z gaps compare against the gap in force, not the hidden preset one.
+            const DynamicPrintConfig current_conf = support_combo_current_values();
             for (const auto& key : recommended_conf.keys()) {
-                const ConfigOption* current_opt = m_config->option(key);
+                const ConfigOption* current_opt = current_conf.option(key);
                 const ConfigOption* new_opt     = recommended_conf.option(key);
                 if (current_opt && new_opt && current_opt->serialize() != new_opt->serialize()) {
                     filtered_conf.set_key_value(key, new_opt->clone());
@@ -2427,7 +2489,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 if (dialog.ShowModal() == wxID_YES) {
                     if (rec.soluble_suggestion && rec.thick_bridges_in_recommendation)
                         append_disable_thick_bridges_if_needed(filtered_conf, *m_config);
-                    m_config_manipulation.apply(m_config, &filtered_conf);
+                    apply_support_recommendation(filtered_conf);
                     // List dialog showed thick_bridges, or soluble Yes applied it silently.
                     if (rec.thick_bridges_in_recommendation)
                         thick_bridges_handled_in_dialog = true;
@@ -2441,7 +2503,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
         // Standalone thick-bridges suggestion when not already answered/applied above.
         if (!thick_bridges_handled_in_dialog)
-            suggest_disable_thick_bridges_if_needed(m_config, m_config_manipulation);
+            suggest_disable_thick_bridges_if_needed(m_config, m_config_manipulation, effective_support_z_distance("support_top_z_distance"));
 
         // Refresh the baseline unconditionally, whatever the user answered above, so the *next*
         // change to this option can tell whether this interface filament was a support-material
@@ -2496,7 +2558,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         if (!m_postpone_update_ui) {
             auto const &applying = m_config_manipulation.applying_keys();
             if (std::find(applying.begin(), applying.end(), opt_key) == applying.end())
-                suggest_disable_thick_bridges_if_needed(m_config, m_config_manipulation);
+                suggest_disable_thick_bridges_if_needed(m_config, m_config_manipulation, effective_support_z_distance("support_top_z_distance"));
         }
     }
 
@@ -3363,8 +3425,31 @@ void TabPrint::build()
         optgroup->append_single_option_line("raft_first_layer_density");   // not only for raft, but for support too
         optgroup->append_single_option_line("raft_first_layer_expansion"); // not only for raft, but for support too
         optgroup->append_single_option_line("tree_support_wall_count");
-        append_multi_nozzle_auto_line(optgroup, "support_top_z_distance", "support#top-z-distance");
-        append_multi_nozzle_auto_line(optgroup, "support_bottom_z_distance", "support#bottom-z-distance");
+        if (m_type != Preset::TYPE_PRINT) {
+            // Object pages: like the other multi-diameter options, objects follow the project gap or auto.
+            append_multi_nozzle_auto_line(optgroup, "support_top_z_distance", "support#top-z-distance");
+            append_multi_nozzle_auto_line(optgroup, "support_bottom_z_distance", "support#bottom-z-distance");
+        } else {
+            optgroup->append_single_option_line("support_top_z_distance", "support#top-z-distance");
+            optgroup->append_single_option_line("support_bottom_z_distance", "support#bottom-z-distance");
+            // Multi-diameter stand-ins for the two lines above, edited on the project config. Only one pair shows.
+            optgroup->append_single_option_line(project_support_top_z_distance_key, "support#top-z-distance");
+            optgroup->append_single_option_line(project_support_bottom_z_distance_key, "support#bottom-z-distance");
+            optgroup->m_redirect_config = [](const std::string &opt_key) -> DynamicPrintConfig * {
+                return is_project_support_z_distance_key(opt_key) ? &wxGetApp().preset_bundle->project_config : nullptr;
+            };
+            // Like a preset value, a set gap reads as a change from auto, and both undo targets are auto.
+            auto with_auto_gaps = [](std::function<DynamicPrintConfig()> base) {
+                return [base]() {
+                    DynamicPrintConfig config = base();
+                    config.set_key_value(project_support_top_z_distance_key, new ConfigOptionFloat(-1));
+                    config.set_key_value(project_support_bottom_z_distance_key, new ConfigOptionFloat(-1));
+                    return config;
+                };
+            };
+            optgroup->m_get_initial_config = with_auto_gaps(optgroup->m_get_initial_config);
+            optgroup->m_get_sys_config     = with_auto_gaps(optgroup->m_get_sys_config);
+        }
         optgroup->append_single_option_line("support_base_pattern", "support#base-pattern");
         optgroup->append_single_option_line("support_base_pattern_spacing", "support#base-pattern");
         optgroup->append_single_option_line("support_angle");
@@ -3544,6 +3629,7 @@ void TabPrint::toggle_options()
     }
 
     m_config_manipulation.toggle_print_fff_options(m_config, int(intptr_t(m_variant_switch->GetClientData())), m_type < Preset::TYPE_COUNT);
+    toggle_project_support_z_distance_lines();
 
     Field *field = m_active_page->get_field("support_style");
     auto   support_type = m_config->opt_enum<SupportType>("support_type");
@@ -3603,6 +3689,64 @@ void TabPrint::clear_pages()
     m_top_bottom_shell_thickness_explanation = nullptr;
 }
 
+void TabPrint::init_options_list()
+{
+    Tab::init_options_list();
+    if (m_type == Preset::TYPE_PRINT) {
+        m_options_list.emplace(project_support_top_z_distance_key, m_opt_status_value);
+        m_options_list.emplace(project_support_bottom_z_distance_key, m_opt_status_value);
+    }
+}
+
+// The project gaps have no preset value; auto stands in for it, so a set gap is both modified and non-system.
+void TabPrint::update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options)
+{
+    if (m_type != Preset::TYPE_PRINT)
+        return;
+    for (const char *opt_key : {"support_top_z_distance", "support_bottom_z_distance"})
+        if (project_support_z_distance(wxGetApp().preset_bundle->project_config, opt_key) >= 0.) {
+            dirty_options.emplace_back(project_support_z_distance_key(opt_key));
+            nonsys_options.emplace_back(project_support_z_distance_key(opt_key));
+        }
+}
+
+// Multi-diameter mode edits the project gaps; otherwise the preset gaps. Only one pair is ever shown.
+void TabPrint::toggle_project_support_z_distance_lines()
+{
+    if (m_type != Preset::TYPE_PRINT || !m_active_page)
+        return;
+    const bool multi_nozzle = project_holds_support_z_distance(m_type);
+    const bool have_support = m_config->opt_bool("enable_support") || m_config->opt_int("raft_layers") > 0;
+    for (const char *opt_key : {"support_top_z_distance", "support_bottom_z_distance"}) {
+        toggle_line(opt_key, !multi_nozzle);
+        toggle_line(project_support_z_distance_key(opt_key), multi_nozzle);
+        toggle_option(project_support_z_distance_key(opt_key), have_support);
+    }
+}
+
+void TabPrint::on_value_change(const std::string &opt_key, const boost::any &value)
+{
+    // The project gaps are no preset option, none of the preset handling in Tab applies to them.
+    if (!is_project_support_z_distance_key(opt_key)) {
+        Tab::on_value_change(opt_key, value);
+        return;
+    }
+    // Anything below 0 is auto, stored as -1 exactly.
+    if (auto *gap = wxGetApp().preset_bundle->project_config.option<ConfigOptionFloat>(opt_key); gap && gap->value < 0. && gap->value != -1.) {
+        gap->value = -1.;
+        on_project_config_changed();
+    }
+    if (opt_key == project_support_top_z_distance_key && !m_postpone_update_ui)
+        suggest_disable_thick_bridges_if_needed(m_config, m_config_manipulation, effective_support_z_distance("support_top_z_distance"));
+    wxGetApp().plater()->update();
+    if (m_postpone_update_ui)
+        return;
+    // The soluble lines read the effective gap, so refresh the toggles as Tab::on_value_change() would.
+    update();
+    if (m_active_page)
+        m_active_page->update_visibility(m_mode, true);
+    m_page_view->GetParent()->Layout();
+}
 //BBS: GUI refactor
 
 static std::vector<std::string> intersect(std::vector<std::string> const& l, std::vector<std::string> const& r)

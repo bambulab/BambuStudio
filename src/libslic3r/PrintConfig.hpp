@@ -2311,6 +2311,14 @@ int    multi_nozzle_bottom_color_penetration_layers(const ConfigBase &config, do
 double multi_nozzle_support_top_z_distance(const ConfigBase &config, double nozzle_diameter, double preset_value);
 double multi_nozzle_support_bottom_z_distance(const ConfigBase &config, double nozzle_diameter, double preset_value);
 
+// Project-level override of the multi-diameter support z gaps, -1 is auto. Never written into the process preset.
+inline constexpr const char *project_support_top_z_distance_key    = "project_support_top_z_distance";
+inline constexpr const char *project_support_bottom_z_distance_key = "project_support_bottom_z_distance";
+// Project key paired with support_top_z_distance / support_bottom_z_distance, nullptr for any other key.
+const char *project_support_z_distance_key(const std::string &opt_key);
+// User gap for the paired preset key: >= 0 when set, -1 for auto or when the key is missing.
+double project_support_z_distance(const ConfigOptionResolver &config, const std::string &opt_key);
+
 // Options shown as "Auto" while multi_nozzle_diameter_mode is on: their preset value is not editable there
 // and slicing resolves them per nozzle diameter. Accepts both "key" and "key#idx".
 bool is_multi_nozzle_auto_option(const std::string &opt_key);

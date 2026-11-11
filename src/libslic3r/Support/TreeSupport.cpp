@@ -697,9 +697,10 @@ void TreeSupport::init_top_z_by_nozzle()
     m_top_z_outlines.clear();
     m_top_z_max = top_z_distance;
     // The contact nodes are pre-split on the object layer grid, see generate_contact_points(), so independent
-    // support layers keep the global gap. A zero gap is the soluble interface contract and is never replaced.
+    // support layers keep the global gap. A zero gap is the soluble interface contract and is never replaced,
+    // and neither is a gap the user set.
     if (top_z_distance < EPSILON || m_support_params.independent_layer_height ||
-        ! m_object->print()->uses_multiple_nozzle_diameters())
+        ! m_object->print()->uses_multiple_nozzle_diameters() || m_object->support_top_z_fixed())
         return;
 
     const PrintConfig &print_config = m_object->print()->config();

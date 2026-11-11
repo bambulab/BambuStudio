@@ -278,7 +278,9 @@ static std::vector<std::string> s_project_options {
     "filament_mixed_gradient_range",
     "filament_mixed_gradient_curve",
     "filament_mixed_gradient_per_part",
-    "has_filament_switcher"
+    "has_filament_switcher",
+    "project_support_top_z_distance",
+    "project_support_bottom_z_distance"
 };
 
 //BBS: add BBL as default
@@ -616,6 +618,9 @@ PresetBundle::PresetBundle()
     this->project_config.apply_only(FullPrintConfig::defaults(), s_project_options);
     // This is a project-only option, intentionally kept out of the static PrintConfig layout.
     this->project_config.set_key_value("multi_nozzle_diameter_mode", new ConfigOptionBool(false));
+    // Same for the multi-diameter support gaps, -1 is auto.
+    this->project_config.set_key_value(project_support_top_z_distance_key, new ConfigOptionFloat(-1));
+    this->project_config.set_key_value(project_support_bottom_z_distance_key, new ConfigOptionFloat(-1));
 }
 
 PresetBundle::PresetBundle(const PresetBundle &rhs)
