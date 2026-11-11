@@ -1,4 +1,52 @@
 {
+    "filament_cooling_before_tower": [
+        "0"
+    ],
+    "filament_enable_overhang_speed": [
+        "1"
+    ],
+    "filament_flush_temp": [
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0"
+    ],
+    "filament_long_retractions_when_cut": [
+        "nil"
+    ],
+    "filament_overhang_1_4_speed": [
+        "0"
+    ],
+    "filament_overhang_2_4_speed": [
+        "50"
+    ],
+    "filament_ramming_volumetric_speed_nc": [
+        "-1"
+    ],
+    "filament_retract_before_wipe": [
+        "nil"
+    ],
+    "filament_retract_length_nc": [
+        "14"
+    ],
+    "filament_retract_restart_extra": [
+        "nil"
+    ],
+    "filament_retract_when_changing_layer": [
+        "nil"
+    ],
+    "filament_retraction_distances_when_cut": [
+        "nil"
+    ],
+    "filament_wipe_distance": [
+        "nil"
+    ],
+    "filament_z_hop": [
+        "nil"
+    ],
+    "retraction_distances_when_ec": [
+        "10"
+    ],
     "type": "filament",
     "name": "Generic TPU(2.85mm) @BBL P3C 0.4 nozzle",
     "inherits": "Generic TPU(2.85mm) @base",
