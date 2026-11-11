@@ -385,7 +385,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 
     if (obj) {
         m_obj            = obj;
-        m_camera_exists  = obj->has_ipcam;
+        m_ipcam_ready_state = obj->GetCamera()->GetIpcamReadyState();
         m_support_liveview_preview = obj->is_support_liveview_preview;
         m_dev_ver        = obj->get_ota_version();
         m_lan_mode       = obj->is_lan_mode_printer();
@@ -397,7 +397,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_tutk_state     = obj->tutk_state;
     } else {
         m_obj = nullptr;
-        m_camera_exists = false;
+        m_ipcam_ready_state = DevCamera::IPCAM_NOT_PRESENT;
         m_support_liveview_preview = false;
         m_lan_mode = false;
         m_lan_proto = MachineObject::LVL_None;
@@ -573,7 +573,11 @@ void MediaPlayCtrl::Play()
         m_failed_retry = 0;
         return;
     }
-    if (!m_camera_exists) {
+    if (m_ipcam_ready_state == DevCamera::IPCAM_RELEASED) {
+        Stop(_L("Camera preparing, please try again later..."));
+        return;
+    }
+    if (m_ipcam_ready_state != DevCamera::IPCAM_READY) {
         Stop(_L("Printer camera is malfunctioning."));
         return;
     }

@@ -17,6 +17,8 @@
 #include "wxMediaCtrl3.h"
 #endif
 
+#include "DeviceCore/DevCamera.h"
+
 #include <wx/panel.h>
 
 #include <boost/thread.hpp>
@@ -126,7 +128,7 @@ private:
     std::string m_lan_passwd;
     std::string m_dev_ver;
     std::string m_tutk_state;
-    bool m_camera_exists = false;
+    DevCamera::IpcamReadyState m_ipcam_ready_state = DevCamera::IPCAM_NOT_PRESENT;
     bool m_support_liveview_preview = false;
     bool m_lan_mode = false;
     int m_remote_proto = 0;

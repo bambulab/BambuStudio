@@ -13,6 +13,8 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevBed.h
     GUI/DeviceCore/DevCalib.h
     GUI/DeviceCore/DevCalib.cpp
+    GUI/DeviceCore/DevCamera.h
+    GUI/DeviceCore/DevCamera.cpp
     GUI/DeviceCore/DevChamber.h
     GUI/DeviceCore/DevChamber.cpp
     GUI/DeviceCore/DevChamberCtrl.cpp

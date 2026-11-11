@@ -14,6 +14,7 @@
 #include "GUI_App.hpp"
 #include <slic3r/GUI/StatusPanel.hpp>
 
+#include "DeviceCore/DevCamera.h"
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevStorage.h"
 
@@ -417,7 +418,7 @@ void CameraPopup::check_func_supported(MachineObject *obj2)
     bool support_per_cam_rec = support_cam_main || support_cam_deputy;
 
     // function supported: Auto-record Monitoring only visible when per-camera recording is unsupported
-    if (m_obj->has_ipcam && !support_per_cam_rec) {
+    if (m_obj->GetCamera()->IsIpcamReady() && !support_per_cam_rec) {
         m_text_recording->Show();
         m_switch_recording->Show();
     } else {
@@ -425,7 +426,7 @@ void CameraPopup::check_func_supported(MachineObject *obj2)
         m_switch_recording->Hide();
     }
 
-    if (m_obj->virtual_camera && m_obj->has_ipcam) {
+    if (m_obj->virtual_camera && m_obj->GetCamera()->IsIpcamReady()) {
         m_text_vcamera->Show();
         m_switch_vcamera->Show();
         if (is_vcamera_show) {
@@ -439,7 +440,7 @@ void CameraPopup::check_func_supported(MachineObject *obj2)
         link_underline->Hide();
     }
 
-    allow_alter_resolution = ( (m_obj->camera_resolution_supported.size() > 1?true:false) && m_obj->has_ipcam);
+    allow_alter_resolution = ( (m_obj->camera_resolution_supported.size() > 1?true:false) && m_obj->GetCamera()->IsIpcamReady());
 
     //check u2 version
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();

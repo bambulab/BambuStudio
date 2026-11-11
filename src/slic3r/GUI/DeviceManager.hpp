@@ -80,6 +80,7 @@ class DevAirPurifier;
 class DevAmsTray;
 class DevAxis;
 class DevBed;
+class DevCamera;
 class DevChamber;
 class DevConfig;
 class DevCtrl;
@@ -157,6 +158,7 @@ private:
     DevBed *          m_bed;
     DevStorage*       m_storage;
     std::shared_ptr<DevAirPurifier> m_air_purifier;
+    std::shared_ptr<DevCamera>      m_camera;
     DevCalib*         m_calib;
 
     /*Ctrl*/
@@ -398,6 +400,7 @@ public:
     DevBed *        GetBed()    const { return m_bed; };
     DevStorage*     GetStorage()const { return m_storage; }
     std::shared_ptr<DevAirPurifier> GetAirPurifier() const { return m_air_purifier; }
+    std::shared_ptr<DevCamera>      GetCamera() const { return m_camera; }
     DevCalib*       GetCalib()  const { return m_calib; }
 
     bool            supports_full_pa_calib_table() const;
@@ -503,7 +506,6 @@ public:
     bool is_filament_installed();
 
     /* camera */
-    bool has_ipcam { false };
     bool camera_recording { false };
     bool camera_recording_when_printing { false };
     bool camera_timelapse { false };

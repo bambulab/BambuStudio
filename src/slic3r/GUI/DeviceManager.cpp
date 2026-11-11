@@ -36,6 +36,7 @@
 #include "fast_float/fast_float.h"
 
 #include "DeviceCore/DevAxis.h"
+#include "DeviceCore/DevCamera.h"
 #include "DeviceCore/DevChamber.h"
 #include "DeviceCore/DevHMSQuery.h"
 #include "DeviceCore/DevFilaSystem.h"
@@ -640,9 +641,6 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
     hw_switch_state = 0;
     m_print_error_img_id = "";
 
-    has_ipcam = true; // default true
-
-
     auto vslot = DevAmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID), std::to_string(VIRTUAL_TRAY_MAIN_ID));
     vt_slot.push_back(vslot);
 
@@ -653,6 +651,7 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
         m_fan = new DevFan(this);
         m_bed = new DevBed(this);
         m_air_purifier = DevAirPurifier::Create(this);
+        m_camera       = DevCamera::Create(this);
 
         m_storage       = new DevStorage(this);
         m_extder_system = new DevExtderSystem(this);
@@ -3647,13 +3646,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                 if (ipcam.contains("cfg")) {
                                     timelapse_last_enabled = get_flag_bits_no_border(ipcam["cfg"].get<std::string>(), 0) == 1;
                                 }
-                                if (ipcam.contains("ipcam_dev")) {
-                                    if (ipcam["ipcam_dev"].get<std::string>() == "1") {
-                                        has_ipcam = true;
-                                    } else {
-                                        has_ipcam = false;
-                                    }
-                                }
+                                m_camera->ParseIpcam(ipcam);
                                 if (ipcam.contains("resolution")) {
                                     if (camera_resolution_hold_count > 0)
                                         camera_resolution_hold_count--;
