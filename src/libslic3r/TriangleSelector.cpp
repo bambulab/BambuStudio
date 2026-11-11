@@ -45,6 +45,18 @@ EnforcerBlockerType clamp_paint_state(int state_i, EnforcerBlockerType max_ebt)
     }
     return EnforcerBlockerType(state_i);
 }
+
+// Matches Triangle::set_division() asserts. A triangle edge is 0..2.
+// Unsplit and 3-side split both require special_side == 0.
+// The 2-bit nibble can still encode 3 (0xD/0xE/0xF); that is not an edge.
+bool is_valid_triangle_division(int sides_to_split, int special_side_idx)
+{
+    if (special_side_idx < 0 || special_side_idx > 2)
+        return false;
+    if (sides_to_split == 0 || sides_to_split == 3)
+        return special_side_idx == 0;
+    return sides_to_split == 1 || sides_to_split == 2;
+}
 } // namespace
 
 // Check if the line is whole inside the sphere, or it is partially inside (intersecting) the sphere.
@@ -199,6 +211,10 @@ void TriangleSelector::Triangle::set_division(int sides_to_split, int special_si
     assert(sides_to_split >= 0 && sides_to_split <= 3);
     assert(special_side_idx >= 0 && special_side_idx < 3);
     assert(sides_to_split == 1 || sides_to_split == 2 || special_side_idx == 0);
+    // Asserts are stripped in Release. Do not store an edge of 3: perform_split()
+    // would then read verts_idxs[3..5] (source_triangle and uninitialized children).
+    if (!is_valid_triangle_division(sides_to_split, special_side_idx))
+        return;
     this->number_of_splits = char(sides_to_split);
     this->special_side_idx = char(special_side_idx);
 }
@@ -1674,9 +1690,24 @@ int TriangleSelector::push_triangle(int a, int b, int c, int source_triangle, co
 // Midpoint vertices are possibly reused by traversing children of neighbor triangles.
 void TriangleSelector::perform_split(int facet_idx, const Vec3i &neighbors, EnforcerBlockerType old_state)
 {
+    // Reject a corrupt division before any vertex/neighbor indexing.
+    // special_side == 3 is a 2-bit nibble value, not an edge. next_idx_modulo()
+    // only wraps when idx + 1 == 3, so a start index of 3 walks 3,4,5 and reads
+    // past verts_idxs into source_triangle and children[].
+    if (facet_idx < 0 || facet_idx >= int(m_triangles.size())) {
+        assert(false);
+        return;
+    }
+    const int splits = m_triangles[facet_idx].number_of_split_sides();
+    const int side   = splits == 0 ? 0 : m_triangles[facet_idx].special_side();
+    if (splits < 1 || !is_valid_triangle_division(splits, side)) {
+        assert(false);
+        return;
+    }
+
     // Reserve space for the new triangles upfront, so that the reference to this triangle will not change.
     {
-        size_t num_triangles_new = m_triangles.size() + m_triangles[facet_idx].number_of_split_sides() + 1;
+        size_t num_triangles_new = m_triangles.size() + splits + 1;
         if (m_triangles.capacity() < num_triangles_new)
             m_triangles.reserve(next_highest_power_of_2(num_triangles_new));
     }
@@ -2067,7 +2098,7 @@ std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> TriangleSelector:
                 // of one split) or kept (in case of two splits). The value will
                 // be ignored for 3-side split.
                 assert(tr.is_split() && split_sides > 0);
-                assert(tr.special_side() >= 0 && tr.special_side() <= 3);
+                assert(tr.special_side() >= 0 && tr.special_side() < 3);
                 data.second.push_back(tr.special_side() & 0b01);
                 data.second.push_back(tr.special_side() & 0b10);
                 // Now save all children.
@@ -2194,8 +2225,18 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
 
             const auto state = clamp_paint_state(state_i, max_ebt);
 
-            // Only valid if is_split.
+            // Only valid if is_split. High 2 bits are 0..3, but a triangle has edges 0..2.
             int special_side = code >> 2;
+            if (is_split && !is_valid_triangle_division(num_of_split_sides, special_side)) {
+                static std::once_flag once;
+                std::call_once(once, [num_of_split_sides, special_side]() {
+                    BOOST_LOG_TRIVIAL(warning)
+                        << "TriangleSelector paint split out of range: sides=" << num_of_split_sides
+                        << " special_side=" << special_side;
+                });
+                // Drop the rest of this facet. Do not call set_division()/perform_split().
+                break;
+            }
 
             // Take care of the first iteration separately, so handling of the others is simpler.
             if (parents.empty()) {
