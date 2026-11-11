@@ -16,7 +16,10 @@
 
 #include <algorithm>
 #include <atomic>
+#include <charconv>
+#include <numeric>
 #include <set>
+#include <string_view>
 #include <fstream>
 #include <unordered_set>
 #include <boost/filesystem.hpp>
@@ -54,6 +57,184 @@
 //#define SLIC3R_PROFILE_USE_PRESETS_SUBDIR
 
 namespace Slic3r {
+
+namespace {
+
+// Project key listing, per variable-length filament option, how many values each filament owns
+// in the joined config. Entry format: "<option key>:<count of filament 1>,<count of filament 2>,..."
+constexpr const char *FILAMENT_DEV_VALUE_COUNT_KEY = "filament_dev_value_count";
+
+/**
+ * \brief Record how many values each filament contributes to the joined variable-length filament options
+ *
+ * \param out               config the filament values were joined into
+ * \param filament_configs  per-filament configs, in slot order
+ */
+void store_filament_dev_value_counts(DynamicPrintConfig &out, const std::vector<DynamicPrintConfig> &filament_configs)
+{
+    std::vector<std::string> entries;
+    for (const std::string &key : filament_dev_options) {
+        std::string entry    = key + ':';
+        bool        complete = true;
+        for (size_t i = 0; i < filament_configs.size() && complete; ++i) {
+            const ConfigOption *opt = filament_configs[i].option(key);
+            complete = opt != nullptr && opt->is_vector();
+            if (complete)
+                entry += (i == 0 ? "" : ",") + std::to_string(static_cast<const ConfigOptionVectorBase *>(opt)->size());
+        }
+        if (complete)
+            entries.emplace_back(std::move(entry));
+    }
+    out.set_key_value(FILAMENT_DEV_VALUE_COUNT_KEY, new ConfigOptionStrings(std::move(entries)));
+}
+
+/**
+ * \brief Parse a comma separated list of positive counts
+ *
+ * \return the counts, or empty if \p text is malformed or holds a zero
+ */
+std::vector<size_t> parse_filament_dev_value_counts(std::string_view text)
+{
+    std::vector<size_t> counts;
+    while (true) {
+        size_t value = 0;
+        const auto [end, ec] = std::from_chars(text.data(), text.data() + text.size(), value);
+        if (ec != std::errc() || value == 0)
+            return {};
+        counts.push_back(value);
+        text.remove_prefix(static_cast<size_t>(end - text.data()));
+        if (text.empty())
+            return counts;
+        if (text.front() != ',')
+            return {};
+        text.remove_prefix(1);
+    }
+}
+
+/**
+ * \brief Guess each filament's count of a joined option from the filaments' local presets
+ *
+ * Filaments without a local preset share the remaining values evenly.
+ *
+ * \param key           option key
+ * \param total         joined length of the option
+ * \param slot_presets  local preset config of each filament, nullptr if none
+ * \return the counts, or empty if they cannot add up to \p total
+ */
+std::vector<size_t> guess_filament_dev_value_counts(const std::string &key, size_t total, const std::vector<const DynamicPrintConfig *> &slot_presets)
+{
+    std::vector<size_t> counts(slot_presets.size(), 0);
+    size_t              known = 0, unknown = 0;
+    for (size_t i = 0; i < slot_presets.size(); ++i) {
+        const ConfigOption *opt = slot_presets[i] ? slot_presets[i]->option(key) : nullptr;
+        if (opt != nullptr && opt->is_vector() && static_cast<const ConfigOptionVectorBase *>(opt)->size() > 0) {
+            counts[i] = static_cast<const ConfigOptionVectorBase *>(opt)->size();
+            known += counts[i];
+        } else
+            ++unknown;
+    }
+    if (known > total)
+        return {};
+    const size_t rest = total - known;
+    if (unknown == 0)
+        return rest == 0 ? counts : std::vector<size_t>{};
+    if (rest == 0 || rest % unknown != 0)
+        return {};
+    for (size_t &count : counts)
+        if (count == 0)
+            count = rest / unknown;
+    return counts;
+}
+
+/**
+ * \brief Splits the joined variable-length filament options of a project config back into per-filament values
+ *
+ * Uses the per-filament counts saved with the project. For projects saved without them, the counts come
+ * from the filaments' local presets, then from an even split; an option no guess adds up for stays unresolved.
+ */
+class FilamentDevValueSplitter
+{
+public:
+    /**
+     * \param config        joined project config; the saved counts are removed from it
+     * \param slot_presets  local preset config of each joined filament, nullptr if none
+     */
+    FilamentDevValueSplitter(DynamicPrintConfig &config, const std::vector<const DynamicPrintConfig *> &slot_presets)
+    {
+        const size_t num_filaments = slot_presets.size();
+        std::map<std::string, std::vector<size_t>, std::less<>> saved_counts;
+        if (const auto *opt = config.option<ConfigOptionStrings>(FILAMENT_DEV_VALUE_COUNT_KEY)) {
+            for (const std::string &entry : opt->values) {
+                const size_t colon = entry.find(':');
+                if (colon != std::string::npos)
+                    saved_counts[entry.substr(0, colon)] = parse_filament_dev_value_counts(std::string_view(entry).substr(colon + 1));
+            }
+        }
+        config.erase(FILAMENT_DEV_VALUE_COUNT_KEY);
+        if (num_filaments == 0)
+            return;
+
+        const std::vector<const DynamicPrintConfig *> no_presets(num_filaments, nullptr);
+        std::string                                   guessed, unresolved;
+        for (const std::string &key : filament_dev_options) {
+            const ConfigOption *joined = config.option(key);
+            if (joined == nullptr || !joined->is_vector())
+                continue;
+            const size_t total = static_cast<const ConfigOptionVectorBase *>(joined)->size();
+
+            std::vector<size_t> counts;
+            if (auto it = saved_counts.find(key); it != saved_counts.end() && it->second.size() == num_filaments &&
+                std::accumulate(it->second.begin(), it->second.end(), size_t(0)) == total) {
+                counts = it->second;
+            } else {
+                counts = guess_filament_dev_value_counts(key, total, slot_presets);
+                if (counts.empty())
+                    counts = guess_filament_dev_value_counts(key, total, no_presets);
+                if (counts.empty()) {
+                    unresolved += key + ' ';
+                    continue;
+                }
+                if (total != num_filaments)
+                    guessed += key + ' ';
+            }
+
+            std::vector<size_t> &offsets = m_offsets[key];
+            offsets.reserve(num_filaments + 1);
+            offsets.push_back(0);
+            for (size_t count : counts)
+                offsets.push_back(offsets.back() + count);
+        }
+        if (!guessed.empty())
+            BOOST_LOG_TRIVIAL(warning) << "no saved per-filament value counts, guessed from local presets: " << guessed;
+        if (!unresolved.empty())
+            BOOST_LOG_TRIVIAL(warning) << "no usable per-filament value counts, keep one value per filament: " << unresolved;
+    }
+
+    /**
+     * \brief Copy one filament's values of a variable-length filament option
+     *
+     * \param key             option key
+     * \param joined          joined option of the project config
+     * \param filament_index  0-based filament slot
+     * \param dst             per-filament option receiving the values
+     * \return false if \p key is not a resolved variable-length filament option; \p dst is untouched then
+     */
+    bool split(const std::string &key, const ConfigOption &joined, size_t filament_index, ConfigOption &dst) const
+    {
+        const auto it = m_offsets.find(key);
+        if (it == m_offsets.end() || filament_index + 1 >= it->second.size())
+            return false;
+        const size_t start = it->second[filament_index];
+        static_cast<ConfigOptionVectorBase &>(dst).set(&joined, start, it->second[filament_index + 1] - start);
+        return true;
+    }
+
+private:
+    // Per option key: start of each filament's values, followed by the joined length.
+    std::map<std::string, std::vector<size_t>> m_offsets;
+};
+
+} // namespace
 
 // Settles a slot's filament_volume_map entry onto a flow the slot's current filament preset can
 // actually use at its current (or, failing that, first available) diameter. Called wherever a slot's
@@ -260,6 +441,7 @@ DynamicPrintConfig PresetBundle::construct_full_config(
             for (size_t i = 0; i < num_filaments; i++) {
                 for (size_t j = 0; j < filament_variant_count[i]; j++) { filament_self_indice[k++] = i + 1; }
             }
+            store_filament_dev_value_counts(out, filament_temp_configs);
         }
     }
 
@@ -4976,6 +5158,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
                     filament_self_indice[k++] = i + 1;
                 }
             }
+            store_filament_dev_value_counts(out, filament_temp_configs);
         }
     }
 
@@ -5333,6 +5516,18 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     std::vector<std::string> extruder_ams_count = std::move(config.option<ConfigOptionStrings>("extruder_ams_count", true)->values);
     config.erase("extruder_ams_count");
     config.erase("enable_filament_dynamic_map");
+    // Local presets of the slots, used to split the variable-length options of files saved without their counts.
+    std::vector<const DynamicPrintConfig *> slot_presets(num_filaments, nullptr);
+    if (const auto *slot_names = config.option<ConfigOptionStrings>("filament_settings_id")) {
+        for (size_t i = 0; i < num_filaments && i < slot_names->size(); ++i) {
+            const Preset *preset = this->filaments.find_preset(slot_names->values[i], false, true);
+            if (preset == nullptr && !inherits_values[i + 1].empty())
+                preset = this->filaments.find_preset(inherits_values[i + 1], false, true);
+            if (preset != nullptr)
+                slot_presets[i] = &preset->config;
+        }
+    }
+    const FilamentDevValueSplitter filament_dev_splitter(config, slot_presets);
     if (this->extruder_ams_counts.empty())
         this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count);
 
@@ -5470,7 +5665,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                             size_t next_index = (i < (configs.size() - 1)) ? filament_variant_index[i + 1] : extruder_variant_count;
                             static_cast<ConfigOptionVectorBase*>(configs[i].option(key, false))->set(other_opt, filament_variant_index[i], next_index - filament_variant_index[i]);
                         }
-                        else
+                        else if (!filament_dev_splitter.split(key, *other_opt, i, *configs[i].option(key, false)))
                             static_cast<ConfigOptionVectorBase*>(configs[i].option(key, false))->set_at(other_opt, 0, i);
                     }
                 }

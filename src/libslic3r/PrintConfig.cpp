@@ -5994,6 +5994,13 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts { 1 });
     def->cli = ConfigOptionDef::nocli;
 
+    // Project only: per variable-length filament option, the number of values each filament owns.
+    def = this->add("filament_dev_value_count", coStrings);
+    def->label = "Filament device value count";
+    def->tooltip = "Filament device value count";
+    def->set_default_value(new ConfigOptionStrings {});
+    def->cli = ConfigOptionDef::nocli;
+
     def = this->add("filament_diameter_map", coStrings);
     def->label = "Filament selected nozzle diameters";
     def->tooltip = "Per-filament explicitly selected nozzle diameter. Empty means not selected.";
