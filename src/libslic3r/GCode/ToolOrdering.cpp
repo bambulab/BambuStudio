@@ -523,27 +523,10 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
     // BBS
     // Reorder the extruders to minimize tool switches.
     const ConfigOptionInts *first_layer_print_sequence_op = object.print()->full_print_config().option<ConfigOptionInts>("first_layer_print_sequence");
-    // BBS multi-diameter: never force a filament into the first grid layer just for the skirt,
-    // a coarse nozzle has nothing to print there and would lay the skirt below its printable height.
-    const bool multi_diameter = object.print()->uses_multiple_nozzle_diameters();
-    auto can_add_skirt_filament_to_first_layer = [this, multi_diameter](unsigned int filament) {
-        return ! multi_diameter || m_layer_tools.front().has_extruder(filament);
-    };
-    if (first_extruder == (unsigned int) -1 || (first_layer_print_sequence_op && first_layer_print_sequence_op->size()>1)) {
-        const std::vector<unsigned int> first_layer_tool_order = generate_first_layer_tool_order(object);
-        if (object.print()->has_skirt() && ! first_layer_tool_order.empty() &&
-            can_add_skirt_filament_to_first_layer(first_layer_tool_order.front())) {
-            m_layer_tools.front().extruders.emplace_back(first_layer_tool_order.front());
-            sort_remove_duplicates(m_layer_tools.front().extruders);
-        }
-        this->handle_dontcare_extruder(first_layer_tool_order);
-    } else {
-        if (object.print()->has_skirt() && can_add_skirt_filament_to_first_layer(first_extruder)) {
-            m_layer_tools.front().extruders.emplace_back(first_extruder);
-            sort_remove_duplicates(m_layer_tools.front().extruders);
-        }
+    if (first_extruder == (unsigned int) -1 || (first_layer_print_sequence_op && first_layer_print_sequence_op->size()>1))
+        this->handle_dontcare_extruder(generate_first_layer_tool_order(object));
+    else
         this->handle_dontcare_extruder(first_extruder);
-    }
 
     this->collect_extruder_statistics(prime_multi_material);
 
@@ -598,34 +581,6 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     std::vector<unsigned int> first_layer_tool_order;
     if (first_extruder == (unsigned int)-1) {
         first_layer_tool_order = generate_first_layer_tool_order(print);
-    }
-
-    if (print.has_skirt()) {
-        std::vector<unsigned int> skirt_extruders;
-        if (! first_layer_tool_order.empty()) {
-            if (Print::min_skirt_length > EPSILON)
-                skirt_extruders = first_layer_tool_order;
-            else
-                skirt_extruders.emplace_back(first_layer_tool_order.front());
-        } else if (first_extruder != (unsigned int)-1) {
-            skirt_extruders.emplace_back(first_extruder);
-        }
-        // BBS multi-diameter: a coarse filament whose first band is extruded above the first grid layer has
-        // nothing to print there, so forcing it in for the skirt costs a tool change and lays the skirt below
-        // that nozzle's printable height. Keep the skirt on a filament the first layer already prints.
-        if (print.uses_multiple_nozzle_diameters() && ! skirt_extruders.empty()) {
-            const LayerTools                &first_layer = m_layer_tools.front();
-            const std::vector<unsigned int> &candidates  = first_layer_tool_order.empty() ? skirt_extruders : first_layer_tool_order;
-            auto it = std::find_if(candidates.begin(), candidates.end(),
-                                   [&first_layer](unsigned int filament) { return first_layer.has_extruder(filament); });
-            std::vector<unsigned int> kept;
-            if (it != candidates.end())
-                kept.emplace_back(*it);
-            skirt_extruders = std::move(kept);
-        }
-        m_layer_tools.front().extruders.insert(
-            m_layer_tools.front().extruders.end(), skirt_extruders.begin(), skirt_extruders.end());
-        sort_remove_duplicates(m_layer_tools.front().extruders);
     }
 
     if(!first_layer_tool_order.empty())
