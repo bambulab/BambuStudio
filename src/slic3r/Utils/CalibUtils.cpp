@@ -565,8 +565,18 @@ static void init_multi_extruder_params_for_cali(DynamicPrintConfig& config, cons
 }
 
 
-CalibMode CalibUtils::get_calib_mode_by_name(const std::string name, int& cali_stage)
+CalibMode CalibUtils::get_calib_mode_by_name(const std::string name_in, int& cali_stage)
 {
+    static const std::string file_suffixes[] = {".gcode.3mf", ".3mf"};
+    std::string name = name_in;
+    for (const std::string &suffix : file_suffixes) {
+        const size_t suffix_len = suffix.size();
+        if (name.size() > suffix_len && name.compare(name.size() - suffix_len, suffix_len, suffix) == 0) {
+            name.erase(name.size() - suffix_len);
+            break;
+        }
+    }
+
     if (name == "pa_line_calib_mode") {
         cali_stage = 0;
         return CalibMode::Calib_PA_Line;
