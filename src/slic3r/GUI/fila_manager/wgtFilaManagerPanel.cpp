@@ -53,11 +53,6 @@ wgtFilaManagerPanel::wgtFilaManagerPanel(wxWindow* parent, wxWindowID id,
         return;
     }
 
-#if !BBL_RELEASE_TO_PUBLIC
-    m_browser->EnableAccessToDevTools(true);
-    m_browser->EnableContextMenu(true);
-#endif
-
     sizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
     m_browser->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED,

@@ -7,6 +7,7 @@
 #include "I18N.hpp"
 #include "UxProgramTermsDialog.hpp"
 #include "Widgets/StateColor.hpp"
+#include "Widgets/WebView.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include <algorithm>
 #include <cassert>
@@ -1099,6 +1100,10 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             }
         }
 
+        if (param == "enable_webview_devtools") {
+            WebView::ApplyDevToolsSetting();
+        }
+
         // webview  dump_vedio
         if (param == "internal_developer_mode") {
             m_internal_developer_mode_def = app_config->get("internal_developer_mode");
@@ -1791,7 +1796,7 @@ wxWindow *PreferencesDialog::create_other_tab()
     auto item_dev_mode       = create_item_checkbox(_L("Develop mode"), scrolled, _L("Develop mode"), 50, "developer_mode");
     auto item_skip_blacklist = create_item_checkbox(_L("Skip AMS blacklist check"), scrolled, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
     auto item_webview_devtools = create_item_checkbox(
-        _L("Enable DevTools For Webview") + " (" + _L("Take effect after restarting Studio") + ")", scrolled,
+        _L("Enable DevTools For Webview"), scrolled,
         _L("Enable DevTools For Webview"), 50, "enable_webview_devtools");
     sizer->Add(title_dev, wxSizerFlags().Expand().Border(wxTOP, FromDIP(16)));
     sizer->Add(wrap_option_row(scrolled, item_dev_mode), flags);

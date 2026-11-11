@@ -92,6 +92,8 @@ register_webview_handler(gpointer data)
 // Both defined below, next to the WebViewRef that owns the watcher instances.
 static Slic3r::GUI::WebViewWatcher *webview_watcher(wxWebView *webView);
 static bool                         webview_alive(wxWebView *webView);
+// Defined below, next to apply_devtools().
+static bool devtools_enabled_from_config();
 
 namespace {
 
@@ -326,6 +328,24 @@ public:
     ~WebViewEdge()
     {
         UnsubscribeProcessFailed();
+        UnsubscribeContextMenu();
+    }
+
+    // WebView2 snapshots ICoreWebView2Settings when a top-level navigation starts
+    // ("other setting changes made after NavigationStarting event do not apply until
+    // the next top-level navigation", WebView2.idl). Studio pages are loaded once
+    // and never navigate again, so put_AreDevToolsEnabled /
+    // put_AreDefaultContextMenusEnabled alone would only take effect after a restart.
+    // ContextMenuRequested is raised on every right click, so the context menu is
+    // gated there against the live preference instead; default menus stay enabled
+    // in the settings so the event keeps being raised.
+    // F12 / Ctrl+Shift+I still follow the snapshot: intercepting them needs
+    // ICoreWebView2Controller::AcceleratorKeyPressed, and wx keeps the controller private.
+    void ApplyDevTools(bool enable)
+    {
+        EnableAccessToDevTools(enable);
+        EnsureContextMenuSubscribed();
+        EnableContextMenu(m_contextMenuMode == ContextMenuMode::Fallback ? enable : true);
     }
 
     bool SetUserAgent(const wxString &userAgent)
@@ -392,6 +412,7 @@ public:
         // frequently called override doubles as the polling point; the pending
         // property flushes below are here for exactly the same reason.
         thiz->EnsureProcessFailedSubscribed();
+        thiz->EnsureContextMenuSubscribed();
         if (!pendingUserAgent.empty()) {
             auto userAgent = std::move(thiz->pendingUserAgent);
             thiz->pendingUserAgent.clear();
@@ -624,6 +645,178 @@ private:
         m_processFailedSubscribed = false;
     }
 
+    enum class ContextMenuMode
+    {
+        Pending,  // backend not ready yet; keep default menus on so the first page can raise the event
+        Live,     // ContextMenuRequested subscribed; the preference is read on every right click
+        Fallback, // runtime lacks ICoreWebView2_11; settings only, applied from the next navigation
+    };
+
+    void EnsureContextMenuSubscribed()
+    {
+        if (m_contextMenuMode != ContextMenuMode::Pending)
+            return;
+
+        ICoreWebView2 *webView2 = (ICoreWebView2 *) GetNativeBackend();
+        if (!webView2)
+            return;
+
+        HRESULT hr = E_NOINTERFACE;
+        Microsoft::WRL::ComPtr<ICoreWebView2_11> webView2_11;
+        if (SUCCEEDED(webView2->QueryInterface(IID_PPV_ARGS(&webView2_11))) && webView2_11) {
+            using Microsoft::WRL::Callback;
+            hr = webView2_11->add_ContextMenuRequested(
+                Callback<ICoreWebView2ContextMenuRequestedEventHandler>(
+                    [this](ICoreWebView2 *sender, ICoreWebView2ContextMenuRequestedEventArgs *args) {
+                        return OnContextMenuRequested(sender, args);
+                    })
+                    .Get(),
+                &m_contextMenuToken);
+        }
+
+        if (SUCCEEDED(hr)) {
+            m_contextMenuMode = ContextMenuMode::Live;
+            return;
+        }
+
+        // Old runtime: degrade to the plain setting, i.e. the pre-runtime-toggle behaviour.
+        m_contextMenuMode = ContextMenuMode::Fallback;
+        EnableContextMenu(devtools_enabled_from_config());
+        Slic3r::GUI::WebViewTraceLogger::Emit(
+            Slic3r::GUI::WebViewTraceLogger::Stage::L0_BACKEND, GetName(),
+            "context_menu_subscription_failed",
+            Slic3r::GUI::WebViewTraceLogger::Fields().Add(
+                "hr", wxString::Format("0x%08X", static_cast<unsigned>(hr))),
+            Slic3r::GUI::WebViewTraceLogger::Severity::Warning);
+    }
+
+    void UnsubscribeContextMenu()
+    {
+        if (m_inspectItem) {
+            m_inspectItem->remove_CustomItemSelected(m_inspectSelectedToken);
+            m_inspectItem.Reset();
+        }
+        m_inspectSeparator.Reset();
+
+        if (m_contextMenuMode != ContextMenuMode::Live)
+            return;
+        Microsoft::WRL::ComPtr<ICoreWebView2_11> webView2_11;
+        ICoreWebView2 *webView2 = (ICoreWebView2 *) GetNativeBackend();
+        if (webView2 && SUCCEEDED(webView2->QueryInterface(IID_PPV_ARGS(&webView2_11))) && webView2_11)
+            webView2_11->remove_ContextMenuRequested(m_contextMenuToken);
+        m_contextMenuMode = ContextMenuMode::Pending;
+    }
+
+    HRESULT OnContextMenuRequested(ICoreWebView2 *, ICoreWebView2ContextMenuRequestedEventArgs *args)
+    {
+        if (!args)
+            return S_OK;
+
+        if (!devtools_enabled_from_config()) {
+            // Same effect as AreDefaultContextMenusEnabled = FALSE, but read live.
+            args->put_Handled(TRUE);
+            return S_OK;
+        }
+
+        Microsoft::WRL::ComPtr<ICoreWebView2ContextMenuItemCollection> items;
+        if (FAILED(args->get_MenuItems(&items)) || !items)
+            return S_OK;
+
+        // The page was navigated while DevTools were already on, so the built-in
+        // "Inspect" entry is there and works; nothing to add.
+        UINT32 count = 0;
+        items->get_Count(&count);
+        for (UINT32 i = 0; i < count; ++i) {
+            Microsoft::WRL::ComPtr<ICoreWebView2ContextMenuItem> item;
+            if (FAILED(items->GetValueAtIndex(i, &item)) || !item)
+                continue;
+            LPWSTR name = nullptr;
+            if (SUCCEEDED(item->get_Name(&name)) && name) {
+                const bool is_inspect = wcscmp(name, L"inspectElement") == 0;
+                CoTaskMemFree(name);
+                if (is_inspect)
+                    return S_OK;
+            }
+        }
+
+        // DevTools were off when this page was navigated, so the snapshot hides the
+        // built-in entry. Add our own: OpenDevToolsWindow() is a host call, and
+        // AreDevToolsEnabled only governs the user's context menu / shortcut entry points.
+        if (!EnsureInspectItem())
+            return S_OK;
+        items->InsertValueAtIndex(count, m_inspectSeparator.Get());
+        items->InsertValueAtIndex(count + 1, m_inspectItem.Get());
+        return S_OK;
+    }
+
+    // Context menu items are environment objects and can be reused across menus, so
+    // they are created once per view.
+    bool EnsureInspectItem()
+    {
+        if (m_inspectItem)
+            return true;
+
+        ICoreWebView2 *webView2 = (ICoreWebView2 *) GetNativeBackend();
+        if (!webView2)
+            return false;
+
+        Microsoft::WRL::ComPtr<ICoreWebView2_2> webView2_2;
+        Microsoft::WRL::ComPtr<ICoreWebView2Environment> env;
+        Microsoft::WRL::ComPtr<ICoreWebView2Environment9> env9;
+        HRESULT hr = webView2->QueryInterface(IID_PPV_ARGS(&webView2_2));
+        if (SUCCEEDED(hr))
+            hr = webView2_2->get_Environment(&env);
+        if (SUCCEEDED(hr))
+            hr = env->QueryInterface(IID_PPV_ARGS(&env9));
+
+        Microsoft::WRL::ComPtr<ICoreWebView2ContextMenuItem> separator;
+        Microsoft::WRL::ComPtr<ICoreWebView2ContextMenuItem> inspect;
+        if (SUCCEEDED(hr))
+            hr = env9->CreateContextMenuItem(L"", nullptr, COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_SEPARATOR, &separator);
+        if (SUCCEEDED(hr))
+            hr = env9->CreateContextMenuItem(L"Inspect", nullptr,
+                                             COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_COMMAND, &inspect);
+        if (SUCCEEDED(hr)) {
+            using Microsoft::WRL::Callback;
+            hr = inspect->add_CustomItemSelected(
+                Callback<ICoreWebView2CustomItemSelectedEventHandler>(
+                    [this](ICoreWebView2ContextMenuItem *, IUnknown *) {
+                        OnInspectSelected();
+                        return S_OK;
+                    })
+                    .Get(),
+                &m_inspectSelectedToken);
+        }
+
+        if (FAILED(hr)) {
+            BOOST_LOG_TRIVIAL(warning) << GetName() << " [WebView] cannot create the Inspect context menu item, hr="
+                                       << wxString::Format("0x%08X", static_cast<unsigned>(hr));
+            return false;
+        }
+        m_inspectSeparator = separator;
+        m_inspectItem      = inspect;
+        return true;
+    }
+
+    void OnInspectSelected()
+    {
+        wxWebView *self = this;
+        // Raised from inside the WebView2 menu handling; open DevTools afterwards.
+        Slic3r::GUI::wxGetApp().CallAfter([self]() {
+            if (Slic3r::GUI::wxGetApp().is_closing() || !webview_alive(self))
+                return;
+            ICoreWebView2 *webView2 = (ICoreWebView2 *) self->GetNativeBackend();
+            if (!webView2)
+                return;
+            const HRESULT hr = webView2->OpenDevToolsWindow();
+            if (FAILED(hr))
+                BOOST_LOG_TRIVIAL(warning) << self->GetName() << " [WebView] OpenDevToolsWindow failed, hr="
+                                           << wxString::Format("0x%08X", static_cast<unsigned>(hr));
+            else
+                BOOST_LOG_TRIVIAL(info) << self->GetName() << " [WebView] DevTools opened from context menu";
+        });
+    }
+
     // Bounded within a window so a renderer that keeps dying can't spin forever;
     // matches DeviceWebHost's 60s retry budget.
     bool AllowSelfReload()
@@ -664,6 +857,11 @@ private:
     COREWEBVIEW2_PREFERRED_COLOR_SCHEME pendingColorScheme = COREWEBVIEW2_PREFERRED_COLOR_SCHEME_AUTO;
     EventRegistrationToken m_processFailedToken{};
     bool m_processFailedSubscribed{false};
+    ContextMenuMode m_contextMenuMode{ContextMenuMode::Pending};
+    EventRegistrationToken m_contextMenuToken{};
+    Microsoft::WRL::ComPtr<ICoreWebView2ContextMenuItem> m_inspectSeparator;
+    Microsoft::WRL::ComPtr<ICoreWebView2ContextMenuItem> m_inspectItem;
+    EventRegistrationToken m_inspectSelectedToken{};
     wxTimer m_backendWatchdog;
 
     std::deque<int64_t>      m_selfReloads;
@@ -930,6 +1128,40 @@ bool IsStudioLocalWebPage(const wxString &url, const wxString &name)
 } // namespace
 #endif
 
+static bool devtools_enabled_from_config()
+{
+    auto *cfg = Slic3r::GUI::wxGetApp().app_config;
+    return cfg && cfg->get("enable_webview_devtools") == "true";
+}
+
+// Shared by CreateWebView() and ApplyDevToolsSetting() so a view created later
+// and a view already on screen always end up in the same state.
+static void apply_devtools(wxWebView *webView, bool enable)
+{
+    if (webView == nullptr)
+        return;
+#ifdef __WIN32__
+    // WebView2 only reads these settings at the next navigation; see WebViewEdge::ApplyDevTools.
+    if (auto *edge = dynamic_cast<WebViewEdge *>(webView)) {
+        edge->ApplyDevTools(enable);
+        return;
+    }
+#endif
+    // Base wxWebView implements both as no-ops, so a FakeWebView (backend
+    // unavailable) is safe to pass in here.
+    webView->EnableContextMenu(enable);
+    webView->EnableAccessToDevTools(enable);
+#ifdef __WXMAC__
+    // EnableAccessToDevTools only flips the legacy developerExtrasEnabled preference,
+    // and it writes it to WKWebView.configuration, which is a copy - so on macOS that
+    // call never reaches the live view at all. Since macOS 13.3 / Safari 16.4 the real
+    // switch is setInspectable:, a live property on the view, which is also what makes
+    // this togglable without a restart.
+    if (WKWebView *wkWebView = (WKWebView *) webView->GetNativeBackend())
+        Slic3r::GUI::WKWebView_setInspectable(wkWebView, enable);
+#endif
+}
+
 wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxString const &name,
                                  Slic3r::GUI::WebViewProtectionMode mode)
 {
@@ -1098,16 +1330,7 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
 #ifndef __WIN32__
         });
 #endif
-        const bool enable_devtools = Slic3r::GUI::wxGetApp().app_config && Slic3r::GUI::wxGetApp().app_config->get("enable_webview_devtools") == "true";
-        webView->EnableContextMenu(enable_devtools);
-        webView->EnableAccessToDevTools(enable_devtools);
-#ifdef __WXMAC__
-        // EnableAccessToDevTools only flips the legacy developerExtrasEnabled preference.
-        // Since macOS 13.3 / Safari 16.4 WKWebView is not inspectable unless setInspectable:YES
-        // is called, so without this the view never shows up in Safari's Develop menu.
-        if (WKWebView *wkWebView = (WKWebView *) webView->GetNativeBackend())
-            Slic3r::GUI::WKWebView_setInspectable(wkWebView, enable_devtools);
-#endif
+        apply_devtools(webView, devtools_enabled_from_config());
     }
     webView->SetRefData(new WebViewRef(webView, mode, creation_fault));
     g_webviews.push_back(webView);
@@ -1380,4 +1603,16 @@ void WebView::RecreateAll()
                                                SLIC3R_VERSION, dark ? "dark" : "light", language_code.mb_str()));
         webView->Reload();
     }
+}
+
+void WebView::ApplyDevToolsSetting()
+{
+    // Every embedded page is created once and lives until the process exits, so
+    // without this the preference would only reach views created afterwards -
+    // which in practice meant "restart Studio".
+    const bool enable = devtools_enabled_from_config();
+    for (wxWebView *webView : g_webviews)
+        apply_devtools(webView, enable);
+    BOOST_LOG_TRIVIAL(info) << "WebView: devtools " << (enable ? "enabled" : "disabled")
+                            << " at runtime for " << g_webviews.size() << " views";
 }

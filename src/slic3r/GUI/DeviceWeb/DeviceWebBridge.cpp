@@ -11,11 +11,6 @@ namespace Slic3r { namespace GUI {
 DeviceWebBridge::DeviceWebBridge(wxWebView* webView, bool health_monitoring_enabled)
     : m_health_monitoring_enabled(health_monitoring_enabled)
 {
-    #if !BBL_RELEASE_TO_PUBLIC
-    webView->EnableAccessToDevTools(true);
-    webView->EnableContextMenu(true);
-    #endif
-
     m_web = webView;
     m_web->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &DeviceWebBridge::OnWebMsg, this);
     m_web->Bind(wxEVT_WEBVIEW_NAVIGATING, &DeviceWebBridge::OnWebNav, this);
