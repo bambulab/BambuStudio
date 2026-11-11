@@ -1,3 +1,4 @@
+#include "fila_manager/RfidSpoolOverride.hpp"
 #include "Plater.hpp"
 #include "libslic3r/PerfTrace.hpp"
 #include "DeviceCore/DevNozzleRack.h"
@@ -457,6 +458,22 @@ static DynamicPrintConfig build_tray_config(DevAmsTray const &tray, std::string 
         tray_config.opt<ConfigOptionStrings>("filament_multi_colour")->values.push_back(into_u8(wxColour("#" + tray.cols[i]).GetAsString(wxC2S_HTML_SYNTAX)));
     }
 
+    if (RfidSpoolOverrides::valid_uuid(tray.uuid) && !RfidSpoolOverrides::instance().load_error().empty())
+        tray_config.set_key_value("rfid_override_error", new ConfigOptionStrings{_u8L("The local RFID override file could not be loaded.")});
+    if (const auto* assignment = RfidSpoolOverrides::instance().find(tray.uuid)) {
+        std::string error;
+        const Preset* preset = resolve_rfid_override(*assignment, *wxGetApp().preset_bundle, tray.m_fila_type, nozzle_dia, error);
+        tray_config.set_key_value("rfid_override_error", new ConfigOptionStrings{error});
+        if (preset) {
+            tray_config.set_key_value("rfid_override_profile", new ConfigOptionStrings{preset->name});
+            if (const auto* support = preset->config.option<ConfigOptionBools>("filament_is_support"))
+                tray_config.set_key_value("filament_is_support", support->clone());
+            tray_config.set_key_value("filament_id", new ConfigOptionStrings{preset->filament_id});
+            tray_config.set_key_value("filament_colour", new ConfigOptionStrings{assignment->color.substr(0, 7)});
+            tray_config.set_key_value("filament_multi_colour", new ConfigOptionStrings{assignment->color});
+            tray_config.set_key_value("filament_colour_type", new ConfigOptionStrings{"2"});
+        }
+    }
     return tray_config;
 }
 
@@ -16307,6 +16324,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
             auto  it       = ams_list.find(selected_tray_key);
             if (it != ams_list.end()) {
                 selected_tray = &it->second;
+                if (selected_tray->has("rfid_override_error") && !selected_tray->opt_string("rfid_override_error", 0u).empty()) return;
                 const std::string tray_filament_id = selected_tray->opt_string("filament_id", 0u);
                 if (!tray_filament_id.empty()) {
                     auto &filaments = wxGetApp().preset_bundle->filaments;
@@ -16329,6 +16347,12 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
                 }
             }
         }
+    }
+
+    if (selected_tray && selected_tray->has("rfid_override_profile")) {
+        preset_name = selected_tray->opt_string("rfid_override_profile", 0u);
+        const auto* target = wxGetApp().preset_bundle->filaments.find_preset(preset_name, false);
+        if (!target || !target->is_compatible) return;
     }
 
     bool show_tpu_tips = false;

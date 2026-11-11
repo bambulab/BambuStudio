@@ -1,8 +1,11 @@
+#include "slic3r/GUI/fila_manager/RfidSpoolOverride.hpp"
+#include "slic3r/GUI/Plater.hpp"
 // src/slic3r/GUI/DeviceWeb/ViewModels/FilamentManager/FilamentManagerVM.cpp
 #include "FilamentManagerVM.hpp"
 #include "slic3r/GUI/DeviceWeb/DeviceWebBridge.hpp"
 
 #include <algorithm>
+#include <boost/algorithm/string.hpp>
 #include <vector>
 
 #include "slic3r/GUI/GUI_App.hpp"
@@ -260,6 +263,55 @@ nlohmann::json FilamentManagerVM::HandleSpool(const std::string& action, const n
     if (action == "list") {
         return MakeResp("spool", action, 0, "", build_spool_list());
     }
+    if (action == "rfid_options" || action == "rfid_assign" || action == "rfid_remove") {
+        const auto* spool = store ? store->get_spool(payload.value("spool_id", "")) : nullptr;
+        auto* bundle = wxGetApp().preset_bundle;
+        auto& overrides = RfidSpoolOverrides::instance();
+        if (!spool || !bundle || !RfidSpoolOverrides::valid_uuid(spool->tag_uid))
+            return MakeResp("spool", action, -1, "This spool has no supported RFID identifier.");
+        if (!overrides.load_error().empty())
+            return MakeResp("spool", action, -1, "The local RFID override file could not be loaded: " + overrides.load_error());
+        const std::string uuid = spool->tag_uid;
+        const std::string printer = bundle->printers.get_edited_preset().name;
+        const auto* existing = overrides.find(uuid);
+        if (action == "rfid_options") {
+            nlohmann::json profiles = nlohmann::json::array();
+            for (const auto& preset : bundle->filaments.get_presets()) {
+                if (preset.is_default || !preset.is_compatible || preset.filament_id.empty() ||
+                    preset.config.opt_string("filament_type", 0u) != spool->material_type) continue;
+                profiles.push_back(preset.name);
+            }
+            std::string selected;
+            if (existing) {
+                const auto it = existing->profiles.find(printer);
+                if (it != existing->profiles.end()) selected = it->second;
+            }
+            return MakeResp("spool", action, 0, "", {{"profiles", profiles}, {"printer", printer},
+                {"selected", selected}, {"color", existing ? existing->color : spool->color_code},
+                {"active", existing != nullptr}, {"mixed_nozzles", multi_nozzle_diameter_mode_enabled(bundle->project_config)}});
+        }
+        std::string error;
+        if (action == "rfid_remove") {
+            if (!overrides.remove(uuid, error)) return MakeResp("spool", action, -1, error);
+        } else {
+            // Detect a printer switch while the editor was open.
+            if (payload.value("printer", "") != printer)
+                return MakeResp("spool", action, -1, "The selected printer changed. Reopen the assignment editor.");
+            RfidSpoolOverride value = existing ? *existing : RfidSpoolOverride{};
+            value.material_type = spool->material_type;
+            value.color = payload.value("color", "");
+            value.profiles[printer] = payload.value("profile", "");
+            if (!resolve_rfid_override(value, *bundle, spool->material_type, 0, error))
+                return MakeResp("spool", action, -1, error);
+            if (!overrides.set(uuid, value, error)) return MakeResp("spool", action, -1, error);
+        }
+        // Refresh the effective AMS view, but leave project changes to explicit Sync.
+        if (auto* manager = wxGetApp().getDeviceManager())
+            if (auto* machine = manager->get_selected_machine())
+                if (auto* plater = wxGetApp().plater()) plater->sidebar().load_ams_list(machine);
+        return MakeResp("spool", action, 0, "", build_spool_list());
+    }
+
     if (is_spool_cloud_write_action(action) && (!store || !disp || !can_write_spool_to_cloud(agent))) {
         return MakeResp("spool", action, -2, "cloud sync requires sign-in and network");
     }
@@ -757,6 +809,33 @@ nlohmann::json FilamentManagerVM::build_spool_list()
     nlohmann::json spools = store ? store->spools_to_json() : nlohmann::json::array();
     if (!spools.is_array()) return spools;
 
+    for (auto& spool : spools) {
+        const auto* value = RfidSpoolOverrides::instance().find(spool.value("tag_uid", ""));
+        if (value) {
+            auto& assignment = spool["rfid_override"];
+            assignment = {{"color", value->color}, {"profiles", value->profiles}};
+            // Identity is independent of compatibility with the currently selected printer.
+            // The assignment resolver still checks compatibility before applying a profile.
+            auto* bundle = wxGetApp().preset_bundle;
+            const Preset* identity = nullptr;
+            if (bundle) {
+                const auto current = value->profiles.find(bundle->printers.get_edited_preset().name);
+                if (current != value->profiles.end()) identity = bundle->filaments.find_preset(current->second, false);
+                if (!identity) for (const auto& item : value->profiles) {
+                    identity = bundle->filaments.find_preset(item.second, false);
+                    if (identity) break;
+                }
+            }
+            if (identity) {
+                auto brand = identity->config.get_filament_vendor();
+                auto series = identity->alias.empty() ? identity->name : identity->alias;
+                if (auto at = series.find('@'); at != std::string::npos) series.erase(at);
+                boost::trim(series);
+                if (!brand.empty() && boost::starts_with(series, brand + " ")) series.erase(0, brand.size() + 1);
+                assignment["identity"] = {{"brand", brand}, {"material_type", value->material_type}, {"series", series}};
+            }
+        }
+    }
     auto* clr_query = wxGetApp().get_filament_color_code_query();
     if (!clr_query) return spools;
 

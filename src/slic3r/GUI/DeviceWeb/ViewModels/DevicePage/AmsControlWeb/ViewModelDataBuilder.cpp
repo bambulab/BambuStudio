@@ -1,4 +1,5 @@
 #include "ViewModelDataBuilder.hpp"
+#include "slic3r/GUI/fila_manager/RfidSpoolOverride.hpp"
 
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
@@ -124,6 +125,17 @@ SchemaFormat::Tray build_tray(MachineObject* machine_obj,
         color = normalize_hex_for_web(color);
     if (out.colors.empty())
         out.colors.push_back(out.color);
+
+    // This is the web UI's display snapshot, never the printer's DevAmsTray.
+    // Resolve identity independently of the current project's nozzle profile.
+    if (out.is_exists && out.info_ready) {
+        if (const auto* assignment = RfidSpoolOverrides::instance().find(tray->uuid)) {
+            out.color = normalize_hex_for_web(assignment->color);
+            out.colors = {out.color};
+            out.color_type = 2;
+            out.fila_type = assignment->material_type + "*";
+        }
+    }
 
     out.cali_idx = tray->cali_idx;
     if (tray->is_tray_info_ready() && machine_obj && machine_obj->GetCalib() &&

@@ -1,3 +1,4 @@
+#include "fila_manager/RfidSpoolOverride.hpp"
 /*****************************************************************//**
  * \file   DevMappingHelpers.cpp
  * \brief  Implementations of shared AMS / hotend mapping helpers.
@@ -162,6 +163,14 @@ std::optional<TrayData> MakeTrayData(MachineObject*    obj,
         }
     }
 
+    if (td.type == NORMAL) {
+        if (const auto* assignment = RfidSpoolOverrides::instance().find(tray->uuid)) {
+            td.colour = wxColour(wxString::FromUTF8(assignment->color.substr(0, 7)));
+            td.material_cols = {td.colour};
+            td.ctype = DevFilaColorType::CTYPE_SINGLE;
+            td.name += "*";
+        }
+    }
     return td;
 }
 

@@ -1,3 +1,4 @@
+import { RfidOverrideEditor } from './RfidOverrideEditor';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Spool } from './types';
@@ -11,11 +12,12 @@ interface Props {
   spool: Spool | null;
   filteredSpools: Spool[];
   onClose: () => void;
+  onOverrideUpdated: () => void;
   onEdit: (spool: Spool) => void;
   onNavigate: (spoolId: string) => void;
 }
 
-export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onNavigate }: Props) {
+export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onNavigate, onOverrideUpdated }: Props) {
   const { t } = useTranslation();
 
   const allSpools = useStore((s) => s.filament.spools);
@@ -224,6 +226,7 @@ export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onN
               {/* 备注（云端唯一支持的扩展字段） */}
           <div className="fm-section-bar flex items-center gap-[6px] text-sm font-normal text-fm-text-primary mt-4 mb-2 leading-[22px]">{t('Note')}</div>
           <DetField label={t('Note')} value={spool.note || '—'} />
+          {spool.tag_uid && /[^0]/.test(spool.tag_uid) && <RfidOverrideEditor key={spool.spool_id} spool={spool.original_spool || spool} onUpdated={onOverrideUpdated} />}
         </div>
 
         {/* Footer */}

@@ -1,5 +1,8 @@
 // Spool object — matches C++ FilamentSpool / wgtFilaManagerStore
 export interface Spool {
+  rfid_override?: { color: string; profiles: Record<string, string>; identity?: { brand: string; material_type: string; series: string } };
+  // Presentation-only source record. Never send the effective identity to cloud edits.
+  original_spool?: Spool;
   spool_id: string;
   cloud_synced?: boolean;
   brand: string;

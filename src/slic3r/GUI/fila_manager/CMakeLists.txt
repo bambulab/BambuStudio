@@ -2,6 +2,8 @@
 # Filament Manager — inventory, WebView UI, AMS sync
 
 list(APPEND SLIC3R_GUI_SOURCES
+    GUI/fila_manager/RfidSpoolOverride.hpp
+    GUI/fila_manager/RfidSpoolOverride.cpp
     GUI/fila_manager/wgtFilaManagerFeature.h
     GUI/fila_manager/wgtFilaManagerFeature.cpp
     GUI/fila_manager/wgtFilaManagerStore.h

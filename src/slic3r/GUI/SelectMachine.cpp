@@ -1,3 +1,4 @@
+#include "fila_manager/RfidSpoolOverride.hpp"
 #include "SelectMachine.hpp"
 #include "MaterialItemHotend.hpp"
 #include "QueuePrintContext.hpp"
@@ -1384,7 +1385,21 @@ void SelectMachineDialog::sync_ams_mapping_result(const std::vector<FilamentInfo
                 for (auto col : f->colors) {
                     cols.push_back(DevAmsTray::decode_color(col));
                 }
-                m->set_ams_info(ams_col, ams_id,f->ctype, cols);
+                int display_ctype = f->ctype;
+                m->SetToolTip(wxEmptyString);
+                if (obj_ && f->tray_id >= 0) {
+                    if (auto tray = obj_->get_tray(f->ams_id, f->slot_id)) {
+                        if (const auto* assignment = RfidSpoolOverrides::instance().find(tray->uuid)) {
+                            ams_col = wxColour(wxString::FromUTF8(assignment->color.substr(0, 7)));
+                            cols = {ams_col};
+                            display_ctype = 2;
+                            ams_id += "*";
+                            m->SetToolTip(_L("User override") + "\n" + _L("Original tag") + ": "
+                                + wxString::FromUTF8(tray->sub_brands) + " (" + wxString::FromUTF8(tray->color) + ")");
+                        }
+                    }
+                }
+                m->set_ams_info(ams_col, ams_id, display_ctype, cols);
                 m->set_nozzle_info(get_mapped_nozzle_str(id));
 
 
@@ -3922,6 +3937,19 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
                 wxString disp_ams_name = selection_data_arr[4];
                 if (is_hotend_rack())
                     disp_ams_name = wxGetApp().transition_tridid(evt.GetInt(), std::nullopt, get_current_machine());
+                m->SetToolTip(wxEmptyString);
+                if (auto machine = get_current_machine()) {
+                    if (auto tray = machine->get_tray(selection_data_arr[6].ToStdString(), selection_data_arr[7].ToStdString())) {
+                        if (const auto* assignment = RfidSpoolOverrides::instance().find(tray->uuid)) {
+                            ams_colour = wxColour(wxString::FromUTF8(assignment->color.substr(0, 7)));
+                            material_cols = {ams_colour};
+                            ctype = 2;
+                            disp_ams_name += "*";
+                            m->SetToolTip(_L("User override") + "\n" + _L("Original tag") + ": "
+                                + wxString::FromUTF8(tray->sub_brands) + " (" + wxString::FromUTF8(tray->color) + ")");
+                        }
+                    }
+                }
                 m->set_ams_info(ams_colour, disp_ams_name, ctype, material_cols);
                 m->set_nozzle_info(get_mapped_nozzle_str(item->id));
 

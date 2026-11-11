@@ -366,6 +366,7 @@ export function SpoolTable({
                       </div>
                       <div className="flex flex-col gap-[2px] min-w-0">
                         <span data-testid="filament-row-name" className="text-sm text-fm-text-primary leading-[22px]">{nameParts || '—'}</span>
+                        {s.rfid_override && <span className="text-xs text-fm-brand">{t('User override')} · {t('Original')}: {formatSpoolDisplayName(s.original_spool || s)}, {(s.original_spool || s).color_name || (s.original_spool || s).color_code}</span>}
                         {/* STUDIO-17977: align with AddEditDialog preview-bar
                             and DetailDialog color field — show the same
                             "[swatch] colorName · #RRGGBB / #RRGGBB" tail so

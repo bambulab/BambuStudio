@@ -1,4 +1,5 @@
 #include "ViewModel.hpp"
+#include "slic3r/GUI/fila_manager/RfidSpoolOverride.hpp"
 #include "Schema.hpp"
 #include "ViewModelActions.hpp"
 #include "ViewModelDataBuilder.hpp"
@@ -304,7 +305,25 @@ nlohmann::json DevicePageAmsControlWebVM::BuildState() const
 
     AmsControlWebDisplay::Build(machine_obj, state);
 
-    return state;
+    nlohmann::json result = state;
+    auto annotate = [&](nlohmann::json& slot) {
+        auto tray = machine_obj->get_tray(slot.value("ams_id", ""), slot.value("slot_id", ""));
+        if (!tray) return;
+        const auto* assignment = RfidSpoolOverrides::instance().find(tray->uuid);
+        if (!assignment) return;
+        slot["rfid_override"] = {
+            {"active", true}, {"source", "local Studio assignment"}, {"spool_rfid_id", tray->uuid},
+            {"original", {{"material_type", tray->m_fila_type}, {"name", tray->sub_brands},
+                          {"color", tray->color}, {"filament_id", tray->setting_id}}},
+            {"assigned", {{"material_type", assignment->material_type}, {"color", assignment->color},
+                          {"profiles", assignment->profiles}}}
+        };
+    };
+    auto& area = result["display"]["ams_ext_area"];
+    for (auto& unit : area["units"])
+        for (auto& slot : unit["slots"]) annotate(slot);
+    for (auto& slot : area["ext_slots"]) annotate(slot);
+    return result;
 }
 
 void DevicePageAmsControlWebVM::ResolveSelection(SchemaFormat::State& state) const
