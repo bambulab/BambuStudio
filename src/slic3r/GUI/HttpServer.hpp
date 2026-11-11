@@ -12,6 +12,8 @@
 #include <boost/thread.hpp>
 #include <string>
 #include <memory>
+#include <functional>
+#include <optional>
 
 using namespace boost::system;
 using namespace boost::asio;
@@ -24,8 +26,14 @@ namespace GUI {
 
     class TicketLoginTask {
     public:
-        static std::string perform_sync(const std::string &ticket);
-        static void perform_async(const std::string &ticket, std::function<void(std::string)> cb);
+        enum class Status { Success, Failed, Duplicate };
+        struct Result {
+            Status status{Status::Failed};
+            std::string login_info;
+        };
+
+        static Result perform_sync(const std::string &ticket);
+        static void perform_async(const std::string &ticket, std::function<void(Result)> cb);
     private:
         static std::optional<std::string> do_request_login_info(const std::string &ticket);
     };
