@@ -148,6 +148,7 @@ const FILA_TYPE_BY_FILA_ID: Record<string, string> = {
 // something to bind against.
 let SPOOLS: Spool[] = [
   {
+    tag_uid: '0123456789ABCDEF0123456789ABCDEF',
     spool_id: 'sp-1', brand: 'Bambu Lab', material_type: 'PLA Basic', series: 'Basic',
     color_code: '#FF911A', color_name: '亮橙 Bright Orange',
     colors: ['#FF911A'], color_type: 2,
@@ -576,6 +577,28 @@ function handleRequest(pkt: RequestPacket) {
 
   if (submod === 'preset' && action === 'list') {
     dispatchResponse(pkt.head.seq, makeOk('preset', 'list', PRESETS));
+    return;
+  }
+
+  if (submod === 'spool' && action.startsWith('rfid_')) {
+    const spool = SPOOLS.find((s) => s.spool_id === payload.spool_id);
+    if (!spool) return;
+    const printer = 'Test printer 0.4';
+    if (action === 'rfid_options') {
+      dispatchResponse(pkt.head.seq, makeOk('spool', action, {
+        profiles: ['Third-party PLA @Test printer 0.4', 'Calibrated PLA @Test printer 0.4'], printer,
+        selected: spool.rfid_override?.profiles[printer] ?? '',
+        color: spool.rfid_override?.color ?? spool.color_code, active: !!spool.rfid_override, mixed_nozzles: false,
+      }));
+    } else {
+      SPOOLS = SPOOLS.map((s) => s.spool_id === spool.spool_id ? {
+        ...s, rfid_override: action === 'rfid_remove' ? undefined : {
+          color: String(payload.color), profiles: { [printer]: String(payload.profile) },
+          identity: { brand: "CC3D", material_type: "PLA", series: "PLA Silk" },
+        },
+      } : s);
+      dispatchResponse(pkt.head.seq, makeOk('spool', action, SPOOLS));
+    }
     return;
   }
 

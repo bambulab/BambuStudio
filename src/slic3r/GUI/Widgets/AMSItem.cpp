@@ -1,4 +1,6 @@
 #include "AMSItem.hpp"
+#include "../fila_manager/RfidSpoolOverride.hpp"
+#include <boost/algorithm/string.hpp>
 #include "Label.hpp"
 #include "../BitmapCache.hpp"
 #include "../I18N.hpp"
@@ -59,6 +61,30 @@ static DevFilaColorType wire_ctype_to_color_type(int ctype)
 //#define AMS_SINGLE_CAN_SIZE wxSize(FromDIP(78), 144)
 #define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(174))
 #define AMS_SINGLE_CAN_SIZE wxSize(FromDIP(78), FromDIP(174))
+namespace {
+// Apply only to the display copy. Device state and printer commands retain the
+// actual RFID report, including calibration and remaining-weight information.
+void apply_spool_display_override(Caninfo& info, const DevAmsTray& tray)
+{
+    const auto* assignment = RfidSpoolOverrides::instance().find(tray.uuid);
+    if (!assignment || !tray.is_tray_info_ready()) return;
+    auto& bundle = *wxGetApp().preset_bundle;
+    const auto current = assignment->profiles.find(bundle.printers.get_edited_preset().name);
+    std::string name = current == assignment->profiles.end() ? assignment->profiles.begin()->second : current->second;
+    if (const auto* preset = bundle.filaments.find_preset(name, false))
+        if (!preset->alias.empty()) name = preset->alias;
+    if (auto at = name.find('@'); at != std::string::npos) name.erase(at);
+    boost::trim(name);
+    const wxString original = wxString::FromUTF8(tray.sub_brands.empty() ? tray.m_fila_type : tray.sub_brands);
+    info.material_colour = wxColour(wxString::FromUTF8(assignment->color.substr(0, 7)));
+    info.material_cols = {info.material_colour};
+    info.ctype = 2;
+    info.material_name = wxString::FromUTF8(assignment->material_type) + "*";
+    info.sub_brands = wxString::FromUTF8(name) + "\n* " + _L("User override") + "\n" + _L("Original tag") + ": " + original
+        + " (" + wxString::FromUTF8(tray.color) + ")";
+}
+}
+
 bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, bool humidity_flag)
 {
     if (!ams) return false;
@@ -139,6 +165,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
             info.can_id         = std::to_string(i);
             info.material_state = AMSCanType::AMS_CAN_TYPE_EMPTY;
         }
+        if (it != ams->GetTrays().end() && info.is_exist) apply_spool_display_override(info, *it->second);
         cans.push_back(info);
     }
 
@@ -199,6 +226,7 @@ void AMSinfo::parse_ext_info(MachineObject* obj, DevAmsTray tray) {
         info.k = tray.k;
         info.n = tray.n;
     }
+    apply_spool_display_override(info, tray);
     this->cans.push_back(info);
 }
 
@@ -1343,7 +1371,7 @@ void AMSLib::render_generic_text(wxDC &dc)
                 }
                 dc.DrawText(m_info.material_name, pot);
             }
-            tooltip_text += m_info.material_name;
+            tooltip_text += m_info.material_name.EndsWith("*") ? m_info.sub_brands : m_info.material_name;
         }
 
         //draw k&n

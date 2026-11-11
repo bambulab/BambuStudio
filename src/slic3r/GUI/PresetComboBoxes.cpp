@@ -747,6 +747,7 @@ bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, b
 
     auto append_one = [&](int entry_key, const DynamicPrintConfig &tray, bool is_incompatible_row,
                           bool flow_mismatch) {
+        if (tray.has("rfid_override_error") && !tray.opt_string("rfid_override_error", 0u).empty()) return;
         std::string filament_id = tray.opt_string("filament_id", 0u);
         auto        name        = tray.opt_string("tray_name", 0u);
         if (filament_id.empty()) {
@@ -756,6 +757,11 @@ bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, b
 
         auto iter = std::find_if(filaments.begin(), filaments.end(),
                                  [&filament_id, this](auto &f) { return f.is_compatible && m_collection->get_preset_base(f) == &f && f.filament_id == filament_id; });
+        if (tray.has("rfid_override_profile")) {
+            const auto assigned = tray.opt_string("rfid_override_profile", 0u);
+            iter = std::find_if(filaments.begin(), filaments.end(), [&assigned](const auto& p) { return p.name == assigned && p.is_compatible; });
+            if (iter == filaments.end()) return;
+        }
         if (iter == filaments.end()) {
             auto filament_type = tray.opt_string("filament_type", 0u);
             if (!filament_type.empty()) {
@@ -980,6 +986,7 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             set_label_marker(Append(_L("Right filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         }
         auto &      tray        = entry.second;
+        if (tray.has("rfid_override_error") && !tray.opt_string("rfid_override_error", 0u).empty()) continue;
         std::string filament_id = tray.opt_string("filament_id", 0u);
         auto        name        = tray.opt_string("tray_name", 0u);
         if (filament_id.empty()) {
@@ -1000,6 +1007,11 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
 
         auto iter = std::find_if(filaments.begin(), filaments.end(),
             [&filament_id, this](auto &f) { return f.is_compatible && m_collection->get_preset_base(f) == &f && f.filament_id == filament_id; });
+        if (tray.has("rfid_override_profile")) {
+            const auto assigned = tray.opt_string("rfid_override_profile", 0u);
+            iter = std::find_if(filaments.begin(), filaments.end(), [&assigned](const auto& p) { return p.name == assigned && p.is_compatible; });
+            if (iter == filaments.end()) continue;
+        }
         if (iter == filaments.end()) {
             auto filament_type = tray.opt_string("filament_type", 0u);
             if (!filament_type.empty()) {

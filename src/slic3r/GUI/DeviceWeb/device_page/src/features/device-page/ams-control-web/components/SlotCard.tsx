@@ -284,8 +284,9 @@ export function SlotCard({
   const kTip = slot.k_loading
     ? (slot.k_loading_text ? `K ${slot.k_loading_text}` : 'K')
     : slot.k_text;
+  const overrideTip = slot.fila_type?.endsWith('*') ? `\n* ${t('User override')}` : '';
   const tip = !empty && !slot.show_unknown && slot.fila_type
-    ? (showK && kTip ? `${slot.fila_type}\n${kTip}` : slot.fila_type)
+    ? (showK && kTip ? `${slot.fila_type}\n${kTip}` : slot.fila_type) + overrideTip
     : undefined;
 
   return (

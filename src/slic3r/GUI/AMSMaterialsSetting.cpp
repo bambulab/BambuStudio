@@ -1,3 +1,4 @@
+#include "fila_manager/RfidSpoolOverride.hpp"
 #include "AMSMaterialsSetting.hpp"
 #include "ExtrusionCalibration.hpp"
 #include "MsgDialog.hpp"
@@ -2278,6 +2279,43 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         }
     }
 
+
+    if (!m_is_third) {
+        if (auto tray = obj->get_tray(std::to_string(ams_id), std::to_string(slot_id))) {
+            if (const auto* assignment = RfidSpoolOverrides::instance().find(tray->uuid)) {
+                auto& bundle = *wxGetApp().preset_bundle;
+                const auto& printer = bundle.printers.get_edited_preset();
+                const auto it = assignment->profiles.find(printer.name);
+                // The spool identity remains the assignment even when this project's
+                // printer has no matching profile. Compatibility is a separate status.
+                std::string identity_name = it == assignment->profiles.end()
+                    ? assignment->profiles.begin()->second : it->second;
+                const Preset* identity = bundle.filaments.find_preset(identity_name, false);
+                if (identity && !identity->alias.empty()) identity_name = identity->alias;
+                if (auto at = identity_name.find('@'); at != std::string::npos) identity_name.erase(at);
+                boost::trim(identity_name);
+                wxString original = bambu_filament_name.empty() ? "Bambu " + filament : bambu_filament_name;
+                const wxString original_color = m_rfid_lbl_color_name->GetLabel();
+                if (!original_color.empty()) original += ", " + original_color;
+                m_rfid_lbl_brand->SetLabel(wxString::FromUTF8(identity_name));
+                m_rfid_lbl_brand->Wrap(FromDIP(330));
+                std::string profile_error;
+                const auto* profile = resolve_rfid_override(*assignment, bundle, tray->m_fila_type, 0, profile_error);
+                wxString details = _L("Override of") + ": " + original;
+                details += "\n" + wxString::FromUTF8(assignment->color);
+                details += "\n" + (profile ? _L("Profile") + ": " + wxString::FromUTF8(profile->name)
+                    : _L("No compatible assigned profile for") + ": " + wxString::FromUTF8(printer.name));
+                m_rfid_lbl_color_name->SetLabel(details);
+                m_rfid_lbl_color_name->Wrap(FromDIP(330));
+                const wxColour actual_color(wxString::FromUTF8(assignment->color.substr(0, 7)));
+                m_rfid_clr_picker->ctype = 2;
+                m_rfid_clr_picker->set_colors({actual_color});
+                m_rfid_clr_picker->set_color(actual_color);
+                // These are still device-reported tag values, not the slicing profile.
+                m_rfid_lbl_temp->SetLabel(_L("Original tag") + ": " + m_rfid_lbl_temp->GetLabel());
+            }
+        }
+    }
 
     m_selected_spool_id.clear();
 

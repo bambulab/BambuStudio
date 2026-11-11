@@ -1,3 +1,4 @@
+import { effectiveSpool } from './effectiveSpool';
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import useStore from '../../store/AppStore';
@@ -39,7 +40,7 @@ function spoolSearchText(spool: Spool): string {
 export function FilamentManagerPage() {
   const { t } = useTranslation();
   const {
-    init, addSpool, batchAddSpool, batchCreateSpools, updateSpool,
+    init, fetchSpools, addSpool, batchAddSpool, batchCreateSpools, updateSpool,
     removeSpool, batchRemoveSpool,
     fetchMachines, requestMachinePushall, fetchAmsData,
     fetchPresets,
@@ -56,7 +57,8 @@ export function FilamentManagerPage() {
     ]);
   }, [fetchPresets, fetchCloudFilamentConfig]);
 
-  const spools      = useStore((s) => s.filament.spools);
+  const rawSpools = useStore((s) => s.filament.spools);
+  const spools = useMemo(() => rawSpools.map(effectiveSpool), [rawSpools]);
   const presets     = useStore((s) => s.filament.presets);
   const theme       = useStore((s) => s.filament.theme);
   const isLoading   = useStore((s) => s.filament.isLoading);
@@ -257,7 +259,7 @@ export function FilamentManagerPage() {
 
   const handleEditFromDetail = useCallback((spool: Spool) => {
     setDetailOpen(false);
-    setEditingSpool(spool);
+    setEditingSpool(spool.original_spool || spool);
     setPrefilledSpool(null);
     setDialogOpen(true);
   }, []);
@@ -578,8 +580,9 @@ export function FilamentManagerPage() {
       />
 
       <DetailDialog
+        onOverrideUpdated={() => { void fetchSpools(); }}
         open={detailOpen}
-        spool={detailSpool}
+        spool={spools.find((s) => s.spool_id === detailSpool?.spool_id) || detailSpool}
         filteredSpools={sortedSpools.length > 0 ? sortedSpools : filtered}
         onClose={() => setDetailOpen(false)}
         onEdit={handleEditFromDetail}

@@ -2802,6 +2802,10 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
     std::set<std::pair<std::string, std::string>> added_filaments;
     for (auto &entry : filament_ams_list) {
         auto & ams = entry.second;
+        if (ams.has("rfid_override_error") && !ams.opt_string("rfid_override_error", 0u).empty()) {
+            unknowns.emplace_back(&ams, ams.opt_string("rfid_override_error", 0u));
+            continue;
+        }
         auto filament_id = ams.opt_string("filament_id", 0u);
         auto tray_name = ams.opt_string("tray_name", 0u);
         if (tray_name == "Ext" && skip_ext) {
@@ -2850,6 +2854,23 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 }
                 ams_multi_color_filment.push_back(filament_multi_color);
             }
+            continue;
+        }
+        if (ams.has("rfid_override_profile")) {
+            auto* assigned = filaments.find_preset(ams.opt_string("rfid_override_profile", 0u), false);
+            if (!assigned || !assigned->is_compatible || assigned->is_default ||
+                assigned->config.opt_string("filament_type", 0u) != ams.opt_string("filament_type", 0u)) {
+                unknowns.emplace_back(&ams, L("The RFID assignment needs a compatible profile."));
+                ams_infos.pop_back();
+                ams_array_maps.pop_back();
+                continue;
+            }
+            ams_infos.back().install_preset = assigned;
+            ams_filament_presets.push_back(assigned->name);
+            ams_filament_colors.push_back(filament_color);
+            ams_filament_color_types.push_back(filament_color_type);
+            ams_multi_color_filment.push_back(filament_multi_color);
+            synced_ams_maps.push_back(temp);
             continue;
         }
         if (!filament_changed && this->filament_presets.size() > ams_filament_presets.size()) {
