@@ -2730,7 +2730,7 @@ void GUI::ObjectList::add_new_model_object_from_old_object() {
     if (vol_idxs.empty()) {
         return;
     }
-    take_snapshot("Add new model object");
+    take_snapshot("Split as New Object");
     wxBusyCursor cursor;
     std::sort(vol_idxs.begin(), vol_idxs.end());
     ModelVolumePtrs sel_volumes;
@@ -2754,7 +2754,11 @@ void GUI::ObjectList::add_new_model_object_from_old_object() {
 
     std::vector<size_t> object_idxs;
     ModelObject *       new_object = model.add_object();
-    new_object->name               = into_u8(_L("Sub-merged body"));
+    // A single promoted volume keeps its part name. Several volumes share one new object name.
+    if (sel_volumes.size() == 1 && !sel_volumes.front()->name.empty())
+        new_object->name = sel_volumes.front()->name;
+    else
+        new_object->name = into_u8(_L("New Object"));
     new_object->add_instance(); // each object should have at least one instance
     int min_extruder = (int) EnforcerBlockerType::ExtruderMax;
     for (auto mv : sel_volumes) {

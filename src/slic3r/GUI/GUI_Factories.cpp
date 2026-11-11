@@ -1733,6 +1733,8 @@ wxMenu* MenuFactory::part_menu()
     append_menu_items_convert_unit(&m_part_menu);
     append_menu_item_change_filament(&m_part_menu);
     append_menu_item_per_object_settings(&m_part_menu);
+    // Single volume selection uses this menu, not the multi-selection menu.
+    append_menu_item_sub_merge(&m_part_menu);
     {
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
         if (agent) agent->track_update_property("part_menu", std::to_string(++part_menu_count));
@@ -2269,22 +2271,64 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
 
 void MenuFactory::append_menu_item_sub_merge(wxMenu *menu)
 {
+    const wxString name = _L("Split as New Object");
+    if (const int existing = menu->FindItem(name); existing != wxNOT_FOUND)
+        menu->Destroy(existing);
+
+    // Hidden when the only selected object has a single volume. Shown when one or more
+    // volumes of a multi-volume object are selected, including a single selected volume.
+    auto can_split_as_object = []() {
+        if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
+            return false;
+        if (obj_list()->has_selected_cut_object())
+            return false;
+
+        wxDataViewItemArray sels;
+        obj_list()->GetSelections(sels);
+        if (sels.IsEmpty())
+            return false;
+
+        int obj_idx = -1;
+        int selected_volumes = 0;
+        for (const wxDataViewItem& item : sels) {
+            if (!(list_model()->GetItemType(item) & itVolume))
+                return false;
+            const int temp_obj_idx = obj_list()->GetModel()->GetObjectIdByItem(item);
+            if (temp_obj_idx < 0)
+                return false;
+            if (obj_idx < 0)
+                obj_idx = temp_obj_idx;
+            else if (temp_obj_idx != obj_idx)
+                return false;
+            ++selected_volumes;
+        }
+        const auto* objects = obj_list()->objects();
+        if (objects == nullptr || obj_idx >= static_cast<int>(objects->size()))
+            return false;
+        const ModelObject* mo = (*objects)[obj_idx];
+        return mo != nullptr && mo->volumes.size() > 1 && selected_volumes < static_cast<int>(mo->volumes.size());
+    };
+    if (!can_split_as_object())
+        return;
+
+    int insert_pos = wxNOT_FOUND;
+    if (const int split_id = menu->FindItem(_L("Split")); split_id != wxNOT_FOUND) {
+        const size_t count = menu->GetMenuItemCount();
+        for (size_t i = 0; i < count; ++i) {
+            wxMenuItem* item = menu->FindItemByPosition(static_cast<int>(i));
+            if (item != nullptr && item->GetId() == split_id) {
+                insert_pos = static_cast<int>(i) + 1;
+                break;
+            }
+        }
+    }
+
     append_menu_item(
-        menu, wxID_ANY, _L("Sub merge"), "",
+        menu, wxID_ANY, name, "",
         [this](wxCommandEvent &) {
             obj_list()->add_new_model_object_from_old_object();
         },
-        "", nullptr,
-        []() {
-            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
-                return false;
-            else {
-                if (obj_list()->has_selected_cut_object())
-                    return false;
-                return true;
-            }
-        },
-        m_parent);
+        "", nullptr, can_split_as_object, m_parent, insert_pos);
 }
 
 void MenuFactory::append_menu_item_per_object_process(wxMenu* menu)
