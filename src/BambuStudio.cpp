@@ -1545,6 +1545,42 @@ static int machine_max_nozzle_count(const DynamicPrintConfig &config)
     return total > 0 ? total : 1;
 }
 
+// A machine supports TPU285 when its preset declares that nozzle volume type.
+static bool machine_supports_tpu285(const DynamicPrintConfig &config)
+{
+    auto lists_tpu285 = [](const ConfigOptionStrings *opt) {
+        if (!opt)
+            return false;
+        for (const std::string &variant : opt->values) {
+            if (variant.find("TPU285") != std::string::npos)
+                return true;
+        }
+        return false;
+    };
+    if (lists_tpu285(config.option<ConfigOptionStrings>("printer_extruder_variant")))
+        return true;
+
+    return false;
+}
+
+// parse_filament_info writes nozzle_volume_type "Hybrid" when one filament uses more than one
+// nozzle type, which hides TPU285. Check the nozzles the slice actually used instead.
+static bool sliced_plates_use_tpu285(Slic3r::GUI::PartPlateList &plates, const std::vector<sliced_plate_info_t> &sliced)
+{
+    for (const sliced_plate_info_t &info : sliced) {
+        const int index = info.plate_id - 1;
+        if (index < 0 || index >= plates.get_plate_count())
+            continue;
+        const GCodeProcessorResult *result = plates.get_plate(index)->get_slice_result();
+        if (!result || !result->nozzle_group_result)
+            continue;
+        for (const auto &nozzle : result->nozzle_group_result->get_used_nozzles_in_extruder(-1))
+            if (nozzle.volume_type == nvtTPU285)
+                return true;
+    }
+    return false;
+}
+
 // For estimate_mode: given a source filament preset name (e.g. "Bambu PLA Basic @BBL P1S 0.4 nozzle")
 // and the new machine's BBL tag (e.g. "X2D 0.4 nozzle"), construct the target filament preset name
 // (e.g. "Bambu PLA Basic @BBL X2D 0.4 nozzle") and verify it exists in filament_full_dir.
@@ -5260,6 +5296,7 @@ int CLI::run(int argc, char **argv)
     //doing downward_check
     std::vector<printer_plate_info_t> downward_check_printers;
     std::vector<bool> downward_check_status;
+    std::vector<bool> downward_printer_supports_tpu285;
     if (downward_check) {
         bool use_default = false;
         std::string default_path;
@@ -5294,6 +5331,7 @@ int CLI::run(int argc, char **argv)
 
             printer_plate.printer_name = config_name;
             printer_plate.max_nozzle_count = machine_max_nozzle_count(config);
+            const bool supports_tpu285 = machine_supports_tpu285(config);
 
             temp_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
             temp_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area", true)->values;
@@ -5347,11 +5385,11 @@ int CLI::run(int argc, char **argv)
                 BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: for multi-extruder printer, change printable size to bbox {%1%, %2%, 0} - {%3%, %4%, %5%}")
                             %current_bbox.min.x() %current_bbox.min.y() %current_bbox.max.x() %current_bbox.max.y() %temp_extruder_height;
             }
-            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: printable size{%1%,%2%, %3%}, exclude area{%4%, %5%: %6% x %7%}, wrapping area{%8%, %9%: %10% x %11%}, enable_wrapping_detect %12%, max_nozzle_count %13%")
+            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: printable size{%1%,%2%, %3%}, exclude area{%4%, %5%: %6% x %7%}, wrapping area{%8%, %9%: %10% x %11%}, enable_wrapping_detect %12%, max_nozzle_count %13%, supports_tpu285 %14%")
                 %printer_plate.printable_width %printer_plate.printable_depth %printer_plate.printable_height
                 %printer_plate.exclude_x %printer_plate.exclude_y %printer_plate.exclude_width %printer_plate.exclude_depth
                 %printer_plate.wrapping_x %printer_plate.wrapping_y %printer_plate.wrapping_width %printer_plate.wrapping_depth %enable_wrapping_detect
-                %printer_plate.max_nozzle_count;
+                %printer_plate.max_nozzle_count %supports_tpu285;
 
             if (config.option<ConfigOptionFloat>("extruder_clearance_height_to_lid"))
                 printer_plate.height_to_lid = config.opt_float("extruder_clearance_height_to_lid");
@@ -5364,6 +5402,7 @@ int CLI::run(int argc, char **argv)
 
             if (config.option<ConfigOptionFloat>("extruder_clearance_dist_to_rod"))
                 printer_plate.distance_to_rod = config.opt_float("extruder_clearance_dist_to_rod");
+            downward_printer_supports_tpu285.push_back(supports_tpu285);
             downward_check_printers.push_back(std::move(printer_plate));
         }
     }
@@ -8077,6 +8116,26 @@ int CLI::run(int argc, char **argv)
                     else
                         finished = true;
                 }//end for partplate
+
+                if (downward_check_size > 0) {
+                    if (sliced_plates_use_tpu285(partplate_list, sliced_info.sliced_plates)) {
+                        BOOST_LOG_TRIVIAL(info) << "downward_check: project uses a TPU285 filament";
+                        for (int index2 = 0; index2 < downward_check_size; index2++) {
+                            if (downward_check_status[index2])
+                                continue;
+                            printer_plate_info_t &plate_info = downward_check_printers[index2];
+                            if (downward_printer_supports_tpu285[index2])
+                                continue;
+                            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: printer %1% does not support TPU285, set to incompatible")
+                                % plate_info.printer_name;
+                            downward_check_status[index2] = true;
+                            downward_uncompatible_machines.emplace(plate_info.printer_name);
+                            sliced_info.downward_machines.erase(std::remove(sliced_info.downward_machines.begin(), sliced_info.downward_machines.end(), plate_info.printer_name), sliced_info.downward_machines.end());
+                            downward_compatible_machines.erase(std::remove(downward_compatible_machines.begin(), downward_compatible_machines.end(), plate_info.printer_name), downward_compatible_machines.end());
+                            sliced_info.upward_machines.erase(std::remove(sliced_info.upward_machines.begin(), sliced_info.upward_machines.end(), plate_info.printer_name), sliced_info.upward_machines.end());
+                        }
+                    }
+                }
 
 #if defined(__linux__) || defined(__LINUX__)
                 if (g_cli_callback_mgr.is_started()) {
