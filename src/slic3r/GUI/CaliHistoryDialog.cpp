@@ -839,7 +839,7 @@ void EditCalibrationHistoryDialog::on_save(wxCommandEvent& event) {
         if (iter != m_history_results.end()) {
             wxString duplicate_name_info = wxString::Format(_L("Within the same extruder, the name '%s' must be unique when the filament type, nozzle diameter, and nozzle flow "
                                                                "are identical. Please choose a different name."),
-                                                            m_new_result.name);
+                                                            from_u8(m_new_result.name));
             MessageDialog msg_dlg(nullptr, duplicate_name_info, wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
             return;
@@ -1302,10 +1302,10 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
         if (iter != m_history_results.end()) {
 
             wxString duplicate_name_info = wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
-                                                      "is saved. Are you sure you want to override the historical result?"), m_new_result.name);
+                                                      "is saved. Are you sure you want to override the historical result?"), from_u8(m_new_result.name));
 
             duplicate_name_info = wxString::Format(_L("Within the same extruder, the name(%s) must be unique when the filament type, nozzle diameter, and nozzle flow are the same.\n"
-                                                      "Are you sure you want to override the historical result?"), m_new_result.name);
+                                                      "Are you sure you want to override the historical result?"), from_u8(m_new_result.name));
 
             MessageDialog msg_dlg(nullptr, duplicate_name_info, wxEmptyString, wxICON_WARNING | wxYES_NO);
             if (msg_dlg.ShowModal() != wxID_YES)
