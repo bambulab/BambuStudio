@@ -679,8 +679,11 @@ void SelectMachinePopup::update_user_devices()
         op->update_machine_info(mobj, true);
         //set in lan
         if (mobj->is_lan_mode_printer()) {
+            op->show_printer_bind(true, PrinterBindState::ALLOW_UNBIND);
+            op->show_edit_printer_name(false);
             if (!mobj->is_online()) {
-                continue;
+                op->set_printer_state(PrinterState::OFFLINE);
+                op->SetToolTip(_L("Offline"));
             }
             else {
                 op->show_printer_bind(false, PrinterBindState::NONE);
