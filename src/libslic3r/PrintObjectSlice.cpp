@@ -2083,17 +2083,29 @@ template<typename ThrowOnCancel> void apply_fuzzy_skin_segmentation(PrintObject 
     }); // end of parallel_for
 }
 
-// MMU cannot apply filament shrinkage compensation.
+// 涂色对象是整体缩放的，只有实际用到的耗材收缩率全部一致时才能补偿；
+// 收缩率不一致会把颜色交界撕开，这种情况直接跳过。
 static bool should_skip_filament_shrink(const PrintObject &object)
 {
     const Print *print = object.print();
-    if (print == nullptr || print->config().filament_diameter.size() <= 1 || ! object.is_mm_painted())
+    if (print == nullptr || ! object.is_mm_painted())
         return false;
 
     const std::vector<double> &filament_shrink = print->config().filament_shrink.values;
-    const std::vector<unsigned int> object_filaments = object.object_extruders();
-    return std::any_of(object_filaments.begin(), object_filaments.end(), [&filament_shrink](unsigned int extruder) {
-        return extruder < filament_shrink.size() && filament_shrink[extruder] != 0. && filament_shrink[extruder] != 100.;
+    // 收缩率为 0（或缺失）表示不补偿，按 100% 比较。
+    auto effective_shrink_percent = [&filament_shrink](unsigned int extruder) {
+        if (extruder >= filament_shrink.size() || filament_shrink[extruder] == 0.)
+            return 100.;
+        return filament_shrink[extruder];
+    };
+
+    const std::vector<unsigned int> used_filaments = object.object_extruders();
+    if (used_filaments.empty())
+        return false;
+
+    const double first_shrink_percent = effective_shrink_percent(used_filaments.front());
+    return std::any_of(used_filaments.begin() + 1, used_filaments.end(), [&](unsigned int extruder) {
+        return effective_shrink_percent(extruder) != first_shrink_percent;
     });
 }
 
