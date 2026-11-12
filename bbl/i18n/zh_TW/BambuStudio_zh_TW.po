@@ -2168,7 +2168,7 @@ msgid "Text Gap"
 msgstr "文字間距"
 
 msgid "Line Gap"
-msgstr "行間距"
+msgstr "行距"
 
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "警告：文字矩陣內含有鏡像物件，拖曳將會完整重新產生。"
@@ -2239,7 +2239,7 @@ msgid "Alignment"
 msgstr "對齊"
 
 msgid "Align center horizontally"
-msgstr "水平居中對齊"
+msgstr "水平置中對齊"
 
 msgid "No symbol"
 msgstr "沒有符號"
@@ -2886,7 +2886,7 @@ msgid "Cylinder"
 msgstr "圓柱體"
 
 msgid "Hexagonal Prism"
-msgstr "六角棱柱"
+msgstr "六稜柱"
 
 msgid "Cone"
 msgstr "錐體"
@@ -2904,7 +2904,7 @@ msgid "Rounded Rectangle"
 msgstr "圓角矩形"
 
 msgid "TearDrop"
-msgstr ""
+msgstr "水滴形"
 
 msgid "Bambu Cube"
 msgstr "Bambu方塊"
@@ -3240,12 +3240,12 @@ msgstr "錯誤：%1$d 非流形邊、%2$d 非流形頂點"
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edge"
 msgid_plural "Error: %1$d non-manifold edges"
-msgstr[0] ""
+msgstr[0] "錯誤：%1$d 非流形邊"
 
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold vertex"
 msgid_plural "Error: %1$d non-manifold vertices"
-msgstr[0] ""
+msgstr[0] "錯誤：%1$d 非流形頂點"
 
 msgid "Error: reversed faces detected, which may affect rendering"
 msgstr "錯誤：偵測到反向面，這可能會影響渲染"
@@ -3253,7 +3253,7 @@ msgstr "錯誤：偵測到反向面，這可能會影響渲染"
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
-msgstr[0] ""
+msgstr[0] "資訊：發現 %1$d 個開放邊"
 
 msgid "Right click the icon to fix model object"
 msgstr "右鍵點選此圖示可修復模型物件"
@@ -3877,7 +3877,7 @@ msgid "Click to add objects to the current step"
 msgstr "按一下以將物件新增至目前步驟"
 
 msgid "_copy"
-msgstr ""
+msgstr "_複製"
 
 msgid "Are you sure you want to delete the current step?"
 msgstr "確定要刪除目前步驟嗎？"
@@ -3949,7 +3949,7 @@ msgid "Show explosion state column"
 msgstr "顯示爆炸狀態欄"
 
 msgid "Allow modify text note foreground"
-msgstr "允許修改文字備註前景"
+msgstr "允許修改文字註記前景"
 
 msgid "Allow modify text note background"
 msgstr "允許修改文字註解背景"
@@ -4025,7 +4025,7 @@ msgid "Not"
 msgstr "否"
 
 msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
-msgstr "請先點擊確認。在畫布上生成標籤後，才能使用此標籤控制項。"
+msgstr "請先點選確認。在畫布上生成標籤後，就可以使用此標籤控制元件。"
 
 msgid "Click to add Cyber Brick"
 msgstr "按一下以新增 Cyber Brick"
@@ -4422,10 +4422,10 @@ msgid "No valid computation result. This parameter cannot be adjusted."
 msgstr "無有效的運算結果。此參數無法調整。"
 
 msgid "Transition Smoothness (between color blocks): the higher, the smoother"
-msgstr "過渡平滑度（色塊之間）：數值越高越平滑"
+msgstr "過渡平滑度（色塊之間）：數值越高，過渡越平滑"
 
 msgid "Auto Merge Small Fragments: the higher, the more merging"
-msgstr "自動合併小片段：數值越高合併越多"
+msgstr "自動合併小碎片：數值越高，合併越多"
 
 msgid "Add Filament"
 msgstr "新增線材"
@@ -4468,7 +4468,7 @@ msgid "Simplify Colors"
 msgstr "簡化顏色"
 
 msgid "Filament Matching"
-msgstr "線材匹配"
+msgstr "線材配對"
 
 msgid "Import Model: Simplify Colors"
 msgstr "匯入模型：簡化顏色"
@@ -4477,7 +4477,7 @@ msgid "Original"
 msgstr "原專案"
 
 msgid "Simplified"
-msgstr "簡化"
+msgstr "簡化後"
 
 msgid "Color Count"
 msgstr "色彩數量"
@@ -4492,16 +4492,16 @@ msgid "Gap Area"
 msgstr "間隙面積"
 
 msgid "Automatically determine the optimal color count"
-msgstr "自動判斷最佳顏色數量"
+msgstr "自動決定最佳顏色數量"
 
 msgid "Color mixing"
-msgstr "顏色混合"
+msgstr "混色"
 
 msgid "Use official mixing kits →"
-msgstr "使用官方混合套件 →"
+msgstr "使用官方混色套組 →"
 
 msgid "Some colors have no matching filament. Please match them before importing."
-msgstr "有些顏色沒有對應的線材。匯入前請先進行匹配。"
+msgstr "部分顏色尚未配對到線材。請先完成配對再匯入。"
 
 msgid "Complete All Filaments"
 msgstr "完成所有線材"
@@ -4520,13 +4520,13 @@ msgid "Previous"
 msgstr "上一步"
 
 msgid "Discard newly added filaments and re-run automatic matching"
-msgstr "捨棄新增的線材並重新執行自動匹配"
+msgstr "捨棄新增的線材並重新執行自動配對"
 
 msgid "Before matching"
-msgstr "匹配前"
+msgstr "配對前"
 
 msgid "After matching"
-msgstr "匹配後"
+msgstr "配對後"
 
 #, c-format, boost-format
 msgid "Before simplification: %d colors"
@@ -4537,7 +4537,7 @@ msgid "After simplification: %d colors"
 msgstr "簡化後：%d 種顏色"
 
 msgid "Import Model: Filament Matching"
-msgstr "匯入模型：線材匹配"
+msgstr "匯入模型：線材配對"
 
 msgid "Processing"
 msgstr "處理中"
@@ -4550,20 +4550,20 @@ msgstr "計算失敗。請調整參數後重試。"
 
 #, c-format, boost-format
 msgid "The color count cannot exceed the original color count (%d)."
-msgstr "顏色數量不能超過原始顏色數量（%d）。"
+msgstr "顏色數量不可超過原始顏色數量（%d）。"
 
 #, c-format, boost-format
 msgid "Up to %d colors supported."
 msgstr "最多支援 %d 種顏色。"
 
 msgid "Click to select a matching filament"
-msgstr "按一下以選擇匹配的線材"
+msgstr "按一下以選擇配對的線材"
 
 msgid "Error Prompt"
 msgstr "錯誤提示"
 
 msgid "How to use standard mixing kits"
-msgstr "如何使用標準混色套件"
+msgstr "如何使用標準混色套組"
 
 #, boost-format
 msgid "The project has too many filaments. Adding the mixing kit exceeds the %1% filament limit, so at least %2% project filament(s) must be deleted first. The following unused project filaments will be deleted automatically:"
@@ -4589,7 +4589,7 @@ msgid "Cyan · Magenta · Yellow · Black · White"
 msgstr "青色 · 洋紅色 · 黃色 · 黑色 · 白色"
 
 msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
-msgstr "因此，在匯入模型時，您可以使用這些套件線材及其混合物來匹配顏色。"
+msgstr "因此，匯入模型時，可以使用這些套組中的線材及其混色進行配色。"
 
 msgid "The mixing kit is already in the project filament list. Use it now?"
 msgstr ""
@@ -5448,16 +5448,13 @@ msgstr ""
 "否 - 不使用交替額外壁"
 
 msgid "Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:"
-msgstr "週期性修改器與螺旋花瓶模式不相容。若要啟用週期性修改器，建議進行以下調整："
+msgstr "週期性修改器與旋轉花瓶模式不相容。若要啟用週期性修改器，建議進行以下調整："
 
 msgid ""
 "Change these settings automatically?\n"
 "Yes - Apply and keep periodic modifier enabled\n"
 "No  - Don't use periodic modifier"
-msgstr ""
-"要自動變更這些設定嗎？\n"
-"是 - 套用並保持週期性修改器啟用\n"
-"否 - 不使用週期性修改器"
+msgstr "自動變更這些設定嗎？\n是 - 套用並保持週期性修改器啟用\n否 - 不使用週期性修改器"
 
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
 msgstr "為使交替額外壁正常運作，建議進行以下調整："
@@ -5472,7 +5469,7 @@ msgstr ""
 "否 - 保留目前設定並保持交替額外壁啟用"
 
 msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."
-msgstr "螺旋模式僅在以下情況有效：牆層數為 1、支撐已停用、探針結塊偵測已停用、頂層殼層數為 0、稀疏填充密度為 0、縮時攝影類型為即時、Z 方向壁速度平滑為 false、交替額外壁已停用，且週期性修改器已停用。"
+msgstr "旋轉花瓶模式僅在以下條件下可用：牆壁圈數為 1、停用支撐、停用觸碰式噴嘴結塊偵測、頂部殼體層數為 0、稀疏填充密度為 0、縮時攝影類型為即時模式、不啟用 Z 方向牆壁速度平滑、停用交替額外牆壁，且停用週期性修改器。"
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr "但是I3結構的機器將不會生成延時影片。"
@@ -5834,10 +5831,10 @@ msgid "Resume"
 msgstr "繼續"
 
 msgid "Loading error details ..."
-msgstr "正在載入錯誤詳細資訊..."
+msgstr "正在載入錯誤詳情 ..."
 
 msgid "Unable to load error details."
-msgstr "無法載入錯誤詳細資訊。"
+msgstr "無法載入錯誤詳情。"
 
 msgid "Unknown error."
 msgstr "未知錯誤。"
@@ -6113,7 +6110,7 @@ msgid "Tips:"
 msgstr "提示："
 
 msgid "Current grouping of slice result is not optimal."
-msgstr "當前材料分組不是最優結果。"
+msgstr "目前的切片線材分組並非最佳結果。"
 
 #, boost-format
 msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
@@ -6137,10 +6134,10 @@ msgstr "相較於單噴嘴印表機，會節省 %1%g 線材並增加 %2% 次噴�
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "相較於單噴嘴印表機，會節省 %1%g 線材並節省 %2% 次噴嘴清除。"
+msgstr "相較於單噴嘴印表機，會增加 %1%g 線材並節省 %2% 次噴嘴清除。"
 
 msgid "Set to Optimal"
-msgstr "設定為最優"
+msgstr "設為最佳分組"
 
 msgid "Regroup filament"
 msgstr "重新分組"
@@ -6549,7 +6546,7 @@ msgid "The prime tower extends beyond the plate boundary."
 msgstr "料塔超出了列印版邊界。"
 
 msgid "All objects on the plate are unprintable, please check the printable settings in the object list."
-msgstr "列印板上的所有物件皆無法列印，請檢查物件清單中的列印設定。"
+msgstr "列印板上的所有物件都無法列印，請檢查物件清單中的可列印設定。"
 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "部分沖刷體積設定為0，多色列印可能導致模型混色，請重新調整沖刷值。"
@@ -6687,7 +6684,7 @@ msgid "Invalid input."
 msgstr "非法輸入"
 
 msgid "Network error"
-msgstr "網絡錯誤"
+msgstr "網路錯誤"
 
 msgid "Unknown error"
 msgstr "未知錯誤"
@@ -9228,7 +9225,7 @@ msgstr "此線材不支援使用 %s 噴頭列印"
 
 #, c-format, boost-format
 msgid ", and %d more"
-msgstr "，以及另外 %d 項"
+msgstr "，另有 %d 個"
 
 #, c-format, boost-format
 msgid "The filament you are deleting is used by model \"%s\". After deletion, the model's filament will be reset to the first remaining filament."
@@ -9467,7 +9464,7 @@ msgstr "體積為零的物件已被移除"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
-msgstr "計算模型顏色： %s"
+msgstr "正在計算模型顏色：%s"
 
 msgid "Texture Import Warning"
 msgstr "紋理匯入警告"
@@ -9877,13 +9874,13 @@ msgid "Please resolve the slicing errors and publish again."
 msgstr "請解決切片錯誤後再重新發布。"
 
 msgid "Send G-code file"
-msgstr "傳送 G 代碼檔案"
+msgstr "傳送 G-code 檔案"
 
 msgid "Bambu Studio does not support sending .gcode files to print directly. You can send it to the printer and then start printing from the printer."
-msgstr "Bambu Studio 不支援直接傳送 .gcode 檔案進行列印。您可以將其傳送至印表機，然後從印表機開始列印。"
+msgstr "Bambu Studio 不支援直接傳送 .gcode 檔案進行列印。您可以先將檔案傳送至印表機，再從印表機開始列印。"
 
 msgid "Note: Printing directly with G-code may cause printing errors. It is recommended to print with 3mf files."
-msgstr "請注意：直接使用 G 代碼列印可能導致列印錯誤。建議使用 3mf 檔案進行列印。"
+msgstr "注意：直接使用 G-code 列印可能造成列印錯誤。建議使用 3mf 檔案列印。"
 
 msgid "Send now"
 msgstr "立即傳送"
@@ -10062,7 +10059,7 @@ msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "原因：零件\"%1%\"與另一個零件沒有交集。"
 
 msgid "Reason: the meshes have face issues."
-msgstr "原因：網格存在面問題。"
+msgstr "原因：網格存在面片問題。"
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "檢測到負零件。在匯出前，您是否想執行網格布林運算？"
@@ -10264,15 +10261,15 @@ msgstr "選擇下載資料夾"
 
 msgctxt "Preference"
 msgid "General"
-msgstr "常規"
+msgstr "一般"
 
 msgctxt "Preference"
 msgid "User"
-msgstr "使用者名稱"
+msgstr "使用者"
 
 msgctxt "Preference"
 msgid "3D"
-msgstr ""
+msgstr "3D"
 
 msgctxt "Preference"
 msgid "Other"
@@ -11336,15 +11333,15 @@ msgstr "此檔案中含有容易拉絲的線材。為獲得最佳列印品質，
 
 #, c-format, boost-format
 msgid "The filament in %s may be insufficient for this print. Please refill or replace it."
-msgstr "%s 中的線材可能不足以完成此次列印。請續料或更換。"
+msgstr "%s 中的線材可能不足以完成本次列印。請補充或更換線材。"
 
 #, c-format, boost-format
 msgid "The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."
-msgstr "自動續料群組 %s 中的線材可能不足以完成此次列印。請續料或更換。"
+msgstr "自動續料群組 %s 中的線材可能不足以完成本次列印。請補充或更換線材。"
 
 #, c-format, boost-format
 msgid "The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."
-msgstr "自動續料群組 %s 中的線材可能不足以完成此次列印。請續料或更換。"
+msgstr "自動續料群組 %s 中的線材可能不足以完成本次列印。請補充或更換線材。"
 
 #, c-format, boost-format
 msgid "Filament in slots %s may not have been properly loaded to the PrintTool. Please see the loading guide."
@@ -11696,7 +11693,7 @@ msgstr ""
 "設定更高的熱床溫度可能損壞印表機。"
 
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
-msgstr "平滑縮時攝影需要在每個圖層上建立擦料塔，這與「無稀疏圖層」不相容。「無稀疏圖層」已關閉。"
+msgstr "平滑縮時攝影需要在每一層都產生擦料塔，這與「無稀疏層」不相容。「無稀疏層」已關閉。"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "平滑模式的延時攝影需要擦料塔，否則列印件上可能會有瑕疵。您想開啟擦料塔嗎？"
@@ -11876,7 +11873,7 @@ msgid "All objects"
 msgstr "所有物件"
 
 msgid "Modifier cycle"
-msgstr "修改器循環"
+msgstr "修改器週期"
 
 #, c-format, boost-format
 msgid ""
@@ -13929,7 +13926,7 @@ msgid "Generating G-code"
 msgstr "正在生成G-code"
 
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
-msgstr "模型和擦料塔的相對位置不符合「無稀疏圖層」功能的要求。請調整它們的相對位置、降低模型高度，或關閉「無稀疏圖層」。"
+msgstr "模型與擦料塔的相對位置不符合「無稀疏層」功能的要求。請調整兩者的相對位置、降低模型高度，或關閉「無稀疏層」。"
 
 msgid "Failed to assign filaments to nozzles for the support ring."
 msgstr "無法為支撐環指派線材至噴頭。"
@@ -14607,7 +14604,7 @@ msgid "Sub-top surface pattern"
 msgstr "次頂層表面圖案"
 
 msgid "Line pattern of the solid layer that supports a visible top surface. Its lines can print through and mark the top, so a monotonic pattern gives the smoothest result. The whole solid area that a top surface reaches uses this pattern, not only the part directly beneath it."
-msgstr "支撐可見頂面的實心層線條圖案。其線條可能穿透並在頂面留下痕跡，因此單調圖案能產生最平滑的結果。頂面所及的整個實心區域皆使用此圖案，而非僅其正下方部分。"
+msgstr "承托可見頂面的實心層所使用的線條圖案。其線條可能透出並在頂面留下痕跡，因此單調圖案可獲得最平整的效果。頂面所延伸覆蓋的整塊實心區域都會使用此圖案，而不僅限於頂面正下方的部分。"
 
 msgid "Line width of outer wall"
 msgstr "外牆的線寬"
@@ -14835,7 +14832,7 @@ msgid "AMS Lite filament load time"
 msgstr "AMS Lite 線材進料時間"
 
 msgid "Filament load time when printing with an AMS Lite. For statistics only"
-msgstr "使用AMS lite列印時的線材進料時間。僅用於統計。"
+msgstr "使用 AMS Lite 列印時的線材進料時間。僅用於統計"
 
 msgid "N3F/N3S filament load time"
 msgstr "N3F/N3S 線材進料時間"
@@ -14865,7 +14862,7 @@ msgid "Default AMS type"
 msgstr "預設 AMS 類型"
 
 msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
-msgstr "用於估計線材進料/退料時間的預設AMS類型，儲存為AMS計時類型列舉值。它來自印表機預設值，並不反映目前連接到機器的AMS。"
+msgstr "用於估算線材進料／退料時間的預設 AMS 類型，並儲存為 AMS 計時類型列舉值。此設定來自印表機預設，不代表目前連接至機器的 AMS。"
 
 msgid "Extruder switch time"
 msgstr "擠出機切換時間"
@@ -15632,43 +15629,43 @@ msgid "Adjust the line width of the selected skeleton paths."
 msgstr "為選擇的骨架走線設定線寬"
 
 msgid "Conformal infill"
-msgstr "共形填充"
+msgstr "隨形填充"
 
 msgid "Make sparse infill follow each layer's outline instead of using one set of parallel lines. On elongated or curved shapes, lines radiate from a center. Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin."
-msgstr "讓稀疏填充沿著每一層的輪廓，而非使用一組平行線。在細長或彎曲的形狀上，線條會從中心向外輻射。適用於鋸齒、交叉鋸齒、直線、對齊直線及鎖定鋸齒表皮。"
+msgstr "讓稀疏填充沿著每一層的輪廓排列，而非使用一組平行線。對於細長或彎曲的形狀，線條會從中心向外放射。適用於鋸齒、交叉鋸齒、直線、直線排列，以及鎖定鋸齒表層。"
 
 msgid "Layer stagger"
-msgstr "層錯位"
+msgstr "層間交錯"
 
 msgid "How neighboring layers are offset. Off stacks the same layout. Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding."
-msgstr "相鄰層的偏移方式。關閉時堆疊相同佈局。交替模式保持相同線條方向，但將每條線連接至對側的相鄰線，以改善層間黏合。"
+msgstr "相鄰層的偏移方式。關閉時，各層堆疊相同的排列。交替時，保持相同的線條方向，但將每條線連接至另一側的相鄰線，以改善層間黏合。"
 
 msgid "Alternate"
 msgstr "交替"
 
 msgid "Forward layers"
-msgstr "正向層"
+msgstr "正向層數"
 
 msgid "Conformal forward layers"
-msgstr "共形正向層"
+msgstr "隨形填充正向層數"
 
 msgid "Number of consecutive layers that keep the forward zigzag. Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer."
-msgstr "保持正向鋸齒的連續層數。搭配反向層時，將重複執行：N 層正向，然後 M 層反向。0 表示從首層即反向。"
+msgstr "保持正向鋸齒排列的連續層數。與反向層數搭配，依序重複 N 層正向、M 層反向。設為 0 表示從第一層開始反向。"
 
 msgid "Reverse layers"
-msgstr "反向層"
+msgstr "反向層數"
 
 msgid "Conformal reverse layers"
-msgstr "共形反向層"
+msgstr "隨形填充反向層數"
 
 msgid "Number of consecutive layers that reverse the zigzag (start from the opposite rim). 0 disables reversing. Forward 1 and Reverse 1 reverses every other layer."
-msgstr "反轉鋸齒的連續層數（從對側邊緣開始）。0 表示停用反轉。正向 1 與反向 1 表示每隔一層反轉。"
+msgstr "反轉鋸齒排列的連續層數（從對側邊緣開始）。設為 0 可停用反向。正向層數與反向層數都設為 1 時，會每隔一層反向。"
 
 msgid "Radial center"
-msgstr "徑向中心"
+msgstr "放射中心"
 
 msgid "Where the radial center comes from. Each layer picks a center on that slice. Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers."
-msgstr "徑向中心的來源。每一層在該切片上選擇一個中心。軸線會擬合出一條穿過這些中心的 3D 線。平滑曲線會擬合出一條曲線，使中心不會在各層之間跳動。"
+msgstr "放射中心的來源。每層模式會在各層切片上選取一個中心。軸線模式會將這些中心擬合成一條三維直線。平滑曲線模式則擬合成一條曲線，避免中心在層與層之間跳動。"
 
 msgid "Each layer"
 msgstr "每層"
@@ -15680,16 +15677,16 @@ msgid "Smooth curve"
 msgstr "平滑曲線"
 
 msgid "Radial line count"
-msgstr "徑向線數量"
+msgstr "放射線條數"
 
 msgid "How many radial lines around the center. 0 uses the count from sparse infill density. A positive value is the radial line count, rounded up to an even number of at least 4."
-msgstr "中心周圍的徑向線數量。0 表示使用稀疏填充密度的數量。正值為徑向線數量，向上取整至不小於 4 的偶數。"
+msgstr "圍繞中心的放射線條數量。設為 0 時，依稀疏填充密度決定數量。正值會作為放射線條數量，並向上取整為至少 4 的偶數。"
 
 msgid "Center region radius"
 msgstr "中心區域半徑"
 
 msgid "Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. 0 chooses the radius automatically. A positive value is in millimeters."
-msgstr "使用一般直線填充的中心區域半徑；在此圓之外，填充保持徑向。0 表示自動選擇半徑。正值單位為公釐。"
+msgstr "使用一般直線填充的中心區域半徑；圓形區域外仍使用放射狀填充。設為 0 時自動決定半徑。正值的單位為毫米。"
 
 msgid "Symmetric infill y axis"
 msgstr "填充關於y軸對稱"
@@ -15953,7 +15950,7 @@ msgid "The allowed maximum output force of Y axis"
 msgstr "Y 軸允許的最大輸出力量"
 
 msgid "N"
-msgstr ""
+msgstr "N"
 
 msgid "Bed mass of the Y axis"
 msgstr "Y 軸熱床質量"
@@ -15962,7 +15959,7 @@ msgid "The machine bed mass load of Y axis"
 msgstr "Y 軸的機器熱床質量負載"
 
 msgid "g"
-msgstr ""
+msgstr "克"
 
 msgid "The allowed max printed mass"
 msgstr "允許的最大列印質量"
@@ -16115,25 +16112,25 @@ msgid "Periodic modifier"
 msgstr "週期性修改器"
 
 msgid "Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there."
-msgstr "在重複的層循環中套用此修改器。在跳過的層上會被忽略，如同不存在此修改器。"
+msgstr "依重複的層週期套用此修改器。在跳過的層中會忽略此修改器，如同沒有此修改器。"
 
 msgid "Skip for"
-msgstr "跳過"
+msgstr "跳過層數"
 
 msgid "Periodic modifier skip layers"
 msgstr "週期性修改器跳過層數"
 
 msgid "Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer."
-msgstr "不套用此修改器的連續層數。0 表示每一層皆套用此修改器。"
+msgstr "不套用此修改器的連續層數。設為 0 表示每一層都套用修改器。"
 
 msgid "Apply for"
-msgstr "套用"
+msgstr "套用層數"
 
 msgid "Periodic modifier apply layers"
 msgstr "週期性修改器套用層數"
 
 msgid "Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for."
-msgstr "每個循環中完整套用此修改器的連續層數。循環從第 0 層開始：先套用，然後跳過。"
+msgstr "每個週期中完整套用此修改器的連續層數。週期從第 0 層開始：先套用，再跳過。"
 
 msgid "Ignore infill settings"
 msgstr "忽略填充設定"
@@ -16142,7 +16139,7 @@ msgid "Modifier ignore infill settings"
 msgstr "修改器忽略填充設定"
 
 msgid "Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region."
-msgstr "不套用此修改器的填充設定（圖案、密度、共形填充及相關選項）。壁及其他覆寫仍會套用。填充取自父區域。"
+msgstr "不套用此修改器的填充設定（圖案、密度、隨形填充及相關選項）。牆壁與其他覆寫設定仍會套用。填充會沿用上層區域的設定。"
 
 msgid "Post-processing Scripts"
 msgstr "後處理指令碼"
@@ -17324,7 +17321,7 @@ msgid "No layers were detected. You might want to repair your STL file(s) or che
 msgstr "沒有檢測到層。您可能需要修復STL檔案，或檢查模型尺寸、厚度等，之後再重試。\n"
 
 msgid "Shrinkage compensation does not take effect on color-painted models."
-msgstr "收縮補償對塗色模型無效。"
+msgstr "收縮補償不會對塗色模型生效。"
 
 msgid ""
 "An object's XY size compensation will not be used because it is also color-painted.\n"
@@ -19489,7 +19486,7 @@ msgid "Recently used"
 msgstr "最近使用"
 
 msgid "Set nozzle count"
-msgstr "設定噴頭數量"
+msgstr "設定噴嘴數量"
 
 msgid "Please set nozzle count"
 msgstr "請設定噴嘴數量"
@@ -21207,7 +21204,7 @@ msgstr ""
 
 #, c-format, boost-format
 #~ msgid "The color count cannot exceed the project's filament limit (%d)."
-#~ msgstr "顏色數量不能超過專案的線材限制（%d）。"
+#~ msgstr "顏色數量不可超過專案的線材數量上限（%d）。"
 
 #~ msgid ""
 #~ "Too large layer height.\n"
@@ -21222,14 +21219,7 @@ msgstr ""
 #~ "- Unsaved projects.\n"
 #~ "- Mixed color sublayer with variable layer height warning\n"
 #~ "- Delete a filament used by a model"
-#~ msgstr ""
-#~ "- 載入檔案後同步印表機預設\n"
-#~ "- 「載入 3MF」對話方塊設定\n"
-#~ "- 執行後處理指令碼\n"
-#~ "- 支撐結構推薦提示\n"
-#~ "- 未儲存的專案。\n"
-#~ "- 混色子層搭配可變層高警告\n"
-#~ "- 刪除模型使用的線材"
+#~ msgstr "- 載入檔案後同步印表機預設\n-「載入 3MF」對話框設定\n- 執行後處理指令碼\n- 支撐結構建議提示\n- 未儲存的專案。\n- 混色子層使用可變層高的警告\n- 刪除模型使用的線材"
 
 #, c-format, boost-format
 #~ msgid "%s filament is brittle. Use AMS feeding with caution."
@@ -21253,17 +21243,17 @@ msgstr ""
 
 #, boost-format
 #~ msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
-#~ msgstr "此專案最多支援 %1% 種線材。匯入前必須合併多餘的線材。"
+#~ msgstr "專案最多支援 %1% 種線材。匯入前必須先合併超出的線材。"
 
 #~ msgid "Auto-Add All Filaments"
 #~ msgstr "自動新增所有線材"
 
 #~ msgid "Fix now"
-#~ msgstr "立即修復"
+#~ msgstr "立即修正"
 
 #, boost-format
 #~ msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
-#~ msgstr "此專案最多支援 %1% 種線材。目前計數為 %2%，已超過限制。"
+#~ msgstr "專案最多支援 %1% 種線材。目前有 %2% 種，已超過上限。"
 
 #, c-format, boost-format
 #~ msgid "model \"%s\""
@@ -21285,7 +21275,7 @@ msgstr ""
 #~ msgstr "自動將相同線材合併至專案中現有的線材"
 
 #~ msgid "Automatically merge filaments of the same color and type"
-#~ msgstr "自動合併相同顏色與類型的線材"
+#~ msgstr "自動合併顏色與類型相同的線材"
 
 #~ msgid ""
 #~ "Upper half area:  Original\n"
