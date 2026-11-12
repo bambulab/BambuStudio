@@ -57,6 +57,11 @@ protected:
     unsigned m_wrap_last_shown = 0xFFFFFFFFu;
     void wrap_hints();
 
+    struct Divider { wxWindow* line; std::vector<wxWindow*> owners; };
+    std::vector<Divider> m_dividers;
+    void add_divider(std::vector<wxWindow*> owners);
+    void update_dividers();
+
     void on_switch_recording(wxMouseEvent& event);
     void on_switch_live_cam_rec(wxMouseEvent& event);
     void on_switch_visual_cam_rec(wxMouseEvent& event);

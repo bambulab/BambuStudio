@@ -61,11 +61,13 @@ CameraPopup::CameraPopup(wxWindow *parent)
         return g;
     };
     wxFlexGridSizer* grid_recording = make_row_grid();
-    wxFlexGridSizer* grid_per_cam   = make_row_grid();
-    wxFlexGridSizer* grid_rest      = make_row_grid();
+    wxFlexGridSizer* grid_per_cam    = make_row_grid();
+    wxFlexGridSizer* grid_vcamera    = make_row_grid();
+    wxFlexGridSizer* grid_resolution = make_row_grid();
+    wxFlexGridSizer* grid_storage    = make_row_grid();
 
     //recording
-    m_text_recording = new wxStaticText(m_panel, wxID_ANY, _L("Live Camera Recording"));
+    m_text_recording = new wxStaticText(m_panel, wxID_ANY, _L("Allow Live View Camera Recording"));
     m_text_recording->Wrap(-1);
     m_text_recording->SetFont(Label::Head_14);
     m_text_recording->SetForegroundColour(TEXT_COL);
@@ -76,7 +78,7 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_text_recording_hint->SetFont(Label::Body_14);
     m_text_recording_hint->SetForegroundColour(wxColour(0x90, 0x90, 0x90));
     m_text_recording_hint->Hide();
-    m_wrap_hints.push_back({m_text_recording_hint, _L("External storage is not installed. Recording is not supported."), 30});
+    m_wrap_hints.push_back({m_text_recording_hint, _L("Records only during printing when external storage is inserted.") + "\n" + _L("Current status: Not installed, unable to save recordings."), 30});
 
     //vcamera
     m_text_vcamera = new wxStaticText(m_panel, wxID_ANY, _L("Go Live"));
@@ -86,7 +88,7 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_switch_vcamera = new SwitchButton(m_panel);
 
     //live camera recording
-    m_text_live_cam_rec = new wxStaticText(m_panel, wxID_ANY, _L("Live Camera Recording"));
+    m_text_live_cam_rec = new wxStaticText(m_panel, wxID_ANY, _L("Allow Live View Camera Recording"));
     m_text_live_cam_rec->Wrap(-1);
     m_text_live_cam_rec->SetFont(Label::Head_14);
     m_text_live_cam_rec->SetForegroundColour(TEXT_COL);
@@ -95,7 +97,7 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_switch_live_cam_rec->Hide();
 
     //visual enhancement camera recording
-    m_text_visual_cam_rec = new wxStaticText(m_panel, wxID_ANY, _L("BirdsEye Camera Recording"));
+    m_text_visual_cam_rec = new wxStaticText(m_panel, wxID_ANY, _L("Allow BirdsEye Camera Recording"));
     m_text_visual_cam_rec->Wrap(-1);
     m_text_visual_cam_rec->SetFont(Label::Head_14);
     m_text_visual_cam_rec->SetForegroundColour(TEXT_COL);
@@ -108,7 +110,7 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_text_cam_rec_hint->SetFont(Label::Body_14);
     m_text_cam_rec_hint->SetForegroundColour(wxColour(0x90, 0x90, 0x90));
     m_text_cam_rec_hint->Hide();
-    m_wrap_hints.push_back({m_text_cam_rec_hint, _L("External storage is not installed. Recording is not supported."), 30});
+    m_wrap_hints.push_back({m_text_cam_rec_hint, _L("Records only during printing when external storage is inserted.") + "\n" + _L("Current status: Not installed, unable to save recordings."), 30});
 
     grid_recording->Add(m_text_recording, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     grid_recording->Add(m_switch_recording, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
@@ -118,8 +120,17 @@ CameraPopup::CameraPopup(wxWindow *parent)
     grid_per_cam->Add(m_text_visual_cam_rec, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     grid_per_cam->Add(m_switch_visual_cam_rec, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
 
-    grid_rest->Add(m_text_vcamera, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    grid_rest->Add(m_switch_vcamera, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+    grid_vcamera->Add(m_text_vcamera, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    grid_vcamera->Add(m_switch_vcamera, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+
+    main_sizer->Add(grid_recording, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(10));
+    main_sizer->Add(m_text_recording_hint, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
+    add_divider({m_switch_recording});
+    main_sizer->Add(grid_per_cam, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
+    main_sizer->Add(m_text_cam_rec_hint, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
+    add_divider({m_switch_live_cam_rec, m_switch_visual_cam_rec});
+    main_sizer->Add(grid_vcamera, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
+    add_divider({m_switch_vcamera});
 
 #if !BBL_RELEASE_TO_PUBLIC
     m_text_liveview_retry = new wxStaticText(m_panel, wxID_ANY, _L("Liveview Retry"));
@@ -130,8 +141,11 @@ CameraPopup::CameraPopup(wxWindow *parent)
     bool auto_retry         = wxGetApp().app_config->get("liveview", "auto_retry") != "false";
     m_switch_liveview_retry->SetValue(auto_retry);
 
-    grid_rest->Add(m_text_liveview_retry, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    grid_rest->Add(m_switch_liveview_retry, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+    wxFlexGridSizer* grid_retry = make_row_grid();
+    grid_retry->Add(m_text_liveview_retry, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    grid_retry->Add(m_switch_liveview_retry, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+    main_sizer->Add(grid_retry, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
+    add_divider({m_switch_liveview_retry});
 
     m_switch_liveview_retry->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &e) {
         wxGetApp().app_config->set("liveview", "auto_retry", e.IsChecked());
@@ -144,14 +158,16 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_text_resolution->Wrap(-1);
     m_text_resolution->SetFont(Label::Head_14);
     m_text_resolution->SetForegroundColour(TEXT_COL);
-    grid_rest->Add(m_text_resolution, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    grid_rest->Add(0, 0, wxALL, 0);
+    grid_resolution->Add(m_text_resolution, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    grid_resolution->Add(0, 0, wxALL, 0);
     for (int i = 0; i < (int)RESOLUTION_OPTIONS_NUM; ++i)
     {
         m_resolution_options[i] = create_item_radiobox(to_resolution_label_string(CameraResolution(i)), m_panel, wxEmptyString, FromDIP(10));
-        grid_rest->Add(m_resolution_options[i], 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-        grid_rest->Add(0, 0, wxALL, 0);
+        grid_resolution->Add(m_resolution_options[i], 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+        grid_resolution->Add(0, 0, wxALL, 0);
     }
+    main_sizer->Add(grid_resolution, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
+    add_divider({m_text_resolution});
 
     m_text_storage = new wxStaticText(m_panel, wxID_ANY, _L("External Storage"));
     m_text_storage->Wrap(-1);
@@ -160,16 +176,25 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_text_storage_value = new wxStaticText(m_panel, wxID_ANY, wxEmptyString);
     m_text_storage_value->Wrap(-1);
     m_text_storage_value->SetFont(Label::Body_14);
-    m_text_storage_value->SetForegroundColour(ThemeColor::TextMuted);
+    m_text_storage_value->SetForegroundColour(wxColour("#262E30"));
 
-    grid_rest->Add(m_text_storage, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    grid_rest->Add(m_text_storage_value, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
-
-    main_sizer->Add(grid_recording, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(10));
-    main_sizer->Add(m_text_recording_hint, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
-    main_sizer->Add(grid_per_cam, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
-    main_sizer->Add(m_text_cam_rec_hint, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
-    main_sizer->Add(grid_rest, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(10));
+    grid_storage->Add(m_text_storage, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    wxWindow* storage_dot = new wxWindow(m_panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(4), FromDIP(4)));
+    storage_dot->SetBackgroundColour(*wxWHITE);
+    storage_dot->Bind(wxEVT_PAINT, [storage_dot](wxPaintEvent&) {
+        wxPaintDC pdc(storage_dot);
+        wxGCDC dc(pdc);
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(TEXT_COL));
+        wxSize sz = storage_dot->GetClientSize();
+        dc.DrawEllipse(0, 0, sz.x, sz.y);
+    });
+    wxBoxSizer* storage_value_sizer = new wxBoxSizer(wxHORIZONTAL);
+    storage_value_sizer->Add(storage_dot, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(6));
+    storage_value_sizer->Add(m_text_storage_value, 0, wxALIGN_CENTER_VERTICAL);
+    grid_storage->Add(storage_value_sizer, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+    main_sizer->Add(grid_storage, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
+    add_divider({m_text_storage});
 
     auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/virtual-camera", L"en");
     auto text = _L("Show \"Live Video\" guide page.");
@@ -215,6 +240,7 @@ CameraPopup::CameraPopup(wxWindow *parent)
         if (bmp.IsOk()) sw->SetBitmapDisabled(bmp.ConvertToDisabled());
     }
 
+    update_dividers();
     wrap_hints();
     m_panel->Layout();
     main_sizer->Fit(m_panel);
@@ -485,23 +511,27 @@ void CameraPopup::update(bool vcamera_streaming)
 
     bool has_storage = m_obj->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_NORMAL;
 
-    m_switch_recording->SetValue(has_storage && m_obj->camera_recording_when_printing);
+    m_switch_recording->SetValue(m_obj->camera_recording_when_printing);
 
     auto& erc = m_obj->enable_record_cams;
-    m_switch_live_cam_rec->SetValue(has_storage &&
+    m_switch_live_cam_rec->SetValue(
         std::find(erc.begin(), erc.end(),
             static_cast<int>(LiveviewCameraType::CAMERA_MAIN)) != erc.end());
-    m_switch_visual_cam_rec->SetValue(has_storage &&
+    m_switch_visual_cam_rec->SetValue(
         std::find(erc.begin(), erc.end(),
             static_cast<int>(LiveviewCameraType::CAMERA_DEPUTY)) != erc.end());
 
-    // No external storage: grey out recording switches and show hint under the relevant switch.
-    m_switch_recording->Enable(has_storage);
-    m_switch_live_cam_rec->Enable(has_storage);
-    m_switch_visual_cam_rec->Enable(has_storage);
-    m_text_recording_hint->Show(!has_storage && m_switch_recording->IsShown());
-    m_text_cam_rec_hint->Show(!has_storage &&
-        (m_switch_live_cam_rec->IsShown() || m_switch_visual_cam_rec->IsShown()));
+    const wxString rec_hint = _L("Records only during printing when external storage is inserted.") + "\n" +
+        (has_storage ? _L("Current status: Installed, recordings can be saved.") : _L("Current status: Not installed, unable to save recordings."));
+    for (auto& h : m_wrap_hints) {
+        if ((h.text == m_text_recording_hint || h.text == m_text_cam_rec_hint) && h.original != rec_hint) {
+            h.original      = rec_hint;
+            m_content_width = -1;
+        }
+    }
+
+    m_text_recording_hint->Show(m_switch_recording->IsShown());
+    m_text_cam_rec_hint->Show(m_switch_live_cam_rec->IsShown() || m_switch_visual_cam_rec->IsShown());
 
     switch (m_obj->GetStorage()->get_sdcard_state()) {
     case DevStorage::SdcardState::NO_SDCARD: m_text_storage_value->SetLabel(_L("Not Installed")); break;
@@ -583,9 +613,29 @@ void CameraPopup::wrap_hints()
     m_wrap_last_shown = shown;
 }
 
+void CameraPopup::add_divider(std::vector<wxWindow*> owners)
+{
+    wxPanel* line = new wxPanel(m_panel, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(1)));
+    line->SetBackgroundColour(wxColour("#EEEEEE"));
+    line->SetMinSize(wxSize(-1, FromDIP(1)));
+    wxBoxSizer* line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    line_sizer->Add(line, 1, wxTOP | wxBOTTOM, FromDIP(5));
+    main_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
+    m_dividers.push_back({line, std::move(owners)});
+}
+
+void CameraPopup::update_dividers()
+{
+    for (auto& d : m_dividers) {
+        bool shown = std::any_of(d.owners.begin(), d.owners.end(), [](wxWindow* w) { return w && w->IsShown(); });
+        d.line->Show(shown);
+    }
+}
+
 void CameraPopup::rescale()
 {
     m_panel->Freeze();
+    update_dividers();
     wrap_hints();
     m_panel->Layout();
     main_sizer->Fit(m_panel);
