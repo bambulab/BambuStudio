@@ -2166,6 +2166,31 @@ void PrintConfigDef::init_fff_params()
     def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{ 10 });
 
+    def = this->add("enable_height_slowdown_auto", coBools);
+    // xgettext:no-c-format, no-boost-format
+    def->label = L("Automatic height slowdown (100% to 50%)");
+    def->category = L("Speed");
+    // xgettext:no-c-format, no-boost-format
+    def->tooltip = L("Gradually reduce each object's normal speed and acceleration from 100% at its first model layer to 50% at its top layer. "
+                     "Process and filament volumetric speed limits are retained. Travel speed and acceleration are reduced too. "
+                     "This slicer-side ramp does not switch the printer's runtime speed mode. It overrides the manual height slowdown settings while enabled.");
+    def->mode = comSimple;
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionBoolsNullable{ false });
+
+    def = this->add("height_slowdown_initial_speed_boost", coBools);
+    // xgettext:no-c-format, no-boost-format
+    def->label = L("Start at 120% printing speed");
+    def->category = L("Speed");
+    // xgettext:no-c-format, no-boost-format
+    def->tooltip = L("Keep the first three model layers at their normal printing speeds. From the fourth model layer, start at up to 120% and gradually reduce to 50% at the object's top layer. "
+                     "Filament volumetric flow and printer motion limits still apply. Acceleration and travel keep the automatic 100% to 50% ramp. "
+                     "Boosting requires valid flow and XY motion limits, and is not applied to nonplanar paths, spiral vase or flow calibration. "
+                     "This option only takes effect with automatic height slowdown enabled and does not switch the printer's runtime speed mode.");
+    def->mode = comSimple;
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionBoolsNullable{ false });
+
     def = this->add("enable_height_slowdown", coBools);
     def->label = L("Slow down by height");
     def->category = L("Speed");
@@ -8513,6 +8538,8 @@ std::set<std::string> print_options_with_variant = {
     "overhang_3_4_speed",
     "overhang_4_4_speed",
     "overhang_totally_speed",
+    "enable_height_slowdown_auto", //coBools
+    "height_slowdown_initial_speed_boost", //coBools
     "enable_height_slowdown", //coBools
     "slowdown_start_height", //coFloats
     "slowdown_start_speed", //coFloats

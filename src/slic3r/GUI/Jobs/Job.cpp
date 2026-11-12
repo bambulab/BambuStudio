@@ -37,7 +37,19 @@ void GUI::Job::update_percent_finish()
 
 void GUI::Job::show_error_info(wxString msg, int code, wxString description, wxString extra)
 {
-    m_progress->show_error_info(msg, code, description, extra);
+    // Like update_status(), errors can arrive from process() on the worker.
+    // The progress indicator may resize native windows, so dispatch through
+    // this Job's event queue. Pending callbacks are discarded with the Job.
+    // Own UTF-8 bytes across threads: wxString copies can share a non-atomic
+    // reference count in wxWidgets builds that do not use std::wstring.
+    CallAfter([this, progress = m_progress, message = msg.ToStdString(wxConvUTF8), code,
+               details = description.ToStdString(wxConvUTF8), more = extra.ToStdString(wxConvUTF8)] {
+        if (was_canceled())
+            return;
+        progress->show_error_info(wxString::FromUTF8(message.data(), message.size()), code,
+                                  wxString::FromUTF8(details.data(), details.size()),
+                                  wxString::FromUTF8(more.data(), more.size()));
+    });
 }
 
 GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)

@@ -10,6 +10,7 @@ add_executable(${_TEST_NAME}_tests EXCLUDE_FROM_ALL
 	test_gcode.cpp
 	test_gcodewriter.cpp
 	test_gcodewriter_travel.cpp
+	test_height_slowdown.cpp
 	test_model.cpp
 	test_print.cpp
 	test_printgcode.cpp
@@ -62,4 +63,25 @@ if (MSVC)
 endif()
 set_property(TARGET periodic_modifier_tests PROPERTY FOLDER "tests")
 add_test(periodic_modifier_tests periodic_modifier_tests ${CATCH_EXTRA_ARGS})
+
+# These real utility implementations normally belong to the GUI library, but
+# libslic3r's G-code export and model loaders also reference them in CLI tests.
+file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/height_slowdown_nanosvg.cpp"
+	CONTENT "#define NANOSVG_IMPLEMENTATION\n#include \"nanosvg/nanosvg.h\"\n")
+add_executable(height_slowdown_tests
+	fff_print_tests.cpp
+	test_data.cpp
+	test_data.hpp
+	test_height_slowdown.cpp
+	${PROJECT_SOURCE_DIR}/src/slic3r/Utils/BBLUtil.cpp
+	${PROJECT_SOURCE_DIR}/src/slic3r/Utils/Http.cpp
+	${CMAKE_CURRENT_BINARY_DIR}/height_slowdown_nanosvg.cpp
+	)
+target_include_directories(height_slowdown_tests PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(height_slowdown_tests test_common libslic3r
+	libcurl
+	OpenSSL::SSL OpenSSL::Crypto
+)
+set_property(TARGET height_slowdown_tests PROPERTY FOLDER "tests")
+add_test(height_slowdown_tests height_slowdown_tests ${CATCH_EXTRA_ARGS})
 
