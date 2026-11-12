@@ -4274,10 +4274,7 @@ void SelectMachineDialog::update_user_printer()
         }
 
         m_printer_last_select = m_list[prefer_idx]->get_dev_id();
-        m_printer_box->GetPrinterComboBox()->SetSelection(prefer_idx);
-        wxCommandEvent event(wxEVT_COMBOBOX);
-        event.SetEventObject(m_printer_box->GetPrinterComboBox());
-        wxPostEvent(m_printer_box->GetPrinterComboBox(), event);
+        m_printer_box->GetPrinterComboBox()->SelectAndNotify(prefer_idx);
     }
     else
     {
@@ -4287,7 +4284,6 @@ void SelectMachineDialog::update_user_printer()
     }
 
     BOOST_LOG_TRIVIAL(info) << "for send task, current " << KV(log_key::dev_id, m_printer_last_select) << std::endl;
-    update_by_obj(get_current_machine());
 }
 
 void SelectMachineDialog::on_rename_click(wxMouseEvent& event)
@@ -4504,8 +4500,6 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     m_text_printer_msg->Clear();
     m_statictext_ams_msg->Clear();
     show_status(PrintDialogStatus::PrintStatusInit);
-    update_show_status();
-    update_print_status_msg();
 
     // update
     update_by_obj(get_current_machine());
