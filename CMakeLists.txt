@@ -124,6 +124,15 @@ endif ()
 option(SLIC3R_BUILD_SANDBOXES   "Build development sandboxes" OFF)
 option(SLIC3R_BUILD_TESTS       "Build unit tests" OFF)
 
+# Fully-open build: use the bundled open-source open-bamboo-networking
+# implementation instead of Bambu Lab's closed-source network plugin, and
+# disable every code path that downloads closed-source binary packages
+# (the network plugin itself and cameratools). See FULLY_OPEN.md.
+option(FULLY_OPEN_BUILD "Fully open-source build (bundled open network plugin, no closed-source downloads)" ON)
+if (FULLY_OPEN_BUILD)
+    add_definitions(-DFULLY_OPEN_BUILD)
+endif ()
+
 if (IS_CROSS_COMPILE)
     message("Detected cross compilation setup. Tests and encoding checks will be forcedly disabled!")
     set(SLIC3R_PERL_XS OFF CACHE BOOL "" FORCE)
