@@ -17,7 +17,7 @@ namespace GUI {
 #define PICK_LEFT_PRINTABLE    40
 #define PICK_LEFT_DEV_NAME 250
 #define PICK_LEFT_DEV_STATUS 250
-#define PICK_DEVICE_MAX 6
+#define PICK_DEVICE_MAX 10
     
 class MultiMachinePage : public wxPanel
 {
