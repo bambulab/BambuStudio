@@ -1,0 +1,50 @@
+From 4bff28d0fe5617d0e21b111c10170530d98c7f33 Mon Sep 17 00:00:00 2001
+From: Bastien Nocera <hadess@hadess.net>
+Date: Sat, 1 Aug 2026 15:26:18 +0200
+Subject: [PATCH] Remove boost::system dep
+
+It is gone in Boost 1.89:
+https://github.com/boostorg/system/issues/132
+---
+ cmake/FindOpenVDB.cmake        | 1 -
+ openvdb/openvdb/CMakeLists.txt | 5 ++---
+ 2 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/cmake/FindOpenVDB.cmake b/cmake/FindOpenVDB.cmake
+index 86eaf8497b63..413ab8b7ea4a 100644
+--- a/cmake/FindOpenVDB.cmake
++++ b/cmake/FindOpenVDB.cmake
+@@ -650,7 +650,6 @@ endif()
+ 
+ set(_OPENVDB_VISIBLE_DEPENDENCIES
+   Boost::iostreams
+-  Boost::system
+ )
+ 
+ if(OpenVDB_USES_IMATH_HALF)
+diff --git a/openvdb/openvdb/CMakeLists.txt b/openvdb/openvdb/CMakeLists.txt
+index 73fb4f938cfb..a086a0b5cab9 100644
+--- a/openvdb/openvdb/CMakeLists.txt
++++ b/openvdb/openvdb/CMakeLists.txt
+@@ -119,7 +119,7 @@ endif()
+ 
+ find_package(Threads REQUIRED)
+ 
+-find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS iostreams system)
++find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS iostreams)
+ if(OPENVDB_FUTURE_DEPRECATION AND FUTURE_MINIMUM_BOOST_VERSION)
+   # The X.Y.Z boost version value isn't available until CMake 3.14
+   set(FULL_BOOST_VERSION "${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}")
+@@ -241,8 +241,7 @@ endif()
+ # other headers.
+ 
+ list(APPEND OPENVDB_CORE_DEPENDENT_LIBS
+-  Boost::iostreams
+-  Boost::system)
++  Boost::iostreams)
+ 
+ if(WIN32)
+   # Boost headers contain #pragma commands on Windows which causes Boost
+-- 
+2.55.0
+
