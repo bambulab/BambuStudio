@@ -854,7 +854,7 @@ void ArrangeJob::prepare()
 void ArrangeJob::check_unprintable()
 {
     for (auto it = m_selected.begin(); it != m_selected.end();) {
-        if (it->poly.area() < 0.001 || it->height>params.printable_height)
+        if (it->poly.area() < 0.001 || it->height > params.printable_height + BuildVolume::SceneEpsilon)
         {
 #if SAVE_ARRANGE_POLY
             SVG svg(data_dir() + "/SVG/arrange_unprintable_"+it->name+".svg", get_extents(it->poly));
