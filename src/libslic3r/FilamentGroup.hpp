@@ -196,6 +196,9 @@ namespace Slic3r
 
     std::vector<int> calc_filament_group_for_match_multi_nozzle(const FilamentGroupContext& ctx);
 
+    // 已安装喷嘴上是否有有效已装料。
+    bool has_installed_loaded_nozzle(const FilamentGroupContext& ctx);
+
     std::vector<int> calc_filament_group_for_nozzle_match(FilamentGroupContext &ctx);
 
     struct FilamentPlanRes

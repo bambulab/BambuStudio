@@ -1524,6 +1524,19 @@ namespace Slic3r
         return fg.calc_filament_group_for_flush();
     }
 
+    bool has_installed_loaded_nozzle(const FilamentGroupContext& ctx)
+    {
+        for (const auto& loaded : ctx.machine_info.nozzle_loaded_filaments) {
+            if (!loaded.valid)
+                continue;
+            for (const auto& nozzle : ctx.nozzle_info.nozzle_list) {
+                if (nozzle.installed && nozzle.group_id == loaded.nozzle_id)
+                    return true;
+            }
+        }
+        return false;
+    }
+
     std::vector<int> calc_filament_group_for_nozzle_match(FilamentGroupContext &ctx)
     {
         using namespace FlushPredict;
@@ -1552,7 +1565,7 @@ namespace Slic3r
                 loaded_nozzles.push_back({ filament, nozzle });
         }
 
-        // 没有工程耗材或没有设备已装料信息时，match 模式没有可参考目标，退回省冲刷分组。
+        // 无工程料，或无可用已装料：退回冲刷分配。后者的虚拟喷嘴已在构建上下文时补好。
         if (used_filaments.empty() || loaded_nozzles.empty()) {
             FilamentGroup fg(ctx);
             return fg.calc_filament_group_for_flush();

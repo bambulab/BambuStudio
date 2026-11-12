@@ -1997,14 +1997,18 @@ FilamentGroupContext build_filament_group_context(
             ams_nozzle_idx_ctx < static_cast<int>(nozzle_list.size()) && nozzle_list[ams_nozzle_idx_ctx].installed)
             ams_logical_group_id = ams_nozzle_idx_ctx;
 
-        // N1X 非 match 自动模式需要在 ctx 阶段补足基础容量；match 模式的虚拟喷嘴由
-        // calc_filament_group_for_nozzle_match() 按真实已装料匹配结果追加。
+        // 非便捷自动模式在这里补槽。便捷模式有已装料时不补，等匹配溢出后再补。
+        // 便捷模式没有可用已装料时会退回冲刷分配，分配本身不补槽，所以这里先补。
         // fmmNozzleManual under multi-diameter mode joins the auto modes here: its per-filament
         // (diameter, flow) selection still needs one capacity unit per filament, otherwise same-spec
         // filaments get over-packed onto a single physical nozzle and are charged real flush against
         // each other. Non-multi-diameter fmmNozzleManual (CLI / calibration) uses explicit nozzle maps.
+        const bool match_without_loaded_nozzle = mode == FilamentMapMode::fmmAutoForMatch
+            && !used_filaments.empty()
+            && !has_installed_loaded_nozzle(context);
         const bool needs_virtual_nozzle_padding = single_ext_multi_nozzle &&
             ((is_auto_filament_map_mode(mode) && mode != FilamentMapMode::fmmAutoForMatch) ||
+             match_without_loaded_nozzle ||
              (mode == FilamentMapMode::fmmNozzleManual && multi_nozzle_diameter_mode_enabled(print->full_print_config())));
         if (needs_virtual_nozzle_padding) {
             const std::string virtual_diameter = extruder_diameters.empty()
@@ -2079,7 +2083,7 @@ FilamentGroupContext build_filament_group_context(
                 }
             }
 
-            // 简化兜底：非 match 自动模式沿用 Standard 虚拟喷嘴补齐。
+            // 容量仍不足时补 Standard 虚拟喷嘴。无已装料的便捷模式也走这里。
             while (usable_slot_count() < static_cast<int>(used_filaments.size())) {
                 MultiNozzleUtils::NozzleInfo virtual_nozzle;
                 virtual_nozzle.diameter    = virtual_diameter;
