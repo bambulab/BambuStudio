@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <map>
 #include <exception>
+#include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -35,6 +36,8 @@
 #include "TopoDS.hxx"
 #include "TDataStd_Name.hxx"
 #include "TCollection_AsciiString.hxx"
+#include "TCollection_ExtendedString.hxx"
+#include "libslic3r/Utils.hpp"
 #include "BRepBuilderAPI_Transform.hxx"
 #include "TopExp_Explorer.hxx"
 #include "TopExp_Explorer.hxx"
@@ -45,6 +48,37 @@
 
 
 namespace Slic3r {
+
+// TCollection_AsciiString(ExtendedString) replaces every code point above 255 with NUL,
+// so a Chinese name is truncated to an empty string and later replaced by "1".
+static std::string step_extended_name_to_utf8(const TCollection_ExtendedString& ext)
+{
+    const int length = ext.Length();
+    if (length <= 0)
+        return {};
+
+    bool has_wide_char = false;
+    std::string bytes(static_cast<size_t>(length), '\0');
+    std::wstring wide;
+    wide.reserve(static_cast<size_t>(length));
+    for (int i = 1; i <= length; ++i) {
+        const unsigned int code = static_cast<unsigned int>(ext.Value(i));
+        wide.push_back(static_cast<wchar_t>(code));
+        if (code > 0xFFu)
+            has_wide_char = true;
+        else
+            bytes[static_cast<size_t>(i - 1)] = static_cast<char>(code);
+    }
+    if (has_wide_char)
+        return boost::nowide::narrow(wide.c_str());
+    if (StepPreProcessor::isUtf8(bytes))
+        return bytes;
+    // Raw GBK (or the local ANSI code page) stored as single bytes, without STEP \X2\ escapes.
+    const std::string decoded = decode_path(bytes.c_str());
+    if (!decoded.empty() && StepPreProcessor::isUtf8(decoded))
+        return decoded;
+    return {};
+}
 
 static const char* step_shape_type_to_string(TopAbs_ShapeEnum type)
 {
@@ -68,7 +102,7 @@ static std::string step_label_name(const Handle(XCAFDoc_ShapeTool)& shapeTool, c
     Handle(TDataStd_Name) shapeName;
     if (referredLabel.FindAttribute(TDataStd_Name::GetID(), shapeName) ||
         label.FindAttribute(TDataStd_Name::GetID(), shapeName)) {
-        name = TCollection_AsciiString(shapeName->Get()).ToCString();
+        name = step_extended_name_to_utf8(shapeName->Get());
     }
     if (name.empty() || !StepPreProcessor::isUtf8(name))
         name = "<unnamed>";
@@ -111,7 +145,7 @@ static std::string step_label_import_name(const Handle(XCAFDoc_ShapeTool)& shape
     Handle(TDataStd_Name) shapeName;
     if (referredLabel.FindAttribute(TDataStd_Name::GetID(), shapeName) ||
         label.FindAttribute(TDataStd_Name::GetID(), shapeName))
-        name = TCollection_AsciiString(shapeName->Get()).ToCString();
+        name = step_extended_name_to_utf8(shapeName->Get());
 
     if (name.empty() || !StepPreProcessor::isUtf8(name))
         name = std::to_string(id++);
@@ -328,7 +362,7 @@ static void getNamedSolids(const TopLoc_Location& location,
     Handle(TDataStd_Name) shapeName;
     if (referredLabel.FindAttribute(TDataStd_Name::GetID(), shapeName) ||
         label.FindAttribute(TDataStd_Name::GetID(), shapeName))
-        name = TCollection_AsciiString(shapeName->Get()).ToCString();
+        name = step_extended_name_to_utf8(shapeName->Get());
 
     if (name == "" || !StepPreProcessor::isUtf8(name))
         name = std::to_string(id++);
