@@ -9,8 +9,49 @@ import { SubAmsPage } from './components/SubAmsPage';
 import { Tips } from './components/Tips';
 import { BottomWikiTip } from './components/BottomWikiTip';
 import { resolveHostContentSize } from './hostContentSize';
-import type { AmsMappingHotendSlotViewModel } from './types';
+import type {
+  AmsMappingHotendSlotViewModel,
+  AmsMappingHotendSubSlotViewModel,
+} from './types';
 import './ams-mapping-hotend.css';
+
+function findCheckedSubSlot(
+  slot: AmsMappingHotendSlotViewModel,
+): AmsMappingHotendSubSlotViewModel | undefined {
+  if (!slot.sub_ams) return undefined;
+  for (const group of slot.sub_ams) {
+    const found = group.slots.find((sub) => sub.checked);
+    if (found) return found;
+  }
+  return undefined;
+}
+
+// When a sub-AMS slot under this hotend is checked for the current filament,
+// surface that sub-slot's filament and global AMS code ("A1", "HT-A", ...) on
+// the level-1 card; otherwise show the hotend's own rack (AMS 3H) / ext slot.
+function resolveLevelOneSlot(
+  slot: AmsMappingHotendSlotViewModel,
+  checkedSub: AmsMappingHotendSubSlotViewModel | undefined,
+): AmsMappingHotendSlotViewModel {
+  if (!checkedSub) return slot;
+  return {
+    ...slot,
+    index: checkedSub.display_index || checkedSub.index,
+    ext: checkedSub.ext,
+    state: checkedSub.state,
+    filament_type: checkedSub.filament_type,
+    filament_name: checkedSub.filament_name,
+    color: checkedSub.color,
+    ctype: checkedSub.ctype,
+    color_type: checkedSub.color_type,
+    remain: checkedSub.remain,
+    has_filament: checkedSub.has_filament,
+    is_pickable: checkedSub.is_pickable,
+    can_edit: checkedSub.can_edit,
+    checked: checkedSub.checked,
+    multi_colors: checkedSub.multi_colors,
+  };
+}
 
 // True when the currently selected (checked) mapping source is a third-party /
 // unknown-type filament. Mirrors SlotCard's `isThird` test (filament_name ==
@@ -186,17 +227,22 @@ export function AmsMappingHotendPage() {
               <div
                 className="ams-map-hotend-page__row ams-map-hotend-page__row--centered"
               >
-                {row.map((slot) => (
-                  <SlotCard
-                    key={`${slot.ams_id}:${slot.slot_id}`}
-                    slot={slot}
-                    materialIndex={state.material_index}
-                    onClick={() => void selectSlot(slot)}
-                    onEnterSubAms={() => setSubAmsKey(`${slot.ams_id}:${slot.slot_id}`)}
-                    onEdit={() => void editSlot(slot)}
-                    onNozzleError={() => void showNozzleError()}
-                  />
-                ))}
+                {row.map((slot) => {
+                  const checkedSub = findCheckedSubSlot(slot);
+                  const displaySlot = resolveLevelOneSlot(slot, checkedSub);
+                  const activeTarget = checkedSub ?? slot;
+                  return (
+                    <SlotCard
+                      key={`${slot.ams_id}:${slot.slot_id}`}
+                      slot={displaySlot}
+                      materialIndex={state.material_index}
+                      onClick={() => void selectSlot(activeTarget)}
+                      onEnterSubAms={() => setSubAmsKey(`${slot.ams_id}:${slot.slot_id}`)}
+                      onEdit={() => void editSlot(activeTarget)}
+                      onNozzleError={() => void showNozzleError()}
+                    />
+                  );
+                })}
               </div>
             </div>
           );

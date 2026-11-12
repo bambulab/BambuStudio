@@ -79,6 +79,9 @@ export interface AmsMappingHotendSubSlotViewModel {
   slot_id: string;
   tray_id: number;
   index: string;
+  // Global AMS slot code ("A1", "HT-A", ...) shown on the level-1 card pill
+  // when this sub-slot is checked; `index` stays the per-unit ordinal for SubAmsPage.
+  display_index?: string;
   ext: boolean;
   state: AmsMappingHotendSlotState;
   filament_type: string;
