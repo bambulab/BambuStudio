@@ -100,6 +100,16 @@ enum class NozzleLayout
 NozzleLayout nozzle_layout_of(const ConfigBase &printer_config);
 
 /**
+ * \brief Check if the printer picks and edits its nozzles on the nozzle card's nozzle view
+ *
+ * True for two single-nozzle extruders that support the multi-diameter mode. Other printers with
+ * two single-nozzle extruders keep one diameter combo per extruder.
+ *
+ * \param printer_config  a printer preset's config
+ */
+bool uses_dual_nozzle_view(const ConfigBase &printer_config);
+
+/**
  * \brief True if the layout has two extruders
  */
 bool is_dual_extruder(NozzleLayout layout);
@@ -108,6 +118,18 @@ bool is_dual_extruder(NozzleLayout layout);
  * \brief True if the layout holds several nozzles on an extruder, so nozzles are edited in a settings dialog
  */
 bool has_nozzle_rack(NozzleLayout layout);
+
+/**
+ * \brief Check if the printer is sold with a nozzle of a flow type at a diameter
+ *
+ * Reads the extruder variants of the preset that carries \p diameter, so it says nothing about the
+ * installed nozzles or about a filament.
+ *
+ * \param diameter     nozzle diameter such as "0.4"
+ * \param volume_type  flow type to look for
+ * \param extruder_id  0-based extruder to check; none for any extruder
+ */
+bool printer_offers_flow(const std::string &diameter, NozzleVolumeType volume_type, std::optional<int> extruder_id = std::nullopt);
 
 // Plater-side helpers that read device (MachineObject) state and turn it into slicer
 // config, sync-status, and serialized strings. These do NOT drive the hardware; the

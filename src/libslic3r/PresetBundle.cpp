@@ -262,6 +262,7 @@ static std::vector<std::string> s_project_options {
     "filament_nozzle_map",
     "filament_diameter_map",
     "multi_nozzle_diameter_mode",
+    "extruder_enabled",
     "extruder_nozzle_stats",
     "extruder_nozzle_stats_new",
     "prime_volume_mode",

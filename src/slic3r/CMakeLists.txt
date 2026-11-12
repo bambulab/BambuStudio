@@ -585,6 +585,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/DesktopIntegrationDialog.hpp
     GUI/DragCanvas.cpp
     GUI/DragCanvas.hpp
+    GUI/DualNozzleView.cpp
+    GUI/DualNozzleView.hpp
     GUI/ExtruderPanel.cpp
     GUI/ExtruderPanel.hpp
     GUI/ExtruderPanelGroup.cpp

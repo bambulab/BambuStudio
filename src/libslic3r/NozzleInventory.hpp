@@ -92,7 +92,8 @@ public:
     /**
      * \brief Create an inventory that writes every change into \p mirror
      *
-     * \param mirror  project config; receives nozzle_volume_type, the per-slot keys and the legacy counts.
+     * \param mirror  project config; receives nozzle_volume_type, the per-slot keys, the legacy counts
+     *                and extruder_enabled (the user's flag per extruder, see user_set_enabled()).
      *                It must outlive the inventory.
      */
     explicit NozzleInventory(DynamicPrintConfig &mirror);
@@ -145,7 +146,8 @@ public:
      * \brief A project file was opened; its nozzle keys replace the Project layer
      *
      * Also selects the printer, so the file's printer must already be selected in \p printers.
-     * A file with no nozzle keys clears the layer.
+     * A file with no nozzle keys clears the layer. The user's enabled flags come back from
+     * extruder_enabled; without that key every extruder is enabled.
      *
      * \param printers   printer presets, with the project's printer selected
      * \param file_keys  the config as read from the file, so a missing key is really missing
@@ -198,16 +200,28 @@ public:
     void user_set_volume_type(int extruder_id, NozzleVolumeType type);
 
     /**
-     * \brief The user picked the diameter of an extruder with one nozzle slot in the multi-diameter mode
+     * \brief The user picked the diameter of an extruder with one nozzle slot
      *
-     * The nozzle keeps its volume type. Outside the multi-diameter mode every extruder takes the selected
-     * variant's diameter, and an extruder with a rack derives its diameters from its slots; there this logs
-     * a warning and does nothing.
+     * The nozzle keeps its volume type. Applies in the multi-diameter mode, and to a printer with two
+     * or more single-nozzle extruders that supports that mode, whose nozzles may differ in any mode.
+     * Elsewhere every extruder takes the selected variant's diameter, and an extruder with a rack
+     * derives its diameters from its slots; there this logs a warning and does nothing.
      *
      * \param extruder_id  0-based extruder
      * \param diameter     the picked diameter, such as "0.4"
      */
     void user_set_diameter(int extruder_id, const std::string &diameter);
+
+    /**
+     * \brief The user picked the diameter and the volume type of an extruder with one nozzle slot, as one edit
+     *
+     * Applies where \ref user_set_diameter applies; elsewhere this logs a warning and does nothing.
+     *
+     * \param extruder_id  0-based extruder
+     * \param diameter     the picked diameter, such as "0.4"
+     * \param type         the picked volume type; not hybrid
+     */
+    void user_set_nozzle(int extruder_id, const std::string &diameter, NozzleVolumeType type);
 
     /**
      * \brief The user picked one diameter for all extruders
@@ -220,7 +234,51 @@ public:
      */
     void user_unify_diameter(const std::string &diameter);
 
+    /**
+     * \brief The user enabled or disabled extruders, in the single-diameter mode
+     *
+     * A disabled extruder never prints. An enabled one prints only if its nozzle also has the selected
+     * variant's diameter; see \ref in_use and \ref enabled_variant. Not a layer: a sync or a nozzle
+     * edit keeps the flags, and a switch to another printer model clears them.
+     *
+     * \param enabled  one flag per extruder; a size other than extruder_count() is ignored
+     */
+    void user_set_enabled(std::vector<bool> enabled);
+
     // ---- Read ----
+
+    /**
+     * \brief Check if an extruder prints with the selected nozzles
+     *
+     * True for every installed nozzle in the multi-diameter mode, on a printer with a rack, or with
+     * one extruder. Else an extruder prints if its nozzle has the selected variant's diameter and
+     * it is enabled; see \ref is_enabled.
+     *
+     * \param extruder_id  0-based extruder
+     */
+    bool in_use(int extruder_id) const;
+
+    /**
+     * \brief Check if an extruder is enabled for printing
+     *
+     * The user's flag from \ref user_set_enabled. When no enabled extruder has a nozzle, every
+     * extruder is enabled, so that some nozzle still prints.
+     *
+     * \param extruder_id  0-based extruder
+     */
+    bool is_enabled(int extruder_id) const;
+
+    /**
+     * \brief The variant diameter that lets the enabled extruders print
+     *
+     * Different diameters cannot print together. So the selected variant stays while an enabled nozzle
+     * has it; else the first enabled nozzle's diameter. "Enabled" follows \ref is_enabled. Switch the
+     * printer to it after user_set_enabled(), a nozzle edit or a sync.
+     *
+     * \return none to keep the selected variant; always none in the multi-diameter mode, on a printer
+     *         with a rack, or with one extruder
+     */
+    std::optional<std::string> enabled_variant() const;
 
     /**
      * \brief Number of extruders of the selected printer

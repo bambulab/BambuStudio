@@ -6012,6 +6012,13 @@ void PrintConfigDef::init_fff_params()
                    "as offering a single nozzle diameter and slicing keeps the single-diameter behavior.";
     def->set_default_value(new ConfigOptionBool { false });
 
+    def = this->add("extruder_enabled", coBools);
+    // No L(): like multi_nozzle_diameter_mode, no tab shows this key. Wrap both if one ever does.
+    def->label = "Extruder enabled";
+    def->tooltip = "Per extruder: whether the user lets it print. A disabled extruder never prints. An enabled "
+                   "one still needs a nozzle that fits the print. Empty means every extruder is enabled.";
+    def->set_default_value(new ConfigOptionBools {});
+
     def = this->add("filament_retract_length_nc", coFloats);
     def->label = L("length when change hotend");
     def->tooltip = L("When this retraction value is modified, it will be used as the amount of filament retracted "

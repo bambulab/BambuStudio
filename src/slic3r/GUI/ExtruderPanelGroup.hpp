@@ -1,17 +1,20 @@
 #pragma once
 
+#include <array>
 #include <functional>
 #include <vector>
 
 #include <wx/panel.h>
 #include <wx/timer.h>
 
-#include "ExtruderPanel.hpp" // NozzleRackPanel, DiameterButtonPanel, HorizontalScrollView
+#include "ExtruderHelpers.hpp" // NozzleLayout
+#include "ExtruderPanel.hpp"   // NozzleRackPanel, DiameterButtonPanel, HorizontalScrollView
 
 /**
  * \file ExtruderPanelGroup.hpp
- * \brief Sidebar nozzle card of every printer with a nozzle rack: a "Nozzle ··· Settings" header,
- *        then the rack's slot tiles and AMS units, all in one rounded card.
+ * \brief Sidebar nozzle card, in one rounded card: on a printer with a nozzle rack a "Nozzle ···
+ *        Settings" header, the slot tiles and the AMS units; on a printer with two single-nozzle
+ *        extruders the extruder picker, the nozzle cards and the AMS units.
  *
  * The settings entry in the header opens the nozzle-settings dialog. On single-extruder printers the
  * card also hosts the single-/multi-diameter mode pill on its top border and the diameter buttons.
@@ -19,19 +22,42 @@
 
 namespace Slic3r::GUI {
 
+class DualNozzleView;
+class NozzleAmsRow;
+
 /**
- * \brief The sidebar nozzle card for single- and dual-extruder rack printers.
+ * \brief The sidebar nozzle card for printers with a nozzle rack, and for two single-nozzle extruders
+ *        that show their nozzles as cards.
  *
- * Everything that differs between the two, such as slot labels, the hotend icon and the AMS split,
- * follows from the extruder count passed to \ref UpdateNozzles.
+ * \ref SetNozzleLayout picks the content. On a rack printer everything that differs between one and
+ * two extruders, such as slot labels, the hotend icon and the AMS split, follows from the extruder
+ * count passed to \ref UpdateNozzles.
  */
 class NozzleRackPanelGroup : public wxPanel
 {
 public:
     explicit NozzleRackPanelGroup(wxWindow *parent);
 
-    /// \brief The tiles and AMS units inside the card.
+    /// \brief The slot tiles inside the card.
     NozzleRackPanel *GetPanel() const { return m_panel; }
+
+    /**
+     * \brief Redraw the AMS units under the nozzles from the AMS selection and the selected machine.
+     *
+     * Cheap when nothing changed, so call it on every machine update and after any AMS count change.
+     */
+    void RefreshAms();
+
+    /// \brief The picker and nozzle cards of two single-nozzle extruders.
+    DualNozzleView *GetDualNozzleView() const { return m_dual; }
+
+    /**
+     * \brief Show the content for a nozzle layout.
+     *
+     * A rack layout shows the header and the slot tiles. The dual-extruder layout shows the picker and
+     * the nozzle cards instead, and lets the user add AMS units from the AMS row.
+     */
+    void SetNozzleLayout(NozzleLayout layout);
 
     void ShowBadge(bool show);
 
@@ -112,9 +138,13 @@ private:
     wxBoxSizer           *m_main_sizer{nullptr};
     ComboBox             *m_mode_pill{nullptr};
     wxSizerItem          *m_header_gap{nullptr};      // between the top border and the header row
+    wxSizerItem          *m_header_row{nullptr};      // "Nozzle" and the settings entry; rack layouts only
     wxPanel              *m_settings_entry{nullptr};  // the header's settings entry: gear, label and chevron
     HorizontalScrollView *m_body{nullptr};            // diameter buttons + rack panel, scrolled together
     NozzleRackPanel      *m_panel{nullptr};
+    std::array<NozzleAmsRow *, 2> m_ams_rows{};          // AMS units of the left and right extruder
+    wxWindow                     *m_ams_divider{nullptr}; // the line between the left and right units
+    DualNozzleView       *m_dual{nullptr};
     DiameterButtonPanel  *m_diameter_panel{nullptr};
     wxBoxSizer           *m_diameter_sizer{nullptr};
 

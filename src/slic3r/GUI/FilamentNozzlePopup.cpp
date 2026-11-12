@@ -36,35 +36,6 @@ namespace {
 wxString missing_nozzle_tip() { return _L("To pick this, change the nozzle settings first"); }
 wxString unusable_nozzle_tip() { return _L("The filament in this slot cannot print with this nozzle"); }
 
-// Whether the printer is sold with a nozzle of this flow type, going by the preset that carries
-// `diameter` -- i.e. whether print profiles exist for that extruder variant at all. Says nothing
-// about whether one is installed, nor about whether a given filament can print with it.
-bool printer_offers_flow(const std::string &diameter, NozzleVolumeType volume_type)
-{
-    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    const Preset *printer_preset = preset_bundle->get_similar_printer_preset({}, diameter);
-    if (printer_preset == nullptr)
-        return false;
-
-    auto *extruder_variants = printer_preset->config.option<ConfigOptionStrings>("extruder_variant_list");
-    auto *extruders_def      = printer_preset->config.def()->get("extruder_type");
-    auto *extruders          = printer_preset->config.option<ConfigOptionEnumsGeneric>("extruder_type");
-    auto *nozzle_volumes_def = preset_bundle->project_config.def()->get("nozzle_volume_type");
-    if (extruder_variants == nullptr || extruders_def == nullptr || extruders == nullptr || nozzle_volumes_def == nullptr)
-        return false;
-
-    for (size_t idx = 0; idx < extruder_variants->values.size() && idx < extruders->values.size(); ++idx) {
-        const std::string type = extruders_def->enum_labels[extruders->values[idx]];
-        for (size_t j = 0; j < nozzle_volumes_def->enum_labels.size(); ++j) {
-            if ((NozzleVolumeType) nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[j]) != volume_type)
-                continue;
-            if (boost::algorithm::contains(extruder_variants->values[idx], type + " " + nozzle_volumes_def->enum_labels[j]))
-                return true;
-        }
-    }
-    return false;
-}
-
 } // anonymous namespace
 
 FilamentNozzlePopup::FilamentNozzlePopup(wxWindow *parent) : CascadeMenuPopup(parent)

@@ -20,6 +20,7 @@
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/wxExtensions.hpp"
+#include "slic3r/GUI/Widgets/IconView.hpp"
 #include "slic3r/GUI/Widgets/Label.hpp"
 #include "slic3r/GUI/Widgets/StateColor.hpp"
 #include "slic3r/GUI/Widgets/PopupWindow.hpp"
@@ -140,9 +141,13 @@ void remove_ams_unit(int extruder_index, int slot_count, size_t position)
 
 // Single-extruder multi-nozzle printers accept at most this many external AMS units, any mix of slot kinds.
 constexpr int kSingleExtMultiNozzleMaxAms = 4;
+constexpr size_t MAX_AMS_4_SLOT = 4; // 4-slot units per extruder, as the add menu caps them
+constexpr size_t MAX_AMS_1_SLOT = 8; // 1-slot units per extruder, as the add menu caps them
 
 // "Add AMS" dropdown (4 slots / 1 slot, gated by the machine-wide caps), anchored under `anchor`.
 // Built in the same single-level cascade style as the nozzle diameter menu, so the two read alike.
+// `current` is the caller's slot for the open menu: an open menu in it closes first, and the menu
+// clears it when it closes, so it must outlive the menu.
 void show_ams_add_menu(wxWindow *anchor, int extruder_index, PopupWindow *&current, std::function<void()> on_changed)
 {
     if (!anchor) return;
@@ -275,9 +280,15 @@ void show_ams_delete_popup(int extruder_index, AMSPreview *preview, const std::v
 } // namespace
 
 NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString &label_text, Style style, std::function<void()> on_changed)
-    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), m_extruder_index(extruder_index), m_on_changed(std::move(on_changed))
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+    , m_extruder_index(extruder_index)
+    , m_style(style)
+    , m_on_changed(std::move(on_changed))
 {
-    SetBackgroundColour(ThemeColor::Grey200);
+    // An inline row is a region of the card that hosts it, so it takes the card's surface.
+    const bool     inline_row = style == Style::Inline;
+    const wxColour surface    = inline_row ? parent->GetBackgroundColour() : wxColour(ThemeColor::Grey200);
+    SetBackgroundColour(surface);
 
     m_has_ams  = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_int("ams_nozzle_idx", 0) >= 0;
     m_snapshot = wxGetApp().preset_bundle->get_ams_count(m_extruder_index);
@@ -291,14 +302,16 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
     auto *row = new wxBoxSizer(wxHORIZONTAL);
 
     m_label = new Label(this, label_text);
-    m_label->SetFont(Label::Body_14);
-    m_label->SetBackgroundColour(ThemeColor::Grey200);
+    m_label->SetFont(inline_row ? Label::Body_12 : Label::Body_14);
+    m_label->SetForegroundColour(ThemeColor::TextPrimary);
+    m_label->SetBackgroundColour(surface);
+    m_label->Show(!label_text.empty());
     const bool band = style == Style::Band;
-    row->Add(m_label, 0, wxALIGN_CENTER_VERTICAL | (band ? wxLEFT : 0) | wxRIGHT, FromDIP(8));
+    row->Add(m_label, 0, wxALIGN_CENTER_VERTICAL | (band ? wxLEFT : 0) | wxRIGHT, FromDIP(inline_row ? 4 : 8));
 
     m_previews_container = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    m_previews_container->SetBackgroundColour(ThemeColor::Grey200);
-    m_previews_container->SetMinSize(wxSize(-1, FromDIP(40)));
+    m_previews_container->SetBackgroundColour(surface);
+    if (!inline_row) m_previews_container->SetMinSize(wxSize(-1, FromDIP(40)));
     m_previews_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_previews_container->SetSizer(m_previews_sizer);
 
@@ -307,27 +320,31 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
         AMSinfo info;
         info.ams_type = type;
         auto *preview = new AMSPreview(m_previews_container, wxID_ANY, info);
+        // The preview draws over whatever was erased beneath it, and a window never inherits its
+        // parent's colour, so without this nothing is erased and it renders on black.
+        preview->SetBackgroundColour(surface);
         preview->Close();
         preview->Bind(wxEVT_ENTER_WINDOW, [this, preview](wxMouseEvent &e) {
-            if (hover_may_open_popup()) show_delete_popup(preview);
+            if (m_editable && m_feedable && hover_may_open_popup()) show_delete_popup(preview);
             e.Skip();
         });
         m_previews.push_back(preview);
         m_previews_sizer->Add(preview, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxBOTTOM, FromDIP(2));
     };
-    for (int i = 0; i < 4; ++i) make_preview(DevAmsType::AMS);
-    for (int i = 0; i < 8; ++i) make_preview(DevAmsType::N3S);
-    row->Add(m_previews_container, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(6));
+    for (size_t i = 0; i < MAX_AMS_4_SLOT; ++i) make_preview(DevAmsType::AMS);
+    for (size_t i = 0; i < MAX_AMS_1_SLOT; ++i) make_preview(DevAmsType::N3S);
+    row->Add(m_previews_container, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(inline_row ? 2 : 6));
 
-    m_add_btn = new ScalableButton(this, wxID_ANY, "add_filament", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 12);
-    m_add_btn->SetBackgroundColour(ThemeColor::Grey200);
+    m_add_btn = new IconView(this, "add_filament", inline_row ? 16 : 12);
+    m_add_btn->SetBackgroundColour(surface);
+    m_add_btn->SetToolTip(_L("Add AMS"));
     m_add_btn->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
         if (hover_may_open_popup()) show_add_popup();
         e.Skip();
     });
     row->Add(m_add_btn, 0, wxALIGN_CENTER_VERTICAL);
 
-    // A band pads its content; a plain row sits flush with the owner's other rows.
+    // A band pads its content; a plain or inline row sits flush with the owner's other rows.
     auto *outer = new wxBoxSizer(wxHORIZONTAL);
     outer->Add(row, 0, wxALL, band ? FromDIP(6) : 0);
     outer->AddStretchSpacer();
@@ -340,6 +357,13 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
     }
     SetSizer(outer);
 
+    // An inline row outlives printer switches, so refresh() decides its visibility each time. A dialog
+    // themes its own rows when it shows; the sidebar does not, so an inline row themes itself.
+    if (inline_row) {
+        wxGetApp().UpdateDarkUIWin(this);
+        refresh();
+        return;
+    }
     if (!m_has_ams) {
         Hide();
         return;
@@ -347,56 +371,105 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
     refresh_previews(); // initial populate is silent; on_changed fires only on user edits
 }
 
-// Show the first n4 4-slot + n1 1-slot previews driven by the count registry; content resolved
-// live from the machine (placeholder when absent). Inline placement hides the label when empty.
-void NozzleAmsRow::refresh_previews()
+NozzleAmsRow::~NozzleAmsRow()
 {
-    if (!m_previews_sizer) return;
+    // The add menu and the delete popup clear this slot when they close, so close them while it exists.
+    if (m_popup) m_popup->Dismiss();
+}
+
+bool NozzleAmsRow::set_editable(bool editable)
+{
+    if (m_editable == editable) return false;
+    m_editable = editable;
+    m_drawn    = false;
+    return refresh();
+}
+
+bool NozzleAmsRow::set_feedable(bool feedable)
+{
+    if (m_feedable == feedable) return false;
+    m_feedable = feedable;
+    m_drawn    = false;
+    return refresh();
+}
+
+bool NozzleAmsRow::refresh()
+{
+    PresetBundle &bundle = *wxGetApp().preset_bundle;
+    // The printer preset owns the extruder count. A redraw can come after a printer switch but before
+    // the owner hides this row, so never draw an extruder that the current preset lacks.
+    const int extruder_count = bundle.get_printer_extruder_count();
+    m_has_ams                = bundle.printers.get_edited_preset().config.opt_int("ams_nozzle_idx", 0) >= 0;
+    const bool exists        = m_has_ams && m_extruder_index < extruder_count;
+
+    bool changed = exists && refresh_previews();
+    bool visible = exists;
+    if (m_style == Style::Inline) {
+        visible = visible && (m_editable || !m_shown.empty());
+        // One extruder needs no side name.
+        changed |= m_label->Show(extruder_count > 1 && !m_label->GetLabel().empty());
+    }
+    changed |= m_add_btn->Show(m_editable);
+    changed |= Show(visible);
+    if (changed) Layout();
+    return changed;
+}
+
+// Show the first n4 4-slot + n1 1-slot previews of the AMS selection. A unit shows the machine's trays
+// only while the machine's nozzles of this extruder are synced, else an empty placeholder, so the row
+// always matches the count the user set.
+bool NozzleAmsRow::refresh_previews()
+{
+    if (!m_previews_sizer) return false;
 
     AmsBuckets            content   = resolve_ams_infos(m_extruder_index);
     ExtruderAmsSelection *selection = ensure_ams_selection(m_extruder_index, content);
-    if (!selection) return;
-    const bool use_device_content = is_extruder_stat_synced();
-
-    static AMSinfo placeholder4 = [] {
-        AMSinfo a;
-        a.ams_type = DevAmsType::AMS;
-        a.cans.resize(4);
-        return a;
-    }();
-    static AMSinfo placeholder1 = [] {
-        AMSinfo a;
-        a.ams_type = DevAmsType::N3S;
-        a.cans.resize(1);
-        return a;
-    }();
-
-    m_previews_sizer->Clear(false);
-    for (auto *p : m_previews) p->Close();
+    if (!selection) return false;
+    const bool use_device_content = m_feedable && is_extruder_stat_synced(m_extruder_index);
 
     std::map<std::string, const AMSinfo *> device4;
     std::map<std::string, const AMSinfo *> device1;
     for (const AMSinfo &info : content.ams4) device4[info.ams_id] = &info;
     for (const AMSinfo &info : content.ams1) device1[info.ams_id] = &info;
 
-    for (size_t i = 0; i < selection->ams4.size() && i < 4; ++i) {
-        const auto found = device4.find(selection->ams4[i]);
-        m_previews[i]->Update(use_device_content && found != device4.end() ? *found->second : placeholder4);
-        m_previews[i]->Refresh();
-        m_previews[i]->Open();
-        m_previews_sizer->Add(m_previews[i], 0, wxALL, FromDIP(2));
-    }
-    for (size_t i = 0; i < selection->ams1.size() && i < 8; ++i) {
-        AMSPreview *p = m_previews[4 + i];
-        const auto found = device1.find(selection->ams1[i]);
-        p->Update(use_device_content && found != device1.end() ? *found->second : placeholder1);
+    std::vector<AMSinfo> wanted;
+    auto add_kind = [&](const std::vector<std::string> &selected, size_t cap, const std::map<std::string, const AMSinfo *> &device,
+                        DevAmsType type) {
+        AMSinfo placeholder;
+        placeholder.ams_type = type;
+        placeholder.cans.resize(type == DevAmsType::AMS ? 4 : 1);
+        // A unit that cannot feed shows greyed trays.
+        if (!m_feedable)
+            for (Caninfo &can : placeholder.cans) can.material_colour = AMS_CONTROL_DISABLE_COLOUR;
+        for (size_t i = 0; i < selected.size() && i < cap; ++i) {
+            const auto found = device.find(selected[i]);
+            wanted.push_back(use_device_content && found != device.end() ? *found->second : placeholder);
+        }
+    };
+    add_kind(selection->ams4, MAX_AMS_4_SLOT, device4, DevAmsType::AMS);
+    const size_t wanted_4 = wanted.size();
+    add_kind(selection->ams1, MAX_AMS_1_SLOT, device1, DevAmsType::N3S);
+
+    update_sync_badge();
+    // The machine reports many times a second; redraw only what it changed.
+    if (m_drawn && wanted == m_shown && wanted_4 == m_shown_4) return false;
+
+    m_previews_sizer->Clear(false);
+    for (auto *p : m_previews) p->Close();
+    for (size_t i = 0; i < wanted.size(); ++i) {
+        AMSPreview *p = m_previews[i < wanted_4 ? i : MAX_AMS_4_SLOT + (i - wanted_4)];
+        p->Update(wanted[i]);
+        p->Enable(m_feedable);
         p->Refresh();
         p->Open();
         m_previews_sizer->Add(p, 0, wxALL, FromDIP(2));
     }
+    m_shown   = std::move(wanted);
+    m_shown_4 = wanted_4;
+    m_drawn   = true;
 
-    update_sync_badge();
     Layout();
+    return true;
 }
 
 // Show the check only when the nozzle setup is synced and this row contains exactly the device AMS
@@ -427,7 +500,7 @@ void NozzleAmsRow::update_sync_badge()
 void NozzleAmsRow::show_add_popup()
 {
     show_ams_add_menu(m_add_btn, m_extruder_index, m_popup, [this] {
-        refresh_previews();
+        refresh();
         if (m_on_changed) m_on_changed();
     });
 }
@@ -435,7 +508,7 @@ void NozzleAmsRow::show_add_popup()
 void NozzleAmsRow::show_delete_popup(AMSPreview *preview)
 {
     show_ams_delete_popup(m_extruder_index, preview, m_previews, m_popup, [this] {
-        refresh_previews();
+        refresh();
         if (m_on_changed) m_on_changed();
     });
 }
@@ -449,11 +522,12 @@ void NozzleAmsRow::restore()
         selection->ams1        = m_ams1_snapshot;
     }
     set_ams_count(m_extruder_index, m_snapshot.first, m_snapshot.second);
+    refresh();
 }
 
 void NozzleAmsRow::Rescale()
 {
-    if (m_previews_container) m_previews_container->SetMinSize(wxSize(-1, FromDIP(40)));
+    if (m_previews_container && m_style != Style::Inline) m_previews_container->SetMinSize(wxSize(-1, FromDIP(40)));
     Layout();
 }
 
