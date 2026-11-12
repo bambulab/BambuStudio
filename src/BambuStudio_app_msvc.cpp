@@ -194,9 +194,27 @@ extern "C" {
     {
         // if started from console/CLI then reopen stdout/stderr pipes to it for printf/cout output,
         // which includes --help content and any option parsing errors.
-        if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-          freopen("CONOUT$", "w", stdout);
-          freopen("CONOUT$", "w", stderr);
+        // A stream the caller redirected to a file or a pipe (`> log.txt`, or a script reading the output) stays where it is.
+        const HANDLE stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+        const HANDLE stderr_handle = GetStdHandle(STD_ERROR_HANDLE);
+        auto redirected = [](HANDLE handle) {
+            if (handle == NULL || handle == INVALID_HANDLE_VALUE)
+                return false;
+            const DWORD type = GetFileType(handle);
+            return type == FILE_TYPE_DISK || type == FILE_TYPE_PIPE;
+        };
+        const bool stdout_redirected = redirected(stdout_handle);
+        const bool stderr_redirected = redirected(stderr_handle);
+        if (!(stdout_redirected && stderr_redirected) && AttachConsole(ATTACH_PARENT_PROCESS)) {
+          // AttachConsole() points the standard handles at the console, so give a redirected one its file or pipe back.
+          if (stdout_redirected)
+            SetStdHandle(STD_OUTPUT_HANDLE, stdout_handle);
+          else
+            freopen("CONOUT$", "w", stdout);
+          if (stderr_redirected)
+            SetStdHandle(STD_ERROR_HANDLE, stderr_handle);
+          else
+            freopen("CONOUT$", "w", stderr);
         }
 
         int 	  argc;
