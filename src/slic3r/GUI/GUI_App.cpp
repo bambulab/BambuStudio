@@ -1,5 +1,6 @@
 #include "libslic3r/Technologies.hpp"
 #include "GUI_App.hpp"
+#include "WebViewSecurity.hpp"
 #include "BindDialog.hpp"
 #include "GUI_Init.hpp"
 #include "GUI_ObjectList.hpp"
@@ -5510,21 +5511,28 @@ int GUI_App::request_user_unbind(std::string dev_id)
     return result;
 }
 
-std::string GUI_App::handle_web_request(std::string cmd)
+std::string GUI_App::handle_web_request(std::string cmd, WebRequestSource source)
 {
     try {
         //BBS use nlohmann json format
-        BOOST_LOG_TRIVIAL(info) << cmd;
         std::stringstream ss(cmd), oss;
         pt::ptree root, response;
         pt::read_json(ss, root);
         if (root.empty())
             return "";
 
+        const auto authorized_command = WebViewSecurity::AuthorizeWebCommand(root, source);
+        if (!authorized_command.accepted) {
+            BOOST_LOG_TRIVIAL(warning) << "web request rejected"
+                                       << " source=" << WebViewSecurity::SourceName(source)
+                                       << " reason=" << authorized_command.reason
+                                       << " command=" << WebViewSecurity::CommandForLog(authorized_command.command);
+            return "";
+        }
+
         boost::optional<std::string> sequence_id = root.get_optional<std::string>("sequence_id");
-        boost::optional<std::string> command = root.get_optional<std::string>("command");
-        if (command.has_value()) {
-            std::string command_str = command.value();
+        {
+            const std::string &command_str = authorized_command.command;
             BOOST_LOG_TRIVIAL(info) << command_str;
             if (command_str.compare("request_project_download") == 0) {
                 if (root.get_child_optional("data") != boost::none) {
@@ -5561,7 +5569,8 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 //Check Plugin
                 bool bValid = is_compatibility_version();
                 if (!bValid) {
-                    CallAfter([this] { handle_web_request("{\"sequence_id\":1,\"command\":\"homepage_need_networkplugin\"}");
+                    CallAfter([this] { handle_web_request("{\"sequence_id\":1,\"command\":\"homepage_need_networkplugin\"}",
+                                                         WebRequestSource::Internal);
                         });
                     return "";
                 }
@@ -5781,7 +5790,8 @@ std::string GUI_App::handle_web_request(std::string cmd)
                         //Check Plugin
                         bool bValid = is_compatibility_version();
                         if (!bValid) {
-                            CallAfter([this] { handle_web_request("{\"sequence_id\":1,\"command\":\"homepage_need_networkplugin\"}");
+                            CallAfter([this] { handle_web_request("{\"sequence_id\":1,\"command\":\"homepage_need_networkplugin\"}",
+                                                                 WebRequestSource::Internal);
                                 });
                             return "";
                         }
@@ -5909,7 +5919,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
         }
     }
     catch (...) {
-        BOOST_LOG_TRIVIAL(warning) << "parse json cmd failed " << cmd;
+        BOOST_LOG_TRIVIAL(warning) << "parse json cmd failed, payload_bytes=" << cmd.size();
         return "";
     }
     return "";

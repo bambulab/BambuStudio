@@ -35,6 +35,7 @@ class NetworkAgent;
 
 namespace GUI {
 
+enum class WebRequestSource;
 
 class WebViewPanel : public wxPanel
 {
@@ -60,7 +61,7 @@ public:
     void OnTitleChanged(wxWebViewEvent &evt);
     void OnNewWindow(wxWebViewEvent& evt);
     void OnScriptMessage(wxWebViewEvent& evt);
-    bool IsAllowedScriptCommand(wxWebViewEvent& evt);
+    bool ResolveWebRequestSource(wxWebViewEvent& evt, WebRequestSource& source);
     void OnScriptResponseMessage(wxCommandEvent& evt);
     void OnViewSourceRequest(wxCommandEvent& evt);
     void OnViewTextRequest(wxCommandEvent& evt);

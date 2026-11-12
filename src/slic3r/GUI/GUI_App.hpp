@@ -85,6 +85,8 @@ class TaskManager;
 
 namespace GUI{
 
+enum class WebRequestSource;
+
 class RemovableDriveManager;
 class OtherInstanceMessageHandler;
 class MainFrame;
@@ -598,7 +600,7 @@ public:
     void            request_user_handle(int online_login = 0);
     void            request_user_logout();
     int             request_user_unbind(std::string dev_id);
-    std::string     handle_web_request(std::string cmd);
+    std::string     handle_web_request(std::string cmd, WebRequestSource source);
     void            handle_script_message(std::string msg);
     void            request_model_download(wxString url);
     std::string     sanitize_download_url(const std::string& url);
