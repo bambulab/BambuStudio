@@ -329,23 +329,21 @@ public:
     wgtMsgPanel* m_ams_tips_msg_panel{nullptr};
     wxPanel *    m_split_line_panel{nullptr};
     wxBoxSizer * m_left_split_ams_sizer{nullptr};
+    wxBoxSizer * m_left_split_ext_sizer{nullptr};
     wxBoxSizer * m_right_split_ams_sizer{nullptr};
     wxBoxSizer * m_right_split_ext_sizer{ nullptr };
-    Label *      m_left_tips{nullptr};
-    Label *      m_right_tips{nullptr};
+    Label *      m_left_area_title{nullptr};
+    Label *      m_right_area_title{nullptr};
 
     ScalableButton* m_reset_btn{nullptr};
-    wxString     m_single_tip_text;
-    wxString     m_left_tip_text;
-    wxString     m_right_tip_text;
     wxString     m_ams_tips_panel_text;
     wxBoxSizer* m_sizer_split_ams_left;
     wxBoxSizer* m_sizer_split_ams_right;
     bool        m_mapping_from_multi_machines {false};
 
     bool         get_use_in_sync_dialog() { return m_use_in_sync_dialog; }
-    void         set_sizer_title(wxBoxSizer *sizer, wxString text);
     wxBoxSizer*  create_split_sizer(wxWindow* parent, wxString text);
+    void         refresh_nozzle_titles();
     void         set_send_win(wxWindow* win) {send_win = win;};
     void         update_materials_list(std::vector<std::string> list);
     void         set_tag_texture(std::string texture);

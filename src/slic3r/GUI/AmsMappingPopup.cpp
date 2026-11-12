@@ -685,33 +685,30 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_right_extra_slot->SetMinSize(wxSize(FromDIP(48), FromDIP(60)));
      m_right_extra_slot->SetMaxSize(wxSize(FromDIP(48), FromDIP(60)));
 
-     std::string amp_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-     m_single_tip_text = _L("Please select from the following filaments");
-     m_left_tip_text = wxString::Format(_L("Select filament that installed to the %s"),
-         _L(DevPrinterConfigUtil::get_toolhead_display_name(amp_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase)));
-     m_right_tip_text = wxString::Format(_L("Select filament that installed to the %s"),
-         _L(DevPrinterConfigUtil::get_toolhead_display_name(amp_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase)));
-
-     m_left_tips = new Label(m_left_first_text_panel);
-     m_left_tips->SetForegroundColour(StateColor::darkModeColorFor("0x262E30"));
-     m_left_tips->SetBackgroundColour(StateColor::darkModeColorFor("0xFFFFFF"));
-     m_left_tips->SetFont(::Label::Body_13);
-     m_left_tips->SetLabel(m_left_tip_text);
+     m_left_area_title = new Label(m_left_first_text_panel);
+     m_left_area_title->SetForegroundColour(StateColor::darkModeColorFor("0x909090"));
+     m_left_area_title->SetBackgroundColour(StateColor::darkModeColorFor("0xFFFFFF"));
+     m_left_area_title->SetFont(::Label::Body_13);
+     m_left_area_title->SetLabel(_L("Left nozzle"));
+     m_sizer_ams_left_horizonal->Add(m_left_area_title, 0, wxALIGN_CENTER_VERTICAL, 0);
+     m_sizer_ams_left_horizonal->AddStretchSpacer();
      m_left_first_text_panel->SetSizer(m_sizer_ams_left_horizonal);
 
      m_sizer_ams_left->Add(m_left_first_text_panel, 0, wxEXPAND | wxBOTTOM | wxTOP , FromDIP(8));
-     m_left_split_ams_sizer = create_split_sizer(m_left_marea_panel, _L("Left AMS"));
+     m_left_split_ams_sizer = create_split_sizer(m_left_marea_panel, wxEmptyString);
      m_sizer_ams_left->Add(m_left_split_ams_sizer, 0, wxEXPAND, 0);
      m_sizer_ams_left->Add(m_sizer_ams_basket_left, 0, wxEXPAND|wxTOP, FromDIP(8));
-     m_sizer_ams_left->Add(create_split_sizer(m_left_marea_panel, _L("External")), 0, wxEXPAND|wxTOP, FromDIP(8));
+     m_left_split_ext_sizer = create_split_sizer(m_left_marea_panel, _L("External"));
+     m_sizer_ams_left->Add(m_left_split_ext_sizer, 0, wxEXPAND|wxTOP, FromDIP(8));
      //m_sizer_ams_left->Add(m_left_extra_slot, 0, wxEXPAND|wxTOP, FromDIP(8));
      m_sizer_ams_left->Add(sizer_temp, 0, wxEXPAND | wxTOP, FromDIP(8));
 
-     m_right_tips = new Label(m_right_first_text_panel);
-     m_right_tips->SetForegroundColour(StateColor::darkModeColorFor("0x262E30"));
-     m_right_tips->SetBackgroundColour(StateColor::darkModeColorFor("0xFFFFFF"));
-     m_right_tips->SetFont(::Label::Body_13);
-     m_right_tips->SetLabel(m_right_tip_text);
+     m_right_area_title = new Label(m_right_first_text_panel);
+     m_right_area_title->SetForegroundColour(StateColor::darkModeColorFor("0x909090"));
+     m_right_area_title->SetBackgroundColour(StateColor::darkModeColorFor("0xFFFFFF"));
+     m_right_area_title->SetFont(::Label::Body_13);
+     m_right_area_title->SetLabel(_L("Right nozzle"));
+     m_sizer_ams_right_horizonal->Add(m_right_area_title, 0, wxALIGN_CENTER_VERTICAL, 0);
 
      m_sizer_ams_right_horizonal->AddStretchSpacer();
 
@@ -732,7 +729,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
 
      // content_sizer
      wxSizer *content_ams_sizer = new wxBoxSizer(wxVERTICAL);
-     m_right_split_ams_sizer = create_split_sizer(m_right_marea_panel, _L("Right AMS"));
+     m_right_split_ams_sizer = create_split_sizer(m_right_marea_panel, wxEmptyString);
      m_right_split_ext_sizer = create_split_sizer(m_right_marea_panel, _L("External"));
      content_ams_sizer->Add(m_right_split_ams_sizer, 0, wxEXPAND, 0);
      content_ams_sizer->Add(m_sizer_ams_basket_right, 0, wxEXPAND | wxTOP, FromDIP(8));
@@ -1020,32 +1017,21 @@ void AmsMapingPopup::msw_rescale()
     Refresh();
 };
 
- void AmsMapingPopup::set_sizer_title(wxBoxSizer *sizer, wxString text) {
-     if (!sizer) { return; }
-     wxSizerItemList items = sizer->GetChildren();
-     for (wxSizerItemList::iterator it = items.begin(); it != items.end(); ++it) {
-         wxSizerItem *item       = *it;
-         auto         temp_label = dynamic_cast<Label *>((item->GetWindow()));
-         if (temp_label) {
-             temp_label->SetLabel(text);
-             break;
-         }
-     }
- }
-
  wxBoxSizer *AmsMapingPopup::create_split_sizer(wxWindow *parent, wxString text)
  {
     wxBoxSizer* sizer_split_ams = new wxBoxSizer(wxHORIZONTAL);
-    auto ams_title_text = new Label(parent, text);
-    ams_title_text->SetFont(::Label::Body_13);
-    ams_title_text->SetBackgroundColour(*wxWHITE);
-    ams_title_text->SetForegroundColour(0x909090);
     auto m_split_left_line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_split_left_line->SetBackgroundColour(0xeeeeee);
     m_split_left_line->SetMinSize(wxSize(-1, 1));
     m_split_left_line->SetMaxSize(wxSize(-1, 1));
-    sizer_split_ams->Add(0, 0, 0, wxEXPAND, 0);
-    sizer_split_ams->Add(ams_title_text, 0, wxALIGN_CENTER, 0);
+    if (!text.empty()) {
+        auto ams_title_text = new Label(parent, text);
+        ams_title_text->SetFont(::Label::Body_13);
+        ams_title_text->SetBackgroundColour(*wxWHITE);
+        ams_title_text->SetForegroundColour(0x909090);
+        sizer_split_ams->Add(0, 0, 0, wxEXPAND, 0);
+        sizer_split_ams->Add(ams_title_text, 0, wxALIGN_CENTER, 0);
+    }
     sizer_split_ams->Add(m_split_left_line, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, 0);
     return sizer_split_ams;
  }

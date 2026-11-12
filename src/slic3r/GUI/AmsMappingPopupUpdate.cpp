@@ -7,6 +7,7 @@
  * \date   February 2026
  *********************************************************************/
 #include "AmsMappingPopup.hpp"
+#include "DevSendPrintHelpers.h"
 #include "DevMappingHelpers.h"
 #include "I18N.hpp"
 #include "DeviceCore/DevConfigUtil.h"
@@ -148,14 +149,16 @@ void AmsMapingPopup::update(MachineObject* obj,
         m_left_marea_panel->Hide();
         m_left_extra_slot->Hide();
         m_split_line_panel->Hide();
+        m_left_area_title->Hide();
+        m_right_area_title->Hide();
         m_right_marea_panel->Show();
         m_right_marea_panel->Enable(true);
 
         bool show_right_ext = (obj->GetFilaSystem()->GetVirtualTrays().size() <= extruder_num);
         m_right_extra_slot->Show(show_right_ext);
         m_right_extra_slot->Enable(show_right_ext);
-        m_right_split_ext_sizer->Show(show_right_ext);
-        set_sizer_title(m_right_split_ams_sizer, _L("AMS"));
+        m_left_split_ext_sizer->Show(false);
+        m_right_split_ext_sizer->Show(false);
     } else if (extruder_num > 1) {
         if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
             m_left_marea_panel->Show(false);
@@ -163,8 +166,11 @@ void AmsMapingPopup::update(MachineObject* obj,
             m_right_extra_slot->Show(false);
             m_left_split_ams_sizer->Show(false);
             m_right_split_ams_sizer->Show(false);
+            m_left_split_ext_sizer->Show(false);
             m_right_split_ext_sizer->Show(false);
             m_split_line_panel->Hide();
+            m_left_area_title->Hide();
+            m_right_area_title->Hide();
 
             m_right_marea_panel->Show();
             m_right_marea_panel->Enable(true);
@@ -173,51 +179,27 @@ void AmsMapingPopup::update(MachineObject* obj,
             m_left_marea_panel->Show();
             m_left_extra_slot->Show();
             m_split_line_panel->Show();
+            m_left_area_title->Show();
+            m_right_area_title->Show();
             m_right_marea_panel->Show();
             m_right_extra_slot->Show();
-            m_right_split_ext_sizer->Show(true);
-            m_left_tips->SetLabel(m_left_tip_text);
-            m_right_tips->SetLabel(m_right_tip_text);
-            set_sizer_title(m_left_split_ams_sizer, _L("Left AMS"));
-            set_sizer_title(m_right_split_ams_sizer, _L("Right AMS"));
+            m_left_split_ext_sizer->Show(false);
+            m_right_split_ext_sizer->Show(false);
             if (m_show_type == ShowType::LEFT) {
                 m_left_marea_panel->Enable(true);
                 m_left_extra_slot->Enable(true);
                 m_right_marea_panel->Enable(false);
                 m_right_extra_slot->Enable(false);
-                if (m_use_in_sync_dialog) {
-                    m_left_tips->SetLabel(m_single_tip_text);
-                    m_right_tips->SetLabel("");
-                }
             } else if (m_show_type == ShowType::RIGHT) {
                 m_left_marea_panel->Enable(false);
                 m_left_extra_slot->Enable(false);
                 m_right_marea_panel->Enable(true);
                 m_right_extra_slot->Enable(true);
-                if (m_use_in_sync_dialog) {
-                    // m_right_tips->SetLabel(m_single_tip_text);
-                    m_left_tips->SetLabel("");
-                }
             } else if (m_show_type == ShowType::LEFT_AND_RIGHT) {
                 m_left_marea_panel->Enable(true);
                 m_left_extra_slot->Enable(true);
                 m_right_marea_panel->Enable(true);
                 m_right_extra_slot->Enable(true);
-                if (m_use_in_sync_dialog) {
-                    m_left_tips->SetLabel(m_single_tip_text);
-                    m_right_tips->SetLabel("");
-                }
-            } else if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
-                m_left_marea_panel->Show(false);
-                m_left_extra_slot->Show(false);
-                m_right_extra_slot->Show(false);
-                m_left_split_ams_sizer->Show(false);
-                m_right_split_ams_sizer->Show(false);
-                m_right_split_ext_sizer->Show(false);
-                m_split_line_panel->Hide();
-
-                m_right_marea_panel->Show();
-                m_right_marea_panel->Enable(true);
             }
         }
     }
@@ -370,8 +352,8 @@ void AmsMapingPopup::update_mapping_items(MachineObject* obj, const std::vector<
     _add_containers(this, left_one_slot_containers, left_four_slots_containers, m_sizer_ams_basket_left);
     _add_containers(this, right_one_slot_containers, right_four_slot_containers, m_sizer_ams_basket_right);
     if (m_show_type != ShowType::LEFT_AND_RIGHT_DYNAMIC){
-        m_left_split_ams_sizer->Show(!left_one_slot_containers.empty() || !left_four_slots_containers.empty());
-        m_right_split_ams_sizer->Show(!right_one_slot_containers.empty() || !right_four_slot_containers.empty());
+        m_left_split_ams_sizer->Show(!left_one_slot_containers.empty() || !left_four_slots_containers.empty() || m_left_extra_slot->IsShown());
+        m_right_split_ams_sizer->Show(!right_one_slot_containers.empty() || !right_four_slot_containers.empty() || m_right_extra_slot->IsShown());
     } else {
         m_left_split_ams_sizer->Show(false);
         m_right_split_ams_sizer->Show(false);
@@ -419,8 +401,6 @@ void AmsMapingPopup::update_ams_data_multi_machines()
     m_left_extra_slot->Hide();
     // m_left_marea_panel->Show();
     m_right_marea_panel->Show();
-    set_sizer_title(m_right_split_ams_sizer, _L("AMS"));
-    // m_right_tips->SetLabel(m_single_tip_text);
     m_right_extra_slot->Hide();
     m_left_extra_slot->Hide();
 
@@ -483,29 +463,35 @@ void AmsMapingPopup::update_ams_data_multi_machines()
 
 void AmsMapingPopup::update_title(MachineObject* obj)
 {
-    const auto& full_config = wxGetApp().preset_bundle->full_config();
-    size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
-    if (nozzle_nums > 1) {
-        m_split_line_panel->Show();
-        if (m_show_type == ShowType::LEFT) {
-            wxString nozzle_name = obj ? _L(DevPrinterConfigUtil::get_toolhead_display_name(
-                obj->printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase)) : _L("left nozzle");
-            m_title_text->SetLabelText(wxString::Format(_L("Please select the filament installed on the %s."), nozzle_name));
-            return;
-        } else if (m_show_type == ShowType::RIGHT) {
-            wxString nozzle_name = obj ? _L(DevPrinterConfigUtil::get_toolhead_display_name(
-                obj->printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase)) : _L("right nozzle");
-            m_title_text->SetLabelText(wxString::Format(_L("Please select the filament installed on the %s."), nozzle_name));
-            return;
-        } else if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
-            m_title_text->SetLabelText(_L("Please select the filament."));
-            return;
-        }
-    } else if (nozzle_nums == 1) {
-        m_split_line_panel->Hide();
+    if (!obj) {
+        return;
     }
 
-    m_title_text->SetLabelText(_L("Nozzle"));
+    const std::string printer_type = obj->printer_type;
+    const int total_extruder_count = obj->GetExtderSystem()->GetTotalExtderCount();
+    if (total_extruder_count > 1) {
+        m_split_line_panel->Show();
+        if (m_show_type == ShowType::LEFT) {
+            wxString nozzle_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(obj->printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+            m_title_text->SetLabelText(wxString::Format(_L("Please select the filament installed on the %s."), nozzle_name));
+        } else if (m_show_type == ShowType::RIGHT) {
+            wxString nozzle_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(obj->printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+            m_title_text->SetLabelText(wxString::Format(_L("Please select the filament installed on the %s."), nozzle_name));
+        } else if (m_show_type == ShowType::LEFT_AND_RIGHT || m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
+            m_title_text->SetLabelText(_L("Please select from the following filaments"));
+        }
+    } else if (total_extruder_count == 1) {
+        m_split_line_panel->Hide();
+        m_title_text->SetLabelText(_L("Please select from the following filaments"));
+    }
+
+    if (m_left_area_title) {
+        m_left_area_title->SetLabel(GetNozzleTitleLabel(2, printer_type, m_slice_context, DEPUTY_EXTRUDER_ID));
+    }
+
+    if (m_right_area_title) {
+        m_right_area_title->SetLabel(GetNozzleTitleLabel(2, printer_type, m_slice_context, MAIN_EXTRUDER_ID));
+    }
 }
 
 
@@ -545,8 +531,6 @@ void AmsMapingPopup::update_rack_select(MachineObject* obj, bool use_dynamic_swi
     }
 
     if (show_rack_select_area != m_rack_nozzle_select->IsShown()) {
-        m_right_tip_text = show_rack_select_area ? _L("Select Filament && Hotends") : _L("Select Filament");
-        m_right_tips->SetLabel(m_right_tip_text);
         m_rack_nozzle_select->Show(show_rack_select_area);
         Layout();
         Fit();

@@ -625,6 +625,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/AmsMappingPopupUpdate.cpp
     GUI/MaterialItemHotend.hpp
     GUI/MaterialItemHotend.cpp
+    GUI/DevSendPrintHelpers.h
+    GUI/DevSendPrintHelpers.cpp
     GUI/DevMappingHelpers.h
     GUI/DevMappingHelpers.cpp
     GUI/ReleaseNote.hpp

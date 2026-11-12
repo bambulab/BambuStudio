@@ -18,6 +18,8 @@
 #include "slic3r/GUI/QueuePrintContext.hpp"
 #include "libslic3r/Log.hpp"
 
+#include <set>
+
 namespace Slic3r {
 
 namespace {
@@ -74,6 +76,7 @@ void DevSliceContext::Clear()
     nozzle_change_sequence.clear();
     flush_matrix.clear();
     support_dynamic_nozzle_map = false;
+    multi_nozzle_diameter_mode = 0;
 }
 
 bool DevSliceContext::Valid() const
@@ -95,6 +98,11 @@ bool DevSliceContext::ExceedsFlushVolumeLimit(float limit) const
 
     return MultiNozzleUtils::flush_volume_exceeds_limit(
         filament_seq, nozzle_seq, used_logic_nozzles, flush_matrix, limit);
+}
+
+bool DevSliceContext::HasMultipleLogicNozzleDiameters() const
+{
+    return multi_nozzle_diameter_mode != 0;
 }
 
 std::shared_ptr<DevSliceContext> DevSliceContext::CreateFromNormal(GUI::PrintFromType print_type, Slic3r::GUI::Plater* plater)
@@ -129,6 +137,11 @@ std::shared_ptr<DevSliceContext> DevSliceContext::CreateFromNormal(GUI::PrintFro
     ctx->used_filaments = nozzle_group_res->get_used_filaments();
     ctx->used_logic_nozzles = nozzle_group_res->get_used_nozzles_in_extruder();
     ctx->support_dynamic_nozzle_map = nozzle_group_res->is_support_dynamic_nozzle_map();
+    if (Slic3r::GUI::wxGetApp().preset_bundle) {
+        if (const auto* multi_diameter_mode = Slic3r::GUI::wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode")) {
+            ctx->multi_nozzle_diameter_mode = multi_diameter_mode->value ? 1 : 0;
+        }
+    }
     ctx->filament_change_sequence = gcode_result->filament_change_sequence;
     ctx->nozzle_change_sequence = gcode_result->nozzle_change_sequence;
 
@@ -155,6 +168,11 @@ std::shared_ptr<DevSliceContext> DevSliceContext::CreateFromSDCard(GUI::PrintFro
         ctx->support_dynamic_nozzle_map = dynamic_map->value;
     } else if (const auto* plate_dynamic_map = plate_data.config.option<ConfigOptionBool>("enable_filament_dynamic_map")) {
         ctx->support_dynamic_nozzle_map = plate_dynamic_map->value;
+    }
+    if (const auto* multi_diameter_mode = print_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode")) {
+        ctx->multi_nozzle_diameter_mode = multi_diameter_mode->value ? 1 : 0;
+    } else if (const auto* plate_multi_diameter_mode = plate_data.config.option<ConfigOptionBool>("multi_nozzle_diameter_mode")) {
+        ctx->multi_nozzle_diameter_mode = plate_multi_diameter_mode->value ? 1 : 0;
     }
 
     for (const auto& filament : plate_data.slice_filaments_info) {
