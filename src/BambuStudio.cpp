@@ -496,6 +496,9 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
         result_file = "result.json";
 
     try {
+        // A run that fails before its export hasn't made the output folder yet.
+        if (!outputdir.empty() && !boost::filesystem::exists(outputdir))
+            boost::filesystem::create_directories(outputdir);
         json j;
         //record the headers
         if (sliced_info.downward_machines.size() > 0)
