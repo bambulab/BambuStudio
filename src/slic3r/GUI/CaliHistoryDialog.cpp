@@ -322,7 +322,6 @@ void HistoryWindow::update(MachineObject* obj)
 
     calib->SendNextFetch();
 
-    // Combo/extruder change clears the local view; sync once when the fetch queue drains.
     if (calib->IsPAHistoryReady() && m_pending_sync) {
         BOOST_LOG_TRIVIAL(info) << "history ready, sync pending view";
         m_pending_sync = false;
@@ -332,13 +331,30 @@ void HistoryWindow::update(MachineObject* obj)
 
 void HistoryWindow::on_select_nozzle(wxCommandEvent& evt)
 {
+    // Another data set: drop the stale list before requesting.
+    clear_history_view();
     reqeust_history_result(curr_obj);
 }
 
 void HistoryWindow::on_switch_extruder(wxCommandEvent &evt)
 {
     evt.Skip();
+    clear_history_view();
     reqeust_history_result(curr_obj);
+}
+
+void HistoryWindow::clear_history_view()
+{
+    if (!curr_obj) return; // sync_history_data() needs the machine
+    m_calib_results_history.clear();
+    sync_history_data();
+}
+
+void HistoryWindow::lock_history_actions()
+{
+    // Same data set (new/edit/delete): keep the list and block further actions until it is rebuilt.
+    m_ui_op_lock = true;
+    enbale_action_buttons(false);
 }
 
 void HistoryWindow::reqeust_history_result(MachineObject* obj)
@@ -354,8 +370,6 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
             cali_info.use_extruder_id        = false;
             CalibUtils::emit_get_PA_calib_infos(cali_info);
             m_pending_sync = true;
-            m_calib_results_history.clear();
-            sync_history_data();
             m_tips->SetLabel(_L("Refreshing the historical Flow Dynamics Calibration records"));
             BOOST_LOG_TRIVIAL(info) << "request history dia=" << nozzle_value << " " << KV(log_key::extruder_id, extruder_id);
         }
@@ -515,8 +529,6 @@ void HistoryWindow::sync_history_data() {
         return left_str < right_str ? true : left_str > right_str ? false : (left_str < right_str);
     });
 
-    // grid item num in row
-    int column_count = column_idx + 1;
     // reset colume_idx
     column_idx = 0;
 
@@ -536,21 +548,16 @@ void HistoryWindow::sync_history_data() {
         delete_button->SetBackgroundColour(*wxWHITE);
         delete_button->SetMinSize(wxSize(-1, FromDIP(24)));
         delete_button->SetCornerRadius(FromDIP(12));
-        delete_button->Bind(wxEVT_BUTTON, [this, gbSizer, i, result, column_count](auto& e) {
+        delete_button->Bind(wxEVT_BUTTON, [this, result](auto& e) {
             if (m_ui_op_lock) {
                 return;
             } else {
                 m_ui_op_lock = true;
             }
 
-            for (int j = 0; j < column_count; j++) {
-                auto item = gbSizer->FindItemAtPosition({ i, j });
-                if (item && item->GetWindow())
-                    item->GetWindow()->Hide();
-            }
-            gbSizer->SetEmptyCellSize({ 0,0 });
-            m_history_data_panel->Layout();
-            m_history_data_panel->Fit();
+            // Keep the list as is (no hide/relayout, which left stale fragments while the publishes below
+            // block the UI thread) and rebuild once the printer returns the refreshed history.
+            lock_history_actions();
             PACalibIndexInfo cali_info;
             cali_info.tray_id         = result.tray_id;
             cali_info.cali_idx        = result.cali_idx;
@@ -590,7 +597,7 @@ void HistoryWindow::sync_history_data() {
                 new_result.tray_id = -1;
                 CalibUtils::set_PA_calib_result({ new_result }, true);
 
-                enbale_action_buttons(false);
+                lock_history_actions();
                 CallAfter([this] { reqeust_history_result(curr_obj); });
             }
             });
@@ -616,17 +623,23 @@ void HistoryWindow::sync_history_data() {
         gbSizer->Add(edit_button, {i, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
         column_idx = 0;
         i++;
-        m_ui_op_lock = false;
     }
+    // A rebuild ends any pending delete/edit, including when the list ends up empty.
+    m_ui_op_lock = false;
 
     wxGetApp().UpdateDlgDarkUI(this);
 
+    // Header and rows show/hide together: a header-only table (while refreshing or with no result)
+    // collapses to the header text widths and looks squeezed.
+    m_history_data_panel->Show(!m_calib_results_history.empty());
+
+    m_history_data_panel->Layout();
+    m_history_data_panel->Fit();
     Layout();
     Fit();
-    Thaw();
-
     m_scroll_window->Layout();
     m_scroll_window->FitInside();
+    Thaw();
     m_scroll_window->Refresh();
 }
 
@@ -674,6 +687,7 @@ void HistoryWindow::on_click_new_button(wxCommandEvent& event)
 
     NewCalibrationHistoryDialog dlg(this, m_calib_results_history);
     if (dlg.ShowModal() == wxID_OK) {
+        lock_history_actions();
         reqeust_history_result(curr_obj);
     }
 }

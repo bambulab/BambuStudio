@@ -25,6 +25,8 @@ public:
     void update(MachineObject* obj);
 protected:
     void sync_history_data();
+    void clear_history_view();
+    void lock_history_actions();
     void enbale_action_buttons(bool enable);
     float get_nozzle_value();
     int get_extruder_id();
