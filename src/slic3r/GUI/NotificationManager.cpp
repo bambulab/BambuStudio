@@ -197,8 +197,7 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 void NotificationManager::PopNotification::ensure_ui_inited()
 {
     if (!m_is_dark_inited) {
-        m_is_dark        = wxGetApp().plater()->get_current_canvas3D()->get_dark_mode_status();
-        m_is_dark_inited = true;
+        on_change_color_mode(wxGetApp().plater()->get_current_canvas3D()->get_dark_mode_status());
     }
 
     if (!m_WindowRadius_inited) {
