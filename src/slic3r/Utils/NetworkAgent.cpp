@@ -173,6 +173,7 @@ NetworkAgent::~NetworkAgent()
     int ret = 0;
     if (network_agent && destroy_agent_ptr) {
         ret = destroy_agent_ptr(network_agent);
+        network_agent = nullptr;
     }
     BOOST_LOG_TRIVIAL(info) << KV(log_key::network_agent, network_agent) << "destroy_agent_ptr=" << destroy_agent_ptr << ", ret " << ret;
 }
