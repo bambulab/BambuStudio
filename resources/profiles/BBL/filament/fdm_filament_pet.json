@@ -41,7 +41,7 @@
         "75",
         "75",
         "70",
-        "75"
+        "70"
     ],
     "filament_dev_ams_drying_temperature": [
         "65",
@@ -73,7 +73,7 @@
         "60",
         "60",
         "75",
-        "60"
+        "75"
     ],
     "filament_max_volumetric_speed": [
         "25"

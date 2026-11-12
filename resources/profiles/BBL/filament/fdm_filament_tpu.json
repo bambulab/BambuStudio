@@ -19,6 +19,12 @@
     "cool_plate_temp_initial_layer": [
         "30"
     ],
+    "effect_plate_temp": [
+        "35"
+    ],
+    "effect_plate_temp_initial_layer": [
+        "35"
+    ],
     "eng_plate_temp": [
         "30"
     ],
@@ -44,7 +50,7 @@
         "45",
         "45",
         "70",
-        "45"
+        "70"
     ],
     "filament_dev_ams_drying_temperature": [
         "65",
@@ -76,7 +82,7 @@
         "50",
         "50",
         "70",
-        "50"
+        "70"
     ],
     "filament_max_volumetric_speed": [
         "15"
@@ -94,12 +100,6 @@
         "35"
     ],
     "hot_plate_temp_initial_layer": [
-        "35"
-    ],
-    "effect_plate_temp": [
-        "35"
-    ],
-    "effect_plate_temp_initial_layer": [
         "35"
     ],
     "nozzle_temperature": [
