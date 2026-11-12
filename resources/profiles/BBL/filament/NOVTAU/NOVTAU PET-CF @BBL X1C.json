@@ -1,0 +1,41 @@
+{
+	"type": "filament",
+	"name": "NOVTAU PET-CF @BBL X1C",
+	"inherits": "NOVTAU PET-CF @base",
+	"from": "system",
+	"setting_id": "GFNVS28",
+	"instantiation": "true",
+	"include": [
+		"fdm_filament_template_direct_dual"
+	],
+	"filament_flow_ratio": [
+		"0.95",
+		"0.95"
+	],
+	"filament_max_volumetric_speed": [
+		"11.5",
+		"11.5"
+	],
+	"nozzle_temperature": [
+		"285",
+		"285"
+	],
+	"nozzle_temperature_initial_layer": [
+		"285",
+		"285"
+	],
+	"compatible_printers": [
+		"Bambu Lab X1 Carbon 0.4 nozzle",
+		"Bambu Lab X1 0.4 nozzle",
+		"Bambu Lab X1 Carbon 0.6 nozzle",
+		"Bambu Lab X1 Carbon 0.8 nozzle",
+		"Bambu Lab X1 0.6 nozzle",
+		"Bambu Lab X1 0.8 nozzle",
+		"Bambu Lab P1S 0.4 nozzle",
+		"Bambu Lab P1S 0.6 nozzle",
+		"Bambu Lab P1S 0.8 nozzle",
+		"Bambu Lab X1E 0.4 nozzle",
+		"Bambu Lab X1E 0.6 nozzle",
+		"Bambu Lab X1E 0.8 nozzle"
+	]
+}
