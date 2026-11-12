@@ -1,0 +1,761 @@
+Coincident face winding, unlimited inputs, labeled arrangement export
+(OpenMeshCraft @0e8d12c3, on top of 0001).
+
+- Coincident triangles of different inputs are stored once; the winding of the second
+  copy was dropped (pockets are keyed by their vertex set), so faces where two solids
+  touch were treated like shared boundary: union kept an internal face, intersection
+  returned a zero-volume sheet, subtraction left a hole. Record per triangle the inputs
+  whose copy winds opposite (ArrLabels::opposite) and use it in the selection.
+- Label becomes a dynamic bitset (no 32-input limit; up to 64 inputs stay inline).
+- MeshBoolean::exportLabeledArrangement: after computeLabels(), export all arrangement
+  triangles with their surface / inside / opposite labels so callers can apply their
+  own selection.
+
+diff --git a/src/OpenMeshCraft/Arrangements/DetectClassifyTTIs.h b/src/OpenMeshCraft/Arrangements/DetectClassifyTTIs.h
+index 14d3ad2..1cce145 100644
+--- a/src/OpenMeshCraft/Arrangements/DetectClassifyTTIs.h
++++ b/src/OpenMeshCraft/Arrangements/DetectClassifyTTIs.h
+@@ -78,7 +78,7 @@ protected:
+ 
+   void cacheBoxesInNode(const typename Tree::Node             &node,
+                         CStyleVector<typename Tree::TreeBbox> &cached_boxes,
+-                        bool cache_labels, CStyleVector<Label> &cached_labels);
++                        bool cache_labels, std::vector<Label> &cached_labels);
+ 
+   void propagateCoplanarIntersections();
+ 
+diff --git a/src/OpenMeshCraft/Arrangements/DetectClassifyTTIs.inl b/src/OpenMeshCraft/Arrangements/DetectClassifyTTIs.inl
+index ce50dd5..ef1a5b5 100644
+--- a/src/OpenMeshCraft/Arrangements/DetectClassifyTTIs.inl
++++ b/src/OpenMeshCraft/Arrangements/DetectClassifyTTIs.inl
+@@ -106,7 +106,7 @@ void DetectClassifyTTIs<Traits>::parallelOnSmallNodes(
+     index_t thread_id = tbb::this_task_arena::current_thread_index();
+ 
+     CStyleVector<typename Tree::TreeBbox> cache_boxes;
+-    CStyleVector<Label>                   cache_labels;
++    std::vector<Label>                    cache_labels;
+ 
+     cacheBoxesInNode(node, cache_boxes, config.ignore_same_mesh, cache_labels);
+ 
+@@ -192,7 +192,7 @@ void DetectClassifyTTIs<Traits>::parallelOnLargeNodes(
+                                   num_boxes * (num_boxes - 1) / 2);
+ 
+     CStyleVector<typename Tree::TreeBbox> cache_boxes;
+-    CStyleVector<Label>                   cache_labels;
++    std::vector<Label>                    cache_labels;
+     cacheBoxesInNode(node, cache_boxes, config.ignore_same_mesh, cache_labels);
+ 
+     // check Box-Box-Intersection in current node.
+@@ -256,7 +256,7 @@ template <typename Traits>
+ void DetectClassifyTTIs<Traits>::cacheBoxesInNode(
+   const typename Tree::Node             &node,
+   CStyleVector<typename Tree::TreeBbox> &cached_boxes, bool cache_labels,
+-  CStyleVector<Label> &cached_labels)
++  std::vector<Label> &cached_labels)
+ {
+   const auto  &boxes     = node.boxes();
+   const size_t num_boxes = node.size();
+@@ -267,7 +267,7 @@ void DetectClassifyTTIs<Traits>::cacheBoxesInNode(
+ 
+   if (cache_labels)
+   {
+-    cached_labels.resize(num_boxes, /*keep_data*/ false);
++    cached_labels.resize(num_boxes);
+     for (size_t i = 0; i < num_boxes; i++)
+       cached_labels[i] = labels[tree.box(boxes[i]).attr()];
+   }
+diff --git a/src/OpenMeshCraft/Arrangements/MeshArrangements.inl b/src/OpenMeshCraft/Arrangements/MeshArrangements.inl
+index 747abb4..31d7e0c 100644
+--- a/src/OpenMeshCraft/Arrangements/MeshArrangements.inl
++++ b/src/OpenMeshCraft/Arrangements/MeshArrangements.inl
+@@ -186,9 +186,17 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline()
+   OMC_ARR_SAVE_ELAPSED(start_ci, ci_elapsed, "Classify intersection");
+   OMC_ARR_START_ELAPSE(start_tr);
+ 
++  // Duplicated input triangles were merged by ArrCleanMesh keeping the winding
++  // of the first one; carry the winding of the others into the result.
++  std::vector<Label> input_opposite(arr_in_tris.size() / 3);
++  for (const ArrDuplTriInfo &item : dupl_triangles)
++    if (!item.w)
++      input_opposite[item.t_id][item.l_id] = true;
++
+   // Triangulation.
+   Triangulation<Traits> TR(tri_soup, arr_out_tris, arr_out_labels.surface,
+-                           config, *stats);
++                           arr_out_labels.opposite, input_opposite, config,
++                           *stats);
+ 
+   // collect vertices, triangles and labels.
+   exitAfterTriangulation();
+@@ -476,10 +484,6 @@ MeshArrangements<Kernel, Traits>::addTriMeshAsInput(const iPoints    &points,
+   input_meshes.emplace_back();
+   input_meshes.back().points    = &points;
+   input_meshes.back().triangles = &triangles;
+-  if (input_meshes.size() == LABEL_NBIT)
+-    OMC_THROW_OUT_OF_RANGE("Input meshes for arrangments are too much, limit "
+-                           "the number to less than {}.",
+-                           LABEL_NBIT);
+   return input_meshes.size() - 1;
+ }
+ 
+diff --git a/src/OpenMeshCraft/Arrangements/Triangulation.h b/src/OpenMeshCraft/Arrangements/Triangulation.h
+index ebc8159..1d5e5e0 100644
+--- a/src/OpenMeshCraft/Arrangements/Triangulation.h
++++ b/src/OpenMeshCraft/Arrangements/Triangulation.h
+@@ -62,8 +62,14 @@ private:
+                                                   InlinedVector16<index_t>>;
+ 
+ public:
++  /// @param new_opposite per new triangle, the meshes whose coincident copy
++  /// winds opposite to the stored triangle (see ArrLabels::opposite).
++  /// @param input_opposite the same per input triangle, for duplicated input
++  /// triangles merged by ArrCleanMesh.
+   Triangulation(TriSoup &_ts, std::vector<index_t> &new_tris,
+                 std::vector<Label>            &new_labels,
++                std::vector<Label>            &new_opposite,
++                const std::vector<Label>      &input_opposite,
+                 const MeshArrangements_Config &_config,
+                 MeshArrangements_Stats        &_stats);
+ 
+@@ -152,6 +158,12 @@ private:
+   void postFixIndices(std::vector<index_t> &new_tris,
+                       std::vector<Label> &new_labels, index_t tpi_begin);
+ 
++  /// Whether two coplanar triangles (global vertex ids) wind in opposite
++  /// directions.
++  bool oppositeWinding(const index_t *t0, const index_t *t1) const;
++
++  static const std::array<EPoint3, 4> &offPlanePoints();
++
+ private:
+ #ifndef OMC_ARR_3D_PREDS
+   static bool pointInsideSegmentCollinear(const FTriMesh &subm, index_t ev0_id,
+@@ -172,6 +184,9 @@ private:
+ 
+   std::vector<PntArena> &pnt_arenas;
+ 
++  std::vector<Label>       &new_opposite;
++  const std::vector<Label> &input_opposite;
++
+   /* Configuration */
+   const MeshArrangements_Config &config;
+   /* Statistics */
+diff --git a/src/OpenMeshCraft/Arrangements/Triangulation.inl b/src/OpenMeshCraft/Arrangements/Triangulation.inl
+index 789f44d..f0e0080 100644
+--- a/src/OpenMeshCraft/Arrangements/Triangulation.inl
++++ b/src/OpenMeshCraft/Arrangements/Triangulation.inl
+@@ -12,17 +12,23 @@ template <typename Traits>
+ Triangulation<Traits>::Triangulation(TriSoup                       &_ts,
+                                      std::vector<index_t>          &new_tris,
+                                      std::vector<Label>            &new_labels,
++                                     std::vector<Label>            &_new_opposite,
++                                     const std::vector<Label>      &_input_opposite,
+                                      const MeshArrangements_Config &_config,
+                                      MeshArrangements_Stats        &_stats)
+   : ts(_ts)
+   , pnt_arenas(*ts.pnt_arenas)
++  , new_opposite(_new_opposite)
++  , input_opposite(_input_opposite)
+   , config(_config)
+   , stats(_stats)
+ {
+   new_labels.clear();
++  new_opposite.clear();
+   new_tris.clear();
+   new_tris.reserve(2 * 3 * ts.numTris());
+   new_labels.reserve(2 * ts.numTris());
++  new_opposite.reserve(2 * ts.numTris());
+   ts.vertices.reserve(ts.numVerts() * 3);
+   ts.indices.reserve(ts.numVerts() * 3);
+ 
+@@ -45,6 +51,7 @@ Triangulation<Traits>::Triangulation(TriSoup                       &_ts,
+       new_tris.push_back(ts.triVertID(t_id, 1));
+       new_tris.push_back(ts.triVertID(t_id, 2));
+       new_labels.push_back(ts.triLabel(t_id));
++      new_opposite.push_back(input_opposite[t_id]);
+     }
+   }
+ 
+@@ -162,6 +169,7 @@ void Triangulation<Traits>::triangulateSingleTriangle(
+         new_tris.push_back(subm.vertInfo(tri[1]));
+         new_tris.push_back(subm.vertInfo(tri[2]));
+         new_labels.push_back(ts.triLabel(t_id));
++        new_opposite.push_back(input_opposite[t_id]);
+       }
+     } // end critical section
+   }
+@@ -1057,6 +1065,36 @@ void Triangulation<Traits>::splitSegmentInSubSegments(index_t    v_start,
+   sub_segs_map.at(sub_seg1).insert(ref_seg_ids.begin(), ref_seg_ids.end());
+ }
+ 
++/// Four affinely independent explicit points: at least one is off any plane.
++template <typename Traits>
++auto Triangulation<Traits>::offPlanePoints() -> const std::array<EPoint3, 4> &
++{
++  static const std::array<EPoint3, 4> pnts = {
++    EPoint3(0., 0., 0.), EPoint3(1., 0., 0.), EPoint3(0., 1., 0.),
++    EPoint3(0., 0., 1.)};
++  return pnts;
++}
++
++template <typename Traits>
++bool Triangulation<Traits>::oppositeWinding(const index_t *t0,
++                                            const index_t *t1) const
++{
++  // Coplanar triangles wind the same way iff they see a point off their plane
++  // on the same side.
++  for (const EPoint3 &jp : offPlanePoints())
++  {
++    const Sign s0 = Orient3D()(ts.vert(t0[0]), ts.vert(t0[1]), ts.vert(t0[2]),
++                               AsGP()(jp));
++    if (s0 == Sign::ZERO)
++      continue;
++    const Sign s1 = Orient3D()(ts.vert(t1[0]), ts.vert(t1[1]), ts.vert(t1[2]),
++                               AsGP()(jp));
++    return s0 != s1;
++  }
++  OMC_THROW_RUNTIME_ERROR("degenerate triangle in coincident pocket.");
++  return false;
++}
++
+ template <typename Traits>
+ index_t Triangulation<Traits>::createTPI(FTriMesh &subm, index_t seg0_id,
+                                          index_t seg1_id)
+@@ -1135,11 +1173,8 @@ index_t Triangulation<Traits>::createTPI(FTriMesh &subm, index_t seg0_id,
+     // the plane through its source edge and an explicit point off t_id's plane:
+     // that plane cuts t_id's plane exactly along the segment's line. Of these four
+     // affinely independent points at least one is off any plane.
+-    static const std::array<EPoint3, 4> off_plane_pnts = {
+-      EPoint3(0., 0., 0.), EPoint3(1., 0., 0.), EPoint3(0., 1., 0.),
+-      EPoint3(0., 0., 1.)};
+     const GPoint3 *jolly = nullptr;
+-    for (const EPoint3 &jp : off_plane_pnts)
++    for (const EPoint3 &jp : offPlanePoints())
+       if (Orient3D()(ts.triVert(t_id, 0), ts.triVert(t_id, 1),
+                      ts.triVert(t_id, 2), AsGP()(jp)) != Sign::ZERO)
+       {
+@@ -1576,6 +1611,7 @@ void Triangulation<Traits>::solvePocketsInCoplanarTriangle(
+       index_t pos = ts.addVisitedPolygonPocket(curr_polygon, new_labels.size(),
+                                                polygon_contain_tpi);
+ 
++      const Label &opposite = input_opposite[subm.meshInfo()];
+       if (!is_valid_idx(pos)) // pocket not added yet
+       {
+         const Pocket &tri_list = tri_pockets[p_id];
+@@ -1586,14 +1622,27 @@ void Triangulation<Traits>::solvePocketsInCoplanarTriangle(
+           new_tris.push_back(subm.vertInfo(tri[1]));
+           new_tris.push_back(subm.vertInfo(tri[2]));
+           new_labels.push_back(label);
++          new_opposite.push_back(opposite);
+         }
+       }
+       else // pocket already present
+       {
+         size_t num_tris = curr_polygon.size() - 2;
+ 
++        // The pocket is keyed by its vertex set, so a coplanar triangle of
++        // another mesh lands here whatever its winding: record whether it
++        // winds opposite to the stored triangles, booleans depend on it.
++        const index_t *own        = subm.tri(tri_pockets[p_id].front());
++        const index_t  own_tri[3] = {subm.vertInfo(own[0]), subm.vertInfo(own[1]),
++                                     subm.vertInfo(own[2])};
++        const Label    flipped    = oppositeWinding(&new_tris[3 * pos], own_tri)
++                                      ? (label - opposite)
++                                      : opposite;
+         for (size_t i = 0; i < num_tris; i++)
++        {
+           new_labels[pos + i] |= label;
++          new_opposite[pos + i] |= flipped;
++        }
+       }
+     }
+   }
+@@ -1712,9 +1761,17 @@ void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
+     {
+       index_t existed_tris_pos = poly_iter.first->second;
+       size_t  num_tris         = polygon.size() - 2;
+-      // merge labels
++      // merge labels, keeping the winding of the merged triangles relative to
++      // the kept ones (see solvePocketsInCoplanarTriangle).
++      const bool flip =
++        oppositeWinding(&new_tris[3 * existed_tris_pos], &new_tris[3 * tris_pos]);
+       for (size_t i = 0; i < num_tris; i++)
+-        new_labels[existed_tris_pos + i] |= new_labels[tris_pos + i];
++      {
++        const Label merged = new_labels[tris_pos + i];
++        const Label opp    = new_opposite[tris_pos + i];
++        new_labels[existed_tris_pos + i] |= merged;
++        new_opposite[existed_tris_pos + i] |= flip ? (merged - opp) : opp;
++      }
+       // mark tris deleted
+       for (size_t i = 0; i < num_tris; i++)
+         new_tri_deleted[tris_pos + i] = true;
+@@ -1738,10 +1795,12 @@ void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
+     new_tris[front * 3 + 1] = new_tris[back * 3 + 1];
+     new_tris[front * 3 + 2] = new_tris[back * 3 + 2];
+     new_labels[front]       = new_labels[back];
++    new_opposite[front]     = new_opposite[back];
+   }
+   size_t new_size = new_tri_deleted[back] ? (back) : (back + 1);
+   new_tris.resize(new_size * 3);
+   new_labels.resize(new_size);
++  new_opposite.resize(new_size);
+ }
+ 
+ #ifndef OMC_ARR_3D_PREDS
+diff --git a/src/OpenMeshCraft/Arrangements/Utils.h b/src/OpenMeshCraft/Arrangements/Utils.h
+index fd17026..81d0d58 100644
+--- a/src/OpenMeshCraft/Arrangements/Utils.h
++++ b/src/OpenMeshCraft/Arrangements/Utils.h
+@@ -72,6 +72,10 @@ struct ArrLabels
+   std::vector<Label> surface;
+   /// surface (mesh) that a triangle is inside.
+   std::vector<Label> inside;
++  /// surfaces (meshes) whose copy of a triangle winds opposite to the stored
++  /// triangle. Coincident triangles of different meshes are stored once, with
++  /// the winding of the first one; this keeps the orientation of the others.
++  std::vector<Label> opposite;
+   /// how many surfaces (meshes) in arrangements.
+   size_t             num;
+ };
+diff --git a/src/OpenMeshCraft/Boolean/MeshBoolean.h b/src/OpenMeshCraft/Boolean/MeshBoolean.h
+index b0857a2..8c6719f 100644
+--- a/src/OpenMeshCraft/Boolean/MeshBoolean.h
++++ b/src/OpenMeshCraft/Boolean/MeshBoolean.h
+@@ -108,6 +108,21 @@ public: /* Interfaces ********************************************************/
+   /// @brief apply (3)XOR and (4)put result to output mesh.
+   void Xor();
+ 
++  /// @brief After computeLabels(), export the whole labeled arrangement, so
++  /// that callers can apply their own selection rules.
++  /// @param points explicit coordinates of the arrangement vertices in use.
++  /// @param triangles all arrangement triangles. A triangle shared by several
++  /// inputs (coincident faces) appears once, with the winding of one of them.
++  /// @param surface per triangle, the inputs it lies on.
++  /// @param inside per triangle, the inputs it lies inside (inputs it lies on
++  /// are not set).
++  /// @param opposite per triangle, the inputs whose copy of the triangle winds
++  /// opposite to the exported one.
++  void exportLabeledArrangement(iPoints &points, iTriangles &triangles,
++                                std::vector<Label> &surface,
++                                std::vector<Label> &inside,
++                                std::vector<Label> &opposite) const;
++
+   /// @brief Clear input meshes, output mesh, and all internal data.
+   /// Clearing is equivalent to reseting all to initial state.
+   void clear();
+diff --git a/src/OpenMeshCraft/Boolean/MeshBoolean.inl b/src/OpenMeshCraft/Boolean/MeshBoolean.inl
+index 1bc3b52..d597f6f 100644
+--- a/src/OpenMeshCraft/Boolean/MeshBoolean.inl
++++ b/src/OpenMeshCraft/Boolean/MeshBoolean.inl
+@@ -147,6 +147,13 @@ public: /* Pipelines ********************************************************/
+   computeFinalExplicitResult(iPoints &final_points, iTris &final_tris,
+                              std::vector<Label> *final_labels = nullptr) const;
+ 
++  /// @brief Export all arrangement triangles with their labels.
++  template <typename iPoint, typename iPoints, typename iTri, typename iTris>
++  void exportLabeledArrangement(iPoints &points, iTris &tris,
++                                std::vector<Label> &surface,
++                                std::vector<Label> &inside,
++                                std::vector<Label> &opposite) const;
++
+ private:
+   /* Patches ****************************************************************/
+   void computeSinglePatch(index_t seed, phmap::flat_hash_set<index_t> &patch);
+@@ -227,6 +234,18 @@ private:
+   size_t boolSubtraction();
+   size_t boolXOR();
+ 
++  /// Whether a triangle shared by several meshes has copies winding in
++  /// opposite directions: the meshes touch there from opposite sides, so the
++  /// triangle is an internal face rather than a common part of the boundary.
++  bool isTouchingFace(index_t t_id) const
++  {
++    const Label &surface = arr_out_labels.surface[t_id];
++    if (surface.count() < 2 || t_id >= arr_out_labels.opposite.size())
++      return false;
++    const Label opposite = arr_out_labels.opposite[t_id] & surface;
++    return opposite.any() && (surface - opposite).any();
++  }
++
+ public:
+   MeshArrangements_Impl<Traits> arr_impl;
+ 
+@@ -1004,7 +1023,8 @@ size_t MeshBoolean_Impl<Traits>::boolIntersection()
+   for (index_t t_id = 0; t_id < tm.numTriangles(); ++t_id)
+   {
+     if ((arr_out_labels.surface[t_id] ^ arr_out_labels.inside[t_id]).count() ==
+-        arr_out_labels.num) // triangle to keep
++          arr_out_labels.num &&
++        !isTouchingFace(t_id)) // triangle to keep
+     {
+       tm.setTriInfo(t_id, 1);
+       tm.setTriLabel(t_id, arr_out_labels.surface[t_id]);
+@@ -1023,7 +1043,8 @@ size_t MeshBoolean_Impl<Traits>::boolUnion()
+ 
+   for (index_t t_id = 0; t_id < tm.numTriangles(); ++t_id)
+   {
+-    if (arr_out_labels.inside[t_id].count() == 0) // triangle to keep
++    if (arr_out_labels.inside[t_id].count() == 0 &&
++        !isTouchingFace(t_id)) // triangle to keep
+     {
+       tm.setTriInfo(t_id, 1);
+       tm.setTriLabel(t_id, arr_out_labels.surface[t_id]);
+@@ -1066,6 +1087,22 @@ size_t MeshBoolean_Impl<Traits>::boolSubtraction()
+       tm.setTriLabel(t_id, arr_out_labels.surface[t_id]);
+       ++num_tris_in_final_solution;
+     }
++    else if (
++      // tri is shared by the first surface and exactly one other,
++      arr_out_labels.surface[t_id][0] &&
++      arr_out_labels.surface[t_id].count() == 2 &&
++      // whose copies face each other (the surfaces only touch here),
++      isTouchingFace(t_id) &&
++      // and the tri is not inside any surface.
++      arr_out_labels.inside[t_id].count() == 0)
++    {
++      tm.setTriInfo(t_id, 1);
++      tm.setTriLabel(t_id, arr_out_labels.surface[t_id]);
++      ++num_tris_in_final_solution;
++      // keep the winding of the first surface
++      if (arr_out_labels.opposite[t_id][0])
++        tm.flipTri(t_id);
++    }
+   }
+ 
+   // fix triangles orientation
+@@ -1164,6 +1201,49 @@ void MeshBoolean_Impl<Traits>::computeFinalExplicitResult(
+                     });
+ }
+ 
++template <typename Traits>
++template <typename iPoint, typename iPoints, typename iTri, typename iTris>
++void MeshBoolean_Impl<Traits>::exportLabeledArrangement(
++  iPoints &points, iTris &tris, std::vector<Label> &surface,
++  std::vector<Label> &inside, std::vector<Label> &opposite) const
++{
++  const size_t num_tris = arr_out_tris.size() / 3;
++  points.clear();
++  tris.clear();
++  tris.reserve(num_tris);
++
++  // compact the vertices in use, in order of first use
++  size_t               num_vertices = 0;
++  std::vector<index_t> vertex_index(arr_out_verts.size(), InvalidIndex);
++  for (index_t t_id = 0; t_id < num_tris; ++t_id)
++  {
++    std::array<index_t, 3> out_tri;
++    for (size_t i = 0; i < 3; i++)
++    {
++      const index_t old_vid = arr_out_tris[3 * t_id + i];
++      if (!is_valid_idx(vertex_index[old_vid]))
++        vertex_index[old_vid] = num_vertices++;
++      out_tri[i] = vertex_index[old_vid];
++    }
++    tris.push_back(iTri(out_tri[0], out_tri[1], out_tri[2]));
++  }
++
++  points.resize(num_vertices);
++  tbb::parallel_for(index_t(0), arr_out_verts.size(),
++                    [this, &vertex_index, &points](index_t v_id)
++                    {
++                      if (!is_valid_idx(vertex_index[v_id]))
++                        return;
++                      EPoint3 ep = ToEP()(*arr_out_verts[v_id]);
++                      points[vertex_index[v_id]] = iPoint(ep.x(), ep.y(), ep.z());
++                    });
++
++  surface  = arr_out_labels.surface;
++  inside   = arr_out_labels.inside;
++  opposite = arr_out_labels.opposite;
++  opposite.resize(num_tris);
++}
++
+ /*****************************************************************************/
+ /*************** Implementations of interface class **************************/
+ /*****************************************************************************/
+@@ -1187,10 +1267,6 @@ MeshBoolean<Kernel, Traits>::addTriMeshAsInput(const iPoints    &points,
+   input_meshes.emplace_back();
+   input_meshes.back().points    = &points;
+   input_meshes.back().triangles = &triangles;
+-  if (input_meshes.size() == LABEL_NBIT)
+-    OMC_THROW_OUT_OF_RANGE("Input meshes for arrangments are too much, limit "
+-                           "the number to less than {}",
+-                           LABEL_NBIT);
+   // once the input meshes change, reset internal data
+   m_impl = nullptr;
+   return input_meshes.size() - 1;
+@@ -1253,6 +1329,19 @@ BOOL_OPERATION(Xor, XOR);
+ 
+ #undef BOOL_OPERATION
+ 
++template <typename Kernel, typename Traits>
++void MeshBoolean<Kernel, Traits>::exportLabeledArrangement(
++  iPoints &points, iTriangles &triangles, std::vector<Label> &surface,
++  std::vector<Label> &inside, std::vector<Label> &opposite) const
++{
++  OMC_THROW_DOMAIN_ERROR_IF(m_impl == nullptr,
++                            "arrangements and label results are not computed.");
++  m_impl->template exportLabeledArrangement<iPoint, iPoints, iTriangle,
++                                            iTriangles>(points, triangles,
++                                                        surface, inside,
++                                                        opposite);
++}
++
+ template <typename Kernel, typename Traits>
+ void MeshBoolean<Kernel, Traits>::booleanPipeline(MeshBooleanOp op)
+ {
+diff --git a/src/OpenMeshCraft/Tetrahedralization/CDT.inl b/src/OpenMeshCraft/Tetrahedralization/CDT.inl
+index 5d6ad72..e9f2db1 100644
+--- a/src/OpenMeshCraft/Tetrahedralization/CDT.inl
++++ b/src/OpenMeshCraft/Tetrahedralization/CDT.inl
+@@ -330,10 +330,6 @@ ConstrDelTet<Kernel, Traits>::addTriMeshAsInput(const iPoints    &points,
+   input_meshes.emplace_back();
+   input_meshes.back().points    = &points;
+   input_meshes.back().triangles = &triangles;
+-  if (input_meshes.size() == LABEL_NBIT)
+-    OMC_THROW_OUT_OF_RANGE("Input meshes for arrangments are too much, limit "
+-                           "the number to less than {}.",
+-                           LABEL_NBIT);
+   return input_meshes.size() - 1;
+ }
+ 
+diff --git a/src/OpenMeshCraft/Utils/Label.h b/src/OpenMeshCraft/Utils/Label.h
+index 370084b..cc35410 100644
+--- a/src/OpenMeshCraft/Utils/Label.h
++++ b/src/OpenMeshCraft/Utils/Label.h
+@@ -2,25 +2,220 @@
+ 
+ #include "Exception.h"
+ 
+-#include <bitset>
++#include <algorithm>
++#include <cstdint>
++#include <vector>
++
++#ifdef _MSC_VER
++  #include <intrin.h>
++#endif
+ 
+ namespace OMC {
+ 
+-///  To ensure efficiency, we limit the maximum label count to less than
+-///   LABEL_NBIT (32).
+-constexpr int LABEL_NBIT = 32;
++/// @brief Set of input mesh indices, without an upper limit on the index.
++/// @details A dynamic bitset with the interface of std::bitset that OMC uses.
++/// Indices below 64 live inline, so the common case (few input meshes) never
++/// allocates; higher indices are stored in additional 64-bit words.
++class Label
++{
++public:
++  class reference
++  {
++  public:
++    reference(Label &label, size_t idx)
++      : m_label(label)
++      , m_idx(idx)
++    {
++    }
++    reference &operator=(bool value)
++    {
++      m_label.set(m_idx, value);
++      return *this;
++    }
++    reference &operator=(const reference &other)
++    {
++      return *this = bool(other);
++    }
++    operator bool() const { return m_label.test(m_idx); }
++
++  private:
++    Label &m_label;
++    size_t m_idx;
++  };
+ 
+-using Label = std::bitset<LABEL_NBIT>;
++  Label() = default;
+ 
+-inline size_t LabelToIdx(const Label &b)
+-{
+-  OMC_EXPENSIVE_ASSERT(b.count() == 1, "more than 1 bit set to 1");
+-  uint32_t x = b.to_ulong();
+-#ifdef __GNUC__
+-  return __builtin_ffs(x) - 1; // GCC
++  bool      operator[](size_t idx) const { return test(idx); }
++  reference operator[](size_t idx) { return reference(*this, idx); }
++
++  bool test(size_t idx) const
++  {
++    const size_t w = idx / 64;
++    if (w == 0)
++      return (m_low >> idx) & 1u;
++    return w - 1 < m_high.size() && ((m_high[w - 1] >> (idx % 64)) & 1u);
++  }
++
++  Label &set(size_t idx, bool value = true)
++  {
++    const size_t   w   = idx / 64;
++    const uint64_t bit = uint64_t(1) << (idx % 64);
++    uint64_t      *word;
++    if (w == 0)
++      word = &m_low;
++    else
++    {
++      if (w - 1 >= m_high.size())
++      {
++        if (!value)
++          return *this;
++        m_high.resize(w, 0);
++      }
++      word = &m_high[w - 1];
++    }
++    *word = value ? (*word | bit) : (*word & ~bit);
++    return *this;
++  }
++
++  Label &reset()
++  {
++    m_low = 0;
++    m_high.clear();
++    return *this;
++  }
++
++  size_t count() const
++  {
++    size_t n = popcount(m_low);
++    for (uint64_t w : m_high)
++      n += popcount(w);
++    return n;
++  }
++
++  bool any() const
++  {
++    if (m_low)
++      return true;
++    for (uint64_t w : m_high)
++      if (w)
++        return true;
++    return false;
++  }
++
++  bool none() const { return !any(); }
++
++  /// @brief call f(index) for every set bit, in increasing order.
++  template <typename F>
++  void forEach(F &&f) const
++  {
++    for (uint64_t w = m_low; w; w &= w - 1)
++      f(ctz(w));
++    for (size_t i = 0; i < m_high.size(); ++i)
++      for (uint64_t w = m_high[i]; w; w &= w - 1)
++        f(64 * (i + 1) + ctz(w));
++  }
++
++  /// @brief index of the lowest set bit, or size_t(-1) when empty.
++  size_t first() const
++  {
++    if (m_low)
++      return ctz(m_low);
++    for (size_t i = 0; i < m_high.size(); ++i)
++      if (m_high[i])
++        return 64 * (i + 1) + ctz(m_high[i]);
++    return size_t(-1);
++  }
++
++  Label &operator|=(const Label &rhs)
++  {
++    m_low |= rhs.m_low;
++    if (m_high.size() < rhs.m_high.size())
++      m_high.resize(rhs.m_high.size(), 0);
++    for (size_t i = 0; i < rhs.m_high.size(); ++i)
++      m_high[i] |= rhs.m_high[i];
++    return *this;
++  }
++
++  Label &operator&=(const Label &rhs)
++  {
++    m_low &= rhs.m_low;
++    for (size_t i = 0; i < m_high.size(); ++i)
++      m_high[i] &= i < rhs.m_high.size() ? rhs.m_high[i] : 0;
++    return *this;
++  }
++
++  Label &operator^=(const Label &rhs)
++  {
++    m_low ^= rhs.m_low;
++    if (m_high.size() < rhs.m_high.size())
++      m_high.resize(rhs.m_high.size(), 0);
++    for (size_t i = 0; i < rhs.m_high.size(); ++i)
++      m_high[i] ^= rhs.m_high[i];
++    return *this;
++  }
++
++  /// @brief this minus rhs (std::bitset's `a & ~b`; there is no fixed width to
++  /// complement against).
++  Label &subtract(const Label &rhs)
++  {
++    m_low &= ~rhs.m_low;
++    for (size_t i = 0; i < m_high.size() && i < rhs.m_high.size(); ++i)
++      m_high[i] &= ~rhs.m_high[i];
++    return *this;
++  }
++
++  friend Label operator|(Label lhs, const Label &rhs) { return lhs |= rhs; }
++  friend Label operator&(Label lhs, const Label &rhs) { return lhs &= rhs; }
++  friend Label operator^(Label lhs, const Label &rhs) { return lhs ^= rhs; }
++  friend Label operator-(Label lhs, const Label &rhs) { return lhs.subtract(rhs); }
++
++  friend bool operator==(const Label &lhs, const Label &rhs)
++  {
++    if (lhs.m_low != rhs.m_low)
++      return false;
++    const size_t n = std::max(lhs.m_high.size(), rhs.m_high.size());
++    for (size_t i = 0; i < n; ++i)
++    {
++      const uint64_t l = i < lhs.m_high.size() ? lhs.m_high[i] : 0;
++      const uint64_t r = i < rhs.m_high.size() ? rhs.m_high[i] : 0;
++      if (l != r)
++        return false;
++    }
++    return true;
++  }
++  friend bool operator!=(const Label &lhs, const Label &rhs)
++  {
++    return !(lhs == rhs);
++  }
++
++private:
++  static size_t popcount(uint64_t x)
++  {
++#ifdef _MSC_VER
++    return size_t(__popcnt64(x));
++#else
++    return size_t(__builtin_popcountll(x));
+ #endif
++  }
++
++  static size_t ctz(uint64_t x)
++  {
+ #ifdef _MSC_VER
+-  return 32 - __lzcnt(x) - 1; // Visual studio
++    unsigned long idx;
++    _BitScanForward64(&idx, x);
++    return size_t(idx);
++#else
++    return size_t(__builtin_ctzll(x));
+ #endif
++  }
++
++  uint64_t              m_low = 0; ///< bits [0, 64)
++  std::vector<uint64_t> m_high;    ///< bits [64, ...), allocated on demand
++};
++
++inline size_t LabelToIdx(const Label &b)
++{
++  OMC_EXPENSIVE_ASSERT(b.count() == 1, "more than 1 bit set to 1");
++  return b.first();
+ }
+-} // namespace OMC
+\ No newline at end of file
++} // namespace OMC
