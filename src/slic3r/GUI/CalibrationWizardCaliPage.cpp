@@ -4,6 +4,7 @@
 #include "Widgets/Label.hpp"
 #include "BBLUtil.hpp"
 
+#include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevNozzleRack.h"
 #include "libslic3r/Log.hpp"
@@ -216,11 +217,12 @@ void CalibrationCaliPage::update(MachineObject* obj)
                                 enable_cali = true;
                             }
                             else {
-                                /* Rack slots can hold mixed diameters, so ask for every diameter (-1); the single recorded diameter would drop the other slots' results. */
+                                /* Rack slots and mixed-diameter calibration can span several diameters, so ask for every diameter (-1); the single recorded diameter would drop the others' results. */
                                 auto rack = obj->GetNozzleRack();
                                 const bool has_rack = rack && rack->IsSupported() && rack->IsDirectConnectedRack();
+                                const bool multi_diameter = obj->GetConfig() && obj->GetConfig()->SupportMultiDiameterCalibration();
                                 // use selected diameter, add a counter to timeout, add a warning tips when get result failed
-                                CalibUtils::emit_get_PA_calib_results(has_rack ? -1.0f : get_selected_calibration_nozzle_dia(obj));
+                                CalibUtils::emit_get_PA_calib_results((has_rack || multi_diameter) ? -1.0f : get_selected_calibration_nozzle_dia(obj));
                                 BOOST_LOG_TRIVIAL(trace) << "CalibUtils::emit_get_PA_calib_results, auto count = " << get_result_count++;
                                 enable_cali = false;
                             }

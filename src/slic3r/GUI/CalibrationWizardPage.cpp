@@ -312,7 +312,7 @@ void FilamentComboBox::UpdateNozzleCombo(const std::vector<std::pair<wxString, i
 
 int FilamentComboBox::GetNozzlePosId() const
 {
-    if (!m_nozzle_combo) return -1;
+    if (!m_nozzle_combo || !m_nozzle_combo->IsShown()) return -1;
     auto sel = m_nozzle_combo->GetSelection();
     if (sel != wxNOT_FOUND) return *(reinterpret_cast<int*>(m_nozzle_combo->GetClientData(sel)));
 
@@ -329,6 +329,7 @@ void FilamentComboBox::ShowNozzleCombo()
 void FilamentComboBox::HideNozzleCombo()
 {
     m_nozzle_bmp->Hide();
+    m_nozzle_combo->Clear();
     m_nozzle_combo->Hide();
     Layout();
 }
