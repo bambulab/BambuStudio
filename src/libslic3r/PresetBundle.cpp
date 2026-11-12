@@ -1885,39 +1885,6 @@ void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, con
     config.option<ConfigOptionInts>("extruder_nozzle_slot", true)->values               = std::move(nozzle_slots);
 }
 
-/**
- * \brief The smallest installed nozzle diameter of each extruder, so slicing uses the selected diameters
- *
- * The smallest diameter is conservative for line-width and layer-height limits when one extruder mixes
- * diameters. An extruder with no installed slot keeps its fallback value. The result has the length of
- * \p fallback, so the extruder count stays as the preset gives it.
- *
- * \param nozzles   the nozzle inventory
- * \param fallback  nozzle_diameter of the printer preset
- */
-static std::vector<double> smallest_installed_diameters(const NozzleInventory &nozzles, const std::vector<double> &fallback)
-{
-    std::vector<double> result = fallback;
-    for (size_t e = 0; e < result.size(); ++e) {
-        double min_diam = 0.0;
-        bool   found    = false;
-        for (const NozzleSlot &slot : nozzles.slots(int(e))) {
-            if (slot.empty())
-                continue;
-            const double d = string_to_double_decimal_point(slot.diameter.c_str());
-            if (d <= 0.0)
-                continue;
-            if (!found || d < min_diam) {
-                min_diam = d;
-                found    = true;
-            }
-        }
-        if (found)
-            result[e] = min_diam;
-    }
-    return result;
-}
-
 // Merge one vendor's presets with the other vendor's presets, report duplicates.
 std::vector<std::string> PresetBundle::merge_presets(PresetBundle &&other)
 {
@@ -5075,22 +5042,10 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     // Nozzle counts and per-slot nozzle params for the grouping backend.
     this->nozzle_inventory.export_to(out);
 
-    // Multi-diameter: let slicing read the user-selected diameters (persisted with the project through
-    // the nozzle inventory) rather than the printer preset's fixed nozzle_diameter. Preset switching is
-    // kept on the UI side so diameter-dependent tuning (layer height, line width, flow) still follows
-    // the preset; here we only override the raw per-extruder diameter values, preserving the array
-    // length and falling back to the preset value for any extruder without an installed nozzle.
-    // The topology gate includes both multi-extruder machines and single-extruder multi-slot machines.
-    // A single-extruder single-slot machine must keep the active preset diameter instead of a stale slot snapshot.
-    // Both overrides below are what makes a config multi-diameter, so the project-level gate comes first:
-    // with it off the printer preset's own nozzle_diameter and no per-filament selection is all slicing sees.
+    // Multi-diameter: nozzle_diameter keeps the active printer preset's value; the diameter each filament
+    // prints with comes from the per-filament selection. The selection only reaches slicing with the
+    // project-level gate on: with it off the printer preset's own nozzle_diameter is all slicing sees.
     const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(this->project_config);
-    if (auto *nozzle_diameter_opt = out.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-        multi_diameter_mode && uses_per_slot_nozzle_diameters(out) &&
-        nozzle_diameter_opt != nullptr && this->nozzle_inventory.extruder_count() > 0) {
-        nozzle_diameter_opt->values = smallest_installed_diameters(this->nozzle_inventory, nozzle_diameter_opt->values);
-    }
-
     std::vector<std::string> selected_nozzle_diameters;
     if (multi_diameter_mode)
         selected_nozzle_diameters = this->project_config.option<ConfigOptionStrings>("filament_diameter_map")->values;
