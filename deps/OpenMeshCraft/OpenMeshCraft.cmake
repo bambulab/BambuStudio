@@ -240,7 +240,9 @@ if(MPFR_PKG)
 endif()
 
 set(_OMC_SIMD_ARGS "")
-if(APPLE)
+# x86 SSE/AVX flags are not valid on aarch64, so disable them there just like
+# on Apple Silicon (GCC on Linux aarch64 rejects -mavx2/-mfma outright).
+if(APPLE OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
   set(_OMC_SIMD_ARGS
     -DOMC_CMAKE_ENABLE_SSE2=OFF
     -DOMC_CMAKE_ENABLE_AVX=OFF
