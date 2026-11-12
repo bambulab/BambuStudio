@@ -1253,6 +1253,20 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     if (obj && obj->get_printer_arch() == PrinterArch::ARCH_I3 && !(use_timelapse_memory_logic() && obj->is_support_timelapse_memory)) { m_checkbox_list["timelapse"]->setValue("off"); }
     save_option_vals(obj);
 
+    if (obj && m_print_type != FROM_PRINT_QUEUE) {
+        PartPlate* plate = m_plater ? m_plater->get_partplate_list().get_curr_plate() : nullptr;
+        const GCodeProcessorResult* slice_result = plate ? plate->get_slice_result() : nullptr;
+        if (slice_result) {
+            for (const auto& warning : slice_result->warnings) {
+                if (warning.msg == NOT_SUPPORT_TRADITIONAL_TIMELAPSE) {
+                    m_checkbox_list["timelapse"]->setValue("off");
+                    BOOST_LOG_TRIVIAL(info) << "timelapse default off by slice warning not_support_traditional_timelapse";
+                    break;
+                }
+            }
+        }
+    }
+
     Layout();
     Fit();
 }
