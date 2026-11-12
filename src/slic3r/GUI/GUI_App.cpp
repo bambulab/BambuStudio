@@ -2279,6 +2279,7 @@ void GUI_App::init_networking_callbacks()
 
                         if (obj->is_lan_mode_printer()) {
                             if (state == ConnectStatus::ConnectStatusOk) {
+                                obj->set_online_state(true);
                                 obj->command_request_push_all(true);
                                 obj->command_get_version();
                                 obj->command_set_sntp();
@@ -2287,8 +2288,15 @@ void GUI_App::init_networking_callbacks()
                                 obj->record_user_access_dev_ip();// only record access_dev_ip when lan mode
                                 GUI::wxGetApp().app_config->set_str("access_code", obj->get_dev_id(), obj->get_access_code());
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
-                                m_device_manager->erase_local_machine(obj->get_dev_id());
-                                m_device_manager->set_selected_machine("");
+                                obj->set_online_state(false);
+                                const bool remembered = app_config &&
+                                    !app_config->get("user_access_code", dev_id).empty() &&
+                                    !app_config->get("user_access_dev_ip", dev_id).empty();
+                                if (msg == "5" || !remembered) {
+                                    if (m_device_manager->get_selected_machine() == obj)
+                                        m_device_manager->set_selected_machine("");
+                                    m_device_manager->erase_local_machine(dev_id);
+                                }
                                 wxString text;
                                 if (msg == "5") {
                                     obj->set_access_code("");
@@ -2296,16 +2304,15 @@ void GUI_App::init_networking_callbacks()
                                     obj->erase_user_access_dev_ip();
                                     text = wxString::Format(_L("Incorrect password"));
                                     wxGetApp().show_dialog(text);
-                                } else {
+                                } else if (!remembered) {
                                     text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->get_dev_name()), obj->get_dev_id(), msg);
                                     wxGetApp().show_dialog(text);
+                                } else {
+                                    BOOST_LOG_TRIVIAL(info) << "Remembered LAN printer is offline; retaining selection and saved access";
                                 }
                                 event.SetInt(-1);
                             } else if (state == ConnectStatus::ConnectStatusLost) {
-                                //obj->set_access_code("");
-                                //obj->erase_user_access_code();
-                                //m_device_manager->localMachineList.erase(obj->get_dev_id());
-                                m_device_manager->set_selected_machine("");
+                                obj->set_online_state(false);
                                 event.SetInt(-1);
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = lost";
                             } else {
@@ -3973,10 +3980,10 @@ __retry:
             std::string country_code = app_config->get_country_code();
             m_agent->set_country_code(country_code);
             m_agent->start();
-            m_load_last_machine.InnerLoad(m_agent, getDeviceManager());
             if (auto dev = getDeviceManager()) {
                 dev->restore_local_machines_from_user_access_config();
             }
+            m_load_last_machine.InnerLoad(m_agent, getDeviceManager());
         }
     }
     else {
@@ -9280,63 +9287,6 @@ bool is_support_filament(int extruder_id, bool strict_check)
     return support_option->get_at(0);
 };
 
-static void sLocalBindFunc(std::string str_ip,
-                           std::string str_access_code,
-                           std::string sn)
-{
-    // bind_detect is a hint, not a gate. It used to erase the remembered IP whenever the probe was
-    // not conclusive, so a sleeping printer or a transient network hiccup made the device silently
-    // disappear from the list. Keep its data when it answers, otherwise log and connect with the
-    // persisted local info.
-    detectResult detectData;
-    const int    result        = wxGetApp().getAgent()->bind_detect(str_ip, "secure", detectData);
-    const char*  reject_reason = nullptr;
-    if (result < 0) {
-        reject_reason = "bind_detect failed";
-    } else if (detectData.connect_type != "farm") {
-        if (detectData.bind_state == "occupied") {
-            reject_reason = "the device is already occupied";
-        } else if (detectData.connect_type == "cloud") {
-            reject_reason = "the device is cloud";
-        }
-    }
-
-    if (reject_reason) {
-        BOOST_LOG_TRIVIAL(warning) << reject_reason << ", code=" << result
-                                   << ", falling back to the persisted local info";
-
-        detectData              = detectResult();
-        detectData.dev_id       = sn;
-        detectData.dev_name     = sn;
-        detectData.connect_type = "lan";
-        detectData.bind_state   = "free";
-        detectData.model_id     = DevPrinterConfigUtil::get_model_id_by_dev_id(sn);
-    }
-
-    wxGetApp().CallAfter([detectData, str_ip, str_access_code]() {
-        if (DeviceManager* dev = wxGetApp().getDeviceManager()) {
-            auto obj = dev->insert_local_device(detectData.dev_name, detectData.dev_id, str_ip,
-                                                detectData.connect_type, detectData.bind_state, detectData.version,
-                                                str_access_code, detectData.model_id);
-            if (obj) {
-                obj->set_user_access_code(str_access_code);
-                dev->set_selected_machine(obj->get_dev_id());
-            };
-        };
-    });
-};
-
-TryLoadLastMachine::~TryLoadLastMachine()
-{
-    try {
-        if (local_bind_thread.joinable()) {
-            local_bind_thread.join();
-        }
-    } catch (const std::exception& ex) {
-        BOOST_LOG_TRIVIAL(error) << "Local bind thread join failed in destructor: " << ex.what();
-    }
-}
-
 void TryLoadLastMachine::InnerLoad(NetworkAgent* agent, DeviceManager* dev)
 {
     if (!agent || !dev) {
@@ -9370,18 +9320,9 @@ void TryLoadLastMachine::InnerLoad(NetworkAgent* agent, DeviceManager* dev)
     const auto& user_access_code_str = GUI::wxGetApp().app_config->get("user_access_code", last_select_machine);
     if (!dev_ip_str.empty() && !user_access_code_str.empty()) {
         if (!dev->get_my_machine(last_select_machine)) {
-            try {
-                if (local_bind_thread.joinable()) {
-                    BOOST_LOG_TRIVIAL(error) << "thread is running";
-                    return;
-                }
-
-                auto bind = boost::bind(&sLocalBindFunc, dev_ip_str, user_access_code_str, last_select_machine);
-                local_bind_thread = boost::thread(bind);
-            } catch (const std::exception& ex) {
-                BOOST_LOG_TRIVIAL(error) << "thread exception: " << ex.what();
-            }
-        } else {
+            dev->restore_local_machines_from_user_access_config();
+        }
+        if (dev->get_my_machine(last_select_machine)) {
             dev->set_selected_machine(last_select_machine);
             BOOST_LOG_TRIVIAL(info) << "try select lan machine";
         }

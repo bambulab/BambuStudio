@@ -2579,6 +2579,11 @@ int MachineObject::disconnect()
 
 bool MachineObject::is_connected()
 {
+    // A remembered LAN entry can exist before its first successful connection.
+    // Do not let reset()'s fresh timestamp make an offline device look connected.
+    if (is_lan_mode_printer() && !is_online())
+        return false;
+
     std::chrono::system_clock::time_point curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_update_time);
     if (diff.count() > DISCONNECT_TIMEOUT) {
