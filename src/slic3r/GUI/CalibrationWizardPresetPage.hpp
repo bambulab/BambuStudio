@@ -218,8 +218,8 @@ struct CaliFilamentInfo
     int         nozzle_pos_id{-1};
     std::string nozzle_sn;
 
-    int         extruder_id;
-    int         tray_id;
+    int         extruder_id{-1};
+    int         tray_id{-1};
 
     CaliFilamentInfo() {}
     CaliFilamentInfo(Preset *preset, int nozzle_pos_id_, const std::string &nozzle_sn_, int extruder_id_, int tray_id_)

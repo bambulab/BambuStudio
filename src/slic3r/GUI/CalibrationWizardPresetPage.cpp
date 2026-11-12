@@ -1779,6 +1779,7 @@ bool CalibrationPresetPage::is_filament_in_blacklist(const CaliFilamentInfo& fil
         check_info.slot_id = slot_id;
         check_info.fila_name = preset->alias;
         check_info.has_filament_switch = curr_obj->GetFilaSwitch()->IsInstalled();
+        check_info.extruder_id = fila_info.extruder_id >= 0 ? std::make_optional(fila_info.extruder_id) : std::nullopt;
 
         if (fila_info.nozzle_pos_id >= 0) {
             const DevNozzle nozzle = curr_obj->get_nozzle_by_id_code(fila_info.nozzle_pos_id);
@@ -3021,6 +3022,7 @@ void CalibrationPresetPage::select_default_compatible_filament()
         selected_fila_info.tray_id         = tray_id;
         selected_fila_info.filament_preset = preset;
         selected_fila_info.nozzle_pos_id   = head->GetNozzlePosId();
+        selected_fila_info.extruder_id     = head->GetExtuderRole() == ExtruderRole::DEPUTY_EXTRUDER ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
 
         std::string nozzle_sn;
         if (selected_fila_info.nozzle_pos_id == -1) {
