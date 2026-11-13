@@ -11,6 +11,12 @@
     "close_optional_fan_first_x_layers": [
         "1"
     ],
+    "eng_plate_temp": [
+        "55"
+    ],
+    "eng_plate_temp_initial_layer": [
+        "55"
+    ],
     "fan_max_speed": [
         "0"
     ],
@@ -93,9 +99,6 @@
     "slow_down_min_speed": [
         "20",
         "20"
-    ],
-    "temperature_vitrification": [
-        "45"
     ],
     "compatible_printers": [
         "Bambu Lab H3C 0.4 nozzle",
