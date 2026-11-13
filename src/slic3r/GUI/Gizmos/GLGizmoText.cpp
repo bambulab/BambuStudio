@@ -14,6 +14,7 @@
 
 #include "libslic3r/Geometry/ConvexHull.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/BuildVolume.hpp"
 #include "libslic3r/Timer.hpp"
 #include "libslic3r/Shape/TextShape.hpp"
 #include "slic3r/Utils/WxFontUtils.hpp"
@@ -813,6 +814,14 @@ void show_text_tooltip(ImGuiWrapper *imgui, const Label &label, float wrap_width
     ImGui::PopStyleColor(2);
     ImGui::PopStyleVar(3);
 }
+
+wxString value_range_tip(double min_v, double max_v, int precision, const wxString &unit = wxString())
+{
+    wxString tip = _L("Value range") + wxString::Format(": [%.*f, %.*f]", precision, min_v, precision, max_v);
+    if (!unit.empty())
+        tip += " " + unit;
+    return tip;
+}
 }
 
 void GLGizmoText::draw_style_list(float caption_size)
@@ -848,6 +857,7 @@ void GLGizmoText::draw_style_list(float caption_size)
     std::string           tooltip = "";
     {
     MetricInputStyle metric_input(m_parent.get_scale());
+    ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x);
     ImGui::AlignTextToFramePadding();
     std::string title = _u8L("Style");
     if (m_style_manager.exist_stored_style())
@@ -984,22 +994,6 @@ void GLGizmoText::draw_style_save_button(bool is_modified)
             show_text_tooltip(m_imgui, tooltip, m_gui_cfg->max_tooltip_width);
         }
     }
-}
-
-bool draw_text_clickable(const IconManager::VIcons &icons, IconType type)
-{
-    return clickable(get_icon(icons, type, IconState::activable), get_icon(icons, type, IconState::hovered));
-}
-
-bool reset_text_button(const IconManager::VIcons &icons,int pos =-1)
-{
-    ImGui::SameLine(pos == -1 ? ImGui::GetStyle().WindowPadding.x : pos);
-    // from GLGizmoCut
-    // std::string label_id = "neco";
-    // std::string btn_label;
-    // btn_label += ImGui::RevertButton;
-    // return ImGui::Button((btn_label + "##" + label_id).c_str());
-    return draw_text_clickable(icons, IconType::undo);
 }
 
 void GLGizmoText::draw_style_save_as_popup()
@@ -1176,6 +1170,7 @@ void GLGizmoText::set_default_boldness(std::optional<float> &boldness)
 
 void GLGizmoText::draw_model_type(int caption_width)
 {
+    ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x);
     ImGui::AlignTextToFramePadding();
     auto        text_volume        = m_last_text_mv; // m_volume
     bool        is_last_solid_part = text_volume->is_the_only_one_part();
@@ -1259,6 +1254,7 @@ void GLGizmoText::draw_surround_type(int caption_width)
     if (!m_last_text_mv || m_last_text_mv->is_the_only_one_part())
         return;
     MetricInputStyle metric_input(m_parent.get_scale());
+    ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x);
     auto label_width = caption_width;
     // BBLBeginCombo's layout width is item_width - 2 * arrow. Add the arrows back so the
     // mode combo ends on the same right edge as the font combo.
@@ -1312,34 +1308,25 @@ void GLGizmoText::draw_rotation(int caption_size, int slider_width, int drag_lef
     if (!text_volume) {
         return;
     }
+    ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x);
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Angle"));
-    // Reset button
-    bool is_reseted = false;
-    if (abs(m_rotate_angle) > 0.01) {
-        if (reset_text_button(m_icons, m_gui_cfg->input_offset - m_gui_cfg->icon_width) && text_volume) {
-            do_local_z_rotate(m_parent.get_selection(), Geometry::deg2rad(-m_rotate_angle));
-            m_rotate_angle = 0;
-            // recalculate for surface cut
-            /*if (m_volume->emboss_shape->projection.use_surface)
-                process_job();*/
-            is_reseted = true;
-        } else if (ImGui::IsItemHovered()) {
-            show_text_tooltip(m_imgui, _L("Reset rotation"), m_gui_cfg->max_tooltip_width);
-        }
-    }
-    ImGui::SameLine(caption_size);
-    ImGui::PushItemWidth(slider_width);
 
     float angle_degree = get_angle_from_current_style();
     m_rotate_angle     = angle_degree;
-    if (m_imgui->bbl_slider_float_style("##angle", &m_rotate_angle, -180.f, 180.f, "%.2f", 1.0f, true ,_L("Rotate the text counterclockwise."))) {
+    const float input_w    = 1.5f * static_cast<float>(slider_icon_width);
+
+    ImGui::SameLine(caption_size);
+    ImGui::PushItemWidth(slider_width);
+    if (m_imgui->bbl_slider_float_style("##angle", &m_rotate_angle, -180.f, 180.f, "%.2f", 1.0f, true)) {
         update_style_angle(text_volume, angle_degree, m_rotate_angle);
     }
+    if (ImGui::IsItemHovered())
+        show_text_tooltip(m_imgui, _L("Rotate the text counterclockwise."), m_gui_cfg->max_tooltip_width);
     ImGui::SameLine(drag_left_width);
     const float angle_box_h = ImGui::GetFontSize() + 8.f * m_parent.get_scale();
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (ImGui::GetFrameHeight() - angle_box_h) * 0.5f);
-    ImGui::PushItemWidth(1.5 * slider_icon_width);
+    ImGui::PushItemWidth(input_w);
     bool set_rotate_angle_flag = false;
     bool angle_edited = false;
     {
@@ -1364,11 +1351,11 @@ void GLGizmoText::draw_rotation(int caption_size, int slider_width, int drag_lef
         }
     }
     if (ImGui::IsItemHovered())
-        show_text_tooltip(m_imgui, std::string("Unit: \u00B0"), m_gui_cfg->max_tooltip_width);
+        show_text_tooltip(m_imgui, value_range_tip(-180.0, 180.0, 2, wxString::FromUTF8("\u00B0")), m_gui_cfg->max_tooltip_width);
 
     bool is_stop_sliding = m_imgui->get_last_slider_status().deactivated_after_edit;
     if (text_volume) { // Apply rotation on model (backend)
-        if (is_stop_sliding || is_reseted || set_rotate_angle_flag) {
+        if (is_stop_sliding || set_rotate_angle_flag) {
             m_need_update_tran = true;
             m_parent.do_rotate("");
             const Selection &selection = m_parent.get_selection();
@@ -2433,6 +2420,16 @@ void GLGizmoText::pop_combo_style()
 }
 
 // BBS
+// Largest edge of the active printer build volume, in mm.
+static float current_print_volume_max_extent()
+{
+    const Plater *plater = wxGetApp().plater();
+    if (plater == nullptr)
+        return 0.f;
+    const Vec3d size = plater->build_volume().bounding_volume().size();
+    return static_cast<float>(std::max({std::abs(size.x()), std::abs(size.y()), std::abs(size.z())}));
+}
+
 void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 {
     const float win_h = ImGui::GetWindowHeight();
@@ -2590,14 +2587,16 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     // SameLine / SetCursorPos offsets are from the window origin. Labels start at WindowPadding.
     auto px = [currt_scale](float v) { return v * currt_scale; };
     const float content_x = ImGui::GetStyle().WindowPadding.x;
-    float label_w = px(28.f);
-    for (const wxString &label : {_L("Font"), _L("Alignment"), _L("Thickness"), _L("Angle"), _L("Boldness"), _L("Skew"), _L("Mode"), _L("Operation"), _L("Style")})
+    // One left-aligned caption column. Width follows the longest caption, including
+    // "Embedded depth", so that label is shown in full and shorter captions share its left edge.
+    float label_w = 0.f;
+    for (const wxString &label : {_L("Font"), _L("Alignment"), _L("Thickness"), _L("Embedded depth"), _L("Angle"), _L("Boldness"), _L("Skew"), _L("Mode"), _L("Operation"), _L("Style")})
         label_w = std::max(label_w, m_imgui->calc_text_size(label).x);
     // Text, font and mode share the right edge of the 365px panel.
     const float content_right = px(365.f) - content_x;
     const float text_x        = content_x;
     const float text_w        = content_right - text_x;
-    const float label_col     = std::max(px(68.f), content_x + label_w + px(8.f));
+    const float label_col     = content_x + label_w + px(8.f);
     const float field_w       = std::max(px(120.f), content_right - label_col);
     const float size_w        = px(82.f);
     const float mini_w        = px(62.f);
@@ -2606,7 +2605,8 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     const float gap_icon_pad  = px(4.f);
     const float gap_group_pad = px(12.f);
     const float gap_input_w   = std::max(mini_w, std::floor((field_w - (gap_icon_w + gap_icon_pad) * 2.f - gap_group_pad) * 0.5f));
-    const float value_w       = px(64.f);
+    // One extra digit so values like 113.94 fit. The slider gives up the same width.
+    const float value_w       = px(64.f) + ImGui::CalcTextSize("0").x;
     const float gap           = px(8.f);
     const float value_gap     = px(12.f);
     const float input_h       = ImGui::GetFontSize() + 8.f * currt_scale;
@@ -2625,6 +2625,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 
     {
         MetricInputStyle metric_input(currt_scale);
+        ImGui::SetCursorPosX(content_x);
         ImGui::AlignTextToFramePadding();
         m_imgui->text(_L("Font"));
         ImGui::SameLine(label_col);
@@ -2632,6 +2633,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     }
 
     const float size_row_y = ImGui::GetCursorPosY();
+    float size_input_h = input_h;
     ImGui::SetCursorPos(ImVec2(label_col, size_row_y));
     {
         float &size_mm = m_style_manager.get_font_prop().size_in_mm;
@@ -2641,6 +2643,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         {
             MetricInputStyle metric_input(currt_scale);
             size_edited = ImGui::InputFloat("##text_height_layout", &edited, 0.0f, 0.0f, "%.0f");
+            size_input_h = ImGui::GetItemRectSize().y;
         }
         if (size_edited) {
             size_mm = edited;
@@ -2648,11 +2651,11 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
                 process();
         }
         if (ImGui::IsItemHovered())
-            show_text_tooltip(m_imgui, _L("Font size") + "," + _L("Unit: mm"), m_gui_cfg->max_tooltip_width);
+            show_text_tooltip(m_imgui, _L("Font size") + "\n" + value_range_tip(limits.size_in_mm.min, limits.size_in_mm.max, 0, "mm"), m_gui_cfg->max_tooltip_width);
     }
-    // 82x20 size, 12px gap, 20x20 bold, 5px gap, 20x20 italic.
-    const float icon_btn = px(20.f);
-    const float btn_y    = size_row_y + std::max(0.f, (input_h - icon_btn) * 0.5f);
+    // Square chips scaled to the font-size box. 4px gap, then 5px between bold and italic.
+    const float icon_btn = size_input_h > 1.f ? size_input_h : input_h;
+    const float btn_y    = size_row_y;
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, px(2.f));
     const ImVec2 style_icon(icon_btn, icon_btn);
@@ -2676,7 +2679,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     bool exist_change = false;
     const bool bold_pressed = m_bold;
     const bool italic_pressed = m_italic;
-    ImGui::SetCursorPos(ImVec2(label_col + size_w + px(12.f), btn_y));
+    ImGui::SetCursorPos(ImVec2(label_col + size_w + px(4.f), btn_y));
     push_face_button(bold_pressed);
     if (ImGui::ImageButton(m_is_dark_mode ? normal_B_dark : normal_B, style_icon)) {
         m_bold = !m_bold;
@@ -2686,7 +2689,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     if (ImGui::IsItemHovered())
         show_text_tooltip(m_imgui, _L("Bold"), m_gui_cfg->max_tooltip_width);
     pop_face_button(bold_pressed);
-    ImGui::SetCursorPos(ImVec2(label_col + size_w + px(12.f) + icon_btn + px(5.f), btn_y));
+    ImGui::SetCursorPos(ImVec2(label_col + size_w + px(4.f) + icon_btn + px(5.f), btn_y));
     push_face_button(italic_pressed);
     if (ImGui::ImageButton(m_is_dark_mode ? normal_T_dark : normal_T, style_icon)) {
         m_italic = !m_italic;
@@ -2721,11 +2724,20 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         show_text_tooltip(m_imgui, _L("Text Gap"), m_gui_cfg->max_tooltip_width);
     ImGui::SameLine(0.f, gap_icon_pad);
     ImGui::SetNextItemWidth(gap_input_w);
+    constexpr float text_gap_min = -20.f;
+    constexpr float text_gap_max = 200.f;
+    float edited_text_gap = m_text_gap;
+    bool text_gap_edited = false;
     {
         MetricInputStyle metric_input(currt_scale);
-        if (ImGui::InputFloat("##text_gap_input", &m_text_gap, 0.0f, 0.0f, "%.2f"))
-            m_need_update_text = true;
+        text_gap_edited = ImGui::InputFloat("##text_gap_input", &edited_text_gap, 0.0f, 0.0f, "%.2f");
     }
+    if (text_gap_edited) {
+        m_text_gap = std::clamp(edited_text_gap, text_gap_min, text_gap_max);
+        m_need_update_text = true;
+    }
+    if (ImGui::IsItemHovered())
+        show_text_tooltip(m_imgui, value_range_tip(text_gap_min, text_gap_max, 2), m_gui_cfg->max_tooltip_width);
 
     ImGui::SameLine(0.f, gap_group_pad);
     draw_gap_icon(line_gap_icon);
@@ -2747,9 +2759,12 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         m_style_manager.clear_imgui_font();
         m_need_update_text = true;
     }
+    if (has_line_gap_range && ImGui::IsItemHovered())
+        show_text_tooltip(m_imgui, value_range_tip(line_gap_min, line_gap_max, 2, "mm"), m_gui_cfg->max_tooltip_width);
     ImGui::SetCursorPosY(gap_row_y + input_h + gap + px(8.f));
     const float align_row_y = ImGui::GetCursorPosY();
 
+    ImGui::SetCursorPosX(content_x);
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Alignment"));
     ImGui::SameLine(label_col);
@@ -2827,65 +2842,41 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() - spacing + gap * 2.f);
     }
 
+    ImGui::SetCursorPosX(content_x);
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Thickness"));
     ImGui::SameLine(label_col);
     ImGui::SetNextItemWidth(slider_w);
-    float old_value = m_thickness;
-    m_imgui->bbl_slider_float_style("##text_thickness_slider", &m_thickness, m_thickness_min, m_thickness_max, "%.2f", 1.0f, true);
+    const float volume_max = std::max(m_thickness_min, current_print_volume_max_extent());
+    const float old_thickness = m_thickness;
+    m_imgui->bbl_slider_float_style("##text_thickness_slider", &m_thickness, m_thickness_min, volume_max, "%.2f", 1.0f, true);
+    // Same as boldness/skew: the thumb can move live, the mesh is rebuilt on release.
+    const bool thickness_released = m_imgui->get_last_slider_status().deactivated_after_edit;
+    const bool thickness_dragging = m_imgui->get_last_slider_status().edited && !thickness_released;
     ImGui::SameLine(value_x);
     const float metric_box_h = ImGui::GetFontSize() + px(8.f);
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (ImGui::GetFrameHeight() - metric_box_h) * 0.5f);
     ImGui::SetNextItemWidth(value_w);
+    bool thickness_edited = false;
     {
         MetricInputStyle metric_input(currt_scale);
-        ImGui::InputFloat("###text_thickness", &m_thickness, 0.0f, 0.0f, "%.2f");
+        thickness_edited = ImGui::InputFloat("###text_thickness", &m_thickness, 0.0f, 0.0f, "%.2f");
     }
     if (ImGui::IsItemHovered())
-        show_text_tooltip(m_imgui, _L("Unit: mm"), m_gui_cfg->max_tooltip_width);
-    m_thickness = ImClamp(m_thickness, m_thickness_min, m_thickness_max);
-    if (old_value != m_thickness)
+        show_text_tooltip(m_imgui, value_range_tip(m_thickness_min, volume_max, 2, "mm"), m_gui_cfg->max_tooltip_width);
+    if (thickness_released || thickness_edited || (!thickness_dragging && old_thickness != m_thickness))
         process();
 
     if (!is_only_text_case()) {
-        const std::string depth_label = _u8L("Embedded depth");
-        const float label_area = std::max(px(24.f), label_col - content_x - px(6.f));
-        const float depth_label_w = ImGui::CalcTextSize(depth_label.c_str()).x;
-        std::string shown = depth_label;
-        bool truncated = false;
-        if (depth_label_w > label_area + 0.5f) {
-            const std::string ellipsis = "...";
-            const float ellipsis_w = ImGui::CalcTextSize(ellipsis.c_str()).x;
-            const char *start = depth_label.c_str();
-            const char *end = start + depth_label.size();
-            const char *fit_end = start;
-            float width = 0.f;
-            const char *p = start;
-            while (p < end) {
-                unsigned int c = 0;
-                const int bytes = ImTextCharFromUtf8(&c, p, end);
-                if (bytes <= 0)
-                    break;
-                const char *next = p + bytes;
-                const float cw = ImGui::CalcTextSize(p, next).x;
-                if (width + cw + ellipsis_w > label_area)
-                    break;
-                width += cw;
-                fit_end = next;
-                p = next;
-            }
-            shown.assign(start, fit_end);
-            shown += ellipsis;
-            truncated = true;
-        }
+        ImGui::SetCursorPosX(content_x);
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(shown.c_str());
-        if (truncated && ImGui::IsItemHovered())
-            show_text_tooltip(m_imgui, depth_label, m_gui_cfg->max_tooltip_width);
+        m_imgui->text(_L("Embedded depth"));
         ImGui::SameLine(label_col);
         ImGui::SetNextItemWidth(slider_w);
-        old_value = m_embeded_depth;
-        m_imgui->bbl_slider_float_style("##text_embeded_depth_slider", &m_embeded_depth, 0.0f, m_embeded_depth_max, "%.2f", 1.0f, true);
+        const float old_depth = m_embeded_depth;
+        m_imgui->bbl_slider_float_style("##text_embeded_depth_slider", &m_embeded_depth, 0.0f, volume_max, "%.2f", 1.0f, true);
+        const bool depth_released = m_imgui->get_last_slider_status().deactivated_after_edit;
+        const bool depth_dragging = m_imgui->get_last_slider_status().edited && !depth_released;
         ImGui::SameLine(value_x);
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (ImGui::GetFrameHeight() - (ImGui::GetFontSize() + px(8.f))) * 0.5f);
         ImGui::SetNextItemWidth(value_w);
@@ -2895,11 +2886,11 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
             depth_edited = ImGui::InputFloat("###text_embeded_depth", &m_embeded_depth, 0.0f, 0.0f, "%.2f");
         }
         if (depth_edited)
-            limit_value(m_embeded_depth, 0.0f, m_embeded_depth_max);
+            limit_value(m_embeded_depth, 0.0f, volume_max);
         if (ImGui::IsItemHovered())
-            show_text_tooltip(m_imgui, _L("Unit: mm"), m_gui_cfg->max_tooltip_width);
-        m_embeded_depth = ImClamp(m_embeded_depth, 0.0f, m_embeded_depth_max);
-        if (old_value != m_embeded_depth)
+            show_text_tooltip(m_imgui, value_range_tip(0.0, volume_max, 2, "mm"), m_gui_cfg->max_tooltip_width);
+        m_embeded_depth = ImClamp(m_embeded_depth, 0.0f, volume_max);
+        if (depth_released || depth_edited || (!depth_dragging && old_depth != m_embeded_depth))
             process();
     }
 
@@ -3086,7 +3077,14 @@ void GLGizmoText::draw_text_input(int width)
     };
 
     double  scale      =  1.;//m_scale_height.has_value() ? *m_scale_height :
+    // Same size chosen in StyleManager::create_imgui_font. Rebuild when the panel font changes.
+    const float want_font_size = std::clamp(ImGui::GetFontSize() * 1.4f, StyleManager::min_imgui_font_size, StyleManager::max_imgui_font_size);
+    const float default_line_h = ImGui::GetTextLineHeight();
     ImFont *imgui_font = m_style_manager.get_imgui_font();
+    if (imgui_font != nullptr && std::abs(imgui_font->FontSize - want_font_size) > 0.5f) {
+        m_style_manager.clear_imgui_font();
+        imgui_font = nullptr;
+    }
     if (imgui_font == nullptr) {
         // try create new imgui font
         double screen_scale = wxDisplay(wxGetApp().plater()).GetScaleFactor();
@@ -3139,9 +3137,10 @@ void GLGizmoText::draw_text_input(int width)
     // flag for extend font ranges if neccessary
     // ranges can't be extend during font is activ(pushed)
     std::string               range_text;
-    // width is the text box width. The design box is the full row, about three lines tall.
+    // width is the text box width. Height is two lines of this text plus one default line.
     const float               box_w = width > 0 ? static_cast<float>(width) : 2.f * m_gui_cfg->input_width;
-    const float               box_h = std::max(m_gui_cfg->text_size.y, 72.f * static_cast<float>(m_gui_cfg->screen_scale));
+    const float               text_self_h = ImGui::GetTextLineHeight();
+    const float               box_h = text_self_h * 2.f + default_line_h;
     ImVec2                    input_size(box_w, box_h);
     // Multiline must be passed explicitly (see ImGui::InputTextMultiline). Enter inserts a line break, Ctrl+Enter (Cmd+Enter on macOS) leaves the field.
     const ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_Multiline;// | ImGuiInputTextFlags_AutoSelectAll
@@ -3478,6 +3477,7 @@ void GLGizmoText::draw_advanced(float caption_size, float slider_width, float sl
     auto def_boldness = stored_style ? &stored_style->prop.boldness : nullptr;
     int  min_boldness = static_cast<int>(font_info.ascent * limits.boldness.gui.min);
     int  max_boldness = static_cast<int>(font_info.ascent * limits.boldness.gui.max);
+    ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x);
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Boldness"));
     ImGui::SameLine(caption_size);
@@ -3515,10 +3515,13 @@ void GLGizmoText::draw_advanced(float caption_size, float slider_width, float sl
             m_need_update_text = true;
         }
     }
+    if (ImGui::IsItemHovered())
+        show_text_tooltip(m_imgui, value_range_tip(min_boldness, max_boldness, 0), m_gui_cfg->max_tooltip_width);
     std::optional<float> &skew = m_style_manager.get_font_prop().skew;
     m_custom_skew              = skew.value_or(0);
     float min_skew             = static_cast<float>(limits.skew.gui.min);
     float max_skew             = static_cast<float>(limits.skew.gui.max);
+    ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x);
     m_imgui->text(_L("Skew"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(slider_width);
@@ -3553,6 +3556,8 @@ void GLGizmoText::draw_advanced(float caption_size, float slider_width, float sl
             m_need_update_text = true;
         }
     }
+    if (ImGui::IsItemHovered())
+        show_text_tooltip(m_imgui, value_range_tip(min_skew, max_skew, 1), m_gui_cfg->max_tooltip_width);
 }
 
 void GLGizmoText::init_font_name_texture()

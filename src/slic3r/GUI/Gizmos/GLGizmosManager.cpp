@@ -208,22 +208,23 @@ bool GLGizmosManager::init_icon_textures()
     else
         return false;
 
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B.svg", 20, 20, texture_id))
+     // Rasterize above the old 20px so the glyph stays sharp when the button matches the font-size box.
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B.svg", 80, 80, texture_id))
         icon_list.insert(std::make_pair((int)IC_TEXT_B, texture_id));
     else
         return false;
 
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B_dark.svg", 20, 20, texture_id))
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B_dark.svg", 80, 80, texture_id))
          icon_list.insert(std::make_pair((int)IC_TEXT_B_DARK, texture_id));
      else
          return false;
 
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T.svg", 20, 20, texture_id))
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T.svg", 80, 80, texture_id))
         icon_list.insert(std::make_pair((int)IC_TEXT_T, texture_id));
     else
         return false;
 
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T_dark.svg", 20, 20, texture_id))
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T_dark.svg", 80, 80, texture_id))
          icon_list.insert(std::make_pair((int)IC_TEXT_T_DARK, texture_id));
      else
          return false;
@@ -1751,10 +1752,10 @@ void* GLGizmosManager::ensure_icon_loaded(MENU_ICON_NAME icon)
         case IC_VIEW_LEFT_DARK:             path = "/images/view_left_dark.svg"; w = h = 64; break;
         case IC_VIEW_RIGHT_DARK:            path = "/images/view_right_dark.svg"; w = h = 64; break;
         case IC_VIEW_ISO_DARK:              path = "/images/view_iso_dark.svg"; w = h = 64; break;
-        case IC_TEXT_B:                     path = "/images/text_B.svg"; w = h = 20; break;
-        case IC_TEXT_B_DARK:                path = "/images/text_B_dark.svg"; w = h = 20; break;
-        case IC_TEXT_T:                     path = "/images/text_T.svg"; w = h = 20; break;
-        case IC_TEXT_T_DARK:                path = "/images/text_T_dark.svg"; w = h = 20; break;
+        case IC_TEXT_B:                     path = "/images/text_B.svg"; w = h = 80; break;
+        case IC_TEXT_B_DARK:                path = "/images/text_B_dark.svg"; w = h = 80; break;
+        case IC_TEXT_T:                     path = "/images/text_T.svg"; w = h = 80; break;
+        case IC_TEXT_T_DARK:                path = "/images/text_T_dark.svg"; w = h = 80; break;
         case IC_TEXT_CHAR_GAP:              path = "/images/text_char_gap.svg"; w = h = 32; break;
         case IC_TEXT_LINE_GAP:              path = "/images/text_line_gap.svg"; w = h = 32; break;
         case IC_TEXT_CHAR_GAP_DARK:         path = "/images/text_char_gap_dark.svg"; w = h = 32; break;
