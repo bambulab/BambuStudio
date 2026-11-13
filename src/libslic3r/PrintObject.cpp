@@ -1698,7 +1698,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "top_shell_layers"
             || opt_key == "top_color_penetration_layers"
             || opt_key == "bottom_color_penetration_layers"
-            || opt_key == "limit_color_penetration"
+            || opt_key == "keep_paint_inside_part"
             || opt_key == "infill_instead_top_bottom_surfaces") {
 
             steps.emplace_back(posSlice);
@@ -1954,11 +1954,11 @@ bool PrintObject::limits_color_penetration(const ModelVolume &volume) const
 {
     if (! volume.is_model_part())
         return false;
-    if (const auto *opt = volume.config.get().option<ConfigOptionBool>("limit_color_penetration"))
+    if (const auto *opt = volume.config.get().option<ConfigOptionBool>("keep_paint_inside_part"))
         return opt->value;
-    if (const auto *opt = this->model_object()->config.get().option<ConfigOptionBool>("limit_color_penetration"))
+    if (const auto *opt = this->model_object()->config.get().option<ConfigOptionBool>("keep_paint_inside_part"))
         return opt->value;
-    return this->print()->default_region_config().limit_color_penetration.value;
+    return this->print()->default_region_config().keep_paint_inside_part.value;
 }
 
 void PrintObject::build_part_limited_transparent()
@@ -2108,10 +2108,13 @@ void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection
                             const ExPolygons &transparent_upper = layer->part_limited_transparent;
                             ExPolygons upper_slices;
                             if (! transparent_upper.empty()) {
-                                const ExPolygons coverage = diff_ex(
-                                    interface_shells ? to_expolygons(upper_layer->m_regions[region_id]->slices.surfaces) :
-                                                       upper_layer->lslices,
-                                    transparent_upper);
+                                const ExPolygons coverage = opening_ex(
+                                    diff_ex(
+                                        interface_shells ? to_expolygons(upper_layer->m_regions[region_id]->slices.surfaces) :
+                                                           upper_layer->lslices,
+                                        transparent_upper,
+                                        ApplySafetyOffset::Yes),
+                                    offset);
                                 upper_slices = diff_ex(layerm_slices_surfaces, coverage, ApplySafetyOffset::Yes);
                             } else
                                 upper_slices = interface_shells ?

@@ -177,8 +177,8 @@ ParamTipStore::ParamTipStore()
          make_entry("top_one_wall_type",
                     _L("Prints only a single wall loop on top surfaces so the top is filled as much as possible by the infill pattern, for a more consistent look."),
                     _L("On sloped or domed surfaces this option worsens the stair-stepping, so it is not recommended there."), _L("Recommended only for flat top surfaces."))},
-        {"limit_color_penetration",
-                        make_entry("limit_color_penetration",
+        {"keep_paint_inside_part",
+                        make_entry("keep_paint_inside_part",
                                    _L("Keeps color penetration from this part's painted top and bottom surfaces inside this part."),
                                    _L("When off, color can penetrate continuously into adjacent parts of the same object.\n"
                                       "When on, the configured penetration depth is preserved but clipped at this part's boundary."))},

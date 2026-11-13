@@ -234,8 +234,11 @@ void Layer::make_perimeters()
     // so top-only walls are not drawn around their footprint on the layer underneath.
     ExPolygons        no_shadow_upper_slices;
     const ExPolygons *no_shadow_upper_ptr = nullptr;
-    if (this->upper_layer != nullptr && ! this->part_limited_transparent.empty()) {
-        no_shadow_upper_slices = diff_ex(this->upper_layer->lslices, this->part_limited_transparent);
+    if (this->upper_layer != nullptr && ! this->part_limited_transparent.empty() && ! m_regions.empty()) {
+        const float opening_r = m_regions.front()->flow(frExternalPerimeter).scaled_width() / 10.f;
+        no_shadow_upper_slices = opening_ex(
+            diff_ex(this->upper_layer->lslices, this->part_limited_transparent, ApplySafetyOffset::Yes),
+            opening_r);
         no_shadow_upper_ptr = &no_shadow_upper_slices;
     }
 
@@ -331,8 +334,12 @@ void Layer::make_perimeters()
                     upper_slices_storage = union_ex(upper_footprint);
                     // Same shadow-free coverage as the regular path above.
                     if (const ExPolygons &transparent_above_top = this->object()->get_layer(int(top_idx))->part_limited_transparent;
-                        ! transparent_above_top.empty())
-                        upper_slices_storage = diff_ex(upper_slices_storage, transparent_above_top);
+                        ! transparent_above_top.empty()) {
+                        const float opening_r = lm->flow(frExternalPerimeter).scaled_width() / 10.f;
+                        upper_slices_storage = opening_ex(
+                            diff_ex(upper_slices_storage, transparent_above_top, ApplySafetyOffset::Yes),
+                            opening_r);
+                    }
                     upper_slices = &upper_slices_storage;
                 }
 
