@@ -701,6 +701,20 @@ int PresetComboBox::selected_connected_printer(int index) const
     return -1;
 }
 
+// The nozzle goes in the item suffix, not the label, so the dropdown draws it as a lighter
+// secondary column after the filament name. Shared between add_ams_filaments_grouped_by_nozzle
+// (single-extruder multi-nozzle rack machines) and add_ams_filaments (multi-extruder machines with
+// one nozzle per extruder): both read the same tray-reported diameter/flow fields.
+static wxString compute_tray_nozzle_suffix(const DynamicPrintConfig &tray)
+{
+    const auto *tray_nd = tray.option<ConfigOptionFloats>("tray_nozzle_diameter");
+    const auto *tray_vt = tray.option<ConfigOptionInts>("tray_nozzle_volume_type");
+    if (!tray_nd || tray_nd->values.empty() || !tray_vt || tray_vt->values.empty())
+        return wxString();
+    auto volume_type = static_cast<NozzleVolumeType>(tray_vt->values.front());
+    return "|  " + from_u8(format_diameter_to_str(tray_nd->values.front()) + " " + DevNozzle::ToNozzleVolumeShortString(volume_type));
+}
+
 bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, bool alias_name)
 {
     bool selected_in_ams = false;
@@ -776,17 +790,9 @@ bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, b
         wxBitmap bmp(*ams_bmp);
         auto     text = get_preset_name(*iter);
 
-        // The nozzle goes in the item suffix, not the label, so the dropdown draws it as a lighter
-        // secondary column after the filament name.
         wxString nozzle_suffix;
-        if (multi_diameter_mode) {
-            const auto *tray_nd = tray.option<ConfigOptionFloats>("tray_nozzle_diameter");
-            const auto *tray_vt = tray.option<ConfigOptionInts>("tray_nozzle_volume_type");
-            if (tray_nd && !tray_nd->values.empty() && tray_vt && !tray_vt->values.empty()) {
-                auto volume_type = static_cast<NozzleVolumeType>(tray_vt->values.front());
-                nozzle_suffix = "| " + from_u8(format_diameter_to_str(tray_nd->values.front()) + " " + DevNozzle::ToNozzleVolumeShortString(volume_type));
-            }
-        }
+        if (multi_diameter_mode)
+            nozzle_suffix = compute_tray_nozzle_suffix(tray);
 
         // Match by filament_id + color (same criteria tray_is_synced_source uses for the per-row
         // dropdown badge), NOT by text/label comparison. Label matching was fragile: get_preset_name(*iter)
@@ -967,6 +973,40 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
         set_label_marker(Append(dual_extruder ? _L("Left filaments") : _L("AMS filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
     }
 
+    // With a filament switcher (选料器) ready, it picks the extruder automatically: there is no
+    // meaningful per-slot diameter to show or to compare (filament_diameter_map is not what is
+    // actually routing this slot), so both the suffix text and the sync badge's diameter/flow check
+    // stay off together. Without one, each row's own nozzle is shown the way the single-extruder
+    // multi-nozzle rack combo (add_ams_filaments_grouped_by_nozzle) already does, and the sync badge
+    // has to agree with it.
+    const bool show_nozzle_suffix = !fila_switch_ready
+        && supports_multi_nozzle_diameter_mode(m_preset_bundle->full_config())
+        && multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
+
+    // Per-row synced badge, same criteria add_ams_filaments_grouped_by_nozzle uses: filament_id +
+    // color match (not label text, which is fragile -- see that function's own comment), gated on a
+    // matching connected printer so an unconnected/mismatched state never lights a row up either.
+    const bool printer_connected_and_matched = wxGetApp().plater()->is_same_printer_for_connected_and_selected(false);
+    const auto *slot_colors_opt = wxGetApp().preset_bundle->project_config.option<ConfigOptionStrings>("filament_colour");
+    const Preset *slot_preset = (size_t) m_filament_idx < m_preset_bundle->filament_presets.size()
+        ? m_collection->find_preset(m_preset_bundle->filament_presets[m_filament_idx]) : nullptr;
+    // When the row's own nozzle is shown, the tray also has to match the slot's selected diameter +
+    // flow to count as synced -- otherwise every AMS-loaded filament of the right color/material
+    // would light up regardless of which nozzle it is actually loaded on.
+    std::string      slot_selected_diameter;
+    NozzleVolumeType slot_selected_volume = NozzleVolumeType::nvtStandard;
+    if (show_nozzle_suffix && m_filament_idx >= 0) {
+        const auto *sel_diameters = m_preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
+        if (sel_diameters && (size_t) m_filament_idx < sel_diameters->values.size())
+            slot_selected_diameter = sel_diameters->values[m_filament_idx];
+        if (Plater *plater = wxGetApp().plater()) {
+            if (PartPlate *plate = plater->get_partplate_list().get_curr_plate()) {
+                const std::vector<int> vmaps = plate->get_real_filament_volume_maps(m_preset_bundle->project_config);
+                if ((size_t) m_filament_idx < vmaps.size()) slot_selected_volume = (NozzleVolumeType) vmaps[m_filament_idx];
+            }
+        }
+    }
+
     m_first_ams_filament = GetCount();
     auto &filaments      = m_collection->get_presets();
 
@@ -1018,20 +1058,37 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
         if (!ams_bmp) continue;
         wxBitmap bmp(*ams_bmp);
         auto text = get_preset_name(*iter);
-        int      item_id = Append(text, bmp.ConvertToImage(), &m_first_ams_filament + entry.first);
-        SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
-        if (text == selected) {
-            DynamicPrintConfig *cfg    = &wxGetApp().preset_bundle->project_config;
-            if (cfg) {
-                auto colors = static_cast<ConfigOptionStrings *>(cfg->option("filament_colour")->clone());
-                if (m_filament_idx < colors->values.size()) {
-                    auto cur_color = colors->values[m_filament_idx];
-                    if (color == cur_color) {
-                        selected_in_ams = true;
-                    }
-                }
+
+        bool row_matches_current = slot_colors_opt && (size_t) m_filament_idx < slot_colors_opt->values.size()
+            && slot_preset && !slot_preset->filament_id.empty()
+            && slot_preset->filament_id == filament_id
+            && color == slot_colors_opt->values[m_filament_idx];
+        if (row_matches_current && show_nozzle_suffix) {
+            const auto *tray_nd = tray.option<ConfigOptionFloats>("tray_nozzle_diameter");
+            const auto *tray_vt = tray.option<ConfigOptionInts>("tray_nozzle_volume_type");
+            if (tray_nd && !tray_nd->values.empty() && tray_vt && !tray_vt->values.empty()) {
+                const std::string tray_diameter_str = format_diameter_to_str(tray_nd->values.front());
+                const NozzleVolumeType tray_volume = static_cast<NozzleVolumeType>(tray_vt->values.front());
+                if (slot_selected_diameter != tray_diameter_str || slot_selected_volume != tray_volume)
+                    row_matches_current = false;
+            } else {
+                row_matches_current = false;
             }
         }
+        const int item_style = (printer_connected_and_matched && row_matches_current) ? DD_ITEM_STYLE_SYNCED : 0;
+
+        int      item_id = Append(text, bmp.ConvertToImage(), &m_first_ams_filament + entry.first, item_style);
+        SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
+        if (show_nozzle_suffix) {
+            wxString nozzle_suffix = compute_tray_nozzle_suffix(tray);
+            if (!nozzle_suffix.IsEmpty())
+                SetItemSuffix(item_id, nozzle_suffix);
+        }
+        // Drives the combo's own outer badge (ShowBadge()), not just this dropdown row -- reuse
+        // row_matches_current (filament_id + color, plus diameter/flow when show_nozzle_suffix) so
+        // the outer badge cannot stay lit on a slot whose selected diameter the AMS trays do not
+        // actually carry. The old text==selected + color check here never looked at diameter at all.
+        if (row_matches_current) selected_in_ams = true;
         //validate_selection(id->value == selected); // can not select
     }
     m_last_ams_filament = GetCount();

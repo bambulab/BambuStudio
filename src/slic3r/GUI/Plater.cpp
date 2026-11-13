@@ -9083,18 +9083,30 @@ void Sidebar::update_incompatible_nozzle_notifications()
     }
     if (missing_text != p->m_notified_nozzle_missing_text || missing_dismissed) {
         if (notify) {
-            if (!missing_text.empty())
-                // This card is the one a nozzle change actually resolves -- the filament is fine, the
-                // rack just has nothing of that kind on it -- so it carries the link to where nozzles
-                // are added. Deferred like every other dialog opened from a notification: the card is
-                // torn down as the callback returns, and a modal opened inline goes down with it.
-                notify->push_error_border_notification(NotificationType::BBLFilamentNozzleNotInstalled,
-                    missing_text, _u8L("Add the nozzle"), [](wxEvtHandler *) {
-                        wxGetApp().CallAfter([]() { wxGetApp().sidebar().open_extruder_settings_dialog(); });
-                        return false;
-                    });
-            else
+            // The hyperlink opens the nozzle rack's settings dialog, which only exists for a layout
+            // that actually has a rack -- open_extruder_settings_dialog() no-ops otherwise. On a
+            // layout without a rack, nozzles are added via the sidebar's own per-extruder nozzle
+            // cards (already visible at the top), so the link would be dead; leave it off there
+            // rather than point at a dialog that does nothing.
+            const bool has_rack_dialog = has_nozzle_rack(
+                nozzle_layout_of(preset_bundle->printers.get_edited_preset().config));
+            if (!missing_text.empty()) {
+                if (has_rack_dialog)
+                    // This card is the one a nozzle change actually resolves -- the filament is fine, the
+                    // rack just has nothing of that kind on it -- so it carries the link to where nozzles
+                    // are added. Deferred like every other dialog opened from a notification: the card is
+                    // torn down as the callback returns, and a modal opened inline goes down with it.
+                    notify->push_error_border_notification(NotificationType::BBLFilamentNozzleNotInstalled,
+                        missing_text, _u8L("Add the nozzle"), [](wxEvtHandler *) {
+                            wxGetApp().CallAfter([]() { wxGetApp().sidebar().open_extruder_settings_dialog(); });
+                            return false;
+                        });
+                else
+                    notify->push_error_border_notification(NotificationType::BBLFilamentNozzleNotInstalled,
+                        missing_text);
+            } else {
                 notify->close_notification_of_type(NotificationType::BBLFilamentNozzleNotInstalled);
+            }
         }
         p->m_notified_nozzle_missing_text = missing_text;
     }
