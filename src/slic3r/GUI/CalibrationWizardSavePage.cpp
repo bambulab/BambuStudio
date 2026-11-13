@@ -1050,6 +1050,15 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
             out_result.nozzle_pos_id        = item.nozzle_pos_id;
             out_result.nozzle_sn            = item.nozzle_sn;
             out_result.nozzle_volume_type   = item.nozzle_volume_type;
+
+            auto tray_ams_slot_map = m_obj->GetFilaSystem()->GetTrayIndexMap();
+            auto iter              = tray_ams_slot_map.find(item.tray_id);
+            if (iter != tray_ams_slot_map.end()) {
+                out_result.ams_id  = iter->second.first;
+                out_result.slot_id = iter->second.second;
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << "can't find ams/slot for " << KV(log_key::tray_id, item.tray_id);
+            }
         }
         else {
             BOOST_LOG_TRIVIAL(error) << "CaliPASaveManual: obj->selected_cali_preset is empty";
