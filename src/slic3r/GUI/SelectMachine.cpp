@@ -2240,7 +2240,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
             MachineObject* obj_ = dev->get_selected_machine();
             if (obj_ == nullptr) return;
             auto sourcet_print_name = obj_->get_printer_type_display_str();
-            sourcet_print_name.Replace(wxT("Bambu Lab "), wxEmptyString);
+            sourcet_print_name = get_printer_short_display_name(sourcet_print_name);
 
             //target print
             std::string target_model_id;
@@ -2255,7 +2255,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
             }
 
             auto target_print_name = wxString(DevPrinterConfigUtil::get_printer_display_name(target_model_id));
-            target_print_name.Replace(wxT("Bambu Lab "), wxEmptyString);
+            target_print_name = get_printer_short_display_name(target_print_name);
             msg_text = wxString::Format(_L("The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."), sourcet_print_name, target_print_name);
 
 

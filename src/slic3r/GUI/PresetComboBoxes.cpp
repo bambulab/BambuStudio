@@ -684,10 +684,9 @@ void PresetComboBox::add_connected_printers(std::string selected, bool alias_nam
         if (!printer_preset)
             continue;
         printer_preset->is_visible = true;
-        auto printer_model = printer_preset->config.opt_string("printer_model");
-        boost::replace_all(printer_model, "Bambu Lab ", "");
-        auto text = iter->second->get_dev_name() + " (" + printer_model + ")";
-        int item_id = Append(from_u8(text), wxNullBitmap, &m_first_printer_idx + std::distance(user_machine_list.begin(), iter));
+        wxString model_name = get_printer_short_display_name(from_u8(printer_preset->config.opt_string("printer_model")));
+        wxString text       = from_u8(iter->second->get_dev_name()) + " (" + model_name + ")";
+        int item_id = Append(text, wxNullBitmap, &m_first_printer_idx + std::distance(user_machine_list.begin(), iter));
         validate_selection(m_selected_dev_id == iter->first);
     }
     m_last_printer_idx = GetCount();

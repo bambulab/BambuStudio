@@ -10122,6 +10122,10 @@ msgstr ""
 msgid "Auto arrange"
 msgstr "自动摆盘"
 
+#, c-format
+msgid "Bambu Lab %s"
+msgstr "拓竹%s"
+
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
 msgstr "打印机未连接，在同步之前，请前往设备页连接 %s。"
@@ -19567,8 +19571,8 @@ msgstr "使用调优过的冲刷温度、倍率与更快的冲刷挤出来缩短
 msgid "Prime Saving"
 msgstr "省料模式"
 
-msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
-msgstr "减少擦料塔冲刷量，加快打印速度但可能出现轻微的颜色混合（仅H2C和H3C外接1/2代AMS喷嘴）或表面瑕疵"
+msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and Bambu Lab H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
+msgstr "减少擦料塔冲刷量，加快打印速度但可能出现轻微的颜色混合（仅H2C和拓竹H3C外接1/2代AMS喷嘴）或表面瑕疵"
 
 msgid "Learn more about prime mode"
 msgstr "了解更多冲刷模式信息"

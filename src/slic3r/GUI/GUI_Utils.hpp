@@ -599,6 +599,9 @@ private:
     wxString    m_tooltip;
 };
 
+
+wxString get_printer_short_display_name(const wxString &full_name);
+
 /* Image Generator */
 #define _3MF_COVER_SIZE                  wxSize(240, 240)
 #define PRINTER_THUMBNAIL_SMALL_SIZE     wxSize(252, 188)

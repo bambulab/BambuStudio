@@ -1,6 +1,7 @@
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
 #include "GUI_App.hpp"
+#include "I18N.hpp"
 
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
@@ -623,6 +624,16 @@ void WikiPanel::msw_rescale()
     if (m_wiki_icon_hover) {
         m_wiki_icon_hover->msw_rescale();
     }
+}
+
+wxString get_printer_short_display_name(const wxString &full_name)
+{
+    wxString name = full_name;
+    name.Replace("Bambu Lab", "", false);
+    name.Trim(true).Trim(false);
+    if (name == "H3C")
+        return wxString::Format(_L("Bambu Lab %s"), name);
+    return name;
 }
 
 }
