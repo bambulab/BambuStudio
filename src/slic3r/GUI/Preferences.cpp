@@ -1633,7 +1633,7 @@ wxWindow *PreferencesDialog::create_3d_tab()
                                                                      wxGetApp().app_config->set_bool("enable_bvh", false);
                                                                                });
 
-    float range_min = 1.0f, range_max = 2.5f;
+    float range_min = 1.0f, range_max = 3.5f;
     auto  item_grabber_size = create_item_range_input(_L("Grabber scale"), scrolled,
                                                       _L("Set grabber size for move,rotate,scale tool.") + _L("Value range") + ":[" + std::to_string(range_min) + "," +
                                                           std::to_string(range_max) + "]",
