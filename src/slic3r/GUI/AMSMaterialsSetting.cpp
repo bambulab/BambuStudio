@@ -2042,6 +2042,17 @@ std::optional<DevNozzle> AMSMaterialsSetting::get_slot_nozzle() const
     return std::nullopt;
 }
 
+std::string AMSMaterialsSetting::slot_nozzle_diameter_str() const
+{
+    std::string diameter_str;
+    if (auto nozzle_opt = get_slot_nozzle()) {
+        std::ostringstream stream;
+        stream << std::fixed << std::setprecision(1) << nozzle_opt->GetNozzleDiameter();
+        diameter_str = stream.str();
+    }
+    return diameter_str;
+}
+
 std::set<int> AMSMaterialsSetting::slot_bound_extruder_ids() const
 {
     std::set<int> extruder_ids;
@@ -2114,12 +2125,7 @@ void AMSMaterialsSetting::on_open_filament_select_dialog()
     if (!obj) return;
     if (m_view_only || !m_filament_box_editable) return;
 
-    std::string nozzle_diameter_str;
-    if (auto nozzle_opt = get_slot_nozzle()) {
-        std::ostringstream stream;
-        stream << std::fixed << std::setprecision(1) << nozzle_opt->GetNozzleDiameter();
-        nozzle_diameter_str = stream.str();
-    }
+    const std::string nozzle_diameter_str = slot_nozzle_diameter_str();
 
     wxArrayString                          filament_items;
     std::map<std::string, FilamentInfos>   tmp_map;
@@ -2208,13 +2214,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     m_filament_type             = "";
 
-    std::string nozzle_diameter_str;
-    auto nozzle_opt = get_slot_nozzle();
-    if (nozzle_opt) {
-        std::ostringstream stream;
-        stream << std::fixed << std::setprecision(1) << nozzle_opt->GetNozzleDiameter();
-        nozzle_diameter_str = stream.str();
-    }
+    const std::string nozzle_diameter_str = slot_nozzle_diameter_str();
 
     {
         wxArrayString                          unused_items;
@@ -2780,10 +2780,7 @@ void AMSMaterialsSetting::apply_filament_selection()
     m_filament_type = "";
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
-        std::ostringstream stream;
-        if (obj)
-            stream << std::fixed << std::setprecision(1) << obj->GetExtderSystem()->GetNozzleDiameter(0);
-        std::string nozzle_diameter_str = stream.str();
+        const std::string nozzle_diameter_str = slot_nozzle_diameter_str();
         std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(DevPrinterConfigUtil::get_printer_display_name(obj->printer_type),
                                                                                                           nozzle_diameter_str);
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
@@ -2844,6 +2841,17 @@ void AMSMaterialsSetting::apply_filament_selection()
 
                     break;
                 }
+            }
+        }
+
+        // The list offered this preset but no compatible match resolved its type; OK will then be
+        // rejected with "select the material type and color first", so leave a trace of why.
+        if (m_filament_type.empty() && !m_current_filament_alias.IsEmpty()) {
+            auto item_it = map_filament_items.find(into_u8(m_current_filament_alias));
+            if (item_it != map_filament_items.end() && !item_it->second.filament_id.empty()) {
+                BOOST_LOG_TRIVIAL(warning) << "filament type unresolved for selected preset "
+                                           << KV(log_key::filament_id, item_it->second.filament_id)
+                                           << " nozzle_diameter=" << nozzle_diameter_str;
             }
         }
     }
