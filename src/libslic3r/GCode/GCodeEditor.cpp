@@ -685,12 +685,15 @@ std::string GCodeEditor::write_layer_gcode(
                 }
             }
         } else if (line->type & CoolingLine::TYPE_OBJECT_START) {
+            // BBS: the pre-start overhang fan command may be written inside the previous M624/M625 region.
+            // If that region is skipped by the firmware, the command is skipped too, so re-send the current
+            // fan speed after every M624 to keep the fan correct.
             new_gcode.append(line_start, line_end - line_start);
-            if (pre_start_overhang_fan_time > 0.f && m_current_fan_speed > m_fan_speed)
+            if (pre_start_overhang_fan_time > 0.f && m_current_fan_speed != -1)
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
         } else if (line->type & CoolingLine::TYPE_OBJECT_END) {
-            if (pre_start_overhang_fan_time > 0.f && m_current_fan_speed > m_fan_speed)
-                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
+            // BBS: keep the fan speed unchanged at M625. Lowering it here would cancel the pre-started fan before
+            // the overhang is reached, e.g. when a timelapse M624/M625 pair is inserted in the middle of an object.
             new_gcode.append(line_start, line_end - line_start);
         }else {
             new_gcode.append(line_start, line_end - line_start);
