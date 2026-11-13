@@ -457,10 +457,17 @@ static inline double take_ccw_limited(Polyline &pl, const Points &contour, const
 static void take(Polyline &pl1, const Polyline &pl2, const Points &contour, size_t idx_start, size_t idx_end, bool clockwise)
 {
 #ifndef NDEBUG
-	assert(idx_start != idx_end);
     assert(pl1.size() >= 2);
     assert(pl2.size() >= 2);
 #endif /* NDEBUG */
+
+    // Two infill end points snapped to the same contour point (e.g. a gyroid crest touching the boundary):
+    // the connecting arc has zero length. take_cw_full() / take_ccw_full() would walk the whole contour around.
+    if (idx_start == idx_end) {
+        assert(pl1.points.back() == contour[idx_start] && pl2.points.front() == contour[idx_start]);
+        pl1.points.insert(pl1.points.end(), pl2.points.begin() + 1, pl2.points.end());
+        return;
+    }
 
 	{
 		// Reserve memory at pl1 for the connecting contour and pl2.
