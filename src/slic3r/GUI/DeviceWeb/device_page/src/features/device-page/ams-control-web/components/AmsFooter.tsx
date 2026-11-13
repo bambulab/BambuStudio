@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CONTENT_WIDTH, EXTRUDER, FOOTER_BUTTON, FOOTER_GAP, FOOTER_LEFT_INSET, FOOTER_SIDE_WIDTH, SETTINGS_ICON, px } from '../dip';
 import { extruderIconName, extrudersLeftToRight } from '../displayAdapters';
@@ -49,11 +50,11 @@ export function AmsFooter({
           <button
             type="button"
             data-testid="ams-auto-refill"
-            className="ams-btn-white rounded-[4px] border text-[13px]"
+            className="ams-btn-white rounded-[4px] border px-1 text-[13px]"
             style={buttonStyle}
             onClick={onAutoRefill}
           >
-            {t('Auto-refill')}
+            <ClippedLabel text={t('Auto-refill')} />
           </button>
         ) : null}
         <button
@@ -120,5 +121,28 @@ export function AmsFooter({
         </button>
       </div>
     </div>
+  );
+}
+
+function ClippedLabel({ text }: { text: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [clipped, setClipped] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    // +1 tolerates sub-pixel rounding on text that actually fits.
+    const measure = () => setClipped(node.scrollWidth > node.clientWidth + 1);
+    measure();
+    if (typeof ResizeObserver !== 'function') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [text]);
+
+  return (
+    <span ref={ref} className="block truncate" title={clipped ? text : undefined}>
+      {text}
+    </span>
   );
 }
