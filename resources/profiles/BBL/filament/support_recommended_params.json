@@ -238,6 +238,21 @@
                 "independent_support_layer_height": false,
                 "support_interface_speed": 20.0
             }
+        },
+        {
+            "model_material": "PLA",
+            "model_material_type": "type",
+            "support_material_list": ["Bambu Support For PLA/PETG"],
+            "support_material_type": "name",
+            "printer_models": ["Bambu Lab P3C"],
+            "priority": 3,
+            "recommended_params": {
+                "support_top_z_distance": 0.0,
+                "support_interface_spacing": 0.0,
+                "support_interface_pattern": "rectilinear_interlaced",
+                "independent_support_layer_height": false,
+                "support_interface_speed": 20.0
+            }
         }
     ]
 }
