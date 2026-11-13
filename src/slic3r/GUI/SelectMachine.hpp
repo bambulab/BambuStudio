@@ -675,6 +675,8 @@ private:
 
     /* update scroll area size*/
     void update_scroll_area_size();
+    /* shrink the scroll area on short screens so the whole dialog fits, see the definition */
+    void fit_scroll_area_to_screen();
 
     /* update option area*/
     void update_option_opts(MachineObject *obj);

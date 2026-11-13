@@ -979,6 +979,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
         m_simplebook->Layout();
         Layout();
         Fit();
+        fit_scroll_area_to_screen();
     });
     m_simplebook->AddPage(m_panel_sending, wxEmptyString, false);
 
@@ -1139,6 +1140,14 @@ void SelectMachineDialog::init_bind()
     Bind(wxEVT_TIMER, &SelectMachineDialog::on_timer, this);
     Bind(EVT_CLEAR_IPADDRESS, &SelectMachineDialog::clear_ip_address_config, this);
     Bind(EVT_SHOW_ERROR_INFO, [this](auto& e) {show_print_failed_info(true);});
+    // The screen resolution may be changed while the dialog is open (wxEVT_DISPLAY_CHANGED is not sent on macOS).
+    // Changing it needs the system settings, so re-fit when the dialog is activated again.
+    Bind(wxEVT_ACTIVATE, [this](wxActivateEvent& e) {
+        e.Skip();
+        if (e.GetActive() && IsShown()) {
+            CallAfter([this]() { fit_scroll_area_to_screen(); });
+        }
+    });
     Bind(EVT_UPDATE_USER_MACHINE_LIST, &SelectMachineDialog::update_printer_combobox, this);
     Bind(EVT_PRINT_JOB_CANCEL, &SelectMachineDialog::on_print_job_cancel, this);
     Bind(EVT_SET_FINISH_MAPPING, &SelectMachineDialog::on_set_finish_mapping, this);
@@ -1210,6 +1219,7 @@ void SelectMachineDialog::show_print_failed_info(bool show, int code, wxString d
         }
         Layout();
         Fit();
+        fit_scroll_area_to_screen();
     }
     else {
         if (!m_sw_print_failed_info->IsShown()) {return;}
@@ -1217,6 +1227,31 @@ void SelectMachineDialog::show_print_failed_info(bool show, int code, wxString d
         m_st_txt_error_code->SetLabelText(wxEmptyString);
         m_st_txt_error_desc->SetLabelText(wxEmptyString);
         m_st_txt_extra_info->SetLabelText(wxEmptyString);
+        Layout();
+        Fit();
+        fit_scroll_area_to_screen();
+    }
+}
+
+/* Shrink the scroll area on low resolution screens so the bottom buttons stay visible.
+   Do NOT call it from the refresh timer (STUDIO-12867). */
+void SelectMachineDialog::fit_scroll_area_to_screen()
+{
+    if (!GetSizer() || !m_scroll_area || !m_basic_panel) { return; }
+
+    // before shown, the dialog will be centered on its parent's display
+    const wxWindow* display_win = (IsShown() || !GetParent()) ? static_cast<wxWindow*>(this) : GetParent();
+    const int       screen_h    = wxDisplay(display_win).GetClientArea().GetHeight();
+    const int       frame_h     = GetSize().GetHeight() - GetClientSize().GetHeight(); // title bar and borders
+    const int       cur_h       = m_scroll_area->GetMinSize().GetHeight();
+    const int       others_h    = GetSizer()->CalcMin().GetHeight() - cur_h + frame_h;  // everything except the scroll area
+    const int       max_h       = FromDIP(600); // same as the scroll area size set in the constructor
+    const int       min_h       = std::min(m_basic_panel->GetBestSize().GetHeight(), max_h); // keep the top info area visible
+    const int       scroll_h    = std::clamp(screen_h - others_h, min_h, max_h);
+    if (scroll_h != cur_h) {
+        const int width = m_scroll_area->GetMinSize().GetWidth();
+        m_scroll_area->SetMinSize(wxSize(width, scroll_h));
+        m_scroll_area->SetMaxSize(wxSize(width, scroll_h));
         Layout();
         Fit();
     }
@@ -5178,6 +5213,7 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
     m_text_printer_msg->Rescale();
 
     Fit();
+    fit_scroll_area_to_screen(); // may be moved to another display
     Refresh();
 }
 
@@ -6347,6 +6383,7 @@ bool SelectMachineDialog::Show(bool show)
 
     Layout();
     Fit();
+    fit_scroll_area_to_screen();
     CenterOnParent();
     return DPIDialog::Show(show);
 }
