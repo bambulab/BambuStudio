@@ -177,6 +177,9 @@
     "slow_down_min_speed": [
         "70"
     ],
+    "temperature_vitrification": [
+        "100"
+    ],
     "volumetric_speed_coefficients": [
         "-72.1736 -8.8086 10.6201 29.6592 9.9286 -3.3920"
     ],

@@ -108,6 +108,9 @@
     "slow_down_for_layer_cooling": [
         "0"
     ],
+    "temperature_vitrification": [
+        "100"
+    ],
     "volumetric_speed_coefficients": [
         "48.0137 -0.3915 27.3862 -32.3779 -3.9738 5.2809",
         "48.0137 -0.3915 27.3862 -32.3779 -3.9738 5.2809"
