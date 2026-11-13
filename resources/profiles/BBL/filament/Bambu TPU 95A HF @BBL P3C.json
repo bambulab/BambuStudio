@@ -24,6 +24,9 @@
         "10",
         "10"
     ],
+    "filament_dev_drying_cooling_temperature": [
+        "100"
+    ],
     "filament_flow_ratio": [
         "1",
         "1"
