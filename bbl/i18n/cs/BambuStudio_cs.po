@@ -30,19 +30,19 @@ msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Model filamentu je neznámý. Bude automaticky vybráno náhodné přednastavení filamentu."
 
 msgid "This calibration does not support the currently selected nozzle diameter"
-msgstr ""
+msgstr "Tato kalibrace nepodporuje aktuálně zvolený průměr trysky"
 
 msgid "Current flowrate cali param is invalid"
-msgstr ""
+msgstr "Aktuální parametr kalibrace průtoku je neplatný"
 
 msgid "Selected diameter and machine diameter do not match"
-msgstr ""
+msgstr "Zvolený průměr trysky neodpovídá průměru trysky tiskárny"
 
 msgid "Failed to generate cali gcode"
-msgstr ""
+msgstr "Nepodařilo se vygenerovat kalibrační G-code"
 
 msgid "Calibration error"
-msgstr ""
+msgstr "Chyba kalibrace"
 
 msgid "Main Extruder"
 msgstr "Hlavní extruder"
@@ -206,30 +206,30 @@ msgstr "Při použití ABS/ASA/PETG HF v pravém extruderu jej lze použít pouz
 
 #, c-format, boost-format
 msgid "%s is not supported by the current %s hotend. Please confirm the filament type and try again."
-msgstr ""
+msgstr "Filament %s není podporován aktuálním hotendem %s. Zkontrolujte typ filamentu a zkuste to znovu."
 
 #, c-format, boost-format
 msgid "%s is not supported by the current 2.85 mm TPU hotend. Please confirm the filament type and try again."
-msgstr ""
+msgstr "Filament %s není podporován aktuálním hotendem pro TPU 2,85 mm. Zkontrolujte typ filamentu a zkuste to znovu."
 
 msgid "PPA-CF does not support AMS feeding. Use an external spool instead."
-msgstr ""
+msgstr "Filament PPA-CF nelze podávat prostřednictvím AMS. Použijte externí cívku."
 
 #, c-format, boost-format
 msgid "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "%s nepodporuje tisk s %s, protože se filament může zlomit v ohnuté PTFE trubičce nad tiskovou hlavou."
 
 msgid "Special attention should be paid to the feeding method of TPU."
-msgstr ""
+msgstr "Způsobu podávání TPU filamentu je třeba věnovat zvláštní pozornost."
 
 msgid " Please "
-msgstr ""
+msgstr " Prosím, "
 
 msgid "refer to the Wiki User Guide"
-msgstr ""
+msgstr "nahlédněte do uživatelské příručky na Wiki"
 
 msgid " before continuing."
-msgstr ""
+msgstr " před pokračováním."
 
 msgid "How to feed TPU filament on X2D."
 msgstr "Jak zavést TPU filament na X2D."
@@ -254,14 +254,14 @@ msgstr "PPA-CF je křehký a může se zlomit v ohnuté PTFE trubičce nad tisko
 
 #, c-format, boost-format
 msgid "%s filament is brittle. Use %s feeding with caution."
-msgstr ""
+msgstr "Filament %s je křehký. Při podávání pomocí %s postupujte opatrně."
 
 #, c-format, boost-format
 msgid "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing."
-msgstr ""
+msgstr "Při tisku filamentu %s s hotendem o průměru trysky 0,2 mm hrozí zvýšené riziko ucpání. Před tiskem použijte jiný kompatibilní hotend."
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr ""
+msgstr "Filamenty CF/GF jsou tvrdé a křehké, mohou se snadno zlomit nebo zaseknout v AMS. Používejte je s opatrností."
 
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr "Výchozí nastavení může ovlivnit kvalitu tisku. Upravte podle potřeby pro dosažení nejlepších výsledků."
@@ -280,99 +280,99 @@ msgstr "%s představuje riziko ucpání trysky při použití 0,4, 0,6 a 0,8mm v
 
 #, c-format, boost-format
 msgid "Use %s in %s with caution, as it may break in the bent PTFE tube above the toolhead."
-msgstr ""
+msgstr "Při použití filamentu %s v %s postupujte opatrně, protože se může zlomit v ohnuté PTFE trubičce nad tiskovou hlavou."
 
 #, c-format, boost-format
 msgid "PLA Glow may wear the %s first stage feeder. Use an external spool instead."
-msgstr ""
+msgstr "PLA Glow může způsobit opotřebení podavače prvního stupně systému %s. Použijte externí cívku."
 
 #, c-format, boost-format
 msgid "%s filament may wear the %s feed inlet, has high feeding resistance. We recommend an external spool."
-msgstr ""
+msgstr "Filament %s může způsobit opotřebení vstupu filamentu systému %s a vykazuje vysoký odpor při podávání. Doporučujeme použít externí cívku."
 
 #, c-format, boost-format
 msgid "%s filament is brittle and has high feeding resistance. Use caution when loading it through %s."
-msgstr ""
+msgstr "Filament %s je křehký a vykazuje vysoký odpor při podávání. Při jeho zavádění prostřednictvím %s postupujte opatrně."
 
 #, c-format, boost-format
 msgid "PPA-CF filament does not support %s feeding. Use an external spool instead."
-msgstr ""
+msgstr "Filament PPA-CF nelze podávat prostřednictvím %s. Použijte externí cívku."
 
 #, c-format, boost-format
 msgid "%s may fail to load or unload due to the Filament Track Switch."
-msgstr ""
+msgstr "Kvůli přepínači dráhy filamentu může dojít k selhání zavádění nebo vysouvání filamentu %s."
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
-msgstr ""
+msgstr "Kvůli přepínači dráhy filamentu nelze filament %s použít. Použijte externí cívku."
 
 #, c-format, boost-format
 msgid "%s is not supported with a standard %s nozzle."
-msgstr ""
+msgstr "Filament %s není podporován při použití standardní trysky %s."
 
 #, c-format, boost-format
 msgid "%s is only supported for printing with the main extruder."
-msgstr ""
+msgstr "Filament %s je podporován pouze při tisku s hlavním extruderem."
 
 #, c-format, boost-format
 msgid "%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction."
-msgstr ""
+msgstr "Použití filamentu %s s pomocným extruderem představuje zvýšené riziko, které může vést k selhání tisku nebo poruše zařízení."
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may break inside the filament tube."
-msgstr ""
+msgstr "Kvůli přepínači dráhy filamentu se může filament %s uvnitř vodicí trubičky zlomit."
 
 #, c-format, boost-format
 msgid "%s is used with the auxiliary extruder and may impact print quality."
-msgstr ""
+msgstr "Použití filamentu %s s pomocným extruderem může ovlivnit kvalitu tisku."
 
 #, c-format, boost-format
 msgid "%s used with a high-flow %s nozzle may affect print quality."
-msgstr ""
+msgstr "Použití filamentu %s s vysokoprůtokovou tryskou %s (High Flow) může ovlivnit kvalitu tisku."
 
 #, c-format, boost-format
 msgid "%s used with a high-flow %s nozzle may cause a clog."
-msgstr ""
+msgstr "Použití filamentu %s s vysokoprůtokovou tryskou %s (High Flow) může způsobit její ucpání."
 
 #, c-format, boost-format
 msgid "%s used with a high-flow %s nozzle may cause oozing."
-msgstr ""
+msgstr "Použití filamentu %s s vysokoprůtokovou tryskou %s (High Flow) může způsobit samovolné vytékání filamentu."
 
 #, c-format, boost-format
 msgid "%s used with a high-flow %s nozzle may lead to difficult extrusion."
-msgstr ""
+msgstr "Použití filamentu %s s vysokoprůtokovou tryskou %s (High Flow) může způsobit problémy s extruzí."
 
 #, c-format, boost-format
 msgid "%s used with a high-flow %s nozzle may result in poor quality in overhang and bridge areas of the model."
-msgstr ""
+msgstr "Použití filamentu %s s vysokoprůtokovou tryskou %s (High Flow) může způsobit zhoršení kvality převisů a přemostění modelu."
 
 #, c-format, boost-format
 msgid "%s used with a standard %s nozzle may affect print quality."
-msgstr ""
+msgstr "Použití filamentu %s se standardní tryskou %s může ovlivnit kvalitu tisku."
 
 #, c-format, boost-format
 msgid "%s used with a standard %s nozzle may cause oozing."
-msgstr ""
+msgstr "Použití filamentu %s se standardní tryskou %s může způsobit samovolné vytékání filamentu."
 
 #, c-format, boost-format
 msgid "%s used with a standard %s nozzle may lead to difficult extrusion."
-msgstr ""
+msgstr "Použití filamentu %s se standardní tryskou %s může způsobit problémy s extruzí."
 
 #, c-format, boost-format
 msgid "Affected by the Filament Track Switch, %s may fail to load or unload."
-msgstr ""
+msgstr "Kvůli přepínači dráhy filamentu může dojít k selhání zavádění nebo vysouvání filamentu %s."
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
-msgstr ""
+msgstr "Při použití pomocného extruderu může tisk filamentu %s s vysokoprůtokovou tryskou %s (High Flow) ovlivnit kvalitu modelu."
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may cause a clog."
-msgstr ""
+msgstr "Při použití pomocného extruderu může tisk filamentu %s s vysokoprůtokovou tryskou %s (High Flow) způsobit ucpání trysky."
 
 #, c-format, boost-format
 msgid "When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality."
-msgstr ""
+msgstr "Při použití pomocného extruderu může tisk filamentu %s se standardní tryskou %s ovlivnit kvalitu modelu."
 
 #, c-format, boost-format
 msgid "%s is not supported by %s extruder."
@@ -395,13 +395,13 @@ msgid "There may be print quality issues when printing '%s' with %s extruder. Us
 msgstr "Při tisku „%s“ s extruderem %s může dojít k problémům s kvalitou tisku. Používejte opatrně."
 
 msgid "The total weight must bigger than remain weight."
-msgstr ""
+msgstr "Celková hmotnost musí být vyšší než zbývající hmotnost."
 
 msgid "Please enter a valid remaining weight from 1g to 10000g."
-msgstr ""
+msgstr "Zadejte platnou zbývající hmotnost v rozsahu od 1 g do 10 000 g."
 
 msgid "Please enter a valid total weight from 1g to 10000g."
-msgstr ""
+msgstr "Zadejte platnou celkovou hmotnost v rozsahu od 1 g do 10 000 g."
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "Tisková hlava a držák hotendu se mohou pohybovat. Držte ruce mimo komoru."
@@ -470,16 +470,16 @@ msgid "Update failed."
 msgstr "Aktualizace selhala."
 
 msgid "Hotend & Filament"
-msgstr ""
+msgstr "Hotend a filament"
 
 msgid "Lift Hotend Rack"
-msgstr ""
+msgstr "Zvednout zásobník hotendů"
 
 msgid "Recenter Hotend Rack"
-msgstr ""
+msgstr "Vycentrovat zásobník hotendů"
 
 msgid "Lower Hotend Rack"
-msgstr ""
+msgstr "Spustit zásobník hotendů"
 
 msgid "Hotend Rack"
 msgstr "Stojan na hotend"
@@ -488,16 +488,16 @@ msgid "Reading"
 msgstr "Načítání"
 
 msgid "Running"
-msgstr ""
+msgstr "V chodu"
 
 msgid "Raised"
 msgstr "Zvednuté"
 
 msgid "Lowered"
-msgstr ""
+msgstr "Spuštěné"
 
 msgid "Centered"
-msgstr ""
+msgstr "Vycentrované"
 
 msgid "Current AMS humidity"
 msgstr "Aktuální vlhkost AMS"
@@ -670,40 +670,40 @@ msgid "Note:"
 msgstr "Poznámka:"
 
 msgid "Pen"
-msgstr ""
+msgstr "Pero"
 
 msgid "Cutter"
-msgstr ""
+msgstr "Řezací nástroj"
 
 msgid "Laser"
-msgstr ""
+msgstr "Laser"
 
 msgid "Fan"
 msgstr "Ventilátor"
 
 msgid "Unclamped"
-msgstr ""
+msgstr "Uvolněno"
 
 msgid "The embedded webpage could not be loaded."
-msgstr ""
+msgstr "Vloženou webovou stránku se nepodařilo načíst."
 
 msgid "Reload"
-msgstr ""
+msgstr "Načíst znovu"
 
 msgid "Copy diagnostic information"
-msgstr ""
+msgstr "Kopírovat diagnostické informace"
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
-msgstr ""
+msgstr "Typ filamentu není znám a je nezbytný k provedení této akce. Nastavte údaje o cílovém filamentu."
 
 msgid "Add refill filament"
-msgstr ""
+msgstr "Přidat náhradní filament"
 
 msgid "Add material group"
-msgstr ""
+msgstr "Přidat skupinu materiálů"
 
 msgid "AMS Bridge Debug"
-msgstr ""
+msgstr "Ladění rozhraní AMS Bridge"
 
 msgid "Idling..."
 msgstr "Nečinný stav..."
@@ -733,10 +733,10 @@ msgid "Check filament location"
 msgstr "Zkontrolovat umístění filamentu"
 
 msgid "Switch extruder"
-msgstr ""
+msgstr "Přepnout extruder"
 
 msgid "Switch hotend"
-msgstr ""
+msgstr "Přepnout hotend"
 
 msgid "Wait for AMS cooling"
 msgstr "Počkejte na ochlazení AMS"
@@ -750,246 +750,250 @@ msgstr "Vytáhněte zpět aktuální filament v Přepínači dráhy filamentu"
 msgid "Switch track at Filament Track Switch"
 msgstr "Přepněte dráhu v Přepínači dráhy filamentu"
 
+
 msgid "Batch pull back the filaments"
-msgstr ""
+msgstr "Hromadné vysunutí filamentů"
 
 msgid "Nesting PrintTool"
-msgstr ""
+msgstr "Ukládání tiskového nástroje do zásobníku"
 
 msgid "Purge filament"
-msgstr ""
+msgstr "Propláchnout trysku filamentem"
 
 #, boost-format
 msgid "Please manually pull out the filament from slot %1%."
-msgstr ""
+msgstr "Ručně vytáhněte filament z pozice %1%."
 
 #, boost-format
 msgid "Please manually pull out the filament from hotend %1% on the toolhead."
-msgstr ""
+msgstr "Ručně vytáhněte filament z hotendu %1% na tiskové hlavě."
 
 #, boost-format
 msgid "Please manually insert the filament into the loading port of hotend %1% on the toolhead until it cannot be pushed any further."
-msgstr ""
+msgstr "Ručně zasuňte filament do vstupu hotendu %1% na tiskové hlavě až na doraz."
 
 #, boost-format
 msgid "Please manually insert the filament from slot %1% into the extruder loading port until it cannot be pushed any further."
-msgstr ""
+msgstr "Ručně zasuňte filament z pozice %1% do vstupu extruderu až na doraz."
 
 #, boost-format
 msgid "Slot %1% filament loading in progress"
-msgstr ""
+msgstr "Probíhá zavádění filamentu z pozice %1%"
 
 #, boost-format
 msgid "Slot %1% filament unloading in progress"
-msgstr ""
+msgstr "Probíhá vysouvání filamentu z pozice %1%"
 
 msgid "Other filaments are info-only"
-msgstr ""
+msgstr "Ostatní filamenty jsou zobrazeny pouze informativně"
 
 msgid "Filament not removed"
-msgstr ""
+msgstr "Filament nebyl odstraněn"
 
 msgid "Hotend rack moving"
-msgstr ""
+msgstr "Probíhá pohyb zásobníku hotendů"
 
 msgid "Homing PrintTool Rack"
-msgstr ""
+msgstr "Najíždění zásobníku tiskových nástrojů do výchozí polohy"
 
 msgid "Homing Toolhead"
-msgstr ""
+msgstr "Najíždění tiskové hlavy do výchozí polohy"
 
 msgid "Calibrating PrintTool Rack Position"
-msgstr ""
+msgstr "Kalibrace polohy zásobníku tiskových nástrojů"
 
 msgid "Heating Hotend"
-msgstr ""
+msgstr "Zahřívání hotendu"
 
 msgid "Cutting Filament"
-msgstr ""
+msgstr "Odřezávání filamentu"
 
 msgid "Unlocking Tool"
-msgstr ""
+msgstr "Odjišťování nástroje"
 
 msgid "Raising PrintTool Rack"
-msgstr ""
+msgstr "Zvedání zásobníku tiskových nástrojů"
 
 msgid "Nesting Tool"
-msgstr ""
+msgstr "Ukládání nástroje do zásobníku"
 
 msgid "Fetching Tool"
-msgstr ""
+msgstr "Vyjímání nástroje ze zásobníku"
 
 msgid "Locking Tool"
-msgstr ""
+msgstr "Zajišťování nástroje"
 
 msgid "Moving PrintTool Rack"
-msgstr ""
+msgstr "Přesouvání zásobníku tiskových nástrojů"
 
 msgid "Refreshing Hotend"
-msgstr ""
+msgstr "Aktualizace informací o hotendu"
 
 #, boost-format
 msgid "Reading (%1% / %2%)"
-msgstr ""
+msgstr "Načítání (%1% / %2%)"
 
 #, boost-format
 msgid "Reading Hotend %1%"
-msgstr ""
+msgstr "Načítání údajů hotendu %1%"
 
 msgid "Please wait..."
-msgstr ""
+msgstr "Čekejte prosím..."
 
 msgid "Edit Filament"
 msgstr "Upravit filament"
 
+
 msgid "Confirm to exit this process?"
-msgstr ""
+msgstr "Opravdu chcete ukončit tento proces?"
 
 msgid "If the filament is not pulled out, subsequent printing may pause due to filament switching. Please operate carefully."
-msgstr ""
+msgstr "Pokud filament nevytáhnete, může být následující tisk pozastaven kvůli výměně filamentu. Postupujte opatrně."
 
 msgid "Exit"
-msgstr ""
+msgstr "Ukončit"
 
 msgid "Still exit"
-msgstr ""
+msgstr "Přesto ukončit"
 
 msgid "Tip"
 msgstr "Tip"
 
 msgid "Empty slot"
-msgstr ""
+msgstr "Prázdná pozice"
 
 msgid "RFID is being read"
-msgstr ""
+msgstr "Probíhá načítání RFID"
 
 msgid "Filament change in progress"
-msgstr ""
+msgstr "Probíhá výměna filamentu"
 
 msgid "Slot is in error state"
-msgstr ""
+msgstr "Pozice je v chybovém stavu"
 
 msgid "Filament already loaded"
-msgstr ""
+msgstr "Filament je již zaveden"
 
 msgid "Ready to load"
-msgstr ""
+msgstr "Připraveno k zavedení"
 
 msgid "Loaded"
-msgstr ""
+msgstr "Zavedeno"
 
 msgid "TPU pending read"
-msgstr ""
+msgstr "Čeká se na načtení TPU"
 
 msgid "Unknown filament"
-msgstr ""
+msgstr "Neznámý filament"
 
 msgid "Other batch mode active"
-msgstr ""
+msgstr "Je aktivní jiná hromadná operace"
 
 msgid "External filament already loaded into hotend"
-msgstr ""
+msgstr "Externí filament je již zaveden do hotendu"
 
 msgid "The current tool is not a nozzle"
-msgstr ""
+msgstr "Aktuálně použitý nástroj není tryska"
 
 msgid "There are no nozzle installed"
-msgstr ""
+msgstr "Není nainstalována žádná tryska"
 
 msgid "Nozzle is in error state"
-msgstr ""
+msgstr "Tryska je v chybovém stavu"
 
 msgid "Nozzle has been detached"
-msgstr ""
+msgstr "Tryska byla odpojena"
 
 msgid "Nozzle type is unknown"
-msgstr ""
+msgstr "Typ trysky není znám"
 
 msgid "Slot not loaded"
-msgstr ""
+msgstr "Filament z této pozice není zaveden"
 
 msgid "No filament information available"
-msgstr ""
+msgstr "Nejsou dostupné žádné informace o filamentu"
 
 msgid "Cannot read all while printing or upgrading"
-msgstr ""
+msgstr "Během tisku nebo aktualizace firmwaru nelze načíst všechny údaje"
 
 msgid ""
 "Unable to read filament information.\n"
 "Filament is currently loaded in the feeding inlet. Please pull it out first and try again."
 msgstr ""
+"Nepodařilo se načíst informace o filamentu.\n"
+"Filament je aktuálně zaveden do vstupu podavače. Nejprve jej vytáhněte a zkuste to znovu."
 
 msgid "The printer is busy on other job"
-msgstr ""
+msgstr "Tiskárna právě provádí jinou úlohu"
 
 msgid "Cannot stop filament change while printing or calibrating"
-msgstr ""
+msgstr "Během tisku nebo kalibrace nelze zastavit výměnu filamentu"
 
 msgid "No slots selected for batch run"
-msgstr ""
+msgstr "Nebyly vybrány žádné pozice pro hromadnou operaci"
 
 msgid "All selected slots are invalid"
-msgstr ""
+msgstr "Všechny vybrané pozice jsou neplatné"
 
 msgid "MQTT publish failed for multi_slot_ams_change_filament"
-msgstr ""
+msgstr "Nepodařilo se odeslat zprávu MQTT pro multi_slot_ams_change_filament"
 
 msgid "Hotend Details"
-msgstr ""
+msgstr "Podrobnosti o hotendu"
 
 msgid "PrintTool communication error. Please check the PrintTool cable and try again."
-msgstr ""
+msgstr "Chyba komunikace s tiskovým nástrojem. Zkontrolujte jeho kabel a zkuste to znovu."
 
 msgid "PrintTool detached. Cannot load."
-msgstr ""
+msgstr "Tiskový nástroj je odpojen. Filament nelze zavést."
 
 msgid "PrintTool communication error. Cannot operate."
-msgstr ""
+msgstr "Chyba komunikace s tiskovým nástrojem. Operaci nelze provést."
 
 msgid "The current filament may not be fully loaded into the PrintTool"
-msgstr ""
+msgstr "Aktuální filament nemusí být zcela zaveden do tiskového nástroje"
 
 msgid "Hotend type unknown"
-msgstr ""
+msgstr "Neznámý typ hotendu"
 
 msgid "The current filament may not be fully loaded into the PrintTool, which may cause printing issues. Please pull the filament out of the PrintTool, then click \"Load\" to complete loading."
-msgstr ""
+msgstr "Aktuální filament nemusí být zcela zaveden do tiskového nástroje, což může způsobit problémy při tisku. Vytáhněte filament z tiskového nástroje a poté kliknutím na \"Zavést\" dokončete jeho zavádění."
 
 msgid "Hotend type unknown. Please edit the hotend type on the printer and try again."
-msgstr ""
+msgstr "Typ hotendu není znám. Nastavte typ hotendu na tiskárně a zkuste to znovu."
 
 msgid "View details"
 msgstr "Zobrazit podrobnosti"
 
 msgid "Hotend rack is busy"
-msgstr ""
+msgstr "Zásobník hotendů právě provádí jinou operaci"
 
 msgid "Hotend rack cannot read all"
-msgstr ""
+msgstr "Nelze načíst údaje všech hotendů v zásobníku"
 
 msgid "Settings for CutTool and DrawTool are not supported yet."
-msgstr ""
+msgstr "Nastavení nástrojů CutTool a DrawTool zatím není podporováno."
 
 msgid "Invalid hotend display_index"
-msgstr ""
+msgstr "Neplatný index zobrazení hotendu (display_index)"
 
 msgid "Invalid hotend temperature payload"
-msgstr ""
+msgstr "Neplatná data teploty hotendu"
 
 msgid "No hotend rack"
-msgstr ""
+msgstr "Zásobník hotendů není k dispozici"
 
 msgid "Hotend cannot set temperature"
-msgstr ""
+msgstr "Nelze nastavit teplotu hotendu"
 
 msgid "Invalid hotend addr_id"
-msgstr ""
+msgstr "Neplatný identifikátor adresy hotendu (addr_id)"
 
 msgid "Loading/Unloading"
-msgstr ""
+msgstr "Zavádění/vysouvání"
 
 msgid "Checking"
-msgstr ""
+msgstr "Probíhá kontrola"
 
 msgid "Cooling"
 msgstr "Chlazení"
@@ -998,62 +1002,62 @@ msgid "Stopping"
 msgstr "Zastavuji"
 
 msgid "Heat fault"
-msgstr ""
+msgstr "Chyba ohřevu"
 
 msgid "Self test"
-msgstr ""
+msgstr "Autotest"
 
 msgid "No selected machine"
-msgstr ""
+msgstr "Není vybrána žádná tiskárna"
 
 msgid "Please check the hotend cable and try again."
-msgstr ""
+msgstr "Zkontrolujte kabel hotendu a zkuste to znovu."
 
 msgid "Hotend communication error"
-msgstr ""
+msgstr "Chyba komunikace s hotendem"
 
 msgid "View Details"
 msgstr "Zobrazit podrobnosti"
 
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
-msgstr ""
+msgstr "Odebrat \"%s\" z této skupiny náhradních filamentů?"
 
 msgid "The refill group will be automatically deleted after removal."
-msgstr ""
+msgstr "Po odebrání bude skupina náhradních filamentů automaticky odstraněna."
 
 msgid "Remove"
 msgstr "Odebrat"
 
 msgid "This will delete all manually added filament in current group, please proceed with caution."
-msgstr ""
+msgstr "Tímto odstraníte všechny ručně přidané filamenty z aktuální skupiny. Postupujte opatrně."
 
 msgid "Reset Refill Group"
-msgstr ""
+msgstr "Obnovit výchozí nastavení skupiny náhradních filamentů"
 
 msgid "Reset"
 msgstr "Výchozí"
 
 msgid "When the current spool runs out, the printer automatically continues with a spool of the same brand, type, and color. Refill relations can also be edited manually, so spools of the same type in a different color can be used for refilling."
-msgstr ""
+msgstr "Po spotřebování filamentu na aktuální cívce tiskárna automaticky pokračuje s cívkou stejné značky, typu a barvy. Přiřazení náhradních filamentů lze také upravit ručně, takže jako náhradní lze použít cívky se stejným typem filamentu, ale odlišnou barvou."
 
 msgid "Drag spools to adjust their priority."
-msgstr ""
+msgstr "Přetažením cívek upravte jejich pořadí podle priority."
 
 msgid "The system has created auto-refill groups based on material type, color, and brand."
-msgstr ""
+msgstr "Systém vytvořil skupiny pro automatické doplňování filamentu podle typu materiálu, barvy a značky."
 
 msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
-msgstr ""
+msgstr "Pokud během tisku dojde filament na aktuální cívce, tiskárna automaticky přepne na další kompatibilní cívku podle pořadí ve skupině. Po dosažení poslední cívky se cyklus vrátí k první."
 
 msgid "Connected Slots"
-msgstr ""
+msgstr "Propojené pozice"
 
 msgid "AMS Control Web Debug"
-msgstr ""
+msgstr "Ladění webového rozhraní ovládání AMS"
 
 msgid "Please select a printer"
-msgstr ""
+msgstr "Vyberte tiskárnu"
 
 msgid "The printer is busy on other print job"
 msgstr "Tiskárna je zaneprázdněná jinou tiskovou úlohou"
@@ -1090,7 +1094,7 @@ msgstr "Nelze načíst informace o filamentu: filament je zaveden do tiskové hl
 
 msgctxt "AMS filament"
 msgid "loading"
-msgstr ""
+msgstr "načítá"
 
 msgid "AMS has not been initialized. Please initialize it before use."
 msgstr "AMS nebyl inicializován. Před použitím jej prosím inicializujte."
@@ -1547,14 +1551,14 @@ msgid "Cut"
 msgstr "Oříznout"
 
 msgid "Cutting model object"
-msgstr ""
+msgstr "Probíhá rozřezávání objektu modelu"
 
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
-msgstr ""
+msgstr "Nástroj pro řezání mohl vytvořit otevřené hrany modelu. Chcete je nyní opravit?"
 
 #, c-format, boost-format
 msgid "Repair object: %s"
-msgstr ""
+msgstr "Opravit objekt: %s"
 
 msgid "Repairing model object"
 msgstr "Probíhá oprava modelového objektu"
@@ -1581,13 +1585,13 @@ msgid "Groove Angle"
 msgstr "Úhel drážky"
 
 msgid "Pick face"
-msgstr ""
+msgstr "Vybrat plochu"
 
 msgid "Click a face of the model to set the cut plane. The plane lands flush with that face; use Movement to offset it."
-msgstr ""
+msgstr "Kliknutím na plochu modelu nastavíte rovinu řezu. Rovina řezu bude zarovnána s vybranou plochou. K jejímu posunutí použijte funkci Posun."
 
 msgid "Click a face of the model."
-msgstr ""
+msgstr "Klikněte na plochu modelu."
 
 #. TRN - Input label. Be short as possible
 #. Angle between Y axis and text line direction.
@@ -1777,16 +1781,16 @@ msgid "Show wireframe"
 msgstr "Zobrazit drátový model"
 
 msgid "Keep all painting"
-msgstr ""
+msgstr "Zachovat veškeré malování"
 
 msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
-msgstr ""
+msgstr "Zahrnuje malování barev, švů, podpěr a textury povrchu (Fuzzy Skin). Pokud tato možnost není zaškrtnuta, bude veškeré malování z výsledného modelu odstraněno."
 
 msgid "All painting (color, seam, support and fuzzy skin) will be removed from the simplified model. Check \"Keep all painting\" to keep it."
-msgstr ""
+msgstr "Veškeré malování (barvy, švy, podpěry a textura povrchu) bude ze zjednodušeného modelu odstraněno. Chcete-li jej zachovat, zaškrtněte možnost \"Zachovat veškeré malování\"."
 
 msgid "Calculating simplified preview..."
-msgstr ""
+msgstr "Výpočet náhledu zjednodušeného modelu..."
 
 #, boost-format
 msgid "%1%"
@@ -1799,7 +1803,7 @@ msgid "Operation already cancelling. Please wait few seconds."
 msgstr "Operace se již ruší. Prosím vyčkejte několik sekund."
 
 msgid "Transferring painting to the simplified mesh..."
-msgstr ""
+msgstr "Přenášení malování na zjednodušenou polygonovou síť..."
 
 msgid "Face recognition"
 msgstr "Rozpoznávání ploch"
@@ -2173,7 +2177,7 @@ msgid "Text Gap"
 msgstr "Odsazení textu"
 
 msgid "Line Gap"
-msgstr ""
+msgstr "Rozestup čar"
 
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "Varování: Textová matice je zrcadlená; při přetažení bude zcela znovu vygenerována."
@@ -2245,7 +2249,7 @@ msgid "Alignment"
 msgstr "Zarovnání"
 
 msgid "Align center horizontally"
-msgstr ""
+msgstr "Zarovnat vodorovně na střed"
 
 msgid "No symbol"
 msgstr "Žádný symbol"
@@ -2599,9 +2603,12 @@ msgid ""
 "\n"
 "Do you want to continue?"
 msgstr ""
+"Tato operace znovu vytvoří polygonovou síť modelu. Namalované barvy, podpěry, švy a textura povrchu (Fuzzy Skin) budou co nejpřesněji přeneseny na novou síť. Výsledek se proto může mírně lišit a ve vzácných případech může dojít ke ztrátě části malování.\n"
+"\n"
+"Chcete pokračovat?"
 
 msgid "Painting may change"
-msgstr ""
+msgstr "Malování se může změnit"
 
 msgid "BambuStudio configuration file read failed. Please manually backup and delete it, and then restart BambuStudio software."
 msgstr "Čtení konfiguračního souboru BambuStudio selhalo. Proveďte ruční zálohování a poté soubor odstraňte. Restartujte software BambuStudio."
@@ -2855,13 +2862,13 @@ msgid "Select settings"
 msgstr "Vyberte nastavení"
 
 msgid "Add to New Step"
-msgstr ""
+msgstr "Přidat do nového kroku"
 
 msgid "Add to Current Step"
-msgstr ""
+msgstr "Přidat do aktuálního kroku"
 
 msgid "Add to Existing Step"
-msgstr ""
+msgstr "Přidat do existujícího kroku"
 
 msgid "Delete the selected object"
 msgstr "Smazat vybraný objekt"
@@ -3774,61 +3781,61 @@ msgid "The minmum temperature should not be less than "
 msgstr "Minimální teplota by neměla být nižší než "
 
 msgid "Export file Settings"
-msgstr ""
+msgstr "Nastavení exportu souboru"
 
 msgid "Homepage  title"
-msgstr ""
+msgstr "Název titulní stránky"
 
 msgid "For privacy reasons, image paths are not saved or restored.Just for pdf/md file."
-msgstr ""
+msgstr "Z důvodu ochrany soukromí se cesty k obrázkům neukládají ani neobnovují. Platí pouze pro soubory PDF/MD."
 
 msgid "Homepage image"
-msgstr ""
+msgstr "Obrázek titulní stránky"
 
 msgid "Second page image"
-msgstr ""
+msgstr "Obrázek druhé stránky"
 
 msgid "Browse"
 msgstr "Procházet"
 
 msgid "Image files"
-msgstr ""
+msgstr "Soubory obrázků"
 
 msgid "All files"
-msgstr ""
+msgstr "Všechny soubory"
 
 msgid "Open image file"
-msgstr ""
+msgstr "Otevřít soubor obrázku"
 
 msgid "Step"
 msgstr "Krok"
 
 msgid "Install parts"
-msgstr ""
+msgstr "Namontovat díly"
 
 msgid "Inherited Step"
-msgstr ""
+msgstr "Zděděný krok"
 
 msgid "start frame"
-msgstr ""
+msgstr "počáteční snímek"
 
 msgid "Final assembly"
-msgstr ""
+msgstr "Finální sestava"
 
 msgid "Merged Step"
-msgstr ""
+msgstr "Sloučený krok"
 
 msgid "end frame"
-msgstr ""
+msgstr "koncový snímek"
 
 msgid "Apply the final assembly pose to the objects or parts added in the current step?"
-msgstr ""
+msgstr "Použít konečnou polohu sestavy na objekty nebo díly přidané v aktuálním kroku?"
 
 msgid "Apply final assembly pose"
-msgstr ""
+msgstr "Použít konečnou polohu sestavy"
 
 msgid "The export file is in use by the system. Please close it or export with a different file name, then try again."
-msgstr ""
+msgstr "Exportovaný soubor je právě používán systémem. Zavřete jej nebo zvolte jiný název souboru a zkuste to znovu."
 
 msgid "Export"
 msgstr "Exportovat"
@@ -3837,155 +3844,155 @@ msgid "Assembly Guide"
 msgstr "Průvodce sestavou"
 
 msgid "PDF files"
-msgstr ""
+msgstr "Soubory PDF"
 
 msgid "Markdown files"
-msgstr ""
+msgstr "Soubory Markdown"
 
 msgid "MP4 files"
-msgstr ""
+msgstr "Soubory MP4"
 
 msgid "Export Assembly Guide to PDF"
-msgstr ""
+msgstr "Exportovat průvodce sestavou do PDF"
 
 msgid "Export Assembly Guide to Markdown"
-msgstr ""
+msgstr "Exportovat průvodce sestavou do formátu Markdown"
 
 msgid "Export Assembly Guide to MP4"
-msgstr ""
+msgstr "Exportovat průvodce sestavou do MP4"
 
 msgid "Exporting file"
-msgstr ""
+msgstr "Probíhá export souboru"
 
 msgid "Saving project will automatically switch to end frame"
-msgstr ""
+msgstr "Při uložení projektu se automaticky přepne na koncový snímek"
 
 msgid "Are you sure you want to delete all assembly steps?"
-msgstr ""
+msgstr "Opravdu chcete odstranit všechny kroky sestavy?"
 
 msgid "Delete all steps"
-msgstr ""
+msgstr "Odstranit všechny kroky"
 
 msgid "New Step"
-msgstr ""
+msgstr "Nový krok"
 
 msgid "Overall preview"
-msgstr ""
+msgstr "Celkový náhled"
 
 msgid "Assembly Structure"
-msgstr ""
+msgstr "Struktura sestavy"
 
 msgctxt "AssemblyStructure"
 msgid "Default"
-msgstr ""
+msgstr "Výchozí"
 
 msgid "Contain"
-msgstr ""
+msgstr "Obsahuje"
 
 msgid "Assembly Module"
-msgstr ""
+msgstr "Modul sestavy"
 
 msgid "Volume"
-msgstr ""
+msgstr "Objem"
 
 msgid "Click to add objects to the current step"
-msgstr ""
+msgstr "Kliknutím přidáte objekty do aktuálního kroku"
 
 msgid "_copy"
-msgstr ""
+msgstr "_kopie"
 
 msgid "Are you sure you want to delete the current step?"
-msgstr ""
+msgstr "Opravdu chcete odstranit aktuální krok?"
 
 msgid "Delete step"
-msgstr ""
+msgstr "Odstranit krok"
 
 msgid "Model"
 msgstr "Model"
 
 msgid "transition frame"
-msgstr ""
+msgstr "přechodový snímek"
 
 msgid "Label"
-msgstr ""
+msgstr "Popisek"
 
 msgid "Explosion"
-msgstr ""
+msgstr "Rozložený pohled"
 
 msgid "Unassembled"
-msgstr ""
+msgstr "Nesestaveno"
 
 msgid "Assembly Step"
-msgstr ""
+msgstr "Krok sestavení"
 
 msgid "Start frame"
-msgstr ""
+msgstr "Počáteční snímek"
 
 msgid "End frame"
-msgstr ""
+msgstr "Koncový snímek"
 
 msgid "Transition frame"
-msgstr ""
+msgstr "Přechodový snímek"
 
 msgid "Frame"
-msgstr ""
+msgstr "Snímek"
 
 msgid "step"
-msgstr ""
+msgstr "krok"
 
 msgid "Show Current Step Parts Only"
-msgstr ""
+msgstr "Zobrazit pouze díly aktuálního kroku"
 
 msgid "X-Ray Other Parts"
-msgstr ""
+msgstr "Zobrazit ostatní díly průhledně"
 
 msgid "Play from the current step."
-msgstr ""
+msgstr "Přehrát od aktuálního kroku."
 
 msgid "Play all frames for all steps."
-msgstr ""
+msgstr "Přehrát všechny snímky všech kroků."
 
 msgid "Toggle playback speed."
-msgstr ""
+msgstr "Přepnout rychlost přehrávání."
 
 msgid "Play previous frame."
-msgstr ""
+msgstr "Přehrát předchozí snímek."
 
 msgid "Play next frame."
-msgstr ""
+msgstr "Přehrát následující snímek."
 
 msgid "Display Mode"
-msgstr ""
+msgstr "Režim zobrazení"
 
 msgid "Show world axes"
-msgstr ""
+msgstr "Zobrazit globální souřadnicové osy"
 
 msgid "Show explosion state column"
-msgstr ""
+msgstr "Zobrazit sloupec stavu rozložení sestavy"
 
 msgid "Allow modify text note foreground"
-msgstr ""
+msgstr "Povolit změnu barvy textu poznámky"
 
 msgid "Allow modify text note background"
-msgstr ""
+msgstr "Povolit změnu barvy pozadí poznámky"
 
 msgid "Camera margin factor for the current frame. The larger the value, the more margin."
-msgstr ""
+msgstr "Koeficient velikosti okrajů záběru kamery pro aktuální snímek. Čím vyšší je hodnota, tím větší jsou okraje."
 
 msgid "Modify camera margin"
-msgstr ""
+msgstr "Upravit okraje záběru kamery"
 
 msgid "Edit step name"
-msgstr ""
+msgstr "Upravit název kroku"
 
 msgid "Insert step before"
-msgstr ""
+msgstr "Vložit krok před aktuální"
 
 msgid "Insert step after"
-msgstr ""
+msgstr "Vložit krok za aktuální"
 
 msgid "Expand"
-msgstr ""
+msgstr "Rozbalit"
 
 msgid "Collapse"
 msgstr "Sbalit"
@@ -3994,266 +4001,267 @@ msgid "Options"
 msgstr "Možnosti"
 
 msgid "Delete all assembly steps"
-msgstr ""
+msgstr "Odstranit všechny kroky sestavy"
 
 msgid "There’s no step to delete"
-msgstr ""
+msgstr "Není k dispozici žádný krok k odstranění"
 
 msgid "Go to Wiki"
 msgstr "Přejít na Wiki"
 
 msgid "Inherit the state of Step"
-msgstr ""
+msgstr "Převzít stav kroku"
 
 msgid "Assembled parts are not exploded"
-msgstr ""
+msgstr "Sestavené díly se nerozkládají"
 
 msgid "Copy and inherit this step"
-msgstr ""
+msgstr "Zkopírovat tento krok a převzít jeho stav"
 
 msgid "Add objects to this step before copying"
-msgstr ""
+msgstr "Před kopírováním přidejte do tohoto kroku objekty"
 
 msgid "Delete current step"
-msgstr ""
+msgstr "Odstranit aktuální krok"
 
 msgid "Add some objects to current step"
-msgstr ""
+msgstr "Přidejte objekty do aktuálního kroku"
 
 #, boost-format
 msgid "No more than %1% steps are allowed."
-msgstr ""
+msgstr "Maximální povolený počet kroků je %1%."
 
 msgid "Add Step"
-msgstr ""
+msgstr "Přidat krok"
 
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
-msgstr ""
+msgstr "Přidává pouze prázdné kroky bez ohledu na vybrané objekty v pracovní ploše."
 
 msgid "Merge and add steps."
-msgstr ""
+msgstr "Sloučit a přidat kroky."
 
 msgid "Click to exit assembly step editing, or press Esc."
-msgstr ""
+msgstr "Kliknutím nebo stisknutím klávesy Esc ukončíte úpravy kroků sestavy."
 
 msgid "Not"
-msgstr ""
+msgstr "Ne"
+
 
 msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
-msgstr ""
+msgstr "Nejprve klikněte na Potvrdit. Tento ovládací prvek bude dostupný po vytvoření popisků v pracovní ploše."
 
 msgid "Click to add Cyber Brick"
-msgstr ""
+msgstr "Kliknutím přidáte Cyber Brick"
 
 msgid "Delete this keyframe"
-msgstr ""
+msgstr "Odstranit tento klíčový snímek"
 
 msgid "Export PDF"
-msgstr ""
+msgstr "Exportovat PDF"
 
 msgid "Export Markdown"
-msgstr ""
+msgstr "Exportovat Markdown"
 
 msgid "Export MP4"
-msgstr ""
+msgstr "Exportovat MP4"
 
 msgid "Set export file parameters"
-msgstr ""
+msgstr "Nastavit parametry exportovaného souboru"
 
 msgid "After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF."
-msgstr ""
+msgstr "Po exportu dokumentu Markdown jej můžete upravit v aplikaci třetí strany, například Zettlr, a následně exportovat do PDF."
 
 msgid "Auto recommend"
-msgstr ""
+msgstr "Automatické doporučení"
 
 msgid "Model objects only"
-msgstr ""
+msgstr "Pouze objekty modelu"
 
 msgid "Model parts only"
-msgstr ""
+msgstr "Pouze díly modelu"
 
 msgid "Automatically choose object-or-part-level labels: objects already shown in earlier steps are collapsed into a single object label, while the rest are labeled per individual part."
-msgstr ""
+msgstr "Automaticky vybere popisky objektů nebo jednotlivých dílů. Objekty zobrazené v předchozích krocích jsou označeny jedním společným popiskem objektu, zatímco ostatní mají samostatné popisky jednotlivých dílů."
 
 msgid "Show one label per model object."
-msgstr ""
+msgstr "Zobrazit jeden popisek pro každý objekt modelu."
 
 msgid "Show one label per model part."
-msgstr ""
+msgstr "Zobrazit jeden popisek pro každý díl modelu."
 
 msgid "Label settings"
-msgstr ""
+msgstr "Nastavení popisků"
 
 msgid "Reset all closed labels"
-msgstr ""
+msgstr "Obnovit všechny skryté popisky"
 
 msgid "Show Object/Part labels"
-msgstr ""
+msgstr "Zobrazit popisky objektů a dílů"
 
 msgid "Show object and part names  on models"
-msgstr ""
+msgstr "Zobrazit názvy objektů a dílů na modelech"
 
 msgid "Automatically select the optimal camera perspective and auto-arrange auto recommend labels each time the checkbox is re-ticked."
-msgstr ""
+msgstr "Při každém opětovném zaškrtnutí automaticky vybere optimální úhel pohledu kamery a uspořádá automaticky doporučené popisky."
 
 msgid "Auto layout"
-msgstr ""
+msgstr "Automatické rozložení"
 
 msgid "Auto-arrange labels in current view"
-msgstr ""
+msgstr "Automaticky uspořádat popisky v aktuálním pohledu"
 
 msgid "Current view labels"
-msgstr ""
+msgstr "Popisky aktuálního pohledu"
 
 msgid "Label Settings"
-msgstr ""
+msgstr "Nastavení popisků"
 
 msgid "Font size"
-msgstr ""
+msgstr "Velikost písma"
 
 msgid "Display mode"
-msgstr ""
+msgstr "Režim zobrazení"
 
 msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
-msgstr ""
+msgstr "Automaticky vybere popisky objektů nebo jednotlivých dílů. Kompletní objekt zobrazený již v předchozích krocích je označen jedním společným popiskem. Neúplné objekty a objekty zobrazené poprvé mají samostatné popisky jednotlivých dílů."
 
 msgid "Please create an assembly step before exporting."
-msgstr ""
+msgstr "Před exportem vytvořte krok sestavení."
 
 msgid "Export assembly guide PDF, Markdown or MP4"
-msgstr ""
+msgstr "Exportovat průvodce sestavou do formátu PDF, Markdown nebo MP4"
 
 msgid "Screw"
-msgstr ""
+msgstr "Šroub"
 
 msgid "Connection Type"
-msgstr ""
+msgstr "Typ spojení"
 
 msgid "Clip"
-msgstr ""
+msgstr "Spona"
 
 msgid "Glue"
-msgstr ""
+msgstr "Lepidlo"
 
 msgid "Add Clip"
-msgstr ""
+msgstr "Přidat sponu"
 
 msgid "Add Glue"
-msgstr ""
+msgstr "Přidat lepidlo"
 
 msgid "Add Screw"
-msgstr ""
+msgstr "Přidat šroub"
 
 msgid "Add Notes"
-msgstr ""
+msgstr "Přidat poznámky"
 
 msgid "Add Rectangle"
-msgstr ""
+msgstr "Přidat obdélník"
 
 msgid "Add Circle"
-msgstr ""
+msgstr "Přidat kruh"
 
 msgid "Add Arrow"
-msgstr ""
+msgstr "Přidat šipku"
 
 msgid "Add Text"
-msgstr ""
+msgstr "Přidat text"
 
 msgid "Text"
 msgstr "Text"
 
 msgid "Background"
-msgstr ""
+msgstr "Pozadí"
 
 msgid "Timeline"
-msgstr ""
+msgstr "Časová osa"
 
 msgid "Play all frames for current step"
-msgstr ""
+msgstr "Přehrát všechny snímky aktuálního kroku"
 
 msgid "At least two keyframes are required to play."
-msgstr ""
+msgstr "Pro přehrávání jsou vyžadovány alespoň dva klíčové snímky."
 
 msgid "Add the selected object or part to the current step first"
-msgstr ""
+msgstr "Nejprve přidejte vybraný objekt nebo díl do aktuálního kroku"
 
 msgid "Add a new object to the current step first"
-msgstr ""
+msgstr "Nejprve přidejte nový objekt do aktuálního kroku"
 
 msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
-msgstr ""
+msgstr "Použít konečnou polohu sestavy na aktuálně vybraný objekt nebo díl (pokud není nic vybráno, použije se na všechny objekty přidané v aktuálním snímku)"
 
 msgid "Automatically explode objects that are new to this step. Objects already assembled in earlier steps stay together."
-msgstr ""
+msgstr "Automaticky rozloží objekty nově přidané v tomto kroku. Objekty sestavené v předchozích krocích zůstanou pohromadě."
 
 msgid "Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole."
-msgstr ""
+msgstr "Automaticky rozloží nové díly. Objekty převzaté nebo sestavené v předchozích krocích zůstanou pohromadě jako jeden celek."
 
 msgid "Apply current camera angle to all frames of the current step"
-msgstr ""
+msgstr "Použít aktuální úhel pohledu kamery na všechny snímky aktuálního kroku"
 
 msgid "Add keyframe"
-msgstr ""
+msgstr "Přidat klíčový snímek"
 
 msgid "Click to select this frame"
-msgstr ""
+msgstr "Kliknutím vyberete tento snímek"
 
 msgid "Save update"
-msgstr ""
+msgstr "Uložit změny"
 
 msgid "Save current frame"
-msgstr ""
+msgstr "Uložit aktuální snímek"
 
 msgid "Assembly tree"
-msgstr ""
+msgstr "Strom sestavy"
 
 msgid "Search"
 msgstr "Hledat"
 
 msgid "Expand all objects"
-msgstr ""
+msgstr "Rozbalit všechny objekty"
 
 msgid "Collapse all objects"
-msgstr ""
+msgstr "Sbalit všechny objekty"
 
 msgid "List"
-msgstr ""
+msgstr "Seznam"
 
 msgid "Assembly list"
-msgstr ""
+msgstr "Seznam sestavy"
 
 msgid "Show all objects"
-msgstr ""
+msgstr "Zobrazit všechny objekty"
 
 msgid "Show unassembled only"
-msgstr ""
+msgstr "Zobrazit pouze nesestavené objekty"
 
 msgid "Object name"
 msgstr "Název objektu"
 
 msgid "Select all parts in a step"
-msgstr ""
+msgstr "Vybrat všechny díly v kroku"
 
 msgid "Red"
-msgstr ""
+msgstr "Červená"
 
 msgid "Orange"
-msgstr ""
+msgstr "Oranžová"
 
 msgid "Green"
-msgstr ""
+msgstr "Zelená"
 
 msgid "Blue"
-msgstr ""
+msgstr "Modrá"
 
 msgid "Black"
-msgstr ""
+msgstr "Černá"
 
 msgid "Grey"
-msgstr ""
+msgstr "Šedá"
 
 msgid "White"
-msgstr ""
+msgstr "Bílá"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
