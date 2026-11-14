@@ -289,7 +289,7 @@ void MsgDialog::SetButtonLabel(wxWindowID btn_id, const wxString& label, bool se
     }
 }
 
-Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, const wxString& label/* = wxString()*/)
+Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, const wxString& label/* = wxString()*/, bool end_modal /*= true*/)
 {
     Button* btn = new Button(this, label, "", 0, 0, btn_id);
     ButtonSizeType type;
@@ -347,7 +347,8 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
     if (set_focus)
         btn->SetFocus();
     btn_sizer->Add(btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_SPACING);
-    btn->Bind(wxEVT_BUTTON, [this, btn_id](wxCommandEvent&) { EndModal(btn_id); });
+    if (end_modal)
+        btn->Bind(wxEVT_BUTTON, [this, btn_id](wxCommandEvent&) { EndModal(btn_id); });
 
     MsgButton *mb = new MsgButton;
     ButtonData *bd = new ButtonData;
@@ -534,6 +535,14 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &temp_msg, bool monosp
 
     // Use a small bitmap with monospaced font, as the error text will not be wrapped.
     logo->SetBitmap(create_scaled_bitmap("BambuStudio_192px_grayscale.png", this, monospaced_font ? 48 : /*1*/84));
+
+    Button* copy_btn = add_button(wxID_COPY, false, _L("Copy"), false);
+    copy_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        if (wxTheClipboard->Open()) {
+            wxTheClipboard->SetData(new wxTextDataObject(msg));
+            wxTheClipboard->Close();
+        }
+    });
 
     SetMaxSize(MSG_DLG_MAX_SIZE);
 
