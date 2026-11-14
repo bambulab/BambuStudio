@@ -278,6 +278,21 @@ private:
     WipingExtrusions m_wiping_extrusions;
 };
 
+// Orders a layer's filaments so that each mixed filament's components print in their group order, keeping
+// the given order otherwise (Kahn's sort by original position). An order that already satisfies the
+// groups comes back unchanged, so running it twice gives the same result as once.
+std::vector<unsigned int> mixed_component_order(const std::vector<unsigned int>                   &extruders,
+                                                const std::vector<LayerTools::MixedSubLayerGroup> &groups);
+// The option is set and the printer is one the look-ahead acts on: a single extruder whose several
+// hotends are each a tool (is_single_ext_multi_nozzle, tool changers such as the H3C). The settings
+// page shows the option only for these printers.
+bool tool_order_lookahead_requested(const PrintConfig &config);
+// Look-ahead request for a print. Layers with mixed-filament sub-layers (mixed_layers) get their final
+// order (enforce_mixed_component_order) before the look-ahead and are then kept as they are.
+// Change costs are each filament's tower prime (into) and ramming (out of), or empty (all changes
+// equal) without a tower.
+ToolOrderLookahead make_tool_order_lookahead(const PrintConfig &config, bool has_wipe_tower, const std::vector<size_t> &mixed_layers);
+
 class ToolOrdering
 {
 public:
@@ -384,6 +399,7 @@ public:
         std::function<bool(int,std::vector<int>&)> get_custom_seq;
         bool support_multi_nozzle;
         bool support_dynamic_map;
+        ToolOrderLookahead lookahead; // look-ahead tool ordering request for this print
     };
 
     LayerData collect_layer_and_unprintable_data();
@@ -420,6 +436,8 @@ public:
     void set_nozzle_status(const MultiNozzleUtils::NozzleStatusRecorder& status) { m_initial_nozzle_status = status; m_nozzle_status = status; }
 
 private:
+    // Look-ahead request for this print.
+    ToolOrderLookahead tool_order_lookahead(const PrintConfig &print_config) const;
     void                calc_most_used_extruder(const PrintConfig &config);
     void				initialize_layers(std::vector<coordf_t> &zs);
     void 				collect_extruders(const PrintObject &object, const std::vector<std::pair<double, unsigned int>> &per_layer_extruder_switches);

@@ -1,8 +1,10 @@
 #include "ToolOrderUtils.hpp"
+#include <algorithm>
 #include <queue>
 #include <set>
 #include <map>
 #include <cmath>
+#include <optional>
 #include <boost/multiprecision/cpp_int.hpp>
 
 namespace Slic3r
@@ -1747,4 +1749,281 @@ namespace Slic3r
         return cost;
     }
 
+    bool tool_order_lookahead_applies(const MultiNozzleUtils::LayeredNozzleGroupResult &nozzle_group_result,
+                                      const std::vector<std::vector<unsigned int>>     &layer_filaments)
+    {
+        // Only where every tool change is one prime, i.e. one extruder whose nozzles each hold a single
+        // used filament for the whole print (tool changers such as the H3C).
+        std::set<unsigned int> used;
+        for (const auto &layer : layer_filaments)
+            used.insert(layer.begin(), layer.end());
+        bool          one_filament_per_nozzle = !nozzle_group_result.is_support_dynamic_nozzle_map();
+        std::set<int> nozzles, used_extruders;
+        for (unsigned int filament : used) {
+            if (!one_filament_per_nozzle)
+                break;
+            auto nozzle = nozzle_group_result.get_nozzle_for_filament(filament, -1);
+            one_filament_per_nozzle = nozzle && nozzles.insert(nozzle->group_id).second;
+            if (nozzle)
+                used_extruders.insert(nozzle->extruder_id);
+        }
+        return one_filament_per_nozzle && used_extruders.size() == 1;
+    }
+
+    ToolOrderLookaheadResult apply_tool_order_lookahead(std::vector<std::vector<unsigned int>>            &filament_sequences,
+                                                        const MultiNozzleUtils::LayeredNozzleGroupResult  &nozzle_group_result,
+                                                        const std::vector<std::vector<unsigned int>>      &layer_filaments,
+                                                        const std::function<bool(int, std::vector<int> &)> &get_custom_seq,
+                                                        const ToolOrderLookahead                          &lookahead)
+    {
+        if (!lookahead.enabled)
+            return ToolOrderLookaheadResult::Off;
+        if (!tool_order_lookahead_applies(nozzle_group_result, layer_filaments))
+            return ToolOrderLookaheadResult::NotApplicable;
+        // Layers with a user-defined sequence are printed as the user set them.
+        std::unordered_set<size_t> fixed_layers(lookahead.fixed_layers.begin(), lookahead.fixed_layers.end());
+        for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {
+            std::vector<int> custom_seq;
+            if (get_custom_seq && get_custom_seq(int(layer), custom_seq) && !custom_seq.empty())
+                fixed_layers.insert(layer);
+        }
+        return reorder_layers_with_lookahead(filament_sequences, fixed_layers, lookahead.costs, lookahead.priority) ?
+                   ToolOrderLookaheadResult::Reordered :
+                   ToolOrderLookaheadResult::Unchanged;
+    }
+
+    using ChangesAndCost = std::pair<size_t, double>;
+
+    // Adds the changes along one layer's tools, starting after `prev` (no tool before it if empty).
+    static void add_changes(const std::vector<unsigned int> &sequence, const ToolChangeCosts &costs, std::optional<unsigned int> &prev, ChangesAndCost &total)
+    {
+        for (unsigned int tool : sequence) {
+            if (prev && *prev != tool) {
+                ++total.first;
+                total.second += costs.change(*prev, tool);
+            }
+            prev = tool;
+        }
+    }
+
+    // Changes and their cost when the layers are printed in the given order.
+    static ChangesAndCost changes_and_cost(const std::vector<std::vector<unsigned int>> &layer_sequences, const ToolChangeCosts &costs)
+    {
+        ChangesAndCost              total{0, 0.};
+        std::optional<unsigned int> prev;
+        for (const auto &sequence : layer_sequences)
+            add_changes(sequence, costs, prev, total);
+        return total;
+    }
+
+    // Costs rounded to a multiple of 1/1024 mm3: sums and differences of such values are exact in a
+    // double, so equal totals compare equal and the search's comparisons are a strict weak order.
+    static ToolChangeCosts exact_costs(const ToolChangeCosts &costs)
+    {
+        auto round = [](std::vector<double> values) {
+            for (double &v : values)
+                v = std::round(v * 1024.) / 1024.;
+            return values;
+        };
+        return {round(costs.into), round(costs.out_of)};
+    }
+
+    double ToolChangeCosts::change(unsigned int from, unsigned int to) const { return into_tool(to) + out_of_tool(from); }
+
+    double ToolChangeCosts::into_tool(unsigned int tool) const
+    {
+        // Every change costs 1 when no costs are given. A tool beyond the list costs like the first one,
+        // as ConfigOptionVector::get_at reads a per-filament setting.
+        return into.empty() ? 1. : into[tool < into.size() ? tool : 0];
+    }
+
+    double ToolChangeCosts::out_of_tool(unsigned int tool) const { return out_of.empty() ? 0. : out_of[tool < out_of.size() ? tool : 0]; }
+
+    bool reorder_layers_with_lookahead(std::vector<std::vector<unsigned int>> &layer_sequences,
+                                                const std::unordered_set<size_t>              &fixed_layers,
+                                                const ToolChangeCosts                         &given_costs,
+                                                ToolOrderPriority                              priority)
+    {
+        const ToolChangeCosts costs = exact_costs(given_costs);
+
+        auto contains = [](const std::vector<unsigned int> &sequence, unsigned int tool) {
+            return std::find(sequence.begin(), sequence.end(), tool) != sequence.end();
+        };
+        auto has_repeated_tool = [](const std::vector<unsigned int> &sequence) {
+            for (auto it = sequence.begin(); it != sequence.end(); ++it)
+                if (std::find(sequence.begin(), it, *it) != it)
+                    return true;
+            return false;
+        };
+
+        // Only layers that print something take part. A layer that visits a tool more than once is
+        // not a plain "one visit per tool" sequence; it is kept exactly as it is, like a fixed layer.
+        std::vector<size_t>         active;
+        std::vector<bool>           keep;
+        std::vector<ChangesAndCost> kept_score; // changes and cost inside a kept layer
+        for (size_t layer = 0; layer < layer_sequences.size(); ++layer) {
+            const auto &sequence = layer_sequences[layer];
+            if (sequence.empty())
+                continue;
+            active.emplace_back(layer);
+            keep.emplace_back(fixed_layers.count(layer) > 0 || has_repeated_tool(sequence));
+            ChangesAndCost              inside{0, 0.};
+            std::optional<unsigned int> none;
+            if (keep.back())
+                add_changes(sequence, costs, none, inside);
+            kept_score.emplace_back(inside);
+        }
+        if (active.empty())
+            return false;
+
+        const ChangesAndCost before = changes_and_cost(layer_sequences, costs);
+
+        // Dynamic programming over the layers, keyed by each layer's last tool. Within a layer every tool
+        // but the first is changed into and every tool but the last is changed out of; the first tool is
+        // changed into, and the previous layer's last tool out of, only when the two differ. So the only
+        // freedom is each layer's first and last tool. The first layer keeps its first tool: it follows
+        // the start G-code. States are ordered by the number of changes and the cost (which one first:
+        // changes_first), then by how far the first/last tools moved from the original order, so an
+        // equally good original stays as it is.
+        auto solve = [&](bool changes_first) {
+            struct State
+            {
+                double                      cost;
+                size_t                      changes;
+                size_t                      deviation;
+                unsigned int                start;
+                std::optional<unsigned int> prev_end;
+            };
+            auto better = [changes_first](const State &a, const State &b) {
+                const int by_changes = a.changes < b.changes ? -1 : a.changes > b.changes ? 1 : 0;
+                const int by_cost    = a.cost < b.cost ? -1 : a.cost > b.cost ? 1 : 0;
+                const int first      = changes_first ? by_changes : by_cost;
+                const int second     = changes_first ? by_cost : by_changes;
+                if (first != 0)
+                    return first < 0;
+                if (second != 0)
+                    return second < 0;
+                return a.deviation < b.deviation;
+            };
+            auto relax = [&better](std::map<unsigned int, State> &states, unsigned int end, const State &candidate) {
+                auto it = states.find(end);
+                if (it == states.end() || better(candidate, it->second))
+                    states[end] = candidate;
+            };
+
+            std::vector<std::map<unsigned int, State>> states(active.size());
+            for (size_t i = 0; i < active.size(); ++i) {
+                const auto  &sequence = layer_sequences[active[i]];
+                const size_t k        = sequence.size();
+                double       all_into = 0., all_out = 0.;
+                for (unsigned int tool : sequence) {
+                    all_into += costs.into_tool(tool);
+                    all_out += costs.out_of_tool(tool);
+                }
+                // Inside the layer: every tool but `start` is changed into, every tool but `end` out of.
+                auto inside = [&](unsigned int start, unsigned int end) {
+                    return k == 1 ? 0. : (all_into - costs.into_tool(start)) + (all_out - costs.out_of_tool(end));
+                };
+                // A kept layer prints as it is: its own changes are fixed, only its boundary may vary.
+                const auto &kept = kept_score[i];
+
+                if (i == 0) {
+                    for (unsigned int end : sequence) {
+                        if ((keep[i] || k == 1) ? end != sequence.back() : end == sequence.front())
+                            continue;
+                        relax(states[i], end,
+                              {keep[i] ? kept.second : inside(sequence.front(), end), keep[i] ? kept.first : k - 1,
+                               size_t(end != sequence.back()), sequence.front(), std::nullopt});
+                    }
+                    continue;
+                }
+
+                for (const auto &[prev_end, prev] : states[i - 1]) {
+                    if (keep[i]) {
+                        const bool change = prev_end != sequence.front();
+                        relax(states[i], sequence.back(),
+                              {prev.cost + kept.second + (change ? costs.change(prev_end, sequence.front()) : 0.),
+                               prev.changes + kept.first + size_t(change), prev.deviation, sequence.front(), prev_end});
+                        continue;
+                    }
+                    for (unsigned int end : sequence) {
+                        unsigned int start;
+                        if (k == 1)
+                            start = end;
+                        else if (prev_end != end && contains(sequence, prev_end))
+                            start = prev_end;
+                        else
+                            // A change at the boundary cannot be avoided; keep the original first tool if possible.
+                            start = sequence.front() != end ? sequence.front() : sequence[1];
+                        const bool change = prev_end != start;
+                        relax(states[i], end,
+                              {prev.cost + inside(start, end) + (change ? costs.change(prev_end, start) : 0.),
+                               prev.changes + (k - 1) + size_t(change),
+                               prev.deviation + size_t(start != sequence.front()) + size_t(end != sequence.back()), start, prev_end});
+                    }
+                }
+            }
+
+            // Walk back from the best final state to recover each layer's first and last tool.
+            auto best = states.back().begin();
+            for (auto it = states.back().begin(); it != states.back().end(); ++it)
+                if (better(it->second, best->second))
+                    best = it;
+
+            std::vector<std::vector<unsigned int>> reordered = layer_sequences;
+            unsigned int                           end       = best->first;
+            for (size_t i = active.size(); i-- > 0;) {
+                const State &state    = states[i].at(end);
+                const auto  &sequence = layer_sequences[active[i]];
+                if (!keep[i] && sequence.size() > 1) {
+                    std::vector<unsigned int> &out = reordered[active[i]];
+                    out.clear();
+                    out.emplace_back(state.start);
+                    for (unsigned int tool : sequence)
+                        if (tool != state.start && tool != end)
+                            out.emplace_back(tool);
+                    out.emplace_back(end);
+                }
+                if (state.prev_end)
+                    end = *state.prev_end;
+            }
+            return reordered;
+        };
+
+        // Every change costs the same (no costs, or one prime and one ramming for all): cost is then a fixed
+        // multiple of the changes, both measures pick the same order, and one pass is enough.
+        auto all_equal = [](const std::vector<double> &values) {
+            return std::all_of(values.begin(), values.end(), [&](double v) { return v == values.front(); });
+        };
+        const bool uniform_costs = all_equal(costs.into) && all_equal(costs.out_of);
+        auto       apply         = [&](std::vector<std::vector<unsigned int>> &&reordered) {
+            layer_sequences = std::move(reordered);
+            return true;
+        };
+
+        // Fewest changes / least waste: the best order by that measure (the other one breaking ties)
+        // replaces the original when it beats it.
+        if (priority != ToolOrderPriority::Balanced) {
+            const bool changes_first = priority == ToolOrderPriority::FewestChanges;
+            auto       reordered     = solve(changes_first || uniform_costs);
+            const auto after         = changes_and_cost(reordered, costs);
+            const bool by_changes    = after.first < before.first || (after.first == before.first && after.second < before.second);
+            const bool by_cost       = after.second < before.second || (after.second == before.second && after.first < before.first);
+            return (changes_first ? by_changes : by_cost) && apply(std::move(reordered));
+        }
+
+        // Balanced: only an order that is no worse in changes and cost, and better in one. The order with
+        // the fewest changes is tried first; if it costs more, the cheapest order is tried.
+        for (bool changes_first : {true, false}) {
+            if (!changes_first && uniform_costs)
+                break;
+            auto       reordered = solve(changes_first);
+            const auto after     = changes_and_cost(reordered, costs);
+            const bool no_worse  = after.first <= before.first && after.second <= before.second;
+            const bool better    = after.first < before.first || after.second < before.second;
+            if (no_worse && better)
+                return apply(std::move(reordered));
+        }
+        return false;
+    }
 }

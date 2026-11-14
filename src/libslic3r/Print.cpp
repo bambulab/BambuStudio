@@ -368,6 +368,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "filament_adhesiveness_category"
             //|| opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_no_sparse_layers"
+            || opt_key == "tool_order_lookahead"
             || opt_key == "flush_volumes_matrix"
             || opt_key == "filament_prime_volume"
             || opt_key == "filament_prime_volume_nc"
@@ -3652,6 +3653,20 @@ bool Print::support_material_on_wipe_tower() const
 }
 
 // Wipe tower support.
+std::pair<double, double> Print::tower_prime_volumes(const PrintConfig &config, unsigned int filament_id)
+{
+    // special primte volume settings for H2C
+    if (config.prime_volume_mode == PrimeVolumeMode::pvmSaving)
+        return {15., 15.};
+    return {config.filament_prime_volume.get_at(filament_id), config.filament_prime_volume_nc.get_at(filament_id)};
+}
+
+double Print::tower_ramming_volume(const PrintConfig &config, unsigned int filament_id)
+{
+    const double diameter = config.filament_diameter.get_at(filament_id);
+    return config.filament_change_length.get_at(filament_id) * M_PI * diameter * diameter / 4.;
+}
+
 bool Print::has_wipe_tower() const
 {
     if (m_config.enable_prime_tower.value == true) {
@@ -3702,11 +3717,9 @@ const WipeTowerData& Print::wipe_tower_data(size_t filaments_cnt) const
 
 
     if (! is_step_done(psWipeTower) && filaments_cnt !=0) {
-        std::vector<double> filament_wipe_volume = m_config.filament_prime_volume.values;
-        if (m_config.prime_volume_mode == pvmSaving) {
-            for (auto& v : filament_wipe_volume)
-                v = 15.f;
-        }
+        std::vector<double> filament_wipe_volume;
+        for (unsigned int filament = 0; filament < m_config.filament_prime_volume.values.size(); ++filament)
+            filament_wipe_volume.emplace_back(tower_prime_volumes(m_config, filament).first);
         double wipe_volume = get_max_element(filament_wipe_volume);
         int filament_depth_count = m_config.nozzle_diameter.values.size() == 2 ? filaments_cnt : filaments_cnt - 1;
         if (filaments_cnt == 1 && enable_timelapse_print()) filament_depth_count = 1;
@@ -4313,15 +4326,9 @@ void Print::_make_wipe_tower()
                 float grab_purge_volume = m_config.grab_length.get_at(extruder_id) * float(M_PI / 4. * filament_diam * filament_diam);
                 volume_to_purge = std::max(0.f, volume_to_purge - grab_purge_volume);
 
-                float wipe_volume_ec = m_config.filament_prime_volume.values[filament_id];
-                float wipe_volume_nc = m_config.filament_prime_volume_nc.values[filament_id];
-                // special primte volume settings for H2C
-                if(m_config.prime_volume_mode == PrimeVolumeMode::pvmSaving){
-                    wipe_volume_ec = 15.f;
-                    wipe_volume_nc = 15.f;
-                }
+                const auto [wipe_volume_ec, wipe_volume_nc] = tower_prime_volumes(m_config, filament_id);
                 wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, old_filament_id, filament_id,
-                                           wipe_volume_ec, wipe_volume_nc, volume_to_purge);
+                                           float(wipe_volume_ec), float(wipe_volume_nc), volume_to_purge);
                 old_filament_id = filament_id;
 
                 nozzle_recorder.set_nozzle_status(nozzle_id, filament_id);

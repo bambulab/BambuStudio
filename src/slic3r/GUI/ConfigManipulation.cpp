@@ -1087,9 +1087,12 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     {
         // The prime-tower feedrate factor and tail slowdown only apply to single-extruder
         // multi-nozzle machines (N1x, handle_hotend_as_extruder), so hide them on other printers.
-        bool handle_hotend_as_extruder = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_bool("handle_hotend_as_extruder");
+        const auto &printer_config            = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+        bool        handle_hotend_as_extruder = printer_config.opt_bool("handle_hotend_as_extruder");
         for (auto el : {"prime_tower_feedrate_factor", "prime_tower_tail_speed_factor", "prime_tower_tail_slowdown_volume"})
             toggle_line(el, have_prime_tower && handle_hotend_as_extruder);
+        // Look-ahead tool ordering: tool changers such as the H3C, with or without a prime tower.
+        toggle_line("tool_order_lookahead", is_single_ext_multi_nozzle(printer_config));
     }
 
     {
