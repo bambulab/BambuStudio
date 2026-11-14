@@ -1,0 +1,15 @@
+{
+    "type": "filament",
+    "filament_id": "GFN04",
+    "setting_id": "GFSN04_Qidi_29",
+    "name": "QIDI UltraPA-CF25 @Qidi X-Plus 4 0.4 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI UltraPA-CF25 @Qidi",
+    "pressure_advance": [
+        "0.026"
+    ],
+    "compatible_printers": [
+        "Qidi X-Plus 4 0.4 nozzle"
+    ]
+}

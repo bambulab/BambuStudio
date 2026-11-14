@@ -1,0 +1,27 @@
+{
+    "type": "filament",
+    "filament_id": "GFB00",
+    "setting_id": "GFSB00_Qidi_98",
+    "name": "Overture ABS @Qidi X-Plus 4 0.8 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Overture ABS @Qidi",
+    "hot_plate_temp_initial_layer": [
+        "90"
+    ],
+    "nozzle_temperature": [
+        "255"
+    ],
+    "pressure_advance": [
+        "0.01"
+    ],
+    "slow_down_min_speed": [
+        "10"
+    ],
+    "during_print_exhaust_fan_speed":[
+         "0"
+    ],
+    "compatible_printers": [
+        "Qidi X-Plus 4 0.8 nozzle"
+	]
+}
