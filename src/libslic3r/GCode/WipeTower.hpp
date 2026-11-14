@@ -24,6 +24,10 @@ enum GCodeFlavor : unsigned char;
 class WipeTower
 {
 public:
+    // The prime the tower always keeps for a change when the rest of it is printed elsewhere (prime into
+    // infill), so the change's block keeps a wipe line.
+    static constexpr float kMinTowerPrime = 1.f;
+
     friend class WipeTowerWriter;
     static const std::string never_skip_tag() { return "_GCODE_WIPE_TOWER_NEVER_SKIP_TAG"; }
 
@@ -207,7 +211,13 @@ public:
     void set_shared_print_bed(const Polygons &bed) { m_shared_print_bed = bed; }
 	// Appends into internal structure m_plan containing info about the future wipe tower
 	// to be used before building begins. The entries must be added ordered in z.
-    void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, float wipe_volume_ec = 0.f, float wipe_volume_nc = 0.f, float prime_volume = 0.f);
+    // primed_elsewhere: prime volume already printed into infill right after the change (prime into infill);
+    // the tower primes the rest of the volume it picks, but keeps a minimum.
+    void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, float wipe_volume_ec = 0.f, float wipe_volume_nc = 0.f, float prime_volume = 0.f, float primed_elsewhere = 0.f);
+    // Prime into infill: how much of the prime plan_toolchange would give the change old_tool -> new_tool on the
+    // current plan layer may be printed elsewhere instead. Only a change that swaps the nozzle (the tower still
+    // rams the old one there); the tower keeps kMinTowerPrime.
+    float prime_volume_movable(unsigned int old_tool, unsigned int new_tool, float wipe_volume_ec, float wipe_volume_nc) const;
 
 
 	// Iterates through prepared m_plan, generates ToolChangeResults and appends them to "result"
@@ -654,6 +664,8 @@ public:
     bool               is_need_ramming(int filament_id_1, int filament_id_2, int layer_id) const;
     bool               is_same_extruder(int filament_id_1, int filament_id_2, int layer_id) const;
     bool               is_same_nozzle(int filament_id_1, int filament_id_2, int layer_id) const;
+    // The prime plan_toolchange gives the change old_tool -> new_tool on plan layer layer_id.
+    float              prime_volume_for(unsigned int old_tool, unsigned int new_tool, int layer_id, float wipe_volume_ec, float wipe_volume_nc) const;
     int                get_nozzle_id(int filament_id, int layer_id) const;
     int                get_extruder_id(int filament_id, int layer_id) const;
 
