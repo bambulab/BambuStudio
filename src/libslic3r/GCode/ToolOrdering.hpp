@@ -46,6 +46,9 @@ public:
     // This function goes through all infill entities, decides which ones will be used for wiping and
     // marks them by the extruder id. Returns volume that remains to be wiped on the wipe tower:
     float mark_wiping_extrusions(const Print& print, unsigned int old_extruder, unsigned int new_extruder, float volume_to_wipe);
+    // Priming into infill (tool changers): marks sparse infill of objects that allow flushing into their infill
+    // to be printed by new_extruder right after the change, up to volume_to_prime. Returns what is left.
+    float mark_priming_extrusions(const Print& print, unsigned int new_extruder, float volume_to_prime);
 
     void ensure_perimeters_infills_order(const Print& print);
 

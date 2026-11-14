@@ -3901,6 +3901,58 @@ bool WipingExtrusions::is_support_overriddable(const ExtrusionRole role, const P
     return false;
 }
 
+float WipingExtrusions::mark_priming_extrusions(const Print &print, unsigned int new_extruder, float volume_to_prime)
+{
+    const LayerTools  &lt     = *m_layer_tools;
+    const PrintConfig &config = print.config();
+    if (!this->something_overridable || volume_to_prime <= 0.f || config.filament_soluble.get_at(new_extruder) ||
+        config.filament_is_support.get_at(new_extruder))
+        return std::max(0.f, volume_to_prime);
+
+    // Only sparse infill: the start of a freshly picked-up tool may be under-extruded, which sparse infill hides.
+    // Not walls, solid infill or support (interfaces touch the model). Not objects that are flushed into as a
+    // whole either: a later flush on this layer may move their walls to another tool, which would break the
+    // wall/infill order checked below. Only infill of the same filament type, so materials do not mix.
+    const bool is_infill_first = config.is_infill_first;
+    for (const PrintObject *object : print.objects()) {
+        if (!object->config().flush_into_infill || object->config().flush_into_objects)
+            continue;
+        const Layer *layer = object->get_layer_at_printz(lt.print_z, EPSILON);
+        if (layer == nullptr)
+            continue;
+        // The moved infill is printed first in the new tool's turn; it must keep its place relative to the walls:
+        // after them with walls first, before them with infill first.
+        std::vector<char> order_kept;
+        for (const LayerRegion *layerm : layer->regions()) {
+            const unsigned int wall_filament = lt.wall_filament(layerm->region());
+            order_kept.emplace_back(is_infill_first ? (wall_filament == new_extruder || lt.is_extruder_order(new_extruder, wall_filament)) :
+                                                      lt.is_extruder_order(wall_filament, new_extruder));
+        }
+        const size_t num_of_copies = object->instances().size();
+        for (unsigned int copy = 0; copy < num_of_copies; ++copy)
+            for (size_t region_id = 0; region_id < layer->regions().size(); ++region_id) {
+                if (!order_kept[region_id])
+                    continue;
+                const LayerRegion *layerm = layer->regions()[region_id];
+                const auto        &region = layerm->region();
+                for (const ExtrusionEntity *ee : layerm->fills.entities) {
+                    auto *fill = dynamic_cast<const ExtrusionEntityCollection *>(ee);
+                    // is_overriddable: sparse infill of a flush_into_infill object, not of a soluble filament.
+                    if (fill == nullptr || !is_overriddable(*fill, config, *object, region) || is_entity_overridden(fill, object, copy) ||
+                        fill->total_volume() <= 0.)
+                        continue;
+                    const unsigned int fill_filament = lt.extruder(*fill, region);
+                    if (config.filament_is_support.get_at(fill_filament) || config.filament_type.get_at(fill_filament) != config.filament_type.get_at(new_extruder))
+                        continue;
+                    set_extruder_override(fill, object, copy, new_extruder, num_of_copies);
+                    if ((volume_to_prime -= float(fill->total_volume())) <= 0.f)
+                        return 0.f;
+                }
+            }
+    }
+    return volume_to_prime;
+}
+
 // Following function iterates through all extrusions on the layer, remembers those that could be used for wiping after toolchange
 // and returns volume that is left to be wiped on the wipe tower.
 float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int old_extruder, unsigned int new_extruder, float volume_to_wipe)

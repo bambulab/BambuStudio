@@ -543,7 +543,13 @@ extern std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<
 // Effective AMS nozzle slot: the configured ams_nozzle_idx when an AMS is actually present
 // (extruder_ams_count has a non-zero slot), otherwise -1 (treat the machine as all fixed nozzles).
 extern int get_effective_ams_nozzle_idx(const ConfigBase &config);
-extern bool is_single_ext_multi_nozzle(const ConfigBase &config);
+extern bool is_single_ext_multi_nozzle(const ConfigOptionResolver &config);
+// The idle-time prime may apply: a tool changer (is_single_ext_multi_nozzle) with idle_prime_time_constant set.
+extern bool idle_prime_enabled(const ConfigOptionResolver &config);
+// Print options the idle-time prime's print time estimate reads that otherwise only re-export G-code; with the
+// idle-time prime enabled they also re-plan the wipe tower. Its object and region inputs are covered in
+// PrintObject::invalidate_state_by_config_options, and its other inputs already invalidate the tower or more.
+extern bool is_idle_prime_estimate_input(const std::string &opt_key);
 extern std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std::map<int, int>> &extruder_ams_count);
 extern NozzleVolumeType convert_to_nvt_type(const std::string& variant_str);
 extern bool is_nozzle_printable_for_filament(NozzleVolumeType machine_nvt, const std::vector<std::string>& filament_variants, bool variants_are_complete);
@@ -1486,6 +1492,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             filament_start_gcode))
     ((ConfigOptionBool,                single_extruder_multi_material))
     ((ConfigOptionBool,                wipe_tower_no_sparse_layers))
+    ((ConfigOptionBool,                prime_into_infill))
+    ((ConfigOptionFloat,               idle_prime_time_constant))
+    ((ConfigOptionFloat,               idle_prime_min_volume))
     ((ConfigOptionString,              change_filament_gcode))
     ((ConfigOptionFloatsNullable,      travel_speed))
     ((ConfigOptionFloatsNullable,      travel_speed_z))
