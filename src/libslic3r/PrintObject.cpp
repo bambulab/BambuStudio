@@ -327,7 +327,46 @@ std::vector<std::set<int>> PrintObject::detect_extruder_geometric_unprintables()
 
 std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estimated_filament_print_time() const
 {
-    auto                     full_print_config             = this->print()->m_ori_full_print_config;
+    std::unordered_map<int, std::unordered_map<int, double>> filament_print_time;
+    this->estimate_filament_print_time(
+        [&filament_print_time](const Layer &, int filament, int eidx, double time, double, double) { filament_print_time[filament][eidx] += time; },
+        std::nullopt, nullptr);
+    return filament_print_time;
+}
+
+void PrintObject::estimate_layer_filament_print_time(int extruder_id, const LayerEstimateContext &context,
+                                                     const std::function<void(coordf_t, int, const PathTimeSum &)> &add) const
+{
+    // Summed per layer and filament, so add() runs once per layer and filament rather than once per path.
+    const Layer                        *layer = nullptr;
+    std::unordered_map<int, PathTimeSum> layer_sum;
+    auto flush = [&]() {
+        for (const auto &[filament, sum] : layer_sum)
+            add(layer->print_z, filament, sum);
+        layer_sum.clear();
+    };
+    this->estimate_filament_print_time(
+        [&](const Layer &path_layer, int filament, int, double time, double length, double volume) {
+            if (layer != &path_layer) {
+                if (layer != nullptr)
+                    flush();
+                layer = &path_layer;
+            }
+            PathTimeSum &sum = layer_sum[filament];
+            sum.seconds += time;
+            sum.length += length;
+            sum.volume += volume;
+        },
+        extruder_id, &context);
+    if (layer != nullptr)
+        flush();
+}
+
+void PrintObject::estimate_filament_print_time(const std::function<void(const Layer &, int, int, double, double, double)> &add,
+                                               std::optional<int> only_extruder, const LayerEstimateContext *context) const
+{
+    const bool per_layer = context != nullptr;
+    const auto              &full_print_config             = this->print()->m_ori_full_print_config;
     std::vector<std::string> extruder_variant_list         = this->print()->config().printer_extruder_variant.values;
 
     const auto* opt_filament_variant      = full_print_config.option<ConfigOptionStrings>("filament_extruder_variant");
@@ -336,23 +375,27 @@ std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estim
     const auto* opt_filament_flow_ratio   = full_print_config.option<ConfigOptionFloats>("filament_flow_ratio");
     if (!opt_filament_variant || !opt_filament_self_idx || !opt_filament_max_vol_spd || !opt_filament_flow_ratio) {
         BOOST_LOG_TRIVIAL(warning) << "filament_* config option missing, skip estimation";
-        return {};
+        return;
     }
     std::vector<std::string> filament_variant_list         = opt_filament_variant->values;
     std::vector<int>         filament_self_idx             = opt_filament_self_idx->values;
     std::vector<double>      filament_max_volumetric_speed = opt_filament_max_vol_spd->values;
     std::vector<double>      filament_flow_ratio           = opt_filament_flow_ratio->values;
 
+    // Index of a filament's settings for an extruder's variant, looked up once per filament and extruder.
+    std::map<std::pair<int, int>, int> filament_variant_idx;
     auto get_limit_from_volumetric_speed = [&](int filament_idx, int extruder_idx, double width, double height) {
-        std::string extruder_variant = extruder_variant_list[extruder_idx];
-
-        int idx_for_filament = 0;
-        for (size_t idx = 0; idx < filament_self_idx.size(); ++idx) {
-            if (filament_self_idx[idx] - 1 == filament_idx && extruder_variant == filament_variant_list[idx]) {
-                idx_for_filament = idx;
-                break;
+        auto [it, inserted] = filament_variant_idx.try_emplace({filament_idx, extruder_idx}, 0);
+        if (inserted) {
+            const std::string &extruder_variant = extruder_variant_list[extruder_idx];
+            for (size_t idx = 0; idx < filament_self_idx.size(); ++idx) {
+                if (filament_self_idx[idx] - 1 == filament_idx && extruder_variant == filament_variant_list[idx]) {
+                    it->second = int(idx);
+                    break;
+                }
             }
         }
+        const int idx_for_filament = it->second;
 
         double max_volumetric_speed = filament_max_volumetric_speed[idx_for_filament];
         double flow_ratio           = filament_flow_ratio[idx_for_filament];
@@ -385,19 +428,22 @@ std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estim
         return region_config.internal_solid_infill_speed.values[extruder_id];
     };
 
-    std::unordered_map<int, std::unordered_map<int, double>> filament_print_time;
+    // Layer whose paths are being added.
+    const Layer *current_layer = nullptr;
 
     auto process_epath = [&](int filament, int eidx, ExtrusionPath *path, double speed_from_config) {
         double speed_from_filament = get_limit_from_volumetric_speed(filament, eidx, path->width, path->height);
         double speed_applied       = std::min(speed_from_filament, speed_from_config);
-        filament_print_time[filament][eidx] += unscale_(path->length()) / speed_applied;
+        const double length = unscale_(path->length());
+        add(*current_layer, filament, eidx, length / speed_applied, length, length * path->mm3_per_mm);
     };
 
     auto process_eloop = [&](int filament, int eidx, ExtrusionLoop *eloop, double speed_from_config) {
         for (auto &path : eloop->paths) {
             double speed_from_filament = get_limit_from_volumetric_speed(filament, eidx, path.width, path.height);
             double speed_applied       = std::min(speed_from_filament, speed_from_config);
-            filament_print_time[filament][eidx] += unscale_(path.length()) / speed_applied;
+            const double length = unscale_(path.length());
+            add(*current_layer, filament, eidx, length / speed_applied, length, length * path.mm3_per_mm);
         }
     };
 
@@ -405,7 +451,8 @@ std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estim
         for (auto &path : empath->paths) {
             double speed_from_filament = get_limit_from_volumetric_speed(filament, eidx, path.width, path.height);
             double speed_applied       = std::min(speed_from_filament, speed_from_config);
-            filament_print_time[filament][eidx] += unscale_(path.length()) / speed_applied;
+            const double length = unscale_(path.length());
+            add(*current_layer, filament, eidx, length / speed_applied, length, length * path.mm3_per_mm);
         }
     };
 
@@ -427,10 +474,70 @@ std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estim
         }
     };
 
+    // Per layer, every path is timed by its own role (a collection mixing roles, such as an island's walls, reports
+    // erMixed), at the speed G-code picks for it, no faster than its filament's volumetric speed allows.
+    std::function<void(const ExtrusionEntity *, const std::function<void(const ExtrusionPath &)> &)> for_each_leaf_path =
+        [&for_each_leaf_path](const ExtrusionEntity *entity, const std::function<void(const ExtrusionPath &)> &fn) {
+            if (const auto *collection = dynamic_cast<const ExtrusionEntityCollection *>(entity)) {
+                for (const ExtrusionEntity *sub_entity : collection->entities)
+                    for_each_leaf_path(sub_entity, fn);
+            } else if (const auto *path = dynamic_cast<const ExtrusionPath *>(entity)) {
+                fn(*path);
+            } else if (const auto *loop = dynamic_cast<const ExtrusionLoop *>(entity)) {
+                for (const ExtrusionPath &loop_path : loop->paths)
+                    fn(loop_path);
+            } else if (const auto *multi_path = dynamic_cast<const ExtrusionMultiPath *>(entity)) {
+                for (const ExtrusionPath &multi_path_path : multi_path->paths)
+                    fn(multi_path_path);
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << "Unknown extrusion entity type encountered during filament print time estimation.";
+            }
+        };
+    // Bridges and overhangs as G-code (GCode::_extrude) picks their speed; per-variant filament options by the
+    // filament's config index, as G-code reads them.
+    // Looked up once per layer and filament.
+    std::map<std::pair<const Layer *, int>, size_t> filament_config_indices;
+    auto filament_config_index = [&](int filament) -> size_t {
+        auto [it, inserted] = filament_config_indices.try_emplace({current_layer, filament}, 0);
+        if (inserted)
+            it->second = context && context->filament_config_index ? size_t(context->filament_config_index(filament, *current_layer)) :
+                                                                     this->print()->get_filament_config_idx(unsigned(filament));
+        return it->second;
+    };
+    auto bridge_speed = [&](int filament, const PrintRegionConfig &region_config, int eidx) {
+        const PrintConfig &print_config = this->print()->config();
+        if (filament < 0)
+            return region_config.bridge_speed.get_at(eidx);
+        const size_t config_idx = filament_config_index(filament);
+        return print_config.override_process_overhang_speed.get_at(config_idx) ? print_config.filament_bridge_speed.get_at(config_idx) :
+                                                                                  region_config.bridge_speed.get_at(eidx);
+    };
+    auto add_leaf_path = [&](const ExtrusionPath &path, int filament, int eidx, double speed) {
+        // A speed of 0 lets G-code print at the filament's volumetric limit. Without a filament of its own (support),
+        // that limit is applied once the filament is known, from the volume.
+        if (speed <= 0.)
+            speed = std::numeric_limits<double>::infinity();
+        if (filament >= 0) {
+            // As GCode::_extrude(): the filament's max volumetric speed over the path's cross-section.
+            const double max_volumetric_speed = this->print()->config().filament_max_volumetric_speed.get_at(filament_config_index(filament));
+            if (context && context->filament_config_index && max_volumetric_speed > 0. && path.mm3_per_mm > 0.)
+                speed = std::min(speed, max_volumetric_speed / path.mm3_per_mm);
+            else if (!context || !context->filament_config_index)
+                speed = std::min(speed, get_limit_from_volumetric_speed(filament, eidx, path.width, path.height));
+        }
+        if (speed > 0.) {
+            const double length = unscale_(path.length());
+            add(*current_layer, filament, eidx, std::isfinite(speed) ? length / speed : 0., length, length * path.mm3_per_mm);
+        }
+    };
+
     // Iterate through all layers and regions to calculate the print area for each filament.
     int extruder_num = this->print()->config().nozzle_diameter.size();
+    const int first_extruder = only_extruder ? *only_extruder : 0;
+    const int end_extruder   = only_extruder ? std::min(*only_extruder + 1, extruder_num) : extruder_num;
     for (size_t idx = 0; idx < m_layers.size(); ++idx) {
         auto layer = m_layers[idx];
+        current_layer = layer;
 
         for (auto layerm : layer->regions()) {
             const auto &region       = layerm->region();
@@ -439,8 +546,47 @@ std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estim
             int solid_infill_filament  = region.config().solid_infill_filament - 1;
             int sparse_infill_filament = region.config().sparse_infill_filament - 1;
 
+            if (per_layer) {
+                const PrintConfig       &print_config  = this->print()->config();
+                const PrintRegionConfig &region_config = region.config();
+                const int                eidx          = first_extruder;
+                // Each top-level collection prints with one filament, picked as G-code picks it. Layer::make_fills()
+                // already copied thin_fills into fills.
+                for (const ExtrusionEntitiesPtr *list : {&layerm->fills.entities, &layerm->perimeters.entities})
+                    for (const ExtrusionEntity *entity : *list) {
+                        const auto *collection = dynamic_cast<const ExtrusionEntityCollection *>(entity);
+                        if (collection == nullptr)
+                            continue;
+                        const int filament = context->filament_of ? context->filament_of(*layer, *collection, region) :
+                                                                    int(LayerTools::filament_slot_by_role(*collection, region_config)) - 1;
+                        if (filament < 0)
+                            continue;
+                        // The process options of the filament's nozzle (variant).
+                        const int nozzle = context->nozzle_config_index ? context->nozzle_config_index(filament, *layer) : eidx;
+                        for_each_leaf_path(entity, [&](const ExtrusionPath &path) {
+                            // As GCode::_extrude() picks the speed, without the overhang-degree and smoothing slow-downs.
+                            const ExtrusionRole role = path.role();
+                            double              speed;
+                            if (layer->id() == 0)
+                                speed = (role == erBottomSurface ? print_config.initial_layer_infill_speed : print_config.initial_layer_speed).get_at(nozzle);
+                            else if (role == erOverhangPerimeter || role == erBridgeInfill)
+                                speed = bridge_speed(filament, region_config, nozzle);
+                            else if (role == erFloatingVerticalShell)
+                                speed = region_config.vertical_shell_speed.get_at(nozzle).get_abs_value(region_config.internal_solid_infill_speed.get_at(nozzle));
+                            else if (role == erIroning)
+                                speed = region_config.ironing_speed.value;
+                            else if (role == erBottomSurface)
+                                speed = region_config.internal_solid_infill_speed.get_at(nozzle);
+                            else
+                                speed = get_speed_from_role_with_filament(role, filament, region_config, print_config, nozzle);
+                            add_leaf_path(path, filament, eidx, speed);
+                        });
+                    }
+                continue;
+            }
+
             std::vector<ExtrusionEntitiesPtr> entity_list{layerm->fills.entities, layerm->thin_fills.entities, layerm->perimeters.entities};
-            for (int eidx = 0; eidx < extruder_num; ++eidx) {
+            for (int eidx = first_extruder; eidx < end_extruder; ++eidx) {
                 for (auto &entities : entity_list) {
                     for (auto &entity : entities) {
                         auto   role              = entity->role();
@@ -461,7 +607,48 @@ std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estim
             }
         }
     }
-    return filament_print_time;
+
+    if (!per_layer)
+        return;
+    // Support, path by path: a collection may hold base and interface. Base (-1) or interface (-2) without a filament
+    // of its own is printed with whichever tool G-code picks; at the configured speed only, as its filament is unknown.
+    const PrintObjectConfig &object_config = this->config();
+    for (const SupportLayer *support_layer : m_support_layers) {
+        current_layer = support_layer;
+        // As G-code does: the support merge plan's filament only stands in for "don't care".
+        int base_filament      = object_config.support_filament.value - 1;
+        int interface_filament = object_config.support_interface_filament.value - 1;
+        if (base_filament < 0 && support_layer->planned_filament_id > 0)
+            base_filament = support_layer->planned_filament_id - 1;
+        if (interface_filament < 0 && support_layer->planned_interface_filament_id > 0)
+            interface_filament = support_layer->planned_interface_filament_id - 1;
+        // Base without its own filament keeps off the interface's own filament, if it has one.
+        const int base_avoids = base_filament < 0 ? interface_filament : -1;
+        base_filament         = std::max(base_filament, -1);
+        interface_filament    = interface_filament < 0 ? -2 : interface_filament;
+        for (int eidx = first_extruder; eidx < end_extruder; ++eidx) {
+            // Speeds as G-code picks them: first layer, transition (bridge speed), ironing, interface, base; from the
+            // process options of the filament's nozzle when the filament is known.
+            auto support_speed = [&](ExtrusionRole role, int filament) -> double {
+                const int nozzle = filament >= 0 && context->nozzle_config_index ? context->nozzle_config_index(filament, *support_layer) : eidx;
+                if (support_layer->id() == 0)
+                    return this->print()->config().initial_layer_speed.get_at(nozzle);
+                switch (role) {
+                case erSupportTransition: return bridge_speed(filament, this->print()->default_region_config(), nozzle);
+                case erSupportIroning: return object_config.support_ironing_speed.value;
+                case erSupportMaterialInterface: return object_config.support_interface_speed.get_at(nozzle);
+                default: return object_config.support_speed.get_at(nozzle);
+                }
+            };
+            for (const ExtrusionEntity *entity : support_layer->support_fills.entities)
+                for_each_leaf_path(entity, [&](const ExtrusionPath &path) {
+                    const bool interface = path.role() == erSupportMaterialInterface || path.role() == erSupportIroning;
+                    const int  filament  = interface ? interface_filament : base_filament;
+                    // -1 with the interface on its own filament: reported as -3 - that filament.
+                    add_leaf_path(path, filament == -1 && base_avoids >= 0 ? -3 - base_avoids : filament, eidx, support_speed(path.role(), filament));
+                });
+        }
+    }
 }
 
 // 1) Merges typed region slices into stInternal type.
@@ -1856,6 +2043,12 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "slowdown_end_height"
             || opt_key == "slowdown_end_speed"
             || opt_key == "slowdown_end_acc" ) {
+            // With the idle-time prime on, the wipe tower's print time estimate may read these speeds too; the tower's
+            // size may change, and the skirt goes around it.
+            if (idle_prime_enabled(m_print->config())) {
+                invalidated |= m_print->invalidate_step(psWipeTower);
+                invalidated |= m_print->invalidate_step(psSkirtBrim);
+            }
             invalidated |= m_print->invalidate_step(psGCodeExport);
         } else if (
                opt_key == "flush_into_infill"

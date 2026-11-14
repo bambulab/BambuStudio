@@ -1111,7 +1111,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
         toggle_field(el, have_prime_tower);
     // Priming into infill: tool changers, where every change primes the incoming tool on the tower. (With several
     // nozzle diameters on one plate the slicer does not apply it; the tooltip says so.)
-    toggle_line("prime_into_infill", have_prime_tower && is_single_ext_multi_nozzle(wxGetApp().preset_bundle->printers.get_edited_preset().config));
+    const bool tool_changer_tower = have_prime_tower && is_single_ext_multi_nozzle(wxGetApp().preset_bundle->printers.get_edited_preset().config);
+    toggle_line("prime_into_infill", tool_changer_tower);
+    // Idle-time prime: the same printers; the minimum only matters with a time constant.
+    toggle_line("idle_prime_time_constant", tool_changer_tower);
+    toggle_line("idle_prime_min_volume", tool_changer_tower && config->opt_float("idle_prime_time_constant") > 0.);
 
     bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");
     toggle_line("max_travel_detour_distance", have_avoid_crossing_perimeters);

@@ -1,4 +1,4 @@
-# Slicing tests of priming into infill on tool changers. They slice small prints with the fff_print test
+# Slicing tests of priming into infill and the idle-time prime on tool changers. They slice small prints with the fff_print test
 # fixtures; libslic3r references symbols that live in the GUI library, so the tests link libslic3r_gui
 # (test_gui), as fila_manager does.
 
@@ -14,4 +14,4 @@ target_link_libraries(${_TEST_NAME}_tests test_gui)
 set_property(TARGET ${_TEST_NAME}_tests PROPERTY FOLDER "tests")
 
 # test_data.cpp brings the fff_print fixture scenarios along; run only this suite's own cases.
-add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS} "[PrimeIntoInfill]")
+add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS} "[PrimeIntoInfill],[IdlePrime]")

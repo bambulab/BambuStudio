@@ -1196,7 +1196,29 @@ int get_effective_ams_nozzle_idx(const ConfigBase& config)
     return -1;
 }
 
-bool is_single_ext_multi_nozzle(const ConfigBase& config)
+bool idle_prime_enabled(const ConfigOptionResolver &config)
+{
+    const auto *time_constant = config.option<ConfigOptionFloat>("idle_prime_time_constant");
+    return time_constant != nullptr && time_constant->value > 0. && is_single_ext_multi_nozzle(config);
+}
+
+bool is_idle_prime_estimate_input(const std::string &opt_key)
+{
+    // Read by PrintObject::estimate_filament_print_time and Print::estimate_layer_filament_print_time, and the
+    // filament load and unload times of the idle clock (resolve_ams_load_unload).
+    static const std::unordered_set<std::string> inputs = [] {
+        std::unordered_set<std::string> keys{"slow_down_for_layer_cooling", "slow_down_layer_time", "slow_down_min_speed",
+                                             "default_ams_type"};
+        for (const int ams_type : get_ams_time_types())
+            for (const std::string &key : {get_ams_load_time_key(ams_type), get_ams_unload_time_key(ams_type)})
+                if (!key.empty())
+                    keys.insert(key);
+        return keys;
+    }();
+    return inputs.count(opt_key) != 0;
+}
+
+bool is_single_ext_multi_nozzle(const ConfigOptionResolver& config)
 {
     const auto* hotend_as_extruder = config.option<ConfigOptionBool>("handle_hotend_as_extruder");
     if (!hotend_as_extruder || !hotend_as_extruder->value)
@@ -3125,7 +3147,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("machine_load_filament_time", coFloat);
     def->label = L("Filament load time");
-    def->tooltip = L("Time to load new filament when switch filament. For statistics only");
+    def->tooltip = L("Time to load new filament when switch filament. Used for the print time estimate, and for the idle time of tools when \"Idle prime time constant\" is set, unless the AMS type has its own load time.");
     def->sidetext = L("s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -3133,7 +3155,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("machine_unload_filament_time", coFloat);
     def->label = L("Filament unload time");
-    def->tooltip = L("Time to unload old filament when switch filament. For statistics only");
+    def->tooltip = L("Time to unload old filament when switch filament. Used for the print time estimate, and for the idle time of tools when \"Idle prime time constant\" is set, unless the AMS type has its own unload time.");
     def->sidetext = L("s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -3201,7 +3223,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("machine_switch_extruder_time", coFloat);
     def->label = L("Extruder switch time");
-    def->tooltip = L("Time to switch extruder. For statistics only");
+    def->tooltip = L("Time to switch extruder. Used for the print time estimate, and for the idle time of tools when \"Idle prime time constant\" is set.");
     def->min = 0;
     def->sidetext = L("s");
     def->mode = comAdvanced;
@@ -6226,6 +6248,33 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Flush options");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("idle_prime_time_constant", coFloat);
+    def->label = L("Idle prime time constant");
+    def->tooltip = L("For printers with one nozzle per filament, such as tool changers. "
+                     "Scales the prime of a tool that comes back to a nozzle still holding its filament by how long the nozzle was parked: "
+                     "minimum + (prime volume - minimum) * (1 - exp(-idle time / time constant)). "
+                     "A short time constant gives almost the full prime volume after a short pause, a long one keeps the prime near the minimum for longer. "
+                     "The idle time is estimated while slicing from the planned tool order, print and support speeds, the minimum layer time and the tool change time. "
+                     "It leaves out travel, layer changes and the prime tower, so it comes out somewhat shorter than on the printer, "
+                     "and the prime somewhat lower than the formula gives for the real idle time; choose the time constant with that in mind. "
+                     "A tool loaded for the first time or with a new filament always gets the full prime volume. "
+                     "Applies only when all used nozzles have the same diameter. 0 turns this off.");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->category = L("Flush options");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
+    def = this->add("idle_prime_min_volume", coFloat);
+    def->label = L("Idle prime minimum");
+    def->tooltip = L("Prime volume of a tool that comes back right after it was used, when \"Idle prime time constant\" is set. "
+                     "Never more than the filament's prime volume, and never less than the small prime the tower always keeps (1 mm³).");
+    def->sidetext = L("mm³");
+    def->min = 0;
+    def->category = L("Flush options");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(15.));
 
     def = this->add("slice_closing_radius", coFloat);
     def->label = L("Slice gap closing radius");
