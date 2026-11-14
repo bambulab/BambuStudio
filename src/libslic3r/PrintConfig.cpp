@@ -6214,6 +6214,19 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("prime_into_infill", coBool);
+    def->label = L("Prime into infill");
+    def->tooltip = L("For printers with one nozzle per filament, such as tool changers. "
+                     "After a tool change the incoming filament is primed into the sparse infill of objects with \"Flush into objects' infill\" "
+                     "enabled (not objects with \"Flush into this object\"), printed right after the change, instead of into the prime tower. "
+                     "Only infill of the same filament type is used; walls, solid infill and support are not. "
+                     "Whatever the infill cannot take is still primed on the tower, which always keeps a small prime. "
+                     "Applies only when all used nozzles have the same diameter. "
+                     "The infill printed first after a change may be slightly under-extruded; it is hidden inside the object.");
+    def->category = L("Flush options");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("slice_closing_radius", coFloat);
     def->label = L("Slice gap closing radius");
     def->category = L("Quality");

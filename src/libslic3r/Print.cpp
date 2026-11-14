@@ -195,7 +195,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "chamber_temperatures",
         "required_nozzle_HRC",
         "upward_compatible_machine",
-        "is_infill_first",
         //OrcaSlicer
         "seam_gap",
         "wipe_speed"
@@ -368,6 +367,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "filament_adhesiveness_category"
             //|| opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_no_sparse_layers"
+            || opt_key == "prime_into_infill"
+            // Which infill flushing / priming may take depends on the wall and infill order.
+            || opt_key == "is_infill_first"
             || opt_key == "flush_volumes_matrix"
             || opt_key == "filament_prime_volume"
             || opt_key == "filament_prime_volume_nc"
@@ -4212,6 +4214,9 @@ void Print::_make_wipe_tower()
 
     auto group_result = get_layered_nozzle_group_result();
     assert(m_nozzle_group_result);
+    // Tool changers prime every incoming tool; that prime may go into sparse infill instead of the tower. Not
+    // with nozzles of different diameters: infill planned for one nozzle is not handed to a different one.
+    const bool prime_into_infill = m_config.prime_into_infill.value && is_single_ext_multi_nozzle(m_config) && !uses_multiple_nozzle_diameters();
     // Initialize the wipe tower.
     // BBS: in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
     WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_wipe_tower_data.tool_ordering.first_extruder(),
@@ -4320,8 +4325,17 @@ void Print::_make_wipe_tower()
                     wipe_volume_ec = 15.f;
                     wipe_volume_nc = 15.f;
                 }
+                // Prime into infill: the tower says how much of its prime for this change may move (a nozzle swap,
+                // minus the minimum it keeps); the infill takes what it can, the tower primes the rest.
+                float primed_in_infill = 0.f;
+                // Only when the nozzle already held this filament: a nozzle loaded now (first or new filament)
+                // needs its whole prime on the tower. Not on the first layer, which prints walls before infill.
+                if (prime_into_infill && !first_layer && !nozzle_recorder.is_nozzle_empty(nozzle_id) && prev_nozzle_filament == int(filament_id)) {
+                    const float movable = wipe_tower.prime_volume_movable(old_filament_id, filament_id, wipe_volume_ec, wipe_volume_nc);
+                    primed_in_infill    = movable - layer_tools.wiping_extrusions().mark_priming_extrusions(*this, filament_id, movable);
+                }
                 wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, old_filament_id, filament_id,
-                                           wipe_volume_ec, wipe_volume_nc, volume_to_purge);
+                                           wipe_volume_ec, wipe_volume_nc, volume_to_purge, primed_in_infill);
                 old_filament_id = filament_id;
 
                 nozzle_recorder.set_nozzle_status(nozzle_id, filament_id);
