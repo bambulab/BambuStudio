@@ -330,6 +330,14 @@ enum FanDirection {
     fdBoth
 };
 
+// Look-ahead tool ordering on tool changers: off, or what a new order must improve.
+enum class ToolOrderLookaheadMode {
+    Off,
+    Balanced,
+    LeastWaste,
+    FewestChanges,
+};
+
 enum PrimeVolumeMode {
     pvmDefault = 0,
     pvmSaving,
@@ -612,6 +620,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(TopOneWallType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ReduceInfillRetractionMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FilamentMetalStickiness)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(CounterboreHoleBridgingOption)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ToolOrderLookaheadMode)
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
 // Defines each and every confiuration option of Slic3r, including the properties of the GUI dialogs.
@@ -1486,6 +1495,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             filament_start_gcode))
     ((ConfigOptionBool,                single_extruder_multi_material))
     ((ConfigOptionBool,                wipe_tower_no_sparse_layers))
+    ((ConfigOptionEnum<ToolOrderLookaheadMode>, tool_order_lookahead))
     ((ConfigOptionString,              change_filament_gcode))
     ((ConfigOptionFloatsNullable,      travel_speed))
     ((ConfigOptionFloatsNullable,      travel_speed_z))

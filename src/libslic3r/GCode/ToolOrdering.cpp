@@ -2836,10 +2836,139 @@ ToolOrdering::OrderingContext ToolOrdering::prepare_ordering_context(const Print
     }
 
     context.support_dynamic_map = print_config.enable_filament_dynamic_map.value;
+    context.lookahead           = tool_order_lookahead(print_config);
 
     return context;
 }
 
+
+std::vector<unsigned int> mixed_component_order(const std::vector<unsigned int>                   &extruders,
+                                                       const std::vector<LayerTools::MixedSubLayerGroup> &groups)
+{
+    // Build a set of the layer's extruders for fast lookup.
+    std::set<unsigned int> ext_set(extruders.begin(), extruders.end());
+
+    // 1. Build DAG from mixed group constraints.
+    //    For each group [c0, c1, c2, ...], add edges c0->c1, c1->c2, ...
+    //    Only between components that are both present in extruders.
+    //    Use an edge set to avoid duplicate edges inflating in-degree.
+    std::map<unsigned int, std::vector<unsigned int>> adj;
+    std::map<unsigned int, int> in_degree;
+    std::set<std::pair<unsigned int, unsigned int>> edge_set;
+
+    for (unsigned int ext : extruders)
+        in_degree[ext] = 0;
+
+    for (const auto &grp : groups) {
+        for (size_t i = 0; i + 1 < grp.components_0based.size(); ++i) {
+            unsigned int a = grp.components_0based[i];
+            unsigned int b = grp.components_0based[i + 1];
+            if (!ext_set.count(a) || !ext_set.count(b))
+                continue;
+            if (edge_set.insert({a, b}).second) {
+                adj[a].push_back(b);
+                in_degree[b] += 1;
+            }
+        }
+    }
+
+    // 2. Record original position (from flush optimizer) as priority.
+    std::map<unsigned int, size_t> orig_pos;
+    for (size_t i = 0; i < extruders.size(); ++i)
+        orig_pos[extruders[i]] = i;
+
+    // 3. Kahn's topological sort with priority queue (prefer original position).
+    auto cmp = [&orig_pos](unsigned int lhs, unsigned int rhs) {
+        return orig_pos[lhs] > orig_pos[rhs]; // min-heap by orig_pos
+    };
+    std::priority_queue<unsigned int, std::vector<unsigned int>, decltype(cmp)> pq(cmp);
+
+    for (unsigned int ext : extruders) {
+        if (in_degree[ext] == 0)
+            pq.push(ext);
+    }
+
+    std::vector<unsigned int> ordered;
+    ordered.reserve(extruders.size());
+    while (!pq.empty()) {
+        unsigned int ext = pq.top();
+        pq.pop();
+        ordered.push_back(ext);
+        if (auto it = adj.find(ext); it != adj.end()) {
+            for (unsigned int next : it->second) {
+                if (--in_degree[next] == 0)
+                    pq.push(next);
+            }
+        }
+    }
+
+    // Safety: if topological sort didn't produce all elements, keep original order.
+    if (ordered.size() != extruders.size())
+        ordered = extruders;
+
+    // 4. Verify: every mixed group's component order is preserved as subsequence.
+    for (const auto &grp : groups) {
+        size_t prev_pos = 0;
+        bool valid = true;
+        for (unsigned int c : grp.components_0based) {
+            if (!ext_set.count(c))
+                continue;
+            auto it = std::find(ordered.begin() + prev_pos, ordered.end(), c);
+            if (it == ordered.end()) { valid = false; break; }
+            prev_pos = (it - ordered.begin()) + 1;
+        }
+        assert(valid && "enforce_mixed_component_order: mixed group subsequence violated");
+        (void)valid;
+    }
+
+    return ordered;
+}
+
+bool tool_order_lookahead_requested(const PrintConfig &config)
+{
+    // One extruder (per-layer nozzle mapping needs more, so it never applies here) whose hotends are the
+    // tools, so the tool order is planned per nozzle.
+    return config.tool_order_lookahead.value != ToolOrderLookaheadMode::Off && is_single_ext_multi_nozzle(config);
+}
+
+ToolOrderLookahead make_tool_order_lookahead(const PrintConfig &config, bool has_wipe_tower, const std::vector<size_t> &mixed_layers)
+{
+    ToolOrderLookahead lookahead;
+    if (!tool_order_lookahead_requested(config))
+        return lookahead;
+    lookahead.fixed_layers = mixed_layers;
+    switch (config.tool_order_lookahead.value) {
+    case ToolOrderLookaheadMode::Off: return lookahead; // excluded by tool_order_lookahead_requested; listed for -Wswitch
+    case ToolOrderLookaheadMode::Balanced: lookahead.priority = ToolOrderPriority::Balanced; break;
+    case ToolOrderLookaheadMode::LeastWaste: lookahead.priority = ToolOrderPriority::LeastWaste; break;
+    case ToolOrderLookaheadMode::FewestChanges: lookahead.priority = ToolOrderPriority::FewestChanges; break;
+    }
+    lookahead.enabled = true;
+    // On these printers every hotend is its own extruder to the wipe tower. The look-ahead only acts with
+    // one nozzle per used filament (tool_order_lookahead_applies), so every change swaps the nozzle and the
+    // tower primes the incoming filament's filament-change volume and rams the outgoing filament's
+    // filament_change_length, never the _nc variants (WipeTower::plan_toolchange, is_need_ramming). If the
+    // look-ahead is ever widened to shared nozzles, these costs must follow. Without a tower every change
+    // counts the same.
+    if (has_wipe_tower)
+        for (unsigned int filament = 0; filament < config.filament_colour.values.size(); ++filament) {
+            lookahead.costs.into.emplace_back(Print::tower_prime_volumes(config, filament).first);
+            lookahead.costs.out_of.emplace_back(Print::tower_ramming_volume(config, filament));
+        }
+    return lookahead;
+}
+
+ToolOrderLookahead ToolOrdering::tool_order_lookahead(const PrintConfig &print_config) const
+{
+    // The scans below (layers, wipe tower) are only worth it when the option can act.
+    if (!tool_order_lookahead_requested(print_config))
+        return {};
+    std::vector<size_t> mixed_layers;
+    for (size_t layer = 0; layer < m_layer_tools.size(); ++layer)
+        if (!m_layer_tools[layer].mixed_sub_layer_groups.empty())
+            mixed_layers.emplace_back(layer);
+    return make_tool_order_lookahead(print_config, m_print && m_print->has_wipe_tower(), mixed_layers);
+}
 
 std::vector<std::vector<unsigned int>> ToolOrdering::execute_filament_ordering(
     const PrintConfig* print_config,
@@ -2858,6 +2987,15 @@ std::vector<std::vector<unsigned int>> ToolOrdering::execute_filament_ordering(
             ordering_context.get_custom_seq,
             &filament_sequences
         );
+        // Mixed-filament layers get their final order now (it is applied again later and does not change
+        // then), so the look-ahead plans the layers around them against their real first and last tool.
+        if (ordering_context.lookahead.enabled)
+            for (size_t layer : ordering_context.lookahead.fixed_layers)
+                if (layer < filament_sequences.size() && layer < m_layer_tools.size())
+                    filament_sequences[layer] = mixed_component_order(filament_sequences[layer], m_layer_tools[layer].mixed_sub_layer_groups);
+        if (apply_tool_order_lookahead(filament_sequences, grouping_result, layer_data.layer_filaments, ordering_context.get_custom_seq,
+                                       ordering_context.lookahead) == ToolOrderLookaheadResult::NotApplicable)
+            BOOST_LOG_TRIVIAL(debug) << "Tool order look-ahead is not applied: it needs all used filaments on one extruder, each with its own nozzle.";
     }
     else{
         reorder_filaments_for_minimum_flush_volume(
@@ -3423,88 +3561,9 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
 
 void ToolOrdering::enforce_mixed_component_order()
 {
-    for (LayerTools &lt : m_layer_tools) {
-        if (lt.mixed_sub_layer_groups.empty())
-            continue;
-
-        // Build a set of extruders present in lt.extruders for fast lookup.
-        std::set<unsigned int> ext_set(lt.extruders.begin(), lt.extruders.end());
-
-        // 1. Build DAG from mixed group constraints.
-        //    For each group [c0, c1, c2, ...], add edges c0->c1, c1->c2, ...
-        //    Only between components that are both present in lt.extruders.
-        //    Use an edge set to avoid duplicate edges inflating in-degree.
-        std::map<unsigned int, std::vector<unsigned int>> adj;
-        std::map<unsigned int, int> in_degree;
-        std::set<std::pair<unsigned int, unsigned int>> edge_set;
-
-        for (unsigned int ext : lt.extruders)
-            in_degree[ext] = 0;
-
-        for (const auto &grp : lt.mixed_sub_layer_groups) {
-            for (size_t i = 0; i + 1 < grp.components_0based.size(); ++i) {
-                unsigned int a = grp.components_0based[i];
-                unsigned int b = grp.components_0based[i + 1];
-                if (!ext_set.count(a) || !ext_set.count(b))
-                    continue;
-                if (edge_set.insert({a, b}).second) {
-                    adj[a].push_back(b);
-                    in_degree[b] += 1;
-                }
-            }
-        }
-
-        // 2. Record original position (from flush optimizer) as priority.
-        std::map<unsigned int, size_t> orig_pos;
-        for (size_t i = 0; i < lt.extruders.size(); ++i)
-            orig_pos[lt.extruders[i]] = i;
-
-        // 3. Kahn's topological sort with priority queue (prefer original position).
-        auto cmp = [&orig_pos](unsigned int lhs, unsigned int rhs) {
-            return orig_pos[lhs] > orig_pos[rhs]; // min-heap by orig_pos
-        };
-        std::priority_queue<unsigned int, std::vector<unsigned int>, decltype(cmp)> pq(cmp);
-
-        for (unsigned int ext : lt.extruders) {
-            if (in_degree[ext] == 0)
-                pq.push(ext);
-        }
-
-        std::vector<unsigned int> ordered;
-        ordered.reserve(lt.extruders.size());
-        while (!pq.empty()) {
-            unsigned int ext = pq.top();
-            pq.pop();
-            ordered.push_back(ext);
-            if (auto it = adj.find(ext); it != adj.end()) {
-                for (unsigned int next : it->second) {
-                    if (--in_degree[next] == 0)
-                        pq.push(next);
-                }
-            }
-        }
-
-        // Safety: if topological sort didn't produce all elements, keep original order.
-        if (ordered.size() != lt.extruders.size())
-            ordered = lt.extruders;
-
-        // 4. Verify: every mixed group's component order is preserved as subsequence.
-        for (const auto &grp : lt.mixed_sub_layer_groups) {
-            size_t prev_pos = 0;
-            bool valid = true;
-            for (unsigned int c : grp.components_0based) {
-                if (!ext_set.count(c))
-                    continue;
-                auto it = std::find(ordered.begin() + prev_pos, ordered.end(), c);
-                if (it == ordered.end()) { valid = false; break; }
-                prev_pos = (it - ordered.begin()) + 1;
-            }
-            assert(valid && "enforce_mixed_component_order: mixed group subsequence violated");
-            (void)valid;
-        }
-
-        lt.extruders = ordered;
-    }
+    for (LayerTools &lt : m_layer_tools)
+        if (!lt.mixed_sub_layer_groups.empty())
+            lt.extruders = mixed_component_order(lt.extruders, lt.mixed_sub_layer_groups);
 }
 
 void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first_layer)
