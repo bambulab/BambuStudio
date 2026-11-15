@@ -19,6 +19,8 @@
 #include <imgui/imgui_internal.h>
 #include <GL/glew.h>
 #include <chrono>
+#include <map>
+#include <limits>
 #include "libslic3r/Log.hpp"
 namespace
 {
@@ -46,6 +48,8 @@ namespace
             return _u8L("Tool");
         else if (view_type == Slic3r::GUI::gcode::EViewType::ColorPrint)
             return _u8L("Filament");
+        else if (view_type == Slic3r::GUI::gcode::EViewType::Objects)
+            return _u8L("Objects");
         else if (view_type == Slic3r::GUI::gcode::EViewType::LayerTime)
             return _u8L("Layer Time");
         // helio
@@ -585,6 +589,45 @@ namespace Slic3r
                 m_last_result_id = gcode_result.id;
                 m_gcode_result = &gcode_result;
                 m_only_gcode_in_preview = only_gcode;
+                if (wxGetApp().app_config->get_bool("show_objects_in_preview")) {
+                    std::map<int, std::string> names;
+                    for (const auto& move : gcode_result.moves) {
+                        if (move.type == EMoveType::Extrude && move.object_label_id >= 0)
+                            names.emplace(move.object_label_id, _u8L("Object") + " " + std::to_string(move.object_label_id));
+                    }
+                    std::map<const ModelObject*, size_t> total_copies;
+                    std::map<const ModelObject*, size_t> next_copy;
+                    for (const PrintObject* object : print.objects()) {
+                        if (object != nullptr)
+                            total_copies[object->model_object()] += object->instances().size();
+                    }
+                    for (const PrintObject* object : print.objects()) {
+                        if (object == nullptr)
+                            continue;
+                        const ModelObject* model = object->model_object();
+                        for (const PrintInstance& instance : object->instances()) {
+                            if (instance.model_instance == nullptr)
+                                continue;
+                            const size_t label = instance.model_instance->get_labeled_id();
+                            if (label > static_cast<size_t>(std::numeric_limits<int>::max()))
+                                continue;
+                            const auto row = names.find(static_cast<int>(label));
+                            if (row == names.end())
+                                continue;
+                            row->second = model != nullptr && !model->name.empty() ? model->name : _u8L("Object");
+                            const size_t copy = ++next_copy[model];
+                            if (total_copies[model] > 1)
+                                row->second += " (" + _u8L("Copy") + " " + std::to_string(copy) + ")";
+                        }
+                    }
+                    if (!names.empty()) {
+                        m_object_preview.label_min = static_cast<float>(names.begin()->first);
+                        m_object_preview.label_max = static_cast<float>(names.rbegin()->first);
+                        const Range colors(m_object_preview.label_min, m_object_preview.label_max);
+                        for (const auto& [label, name] : names)
+                            m_object_preview.objects.push_back({ label, name, colors.get_color_at(static_cast<float>(label)).get_data() });
+                    }
+                }
                 const auto& p_sequential_view = get_sequential_view();
                 if (p_sequential_view) {
                     p_sequential_view->gcode_window.load_gcode(gcode_result.filename, gcode_result.lines_ends);
@@ -753,6 +796,15 @@ namespace Slic3r
             {
                 if (type == EViewType::Count)
                     type = EViewType::FeatureType;
+                if (type == EViewType::Objects && !wxGetApp().app_config->get_bool("show_objects_in_preview")) {
+                    type = EViewType::ColorPrint;
+                    const auto item = std::find(view_type_items.begin(), view_type_items.end(), type);
+                    if (item != view_type_items.end()) {
+                        m_view_type_sel = std::distance(view_type_items.begin(), item);
+                        m_last_non_helio_option_item = m_view_type_sel;
+                        record_gcodeviewer_option_item();
+                    }
+                }
                 do_set_view_type(type);
                 if (reset_feature_type_visible && type == EViewType::ColorPrint) {
                     reset_visible(EViewType::FeatureType);
@@ -1235,6 +1287,7 @@ namespace Slic3r
                 //BBS: should also reset the result id
                 BOOST_LOG_TRIVIAL(info) << boost::format("current result id %1% ") % m_last_result_id;
                 m_last_result_id = -1;
+                m_object_preview = ObjectPreviewState{};
                 m_conflict_result.reset();
                 m_gcode_check_result.reset();
                 filament_printable_reuslt.reset();
@@ -1872,11 +1925,26 @@ namespace Slic3r
                 const char* view_type_value = view_type_image_names[m_view_type_sel].option_name.c_str();
                 if (ImGui::BBLBeginCombo("", view_type_value, flags)) {
                     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-                    for (int i = 0; i < view_type_image_names.size(); i++) {
+                    // Keep stored indices of existing modes stable. Only the menu's
+                    // display order places the new Objects item after Filament.
+                    std::vector<int> display_order;
+                    const auto objects_item = std::find(view_type_items.begin(), view_type_items.end(), EViewType::Objects);
+                    const int objects_index = std::distance(view_type_items.begin(), objects_item);
+                    for (int i = 0; i < view_type_image_names.size(); ++i) {
+                        if (view_type_items[i] == EViewType::Objects)
+                            continue;
+                        display_order.push_back(i);
+                        if (view_type_items[i] == EViewType::ColorPrint && objects_index < view_type_image_names.size())
+                            display_order.push_back(objects_index);
+                    }
+                    for (int i : display_order) {
                         const bool is_selected = (m_view_type_sel == i);
                         if (hide_additional_fan_speed && view_type_items[i] == EViewType::AdditionalFanSpeed) {
                             continue;
                         }
+                        if (view_type_items[i] == EViewType::Objects &&
+                            !wxGetApp().app_config->get_bool("show_objects_in_preview"))
+                            continue;
                         if (ImGui::BBLSelectable_LeftImage(view_type_image_names[i].option_name.c_str(), is_selected, view_type_image_names[i].texture_id)) {
                             m_fold = false;
                             apply_view_type_selection(i, view_type_items[i]);
@@ -1889,6 +1957,20 @@ namespace Slic3r
                     ImGui::EndCombo();
                 }
                 pop_combo_style();
+                if (m_view_type == EViewType::Objects) {
+                    ImGui::Dummy({window_padding, window_padding});
+                    for (size_t i = 0; i < m_object_preview.objects.size(); ++i) {
+                        const auto& object = m_object_preview.objects[i];
+                        ImGui::Dummy({window_padding, 0.0f});
+                        ImGui::SameLine();
+                        const std::string id = "##object_preview_color_" + std::to_string(i);
+                        ImGui::ColorButton(id.c_str(), ImVec4(object.color[0], object.color[1], object.color[2], object.color[3]),
+                            ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoDragDrop,
+                            ImVec2(ImGui::GetTextLineHeight() * 0.7f, ImGui::GetTextLineHeight() * 0.7f));
+                        ImGui::SameLine();
+                        imgui.text(object.name);
+                    }
+                }
                 ImGui::SameLine();
                 ImGui::Dummy({ window_padding, window_padding });
                 // data used to properly align items in columns when showing time
@@ -3257,6 +3339,7 @@ namespace Slic3r
                 }
                 case EViewType::Tool: break;
                 case EViewType::ColorPrint: break;
+                case EViewType::Objects: break;
                 case EViewType::FilamentId: break;
                 case EViewType::LayerTime: {
                     _min = m_p_extrusions->ranges.layer_duration.min;
@@ -3322,6 +3405,7 @@ namespace Slic3r
                 view_type_items.push_back(EViewType::FanSpeed);
                 view_type_items.push_back(EViewType::AdditionalFanSpeed);
                 view_type_items.push_back(EViewType::Temperature);
+                view_type_items.push_back(EViewType::Objects);
                 for (int i = 0; i < view_type_items.size(); i++) {
                     if (view_type_items[i] == EViewType::FilamentId) {
                         continue;
