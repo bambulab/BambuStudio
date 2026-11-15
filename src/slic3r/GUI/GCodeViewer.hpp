@@ -32,6 +32,7 @@ namespace Slic3r {
                 IMSlider* get_moves_slider();
                 IMSlider* get_layers_slider();
                 EViewType get_view_type() const;
+                void on_object_shading_preference_changed();
                 void on_change_color_mode(bool is_dark);
                 void init(ConfigOptionMode mode, Slic3r::PresetBundle* preset_bundle);
                 void reset();

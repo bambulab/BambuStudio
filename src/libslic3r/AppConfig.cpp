@@ -254,6 +254,9 @@ void AppConfig::set_defaults()
     if (get("enable_advanced_antialiasing").empty())
         set_bool("enable_advanced_antialiasing", false);
 
+    if (get("show_objects_in_preview").empty())
+        set_bool("show_objects_in_preview", false);
+
     if (get("enable_advanced_gcode_viewer_").empty())
         set_bool("enable_advanced_gcode_viewer_", true);
 
