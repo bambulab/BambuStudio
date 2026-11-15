@@ -404,6 +404,7 @@ public:
     Temp_Calibration_Dlg *       m_temp_calib_dlg{nullptr};
     MaxVolumetricSpeed_Test_Dlg *m_vol_test_dlg{nullptr};
     VFA_Test_Dlg *               m_vfa_test_dlg{nullptr};
+    IroningFlow_Test_Dlg *       m_ironing_flow_dlg{nullptr};
     Retraction_Test_Dlg *        m_retraction_calib_dlg{nullptr};
     SecondaryCheckDialog*        m_confirm_download_plugin_dlg{ nullptr };
 
