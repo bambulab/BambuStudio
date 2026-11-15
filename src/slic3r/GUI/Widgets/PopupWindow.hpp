@@ -21,8 +21,10 @@ public:
 #ifdef __WIN32__
     WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
 #endif
-#ifdef __WXOSX__
 protected:
+    virtual void DismissOnOwnerChange();
+
+#ifdef __WXOSX__
     /**
      * \brief Make \p win the window this popup reports as hovered, with the leave/enter pair.
      *
@@ -46,7 +48,12 @@ private:
 #endif
 
 #ifdef __WXGTK__
-    void topWindowActivate(wxActivateEvent &event);
+    wxWeakRef<wxWindow> m_owner;
+    void appActivate(wxActivateEvent &event);
+    void topWindowIconize(wxIconizeEvent &event);
+    void topWindowShow(wxShowEvent &event);
+    void topWindowMove(wxMoveEvent &event);
+    void topWindowSize(wxSizeEvent &event);
 #endif
 
 #ifdef __WXMSW__

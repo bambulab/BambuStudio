@@ -242,8 +242,12 @@ ConflictResultOpt ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectP
     }
     for (PrintObject *obj : objs) {
         auto layers = getAllLayersExtrusionPathsFromObject(obj);
-        conflictQueue.emplace_back_bucket(std::move(layers.perimeters), obj, obj->instances().front().shift);
-        conflictQueue.emplace_back_bucket(std::move(layers.support), obj, obj->instances().front().shift);
+        // Every instance prints these paths at its own position, so each one gets its own buckets and is told apart by
+        // its address. That also checks the instances of one object against each other.
+        for (const PrintInstance &instance : obj->instances()) {
+            conflictQueue.emplace_back_bucket(ExtrusionLayers(layers.perimeters), &instance, instance.shift);
+            conflictQueue.emplace_back_bucket(ExtrusionLayers(layers.support), &instance, instance.shift);
+        }
     }
 
     std::vector<LineWithIDs> layersLines;
@@ -276,13 +280,13 @@ ConflictResultOpt ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectP
             const FakeWipeTower *wtdp = wtdptr.value();
             if (ptr1 == wtdp || ptr2 == wtdp) {
                 if (ptr2 == wtdp) { std::swap(ptr1, ptr2); }
-                const PrintObject *obj2 = reinterpret_cast<const PrintObject *>(ptr2);
-                return std::make_optional<ConflictResult>("WipeTower", obj2->model_object()->name, conflictPrintZ, nullptr, ptr2);
+                const PrintObject *obj2 = reinterpret_cast<const PrintInstance *>(ptr2)->print_object;
+                return std::make_optional<ConflictResult>("WipeTower", obj2->model_object()->name, conflictPrintZ, nullptr, obj2);
             }
         }
-        const PrintObject *obj1 = reinterpret_cast<const PrintObject *>(ptr1);
-        const PrintObject *obj2 = reinterpret_cast<const PrintObject *>(ptr2);
-        return std::make_optional<ConflictResult>(obj1->model_object()->name, obj2->model_object()->name, conflictPrintZ, ptr1, ptr2);
+        const PrintObject *obj1 = reinterpret_cast<const PrintInstance *>(ptr1)->print_object;
+        const PrintObject *obj2 = reinterpret_cast<const PrintInstance *>(ptr2)->print_object;
+        return std::make_optional<ConflictResult>(obj1->model_object()->name, obj2->model_object()->name, conflictPrintZ, obj1, obj2);
     } else
         return {};
 }

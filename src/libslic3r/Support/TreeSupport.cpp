@@ -1782,6 +1782,35 @@ static ExPolygon tree_support_node_disk(const SupportNode &node, const Polygon &
     return ExPolygon(std::move(circle));
 }
 
+// Interface probes of nodes resting on one large overhang are all copies of that overhang (see probe_of()
+// in fold_nodes_multi_diameter()), so a slab can collect the same polygon once per node. union_ex() can
+// stall on such input: one slab collected ~1500 copies of a single 130 point outline and its union did not
+// finish in 20 minutes. All callers use the non-zero fill rule, under which an exact duplicate changes no
+// union, intersection or bounding box, so dropping them first is lossless.
+static void remove_duplicate_expolygons(ExPolygons &expolys)
+{
+    if (expolys.size() < 2)
+        return;
+    auto points_less = [](const Points &lhs, const Points &rhs) {
+        if (lhs.size() != rhs.size())
+            return lhs.size() < rhs.size();
+        return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
+            [](const Point &a, const Point &b) { return a.x() < b.x() || (a.x() == b.x() && a.y() < b.y()); });
+    };
+    auto expoly_less = [&points_less](const ExPolygon &lhs, const ExPolygon &rhs) {
+        if (lhs.contour.points != rhs.contour.points)
+            return points_less(lhs.contour.points, rhs.contour.points);
+        if (lhs.holes.size() != rhs.holes.size())
+            return lhs.holes.size() < rhs.holes.size();
+        for (size_t i = 0; i < lhs.holes.size(); ++ i)
+            if (lhs.holes[i].points != rhs.holes[i].points)
+                return points_less(lhs.holes[i].points, rhs.holes[i].points);
+        return false;
+    };
+    std::sort(expolys.begin(), expolys.end(), expoly_less);
+    expolys.erase(std::unique(expolys.begin(), expolys.end()), expolys.end());
+}
+
 // BBS multi-diameter: fold the node chains onto the slab grid before any area exists.
 //
 // The tree is planned on the fine node grid so collision avoidance keeps its resolution, but a coarse nozzle
@@ -2276,6 +2305,9 @@ void TreeSupport::fold_nodes_multi_diameter()
     // defined in printed-layer units, so using the original counters here could omit a node that Pass 2
     // later turns into interface material.
     for (;;) {
+        // Every pass redoes the polygon unions of all carriers, so let Stop end support generation here.
+        if (throw_on_cancel)
+            throw_on_cancel();
         NodeMoves tentative_moves;
         for (size_t slab_idx = 0; slab_idx < plan.slabs.size(); ++ slab_idx)
             for (const auto &[node, top] : column_top[slab_idx])
@@ -2339,11 +2371,13 @@ void TreeSupport::fold_nodes_multi_diameter()
                 if (! carrier.folds)
                     continue;
                 if (! carrier.base_footprint.empty()) {
+                    remove_duplicate_expolygons(carrier.base_footprint);
                     carrier.base_footprint = union_ex(carrier.base_footprint);
                     carrier.base_footprint_bbox = get_extents(carrier.base_footprint);
                     append(carrier.footprint, carrier.base_footprint);
                 }
                 if (! carrier.interface_footprint.empty()) {
+                    remove_duplicate_expolygons(carrier.interface_footprint);
                     carrier.interface_footprint = union_ex(carrier.interface_footprint);
                     append(carrier.footprint, carrier.interface_footprint);
                 }
@@ -2456,6 +2490,8 @@ void TreeSupport::fold_nodes_multi_diameter()
                     if (is_interface_role(counters, layer_nr))
                         append(stationary_interface_footprints[layer_nr], probe);
                 }
+            remove_duplicate_expolygons(stationary_footprints[layer_nr]);
+            remove_duplicate_expolygons(stationary_interface_footprints[layer_nr]);
             if (! stationary_footprints[layer_nr].empty())
                 stationary_bboxes[layer_nr] =
                     get_extents(stationary_footprints[layer_nr]);

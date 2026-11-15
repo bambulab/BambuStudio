@@ -1,6 +1,7 @@
 #pragma once
 
 #include <wx/panel.h>
+#include <wx/stattext.h>
 
 #include <string>
 

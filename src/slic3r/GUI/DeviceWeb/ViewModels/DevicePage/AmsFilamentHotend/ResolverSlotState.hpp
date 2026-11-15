@@ -1,6 +1,7 @@
 #ifndef DEVICEPAGEFILAMENTSLOTSTATERESOLVER_HPP
 #define DEVICEPAGEFILAMENTSLOTSTATERESOLVER_HPP
 
+#include <optional>
 #include <string>
 
 namespace Slic3r {

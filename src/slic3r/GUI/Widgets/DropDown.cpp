@@ -905,6 +905,25 @@ void DropDown::sendDropDownEvent()
     GetEventHandler()->ProcessEvent(event);
 }
 
+void DropDown::DismissAll()
+{
+    if (mainDropDown) {
+        mainDropDown->DismissAll();
+        return;
+    }
+    // Ordinary Dismiss() deliberately keeps the main menu alive while its
+    // submenu is open. Owner changes must close both, regardless of the mouse.
+    if (subDropDown && subDropDown->IsShown())
+        subDropDown->PopupWindow::Dismiss();
+    if (IsShown())
+        DismissAndNotify();
+}
+
+void DropDown::DismissOnOwnerChange()
+{
+    DismissAll();
+}
+
 void DropDown::Dismiss()
 {
     if (subDropDown && subDropDown->IsShown())

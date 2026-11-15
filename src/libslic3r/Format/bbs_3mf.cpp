@@ -9799,6 +9799,15 @@ private:
     }
 
     ~_BBS_Backup_Manager() {
+#ifdef _WIN32
+        // Runs among BambuStudio.dll's static destructors, after ExitProcess has terminated the worker thread.
+        // If that thread died holding m_mutex, push_task() would wait forever. The thread is gone either way.
+        if (! m_mutex.try_lock()) {
+            m_thread.detach();
+            return;
+        }
+        m_mutex.unlock();
+#endif
         push_task({Exit});
         m_thread.join();
     }

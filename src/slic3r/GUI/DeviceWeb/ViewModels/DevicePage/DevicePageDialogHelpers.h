@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <wx/colour.h>
+#include <wx/window.h>
 
 namespace Slic3r {
 
