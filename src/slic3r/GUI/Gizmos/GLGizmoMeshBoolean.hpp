@@ -316,20 +316,12 @@ private:
         const std::string& operation) const;
 
     // ========================== ASYNC CORE LOGIC ==========================
-    // Core boolean logic with CGAL fallback - used by async version
-    std::optional<TriangleMesh> execute_boolean_on_meshes_async(
-        const std::vector<TriangleMesh>& meshes,
+    // Boolean of all operands in one backend call; each operand is the union of its meshes.
+    std::optional<TriangleMesh> execute_boolean_on_operands_async(
+        const std::vector<std::vector<const TriangleMesh*>>& operands,
         const std::string& operation,
         std::function<bool()> cancel_cb = nullptr,
         std::function<void(float)> progress_cb = nullptr) const;
-
-    // Pairwise union reduced as a balanced tree (1+2, 3+4, ... then the results), so the
-    // two operands of every union stay comparable in size instead of one growing mesh
-    // absorbing each part in turn.
-    std::optional<TriangleMesh> union_meshes_tree(
-        const std::vector<TriangleMesh>& meshes,
-        std::function<bool()> cancel_cb,
-        std::function<void(float)> progress_cb) const;
 
     // ========================== MODEL MANIPULATION HELPERS ==========================
     // source_world: world matrix the source volume was baked with (its instance * volume matrix).
@@ -465,28 +457,11 @@ private:
     BooleanOperationResult perform_boolean_operation_async(BooleanJobData& data, JobNew::Ctl& ctl);
     void apply_boolean_result_from_job(const BooleanJobData& job_data);
 
-    // Helper: Group volumes by object and union within each object (for Object mode).
-    // Returns an empty vector on failure or cancellation.
-    std::vector<TriangleMesh> group_and_union_by_object(
+    // Helper: one operand per object (Object mode) or per part (Part mode). The pointers
+    // refer to the meshes in `volumes`.
+    static std::vector<std::vector<const TriangleMesh*>> operands_for_operation(
         const std::vector<BooleanJobData::VolumeData>& volumes,
-        std::function<bool()> cancel_cb,
-        std::function<void(float)> progress_cb = nullptr);
-
-    // Helper: Prepare meshes for operation (group by object if in Object mode, otherwise extract directly)
-    std::vector<TriangleMesh> prepare_meshes_for_operation(
-        const std::vector<BooleanJobData::VolumeData>& volumes,
-        BooleanTargetMode target_mode,
-        std::function<bool()> cancel_cb,
-        std::function<void(float)> progress_cb = nullptr);
-
-    // Helper: Accumulate boolean operations on a list of meshes (for Union/Intersection)
-    std::optional<TriangleMesh> accumulate_boolean_operations(
-        const std::vector<TriangleMesh>& meshes,
-        const std::string& operation,
-        BooleanJobData& data,
-        JobNew::Ctl& ctl,
-        BooleanOperationResult& result,
-        const std::function<void(float)>& progress_cb);
+        BooleanTargetMode target_mode);
 
     // Thread-safe: stores the progress (0-100) and status shown in the panel and asks the UI
     // thread for a redraw. Callable from the worker thread.

@@ -48,6 +48,11 @@ inline constexpr std::string_view thumbnail_count = "thumbnail_count";
 inline constexpr std::string_view filament_num = "filament_num";
 inline constexpr std::string_view nozzle_num  = "nozzle_num";
 inline constexpr std::string_view assignment_num = "assignment_num";
+inline constexpr std::string_view open_edges  = "open_edges";
+inline constexpr std::string_view non_manifold_edges = "non_manifold_edges";
+inline constexpr std::string_view operand_count = "operand_count";
+inline constexpr std::string_view mesh_count  = "mesh_count";
+inline constexpr std::string_view elapsed_ms  = "elapsed_ms";
 
 // Environment, logged once at startup and when OpenGL is set up
 inline constexpr std::string_view app_version  = "app_version";

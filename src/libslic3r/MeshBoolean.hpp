@@ -32,6 +32,17 @@ void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh,
                   const std::function<void(float)> &progress_cb = nullptr,
                   const std::function<void()> &failed_cb   = nullptr);
 
+// Boolean of any number of operands, each the union of its meshes (e.g. the parts of one
+// object). "UNION": inside any operand. "INTERSECTION": inside every operand. "A_NOT_B":
+// inside the first operand and outside all others. OpenMeshCraft resolves all operands in
+// one pass; the MCUT fallback folds them pairwise.
+using BooleanOperand = std::vector<const TriangleMesh *>;
+void make_boolean(const std::vector<BooleanOperand> &operands,
+                  std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts,
+                  const std::function<bool()> &cancel_cb   = nullptr,
+                  const std::function<void(float)> &progress_cb = nullptr,
+                  const std::function<void()> &failed_cb   = nullptr);
+
 namespace cgal {
 
 struct CGALMesh;
@@ -117,6 +128,8 @@ using BooleanFailedCB = mcut::BooleanFailedCB;
 // Compile-time switch (SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN), not a runtime env-var check.
 bool is_enabled();
 void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts, const BooleanCancelCB& cancel_cb = nullptr, const BooleanProgressCB& progress_cb = nullptr, const BooleanFailedCB& failed_cb = nullptr);
+// All operands in one OpenMeshCraft pass, see MeshBoolean::make_boolean(operands, ...).
+void make_boolean(const std::vector<BooleanOperand> &operands, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts, const BooleanCancelCB& cancel_cb = nullptr, const BooleanProgressCB& progress_cb = nullptr, const BooleanFailedCB& failed_cb = nullptr);
 } // namespace openmeshcraft
 
 } // namespace MeshBoolean

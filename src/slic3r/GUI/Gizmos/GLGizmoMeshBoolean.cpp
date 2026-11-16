@@ -21,6 +21,7 @@
 #include <imgui/imgui_internal.h>
 #include <algorithm>
 #include <chrono>
+#include <map>
 #include <unordered_set>
 #include <memory>
 #include "libslic3r/Log.hpp"
@@ -370,11 +371,13 @@ bool BooleanWarningManager::has_errors_for_mode(MeshBooleanOperation mode) const
 
 bool BooleanWarningManager::is_general_warning(const std::string& warning_text) const
 {
-    return warning_text == MeshBooleanWarnings::COMMON ||
-           warning_text == MeshBooleanWarnings::JOB_CANCELED ||
-           warning_text == MeshBooleanWarnings::JOB_FAILED ||
-           warning_text == MeshBooleanWarnings::GROUPING ||
-           warning_text == MeshBooleanWarnings::PREPAREING;
+    // Anything not tied to one operation mode applies to all of them, including messages
+    // built at run time (the part that cannot be used, a running job, an exception).
+    for (MeshBooleanOperation mode : {MeshBooleanOperation::Union, MeshBooleanOperation::Difference,
+                                      MeshBooleanOperation::Intersection})
+        if (is_mode_specific_warning(warning_text, mode))
+            return false;
+    return true;
 }
 
 bool BooleanWarningManager::is_mode_specific_warning(const std::string& warning_text, MeshBooleanOperation mode) const
@@ -1198,197 +1201,43 @@ TriangleMesh BooleanOperationEngine::execute_boolean_operation(const TriangleMes
 // ========================================================================================
 #if USE_ASYNC_BOOLEAN_MODE
 
-// Core boolean logic with CGAL fallback - used by async version
-std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes_async(
-    const std::vector<TriangleMesh>& meshes,
+// Boolean of all operands in one MeshBoolean::make_boolean call. Each operand is the union
+// of its meshes; the backend resolves all of them at once, so touching or overlapping
+// parts need no pairwise pre-union.
+std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_operands_async(
+    const std::vector<std::vector<const TriangleMesh*>>& operands,
     const std::string& operation,
     std::function<bool()> cancel_cb,
     std::function<void(float)> progress_cb) const
 {
-    if (meshes.empty()) return std::nullopt;
+    if (operands.empty())
+        return std::nullopt;
+    if (cancel_cb && cancel_cb())
+        return std::nullopt;
 
-    if (meshes.size() == 1) {
-        return meshes[0];  // Single mesh - no operation needed
+    std::function<void(float)> sub_progress;
+    if (progress_cb)
+        sub_progress = [&progress_cb](float p) { progress_cb(std::clamp(p, 0.f, 100.f) / 100.f); };
+
+    std::vector<TriangleMesh> result_meshes;
+    try {
+        Slic3r::MeshBoolean::make_boolean(operands, result_meshes, operation, cancel_cb, sub_progress);
+    } catch (const std::exception &e) {
+        BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] Executing boolean on meshes failed: " << e.what();
+        return std::nullopt;
     }
+    if (cancel_cb && cancel_cb())
+        return std::nullopt;
+    if (result_meshes.empty())
+        return std::nullopt;
 
-    if (operation == MeshBooleanConfig::OP_INTERSECTION)
-        return accumulate_intersection_stable(meshes, cancel_cb, progress_cb);
-
-    if (operation == MeshBooleanConfig::OP_UNION && meshes.size() > 2)
-        return union_meshes_tree(meshes, cancel_cb, progress_cb);
-
-    TriangleMesh accumulated_result = meshes[0];
-    const size_t total_ops = meshes.size() - 1;
-
-    for (size_t i = 1; i < meshes.size(); ++i) {
-        // Check for cancellation
-        if (cancel_cb && cancel_cb()) {
-            return std::nullopt;
-        }
-
-        // Calculate progress for this step
-        const size_t current_op = i - 1;
-        std::function<void(float)> sub_progress_cb;
-        if (progress_cb) {
-            sub_progress_cb = [progress_cb, total_ops, current_op](float sub_progress) {
-                // Clamp sub_progress from mcut (should be 0-100, but defensive programming)
-                float clamped_sub = std::min(100.0f, std::max(0.0f, sub_progress));
-                float sub_progress_normalized = clamped_sub / 100.0f;
-                float total_progress = (float(current_op) + sub_progress_normalized) / float(total_ops);
-                // Ensure total_progress is within [0, 1]
-                total_progress = std::min(1.0f, std::max(0.0f, total_progress));
-                progress_cb(total_progress);
-            };
-        }
-
-        try {
-            // Execute boolean operation
-            std::vector<TriangleMesh> result_meshes;
-            Slic3r::MeshBoolean::make_boolean(
-                accumulated_result, meshes[i], result_meshes,
-                operation, cancel_cb, sub_progress_cb);
-
-            // Check for cancellation after operation
-            if (cancel_cb && cancel_cb()) {
-                return std::nullopt;
-            }
-
-            // Check if operation succeeded and get result
-            bool operation_returned_empty = result_meshes.empty();
-            if (!operation_returned_empty) {
-                accumulated_result = std::move(result_meshes[0]);
-            }
-
-            // Check if result is empty (either empty vector or empty mesh)
-            if (operation_returned_empty || accumulated_result.empty()) {
-                BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] Boolean operation returned empty mesh at step " << i;
-
-                // For INTERSECTION: try CGAL as fallback
-                if (operation == MeshBooleanConfig::OP_INTERSECTION) {
-                    BOOST_LOG_TRIVIAL(info) << "[Mesh Boolean] Attempting CGAL fallback for intersection...";
-
-                    // Rebuild the mesh before the failed operation
-                    TriangleMesh acc_before = meshes[0];
-                    for (size_t j = 1; j < i; ++j) {
-                        std::vector<TriangleMesh> temp_result;
-                        Slic3r::MeshBoolean::make_boolean(
-                            acc_before, meshes[j], temp_result,
-                            operation, cancel_cb, nullptr);
-                        if (!temp_result.empty()) {
-                            acc_before = std::move(temp_result[0]);
-                            // Minimal cleanup after each step
-                            its_merge_vertices(acc_before.its);
-                            its_remove_degenerate_faces(acc_before.its);
-                        }
-                    }
-
-                    try {
-                        Slic3r::MeshBoolean::cgal::intersect(acc_before, meshes[i]);
-                        if (!acc_before.empty()) {
-                            BOOST_LOG_TRIVIAL(info) << "[Mesh Boolean] CGAL fallback succeeded!";
-                            accumulated_result = acc_before;
-                        } else {
-                            BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] CGAL also returned empty mesh";
-                            return std::nullopt;
-                        }
-                    } catch (const std::exception& e) {
-                        BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] CGAL fallback failed: " << e.what();
-                        return std::nullopt;
-                    }
-                } else {
-                    // For other operations, just return nullopt
-                    return std::nullopt;
-                }
-            }
-
-            // Apply mesh cleanup based on operation type
-            if (operation == MeshBooleanConfig::OP_INTERSECTION) {
-                // Aggressive cleanup for intersection
-                its_remove_degenerate_faces(accumulated_result.its);
-                its_merge_vertices(accumulated_result.its, true);
-                its_remove_degenerate_faces(accumulated_result.its, true);
-                its_compactify_vertices(accumulated_result.its, true);
-            } else {
-                // Minimal cleanup for difference/union to preserve precision
-                its_remove_degenerate_faces(accumulated_result.its);
-                its_compactify_vertices(accumulated_result.its);
-            }
-
-        } catch (const std::exception &e) {
-            BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] Executing boolean on meshes failed: " << e.what();
-            return std::nullopt;
-        }
+    TriangleMesh result = std::move(result_meshes.front());
+    // An empty intersection is a valid answer of the backend; the caller reports it.
+    if (!result.empty()) {
+        its_remove_degenerate_faces(result.its);
+        its_compactify_vertices(result.its);
     }
-    return accumulated_result;
-}
-
-std::optional<TriangleMesh> BooleanOperationEngine::union_meshes_tree(
-    const std::vector<TriangleMesh>& meshes,
-    std::function<bool()> cancel_cb,
-    std::function<void(float)> progress_cb) const
-{
-    const auto start    = std::chrono::steady_clock::now();
-    auto       canceled = [&cancel_cb]() { return cancel_cb && cancel_cb(); };
-
-    // Every pairwise union removes one mesh, so N-1 unions in total whatever the tree shape.
-    const size_t total_unions = meshes.size() - 1;
-    size_t       done_unions  = 0;
-    size_t       rounds       = 0;
-    BOOST_LOG_TRIVIAL(info) << "[Mesh Boolean] tree union start, meshes " << meshes.size();
-
-    std::vector<TriangleMesh> current = meshes;
-    while (current.size() > 1) {
-        ++rounds;
-        std::vector<TriangleMesh> next;
-        next.reserve((current.size() + 1) / 2);
-        for (size_t i = 0; i + 1 < current.size(); i += 2) {
-            if (canceled())
-                return std::nullopt;
-
-            std::function<void(float)> sub_progress;
-            if (progress_cb) {
-                const size_t base = done_unions;
-                sub_progress = [&progress_cb, base, total_unions](float p) {
-                    const float sub = std::clamp(p, 0.f, 100.f) / 100.f;
-                    progress_cb(std::clamp((float(base) + sub) / float(total_unions), 0.f, 1.f));
-                };
-            }
-
-            std::vector<TriangleMesh> result_meshes;
-            try {
-                Slic3r::MeshBoolean::make_boolean(current[i], current[i + 1], result_meshes,
-                                                  MeshBooleanConfig::OP_UNION, cancel_cb, sub_progress);
-            } catch (const std::exception &e) {
-                BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] tree union failed in round " << rounds << ": " << e.what();
-                return std::nullopt;
-            }
-            if (canceled())
-                return std::nullopt;
-            if (result_meshes.empty() || result_meshes.front().empty()) {
-                BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] tree union returned an empty mesh in round " << rounds;
-                return std::nullopt;
-            }
-
-            TriangleMesh merged = std::move(result_meshes.front());
-            // Same minimal cleanup as the sequential union, to preserve precision.
-            its_remove_degenerate_faces(merged.its);
-            its_compactify_vertices(merged.its);
-            next.push_back(std::move(merged));
-
-            ++done_unions;
-            if (progress_cb)
-                progress_cb(float(done_unions) / float(total_unions));
-        }
-        // An odd mesh out waits for the next round.
-        if (current.size() % 2 == 1)
-            next.push_back(std::move(current.back()));
-        current = std::move(next);
-    }
-
-    const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
-    BOOST_LOG_TRIVIAL(info) << "[Mesh Boolean] tree union finished, meshes " << meshes.size() << " rounds " << rounds
-                            << " in " << ms << " ms";
-    return std::move(current.front());
+    return result;
 }
 
 #endif  // USE_ASYNC_BOOLEAN_MODE
@@ -1862,7 +1711,7 @@ void BooleanOperationEngine::delete_volumes_from_model(const std::vector<ModelVo
 // ========================================================================================
 
 // Execute boolean on VolumeInfo (with transformation)
-// NOTE: This is NOT used by async version - async uses execute_boolean_on_meshes_async
+// NOTE: This is NOT used by async version - async uses execute_boolean_on_operands_async
 std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes(
     const std::vector<VolumeInfo> &volumes,
     const std::string &operation) const
@@ -2668,6 +2517,25 @@ void GLGizmoMeshBoolean::on_save(cereal::BinaryOutputArchive &ar) const
 // ========================================================================================
 #if USE_ASYNC_BOOLEAN_MODE
 
+// OpenMeshCraft only handles closed, edge-manifold operands (inside/outside is decided by
+// ray casting) and MeshBoolean::openmeshcraft::make_boolean refuses anything else. Checked
+// here too, from the stats computed at load, so the user is told which part is at fault.
+// Returns the warning for the first such part, or an empty string.
+static std::string non_solid_part_warning(const std::vector<const ModelVolume *> &volumes)
+{
+    for (const ModelVolume *v : volumes) {
+        const TriangleMeshStats &stats = v->mesh().stats();
+        if (stats.open_edges == 0 && stats.non_manifold_edges == 0)
+            continue;
+        BOOST_LOG_TRIVIAL(warning) << KV(log_key::open_edges, stats.open_edges)
+                                   << KV(log_key::non_manifold_edges, stats.non_manifold_edges)
+                                   << "mesh boolean refused, part is not a closed manifold mesh: " << v->name;
+        return _u8L("Unable to perform boolean operation on model meshes. You may fix the meshes and try again.") + " " +
+               Slic3r::format(_u8L("Reason: part \"%1%\" does not bound a volume."), v->name);
+    }
+    return {};
+}
+
 BooleanJobData::VolumeData GLGizmoMeshBoolean::prepare_volume_data(
     const BooleanOperationEngine::VolumeInfo& vol_info) const
 {
@@ -2829,130 +2697,26 @@ BooleanJobData GLGizmoMeshBoolean::prepare_job_data()
     return job_data;
 }
 
-// Helper: Group volumes by object and union within each object (for Object mode)
-std::vector<TriangleMesh> GLGizmoMeshBoolean::group_and_union_by_object(
+// Helper: one operand per object (Object mode) or per part (Part mode); an operand is the
+// union of its meshes, which the backend resolves together with the boolean itself.
+std::vector<std::vector<const TriangleMesh*>> GLGizmoMeshBoolean::operands_for_operation(
     const std::vector<BooleanJobData::VolumeData>& volumes,
-    std::function<bool()> cancel_cb,
-    std::function<void(float)> progress_cb)
+    BooleanTargetMode target_mode)
 {
-    // Group volumes by object_index
-    std::map<int, std::vector<size_t>> volumes_by_object;
-    for (size_t i = 0; i < volumes.size(); ++i) {
-        volumes_by_object[volumes[i].object_index].push_back(i);
-    }
-
-    std::vector<TriangleMesh> per_object_meshes;
-    per_object_meshes.reserve(volumes_by_object.size());
-
-    // Progress (0-1) is shared evenly by the unions over all objects
-    size_t total_ops = 0;
-    for (const auto& [obj_idx, vol_indices] : volumes_by_object)
-        total_ops += vol_indices.size() - 1;
-    size_t done_ops = 0;
-
-    // Union volumes within each object
-    for (const auto& [obj_idx, vol_indices] : volumes_by_object) {
-        if (cancel_cb && cancel_cb()) {
-            return {}; // Canceled
-        }
-
-        if (vol_indices.size() == 1) {
-            // Single volume - no union needed
-            per_object_meshes.push_back(volumes[vol_indices[0]].mesh);
-        } else {
-            // Multiple volumes - union them
-            TriangleMesh obj_merged = volumes[vol_indices[0]].mesh;
-            for (size_t i = 1; i < vol_indices.size(); ++i) {
-                std::function<void(float)> sub_progress_cb;
-                if (progress_cb)
-                    sub_progress_cb = [&progress_cb, done_ops, total_ops](float sub_progress) {
-                        progress_cb((float(done_ops) + std::clamp(sub_progress, 0.f, 100.f) / 100.f) / float(total_ops));
-                    };
-                std::vector<TriangleMesh> temp_result;
-                Slic3r::MeshBoolean::make_boolean(
-                    obj_merged, volumes[vol_indices[i]].mesh, temp_result,
-                    MeshBooleanConfig::OP_UNION, cancel_cb, sub_progress_cb);
-
-                if (temp_result.empty()) {
-                    return {}; // Failed or canceled
-                }
-                obj_merged = std::move(temp_result[0]);
-                ++done_ops;
-
-                // Cleanup after each internal union
-                its_remove_degenerate_faces(obj_merged.its);
-                its_merge_vertices(obj_merged.its, true);
-            }
-            per_object_meshes.push_back(std::move(obj_merged));
-        }
-    }
-
-    return per_object_meshes;
-}
-
-// Helper: Prepare meshes for operation (group by object if in Object mode, otherwise extract directly)
-std::vector<TriangleMesh> GLGizmoMeshBoolean::prepare_meshes_for_operation(
-    const std::vector<BooleanJobData::VolumeData>& volumes,
-    BooleanTargetMode target_mode,
-    std::function<bool()> cancel_cb,
-    std::function<void(float)> progress_cb)
-{
+    std::vector<std::vector<const TriangleMesh*>> operands;
     if (target_mode == BooleanTargetMode::Object) {
-        // Object mode: Group by object and union within each object
-        return group_and_union_by_object(volumes, cancel_cb, progress_cb);
-    } else {
-        // Part mode: Extract meshes directly
-        std::vector<TriangleMesh> meshes;
-        meshes.reserve(volumes.size());
+        std::map<int, size_t> operand_of_object;
         for (const auto& vol : volumes) {
-            meshes.push_back(vol.mesh);
+            auto [it, inserted] = operand_of_object.emplace(vol.object_index, operands.size());
+            if (inserted)
+                operands.emplace_back();
+            operands[it->second].push_back(&vol.mesh);
         }
-        return meshes;
+    } else {
+        for (const auto& vol : volumes)
+            operands.push_back({&vol.mesh});
     }
-}
-
-// Helper: Accumulate boolean operations on a list of meshes (for Union/Intersection)
-std::optional<TriangleMesh> GLGizmoMeshBoolean::accumulate_boolean_operations(
-    const std::vector<TriangleMesh>& meshes,
-    const std::string& operation,
-    BooleanJobData& data,
-    JobNew::Ctl& ctl,
-    BooleanOperationResult& result,
-    const std::function<void(float)>& progress_cb)
-{
-    if (meshes.empty()) {
-        result.error_message = MeshBooleanWarnings::PREPAREING;
-        return std::nullopt;
-    }
-
-    // Setup progress tracking
-    data.total_steps = static_cast<int>(meshes.size() - 1);
-    data.current_step = 0;
-
-    // Use the shared core logic from BooleanOperationEngine
-    auto opt_result = m_boolean_engine.execute_boolean_on_meshes_async(
-        meshes, operation, data.cancel_cb, progress_cb);
-
-    // Check result and set appropriate error message
-    if (!opt_result.has_value()) {
-        // Check if cancelled
-        if (ctl.was_canceled() || (data.cancel_cb && data.cancel_cb())) {
-            result.error_message = MeshBooleanWarnings::JOB_CANCELED;
-        } else {
-            // Set error based on operation type
-            if (operation == MeshBooleanConfig::OP_INTERSECTION) {
-                result.error_message = MeshBooleanWarnings::OVERLAPING;
-            } else {
-                result.error_message = MeshBooleanWarnings::JOB_FAILED;
-            }
-        }
-        return std::nullopt;
-    }
-
-    // Update current step to completion
-    data.current_step = static_cast<int>(meshes.size() - 1);
-
-    return opt_result;
+    return operands;
 }
 
 BooleanOperationResult GLGizmoMeshBoolean::perform_boolean_operation_async(
@@ -2961,270 +2725,92 @@ BooleanOperationResult GLGizmoMeshBoolean::perform_boolean_operation_async(
     BooleanOperationResult result;
     result.success = false;
 
-    // Execute based on operation type
+    auto canceled = [&]() { return ctl.was_canceled() || (data.cancel_cb && data.cancel_cb()); };
+
     switch (data.operation_mode) {
         case MeshBooleanOperation::Union:
         case MeshBooleanOperation::Intersection: {
-            // Validate minimum volumes
             if (data.volumes_a.size() < 2) {
                 result.error_message = (data.operation_mode == MeshBooleanOperation::Union) ?
                     MeshBooleanWarnings::MIN_VOLUMES_UNION : MeshBooleanWarnings::MIN_VOLUMES_INTERSECTION;
                 return result;
             }
 
-            // Progress split by operation count: object mode first unions the parts inside each
-            // object (grouping), then combines the objects; part mode has no grouping phase.
-            float group_weight = 0.f;
-            if (data.settings.target_mode == BooleanTargetMode::Object) {
-                std::set<int> objects;
-                for (const auto& vol : data.volumes_a)
-                    objects.insert(vol.object_index);
-                const size_t group_ops = data.volumes_a.size() - objects.size();
-                const size_t cross_ops = objects.size() - 1;
-                if (group_ops + cross_ops > 0)
-                    group_weight = float(group_ops) / float(group_ops + cross_ops);
-            }
-            std::function<void(float)> group_progress_cb, op_progress_cb;
-            if (data.progress_cb) {
-                group_progress_cb = [&data, group_weight](float p) { data.progress_cb(std::clamp(p, 0.f, 1.f) * group_weight); };
-                op_progress_cb = [&data, group_weight](float p) {
-                    data.progress_cb(group_weight + std::clamp(p, 0.f, 1.f) * (1.f - group_weight));
-                };
-            }
-
-            // Prepare meshes (handles Object/Part mode internally)
-            std::vector<TriangleMesh> meshes = prepare_meshes_for_operation(
-                data.volumes_a, data.settings.target_mode, data.cancel_cb, group_progress_cb);
-
-            if (meshes.empty()) {
-                if (ctl.was_canceled() || (data.cancel_cb && data.cancel_cb()))
-                    result.error_message = MeshBooleanWarnings::JOB_CANCELED;
-                else
-                    result.error_message = data.settings.target_mode == BooleanTargetMode::Object ?
-                        MeshBooleanWarnings::GROUPING : MeshBooleanWarnings::PREPAREING;
+            const auto operands = operands_for_operation(data.volumes_a, data.settings.target_mode);
+            if (data.operation_mode == MeshBooleanOperation::Intersection && operands.size() < 2) {
+                result.error_message = MeshBooleanWarnings::MIN_OBJECTS_INTERSECTION;
                 return result;
             }
 
-            // For Object mode with single object, union result is ready; intersection needs 2+
-            if (data.settings.target_mode == BooleanTargetMode::Object && meshes.size() == 1) {
-                if (data.operation_mode == MeshBooleanOperation::Union) {
-                    result.result_meshes.push_back(meshes[0]);
-                    result.success = true;
-                    break;
-                } else {
-                    result.error_message = MeshBooleanWarnings::MIN_OBJECTS_INTERSECTION;
-                    return result;
-                }
-            }
-
-            // Execute operation
             const std::string& operation = (data.operation_mode == MeshBooleanOperation::Union) ?
                 MeshBooleanConfig::OP_UNION : MeshBooleanConfig::OP_INTERSECTION;
+            data.total_steps  = 1;
+            data.current_step = 0;
+            auto opt_result = m_boolean_engine.execute_boolean_on_operands_async(
+                operands, operation, data.cancel_cb, data.progress_cb);
 
-            auto opt_result = accumulate_boolean_operations(meshes, operation, data, ctl, result, op_progress_cb);
-
-            if (opt_result.has_value()) {
-                result.result_meshes.push_back(*opt_result);
-                result.success = true;
+            if (canceled()) {
+                result.error_message = MeshBooleanWarnings::JOB_CANCELED;
+                return result;
             }
+            if (!opt_result.has_value() || opt_result->empty()) {
+                result.error_message = !opt_result.has_value() ? MeshBooleanWarnings::JOB_FAILED :
+                    data.operation_mode == MeshBooleanOperation::Intersection ? MeshBooleanWarnings::OVERLAPING :
+                                                                                  MeshBooleanWarnings::JOB_FAILED;
+                return result;
+            }
+            data.current_step = 1;
+            result.result_meshes.push_back(std::move(*opt_result));
+            result.success = true;
             break;
         }
 
         case MeshBooleanOperation::Difference: {
-            // A - B operation
             if (data.volumes_a.empty() || data.volumes_b.empty()) {
                 result.error_message = MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE;
                 return result;
             }
 
-            // Object mode uses different algorithm than Part mode
-            // Object: A_i - (B1 ∪ B2 ∪ ... ∪ Bn) for each A_i
-            // Part: A_i - B1 - B2 - ... - Bn for each A_i
-            if (data.settings.target_mode == BooleanTargetMode::Object) {
-                // ===== OBJECT MODE: Same strategy as synchronous version (line 837-910) =====
-                // Progress allocation:
-                // - Phase 1 (Preparing B union): 0% → 30% (or 0% → 50% if many B objects)
-                // - Phase 2 (A - B operations): 30%/50% → 100%
+            // Each A_i (an object in Object mode, a part in Part mode) minus all of B, in one
+            // call per A_i: A_i - B1 - B2 - ... = A_i - (B1 ∪ B2 ∪ ...).
+            std::vector<const TriangleMesh*> all_b;
+            for (const auto& vol_b : data.volumes_b)
+                all_b.push_back(&vol_b.mesh);
 
-                const size_t b_union_ops = data.volumes_b.size() - 1;  // Number of union operations
-                const size_t a_diff_ops = data.volumes_a.size();       // Number of difference operations
-                const size_t total_ops = b_union_ops + a_diff_ops;
+            // Part mode: smaller A volumes first, so early results come quickly.
+            if (data.settings.target_mode != BooleanTargetMode::Object)
+                std::sort(data.volumes_a.begin(), data.volumes_a.end(),
+                    [](const BooleanJobData::VolumeData& a, const BooleanJobData::VolumeData& b) {
+                        return a.mesh.its.indices.size() < b.mesh.its.indices.size();
+                    });
 
-                // Weight: B union phase gets proportional share based on operation count
-                const float b_union_weight = total_ops > 0 ? float(b_union_ops) / float(total_ops) : 0.0f;
-                const float a_diff_weight = 1.0f - b_union_weight;
-
-                // Build unified B mesh by unioning all B volumes first
-                TriangleMesh b_union;
-                bool b_union_init = false;
-                size_t b_idx = 0;
-
-                // Union all B volumes into one mesh (with progress reporting)
-                for (const auto& vol_b : data.volumes_b) {
-                    // Check cancellation
-                    if (data.cancel_cb && data.cancel_cb()) {
-                        result.error_message = MeshBooleanWarnings::JOB_CANCELED;
-                        return result;
-                    }
-
-                    TriangleMesh b_mesh = vol_b.mesh;
-                    if (!b_union_init) {
-                        b_union = b_mesh;
-                        b_union_init = true;
-                    } else {
-                        // Create progress callback for this B union operation
-                        auto b_progress_cb = data.progress_cb ? [&data, b_union_weight, b_union_ops, b_idx](float sub_progress) {
-                            if (data.progress_cb) {
-                                // Map sub_progress (0-1) to B union phase progress
-                                float clamped_sub = std::min(1.0f, std::max(0.0f, sub_progress));
-                                float b_phase_progress = (float(b_idx - 1) + clamped_sub) / float(b_union_ops);
-                                float total_progress = b_phase_progress * b_union_weight;
-                                total_progress = std::min(1.0f, std::max(0.0f, total_progress));
-                                data.progress_cb(total_progress);
-                            }
-                        } : std::function<void(float)>();
-
-                        // Union this B volume with accumulated B union
-                        std::vector<TriangleMesh> union_meshes = {b_union, b_mesh};
-                        auto opt_union = m_boolean_engine.execute_boolean_on_meshes_async(
-                            union_meshes, MeshBooleanConfig::OP_UNION, data.cancel_cb, b_progress_cb);
-
-                        if (!opt_union.has_value()) {
-                            result.error_message = MeshBooleanWarnings::GROUPING;
-                            return result;
-                        }
-                        b_union = *opt_union;
-                    }
-                    b_idx++;
-                }
-
-                if (!b_union_init) {
-                    result.error_message = MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE;
-                    return result;
-                }
-
-                // Initialize progress tracking for A - B phase
-                data.total_steps = static_cast<int>(data.volumes_a.size());
-                data.current_step = 0;
-
-                // Process each A volume: subtract the unified B mesh
-                for (size_t a_idx = 0; a_idx < data.volumes_a.size(); ++a_idx) {
-                    // Check for cancellation
-                    if (data.cancel_cb && data.cancel_cb()) {
-                        result.error_message = MeshBooleanWarnings::JOB_CANCELED;
-                        return result;
-                    }
-
-                    // Calculate progress callback for this A volume
-                    // Map to the remaining progress range: [b_union_weight, 1.0]
-                    const size_t total_a_volumes = data.volumes_a.size();
-                    auto progress_cb_for_a = data.progress_cb ? [&data, b_union_weight, a_diff_weight, total_a_volumes, a_idx](float sub_progress) {
-                        if (data.progress_cb) {
-                            // Map sub-progress (0-1) to this A volume's progress within A - B phase
-                            float clamped_sub = std::min(1.0f, std::max(0.0f, sub_progress));
-                            float a_phase_progress = (float(a_idx) + clamped_sub) / float(total_a_volumes);
-                            // Map to total progress: start from b_union_weight, span a_diff_weight
-                            float total_progress = b_union_weight + (a_phase_progress * a_diff_weight);
-                            total_progress = std::min(1.0f, std::max(0.0f, total_progress));
-                            data.progress_cb(total_progress);
-                        }
-                    } : std::function<void(float)>();
-
-                    // Subtract unified B mesh from this A volume: A_i - B_union
-                    std::vector<TriangleMesh> diff_meshes = {data.volumes_a[a_idx].mesh, b_union};
-                    auto opt_diff = m_boolean_engine.execute_boolean_on_meshes_async(
-                        diff_meshes, MeshBooleanConfig::OP_DIFFERENCE, data.cancel_cb, progress_cb_for_a);
-
-                    if (!opt_diff.has_value()) {
-                        // Check if cancelled
-                        if (data.cancel_cb && data.cancel_cb()) {
-                            result.error_message = MeshBooleanWarnings::JOB_CANCELED;
-                        } else {
-                            result.error_message = MeshBooleanWarnings::JOB_FAILED;
-                        }
-                        return result;
-                    }
-
-                    TriangleMesh result_mesh = *opt_diff;
-                    if (!result_mesh.empty()) {
-                        result.result_meshes.push_back(result_mesh);
-                        result.source_transforms.push_back(data.volumes_a[a_idx].transformation);
-                    }
-
-                    // Update step counter
-                    data.current_step = static_cast<int>(a_idx + 1);
-                }
-
-                result.success = !result.result_meshes.empty();
-                break;
-            }
-
-            // ===== PART MODE: Original implementation =====
-            // OPTIMIZATION: Sort A volumes by face count (small to large)
-            // Processing smaller A meshes first reduces overall computation time
-            std::sort(data.volumes_a.begin(), data.volumes_a.end(),
-                [](const BooleanJobData::VolumeData& a, const BooleanJobData::VolumeData& b) {
-                    return a.mesh.its.indices.size() < b.mesh.its.indices.size();
-                });
-
-            // Initialize progress tracking
-            data.total_steps = static_cast<int>(data.volumes_a.size());
+            const size_t total_a = data.volumes_a.size();
+            data.total_steps  = static_cast<int>(total_a);
             data.current_step = 0;
-
-            // Process each A volume: A_i = A_i - ALL_B_volumes (using shared core logic)
-            for (size_t a_idx = 0; a_idx < data.volumes_a.size(); ++a_idx) {
-                // Check for cancellation
-                if (data.cancel_cb && data.cancel_cb()) {
+            for (size_t a_idx = 0; a_idx < total_a; ++a_idx) {
+                if (canceled()) {
                     result.error_message = MeshBooleanWarnings::JOB_CANCELED;
                     return result;
                 }
 
-                // Build mesh list: [A_i, B1, B2, ..., Bn]
-                std::vector<TriangleMesh> meshes_for_subtraction;
-                meshes_for_subtraction.push_back(data.volumes_a[a_idx].mesh);
-                for (const auto& vol_b : data.volumes_b) {
-                    meshes_for_subtraction.push_back(vol_b.mesh);
-                }
+                std::function<void(float)> progress_for_a;
+                if (data.progress_cb)
+                    progress_for_a = [&data, total_a, a_idx](float p) {
+                        data.progress_cb((float(a_idx) + std::clamp(p, 0.f, 1.f)) / float(total_a));
+                    };
 
-                // Calculate progress callback for this A volume
-                const size_t total_a_volumes = data.volumes_a.size();
-                auto progress_cb_for_a = data.progress_cb ? [&data, total_a_volumes, a_idx](float sub_progress) {
-                    if (data.progress_cb) {
-                        // Map sub-progress (0-1) to overall progress
-                        // Clamp sub_progress to [0, 1] range (defensive programming)
-                        float clamped_sub = std::min(1.0f, std::max(0.0f, sub_progress));
-                        float total_progress = (float(a_idx) + clamped_sub) / float(total_a_volumes);
-                        // Ensure total_progress is within [0, 1]
-                        total_progress = std::min(1.0f, std::max(0.0f, total_progress));
-                        data.progress_cb(total_progress);
-                    }
-                } : std::function<void(float)>();
+                const std::vector<std::vector<const TriangleMesh*>> operands = {{&data.volumes_a[a_idx].mesh}, all_b};
+                auto opt_result = m_boolean_engine.execute_boolean_on_operands_async(
+                    operands, MeshBooleanConfig::OP_DIFFERENCE, data.cancel_cb, progress_for_a);
 
-                // Use the shared core logic from BooleanOperationEngine
-                auto opt_result = m_boolean_engine.execute_boolean_on_meshes_async(
-                    meshes_for_subtraction,
-                    MeshBooleanConfig::OP_DIFFERENCE,
-                    data.cancel_cb,
-                    progress_cb_for_a);
-
-                // Check result
                 if (!opt_result.has_value()) {
-                    // Check if cancelled
-                    if (ctl.was_canceled() || (data.cancel_cb && data.cancel_cb())) {
-                        result.error_message = MeshBooleanWarnings::JOB_CANCELED;
-                    } else {
-                        result.error_message = MeshBooleanWarnings::JOB_FAILED;
-                    }
+                    result.error_message = canceled() ? MeshBooleanWarnings::JOB_CANCELED : MeshBooleanWarnings::JOB_FAILED;
                     return result;
                 }
-
-                TriangleMesh accumulated_mesh = *opt_result;
-                if (!accumulated_mesh.empty()) {
-                    result.result_meshes.push_back(accumulated_mesh);
+                if (!opt_result->empty()) {
+                    result.result_meshes.push_back(std::move(*opt_result));
                     result.source_transforms.push_back(data.volumes_a[a_idx].transformation);
                 }
-
-                // Update step counter
                 data.current_step = static_cast<int>(a_idx + 1);
             }
 
@@ -3749,6 +3335,17 @@ void GLGizmoMeshBoolean::execute_mesh_boolean()
         return;
     }
 
+    // job_data only holds copies of the operand meshes, look the volumes up for their stats.
+    std::vector<const ModelVolume *> operands;
+    for (const auto *list : {&job_data.volumes_a, &job_data.volumes_b})
+        for (const BooleanJobData::VolumeData &vd : *list)
+            if (const ModelVolume *mv = get_model_volume(vd.volume_id, m_parent.get_model()->objects))
+                operands.push_back(mv);
+    if (const std::string warning = non_solid_part_warning(operands); !warning.empty()) {
+        m_warning_manager.add_warning(warning);
+        return;
+    }
+
     // Store job data for progress tracking
     m_current_job_data = std::make_shared<BooleanJobData>(job_data);
     m_async_job_running = true;
@@ -3932,6 +3529,10 @@ bool GLGizmoMeshBoolean::run_object_union_async(ModelObject *object)
             parts.push_back(v);
     if (parts.empty())
         return false;
+    if (const std::string warning = non_solid_part_warning(parts); !warning.empty()) {
+        notify(NotificationManager::NotificationLevel::WarningNotificationLevel, warning);
+        return false;
+    }
 
     BooleanJobData job_data;
     job_data.operation_mode                    = MeshBooleanOperation::Union;
