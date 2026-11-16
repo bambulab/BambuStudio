@@ -13099,6 +13099,9 @@ msgstr ""
 msgid "Air Pump"
 msgstr ""
 
+msgid "Filament Buffer"
+msgstr ""
+
 msgid "Laser 10W"
 msgstr ""
 

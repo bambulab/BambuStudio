@@ -13415,6 +13415,9 @@ msgstr "如果您不想参与测试版计划，可以随时在设置中禁用测
 msgid "Air Pump"
 msgstr "气泵"
 
+msgid "Filament Buffer"
+msgstr "供料缓冲器"
+
 msgid "Laser 10W"
 msgstr "激光 10W"
 
