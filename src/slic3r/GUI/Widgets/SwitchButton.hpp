@@ -119,7 +119,7 @@ private:
     bool m_isSelected;
 };
 
-class RichTooltipPopup : public wxPopupTransientWindow {
+class RichTooltipPopup : public wxPopupWindow {
 public:
     RichTooltipPopup(wxWindow* parent, const wxString& iconName, const wxString& text);
     void ShowAtPosition(wxWindow* anchor);
