@@ -1504,14 +1504,6 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     if (m_full_print_config.option("multi_nozzle_diameter_mode") != nullptr &&
         multi_nozzle_diameter_mode_enabled(m_full_print_config) != multi_nozzle_diameter_mode_enabled(new_full_config))
         print_diff.emplace_back("multi_nozzle_diameter_mode");
-    // extruder_enabled is project-only too. Until slicing reads it at a narrower step, a change
-    // invalidates every step, as any key without a rule in invalidate_state_by_config_options() does.
-    {
-        const auto *old_enabled = m_full_print_config.option<ConfigOptionBools>("extruder_enabled");
-        const auto *new_enabled = new_full_config.option<ConfigOptionBools>("extruder_enabled");
-        if (old_enabled != nullptr && new_enabled != nullptr && old_enabled->values != new_enabled->values)
-            print_diff.emplace_back("extruder_enabled");
-    }
     // Collect changes to object and region configs.
     t_config_option_keys object_diff      = m_default_object_config.diff(new_full_config);
     t_config_option_keys region_diff      = m_default_region_config.diff(new_full_config);

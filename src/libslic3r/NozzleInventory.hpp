@@ -92,9 +92,8 @@ public:
     /**
      * \brief Create an inventory that writes every change into \p mirror
      *
-     * \param mirror  project config; receives nozzle_volume_type, the per-slot keys, the legacy counts
-     *                and extruder_enabled (the user's flag per extruder, see user_set_enabled()).
-     *                It must outlive the inventory.
+     * \param mirror  project config; receives nozzle_volume_type, the per-slot keys and the legacy
+     *                counts. It must outlive the inventory.
      */
     explicit NozzleInventory(DynamicPrintConfig &mirror);
     ~NozzleInventory();
@@ -146,8 +145,7 @@ public:
      * \brief A project file was opened; its nozzle keys replace the Project layer
      *
      * Also selects the printer, so the file's printer must already be selected in \p printers.
-     * A file with no nozzle keys clears the layer. The user's enabled flags come back from
-     * extruder_enabled; without that key every extruder is enabled.
+     * A file with no nozzle keys clears the layer.
      *
      * \param printers   printer presets, with the project's printer selected
      * \param file_keys  the config as read from the file, so a missing key is really missing
@@ -234,51 +232,34 @@ public:
      */
     void user_unify_diameter(const std::string &diameter);
 
-    /**
-     * \brief The user enabled or disabled extruders, in the single-diameter mode
-     *
-     * A disabled extruder never prints. An enabled one prints only if its nozzle also has the selected
-     * variant's diameter; see \ref in_use and \ref enabled_variant. Not a layer: a sync or a nozzle
-     * edit keeps the flags, and a switch to another printer model clears them.
-     *
-     * \param enabled  one flag per extruder; a size other than extruder_count() is ignored
-     */
-    void user_set_enabled(std::vector<bool> enabled);
-
     // ---- Read ----
 
     /**
      * \brief Check if an extruder prints with the selected nozzles
      *
      * True for every installed nozzle in the multi-diameter mode, on a printer with a rack, or with
-     * one extruder. Else an extruder prints if its nozzle has the selected variant's diameter and
-     * it is enabled; see \ref is_enabled.
+     * one extruder. Else an extruder prints if its nozzle has the selected variant's diameter, so
+     * nozzles of one diameter all print.
      *
      * \param extruder_id  0-based extruder
      */
     bool in_use(int extruder_id) const;
 
     /**
-     * \brief Check if an extruder is enabled for printing
+     * \brief Pick the diameter that prints, on a printer with one nozzle per extruder
      *
-     * The user's flag from \ref user_set_enabled. When no enabled extruder has a nozzle, every
-     * extruder is enabled, so that some nozzle still prints.
+     * A nozzle prints only if it has this diameter. So the result is a diameter that a nozzle has.
+     * Call it after a nozzle change, or when the multi-diameter mode ends.
      *
-     * \param extruder_id  0-based extruder
+     * Caution: only for a printer with two or more extruders and no rack.
+     *
+     * \param preferred  the diameter to keep if a nozzle has it, such as the selected variant
+     * \return
+     * - \p preferred if a nozzle has it
+     * - else the diameter of the first extruder with a nozzle
+     * - \p preferred if no extruder has a nozzle
      */
-    bool is_enabled(int extruder_id) const;
-
-    /**
-     * \brief The variant diameter that lets the enabled extruders print
-     *
-     * Different diameters cannot print together. So the selected variant stays while an enabled nozzle
-     * has it; else the first enabled nozzle's diameter. "Enabled" follows \ref is_enabled. Switch the
-     * printer to it after user_set_enabled(), a nozzle edit or a sync.
-     *
-     * \return none to keep the selected variant; always none in the multi-diameter mode, on a printer
-     *         with a rack, or with one extruder
-     */
-    std::optional<std::string> enabled_variant() const;
+    std::string diameter_to_print(const std::string &preferred) const;
 
     /**
      * \brief Number of extruders of the selected printer

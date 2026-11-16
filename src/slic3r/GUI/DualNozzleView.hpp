@@ -2,7 +2,8 @@
 /**
  * \file DualNozzleView.hpp
  * \brief The sidebar nozzle content of a printer with two extruders and one nozzle each: a picker for
- *        the extruders that print, then one card per nozzle with its diameter and type.
+ *        the side that prints when the nozzles differ, then one card per nozzle with its diameter and type, and the
+ *        filament switcher icon between the cards.
  */
 
 #include <array>
@@ -19,6 +20,7 @@ class wxBoxSizer;
 
 namespace Slic3r::GUI {
 
+class IconView;
 class NozzleInfoCardView;
 class NozzleEditMenu;
 
@@ -60,11 +62,12 @@ public:
     void set_synced(int extruder, bool synced);
 
     /**
-     * \brief Called when the user picks the extruders that print in the single-diameter mode.
+     * \brief Called when the user picks the side that prints in the single-diameter mode.
      *
-     * The argument holds one enabled flag per extruder, left first.
+     * The picker shows only while the two nozzles have different diameters. The argument is the
+     * 0-based extruder whose nozzle prints.
      */
-    void set_on_pick(std::function<void(std::vector<bool>)> on_pick) { m_on_pick = std::move(on_pick); }
+    void set_on_pick(std::function<void(int)> on_pick) { m_on_pick = std::move(on_pick); }
 
     /**
      * \brief Called when the user picks a nozzle for one extruder in the edit menu.
@@ -73,19 +76,38 @@ public:
      */
     void set_on_edit(std::function<void(int, const std::string &, NozzleVolumeType)> on_edit) { m_on_edit = std::move(on_edit); }
 
+    /// \brief The filament switcher of the connected machine, as the icon between the cards shows it.
+    enum class Switcher {
+        None,     ///< no icon: no switcher, or the connected machine is not the selected printer
+        Ready,
+        NotReady, ///< installed, but it cannot switch filaments now
+    };
+
+    /**
+     * \brief Show the filament switcher icon between the two nozzle cards; a click on it shows the
+     *        switcher tip.
+     *
+     * Cheap when the state did not change, so call it on every machine update.
+     */
+    void set_switcher(Switcher switcher);
+
     void Rescale();
+
+    // The switcher icon overlaps both cards, which a sizer cannot express, so it is placed after each layout.
+    bool Layout() override;
 
 private:
     void create_picker(wxBoxSizer *outer);
-    void update_picker(bool multi_diameter, bool same_diameter);
+    void update_picker(bool shown);
     void open_edit_menu(int extruder, wxWindow *anchor);
 
     wxBoxSizer                                   *m_picker{nullptr};
-    std::array<Button *, EXTRUDERS + 1>           m_picks{};        // All, then one per extruder
-    std::array<bool, EXTRUDERS + 1>               m_pick_grayed{};  // the pick cannot be clicked
+    IconView                                     *m_switcher_icon{nullptr};
+    Switcher                                      m_switcher{Switcher::None};
+    std::array<Button *, EXTRUDERS>               m_picks{};        // one per extruder
     std::array<NozzleInfoCardView *, EXTRUDERS>   m_cards{};
     NozzleEditMenu                               *m_edit_menu{nullptr}; // created on first use, kept for reuse
-    std::function<void(std::vector<bool>)>        m_on_pick;
+    std::function<void(int)>                      m_on_pick;
     std::function<void(int, const std::string &, NozzleVolumeType)> m_on_edit;
 };
 

@@ -6029,13 +6029,6 @@ void PrintConfigDef::init_fff_params()
                    "as offering a single nozzle diameter and slicing keeps the single-diameter behavior.";
     def->set_default_value(new ConfigOptionBool { false });
 
-    def = this->add("extruder_enabled", coBools);
-    // No L(): like multi_nozzle_diameter_mode, no tab shows this key. Wrap both if one ever does.
-    def->label = "Extruder enabled";
-    def->tooltip = "Per extruder: whether the user lets it print. A disabled extruder never prints. An enabled "
-                   "one still needs a nozzle that fits the print. Empty means every extruder is enabled.";
-    def->set_default_value(new ConfigOptionBools {});
-
     // Project-only, like multi_nozzle_diameter_mode: kept out of the static PrintConfig layout.
     def = this->add("project_support_top_z_distance", coFloat);
     def->label = L("Top Z distance");
@@ -8729,7 +8722,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "retraction_distance_when_cut",
         "prime_volume",
         "apply_top_surface_compensation",
-        "nozzle_type"
+        "nozzle_type",
+        // The printer variant alone selects the nozzles that print.
+        "extruder_enabled"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

@@ -15,6 +15,16 @@ IconView::IconView(wxWindow *parent, const std::string &icon, int px)
     Bind(wxEVT_PAINT, &IconView::on_paint, this);
 }
 
+void IconView::set_icon(const std::string &icon)
+{
+    if (icon == m_icon) return;
+    m_icon = icon;
+    m_bmp  = wxBitmap(); // the next size query or paint loads the new asset
+    InvalidateBestSize();
+    SetSize(GetBestSize());
+    Refresh();
+}
+
 wxSize IconView::DoGetBestSize() const { return ScalableBitmap::GetBmpSize(fresh_bitmap()); }
 
 // The loader recolours the asset for the theme at load time, so reload when the theme or the scale

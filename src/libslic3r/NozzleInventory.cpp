@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <cstdint>
 #include <set>
 #include <sstream>
@@ -194,19 +195,6 @@ SelectedPrinter read_selected_printer(const PresetCollection &printers)
         printer.default_types.push_back(std::move(types));
     }
     return printer;
-}
-
-/**
- * \brief The user's enabled flag per extruder, as the project stored it
- *
- * \return empty if the key is missing, which means every extruder is enabled
- */
-std::vector<bool> read_enabled(const DynamicPrintConfig &project)
-{
-    const auto *enabled = project.option<ConfigOptionBools>("extruder_enabled");
-    if (enabled == nullptr)
-        return {};
-    return std::vector<bool>(enabled->values.begin(), enabled->values.end());
 }
 
 /**
@@ -506,9 +494,10 @@ struct NozzleInventory::Impl
     NozzleLayer         project, machine, user;
     uint64_t            last_stamp = 0;
 
+    // resolved results for each extruder
     std::vector<ExtruderSlots> result;
+    /// The layer each entry of result came from; parallel to result.
     std::vector<NozzleSource>  sources;
-    std::vector<bool>          enabled; ///< the user's enabled flag per extruder; a missing entry is enabled
 
     explicit Impl(DynamicPrintConfig &mirror) : mirror(mirror) {}
 
@@ -674,8 +663,7 @@ struct NozzleInventory::Impl
     std::string describe() const
     {
         std::string out = "printer=" + printer.history_key + " diameter=" + printer.diameter +
-                          (multi_diameter() ? " multi-diameter" : "") + (printer.has_rack ? " rack" : "") +
-                          " enabled=" + enabled_text() + " " +
+                          (multi_diameter() ? " multi-diameter" : "") + (printer.has_rack ? " rack" : "") + " " +
                           layer_text("project", &project) + " " + layer_text("machine", &machine) + " " +
                           layer_text("user", &user) + " result=";
         for (size_t eid = 0; eid < result.size(); ++eid)
@@ -692,39 +680,6 @@ struct NozzleInventory::Impl
     bool multi_diameter() const { return printer.supports_multi_diameter && multi_nozzle_diameter_mode_enabled(mirror); }
 
     bool valid_extruder(int extruder_id) const { return extruder_id >= 0 && extruder_id < int(result.size()); }
-
-    /// \brief The user's enabled flag of an extruder; true when the user never set one.
-    bool user_enabled(int extruder_id) const { return extruder_id >= int(enabled.size()) || enabled[extruder_id]; }
-
-    /**
-     * \brief Check if an extruder counts as enabled
-     *
-     * The user's flag, but when no enabled extruder has a nozzle every extruder counts, so that some
-     * nozzle still prints. The one rule for in_use() and enabled_variant(), so they always agree.
-     *
-     * \param extruder_id  0-based extruder
-     * \param diameters    diameter per extruder, empty for no nozzle
-     */
-    bool counts_enabled(int extruder_id, const std::vector<std::string> &diameters) const
-    {
-        if (user_enabled(extruder_id))
-            return true;
-        for (int eid = 0; eid < int(diameters.size()); ++eid)
-            if (user_enabled(eid) && !diameters[eid].empty())
-                return false;
-        return true;
-    }
-
-    /// \brief The user's enabled flags, for logs; "all" when the user never set them.
-    std::string enabled_text() const
-    {
-        if (enabled.empty())
-            return "all";
-        std::string out;
-        for (bool flag : enabled)
-            out += flag ? '1' : '0';
-        return out;
-    }
 
     /// \brief Diameter of the first slot of each extruder; empty for no nozzle.
     static std::vector<std::string> single_diameters(const std::vector<ExtruderSlots> &extruders)
@@ -763,7 +718,6 @@ NozzleInventory &NozzleInventory::operator=(const NozzleInventory &rhs)
     m_impl->last_stamp = rhs.m_impl->last_stamp;
     m_impl->result     = rhs.m_impl->result;
     m_impl->sources    = rhs.m_impl->sources;
-    m_impl->enabled    = rhs.m_impl->enabled;
     return *this;
 }
 
@@ -771,17 +725,12 @@ void NozzleInventory::set_history(AppConfig *history) { m_impl->history = histor
 
 void NozzleInventory::select_printer(const PresetCollection &printers)
 {
-    SelectedPrinter printer = read_selected_printer(printers);
-    // The flags belong to the extruders of one model; a variant switch keeps them, as setting them may cause one.
-    if (printer.model != m_impl->printer.model)
-        m_impl->enabled.clear();
-    m_impl->printer = std::move(printer);
+    m_impl->printer = read_selected_printer(printers);
     m_impl->commit("select printer", *this);
 }
 
 void NozzleInventory::open_project(const PresetCollection &printers, const DynamicPrintConfig &file_keys)
 {
-    m_impl->enabled = read_enabled(file_keys);
     m_impl->printer = read_selected_printer(printers);
     auto extruders = read_per_slot_keys(file_keys, m_impl->printer);
     if (!extruders)
@@ -900,17 +849,6 @@ void NozzleInventory::user_unify_diameter(const std::string &diameter)
     m_impl->commit("user unify diameter", *this);
 }
 
-void NozzleInventory::user_set_enabled(std::vector<bool> enabled)
-{
-    if (enabled.size() != m_impl->result.size()) {
-        BOOST_LOG_TRIVIAL(warning) << "user set enabled ignored, " << enabled.size() << " flags for " << m_impl->result.size()
-                                   << " extruders";
-        return;
-    }
-    m_impl->enabled = std::move(enabled);
-    m_impl->commit("user set enabled", *this);
-}
-
 bool NozzleInventory::in_use(int extruder_id) const
 {
     const Impl &impl = *m_impl;
@@ -921,33 +859,26 @@ bool NozzleInventory::in_use(int extruder_id) const
         return false;
     if (impl.multi_diameter() || impl.printer.has_rack || impl.result.size() < 2)
         return true;
-    return slots.front().diameter == impl.printer.diameter && impl.counts_enabled(extruder_id, Impl::single_diameters(impl.result));
+    return slots.front().diameter == impl.printer.diameter;
 }
 
-bool NozzleInventory::is_enabled(int extruder_id) const
-{
-    return m_impl->valid_extruder(extruder_id) && m_impl->counts_enabled(extruder_id, Impl::single_diameters(m_impl->result));
-}
-
-std::optional<std::string> NozzleInventory::enabled_variant() const
+std::string NozzleInventory::diameter_to_print(const std::string &preferred) const
 {
     const Impl &impl = *m_impl;
-    if (impl.multi_diameter() || impl.printer.has_rack || impl.result.size() < 2)
-        return std::nullopt;
-    // The newest nozzles, even when the selected variant hides them, as after a sync of other diameters.
+    assert(!impl.printer.has_rack && impl.result.size() >= 2);
+    // Read the newest layer first. The result skips it when no nozzle has the selected diameter, as after a sync.
     const NozzleLayer             *newest    = impl.newest_model_layer();
     const std::vector<std::string> diameters = Impl::single_diameters(newest ? newest->extruders : impl.result);
-    std::optional<std::string> first;
-    for (int eid = 0; eid < int(diameters.size()); ++eid) {
-        const std::string &diameter = diameters[eid];
-        if (diameter.empty() || !impl.counts_enabled(eid, diameters))
+    std::optional<std::string> left_most;
+    for (const std::string &diameter : diameters) {
+        if (diameter.empty())
             continue;
-        if (diameter == impl.printer.diameter)
-            return std::nullopt;
-        if (!first)
-            first = diameter;
+        if (diameter == preferred)
+            return preferred;
+        if (!left_most)
+            left_most = diameter;
     }
-    return first;
+    return left_most.value_or(preferred);
 }
 
 int NozzleInventory::extruder_count() const { return int(m_impl->result.size()); }
@@ -1013,11 +944,6 @@ void NozzleInventory::export_to(DynamicPrintConfig &config) const
     config.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values     = legacy;
     config.option<ConfigOptionStrings>("extruder_nozzle_stats_new", true)->values = legacy;
     sync_per_slot_nozzle_options_from_full_stat(config, full_stat);
-
-    std::vector<unsigned char> enabled;
-    for (int eid = 0; eid < extruder_count(); ++eid)
-        enabled.push_back(m_impl->user_enabled(eid));
-    config.option<ConfigOptionBools>("extruder_enabled", true)->values = enabled;
 }
 
 } // namespace Slic3r
