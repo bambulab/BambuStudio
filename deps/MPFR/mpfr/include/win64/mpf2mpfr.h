@@ -1,7 +1,7 @@
 /* mpf2mpfr.h -- Compatibility include file with mpf.
 
-Copyright 1999, 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-Contributed by the Arenaire and Cacao projects, INRIA.
+Copyright 1999-2002, 2004-2017 Free Software Foundation, Inc.
+Contributed by the AriC and Caramba projects, INRIA.
 
 This file is part of the GNU MPFR Library.
 
@@ -93,15 +93,15 @@ http://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
 #undef mpf_div_2exp
 #define mpf_div_2exp(x,y,z) mpfr_div_2exp(x,y,z,MPFR_DEFAULT_RND)
 #undef mpf_fits_slong_p
-#define mpf_fits_slong_p(x) mpfr_fits_ulong_p(x,MPFR_DEFAULT_RND)
+#define mpf_fits_slong_p(x) mpfr_fits_slong_p(x,MPFR_DEFAULT_RND)
 #undef mpf_fits_ulong_p
 #define mpf_fits_ulong_p(x) mpfr_fits_ulong_p(x,MPFR_DEFAULT_RND)
 #undef mpf_fits_sint_p
-#define mpf_fits_sint_p(x) mpfr_fits_uint_p(x,MPFR_DEFAULT_RND)
+#define mpf_fits_sint_p(x) mpfr_fits_sint_p(x,MPFR_DEFAULT_RND)
 #undef mpf_fits_uint_p
 #define mpf_fits_uint_p(x) mpfr_fits_uint_p(x,MPFR_DEFAULT_RND)
 #undef mpf_fits_sshort_p
-#define mpf_fits_sshort_p(x) mpfr_fits_ushort_p(x,MPFR_DEFAULT_RND)
+#define mpf_fits_sshort_p(x) mpfr_fits_sshort_p(x,MPFR_DEFAULT_RND)
 #undef mpf_fits_ushort_p
 #define mpf_fits_ushort_p(x) mpfr_fits_ushort_p(x,MPFR_DEFAULT_RND)
 #undef mpf_get_str
@@ -113,7 +113,7 @@ http://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
 #undef mpf_get_ui
 #define mpf_get_ui(x) mpfr_get_ui(x,MPFR_DEFAULT_RND)
 #undef mpf_get_si
-#define mpf_get_si(x) mpfr_get_ui(x,MPFR_DEFAULT_RND)
+#define mpf_get_si(x) mpfr_get_si(x,MPFR_DEFAULT_RND)
 #undef mpf_inp_str
 #define mpf_inp_str(x,y,z) mpfr_inp_str(x,y,z,MPFR_DEFAULT_RND)
 #undef mpf_set_str
