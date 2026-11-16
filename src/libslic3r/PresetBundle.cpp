@@ -3236,9 +3236,12 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             }
         };
         check_has_merge_info(maps, merge_info,filament_color->values.size());
-        auto get_map_index = [&ams_infos](const std::vector<AMSMapInfo> &infos, const AMSMapInfo &temp) {
+        auto get_map_index = [&ams_infos, skip_ext](const std::vector<AMSMapInfo> &infos, const AMSMapInfo &temp) {
             for (int i = 0; i < infos.size(); i++) {
-                const bool diameter_matches = temp.nozzle_diameter.empty() || infos[i].nozzle_diameter.empty() ||
+                // With a filament switcher every slot feeds every nozzle, and the dedupe above keeps one
+                // record per slot that holds a single extruder's diameter. The slot alone names the tray;
+                // the nozzle the user picked travels in the mapping instead.
+                const bool diameter_matches = skip_ext || temp.nozzle_diameter.empty() || infos[i].nozzle_diameter.empty() ||
                     std::abs(string_to_double_decimal_point(infos[i].nozzle_diameter.c_str()) - string_to_double_decimal_point(temp.nozzle_diameter.c_str())) < 1e-6;
                 if (infos[i].slot_id == temp.slot_id && infos[i].ams_id == temp.ams_id && diameter_matches) {
                     ams_infos[i].is_map = true;
@@ -3260,8 +3263,12 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             if (maps.find(i) != maps.end()) {//mapping exist
                 auto valid_index = get_map_index(ams_array_maps, maps[i]);
                 if (valid_index >= 0 && valid_index < ams_filament_presets.size()) {
-                    maps[i].nozzle_diameter    = ams_array_maps[valid_index].nozzle_diameter;
-                    maps[i].nozzle_volume_type = ams_array_maps[valid_index].nozzle_volume_type;
+                    // A nozzle the user picked in the matching dialog wins; the tray record only fills
+                    // what the mapping left out.
+                    if (maps[i].nozzle_diameter.empty())
+                        maps[i].nozzle_diameter = ams_array_maps[valid_index].nozzle_diameter;
+                    if (!maps[i].nozzle_volume_type.has_value())
+                        maps[i].nozzle_volume_type = ams_array_maps[valid_index].nozzle_volume_type;
                     exist_colors[i]           = ams_filament_colors[valid_index];
                     exist_color_types[i]      = ams_filament_color_types[valid_index];
                     exist_filament_presets[i] = ams_filament_presets[valid_index];

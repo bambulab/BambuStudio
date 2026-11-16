@@ -5,6 +5,7 @@
 #include <wx/graphics.h>
 #include <wx/sizer.h>
 
+#include "CascadeMenu.hpp"
 #include "FilamentView.hpp"
 #include "IconView.hpp"
 #include "PillView.hpp"
@@ -43,18 +44,20 @@ std::vector<wxColour> to_colours(const FilamentInfo &f)
 }
 
 /**
- * \brief Diameter + flow-type chip text, e.g. "0.4  Standard".
+ * \brief Diameter + flow-type text, e.g. "0.4  Standard".
  *
- * \param f  the filament
+ * \param diameter     the nozzle diameter; <= 0 when unknown
+ * \param volume_type  the flow type; empty when unknown
  */
-wxString flow_text(const FilamentInfo &f)
+wxString nozzle_text(double diameter, const std::string &volume_type)
 {
-    const wxString dia = f.nozzle_diameter > 0 ? wxString::FromUTF8(get_diameter_string((float) f.nozzle_diameter).c_str())
-                                               : wxString();
-    const wxString vol = f.nozzle_volume_type.empty() ? wxString() : _L(f.nozzle_volume_type);
+    const wxString dia = diameter > 0 ? wxString::FromUTF8(get_diameter_string((float) diameter).c_str()) : wxString();
+    const wxString vol = volume_type.empty() ? wxString() : _L(volume_type);
     if (dia.IsEmpty()) return vol;
     return vol.IsEmpty() ? dia : (dia + "  " + vol);
 }
+
+wxString flow_text(const FilamentInfo &f) { return nozzle_text(f.nozzle_diameter, f.nozzle_volume_type); }
 
 /**
  * \brief A filament's brand and name, shown side by side.
@@ -350,11 +353,17 @@ MappingRow::MappingRow(wxWindow *parent) : wxWindow(parent, wxID_ANY)
 
     for (wxWindow *w : {static_cast<wxWindow *>(chevron), static_cast<wxWindow *>(m_dst_spool),
                         static_cast<wxWindow *>(m_dst_unmapped), static_cast<wxWindow *>(m_dst_brand),
-                        static_cast<wxWindow *>(m_dst_name), static_cast<wxWindow *>(m_dst_size),
-                        static_cast<wxWindow *>(m_dst_box)})
+                        static_cast<wxWindow *>(m_dst_name), static_cast<wxWindow *>(m_dst_box)})
         w->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) {
             if (on_dest_activate) on_dest_activate();
         });
+    // The nozzle chip opens its own menu when there is a choice to make; else it acts as the cell.
+    m_dst_size->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) {
+        if (can_choose_nozzle())
+            open_nozzle_menu();
+        else if (on_dest_activate)
+            on_dest_activate();
+    });
 }
 
 void MappingRow::set_source(const FilamentInfo &f)
@@ -369,14 +378,24 @@ void MappingRow::set_source(const FilamentInfo &f)
     Layout();
 }
 
-void MappingRow::set_dest(const FilamentInfo &f, const wxString &slot_label)
+bool NozzleChoice::matches(double diameter, const std::string &volume_type) const
+{
+    return is_approx(this->diameter, diameter) && this->volume_type == volume_type;
+}
+
+void MappingRow::set_dest(const FilamentInfo &f, const wxString &slot_label, std::vector<NozzleChoice> choices)
 {
     const bool mapped = f.tray_id >= 0;
+    m_nozzle_choices  = mapped ? std::move(choices) : std::vector<NozzleChoice>{};
+    const bool can_choose = can_choose_nozzle();
+    m_dst_size->set_dropdown(can_choose);
+    m_dst_size->SetCursor(can_choose ? wxCursor(wxCURSOR_HAND) : wxNullCursor);
     m_dst_spool->Show(mapped);
     m_dst_name->Show(mapped);
     m_dst_unmapped->Show(!mapped);
     if (mapped) {
         const FilamentLabel label = label_of(f);
+        m_dst_nozzle              = {f.nozzle_diameter, f.nozzle_volume_type};
         m_dst_spool->set_colors(to_colours(f), is_gradient(f));
         m_dst_spool->set_label(slot_label);
         m_dst_brand->set(label);
@@ -389,6 +408,33 @@ void MappingRow::set_dest(const FilamentInfo &f, const wxString &slot_label)
         m_dst_size->Hide();
     }
     Layout();
+}
+
+bool MappingRow::can_choose_nozzle() const { return m_nozzle_choices.size() > 1; }
+
+void MappingRow::open_nozzle_menu()
+{
+    // A fresh menu per click; it destroys itself on close, so the row keeps no pointer to it.
+    auto *menu  = new CascadeMenuPopup(m_dst_size);
+    auto *sizer = new wxBoxSizer(wxVERTICAL);
+    menu->SetDestroyOnClose(true);
+
+    bool first_row = true;
+    for (const NozzleChoice &choice : m_nozzle_choices) {
+        const bool checked = choice.matches(m_dst_nozzle.diameter, m_dst_nozzle.volume_type);
+        auto      *item    = new CascadeMenuItem(menu, nozzle_text(choice.diameter, choice.volume_type), true, checked, false);
+        item->Bind(wxEVT_BUTTON, [this, menu, choice](wxCommandEvent &) {
+            if (on_nozzle_pick) on_nozzle_pick(choice);
+            menu->CloseCascade(); // last: the close destroys the menu that owns this handler
+        });
+        CascadeMenu::AddItem(sizer, item, first_row);
+        first_row = false;
+    }
+    CascadeMenu::Finish(menu, sizer);
+
+    // Given the chip's size, Position() flips the menu above the chip near the bottom of the screen.
+    menu->Position(m_dst_size->GetScreenPosition() - wxPoint(menu->FromDIP(CascadeMenu::Pad), 0), m_dst_size->GetSize());
+    menu->Popup();
 }
 
 void MappingRow::set_selected(bool selected) { m_dst_box->set_selected(selected); }

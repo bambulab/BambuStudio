@@ -135,6 +135,39 @@ namespace Slic3r
         return mobj->GetNozzleSystem()->GetNozzleOptByAddrId(pos_id.value() - 0x10);
     }
 
+    /**
+     * \brief The extruder an external spool feeds, as a set to pass to \ref _resolve_slot_nozzle; empty when unknown.
+     */
+    static std::set<int> _ext_spool_extruders(const MachineObject* obj, const DevAmsTray& tray)
+    {
+        // const_cast: get_nozzle_pos_id() needs a non-const obj but is read-only here.
+        const auto pos_id = tray.get_nozzle_pos_id(const_cast<MachineObject*>(obj));
+        if (pos_id.has_value() && *pos_id < 0x10) return {*pos_id}; // below 0x10 a position is an extruder id
+        return {};
+    }
+
+    /**
+     * \brief The nozzle a slot feeds: its rack nozzle, else the nozzle of the first extruder it is bound to,
+     *        else the lone nozzle of a single-nozzle machine.
+     *
+     * Behind a filament switcher an AMS is bound to both extruders; the first stands in for either.
+     * Only enumerate_dest_slots and the *BoundExtruder nozzle weights use it; the other weights keep
+     * \ref _query_slot_nozzle.
+     *
+     * \param bound_extruders  the extruders the slot feeds (its AMS's binding, or \ref _ext_spool_extruders)
+     */
+    static std::optional<DevNozzle> _resolve_slot_nozzle(const MachineObject* obj, const DevAmsTray* tray, const std::set<int>& bound_extruders)
+    {
+        if (auto nz = _query_slot_nozzle(obj, tray)) return nz;
+        auto* ns = obj ? obj->GetNozzleSystem() : nullptr;
+        if (!ns) return std::nullopt;
+        const auto& nozzles = ns->GetExtNozzles();
+        if (!bound_extruders.empty())
+            if (auto it = nozzles.find(*bound_extruders.begin()); it != nozzles.end()) return it->second;
+        if (ns->GetExtNozzleCount() == 1) return nozzles.begin()->second;
+        return std::nullopt;
+    }
+
     static void _parse_tray_info(int ams_id, int slot_id, DevAmsType type, DevAmsTray tray, FilamentInfo& result)
     {
         result.color = tray.color;
@@ -495,6 +528,13 @@ namespace Slic3r
         // Require gates); Ignore skips the lookup entirely.
         const bool collect_slot_nozzles = (nozzle_weight != NozzleMatchWeight::Ignore);
 
+        // The *BoundExtruder weights only change where a slot's nozzle comes from; fold them into the
+        // plain weight so the scoring below sees one Prefer / Require.
+        const bool by_bound_extruder = nozzle_weight == NozzleMatchWeight::PreferBoundExtruder ||
+                                       nozzle_weight == NozzleMatchWeight::RequireBoundExtruder;
+        if (nozzle_weight == NozzleMatchWeight::PreferBoundExtruder) nozzle_weight = NozzleMatchWeight::Prefer;
+        if (nozzle_weight == NozzleMatchWeight::RequireBoundExtruder) nozzle_weight = NozzleMatchWeight::Require;
+
         /////////////////////////
         // Step 1: collect filaments in machine
         std::map<DevAmsSlotId, FilamentInfo> tray_filaments; // <ams_id, slot_id> : tray_color
@@ -549,7 +589,8 @@ namespace Slic3r
                     const DevAmsSlotId slot_key = tray->second->get_ams_slot_id();
                     tray_filaments.emplace(slot_key, info);
                     if (collect_slot_nozzles)
-                        tray_nozzles.emplace(slot_key, _query_slot_nozzle(obj, tray->second));
+                        tray_nozzles.emplace(slot_key, by_bound_extruder ? _resolve_slot_nozzle(obj, tray->second, ams->second->GetBindedExtruderSet())
+                                                                         : _query_slot_nozzle(obj, tray->second));
                     if (right_ams_valid)
                     {
                         right_nozzle_has_ams = true;
@@ -586,7 +627,8 @@ namespace Slic3r
                     const DevAmsSlotId slot_key = tray.get_ams_slot_id();
                     tray_filaments.emplace(slot_key, info);
                     if (collect_slot_nozzles)
-                        tray_nozzles.emplace(slot_key, _query_slot_nozzle(obj, &tray));
+                        tray_nozzles.emplace(slot_key, by_bound_extruder ? _resolve_slot_nozzle(obj, &tray, _ext_spool_extruders(obj, tray))
+                                                                         : _query_slot_nozzle(obj, &tray));
                 }
             }
         }
@@ -753,35 +795,27 @@ namespace Slic3r
             return slots;
         }
 
-        // Legacy single/dual-extruder AMS plus external spools.
-        // A single-nozzle machine (P1 / A1 / X1 class) has no nozzle rack, so the per-slot lookup below
-        // (rack nozzles only) never resolves one. Its lone extruder nozzle feeds every slot, so fall back
-        // to it for the diameter / volume type when the lookup comes back empty.
-        std::optional<DevNozzle> single_ext_nozzle;
-        if (auto* ns = obj->GetNozzleSystem(); ns && ns->GetExtNozzleCount() == 1)
-            single_ext_nozzle = ns->GetExtNozzles().begin()->second;
-        auto resolve_nozzle = [&](const DevAmsTray* tray) -> std::optional<DevNozzle> {
-            auto nz = _query_slot_nozzle(obj, tray);
-            return nz.has_value() ? nz : single_ext_nozzle;
-        };
+        // Legacy single/dual-extruder AMS plus external spools. No rack nozzle feeds these slots, so each
+        // takes the nozzle of the extruder it feeds (see _resolve_slot_nozzle).
         const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
         for (auto ams = ams_list.begin(); ams != ams_list.end(); ++ams) {
             auto ams_type = ams->second->GetAmsType();
             if (ams_type == DevAmsType::AMS_LITE && ams->second->IsAmsLiteMixed())
                 ams_type = DevAmsType::AMS_LITE_MIXED;
+            const std::set<int> bound_extruders = ams->second->GetBindedExtruderSet();
             for (auto tray = ams->second->GetTrays().begin(); tray != ams->second->GetTrays().end(); ++tray) {
                 if (!tray->second->is_tray_info_ready())
                     continue;
                 FilamentInfo info;
                 _parse_tray_info(atoi(ams->first.c_str()), atoi(tray->first.c_str()), ams_type, *(tray->second), info);
-                set_diameter(info, resolve_nozzle(tray->second));
+                set_diameter(info, _resolve_slot_nozzle(obj, tray->second, bound_extruders));
                 slots.push_back(info);
             }
         }
         for (auto tray : obj->vt_slot) {
             FilamentInfo info;
             _parse_tray_info(atoi(tray.id.c_str()), 0, DevAmsType::EXT_SPOOL, tray, info);
-            set_diameter(info, resolve_nozzle(&tray));
+            set_diameter(info, _resolve_slot_nozzle(obj, &tray, _ext_spool_extruders(obj, tray)));
             slots.push_back(info);
         }
         return slots;

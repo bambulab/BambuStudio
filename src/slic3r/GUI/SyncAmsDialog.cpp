@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <map>
+#include <optional>
 #include <memory>
 #include <set>
 #include <string>
@@ -38,7 +39,8 @@
 #include "DeviceManager.hpp"            // MachineObject external spools
 #include "DeviceCore/DevManager.h"      // selected machine
 #include "DeviceCore/DevMapping.h"      // ams_filament_mapping
-#include "DeviceCore/DevFilaSwitch.h"   // filament selector state
+#include "DeviceCore/DevExtruderSystem.h" // extruder nozzles a filament switcher feeds
+#include "DeviceCore/DevFilaSwitch.h"   // filament switcher state
 #include "DeviceCore/DevFilaSystem.h"   // DevAmsTray::decode_color, for the mapped preview colours
 #include "DeviceCore/DevNozzleSystem.h" // DevNozzle flow-type strings, for the source volume type
 #include "Widgets/Button.hpp"
@@ -262,17 +264,29 @@ std::vector<FilamentInfo> collect_scope_filaments(int plate_idx)
 }
 
 /**
- * \brief Whether the selected printer profile is a single-extruder printer carrying several nozzles, or the
- *        project is in multi-diameter mode.
+ * \brief Whether the selected printer profile supports multi-diameter mode, in either mode.
  *
- * Only these printers match by nozzle as well and let the user pick the matching strategy; every other
- * printer keeps the classic matching.
+ * Only these printers let the user pick a slot of another filament type, and only their sync records the
+ * slot's nozzle diameter.
  */
-bool is_multi_nozzle_printer()
+bool support_multi_diameter()
 {
     auto *bundle = wxGetApp().preset_bundle;
-    return bundle && (is_single_ext_multi_nozzle(bundle->printers.get_edited_preset().config) ||
-                      multi_nozzle_diameter_mode_enabled(bundle->full_config()));
+    if(!bundle) return false;
+
+    return supports_multi_nozzle_diameter_mode(bundle->printers.get_edited_preset().config);
+}
+
+/**
+ * \brief Whether the project is in multi-diameter mode on a printer that supports it.
+ *
+ * Only then does the sync apply a mapped nozzle to the filament: in single-diameter mode
+ * PresetBundle::validate_filament_nozzle_diameter_selections() ignores it.
+ */
+bool multi_diameter_mode_on()
+{
+    auto *bundle = wxGetApp().preset_bundle;
+    return bundle && support_multi_diameter() && multi_nozzle_diameter_mode_enabled(bundle->project_config);
 }
 
 /**
@@ -285,17 +299,84 @@ struct MatchStrategy
 };
 
 /**
- * \brief Which of a printer's slots take part in the sync. The only place that decides it.
+ * \brief Whether we need the matching strategy combo: on a printer that supports multi-diameter mode,
+ *        in either mode, unless a filament switcher is ready.
  *
- * \param obj  the printer to sync from
+ * A ready switcher feeds every slot to every nozzle, so no slot can miss a nozzle and the user picks
+ * the nozzle on each row instead.
+ *
+ * \param switcher_ready  the dialog's switcher snapshot (\ref SyncAmsDialog::m_switcher_ready)
  */
-SyncSlots sync_slots_of(const MachineObject *obj)
+bool need_match_strategy(bool switcher_ready)
 {
-    SyncSlots slots;
-    slots.dual_nozzle         = wxGetApp().preset_bundle->full_config().option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size() > 1;
-    const auto selector       = obj->GetFilaSwitch();
-    slots.selector_feeds_both =slots.dual_nozzle && selector && selector->IsInstalled() && selector->IsReady();
-    return slots;
+    auto *bundle = wxGetApp().preset_bundle;
+
+    if (!bundle) return false;
+
+    // Only printers that support multi-diameter mode match by nozzle.
+    if(!supports_multi_nozzle_diameter_mode(bundle->printers.get_edited_preset().config)) return false;
+
+    return !switcher_ready;
+}
+
+/**
+ * \brief The nozzles the user can route a mapped slot to, one per diameter and flow. Empty unless a filament
+ *        switcher is ready and the project is in multi-diameter mode.
+ *
+ * The switcher feeds every nozzle, so every slot offers all the machine's nozzles. The sync routes a slot
+ * to a nozzle by diameter and flow, so only nozzles alike in both make one choice. In single-diameter
+ * mode the sync ignores the pick (see multi_diameter_mode_on()), so there is nothing to offer.
+ *
+ * \param obj    the printer to sync from
+ * \param switcher_ready  the dialog's switcher snapshot
+ * \param dst    the destination slot; an unmapped one has no choices
+ */
+std::vector<NozzleChoice> nozzle_choices(const MachineObject *obj, bool switcher_ready, const FilamentInfo &dst)
+{
+    std::vector<NozzleChoice> choices;
+    if (dst.tray_id < 0 || !switcher_ready || !multi_diameter_mode_on() || !obj || !obj->GetExtderSystem()) return choices;
+
+    for (const DevExtder &extruder : obj->GetExtderSystem()->GetExtruders()) {
+        // An unknown flow stays empty: GetNozzleFlowTypeString() would name it "Unknown" on the chip and menu.
+        const NozzleFlowType flow = extruder.GetNozzleFlowType();
+        const NozzleChoice   choice{extruder.GetNozzleDiameter(),
+                                    flow == NozzleFlowType::NONE_FLOWTYPE ? std::string() : DevNozzle::GetNozzleFlowTypeString(flow)};
+        if (choice.diameter <= 0.) continue;
+        const bool known = std::any_of(choices.begin(), choices.end(), [&](const NozzleChoice &c) { return c.matches(choice.diameter, choice.volume_type); });
+        if (!known) choices.push_back(choice);
+    }
+    return choices;
+}
+
+/**
+ * \brief Give a mapped destination the nozzle it feeds, when the user may route it (see nozzle_choices()).
+ *
+ * Takes the first choice found, in this order:
+ * 1. \p keep, while the slot can still reach it;
+ * 2. the nozzle of the source's diameter and flow;
+ * 3. a nozzle of the source's diameter, any flow (also covers a source with no single flow);
+ * 4. the slot's first nozzle.
+ *
+ * Leaves an unmapped destination, or one with no choices, unchanged.
+ *
+ * \param obj             the printer to sync from
+ * \param switcher_ready  the dialog's switcher snapshot
+ * \param dst             the destination to update
+ * \param src             the source filament mapped onto \p dst
+ * \param keep            the nozzle the user chose earlier; nullopt for none
+ */
+void assign_switcher_nozzle(const MachineObject *obj, bool switcher_ready, FilamentInfo &dst, const FilamentInfo &src, const std::optional<NozzleChoice> &keep)
+{
+    const std::vector<NozzleChoice> choices = nozzle_choices(obj, switcher_ready, dst);
+    if (choices.empty()) return;
+
+    auto find = [&choices](auto pred) { return std::find_if(choices.begin(), choices.end(), pred); };
+    auto it = keep ? find([&](const NozzleChoice &c) { return c.matches(keep->diameter, keep->volume_type); }) : choices.end();
+    if (it == choices.end()) it = find([&](const NozzleChoice &c) { return c.matches(src.nozzle_diameter, src.nozzle_volume_type); });
+    if (it == choices.end()) it = find([&](const NozzleChoice &c) { return is_approx(c.diameter, src.nozzle_diameter); });
+    if (it == choices.end()) it = choices.begin();
+    dst.nozzle_diameter    = it->diameter;
+    dst.nozzle_volume_type = it->volume_type;
 }
 
 /**
@@ -304,16 +385,16 @@ SyncSlots sync_slots_of(const MachineObject *obj)
  * A result whose slot is no longer on the machine comes back unmapped (tray_id < 0); when the matcher
  * fails outright and its result is invalid, every result is unmapped.
  *
- * \param obj       the machine to map onto
- * \param source    the project filaments to match
- * \param strategy  how candidate slots are ranked
+ * \param obj             the machine to map onto
+ * \param switcher_ready  the dialog's switcher snapshot
+ * \param source          the project filaments to match
+ * \param strategy        how candidate slots are ranked
  */
-std::vector<FilamentInfo> match_filaments(const MachineObject *obj, const std::vector<FilamentInfo> &source, const MatchStrategy &strategy)
+std::vector<FilamentInfo> match_filaments(const MachineObject *obj, bool switcher_ready, const std::vector<FilamentInfo> &source, const MatchStrategy &strategy)
 {
-    const SyncSlots slots   = sync_slots_of(obj);
-    const bool      use_ext = !slots.selector_feeds_both;
+    const bool use_ext = !switcher_ready;
     // {use_left_ams, use_right_ams, use_left_ext, use_right_ext}
-    const std::vector<bool> map_opt = slots.dual_nozzle ? std::vector<bool>{true, true, use_ext, use_ext} : std::vector<bool>{false, true, false, true};
+    const std::vector<bool> map_opt = wxGetApp().preset_bundle->get_printer_extruder_count() > 1 ? std::vector<bool>{true, true, use_ext, use_ext} : std::vector<bool>{false, true, false, true};
     const bool ignore_ext_if_ams = !wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist");
 
     std::vector<FilamentInfo> result;
@@ -397,6 +478,18 @@ wxString slot_label(const FilamentInfo &slot)
     auto *obj = selected_machine();
     if (!obj || slot.tray_id < 0) return {};
     return wxString::FromUTF8(slot_name(obj, slot.get_ams_id(), std::atoi(slot.slot_id.c_str())));
+}
+
+/**
+ * \brief Show a destination on a row, with the nozzles the user can route it to.
+ *
+ * \param row    the row to fill
+ * \param switcher_ready  the dialog's switcher snapshot
+ * \param dst    the destination to show
+ */
+void show_dest(MappingRow *row, bool switcher_ready, const FilamentInfo &dst)
+{
+    row->set_dest(dst, slot_label(dst), nozzle_choices(selected_machine(), switcher_ready, dst));
 }
 
 /**
@@ -552,6 +645,7 @@ SyncAmsDialog::SyncAmsDialog(wxWindow *parent, bool deferrable)
     SetBackgroundColour(wxGetApp().get_window_default_clr());
     const std::string icon_path = resources_dir() + "/images/BambuStudioTitle.ico";
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+    m_switcher_ready = wxGetApp().sidebar().is_fila_switch_ready(); // before any section reads it
 
     const int inset   = FromDIP(32);
     const int spacing = FromDIP(16);
@@ -728,15 +822,21 @@ void SyncAmsDialog::auto_map(const std::vector<FilamentInfo> &source)
     std::vector<FilamentInfo> result;
     auto                     *obj = selected_machine();
     if (obj && !source.empty()) {
-        // Multi-nozzle printers follow the strategy combo: Precision first requires a matching nozzle
-        // (diameter + flow), Color first only prefers one, and colour outranks the filament sub-type in
-        // both. Other printers have no combo and keep the classic ranking.
+        // The strategy combo decides: Precision first requires a matching nozzle (diameter + flow), Color
+        // first only prefers one, and colour outranks the filament sub-type in both. With a ready switcher
+        // there is no combo: every slot reaches every nozzle and the user picks the nozzle on each row, so
+        // matching ignores it and ranks by type and colour. Printers without multi-diameter support keep the
+        // classic ranking.
         MatchStrategy strategy;
         if (m_policy) {
             strategy.color_over_subtype = true;
-            strategy.nozzle_weight      = m_policy->GetSelection() == 1 ? NozzleMatchWeight::Require : NozzleMatchWeight::Prefer;
+            // The bound-extruder weights also cover printers whose slots feed an extruder, not a rack nozzle.
+            strategy.nozzle_weight      = m_policy->GetSelection() == 1 ? NozzleMatchWeight::RequireBoundExtruder : NozzleMatchWeight::PreferBoundExtruder;
+        } else if (m_switcher_ready && support_multi_diameter()) {
+            strategy.color_over_subtype = true;
+            strategy.nozzle_weight      = NozzleMatchWeight::Ignore;
         }
-        result = match_filaments(obj, source, strategy);
+        result = match_filaments(obj, m_switcher_ready, source, strategy);
 
         // The matcher copies the slot's ids / colour / type but not its nozzle geometry — backfill it from
         // the machine's real slots (the same join the manual-pick path uses).
@@ -752,6 +852,7 @@ void SyncAmsDialog::auto_map(const std::vector<FilamentInfo> &source)
             dst = result[i];
         else
             dst.tray_id = -1;
+        assign_switcher_nozzle(obj, m_switcher_ready, dst, source[i], /*keep*/ std::nullopt);
         m_mappings[source[i].id]      = std::make_shared<FilamentInfo>(dst);
         m_auto_mappings[source[i].id] = dst;
     }
@@ -766,12 +867,19 @@ void SyncAmsDialog::fill_rows(const std::vector<FilamentInfo> &source)
 
         auto *row = m_mapping_list->add_row();
         row->set_source(src);
-        row->set_dest(*it->second, slot_label(*it->second));
+        show_dest(row, m_switcher_ready, *it->second);
 
         // Clicking the destination opens the slot picker; the pick is written through the shared
         // `current`, so m_mappings (read by deal_ok and by later plate switches) sees it.
         std::shared_ptr<FilamentInfo> current = it->second;
         row->on_dest_activate                 = [this, row, src, current] { open_slot_picker(row, src, current); };
+        row->on_nozzle_pick                   = [this, row, current](const NozzleChoice &nozzle) {
+            current->nozzle_diameter    = nozzle.diameter;
+            current->nozzle_volume_type = nozzle.volume_type;
+            show_dest(row, m_switcher_ready, *current);
+            update_reset_all();
+            if (update_detail_loss_hint()) relayout();
+        };
     }
 
     // A scrolled window reports its best height as its min height, not its content, so it only gets row
@@ -797,8 +905,8 @@ void SyncAmsDialog::open_slot_picker(MappingRow *row, const FilamentInfo &source
     SlotSelectionState st;
     st.source_id   = source.id;
     st.source_type = source.type;
-    st.match_all   = m_policy != nullptr; // multi-nozzle printers may pick across filament types
-    if (auto *obj = selected_machine()) st.slots = sync_slots_of(obj);
+    st.match_all   = support_multi_diameter(); // a manual pick may cross filament types; auto-map never does
+    st.switcher_ready = m_switcher_ready;
     for (const auto &[src_id, dst] : m_mappings) {
         st.mapping.push_back(*dst);
         st.mapping.back().id = src_id;
@@ -806,9 +914,14 @@ void SyncAmsDialog::open_slot_picker(MappingRow *row, const FilamentInfo &source
     m_slot_popup->set_state(st);
 
     // Both callbacks write through the shared `current`, so m_mappings sees the change.
-    auto apply = [this, row, current](const FilamentInfo &dest) {
+    auto apply = [this, row, source, current](const FilamentInfo &picked) {
+        // Keep the nozzle the row had while the new slot can still reach it.
+        FilamentInfo dest = picked;
+        std::optional<NozzleChoice> kept;
+        if (current->tray_id >= 0) kept = NozzleChoice{current->nozzle_diameter, current->nozzle_volume_type};
+        assign_switcher_nozzle(selected_machine(), m_switcher_ready, dest, source, kept);
         *current = dest;
-        row->set_dest(dest, slot_label(dest));
+        show_dest(row, m_switcher_ready, dest);
         row->set_selected(true);
         update_mapped_preview(/*reframe=*/false); // repaint the after-mapping preview with the new colour
         update_reset_all();
@@ -830,7 +943,8 @@ void SyncAmsDialog::update_reset_all()
     bool edited = false;
     for (const auto &[src_id, dst] : m_mappings) {
         auto it = m_auto_mappings.find(src_id);
-        if (it == m_auto_mappings.end() || it->second.ams_id != dst->ams_id || it->second.slot_id != dst->slot_id) {
+        if (it == m_auto_mappings.end() || it->second.ams_id != dst->ams_id || it->second.slot_id != dst->slot_id ||
+            !is_approx(it->second.nozzle_diameter, dst->nozzle_diameter) || it->second.nozzle_volume_type != dst->nozzle_volume_type) {
             edited = true;
             break;
         }
@@ -880,17 +994,23 @@ void SyncAmsDialog::deal_ok()
     m_result.direct_sync = false;
     m_result.sync_maps.clear();
     // Each row's dest already carries its slot's nozzle diameter (backfilled at pick / auto-map time). Only
-    // multi-nozzle printers hand it on: elsewhere the diameter is the printer's own and must not re-pick
+    // printers that support multi-diameter mode hand it on: elsewhere the diameter is the printer's own and must not re-pick
     // the filament's nozzle variant. An unmapped dest leaves empty ids, which the preset bundle reads as unmapped.
-    const bool record_diameter = m_policy != nullptr;
+    const bool record_diameter = support_multi_diameter();
     for (const auto &[src_id, dst] : m_mappings) {
         if (src_id < 0)
             continue;
         auto &slot   = m_result.sync_maps[src_id];
         slot.ams_id  = dst->ams_id;
         slot.slot_id = dst->slot_id;
-        if (record_diameter && dst->nozzle_diameter > 0.)
+        if (!record_diameter) continue;
+        if (dst->nozzle_diameter > 0.)
             slot.nozzle_diameter = std::to_string(dst->nozzle_diameter);
+        // The flow names the nozzle together with the diameter. An unknown flow stays empty: Standard
+        // is a real flow and must not stand in for "unknown".
+        const NozzleFlowType flow = DevNozzle::ToNozzleFlowType(dst->nozzle_volume_type);
+        if (flow != NozzleFlowType::NONE_FLOWTYPE)
+            slot.nozzle_volume_type = DevNozzle::ToNozzleVolumeType(flow);
     }
 }
 
@@ -949,7 +1069,7 @@ wxWindow *SyncAmsDialog::build_mapping_section()
     title->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::TextPrimary));
     auto *trow = new wxBoxSizer(wxHORIZONTAL);
     trow->Add(title, 0, wxALIGN_CENTER_VERTICAL);
-    if (is_multi_nozzle_printer()) {
+    if (need_match_strategy(m_switcher_ready)) {
         m_policy = new ::ComboBox(m_mapping_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, FromDIP(wxSize(124, 26)), 0, nullptr, wxCB_READONLY);
         m_policy->Append(_L("Color first"));
         m_policy->Append(_L("Precision first"));

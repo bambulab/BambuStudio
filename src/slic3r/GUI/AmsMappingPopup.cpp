@@ -1451,13 +1451,14 @@ void MappingItem::doRender(wxDC &dc)
     wxColour color = m_coloul;
     change_the_opacity(color);
 
-    if (!IsThisEnabled()) { color = wxColour(0xEE, 0xEE, 0xEE); }
+    const bool enabled = IsEnabled();
+    if (!enabled) { color = wxColour(0xEE, 0xEE, 0xEE); }
     dc.SetPen(color);
     dc.SetBrush(wxBrush(color));
 
 
     //draw a rectangle based on the material color, single color or muti color processing
-    if (m_tray_data.material_cols.size() > 1 && !m_unmatch) {
+    if (m_tray_data.material_cols.size() > 1 && !m_unmatch && enabled) {
         int left = 0;
         int gwidth = std::round(MAPPING_ITEM_REAL_SIZE.x / (m_tray_data.material_cols.size() - 1));
         //gradient

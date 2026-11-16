@@ -30,6 +30,13 @@ public:
     enum class Shape { Rounded, Capsule }; ///< Capsule: fully round ends at any height
     void set_shape(Shape shape);
 
+    /**
+     * \brief Show a trailing chevron in the text colour, to tell that a click opens a menu.
+     *
+     * \note The pill only draws the chevron; the owner handles the click.
+     */
+    void set_dropdown(bool dropdown);
+
 protected:
     wxSize DoGetBestSize() const override;
 
@@ -39,6 +46,7 @@ private:
     wxString m_text;
     wxColour m_fg, m_fill, m_border;
     Shape    m_shape{Shape::Rounded};
+    bool     m_dropdown{false};
 };
 
 } // namespace Slic3r::GUI
