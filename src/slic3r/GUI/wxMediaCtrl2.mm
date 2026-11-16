@@ -196,6 +196,10 @@ static void on_first_frame(void const* ctx, const BambuFirstFrameInfo* ff)
     });
 }
 
+static void noop_log(void const *, int, char const *)
+{
+}
+
 static void on_session_end(void const* ctx, const BambuSessionEndInfo* se)
 {
     wxMediaCtrl2* ctrl = (wxMediaCtrl2*) ctx;
@@ -275,11 +279,20 @@ wxMediaCtrl2::~wxMediaCtrl2()
         m_idle_layer = nullptr;
     }
     BambuPlayer * player = (BambuPlayer *) m_player;
-    [player dealloc];
+    if (player) {
+        [player close];
+        [player setLogger: noop_log withContext: nullptr];
+        if ([player respondsToSelector:@selector(setFirstFrameCallback:withContext:)])
+            [player setFirstFrameCallback: nullptr withContext: nullptr];
+        if ([player respondsToSelector:@selector(setSessionEndCallback:withContext:)])
+            [player setSessionEndCallback: nullptr withContext: nullptr];
+        [player release];
+        m_player = nullptr;
+    }
     AVSampleBufferDisplayLayer *videoLayer = (AVSampleBufferDisplayLayer *)m_video_layer;
     if (videoLayer) {
         [videoLayer removeFromSuperlayer];
-        [videoLayer release];
+        dispatch_async(dispatch_get_main_queue(), ^{ [videoLayer release]; });
         m_video_layer = nullptr;
     }
 }
@@ -349,7 +362,7 @@ void wxMediaCtrl2::Load(wxURI url, std::chrono::system_clock::time_point play_st
         }
     }
     // Hide idle image when loading video (must run on main thread for CALayer)
-    dispatch_async(dispatch_get_main_queue(), ^{ removeIdleLayer(); });
+    CallAfter([this] { removeIdleLayer(); });
     wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
     event.SetId(GetId());
     event.SetEventObject(this);
@@ -368,7 +381,7 @@ void wxMediaCtrl2::Play()
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 play];
     // Hide idle image during playback (must run on main thread for CALayer)
-    dispatch_async(dispatch_get_main_queue(), ^{
+    CallAfter([this] {
         removeIdleLayer();
         updateStatusBadge();
     });
@@ -394,7 +407,7 @@ void wxMediaCtrl2::Stop()
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 close];
     m_suppress_pause_icon = false;
-    dispatch_async(dispatch_get_main_queue(), ^{
+    CallAfter([this] {
         AVSampleBufferDisplayLayer *videoLayer = (AVSampleBufferDisplayLayer *)m_video_layer;
         [videoLayer flushAndRemoveImage];
         updateIdleLayer();
@@ -475,9 +488,8 @@ void wxMediaCtrl2::applyVideoTransform()
     if (!videoLayer)
         return;
 
-    const double layer_offset_y = [videoLayer.superlayer isGeometryFlipped]
-        ? m_zoom_offset_y
-        : -m_zoom_offset_y;
+    // Hosting NSView is flipped, so layer position Y increases downward, same as the wx offset.
+    const double layer_offset_y = m_zoom_offset_y;
     const CGRect bounds = videoLayer.superlayer.bounds;
     [CATransaction begin];
     [CATransaction setDisableActions:YES];
@@ -789,7 +801,7 @@ void wxMediaCtrl2::SuppressPauseIcon(bool suppress)
     if (m_suppress_pause_icon == suppress)
         return;
     m_suppress_pause_icon = suppress;
-    dispatch_async(dispatch_get_main_queue(), ^{
+    CallAfter([this] {
         CALayer *pauseIconLayer = (CALayer *)m_pause_icon_layer;
         if (pauseIconLayer)
             pauseIconLayer.hidden = m_suppress_pause_icon ? YES : NO;
@@ -823,7 +835,7 @@ void wxMediaCtrl2::NotifyStopped()
         event.SetId(GetId());
         event.SetEventObject(this);
         wxPostEvent(this, event);
-        dispatch_async(dispatch_get_main_queue(), ^{ updateStatusBadge(); });
+        CallAfter([this] { updateStatusBadge(); });
     }
 }
 

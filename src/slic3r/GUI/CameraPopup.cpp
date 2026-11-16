@@ -9,6 +9,7 @@
 #include "wxExtensions.hpp"
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
+#include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
 #include <wx/dcmemory.h>
 #include "GUI_App.hpp"
@@ -179,14 +180,18 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_text_storage_value->SetForegroundColour(wxColour("#262E30"));
 
     grid_storage->Add(m_text_storage, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    wxWindow* storage_dot = new wxWindow(m_panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(4), FromDIP(4)));
-    storage_dot->SetBackgroundColour(*wxWHITE);
+    const wxSize storage_dot_size(FromDIP(4), FromDIP(4));
+    wxWindow* storage_dot = new wxWindow(m_panel, wxID_ANY, wxDefaultPosition, storage_dot_size);
+    storage_dot->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    storage_dot->SetMinSize(storage_dot_size);
     storage_dot->Bind(wxEVT_PAINT, [storage_dot](wxPaintEvent&) {
-        wxPaintDC pdc(storage_dot);
+        wxAutoBufferedPaintDC pdc(storage_dot);
+        pdc.SetBackground(wxBrush(storage_dot->GetParent()->GetBackgroundColour()));
+        pdc.Clear();
         wxGCDC dc(pdc);
         dc.SetPen(*wxTRANSPARENT_PEN);
-        dc.SetBrush(wxBrush(TEXT_COL));
-        wxSize sz = storage_dot->GetClientSize();
+        dc.SetBrush(wxBrush(wxGetApp().dark_mode() ? *wxWHITE : TEXT_COL));
+        const wxSize sz = storage_dot->GetClientSize();
         dc.DrawEllipse(0, 0, sz.x, sz.y);
     });
     wxBoxSizer* storage_value_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -585,6 +590,12 @@ void CameraPopup::wrap_hints()
     if (target == m_content_width && shown == m_wrap_last_shown)
         return;
 
+    if (target > 0 && m_panel->GetClientSize().x != target)
+        m_panel->SetClientSize(wxSize(target, std::max(m_panel->GetClientSize().y, 1)));
+    m_panel->Layout();
+
+    const int slack = FromDIP(4);
+
     wxMemoryDC dc;
     wxBitmap   bmp(1, 1);
     dc.SelectObject(bmp);
@@ -593,7 +604,9 @@ void CameraPopup::wrap_hints()
         auto& h = m_wrap_hints[i];
         if (!h.text) continue;
         if (shown & (1u << i)) {
-            const int w = target - FromDIP(h.reserved_dip);
+            int w = h.text->GetClientSize().x - slack;
+            if (w <= 0)
+                w = target - FromDIP(h.reserved_dip) - slack;
             if (w > 0) {
                 dc.SetFont(h.text->GetFont());
                 wxString wrapped;
