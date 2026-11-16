@@ -8117,9 +8117,12 @@ int CLI::run(int argc, char **argv)
                         finished = true;
                 }//end for partplate
 
-                if (downward_check_size > 0) {
-                    if (sliced_plates_use_tpu285(partplate_list, sliced_info.sliced_plates)) {
-                        BOOST_LOG_TRIVIAL(info) << "downward_check: project uses a TPU285 filament";
+                // TPU285 is hidden as Hybrid in filament info. The nozzles the slice
+                // actually used are known only after slicing, so the taint is recorded here.
+                if (sliced_plates_use_tpu285(partplate_list, sliced_info.sliced_plates)) {
+                    BOOST_LOG_TRIVIAL(info) << "project uses a TPU285 filament, add TPU285 to upward_compatibility_taint";
+                    sliced_info.upward_compatibility_taint.push_back("TPU285Filament");
+                    if (downward_check_size > 0) {
                         for (int index2 = 0; index2 < downward_check_size; index2++) {
                             if (downward_check_status[index2])
                                 continue;
