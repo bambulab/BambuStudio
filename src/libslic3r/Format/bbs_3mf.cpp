@@ -9124,8 +9124,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 std::string nozzle_diameters_str;
                 if (nozzle_diameter_option)
                     nozzle_diameters_str = nozzle_diameter_option->serialize();
-                // In multi-diameter mode the config's nozzle_diameter is only the conservative slicing baseline: the
-                // smallest nozzle installed on each extruder (PresetBundle::full_fff_config()).
+                // In multi-diameter mode the config's nozzle_diameter is only the slicing baseline: the diameter
+                // installed on each extruder, or the preset value for an extruder carrying several diameters
+                // (PresetBundle::full_fff_config()).
                 // Several extruders: each one the slice used reports the diameter of its used nozzle. An extruder the
                 // slice did not use keeps the baseline, and so does every extruder of a plate without a layered
                 // grouping result (G-code taken over from a loaded 3mf): one diameter for all of them would misreport

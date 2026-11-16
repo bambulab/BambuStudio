@@ -71,10 +71,10 @@ int get_effective_ams_nozzle_idx_for_active_diameter(const ConfigBase& config)
         return -1;
 
     const std::string &ams_diam = slots[ams_idx].diameter;
-    // In multi-diameter mode nozzle_diameter is only the conservative slicing baseline (normally
-    // 0.2), not a filter on which physical nozzles may participate. An AMS attached to a 0.6 nozzle
-    // must therefore remain the AMS group even while that baseline is 0.2; otherwise the manual
-    // grouping UI collapses the AMS nozzle and all fixed nozzles into one group.
+    // In multi-diameter mode nozzle_diameter is only the slicing baseline (the preset value once the
+    // extruder carries several diameters), not a filter on which physical nozzles may participate. An
+    // AMS attached to a 0.6 nozzle must therefore remain the AMS group even while that baseline is 0.4;
+    // otherwise the manual grouping UI collapses the AMS nozzle and all fixed nozzles into one group.
     const bool multi_diameter = multi_nozzle_diameter_mode_enabled(config);
     const bool usable = !slots[ams_idx].empty() &&
         (multi_diameter || active_diameter.empty() || ams_diam.empty() ||
