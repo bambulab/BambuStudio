@@ -605,7 +605,7 @@ static double ciede2000(const std::array<double, 3>& lab1, const std::array<doub
 
     // Compute T
     double T = 1.0 - 0.17 * std::cos(h_prime_avg - M_PI / 6.0) + 0.24 * std::cos(2.0 * h_prime_avg) + 0.32 * std::cos(3.0 * h_prime_avg + M_PI / 30.0) -
-               0.20 * std::cos(4.0 * h_prime_avg - 3.0 * M_PI / 6.0);
+               0.20 * std::cos(4.0 * h_prime_avg - 63.0 * M_PI / 180.0);
 
     // Compute rotation term R_T = -R_C * sin(2*delta_theta), where delta_theta = 30 * exp(-((h_bar'-275)/25)^2)
     // h_prime_avg is in radians; convert to degrees for delta_theta; 2*delta_theta = 60 * exp(...), convert back to radians for sin
