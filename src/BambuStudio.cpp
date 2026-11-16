@@ -4940,6 +4940,19 @@ int CLI::run(int argc, char **argv)
                 first = false;
             }
         }
+
+        // 切换机型后统计已按新机型重建，逐槽参数随之同步重建，避免残留旧机型布局；
+        // 命令行显式传逐槽参数、多口径模式开启时除外（混装布局由逐盘处理保留或兜底）。
+        const bool cli_has_per_slot_nozzles = m_extra_config.has("extruder_nozzle_count") && m_extra_config.has("extruder_nozzle_volume_type");
+        if (machine_switch && !cli_has_per_slot_nozzles && !multi_nozzle_diameter_mode_enabled(m_print_config)) {
+            const std::string diameter_str = m_print_config.opt_string("printer_variant");
+            ExtruderFullStat full_stat = build_extruder_full_stat_from_nozzle_stat(nozzle_stats_obj, max_nozzle_count, diameter_str);
+            sync_per_slot_nozzle_options_from_full_stat(m_print_config, full_stat);
+            const auto stats_strs = save_extruder_nozzle_stats_to_string(nozzle_stats_obj.get_raw_stat());
+            m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values     = stats_strs;
+            m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats_new", true)->values = stats_strs;
+            BOOST_LOG_TRIVIAL(info) << boost::format("machine_switch: rebuilt per-slot nozzle options from new printer stats, diameter %1%, extruder count %2%") % diameter_str % max_nozzle_count.size();
+        }
     }
     else {
         const auto *nozzle_stats_opt = m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats_new");
