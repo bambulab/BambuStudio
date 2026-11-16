@@ -37,6 +37,12 @@ struct LayerHeightData
     }
 };
 
+// Z overrides X/Y 渐变间距合并：< 0 表示完整间距（最大），只在非负值中取最小。
+inline coordf_t min_ramp_xy_gap(coordf_t a, coordf_t b)
+{
+    return a < 0. ? b : b < 0. ? a : std::min(a, b);
+}
+
 enum TreeNodeType {
     eCircle,
     eSquare,
@@ -132,6 +138,9 @@ struct SupportNode
     bool           is_sharp_tail   = false;
     bool           valid = true;
     float          carried_mass = 0.0;  // Virtual carried mass (supported overhang area) used to prioritize light-to-heavy branch merging
+    // Z overrides X/Y 渐变：本节点裁剪用的 XY 间距，< 0 表示用 support_object_xy_distance。
+    // 由 generate_contact_points() / drop_nodes() 显式写入。
+    coordf_t       xy_gap       = -1.;
 
     float total_carried_mass() const
     {
@@ -512,6 +521,33 @@ private:
     // clamp_to_first_layer_gap limits that XY expansion to support_object_first_layer_gap.
     // Sharp tails pass false and keep the top-z clearance.
     void  union_outlines_within_top_z(ExPolygons &collision, size_t obj_layer_nr, bool clamp_to_first_layer_gap = false) const;
+
+    // Z overrides X/Y: contacts use the reduced XY gap, the branch body below ramps it back to
+    // support_object_xy_distance one branch-angle step per layer. Off when the reduced gap is not smaller.
+    // Contact gap is m_support_params.gap_xy, body gap is m_ts_data->m_xy_distance.
+    bool     m_xy_ramp           = false;
+    // Gap actually used for a node, as quantized for the caches below.
+    coordf_t node_xy_gap(coordf_t gap) const;
+    // A ramp node is clipped by its own gap when drawn. Sharp tails and the object first layer keep the old rules.
+    // xy_gap >= 0 is only ever written while m_xy_ramp is on.
+    bool is_ramp_node(const SupportNode &node, size_t obj_layer_nr) const
+    {
+        return obj_layer_nr > 0 && node.xy_gap >= 0. && ! node.is_sharp_tail &&
+               node_xy_gap(node.xy_gap) < m_ts_data->m_xy_distance - EPSILON;
+    }
+    const ExPolygons &ramp_node_collision(const SupportNode &node, size_t obj_layer_nr) const
+    {
+        return ramp_draw_collision(obj_layer_nr, node_xy_gap(node.xy_gap));
+    }
+    // Per (object layer, gap) caches, keyed like TreeSupportData's collision cache.
+    // ramp_collision() matches TreeSupportData::get_collision(0, layer) for drop_nodes();
+    // ramp_draw_collision() matches draw_circles()'s base collision, including union_outlines_within_top_z().
+    mutable tbb::concurrent_unordered_map<int64_t, ExPolygons> m_ramp_collision_cache;
+    mutable tbb::concurrent_unordered_map<int64_t, ExPolygons> m_ramp_draw_collision_cache;
+    const ExPolygons &ramp_collision(size_t obj_layer_nr, coordf_t gap) const;
+    const ExPolygons &ramp_draw_collision(size_t obj_layer_nr, coordf_t gap) const;
+    // Collision drop_nodes() uses for a node with this gap; the plain one when the ramp is off.
+    const ExPolygons &node_collision(size_t obj_layer_nr, coordf_t gap);
 
     bool  is_strong = false;
     bool  is_slim                            = false;
