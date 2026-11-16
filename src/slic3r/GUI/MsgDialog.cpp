@@ -863,10 +863,7 @@ wxBoxSizer *Newer3mfVersionDialog::get_msg_sizer()
     wxBoxSizer *     horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxString    msg_str;
     Semver app_version = *(Semver::parse(SLIC3R_VERSION));
-    // Release and Beta share the same hint; only the first line differs.
-    wxString version_str = file_version_newer ?
-        wxString::Format(_L("The 3mf file is Beta version %s, current version: %s"), m_file_version->to_string(), app_version.to_string()) :
-        wxString::Format(_L("The 3mf file is version %s, current version: %s"), m_file_version->to_string(), app_version.to_string());
+    wxString version_str = wxString::Format(_L("The 3mf file is version %s, current version: %s"), m_file_version->to_string(), app_version.to_string());
     text1 = new wxStaticText(this, wxID_ANY, version_str);
 
     std::string download_url = "https://github.com/bambulab/BambuStudio/releases";
