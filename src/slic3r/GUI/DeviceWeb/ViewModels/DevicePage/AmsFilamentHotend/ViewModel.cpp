@@ -416,11 +416,14 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
                     if (dried_slots.count(slot_id) == 0) slots.insert(slot_id);
                 }
                 const float unit_temp = zone.current_temperature;
-                fp[SK::filament_page::ams_env_units].push_back({
+                nlohmann::json env_unit = {
                     {SK::env_unit::ams_id,       ams_unit->GetAmsId()},
                     {SK::env_unit::zone_addrs,   slot_addrs(ams_unit, slots)},
                     {SK::env_unit::temp,         unit_temp != INVALID_AMS_TEMPERATURE ? nlohmann::json(unit_temp) : nlohmann::json(nullptr)},
-                    {SK::env_unit::humidity_raw, zone.humidity_percent}});
+                    {SK::env_unit::humidity_raw, zone.humidity_percent}};
+                // left end is reserved for the drying module, fitted or not
+                if (ams_unit->GetAmsType() == DevAmsType::ZMULTI_B) env_unit[SK::env_unit::info_side] = "right";
+                fp[SK::filament_page::ams_env_units].push_back(std::move(env_unit));
             }
         }
 

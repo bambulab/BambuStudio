@@ -2049,14 +2049,11 @@ bool SelectMachineDialog::is_selected_ams_drying(MachineObject* obj)
         if (f.ams_id.empty()) continue;
 
         DevAms* dev_ams = fila_system->GetAmsById(f.ams_id);
-        if (!dev_ams || !dev_ams->AmsIsDrying()) continue;
+        if (!dev_ams) continue;
 
-        // A zoned AMS only heats the slots of its dryable zone, so printing from a
-        // slot outside that zone is unaffected by the drying temperature. An AMS
-        // without zone info keeps the legacy "every slot is dryable" behavior.
         const int slot = f.get_slot_id();
-        if (slot < 0 || dev_ams->IsDryableSlot(slot)) {
-            return true; // cannot resolve the slot -> keep warning
+        if (slot < 0 ? dev_ams->AmsIsDrying() : dev_ams->IsSlotDrying(slot)) {
+            return true;
         }
     }
 

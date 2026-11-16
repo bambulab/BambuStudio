@@ -94,7 +94,7 @@ static wxString get_dryer_name(DevDryerType model)
         case DevDryerType::N3F:       return "AMS2";
         case DevDryerType::N3S:       return "AMS-S";
         case DevDryerType::ZMULTI_A:  return "AMS 3H";
-        case DevDryerType::HT_MODULE: return _L("Dry Module");
+        case DevDryerType::HT_MODULE: return _L("Drying Module");
         default:                       return "";
     }
 }
@@ -630,7 +630,12 @@ void AMSDryCtrWin::on_overlay_paint(wxPaintEvent&)
     double normal_x  = bmp_x + (bmp_sz.GetWidth() - sz_normal.GetWidth()) / 2.0;
     double normal_y  = bmp_y + kFigmaNormalY * sy;
 
-    draw_badge(normal_x, normal_y, style_normal, sz_normal, normal_hum_text, normal_temp_text);
+    // invalid temperature arrives as 0 or -1
+    auto has_reading = [](int humidity, int temperature) { return humidity >= 0 || temperature > 0; };
+    if (has_reading(m_ambient_humidity_percent, m_ambient_temperature)) {
+        draw_badge(normal_x, normal_y, style_normal, sz_normal, normal_hum_text, normal_temp_text);
+    }
+    if (!has_reading(m_ams_info.m_humidity_percent, m_ams_info.m_temperature)) return;
     draw_badge(dryable_x, dryable_y, style_dryable, sz_dryable, dryable_hum_text, dryable_temp_text);
 
     // Green dashed connector descending from the dryable badge.
@@ -2213,7 +2218,11 @@ void AMSDryCtrWin::update_filament_guide_info(const DevDryer* dryer)
 
     m_guide_page->Freeze();
     m_ams_filament_panel->Clear();
-    m_ams_filament_panel->SetAmsName(dryer->GetAms() ? dryer->GetAms()->GetDisplayName() : wxString());
+    if (dryer->IsModule()) {
+        m_ams_filament_panel->SetAmsName(get_dryer_name(dryer->GetDryerType()));
+    } else {
+        m_ams_filament_panel->SetAmsName(dryer->GetAms() ? dryer->GetAms()->GetDisplayName() : wxString());
+    }
     const bool no_slot_info = !dryer->HasSlotInfo();
 
     if (m_rotate_spool_toggle && m_rotate_spool_toggle_description) {

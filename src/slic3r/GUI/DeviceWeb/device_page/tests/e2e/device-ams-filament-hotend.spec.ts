@@ -153,6 +153,46 @@ test.describe('AMS filament hotend page', () => {
     expect(ambientBox.x).toBeGreaterThanOrEqual(chamberBox.x + chamberBox.width);
   });
 
+  test('keeps the readout right of the top tier when the unit pins it there', async ({ page }) => {
+    const slot = (addr: number) => ({
+      addr_id: addr, display_index: addr + 1, ams_id: '33', slot_id: String(addr), is_top_tier: addr % 2 === 1,
+      is_external_spool: false, enabled: true,
+      filament_card: { state: 'ReadyToUse', color: '#FFFFFF', text: 'PLA', name: 'PLA', type: 'PLA', status_text: '' },
+      filament_line: { state: 'loaded' }, filament_nozzle: { state: 'Normal' },
+    });
+    await page.evaluate((hotendSlots) => {
+      document.dispatchEvent(new CustomEvent('cpp:device', {
+        detail: {
+          head: { version: '1.0', type: 'report', seq: 9099, ts: Date.now() },
+          body: {
+            module: 'device_page_ams_filament_hotend',
+            submod: 'state',
+            action: 'changed',
+            error_code: 0,
+            message: '',
+            payload: {
+              filament_page: {
+                actions: {},
+                ams_dry_zones: [],
+                ams_env_units: [{ ams_id: '33', zone_addrs: [0, 1, 2, 3, 4, 5, 6], humidity_raw: 39, temp: 27.7, info_side: 'right' }],
+                hotend_slots: hotendSlots,
+              },
+              hotend_page: { actions: {}, hotend_slots: [] },
+            },
+          },
+        },
+      }));
+    }, [0, 1, 2, 3, 4, 5, 6].map(slot));
+
+    const ambient = page.getByTestId('ams-hotend-ambient-info');
+    await expect(page.getByTestId('ams-hotend-dryer-chamber')).toHaveCount(0);
+    await expect(ambient).toHaveCount(1);
+    await expect(ambient).toContainText('39%');
+    const ambientBox = (await ambient.boundingBox())!;
+    const slot5Box = (await page.getByTestId('ams-hotend-slot-6').boundingBox())!;
+    expect(ambientBox.x).toBeGreaterThanOrEqual(slot5Box.x + slot5Box.width);
+  });
+
   test('hides AMS unit humidity and temperature when the payload disables it', async ({ page }) => {
     await expect(page.getByTestId('ams-hotend-ambient-info')).toHaveCount(1);
 

@@ -437,6 +437,7 @@ export interface AmsFilamentHotendEnvUnit {
   zone_addrs?: Array<number | string>;
   humidity_raw?: number;
   temp?: number | null;
+  info_side?: 'left' | 'right';
 }
 
 export interface AmsFilamentHotendSlotActionPayload extends Record<string, unknown> {

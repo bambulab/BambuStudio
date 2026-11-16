@@ -224,6 +224,7 @@ namespace env_unit {
     inline constexpr const char* zone_addrs   = "zone_addrs";
     inline constexpr const char* temp         = "temp";
     inline constexpr const char* humidity_raw = "humidity_raw";
+    inline constexpr const char* info_side    = "info_side";
 }
 
 } // namespace keys

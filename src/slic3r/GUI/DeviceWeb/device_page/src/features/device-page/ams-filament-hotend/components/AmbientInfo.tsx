@@ -83,9 +83,10 @@ export function findAmbientAnchors(
     const first = cols[0];
     const last = cols[cols.length - 1];
     const dryerOnLeft = dryerRuns.some((run) => run.end < first);
+    const side: AmbientInfoSide = unit.info_side ?? (dryerOnLeft ? 'right' : 'left');
     const anchor: AmbientAnchor = {
-      col: dryerOnLeft ? last : first,
-      side: dryerOnLeft ? 'right' : 'left',
+      col: side === 'right' ? last : first,
+      side,
       humidity: typeof unit.humidity_raw === 'number' && unit.humidity_raw >= 0 ? unit.humidity_raw : -1,
       temp: typeof unit.temp === 'number' ? unit.temp : null,
     };

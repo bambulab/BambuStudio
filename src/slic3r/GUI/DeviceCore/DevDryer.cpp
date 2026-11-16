@@ -349,12 +349,13 @@ void DevDryerMgr::ParseV1_0(const nlohmann::json& print_json)
     if (print_json.contains("device") && print_json["device"].is_object()) {
         const nlohmann::json& j_device = print_json["device"];
         auto it = m_modules.find(DevHtDryerModule::ID);
-        if (j_device.contains("ht")) {
+        const auto ht_it = j_device.find("ht");
+        if (ht_it != j_device.end() && ht_it->is_object()) {
             if (it == m_modules.end()) {
                 BOOST_LOG_TRIVIAL(info) << "ht dryer module online";
                 it = m_modules.emplace(DevHtDryerModule::ID, std::make_shared<DevHtDryerModule>()).first;
             }
-            if (auto ht = std::dynamic_pointer_cast<DevHtDryerModule>(it->second)) ht->ParseV1_0(j_device["ht"]);
+            if (auto ht = std::dynamic_pointer_cast<DevHtDryerModule>(it->second)) ht->ParseV1_0(*ht_it);
         } else if (it != m_modules.end()) {
             BOOST_LOG_TRIVIAL(info) << "ht dryer module offline";
             m_modules.erase(it);

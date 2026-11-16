@@ -314,6 +314,7 @@ public:
     std::optional<DevAmsZone> GetZoneBySlotId(int slot_id) const;
 
     bool AmsIsDrying();
+    bool IsSlotDrying(int slot_id) const; // includes a bound drying module
 
     RemainEstimateVersion GetRemainEstimateVersion() const { return m_remain_estimate_version; }
     bool SupportsFilamentTabAutoReadRfid() const { return m_enable_filament_tab_auto_read_rfid; }
