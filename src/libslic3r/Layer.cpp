@@ -376,6 +376,31 @@ void Layer::make_perimeters()
                                         lower_slices, upper_slices, false, patch.bottom_idx == 0);
                     generated = true;
                 }
+
+                // The part of the region a slab above extrudes still needs its fill surfaces here, as on a fully
+                // swallowed layer: without them discover_vertical_shells() sees no sparse infill there and turns
+                // the neighbouring layers solid. combine_adaptive_infill() handles them like any swallowed fill.
+                Polygons swallowed_here;
+                Polygons extruded_here;
+                for (const AdaptiveMergePatch &patch : lm->adaptive_merge_patches)
+                    polygons_append(patch.group_top ? extruded_here : swallowed_here, to_polygons(patch.area()));
+                if (! swallowed_here.empty()) {
+                    SurfaceCollection swallowed_fill;
+                    ExPolygons        swallowed_no_overlap;
+                    lm->make_perimeters(src, perimeter_regions, &swallowed_fill, &swallowed_no_overlap,
+                                        this->loop_nodes, 0., true, nullptr, no_shadow_upper_ptr, true);
+                    const ExPolygons swallowed_area = union_ex(swallowed_here);
+                    const ExPolygons extruded       = union_ex(extruded_here);
+                    auto clip_to_swallowed = [&](const ExPolygons &area) {
+                        ExPolygons clipped = intersection_ex(area, swallowed_area);
+                        return extruded.empty() ? clipped : diff_ex(clipped, extruded);
+                    };
+                    for (const Surface &surface : swallowed_fill.surfaces)
+                        for (ExPolygon &expolygon : clip_to_swallowed(ExPolygons{ surface.expolygon }))
+                            out_fill->surfaces.emplace_back(surface, std::move(expolygon));
+                    if (out_no_overlap != nullptr)
+                        append(*out_no_overlap, clip_to_swallowed(swallowed_no_overlap));
+                }
                 if (! generated) {
                     lm->perimeters.clear();
                     lm->thin_fills.clear();
