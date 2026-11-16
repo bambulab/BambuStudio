@@ -111,6 +111,7 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
             else
                 BOOST_LOG_TRIVIAL(warning) << "print_option: lvl = " << lvl;
         }
+        update_ai_monitor_status();
         evt.Skip();
     });
 
@@ -124,6 +125,7 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
             else
                 BOOST_LOG_TRIVIAL(warning) << "print_option: lvl = " << lvl;
         }
+        update_spaghetti_detection_status();
         evt.Skip();
     });
 
@@ -136,6 +138,7 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
             else
                 BOOST_LOG_TRIVIAL(warning) << "print_option: lvl = " << lvl;
         }
+        update_purgechutepileup_detection_status();
         evt.Skip();
     });
 
@@ -148,6 +151,7 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
             else
                 BOOST_LOG_TRIVIAL(warning) << "print_option: lvl = " << lvl;
         }
+        update_nozzleclumping_detection_status();
         evt.Skip();
     });
 
@@ -160,6 +164,7 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
             else
                 BOOST_LOG_TRIVIAL(warning) << "print_option: lvl = " << lvl;
         }
+        update_airprinting_detection_status();
         evt.Skip();
     });
 
