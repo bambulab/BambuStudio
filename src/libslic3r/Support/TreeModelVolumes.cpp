@@ -123,14 +123,27 @@ TreeModelVolumes::TreeModelVolumes(
         m_current_outline_idx = 0;
         m_layer_outlines.emplace_back(mesh_settings, std::vector<Polygons>{});
         std::vector<Polygons> &outlines = m_layer_outlines.front().second;
+        std::vector<Polygons> &outlines_extrudable = m_layer_outlines_extrudable.emplace_back();
         size_t num_raft_layers = m_raft_layers.size();
         size_t num_layers = print_object.layer_count() + num_raft_layers;
         outlines.assign(num_layers, Polygons{});
+        outlines_extrudable.assign(num_layers, Polygons{});
+        // 与悬垂检测相同的线宽与过滤公式，保证两边对"细到挤不出来"的判定一致。
+        const PrintObjectConfig &object_config = print_object.config();
+        const coord_t extrusion_width_scaled = scaled<coord_t>(Flow::extrusion_width_for_nozzle(
+            object_config.line_width,
+            float(primary_nozzle_diameter(print_object.print()->full_print_config())),
+            support_nozzle_diameter(&print_object, object_config.support_filament),
+            multi_nozzle_diameter_mode_enabled(print_object.print()->full_print_config())));
         tbb::parallel_for(tbb::blocked_range<size_t>(num_raft_layers, num_layers, std::min<size_t>(1, std::max<size_t>(16, num_layers / (8 * tbb::this_task_arena::max_concurrency())))),
             [&](const tbb::blocked_range<size_t> &range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
-                    outlines[layer_idx] = polygons_simplify(to_polygons(print_object.get_layer(layer_idx - num_raft_layers)->lslices), mesh_settings.resolution);
+                    const ExPolygons &lslices = print_object.get_layer(layer_idx - num_raft_layers)->lslices;
+                    outlines[layer_idx] = polygons_simplify(to_polygons(lslices), mesh_settings.resolution);
                     outlines[layer_idx].insert(outlines[layer_idx].end(), machine_borders.begin(), machine_borders.end());
+                    outlines_extrudable[layer_idx] = polygons_simplify(to_polygons(intersection_ex(lslices,
+                        offset2_ex(lslices, -float(extrusion_width_scaled) / 2, float(extrusion_width_scaled)))), mesh_settings.resolution);
+                    outlines_extrudable[layer_idx].insert(outlines_extrudable[layer_idx].end(), machine_borders.begin(), machine_borders.end());
                 }
         });
     }
@@ -461,6 +474,10 @@ void TreeModelVolumes::calculateCollision(const coord_t radius, const LayerIndex
 
     for (size_t outline_idx : layer_outline_indices)
         if (const std::vector<Polygons> &outlines = m_layer_outlines[outline_idx].second; ! outlines.empty()) {
+            // 顶部间隙层用可挤出轮廓；缺失时回退到原始轮廓。
+            const std::vector<Polygons> &outlines_top_gap =
+                outline_idx < m_layer_outlines_extrudable.size() && m_layer_outlines_extrudable[outline_idx].size() == outlines.size() ?
+                m_layer_outlines_extrudable[outline_idx] : outlines;
             const TreeSupportMeshGroupSettings  &settings = m_layer_outlines[outline_idx].first;
             const coord_t       layer_height              = settings.layer_height;
             const int           z_distance_bottom_layers  = int(round(double(settings.support_bottom_distance) / double(layer_height)));
@@ -498,7 +515,7 @@ void TreeModelVolumes::calculateCollision(const coord_t radius, const LayerIndex
             // 2) Sum over top / bottom ranges.
             const bool processing_last_mesh = outline_idx == layer_outline_indices.size();
             tbb::parallel_for(tbb::blocked_range<LayerIndex>(data.begin(), data.end()),
-                [&collision_areas_offsetted, &outlines, &machine_border = m_machine_border, &anti_overhang = m_anti_overhang, radius, 
+                [&collision_areas_offsetted, &outlines, &outlines_top_gap, &machine_border = m_machine_border, &anti_overhang = m_anti_overhang, radius, 
                     xy_distance, z_distance_bottom_layers, z_distance_top_layers, min_resolution = m_min_resolution, &data, processing_last_mesh, &throw_on_cancel]
             (const tbb::blocked_range<LayerIndex>& range) {
                     for (LayerIndex layer_idx = range.begin(); layer_idx != range.end(); ++layer_idx) {
@@ -509,7 +526,7 @@ void TreeModelVolumes::calculateCollision(const coord_t radius, const LayerIndex
                         for (int i = 1; i <= z_distance_top_layers; ++ i)
                             if (int j = layer_idx + i; j < int(outlines.size())) {
                                 Polygons collision_areas_original = machine_border;
-                                append(collision_areas_original, outlines[j]);
+                                append(collision_areas_original, outlines_top_gap[j]);
 
                                 // If just the collision (including the xy distance) of the layers above is accumulated, it leads to the
                                 // following issue:
