@@ -4491,8 +4491,15 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         //size_t new_selection = tab == (size_t)(-1) ? m_last_selected_tab : (m_layout == ESettingsLayout::Dlg && tab != 0) ? tab - 1 : tab;
         size_t new_selection = tab == (size_t)(-1) ? m_last_selected_tab : tab;
 
-        if (m_tabpanel->GetSelection() != (int)new_selection)
+        if (m_tabpanel->GetSelection() != (int)new_selection) {
             m_tabpanel->SetSelection(new_selection);
+#ifdef _WIN32
+            // Callers often start blocking work right after switching (e.g. importing a
+            // project behind a progress dialog that does not yield on Windows). Paint the
+            // new page and tab bar now, otherwise the previous page's pixels stay on screen.
+            ::RedrawWindow(GetHWND(), nullptr, nullptr, RDW_UPDATENOW | RDW_ALLCHILDREN);
+#endif
+        }
 #ifdef _MSW_DARK_MODE
         /*if (wxGetApp().tabs_as_menu()) {
             if (Tab* cur_tab = dynamic_cast<Tab*>(m_tabpanel->GetPage(new_selection)))

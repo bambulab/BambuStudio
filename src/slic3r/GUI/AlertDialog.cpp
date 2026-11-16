@@ -334,9 +334,16 @@ struct AlertDialog::Impl
     }
 };
 
+// Callers may pass any control; the dialog belongs to (and centres on) the window holding it
+static wxWindow *alert_owner(wxWindow *parent)
+{
+    if (wxWindow *top = wxGetTopLevelParent(parent))
+        return top;
+    return wxGetApp().mainframe;
+}
+
 AlertDialog::AlertDialog(wxWindow *parent, const wxString &title, const wxString &message)
-    : DPIDialog(parent ? parent : static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxDefaultSize,
-                wxDEFAULT_DIALOG_STYLE)
+    : DPIDialog(alert_owner(parent), wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_impl(std::make_unique<Impl>(this))
 {
     SetBackgroundColour(StateColor::darkModeColorFor(ThemeColor::White));

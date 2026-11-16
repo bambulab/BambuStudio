@@ -31999,7 +31999,7 @@ GLToolbar& Plater::get_collapse_toolbar()
 }
 
 int Plater::get_collapse_toolbar_size() {
-    return 20;
+    return std::lround(20.0f * wxGetApp().toolbar_icon_scale(false));
 }
 
 void Plater::update_preview_bottom_toolbar()

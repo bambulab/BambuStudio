@@ -939,6 +939,11 @@ public:
 
     const GLToolbar& get_collapse_toolbar() const;
     GLToolbar& get_collapse_toolbar();
+    /**
+     * \brief Icon size of the sidebar collapse toolbar, in physical pixels.
+     * \return 20 px multiplied by the DPI factor. The factor is 1.0 on macOS,
+     *         because Retina scaling goes through GLToolbar::set_scale there.
+     */
     int get_collapse_toolbar_size();
     void update_preview_bottom_toolbar();
     void update_preview_moves_slider();
