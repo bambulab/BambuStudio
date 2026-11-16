@@ -9598,11 +9598,11 @@ void PrinterInfoBox::UpdatePlate(const std::string& plate_name, const std::strin
             image_name = "bed_texture";
         }
         else if (plate_name == "Supertack Plate") {
-            name = _L("Bambu Cool Plate SuperTack");
+            name = _L("Cool Plate SuperTack");
             image_name = "bed_cool_supertack";
         }
         else if (plate_name == "3D Effect Plate") {
-            name = _L("Bambu 3D Effect Plate");
+            name = _L("3D Effect Plate");
             image_name = "bed_3d_effect";
         }
 
