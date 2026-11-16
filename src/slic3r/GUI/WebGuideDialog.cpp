@@ -625,18 +625,22 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             SaveProfile();
 
             std::string oldregion = m_ProfileJson["region"];
-            bool        bLogin    = false;
             if (m_Region != oldregion) {
                 AppConfig* config = GUI::wxGetApp().app_config;
                 std::string country_code = config->get_country_code();
-                NetworkAgent* agent = wxGetApp().getAgent();
-                if (agent) {
-                    agent->set_country_code(country_code);
-                    if (wxGetApp().is_user_login()) {
-                        bLogin = true;
-                        agent->user_logout();
+                wxGetApp().run_after_ping_bind([country_code] {
+                    auto& app = wxGetApp();
+                    if (NetworkAgent* agent = app.getAgent()) {
+                        agent->set_country_code(country_code);
+                        if (agent->is_user_login()) {
+                            agent->user_logout();
+                            app.CallAfter([] {
+                                if (!wxGetApp().is_closing())
+                                    login();
+                            });
+                        }
                     }
-                }
+                }, true);
             }
 
             if (m_UserClauseAgreed) {
@@ -650,8 +654,6 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             if (InstallNetplugin)
                 GUI::wxGetApp().CallAfter([this] { GUI::wxGetApp().ShowDownNetPluginDlg(); });
 
-            if (bLogin)
-                GUI::wxGetApp().CallAfter([this] { login(); });
         }
         else if (strCmd == "user_guide_cancel") {
             this->EndModal(wxID_CANCEL);

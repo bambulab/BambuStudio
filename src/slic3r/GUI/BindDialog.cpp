@@ -58,6 +58,7 @@ wxString get_fail_reason(int code)
 
 PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Bind with Pin Code"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    , m_bind_timer(this)
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
@@ -234,6 +235,8 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
     m_button_bind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PingCodeBindDialog::on_bind_printer), NULL, this);
     m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PingCodeBindDialog::on_cancel), NULL, this);
     m_button_close->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PingCodeBindDialog::on_cancel), NULL, this);
+    Bind(wxEVT_TIMER, &PingCodeBindDialog::on_bind_timer, this, m_bind_timer.GetId());
+    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent&) { EndModal(wxCLOSE); });
 
     m_simplebook->SetSelection(0);
 
@@ -314,24 +317,91 @@ void PingCodeBindDialog::on_key_backspace(wxKeyEvent& event)
 
 void PingCodeBindDialog::on_bind_printer(wxCommandEvent& event)
 {
+    if (m_close_requested || (m_bind_request && !m_bind_request->completed.load()) ||
+        m_simplebook->GetSelection() != 0 || wxGetApp().is_closing())
+        return;
+
     wxString ping_code;
 
     for (int i = 0; i < PING_CODE_LENGTH; i++) {
         ping_code += m_text_input_single_code[i]->GetTextCtrl()->GetValue().ToStdString();
     }
 
-    NetworkAgent* agent = wxGetApp().getAgent();
-    if (agent && agent->is_user_login() && ping_code.length() == PING_CODE_LENGTH) {
-        auto result = agent->ping_bind(ping_code.ToStdString());
-        if (result < 0) {
-            MessageDialog msg_wingow(nullptr, _L("Login failed. Please check the following items:\n"
-                                                 "1. Ensure the Pin code is entered correctly.\n"
-                                                 "2. Confirm that the region settings of the printer and Bambu Studio are consistent."), "", wxICON_WARNING | wxOK);
-            msg_wingow.ShowModal();
+    if (ping_code.length() == PING_CODE_LENGTH) {
+        m_bind_request = wxGetApp().start_ping_bind(ping_code.ToStdString());
+        if (!m_bind_request)
             return;
-        }
+        m_request_processed = false;
+        m_button_bind->Enable(false);
         m_simplebook->SetSelection(1);
+        m_bind_timer.Start(100);
     }
+}
+
+void PingCodeBindDialog::on_bind_timer(wxTimerEvent& event)
+{
+    if (m_close_requested || wxGetApp().is_closing() ||
+        (m_bind_request && m_bind_request->canceled.load())) {
+        EndModal(wxCLOSE);
+        return;
+    }
+    if (m_bind_request && !m_bind_request->completed.load())
+        return;
+
+    process_bind_result();
+    if (m_close_requested || wxGetApp().is_closing()) {
+        EndModal(wxCLOSE);
+        return;
+    }
+    m_bind_timer.Stop();
+}
+
+void PingCodeBindDialog::process_bind_result()
+{
+    if (m_bind_request && m_bind_request->completed.load() && !m_request_processed) {
+        m_request_processed = true;
+        if (m_bind_request->result < 0) {
+            m_simplebook->SetSelection(0);
+            m_button_bind->Enable(true);
+            MessageDialog msg_window(this, _L("Login failed. Please check the following items:\n"
+                                             "1. Ensure the Pin code is entered correctly.\n"
+                                             "2. Confirm that the region settings of the printer and Bambu Studio are consistent."), "", wxICON_WARNING | wxOK);
+            msg_window.ShowModal();
+        }
+    }
+}
+
+void PingCodeBindDialog::notify_bind_success()
+{
+    // GUI_App delivers this notification after the PIN call has returned.
+    if (m_close_requested || wxGetApp().is_closing())
+        return;
+    process_bind_result();
+    if (m_close_requested || wxGetApp().is_closing())
+        return;
+    EndModal(wxCLOSE);
+    MessageDialog msg_window(nullptr, _L("Log in successful."), "", wxAPPLY | wxOK);
+    msg_window.ShowModal();
+}
+
+void PingCodeBindDialog::cancel_bind_request()
+{
+    m_bind_timer.Stop();
+    if (m_bind_request) {
+        m_bind_request->cancel();
+        m_bind_request.reset();
+    }
+}
+
+void PingCodeBindDialog::EndModal(int ret_code)
+{
+    m_close_requested = true;
+    if (!can_end_modal()) {
+        m_bind_timer.Start(100);
+        return;
+    }
+    cancel_bind_request();
+    DPIDialog::EndModal(ret_code);
 }
 
 void PingCodeBindDialog::on_cancel(wxCommandEvent& event)
@@ -348,6 +418,7 @@ void PingCodeBindDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 
 PingCodeBindDialog::~PingCodeBindDialog() {
+    cancel_bind_request();
     m_button_bind->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PingCodeBindDialog::on_bind_printer), NULL, this);
     m_button_cancel->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PingCodeBindDialog::on_cancel), NULL, this);
     m_button_close->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PingCodeBindDialog::on_cancel), NULL, this);

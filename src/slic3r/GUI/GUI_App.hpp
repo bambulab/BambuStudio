@@ -2,6 +2,7 @@
 #define slic3r_GUI_App_hpp_
 
 #include <atomic>
+#include <deque>
 #include <functional>
 #include <memory>
 #include <string>
@@ -13,6 +14,7 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/UserNotification.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
+#include "slic3r/Utils/PingBindTask.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
 #include "slic3r/GUI/WebUserLoginDialog.hpp"
 #include "slic3r/GUI/HMS.hpp"
@@ -375,6 +377,17 @@ private:
     Slic3r::UserManager* m_user_manager { nullptr };
     Slic3r::TaskManager* m_task_manager { nullptr };
     NetworkAgent* m_agent { nullptr };
+    struct PingBindAction {
+        std::shared_ptr<PingBindRequest> request;
+        std::function<void()> run;
+        bool changes_account = false;
+    };
+    std::unique_ptr<PingBindTask> m_ping_bind_task;
+    std::deque<PingBindAction> m_ping_bind_actions;
+    wxTimer m_ping_bind_timer;
+    bool m_processing_ping_bind_actions = false;
+    void process_ping_bind_actions();
+    void cancel_ping_binds();
 
     wgtFilaManagerStore*            m_fila_manager_store        { nullptr };
     wgtFilaManagerSync*             m_fila_manager_sync         { nullptr };
@@ -832,6 +845,8 @@ public:
     std::string     url_decode(std::string value);
 
     void            popup_ping_bind_dialog();
+    std::shared_ptr<PingBindRequest> start_ping_bind(std::string ping_code);
+    void run_after_ping_bind(std::function<void()> action, bool changes_account = false);
     void            remove_ping_bind_dialog();
 
     // Parameters extracted from the command line to be passed to GUI after initialization.

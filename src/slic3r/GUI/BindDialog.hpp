@@ -26,6 +26,8 @@
 #include "Widgets/ProgressBar.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Jobs/BindJob.hpp"
+#include "slic3r/Utils/PingBindTask.hpp"
+#include <wx/timer.h>
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarBind.hpp"
 
@@ -48,6 +50,13 @@ struct MemoryStruct
 class PingCodeBindDialog : public DPIDialog
 {
 private:
+    std::shared_ptr<PingBindRequest> m_bind_request;
+    wxTimer m_bind_timer;
+    bool m_request_processed = false;
+    bool m_close_requested = false;
+    void on_bind_timer(wxTimerEvent& event);
+    void process_bind_result();
+    void cancel_bind_request();
 
     Label* m_status_text;
     wxStaticText* m_text_input_title;
@@ -77,6 +86,9 @@ private:
 public:
     PingCodeBindDialog(Plater* plater = nullptr);
     ~PingCodeBindDialog();
+    void EndModal(int ret_code) override;
+    void notify_bind_success();
+    const std::shared_ptr<PingBindRequest>& bind_request() const { return m_bind_request; }
 
     void     on_key_input(wxKeyEvent& evt);
     void     on_text_changed(wxCommandEvent& event);

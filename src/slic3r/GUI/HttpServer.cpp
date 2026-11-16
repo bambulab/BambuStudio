@@ -4,6 +4,7 @@
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include <algorithm>
+#include <boost/asio/post.hpp>
 #include "libslic3r/Log.hpp"
 
 namespace Slic3r {
@@ -370,18 +371,24 @@ void session::handle_login()
             do_write_302(*login_params, false);
         }
         else {
-            NetworkAgent *agent = wxGetApp().getAgent();
-            agent->change_user(result.login_info);
-            if (agent->is_user_login()) {
-                wxGetApp().request_user_login(1);
-                BOOST_LOG_TRIVIAL(info) << "third_party_login: all good, login successful";
-                do_write_302(*login_params, true);
-            }
-            else {
-                BOOST_LOG_TRIVIAL(info) << "third_party_login: after applying the login information, the application remains unlogged, login failed";
-                do_write_302(*login_params, false);
-            }
-            GUI::wxGetApp().CallAfter([this] { wxGetApp().ShowUserLogin(false); });
+            auto self = shared_from_this();
+            wxGetApp().run_after_ping_bind([self, params = *login_params, login_info = std::move(result.login_info)] {
+                auto& app = wxGetApp();
+                NetworkAgent* agent = app.getAgent();
+                if (agent)
+                    agent->change_user(login_info);
+                const bool logged_in = agent && agent->is_user_login();
+                if (logged_in) {
+                    app.request_user_login(1);
+                    BOOST_LOG_TRIVIAL(info) << "third_party_login: all good, login successful";
+                } else {
+                    BOOST_LOG_TRIVIAL(info) << "third_party_login: after applying the login information, the application remains unlogged, login failed";
+                }
+                boost::asio::post(self->socket_.get_executor(), [self, params, logged_in] {
+                    self->do_write_302(params, logged_in);
+                });
+                app.CallAfter([] { wxGetApp().ShowUserLogin(false); });
+            }, true);
         }
     }
     else {
