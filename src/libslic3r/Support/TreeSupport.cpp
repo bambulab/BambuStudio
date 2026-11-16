@@ -1809,16 +1809,75 @@ coordf_t TreeSupport::support_flare_step_width(coordf_t print_z, coordf_t layer_
     return slab_flow.width() * layer_height / band_height;
 }
 
-static ExPolygon tree_support_node_disk(const SupportNode &node, const Polygon &unit_circle,
+// 树枝圆按弓高定点数，大圆也能被圆弧拟合识别；方形支撑仍是 4 个点。
+class TreeSupportUnitCircles
+{
+public:
+    // 弓高取拟合容差的一半：弦中点也要落在容差内，坐标取整和裁剪后才不会卡在拟合边界上。
+    static constexpr double SAGITTA        = SUPPORT_RESOLUTION * 0.5;
+    static constexpr size_t MIN_RESOLUTION = SUPPORT_TREE_CIRCLE_RESOLUTION;
+
+    // 预生成到 max_radius 的所有档位，构造后只读，可在并行区共享。
+    TreeSupportUnitCircles(coordf_t branch_radius, double square_angle, bool square_support, coordf_t max_radius) :
+        m_branch_radius_scaled(scale_(branch_radius)), m_square(square_support)
+    {
+        if (m_square) {
+            m_circles.emplace_back(make_unit(4, square_angle));
+            return;
+        }
+        const size_t max_n = resolution_for(max_radius);
+        m_circles.reserve(max_n - MIN_RESOLUTION + 1);
+        for (size_t n = MIN_RESOLUTION; n <= max_n; ++ n)
+            m_circles.emplace_back(make_unit(n, 0.));
+    }
+
+    static size_t resolution_for(coordf_t radius)
+    {
+        if (! (radius > SAGITTA))
+            return MIN_RESOLUTION;
+        const double angle_step = 2. * std::acos(std::clamp(1. - SAGITTA / radius, -1., 1.));
+        return std::max(MIN_RESOLUTION, size_t(std::ceil(2. * M_PI / angle_step)));
+    }
+
+    // 返回半径为 branch_radius 的单位圆，点数按 radius（节点实际最大半径，mm）选取。
+    const Polygon &get(coordf_t radius) const
+    {
+        if (m_square)
+            return m_circles.front();
+        const size_t idx = std::min(resolution_for(radius) - MIN_RESOLUTION, m_circles.size() - 1);
+        return m_circles[idx];
+    }
+
+private:
+    Polygon make_unit(size_t n, double phase) const
+    {
+        Polygon circle;
+        circle.points.reserve(n);
+        for (size_t i = 0; i < n; ++ i) {
+            const double angle = double(i) / double(n) * TAU + phase;
+            circle.append(Point(cos(angle) * m_branch_radius_scaled, sin(angle) * m_branch_radius_scaled));
+        }
+        return circle;
+    }
+
+    coordf_t             m_branch_radius_scaled;
+    bool                 m_square;
+    std::vector<Polygon> m_circles;
+};
+
+static ExPolygon tree_support_node_disk(const SupportNode &node, const TreeSupportUnitCircles &unit_circles,
                                         coordf_t branch_radius, coordf_t branch_radius_scaled,
                                         bool square_support, coordf_t radius = 0.)
 {
-    Polygon circle(unit_circle);
     const double scale  = (radius > 0. ? radius : node.radius) / branch_radius;
     const double move_x = node.movement.x() / (scale * branch_radius_scaled);
     const double move_y = node.movement.y() / (scale * branch_radius_scaled);
-    if (! square_support && std::abs(move_x) > 0.001 && std::abs(move_y) > 0.001) {
-        const double vsize_inv = 0.5 / (0.01 + std::sqrt(move_x * move_x + move_y * move_y));
+    const bool   stretch   = ! square_support && (std::abs(move_x) > 0.001 || std::abs(move_y) > 0.001);
+    const double vsize_inv = stretch ? 0.5 / (0.01 + std::sqrt(move_x * move_x + move_y * move_y)) : 0.;
+    // 按拉伸后的长轴选点数，保证最弯处的弓高也达标。
+    const double max_scale = scale * (1. + (move_x * move_x + move_y * move_y) * vsize_inv);
+    Polygon circle(unit_circles.get(max_scale * branch_radius));
+    if (stretch) {
         const double matrix[4] {
             scale * (1. + move_x * move_x * vsize_inv),
             scale * move_x * move_y * vsize_inv,
@@ -1966,17 +2025,10 @@ void TreeSupport::fold_nodes_multi_diameter()
     std::vector<std::map<size_t, Carrier>>                       carriers(plan.slabs.size());
 
     const bool square_support = avg_node_per_layer > 200;
-    const int circle_resolution = square_support ? 4 : 25;
     const coordf_t branch_radius = m_object->config().tree_support_branch_diameter.value / 2.;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
-    Polygon branch_circle;
-    branch_circle.points.reserve(circle_resolution);
-    for (int i = 0; i < circle_resolution; ++ i) {
-        const double angle = double(i) / circle_resolution * TAU +
-            (square_support ? PI / 4. + nodes_angle : 0.);
-        branch_circle.append(Point(cos(angle) * branch_radius_scaled,
-                                   sin(angle) * branch_radius_scaled));
-    }
+    const TreeSupportUnitCircles branch_circle(branch_radius, PI / 4. + nodes_angle, square_support,
+                                               2. * MAX_BRANCH_RADIUS);
     const bool on_buildplate_only = m_object_config->support_on_build_plate_only.value;
     // Match the raw geometry draw_circles() will render. Collision clipping is deliberately left out: it
     // may only shrink this probe, so refusing an ambiguous fold remains the safe outcome.
@@ -4057,25 +4109,12 @@ void TreeSupport::draw_circles()
     const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
     bool on_buildplate_only = m_object_config->support_on_build_plate_only.value;
-    Polygon branch_circle; //Pre-generate a circle with correct diameter so that we don't have to recompute those (co)sines every time.
 
     const bool z_overrides  = print->config().top_z_overrides_xy_distance;
 
     // Use square support if there are too many nodes per layer because circle support needs much longer time to compute
     // Hower circle support can be printed faster, so we prefer circle for fewer nodes case.
     const bool SQUARE_SUPPORT = avg_node_per_layer > 200;
-    const int  CIRCLE_RESOLUTION = SQUARE_SUPPORT ? 4 : 25; // The number of vertices in each circle.
-
-
-    for (int i = 0; i < CIRCLE_RESOLUTION; i++)
-    {
-        double angle;
-        if (SQUARE_SUPPORT)
-            angle = (double) i / CIRCLE_RESOLUTION * TAU + PI / 4.0 + nodes_angle;
-        else
-            angle = (double) i / CIRCLE_RESOLUTION * TAU;
-        branch_circle.append(Point(cos(angle) * branch_radius_scaled, sin(angle) * branch_radius_scaled));
-    }
 
     // Performance optimization. Only generate lslices for brim and skirt.
     size_t brim_skirt_layers = has_brim ? 1 : 0;
@@ -4098,6 +4137,8 @@ void TreeSupport::draw_circles()
     if (m_object->support_layer_count() <= m_raft_layers)
         return;
     BOOST_LOG_TRIVIAL(info) << "for object: " << m_object->model_object()->name;
+    const TreeSupportUnitCircles branch_circle(branch_radius, PI / 4.0 + nodes_angle, SQUARE_SUPPORT,
+                                               2. * MAX_BRANCH_RADIUS);
 
     // BBS multi-diameter: disk of a node whose wall is widened at a nozzle change.
     struct WidenedArea {
