@@ -246,7 +246,7 @@ protected:
     Transform3d  get_volume_world_matrix(const Selection &selection, const ModelObject *mo, const ModelVolume *mv, int volume_id) const;
     void         init_selected_glvolume(GLVolume &v, const TriangleMesh &mesh, const Geometry::Transformation &world_transformation) const;
     void render_cursor() const;
-    void render_cursor_circle() const;
+    void render_cursor_circle(const Transform3d& trafo) const;
     void render_cursor_sphere(const Transform3d& trafo) const;
     // BBS
     bool is_valid_height_range_cursor(float min_z, float max_z) const;
