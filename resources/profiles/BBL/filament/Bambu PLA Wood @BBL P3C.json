@@ -8,12 +8,6 @@
     "additional_cooling_fan_speed": [
         "60"
     ],
-    "eng_plate_temp": [
-        "55"
-    ],
-    "eng_plate_temp_initial_layer": [
-        "55"
-    ],
     "fan_min_speed": [
         "80"
     ],
@@ -21,10 +15,6 @@
         "0"
     ],
     "filament_change_length_nc": [
-        "0"
-    ],
-    "filament_cooling_before_tower": [
-        "0",
         "0"
     ],
     "filament_flow_ratio": [
@@ -87,8 +77,7 @@
     ],
     "compatible_printers": [
         "Bambu Lab P3C 0.4 nozzle",
-        "Bambu Lab P3C 0.6 nozzle",
-        "Bambu Lab P3C 0.8 nozzle"
+        "Bambu Lab P3C 0.6 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"

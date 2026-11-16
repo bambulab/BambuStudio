@@ -5,20 +5,10 @@
     "from": "system",
     "setting_id": "GFSA05_32",
     "instantiation": "true",
-    "eng_plate_temp": [
-        "55"
-    ],
-    "eng_plate_temp_initial_layer": [
-        "55"
-    ],
     "filament_change_length": [
         "0"
     ],
     "filament_change_length_nc": [
-        "0"
-    ],
-    "filament_cooling_before_tower": [
-        "0",
         "0"
     ],
     "filament_flow_ratio": [
@@ -88,8 +78,7 @@
     ],
     "compatible_printers": [
         "Bambu Lab P3C 0.4 nozzle",
-        "Bambu Lab P3C 0.6 nozzle",
-        "Bambu Lab P3C 0.8 nozzle"
+        "Bambu Lab P3C 0.6 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"

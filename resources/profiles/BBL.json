@@ -4848,6 +4848,10 @@
             "sub_path": "filament/Bambu PLA Lite @BBL P3C 0.2 nozzle.json"
         },
         {
+            "name": "Bambu PLA Lite @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Lite @BBL P3C 0.8 nozzle.json"
+        },
+        {
             "name": "Bambu PLA Lite @BBL X1C",
             "sub_path": "filament/Bambu PLA Lite @BBL X1C.json"
         },
@@ -5832,6 +5836,10 @@
             "sub_path": "filament/Bambu PLA Silk @BBL P3C 0.2 nozzle.json"
         },
         {
+            "name": "Bambu PLA Silk @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Silk @BBL P3C 0.8 nozzle.json"
+        },
+        {
             "name": "Bambu PLA Silk @BBL X1",
             "sub_path": "filament/Bambu PLA Silk @BBL X1.json"
         },
@@ -6588,6 +6596,10 @@
             "sub_path": "filament/Bambu PLA Translucent @BBL P3C 0.2 nozzle.json"
         },
         {
+            "name": "Bambu PLA Translucent @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Translucent @BBL P3C 0.8 nozzle.json"
+        },
+        {
             "name": "Bambu PLA Translucent @BBL X1C",
             "sub_path": "filament/Bambu PLA Translucent @BBL X1C.json"
         },
@@ -6694,6 +6706,10 @@
         {
             "name": "Bambu PLA Wood @BBL P3C",
             "sub_path": "filament/Bambu PLA Wood @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Wood @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Wood @BBL P3C 0.8 nozzle.json"
         },
         {
             "name": "Bambu PLA Wood @BBL X1",

@@ -6,7 +6,7 @@
     "setting_id": "GFSS04_25",
     "instantiation": "true",
     "additional_cooling_fan_speed": [
-        "55"
+        "0"
     ],
     "fan_max_speed": [
         "0"
