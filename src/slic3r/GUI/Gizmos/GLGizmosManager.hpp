@@ -181,6 +181,8 @@ public:
         IC_TEXT_LINE_GAP,
         IC_TEXT_CHAR_GAP_DARK,
         IC_TEXT_LINE_GAP_DARK,
+        IC_TEXT_EXPAND,
+        IC_TEXT_COLLAPSE,
     };
 
     explicit GLGizmosManager(GLCanvas3D& parent);

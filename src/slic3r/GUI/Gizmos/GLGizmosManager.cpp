@@ -1760,6 +1760,8 @@ void* GLGizmosManager::ensure_icon_loaded(MENU_ICON_NAME icon)
         case IC_TEXT_LINE_GAP:              path = "/images/text_line_gap.svg"; w = h = 32; break;
         case IC_TEXT_CHAR_GAP_DARK:         path = "/images/text_char_gap_dark.svg"; w = h = 32; break;
         case IC_TEXT_LINE_GAP_DARK:         path = "/images/text_line_gap_dark.svg"; w = h = 32; break;
+        case IC_TEXT_EXPAND:                path = "/images/text_expand.svg"; w = h = 56; break;
+        case IC_TEXT_COLLAPSE:              path = "/images/texte_collapse.svg"; w = h = 56; break;
         case IC_ALIGN_X_MIN:                path = "/images/align_x_min.svg"; w = h = 32; break;
         case IC_ALIGN_X_CENTER:             path = "/images/align_x_center.svg"; w = h = 32; break;
         case IC_ALIGN_X_MAX:                path = "/images/align_x_max.svg"; w = h = 32; break;

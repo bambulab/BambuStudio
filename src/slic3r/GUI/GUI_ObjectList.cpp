@@ -2727,8 +2727,33 @@ void GUI::ObjectList::add_new_model_object_from_old_object() {
         const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
         vol_idxs.emplace_back(vol_idx);
     }
-    if (vol_idxs.empty()) {
+    if (vol_idxs.empty() || obj_idx < 0 || m_objects == nullptr || obj_idx >= static_cast<int>(m_objects->size()))
         return;
+    // Both the promoted volumes and the ones left on this object need a solid part.
+    {
+        const ModelObject* source = (*m_objects)[obj_idx];
+        if (source == nullptr)
+            return;
+        std::vector<bool> selected(source->volumes.size(), false);
+        bool selected_has_part = false;
+        for (int vol_idx : vol_idxs) {
+            if (vol_idx < 0 || vol_idx >= static_cast<int>(source->volumes.size()) || source->volumes[vol_idx] == nullptr)
+                continue;
+            selected[vol_idx] = true;
+            if (source->volumes[vol_idx]->is_model_part())
+                selected_has_part = true;
+        }
+        bool remaining_has_part = false;
+        for (size_t i = 0; i < source->volumes.size(); ++i) {
+            if (selected[i] || source->volumes[i] == nullptr)
+                continue;
+            if (source->volumes[i]->is_model_part()) {
+                remaining_has_part = true;
+                break;
+            }
+        }
+        if (!selected_has_part || !remaining_has_part)
+            return;
     }
     take_snapshot("Split as New Object");
     wxBusyCursor cursor;

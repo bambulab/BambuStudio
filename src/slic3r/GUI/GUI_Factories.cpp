@@ -2277,6 +2277,7 @@ void MenuFactory::append_menu_item_sub_merge(wxMenu *menu)
 
     // Hidden when the only selected object has a single volume. Shown when one or more
     // volumes of a multi-volume object are selected, including a single selected volume.
+    // Both the promoted set and the volumes left behind need a solid part.
     auto can_split_as_object = []() {
         if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
             return false;
@@ -2290,6 +2291,7 @@ void MenuFactory::append_menu_item_sub_merge(wxMenu *menu)
 
         int obj_idx = -1;
         int selected_volumes = 0;
+        std::vector<int> vol_idxs;
         for (const wxDataViewItem& item : sels) {
             if (!(list_model()->GetItemType(item) & itVolume))
                 return false;
@@ -2300,13 +2302,36 @@ void MenuFactory::append_menu_item_sub_merge(wxMenu *menu)
                 obj_idx = temp_obj_idx;
             else if (temp_obj_idx != obj_idx)
                 return false;
+            const int vol_idx = obj_list()->GetModel()->GetVolumeIdByItem(item);
+            if (vol_idx < 0)
+                return false;
+            vol_idxs.push_back(vol_idx);
             ++selected_volumes;
         }
         const auto* objects = obj_list()->objects();
         if (objects == nullptr || obj_idx >= static_cast<int>(objects->size()))
             return false;
         const ModelObject* mo = (*objects)[obj_idx];
-        return mo != nullptr && mo->volumes.size() > 1 && selected_volumes < static_cast<int>(mo->volumes.size());
+        if (mo == nullptr || mo->volumes.size() <= 1 || selected_volumes >= static_cast<int>(mo->volumes.size()))
+            return false;
+        std::vector<bool> selected(mo->volumes.size(), false);
+        bool selected_has_part = false;
+        for (int vol_idx : vol_idxs) {
+            if (vol_idx < 0 || vol_idx >= static_cast<int>(mo->volumes.size()) || mo->volumes[vol_idx] == nullptr)
+                continue;
+            selected[vol_idx] = true;
+            if (mo->volumes[vol_idx]->is_model_part())
+                selected_has_part = true;
+        }
+        if (!selected_has_part)
+            return false;
+        for (size_t i = 0; i < mo->volumes.size(); ++i) {
+            if (selected[i] || mo->volumes[i] == nullptr)
+                continue;
+            if (mo->volumes[i]->is_model_part())
+                return true;
+        }
+        return false;
     };
     if (!can_split_as_object())
         return;
