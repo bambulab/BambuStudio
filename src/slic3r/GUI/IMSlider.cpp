@@ -247,10 +247,7 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
         // post_ticks_changed_event();
     }
 
-    const bool tool_change_disabled =
-        !m_can_change_color ||
-        multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
-    if (m_ticks.has_tick_with_code(ToolChange) && tool_change_disabled) {
+    if (m_ticks.has_tick_with_code(ToolChange) && !m_can_change_color) {
         if (!wxGetApp().plater()->only_gcode_mode() && !wxGetApp().plater()->using_exported_file())
         {
             m_ticks.erase_all_ticks_with_code(ToolChange);
@@ -387,8 +384,7 @@ void IMSlider::add_custom_gcode(std::string custom_gcode)
 void IMSlider::add_code_as_tick(Type type, int selected_extruder)
 {
     if (m_selection == ssUndef) return;
-    if (type == ToolChange &&
-        multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config))
+    if (type == ToolChange && !tool_changes_active())
         return;
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
 
@@ -582,7 +578,7 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
 }
 
 void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_region) {
-    if (!m_ticks.has_tick_with_code(ToolChange))
+    if (!m_ticks.has_tick_with_code(ToolChange) || !tool_changes_active())
         return;
 
     ImRect main_band = groove;
@@ -653,7 +649,7 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
     }
 }
 
-void IMSlider::draw_custom_label_block(const ImVec2 anchor, Type type)
+void IMSlider::draw_custom_label_block(const ImVec2 anchor, Type type, bool inactive)
 {
     wxString label;
     switch (type)
@@ -680,7 +676,7 @@ void IMSlider::draw_custom_label_block(const ImVec2 anchor, Type type)
     }
     const ImVec2 text_size = ImGui::CalcTextSize(into_u8(label).c_str());
     const ImVec2 padding = ImVec2(4, 2) * m_scale;
-    const ImU32  clr = IM_COL32(255, 111, 0, 255);
+    const ImU32  clr = inactive ? IM_COL32(144, 144, 144, 255) : IM_COL32(255, 111, 0, 255);
     const float  rounding = 2.0f * m_scale;
     ImVec2 block_pos = { anchor.x - text_size.x - padding.x * 2, anchor.y - text_size.y / 2 - padding.y };
     ImVec2 block_size = { text_size.x + padding.x * 2, text_size.y + padding.y * 2 };
@@ -766,7 +762,7 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
 
         //draw label block
         ImVec2 label_block_anchor = ImVec2(slideable_region.GetCenter().x - tick_offset.y, tick_pos);
-        draw_custom_label_block(label_block_anchor, tick_it->type);
+        draw_custom_label_block(label_block_anchor, tick_it->type, tick_it->type == ToolChange && !tool_changes_active());
 
         ++tick_it;
     }
@@ -777,7 +773,7 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
     if (tick_it != m_ticks.ticks.end()) {
         //draw label block again, to keep it in front
         ImVec2 label_block_anchor = ImVec2(slideable_region.GetCenter().x - tick_offset.y, get_tick_pos(tick_it->tick));
-        draw_custom_label_block(label_block_anchor, tick_it->type);
+        draw_custom_label_block(label_block_anchor, tick_it->type, tick_it->type == ToolChange && !tool_changes_active());
 
         // draw delete icon
         ImVec2      icon_pos       = ImVec2(slideable_region.GetCenter().x + icon_offset.x, get_tick_pos(tick_it->tick) - icon_offset.y);
@@ -847,7 +843,10 @@ void IMSlider::show_tooltip(const TickCode& tick){
         show_tooltip(_u8L("Pause:") + " \"" + gcode_type(PausePrint) + "\"" + time_str);
         break;
     case CustomGCode::ToolChange:
-        show_tooltip(_u8L("Change Filament") + time_str);
+        if (tool_changes_active())
+            show_tooltip(_u8L("Change Filament") + time_str);
+        else
+            show_tooltip(_u8L("Change Filament") + "\n" + _u8L("Does not take effect in multi-diameter mode.") + time_str);
         break;
     case CustomGCode::Template:
         show_tooltip(_u8L("Custom Template:") + " \"" + gcode_type(Template) + "\"" + time_str);
@@ -982,7 +981,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         // draw colored band
         draw_colored_band(groove, h_selected ? higher_slideable_region : lower_slideable_region);
 
-        if (!m_ticks.has_tick_with_code(ToolChange)) {
+        if (!m_ticks.has_tick_with_code(ToolChange) || !tool_changes_active()) {
             // draw scroll line
             ImRect scroll_line = ImRect(ImVec2(groove.Min.x, higher_handle_center.y), ImVec2(groove.Max.x, lower_handle_center.y));
             window->DrawList->AddRectFilled(scroll_line.Min, scroll_line.Max, handle_clr);
@@ -1381,9 +1380,7 @@ void IMSlider::render_add_menu()
 
         //BBS render this menu item only when extruder_num > 1
         if (extruder_num > 1) {
-            const bool can_change_filament =
-                m_can_change_color &&
-                !multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
+            const bool can_change_filament = m_can_change_color && tool_changes_active();
             if (!can_change_filament) {
                 begin_menu(_u8L("Change Filament").c_str(), false);
             }
@@ -1434,9 +1431,7 @@ void IMSlider::render_edit_menu(const TickCode& tick)
         case CustomGCode::ToolChange: {
             int extruder_num = m_extruder_colors.size();
             if (extruder_num > 1) {
-                const bool can_change_filament =
-                    m_can_change_color &&
-                    !multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
+                const bool can_change_filament = m_can_change_color && tool_changes_active();
                 if (!can_change_filament) {
                     begin_menu(_u8L("Change Filament").c_str(), false);
                 }
@@ -1676,6 +1671,11 @@ std::string IMSlider::get_color_for_tool_change_tick(std::set<TickCode>::const_i
         return m_extruder_colors[current_extruder - 1]; // return a color for a specific extruder from the colors list
     }
     return "";
+}
+
+bool IMSlider::tool_changes_active() const
+{
+    return CustomGCode::tool_changes_active(wxGetApp().preset_bundle->project_config);
 }
 
 // Get active extruders for tick.

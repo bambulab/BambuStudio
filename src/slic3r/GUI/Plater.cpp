@@ -5547,17 +5547,6 @@ bool Sidebar::switch_multi_nozzle_diameter_mode(bool enabled,
         return false;
     }
 
-    if (enabled) {
-        for (auto &plate_custom_gcodes : wxGetApp().plater()->model().plates_custom_gcodes) {
-            auto &gcodes = plate_custom_gcodes.second.gcodes;
-            gcodes.erase(std::remove_if(gcodes.begin(), gcodes.end(),
-                                       [](const CustomGCode::Item &item) {
-                                           return item.type == CustomGCode::Type::ToolChange;
-                                       }),
-                         gcodes.end());
-        }
-    }
-
     // Before validate_filament_nozzle_diameter_selections() clears per-slot state on the
     // toggle-OFF path, snapshot the current values so they can be restored on a later toggle-
     // ON within the same session. Without this, switching multi-diameter off and back on
@@ -10673,6 +10662,7 @@ public:
     // report mesh stats + GPU/OpenGL info for one sliced plate
     void track_slice_mesh_stat();
     void update_mixed_sublayer_variable_layer_warning();
+    void update_inactive_filament_change_warning();
     void on_export_began(wxCommandEvent&);
     void on_export_finished(wxCommandEvent&);
     void on_slicing_began();
@@ -15337,6 +15327,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 
         notification_manager->set_slicing_progress_hidden();
         notification_manager->close_notification_of_type(NotificationType::BBLMixedSublayerVariableLayerHeight);
+        notification_manager->close_notification_of_type(NotificationType::BBLInactiveFilamentChange);
     }
     else {
         if (preview && preview->get_reload_paint_after_background_process_apply()) {
@@ -17139,6 +17130,7 @@ void Plater::priv::on_slicing_began()
     notification_manager->close_notification_of_type(NotificationType::SignDetected);
     notification_manager->close_notification_of_type(NotificationType::ExportFinished);
     notification_manager->close_notification_of_type(NotificationType::BBLMixedSublayerVariableLayerHeight);
+    notification_manager->close_notification_of_type(NotificationType::BBLInactiveFilamentChange);
     bool is_first_plate = m_cur_slice_plate == 0;
     bool slice_all = q->m_only_gcode ? m_slice_all_only_has_gcode : m_slice_all;
     bool need_change_dailytips = !(slice_all && !is_first_plate);
@@ -17275,6 +17267,29 @@ void Plater::priv::update_mixed_sublayer_variable_layer_warning()
         });
 }
 
+void Plater::priv::update_inactive_filament_change_warning()
+{
+    notification_manager->close_notification_of_type(NotificationType::BBLInactiveFilamentChange);
+
+    PartPlate *sliced_plate = background_process.get_current_plate();
+    if (sliced_plate == nullptr || sliced_plate != partplate_list.get_curr_plate())
+        return;
+    if (CustomGCode::tool_changes_active(wxGetApp().preset_bundle->project_config))
+        return;
+    const auto plate_custom_gcodes = model.plates_custom_gcodes.find(sliced_plate->get_index());
+    if (plate_custom_gcodes == model.plates_custom_gcodes.end())
+        return;
+    const auto &gcodes = plate_custom_gcodes->second.gcodes;
+    if (std::none_of(gcodes.begin(), gcodes.end(),
+                     [](const CustomGCode::Item &item) { return item.type == CustomGCode::ToolChange; }))
+        return;
+
+    notification_manager->push_notification(
+        NotificationType::BBLInactiveFilamentChange,
+        NotificationManager::NotificationLevel::WarningNotificationLevel,
+        _u8L("Filament changes on this plate do not take effect in multi-diameter mode. They take effect again after switching to single-diameter mode."));
+}
+
 //BBS: add project slice logic
 void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 {
@@ -17363,8 +17378,10 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     // mesh stats per plate + GPU/OpenGL info
     if (!has_error && !evt.cancelled() && evt.success()) {
         track_slice_mesh_stat();
-        if (this->printer_technology == ptFFF)
+        if (this->printer_technology == ptFFF) {
             update_mixed_sublayer_variable_layer_warning();
+            update_inactive_filament_change_warning();
+        }
         // Re-push warnings from completed PrintObject steps that were not re-run
         // but whose UI notifications were cleared by on_slicing_began().
         if (this->printer_technology == ptFFF) {

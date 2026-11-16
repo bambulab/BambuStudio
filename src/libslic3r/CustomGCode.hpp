@@ -8,6 +8,7 @@
 namespace Slic3r {
 
 class DynamicPrintConfig;
+class ConfigOptionResolver;
 
 namespace CustomGCode {
 
@@ -126,6 +127,13 @@ std::vector<std::pair<double, unsigned int>> custom_tool_changes(const Info& cus
 // The custom_tool_changes() a print up to max_print_z reaches: a tool change above the top of the printed stack
 // never takes effect.
 std::vector<std::pair<double, unsigned int>> custom_tool_changes_up_to(const Info& custom_gcode_per_print_z, size_t num_extruders, double max_print_z);
+
+// Whether the ToolChange items take effect under this config. Multi-diameter mode disables per-layer filament
+// changes; the items stay in the model and take effect again once the mode is turned off.
+bool tool_changes_active(const ConfigOptionResolver &config);
+// custom_gcode_per_print_z as it takes effect under this config: without its ToolChange items when
+// tool_changes_active() is false.
+Info effective_custom_gcodes(const Info &custom_gcode_per_print_z, const ConfigOptionResolver &config);
 
 } // namespace CustomGCode
 

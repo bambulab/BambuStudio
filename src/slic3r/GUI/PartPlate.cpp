@@ -1274,7 +1274,7 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 			plate_extruders.push_back(glb_support_extr);
 	}
 
-	if (conside_custom_gcode) {
+	if (conside_custom_gcode && CustomGCode::tool_changes_active(wxGetApp().preset_bundle->project_config)) {
 		//BBS
         int nums_extruders = 0;
         if (const ConfigOptionStrings *color_option = dynamic_cast<const ConfigOptionStrings *>(wxGetApp().preset_bundle->project_config.option("filament_colour"))) {
@@ -1383,7 +1383,7 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
         }
     }
 
-    if (conside_custom_gcode) {
+    if (conside_custom_gcode && CustomGCode::tool_changes_active(full_config)) {
         //BBS
         int nums_extruders = 0;
         if (const ConfigOptionStrings *color_option = dynamic_cast<const ConfigOptionStrings *>(full_config.option("filament_colour"))) {
@@ -1452,7 +1452,7 @@ std::vector<int> PartPlate::get_extruders_without_support(bool conside_custom_gc
 		}
 	}
 
-	if (conside_custom_gcode) {
+	if (conside_custom_gcode && CustomGCode::tool_changes_active(wxGetApp().preset_bundle->project_config)) {
 		//BBS
 		int nums_extruders = 0;
 		if (const ConfigOptionStrings* color_option = dynamic_cast<const ConfigOptionStrings*>(wxGetApp().preset_bundle->project_config.option("filament_colour"))) {

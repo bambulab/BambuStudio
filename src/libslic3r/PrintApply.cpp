@@ -1385,7 +1385,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         };
 
         // check custon_gcode
-        has_scarf_joint_seam = check_gcode_scarf_seam_type(scarf_seam_type, model) ||
+        has_scarf_joint_seam = (CustomGCode::tool_changes_active(new_full_config) && check_gcode_scarf_seam_type(scarf_seam_type, model)) ||
             std::any_of(model.objects.begin(), model.objects.end(), [scarf_seam_type, &check_object_scarf_seam_type](const ModelObject *obj) {
             return check_object_scarf_seam_type(scarf_seam_type, obj);
         });
@@ -1731,14 +1731,18 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         m_objects.clear();
         print_regions_reshuffled = true;
         m_model.assign_copy(model);
+        // The Print's model keeps the custom G-codes as they take effect, so that everything reading
+        // print.model() skips the ToolChange items that do not.
+        for (auto &plate_custom_gcodes : m_model.plates_custom_gcodes)
+            plate_custom_gcodes.second = CustomGCode::effective_custom_gcodes(plate_custom_gcodes.second, new_full_config);
 		for (const ModelObject *model_object : m_model.objects)
 			model_object_status_db.add(*model_object, ModelObjectStatus::New);
     } else {
         //BBS: replace model custom gcode with current plate custom gcode
         m_model.curr_plate_index = model.curr_plate_index;
-        if (m_model.get_curr_plate_custom_gcodes() != model.get_curr_plate_custom_gcodes()) {
+        const CustomGCode::Info new_custom_gcodes = CustomGCode::effective_custom_gcodes(model.get_curr_plate_custom_gcodes(), new_full_config);
+        if (m_model.get_curr_plate_custom_gcodes() != new_custom_gcodes) {
             const CustomGCode::Info &old_custom_gcodes = m_model.get_curr_plate_custom_gcodes();
-            const CustomGCode::Info &new_custom_gcodes = model.get_curr_plate_custom_gcodes();
             const bool tool_changes_differ = num_extruders > 1 &&
                 custom_per_printz_gcodes_tool_changes_differ(old_custom_gcodes.gcodes, new_custom_gcodes.gcodes);
             update_apply_status(num_extruders_changed ||
@@ -1750,7 +1754,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 this->invalidate_steps({ psWipeTower, psGCodeExport }) :
                 // There is no change in Tool Changes stored in custom_gcode_per_print_z, therefore there is no need to update Tool Ordering.
                 this->invalidate_step(psGCodeExport));
-            m_model.plates_custom_gcodes[m_model.curr_plate_index] = model.get_curr_plate_custom_gcodes();
+            m_model.plates_custom_gcodes[m_model.curr_plate_index] = new_custom_gcodes;
         }
         if (model_object_list_equal(m_model, model)) {
             // The object list did not change.

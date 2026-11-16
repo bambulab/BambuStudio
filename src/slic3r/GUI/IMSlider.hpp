@@ -147,7 +147,7 @@ protected:
     void render_edit_menu(const TickCode& tick); //menu
     void draw_background_and_groove(const ImRect& bg_rect, const ImRect& groove);
     void draw_colored_band(const ImRect& groove, const ImRect& slideable_region);
-    void draw_custom_label_block(const ImVec2 anchor, Type type);
+    void draw_custom_label_block(const ImVec2 anchor, Type type, bool inactive);
     void draw_ticks(const ImRect& slideable_region);
     void draw_tick_on_mouse_position(const ImRect& slideable_region);
     void show_tooltip(const TickCode& tick); //menu
@@ -166,6 +166,9 @@ private:
     int    get_tick_near_point(int v_min, int v_max, const ImVec2& pt, const ImRect& rect);
 
     std::string get_color_for_tool_change_tick(std::set<TickCode>::const_iterator it) const;
+    // Whether the ToolChange ticks take effect. Multi-diameter mode keeps them on the slider, drawn as
+    // inactive, so that their layers stay taken and they come back into effect once the mode is off.
+    bool tool_changes_active() const;
     // Get active extruders for tick.
     // Means one current extruder for not existing tick OR
     // 2 extruders - for existing tick (extruder before ToolChangeCode and extruder of current existing tick)
