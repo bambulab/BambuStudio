@@ -117,7 +117,7 @@ export function AmsFooter({
           style={buttonStyle}
           onClick={onLoad}
         >
-          {t('Load')}
+          {t('Load', { context: 'AmsControlWeb' })}
         </button>
       </div>
     </div>

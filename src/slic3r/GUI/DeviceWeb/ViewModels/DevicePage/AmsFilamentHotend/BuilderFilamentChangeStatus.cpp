@@ -89,6 +89,7 @@ std::string filament_step_label(DevFilamentStep step)
     case DevFilamentStep::STEP_BATCH_PULL_FILA:    return _u8L("Batch pull back the filaments");
     case DevFilamentStep::STEP_NESTING_PRINT_TOOL: return _u8L("Nesting PrintTool");
     case DevFilamentStep::STEP_PURGE_FILAMENT:     return _u8L("Purge filament");
+    case DevFilamentStep::STEP_PURGE_REMAIN_FILAMENT: return _u8L("Purge Residual Filament");
     }
     return {};
 }

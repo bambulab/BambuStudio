@@ -68,7 +68,7 @@ export function ToolbarMoreMenu({
               data-testid="ams-hotend-action-load-auto"
               onClick={() => run('load_auto')}
             >
-              {t('Load', { context: 'AmsHotendWebRackA' })}
+              {t(actions.load_auto_action_txt)}
             </button>
           )}
           <button
@@ -88,7 +88,7 @@ export function ToolbarMoreMenu({
             disabled={!actions.can_unload}
             onClick={() => run('unload')}
           >
-            {t('Unload')}
+            {t(actions.unload_action_txt)}
           </button>
           {showDry && (
             <button

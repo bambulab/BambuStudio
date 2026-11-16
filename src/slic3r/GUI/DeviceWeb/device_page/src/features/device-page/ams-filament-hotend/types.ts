@@ -344,12 +344,14 @@ export interface FilamentChangeStatus {
 export interface FilamentPageActionState {
   can_dry: boolean;
   can_unload: boolean;
+  unload_action_txt: string;
   /** @deprecated Prefer can_load_external + can_show_load_auto on new bridges. */
   can_load?: boolean;
   can_load_external?: boolean;
   // Controls whether the Auto Load button is rendered at all (show/hide), not
   // just its enabled state. Undefined on legacy bridges → treated as shown.
   can_show_load_auto?: boolean;
+  load_auto_action_txt: string;
   show_ams_settings: boolean;
   show_auto_refill: boolean;
   // Rack-B-only: whether the toolbar "read all" icon button is shown.

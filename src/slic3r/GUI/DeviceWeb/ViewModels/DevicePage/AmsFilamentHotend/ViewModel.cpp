@@ -136,6 +136,14 @@ std::vector<AmsHotendSchema::format::BindAms> bind_ams_from_json(const nlohmann:
     return result;
 }
 
+void apply_filament_action_texts(nlohmann::json& actions, MachineObject* machine_obj)
+{
+    namespace SK = AmsHotendSchema::keys;
+    const bool use_batch_text = machine_obj && machine_obj->GetNozzleRack() && (machine_obj->GetNozzleRack()->GetRackType() >= DevNozzleRack::RackType_B);
+    actions[SK::filament_actions::load_auto_action_txt] = use_batch_text ? "Batch Load" : "Load_AmsHotendWebRackA";
+    actions[SK::filament_actions::unload_action_txt] = use_batch_text ? "Batch Unload" : "Unload";
+}
+
 // Reports and responses must hash identically for the de-dup to match. Device
 // strings may carry non-UTF-8 bytes, which a strict dump() would throw on.
 std::optional<std::string> DumpStateKey(const nlohmann::json& state)
@@ -339,6 +347,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
     }
 
     const bool is_rack_b = machine_obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B;
+    apply_filament_action_texts(fp[SK::filament_page::actions], machine_obj);
     fp[SK::filament_page::actions][SK::filament_actions::show_read_all] = is_rack_b && !filament_changing;
     fp[SK::filament_page::actions][SK::filament_actions::can_read_all_slots] = is_rack_b && !filament_changing && !machine_obj->is_in_upgrading();
 
