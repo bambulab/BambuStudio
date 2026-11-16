@@ -280,6 +280,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 #ifndef __APPLE__
     m_topbar         = new BBLTopbar(this);
 #else
+    // custom dock menu items
+    m_taskbar_icon = std::make_unique<BambuStudioTaskBarIcon>(wxTBI_DOCK);
+
+    // custom topbar
     auto panel_topbar = new wxPanel(this, wxID_ANY);
     panel_topbar->SetBackgroundColour(wxColour(38, 46, 48));
     auto sizer_tobar = new wxBoxSizer(wxVERTICAL);
@@ -318,19 +322,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 		e.Skip();
 	});
 #endif
-
-#ifdef __APPLE__
-    // Initialize the docker task bar icon.
-    switch (wxGetApp().get_app_mode()) {
-    default:
-    case GUI_App::EAppMode::Editor:
-        m_taskbar_icon = std::make_unique<BambuStudioTaskBarIcon>(wxTBI_DOCK);
-        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuStudio-mac_256px.ico"), wxBITMAP_TYPE_ICO), "BambuStudio");
-        break;
-    case GUI_App::EAppMode::GCodeViewer:
-        break;
-    }
-#endif // __APPLE__
 
     // Load the icon either from the exe, or from the ico file.
     SetIcon(main_frame_icon(wxGetApp().get_app_mode()));
