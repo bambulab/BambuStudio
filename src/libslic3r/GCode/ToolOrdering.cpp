@@ -72,6 +72,40 @@ static bool extrusion_touches_bed(const ExtrusionEntity &entity, coordf_t print_
     return false;
 }
 
+// role() of a collection is erMixed when its children disagree, so a top-level
+// equality check misses an interface path that shares a collection with the base.
+static bool extrusion_has_role(const ExtrusionEntity &entity, ExtrusionRole role)
+{
+    const ExtrusionRole entity_role = entity.role();
+    if (entity_role == role)
+        return true;
+    if (entity_role != erMixed)
+        return false;
+    const auto *collection = dynamic_cast<const ExtrusionEntityCollection *>(&entity);
+    if (collection == nullptr)
+        return false;
+    return std::any_of(collection->entities.begin(), collection->entities.end(),
+        [role](const ExtrusionEntity *child) { return child != nullptr && extrusion_has_role(*child, role); });
+}
+
+// Bed contact of one role inside a mixed collection. A uniform entity uses the
+// whole-entity test; a mixed collection only counts children of that role.
+static bool extrusion_role_touches_bed(const ExtrusionEntity &entity, ExtrusionRole role, coordf_t print_z)
+{
+    const ExtrusionRole entity_role = entity.role();
+    if (entity_role == role)
+        return extrusion_touches_bed(entity, print_z);
+    if (entity_role != erMixed)
+        return false;
+    const auto *collection = dynamic_cast<const ExtrusionEntityCollection *>(&entity);
+    if (collection == nullptr)
+        return false;
+    return std::any_of(collection->entities.begin(), collection->entities.end(),
+        [role, print_z](const ExtrusionEntity *child) {
+            return child != nullptr && extrusion_role_touches_bed(*child, role, print_z);
+        });
+}
+
 static std::set<int>get_filament_by_type(const std::vector<unsigned int>& used_filaments, const PrintConfig* print_config, const std::string& type)
 {
     std::set<int> target_filaments;
@@ -1119,14 +1153,20 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         bool          interface_touches_bed = false;
         const bool    may_touch_bed         = support_layer->print_z <= max_contact_z;
         for (const ExtrusionEntity *ee : support_layer->support_fills.entities) {
-            ExtrusionRole er = ee->role();
-            if (er == erSupportMaterial || er == erSupportTransition) {
+            if (ee == nullptr)
+                continue;
+            const bool is_support = extrusion_has_role(*ee, erSupportMaterial) || extrusion_has_role(*ee, erSupportTransition);
+            const bool is_interface = extrusion_has_role(*ee, erSupportMaterialInterface);
+            if (is_support) {
                 has_support = true;
-                support_touches_bed |= may_touch_bed && extrusion_touches_bed(*ee, support_layer->print_z);
+                if (may_touch_bed)
+                    support_touches_bed |= extrusion_role_touches_bed(*ee, erSupportMaterial, support_layer->print_z) ||
+                                           extrusion_role_touches_bed(*ee, erSupportTransition, support_layer->print_z);
             }
-            if (er == erSupportMaterialInterface) {
+            if (is_interface) {
                 has_interface = true;
-                interface_touches_bed |= may_touch_bed && extrusion_touches_bed(*ee, support_layer->print_z);
+                if (may_touch_bed)
+                    interface_touches_bed |= extrusion_role_touches_bed(*ee, erSupportMaterialInterface, support_layer->print_z);
             }
             if (has_support && has_interface && ! may_touch_bed) break;
         }
