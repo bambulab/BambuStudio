@@ -36,6 +36,23 @@ Following platforms are currently supported to compile:
 - Linux, [Compile Guide](https://github.com/bambulab/BambuStudio/wiki/Linux-Compile-Guide)
   - currently we only provide linux appimages on [github releases](https://github.com/bambulab/BambuStudio/releases) for Ubuntu/Fedora, and a [flathub version](https://flathub.org/apps/com.bambulab.BambuStudio) can be used for all the linux platforms
 
+## Fedora RPM package
+
+The Linux build script can produce a self-contained RPM. Application files and
+bundled libraries are installed below `/opt/BambuStudio`, with the launcher,
+desktop file, icons, and license installed in the standard system locations.
+
+```bash
+git submodule update --init --recursive
+sudo ./BuildLinux.sh -u
+./BuildLinux.sh -dsp
+```
+
+The RPM is written to `build/bambu-studio-<version>-<release>.<arch>.rpm`. To
+build both distribution formats in one pass, use `./BuildLinux.sh -dsip`.
+After dependencies and Bambu Studio have already been built, `-p` may be used
+on its own to regenerate the RPM.
+
 # Report issue
 You can add an issue to the [github tracker](https://github.com/bambulab/BambuStudio/issues) if **it isn't already present.**
 
@@ -50,4 +67,3 @@ The GNU Affero General Public License, version 3 ensures that if you use any par
 
 The bambu networking plugin is based on non-free libraries. It is optional to the Bambu Studio and provides extended networking functionalities for users.
 By default, after installing Bambu Studio without the networking plugin, you can initiate printing through the SD card after slicing is completed.
-
