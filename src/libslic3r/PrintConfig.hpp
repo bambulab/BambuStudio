@@ -894,7 +894,7 @@ protected:
                 const ConfigOptionDef *def = defs->get(kvp.first);
                 assert(def != nullptr);
                 if (def->default_value)
-                    opt->set(def->default_value.get());
+                    def->apply_default_value(*opt);
             }
         }
 
