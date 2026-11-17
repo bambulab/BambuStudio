@@ -79,7 +79,7 @@
 			"1" :
 			{
 				"2": "Right(Aux)",
-				"3": "Fliter",
+				"3": "Filter",
 				"10": "Left(Aux)"
 			},
 			"special_cooling_text" : "Cooling mode is suitable for printing PLA/PETG/TPU materials."

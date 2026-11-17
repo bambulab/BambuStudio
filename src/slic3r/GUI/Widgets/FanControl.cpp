@@ -1221,15 +1221,19 @@ wxString FanControlPopupNew::get_fan_mode_name(int mode_id) const
 
 static wxString translate_air_duct_chamber_text(const std::string& printer_type, const std::string& text)
 {
-    const std::string& text_context = DevPrinterConfigUtil::get_fan_text(printer_type, "text_context");
-    if (!text_context.empty()) {
-        if (wxTranslations* translations = wxTranslations::Get()) {
-            if (const wxString* translated = translations->GetTranslatedString(wxString::FromUTF8(text), wxEmptyString,
+    const wxString source = wxString::FromUTF8(text);
+    if (wxTranslations* translations = wxTranslations::Get()) {
+        const std::string& text_context = DevPrinterConfigUtil::get_fan_text(printer_type, "text_context");
+        if (!text_context.empty()) {
+            if (const wxString* translated = translations->GetTranslatedString(source, wxEmptyString,
                                                                               wxString::FromUTF8(text_context)))
                 return *translated;
         }
+        if (const wxString* translated = translations->GetTranslatedString(source, wxEmptyString,
+                                                                          wxString::FromUTF8("air_duct")))
+            return *translated;
     }
-    return _CTX(text, "air_duct");
+    return _L(source);
 }
 
 wxString FanControlPopupNew::get_fan_func_name(int mode, int submode, AIR_FUN func) const
@@ -1250,19 +1254,17 @@ wxString FanControlPopupNew::get_fan_func_name(int mode, int submode, AIR_FUN fu
         }
     }
 
-    static std::map<AIR_FUN, wxString> s_fan_func_name
+    switch (func)
     {
-        { AIR_FUN::FAN_HEAT_BREAK_0_IDX,     _L("Hotend") },
-        { AIR_FUN::FAN_COOLING_0_AIRDOOR,     _L("Parts") },
-        { AIR_FUN::FAN_REMOTE_COOLING_0_IDX,  _L("Aux") },
-        { AIR_FUN::FAN_CHAMBER_0_IDX,         _L("Exhaust") },
-        { AIR_FUN::FAN_HEAT_BREAK_1_IDX,      _L("Nozzle1") },
-        { AIR_FUN::FAN_MC_BOARD_0_IDX,        _L("MC Board") },
-        { AIR_FUN::FAN_INNNER_LOOP_FAN_0_IDX, _L("Heat") },
-    };
-
-    auto iter = s_fan_func_name.find(func);
-    return (iter != s_fan_func_name.end()) ? iter->second : wxString::Format(_L("Fan"));
+    case AIR_FUN::FAN_HEAT_BREAK_0_IDX:      return _L("Hotend");
+    case AIR_FUN::FAN_COOLING_0_AIRDOOR:     return _L("Parts");
+    case AIR_FUN::FAN_REMOTE_COOLING_0_IDX:  return _L("Aux");
+    case AIR_FUN::FAN_CHAMBER_0_IDX:         return _L("Exhaust");
+    case AIR_FUN::FAN_HEAT_BREAK_1_IDX:      return _L("Nozzle1");
+    case AIR_FUN::FAN_MC_BOARD_0_IDX:        return _L("MC Board");
+    case AIR_FUN::FAN_INNNER_LOOP_FAN_0_IDX: return _L("Heat");
+    default:                                 return _L("Fan");
+    }
 }
 
 wxDEFINE_EVENT(EVT_FANCTRL_SWITCH, wxCommandEvent);
