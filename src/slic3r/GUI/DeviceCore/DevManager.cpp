@@ -399,6 +399,12 @@ namespace Slic3r
                 continue;
             }
 
+            // Saved devices belong in the list even when discovery cannot reach them.
+            // Restore on the GUI thread before starting any network probes.
+            auto obj = insert_local_device(dev_id, dev_id, dev_ip, "lan", "free", "", access_code,
+                                           DevPrinterConfigUtil::get_model_id_by_dev_id(dev_id));
+            if (!obj) continue;
+            obj->set_online_state(false);
             local_access_infos.push_back({ dev_id, dev_ip, access_code });
         }
 
@@ -409,10 +415,8 @@ namespace Slic3r
             for (const auto& local_access_info : local_access_infos) {
                 if (GUI::wxGetApp().is_closing()) return;
 
-                // bind_detect is a hint, not a gate. It used to skip the device whenever the probe
-                // was not conclusive, so a sleeping printer or a transient network hiccup was
-                // enough to make a remembered LAN printer disappear from the list. Keep its data
-                // when it answers, otherwise log and connect with the persisted local info.
+                // Enrich the restored entry in the background. A failed probe must
+                // neither remove it nor delay selection/reconnection.
                 detectResult detectData;
                 const int    result        = agent->bind_detect(local_access_info.dev_ip, "secure", detectData);
                 const char*  reject_reason = nullptr;
@@ -438,29 +442,31 @@ namespace Slic3r
                 }
 
                 if (reject_reason) {
-                    BOOST_LOG_TRIVIAL(warning) << reject_reason << ", code=" << result << ", falling back to the persisted local info "
+                    BOOST_LOG_TRIVIAL(warning) << reject_reason << ", code=" << result << ", keeping the remembered device "
                                                << KV(log_key::dev_id, local_access_info.dev_id) << "detected "
                                                << KV(log_key::dev_id, detectData.dev_id);
-
-                    detectData              = detectResult();
-                    detectData.dev_id       = local_access_info.dev_id;
-                    detectData.dev_name     = local_access_info.dev_id;
-                    detectData.connect_type = "lan";
-                    detectData.bind_state   = "free";
-                    detectData.model_id     = DevPrinterConfigUtil::get_model_id_by_dev_id(local_access_info.dev_id);
+                    continue;
                 }
 
                 GUI::wxGetApp().CallAfter([detectData, local_access_info]() {
                     if (GUI::wxGetApp().is_closing()) return;
                     if (DeviceManager* dev = GUI::wxGetApp().getDeviceManager()) {
-                        if (dev->get_local_machine(local_access_info.dev_id)) return;
+                        auto obj = dev->get_local_machine(local_access_info.dev_id);
+                        // Discovery, explicit removal, or a new pairing may have superseded
+                        // this probe. Never recreate an entry or restore old credentials.
+                        if (!obj || !obj->is_lan_mode_printer() ||
+                            obj->get_dev_ip() != local_access_info.dev_ip ||
+                            obj->get_user_access_code() != local_access_info.access_code)
+                            return;
 
-                        auto obj = dev->insert_local_device(detectData.dev_name, detectData.dev_id, local_access_info.dev_ip,
-                                                            detectData.connect_type, detectData.bind_state, detectData.version,
-                                                            local_access_info.access_code, detectData.model_id);
-                        if (obj) {
-                            obj->set_user_access_code(local_access_info.access_code);
-                        }
+                        if (obj->get_dev_name() == local_access_info.dev_id)
+                            obj->set_dev_name(detectData.dev_name);
+                        if (obj->bind_ssdp_version.empty())
+                            obj->bind_ssdp_version = detectData.version;
+                        // The selected printer's MQTT callback owns its connection
+                        // state; a late metadata probe must not undo a failure.
+                        if (dev->get_selected_machine() != obj)
+                            obj->set_online_state(true);
                     }
                 });
             }
