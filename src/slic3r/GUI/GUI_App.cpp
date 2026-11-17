@@ -2933,6 +2933,8 @@ bool GUI_App::OnInit()
 
 int GUI_App::OnExit()
 {
+    set_closing(true);
+
 #ifdef __APPLE__
     UnRegisterMacPowerCallBack();
 #endif
@@ -2949,6 +2951,12 @@ int GUI_App::OnExit()
 
     if (m_minors_decisions_thread.joinable())
         m_minors_decisions_thread.join();
+
+    // Stop and join discovery before freeing either its agent or the managers
+    // used by its callbacks. The plugin's agent destructor alone does not stop
+    // the SSDP receiver threads on macOS.
+    if (m_agent)
+        m_agent->start_discovery(false, false);
 
     if (m_fila_manager_cloud_disp) {
         delete m_fila_manager_cloud_disp;
@@ -2987,10 +2995,6 @@ int GUI_App::OnExit()
     }
 
     if (m_agent) {
-        // BBS avoid a crash on mac platform
-#ifdef __WINDOWS__
-        m_agent->start_discovery(false, false);
-#endif
         delete m_agent;
         m_agent = nullptr;
     }
