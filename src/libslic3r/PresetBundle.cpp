@@ -1,6 +1,7 @@
 #include <cassert>
 
 #include "PresetBundle.hpp"
+#include "PresetIncludeDiffCache.hpp"
 #include "Semver.hpp"
 #include "FilamentMixer.hpp"
 #include "nlohmann/json.hpp"
@@ -6334,6 +6335,18 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     // 3) paste the process/filament/print configs
     PresetCollection         *presets = nullptr;
     size_t                   presets_loaded = 0;
+    PresetIncludeDiffCache include_diff_cache;
+    // Duplicate-name checks below prevent replacement of defaults. Deque
+    // insertion may move them, so snapshot by the selected default's index.
+    auto snapshot_default = [&include_diff_cache](PresetCollection &collection,
+                                                  const DynamicPrintConfig &selected) -> const DynamicPrintConfig & {
+        size_t index = 0;
+        for (; index < collection.num_default_presets(); ++index)
+            if (&collection.default_preset(index).config == &selected)
+                break;
+        assert(index < collection.num_default_presets());
+        return include_diff_cache.default_snapshot(index, selected);
+    };
 #if PARALLEL_LOAD_PRESET
     struct ParallelPresetLoadData
     {
@@ -6346,7 +6359,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     std::vector<std::shared_ptr<ParallelPresetLoadData>> parallelLoadData;
 
     auto parse_config = [this, path, vendor_name, presets_loaded,
-                         current_vendor_profile](std::shared_ptr<ParallelPresetLoadData> presetLoadData, ConfigSubstitutionContext &substitution_context,
+                         current_vendor_profile, &include_diff_cache, &snapshot_default](std::shared_ptr<ParallelPresetLoadData> presetLoadData, ConfigSubstitutionContext &substitution_context,
                                                  PresetsConfigSubstitutions &substitutions, LoadConfigBundleAttributes &flags, std::pair<std::string, std::string> &subfile_iter,
                                                  std::map<std::string, DynamicPrintConfig> &config_maps, std::map<std::string, std::string> &filament_id_maps,
                                                  PresetCollection *presets_collection, size_t &count, std::map<std::string, std::string> &description_maps) -> std::string {
@@ -6448,7 +6461,10 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                         include_default_config = &presets_collection->default_preset_for(include_config).config;
                     else
                         include_default_config = &presets_collection->default_preset().config;
-                    std::vector<std::string> keys = include_config.diff(*include_default_config);
+                    const DynamicPrintConfig &stable_default = snapshot_default(*presets_collection, *include_default_config);
+                    const auto &keys = include_diff_cache.get(include_config, stable_default, [&] {
+                        return include_config.diff(stable_default);
+                    });
 
                     config.apply_only(include_config, keys);
 
@@ -6597,7 +6613,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         return reason;
     };
 #else
-    auto parse_subfile = [this, path, vendor_name, presets_loaded, current_vendor_profile](\
+    auto parse_subfile = [this, path, vendor_name, presets_loaded, current_vendor_profile, &include_diff_cache, &snapshot_default](\
         ConfigSubstitutionContext& substitution_context,
         PresetsConfigSubstitutions& substitutions,
         LoadConfigBundleAttributes& flags,
@@ -6698,7 +6714,10 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                         include_default_config = &presets_collection->default_preset_for(include_config).config;
                     else
                         include_default_config = &presets_collection->default_preset().config;
-                    std::vector<std::string> keys = include_config.diff(*include_default_config);
+                    const DynamicPrintConfig &stable_default = snapshot_default(*presets_collection, *include_default_config);
+                    const auto &keys = include_diff_cache.get(include_config, stable_default, [&] {
+                        return include_config.diff(stable_default);
+                    });
 
                     config.apply_only(include_config, keys);
 
@@ -6853,6 +6872,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
 
     //3.1) paste the process
     presets = &this->prints;
+    include_diff_cache.clear();
     configs.clear();
     filament_id_maps.clear();
 
@@ -6897,6 +6917,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
 
     //3.2) paste the filaments
     presets = &this->filaments;
+    include_diff_cache.clear();
     configs.clear();
     filament_id_maps.clear();
 #if PARALLEL_LOAD_PRESET
@@ -6940,6 +6961,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
 #endif
     //3.3) paste the printers
     presets = &this->printers;
+    include_diff_cache.clear();
     configs.clear();
     filament_id_maps.clear();
 
