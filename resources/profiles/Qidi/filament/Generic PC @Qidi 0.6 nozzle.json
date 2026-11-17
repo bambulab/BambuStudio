@@ -1,0 +1,14 @@
+{
+    "type": "filament",
+    "filament_id": "GFC99",
+    "setting_id": "GFSC99_Qidi_02",
+    "name": "Generic PC @Qidi 0.6 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Generic PC @Qidi",
+	"compatible_printers": [
+		"Qidi X-Max 3 0.6 nozzle",
+        "Qidi X-Plus 3 0.6 nozzle",
+        "Qidi X-Smart 3 0.6 nozzle"
+	]
+}

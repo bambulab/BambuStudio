@@ -6,15 +6,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "QIDI ABS-GF @Qidi",
-    "filament_max_volumetric_speed": [
-        "22"
-    ],
-    "nozzle_temperature": [
-        "260"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "260"
-    ],
     "pressure_advance": [
         "0.035"
     ],
