@@ -325,6 +325,7 @@ public:
     void                add_new_model_object_from_old_object();
     void                load_shape_object(const std::string &type_name);
     void                load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center = true);
+    void                load_mesh_object(const std::vector<std::pair<const TriangleMesh *, wxString>> &parts, const wxString &name, bool center = true);
     // BBS
     void                switch_to_object_process();
     int                 load_mesh_part(const TriangleMesh &mesh, const wxString &name, const TextInfo &text_info, bool is_temp);
