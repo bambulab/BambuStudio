@@ -466,6 +466,14 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
         ImVec2 btn_pos = pos + ImVec2(0, (size.y - ImGui::CalcTextSize("A").y) / 2);
         ImGui::SetCursorScreenPos(btn_pos);
         if (m_can_expand) {
+            auto render_hide_button = [&]() {
+                ImGui::SameLine(0.f, 16.f * scale);
+                if (imgui.button(_L("Hide"))) {
+                    wxGetApp().app_config->set_bool("show_daily_tips", false);
+                    wxGetApp().app_config->save();
+                    wxGetApp().plater()->schedule_extra_frame(0);
+                }
+            };
             if (m_is_expanded) {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.0f, .0f, .0f, .0f));
@@ -491,6 +499,7 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
                 }
 
                 ImGui::PopStyleColor(4);
+                render_hide_button();
             }
             else {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
@@ -522,6 +531,8 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
                 }
                 
                 ImGui::PopStyleColor(4);
+
+                render_hide_button();
 
                 ImGui::EndChild();
                 return;
