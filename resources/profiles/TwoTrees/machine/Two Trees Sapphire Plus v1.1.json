@@ -1,0 +1,22 @@
+{
+  "type": "machine",
+  "setting_id": "GM_VORON_006",
+  "name": "Two Trees Sapphire Plus v1.1",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_klipper_common",
+  "printer_model": "Voron Trident 300",
+  "nozzle_diameter": [
+    "0.4"
+  ],
+  "printable_area": [
+    "0x0",
+    "310x0",
+    "310x310",
+    "0x310"
+  ],
+  "printable_height": "350",
+  "retract_lift_below":[
+    "349"
+  ]
+}
