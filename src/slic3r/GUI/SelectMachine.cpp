@@ -2459,6 +2459,48 @@ static std::unordered_set<int> _get_used_nozzle_idxes()
     return used_nozzle_idxes;
 }
 
+static bool _has_object_using_multi_nozzles(PartPlate *curr_plate,
+                                            const std::shared_ptr<DevSliceContext> &slice_context)
+{
+    if (!curr_plate || !wxGetApp().preset_bundle)
+        return false;
+
+    const Print *print = curr_plate->fff_print();
+    if (!print || !print->is_sequential_print() || !print->sequential_print_data().has_value()) {
+        return _get_used_nozzle_idxes().size() >= 2 ||
+               (slice_context && slice_context->used_logic_nozzles.size() >= 2);
+    }
+
+    const auto &full_config = wxGetApp().preset_bundle->full_config();
+    for (const auto &[print_obj, ordering] : print->sequential_print_data()->object_tool_ordering_map) {
+        (void)print_obj;
+        const auto &group_res = ordering.get_layered_nozzle_group_result();
+        if (group_res.is_support_dynamic_nozzle_map()) {
+            if (group_res.get_used_extruders().size() >= 2 ||
+                group_res.get_used_nozzles_in_extruder().size() >= 2) {
+                return true;
+            }
+            continue;
+        }
+
+        std::unordered_set<int> obj_nozzle_idxes;
+        std::unordered_set<int> obj_nozzle_groups;
+        for (unsigned int fid : ordering.all_extruders()) {
+            int nozzle_idx = curr_plate->get_physical_extruder_by_filament_id(full_config, static_cast<int>(fid) + 1);
+            if (nozzle_idx >= 0)
+                obj_nozzle_idxes.insert(nozzle_idx);
+            for (const auto &nozzle : group_res.get_nozzles_for_filament(static_cast<int>(fid))) {
+                if (nozzle.group_id >= 0)
+                    obj_nozzle_groups.insert(nozzle.group_id);
+            }
+        }
+        if (obj_nozzle_idxes.size() >= 2 || obj_nozzle_groups.size() >= 2)
+            return true;
+    }
+
+    return false;
+}
+
 bool SelectMachineDialog::is_nozzle_hrc_matched(const NozzleType& nozzle_type, const std::string& filament_id) const
 {
     auto printer_nozzle_hrc = Print::get_hrc_by_nozzle_type(nozzle_type);
@@ -4797,10 +4839,11 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         update_filament_change_count();
         check_tpu_aero_flow_cali(obj_);
 
-        // Disable nozzle offset calibration for by-object printing
-        if (m_checkbox_list["nozzle_offset_cali"]->IsShown()) {
-            auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-            if (curr_plate && curr_plate->get_print_seq() == PrintSequence::ByObject) {
+        // Disable nozzle offset calibration for by-object printing unless an object uses multiple nozzles
+        if (m_print_type == PrintFromType::FROM_NORMAL && m_checkbox_list["nozzle_offset_cali"]->IsShown()) {
+            PartPlate *curr_plate = m_plater ? m_plater->get_partplate_list().get_curr_plate() : nullptr;
+            if (curr_plate && curr_plate->get_real_print_seq() == PrintSequence::ByObject &&
+                !_has_object_using_multi_nozzles(curr_plate, m_slice_context)) {
                 m_checkbox_list["nozzle_offset_cali"]->setValue("off");
             }
         }
