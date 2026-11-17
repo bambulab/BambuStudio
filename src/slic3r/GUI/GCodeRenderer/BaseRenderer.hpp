@@ -18,6 +18,7 @@ namespace Slic3r {
     class Print;
     namespace GUI {
         class IMSlider;
+        class ImGuiWrapper;
         class OpenGLManager;
         class PartPlateList;
         class IMSlider;
@@ -185,6 +186,10 @@ namespace Slic3r {
                 void update_toolpath_outside_state(const GCodeProcessorResult& gcode_result, const BuildVolume& build_volume,
                     const std::vector<BoundingBoxf3>& exclude_bounding_box, Points&& pts);
                 void render_shells(bool skip_wipe_tower = false);
+                bool is_center_of_gravity_view() const;
+                void render_center_of_gravity_marker();
+                void load_center_of_gravity(const GCodeProcessorResult& gcode_result,
+                    const Print& print, const BuildVolume& build_volume, bool only_gcode);
                 void render_slider(int canvas_width, int canvas_height);
                 virtual void render_legend(float& legend_height, int canvas_width, int canvas_height, int right_margin);
                 void apply_view_type_selection(int view_type_sel, EViewType type);
@@ -205,6 +210,7 @@ namespace Slic3r {
             private:
                 void delete_wipe_tower();
                 void render_legend_color_arr_recommen(float window_padding, bool is_show_left_right_result);
+                void render_center_of_gravity_legend(float window_padding, ImGuiWrapper& imgui);
 
             protected:
                 bool m_legend_enabled{ true };
@@ -295,6 +301,40 @@ namespace Slic3r {
                 std::shared_ptr<Extrusions> m_p_extrusions{ nullptr };
                 //BBS save m_tools_color and m_tools_visible
                 ETools m_tools;
+
+                struct CenterOfGravityObjectState
+                {
+                    int    label_id{ -1 };
+                    std::string name;
+                    Vec3d  world_position{ Vec3d::Zero() };
+                    double mass_g{ 0.0 };
+                    double volume_mm3{ 0.0 };
+                    Color  color{ 0.0f, 0.68f, 0.26f, 1.0f };
+                    bool   valid{ false };
+                    bool   uses_all_spatial_extrusions{ false };
+                };
+
+                struct CenterOfGravityState
+                {
+                    std::vector<CenterOfGravityObjectState> objects;
+                    Vec3d  plate_origin{ Vec3d::Zero() };
+                    Vec2d  plate_center{ Vec2d::Zero() };
+                    double marker_scale{ 4.0 };
+                    bool   valid{ false };
+                    bool   combined_fallback{ false };
+                    bool   calculation_failed{ false };
+                    bool   incomplete_object_attribution{ false };
+                    bool   contains_unknown_roles{ false };
+                    bool   used_default_density{ false };
+                    bool   used_default_filament_diameter{ false };
+                    bool   unsupported_flow_override{ false };
+                    bool   unsupported_volumetric_extrusion{ false };
+                };
+
+                CenterOfGravityState m_center_of_gravity;
+                bool                 m_show_center_of_gravity{ true };
+                GLModel              m_center_of_gravity_marker;
+                GLModel              m_center_of_gravity_projection;
             };
 
             using OnAttachingHelio = std::function<void(size_t& length_of_line)>;

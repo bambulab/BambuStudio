@@ -312,6 +312,7 @@ wxDEFINE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,          wxCommandEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,     SimpleEvent);
 wxDEFINE_EVENT(EVT_ENABLE_GCODE_OPTION_ITEM_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_OBJECTS_PREVIEW_CHANGED, SimpleEvent);
+wxDEFINE_EVENT(EVT_CENTER_OF_GRAVITY_PREFERENCE_CHANGED, SimpleEvent);
 //BBS: print
 wxDEFINE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,          SimpleEvent);
 
@@ -10634,6 +10635,15 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             auto& viewer = preview->get_canvas3d()->get_gcode_viewer();
             // Enforce opt-out before rebuilding, including remembered Objects views.
             viewer.on_object_shading_preference_changed();
+            preview->get_canvas3d()->reset_gcode_toolpaths();
+            preview->refresh_print();
+            preview->get_canvas3d()->set_as_dirty();
+        }
+    });
+    this->q->Bind(EVT_CENTER_OF_GRAVITY_PREFERENCE_CHANGED, [this](SimpleEvent&) {
+        if (preview) {
+            // Reuse the normal preview-loading path, including its result lock.
+            // Only an enabled preference requests CoG; the result owns the cache.
             preview->get_canvas3d()->reset_gcode_toolpaths();
             preview->refresh_print();
             preview->get_canvas3d()->set_as_dirty();
