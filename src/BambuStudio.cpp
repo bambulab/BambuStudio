@@ -88,6 +88,8 @@ using namespace nlohmann;
 
 #ifdef __WXGTK__
 #include <X11/Xlib.h>
+extern "C" unsigned int webkit_get_major_version(void);
+extern "C" unsigned int webkit_get_minor_version(void);
 #endif
 
 // BBS: for the out-of-memory new-handler (bbl_out_of_memory_handler)
@@ -1672,7 +1674,22 @@ int CLI::run(int argc, char **argv)
     // instruct the window manager to fall back to X server mode.
     ::setenv("GDK_BACKEND", "x11", /* replace */ true);
 
-    ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
+    // Without accelerated compositing, MakerWorld videos crawl in full screen.
+    // It breaks before WebKitGTK 2.42, and on the NVIDIA driver, which cannot
+    // allocate DMA-BUF buffers, before 2.44 added shared memory buffers.
+    // On NVIDIA, painting with the GPU can also hang the web process in the
+    // driver, so paint on the CPU and use the GPU only to composite.
+    const unsigned int webkit_version = webkit_get_major_version() * 100 + webkit_get_minor_version();
+    const bool         nvidia         = ::access("/proc/driver/nvidia/version", F_OK) == 0;
+    if (webkit_version < 242 || (nvidia && webkit_version < 244))
+        ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
+    else if (nvidia) {
+        ::setenv("WEBKIT_DMABUF_RENDERER_FORCE_SHM", "1", /* replace */ false);
+        ::setenv("WEBKIT_SKIA_ENABLE_CPU_RENDERING", "1", /* replace */ false);
+    }
+    // Skia composition stalls on MakerWorld pages: images stay blank and the
+    // web process does not exit.
+    ::setenv("WEBKIT_USE_SKIA_FOR_COMPOSITION", "0", /* replace */ false);
 
     // Also on Linux, we need to tell Xlib that we will be using threads,
     // lest we crash when we fire up GStreamer.
