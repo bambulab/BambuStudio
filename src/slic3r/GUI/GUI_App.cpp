@@ -2882,7 +2882,6 @@ void GUI_App::MacPowerCallBack(void* refcon, io_service_t service, natural_t mes
             BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack: re-laying out main frame after wake";
             mf->Layout();
             mf->Refresh();
-            mf->Update();
         });
     };
 }
