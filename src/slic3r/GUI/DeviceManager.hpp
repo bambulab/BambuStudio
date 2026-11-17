@@ -663,6 +663,8 @@ public:
     DevPrintTaskRatingInfo*  rating_info { nullptr };
     int           request_model_result             = 0;
     bool          get_model_mall_result_need_retry = false;
+    int           model_mall_auto_retry_count      = 0;
+    time_t        model_mall_next_retry_time       = 0;
 
     std::string obj_subtask_id;     // subtask_id == 0 for sdcard
     std::string subtask_name;

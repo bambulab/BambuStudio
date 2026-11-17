@@ -73,6 +73,8 @@
 #define CALI_DEBUG
 #define MINUTE_30 1800000    //ms
 #define TIME_OUT  5000       //ms
+#define MODEL_MALL_AUTO_RETRY_MAX          3
+#define MODEL_MALL_AUTO_RETRY_INTERVAL_SEC 5
 
 namespace pt = boost::property_tree;
 
@@ -4132,6 +4134,11 @@ void MachineObject::update_model_task()
             BOOST_LOG_TRIVIAL(info) << "need retry";
             get_model_mall_result_need_retry = false;
         }
+        model_mall_auto_retry_count = 0;
+    } else if (rating_info && !rating_info->request_successful && rating_info->http_code != 403 && model_mall_auto_retry_count < MODEL_MALL_AUTO_RETRY_MAX &&
+               time(nullptr) >= model_mall_next_retry_time) {
+        model_mall_auto_retry_count++;
+        BOOST_LOG_TRIVIAL(info) << "model mall result auto retry, times: " << model_mall_auto_retry_count;
     } else {
         BOOST_LOG_TRIVIAL(info) << "subtask_id_ no change and do not need retry";
         return;
@@ -4167,7 +4174,9 @@ void MachineObject::update_model_task()
                         rating_info->request_successful = false;
                         BOOST_LOG_TRIVIAL(info) << "can not get rating id";
                         Slic3r::GUI::wxGetApp().CallAfter([this, token, rating_info]() {
-                            if (!token.expired()) this->rating_info = rating_info;
+                            if (token.expired()) return;
+                            this->rating_info                = rating_info;
+                            this->model_mall_next_retry_time = time(nullptr) + MODEL_MALL_AUTO_RETRY_INTERVAL_SEC;
                         });
                         return;
                     }
@@ -4185,13 +4194,21 @@ void MachineObject::update_model_task()
                         if (!token.expired()) this->rating_info = rating_info;
                     });
                 } catch (...) {
-                    BOOST_LOG_TRIVIAL(info) << "parse model mall result json failed";
+                    BOOST_LOG_TRIVIAL(warning) << "parse model mall result json failed";
+                    rating_info->request_successful = false;
+                    Slic3r::GUI::wxGetApp().CallAfter([this, token, rating_info]() {
+                        if (token.expired()) return;
+                        this->rating_info                = rating_info;
+                        this->model_mall_next_retry_time = time(nullptr) + MODEL_MALL_AUTO_RETRY_INTERVAL_SEC;
+                    });
                 }
             }
             else {
                 rating_info->request_successful = false;
                 Slic3r::GUI::wxGetApp().CallAfter([this, token, rating_info]() {
-                    if (!token.expired()) this->rating_info = rating_info;
+                    if (token.expired()) return;
+                    this->rating_info                = rating_info;
+                    this->model_mall_next_retry_time = time(nullptr) + MODEL_MALL_AUTO_RETRY_INTERVAL_SEC;
                 });
                 BOOST_LOG_TRIVIAL(info) << "model mall result request failed, request time: " << request_model_result << " "
                                         << KV(log_key::http_code, http_code) << "error msg: " << http_error;

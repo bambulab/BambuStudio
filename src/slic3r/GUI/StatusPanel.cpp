@@ -5454,7 +5454,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
                         if (403 != obj->rating_info->http_code) {
                             BOOST_LOG_TRIVIAL(info) << "Request need retry";
                             m_project_task_panel->get_market_retry_buttom()->Enable(!obj->get_model_mall_result_need_retry);
-                            m_project_task_panel->get_request_failed_panel()->Show();
+                            m_project_task_panel->get_request_failed_panel()->Hide();
                         } else {
                             BOOST_LOG_TRIVIAL(info) << "Request rejected";
                         }
