@@ -18,9 +18,9 @@
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/convert.hpp>
 
-#if __APPLE__
+#ifndef _WIN32
     #include <signal.h>
-#endif // __APPLE__
+#endif
 
 namespace Slic3r {
 namespace GUI {
@@ -37,6 +37,9 @@ int GUI_Run(GUI_InitParams &params)
     // See GH issue #5507
     signal(SIGCHLD, SIG_DFL);
 #endif // __APPLE__
+#ifndef _WIN32
+    signal(SIGPIPE, SIG_IGN);
+#endif
 
     //BBS: remove the try-catch and let exception goto above
     try {
