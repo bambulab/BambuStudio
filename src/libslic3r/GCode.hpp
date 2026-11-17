@@ -435,7 +435,7 @@ private:
     std::vector<ExtrusionPaths>  merge_same_speed_paths(const ExtrusionPaths &paths);
 
     // slow down by height
-    bool slowDownByHeight(double& maxSpeed, double& maxAcc, const ExtrusionPath& path);
+    bool slowDownByHeight(double& maxSpeed, double& maxAcc, double& motion_factor, double& print_speed_factor, const ExtrusionPath& path);
 
     // limit machine acceleration calculations
     void mass_load_limited_machine_acceleration(const PrintStatistics curr_print_statistics,

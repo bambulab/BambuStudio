@@ -72,6 +72,7 @@ public:
     void reset_last_acceleration();
     std::vector<unsigned int> &get_travel_acceleration() { return m_travel_accelerations; }
     std::vector<unsigned int> &get_travel_short_acceleration() { return m_travel_short_accelerations; }
+    unsigned int get_max_acceleration() const { return m_max_acceleration; }
     void set_first_layer_travel_acceleration(const std::vector<unsigned int>& travel_accelerations);
     void set_first_layer(bool is_first_layer);
     std::string set_pressure_advance(double pa, bool is_bbl_bowden = false) const;

@@ -1258,6 +1258,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable, overhang_2_4_speed))
     ((ConfigOptionFloatsNullable, overhang_3_4_speed))
     ((ConfigOptionFloatsNullable, overhang_4_4_speed))
+    ((ConfigOptionBoolsNullable, enable_height_slowdown_auto))
+    ((ConfigOptionBoolsNullable, height_slowdown_initial_speed_boost))
     ((ConfigOptionBoolsNullable, enable_height_slowdown))
     ((ConfigOptionFloatsNullable, slowdown_start_height))
     ((ConfigOptionFloatsNullable, slowdown_start_speed))
