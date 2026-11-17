@@ -319,6 +319,32 @@ void session::do_write_404()
         });
 }
 
+void session::do_write_431()
+{
+    using namespace boost::beast;
+    using http::field;
+    using http::status;
+    using http::string_body;
+    static const std::string body =
+        "<html><body><h1>431 Request Header Fields Too Large</h1>"
+        "<p>Bambu Studio could not read this login request because the browser sent too many cookies for localhost.</p>"
+        "<p>Replace \"localhost\" with \"127.0.0.1\" in the address bar and press Enter, "
+        "or clear this browser's cookies for localhost and log in again.</p></body></html>";
+
+    BOOST_LOG_TRIVIAL(warning) << "third_party_login: request headers too large, replying 431";
+
+    auto res = std::make_shared<http::response<string_body>>(status::request_header_fields_too_large, 11);
+    res->set(field::content_type, "text/html");
+    res->keep_alive(false);
+    res->body() = body;
+    res->prepare_payload();
+
+    auto self = shared_from_this();
+    http::async_write(socket_, *res, [self, res](boost::beast::error_code ec, std::size_t) {
+        self->socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, ec);
+        });
+}
+
 void session::do_write_302(LoginParams params, bool result)
 {
     using namespace boost::beast;
