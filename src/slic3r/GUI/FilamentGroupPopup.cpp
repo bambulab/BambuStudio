@@ -319,7 +319,7 @@ void FilamentGroupPopup::UpdateNozzleLabels()
         switch (m_all_modes[idx]) {
             case fmmAutoForFlush:
                 if (single_ext_multi_nozzle) {
-                    label  = no_ams ? _L("Default") : _L("Filament-Saving Mode");
+                    label  = _L("Filament-Saving Mode");
                     detail = _L("Automatically and intelligently assigns filaments to minimize filament time consumption");
                 } else {
                     label  = _L("Filament-Saving Mode");
