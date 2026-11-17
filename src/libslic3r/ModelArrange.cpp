@@ -3,9 +3,78 @@
 #include <libslic3r/Model.hpp>
 #include <libslic3r/Geometry/ConvexHull.hpp>
 #include <libslic3r/Print.hpp>
+#include <libslic3r/ClipperUtils.hpp>
+#include <libslic3r/TriangleMeshSlicer.hpp>
 #include "MTUtils.hpp"
 
 namespace Slic3r {
+
+// Real top-view silhouette of an instance (non-convex, holes kept), in the same frame as the
+// convex hull returned by ModelInstance::get_arrange_polygon() (instance transformation without
+// the XY offset).
+static ExPolygons instance_footprint(const ModelInstance *instance)
+{
+    const ModelObject *obj = instance->get_object();
+    Geometry::Transformation trafo = instance->get_transformation();
+    trafo.set_offset(Vec3d(0, 0, instance->get_offset(Z)));
+    Polygons projections;
+    for (const ModelVolume *v : obj->volumes)
+        if (v->is_model_part())
+            append(projections, project_mesh(v->mesh().its, trafo.get_matrix() * v->get_matrix(), []() {}));
+    ExPolygons footprint;
+    for (const ExPolygon &ex : union_ex(projections))
+        append(footprint, ex.simplify(scale_(0.05)));
+    // drop slivers
+    footprint.erase(std::remove_if(footprint.begin(), footprint.end(), [](const ExPolygon &ex) { return ex.area() < scale_(0.1) * scale_(0.1); }),
+                    footprint.end());
+    return footprint;
+}
+
+// Whether supports will actually be generated for this instance: painted/modifier enforcers,
+// a raft, or faces overhanging more than the support threshold angle above the first layer.
+// Objects without overhangs do not get any support even when supports are enabled, so they
+// should not reserve room for support branches around them.
+static bool instance_needs_support(const ModelInstance *instance, const DynamicPrintConfig &config)
+{
+    ModelObject *obj = instance->get_object();
+    auto raft_ptr = obj->get_config_value<ConfigOptionInt>(config, "raft_layers");
+    if (raft_ptr && raft_ptr->value > 0) return true;
+    for (const ModelVolume *v : obj->volumes)
+        if (v->is_support_enforcer() || (v->is_model_part() && !v->supported_facets.empty())) return true;
+
+    auto thr_ptr = obj->get_config_value<ConfigOptionInt>(config, "support_threshold_angle");
+    int  thr     = thr_ptr ? thr_ptr->value : 30;
+    if (thr <= 0) thr = 30;
+    const double cos_thr = std::cos(double(thr) * M_PI / 180.);
+
+    const Transform3d inst = instance->get_transformation().get_matrix();
+    double zmin = std::numeric_limits<double>::max();
+    std::vector<std::pair<const ModelVolume *, Transform3d>> parts;
+    for (const ModelVolume *v : obj->volumes) {
+        if (!v->is_model_part()) continue;
+        Transform3d m = inst * v->get_matrix();
+        for (const stl_vertex &p : v->mesh().its.vertices) zmin = std::min(zmin, (m * p.cast<double>()).z());
+        parts.emplace_back(v, m);
+    }
+    double area = 0.;
+    for (const auto &[v, m] : parts) {
+        const indexed_triangle_set &its = v->mesh().its;
+        for (const stl_triangle_vertex_indices &f : its.indices) {
+            const Vec3d a = m * its.vertices[f[0]].cast<double>();
+            const Vec3d b = m * its.vertices[f[1]].cast<double>();
+            const Vec3d c = m * its.vertices[f[2]].cast<double>();
+            if (std::max({a.z(), b.z(), c.z()}) <= zmin + 0.2) continue; // lies on the bed
+            const Vec3d  n   = (b - a).cross(c - a);
+            const double len = n.norm();
+            if (len <= 0.) continue;
+            if (-n.z() / len > cos_thr) {
+                area += 0.5 * len;
+                if (area > 0.5) return true; // mm^2
+            }
+        }
+    }
+    return false;
+}
 
 arrangement::ArrangePolygons get_arrange_polys(const Model &model, ModelInstancePtrs &instances)
 {
@@ -166,6 +235,9 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
     auto support_type_ptr = obj->get_config_value<ConfigOptionEnum<SupportType>>(config, "support_type");
     auto support_type = support_type_ptr->value;
     auto enable_support = supp_type_ptr->getBool();
+    // Supports enabled but nothing to support: no room needs to be reserved for them.
+    if (enable_support && !instance_needs_support(instance, config))
+        enable_support = false;
     auto raft_first_layer_expansion_ptr = obj->get_config_value<ConfigOptionFloat>(config, "raft_first_layer_expansion");
     float raft_expansion                = raft_first_layer_expansion_ptr ? raft_first_layer_expansion_ptr->getFloat() : 0.0;
 
@@ -179,6 +251,7 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
     auto size = obj->instance_convex_hull_bounding_box(instance).size();
     ap.height = size.z();
     ap.name = obj->name;
+    ap.footprint = instance_footprint(instance);
     return ap;
 }
 

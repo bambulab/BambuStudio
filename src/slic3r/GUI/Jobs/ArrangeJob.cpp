@@ -1213,6 +1213,8 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     params.is_seq_print                        = settings.is_seq_print;
     params.min_obj_distance                    = scaled(settings.distance);
     params.align_to_y_axis                     = settings.align_to_y_axis;
+    params.use_raster_nester                   = settings.use_raster_nester;
+    params.allow_nesting_in_holes              = settings.nest_in_holes;
 #if !BBL_RELEASE_TO_PUBLIC
     params.save_svg                            = settings.save_svg;
 #endif

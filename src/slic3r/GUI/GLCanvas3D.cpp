@@ -1465,6 +1465,13 @@ void GLCanvas3D::load_arrange_settings()
     if (!en_rot_sla_str.empty())
         m_arrange_settings_sla.enable_rotation = (en_rot_sla_str == "1" || en_rot_sla_str == "yes");
 
+    std::string raster_str = wxGetApp().app_config->get("arrange", "use_raster_nester");
+    if (!raster_str.empty())
+        m_arrange_settings_fff.use_raster_nester = (raster_str == "1" || raster_str == "yes");
+    std::string holes_str = wxGetApp().app_config->get("arrange", "nest_in_holes");
+    if (!holes_str.empty())
+        m_arrange_settings_fff.nest_in_holes = (holes_str == "1" || holes_str == "yes");
+
     //BBS: add specific arrange settings
     m_arrange_settings_fff_seq_print.is_seq_print = true;
 }
@@ -7781,6 +7788,21 @@ bool GLCanvas3D::_render_arrange_menu(float left, float toolbar_height)
         settings_changed = true;
     }
 
+    if (!seq_print) {
+        if (imgui->bbl_checkbox(_L("Precise arrangement (real outlines)"), settings.use_raster_nester)) {
+            settings_out.use_raster_nester = settings.use_raster_nester;
+            appcfg->set("arrange", "use_raster_nester", settings_out.use_raster_nester ? "1" : "0");
+            settings_changed = true;
+        }
+        if (!settings_out.use_raster_nester) imgui->disabled_begin(true);
+        if (imgui->bbl_checkbox(_L("Place objects inside holes"), settings.nest_in_holes)) {
+            settings_out.nest_in_holes = settings.nest_in_holes;
+            appcfg->set("arrange", "nest_in_holes", settings_out.nest_in_holes ? "1" : "0");
+            settings_changed = true;
+        }
+        if (!settings_out.use_raster_nester) imgui->disabled_end();
+    }
+
     if (imgui->bbl_checkbox(_L("Allow multiple materials on same plate"), settings.allow_multi_materials_on_same_plate)) {
         settings_out.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
         appcfg->set("arrange", multi_material_key.c_str(), settings_out.allow_multi_materials_on_same_plate ? "1" : "0");
@@ -7839,6 +7861,8 @@ bool GLCanvas3D::_render_arrange_menu(float left, float toolbar_height)
         appcfg->set("arrange", dist_key, float_to_string_decimal_point(settings_out.distance));
         appcfg->set("arrange", rot_key, settings_out.enable_rotation ? "1" : "0");
         appcfg->set("arrange", align_to_y_axis_key, settings_out.align_to_y_axis ? "1" : "0");
+        appcfg->set("arrange", "use_raster_nester", settings_out.use_raster_nester ? "1" : "0");
+        appcfg->set("arrange", "nest_in_holes", settings_out.nest_in_holes ? "1" : "0");
         settings_changed = true;
     }
     ImGui::PopStyleVar(1);
