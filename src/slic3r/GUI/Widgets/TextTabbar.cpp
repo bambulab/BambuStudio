@@ -44,6 +44,10 @@ void TextTabbar::AddTab(const wxString &label)
     auto *col  = new wxBoxSizer(wxVERTICAL);
     auto *text = new wxStaticText(this, wxID_ANY, label);
     text->SetFont(::Label::Body_14);
+    // Set the text colour explicitly. Left at the toolkit default, a dark GTK theme
+    // reports white, which the dark-mode pass then maps to the dark background colour
+    // (White -> #2D2D31 in StateColor's table), leaving the labels invisible.
+    text->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::TextPrimary));
 
     auto *underline = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(2)));
     underline->SetBackgroundColour(this->GetBackgroundColour());
@@ -97,6 +101,7 @@ void TextTabbar::render()
     for (int i = 0; i < (int) m_labels.size(); ++i) {
         const bool active = (i == m_selection);
         m_labels[i]->SetFont(active ? Label::Head_14 : Label::Body_14);
+        m_labels[i]->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::TextPrimary));
         // render() re-runs on every SetSelection()/Rescale(), long after the one-shot UpdateDlgDarkUI
         // pass — so resolve the accent through darkModeColorFor here or the active underline reverts
         // to the light-mode green in dark mode.
