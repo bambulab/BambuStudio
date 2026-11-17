@@ -18,5 +18,7 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/fila_manager/wgtFilaManagerCloudDispatcher.cpp
     GUI/fila_manager/AmsAutoPushThrottle.h
     GUI/fila_manager/AmsAutoPushThrottle.cpp
+    GUI/fila_manager/wgtFilaManagerUsageTracker.h
+    GUI/fila_manager/wgtFilaManagerUsageTracker.cpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)
