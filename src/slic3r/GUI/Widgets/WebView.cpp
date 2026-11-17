@@ -201,6 +201,29 @@ const char *process_failed_reason_str(COREWEBVIEW2_PROCESS_FAILED_REASON reason)
 constexpr char kEdgeRuntimeClientDll[] = "EmbeddedBrowserWebView.dll";
 constexpr char kEdgeRuntimeHostExe[]   = "msedgewebview2.exe";
 
+// Edg/ version written into the user agent until the real runtime version is
+// known. Some security software blocks pages whose Edg/ version looks outdated,
+// so WebViewEdge::SetUserAgent swaps it for the version actually in use.
+constexpr char kEdgeUserAgentFallbackVersion[] = "107.0.1418.52";
+
+// Version of the runtime pinned by ensure_edge_runtime_pinned(); empty when
+// nothing is pinned or the version could not be taken from the directory name
+// (e.g. edge_fixed).
+wxString s_pinned_runtime_version;
+
+/// True for a four-part numeric version such as "131.0.2903.86".
+bool is_edge_runtime_version(const wxString &s)
+{
+    const wxArrayString parts = wxSplit(s, '.', '\0');
+    if (parts.GetCount() != 4)
+        return false;
+    for (const wxString &part : parts) {
+        if (part.empty() || !part.IsNumber())
+            return false;
+    }
+    return true;
+}
+
 void log_runtime_pin(const wxString &view, const char *event,
                      const Slic3r::GUI::WebViewTraceLogger::Fields &fields,
                      Slic3r::GUI::WebViewTraceLogger::Severity severity =
@@ -262,6 +285,7 @@ void ensure_edge_runtime_pinned(const wxString &view)
         if (!s_pinned_dir.empty() && !wxFileName::DirExists(s_pinned_dir)) {
             wxWebViewEdge::MSWSetBrowserExecutableDir(wxString());
             s_pinned_dir.clear();
+            s_pinned_runtime_version.clear();
             log_runtime_pin(view, "runtime_unpinned",
                             Fields().Add("reason", "pinned_dir_gone"),
                             Slic3r::GUI::WebViewTraceLogger::Severity::Warning);
@@ -315,9 +339,31 @@ void ensure_edge_runtime_pinned(const wxString &view)
     // Log the version only. The full path carries the user name on per-user
     // runtime installs.
     const wxFileName pinned = wxFileName::DirName(dirs[0]);
+    const wxString   pinned_version = pinned.GetDirCount() ? pinned.GetDirs().Last() : wxString();
+    if (is_edge_runtime_version(pinned_version))
+        s_pinned_runtime_version = pinned_version;
     log_runtime_pin(view, "runtime_pinned",
                     Fields().Add("source", "in_use")
-                        .Add("version", pinned.GetDirCount() ? pinned.GetDirs().Last() : wxString()));
+                        .Add("version", pinned_version));
+}
+
+/// Version of the WebView2 runtime this process runs on, e.g. "131.0.2903.86",
+/// or empty when it is not known yet.
+///
+/// The first WebView is created before any runtime is mapped, so nothing is
+/// pinned when its user agent gets applied. By then the backend is ready and
+/// the client DLL is loaded, so read the version from there without pinning.
+wxString edge_runtime_version()
+{
+    if (!s_pinned_runtime_version.empty())
+        return s_pinned_runtime_version;
+
+    const wxArrayString dirs = loaded_edge_runtime_dirs();
+    if (dirs.GetCount() != 1)
+        return wxString();
+    const wxFileName dir = wxFileName::DirName(dirs[0]);
+    const wxString   version = dir.GetDirCount() ? dir.GetDirs().Last() : wxString();
+    return is_edge_runtime_version(version) ? version : wxString();
 }
 
 } // namespace
@@ -362,7 +408,7 @@ public:
                 ICoreWebView2Settings2 *settings2;
                 hr = settings->QueryInterface(&settings2);
                 if (hr == S_OK) {
-                    settings2->put_UserAgent(userAgent.wc_str());
+                    settings2->put_UserAgent(WithRuntimeEdgeVersion(userAgent).wc_str());
                     settings2->Release();
                     ICoreWebView2Settings4 *settings4;
                     hr = settings->QueryInterface(&settings4);
@@ -378,6 +424,32 @@ public:
         }
         pendingUserAgent = userAgent;
         return true;
+    }
+
+    // Replaces the placeholder Edg/ version with the runtime actually in use.
+    // Runs only once the backend is ready, so the runtime DLL is loaded and its
+    // version can be read even for the first WebView. User agents without the
+    // placeholder (e.g. a custom one from the debug dialog) pass through as is.
+    static wxString WithRuntimeEdgeVersion(const wxString &userAgent)
+    {
+        const wxString placeholder = wxString("Edg/") + kEdgeUserAgentFallbackVersion;
+        if (!userAgent.Contains(placeholder))
+            return userAgent;
+
+        const wxString version = edge_runtime_version();
+        if (version.empty()) {
+            static bool s_warned = false;
+            if (!s_warned) {
+                s_warned = true;
+                BOOST_LOG_TRIVIAL(warning) << "WebView2 runtime version unknown, user agent keeps Edg/"
+                                           << kEdgeUserAgentFallbackVersion;
+            }
+            return userAgent;
+        }
+
+        wxString result = userAgent;
+        result.Replace(placeholder, "Edg/" + version);
+        return result;
     }
 
     bool SetColorScheme(COREWEBVIEW2_PREFERRED_COLOR_SCHEME colorScheme)
@@ -1228,8 +1300,9 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
         language_code          = language_code.ToStdString();
 #ifdef __WIN32__
         webView->SetUserAgent(wxString::Format("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                                               "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.52 BBL-Slicer/v%s (%s) BBL-Language/%s",
-                                               SLIC3R_VERSION, Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light", language_code.mb_str()));
+                                               "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/%s BBL-Slicer/v%s (%s) BBL-Language/%s",
+                                               kEdgeUserAgentFallbackVersion, SLIC3R_VERSION,
+                                               Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light", language_code.mb_str()));
         if (!webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)) {
             creation_fault = Slic3r::GUI::WebViewWatcher::Fault::BackendUnavailable;
             log_webview(Slic3r::GUI::WebViewTraceLogger::Stage::L0_BACKEND, name, "create_failed");
