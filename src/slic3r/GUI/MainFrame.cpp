@@ -57,6 +57,7 @@
 #include <thread>
 
 #include "GUI_App.hpp"
+#include "fila_manager/wgtFilaManagerCsvUi.h"
 #include "libslic3r/PerfTrace.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "MsgDialog.hpp"
@@ -3134,6 +3135,13 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { load_config_file(); }, "menu_import", nullptr,
             [this](){return true; }, this);
 
+        if (!wxGetApp().is_fila_manager_disabled()) {
+            append_menu_item(import_menu, wxID_ANY, _L("Import Filament Library (CSV)") + dots,
+                _L("Import filament spools from a CSV file into your filament library"),
+                [this](wxCommandEvent&) { import_filament_library_csv(this); }, "menu_import", nullptr,
+                [](){ return can_import_filament_library_csv(); }, this);
+        }
+
         append_submenu(fileMenu, import_menu, wxID_ANY, _L("Import"), "");
 
 
@@ -3170,6 +3178,13 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent &) { export_config(); },
             "menu_export_config", nullptr,
             []() { return true; }, this);
+
+        if (!wxGetApp().is_fila_manager_disabled()) {
+            append_menu_item(export_menu, wxID_ANY, _L("Export Filament Library (CSV)") + dots,
+                _L("Export your filament library to a CSV file"),
+                [this](wxCommandEvent&) { export_filament_library_csv(this); }, "menu_export_config", nullptr,
+                [](){ return can_export_filament_library_csv(); }, this);
+        }
 
         append_submenu(fileMenu, export_menu, wxID_ANY, _L("Export"), "");
 
