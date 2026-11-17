@@ -1673,6 +1673,11 @@ int CLI::run(int argc, char **argv)
     ::setenv("GDK_BACKEND", "x11", /* replace */ true);
 
     ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
+    // Recent WebKitGTK versions can still use DMA-BUF with compositing disabled.
+    // GBM buffer allocation failures (notably on NVIDIA/XWayland) leave every
+    // embedded page blank, including local dialogs such as flushing volumes.
+    // Keep the software rendering fallback consistent, honoring user overrides.
+    ::setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1", /* replace */ false);
 
     // Also on Linux, we need to tell Xlib that we will be using threads,
     // lest we crash when we fire up GStreamer.
