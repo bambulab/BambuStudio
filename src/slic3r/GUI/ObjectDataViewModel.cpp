@@ -1881,7 +1881,7 @@ void ObjectDataViewModel::OnPlateChange(const int plate_idx, wxDataViewItem item
     ReparentObject(parent_plate, node);
 }
 
-void ObjectDataViewModel::AddAllChildren(const wxDataViewItem& parent)
+void ObjectDataViewModel::AddAllChildren(const wxDataViewItem& parent, bool expand/* = true*/)
 {
     ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(parent.GetID());
     if (!node || node->GetChildCount() == 0)
@@ -1896,9 +1896,10 @@ void ObjectDataViewModel::AddAllChildren(const wxDataViewItem& parent)
     }
 
     for (const auto& item : array)
-        AddAllChildren(item);
+        AddAllChildren(item, expand);
 
-    m_ctrl->Expand(parent);
+    if (expand)
+        m_ctrl->Expand(parent);
 };
 
 void ObjectDataViewModel::ReparentObject(ObjectDataViewModelNode* plate, ObjectDataViewModelNode* object)
@@ -1918,6 +1919,12 @@ void ObjectDataViewModel::ReparentObject(ObjectDataViewModelNode* plate, ObjectD
     object->m_parent = plate;
     plate->Append(object);
     ItemAdded(wxDataViewItem(plate), wxDataViewItem(object));
+
+    // On GTK, ItemDeleted() above dropped the object's whole subtree from the control,
+    // and ItemAdded() only re-adds the object row. Re-add its children too, otherwise
+    // later notifications about them (e.g. deleting a height range) can't find their
+    // parent and crash in wxDataViewCtrlInternal::GetIndexOf().
+    AddAllChildren(wxDataViewItem(object), false);
 }
 
 wxDataViewItem ObjectDataViewModel::ReorganizeChildren( const int current_volume_id,
