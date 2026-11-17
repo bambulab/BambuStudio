@@ -8998,6 +8998,230 @@
         {
             "name": "Generic TPU(2.85mm) @BBL H3C 0.8 nozzle",
             "sub_path": "filament/Generic TPU(2.85mm) @BBL H3C 0.8 nozzle.json"
+        },
+        {
+            "name": "NOVTAU PLA Basic @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Basic @base.json"
+        },
+        {
+            "name": "NOVTAU PLA Basic @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Basic @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PLA Matte @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Matte @base.json"
+        },
+        {
+            "name": "NOVTAU PLA Matte @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Matte @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PLA Silk+ @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Silk+ @base.json"
+        },
+        {
+            "name": "NOVTAU PLA Silk+ @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Silk+ @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PLA Translucent @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Translucent @base.json"
+        },
+        {
+            "name": "NOVTAU PLA Translucent @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Translucent @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PLA Tough+ @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Tough+ @base.json"
+        },
+        {
+            "name": "NOVTAU PLA Tough+ @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Tough+ @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PLA Silk Multi-Color @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Silk Multi-Color @base.json"
+        },
+        {
+            "name": "NOVTAU PLA Silk Multi-Color @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Silk Multi-Color @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PLA Basic Gradient @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Basic Gradient @base.json"
+        },
+        {
+            "name": "NOVTAU PLA Basic Gradient @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Basic Gradient @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PLA Marble @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Marble @base.json"
+        },
+        {
+            "name": "NOVTAU PLA Marble @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Marble @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PLA Wood @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Wood @base.json"
+        },
+        {
+            "name": "NOVTAU PLA Wood @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Wood @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PLA Glow @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Glow @base.json"
+        },
+        {
+            "name": "NOVTAU PLA Glow @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Glow @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PLA-CF @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA-CF @base.json"
+        },
+        {
+            "name": "NOVTAU PLA-CF @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA-CF @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PLA Pearl @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Pearl @base.json"
+        },
+        {
+            "name": "NOVTAU PLA Pearl @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Pearl @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PLA Photochromic @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Photochromic @base.json"
+        },
+        {
+            "name": "NOVTAU PLA Photochromic @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Photochromic @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PLA Thermochromic @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Thermochromic @base.json"
+        },
+        {
+            "name": "NOVTAU PLA Thermochromic @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Thermochromic @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PLA Matte Multi-Color @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Matte Multi-Color @base.json"
+        },
+        {
+            "name": "NOVTAU PLA Matte Multi-Color @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PLA Matte Multi-Color @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PETG Basic @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG Basic @base.json"
+        },
+        {
+            "name": "NOVTAU PETG Basic @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG Basic @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PETG Translucent @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG Translucent @base.json"
+        },
+        {
+            "name": "NOVTAU PETG Translucent @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG Translucent @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PETG High-Flow @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG High-Flow @base.json"
+        },
+        {
+            "name": "NOVTAU PETG High-Flow @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG High-Flow @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PETG-CF @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG-CF @base.json"
+        },
+        {
+            "name": "NOVTAU PETG-CF @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG-CF @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PETG Multi-Color @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG Multi-Color @base.json"
+        },
+        {
+            "name": "NOVTAU PETG Multi-Color @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG Multi-Color @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PETG Metallic @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG Metallic @base.json"
+        },
+        {
+            "name": "NOVTAU PETG Metallic @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG Metallic @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PETG Sparkle @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG Sparkle @base.json"
+        },
+        {
+            "name": "NOVTAU PETG Sparkle @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG Sparkle @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PETG Marble @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG Marble @base.json"
+        },
+        {
+            "name": "NOVTAU PETG Marble @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PETG Marble @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU ABS @base",
+            "sub_path": "filament/NOVTAU/NOVTAU ABS @base.json"
+        },
+        {
+            "name": "NOVTAU ABS @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU ABS @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU ABS-GF @base",
+            "sub_path": "filament/NOVTAU/NOVTAU ABS-GF @base.json"
+        },
+        {
+            "name": "NOVTAU ABS-GF @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU ABS-GF @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU ASA-CF @base",
+            "sub_path": "filament/NOVTAU/NOVTAU ASA-CF @base.json"
+        },
+        {
+            "name": "NOVTAU ASA-CF @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU ASA-CF @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PAHT-CF @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PAHT-CF @base.json"
+        },
+        {
+            "name": "NOVTAU PAHT-CF @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PAHT-CF @BBL X1C.json"
+        },
+        {
+            "name": "NOVTAU PET-CF @base",
+            "sub_path": "filament/NOVTAU/NOVTAU PET-CF @base.json"
+        },
+        {
+            "name": "NOVTAU PET-CF @BBL X1C",
+            "sub_path": "filament/NOVTAU/NOVTAU PET-CF @BBL X1C.json"
         }
     ],
     "machine_list": [
