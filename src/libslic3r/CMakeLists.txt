@@ -535,6 +535,10 @@ endif ()
 add_library(libslic3r STATIC ${lisbslic3r_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
     ${OpenVDBUtils_SOURCES})
+include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/GpuSlicer.cmake")
+slic3r_configure_gpu_backend(libslic3r
+    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Gpu"
+    PRODUCT BambuStudio PLAIN_LINK)
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${lisbslic3r_sources})
 
 if (SLIC3R_STATIC)

@@ -41,9 +41,6 @@ target_link_libraries(support_material_on_wipe_tower_tests test_common libslic3r
 	libcurl
 	OpenSSL::SSL OpenSSL::Crypto
 )
-if (MSVC)
-	target_link_options(support_material_on_wipe_tower_tests PRIVATE /FORCE:UNRESOLVED)
-endif()
 set_property(TARGET support_material_on_wipe_tower_tests PROPERTY FOLDER "tests")
 add_test(support_material_on_wipe_tower_tests support_material_on_wipe_tower_tests ${CATCH_EXTRA_ARGS})
 
@@ -57,9 +54,6 @@ target_link_libraries(periodic_modifier_tests test_common libslic3r
 	libcurl
 	OpenSSL::SSL OpenSSL::Crypto
 )
-if (MSVC)
-	target_link_options(periodic_modifier_tests PRIVATE /FORCE:UNRESOLVED)
-endif()
 set_property(TARGET periodic_modifier_tests PROPERTY FOLDER "tests")
 add_test(periodic_modifier_tests periodic_modifier_tests ${CATCH_EXTRA_ARGS})
 

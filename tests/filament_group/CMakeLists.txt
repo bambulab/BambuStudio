@@ -36,9 +36,4 @@ target_compile_definitions(${_TEST_NAME}_tests PRIVATE
 )
 set_property(TARGET ${_TEST_NAME}_tests PROPERTY FOLDER "tests")
 
-# Allow unresolved externals from nanosvg (header-only lib compiled in libslic3r GUI utils)
-if (MSVC)
-    target_link_options(${_TEST_NAME}_tests PRIVATE /FORCE:UNRESOLVED)
-endif()
-
 add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS})

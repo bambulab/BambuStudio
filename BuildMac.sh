@@ -188,6 +188,11 @@ function build_slicer() {
             resources_path=$(readlink ./BambuStudio.app/Contents/Resources)
             rm ./BambuStudio.app/Contents/Resources
             cp -R "$resources_path" ./BambuStudio.app/Contents/Resources
+            gpu_shaders="$PROJECT_BUILD_DIR/src/libslic3r/resources/vulkan"
+            if [ -d "$gpu_shaders" ]; then
+                mkdir -p ./BambuStudio.app/Contents/Resources/vulkan
+                cp "$gpu_shaders/"*.spv ./BambuStudio.app/Contents/Resources/vulkan/
+            fi
             # delete .DS_Store file
             find ./BambuStudio.app/ -name '.DS_Store' -delete
         )
