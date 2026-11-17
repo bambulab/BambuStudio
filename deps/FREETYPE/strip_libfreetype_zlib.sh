@@ -100,13 +100,19 @@ for ARCH in ${ARCHES}; do
 
     pushd "${SLICE_DIR}" >/dev/null
     ar -x libfreetype.a ftgzip.c.o
-    # macOS' ld -r needs an explicit platform_version, otherwise it complains
-    # about missing LC_BUILD_VERSION. We mirror the toolchain default
-    # (10.15 → SDK 13.1) used by BambuStudio's CMake setup.
+    # macOS ld -r needs an explicit platform_version, otherwise it complains
+    # about a missing LC_BUILD_VERSION. Use the deployment target CMake
+    # selected (10.15, or 11.0 when this SDK's libc++ rejects 10.15) and the
+    # SDK that is actually installed.
+    MIN_OS="${MACOSX_DEPLOYMENT_TARGET:-10.15}"
+    SDK_VER="$(xcrun --sdk macosx --show-sdk-version 2>/dev/null || true)"
+    if [[ -z "${SDK_VER}" ]]; then
+        SDK_VER="${MIN_OS}"
+    fi
     xcrun ld -r ftgzip.c.o \
         -unexported_symbols_list "${LOCALIZE_LIST}" \
         -arch "${ARCH}" \
-        -platform_version macos 10.15 13.1 \
+        -platform_version macos "${MIN_OS}" "${SDK_VER}" \
         -o ftgzip.clean.c.o
     mv ftgzip.clean.c.o ftgzip.c.o
     ar -d libfreetype.a ftgzip.c.o
