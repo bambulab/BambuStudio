@@ -6,7 +6,7 @@
     "setting_id": "GFSS04_24",
     "instantiation": "true",
     "additional_cooling_fan_speed": [
-        "0"
+        "10"
     ],
     "close_optional_fan_first_x_layers": [
         "1"
@@ -82,7 +82,7 @@
         "240"
     ],
     "optional_cooling_fan_speed": [
-        "0"
+        "10"
     ],
     "optional_fan_full_speed_layer": [
         "0"
