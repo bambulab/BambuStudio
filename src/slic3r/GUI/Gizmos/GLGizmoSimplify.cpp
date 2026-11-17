@@ -565,12 +565,18 @@ void GLGizmoSimplify::process()
                 max_error = m_state.config.max_error;
             m_state.progress = 0;
             m_state.result.reset();
+            m_state.src_face.clear();
             m_state.status = State::Status::running;
         }
 
+        // Track which original face each survivor came from so Keep all painting can
+        // reproject per connected shell instead of letting interpenetrating shells
+        // overwrite each other through the geometric slab.
+        std::vector<int32_t> src_face;
+
         // Start the actual calculation.
         try {
-            its_quadric_edge_collapse(*its, triangle_count, &max_error, throw_on_cancel, statusfn);
+            its_quadric_edge_collapse(*its, triangle_count, &max_error, throw_on_cancel, statusfn, &src_face);
         } catch (SimplifyCanceledException &) {
             BOOST_LOG_TRIVIAL(warning) << current_exception_message();
             std::lock_guard lk(m_state_mutex);
@@ -582,6 +588,7 @@ void GLGizmoSimplify::process()
             // We were not cancelled, the result is valid.
             m_state.status = State::Status::idle;
             m_state.result = std::move(its);
+            m_state.src_face = std::move(src_face);
         }
 
         // Update UI. Use CallAfter so the function is run on UI thread.
@@ -645,8 +652,14 @@ void GLGizmoSimplify::apply_simplify() {
                 }
             };
             auto cancel_cb = [&]() { return canceled.load(std::memory_order_relaxed); };
+            // src_face is filled by the preview QEM worker and is stable once Apply runs
+            // (preview is idle). Shell-aware transfer needs it; size mismatch falls back
+            // to the whole-mesh path inside reproject_paint_geometric.
+            const std::vector<int32_t> *face_map =
+                (m_state.src_face.size() == new_mesh.its.indices.size()) ? &m_state.src_face
+                                                                         : nullptr;
             try {
-                ok = mv->reproject_paint_keep(new_mesh, prepared, progress_cb, cancel_cb);
+                ok = mv->reproject_paint_keep(new_mesh, prepared, progress_cb, cancel_cb, face_map);
             } catch (...) {
                 BOOST_LOG_TRIVIAL(warning) << current_exception_message();
                 ok = false;

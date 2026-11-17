@@ -1,5 +1,6 @@
 #include "QuadricEdgeCollapse.hpp"
 #include <array>
+#include <numeric>
 #include <tuple>
 #include <optional>
 #include "MutablePriorityQueue.hpp"
@@ -138,7 +139,8 @@ namespace QuadricEdgeCollapse {
     void change_neighbors(EdgeInfos &e_infos, VertexInfos &v_infos, uint32_t ti0, uint32_t ti1,
                           uint32_t vi0, uint32_t vi1, uint32_t vi_top0,
                           const Triangle &t1, CopyEdgeInfos& infos, EdgeInfos &e_infos1);
-    void compact(const VertexInfos &v_infos, const TriangleInfos &t_infos, const EdgeInfos &e_infos, indexed_triangle_set &its);
+    void compact(const VertexInfos &v_infos, const TriangleInfos &t_infos, const EdgeInfos &e_infos,
+                 indexed_triangle_set &its, std::vector<int32_t> *src_face);
 
 #ifdef EXPENSIVE_DEBUG_CHECKS
     void store_surround(const char *obj_filename, size_t triangle_index, int depth, const indexed_triangle_set &its,
@@ -167,8 +169,16 @@ void Slic3r::its_quadric_edge_collapse(
     uint32_t                  triangle_count,
     float *                   max_error,
     std::function<void(void)> throw_on_cancel,
-    std::function<void(int)>  status_fn)
+    std::function<void(int)>  status_fn,
+    std::vector<int32_t> *    src_face)
 {
+    // Surviving faces keep their pre-collapse index until compact(); seed an identity
+    // map so callers can attribute each output face to its source even when this
+    // call early-returns without collapsing anything.
+    if (src_face != nullptr) {
+        src_face->resize(its.indices.size());
+        std::iota(src_face->begin(), src_face->end(), int32_t(0));
+    }
     // check input
     if (triangle_count >= its.indices.size()) return;
     float maximal_error = (max_error == nullptr)? std::numeric_limits<float>::max() : *max_error;
@@ -350,7 +360,7 @@ void Slic3r::its_quadric_edge_collapse(
     }
 
     // compact triangle
-    compact(v_infos, t_infos, e_infos, its);
+    compact(v_infos, t_infos, e_infos, its, src_face);
     if (max_error != nullptr) *max_error = last_collapsed_error;
 }
 
@@ -908,7 +918,8 @@ void QuadricEdgeCollapse::change_neighbors(EdgeInfos &     e_infos,
 void QuadricEdgeCollapse::compact(const VertexInfos &   v_infos,
                                   const TriangleInfos & t_infos,
                                   const EdgeInfos &     e_infos,
-                                  indexed_triangle_set &its)
+                                  indexed_triangle_set &its,
+                                  std::vector<int32_t> *src_face)
 {
     uint32_t vi_new = 0;
     for (uint32_t vi = 0; vi < v_infos.size(); ++vi) {
@@ -930,9 +941,14 @@ void QuadricEdgeCollapse::compact(const VertexInfos &   v_infos,
     for (uint32_t ti = 0; ti < t_infos.size(); ti++) { 
         const TriangleInfo &t_info = t_infos[ti];
         if (t_info.is_deleted()) continue;
-        its.indices[ti_new++] = its.indices[ti];
+        its.indices[ti_new] = its.indices[ti];
+        if (src_face != nullptr)
+            (*src_face)[ti_new] = (*src_face)[ti];
+        ++ti_new;
     }
     its.indices.erase(its.indices.begin() + ti_new, its.indices.end());
+    if (src_face != nullptr)
+        src_face->resize(ti_new);
 }
 
 #ifdef EXPENSIVE_DEBUG_CHECKS

@@ -66,9 +66,10 @@ private:
         float    decimate_ratio = 50.f; // in percent
         uint32_t wanted_count = 0; // initialize by percents
         float max_error = 0.1f; // maximal quadric error, matches the default detail level "Medium"
-
         void fix_count_by_ratio(size_t triangle_count);
         bool operator==(const Configuration& rhs) {
+            // Keep all painting only affects Apply (paint transfer), not the QEM preview,
+            // so it is intentionally omitted from equality.
             return (use_count == rhs.use_count && decimate_ratio == rhs.decimate_ratio
                 && wanted_count == rhs.wanted_count && max_error == rhs.max_error);
         }
@@ -117,6 +118,10 @@ private:
         Configuration config; // Configuration we started with.
         const ModelVolume* mv = nullptr;
         std::unique_ptr<indexed_triangle_set> result;
+        // Parallel to result faces: index of the surviving face in the pre-QEM mesh.
+        // Used by Keep all painting so shell-aware paint transfer can stay inside each
+        // connected component. Empty when there is no result.
+        std::vector<int32_t> src_face;
     };
 
     std::thread m_worker;

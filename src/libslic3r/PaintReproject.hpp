@@ -1,6 +1,7 @@
 #ifndef libslic3r_PaintReproject_hpp_
 #define libslic3r_PaintReproject_hpp_
 
+#include <cstdint>
 #include <functional>
 #include <vector>
 
@@ -71,6 +72,11 @@ using PaintReprojectCancelCallback   = std::function<bool()>;
 // dst_world_matrix maps the destination mesh into world space. It is only used to keep
 // the subdivision floor a real millimeter distance on a scaled volume; pass null when the
 // destination mesh is already in millimeters, or to accept mesh-local measurement.
+//
+// dst_to_src_face, when given and sized to the destination face count, attributes each
+// destination face to a source face. Multi-shell volumes then reproject one connected
+// component at a time so interpenetrating shells cannot overwrite each other's paint
+// (Simplify Keep all painting). Null keeps the single whole-mesh pass used by repair.
 [[nodiscard]] bool reproject_paint_geometric(const TriangleMesh     &src_mesh,
                                              const FacetsAnnotation &src_supported,
                                              const FacetsAnnotation &src_seam,
@@ -84,7 +90,8 @@ using PaintReprojectCancelCallback   = std::function<bool()>;
                                              FacetsAnnotation       &dst_fuzzy,
                                              const PaintReprojectProgressCallback &progress = nullptr,
                                              const PaintReprojectCancelCallback   &cancel   = nullptr,
-                                             const Transform3d      *dst_world_matrix = nullptr);
+                                             const Transform3d      *dst_world_matrix = nullptr,
+                                             const std::vector<int32_t> *dst_to_src_face = nullptr);
 
 // One painted operand feeding a boolean result: its mesh, its four annotation
 // layers, and the transform that maps this operand's mesh-local coordinates into

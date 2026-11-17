@@ -3,6 +3,7 @@
 #include "libslic3r.h"
 #include "Geometry.hpp"
 #include "I18N.hpp"
+#include "MeshSplitImpl.hpp"
 #include "Model.hpp"
 #include "TriangleMesh.hpp"
 #include "TriangleSelector.hpp"
@@ -1722,6 +1723,90 @@ bool reproject_paint(const ModelVolume &src_volume,
     return true;
 }
 
+namespace {
+
+// Per-face connected-component id (edge-adjacent faces share an id). Contiguous from 0.
+std::vector<int32_t> face_shell_ids(const indexed_triangle_set &its)
+{
+    std::vector<int32_t> ids(its.indices.size(), -1);
+    if (its.indices.empty())
+        return ids;
+    meshsplit_detail::NeighborVisitor visitor(its, create_face_neighbors_index(ex_tbb, its));
+    int32_t shell = 0;
+    for (;;) {
+        bool any = false;
+        visitor.visit([&](size_t idx) {
+            ids[idx] = shell;
+            any = true;
+            return true;
+        });
+        if (!any)
+            break;
+        ++shell;
+    }
+    return ids;
+}
+
+// One shell pass: source faces that may donate paint, destination faces that may accept it.
+struct ShellPaintPass {
+    std::vector<char> src_filter;
+    std::vector<char> dst_paintable;
+};
+
+// Build one pass per source shell that still has destination faces after decimation.
+// Empty when the mesh is a single shell (or the face map is unusable): callers then
+// keep the whole-mesh path. Multi-shell Simplify needs this so interpenetrating
+// shells cannot overwrite each other through the geometric slab.
+std::vector<ShellPaintPass> build_shell_paint_passes(const indexed_triangle_set &src,
+                                                     const indexed_triangle_set &dst,
+                                                     const std::vector<int32_t> &dst_to_src_face)
+{
+    if (dst_to_src_face.size() != dst.indices.size() || src.indices.empty() || dst.indices.empty())
+        return {};
+
+    const std::vector<int32_t> src_shell = face_shell_ids(src);
+    int32_t max_shell = -1;
+    for (int32_t s : src_shell)
+        max_shell = std::max(max_shell, s);
+    if (max_shell <= 0)
+        return {}; // zero or one shell
+
+    const size_t n_shells = size_t(max_shell) + 1;
+    std::vector<std::vector<char>> src_filters(n_shells, std::vector<char>(src.indices.size(), 0));
+    for (size_t i = 0; i < src_shell.size(); ++i)
+        if (src_shell[i] >= 0)
+            src_filters[size_t(src_shell[i])][i] = 1;
+
+    std::vector<std::vector<char>> dst_masks(n_shells, std::vector<char>(dst.indices.size(), 0));
+    std::vector<char> shell_has_dst(n_shells, 0);
+    for (size_t di = 0; di < dst_to_src_face.size(); ++di) {
+        const int32_t si = dst_to_src_face[di];
+        if (si < 0 || size_t(si) >= src_shell.size())
+            continue;
+        const int32_t shell = src_shell[size_t(si)];
+        if (shell < 0)
+            continue;
+        dst_masks[size_t(shell)][di] = 1;
+        shell_has_dst[size_t(shell)] = 1;
+    }
+
+    std::vector<ShellPaintPass> passes;
+    passes.reserve(n_shells);
+    for (size_t s = 0; s < n_shells; ++s) {
+        if (!shell_has_dst[s])
+            continue;
+        ShellPaintPass pass;
+        pass.src_filter = std::move(src_filters[s]);
+        pass.dst_paintable = std::move(dst_masks[s]);
+        passes.emplace_back(std::move(pass));
+    }
+    if (passes.size() <= 1)
+        return {};
+    return passes;
+}
+
+} // namespace
+
 bool reproject_paint_geometric(const TriangleMesh     &src_mesh,
                                const FacetsAnnotation &src_supported,
                                const FacetsAnnotation &src_seam,
@@ -1735,7 +1820,8 @@ bool reproject_paint_geometric(const TriangleMesh     &src_mesh,
                                FacetsAnnotation       &dst_fuzzy,
                                const PaintReprojectProgressCallback &progress,
                                const PaintReprojectCancelCallback   &cancel,
-                               const Transform3d      *dst_world_matrix)
+                               const Transform3d      *dst_world_matrix,
+                               const std::vector<int32_t> *dst_to_src_face)
 {
     // Bail out before the whole-mesh prologue below, and before resetting anything, so a
     // cancellation that arrived in the meantime leaves the destination exactly as it was.
@@ -1804,8 +1890,21 @@ bool reproject_paint_geometric(const TriangleMesh     &src_mesh,
     const RegionEdgeLimit edge_limit(dst_mesh, dst_world_matrix);
 
     const DestinationInSourceFrame dst_in_source(dst_mesh, dst_to_src);
-    // Repair paints the whole destination, so no mask; shared by all four layers.
-    DestinationSeedIndex seed_index(dst_mesh, dst_in_source, nullptr);
+
+    // Multi-shell Simplify: isolate each connected component. Empty → one unmasked pass.
+    const std::vector<ShellPaintPass> shell_passes =
+        (dst_to_src_face != nullptr)
+            ? build_shell_paint_passes(src_mesh.its, dst_mesh.its, *dst_to_src_face)
+            : std::vector<ShellPaintPass>{};
+    if (!shell_passes.empty())
+        BOOST_LOG_TRIVIAL(info)
+            << "Paint reprojection: shell-aware transfer across " << shell_passes.size()
+            << " connected components";
+
+    // Whole-mesh seed index (repair / single-shell). Shell passes build their own.
+    std::unique_ptr<DestinationSeedIndex> whole_seed;
+    if (shell_passes.empty())
+        whole_seed = std::make_unique<DestinationSeedIndex>(dst_mesh, dst_in_source, nullptr);
 
     int layer_index = 0;
     for (const Layer &layer : layers) {
@@ -1819,48 +1918,107 @@ bool reproject_paint_geometric(const TriangleMesh     &src_mesh,
                 progress(base_percent + percent * span_percent / 100, message);
             };
 
-        // Re-paint each paint state as one brush stroke. This is the accurate path:
-        // refinement follows measured overlap area, so a boundary is captured
-        // regardless of how coarsely the repair re-triangulated the destination.
-        PaintRegionSource source(src_mesh, layer.src.get_data(), max_sample_distance);
         bool completed = true;
-        if (!source.empty() && source.leaf_count() <= RegionPaintMaxSourceLeaves) {
+        if (shell_passes.empty()) {
+            // Re-paint each paint state as one brush stroke. This is the accurate path:
+            // refinement follows measured overlap area, so a boundary is captured
+            // regardless of how coarsely the repair re-triangulated the destination.
+            PaintRegionSource source(src_mesh, layer.src.get_data(), max_sample_distance);
+            if (!source.empty() && source.leaf_count() <= RegionPaintMaxSourceLeaves) {
+                const auto       started_at = std::chrono::steady_clock::now();
+                TriangleSelector dst_sel(dst_mesh);
+                const RegionReprojectStats stats = reproject_one_annotation_by_region(
+                    source, dst_sel, *whole_seed, dst_in_source, edge_limit.value(),
+                    max_sample_distance > 0.0 ? float(max_sample_distance) : 0.f,
+                    layer_progress, cancel, layer.display, nullptr, edge_limit.trafo());
+                completed = !stats.canceled;
+                if (completed) {
+                    const auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::steady_clock::now() - started_at).count();
+                    BOOST_LOG_TRIVIAL(info)
+                        << "Paint reprojection [" << layer.name << "] by region: source leaves="
+                        << source.leaf_count() << ", states=" << source.states().size()
+                        << ", source finest leaf=" << source.finest_leaf_edge()
+                        << ", edge limit=" << edge_limit.value()
+                        << ", nodes created=" << stats.nodes_created
+                        << ", target nodes=" << count_valid_nodes(dst_sel)
+                        << ", budget exhausted=" << stats.budget_exhausted
+                        << ", elapsed=" << elapsed_ms << "ms";
+                    if (stats.budget_exhausted)
+                        BOOST_LOG_TRIVIAL(warning)
+                            << "Paint reprojection [" << layer.name
+                            << "] by region exhausted its node budget; the paint boundary stays "
+                               "coarser than " << edge_limit.value() << " in places";
+                    layer.dst.set(dst_sel);
+                }
+            } else if (!source.empty()) {
+                // Pathological annotation: flattening it would cost more memory than
+                // the result is worth, so fall back to point sampling for this layer.
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Paint reprojection [" << layer.name << "] has " << source.leaf_count()
+                    << " source leaves, falling back to point sampling";
+                completed = reproject_one_annotation(
+                    layer.src, layer.dst, src_mesh, dst_mesh, dst_to_src, nullptr,
+                    ReprojectMode::PointNearest, layer.name, layer_progress, cancel,
+                    max_sample_distance, layer.display, absolute_target_error);
+            }
+        } else {
+            // Shell-aware: paint into one shared selector, one shell at a time. Each
+            // pass's paintable mask keeps other shells' faces untouched.
             const auto       started_at = std::chrono::steady_clock::now();
             TriangleSelector dst_sel(dst_mesh);
-            const RegionReprojectStats stats = reproject_one_annotation_by_region(
-                source, dst_sel, seed_index, dst_in_source, edge_limit.value(),
-                max_sample_distance > 0.0 ? float(max_sample_distance) : 0.f,
-                layer_progress, cancel, layer.display, nullptr, edge_limit.trafo());
-            completed = !stats.canceled;
+            size_t total_leaves = 0;
+            size_t total_nodes  = 0;
+            bool   budget_exhausted = false;
+            for (size_t si = 0; si < shell_passes.size() && completed; ++si) {
+                if (cancel && cancel()) {
+                    completed = false;
+                    break;
+                }
+                const ShellPaintPass &pass = shell_passes[si];
+                PaintRegionSource source(src_mesh, layer.src.get_data(), max_sample_distance,
+                                         &pass.src_filter);
+                if (source.empty())
+                    continue;
+                if (source.leaf_count() > RegionPaintMaxSourceLeaves) {
+                    BOOST_LOG_TRIVIAL(warning)
+                        << "Paint reprojection [" << layer.name << "] shell " << si
+                        << " has " << source.leaf_count()
+                        << " source leaves; skipping shell (point-sample fallback is not shell-aware)";
+                    continue;
+                }
+                DestinationSeedIndex seed_index(dst_mesh, dst_in_source, &pass.dst_paintable);
+                // Progress within the layer: spread across shells.
+                PaintReprojectProgressCallback shell_progress;
+                if (layer_progress) {
+                    const int shell_base = int(si * 100 / shell_passes.size());
+                    const int shell_span = std::max(1, int(100 / shell_passes.size()));
+                    shell_progress = [&layer_progress, shell_base, shell_span](int percent, const char *message) {
+                        layer_progress(shell_base + percent * shell_span / 100, message);
+                    };
+                }
+                const RegionReprojectStats stats = reproject_one_annotation_by_region(
+                    source, dst_sel, seed_index, dst_in_source, edge_limit.value(),
+                    max_sample_distance > 0.0 ? float(max_sample_distance) : 0.f,
+                    shell_progress, cancel, layer.display, &pass.dst_paintable, edge_limit.trafo());
+                completed = !stats.canceled;
+                total_leaves += source.leaf_count();
+                total_nodes += stats.nodes_created;
+                budget_exhausted |= stats.budget_exhausted;
+            }
             if (completed) {
                 const auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::steady_clock::now() - started_at).count();
                 BOOST_LOG_TRIVIAL(info)
-                    << "Paint reprojection [" << layer.name << "] by region: source leaves="
-                    << source.leaf_count() << ", states=" << source.states().size()
-                    << ", source finest leaf=" << source.finest_leaf_edge()
+                    << "Paint reprojection [" << layer.name << "] by shell region: shells="
+                    << shell_passes.size() << ", source leaves=" << total_leaves
                     << ", edge limit=" << edge_limit.value()
-                    << ", nodes created=" << stats.nodes_created
+                    << ", nodes created=" << total_nodes
                     << ", target nodes=" << count_valid_nodes(dst_sel)
-                    << ", budget exhausted=" << stats.budget_exhausted
+                    << ", budget exhausted=" << budget_exhausted
                     << ", elapsed=" << elapsed_ms << "ms";
-                if (stats.budget_exhausted)
-                    BOOST_LOG_TRIVIAL(warning)
-                        << "Paint reprojection [" << layer.name
-                        << "] by region exhausted its node budget; the paint boundary stays "
-                           "coarser than " << edge_limit.value() << " in places";
                 layer.dst.set(dst_sel);
             }
-        } else if (!source.empty()) {
-            // Pathological annotation: flattening it would cost more memory than
-            // the result is worth, so fall back to point sampling for this layer.
-            BOOST_LOG_TRIVIAL(warning)
-                << "Paint reprojection [" << layer.name << "] has " << source.leaf_count()
-                << " source leaves, falling back to point sampling";
-            completed = reproject_one_annotation(
-                layer.src, layer.dst, src_mesh, dst_mesh, dst_to_src, nullptr,
-                ReprojectMode::PointNearest, layer.name, layer_progress, cancel,
-                max_sample_distance, layer.display, absolute_target_error);
         }
         if (!completed)
             return false;
