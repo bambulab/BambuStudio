@@ -99,7 +99,13 @@ private:
     ColorRGB parent_color_ = ColorRGB();
     int hover_id_{-1};
     double image_view_scale_{1};
+    cv::Mat bg_image_;
     GLuint bg_texture_id_{0};
+    // Pixels are decoded immediately, but the GL texture is uploaded only once
+    // this canvas is on screen. The dialog loads the image while the canvas
+    // page is still hidden, and a texture created then does not survive into
+    // the real context.
+    bool bg_texture_dirty_{false};
 
     void SendSelectEvent(int id, PartState state);
     void SendZoomEvent(int zoom_percent);
@@ -116,6 +122,7 @@ private:
     void EndDrag();
 
     void Render();
+    void UploadBackgroundTexture();
 
     void DebugLogLine(std::string str);
 };

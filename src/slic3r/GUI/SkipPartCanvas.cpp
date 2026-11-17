@@ -35,31 +35,58 @@ SkipPartCanvas::SkipPartCanvas(wxWindow *parent, const wxGLAttributes& dispAttrs
 
 void SkipPartCanvas::LoadBackgroundImage(const std::string& path)
 {
-    if (!std::filesystem::exists(path)) return;
+    bg_image_.release();
+    bg_texture_dirty_ = false;
+
+    if (!std::filesystem::exists(path))
+        return;
 
     cv::Mat img = cv::imread(path, cv::IMREAD_UNCHANGED);
-    if (img.empty()) return;
+    if (img.empty())
+        return;
 
-    cv::Mat rgba;
     if (img.channels() == 4)
-        cv::cvtColor(img, rgba, cv::COLOR_BGRA2RGBA);
+        cv::cvtColor(img, bg_image_, cv::COLOR_BGRA2RGBA);
+    else if (img.channels() == 3)
+        cv::cvtColor(img, bg_image_, cv::COLOR_BGR2RGBA);
     else
-        cv::cvtColor(img, rgba, cv::COLOR_BGR2RGBA);
+        return;
 
-    SetCurrent(*context_);
+    if (!bg_image_.isContinuous())
+        bg_image_ = bg_image_.clone();
+
+    // Keep the pixels here. InitDialogUI runs while this canvas is still on a
+    // hidden simplebook page, and wxGLCanvas::SetCurrent fails until the page
+    // is shown. A texture created at that point is not the one Render() binds,
+    // so the first open draws an empty white bed.
+    bg_texture_dirty_ = true;
+}
+
+void SkipPartCanvas::UploadBackgroundTexture()
+{
+    if (!bg_texture_dirty_ || bg_image_.empty())
+        return;
+    if (!IsShownOnScreen())
+        return;
+    if (!SetCurrent(*context_))
+        return;
 
     if (bg_texture_id_ == 0)
         glGenTextures(1, &bg_texture_id_);
+    if (bg_texture_id_ == 0)
+        return;
 
     glBindTexture(GL_TEXTURE_2D, bg_texture_id_);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rgba.cols, rgba.rows, 0,
-                 GL_RGBA, GL_UNSIGNED_BYTE, rgba.data);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bg_image_.cols, bg_image_.rows, 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, bg_image_.data);
     glBindTexture(GL_TEXTURE_2D, 0);
 
+    bg_texture_dirty_ = false;
 }
 
 void SkipPartCanvas::LoadPickImage(const std::string & path)
@@ -300,6 +327,8 @@ void SkipPartCanvas::Render()
     glClearColor(parent_color_.r(), parent_color_.g(), parent_color_.b(), 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+    UploadBackgroundTexture();
+
     float rx = offset_.x;
     float ry = offset_.y;
     float rw = view_rect.x - offset_.x;
@@ -539,9 +568,10 @@ void SkipPartCanvas::EndDrag()
  void SkipPartCanvas::OnPaint(wxPaintEvent &event)
  {
     wxPaintDC dc(this);
-    if (!IsShown()) return;
-
-    SetCurrent(*context_);
+    if (!IsShownOnScreen())
+        return;
+    if (!SetCurrent(*context_))
+        return;
 
     Render();
     SwapBuffers();
