@@ -1,5 +1,6 @@
 #include "FilamentSelectDialog.hpp"
 #include "AMSMaterialsSetting.hpp"  // AMS_MATERIALS_SETTING_GREY* colour constants
+#include "EncodedFilament.hpp"
 #include "FilamentBitmapUtils.hpp"
 #include "DeviceCore/DevFilaSystem.h"  // DevFilaSystem::GetTrayNameByAmsSlotId
 #include "GUI_App.hpp"
@@ -539,9 +540,10 @@ void FilamentSelectDialog::fill_manager_tab()
             const FilamentSpool* sp = store->get_spool(id);
             if (!sp) continue;
             bool has_preset = false;
-            if (bundle && !sp->filament_id.empty()) {
+            const std::string filament_id = spool_filament_id(*sp);
+            if (bundle && !filament_id.empty()) {
                 for (const auto& printer_name : m_printer_names) {
-                    if (bundle->get_filament_by_filament_id(sp->filament_id, printer_name).has_value()) {
+                    if (bundle->get_filament_by_filament_id(filament_id, printer_name).has_value()) {
                         has_preset = true;
                         break;
                     }

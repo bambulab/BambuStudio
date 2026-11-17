@@ -21,7 +21,9 @@ namespace Slic3r { namespace GUI {
 class FilamentPickerDialog : public DPIDialog
 {
 public:
-    FilamentPickerDialog(wxWindow *parent, const wxString &fila_id, const FilamentColor &fila_color, const std::string &fila_type);
+    // `owned_codes`, when given, replaces the official colours of `fila_id` with the user's spools.
+    FilamentPickerDialog(wxWindow *parent, const wxString &fila_id, const FilamentColor &fila_color, const std::string &fila_type,
+                         std::unique_ptr<FilamentColorCodes> owned_codes = nullptr);
     virtual ~FilamentPickerDialog();
 
     // Public interface methods
@@ -106,6 +108,7 @@ private:
     wxString *m_cur_color_name{nullptr};
     FilamentColorCodeQuery* m_color_query{nullptr};
     FilamentColorCodes* m_cur_color_codes{nullptr};
+    std::unique_ptr<FilamentColorCodes> m_owned_codes;
     wxBitmapButton* m_cur_selected_btn{nullptr};
     FilamentColor m_cur_filament_color;
 

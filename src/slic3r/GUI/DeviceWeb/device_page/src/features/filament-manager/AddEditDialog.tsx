@@ -10,6 +10,7 @@ import useStore from '../../store/AppStore';
 import { useDeviceBridge } from '../../hooks/Bridge';
 import { buildVendorOptions } from './vendorOptions';
 import { CustomSelectDropdown } from './CustomSelectDropdown';
+import { buildPrintsWithOptions, labelForFilamentId } from './printsWith';
 // STUDIO-18114: shared draft -> commit helper for the custom color picker so
 // the OK/Cancel popover and the existing edit-dialog state stay aligned.
 import { commitCustomColorSelection } from './customColorSelection';
@@ -205,6 +206,10 @@ export function AddEditDialog({
   const [brand, setBrand] = useState('');
   const [materialType, setMaterialType] = useState('');
   const [series, setSeries] = useState('');
+  // "Prints With" override: a preset filament_id the user picked explicitly.
+  // Empty means fall back to auto-matching by brand + type. Takes precedence
+  // over the auto chain in both `filaId` and the save payload below.
+  const [printsWithId, setPrintsWithId] = useState('');
   const [colorCode, setColorCode] = useState('');
   const [customColors, setCustomColors] = useState<string[]>([]);
   const [colorName, setColorName] = useState('');
@@ -345,6 +350,9 @@ export function AddEditDialog({
     // STUDIO-17977 F1.3: BBL 官方代码不持久化，每次 open 都从空开始；
     // 由 resolver effect 在 candidates 加载完后从 hit.color_code 反查回填。
     setFilaColorCode('');
+    // Reset any explicit "Prints With" pick from a prior dialog session; the
+    // effective link falls back to the spool's existing setting_id via filaId.
+    setPrintsWithId('');
     if (initSpool) {
       setBrand(initSpool.brand || '');
       setMaterialType(initSpool.material_type || '');
@@ -377,6 +385,7 @@ export function AddEditDialog({
       setNote(initSpool.note || '');
     } else {
       setBrand(''); setMaterialType(''); setSeries('');
+      setPrintsWithId('');
       setColorCode(''); setCustomColors([]); setColorName('');
       setColors([]); setColorType(2);
       setTotalNetWeight(1000); setCurrentNetWeight(1000);
@@ -563,14 +572,30 @@ export function AddEditDialog({
   // actually serialise as `setting_id` on save.
   const filaId = useMemo(
     () => (
-      matchedCloudFilamentId
+      printsWithId
+      || matchedCloudFilamentId
       || matchedPresetItem?.setting_id
       || matchedPresetItem?.filament_id
       || initSpool?.setting_id
       || ''
     ),
-    [matchedCloudFilamentId, matchedPresetItem, initSpool?.setting_id],
+    [printsWithId, matchedCloudFilamentId, matchedPresetItem, initSpool?.setting_id],
   );
+
+  // "Prints With" dropdown: every preset family, plus the effective link so an
+  // already-linked spool shows its family even before the user touches it.
+  const printsWithOptions = useMemo(() => buildPrintsWithOptions(presets), [presets]);
+  const printsWithEffectiveId = printsWithId || matchedCloudFilamentId
+    || matchedPresetItem?.filament_id || initSpool?.setting_id || '';
+  const printsWithLabel = useMemo(
+    () => labelForFilamentId(presets, printsWithEffectiveId),
+    [presets, printsWithEffectiveId],
+  );
+  const printsWithLabelToId = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const o of printsWithOptions) m.set(o.label, o.filamentId);
+    return m;
+  }, [printsWithOptions]);
   const candidatesByFilaId = useStore((s) => s.filament.candidatesByFilaId);
   const setColorCandidates = useStore((s) => s.filament.setColorCandidates);
   // STUDIO-17977 F1.3: memoise the per-fila_id slice so downstream effects
@@ -1182,7 +1207,8 @@ export function AddEditDialog({
       net_weight: currentNetWeight,
       remain_percent: remainPct,
       note,
-      setting_id: matchedCloudFilamentId
+      setting_id: printsWithId
+        || matchedCloudFilamentId
         || matchedPresetItem?.filament_id
         || initSpool?.setting_id
         || '',
@@ -2365,6 +2391,26 @@ export function AddEditDialog({
                 </div>
               </div>
 
+
+              {/* Prints With: the Bambu preset family this spool should print
+                  as. Fills the spool's setting_id (-> filament_id, cloud-synced)
+                  so third-party spools the auto-matcher can't place still work
+                  in AMS slot selection and print settings. Empty = auto-match. */}
+              <div className="flex flex-col gap-[4px] pb-[24px]">
+                <label className="text-[12px] leading-[19px] text-fm-text-secondary">{t('Prints With')}</label>
+                <CustomSelectDropdown
+                  data-testid="filament-prints-with"
+                  value={printsWithLabel}
+                  options={printsWithOptions.map((o) => o.label)}
+                  placeholder={t('Auto (match by brand & type)')}
+                  footerAction={{
+                    label: t('Auto (match by brand & type)'),
+                    onClick: () => setPrintsWithId(''),
+                    testId: 'prints-with-auto',
+                  }}
+                  onSelect={(label) => setPrintsWithId(printsWithLabelToId.get(label) || '')}
+                />
+              </div>
 
               {/* Color palette. F4.4 feedback: 自定义颜色需要"可保存 / 能看到已选"。
                   "+" 始终保留为取色入口；新取的自定义色追加到预设色之后。 */}
