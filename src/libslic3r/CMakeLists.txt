@@ -316,6 +316,8 @@ set(lisbslic3r_sources
     Polyline.hpp
     NozzleInventory.cpp
     NozzleInventory.hpp
+    DevicePresetUtil.cpp
+    DevicePresetUtil.hpp
     Preset.cpp
     Preset.hpp
     PresetBundle.cpp
@@ -703,6 +705,16 @@ encoding_check(libslic3r)
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/TextureToColor PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
+if (SLIC3R_GUI)
+    target_include_directories(libslic3r PRIVATE ${wxWidgets_INCLUDE_DIRS})
+    if (WIN32)
+        target_include_directories(libslic3r PRIVATE
+            ${wxWidgets_ROOT_DIR}/include/msvc
+            ${wxWidgets_LIB_DIR}/${wxWidgets_CONFIGURATION}
+            ${wxWidgets_LIB_DIR}/${wxWidgets_CONFIGURATION}d)
+    endif()
+    target_compile_definitions(libslic3r PRIVATE ${wxWidgets_DEFINITIONS})
+endif()
 
 # Find the OCCT and related libraries.
 # CMAKE_PREFIX_PATH may be a list (e.g. after sibling dep probes); do not

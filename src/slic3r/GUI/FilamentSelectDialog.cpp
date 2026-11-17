@@ -5,6 +5,7 @@
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "wxExtensions.hpp"
+#include "libslic3r/DevicePresetUtil.hpp"
 #include "libslic3r/PresetBundle.hpp"
 
 #include <wx/dcmemory.h>
@@ -14,6 +15,7 @@
 #include <cctype>
 #include <cmath>
 #include <sstream>
+#include <utility>
 #include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
@@ -497,12 +499,14 @@ void FilamentSelectDialog::Popup(const wxArrayString&                          f
                                  const std::unordered_map<wxString, wxString>& vendors,
                                  const std::unordered_map<wxString, wxString>& types,
                                  const wxString&                               current_alias,
-                                 std::set<std::string>                         printer_names)
+                                 const std::string&                            printer_type,
+                                 const std::vector<float>&                     nozzle_diameters)
 {
     m_filament_items = filament_items;
     m_vendors        = vendors;
     m_types          = types;
-    m_printer_names  = std::move(printer_names);
+    m_printer_type      = printer_type;
+    m_nozzle_diameters  = nozzle_diameters;
     if (!current_alias.IsEmpty()) {
         m_checked_alias = current_alias;
     } else {
@@ -529,8 +533,14 @@ void FilamentSelectDialog::fill_manager_tab()
     m_active_chip = wxString();
 
     const wxString other = _L("Other");
-    std::map<wxString, std::vector<FilamentSpool>> brand_to_spools;
-    std::vector<FilamentSpool> unsupported;
+    struct SupportedSpool {
+        FilamentSpool spool;
+        std::vector<wxString> compatible_preset_names;
+        std::vector<wxString> incompatible_preset_names;
+    };
+
+    std::map<wxString, std::vector<SupportedSpool>> brand_to_spools;
+    std::vector<SupportedSpool> unsupported;
 
     auto* store  = wxGetApp().fila_manager_store();
     auto* bundle = wxGetApp().preset_bundle;
@@ -538,38 +548,52 @@ void FilamentSelectDialog::fill_manager_tab()
         for (const auto& id : store->all_spool_ids()) {
             const FilamentSpool* sp = store->get_spool(id);
             if (!sp) continue;
-            bool has_preset = false;
-            if (bundle && !sp->filament_id.empty()) {
-                for (const auto& printer_name : m_printer_names) {
-                    if (bundle->get_filament_by_filament_id(sp->filament_id, printer_name).has_value()) {
-                        has_preset = true;
-                        break;
-                    }
-                }
-            }
-            if (has_preset) {
+
+            DevicePresetUtil::FilamentPresetQuery query;
+            query.filament_id   = sp->filament_id;
+            query.vendor        = sp->brand;
+            query.filament_type = sp->material_type;
+            query.printer_type      = m_printer_type;
+            query.nozzle_diameters = m_nozzle_diameters;
+            query.with_fallback = true;
+
+            DevicePresetUtil::FilamentPresetQueryResult preset_result;
+            if (bundle)
+                preset_result = DevicePresetUtil::query_filament_preset(*bundle, query);
+
+            std::vector<wxString> compatible_preset_names;
+            std::vector<wxString> incompatible_preset_names;
+            for (const std::string& preset_name : preset_result.compatible_preset_names())
+                compatible_preset_names.push_back(wxString::FromUTF8(preset_name));
+            for (const std::string& preset_name : preset_result.incompatible_preset_names())
+                incompatible_preset_names.push_back(wxString::FromUTF8(preset_name));
+            if (compatible_preset_names.empty() && !preset_result.best_preset_name().empty())
+                compatible_preset_names.push_back(wxString::FromUTF8(preset_result.best_preset_name()));
+            if (compatible_preset_names.empty() && !preset_result.best_preset_info.filament_name.empty())
+                compatible_preset_names.push_back(wxString::FromUTF8(preset_result.best_preset_info.filament_name));
+            if (!preset_result.best_preset_info.filament_id.empty()) {
                 const wxString b = sp->brand.empty() ? other : wxString::FromUTF8(sp->brand);
-                brand_to_spools[b].push_back(*sp);
+                brand_to_spools[b].push_back({*sp, std::move(compatible_preset_names), {}});
             } else {
-                unsupported.push_back(*sp);
+                unsupported.push_back({*sp, {}, std::move(incompatible_preset_names)});
             }
         }
     }
     for (auto& kv : brand_to_spools)
         std::sort(kv.second.begin(), kv.second.end(),
-                  [](const FilamentSpool& a, const FilamentSpool& b) { return a.series < b.series; });
+                  [](const SupportedSpool& a, const SupportedSpool& b) { return a.spool.series < b.spool.series; });
 
     std::sort(unsupported.begin(), unsupported.end(),
-        [](const FilamentSpool& a, const FilamentSpool& b) {
+        [](const SupportedSpool& a, const SupportedSpool& b) {
             auto rank = [](const std::string& br) -> int {
                 for (int i = 0; i < (int)k_brand_prio.size(); ++i)
                     if (k_brand_prio[i] == wxString::FromUTF8(br)) return i;
                 return (int)k_brand_prio.size();
             };
-            int ra = rank(a.brand), rb = rank(b.brand);
+            int ra = rank(a.spool.brand), rb = rank(b.spool.brand);
             if (ra != rb) return ra < rb;
-            if (a.brand != b.brand) return a.brand < b.brand;
-            return a.series < b.series;
+            if (a.spool.brand != b.spool.brand) return a.spool.brand < b.spool.brand;
+            return a.spool.series < b.spool.series;
         });
 
     std::vector<wxString> keys;
@@ -601,50 +625,52 @@ void FilamentSelectDialog::fill_manager_tab()
         };
 
         // Flatten supported spools in brand+series order for the three-pass sort below.
-        std::vector<std::pair<wxString, FilamentSpool>> all_supported;
+        std::vector<std::pair<wxString, SupportedSpool>> all_supported;
         for (const wxString& b : ordered)
-            for (const FilamentSpool& sp : brand_to_spools.at(b))
-                all_supported.push_back({b, sp});
+            for (const SupportedSpool& item : brand_to_spools.at(b))
+                all_supported.push_back({b, item});
 
-        auto add_row = [&](const wxString& brand, const FilamentSpool& sp, bool is_recent) {
-            auto* row = make_spool_row(m_mgr_list, sp, false, is_recent);
+        auto add_row = [&](const wxString& brand, const SupportedSpool& item, bool is_recent) {
+            auto* row = make_spool_row(m_mgr_list, item.spool, false, is_recent,
+                                       item.compatible_preset_names, item.incompatible_preset_names);
             m_mgr_list_sizer->Add(row, 0, wxEXPAND | wxBOTTOM, FromDIP(1));
-            m_mgr_rows.push_back({row, brand, make_search_key(sp)});
+            m_mgr_rows.push_back({row, brand, make_search_key(item.spool)});
         };
 
         // Pass 1: recently used (LRU order, newest first), excluding in-printer
         std::set<std::string> shown_recent;
         for (const wxString& sid : recent_ids) {
             if (shown_recent.size() >= SPOOL_RECENT_SHOW) break;
-            for (auto& [b, sp] : all_supported) {
-                if (sp.in_printer) continue;
-                if (wxString::FromUTF8(sp.spool_id) != sid) continue;
-                add_row(b, sp, true);
-                shown_recent.insert(sp.spool_id);
+            for (auto& [b, item] : all_supported) {
+                if (item.spool.in_printer) continue;
+                if (wxString::FromUTF8(item.spool.spool_id) != sid) continue;
+                add_row(b, item, true);
+                shown_recent.insert(item.spool.spool_id);
                 break;
             }
         }
 
         // Pass 2: remaining supported spools (not in-printer, not recently used)
-        for (auto& [b, sp] : all_supported) {
-            if (sp.in_printer) continue;
-            if (shown_recent.count(sp.spool_id)) continue;
-            add_row(b, sp, false);
+        for (auto& [b, item] : all_supported) {
+            if (item.spool.in_printer) continue;
+            if (shown_recent.count(item.spool.spool_id)) continue;
+            add_row(b, item, false);
         }
 
         // Pass 3: AMS in-printer spools (slot badge shown, dimmed = not selectable)
-        for (auto& [b, sp] : all_supported) {
-            if (!sp.in_printer) continue;
-            auto* row = make_spool_row(m_mgr_list, sp, true /*dimmed*/, false);
+        for (auto& [b, item] : all_supported) {
+            if (!item.spool.in_printer) continue;
+            auto* row = make_spool_row(m_mgr_list, item.spool, true /*dimmed*/, false,
+                                       item.compatible_preset_names, item.incompatible_preset_names);
             m_mgr_list_sizer->Add(row, 0, wxEXPAND | wxBOTTOM, FromDIP(1));
-            m_mgr_rows.push_back({row, b, make_search_key(sp)});
+            m_mgr_rows.push_back({row, b, make_search_key(item.spool)});
         }
 
         // Pass 4: unsupported section (chip filtering only, always dimmed)
-        for (const FilamentSpool& sp : unsupported) {
-            auto* row = make_spool_row(m_mgr_list, sp, true, false);
+        for (const SupportedSpool& item : unsupported) {
+            auto* row = make_spool_row(m_mgr_list, item.spool, true, false, {}, item.incompatible_preset_names);
             m_mgr_list_sizer->Add(row, 0, wxEXPAND | wxBOTTOM, FromDIP(1));
-            m_mgr_rows.push_back({row, _L("Unsupported Filaments"), make_search_key(sp)});
+            m_mgr_rows.push_back({row, _L("Unsupported Filaments"), make_search_key(item.spool)});
         }
     }
 
@@ -827,7 +853,9 @@ void FilamentSelectDialog::fill_brand_chips(const std::vector<wxString>& brands)
     }
 }
 
-wxWindow* FilamentSelectDialog::make_spool_row(wxWindow* parent, const FilamentSpool& sp, bool dimmed, bool is_recent)
+wxWindow* FilamentSelectDialog::make_spool_row(wxWindow* parent, const FilamentSpool& sp, bool dimmed,
+                                               bool is_recent, const std::vector<wxString>& compatible_preset_names,
+                                               const std::vector<wxString>& incompatible_preset_names)
 {
     auto* row = new wxPanel(parent, wxID_ANY);
     row->SetBackgroundColour(dlg_bg());
@@ -861,7 +889,6 @@ wxWindow* FilamentSelectDialog::make_spool_row(wxWindow* parent, const FilamentS
     name_lbl->SetFont(Label::Body_14);
     name_lbl->SetForegroundColour(dimmed ? dlg_text_dimmed() : dlg_text_primary());
     name_lbl->SetMinSize(wxSize(FromDIP(120), -1));
-    name_lbl->SetToolTip(name);
     h->Add(name_lbl, 1, wxALIGN_CENTER_VERTICAL, 0);
 
     // weight — fixed min-width so the column edge is consistent across all rows
@@ -900,6 +927,24 @@ wxWindow* FilamentSelectDialog::make_spool_row(wxWindow* parent, const FilamentS
     }
 
     row->SetSizer(h);
+    wxString tooltip;
+    auto append_preset_tooltip = [&](const wxString& title, const std::vector<wxString>& preset_names) {
+        tooltip += title + ":";
+        const size_t show_count = std::min<size_t>(preset_names.size(), 5);
+        for (size_t idx = 0; idx < show_count; ++idx) {
+            const wxString& preset_name = preset_names[idx];
+            tooltip += "\n- " + preset_name;
+        }
+        if (preset_names.size() > show_count)
+            tooltip += "\n...";
+    };
+    if (!compatible_preset_names.empty())
+        append_preset_tooltip(_L("Supported filament presets"), compatible_preset_names);
+    else if (!incompatible_preset_names.empty())
+        append_preset_tooltip(_L("Unsupported filament presets"), incompatible_preset_names);
+    row->SetToolTip(tooltip);
+    for (auto* c : row->GetChildren())
+        c->SetToolTip(tooltip);
 
     if (!dimmed) {
         // record row → spool for result lookup in on_confirm()

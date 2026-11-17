@@ -45,7 +45,8 @@ public:
                const std::unordered_map<wxString, wxString>& vendors,
                const std::unordered_map<wxString, wxString>& types,
                const wxString&                               current_alias = wxString(),
-               std::set<std::string>                         printer_names = {});
+               const std::string&                            printer_type = std::string(),
+               const std::vector<float>&                      nozzle_diameters = {});
 
     const SelectionResult& get_result() const { return m_result; }
 
@@ -61,7 +62,9 @@ private:
     void      fill_brand_chips(const std::vector<wxString>& brands);
     void      refresh_chip_visibility();
     void      apply_filters(bool reset_chip_offset = true);
-    wxWindow* make_spool_row(wxWindow* parent, const FilamentSpool& sp, bool dimmed, bool is_recent = false);
+    wxWindow* make_spool_row(wxWindow* parent, const FilamentSpool& sp, bool dimmed,
+                             bool is_recent, const std::vector<wxString>& compatible_preset_names,
+                             const std::vector<wxString>& incompatible_preset_names);
 
     void      fill_default_tab();
     void      select_brand(const wxString& brand);
@@ -72,7 +75,8 @@ private:
     wxArrayString                             m_filament_items;
     std::unordered_map<wxString, wxString>    m_vendors;
     std::unordered_map<wxString, wxString>    m_types;
-    std::set<std::string>                     m_printer_names;
+    std::string                               m_printer_type;
+    std::vector<float>                        m_nozzle_diameters;
     std::map<wxString, std::vector<wxString>> m_brand_to_aliases;
     std::vector<wxString>                     m_ordered_brands;
     wxString                                  m_checked_alias;
