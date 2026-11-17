@@ -8109,8 +8109,9 @@ int CLI::run(int argc, char **argv)
             for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++) {
                 std::string display_filament_type;
                 it->type  = m_print_config.get_filament_type(display_filament_type, it->id);
-                it->color = filament_color ? filament_color->get_at(it->id) : "#FFFFFF";
-                it->filament_id = filament_id?filament_id->get_at(it->id):"";
+                // A 3MF without project settings has no filament ids, and get_at() on an empty list reads past its end.
+                it->color = (filament_color && !filament_color->values.empty()) ? filament_color->get_at(it->id) : "#FFFFFF";
+                it->filament_id = (filament_id && !filament_id->values.empty()) ? filament_id->get_at(it->id) : "";
             }
 
             if (!plate_data->plate_thumbnail.is_valid()) {
