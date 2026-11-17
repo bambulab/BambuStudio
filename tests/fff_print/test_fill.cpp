@@ -1904,3 +1904,152 @@ TEST_CASE("Fill: radial bezier pole damps bbox-center jumps", "[Fill][Conformal]
     REQUIRE(std::abs(diags[2].pole_y - diags[1].pole_y) < 4.0);
     REQUIRE(std::abs(diags[2].pole_y - diags[3].pole_y) < 4.0);
 }
+
+// ---------------------------------------------------------------------------
+// sparse_infill_rotate_template / solid_infill_rotate_template
+// Ported from OrcaSlicer/OrcaSlicer#14894 ("fix: infill rotation template crashes and
+// misbehaves on raft prints"), which added this suite alongside the raft fix - this codebase
+// had none before, "which is how the defects survived" per that PR's own description.
+//
+// Not ported: the Z-anti-aliasing case (zaa_enabled/zaa_min_z is an OrcaSlicer-only feature),
+// the ironing case (depends on ironing_angle_fixed, also OrcaSlicer-only), and the
+// solid_infill_direction case (BambuStudio has no separate solid_infill_direction option;
+// solid_infill_rotate_template overrides the shared infill_direction instead - see Fill.cpp).
+// ---------------------------------------------------------------------------
+
+// Length-weighted dominant direction of the layer's role_wanted extrusions, whole degrees
+// [0, 180), or -1 if it has none. Needs a line pattern such as monotonic or rectilinear.
+template<typename RolePred> static int dominant_fill_angle(const Layer &layer, RolePred role_wanted)
+{
+    std::map<int, double> weight_per_degree;
+
+    auto account = [&weight_per_degree, &role_wanted](const ExtrusionPath &path) {
+        if (!role_wanted(path.role()))
+            return;
+        const Points &pts = path.polyline.points;
+        for (size_t i = 1; i < pts.size(); ++i) {
+            const double dx = double(pts[i].x() - pts[i - 1].x());
+            const double dy = double(pts[i].y() - pts[i - 1].y());
+            const double len = std::hypot(dx, dy);
+            if (len <= 0.)
+                continue;
+            int deg = int(std::lround(Geometry::rad2deg(std::atan2(dy, dx)))) % 180;
+            if (deg < 0)
+                deg += 180;
+            weight_per_degree[deg] += len;
+        }
+    };
+
+    for (const LayerRegion *region : layer.regions())
+        for (const ExtrusionEntity *entity : region->fills.flatten().entities) {
+            if (auto *path = dynamic_cast<const ExtrusionPath *>(entity))
+                account(*path);
+            else if (auto *multi = dynamic_cast<const ExtrusionMultiPath *>(entity))
+                for (const ExtrusionPath &p : multi->paths)
+                    account(p);
+            else if (auto *loop = dynamic_cast<const ExtrusionLoop *>(entity))
+                for (const ExtrusionPath &p : loop->paths)
+                    account(p);
+        }
+
+    if (weight_per_degree.empty())
+        return -1;
+    return std::max_element(weight_per_degree.begin(), weight_per_degree.end(),
+                            [](const auto &a, const auto &b) { return a.second < b.second; })->first;
+}
+
+template<typename RolePred> static std::vector<int> angles_per_layer(const Print &print, RolePred role_wanted)
+{
+    std::vector<int> angles;
+    for (const Layer *layer : print.objects().front()->layers())
+        angles.push_back(dominant_fill_angle(*layer, role_wanted));
+    return angles;
+}
+
+static bool solid_role(ExtrusionRole role) { return is_solid_infill(role) && role != erIroning; }
+static bool sparse_role(ExtrusionRole role) { return role == erInternalInfill; }
+
+TEST_CASE("Infill rotation template is unaffected by a raft", "[Fill][Regression]")
+{
+    // More angles than raft layers, so a raft cannot alias back to the same angle.
+    const std::string template_string = GENERATE(std::string("+45"), std::string("0,25,50,75,100,125,150"));
+    const int raft_layers = GENERATE(1, 3);
+    CAPTURE(template_string, raft_layers);
+
+    auto angles_for = [&template_string](int rafts) {
+        Print print;
+        // Unlike OrcaSlicer, BambuStudio does not reclassify 100%-density sparse infill as a
+        // solid surface, so force every layer to be an actual top/bottom shell instead.
+        Slic3r::Test::init_and_process_print({Slic3r::Test::cube(20)}, print,
+                                            {{"solid_infill_rotate_template", template_string},
+                                             {"top_shell_layers", 100},
+                                             {"bottom_shell_layers", 100},
+                                             {"top_surface_pattern", "monotonic"},
+                                             {"bottom_surface_pattern", "monotonic"},
+                                             {"layer_height", 0.2},
+                                             {"raft_layers", rafts}});
+        return angles_per_layer(print, solid_role);
+    };
+
+    const std::vector<int> without_raft = angles_for(0);
+    const std::vector<int> with_raft    = angles_for(raft_layers);
+
+    REQUIRE(without_raft.size() == 100);
+    REQUIRE(with_raft.size() == without_raft.size());
+    REQUIRE(std::count(without_raft.begin(), without_raft.end(), -1) == 0);
+    CHECK(with_raft == without_raft);
+}
+
+TEST_CASE("Sparse infill rotation template turns the infill layer by layer", "[Fill]")
+{
+    const std::vector<int> expected_cycle = {0, 25, 50, 75, 100, 125, 150};
+
+    Print print;
+    // No shells, so every layer is sparse infill rather than solid.
+    Slic3r::Test::init_and_process_print({Slic3r::Test::cube(10)}, print,
+                                        {{"sparse_infill_rotate_template", "0,25,50,75,100,125,150"},
+                                         {"sparse_infill_density", "40%"},
+                                         {"sparse_infill_pattern", "zig-zag"},
+                                         {"top_shell_layers", 0},
+                                         {"bottom_shell_layers", 0},
+                                         {"layer_height", 0.2}});
+
+    const std::vector<int> angles = angles_per_layer(print, sparse_role);
+    REQUIRE(angles.size() == 50);
+    REQUIRE(std::count(angles.begin(), angles.end(), -1) == 0);
+
+    std::vector<int> expected;
+    for (size_t i = 0; i < angles.size(); ++i)
+        expected.push_back(expected_cycle[i % expected_cycle.size()]);
+    CHECK(angles == expected);
+}
+
+TEST_CASE("Infill rotation template layer count modifier holds each angle for N layers", "[Fill]")
+{
+    Print print;
+    // "+45#2" turns 45 degrees every 2 layers, so equal angles come in pairs.
+    Slic3r::Test::init_and_process_print({Slic3r::Test::cube(10)}, print,
+                                        {{"solid_infill_rotate_template", "+45#2"},
+                                         {"top_shell_layers", 50},
+                                         {"bottom_shell_layers", 50},
+                                         {"top_surface_pattern", "monotonic"},
+                                         {"bottom_surface_pattern", "monotonic"},
+                                         {"layer_height", 0.2}});
+
+    const std::vector<int> angles = angles_per_layer(print, solid_role);
+    REQUIRE(angles.size() == 50);
+    REQUIRE(std::count(angles.begin(), angles.end(), -1) == 0);
+
+    std::vector<int> run_lengths;
+    for (size_t i = 0; i < angles.size();) {
+        size_t j = i;
+        while (j < angles.size() && angles[j] == angles[i])
+            ++j;
+        run_lengths.push_back(int(j - i));
+        i = j;
+    }
+    // The first and last runs can be clipped by the start and end of the object.
+    REQUIRE(run_lengths.size() > 3);
+    const std::vector<int> interior(run_lengths.begin() + 1, run_lengths.end() - 1);
+    CHECK(std::count(interior.begin(), interior.end(), 2) == int(interior.size()));
+}
