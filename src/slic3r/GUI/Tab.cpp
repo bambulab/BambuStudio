@@ -6764,6 +6764,7 @@ void Tab::load_current_preset()
 {
     BOOST_LOG_TRIVIAL(info) <<boost::format("enter, m_type %1%")%Preset::get_type_string(m_type);
     const Preset& preset = m_presets->get_edited_preset();
+    m_loaded_preset_name = preset.name;
     std::vector<std::string> prev_variant_list;
     std::vector<int> prev_extruder_ids;
     int prev_extruder_count = 0;
@@ -7023,6 +7024,18 @@ void Tab::update_preset_choice()
     if (m_presets_choice)
         m_presets_choice->update();
     update_btns_enabling();
+}
+
+void Tab::sync_with_edited_preset()
+{
+    // A tab that never loaded a preset shows nothing stale, and may be asked before the main frame exists.
+    const std::string &edited_name = m_presets->get_edited_preset().name;
+    if (m_loaded_preset_name.empty() || edited_name == m_loaded_preset_name) {
+        update_preset_choice();
+        return;
+    }
+    BOOST_LOG_TRIVIAL(info) << "edited preset switched outside the tab, reload it, from " << m_loaded_preset_name << " to " << edited_name;
+    load_current_preset();
 }
 
 // Called by the UI combo box when the user switches profiles, and also to delete the current profile.

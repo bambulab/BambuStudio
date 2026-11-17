@@ -354,6 +354,13 @@ public:
 	void        rebuild_page_tree();
     void		update_btns_enabling();
     void		update_preset_choice();
+    /**
+     * \brief Bring the tab in line with the collection's edited preset
+     *
+     * Reloads the whole tab when the edited preset was switched without going through select_preset(),
+     * otherwise only repaints the preset combo. Never loads a tab that has not loaded a preset yet.
+     */
+    void        sync_with_edited_preset();
     // Select a new preset, possibly delete the current one.
     bool select_preset(std::string preset_name = "", bool delete_current = false, const std::string &last_selected_ph_printer_name = "", bool force_select = false, bool force_no_transfer = false);
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "", bool no_transfer = false, ForceOption force_op = ForceOption::fopNone);
@@ -434,6 +441,9 @@ public:
 	void			apply_config_from_cache();
 
 private:
+    // Name of the preset the option fields were last loaded from.
+    std::string m_loaded_preset_name;
+
     // when transfer modified options to a new printer, we may need do some work here
     void remap_variant_cache();
 

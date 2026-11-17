@@ -2060,11 +2060,11 @@ static bool select_printer_preset_for_multi_nozzle_mode(bool enabled,
 
 // validate_filament_nozzle_diameter_selections() / set_filament_nozzle_diameter() can retarget
 // filament_presets[] and the filaments collection without going through Tab::select_preset(), so
-// the filament tab's combo keeps the name it last painted. Rebuild it from the collection.
+// the filament tab would keep showing the previous preset's name and values. Sync it with the collection.
 static void refresh_filament_tab_preset_choice()
 {
     if (Tab *filament_tab = wxGetApp().get_tab(Preset::TYPE_FILAMENT))
-        filament_tab->update_preset_choice();
+        filament_tab->sync_with_edited_preset();
 }
 
 static void refresh_multi_nozzle_preset_choices()
