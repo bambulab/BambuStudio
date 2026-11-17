@@ -81,6 +81,7 @@ public:
     static std::string get_printer_auto_pa_cali_image(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "auto_pa_cali_thumbnail_image"); }
     static std::string get_hotend_rack_img(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "hotend_rack_image"); }
     static std::string get_hotend_ams_img(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "hotend_ams_image"); }
+    static std::string get_drying_module_img(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "drying_module_image"); }
     static std::string get_rack_extruder_img(const std::string& type_str, DevRackExtruderVisualState state);
 
     /*media*/

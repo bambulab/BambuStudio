@@ -97,6 +97,7 @@
 		"printer_ext_image": ["ext_image_n7"],
 		"hotend_rack_image": "nozzle_rack_b",
 		"hotend_ams_image": "monitor_upgrade_rack_b_ams_png",
+		"drying_module_image": "monitor_upgrade_rack_b_drying",
 		"rack_extruder_images": {
 			"empty": "dev_rack_toolhead_unclamped.png",
 			"clamped": "dev_rack_toolhead_clamped.png",

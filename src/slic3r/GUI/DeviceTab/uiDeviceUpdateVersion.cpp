@@ -21,6 +21,9 @@ using namespace Slic3r::GUI;
 static void _firmware_product_name_translation_markers()
 {
     L("Filament Buffer");
+    L("Optional Drying Module");
+    L("Drying Module");
+    L("Dry Module");
 }
 
 uiDeviceUpdateVersion::uiDeviceUpdateVersion(wxWindow* parent,

@@ -4261,7 +4261,7 @@ msgid "Abort"
 msgstr ""
 
 msgid "Drying Module"
-msgstr ""
+msgstr "Drying Module"
 
 msgid "AMS Dryness Control"
 msgstr ""
@@ -19568,6 +19568,12 @@ msgstr "The configuration is up to date."
 
 msgid "Air Pump"
 msgstr ""
+
+msgid "Optional Drying Module"
+msgstr "Optional Drying Module"
+
+msgid "Dry Module"
+msgstr "Dry Module"
 
 msgid "Laser 10W"
 msgstr ""

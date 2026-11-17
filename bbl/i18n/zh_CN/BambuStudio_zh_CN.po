@@ -4322,7 +4322,7 @@ msgid "Abort"
 msgstr "退出"
 
 msgid "Drying Module"
-msgstr ""
+msgstr "烘干模块"
 
 msgid "AMS Dryness Control"
 msgstr "AMS烘干"
@@ -19823,6 +19823,12 @@ msgstr "当前配置已经是最新版本。"
 
 msgid "Air Pump"
 msgstr "气泵"
+
+msgid "Optional Drying Module"
+msgstr "选配烘干模块"
+
+msgid "Dry Module"
+msgstr "烘干模块"
 
 msgid "Laser 10W"
 msgstr "激光 10W"

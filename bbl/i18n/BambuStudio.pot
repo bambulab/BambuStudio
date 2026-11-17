@@ -19384,6 +19384,12 @@ msgstr ""
 msgid "Air Pump"
 msgstr ""
 
+msgid "Optional Drying Module"
+msgstr ""
+
+msgid "Dry Module"
+msgstr ""
+
 msgid "Laser 10W"
 msgstr ""
 

@@ -431,6 +431,7 @@ public:
     DevFirmwareVersionInfo filatrack_version_info;
     DevFirmwareVersionInfo air_purifier_version_info;
     DevFirmwareVersionInfo hotend_ams_version_info;
+    DevFirmwareVersionInfo drying_module_version_info;
     std::map<std::string, DevFirmwareVersionInfo> module_vers;
     std::vector<FirmwareInfo> firmware_list;
 
