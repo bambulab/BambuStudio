@@ -362,6 +362,7 @@ export function AmsFilamentHotendPage() {
           onCommit={onBatchCommit}
           onEdit={onBatchEdit}
           onExit={exitBatchMode}
+          loadExternalVariant={fp.actions?.load_external_variant}
         />
       ) : (
         <PageFooter

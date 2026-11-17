@@ -39,6 +39,7 @@ export function ToolbarMoreMenu({
   const showLoad = actions.can_show_load_auto ?? true;
   const canLoadExternal = actions.can_load_external ?? actions.can_load ?? false;
   const showDry = actions.can_dry ?? false;
+  const isExtLoad = actions.load_external_variant === 'ext';
 
   const run = (action: string) => {
     setOpen(false);
@@ -76,10 +77,12 @@ export function ToolbarMoreMenu({
             role="menuitem"
             data-testid="ams-hotend-action-load-external"
             disabled={!canLoadExternal}
-            title={t('Supports batch loading from the direct feed port or external feed port.')}
+            title={isExtLoad
+              ? t('Supports batch loading from the AMS feed inlet or the direct feed port.')
+              : t('Supports batch loading from the direct feed port or external feed port.')}
             onClick={() => run('load_external')}
           >
-            {t('Manual Loading')}
+            {isExtLoad ? t('EXT Load') : t('Manual Loading')}
           </button>
           <button
             type="button"

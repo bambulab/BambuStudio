@@ -340,6 +340,9 @@ export interface FilamentChangeStatus {
   manual_pull?: FilamentManualPullStatus;
 }
 
+/** state.filament_page.actions.load_external_variant */
+export type LoadExternalVariant = 'ext' | 'manual';
+
 /** state.filament_page.actions */
 export interface FilamentPageActionState {
   can_dry: boolean;
@@ -348,6 +351,10 @@ export interface FilamentPageActionState {
   /** @deprecated Prefer can_load_external + can_show_load_auto on new bridges. */
   can_load?: boolean;
   can_load_external?: boolean;
+  // Wording of the external load action (menu item, hint, batch commit
+  // button): 'ext' on Rack-B, 'manual' otherwise. Undefined on legacy
+  // bridges → treated as 'manual'.
+  load_external_variant?: LoadExternalVariant;
   // Controls whether the Auto Load button is rendered at all (show/hide), not
   // just its enabled state. Undefined on legacy bridges → treated as shown.
   can_show_load_auto?: boolean;

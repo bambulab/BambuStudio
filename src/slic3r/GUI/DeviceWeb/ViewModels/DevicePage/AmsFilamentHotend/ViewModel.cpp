@@ -586,6 +586,12 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
         data[SK::root::filament_page] = builder->BuildFilamentPage(*this, machine_obj, fp);
     }
 
+    // Stamped after the mode dispatch because the batch builders assemble a
+    // fresh filament_page object and would otherwise drop the field; the batch
+    // footer labels its commit button with the same wording. Rack-B only.
+    data[SK::root::filament_page][SK::filament_page::actions][SK::filament_actions::load_external_variant] =
+        is_rack_b ? SV::load_external_variant::ext : SV::load_external_variant::manual;
+
     return data;
 }
 

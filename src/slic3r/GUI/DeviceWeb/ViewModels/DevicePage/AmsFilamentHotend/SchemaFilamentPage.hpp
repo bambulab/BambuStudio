@@ -14,6 +14,7 @@ struct FilamentActions
 {
     bool        can_load = true;
     bool        can_load_external = true;
+    std::string load_external_variant = AmsHotendSchema::values::load_external_variant::manual;
     bool        can_show_load_auto = true;
     std::string load_auto_action_txt = "Load_AmsHotendWebRackA";
     bool        can_unload = true;
@@ -42,6 +43,7 @@ inline void to_json(nlohmann::json& j, const FilamentActions& v)
     j = {
         {SK::filament_actions::can_load,          v.can_load},
         {SK::filament_actions::can_load_external, v.can_load_external},
+        {SK::filament_actions::load_external_variant, v.load_external_variant},
         {SK::filament_actions::can_show_load_auto, v.can_show_load_auto},
         {SK::filament_actions::load_auto_action_txt, v.load_auto_action_txt},
         {SK::filament_actions::can_unload,        v.can_unload},
