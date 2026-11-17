@@ -19,10 +19,13 @@ option(OMC_CMAKE_ENABLE_EXPENSIVE_ASSERT "Enable expensive assertion in OpenMesh
 # x86 SIMD is not meaningful for Apple Silicon; default OFF on APPLE so the
 # overlay matches OpenMeshCraft.cmake (-DOMC_CMAKE_ENABLE_*=OFF) and does not
 # mislead readers into thinking SSE/AVX is active on macOS.
+set(_OMC_SIMD_DEFAULT ON)
 if(APPLE)
   set(_OMC_SIMD_DEFAULT OFF)
 else()
-  set(_OMC_SIMD_DEFAULT ON)
+  if("${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" STREQUAL "aarch64")
+    set(_OMC_SIMD_DEFAULT OFF)
+  endif()
 endif()
 option(OMC_CMAKE_ENABLE_SSE2 "Enable SSE2 instruction set in OpenMeshCraft" ${_OMC_SIMD_DEFAULT})
 option(OMC_CMAKE_ENABLE_AVX "Enable AVX instruction set in OpenMeshCraft" ${_OMC_SIMD_DEFAULT})
