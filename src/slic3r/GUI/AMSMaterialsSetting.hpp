@@ -287,6 +287,7 @@ protected:
     wxStaticText*       m_rfid_lbl_temp{nullptr};
     wxPanel *           m_rfid_panel_sn{nullptr};
     wxStaticText*       m_rfid_lbl_sn{nullptr};
+    wxStaticText*       m_rfid_lbl_remaining{nullptr};
 
     StaticBox*      m_filament_box{nullptr};    // clickable jump box (was m_comboBox_filament)
     Label*          m_filament_text{nullptr};   // filament name shown left-aligned in the box
