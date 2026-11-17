@@ -13,6 +13,10 @@
 #include "ReleaseNote.hpp"
 #include "libslic3r/Log.hpp"
 
+#if defined(__linux__) && defined(__WXGTK3__)
+#include <gtk/gtk.h>
+#endif
+
 #define TOPBAR_ICON_SIZE  18
 #define TOPBAR_TITLE_WIDTH  300
 
@@ -567,6 +571,10 @@ void BBLTopbar::OnIconize(wxAuiToolBarEvent& event)
 
 void BBLTopbar::OnFullScreen(wxAuiToolBarEvent& event)
 {
+#if defined(__linux__) && defined(__WXGTK3__)
+    const bool maximized = m_frame->IsMaximized();
+    m_frame->Maximize(!maximized);
+#else
     if (m_frame->IsMaximized()) {
         m_frame->Restore();
     }
@@ -583,6 +591,7 @@ void BBLTopbar::OnFullScreen(wxAuiToolBarEvent& event)
         m_normalRect = m_frame->GetRect();
         m_frame->Maximize();
     }
+#endif
 }
 
 void BBLTopbar::OnCloseFrame(wxAuiToolBarEvent& event)
@@ -661,6 +670,27 @@ void BBLTopbar::OnCalibToolItem(wxAuiToolBarEvent &evt)
 
 void BBLTopbar::OnMouseLeftDown(wxMouseEvent& event)
 {
+#if defined(__linux__) && defined(__WXGTK3__)
+    wxAuiToolBarItem* item = FindToolByCurrentPosition();
+    const bool move_area = item == nullptr || item == m_title_item;
+    if (move_area) {
+        // Use the original click coordinates/time, including GTK's scale,
+        // and let the window manager own the drag instead of capturing it.
+        GdkEvent* click = gtk_get_current_event();
+        if (click != nullptr) {
+            if (click->type == GDK_BUTTON_PRESS && click->button.button == 1) {
+                gtk_window_begin_move_drag(GTK_WINDOW(m_frame->GetHandle()),
+                                           click->button.button,
+                                           static_cast<int>(click->button.x_root),
+                                           static_cast<int>(click->button.y_root),
+                                           click->button.time);
+                gdk_event_free(click);
+                return;
+            }
+            gdk_event_free(click);
+        }
+    }
+#else
     wxPoint mouse_pos = ::wxGetMousePosition();
     wxPoint frame_pos = m_frame->GetScreenPosition();
     m_delta = mouse_pos - frame_pos;
@@ -675,6 +705,7 @@ void BBLTopbar::OnMouseLeftDown(wxMouseEvent& event)
         return;
 #endif //  __WXMSW__
     }
+#endif
 
     event.Skip();
 }
@@ -692,6 +723,10 @@ void BBLTopbar::OnMouseLeftUp(wxMouseEvent& event)
 
 void BBLTopbar::OnMouseMotion(wxMouseEvent& event)
 {
+#if defined(__linux__) && defined(__WXGTK3__)
+    // Interactive movement is handled by GTK/KWin, including maximized windows.
+    event.Skip();
+#else
     wxPoint mouse_pos = ::wxGetMousePosition();
 
     if (!HasCapture()) {
@@ -717,6 +752,7 @@ void BBLTopbar::OnMouseMotion(wxMouseEvent& event)
         m_frame->Move(mouse_pos - m_delta);
     }
     event.Skip();
+#endif
 }
 
 void BBLTopbar::OnMouseCaptureLost(wxMouseCaptureLostEvent& event)
