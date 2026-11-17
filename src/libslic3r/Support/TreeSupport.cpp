@@ -890,39 +890,73 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 return false;
             return overlaps(overhangs, dilate1);
         }
+        // Returns whether dilated region touches this cluster on the same layer or within max_layer_gap below.
+        bool would_intersect(const ExPolygon &region, int layer_nr, coordf_t offset, size_t max_layer_gap, ExPolygons *dilate_out = nullptr, BoundingBox *bbox_out = nullptr) const
+        {
+            ExPolygons dilate1 = offset_ex(region, offset);
+            if (dilate1.empty())
+                return false;
+            BoundingBox bbox = get_extents(dilate1);
+            if (!merged_bbox.overlap(bbox))
+                return false;
+
+            // Same-layer neighbors (e.g. crochet bead overhangs) must merge horizontally.
+            // Vertical-only clustering leaves each bead as its own cluster, which then gets
+            // dropped by check_small_overhang even when the combined floating region is large.
+            auto it_same = layer_overhangs.find(layer_nr);
+            if (it_same != layer_overhangs.end() && overlaps(it_same->second, dilate1)) {
+                if (dilate_out) *dilate_out = std::move(dilate1);
+                if (bbox_out) *bbox_out = bbox;
+                return true;
+            }
+
+            if (layer_nr >= 1) {
+                auto it = layer_overhangs.lower_bound(layer_nr);
+                if (it != layer_overhangs.begin()) {
+                    --it;
+                    if (size_t(layer_nr - it->first) <= max_layer_gap && overlaps(it->second, dilate1)) {
+                        if (dilate_out) *dilate_out = std::move(dilate1);
+                        if (bbox_out) *bbox_out = bbox;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        void merge_from(OverhangCluster &other)
+        {
+            for (auto &entry : other.layer_overhangs) {
+                auto it = layer_overhangs.find(entry.first);
+                if (it == layer_overhangs.end())
+                    layer_overhangs.emplace(entry.first, std::move(entry.second));
+                else
+                    append(it->second, std::move(entry.second));
+            }
+            merged_poly = union_ex(merged_poly, other.merged_poly);
+            merged_bbox.merge(other.merged_bbox);
+            min_layer = std::min(min_layer, other.min_layer);
+            max_layer = std::max(max_layer, other.max_layer);
+            type = OverhangType(type | other.type);
+            other.layer_overhangs.clear();
+            other.merged_poly.clear();
+        }
         // it's basically the combination of push_back and intersects, but saves an offset_ex
         bool push_back_if_intersects(const ExPolygon& region, int layer_nr, coordf_t offset, size_t max_layer_gap) {
-            bool is_intersect = false;
-            this->offset      = offset;
             ExPolygons dilate1;
             BoundingBox bbox;
-            do {
-                if (layer_nr < 1) break;
-                auto it = layer_overhangs.lower_bound(layer_nr);
-                if (it == layer_overhangs.begin()) break;
-                -- it;
-                if (size_t(layer_nr - it->first) > max_layer_gap) break;
-                const ExPolygons overhangs = it->second;
-
-                dilate1 = offset_ex(region, offset);
-                if (dilate1.empty()) break;
-                bbox = get_extents(dilate1);
-                if (!merged_bbox.overlap(bbox))
-                    break;
-                is_intersect = overlaps(overhangs, dilate1);
-            } while (0);
-            if (is_intersect) {
-                auto it = layer_overhangs.find(layer_nr);
-                if (it == layer_overhangs.end())
-                    layer_overhangs.emplace(layer_nr, ExPolygons{region});
-                else
-                    layer_overhangs[layer_nr].emplace_back(region);
-                merged_poly = union_ex(merged_poly, dilate1);
-                min_layer = std::min(min_layer, layer_nr);
-                max_layer = std::max(max_layer, layer_nr);
-                merged_bbox.merge(bbox);
-            }
-            return is_intersect;
+            if (!would_intersect(region, layer_nr, offset, max_layer_gap, &dilate1, &bbox))
+                return false;
+            this->offset = offset;
+            auto it = layer_overhangs.find(layer_nr);
+            if (it == layer_overhangs.end())
+                layer_overhangs.emplace(layer_nr, ExPolygons{region});
+            else
+                layer_overhangs[layer_nr].emplace_back(region);
+            merged_poly = union_ex(merged_poly, dilate1);
+            min_layer = std::min(min_layer, layer_nr);
+            max_layer = std::max(max_layer, layer_nr);
+            merged_bbox.merge(bbox);
+            return true;
         }
         void check_small_overhang(coordf_t extrusion_width_scaled, double length_thresh_small_overhang,
                                   double radius_thresh_small_overhang)
@@ -953,17 +987,27 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             }
             avg_width /= num_layers;
             avg_area /= num_layers;
-            is_small_overhang = all_layers_are_small && avg_width < extrusion_width_scaled / 2 && avg_area < SQ(length_thresh_small_overhang) && this->height() < 3;
+            // Short nubs only. Tall clusters of thin per-layer crescents (crochet / posts) must keep
+            // support even when each layer looks "small" or erodes away in XY.
+            constexpr int max_small_overhang_layers = 3;
+            is_small_overhang = all_layers_are_small && avg_width < extrusion_width_scaled / 2 &&
+                                avg_area < SQ(length_thresh_small_overhang) &&
+                                this->height() < max_small_overhang_layers;
             if (is_small_overhang) {
                 small_reason = "per-layer";
                 set_type(Small, true);
                 return;
             }
 
+            // Note: height() is a layer count — the old comparison to length_thresh_small_overhang/2
+            // mixed layers with scaled length and was effectively always true, so any erosions-to-empty
+            // cluster was dropped regardless of height (which is why simplify lost hand supports once
+            // the dense-mesh bailout no longer disabled this filter).
             ExPolygons erodel = offset_ex(merged_poly, -radius_thresh_small_overhang);
             Point      bbox_sz = get_extents(erodel).size();
-            if (erodel.empty() ||
-                (bbox_sz.x() < length_thresh_small_overhang && bbox_sz.y() < length_thresh_small_overhang && this->height() < length_thresh_small_overhang / 2)) {
+            if (this->height() < max_small_overhang_layers &&
+                (erodel.empty() ||
+                 (bbox_sz.x() < length_thresh_small_overhang && bbox_sz.y() < length_thresh_small_overhang))) {
                 is_small_overhang = true;
                 small_reason = erodel.empty() ? "radius" : "bbox-height";
                 set_type(Small, true);
@@ -993,20 +1037,26 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 
     auto find_and_insert_cluster = [max_cluster_layer_gap](
                                        auto &regionClusters, const ExPolygon &region,
-                                       int layer_nr, coordf_t offset) {
-        OverhangCluster *cluster = nullptr;
-        for (int i = 0; i < regionClusters.size(); i++) {
-            auto cluster_i = &regionClusters[i];
-            if (cluster_i->push_back_if_intersects(
-                    region, layer_nr, offset, max_cluster_layer_gap)) {
-                cluster = cluster_i;
-                break;
-            }
+                                       int layer_nr, coordf_t offset) -> OverhangCluster * {
+        // Collect every cluster this region bridges. A single first-match left crochet beads that
+        // touch through a middle bead as separate clusters (A|C then B→A leaves C stranded).
+        std::vector<size_t> hits;
+        hits.reserve(4);
+        for (size_t i = 0; i < regionClusters.size(); i++) {
+            if (regionClusters[i].would_intersect(region, layer_nr, offset, max_cluster_layer_gap))
+                hits.push_back(i);
         }
-        if (!cluster) {
-            cluster = &regionClusters.emplace_back(&region, layer_nr);
+        if (hits.empty())
+            return &regionClusters.emplace_back(&region, layer_nr);
+
+        OverhangCluster &dst = regionClusters[hits.front()];
+        // Merge bridged clusters into the first hit (highest index first so erase is safe).
+        for (size_t hi = hits.size(); hi-- > 1;) {
+            dst.merge_from(regionClusters[hits[hi]]);
+            regionClusters.erase(regionClusters.begin() + hits[hi]);
         }
-        return cluster;
+        dst.push_back_if_intersects(region, layer_nr, offset, max_cluster_layer_gap);
+        return &dst;
     };
 
     if (!is_tree(stype)) return;
@@ -1185,11 +1235,24 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                     }
                 }
 
-                double duration{ std::chrono::duration_cast<second_>(clock_::now() - t0).count() };
-                if (duration > 30 || overhangs_all_layers[layer_nr].size() > 100) {
-                    BOOST_LOG_TRIVIAL(info) << "detect_overhangs takes more than 30 secs, skip cantilever and sharp tails detection: layer_nr=" << layer_nr << " duration=" << duration;
-                    config_detect_sharp_tails = false;
-                    config_remove_small_overhangs = false;
+                // Skip expensive sharp-tail / cantilever detection when over the time budget or when
+                // this layer's overhang *surface area* is huge. Do not key off ExPolygons::size()
+                // (polygon count / mesh density): high-poly crochet and a decimated twin can cover
+                // the same floating area with very different polygon counts, and the old size()>100
+                // gate incorrectly disabled small-overhang removal for dense meshes only — so
+                // simplify flipped support quality. Also never clear config_remove_small_overhangs
+                // here; that flag is a user setting and must not depend on tessellation.
+                // Area threshold is physical mm^2 (scaled); 40x40mm of overhang on one layer is
+                // already enormous relative to typical models and caps worst-case contour work.
+                const double layer_overhang_area = area(overhangs_all_layers[layer_nr]);
+                const double area_thresh_skip_expensive_detection = SQ(scale_(40));
+                const double duration{ std::chrono::duration_cast<second_>(clock_::now() - t0).count() };
+                const bool   skip_expensive_detection =
+                    duration > 30. || layer_overhang_area > area_thresh_skip_expensive_detection;
+                if (skip_expensive_detection) {
+                    BOOST_LOG_TRIVIAL(info) << "detect_overhangs skip cantilever and sharp tails detection: layer_nr="
+                                            << layer_nr << " duration=" << duration
+                                            << " overhang_area_mm2=" << unscale_(unscale_(layer_overhang_area));
                     continue;
                 }
                 if (is_auto(stype) && config_detect_sharp_tails)
