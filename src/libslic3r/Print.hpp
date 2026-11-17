@@ -25,6 +25,7 @@
 #include <Eigen/Geometry>
 
 #include <functional>
+#include <optional>
 #include <set>
 #include "Calib.hpp"
 
@@ -427,6 +428,26 @@ public:
     LayerPtrs&                   layers()               { return m_layers; }
     SupportLayerPtrs&            support_layers()       { return m_support_layers; }
 
+    // Estimated print time of a layer's paths of one filament: seconds, length (mm), volume (mm³).
+    struct PathTimeSum { double seconds = 0.; double length = 0.; double volume = 0.; };
+    // The estimate of calc_estimated_filament_print_time() per layer, for the extruder extruder_id, plus support and
+    // the first-layer speeds: calls add(print_z, filament, sum) once per object or support layer and filament, for
+    // one instance (an object layer and a support layer at the same height each call it). Support without a filament
+    // of its own, timed at its configured speed only: base -1, or -3 - f when the interface prints with its own
+    // filament f; interface -2.
+    // How the per-layer estimate learns which filament prints a top-level collection of a region on a layer, as
+    // G-code picks it (-1: leave it out), and the indices of that filament's nozzle (variant) into the per-nozzle
+    // process options and per-variant filament options, as G-code's NOZZLE_CONFIG / FILAMENT_CONFIG read them.
+    // Without them: the region's filament by role, extruder_id's process options and the filament's own variant.
+    struct LayerEstimateContext
+    {
+        std::function<int(const Layer &, const ExtrusionEntityCollection &, const PrintRegion &)> filament_of;
+        std::function<int(int, const Layer &)>                                                    nozzle_config_index;
+        std::function<int(int, const Layer &)>                                                    filament_config_index;
+    };
+    void estimate_layer_filament_print_time(int extruder_id, const LayerEstimateContext &context,
+                                            const std::function<void(coordf_t, int, const PathTimeSum &)> &add) const;
+
     template<typename PolysType>
     static void remove_bridges_from_contacts(
         const Layer* lower_layer,
@@ -627,6 +648,12 @@ private:
     std::vector<std::set<int>> detect_extruder_geometric_unprintables() const;
 
     std::unordered_map<int, std::unordered_map<int,double>> calc_estimated_filament_print_time() const;
+
+    // Calls add(layer, filament, extruder, seconds, length in mm, volume in mm³) for every wall and infill path, for
+    // every extruder or only_extruder. With a context (per layer): each path by its own role, the filament as
+    // G-code picks it, the first-layer speeds, and support paths.
+    void estimate_filament_print_time(const std::function<void(const Layer &, int, int, double, double, double)> &add,
+                                      std::optional<int> only_extruder, const LayerEstimateContext *context) const;
 
     void slice_volumes(long long *region_split_ms_out = nullptr, long long *mm_segment_ms_out = nullptr);
     //BBS
@@ -1264,6 +1291,11 @@ private:
 
     void                _make_skirt();
     void                _make_wipe_tower();
+    // Estimated print time (s) of each wipe-tower tool-ordering layer, per filament, for the idle-time prime.
+    std::vector<std::unordered_map<unsigned int, double>> estimate_layer_filament_print_time();
+    // Filament that prints support without a filament of its own on this layer: base (base) avoiding the interface's
+    // own filament interface_filament (-1: none), or interface.
+    unsigned int support_filament_without_own(const LayerTools &lt, bool base, int interface_filament) const;
     // Vertical clearance against the compacted wipe tower, see wipe_tower_no_sparse_layers.
     void                validate_compacted_wipe_tower_clearance() const;
     void                finalize_first_layer_convex_hull();

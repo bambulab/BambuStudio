@@ -14,6 +14,7 @@
 #include "Time.hpp"
 #include "GCode.hpp"
 #include "GCode/WipeTower.hpp"
+#include "GCode/IdlePrime.hpp"
 #include "Utils.hpp"
 #include "PrintConfig.hpp"
 #include "FilamentMixer.hpp"
@@ -84,10 +85,13 @@ bool Print::has_tpu_filament() const
 
 // Called by Print::apply().
 // This method only accepts PrintConfig option keys.
-bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* new_config */, const std::vector<t_config_option_key> &opt_keys)
+bool Print::invalidate_state_by_config_options(const ConfigOptionResolver &new_config, const std::vector<t_config_option_key> &opt_keys)
 {
     if (opt_keys.empty())
         return false;
+
+    // With the idle-time prime on, the wipe tower also depends on the inputs of its print time estimate.
+    const bool idle_prime_on = idle_prime_enabled(new_config);
 
     // Cache the plenty of parameters, which influence the G-code generator only,
     // or they are only notes not influencing the generated G-code.
@@ -195,7 +199,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "chamber_temperatures",
         "required_nozzle_HRC",
         "upward_compatible_machine",
-        "is_infill_first",
         //OrcaSlicer
         "seam_gap",
         "wipe_speed"
@@ -243,7 +246,11 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
     bool invalidated = false;
 
     for (const t_config_option_key &opt_key : opt_keys) {
-        if (steps_gcode.find(opt_key) != steps_gcode.end()) {
+        if (idle_prime_on && is_idle_prime_estimate_input(opt_key)) {
+            // The tower's size may change, and the skirt goes around it.
+            steps.emplace_back(psWipeTower);
+            steps.emplace_back(psSkirtBrim);
+        } else if (steps_gcode.find(opt_key) != steps_gcode.end()) {
             // These options only affect G-code export or they are just notes without influence on the generated G-code,
             // so there is nothing to invalidate.
             steps.emplace_back(psGCodeExport);
@@ -368,6 +375,11 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "filament_adhesiveness_category"
             //|| opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_no_sparse_layers"
+            || opt_key == "prime_into_infill"
+            || opt_key == "idle_prime_time_constant"
+            || opt_key == "idle_prime_min_volume"
+            // Which infill flushing / priming may take depends on the wall and infill order.
+            || opt_key == "is_infill_first"
             || opt_key == "flush_volumes_matrix"
             || opt_key == "filament_prime_volume"
             || opt_key == "filament_prime_volume_nc"
@@ -4158,6 +4170,112 @@ static void seed_emitted_tower_foundation(WipeTowerData &data, bool sparse_layer
     data.tool_ordering.seed_first_tower_layer((unsigned int) data.tool_changes.front().front().new_tool);
 }
 
+// Estimated print time (s) of each tool-ordering layer, per filament, for the idle-time prime: walls, infill and
+// support (PrintObject::estimate_layer_filament_print_time) times the object's instances, each layer stretched
+// towards the minimum layer time of its filaments that slow down for cooling, no slower than their minimum speed.
+// Tool changers have one extruder, hence extruder 0's speeds.
+std::vector<std::unordered_map<unsigned int, double>> Print::estimate_layer_filament_print_time()
+{
+    const ToolOrdering                                                    &ordering = m_wipe_tower_data.tool_ordering;
+    std::vector<std::unordered_map<unsigned int, PrintObject::PathTimeSum>> layer_sum(ordering.layer_tools().size());
+    auto layer_index = [&ordering](coordf_t print_z) { return int(&ordering.tools_for_layer(print_z) - ordering.layer_tools().data()); };
+
+    PrintObject::LayerEstimateContext context;
+    // As GCode::process_layer: the layer's filament for the collection (tool change overrides and mixed slots
+    // included), or the layer's last one if that filament is not printed on this layer. (A mixed slot printed in
+    // sub-layers by several filaments goes to the last one too: an approximation.)
+    context.filament_of = [&ordering](const Layer &layer, const ExtrusionEntityCollection &collection, const PrintRegion &region) {
+        const LayerTools &lt       = ordering.tools_for_layer(layer.print_z);
+        unsigned int      filament = lt.extruder(collection, region);
+        if (!lt.has_extruder(filament)) {
+            if (lt.extruders.empty())
+                return -1;
+            filament = lt.extruders.back();
+        }
+        return int(filament);
+    };
+    context.nozzle_config_index = [this, &layer_index](int filament, const Layer &layer) {
+        return this->get_nozzle_config_index(filament, layer_index(layer.print_z));
+    };
+    context.filament_config_index = [this, &layer_index](int filament, const Layer &layer) {
+        return this->get_filament_config_indx(filament, layer_index(layer.print_z));
+    };
+
+    for (const PrintObject *object : m_objects) {
+        this->throw_if_canceled();
+        const double instances = double(object->instances().size());
+        object->estimate_layer_filament_print_time(0, context, [&](coordf_t print_z, int filament, const PrintObject::PathTimeSum &sum) {
+            const LayerTools &lt      = ordering.tools_for_layer(print_z);
+            double            seconds = sum.seconds;
+            if (filament < 0) {
+                if (lt.extruders.empty())
+                    return;
+                const bool base      = filament != -2;
+                const int  interface = filament <= -3 ? -3 - filament : -1;
+                filament             = int(this->support_filament_without_own(lt, base, interface));
+                // Now that its filament is known, no faster than that filament's volumetric speed allows.
+                const double max_volumetric_speed =
+                    m_config.filament_max_volumetric_speed.get_at(this->get_filament_config_indx(filament, layer_index(print_z)));
+                if (max_volumetric_speed > 0.)
+                    seconds = std::max(seconds, sum.volume / max_volumetric_speed);
+            }
+            // A mixed-filament slot prints with the physical filament it resolves to on this layer.
+            filament                       = int(lt.resolve_mixed(unsigned(filament)));
+            PrintObject::PathTimeSum &into = layer_sum[size_t(&lt - ordering.layer_tools().data())][unsigned(filament)];
+            into.seconds += seconds * instances;
+            into.length += sum.length * instances;
+        });
+    }
+    std::vector<std::unordered_map<unsigned int, double>> layer_time(layer_sum.size());
+    for (size_t idx = 0; idx < layer_sum.size(); ++idx) {
+        double                                   min_layer_time = 0.;
+        std::unordered_map<unsigned int, double> max_time;
+        for (const auto &[filament, sum] : layer_sum[idx]) {
+            layer_time[idx][filament] = sum.seconds;
+            // Only filaments that slow down for cooling are slowed down, no slower than their minimum speed.
+            if (!m_config.slow_down_for_layer_cooling.get_at(filament)) {
+                max_time[filament] = sum.seconds;
+                continue;
+            }
+            min_layer_time = std::max(min_layer_time, double(m_config.slow_down_layer_time.get_at(filament)));
+            // Read by filament, as the cooling slow-down (GCodeEditor) reads it.
+            const double min_speed = m_config.slow_down_min_speed.get_at(filament);
+            if (min_speed > 0.)
+                max_time[filament] = sum.length / min_speed;
+        }
+        stretch_to_min_layer_time(layer_time[idx], max_time, min_layer_time);
+    }
+    return layer_time;
+}
+
+// The filament G-code (GCode::process_layer) prints support base (base) or interface without a filament of its own
+// with on this layer: avoiding soluble filament, and for the base the interface's own filament; otherwise also
+// support filament. (Not modelled: wiping overrides, decided later in tower planning, and the nozzle-height check
+// for several nozzle diameters, where the idle-time prime is off.)
+unsigned int Print::support_filament_without_own(const LayerTools &lt, bool base, int interface_filament) const
+{
+    if (base && interface_filament >= 0) {
+        for (unsigned int id : lt.extruders)
+            if (!m_config.filament_soluble.get_at(id) && int(id) != interface_filament)
+                return id;
+        return lt.extruders.front();
+    }
+    unsigned int filament = lt.extruders.front();
+    if (m_config.filament_soluble.get_at(filament))
+        for (unsigned int id : lt.extruders)
+            if (!m_config.filament_soluble.get_at(id)) {
+                filament = id;
+                break;
+            }
+    if (m_config.filament_is_support.get_at(filament))
+        for (unsigned int id : lt.extruders)
+            if (!m_config.filament_is_support.get_at(id)) {
+                filament = id;
+                break;
+            }
+    return filament;
+}
+
 void Print::_make_wipe_tower()
 {
     m_wipe_tower_data.clear();
@@ -4216,6 +4334,9 @@ void Print::_make_wipe_tower()
 
     auto group_result = get_layered_nozzle_group_result();
     assert(m_nozzle_group_result);
+    // Tool changers prime every incoming tool; that prime may go into sparse infill instead of the tower. Not
+    // with nozzles of different diameters: infill planned for one nozzle is not handed to a different one.
+    const bool prime_into_infill = m_config.prime_into_infill.value && is_single_ext_multi_nozzle(m_config) && !uses_multiple_nozzle_diameters();
     // Initialize the wipe tower.
     // BBS: in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
     WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_wipe_tower_data.tool_ordering.first_extruder(),
@@ -4261,6 +4382,48 @@ void Print::_make_wipe_tower()
 
         MultiNozzleUtils::NozzleStatusRecorder nozzle_recorder;
 
+        // Idle-time prime (tool changers): a tool coming back to a nozzle that still holds its filament primes by how
+        // long the nozzle was parked, estimated on the planned tool sequence. Like priming into infill, not with
+        // several nozzle diameters on one plate.
+        const double idle_prime_tau = idle_prime_enabled(m_config) && !uses_multiple_nozzle_diameters() ?
+                                          m_config.idle_prime_time_constant.value : 0.;
+        std::optional<ToolIdleClock> idle_clock;
+        // Only with tool changes to come back from.
+        if (idle_prime_tau > 0. && m_wipe_tower_data.tool_ordering.all_extruders().size() > 1) {
+            std::optional<int> first_nozzle;
+            if (auto first_nozzle_info = group_result->get_nozzle_for_filament(m_wipe_tower_data.tool_ordering.first_extruder(), -1))
+                first_nozzle = first_nozzle_info->group_id;
+            idle_clock.emplace(this->estimate_layer_filament_print_time(), m_config.machine_switch_extruder_time.value, first_nozzle);
+        }
+
+        // The nozzle already holds this filament (a tool changer coming back to a parked tool), as opposed to a nozzle
+        // that loads it now (first or new filament).
+        auto nozzle_holds = [&nozzle_recorder](int nozzle_id, unsigned int filament_id) {
+            return !nozzle_recorder.is_nozzle_empty(nozzle_id) && nozzle_recorder.get_filament_in_nozzle(nozzle_id) == int(filament_id);
+        };
+        // Advances the idle clock by filament printing from nozzle on this layer; returns how long the nozzle was parked
+        // (see ToolIdleClock::use). A nozzle that does not hold the filament loads it first, unloading what it held,
+        // with the load and unload times of the G-code time estimate.
+        float load_time = 0.f, unload_time = 0.f;
+        if (idle_clock)
+            MultiNozzleUtils::resolve_ams_load_unload(get_ams_load_times(m_config), get_ams_unload_times(m_config), m_config.default_ams_type.value,
+                                                      float(m_config.machine_load_filament_time.value),
+                                                      float(m_config.machine_unload_filament_time.value), load_time, unload_time);
+        // Follows the planner: a change of filament swaps to its nozzle; the active filament, and a filament without a
+        // nozzle in the plan, only let the time pass.
+        auto advance_clock = [&](int layer, unsigned int filament_id, const std::optional<int> &nozzle_id, bool change, bool holds_filament) {
+            if (!idle_clock)
+                return -1.;
+            if (!nozzle_id || !change) {
+                idle_clock->pass(size_t(layer), filament_id);
+                return -1.;
+            }
+            // A nozzle that does not hold the filament loads it, and (as the G-code time estimate counts it) the
+            // active one unloads.
+            const double reload_s = holds_filament ? 0. : double(load_time) + double(unload_time);
+            return idle_clock->use(size_t(layer), filament_id, *nozzle_id, reload_s);
+        };
+
         int layer_idx = -1;
 
         unsigned int old_filament_id = m_wipe_tower_data.tool_ordering.first_extruder();
@@ -4275,6 +4438,8 @@ void Print::_make_wipe_tower()
                 // loaded-filament and nozzle state aligned with the G-code writer before the next tower layer.
                 for (const unsigned int filament_id : layer_tools.extruders) {
                     auto nozzle_info = group_result->get_nozzle_for_filament(filament_id, layer_idx);
+                    advance_clock(layer_idx, filament_id, nozzle_info ? std::optional<int>(nozzle_info->group_id) : std::nullopt,
+                                  filament_id != old_filament_id, nozzle_info && nozzle_holds(nozzle_info->group_id, filament_id));
                     if (!nozzle_info)
                         continue;
                     old_filament_id = filament_id;
@@ -4288,10 +4453,16 @@ void Print::_make_wipe_tower()
             used_filament_ids.insert(layer_tools.extruders.begin(), layer_tools.extruders.end());
 
             for (const auto filament_id : layer_tools.extruders) {
+                auto nozzle_info = group_result->get_nozzle_for_filament(filament_id, layer_idx);
+                // The nozzle already holds this filament; a nozzle loaded now (first or new filament) needs its whole prime.
+                const bool nozzle_kept_filament = nozzle_info && nozzle_holds(nozzle_info->group_id, filament_id);
+                // Seconds this filament's nozzle was parked (negative: not printed from yet), advancing the clock by
+                // the filament's share of the layer.
+                const double idle_s = advance_clock(layer_idx, filament_id, nozzle_info ? std::optional<int>(nozzle_info->group_id) : std::nullopt,
+                                                    filament_id != old_filament_id, nozzle_kept_filament);
                 if (filament_id == old_filament_id)
                     continue;
 
-                auto nozzle_info = group_result->get_nozzle_for_filament(filament_id, layer_idx);
                 // The filament may not be mapped to any nozzle on this layer. Skip it instead of
                 // dereferencing a disengaged optional, which yields garbage extruder_id/nozzle_id
                 // and later an out-of-range flush-matrix access.
@@ -4324,8 +4495,32 @@ void Print::_make_wipe_tower()
                     wipe_volume_ec = 15.f;
                     wipe_volume_nc = 15.f;
                 }
+                // Not on the first layer: a full prime before the first-layer walls.
+                if (idle_s >= 0. && nozzle_kept_filament && !first_layer) {
+                    // At least the prime the tower always keeps, so the change's block keeps a wipe line.
+                    const float min_prime = std::max(float(m_config.idle_prime_min_volume.value), WipeTower::kMinTowerPrime);
+                    wipe_volume_ec        = prime_after_idle(wipe_volume_ec, min_prime, idle_s, idle_prime_tau);
+                    wipe_volume_nc        = prime_after_idle(wipe_volume_nc, min_prime, idle_s, idle_prime_tau);
+                }
+                // Prime into infill: the tower says how much of its prime for this change may move (a nozzle swap,
+                // minus the minimum it keeps); the infill takes what it can, the tower primes the rest.
+                float primed_in_infill = 0.f;
+                // Only when the nozzle kept its filament: a freshly loaded one primes fully on the tower. Not on the
+                // first layer, which prints walls before infill.
+                if (prime_into_infill && !first_layer && nozzle_kept_filament) {
+                    const float movable = wipe_tower.prime_volume_movable(old_filament_id, filament_id, wipe_volume_ec, wipe_volume_nc);
+                    primed_in_infill    = movable - layer_tools.wiping_extrusions().mark_priming_extrusions(*this, filament_id, movable);
+                }
                 wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, old_filament_id, filament_id,
-                                           wipe_volume_ec, wipe_volume_nc, volume_to_purge);
+                                           wipe_volume_ec, wipe_volume_nc, volume_to_purge, primed_in_infill);
+                if (idle_clock) {
+                    // The change's purge and prime on the tower, at the filament's volumetric speed (tower travel and
+                    // ramming left out; a tool changer primes filament_prime_volume, the ec value).
+                    const double max_volumetric_speed = m_config.filament_max_volumetric_speed.get_at(this->get_filament_config_indx(int(filament_id), layer_idx));
+                    const double tower_volume         = std::max(0.f, wipe_volume_ec + volume_to_purge - primed_in_infill);
+                    if (max_volumetric_speed > 0.)
+                        idle_clock->wait(tower_volume / max_volumetric_speed);
+                }
                 old_filament_id = filament_id;
 
                 nozzle_recorder.set_nozzle_status(nozzle_id, filament_id);

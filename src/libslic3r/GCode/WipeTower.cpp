@@ -3117,7 +3117,7 @@ WipeTower::WipeTowerInfo::ToolChange WipeTower::set_toolchange(int old_tool, int
 
 // Appends a toolchange into m_plan and calculates neccessary depth of the corresponding box
 void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool,
-                                unsigned int new_tool, float wipe_volume_ec,float wipe_volume_nc,float purge_volume)
+                                unsigned int new_tool, float wipe_volume_ec,float wipe_volume_nc,float purge_volume, float primed_elsewhere)
 {
 	assert(m_plan.empty() || m_plan.back().z <= z_par + WT_EPSILON);	// refuses to add a layer below the last one
 
@@ -3140,7 +3140,11 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
     if (width <= EPSILON)
         return;
     int   layer_id    = static_cast<int>(m_plan.size()) - 1;
-    float wipe_volume = is_same_extruder(old_tool, new_tool, layer_id) && !is_same_nozzle(old_tool, new_tool, layer_id) ? wipe_volume_nc : wipe_volume_ec;
+    float wipe_volume = prime_volume_for(old_tool, new_tool, layer_id, wipe_volume_ec, wipe_volume_nc);
+    // Part of the prime may already have gone into infill (prime into infill): the tower primes the rest, at
+    // least kMinTowerPrime, so the change's block keeps a wipe line.
+    if (primed_elsewhere > 0.f)
+        wipe_volume = std::max(std::min(wipe_volume, kMinTowerPrime), wipe_volume - primed_elsewhere);
     // BBS: remove old filament ramming and first line
 #if 0
 	float length_to_extrude = volume_to_length(0.25f * std::accumulate(m_filpar[old_tool].ramming_speed.begin(), m_filpar[old_tool].ramming_speed.end(), 0.f),
@@ -3179,6 +3183,26 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
     m_plan.back().tool_changes.push_back(tool_change);
 #endif
 }
+float WipeTower::prime_volume_for(unsigned int old_tool, unsigned int new_tool, int layer_id, float wipe_volume_ec, float wipe_volume_nc) const
+{
+    // A hotend change on the same extruder primes the _nc volume, any other change the filament-change volume.
+    return is_same_extruder(old_tool, new_tool, layer_id) && !is_same_nozzle(old_tool, new_tool, layer_id) ? wipe_volume_nc : wipe_volume_ec;
+}
+
+float WipeTower::prime_volume_movable(unsigned int old_tool, unsigned int new_tool, float wipe_volume_ec, float wipe_volume_nc) const
+{
+    // Called after this layer's plan_toolchange(z, ..., old_tool, old_tool), so m_plan.back() is the current layer.
+    if (m_plan.empty() || old_tool == new_tool)
+        return 0.f;
+    // plan_toolchange plans no block for this change when the tower is too narrow.
+    if (m_wipe_tower_width - 2 * filament_perimeter_width(int(new_tool)) <= EPSILON)
+        return 0.f;
+    const int layer_id = static_cast<int>(m_plan.size()) - 1;
+    if (!is_need_ramming(old_tool, new_tool, layer_id))
+        return 0.f;
+    return std::max(0.f, prime_volume_for(old_tool, new_tool, layer_id, wipe_volume_ec, wipe_volume_nc) - kMinTowerPrime);
+}
+
 #if 0
 void WipeTower::plan_tower()
 {
