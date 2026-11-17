@@ -7469,46 +7469,30 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         if (from.empty()) {
             stream << " <Relationship Target=\"/" << MODEL_FILE << "\" Id=\"rel-1\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\"/>\n";
 
-            if (export_plate_idx < 0) {
-                //use cover image if have
-                if (data._3mf_thumbnail.empty()) {
-                    stream << " <Relationship Target=\"/Metadata/plate_1.png"
-                               << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
-                } else {
-                    stream << " <Relationship Target=\"/" << xml_escape(data._3mf_thumbnail)
-                           << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
+            // Images are optional (for example, a headless CLI export). Only
+            // reference entries that were actually added to the archive. miniz
+            // also supports central-directory lookups while the writer is open.
+            auto add_thumbnail_relationship = [&](const std::string &path, const char *id, const char *type) {
+#if WRITE_ZIP_LANGUAGE_ENCODING
+                const auto &archive_path = path;
+#else
+                const auto archive_path = encode_path(path.c_str());
+#endif
+                if (mz_zip_reader_locate_file(&archive, archive_path.c_str(), nullptr, MZ_ZIP_FLAG_CASE_SENSITIVE) < 0) {
+                    mz_zip_clear_last_error(&archive);
+                    return;
                 }
-
-                if (data._3mf_printer_thumbnail_middle.empty()) {
-                    stream << " <Relationship Target=\"/Metadata/plate_1.png"
-                           << "\" Id=\"rel-4\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-middle\"/>\n";
-                } else {
-                    stream << " <Relationship Target=\"/" << xml_escape(data._3mf_printer_thumbnail_middle)
-                           << "\" Id=\"rel-4\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-middle\"/>\n";
-                }
-
-                if (data._3mf_printer_thumbnail_small.empty()) {
-                    stream << "<Relationship Target=\"/Metadata/plate_1_small.png"
-                           << "\" Id=\"rel-5\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-small\"/>\n";
-                } else {
-                    stream << " <Relationship Target=\"/" << xml_escape(data._3mf_printer_thumbnail_small)
-                           << "\" Id=\"rel-5\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-small\"/>\n";
-                }
-            }
-            else {
-                //always use plate thumbnails
-                std::string thumbnail_file_str = (boost::format("Metadata/plate_%1%.png") % (export_plate_idx + 1)).str();
-                stream << " <Relationship Target=\"/" << xml_escape(thumbnail_file_str)
-                    << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
-
-                thumbnail_file_str = (boost::format("Metadata/plate_%1%.png") % (export_plate_idx + 1)).str();
-                stream << " <Relationship Target=\"/" << xml_escape(thumbnail_file_str)
-                   << "\" Id=\"rel-4\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-middle\"/>\n";
-
-                thumbnail_file_str = (boost::format("Metadata/plate_%1%_small.png") % (export_plate_idx + 1)).str();
-                stream << " <Relationship Target=\"/" << xml_escape(thumbnail_file_str)
-                   << "\" Id=\"rel-5\" Type=\"http://schemas.bambulab.com/package/2021/cover-thumbnail-small\"/>\n";
-            }
+                stream << " <Relationship Target=\"/" << xml_escape(path)
+                       << "\" Id=\"" << id << "\" Type=\"" << type << "\"/>\n";
+            };
+            const std::string plate_thumbnail = (boost::format("Metadata/plate_%1%.png") % (export_plate_idx < 0 ? 1 : export_plate_idx + 1)).str();
+            const std::string plate_small_thumbnail = (boost::format("Metadata/plate_%1%_small.png") % (export_plate_idx < 0 ? 1 : export_plate_idx + 1)).str();
+            add_thumbnail_relationship(export_plate_idx < 0 && !data._3mf_thumbnail.empty() ? data._3mf_thumbnail : plate_thumbnail,
+                "rel-2", "http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail");
+            add_thumbnail_relationship(export_plate_idx < 0 && !data._3mf_printer_thumbnail_middle.empty() ? data._3mf_printer_thumbnail_middle : plate_thumbnail,
+                "rel-4", "http://schemas.bambulab.com/package/2021/cover-thumbnail-middle");
+            add_thumbnail_relationship(export_plate_idx < 0 && !data._3mf_printer_thumbnail_small.empty() ? data._3mf_printer_thumbnail_small : plate_small_thumbnail,
+                "rel-5", "http://schemas.bambulab.com/package/2021/cover-thumbnail-small");
         }
         else if (targets.empty()) {
             return false;

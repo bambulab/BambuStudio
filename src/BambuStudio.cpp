@@ -1894,6 +1894,14 @@ int CLI::run(int argc, char **argv)
     if (min_save_option)
         minimum_save = min_save_option->value;
 
+    const auto *skip_thumbnails_option = m_config.option<ConfigOptionBool>("skip_thumbnails");
+    const bool skip_thumbnails = skip_thumbnails_option && skip_thumbnails_option->value;
+    if (skip_thumbnails && std::find(m_actions.begin(), m_actions.end(), "export_png") != m_actions.end()) {
+        BOOST_LOG_TRIVIAL(error) << "--skip-thumbnails cannot be combined with --export-png.";
+        record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+        flush_and_exit(CLI_INVALID_PARAMS);
+    }
+
     ConfigOptionBool* enable_timelapse_option = m_config.option<ConfigOptionBool>("enable_timelapse");
     if (enable_timelapse_option)
         enable_timelapse = enable_timelapse_option->value;
@@ -7736,7 +7744,7 @@ int CLI::run(int argc, char **argv)
                                     }
                                     BOOST_LOG_TRIVIAL(info) << "process finished, will export gcode temporily to " << outfile << std::endl;
                                     temp_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
-                                    if (is_bbl_vendor_preset) {
+                                    if (is_bbl_vendor_preset || skip_thumbnails) {
                                         outfile = print_fff->export_gcode(outfile, gcode_result, nullptr);
                                     }
                                     else {
@@ -8188,7 +8196,7 @@ int CLI::run(int argc, char **argv)
             }
         }
 
-        if (need_regenerate_thumbnail || need_regenerate_no_light_thumbnail || need_regenerate_top_thumbnail) {
+        if (!skip_thumbnails && (need_regenerate_thumbnail || need_regenerate_no_light_thumbnail || need_regenerate_top_thumbnail)) {
             if (!opengl_valid)
                 opengl_valid = init_opengl_and_colors(m_models[0], colors);
             /*std::vector<std::string> colors;

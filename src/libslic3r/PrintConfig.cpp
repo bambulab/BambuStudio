@@ -11216,6 +11216,11 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 {
     ConfigOptionDef* def;
 
+    def = this->add("skip_thumbnails", coBool);
+    def->label = "Skip thumbnail rendering";
+    def->tooltip = "Do not initialize OpenGL or render thumbnails when slicing or exporting 3MF. Cannot be combined with --export-png.";
+    def->set_default_value(new ConfigOptionBool(false));
+
     /*def = this->add("ignore_nonexistent_config", coBool);
     def->label = L("Ignore non-existent config files");
     def->tooltip = L("Do not fail if a file supplied to --load does not exist.");
