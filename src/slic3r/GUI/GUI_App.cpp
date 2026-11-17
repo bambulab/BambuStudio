@@ -3441,14 +3441,18 @@ bool GUI_App::on_init_inner()
         // platforms. Without this, GTK never paints the window before the heavy
         // loading work begins, leaving a black window until the app is ready.
         wxYield();
-        scrn->Raise();
-        scrn->Update();
-        scrn->SetText(_L("Loading configuration")+ dots);
-        // BBLSplashScreen::SetText() does not force a repaint on non-macOS.
-        // Refresh() + Update() ensure the first status line is visible before
-        // the heavy startup work begins.
-        scrn->Refresh();
-        scrn->Update();
+        // wxSplashScreen closes itself on a mouse click or key press, so it may
+        // already be gone once wxYield() has processed pending events.
+        if (scrn) {
+            scrn->Raise();
+            scrn->Update();
+            scrn->SetText(_L("Loading configuration")+ dots);
+            // BBLSplashScreen::SetText() does not force a repaint on non-macOS.
+            // Refresh() + Update() ensure the first status line is visible before
+            // the heavy startup work begins.
+            scrn->Refresh();
+            scrn->Update();
+        }
     }
 
     BOOST_LOG_TRIVIAL(info) << "loading systen presets...";
