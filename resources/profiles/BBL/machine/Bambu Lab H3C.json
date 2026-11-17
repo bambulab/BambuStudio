@@ -10,7 +10,7 @@
     "bottom_texture_rect_longer": "1.5,-10,327,7.7",
     "default_bed_type": "Textured PEI Plate",
     "resource_bind_name": "h3c",
-    "not_support_bed_type": "Cool Plate;Smooth PEI Plate / High Temp Plate",
+    "not_support_bed_type": "Cool Plate;Smooth PEI Plate / High Temp Plate;3D Effect Plate",
     "family": "BBL-3DP",
     "machine_tech": "FFF",
     "model_id": "N10",
