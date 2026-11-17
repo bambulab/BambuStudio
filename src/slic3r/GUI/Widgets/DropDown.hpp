@@ -52,7 +52,7 @@ private:
     bool   limit_max_content_width = false;
     bool   align_icon        = false;
     bool   text_off          = false;
-    int    max_visible_rows  = 15;
+    int    max_visible_rows  = 15; // only caps sub-menus; top-level lists grow to fit the screen
     int    trailing_padding  = 0; // DIP
 
     wxSize textSize;
@@ -152,6 +152,7 @@ private:
     void messureSize();
     void autoPosition();
     void fitWidthToDisplay(wxSize &size);
+    size_t rowLimit(int row_height) const;
 
     // some useful events
     void mouseDown(wxMouseEvent& event);
