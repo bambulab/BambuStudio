@@ -1029,6 +1029,10 @@ public:
 
     // Wipe tower support.
     bool                        has_wipe_tower() const;
+    // Volumes the prime tower primes for a change into `filament_id`: {filament change, hotend change}.
+    static std::pair<double, double> tower_prime_volumes(const PrintConfig &config, unsigned int filament_id);
+    // Volume the prime tower rams out of `filament_id` when a change swaps the nozzle (filament_change_length).
+    static double tower_ramming_volume(const PrintConfig &config, unsigned int filament_id);
     // True when wipe tower is enabled and support uses a filament not shared with the model body.
     bool                        support_material_on_wipe_tower() const;
     const WipeTowerData&        wipe_tower_data(size_t filaments_cnt = 0) const;

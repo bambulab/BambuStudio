@@ -926,6 +926,14 @@ static const t_config_enum_values s_keys_map_PrimeVolumeMode = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrimeVolumeMode)
 
+static const t_config_enum_values s_keys_map_ToolOrderLookaheadMode = {
+    { "off",            int(ToolOrderLookaheadMode::Off) },
+    { "balanced",       int(ToolOrderLookaheadMode::Balanced) },
+    { "least_waste",    int(ToolOrderLookaheadMode::LeastWaste) },
+    { "fewest_changes", int(ToolOrderLookaheadMode::FewestChanges) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ToolOrderLookaheadMode)
+
 static const t_config_enum_values s_keys_map_ReduceInfillRetractionMode = {
     { "Disabled", rirDisabled },
     { "Auto",     rirAuto },
@@ -6213,6 +6221,31 @@ void PrintConfigDef::init_fff_params()
                     "User is responsible for ensuring there is no collision with the print.");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("tool_order_lookahead", coEnum);
+    def->label = L("Reduce tool changes across layers");
+    def->category = L("Flush options");
+    def->tooltip = L("For printers with one nozzle per filament, such as tool changers. "
+                     "Chooses the first and last filament of each layer so that more layers start with the filament "
+                     "the previous layer ended with. Each avoided tool change also avoids its prime. "
+                     "Only the order of filaments within a layer changes. Applies when all used filaments are on one extruder, each with its own nozzle; "
+                     "layers with mixed-filament sub-layers keep their order.\n"
+                     "With filaments of different prime volumes, fewer tool changes and less wasted filament can conflict:\n"
+                     "Balanced: a new order only when it is no worse in either.\n"
+                     "Least waste: the order that primes and rams the least filament, even with an extra tool change.\n"
+                     "Fewest tool changes: the order with the fewest tool changes, even if it wastes a little more.\n"
+                     "Without a prime tower every tool change counts the same, so all three give the same result.");
+    def->enum_keys_map = &ConfigOptionEnum<ToolOrderLookaheadMode>::get_enum_values();
+    def->enum_values.push_back("off");
+    def->enum_values.push_back("balanced");
+    def->enum_values.push_back("least_waste");
+    def->enum_values.push_back("fewest_changes");
+    def->enum_labels.push_back(L("Off"));
+    def->enum_labels.push_back(L("Balanced"));
+    def->enum_labels.push_back(L("Least waste"));
+    def->enum_labels.push_back(L("Fewest tool changes"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<ToolOrderLookaheadMode>(ToolOrderLookaheadMode::Off));
 
     def = this->add("slice_closing_radius", coFloat);
     def->label = L("Slice gap closing radius");
