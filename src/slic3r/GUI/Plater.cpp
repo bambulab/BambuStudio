@@ -77,6 +77,7 @@
 #include "libslic3r/Format/AMF.hpp"
 //#include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
+#include "libslic3r/Format/ExternalMixedFilament.hpp"
 #include "libslic3r/TexturePainting.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "Gizmos/GLGizmoAlignment.hpp"
@@ -9424,6 +9425,160 @@ static std::vector<int> create_mixed_filaments_from_results(
     return created;
 }
 
+// Picks a filament preset of the given material for the current printer, in the order AMS sync
+// substitutes an unknown tray: printer defaults, then the generic preset, then any system match.
+static std::string find_filament_preset_for_type(const PresetBundle& bundle, const std::string& type)
+{
+    if (type.empty())
+        return {};
+    auto usable = [&type](const Preset* preset) {
+        return preset != nullptr && preset->is_compatible && preset->config.opt_string("filament_type", 0u) == type;
+    };
+    if (const auto* defaults = bundle.printers.get_edited_preset().config.option<ConfigOptionStrings>("default_filament_profile"))
+        for (const std::string& name : defaults->values)
+            if (const Preset* preset = bundle.filaments.find_preset(name, false); usable(preset))
+                return preset->name;
+
+    const std::string generic = "Generic " + type;
+    const Preset* any_match = nullptr;
+    for (const Preset& preset : bundle.filaments.get_presets()) {
+        if (!preset.is_system || !usable(&preset))
+            continue;
+        if (boost::algorithm::starts_with(preset.name, generic))
+            return preset.name;
+        if (any_match == nullptr)
+            any_match = &preset;
+    }
+    return any_match != nullptr ? any_match->name : std::string();
+}
+
+// Replaces the filament list with the physical colours and mixes of a third-party project.
+// The model keeps the source's filament ids (physical first, then one id per mix), so the
+// physical count must match the source exactly and the mixes are appended in source order.
+// Feature filaments that pointed at a dropped slot fall back to Default, as deleting that filament would.
+static void reset_dropped_feature_filaments(size_t kept_count)
+{
+    static const char *keys[] = {"support_filament", "support_interface_filament",
+                                 "wall_filament", "sparse_infill_filament", "solid_infill_filament"};
+    DynamicPrintConfig& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    DynamicPrintConfig changed;
+    for (const char* key : keys)
+        if (print_config.has(key) && print_config.opt_int(key) > int(kept_count))
+            changed.set_key_value(key, new ConfigOptionInt(0));
+    if (changed.empty())
+        return;
+    print_config.apply(changed);
+    wxGetApp().plater()->on_config_change(changed);
+    if (Tab* print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) {
+        print_tab->update_dirty();
+        print_tab->reload_config();
+    }
+}
+
+static bool apply_external_mixed_filaments(Sidebar* sidebar, const ExternalMixedFilamentInfo& info)
+{
+    if (sidebar == nullptr || info.empty() || info.physical_colours.size() > MAX_PHYSICAL_FILAMENT_COUNT)
+        return false;
+    const size_t num_physical = info.physical_colours.size();
+    const std::vector<ExternalMixedSlot> slots = parse_external_mixed_definitions(info.definitions, num_physical);
+    // Everything that can refuse the import is checked before the current list is touched.
+    if (slots.empty() || slots.size() > MAX_MIXED_FILAMENT_COUNT || num_physical + slots.size() > MAX_FILAMENT_COUNT)
+        return false;
+    if (wxGetApp().plater()->using_exported_file())
+        return false;
+
+    std::vector<std::string> colours;
+    colours.reserve(num_physical);
+    for (const std::string& colour : info.physical_colours) {
+        const wxColour wx_colour(from_u8(colour));
+        colours.push_back(wx_colour.IsOk() ? wx_colour.GetAsString(wxC2S_HTML_SYNTAX).ToStdString() : std::string("#FFFFFF"));
+    }
+
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+
+    // Mixed slots sit after the physical ones, so truncating to at most num_physical drops all of them.
+    const size_t keep = std::min(sidebar->combos_filament().size(), num_physical);
+    std::vector<std::string> colours_before;
+    if (auto* opt = preset_bundle->project_config.option<ConfigOptionStrings>("filament_colour"))
+        colours_before.assign(opt->values.begin(), opt->values.begin() + std::min(keep, opt->values.size()));
+    const std::vector<std::string> presets_before(preset_bundle->filament_presets.begin(), preset_bundle->filament_presets.begin() + keep);
+    for (size_t idx = preset_bundle->filament_presets.size(); idx > keep; --idx)
+        plate_list.on_filament_deleted(int(idx - 1), int(idx - 1));
+    preset_bundle->set_num_filaments((unsigned int)keep);
+    reset_dropped_feature_filaments(keep);
+    wxGetApp().plater()->on_filament_count_change(keep);
+
+    if (keep < num_physical) {
+        std::vector<std::pair<wxColour, std::string>> new_filaments;
+        for (size_t i = keep; i < num_physical; ++i)
+            new_filaments.emplace_back(wxColour(from_u8(colours[i])), std::string());
+        sidebar->add_custom_filaments(new_filaments);
+    }
+    if (sidebar->combos_filament().size() != num_physical) {
+        BOOST_LOG_TRIVIAL(warning) << "external mixed filament: physical count mismatch, expected " << num_physical
+                                   << ", got " << sidebar->combos_filament().size();
+        return false;
+    }
+
+    auto& project_config = preset_bundle->project_config;
+    auto* colour_opt = project_config.option<ConfigOptionStrings>("filament_colour");
+    auto* multi_opt  = project_config.option<ConfigOptionStrings>("filament_multi_colour");
+    auto* type_opt   = project_config.option<ConfigOptionStrings>("filament_colour_type");
+    for (size_t i = 0; i < num_physical; ++i) {
+        if (colour_opt && i < colour_opt->values.size())
+            colour_opt->values[i] = colours[i];
+        if (multi_opt && i < multi_opt->values.size())
+            multi_opt->values[i] = colours[i];
+        if (type_opt && i < type_opt->values.size())
+            type_opt->values[i] = "1";
+
+        // Keep the slot's preset when it already is the source's material, so a matching user choice survives.
+        const std::string type = i < info.physical_types.size() ? info.physical_types[i] : std::string();
+        const Preset* current = preset_bundle->filaments.find_preset(preset_bundle->filament_presets[i], false);
+        if (type.empty() || (current != nullptr && current->config.opt_string("filament_type", 0u) == type))
+            continue;
+        const std::string preset_name = find_filament_preset_for_type(*preset_bundle, type);
+        if (!preset_name.empty())
+            preset_bundle->set_filament_preset(i, preset_name);
+        BOOST_LOG_TRIVIAL(info) << "external mixed filament: slot " << i + 1 << " type " << type << " -> preset "
+                                << (preset_name.empty() ? std::string("<kept>") : preset_name);
+    }
+
+    // Same as PresetBundle::update_num_filaments(): the Filament tab must not stay on a preset no slot uses.
+    const auto& presets = preset_bundle->filament_presets;
+    if (std::find(presets.begin(), presets.end(), preset_bundle->filaments.get_edited_preset().name) == presets.end())
+        preset_bundle->filaments.select_preset_by_name(presets.front(), false);
+
+    std::vector<MixedFilamentResult> results(slots.size());
+    for (size_t i = 0; i < slots.size(); ++i) {
+        results[i].components = slots[i].components;
+        results[i].ratios     = slots[i].ratios;
+    }
+    const std::vector<int> created = create_mixed_filaments_from_results(sidebar, results, colours);
+    const size_t created_count = size_t(std::count_if(created.begin(), created.end(), [](int idx) { return idx >= 0; }));
+    BOOST_LOG_TRIVIAL(info) << "external mixed filament: physical " << num_physical << ", mixed " << created_count << "/" << slots.size();
+    if (created_count != slots.size())
+        BOOST_LOG_TRIVIAL(warning) << "external mixed filament: only " << created_count << " of " << slots.size()
+                                   << " mixes created, model filament ids above " << num_physical + created_count << " are dangling";
+    if (created_count == 0)
+        wxGetApp().plater()->on_filament_count_change(preset_bundle->filament_presets.size());
+
+    // on_filament_count_change() only builds combos for new slots, existing ones keep the old colour and preset.
+    for (PlaterPresetComboBox* combo : sidebar->combos_filament())
+        combo->update();
+
+    // Same rule as AMS sync: new slots always, changed slots unless auto calculation is disabled.
+    const bool auto_flush = wxGetApp().app_config->get("auto_calculate_flush") != "disabled";
+    for (size_t i = 0; i < num_physical; ++i) {
+        const bool is_new  = i >= colours_before.size() || i >= presets_before.size();
+        const bool changed = !is_new && (colours_before[i] != colours[i] || presets_before[i] != presets[i]);
+        if (is_new || (changed && auto_flush))
+            sidebar->auto_calc_flushing_volumes(int(i));
+    }
+    return true;
+}
+
 // Parses one mixed filament slot of the project config back into the dialog's result.
 static MixedFilamentResult read_mixed_filament_slot(const DynamicPrintConfig& project_config, size_t cfg_idx)
 {
@@ -11815,6 +11970,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     bool load_model = strategy & LoadStrategy::LoadModel;
     bool load_config = strategy & LoadStrategy::LoadConfig;
+    // load_config is cleared below for non-Bambu 3mf; this keeps whether the caller opened a project.
+    const bool open_as_project = load_config;
     bool imperial_units = strategy & LoadStrategy::ImperialUnits;
     bool silence = strategy & LoadStrategy::Silence;
 
@@ -11916,6 +12073,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         wxString standard_3mf_hint;
         std::map<int, std::vector<std::string>> color_group_map;
         VolumeColorInfoMap volume_color_data;
+        ExternalMixedFilamentInfo external_mixed;
         bool has_3mf_textures = false;
         bool has_file_unit = false;
         En3mfType en_3mf_file_type = En3mfType::From_BBS;
@@ -11998,7 +12156,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                                                              input_files_ratio * ((float) stage_percent[import_stage] + (float) current * (float) (stage_percent[import_stage + 1] - stage_percent[import_stage]) / (float) total) / (float) total_files;
                                                                          read_archive_percent.store(percent_float);
                                                                          cancel = read_archive_cancel.load();
-                                                                     }, nullptr, &color_group_map, &volume_color_data, &has_3mf_textures, &has_file_unit);
+                                                                     }, nullptr, &color_group_map, &volume_color_data, &has_3mf_textures, &has_file_unit, &external_mixed);
                         } catch (...) {
                             read_archive_exception = std::current_exception();
                         }
@@ -12889,7 +13047,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         q->get_notification_manager()->push_notification(NotificationType::CustomNotification,
                             NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(source_warning));
                     }
-                    if (!load_config)
+                    // Opened as a project: take over the source's filament list so its mixed filament ids
+                    // stay valid; an import (even into an empty scene) keeps the current list.
+                    const bool replace_filaments = open_as_project && total_files == 1 && q->model().objects.empty() && !external_mixed.empty();
+                    if (!load_config && !(replace_filaments && apply_external_mixed_filaments(sidebar, external_mixed)))
                         add_missing_filaments();
                 }
             }

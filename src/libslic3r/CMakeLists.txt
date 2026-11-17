@@ -166,6 +166,8 @@ set(lisbslic3r_sources
     Format/AssemblyTreeJson.hpp
     Format/bbs_3mf.cpp
     Format/bbs_3mf.hpp
+    Format/ExternalMixedFilament.cpp
+    Format/ExternalMixedFilament.hpp
     Format/AMF.cpp
     Format/AMF.hpp
     Format/OBJ.cpp

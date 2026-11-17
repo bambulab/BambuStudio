@@ -50,6 +50,7 @@ namespace pt = boost::property_tree;
 #include <Eigen/Dense>
 #include "miniz_extension.hpp"
 #include "nlohmann/json.hpp"
+#include "ExternalMixedFilament.hpp"
 
 #include "EmbossShape.hpp"
 #include "ExPolygonSerialize.hpp"
@@ -1486,6 +1487,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         std::map<int, ModelVolume*> m_shared_meshes;
 
+        bool m_collect_external_mixed { false };
+        ExternalMixedFilamentInfo m_external_mixed;
+
         //BBS: plater related structures
         bool m_is_bbl_3mf { false };
         bool m_parsing_slice_info { false };
@@ -1534,6 +1538,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // Get volume color data
         const std::unordered_map<int, VolumeColorInfo>& get_volume_color_data() const { return m_volume_color_data; }
 
+        // Mixed filament data of a third-party project; only read when requested before loading.
+        void set_collect_external_mixed(bool collect) { m_collect_external_mixed = collect; }
+        const ExternalMixedFilamentInfo& get_external_mixed() const { return m_external_mixed; }
+
     private:
         void _destroy_xml_parser();
         void _stop_xml_parser(const std::string& msg = std::string());
@@ -1568,6 +1576,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         void _extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig& config, ConfigSubstitutionContext& subs_context, const std::string& archive_filename);
         //BBS: add project config file logic
         void _extract_project_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig& config, ConfigSubstitutionContext& subs_context, Model& model);
+        void _extract_external_mixed_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         //BBS: extract project embedded presets
         void _extract_project_embedded_presets_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, std::vector<Preset*>&project_presets, Model& model, Preset::Type type, bool use_json = true);
 
@@ -2322,6 +2331,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (!dont_load_config && boost::algorithm::iequals(name, BBS_PROJECT_CONFIG_FILE)) {
                     // extract slic3r print config file
                     _extract_project_config_from_archive(archive, stat, config, config_substitutions, model);
+                }
+                else if (m_collect_external_mixed && !m_is_bbl_3mf && boost::algorithm::iequals(name, BBS_PROJECT_CONFIG_FILE)) {
+                    _extract_external_mixed_from_archive(archive, stat);
                 }
                 else if (boost::algorithm::iequals(name, CUT_INFORMATION_FILE)) {
                     // extract object cut info
@@ -3113,6 +3125,38 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             // that fail MakerWorld's "curve needs >= 2 points" check.
             if (auto* curve_opt = config.option<ConfigOptionStrings>("filament_mixed_gradient_curve"))
                 Slic3r::sanitize_mixed_gradient_curve_array(curve_opt->values);
+        }
+    }
+
+    // Only picks the physical colours / types and the mixed filament definitions out of a third-party
+    // project config; the rest of that config stays unloaded as before.
+    void _BBS_3MF_Importer::_extract_external_mixed_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
+    {
+        if (stat.m_uncomp_size == 0)
+            return;
+        std::string buffer((size_t)stat.m_uncomp_size, 0);
+        if (mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0) == 0) {
+            BOOST_LOG_TRIVIAL(warning) << "external mixed filament: failed to read project config";
+            return;
+        }
+        try {
+            const nlohmann::json j = nlohmann::json::parse(buffer);
+            auto defs_it = j.find("mixed_filament_definitions");
+            auto colour_it = j.find("filament_colour");
+            if (defs_it == j.end() || !defs_it->is_string() || colour_it == j.end() || !colour_it->is_array())
+                return;
+            ExternalMixedFilamentInfo info;
+            info.definitions = defs_it->get<std::string>();
+            for (const auto& colour : *colour_it)
+                info.physical_colours.push_back(colour.is_string() ? colour.get<std::string>() : std::string());
+            auto type_it = j.find("filament_type");
+            if (type_it != j.end() && type_it->is_array())
+                for (const auto& type : *type_it)
+                    info.physical_types.push_back(type.is_string() ? type.get<std::string>() : std::string());
+            BOOST_LOG_TRIVIAL(info) << "external mixed filament: found definitions, physical_count=" << info.physical_colours.size();
+            m_external_mixed = std::move(info);
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(warning) << "external mixed filament: invalid project config json, " << e.what();
         }
     }
 
@@ -10046,7 +10090,7 @@ private:
 bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets,
                     bool* is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn, LoadStrategy strategy, BBLProject *project, int plate_id,
                     std::map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data,
-                    bool* has_textures, bool* has_unit)
+                    bool* has_textures, bool* has_unit, ExternalMixedFilamentInfo* external_mixed)
 {
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
@@ -10054,6 +10098,7 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
     // All import should use "C" locales for number formatting.
     CNumericLocalesSetter locales_setter;
     _BBS_3MF_Importer importer;
+    importer.set_collect_external_mixed(external_mixed != nullptr);
     bool res = importer.load_model_from_file(path, *model, *plate_data_list, *project_presets, *config, *config_substitutions, strategy, is_bbl_3mf, *file_version, proFn, project, plate_id);
     importer.log_errors();
 
@@ -10073,6 +10118,9 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
 
     if (has_unit != nullptr)
         *has_unit = importer.has_unit();
+
+    if (external_mixed != nullptr)
+        *external_mixed = importer.get_external_mixed();
 
     //BBS: remove legacy project logic currently
     //handle_legacy_project_loaded(importer.version(), *config);
