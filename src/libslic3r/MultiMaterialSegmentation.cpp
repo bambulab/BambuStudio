@@ -1326,7 +1326,7 @@ struct EffectiveColorPenetrationLayers
 };
 
 static EffectiveColorPenetrationLayers effective_color_penetration_layers(
-    const PrintObject &object, const PrintRegionConfig &config)
+    const PrintObject &object, const PrintRegionConfig &config, unsigned int filament_override = 0)
 {
     EffectiveColorPenetrationLayers out {
         config.top_color_penetration_layers.value,
@@ -1336,8 +1336,10 @@ static EffectiveColorPenetrationLayers effective_color_penetration_layers(
     if (! multi_nozzle_diameter_mode_enabled(object.print()->full_print_config()))
         return out;
 
+    const unsigned int wall_filament = filament_override > 0 ?
+        filament_override : (unsigned int) config.wall_filament.value;
     const double nozzle_diameter = nozzle_diameter_for_filament(
-        object.print()->config(), (unsigned int) config.wall_filament.value);
+        object.print()->config(), wall_filament);
     out.top = multi_nozzle_top_color_penetration_layers(object.print()->full_print_config(), nozzle_diameter, out.top);
     out.bottom = multi_nozzle_bottom_color_penetration_layers(object.print()->full_print_config(), nozzle_diameter, out.bottom);
     // A plate sliced for a single diameter is already on that nozzle's band height, one layer per extrusion.
@@ -1617,7 +1619,37 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
         return out;
     };
 
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers, granularity), [&granularity, &num_layers, &num_extruders, &layer_color_stat, &top_raw, &triangles_by_color_top,
+    // Clip the surface projection to the LayerRegions on layer_idx whose penetration layers still
+    // cover layers_from_source, so regions with different penetration settings do not all use max.
+    auto clip_by_penetration_depth = [&layers = std::as_const(layers), &print_object](
+        ExPolygons &ex, const size_t layer_idx, const size_t color_idx, const int layers_from_source, const bool is_top) -> bool {
+        std::vector<const LayerRegion *> regions_covering_layers_from_source;
+        bool has_region_not_covering_layers_from_source = false;
+        for (const LayerRegion *region : layers[layer_idx]->regions()) {
+            if (region->slices.surfaces.empty())
+                continue;
+            const EffectiveColorPenetrationLayers penetration =
+                effective_color_penetration_layers(print_object, region->region().config(), (unsigned int) color_idx);
+            const int penetration_layers = is_top ? penetration.top : penetration.bottom;
+            if (penetration_layers > layers_from_source)
+                regions_covering_layers_from_source.push_back(region);
+            else
+                has_region_not_covering_layers_from_source = true;
+        }
+        if (!has_region_not_covering_layers_from_source)
+            return true;
+        if (regions_covering_layers_from_source.empty()) {
+            ex.clear();
+            return false;
+        }
+        Polygons slices_of_regions_covering_layers_from_source;
+        for (const LayerRegion *region : regions_covering_layers_from_source)
+            append(slices_of_regions_covering_layers_from_source, to_polygons(region->slices.surfaces));
+        ex = intersection_ex(ex, offset_ex(union_ex(slices_of_regions_covering_layers_from_source), float(10 * SCALED_EPSILON)));
+        return !ex.empty();
+    };
+
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers, granularity), [&granularity, &num_layers, &num_extruders, &layer_color_stat, &clip_by_penetration_depth, &top_raw, &triangles_by_color_top,
                                                                                &throw_on_cancel_callback, &input_expolygons, &bottom_raw, &triangles_by_color_bottom,
                                                                                &shell_triangles_by_color_top, &shell_triangles_by_color_bottom,
                                                                                multi_diameter_mode](const tbb::blocked_range<size_t> &range) {
@@ -1636,6 +1668,8 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                             float offset = 0.f;
                             ExPolygons layer_slices_trimmed = input_expolygons[layer_idx];
                             for (int last_idx = int(layer_idx) - 1; last_idx > std::max(int(layer_idx - stat.top_color_penetration_layers), int(0)); --last_idx) {
+                                if (!clip_by_penetration_depth(top_ex, layer_idx, color_idx, int(layer_idx) - last_idx, true))
+                                    break;
                                 //BBS: offset width should be 2*spacing to avoid too narrow area which has overlap of wall line
                                 //offset -= stat.extrusion_width ;
                                 offset -= multi_diameter_mode ?
@@ -1658,6 +1692,8 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                             float offset = 0.f;
                             ExPolygons layer_slices_trimmed = input_expolygons[layer_idx];
                             for (size_t last_idx = layer_idx + 1; last_idx < std::min(layer_idx + stat.bottom_color_penetration_layers, num_layers); ++last_idx) {
+                                if (!clip_by_penetration_depth(bottom_ex, layer_idx, color_idx, int(last_idx - layer_idx), false))
+                                    break;
                                 //BBS: offset width should be 2*spacing to avoid too narrow area which has overlap of wall line
                                 //offset -= stat.extrusion_width;
                                 offset -= multi_diameter_mode ?
@@ -1700,7 +1736,8 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                     for (int last_idx = int(layer_idx) - 1;
                          last_idx > std::max(int(layer_idx) - stat.top_color_penetration_layers, 0);
                          --last_idx) {
-                        if (size_t(last_idx) >= part_slices.size())
+                        if (size_t(last_idx) >= part_slices.size() ||
+                            !clip_by_penetration_depth(top_ex, layer_idx, projection.color_idx, int(layer_idx) - last_idx, true))
                             break;
                         offset -= multi_diameter_mode ?
                             stat.top_color_penetration_inset_step :
@@ -1729,7 +1766,8 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                     for (size_t last_idx = layer_idx + 1;
                          last_idx < std::min(layer_idx + stat.bottom_color_penetration_layers, num_layers);
                          ++last_idx) {
-                        if (last_idx >= part_slices.size())
+                        if (last_idx >= part_slices.size() ||
+                            !clip_by_penetration_depth(bottom_ex, layer_idx, projection.color_idx, int(last_idx - layer_idx), false))
                             break;
                         offset -= multi_diameter_mode ?
                             stat.bottom_color_penetration_inset_step :
