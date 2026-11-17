@@ -12,6 +12,7 @@ import de_DE from '@locales/de_DE.json';
 import hu_HU from '@locales/hu_HU.json';
 import es_ES from '@locales/es_ES.json';
 import sv_SE from '@locales/sv_SE.json';
+import fi_FI from '@locales/fi_FI.json';
 import cs_CZ from '@locales/cs_CZ.json';
 import nl_NL from '@locales/nl_NL.json';
 import uk_UA from '@locales/uk_UA.json';
@@ -61,6 +62,7 @@ i18n
       hu_HU: { translation: hu_HU },
       es_ES: { translation: es_ES },
       sv_SE: { translation: sv_SE },
+      fi_FI: { translation: fi_FI },
       cs_CZ: { translation: cs_CZ },
       nl_NL: { translation: nl_NL },
       uk_UA: { translation: uk_UA },
