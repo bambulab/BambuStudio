@@ -1114,7 +1114,7 @@ static std::vector<std::string> s_Preset_print_options {
     "prime_tower_side_scrape","prime_tower_side_scrape_face","prime_tower_side_scrape_length","prime_tower_side_scrape_height","prime_tower_side_scrape_speed","prime_tower_side_scrape_wall_gap",
     "prime_tower_side_scrape_point_spacing","prime_tower_side_scrape_along_length",
     "enable_circle_compensation", "circle_compensation_manual_offset", "apply_scarf_seam_on_circles",
-    "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits",
+    "wipe_tower_no_sparse_layers", "prime_into_infill", "compatible_printers", "compatible_printers_condition", "inherits",
     "flush_into_infill", "flush_into_objects", "flush_into_support","process_notes", "enable_mixed_color_sublayer",
     // BBS
      "tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance", "tree_support_branch_diameter",
