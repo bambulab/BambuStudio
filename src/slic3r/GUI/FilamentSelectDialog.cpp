@@ -529,7 +529,7 @@ void FilamentSelectDialog::fill_manager_tab()
     m_active_chip = wxString();
 
     const wxString other = _L("Other");
-    std::map<wxString, std::vector<FilamentSpool>> brand_to_spools;
+    std::map<wxString, std::vector<FilamentSpool>, FilamentVendorLess> brand_to_spools;
     std::vector<FilamentSpool> unsupported;
 
     auto* store  = wxGetApp().fila_manager_store();

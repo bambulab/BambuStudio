@@ -8,7 +8,7 @@ import { BAMBU_COLORS, formatTypeSeries } from './constants';
 import { SpoolColorChip } from './SpoolColorChip';
 import useStore from '../../store/AppStore';
 import { useDeviceBridge } from '../../hooks/Bridge';
-import { buildVendorOptions } from './vendorOptions';
+import { buildVendorOptions, sameVendor, uniqueVendorNames, matchingVendorItems, vendorKey } from './vendorOptions';
 import { CustomSelectDropdown } from './CustomSelectDropdown';
 // STUDIO-18114: shared draft -> commit helper for the custom color picker so
 // the OK/Cancel popover and the existing edit-dialog state stay aligned.
@@ -130,10 +130,10 @@ function normalizePresetFilamentName(name: string | undefined, vendor: string, t
   if (!value) return fallback;
 
   const aliases = [vendor, vendor.replace(/\s+/g, '')];
-  if (vendor === 'Bambu Lab') aliases.push('Bambu');
+  if (sameVendor(vendor, 'Bambu Lab')) aliases.push('Bambu');
   for (const alias of aliases.filter(Boolean)) {
-    if (value === alias) return fallback;
-    if (value.startsWith(`${alias} `)) {
+    if (sameVendor(value, alias)) return fallback;
+    if (vendorKey(value).startsWith(`${vendorKey(alias)} `)) {
       value = value.substring(alias.length + 1).trim();
       break;
     }
@@ -194,8 +194,7 @@ export function AddEditDialog({
   const mergedVendorNames = useMemo(() => {
     const cloudVendors = Array.isArray(cloudConfig?.vendors) ? cloudConfig.vendors : undefined;
     const base = buildVendorOptions(presets, cloudVendors, spools);
-    const set = new Set([...base, ...customBrands]);
-    return [...set].sort();
+    return uniqueVendorNames([...base, ...customBrands]).sort();
   }, [presets, cloudConfig, spools, customBrands]);
 
   // Dialog mode
@@ -403,7 +402,7 @@ export function AddEditDialog({
     if (!filamentId) return null;
 
     for (const vendor of presets) {
-      if (vendorName && vendor.name !== vendorName) continue;
+      if (vendorName && !sameVendor(vendor.name, vendorName)) continue;
       for (const tp of vendor.types) {
         if (typeName && tp.name !== typeName) continue;
         const item = tp.items?.find((entry) => entry.setting_id === filamentId || entry.filament_id === filamentId);
@@ -427,7 +426,7 @@ export function AddEditDialog({
 
     const match = (() => {
       for (const vendor of presets) {
-        if (setting.filamentVendor && vendor.name !== setting.filamentVendor) continue;
+        if (setting.filamentVendor && !sameVendor(vendor.name, setting.filamentVendor)) continue;
         for (const tp of vendor.types) {
           if (setting.filamentType && tp.name !== setting.filamentType) continue;
           const item = tp.items?.find((entry) => {
@@ -468,13 +467,13 @@ export function AddEditDialog({
     if (Array.isArray(settings)) {
       settings.forEach((it) => {
         if (!it) return;
-        if (brand && it.filamentVendor !== brand) return;
+        if (brand && !sameVendor(it.filamentVendor, brand)) return;
         const name = getCloudSettingDisplayName(it);
         if (name) set.add(name);
       });
     }
 
-    const vendors = brand ? presets.filter((v) => v.name === brand) : presets;
+    const vendors = brand ? matchingVendorItems(presets, brand, (v) => v.name) : presets;
     vendors.forEach((v) => {
       v.types.forEach((tp) => {
         if (Array.isArray(tp.items) && tp.items.length > 0) {
@@ -503,7 +502,7 @@ export function AddEditDialog({
     const s = (full || '').trim();
     if (!s) return { type: '', series: '' };
     const allTypes = new Set<string>();
-    const vendors = brand ? presets.filter((v) => v.name === brand) : presets;
+    const vendors = brand ? matchingVendorItems(presets, brand, (v) => v.name) : presets;
     vendors.forEach((v) => v.types.forEach((tp) => { if (tp.name) allTypes.add(tp.name); }));
     const sortedTypes = [...allTypes].sort((a, b) => b.length - a.length);
     for (const tp of sortedTypes) {
@@ -528,8 +527,8 @@ export function AddEditDialog({
     if (!Array.isArray(settings)) return '';
     const name = (series || '').trim();
     if (!name || !brand) return '';
-    const hit = settings.find(
-      (it) => it && it.filamentVendor === brand && getCloudSettingDisplayName(it) === name,
+    const hit = matchingVendorItems(settings.filter(Boolean), brand, (it) => it.filamentVendor).find(
+      (it) => getCloudSettingDisplayName(it) === name,
     );
     return (hit?.filamentId || '').trim();
   }, [cloudConfig, brand, series, getCloudSettingDisplayName]);
@@ -538,8 +537,7 @@ export function AddEditDialog({
   // preset 里 items[].series 历史上是短名（"Basic"），因此比对时同时接受
   // 短名和完整名两种形态，保证新老数据都能匹配到 preset。
   const matchedPresetItem = useMemo(() => {
-    for (const vendor of presets) {
-      if (vendor.name !== brand) continue;
+    for (const vendor of matchingVendorItems(presets, brand, (v) => v.name)) {
       for (const tp of vendor.types) {
         if (tp.name !== materialType) continue;
         const item = tp.items?.find((entry) => {
@@ -731,7 +729,7 @@ export function AddEditDialog({
 
     const { vendor, type, name, filament_id } = result.created;
     const createdItem = presets.flatMap((presetVendor) =>
-      presetVendor.name === vendor ? presetVendor.types.flatMap((presetType) =>
+      sameVendor(presetVendor.name, vendor) ? presetVendor.types.flatMap((presetType) =>
         presetType.name === type ? (presetType.items ?? []).map((item) => ({ presetVendor, presetType, item })) : [],
       ) : [],
     ).find(({ item }) => item.filament_id === filament_id && item.name === name);
@@ -986,7 +984,7 @@ export function AddEditDialog({
 
   const handleAddBrand = (value: string) => {
     const trimmed = value.trim();
-    if (!trimmed || mergedVendorNames.includes(trimmed)) return;
+    if (!trimmed || mergedVendorNames.some((name) => sameVendor(name, trimmed))) return;
     setCustomBrands(prev => [...prev, trimmed]);
     setBrand(trimmed);
     if (!lockMaterial) { setMaterialType(''); setSeries(''); }
@@ -997,14 +995,14 @@ export function AddEditDialog({
     let type = '';
     const settings = cloudConfig?.filamentSettings;
     if (Array.isArray(settings)) {
-      const hit = settings.find(
-        (it) => it && it.filamentVendor === brand && getCloudSettingDisplayName(it) === name,
+      const hit = matchingVendorItems(settings.filter(Boolean), brand, (it) => it.filamentVendor).find(
+        (it) => getCloudSettingDisplayName(it) === name,
       );
       if (hit) type = (hit.filamentType || '').trim();
     }
     if (!type) {
       outer: for (const vendor of presets) {
-        if (brand && vendor.name !== brand) continue;
+        if (brand && !sameVendor(vendor.name, brand)) continue;
         for (const tp of vendor.types) {
           const hit = tp.items?.find((item) => {
             const itemName = normalizePresetFilamentName(item.name, vendor.name, tp.name, item.series || '');
@@ -1749,7 +1747,7 @@ export function AddEditDialog({
     if (!typeName) {
       const fullType = tray.fila_type || '';
       const typeCandidates = new Set<string>();
-      const vendorsForMatch = brandName ? presets.filter((v) => v.name === brandName) : presets;
+      const vendorsForMatch = brandName ? matchingVendorItems(presets, brandName, (v) => v.name) : presets;
       vendorsForMatch.forEach((v) => v.types.forEach((tp) => { if (tp.name) typeCandidates.add(tp.name); }));
       let matchedType = '';
       let seriesRemainder = '';
@@ -2334,6 +2332,7 @@ export function AddEditDialog({
                     data-testid="filament-brand"
                     value={brand}
                     options={mergedVendorNames}
+                    isSameOption={sameVendor}
                     placeholder={t('Select Brand')}
                     disabled={lockBrand}
                     customInput={{
