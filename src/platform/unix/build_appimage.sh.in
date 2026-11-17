@@ -1,5 +1,20 @@
 #!/bin/sh
-APPIMAGETOOLURL="https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
+# AppImages are produced for both x86_64 and aarch64: pick the appimagetool
+# matching the build machine and keep the "_ubu64" output name so the wrapper
+# in BuildLinuxImage.sh.in does not need to change.
+MACHINE="$(uname -m)"
+case "${MACHINE}" in
+    aarch64|arm64)
+        APPIMAGETOOL_ARCH="aarch64"
+        APP_IMAGE_ARCH="aarch64"
+        ;;
+    *)
+        APPIMAGETOOL_ARCH="x86_64"
+        APP_IMAGE_ARCH="x86_64"
+        ;;
+esac
+
+APPIMAGETOOLURL="https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${APPIMAGETOOL_ARCH}.AppImage"
 
 
 APP_IMAGE="@SLIC3R_APP_KEY@_ubu64.AppImage"
@@ -45,5 +60,5 @@ else
   ../appimagetool.AppImage . $([ ! -z "${container}" ] && echo '--appimage-extract-and-run')
 fi
 
-mv @SLIC3R_APP_KEY@-x86_64.AppImage ${APP_IMAGE}
+mv @SLIC3R_APP_KEY@-${APP_IMAGE_ARCH}.AppImage ${APP_IMAGE}
 chmod +x ${APP_IMAGE}
