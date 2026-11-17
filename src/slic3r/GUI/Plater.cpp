@@ -355,43 +355,6 @@ static void set_config_values(DynamicPrintConfig *config, const std::string &key
     }
 }
 
-// Decide whether a loaded 3mf config really belongs to a Bambu Lab machine
-static bool is_bbl_vendor_config(const DynamicPrintConfig &config_loaded, PresetBundle *preset_bundle)
-{
-    if (!preset_bundle) return false;
-    auto *printer_model_opt = config_loaded.option<ConfigOptionString>("printer_model");
-    if (!printer_model_opt || printer_model_opt->value.empty()) return false;
-
-    for (const auto &vendor : preset_bundle->vendors) {
-        for (const auto &vendor_model : vendor.second.models) {
-            if (vendor_model.name == printer_model_opt->value) return vendor.first == "BBL";
-        }
-    }
-    return false;
-}
-
-// Check whether a 3mf's per-extruder options match the nozzle_diameter count.
-// Must run on the raw loaded config, before defaults backfill would mask absent options.
-// Returns true when consistent, false on the first size mismatch.
-static bool check_project_config(const DynamicPrintConfig &config_loaded)
-{
-    if(config_loaded.empty()) return true;
-
-    auto *nd = config_loaded.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    if (!nd) return true;
-
-    const size_t extruder_count = nd->size();
-    if (extruder_count <= 1) return true;
-
-    const auto  *opt = dynamic_cast<const ConfigOptionVectorBase *>(config_loaded.option("extruder_type"));
-    const size_t sz  = opt ? opt->size() : 0;
-    if (sz != extruder_count) {
-        BOOST_LOG_TRIVIAL(warning) << "config invalid, extruder_type size expected " << extruder_count << " got " << sz;
-        return false;
-    }
-    return true;
-}
-
 static bool infer_multi_nozzle_diameter_mode(const DynamicPrintConfig &config)
 {
     std::set<std::string> diameters;
@@ -12490,6 +12453,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                             << boost::format("plate_data.size %1%, project_preset.size %2%, is_bbs_3mf %3%, file_version %4% \n") % plate_data.size() %
                                                    project_presets.size() % (en_3mf_file_type == En3mfType::From_BBS) % file_version.to_string();
 
+                    // Decide before need_filament_add: geometry-only loads must add the filaments their parts use.
+                    if (load_config && en_3mf_file_type != En3mfType::From_Prusa && !check_project_config(config_loaded)) {
+                        load_config = false;
+                        q->get_notification_manager()->push_notification(NotificationType::CustomNotification,
+                            NotificationManager::NotificationLevel::WarningNotificationLevel,
+                            into_u8(_L("The 3mf file has invalid config, load geometry data only")));
+                    }
+
                     // 1. add extruder for prusa model if the number of existing extruders is not enough
                     // 2. add extruder for BBS or Other model if only import geometry
                     const bool need_filament_add = en_3mf_file_type == En3mfType::From_Prusa || (load_model && !load_config);
@@ -12505,14 +12476,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         load_type = LoadType::Unknown;
                     else
                         load_type  = static_cast<LoadType>(std::stoi(import_project_action));
-
-                    // check the loaded config if its not from BBL
-                    if (!is_bbl_vendor_config(config_loaded, wxGetApp().preset_bundle) && !check_project_config(config_loaded)) {
-                        load_config = false;
-                        q->get_notification_manager()->push_notification(NotificationType::CustomNotification,
-                            NotificationManager::NotificationLevel::WarningNotificationLevel,
-                            into_u8(_L("The 3mf file has invalid config, load geometry data only")));
-                    }
 
                     // BBS: version check
                     Semver app_version = *(Semver::parse(SLIC3R_VERSION));

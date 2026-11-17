@@ -5495,6 +5495,37 @@ void convert_filament_preset_name(std::string &machine_name, std::string &filame
     std::string filament_new_name;
     if (find_filament_preset_map_name(machine_name, filament_name, filament_new_name)) filament_name = filament_new_name;
 }
+
+bool check_project_config(const DynamicPrintConfig &config)
+{
+    if (config.empty()) return true;
+
+    // The loader gets this config laid over FullPrintConfig defaults (see Plater load_files).
+    // Defaults add extruder_variant_list, filament_self_index {1} and filament_extruder_variant {1},
+    // so check the variant lengths on the same merged view, or the loader can still throw.
+    DynamicPrintConfig merged;
+    merged.apply(static_cast<const ConfigBase &>(FullPrintConfig::defaults()));
+    merged.apply(config);
+    if (!filament_variant_lengths_valid(merged)) {
+        BOOST_LOG_TRIVIAL(warning) << "config invalid, filament_extruder_variant or filament_self_index does not cover all filaments";
+        return false;
+    }
+
+    // Check the extruder options on the raw config: a default extruder_type would hide a missing one.
+    auto *nd = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    if (!nd) return true;
+
+    const size_t extruder_count = nd->size();
+    if (extruder_count <= 1) return true;
+
+    const auto  *opt = dynamic_cast<const ConfigOptionVectorBase *>(config.option("extruder_type"));
+    const size_t sz  = opt ? opt->size() : 0;
+    if (sz != extruder_count) {
+        BOOST_LOG_TRIVIAL(warning) << "config invalid, extruder_type size expected " << extruder_count << " got " << sz;
+        return false;
+    }
+    return true;
+}
 // Load a config file from a boost property_tree. This is a private method called from load_config_file.
 // is_external == false on if called from ConfigWizard
 void PresetBundle::load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config, Semver file_version, bool selected)
@@ -5569,6 +5600,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             filament_self_indice[index] = index + 1;
     }
     // Check before moving filament_self_index out of config. The move leaves that option empty.
+    // GUI 3mf imports run check_project_config first, so reaching this throw there means the two checks diverged.
     if (!filament_variant_lengths_valid(config)) {
         assert(false);
         BOOST_LOG_TRIVIAL(error) << boost::format("invalid config file %1%, can not find suitable filament_extruder_variant or filament_self_index") % name_or_path;

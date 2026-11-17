@@ -596,6 +596,17 @@ ENABLE_ENUM_BITMASK_OPERATORS(PresetBundle::LoadConfigBundleAttribute)
 //add these functions here to allow other access
 extern void convert_filament_preset_name(std::string& machine_name, std::string& filament_name);
 
+/**
+ * \brief Check the per-extruder and per-filament option sizes of a project config read from a 3mf
+ *
+ * \param config  config exactly as read from the file, before defaults are applied
+ * \return false when a per-extruder or per-filament option size rule fails
+ * \note Pass the raw file config. The function checks the filament variant sizes on the config
+ *       merged over FullPrintConfig defaults, because the loader sees that view. It checks
+ *       extruder_type on the raw config, because a default would hide a missing option.
+ */
+bool check_project_config(const DynamicPrintConfig &config);
+
 } // namespace Slic3r
 
 #endif /* slic3r_PresetBundle_hpp_ */
