@@ -676,6 +676,7 @@ namespace Slic3r
                 m_p_layer_manager->update_per_move_data(m_view_type, *m_gcode_result);
 
                 render_toolpaths();
+                render_center_of_gravity_marker();
                 //render_shells();
                 render_legend(m_legend_height, canvas_width, canvas_height, right_margin);
                 if (m_user_mode != wxGetApp().get_mode()) {

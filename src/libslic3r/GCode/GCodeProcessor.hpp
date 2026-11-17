@@ -11,6 +11,8 @@
 
 #include <cstdint>
 #include <array>
+#include <map>
+#include <unordered_map>
 #include <vector>
 #include <regex>
 #include <mutex>
@@ -174,6 +176,51 @@ namespace Slic3r {
 
     struct GCodeProcessorResult
     {
+        struct MassProperties
+        {
+            double volume_mm3{ 0.0 };
+            double mass_g{ 0.0 };
+            Vec3d first_moment_g_mm{ Vec3d::Zero() };
+            bool contains_unknown_roles{ false };
+            bool used_default_density{ false };
+            bool used_default_filament_diameter{ false };
+            bool unsupported_flow_override{ false };
+            bool unsupported_volumetric_extrusion{ false };
+
+            bool valid() const;
+            void merge(const MassProperties& other);
+            Vec3d center_of_mass() const;
+        };
+
+        struct CenterOfMassResult
+        {
+            struct ObjectMassProperties
+            {
+                std::array<MassProperties, static_cast<size_t>(ExtrusionRole::erCount)> by_role;
+
+                void reset();
+                MassProperties& for_role(ExtrusionRole role);
+                const MassProperties& for_role(ExtrusionRole role) const;
+                MassProperties finished_model() const;
+                MassProperties all_spatial_extrusions() const;
+            };
+
+            std::array<MassProperties, static_cast<size_t>(ExtrusionRole::erCount)> by_role;
+            std::unordered_map<int, ObjectMassProperties> by_object;
+            bool contains_unknown_roles{ false };
+            bool used_default_density{ false };
+            bool used_default_filament_diameter{ false };
+            bool unsupported_flow_override{ false };
+            bool unsupported_volumetric_extrusion{ false };
+
+            void reset();
+            MassProperties& for_role(ExtrusionRole role);
+            const MassProperties& for_role(ExtrusionRole role) const;
+            MassProperties finished_model() const;
+            MassProperties all_spatial_extrusions() const;
+            std::vector<int> sorted_object_labels() const;
+        };
+
         struct FilamentSequenceHash
         {
             uint64_t operator()(const std::vector<unsigned int>& layer_filament) const {
@@ -268,6 +315,43 @@ namespace Slic3r {
         std::string filename;
         unsigned int id;
         std::vector<MoveVertex> moves;
+        // Sparse command state not encoded in MoveVertex. No mass calculation
+        // takes place during parsing; these changes are replayed on demand.
+        struct ExtrusionStateChange
+        {
+            enum class Type : unsigned char { Tool, Flow, Volumetric };
+            size_t move_index;
+            Type type;
+            int tool_id;
+            double value{ 0.0 }; // flow factor, or an M200 diameter override
+            bool enabled{ false };
+            bool invalid{ false };
+        };
+        std::vector<ExtrusionStateChange> extrusion_state_changes;
+        std::optional<Vec3d> extrusion_start_position;
+        std::vector<bool> filament_diameter_configured;
+        std::vector<bool> filament_density_configured;
+        struct CenterOfMassCache
+        {
+            unsigned int result_id;
+            size_t moves_count;
+            size_t state_changes_count;
+            Vec3d start_position;
+            std::vector<float> filament_diameters;
+            std::vector<float> filament_densities;
+            std::vector<bool> diameter_configured;
+            std::vector<bool> density_configured;
+            CenterOfMassResult result;
+        };
+        mutable std::optional<CenterOfMassCache> center_of_mass_cache;
+
+        // Called on demand while the result is locked by its preview consumer.
+        // Never replaces the sliced moves, statistics, or printer metadata.
+        const CenterOfMassResult& get_center_of_mass() const;
+        // Call after in-place edits to move positions, roles or state events.
+        void invalidate_center_of_mass() const { center_of_mass_cache.reset(); }
+        // Replace post-processed geometry/material inputs, not printer mapping.
+        void update_moves_from(GCodeProcessorResult&& other);
         // Positions of ends of lines of the final G-code this->filename after TimeProcessor::post_process() finalizes the G-code.
         std::vector<size_t> lines_ends;
         Pointfs printable_area;
@@ -337,6 +421,11 @@ namespace Slic3r {
             filename = other.filename;
             id = other.id;
             moves = other.moves;
+            extrusion_state_changes = other.extrusion_state_changes;
+            extrusion_start_position = other.extrusion_start_position;
+            filament_diameter_configured = other.filament_diameter_configured;
+            filament_density_configured = other.filament_density_configured;
+            center_of_mass_cache.reset();
             lines_ends = other.lines_ends;
             printable_area = other.printable_area;
             bed_exclude_area = other.bed_exclude_area;
@@ -1316,6 +1405,10 @@ namespace Slic3r {
         // Load a G-code into a stand-alone G-code viewer.
         // throws CanceledException through print->throw_if_canceled() (sent by the caller as callback).
         void process_file(const std::string& filename, std::function<void()> cancel_callback = nullptr);
+        // Re-parse generated G-code using the live print config as a fallback. A valid
+        // embedded config block still overrides or augments the supplied config.
+        void process_file(const std::string& filename, const DynamicPrintConfig& fallback_config,
+                          std::function<void()> cancel_callback = nullptr);
 
         // Streaming interface, for processing G-codes just generated by PrusaSlicer in a pipelined fashion.
         void initialize(const std::string& filename);
@@ -1470,6 +1563,9 @@ namespace Slic3r {
         //BBS: wait chamber temperature
         void process_M191(const GCodeReader::GCodeLine& line);
 
+        // Set volumetric extrusion mode.
+        void process_M200(const GCodeReader::GCodeLine& line);
+
         // Set max printing acceleration
         void process_M201(const GCodeReader::GCodeLine& line);
 
@@ -1516,6 +1612,8 @@ namespace Slic3r {
         void process_filament_change(int filament_id, int nozzle_id);
         //BBS: different path_type is only used for arc move
         void store_move_vertex(EMoveType type, EMovePathType path_type = EMovePathType::Noop_move);
+        void process_file(const std::string& filename, std::function<void()> cancel_callback,
+                          const DynamicPrintConfig* fallback_config);
 
         void set_extrusion_role(ExtrusionRole role);
         void set_skippable_type(const std::string_view type);
@@ -1561,4 +1659,3 @@ namespace Slic3r {
 } /* namespace Slic3r */
 
 #endif /* slic3r_GCodeProcessor_hpp_ */
-
