@@ -553,6 +553,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             m_Res["command"] = "response_userguide_profile";
             m_Res["sequence_id"] = "10001";
             m_Res["response"]        = m_ProfileJson;
+            m_Res["response"]["region_selected"] = m_Region;
 
             //wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
             wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', true));
