@@ -478,13 +478,5 @@
   "TPU High Flow": "TPU High Flow",
   "TPU285": "TPU285",
   "E3D High Flow": "E3D High Flow",
-  "Laser": "Laser",
-  "Filament Manager": "Filament Manager",
-  "System presets": "System presets",
-  "Search filament": "Search filament",
-  "Other": "Other",
-  "Unsupported Filaments": "Unsupported Filaments",
-  "No filaments": "No filaments",
-  "Recently used": "Recently used",
-  "{{slot}} slot": "{{slot}} slot"
+  "Laser": "Laser"
 }

@@ -57,7 +57,6 @@ static const char *ViewNameForMode(DeviceWebHostMode mode)
     case DeviceWebHostMode::DevicePageControlPanel: return "ControlPanel";
     case DeviceWebHostMode::DevicePageFilamentLoad: return "FilamentLoad";
     case DeviceWebHostMode::DevicePageHotendRack: return "HotendRack";
-    case DeviceWebHostMode::DevicePageFilamentSelect: return "FilamentSelect";
     case DeviceWebHostMode::PrintQueue: return "PrintQueue";
     case DeviceWebHostMode::AllForDebug: return "DeviceWebDebug";
     default: return "DeviceWeb";
@@ -200,9 +199,6 @@ void DeviceWebHost::EnsureBuilt()
         }
         if (m_mode == DeviceWebHostMode::DevicePageHotendRack || m_mode == DeviceWebHostMode::AllForDebug) {
             m_device_web_mgr->Register(std::make_unique<DevicePageHotendRackVM>());
-        }
-        if (m_mode == DeviceWebHostMode::DevicePageFilamentSelect || m_mode == DeviceWebHostMode::AllForDebug) {
-            m_device_web_mgr->Register(std::make_unique<FilamentSelectVM>());
         }
         if (m_mode == DeviceWebHostMode::PrintQueue || m_mode == DeviceWebHostMode::AllForDebug) {
             auto print_queue_vm = std::make_unique<PrintQueueVM>();
@@ -747,13 +743,6 @@ ConnectedSlotsVM* DeviceWebHost::GetConnectedSlotsVM() const
     if (!m_device_web_mgr) return nullptr;
     return dynamic_cast<ConnectedSlotsVM*>(
         m_device_web_mgr->Find("device_page_connected_slots"));
-}
-
-FilamentSelectVM* DeviceWebHost::GetFilamentSelectVM() const
-{
-    if (!m_device_web_mgr) return nullptr;
-    return dynamic_cast<FilamentSelectVM*>(
-        m_device_web_mgr->Find(FilamentSelectSchema::module_name));
 }
 
 // Design width (in DIP/logical px) of the AMS mapping hotend popup. The page is

@@ -17,7 +17,6 @@
 #include "MaterialColorLabel.hpp"
 #include "FilamentBitmapUtils.hpp"
 #include "FilamentSelectDialog.hpp"
-#include "DeviceWeb/ViewModels/DevicePage/FilamentSelect/FilamentSelectEntry.hpp"
 
 
 #include "DeviceCore/DevConfig.h"
@@ -2128,23 +2127,42 @@ void AMSMaterialsSetting::on_open_filament_select_dialog()
 
     const std::string nozzle_diameter_str = slot_nozzle_diameter_str();
 
-    FilamentSelectInput                  in;
-    std::map<std::string, FilamentInfos> tmp_map;
-    get_filaments_info(obj, nozzle_diameter_str, in.filament_items, tmp_map,
-                       in.vendors, in.types);
+    wxArrayString                          filament_items;
+    std::map<std::string, FilamentInfos>   tmp_map;
+    std::unordered_map<wxString, wxString> query_filament_vendors;
+    std::unordered_map<wxString, wxString> query_filament_types;
+    get_filaments_info(obj, nozzle_diameter_str, filament_items, tmp_map,
+                       query_filament_vendors, query_filament_types);
 
-    // Current alias for preselection in the System Presets tab.
+    // Current alias for preselection in FilamentSelectDialog's System Presets tab.
     // m_selected_spool_id is empty when the current selection is a system preset.
+    wxString current_alias;
     if (m_selected_spool_id.empty())
-        in.current_alias = m_current_filament_alias;
+        current_alias = m_current_filament_alias;
 
+    std::set<std::string> printer_names;
     if (PresetBundle* preset_bundle = wxGetApp().preset_bundle)
-        in.printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(
+        printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(
             DevPrinterConfigUtil::get_printer_display_name(obj->printer_type), nozzle_diameter_str);
 
-    // Web dialog by default; STUDIO_FILAMENT_SELECT_WX_VERSION=1 falls back to the
-    // native FilamentSelectDialog.
-    const FilamentSelectResult res = show_filament_select_dialog(this, in);
+    FilamentSelectDialog dlg(this);
+
+    const int     cascade  = FromDIP(20);
+    const wxPoint base_pos = this->GetScreenPosition();
+    const wxSize  dlg_size = dlg.GetSize();
+    const wxRect  area     = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea();
+    int pos_x = base_pos.x + cascade;
+    int pos_y = base_pos.y + cascade;
+    if (pos_x + dlg_size.GetWidth()  > area.GetRight())  pos_x = area.GetRight()  - dlg_size.GetWidth();
+    if (pos_y + dlg_size.GetHeight() > area.GetBottom()) pos_y = area.GetBottom() - dlg_size.GetHeight();
+    if (pos_x < area.GetLeft()) pos_x = area.GetLeft();
+    if (pos_y < area.GetTop())  pos_y = area.GetTop();
+    dlg.Move(wxPoint(pos_x, pos_y));
+
+    dlg.Popup(filament_items, query_filament_vendors, query_filament_types, current_alias,
+              std::move(printer_names));
+
+    const auto& res = dlg.get_result();
     if (!res.is_valid()) return;
 
     if (!res.spool_id.empty()) {

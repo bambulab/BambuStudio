@@ -23,7 +23,6 @@
 #include "ViewModels/DevicePage/ControlPanel/ViewModel.hpp"
 #include "ViewModels/DevicePage/FilamentLoad/ViewModel.hpp"
 #include "ViewModels/DevicePage/HotendRack/ViewModel.hpp"
-#include "ViewModels/DevicePage/FilamentSelect/ViewModel.hpp"
 #include "ViewModels/PrintQueue/PrintQueueVM.hpp"
 #include "slic3r/GUI/PrinterWebView.hpp"
 #include "slic3r/GUI/Widgets/WebViewWatcher.hpp"
@@ -41,7 +40,6 @@ enum class DeviceWebHostMode {
     DevicePageControlPanel,
     DevicePageFilamentLoad,
     DevicePageHotendRack,
-    DevicePageFilamentSelect,
     PrintQueue,
     AllForDebug
 };
@@ -98,11 +96,6 @@ public:
     // Access the registered Connected Slots VM so the host dialog can push a
     // fresh snapshot before the Web side requests state/get.
     ConnectedSlotsVM* GetConnectedSlotsVM() const;
-
-    // Access the registered Select Filament VM so the host dialog can hand it
-    // the input snapshot before the Web side requests state/get.
-    FilamentSelectVM* GetFilamentSelectVM() const;
-
     // Non-owning; null unless this host was built in PrintQueue mode.
     PrintQueueVM* GetPrintQueueVM() const { return m_print_queue_vm; }
 

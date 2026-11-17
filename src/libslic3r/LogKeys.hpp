@@ -53,8 +53,6 @@ inline constexpr std::string_view non_manifold_edges = "non_manifold_edges";
 inline constexpr std::string_view operand_count = "operand_count";
 inline constexpr std::string_view mesh_count  = "mesh_count";
 inline constexpr std::string_view elapsed_ms  = "elapsed_ms";
-inline constexpr std::string_view spool_count = "spool_count";
-inline constexpr std::string_view preset_count = "preset_count";
 
 // Environment, logged once at startup and when OpenGL is set up
 inline constexpr std::string_view app_version  = "app_version";
