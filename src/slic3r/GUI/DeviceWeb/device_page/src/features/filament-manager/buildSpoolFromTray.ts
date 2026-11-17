@@ -135,8 +135,15 @@ export function resolveTrayPreset(
   if (!typeName) {
     const fullType = tray.fila_type || '';
     const typeCandidates = new Set<string>();
-    const vendorsForMatch = brandName ? presets.filter((v) => v.name === brandName) : presets;
-    vendorsForMatch.forEach((v) => v.types.forEach((tp) => { if (tp.name) typeCandidates.add(tp.name); }));
+    const matchingVendors = brandName
+      ? presets.filter((v) => v.name === brandName)
+      : [];
+    const vendorsForMatch = matchingVendors.length > 0
+      ? matchingVendors
+      : presets;
+    vendorsForMatch.forEach((v) => v.types.forEach((tp) => {
+      if (tp.name) typeCandidates.add(tp.name);
+    }));
     let matchedType = '';
     let seriesRemainder = '';
     for (const cand of typeCandidates) {
