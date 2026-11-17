@@ -100,7 +100,7 @@ static BoundingBoxf extrusionentity_extents(const ExtrusionEntity *extrusion_ent
 
 BoundingBoxf get_print_extrusions_extents(const Print &print)
 {
-    //BBS: usage of m_brim are deleted, the bbx of skrit is always larger than that of brim 
+    //BBS: usages of m_brim are deleted, the bbx of skirt is always larger than that of brim 
     BoundingBoxf bbox(extrusionentity_extents(print.skirt()));
     return bbox;
 }
