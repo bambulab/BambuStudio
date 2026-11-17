@@ -2117,7 +2117,7 @@ bool SelectMachineDialog::check_sdcard_for_timelpase(MachineObject* obj)
     return false;
 }
 
-void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxString> params, wxString wiki_url, prePrintInfoStyle style)
+void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxString> params, wxString wiki_url, prePrintInfoStyle style, wxString link_label)
 {
     wxString msg;
     wxString tips;
@@ -2380,7 +2380,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 
     /*enter perpare mode*/
     prepare_mode(false);
-    m_pre_print_checker.add(status, msg, tips, wiki_url, style);
+    m_pre_print_checker.add(status, msg, tips, wiki_url, style, link_label);
 
     update_add_to_queue_button_state(status);
 }
@@ -7682,8 +7682,12 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
 
     wxString suspect_engagement_warning_msg;
     if (!CheckWarningFilamentSuspectEngagement(obj_, suspect_engagement_warning_msg)) {
+        const wxString wiki_url = wxString::FromUTF8(DevPrinterConfigUtil::get_nozzle_feed_suspect_wiki(obj_->printer_type));
         show_status(PrintDialogStatus::PrintStatusFilamentSuspectEngagementWarning,
-                    {suspect_engagement_warning_msg});
+                    {suspect_engagement_warning_msg},
+                    wiki_url,
+                    prePrintInfoStyle::Default,
+                    wiki_url.IsEmpty() ? wxString() : _L("Wiki for more details"));
     }
 
     wxString ext_spool_not_loaded_msg;
@@ -8203,7 +8207,7 @@ bool SelectMachineDialog::CheckWarningFilamentSuspectEngagement(MachineObject* o
         slots_str += wxString::Format("%d", slot_id);
     }
     warning_msg = wxString::Format(
-        _L("Filament in slots %s may not have been properly loaded to the PrintTool. Please see the loading guide."),
+        _L("Filament in slots %s may not have been properly loaded to the PrintTool."),
         slots_str);
     return false;
 }

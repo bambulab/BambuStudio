@@ -18408,8 +18408,11 @@ msgid "The filament in auto refill groups %s may be insufficient for this print.
 msgstr "自动补给组 %s 中的耗材可能不足以完成本次打印。请补充或更换耗材。"
 
 #, c-format, boost-format
-msgid "Filament in slots %s may not have been properly loaded to the PrintTool. Please see the loading guide."
-msgstr "槽位 %s 中的耗材可能未正确装入打印头。请参阅装载指南。"
+msgid "Filament in slots %s may not have been properly loaded to the PrintTool."
+msgstr "%s号槽位的耗材可能未正确加载到打印头。"
+
+msgid "Wiki for more details"
+msgstr "详情查看wiki"
 
 #, c-format, boost-format
 msgid "Filament are not loaded in PrintTool %s. Printing may pause for filament change. Please load the filament before printing."

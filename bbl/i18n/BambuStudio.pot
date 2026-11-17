@@ -18011,7 +18011,10 @@ msgid "The filament in auto refill groups %s may be insufficient for this print.
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Filament in slots %s may not have been properly loaded to the PrintTool. Please see the loading guide."
+msgid "Filament in slots %s may not have been properly loaded to the PrintTool."
+msgstr ""
+
+msgid "Wiki for more details"
 msgstr ""
 
 #, possible-c-format, possible-boost-format

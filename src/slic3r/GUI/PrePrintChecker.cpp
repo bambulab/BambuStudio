@@ -311,7 +311,7 @@ void PrePrintChecker::clear()
     filamentList.clear();
 }
 
-void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip, const wxString& wiki_url, prePrintInfoStyle style)
+void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip, const wxString& wiki_url, prePrintInfoStyle style, const wxString& link_label)
 {
     prePrintInfo info;
 
@@ -342,6 +342,7 @@ void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip, c
     }
 
     info.wiki_url = wiki_url;
+    info.link_label = link_label;
     info.m_style = style;
 
     switch (info.type) {
@@ -473,11 +474,12 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
             }
             else
             {
+                const bool has_custom_link = !info.link_label.empty();
                 message_widget = new WikiWarningLabel(
                     this,
-                    info.msg + _L(" Please "),
-                    _L("refer to the Wiki User Guide"),
-                    _L(" before continuing."),
+                    has_custom_link ? (info.msg + " ") : (info.msg + _L(" Please ")),
+                    has_custom_link ? info.link_label : _L("refer to the Wiki User Guide"),
+                    has_custom_link ? wxString() : _L(" before continuing."),
                     info.wiki_url,
                     _GetLabelColour(info),
                     message_width);

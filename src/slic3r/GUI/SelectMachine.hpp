@@ -501,7 +501,8 @@ public:
     void show_status(PrintDialogStatus status,
                      std::vector<wxString> params = std::vector<wxString>(),
                      wxString wiki_url = wxEmptyString,
-                     prePrintInfoStyle style = prePrintInfoStyle::Default);
+                     prePrintInfoStyle style = prePrintInfoStyle::Default,
+                     wxString link_label = wxEmptyString);
     void sys_color_changed();
     void reset_timeout();
     void update_user_printer();
