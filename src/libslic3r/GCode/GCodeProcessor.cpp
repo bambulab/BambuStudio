@@ -330,6 +330,7 @@ void GCodeProcessor::TimeMachine::reset()
     g1_times_cache = std::vector<G1LinesCacheItem>();
     std::fill(moves_time.begin(), moves_time.end(), 0.0f);
     std::fill(roles_time.begin(), roles_time.end(), 0.0f);
+    filaments_time.clear();
     layers_time = std::vector<float>();
     prepare_time = 0.0f;
     m_additional_time_buffer.clear();
@@ -494,6 +495,7 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, floa
         if (!block.flags.prepare_stage || block.move_type != EMoveType::Travel)
             moves_time[static_cast<size_t>(block.move_type)] += block_time;
         roles_time[static_cast<size_t>(block.role)] += block_time;
+        filaments_time[block.filament_id] += block_time;
         if (block.layer_id >= layers_time.size()) {
             const size_t curr_size = layers_time.size();
             layers_time.resize(block.layer_id);
@@ -2978,6 +2980,21 @@ std::vector<std::pair<ExtrusionRole, float>> GCodeProcessor::get_roles_time(Prin
     return ret;
 }
 
+std::map<size_t, float> GCodeProcessor::get_filaments_time(PrintEstimatedStatistics::ETimeMode mode) const
+{
+    std::map<size_t, float> ret;
+    if (mode < PrintEstimatedStatistics::ETimeMode::Count) {
+        // Blocks before the first tool change (the load in the start G-code) have no filament selected yet;
+        // that time counts for the filament the first tool change loads, or filament 0 if the G-code never changes tool.
+        const auto first_tool_change = std::find_if(m_result.moves.begin(), m_result.moves.end(),
+            [](const GCodeProcessorResult::MoveVertex& move) { return move.type == EMoveType::Tool_change; });
+        const size_t first_filament_id = (first_tool_change != m_result.moves.end()) ? first_tool_change->extruder_id : 0;
+        for (const auto& [filament_id, time] : m_time_processor.machines[static_cast<size_t>(mode)].filaments_time)
+            ret[filament_id < 0 ? first_filament_id : static_cast<size_t>(filament_id)] += time;
+    }
+    return ret;
+}
+
 ConfigSubstitutions load_from_superslicer_gcode_file(const std::string& filename, DynamicPrintConfig& config, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
     // for reference, see: ConfigBase::load_from_gcode_file()
@@ -4359,6 +4376,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         block.move_id = m_result.moves.size(); // new move will be pushed back at the end of the func, so use size of move as idx
         block.g1_line_id = m_g1_line_id;
         block.layer_id = std::max<unsigned int>(1, m_layer_id);
+        block.filament_id = get_filament_id(false);
         block.flags.prepare_stage = m_processing_start_custom_gcode;
 
         // calculates block acceleration，计算当前block的最高能到达的加速度
@@ -4763,6 +4781,7 @@ void GCodeProcessor::process_VG1(const GCodeReader::GCodeLine& line)
         block.move_id = m_result.moves.size();
         block.g1_line_id = m_g1_line_id;
         block.layer_id = std::max<unsigned int>(1, m_layer_id);
+        block.filament_id = get_filament_id(false);
         block.flags.prepare_stage = m_processing_start_custom_gcode;
 
         //BBS: limite the cruise according to centripetal acceleration
@@ -5167,6 +5186,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         block.move_id = m_result.moves.size();
         block.g1_line_id = m_g1_line_id;
         block.layer_id = std::max<unsigned int>(1, m_layer_id);
+        block.filament_id = get_filament_id(false);
         block.flags.prepare_stage = m_processing_start_custom_gcode;
 
         // BBS: calculates block cruise feedrate
@@ -6198,6 +6218,7 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
         block.role = erFlush;
         block.move_type = EMoveType::Tool_change;
         block.layer_id = std::max<unsigned int>(1, m_layer_id);
+        block.filament_id = get_filament_id(false);
         block.g1_line_id = m_g1_line_id;
         block.flags.prepare_stage = m_processing_start_custom_gcode;
         block.distance = 0;
@@ -6523,6 +6544,7 @@ void GCodeProcessor::update_estimated_times_stats()
         data.custom_gcode_times = get_custom_gcode_times(mode, true);
         data.moves_times = get_moves_time(mode);
         data.roles_times = get_roles_time(mode);
+        data.filaments_times = get_filaments_time(mode);
         data.layers_times = get_layers_time(mode);
     };
 
