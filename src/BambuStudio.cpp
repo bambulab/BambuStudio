@@ -4493,7 +4493,23 @@ int CLI::run(int argc, char **argv)
     2. 判断是否切换了机型，若机型切换，则需要重新设置默认值（此时会将默认参数修复）
     3. 判断是否切换了流量，若流量切换，重新设置对应流量，并复制原先的喷嘴数量
     */
-    bool has_extruder_nozzle_stats = m_print_config.has("extruder_nozzle_stats_new") || m_print_config.has("extruder_nozzle_stats");
+    // A multi-nozzle project's lists describe the printer it was saved for, so they don't fit another printer or nozzle size.
+    if (!new_printer_name.empty() && !current_printer_name.empty() && new_printer_name != current_printer_name) {
+        int project_nozzles = 0;
+        if (const auto *counts = m_print_config.option<ConfigOptionInts>("extruder_nozzle_count"))
+            for (int count : counts->values)
+                project_nozzles += count;
+        if (project_nozzles > 1)
+            for (const char *key : {"extruder_nozzle_stats", "extruder_nozzle_stats_new", "extruder_nozzle_count", "extruder_nozzle_diameter", "extruder_nozzle_slot", "extruder_nozzle_volume_type"})
+                if (!m_extra_config.has(key))
+                    m_print_config.erase(key);
+    }
+    // A project saved by the CLI holds these keys empty.
+    auto has_nozzle_stats = [this](const char *key) {
+        const auto *opt = m_print_config.option<ConfigOptionStrings>(key);
+        return opt != nullptr && !opt->values.empty();
+    };
+    bool has_extruder_nozzle_stats = has_nozzle_stats("extruder_nozzle_stats_new") || has_nozzle_stats("extruder_nozzle_stats");
     ExtruderNozzleStat nozzle_stats_obj;
 
     // Synchronize the default parameters and the ones received on the command line.
