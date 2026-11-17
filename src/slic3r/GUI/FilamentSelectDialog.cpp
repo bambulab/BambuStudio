@@ -1,7 +1,7 @@
 #include "FilamentSelectDialog.hpp"
 #include "AMSMaterialsSetting.hpp"  // AMS_MATERIALS_SETTING_GREY* colour constants
 #include "FilamentBitmapUtils.hpp"
-#include "DeviceCore/DevFilaSystem.h"  // DevFilaSystem::GetTrayNameByAmsSlotId
+#include "DeviceCore/DevDefs.h"  // DevAmsType
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "wxExtensions.hpp"
@@ -159,18 +159,60 @@ int spool_weight_grams(const FilamentSpool& sp)
     return 0;
 }
 
-// Slot badge text — desensitized: slot label only, never dev_id / SN / name.
-wxString slot_label(const FilamentSpool& sp)
+// Virtual tray id of the main external spool.
+constexpr int k_main_ext_spool_ams_id = 255;
+
+wxString ams_type_name(int ams_type)
 {
-    if (!sp.in_printer || sp.slot_id.empty() || sp.ams_id < 0) return wxString();
-    try {
-        const std::string s = DevFilaSystem::GetTrayNameByAmsSlotId(
-            sp.dev_id, sp.ams_id, std::stoi(sp.slot_id), (DevAmsType)sp.ams_type);
-        if (!s.empty()) return wxString::FromUTF8(s);
-    } catch (...) {
-        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+    switch (ams_type) {
+    case 0: return "External Spool";
+    case 1: return "AMS";
+    case 2: return "AMS Lite";
+    case 3: return "AMS 2 Pro";
+    case 4: return "AMS HT";
+    case 5: return "AMS Lite";
+    case 6: return "AMS";
+    case 7: return "AMS";
+    default: return wxString::Format("AMS(%d)", ams_type);
     }
-    return wxString::FromUTF8(sp.slot_id);
+}
+
+wxString in_use_location(const FilamentSpool& sp, bool multi_external)
+{
+    if (sp.device_name.empty()) return wxString();
+
+    wxString ams_name;
+    wxString slot;
+    if (sp.ams_type == DevAmsType::EXT_SPOOL) {
+        // External spools are addressed by their virtual tray id (255 / 254).
+        slot = (multi_external && sp.ams_id >= 0)
+                   ? wxString::Format(_L("External Spool %d"), 256 - sp.ams_id)
+                   : _L("External Spool");
+    } else {
+        if (sp.ams_type >= 0) ams_name = ams_type_name(sp.ams_type);
+        const std::string tray = sp.tray_label();
+        long              slot_index = 0;
+        if (!tray.empty())
+            slot = wxString::FromUTF8(tray);
+        else if (!sp.slot_id.empty() && wxString::FromUTF8(sp.slot_id).ToLong(&slot_index))
+            slot = wxString::Format(_L("Slot %d"), int(slot_index + 1));
+    }
+
+    const wxString sep = " " + wxString::FromUTF8("\xC2\xB7") + " ";
+    wxString       out = wxString::FromUTF8(sp.device_name);
+    for (const wxString& part : {ams_name, slot})
+        if (!part.empty()) out += sep + part;
+    return out;
+}
+
+// Spool note on one line, trimmed; empty = no note.
+wxString note_text(const FilamentSpool& sp)
+{
+    wxString note = wxString::FromUTF8(sp.note);
+    note.Replace("\r\n", " ");
+    note.Replace("\n", " ");
+    note.Replace("\r", " ");
+    return note.Trim(true).Trim(false);
 }
 
 bool is_bbl_brand(const std::string& brand)
@@ -594,6 +636,30 @@ void FilamentSelectDialog::fill_manager_tab()
 
     const std::vector<wxString> recent_ids = load_recent_spool_ids();
 
+    // Devices with a second external spool mounted, so their external spools are
+    // numbered in the "In use" tooltip. Same rule as multiExternalDevIds() of the
+    // Filament Manager page; dev_ids stay in this dialog.
+    m_multi_ext_devs.clear();
+    auto note_multi_ext = [this](const FilamentSpool& sp) {
+        if (sp.in_printer && sp.ams_type == DevAmsType::EXT_SPOOL && !sp.dev_id.empty() &&
+            sp.ams_id >= 0 && sp.ams_id != k_main_ext_spool_ams_id)
+            m_multi_ext_devs.insert(sp.dev_id);
+    };
+    for (const auto& kv : brand_to_spools)
+        for (const FilamentSpool& sp : kv.second) note_multi_ext(sp);
+    for (const FilamentSpool& sp : unsupported) note_multi_ext(sp);
+
+    // Tail column: as wide as the longest badge label in the current language, so
+    // no badge is cut off and the column (and the weight column) lines up on every row.
+    {
+        wxClientDC dc(m_mgr_list);
+        dc.SetFont(Label::Body_12);
+        int text_w = 0;
+        for (const wxString& s : {_L("Recently used"), _L("In use")})
+            text_w = std::max(text_w, dc.GetTextExtent(s).x);
+        m_badge_col_w = std::clamp(text_w + 2 * FromDIP(6), FromDIP(88), FromDIP(160));
+    }
+
     if (brand_to_spools.empty() && unsupported.empty()) {
         auto* empty = new Label(m_mgr_list, _L("No filaments"));
         empty->SetFont(Label::Body_13);
@@ -849,11 +915,15 @@ wxWindow* FilamentSelectDialog::make_spool_row(wxWindow* parent, const FilamentS
         h->Add(new wxStaticBitmap(row, wxID_ANY, chip), 0,
                wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(8));
 
+    // Name line (BBL logo + name) with an optional note line below it, starting
+    // at the logo's left edge; the pair is vertically centred in the row.
+    auto* main_v  = new wxBoxSizer(wxVERTICAL);
+    auto* title_h = new wxBoxSizer(wxHORIZONTAL);
     if (is_bbl_brand(sp.brand)) {
         wxBitmap logo = create_scaled_bitmap("BambuStudioBlack", row, 16);
         if (logo.IsOk())
-            h->Add(new wxStaticBitmap(row, wxID_ANY, logo), 0,
-                   wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(6));
+            title_h->Add(new wxStaticBitmap(row, wxID_ANY, logo), 0,
+                         wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(6));
     }
 
     wxString name;
@@ -870,8 +940,28 @@ wxWindow* FilamentSelectDialog::make_spool_row(wxWindow* parent, const FilamentS
     name_lbl->SetFont(Label::Body_14);
     name_lbl->SetForegroundColour(dimmed ? dlg_text_dimmed() : dlg_text_primary());
     name_lbl->SetMinSize(wxSize(FromDIP(120), -1));
-    name_lbl->SetToolTip(name);
-    h->Add(name_lbl, 1, wxALIGN_CENTER_VERTICAL, 0);
+    title_h->Add(name_lbl, 1, wxALIGN_CENTER_VERTICAL, 0);
+    main_v->Add(title_h, 0, wxEXPAND, 0);
+
+    const wxString note = note_text(sp);
+    if (!note.empty()) {
+        const wxString shown    = wxString::Format(_L("Note: %s"), note);
+        auto*          note_lbl = new Label(row, Label::Body_12, shown, wxST_ELLIPSIZE_END);
+        note_lbl->SetForegroundColour(dimmed ? dlg_text_dimmed() : dlg_text_meta());
+        // Small min width: a long note must ellipsize, not widen the row.
+        note_lbl->SetMinSize(wxSize(FromDIP(20), -1));
+        // Tooltip only when the note is cut off; re-checked on every hover so it
+        // stays right after the dialog is resized.
+        note_lbl->Bind(wxEVT_ENTER_WINDOW, [note_lbl, shown, note](wxMouseEvent& e) {
+            if (note_lbl->GetTextExtent(shown).x > note_lbl->GetClientSize().x)
+                note_lbl->SetToolTip(note);
+            else
+                note_lbl->UnsetToolTip();
+            e.Skip();
+        });
+        main_v->Add(note_lbl, 0, wxEXPAND | wxTOP, FromDIP(2));
+    }
+    h->Add(main_v, 1, wxALIGN_CENTER_VERTICAL, 0);
 
     // weight — fixed min-width so the column edge is consistent across all rows
     auto* w_lbl = new Label(row, wxString::Format("%dg", spool_weight_grams(sp)));
@@ -880,28 +970,31 @@ wxWindow* FilamentSelectDialog::make_spool_row(wxWindow* parent, const FilamentS
     w_lbl->SetMinSize(wxSize(FromDIP(52), -1));
     h->Add(w_lbl, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(8));
 
-    const wxString slot = slot_label(sp);
-    const int badge_col_w  = FromDIP(88);
+    // Tail column: every row uses the same width (m_badge_col_w, fitted to the
+    // longest badge label), so badges are never cut off and columns line up.
+    const int badge_col_w  = m_badge_col_w > 0 ? m_badge_col_w : FromDIP(88);
     const int badge_margin = FromDIP(8);
-    if (!slot.empty()) {
-        auto* slot_lbl = new Label(row, slot + " " + _L("slot"));
-        slot_lbl->SetFont(Label::Body_14);
-        slot_lbl->SetForegroundColour(dimmed ? dlg_text_dimmed() : dlg_text_meta());
-        slot_lbl->SetMinSize(wxSize(badge_col_w, -1));
-        h->Add(slot_lbl, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, badge_margin);
-    } else if (is_recent && !dimmed) {
-        const wxColour green(0, 174, 66);
-        auto* badge = new Button(row, _L("Recently used"));
+    auto make_badge = [&](const wxString& text, const wxColour& fg, const wxColour& bg) {
+        auto* badge = new Button(row, text);
         badge->SetFont(Label::Body_12);
         badge->SetCornerRadius(FromDIP(6));
         badge->SetPaddingSize(wxSize(FromDIP(6), FromDIP(2)));
-        badge->SetBackgroundColor(StateColor(std::make_pair(dlg_badge_bg(), (int)StateColor::Normal)));
-        badge->SetTextColor(StateColor(std::make_pair(green, (int)StateColor::Normal)));
-        badge->SetBorderColor(StateColor(std::make_pair(green, (int)StateColor::Normal)));
+        badge->SetBackgroundColor(sc(bg));
+        badge->SetTextColor(sc(fg));
+        badge->SetBorderColor(sc(fg));
         badge->SetCanFocus(false);
-        badge->SetAllowShrink(true);
         badge->SetMinSize(wxSize(badge_col_w, -1));
+        badge->SetMaxSize(wxSize(badge_col_w, -1));
         h->Add(badge, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, badge_margin);
+        return badge;
+    };
+    if (sp.in_printer) {
+        // In use: dimmed with the row; the tooltip carries the full location.
+        auto* badge = make_badge(_L("In use"), dlg_text_dimmed(), dlg_bg());
+        const wxString location = in_use_location(sp, m_multi_ext_devs.count(sp.dev_id) > 0);
+        if (!location.empty()) badge->SetToolTip(location);
+    } else if (is_recent && !dimmed) {
+        make_badge(_L("Recently used"), wxColour(0, 174, 66), dlg_badge_bg());
     } else {
         auto* placeholder = new wxPanel(row, wxID_ANY, wxDefaultPosition, wxSize(badge_col_w, -1));
         placeholder->SetBackgroundColour(dlg_bg());

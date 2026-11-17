@@ -8781,6 +8781,21 @@ msgstr "槽"
 msgid "Recently used"
 msgstr "最近使用"
 
+#, c-format, boost-format
+msgid "Note: %s"
+msgstr "备注：%s"
+
+msgid "External Spool"
+msgstr "外挂料"
+
+#, c-format, boost-format
+msgid "External Spool %d"
+msgstr "外挂料 %d"
+
+#, c-format, boost-format
+msgid "Slot %d"
+msgstr "第%d槽"
+
 msgid "Loading G-codes"
 msgstr "正在加载G-code"
 
@@ -24610,9 +24625,6 @@ msgstr ""
 
 #~ msgid "If you want to have tighter or looser assemble, you can set this value."
 #~ msgstr "如果你需要更紧或者更松的配合，请调整这个参数"
-
-#~ msgid "External Spool"
-#~ msgstr "外部线轴"
 
 #~ msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
 #~ msgstr "有一些未知或不兼容的耗材映射到通用预设中。请更新Bambu Studio或重新启动Bambu Studio，以检查是否有系统预设的更新。"

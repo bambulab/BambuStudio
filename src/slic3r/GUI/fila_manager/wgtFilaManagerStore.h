@@ -111,6 +111,8 @@ struct FilamentSpool {
 
     nlohmann::json to_json() const;
 
+    std::string tray_label() const;
+
     nlohmann::json to_json_with_runtime() const;
     static FilamentSpool from_json(const nlohmann::json& j);
 

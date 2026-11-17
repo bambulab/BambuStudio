@@ -83,21 +83,22 @@ nlohmann::json FilamentSpool::to_json() const
         {"ams_type",        ams_type},
         {"slot_id",         slot_id},
         {"device_name",     device_name},
-        {"tray_label",      [this]() -> std::string {
-            if (ams_id < 0 || slot_id.empty()) return {};
-            try {
-                // External spools are numbered by their virtual tray id (ams_id); their slot_id is always "0".
-                const bool is_ext = ams_type == static_cast<int>(DevAmsType::EXT_SPOOL);
-                const int  name_slot = is_ext ? ams_id : std::stoi(slot_id);
-                return DevFilaSystem::GetTrayNameByAmsSlotId(dev_id, ams_id, name_slot, (DevAmsType)ams_type);
-            } catch (...) {
-                BOOST_LOG_TRIVIAL(warning) << current_exception_message();
-                return {};
-            }
-
-            return {};
-        }()}
+        {"tray_label",      tray_label()}
     };
+}
+
+std::string FilamentSpool::tray_label() const
+{
+    if (ams_id < 0 || slot_id.empty()) return {};
+    try {
+        // External spools are numbered by their virtual tray id (ams_id); their slot_id is always "0".
+        const bool is_ext    = ams_type == static_cast<int>(DevAmsType::EXT_SPOOL);
+        const int  name_slot = is_ext ? ams_id : std::stoi(slot_id);
+        return DevFilaSystem::GetTrayNameByAmsSlotId(dev_id, ams_id, name_slot, (DevAmsType)ams_type);
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << current_exception_message();
+        return {};
+    }
 }
 
 SoftMatchFilamentItem SoftMatchFilamentItem::from_json(const nlohmann::json& j)
