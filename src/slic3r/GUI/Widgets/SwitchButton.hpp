@@ -119,7 +119,10 @@ private:
     bool m_isSelected;
 };
 
-class RichTooltipPopup : public wxPopupTransientWindow {
+// A plain wxPopupWindow rather than wxPopupTransientWindow: on GTK the transient
+// window grabs the pointer while shown, so the click meant for the button under
+// the cursor never reaches it (see ExpandButton).
+class RichTooltipPopup : public wxPopupWindow {
 public:
     RichTooltipPopup(wxWindow* parent, const wxString& iconName, const wxString& text);
     void ShowAtPosition(wxWindow* anchor);
