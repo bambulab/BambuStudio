@@ -3213,7 +3213,7 @@ void TabPrint::build()
         append_multi_nozzle_auto_line(optgroup, "bottom_shell_layers");
         append_multi_nozzle_auto_line(optgroup, "bottom_shell_thickness");
         append_multi_nozzle_auto_line(optgroup, "bottom_color_penetration_layers");
-        optgroup->append_single_option_line("keep_paint_inside_part");
+        optgroup->append_single_option_line("cross_part_color_penetration");
         optgroup->append_single_option_line("infill_instead_top_bottom_surfaces");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
 
@@ -4449,7 +4449,7 @@ void TabPrintPart::toggle_options()
             const auto *vol = dynamic_cast<const ModelVolume *>(item.first);
             return vol != nullptr && vol->is_model_part();
         });
-    toggle_line("keep_paint_inside_part", all_model_parts);
+    toggle_line("cross_part_color_penetration", all_model_parts);
 }
 
 void TabPrintPart::notify_changed(ObjectBase * object)
@@ -4460,7 +4460,7 @@ void TabPrintPart::notify_changed(ObjectBase * object)
 
 static std::string layer_height = "layer_height";
 TabPrintLayer::TabPrintLayer(ParamsPanel* parent) :
-    TabPrintModel(parent, substruct(concat({ layer_height }, PrintRegionConfig().keys()), { "keep_paint_inside_part" }))
+    TabPrintModel(parent, substruct(concat({ layer_height }, PrintRegionConfig().keys()), { "cross_part_color_penetration" }))
 {
     m_parent_tab = wxGetApp().get_model_tab();
 }

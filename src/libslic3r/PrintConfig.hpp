@@ -1287,7 +1287,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsOrPercentsNullable, vertical_shell_speed))
     ((ConfigOptionInt, top_color_penetration_layers))
     ((ConfigOptionInt, bottom_color_penetration_layers))
-    ((ConfigOptionBool, keep_paint_inside_part))
+    ((ConfigOptionBool, cross_part_color_penetration))
     ((ConfigOptionBool, infill_instead_top_bottom_surfaces))
     ((ConfigOptionEnum<WallSequence>, wall_sequence))
     //BBS

@@ -1698,7 +1698,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "top_shell_layers"
             || opt_key == "top_color_penetration_layers"
             || opt_key == "bottom_color_penetration_layers"
-            || opt_key == "keep_paint_inside_part"
+            || opt_key == "cross_part_color_penetration"
             || opt_key == "infill_instead_top_bottom_surfaces") {
 
             steps.emplace_back(posSlice);
@@ -1954,11 +1954,11 @@ bool PrintObject::limits_color_penetration(const ModelVolume &volume) const
 {
     if (! volume.is_model_part())
         return false;
-    if (const auto *opt = volume.config.get().option<ConfigOptionBool>("keep_paint_inside_part"))
-        return opt->value;
-    if (const auto *opt = this->model_object()->config.get().option<ConfigOptionBool>("keep_paint_inside_part"))
-        return opt->value;
-    return this->print()->default_region_config().keep_paint_inside_part.value;
+    if (const auto *opt = volume.config.get().option<ConfigOptionBool>("cross_part_color_penetration"))
+        return ! opt->value;
+    if (const auto *opt = this->model_object()->config.get().option<ConfigOptionBool>("cross_part_color_penetration"))
+        return ! opt->value;
+    return ! this->print()->default_region_config().cross_part_color_penetration.value;
 }
 
 void PrintObject::build_part_limited_transparent()
