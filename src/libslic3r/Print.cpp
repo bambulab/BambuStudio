@@ -1781,6 +1781,8 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
 
             // validate layer_height
             double layer_height = object->config().layer_height.value;
+            if (layer_height < EPSILON)
+                return  {L("Layer height must be greater than zero"), object, "layer_height"};
             if (layer_height > layer_height_nozzle_limit)
                 return  {L("Layer height cannot exceed nozzle diameter"), object, "layer_height"};
 

@@ -7,10 +7,9 @@ namespace Slic3r {
 std::vector<LayerPrintSequence> get_other_layers_print_sequence(int sequence_nums, const std::vector<int> &sequence)
 {
     std::vector<LayerPrintSequence> res;
-    if (sequence_nums == 0 || sequence.empty())
+    // Every entry is at least the layer range and one filament.
+    if (sequence_nums <= 0 || sequence.empty() || sequence.size() % sequence_nums != 0 || sequence.size() / sequence_nums < 3)
         return res;
-
-    assert(sequence.size() % sequence_nums == 0);
 
     res.reserve(sequence_nums);
     size_t item_nums = sequence.size() / sequence_nums;
