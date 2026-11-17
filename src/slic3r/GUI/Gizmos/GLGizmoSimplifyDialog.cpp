@@ -68,14 +68,11 @@ wxStaticText* create_label(wxWindow *parent, const wxString &text, const wxFont 
 }
 
 // Checkbox with a text label, built the same way as the checkboxes of TipsDialog.
-CheckBox* create_checkbox(wxWindow *parent, const wxString &text, wxSizer *sizer, int gap, wxStaticText **label = nullptr)
+CheckBox* create_checkbox(wxWindow *parent, const wxString &text, wxSizer *sizer, int gap)
 {
     auto box = new CheckBox(parent);
     sizer->Add(box, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, gap);
-    auto text_label = create_label(parent, text, Label::Body_13, TITLE_COLOR);
-    sizer->Add(text_label, 0, wxALIGN_CENTER_VERTICAL);
-    if (label != nullptr)
-        *label = text_label;
+    sizer->Add(create_label(parent, text, Label::Body_13, TITLE_COLOR), 0, wxALIGN_CENTER_VERTICAL);
     return box;
 }
 
@@ -280,8 +277,10 @@ void SimplifyDialog::create_controls()
     m_method_label = create_label(this, _L("Simplification method"), Label::Body_13, TITLE_COLOR);
     method_sizer->Add(m_method_label, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
     m_method_combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
-    // A read-only ComboBox uses Body_14; the design's text is 13 px, like the rest of the dialog.
+    // A read-only ComboBox and its list use Body_14; the design's text is 13 px, like the rest of the
+    // dialog. The list has its own font, so it is set separately.
     m_method_combo->SetFont(Label::Body_13);
+    m_method_combo->GetDropDown().SetFont(Label::Body_13);
     m_method_combo->Append(_L("Detail level"));
     m_method_combo->Append(_L("Decimate ratio"));
     method_sizer->Add(m_method_combo, 0, wxALIGN_CENTER_VERTICAL);
@@ -375,22 +374,23 @@ void SimplifyDialog::create_controls()
     auto wireframe_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_wireframe_box = create_checkbox(this, _L("Show wireframe"), wireframe_sizer, FromDIP(8));
     options_sizer->Add(wireframe_sizer, 0);
-    m_wireframe_box->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &) {
+    // The checkbox handlers skip the event: CheckBox swaps its checked / unchecked image in its own
+    // handler, which runs after these (wx calls the handler bound last first) only when they skip.
+    m_wireframe_box->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &e) {
+        e.Skip();
         if (m_updating || m_owner == nullptr) return;
         m_owner->on_dialog_wireframe_changed(m_wireframe_box->GetValue());
     });
 
     auto preserve_sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxStaticText *preserve_label = nullptr;
-    m_preserve_box = create_checkbox(this, _L("Keep all painting"), preserve_sizer, FromDIP(8), &preserve_label);
-    // Same tooltip as the ImGui panel had.
-    const wxString preserve_tip = _L("Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result.");
-    m_preserve_box->SetToolTip(preserve_tip);
-    preserve_label->SetToolTip(preserve_tip);
+    // No tooltip: the text below the box already says what checking or unchecking it does (the ImGui
+    // panel's tooltip was the one of Mesh Boolean, worded for its result).
+    m_preserve_box = create_checkbox(this, _L("Keep all painting"), preserve_sizer, FromDIP(8));
     options_sizer->Add(preserve_sizer, 0, wxTOP, row_gap);
     m_options = options_sizer;
     m_preserve_row = preserve_sizer;
-    m_preserve_box->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &) {
+    m_preserve_box->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &e) {
+        e.Skip();
         if (m_updating || m_owner == nullptr) return;
         m_owner->on_dialog_preserve_changed(m_preserve_box->GetValue());
     });
@@ -459,8 +459,17 @@ void SimplifyDialog::create_controls()
 
 void SimplifyDialog::apply_sizes()
 {
-    // The combo fills the rest of the design's method row.
-    m_method_combo->SetMinSize(wxSize(FromDIP(DESIGN_METHOD_ROW) - m_method_label->GetBestSize().GetWidth() - FromDIP(8), -1));
+    // The combo fills the rest of the design's method row, but is never narrower than its longest
+    // item: a long label (e.g. English) leaves almost nothing of that row, and the item was cut off.
+    // It still stays within the content width; a longer item is then ellipsized by the combo.
+    const int label_width = m_method_label->GetBestSize().GetWidth() + FromDIP(8);
+    int item_width = 0;
+    for (unsigned int i = 0; i < m_method_combo->GetCount(); ++i)
+        item_width = std::max(item_width, m_method_combo->GetTextExtent(m_method_combo->GetString(i)).GetWidth());
+    // Room for the drop-down arrow on the left and the padding on both sides (see TextInput::render()).
+    const int combo_width = std::max(FromDIP(DESIGN_METHOD_ROW) - label_width, item_width + FromDIP(36));
+    const int combo_max   = FromDIP(DESIGN_WINDOW_WIDTH - 2 * DESIGN_BORDER) - label_width;
+    m_method_combo->SetMinSize(wxSize(std::min(combo_width, combo_max), -1));
 
     // Wide enough for the longest value, so the number is visible.
     const int ratio_width = m_ratio_input->GetTextCtrl()->GetTextExtent("100.00%").GetWidth() + FromDIP(12);
