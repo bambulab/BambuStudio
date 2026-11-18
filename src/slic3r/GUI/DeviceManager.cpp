@@ -3300,7 +3300,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     }
 
                      DevStorage::ParseV1_0(jj, m_storage);
-                     DevStorage::ParseV2_0(jj, m_storage);
 
                     if (!key_field_only) {
                         if (jj.contains("home_flag")) { parse_home_flag(jj["home_flag"].get<int>());}

@@ -620,49 +620,32 @@ std::string SendToPrinterDialog::get_storage_selected()
     return "";
 }
 
-static DevStorage *get_selected_storage()
-{
-    DeviceManager *dev = wxGetApp().getDeviceManager();
-    MachineObject *obj = dev ? dev->get_selected_machine() : nullptr;
-    return obj ? obj->GetStorage() : nullptr;
-}
-
-bool SendToPrinterDialog::has_present_storage(const std::vector<std::string> &storages) const
-{
-    if (storages.empty())
-        return true;
-
-    DevStorage *storage = get_selected_storage();
-    return storage && storage->HasAnyPresentStorage(storages);
-}
-
 void SendToPrinterDialog::update_storage_list(const std::vector<std::string> &storages)
 {
     m_storage_sizer->Clear();
     m_storage_radioBox.clear();
     m_storage_panel->DestroyChildren();
 
-    DevStorage *storage = get_selected_storage();
-
     for (int i=0; i < storages.size(); i++) {
         RadioBox* radiobox = new RadioBox(m_storage_panel);
         Label    *storage_text = new Label(m_storage_panel);
 
-        bool is_external = storage ? storage->IsExternalStorage(storages[i]) : (storages[i] != EMMC_STORAGE);
-        bool is_present  = storage && storage->IsStoragePresent(storages[i]);
-
-        if (is_external)
-            storage_text->SetLabel(wxString::FromUTF8(_CTX_utf8(L_CONTEXT("External", "sendtoprint"), "sendtoprint")));
-        else if (storages[i] == EMMC_STORAGE)
+        if (storages[i] == "emmc")
+        {
             storage_text->SetLabel(wxString::FromUTF8(_CTX_utf8(L_CONTEXT("Cache", "sendtoprint"), "sendtoprint")));
+            storage_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#000000")));
+        }
         else
-            storage_text->SetLabel(_L("Internal"));
-        storage_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#000000")));
+        {
+            storage_text->SetLabel(wxString::FromUTF8(_CTX_utf8(L_CONTEXT("External", "sendtoprint"), "sendtoprint")));
+            storage_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#000000")));
+        }
 
 
         //radiobox->SetLabel(storages[i]);
-        if (!is_present)
+        if (storages[i] != "emmc" && m_if_has_sdcard == false)
         {
+            storage_text->SetLabel(wxString::FromUTF8(_CTX_utf8(L_CONTEXT("External", "sendtoprint"), "sendtoprint")));
             radiobox->Disable();
             storage_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#CECECE")));
         }
@@ -687,15 +670,10 @@ void SendToPrinterDialog::update_storage_list(const std::vector<std::string> &st
 
     if (m_storage_radioBox.size() > 0) {
         m_storage_sizer->Add(0, 0, 0, wxEXPAND, FromDIP(6));
-
-        auto iter = std::find_if(m_storage_radioBox.begin(), m_storage_radioBox.end(),
-                                 [](RadioBox *radio) { return radio->IsEnabled(); });
-        if (iter != m_storage_radioBox.end()) {
-            (*iter)->SetValue(true);
-            m_selected_storage = storages[iter - m_storage_radioBox.begin()];
-        } else {
-            m_selected_storage.clear();
-        }
+        auto radio = m_storage_radioBox.front();
+        radio->SetValue(true);
+        if (storages.size() > 0)
+           m_selected_storage = storages[0];
     }
 
     m_storage_panel->Layout();
@@ -1009,7 +987,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 #endif
         m_send_job->connection_type     = obj_->connection_type();
         m_send_job->cloud_print_only    = true;
-        m_send_job->has_sdcard          = obj_->GetStorage()->IsExternalStorageUsable();
+        m_send_job->has_sdcard          = obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_NORMAL;
         m_send_job->set_project_name(m_current_project_name.utf8_string());
 
         enable_prepare_mode = false;
@@ -1323,6 +1301,10 @@ void SendToPrinterDialog::update_show_status()
             {
                 show_status(PrintDialogStatus::PrintStatusConnecting);
                 m_device_select.swap(dev_id);
+                if (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD)
+                    m_if_has_sdcard = false;
+                else
+                    m_if_has_sdcard = true;
 
                 if (m_filetransfer_tunnel) {
                     m_filetransfer_tunnel.reset();
@@ -1340,9 +1322,9 @@ void SendToPrinterDialog::update_show_status()
                 update_print_status_msg(_L("Connection timed out, please check your network."), true, true);
             }
             else
-            {    //use ftp
-                if (!obj_->GetStorage()->HasExternalStorage())
-                {
+            {
+                //use ftp
+                if (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD) {
                     show_status(PrintDialogStatus::PrintStatusNoSdcard);
                     return;
                 }
@@ -1920,7 +1902,7 @@ void SendToPrinterDialog::CreateMediaAbilityJob()
                          m_ability_list.push_back(it.get<std::string>());
 
                      BOOST_LOG_TRIVIAL(info) << "CreateMediaAbilityJob::" << "request mediaability success." << json_res;
-                     if (!has_present_storage(m_ability_list))
+                     if (m_if_has_sdcard == false && m_ability_list.size() == 1)
                      {
                          show_status(PrintDialogStatus::PrintStatusNoSdcard);
                          return;

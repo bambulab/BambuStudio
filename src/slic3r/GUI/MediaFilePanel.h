@@ -49,7 +49,6 @@ public:
 private:
     void modeChanged(wxCommandEvent & e);
     void updateStorageTabVisibility();
-    std::string storageParam() const;
 
     void fetchUrl(boost::weak_ptr<PrinterFileSystem> fs);
 

@@ -203,7 +203,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
         auto    type = std::find(buttons, buttons + sizeof(buttons) / sizeof(buttons[0]), e.GetEventObject()) - buttons;
         if (m_last_type == type)
             return;
-        m_image_grid->SetFileType(type, storageParam());
+        m_image_grid->SetFileType(type, m_external ? "" : "internal");
         buttons[m_last_type]->SetValue(!buttons[m_last_type]->GetValue());
         m_last_type = type;
         buttons[m_last_type]->SetValue(!buttons[m_last_type]->GetValue());
@@ -323,7 +323,6 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
         m_image_grid->SetFileSystem(nullptr);
         fs->Unbind(EVT_MODE_CHANGED, &MediaFilePanel::modeChanged, this);
         fs->Stop(true);
-        fs->SetEvtHandlerEnabled(false);
     }
     m_button_refresh->Enable(false);
     m_button_management->Enable(false);
@@ -335,7 +334,7 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
         boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem);
         fs->Attached();
         m_image_grid->SetFileSystem(fs);
-        m_image_grid->SetFileType(m_last_type, storageParam());
+        m_image_grid->SetFileType(m_last_type, m_external ? "" : "internal");
         fs->Bind(EVT_FILE_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto &e) {
             e.Skip();
             boost::shared_ptr fs(wfs.lock());
@@ -472,12 +471,7 @@ void MediaFilePanel::SwitchStorage(bool external)
         return;
     m_external = external;
     m_storage_tab->SelectItem(external ? 0 : 1);
-    m_image_grid->SetFileType(m_last_type, storageParam());
-}
-
-std::string MediaFilePanel::storageParam() const
-{
-    return DevStorage::GetFileSystemStorageParam(m_external ? DevStorage::StorageType::External : DevStorage::StorageType::Internal);
+    m_image_grid->SetFileType(m_last_type, m_external ? "" : "internal");
 }
 
 void MediaFilePanel::updateStorageTabVisibility()
