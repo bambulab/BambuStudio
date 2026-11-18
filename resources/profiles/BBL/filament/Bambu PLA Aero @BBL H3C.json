@@ -6,25 +6,15 @@
     "setting_id": "GFSA11_14",
     "instantiation": "true",
     "additional_cooling_fan_speed": [
-        "0"
+        "10"
     ],
     "close_optional_fan_first_x_layers": [
         "1"
-    ],
-    "eng_plate_temp": [
-        "55"
-    ],
-    "eng_plate_temp_initial_layer": [
-        "55"
     ],
     "filament_change_length": [
         "0"
     ],
     "filament_change_length_nc": [
-        "0"
-    ],
-    "filament_cooling_before_tower": [
-        "0",
         "0"
     ],
     "filament_flow_ratio": [
