@@ -373,6 +373,7 @@ function normalizeExtruderView(raw: unknown): ExtruderView {
     has_filament: !!item.has_filament,
     filament_color: asString(item.filament_color),
     icon: asString(item.icon),
+    nozzle_label: asString(item.nozzle_label),
   };
 }
 

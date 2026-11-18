@@ -31,6 +31,8 @@ export const NOZZLE_ICON = {
 // AMSextruder dual: wxLEFT FromDIP(2) between left_nozzle and right_nozzle.
 export const NOZZLE_GAP = 2;
 
+export const NOZZLE_LABEL = { gap: 6, fontSize: 12 } as const;
+
 export const HUM_ICON = { numbered: 20, plain: 16, sun: 20, heating: 16 } as const;
 
 export const TRAY_ICON = { sideWidth: 52, midWidth: 50, height: 72 } as const;

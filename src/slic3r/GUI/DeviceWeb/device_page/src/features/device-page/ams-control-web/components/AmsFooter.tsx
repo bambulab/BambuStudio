@@ -1,8 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CONTENT_WIDTH, EXTRUDER, FOOTER_BUTTON, FOOTER_GAP, FOOTER_LEFT_INSET, FOOTER_SIDE_WIDTH, SETTINGS_ICON, px } from '../dip';
+import {
+  COLORS,
+  CONTENT_WIDTH,
+  EXTRUDER,
+  FOOTER_BUTTON,
+  FOOTER_GAP,
+  FOOTER_LEFT_INSET,
+  FOOTER_SIDE_WIDTH,
+  NOZZLE_LABEL,
+  SETTINGS_ICON,
+  px,
+} from '../dip';
 import { extruderIconName, extrudersLeftToRight } from '../displayAdapters';
-import { nozzleIconLefts } from '../geometry';
+import { extruderIconSize, nozzleIconLefts } from '../geometry';
 import type { AmsControlActions, ExtruderArea } from '../types';
 import { amsSettingHoverUrl, amsSettingNormalUrl, amsSettingPressUrl } from '../assets';
 import { ExtruderIcon } from './ExtruderIcon';
@@ -91,6 +102,32 @@ export function AmsFooter({
               />
             </div>
           ))
+        : null}
+
+      {extruderArea.visible
+        ? extruders.map((extruder, index) => {
+            if (!extruder.nozzle_label) return null;
+            const cell = extruderIconSize(iconNames[index]);
+            const onLeft = extruders.length >= 2 && index === 0;
+            const sideStyle = onLeft
+              ? { right: px(CONTENT_WIDTH - iconLefts[index] + NOZZLE_LABEL.gap) }
+              : { left: px(iconLefts[index] + cell.width + NOZZLE_LABEL.gap) };
+            return (
+              <span
+                key={`nozzle-label-${extruder.id}`}
+                data-testid={`ams-nozzle-label-${extruder.id}`}
+                className="absolute top-0 flex items-center whitespace-nowrap"
+                style={{
+                  ...sideStyle,
+                  height: px(cell.height),
+                  fontSize: px(NOZZLE_LABEL.fontSize),
+                  color: COLORS.text,
+                }}
+              >
+                {extruder.nozzle_label}
+              </span>
+            );
+          })
         : null}
 
       <div

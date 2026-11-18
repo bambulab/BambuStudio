@@ -213,6 +213,7 @@ namespace extruder_view {
     inline constexpr const char* filament_color = "filament_color";
     // Asset key from AMSextruder::updateNozzleNum: left/right or single_n / single_xp.
     inline constexpr const char* icon           = "icon";
+    inline constexpr const char* nozzle_label   = "nozzle_label";
 } // namespace extruder_view
 
 namespace values {
@@ -437,6 +438,7 @@ struct ExtruderView
     bool        has_filament = false;
     std::string filament_color;
     std::string icon         = values::extruder_icon::single_nozzle_xp;
+    std::string nozzle_label;
 };
 
 struct ExtruderArea
@@ -642,6 +644,7 @@ inline void to_json(nlohmann::json& j, const ExtruderView& v)
         {extruder_view::has_filament,   v.has_filament},
         {extruder_view::filament_color, v.filament_color},
         {extruder_view::icon,           v.icon},
+        {extruder_view::nozzle_label,   v.nozzle_label},
     };
 }
 
