@@ -33,6 +33,7 @@ add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS})
 
 add_executable(support_material_on_wipe_tower_tests
 	fff_print_tests.cpp
+	libslic3r_link_stubs.cpp
 	test_data.cpp
 	test_data.hpp
 	test_support_material_on_wipe_tower.cpp
@@ -49,6 +50,7 @@ add_test(support_material_on_wipe_tower_tests support_material_on_wipe_tower_tes
 
 add_executable(periodic_modifier_tests
 	fff_print_tests.cpp
+	libslic3r_link_stubs.cpp
 	test_data.cpp
 	test_data.hpp
 	test_periodic_modifier.cpp
@@ -62,4 +64,22 @@ if (MSVC)
 endif()
 set_property(TARGET periodic_modifier_tests PROPERTY FOLDER "tests")
 add_test(periodic_modifier_tests periodic_modifier_tests ${CATCH_EXTRA_ARGS})
+
+add_executable(sequential_wipe_tower_tests
+	fff_print_tests.cpp
+	libslic3r_link_stubs.cpp
+	sequential_wipe_tower_test_utils.hpp
+	test_sequential_wipe_tower.cpp
+	test_sequential_wipe_tower_regression.cpp
+	test_object_wipe_tower_placement.cpp
+	)
+target_link_libraries(sequential_wipe_tower_tests test_common libslic3r
+	libcurl
+	OpenSSL::SSL OpenSSL::Crypto
+)
+if (MSVC)
+	target_link_options(sequential_wipe_tower_tests PRIVATE /FORCE:UNRESOLVED)
+endif()
+set_property(TARGET sequential_wipe_tower_tests PROPERTY FOLDER "tests")
+add_test(sequential_wipe_tower_tests sequential_wipe_tower_tests ${CATCH_EXTRA_ARGS})
 
