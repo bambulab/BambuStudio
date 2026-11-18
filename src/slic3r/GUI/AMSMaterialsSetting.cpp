@@ -1330,6 +1330,15 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
 
     // the combobox item
     auto filament_item = map_filament_items[into_u8(m_current_filament_alias)];
+    if (!m_selected_spool_id.empty() && filament_item.filament_id.empty()) {
+        auto* store = wxGetApp().fila_manager_store();
+        const FilamentSpool* sp = store ? store->get_spool(m_selected_spool_id) : nullptr;
+        if (sp) {
+            filament_item.filament_id = sp->filament_id;
+            filament_item.setting_id  = sp->filament_id;
+            filament_item.spool_id    = sp->spool_id;
+        }
+    }
 
     int total_weight = 0;
     int remain_weight = 0;
@@ -1342,17 +1351,11 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
     //get filament id
     ams_filament_id = "";
     ams_setting_id = "";
-
-    if (!m_selected_spool_id.empty() && filament_item.filament_id.empty()) {
-        auto* store = wxGetApp().fila_manager_store();
-        const FilamentSpool* sp = store ? store->get_spool(m_selected_spool_id) : nullptr;
-        if (sp) {
-            filament_item.filament_id = sp->filament_id;
-            filament_item.setting_id  = sp->filament_id;
-            filament_item.spool_id    = sp->spool_id;
-        }
+    if (sel_opt) {
+        ams_filament_id = sel_opt->filament_id;
+        ams_setting_id = sel_opt->setting_id;
+        m_filament_type = sel_opt->filament_type;
     }
-
 
     // check filament info
     const auto& fila_check_res = sCheckFilamentInfo(preset_bundle, obj, ams_id, slot_id, filament_item.filament_id, ams_filament_id, ams_setting_id);
@@ -1421,6 +1424,11 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
     long nozzle_temp_min_int, nozzle_temp_max_int;
     nozzle_temp_min.ToLong(&nozzle_temp_min_int);
     nozzle_temp_max.ToLong(&nozzle_temp_max_int);
+    if (sel_opt) {
+        nozzle_temp_min_int = sel_opt->nozzle_temp_range_low;
+        nozzle_temp_max_int = sel_opt->nozzle_temp_range_high;
+    }
+
     wxColour color = m_clr_picker->m_colour;
     std::string tray_color = colour_to_ams_string(color);
     std::vector<std::string> tray_colors;

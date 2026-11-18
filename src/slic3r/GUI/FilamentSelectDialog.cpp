@@ -537,21 +537,30 @@ void FilamentSelectDialog::fill_manager_tab()
     if (store) {
         for (const auto& id : store->all_spool_ids()) {
             const FilamentSpool* sp = store->get_spool(id);
-            if (!sp) continue;
-            bool has_preset = false;
-            if (bundle && !sp->filament_id.empty()) {
-                for (const auto& printer_name : m_printer_names) {
-                    if (bundle->get_filament_by_filament_id(sp->filament_id, printer_name).has_value()) {
-                        has_preset = true;
-                        break;
-                    }
-                }
+            if (!sp) {
+                continue;
             }
+
+            bool has_preset = bundle && bundle->get_filament_by_filament_id(sp->filament_id).has_value();
             if (has_preset) {
                 const wxString b = sp->brand.empty() ? other : wxString::FromUTF8(sp->brand);
                 brand_to_spools[b].push_back(*sp);
             } else {
                 unsupported.push_back(*sp);
+
+                // add some log
+                bool has_filament_id = false;
+                for (auto iter = bundle->filaments.begin(); iter != bundle->filaments.end(); ++iter) {
+                    const Preset& filament_preset = *iter;
+                    if (filament_preset.filament_id == sp->filament_id) {
+                        has_filament_id = true;
+                        break;
+                    }
+                }
+
+                if (!has_filament_id) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << "there are no preset for filament_id=" << sp->filament_id;
+                }
             }
         }
     }
