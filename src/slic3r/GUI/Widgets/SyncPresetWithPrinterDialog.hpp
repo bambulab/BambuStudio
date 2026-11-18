@@ -16,9 +16,11 @@
 class ComboBox;
 class CheckBox;
 class Button;
+class Label;
 
 namespace Slic3r {
 class MachineObject;
+class Preset;
 
 namespace GUI {
 
@@ -91,6 +93,13 @@ struct PrinterMigrationInfo
 
     // Only the 3MF import path offers to stop checking on future loads.
     bool offer_skip_future_checks{false};
+
+    // 0 means no cap. Positive (e.g. 7 on P3C, 2 on H2D) disables Confirm and shows an error while
+    // the rows pick more distinct nozzle specs than the target printer preset can hold at once.
+    int max_distinct_nozzles{0};
+    // True when migrating onto a printer preset rather than a connected machine: swaps the intro and
+    // right-hand column titles from "Connected Printer" to "Target Printer" / "Target Nozzle".
+    bool is_preset_switch{false};
 };
 
 // The confirmed migration, handed from whichever path showed the dialog to the single place that
@@ -106,7 +115,7 @@ struct PendingNozzleMigration
 };
 
 // Best stand-in for `want` among `candidates`, or -1 when there is nothing to choose from. Diameter
-// dominates (distance first, coarser nozzle on a tie); the flow type only breaks ties between equal
+// dominates (distance first, finer nozzle on a tie); the flow type only breaks ties between equal
 // diameters, and is skipped when `with_flow_type` is false.
 //
 // Deliberately not get_best_diameter() from ExtruderHelpers: that answers "which diameter does this
@@ -117,6 +126,12 @@ int find_closest_nozzle(const NozzleSpec &want, const std::vector<NozzleSpec> &c
 // when either side cannot be described, so the caller can fall back instead of showing an empty
 // comparison.
 std::optional<PrinterMigrationInfo> collect_printer_migration_info(MachineObject *obj, bool offer_skip_future_checks);
+
+// Assemble what the dialog needs when switching between multi-diameter printer models. When
+// PrinterMigrationInfo::nozzles_fully_covered is true the caller skips showing the dialog and applies
+// build_default_nozzle_migration(*info) directly.
+std::optional<PrinterMigrationInfo> collect_preset_switch_migration_info(const Preset &target_preset);
+PendingNozzleMigration              build_default_nozzle_migration(const PrinterMigrationInfo &info);
 
 // Lets the user confirm how to migrate the project onto the connected printer. Shared by the manual
 // Sync button and the post-3MF-import check; they differ only in the "don't check again" checkbox.
@@ -146,12 +161,17 @@ private:
     wxWindow *build_model_table(wxWindow *parent);
     wxWindow *build_nozzle_table(wxWindow *parent);
     wxWindow *build_shared_nozzle_rows(wxWindow *parent);
+    wxWindow *build_nozzle_limit_hint(wxWindow *parent);
+    wxWindow *build_tpu_fallback_hint(wxWindow *parent);
     wxWindow *build_detail_loss_hint(wxWindow *parent);
     wxWindow *build_footer(wxWindow *parent);
 
     // Shows the coarser-nozzle hint exactly while the current picks move some slot off a 0.2 nozzle or
     // onto a 0.8 one. `refit` resizes the dialog, which only a live change needs.
     void update_detail_loss_hint(bool refit);
+    void update_nozzle_limit_hint(bool refit);
+    void update_tpu_fallback_hint(bool refit);
+    int  distinct_chosen_nozzle_count() const;
 
     wxWindow *make_model_cell(wxWindow *parent, const std::string &model_id, const wxString &model_name, const wxString &dev_name);
     wxWindow *make_source_label(wxWindow *parent, size_t row) const;
@@ -160,6 +180,9 @@ private:
     PrinterMigrationInfo m_info;
     // one per project nozzle row, or a single one behind a shared cell
     std::vector<ComboBox *> m_nozzle_combos;
+    wxWindow *m_nozzle_limit_hint{nullptr};
+    wxWindow *m_tpu_fallback_hint{nullptr};
+    Label    *m_tpu_fallback_label{nullptr};
     wxWindow *m_detail_loss_hint{nullptr};
     CheckBox *m_skip_check{nullptr};
     Button *m_confirm_btn{nullptr};

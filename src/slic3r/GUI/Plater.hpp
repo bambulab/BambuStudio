@@ -139,6 +139,13 @@ wxDECLARE_EVENT(EVT_GCODE_VIEWER_CHANGED, SimpleEvent);
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
+enum class MultiDiameterPresetMigrationResult
+{
+    NotHandled, // Continue with the normal preset-switch path.
+    Applied,    // Migration and preset switching completed successfully.
+    Aborted,    // Stop the switch because it was cancelled or failed.
+};
+
 class Sidebar : public wxPanel
 {
     ConfigOptionMode    m_mode;
@@ -208,6 +215,10 @@ public:
      * \param to_multi      the mode the preset belongs to, i.e. the mode to switch to
      */
     void select_printer_across_multi_nozzle_mode(const std::string &printer_name, bool to_multi);
+    // Switch between two multi-diameter printer models: prompts SyncPresetWithPrinterDialog only when
+    // the project's distinct (diameter, flow) count exceeds the target model's physical nozzle capacity,
+    // and otherwise carries filament_diameter_map / filament_volume_map over silently.
+    MultiDiameterPresetMigrationResult try_migrate_multi_diameter_printer_preset(std::string preset_name);
     void set_bed_by_curr_bed_type(AppConfig *config);
     void update_all_preset_comboboxes();
     //void update_partplate(PartPlateList& list);

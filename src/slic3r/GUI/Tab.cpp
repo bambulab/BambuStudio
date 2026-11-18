@@ -269,8 +269,14 @@ void Tab::create_preset_tab()
                     m_preset_bundle->physical_printers.unselect_printer();
 
                 // select preset
-                std::string preset_name = m_presets_choice->preset_name_for_selection(selection);
-                select_preset(Preset::remove_suffix_modified(preset_name));
+                std::string preset_name = Preset::remove_suffix_modified(m_presets_choice->preset_name_for_selection(selection));
+                if (m_type == Preset::TYPE_PRINTER && wxGetApp().plater() != nullptr) {
+                    const MultiDiameterPresetMigrationResult result =
+                        wxGetApp().plater()->sidebar().try_migrate_multi_diameter_printer_preset(preset_name);
+                    if (result != MultiDiameterPresetMigrationResult::NotHandled)
+                        return;
+                }
+                select_preset(preset_name);
             }
         });
     }

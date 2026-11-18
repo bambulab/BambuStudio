@@ -2452,6 +2452,172 @@ static void apply_nozzle_migration(const PendingNozzleMigration &migration)
         apply_migrated_volume_types(volume_by_slot);
 }
 
+static void populate_target_inventory_from_migration(const PendingNozzleMigration &migration)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    NozzleInventory &inventory = preset_bundle->nozzle_inventory;
+    const int extruder_count = inventory.extruder_count();
+    if (extruder_count <= 0)
+        return;
+
+    std::vector<NozzleSlot> distinct;
+    for (const NozzleSpec &spec : migration.per_slot) {
+        if (spec.diameter <= 0.f)
+            continue;
+        const std::string diameter_str = format_diameter_to_str(spec.diameter);
+        const auto exists = std::find_if(distinct.begin(), distinct.end(), [&](const NozzleSlot &s) {
+            return s.diameter == diameter_str && s.volume_type == spec.volume;
+        });
+        if (exists == distinct.end())
+            distinct.push_back(NozzleSlot{diameter_str, spec.volume, NozzleSlotStatus::Normal});
+    }
+    if (distinct.empty())
+        return;
+
+    const DynamicPrintConfig &printer_config = preset_bundle->printers.get_edited_preset().config;
+    const NozzleLayout layout = nozzle_layout_of(printer_config);
+    auto head_supports = [](int eid, const NozzleSlot &slot) {
+        return nozzle_variant_exists(slot.diameter, slot.volume_type) &&
+               printer_offers_flow(slot.diameter, slot.volume_type, eid);
+    };
+    if (layout == NozzleLayout::DualExtruder && extruder_count >= 2) {
+        if (distinct.size() == 1) {
+            const NozzleSlot &only = distinct.front();
+            const bool left_ok  = head_supports(0, only);
+            const bool right_ok = head_supports(1, only);
+            if (left_ok)
+                inventory.user_set_nozzle(0, only.diameter, only.volume_type);
+            if (right_ok)
+                inventory.user_set_nozzle(1, only.diameter, only.volume_type);
+            if (!left_ok && !right_ok)
+                inventory.user_set_nozzle(0, only.diameter, nvtStandard);
+        } else {
+            NozzleSlot left_slot  = distinct[0];
+            NozzleSlot right_slot = distinct[1];
+            if ((!head_supports(0, left_slot) || !head_supports(1, right_slot)) &&
+                head_supports(0, right_slot) && head_supports(1, left_slot))
+                std::swap(left_slot, right_slot);
+            inventory.user_set_nozzle(0, left_slot.diameter, left_slot.volume_type);
+            inventory.user_set_nozzle(1, right_slot.diameter, right_slot.volume_type);
+        }
+        return;
+    }
+
+    if (layout == NozzleLayout::DualExtruderRack && extruder_count >= 2) {
+        std::vector<ExtruderSlots> slots_by_extruder;
+        std::vector<std::vector<bool>> taken;
+        slots_by_extruder.reserve(extruder_count);
+        taken.reserve(extruder_count);
+        for (int eid = 0; eid < extruder_count; ++eid) {
+            slots_by_extruder.push_back(inventory.slots(eid));
+            taken.emplace_back(slots_by_extruder.back().size(), false);
+        }
+
+        std::vector<size_t> placement_order(distinct.size());
+        std::vector<int> supported_heads(distinct.size(), 0);
+        std::iota(placement_order.begin(), placement_order.end(), 0);
+        for (size_t i = 0; i < distinct.size(); ++i)
+            for (int eid = 0; eid < extruder_count; ++eid)
+                if (head_supports(eid, distinct[i]))
+                    ++supported_heads[i];
+        std::stable_sort(placement_order.begin(), placement_order.end(),
+                         [&](size_t lhs, size_t rhs) { return supported_heads[lhs] < supported_heads[rhs]; });
+
+        for (size_t i : placement_order) {
+            bool placed = false;
+            for (int eid = 0; eid < extruder_count && !placed; ++eid) {
+                if (!head_supports(eid, distinct[i]))
+                    continue;
+                for (size_t s = 0; s < slots_by_extruder[eid].size(); ++s) {
+                    const NozzleSlot &slot = slots_by_extruder[eid][s];
+                    if (!taken[eid][s] && !slot.empty() &&
+                        slot.diameter == distinct[i].diameter &&
+                        slot.volume_type == distinct[i].volume_type) {
+                        taken[eid][s] = true;
+                        placed = true;
+                        break;
+                    }
+                }
+            }
+            if (placed)
+                continue;
+
+            int best_eid = -1;
+            size_t best_slot = 0;
+            size_t best_available = 0;
+            for (bool empty_only : {true, false}) {
+                for (int eid = 0; eid < extruder_count; ++eid) {
+                    if (!head_supports(eid, distinct[i]))
+                        continue;
+                    size_t available = 0;
+                    size_t first = 0;
+                    for (size_t s = 0; s < slots_by_extruder[eid].size(); ++s) {
+                        if (taken[eid][s] || (empty_only && !slots_by_extruder[eid][s].empty()))
+                            continue;
+                        if (available++ == 0)
+                            first = s;
+                    }
+                    if (available > best_available) {
+                        best_eid = eid;
+                        best_slot = first;
+                        best_available = available;
+                    }
+                }
+                if (best_eid >= 0)
+                    break;
+            }
+            if (best_eid < 0) {
+                BOOST_LOG_TRIVIAL(warning) << "unable to place migrated nozzle " << distinct[i].diameter
+                                           << " type " << int(distinct[i].volume_type)
+                                           << " into target dual-extruder rack";
+                return;
+            }
+            slots_by_extruder[best_eid][best_slot] = distinct[i];
+            taken[best_eid][best_slot] = true;
+        }
+
+        for (int eid = 0; eid < extruder_count; ++eid)
+            inventory.user_set_slots(eid, std::move(slots_by_extruder[eid]));
+        return;
+    }
+
+    if (extruder_count == 1) {
+        ExtruderSlots slots = inventory.slots(0);
+        if (distinct.size() > slots.size())
+            return;
+
+        std::vector<bool> taken(slots.size(), false);
+        std::vector<bool> placed(distinct.size(), false);
+        for (size_t i = 0; i < distinct.size(); ++i) {
+            for (size_t s = 0; s < slots.size(); ++s) {
+                if (!taken[s] && !slots[s].empty() &&
+                    slots[s].diameter == distinct[i].diameter &&
+                    slots[s].volume_type == distinct[i].volume_type) {
+                    taken[s]  = true;
+                    placed[i] = true;
+                    break;
+                }
+            }
+        }
+        for (size_t i = 0; i < distinct.size(); ++i) {
+            if (placed[i])
+                continue;
+            auto it = std::find_if(slots.begin(), slots.end(), [&](const NozzleSlot &s) {
+                return !taken[&s - slots.data()] && s.empty();
+            });
+            if (it == slots.end())
+                it = std::find_if(slots.begin(), slots.end(), [&](const NozzleSlot &s) {
+                    return !taken[&s - slots.data()];
+                });
+            if (it != slots.end()) {
+                *it = distinct[i];
+                taken[it - slots.begin()] = true;
+            }
+        }
+        inventory.user_set_slots(0, std::move(slots));
+    }
+}
+
 // The one diameter every configured slot carries, or nothing when they disagree (or none is set).
 // Drives the one-way exit from multi-diameter mode: a setup that no longer mixes diameters has
 // nothing left for the gate to express. Nothing ever turns the mode back on from here -- mixing
@@ -5668,6 +5834,95 @@ void Sidebar::select_printer_across_multi_nozzle_mode(const std::string &printer
 
     if (!switch_multi_nozzle_diameter_mode(to_multi, printer_name))
         printer_tab->update_preset_choice();
+}
+
+MultiDiameterPresetMigrationResult Sidebar::try_migrate_multi_diameter_printer_preset(std::string preset_name)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    Plater       *plater        = wxGetApp().plater();
+    Tab          *printer_tab   = wxGetApp().get_tab(Preset::TYPE_PRINTER);
+    if (preset_bundle == nullptr || plater == nullptr || printer_tab == nullptr || plater->is_empty_project())
+        return MultiDiameterPresetMigrationResult::NotHandled;
+
+    const Preset *target_preset = preset_bundle->printers.find_preset(preset_name, false);
+    if (target_preset == nullptr)
+        return MultiDiameterPresetMigrationResult::NotHandled;
+    // A single-diameter user preset of another model switches the project out of multi-diameter mode;
+    // let the existing mode-switch path handle that.
+    if (!target_preset->is_system && !target_preset->is_default &&
+        !preset_bundle->is_multi_nozzle_user_printer_preset(*target_preset))
+        return MultiDiameterPresetMigrationResult::NotHandled;
+
+    const Preset *target_base = preset_bundle->printers.get_preset_base(*target_preset);
+    const Preset &target_ref  = target_base != nullptr ? *target_base : *target_preset;
+    std::optional<PrinterMigrationInfo> info = collect_preset_switch_migration_info(target_ref);
+    if (!info)
+        return MultiDiameterPresetMigrationResult::NotHandled;
+
+    PendingNozzleMigration migration;
+    if (!info->nozzles_fully_covered) {
+        SyncPresetWithPrinterDialog dlg(plater, *info);
+        if (dlg.ShowModal() != wxID_OK) {
+            if (p->combo_printer)
+                p->combo_printer->update();
+            printer_tab->update_preset_choice();
+            return MultiDiameterPresetMigrationResult::Aborted;
+        }
+        migration = dlg.GetConfirmedMigration();
+    } else {
+        migration = build_default_nozzle_migration(*info);
+    }
+
+    const std::string target_model = target_ref.config.opt_string("printer_model");
+
+    if (target_preset->is_system &&
+        target_preset->config.opt_string("printer_variant") != canonical_multi_nozzle_printer_variant()) {
+        if (Preset *canonical = find_system_multi_nozzle_printer_preset(
+                target_model, canonical_multi_nozzle_printer_variant())) {
+            canonical->is_visible = true;
+            preset_name = canonical->name;
+        }
+    }
+
+    // Preserve per-slot maps across TabPrinter::select_preset(), where extruders_count_changed() (e.g.
+    // 1 -> 2 when moving onto H2D) clears plate volume maps and runs intermediate filament validations
+    // before the target printer's nozzle inventory holds the migrated nozzles.
+    preset_bundle->block_filament_fallback_substitution = true;
+    p->is_syncing_extruder_list_model_switch = true;
+    const bool switched = printer_tab->select_preset(preset_name);
+    p->is_syncing_extruder_list_model_switch = false;
+    if (!switched) {
+        preset_bundle->block_filament_fallback_substitution = false;
+        if (p->combo_printer)
+            p->combo_printer->update();
+        printer_tab->update_preset_choice();
+        return MultiDiameterPresetMigrationResult::Aborted;
+    }
+
+    if (auto *mode = preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode"))
+        mode->value = true;
+    preset_bundle->stamp_printer_nozzle_diameter_mode();
+
+    populate_target_inventory_from_migration(migration);
+    notify_nozzles_changed();
+    apply_nozzle_migration(migration);
+
+    sync_custom_map_mode_with_diameter_mode();
+    preset_bundle->validate_filament_nozzle_diameter_selections();
+    preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+    apply_nozzle_manual_maps_to_plates();
+
+    refresh_multi_nozzle_preset_choices();
+    p->diameter_btns->SetMultiDiameterMode(true);
+    p->refresh_dual_extruder_nozzles();
+    refresh_filament_diameter_buttons(false);
+    plater->update_project_dirty_from_presets();
+    plater->on_config_change(preset_bundle->full_config());
+    preset_bundle->block_filament_fallback_substitution = false;
+
+    if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
+        print_tab->update_toggled_lines();
+    return MultiDiameterPresetMigrationResult::Applied;
 }
 
 void Sidebar::flush_pending_filament_ui_refresh()
@@ -10830,7 +11085,8 @@ public:
     // Call after plater and Canvas#D is initialized
     void init_notification_manager();
 
-    void update_objects_position_when_select_preset(const std::function<void()>& select_prest);
+    void update_objects_position_when_select_preset(const std::function<void()> &select_prest,
+                                                    const bool *selection_aborted = nullptr);
 
     // Caching last value of show_action_buttons parameter for show_action_buttons(), so that a callback which does not know this state will not override it.
     //mutable bool    			ready_to_slice = { false };
@@ -16943,9 +17199,18 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
             PresetBundle *preset_bundle = wxGetApp().preset_bundle;
             std::string old_preset_name = preset_bundle->printers.get_edited_preset().name;
             const Preset *new_printer_preset = preset_bundle->printers.find_preset(preset_name, false);
+            bool preset_switch_aborted = false;
 
-            update_objects_position_when_select_preset([this, combo, &preset_type, &preset_name, preset_bundle, new_printer_preset, marker]() {
+            update_objects_position_when_select_preset([this, combo, &preset_type, &preset_name, preset_bundle, new_printer_preset,
+                                                        marker, &preset_switch_aborted]() {
                 wxWindowUpdateLocker noUpdates2(sidebar->filament_panel());
+                const MultiDiameterPresetMigrationResult migration_result =
+                    sidebar->try_migrate_multi_diameter_printer_preset(preset_name);
+                if (migration_result != MultiDiameterPresetMigrationResult::NotHandled) {
+                    combo->update();
+                    preset_switch_aborted = migration_result == MultiDiameterPresetMigrationResult::Aborted;
+                    return;
+                }
                 const Preset *new_base = new_printer_preset != nullptr ?
                     preset_bundle->printers.get_preset_base(*new_printer_preset) : nullptr;
                 if (new_printer_preset != nullptr && !new_printer_preset->is_system && !new_printer_preset->is_default &&
@@ -16961,8 +17226,10 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
                 wxGetApp().get_tab(preset_type)->select_preset(preset_name);
                 // update plater with new config
                 q->on_config_change(preset_bundle->full_config());
-            });
+            }, &preset_switch_aborted);
 
+            if (preset_switch_aborted)
+                return;
 
             if (old_preset_name != preset_name && wxGetApp().app_config->get("auto_calculate_flush") == "all") {
                 wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(-1);
@@ -20971,7 +21238,8 @@ void Plater::priv::init_notification_manager()
 }
 
 
-void Plater::priv::update_objects_position_when_select_preset(const std::function<void()> &select_prest)
+void Plater::priv::update_objects_position_when_select_preset(const std::function<void()> &select_prest,
+                                                              const bool *selection_aborted)
 {
     PartPlateList &old_plate_list = this->partplate_list;
     PartPlate     *old_plate      = old_plate_list.get_selected_plate();
@@ -21085,6 +21353,8 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
     }
 #endif
     select_prest();
+    if (selection_aborted && *selection_aborted)
+        return;
 
     wxGetApp().obj_list()->update_object_list_by_printer_technology();
 
