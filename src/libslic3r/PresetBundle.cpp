@@ -5540,17 +5540,17 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         for (int index = 0; index < num_filaments; index++)
             filament_self_indice[index] = index + 1;
     }
+    // Check before moving filament_self_index out of config. The move leaves that option empty.
+    if (!filament_variant_lengths_valid(config)) {
+        assert(false);
+        BOOST_LOG_TRIVIAL(error) << boost::format("invalid config file %1%, can not find suitable filament_extruder_variant or filament_self_index") % name_or_path;
+        throw Slic3r::RuntimeError(std::string("Invalid configuration file: ") + name_or_path);
+    }
     std::vector<int> filament_self_indice = std::move(config.option<ConfigOptionInts>("filament_self_index")->values);
     if (config.option("extruder_variant_list")) {
         //3mf support multiple extruder logic
         size_t extruder_count = config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
         extruder_variant_count = config.option<ConfigOptionStrings>("filament_extruder_variant", true)->size();
-        if ((extruder_variant_count != filament_self_indice.size())
-            || (extruder_variant_count < num_filaments)) {
-            assert(false);
-            BOOST_LOG_TRIVIAL(error) << boost::format("invalid config file %1%, can not find suitable filament_extruder_variant or filament_self_index") % name_or_path;
-            throw Slic3r::RuntimeError(std::string("Invalid configuration file: ") + name_or_path);
-        }
         if (num_filaments != extruder_variant_count) {
             process_multi_extruder = true;
             filament_variant_index.resize(num_filaments, 0);

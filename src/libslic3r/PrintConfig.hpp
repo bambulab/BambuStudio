@@ -826,6 +826,13 @@ extern void compute_filament_override_value(const std::string& opt_key, const Co
 // so later lookups by filament_extruder_variant hit the value the user edited.
 extern void align_filament_variant_overrides(DynamicPrintConfig &config);
 
+// Length check for a project config that contains extruder_variant_list.
+// filament_extruder_variant must have the same length as filament_self_index and be at least
+// as long as filament_colour. A missing filament_self_index counts as one entry per filament_colour.
+// A missing filament_extruder_variant counts as length 0. A config with no extruder_variant_list passes.
+// The config is not modified.
+extern bool filament_variant_lengths_valid(const DynamicPrintConfig &config);
+
 // The P index in "M106 P<index>" is a fixed product convention: the standard
 // auxiliary part cooling fan is always P2, the optional one (fan box) is always P10.
 static constexpr int AUX_FAN_STANDARD_GCODE_INDEX = 2;

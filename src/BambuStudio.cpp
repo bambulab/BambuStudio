@@ -2514,6 +2514,16 @@ int CLI::run(int argc, char **argv)
         BOOST_LOG_TRIVIAL(warning) << boost::format("not support to slice plate %1%, reset to 0")%plate_to_slice;
         plate_to_slice = 0;
     }
+    // Same length rule as PresetBundle::load_config_file_config. Run it on the 3mf config
+    // before --load_filaments rewrites filament_self_index to match filament_extruder_variant.
+    if (is_bbl_3mf && !filament_variant_lengths_valid(m_print_config)) {
+        const std::string &config_path = m_input_files.empty() ? std::string() : m_input_files.front();
+        BOOST_LOG_TRIVIAL(error) << boost::format("invalid config file %1%, can not find suitable filament_extruder_variant or filament_self_index") % config_path;
+        boost::nowide::cerr << "invalid config file " << config_path
+                            << ", can not find suitable filament_extruder_variant or filament_self_index" << std::endl;
+        record_exit_reson(outfile_dir, CLI_DATA_FILE_ERROR, 0, cli_errors[CLI_DATA_FILE_ERROR], sliced_info);
+        flush_and_exit(CLI_DATA_FILE_ERROR);
+    }
     if (is_bbl_3mf) {
         //support params process
         ConfigOptionBool *enable_support_option = m_print_config.option<ConfigOptionBool>("enable_support", true);

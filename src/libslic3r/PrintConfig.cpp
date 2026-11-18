@@ -10840,6 +10840,23 @@ void update_static_print_config_from_dynamic(ConfigBase& config, const DynamicPr
         config.apply(dest_config, true);
 }
 
+bool filament_variant_lengths_valid(const DynamicPrintConfig &config)
+{
+    if (!config.option("extruder_variant_list"))
+        return true;
+
+    const auto *filament_colour = config.option<ConfigOptionStrings>("filament_colour");
+    const size_t num_filaments = filament_colour ? filament_colour->size() : 0;
+
+    const auto *self_index = config.option<ConfigOptionInts>("filament_self_index");
+    const size_t self_index_count = self_index ? self_index->size() : num_filaments;
+
+    const auto *variants = config.option<ConfigOptionStrings>("filament_extruder_variant");
+    const size_t variant_count = variants ? variants->size() : 0;
+
+    return variant_count == self_index_count && variant_count >= num_filaments;
+}
+
 void align_filament_variant_overrides(DynamicPrintConfig &config)
 {
     // Only handle_hotend_as_extruder machines store filament toolchange overrides as one value per filament.
