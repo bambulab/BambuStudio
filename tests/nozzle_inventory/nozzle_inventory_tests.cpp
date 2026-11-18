@@ -255,20 +255,54 @@ TEST_CASE("Without a rack a sync owns the variants it carries", "[nozzle_invento
     rig.select(DUAL_04);
     rig.inventory.sync_machine("Dual", {{nozzle("0.4", nvtStandard)}, {nozzle("0.6", nvtTPUHighFlow)}});
 
-    // Both nozzles show under the 0.4 variant, the 0.6 one included.
+    // Under 0.4 the 0.4 nozzle is synced; the 0.6 extruder cannot print with the variant and falls back.
     CHECK(rig.inventory.slots(0)[0].diameter == "0.4");
-    CHECK(rig.inventory.slots(1)[0].diameter == "0.6");
-    CHECK(rig.inventory.slots(1)[0].volume_type == nvtTPUHighFlow);
+    CHECK(rig.inventory.slots(0)[0].volume_type == nvtStandard);
+    CHECK(rig.inventory.slots(1)[0].diameter == "0.4");
 
-    // The sync owns 0.6 too, whichever variant is selected first.
+    // The sync owns 0.6 too, for the extruder that carries it.
     rig.select(DUAL_06);
-    CHECK(rig.inventory.slots(0)[0].diameter == "0.4");
+    CHECK(rig.inventory.slots(0)[0].diameter == "0.6");
+    CHECK(rig.inventory.slots(1)[0].diameter == "0.6");
     CHECK(rig.inventory.slots(1)[0].volume_type == nvtTPUHighFlow);
 
     // The sync says nothing about 0.2.
     rig.select(DUAL_02);
     CHECK(rig.inventory.slots(0)[0].diameter == "0.2");
     CHECK(rig.inventory.slots(1)[0].diameter == "0.2");
+}
+
+TEST_CASE("Without the per-extruder diameter a mixed sync does not come back", "[nozzle_inventory]")
+{
+    // A dual-extruder machine reports 0.2 and 0.4; the user settles on 0.2, then switches to 0.4.
+    Rig rig;
+    rig.select(DUAL_04);
+    rig.inventory.sync_machine("Dual", {{nozzle("0.2", nvtStandard)}, {nozzle("0.4", nvtStandard)}});
+    rig.select(DUAL_02);
+    rig.inventory.user_unify_diameter("0.2");
+    REQUIRE(rig.inventory.slots(0)[0].diameter == "0.2");
+    REQUIRE(rig.inventory.slots(1)[0].diameter == "0.2");
+
+    rig.select(DUAL_04);
+    CHECK(rig.inventory.slots(0)[0].diameter == "0.4");
+    CHECK(rig.inventory.slots(1)[0].diameter == "0.4");
+    CHECK(rig.mirror.option<ConfigOptionFloats>("extruder_nozzle_diameter")->values == std::vector<double>{0.4, 0.4});
+}
+
+TEST_CASE("Without the per-extruder diameter a mixed project opens on the selected diameter", "[nozzle_inventory]")
+{
+    Rig rig;
+    rig.select(DUAL_04);
+    // The per-slot keys of a 3mf saved with 0.2 on the left and 0.4 on the right.
+    DynamicPrintConfig file;
+    file.option<ConfigOptionInts>("extruder_nozzle_count", true)->values               = {1, 1};
+    file.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type", true)->values = {int(nvtStandard), int(nvtStandard)};
+    file.option<ConfigOptionFloats>("extruder_nozzle_diameter", true)->values         = {0.2, 0.4};
+    file.option<ConfigOptionInts>("extruder_nozzle_slot", true)->values               = {0, 1};
+    rig.inventory.open_project(rig.printers, file);
+
+    CHECK(rig.inventory.slots(0)[0].diameter == "0.4");
+    CHECK(rig.inventory.slots(1)[0].diameter == "0.4");
 }
 
 TEST_CASE("A user edit on another variant does not hide the sync", "[nozzle_inventory]")

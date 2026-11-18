@@ -35,6 +35,9 @@ struct SelectedPrinter
     std::string                                diameter;
     bool                                       supports_multi_diameter = false; ///< the multi-diameter mode applies
     bool                                       has_rack                = false; ///< an extruder has more than one slot
+    /// Two extruders with one nozzle each, on a printer with the multi-diameter mode. The GUI
+    /// shows both nozzles there (uses_dual_nozzle_view()), so they may differ even with the mode off.
+    bool                                       dual_nozzle_view        = false;
     std::vector<int>                           slot_counts;   ///< per extruder, at least 1
     std::vector<std::vector<NozzleVolumeType>> default_types; ///< per extruder, per slot
 
@@ -194,6 +197,7 @@ SelectedPrinter read_selected_printer(const PresetCollection &printers)
         printer.has_rack = printer.has_rack || slot_count > 1;
         printer.default_types.push_back(std::move(types));
     }
+    printer.dual_nozzle_view = printer.supports_multi_diameter && !printer.has_rack && printer.extruder_count() == 2;
     return printer;
 }
 
@@ -587,8 +591,17 @@ struct NozzleInventory::Impl
         result.assign(size_t(printer.extruder_count()), {});
         sources.assign(size_t(printer.extruder_count()), NozzleSource::Preset);
         for (int eid = 0; eid < printer.extruder_count(); ++eid) {
+            // Where mixed diameters are not allowed, a layer can still hold another diameter, e.g. a sync
+            // of 0.2 left and 0.4 right while the preset is 0.4. That nozzle cannot print, so the extruder
+            // ignores the layer. An extruder with no nozzle is not wrong; it stays empty.
+            const bool wrong_diameter = top && !mixed_diameters_allowed() &&
+                                        installed_count(top->extruders[eid]) > 0 &&
+                                        !holds_selected_diameter(top->extruders[eid], printer, multi);
+            if (wrong_diameter)
+                BOOST_LOG_TRIVIAL(warning) << KV(log_key::extruder_id, eid) << "nozzle inventory: " << source_name(top->source)
+                                           << " nozzle is not " << printer.diameter << ", extruder falls back";
             // The layer for the selected printer is the truth for every extruder, an empty one included.
-            if (top) {
+            if (top && !wrong_diameter) {
                 result[eid]  = fit_slot_count(top->extruders[eid], printer.slot_counts[eid]);
                 sources[eid] = top->source;
             } else if (!saved.empty() && holds_selected_diameter(saved[eid], printer, multi)) {
@@ -691,15 +704,21 @@ struct NozzleInventory::Impl
     }
 
     /**
-     * \brief Check if each single-nozzle extruder keeps a diameter of its own
+     * \brief Check if the printer may hold nozzles of different diameters, e.g. 0.2 left and 0.4 right
      *
-     * True in the multi-diameter mode, and for two or more extruders without a rack on a printer that
-     * supports that mode: there the nozzles may differ, and the selected variant only decides which of
-     * them print. Other printers keep one diameter for all extruders outside that mode.
+     * | Printer                                         | Allowed |
+     * |-------------------------------------------------|---------|
+     * | multi-diameter mode on, any printer             | yes     |
+     * | one extruder, with or without a rack            | yes     |
+     * | two extruders with a rack                       | yes     |
+     * | two extruders with the dual-nozzle view         | yes     |
+     * | other two extruders without a rack              | no      |
+     *
+     * Where it is not allowed, every nozzle must have the preset diameter.
      */
-    bool own_diameter() const
+    bool mixed_diameters_allowed() const
     {
-        return multi_diameter() || (printer.supports_multi_diameter && !printer.has_rack && printer.extruder_count() > 1);
+        return multi_diameter() || printer.extruder_count() == 1 || printer.has_rack || printer.dual_nozzle_view;
     }
 };
 
@@ -805,15 +824,17 @@ void NozzleInventory::user_set_volume_type(int extruder_id, NozzleVolumeType typ
         BOOST_LOG_TRIVIAL(warning) << KV(log_key::extruder_id, extruder_id) << "user set volume type ignored, extruder has no single nozzle";
         return;
     }
-    // An extruder whose diameter is its own keeps it; a lone extruder takes the selected variant's diameter.
-    const NozzleSlot &current = m_impl->result[extruder_id].front();
-    const std::string diameter = m_impl->own_diameter() && !current.empty() ? current.diameter : m_impl->printer.diameter;
+    // An installed nozzle keeps its diameter; an empty extruder gets a nozzle of the preset diameter.
+    const NozzleSlot &current  = m_impl->result[extruder_id].front();
+    const std::string diameter = current.empty() ? m_impl->printer.diameter : current.diameter;
     user_set_slots(extruder_id, {{diameter, type, NozzleSlotStatus::Normal}});
 }
 
 void NozzleInventory::user_set_diameter(int extruder_id, const std::string &diameter)
 {
-    if (!m_impl->valid_extruder(extruder_id) || m_impl->printer.slot_counts[extruder_id] != 1 || !m_impl->own_diameter()) {
+    // Only the multi-diameter mode and the dual-nozzle view let the user pick a diameter per nozzle.
+    if (!m_impl->valid_extruder(extruder_id) || m_impl->printer.slot_counts[extruder_id] != 1 ||
+        !(m_impl->multi_diameter() || m_impl->printer.dual_nozzle_view)) {
         BOOST_LOG_TRIVIAL(warning) << KV(log_key::extruder_id, extruder_id) << "user set diameter ignored, needs a single nozzle with its own diameter";
         return;
     }
@@ -824,8 +845,9 @@ void NozzleInventory::user_set_diameter(int extruder_id, const std::string &diam
 
 void NozzleInventory::user_set_nozzle(int extruder_id, const std::string &diameter, NozzleVolumeType type)
 {
+    // Only the multi-diameter mode and the dual-nozzle view let the user pick a diameter per nozzle.
     if (!m_impl->valid_extruder(extruder_id) || type == nvtHybrid || m_impl->printer.slot_counts[extruder_id] != 1 ||
-        !m_impl->own_diameter()) {
+        !(m_impl->multi_diameter() || m_impl->printer.dual_nozzle_view)) {
         BOOST_LOG_TRIVIAL(warning) << KV(log_key::extruder_id, extruder_id) << "user set nozzle ignored, needs a single nozzle with its own diameter";
         return;
     }
