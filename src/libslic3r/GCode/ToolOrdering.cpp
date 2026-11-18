@@ -2089,15 +2089,43 @@ FilamentGroupContext build_filament_group_context(
                 }
             }
 
-            // 容量仍不足时补 Standard 虚拟喷嘴。无已装料的便捷模式也走这里。
-            while (usable_slot_count() < static_cast<int>(used_filaments.size())) {
+            // 总容量或某种流量类型仍有短缺时，按未满足的流量需求补虚拟喷嘴；没有明确流量需求时才补 Standard。
+            while (true) {
+                // 统计每种流量类型的耗材需求，Hybrid 表示未指定流量，不计入。
+                std::map<int, int> volume_demand;
+                for (unsigned int fil : used_filaments) {
+                    if (fil >= filament_nums)
+                        continue;
+                    const int volume = context.group_info.filament_volume_map[fil];
+                    if (volume != (int) NozzleVolumeType::nvtHybrid)
+                        ++volume_demand[volume];
+                }
+
+                // 统计每种流量类型当前可用的喷嘴容量。
+                std::map<int, int> volume_supply;
+                for (const auto &nozzle : nozzle_list)
+                    volume_supply[(int) nozzle.volume_type] += nozzle_capacity(nozzle);
+
+                // 每补一支就重算供需，始终补当前短缺最大的流量类型；没有短缺时补 Standard。
+                int pad_volume    = (int) NozzleVolumeType::nvtStandard;
+                int max_shortfall = 0;
+                for (const auto &[volume, demand] : volume_demand) {
+                    const int shortfall = demand - volume_supply[volume];
+                    if (shortfall > max_shortfall) {
+                        max_shortfall = shortfall;
+                        pad_volume    = volume;
+                    }
+                }
+
+                // 总容量已够且没有任何流量短缺时，补位结束。
+                if (usable_slot_count() >= static_cast<int>(used_filaments.size()) && max_shortfall == 0)
+                    break;
+
                 MultiNozzleUtils::NozzleInfo virtual_nozzle;
                 virtual_nozzle.diameter    = virtual_diameter;
-                virtual_nozzle.volume_type = NozzleVolumeType::nvtStandard;
+                virtual_nozzle.volume_type = NozzleVolumeType(pad_volume);
                 virtual_nozzle.extruder_id = 0;
-                virtual_nozzle.group_id    = static_cast<int>(nozzle_list.size());
-                virtual_nozzle.installed   = true;
-                nozzle_list.emplace_back(std::move(virtual_nozzle));
+                append_virtual_nozzle(virtual_nozzle);
             }
         }
 
