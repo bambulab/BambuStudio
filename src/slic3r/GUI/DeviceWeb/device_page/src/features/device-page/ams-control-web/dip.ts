@@ -70,9 +70,8 @@ export const SLOT_REMAIN_LINE = {
   marginX: 0,
   gapToCard: 2,
   border: 1,
-  // Capsule outline and consumed-side track. Both are darker than the spool
-  // fill so a white filament keeps its contrast, unlike AmsMappingPopup's flat
-  // #E4E4E4 track where a pale remainder washed out.
+  // Capsule outline and consumed-side track. The outline is also drawn around
+  // the fill, so a white filament keeps a visible edge against the light track.
   borderColor: 'var(--ams-web-remain-frame)',
   trackColor: 'var(--ams-web-remain-track)',
 } as const;

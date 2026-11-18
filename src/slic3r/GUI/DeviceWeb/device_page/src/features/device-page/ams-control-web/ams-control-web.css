@@ -9,10 +9,10 @@
   --ams-web-lib-bg: #f8f8f8;
   /* AmsItem window background, darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR). */
   --ams-web-unit-bg: #f8f8f8;
-  /* Remain capsule: a gray frame plus a track darker than the spool fill, so a
-     white filament still reads as "almost full" instead of blending into it. */
-  --ams-web-remain-track: #cecece;
-  --ams-web-remain-frame: #c8c8c6;
+  /* Remain capsule: a light track plus a gray frame drawn over both the track
+     and the fill, so a white filament still shows where its remainder ends. */
+  --ams-web-remain-track: #f2f2f0;
+  --ams-web-remain-frame: #cacac6;
   /* Lite AMSLib uses darkModeColorFor(#F8F8F8) = Grey200. Generic remain canvas does not. */
   --ams-web-lite-lib-bg: #f8f8f8;
   --ams-web-chip-bg: #f7f7f7;
