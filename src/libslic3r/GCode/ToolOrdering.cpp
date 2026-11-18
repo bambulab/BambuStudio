@@ -3860,6 +3860,9 @@ int WipingExtrusions::last_nonsoluble_extruder_on_layer(const PrintConfig& print
 // Decides whether this entity could be overridden
 bool WipingExtrusions::is_overriddable(const ExtrusionEntityCollection& eec, const PrintConfig& print_config, const PrintObject& object, const PrintRegion& region) const
 {
+    if (object.print()->has_object_wipe_towers())
+        return false;
+
     if (print_config.filament_soluble.get_at(m_layer_tools->extruder(eec, region)))
         return false;
 
@@ -3873,6 +3876,11 @@ bool WipingExtrusions::is_overriddable(const ExtrusionEntityCollection& eec, con
 }
 bool WipingExtrusions::is_obj_overriddable(const ExtrusionEntityCollection &eec, const PrintObject &object) const
 {
+    // Plate-wide wiping credit cannot be used by a block printing one instance.
+    // Register every extrusion's normal filament, including towerless fallbacks.
+    if (object.print()->has_object_wipe_towers())
+        return false;
+
     if (object.config().flush_into_objects)
         return true;
 
@@ -3885,6 +3893,9 @@ bool WipingExtrusions::is_obj_overriddable(const ExtrusionEntityCollection &eec,
 // BBS
 bool WipingExtrusions::is_support_overriddable(const ExtrusionRole role, const PrintObject& object) const
 {
+    if (object.print()->has_object_wipe_towers())
+        return false;
+
     if (!object.config().flush_into_support)
         return false;
 

@@ -375,6 +375,7 @@ public:
 
 protected:
     friend class PrintObject;
+    friend class Print; // Virtual layers for per-object prime towers
     friend class TreeSupport;
 
     // The constructor has been made public to be able to insert additional support layers for the skirt or a wipe tower

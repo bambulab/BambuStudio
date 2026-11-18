@@ -39,6 +39,7 @@ class GCode;
 
 namespace { struct Item; }
 struct PrintInstance;
+struct WipeTowerData;
 class ConstPrintObjectPtrsAdaptor;
 
 class OozePrevention {
@@ -75,11 +76,12 @@ public:
         const std::vector<WipeTower::ToolChangeResult>              &priming,
         const std::vector<std::vector<WipeTower::ToolChangeResult>> &tool_changes,
         const WipeTower::ToolChangeResult                           &final_purge,
-        const std::vector<unsigned int>                             &slice_used_filaments) :
+        const std::vector<unsigned int>                             &slice_used_filaments,
+        const Vec2f                                                *object_position = nullptr) :
         m_left(/*float(print_config.wipe_tower_x.value)*/ 0.f),
         m_right(float(/*print_config.wipe_tower_x.value +*/ print_config.prime_tower_width.value)),
-        m_wipe_tower_pos(float(print_config.wipe_tower_x.get_at(plate_idx)), float(print_config.wipe_tower_y.get_at(plate_idx))),
-        m_wipe_tower_rotation(float(print_config.wipe_tower_rotation_angle)),
+        m_wipe_tower_pos(object_position ? *object_position : Vec2f(float(print_config.wipe_tower_x.get_at(plate_idx)), float(print_config.wipe_tower_y.get_at(plate_idx)))),
+        m_wipe_tower_rotation(object_position ? 0.f : float(print_config.wipe_tower_rotation_angle)),
         m_priming(priming),
         m_tool_changes(tool_changes),
         m_final_purge(final_purge),
@@ -330,7 +332,7 @@ private:
     // When out_empty_layer_warning is provided, the empty-layer warning text is written there instead
     // of being pushed to the Print step immediately, so the caller can aggregate warnings from all
     // objects into a single notification.
-    static std::vector<LayerToPrint>        		                   collect_layers_to_print(const PrintObject &object, std::string *out_empty_layer_warning = nullptr);
+    static std::vector<LayerToPrint>        		                   collect_layers_to_print(const PrintObject &object, std::string *out_empty_layer_warning = nullptr, const WipeTowerData *tower = nullptr);
     static std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> collect_layers_to_print(const Print &print);
 
     struct LayerResult {

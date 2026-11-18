@@ -20255,7 +20255,9 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
     }
 
     // add wipe tower bounding box
-    if (print->has_wipe_tower()) {
+    // This metadata path expects one global four-corner tower. Per-instance
+    // towers are omitted, consistently with the CLI all-plate cache/export.
+    if (print->has_wipe_tower() && !print->has_object_wipe_towers()) {
         auto   wt_corners = print->first_layer_wipe_tower_corners();
         // when loading gcode.3mf, wipe tower info may not be correct
         if (!wt_corners.empty()) {
