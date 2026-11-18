@@ -63,3 +63,18 @@ endif()
 set_property(TARGET periodic_modifier_tests PROPERTY FOLDER "tests")
 add_test(periodic_modifier_tests periodic_modifier_tests ${CATCH_EXTRA_ARGS})
 
+add_executable(filament_group_capacity_tests
+	fff_print_tests.cpp
+	test_data.cpp
+	test_data.hpp
+	test_filament_group_capacity.cpp
+	)
+target_link_libraries(filament_group_capacity_tests test_common libslic3r
+	libcurl
+	OpenSSL::SSL OpenSSL::Crypto
+)
+if (MSVC)
+	target_link_options(filament_group_capacity_tests PRIVATE /FORCE:UNRESOLVED)
+endif()
+set_property(TARGET filament_group_capacity_tests PROPERTY FOLDER "tests")
+add_test(filament_group_capacity_tests filament_group_capacity_tests ${CATCH_EXTRA_ARGS})
