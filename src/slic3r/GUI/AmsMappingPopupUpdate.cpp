@@ -486,11 +486,11 @@ void AmsMapingPopup::update_title(MachineObject* obj)
     }
 
     if (m_left_area_title) {
-        m_left_area_title->SetLabel(GetNozzleTitleLabel(2, printer_type, m_slice_context, DEPUTY_EXTRUDER_ID));
+        m_left_area_title->SetLabel(GetNozzleTitleLabel(2, printer_type, m_slice_context, obj, DEPUTY_EXTRUDER_ID));
     }
 
     if (m_right_area_title) {
-        m_right_area_title->SetLabel(GetNozzleTitleLabel(2, printer_type, m_slice_context, MAIN_EXTRUDER_ID));
+        m_right_area_title->SetLabel(GetNozzleTitleLabel(2, printer_type, m_slice_context, obj, MAIN_EXTRUDER_ID));
     }
 }
 

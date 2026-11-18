@@ -636,7 +636,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_filament_panel_left_sizer = new wxBoxSizer(wxVERTICAL);
     auto left_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
     std::string sm_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-    m_filament_left_title = new Label(m_filament_left_panel, GetNozzleTitleLabel(2, sm_pt, m_slice_context, DEPUTY_EXTRUDER_ID));
+    m_filament_left_title = new Label(m_filament_left_panel, GetNozzleTitleLabel(2, sm_pt, m_slice_context, nullptr, DEPUTY_EXTRUDER_ID));
     m_filament_left_title->SetFont(::Label::Head_13);
     m_filament_left_title->SetBackgroundColour(wxColour("#F8F8F8"));
     left_recommend_title_sizer->Add(m_filament_left_title, 0, wxALIGN_CENTER, 0);
@@ -655,7 +655,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_filament_panel_right_sizer = new wxBoxSizer(wxVERTICAL);
     auto right_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_filament_right_title = new Label(m_filament_right_panel, GetNozzleTitleLabel(2, sm_pt, m_slice_context, MAIN_EXTRUDER_ID));
+    m_filament_right_title = new Label(m_filament_right_panel, GetNozzleTitleLabel(2, sm_pt, m_slice_context, nullptr, MAIN_EXTRUDER_ID));
     m_filament_right_title->SetFont(::Label::Head_13);
     m_filament_right_title->SetBackgroundColour(wxColour("#F8F8F8"));
     right_recommend_title_sizer->Add(m_filament_right_title, 0, wxALIGN_CENTER, 0);
@@ -4500,8 +4500,8 @@ void SelectMachineDialog::update_by_obj(MachineObject* obj_)
         change_materialitem_tip(true);
     }
 
-    m_filament_left_title->SetLabel(GetNozzleTitleLabel(2, obj_->printer_type, m_slice_context, DEPUTY_EXTRUDER_ID));
-    m_filament_right_title->SetLabel(GetNozzleTitleLabel(2, obj_->printer_type, m_slice_context, MAIN_EXTRUDER_ID));
+    m_filament_left_title->SetLabel(GetNozzleTitleLabel(2, obj_->printer_type, m_slice_context, obj_, DEPUTY_EXTRUDER_ID));
+    m_filament_right_title->SetLabel(GetNozzleTitleLabel(2, obj_->printer_type, m_slice_context, obj_, MAIN_EXTRUDER_ID));
 
     update_ams_backup(obj_);
     rebuild_material_items_on_rack_change();
@@ -5311,8 +5311,8 @@ void SelectMachineDialog::set_default()
         const std::string sm_init_pt = m_print_type == PrintFromType::FROM_PRINT_QUEUE && m_queue_print_context
             ? m_queue_print_context->plate_data->printer_model_id
             : wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-        m_filament_left_title->SetLabel(GetNozzleTitleLabel(2, sm_init_pt, m_slice_context, DEPUTY_EXTRUDER_ID));
-        m_filament_right_title->SetLabel(GetNozzleTitleLabel(2, sm_init_pt, m_slice_context, MAIN_EXTRUDER_ID));
+        m_filament_left_title->SetLabel(GetNozzleTitleLabel(2, sm_init_pt, m_slice_context, nullptr, DEPUTY_EXTRUDER_ID));
+        m_filament_right_title->SetLabel(GetNozzleTitleLabel(2, sm_init_pt, m_slice_context, nullptr, MAIN_EXTRUDER_ID));
     }
 
     //unsupported character filter

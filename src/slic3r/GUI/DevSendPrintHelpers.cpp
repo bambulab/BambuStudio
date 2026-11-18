@@ -10,8 +10,11 @@
 #include <set>
 
 #include "I18N.hpp"
+#include "GUI_App.hpp"
+#include "DeviceManager.hpp"
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevDefs.h"
+#include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevSliceContext.hpp"
 
@@ -89,20 +92,34 @@ wxString s_get_base_nozzle_title(int total_extruder_count,
 wxString GetNozzleTitleLabel(int total_extruder_count,
                              const std::string& printer_type,
                              const std::shared_ptr<DevSliceContext>& slice_context,
+                             MachineObject* obj,
                              int extruder_id)
 {
     wxString title = s_get_base_nozzle_title(total_extruder_count, printer_type, extruder_id);
-    if (!slice_context || !slice_context->HasMultipleLogicNozzleDiameters())
-        return title;
+    if (slice_context) /*send print*/ {
+        if (slice_context->HasMultipleLogicNozzleDiameters()) {
+            const int slice_extruder_index = total_extruder_count == 2 ? (extruder_id == DEPUTY_EXTRUDER_ID ? 0 : 1) : 0;
 
-    const int slice_extruder_index = total_extruder_count == 2 ? (extruder_id == DEPUTY_EXTRUDER_ID ? 0 : 1) : 0;
+            double diameter = 0.0;
+            NozzleVolumeType volume_type = NozzleVolumeType::nvtStandard;
+            if (!s_get_slice_nozzle_spec(slice_context, slice_extruder_index, diameter, volume_type)) {
+                return title;
+            }
 
-    double diameter = 0.0;
-    NozzleVolumeType volume_type = NozzleVolumeType::nvtStandard;
-    if (!s_get_slice_nozzle_spec(slice_context, slice_extruder_index, diameter, volume_type))
-        return title;
+            return wxString::Format("%s (%s)", title, s_format_nozzle_spec(diameter, volume_type));
+        }
+    } else if (obj && obj->GetExtderSystem()->GetTotalExtderCount() == 2) /* the sync dialog */ {
+        const PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+        if (preset_bundle && multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
+            const DevNozzle nozzle = obj->GetNozzleSystem()->GetExtNozzle(extruder_id);
+            if (!nozzle.IsEmpty() && !nozzle.IsUnknown() && !nozzle.IsAbnormal() && nozzle.IsHotend()) {
+                const NozzleVolumeType volume_type = DevNozzle::ToNozzleVolumeType(nozzle.GetNozzleFlowType());
+                return wxString::Format("%s (%s)", title, s_format_nozzle_spec(nozzle.GetNozzleDiameter(), volume_type));
+            }
+        }
+    }
 
-    return wxString::Format("%s (%s)", title, s_format_nozzle_spec(diameter, volume_type));
+    return title;
 }
 
 } // namespace Slic3r::GUI
