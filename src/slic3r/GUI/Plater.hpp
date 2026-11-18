@@ -215,9 +215,9 @@ public:
      * \param to_multi      the mode the preset belongs to, i.e. the mode to switch to
      */
     void select_printer_across_multi_nozzle_mode(const std::string &printer_name, bool to_multi);
-    // Switch between two multi-diameter printer models: prompts SyncPresetWithPrinterDialog only when
-    // the project's distinct (diameter, flow) count exceeds the target model's physical nozzle capacity,
-    // and otherwise carries filament_diameter_map / filament_volume_map over silently.
+    // Switch between two multi-diameter printer models. Empty projects land on the target's default
+    // single-diameter preset; non-empty projects prompt when the target cannot preserve every nozzle
+    // exactly or the project exceeds its physical nozzle capacity.
     MultiDiameterPresetMigrationResult try_migrate_multi_diameter_printer_preset(std::string preset_name);
     void set_bed_by_curr_bed_type(AppConfig *config);
     void update_all_preset_comboboxes();

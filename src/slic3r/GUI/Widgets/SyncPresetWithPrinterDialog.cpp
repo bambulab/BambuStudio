@@ -597,7 +597,14 @@ std::optional<PrinterMigrationInfo> collect_preset_switch_migration_info(const P
         if (entry.slot < info.slot_nozzles.size())
             info.slot_nozzles[entry.slot] = entry.spec;
 
-    info.nozzles_fully_covered = (int) project_nozzles.size() <= max_nozzles;
+    const bool target_supports_all = std::all_of(project_nozzles.begin(), project_nozzles.end(),
+                                                 [&](const NozzleSpec &required) {
+                                                     return std::any_of(candidates.begin(), candidates.end(),
+                                                                        [&](const NozzleSpec &candidate) {
+                                                                            return same_spec(candidate, required, true);
+                                                                        });
+                                                 });
+    info.nozzles_fully_covered = (int) project_nozzles.size() <= max_nozzles && target_supports_all;
     info.project_nozzles       = std::move(project_nozzles);
     info.row_slots             = std::move(row_slots);
     info.row_labels            = std::move(row_labels);

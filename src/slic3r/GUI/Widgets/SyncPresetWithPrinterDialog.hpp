@@ -88,7 +88,8 @@ struct PrinterMigrationInfo
 
     NozzleSectionKind section_kind{NozzleSectionKind::None};
 
-    // Lets the caller skip the dialog entirely when the model matches too - nothing would change.
+    // Lets the caller skip the dialog when every required nozzle is supported exactly and the target
+    // has enough physical slots to carry all distinct specs.
     bool nozzles_fully_covered{false};
 
     // Only the 3MF import path offers to stop checking on future loads.
@@ -129,7 +130,8 @@ std::optional<PrinterMigrationInfo> collect_printer_migration_info(MachineObject
 
 // Assemble what the dialog needs when switching between multi-diameter printer models. When
 // PrinterMigrationInfo::nozzles_fully_covered is true the caller skips showing the dialog and applies
-// build_default_nozzle_migration(*info) directly.
+// build_default_nozzle_migration(*info) directly; unsupported flow variants require confirmation even
+// when their count fits the target's physical capacity.
 std::optional<PrinterMigrationInfo> collect_preset_switch_migration_info(const Preset &target_preset);
 PendingNozzleMigration              build_default_nozzle_migration(const PrinterMigrationInfo &info);
 

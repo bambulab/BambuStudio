@@ -2510,7 +2510,11 @@ static void populate_target_inventory_from_migration(const PendingNozzleMigratio
         return nozzle_variant_exists(slot.diameter, slot.volume_type) &&
                printer_offers_flow(slot.diameter, slot.volume_type, eid);
     };
-    const NozzleSlot default_nozzle{format_diameter_to_str(0.4f), nvtStandard, NozzleSlotStatus::Normal};
+    const std::set<std::string> target_diameters = migration_target_diameters(migration);
+    const std::string spare_diameter = target_diameters.size() == 1
+        ? *target_diameters.begin()
+        : format_diameter_to_str(0.4f);
+    const NozzleSlot default_nozzle{spare_diameter, nvtStandard, NozzleSlotStatus::Normal};
 
     std::vector<size_t> placement_order(distinct.size());
     std::vector<int> supported_heads(distinct.size(), 0);
@@ -2522,7 +2526,8 @@ static void populate_target_inventory_from_migration(const PendingNozzleMigratio
     std::stable_sort(placement_order.begin(), placement_order.end(),
                      [&](size_t lhs, size_t rhs) { return supported_heads[lhs] < supported_heads[rhs]; });
 
-    // Rebuild the target inventory from project needs; spare slots stay at the default nozzle.
+    // Rebuild the target inventory from project needs. A single-diameter result fills every spare
+    // slot with that diameter so the target can leave multi-diameter mode; mixed results use 0.4.
     std::vector<ExtruderSlots> slots_by_extruder;
     std::vector<std::vector<bool>> taken;
     slots_by_extruder.reserve(extruder_count);
@@ -5808,8 +5813,9 @@ MultiDiameterPresetMigrationResult Sidebar::try_migrate_multi_diameter_printer_p
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     Plater       *plater        = wxGetApp().plater();
     Tab          *printer_tab   = wxGetApp().get_tab(Preset::TYPE_PRINTER);
-    if (preset_bundle == nullptr || plater == nullptr || printer_tab == nullptr || plater->is_empty_project())
+    if (preset_bundle == nullptr || plater == nullptr || printer_tab == nullptr)
         return MultiDiameterPresetMigrationResult::NotHandled;
+    const bool empty_project = plater->is_empty_project();
 
     const Preset *target_preset = preset_bundle->printers.find_preset(preset_name, false);
     if (target_preset == nullptr)
@@ -5822,12 +5828,28 @@ MultiDiameterPresetMigrationResult Sidebar::try_migrate_multi_diameter_printer_p
 
     const Preset *target_base = preset_bundle->printers.get_preset_base(*target_preset);
     const Preset &target_ref  = target_base != nullptr ? *target_base : *target_preset;
-    std::optional<PrinterMigrationInfo> info = collect_preset_switch_migration_info(target_ref);
-    if (!info)
-        return MultiDiameterPresetMigrationResult::NotHandled;
+    std::optional<PrinterMigrationInfo> info;
+    if (empty_project) {
+        const Preset &source_preset = preset_bundle->printers.get_edited_preset();
+        const std::string source_model = source_preset.config.opt_string("printer_model");
+        const std::string target_model = target_ref.config.opt_string("printer_model");
+        if (!multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) ||
+            !supports_multi_nozzle_diameter_mode(source_preset.config) ||
+            !supports_multi_nozzle_diameter_mode(target_ref.config) ||
+            source_model.empty() || target_model.empty() || source_model == target_model)
+            return MultiDiameterPresetMigrationResult::NotHandled;
+    } else {
+        info = collect_preset_switch_migration_info(target_ref);
+        if (!info)
+            return MultiDiameterPresetMigrationResult::NotHandled;
+    }
 
     PendingNozzleMigration migration;
-    if (!info->nozzles_fully_covered) {
+    if (empty_project) {
+        migration.apply_flow_type = true;
+        migration.per_slot.assign(preset_bundle->filament_presets.size(),
+                                  NozzleSpec{0.4f, NozzleVolumeType::nvtStandard});
+    } else if (!info->nozzles_fully_covered) {
         SyncPresetWithPrinterDialog dlg(plater, *info);
         if (dlg.ShowModal() != wxID_OK) {
             if (p->combo_printer)
@@ -5841,24 +5863,40 @@ MultiDiameterPresetMigrationResult Sidebar::try_migrate_multi_diameter_printer_p
     }
 
     const std::string target_model = target_ref.config.opt_string("printer_model");
+    const std::set<std::string> target_diameters = migration_target_diameters(migration);
+    const bool target_multi_diameter_mode = target_diameters.size() > 1;
+    const std::string target_variant = target_multi_diameter_mode
+        ? canonical_multi_nozzle_printer_variant()
+        : (target_diameters.empty() ? default_single_nozzle_printer_variant() : *target_diameters.begin());
 
-    if (target_preset->is_system &&
-        target_preset->config.opt_string("printer_variant") != canonical_multi_nozzle_printer_variant()) {
-        if (Preset *canonical = find_system_multi_nozzle_printer_preset(
-                target_model, canonical_multi_nozzle_printer_variant())) {
-            canonical->is_visible = true;
-            preset_name = canonical->name;
+    if (!target_multi_diameter_mode || target_preset->is_system) {
+        Preset *target_variant_preset = find_system_multi_nozzle_printer_preset(target_model, target_variant);
+        if (target_variant_preset == nullptr) {
+            BOOST_LOG_TRIVIAL(warning) << "no target printer preset for migrated nozzle diameter " << target_variant;
+            if (p->combo_printer)
+                p->combo_printer->update();
+            printer_tab->update_preset_choice();
+            return MultiDiameterPresetMigrationResult::Aborted;
         }
+        target_variant_preset->is_visible = true;
+        preset_name = target_variant_preset->name;
     }
 
-    // Preserve per-slot maps across TabPrinter::select_preset(), where extruders_count_changed() (e.g.
-    // 1 -> 2 when moving onto H2D) clears plate volume maps and runs intermediate filament validations
-    // before the target printer's nozzle inventory holds the migrated nozzles.
-    preset_bundle->block_filament_fallback_substitution = true;
+    // Preserve a non-empty project's filament presets across TabPrinter::select_preset(), where
+    // extruders_count_changed() (e.g. 1 -> 2 when moving onto H2D) runs intermediate validation before
+    // the target inventory is ready. An empty project may freely fall back to a target-compatible preset.
+    auto *mode = preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode");
+    const bool previous_mode = mode != nullptr && mode->value;
+    if (mode != nullptr)
+        mode->value = target_multi_diameter_mode;
+    preset_bundle->block_filament_fallback_substitution = !empty_project;
     p->is_syncing_extruder_list_model_switch = true;
     const bool switched = printer_tab->select_preset(preset_name);
     p->is_syncing_extruder_list_model_switch = false;
     if (!switched) {
+        if (mode != nullptr)
+            mode->value = previous_mode;
+        sync_custom_map_mode_with_diameter_mode();
         preset_bundle->block_filament_fallback_substitution = false;
         if (p->combo_printer)
             p->combo_printer->update();
@@ -5866,9 +5904,14 @@ MultiDiameterPresetMigrationResult Sidebar::try_migrate_multi_diameter_printer_p
         return MultiDiameterPresetMigrationResult::Aborted;
     }
 
-    if (auto *mode = preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode"))
-        mode->value = true;
     preset_bundle->stamp_printer_nozzle_diameter_mode();
+    p->m_saved_per_slot_valid = false;
+    p->m_saved_selected_nozzle_diameters.clear();
+    p->m_saved_filament_volume_map.clear();
+    p->m_saved_diameter_at_snapshot.clear();
+    p->m_printer_preset_before_multi_diameter.reset();
+    if (!target_multi_diameter_mode)
+        p->m_process_auto_cache.reset();
 
     populate_target_inventory_from_migration(migration);
     notify_nozzles_changed();
@@ -5880,7 +5923,7 @@ MultiDiameterPresetMigrationResult Sidebar::try_migrate_multi_diameter_printer_p
     apply_nozzle_manual_maps_to_plates();
 
     refresh_multi_nozzle_preset_choices();
-    p->diameter_btns->SetMultiDiameterMode(true);
+    p->diameter_btns->SetMultiDiameterMode(target_multi_diameter_mode);
     p->refresh_dual_extruder_nozzles();
     refresh_filament_diameter_buttons(false);
     plater->update_project_dirty_from_presets();
