@@ -10691,6 +10691,7 @@ public:
 
     void clear_warnings();
     void add_warning(const Slic3r::PrintStateBase::Warning &warning, size_t oid);
+    void repush_completed_slicing_warnings();
     // Update notification manager with the current state of warnings produced by the background process (slicing).
     void actualize_slicing_warnings(const PrintBase &print);
     void actualize_object_warnings(const PrintBase& print);
@@ -17003,6 +17004,14 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     }
 }
 
+static NotificationManager::NotificationLevel slicing_warning_notif_level(int message_id)
+{
+    if (message_id == PrintStateBase::SlicingNotificationType::SlicingReplaceInitEmptyLayers ||
+        message_id == PrintStateBase::SlicingNotificationType::SlicingEmptyGcodeLayers)
+        return NotificationManager::NotificationLevel::SeriousWarningNotificationLevel;
+    return NotificationManager::NotificationLevel::WarningNotificationLevel;
+}
+
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 {
     if (evt.status.is_helio && !helio_background_process.is_action_current(evt.generation)) {
@@ -17080,12 +17089,8 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         // Now process state.warnings.
         for (auto const& warning : state.warnings) {
             if (warning.current) {
-                NotificationManager::NotificationLevel notif_level = NotificationManager::NotificationLevel::WarningNotificationLevel;
-                if (evt.status.message_type == PrintStateBase::SlicingNotificationType::SlicingReplaceInitEmptyLayers ||
-                    evt.status.message_type == PrintStateBase::SlicingNotificationType::SlicingEmptyGcodeLayers) {
-                    notif_level = NotificationManager::NotificationLevel::SeriousWarningNotificationLevel;
-                }
-                notification_manager->push_slicing_warning_notification(warning.message, false, model_object, object_id, warning_step, warning.message_id, notif_level);
+                notification_manager->push_slicing_warning_notification(warning.message, false, model_object, object_id, warning_step, warning.message_id,
+                                                                        slicing_warning_notif_level(warning.message_id));
                 add_warning(warning, object_id.id);
             }
         }
@@ -17161,6 +17166,43 @@ void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, s
         }
     }
     current_warnings.emplace_back(std::pair<Slic3r::PrintStateBase::Warning, size_t>(warning, oid));
+}
+void Plater::priv::repush_completed_slicing_warnings()
+{
+    if (this->printer_technology != ptFFF || this->background_process.m_fff_print == nullptr)
+        return;
+
+    const Print *print = this->background_process.m_fff_print;
+
+    for (int step = 0; step < (int)psCount; ++step) {
+        auto state = print->step_state_with_warnings(static_cast<PrintStep>(step));
+        if (state.state != PrintStateBase::DONE)
+            continue;
+        for (const auto &w : state.warnings) {
+            if (w.current) {
+                notification_manager->push_slicing_warning_notification(
+                    w.message, false, nullptr, print->id(), step, w.message_id, slicing_warning_notif_level(w.message_id));
+                add_warning(w, print->id().id);
+            }
+        }
+    }
+
+    for (const PrintObject *obj : print->objects()) {
+        const ModelObject *model_obj = obj->model_object();
+        ObjectID           oid       = obj->id();
+        for (int step = 0; step < (int)posCount; ++step) {
+            auto state = obj->step_state_with_warnings(static_cast<PrintObjectStep>(step));
+            if (state.state != PrintStateBase::DONE)
+                continue;
+            for (const auto &w : state.warnings) {
+                if (w.current) {
+                    notification_manager->push_slicing_warning_notification(
+                        w.message, false, model_obj, oid, step, w.message_id, slicing_warning_notif_level(w.message_id));
+                    add_warning(w, oid.id);
+                }
+            }
+        }
+    }
 }
 void Plater::priv::actualize_slicing_warnings(const PrintBase &print)
 {
@@ -17393,27 +17435,9 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             update_mixed_sublayer_variable_layer_warning();
             update_inactive_filament_change_warning();
         }
-        // Re-push warnings from completed PrintObject steps that were not re-run
+        // Re-push warnings from completed steps that were not re-run
         // but whose UI notifications were cleared by on_slicing_began().
-        if (this->printer_technology == ptFFF) {
-            const Print *print = this->background_process.m_fff_print;
-            for (const PrintObject *obj : print->objects()) {
-                const ModelObject *model_obj = obj->model_object();
-                ObjectID           oid       = obj->id();
-                for (int step = 0; step < (int)posCount; ++step) {
-                    auto state = obj->step_state_with_warnings(static_cast<PrintObjectStep>(step));
-                    if (state.state != PrintStateBase::DONE)
-                        continue;
-                    for (const auto &w : state.warnings) {
-                        if (w.current) {
-                            notification_manager->push_slicing_warning_notification(
-                                w.message, false, model_obj, oid, step, w.message_id);
-                            add_warning(w, oid.id);
-                        }
-                    }
-                }
-            }
-        }
+        repush_completed_slicing_warnings();
     }
 
     //BBS: update the action button according to the current plate's status
@@ -31049,6 +31073,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
 
         //always apply the current plate's print
         invalidated = p->background_process.apply(this->model(), build_plate_apply_config(preset_bundle, part_plate));
+        p->clear_warnings();
         bool model_fits, validate_err;
 
         BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, after apply, invalidated= %2%, previous result_valid %3% ")%plate_index  %invalidated %result_valid;
@@ -31067,6 +31092,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
                     }
                     else {
                         validate_current_plate(model_fits, validate_err);
+                        p->repush_completed_slicing_warnings();
                         //just refresh_print
                         refresh_print();
                         p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false, true);
@@ -31094,6 +31120,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
                     //p->ready_to_slice = false;
                     p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
 
+                    p->repush_completed_slicing_warnings();
                     refresh_print();
                 }
             }

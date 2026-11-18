@@ -2786,7 +2786,15 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
 #endif // WIN32
     };
 
+    int opt_index = -1;
     Field* field = get_field(opt_key);
+    if (!field) {
+        // Use a non-const int variable: a constant 0 is ambiguous with the Page** overload.
+        int first_index = 0;
+        field = get_field(opt_key, first_index);
+        if (field)
+            opt_index = first_index;
+    }
 
     // focused selected field
     if (field) {
@@ -2828,7 +2836,7 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
     //        set_focus(field->getWindow());
     //}
 
-    m_highlighter.init(get_custom_ctrl_with_blinking_ptr(opt_key));
+    m_highlighter.init(get_custom_ctrl_with_blinking_ptr(opt_key, opt_index));
 }
 
 void Tab::apply_searcher()

@@ -2196,6 +2196,11 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     }
 
     BOOST_LOG_TRIVIAL(info) << "Exporting G-code finished" << log_memory_info();
+    // Printers that handle hotends as extruders vibrate and get noisy on these sparse infill patterns at high acceleration.
+    if (m_has_high_accel_noise_infill && print->config().handle_hotend_as_extruder.value)
+        print->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL,
+            _(L("When the infill pattern is 3D Honeycomb, Honeycomb, or Gyroid, the printer produces significant vibration and noise when printing at high acceleration. It is recommended to reduce the infill acceleration.")),
+            PrintStateBase::SlicingInfillHighAccelNoise);
     print->set_done(psGCodeExport);
     //BBS: set enable_label_object
     result->label_object_enabled = m_enable_label_object;
@@ -7555,6 +7560,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         if (do_slowdown_by_height)
             acceleration = std::min(acceleration, desiredMaxAcc);
         m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
+
+        // Up to 40% of the default acceleration these patterns stay quiet enough.
+        const InfillPattern pattern = m_config.sparse_infill_pattern.value;
+        if (path.role() == erInternalInfill && (pattern == ip3DHoneycomb || pattern == ipHoneycomb || pattern == ipGyroid) &&
+            acceleration > 0.4 * NOZZLE_CONFIG(default_acceleration) + EPSILON)
+            m_has_high_accel_noise_infill = true;
     }
 
     if (m_config.default_jerk.value > 0 && !this->is_BBL_Printer()) {
