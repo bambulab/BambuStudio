@@ -17,7 +17,6 @@
 #include "MaterialColorLabel.hpp"
 #include "FilamentBitmapUtils.hpp"
 #include "FilamentSelectDialog.hpp"
-#include "libslic3r/DevicePresetUtil.hpp"
 
 
 #include "DeviceCore/DevConfig.h"
@@ -1031,58 +1030,34 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
 }
 
 
-std::optional<FilamentBaseInfo> AMSMaterialsSetting::get_filament_info(MachineObject* machine_obj,
-                                                                       int ams_id,
-                                                                       int slot_id,
-                                                                       const std::string& filament_id) const
-{
-    auto* preset_bundle = wxGetApp().preset_bundle;
-    if (!preset_bundle || !machine_obj || filament_id.empty())
-        return std::nullopt;
-
-    DevicePresetUtil::FilamentPresetQuery query;
-    query.filament_id   = filament_id;
-    query.printer_type  = machine_obj->printer_type;
-    query.with_fallback = true;
-
-    // Collect diameter
-    if (const auto& tray = machine_obj->get_tray(ams_id, slot_id); tray.has_value() && tray->get_nozzle(machine_obj).has_value()) {
-        query.nozzle_diameters.push_back(static_cast<float>(tray->get_nozzle(machine_obj)->GetNozzleDiameter()));
-    } else if (auto slot_nozzle = get_slot_nozzle()) {
-        query.nozzle_diameters.push_back(static_cast<float>(slot_nozzle->GetNozzleDiameter()));
-    }
-
-    if (query.nozzle_diameters.empty()) {
-        query.nozzle_diameters.emplace_back(0.4f);
-    }
-
-    return DevicePresetUtil::query_best_filament_preset(*preset_bundle, query);
-}
-
-DevFilaBlacklist::CheckResult AMSMaterialsSetting::CheckFilamentInfo(MachineObject* obj,
-                                                                     int ams_id,
-                                                                     int slot_id,
-                                                                     std::optional<FilamentBaseInfo> filament_info_opt) const
+static DevFilaBlacklist::CheckResult
+sCheckFilamentInfo(PresetBundle* preset_bundle,
+                   MachineObject* obj,
+                   int ams_id, int slot_id,
+                   const std::string& filament_id,
+                   std::string& ams_filament_id,
+                   std::string& ams_setting_id)
 {
     DevFilaBlacklist::CheckResult result;
-    if (!obj) {
+    if (!preset_bundle) {
         return result;
     }
 
-    if (!filament_info_opt) {
+    auto it = preset_bundle->get_filament_by_filament_id(filament_id);
+    if (!it.has_value()) {
         return result;
     }
-    const FilamentBaseInfo& filament_info = *filament_info_opt;
 
     if (wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
         DevFilaBlacklist::CheckFilamentInfo check_info;
         check_info.dev_id = obj->get_dev_id();
         check_info.model_id = obj->printer_type;
-        check_info.fila_id = filament_info.filament_id;
-        check_info.fila_type = filament_info.filament_type;
+        check_info.fila_id = it->filament_id;
+        check_info.fila_type = it->filament_type;
 
-        check_info.fila_name = filament_info.filament_name;
-        check_info.fila_vendor = filament_info.vendor;
+        auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(check_info.fila_id);
+        check_info.fila_name = option ? option->filament_name : "";
+        check_info.fila_vendor = option ? option->vendor : "";
         check_info.has_filament_switch = obj->GetFilaSwitch()->IsInstalled();
 
         check_info.ams_id = ams_id;
@@ -1143,6 +1118,8 @@ DevFilaBlacklist::CheckResult AMSMaterialsSetting::CheckFilamentInfo(MachineObje
         result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
     }
 
+    ams_filament_id = it->filament_id;
+    ams_setting_id = it->setting_id;
     return result;
 }
 
@@ -1315,7 +1292,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
                         new_spool.colors.push_back(new_spool.color_code);
 
                     // Filament meta from preset bundle
-                    auto fila_opt = get_filament_info(obj, ams_id, slot_id, ams_filament_id);
+                    auto fila_opt = preset_bundle->get_filament_by_filament_id(ams_filament_id);
                     if (fila_opt) {
                         new_spool.material_type = fila_opt->filament_type;
                         new_spool.brand         = fila_opt->vendor;
@@ -1353,6 +1330,19 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
 
     // the combobox item
     auto filament_item = map_filament_items[into_u8(m_current_filament_alias)];
+
+    int total_weight = 0;
+    int remain_weight = 0;
+    auto sel_opt = preset_bundle->get_filament_by_filament_id(filament_item.filament_id);
+    bool is_target_bbl = sel_opt && sel_opt->vendor == "Bambu Lab";
+    if (!validate_filament_weight_inputs(is_target_bbl, total_weight, remain_weight)) {
+        return;
+    }
+
+    //get filament id
+    ams_filament_id = "";
+    ams_setting_id = "";
+
     if (!m_selected_spool_id.empty() && filament_item.filament_id.empty()) {
         auto* store = wxGetApp().fila_manager_store();
         const FilamentSpool* sp = store ? store->get_spool(m_selected_spool_id) : nullptr;
@@ -1363,33 +1353,13 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
         }
     }
 
-    ams_filament_id = "";
-    ams_setting_id = "";
-    m_filament_type = "";
-    long nozzle_temp_min_int = -1;
-    long nozzle_temp_max_int = -1;
-    auto sel_opt = get_filament_info(obj, ams_id, slot_id, filament_item.filament_id);
-    if (sel_opt) {
-        ams_filament_id = sel_opt->filament_id;
-        ams_setting_id = sel_opt->setting_id;
-        m_filament_type = sel_opt->filament_type;
-        nozzle_temp_min_int = sel_opt->nozzle_temp_range_low;
-        nozzle_temp_max_int = sel_opt->nozzle_temp_range_high;
-    }
-
-    int total_weight = 0;
-    int remain_weight = 0;
-    bool is_target_bbl = sel_opt && sel_opt->vendor == "Bambu Lab";
-    if (!validate_filament_weight_inputs(is_target_bbl, total_weight, remain_weight)) {
-        return;
-    }
 
     // check filament info
-    const auto& fila_check_res = CheckFilamentInfo(obj, ams_id, slot_id, sel_opt);
+    const auto& fila_check_res = sCheckFilamentInfo(preset_bundle, obj, ams_id, slot_id, filament_item.filament_id, ams_filament_id, ams_setting_id);
     bool can_set_fila = fila_check_res.get_prohibition_items().empty();
 
     // check if need to set usr_has_setup_tpu
-    auto fila_item = get_filament_info(obj, ams_id, slot_id, filament_item.filament_id);
+    auto fila_item = preset_bundle ? preset_bundle->get_filament_by_filament_id(filament_item.filament_id) : std::nullopt;
     if (fila_item.has_value() && can_set_fila && DevPrinterConfigUtil::support_user_first_setup_tpu_check(obj->printer_type)) {
         if ((fila_item->filament_type == "TPU" || fila_item->filament_type == "TPU-AMS") &&
             wxGetApp().app_config->get("usr_has_setup_tpu") != "true") {
@@ -1443,6 +1413,14 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
         }
     }
 
+    wxString nozzle_temp_min = m_nozzle_temp_min_str;
+    auto     filament = m_current_filament_alias;
+
+    wxString nozzle_temp_max = m_nozzle_temp_max_str;
+
+    long nozzle_temp_min_int, nozzle_temp_max_int;
+    nozzle_temp_min.ToLong(&nozzle_temp_min_int);
+    nozzle_temp_max.ToLong(&nozzle_temp_max_int);
     wxColour color = m_clr_picker->m_colour;
     std::string tray_color = colour_to_ams_string(color);
     std::vector<std::string> tray_colors;
@@ -1459,7 +1437,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
         tray_ctype = tray_colors.size() > 1 ? m_clr_picker->ctype : 2;
     }
 
-    if (ams_filament_id.empty() || (nozzle_temp_min_int == -1) || (nozzle_temp_max_int == -1) || m_filament_type.empty()) {
+    if (ams_filament_id.empty() || nozzle_temp_min.empty() || nozzle_temp_max.empty() || m_filament_type.empty()) {
         BOOST_LOG_TRIVIAL(trace) << "Invalid Setting id";
         MessageDialog msg_dlg(nullptr, _L("You need to select the material type and color first."), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
@@ -2162,12 +2140,10 @@ void AMSMaterialsSetting::on_open_filament_select_dialog()
     if (m_selected_spool_id.empty())
         current_alias = m_current_filament_alias;
 
-    std::vector<float> nozzle_diameters;
-    if (auto nozzle_opt = get_slot_nozzle()) {
-        nozzle_diameters.push_back(static_cast<float>(nozzle_opt->GetNozzleDiameter()));
-    } else {
-        nozzle_diameters.push_back(0.4f); // TODO
-    }
+    std::set<std::string> printer_names;
+    if (PresetBundle* preset_bundle = wxGetApp().preset_bundle)
+        printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(
+            DevPrinterConfigUtil::get_printer_display_name(obj->printer_type), nozzle_diameter_str);
 
     FilamentSelectDialog dlg(this);
 
@@ -2182,7 +2158,9 @@ void AMSMaterialsSetting::on_open_filament_select_dialog()
     if (pos_x < area.GetLeft()) pos_x = area.GetLeft();
     if (pos_y < area.GetTop())  pos_y = area.GetTop();
     dlg.Move(wxPoint(pos_x, pos_y));
-    dlg.Popup(filament_items, query_filament_vendors, query_filament_types, current_alias, obj->printer_type, nozzle_diameters);
+
+    dlg.Popup(filament_items, query_filament_vendors, query_filament_types, current_alias,
+              std::move(printer_names));
 
     const auto& res = dlg.get_result();
     if (!res.is_valid()) return;
@@ -2939,14 +2917,14 @@ void AMSMaterialsSetting::apply_filament_selection()
         auto* store = wxGetApp().fila_manager_store();
         const FilamentSpool* sp = store ? store->get_spool(m_selected_spool_id) : nullptr;
         if (sp && preset_bundle) {
-            if (auto fila_info_opt = get_filament_info(obj, ams_id, slot_id, sp->filament_id)) {
-                const FilamentBaseInfo& fila_info = *fila_info_opt;
-                ams_filament_id = fila_info.filament_id;
-                ams_setting_id  = fila_info.setting_id;
-                m_nozzle_temp_min_str = wxString::Format("%d", fila_info.nozzle_temp_range_low);
-                m_nozzle_temp_max_str = wxString::Format("%d", fila_info.nozzle_temp_range_high);
+            auto fila_info = preset_bundle->get_filament_by_filament_id(sp->filament_id);
+            if (fila_info.has_value()) {
+                ams_filament_id = fila_info->filament_id;
+                ams_setting_id  = fila_info->setting_id;
+                m_nozzle_temp_min_str = wxString::Format("%d", fila_info->nozzle_temp_range_low);
+                m_nozzle_temp_max_str = wxString::Format("%d", fila_info->nozzle_temp_range_high);
                 update_nozzle_temp_display();
-                m_filament_type = fila_info.filament_type;
+                m_filament_type = fila_info->filament_type;
             }
             set_ctype(sp->color_type);
             if (!sp->colors.empty()) {

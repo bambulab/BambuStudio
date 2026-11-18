@@ -2,7 +2,6 @@
 #define slic3r_AMSMaterialsSetting_hpp_
 
 #include "libslic3r/Preset.hpp"
-#include "libslic3r/PresetBundle.hpp"
 #include <optional>
 #include <set>
 #include "wxExtensions.hpp"
@@ -19,7 +18,6 @@
 #include "Widgets/TextInput.hpp"
 #include "../slic3r/Utils/CalibUtils.hpp"
 #include "DeviceCore/DevNozzleRack.h"
-#include "DeviceCore/DevFilaBlackList.h"
 #include "fila_manager/wgtFilaManagerStore.h"
 #include <memory>
 #include <wx/timer.h>
@@ -163,15 +161,6 @@ public:
         std::string setting_id;
         std::string spool_id;   // non-empty only when entry comes from Filament Manager
     };
-
-private:
-    std::optional<FilamentBaseInfo> get_filament_info(MachineObject* machine_obj,
-                                                       int ams_id,
-                                                       int slot_id,
-                                                       const std::string& filament_id) const;
-    DevFilaBlacklist::CheckResult CheckFilamentInfo(MachineObject* machine_obj,
-                                                    int ams_id, int slot_id,
-                                                    std::optional<FilamentBaseInfo> filament_info_opt) const;
 
 protected:
     void create_panel_normal(wxWindow* parent);
