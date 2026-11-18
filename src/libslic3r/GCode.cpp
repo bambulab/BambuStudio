@@ -2505,6 +2505,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     PROFILE_FUNC();
 
     m_print = &print;
+    m_multi_diameter_nozzles.clear();
+    if (print.uses_multiple_nozzle_diameters())
+        for (size_t filament = 0; filament < print.config().filament_diameter.size(); ++ filament)
+            m_multi_diameter_nozzles.emplace_back(nozzle_diameter_for_filament(print.config(), unsigned(filament + 1)));
     m_timelapse_pos_picker.init(&print,m_writer.get_xy_offset().cast<coord_t>());
     // init as filament map
     update_layer_related_config(0);
@@ -7745,6 +7749,19 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
         speed = std::min(speed, extrude_speed);
+    }
+
+    // 多口径：支撑层高低于当前口径最小层高时，按 层高/口径默认层高 降速，最低 10mm/s。
+    if (is_support(path.role()) && path.role() != erSupportIroning &&
+        m_writer.filament()->id() < m_multi_diameter_nozzles.size()) {
+        const double nozzle = m_multi_diameter_nozzles[m_writer.filament()->id()];
+        if (path.height < adaptive_layer_height_range(nozzle).min_height - EPSILON) {
+            const double base_speed = path.role() == erSupportMaterial          ? NOZZLE_CONFIG(support_speed) :
+                                      path.role() == erSupportMaterialInterface ? NOZZLE_CONFIG(support_interface_speed) :
+                                      FILAMENT_CONFIG(override_process_overhang_speed) ? FILAMENT_CONFIG(filament_bridge_speed) :
+                                                                                         NOZZLE_CONFIG(bridge_speed);
+            speed = std::min(speed, std::max(10., base_speed * path.height / (0.5 * nozzle)));
+        }
     }
 
     if (do_slowdown_by_height)

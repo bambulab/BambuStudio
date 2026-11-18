@@ -679,6 +679,8 @@ private:
 
     // BBS
     Print* m_curr_print = nullptr;
+    // 多口径时各耗材的喷嘴口径，导出前算好；为空表示非多口径，支撑细层不降速。
+    std::vector<double> m_multi_diameter_nozzles;
     unsigned int m_toolchange_count;
     std::vector<unsigned int> m_filament_change_sequence;
     std::vector<unsigned int> m_nozzle_change_sequence;
