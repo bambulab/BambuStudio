@@ -3435,18 +3435,23 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
     std::sort(ams_sync_substitutions.begin(), ams_sync_substitutions.end(),
               [](const AmsSyncSubstitution &a, const AmsSyncSubstitution &b) { return a.slot < b.slot; });
 
+    // The sync rebuilt the physical slot list, and an overwrite sync can shorten it. The mixed arrays
+    // follow its new length whether or not mixed slots were stripped above: sync_mixed_filament_nozzle_diameters()
+    // sizes filament_diameter_map by filament_is_mixed / filament_mixed_components, so a dropped slot left
+    // in them comes back as an empty filament_diameter_map entry.
+    const size_t new_phys_count = this->filament_presets.size();
+    BOOST_LOG_TRIVIAL(info) << "AMS sync: resize mixed filament arrays to " << new_phys_count << " physical slot(s)";
+    if (is_mixed_opt)         is_mixed_opt->values.resize(new_phys_count, (unsigned char)false);
+    if (mixed_comp_opt)       mixed_comp_opt->values.resize(new_phys_count);
+    if (mixed_ratios_opt)     mixed_ratios_opt->values.resize(new_phys_count);
+    if (mixed_gradient_opt)   mixed_gradient_opt->values.resize(new_phys_count, (unsigned char)false);
+    if (mixed_grad_range_opt) mixed_grad_range_opt->values.resize(new_phys_count);
+    if (mixed_grad_curve_opt) mixed_grad_curve_opt->values.resize(new_phys_count);
+    if (mixed_per_part_opt)   mixed_per_part_opt->values.resize(new_phys_count, (unsigned char)false);
+
     // Re-append mixed filament slots that were stripped before AMS sync
     if (!mixed_snapshots.empty()) {
         BOOST_LOG_TRIVIAL(info) << "re-appending " << mixed_snapshots.size() << " mixed filament slot(s) after AMS sync";
-        size_t new_phys_count = this->filament_presets.size();
-        if (is_mixed_opt)         is_mixed_opt->values.resize(new_phys_count, (unsigned char)false);
-        if (mixed_comp_opt)       mixed_comp_opt->values.resize(new_phys_count);
-        if (mixed_ratios_opt)     mixed_ratios_opt->values.resize(new_phys_count);
-        if (mixed_gradient_opt)   mixed_gradient_opt->values.resize(new_phys_count, (unsigned char)false);
-        if (mixed_grad_range_opt) mixed_grad_range_opt->values.resize(new_phys_count);
-        if (mixed_grad_curve_opt) mixed_grad_curve_opt->values.resize(new_phys_count);
-        if (mixed_per_part_opt)   mixed_per_part_opt->values.resize(new_phys_count, (unsigned char)false);
-
         for (auto& snap : mixed_snapshots) {
             this->filament_presets.push_back(snap.preset);
             filament_color->values.push_back(snap.color);
@@ -5800,6 +5805,21 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         nozzle_inventory.select_printer(printers);
         this->project_config.option<ConfigOptionStrings>("filament_diameter_map")
             ->values.resize(this->filament_presets.size());
+        // Files saved after an overwrite AMS sync shortened the filament list carry mixed arrays longer
+        // than filament_presets. sync_mixed_filament_nozzle_diameters() sizes filament_diameter_map by
+        // filament_is_mixed / filament_mixed_components, so trim them to the loaded slot count here.
+        const size_t num_slots = this->filament_presets.size();
+        auto *is_mixed_opt = this->project_config.option<ConfigOptionBools>("filament_is_mixed");
+        if (is_mixed_opt->values.size() > num_slots)
+            BOOST_LOG_TRIVIAL(warning) << "project filament_is_mixed holds " << is_mixed_opt->values.size()
+                                       << " slot(s), trimmed to " << num_slots << " loaded filament(s)";
+        is_mixed_opt->values.resize(num_slots, (unsigned char)false);
+        this->project_config.option<ConfigOptionStrings>("filament_mixed_components")->values.resize(num_slots);
+        this->project_config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios")->values.resize(num_slots);
+        this->project_config.option<ConfigOptionBools>("filament_mixed_gradient")->values.resize(num_slots, (unsigned char)false);
+        this->project_config.option<ConfigOptionStrings>("filament_mixed_gradient_range")->values.resize(num_slots);
+        this->project_config.option<ConfigOptionStrings>("filament_mixed_gradient_curve")->values.resize(num_slots);
+        this->project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part")->values.resize(num_slots, (unsigned char)false);
 
         break;
     }
