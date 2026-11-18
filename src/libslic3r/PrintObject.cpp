@@ -6249,6 +6249,16 @@ void PrintObject::warn_uncovered_overhangs()
     const float    coverage_offset = float(scale_(
         resolved_support_object_xy_distance(m_print->config(), m_config)));
 
+    // resolve_support_style() matches SupportParameters, including Default / Grid / Snug.
+    const PrintConfig &print_config = this->print()->config();
+    const SupportMaterialStyle resolved_style =
+        resolve_support_style(m_config.support_style.value, m_config.support_type.value,
+                              this->has_variable_layer_heights, m_slicing_params.soluble_interface,
+                              config_flag_or_false(print_config, "heat_preserve_mode"),
+                              config_flag_or_false(print_config, "enable_support_ring"),
+                              this->print()->uses_multiple_nozzle_diameters());
+    const bool hybrid_tree = resolved_style == smsTreeHybrid;
+
     // One overhang island worth reporting, with everything the passes below need from it.
     struct Island {
         ExPolygons  coverage_area;
@@ -6264,7 +6274,8 @@ void PrintObject::warn_uncovered_overhangs()
         size_t              support_begin  = 0;
         size_t              support_end    = 0;
         double              uncovered_area = 0.;
-        size_t              num_uncovered  = 0;
+        // Indices into islands of the uncovered ones, grouped into regions below.
+        std::vector<size_t> uncovered_islands;
     };
     std::vector<LayerWork> work(m_layers.size());
 
@@ -6272,7 +6283,7 @@ void PrintObject::warn_uncovered_overhangs()
     // This only walks geometry that already exists, and it lets the two passes below skip the layers -
     // usually the vast majority - with nothing left to check.
     tbb::parallel_for(tbb::blocked_range<size_t>(0, m_layers.size()),
-        [this, &support_zs, search_depth, coverage_offset, &work](const tbb::blocked_range<size_t> &range) {
+        [this, &support_zs, search_depth, coverage_offset, hybrid_tree, &work](const tbb::blocked_range<size_t> &range) {
             for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                 m_print->throw_if_canceled();
                 const Layer *layer = m_layers[layer_idx];
@@ -6284,6 +6295,7 @@ void PrintObject::warn_uncovered_overhangs()
                     const ExPolygon *island;
                     BoundingBox      bbox;
                     double           area_mm2;
+                    bool             wall_band;
                 };
                 std::vector<Candidate> candidate_islands;
                 BoundingBox           candidate_bbox;
@@ -6296,7 +6308,12 @@ void PrintObject::warn_uncovered_overhangs()
                         continue;
                     const BoundingBox bbox = get_extents(island);
                     if (bbox.defined) {
-                        candidate_islands.push_back({ &island, bbox, island_area });
+                        // A tip keeps the xy gap to the wall below, so that band of the overhang cannot take a
+                        // branch. Sharp tails keep their outline; hybrid trees lay contacts on big flat / thin plates.
+                        const int  type      = island_with_type.second;
+                        const bool wall_band = ! (type & TreeSupport::SharpTail) &&
+                            ! (hybrid_tree && (type & (TreeSupport::BigFlat | TreeSupport::ThinPlate)));
+                        candidate_islands.push_back({ &island, bbox, island_area, wall_band });
                         candidate_bbox.merge(bbox);
                     }
                 }
@@ -6317,6 +6334,11 @@ void PrintObject::warn_uncovered_overhangs()
                     append(model_below, ClipperUtils::clip_clipper_polygons_with_subject_bbox(
                         model_layer->lslices, model_bbox));
                 }
+                Polygons wall_band;
+                if (layer->lower_layer != nullptr)
+                    wall_band = offset(ClipperUtils::clip_clipper_polygons_with_subject_bbox(
+                        layer->lower_layer->lslices_extrudable, model_bbox.inflated(coord_t(coverage_offset) + SCALED_EPSILON)),
+                        coverage_offset);
 
                 auto add_island = [&w, coverage_offset](const ExPolygon &island, double island_area) {
                     if (island_area < MIN_REPORTED_OVERHANG_AREA_MM2)
@@ -6331,9 +6353,12 @@ void PrintObject::warn_uncovered_overhangs()
                 };
                 w.islands.reserve(candidate_islands.size());
                 for (const Candidate &candidate : candidate_islands) {
-                    const Polygons model_near = model_below.empty() ? Polygons{} :
+                    Polygons model_near = model_below.empty() ? Polygons{} :
                         ClipperUtils::clip_clipper_polygons_with_subject_bbox(
                             model_below, candidate.bbox.inflated(SCALED_EPSILON));
+                    if (candidate.wall_band && ! wall_band.empty())
+                        append(model_near, ClipperUtils::clip_clipper_polygons_with_subject_bbox(
+                            wall_band, candidate.bbox.inflated(SCALED_EPSILON)));
                     if (model_near.empty())
                         add_island(*candidate.island, candidate.area_mm2);
                     else
@@ -6441,7 +6466,8 @@ void PrintObject::warn_uncovered_overhangs()
                     }
                 }
 
-                for (const Island &island : w.islands) {
+                for (size_t island_idx = 0; island_idx < w.islands.size(); ++ island_idx) {
+                    const Island &island = w.islands[island_idx];
                     double covered_area = 0.;
                     if (support_below != nullptr) {
                         // Whole-cache rejection: a single supporting layer whose overall bounds cannot
@@ -6464,7 +6490,7 @@ void PrintObject::warn_uncovered_overhangs()
                     }
                     if (covered_area < MIN_SUPPORTED_OVERHANG_RATIO * island.area_mm2) {
                         w.uncovered_area += island.area_mm2;
-                        ++ w.num_uncovered;
+                        w.uncovered_islands.emplace_back(island_idx);
                     }
                 }
             }
@@ -6477,31 +6503,77 @@ void PrintObject::warn_uncovered_overhangs()
     for (size_t layer_idx = 0; layer_idx < work.size(); ++ layer_idx) {
         const LayerWork &w = work[layer_idx];
         total_significant += w.islands.size();
-        if (w.num_uncovered == 0)
+        if (w.uncovered_islands.empty())
             continue;
         if (total_uncovered == 0)
             lowest_z = m_layers[layer_idx]->print_z;
         total_uncovered_area += w.uncovered_area;
-        total_uncovered      += w.num_uncovered;
+        total_uncovered      += w.uncovered_islands.size();
     }
+
+    // Pass 4: one overhang spans many layers. Merge uncovered islands within one support gap in Z whose
+    // footprints touch, so the warning counts regions instead of layers. Only uncovered islands take part.
+    std::vector<std::pair<size_t, const Island *>> uncovered;
+    uncovered.reserve(total_uncovered);
+    for (size_t layer_idx = 0; layer_idx < work.size(); ++ layer_idx)
+        for (size_t island_idx : work[layer_idx].uncovered_islands)
+            uncovered.emplace_back(layer_idx, &work[layer_idx].islands[island_idx]);
+
+    std::vector<size_t> parent(uncovered.size());
+    std::iota(parent.begin(), parent.end(), size_t(0));
+    auto find_root = [&parent](size_t i) {
+        while (parent[i] != i)
+            i = parent[i] = parent[parent[i]];
+        return i;
+    };
+    // Sorted by layer, so the scan back stops at the first island out of Z reach.
+    for (size_t i = 0; i < uncovered.size(); ++ i) {
+        const coordf_t reach_z = m_layers[uncovered[i].first]->bottom_z() - search_depth - EPSILON;
+        for (size_t j = i; j-- > 0;) {
+            if (uncovered[j].first == uncovered[i].first)
+                continue;
+            if (m_layers[uncovered[j].first]->print_z < reach_z)
+                break;
+            const size_t  ri = find_root(i), rj = find_root(j);
+            const Island &a  = *uncovered[i].second, &b = *uncovered[j].second;
+            if (ri != rj && a.bbox.overlap(b.bbox) && overlaps(a.coverage_area, b.coverage_area))
+                parent[ri] = rj;
+        }
+    }
+
+    // Sorted by layer, so the first island of a region is its lowest and the last its highest.
+    struct Region {
+        size_t      min_layer;
+        size_t      max_layer;
+        double      area_mm2 = 0.;
+        BoundingBox bbox;
+    };
+    std::map<size_t, Region> regions;
+    for (size_t i = 0; i < uncovered.size(); ++ i) {
+        const auto &[layer_idx, island] = uncovered[i];
+        Region &r = regions.try_emplace(find_root(i), Region{ layer_idx, layer_idx }).first->second;
+        r.max_layer = layer_idx;
+        r.area_mm2 += island->area_mm2;
+        r.bbox.merge(island->bbox);
+    }
+
+    // One line per region so each one can be located in the preview.
+    const Point shift = m_instances.empty() ? Point::Zero() : m_instances.front().shift;
+    for (const auto &[root, r] : regions)
+        BOOST_LOG_TRIVIAL(info) << "Uncovered overhang region: z=" << m_layers[r.min_layer]->print_z << "-"
+                                << m_layers[r.max_layer]->print_z << " x=" << unscale<double>(r.bbox.center().x() + shift.x())
+                                << " y=" << unscale<double>(r.bbox.center().y() + shift.y()) << " area=" << r.area_mm2;
 
     if (total_uncovered > 0)
         BOOST_LOG_TRIVIAL(info) << "Uncovered overhang check on object " << this->model_object()->name << ": "
-                                << total_uncovered << " of " << total_significant << " region(s) uncovered, "
+                                << regions.size() << " region(s) from " << total_uncovered << " of " << total_significant
+                                << " layer island(s) uncovered, "
                                 << total_uncovered_area << " mm2, lowest_z=" << lowest_z;
 
     if (total_uncovered_area < MIN_TOTAL_UNCOVERED_AREA_MM2)
         return;
 
     // Name build-plate-only only when the resolved style still walks drop_nodes.
-    // resolve_support_style() matches SupportParameters, including Default / Grid / Snug.
-    const PrintConfig &print_config = this->print()->config();
-    const SupportMaterialStyle resolved_style =
-        resolve_support_style(m_config.support_style.value, m_config.support_type.value,
-                              this->has_variable_layer_heights, m_slicing_params.soluble_interface,
-                              config_flag_or_false(print_config, "heat_preserve_mode"),
-                              config_flag_or_false(print_config, "enable_support_ring"),
-                              this->print()->uses_multiple_nozzle_diameters());
     const bool classic_tree_drop = resolved_style != smsTreeOrganic;
     std::string warning_message;
     PrintStateBase::SlicingNotificationType warning_id = PrintStateBase::SlicingSupportIncomplete;
@@ -6511,13 +6583,13 @@ void PrintObject::warn_uncovered_overhangs()
             _u8L("Unsupported overhangs were detected.\n"
                  "Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, "
                  "supports cannot grow down to the build plate. Try turning this option off."),
-            this->model_object()->name, total_uncovered);
+            this->model_object()->name, regions.size());
     } else
         warning_message = Slic3r::format(
             _u8L("Unsupported overhangs were detected.\n"
                  "Model \"%1%\" has %2% overhang region(s) that could not get support. "
                  "Try adjusting the support settings or re-orienting the object."),
-            this->model_object()->name, total_uncovered);
+            this->model_object()->name, regions.size());
     this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning_message, warning_id);
 }
 
