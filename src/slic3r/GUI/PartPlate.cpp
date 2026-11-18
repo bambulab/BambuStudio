@@ -2123,6 +2123,10 @@ bool PartPlate::check_flow_compatible_of_nozzle_and_filament(const DynamicPrintC
 bool PartPlate::check_tpu_nozzle_has_multiple_filaments(const DynamicPrintConfig &config, std::string &error_msg)
 {
     error_msg.clear();
+    // Independent fixed nozzles may each carry a TPU filament; their capacity is checked during nozzle assignment.
+    if (is_single_ext_multi_nozzle(config))
+        return false;
+
     std::vector<NozzleVolumeType> tpu_nozzle_volume_type = {nvtTPUHighFlow, nvtTPU285};
 
     std::vector<int> used_filaments = get_extruders(true);  // 1 base
