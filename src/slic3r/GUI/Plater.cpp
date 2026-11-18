@@ -2543,148 +2543,60 @@ static void populate_target_inventory_from_migration(const PendingNozzleMigratio
     if (distinct.empty())
         return;
 
-    const DynamicPrintConfig &printer_config = preset_bundle->printers.get_edited_preset().config;
-    const NozzleLayout layout = nozzle_layout_of(printer_config);
     auto head_supports = [](int eid, const NozzleSlot &slot) {
         return nozzle_variant_exists(slot.diameter, slot.volume_type) &&
                printer_offers_flow(slot.diameter, slot.volume_type, eid);
     };
-    if (layout == NozzleLayout::DualExtruder && extruder_count >= 2) {
-        if (distinct.size() == 1) {
-            const NozzleSlot &only = distinct.front();
-            const bool left_ok  = head_supports(0, only);
-            const bool right_ok = head_supports(1, only);
-            if (left_ok)
-                inventory.user_set_nozzle(0, only.diameter, only.volume_type);
-            if (right_ok)
-                inventory.user_set_nozzle(1, only.diameter, only.volume_type);
-            if (!left_ok && !right_ok)
-                inventory.user_set_nozzle(0, only.diameter, nvtStandard);
-        } else {
-            NozzleSlot left_slot  = distinct[0];
-            NozzleSlot right_slot = distinct[1];
-            if ((!head_supports(0, left_slot) || !head_supports(1, right_slot)) &&
-                head_supports(0, right_slot) && head_supports(1, left_slot))
-                std::swap(left_slot, right_slot);
-            inventory.user_set_nozzle(0, left_slot.diameter, left_slot.volume_type);
-            inventory.user_set_nozzle(1, right_slot.diameter, right_slot.volume_type);
-        }
-        return;
-    }
+    const NozzleSlot default_nozzle{format_diameter_to_str(0.4f), nvtStandard, NozzleSlotStatus::Normal};
 
-    if (layout == NozzleLayout::DualExtruderRack && extruder_count >= 2) {
-        std::vector<ExtruderSlots> slots_by_extruder;
-        std::vector<std::vector<bool>> taken;
-        slots_by_extruder.reserve(extruder_count);
-        taken.reserve(extruder_count);
-        for (int eid = 0; eid < extruder_count; ++eid) {
-            slots_by_extruder.push_back(inventory.slots(eid));
-            taken.emplace_back(slots_by_extruder.back().size(), false);
-        }
-
-        std::vector<size_t> placement_order(distinct.size());
-        std::vector<int> supported_heads(distinct.size(), 0);
-        std::iota(placement_order.begin(), placement_order.end(), 0);
-        for (size_t i = 0; i < distinct.size(); ++i)
-            for (int eid = 0; eid < extruder_count; ++eid)
-                if (head_supports(eid, distinct[i]))
-                    ++supported_heads[i];
-        std::stable_sort(placement_order.begin(), placement_order.end(),
-                         [&](size_t lhs, size_t rhs) { return supported_heads[lhs] < supported_heads[rhs]; });
-
-        for (size_t i : placement_order) {
-            bool placed = false;
-            for (int eid = 0; eid < extruder_count && !placed; ++eid) {
-                if (!head_supports(eid, distinct[i]))
-                    continue;
-                for (size_t s = 0; s < slots_by_extruder[eid].size(); ++s) {
-                    const NozzleSlot &slot = slots_by_extruder[eid][s];
-                    if (!taken[eid][s] && !slot.empty() &&
-                        slot.diameter == distinct[i].diameter &&
-                        slot.volume_type == distinct[i].volume_type) {
-                        taken[eid][s] = true;
-                        placed = true;
-                        break;
-                    }
-                }
-            }
-            if (placed)
-                continue;
-
-            int best_eid = -1;
-            size_t best_slot = 0;
-            size_t best_available = 0;
-            for (bool empty_only : {true, false}) {
-                for (int eid = 0; eid < extruder_count; ++eid) {
-                    if (!head_supports(eid, distinct[i]))
-                        continue;
-                    size_t available = 0;
-                    size_t first = 0;
-                    for (size_t s = 0; s < slots_by_extruder[eid].size(); ++s) {
-                        if (taken[eid][s] || (empty_only && !slots_by_extruder[eid][s].empty()))
-                            continue;
-                        if (available++ == 0)
-                            first = s;
-                    }
-                    if (available > best_available) {
-                        best_eid = eid;
-                        best_slot = first;
-                        best_available = available;
-                    }
-                }
-                if (best_eid >= 0)
-                    break;
-            }
-            if (best_eid < 0) {
-                BOOST_LOG_TRIVIAL(warning) << "unable to place migrated nozzle " << distinct[i].diameter
-                                           << " type " << int(distinct[i].volume_type)
-                                           << " into target dual-extruder rack";
-                return;
-            }
-            slots_by_extruder[best_eid][best_slot] = distinct[i];
-            taken[best_eid][best_slot] = true;
-        }
-
+    std::vector<size_t> placement_order(distinct.size());
+    std::vector<int> supported_heads(distinct.size(), 0);
+    std::iota(placement_order.begin(), placement_order.end(), 0);
+    for (size_t i = 0; i < distinct.size(); ++i)
         for (int eid = 0; eid < extruder_count; ++eid)
-            inventory.user_set_slots(eid, std::move(slots_by_extruder[eid]));
-        return;
+            if (head_supports(eid, distinct[i]))
+                ++supported_heads[i];
+    std::stable_sort(placement_order.begin(), placement_order.end(),
+                     [&](size_t lhs, size_t rhs) { return supported_heads[lhs] < supported_heads[rhs]; });
+
+    // Rebuild the target inventory from project needs; spare slots stay at the default nozzle.
+    std::vector<ExtruderSlots> slots_by_extruder;
+    std::vector<std::vector<bool>> taken;
+    slots_by_extruder.reserve(extruder_count);
+    taken.reserve(extruder_count);
+    for (int eid = 0; eid < extruder_count; ++eid) {
+        slots_by_extruder.push_back(inventory.slots(eid));
+        std::fill(slots_by_extruder.back().begin(), slots_by_extruder.back().end(), default_nozzle);
+        taken.emplace_back(slots_by_extruder.back().size(), false);
     }
 
-    if (extruder_count == 1) {
-        ExtruderSlots slots = inventory.slots(0);
-        if (distinct.size() > slots.size())
-            return;
-
-        std::vector<bool> taken(slots.size(), false);
-        std::vector<bool> placed(distinct.size(), false);
-        for (size_t i = 0; i < distinct.size(); ++i) {
-            for (size_t s = 0; s < slots.size(); ++s) {
-                if (!taken[s] && !slots[s].empty() &&
-                    slots[s].diameter == distinct[i].diameter &&
-                    slots[s].volume_type == distinct[i].volume_type) {
-                    taken[s]  = true;
-                    placed[i] = true;
-                    break;
-                }
-            }
-        }
-        for (size_t i = 0; i < distinct.size(); ++i) {
-            if (placed[i])
+    for (size_t i : placement_order) {
+        if (distinct[i].diameter == default_nozzle.diameter &&
+            distinct[i].volume_type == default_nozzle.volume_type)
+            continue;
+        bool placed = false;
+        for (int eid = 0; eid < extruder_count && !placed; ++eid) {
+            if (!head_supports(eid, distinct[i]))
                 continue;
-            auto it = std::find_if(slots.begin(), slots.end(), [&](const NozzleSlot &s) {
-                return !taken[&s - slots.data()] && s.empty();
-            });
-            if (it == slots.end())
-                it = std::find_if(slots.begin(), slots.end(), [&](const NozzleSlot &s) {
-                    return !taken[&s - slots.data()];
-                });
-            if (it != slots.end()) {
-                *it = distinct[i];
-                taken[it - slots.begin()] = true;
+            for (size_t slot = 0; slot < slots_by_extruder[eid].size(); ++slot) {
+                if (taken[eid][slot])
+                    continue;
+                slots_by_extruder[eid][slot] = distinct[i];
+                taken[eid][slot] = true;
+                placed = true;
+                break;
             }
         }
-        inventory.user_set_slots(0, std::move(slots));
+        if (!placed) {
+            BOOST_LOG_TRIVIAL(warning) << "unable to place migrated nozzle " << distinct[i].diameter
+                                       << " type " << int(distinct[i].volume_type)
+                                       << " into target nozzle inventory";
+            return;
+        }
     }
+
+    for (int eid = 0; eid < extruder_count; ++eid)
+        inventory.user_set_slots(eid, std::move(slots_by_extruder[eid]));
 }
 
 // The one diameter every configured slot carries, or nothing when they disagree (or none is set).
