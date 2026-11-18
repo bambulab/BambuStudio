@@ -188,11 +188,17 @@ void NozzleRackPanelGroup::CreateBody(wxBoxSizer *outer)
     // The spacers widen the side inset to the header row's 6px (4 here plus the body's own 2), so
     // the tiles line up under "Nozzle" instead of starting 4px further left. A wider border on the
     // item itself would push the top and bottom out with them, since a sizer item has only one.
-    // The header stays put; everything below it scrolls as one when the sidebar gets too narrow.
+    // The header stays put. The nozzles below it scroll as one when the sidebar gets too narrow. The
+    // AMS row scrolls on its own: the user can add more units than the sidebar can hold, and in a
+    // shared scroll the long row would also stretch the nozzle cards to its width.
     auto *content = new wxBoxSizer(wxHORIZONTAL);
+    auto *column  = new wxBoxSizer(wxVERTICAL);
     m_body        = new HorizontalScrollView(this);
+    m_ams_body    = new HorizontalScrollView(this);
+    column->Add(m_body, 0, wxEXPAND);
+    column->Add(m_ams_body, 0, wxEXPAND | wxTOP, FromDIP(4));
     content->AddSpacer(FromDIP(4));
-    content->Add(m_body, 1, wxEXPAND | wxALL, FromDIP(2));
+    content->Add(column, 1, wxEXPAND | wxALL, FromDIP(2));
     content->AddSpacer(FromDIP(4));
 
     m_panel = new NozzleRackPanel(m_body->Content());
@@ -202,25 +208,36 @@ void NozzleRackPanelGroup::CreateBody(wxBoxSizer *outer)
     m_body->ContentSizer()->Add(m_dual, 0, wxEXPAND);
     m_dual->Hide();
 
-    // L and the left units, a divider, then R and the right units.
-    auto *ams_row = new wxBoxSizer(wxHORIZONTAL);
+    // "AMS", then L and the left units, a divider, then R and the right units.
+    auto *ams_row   = new wxBoxSizer(wxHORIZONTAL);
+    auto *ams_label = new Label(m_ams_body->Content(), _L("AMS"));
+    ams_label->SetFont(Label::Body_12);
+    ams_label->SetForegroundColour(ThemeColor::TextPrimary);
+    ams_label->SetBackgroundColour(m_ams_body->Content()->GetBackgroundColour());
+    ams_row->Add(ams_label, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
     for (int extruder = 0; extruder < int(m_ams_rows.size()); ++extruder) {
         if (extruder > 0) {
-            m_ams_divider = new wxPanel(m_body->Content(), wxID_ANY);
+            m_ams_divider = new wxPanel(m_ams_body->Content(), wxID_ANY);
             m_ams_divider->SetBackgroundColour(ThemeColor::Grey400);
             m_ams_divider->SetMinSize(wxSize(FromDIP(1), FromDIP(AMS_DIVIDER_H)));
             // The left gap is narrower: an AMS preview already draws inside its window with some
             // blank margin, so equal gaps would look wider on the left.
             ams_row->Add(m_ams_divider, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(8));
         }
-        m_ams_rows[extruder] = new NozzleAmsRow(m_body->Content(), extruder, extruder == 0 ? "L" : "R", NozzleAmsRow::Style::Inline,
-                                                [this] { RefreshAms(); });
+        // The row redraws itself before it reports the edit, so RefreshAms finds nothing changed and
+        // skips the fit. Fit anyway: the row's width changed, and the card must lay it out again.
+        m_ams_rows[extruder] = new NozzleAmsRow(m_ams_body->Content(), extruder, extruder == 0 ? "L" : "R", NozzleAmsRow::Style::Inline,
+                                                [this] {
+                                                    RefreshAms();
+                                                    RequestFit();
+                                                });
         // Only the dual view edits units on the sidebar, and it starts hidden; SetNozzleLayout keeps
         // the two in step from here.
         m_ams_rows[extruder]->set_editable(false);
         ams_row->Add(m_ams_rows[extruder], 0, wxALIGN_CENTER_VERTICAL);
     }
-    m_body->ContentSizer()->Add(ams_row, 0, wxEXPAND | wxTOP, FromDIP(4));
+    m_ams_body->ContentSizer()->Add(ams_row, 0, wxEXPAND);
+    m_ams_body->Show(m_ams_rows[0]->IsShown() || m_ams_rows[1]->IsShown()); // RefreshAms keeps this from here
 
     outer->Add(content, 1, wxEXPAND);
 }
@@ -238,6 +255,7 @@ bool NozzleRackPanelGroup::Layout()
     }
 
     if (m_body) m_body->Layout();
+    if (m_ams_body) m_ams_body->Layout();
     return wxPanel::Layout();
 }
 
@@ -356,6 +374,8 @@ void NozzleRackPanelGroup::RefreshAms()
     bool changed = false;
     for (NozzleAmsRow *row : m_ams_rows) changed |= row->refresh();
     changed |= m_ams_divider->Show(m_ams_rows[0]->IsShown() && m_ams_rows[1]->IsShown());
+    // Hide the whole AMS row, "AMS" label and gap included, while neither extruder shows units.
+    changed |= m_ams_body->Show(m_ams_rows[0]->IsShown() || m_ams_rows[1]->IsShown());
     if (!changed) return;
     BindHoverEvents();
     RequestFit();

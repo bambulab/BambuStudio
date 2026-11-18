@@ -141,6 +141,7 @@ private:
     wxSizerItem          *m_header_row{nullptr};      // "Nozzle" and the settings entry; rack layouts only
     wxPanel              *m_settings_entry{nullptr};  // the header's settings entry: gear, label and chevron
     HorizontalScrollView *m_body{nullptr};            // diameter buttons + rack panel, scrolled together
+    HorizontalScrollView *m_ams_body{nullptr};        // the "AMS" label and both AMS rows, scrolled on their own
     NozzleRackPanel      *m_panel{nullptr};
     std::array<NozzleAmsRow *, 2> m_ams_rows{};          // AMS units of the left and right extruder
     wxWindow                     *m_ams_divider{nullptr}; // the line between the left and right units
