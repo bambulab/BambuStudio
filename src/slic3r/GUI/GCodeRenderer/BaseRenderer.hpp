@@ -257,9 +257,14 @@ namespace Slic3r {
                 std::vector<ExtruderFilament> m_right_extruder_filament;
                 size_t m_nozzle_nums{ 0 };
                 bool   m_single_ext_multi_nozzle{ false };
+                bool   m_support_multi_nozzle_diameter{ false };
                 int    m_ams_nozzle_idx{ -1 };
                 int    m_total_nozzle_count{ 1 };
                 bool m_fold{ false };
+                // Multi-nozzle filament table in the ColorPrint legend: compact by default, per-source columns in detail mode.
+                bool m_color_print_detail{ false };
+                // Height of the horizontally scrollable detail table measured on the previous frame; ImGui 1.83 child windows cannot auto-fit their height.
+                float m_color_print_table_height{ 0.0f };
                 std::vector<size_t> m_ssid_to_moveid_map;
                 std::vector<int> m_plater_extruder;
                 //BBS: save m_gcode_result as well

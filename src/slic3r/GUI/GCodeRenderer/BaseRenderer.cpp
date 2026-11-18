@@ -662,6 +662,7 @@ namespace Slic3r
                     bool has_multi_nozzle = emnc && std::any_of(emnc->values.begin(), emnc->values.end(), [](int v) { return v > 1; });
                     auto hh = print.config().option<ConfigOptionBool>("handle_hotend_as_extruder");
                     m_single_ext_multi_nozzle = hh && hh->value && m_nozzle_nums == 1 && has_multi_nozzle;
+                    m_support_multi_nozzle_diameter = supports_multi_nozzle_diameter_mode(print.config());
                     // 使用切片构建各耗材 group_id 时所用的同一 AMS 喷嘴索引（对切片后的 print.config() 调用 get_effective_ams_nozzle_idx）。带口径门控、基于实时
                     // full_config 的变体可能与切片分组不一致
                     m_ams_nozzle_idx = m_single_ext_multi_nozzle
@@ -1309,6 +1310,7 @@ namespace Slic3r
                 m_right_extruder_filament.clear();
                 m_nozzle_nums = 0;
                 m_single_ext_multi_nozzle = false;
+                m_support_multi_nozzle_diameter = false;
                 m_ams_nozzle_idx = -1;
                 m_total_nozzle_count = 1;
                 m_extruder_ids.clear();
@@ -1816,7 +1818,7 @@ namespace Slic3r
                     return result;
 
                     };
-                // 单挤出机多喷嘴：把耗材所分到的喷嘴描述为 "<口径> <流量缩写>"（如"0.4 Std"）。缩写：标准 Std、 高流量 HF、TPU TPU285。
+                // 单挤出机多喷嘴 / 多口径机型：把耗材所分到的喷嘴描述为 "<口径> <流量缩写>"（如"0.4 Std"）。缩写：标准 Std、 高流量 HF、TPU TPU285。
                 auto get_n1x_nozzle_label = [this](const std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> &group_result, int filament_id) -> std::string {
                     if (!group_result)
                         return "";
@@ -1865,6 +1867,7 @@ namespace Slic3r
                 float button_width = ImGui::CalcTextSize(into_u8(btn_name).c_str()).x;
                 ImGui::SetCursorPosY(8.f);
                 if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(button_width, 0))) { m_fold = !m_fold; }
+                const float title_row_right = ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x;
                 ImGui::PopStyleColor(3);
                 ImGui::PopStyleVar(1);
                 if (m_fold) {
@@ -1975,9 +1978,26 @@ namespace Slic3r
                 ImGui::Dummy({ window_padding, window_padding });
                 // data used to properly align items in columns when showing time
                 std::vector<float> offsets;
-                // 耗材丝（ColorPrint）图例增加一列 "Nozzle"，内容来自分组结果；
-                // 多挤出机机型保持原布局。
-                const bool show_nozzle_col = m_single_ext_multi_nozzle && group_result;
+                // 单挤出机多喷嘴及支持多口径模式的机型：耗材丝（ColorPrint）图例改为缩略/详情两种表格，含 "Nozzle"（来自分组结果）与耗时列；
+                // 其他机型保持原布局。
+                const bool use_nozzle_table = (m_single_ext_multi_nozzle || m_support_multi_nozzle_diameter) && group_result && !is_show_left_right_result;
+                if (m_view_type == EViewType::ColorPrint && use_nozzle_table) {
+                    const std::string mode_label = m_color_print_detail ? _u8L("Less") : _u8L("Details");
+                    const float label_width = ImGui::CalcTextSize(mode_label.c_str()).x;
+                    ImGui::SameLine();
+                    ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), title_row_right - label_width));
+                    const ImColor link_color(0, 174, 66, 255);
+                    ImGui::PushStyleColor(ImGuiCol_Text, link_color.Value);
+                    imgui.text(mode_label);
+                    ImGui::PopStyleColor();
+                    ImVec2 line_end = ImGui::GetItemRectMax();
+                    line_end.y -= 2.0f;
+                    ImGui::GetWindowDrawList()->AddLine({ ImGui::GetItemRectMin().x, line_end.y }, line_end, link_color);
+                    if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                        m_color_print_detail = !m_color_print_detail;
+                        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+                    }
+                }
                 std::vector<std::string> labels;
                 std::vector<std::string> times;
                 std::string travel_time;
@@ -2071,6 +2091,77 @@ namespace Slic3r
                         displayed_columns |= ColumnData::Support;
                     }
                 }
+                // Single-extruder multi-nozzle ColorPrint table. Each column holds one cell per used filament followed by the total row.
+                std::vector<std::pair<std::string, std::vector<std::string>>> nozzle_table;
+                std::vector<float> nozzle_table_offsets;
+                bool nozzle_table_scroll = false;
+                float nozzle_table_view_width = 0.0f;
+                if (m_view_type == EViewType::ColorPrint && use_nozzle_table && !m_extruder_ids.empty()) {
+                    auto usage_text = [imperial_units, unit_conver](double used_m, double used_g, bool two_lines) {
+                        char buf[64];
+                        if (imperial_units)
+                            ::sprintf(buf, two_lines ? "%.2foz\n%.2fin" : "%.2foz / %.2fin", used_g / unit_conver, used_m);
+                        else
+                            ::sprintf(buf, two_lines ? "%.2fg\n%.2fm" : "%.2fg / %.2fm", used_g, used_m);
+                        return std::string(buf);
+                    };
+                    const bool detail = m_color_print_detail;
+                    const bool show_total_col = (displayed_columns & ~ColumnData::Model) > 0;
+                    std::vector<std::string> index_cells, model_cells, support_cells, flushed_cells, tower_cells, total_cells, nozzle_cells, time_cells;
+                    for (size_t i = 0; i < m_extruder_ids.size(); ++i) {
+                        const int filament_id = static_cast<int>(m_extruder_ids[i]);
+                        index_cells.push_back(std::to_string(filament_id + 1));
+                        model_cells.push_back(usage_text(model_used_filaments_m[i], model_used_filaments_g[i], true));
+                        support_cells.push_back(usage_text(support_used_filaments_m[i], support_used_filaments_g[i], true));
+                        flushed_cells.push_back(usage_text(flushed_filaments_m[i], flushed_filaments_g[i], true));
+                        tower_cells.push_back(usage_text(wipe_tower_used_filaments_m[i], wipe_tower_used_filaments_g[i], true));
+                        total_cells.push_back(usage_text(model_used_filaments_m[i] + support_used_filaments_m[i] + flushed_filaments_m[i] + wipe_tower_used_filaments_m[i],
+                                                         model_used_filaments_g[i] + support_used_filaments_g[i] + flushed_filaments_g[i] + wipe_tower_used_filaments_g[i], detail));
+                        nozzle_cells.push_back(get_n1x_nozzle_label(group_result, filament_id));
+                        auto time_it = time_mode.filaments_times.find(static_cast<size_t>(filament_id));
+                        const float filament_time = time_it != time_mode.filaments_times.end() ? time_it->second : 0.0f;
+                        time_cells.push_back(filament_time > 0.0f ? short_time(get_time_dhms(filament_time)) : "");
+                    }
+                    float total_time = 0.0f;
+                    for (const auto& [filament_id, filament_time] : time_mode.filaments_times)
+                        total_time += filament_time;
+                    index_cells.push_back(_u8L("Total"));
+                    model_cells.push_back(usage_text(total_model_used_filament_m, total_model_used_filament_g, true));
+                    support_cells.push_back(usage_text(total_support_used_filament_m, total_support_used_filament_g, true));
+                    flushed_cells.push_back(usage_text(total_flushed_filament_m, total_flushed_filament_g, true));
+                    tower_cells.push_back(usage_text(total_wipe_tower_used_filament_m, total_wipe_tower_used_filament_g, true));
+                    total_cells.push_back(usage_text(total_model_used_filament_m + total_support_used_filament_m + total_flushed_filament_m + total_wipe_tower_used_filament_m,
+                                                     total_model_used_filament_g + total_support_used_filament_g + total_flushed_filament_g + total_wipe_tower_used_filament_g, detail));
+                    nozzle_cells.push_back("");
+                    time_cells.push_back(total_time > 0.0f ? short_time(get_time_dhms(total_time)) : "");
+
+                    nozzle_table.push_back({ _u8L("Filament"), index_cells });
+                    if (detail) {
+                        if (displayed_columns & ColumnData::Model)
+                            nozzle_table.push_back({ _u8L("Model"), model_cells });
+                        if (displayed_columns & ColumnData::Support)
+                            nozzle_table.push_back({ _u8L("Support"), support_cells });
+                        if (displayed_columns & ColumnData::Flushed)
+                            nozzle_table.push_back({ _u8L("Flushed"), flushed_cells });
+                        if (displayed_columns & ColumnData::WipeTower)
+                            nozzle_table.push_back({ _u8L("Tower"), tower_cells });
+                        if (show_total_col)
+                            nozzle_table.push_back({ _u8L("Total"), total_cells });
+                    } else {
+                        nozzle_table.push_back({ _u8L("Total usage"), total_cells });
+                    }
+                    nozzle_table.push_back({ _u8L("Nozzle"), nozzle_cells });
+                    nozzle_table.push_back({ _u8L("Time"), time_cells });
+
+                    // The first column is sized by its title only, like the other ColorPrint tables.
+                    auto offset_columns = nozzle_table;
+                    offset_columns.front().second = { "" };
+                    nozzle_table_offsets = calculate_offsets(offset_columns, icon_size);
+                    const float table_width = nozzle_table_offsets.back() + max_width(nozzle_table.back().second, nozzle_table.back().first) + window_padding * 3.0f;
+                    // Keep the panel width when the detail columns do not fit; the table scrolls horizontally instead.
+                    nozzle_table_view_width = std::max(title_row_right, ImGui::GetWindowWidth());
+                    nozzle_table_scroll = detail && table_width > nozzle_table_view_width;
+                }
                 // extrusion paths section -> title
                 ImGui::Dummy({ window_padding, window_padding });
                 ImGui::SameLine();
@@ -2141,6 +2232,26 @@ namespace Slic3r
                 }
                 case EViewType::ColorPrint:
                 {
+                    if (!nozzle_table.empty()) {
+                        if (nozzle_table_scroll) {
+                            const float table_height = m_color_print_table_height > 0.0f ? m_color_print_table_height :
+                                                       2.0f * ImGui::GetTextLineHeightWithSpacing() * static_cast<float>(m_extruder_ids.size() + 2);
+                            ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 6.0f * m_scale);
+                            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                            ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                            // Start the child at the left edge so its rows line up with the non-scrolling layout.
+                            ImGui::SetCursorPosX(0.0f);
+                            ImGui::BeginChild("##color_print_table", { nozzle_table_view_width, table_height + ImGui::GetStyle().ScrollbarSize }, false,
+                                              ImGuiWindowFlags_HorizontalScrollbar);
+                            ImGui::Dummy({ window_padding, window_padding });
+                            ImGui::SameLine();
+                        }
+                        std::vector<std::pair<std::string, float>> title_offsets;
+                        for (size_t i = 0; i < nozzle_table.size(); ++i)
+                            title_offsets.push_back({ nozzle_table[i].first, nozzle_table_offsets[i] });
+                        append_headers(title_offsets);
+                        break;
+                    }
                     std::vector<std::string> total_filaments;
                     char buffer[64];
                     ::sprintf(buffer, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", ps.total_used_filament / /*1000*/koef, ps.total_weight / unit_conver);
@@ -2164,12 +2275,6 @@ namespace Slic3r
                     }
                     if (is_show_left_right_result) {
                         title_columns.push_back({ _u8L("Nozzles"), {""} });
-                    } else if (show_nozzle_col) {
-                        //来自分组结果的每根耗材喷嘴分配。提供样本使该列有足够宽度。
-                        std::vector<std::string> nozzle_samples;
-                        for (unsigned char extruder_id : m_extruder_ids)
-                            nozzle_samples.push_back(get_n1x_nozzle_label(group_result, static_cast<int>(extruder_id)));
-                        title_columns.push_back({ _u8L("Nozzle"), nozzle_samples });
                     }
                     auto offsets_ = calculate_offsets(title_columns, icon_size);
                     std::vector<std::pair<std::string, float>> title_offsets;
@@ -2314,6 +2419,59 @@ namespace Slic3r
                 }
                 case EViewType::ColorPrint:
                 {
+                    auto append_filament_changes_and_cost = [&]() {
+                        char buf[64];
+                        //BBS display filament change times
+                        ImGui::Dummy({ window_padding, window_padding });
+                        ImGui::SameLine();
+                        imgui.text(_u8L("Filament change times") + ":");
+                        ImGui::SameLine();
+                        ::sprintf(buf, "%d", m_print_statistics.total_filament_changes);
+                        imgui.text(buf);
+                        //BBS display cost
+                        ImGui::Dummy({ window_padding, window_padding });
+                        ImGui::SameLine();
+                        imgui.text(_u8L("Cost") + ":");
+                        ImGui::SameLine();
+                        ::sprintf(buf, "%.2f", ps.total_cost);
+                        imgui.text(buf);
+                    };
+                    if (!nozzle_table.empty()) {
+                        auto row_columns = [&nozzle_table, &nozzle_table_offsets](size_t row) {
+                            std::vector<std::pair<std::string, float>> columns_offsets;
+                            for (size_t col = 0; col < nozzle_table.size(); ++col)
+                                columns_offsets.push_back({ nozzle_table[col].second[row], nozzle_table_offsets[col] });
+                            return columns_offsets;
+                        };
+                        const size_t row_count = m_extruder_ids.size();
+                        for (size_t row = 0; row < row_count; ++row) {
+                            const auto extruder_idx = m_extruder_ids[row];
+                            append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], row_columns(row), false, m_tools.m_tool_visibles[extruder_idx], [this, extruder_idx]() {
+                                m_tools.m_tool_visibles[extruder_idx] = !m_tools.m_tool_visibles[extruder_idx];
+                                on_visibility_changed();
+                                });
+                        }
+                        if (row_count > 1) {
+                            ImGuiWindow* window = ImGui::GetCurrentWindow();
+                            const ImRect separator(ImVec2(window->Pos.x + window_padding * 3, window->DC.CursorPos.y), ImVec2(window->Pos.x + window->Size.x - window_padding * 3, window->DC.CursorPos.y + 1.0f));
+                            ImGui::ItemSize(ImVec2(0.0f, 0.0f));
+                            ImGui::ItemAdd(separator, 0);
+                            window->DrawList->AddLine(separator.Min, ImVec2(separator.Max.x, separator.Min.y), ImGui::GetColorU32(ImGuiCol_Separator));
+                            append_item(EItemType::None, m_tools.m_tool_colors[0], row_columns(row_count));
+                        }
+                        if (nozzle_table_scroll) {
+                            const float content_height = ImGui::GetCursorPosY();
+                            ImGui::EndChild();
+                            ImGui::PopStyleColor(2);
+                            ImGui::PopStyleVar(1);
+                            if (std::abs(content_height - m_color_print_table_height) > 0.5f) {
+                                m_color_print_table_height = content_height;
+                                wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+                            }
+                        }
+                        append_filament_changes_and_cost();
+                        break;
+                    }
                     //BBS: replace model custom gcode with current plate custom gcode
                     const std::vector<CustomGCode::Item>& custom_gcode_per_print_z = wxGetApp().is_editor() ? wxGetApp().plater()->model().get_curr_plate_custom_gcodes().gcodes : m_custom_gcode_per_print_z;
                     size_t total_items = 1;
@@ -2370,8 +2528,6 @@ namespace Slic3r
                                 std::string nozzle_str   = get_nozzle_label(group_result, static_cast<int>(extruder_idx));
                                 ::sprintf(buf, "%s", nozzle_str.c_str());
                                 columns_offsets.push_back({buf, color_print_offsets[_u8L("Nozzles")]});
-                            } else if (show_nozzle_col) {
-                                columns_offsets.push_back({ get_n1x_nozzle_label(group_result, static_cast<int>(extruder_idx)), color_print_offsets[_u8L("Nozzle")] });
                             }
                             append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], columns_offsets, false, filament_visible, [this, extruder_idx]() {
                                 m_tools.m_tool_visibles[extruder_idx] = !m_tools.m_tool_visibles[extruder_idx];
@@ -2419,20 +2575,7 @@ namespace Slic3r
                         }
                         append_item(EItemType::None, m_tools.m_tool_colors[0], columns_offsets);
                     }
-                    //BBS display filament change times
-                    ImGui::Dummy({ window_padding, window_padding });
-                    ImGui::SameLine();
-                    imgui.text(_u8L("Filament change times") + ":");
-                    ImGui::SameLine();
-                    ::sprintf(buf, "%d", m_print_statistics.total_filament_changes);
-                    imgui.text(buf);
-                    //BBS display cost
-                    ImGui::Dummy({ window_padding, window_padding });
-                    ImGui::SameLine();
-                    imgui.text(_u8L("Cost") + ":");
-                    ImGui::SameLine();
-                    ::sprintf(buf, "%.2f", ps.total_cost);
-                    imgui.text(buf);
+                    append_filament_changes_and_cost();
                     break;
                 }
                 // helio
@@ -2934,75 +3077,71 @@ namespace Slic3r
             void BaseRenderer::render_legend_color_arr_recommen(float window_padding, bool is_show_left_right_result)
             {
                 ImGuiWrapper& imgui = *wxGetApp().imgui();
-                auto link_text = [&](const std::string& label) {
-                    ImVec2 wiki_part_size = ImGui::CalcTextSize(label.c_str());
-                    ImColor HyperColor = ImColor(0, 174, 66, 255).Value;
-                    ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
-                    imgui.text(label.c_str());
-                    ImGui::PopStyleColor();
-                    // underline
-                    ImVec2 lineEnd = ImGui::GetItemRectMax();
-                    lineEnd.y -= 2.0f;
-                    ImVec2 lineStart = lineEnd;
-                    lineStart.x = ImGui::GetItemRectMin().x;
-                    ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, HyperColor);
-                    // click behavior
-                    if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true)) {
-                        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-                            Plater* plater = wxGetApp().plater();
-                            wxCommandEvent evt(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG);
-                            evt.SetEventObject(plater);
-                            evt.SetInt(1); // 1 means from gcode viewer
-                            wxPostEvent(plater, evt);
-                        }
-                    }
-                    };
-                auto link_text_set_to_optional = [&](const std::string& label) {
-                    ImVec2 wiki_part_size = ImGui::CalcTextSize(label.c_str());
-                    ImColor HyperColor = ImColor(0, 174, 66, 255).Value;
-                    ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
-                    imgui.text(label.c_str());
-                    ImGui::PopStyleColor();
-                    // underline
-                    ImVec2 lineEnd = ImGui::GetItemRectMax();
-                    lineEnd.y -= 2.0f;
-                    ImVec2 lineStart = lineEnd;
-                    lineStart.x = ImGui::GetItemRectMin().x;
-                    ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, HyperColor);
-                    // click behavior
-                    if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true)) {
-                        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-                            MessageDialog msg_dlg(nullptr, _L("Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."), wxEmptyString, wxOK | wxCANCEL);
-                            if (msg_dlg.ShowModal() == wxID_OK) {
-                                PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
-                                PartPlate* plate = partplate_list.get_curr_plate();
-                                plate->set_filament_map_mode(FilamentMapMode::fmmAutoForFlush);
-                                Plater* plater = wxGetApp().plater();
-                                wxPostEvent(plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+                // Outlined capsule button; returns true when clicked.
+                auto capsule_button = [this](const std::string& label, const ImVec4& color) {
+                    const ImVec2 padding(8.0f * m_scale, 1.0f * m_scale);
+                    const ImVec2 text_size = ImGui::CalcTextSize(label.c_str());
+                    const ImVec2 size(text_size.x + 2.0f * padding.x, text_size.y + 2.0f * padding.y);
+                    const ImVec2 pos = ImGui::GetCursorScreenPos();
+                    const ImVec2 pos_max(pos.x + size.x, pos.y + size.y);
+                    const bool clicked = ImGui::InvisibleButton(("##" + label).c_str(), size);
+                    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+                    const float rounding = 0.5f * size.y;
+                    if (ImGui::IsItemHovered())
+                        draw_list->AddRectFilled(pos, pos_max, ImGui::GetColorU32(ImVec4(color.x, color.y, color.z, 0.15f)), rounding);
+                    draw_list->AddRect(pos, pos_max, ImGui::GetColorU32(color), rounding, 0, 1.0f * m_scale);
+                    draw_list->AddText(ImVec2(pos.x + padding.x, pos.y + padding.y), ImGui::GetColorU32(color), label.c_str());
+                    return clicked;
+                };
+                struct TextSegment
+                {
+                    std::string text;
+                    ImVec4      color;
+                    bool        bold;
+                };
+                // Lays out segments as one wrapped paragraph, each with its own colour and weight; ImGui text wrapping is per font.
+                auto rich_text_wrapped = [&imgui](const std::vector<TextSegment>& segments, float wrap_width) {
+                    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+                    const ImVec2 origin = ImGui::GetCursorScreenPos();
+                    const float line_height = ImGui::GetTextLineHeight();
+                    float x = 0.0f;
+                    float y = 0.0f;
+                    for (const TextSegment& segment : segments) {
+                        const bool bold = segment.bold && imgui.push_bold_font();
+                        const ImU32 color = ImGui::GetColorU32(segment.color);
+                        const char* begin = segment.text.c_str();
+                        const char* end = begin + segment.text.size();
+                        while (begin < end) {
+                            // A break unit is one CJK character, or a word together with its trailing spaces.
+                            const char* unit_end = begin;
+                            unsigned int c = 0;
+                            int len = std::max(1, ImTextCharFromUtf8(&c, unit_end, end));
+                            if (c >= 0x2E80) {
+                                unit_end += len;
+                            } else {
+                                bool after_space = false;
+                                while (unit_end < end) {
+                                    len = std::max(1, ImTextCharFromUtf8(&c, unit_end, end));
+                                    if (c >= 0x2E80 || (after_space && c != ' '))
+                                        break;
+                                    after_space = after_space || c == ' ';
+                                    unit_end += len;
+                                }
                             }
+                            const float width = ImGui::CalcTextSize(begin, unit_end).x;
+                            if (x > 0.0f && x + width > wrap_width) {
+                                x = 0.0f;
+                                y += line_height;
+                            }
+                            draw_list->AddText(ImVec2(origin.x + x, origin.y + y), color, begin, unit_end);
+                            x += width;
+                            begin = unit_end;
                         }
+                        if (bold)
+                            imgui.pop_bold_font();
                     }
-                    };
-                auto link_filament_group_wiki = [&](const std::string& label) {
-                    ImVec2 wiki_part_size = ImGui::CalcTextSize(label.c_str());
-                    ImColor HyperColor = ImColor(0, 174, 66, 255).Value;
-                    ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
-                    imgui.text(label.c_str());
-                    ImGui::PopStyleColor();
-                    // click behavior
-                    if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true)) {
-                        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-                            open_filament_group_wiki();
-                        }
-                    }
-                    };
-                auto draw_dash_line = [&](ImDrawList* draw_list, int dash_length = 5, int gap_length = 3) {
-                    ImVec2 p1 = ImGui::GetCursorScreenPos();
-                    ImVec2 p2 = ImVec2(p1.x + ImGui::GetContentRegionAvail().x, p1.y);
-                    for (float i = p1.x; i < p2.x; i += (dash_length + gap_length)) {
-                        draw_list->AddLine(ImVec2(i, p1.y), ImVec2(i + dash_length, p1.y), IM_COL32(206, 206, 206, 255));
-                    }
-                    };
+                    ImGui::Dummy(ImVec2(wrap_width, y + line_height));
+                };
                 ////BBS Color Arrangement Recommendation
                 auto config = wxGetApp().plater()->get_partplate_list().get_current_fff_print().config();
                 auto stats_by_extruder = wxGetApp().plater()->get_partplate_list().get_current_fff_print().statistics_by_extruder();
@@ -3014,129 +3153,18 @@ namespace Slic3r
                 bool any_more_to_best = delta_weight_to_best > EPSILON || delta_change_to_best > 0;
                 bool all_less_to_single_ext = delta_weight_to_single_ext > EPSILON && delta_change_to_single_ext > 0;
                 bool all_more_to_best = delta_weight_to_best > EPSILON && delta_change_to_best > 0;
-                auto get_filament_display_type = [](const ExtruderFilament& filament) {
-                    if (filament.is_support_filament && (filament.type == "PLA" || filament.type == "PA" || filament.type == "ABS"))
-                        return "Sup." + filament.type;
-                    return filament.type;
-                    };
-                // BBS AMS containers
-                float line_height = ImGui::GetFrameHeight();
-                float ams_item_height = 0;
-                float filament_group_item_align_width = 0;
+                // The grouping result is shown in the FilamentMapDialog opened by "Regroup filament"; the legend only keeps the tips.
                 {
-                    float three_words_width = imgui.calc_text_size("ABC").x;
-                    const int line_capacity = 4;
-                    for (const auto& extruder_filaments : { m_left_extruder_filament,m_right_extruder_filament })
-                    {
-                        float container_height = 0.f;
-                        for (size_t idx = 0; idx < extruder_filaments.size(); idx += line_capacity) {
-                            float text_line_height = 0;
-                            for (int j = idx; j < extruder_filaments.size() && j < idx + line_capacity; ++j) {
-                                auto text_info = imgui.calculate_filament_group_text_size(get_filament_display_type(extruder_filaments[j]));
-                                auto text_size = std::get<0>(text_info);
-                                filament_group_item_align_width = max(filament_group_item_align_width, text_size.x);
-                                text_line_height = max(text_line_height, text_size.y);
-                            }
-                            container_height += (three_words_width * 1.3f + text_line_height);
-                        }
-                        container_height += 2 * line_height;
-                        ams_item_height = std::max(ams_item_height, container_height);
-                    }
-                }
-                int tips_count = 8;
-                if (any_more_to_best) {
-                    tips_count = 8;
-                    if (wxGetApp().app_config->get("language") != "zh_CN")
-                        tips_count += 1;
-                }
-                else if (any_less_to_single_ext) {
-                    tips_count = 6;
-                    if (wxGetApp().app_config->get("language") != "zh_CN")
-                        tips_count += 1;
-                }
-                else
-                    tips_count = 5;
-                float AMS_container_height = is_show_left_right_result ? line_height * (tips_count - 3) + line_height / 2 :
-                                                                    ams_item_height + line_height * tips_count + line_height / 2;
-                is_show_left_right_result ? ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.3f, 0.3f, 0.3f, 0.1f)) :
-                                       ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1.f, 1.f, 1.f, 1.0f));
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.15f, .18f, .19f, 1.0f));
-                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
-                // ImGui::Dummy({window_padding, window_padding});
-                ImGui::BeginChild("#AMS", ImVec2(0, AMS_container_height), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
-                {
-                    if (!is_show_left_right_result) {
-                        float available_width = ImGui::GetContentRegionAvail().x;
-                        float half_width      = available_width * 0.49f;
-                        float spacing         = 18.0f * m_scale;
-                        ImGui::Dummy({ window_padding, window_padding });
-                        ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(.8f, .8f, .8f, 1.0f));
-                        imgui.bold_text(_u8L("Filament Grouping"));
-                        ImGui::SameLine();
-                        std::string tip_str = _u8L("Why this grouping");
-                        ImGui::SetCursorPosX(ImGui::GetWindowContentRegionWidth() - window_padding - ImGui::CalcTextSize(tip_str.c_str()).x);
-                        link_filament_group_wiki(tip_str);
-                        ImGui::Separator();
-                        ImGui::PopStyleColor();
-                        ImGui::Dummy({ window_padding, window_padding });
-                        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.00f, 0.00f, 0.00f, 0.1f));
-                        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 2, window_padding));
-                        ImDrawList *child_begin_draw_list = ImGui::GetWindowDrawList();
-                        ImVec2      cursor_pos            = ImGui::GetCursorScreenPos();
-                        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 20));
-                        std::string br_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-                        ImGui::BeginChild("#LeftAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
-                        {
-                            std::string br_dep_nz;
-                            if (m_single_ext_multi_nozzle)
-                                br_dep_nz = m_ams_nozzle_idx >= 0 ? std::string(get_ams_nozzle_label(m_ams_nozzle_idx).ToUTF8().data()) : _u8L("AMS nozzle");
-                            else
-                                br_dep_nz = _u8L(DevPrinterConfigUtil::get_toolhead_display_name(br_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase).c_str());
-                            imgui.text(br_dep_nz);
-                            ImGui::Dummy({window_padding, window_padding});
-                            int index = 1;
-                            for (const auto &extruder_filament : m_left_extruder_filament) {
-                                imgui.filament_group(get_filament_display_type(extruder_filament), extruder_filament.hex_color.c_str(), extruder_filament.filament_id,
-                                                     filament_group_item_align_width);
-                                if (index % 4 != 0) { ImGui::SameLine(0, spacing); }
-                                index++;
-                            }
-                            ImGui::EndChild();
-                        }
-                        ImGui::SameLine();
-                        cursor_pos = ImGui::GetCursorScreenPos();
-                        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 20));
-                        ImGui::BeginChild("#RightAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
-                        {
-                            std::string br_main_nz;
-                            if (m_single_ext_multi_nozzle)
-                                br_main_nz = std::string(get_fixed_nozzle_label(m_total_nozzle_count, m_ams_nozzle_idx).ToUTF8().data());
-                            else
-                                br_main_nz = _u8L(DevPrinterConfigUtil::get_toolhead_display_name(br_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase).c_str());
-                            imgui.text(br_main_nz);
-                            ImGui::Dummy({window_padding, window_padding});
-                            int index = 1;
-                            for (const auto &extruder_filament : m_right_extruder_filament) {
-                                imgui.filament_group(get_filament_display_type(extruder_filament), extruder_filament.hex_color.c_str(), extruder_filament.filament_id,
-                                                     filament_group_item_align_width);
-                                if (index % 4 != 0) { ImGui::SameLine(0, spacing); }
-                                index++;
-                            }
-                            ImGui::EndChild();
-                        }
-                        ImGui::PopStyleColor(1);
-                        ImGui::PopStyleVar(1);
-                        ImGui::Dummy({ window_padding, window_padding });
-                        imgui.text_wrapped(from_u8(_u8L("Please place filaments on the printer based on grouping result.")), ImGui::GetContentRegionAvail().x);
-                    }
+                    // Separator above the tips, same span as the separators of the legend tables
                     ImGui::Dummy({ window_padding, window_padding });
-                    {
-                        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-                        draw_dash_line(draw_list);
-                    }
-                    ImGui::Dummy({ window_padding, window_padding });
+                    ImGuiWindow* window = ImGui::GetCurrentWindow();
+                    const float line_y = window->DC.CursorPos.y;
+                    window->DrawList->AddLine(ImVec2(window->Pos.x + window_padding * 3, line_y), ImVec2(window->Pos.x + window->Size.x - window_padding * 3, line_y),
+                                              ImGui::GetColorU32(ImGuiCol_Separator));
+                    ImGui::Dummy({ window_padding, window_padding * 2 });
+                    const float text_left = window_padding * 5;
+                    const float parent_width = std::max(ImGui::GetWindowWidth() - 2.0f * text_left, 1.0f);
                     bool is_optimal_group = true;
-                    float parent_width = ImGui::GetContentRegionAvail().x;
                     auto number_format = [](float num) {
                         if (num > 1000) {
                             std::string number_str = std::to_string(num);
@@ -3145,59 +3173,72 @@ namespace Slic3r
                         }
                         return static_cast<int>(num);
                         };
+                    // The plain lead-in and the bold saving part are separate strings so the bold run matches the design in every language.
                     if (any_more_to_best) {
                         is_optimal_group = false;
-                        ImVec4 orangeColor = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
-                        ImGui::PushStyleColor(ImGuiCol_Text, orangeColor);
-                        imgui.text(_u8L("Tips:"));
-                        imgui.text(_u8L("Current grouping of slice result is not optimal."));
-                        wxString tip;
+                        const ImVec4 warning_color(240 / 255.0f, 154 / 255.0f, 23 / 255.0f, 1.0f);
+                        std::string saving;
                         if (delta_weight_to_best >= 0 && delta_change_to_best >= 0)
-                            tip = from_u8((boost::format(_u8L("Increase %1%g filament and %2% nozzle purges compared to optimal grouping."))
+                            saving = (boost::format(_u8L("save %1%g more filament and %2% more filament changes"))
                                 % number_format(delta_weight_to_best)
-                                % delta_change_to_best).str());
+                                % delta_change_to_best).str();
                         else if (delta_weight_to_best >= 0 && delta_change_to_best < 0)
-                            tip = from_u8((boost::format(_u8L("Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."))
+                            saving = (boost::format(_u8L("save %1%g more filament but add %2% filament changes"))
                                 % number_format(delta_weight_to_best)
-                                % std::abs(delta_change_to_best)).str());
+                                % std::abs(delta_change_to_best)).str();
                         else if (delta_weight_to_best < 0 && delta_change_to_best >= 0)
-                            tip = from_u8((boost::format(_u8L("Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."))
+                            saving = (boost::format(_u8L("save %2% more filament changes but use %1%g more filament"))
                                 % number_format(std::abs(delta_weight_to_best))
-                                % delta_change_to_best).str());
-                        imgui.text_wrapped(tip, parent_width);
-                        ImGui::PopStyleColor(1);
+                                % delta_change_to_best).str();
+                        ImGui::SetCursorPosX(text_left);
+                        rich_text_wrapped({ { _u8L("Tips: Current grouping of slice result is not optimal. With the optimal grouping, "), warning_color, false },
+                                            { saving, warning_color, true } }, parent_width);
                     }
                     else if (any_less_to_single_ext) {
-                        ImVec4 color = is_show_left_right_result ? ImVec4(0.95f, 0.95f, 0.95f, 1.0f) : ImVec4(0.42f, 0.42f, 0.42f, 1.0f);
-                        ImGui::PushStyleColor(ImGuiCol_Text, color);
-                        wxString tip;
+                        const ImVec4 lead_color(172 / 255.0f, 172 / 255.0f, 172 / 255.0f, 1.0f);
+                        const ImVec4 saving_color(242 / 255.0f, 242 / 255.0f, 242 / 255.0f, 1.0f);
+                        std::string saving;
                         if (delta_weight_to_single_ext >= 0 && delta_change_to_single_ext >= 0)
-                            tip = from_u8((boost::format(_u8L("Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."))
+                            saving = (boost::format(_u8L("save %1%g filament and %2% filament changes."))
                                 % number_format(delta_weight_to_single_ext)
-                                % delta_change_to_single_ext).str());
+                                % delta_change_to_single_ext).str();
                         else if (delta_weight_to_single_ext >= 0 && delta_change_to_single_ext < 0)
-                            tip = from_u8((boost::format(_u8L("Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."))
+                            saving = (boost::format(_u8L("save %1%g filament but add %2% filament changes."))
                                 % number_format(delta_weight_to_single_ext)
-                                % std::abs(delta_change_to_single_ext)).str());
+                                % std::abs(delta_change_to_single_ext)).str();
                         else if (delta_weight_to_single_ext < 0 && delta_change_to_single_ext >= 0)
-                            tip = from_u8((boost::format(_u8L("Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."))
+                            saving = (boost::format(_u8L("save %2% filament changes but use %1%g more filament."))
                                 % number_format(std::abs(delta_weight_to_single_ext))
-                                % delta_change_to_single_ext).str());
-                        imgui.text_wrapped(tip, parent_width);
-                        ImGui::PopStyleColor(1);
+                                % delta_change_to_single_ext).str();
+                        ImGui::SetCursorPosX(text_left);
+                        rich_text_wrapped({ { _u8L("Compared to a printer with one nozzle, "), lead_color, false },
+                                            { saving, saving_color, true } }, parent_width);
                     }
-                    ImGui::Dummy({ window_padding, window_padding });
+                    const ImVec4 brand_color(165 / 255.0f, 249 / 255.0f, 96 / 255.0f, 1.0f);
+                    const ImVec4 grey_color(178 / 255.0f, 178 / 255.0f, 178 / 255.0f, 1.0f);
+                    ImGui::SetCursorPosX(text_left);
                     if (!is_optimal_group) {
-                        link_text_set_to_optional(_u8L("Set to Optimal"));
-                        ImGui::SameLine();
-                        ImGui::Dummy({ window_padding, window_padding });
-                        ImGui::SameLine();
+                        if (capsule_button(_u8L("Set to Optimal"), brand_color)) {
+                            MessageDialog msg_dlg(nullptr, _L("Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."), wxEmptyString, wxOK | wxCANCEL);
+                            if (msg_dlg.ShowModal() == wxID_OK) {
+                                PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
+                                PartPlate* plate = partplate_list.get_curr_plate();
+                                plate->set_filament_map_mode(FilamentMapMode::fmmAutoForFlush);
+                                Plater* plater = wxGetApp().plater();
+                                wxPostEvent(plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+                            }
+                        }
+                        ImGui::SameLine(0.0f, window_padding * 2);
                     }
-                    link_text(_u8L("Regroup filament"));
-                    ImGui::EndChild();
+                    if (capsule_button(_u8L("Regroup filament"), is_optimal_group ? brand_color : grey_color)) {
+                        Plater* plater = wxGetApp().plater();
+                        wxCommandEvent evt(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG);
+                        evt.SetEventObject(plater);
+                        evt.SetInt(1); // 1 means from gcode viewer
+                        wxPostEvent(plater, evt);
+                    }
+                    ImGui::Dummy({ window_padding, window_padding * 2 });
                 }
-                ImGui::PopStyleColor(2);
-                ImGui::PopStyleVar(1);
             }
 
             void BaseRenderer::update_moves_slider(bool set_to_max)
