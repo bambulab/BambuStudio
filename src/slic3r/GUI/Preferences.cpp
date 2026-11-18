@@ -1622,6 +1622,10 @@ wxWindow *PreferencesDialog::create_3d_tab()
     auto item_drag_to_move = create_item_checkbox(_L("Drag with left mouse button to move"), scrolled,
                                                    _L("If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."), 50,
                                                    "canvas_drag_to_move");
+    auto item_rotate_sensitivity = create_item_combobox(_L("Mouse rotation sensitivity"), scrolled,
+                                                          _L("Set the mouse rotation sensitivity, medium by default."),
+                                                          "rotate_sensitivity", {_L("Low"), _L("Medium"), _L("High")},
+                                                          {"low", "medium", "high"});
 
     std::vector<wxString> assemble_view_preview_options = {_L("Auto"), _L("Open"), _L("Close")};
     auto                  enable_assemble_view_preview  = create_item_combobox(_L("Display overview"), scrolled, _L("Display overview"), "enable_assemble_view_preview",
@@ -1720,6 +1724,7 @@ wxWindow *PreferencesDialog::create_3d_tab()
     sizer->Add(wrap_option_row(scrolled, item_zoom_to_mouse), flags);
     sizer->Add(wrap_option_row(scrolled, item_reverse_mouse_wheel_zoom), flags);
     sizer->Add(wrap_option_row(scrolled, item_drag_to_move), flags);
+    sizer->Add(wrap_option_row(scrolled, item_rotate_sensitivity), flags);
 
     // ---- Import Settings ----
     sizer->Add(title_import, wxSizerFlags().Expand().Border(wxTOP, FromDIP(24)));
@@ -2158,6 +2163,7 @@ void PreferencesDialog::on_reset_preferences()
         "zoom_to_mouse",
         "reverse_mouse_wheel_zoom",
         "canvas_drag_to_move",
+        "rotate_sensitivity",
         "enable_assemble_view_preview",
         "grabber_size_factor",
         "3d_middle_tooltip_offset_x",

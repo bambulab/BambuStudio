@@ -192,6 +192,9 @@ void AppConfig::set_defaults()
         set_bool("zoom_to_mouse", true);
     if (get("canvas_drag_to_move").empty())
         set_bool("canvas_drag_to_move", true);
+    const std::string rotate_sensitivity = get("rotate_sensitivity");
+    if (rotate_sensitivity != "low" && rotate_sensitivity != "medium" && rotate_sensitivity != "high")
+        set("rotate_sensitivity", "medium");
     if (get("show_shells_in_preview").empty())
         set_bool("show_shells_in_preview", true);
     if (get("enable_text_styles").empty())

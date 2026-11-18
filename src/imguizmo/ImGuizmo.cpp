@@ -653,6 +653,7 @@ namespace IMGUIZMO_NAMESPACE
       ScaleLineCircleSize        = 6.0f;
       HatchedAxisLineThickness   = 6.0f;
       CenterCircleSize           = 6.0f;
+      ViewCubeRotateRadPerPx     = 0.01f;
 
       // initialize default colors
       Colors[DIRECTION_X]           = ImVec4(0.666f, 0.000f, 0.000f, 1.000f);
@@ -3107,8 +3108,8 @@ namespace IMGUIZMO_NAMESPACE
 
       if (isDraging && (fabsf(io.MouseDelta[0]) || fabsf(io.MouseDelta[1])))
       {
-          auto delta_x = io.MouseDelta.y * 0.01f;
-          auto delta_y = io.MouseDelta.x * 0.01f;
+          auto delta_x = io.MouseDelta.y * gContext.mStyle.ViewCubeRotateRadPerPx;
+          auto delta_y = io.MouseDelta.x * gContext.mStyle.ViewCubeRotateRadPerPx;
 
           matrix_t vvv = *(matrix_t *) view;
           // Calculate the rotation along x-axis

@@ -112,7 +112,6 @@
 #ifdef __APPLE__
 #include "MacIME.hpp"
 #endif
-static constexpr const float TRACKBALLSIZE = 0.8f;
 
 static const float SLIDER_DEFAULT_RIGHT_MARGIN  = 10.0f;
 static const float SLIDER_DEFAULT_BOTTOM_MARGIN = 10.0f;
@@ -236,6 +235,28 @@ static std::string format_number(float value)
     std::ostringstream oss;
     oss << std::fixed << std::setprecision((static_cast<int>(value * 10) % 10 == 0) ? 0 : 1) << value;
     return oss.str();
+}
+
+static float get_window_pixel_scale(float content_scale)
+{
+    float scale = content_scale;
+#ifdef _WIN32
+    // wxMouseEvent coordinates on Windows are already physical pixels; divide out DPI scale so rotation matches logical pixels.
+    const int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
+    scale *= float(dpi) / float(DPI_DEFAULT);
+#endif
+    return scale < 1.f ? 1.f : scale;
+}
+
+static float get_rotate_rad_per_px(float pixel_scale)
+{
+    const std::string level = wxGetApp().app_config->get("rotate_sensitivity");
+    float degrees = 0.4f;
+    if (level == "low")
+        degrees = 0.2f;
+    else if (level == "high")
+        degrees = 0.8f;
+    return degrees * float(PI) / 180.f / std::max(1.f, pixel_scale);
 }
 
 wxString filament_printable_error_msg;
@@ -6183,7 +6204,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftIsDown()) {
             // if dragging over blank area with left button, rotate
             if ((any_gizmo_active || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
-                const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.);
+                const double rad_per_px = get_rotate_rad_per_px(get_window_pixel_scale(get_scale()));
+                const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * rad_per_px;
                 if (this->m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.is_paint_gizmo()) {
                     //BBS rotate around target
                     Camera& camera = get_active_camera();
@@ -7870,6 +7892,7 @@ void GLCanvas3D::_render_3d_navigator()
     const int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
     sc *= (float) dpi / (float) DPI_DEFAULT;
 #endif // WIN32
+    style.ViewCubeRotateRadPerPx = get_rotate_rad_per_px(sc);
 
     const ImGuiIO &io                 = ImGui::GetIO();
     const float    viewManipulateLeft = 0;
