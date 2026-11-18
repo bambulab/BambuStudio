@@ -348,7 +348,6 @@ private:
     std::list<PrintOption*>                  m_checkbox_list_order;
 
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
-    std::vector<wxString>               m_bedtype_list;
     std::vector<MachineObject*>         m_list;
     std::vector<FilamentInfo>           m_filaments;
     std::vector<FilamentInfo>           m_ams_mapping_result;
@@ -479,7 +478,6 @@ protected:
     ReselectMachineDialog*              m_best_pos_dialog{nullptr};
 
 public:
-    static std::vector<wxString> MACHINE_BED_TYPE_STRING;
     static void                  init_machine_bed_types();
     static std::vector<std::string> MachineBedTypeString;
 

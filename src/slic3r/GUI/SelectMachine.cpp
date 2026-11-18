@@ -280,19 +280,10 @@ static std::vector<int> build_actual_ams_type_per_filament(const std::vector<Fil
     return types;
 }
 
-std::vector<wxString> SelectMachineDialog::MACHINE_BED_TYPE_STRING;
 std::vector<string> SelectMachineDialog::MachineBedTypeString;
 void                SelectMachineDialog::init_machine_bed_types()
 {
-    if (MACHINE_BED_TYPE_STRING.size() == 0) {
-        MACHINE_BED_TYPE_STRING = {//_L("Auto"),
-                                   _L("Bambu Cool Plate"),
-                                   _L("Bambu Engineering Plate"),
-                                   _L("Bambu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
-                                   _L("Bambu Textured PEI Plate"),
-                                   _L("Bambu Cool Plate SuperTack"),
-                                   _L("Bambu 3D Effect Plate")
-        };
+    if (MachineBedTypeString.empty()) {
         MachineBedTypeString    = {//"auto",
                                    "pc", "pe", "pei", "pte", "suprtack", "3deffect"};
     }
@@ -330,8 +321,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     // bind
     Bind(wxEVT_CLOSE_WINDOW, &SelectMachineDialog::on_cancel, this);
-
-    for (int i = 0; i < BED_TYPE_COUNT; i++) { m_bedtype_list.push_back(MACHINE_BED_TYPE_STRING[i]); }
 
     // font
     SetFont(wxGetApp().normal_font());
