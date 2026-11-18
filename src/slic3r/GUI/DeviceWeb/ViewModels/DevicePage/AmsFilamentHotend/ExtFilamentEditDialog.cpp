@@ -80,8 +80,7 @@ int open_dialog(const nlohmann::json& payload)
     const std::string slots = make_slots_param(slot_array);
     const std::string run_slots = make_slots_param(run_slot_array);
     const int slot_count = slot_array.is_array() ? static_cast<int>(slot_array.size()) : 1;
-    const bool show_warning = intent == "run";
-    const int content_height = std::clamp((show_warning ? 66 : 12) + 40 + std::max(1, slot_count) * 54 + 66, 194, 392);
+    const int content_height = std::clamp(66 + 40 + std::max(1, slot_count) * 54 + 66, 194, 392);
 
     ExtFilamentEditDialog dlg(parent, content_height);
     active_dialog() = &dlg;
@@ -92,6 +91,7 @@ int open_dialog(const nlohmann::json& payload)
     sizer->Add(host, 1, wxEXPAND);
     dlg.SetSizer(sizer);
     dlg.Layout();
+    wxGetApp().UpdateDlgDarkUI(&dlg);
     const int result = dlg.ShowModal();
 
     if (active_dialog() == &dlg) active_dialog() = nullptr;
