@@ -748,6 +748,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             throw Slic3r::InvalidArgument("Error: WipeTowerIntegration::append_tcr was asked to do a toolchange it didn't expect.");
 
         auto new_nozzle_info = group_result->get_nozzle_for_filament(new_filament_id, gcodegen.m_layer_index);
+        if (!new_nozzle_info)
+            throw Slic3r::SlicingError("No nozzle assigned to a prime-tower filament on this object layer.");
         int new_extruder_id = new_nozzle_info->extruder_id;
         int old_filament_id_before_toolchange = gcodegen.writer().filament() ? (int)gcodegen.writer().filament()->id() : -1;
         int old_extruder_id_before_toolchange = old_filament_id_before_toolchange >= 0 ? (int)gcodegen.get_extruder_id(old_filament_id_before_toolchange) : -1;
@@ -1573,10 +1575,20 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
 // Collect pairs of object_layer + support_layer sorted by print_z.
 // object_layer & support_layer are considered to be on the same print_z, if they are not further than EPSILON.
-std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object, std::string* out_empty_layer_warning)
+std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object, std::string* out_empty_layer_warning, const WipeTowerData *tower)
 {
+    // Tower-only layers are merged only for an instance which actually has a
+    // placement. They never change the shared PrintObject's support layers.
+    ConstSupportLayerPtrs support_layers = object.support_layers().vector();
+    if (tower) {
+        for (const auto &layer : tower->support_layers)
+            support_layers.push_back(layer.get());
+        std::sort(support_layers.begin(), support_layers.end(), [](const SupportLayer *a, const SupportLayer *b) {
+            return a->print_z < b->print_z;
+        });
+    }
     std::vector<GCode::LayerToPrint> layers_to_print;
-    layers_to_print.reserve(object.layers().size() + object.support_layers().size());
+    layers_to_print.reserve(object.layers().size() + support_layers.size());
 
     /*
     // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
@@ -1622,7 +1634,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         });
     // A planned first band intentionally leaves its physical layers empty until group_top.
     bool initial_extrusion_validated = has_adaptive_first_band;
-    while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size()) {
+    while (idx_object_layer < object.layers().size() || idx_support_layer < support_layers.size()) {
         LayerToPrint layer_to_print;
         double print_z_min = std::numeric_limits<double>::max();
         if (idx_object_layer < object.layers().size()) {
@@ -1630,8 +1642,8 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             print_z_min = std::min(print_z_min, layer_to_print.object_layer->print_z);
         }
 
-        if (idx_support_layer < object.support_layers().size()) {
-            layer_to_print.support_layer = object.support_layers()[idx_support_layer++];
+        if (idx_support_layer < support_layers.size()) {
+            layer_to_print.support_layer = support_layers[idx_support_layer++];
             print_z_min = std::min(print_z_min, layer_to_print.support_layer->print_z);
         }
 
@@ -2100,7 +2112,8 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     const bool is_i3_traditional_timelapse =
         m_config.printer_structure.value == PrinterStructure::psI3 &&
         m_config.timelapse_type.value == TimelapseType::tlTraditional;
-    const bool has_generated_wipe_tower = print->has_wipe_tower() && !print->wipe_tower_data().tool_changes.empty();
+    const bool has_generated_wipe_tower = print->has_object_wipe_towers() ? print->has_wipe_tower() :
+        print->has_wipe_tower() && !print->wipe_tower_data().tool_changes.empty();
 
     m_processor.result().support_traditional_timelapse =
         is_i3_traditional_timelapse ? has_generated_wipe_tower : m_support_traditional_timelapse;
@@ -2357,8 +2370,9 @@ namespace DoExport {
 	        //std::pair<std::string, unsigned int> out_filament_used_g  ("; filament used [g] = ", 0);
 	        //std::pair<std::string, unsigned int> out_filament_cost    ("; filament cost = ", 0);
 	        for (const Extruder &extruder : extruders) {
-	            double used_filament   = extruder.used_filament() + (has_wipe_tower ? wipe_tower_data.used_filament[extruder.id()] : 0.f);
-	            double extruded_volume = extruder.extruded_volume() + (has_wipe_tower ? wipe_tower_data.used_filament[extruder.id()] * extruder.filament_crossection() : 0.);
+	            double tower_filament = has_wipe_tower && extruder.id() < wipe_tower_data.used_filament.size() ? wipe_tower_data.used_filament[extruder.id()] : 0.;
+            double used_filament   = extruder.used_filament() + tower_filament;
+	            double extruded_volume = extruder.extruded_volume() + tower_filament * extruder.filament_crossection();
 	            double filament_weight = extruded_volume * extruder.filament_density() * 0.001;
 	            double filament_cost   = filament_weight * extruder.filament_cost()    * 0.001;
                 auto append = [&extruder](std::pair<std::string, unsigned int> &dst, const char *tmpl, double value) {
@@ -2420,6 +2434,25 @@ static inline std::vector<const PrintInstance*> sort_object_instances_by_max_z(c
 //BBS: add sort logic for seq-print
 std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Print& print, bool init_order)
 {
+    if (print.has_object_wipe_towers()) {
+        // arrange_order may be equal for copies of the same PrintObject. The
+        // legacy lower_bound below loses all but the first copy in that case.
+        std::map<const ModelInstance*, const PrintInstance*> lookup;
+        for (const PrintObject *object : print.objects())
+            for (const PrintInstance &instance : object->instances())
+                lookup.emplace(instance.model_instance, &instance);
+        std::vector<const PrintInstance*> instances;
+        for (const ModelObject *object : print.model().objects)
+            for (const ModelInstance *instance : object->instances) {
+                const auto it = lookup.find(instance);
+                if (it != lookup.end())
+                    instances.push_back(it->second);
+            }
+        std::stable_sort(instances.begin(), instances.end(), [](const auto *a, const auto *b) {
+            return a->model_instance->arrange_order < b->model_instance->arrange_order;
+        });
+        return instances;
+    }
     // Build up map from ModelInstance* to PrintInstance*
     std::vector<std::pair<const ModelInstance*, const PrintInstance*>> model_instance_to_print_instance;
     model_instance_to_print_instance.reserve(print.num_object_instances());
@@ -2497,10 +2530,21 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_last_mm3_per_mm = 0.;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
+    const auto &object_tower_placements = print.object_wipe_tower_placements();
+    if (print.has_object_wipe_towers())
+        for (const auto &warning : print.object_wipe_tower_placement_warnings())
+            print.active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning.string);
+
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
     m_layer_count = 0;
-    if (print.config().print_sequence == PrintSequence::ByObject && print.objects().size() > 1) {
+    if (print.has_object_wipe_towers()) {
+        std::string ignored_warning;
+        for (const PrintInstance *instance : sort_object_instances_by_model_order(print)) {
+            const WipeTowerData *tower = object_tower_placements.count(instance) ? print.object_wipe_tower_data(instance->print_object) : nullptr;
+            m_layer_count += (unsigned int)collect_layers_to_print(*instance->print_object, &ignored_warning, tower).size();
+        }
+    } else if (print.is_sequential_print()) {
         // Add each of the object's layers separately.
         for (auto object : print.objects()) {
             std::vector<coordf_t> zs;
@@ -2816,7 +2860,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Use the extruder IDs collected from Regions.
         this->set_extruders(print.extruders());
 
-        has_wipe_tower = print.has_wipe_tower() && tool_ordering.has_wipe_tower();
+        // Sequential towers are attached to each instance below, never to the plate.
+        has_wipe_tower = false;
     } else {
         // Find tool ordering for all the objects at once, and the initial extruder ID.
         // If the tool ordering has been pre-calculated by Print class for wipe tower already, reuse it.
@@ -2953,7 +2998,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // For the change_filament_gcode to Determine whether the current layer has a wipe tower
     m_placeholder_parser.set("has_wipe_tower_this_layer", has_wipe_tower);
     //m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config().single_extruder_multi_material_priming);
-    m_placeholder_parser.set("total_toolchanges", std::max(0, print.wipe_tower_data().number_of_toolchanges)); // Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
+    m_placeholder_parser.set("total_toolchanges", std::max(0, print.wipe_tower_statistics_data().number_of_toolchanges)); // Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
     Vec2f plate_offset = m_writer.get_xy_offset();
     {
         BoundingBoxf bbox(print.config().printable_area.values);
@@ -3085,7 +3130,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             }));
 
         float wipe_tower_center_pos_x= -1.f, wipe_tower_center_pos_y = -1.f;
-        Vec2f stop_pos; // point of nozzle heating
+        Vec2f stop_pos(-1.f, -1.f); // point of nozzle heating
         bool wipe_tower_center_pos_valid = false;
         if (has_wipe_tower) {
             auto bbx                = print.wipe_tower_data().bbx;
@@ -3102,6 +3147,15 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             if (stop_pos.x() > printer_bbx.max[0]) stop_pos.x() = printer_bbx.max[0];
 
             wipe_tower_center_pos_valid = true;
+        }
+        if (print.has_object_wipe_towers() && !print_object_instances_ordering.empty()) {
+            const auto &placements = print.object_wipe_tower_placements();
+            auto first = placements.find(print_object_instances_ordering.front());
+            if (first != placements.end()) {
+                const BoundingBox box = first->second.footprint.bounding_box();
+                stop_pos = (unscale(box.center()) - print.get_plate_origin().head<2>()).cast<float>();
+                wipe_tower_center_pos_valid = true;
+            }
         }
         m_placeholder_parser.set("wipe_tower_center_pos_x", new ConfigOptionFloat(stop_pos.x()));
         m_placeholder_parser.set("wipe_tower_center_pos_y", new ConfigOptionFloat(stop_pos.y()));
@@ -3171,6 +3225,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         if (has_wipe_tower) {
             Polygon temp_Expoly = print.wipe_tower_data().wipe_tower_mesh_data->bottom;
             area_sum_temp += temp_Expoly.area();
+        }
+        if (print.has_object_wipe_towers()) {
+            const auto &placements = print.object_wipe_tower_placements();
+            for (const auto &entry : placements)
+                area_sum_temp += entry.second.footprint.area();
         }
         bool hold_chamber_temp_for_flat_print = (max_hight_temp > 0) && (max_hight_temp < pring_hight_threshold) && ( area_sum_temp > (print_area_sum_threshold * 1.0e10 - 1) );
         m_placeholder_parser.set("hold_chamber_temp_for_flat_print", new ConfigOptionBool(hold_chamber_temp_for_flat_print));
@@ -3364,15 +3423,22 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
 
         if (print.is_sequential_print() && !has_wipe_tower){
+            const auto &placements = print.object_wipe_tower_placements();
             const auto& by_obj_print_data = print.sequential_print_data().value();
+            // Multicolour copies need separate blocks while the print uses object towers.
+            const bool object_tower_blocks = print.has_object_wipe_towers();
 
             const PrintObject * prev_object = nullptr;
             size_t finished_objects = 0;
 
             for(auto instance : by_obj_print_data.print_instance_order){
                 const PrintObject* object = instance->print_object;
-                const auto tool_ordering = by_obj_print_data.object_tool_ordering_map.at(object);
-                if(object == prev_object)
+                const auto placement = placements.find(instance);
+                const WipeTowerData *tower = placement != placements.end() ? print.object_wipe_tower_data(object) : nullptr;
+                const auto tool_ordering = tower ? tower->tool_ordering : by_obj_print_data.object_tool_ordering_map.at(object);
+                // Keep each multicolour copy independent, including the no-space fallback.
+                const bool per_instance = object_tower_blocks && tool_ordering.all_extruders().size() > 1;
+                if (object == prev_object && !per_instance)
                     continue;
 
                 unsigned int new_extruder_id = tool_ordering.first_extruder();
@@ -3382,6 +3448,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 initial_extruder_id = new_extruder_id;
                 final_extruder_id   = tool_ordering.last_extruder();
                 print.throw_if_canceled();
+                m_wipe_tower.reset();
+                if (tower) {
+                    const BoundingBox box = placement->second.footprint.bounding_box();
+                    const Vec2d center = unscale(box.center()) - print.get_plate_origin().head<2>();
+                    m_placeholder_parser.set("wipe_tower_center_pos_x", center.x());
+                    m_placeholder_parser.set("wipe_tower_center_pos_y", center.y());
+                    m_placeholder_parser.set("wipe_tower_center_pos_valid", true);
+                } else if (print.has_object_wipe_towers()) {
+                    m_placeholder_parser.set("wipe_tower_center_pos_valid", false);
+                }
                 this->set_origin(unscale(instance->shift));
 
                 // BBS: prime extruder if extruder change happens before this object instance
@@ -3431,11 +3507,28 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // and export G-code into file.
                 m_printed_objects.emplace_back(object);
                 m_cur_print_object = object;
+                if (per_instance) {
+                    if (print.m_brimMap.count(object->id()) && !print.m_brimMap.at(object->id()).empty())
+                        m_objsWithBrim.insert(object->id());
+                    if (print.m_supportBrimMap.count(object->id()) && !print.m_supportBrimMap.at(object->id()).empty())
+                        m_objSupportsWithBrim.insert(object->id());
+                }
+                if (tower) {
+                    m_wipe_tower.reset(new WipeTowerIntegration(print.config(), print.get_plate_index(), print.get_plate_origin(), *tower->priming,
+                        tower->tool_changes, *tower->final_purge, tool_ordering.all_extruders(), &placement->second.position));
+                    m_wipe_tower->set_wipe_tower_depth(tower->depth);
+                    m_wipe_tower->set_wipe_tower_bbx(tower->bbx);
+                    m_wipe_tower->set_rib_offset(tower->rib_offset);
+                }
                 // Suppress per-object emission of the empty-layer warning here; it was already
                 // aggregated across all objects and emitted from collect_layers_to_print(print).
                 std::string ignored_empty_layer_warning;
-                this->process_layers(print, tool_ordering, collect_layers_to_print(*object, &ignored_empty_layer_warning), instance - object->instances().data(), file,
+                this->process_layers(print, tool_ordering, collect_layers_to_print(*object, &ignored_empty_layer_warning, tower), instance - object->instances().data(), file,
                                      prime_extruder);
+                if (tower) {
+                    file.write(m_wipe_tower->finalize(*this));
+                    m_wipe_tower.reset();
+                }
 
                 //BBS: this instance is done. Unlike the by-layer path there is no following
                 //change_layer() to flush the pending M625 for us, so flush it here before broadcasting.
@@ -3644,7 +3737,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // Get filament stats.
     file.write(DoExport::update_print_stats_and_format_filament_stats(
     	// Const inputs
-        has_wipe_tower, print.wipe_tower_data(),
+        has_wipe_tower || print.has_object_wipe_towers(), print.wipe_tower_statistics_data(),
         m_writer.extruders(),
         // Modifies
         print.m_print_statistics));
@@ -4005,7 +4098,10 @@ void GCode::process_layers(
                 //BBS
                 check_placeholder_parser_failed();
                 print.throw_if_canceled();
-                GCode::LayerResult res = this->process_layer(print, {std::move(layer)}, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, tool_ordering.get_most_used_extruder(), single_object_idx, prime_extruder);
+                const LayerTools &tools = tool_ordering.tools_for_layer(layer.print_z());
+                if (m_wipe_tower && tools.has_wipe_tower)
+                    m_wipe_tower->next_layer();
+                GCode::LayerResult res = this->process_layer(print, {std::move(layer)}, tools, &layer == &layers_to_print.back(), nullptr, tool_ordering.get_most_used_extruder(), single_object_idx, prime_extruder);
                 res.gcode_store_pos = layer_to_print_idx - 1;
                 return std::move(res);
             }
@@ -5045,7 +5141,7 @@ GCode::LayerResult GCode::process_layer(
     //estmate the acceleration limit and output printed mass
     PrintStatistics curr_print_statistics;
     DoExport::update_print_stats_and_format_filament_stats(
-        has_wipe_tower, print.wipe_tower_data(), m_writer.extruders(),// Const inputs
+        has_wipe_tower, print.wipe_tower_statistics_data(), m_writer.extruders(),// Const inputs
         curr_print_statistics); // Modifies
     double curr_y_acceleration_limit = -1, curr_accumulated_mass = -1, curr_layer_mass = -1;
     mass_load_limited_machine_acceleration(curr_print_statistics, print,                      // Const inputs
@@ -5828,6 +5924,8 @@ GCode::LayerResult GCode::process_layer(
                 gcode+="; PURGING FINISHED\n";
             for (InstanceToPrint &instance_to_print : instances_to_print) {
                 const auto& inst = instance_to_print.print_object.instances()[instance_to_print.instance_id];
+                const bool per_instance = print.has_object_wipe_towers() &&
+                    print.sequential_print_data()->object_tool_ordering_map.at(&instance_to_print.print_object).all_extruders().size() > 1;
                 const LayerToPrint &layer_to_print = layers[instance_to_print.layer_id];
                 // To control print speed of the 1st object layer printed over raft interface.
                 bool object_layer_over_raft = layer_to_print.object_layer && layer_to_print.object_layer->id() > 0 &&
@@ -5880,6 +5978,8 @@ GCode::LayerResult GCode::process_layer(
                         this->set_origin(0., 0.);
                         m_avoid_crossing_perimeters.use_external_mp();
                         for (const ExtrusionEntity* ee : print.m_supportBrimMap.at(instance_to_print.print_object.id()).entities) {
+                            if (per_instance && !print.instance_owns_brim(inst, *ee))
+                                continue;
                             gcode += this->extrude_entity(*ee, "brim", NOZZLE_CONFIG(support_speed));
                         }
                         m_avoid_crossing_perimeters.use_external_mp(false);
@@ -5927,6 +6027,8 @@ GCode::LayerResult GCode::process_layer(
                             this->set_origin(0., 0.);
                             m_avoid_crossing_perimeters.use_external_mp();
                             for (const ExtrusionEntity* ee : print.m_brimMap.at(instance_to_print.print_object.id()).entities) {
+                                if (per_instance && !print.instance_owns_brim(inst, *ee))
+                                    continue;
                                 gcode += this->extrude_entity(*ee, "brim", NOZZLE_CONFIG(support_speed));
                             }
                             m_avoid_crossing_perimeters.use_external_mp(false);

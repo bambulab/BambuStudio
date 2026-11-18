@@ -7953,7 +7953,8 @@ int CLI::run(int argc, char **argv)
                                         bd.bbox = { bb.min.x(), bb.min.y(), bb.max.x(), bb.max.y() };
                                         sliced_plate_info.bbox_objs.emplace_back(std::move(bd));
                                     }
-                                    if (print_fff->has_wipe_tower()) {
+                                    // This cache describes a single global tower only.
+                                    if (print_fff->has_wipe_tower() && !print_fff->has_object_wipe_towers()) {
                                         auto wt_corners = print_fff->first_layer_wipe_tower_corners();
                                         if (!wt_corners.empty()) {
                                             BoundingBox bb_scaled = {wt_corners[0], wt_corners[2]};
@@ -8665,7 +8666,8 @@ int CLI::run(int argc, char **argv)
                     id_bboxes.emplace_back(std::move(data));
                 }
                 // add wipe tower bounding box
-                if (print->has_wipe_tower()) {
+                // Four global corners cannot describe per-instance towers.
+                if (print->has_wipe_tower() && !print->has_object_wipe_towers()) {
                     BBoxData data;
                     auto   wt_corners = print->first_layer_wipe_tower_corners();
                     // when loading gcode.3mf, wipe tower info may not be correct

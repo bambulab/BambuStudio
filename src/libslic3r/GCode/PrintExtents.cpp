@@ -4,6 +4,7 @@
 // to let the operator remove them from the print bed.
 
 #include "../BoundingBox.hpp"
+#include "../Exception.hpp"
 #include "../ExtrusionEntity.hpp"
 #include "../ExtrusionEntityCollection.hpp"
 #include "../Layer.hpp"
@@ -135,6 +136,13 @@ BoundingBoxf get_print_object_extrusions_extents(const PrintObject &print_object
 // The projection does not contain the priming regions.
 BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_t max_print_z)
 {
+    if (print.has_object_wipe_towers()) {
+        const auto &placements = print.object_wipe_tower_placements();
+        BoundingBoxf result;
+        for (const auto &entry : placements)
+            result.merge(unscaled(entry.second.footprint.bounding_box()));
+        return result;
+    }
     // Wipe tower extrusions are saved as if the tower was at the origin with no rotation
     // We need to get position and angle of the wipe tower to transform them to actual position.
     int plate_idx = print.get_plate_index();
@@ -168,6 +176,8 @@ BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_
 // Returns a bounding box of the wipe tower priming extrusions.
 BoundingBoxf get_wipe_tower_priming_extrusions_extents(const Print &print)
 {
+    if (print.has_object_wipe_towers())
+        return BoundingBoxf();
     BoundingBoxf bbox;
     if (print.wipe_tower_data().priming != nullptr) {
         for (const WipeTower::ToolChangeResult &tcr : *print.wipe_tower_data().priming) {

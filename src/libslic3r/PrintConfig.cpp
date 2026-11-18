@@ -8832,8 +8832,8 @@ t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int us
                 has_mixed_filament = has_any_mixed_filament(mixed_opt->values);
         }
         if (!is_smooth_timelapse && !enable_wrapping
-            && (  (used_filaments == 1 && !has_mixed_filament)
-                || (ps_opt->value == PrintSequence::ByObject && num_objects > 1))) {
+            && used_filaments == 1 && !has_mixed_filament
+            && !(ps_opt->value == PrintSequence::ByObject && num_objects > 1)) {
             if (ept_opt->value) {
                 if (ori_values)
                     ori_values->set_key_value("enable_prime_tower", ept_opt->clone());
@@ -8849,7 +8849,9 @@ t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int us
             }
         }
 
-        if (ept_opt->value) {
+        // Object towers have separate layer schedules. Do not change support
+        // layering on monochrome objects just because another object has a tower.
+        if (ept_opt->value && !(ps_opt->value == PrintSequence::ByObject && num_objects > 1)) {
             if (islh_opt) {
                 if (islh_opt->value) {
                     islh_opt->value = false;

@@ -21,6 +21,7 @@
 
 #include "libslic3r.h"
 #include "ByObjectPrintData.hpp"
+#include "GCode/ObjectWipeTowerPlacement.hpp"
 
 #include <Eigen/Geometry>
 
@@ -787,8 +788,11 @@ struct WipeTowerData
     std::unique_ptr<std::vector<WipeTower::ToolChangeResult>> priming;
     std::vector<std::vector<WipeTower::ToolChangeResult>> tool_changes;
     std::unique_ptr<WipeTower::ToolChangeResult>          final_purge;
+    // Virtual layers belong to a tower template, never to a fallback PrintObject.
+    std::vector<std::shared_ptr<SupportLayer>>             support_layers;
     std::vector<float>                                    used_filament;
     int                                                   number_of_toolchanges;
+    bool                                                  sparse_layers_skipped = false;
 
     // Depth of the wipe tower to pass to GLCanvas3D for exact bounding box:
     float                                                 depth;
@@ -799,9 +803,11 @@ struct WipeTowerData
     void clear() {
         priming.reset(nullptr);
         tool_changes.clear();
+        support_layers.clear();
         final_purge.reset(nullptr);
         used_filament.clear();
         number_of_toolchanges = -1;
+        sparse_layers_skipped = false;
         depth = 0.f;
         brim_width = 0.f;
         wipe_tower_mesh_data  = std::nullopt;
@@ -1032,11 +1038,23 @@ public:
     // True when wipe tower is enabled and support uses a filament not shared with the model body.
     bool                        support_material_on_wipe_tower() const;
     const WipeTowerData&        wipe_tower_data(size_t filaments_cnt = 0) const;
+    bool                        has_object_wipe_towers() const;
+    const WipeTowerData*         object_wipe_tower_data(const PrintObject *object) const;
+    const WipeTowerData&         wipe_tower_statistics_data() const;
+    using ObjectWipeTowerPlacement = Slic3r::ObjectWipeTowerPlacement;
+    using ObjectWipeTowerPlacements = std::map<const PrintInstance*, ObjectWipeTowerPlacement>;
+    // Completed tower/brim result only; validation uses a current estimate.
+    const ObjectWipeTowerPlacements &object_wipe_tower_placements() const;
+    const std::vector<StringObjectException> &object_wipe_tower_placement_warnings() const;
+    ObjectWipeTowerPlacements    estimate_object_wipe_tower_placements(std::vector<StringObjectException> *warnings = nullptr) const;
+    Polygon                     sequential_instance_footprint(const PrintInstance &instance) const;
+    bool                        instance_owns_brim(const PrintInstance &instance, const ExtrusionEntity &path) const;
     const ToolOrdering& 		tool_ordering() const { return m_tool_ordering; }
 
     // Sequential print support.
     bool                        is_sequential_print() const {
-        return config().print_sequence == PrintSequence::ByObject && m_objects.size() > 1;
+        return config().print_sequence == PrintSequence::ByObject &&
+            (m_objects.size() > 1 || (has_object_wipe_towers() && num_object_instances() > 1));
     }
 
     // 判断是否会出现耗材动态映射
@@ -1264,6 +1282,13 @@ private:
 
     void                _make_skirt();
     void                _make_wipe_tower();
+    void                _make_wipe_tower(WipeTowerData &data, PrintObject *object);
+    void                _make_object_wipe_towers();
+    Polygon             sequential_instance_footprint(const PrintInstance &instance, bool brim_ready) const;
+    void                compute_object_wipe_tower_placements(ObjectWipeTowerPlacements &placements,
+                            std::vector<StringObjectException> &warnings, bool geometry_ready = false) const;
+    void                update_object_wipe_tower_placements();
+    void                update_object_wipe_tower_statistics(const ObjectWipeTowerPlacements &placements);
     // Vertical clearance against the compacted wipe tower, see wipe_tower_no_sparse_layers.
     void                validate_compacted_wipe_tower_clearance() const;
     void                finalize_first_layer_convex_hull();
@@ -1291,6 +1316,7 @@ private:
     // therefore it does NOT encompass the initial purge line.
     // It does NOT encompass MMU/MMU2 starting (wipe) areas.
     Polygon                                 m_first_layer_convex_hull;
+    Polygon                                 m_first_layer_convex_hull_without_object_towers;
     Points                                  m_skirt_convex_hull;
 
     std::vector<std::vector<DynamicPrintConfig>> m_extruder_filament_info;
@@ -1299,6 +1325,13 @@ private:
     // Following section will be consumed by the GCodeGenerator.
     ToolOrdering 							m_tool_ordering;
     WipeTowerData                           m_wipe_tower_data {m_tool_ordering};
+    // Separate from the pristine sequential ordering used by instances without a tower.
+    std::map<const PrintObject*, ToolOrdering> m_object_wipe_tower_orderings;
+    std::map<const PrintObject*, std::unique_ptr<WipeTowerData>> m_object_wipe_tower_data;
+    WipeTowerData                           m_object_wipe_tower_statistics {m_tool_ordering};
+
+    ObjectWipeTowerPlacements                m_object_wipe_tower_placements;
+    std::vector<StringObjectException>       m_object_wipe_tower_placement_warnings;
 
     std::optional<ByObjectPrintData>        m_sequential_print_data;
 

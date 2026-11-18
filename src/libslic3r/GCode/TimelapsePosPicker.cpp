@@ -87,25 +87,38 @@ namespace Slic3r {
         for (size_t idx = 0; idx < config.bed_exclude_area.values.size(); ++idx)
             bed_exclude_area.points.emplace_back(coord_t(scale_(config.bed_exclude_area.values[idx].x())), coord_t(scale_(config.bed_exclude_area.values[idx].y())));
 
-        Point base_wp_pt = print->get_fake_wipe_tower().pos.cast<coord_t>();
-        base_wp_pt = Point{ scale_(base_wp_pt.x()),scale_(base_wp_pt.y()) };
+        Polygons wipe_tower_areas;
+        if (print->has_object_wipe_towers()) {
+            const auto &placements = print->object_wipe_tower_placements();
+            const Point origin = scaled(Vec2d(print->get_plate_origin().x(), print->get_plate_origin().y()));
+            for (const auto &entry : placements) {
+                Polygon footprint = entry.second.footprint;
+                footprint.translate(-origin);
+                wipe_tower_areas.push_back(expand_object_projection(footprint, true));
+            }
+        } else {
+            Point base_wp_pt = print->get_fake_wipe_tower().pos.cast<coord_t>();
+            base_wp_pt = Point{ scale_(base_wp_pt.x()),scale_(base_wp_pt.y()) };
 
-        auto transform_wt_pt = [base_wp_pt](const Point& pt) -> Point {
-            Point out =pt;
-            out += base_wp_pt;
-            return out;
+            auto transform_wt_pt = [base_wp_pt](const Point& pt) -> Point {
+                Point out =pt;
+                out += base_wp_pt;
+                return out;
+                };
+            auto wt_box = print->wipe_tower_data().bbx;
+            Polygon wipe_tower_area{
+                {transform_wt_pt({scale_(wt_box.min.x()),scale_(wt_box.min.y())})},
+                {transform_wt_pt({scale_(wt_box.max.x()),scale_(wt_box.min.y())})},
+                {transform_wt_pt({scale_(wt_box.max.x()),scale_(wt_box.max.y())})},
+                {transform_wt_pt({scale_(wt_box.min.x()),scale_(wt_box.max.y())})}
             };
-        auto wt_box = print->wipe_tower_data().bbx;
-        Polygon wipe_tower_area{
-            {transform_wt_pt({scale_(wt_box.min.x()),scale_(wt_box.min.y())})},
-            {transform_wt_pt({scale_(wt_box.max.x()),scale_(wt_box.min.y())})},
-            {transform_wt_pt({scale_(wt_box.max.x()),scale_(wt_box.max.y())})},
-            {transform_wt_pt({scale_(wt_box.min.x()),scale_(wt_box.max.y())})}
-        };
-        wipe_tower_area = expand_object_projection(wipe_tower_area, m_print_seq == PrintSequence::ByObject);
+            wipe_tower_area = expand_object_projection(wipe_tower_area, m_print_seq == PrintSequence::ByObject);
+            wipe_tower_areas.push_back(std::move(wipe_tower_area));
+
+        }
 
         for (size_t idx = 0; idx < extruder_count; ++idx) {
-            ExPolygons printable_area = diff_ex(diff(m_bed_polygon, bed_exclude_area), { wipe_tower_area });
+            ExPolygons printable_area = diff_ex(diff(m_bed_polygon, bed_exclude_area), wipe_tower_areas);
             if (idx < config.extruder_printable_area.size()) {
                 Polygon extruder_printable_area;
                 for (size_t j = 0; j < config.extruder_printable_area.values[idx].size(); ++j)

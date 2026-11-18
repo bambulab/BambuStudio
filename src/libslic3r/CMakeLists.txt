@@ -194,6 +194,8 @@ set(lisbslic3r_sources
     GCode/PostProcessor.hpp
 #    GCode/PressureEqualizer.cpp
 #    GCode/PressureEqualizer.hpp
+    GCode/ObjectWipeTowerPlacement.cpp
+    GCode/ObjectWipeTowerPlacement.hpp
     GCode/PrintExtents.cpp
     GCode/PrintExtents.hpp
     GCode/RetractWhenCrossingPerimeters.cpp
