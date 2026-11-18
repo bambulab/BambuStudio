@@ -4873,7 +4873,8 @@ void MachineObject::parse_new_info(json print)
             DeviceManager* device_manager = GUI::wxGetApp().getDeviceManager();
             MachineObject* local_machine = device_manager ? device_manager->get_local_machine(get_dev_id()) : nullptr;
             if (local_machine && local_machine->is_lan_mode_printer()) {
-                device_manager->remove_local_machine_for_cloud_mode(get_dev_id(), "cloud status push");
+                // farm 机器无法通过推送准确识别。
+                // device_manager->remove_local_machine_for_cloud_mode(get_dev_id(), "cloud status push");
             }
         }
     }
