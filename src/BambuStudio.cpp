@@ -7731,6 +7731,15 @@ int CLI::run(int argc, char **argv)
                         DynamicPrintConfig new_print_config = m_print_config;
                         new_print_config.apply(*part_plate->config());
                         new_print_config.apply(m_extra_config, true);
+                        // Same overlay as full_fff_config: in multi-diameter mode, an extruder whose
+                        // installed slots share one diameter takes that diameter on nozzle_diameter.
+                        // uptodate may already have replaced the project vector with the printer preset.
+                        if (multi_nozzle_diameter_mode_enabled(new_print_config)) {
+                            apply_installed_extruder_nozzle_diameters(new_print_config);
+                            if (const auto *src = new_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter"))
+                                if (auto *dst = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter"))
+                                    dst->values = src->values;
+                        }
                         if (m_print_config.option<ConfigOptionFloat>("layer_height"))
                             sliced_info.layer_height = m_print_config.option<ConfigOptionFloat>("layer_height")->value;
                         if (m_print_config.option<ConfigOptionInt>("wall_loops"))

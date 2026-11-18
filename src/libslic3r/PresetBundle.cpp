@@ -2087,23 +2087,6 @@ void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, con
  * \param nozzles   the nozzle inventory
  * \param fallback  nozzle_diameter of the printer preset
  */
-static std::vector<double> installed_extruder_diameters(const NozzleInventory &nozzles, const std::vector<double> &fallback)
-{
-    std::vector<double> result = fallback;
-    for (size_t e = 0; e < result.size(); ++e) {
-        std::set<double> diameters;
-        for (const NozzleSlot &slot : nozzles.slots(int(e))) {
-            if (slot.empty())
-                continue;
-            const double d = string_to_double_decimal_point(slot.diameter.c_str());
-            if (d > 0.0)
-                diameters.insert(d);
-        }
-        if (diameters.size() == 1)
-            result[e] = *diameters.begin();
-    }
-    return result;
-}
 
 // Merge one vendor's presets with the other vendor's presets, report duplicates.
 std::vector<std::string> PresetBundle::merge_presets(PresetBundle &&other)
@@ -3943,6 +3926,45 @@ static bool uses_per_slot_nozzle_diameters(const ConfigBase &config)
     return hotend_as_extruder != nullptr && hotend_as_extruder->value;
 }
 
+void apply_installed_extruder_nozzle_diameters(DynamicPrintConfig &config)
+{
+    if (!uses_per_slot_nozzle_diameters(config))
+        return;
+
+    auto *nozzle_diameter_opt = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    const auto *count_opt = config.option<ConfigOptionInts>("extruder_nozzle_count");
+    const auto *diam_opt = config.option<ConfigOptionFloats>("extruder_nozzle_diameter");
+    if (nozzle_diameter_opt == nullptr || nozzle_diameter_opt->values.empty() ||
+        count_opt == nullptr || diam_opt == nullptr)
+        return;
+
+    size_t expected = 0;
+    for (int count : count_opt->values) {
+        if (count < 0)
+            return;
+        expected += size_t(count);
+    }
+    // Slot list must line up with the per-extruder counts, same as the inventory export.
+    if (expected == 0 || diam_opt->values.size() != expected)
+        return;
+
+    std::vector<double> result = nozzle_diameter_opt->values;
+    size_t flat = 0;
+    const size_t extruders = std::min(count_opt->values.size(), result.size());
+    for (size_t e = 0; e < extruders; ++e) {
+        std::set<double> diameters;
+        const int count = count_opt->values[e];
+        for (int i = 0; i < count; ++i) {
+            const double d = diam_opt->values[flat++];
+            if (d > 0.0)
+                diameters.insert(d);
+        }
+        if (diameters.size() == 1)
+            result[e] = *diameters.begin();
+    }
+    nozzle_diameter_opt->values = std::move(result);
+}
+
 static std::set<std::string> collect_configured_nozzle_diameters(const PresetBundle &bundle)
 {
     std::set<std::string> result;
@@ -5286,11 +5308,8 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     // Both overrides below are what makes a config multi-diameter, so the project-level gate comes first:
     // with it off the printer preset's own nozzle_diameter and no per-filament selection is all slicing sees.
     const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(this->project_config);
-    if (auto *nozzle_diameter_opt = out.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-        multi_diameter_mode && uses_per_slot_nozzle_diameters(out) &&
-        nozzle_diameter_opt != nullptr && this->nozzle_inventory.extruder_count() > 0) {
-        nozzle_diameter_opt->values = installed_extruder_diameters(this->nozzle_inventory, nozzle_diameter_opt->values);
-    }
+    if (multi_diameter_mode && this->nozzle_inventory.extruder_count() > 0)
+        apply_installed_extruder_nozzle_diameters(out);
 
     std::vector<std::string> selected_nozzle_diameters;
     if (multi_diameter_mode)

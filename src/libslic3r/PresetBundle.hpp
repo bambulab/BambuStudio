@@ -157,6 +157,11 @@ ExtruderFullStat build_extruder_full_stat_from_nozzle_stat(const ExtruderNozzleS
 void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, const ExtruderFullStat &full_stat);
 bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config);
 
+// Multi-diameter: replace nozzle_diameter[e] when that extruder's installed slots share one
+// positive diameter. Several diameters, or none, keep the existing element. Array length stays.
+// No-op unless the machine uses per-slot diameters and the flat slot list matches the counts.
+void apply_installed_extruder_nozzle_diameters(DynamicPrintConfig &config);
+
 /**
  * \brief Count one extruder's physical nozzle slots by their preset default volume type
  *
