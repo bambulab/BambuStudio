@@ -1586,8 +1586,11 @@ static bool sliced_plates_use_tpu285(Slic3r::GUI::PartPlateList &plates, const s
 // For estimate_mode: given a source filament preset name (e.g. "Bambu PLA Basic @BBL P1S 0.4 nozzle")
 // and the new machine's BBL tag (e.g. "X2D 0.4 nozzle"), construct the target filament preset name
 // (e.g. "Bambu PLA Basic @BBL X2D 0.4 nozzle") and verify it exists in filament_full_dir.
+// preferred_diameter 保留材料槽已经选定的其他口径，例如 "0.2" 对应
+// "Bambu PLA Basic @BBL P3C 0.2 nozzle"。该文件列出的是 0.2 机型，不是当前加载的 0.4 预设。
 // Returns the resolved filament preset name, or empty string if not found.
 // Resolution order:
+//   0. 指定了 preferred_diameter 时：若文件存在，使用 "<base> @BBL <new_machine_bbl_tag> <diameter> nozzle"
 //   1. Exact name match: "<base> @BBL <new_machine_bbl_tag>"
 //   2. Scan filament_full_dir for any file starting with "<base> @" whose compatible_printers contains new_printer_system_name
 //   3. Fall back to the machine's default_filament_preset
@@ -1596,7 +1599,8 @@ static std::string estimate_filament_preset_name(
     const std::string& new_machine_bbl_tag,
     const std::string& filament_full_dir,
     const std::string& new_printer_system_name,
-    const std::string& default_filament_preset)
+    const std::string& default_filament_preset,
+    const std::string& preferred_diameter = {})
 {
     // Extract base filament name by stripping "@BBL ..." or "@base" suffix
     std::string base_name = src_filament_name;
@@ -1606,6 +1610,12 @@ static std::string estimate_filament_preset_name(
 
     BOOST_LOG_TRIVIAL(info) << boost::format(
             "src_filament_name %1%, base %2%, new_machine_bbl_tag %3%, new_printer_system_name %4%, default_filament_preset %5%") % src_filament_name %base_name %new_machine_bbl_tag %new_printer_system_name %default_filament_preset;
+
+    if (!preferred_diameter.empty()) {
+        const std::string diameter_name = base_name + " @BBL " + new_machine_bbl_tag + " " + preferred_diameter + " nozzle";
+        if (boost::filesystem::exists(filament_full_dir + diameter_name + ".json"))
+            return diameter_name;
+    }
 
     // Lambda: check whether a filament json file's compatible_printers contains new_printer_system_name
     auto is_compatible_with_printer = [&](const std::string& file_path) -> bool {
@@ -2754,6 +2764,12 @@ int CLI::run(int argc, char **argv)
         }
     }
 
+    // 多口径工程保留每个材料已选的喷嘴口径。机型预设只写了代表口径，不能把 0.2 的槽改写成这个 0.4。
+    const bool preserve_slot_diameters =
+        estimate_mode &&
+        supports_multi_nozzle_diameter_mode(load_machine_config) &&
+        multi_nozzle_diameter_mode_enabled(m_print_config);
+
     // estimate_mode: auto-fill load_filaments with resolved paths from filament_full/ for the new machine
     if (estimate_mode && load_filaments.empty()) {
         // Derive the new machine's BBL tag and default preset from its default_filament_profile
@@ -2774,10 +2790,19 @@ int CLI::run(int argc, char **argv)
         }
 
         std::string filament_full_dir = resources_dir() + "/profiles/BBL/filament_full/";
+        const auto *project_dia_map = m_print_config.option<ConfigOptionStrings>("filament_diameter_map");
         auto& filaments_opt = m_config.option<ConfigOptionStrings>("load_filaments", true)->values;
         for (int index = 0; index < (int)converted_filaments_system_name.size(); index++) {
+            std::string preferred_diameter;
+            if (preserve_slot_diameters && project_dia_map != nullptr &&
+                static_cast<size_t>(index) < project_dia_map->values.size()) {
+                const std::string &raw = project_dia_map->values[index];
+                if (!raw.empty() && raw.find(';') == std::string::npos && std::atof(raw.c_str()) > 0.)
+                    preferred_diameter = format_diameter_to_str(std::atof(raw.c_str()));
+            }
             std::string preset_name = estimate_filament_preset_name(
-                converted_filaments_system_name[index], new_machine_bbl_tag, filament_full_dir, new_printer_system_name, default_filament_preset);
+                converted_filaments_system_name[index], new_machine_bbl_tag, filament_full_dir, new_printer_system_name, default_filament_preset,
+                preferred_diameter);
             if (preset_name.empty()) {
                 BOOST_LOG_TRIVIAL(warning) << boost::format("estimate_mode: no filament preset found for slot %1% (%2%), skipping")% index % converted_filaments_system_name[index];
                 filaments_opt.push_back(""); // keep slot count aligned
@@ -2917,9 +2942,17 @@ int CLI::run(int argc, char **argv)
             }
 
             // If the CLI does not pass the argument, use the machine preset's diameter.
+            // 已加载预设仍支持该口径时保留原值，避免把 0.2 槽改写成 0.4。
             if (!cli_has_map && !machine_nozzle_diameter.empty() && (dia_map != nullptr) &&
                 (static_cast<size_t>(index) < dia_map->values.size())) {
-                dia_map->values[index] = machine_nozzle_diameter;
+                const std::string &raw = dia_map->values[index];
+                bool keep = false;
+                if (preserve_slot_diameters && !raw.empty() && raw.find(';') == std::string::npos && std::atof(raw.c_str()) > 0.) {
+                    if (const auto *compatible = config.option<ConfigOptionStrings>("compatible_printers"))
+                        keep = filament_supported_diameters(compatible->values).count(format_diameter_to_str(std::atof(raw.c_str()))) > 0;
+                }
+                if (!keep)
+                    dia_map->values[index] = machine_nozzle_diameter;
             }
 
             load_filaments_inherit.push_back(inherits);
@@ -7505,6 +7538,42 @@ int CLI::run(int argc, char **argv)
                                         const auto* nd_opt = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
                                         const double fallback = (nd_opt && !nd_opt->values.empty()) ? nd_opt->values.front() : 0.4;
                                         extruder_nozzle_diameters.assign(extruder_nozzle_volume_types.size(), fallback);
+                                        // 分组要求已安装喷嘴同时满足材料的口径和流量。上面铺满的是机型口径加 Standard，
+                                        // 因此 0.2 槽和 TPU285 槽各自需要一颗对应喷嘴。
+                                        if (estimate_mode && multi_nozzle_diameter_mode_enabled(m_print_config)) {
+                                            const auto *dia_map = m_print_config.option<ConfigOptionStrings>("filament_diameter_map");
+                                            const auto *vol_map = m_print_config.option<ConfigOptionInts>("filament_volume_map");
+                                            if (dia_map != nullptr) {
+                                                size_t write_at = extruder_nozzle_diameters.size();
+                                                for (size_t slot = 0; slot < dia_map->values.size(); ++slot) {
+                                                    const std::string &raw = dia_map->values[slot];
+                                                    if (raw.empty() || raw.find(';') != std::string::npos)
+                                                        continue;
+                                                    const double diameter = std::atof(raw.c_str());
+                                                    if (diameter <= 0.)
+                                                        continue;
+                                                    int volume = (int) nvtStandard;
+                                                    if (vol_map != nullptr && slot < vol_map->values.size() &&
+                                                        vol_map->values[slot] >= 0 && vol_map->values[slot] != (int) nvtHybrid)
+                                                        volume = vol_map->values[slot];
+                                                    bool present = false;
+                                                    for (size_t nozzle = 0; nozzle < extruder_nozzle_diameters.size(); ++nozzle) {
+                                                        if (std::abs(extruder_nozzle_diameters[nozzle] - diameter) < 1e-3 &&
+                                                            nozzle < extruder_nozzle_volume_types.size() &&
+                                                            extruder_nozzle_volume_types[nozzle] == volume) {
+                                                            present = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (present || write_at == 0)
+                                                        continue;
+                                                    --write_at;
+                                                    extruder_nozzle_diameters[write_at] = diameter;
+                                                    if (write_at < extruder_nozzle_volume_types.size())
+                                                        extruder_nozzle_volume_types[write_at] = volume;
+                                                }
+                                            }
+                                        }
                                     }
                                     // extruder_nozzle_count 为 0 的挤出机没有对应槽位。补成 1 个 standard 喷嘴，
                                     // 直径取当前列表里还没出现过的口径，优先 0.2，其次 0.4、0.6、0.8。
@@ -7561,6 +7630,12 @@ int CLI::run(int argc, char **argv)
                                     if (!m_extra_config.has("ams_nozzle_idx"))
                                         m_print_config.option<ConfigOptionInts>("ams_nozzle_idx", true)->values = { -1 };
                                     m_print_config.option<ConfigOptionFloats>("extruder_nozzle_diameter", true)->values = extruder_nozzle_diameters;
+                                    // 预估模式先前已把全部 Standard 的 extruder_nozzle_volume_type 写进命令行配置。
+                                    // 后面组盘配置时会再套用这份配置，从而丢掉上面刚补上的 TPU285 / 0.2 喷嘴。
+                                    if (estimate_mode) {
+                                        m_extra_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type", true)->values = extruder_nozzle_volume_types;
+                                        m_extra_config.option<ConfigOptionFloats>("extruder_nozzle_diameter", true)->values = extruder_nozzle_diameters;
+                                    }
                                 } else {
                                     // 工程中的完整逐槽布局是权威数据，数量可以多于只统计当前口径的 nozzle_stats。
                                     if (!per_slot_nozzle_options_consistent(m_print_config)) {
