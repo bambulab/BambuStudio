@@ -19,11 +19,6 @@ static bool is_legacy_internal_name(const std::string &normalized_name)
     return normalized_name == "emmc";
 }
 
-static DevStorage::StorageType legacy_storage_type(const std::string &normalized_name)
-{
-    return is_legacy_internal_name(normalized_name) ? DevStorage::StorageType::Internal : DevStorage::StorageType::External;
-}
-
 static long long parse_kb(const json &item, const char *key)
 {
     if (!item.contains(key))
@@ -117,33 +112,22 @@ const DevStorage::StorageEntry *DevStorage::FindStorage(const std::string &name)
 
 DevStorage::StorageType DevStorage::GetStorageType(const std::string &name) const
 {
-    const StorageEntry *entry = FindStorage(name);
-    if (entry && entry->has_attr)
-        return entry->type;
+    if (m_has_storage_info) {
+        if (const StorageEntry *entry = FindStorage(name))
+            return entry->type;
+    }
 
-    return legacy_storage_type(NormalizeStorageName(name));
+    return is_legacy_internal_name(NormalizeStorageName(name)) ? StorageType::Internal : StorageType::External;
 }
 
 DevStorage::StorageState DevStorage::GetStorageState(const std::string &name) const
 {
-    const std::string   normalized = NormalizeStorageName(name);
-    const StorageEntry *entry      = FindStorage(normalized);
-    if (entry && entry->has_attr)
-        return entry->state;
+    if (m_has_storage_info) {
+        if (const StorageEntry *entry = FindStorage(name))
+            return entry->state;
+    }
 
-    // emmc (cache) is not listed in device.storage and is always present
-    if (is_legacy_internal_name(normalized))
-        return StorageState::Normal;
-
-    if (!m_has_storage_info)
-        return GetStorageStateByType(legacy_storage_type(normalized));
-
-    // device.storage pushed: unlisted is not present, listed without attr is present
-    if (!entry)
-        return StorageState::NotExist;
-    if (legacy_storage_type(normalized) == StorageType::External && m_sdcard_state != NO_SDCARD)
-        return StorageState(m_sdcard_state);
-    return StorageState::Normal;
+    return GetStorageStateByType(GetStorageType(name));
 }
 
 bool DevStorage::HasAnyPresentStorage(const std::vector<std::string> &names) const
@@ -154,7 +138,7 @@ bool DevStorage::HasAnyPresentStorage(const std::vector<std::string> &names) con
 DevStorage::StorageState DevStorage::GetStorageStateByType(StorageType type) const
 {
     // legacy: emmc is always present, external follows the sdcard state
-    if (!m_has_storage_attr)
+    if (!m_has_storage_info)
         return type == StorageType::Internal ? StorageState::Normal : StorageState(m_sdcard_state);
 
     StorageState result = StorageState::NotExist;
@@ -174,9 +158,7 @@ long long DevStorage::GetFreeKb(StorageType type) const
     if (m_has_storage_info) {
         long long free_kb = -1;
         for (const auto &entry : m_storages) {
-            const StorageType entry_type = entry.has_attr ? entry.type : legacy_storage_type(entry.name);
-            const bool        usable     = !entry.has_attr || entry.state == StorageState::Normal;
-            if (entry_type == type && usable)
+            if (entry.type == type && entry.state == StorageState::Normal)
                 free_kb = std::max(free_kb, entry.free_kb());
         }
         if (free_kb >= 0)
@@ -213,8 +195,9 @@ bool DevStorage::parse_storage_entry(const json &item, StorageEntry &entry)
     if (!item.is_object() || !item.contains("name") || !item["name"].is_string())
         return false;
 
-    // type/state is optional: older firmware only pushes name/total/used
-    entry.has_attr = parse_type_and_state(item, entry.type, entry.state) || parse_attr(item, entry.type, entry.state);
+    if (!parse_type_and_state(item, entry.type, entry.state) && !parse_attr(item, entry.type, entry.state))
+        return false;
+
     entry.name     = NormalizeStorageName(item["name"].get<std::string>());
     entry.total_kb = parse_kb(item, "total");
     entry.used_kb  = parse_kb(item, "used");
@@ -265,7 +248,6 @@ void DevStorage::ParseV2_0(const json &print_json, DevStorage *system)
     const json &device_json = print_json["device"];
     if (!device_json.contains("storage") || !device_json["storage"].is_array()) {
         system->m_has_storage_info = false;
-        system->m_has_storage_attr = false;
         system->m_storages.clear();
         return;
     }
@@ -283,7 +265,6 @@ void DevStorage::ParseV2_0(const json &print_json, DevStorage *system)
     }
 
     system->m_has_storage_info = true;
-    system->m_has_storage_attr = std::all_of(storages.begin(), storages.end(), [](const StorageEntry &entry) { return entry.has_attr; });
     system->m_storages.swap(storages);
 }
 
