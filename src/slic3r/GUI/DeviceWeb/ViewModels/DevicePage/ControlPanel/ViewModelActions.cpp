@@ -706,7 +706,7 @@ std::optional<nlohmann::json> TryHandle(DevicePageControlPanelVM& vm,
         } else {
             result = run_axis(machine_obj, op);
         }
-        return respond(vm, action, result == 0 ? 0 : 2, result == 0 ? std::string() : _u8L("Axis command failed."));
+        return respond(vm, action, result == 0 ? 0 : 2, result == 0 ? std::string() : "Axis command failed.");
     }
 
     if (action == ActionNames::switch_extruder) {
@@ -728,7 +728,7 @@ std::optional<nlohmann::json> TryHandle(DevicePageControlPanelVM& vm,
         }
         const int id = payload.value("extruder_id", MAIN_EXTRUDER_ID);
         const int result = machine_obj->GetCtrl()->command_select_extruder(id);
-        return respond(vm, action, result == 0 ? 0 : 2, result == 0 ? std::string() : _u8L("Switch extruder command failed."));
+        return respond(vm, action, result == 0 ? 0 : 2, result == 0 ? std::string() : "Switch extruder command failed.");
     }
 
     if (action == ActionNames::quit_switching) {

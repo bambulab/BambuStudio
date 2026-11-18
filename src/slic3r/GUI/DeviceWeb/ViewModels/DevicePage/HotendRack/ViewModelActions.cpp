@@ -61,7 +61,7 @@ std::optional<nlohmann::json> TryHandle(DevicePageHotendRackVM& vm,
 
     if (action == "move_row") {
         if (rack->GetReadingCount() > 0)
-            return respond(vm, action, 2, _u8L("Hotend rack is reading."));
+            return respond(vm, action, 2, "Hotend rack is reading.");
         if (rack->GetStatus() != DevNozzleRack::RACK_STATUS_IDLE &&
             rack->GetStatus() != DevNozzleRack::RACK_STATUS_UNKNOWN)
             return respond(vm, action, 2, _u8L("Hotend rack is busy."));

@@ -31,7 +31,7 @@ class FilamentLoadDebugDialog : public DPIDialog
 {
 public:
     explicit FilamentLoadDebugDialog(wxWindow* parent)
-        : DPIDialog(parent, wxID_ANY, _L("Filament Load Web Debug"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
+        : DPIDialog(parent, wxID_ANY, _devL("Filament Load Web Debug"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
     {
         SetClientSize(wxSize(FromDIP(900), FromDIP(700)));
         SetMinClientSize(wxSize(FromDIP(720), FromDIP(520)));
