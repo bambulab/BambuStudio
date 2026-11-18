@@ -457,7 +457,7 @@
   "Please confirm whether the hotend type in the current slot matches the refill group. If it doesn't, please go to the printer and edit the hotend type before trying again.": "Confirma si el tipo de fusor de la ranura actual coincide con el grupo de relleno. Si no coincide, ve a la impresora y edita el tipo de fusor antes de intentarlo de nuevo.",
   "External Spool {{n}}": "Bobina externa {{n}}",
   "Filament loading...": "Filament loading...",
-  "Exit the filament loading process?": "Exit the filament loading process?",
+  "Exit the filament loading process?": "¿Salir del proceso de carga de filamento?",
   "Toolhead": "Toolhead",
   "Row A": "Row A",
   "Row B": "Row B",

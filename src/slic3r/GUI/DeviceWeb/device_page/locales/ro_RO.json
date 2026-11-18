@@ -426,7 +426,7 @@
   "Please confirm whether the hotend type in the current slot matches the refill group. If it doesn't, please go to the printer and edit the hotend type before trying again.": "Confirmați dacă tipul de hotend din slotul curent corespunde grupului de reumplere. Dacă nu, accesați imprimanta și modificați tipul de hotend înainte de a încerca din nou.",
   "External Spool {{n}}": "Rolă externă {{n}}",
   "Filament loading...": "Filament loading...",
-  "Exit the filament loading process?": "Exit the filament loading process?",
+  "Exit the filament loading process?": "Doriți să ieșiți din procesul de încărcare a filamentului?",
   "Toolhead": "Toolhead",
   "Row A": "Row A",
   "Row B": "Row B",

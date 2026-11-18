@@ -468,7 +468,7 @@
   "Please confirm whether the hotend type in the current slot matches the refill group. If it doesn't, please go to the printer and edit the hotend type before trying again.": "Potwierdź, czy typ hotendu w obecnym gnieździe pasuje do grupy uzupełniania. Jeśli tak nie jest, przejdź do drukarki i zmień typ hotendu przed ponowną próbą.",
   "External Spool {{n}}": "Zewnętrzna szpula {{n}}",
   "Filament loading...": "Filament loading...",
-  "Exit the filament loading process?": "Exit the filament loading process?",
+  "Exit the filament loading process?": "Zakończyć proces załadunku filamentu?",
   "Toolhead": "Toolhead",
   "Row A": "Row A",
   "Row B": "Row B",

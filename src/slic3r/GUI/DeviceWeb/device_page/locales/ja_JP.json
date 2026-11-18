@@ -446,7 +446,7 @@
   "Please confirm whether the hotend type in the current slot matches the refill group. If it doesn't, please go to the printer and edit the hotend type before trying again.": "現在のスロットのホットエンド種類が補充グループと一致するか確認してください。一致しない場合は、プリンターに移動してホットエンドの種類を編集してから、再試行してください。",
   "External Spool {{n}}": "外部スプール{{n}}",
   "Filament loading...": "Filament loading...",
-  "Exit the filament loading process?": "Exit the filament loading process?",
+  "Exit the filament loading process?": "フィラメントのロード処理を終了しますか？",
   "Toolhead": "Toolhead",
   "Row A": "Row A",
   "Row B": "Row B",

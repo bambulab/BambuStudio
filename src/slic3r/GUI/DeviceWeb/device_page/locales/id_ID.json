@@ -426,7 +426,7 @@
   "Please confirm whether the hotend type in the current slot matches the refill group. If it doesn't, please go to the printer and edit the hotend type before trying again.": "Pastikan jenis hotend pada slot saat ini sesuai dengan grup isi ulang. Jika tidak, buka pengaturan printer dan ubah jenis hotend sebelum mencoba lagi.",
   "External Spool {{n}}": "Gulungan Eksternal {{n}}",
   "Filament loading...": "Filament loading...",
-  "Exit the filament loading process?": "Exit the filament loading process?",
+  "Exit the filament loading process?": "Keluar dari proses pemuatan filamen?",
   "Toolhead": "Toolhead",
   "Row A": "Row A",
   "Row B": "Row B",

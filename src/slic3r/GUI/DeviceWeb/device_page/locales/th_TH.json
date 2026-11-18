@@ -426,7 +426,7 @@
   "Please confirm whether the hotend type in the current slot matches the refill group. If it doesn't, please go to the printer and edit the hotend type before trying again.": "โปรดตรวจสอบให้แน่ใจว่าประเภทชุดหัวพิมพ์ของช่องปัจจุบันตรงกับกลุ่มเติมวัสดุ หากไม่เป็นเช่นนั้น โปรดไปที่เครื่องพิมพ์และแก้ไขประเภทชุดหัวพิมพ์ก่อนลองใหม่อีกครั้ง",
   "External Spool {{n}}": "ม้วนวัสดุจากภายนอก {{n}}",
   "Filament loading...": "Filament loading...",
-  "Exit the filament loading process?": "Exit the filament loading process?",
+  "Exit the filament loading process?": "ออกจากกระบวนการป้อนเส้นวัสดุเข้าหรือไม่?",
   "Toolhead": "Toolhead",
   "Row A": "Row A",
   "Row B": "Row B",

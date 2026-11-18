@@ -426,7 +426,7 @@
   "Please confirm whether the hotend type in the current slot matches the refill group. If it doesn't, please go to the printer and edit the hotend type before trying again.": "請確認目前槽位中的熱端類型是否與續料群組相符。若不符，請前往印表機編輯熱端類型後再試一次。",
   "External Spool {{n}}": "外掛料盤 {{n}}",
   "Filament loading...": "Filament loading...",
-  "Exit the filament loading process?": "Exit the filament loading process?",
+  "Exit the filament loading process?": "結束線材進料程序？",
   "Toolhead": "Toolhead",
   "Row A": "Row A",
   "Row B": "Row B",

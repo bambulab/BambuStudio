@@ -446,7 +446,7 @@
   "Please confirm whether the hotend type in the current slot matches the refill group. If it doesn't, please go to the printer and edit the hotend type before trying again.": "Ellenőrizd, hogy az aktuális rekeszben lévő hotend típusa megegyezik-e az utántöltési csoportban megadott hotendtípussal. Ha nem egyezik, menj a nyomtatóhoz, és módosítsd a hotend típusát, mielőtt újra próbálkozol.",
   "External Spool {{n}}": "Külső tekercs {{n}}",
   "Filament loading...": "Filament loading...",
-  "Exit the filament loading process?": "Exit the filament loading process?",
+  "Exit the filament loading process?": "Kilép a filamentbetöltési folyamatból?",
   "Toolhead": "Toolhead",
   "Row A": "Row A",
   "Row B": "Row B",

@@ -446,7 +446,7 @@
   "Please confirm whether the hotend type in the current slot matches the refill group. If it doesn't, please go to the printer and edit the hotend type before trying again.": "Lütfen mevcut yuvadaki hotend tipinin doldurma grubuyla eşleşip eşleşmediğini doğrulayın. Eşleşmiyorsa lütfen yazıcıya gidin ve tekrar denemeden önce hotend tipini düzenleyin.",
   "External Spool {{n}}": "Harici Makara {{n}}",
   "Filament loading...": "Filament loading...",
-  "Exit the filament loading process?": "Exit the filament loading process?",
+  "Exit the filament loading process?": "Filament yükleme işleminden çıkılsın mı?",
   "Toolhead": "Toolhead",
   "Row A": "Row A",
   "Row B": "Row B",
