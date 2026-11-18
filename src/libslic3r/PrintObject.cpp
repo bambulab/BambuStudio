@@ -4550,6 +4550,9 @@ void PrintObject::compute_adaptive_merge_groups()
         // A too-thin bottom face resting on nothing. It is dropped rather than absorbed: the slab above keeps
         // its own floor, and the step above the face is typed as the bridge over it instead.
         bool                     floating { false };
+        // A too-thin local top nothing stands on: the fringe of a shrinking shape, laid bare as top surface.
+        // It is dropped like any fringe; absorbing it would print each one as an island with its own walls.
+        bool                     exposed { false };
     };
     std::vector<PendingOrphan> pending_orphans;
     for (size_t region_id = 0; region_id < region_count; ++ region_id) {
@@ -4899,10 +4902,28 @@ void PrintObject::compute_adaptive_merge_groups()
             // is rediscovering it later from the raw slices, where it cannot be told from a fringe.
             const ExPolygons unassigned = diff_ex(area, assigned);
             if (thin_bottom_idx <= slab.top_idx && ! unassigned.empty()) {
-                const bool floating = thin_bottom_idx > 0 && ! adaptive_printable_pieces(
-                    diff_ex(unassigned, m_layers[thin_bottom_idx - 1]->lslices), event.nozzle).empty();
-                pending_orphans.push_back({ region_id, event.range, event.nozzle,
-                                            thin_bottom_idx, slab.top_idx, "too-thin", unassigned, floating });
+                // A local top slab ends inside the band. Where nothing stands on it, its too-thin part is the
+                // fringe by which a shrinking shape - a dome, the top of a head - exceeds the contour above, laid
+                // bare as top surface. Leaving it out costs one base step on that surface, the underfill every
+                // sloped wall has. Lifting the slab below over it would print each such fringe as an island of
+                // its own, walled and seamed, on every band up the slope. Only what something stands on has to
+                // be taken back, or it leaves a hole under that material.
+                ExPolygons covered = unassigned;
+                ExPolygons exposed;
+                if (slab.top_idx != live.top_idx) {
+                    const ExPolygons &above = m_layers[slab.top_idx + 1]->lslices;
+                    exposed = diff_ex(unassigned, above);
+                    covered = intersection_ex(unassigned, above);
+                }
+                if (! covered.empty()) {
+                    const bool floating = thin_bottom_idx > 0 && ! adaptive_printable_pieces(
+                        diff_ex(covered, m_layers[thin_bottom_idx - 1]->lslices), event.nozzle).empty();
+                    pending_orphans.push_back({ region_id, event.range, event.nozzle,
+                                                thin_bottom_idx, slab.top_idx, "too-thin", std::move(covered), floating });
+                }
+                if (! exposed.empty())
+                    pending_orphans.push_back({ region_id, event.range, event.nozzle,
+                                                thin_bottom_idx, slab.top_idx, "too-thin", std::move(exposed), false, true });
                 band_orphans.push_back({ thin_bottom_idx, slab.top_idx, unassigned });
             }
 
@@ -4972,7 +4993,8 @@ void PrintObject::compute_adaptive_merge_groups()
     //   2. the slab below lifts its top over the run, within 0.7D;
     //   3. the run is re-cut with the slab below into two slabs inside the window;
     //   4. as 1. and 2., up to the relaxed ceiling.
-    // A floating face skips all of them: the slab above keeps its floor and bridges over it.
+    // A floating face skips all of them: the slab above keeps its floor and bridges over it. So does an exposed
+    // fringe: nothing stands on it, so leaving it out is the underfill every sloped wall has.
     //
     // A run nobody can absorb keeps its empty group top. That marker is the established "nothing is
     // extruded here": it clears the perimeters and makes combine_adaptive_infill() void the fill, so the
@@ -5080,7 +5102,7 @@ void PrintObject::compute_adaptive_merge_groups()
             return remaining.empty();
         };
 
-        if (! orphan.floating &&
+        if (! orphan.floating && ! orphan.exposed &&
             (recover(Recovery::FromAbove, orphan.range.max_height) ||
              recover(Recovery::FromBelow, orphan.range.max_height) ||
              recover(Recovery::Split, orphan.range.max_height) ||
@@ -5101,7 +5123,8 @@ void PrintObject::compute_adaptive_merge_groups()
         }
         BOOST_LOG_TRIVIAL(debug) << "[adaptive_merge] orphan region=" << orphan.region_id
                                  << " [" << orphan.bottom_idx << "," << orphan.top_idx << "]"
-                                 << " " << orphan.source << (orphan.floating ? " floating" : "") << " suppressed";
+                                 << " " << orphan.source << (orphan.floating ? " floating" : "")
+                                 << (orphan.exposed ? " exposed" : "") << " suppressed";
     }
 
     for (const PlannedPatch &planned_patch : planned) {
