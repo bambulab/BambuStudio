@@ -493,7 +493,7 @@ void AuFile::on_set_cover()
         thumbnail_img.SaveFile(encode_path(middle_img_path.c_str()));
     }
 
-    wxGetApp().plater()->set_plater_dirty(true);
+    wxGetApp().plater()->mark_project_dirty();
     auto evt = wxCommandEvent(EVT_AUXILIARY_UPDATE_COVER);
     evt.SetString(s_default_folders[m_type]);
     evt.SetEventObject(m_parent);
@@ -949,7 +949,7 @@ void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
 
             boost::system::error_code ec;
             if (!fs::copy_file(src_bfs_path, fs::path(dir_path.ToStdWstring()), fs::copy_option::overwrite_if_exists, ec)) continue;
-            Slic3r::put_other_changes();
+            wxGetApp().plater()->mark_project_dirty();
 
             // add in file list
             iter = m_paths_list.find(file_model.ToStdString());

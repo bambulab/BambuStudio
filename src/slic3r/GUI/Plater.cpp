@@ -10588,7 +10588,7 @@ public:
     }
     int save_project_if_dirty(const wxString& reason) {
         int res = wxID_NO;
-        if (dirty_state.is_dirty()) {
+        if (q->is_project_dirty()) {
             MainFrame* mainframe = wxGetApp().mainframe;
             if (mainframe->can_save_as()) {
                 wxString suggested_project_name;
@@ -24605,9 +24605,23 @@ bool Plater::Show(bool show)
     return wxPanel::Show(show);
 }
 
-bool Plater::is_project_dirty() const { return p->is_project_dirty(); }
+bool Plater::is_project_dirty() const
+{
+    // The dirty state compares presets and the project config with the last save, so a value that is
+    // written back unchanged (as a silent printer sync does) stays clean. The undo history adds real
+    // model changes since the last save. The backup-only "other changes" flag is not read here: it is
+    // set whenever presets are touched, even with no change.
+    return p->is_project_dirty() || !p->up_to_date(false, false);
+}
 bool Plater::is_presets_dirty() const { return p->is_presets_dirty(); }
 void Plater::set_plater_dirty(bool is_dirty) { p->set_plater_dirty(is_dirty); }
+void Plater::mark_project_dirty()
+{
+    Slic3r::put_other_changes(); // so the next auto-backup includes the change
+    p->set_plater_dirty(true);
+    if (wxGetApp().mainframe)
+        wxGetApp().mainframe->update_title();
+}
 void Plater::update_project_dirty_from_presets() { p->update_project_dirty_from_presets(); }
 int  Plater::save_project_if_dirty(const wxString& reason) { return p->save_project_if_dirty(reason); }
 void Plater::reset_project_dirty_after_save() { p->reset_project_dirty_after_save(); }
@@ -27388,7 +27402,8 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check, bool
         }
     };
 
-    if (up_to_date(false, false)) {
+    // Same answer as the title "*" and the Save button; an empty plate has nothing worth saving.
+    if (p->model.objects.empty() || !is_project_dirty()) {
         if (second_check && !second_check(false)) return wxID_CANCEL;
         model().set_backup_path("");
         restore_assemble_sidebar();
@@ -31787,13 +31802,14 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
                                 old_filament_volume_maps != new_filament_volume_maps);
 
         if (need_invalidate) {
+            // The plate grouping lives outside the project config comparison and the undo history.
+            mark_project_dirty();
             wxString filament_printable_error_msg;
             if (need_slice && curr_plate->check_filament_printable(wxGetApp().preset_bundle->full_config(), filament_printable_error_msg)) {
                 update(false, true);
                 wxPostEvent(this, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
             } else {
                 curr_plate->update_slice_result_valid_state(false);
-                set_plater_dirty(true);
                 update(false, true);
             }
         }

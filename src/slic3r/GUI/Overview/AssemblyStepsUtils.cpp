@@ -776,7 +776,7 @@ void AssemblyStepsUtils::save_assembly_steps_json_to_model()
         meta.qualified     = false;
         m_model->note_loaded_assembly_steps_meta(meta);
     }
-    plater->set_plater_dirty(true);
+    plater->mark_project_dirty();
 }
 
 void AssemblyStepsUtils::begin_coalesced_steps_save()

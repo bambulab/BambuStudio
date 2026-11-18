@@ -283,6 +283,8 @@ void FilamentNozzlePopup::apply_pick(const std::string &diameter, NozzleVolumeTy
         }
     }
 
+    // Per-plate overrides live in the plates, outside the project config comparison.
+    bool plate_override_changed = false;
     auto *global_volume_map = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
     if (global_volume_map != nullptr) {
         if ((int) global_volume_map->values.size() <= m_filament_idx)
@@ -298,6 +300,8 @@ void FilamentNozzlePopup::apply_pick(const std::string &diameter, NozzleVolumeTy
             if ((int) plate_volume_map.size() <= m_filament_idx)
                 plate_volume_map.resize(m_filament_idx + 1, (int) NozzleVolumeType::nvtStandard);
             plate_volume_map[m_filament_idx] = (int) volume;
+            if (plate_volume_map != plate->get_filament_volume_maps())
+                plate_override_changed = true;
             plate->set_filament_volume_maps(plate_volume_map);
         }
     }
@@ -307,6 +311,8 @@ void FilamentNozzlePopup::apply_pick(const std::string &diameter, NozzleVolumeTy
     Plater *plater = wxGetApp().plater();
     plater->sidebar().refresh_filament_diameter_buttons(true);
     plater->update_project_dirty_from_presets();
+    if (plate_override_changed)
+        plater->mark_project_dirty();
     preset_bundle->export_selections(*wxGetApp().app_config);
     plater->on_config_change(preset_bundle->full_config());
 

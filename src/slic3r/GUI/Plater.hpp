@@ -409,9 +409,21 @@ public:
 
     bool Show(bool show = true);
 
+    /**
+     * \brief Whether the project has unsaved changes, from any source
+     *
+     * The one answer for the title "*", the Save button and the close prompt, so they always agree.
+     * Covers the preset and project config comparison, the plater dirty mark and the undo history.
+     */
     bool is_project_dirty() const;
     bool is_presets_dirty() const;
     void set_plater_dirty(bool is_dirty);
+    /**
+     * \brief Mark a change that neither the config comparison nor the undo history can see
+     *
+     * Use it for project data such as auxiliary files. The change stays marked until the next save.
+     */
+    void mark_project_dirty();
     void update_project_dirty_from_presets();
     int  save_project_if_dirty(const wxString& reason);
     void reset_project_dirty_after_save();

@@ -566,6 +566,8 @@ void FilamentGroupPopup::OnRadioBtn(int idx)
     if (m_mode != mode) {
         m_mode = mode;
         SetFilamentMapMode(m_mode);
+        // The mode lives in the plate config, outside the project config comparison and the undo history.
+        plater_ref->mark_project_dirty();
         plater_ref->update();
         UpdateButtonStatus(idx);
     }
