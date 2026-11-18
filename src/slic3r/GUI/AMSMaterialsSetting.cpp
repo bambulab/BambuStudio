@@ -2150,7 +2150,14 @@ void AMSMaterialsSetting::on_open_filament_select_dialog()
     const int     cascade  = FromDIP(20);
     const wxPoint base_pos = this->GetScreenPosition();
     const wxSize  dlg_size = dlg.GetSize();
-    const wxRect  area     = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea();
+    const int     display_idx = wxDisplay::GetFromWindow(this);
+    wxRect        area;
+    if (display_idx != wxNOT_FOUND) {
+        area = wxDisplay(static_cast<unsigned int>(display_idx)).GetClientArea();
+    } else {
+        area = wxGetClientDisplayRect();
+        BOOST_LOG_TRIVIAL(warning) << "display not found for materials setting dialog, fallback to primary client area";
+    }
     int pos_x = base_pos.x + cascade;
     int pos_y = base_pos.y + cascade;
     if (pos_x + dlg_size.GetWidth()  > area.GetRight())  pos_x = area.GetRight()  - dlg_size.GetWidth();
