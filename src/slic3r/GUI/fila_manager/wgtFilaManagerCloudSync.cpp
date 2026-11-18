@@ -384,8 +384,6 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                     std::set<std::string> cloud_ids;
                     int dropped_local_only = 0;
 
-                    // 判断某台机器当前是否在线（有实时 MQTT 数据）。
-                    // 用 get_my_machine 而非 get_user_machine，避免跨账号误判。
                     auto machine_is_online = [](const std::string& dev_id) -> bool {
                         if (dev_id.empty()) return false;
                         auto* mgr = wxGetApp().getDeviceManager();
@@ -394,6 +392,16 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                         return obj && obj->is_online();
                     };
 
+                    auto slot_key = [](const FilamentSpool& s) {
+                        return s.dev_id + ":" + std::to_string(s.ams_id) + ":" + s.slot_id;
+                    };
+                    std::map<std::string, std::string> cloud_slot_owner;
+                    for (const auto& item : list) {
+                        const FilamentSpool s = cloud_json_to_spool(item);
+                        if (s.in_printer && !s.dev_id.empty() && s.ams_id >= 0 && !s.slot_id.empty())
+                            cloud_slot_owner[slot_key(s)] = s.spool_id;
+                    }
+
                     for (const auto& item : list) {
                         FilamentSpool cloud_spool = cloud_json_to_spool(item);
                         if (cloud_spool.spool_id.empty()) continue;
@@ -401,14 +409,19 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                         cloud_ids.insert(cloud_spool.spool_id);
 
                         if (const FilamentSpool* existing = m_store->get_spool(cloud_spool.spool_id)) {
-                            // 判断本地是否有来自该机器的实时 MQTT 数据。
-                            // 条件：existing->dev_id 对应的机器当前在线。
-                            // 不单独判断 in_printer==true，因为断连后该值仍可能为 true。
                             const bool local_is_live = machine_is_online(existing->dev_id);
-                            if (local_is_live) {
-                                // 机器在线时以本地为准，保留本地在位字段，不用云端值覆盖。
-                                // 不在 pull 里反向 push 修正——下次 MQTT 到来时
-                                // notify_ams_synced 会把最新在位字段推上云端。
+                            bool slot_moved_to_other = false;
+                            if (local_is_live && existing->in_printer && existing->mount_hold_count == 0) {
+                                auto owner_it = cloud_slot_owner.find(slot_key(*existing));
+                                slot_moved_to_other = owner_it != cloud_slot_owner.end() && owner_it->second != existing->spool_id;
+                                if (slot_moved_to_other) {
+                                    BOOST_LOG_TRIVIAL(info) << "[FilaCloudSync] pull: slot moved to spool_id=" << owner_it->second
+                                                            << " in cloud, drop stale local mount spool_id=" << existing->spool_id << " "
+                                                            << KV(log_key::dev_id, existing->dev_id) << KV(log_key::ams_id, existing->ams_id)
+                                                            << KV(log_key::slot_id, existing->slot_id);
+                                }
+                            }
+                            if (local_is_live && !slot_moved_to_other) {
                                 cloud_spool.in_printer  = existing->in_printer;
                                 cloud_spool.dev_id      = existing->dev_id;
                                 cloud_spool.ams_sn      = existing->ams_sn;
@@ -417,7 +430,6 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                                 cloud_spool.slot_id     = existing->slot_id;
                                 cloud_spool.device_name = existing->device_name;
                             }
-                            // local_is_live==false：云端在位字段直接作为历史数据落地
                             m_store->update_spool(cloud_spool);
                         } else {
                             m_store->add_spool(cloud_spool);
