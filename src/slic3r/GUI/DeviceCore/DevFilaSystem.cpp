@@ -534,7 +534,7 @@ static unordered_map<DevAmsType, wxString> s_ams_display_formats = {
     {DevAmsType::N3F,      "AMS 2 Pro(%d)"},
     {DevAmsType::N3S,      "AMS HT(%d)"},
     {DevAmsType::ZMULTI_A, "AMS-3H"},
-    {DevAmsType::ZMULTI_B, "AMS-B"},
+    {DevAmsType::ZMULTI_B, "AMS-3P"},
 };
 
 wxString DevAms::GetDisplayName() const
