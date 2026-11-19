@@ -1747,6 +1747,7 @@ void CalibrationPresetPage::check_filament_compatible()
     }
 
     Layout();
+    Fit();
 }
 
 bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<CaliFilamentInfo>& prests)
