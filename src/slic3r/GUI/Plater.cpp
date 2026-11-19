@@ -24910,7 +24910,7 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
         return false;
     //do sync_printer_preset
     const std::string selected_preset_name = printer_preset.name;
-    update_objects_position_when_select_preset([target_preset, cleared_multi_diameter_mode, &selected_preset_name]() {
+    auto apply_sync = [target_preset, cleared_multi_diameter_mode, &selected_preset_name]() {
         // Ordered like apply_multi_nozzle_diameter_mode()'s turn-off: the gate goes away before the
         // printer preset moves, so nothing is laid out or filtered in the state the project cannot be in.
         if (cleared_multi_diameter_mode)
@@ -24929,7 +24929,12 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
 
         if (cleared_multi_diameter_mode)
             refresh_after_multi_nozzle_diameter_mode_cleared();
-    });
+    };
+    // Same model: only sync preset/nozzles, do not re-lay out plates (same gate as sidebar sync).
+    if (model_mismatch)
+        update_objects_position_when_select_preset(apply_sync);
+    else
+        apply_sync();
     return true;
 }
 
