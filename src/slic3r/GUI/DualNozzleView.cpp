@@ -13,6 +13,7 @@
 #include "ExtruderHelpers.hpp" // printer_offers_flow, show_filament_switcher_tip
 #include "GUI_App.hpp"
 #include "I18N.hpp"
+#include "NozzleSetupTelemetry.hpp"
 #include "wxExtensions.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/CascadeMenu.hpp"
@@ -505,6 +506,11 @@ void DualNozzleView::open_edit_menu(int extruder, wxWindow *anchor)
     if (!m_edit_menu) m_edit_menu = new NozzleEditMenu(this);
     // A pick can switch the printer preset, which rebuilds the sidebar, so it runs once the menu is gone.
     m_edit_menu->open(extruder, nozzle_of(extruder), anchor, [this, extruder](const std::string &diameter, NozzleVolumeType type) {
+        // The sidebar applies a pick at once, so the pick is its own edit session. Count it while the
+        // inventory still holds the old nozzle.
+        NozzleSetupEditTally edits;
+        edits.record_nozzle_pick(nozzle_of(extruder), NozzleSlot{diameter, type, NozzleSlotStatus::Normal});
+        edits.commit();
         CallAfter([this, extruder, diameter, type] {
             if (m_on_edit) m_on_edit(extruder, diameter, type);
         });

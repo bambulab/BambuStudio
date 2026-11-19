@@ -25,6 +25,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -273,6 +274,18 @@ public:
      * \return             the slots; empty for an unknown extruder
      */
     const ExtruderSlots &slots(int extruder_id) const;
+
+    /**
+     * \brief Distinct diameters of the nozzles that the next slice prints with
+     *
+     * Only extruders that are in_use() count. In the multi-diameter mode every installed nozzle
+     * counts. Else an extruder counts the slots of the selected diameter, or all installed slots if
+     * none has it, the same rule as counts(). So on a rack printer in the single-diameter mode, a
+     * nozzle of another diameter on the rack does not count.
+     *
+     * \return the diameters in ascending order; empty if no extruder prints
+     */
+    std::set<std::string> printing_diameters() const;
 
     /**
      * \brief Number of slots per volume type

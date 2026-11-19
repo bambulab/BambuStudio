@@ -224,10 +224,14 @@ void NozzleRackPanelGroup::CreateBody(wxBoxSizer *outer)
             // blank margin, so equal gaps would look wider on the left.
             ams_row->Add(m_ams_divider, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(8));
         }
-        // The row redraws itself before it reports the edit, so RefreshAms finds nothing changed and
-        // skips the fit. Fit anyway: the row's width changed, and the card must lay it out again.
+        // The row reports only user adds and removes. The sidebar applies them at once, so each is
+        // counted and committed before the refresh takes the next baseline. The row redraws itself
+        // before it reports the edit, so RefreshAms finds nothing changed and skips the fit. Fit
+        // anyway: the row's width changed, and the card must lay it out again.
         m_ams_rows[extruder] = new NozzleAmsRow(m_ams_body->Content(), extruder, extruder == 0 ? "L" : "R", NozzleAmsRow::Style::Inline,
                                                 [this] {
+                                                    m_ams_edits.observe_ams_counts();
+                                                    m_ams_edits.commit();
                                                     RefreshAms();
                                                     RequestFit();
                                                 });
@@ -371,6 +375,9 @@ void NozzleRackPanelGroup::SetNozzleLayout(NozzleLayout layout)
 
 void NozzleRackPanelGroup::RefreshAms()
 {
+    // Every AMS count change ends here, a sync included; only the row callback counts a change as an edit.
+    m_ams_edits.rebaseline_ams_counts();
+
     bool changed = false;
     for (NozzleAmsRow *row : m_ams_rows) changed |= row->refresh();
     changed |= m_ams_divider->Show(m_ams_rows[0]->IsShown() && m_ams_rows[1]->IsShown());

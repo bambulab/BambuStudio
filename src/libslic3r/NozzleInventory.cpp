@@ -457,24 +457,38 @@ std::vector<ExtruderSlots> decode_slot_history(const std::string &value)
 }
 
 /**
- * \brief Number of slots per volume type
+ * \brief The slots of one extruder that a slice uses
  *
- * Counts the slots of the selected diameter, or all installed slots if none has it.
+ * The slots of the selected diameter, or all installed slots if none has it. This is the one owner of
+ * that rule: grouping (count_slots) and the reported diameters both read it.
+ *
+ * \param multi_diameter  the multi-diameter mode is on; then all installed slots are used
+ */
+ExtruderSlots printing_slots(const ExtruderSlots &slots, const SelectedPrinter &printer, bool multi_diameter)
+{
+    ExtruderSlots used;
+    if (!multi_diameter)
+        for (const NozzleSlot &slot : slots)
+            if (slot.diameter == printer.diameter) // an empty slot has no diameter, so it never matches
+                used.push_back(slot);
+    // An extruder that holds only other diameters is still installed; it must stay in grouping.
+    if (used.empty())
+        for (const NozzleSlot &slot : slots)
+            if (!slot.empty())
+                used.push_back(slot);
+    return used;
+}
+
+/**
+ * \brief Number of slots per volume type, over printing_slots()
  *
  * \param multi_diameter  the multi-diameter mode is on; then all installed slots count
  */
 std::map<NozzleVolumeType, int> count_slots(const ExtruderSlots &slots, const SelectedPrinter &printer, bool multi_diameter)
 {
     std::map<NozzleVolumeType, int> counts;
-    if (!multi_diameter)
-        for (const NozzleSlot &slot : slots)
-            if (slot.diameter == printer.diameter)
-                ++counts[slot.volume_type];
-    // An extruder that holds only other diameters is still installed; it must stay in grouping.
-    if (counts.empty())
-        for (const NozzleSlot &slot : slots)
-            if (!slot.empty())
-                ++counts[slot.volume_type];
+    for (const NozzleSlot &slot : printing_slots(slots, printer, multi_diameter))
+        ++counts[slot.volume_type];
     return counts;
 }
 
@@ -909,6 +923,18 @@ const ExtruderSlots &NozzleInventory::slots(int extruder_id) const
 {
     static const ExtruderSlots none;
     return m_impl->valid_extruder(extruder_id) ? m_impl->result[extruder_id] : none;
+}
+
+std::set<std::string> NozzleInventory::printing_diameters() const
+{
+    std::set<std::string> diameters;
+    for (int extruder = 0; extruder < extruder_count(); ++extruder) {
+        if (!in_use(extruder))
+            continue;
+        for (const NozzleSlot &slot : printing_slots(slots(extruder), m_impl->printer, m_impl->multi_diameter()))
+            diameters.insert(slot.diameter);
+    }
+    return diameters;
 }
 
 std::map<NozzleVolumeType, int> NozzleInventory::counts(int extruder_id, const std::optional<std::string> &diameter) const

@@ -9,6 +9,7 @@
 
 #include "ExtruderHelpers.hpp" // NozzleLayout
 #include "ExtruderPanel.hpp"   // NozzleRackPanel, DiameterButtonPanel, HorizontalScrollView
+#include "NozzleSetupTelemetry.hpp"
 
 /**
  * \file ExtruderPanelGroup.hpp
@@ -145,6 +146,7 @@ private:
     NozzleRackPanel      *m_panel{nullptr};
     std::array<NozzleAmsRow *, 2> m_ams_rows{};          // AMS units of the left and right extruder
     wxWindow                     *m_ams_divider{nullptr}; // the line between the left and right units
+    NozzleSetupEditTally          m_ams_edits;            // user AMS edits on the rows; baseline follows RefreshAms
     DualNozzleView       *m_dual{nullptr};
     DiameterButtonPanel  *m_diameter_panel{nullptr};
     wxBoxSizer           *m_diameter_sizer{nullptr};
