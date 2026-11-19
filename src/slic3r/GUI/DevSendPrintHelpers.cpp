@@ -102,11 +102,15 @@ wxString GetNozzleTitleLabel(int total_extruder_count,
 
             double diameter = 0.0;
             NozzleVolumeType volume_type = NozzleVolumeType::nvtStandard;
-            if (!s_get_slice_nozzle_spec(slice_context, slice_extruder_index, diameter, volume_type)) {
-                return title;
+            if (s_get_slice_nozzle_spec(slice_context, slice_extruder_index, diameter, volume_type)) {
+                return wxString::Format("%s (%s)", title, s_format_nozzle_spec(diameter, volume_type));
             }
 
-            return wxString::Format("%s (%s)", title, s_format_nozzle_spec(diameter, volume_type));
+            const DevNozzle nozzle = obj->GetNozzleSystem()->GetExtNozzle(extruder_id);
+            if (!nozzle.IsEmpty() && !nozzle.IsUnknown() && !nozzle.IsAbnormal() && nozzle.IsHotend()) {
+                const NozzleVolumeType volume_type = DevNozzle::ToNozzleVolumeType(nozzle.GetNozzleFlowType());
+                return wxString::Format("%s (%s)", title, s_format_nozzle_spec(nozzle.GetNozzleDiameter(), volume_type));
+            }
         }
     } else if (obj && obj->GetExtderSystem()->GetTotalExtderCount() == 2) /* the sync dialog */ {
         const PresetBundle* preset_bundle = wxGetApp().preset_bundle;
