@@ -151,16 +151,94 @@ static std::optional<NozzleVolumeType> get_single_fixed_nozzle_volume_from_full_
     return fixed_counts.begin()->first;
 }
 
+// 取一个挤出机上所有已装喷嘴的规格（口径+流量）。
+static std::set<std::pair<std::string, int>> nozzle_specs_of_extruder(const NozzleInventory& nozzle_inventory, int extruder_id)
+{
+    std::set<std::pair<std::string, int>> nozzle_specs;
+    for (const NozzleSlot& slot : nozzle_inventory.slots(extruder_id)) {
+        if (slot.empty() || slot.diameter.empty())
+            continue;
+        // 归一口径写法，"0.40" 与 "0.4" 算同一种。
+        const std::string normalized_diameter = format_diameter_to_str(string_to_double_decimal_point(slot.diameter));
+        nozzle_specs.emplace(normalized_diameter, int(slot.volume_type));
+    }
+    return nozzle_specs;
+}
+
 bool should_skip_filament_grouping(const ConfigBase& config)
 {
-    if (!is_single_ext_multi_nozzle(config) || get_effective_ams_nozzle_idx(config) >= 0)
-        return false;
-    if (multi_nozzle_diameter_mode_enabled(config))
-        return true;
+    // ---------- 阶段 1：单挤出机多喷嘴走原有逻辑，与多挤出机无关 ----------
+    if (is_single_ext_multi_nozzle(config)) {
+        if (get_effective_ams_nozzle_idx(config) >= 0)
+            return false; // 有外置 AMS 可分料，不跳过
+        if (multi_nozzle_diameter_mode_enabled(config))
+            return true; // 多口径靠逐耗材口径选择，不弹分组
 
-    const auto* nd = dynamic_cast<const ConfigOptionFloatsNullable*>(config.option("nozzle_diameter"));
-    const std::string active_diameter = (nd && !nd->values.empty()) ? format_diameter_to_str(nd->values.front()) : std::string();
-    return get_single_fixed_nozzle_volume_from_full_stat(-1, false, active_diameter).has_value();
+        // 单口径：固定喷嘴只有一种流量规格时无可分组，跳过。
+        const auto* nozzle_diameter_opt = dynamic_cast<const ConfigOptionFloatsNullable*>(config.option("nozzle_diameter"));
+        const std::string preset_nozzle_diameter = (nozzle_diameter_opt && !nozzle_diameter_opt->values.empty()) ? format_diameter_to_str(nozzle_diameter_opt->values.front()) : std::string();
+        return get_single_fixed_nozzle_volume_from_full_stat(-1, false, preset_nozzle_diameter).has_value();
+    }
+
+    // ---------- 阶段 2：多挤出机收集喷嘴规格（规格 = 口径 + 流量） ----------
+    // 双挤出机带换喷嘴库的机型尚未适配，保持原有弹窗逻辑；
+    // 判据与 Plater 的 is_dual_extruder_rack 一致：多挤出机且任一头可装多个喷嘴。
+    const auto* nozzle_diameters  = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    const auto* max_nozzle_counts = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    if (nozzle_diameters && nozzle_diameters->values.size() > 1 && max_nozzle_counts &&
+        std::any_of(max_nozzle_counts->values.begin(), max_nozzle_counts->values.end(), [](int count) { return count > 1; }))
+        return false;
+    const bool is_multi_diameter_mode = multi_nozzle_diameter_mode_enabled(config);
+    const NozzleInventory& nozzle_inventory = wxGetApp().preset_bundle->nozzle_inventory;
+    if (nozzle_inventory.extruder_count() < 2)
+        return false; // 普通单挤出机没有分组可言
+    using NozzleSpec = std::pair<std::string, int>;
+
+    // 2a. 每个挤出机装了哪些规格，如挤出机 0 {(0.4, Std)}、挤出机 1 {(0.6, Std)}。
+    std::vector<std::set<NozzleSpec>> nozzle_specs_by_extruder;
+    for (int extruder_id = 0; extruder_id < nozzle_inventory.extruder_count(); ++extruder_id)
+        nozzle_specs_by_extruder.push_back(nozzle_specs_of_extruder(nozzle_inventory, extruder_id));
+
+    // 2b. 全部规格汇总；顺带看有没有一种规格被多个挤出机共有（有则耗材还能在多头之间选）。
+    std::set<NozzleSpec> all_nozzle_specs;
+    int                  extruder_count_with_nozzle = 0;
+    bool                 has_shared_nozzle_spec     = false;
+    for (size_t first_extruder = 0; first_extruder < nozzle_specs_by_extruder.size(); ++first_extruder) {
+        if (!nozzle_specs_by_extruder[first_extruder].empty())
+            ++extruder_count_with_nozzle;
+        all_nozzle_specs.insert(nozzle_specs_by_extruder[first_extruder].begin(), nozzle_specs_by_extruder[first_extruder].end());
+        for (size_t second_extruder = first_extruder + 1; second_extruder < nozzle_specs_by_extruder.size(); ++second_extruder)
+            for (const NozzleSpec& nozzle_spec : nozzle_specs_by_extruder[first_extruder])
+                if (nozzle_specs_by_extruder[second_extruder].count(nozzle_spec))
+                    has_shared_nozzle_spec = true;
+    }
+
+    // 2c. 单口径下真正能用的挤出机（口径与预设一致的那头）及其规格，阶段 3 单口径判定用。
+    std::set<NozzleSpec> usable_nozzle_specs;
+    int                  usable_extruder_count = 0;
+    for (int extruder_id = 0; extruder_id < int(nozzle_specs_by_extruder.size()); ++extruder_id) {
+        if (!nozzle_inventory.in_use(extruder_id))
+            continue;
+        ++usable_extruder_count;
+        usable_nozzle_specs.insert(nozzle_specs_by_extruder[extruder_id].begin(), nozzle_specs_by_extruder[extruder_id].end());
+    }
+
+    // ---------- 阶段 3：按单/多口径判定是否跳过 ----------
+    if (all_nozzle_specs.empty())
+        return false; // 没有喷嘴数据，保守不跳过
+    // 两头以上装了喷嘴且总规格只有一种（如都是 0.4 Std），分到哪头仍有得选，不跳过。
+    if (extruder_count_with_nozzle >= 2 && all_nozzle_specs.size() <= 1)
+        return false;
+    if (is_multi_diameter_mode) {
+        // 多口径：耗材按自带口径/流量落头；没有共有规格时才被唯一钉住，跳过。
+        // 只剩一头有喷嘴时，仅当它也只有一种规格才算钉住。
+        if (has_shared_nozzle_spec)
+            return false;
+        return extruder_count_with_nozzle >= 2 || all_nozzle_specs.size() == 1;
+    }
+    // 单口径：只剩一个能用的挤出机、且只有一种规格时，所有耗材只能去那一头；
+    // 0.4 Std 与 0.4 HF 都可用时不跳过。
+    return usable_extruder_count == 1 && usable_nozzle_specs.size() == 1;
 }
 
 bool can_customize_filament_grouping(const ConfigBase& config)

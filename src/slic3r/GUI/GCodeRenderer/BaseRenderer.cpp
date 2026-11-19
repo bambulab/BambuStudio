@@ -3076,6 +3076,10 @@ namespace Slic3r
 
             void BaseRenderer::render_legend_color_arr_recommen(float window_padding, bool is_show_left_right_result)
             {
+                // 跳过分组时隐藏整张分组卡片
+                if (should_skip_filament_grouping(wxGetApp().preset_bundle->full_config()))
+                    return;
+
                 ImGuiWrapper& imgui = *wxGetApp().imgui();
                 // Outlined capsule button; returns true when clicked.
                 auto capsule_button = [this](const std::string& label, const ImVec4& color) {

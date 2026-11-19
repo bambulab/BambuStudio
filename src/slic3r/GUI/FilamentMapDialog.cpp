@@ -230,13 +230,27 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     bool sync_plate = true;
 
     if (should_skip_filament_grouping(full_config)) {
-        // In single-diameter mode identical nozzles reduce to a single-nozzle printer. Clear any
-        // previously stored grouping choice before slicing; multi-diameter mode keeps its per-filament
-        // nozzle selections even though the grouping UI is hidden.
-        if (!multi_nozzle_diameter_mode_enabled(full_config)) {
+        // 只有手动分组会按旧映射切片、可能与耗材口径冲突，切片前复位为自动；
+        // 自动模式求解器会按口径重排，只需把当前不可用的自动模式兜底到可用模式。
+        // 单挤出多喷嘴的多口径除外：它靠当前模式保存逐耗材喷嘴选择。
+        const bool preserve_single_ext_multi_diameter = multi_nozzle_diameter_mode_enabled(full_config) &&
+                                                        is_single_ext_multi_nozzle(full_config);
+        if (!preserve_single_ext_multi_diameter) {
             auto reset_mode = [&](PartPlate* plate) {
-                if (plate && plate->get_real_filament_map_mode(wxGetApp().preset_bundle->project_config) != fmmAutoForFlush)
+                if (plate == nullptr)
+                    return;
+                const FilamentMapMode plate_mode = plate->get_real_filament_map_mode(wxGetApp().preset_bundle->project_config);
+                if (plate_mode == fmmManual || plate_mode == fmmNozzleManual) {
                     plate->set_filament_map_mode(fmmAutoForFlush);
+                } else if (is_auto_filament_map_mode(plate_mode)) {
+                    // Available modes are computed per plate: each plate has its own Print object.
+                    const std::vector<FilamentMapMode> available_modes = is_single_ext_multi_nozzle(full_config) ?
+                        get_single_ext_multi_nozzle_auto_modes(full_config) :
+                        resolve_available_auto_modes(plate->fff_print(), get_default_auto_modes(), plater_ref->get_machine_sync_status());
+                    const FilamentMapMode fallback_mode = resolve_fallback_filament_map_mode(plate_mode, available_modes, plater_ref->get_machine_sync_status());
+                    if (fallback_mode != plate_mode)
+                        plate->set_filament_map_mode(fallback_mode);
+                }
             };
             if (is_slice_all) {
                 for (PartPlate* plate : plater_ref->get_partplate_list().get_plate_list())
@@ -586,7 +600,8 @@ void FilamentMapDialog::make_body(
 
 void FilamentMapDialog::make_footer(wxBoxSizer *main_sizer, const FilamentMapMode mode)
 {
-    if (m_fila_switch_ready) {
+    // 多口径下动态映射已关闭（见 Print::is_dynamic_group_reorder），不再显示智能耗材分配开关。
+    if (m_fila_switch_ready && !multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config)) {
         smart_filament = new SmartFilamentPanel(this);
         smart_filament->Show(mode == fmmAutoForFlush);
         main_sizer->Add(smart_filament, wxSizerFlags().Expand());

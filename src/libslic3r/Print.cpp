@@ -1307,6 +1307,10 @@ int Print::get_compatible_filament_type(const std::set<int>& filament_types)
 
 bool Print::is_dynamic_group_reorder() const
 {
+    // 多口径下关闭动态映射：耗材固定在按口径分组的挤出机上，不逐层跨口径。
+    if (multi_nozzle_diameter_mode_enabled(m_full_print_config))
+        return false;
+
     if (!config().enable_filament_dynamic_map || config().filament_map_mode != FilamentMapMode::fmmAutoForFlush || config().nozzle_diameter.size() <= 1)
         return false;
 
