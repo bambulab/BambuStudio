@@ -260,17 +260,19 @@ static std::string s_generate_uuid()
     return "";
 }
 
-#define DEFAULT_KEY_TAG_CN_1 "68ba6f1721a2a225e9a499c1f73678931761106584"
-#define DEFAULT_KEY_STR_CN_1 "OruMpXAHc7K8cgqLbJnRbAPOcQmFnH3J"
-#define DEFAULT_KEY_IV_CN_1  "Ln2XZ0u6SLGfhftc"
-#define DEFAULT_KEY_TIME_CN_1 202510221215
+#define DEFAULT_KEY_TAG_CN_1 "BamBuinvaliV1N4DiA01riam1lpJcb75YbOOqd1795078851"
+#define DEFAULT_KEY_STR_CN_1 "Kzx5qS9UEZ2m36vnnil24fhg8Xccw70x"
+#define DEFAULT_KEY_IV_CN_1  "rJSzlz1VrBf6jEQu"
+#define DEFAULT_KEY_TIME_CN_1 202611191700
 
-#define DEFAULT_KEY_TAG_US_1 "7f79c976547b46fa4e1293f78b0e94541761106519"
-#define DEFAULT_KEY_STR_US_1 "tzLvjYZy8QDFqVOirPxDxEDF0yFENgl0"
-#define DEFAULT_KEY_IV_US_1  "YGUgmQ9mCs5N3yqJ"
-#define DEFAULT_KEY_TIME_US_1 202510221215
+#define DEFAULT_KEY_TAG_US_1 "BamBuinvaliV1N4DiA01QVxXU35LNfV4jpnxde1795078851"
+#define DEFAULT_KEY_STR_US_1 "edRuWBLEH1RA690ZSmCRDdbStIHt1D2u"
+#define DEFAULT_KEY_IV_US_1  "ep37Iah9AkgZbgTX"
+#define DEFAULT_KEY_TIME_US_1 202611191700
 
 
+// Retired local key tag CN @ 202510221215: "68ba6f1721a2a225e9a499c1f73678931761106584"
+// Retired local key tag US @ 202510221215: "7f79c976547b46fa4e1293f78b0e94541761106519"
 std::string LogSinkBackend::get_enc_key_type(const std::string& key_tag)
 {
     if (key_tag.empty()) {
