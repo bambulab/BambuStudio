@@ -121,6 +121,7 @@ public:
 
     void set_nozzle_info(const wxString& mapped_nozzle_str);
     virtual void set_nozzle_dia_and_type(const wxString & dia_type_info){};
+    virtual void set_nozzle_side_badge(const wxString & side_badge){};
 
     void disable();
     void enable();

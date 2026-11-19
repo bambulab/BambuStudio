@@ -29,6 +29,8 @@ MaterialItemHotend::MaterialItemHotend(wxWindow *parent, wxColour mcolour, wxStr
     m_ams_wheel_mitem            = ScalableBitmap(this, "ams_wheel_narrow", 25);
     m_ams_not_match              = ScalableBitmap(this, "filament_not_mactch", 25);
     m_rack_nozzle_bitmap         = ScalableBitmap(this, "dev_rack_nozzle_print_job", 22);
+    m_nozzle_side_l_bitmap       = ScalableBitmap(this, "dev_nozzle_side_l", 12);
+    m_nozzle_side_r_bitmap       = ScalableBitmap(this, "dev_nozzle_side_r", 12);
 
     m_material_coloul = mcolour;
     m_material_name   = mname;
@@ -52,12 +54,22 @@ void MaterialItemHotend::msw_rescale()
 {
     MaterialItem::msw_rescale();
     m_rack_nozzle_bitmap.msw_rescale();
+    m_nozzle_side_l_bitmap.msw_rescale();
+    m_nozzle_side_r_bitmap.msw_rescale();
 }
 
 void MaterialItemHotend::set_nozzle_dia_and_type(const wxString& dia_type_info)
 {
     if (dia_type_info != m_nozzle_dia_and_type) {
         m_nozzle_dia_and_type = dia_type_info;
+        Refresh();
+    }
+}
+
+void MaterialItemHotend::set_nozzle_side_badge(const wxString& side_badge)
+{
+    if (side_badge != m_nozzle_side_badge) {
+        m_nozzle_side_badge = side_badge;
         Refresh();
     }
 }
@@ -250,6 +262,18 @@ void MaterialItemHotend::doRender(wxDC& dc)
         dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30)));
         auto dia_and_type_sz = dc.GetTextExtent(m_nozzle_dia_and_type);
         dc.DrawText(m_nozzle_dia_and_type, content_left, up + (buttom_h - dia_and_type_sz.y) / 2);
+
+        const ScalableBitmap* side_badge = nullptr;
+        if (m_nozzle_side_badge == "L") {
+            side_badge = &m_nozzle_side_l_bitmap;
+        } else if (m_nozzle_side_badge == "R") {
+            side_badge = &m_nozzle_side_r_bitmap;
+        }
+        if (side_badge) {
+            const int bx = size.x - FromDIP(4) - side_badge->GetBmpWidth();
+            const int by = up + (buttom_h - side_badge->GetBmpHeight()) / 2;
+            dc.DrawBitmap(side_badge->bmp(), bx, by);
+        }
     }
 }
 

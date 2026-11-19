@@ -26,6 +26,7 @@ public:
 
     void msw_rescale() override;
     void set_nozzle_dia_and_type(const wxString& dia_type_info) override;
+    void set_nozzle_side_badge(const wxString& side_badge) override;
 
 private:
     void render(wxDC& dc) override;
@@ -35,6 +36,9 @@ private:
 private:
     wxString m_rack_nozzle_type;
     wxString m_nozzle_dia_and_type;
+    wxString m_nozzle_side_badge;
+    ScalableBitmap m_nozzle_side_l_bitmap;
+    ScalableBitmap m_nozzle_side_r_bitmap;
 };
 
 }} // namespace Slic3r::GUI

@@ -122,4 +122,37 @@ wxString GetNozzleTitleLabel(int total_extruder_count,
     return title;
 }
 
+wxString GetSliceFilamentNozzleSpec(const std::shared_ptr<DevSliceContext>& slice_context, int filament_id)
+{
+    if (!slice_context)
+        return wxEmptyString;
+
+    const auto iter = slice_context->nozzles_by_filament.find(filament_id);
+    if (iter == slice_context->nozzles_by_filament.end())
+        return wxEmptyString;
+
+    std::set<double>           diameters;
+    std::set<NozzleVolumeType> volume_types;
+    for (const auto& nozzle : iter->second) {
+        if (nozzle.diameter.empty())
+            continue;
+
+        const double value = string_to_double_decimal_point(nozzle.diameter.c_str());
+        if (value <= 0.0)
+            continue;
+
+        diameters.insert(value);
+        volume_types.insert(nozzle.volume_type);
+    }
+
+    if (diameters.empty())
+        return wxEmptyString;
+
+    const double diameter = *diameters.begin();
+    const NozzleVolumeType volume_type = volume_types.size() > 1
+                                             ? NozzleVolumeType::nvtHybrid
+                                             : (volume_types.empty() ? NozzleVolumeType::nvtStandard : *volume_types.begin());
+    return s_format_nozzle_spec(diameter, volume_type);
+}
+
 } // namespace Slic3r::GUI

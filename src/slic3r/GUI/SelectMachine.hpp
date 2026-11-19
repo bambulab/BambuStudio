@@ -584,6 +584,8 @@ public:
     void change_materialitem_tip(bool no_ams_only_ext);
     void reset_and_sync_ams_list();
     bool is_hotend_rack() const;
+    bool is_fila_switch_multi_diameter(MachineObject* obj) const;
+    bool use_hotend_material_item(MachineObject* obj = nullptr) const;
     MaterialItem* create_material_item(wxWindow* parent, wxColour colour_rgb, const wxString& display_type, const std::string& filament_id);
     void clone_thumbnail_data();
     void record_edge_pixels_data();
@@ -709,6 +711,11 @@ private:
     // get mapping nozzle display string for rack
     wxString get_mapped_nozzle_str(int fila_id);
     wxString get_nozzle_dia_and_type(const std::string& ams_id, const std::string& slot_id);
+    void     update_material_item_nozzle_info(MaterialItem* m,
+                                              int fila_id,
+                                              MachineObject* obj,
+                                              const std::string& ams_id,
+                                              const std::string& slot_id);
 
     // get mapping nozzle for all
     std::map<int, DevNozzle> get_mapped_nozzles(int fila_id) const;
