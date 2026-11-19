@@ -282,7 +282,7 @@
       "description": "%s does not support %s printing, as filament may break in the bent PTFE tube above the toolhead."
     },
     {
-      "types": ["PET-CF", "PA6-CF", "PA6-GF", "ASA-CF", "PAHT-CF", "PPS-CF", "PPA-CF"],
+      "types": ["PET-CF", "PA6-GF", "PA-GF", "ASA-CF", "PAHT-CF", "PPS-CF", "PPA-CF"],
       "model_id": ["N10", "N11"],
       "action": "warning",
       "slot": "ams",
