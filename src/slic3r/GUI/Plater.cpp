@@ -29486,7 +29486,7 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
     //only save model in QA environment
     std::string sel = get_app_config()->get("iot_environment");
     if (sel == ENV_PRE_HOST)
-        strategy = SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode;
+        strategy = SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::ShareMesh | SaveStrategy::WithGcode | SaveStrategy::SkipAuxiliary;
 #endif
 
     result = export_3mf(p->m_print_job_data._3mf_path, strategy, plate_idx, proFn);
