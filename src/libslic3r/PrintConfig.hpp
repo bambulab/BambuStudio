@@ -2349,7 +2349,15 @@ bool complete_filament_nozzle_diameter_selections(
 // Resolve the nozzle diameter used for slicing a 1-based filament id. An explicit per-filament
 // selection takes precedence; otherwise preserve the historical direct nozzle_diameter lookup.
 // filament_map only controls routing and must not affect slicing geometry.
+// filament_id 0 means "unknown" and falls back to the first extruder's nozzle.
+float nozzle_diameter_for_filament(const ConfigBase &config, unsigned int filament_id);
 float nozzle_diameter_for_filament(const PrintConfig &config, unsigned int filament_id);
+
+// Layer height the pre-slice wipe-tower footprint estimate must divide volume by.
+// In multi-diameter mode the object grid may be finer than the authored layer_height; when any of
+// the given 1-based filaments cannot merge those steps back up, the estimate uses the fine grid
+// height so PartPlate's preview box and Print::wipe_tower_data() stay in agreement.
+double wipe_tower_estimate_layer_height(const ConfigBase &config, const std::vector<int> &filaments);
 
 // Diameter the user selected to switch the machine/process preset (printer_variant).
 // Layer-height validation must use this value, not the smallest installed mixed-diameter slot.

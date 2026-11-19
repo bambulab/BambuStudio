@@ -3666,8 +3666,14 @@ const WipeTowerData& Print::wipe_tower_data(size_t filaments_cnt) const
     }
     if (max_height < EPSILON) return m_wipe_tower_data;
 
-    double layer_height                  = 0.08f; // hard code layer height
-    layer_height        = m_objects.front()->config().layer_height.value;
+    // Same sizing height as PartPlate::estimate_wipe_tower_size() so the pre-slice clearance
+    // checks agree with the preview box. extruders() is 0-based; the helper expects 1-based ids.
+    const std::vector<unsigned int> used_extruders = this->extruders();
+    std::vector<int>                filaments_1based;
+    filaments_1based.reserve(used_extruders.size());
+    for (unsigned int filament_id : used_extruders)
+        filaments_1based.push_back(int(filament_id) + 1);
+    const double layer_height = wipe_tower_estimate_layer_height(m_objects.front()->config(), filaments_1based);
 
     auto   timelapse_type  = config().option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
     bool   need_wipe_tower = (timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false) | m_config.prime_tower_rib_wall.value;

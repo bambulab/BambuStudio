@@ -2368,6 +2368,12 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     if (plate_extruder_size == 0)
         return wipe_tower_size;
 
+    // Nozzles of the filaments already on this plate. CLI has no preset bundle, so it reads the
+    // plate through get_extruders_under_cli; the argument is only read.
+    const std::vector<int> nozzle_filaments = legacy_behavior ?
+                                                   get_extruders_under_cli(true, const_cast<DynamicPrintConfig &>(config)) :
+                                                   get_extruders(true);
+
     double max_height = 0.;
     for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
         if (!use_global_objects && !contain_instance_totally(obj_idx, 0))
@@ -2423,12 +2429,12 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     if (hotend_as_ext_opt && hotend_as_ext_opt->value && plate_extruder_size >= 2 && filament_change_volume > 0)
         volume += filament_change_volume * (plate_extruder_size - 1);
 
-    const ConfigOption* layer_height_opt = config.option("layer_height");
-    double layer_height = layer_height_opt ? layer_height_opt->getFloat() : 0.08;
+    // Shared with Print::wipe_tower_data() so the preview box and pre-slice clearance checks agree.
+    const double sizing_height = wipe_tower_estimate_layer_height(config, nozzle_filaments);
 
     double depth;
     if (use_rib_wall) {
-        depth = std::sqrt(volume / layer_height * extra_spacing);
+        depth = std::sqrt(volume / sizing_height * extra_spacing);
         if (need_wipe_tower || plate_extruder_size > 1) {
             float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
             double volume_depth         = depth;
@@ -2444,7 +2450,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
         }
     }
     else {
-        depth  =  volume / (layer_height * w) *extra_spacing;
+        depth  =  volume / (sizing_height * w) *extra_spacing;
         if (need_wipe_tower || depth > EPSILON) {
             float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
             depth = std::max((double)min_wipe_tower_depth, depth);

@@ -1,4 +1,5 @@
 #include "PrintConfig.hpp"
+#include "AdaptiveLayerMerge.hpp"
 #include "Preset.hpp"
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
@@ -604,21 +605,62 @@ bool complete_filament_nozzle_diameter_selections(
     return true;
 }
 
-float nozzle_diameter_for_filament(const PrintConfig &config, unsigned int filament_id)
+float nozzle_diameter_for_filament(const ConfigBase &config, unsigned int filament_id)
 {
     if (filament_id != 0) {
         const size_t fil_idx = filament_id - 1;
-        const auto  &selected = config.filament_diameter_map.values;
-        if (fil_idx < selected.size() && !selected[fil_idx].empty() &&
-            selected[fil_idx].find(';') == std::string::npos) {
-            const double diameter = string_to_double_decimal_point(selected[fil_idx].c_str());
-            if (diameter > 0.0)
-                return float(diameter);
+        if (const auto *selected = config.option<ConfigOptionStrings>("filament_diameter_map")) {
+            if (fil_idx < selected->values.size() && !selected->values[fil_idx].empty() &&
+                selected->values[fil_idx].find(';') == std::string::npos) {
+                const double diameter = string_to_double_decimal_point(selected->values[fil_idx].c_str());
+                if (diameter > 0.0)
+                    return float(diameter);
+            }
         }
     }
 
     const size_t nozzle_idx = (filament_id == 0) ? 0 : filament_id - 1;
-    return float(config.nozzle_diameter.get_at(nozzle_idx));
+    if (const auto *nozzles = config.option<ConfigOptionFloats>("nozzle_diameter")) {
+        if (!nozzles->values.empty())
+            return float(nozzles->get_at(nozzle_idx));
+    }
+    return 0.f;
+}
+
+float nozzle_diameter_for_filament(const PrintConfig &config, unsigned int filament_id)
+{
+    return nozzle_diameter_for_filament(static_cast<const ConfigBase &>(config), filament_id);
+}
+
+double wipe_tower_estimate_layer_height(const ConfigBase &config, const std::vector<int> &filaments)
+{
+    const ConfigOption *layer_height_opt = config.option("layer_height");
+    const double        layer_height     = layer_height_opt ? layer_height_opt->getFloat() : 0.08;
+    double              sizing_height    = layer_height;
+    // Multi-diameter slicing pins the layer grid to the 0.2 nozzle, so a 0.4 preset's 0.2 mm
+    // layer is cut into 0.1 mm steps. WipeTower::plan_toolchange() sizes the tower from that
+    // physical height. A nozzle that cannot merge those steps back up to the authored height
+    // (a 0.2 nozzle tops out at 0.14 mm) keeps the fine grid, and dividing by the authored
+    // height makes the estimate too small. Plates whose nozzles all merge back keep it.
+    if (layer_height > EPSILON && multi_nozzle_diameter_mode_enabled(config)) {
+        const int    subdivision = std::max(1, layer_grid_subdivision(config));
+        const double base_height = layer_height / double(subdivision);
+        const double grid_nozzle = layer_grid_nozzle_diameter(config);
+        for (int filament_id : filaments) {
+            if (filament_id <= 0)
+                continue;
+            const double nozzle = nozzle_diameter_for_filament(config, unsigned(filament_id));
+            if (nozzle <= EPSILON)
+                continue;
+            const double band_height =
+                double(adaptive_layer_band_size(nozzle, grid_nozzle, base_height)) * base_height;
+            if (band_height + EPSILON < layer_height) {
+                sizing_height = base_height;
+                break;
+            }
+        }
+    }
+    return sizing_height;
 }
 
 double primary_nozzle_diameter(const ConfigBase &config)
@@ -11992,31 +12034,6 @@ static bool skirt_expansion_params(const ConfigBase &cfg, int &skirt_loops, floa
     return true;
 }
 
-// Nozzle diameter a filament will be printed with. Mirrors
-// nozzle_diameter_for_filament(const PrintConfig &, unsigned int) for callers that only hold a
-// DynamicPrintConfig (arrange). filament_id is 1-based; 0 means "unknown" and falls back to
-// the first extruder.
-static float skirt_nozzle_diameter_for_filament(const ConfigBase &cfg, unsigned int filament_id)
-{
-    const auto *opt_nozzle_f = cfg.option<ConfigOptionFloats>("nozzle_diameter");
-    const float fallback_dia = opt_nozzle_f ? static_cast<float>(opt_nozzle_f->get_at(0)) : 0.4f;
-    if (filament_id == 0)
-        return fallback_dia;
-
-    const size_t filament_idx = size_t(filament_id - 1);
-    const auto  *selected     = cfg.option<ConfigOptionStrings>("filament_diameter_map");
-    if (selected != nullptr && filament_idx < selected->values.size() &&
-        selected->values[filament_idx].find(';') == std::string::npos) {
-        const double selected_diameter = string_to_double_decimal_point(selected->values[filament_idx].c_str());
-        if (selected_diameter > 0.)
-            return static_cast<float>(selected_diameter);
-    }
-    if (opt_nozzle_f == nullptr)
-        return fallback_dia;
-
-    return static_cast<float>(opt_nozzle_f->get_at(filament_idx));
-}
-
 // Skirt flow inferred from the config alone, mirroring Print::skirt_flow().
 static Flow skirt_flow_from_config(const ConfigBase &cfg, unsigned int filament_id)
 {
@@ -12033,9 +12050,13 @@ static Flow skirt_flow_from_config(const ConfigBase &cfg, unsigned int filament_
     auto  opt_lh       = cfg.option("initial_layer_print_height");
     float layer_height = opt_lh ? static_cast<float>(opt_lh->getFloat()) : 0.2f;
 
+    float nozzle_dia = nozzle_diameter_for_filament(cfg, filament_id);
+    if (nozzle_dia <= 0.f)
+        nozzle_dia = 0.4f;
+
     return Flow::new_from_config_width(
         frPerimeter, width_opt, float(primary_nozzle_diameter(cfg)),
-        skirt_nozzle_diameter_for_filament(cfg, filament_id), layer_height,
+        nozzle_dia, layer_height,
         multi_nozzle_diameter_mode_enabled(cfg));
 }
 
