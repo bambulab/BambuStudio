@@ -1876,7 +1876,7 @@ void Tab::refresh_support_interface_combo_baseline(bool only_if_plate_changed)
     int interface_filament_id = m_config->opt_int("support_interface_filament") - 1;
 
     SupportComboRecommendation rec;
-    bool found_recommendation = compute_support_interface_recommendation(*m_config, interface_filament_id, rec);
+    bool found_recommendation = support_combo_recommendation(interface_filament_id, rec);
     m_support_combo_baseline.seed(interface_filament_id, plate_idx, found_recommendation, rec.conf);
 }
 
@@ -1963,6 +1963,12 @@ DynamicPrintConfig Tab::support_combo_current_values() const
     return current;
 }
 
+bool Tab::support_combo_recommendation(int interface_filament_id, SupportComboRecommendation &rec, bool require_interface) const
+{
+    return compute_support_interface_recommendation(*m_config, interface_filament_id, rec, -1, support_combo_objects(),
+                                                    require_interface);
+}
+
 // Model-side entry point, used only by the filament-delete path: deleting a filament remaps
 // support_interface_filament behind our back, without going through Tab::on_value_change().
 DynamicPrintConfig Tab::take_support_combo_leftovers()
@@ -1980,7 +1986,7 @@ DynamicPrintConfig Tab::take_support_combo_leftovers()
     int plate_idx             = current_support_combo_plate_index();
 
     SupportComboRecommendation rec;
-    bool found_recommendation = compute_support_interface_recommendation(*m_config, interface_filament_id, rec);
+    bool found_recommendation = support_combo_recommendation(interface_filament_id, rec);
 
     // Report whenever the combination stopped holding, not only when the slot index moved: merging
     // a slot into the next one, or deleting a model-body filament, breaks the combination while
@@ -2074,6 +2080,29 @@ void Tab::apply_support_recommendation(DynamicPrintConfig &conf, std::optional<d
     m_config_manipulation.apply(m_config, &conf);
     if (moved)
         on_project_config_changed();
+}
+
+bool Tab::prompt_support_recommendation(const SupportComboRecommendation &rec, const DynamicPrintConfig &recommended_conf)
+{
+    // Only the keys that differ; multi-diameter z gaps compare against the gap in force, not the hidden preset one,
+    // and a gap left out here must not reach the multi-diameter project gaps.
+    DynamicPrintConfig filtered_conf;
+    const DynamicPrintConfig current_conf = support_combo_current_values();
+    for (const auto &key : recommended_conf.keys()) {
+        const ConfigOption *current_opt = current_conf.option(key);
+        const ConfigOption *new_opt     = recommended_conf.option(key);
+        if (current_opt && new_opt && current_opt->serialize() != new_opt->serialize())
+            filtered_conf.set_key_value(key, new_opt->clone());
+    }
+    if (filtered_conf.empty())
+        return false;
+
+    MessageDialog dialog(wxGetApp().plater(), support_recommendation_dialog_text(rec, filtered_conf), "Suggestion",
+                         wxICON_WARNING | wxYES | wxNO);
+    if (dialog.ShowModal() == wxID_YES)
+        apply_support_recommendation(filtered_conf);
+    wxGetApp().plater()->update();
+    return true;
 }
 
 // Refresh after the project support gaps changed outside m_config, which the config manipulation does not see.
@@ -2349,75 +2378,27 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
 
         int filament_id           = m_config->opt_int("support_filament") - 1; // the displayed id is based from 1, while internal id is based from 0
-        int interface_filament_id = m_config->opt_int("support_interface_filament") - 1;
-        auto           &filament_presets      = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
-        auto           &filaments             = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
-        bool            support_TPU           = false;
-        bool            support_PVA           = false;
-        // PVA supporting PLA additionally requires 0 bottom z distance, no matter which printer is selected
-        bool            support_PVA_for_PLA   = false;
-        if (filament_id >= 0 && filament_id < filament_presets.size()) {
-            Slic3r::Preset *filament      = filaments.find_preset(filament_presets[filament_id]);
-            if (filament) {
-                std::string filament_type = filament->config.option<ConfigOptionStrings>("filament_type")->values[0];
-                support_TPU               = filament_type == "PLA" && has_filaments({"TPU", "TPU-AMS"});
-                support_PVA               = filament_type == "PVA";
-                support_PVA_for_PLA       = support_PVA && has_filaments({"PLA"});
-            }
-        }
-        if (is_support_filament(filament_id, false) && !is_soluble_filament(filament_id) && !has_filaments({"TPU", "TPU-AMS"})) {
-            wxString           msg_text = _L("Non-soluble support materials are not recommended for support base. \n"
-                                                       "Are you sure to use them for support base? \n");
-            MessageDialog      dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
-            DynamicPrintConfig new_conf = *m_config;
-            if (dialog.ShowModal() == wxID_NO) {
-                new_conf.set_key_value("support_filament", new ConfigOptionInt(0));
-                m_config_manipulation.apply(m_config, &new_conf);
-                on_value_change(opt_key, 0);
-            }
-            wxGetApp().plater()->update();
-        }
-        if ((is_soluble_filament(filament_id) || support_TPU) &&
-            !((!support_PVA || m_config->opt_enum<SupportType>("support_type") == stNormalAuto) &&
-              (!support_PVA || m_config->opt_int("tree_support_wall_count") == 1) &&
-              effective_support_z_distance("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
-              m_config->opt_float("support_object_xy_distance") == 0 /*&& m_config->opt_bool("top_z_overrides_xy_distance")*/ &&
-              (!support_PVA_for_PLA || effective_support_z_distance("support_bottom_z_distance") == 0) &&
-              m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced &&
-              filament_id == interface_filament_id)) {
-            wxString msg_text;
-            if (support_TPU)
-                msg_text = _L("When using PLA to support TPU, We recommend the following settings:\n"
-                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-                              "independent support layer height and use PLA for both support interface and support base");
-            else
-                msg_text = soluble_support_suggestion_text(support_PVA_for_PLA, support_PVA);
-            msg_text += "\n\n" + _L("Change these settings automatically? \n"
-                                    "Yes - Change these settings automatically\n"
-                                    "No  - Do not change these settings for me");
-            MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
-            if (dialog.ShowModal() == wxID_YES) {
-                // Only the recommended keys: a gap left out here must not reach the multi-diameter project gaps.
-                DynamicPrintConfig new_conf;
-                if (support_PVA) {
-                    new_conf.set_key_value("support_type", new ConfigOptionEnum<SupportType>(stNormalAuto));
-                    new_conf.set_key_value("tree_support_wall_count", new ConfigOptionInt(1));
+        // Same table lookup as for the interface: a combination fit for the support base gets its recommendation,
+        // with this filament taking over the interface too; any other combination is warned against. Judged even
+        // without interface layers, which do not change whether the filament suits the support base.
+        SupportComboRecommendation rec;
+        if (support_combo_recommendation(filament_id, rec, false)) {
+            if (rec.use_as_support_base) {
+                DynamicPrintConfig recommended_conf = rec.conf;
+                recommended_conf.set_key_value("support_interface_filament", new ConfigOptionInt(filament_id + 1));
+                prompt_support_recommendation(rec, recommended_conf);
+            } else {
+                wxString      msg_text = _L("This filament is not recommended for support base. \n"
+                                            "Are you sure to use it for support base? \n");
+                MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
+                if (dialog.ShowModal() == wxID_NO) {
+                    DynamicPrintConfig new_conf = *m_config;
+                    new_conf.set_key_value("support_filament", new ConfigOptionInt(0));
+                    m_config_manipulation.apply(m_config, &new_conf);
+                    on_value_change(opt_key, 0);
                 }
-                new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
-                new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
-                new_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
-                if (support_PVA_for_PLA)
-                    new_conf.set_key_value("support_bottom_z_distance", new ConfigOptionFloat(0));
-                new_conf.set_key_value("support_interface_pattern",
-                                       new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
-                //new_conf.set_key_value("top_z_overrides_xy_distance", new ConfigOptionBool(true));
-                new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
-                new_conf.set_key_value("support_interface_filament", new ConfigOptionInt(filament_id + 1));
-                // Paragraph dialog cannot list thick_bridges; apply together to avoid a second popup.
-                append_disable_thick_bridges_if_needed(new_conf, *m_config);
-                apply_support_recommendation(new_conf);
+                wxGetApp().plater()->update();
             }
-            wxGetApp().plater()->update();
         }
     }
 
@@ -2436,8 +2417,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         int interface_filament_id = m_config->opt_int("support_interface_filament") - 1;
 
         SupportComboRecommendation rec;
-        bool found_recommendation = compute_support_interface_recommendation(*m_config, interface_filament_id, rec);
-        const DynamicPrintConfig &recommended_conf = rec.conf;
+        bool found_recommendation = support_combo_recommendation(interface_filament_id, rec);
 
         // Detect "undo support material setup": the previous interface filament was a
         // support-material combination and the new one is not. It can only fire when
@@ -2445,76 +2425,15 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         int plate_idx = current_support_combo_plate_index();
         maybe_prompt_support_interface_revert(found_recommendation, plate_idx);
 
-        bool thick_bridges_handled_in_dialog = false;
-        if (found_recommendation && !recommended_conf.empty()) {
-            // 过滤掉当前配置已经是推荐值的参数
-            DynamicPrintConfig filtered_conf;
-            // Multi-diameter support z gaps compare against the gap in force, not the hidden preset one.
-            const DynamicPrintConfig current_conf = support_combo_current_values();
-            for (const auto& key : recommended_conf.keys()) {
-                const ConfigOption* current_opt = current_conf.option(key);
-                const ConfigOption* new_opt     = recommended_conf.option(key);
-                if (current_opt && new_opt && current_opt->serialize() != new_opt->serialize()) {
-                    filtered_conf.set_key_value(key, new_opt->clone());
-                }
-            }
-
-            if (!filtered_conf.empty()) {
-                wxString msg_text;
-                if (rec.soluble_suggestion) {
-                    msg_text = soluble_support_suggestion_text(rec.soluble_bottom_z, rec.interface_filament_type == "PVA");
-                    msg_text += "\n\n" + _L("Change these settings automatically? \n"
-                                            "Yes - Change these settings automatically\n"
-                                            "No  - Do not change these settings for me");
-                } else {
-                    wxString msg_header;
-                    if (rec.from_json) {
-                        // JSON 推荐：显示支撑料名称和匹配的主体料
-                        msg_header = wxString::Format(_L("When using %s to support %s, We recommend the following settings:"), wxString::FromUTF8(rec.support_material_display_name), wxString::FromUTF8(rec.model_material_display_name));
-                    } else if (rec.support_material_display_name == "PLA" && has_filaments({"TPU", "TPU-AMS"})) {
-                        msg_header = _L("When using PLA to support TPU, We recommend the following settings:");
-                    } else {
-                        msg_header = _L("When using support material for the support interface, We recommend the following settings:");
-                    }
-
-                    msg_text = msg_header + "\n\n";
-                    for (const auto& key : filtered_conf.keys()) {
-                        const ConfigOption* opt = filtered_conf.option(key);
-                        if (!opt) continue;
-                        wxString desc = generate_support_param_description(key, opt);
-                        if (!desc.empty()) {
-                            // Wide literal: a narrow U+2022 escape would be UTF-8 bytes under
-                            // /utf-8, then re-decoded by wxConvLibc with the system ANSI code page.
-                            msg_text += L"  \u2022 " + desc + "\n";
-                        }
-                    }
-                    msg_text += "\n" + _L("Do you want to apply these settings?");
-                }
-
-                MessageDialog dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
-                if (dialog.ShowModal() == wxID_YES) {
-                    if (rec.soluble_suggestion && rec.thick_bridges_in_recommendation)
-                        append_disable_thick_bridges_if_needed(filtered_conf, *m_config);
-                    apply_support_recommendation(filtered_conf);
-                    // List dialog showed thick_bridges, or soluble Yes applied it silently.
-                    if (rec.thick_bridges_in_recommendation)
-                        thick_bridges_handled_in_dialog = true;
-                } else if (!rec.soluble_suggestion && rec.thick_bridges_in_recommendation) {
-                    // User already declined a list that included thick_bridges: Off.
-                    thick_bridges_handled_in_dialog = true;
-                }
-                wxGetApp().plater()->update();
-            }
-        }
-
-        // Standalone thick-bridges suggestion when not already answered/applied above.
-        if (!thick_bridges_handled_in_dialog)
+        // The list already showed thick_bridges: Off, whatever the answer; otherwise suggest it on its own.
+        const bool dialog_shown = found_recommendation && prompt_support_recommendation(rec, rec.conf);
+        if (!(dialog_shown && rec.thick_bridges_in_recommendation))
             suggest_disable_thick_bridges_if_needed(m_config, m_config_manipulation, effective_support_z_distance("support_top_z_distance"));
 
         // Refresh the baseline unconditionally, whatever the user answered above, so the *next*
         // change to this option can tell whether this interface filament was a support-material
         // combination.
-        m_support_combo_baseline.seed(interface_filament_id, plate_idx, found_recommendation, recommended_conf);
+        m_support_combo_baseline.seed(interface_filament_id, plate_idx, found_recommendation, rec.conf);
     }
 
     // Optional suggestion: lowering top surface speed when ironing is enabled.
@@ -4549,6 +4468,15 @@ void TabPrintObject::notify_changed(ObjectBase * object)
 {
     auto obj = dynamic_cast<ModelObject*>(object);
     wxGetApp().obj_list()->object_config_options_changed({obj, nullptr});
+}
+
+std::vector<ModelObject *> TabPrintObject::support_combo_objects() const
+{
+    std::vector<ModelObject *> objects;
+    for (const auto &item : m_object_configs)
+        if (auto *obj = dynamic_cast<ModelObject *>(item.first))
+            objects.push_back(obj);
+    return objects;
 }
 
 //BBS: GUI refactor

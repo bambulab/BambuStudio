@@ -1242,40 +1242,52 @@ int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
 static bool build_support_recommended_config(const SupportRecommendedParams &recommended_params,
                                              DynamicPrintConfig &out_config);
 
-// 根据用户已选择的支撑料和模型主体料，查询是否有推荐参数
-bool query_support_recommended_params_for_combination(int support_filament_index, const std::string& model_material_type, const std::string& model_material_name, DynamicPrintConfig& out_config)
+static SupportMaterialProperties support_material_properties_of_slot(int filament_index)
 {
     auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
     auto &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
 
-    if (support_filament_index < 0 || support_filament_index >= static_cast<int>(filament_presets.size()))
-        return false;
+    if (filament_index < 0 || filament_index >= static_cast<int>(filament_presets.size()))
+        return {};
 
-    Slic3r::Preset* support_preset = filaments.find_preset(filament_presets[support_filament_index]);
-    if (!support_preset) return false;
+    Slic3r::Preset* preset = filaments.find_preset(filament_presets[filament_index]);
+    if (!preset) return {};
 
-    const std::string support_type = support_preset->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
-    const std::string alias = filaments.get_preset_alias(*support_preset, true);
-    const SupportMaterialProperties support_material {
-        support_recommended_material_name(alias.empty() ? support_preset->name : alias),
-        support_type,
-        is_soluble_filament(support_filament_index),
-        is_support_filament(support_filament_index, true)
+    const std::string alias = filaments.get_preset_alias(*preset, true);
+    return {
+        support_recommended_material_name(alias.empty() ? preset->name : alias),
+        preset->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0],
+        is_soluble_filament(filament_index),
+        is_support_filament(filament_index, true)
     };
-    const SupportMaterialProperties model_material {model_material_name, model_material_type};
+}
+
+bool query_support_recommended_params_for_combination(int support_filament_index,
+                                                      const std::vector<SupportMaterialProperties> &model_materials,
+                                                      DynamicPrintConfig &out_config,
+                                                      SupportMaterialCombination &out_combination,
+                                                      size_t &out_model_index)
+{
+    const SupportMaterialProperties support_material = support_material_properties_of_slot(support_filament_index);
+    if (support_material.type.empty() || model_materials.empty())
+        return false;
     const std::string printer_model =
         Slic3r::GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
-    const SupportMaterialCombination combination =
-        evaluate_support_material_combination(support_material, model_material, printer_model);
-    if (combination.recommended_params == nullptr)
+    const SupportMaterialCombination chosen =
+        evaluate_support_material_combination(support_material, model_materials, printer_model, &out_model_index);
+    if (chosen.recommended_params == nullptr || ! build_support_recommended_config(*chosen.recommended_params, out_config))
         return false;
-
-    if (! build_support_recommended_config(*combination.recommended_params, out_config))
-        return false;
-    if (combination.zero_top && ! out_config.has("support_top_z_distance"))
-        out_config.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
-    if (combination.zero_bottom && ! out_config.has("support_bottom_z_distance"))
-        out_config.set_key_value("support_bottom_z_distance", new ConfigOptionFloat(0));
+    // The zero gaps follow the combined decision, the same one multi-diameter slicing applies: a zero gap of
+    // the chosen entry that not every material shares is left out, and an inherited one is added.
+    for (const auto &[key, zero] : {std::make_pair("support_top_z_distance", chosen.zero_top),
+                                    std::make_pair("support_bottom_z_distance", chosen.zero_bottom)}) {
+        const auto *gap = out_config.option<ConfigOptionFloat>(key);
+        if (zero)
+            out_config.set_key_value(key, new ConfigOptionFloat(0));
+        else if (gap != nullptr && std::abs(gap->value) < EPSILON)
+            out_config.erase(key);
+    }
+    out_combination = chosen;
     return true;
 }
 

@@ -479,11 +479,19 @@ protected:
     // Applies a process-scope support recommendation to the preset, support z gaps included. On the global Print
     // tab in multi-diameter mode those gaps are also copied to the project config, as project_gap when set.
     void apply_support_recommendation(DynamicPrintConfig &conf, std::optional<double> project_gap = std::nullopt);
+    // Shows the keys of the recommendation that differ from the current values and applies them on Yes.
+    // Returns whether a dialog was shown.
+    bool prompt_support_recommendation(const SupportComboRecommendation &rec, const DynamicPrintConfig &recommended_conf);
     void on_project_config_changed();
     // Support z gap this tab's scope slices with, -1 while multi-diameter auto still decides it.
     double effective_support_z_distance(const std::string &opt_key) const;
     // m_config with the support z gaps replaced by effective_support_z_distance(), for the combo baseline.
     DynamicPrintConfig support_combo_current_values() const;
+    // Objects whose model materials the support combination is judged on; empty = every object on the plate.
+    virtual std::vector<ModelObject *> support_combo_objects() const { return {}; }
+    // compute_support_interface_recommendation() over this tab's scope.
+    bool support_combo_recommendation(int interface_filament_id, SupportComboRecommendation &rec,
+                                      bool require_interface = true) const;
 
 public:
 
@@ -693,6 +701,8 @@ public:
 	~TabPrintObject() {}
 protected:
 	virtual void    notify_changed(ObjectBase * object) override;
+	// The selected objects only: an object's interface filament is judged on its own materials.
+	std::vector<ModelObject *> support_combo_objects() const override;
 };
 
 class TabPrintPart : public TabPrintModel

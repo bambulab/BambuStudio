@@ -1243,8 +1243,8 @@ struct MultiNozzleSupportCombo
 };
 
 // BBS multi-diameter: the support z distances are resolved per nozzle here, which would override the zero gap a
-// support material combination needs. Only an object whose materials all match the selected interface may use
-// an object-wide zero top or bottom gap.
+// support material combination needs. The object takes the zero gaps of the recommendation for all its materials,
+// the same one the support interface suggestion offers.
 static MultiNozzleSupportCombo multi_nozzle_support_combo(const DynamicPrintConfig &full_config, const PrintObjectConfig &object_config,
                                                           const ModelObject &model_object)
 {
@@ -1280,16 +1280,10 @@ static MultiNozzleSupportCombo multi_nozzle_support_combo(const DynamicPrintConf
     const auto       *printer_model_opt = full_config.option<ConfigOptionString>("printer_model");
     const std::string printer_model     = printer_model_opt != nullptr ? printer_model_opt->value : std::string();
 
-    combo.zero_top = true;
-    combo.zero_bottom = true;
-    for (const SupportMaterialProperties &material : model_materials) {
-        const SupportMaterialCombination material_result =
-            evaluate_support_material_combination(interface_material, material, printer_model);
-        combo.zero_top &= material_result.zero_top;
-        combo.zero_bottom &= material_result.zero_bottom;
-        if (! combo.zero_top && ! combo.zero_bottom)
-            break;
-    }
+    const SupportMaterialCombination result =
+        evaluate_support_material_combination(interface_material, model_materials, printer_model);
+    combo.zero_top    = result.zero_top;
+    combo.zero_bottom = result.zero_bottom;
     return combo;
 }
 

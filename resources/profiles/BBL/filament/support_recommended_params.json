@@ -1,6 +1,39 @@
 {
-    "description": "Recommended support parameters for specific material combinations. support_material_type/model_material_type can be 'name' or 'type'. printer_models is required and lists the exact printer_model names the entry applies to. Per-extruder-variant options such as support_interface_speed take a single value that applies to every extruder variant.",
-    "version": "3.1",
+    "description": "Recommended support parameters for specific material combinations. support_material_type and model_material_type can be 'name' or 'type' (compared against support_material_list / model_material), 'any', 'soluble' or 'support' (match by filament property, no list needed). model_material is a string or a list. printer_models lists the exact printer_model names the entry applies to; entries without printer_models are defaults, used when no entry of the printer matches. A printer entry that leaves out the top/bottom z distance inherits it from the matching default entry. inherits lists param_sets applied in order before the entry's own recommended_params. use_as_support_base marks the support filament as fit for the support base: the recommendation also sets it as the support base, and picking it for the support base offers the recommendation instead of warning against it. Per-extruder-variant options such as support_interface_speed take a single value that applies to every extruder variant.",
+    "version": "3.2",
+    "param_sets": {
+        "zero_gap_interface": {
+            "support_top_z_distance": 0.0,
+            "support_interface_spacing": 0.0,
+            "support_interface_pattern": "rectilinear_interlaced",
+            "independent_support_layer_height": false
+        },
+        "soluble_support": {
+            "support_object_xy_distance": 0.2
+        },
+        "pva_support": {
+            "support_type": "normal(auto)",
+            "tree_support_wall_count": 1,
+            "support_bottom_z_distance": 0.0
+        },
+        "pla_for_tpu": {
+            "support_object_xy_distance": 0.0,
+            "support_bottom_z_distance": 0.0
+        },
+        "x2d_tree_support": {
+            "enable_support": true,
+            "support_type": "tree(auto)",
+            "support_on_build_plate_only": false
+        },
+        "x2d_hybrid_tree_support": {
+            "support_style": "tree_hybrid",
+            "support_threshold_angle": 35,
+            "raft_first_layer_expansion": 5.0,
+            "tree_support_branch_diameter": 3.0,
+            "tree_support_branch_diameter_angle": 7.0,
+            "support_interface_speed": 50.0
+        }
+    },
     "combinations": [
         {
             "model_material": "PLA",
@@ -9,20 +42,7 @@
             "support_material_type": "name",
             "printer_models": ["Bambu Lab X2D"],
             "priority": 3,
-            "recommended_params": {
-                "enable_support": true,
-                "support_type": "tree(auto)",
-                "support_style": "tree_hybrid",
-                "support_threshold_angle": 35,
-                "support_on_build_plate_only": false,
-                "raft_first_layer_expansion": 5.0,
-                "support_top_z_distance": 0.0,
-                "support_interface_pattern": "rectilinear_interlaced",
-                "support_interface_spacing": 0.0,
-                "tree_support_branch_diameter": 3.0,
-                "tree_support_branch_diameter_angle": 7.0,
-                "support_interface_speed": 50.0
-            }
+            "inherits": ["x2d_tree_support", "x2d_hybrid_tree_support", "zero_gap_interface"]
         },
         {
             "model_material": "PLA",
@@ -31,20 +51,7 @@
             "support_material_type": "type",
             "printer_models": ["Bambu Lab X2D"],
             "priority": 1,
-            "recommended_params": {
-                "enable_support": true,
-                "support_type": "tree(auto)",
-                "support_style": "tree_hybrid",
-                "support_threshold_angle": 35,
-                "support_on_build_plate_only": false,
-                "raft_first_layer_expansion": 5.0,
-                "support_top_z_distance": 0.0,
-                "support_interface_pattern": "rectilinear_interlaced",
-                "support_interface_spacing": 0.0,
-                "tree_support_branch_diameter": 3.0,
-                "tree_support_branch_diameter_angle": 7.0,
-                "support_interface_speed": 50.0
-            }
+            "inherits": ["x2d_tree_support", "x2d_hybrid_tree_support", "zero_gap_interface"]
         },
         {
             "model_material": "PLA",
@@ -53,16 +60,11 @@
             "support_material_type": "type",
             "printer_models": ["Bambu Lab X2D"],
             "priority": 2,
+            "use_as_support_base": true,
+            "inherits": ["zero_gap_interface", "soluble_support", "pva_support"],
             "recommended_params": {
                 "enable_support": true,
-                "support_type": "normal(auto)",
-                "support_on_build_plate_only": false,
-                "support_top_z_distance": 0.0,
-                "support_bottom_z_distance": 0.0,
-                "support_interface_pattern": "rectilinear_interlaced",
-                "support_interface_spacing": 0.0,
-                "support_object_xy_distance": 0.0,
-                "tree_support_wall_count": 1
+                "support_on_build_plate_only": false
             }
         },
         {
@@ -72,20 +74,7 @@
             "support_material_type": "name",
             "printer_models": ["Bambu Lab X2D"],
             "priority": 3,
-            "recommended_params": {
-                "enable_support": true,
-                "support_type": "tree(auto)",
-                "support_style": "tree_hybrid",
-                "support_threshold_angle": 35,
-                "support_on_build_plate_only": false,
-                "raft_first_layer_expansion": 5.0,
-                "support_top_z_distance": 0.0,
-                "support_interface_pattern": "rectilinear_interlaced",
-                "support_interface_spacing": 0.0,
-                "tree_support_branch_diameter": 3.0,
-                "tree_support_branch_diameter_angle": 7.0,
-                "support_interface_speed": 50.0
-            }
+            "inherits": ["x2d_tree_support", "x2d_hybrid_tree_support", "zero_gap_interface"]
         },
         {
             "model_material": "PETG",
@@ -94,20 +83,7 @@
             "support_material_type": "type",
             "printer_models": ["Bambu Lab X2D"],
             "priority": 1,
-            "recommended_params": {
-                "enable_support": true,
-                "support_type": "tree(auto)",
-                "support_style": "tree_hybrid",
-                "support_threshold_angle": 35,
-                "support_on_build_plate_only": false,
-                "raft_first_layer_expansion": 5.0,
-                "support_top_z_distance": 0.0,
-                "support_interface_pattern": "rectilinear_interlaced",
-                "support_interface_spacing": 0.0,
-                "tree_support_branch_diameter": 3.0,
-                "tree_support_branch_diameter_angle": 7.0,
-                "support_interface_speed": 50.0
-            }
+            "inherits": ["x2d_tree_support", "x2d_hybrid_tree_support", "zero_gap_interface"]
         },
         {
             "model_material": "ABS",
@@ -116,14 +92,7 @@
             "support_material_type": "name",
             "printer_models": ["Bambu Lab X2D"],
             "priority": 3,
-            "recommended_params": {
-                "enable_support": true,
-                "support_type": "tree(auto)",
-                "support_on_build_plate_only": false,
-                "support_top_z_distance": 0.0,
-                "support_interface_pattern": "rectilinear_interlaced",
-                "support_interface_spacing": 0.0
-            }
+            "inherits": ["x2d_tree_support", "zero_gap_interface"]
         },
         {
             "model_material": "PA",
@@ -132,14 +101,9 @@
             "support_material_type": "name",
             "printer_models": ["Bambu Lab X2D"],
             "priority": 3,
+            "inherits": ["x2d_tree_support", "zero_gap_interface"],
             "recommended_params": {
-                "enable_support": true,
-                "support_type": "tree(auto)",
-                "support_style": "tree_hybrid",
-                "support_on_build_plate_only": false,
-                "support_top_z_distance": 0.0,
-                "support_interface_pattern": "rectilinear_interlaced",
-                "support_interface_spacing": 0.0
+                "support_style": "tree_hybrid"
             }
         },
         {
@@ -149,15 +113,8 @@
             "support_material_type": "type",
             "printer_models": ["Bambu Lab X2D"],
             "priority": 2,
-            "recommended_params": {
-                "enable_support": true,
-                "support_type": "tree(auto)",
-                "support_on_build_plate_only": false,
-                "support_top_z_distance": 0.0,
-                "support_interface_pattern": "rectilinear_interlaced",
-                "support_interface_spacing": 0.0,
-                "support_object_xy_distance": 0.0
-            }
+            "use_as_support_base": true,
+            "inherits": ["x2d_tree_support", "zero_gap_interface", "pla_for_tpu"]
         },
         {
             "model_material": "Bambu PA6-GF",
@@ -166,63 +123,16 @@
             "support_material_type": "type",
             "printer_models": ["Bambu Lab X2D"],
             "priority": 2,
-            "recommended_params": {
-                "support_top_z_distance": 0.0,
-                "support_interface_pattern": "rectilinear_interlaced",
-                "support_interface_spacing": 0.0
-            }
+            "inherits": ["zero_gap_interface"]
         },
         {
-            "model_material": "Bambu PET-CF",
+            "model_material": ["Bambu PET-CF", "Bambu PPA-CF", "Bambu PAHT-CF", "Bambu PA6-CF"],
             "model_material_type": "name",
             "support_material_list": ["ASA"],
             "support_material_type": "type",
             "printer_models": ["Bambu Lab X2D"],
             "priority": 2,
-            "recommended_params": {
-                "support_top_z_distance": 0.0,
-                "support_interface_pattern": "rectilinear_interlaced",
-                "support_interface_spacing": 0.0
-            }
-        },
-        {
-            "model_material": "Bambu PPA-CF",
-            "model_material_type": "name",
-            "support_material_list": ["ASA"],
-            "support_material_type": "type",
-            "printer_models": ["Bambu Lab X2D"],
-            "priority": 2,
-            "recommended_params": {
-                "support_top_z_distance": 0.0,
-                "support_interface_pattern": "rectilinear_interlaced",
-                "support_interface_spacing": 0.0
-            }
-        },
-        {
-            "model_material": "Bambu PAHT-CF",
-            "model_material_type": "name",
-            "support_material_list": ["ASA"],
-            "support_material_type": "type",
-            "printer_models": ["Bambu Lab X2D"],
-            "priority": 2,
-            "recommended_params": {
-                "support_top_z_distance": 0.0,
-                "support_interface_pattern": "rectilinear_interlaced",
-                "support_interface_spacing": 0.0
-            }
-        },
-        {
-            "model_material": "Bambu PA6-CF",
-            "model_material_type": "name",
-            "support_material_list": ["ASA"],
-            "support_material_type": "type",
-            "printer_models": ["Bambu Lab X2D"],
-            "priority": 2,
-            "recommended_params": {
-                "support_top_z_distance": 0.0,
-                "support_interface_pattern": "rectilinear_interlaced",
-                "support_interface_spacing": 0.0
-            }
+            "inherits": ["zero_gap_interface"]
         },
         {
             "model_material": "PETG",
@@ -231,11 +141,8 @@
             "support_material_type": "name",
             "printer_models": ["Bambu Lab H3C", "Bambu Lab H2D"],
             "priority": 3,
+            "inherits": ["zero_gap_interface"],
             "recommended_params": {
-                "support_top_z_distance": 0.0,
-                "support_interface_spacing": 0.0,
-                "support_interface_pattern": "rectilinear_interlaced",
-                "independent_support_layer_height": false,
                 "support_interface_speed": 20.0
             }
         },
@@ -246,13 +153,56 @@
             "support_material_type": "name",
             "printer_models": ["Bambu Lab P3C"],
             "priority": 3,
+            "inherits": ["zero_gap_interface"],
             "recommended_params": {
-                "support_top_z_distance": 0.0,
-                "support_interface_spacing": 0.0,
-                "support_interface_pattern": "rectilinear_interlaced",
-                "independent_support_layer_height": false,
                 "support_interface_speed": 20.0
             }
+        },
+        {
+            "model_material": ["TPU", "TPU-AMS"],
+            "model_material_type": "type",
+            "support_material_list": ["PLA"],
+            "support_material_type": "type",
+            "priority": 3,
+            "use_as_support_base": true,
+            "inherits": ["zero_gap_interface", "pla_for_tpu"]
+        },
+        {
+            "model_material_type": "any",
+            "support_material_list": ["PVA"],
+            "support_material_type": "type",
+            "priority": 2,
+            "use_as_support_base": true,
+            "inherits": ["zero_gap_interface", "soluble_support", "pva_support"]
+        },
+        {
+            "model_material_type": "any",
+            "support_material_type": "soluble",
+            "priority": 2,
+            "use_as_support_base": true,
+            "inherits": ["zero_gap_interface", "soluble_support"]
+        },
+        {
+            "model_material_type": "any",
+            "support_material_type": "support",
+            "priority": 1,
+            "inherits": ["zero_gap_interface"]
+        },
+        {
+            "model_material": "PLA",
+            "model_material_type": "type",
+            "support_material_list": ["PETG"],
+            "support_material_type": "type",
+            "priority": 1,
+            "inherits": ["zero_gap_interface"]
+        },
+        {
+            "model_material": "PETG",
+            "model_material_type": "type",
+            "support_material_list": ["PLA"],
+            "support_material_type": "type",
+            "priority": 1,
+            "inherits": ["zero_gap_interface"]
         }
     ]
 }

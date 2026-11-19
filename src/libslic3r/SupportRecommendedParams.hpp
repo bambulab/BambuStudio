@@ -31,15 +31,16 @@ struct FilamentCombinationParams
     }
 };
 
-// 支撑推荐参数：通过 (support_material, model_material, printer_model) 查询
+// 支撑推荐参数：按 (支撑料, 主体料, 机型) 匹配
 struct SupportRecommendedParams
 {
-    std::string model_material;                     // 主体料（类型或名称）
-    std::string model_material_type;                // "name" 或 "type"
-    std::vector<std::string> support_material_list; // 支撑料列表（类型或名称）
-    std::string support_material_type;              // "name" 或 "type"
-    std::vector<std::string> printer_models;        // 适用机型（printer_model 原名），为空则该条目不生效
+    std::vector<std::string> model_material_list;   // 主体料（类型或名称），按 any 匹配时为空
+    std::string model_material_type;                // "name" / "type" / "any"（任意主体料）
+    std::vector<std::string> support_material_list; // 支撑料（类型或名称），按属性匹配时为空
+    std::string support_material_type;              // "name" / "type" / "soluble"（可溶料）/ "support"（支撑料）
+    std::vector<std::string> printer_models;        // 适用机型；为空即默认条目，机型条目未命中时生效
     int priority{0};                                // 优先级，数字越大优先级越高
+    bool use_as_support_base{false};                // 可作支撑主体：推荐时主体也改用它，选作主体时不提醒
     FilamentCombinationParams params;               // 推荐参数
 };
 
@@ -51,39 +52,41 @@ struct SupportMaterialProperties
     bool        support { false };
 };
 
-enum class BuiltInSupportMaterialRule
-{
-    None,
-    Soluble,
-    DedicatedSupport,
-    PetgForPla,
-    PlaForPetg,
-    PlaForTpu
-};
-
 struct SupportMaterialCombination
 {
     const SupportRecommendedParams *recommended_params { nullptr };
-    BuiltInSupportMaterialRule      built_in_rule      { BuiltInSupportMaterialRule::None };
     bool                            zero_top           { false };
     bool                            zero_bottom        { false };
+    bool                            use_as_support_base { false };
 };
 
 std::string support_recommended_material_name(std::string preset_name);
 void        load_support_recommended_params();
-// Exactly "TPU" or "TPU-AMS", matching the built-in PLA-for-TPU rule. Automatic support selection ranks TPU
+// Exactly "TPU" or "TPU-AMS", the types of the PLA-for-TPU default entry. Automatic support selection ranks TPU
 // below any rigid filament because it is too soft to carry a support structure.
 bool        is_tpu_filament_type(const std::string &filament_type);
 // Support material types that bond too poorly to the model material type to carry a support base on it
 // (PLA <-> PETG, PLA on TPU). Independent of the interface distances evaluated below.
 bool        unsuitable_as_support_base(const std::string &support_type, const std::string &model_type);
 
-// Resolves the JSON recommendation and built-in material-pair rules in one place. An explicit JSON
-// top/bottom distance overrides the corresponding built-in decision; a missing field inherits it.
+// Looks up the recommended parameters of one support/model material pair: the printer entry when one
+// matches, otherwise the default entry. A printer entry that leaves out the top/bottom distance inherits
+// the zero gap of the matching default entry.
 SupportMaterialCombination evaluate_support_material_combination(
     const SupportMaterialProperties &support_material,
     const SupportMaterialProperties &model_material,
     const std::string &printer_model);
+
+// The recommendation for a support filament over several model materials: every material has to match,
+// and when they match different entries the lowest priority one is the most conservative choice (the first
+// material wins a tie). The zero top/bottom gaps and the support base hold only if they do for every material.
+// model_index receives the position of the material whose entry was chosen. Returns an empty combination when
+// any material misses.
+SupportMaterialCombination evaluate_support_material_combination(
+    const SupportMaterialProperties              &support_material,
+    const std::vector<SupportMaterialProperties> &model_materials,
+    const std::string                            &printer_model,
+    size_t                                       *model_index = nullptr);
 
 } // namespace Slic3r
 

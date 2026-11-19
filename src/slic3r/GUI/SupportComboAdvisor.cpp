@@ -2,9 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <map>
 #include <set>
-#include <tuple>
 #include <vector>
 
 #include "libslic3r/libslic3r.h"
@@ -21,27 +19,6 @@
 
 namespace Slic3r {
 namespace GUI {
-
-// The same suggestion text is used for the support base and the support interface, so that both dialogs read alike
-wxString soluble_support_suggestion_text(bool with_bottom_z_distance, bool with_normal_auto_support)
-{
-    if (with_normal_auto_support) {
-        if (with_bottom_z_distance)
-            return _L("When using soluble material for the support, We recommend the following settings:\n"
-                      "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
-                      "interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base");
-        return _L("When using soluble material for the support, We recommend the following settings:\n"
-                  "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
-                  "pattern, disable independent support layer height and use soluble materials for both support interface and support base");
-    }
-    if (with_bottom_z_distance)
-        return _L("When using soluble material for the support, We recommend the following settings:\n"
-                  "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
-                  "pattern, disable independent support layer height and use soluble materials for both support interface and support base");
-    return _L("When using soluble material for the support, We recommend the following settings:\n"
-              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-              "independent support layer height and use soluble materials for both support interface and support base");
-}
 
 // 生成参数描述文案
 wxString generate_support_param_description(const std::string& key, const ConfigOption* opt)
@@ -113,6 +90,28 @@ static bool is_zero_gap_distance(double distance)
     return std::abs(distance) <= EPSILON;
 }
 
+// See the declaration in SupportComboAdvisor.hpp for the contract.
+wxString support_recommendation_dialog_text(const SupportComboRecommendation &rec, const DynamicPrintConfig &conf)
+{
+    wxString msg_text = rec.model_material_display_name.empty() ?
+        _L("When using support material for the support interface, We recommend the following settings:") :
+        wxString::Format(_L("When using %s to support %s, We recommend the following settings:"),
+                         wxString::FromUTF8(rec.support_material_display_name), wxString::FromUTF8(rec.model_material_display_name));
+    msg_text += "\n\n";
+    for (const auto &key : conf.keys()) {
+        const ConfigOption *opt = conf.option(key);
+        if (!opt)
+            continue;
+        wxString desc = generate_support_param_description(key, opt);
+        // Wide literal: a narrow U+2022 escape would be UTF-8 bytes under
+        // /utf-8, then re-decoded by wxConvLibc with the system ANSI code page.
+        if (!desc.empty())
+            msg_text += L"  \u2022 " + desc + "\n";
+    }
+    msg_text += "\n" + _L("Do you want to apply these settings?");
+    return msg_text;
+}
+
 static std::string filament_type_of_index(int filament_idx_0based)
 {
     auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
@@ -181,14 +180,6 @@ static bool is_zero_gap_dissimilar_support_interface(const DynamicPrintConfig &c
     return is_dissimilar_or_support_interface_filament(interface_filament_id);
 }
 
-// When applying a zero-gap support recommendation, also turn off thick bridges to avoid a
-// follow-up Suggestion dialog (paragraph-style dialogs cannot list this key).
-void append_disable_thick_bridges_if_needed(DynamicPrintConfig &conf, const DynamicPrintConfig &current)
-{
-    if (current.has("thick_bridges") && current.opt_bool("thick_bridges"))
-        conf.set_key_value("thick_bridges", new ConfigOptionBool(false));
-}
-
 static bool should_suggest_disable_thick_bridges(const DynamicPrintConfig &config, std::optional<double> top_z_distance)
 {
     return config.has("thick_bridges") && config.opt_bool("thick_bridges") &&
@@ -238,16 +229,14 @@ bool suggest_disable_thick_bridges_if_needed(DynamicPrintConfig *config, ConfigM
 
 // See the declaration in SupportComboAdvisor.hpp for the contract.
 bool compute_support_interface_recommendation(const DynamicPrintConfig &config, int interface_filament_id,
-                                              SupportComboRecommendation &out, int plate_idx)
+                                              SupportComboRecommendation &out, int plate_idx,
+                                              const std::vector<ModelObject *> &objects, bool require_interface)
 {
     out = SupportComboRecommendation();
-    if (config.has("support_interface_top_layers") && config.opt_int("support_interface_top_layers") <= 0)
+    if (require_interface && config.has("support_interface_top_layers") && config.opt_int("support_interface_top_layers") <= 0)
         return false;
 
     DynamicPrintConfig &recommended_conf = out.conf;
-    std::string        &interface_filament_type = out.interface_filament_type;
-
-    int filament_id = config.opt_int("support_filament") - 1;
 
     // 获取支撑接触面耗材信息
     auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
@@ -268,24 +257,16 @@ bool compute_support_interface_recommendation(const DynamicPrintConfig &config, 
         return preset_by_slot[idx];
     };
 
-    SupportMaterialProperties interface_material;
     if (Slic3r::Preset *filament = preset_for_slot(interface_filament_id)) {
-        interface_filament_type            = filament->config.option<ConfigOptionStrings>("filament_type")->values[0];
         const std::string alias = filaments.get_preset_alias(*filament, true);
-        out.support_material_display_name = alias.empty() ? interface_filament_type : alias;
-        interface_material = {
-            support_recommended_material_name(alias.empty() ? filament->name : alias),
-            interface_filament_type,
-            is_soluble_filament(interface_filament_id),
-            is_support_filament(interface_filament_id, true)
-        };
+        out.support_material_display_name = alias.empty() ? filament->config.option<ConfigOptionStrings>("filament_type")->values[0] : alias;
     }
 
-    bool found_recommendation = false;
+    SupportMaterialCombination combination;
 
-    // 机型范围由 support_recommended_params.json 的 printer_models 决定，这里不再按机型设闸门
-    {
-        // 收集目标盘所有模型使用的所有耗材类型和名称
+    // 收集模型耗材：指定了对象时只看这些对象，否则看目标盘上的所有对象
+    std::vector<ModelObject *> model_objects = objects;
+    if (model_objects.empty()) {
         auto &plate_list = Slic3r::GUI::wxGetApp().plater()->get_partplate_list();
         // The baseline callers can reach this while the plate list is being rebuilt.
         PartPlate *plate = nullptr;
@@ -295,161 +276,65 @@ bool compute_support_interface_recommendation(const DynamicPrintConfig &config, 
             plate = plate_list.get_plate(plate_idx);
         if (plate == nullptr)
             return false;
-        auto  model_objects = plate->get_objects_on_this_plate();
+        model_objects = plate->get_objects_on_this_plate();
+    }
 
-        std::set<std::string> used_filament_types;
-        std::set<std::string> used_filament_names;
-        std::string first_filament_type;
-        std::string first_filament_name;
-
-        // Both sets past one entry already decides same_type/same_name, and first_filament_* are
-        // set by then, so the rest of the plate cannot change the outcome.
-        bool mixed = false;
-        const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_config(config, slot_count);
-        auto collect_explicit_filaments = [](const auto &source, std::set<int> &filament_ids) {
-            for (const char *key : {"extruder", "wall_filament", "sparse_infill_filament", "solid_infill_filament"}) {
-                if (source.has(key)) {
-                    const int filament_id = source.option(key)->getInt();
+    // Every distinct model material in scope, in first-seen order.
+    std::vector<SupportMaterialProperties> model_materials;
+    std::set<std::pair<std::string, std::string>> seen_materials;
+    const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_config(config, slot_count);
+    auto collect_explicit_filaments = [](const auto &source, std::set<int> &filament_ids) {
+        for (const char *key : {"extruder", "wall_filament", "sparse_infill_filament", "solid_infill_filament"}) {
+            if (source.has(key)) {
+                const int filament_id = source.option(key)->getInt();
+                if (filament_id > 0)
+                    filament_ids.insert(filament_id);
+            }
+        }
+    };
+    for (ModelObject *obj : model_objects) {
+        if (!obj) continue;
+        std::set<int> filament_ids;
+        for (const auto *vol : obj->volumes) {
+            if (!vol) continue;
+            if (vol->is_model_part()) {
+                for (int filament_id : vol->get_extruders(global_features))
                     if (filament_id > 0)
                         filament_ids.insert(filament_id);
-                }
-            }
-        };
-        for (ModelObject *obj : model_objects) {
-            if (!obj) continue;
-            std::set<int> filament_ids;
-            for (const auto *vol : obj->volumes) {
-                if (!vol) continue;
-                if (vol->is_model_part()) {
-                    for (int filament_id : vol->get_extruders(global_features))
-                        if (filament_id > 0)
-                            filament_ids.insert(filament_id);
-                } else if (vol->is_modifier())
-                    collect_explicit_filaments(vol->config, filament_ids);
-            }
-            for (const auto &layer_range : obj->layer_config_ranges)
-                collect_explicit_filaments(layer_range.second, filament_ids);
-            for (int filament_id : filament_ids) {
-                Slic3r::Preset *fp = preset_for_slot(filament_id - 1);
-                if (!fp) continue;
-                const std::string &ft = fp->config.option<ConfigOptionStrings>("filament_type")->values[0];
-                const std::string material_name = support_recommended_material_name(
-                    filaments.get_preset_alias(*fp, true));
-                used_filament_types.insert(ft);
-                used_filament_names.insert(material_name);
-                if (first_filament_type.empty()) {
-                    first_filament_type = ft;
-                    first_filament_name = material_name;
-                }
-                if (used_filament_types.size() > 1 && used_filament_names.size() > 1) {
-                    mixed = true;
-                    break;
-                }
-            }
-            if (mixed) break;
+            } else if (vol->is_modifier())
+                collect_explicit_filaments(vol->config, filament_ids);
         }
-
-        bool same_type = (used_filament_types.size() == 1);
-        bool same_name = (used_filament_names.size() == 1);
-
-        // 同名称或同类型时，查找推荐参数
-        if (same_name || same_type) {
-            found_recommendation = query_support_recommended_params_for_combination(
-                interface_filament_id,
-                same_type ? first_filament_type : std::string(),
-                same_name ? first_filament_name : std::string(),
-                recommended_conf);
-
-            if (found_recommendation) {
-                out.from_json = true;
-                // 显示匹配上的主体料：优先用名称，其次用类型
-                out.model_material_display_name = same_name ? first_filament_name : first_filament_type;
-            }
+        for (const auto &layer_range : obj->layer_config_ranges)
+            collect_explicit_filaments(layer_range.second, filament_ids);
+        for (int filament_id : filament_ids) {
+            Slic3r::Preset *fp = preset_for_slot(filament_id - 1);
+            if (!fp) continue;
+            const std::string &ft = fp->config.option<ConfigOptionStrings>("filament_type")->values[0];
+            const std::string material_name = support_recommended_material_name(
+                filaments.get_preset_alias(*fp, true));
+            if (seen_materials.emplace(material_name, ft).second)
+                model_materials.push_back({material_name, ft});
         }
     }
 
-    // JSON 没找到，走硬编码路径
-    if (!found_recommendation) {
-        const std::vector<bool> material_matches =
-            has_filament_groups({{"PLA"}, {"PETG"}, {"TPU", "TPU-AMS"}});
-        const bool has_pla  = material_matches[0];
-        const bool has_petg = material_matches[1];
-        const bool has_tpu  = material_matches[2];
-        SupportMaterialProperties pair_support_material = interface_material;
-        pair_support_material.soluble = false;
-        pair_support_material.support = false;
-        SupportMaterialProperties dedicated_support_material = interface_material;
-        dedicated_support_material.soluble = false;
-        auto built_in_rule_for = [&pair_support_material](const std::string &model_type) {
-            return evaluate_support_material_combination(
-                pair_support_material, SupportMaterialProperties {"", model_type}, std::string()).built_in_rule;
-        };
-        const BuiltInSupportMaterialRule interface_rule =
-            evaluate_support_material_combination(
-                interface_material, SupportMaterialProperties {}, std::string()).built_in_rule;
-        const BuiltInSupportMaterialRule dedicated_rule =
-            evaluate_support_material_combination(
-                dedicated_support_material, SupportMaterialProperties {}, std::string()).built_in_rule;
+    // 与多口径切片同一查法：每种主体料先查机型条目再查默认条目，须全部命中
+    size_t matched = 0;
+    if (!query_support_recommended_params_for_combination(interface_filament_id, model_materials,
+            recommended_conf, combination, matched))
+        return false;
+    // 弹窗显示匹配上的主体料：按名称匹配用名称，按类型匹配用类型，任意主体料不显示
+    const std::string &how = combination.recommended_params->model_material_type;
+    out.model_material_display_name = how == "name" ? model_materials[matched].name :
+                                      how == "type" ? model_materials[matched].type : std::string();
 
-        const bool support_TPU =
-            has_tpu && built_in_rule_for("TPU") == BuiltInSupportMaterialRule::PlaForTpu;
-        const bool soluble_interface =
-            interface_rule == BuiltInSupportMaterialRule::Soluble && !is_soluble_filament(filament_id);
-        const bool is_support_material =
-            dedicated_rule == BuiltInSupportMaterialRule::DedicatedSupport ||
-            (has_pla && built_in_rule_for("PLA") != BuiltInSupportMaterialRule::None) ||
-            (has_petg && built_in_rule_for("PETG") != BuiltInSupportMaterialRule::None) ||
-            support_TPU;
-        const bool interface_PVA = interface_filament_type == "PVA";
-
-        if (support_TPU) {
-            out.support_material_display_name = "PLA";
-            recommended_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
-            recommended_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
-            recommended_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
-            recommended_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
-            recommended_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
-            found_recommendation = true;
-        } else if (soluble_interface) {
-            out.soluble_suggestion = true;
-            if (interface_PVA) {
-                recommended_conf.set_key_value("support_type", new ConfigOptionEnum<SupportType>(stNormalAuto));
-                recommended_conf.set_key_value("tree_support_wall_count", new ConfigOptionInt(1));
-            }
-            recommended_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
-            recommended_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
-            recommended_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
-            // PVA supporting PLA additionally requires 0 bottom z distance, no matter which printer is selected
-            out.soluble_bottom_z = has_pla &&
-                evaluate_support_material_combination(
-                    interface_material, SupportMaterialProperties {"", "PLA"}, std::string()).zero_bottom;
-            if (out.soluble_bottom_z)
-                recommended_conf.set_key_value("support_bottom_z_distance", new ConfigOptionFloat(0));
-            recommended_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
-            recommended_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
-            found_recommendation = true;
-        } else if (is_support_material) {
-            out.support_material_display_name = interface_filament_type;
-            recommended_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
-            recommended_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
-            recommended_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
-            recommended_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
-            found_recommendation = true;
-        }
-    }
-
-    // The interface filament is recommended for the support base as well, matching what the suggestion text promises
-    if (found_recommendation && (out.soluble_suggestion || interface_filament_type == "PVA"))
+    out.use_as_support_base = combination.use_as_support_base;
+    // A filament fit for the support base is recommended for it as well
+    if (combination.use_as_support_base)
         recommended_conf.set_key_value("support_filament", new ConfigOptionInt(interface_filament_id + 1));
-    // JSON lookup runs first; overlay so X2D PVA entries also get 1 support wall loop
-    if (found_recommendation && interface_filament_type == "PVA")
-        recommended_conf.set_key_value("tree_support_wall_count", new ConfigOptionInt(1));
 
     // Zero-gap support interface + thick bridges: also recommend turning thick bridges off
     // so it appears in the same Suggestion dialog instead of a second popup.
-    // For soluble_suggestion (paragraph dialog), still record the intent and apply on Yes
-    // via filtered_conf / append helper, then skip the follow-up popup.
-    if (found_recommendation && config.has("thick_bridges") && config.opt_bool("thick_bridges")) {
+    if (config.has("thick_bridges") && config.opt_bool("thick_bridges")) {
         bool will_be_zero_gap = false;
         if (const ConfigOptionFloat *top_z_opt =
                 recommended_conf.option<ConfigOptionFloat>("support_top_z_distance"))
@@ -457,13 +342,12 @@ bool compute_support_interface_recommendation(const DynamicPrintConfig &config, 
         else if (config.has("support_top_z_distance"))
             will_be_zero_gap = is_zero_gap_distance(config.opt_float("support_top_z_distance"));
         if (will_be_zero_gap) {
-            if (!out.soluble_suggestion)
-                recommended_conf.set_key_value("thick_bridges", new ConfigOptionBool(false));
+            recommended_conf.set_key_value("thick_bridges", new ConfigOptionBool(false));
             out.thick_bridges_in_recommendation = true;
         }
     }
 
-    return found_recommendation;
+    return true;
 }
 
 // See the declaration in SupportComboAdvisor.hpp for the contract.
@@ -508,7 +392,6 @@ namespace {
 struct ObjectComboSnapshot
 {
     ObjectID           object_id;
-    int                plate_idx = -1; // the plate the combination was judged on
     DynamicPrintConfig applied_conf;
 };
 
@@ -528,27 +411,16 @@ int object_interface_filament_id(const ModelObject &obj, int global_interface_fi
     return (obj.config.has(key) ? obj.config.opt_int(key) : global_interface_filament) - 1;
 }
 
-// compute_support_interface_recommendation() scans a whole plate, and that scan is identical for
-// every object sharing these inputs. Memoized, a plate costs one or two real computations instead
-// of one per object.
-using ComboMemo = std::map<std::tuple<int, int, int, bool, double>, DynamicPrintConfig>;
-
+// The recommendation for one object, judged on its own model materials with its effective config.
 // Empty result = not a support-material combination.
-const DynamicPrintConfig &memoized_recommendation(ComboMemo &memo, int plate_idx, int interface_id,
-                                                  const DynamicPrintConfig &conf)
+DynamicPrintConfig object_recommendation(ModelObject &obj, const DynamicPrintConfig &global_conf, int global_interface)
 {
-    auto key = std::make_tuple(plate_idx, interface_id,
-                               conf.has("support_filament") ? conf.opt_int("support_filament") : 0,
-                               conf.has("thick_bridges") && conf.opt_bool("thick_bridges"),
-                               conf.has("support_top_z_distance") ? conf.opt_float("support_top_z_distance") : 0.);
-    auto it = memo.find(key);
-    if (it == memo.end()) {
-        SupportComboRecommendation rec;
-        if (!compute_support_interface_recommendation(conf, interface_id, rec, plate_idx))
-            rec.conf = DynamicPrintConfig();
-        it = memo.emplace(key, rec.conf).first;
-    }
-    return it->second;
+    DynamicPrintConfig conf = global_conf;
+    conf.apply(obj.config.get(), true);
+    SupportComboRecommendation rec;
+    if (!compute_support_interface_recommendation(conf, object_interface_filament_id(obj, global_interface), rec, -1, {&obj}))
+        return {};
+    return rec.conf;
 }
 
 } // namespace
@@ -567,29 +439,14 @@ void capture_object_support_combo_snapshot()
         return;
     const int global_interface = global_conf.opt_int("support_interface_filament");
 
-    // Every plate, not just the current one: a filament delete rewrites overrides project-wide, so
-    // the objects it strips need not sit on the plate that happens to be shown.
-    auto              &plate_list = plater->get_partplate_list();
-    ComboMemo          memo;
-    std::set<ObjectID> seen;
-    for (int plate_idx = 0; plate_idx < plate_list.get_plate_count(); ++plate_idx) {
-        PartPlate *plate = plate_list.get_plate(plate_idx);
-        if (plate == nullptr)
+    // Every object, not just the current plate's: a filament delete rewrites overrides project-wide.
+    for (ModelObject *obj : plater->model().objects) {
+        if (obj == nullptr)
             continue;
-        for (ModelObject *obj : plate->get_objects_on_this_plate()) {
-            // An object with instances on two plates is judged on the first one that holds it.
-            if (obj == nullptr || !seen.insert(obj->id()).second)
-                continue;
-            DynamicPrintConfig conf = global_conf;
-            conf.apply(obj->config.get(), true);
-
-            const DynamicPrintConfig &rec_conf =
-                memoized_recommendation(memo, plate_idx, object_interface_filament_id(*obj, global_interface), conf);
-            // Not a combination now, so there is nothing this delete could take away.
-            if (rec_conf.empty())
-                continue;
-            s_object_combo_snapshot.push_back({obj->id(), plate_idx, rec_conf});
-        }
+        DynamicPrintConfig rec_conf = object_recommendation(*obj, global_conf, global_interface);
+        // Not a combination now, so there is nothing this delete could take away.
+        if (!rec_conf.empty())
+            s_object_combo_snapshot.push_back({obj->id(), std::move(rec_conf)});
     }
 }
 
@@ -613,7 +470,6 @@ std::vector<ModelObject *> take_objects_losing_support_combo(DynamicPrintConfig 
     // Model order, which is the order the object list shows, so the first hit is a name the user
     // can actually find. Objects absent from the snapshot were never a combination, and are
     // skipped.
-    ComboMemo memo;
     for (ModelObject *obj : plater->model().objects) {
         if (obj == nullptr)
             continue;
@@ -623,11 +479,7 @@ std::vector<ModelObject *> take_objects_losing_support_combo(DynamicPrintConfig 
             continue;
 
         // Still a combination -- the delete moved something else, and this object is untouched.
-        // Judged on the same plate the snapshot used; a delete never reshuffles plates.
-        DynamicPrintConfig conf = global_conf;
-        conf.apply(obj->config.get(), true);
-        if (!memoized_recommendation(memo, snap->plate_idx,
-                                     object_interface_filament_id(*obj, global_interface), conf).empty())
+        if (!object_recommendation(*obj, global_conf, global_interface).empty())
             continue;
 
         // Keys the object still holds at the value the recommendation set. One the user already

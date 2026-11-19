@@ -9,6 +9,7 @@
  * */
 
 #include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/SupportRecommendedParams.hpp"
 #include "Field.hpp"
 #include <wx/string.h>
 #include <set>
@@ -98,16 +99,16 @@ public:
 
 };
 
-// 根据用户已选择的支撑料和模型主体料，查询是否有推荐参数
-// support_filament_index: 用户选择的支撑料索引 (0-based)
-// model_material_type: 模型主体料类型 (如 "PLA")
-// model_material_name: 模型主体料名称 (如 "Bambu PLA Basic")
-// 返回 true 表示找到推荐参数，out_config 包含推荐配置
+// 按支撑料与主体料查推荐表（每种主体料先查机型条目再查默认条目），命中时把推荐参数写入 out_config
+// support_filament_index: 支撑料索引 (0-based)
+// 多种主体料时每种都须命中；命中不同条目时取优先级最低的一条（同优先级取先出现的），
+// out_model_index 为其下标；可作支撑主体须所有主体料都允许
 bool query_support_recommended_params_for_combination(
     int support_filament_index,
-    const std::string& model_material_type,
-    const std::string& model_material_name,
-    DynamicPrintConfig& out_config);
+    const std::vector<SupportMaterialProperties> &model_materials,
+    DynamicPrintConfig& out_config,
+    SupportMaterialCombination &out_combination,
+    size_t &out_model_index);
 
 } // GUI
 } // Slic3r
