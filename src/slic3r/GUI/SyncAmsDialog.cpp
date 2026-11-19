@@ -1033,9 +1033,9 @@ wxWindow *SyncAmsDialog::build_preview_card(const wxString &title, bool with_pla
     hrow->Add(0, ctrl_h); // reserve the row height so the title centres within it
     hrow->Add(header, 0, wxALIGN_CENTER_VERTICAL);
     if (with_plate_combo) {
-        m_plate_combo = new ::ComboBox(card, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(72), ctrl_h), 0, nullptr, wxCB_READONLY);
+        m_plate_combo = new ::ComboBox(card, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(-1, ctrl_h), 0, nullptr, wxCB_READONLY); // width fits the items
         m_plate_combo->Append(_L("All"));
-        for (int i = 0; i < preview_plate_count(); ++i) m_plate_combo->Append(wxString::Format("%d", i + 1));
+        for (int i = 0; i < preview_plate_count(); ++i) m_plate_combo->Append(wxString::Format("Plate %d", i + 1));
         m_plate_combo->SetSelection(preview_plate_count() > 0 ? preview_current_plate_index() + 1 : 0); // default: current plate
         m_plate_combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &) {
             on_plate_changed();

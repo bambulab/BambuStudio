@@ -2372,7 +2372,7 @@ void MultiVariantTextCtrl::refresh_text_ctrls_layout(wxWindow *parent)
         if (new_layout.size() != 1 && label_text) {
             auto text_input = dynamic_cast<::TextInput*>(text_ctrl->getWindow());
             if (text_input) {
-                text_input->SetSize(wxSize(def_width_wider() * m_em_unit + 20, wxDefaultCoord));
+                text_input->SetSize(wxSize(def_width_wider() * m_em_unit, wxDefaultCoord));
                 text_input->SetPrefix(label_text);
             }
         }

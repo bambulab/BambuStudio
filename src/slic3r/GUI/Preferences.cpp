@@ -2010,11 +2010,11 @@ ResetWarningsDialog::ResetWarningsDialog(wxWindow *parent) : DPIDialog(parent, w
     auto *main_sizer = new wxBoxSizer(wxVERTICAL);
 
     // Body text.
-    auto *msg = new wxStaticText(this, wxID_ANY,
-                                 _L("All warning dialogs that you have disabled by checking \"Don't show again\" "
-                                    "are now re-enabled and will show next time they apply."));
+    // Label::Wrap also breaks CJK text, which has no spaces for wxStaticText::Wrap to break on.
+    auto *msg = new ::Label(this, ::Label::Body_14,
+                            _L("All warning dialogs that you have disabled by checking \"Don't show again\" "
+                               "are now re-enabled and will show next time they apply."));
     msg->SetForegroundColour(ThemeColor::TextPrimary);
-    msg->SetFont(::Label::Body_14);
     msg->Wrap(content_width);
     msg->SetMinSize(wxSize(content_width, -1));
     main_sizer->Add(msg, 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
