@@ -54,6 +54,13 @@ namespace Slic3r {
                     p_renderer->on_change_color_mode(is_dark);
                 }
             }
+            void GCodeViewer::on_object_shading_preference_changed()
+            {
+                const auto& p_renderer = get_renderer();
+                if (p_renderer) {
+                    p_renderer->set_view_type(p_renderer->get_view_type());
+                }
+            }
             void GCodeViewer::init(ConfigOptionMode mode, Slic3r::PresetBundle* preset_bundle)
             {
                 const auto& p_renderer = get_renderer();

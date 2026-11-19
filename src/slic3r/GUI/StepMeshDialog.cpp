@@ -390,6 +390,9 @@ void StepMeshDialog::update_mesh_number_text()
     if (m_button_ok)
         m_button_ok->Enable(false);
     stop_task();
+    // OK stays disabled until this run posts its result. The worker does not
+    // post when the cancel flag is set, so make sure the run starts with it clear.
+    m_file.m_stop_mesh.store(false);
     const int generation = ++m_mesh_generation;
     if (!m_task) {
         m_task = new boost::thread(Slic3r::create_thread([this, generation]() -> void {

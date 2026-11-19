@@ -78,6 +78,19 @@ static FILE *stl_open_count_facets(stl_file *stl, const char *file, unsigned int
       		break;
     	}
   	}
+  	// A binary file can have no byte above 127 there either, for instance with zero normals and round coordinates.
+  	// Its size tells it apart: exactly the header, the facet count and one record per facet.
+  	if (stl->stats.type == ascii) {
+    	uint32_t count = 0;
+    	fseek(fp, custom_header_length, SEEK_SET);
+    	if (fread(&count, sizeof(count), 1, fp) == 1) {
+#if BOOST_ENDIAN_BIG_BYTE
+      		stl_internal_reverse_quads((char*)&count, 4);
+#endif /* BOOST_ENDIAN_BIG_BYTE */
+      		if (count > 0 && uint64_t(file_size) == uint64_t(header_size) + uint64_t(count) * SIZEOF_STL_FACET)
+        		stl->stats.type = binary;
+    	}
+  	}
   	rewind(fp);
 
   	uint32_t num_facets = 0;

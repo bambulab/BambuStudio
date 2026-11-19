@@ -159,7 +159,7 @@ namespace Slic3r {
                 vbo = 0;
                 count = 0;
             }
-            bool LegacyRenderer::Path::matches(const GCodeProcessorResult::MoveVertex& move) const
+            bool LegacyRenderer::Path::matches(const GCodeProcessorResult::MoveVertex& move, bool split_by_object) const
             {
                 auto matches_percent = [](float value1, float value2, float max_percent) {
                     return std::abs(value2 - value1) / value1 <= max_percent;
@@ -175,7 +175,8 @@ namespace Slic3r {
                 case EMoveType::Seam:
                 case EMoveType::Extrude: {
                     // use rounding to reduce the number of generated paths
-                    return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id && role == move.extrusion_role &&
+                    return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id &&
+                        (!split_by_object || object_label_id == move.object_label_id) && role == move.extrusion_role &&
                         move.position.z() <= sub_paths.front().first.position.z() && feedrate == move.feedrate && fan_speed == move.fan_speed &&
                         additional_fan_speed == move.additional_fan_speed &&
                         height == round_to_bin(move.height) && width == round_to_bin(move.width) &&
@@ -183,7 +184,8 @@ namespace Slic3r {
                         thermal_index_mean == move.thermal_index_mean && thermal_index_min == move.thermal_index_min && thermal_index_max == move.thermal_index_max;
                 }
                 case EMoveType::Travel: {
-                    return type == move.type && feedrate == move.feedrate && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
+                    return type == move.type && feedrate == move.feedrate && extruder_id == move.extruder_id &&
+                        cp_color_id == move.cp_color_id && (!split_by_object || object_label_id == move.object_label_id);
                 }
                 default: { return false; }
                 }
@@ -223,6 +225,7 @@ namespace Slic3r {
                      move.layer_duration,
                      move.extruder_id,
                      move.cp_color_id,
+                     move.object_label_id,
                      false,
                      {{endpoint, endpoint}} });
             }
@@ -987,6 +990,19 @@ namespace Slic3r {
                 m_p_extrusions->role_visibility_flags = flags;
             }
 
+            void LegacyRenderer::do_set_view_type(EViewType type)
+            {
+                const bool change_batching = (m_view_type == EViewType::Objects) != (type == EViewType::Objects);
+                BaseRenderer::do_set_view_type(type);
+                if (change_batching && !m_roles.empty() &&
+                    wxGetApp().app_config->get_bool("show_objects_in_preview")) {
+                    // Rebuild only when entering/leaving object shading. Other modes
+                    // retain the original path grouping, even with this preference on.
+                    SimpleEvent event(EVT_OBJECTS_PREVIEW_CHANGED);
+                    wxPostEvent(wxGetApp().plater(), event);
+                }
+            }
+
             bool LegacyRenderer::load_toolpaths(const GCodeProcessorResult & gcode_result, const BuildVolume & build_volume, const std::vector<BoundingBoxf3>&exclude_bounding_box)
             {
                 // max index buffer size, in bytes
@@ -1048,9 +1064,9 @@ namespace Slic3r {
                     }
                     };
                 //BBS: modify a lot to support arc travel
-                auto add_indices_as_line = [](const GCodeProcessorResult::MoveVertex& prev, const GCodeProcessorResult::MoveVertex& curr, TBuffer& buffer,
+                auto add_indices_as_line = [this](const GCodeProcessorResult::MoveVertex& prev, const GCodeProcessorResult::MoveVertex& curr, TBuffer& buffer,
                     size_t& vbuffer_size, unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
-                        if (buffer.paths.empty() || prev.type != curr.type || !buffer.paths.back().matches(curr)) {
+                        if (buffer.paths.empty() || prev.type != curr.type || !buffer.paths.back().matches(curr, m_view_type == EViewType::Objects)) {
                             buffer.add_path(curr, ibuffer_id, indices.size(), move_id - 1);
                             buffer.paths.back().sub_paths.front().first.position = prev.position;
                         }
@@ -1066,7 +1082,7 @@ namespace Slic3r {
                         last_path.sub_paths.back().last = { ibuffer_id, indices.size() - 1, move_id, curr.position };
                     };
                 // format data into the buffers to be rendered as solid.
-                auto add_vertices_as_solid = [](const GCodeProcessorResult::MoveVertex& prev, const GCodeProcessorResult::MoveVertex& curr, TBuffer& buffer, unsigned int vbuffer_id, VertexBuffer& vertices, size_t move_id) {
+                auto add_vertices_as_solid = [this](const GCodeProcessorResult::MoveVertex& prev, const GCodeProcessorResult::MoveVertex& curr, TBuffer& buffer, unsigned int vbuffer_id, VertexBuffer& vertices, size_t move_id) {
                     auto store_vertex = [](VertexBuffer& vertices, const Vec3f& position, const Vec3f& normal) {
                         // append position
                         vertices.push_back(position.x());
@@ -1077,7 +1093,7 @@ namespace Slic3r {
                         vertices.push_back(normal.y());
                         vertices.push_back(normal.z());
                         };
-                    if (buffer.paths.empty() || prev.type != curr.type || !buffer.paths.back().matches(curr)) {
+                    if (buffer.paths.empty() || prev.type != curr.type || !buffer.paths.back().matches(curr, m_view_type == EViewType::Objects)) {
                         buffer.add_path(curr, vbuffer_id, vertices.size(), move_id - 1);
                         buffer.paths.back().sub_paths.back().first.position = prev.position;
                     }
@@ -1162,7 +1178,7 @@ namespace Slic3r {
                             store_triangle(indices, v_offsets[4], v_offsets[6], v_offsets[7]);
                             store_triangle(indices, v_offsets[4], v_offsets[5], v_offsets[6]);
                             };
-                        if (buffer.paths.empty() || prev.type != curr.type || !buffer.paths.back().matches(curr)) {
+                        if (buffer.paths.empty() || prev.type != curr.type || !buffer.paths.back().matches(curr, m_view_type == EViewType::Objects)) {
                             buffer.add_path(curr, ibuffer_id, indices.size(), move_id - 1);
                             buffer.paths.back().sub_paths.back().first.position = prev.position;
                         }
@@ -1387,7 +1403,7 @@ namespace Slic3r {
                         v_multibuffer.push_back(VertexBuffer());
                         if (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
                             Path& last_path = t_buffer.paths.back();
-                            if (prev.type == curr.type && last_path.matches(curr))
+                            if (prev.type == curr.type && last_path.matches(curr, m_view_type == EViewType::Objects))
                                 last_path.add_sub_path(prev, static_cast<unsigned int>(v_multibuffer.size()) - 1, 0, move_id - 1);
                         }
                     }
@@ -1767,6 +1783,17 @@ namespace Slic3r {
                     case EViewType::ColorPrint: {
                         color = m_tools.m_tool_colors[path.cp_color_id];
                         color = adjust_color_for_rendering(color.get_data());
+                        break;
+                    }
+                    case EViewType::Objects: {
+                        if (path.object_label_id < 0) {
+                            color = ColorRGBA::GRAY();
+                        } else {
+                            const Range object_range(static_cast<float>(m_object_preview.label_min),
+                                                     static_cast<float>(m_object_preview.label_max));
+                            color = object_range.get_color_at(static_cast<float>(path.object_label_id));
+                            color = adjust_color_for_rendering(color.get_data());
+                        }
                         break;
                     }
                     case EViewType::FilamentId: {
