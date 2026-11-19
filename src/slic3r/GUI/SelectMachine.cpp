@@ -1503,22 +1503,18 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
     if (!obj_) return false;
     if (!obj_->HasAms()) { use_ams = false;} /*STUDIO-11971*/
     obj_->get_ams_colors(m_cur_colors_in_thumbnail);
-    // try color and type mapping
-
-    const DynamicPrintConfig& full_config = m_print_type == FROM_PRINT_QUEUE && m_queue_print_context
-        ? m_queue_print_context->config : wxGetApp().preset_bundle->full_config();
-    const auto& project_config = wxGetApp().preset_bundle->project_config;
-    const auto nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    const size_t nozzle_nums = nozzle_diameter ? nozzle_diameter->values.size() : 1;
 
     if (m_print_type == FROM_NORMAL) {
+        const auto& project_config = wxGetApp().preset_bundle->project_config;
         m_filaments_map = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config);
     }
 
     int filament_result = 0;
     const bool check_nozzle_type = check_nozzle_type_for_ams_mapping(obj_, m_print_type);
     std::vector<bool> map_opt;  //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
-    if (nozzle_nums > 1){
+
+    const size_t extruder_nums = obj_->GetExtderSystem()->GetTotalExtderCount();
+    if (extruder_nums > 1){
         //get nozzle property, the extders are same?
         if (!can_hybrid_mapping(obj_)){
             std::vector<FilamentInfo>           m_ams_mapping_result_left, m_ams_mapping_result_right;
