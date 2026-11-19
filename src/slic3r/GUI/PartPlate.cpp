@@ -2356,7 +2356,7 @@ bool PartPlate::check_single_extruder_mixed_filament_risk(const DynamicPrintConf
     return wipe_tower_size;
 }*/
 
-Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count, int plate_extruder_size, bool use_global_objects, bool enable_wrapping_detection, bool legacy_behavior) const
+Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count, int plate_extruder_size, bool use_global_objects, bool enable_wrapping_detection, bool legacy_behavior, int hotend_as_extruder_override) const
 {
     Vec3d wipe_tower_size = Vec3d::Zero();
     // empty plate
@@ -2425,8 +2425,16 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     // For single extruder treating hotends as extruders (e.g. N1X),
     // every nozzle change needs ramming. Add ramming volume analogous to
     // the filament_change_volume addition for dual-extruder machines above.
-    auto hotend_as_ext_opt = config.option<ConfigOptionBool>("handle_hotend_as_extruder");
-    if (hotend_as_ext_opt && hotend_as_ext_opt->value && plate_extruder_size >= 2 && filament_change_volume > 0)
+    // hotend_as_extruder_override lets CLI downward_check apply this for the
+    // machine being validated, which may differ from the slicing printer.
+    bool handle_hotend_as_extruder = false;
+    if (hotend_as_extruder_override < 0) {
+        auto hotend_as_ext_opt = config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+        handle_hotend_as_extruder = hotend_as_ext_opt && hotend_as_ext_opt->value;
+    } else {
+        handle_hotend_as_extruder = hotend_as_extruder_override > 0;
+    }
+    if (handle_hotend_as_extruder && plate_extruder_size >= 2 && filament_change_volume > 0)
         volume += filament_change_volume * (plate_extruder_size - 1);
 
     // Shared with Print::wipe_tower_data() so the preview box and pre-slice clearance checks agree.

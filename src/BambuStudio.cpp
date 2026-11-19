@@ -5217,13 +5217,18 @@ int CLI::run(int argc, char **argv)
         }
     };
 
-    auto check_plate_wipe_tower = [get_print_sequence, is_smooth_timelapse, new_extruder_count](Slic3r::GUI::PartPlate* plate, int plate_index, DynamicPrintConfig& print_config, plate_obj_size_info_t &plate_obj_size_info) {
+    // hotend_as_extruder_override: <0 use the slicing printer, 0 force off, >0 force the
+    // nozzle-change ramming term. extruder_count is the machine being estimated:
+    // 1 for a single extruder (including P3C), 2 for a dual-extruder machine.
+    auto check_plate_wipe_tower = [get_print_sequence, is_smooth_timelapse](Slic3r::GUI::PartPlate* plate, int plate_index, DynamicPrintConfig& print_config, plate_obj_size_info_t &plate_obj_size_info, int hotend_as_extruder_override, bool verbose, int extruder_count) {
         plate_obj_size_info.obj_bbox= plate->get_objects_bounding_box();
-        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, object bbox: min {%2%, %3%, %4%} - max {%5%, %6%, %7%}")
+        if (verbose)
+            BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, object bbox: min {%2%, %3%, %4%} - max {%5%, %6%, %7%}")
                     %(plate_index+1) %plate_obj_size_info.obj_bbox.min.x() % plate_obj_size_info.obj_bbox.min.y() % plate_obj_size_info.obj_bbox.min.z() %plate_obj_size_info.obj_bbox.max.x() % plate_obj_size_info.obj_bbox.max.y() % plate_obj_size_info.obj_bbox.max.z();
         if (!print_config.has("wipe_tower_x")) {
             plate_obj_size_info.has_wipe_tower = false;
-            BOOST_LOG_TRIVIAL(info) << boost::format("can not found wipe_tower_x in config, set to no wipe tower");
+            if (verbose)
+                BOOST_LOG_TRIVIAL(info) << boost::format("can not found wipe_tower_x in config, set to no wipe tower");
             return;
         }
 
@@ -5233,14 +5238,16 @@ int CLI::run(int argc, char **argv)
         }
         if (!wipe_tower_enabled) {
             plate_obj_size_info.has_wipe_tower = false;
-            BOOST_LOG_TRIVIAL(info) << boost::format("enable_prime_tower set to false");
+            if (verbose)
+                BOOST_LOG_TRIVIAL(info) << boost::format("enable_prime_tower set to false");
             return;
         }
 
         int valid_count = plate->printable_instance_size();
         if (valid_count <= 0){
             plate_obj_size_info.has_wipe_tower = false;
-            BOOST_LOG_TRIVIAL(info) << boost::format("no printable object found, set to no wipe tower");
+            if (verbose)
+                BOOST_LOG_TRIVIAL(info) << boost::format("no printable object found, set to no wipe tower");
             return;
         }
 
@@ -5248,7 +5255,8 @@ int CLI::run(int argc, char **argv)
         get_print_sequence(plate, print_config, is_sequence);
         if (is_sequence && valid_count > 1) {
             plate_obj_size_info.has_wipe_tower = false;
-            BOOST_LOG_TRIVIAL(info) << boost::format("sequence print, valid_count=%1%, set to no wipe tower")%valid_count;
+            if (verbose)
+                BOOST_LOG_TRIVIAL(info) << boost::format("sequence print, valid_count=%1%, set to no wipe tower")%valid_count;
             return;
         }
 
@@ -5256,7 +5264,8 @@ int CLI::run(int argc, char **argv)
         unsigned int filaments_cnt = extruders.size();
         if ((filaments_cnt <= 1) && !is_smooth_timelapse){
             plate_obj_size_info.has_wipe_tower = false;
-            BOOST_LOG_TRIVIAL(info) << boost::format("filaments_cnt=%1%, set to no wipe tower")%filaments_cnt;
+            if (verbose)
+                BOOST_LOG_TRIVIAL(info) << boost::format("filaments_cnt=%1%, set to no wipe tower")%filaments_cnt;
             return;
         }
 
@@ -5282,7 +5291,7 @@ int CLI::run(int argc, char **argv)
         const ConfigOptionBool * wrapping_detection = print_config.option<ConfigOptionBool>("enable_wrapping_detection");
         bool enable_wrapping = (wrapping_detection != nullptr) && wrapping_detection->value;
 
-        Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, get_max_element(wipe_volume), new_extruder_count, filaments_cnt, false, enable_wrapping, true);
+        Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, get_max_element(wipe_volume), extruder_count, filaments_cnt, false, enable_wrapping, true, hotend_as_extruder_override);
         plate_obj_size_info.wipe_width = wipe_tower_size(0);
         plate_obj_size_info.wipe_depth = wipe_tower_size(1);
 
@@ -5292,7 +5301,8 @@ int CLI::run(int argc, char **argv)
         Vec3d end(origin(0) + plate_obj_size_info.wipe_x + plate_obj_size_info.wipe_width + brim_width, origin(1) + plate_obj_size_info.wipe_y + plate_obj_size_info.wipe_depth + brim_width, 0.f);
         plate_obj_size_info.obj_bbox.merge(end);
         plate_obj_size_info.has_wipe_tower = true;
-        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, has wipe tower, wipe bbox: min {%2%, %3%, %4%} - max {%5%, %6%, %7%}")
+        if (verbose)
+            BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, has wipe tower, wipe bbox: min {%2%, %3%, %4%} - max {%5%, %6%, %7%}")
                 %(plate_index+1) %start.x() % start.y() % start.z() %end.x() % end.y() % end.z();
     };
 
@@ -5458,7 +5468,7 @@ int CLI::run(int argc, char **argv)
         for (int index = 0; index < plate_count; index ++) {
             Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
 
-            check_plate_wipe_tower(cur_plate, index, m_print_config, plate_obj_size_infos[index]);
+            check_plate_wipe_tower(cur_plate, index, m_print_config, plate_obj_size_infos[index], -1, true, new_extruder_count);
             BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%,  has_wipe_tower %2%, wipe_x %3%, wipe_y %4%, width %5%, depth %6%")
                 %(index+1) %plate_obj_size_infos[index].has_wipe_tower %plate_obj_size_infos[index].wipe_x %plate_obj_size_infos[index].wipe_y %plate_obj_size_infos[index].wipe_width %plate_obj_size_infos[index].wipe_depth;
         }
@@ -5535,6 +5545,12 @@ int CLI::run(int argc, char **argv)
 
             printer_plate.printer_name = config_name;
             printer_plate.max_nozzle_count = machine_max_nozzle_count(config);
+            if (const auto *nozzles = config.option<ConfigOptionFloatsNullable>("nozzle_diameter")) {
+                if (!nozzles->values.empty())
+                    printer_plate.extruder_count = (int) nozzles->values.size();
+            }
+            if (const auto *hotend_as_extruder = config.option<ConfigOptionBool>("handle_hotend_as_extruder"))
+                printer_plate.handle_hotend_as_extruder = hotend_as_extruder->value;
             const bool supports_tpu285 = machine_supports_tpu285(config);
 
             temp_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
@@ -5589,11 +5605,11 @@ int CLI::run(int argc, char **argv)
                 BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: for multi-extruder printer, change printable size to bbox {%1%, %2%, 0} - {%3%, %4%, %5%}")
                             %current_bbox.min.x() %current_bbox.min.y() %current_bbox.max.x() %current_bbox.max.y() %temp_extruder_height;
             }
-            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: printable size{%1%,%2%, %3%}, exclude area{%4%, %5%: %6% x %7%}, wrapping area{%8%, %9%: %10% x %11%}, enable_wrapping_detect %12%, max_nozzle_count %13%, supports_tpu285 %14%")
+            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: printable size{%1%,%2%, %3%}, exclude area{%4%, %5%: %6% x %7%}, wrapping area{%8%, %9%: %10% x %11%}, enable_wrapping_detect %12%, max_nozzle_count %13%, supports_tpu285 %14%, handle_hotend_as_extruder %15%")
                 %printer_plate.printable_width %printer_plate.printable_depth %printer_plate.printable_height
                 %printer_plate.exclude_x %printer_plate.exclude_y %printer_plate.exclude_width %printer_plate.exclude_depth
                 %printer_plate.wrapping_x %printer_plate.wrapping_y %printer_plate.wrapping_width %printer_plate.wrapping_depth %enable_wrapping_detect
-                %printer_plate.max_nozzle_count %supports_tpu285;
+                %printer_plate.max_nozzle_count %supports_tpu285 %printer_plate.handle_hotend_as_extruder;
 
             if (config.option<ConfigOptionFloat>("extruder_clearance_height_to_lid"))
                 printer_plate.height_to_lid = config.opt_float("extruder_clearance_height_to_lid");
@@ -5619,6 +5635,12 @@ int CLI::run(int argc, char **argv)
         downward_check_status.resize(downward_check_size, false);
         int plate_count = partplate_list.get_plate_count();
         int failed_count = 0;
+        // The stored tower follows the slicing printer. A target with a different
+        // extruder model is re-estimated: multi-head uses one extruder plus nozzle-change
+        // ramming, and a non-multi-head target drops that ramming term.
+        bool source_hotend_as_extruder = false;
+        if (const auto *hotend_as_extruder = m_print_config.option<ConfigOptionBool>("handle_hotend_as_extruder"))
+            source_hotend_as_extruder = hotend_as_extruder->value;
 
         // Multi-diameter: each distinct diameter needs its own nozzle. A machine whose
         // mounted-nozzle capacity is smaller than the diameters actually used cannot print it.
@@ -5667,7 +5689,29 @@ int CLI::run(int argc, char **argv)
         for (int index = 0; index < plate_count; index ++)
         {
             Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
-            Vec3d size = plate_obj_size_infos[index].obj_bbox.size();
+            const Vec3d base_size = plate_obj_size_infos[index].obj_bbox.size();
+            // are all a single extruder with nozzle-change ramming, so they share that entry.
+            struct CachedTower {
+                int   extruder_count;
+                bool  hotend;
+                Vec3d size;
+            };
+            std::vector<CachedTower> cached_towers;
+            auto tower_for_target = [&](int extruder_count, bool hotend) -> Vec3d {
+                for (const CachedTower &item : cached_towers) {
+                    if (item.extruder_count == extruder_count && item.hotend == hotend)
+                        return item.size;
+                }
+                plate_obj_size_info_t adjusted;
+                check_plate_wipe_tower(cur_plate, index, m_print_config, adjusted, hotend ? 1 : 0, false, extruder_count);
+                Vec3d adjusted_size = base_size;
+                if (adjusted.has_wipe_tower)
+                    adjusted_size = adjusted.obj_bbox.size();
+                cached_towers.push_back(CachedTower{extruder_count, hotend, adjusted_size});
+                BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, downward_check tower bbox {%2%, %3%} -> {%4%, %5%}, extruder_count %6%, handle_hotend_as_extruder %7%")
+                    %(index+1) %base_size.x() %base_size.y() %adjusted_size.x() %adjusted_size.y() %extruder_count %(hotend ? 1 : 0);
+                return adjusted_size;
+            };
 
             bool is_sequence = false;
             get_print_sequence(cur_plate, m_print_config, is_sequence);
@@ -5686,6 +5730,16 @@ int CLI::run(int argc, char **argv)
                 if (downward_check_status[index2])
                     continue;
                 printer_plate_info_t& plate_info = downward_check_printers[index2];
+
+                // Multi-head targets are one extruder: nozzle-change ramming replaces the
+                // dual-extruder change term. A non-multi-head target uses its own extruder
+                // count and leaves that ramming term off.
+                Vec3d size = base_size;
+                if (plate_obj_size_infos[index].has_wipe_tower
+                    && plate_info.handle_hotend_as_extruder != source_hotend_as_extruder) {
+                    const int target_extruders = plate_info.handle_hotend_as_extruder ? 1 : std::max(1, plate_info.extruder_count);
+                    size = tower_for_target(target_extruders, plate_info.handle_hotend_as_extruder);
+                }
 
                 if (is_sequence) {
                     if ((plate_info.cleareance_radius > 0.f) && (plate_info.height_to_rod > 0.f) && (plate_info.height_to_lid > 0.f) && (plate_info.distance_to_rod > 0.f)) {

@@ -355,7 +355,9 @@ public:
     // legacy_behavior: restore the old estimate/placement logic, used only by CLI call
     // sites so headless output stays unchanged while GUI gets the newer logic.
     // Non-legacy callers must pass a full config (print + printer + filament presets).
-    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false, bool enable_wrapping_detection = false, bool legacy_behavior = false) const;
+    // hotend_as_extruder_override: <0 read handle_hotend_as_extruder from config,
+    // 0 force off, >0 force on. CLI downward_check forces it on for a multi-head target.
+    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false, bool enable_wrapping_detection = false, bool legacy_behavior = false, int hotend_as_extruder_override = -1) const;
     arrangement::ArrangePolygon estimate_wipe_tower_polygon(const DynamicPrintConfig & config, int plate_index, Vec3d& wt_pos, Vec3d& wt_size, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false, bool legacy_behavior = false) const;
 
     // "Optimal" first position for this plate's wipe tower: hugs the parts' inflated hull
