@@ -500,6 +500,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         if (event.CanVeto() && m_plater->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(true)) {
             // prevents to open the save dirty project dialog
             event.Veto();
+            wxGetApp().cancel_update_restart();
             BOOST_LOG_TRIVIAL(info) << "cancelled by gizmo in editing";
             return;
         }
@@ -511,7 +512,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         //}
         // Runs before close_with_confirm() so that a save triggered from here marks
         // the plater dirty in time for the "save project" prompt to pick it up.
-        if (event.CanVeto() && !confirm_project_page_can_leave([this] { Close(); })) {
+        if (event.CanVeto() && !confirm_project_page_can_leave([this] { Close(); }, [] { wxGetApp().cancel_update_restart(); })) {
             event.Veto();
             BOOST_LOG_TRIVIAL(info) << "cancelled or deferred by the project page";
             return;
@@ -527,11 +528,13 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         int result;
         if (((result = m_plater->close_with_confirm(check, event.CanVeto())) == wxID_CANCEL) && event.CanVeto()) {
             event.Veto();
+            wxGetApp().cancel_update_restart();
             BOOST_LOG_TRIVIAL(info) << "cancelled by close_with_confirm selection";
             return;
         }
         if (event.CanVeto() && !wxGetApp().check_print_host_queue()) {
             event.Veto();
+            wxGetApp().cancel_update_restart();
             return;
         }
         if (GLCanvas3D *canvas = m_plater->get_assmeble_canvas3D()) {
@@ -1775,7 +1778,7 @@ bool MainFrame::is_active_and_shown_tab(wxPanel* panel)
     return true;
 }
 
-bool MainFrame::confirm_project_page_can_leave(std::function<void()> retry)
+bool MainFrame::confirm_project_page_can_leave(std::function<void()> retry, std::function<void()> cancelled)
 {
     if (m_project == nullptr || !m_project->is_editing_page())
         return true;
@@ -1825,6 +1828,7 @@ bool MainFrame::confirm_project_page_can_leave(std::function<void()> retry)
     }
 
     // wxID_NO drops the edits and lets the action through; cancel stays on the page.
+    if (ret != wxID_NO && cancelled) cancelled();
     return ret == wxID_NO;
 }
 

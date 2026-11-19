@@ -379,7 +379,7 @@ public:
     // the caller may proceed. Returns false when the caller must abort (veto) either
     // because the user cancelled, or because the answer is still pending - in the
     // latter case `retry` is invoked once the page reports back.
-    bool confirm_project_page_can_leave(std::function<void()> retry);
+    bool confirm_project_page_can_leave(std::function<void()> retry, std::function<void()> cancelled = {});
 
     void        add_to_recent_projects(const wxString& filename);
     void        get_recent_projects(boost::property_tree::wptree &tree, int images);
