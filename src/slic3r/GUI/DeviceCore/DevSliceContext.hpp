@@ -47,6 +47,10 @@ struct DevSliceContext
 
 public:
     DevSliceContext() = default;
+
+    // return key-> physical_idx, value-> nozzle data
+    std::unordered_multimap<int, NozzleDef> GetSliceNozzles(int total_ext_count) const;
+
     static std::shared_ptr<DevSliceContext> CreateFromNormal(GUI::PrintFromType print_type,
                                                             Slic3r::GUI::Plater* plater);
     static std::shared_ptr<DevSliceContext> CreateFromSDCard(GUI::PrintFromType print_type,

@@ -6,6 +6,9 @@
 #include "DevSliceContext.hpp"
 
 #include "DevUtilBackend.h"
+#include "DevExtruderSystem.h"
+#include "DevNozzleSystem.h"
+#include "DevUtil.h"
 
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
@@ -103,6 +106,25 @@ bool DevSliceContext::ExceedsFlushVolumeLimit(float limit) const
 bool DevSliceContext::HasMultipleLogicNozzleDiameters() const
 {
     return multi_nozzle_diameter_mode != 0;
+}
+
+// for example:
+// {0, {0.4, S_FLOW}}, {1, {0.8, H_FLOW}}
+// {0, {0.4, S_FLOW}}, {0, {0.4, H_FLOW}}
+std::unordered_multimap<int, NozzleDef> DevSliceContext::GetSliceNozzles(int total_ext_count) const
+{
+    std::unordered_multimap<int, NozzleDef> slice_nozzles;
+    for (const auto& nozzle : used_logic_nozzles) {
+        NozzleDef nozzle_data;
+        nozzle_data.nozzle_diameter = s_get_diameter(nozzle.diameter);
+        nozzle_data.nozzle_flow_type = DevNozzle::ToNozzleFlowType(nozzle.volume_type);
+        const int physical_extruder = DevExtder::to_physical_extruder_id(total_ext_count, nozzle.extruder_id);
+        if (physical_extruder != INVALID_EXTRUDER_ID) {
+            slice_nozzles.insert({ physical_extruder, nozzle_data });
+        }
+    }
+
+    return slice_nozzles;
 }
 
 std::shared_ptr<DevSliceContext> DevSliceContext::CreateFromNormal(GUI::PrintFromType print_type, Slic3r::GUI::Plater* plater)

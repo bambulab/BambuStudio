@@ -6681,7 +6681,7 @@ static bool s_get_queue_slicing_extruder_nozzles(const QueuePrintContext& contex
     return true;
 }
 
-// return key-> logic extruder idx, value-> nozzle data
+// return key-> physical_idx, value-> nozzle data
 // for example:
 // {0, {0.4, S_FLOW}}, {1, {0.8, H_FLOW}}
 // {0, {0.4, S_FLOW}}, {0, {0.4, H_FLOW}} // hybrid
@@ -6802,7 +6802,7 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
     }
 
     const auto& nozzle_sys = obj_->GetNozzleSystem();
-    if (m_print_type == FROM_NORMAL || m_print_type == FROM_PRINT_QUEUE) {
+    if (m_print_type == FROM_NORMAL || m_print_type == FROM_PRINT_QUEUE || m_print_type == FROM_SDCARD_VIEW) {
         std::unordered_multimap<int, NozzleDef> slicing_ext_nozzles;
         if (m_print_type == FROM_PRINT_QUEUE) {
             if (!m_queue_print_context ||
@@ -6812,6 +6812,14 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
                 show_status(PrintDialogStatus::PrintStatusNozzleDataInvalid);
                 return false;
             }
+        } else if (m_print_type == FROM_SDCARD_VIEW) {
+            // only check multi_nozzle_diameter_mode with 2 extruders now.
+            if (m_slice_context && m_slice_context->multi_nozzle_diameter_mode && obj_->GetExtderSystem()->GetTotalExtderCount() == 2) {
+                slicing_ext_nozzles = m_slice_context->GetSliceNozzles(obj_->GetExtderSystem()->GetTotalExtderCount());
+            } else {
+                return true;
+            }
+
         } else {
             const auto plate_ext_nozzles = s_get_slicing_extuder_nozzles(obj_);
             if (!plate_ext_nozzles) {
