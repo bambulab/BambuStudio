@@ -1692,19 +1692,25 @@ std::vector<int> build_manual_nozzle_map(const PrintConfig &print_config,
         ? std::string() : format_diameter_to_str(print_config.nozzle_diameter.values.front());
 
     for (auto f : used_filaments) {
-        if (in_ams_group(f)) {
+        int req_vol = (f < fvmap.size()) ? fvmap[f] : (int) nvtStandard;
+        if (req_vol < 0 || req_vol >= static_cast<int>(NozzleVolumeType::nvtCount))
+            req_vol = static_cast<int>(NozzleVolumeType::nvtStandard);
+
+        // Stay on the AMS nozzle only when it can print this filament's flow. A TPU285 filament
+        // whose nozzle map still points at the AMS slot must not be forced onto a Standard AMS
+        // hotend; fall through and take a compatible fixed nozzle.
+        const bool ams_flow_ok = ams_nozzle_idx >= 0 &&
+            ams_nozzle_idx < static_cast<int>(nozzle_list.size()) &&
+            compatible((int) nozzle_list[ams_nozzle_idx].volume_type, req_vol);
+        if (in_ams_group(f) && ams_flow_ok) {
             if (f < selected_diameters.size() && !selected_diameters[f].empty() &&
-                (ams_nozzle_idx < 0 || ams_nozzle_idx >= static_cast<int>(nozzle_list.size()) ||
-                 nozzle_list[ams_nozzle_idx].diameter != selected_diameters[f]))
+                nozzle_list[ams_nozzle_idx].diameter != selected_diameters[f])
                 return {};
             fnmap[f] = ams_nozzle_idx;
             ++ams_group_count;
             continue;
         }
 
-        int req_vol = (f < fvmap.size()) ? fvmap[f] : (int) nvtStandard;
-        if (req_vol < 0 || req_vol >= static_cast<int>(NozzleVolumeType::nvtCount))
-            req_vol = static_cast<int>(NozzleVolumeType::nvtStandard);
         int chosen   = -1;
         for (const auto& n : nozzle_list) {
             if (!n.installed || n.group_id == ams_nozzle_idx || used_fixed.count(n.group_id))
