@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 20:11+0800\n"
+"POT-Creation-Date: 2026-11-19 17:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -384,9 +384,6 @@ msgstr "Die variable Schichthöhe wird bei organischen Stützen nicht unterstüt
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr "Das Drucken mit unterschiedlichen Düsendurchmessern und einem Stützring ist experimentell. Bei nicht zusammenpassenden Düsengrößen funktioniert der Stützring möglicherweise nicht richtig."
-
-msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr "Das Drucken mit unterschiedlichen Düsendurchmessern und einem Reinigungsturm ist experimentell. Bei nicht zusammenpassenden Düsengrößen funktioniert der Reinigungsturm möglicherweise nicht richtig."
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr "Unterschiedliche Düsendurchmesser sind nicht zulässig, wenn der Stützring aktiviert ist."
@@ -3078,6 +3075,12 @@ msgstr "Nahtplatzierung entfernt von Überhängen (experimentell)"
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
 msgstr "Stellt sicher, dass die Naht bei Ausrichtungsmodi nicht über Überhänge hinausragt."
+
+msgid "Embedded seam headroom"
+msgstr ""
+
+msgid "When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that leaves at least this much hidden wall in the printing direction before the wall becomes visible. This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "Nahtlücke"
@@ -8484,17 +8487,17 @@ msgstr "Düse bearbeiten"
 msgid "In use"
 msgstr "In Verwendung"
 
-msgid "This nozzle is turned off. Select it above to use it."
-msgstr "Diese Düse ist ausgeschaltet. Wählen Sie sie oben aus, um sie zu verwenden."
+msgid "This side has no nozzle. Click Edit to add one."
+msgstr ""
 
-msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
-msgstr "Diese Düse kann nicht mit dem ausgewählten Durchmesser drucken. Klicken Sie auf „Bearbeiten“, um die Einstellung zu ändern."
+msgid "This nozzle has another diameter. Select it above to use it."
+msgstr ""
 
-msgid "The nozzles are different, so this option is not available."
-msgstr "Die Düsen sind unterschiedlich, daher ist diese Option nicht verfügbar."
+msgid "Filament switcher"
+msgstr ""
 
-msgid "This side has no nozzle. Click Edit on its card to add one."
-msgstr "Auf dieser Seite ist keine Düse vorhanden. Klicken Sie auf der zugehörigen Karte auf „Bearbeiten“, um eine hinzuzufügen."
+msgid "The filament switcher is not ready."
+msgstr ""
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr "Filamentweiche erkannt. Alle AMS-Filamente sind nun für beide Extruder verfügbar. Der Slicer weist diese für einen optimalen Druck automatisch zu. "
@@ -8530,6 +8533,9 @@ msgstr "Die Hotend-Infos sind unbekannt. Bitte aktualisieren Sie die Düseninfor
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Düsendurchmesser stimmen nicht überein. Diese Düse kann nicht verwendet werden."
+
+msgid "AMS"
+msgstr "AMS"
 
 msgid "Dynamic flow calibration"
 msgstr "Dynamische Flusskalibrierung"
@@ -8883,6 +8889,15 @@ msgstr "Slicing-Ergebnis"
 msgid "Color Scheme"
 msgstr "Farbschema"
 
+msgid "Less"
+msgstr ""
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Total usage"
+msgstr ""
+
 msgid "Percent"
 msgstr "Prozent"
 
@@ -8982,53 +8997,41 @@ msgstr "Zum Leise-Modus wechseln"
 msgid "Switch to normal mode"
 msgstr "Zum Normalen Modus wechseln"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "Automatisches erneutes Slicen entsprechend der optimalen Filamentgruppierung, wobei die Gruppierungsergebnisse nach dem Slicen angezeigt werden."
-
-msgid "Filament Grouping"
-msgstr "Filamentgruppierung"
-
-msgid "Why this grouping"
-msgstr "Warum diese Gruppierung"
-
-msgid "AMS nozzle"
-msgstr "AMS-Düse"
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "Bitte legen Sie die Filamente entsprechend der Gruppierung in den Drucker ein."
-
-msgid "Tips:"
-msgstr "Tipps:"
-
-msgid "Current grouping of slice result is not optimal."
-msgstr "Die aktuelle Gruppierung des Slicing-Ergebnisses ist nicht optimal."
+#, boost-format
+msgid "save %1%g more filament and %2% more filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr "Erhöhung des Filaments um %1%g und %2% Düsenreinigungen im Vergleich zur optimalen Gruppierung."
+msgid "save %1%g more filament but add %2% filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr "Erhöhung des Filaments um %1%g und Sparen von %2% Düsenreinigungen im Vergleich zur optimalen Gruppierung."
+msgid "save %2% more filament changes but use %1%g more filament"
+msgstr ""
+
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr "Sparen des Filaments um %1%g und Erhöhung von %2% Düsenreinigungen im Vergleich zur optimalen Gruppierung."
+msgid "save %1%g filament and %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Sparen %1%g Filament und Erhöhung von %2% Düsenreinigungen im Vergleich zu einem Drucker mit einer Düse."
+msgid "save %1%g filament but add %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Sparen %1% g Filament und Erhöhung von%2% Düsenreinigungen im Vergleich zu einem Drucker mit nur einer Düse."
+msgid "save %2% filament changes but use %1%g more filament."
+msgstr ""
 
-#, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Erhöhung um %1%g Filament und Sparen von %2% Düsenreinigungen im Vergleich zu einem Drucker mit einer Düse."
+msgid "Compared to a printer with one nozzle, "
+msgstr ""
 
 msgid "Set to Optimal"
 msgstr "Auf Optimal einstellen"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "Automatisches erneutes Slicen entsprechend der optimalen Filamentgruppierung, wobei die Gruppierungsergebnisse nach dem Slicen angezeigt werden."
 
 msgid "Regroup filament"
 msgstr "Filament neu gruppieren"
@@ -14445,9 +14448,6 @@ msgstr "Integration erfolgreich rückgängig gemacht."
 msgid "New network plug-in available."
 msgstr "Neues Netzwerk-Plugin verfügbar"
 
-msgid "Details"
-msgstr "Details"
-
 msgid "New printer config available."
 msgstr "Neue Druckerkonfiguration verfügbar."
 
@@ -15794,9 +15794,6 @@ msgstr "AMS (4 Slots)"
 msgid "AMS(1 slot)"
 msgstr "AMS (1 Slot)"
 
-msgid "AMS"
-msgstr "AMS"
-
 msgid "Not installed"
 msgstr "Nicht installiert"
 
@@ -16853,6 +16850,9 @@ msgstr "Dreiecke: %1%\n"
 
 msgid " (Repair)"
 msgstr " (Reparatur)"
+
+msgid "Tips:"
+msgstr "Tipps:"
 
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr "Um das Modell zu reparieren, verwenden Sie bitte ein Drittanbieter-Tool, bevor Sie es in Bambu Studio importieren, z. B. "
@@ -18150,24 +18150,6 @@ msgstr "Bitte erneut slicen, um Filamentverschwendung zu vermeiden."
 msgid "Task canceled"
 msgstr "Auftrag abgebrochen"
 
-msgid "Bambu Cool Plate"
-msgstr "Bambu Cool Plate"
-
-msgid "Bambu Engineering Plate"
-msgstr "Bambu Engineering Plate"
-
-msgid "Bambu Smooth PEI Plate"
-msgstr "Bambu Smooth PEI Plate"
-
-msgid "High temperature Plate"
-msgstr "High temperature Plate"
-
-msgid "Bambu Textured PEI Plate"
-msgstr "Bambu Textured PEI Plate"
-
-msgid "Bambu 3D Effect Plate"
-msgstr "Bambu 3D-Effektplatte"
-
 msgid "Send print job"
 msgstr "Druckauftrag senden"
 
@@ -18503,6 +18485,9 @@ msgstr "TPU im Slot %d kann beim Wechsel des Druckwerkzeugs herausrutschen. Setz
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Rückstände von Niedertemperatur-Filament im Hotend %s festgestellt. Hohe Kammertemperaturen beim Drucken können zu Düsenverstopfungen führen. Bitte laden Sie zuerst Filament."
 
+msgid "High temperature Plate"
+msgstr "High temperature Plate"
+
 msgid "Cool Plate SuperTack"
 msgstr ""
 
@@ -18592,12 +18577,12 @@ msgid "Try to connect"
 msgstr "Verbindung herstellen"
 
 msgctxt "sendtoprint"
-msgid "External"
-msgstr "Extern"
-
-msgctxt "sendtoprint"
 msgid "Cache"
 msgstr ""
+
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "Extern"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Timeout beim Hochladen der Datei: Bitte überprüfen Sie, ob die Firmware-Version dies unterstützt."
@@ -20316,6 +20301,9 @@ msgstr "Bitte überprüfen Sie die Netzwerkverbindung von Drucker und Studio."
 msgid "Sync Printer Information"
 msgstr "Druckerinformationen synchronisieren"
 
+msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
+msgstr ""
+
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr "Das Druckermodell und die Einstellungen in dieser 3MF-Datei stimmen nicht mit dem angeschlossenen Drucker überein. Möchten Sie diese Einstellungen für das Slicen für diesen Drucker anpassen?"
 
@@ -20331,12 +20319,29 @@ msgstr "Hinweis: Nach der Anpassung der Einstellungen werden einige Druckparamet
 msgid "3MF File Settings"
 msgstr "3MF-Dateieinstellungen"
 
+msgid "Target Printer"
+msgstr ""
+
 msgid "Connected Printer"
 msgstr "Verbundener Drucker"
+
+msgid "Target Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s (only supported)"
 msgstr "%s (einzige unterstützte Option)"
+
+msgid "Target printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
+msgstr ""
 
 msgid "Don't show this again when opening 3MF files"
 msgstr "Diese Meldung soll beim Öffnen von 3MF-Dateien nicht mehr angezeigt werden"
@@ -21350,6 +21355,75 @@ msgid ""
 msgstr ""
 "Zuverlässigkeit auf Anhieb\n"
 "Weniger Überwachung, vorhersagbarere Ausgabe. Beispiel: Eine kleine Farm, die PETG-Teile druckt, vermeidet Überraschungen wie \"Ausfall in Stunde 6\" und hält Chargen im Zeitplan."
+
+#~ msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+#~ msgstr "Das Drucken mit unterschiedlichen Düsendurchmessern und einem Reinigungsturm ist experimentell. Bei nicht zusammenpassenden Düsengrößen funktioniert der Reinigungsturm möglicherweise nicht richtig."
+
+#~ msgid "This nozzle is turned off. Select it above to use it."
+#~ msgstr "Diese Düse ist ausgeschaltet. Wählen Sie sie oben aus, um sie zu verwenden."
+
+#~ msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
+#~ msgstr "Diese Düse kann nicht mit dem ausgewählten Durchmesser drucken. Klicken Sie auf „Bearbeiten“, um die Einstellung zu ändern."
+
+#~ msgid "The nozzles are different, so this option is not available."
+#~ msgstr "Die Düsen sind unterschiedlich, daher ist diese Option nicht verfügbar."
+
+#~ msgid "This side has no nozzle. Click Edit on its card to add one."
+#~ msgstr "Auf dieser Seite ist keine Düse vorhanden. Klicken Sie auf der zugehörigen Karte auf „Bearbeiten“, um eine hinzuzufügen."
+
+#~ msgid "Filament Grouping"
+#~ msgstr "Filamentgruppierung"
+
+#~ msgid "Why this grouping"
+#~ msgstr "Warum diese Gruppierung"
+
+#~ msgid "AMS nozzle"
+#~ msgstr "AMS-Düse"
+
+#~ msgid "Please place filaments on the printer based on grouping result."
+#~ msgstr "Bitte legen Sie die Filamente entsprechend der Gruppierung in den Drucker ein."
+
+#~ msgid "Current grouping of slice result is not optimal."
+#~ msgstr "Die aktuelle Gruppierung des Slicing-Ergebnisses ist nicht optimal."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Erhöhung des Filaments um %1%g und %2% Düsenreinigungen im Vergleich zur optimalen Gruppierung."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Erhöhung des Filaments um %1%g und Sparen von %2% Düsenreinigungen im Vergleich zur optimalen Gruppierung."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Sparen des Filaments um %1%g und Erhöhung von %2% Düsenreinigungen im Vergleich zur optimalen Gruppierung."
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Sparen %1%g Filament und Erhöhung von %2% Düsenreinigungen im Vergleich zu einem Drucker mit einer Düse."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Sparen %1% g Filament und Erhöhung von%2% Düsenreinigungen im Vergleich zu einem Drucker mit nur einer Düse."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Erhöhung um %1%g Filament und Sparen von %2% Düsenreinigungen im Vergleich zu einem Drucker mit einer Düse."
+
+#~ msgid "Bambu Cool Plate"
+#~ msgstr "Bambu Cool Plate"
+
+#~ msgid "Bambu Engineering Plate"
+#~ msgstr "Bambu Engineering Plate"
+
+#~ msgid "Bambu Smooth PEI Plate"
+#~ msgstr "Bambu Smooth PEI Plate"
+
+#~ msgid "Bambu Textured PEI Plate"
+#~ msgstr "Bambu Textured PEI Plate"
+
+#~ msgid "Bambu 3D Effect Plate"
+#~ msgstr "Bambu 3D-Effektplatte"
 
 #~ msgid "Switch hotend"
 #~ msgstr "Hotend wechseln"

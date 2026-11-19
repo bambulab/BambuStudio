@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 20:11+0800\n"
+"POT-Creation-Date: 2026-11-19 17:41+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -393,9 +393,6 @@ msgstr "Înălțimea variabilă a stratului nu este acceptată cu suporturi orga
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr "Imprimarea cu duze de diametre diferite și cu inel de susținere este experimentală. Este posibil ca inelul de susținere să nu funcționeze corect dacă diametrele duzelor nu corespund."
-
-msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr "Imprimarea cu diametre diferite ale duzelor și cu turn de amorsare este experimentală. Este posibil ca turnul de amorsare să nu funcționeze corect dacă diametrele duzelor nu corespund."
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr "Nu sunt permise diametre diferite ale duzei atunci când inelul de susținere este activat."
@@ -3087,6 +3084,12 @@ msgstr "Plasarea cusăturii departe de console (experimental)"
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
 msgstr "Asigurați plasarea cusăturii departe de console pentru aliniere și moduri de susținere."
+
+msgid "Embedded seam headroom"
+msgstr ""
+
+msgid "When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that leaves at least this much hidden wall in the printing direction before the wall becomes visible. This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "Spațiu de cusătură"
@@ -8493,17 +8496,17 @@ msgstr "Editează duza"
 msgid "In use"
 msgstr "În uz"
 
-msgid "This nozzle is turned off. Select it above to use it."
-msgstr "Această duză este dezactivată. Selectați-o mai sus pentru a o utiliza."
+msgid "This side has no nozzle. Click Edit to add one."
+msgstr ""
 
-msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
-msgstr "Această duză nu poate imprima cu diametrul selectat. Faceți clic pe Editează pentru a o modifica."
+msgid "This nozzle has another diameter. Select it above to use it."
+msgstr ""
 
-msgid "The nozzles are different, so this option is not available."
-msgstr "Duzele sunt diferite, așa că această opțiune nu este disponibilă."
+msgid "Filament switcher"
+msgstr ""
 
-msgid "This side has no nozzle. Click Edit on its card to add one."
-msgstr "Această parte nu are duză. Faceți clic pe Editează de pe cardul acesteia pentru a adăuga una."
+msgid "The filament switcher is not ready."
+msgstr ""
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr "Comutator de filamente detectat. Toate filamentele AMS sunt acum disponibile pentru ambele extrudere. Slicerul va atribui automat pentru imprimare optimă. "
@@ -8539,6 +8542,9 @@ msgstr "Informațiile despre hotend sunt necunoscute. Vă rugăm să actualizaț
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Nepotrivire a diametrului duzei. Această duză nu poate fi utilizată."
+
+msgid "AMS"
+msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "Calibrare dinamică a debitului"
@@ -8892,6 +8898,15 @@ msgstr "Rezultatul felierii"
 msgid "Color Scheme"
 msgstr "Schemă de culori"
 
+msgid "Less"
+msgstr ""
+
+msgid "Details"
+msgstr "Detalii"
+
+msgid "Total usage"
+msgstr ""
+
 msgid "Percent"
 msgstr "Procent"
 
@@ -8991,53 +9006,41 @@ msgstr "Comutați la modul silențios"
 msgid "Switch to normal mode"
 msgstr "Comutați la modul normal"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "Refeliere automată în funcție de gruparea optimă a filamentelor, iar rezultatele grupării vor fi afișate după feliere."
-
-msgid "Filament Grouping"
-msgstr "Gruparea filamentelor"
-
-msgid "Why this grouping"
-msgstr "De ce această grupare"
-
-msgid "AMS nozzle"
-msgstr "Duză AMS"
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "Vă rugăm să plasați filamentele pe imprimantă în funcție de rezultatul grupării."
-
-msgid "Tips:"
-msgstr "Sfaturi:"
-
-msgid "Current grouping of slice result is not optimal."
-msgstr "Gruparea actuală a rezultatului feliilor nu este optimă."
+#, boost-format
+msgid "save %1%g more filament and %2% more filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr "Crește consumul de filament cu %1%g și numărul de purjări ale duzei %2% față de gruparea optimă."
+msgid "save %1%g more filament but add %2% filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr "Crește consumul de filament cu %1%g și reduce numărul de purjări ale duzei %2% față de gruparea optimă."
+msgid "save %2% more filament changes but use %1%g more filament"
+msgstr ""
+
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr "Reduce consumul de filament cu %1%g și crește numărul de purjări ale duzei %2% față de gruparea optimă."
+msgid "save %1%g filament and %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Reduce consumul de filament cu %1%g și numărul de purjări ale duzei %2% față de o imprimantă cu o singură duză."
+msgid "save %1%g filament but add %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Reduce consumul de filament cu %1%g și crește numărul de purjări ale duzei %2% față de o imprimantă cu o singură duză."
+msgid "save %2% filament changes but use %1%g more filament."
+msgstr ""
 
-#, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Crește consumul de filament cu %1%g și reduce numărul de purjări ale duzei %2% față de o imprimantă cu o singură duză."
+msgid "Compared to a printer with one nozzle, "
+msgstr ""
 
 msgid "Set to Optimal"
 msgstr "Setați la Optimal"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "Refeliere automată în funcție de gruparea optimă a filamentelor, iar rezultatele grupării vor fi afișate după feliere."
 
 msgid "Regroup filament"
 msgstr "Regrupare filament"
@@ -14471,9 +14474,6 @@ msgstr "Anularea integrării a reușit."
 msgid "New network plug-in available."
 msgstr "Un nou plugin de rețea este disponibil."
 
-msgid "Details"
-msgstr "Detalii"
-
 msgid "New printer config available."
 msgstr "Noua configurație de imprimantă este disponibilă."
 
@@ -15820,9 +15820,6 @@ msgstr "AMS (4 sloturi)"
 msgid "AMS(1 slot)"
 msgstr ""
 
-msgid "AMS"
-msgstr ""
-
 msgid "Not installed"
 msgstr "Neinstalat"
 
@@ -16881,6 +16878,9 @@ msgstr "Triunghiuri: %1%\n"
 
 msgid " (Repair)"
 msgstr " (Reparare)"
+
+msgid "Tips:"
+msgstr "Sfaturi:"
 
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr "Pentru a repara modelul, utilizați o unealtă terță înainte de a-l importa în Bambu Studio, cum ar fi "
@@ -18176,24 +18176,6 @@ msgstr "Vă rugăm să feliați din nou pentru a evita risipa de filament."
 msgid "Task canceled"
 msgstr "Sarcină anulată"
 
-msgid "Bambu Cool Plate"
-msgstr "Placă Bambu Cool"
-
-msgid "Bambu Engineering Plate"
-msgstr "Placă inginerească Bambu"
-
-msgid "Bambu Smooth PEI Plate"
-msgstr "Placă Bambu PEI netedă"
-
-msgid "High temperature Plate"
-msgstr "Placă de temperatură înaltă"
-
-msgid "Bambu Textured PEI Plate"
-msgstr "Placă Bambu PEI texturată"
-
-msgid "Bambu 3D Effect Plate"
-msgstr "Placă Bambu cu efect 3D"
-
 msgid "Send print job"
 msgstr "Trimiteți lucrarea de imprimare"
 
@@ -18527,6 +18509,9 @@ msgstr "TPU din slotul %d se poate desprinde în timpul schimbării uneltei de i
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Reziduuri de filament la temperatură scăzută detectate în Hotend %s. Imprimarea la temperatură ridicată a camerei poate cauza înfundarea duzelor. Vă rugăm să încărcați mai întâi filamentul."
 
+msgid "High temperature Plate"
+msgstr "Placă de temperatură înaltă"
+
 msgid "Cool Plate SuperTack"
 msgstr ""
 
@@ -18616,12 +18601,12 @@ msgid "Try to connect"
 msgstr "Încercați să vă conectați"
 
 msgctxt "sendtoprint"
-msgid "External"
-msgstr "Extern"
-
-msgctxt "sendtoprint"
 msgid "Cache"
 msgstr ""
+
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "Extern"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "A expirat timpul de încărcare a fișierului, vă rugăm să verificați dacă versiunea de firmware o acceptă."
@@ -20340,6 +20325,9 @@ msgstr "Vă rugăm să verificați conexiunea la rețea a imprimantei și a Stud
 msgid "Sync Printer Information"
 msgstr "Sincronizați informațiile despre imprimantă"
 
+msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
+msgstr ""
+
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr "Modelul și setările imprimantei din acest fișier 3MF nu se potrivesc cu imprimanta conectată. Doriți să adaptați aceste setări de feliere pentru această imprimantă?"
 
@@ -20355,12 +20343,29 @@ msgstr "Notă: După adaptarea setărilor, unii parametri de imprimare vor fi aj
 msgid "3MF File Settings"
 msgstr "Setări fișier 3MF"
 
+msgid "Target Printer"
+msgstr ""
+
 msgid "Connected Printer"
 msgstr "Imprimantă conectată"
+
+msgid "Target Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s (only supported)"
 msgstr "%s (doar cele acceptate)"
+
+msgid "Target printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
+msgstr ""
 
 msgid "Don't show this again when opening 3MF files"
 msgstr "Nu mai afișați acest mesaj la deschiderea fișierelor 3MF"
@@ -21374,6 +21379,75 @@ msgid ""
 msgstr ""
 "Fiabilitate de la prima încercare\n"
 "Mai puțină supraveghere, rezultate mai previzibile. Exemplu: o fermă mică care produce piese PETG evită surprizele de tip „defecțiune la ora 6” și menține loturile la timp."
+
+#~ msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+#~ msgstr "Imprimarea cu diametre diferite ale duzelor și cu turn de amorsare este experimentală. Este posibil ca turnul de amorsare să nu funcționeze corect dacă diametrele duzelor nu corespund."
+
+#~ msgid "This nozzle is turned off. Select it above to use it."
+#~ msgstr "Această duză este dezactivată. Selectați-o mai sus pentru a o utiliza."
+
+#~ msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
+#~ msgstr "Această duză nu poate imprima cu diametrul selectat. Faceți clic pe Editează pentru a o modifica."
+
+#~ msgid "The nozzles are different, so this option is not available."
+#~ msgstr "Duzele sunt diferite, așa că această opțiune nu este disponibilă."
+
+#~ msgid "This side has no nozzle. Click Edit on its card to add one."
+#~ msgstr "Această parte nu are duză. Faceți clic pe Editează de pe cardul acesteia pentru a adăuga una."
+
+#~ msgid "Filament Grouping"
+#~ msgstr "Gruparea filamentelor"
+
+#~ msgid "Why this grouping"
+#~ msgstr "De ce această grupare"
+
+#~ msgid "AMS nozzle"
+#~ msgstr "Duză AMS"
+
+#~ msgid "Please place filaments on the printer based on grouping result."
+#~ msgstr "Vă rugăm să plasați filamentele pe imprimantă în funcție de rezultatul grupării."
+
+#~ msgid "Current grouping of slice result is not optimal."
+#~ msgstr "Gruparea actuală a rezultatului feliilor nu este optimă."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Crește consumul de filament cu %1%g și numărul de purjări ale duzei %2% față de gruparea optimă."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Crește consumul de filament cu %1%g și reduce numărul de purjări ale duzei %2% față de gruparea optimă."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Reduce consumul de filament cu %1%g și crește numărul de purjări ale duzei %2% față de gruparea optimă."
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Reduce consumul de filament cu %1%g și numărul de purjări ale duzei %2% față de o imprimantă cu o singură duză."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Reduce consumul de filament cu %1%g și crește numărul de purjări ale duzei %2% față de o imprimantă cu o singură duză."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Crește consumul de filament cu %1%g și reduce numărul de purjări ale duzei %2% față de o imprimantă cu o singură duză."
+
+#~ msgid "Bambu Cool Plate"
+#~ msgstr "Placă Bambu Cool"
+
+#~ msgid "Bambu Engineering Plate"
+#~ msgstr "Placă inginerească Bambu"
+
+#~ msgid "Bambu Smooth PEI Plate"
+#~ msgstr "Placă Bambu PEI netedă"
+
+#~ msgid "Bambu Textured PEI Plate"
+#~ msgstr "Placă Bambu PEI texturată"
+
+#~ msgid "Bambu 3D Effect Plate"
+#~ msgstr "Placă Bambu cu efect 3D"
 
 #~ msgid "Switch hotend"
 #~ msgstr "Comutare hotend"

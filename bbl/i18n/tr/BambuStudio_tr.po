@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 20:11+0800\n"
+"POT-Creation-Date: 2026-11-19 17:41+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -388,9 +388,6 @@ msgstr "Değişken Katman Yüksekliği, Organik desteklerle kullanılamaz."
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr "Farklı püskürtme ucu çapları ve destek halkası kullanılarak yazdırma deneyseldir. Püskürtme ucu çapları eşleşmediğinde destek halkası düzgün çalışmayabilir."
-
-msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr "Farklı püskürtme ucu çapları ve Prime kulesi kullanılarak yazdırma deneyseldir. Prime kulesi, çapları eşleşmeyen püskürtme uçlarıyla düzgün çalışmayabilir."
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr "Destek halkası etkinleştirildiğinde farklı püskürtme ucu çaplarına izin verilmez."
@@ -3082,6 +3079,12 @@ msgstr "Dikişin çıkıntılardan uzağa yerleştirilmesi (deneysel)"
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
 msgstr "Hizalanmış ve Arka modlarında dikişin çıkıntılardan uzağa yerleştirilmesini sağla."
+
+msgid "Embedded seam headroom"
+msgstr ""
+
+msgid "When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that leaves at least this much hidden wall in the printing direction before the wall becomes visible. This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "Dikiş boşluğu"
@@ -8482,17 +8485,17 @@ msgstr "Püskürtme ucunu düzenle"
 msgid "In use"
 msgstr "Kullanımda"
 
-msgid "This nozzle is turned off. Select it above to use it."
-msgstr "Bu püskürtme ucu kapalı. Kullanmak için yukarıdan seçin."
+msgid "This side has no nozzle. Click Edit to add one."
+msgstr ""
 
-msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
-msgstr "Bu püskürtme ucuyla seçilen çapta yazdırma yapılamaz. Değiştirmek için Düzenle'ye tıklayın."
+msgid "This nozzle has another diameter. Select it above to use it."
+msgstr ""
 
-msgid "The nozzles are different, so this option is not available."
-msgstr "Püskürtme uçları farklı olduğundan bu seçenek kullanılamıyor."
+msgid "Filament switcher"
+msgstr ""
 
-msgid "This side has no nozzle. Click Edit on its card to add one."
-msgstr "Bu tarafta püskürtme ucu yok. Bir tane eklemek için kartındaki Düzenle'ye tıklayın."
+msgid "The filament switcher is not ready."
+msgstr ""
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr "Filament değiştirici tespit edildi. AMS filamentlerinin tamamı artık her iki ekstrüder için de mevcuttur. Dilimleme programı, en uygun baskı için otomatik olarak atama yapacaktır. "
@@ -8528,6 +8531,9 @@ msgstr "Hotend bilgileri bilinmiyor. Lütfen kullanmadan önce püskürtme ucu b
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Püskürtme ucu çapı uyuşmuyor. Bu püskürtme ucu kullanılamaz."
+
+msgid "AMS"
+msgstr "AMS"
 
 msgid "Dynamic flow calibration"
 msgstr "Dinamik akış kalibrasyonu"
@@ -8881,6 +8887,15 @@ msgstr "Dilimleme Sonucu"
 msgid "Color Scheme"
 msgstr "Renk Şeması"
 
+msgid "Less"
+msgstr ""
+
+msgid "Details"
+msgstr "Detaylar"
+
+msgid "Total usage"
+msgstr ""
+
 msgid "Percent"
 msgstr "Yüzde"
 
@@ -8980,53 +8995,41 @@ msgstr "Sessiz moda geç"
 msgid "Switch to normal mode"
 msgstr "Normal moda geç"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "En uygun filament gruplamasına göre otomatik olarak yeniden dilimleme yapılır ve dilimleme işleminden sonra gruplama sonuçları görüntülenir."
-
-msgid "Filament Grouping"
-msgstr "Filament Gruplama"
-
-msgid "Why this grouping"
-msgstr "Bu gruplandırmanın nedeni nedir?"
-
-msgid "AMS nozzle"
-msgstr "AMS püskürtme ucu"
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "Lütfen gruplandırma sonucuna göre filamentleri yazıcıya yerleştir."
-
-msgid "Tips:"
-msgstr "İpuçları:"
-
-msgid "Current grouping of slice result is not optimal."
-msgstr "Dilim sonuçlarının mevcut gruplandırması optimal değil."
+#, boost-format
+msgid "save %1%g more filament and %2% more filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr "Optimum gruplamaya kıyasla %1% g daha fazla filament kullanılır ve püskürtme ucu temizleme sayısı %2% artar."
+msgid "save %1%g more filament but add %2% filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr "Optimum gruplamaya kıyasla %1% g daha fazla filament kullanılır ve püskürtme ucu temizleme sayısı %2% azalır."
+msgid "save %2% more filament changes but use %1%g more filament"
+msgstr ""
+
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr "Optimum gruplamaya kıyasla %1% g filament tasarrufu sağlanır ve püskürtme ucu temizleme sayısı %2% artar."
+msgid "save %1%g filament and %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Tek püskürtme uçlu bir yazıcıya kıyasla %1% g filament tasarrufu sağlanır ve püskürtme ucu temizleme sayısı %2% azalır."
+msgid "save %1%g filament but add %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Tek püskürtme uçlu bir yazıcıya kıyasla %1% g filament tasarrufu sağlanır ve püskürtme ucu temizleme sayısı %2% artar."
+msgid "save %2% filament changes but use %1%g more filament."
+msgstr ""
 
-#, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Tek püskürtme uçlu bir yazıcıya kıyasla %1% g daha fazla filament kullanılır ve püskürtme ucu temizleme sayısı %2% azalır."
+msgid "Compared to a printer with one nozzle, "
+msgstr ""
 
 msgid "Set to Optimal"
 msgstr "En Uygun Olarak Ayarla"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "En uygun filament gruplamasına göre otomatik olarak yeniden dilimleme yapılır ve dilimleme işleminden sonra gruplama sonuçları görüntülenir."
 
 msgid "Regroup filament"
 msgstr "Filamenti yeniden gruplandırın"
@@ -14445,9 +14448,6 @@ msgstr "Entegrasyon geri alma işlemi başarılı oldu."
 msgid "New network plug-in available."
 msgstr "Yeni ağ eklentisi mevcut."
 
-msgid "Details"
-msgstr "Detaylar"
-
 msgid "New printer config available."
 msgstr "Yeni yazıcı yapılandırması mevcut."
 
@@ -15794,9 +15794,6 @@ msgstr "AMS (4 yuva)"
 msgid "AMS(1 slot)"
 msgstr "AMS (1 yuva)"
 
-msgid "AMS"
-msgstr "AMS"
-
 msgid "Not installed"
 msgstr "Kurulu değil"
 
@@ -16855,6 +16852,9 @@ msgstr "Üçgenler: %1%\n"
 
 msgid " (Repair)"
 msgstr " (Onarım)"
+
+msgid "Tips:"
+msgstr "İpuçları:"
 
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr "Modeli onarmak için Bambu Studio'ya içe aktarmadan önce örneğin üçüncü taraf bir araç kullan. "
@@ -18150,24 +18150,6 @@ msgstr "Lütfen filament israfını önlemek için yeniden dilimle."
 msgid "Task canceled"
 msgstr "Görev iptal edildi"
 
-msgid "Bambu Cool Plate"
-msgstr "Bambu Soğutma Tabağı"
-
-msgid "Bambu Engineering Plate"
-msgstr "Bambu Mühendislik Tablası"
-
-msgid "Bambu Smooth PEI Plate"
-msgstr "Bambu Pürüzsüz PEI Tabla"
-
-msgid "High temperature Plate"
-msgstr "Yüksek Sıcaklık Tablası"
-
-msgid "Bambu Textured PEI Plate"
-msgstr "Bambu Dokulu PEI Tabla"
-
-msgid "Bambu 3D Effect Plate"
-msgstr "Bambu 3D Efekt Tablası"
-
 msgid "Send print job"
 msgstr "Yazdırma işini gönder"
 
@@ -18501,6 +18483,9 @@ msgstr "%d yuvasındaki TPU, Yazdırma Aracı değiştirilirken kayıp çıkabil
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Hotend %s içinde düşük sıcaklık filamenti kalıntısı tespit edildi. Yüksek oda sıcaklığında yazdırma, püskürtme ucunun tıkanmasına neden olabilir. Lütfen önce filamenti yükleyin."
 
+msgid "High temperature Plate"
+msgstr "Yüksek Sıcaklık Tablası"
+
 msgid "Cool Plate SuperTack"
 msgstr ""
 
@@ -18590,12 +18575,12 @@ msgid "Try to connect"
 msgstr "Bağlanmayı dene"
 
 msgctxt "sendtoprint"
-msgid "External"
-msgstr "Harici"
-
-msgctxt "sendtoprint"
 msgid "Cache"
 msgstr "Önbellek"
+
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "Harici"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Dosya yükleme zaman aşımına uğradı. Lütfen ürün yazılımı sürümünün bunu destekleyip desteklemediğini kontrol et."
@@ -20309,6 +20294,9 @@ msgstr "Lütfen yazıcının ve Bambu Studio'nun ağ bağlantısını kontrol et
 msgid "Sync Printer Information"
 msgstr "Yazıcı Bilgilerini Senkronize Et"
 
+msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
+msgstr ""
+
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr "Bu 3MF dosyasındaki yazıcı modeli ve ayarları, bağlı yazıcıyla uyuşmuyor. Bu yazıcı için dilimleme ayarlarını uyarlamak ister misiniz?"
 
@@ -20324,12 +20312,29 @@ msgstr "Not: Ayarlar uyarlandıktan sonra bazı yazdırma parametreleri yeni yaz
 msgid "3MF File Settings"
 msgstr "3MF Dosyası Ayarları"
 
+msgid "Target Printer"
+msgstr ""
+
 msgid "Connected Printer"
 msgstr "Bağlı Yazıcı"
+
+msgid "Target Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s (only supported)"
 msgstr "%s (desteklenen tek seçenek)"
+
+msgid "Target printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
+msgstr ""
 
 msgid "Don't show this again when opening 3MF files"
 msgstr "3MF dosyalarını açarken bunu bir daha gösterme"
@@ -21343,6 +21348,75 @@ msgid ""
 msgstr ""
 "İlk Seferde Başarı Güvenilirliği\n"
 "Daha az gözetim, daha öngörülebilir sonuçlar. Örnek: PETG parçaları üreten küçük bir yazıcı çiftliği, \"6. saatte baskının başarısız olması\" gibi sürprizlerden kaçınır ve partileri programa uygun şekilde tamamlar."
+
+#~ msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+#~ msgstr "Farklı püskürtme ucu çapları ve Prime kulesi kullanılarak yazdırma deneyseldir. Prime kulesi, çapları eşleşmeyen püskürtme uçlarıyla düzgün çalışmayabilir."
+
+#~ msgid "This nozzle is turned off. Select it above to use it."
+#~ msgstr "Bu püskürtme ucu kapalı. Kullanmak için yukarıdan seçin."
+
+#~ msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
+#~ msgstr "Bu püskürtme ucuyla seçilen çapta yazdırma yapılamaz. Değiştirmek için Düzenle'ye tıklayın."
+
+#~ msgid "The nozzles are different, so this option is not available."
+#~ msgstr "Püskürtme uçları farklı olduğundan bu seçenek kullanılamıyor."
+
+#~ msgid "This side has no nozzle. Click Edit on its card to add one."
+#~ msgstr "Bu tarafta püskürtme ucu yok. Bir tane eklemek için kartındaki Düzenle'ye tıklayın."
+
+#~ msgid "Filament Grouping"
+#~ msgstr "Filament Gruplama"
+
+#~ msgid "Why this grouping"
+#~ msgstr "Bu gruplandırmanın nedeni nedir?"
+
+#~ msgid "AMS nozzle"
+#~ msgstr "AMS püskürtme ucu"
+
+#~ msgid "Please place filaments on the printer based on grouping result."
+#~ msgstr "Lütfen gruplandırma sonucuna göre filamentleri yazıcıya yerleştir."
+
+#~ msgid "Current grouping of slice result is not optimal."
+#~ msgstr "Dilim sonuçlarının mevcut gruplandırması optimal değil."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Optimum gruplamaya kıyasla %1% g daha fazla filament kullanılır ve püskürtme ucu temizleme sayısı %2% artar."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Optimum gruplamaya kıyasla %1% g daha fazla filament kullanılır ve püskürtme ucu temizleme sayısı %2% azalır."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Optimum gruplamaya kıyasla %1% g filament tasarrufu sağlanır ve püskürtme ucu temizleme sayısı %2% artar."
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Tek püskürtme uçlu bir yazıcıya kıyasla %1% g filament tasarrufu sağlanır ve püskürtme ucu temizleme sayısı %2% azalır."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Tek püskürtme uçlu bir yazıcıya kıyasla %1% g filament tasarrufu sağlanır ve püskürtme ucu temizleme sayısı %2% artar."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Tek püskürtme uçlu bir yazıcıya kıyasla %1% g daha fazla filament kullanılır ve püskürtme ucu temizleme sayısı %2% azalır."
+
+#~ msgid "Bambu Cool Plate"
+#~ msgstr "Bambu Soğutma Tabağı"
+
+#~ msgid "Bambu Engineering Plate"
+#~ msgstr "Bambu Mühendislik Tablası"
+
+#~ msgid "Bambu Smooth PEI Plate"
+#~ msgstr "Bambu Pürüzsüz PEI Tabla"
+
+#~ msgid "Bambu Textured PEI Plate"
+#~ msgstr "Bambu Dokulu PEI Tabla"
+
+#~ msgid "Bambu 3D Effect Plate"
+#~ msgstr "Bambu 3D Efekt Tablası"
 
 #~ msgid "Switch hotend"
 #~ msgstr "Hotend değiştir"

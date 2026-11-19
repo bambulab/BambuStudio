@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 20:11+0800\n"
+"POT-Creation-Date: 2026-11-19 17:41+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -392,9 +392,6 @@ msgstr "ไม่รองรับความหนาต่อชั้นแ
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr "การพิมพ์ด้วยหัวฉีดที่มีขนาดเส้นผ่านศูนย์กลางต่างกันและใช้วงแหวนรองรับยังเป็นฟังก์ชันทดลอง วงแหวนรองรับอาจทำงานไม่ถูกต้องหากขนาดของหัวฉีดไม่ตรงกัน"
-
-msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr "การพิมพ์ด้วยขนาดเส้นผ่านศูนย์กลางหัวฉีดที่แตกต่างกันและไพรม์ทาวเวอร์เป็นฟีเจอร์ทดลอง ไพรม์ทาวเวอร์อาจทำงานไม่ถูกต้องหากขนาดหัวฉีดไม่ตรงกัน"
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr "ไม่อนุญาตให้ใช้ขนาดเส้นผ่านศูนย์กลางหัวฉีดที่แตกต่างกันเมื่อเปิดใช้งานวงแหวนรองรับ"
@@ -3086,6 +3083,12 @@ msgstr "การวางรอยตะเข็บให้ห่างจา
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
 msgstr "ตรวจสอบให้แน่ใจว่าวางรอยตะเข็บห่างจากส่วนยื่นสำหรับโหมดจัดตำแหน่งและโหมดด้านหลัง"
+
+msgid "Embedded seam headroom"
+msgstr ""
+
+msgid "When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that leaves at least this much hidden wall in the printing direction before the wall becomes visible. This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "ระยะห่างรอยตะเข็บ"
@@ -8490,17 +8493,17 @@ msgstr "แก้ไขหัวฉีด"
 msgid "In use"
 msgstr "กำลังใช้งาน"
 
-msgid "This nozzle is turned off. Select it above to use it."
-msgstr "หัวฉีดนี้ปิดอยู่ เลือกหัวฉีดด้านบนเพื่อใช้งาน"
+msgid "This side has no nozzle. Click Edit to add one."
+msgstr ""
 
-msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
-msgstr "หัวฉีดนี้ไม่สามารถพิมพ์ด้วยเส้นผ่านศูนย์กลางที่เลือกได้ คลิก แก้ไข เพื่อเปลี่ยน"
+msgid "This nozzle has another diameter. Select it above to use it."
+msgstr ""
 
-msgid "The nozzles are different, so this option is not available."
-msgstr "หัวฉีดแตกต่างกัน จึงไม่สามารถใช้ตัวเลือกนี้ได้"
+msgid "Filament switcher"
+msgstr ""
 
-msgid "This side has no nozzle. Click Edit on its card to add one."
-msgstr "ด้านนี้ไม่มีหัวฉีด คลิก แก้ไข บนการ์ดของหัวฉีดเพื่อเพิ่มหัวฉีด"
+msgid "The filament switcher is not ready."
+msgstr ""
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr "ตรวจพบชุดสับรางเส้นวัสดุ เส้นวัสดุ AMS ทั้งหมดพร้อมใช้งานสำหรับเอ็กซ์ทรูเดอร์ทั้งสอง ซอฟต์แวร์ตัดแบ่งจะกำหนดเส้นวัสดุโดยอัตโนมัติเพื่อการพิมพ์ที่เหมาะสมที่สุด"
@@ -8536,6 +8539,9 @@ msgstr "ไม่ทราบข้อมูลชุดหัวพิมพ์
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "ขนาดเส้นผ่านศูนย์กลางหัวฉีดไม่ตรงกัน หัวฉีดนี้ไม่สามารถใช้งานได้"
+
+msgid "AMS"
+msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "การปรับเทียบพลศาสตร์การไหล"
@@ -8889,6 +8895,15 @@ msgstr "ผลการตัดแบ่ง"
 msgid "Color Scheme"
 msgstr "รูปแบบสี"
 
+msgid "Less"
+msgstr ""
+
+msgid "Details"
+msgstr "รายละเอียด"
+
+msgid "Total usage"
+msgstr ""
+
 msgid "Percent"
 msgstr "เปอร์เซ็นต์"
 
@@ -8988,53 +9003,41 @@ msgstr "เปลี่ยนเป็นโหมดเงียบ"
 msgid "Switch to normal mode"
 msgstr "เปลี่ยนเป็นโหมดปกติ"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "ตัดแบ่งใหม่โดยอัตโนมัติตามการจัดกลุ่มเส้นวัสดุที่เหมาะสมที่สุด และผลการจัดกลุ่มจะแสดงขึ้นหลังจากตัดแบ่งเสร็จสิ้น"
-
-msgid "Filament Grouping"
-msgstr "การจัดกลุ่มเส้นวัสดุ"
-
-msgid "Why this grouping"
-msgstr "ทำไมต้องจัดกลุ่มแบบนี้"
-
-msgid "AMS nozzle"
-msgstr "หัวฉีด AMS"
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "โปรดวางเส้นวัสดุบนเครื่องพิมพ์ตามผลการจัดกลุ่ม"
-
-msgid "Tips:"
-msgstr "เคล็ดลับ:"
-
-msgid "Current grouping of slice result is not optimal."
-msgstr "การจัดกลุ่มของผลการตัดแบ่งปัจจุบันยังไม่อยู่ในจุดที่เหมาะสมที่สุด"
+#, boost-format
+msgid "save %1%g more filament and %2% more filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr "ใช้เส้นวัสดุเพิ่มขึ้น %1% กรัม และล้างหัวฉีดเพิ่มขึ้น %2% ครั้ง เมื่อเทียบกับการจัดกลุ่มที่เหมาะสมที่สุด"
+msgid "save %1%g more filament but add %2% filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr "ใช้เส้นวัสดุเพิ่มขึ้น %1% กรัม แต่ลดการล้างหัวฉีดลง %2% ครั้ง เมื่อเทียบกับการจัดกลุ่มที่เหมาะสมที่สุด"
+msgid "save %2% more filament changes but use %1%g more filament"
+msgstr ""
+
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr "ประหยัดเส้นวัสดุได้ %1% กรัม แต่เพิ่มการล้างหัวฉีด %2% ครั้ง เมื่อเทียบกับการจัดกลุ่มที่เหมาะสมที่สุด"
+msgid "save %1%g filament and %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr "ประหยัดเส้นวัสดุได้ %1% กรัม และลดการล้างหัวฉีดลง %2% ครั้งเมื่อเทียบกับเครื่องพิมพ์แบบหัวฉีดเดี่ยว"
+msgid "save %1%g filament but add %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr "ประหยัดเส้นวัสดุได้ %1% กรัม และเพิ่มการล้างหัวฉีด %2% ครั้งเมื่อเทียบกับเครื่องพิมพ์แบบหัวฉีดเดี่ยว"
+msgid "save %2% filament changes but use %1%g more filament."
+msgstr ""
 
-#, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "เพิ่มเส้นวัสดุ %1% กรัม แต่ลดการล้างหัวฉีดลง %2% ครั้งเมื่อเทียบกับเครื่องพิมพ์แบบหัวฉีดเดี่ยว"
+msgid "Compared to a printer with one nozzle, "
+msgstr ""
 
 msgid "Set to Optimal"
 msgstr "ตั้งค่าเป็นเหมาะสมที่สุด"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "ตัดแบ่งใหม่โดยอัตโนมัติตามการจัดกลุ่มเส้นวัสดุที่เหมาะสมที่สุด และผลการจัดกลุ่มจะแสดงขึ้นหลังจากตัดแบ่งเสร็จสิ้น"
 
 msgid "Regroup filament"
 msgstr "จัดกลุ่มเส้นวัสดุใหม่"
@@ -14440,9 +14443,6 @@ msgstr "ยกเลิกการรวมสำเร็จ"
 msgid "New network plug-in available."
 msgstr "มีปลั๊กอินเครือข่ายใหม่พร้อมใช้งาน"
 
-msgid "Details"
-msgstr "รายละเอียด"
-
 msgid "New printer config available."
 msgstr "มีการกำหนดค่าเครื่องพิมพ์ใหม่พร้อมใช้งาน"
 
@@ -15789,9 +15789,6 @@ msgstr "AMS (4 ช่อง)"
 msgid "AMS(1 slot)"
 msgstr "AMS (1 ช่อง)"
 
-msgid "AMS"
-msgstr ""
-
 msgid "Not installed"
 msgstr "ยังไม่ได้ติดตั้ง"
 
@@ -16850,6 +16847,9 @@ msgstr "สามเหลี่ยม: %1%\n"
 
 msgid " (Repair)"
 msgstr " (ซ่อมแซม)"
+
+msgid "Tips:"
+msgstr "เคล็ดลับ:"
 
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr "หากต้องการซ่อมแซมโมเดล โปรดใช้เครื่องมือของบุคคลที่สามก่อนนำเข้าไปยัง Bambu Studio เช่น "
@@ -18145,24 +18145,6 @@ msgstr "โปรดตัดแบ่งใหม่เพื่อหลีก
 msgid "Task canceled"
 msgstr "ยกเลิกงานแล้ว"
 
-msgid "Bambu Cool Plate"
-msgstr "แผ่นชนิดอุณหภูมิต่ำ Bambu"
-
-msgid "Bambu Engineering Plate"
-msgstr "แผ่นพิมพ์ Bambu Engineering"
-
-msgid "Bambu Smooth PEI Plate"
-msgstr "แผ่นพิมพ์ Bambu Smooth PEI"
-
-msgid "High temperature Plate"
-msgstr "แผ่นฐานชนิดอุณหภูมิสูง"
-
-msgid "Bambu Textured PEI Plate"
-msgstr "แผ่นพิมพ์ Bambu Textured PEI"
-
-msgid "Bambu 3D Effect Plate"
-msgstr "แผ่นพิมพ์ Bambu 3D Effect"
-
 msgid "Send print job"
 msgstr "ส่งงานพิมพ์"
 
@@ -18496,6 +18478,9 @@ msgstr "TPU ในช่อง %d อาจหลุดออกระหว่�
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "ตรวจพบเศษเส้นวัสดุอุณหภูมิต่ำตกค้างอยู่ในชุดหัวพิมพ์ %s การพิมพ์ในขณะที่อุณหภูมิห้องพิมพ์สูงเกินไป อาจทำให้หัวฉีดอุดตันได้ โปรดใส่เส้นวัสดุก่อน"
 
+msgid "High temperature Plate"
+msgstr "แผ่นฐานชนิดอุณหภูมิสูง"
+
 msgid "Cool Plate SuperTack"
 msgstr ""
 
@@ -18585,12 +18570,12 @@ msgid "Try to connect"
 msgstr "ลองเชื่อมต่อ"
 
 msgctxt "sendtoprint"
-msgid "External"
-msgstr "ภายนอก"
-
-msgctxt "sendtoprint"
 msgid "Cache"
 msgstr "แคช"
+
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "ภายนอก"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "หมดเวลาอัปโหลดไฟล์ โปรดตรวจสอบว่าเฟิร์มแวร์เวอร์ชันนี้รองรับหรือไม่"
@@ -20308,6 +20293,9 @@ msgstr "โปรดตรวจสอบการเชื่อมต่อเ
 msgid "Sync Printer Information"
 msgstr "ซิงค์ข้อมูลเครื่องพิมพ์"
 
+msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
+msgstr ""
+
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr "รุ่นเครื่องพิมพ์และการตั้งค่าในไฟล์ 3MF นี้ไม่ตรงกับเครื่องพิมพ์ที่เชื่อมต่ออยู่ คุณต้องการปรับการตั้งค่าการตัดแบ่งเหล่านี้สำหรับเครื่องพิมพ์นี้หรือไม่"
 
@@ -20323,12 +20311,29 @@ msgstr "หมายเหตุ: หลังจากปรับการต�
 msgid "3MF File Settings"
 msgstr "การตั้งค่าไฟล์ 3MF"
 
+msgid "Target Printer"
+msgstr ""
+
 msgid "Connected Printer"
 msgstr "เครื่องพิมพ์ที่เชื่อมต่ออยู่"
+
+msgid "Target Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s (only supported)"
 msgstr "%s (รองรับเท่านั้น)"
+
+msgid "Target printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
+msgstr ""
 
 msgid "Don't show this again when opening 3MF files"
 msgstr "ไม่ต้องแสดงข้อความนี้อีกเมื่อเปิดไฟล์ 3MF"
@@ -21342,6 +21347,75 @@ msgid ""
 msgstr ""
 "ความน่าเชื่อถือแบบสำเร็จตั้งแต่ครั้งแรก\n"
 "ไม่ต้องคอยเฝ้า ได้ผลลัพธ์ที่คาดเดาได้มากขึ้น ตัวอย่าง: ฟาร์มพิมพ์ขนาดเล็กที่ผลิตชิ้นส่วน PETG สามารถหลีกเลี่ยงปัญหา 'งานเสียในชั่วโมงที่ 6' และส่งมอบงานได้ตรงตามกำหนด"
+
+#~ msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+#~ msgstr "การพิมพ์ด้วยขนาดเส้นผ่านศูนย์กลางหัวฉีดที่แตกต่างกันและไพรม์ทาวเวอร์เป็นฟีเจอร์ทดลอง ไพรม์ทาวเวอร์อาจทำงานไม่ถูกต้องหากขนาดหัวฉีดไม่ตรงกัน"
+
+#~ msgid "This nozzle is turned off. Select it above to use it."
+#~ msgstr "หัวฉีดนี้ปิดอยู่ เลือกหัวฉีดด้านบนเพื่อใช้งาน"
+
+#~ msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
+#~ msgstr "หัวฉีดนี้ไม่สามารถพิมพ์ด้วยเส้นผ่านศูนย์กลางที่เลือกได้ คลิก แก้ไข เพื่อเปลี่ยน"
+
+#~ msgid "The nozzles are different, so this option is not available."
+#~ msgstr "หัวฉีดแตกต่างกัน จึงไม่สามารถใช้ตัวเลือกนี้ได้"
+
+#~ msgid "This side has no nozzle. Click Edit on its card to add one."
+#~ msgstr "ด้านนี้ไม่มีหัวฉีด คลิก แก้ไข บนการ์ดของหัวฉีดเพื่อเพิ่มหัวฉีด"
+
+#~ msgid "Filament Grouping"
+#~ msgstr "การจัดกลุ่มเส้นวัสดุ"
+
+#~ msgid "Why this grouping"
+#~ msgstr "ทำไมต้องจัดกลุ่มแบบนี้"
+
+#~ msgid "AMS nozzle"
+#~ msgstr "หัวฉีด AMS"
+
+#~ msgid "Please place filaments on the printer based on grouping result."
+#~ msgstr "โปรดวางเส้นวัสดุบนเครื่องพิมพ์ตามผลการจัดกลุ่ม"
+
+#~ msgid "Current grouping of slice result is not optimal."
+#~ msgstr "การจัดกลุ่มของผลการตัดแบ่งปัจจุบันยังไม่อยู่ในจุดที่เหมาะสมที่สุด"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+#~ msgstr "ใช้เส้นวัสดุเพิ่มขึ้น %1% กรัม และล้างหัวฉีดเพิ่มขึ้น %2% ครั้ง เมื่อเทียบกับการจัดกลุ่มที่เหมาะสมที่สุด"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+#~ msgstr "ใช้เส้นวัสดุเพิ่มขึ้น %1% กรัม แต่ลดการล้างหัวฉีดลง %2% ครั้ง เมื่อเทียบกับการจัดกลุ่มที่เหมาะสมที่สุด"
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+#~ msgstr "ประหยัดเส้นวัสดุได้ %1% กรัม แต่เพิ่มการล้างหัวฉีด %2% ครั้ง เมื่อเทียบกับการจัดกลุ่มที่เหมาะสมที่สุด"
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "ประหยัดเส้นวัสดุได้ %1% กรัม และลดการล้างหัวฉีดลง %2% ครั้งเมื่อเทียบกับเครื่องพิมพ์แบบหัวฉีดเดี่ยว"
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "ประหยัดเส้นวัสดุได้ %1% กรัม และเพิ่มการล้างหัวฉีด %2% ครั้งเมื่อเทียบกับเครื่องพิมพ์แบบหัวฉีดเดี่ยว"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "เพิ่มเส้นวัสดุ %1% กรัม แต่ลดการล้างหัวฉีดลง %2% ครั้งเมื่อเทียบกับเครื่องพิมพ์แบบหัวฉีดเดี่ยว"
+
+#~ msgid "Bambu Cool Plate"
+#~ msgstr "แผ่นชนิดอุณหภูมิต่ำ Bambu"
+
+#~ msgid "Bambu Engineering Plate"
+#~ msgstr "แผ่นพิมพ์ Bambu Engineering"
+
+#~ msgid "Bambu Smooth PEI Plate"
+#~ msgstr "แผ่นพิมพ์ Bambu Smooth PEI"
+
+#~ msgid "Bambu Textured PEI Plate"
+#~ msgstr "แผ่นพิมพ์ Bambu Textured PEI"
+
+#~ msgid "Bambu 3D Effect Plate"
+#~ msgstr "แผ่นพิมพ์ Bambu 3D Effect"
 
 #~ msgid "Switch hotend"
 #~ msgstr "สลับชุดหัวพิมพ์"

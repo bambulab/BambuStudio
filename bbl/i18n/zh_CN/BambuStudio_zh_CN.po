@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 20:11+0800\n"
+"POT-Creation-Date: 2026-11-19 17:41+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -172,7 +172,7 @@ msgid "Filament end G-code"
 msgstr "耗材丝结束G-code"
 
 msgid "When the infill pattern is 3D Honeycomb, Honeycomb, or Gyroid, the printer produces significant vibration and noise when printing at high acceleration. It is recommended to reduce the infill acceleration."
-msgstr ""
+msgstr "填充类型为3D蜂窝、蜂窝、螺旋体时，高加速度打印下会较大的振动和噪音，建议降低打印填充的加速度。"
 
 msgid "Flush volumes matrix do not match to the correct size!"
 msgstr "冲刷体积矩阵与正确的尺寸不匹配！"
@@ -392,9 +392,6 @@ msgstr "不支持同时使用可变层高和有机树支撑。"
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr "使用不同喷嘴直径并搭配支撑环进行打印是实验性功能。如果喷嘴尺寸不匹配，支撑环可能无法正常工作。"
-
-msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr "使用不同喷嘴直径并启用擦料塔属于实验性功能。喷嘴尺寸不匹配时，擦料塔可能无法正常工作。"
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr "启用支撑环时不允许使用不同的喷嘴直径。"
@@ -653,7 +650,7 @@ msgid "Bed temperature for layers except the initial one. Value 0 means the fila
 msgstr "非首层热床温度。0值表示这个耗材丝不支持纹理PEI热床"
 
 msgid "Bed temperature for layers except the initial one. Value 0 means the filament does not support to print on the 3D Effect Plate"
-msgstr ""
+msgstr "非首层热床温度。值为0表示此耗材不支持在转印板上打印。"
 
 msgid "Initial layer"
 msgstr "首层"
@@ -3032,13 +3029,13 @@ msgid "Top Z distance"
 msgstr "顶部Z距离"
 
 msgid "The z gap between the top support interface and object. -1 means auto: the gap follows the support nozzle, and is 0 for a support material combination."
-msgstr ""
+msgstr "支撑顶部和模型之间的z间隙。-1 表示自动：间隙随喷嘴口径而定，对于支撑料组合则为 0。"
 
 msgid "Bottom Z distance"
 msgstr "底部Z距离"
 
 msgid "The z gap between the bottom support interface and object. -1 means auto: the gap follows the support nozzle, and is 0 for a support material combination."
-msgstr ""
+msgstr "支撑生成于模型表面时，支撑面底部和模型之间的z间隙。-1 表示自动：间隙随喷嘴口径而定，对于部分支撑料组合则为 0。"
 
 msgid "length when change hotend"
 msgstr "换热端时回抽量"
@@ -3090,6 +3087,12 @@ msgstr "接缝远离悬垂点放置（实验）"
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
 msgstr "接缝避让悬垂附近，对齐模式生效"
+
+msgid "Embedded seam headroom"
+msgstr "内嵌接缝余量"
+
+msgid "When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that leaves at least this much hidden wall in the printing direction before the wall becomes visible. This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable."
+msgstr "当接缝可以隐藏在打印件内部时（例如多色场景下生成在模型内部的外墙），系统会优先选择这样的接缝落点：在打印方向上（顺时针或逆时针），让接缝所在的隐藏壁面，距离最终可见的外壁面至少保留该参数设定的长度。该设置可以掩盖换料操作后，因喷嘴压力不稳定产生的挤出瑕疵。将该参数设置为0即可禁用此功能。"
 
 msgid "Seam gap"
 msgstr "接缝间隔"
@@ -8058,7 +8061,7 @@ msgid "Switch extruder"
 msgstr "切换挤出机"
 
 msgid "Switch PrintTool"
-msgstr ""
+msgstr "切换打印头"
 
 msgid "Wait for AMS cooling"
 msgstr "等待 AMS 冷却"
@@ -8449,7 +8452,7 @@ msgid "Filament loading..."
 msgstr "换料中..."
 
 msgid "Hotend Rack Web Debug"
-msgstr ""
+msgstr "Hotend Rack Web Debug"
 
 msgid "Hotend rack is currently unavailable."
 msgstr "热端架当前不可用。"
@@ -8475,17 +8478,17 @@ msgstr "设置喷嘴"
 msgid "In use"
 msgstr "使用中"
 
-msgid "This nozzle is turned off. Select it above to use it."
-msgstr "此喷嘴已禁用。请在上方选择使用。"
-
-msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
-msgstr "此喷嘴无法使用所选直径进行打印。点击“编辑”进行修改。"
-
-msgid "The nozzles are different, so this option is not available."
-msgstr "喷嘴不同，此选项不可用。"
-
-msgid "This side has no nozzle. Click Edit on its card to add one."
+msgid "This side has no nozzle. Click Edit to add one."
 msgstr "此侧没有喷嘴。点击其卡片上的“编辑”即可添加。"
+
+msgid "This nozzle has another diameter. Select it above to use it."
+msgstr "此喷嘴具有不同直径。请在上方选择以使用。"
+
+msgid "Filament switcher"
+msgstr "换料器"
+
+msgid "The filament switcher is not ready."
+msgstr "换料器尚未就绪"
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr "检测到你已安装耗材变轨器，所有AMS中材料均能在左右头自由使用，切片过程中直接按照最优结果左右分配。 "
@@ -8521,6 +8524,9 @@ msgstr "热端信息未知。请在使用前刷新喷嘴信息。"
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "喷嘴直径不匹配。此喷嘴无法使用。"
+
+msgid "AMS"
+msgstr "AMS"
 
 msgid "Dynamic flow calibration"
 msgstr "动态流量校准"
@@ -8874,6 +8880,15 @@ msgstr "切片结果"
 msgid "Color Scheme"
 msgstr "颜色方案"
 
+msgid "Less"
+msgstr ""
+
+msgid "Details"
+msgstr "详情"
+
+msgid "Total usage"
+msgstr ""
+
 msgid "Percent"
 msgstr "百分比"
 
@@ -8973,53 +8988,41 @@ msgstr "切换到静音模式"
 msgid "Switch to normal mode"
 msgstr "切换到普通模式"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "将会自动根据最优耗材分组重新切片，分组结果将会在切片后展示。"
-
-msgid "Filament Grouping"
-msgstr "耗材分组"
-
-msgid "Why this grouping"
-msgstr "为什么这样分组"
-
-msgid "AMS nozzle"
-msgstr "AMS 喷嘴"
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "请按上述分组结果到打印机放置耗材"
-
-msgid "Tips:"
-msgstr "提示："
-
-msgid "Current grouping of slice result is not optimal."
-msgstr "当前材料分组不是最优结果。"
+#, boost-format
+msgid "save %1%g more filament and %2% more filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr "如果使用最优分组可多节省%1%g耗材和%2%次冲刷。"
+msgid "save %1%g more filament but add %2% filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr "相较于最优分组，多使用%1%g耗材，减少%2%次换料。"
+msgid "save %2% more filament changes but use %1%g more filament"
+msgstr ""
+
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr "相较于最优分组，节省%1%g耗材，增加%2%次冲刷。"
+msgid "save %1%g filament and %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr "相较于单头打印机可节省%1%g耗材和%2%次冲刷。"
+msgid "save %1%g filament but add %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr "相较于单头打印机，节省%1%g耗材，增加%2%次冲刷。"
+msgid "save %2% filament changes but use %1%g more filament."
+msgstr ""
 
-#, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "相较于单头打印机，多使用%1%g耗材，减少%2%次冲刷。"
+msgid "Compared to a printer with one nozzle, "
+msgstr ""
 
 msgid "Set to Optimal"
 msgstr "设置为最优"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "将会自动根据最优耗材分组重新切片，分组结果将会在切片后展示。"
 
 msgid "Regroup filament"
 msgstr "重新分组"
@@ -12456,7 +12459,7 @@ msgid "Pause:"
 msgstr "暂停"
 
 msgid "Does not take effect in multi-diameter mode."
-msgstr ""
+msgstr "在多口径模式下不生效。"
 
 msgid "Custom Template:"
 msgstr "自定义模板："
@@ -14410,9 +14413,6 @@ msgstr "集成取消成功。"
 msgid "New network plug-in available."
 msgstr "新的网络插件可用。"
 
-msgid "Details"
-msgstr "详情"
-
 msgid "New printer config available."
 msgstr "有新的打印机配置可用。"
 
@@ -15757,9 +15757,6 @@ msgstr "AMS（4槽）"
 msgid "AMS(1 slot)"
 msgstr "AMS（单槽）"
 
-msgid "AMS"
-msgstr "AMS"
-
 msgid "Not installed"
 msgstr "未安装"
 
@@ -16226,7 +16223,7 @@ msgid "\"%1%\" uses both mixed color sublayer and variable layer height, which m
 msgstr "“%1%”同时使用了混色子层和可变层高，可能会影响打印质量。"
 
 msgid "Filament changes on this plate do not take effect in multi-diameter mode. They take effect again after switching to single-diameter mode."
-msgstr ""
+msgstr "本盘的耗材丝切换在多口径模式下不生效，切换回单口径模式后恢复生效。"
 
 msgid "Invalid data"
 msgstr "无效数据"
@@ -16809,6 +16806,9 @@ msgstr "三角形：%1%\n"
 msgid " (Repair)"
 msgstr "（修复）"
 
+msgid "Tips:"
+msgstr "提示："
+
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr "如需修复模型，请使用第三方工具处理后再导入 Bambu Studio，例如"
 
@@ -17133,10 +17133,10 @@ msgid "If enabled, the left mouse button can move models by dragging; if disable
 msgstr "勾选后，可用鼠标左键拖拽移动模型；取消勾选后，左键仅用于选中或点击。"
 
 msgid "Mouse rotation sensitivity"
-msgstr ""
+msgstr "鼠标旋转灵敏度"
 
 msgid "Set the mouse rotation sensitivity, medium by default."
-msgstr ""
+msgstr "设置鼠标旋转的灵敏度，默认为中。"
 
 msgid "Display overview"
 msgstr "显示整体视图"
@@ -18104,24 +18104,6 @@ msgstr "请重新切片以避免耗材浪费。"
 msgid "Task canceled"
 msgstr "任务已取消"
 
-msgid "Bambu Cool Plate"
-msgstr "低温打印板"
-
-msgid "Bambu Engineering Plate"
-msgstr ""
-
-msgid "Bambu Smooth PEI Plate"
-msgstr ""
-
-msgid "High temperature Plate"
-msgstr "高温打印板"
-
-msgid "Bambu Textured PEI Plate"
-msgstr ""
-
-msgid "Bambu 3D Effect Plate"
-msgstr ""
-
 msgid "Send print job"
 msgstr "发送打印任务"
 
@@ -18429,7 +18411,7 @@ msgstr "自动补给组 %s 中的耗材可能不足以完成本次打印。请�
 
 #, c-format, boost-format
 msgid "Filament in slots %s may not have been properly loaded to the PrintTool."
-msgstr "%s号槽位的耗材可能未正确加载到打印头。"
+msgstr "槽位%s号的耗材可能未正常进料到打印头。"
 
 #, c-format, boost-format
 msgid "Filament are not loaded in PrintTool %s. Printing may pause for filament change. Please load the filament before printing."
@@ -18454,6 +18436,9 @@ msgstr "本次打印涉及换头，%d号槽的TPU可能从打印头脱出，建�
 #, c-format, boost-format
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "在热端 %s 中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"
+
+msgid "High temperature Plate"
+msgstr "高温打印板"
 
 msgid "Cool Plate SuperTack"
 msgstr "增稳低温打印板"
@@ -18544,12 +18529,12 @@ msgid "Try to connect"
 msgstr "尝试连接"
 
 msgctxt "sendtoprint"
-msgid "External"
-msgstr "外部存储"
-
-msgctxt "sendtoprint"
 msgid "Cache"
 msgstr "缓存模型"
+
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "外部存储"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "上传文件超时，请检查固件版本是否支持。"
@@ -20226,7 +20211,7 @@ msgstr "已连接打印机 %s，查看机器状态"
 
 #, c-format, boost-format
 msgid "The %s nozzle is in use by project filaments. Changing it will move them to 0.4 Standard. Change it anyway?"
-msgstr ""
+msgstr "%s 喷嘴正在被项目耗材使用。修改它会把这些耗材改到 0.4 标准喷嘴上。仍然要修改吗？"
 
 msgid "No printer"
 msgstr "无打印机"
@@ -20258,6 +20243,9 @@ msgstr "请检查打印机和工作室的网络连接"
 msgid "Sync Printer Information"
 msgstr "同步打印机信息"
 
+msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
+msgstr ""
+
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr "3MF 文件中的打印机型号和设置与当前连接的设备不一致。是否将切片配置迁移至当前连接的打印机？"
 
@@ -20273,12 +20261,29 @@ msgstr "注意：迁移后，部分打印参数将自动适配至新机型。"
 msgid "3MF File Settings"
 msgstr "3MF文件配置"
 
+msgid "Target Printer"
+msgstr ""
+
 msgid "Connected Printer"
 msgstr "连接的打印机"
+
+msgid "Target Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s (only supported)"
 msgstr "%s （仅支持）"
+
+msgid "Target printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
+msgstr ""
 
 msgid "Don't show this again when opening 3MF files"
 msgstr "打开3mf文件时不再显示弹窗"
@@ -21285,6 +21290,63 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+#~ msgstr "使用不同喷嘴直径并启用擦料塔属于实验性功能。喷嘴尺寸不匹配时，擦料塔可能无法正常工作。"
+
+#~ msgid "This nozzle is turned off. Select it above to use it."
+#~ msgstr "此喷嘴已禁用。请在上方选择使用。"
+
+#~ msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
+#~ msgstr "此喷嘴无法使用所选直径进行打印。点击“编辑”进行修改。"
+
+#~ msgid "The nozzles are different, so this option is not available."
+#~ msgstr "喷嘴不同，此选项不可用。"
+
+#~ msgid "This side has no nozzle. Click Edit on its card to add one."
+#~ msgstr "此侧没有喷嘴。点击其卡片上的“编辑”即可添加。"
+
+#~ msgid "Filament Grouping"
+#~ msgstr "耗材分组"
+
+#~ msgid "Why this grouping"
+#~ msgstr "为什么这样分组"
+
+#~ msgid "AMS nozzle"
+#~ msgstr "AMS 喷嘴"
+
+#~ msgid "Please place filaments on the printer based on grouping result."
+#~ msgstr "请按上述分组结果到打印机放置耗材"
+
+#~ msgid "Current grouping of slice result is not optimal."
+#~ msgstr "当前材料分组不是最优结果。"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+#~ msgstr "如果使用最优分组可多节省%1%g耗材和%2%次冲刷。"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+#~ msgstr "相较于最优分组，多使用%1%g耗材，减少%2%次换料。"
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+#~ msgstr "相较于最优分组，节省%1%g耗材，增加%2%次冲刷。"
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "相较于单头打印机可节省%1%g耗材和%2%次冲刷。"
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "相较于单头打印机，节省%1%g耗材，增加%2%次冲刷。"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "相较于单头打印机，多使用%1%g耗材，减少%2%次冲刷。"
+
+#~ msgid "Bambu Cool Plate"
+#~ msgstr "低温打印板"
 
 #~ msgid "Restrict top and bottom surface color penetration generated by a part to the part itself. The color will not penetrate into other parts."
 #~ msgstr "限制由零件产生的顶/底表面颜色渗透仅限于该零件自身。颜色不会渗透到其他零件中。"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 20:11+0800\n"
+"POT-Creation-Date: 2026-11-19 17:41+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -378,9 +378,6 @@ msgstr "Variabel lagerhöjd stöds inte med organiska support."
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr "Utskrift med olika nozzle-diametrar och stödring är experimentell. Stödringen kanske inte fungerar korrekt om nozzle-storlekarna inte stämmer överens."
-
-msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr "Utskrift med olika nozzle-diametrar och prime-tornet är experimentellt. Prime-tornet kanske inte fungerar korrekt om nozzle-storlekarna inte stämmer överens."
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr "Olika nozzle-diametrar är inte tillåtna när stödringen är aktiverad."
@@ -3072,6 +3069,12 @@ msgstr "Placering av söm bort från överhäng (experimentell)"
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
 msgstr "Se till att sömmen placeras bort från överhäng för justering och stödläge."
+
+msgid "Embedded seam headroom"
+msgstr ""
+
+msgid "When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that leaves at least this much hidden wall in the printing direction before the wall becomes visible. This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "Sömmens mellanrum"
@@ -8477,17 +8480,17 @@ msgstr "Redigera nozzle"
 msgid "In use"
 msgstr "Används"
 
-msgid "This nozzle is turned off. Select it above to use it."
-msgstr "Denna nozzle är avstängd. Välj den ovan för att använda den."
+msgid "This side has no nozzle. Click Edit to add one."
+msgstr ""
 
-msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
-msgstr "Denna nozzle kan inte skriva ut med den valda diametern. Klicka på Redigera för att ändra den."
+msgid "This nozzle has another diameter. Select it above to use it."
+msgstr ""
 
-msgid "The nozzles are different, so this option is not available."
-msgstr "Dessa nozzles är olika, så det här alternativet är inte tillgängligt."
+msgid "Filament switcher"
+msgstr ""
 
-msgid "This side has no nozzle. Click Edit on its card to add one."
-msgstr "Den här sidan har ingen nozzle. Klicka på Redigera på dess kort för att lägga till en."
+msgid "The filament switcher is not ready."
+msgstr ""
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr "Filament växlare upptäckt. Alla AMS filament är nu tillgängliga för båda extrudrarna. Beredningen kommer att tilldela automatiskt för optimal utskrift. "
@@ -8523,6 +8526,9 @@ msgstr "Information om hotend är okänd. Uppdatera informationen om nozzle för
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Nozzle-diametern stämmer inte överens. Denna nozzle kan inte användas."
+
+msgid "AMS"
+msgstr "AMS"
 
 msgid "Dynamic flow calibration"
 msgstr "Dynamisk flödeskalibrering"
@@ -8876,6 +8882,15 @@ msgstr "Berednings resultat"
 msgid "Color Scheme"
 msgstr "Färgschema"
 
+msgid "Less"
+msgstr ""
+
+msgid "Details"
+msgstr "Detaljer"
+
+msgid "Total usage"
+msgstr ""
+
 msgid "Percent"
 msgstr "Procent"
 
@@ -8975,53 +8990,41 @@ msgstr "Ändra till tyst läge"
 msgid "Switch to normal mode"
 msgstr "Ändra till normal läge"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "Automatisk bered igen enligt den optimala filament grupperingen, och grupperings resultaten visas efter beredning."
-
-msgid "Filament Grouping"
-msgstr "Filament gruppering"
-
-msgid "Why this grouping"
-msgstr "Varför denna gruppering"
-
-msgid "AMS nozzle"
-msgstr "AMS-nozzle"
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "Placera filamenten i printern baserat på grupperings resultatet."
-
-msgid "Tips:"
-msgstr "Tips:"
-
-msgid "Current grouping of slice result is not optimal."
-msgstr "Nuvarande gruppering av berednings resultat är inte optimal."
+#, boost-format
+msgid "save %1%g more filament and %2% more filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr "Öka %1% g filament och %2% nozzle-rensningar jämfört med optimal gruppering."
+msgid "save %1%g more filament but add %2% filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr "Öka %1% g filament och spara %2% nozzle-rensningar jämfört med optimal gruppering."
+msgid "save %2% more filament changes but use %1%g more filament"
+msgstr ""
+
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr "Spara %1% g filament och öka %2% nozzle-rensningar jämfört med optimal gruppering."
+msgid "save %1%g filament and %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Spara %1% g filament och %2% nozzle-rensningar jämfört med en skrivare med en nozzle."
+msgid "save %1%g filament but add %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Spara %1% g filament och öka %2% nozzle-rensningar jämfört med en skrivare med en nozzle."
+msgid "save %2% filament changes but use %1%g more filament."
+msgstr ""
 
-#, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Öka %1% g filament och spara %2% nozzle-rensningar jämfört med en skrivare med en nozzle."
+msgid "Compared to a printer with one nozzle, "
+msgstr ""
 
 msgid "Set to Optimal"
 msgstr "Ställ in på Optimal"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "Automatisk bered igen enligt den optimala filament grupperingen, och grupperings resultaten visas efter beredning."
 
 msgid "Regroup filament"
 msgstr "Omgruppera filament"
@@ -14440,9 +14443,6 @@ msgstr "Återställande av integrationen lyckades."
 msgid "New network plug-in available."
 msgstr "Ny nätverks plugin tillgänglig"
 
-msgid "Details"
-msgstr "Detaljer"
-
 msgid "New printer config available."
 msgstr "Ny printer konfiguration tillgänglig."
 
@@ -15789,9 +15789,6 @@ msgstr "AMS (4 fack)"
 msgid "AMS(1 slot)"
 msgstr "AMS(1 fack)"
 
-msgid "AMS"
-msgstr "AMS"
-
 msgid "Not installed"
 msgstr "Inte installerad"
 
@@ -16841,6 +16838,9 @@ msgstr "Trianglar: %1%\n"
 
 msgid " (Repair)"
 msgstr " (Reparera)"
+
+msgid "Tips:"
+msgstr "Tips:"
 
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr "För att reparera modellen, använd ett tredjepartsverktyg innan du importerar den till Bambu Studio, t.ex. "
@@ -18136,24 +18136,6 @@ msgstr "Vänligen bered om för att undvika avfall från filament."
 msgid "Task canceled"
 msgstr "Uppgift avbruten"
 
-msgid "Bambu Cool Plate"
-msgstr "Bambu Cool Plate"
-
-msgid "Bambu Engineering Plate"
-msgstr "Bambu Engineering Plate"
-
-msgid "Bambu Smooth PEI Plate"
-msgstr "Bambu Lab Slät PEI-platta"
-
-msgid "High temperature Plate"
-msgstr "Högtemperatur platta"
-
-msgid "Bambu Textured PEI Plate"
-msgstr "Bambu Lab Texture PEI Plate"
-
-msgid "Bambu 3D Effect Plate"
-msgstr "Bambu 3D-effektplatta"
-
 msgid "Send print job"
 msgstr "Skicka utskriftsjobb"
 
@@ -18489,6 +18471,9 @@ msgstr "TPU i plats %d kan glida ut under byte av utskriftsverktyg. Flytta det t
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Filamentrester från lågtemperaturfilament har upptäckts i hotend %s. Om du skriver ut när kammarens temperatur är hög kan det orsaka nozzle-clogging. Ladda filamentet först."
 
+msgid "High temperature Plate"
+msgstr "Högtemperatur platta"
+
 msgid "Cool Plate SuperTack"
 msgstr ""
 
@@ -18578,12 +18563,12 @@ msgid "Try to connect"
 msgstr "Försök att ansluta"
 
 msgctxt "sendtoprint"
-msgid "External"
-msgstr "Extern"
-
-msgctxt "sendtoprint"
 msgid "Cache"
 msgstr ""
+
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "Extern"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Timeout för uppladdning av fil: kontrollera om firmwareversionen stöder det."
@@ -20306,6 +20291,9 @@ msgstr "Kontrollera nätverksanslutningen för skrivaren och Studio."
 msgid "Sync Printer Information"
 msgstr "Synkronisera skrivarinformation"
 
+msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
+msgstr ""
+
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr "Skrivarmodellen och inställningarna i den här 3MF-filen matchar inte den anslutna skrivaren. Vill du anpassa dessa beredningsinställningar för den här skrivaren?"
 
@@ -20321,12 +20309,29 @@ msgstr "Obs: Efter att inställningarna har anpassats kommer vissa utskriftspara
 msgid "3MF File Settings"
 msgstr "Inställningar för 3MF-filer"
 
+msgid "Target Printer"
+msgstr ""
+
 msgid "Connected Printer"
 msgstr "Ansluten skrivare"
+
+msgid "Target Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s (only supported)"
 msgstr "%s (endast detta stöds)"
+
+msgid "Target printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
+msgstr ""
 
 msgid "Don't show this again when opening 3MF files"
 msgstr "Visa inte detta igen när du öppnar 3MF-filer"
@@ -21336,6 +21341,75 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#~ msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+#~ msgstr "Utskrift med olika nozzle-diametrar och prime-tornet är experimentellt. Prime-tornet kanske inte fungerar korrekt om nozzle-storlekarna inte stämmer överens."
+
+#~ msgid "This nozzle is turned off. Select it above to use it."
+#~ msgstr "Denna nozzle är avstängd. Välj den ovan för att använda den."
+
+#~ msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
+#~ msgstr "Denna nozzle kan inte skriva ut med den valda diametern. Klicka på Redigera för att ändra den."
+
+#~ msgid "The nozzles are different, so this option is not available."
+#~ msgstr "Dessa nozzles är olika, så det här alternativet är inte tillgängligt."
+
+#~ msgid "This side has no nozzle. Click Edit on its card to add one."
+#~ msgstr "Den här sidan har ingen nozzle. Klicka på Redigera på dess kort för att lägga till en."
+
+#~ msgid "Filament Grouping"
+#~ msgstr "Filament gruppering"
+
+#~ msgid "Why this grouping"
+#~ msgstr "Varför denna gruppering"
+
+#~ msgid "AMS nozzle"
+#~ msgstr "AMS-nozzle"
+
+#~ msgid "Please place filaments on the printer based on grouping result."
+#~ msgstr "Placera filamenten i printern baserat på grupperings resultatet."
+
+#~ msgid "Current grouping of slice result is not optimal."
+#~ msgstr "Nuvarande gruppering av berednings resultat är inte optimal."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Öka %1% g filament och %2% nozzle-rensningar jämfört med optimal gruppering."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Öka %1% g filament och spara %2% nozzle-rensningar jämfört med optimal gruppering."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Spara %1% g filament och öka %2% nozzle-rensningar jämfört med optimal gruppering."
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Spara %1% g filament och %2% nozzle-rensningar jämfört med en skrivare med en nozzle."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Spara %1% g filament och öka %2% nozzle-rensningar jämfört med en skrivare med en nozzle."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Öka %1% g filament och spara %2% nozzle-rensningar jämfört med en skrivare med en nozzle."
+
+#~ msgid "Bambu Cool Plate"
+#~ msgstr "Bambu Cool Plate"
+
+#~ msgid "Bambu Engineering Plate"
+#~ msgstr "Bambu Engineering Plate"
+
+#~ msgid "Bambu Smooth PEI Plate"
+#~ msgstr "Bambu Lab Slät PEI-platta"
+
+#~ msgid "Bambu Textured PEI Plate"
+#~ msgstr "Bambu Lab Texture PEI Plate"
+
+#~ msgid "Bambu 3D Effect Plate"
+#~ msgstr "Bambu 3D-effektplatta"
 
 #~ msgid "Switch hotend"
 #~ msgstr "Växla hotend"

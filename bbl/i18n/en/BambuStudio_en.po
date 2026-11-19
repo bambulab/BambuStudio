@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 20:11+0800\n"
+"POT-Creation-Date: 2026-11-19 17:41+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -377,9 +377,6 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "Variable layer height is not supported with Organic supports."
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
-msgstr ""
-
-msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
 msgstr ""
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
@@ -3038,6 +3035,12 @@ msgstr ""
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
 msgstr "Ensure seam placement away from overhangs for alignment modes."
+
+msgid "Embedded seam headroom"
+msgstr ""
+
+msgid "When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that leaves at least this much hidden wall in the printing direction before the wall becomes visible. This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "Seam gap"
@@ -8374,16 +8377,16 @@ msgstr ""
 msgid "In use"
 msgstr ""
 
-msgid "This nozzle is turned off. Select it above to use it."
+msgid "This side has no nozzle. Click Edit to add one."
 msgstr ""
 
-msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
+msgid "This nozzle has another diameter. Select it above to use it."
 msgstr ""
 
-msgid "The nozzles are different, so this option is not available."
+msgid "Filament switcher"
 msgstr ""
 
-msgid "This side has no nozzle. Click Edit on its card to add one."
+msgid "The filament switcher is not ready."
 msgstr ""
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
@@ -8420,6 +8423,9 @@ msgstr ""
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr ""
+
+msgid "AMS"
+msgstr "AMS"
 
 msgid "Dynamic flow calibration"
 msgstr "Dynamic flow calibration"
@@ -8773,6 +8779,15 @@ msgstr ""
 msgid "Color Scheme"
 msgstr "Color Scheme"
 
+msgid "Less"
+msgstr ""
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Total usage"
+msgstr ""
+
 msgid "Percent"
 msgstr "Percent"
 
@@ -8872,52 +8887,40 @@ msgstr "Switch to silent mode"
 msgid "Switch to normal mode"
 msgstr "Switch to normal mode"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr ""
-
-msgid "Filament Grouping"
-msgstr ""
-
-msgid "Why this grouping"
-msgstr ""
-
-msgid "AMS nozzle"
-msgstr ""
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr ""
-
-msgid "Tips:"
-msgstr "Tips:"
-
-msgid "Current grouping of slice result is not optimal."
+#, boost-format
+msgid "save %1%g more filament and %2% more filament changes"
 msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+msgid "save %1%g more filament but add %2% filament changes"
 msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+msgid "save %2% more filament changes but use %1%g more filament"
+msgstr ""
+
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
 msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+msgid "save %1%g filament and %2% filament changes."
 msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+msgid "save %1%g filament but add %2% filament changes."
 msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+msgid "save %2% filament changes but use %1%g more filament."
 msgstr ""
 
-#, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+msgid "Compared to a printer with one nozzle, "
 msgstr ""
 
 msgid "Set to Optimal"
+msgstr ""
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
 msgstr ""
 
 msgid "Regroup filament"
@@ -14285,9 +14288,6 @@ msgstr "Undo integration was successful."
 msgid "New network plug-in available."
 msgstr "New network plug-in available."
 
-msgid "Details"
-msgstr "Details"
-
 msgid "New printer config available."
 msgstr "New printer config available."
 
@@ -15575,9 +15575,6 @@ msgstr ""
 msgid "AMS(1 slot)"
 msgstr ""
 
-msgid "AMS"
-msgstr "AMS"
-
 msgid "Not installed"
 msgstr ""
 
@@ -16591,6 +16588,9 @@ msgstr "Triangles: %1%\n"
 
 msgid " (Repair)"
 msgstr " (Repair)"
+
+msgid "Tips:"
+msgstr "Tips:"
 
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr ""
@@ -17874,24 +17874,6 @@ msgstr ""
 msgid "Task canceled"
 msgstr "Task canceled"
 
-msgid "Bambu Cool Plate"
-msgstr "Bambu Cool Plate"
-
-msgid "Bambu Engineering Plate"
-msgstr "Bambu Engineering Plate"
-
-msgid "Bambu Smooth PEI Plate"
-msgstr "Bambu Smooth PEI Plate"
-
-msgid "High temperature Plate"
-msgstr "High temperature Plate"
-
-msgid "Bambu Textured PEI Plate"
-msgstr "Bambu Textured PEI Plate"
-
-msgid "Bambu 3D Effect Plate"
-msgstr "Bambu 3D Effect Plate"
-
 msgid "Send print job"
 msgstr ""
 
@@ -18214,6 +18196,9 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
+msgid "High temperature Plate"
+msgstr "High temperature Plate"
+
 msgid "Cool Plate SuperTack"
 msgstr ""
 
@@ -18301,11 +18286,11 @@ msgid "Try to connect"
 msgstr ""
 
 msgctxt "sendtoprint"
-msgid "External"
+msgid "Cache"
 msgstr ""
 
 msgctxt "sendtoprint"
-msgid "Cache"
+msgid "External"
 msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
@@ -20006,6 +19991,9 @@ msgstr "Please check the network connection of the printer and Studio."
 msgid "Sync Printer Information"
 msgstr ""
 
+msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
+msgstr ""
+
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr ""
 
@@ -20021,11 +20009,28 @@ msgstr ""
 msgid "3MF File Settings"
 msgstr ""
 
+msgid "Target Printer"
+msgstr ""
+
 msgid "Connected Printer"
+msgstr ""
+
+msgid "Target Nozzle"
 msgstr ""
 
 #, c-format, boost-format
 msgid "%s (only supported)"
+msgstr ""
+
+msgid "Target printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
 msgstr ""
 
 msgid "Don't show this again when opening 3MF files"
@@ -20999,6 +21004,21 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Bambu Cool Plate"
+#~ msgstr "Bambu Cool Plate"
+
+#~ msgid "Bambu Engineering Plate"
+#~ msgstr "Bambu Engineering Plate"
+
+#~ msgid "Bambu Smooth PEI Plate"
+#~ msgstr "Bambu Smooth PEI Plate"
+
+#~ msgid "Bambu Textured PEI Plate"
+#~ msgstr "Bambu Textured PEI Plate"
+
+#~ msgid "Bambu 3D Effect Plate"
+#~ msgstr "Bambu 3D Effect Plate"
 
 #~ msgid "Mesh name"
 #~ msgstr "Mesh name"

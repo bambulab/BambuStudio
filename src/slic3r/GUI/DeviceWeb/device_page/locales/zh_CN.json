@@ -479,5 +479,7 @@
   "Pen": "笔",
   "Cutter": "刀具",
   "Laser": "激光",
-  "Exit the filament loading process?": "Exit the filament loading process?"
+  "Exit the filament loading process?": "确定退出换料流程？",
+  "EXT Load": "外挂进料",
+  "Supports batch loading from the AMS feed inlet or the direct feed port.": "支持批量从AMS进料口或直通口进料"
 }

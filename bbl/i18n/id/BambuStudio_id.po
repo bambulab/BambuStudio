@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 20:11+0800\n"
+"POT-Creation-Date: 2026-11-19 17:41+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -393,9 +393,6 @@ msgstr "Tinggi lapisan variabel tidak didukung dengan penyangga organik."
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr "Pencetakan dengan diameter nosel berbeda dan cincin penyangga masih dalam tahap uji coba. Cincin penyangga mungkin tidak berfungsi dengan baik jika ukuran nosel berbeda."
-
-msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr "Pencetakan dengan diameter nosel berbeda dan menara utama masih dalam tahap uji coba. Menara utama mungkin tidak berfungsi dengan benar jika ukuran nosel berbeda."
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr "Diameter nosel yang berbeda tidak diperbolehkan saat cincin penyangga digunakan."
@@ -3087,6 +3084,12 @@ msgstr "Penempatan sambungan jauh dari overhang (eksperimental)"
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
 msgstr "Pastikan penempatan sambungan jauh dari overhang untuk mode penyelarasan dan belakang."
+
+msgid "Embedded seam headroom"
+msgstr ""
+
+msgid "When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that leaves at least this much hidden wall in the printing direction before the wall becomes visible. This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "Celah Sambungan"
@@ -8491,17 +8494,17 @@ msgstr "Edit nosel"
 msgid "In use"
 msgstr "Sedang digunakan"
 
-msgid "This nozzle is turned off. Select it above to use it."
-msgstr "Nosel ini dinonaktifkan. Pilih nosel di atas untuk menggunakannya."
+msgid "This side has no nozzle. Click Edit to add one."
+msgstr ""
 
-msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
-msgstr "Nosel ini tidak dapat mencetak dengan diameter yang dipilih. Klik Edit untuk mengubahnya."
+msgid "This nozzle has another diameter. Select it above to use it."
+msgstr ""
 
-msgid "The nozzles are different, so this option is not available."
-msgstr "Nosel berbeda, sehingga opsi ini tidak tersedia."
+msgid "Filament switcher"
+msgstr ""
 
-msgid "This side has no nozzle. Click Edit on its card to add one."
-msgstr "Sisi ini tidak memiliki nosel. Klik Edit pada kartunya untuk menambahkan satu."
+msgid "The filament switcher is not ready."
+msgstr ""
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr "Pengalih filamen terdeteksi. Semua filamen AMS sekarang tersedia untuk kedua ekstruder. Slicer akan secara otomatis menetapkan untuk pencetakan optimal. "
@@ -8537,6 +8540,9 @@ msgstr "Informasi hotend tidak diketahui. Harap segarkan informasi nosel sebelum
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Diameter nosel tidak sesuai. Nosel ini tidak dapat digunakan."
+
+msgid "AMS"
+msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "Kalibrasi aliran dinamika"
@@ -8890,6 +8896,15 @@ msgstr "Hasil Pemotongan"
 msgid "Color Scheme"
 msgstr "Skema Warna"
 
+msgid "Less"
+msgstr ""
+
+msgid "Details"
+msgstr "Detail"
+
+msgid "Total usage"
+msgstr ""
+
 msgid "Percent"
 msgstr "Persen"
 
@@ -8989,53 +9004,41 @@ msgstr "Beralih ke mode senyap"
 msgid "Switch to normal mode"
 msgstr "Beralih ke mode normal"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "Potong ulang secara otomatis sesuai dengan pengelompokan filamen optimal, dan hasil pengelompokan akan ditampilkan setelah pemotongan."
-
-msgid "Filament Grouping"
-msgstr "Pengelompokan Filamen"
-
-msgid "Why this grouping"
-msgstr "Mengapa dikelompokkan seperti ini?"
-
-msgid "AMS nozzle"
-msgstr "Nosel AMS"
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "Harap tempatkan filamen pada printer berdasarkan hasil pengelompokan."
-
-msgid "Tips:"
+#, boost-format
+msgid "save %1%g more filament and %2% more filament changes"
 msgstr ""
 
-msgid "Current grouping of slice result is not optimal."
-msgstr "Pengelompokan hasil irisan saat ini bukan hasil optimal."
+#, boost-format
+msgid "save %1%g more filament but add %2% filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr "Dibandingkan pengelompokan optimal, ada peningkatan %1%g filamen dan %2% kali pembersihan nosel."
+msgid "save %2% more filament changes but use %1%g more filament"
+msgstr ""
+
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr "Dibandingkan pengelompokan optimal, ada peningkatan %1%g filamen dan penghematan %2% pembersihan nosel."
+msgid "save %1%g filament and %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr "Dibandingkan pengelompokan optimal, menghemat %1%g filamen dan meningkatkan %2% pembersihan nosel."
+msgid "save %1%g filament but add %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Menghemat %1%g filamen dan %2% pembersihan nosel dibandingkan printer dengan satu nosel."
+msgid "save %2% filament changes but use %1%g more filament."
+msgstr ""
 
-#, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Dibandingkan printer dengan satu nosel, menghemat %1%g filamen dan meningkatkan %2% pembersihan nosel."
-
-#, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Dibandingkan printer dengan satu nosel, meningkatkan %1%g filamen dan menghemat %2% pembersihan nosel."
+msgid "Compared to a printer with one nozzle, "
+msgstr ""
 
 msgid "Set to Optimal"
 msgstr "Atur ke Optimal"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "Potong ulang secara otomatis sesuai dengan pengelompokan filamen optimal, dan hasil pengelompokan akan ditampilkan setelah pemotongan."
 
 msgid "Regroup filament"
 msgstr "Kelompokkan kembali filamen"
@@ -14441,9 +14444,6 @@ msgstr "Pembatalan integrasi berhasil."
 msgid "New network plug-in available."
 msgstr "Plugin jaringan baru tersedia."
 
-msgid "Details"
-msgstr "Detail"
-
 msgid "New printer config available."
 msgstr "Konfigurasi printer baru tersedia."
 
@@ -15788,9 +15788,6 @@ msgstr "AMS (4 slot)"
 msgid "AMS(1 slot)"
 msgstr ""
 
-msgid "AMS"
-msgstr ""
-
 msgid "Not installed"
 msgstr "Tidak terpasang"
 
@@ -16849,6 +16846,9 @@ msgstr "Segitiga: %1%\n"
 
 msgid " (Repair)"
 msgstr " (Perbaikan)"
+
+msgid "Tips:"
+msgstr ""
 
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr "Untuk memperbaiki model, harap gunakan alat pihak ketiga sebelum mengimpornya ke Bambu Studio, misalnya "
@@ -18144,24 +18144,6 @@ msgstr "Harap potong ulang untuk menghindari pemborosan filamen."
 msgid "Task canceled"
 msgstr "Tugas dibatalkan"
 
-msgid "Bambu Cool Plate"
-msgstr "Pelat Dingin Bambu"
-
-msgid "Bambu Engineering Plate"
-msgstr "Pelat Teknik Bambu"
-
-msgid "Bambu Smooth PEI Plate"
-msgstr "Pelat PEI Halus Bambu"
-
-msgid "High temperature Plate"
-msgstr "Pelat Suhu Tinggi Bambu"
-
-msgid "Bambu Textured PEI Plate"
-msgstr "Pelat PEI Bertekstur Bambu"
-
-msgid "Bambu 3D Effect Plate"
-msgstr "Pelat Efek 3D Bambu"
-
 msgid "Send print job"
 msgstr "Kirim pekerjaan cetak"
 
@@ -18495,6 +18477,9 @@ msgstr "TPU pada slot %d dapat terlepas saat pergantian Alat Pencetakan. Pindahk
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Residu filamen suhu rendah terdeteksi di Hotend %s. Pencetakan dengan suhu ruang yang tinggi dapat menyebabkan penyumbatan nosel. Masukkan filamen terlebih dahulu."
 
+msgid "High temperature Plate"
+msgstr "Pelat Suhu Tinggi Bambu"
+
 msgid "Cool Plate SuperTack"
 msgstr ""
 
@@ -18584,12 +18569,12 @@ msgid "Try to connect"
 msgstr "Coba hubungkan"
 
 msgctxt "sendtoprint"
-msgid "External"
-msgstr "Eksternal"
-
-msgctxt "sendtoprint"
 msgid "Cache"
 msgstr ""
+
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "Eksternal"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Waktu unggah file habis, harap periksa apakah versi firmware mendukungnya."
@@ -20307,6 +20292,9 @@ msgstr "Harap periksa koneksi jaringan printer dan Studio."
 msgid "Sync Printer Information"
 msgstr "Sinkronkan Informasi Printer"
 
+msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
+msgstr ""
+
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr "Model printer dan pengaturan dalam file 3MF ini tidak sesuai dengan printer yang terhubung. Apakah Anda ingin menyesuaikan pengaturan pemotongan ini untuk printer ini?"
 
@@ -20322,12 +20310,29 @@ msgstr "Catatan: Setelah menyesuaikan pengaturan, beberapa parameter cetak akan 
 msgid "3MF File Settings"
 msgstr "Pengaturan File 3MF"
 
+msgid "Target Printer"
+msgstr ""
+
 msgid "Connected Printer"
 msgstr "Printer yang Terhubung"
+
+msgid "Target Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s (only supported)"
 msgstr "%s (hanya didukung)"
+
+msgid "Target printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
+msgstr ""
 
 msgid "Don't show this again when opening 3MF files"
 msgstr "Jangan tampilkan ini lagi saat membuka file 3MF"
@@ -21341,6 +21346,75 @@ msgid ""
 msgstr ""
 "Keandalan Tepat di Percobaan Pertama \n"
 "Lebih sedikit pengawasan, hasil yang lebih terprediksi. Contoh: fasilitas print farm kecil yang mencetak komponen PETG menghindari kejutan 'gagal pada jam ke-6' dan menjaga produksi tetap sesuai jadwal."
+
+#~ msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+#~ msgstr "Pencetakan dengan diameter nosel berbeda dan menara utama masih dalam tahap uji coba. Menara utama mungkin tidak berfungsi dengan benar jika ukuran nosel berbeda."
+
+#~ msgid "This nozzle is turned off. Select it above to use it."
+#~ msgstr "Nosel ini dinonaktifkan. Pilih nosel di atas untuk menggunakannya."
+
+#~ msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
+#~ msgstr "Nosel ini tidak dapat mencetak dengan diameter yang dipilih. Klik Edit untuk mengubahnya."
+
+#~ msgid "The nozzles are different, so this option is not available."
+#~ msgstr "Nosel berbeda, sehingga opsi ini tidak tersedia."
+
+#~ msgid "This side has no nozzle. Click Edit on its card to add one."
+#~ msgstr "Sisi ini tidak memiliki nosel. Klik Edit pada kartunya untuk menambahkan satu."
+
+#~ msgid "Filament Grouping"
+#~ msgstr "Pengelompokan Filamen"
+
+#~ msgid "Why this grouping"
+#~ msgstr "Mengapa dikelompokkan seperti ini?"
+
+#~ msgid "AMS nozzle"
+#~ msgstr "Nosel AMS"
+
+#~ msgid "Please place filaments on the printer based on grouping result."
+#~ msgstr "Harap tempatkan filamen pada printer berdasarkan hasil pengelompokan."
+
+#~ msgid "Current grouping of slice result is not optimal."
+#~ msgstr "Pengelompokan hasil irisan saat ini bukan hasil optimal."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Dibandingkan pengelompokan optimal, ada peningkatan %1%g filamen dan %2% kali pembersihan nosel."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Dibandingkan pengelompokan optimal, ada peningkatan %1%g filamen dan penghematan %2% pembersihan nosel."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Dibandingkan pengelompokan optimal, menghemat %1%g filamen dan meningkatkan %2% pembersihan nosel."
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Menghemat %1%g filamen dan %2% pembersihan nosel dibandingkan printer dengan satu nosel."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Dibandingkan printer dengan satu nosel, menghemat %1%g filamen dan meningkatkan %2% pembersihan nosel."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Dibandingkan printer dengan satu nosel, meningkatkan %1%g filamen dan menghemat %2% pembersihan nosel."
+
+#~ msgid "Bambu Cool Plate"
+#~ msgstr "Pelat Dingin Bambu"
+
+#~ msgid "Bambu Engineering Plate"
+#~ msgstr "Pelat Teknik Bambu"
+
+#~ msgid "Bambu Smooth PEI Plate"
+#~ msgstr "Pelat PEI Halus Bambu"
+
+#~ msgid "Bambu Textured PEI Plate"
+#~ msgstr "Pelat PEI Bertekstur Bambu"
+
+#~ msgid "Bambu 3D Effect Plate"
+#~ msgstr "Pelat Efek 3D Bambu"
 
 #~ msgid "Switch hotend"
 #~ msgstr "Ganti hotend"

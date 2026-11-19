@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 20:11+0800\n"
+"POT-Creation-Date: 2026-11-19 17:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -383,9 +383,6 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "Proměnná výška vrstvy není podporována s organickými podpěrami."
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
-msgstr ""
-
-msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
 msgstr ""
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
@@ -3086,6 +3083,12 @@ msgstr "Umístění švu mimo převisy (experimentální)"
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
 msgstr "Zajistěte umístění švu mimo převisy pro zarovnávací a opěrné režimy."
+
+msgid "Embedded seam headroom"
+msgstr ""
+
+msgid "When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that leaves at least this much hidden wall in the printing direction before the wall becomes visible. This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "Mezera švu"
@@ -8540,16 +8543,16 @@ msgstr ""
 msgid "In use"
 msgstr ""
 
-msgid "This nozzle is turned off. Select it above to use it."
+msgid "This side has no nozzle. Click Edit to add one."
 msgstr ""
 
-msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
+msgid "This nozzle has another diameter. Select it above to use it."
 msgstr ""
 
-msgid "The nozzles are different, so this option is not available."
+msgid "Filament switcher"
 msgstr ""
 
-msgid "This side has no nozzle. Click Edit on its card to add one."
+msgid "The filament switcher is not ready."
 msgstr ""
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
@@ -8586,6 +8589,9 @@ msgstr ""
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr ""
+
+msgid "AMS"
+msgstr "AMS"
 
 msgid "Dynamic flow calibration"
 msgstr "Kalibrace dynamiky toku"
@@ -8939,6 +8945,15 @@ msgstr "Výsledek řezání"
 msgid "Color Scheme"
 msgstr "Barevné schéma"
 
+msgid "Less"
+msgstr ""
+
+msgid "Details"
+msgstr "Detaily"
+
+msgid "Total usage"
+msgstr ""
+
 msgid "Percent"
 msgstr "Procento"
 
@@ -9038,53 +9053,41 @@ msgstr "Přepnout do tichého režimu"
 msgid "Switch to normal mode"
 msgstr "Přepnout do standardního režimu"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "Automaticky znovu proveďte řezání podle optimálního seskupení filamentů. Výsledky seskupení se zobrazí po dokončení řezání."
-
-msgid "Filament Grouping"
-msgstr "Seskupení filamentů"
-
-msgid "Why this grouping"
-msgstr "Proč právě toto seskupení"
-
-msgid "AMS nozzle"
-msgstr ""
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "Umístěte prosím filamenty do tiskárny podle výsledku seskupení."
-
-msgid "Tips:"
-msgstr "Tipy:"
-
-msgid "Current grouping of slice result is not optimal."
-msgstr "Aktuální seskupení ve výsledku řezání není optimální."
-
 #, boost-format
-msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+msgid "save %1%g more filament and %2% more filament changes"
 msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+msgid "save %1%g more filament but add %2% filament changes"
 msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+msgid "save %2% more filament changes but use %1%g more filament"
+msgstr ""
+
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
 msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+msgid "save %1%g filament and %2% filament changes."
 msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+msgid "save %1%g filament but add %2% filament changes."
 msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+msgid "save %2% filament changes but use %1%g more filament."
+msgstr ""
+
+msgid "Compared to a printer with one nozzle, "
 msgstr ""
 
 msgid "Set to Optimal"
 msgstr "Nastavit na optimální"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "Automaticky znovu proveďte řezání podle optimálního seskupení filamentů. Výsledky seskupení se zobrazí po dokončení řezání."
 
 msgid "Regroup filament"
 msgstr "Přeskupit filament"
@@ -14519,9 +14522,6 @@ msgstr "Vrácení změn bylo úspěšné."
 msgid "New network plug-in available."
 msgstr "K dispozici je nový síťový plug-in."
 
-msgid "Details"
-msgstr "Detaily"
-
 msgid "New printer config available."
 msgstr "K dispozici je nová konfigurace tiskárny."
 
@@ -15809,9 +15809,6 @@ msgstr "AMS (4 sloty)"
 msgid "AMS(1 slot)"
 msgstr "AMS (1 slot)"
 
-msgid "AMS"
-msgstr "AMS"
-
 msgid "Not installed"
 msgstr "Nenainstalováno"
 
@@ -16877,6 +16874,9 @@ msgstr "Trojúhelníky: %1%\n"
 
 msgid " (Repair)"
 msgstr " (Oprava)"
+
+msgid "Tips:"
+msgstr "Tipy:"
 
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr "Pro opravu modelu použijte před importem do Bambu Studio nástroj třetí strany, například "
@@ -18171,24 +18171,6 @@ msgstr "Pro omezení plýtvání filamentem prosím proveďte nové řezání."
 msgid "Task canceled"
 msgstr "Úloha zrušena"
 
-msgid "Bambu Cool Plate"
-msgstr "Bambu Chladicí podložka"
-
-msgid "Bambu Engineering Plate"
-msgstr "Bambu Inženýrská podložka"
-
-msgid "Bambu Smooth PEI Plate"
-msgstr "Bambu hladká PEI podložka"
-
-msgid "High temperature Plate"
-msgstr "Podložka pro vysoké teploty"
-
-msgid "Bambu Textured PEI Plate"
-msgstr "Bambu strukturovaná PEI podložka"
-
-msgid "Bambu 3D Effect Plate"
-msgstr ""
-
 msgid "Send print job"
 msgstr "Odeslat tiskovou úlohu"
 
@@ -18527,6 +18509,9 @@ msgstr ""
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
+msgid "High temperature Plate"
+msgstr "Podložka pro vysoké teploty"
+
 msgid "Cool Plate SuperTack"
 msgstr ""
 
@@ -18617,12 +18602,12 @@ msgid "Try to connect"
 msgstr "Zkuste se připojit"
 
 msgctxt "sendtoprint"
-msgid "External"
-msgstr "Externí"
-
-msgctxt "sendtoprint"
 msgid "Cache"
 msgstr "Mezipaměť"
+
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "Externí"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Časový limit pro nahrání souboru vypršel. Zkontrolujte, zda to verze firmwaru podpěruje."
@@ -20344,6 +20329,9 @@ msgstr "Zkontrolujte prosím síťové připojení tiskárny a aplikace Studio."
 msgid "Sync Printer Information"
 msgstr ""
 
+msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
+msgstr ""
+
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr ""
 
@@ -20359,11 +20347,28 @@ msgstr ""
 msgid "3MF File Settings"
 msgstr ""
 
+msgid "Target Printer"
+msgstr ""
+
 msgid "Connected Printer"
+msgstr ""
+
+msgid "Target Nozzle"
 msgstr ""
 
 #, c-format, boost-format
 msgid "%s (only supported)"
+msgstr ""
+
+msgid "Target printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
 msgstr ""
 
 msgid "Don't show this again when opening 3MF files"
@@ -21415,6 +21420,30 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid "Filament Grouping"
+#~ msgstr "Seskupení filamentů"
+
+#~ msgid "Why this grouping"
+#~ msgstr "Proč právě toto seskupení"
+
+#~ msgid "Please place filaments on the printer based on grouping result."
+#~ msgstr "Umístěte prosím filamenty do tiskárny podle výsledku seskupení."
+
+#~ msgid "Current grouping of slice result is not optimal."
+#~ msgstr "Aktuální seskupení ve výsledku řezání není optimální."
+
+#~ msgid "Bambu Cool Plate"
+#~ msgstr "Bambu Chladicí podložka"
+
+#~ msgid "Bambu Engineering Plate"
+#~ msgstr "Bambu Inženýrská podložka"
+
+#~ msgid "Bambu Smooth PEI Plate"
+#~ msgstr "Bambu hladká PEI podložka"
+
+#~ msgid "Bambu Textured PEI Plate"
+#~ msgstr "Bambu strukturovaná PEI podložka"
 
 #~ msgid "Align selected"
 #~ msgstr "Zarovnat vybrané"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 20:11+0800\n"
+"POT-Creation-Date: 2026-11-19 17:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -383,9 +383,6 @@ msgstr "L'altezza variabile del layer non è supportata dai supporti organici."
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr "La stampa con nozzle di diametro diverso e con anello di supporto è in fase sperimentale. L'anello di supporto potrebbe non funzionare correttamente se le dimensioni del nozzle non corrispondono."
-
-msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr "La stampa con nozzle di diametri diversi e una torre di adescamento è sperimentale. La torre di spurgo potrebbe non funzionare correttamente con nozzle di dimensioni diverse."
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr "Non è consentito utilizzare nozzle di diametro diverso quando l'anello di supporto è abilitato."
@@ -3084,6 +3081,12 @@ msgstr "Posizionamento della giunzione lontano dagli sbalzi (sperimentale)"
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
 msgstr "Assicurati che il posizionamento della giunzione sia lontano dai supporti per le modalità di allineamento."
+
+msgid "Embedded seam headroom"
+msgstr ""
+
+msgid "When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that leaves at least this much hidden wall in the printing direction before the wall becomes visible. This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "Distanza giunzione"
@@ -8493,17 +8496,17 @@ msgstr "Modifica nozzle"
 msgid "In use"
 msgstr "In uso"
 
-msgid "This nozzle is turned off. Select it above to use it."
-msgstr "Questo nozzle è disattivato. Selezionalo qui sopra per utilizzarlo."
+msgid "This side has no nozzle. Click Edit to add one."
+msgstr ""
 
-msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
-msgstr "Questo nozzle non può stampare con il diametro selezionato. Fai clic su Modifica per cambiarlo."
+msgid "This nozzle has another diameter. Select it above to use it."
+msgstr ""
 
-msgid "The nozzles are different, so this option is not available."
-msgstr "I nozzle sono diversi, quindi questa opzione non è disponibile."
+msgid "Filament switcher"
+msgstr ""
 
-msgid "This side has no nozzle. Click Edit on its card to add one."
-msgstr "Su questo lato non è presente alcun nozzle. Fai clic su Modifica nella relativa scheda per aggiungerne uno."
+msgid "The filament switcher is not ready."
+msgstr ""
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr "Rilevato filament switcher. Tutti i filamenti AMS sono ora disponibili per entrambi gli estrusori. Lo slicer assegnerà automaticamente i filamenti per una stampa ottimale. "
@@ -8539,6 +8542,9 @@ msgstr "Le informazioni sull'hotend sono sconosciute. Aggiorna le informazioni s
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Mancata corrispondenza del diametro del nozzle. Questo nozzle non può essere utilizzato."
+
+msgid "AMS"
+msgstr "AMS"
 
 msgid "Dynamic flow calibration"
 msgstr "Calibrazione dinamica del flusso"
@@ -8892,6 +8898,15 @@ msgstr "Risultato dello slicing"
 msgid "Color Scheme"
 msgstr "Schema Colore"
 
+msgid "Less"
+msgstr ""
+
+msgid "Details"
+msgstr "Dettagli"
+
+msgid "Total usage"
+msgstr ""
+
 msgid "Percent"
 msgstr "Percentuale"
 
@@ -8991,53 +9006,41 @@ msgstr "Passa alla modalità silenziosa"
 msgid "Switch to normal mode"
 msgstr "Passa a modalità normale"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "Riesegui automaticamente lo slicing secondo il raggruppamento ottimale dei filamenti; i risultati del raggruppamento saranno mostrati dopo lo slicing."
-
-msgid "Filament Grouping"
-msgstr "Raggruppamento filamenti"
-
-msgid "Why this grouping"
-msgstr "Perché questo raggruppamento"
-
-msgid "AMS nozzle"
-msgstr "Nozzle AMS"
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "Posizionare i filamenti sulla stampante in base al risultato di raggruppamento."
-
-msgid "Tips:"
-msgstr "Suggerimenti:"
-
-msgid "Current grouping of slice result is not optimal."
-msgstr "L'attuale raggruppamento dei risultati delle sezioni non è ottimale."
+#, boost-format
+msgid "save %1%g more filament and %2% more filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr "Aumentare di %1% g il filamento e %2% cicli di spurgo del nozzle rispetto al raggruppamento ottimale."
+msgid "save %1%g more filament but add %2% filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr "Aumentare di %1% g il filamento e ridurre %2% cicli di spurgo del nozzle rispetto al raggruppamento ottimale."
+msgid "save %2% more filament changes but use %1%g more filament"
+msgstr ""
+
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr "Risparmiare %1% g di filamento e aumentare %2% cicli di spurgo del nozzle rispetto al raggruppamento ottimale."
+msgid "save %1%g filament and %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Risparmiare %1% g di filamento e %2% cicli di spurgo del nozzle rispetto a una stampante con un solo nozzle."
+msgid "save %1%g filament but add %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Risparmiare %1% g di filamento e aumentare %2% cicli di spurgo del nozzle rispetto a una stampante con un solo nozzle."
+msgid "save %2% filament changes but use %1%g more filament."
+msgstr ""
 
-#, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Aumentare di %1% g il filamento e ridurre %2% cicli di spurgo del nozzle rispetto a una stampante con un solo nozzle."
+msgid "Compared to a printer with one nozzle, "
+msgstr ""
 
 msgid "Set to Optimal"
 msgstr "Imposta su Ottimale"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "Riesegui automaticamente lo slicing secondo il raggruppamento ottimale dei filamenti; i risultati del raggruppamento saranno mostrati dopo lo slicing."
 
 msgid "Regroup filament"
 msgstr "Raggruppa filamento"
@@ -14450,9 +14453,6 @@ msgstr "Annullamento integrazione riuscita."
 msgid "New network plug-in available."
 msgstr "Nuovo plug-in network disponibile"
 
-msgid "Details"
-msgstr "Dettagli"
-
 msgid "New printer config available."
 msgstr "Nuova configurazione stampante disponibile."
 
@@ -15799,9 +15799,6 @@ msgstr ""
 msgid "AMS(1 slot)"
 msgstr ""
 
-msgid "AMS"
-msgstr "AMS"
-
 msgid "Not installed"
 msgstr "Non installato"
 
@@ -16854,6 +16851,9 @@ msgstr "Triangoli: %1%\n"
 
 msgid " (Repair)"
 msgstr "(Ripara)"
+
+msgid "Tips:"
+msgstr "Suggerimenti:"
 
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr "Per riparare il modello, per favore utilizza uno strumento di terze parti prima di importarlo in Bambu Studio, come"
@@ -18147,24 +18147,6 @@ msgstr "Rifai l'elaborazione per evitare sprechi di filamento."
 msgid "Task canceled"
 msgstr "Attività annullata"
 
-msgid "Bambu Cool Plate"
-msgstr "Bambu Cool Plate"
-
-msgid "Bambu Engineering Plate"
-msgstr "Bambu Engineering Plate"
-
-msgid "Bambu Smooth PEI Plate"
-msgstr "Bambu Smooth PEI Plate"
-
-msgid "High temperature Plate"
-msgstr "High temperature Plate"
-
-msgid "Bambu Textured PEI Plate"
-msgstr "Bambu Textured PEI Plate"
-
-msgid "Bambu 3D Effect Plate"
-msgstr "Piastra effetto 3D Bambu"
-
 msgid "Send print job"
 msgstr "Invia lavoro di stampa"
 
@@ -18498,6 +18480,9 @@ msgstr "Il TPU nello slot %d potrebbe fuoriuscire durante il cambio dello Strume
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Rilevati residui di filamento a bassa temperatura nell'hotend %s. La stampa ad alta temperatura della camera può causare l'intasamento dei nozzle. Caricare prima il filamento."
 
+msgid "High temperature Plate"
+msgstr "High temperature Plate"
+
 msgid "Cool Plate SuperTack"
 msgstr ""
 
@@ -18587,12 +18572,12 @@ msgid "Try to connect"
 msgstr "Prova a connetterti"
 
 msgctxt "sendtoprint"
-msgid "External"
-msgstr "Esterno"
-
-msgctxt "sendtoprint"
 msgid "Cache"
 msgstr ""
+
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "Esterno"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Timeout caricamento file: controlla se la versione del firmware lo supporta."
@@ -20311,6 +20296,9 @@ msgstr "Controlla la connessione di rete della stampante e di Studio."
 msgid "Sync Printer Information"
 msgstr "Sincronizza le Informazioni della Stampante"
 
+msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
+msgstr ""
+
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr "Il modello della stampante e le impostazioni presenti in questo file 3MF non corrispondono alla stampante collegata. Desideri adattare queste impostazioni dell'elaborazione per questa stampante?"
 
@@ -20326,12 +20314,29 @@ msgstr "Nota: Dopo aver adattato le impostazioni, alcuni parametri di stampa ver
 msgid "3MF File Settings"
 msgstr "Impostazioni del File 3MF"
 
+msgid "Target Printer"
+msgstr ""
+
 msgid "Connected Printer"
 msgstr "Stampante Collegata"
+
+msgid "Target Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s (only supported)"
 msgstr "%s (solo supportato)"
+
+msgid "Target printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
+msgstr ""
 
 msgid "Don't show this again when opening 3MF files"
 msgstr "Non mostrare più questo messaggio all'apertura dei file 3MF"
@@ -21339,6 +21344,75 @@ msgid ""
 msgstr ""
 "Affidabilità al Primo Tentativo\n"
 "Meno supervisione, risultati più prevedibili. Ad esempio: una piccola produzione che stampa parti in PETG evita sorprese tipo \"fallimento alla sesta ora\" e mantiene i lotti nei tempi previsti."
+
+#~ msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+#~ msgstr "La stampa con nozzle di diametri diversi e una torre di adescamento è sperimentale. La torre di spurgo potrebbe non funzionare correttamente con nozzle di dimensioni diverse."
+
+#~ msgid "This nozzle is turned off. Select it above to use it."
+#~ msgstr "Questo nozzle è disattivato. Selezionalo qui sopra per utilizzarlo."
+
+#~ msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
+#~ msgstr "Questo nozzle non può stampare con il diametro selezionato. Fai clic su Modifica per cambiarlo."
+
+#~ msgid "The nozzles are different, so this option is not available."
+#~ msgstr "I nozzle sono diversi, quindi questa opzione non è disponibile."
+
+#~ msgid "This side has no nozzle. Click Edit on its card to add one."
+#~ msgstr "Su questo lato non è presente alcun nozzle. Fai clic su Modifica nella relativa scheda per aggiungerne uno."
+
+#~ msgid "Filament Grouping"
+#~ msgstr "Raggruppamento filamenti"
+
+#~ msgid "Why this grouping"
+#~ msgstr "Perché questo raggruppamento"
+
+#~ msgid "AMS nozzle"
+#~ msgstr "Nozzle AMS"
+
+#~ msgid "Please place filaments on the printer based on grouping result."
+#~ msgstr "Posizionare i filamenti sulla stampante in base al risultato di raggruppamento."
+
+#~ msgid "Current grouping of slice result is not optimal."
+#~ msgstr "L'attuale raggruppamento dei risultati delle sezioni non è ottimale."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Aumentare di %1% g il filamento e %2% cicli di spurgo del nozzle rispetto al raggruppamento ottimale."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Aumentare di %1% g il filamento e ridurre %2% cicli di spurgo del nozzle rispetto al raggruppamento ottimale."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Risparmiare %1% g di filamento e aumentare %2% cicli di spurgo del nozzle rispetto al raggruppamento ottimale."
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Risparmiare %1% g di filamento e %2% cicli di spurgo del nozzle rispetto a una stampante con un solo nozzle."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Risparmiare %1% g di filamento e aumentare %2% cicli di spurgo del nozzle rispetto a una stampante con un solo nozzle."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Aumentare di %1% g il filamento e ridurre %2% cicli di spurgo del nozzle rispetto a una stampante con un solo nozzle."
+
+#~ msgid "Bambu Cool Plate"
+#~ msgstr "Bambu Cool Plate"
+
+#~ msgid "Bambu Engineering Plate"
+#~ msgstr "Bambu Engineering Plate"
+
+#~ msgid "Bambu Smooth PEI Plate"
+#~ msgstr "Bambu Smooth PEI Plate"
+
+#~ msgid "Bambu Textured PEI Plate"
+#~ msgstr "Bambu Textured PEI Plate"
+
+#~ msgid "Bambu 3D Effect Plate"
+#~ msgstr "Piastra effetto 3D Bambu"
 
 #~ msgid "Switch hotend"
 #~ msgstr "Cambia hotend"

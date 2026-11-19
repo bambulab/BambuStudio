@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 20:11+0800\n"
+"POT-Creation-Date: 2026-11-19 17:41+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -392,9 +392,6 @@ msgstr "Το μεταβλητό ύψος επιπέδου δεν υποστηρ�
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr "Η εκτύπωση με διαφορετικές διαμέτρους ακροφυσίων και δακτύλιο υποστήριξης είναι πειραματική. Ο δακτύλιος υποστήριξης ενδέχεται να μη λειτουργεί σωστά με μη συμβατά μεγέθη ακροφυσίων."
-
-msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr "Η εκτύπωση με διαφορετικές διαμέτρους ακροφυσίων και πύργο πλήρωσης είναι πειραματική. Ο πύργος πλήρωσης ενδέχεται να μη λειτουργεί σωστά με μη συμβατά μεγέθη ακροφυσίων."
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr "Δεν επιτρέπονται διαφορετικές διάμετροι ακροφυσίων όταν είναι ενεργοποιημένος ο δακτύλιος υποστήριξης."
@@ -3086,6 +3083,12 @@ msgstr "Τοποθέτηση ραφής μακριά από προεξοχές (
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
 msgstr "Βεβαιωθείτε ότι η τοποθέτηση της ραφής είναι μακριά από τις προεξοχές για ευθυγράμμιση και λειτουργίες υποστήριξης."
+
+msgid "Embedded seam headroom"
+msgstr ""
+
+msgid "When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that leaves at least this much hidden wall in the printing direction before the wall becomes visible. This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "Κενό ραφής"
@@ -8492,17 +8495,17 @@ msgstr "Επεξεργασία ακροφυσίου"
 msgid "In use"
 msgstr "Σε χρήση"
 
-msgid "This nozzle is turned off. Select it above to use it."
-msgstr "Αυτό το ακροφύσιο είναι απενεργοποιημένο. Επιλέξτε το παραπάνω για να το χρησιμοποιήσετε."
+msgid "This side has no nozzle. Click Edit to add one."
+msgstr ""
 
-msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
-msgstr "Αυτό το ακροφύσιο δεν μπορεί να εκτυπώσει με την επιλεγμένη διάμετρο. Κάντε κλικ στην επιλογή Επεξεργασία για να την αλλάξετε."
+msgid "This nozzle has another diameter. Select it above to use it."
+msgstr ""
 
-msgid "The nozzles are different, so this option is not available."
-msgstr "Τα ακροφύσια είναι διαφορετικά. Κατά συνέπεια, αυτή η επιλογή δεν είναι διαθέσιμη."
+msgid "Filament switcher"
+msgstr ""
 
-msgid "This side has no nozzle. Click Edit on its card to add one."
-msgstr "Αυτή η πλευρά δεν έχει ακροφύσιο. Κάντε κλικ στην επιλογή Επεξεργασία στην κάρτα της για να προσθέσετε ένα."
+msgid "The filament switcher is not ready."
+msgstr ""
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr "Εντοπίστηκε διακόπτης νήματος. Όλα τα νήματα AMS είναι πλέον διαθέσιμα και για τους δύο εξωθητήρες. Ο τεμαχιστής πραγματοποιεί αυτόματη αντιστοίχιση για βέλτιστη εκτύπωση. "
@@ -8538,6 +8541,9 @@ msgstr "Οι πληροφορίες για το θερμό άκρο δεν εί�
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Ασυμφωνία διαμέτρου ακροφυσίου. Αυτό το ακροφύσιο δεν μπορεί να χρησιμοποιηθεί."
+
+msgid "AMS"
+msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "Βαθμονόμηση δυναμικής ροής"
@@ -8891,6 +8897,15 @@ msgstr "Αποτέλεσμα τεμαχισμού"
 msgid "Color Scheme"
 msgstr "Χρωματικό σχήμα"
 
+msgid "Less"
+msgstr ""
+
+msgid "Details"
+msgstr "Λεπτομέρειες"
+
+msgid "Total usage"
+msgstr ""
+
 msgid "Percent"
 msgstr "Ποσοστό"
 
@@ -8990,53 +9005,41 @@ msgstr "Μετάβαση σε αθόρυβη λειτουργία"
 msgid "Switch to normal mode"
 msgstr "Μετάβαση σε κανονική λειτουργία"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "Αυτόματος εκ νέου τεμαχισμός σύμφωνα με τη βέλτιστη ομαδοποίηση νημάτων, και τα αποτελέσματα της ομαδοποίησης θα εμφανιστούν μετά τον τεμαχισμό."
-
-msgid "Filament Grouping"
-msgstr "Ομαδοποίηση νημάτων"
-
-msgid "Why this grouping"
-msgstr "Γιατί αυτή η ομαδοποίηση"
-
-msgid "AMS nozzle"
-msgstr "Ακροφύσιο AMS"
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "Τοποθετήστε τα νήματα στον εκτυπωτή με βάση το αποτέλεσμα της ομαδοποίησης."
-
-msgid "Tips:"
-msgstr "Συμβουλές:"
-
-msgid "Current grouping of slice result is not optimal."
-msgstr "Η τρέχουσα ομαδοποίηση του αποτελέσματος τεμαχισμού δεν είναι η βέλτιστη."
+#, boost-format
+msgid "save %1%g more filament and %2% more filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr "Αύξηση %1%g νήματος και %2% καθαρισμοί ακροφυσίων σε σύγκριση με τη βέλτιστη ομαδοποίηση."
+msgid "save %1%g more filament but add %2% filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr "Αύξηση %1%g νήματος και εξοικονόμηση %2% καθαρισμών ακροφυσίων σε σύγκριση με τη βέλτιστη ομαδοποίηση."
+msgid "save %2% more filament changes but use %1%g more filament"
+msgstr ""
+
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr "Εξοικονόμηση %1%g νήματος και αύξηση %2% καθαρισμών ακροφυσίων σε σύγκριση με τη βέλτιστη ομαδοποίηση."
+msgid "save %1%g filament and %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Εξοικονόμηση %1%g νήματος και %2% καθαρισμοί ακροφυσίων σε σύγκριση με έναν εκτυπωτή με ένα ακροφύσιο."
+msgid "save %1%g filament but add %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Εξοικονόμηση %1%g νήματος και αύξηση %2% καθαρισμών ακροφυσίων σε σύγκριση με έναν εκτυπωτή με ένα ακροφύσιο."
+msgid "save %2% filament changes but use %1%g more filament."
+msgstr ""
 
-#, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "Αύξηση %1%g νήματος και εξοικονόμηση %2% καθαρισμών ακροφυσίων σε σύγκριση με έναν εκτυπωτή με ένα ακροφύσιο."
+msgid "Compared to a printer with one nozzle, "
+msgstr ""
 
 msgid "Set to Optimal"
 msgstr "Ορισμός σε Βέλτιστη"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "Αυτόματος εκ νέου τεμαχισμός σύμφωνα με τη βέλτιστη ομαδοποίηση νημάτων, και τα αποτελέσματα της ομαδοποίησης θα εμφανιστούν μετά τον τεμαχισμό."
 
 msgid "Regroup filament"
 msgstr "Ανασυγκρότηση νήματος"
@@ -14457,9 +14460,6 @@ msgstr "Η αναίρεση της ενσωμάτωσης ήταν επιτυχ�
 msgid "New network plug-in available."
 msgstr "Νέο διαθέσιμο πρόσθετο δικτύου."
 
-msgid "Details"
-msgstr "Λεπτομέρειες"
-
 msgid "New printer config available."
 msgstr "Νέα διαθέσιμη διαμόρφωση εκτυπωτή."
 
@@ -15806,9 +15806,6 @@ msgstr "AMS (4 υποδοχές)"
 msgid "AMS(1 slot)"
 msgstr "AMS (1 υποδοχή)"
 
-msgid "AMS"
-msgstr ""
-
 msgid "Not installed"
 msgstr "Δεν έχει εγκατασταθεί"
 
@@ -16867,6 +16864,9 @@ msgstr "Τρίγωνα: %1%\n"
 
 msgid " (Repair)"
 msgstr " (Επιδιόρθωση)"
+
+msgid "Tips:"
+msgstr "Συμβουλές:"
 
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr "Για να επιδιορθώσετε το μοντέλο, χρησιμοποιήστε ένα εργαλείο τρίτου κατασκευαστή πριν το εισαγάγετε στο Bambu Studio, όπως π.χ. "
@@ -18162,24 +18162,6 @@ msgstr "Επαναλάβετε τον τεμαχισμό για να αποφύ�
 msgid "Task canceled"
 msgstr "Η εργασία ακυρώθηκε"
 
-msgid "Bambu Cool Plate"
-msgstr "Ψυχρή Πλακέτα Bambu"
-
-msgid "Bambu Engineering Plate"
-msgstr "Πλακέτα μηχανικής Bambu"
-
-msgid "Bambu Smooth PEI Plate"
-msgstr "Λεία πλακέτα PEI Bambu"
-
-msgid "High temperature Plate"
-msgstr "Πλακέτα υψηλής θερμοκρασίας"
-
-msgid "Bambu Textured PEI Plate"
-msgstr "Ανάγλυφη πλακέτα PEI Bambu"
-
-msgid "Bambu 3D Effect Plate"
-msgstr "Πλάκα εφέ 3D Bambu"
-
 msgid "Send print job"
 msgstr "Αποστολή εργασίας εκτύπωσης"
 
@@ -18513,6 +18495,9 @@ msgstr "Το TPU στην υποδοχή %d ενδέχεται να γλιστρ
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Ανιχνεύτηκαν υπολείμματα νήματος χαμηλής θερμοκρασίας στο θερμό άκρο %s. Η εκτύπωση σε υψηλή θερμοκρασία θαλάμου ενδέχεται να προκαλέσει απόφραξη των ακροφυσίων. Φορτώστε πρώτα το νήμα."
 
+msgid "High temperature Plate"
+msgstr "Πλακέτα υψηλής θερμοκρασίας"
+
 msgid "Cool Plate SuperTack"
 msgstr ""
 
@@ -18602,12 +18587,12 @@ msgid "Try to connect"
 msgstr "Προσπαθήστε να συνδεθείτε"
 
 msgctxt "sendtoprint"
-msgid "External"
-msgstr "Εξωτερικό"
-
-msgctxt "sendtoprint"
 msgid "Cache"
 msgstr "Προσωρινή μνήμη"
+
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "Εξωτερικό"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Υπέρβαση χρονικού ορίου μεταφόρτωσης αρχείου, ελέγξτε αν το υποστηρίζει η έκδοση υλικολογισμικού."
@@ -20328,6 +20313,9 @@ msgstr "Ελέγξτε τη σύνδεση δικτύου του εκτυπωτ�
 msgid "Sync Printer Information"
 msgstr "Συγχρονισμός πληροφοριών εκτυπωτή"
 
+msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
+msgstr ""
+
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr "Το μοντέλο και οι ρυθμίσεις του εκτυπωτή σε αυτό το αρχείο 3MF δεν αντιστοιχούν με τον συνδεδεμένο εκτυπωτή. Θέλετε να προσαρμόσετε αυτές τις ρυθμίσεις τεμαχισμού για αυτόν τον εκτυπωτή;"
 
@@ -20343,12 +20331,29 @@ msgstr "Σημείωση: Μετά την προσαρμογή των ρυθμί
 msgid "3MF File Settings"
 msgstr "Ρυθμίσεις αρχείου 3MF"
 
+msgid "Target Printer"
+msgstr ""
+
 msgid "Connected Printer"
 msgstr "Συνδεδεμένος εκτυπωτής"
+
+msgid "Target Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s (only supported)"
 msgstr "%s (υποστηρίζεται μόνο)"
+
+msgid "Target printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
+msgstr ""
 
 msgid "Don't show this again when opening 3MF files"
 msgstr "Να μην εμφανιστεί ξανά κατά το άνοιγμα αρχείων 3MF"
@@ -21362,6 +21367,75 @@ msgid ""
 msgstr ""
 "Αξιοπιστία με την πρώτη\n"
 "Λιγότερη ταλαιπωρία, πιο προβλέψιμη απόδοση. Παράδειγμα: μια μικρή εταιρεία που εκτυπώνει τμήματα PETG αποφεύγει τις εκπλήξεις που προκαλούνται από «αστοχίες την 6η ώρα» και διατηρεί τις παρτίδες εντός χρονοδιαγράμματος."
+
+#~ msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+#~ msgstr "Η εκτύπωση με διαφορετικές διαμέτρους ακροφυσίων και πύργο πλήρωσης είναι πειραματική. Ο πύργος πλήρωσης ενδέχεται να μη λειτουργεί σωστά με μη συμβατά μεγέθη ακροφυσίων."
+
+#~ msgid "This nozzle is turned off. Select it above to use it."
+#~ msgstr "Αυτό το ακροφύσιο είναι απενεργοποιημένο. Επιλέξτε το παραπάνω για να το χρησιμοποιήσετε."
+
+#~ msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
+#~ msgstr "Αυτό το ακροφύσιο δεν μπορεί να εκτυπώσει με την επιλεγμένη διάμετρο. Κάντε κλικ στην επιλογή Επεξεργασία για να την αλλάξετε."
+
+#~ msgid "The nozzles are different, so this option is not available."
+#~ msgstr "Τα ακροφύσια είναι διαφορετικά. Κατά συνέπεια, αυτή η επιλογή δεν είναι διαθέσιμη."
+
+#~ msgid "This side has no nozzle. Click Edit on its card to add one."
+#~ msgstr "Αυτή η πλευρά δεν έχει ακροφύσιο. Κάντε κλικ στην επιλογή Επεξεργασία στην κάρτα της για να προσθέσετε ένα."
+
+#~ msgid "Filament Grouping"
+#~ msgstr "Ομαδοποίηση νημάτων"
+
+#~ msgid "Why this grouping"
+#~ msgstr "Γιατί αυτή η ομαδοποίηση"
+
+#~ msgid "AMS nozzle"
+#~ msgstr "Ακροφύσιο AMS"
+
+#~ msgid "Please place filaments on the printer based on grouping result."
+#~ msgstr "Τοποθετήστε τα νήματα στον εκτυπωτή με βάση το αποτέλεσμα της ομαδοποίησης."
+
+#~ msgid "Current grouping of slice result is not optimal."
+#~ msgstr "Η τρέχουσα ομαδοποίηση του αποτελέσματος τεμαχισμού δεν είναι η βέλτιστη."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Αύξηση %1%g νήματος και %2% καθαρισμοί ακροφυσίων σε σύγκριση με τη βέλτιστη ομαδοποίηση."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Αύξηση %1%g νήματος και εξοικονόμηση %2% καθαρισμών ακροφυσίων σε σύγκριση με τη βέλτιστη ομαδοποίηση."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+#~ msgstr "Εξοικονόμηση %1%g νήματος και αύξηση %2% καθαρισμών ακροφυσίων σε σύγκριση με τη βέλτιστη ομαδοποίηση."
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Εξοικονόμηση %1%g νήματος και %2% καθαρισμοί ακροφυσίων σε σύγκριση με έναν εκτυπωτή με ένα ακροφύσιο."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Εξοικονόμηση %1%g νήματος και αύξηση %2% καθαρισμών ακροφυσίων σε σύγκριση με έναν εκτυπωτή με ένα ακροφύσιο."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "Αύξηση %1%g νήματος και εξοικονόμηση %2% καθαρισμών ακροφυσίων σε σύγκριση με έναν εκτυπωτή με ένα ακροφύσιο."
+
+#~ msgid "Bambu Cool Plate"
+#~ msgstr "Ψυχρή Πλακέτα Bambu"
+
+#~ msgid "Bambu Engineering Plate"
+#~ msgstr "Πλακέτα μηχανικής Bambu"
+
+#~ msgid "Bambu Smooth PEI Plate"
+#~ msgstr "Λεία πλακέτα PEI Bambu"
+
+#~ msgid "Bambu Textured PEI Plate"
+#~ msgstr "Ανάγλυφη πλακέτα PEI Bambu"
+
+#~ msgid "Bambu 3D Effect Plate"
+#~ msgstr "Πλάκα εφέ 3D Bambu"
 
 #~ msgid "Switch hotend"
 #~ msgstr "Εναλλαγή θερμού άκρου"

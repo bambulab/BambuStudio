@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 20:11+0800\n"
+"POT-Creation-Date: 2026-11-19 17:41+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -394,9 +394,6 @@ msgstr "Переменная высота слоя не поддерживает
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr "Печать с использованием сопел разного диаметра и опорного кольца носит экспериментальный характер. При использовании сопел разного размера опорное кольцо может работать некорректно."
-
-msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr "Печать с использованием сопел различного диаметра и основной башни носит экспериментальный характер. При использовании сопел разного размера основная башня может работать некорректно."
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr "При включенном опорном кольце использование сопел разного диаметра не допускается."
@@ -3124,6 +3121,12 @@ msgstr "Размещать шов вдали от нависающих элем�
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
 msgstr "В режимах «Выровненное» и «Сзади» размещает шов вдали от нависающих элементов."
+
+msgid "Embedded seam headroom"
+msgstr ""
+
+msgid "When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that leaves at least this much hidden wall in the printing direction before the wall becomes visible. This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "Зазор шва"
@@ -8588,17 +8591,17 @@ msgstr "Редактировать сопло"
 msgid "In use"
 msgstr "Используется"
 
-msgid "This nozzle is turned off. Select it above to use it."
-msgstr "Это сопло отключено. Выберите его выше, чтобы использовать."
+msgid "This side has no nozzle. Click Edit to add one."
+msgstr ""
 
-msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
-msgstr "Это сопло не может печатать с выбранным диаметром. Нажмите «Редактировать», чтобы изменить его."
+msgid "This nozzle has another diameter. Select it above to use it."
+msgstr ""
 
-msgid "The nozzles are different, so this option is not available."
-msgstr "Сопла различаются, поэтому эта опция недоступна."
+msgid "Filament switcher"
+msgstr ""
 
-msgid "This side has no nozzle. Click Edit on its card to add one."
-msgstr "На этой стороне нет сопла. Нажмите «Редактировать» на его карточке, чтобы добавить сопло."
+msgid "The filament switcher is not ready."
+msgstr ""
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr "Обнаружен переключатель филамента. Теперь все филаменты AMS доступны для обоих экструдеров. Слайсер автоматически распределит филаменты для оптимальной печати. "
@@ -8634,6 +8637,9 @@ msgstr "Данные о хотенде неизвестны. Перед испо
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Несоответствие диаметра сопла. Это сопло нельзя использовать."
+
+msgid "AMS"
+msgstr "АСПП"
 
 msgid "Dynamic flow calibration"
 msgstr "Калибровка динамики потока"
@@ -8992,6 +8998,15 @@ msgstr "Результат нарезки"
 msgid "Color Scheme"
 msgstr "Цветовая схема"
 
+msgid "Less"
+msgstr ""
+
+msgid "Details"
+msgstr "Подробнее"
+
+msgid "Total usage"
+msgstr ""
+
 msgid "Percent"
 msgstr "Процент"
 
@@ -9094,54 +9109,41 @@ msgstr "Переключиться в бесшумный режим"
 msgid "Switch to normal mode"
 msgstr "Переключиться в обычный режим"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "Автоматически выполнить повторную нарезку в соответствии с оптимальной группировкой филаментов; результаты группировки будут показаны после нарезки."
-
-msgid "Filament Grouping"
-msgstr "Группировка филаментов"
-
-# длинно Почему такая группировка?
-msgid "Why this grouping"
-msgstr "Почему такая группировка"
-
-msgid "AMS nozzle"
-msgstr "Сопло AMS"
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "Разместите филаменты на принтере в соответствии с результатами группировки."
-
-msgid "Tips:"
-msgstr "Подсказки:"
-
-msgid "Current grouping of slice result is not optimal."
-msgstr "Текущая группировка в результате нарезки не оптимальна."
+#, boost-format
+msgid "save %1%g more filament and %2% more filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr "По сравнению с оптимальной группировкой расход филамента увеличится на %1%г, а количество сбросов сопла — на %2%"
+msgid "save %1%g more filament but add %2% filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr "По сравнению с оптимальной группировкой расход филамента увеличится на %1%г, а количество сбросов сопла уменьшится на %2% ."
+msgid "save %2% more filament changes but use %1%g more filament"
+msgstr ""
+
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr "По сравнению с оптимальной группировкой расход филамента уменьшится на %1%г, а количество сбросов сопла увеличится на %2% ."
+msgid "save %1%g filament and %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr "По сравнению с принтером с одним соплом расход филамента уменьшится на %1%г, а количество сбросов сопла — на %2% ."
+msgid "save %1%g filament but add %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr "По сравнению с принтером с одним соплом расход филамента уменьшится на %1%г, а количество сбросов сопла увеличится на %2% ."
+msgid "save %2% filament changes but use %1%g more filament."
+msgstr ""
 
-#, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "По сравнению с принтером с одним соплом расход филамента увеличится на %1%г, а количество сбросов сопла уменьшится на %2% ."
+msgid "Compared to a printer with one nozzle, "
+msgstr ""
 
 msgid "Set to Optimal"
 msgstr "Установить оптимальную группировку"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "Автоматически выполнить повторную нарезку в соответствии с оптимальной группировкой филаментов; результаты группировки будут показаны после нарезки."
 
 msgid "Regroup filament"
 msgstr "Перегруппировка филамента"
@@ -14615,9 +14617,6 @@ msgstr "Отмена интеграции выполнена успешно."
 msgid "New network plug-in available."
 msgstr "Доступен новый сетевой плагин."
 
-msgid "Details"
-msgstr "Подробнее"
-
 msgid "New printer config available."
 msgstr "Доступна новая конфигурация принтера."
 
@@ -15967,9 +15966,6 @@ msgstr "AMS (4 слота)"
 msgid "AMS(1 slot)"
 msgstr "AMS (1 слот)"
 
-msgid "AMS"
-msgstr "АСПП"
-
 msgid "Not installed"
 msgstr "Не установлено"
 
@@ -17038,6 +17034,9 @@ msgstr "Треугольники: %1%\n"
 
 msgid " (Repair)"
 msgstr " (Исправить)"
+
+msgid "Tips:"
+msgstr "Подсказки:"
 
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr "Чтобы исправить модель перед импортом в Bambu Studio, воспользуйтесь сторонним инструментом, например "
@@ -18352,24 +18351,6 @@ msgstr "Выполните повторную нарезку, чтобы изб�
 msgid "Task canceled"
 msgstr "Задача отменена"
 
-msgid "Bambu Cool Plate"
-msgstr "Холодная пластина Bambu"
-
-msgid "Bambu Engineering Plate"
-msgstr "Инженерная пластина Bambu"
-
-msgid "Bambu Smooth PEI Plate"
-msgstr "Гладкая пластина PEI Bambu"
-
-msgid "High temperature Plate"
-msgstr "Высокотемпературная пластина"
-
-msgid "Bambu Textured PEI Plate"
-msgstr "Текстурированная PEI пластина Bambu"
-
-msgid "Bambu 3D Effect Plate"
-msgstr "Пластина с 3D-эффектом Bambu"
-
 msgid "Send print job"
 msgstr "Отправить задание на печать"
 
@@ -18710,6 +18691,9 @@ msgstr "TPU в слоте %d может выскользнуть во время
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "В хотенде %s обнаружены остатки низкотемпературного филамента. Печать при высокой температуре в камере может привести к закупорке сопла. Сначала загрузите филамент."
 
+msgid "High temperature Plate"
+msgstr "Высокотемпературная пластина"
+
 msgid "Cool Plate SuperTack"
 msgstr ""
 
@@ -18806,12 +18790,12 @@ msgid "Try to connect"
 msgstr "Попробовать подключиться"
 
 msgctxt "sendtoprint"
-msgid "External"
-msgstr "Внешний"
-
-msgctxt "sendtoprint"
 msgid "Cache"
 msgstr "Кэш"
+
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "Внешний"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Истекло время ожидания загрузки файла. Проверьте, поддерживает ли эту функцию текущая версия прошивки."
@@ -20567,6 +20551,9 @@ msgstr "Проверьте сетевое подключение принтер�
 msgid "Sync Printer Information"
 msgstr "Синхронизировать информацию о принтере"
 
+msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
+msgstr ""
+
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr "Модель принтера и настройки в этом файле 3MF не соответствуют подключенному принтеру. Вы хотите адаптировать эти параметры нарезки для данного принтера?"
 
@@ -20582,12 +20569,29 @@ msgstr "Примечание: После адаптации настроек н�
 msgid "3MF File Settings"
 msgstr "Настройки файла 3MF"
 
+msgid "Target Printer"
+msgstr ""
+
 msgid "Connected Printer"
 msgstr "Подключённый принтер"
+
+msgid "Target Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s (only supported)"
 msgstr "%s (единственный поддерживаемый вариант)"
+
+msgid "Target printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
+msgstr ""
 
 msgid "Don't show this again when opening 3MF files"
 msgstr "Не отображать это снова при открытии файлов 3MF"
@@ -21601,6 +21605,76 @@ msgid ""
 msgstr ""
 "Надёжный результат с первой попытки\n"
 "Меньше постоянного контроля — более предсказуемый результат. Например, небольшая ферма, печатающая детали из PETG, избегает неожиданных сбоев на шестом часу печати и выпускает партии по графику."
+
+#~ msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+#~ msgstr "Печать с использованием сопел различного диаметра и основной башни носит экспериментальный характер. При использовании сопел разного размера основная башня может работать некорректно."
+
+#~ msgid "This nozzle is turned off. Select it above to use it."
+#~ msgstr "Это сопло отключено. Выберите его выше, чтобы использовать."
+
+#~ msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
+#~ msgstr "Это сопло не может печатать с выбранным диаметром. Нажмите «Редактировать», чтобы изменить его."
+
+#~ msgid "The nozzles are different, so this option is not available."
+#~ msgstr "Сопла различаются, поэтому эта опция недоступна."
+
+#~ msgid "This side has no nozzle. Click Edit on its card to add one."
+#~ msgstr "На этой стороне нет сопла. Нажмите «Редактировать» на его карточке, чтобы добавить сопло."
+
+#~ msgid "Filament Grouping"
+#~ msgstr "Группировка филаментов"
+
+# длинно Почему такая группировка?
+#~ msgid "Why this grouping"
+#~ msgstr "Почему такая группировка"
+
+#~ msgid "AMS nozzle"
+#~ msgstr "Сопло AMS"
+
+#~ msgid "Please place filaments on the printer based on grouping result."
+#~ msgstr "Разместите филаменты на принтере в соответствии с результатами группировки."
+
+#~ msgid "Current grouping of slice result is not optimal."
+#~ msgstr "Текущая группировка в результате нарезки не оптимальна."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+#~ msgstr "По сравнению с оптимальной группировкой расход филамента увеличится на %1%г, а количество сбросов сопла — на %2%"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+#~ msgstr "По сравнению с оптимальной группировкой расход филамента увеличится на %1%г, а количество сбросов сопла уменьшится на %2% ."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+#~ msgstr "По сравнению с оптимальной группировкой расход филамента уменьшится на %1%г, а количество сбросов сопла увеличится на %2% ."
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "По сравнению с принтером с одним соплом расход филамента уменьшится на %1%г, а количество сбросов сопла — на %2% ."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "По сравнению с принтером с одним соплом расход филамента уменьшится на %1%г, а количество сбросов сопла увеличится на %2% ."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "По сравнению с принтером с одним соплом расход филамента увеличится на %1%г, а количество сбросов сопла уменьшится на %2% ."
+
+#~ msgid "Bambu Cool Plate"
+#~ msgstr "Холодная пластина Bambu"
+
+#~ msgid "Bambu Engineering Plate"
+#~ msgstr "Инженерная пластина Bambu"
+
+#~ msgid "Bambu Smooth PEI Plate"
+#~ msgstr "Гладкая пластина PEI Bambu"
+
+#~ msgid "Bambu Textured PEI Plate"
+#~ msgstr "Текстурированная PEI пластина Bambu"
+
+#~ msgid "Bambu 3D Effect Plate"
+#~ msgstr "Пластина с 3D-эффектом Bambu"
 
 #~ msgid "Switch hotend"
 #~ msgstr "Переключить хотенд"

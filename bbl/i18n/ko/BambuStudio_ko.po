@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 20:11+0800\n"
+"POT-Creation-Date: 2026-11-19 17:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -388,9 +388,6 @@ msgstr "유기적 지원에서는 가변 레이어 높이가 지원되지 않습
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr "서로 다른 직경의 노즐과 서포트 링을 함께 사용하는 출력은 실험적입니다. 노즐 크기가 맞지 않으면 서포트 링이 제대로 작동하지 않을 수 있습니다."
-
-msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr "서로 다른 직경의 노즐과 프라임 타워를 함께 사용하는 출력은 실험적입니다. 노즐 크기가 맞지 않으면 프라임 타워가 제대로 작동하지 않을 수 있습니다."
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr "지지 링이 활성화된 경우 노즐 직경이 서로 다를 수 없습니다."
@@ -3083,6 +3080,12 @@ msgstr "돌출부를 피해 솔기 배치 (실험적)"
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
 msgstr "정렬 및 백킹 모드에서 솔기를 오버행에서 멀리 떨어진 곳에 배치하십시오."
+
+msgid "Embedded seam headroom"
+msgstr ""
+
+msgid "When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that leaves at least this much hidden wall in the printing direction before the wall becomes visible. This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "솔기 간격"
@@ -8491,17 +8494,17 @@ msgstr "노즐 편집"
 msgid "In use"
 msgstr "사용 중"
 
-msgid "This nozzle is turned off. Select it above to use it."
-msgstr "이 노즐은 꺼져 있습니다. 사용하려면 위에서 선택하십시오."
+msgid "This side has no nozzle. Click Edit to add one."
+msgstr ""
 
-msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
-msgstr "이 노즐은 선택한 직경으로 출력할 수 없습니다. 변경하려면 편집을 클릭하십시오."
+msgid "This nozzle has another diameter. Select it above to use it."
+msgstr ""
 
-msgid "The nozzles are different, so this option is not available."
-msgstr "노즐이 서로 달라 이 옵션을 사용할 수 없습니다."
+msgid "Filament switcher"
+msgstr ""
 
-msgid "This side has no nozzle. Click Edit on its card to add one."
-msgstr "이쪽에는 노즐이 없습니다. 추가하려면 해당 카드에서 편집을 클릭하십시오."
+msgid "The filament switcher is not ready."
+msgstr ""
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr "필라멘트 스위처가 감지되었습니다. 모든 AMS 필라멘트가 두 압출기 모두에서 사용 가능합니다. 슬라이서는 최적의 프린팅을 위해 자동으로 지정합니다."
@@ -8537,6 +8540,9 @@ msgstr "핫엔드 정보는 알 수 없습니다. 사용 전에 노즐 정보를
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "노즐 직경 불일치. 이 노즐은 사용할 수 없습니다."
+
+msgid "AMS"
+msgstr "AMS"
 
 msgid "Dynamic flow calibration"
 msgstr "동적 압출량 캘리브레이션"
@@ -8890,6 +8896,15 @@ msgstr "슬라이싱 결과"
 msgid "Color Scheme"
 msgstr "색상 구성표"
 
+msgid "Less"
+msgstr ""
+
+msgid "Details"
+msgstr "세부정보"
+
+msgid "Total usage"
+msgstr ""
+
 msgid "Percent"
 msgstr "퍼센트"
 
@@ -8989,53 +9004,41 @@ msgstr "저소음 모드 전환"
 msgid "Switch to normal mode"
 msgstr "일반 모드 전환"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "최적의 필라멘트 그룹화에 따라 자동으로 다시 슬라이스하며, 슬라이스 후 그룹화 결과가 표시됩니다."
-
-msgid "Filament Grouping"
-msgstr "필라멘트 그룹화"
-
-msgid "Why this grouping"
-msgstr "이 그룹화가 필요한 이유"
-
-msgid "AMS nozzle"
-msgstr "AMS 노즐"
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "그룹화 결과에 따라 프린터에 필라멘트를 배치하세요."
-
-msgid "Tips:"
-msgstr "팁:"
-
-msgid "Current grouping of slice result is not optimal."
-msgstr "현재 슬라이스 결과의 그룹화가 최적이 아닙니다."
+#, boost-format
+msgid "save %1%g more filament and %2% more filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr "최적 그룹화와 비교하여 필라멘트 %1%g 및 노즐 퍼지 %2%회 증가."
+msgid "save %1%g more filament but add %2% filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr "최적 그룹화와 비교하여 필라멘트 %1%g 증가 및 노즐 퍼지 %2%회 절약."
+msgid "save %2% more filament changes but use %1%g more filament"
+msgstr ""
+
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr "최적 그룹화와 비교하여 필라멘트 %1%g 절약 및 노즐 퍼지 %2%회 증가."
+msgid "save %1%g filament and %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr "노즐이 하나인 프린터와 비교하여 필라멘트 %1%g 및 노즐 퍼지 %2%회 절약."
+msgid "save %1%g filament but add %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr "노즐이 하나인 프린터와 비교하여 필라멘트 %1%g 절약 및 노즐 퍼지 %2%회 증가."
+msgid "save %2% filament changes but use %1%g more filament."
+msgstr ""
 
-#, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "노즐이 하나인 프린터와 비교하여 필라멘트 %1%g 증가 및 노즐 퍼지 %2%회 절약."
+msgid "Compared to a printer with one nozzle, "
+msgstr ""
 
 msgid "Set to Optimal"
 msgstr "최적 설정"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "최적의 필라멘트 그룹화에 따라 자동으로 다시 슬라이스하며, 슬라이스 후 그룹화 결과가 표시됩니다."
 
 msgid "Regroup filament"
 msgstr "필라멘트 재그룹"
@@ -14441,9 +14444,6 @@ msgstr "연동 취소에 성공했습니다."
 msgid "New network plug-in available."
 msgstr "새로운 네트워크 플러그인 사용 가능"
 
-msgid "Details"
-msgstr "세부정보"
-
 msgid "New printer config available."
 msgstr "새 프린터 설정을 사용할 수 있습니다."
 
@@ -15790,9 +15790,6 @@ msgstr "AMS(4 슬롯)"
 msgid "AMS(1 slot)"
 msgstr "AMS(1 슬롯)"
 
-msgid "AMS"
-msgstr "AMS"
-
 msgid "Not installed"
 msgstr "설치되지 않음"
 
@@ -16849,6 +16846,9 @@ msgstr "삼각형 수: %1%\n"
 
 msgid " (Repair)"
 msgstr "(수리)"
+
+msgid "Tips:"
+msgstr "팁:"
 
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr "모델을 복구하려면 다음과 같은 타사 도구를 사용하여 모델을 Bambu Studio로 가져오기 전에 다음을 수행하십시오"
@@ -18144,24 +18144,6 @@ msgstr "필라멘트 낭비를 방지하려면 다시 슬라이스해주세요."
 msgid "Task canceled"
 msgstr "작업 취소됨"
 
-msgid "Bambu Cool Plate"
-msgstr "뱀부 쿨 플레이트"
-
-msgid "Bambu Engineering Plate"
-msgstr "Bambu 엔지니어링 플레이트"
-
-msgid "Bambu Smooth PEI Plate"
-msgstr "Bambu 매끄러운 PEI 플레이트"
-
-msgid "High temperature Plate"
-msgstr "High Temperature Plate"
-
-msgid "Bambu Textured PEI Plate"
-msgstr "Bambu 텍스처 PEI 플레이트"
-
-msgid "Bambu 3D Effect Plate"
-msgstr "Bambu 3D 효과 플레이트"
-
 msgid "Send print job"
 msgstr "출력 작업 보내기"
 
@@ -18497,6 +18479,9 @@ msgstr "슬롯 %d의 TPU가 프린트툴 교체 중에 빠져나올 수 있습�
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "핫엔드 %s에서 저온 필라멘트 잔류물이 검출되었습니다. 챔버 온도가 높으면 출력 중 노즐 막힘이 발생할 수 있습니다. 먼저 필라멘트를 로드해 주세요."
 
+msgid "High temperature Plate"
+msgstr "High Temperature Plate"
+
 msgid "Cool Plate SuperTack"
 msgstr ""
 
@@ -18586,12 +18571,12 @@ msgid "Try to connect"
 msgstr "연결 시도"
 
 msgctxt "sendtoprint"
-msgid "External"
-msgstr "외부"
-
-msgctxt "sendtoprint"
 msgid "Cache"
 msgstr "캐시"
+
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "외부"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "파일 업로드 시간 초과, 펌웨어 버전이 이를 지원하는지 확인하세요."
@@ -20305,6 +20290,9 @@ msgstr "프린터와 Studio의 네트워크 연결을 확인하십시오."
 msgid "Sync Printer Information"
 msgstr "프린터 정보 동기화"
 
+msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
+msgstr ""
+
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr "이 3MF 파일에 있는 프린터 모델 및 설정이 연결된 프린터와 일치하지 않습니다. 이 프린터에 맞게 슬라이싱 설정을 변경하시겠습니까?"
 
@@ -20320,12 +20308,29 @@ msgstr "참고: 설정을 조정한 후에는 일부 출력 매개변수가 새 
 msgid "3MF File Settings"
 msgstr "3MF 파일 설정"
 
+msgid "Target Printer"
+msgstr ""
+
 msgid "Connected Printer"
 msgstr "연결된 프린터"
+
+msgid "Target Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s (only supported)"
 msgstr "%s (지원되는 경우에만 해당)"
+
+msgid "Target printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
+msgstr ""
 
 msgid "Don't show this again when opening 3MF files"
 msgstr "3MF 파일을 열 때 이 메시지를 다시 표시하지 마세요"
@@ -21339,6 +21344,75 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#~ msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+#~ msgstr "서로 다른 직경의 노즐과 프라임 타워를 함께 사용하는 출력은 실험적입니다. 노즐 크기가 맞지 않으면 프라임 타워가 제대로 작동하지 않을 수 있습니다."
+
+#~ msgid "This nozzle is turned off. Select it above to use it."
+#~ msgstr "이 노즐은 꺼져 있습니다. 사용하려면 위에서 선택하십시오."
+
+#~ msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
+#~ msgstr "이 노즐은 선택한 직경으로 출력할 수 없습니다. 변경하려면 편집을 클릭하십시오."
+
+#~ msgid "The nozzles are different, so this option is not available."
+#~ msgstr "노즐이 서로 달라 이 옵션을 사용할 수 없습니다."
+
+#~ msgid "This side has no nozzle. Click Edit on its card to add one."
+#~ msgstr "이쪽에는 노즐이 없습니다. 추가하려면 해당 카드에서 편집을 클릭하십시오."
+
+#~ msgid "Filament Grouping"
+#~ msgstr "필라멘트 그룹화"
+
+#~ msgid "Why this grouping"
+#~ msgstr "이 그룹화가 필요한 이유"
+
+#~ msgid "AMS nozzle"
+#~ msgstr "AMS 노즐"
+
+#~ msgid "Please place filaments on the printer based on grouping result."
+#~ msgstr "그룹화 결과에 따라 프린터에 필라멘트를 배치하세요."
+
+#~ msgid "Current grouping of slice result is not optimal."
+#~ msgstr "현재 슬라이스 결과의 그룹화가 최적이 아닙니다."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+#~ msgstr "최적 그룹화와 비교하여 필라멘트 %1%g 및 노즐 퍼지 %2%회 증가."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+#~ msgstr "최적 그룹화와 비교하여 필라멘트 %1%g 증가 및 노즐 퍼지 %2%회 절약."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+#~ msgstr "최적 그룹화와 비교하여 필라멘트 %1%g 절약 및 노즐 퍼지 %2%회 증가."
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "노즐이 하나인 프린터와 비교하여 필라멘트 %1%g 및 노즐 퍼지 %2%회 절약."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "노즐이 하나인 프린터와 비교하여 필라멘트 %1%g 절약 및 노즐 퍼지 %2%회 증가."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "노즐이 하나인 프린터와 비교하여 필라멘트 %1%g 증가 및 노즐 퍼지 %2%회 절약."
+
+#~ msgid "Bambu Cool Plate"
+#~ msgstr "뱀부 쿨 플레이트"
+
+#~ msgid "Bambu Engineering Plate"
+#~ msgstr "Bambu 엔지니어링 플레이트"
+
+#~ msgid "Bambu Smooth PEI Plate"
+#~ msgstr "Bambu 매끄러운 PEI 플레이트"
+
+#~ msgid "Bambu Textured PEI Plate"
+#~ msgstr "Bambu 텍스처 PEI 플레이트"
+
+#~ msgid "Bambu 3D Effect Plate"
+#~ msgstr "Bambu 3D 효과 플레이트"
 
 #~ msgid "Switch hotend"
 #~ msgstr "핫엔드 전환"

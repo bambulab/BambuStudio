@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 20:11+0800\n"
+"POT-Creation-Date: 2026-11-19 17:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -384,9 +384,6 @@ msgstr "A változó rétegmagasság nem működik az organikus támaszokkal."
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr "A különböző átmérőjű fúvókákkal és támasztógyűrűvel történő nyomtatás kísérleti jellegű. Eltérő fúvókaméretek esetén előfordulhat, hogy a támasztógyűrű nem működik megfelelően."
-
-msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr "A különböző fúvókaátmérőkkel és törlőtoronnyal történő nyomtatás kísérleti jellegű. Előfordulhat, hogy a törlőtorony nem működik megfelelően eltérő fúvókaméretek esetén."
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr "Eltérő fúvókaátmérők nem megengedettek, ha a támasztógyűrű engedélyezve van."
@@ -3078,6 +3075,12 @@ msgstr "Varratok elhelyezése túlnyúlásoktól távol (kísérleti)"
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
 msgstr "Biztosítja, hogy a varrat a túlnyúlásoktól távol legyen az igazítás és a hátsó elhelyezés esetén"
+
+msgid "Embedded seam headroom"
+msgstr ""
+
+msgid "When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that leaves at least this much hidden wall in the printing direction before the wall becomes visible. This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "Varrat hézag"
@@ -8480,17 +8483,17 @@ msgstr "Fúvóka szerkesztése"
 msgid "In use"
 msgstr "Használatban"
 
-msgid "This nozzle is turned off. Select it above to use it."
-msgstr "Ez a fúvóka ki van kapcsolva. A használatához válassza ki fent."
+msgid "This side has no nozzle. Click Edit to add one."
+msgstr ""
 
-msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
-msgstr "Ez a fúvóka nem tud a kiválasztott átmérővel nyomtatni. A módosításhoz kattintson a Szerkesztés gombra."
+msgid "This nozzle has another diameter. Select it above to use it."
+msgstr ""
 
-msgid "The nozzles are different, so this option is not available."
-msgstr "A fúvókák eltérőek, ezért ez a lehetőség nem érhető el."
+msgid "Filament switcher"
+msgstr ""
 
-msgid "This side has no nozzle. Click Edit on its card to add one."
-msgstr "Ezen az oldalon nincs fúvóka. Fúvóka hozzáadásához kattintson a kártyáján a Szerkesztés gombra."
+msgid "The filament switcher is not ready."
+msgstr ""
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr "Filamentváltó észlelve. Mostantól mindegyik AMS filamentjét használhatod mindkét extruderrel. A szeletelő automatikusan elvégzi a kiosztást a legoptimálisabb nyomtatáshoz. "
@@ -8526,6 +8529,9 @@ msgstr "A hotend adatai ismeretlenek. Használat előtt frissítsd a fúvókainf
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "Eltérő fúvókaátmérő. Ez a fúvóka nem használható."
+
+msgid "AMS"
+msgstr "AMS"
 
 msgid "Dynamic flow calibration"
 msgstr "Dinamikus anyagáramlás kalibráció"
@@ -8879,6 +8885,15 @@ msgstr "Szeletelés eredménye"
 msgid "Color Scheme"
 msgstr "Színséma"
 
+msgid "Less"
+msgstr ""
+
+msgid "Details"
+msgstr "Részletek"
+
+msgid "Total usage"
+msgstr ""
+
 msgid "Percent"
 msgstr "Százalék"
 
@@ -8978,53 +8993,41 @@ msgstr "Váltás csendes módra"
 msgid "Switch to normal mode"
 msgstr "Váltás normál módra"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "Automatikus újraszeletelés az optimális filamentcsoportosítás szerint, a szeletelés után megjelenik a csoportosítás eredménye."
-
-msgid "Filament Grouping"
-msgstr "Filamentcsoportosítás"
-
-msgid "Why this grouping"
-msgstr "Miért van ez a csoportosítás"
-
-msgid "AMS nozzle"
-msgstr "AMS-fúvóka"
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "Kérjük, a csoportosítási eredmény alapján helyezd a filamenteket a nyomtatóba."
-
-msgid "Tips:"
-msgstr "Tippek:"
-
-msgid "Current grouping of slice result is not optimal."
-msgstr "A szeletelés jelenlegi csoportosítása nem optimális."
+#, boost-format
+msgid "save %1%g more filament and %2% more filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr "%1% g filament és %2% fúvókatisztítás növelése az optimális csoportosításhoz képest."
+msgid "save %1%g more filament but add %2% filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr "%1%g filament növelése és %2% fúvókatisztítás megtakarítása az optimális csoportosításhoz képest."
+msgid "save %2% more filament changes but use %1%g more filament"
+msgstr ""
+
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr "%1%g filament megtakarítása és %2% fúvókatisztítás növelése az optimális csoportosításhoz képest."
+msgid "save %1%g filament and %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr "%1%g filament és %2% fúvókatisztítás megtakarítása egy egyfúvókás nyomtatóhoz képest."
+msgid "save %1%g filament but add %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr "%1%g filament megtakarítása és %2% fúvókatisztítás növelése egy egyfúvókás nyomtatóhoz képest."
+msgid "save %2% filament changes but use %1%g more filament."
+msgstr ""
 
-#, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "%1%g filament növelése és %2% fúvókatisztítás megtakarítása egy egyfúvókás nyomtatóhoz képest."
+msgid "Compared to a printer with one nozzle, "
+msgstr ""
 
 msgid "Set to Optimal"
 msgstr "Optimálisra állítva"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "Automatikus újraszeletelés az optimális filamentcsoportosítás szerint, a szeletelés után megjelenik a csoportosítás eredménye."
 
 msgid "Regroup filament"
 msgstr "Filament átcsoportosítása"
@@ -14443,9 +14446,6 @@ msgstr "Az integráció visszavonása sikeres volt."
 msgid "New network plug-in available."
 msgstr "Új hálózati bővítmény érhető el."
 
-msgid "Details"
-msgstr "Részletek"
-
 msgid "New printer config available."
 msgstr "Új nyomtatókonfiguráció érhető el."
 
@@ -15792,9 +15792,6 @@ msgstr "AMS (4 férőhely)"
 msgid "AMS(1 slot)"
 msgstr "AMS (1 férőhely)"
 
-msgid "AMS"
-msgstr "AMS"
-
 msgid "Not installed"
 msgstr "Nincs telepítve"
 
@@ -16847,6 +16844,9 @@ msgstr "Háromszögek: %1%\n"
 
 msgid " (Repair)"
 msgstr " (Javítás)"
+
+msgid "Tips:"
+msgstr "Tippek:"
 
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr "A modell javításához használj külső szoftvert, mielőtt importálnád azt a Bambu Studióba, például a következőt: "
@@ -18142,24 +18142,6 @@ msgstr "Kérjük, szeleteld újra a filament pazarlás elkerülése érdekében.
 msgid "Task canceled"
 msgstr "Feladat törölve"
 
-msgid "Bambu Cool Plate"
-msgstr "Bambu Cool Plate"
-
-msgid "Bambu Engineering Plate"
-msgstr "Bambu mérnöki nyomtatótálca"
-
-msgid "Bambu Smooth PEI Plate"
-msgstr "Bambu sima PEI nyomtatótálca"
-
-msgid "High temperature Plate"
-msgstr "High Temperature Plate"
-
-msgid "Bambu Textured PEI Plate"
-msgstr "Bambu texturált PEI-lap"
-
-msgid "Bambu 3D Effect Plate"
-msgstr "Bambu 3D-hatású nyomtatótálca"
-
 msgid "Send print job"
 msgstr "Nyomtatási feladat küldése"
 
@@ -18495,6 +18477,9 @@ msgstr "A(z) %d filamentnyílásban lévő TPU a nyomtatóeszköz cseréje sorá
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "Alacsony hőmérsékletű filamentmaradvány észlelhető a(z) %s hotendben. A magas kamrahőmérsékleten történő nyomtatás a fúvóka eltömődését okozhatja. Kérjük, először töltsd be a filamentet."
 
+msgid "High temperature Plate"
+msgstr "High Temperature Plate"
+
 msgid "Cool Plate SuperTack"
 msgstr ""
 
@@ -18584,12 +18569,12 @@ msgid "Try to connect"
 msgstr "Próbálj csatlakozni"
 
 msgctxt "sendtoprint"
-msgid "External"
-msgstr "Külső"
-
-msgctxt "sendtoprint"
 msgid "Cache"
 msgstr "Gyorsítótár"
+
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "Külső"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Időtúllépés a fájl feltöltése során, kérjük győződj meg arról, hogy a nyomtató firmware-e támogatja ezt a funkciót."
@@ -20308,6 +20293,9 @@ msgstr "Kérjük, ellenőrizd a nyomtató és a Studio hálózati kapcsolatát."
 msgid "Sync Printer Information"
 msgstr "Nyomtatóadatok szinkronizálása"
 
+msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
+msgstr ""
+
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr "A 3MF fájlban található nyomtatómodell és -beállítások nem egyeznek a csatlakoztatott nyomtatóval. Szeretnéd ezeket a szeletelési beállításokat ehhez a nyomtatóhoz igazítani?"
 
@@ -20323,12 +20311,29 @@ msgstr "Megjegyzés: A beállítások hozzáigazítása után bizonyos nyomtatá
 msgid "3MF File Settings"
 msgstr "3MF-fájl beállításai"
 
+msgid "Target Printer"
+msgstr ""
+
 msgid "Connected Printer"
 msgstr "Csatlakoztatott nyomtató"
+
+msgid "Target Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s (only supported)"
 msgstr "%s (csak támogatott)"
+
+msgid "Target printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
+msgstr ""
 
 msgid "Don't show this again when opening 3MF files"
 msgstr "Ne mutasd ezt újra 3MF-fájlok megnyitásakor"
@@ -21343,6 +21348,75 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+#~ msgstr "A különböző fúvókaátmérőkkel és törlőtoronnyal történő nyomtatás kísérleti jellegű. Előfordulhat, hogy a törlőtorony nem működik megfelelően eltérő fúvókaméretek esetén."
+
+#~ msgid "This nozzle is turned off. Select it above to use it."
+#~ msgstr "Ez a fúvóka ki van kapcsolva. A használatához válassza ki fent."
+
+#~ msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
+#~ msgstr "Ez a fúvóka nem tud a kiválasztott átmérővel nyomtatni. A módosításhoz kattintson a Szerkesztés gombra."
+
+#~ msgid "The nozzles are different, so this option is not available."
+#~ msgstr "A fúvókák eltérőek, ezért ez a lehetőség nem érhető el."
+
+#~ msgid "This side has no nozzle. Click Edit on its card to add one."
+#~ msgstr "Ezen az oldalon nincs fúvóka. Fúvóka hozzáadásához kattintson a kártyáján a Szerkesztés gombra."
+
+#~ msgid "Filament Grouping"
+#~ msgstr "Filamentcsoportosítás"
+
+#~ msgid "Why this grouping"
+#~ msgstr "Miért van ez a csoportosítás"
+
+#~ msgid "AMS nozzle"
+#~ msgstr "AMS-fúvóka"
+
+#~ msgid "Please place filaments on the printer based on grouping result."
+#~ msgstr "Kérjük, a csoportosítási eredmény alapján helyezd a filamenteket a nyomtatóba."
+
+#~ msgid "Current grouping of slice result is not optimal."
+#~ msgstr "A szeletelés jelenlegi csoportosítása nem optimális."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+#~ msgstr "%1% g filament és %2% fúvókatisztítás növelése az optimális csoportosításhoz képest."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+#~ msgstr "%1%g filament növelése és %2% fúvókatisztítás megtakarítása az optimális csoportosításhoz képest."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+#~ msgstr "%1%g filament megtakarítása és %2% fúvókatisztítás növelése az optimális csoportosításhoz képest."
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "%1%g filament és %2% fúvókatisztítás megtakarítása egy egyfúvókás nyomtatóhoz képest."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "%1%g filament megtakarítása és %2% fúvókatisztítás növelése egy egyfúvókás nyomtatóhoz képest."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "%1%g filament növelése és %2% fúvókatisztítás megtakarítása egy egyfúvókás nyomtatóhoz képest."
+
+#~ msgid "Bambu Cool Plate"
+#~ msgstr "Bambu Cool Plate"
+
+#~ msgid "Bambu Engineering Plate"
+#~ msgstr "Bambu mérnöki nyomtatótálca"
+
+#~ msgid "Bambu Smooth PEI Plate"
+#~ msgstr "Bambu sima PEI nyomtatótálca"
+
+#~ msgid "Bambu Textured PEI Plate"
+#~ msgstr "Bambu texturált PEI-lap"
+
+#~ msgid "Bambu 3D Effect Plate"
+#~ msgstr "Bambu 3D-hatású nyomtatótálca"
 
 #~ msgid "Switch hotend"
 #~ msgstr "Hotend váltása"

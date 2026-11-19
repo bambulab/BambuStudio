@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 20:11+0800\n"
+"POT-Creation-Date: 2026-11-19 17:41+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -389,9 +389,6 @@ msgstr "不支援同時使用可變層高和有機樹支撐。"
 
 msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr "使用不同噴頭直徑搭配支撐環進行列印屬於實驗性功能。噴頭尺寸不符時，支撐環可能無法正常運作。"
-
-msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
-msgstr "使用不同噴頭直徑搭配填充塔進行列印屬於實驗性功能。 噴頭尺寸不符時，填充塔可能無法正常運作。"
 
 msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr "啟用支撐環時，不允許使用不同的噴頭直徑。"
@@ -3086,6 +3083,12 @@ msgstr "接縫遠離懸垂點放置（實驗）"
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
 msgstr "接縫避讓懸垂附近，對齊模式生效"
+
+msgid "Embedded seam headroom"
+msgstr ""
+
+msgid "When a seam can be hidden inside the print (e.g. at the joint of two materials), prefer the seam position that leaves at least this much hidden wall in the printing direction before the wall becomes visible. This hides extrusion defects caused by unstable nozzle pressure after a filament change. Set to 0 to disable."
+msgstr ""
 
 msgid "Seam gap"
 msgstr "接縫間隔"
@@ -8470,17 +8473,17 @@ msgstr "編輯噴頭"
 msgid "In use"
 msgstr "使用中"
 
-msgid "This nozzle is turned off. Select it above to use it."
-msgstr "此噴頭已關閉。請從上方選擇即可使用。"
+msgid "This side has no nozzle. Click Edit to add one."
+msgstr ""
 
-msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
-msgstr "此噴頭無法使用所選直徑進行列印。按一下「編輯」以進行變更。"
+msgid "This nozzle has another diameter. Select it above to use it."
+msgstr ""
 
-msgid "The nozzles are different, so this option is not available."
-msgstr "噴頭不同，因此無法使用此選項。"
+msgid "Filament switcher"
+msgstr ""
 
-msgid "This side has no nozzle. Click Edit on its card to add one."
-msgstr "此側沒有噴頭。按一下其卡片上的「編輯」以新增。"
+msgid "The filament switcher is not ready."
+msgstr ""
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr "偵測到線材路徑切換器。所有 AMS 線材現在皆可用於兩個擠出機。切片器將自動指派以獲得最佳列印效果。 "
@@ -8516,6 +8519,9 @@ msgstr "熱端資訊未知。請在使用前重新整理噴頭資訊。"
 
 msgid "Nozzle diameter mismatch. This nozzle cannot be used."
 msgstr "噴頭直徑不符。此噴頭無法使用。"
+
+msgid "AMS"
+msgstr "AMS"
 
 msgid "Dynamic flow calibration"
 msgstr "動態流量校準"
@@ -8869,6 +8875,15 @@ msgstr "切片結果"
 msgid "Color Scheme"
 msgstr "顏色方案"
 
+msgid "Less"
+msgstr ""
+
+msgid "Details"
+msgstr "詳情"
+
+msgid "Total usage"
+msgstr ""
+
 msgid "Percent"
 msgstr "百分比"
 
@@ -8968,53 +8983,41 @@ msgstr "切換到靜音模式"
 msgid "Switch to normal mode"
 msgstr "切換到普通模式"
 
-msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "將會自動根據最優耗材分組重新切片，分組結果將會在切片後展示。"
-
-msgid "Filament Grouping"
-msgstr "耗材分組"
-
-msgid "Why this grouping"
-msgstr "為什麼這樣分組"
-
-msgid "AMS nozzle"
-msgstr "AMS 噴頭"
-
-msgid "Please place filaments on the printer based on grouping result."
-msgstr "請按上述分組結果到印表機放置耗材"
-
-msgid "Tips:"
-msgstr "提示："
-
-msgid "Current grouping of slice result is not optimal."
-msgstr "當前材料分組不是最優結果。"
+#, boost-format
+msgid "save %1%g more filament and %2% more filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr "相較於最佳分組，會增加 %1%g 線材及 %2% 次噴嘴清除。"
+msgid "save %1%g more filament but add %2% filament changes"
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr "相較於最佳分組，會增加 %1%g 線材並節省 %2% 次噴嘴清除。"
+msgid "save %2% more filament changes but use %1%g more filament"
+msgstr ""
+
+msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr "相較於最佳分組，會節省 %1%g 線材並增加 %2% 次噴嘴清除。"
+msgid "save %1%g filament and %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr "相較於單噴嘴印表機，會節省 %1%g 線材及 %2% 次噴嘴清除。"
+msgid "save %1%g filament but add %2% filament changes."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr "相較於單噴嘴印表機，會節省 %1%g 線材並增加 %2% 次噴嘴清除。"
+msgid "save %2% filament changes but use %1%g more filament."
+msgstr ""
 
-#, boost-format
-msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "相較於單噴嘴印表機，會節省 %1%g 線材並節省 %2% 次噴嘴清除。"
+msgid "Compared to a printer with one nozzle, "
+msgstr ""
 
 msgid "Set to Optimal"
 msgstr "設定為最優"
+
+msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
+msgstr "將會自動根據最優耗材分組重新切片，分組結果將會在切片後展示。"
 
 msgid "Regroup filament"
 msgstr "重新分組"
@@ -14405,9 +14408,6 @@ msgstr "整合取消成功。"
 msgid "New network plug-in available."
 msgstr "新的網路外掛可用。"
 
-msgid "Details"
-msgstr "詳情"
-
 msgid "New printer config available."
 msgstr "有新的印表機配置可用。"
 
@@ -15752,9 +15752,6 @@ msgstr "AMS（4槽）"
 msgid "AMS(1 slot)"
 msgstr "AMS（單槽）"
 
-msgid "AMS"
-msgstr "AMS"
-
 msgid "Not installed"
 msgstr "未安裝"
 
@@ -16807,6 +16804,9 @@ msgstr "三角形：%1%\n"
 
 msgid " (Repair)"
 msgstr "（修復）"
+
+msgid "Tips:"
+msgstr "提示："
 
 msgid "To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "
 msgstr "如需修復模型，請使用第三方工具處理後再匯入 Bambu Studio，例如"
@@ -18102,24 +18102,6 @@ msgstr "請重新切片以避免耗材浪費。"
 msgid "Task canceled"
 msgstr "任務已取消"
 
-msgid "Bambu Cool Plate"
-msgstr "低溫列印板"
-
-msgid "Bambu Engineering Plate"
-msgstr "拓竹工程列印板"
-
-msgid "Bambu Smooth PEI Plate"
-msgstr "拓竹平滑PEI列印板"
-
-msgid "High temperature Plate"
-msgstr "高溫列印板"
-
-msgid "Bambu Textured PEI Plate"
-msgstr "拓竹紋理PEI列印板"
-
-msgid "Bambu 3D Effect Plate"
-msgstr "拓竹 3D 效果板"
-
 msgid "Send print job"
 msgstr "傳送列印任務"
 
@@ -18453,6 +18435,9 @@ msgstr "槽位 %d 中的 TPU 可能在列印工具頭更換過程中滑出。請
 msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "在熱端 %s 中偵測到低溫線材殘留物。高腔體溫度列印可能造成噴頭堵塞。請先裝入線材。"
 
+msgid "High temperature Plate"
+msgstr "高溫列印板"
+
 msgid "Cool Plate SuperTack"
 msgstr ""
 
@@ -18542,12 +18527,12 @@ msgid "Try to connect"
 msgstr "嘗試連線"
 
 msgctxt "sendtoprint"
-msgid "External"
-msgstr "外部"
-
-msgctxt "sendtoprint"
 msgid "Cache"
 msgstr "快取"
+
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "外部"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "上傳檔案超時，請檢查韌體版本是否支援。"
@@ -20259,6 +20244,9 @@ msgstr "請檢查印表機和工作室的網路連線"
 msgid "Sync Printer Information"
 msgstr "同步印表機資訊"
 
+msgid "The printer model and settings in this 3MF file don't match the target printer. Do you want to adapt these slicing settings for the target printer?"
+msgstr ""
+
 msgid "The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"
 msgstr "此 3MF 檔案中的印表機型號與設定和連接的印表機不符。您要為此印表機調整這些切片設定嗎？"
 
@@ -20274,12 +20262,29 @@ msgstr "請注意：調整設定後，部分列印參數將自動針對新的印
 msgid "3MF File Settings"
 msgstr "3MF 檔案設定"
 
+msgid "Target Printer"
+msgstr ""
+
 msgid "Connected Printer"
 msgstr "連接的印表機"
+
+msgid "Target Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s (only supported)"
 msgstr "%s（僅支援）"
+
+msgid "Target printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s supports up to %d nozzles. Please reduce the matched nozzles and keep only %d to continue."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s doesn't support %s nozzles. Switched to %s nozzle."
+msgstr ""
 
 msgid "Don't show this again when opening 3MF files"
 msgstr "開啟 3MF 檔案時不再顯示此訊息"
@@ -21284,6 +21289,75 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
+
+#~ msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+#~ msgstr "使用不同噴頭直徑搭配填充塔進行列印屬於實驗性功能。 噴頭尺寸不符時，填充塔可能無法正常運作。"
+
+#~ msgid "This nozzle is turned off. Select it above to use it."
+#~ msgstr "此噴頭已關閉。請從上方選擇即可使用。"
+
+#~ msgid "This nozzle cannot print with the selected diameter. Click Edit to change it."
+#~ msgstr "此噴頭無法使用所選直徑進行列印。按一下「編輯」以進行變更。"
+
+#~ msgid "The nozzles are different, so this option is not available."
+#~ msgstr "噴頭不同，因此無法使用此選項。"
+
+#~ msgid "This side has no nozzle. Click Edit on its card to add one."
+#~ msgstr "此側沒有噴頭。按一下其卡片上的「編輯」以新增。"
+
+#~ msgid "Filament Grouping"
+#~ msgstr "耗材分組"
+
+#~ msgid "Why this grouping"
+#~ msgstr "為什麼這樣分組"
+
+#~ msgid "AMS nozzle"
+#~ msgstr "AMS 噴頭"
+
+#~ msgid "Please place filaments on the printer based on grouping result."
+#~ msgstr "請按上述分組結果到印表機放置耗材"
+
+#~ msgid "Current grouping of slice result is not optimal."
+#~ msgstr "當前材料分組不是最優結果。"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+#~ msgstr "相較於最佳分組，會增加 %1%g 線材及 %2% 次噴嘴清除。"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+#~ msgstr "相較於最佳分組，會增加 %1%g 線材並節省 %2% 次噴嘴清除。"
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+#~ msgstr "相較於最佳分組，會節省 %1%g 線材並增加 %2% 次噴嘴清除。"
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "相較於單噴嘴印表機，會節省 %1%g 線材及 %2% 次噴嘴清除。"
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "相較於單噴嘴印表機，會節省 %1%g 線材並增加 %2% 次噴嘴清除。"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+#~ msgstr "相較於單噴嘴印表機，會節省 %1%g 線材並節省 %2% 次噴嘴清除。"
+
+#~ msgid "Bambu Cool Plate"
+#~ msgstr "低溫列印板"
+
+#~ msgid "Bambu Engineering Plate"
+#~ msgstr "拓竹工程列印板"
+
+#~ msgid "Bambu Smooth PEI Plate"
+#~ msgstr "拓竹平滑PEI列印板"
+
+#~ msgid "Bambu Textured PEI Plate"
+#~ msgstr "拓竹紋理PEI列印板"
+
+#~ msgid "Bambu 3D Effect Plate"
+#~ msgstr "拓竹 3D 效果板"
 
 #~ msgid "Switch hotend"
 #~ msgstr "切換熱端"

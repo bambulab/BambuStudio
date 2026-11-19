@@ -497,5 +497,7 @@
   "TPU High Flow": "TPU High Flow",
   "TPU285": "TPU285",
   "E3D High Flow": "E3D High Flow",
-  "Laser": "Laser"
+  "Laser": "Laser",
+  "EXT Load": "EXT Load",
+  "Supports batch loading from the AMS feed inlet or the direct feed port.": "Supports batch loading from the AMS feed inlet or the direct feed port."
 }
