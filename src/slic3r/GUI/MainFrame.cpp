@@ -3508,7 +3508,7 @@ void MainFrame::init_menubar_as_editor()
                 m_plater->select_all(); },
             "", nullptr, [this](){return can_select(); }, this);
         // BBS Deslect All
-        append_menu_item(editMenu, wxID_ANY, _L("Deselect all") + "\tEsc",
+        wxMenuItem *deselect_item = append_menu_item(editMenu, wxID_ANY, _L("Deselect all") + "\tEsc",
             _L("Deselects all objects"), [this, handle_key_event](wxCommandEvent&) {
                 wxKeyEvent e;
                 e.SetEventType(wxEVT_KEY_DOWN);
@@ -3518,6 +3518,21 @@ void MainFrame::init_menubar_as_editor()
                 }
                 m_plater->deselect_all(); },
             "", nullptr, [this](){return can_deselect(); }, this);
+#ifdef __WXOSX__
+        // "\tEsc" is a Cocoa key equivalent and runs before the GL view, so it
+        // deselects every object instead of letting Measure cancel one feature.
+        this->Bind(wxEVT_UPDATE_UI, [this, deselect_item](wxUpdateUIEvent &evt) {
+            const bool on_editor = m_tabpanel && m_tabpanel->GetSelection() == TabPosition::tp3DEditor;
+            GLCanvas3D *canvas = m_plater ? m_plater->get_view3D_canvas3D() : nullptr;
+            const GLGizmosManager::EType type = canvas ? canvas->get_gizmos_manager().get_current_type()
+                                                       : GLGizmosManager::Undefined;
+            const bool measuring = on_editor && (type == GLGizmosManager::Measure || type == GLGizmosManager::Assembly);
+            const wxString label = measuring ? _L("Deselect all") : _L("Deselect all") + "\tEsc";
+            if (deselect_item->GetItemLabel() != label)
+                deselect_item->SetItemLabel(label);
+            evt.Skip();
+        }, deselect_item->GetId());
+#endif
         //editMenu->AppendSeparator();
         //append_menu_check_item(editMenu, wxID_ANY, _L("Show Model Mesh(TODO)"),
         //    _L("Display triangles of models"), [this](wxCommandEvent& evt) {

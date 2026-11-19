@@ -1134,6 +1134,20 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         case WXK_ESCAPE:
         {
             if (m_current != Undefined) {
+#ifdef __APPLE__
+                if (m_current == Measure || m_current == Assembly) {
+                    // One physical Escape can arrive as two wxEVT_CHAR events, which
+                    // would pop every selected feature instead of the latest one.
+                    static long last_escape_ts = -1000;
+                    const long ts = evt.GetTimestamp();
+                    if (ts >= last_escape_ts && ts - last_escape_ts < 80)
+                        processed = true;
+                    else
+                        last_escape_ts = ts;
+                }
+                if (processed)
+                    break;
+#endif
                 if ((m_current == Measure || m_current == Assembly) && gizmo_event(SLAGizmoEventType::Escape)) {
                     // do nothing
                 } else if ((m_current != SlaSupports && m_current != BrimEars) || !gizmo_event(SLAGizmoEventType::DiscardChanges))
@@ -1152,7 +1166,11 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
             }
             break;
         }
-        //case WXK_BACK:
+        // The Mac Delete key is WXK_BACK. Leaving it unhandled lets the canvas
+        // delete the selection and close the gizmo instead of restarting the pick.
+#ifdef __APPLE__
+        case WXK_BACK:
+#endif
         case WXK_DELETE: {
             if ((m_current == Cut || m_current == Measure || m_current == Assembly || m_current == BrimEars) && gizmo_event(SLAGizmoEventType::Delete))
                 processed = true;
