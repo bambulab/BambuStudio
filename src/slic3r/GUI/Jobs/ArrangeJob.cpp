@@ -784,7 +784,13 @@ void ArrangeJob::prepare()
     Model::setPrintSpeedTable(config, print_config);
 
     int state = m_plater->get_prepare_state();
-    if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
+    if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT && m_plater->get_partplate_list().has_printer_groups()) {
+        // The plates are for different printers and the arrangement works with one bed size,
+        // so only the current plate is arranged.
+        only_on_partplate = true;
+        prepare_partplate();
+    }
+    else if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
         only_on_partplate = false;
         prepare_all();
     }

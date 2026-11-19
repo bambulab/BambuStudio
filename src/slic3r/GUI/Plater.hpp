@@ -880,6 +880,10 @@ public:
     void validate_current_plate(bool& model_fits, bool& validate_error);
     //BBS: select the plate by index
     int select_plate(int plate_index, bool need_slice = false);
+    // Gives a plate a printer group of its own (-1: the current plate), see PlateGroup.
+    void add_printer_group_for_plate(int plate_index = -1);
+    // Adds a plate with a printer group of its own.
+    void add_plate_for_another_printer();
     //BBS: update progress result
     void apply_background_progress();
     //BBS: select the plate by hover_id

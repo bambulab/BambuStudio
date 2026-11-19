@@ -84,6 +84,7 @@ class ParamsPanel : public wxPanel
         ScalableButton* m_process_icon{ nullptr };
         wxStaticText* m_title_label { nullptr };
         SwitchButton* m_mode_region { nullptr };
+        bool          m_printer_group_mode { false };
         ScalableButton *m_tips_arrow{nullptr};
         bool m_tips_arror_blink{false};
         wxStaticText* m_title_view { nullptr };
@@ -155,6 +156,8 @@ class ParamsPanel : public wxPanel
         bool is_active_and_shown_tab(wxPanel*tab);
         void update_mode();
         void msw_rescale();
+        // With printer groups the "global" process settings are the ones of the group of the current plate.
+        void set_printer_group_mode(bool grouped);
         void switch_to_global();
         void switch_to_object(bool with_tips = false);
 
