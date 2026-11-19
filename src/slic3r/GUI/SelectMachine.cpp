@@ -3921,7 +3921,7 @@ void SelectMachineDialog::on_refresh(wxCommandEvent &event)
 void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
 {
     auto selection_data = evt.GetString();
-    auto selection_data_arr = wxSplit(selection_data.ToStdString(), '|');
+    auto selection_data_arr = wxSplit(selection_data, '|');
 
     //BOOST_LOG_TRIVIAL(info) << "The ams mapping selection result: data is " << selection_data;
 
