@@ -11,7 +11,7 @@
 #include "MsgDialog.hpp"
 #include "DeviceErrorDialog.hpp"
 #include "Plater.hpp"
-#include "GUI_App.hpp"
+#include "AlertDialog.hpp"
 #include "ReleaseNote.hpp"
 #include <thread>
 #include <mutex>
@@ -1698,8 +1698,15 @@ int MachineObject::check_resume_condition()
     return 0;
 }
 
-int MachineObject::command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp, int new_temp, std::optional<int> extruder_id)
+int MachineObject::command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp, int new_temp, std::optional<int> extruder_id, bool temper_check)
 {
+    if (load && temper_check &&
+        !check_chamber_soft_temp(ChamberSoftTempAction::Load, {get_filament_id(ams_id, slot_id)}, [this, ams_id, slot_id, old_temp, new_temp, extruder_id]() {
+            command_ams_change_filament(true, ams_id, slot_id, old_temp, new_temp, extruder_id, false);
+        })) {
+        return 0;
+    }
+
     json j;
     try {
         auto tray_id = 0;
@@ -1709,6 +1716,11 @@ int MachineObject::command_ams_change_filament(bool load, std::string ams_id, st
 
         j["print"]["command"]     = "ams_change_filament";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+
+        if (!temper_check) {
+            j["print"]["temper_check"] = false;
+        }
+
         j["print"]["curr_temp"]   = old_temp;
         j["print"]["tar_temp"]    = new_temp;
         j["print"]["ams_id"]      = atoi(ams_id.c_str());
@@ -1738,11 +1750,21 @@ int MachineObject::command_ams_change_filament(bool load, std::string ams_id, st
     return this->publish_json(j);
 }
 
-int MachineObject::command_multi_slot_ams_change_filament(bool is_load, const std::vector<std::pair<int, int>>& slots)
+int MachineObject::command_multi_slot_ams_change_filament(bool is_load, const std::vector<std::pair<int, int>>& slots, bool temper_check)
 {
     if (slots.size() == 1) {
         const auto& [ams_id, slot_id] = slots.front();
-        return command_ams_change_filament(is_load, std::to_string(ams_id), std::to_string(slot_id));
+        return command_ams_change_filament(is_load, std::to_string(ams_id), std::to_string(slot_id), 210, 210, std::nullopt, temper_check);
+    }
+
+    if (is_load && temper_check) {
+        std::vector<std::string> filament_ids;
+        for (const auto& [ams_id, slot_id] : slots) {
+            filament_ids.push_back(get_filament_id(std::to_string(ams_id), std::to_string(slot_id)));
+        }
+        if (!check_chamber_soft_temp(ChamberSoftTempAction::Load, filament_ids, [this, slots]() { command_multi_slot_ams_change_filament(true, slots, false); })) {
+            return 0;
+        }
     }
 
     json j;
@@ -1750,6 +1772,9 @@ int MachineObject::command_multi_slot_ams_change_filament(bool is_load, const st
         j["print"]["command"]     = "multi_slot_ams_change_filament";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
         j["print"]["is_load"]     = is_load;
+        if (!temper_check) {
+            j["print"]["temper_check"] = false;
+        }
 
         json arr = json::array();
         for (const auto& [ams_id, slot_id] : slots) {
@@ -4067,6 +4092,63 @@ void MachineObject::set_ctt_dlg( wxString text){
         print_error_dlg->on_show();
 
     }
+}
+
+bool MachineObject::check_chamber_soft_temp(ChamberSoftTempAction action, const std::vector<std::string>& filament_ids, std::function<void()> resend)
+{
+    // Same rule as the send print check in SelectMachine: the chamber must stay 5 degrees below the softening
+    // temperature, and an unknown filament counts as 43, the lowest softening temperature of the known filaments
+    constexpr int SOFT_TEMP_MARGIN  = 5;
+    constexpr int UNKNOWN_SOFT_TEMP = 43;
+
+    const auto rack = GetNozzleRack();
+    if (!rack || !rack->IsDirectConnectedRack()) {
+        return true;
+    }
+
+    if (filament_ids.empty() || !m_chamber || !GUI::wxGetApp().preset_bundle) {
+        return true;
+    }
+
+    int soft_temp = std::numeric_limits<int>::max();
+    for (const std::string& filament_id : filament_ids) {
+        const auto filament = filament_id.empty() ? std::nullopt : GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(filament_id);
+        soft_temp           = std::min(soft_temp, filament ? filament->temperature_vitrification : UNKNOWN_SOFT_TEMP);
+    }
+
+    const int chamber_limit = soft_temp - SOFT_TEMP_MARGIN;
+    const int chamber_temp  = int(m_chamber->GetChamberTemp());
+    if (chamber_temp < chamber_limit) {
+        return true;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << KV(log_key::dev_id, get_dev_id()) << "chamber temperature " << chamber_temp << " reaches the filament limit " << chamber_limit << ", ask before sending";
+
+    // Ask after the caller returns: device page request handlers must not run a modal loop
+    const wxString text = wxString::Format(_L("The chamber temperature is too high, which may cause the filament to soften. Please wait until the chamber temperature drops below %d\u2103. You may open the front door or enable fans to cool down."), chamber_limit);
+    GUI::wxGetApp().CallAfter([this, token = get_token(), action, text, resend = std::move(resend)]() {
+        const auto can_continue = [this, &token]() {
+            if (token.expired() || GUI::wxGetApp().is_closing()) {
+                return false;
+            }
+            return m_manager->get_selected_machine() == this;
+        };
+
+        if (!can_continue()) {
+            return;
+        }
+
+        GUI::AlertDialog dlg(GUI::wxGetApp().mainframe, _L("Info"), text);
+        dlg.AddButton(wxID_CANCEL, _L("Close"));
+        dlg.AddButton(wxID_OK, action == ChamberSoftTempAction::TakeHotend ? _L("Continue taking") : _L("Continue loading"), GUI::AlertButtonRole::Primary);
+        if (dlg.ShowModal() != wxID_OK || !can_continue()) {
+            return;
+        }
+
+        BOOST_LOG_TRIVIAL(info) << KV(log_key::dev_id, get_dev_id()) << "send command without temper check";
+        resend();
+    });
+    return false;
 }
 
 int MachineObject::publish_gcode(std::string gcode_str)

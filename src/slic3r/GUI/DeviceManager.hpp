@@ -727,9 +727,12 @@ public:
     int check_resume_condition();
     // ams controls
     //int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
-    int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210, std::optional<int> extruder_id = std::nullopt);
+    int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210, std::optional<int> extruder_id = std::nullopt, bool temper_check = true);
 
-    int command_multi_slot_ams_change_filament(bool is_load, const std::vector<std::pair<int, int>>& slots);
+    int command_multi_slot_ams_change_filament(bool is_load, const std::vector<std::pair<int, int>>& slots, bool temper_check = true);
+    
+    enum class ChamberSoftTempAction { Load, TakeHotend };
+    bool check_chamber_soft_temp(ChamberSoftTempAction action, const std::vector<std::string>& filament_ids, std::function<void()> resend);
     int command_ams_user_settings(bool start_read_opt, bool tray_read_opt, bool remain_flag = false,
                                   std::optional<bool> filament_tab_auto_read_rfid = std::nullopt);
     int command_ams_switch_filament(bool switch_filament);
