@@ -66,6 +66,11 @@ import rackToolheadPlacingUrl from '../../../../../../../../../resources/images/
 import rackToolheadCutterUrl from '../../../../../../../../../resources/images/dev_rack_toolhead_cutter.png';
 import rackToolheadPenUrl from '../../../../../../../../../resources/images/dev_rack_toolhead_pen.png';
 import rackToolheadDefaultUrl from '../../../../../../../../../resources/images/dev_rack_toolhead.png';
+import rackToolheadClampedN11Url from '../../../../../../../../../resources/images/dev_rack_toolhead_clamped_n11.png';
+import rackToolheadClampedNoFilamentN11Url from '../../../../../../../../../resources/images/dev_rack_toolhead_clamped_no_filament_n11.png';
+import rackToolheadEmptyN11Url from '../../../../../../../../../resources/images/dev_rack_toolhead_unclamped_n11.png';
+import rackToolheadPickingN11Url from '../../../../../../../../../resources/images/dev_rack_toolhead_picking_n11.png';
+import rackToolheadPlacingN11Url from '../../../../../../../../../resources/images/dev_rack_toolhead_placing_n11.png';
 import './control-panel.css';
 
 const HOST_WIDTH_DIP = 586;
@@ -151,6 +156,23 @@ const rackToolheadVisualImages: Record<RackToolheadVisualState, string> = {
   cutter: icons.rackToolheadCutter,
   pen: icons.rackToolheadPen,
   default: icons.rackToolheadDefault,
+};
+
+// printers/*.json rack_extruder_images values. A new model picture must be imported above and listed here.
+const rackToolheadImageByName: Record<string, string> = {
+  'dev_rack_toolhead_unclamped.png': icons.rackToolheadEmpty,
+  'dev_rack_toolhead_clamped.png': icons.rackToolheadClamped,
+  'dev_rack_toolhead_clamped_no_filament.png': icons.rackToolheadClampedNoFilament,
+  'dev_rack_toolhead_picking.png': icons.rackToolheadPicking,
+  'dev_rack_toolhead_placing.png': icons.rackToolheadPlacing,
+  'dev_rack_toolhead_cutter.png': icons.rackToolheadCutter,
+  'dev_rack_toolhead_pen.png': icons.rackToolheadPen,
+  'dev_rack_toolhead.png': icons.rackToolheadDefault,
+  'dev_rack_toolhead_unclamped_n11.png': rackToolheadEmptyN11Url,
+  'dev_rack_toolhead_clamped_n11.png': rackToolheadClampedN11Url,
+  'dev_rack_toolhead_clamped_no_filament_n11.png': rackToolheadClampedNoFilamentN11Url,
+  'dev_rack_toolhead_picking_n11.png': rackToolheadPickingN11Url,
+  'dev_rack_toolhead_placing_n11.png': rackToolheadPlacingN11Url,
 };
 
 function useReportHostSize(ref: React.RefObject<HTMLDivElement | null>) {
@@ -795,12 +817,14 @@ function ToolheadVisual({
   upperFilamentColor,
   lowerFilamentColor,
   extruderStatus,
+  imageName,
   visualState,
 }: {
   showFilamentPath: boolean;
   upperFilamentColor: string;
   lowerFilamentColor: string;
   extruderStatus?: string;
+  imageName: string;
   visualState: RackToolheadVisualState;
 }) {
   const gradId = useId();
@@ -818,7 +842,7 @@ function ToolheadVisual({
     <div className="cp-toolhead-art">
       <img
         className="cp-rack-toolhead"
-        src={rackToolheadVisualImages[visualState]}
+        src={rackToolheadImageByName[imageName] || rackToolheadVisualImages[visualState]}
         alt=""
       />
       {showFilamentPath ? (
@@ -902,6 +926,7 @@ function SingleRackExtruderBody({
         upperFilamentColor={view.upper_filament_clr}
         lowerFilamentColor={view.lower_filament_clr}
         extruderStatus={view.extruder_status}
+        imageName={view.rack_toolhead_image}
         visualState={view.rack_toolhead_visual_state}
       />
 

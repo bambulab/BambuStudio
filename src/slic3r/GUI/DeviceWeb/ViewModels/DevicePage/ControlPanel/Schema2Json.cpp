@@ -188,6 +188,7 @@ void to_json(nlohmann::json& j, const SingleRackExtruderView& v)
         {"nozzle_flow_type", v.nozzle_flow_type},
         {"extruder_status", v.extruder_status},
         {"rack_toolhead_visual_state", v.rack_toolhead_visual_state},
+        {"rack_toolhead_image", v.rack_toolhead_image},
     };
 }
 

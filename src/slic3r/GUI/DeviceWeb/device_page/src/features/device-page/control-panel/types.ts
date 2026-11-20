@@ -177,6 +177,7 @@ export interface SingleRackExtruderView {
   nozzle_flow_type: string;
   extruder_status: ExtruderStatus;
   rack_toolhead_visual_state: RackToolheadVisualState;
+  rack_toolhead_image: string;
 }
 
 export interface ExtruderArea {

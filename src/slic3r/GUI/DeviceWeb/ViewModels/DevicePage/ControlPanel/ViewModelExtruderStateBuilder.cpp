@@ -96,6 +96,23 @@ std::string resolve_rack_visual_key(MachineObject* obj, const DevExtder& current
     return std::string(rack_extruder_visual_state_key(state));
 }
 
+// Same file the native rack panel loads. Printer json selects it per visual state.
+std::string resolve_rack_toolhead_image(MachineObject* obj, const std::optional<DevExtder>& current, const DevNozzleToolDefs& tool_defs)
+{
+    if (tool_defs.tool_type == DevNozzleToolType::Cut) {
+        return is_pen_tool(tool_defs) ? "dev_rack_toolhead_pen.png" : "dev_rack_toolhead_cutter.png";
+    }
+    if (tool_defs.tool_type != DevNozzleToolType::Nozzle &&
+        tool_defs.tool_type != DevNozzleToolType::None) {
+        return "dev_rack_toolhead.png";
+    }
+
+    const auto state = current ? resolve_rack_extruder_visual_state(obj, *current)
+                               : DevRackExtruderVisualState::Empty;
+    return obj ? DevPrinterConfigUtil::get_rack_extruder_img(obj->printer_type, state)
+               : std::string("dev_rack_toolhead.png");
+}
+
 std::string feeding_slot_color_hex(MachineObject* obj, const DevExtder& current)
 {
     if (!obj) return {};
@@ -194,6 +211,7 @@ void FillExtruderState(MachineObject* obj, Format::State& state)
             view.nozzle_flow_type = _u8L("Unclamped");
         }
 
+        view.rack_toolhead_image = resolve_rack_toolhead_image(obj, current, tool_defs);
         if (current) {
             view.has_filament = current->HasFilamentInExt();
             view.extruder_status = extruder_status(obj, *current);

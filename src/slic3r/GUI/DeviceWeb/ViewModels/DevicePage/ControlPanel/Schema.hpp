@@ -240,6 +240,8 @@ struct SingleRackExtruderView
     std::string        nozzle_flow_type;
     std::string        extruder_status = values::extruder_status::idle;
     std::string        rack_toolhead_visual_state = values::rack_toolhead_visual_state::empty;
+    // Resource file from printers/*.json rack_extruder_images. The web page draws this file.
+    std::string        rack_toolhead_image;
 };
 
 struct ExtruderArea

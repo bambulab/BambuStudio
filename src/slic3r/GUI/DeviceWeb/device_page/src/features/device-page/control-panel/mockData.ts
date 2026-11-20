@@ -146,6 +146,7 @@ export const mockControlPanelState: ControlPanelState = {
         nozzle_flow_type: 'Standard',
         extruder_status: 'loading',
         rack_toolhead_visual_state: 'picking',
+        rack_toolhead_image: 'dev_rack_toolhead_picking.png',
       },
     },
     rack: {

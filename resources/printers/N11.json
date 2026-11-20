@@ -99,13 +99,13 @@
 		"hotend_ams_image": "monitor_upgrade_rack_b_ams_png",
 		"drying_module_image": "monitor_upgrade_rack_b_drying",
 		"rack_extruder_images": {
-			"empty": "dev_rack_toolhead_unclamped.png",
-			"clamped": "dev_rack_toolhead_clamped.png",
-			"clamped_retracting": "dev_rack_toolhead_clamped.png",
-			"clamped_extruding": "dev_rack_toolhead_clamped.png",
-			"picking": "dev_rack_toolhead_picking.png",
-			"placing": "dev_rack_toolhead_placing.png",
-			"clamped_no_filament": "dev_rack_toolhead_clamped_no_filament.png"
+			"empty": "dev_rack_toolhead_unclamped_n11.png",
+			"clamped": "dev_rack_toolhead_clamped_n11.png",
+			"clamped_retracting": "dev_rack_toolhead_clamped_n11.png",
+			"clamped_extruding": "dev_rack_toolhead_clamped_n11.png",
+			"picking": "dev_rack_toolhead_picking_n11.png",
+			"placing": "dev_rack_toolhead_placing_n11.png",
+			"clamped_no_filament": "dev_rack_toolhead_clamped_no_filament_n11.png"
 		},
 		"use_ams_type": "generic",
 		"printer_arch": "core_xy",

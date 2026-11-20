@@ -318,6 +318,7 @@ function normalizeSingleRackExtruder(value: unknown): SingleRackExtruderView {
     nozzle_flow_type: nozzleFlowType,
     extruder_status: asExtruderStatus(raw.extruder_status),
     rack_toolhead_visual_state: visualState,
+    rack_toolhead_image: asString(raw.rack_toolhead_image),
   };
 }
 
