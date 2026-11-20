@@ -1048,7 +1048,9 @@ void DevNozzleSystemParser::sTraverseBindAmsSlot(DevNozzleSystem* system, DevNoz
 
         if (nozzle_obj.GetAddrId().has_value()) {
             // using the rack ams slot
-            if (nozzle_obj.GetNozzleFlowType() != NozzleFlowType::T_FLOW) {
+            if (rack->GetRackType() == DevNozzleRack::RackType_A && nozzle_obj.GetNozzleFlowType() == NozzleFlowType::T_FLOW) {
+                // Skip the AMS info with (rackA + TPU285 nozzle)
+            } else {
                 for (const auto& ams_item : ams_list) {
                     if (ams_item.second->GetSlotCount() == rack->GetTotalRackNozzleCount()) {
                         DevAmsSlotId ams_slot_id;
