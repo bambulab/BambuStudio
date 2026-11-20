@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-19 17:41+0800\n"
+"POT-Creation-Date: 2026-11-20 09:44+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -8659,6 +8659,17 @@ msgstr "Official Filaments"
 msgid "More Colors"
 msgstr ""
 
+#, c-format, boost-format
+msgid "External Spool %d"
+msgstr ""
+
+msgid "External Spool"
+msgstr "External Spool"
+
+#, c-format, boost-format
+msgid "Slot %d"
+msgstr ""
+
 msgid "Filament Manager"
 msgstr ""
 
@@ -8671,13 +8682,14 @@ msgstr ""
 msgid "Unsupported Filaments"
 msgstr ""
 
+msgid "Recently used"
+msgstr ""
+
 msgid "No filaments"
 msgstr "No filaments"
 
-msgid "slot"
-msgstr ""
-
-msgid "Recently used"
+#, c-format, boost-format
+msgid "Note: %s"
 msgstr ""
 
 msgid "Loading G-codes"
@@ -18574,34 +18586,14 @@ msgstr "0"
 msgid "Calculating, please wait..."
 msgstr ""
 
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
-"interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
-"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
-"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-
 msgid "Support interface speed"
 msgstr ""
 
 msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using %s to support %s, We recommend the following settings:"
 msgstr ""
 
 msgid "Do you want to apply these settings?"
@@ -18798,30 +18790,8 @@ msgid "Still print by object?"
 msgstr "Still print by object?"
 
 msgid ""
-"Non-soluble support materials are not recommended for support base. \n"
-"Are you sure to use them for support base? \n"
-msgstr ""
-
-msgid ""
-"When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use PLA for both support interface and support base"
-msgstr ""
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings automatically\n"
-"No  - Do not change these settings for me"
-msgstr ""
-"Change these settings automatically? \n"
-"Yes - Change these settings automatically.\n"
-"No  - Do not change these settings for me."
-
-#, c-format, boost-format
-msgid "When using %s to support %s, We recommend the following settings:"
-msgstr ""
-
-msgid "When using PLA to support TPU, We recommend the following settings:"
+"This filament is not recommended for support base. \n"
+"Are you sure to use it for support base? \n"
 msgstr ""
 
 msgid "When enabling ironing, We recommend the following settings:"
@@ -21005,6 +20975,15 @@ msgid ""
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
 
+#~ msgid ""
+#~ "Change these settings automatically? \n"
+#~ "Yes - Change these settings automatically\n"
+#~ "No  - Do not change these settings for me"
+#~ msgstr ""
+#~ "Change these settings automatically? \n"
+#~ "Yes - Change these settings automatically.\n"
+#~ "No  - Do not change these settings for me."
+
 #~ msgid "Bambu Cool Plate"
 #~ msgstr "Bambu Cool Plate"
 
@@ -21791,9 +21770,6 @@ msgstr ""
 #, boost-format
 #~ msgid "Copying directory %1% to %2% failed: %3%"
 #~ msgstr "Copying directory %1% to %2% failed: %3%"
-
-#~ msgid "External Spool"
-#~ msgstr "External Spool"
 
 #~ msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
 #~ msgstr "There are some unknown or incompatible filaments mapped to generic presets. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."

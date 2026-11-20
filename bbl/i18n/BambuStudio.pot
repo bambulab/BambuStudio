@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-19 17:41+0800\n"
+"POT-Creation-Date: 2026-11-20 09:44+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -8557,6 +8557,17 @@ msgstr ""
 msgid "More Colors"
 msgstr ""
 
+#, possible-c-format, possible-boost-format
+msgid "External Spool %d"
+msgstr ""
+
+msgid "External Spool"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Slot %d"
+msgstr ""
+
 msgid "Filament Manager"
 msgstr ""
 
@@ -8569,13 +8580,14 @@ msgstr ""
 msgid "Unsupported Filaments"
 msgstr ""
 
+msgid "Recently used"
+msgstr ""
+
 msgid "No filaments"
 msgstr ""
 
-msgid "slot"
-msgstr ""
-
-msgid "Recently used"
+#, possible-c-format, possible-boost-format
+msgid "Note: %s"
 msgstr ""
 
 msgid "Loading G-codes"
@@ -18407,34 +18419,14 @@ msgstr ""
 msgid "Calculating, please wait..."
 msgstr ""
 
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
-"interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
-"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
-"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-
 msgid "Support interface speed"
 msgstr ""
 
 msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "When using %s to support %s, We recommend the following settings:"
 msgstr ""
 
 msgid "Do you want to apply these settings?"
@@ -18631,27 +18623,8 @@ msgid "Still print by object?"
 msgstr ""
 
 msgid ""
-"Non-soluble support materials are not recommended for support base. \n"
-"Are you sure to use them for support base? \n"
-msgstr ""
-
-msgid ""
-"When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use PLA for both support interface and support base"
-msgstr ""
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings automatically\n"
-"No  - Do not change these settings for me"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "When using %s to support %s, We recommend the following settings:"
-msgstr ""
-
-msgid "When using PLA to support TPU, We recommend the following settings:"
+"This filament is not recommended for support base. \n"
+"Are you sure to use it for support base? \n"
 msgstr ""
 
 msgid "When enabling ironing, We recommend the following settings:"

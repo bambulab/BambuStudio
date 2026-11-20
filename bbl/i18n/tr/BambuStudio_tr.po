@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-19 17:41+0800\n"
+"POT-Creation-Date: 2026-11-20 09:44+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -8767,6 +8767,17 @@ msgstr "Resmi Filament"
 msgid "More Colors"
 msgstr "Daha Fazla Renk"
 
+#, c-format, boost-format
+msgid "External Spool %d"
+msgstr ""
+
+msgid "External Spool"
+msgstr "Harici Makara"
+
+#, c-format, boost-format
+msgid "Slot %d"
+msgstr ""
+
 msgid "Filament Manager"
 msgstr "Filament Yöneticisi"
 
@@ -8779,14 +8790,15 @@ msgstr "Filament ara"
 msgid "Unsupported Filaments"
 msgstr "Desteklenmeyen Filamentler"
 
+msgid "Recently used"
+msgstr "Son kullanılanlar"
+
 msgid "No filaments"
 msgstr "Filament yok"
 
-msgid "slot"
-msgstr "yuva"
-
-msgid "Recently used"
-msgstr "Son kullanılanlar"
+#, c-format, boost-format
+msgid "Note: %s"
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "G-kodları yükleniyor"
@@ -18863,43 +18875,15 @@ msgstr "0"
 msgid "Calculating, please wait..."
 msgstr "Hesaplanıyor, lütfen bekle..."
 
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
-"interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"Destek malzemesi olarak çözünebilir malzeme kullanırken aşağıdaki ayarları öneriyoruz:\n"
-"normal (otomatik) destek türü, 1 destek duvarı döngüsü, 0 üst Z mesafesi, 0 alt Z mesafesi, 0 arayüz aralığı, 0 destek/nesne XY mesafesi, Doğrusal İç İçe Geçmiş deseni; Bağımsız Destek Katmanı Yüksekliği ayarını devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın."
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
-"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"Destek malzemesi olarak çözünebilir malzeme kullanırken aşağıdaki ayarları öneriyoruz:\n"
-"normal (otomatik) destek türü, 1 destek duvarı döngüsü, 0 üst Z mesafesi, 0 arayüz aralığı, 0 destek/nesne XY mesafesi, Doğrusal İç İçe Geçmiş deseni; Bağımsız Destek Katmanı Yüksekliği ayarını devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
-"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"Destek malzemesi olarak çözünebilir malzeme kullanırken, aşağıdaki ayarları öneriyoruz:\n"
-"0 üst Z mesafesi, 0 alt Z mesafesi, 0 arayüz aralığı, 0 destek/nesne XY mesafesi, Doğrusal İç İçe Geçmiş deseni; Bağımsız Destek Katmanı Yüksekliği ayarını devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"Destek malzemesi olarak çözünebilir malzeme kullanırken, aşağıdaki ayarları öneriyoruz:\n"
-"0 üst Z mesafesi, 0 arayüz aralığı, 0 destek/nesne XY mesafesi, Doğrusal İç İçe Geçmiş deseni; Bağımsız Destek Katmanı Yüksekliği ayarını devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
-
 msgid "Support interface speed"
 msgstr "Destek arayüzü hızı"
 
 msgid "When using support material for the support interface, We recommend the following settings:"
 msgstr "Destek arayüzü için destek malzemesi kullanırken aşağıdaki ayarları öneriyoruz:"
+
+#, c-format, boost-format
+msgid "When using %s to support %s, We recommend the following settings:"
+msgstr "%s kullanılarak %s için destek oluşturulurken aşağıdaki ayarları öneriyoruz:"
 
 msgid "Do you want to apply these settings?"
 msgstr "Bu ayarları uygulamak istiyor musun?"
@@ -19097,35 +19081,9 @@ msgid "Still print by object?"
 msgstr "Yine de nesneye göre yazdırmak istiyor musun?"
 
 msgid ""
-"Non-soluble support materials are not recommended for support base. \n"
-"Are you sure to use them for support base? \n"
+"This filament is not recommended for support base. \n"
+"Are you sure to use it for support base? \n"
 msgstr ""
-"Çözünmeyen destek malzemeleri, destek tabanı olarak önerilmemektedir. \n"
-"Bunları destek tabanı için kullanmak istediğinden emin misin? \n"
-
-msgid ""
-"When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use PLA for both support interface and support base"
-msgstr ""
-"TPU için destek malzemesi olarak PLA kullanırken aşağıdaki ayarları öneriyoruz:\n"
-"0 Üst Z mesafesi, 0 arayüz aralığı, 0 destek/nesne XY mesafesi, Doğrusal İç İçe Geçmiş deseni; Bağımsız Destek Katmanı Yüksekliğini devre dışı bırak ve hem destek arayüzü hem de destek tabanı için PLA kullan."
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings automatically\n"
-"No  - Do not change these settings for me"
-msgstr ""
-"Bu ayarlar otomatik olarak değiştirilsin mi? \n"
-"Evet - Bu ayarları otomatik olarak değiştir\n"
-"Hayır - Bu ayarları benim için değiştirme"
-
-#, c-format, boost-format
-msgid "When using %s to support %s, We recommend the following settings:"
-msgstr "%s kullanılarak %s için destek oluşturulurken aşağıdaki ayarları öneriyoruz:"
-
-msgid "When using PLA to support TPU, We recommend the following settings:"
-msgstr "TPU için destek malzemesi olarak PLA kullanırken aşağıdaki ayarları öneriyoruz:"
 
 msgid "When enabling ironing, We recommend the following settings:"
 msgstr "Ütüleme özelliğini etkinleştirirken aşağıdaki ayarları öneriyoruz:"
@@ -21349,6 +21307,68 @@ msgstr ""
 "İlk Seferde Başarı Güvenilirliği\n"
 "Daha az gözetim, daha öngörülebilir sonuçlar. Örnek: PETG parçaları üreten küçük bir yazıcı çiftliği, \"6. saatte baskının başarısız olması\" gibi sürprizlerden kaçınır ve partileri programa uygun şekilde tamamlar."
 
+#~ msgid "slot"
+#~ msgstr "yuva"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
+#~ "interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Destek malzemesi olarak çözünebilir malzeme kullanırken aşağıdaki ayarları öneriyoruz:\n"
+#~ "normal (otomatik) destek türü, 1 destek duvarı döngüsü, 0 üst Z mesafesi, 0 alt Z mesafesi, 0 arayüz aralığı, 0 destek/nesne XY mesafesi, Doğrusal İç İçe Geçmiş deseni; Bağımsız Destek Katmanı Yüksekliği ayarını devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın."
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+#~ "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Destek malzemesi olarak çözünebilir malzeme kullanırken aşağıdaki ayarları öneriyoruz:\n"
+#~ "normal (otomatik) destek türü, 1 destek duvarı döngüsü, 0 üst Z mesafesi, 0 arayüz aralığı, 0 destek/nesne XY mesafesi, Doğrusal İç İçe Geçmiş deseni; Bağımsız Destek Katmanı Yüksekliği ayarını devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+#~ "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Destek malzemesi olarak çözünebilir malzeme kullanırken, aşağıdaki ayarları öneriyoruz:\n"
+#~ "0 üst Z mesafesi, 0 alt Z mesafesi, 0 arayüz aralığı, 0 destek/nesne XY mesafesi, Doğrusal İç İçe Geçmiş deseni; Bağımsız Destek Katmanı Yüksekliği ayarını devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Destek malzemesi olarak çözünebilir malzeme kullanırken, aşağıdaki ayarları öneriyoruz:\n"
+#~ "0 üst Z mesafesi, 0 arayüz aralığı, 0 destek/nesne XY mesafesi, Doğrusal İç İçe Geçmiş deseni; Bağımsız Destek Katmanı Yüksekliği ayarını devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
+
+#~ msgid ""
+#~ "Non-soluble support materials are not recommended for support base. \n"
+#~ "Are you sure to use them for support base? \n"
+#~ msgstr ""
+#~ "Çözünmeyen destek malzemeleri, destek tabanı olarak önerilmemektedir. \n"
+#~ "Bunları destek tabanı için kullanmak istediğinden emin misin? \n"
+
+#~ msgid ""
+#~ "When using PLA to support TPU, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use PLA for both support interface and support base"
+#~ msgstr ""
+#~ "TPU için destek malzemesi olarak PLA kullanırken aşağıdaki ayarları öneriyoruz:\n"
+#~ "0 Üst Z mesafesi, 0 arayüz aralığı, 0 destek/nesne XY mesafesi, Doğrusal İç İçe Geçmiş deseni; Bağımsız Destek Katmanı Yüksekliğini devre dışı bırak ve hem destek arayüzü hem de destek tabanı için PLA kullan."
+
+#~ msgid ""
+#~ "Change these settings automatically? \n"
+#~ "Yes - Change these settings automatically\n"
+#~ "No  - Do not change these settings for me"
+#~ msgstr ""
+#~ "Bu ayarlar otomatik olarak değiştirilsin mi? \n"
+#~ "Evet - Bu ayarları otomatik olarak değiştir\n"
+#~ "Hayır - Bu ayarları benim için değiştirme"
+
+#~ msgid "When using PLA to support TPU, We recommend the following settings:"
+#~ msgstr "TPU için destek malzemesi olarak PLA kullanırken aşağıdaki ayarları öneriyoruz:"
+
 #~ msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
 #~ msgstr "Farklı püskürtme ucu çapları ve Prime kulesi kullanılarak yazdırma deneyseldir. Prime kulesi, çapları eşleşmeyen püskürtme uçlarıyla düzgün çalışmayabilir."
 
@@ -23559,9 +23579,6 @@ msgstr ""
 
 #~ msgid "If you want to have tighter or looser assemble, you can set this value."
 #~ msgstr "Daha sıkı veya daha gevşek bir montaja sahip olmak istiyorsanız, bu değeri ayarlayabilirsiniz."
-
-#~ msgid "External Spool"
-#~ msgstr "Harici Makara"
 
 #, c-format, boost-format
 #~ msgid ""

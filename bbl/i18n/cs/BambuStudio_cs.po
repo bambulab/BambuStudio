@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-19 17:41+0800\n"
+"POT-Creation-Date: 2026-11-20 09:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -8825,6 +8825,17 @@ msgstr "Oficiální filament"
 msgid "More Colors"
 msgstr "Více barev"
 
+#, c-format, boost-format
+msgid "External Spool %d"
+msgstr ""
+
+msgid "External Spool"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Slot %d"
+msgstr ""
+
 msgid "Filament Manager"
 msgstr "Filament Manager"
 
@@ -8837,13 +8848,14 @@ msgstr ""
 msgid "Unsupported Filaments"
 msgstr ""
 
+msgid "Recently used"
+msgstr ""
+
 msgid "No filaments"
 msgstr ""
 
-msgid "slot"
-msgstr ""
-
-msgid "Recently used"
+#, c-format, boost-format
+msgid "Note: %s"
 msgstr ""
 
 msgid "Loading G-codes"
@@ -18893,35 +18905,15 @@ msgstr "0"
 msgid "Calculating, please wait..."
 msgstr "Probíhá výpočet, čekejte prosím..."
 
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
-"interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
-"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
-"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr "Při použití rozpustného materiálu pro podpěru doporučujeme následující nastavení: 0 horní vzdálenost v ose z, 0 rozestup rozhraní, 0 vzdálenost podpěra/objekt v ose xy, prokládaný pravoúhlý vzor, vypnout nezávislou výšku vrstvy podpěry a použít rozpustné materiály jak pro rozhraní podpěry, tak pro základnu podpěry"
-
 msgid "Support interface speed"
 msgstr "Rychlost rozhraní podpěr"
 
 msgid "When using support material for the support interface, We recommend the following settings:"
 msgstr "Při použití materiálu pro podpěry na rozhraní podpěr doporučujeme následující nastavení:"
+
+#, c-format, boost-format
+msgid "When using %s to support %s, We recommend the following settings:"
+msgstr "Při použití %s pro podpěru %s doporučujeme následující nastavení:"
 
 msgid "Do you want to apply these settings?"
 msgstr "Chcete použít tato nastavení?"
@@ -19117,37 +19109,9 @@ msgid "Still print by object?"
 msgstr "Chcete pokračovat v tisku podle objektu?"
 
 msgid ""
-"Non-soluble support materials are not recommended for support base. \n"
-"Are you sure to use them for support base? \n"
+"This filament is not recommended for support base. \n"
+"Are you sure to use it for support base? \n"
 msgstr ""
-"Nerozpustné podpůrné materiály se pro základnu podpěr nedoporučují. \n"
-"Opravdu je chcete použít pro základnu podpěr? \n"
-"Nerozpustné podpůrné materiály nejsou doporučeny pro základ podpěry. \n"
-"Opravdu je chcete použít jako základ podpěry? \n"
-
-msgid ""
-"When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use PLA for both support interface and support base"
-msgstr "Při použití PLA jako podpěry pro TPU doporučujeme následující nastavení: 0 horní vzdálenost v ose z, 0 rozestup rozhraní, 0 vzdálenost podpěra/objekt v ose xy, prokládaný pravoúhlý vzor, vypnout nezávislou výšku vrstvy podpěry a použít PLA jak pro rozhraní podpěry, tak pro základnu podpěry"
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings automatically\n"
-"No  - Do not change these settings for me"
-msgstr ""
-"Změnit tato nastavení automaticky? \n"
-"Ano - Tato nastavení změnit automaticky\n"
-"Ne  - Tato nastavení za mě neměnitZměnit tato nastavení automaticky? \n"
-"Ano – změnit tato nastavení automaticky\n"
-"Ne – neměnit tato nastavení za mě"
-
-#, c-format, boost-format
-msgid "When using %s to support %s, We recommend the following settings:"
-msgstr "Při použití %s pro podpěru %s doporučujeme následující nastavení:"
-
-msgid "When using PLA to support TPU, We recommend the following settings:"
-msgstr "Při použití PLA pro podpěru TPU doporučujeme následující nastavení:"
 
 msgid "When enabling ironing, We recommend the following settings:"
 msgstr ""
@@ -21420,6 +21384,41 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr "Při použití rozpustného materiálu pro podpěru doporučujeme následující nastavení: 0 horní vzdálenost v ose z, 0 rozestup rozhraní, 0 vzdálenost podpěra/objekt v ose xy, prokládaný pravoúhlý vzor, vypnout nezávislou výšku vrstvy podpěry a použít rozpustné materiály jak pro rozhraní podpěry, tak pro základnu podpěry"
+
+#~ msgid ""
+#~ "Non-soluble support materials are not recommended for support base. \n"
+#~ "Are you sure to use them for support base? \n"
+#~ msgstr ""
+#~ "Nerozpustné podpůrné materiály se pro základnu podpěr nedoporučují. \n"
+#~ "Opravdu je chcete použít pro základnu podpěr? \n"
+#~ "Nerozpustné podpůrné materiály nejsou doporučeny pro základ podpěry. \n"
+#~ "Opravdu je chcete použít jako základ podpěry? \n"
+
+#~ msgid ""
+#~ "When using PLA to support TPU, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use PLA for both support interface and support base"
+#~ msgstr "Při použití PLA jako podpěry pro TPU doporučujeme následující nastavení: 0 horní vzdálenost v ose z, 0 rozestup rozhraní, 0 vzdálenost podpěra/objekt v ose xy, prokládaný pravoúhlý vzor, vypnout nezávislou výšku vrstvy podpěry a použít PLA jak pro rozhraní podpěry, tak pro základnu podpěry"
+
+#~ msgid ""
+#~ "Change these settings automatically? \n"
+#~ "Yes - Change these settings automatically\n"
+#~ "No  - Do not change these settings for me"
+#~ msgstr ""
+#~ "Změnit tato nastavení automaticky? \n"
+#~ "Ano - Tato nastavení změnit automaticky\n"
+#~ "Ne  - Tato nastavení za mě neměnitZměnit tato nastavení automaticky? \n"
+#~ "Ano – změnit tato nastavení automaticky\n"
+#~ "Ne – neměnit tato nastavení za mě"
+
+#~ msgid "When using PLA to support TPU, We recommend the following settings:"
+#~ msgstr "Při použití PLA pro podpěru TPU doporučujeme následující nastavení:"
 
 #~ msgid "Filament Grouping"
 #~ msgstr "Seskupení filamentů"

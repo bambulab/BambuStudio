@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-19 17:41+0800\n"
+"POT-Creation-Date: 2026-11-20 09:44+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -8760,6 +8760,17 @@ msgstr "官方材料"
 msgid "More Colors"
 msgstr "其他颜色"
 
+#, c-format, boost-format
+msgid "External Spool %d"
+msgstr ""
+
+msgid "External Spool"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Slot %d"
+msgstr ""
+
 msgid "Filament Manager"
 msgstr "耗材管理"
 
@@ -8772,29 +8783,15 @@ msgstr "搜索耗材"
 msgid "Unsupported Filaments"
 msgstr "不支持的耗材"
 
-msgid "No filaments"
-msgstr "无耗材"
-
-msgid "slot"
-msgstr "槽"
-
 msgid "Recently used"
 msgstr "最近使用"
 
+msgid "No filaments"
+msgstr "无耗材"
+
 #, c-format, boost-format
 msgid "Note: %s"
-msgstr "备注：%s"
-
-msgid "External Spool"
-msgstr "外挂料"
-
-#, c-format, boost-format
-msgid "External Spool %d"
-msgstr "外挂料 %d"
-
-#, c-format, boost-format
-msgid "Slot %d"
-msgstr "第%d槽"
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "正在加载G-code"
@@ -8896,7 +8893,7 @@ msgid "Color Scheme"
 msgstr "颜色方案"
 
 msgid "Less"
-msgstr ""
+msgstr "精简"
 
 msgid "Details"
 msgstr "详情"
@@ -9005,30 +9002,30 @@ msgstr "切换到普通模式"
 
 #, boost-format
 msgid "save %1%g more filament and %2% more filament changes"
-msgstr ""
+msgstr "可多节省 %1%g 耗材和 %2% 次换料"
 
 #, boost-format
 msgid "save %1%g more filament but add %2% filament changes"
-msgstr ""
+msgstr "可多节省 %1%g 耗材但是增加 %2% 次换料"
 
 #, boost-format
 msgid "save %2% more filament changes but use %1%g more filament"
-msgstr ""
+msgstr "可节省 %2% 次换料，但会多用 %1%g 耗材"
 
 msgid "Tips: Current grouping of slice result is not optimal. With the optimal grouping, "
-msgstr ""
+msgstr "提示：当前材料分组不是最优结果。如果使用最优分组"
 
 #, boost-format
 msgid "save %1%g filament and %2% filament changes."
-msgstr ""
+msgstr "可节省 %1%g 耗材和 %2% 次换料。"
 
 #, boost-format
 msgid "save %1%g filament but add %2% filament changes."
-msgstr ""
+msgstr "可节省 %1%g 耗材，但增加 %2% 次换料。"
 
 #, boost-format
 msgid "save %2% filament changes but use %1%g more filament."
-msgstr ""
+msgstr "可节省 %2% 耗材更换次数，但会多用 %1%g 耗材。"
 
 msgid "Compared to a printer with one nozzle, "
 msgstr ""
@@ -14387,7 +14384,7 @@ msgid "Jump to: Support on build plate only"
 msgstr "跳转到：支撑-仅打印板生成"
 
 msgid "Jump to: Sparse infill acceleration"
-msgstr ""
+msgstr "跳转至：稀疏填充加速度"
 
 msgid "Export successfully."
 msgstr "导出成功。"
@@ -18828,43 +18825,15 @@ msgstr "0"
 msgid "Calculating, please wait..."
 msgstr "计算中，请等待..."
 
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
-"interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
-"普通 (自动) 支撑类型，1 支撑墙层数，0 顶部 Z 距离，0 底部 Z 距离，0 接触面间距，0 支撑/模型 XY 距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
-"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
-"普通 (自动) 支撑类型，1 支撑墙层数，0 顶部 Z 距离，0 接触面间距，0 支撑/模型 XY 间距，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
-"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
-"0 顶部 Z 距离，0 底部 Z 距离，0 接触面间距，0 支撑/模型 XY 距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
-"0 顶部 Z 距离，0 接触面间距，0 支撑/模型 XY 距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
-
 msgid "Support interface speed"
 msgstr "支撑面速度"
 
 msgid "When using support material for the support interface, We recommend the following settings:"
 msgstr "当使用支撑材料作为支撑接触面时，我们推荐配置以下参数："
+
+#, c-format, boost-format
+msgid "When using %s to support %s, We recommend the following settings:"
+msgstr "当使用%s作为支撑料支撑%s时，我们推荐配置以下参数："
 
 msgid "Do you want to apply these settings?"
 msgstr "是否应用这些配置？"
@@ -19062,35 +19031,9 @@ msgid "Still print by object?"
 msgstr "仍然按对象打印吗？"
 
 msgid ""
-"Non-soluble support materials are not recommended for support base. \n"
-"Are you sure to use them for support base? \n"
+"This filament is not recommended for support base. \n"
+"Are you sure to use it for support base? \n"
 msgstr ""
-"不建议将非可溶性支撑材料用作支撑主体。 \n"
-"您确定要用它们作为支撑主体吗？ \n"
-
-msgid ""
-"When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use PLA for both support interface and support base"
-msgstr ""
-"当使用PLA作为支撑材料支撑TPU时，我们推荐以下设置：\n"
-"0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将PLA同时用于支撑接触面和支撑主体"
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings automatically\n"
-"No  - Do not change these settings for me"
-msgstr ""
-"自动调整这些设置？\n"
-"是 - 自动调整这些设置\n"
-"否 - 不用为我调整这些设置"
-
-#, c-format, boost-format
-msgid "When using %s to support %s, We recommend the following settings:"
-msgstr "当使用%s作为支撑料支撑%s时，我们推荐配置以下参数："
-
-msgid "When using PLA to support TPU, We recommend the following settings:"
-msgstr "当使用PLA作为支撑材料支撑TPU时，我们推荐配置以下参数："
 
 msgid "When enabling ironing, We recommend the following settings:"
 msgstr "启用熨烫功能时，我们推荐配置以下参数："
@@ -21305,6 +21248,68 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "slot"
+#~ msgstr "槽"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
+#~ "interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
+#~ "普通 (自动) 支撑类型，1 支撑墙层数，0 顶部 Z 距离，0 底部 Z 距离，0 接触面间距，0 支撑/模型 XY 距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+#~ "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
+#~ "普通 (自动) 支撑类型，1 支撑墙层数，0 顶部 Z 距离，0 接触面间距，0 支撑/模型 XY 间距，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+#~ "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
+#~ "0 顶部 Z 距离，0 底部 Z 距离，0 接触面间距，0 支撑/模型 XY 距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
+#~ "0 顶部 Z 距离，0 接触面间距，0 支撑/模型 XY 距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
+
+#~ msgid ""
+#~ "Non-soluble support materials are not recommended for support base. \n"
+#~ "Are you sure to use them for support base? \n"
+#~ msgstr ""
+#~ "不建议将非可溶性支撑材料用作支撑主体。 \n"
+#~ "您确定要用它们作为支撑主体吗？ \n"
+
+#~ msgid ""
+#~ "When using PLA to support TPU, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use PLA for both support interface and support base"
+#~ msgstr ""
+#~ "当使用PLA作为支撑材料支撑TPU时，我们推荐以下设置：\n"
+#~ "0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将PLA同时用于支撑接触面和支撑主体"
+
+#~ msgid ""
+#~ "Change these settings automatically? \n"
+#~ "Yes - Change these settings automatically\n"
+#~ "No  - Do not change these settings for me"
+#~ msgstr ""
+#~ "自动调整这些设置？\n"
+#~ "是 - 自动调整这些设置\n"
+#~ "否 - 不用为我调整这些设置"
+
+#~ msgid "When using PLA to support TPU, We recommend the following settings:"
+#~ msgstr "当使用PLA作为支撑材料支撑TPU时，我们推荐配置以下参数："
 
 #~ msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
 #~ msgstr "使用不同喷嘴直径并启用擦料塔属于实验性功能。喷嘴尺寸不匹配时，擦料塔可能无法正常工作。"
