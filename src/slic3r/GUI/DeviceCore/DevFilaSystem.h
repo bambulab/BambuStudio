@@ -59,6 +59,7 @@ public:
     std::string              id;
     std::string              ams_id; // same as id if it's EXT_SPOOL
     DevAmsType               ams_type = DevAmsType::EXT_SPOOL;
+    DevAmsType               real_ams_type = DevAmsType::EXT_SPOOL;
     std::string              tag_uid;             // tag_uid
     std::string              setting_id;          // tray_info_idx
     std::string              filament_setting_id; // setting_id

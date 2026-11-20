@@ -357,15 +357,17 @@ DevAmsSlotId DevAmsTray::get_ams_slot_id() const
 
 long long DevAmsTray::get_tray_flag_bit() const {
     auto ams_slot_id = get_ams_slot_id();
-    if (ams_type == DevAmsType::AMS || ams_type == DevAmsType::AMS_LITE || ams_type == DevAmsType::N3F) {
+    // Uses real_ams_type (unfolded), not ams_type: AMS_LITE_MIXED's ams_id is a
+    // sentinel, not a dense index, and would overflow the *4 formula below.
+    if (real_ams_type == DevAmsType::AMS || real_ams_type == DevAmsType::AMS_LITE || real_ams_type == DevAmsType::N3F) {
         return ams_slot_id.first * 4 + ams_slot_id.second;
-    } else if (ams_type == DevAmsType::N3S) {
+    } else if (real_ams_type == DevAmsType::N3S) {
         return 16 + (ams_slot_id.first - 128) + ams_slot_id.second;
-    } else if (ams_type == DevAmsType::AMS_LITE_MIXED) {
+    } else if (real_ams_type == DevAmsType::AMS_LITE_MIXED) {
         return 24 + ams_slot_id.second;
-    } else if (ams_type == DevAmsType::ZMULTI_A) {
+    } else if (real_ams_type == DevAmsType::ZMULTI_A) {
         return 28 + ams_slot_id.second;
-    } else if (ams_type == DevAmsType::ZMULTI_B) {
+    } else if (real_ams_type == DevAmsType::ZMULTI_B) {
         return 37 + ams_slot_id.second;
     }
 
@@ -1676,6 +1678,7 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
 
     curr_tray->ams_id = curr_ams->GetAmsId();
     curr_tray->ams_type = curr_ams->GetAmsType();
+    curr_tray->real_ams_type = curr_ams->m_ams_type;
     curr_tray->current_extruder_id = curr_ams->GetCurrentExtruderId();
     curr_tray->binded_extruder_set = curr_ams->GetBindedExtruderSet();
     curr_tray->binded_switcher_pos = curr_ams->GetSwitcherPos();
