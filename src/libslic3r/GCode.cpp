@@ -7565,10 +7565,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             acceleration = std::min(acceleration, desiredMaxAcc);
         m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
 
-        // Up to 40% of the default acceleration these patterns stay quiet enough.
+        // Below 10000 mm/s^2 these sparse infill patterns stay quiet enough.
         const InfillPattern pattern = m_config.sparse_infill_pattern.value;
         if (path.role() == erInternalInfill && (pattern == ip3DHoneycomb || pattern == ipHoneycomb || pattern == ipGyroid) &&
-            acceleration > 0.4 * NOZZLE_CONFIG(default_acceleration) + EPSILON)
+            acceleration >= 10000.0 - EPSILON)
             m_has_high_accel_noise_infill = true;
     }
 

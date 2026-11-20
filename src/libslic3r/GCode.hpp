@@ -639,7 +639,7 @@ private:
     std::set<unsigned int>              m_nozzle_temp_transition_done;
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
-    // Some sparse infill was emitted with a noisy pattern above the quiet acceleration ratio.
+    // Some sparse infill was emitted with a noisy pattern at or above the high-acceleration noise threshold.
     bool                                m_has_high_accel_noise_infill = false;
     //BBS
     bool m_enable_label_object;
