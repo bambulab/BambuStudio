@@ -142,7 +142,9 @@ NozzleInfoCardView::NozzleInfoCardView(wxWindow *parent, std::function<void(wxWi
     auto *edit = new IconView(this, "edit", EDIT_ICON_D);
     edit->SetCursor(wxCursor(wxCURSOR_HAND));
     edit->SetToolTip(_L("Edit nozzle"));
-    edit->Bind(wxEVT_LEFT_UP, [edit, on_edit](wxMouseEvent &) { on_edit(edit); });
+    // On the press, not the release: on macOS a click outside the open menu is taken by its mouse
+    // capture, so cocoa never sees that press and hands the release to this icon, which reopened it.
+    edit->Bind(wxEVT_LEFT_DOWN, [edit, on_edit](wxMouseEvent &) { on_edit(edit); });
     header->Add(edit, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
     header->AddStretchSpacer();
 
