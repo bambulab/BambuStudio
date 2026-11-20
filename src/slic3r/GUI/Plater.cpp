@@ -5083,7 +5083,7 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     // still resolve close to Grey300. The filament row itself (filament_item, a few
     // frames up) is explicitly white, so match that instead.
     StateColor nozzle_label_bg(std::make_pair(ThemeColor::Grey300, (int) StateColor::Hovered),
-                               std::make_pair(*wxWHITE, (int) StateColor::Normal));
+                               std::make_pair(ThemeColor::Grey300, (int) StateColor::Normal));
     // StateColor treats a Focused state as if it were Hovered when no explicit
     // entry matches (see StateColor::colorForStates), so once this button keeps
     // keyboard focus after being clicked to open the popup, it would otherwise
@@ -5385,8 +5385,10 @@ void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
     // so the selector must stay hidden even on such hardware until the user opts in.
     const bool nozzle_selector_supported = filament_nozzle_chip_supported();
     label->Show(nozzle_selector_supported);
+    // The divider used to mark where the chip's own hover-only background began; now that the
+    // chip always shows its background, that boundary is visible without a line in between.
     if (divider != nullptr)
-        divider->Show(nozzle_selector_supported);
+        divider->Hide();
     if (!nozzle_selector_supported) {
         // The incompatibility icon above may still need to be shown/positioned even though the
         // diameter badge itself stays hidden (e.g. single-diameter-mode machines) -- let
@@ -9333,7 +9335,7 @@ void Sidebar::update_incompatible_nozzle_notifications()
                                slot_list(unsupported)));
     const std::string missing_text = missing.slots.empty() ? std::string() :
         into_u8(per_slot_nozzles
-            ? wxString::Format(_L("Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."),
+            ? wxString::Format(_L("Filament %s uses a %s nozzle, which is not available on this printer. Add it or select an available nozzle."),
                                slot_list(missing), nozzle_list(missing))
             : wxString::Format(_L("Filament %s has no nozzle in the nozzle settings that fits it. Please add that nozzle type before use."),
                                slot_list(missing)));

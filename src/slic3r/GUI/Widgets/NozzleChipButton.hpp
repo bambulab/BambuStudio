@@ -37,6 +37,10 @@ private:
     // Horizontal padding gives the hover fill some room around the glyphs; the vertical inset
     // keeps that fill from touching the row's border.
     wxSize   m_padding;
+    // Drawn manually (rather than via Button::SetIcon()) because this class's own EVT_PAINT
+    // entry is matched ahead of Button's in the event table, so Button::render() -- the only
+    // place that would otherwise paint active_icon -- never runs.
+    ScalableBitmap m_drop_icon;
 
     DECLARE_EVENT_TABLE()
 };

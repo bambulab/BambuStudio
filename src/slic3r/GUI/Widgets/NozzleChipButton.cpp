@@ -12,6 +12,7 @@ END_EVENT_TABLE()
 NozzleChipButton::NozzleChipButton(wxWindow *parent)
     : Button(parent, wxEmptyString, "", wxBORDER_NONE)
     , m_padding(FromDIP(6), FromDIP(2))
+    , m_drop_icon(this, "drop_down", 10)
 {}
 
 void NozzleChipButton::SetChipTexts(const wxString &diameter, const wxString &type, bool type_smaller)
@@ -39,8 +40,10 @@ void NozzleChipButton::updateMinSize()
     dc.SetFont(typeFont());
     const wxSize type_extent = m_type.IsEmpty() ? wxSize(0, 0) : dc.GetTextExtent(m_type);
     const int    spacing     = (!m_diameter.IsEmpty() && !m_type.IsEmpty()) ? FromDIP(3) : 0;
-    const int    content_w   = diameter_extent.GetWidth() + spacing + type_extent.GetWidth();
-    const int    content_h   = std::max(diameter_extent.GetHeight(), type_extent.GetHeight());
+    const wxSize icon_size   = m_drop_icon.GetBmpSize();
+    const int    icon_gap    = icon_size.GetWidth() > 0 ? FromDIP(2) : 0;
+    const int    content_w   = diameter_extent.GetWidth() + spacing + type_extent.GetWidth() + icon_gap + icon_size.GetWidth();
+    const int    content_h   = std::max({diameter_extent.GetHeight(), type_extent.GetHeight(), icon_size.GetHeight()});
     SetMinSize(wxSize(content_w + m_padding.GetWidth() * 2, content_h + m_padding.GetHeight() * 2));
 }
 
@@ -69,7 +72,9 @@ void NozzleChipButton::paintEvent(wxPaintEvent & /*evt*/)
     if (!m_type.IsEmpty())
         dc.GetTextExtent(m_type, &type_w, &type_h, &type_descent);
     const int spacing   = (!m_diameter.IsEmpty() && !m_type.IsEmpty()) ? FromDIP(3) : 0;
-    const int content_w = diameter_w + spacing + type_w;
+    const wxSize icon_size = m_drop_icon.GetBmpSize();
+    const int    icon_gap  = icon_size.GetWidth() > 0 ? FromDIP(2) : 0;
+    const int    content_w = diameter_w + spacing + type_w + icon_gap + icon_size.GetWidth();
 
     const wxSize size = GetSize();
     const int    tall_h       = std::max<int>(diameter_h, type_h);
@@ -86,5 +91,11 @@ void NozzleChipButton::paintEvent(wxPaintEvent & /*evt*/)
     if (!m_type.IsEmpty()) {
         dc.SetFont(typeFont());
         dc.DrawText(m_type, x, baseline - (type_h - type_descent));
+        x += type_w;
+    }
+    if (icon_size.GetWidth() > 0 && m_drop_icon.bmp().IsOk()) {
+        x += icon_gap;
+        const int icon_y = (size.GetHeight() - icon_size.GetHeight()) / 2;
+        dc.DrawBitmap(m_drop_icon.bmp(), x, icon_y);
     }
 }
